@@ -23,7 +23,7 @@
 // feature nobody asked for and a refusal that sticks for good.
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, EmptyState, SectionTitle } from './ui';
+import { Button, EmptyState, SectionTitle, useTooltip } from './ui';
 import { navBase, navInactive, NavLabel } from './Sidebar';
 import { Tabs, type TabDef } from './Tabs';
 import { useT, type TranslationKey } from '../lib/i18n';
@@ -69,6 +69,14 @@ const FAMILY_LABEL: Record<EventFamily, TranslationKey> = {
  */
 function EventRow({ event, onJump }: { event: LoggedEvent; onJump: (target: EventSubject) => void }) {
   const { t } = useT();
+  // The house bubble, not the native `title` this row used to carry. One
+  // control, one tooltip mechanism: the panel this row sits in already shows
+  // the app's own bubble on its title badge, so a row underneath it drawing
+  // the operating system's box instead reads as a rendering fault rather than
+  // as a second style. Always called, Rules of Hooks; a row with nowhere to
+  // jump never spreads the props and stays as inert as before.
+  const tip = useTooltip<HTMLButtonElement>(t('events.jump'));
+  const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
   const body = (
     <>
       <span className="glim-num shrink-0 text-[11px] leading-5 text-carbon-textMuted">
@@ -86,9 +94,23 @@ function EventRow({ event, onJump }: { event: LoggedEvent; onJump: (target: Even
   const target = event.target;
   if (!target) return <div className={shared}>{body}</div>;
   return (
-    <button type="button" title={t('events.jump')} onClick={() => onJump(target)} className={`${shared} hover:bg-carbon-hover`}>
-      {body}
-    </button>
+    <>
+      <button
+        type="button"
+        // No aria-label: the row's own visible text (the clock and the
+        // message) is its accessible name, and a label here would replace
+        // that with the three words of the tip. The bubble reaches assistive
+        // tech through the hook's own aria-describedby instead, which is what
+        // that attribute is for - a description beside a name, not instead of
+        // one.
+        {...tipHoverProps}
+        onClick={() => onJump(target)}
+        className={`${shared} hover:bg-carbon-hover`}
+      >
+        {body}
+      </button>
+      {tip.node}
+    </>
   );
 }
 
@@ -223,6 +245,12 @@ export function EventBell() {
   // aria-live="polite", so a third announcement would read every event twice
   // and then count out loud after it.
   const spoken = unread > 0 ? `${name} (${t('events.unread', { n: unread })})` : t('events.open');
+  // The house bubble instead of the browser's own box, and NOT in hover mode:
+  // there the row reveals its own words under the pointer, and a bubble saying
+  // the same thing on top of them is the same information twice. The rail's
+  // links next door follow the identical rule - see Sidebar.tsx's Item.
+  const tip = useTooltip<HTMLButtonElement>(mode === 'hover' ? undefined : spoken);
+  const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
 
   return (
     <div ref={wrapRef} className="relative">
@@ -230,8 +258,8 @@ export function EventBell() {
         type="button"
         aria-haspopup="dialog"
         aria-expanded={open}
-        title={spoken}
         aria-label={centred || unread > 0 ? spoken : undefined}
+        {...(mode === 'hover' ? {} : tipHoverProps)}
         onClick={() => setEventsPanelOpen(!open)}
         // Not an Item: it navigates nowhere. It is still a row in the same rail
         // and follows the same four label modes, and text-start is here for the
@@ -257,6 +285,7 @@ export function EventBell() {
           </span>
         )}
       </button>
+      {tip.node}
 
       {open && (
         <div
@@ -281,8 +310,9 @@ export function EventBell() {
           )}
 
           {/* The scroll lives on this INNER box and never on the card: the
-              section badge above sits at `absolute -top-[11px]`, and an
-              overflow on its positioning box shears the top half of it off.
+              section badge above straddles the card's own top edge (`top-0`
+              plus a self-relative `-translate-y-1/2`), and an overflow on its
+              positioning box shears the half that hangs over it off.
               tabIndex={-1} because focus needs somewhere to land - the ring
               drops its oldest entry at three hundred, and if that entry is the
               row somebody had focused, its node unmounts and focus falls to

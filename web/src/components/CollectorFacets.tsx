@@ -20,7 +20,7 @@ import { useCallback, useMemo } from 'react';
 import type { Task } from '../lib/api';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { Button, Card, SectionTitle } from './ui';
-import { hostOf } from './columns';
+import { Tip, hostOf } from './columns';
 import { IconCheck } from '../lib/icons';
 
 // New UI text for this wave, kept out of en.ts on purpose: the locale files are
@@ -185,7 +185,9 @@ function FacetRow({
       role="checkbox"
       aria-checked={checked}
       onClick={onToggle}
-      className="flex w-full items-center gap-2 rounded-[var(--radius-control)] px-1.5 py-1 text-start text-[12.5px]
+      // text-xs is the scale's dense row, which is what a list row takes. It
+      // was 12.5px, a step the four-row table (20/14/12/11) does not have.
+      className="flex w-full items-center gap-2 rounded-[var(--radius-control)] px-1.5 py-1 text-start text-xs
         text-carbon-textSub transition-colors hover:bg-carbon-hover"
     >
       <span
@@ -196,9 +198,13 @@ function FacetRow({
       >
         <IconCheck width={12} height={12} />
       </span>
-      <span className="min-w-0 flex-1 truncate" title={label}>
+      {/* A host or a package name is cut to the panel's width, so the whole of
+          it belongs one hover away - in the house bubble, never as a native
+          `title=` and the operating system's own balloon beside the app's own
+          (see columns.tsx's `Tip`). */}
+      <Tip tip={label} className="min-w-0 flex-1 truncate">
         {label}
-      </span>
+      </Tip>
       <span className="glim-num shrink-0 text-[11px] text-carbon-textMuted">{count}</span>
     </button>
   );

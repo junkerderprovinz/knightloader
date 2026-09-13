@@ -3,9 +3,9 @@ import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import type { Task } from '../api/types';
 import TaskRow from './TaskRow';
 import DragList, { type DragRow } from './DragList';
-import IconBadge, { Trash } from './IconBadge';
+import IconBadge, { Folder, Trash } from './IconBadge';
 import { useAppearance } from '../theme/AppearanceContext';
-import { TYPE } from '../theme/tokens';
+import { NUM, TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
 import { fmtBytes } from '../api/stats';
 
@@ -279,7 +279,28 @@ export default function PackageList({
       onReorder={applyOrder}
       contentContainerStyle={styles.list}
       header={header}
-      empty={<Text style={[styles.empty, { color: c.textMuted }]}>{empty}</Text>}
+      /**
+       * A list with nothing in it gets a DELIBERATE empty state, not blank
+       * space: a card, a muted glyph at reduced opacity, a muted title.
+       *
+       * It was one muted sentence floating in the middle of an otherwise empty
+       * screen, which reads as a screen that failed to load rather than as a
+       * screen with nothing on it yet - and this is the main list of the app,
+       * so it is the first thing a new install shows anybody. The card is what
+       * makes it look answered; the folder is what says WHAT would be here.
+       *
+       * The sentence itself is the caller's, because what "empty" means
+       * differs between the two tabs - nothing queued against nothing
+       * collected - and the shape is identical either way.
+       */
+      empty={
+        <View style={[styles.empty, { backgroundColor: c.surface, borderRadius: radii.card }]}>
+          <View style={styles.emptyGlyph}>
+            <Folder color={c.textMuted} size={44} />
+          </View>
+          <Text style={[styles.emptyText, { color: c.textMuted }]}>{empty}</Text>
+        </View>
+      }
     />
   );
 }
@@ -307,7 +328,16 @@ const styles = StyleSheet.create({
   headerTop: { flexDirection: 'row', alignItems: 'center', gap: 8, minWidth: 0 },
   chevron: { fontSize: 17, lineHeight: 20, width: 12, textAlign: 'center' },
   chevronOpen: { transform: [{ rotate: '90deg' }] },
-  headerName: { fontSize: 15, fontWeight: '600', flexShrink: 1 },
-  headerLine: { fontSize: TYPE.caption, marginStart: 20 },
-  empty: { textAlign: 'center', marginTop: 40, fontSize: TYPE.body },
+  // Body, off the table. 15 is not a step of the scale, and one 15 beside the
+  // 14s around it is how a four-step scale grows a fifth step nobody chose.
+  headerName: { fontSize: TYPE.body, fontWeight: '600', flexShrink: 1 },
+  // Tabular figures: a file count, a size and a live speed, in a line repeated
+  // once per folder down the screen.
+  headerLine: { fontSize: TYPE.caption, marginStart: 20, ...NUM },
+  empty: { marginTop: 40, paddingVertical: 32, paddingHorizontal: 24, alignItems: 'center', gap: 12 },
+  // The reduced opacity sits on the GLYPH and not on the card, so the words
+  // under it stay at full strength: opacity applies to a whole subtree and a
+  // child cannot be less transparent than its parent.
+  emptyGlyph: { opacity: 0.45 },
+  emptyText: { textAlign: 'center', fontSize: TYPE.body },
 });

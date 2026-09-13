@@ -38,15 +38,22 @@ export interface VolumeSeries {
 // The box the plot is drawn IN, not the size it is drawn AT. The svg scales
 // itself to whatever width the card hands it, UNIFORMLY - which is the one
 // place this parts company with SpeedGraph's preserveAspectRatio="none". That
-// chart carries no text; this one carries its scale inside the frame, and a
-// stretched viewBox stretches the letters with it.
+// chart carries no text; this one still carries the two ends of its abscissa
+// inside the frame, and a stretched viewBox stretches the letters with it.
 const W = 620;
 const H = 210;
 // The room the outermost labels need, which is all these four numbers are.
-// The ordinate is right-aligned into the left gutter and the abscissa sits in
-// the bottom band, so a label at either end of either scale is inside the
-// viewBox rather than half-clipped by it.
-const PAD_L = 62;
+// The abscissa sits in the bottom band, so a label at either end of it is
+// inside the viewBox rather than half-clipped by it.
+//
+// PAD_L IS PAD_R, and that is the rule rather than a coincidence: an axis label
+// never gets a column of its own. This used to be 62 of 620 units, a tenth of
+// the card handed to three right-aligned numbers, so the plot started well
+// inside the heading above it and read as narrower than everything else in the
+// card - which is exactly how that drawing gets reported. The ordinate is
+// printed ABOVE the plot now, one line of height, the same place SpeedGraph
+// puts its own ceiling.
+const PAD_L = 8;
 const PAD_R = 8;
 const PAD_T = 10;
 const PAD_B = 24;
@@ -87,16 +94,10 @@ export function VolumeGraph({
   const peak = Math.max(0, ...totals);
 
   // ONE scale, and everything on the chart comes out of it: the bar heights,
-  // the tick lines and the words beside them. Two scales is how a chart ends up
-  // with a label that names a level no mark sits on.
+  // the axis the bars stand on and the figure printed above them. Two scales is
+  // how a chart ends up with a label that names a level no bar reaches.
   const scale = peak > 0 ? peak : 1;
   const y = (v: number) => PAD_T + PLOT_H - (v / scale) * PLOT_H;
-
-  // Every label names a value the chart actually reaches: the top is the
-  // tallest bucket (so the top edge of the box means something), the middle is
-  // half of it, the foot is zero. An empty window keeps the foot alone - three
-  // ticks all reading "0 GB" would be a scale pretending to have a range.
-  const ticks = peak > 0 ? [1, 0.5, 0] : [0];
 
   const slot = n > 0 ? PLOT_W / n : PLOT_W;
   const barW = Math.min(slot * 0.72, BAR_MAX);
@@ -120,6 +121,17 @@ export function VolumeGraph({
 
   return (
     <div className="flex flex-col gap-3">
+      {/* The ordinate, on its own line above the plot. One value and not three:
+          the top of the scale is the tallest bucket, which is what the top edge
+          of the box means, and the foot is zero by definition. Printed in every
+          state, empty window included - a number a state can take away is not
+          part of the chart.
+
+          The half-way mark and its level line went with the gutter. Both were
+          gridlines across the drawing, and a chart here has none: the bars are
+          the reading, the baseline is the axis, and the number above says what
+          the tallest of them is worth. */}
+      <span className="glim-num self-end text-[11px] leading-none text-carbon-textMuted">{fmtGB(peak)}</span>
       <svg
         viewBox={`0 0 ${W} ${H}`}
         className="block h-auto w-full"
@@ -127,41 +139,19 @@ export function VolumeGraph({
         aria-label={label}
         focusable="false"
       >
-        {ticks.map((f) => {
-          const at = y(peak * f);
-          return (
-            <g key={f}>
-              {/* The foot is the axis and reads as one; the levels above it are
-                  a guide and stay behind the bars. Same --carbon-border ink
-                  SpeedGraph's idle hairline uses, so the two charts have one
-                  furniture colour between them in both themes. */}
-              <line
-                x1={PAD_L}
-                y1={at}
-                x2={W - PAD_R}
-                y2={at}
-                stroke="var(--carbon-border)"
-                strokeWidth="1"
-                strokeOpacity={f === 0 ? 1 : 0.45}
-                vectorEffect="non-scaling-stroke"
-              />
-              {/* fill, not a Tailwind text colour: this is SVG, and the token is
-                  the same one the muted ink outside the frame resolves to, so
-                  the scale reads in the light theme and the dark one without a
-                  second definition anywhere. */}
-              <text
-                x={PAD_L - 8}
-                y={at}
-                textAnchor="end"
-                dominantBaseline="middle"
-                fontSize="11"
-                fill="var(--carbon-text-muted)"
-              >
-                {fmtGB(peak * f)}
-              </text>
-            </g>
-          );
-        })}
+        {/* The foot, and nothing above it. It is the axis the bars stand on and
+            reads as one, in the same --carbon-border ink SpeedGraph's idle
+            hairline uses, so the two charts have one furniture colour between
+            them in both themes. */}
+        <line
+          x1={PAD_L}
+          y1={y(0)}
+          x2={W - PAD_R}
+          y2={y(0)}
+          stroke="var(--carbon-border)"
+          strokeWidth="1"
+          vectorEffect="non-scaling-stroke"
+        />
 
         {labels.map((lab, i) => {
           // Bottom-up, so the biggest band sits on the axis and the eye has a

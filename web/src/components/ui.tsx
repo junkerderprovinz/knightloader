@@ -1,7 +1,7 @@
 // Primitives of the GlimStone design language. Everything is expressed through the
 // shared tokens in index.css, so a sibling app inherits the look by adopting
 // that file — see the comment block there.
-import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { ButtonHTMLAttributes, CSSProperties, InputHTMLAttributes, ReactNode, RefObject } from 'react';
 import { hueVars, rainbowAt } from '../lib/appearance';
@@ -73,11 +73,12 @@ const kindClass: Record<ButtonKind, string> = {
  * which is the call site's `items-center`, not something this component can do
  * for it.
  *
- * One square is still short: `Swatch` is 28px, and so are the four hand-built
- * squares in pages/settings/Look.tsx that were deliberately matched to it. The
- * language says the badge sets that size and a colour swatch follows it, so the
- * 28 is wrong - but moving this one alone would split the row it sits in, which
- * is the same defect one step sideways. It moves when they move, in one edit.
+ * The square that was still short is gone with the component that carried it.
+ * This paragraph used to say `Swatch` was 28px, that the four hand-built squares
+ * in pages/settings/Look.tsx were deliberately matched to it, and that it would
+ * move when they moved, in one edit. They have moved, to --btn-h, and the edit
+ * turned out not to reach this file at all: nothing imports Swatch or SwatchRow
+ * any more, because that page built its own. See the note where they used to be.
  */
 const BTN_H = 'h-[var(--btn-h)]';
 const BTN_SQUARE = 'h-[var(--btn-h)] w-[var(--btn-h)]';
@@ -347,15 +348,31 @@ export function LabelBadge({
  * `hue` opts a badge into the rainbow palette the same way Button and
  * SectionTitle already do (jdp: "Bitte alle quadratischen badges in die
  * farbengine aufnehmen. Die icons sollen keine farbe haben sondern nur der
- * badge selbst") — but via `.glim-tint-badge`, not `.glim-hue` +
- * `.glim-hue-icon`: a badge is a compact, isolated square with no
- * checked/active state of its own to read `--accent` through (unlike a
- * Button, which paints its whole fill with `bg-accent`), so it needs the
- * stronger at-rest wash index.css's own doc comment on `.glim-tint-badge`
- * describes for exactly this case. Deliberately NOT `.glim-hue-icon`: that
- * class colours the glyph itself, which is the one thing this request asks
- * to keep neutral — only the tile takes the hue, the icon stays
- * `currentColor` from `iconBadgeClass` regardless.
+ * badge selbst") — and WHICH class carries it depends on whether this badge
+ * has a state of its own to read `--accent` through:
+ *
+ *   no `active`  `.glim-tint-badge`, the stronger at-rest wash index.css's own
+ *                doc comment describes for exactly this case. A one-shot
+ *                action badge is a compact, isolated square that never
+ *                becomes anything, so without a wash it would show no colour
+ *                at all.
+ *   `active`     `.glim-hue` ALONE, unconditionally, and no tint class of any
+ *                kind ("an icon-only TOGGLE badge carries ONLY `.glim-hue`").
+ *                At rest it shows nothing; pressed it fills solid with its
+ *                own position colour, because `.glim-hue` has already
+ *                rebound `--accent` for the subtree. That is the whole
+ *                reason the class has to be unconditional rather than added
+ *                while checked - added late there would be no `--accent` for
+ *                the fill to resolve at the moment it is needed. The wash was
+ *                tried on this exact control twice and rejected both times
+ *                ("die iconbadges sollen nicht eingefärbt sein und erst wenn
+ *                man sie klickt. diese halb abgedunkelt eingefärbt sein
+ *                gefällt mir nicht").
+ *
+ * Deliberately NOT `.glim-hue-icon` in either case: that class colours the
+ * glyph itself, which is the one thing this request asks to keep neutral —
+ * only the tile takes the hue, the icon stays `currentColor` from
+ * `iconBadgeClass` regardless.
  */
 export function IconBadge({
   icon,
@@ -378,19 +395,19 @@ export function IconBadge({
    * site in the app (a one-shot action has no pressed state to report), so
    * `aria-pressed` is only ever rendered where a caller opts in — an action
    * button staying a plain button, not silently becoming a toggle button
-   * for assistive tech everywhere else this component is already used. A
-   * halo ring in the tile's own current colour, not a Button-style
-   * `bg-accent` fill: the doc comment above already covers why a fill would
-   * cost the tile its own hue, and this app's own rule against border lines
-   * (Swatch below uses the identical halo) rules out a plain border too.
+   * for assistive tech everywhere else this component is already used.
    *
-   * The halo is drawn 2px of page ground and THEN 4px of colour, which is the
-   * one shape that works: both rings used to be 2px, and two box-shadows at the
-   * same spread land on the same rectangle with the first painted over the
-   * second - so the ring somebody was meant to see was covered by the ground
-   * ring in front of it, and an engaged filter looked exactly like an idle one.
-   * Nothing failed; there was simply no ring. Swatch had the right numbers all
-   * along, which is what the comment claiming they were "identical" was reading.
+   * ENGAGED IS A FULL FILL, NOT A HALO, and the halo that stood here is the
+   * reason this prop also decides the hue class above. A ring in the tile's
+   * own current colour was argued for on the grounds that a fill would cost
+   * the tile its own hue - it does not: `.glim-hue` rebinds `--accent` for
+   * this element, so `bg-accent` on the pressed state IS the position colour
+   * and nothing is lost. What the halo actually produced was the idle look the
+   * language rules out by name, a 50%-wash tile at rest with a ring on top of
+   * it, and it took two rounds of rejection before the wash came off. Pressed
+   * fills (`bg-accent`/`text-accentContrast`, plus `.glim-active` so reactive
+   * mode keeps the colour on the one badge that is on), idle is the plain
+   * neutral tile every other badge rests as.
    */
   active?: boolean;
   /**
@@ -443,6 +460,13 @@ export function IconBadge({
   quiet?: boolean;
 } & ButtonHTMLAttributes<HTMLButtonElement>) {
   const hued = hue !== undefined;
+  // A badge that REPORTS a checked state is a toggle, and a toggle is coloured
+  // by its own state rather than by a wash - see this component's doc comment.
+  // `active !== undefined` rather than `active`, because the two kinds have to
+  // stay the same badge in both of its states: keyed on the truthy value, an
+  // idle filter would wear the one-shot action's wash and only stop wearing it
+  // once pressed, which is the half-darkened at-rest look this rule removed.
+  const toggle = active !== undefined;
   // Always called (Rules of Hooks); what it returns only matters where a
   // caller opted in and gave a title to show.
   const labelMode = useNavLabels();
@@ -488,8 +512,8 @@ export function IconBadge({
           transition duration-150 select-none disabled:opacity-35 disabled:pointer-events-none
           motion-safe:active:scale-[.98]
           ${showText ? `px-2.5 text-xs font-medium ${GLYPH_20}` : `w-[var(--btn-h)] ${GLYPH_16}`}
-          ${hued ? 'glim-tint-badge' : ''} ${iconBadgeClass} ${quiet ? 'glim-badge-quiet' : ''}
-          ${active ? 'shadow-[0_0_0_2px_var(--carbon-bg),0_0_0_4px_currentColor]' : ''} ${className}`}
+          ${hued ? (toggle ? 'glim-hue' : 'glim-tint-badge') : ''} ${quiet ? 'glim-badge-quiet' : ''}
+          ${toggle && active ? 'glim-active bg-accent text-accentContrast hover:opacity-90' : iconBadgeClass} ${className}`}
         style={hued ? { ...(hueVars(rainbowAt(hue)) as CSSProperties), ...style } : style}
         // The name a glyph-only badge would otherwise not have: `title` is
         // pulled out of the props for the bubble and never reaches the DOM, so
@@ -655,43 +679,46 @@ export function InfoBubble({
    */
   onColor?: boolean;
 }) {
-  const [at, setAt] = useState<{ left: number; top?: number; bottom?: number } | null>(null);
+  const [shown, setShown] = useState(false);
+  const [at, setAt] = useState<{ left: number; top: number } | null>(null);
   const ref = useRef<HTMLSpanElement>(null);
+  const bubble = useRef<HTMLSpanElement>(null);
 
-  // Same clamp/flip math as useTooltip's own `place()` below (GlimStone
-  // 1.2.0: "the tooltip/info-bubble viewport-clip fix" - this one had been
-  // missed when useTooltip first got it, so an InfoBubble opened near an
-  // edge - a card's own bottom-right corner, the last item in a short
-  // viewport - could render partly or fully off-screen with nothing to pull
-  // it back in). Horizontally clamped against the WORST-CASE (max) width
-  // rather than a measured one - cheaper than a second-pass measure for a
-  // small read-only panel, and only ever errs towards more margin, never
-  // towards clipping. Vertically flipped by the viewport's bottom edge
-  // rather than a measured height, since nothing has rendered yet to
-  // measure at the moment this runs.
-  function open() {
+  // The same measure-then-place pass useTooltip's own `place()` below makes,
+  // out of the one shared function so the two cannot drift: both call sites of
+  // this bubble in this app went through the identical clip bug once already.
+  // A layout effect rather than the mouse handler, because the size being
+  // measured is the bubble's REAL rendered one, which does not exist until it
+  // has been put in the document - and it has to be read before the browser
+  // paints, or the bubble is visibly in the wrong place for one frame.
+  useLayoutEffect(() => {
+    if (!shown) {
+      setAt(null);
+      return;
+    }
     const r = ref.current?.getBoundingClientRect();
-    if (!r) return;
-    const margin = 12;
-    const half = TOOLTIP_MAX_WIDTH / 2;
-    const left = Math.min(Math.max(r.left + r.width / 2, margin + half), window.innerWidth - margin - half);
-    if (r.bottom + TOOLTIP_EST_HEIGHT <= window.innerHeight) setAt({ left, top: r.bottom + 8 });
-    else setAt({ left, bottom: window.innerHeight - r.top + 8 });
-  }
+    const el = bubble.current;
+    if (!r || !el) return;
+    setAt(placeBubble(r, el.offsetWidth, el.offsetHeight));
+  }, [shown]);
 
   // Escape closes it, because a bubble opened by keyboard has to be closable by
-  // keyboard without moving focus somewhere else first.
+  // keyboard without moving focus somewhere else first. A pointerdown anywhere
+  // closes it too: a press means somebody is acting rather than reading.
   useEffect(() => {
-    if (!at) return;
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setAt(null);
-    const onScroll = () => setAt(null); // a measured position goes stale the moment the page moves
+    if (!shown) return;
+    const close = () => setShown(false);
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && close();
+    const onScroll = () => close(); // a measured position goes stale the moment the page moves
     window.addEventListener('keydown', onKey);
     window.addEventListener('scroll', onScroll, true);
+    document.addEventListener('pointerdown', close, true);
     return () => {
       window.removeEventListener('keydown', onKey);
       window.removeEventListener('scroll', onScroll, true);
+      document.removeEventListener('pointerdown', close, true);
     };
-  }, [at]);
+  }, [shown]);
 
   return (
     <>
@@ -700,10 +727,10 @@ export function InfoBubble({
         role="note"
         tabIndex={0}
         aria-label={label ?? (typeof tip === 'string' ? tip : undefined)}
-        onMouseEnter={open}
-        onMouseLeave={() => setAt(null)}
-        onFocus={open}
-        onBlur={() => setAt(null)}
+        onMouseEnter={() => setShown(true)}
+        onMouseLeave={() => setShown(false)}
+        onFocus={() => setShown(true)}
+        onBlur={() => setShown(false)}
         className={`glim-info ms-1.5 inline-flex h-[15px] w-[15px] shrink-0 cursor-help items-center
           justify-center rounded-[var(--radius-pill)] align-middle transition-opacity ${
             onColor
@@ -717,13 +744,23 @@ export function InfoBubble({
           <rect x="7.05" y="6.8" width="1.9" height="5" rx=".95" fill="currentColor" />
         </svg>
       </span>
-      {at &&
+      {shown &&
         createPortal(
           <span
+            ref={bubble}
             role="tooltip"
             dir="auto"
             className="glim-bubble glim-fade"
-            style={{ left: at.left, top: at.top, bottom: at.bottom, maxWidth: TOOLTIP_MAX_WIDTH }}
+            // Hidden, not unrendered, for the one frame between mounting and
+            // being measured: `visibility` still lays the bubble out, which is
+            // what there is to measure, and it keeps the unplaced first frame
+            // off the screen instead of flashing it at the top-left corner.
+            style={{
+              left: at?.left ?? 0,
+              top: at?.top ?? 0,
+              visibility: at ? undefined : 'hidden',
+              maxWidth: TOOLTIP_MAX_WIDTH,
+            }}
           >
             {tip}
           </span>,
@@ -743,13 +780,39 @@ export function InfoBubble({
 const TOOLTIP_MAX_WIDTH = 320;
 
 /**
- * Tall enough for the biggest tooltip this build opens. It only decides
- * which side of the trigger the bubble opens on (see useTooltip below), so
- * guessing high costs nothing and guessing low clips the bottom of one
- * opened near the edge of the screen - the one direction worth being
- * generous in.
+ * WHERE A BUBBLE GOES. Never even partly clipped by the viewport, and that is
+ * a requirement rather than a preference: a bubble rendering one pixel past an
+ * edge has failed at the one thing it is for.
+ *
+ * The two numbers it is given are the bubble's REAL rendered width and height,
+ * measured after it is in the document. Both call sites used to pass a
+ * constant instead - a flat 320px "tall enough for the biggest tooltip this
+ * build opens" - and the constant is the defect the rule names by hand: the
+ * height depends on how many lines the tip wraps to, so a guess is wrong in
+ * both directions at once. Too small and a long tip hangs off the bottom; too
+ * large and a short one flips above a trigger that had room below it all along.
+ *
+ * Clamp, THEN flip, with an 8px margin, ported from the shared engine
+ * (glimstone/reference/tooltip.ts's own `show()`) pixel for pixel rather than
+ * re-derived. `left` is the bubble's CENTRE, because `.glim-bubble` carries
+ * `transform: translateX(-50%)` - and `width: max-content` on that same class
+ * is what makes measuring legitimate at all: without it a `position: fixed`
+ * box with only `left` set resizes itself in response to the very `left` this
+ * computes.
+ *
+ * Flips ABOVE only when opening below would clip the bottom edge AND there is
+ * genuinely room up there. The `else` branch this replaces flipped
+ * unconditionally, so a trigger near the top of a short window traded a
+ * clipped bottom for a clipped top.
  */
-const TOOLTIP_EST_HEIGHT = 320;
+function placeBubble(r: DOMRect, w: number, h: number): { left: number; top: number } {
+  const vw = document.documentElement.clientWidth || window.innerWidth;
+  const vh = document.documentElement.clientHeight || window.innerHeight;
+  const cx = r.left + r.width / 2;
+  const left = Math.max(8 + w / 2, Math.min(vw - 8 - w / 2, cx));
+  const above = r.bottom + 8 + h > vh && r.top - 8 - h >= 0;
+  return { left, top: above ? r.top - 8 - h : r.bottom + 8 };
+}
 
 /** How long a hover has to hold still before the bubble opens. */
 const TOOLTIP_DELAY_MS = 400;
@@ -792,45 +855,48 @@ export interface TooltipHandle<T extends HTMLElement> {
  * What it keeps from InfoBubble on purpose, because the same failure would
  * only repeat itself otherwise: rendered through a portal into <body>, so a
  * table's own `overflow-x-auto` cannot clip it the way it would clip
- * anything positioned inside the scrolling table itself; Escape and a
- * scroll both close it, because a position measured off the trigger goes
- * stale the moment the page moves under it.
+ * anything positioned inside the scrolling table itself; Escape, a scroll and
+ * a pointerdown all close it, because a position measured off the trigger goes
+ * stale the moment the page moves under it and because a press means somebody
+ * is acting rather than reading.
  */
 export function useTooltip<T extends HTMLElement = HTMLElement>(content: ReactNode): TooltipHandle<T> {
   const id = useId();
   const ref = useRef<T>(null);
-  const [at, setAt] = useState<{ left: number; top?: number; bottom?: number } | null>(null);
+  const bubble = useRef<HTMLSpanElement>(null);
+  const [shown, setShown] = useState(false);
+  const [at, setAt] = useState<{ left: number; top: number } | null>(null);
   const openTimer = useRef<number | undefined>(undefined);
 
-  const place = useCallback(() => {
+  // Measured, then placed - see placeBubble above for why the constant this
+  // used to guess the height with could not be right in both directions at
+  // once. The measurement has to happen in a layout effect: the bubble has no
+  // rendered size until it is in the document, and reading it any later than
+  // this would show one painted frame in the wrong place.
+  useLayoutEffect(() => {
+    if (!shown) {
+      setAt(null);
+      return;
+    }
     const r = ref.current?.getBoundingClientRect();
-    if (!r) return;
-    const margin = 12;
-    const half = TOOLTIP_MAX_WIDTH / 2;
-    // Clamped by the worst-case (max) width rather than a measured one.
-    // ColumnMenu clamps a real measured size, in a second pass after its own
-    // first render — worth doing for a dense clickable menu, more machinery
-    // than a small read-only panel needs to just not run off the screen. So
-    // the trigger's own centre is used unless that would carry the WIDEST
-    // possible bubble off either edge, which only ever makes this err
-    // towards more margin than strictly necessary, never towards clipping.
-    const left = Math.min(Math.max(r.left + r.width / 2, margin + half), window.innerWidth - margin - half);
-    if (r.bottom + TOOLTIP_EST_HEIGHT <= window.innerHeight) setAt({ left, top: r.bottom + 8 });
-    // Flipped by the viewport's BOTTOM edge rather than by a measured
-    // height: the content has not rendered yet at the moment this runs, so
-    // there is nothing to measure, and pinning the bubble's own bottom edge
-    // needs none.
-    else setAt({ left, bottom: window.innerHeight - r.top + 8 });
-  }, []);
+    const el = bubble.current;
+    if (!r || !el) return;
+    setAt(placeBubble(r, el.offsetWidth, el.offsetHeight));
+  }, [shown]);
 
   const open = useCallback(() => {
     window.clearTimeout(openTimer.current);
-    openTimer.current = window.setTimeout(place, TOOLTIP_DELAY_MS);
-  }, [place]);
+    openTimer.current = window.setTimeout(() => setShown(true), TOOLTIP_DELAY_MS);
+  }, []);
+
+  const show = useCallback(() => {
+    window.clearTimeout(openTimer.current);
+    setShown(true);
+  }, []);
 
   const close = useCallback(() => {
     window.clearTimeout(openTimer.current);
-    setAt(null);
+    setShown(false);
   }, []);
 
   // Unmounting mid-hold must not fire the timer into a row that is gone - the
@@ -839,16 +905,21 @@ export function useTooltip<T extends HTMLElement = HTMLElement>(content: ReactNo
   useEffect(() => () => window.clearTimeout(openTimer.current), []);
 
   useEffect(() => {
-    if (!at) return;
+    if (!shown) return;
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && close();
     const onScroll = () => close(); // a measured position goes stale the moment the page moves
     window.addEventListener('keydown', onKey);
     window.addEventListener('scroll', onScroll, true);
+    // A press means the person is acting, not reading - the same third
+    // dismissal the shared engine has, and the one both bubbles here were
+    // missing, so a click on the trigger left its own tip standing over it.
+    document.addEventListener('pointerdown', close, true);
     return () => {
       window.removeEventListener('keydown', onKey);
       window.removeEventListener('scroll', onScroll, true);
+      document.removeEventListener('pointerdown', close, true);
     };
-  }, [at, close]);
+  }, [shown, close]);
 
   return {
     triggerProps: {
@@ -866,19 +937,28 @@ export function useTooltip<T extends HTMLElement = HTMLElement>(content: ReactNo
       // Focus opens at once rather than after the hold: a keyboard user has
       // already arrived on purpose, and the delay exists only to filter a
       // POINTER passing through on its way somewhere else.
-      onFocus: place,
+      onFocus: show,
       onBlur: close,
-      'aria-describedby': at ? id : undefined,
+      'aria-describedby': shown ? id : undefined,
     },
     node:
-      at && content
+      shown && content
         ? createPortal(
             <span
+              ref={bubble}
               id={id}
               role="tooltip"
               dir="auto"
               className="glim-bubble glim-fade"
-              style={{ left: at.left, top: at.top, bottom: at.bottom, maxWidth: TOOLTIP_MAX_WIDTH }}
+              // Laid out but invisible until it has been measured and placed -
+              // see InfoBubble's own copy of this for why `visibility` is the
+              // one that can be measured.
+              style={{
+                left: at?.left ?? 0,
+                top: at?.top ?? 0,
+                visibility: at ? undefined : 'hidden',
+                maxWidth: TOOLTIP_MAX_WIDTH,
+              }}
             >
               {content}
             </span>,
@@ -934,112 +1014,24 @@ export function hueStyle(index: number | undefined): CSSProperties {
 }
 
 /**
- * Swatch is a colour in a row of colours — one control for both jobs the Look
- * page has.
+ * Swatch and SwatchRow USED TO BE HERE, and they are gone rather than resized.
  *
- * They used to be two: the accent presets were coloured squares with a ring on
- * the chosen one, the palette was a row of raw `<input type="color">` boxes
- * with the browser's own chrome around them. Two controls, one job, sitting in
- * the same card four rows apart. Here the square IS the control in both cases:
- * a real button either way, opening the app's own picker when it is editable.
- * The native input that used to hide behind it is gone entirely - it handed
- * its surface to the OS, which is the one thing the colour engine rules out.
+ * They were the shared colour square: a preset with a halo on the chosen one, a
+ * row that kept whatever ended it. pages/settings/Look.tsx has since built its
+ * own - a pill with the badge's height, because two rows of circles in one card
+ * have to be one size or they read as two different kinds of thing - and
+ * nothing imported these two any longer.
  *
- * `onPick` alone makes a preset (choose this colour). `onColor` makes an
- * editable position (open a picker for it). Passing both is a preset that can
- * also be edited, which is what the free colour beside the presets is.
+ * An audit found them short at 28px against the house number, and resizing them
+ * would have been the wrong repair: what was actually wrong is that a component
+ * nobody uses was still being measured against a rule, and the comment above it
+ * still described a row it no longer belonged to. This file has spent this round
+ * deleting levers that decide nothing rather than gutting them, for the reason
+ * that a thing which still exists comes back. Same answer here.
+ *
+ * If a second page ever needs a colour square, Look.tsx's is the one that
+ * matches the rule, and lifting it here is a smaller job than reviving this was.
  */
-export function Swatch({
-  color,
-  label,
-  selected = false,
-  onPick,
-  onColor,
-}: {
-  color: string;
-  /** Accessible name — a colour with no name is a square nobody can describe. */
-  label: string;
-  selected?: boolean;
-  onPick?: () => void;
-  onColor?: (hex: string) => void;
-}) {
-  // The ring is drawn in the swatch's own colour with the page ground between,
-  // so it reads as a halo rather than as a border — rule 5, no lines.
-  const shell = `relative h-7 w-7 shrink-0 overflow-hidden rounded-[var(--radius-control)]
-    transition-transform motion-safe:hover:scale-110 ${
-      selected ? 'shadow-[0_0_0_2px_var(--carbon-bg),0_0_0_4px_currentColor]' : ''
-    }`;
-  const style: CSSProperties = { backgroundColor: color, color };
-  // One hover mechanism in the app, so the colour's name arrives in the house
-  // bubble rather than in the browser's own box. Called before the branch
-  // below, because a hook cannot live inside one, and the node is rendered in
-  // both - it is null until something is actually hovered.
-  const tip = useTooltip<HTMLButtonElement>(label);
-  const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
-
-  if (onColor) {
-    // The app's own picker, floated under the swatch that opened it - never a
-    // native <input type="color">, which is the one thing the colour engine
-    // rules out by name. A native input hands its surface to the browser, and
-    // on Windows that is a separate top-level window: the exact "es soll sich
-    // kein komplett neues Fenster öffnen" the rule was written for. It is also
-    // unverifiable, because that window is not in the page and no automated
-    // check can see it.
-    return (
-      <>
-        <button
-          type="button"
-          aria-label={label}
-          className={`${shell} cursor-pointer`}
-          style={style}
-          onClick={(e) => {
-            onPick?.();
-            openColorPickerPopover(e.currentTarget, color, onColor);
-          }}
-          {...tipHoverProps}
-        />
-        {tip.node}
-      </>
-    );
-  }
-
-  return (
-    <>
-      <button
-        type="button"
-        aria-label={label}
-        aria-pressed={selected}
-        onClick={onPick}
-        className={shell}
-        style={style}
-        {...tipHoverProps}
-      />
-      {tip.node}
-    </>
-  );
-}
-
-/**
- * SwatchRow lays swatches out and keeps whatever ends the row — the reset, in
- * both places that use it. It wraps rather than scrolls: eight squares and a
- * word must never be the reason a settings page scrolls sideways.
- */
-export function SwatchRow({
-  label,
-  children,
-  after,
-}: {
-  label: string;
-  children: ReactNode;
-  after?: ReactNode;
-}) {
-  return (
-    <div className="flex flex-wrap items-center gap-2" role="group" aria-label={label}>
-      {children}
-      {after}
-    </div>
-  );
-}
 
 // `py-1.5`, and the one and a half is the whole reason rule 19 can hold: a
 // 14px line box is 20px tall, plus 12px of padding, which is the 2rem
@@ -1133,12 +1125,33 @@ export function NumberInput({
   step?: number;
   className?: string;
 } & Omit<InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange' | 'className'>) {
-  function clamp(n: number) {
-    if (min !== undefined && n < min) return min;
-    if (max !== undefined && n > max) return max;
-    return n;
-  }
   const field = useRef<HTMLInputElement>(null);
+
+  /**
+   * THE ARROWS ARE THE FIELD'S OWN stepUp()/stepDown(), NOT ARITHMETIC BESIDE
+   * THEM.
+   *
+   * What stood here was `onValue(clamp(value + step))` with a clamp() of its
+   * own, which laid out `min` and `max` a second time - so the range existed
+   * twice, in the attributes the field already carries and in a function next
+   * to them, and the two could only ever agree by being edited together. The
+   * browser's own stepper reads the attributes, snaps to the step grid from
+   * the field's own base, and stops at both ends, which is the same behaviour
+   * the arrow keys and the wheel already give; the copy could only ever
+   * approximate it.
+   *
+   * The value is read back off the field rather than recomputed, so the
+   * caller's onValue receives exactly what the field now holds - the same
+   * number typing into it would have produced.
+   */
+  function nudge(dir: 'up' | 'down') {
+    const el = field.current;
+    if (!el) return;
+    if (dir === 'up') el.stepUp();
+    else el.stepDown();
+    if (Number.isNaN(el.valueAsNumber)) return;
+    onValue(el.valueAsNumber);
+  }
   // The handler is attached once and reads the current props through this box,
   // rather than being torn down and rebuilt on every keystroke. A number field
   // re-renders on each character typed into it.
@@ -1199,7 +1212,7 @@ export function NumberInput({
           tabIndex={-1}
           aria-hidden
           disabled={max !== undefined && value >= max}
-          onClick={() => onValue(clamp(value + step))}
+          onClick={() => nudge('up')}
           className={STEPPER}
         >
           <Stepper up />
@@ -1209,7 +1222,7 @@ export function NumberInput({
           tabIndex={-1}
           aria-hidden
           disabled={min !== undefined && value <= min}
-          onClick={() => onValue(clamp(value - step))}
+          onClick={() => nudge('down')}
           className={STEPPER}
         >
           <Stepper />
@@ -1385,32 +1398,56 @@ export function ToggleRow({
   hint?: string;
   checked: boolean;
   onChange: (v: boolean) => void;
-  /** Dims the whole row and blocks interaction - a control that vanishes
-   *  teaches nobody what the mode can do; one that disagrees with its own
-   *  disabled sibling controls does. */
+  /**
+   * Dims the label and the switch and blocks interaction.
+   *
+   * FOR A CONTROL THAT REPORTS ITS OWN STATE, AND NOT FOR A SUB-SWITCH.
+   * A switch that is dead because a switch one row up is off is ABSENT, never
+   * dimmed: it is something somebody can see, read and reach for that answers
+   * nothing, and the reason it is dead sits in exactly the place nobody looks
+   * once they have decided this row is the interesting one. Render it
+   * conditionally instead. The bullet this replaces said the opposite ("a
+   * control that vanishes teaches nobody what the mode can do"), and it was
+   * reported often enough to be worth the reversal ("dieser abgeschaltet
+   * toggle soll weg, das hab ich schon oft angesprochen").
+   *
+   * What is left for this prop is the row whose own state is the message: busy
+   * while a request is in flight, or a setting this build genuinely cannot
+   * offer. There the dimming reports something, and the (i) beside it is the
+   * only thing that can say what.
+   */
   disabled?: boolean;
   /** Passed straight through to the underlying Toggle - see its own doc
    *  comment. Omit for a lone switch with nothing beside it to distinguish. */
   hue?: number;
 }) {
   return (
-    <div className={`flex items-center justify-between gap-4 ${disabled ? 'pointer-events-none opacity-40' : ''}`}>
-      {/* pointer-events-auto re-opens hit-testing for just this span, undoing the
-          row-wide pointer-events-none above it - CSS pointer-events isn't a one-way
-          lock, a descendant can switch itself back on. Without this a disabled row's
-          own (i) could never be hovered or focused, so the one place that explains
-          WHY the row is disabled was exactly the thing the disabled state hid. The
-          Toggle switch itself is a sibling, still under the row's pointer-events-none,
-          so the check stays un-clickable either way. */}
+    <div className={`flex items-center justify-between gap-4 ${disabled ? 'pointer-events-none' : ''}`}>
+      {/* THE DIMMING IS ON THE PARTS, NEVER ON THE ROW, and this is a trap
+          rather than a preference: `opacity` composites a whole subtree, so a
+          child cannot be less transparent than its parent. With the row
+          carrying it, the (i) inside it rendered at 40% too - the one element
+          that has to stay readable while everything around it recedes became
+          the one element nobody could read, in precisely the state it exists
+          for. The class moved onto the label word and the switch; the trigger
+          between them stays at full strength.
+          pointer-events is the same shape and was already solved that way:
+          pointer-events-auto re-opens hit-testing for just this span, undoing
+          the row-wide pointer-events-none above it - CSS pointer-events isn't a
+          one-way lock, a descendant can switch itself back on. The Toggle is a
+          sibling, still under the row's block, so the switch stays
+          un-clickable either way. */}
       {/* data-glim-label for the same reason Caption above carries it: a
           ToggleRow draws its own caption inline rather than through Caption, so
           without this line every switch in the settings tree would be the one
           shape the search could find but never scroll to. */}
       <span data-glim-label={label} className="pointer-events-auto flex items-center gap-1.5 text-sm text-carbon-text">
-        {label}
+        <span className={disabled ? 'opacity-40' : ''}>{label}</span>
         {hint && <InfoBubble tip={hint} />}
       </span>
-      <Toggle hideLabel label={label} checked={checked} onChange={onChange} hue={hue} />
+      <span className={`flex ${disabled ? 'opacity-40' : ''}`}>
+        <Toggle hideLabel label={label} checked={checked} onChange={onChange} hue={hue} />
+      </span>
     </div>
   );
 }
@@ -1605,17 +1642,17 @@ export function ErrorCard({
 }
 
 // SectionTitle labels a group of content as a "notch" badge: a small filled
-// pill that sits HALF OVER the card's own top edge (absolute, -11px, a
-// shadow lifting it off the surface) rather than as a plain heading inside
-// the card's normal content flow. Two prior passes on this component got it
-// wrong in opposite directions - first an accent-soft wash sitting inline
-// (matching GlimStone's repo/docs, never actually live anywhere), then
-// plain bare text (matching a DIFFERENT, older BombVault instance that
-// turned out not to be the real reference container at all, per jdp: "Nein
-// das ist falsch! Hier ist der Testcontainer erreichbar..."). This is the
-// real container's own markup, read directly off it and ported verbatim:
-// solid `bg-accent`/`text-accentContrast` fill, 12px/500/1.2px-tracking
-// uppercase, `rounded-[var(--radius-pill)]`, `absolute -top-[11px] z-10
+// pill that sits HALF OVER the card's own top edge (absolute, `top-0` plus a
+// self-relative `-translate-y-1/2`, a shadow lifting it off the surface)
+// rather than as a plain heading inside the card's normal content flow. Two
+// prior passes on this component got it wrong in opposite directions - first
+// an accent-soft wash sitting inline (matching GlimStone's repo/docs, never
+// actually live anywhere), then plain bare text (matching a DIFFERENT, older
+// BombVault instance that turned out not to be the real reference container
+// at all, per jdp: "Nein das ist falsch! Hier ist der Testcontainer
+// erreichbar..."). This is the real container's own markup: solid
+// `bg-accent`/`text-accentContrast` fill, 12px/500/1.2px-tracking uppercase,
+// `rounded-[var(--radius-pill)]`, `absolute top-0 z-10
 // shadow-[var(--elevation)]`. Requires its Card ancestor to be
 // `position: relative` (`.glim-card` carries that now) so the badge
 // anchors to the CARD's own box, not wherever it would otherwise fall in
@@ -1651,15 +1688,24 @@ export function SectionTitle({
   hint,
   hue,
   right,
+  id,
 }: {
   children: ReactNode;
   hint?: string;
   hue?: number;
   right?: ReactNode;
+  /**
+   * Names the heading element so a window can point `aria-labelledby` at it.
+   * A window's title is a badge like every other heading in the house (rule
+   * 15), and Modal below is the one caller that also has to say WHICH element
+   * is its accessible name - pointing at the real heading rather than copying
+   * the words into an aria-label that could later disagree with them.
+   */
+  id?: string;
 }) {
   return (
     <div className="flex items-center gap-3">
-      <h2 className="flex items-center">
+      <h2 id={id} className="flex items-center">
         <span
           // The position lives on the Card now (GlimStone 1.4.0), so this
           // badge carries only its marker class and inherits --item-hue* from
@@ -1672,8 +1718,21 @@ export function SectionTitle({
           //
           // `hue` still exists for a title with no hued card above it; passing
           // it sets the vars here, so the class it then adds has them.
-          className={`${hue !== undefined ? 'glim-hue ' : ''}glim-section-badge absolute -top-[11px] z-10 inline-flex h-[22px]
-            items-center gap-1 whitespace-nowrap rounded-[var(--radius-pill)] bg-accent px-3 text-[12px]
+          //
+          // THE HALF-OVERLAP IS SELF-RELATIVE, NEVER A FIXED PIXEL OFFSET.
+          // `top-0` plus `-translate-y-1/2` resolves against the badge's OWN
+          // rendered height, so it re-centres on the card's edge whether the
+          // badge is one line or has wrapped to two. The pair it replaces
+          // (`-top-[11px]` beside a hard-wired `h-[22px]`) was only ever
+          // correct because the two numbers were written next to each other:
+          // the 11 is half the 22, so the badge could not re-centre itself and
+          // either number moving alone put it off the edge. The height is
+          // padding plus line box now (3.5px + 15px + 3.5px = the same 22),
+          // which is what lets it grow. `whitespace-nowrap` went with them: in
+          // 42 locales a long translated card title has to be able to take a
+          // second line rather than run off the side of its own card.
+          className={`${hue !== undefined ? 'glim-hue ' : ''}glim-section-badge absolute top-0 z-10 inline-flex -translate-y-1/2
+            items-center gap-1 rounded-[var(--radius-pill)] bg-accent px-3 py-[3.5px] text-[12px]
             font-medium uppercase leading-[15px] tracking-[1.2px] text-accentContrast shadow-[var(--elevation)]`}
           style={hue !== undefined ? (hueVars(rainbowAt(hue)) as CSSProperties) : undefined}
         >
@@ -1780,16 +1839,23 @@ export function Modal({
         // copied into an aria-label that could disagree with it later.
         aria-labelledby={titleId}
       >
-        <div className="flex items-center gap-3">
-          <h2 id={titleId} className="text-sm font-semibold text-carbon-text">
-            {title}
-          </h2>
-          <span className="flex-1" />
-          {/* No size on the glyph: a glyph-only button is a square at --btn-h
-              and its mark is half that box, which Button now decides for every
-              one of them at once. */}
-          {closeLabel && <Button kind="ghost" icon={<IconClose />} onClick={onClose} title={closeLabel} />}
-        </div>
+        {/* A WINDOW IS A WINDOW: same surface, same radius, same elevation,
+            TITLE AS A BADGE. The heading was a bare `text-sm font-semibold`
+            line inside the window while every card in the same app wore the
+            notch badge, so one surface had two heading treatments - and the
+            badge was already built, three functions up, and already used
+            everywhere else. SectionTitle itself, not a copy of its markup:
+            a second span with the same classes is the drift this file exists
+            to prevent.
+            No size on the close glyph: a glyph-only button is a square at
+            --btn-h and its mark is half that box, which Button now decides for
+            every one of them at once. */}
+        <SectionTitle
+          id={titleId}
+          right={closeLabel ? <Button kind="ghost" icon={<IconClose />} onClick={onClose} title={closeLabel} /> : undefined}
+        >
+          {title}
+        </SectionTitle>
         {children}
         {/* Above the buttons, not among them: it decides whether this window
             appears again, which is a different kind of thing from the two

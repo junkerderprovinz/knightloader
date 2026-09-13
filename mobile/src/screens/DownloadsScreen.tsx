@@ -198,19 +198,44 @@ export default function DownloadsScreen({
                   {queue && queue.running > 0 ? ` · ${t('downloads.queueActive', { n: queue.running })}` : ''}
                   {speed > 0 ? ` · ${fmtBytes(speed)}/s` : ''}
                 </Text>
-                {/* One badge whose offer follows the state, so it can never
-                    offer the thing that is already true - the same control the
-                    overview's own summary card uses. Stopping is the HARD stop
-                    now: see toggleHalted. */}
+                {/* BOTH options, always on screen, with only the one in force
+                    filled - the same control the overview's own summary card
+                    uses, and the same one the browser extension has drawn since
+                    it shipped (shared.js: start and stop as two separate
+                    actions).
+
+                    It was ONE badge whose glyph flipped with the state, and the
+                    argument written here for it - that such a badge can never
+                    offer the thing that is already true - is the argument the
+                    design language answers directly: the person is then asked
+                    to infer the alternative from a glyph that is not on the
+                    screen, which is fine for a preference and not for anything
+                    with a consequence. Stopping a download queue has one. Two
+                    surfaces of one product also disagreed about it, which is
+                    how it was found.
+
+                    Filled means "this is what the queue is doing", not "press
+                    me": a two-option pair is a selector with icon-only
+                    segments, and in a selector the fill marks the value that is
+                    in force. Pressing the filled one is a no-op. Stopping is
+                    the HARD stop: see toggleHalted. */}
                 {queueBusy ? (
                   <ActivityIndicator color={accentInk} size="small" />
                 ) : (
-                  <IconBadge
-                    symbol={queue?.halted ? '▶' : '■'}
-                    accent={queue?.halted === true}
-                    onPress={() => queue && toggleHalted(!queue.halted)}
-                    accessibilityLabel={t(queue?.halted ? 'downloads.start' : 'downloads.stop')}
-                  />
+                  <View style={styles.queueActions}>
+                    <IconBadge
+                      symbol="▶"
+                      accent={queue?.halted === false}
+                      onPress={() => queue?.halted && toggleHalted(false)}
+                      accessibilityLabel={t('downloads.start')}
+                    />
+                    <IconBadge
+                      symbol="■"
+                      accent={queue?.halted === true}
+                      onPress={() => queue?.halted === false && toggleHalted(true)}
+                      accessibilityLabel={t('downloads.stop')}
+                    />
+                  </View>
                 )}
               </View>
 
@@ -386,15 +411,24 @@ const styles = StyleSheet.create({
   // The card. Same padding and gap as the overview's summary card, so the two
   // readings of one instance are drawn in one box on both screens.
   queueCard: { padding: 14, gap: 10, marginBottom: 12 },
-  // The top line inside it: state on the left, the one badge on the right.
+  // The top line inside it: state on the left, the start/stop pair on the right.
   queueBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  queueLabel: { fontSize: 13 },
+  queueActions: { flexDirection: 'row', gap: 8 },
+  // Dense, off the scale in theme/tokens.ts - 13 was a rung between Dense and
+  // Body that the table does not have. The figures in this line (the active
+  // count, the speed) are rewritten every second, so they take tabular
+  // numerals: without them the whole line shifts sideways as digits change
+  // width, which is the one thing a live number must not do.
+  queueLabel: { fontSize: TYPE.dense, fontVariant: ['tabular-nums'] },
   queueError: { marginBottom: 8, fontSize: TYPE.caption },
   tabs: { marginBottom: 10 },
   empty: { textAlign: 'center', marginTop: 48 },
   fab: {
     position: 'absolute',
-    right: 20,
+    // The trailing edge, not "right": under a right-to-left language the whole
+    // layout mirrors and a physical edge is the one thing that stays put, so
+    // the button would end up on the side the thumb has just stopped expecting.
+    insetInlineEnd: 20,
     bottom: 32,
     width: 56,
     height: 56,

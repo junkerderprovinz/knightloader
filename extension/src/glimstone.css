@@ -36,6 +36,25 @@
   --text-body: 0.875rem;    /* 14px */
   --text-dense: 0.75rem;    /* 12px */
   --text-caption: 0.6875rem; /* 11px */
+
+  /* The two button heights, and there is no third (rule 19). --btn-h is what
+     a text field measures, so an ordinary button standing in a row of fields
+     matches instead of standing proud of it; --btn-h-key is the one step up,
+     for the control a surface exists FOR. Two, because two reads as a
+     deliberate difference and three reads as a ladder somebody has to pick a
+     rung from.
+
+     These are the numbers the language names, not numbers re-picked here: the
+     extension ran 36 for its text buttons and its icon badges, 30 for the
+     square action on an instance card, 24 for the accent circle and 22 for the
+     reset - four answers to one question, on one screen, while the field beside
+     them measured 39. The same size register also decides the square icon
+     badge, which takes ONE size across the whole page rather than one per role
+     ("es gibt drei verschiedene Größen von quadratischen Badges. Bitte alle
+     gleich groß!"), and anything sized to MATCH a badge without being one - a
+     colour swatch - follows the badge rather than setting it. */
+  --btn-h: 2rem;      /* 32px */
+  --btn-h-key: 2.5rem; /* 40px */
 }
 
 :root[data-shape="soft"] {
@@ -361,12 +380,21 @@
  */
 .glim-section-badge {
   position: absolute;
-  top: -11px;
-  /* The LEADING edge, not the left one: this badge is a label attached to the
-     start of the card's top edge, so under Arabic, Hebrew or Persian it belongs
-     at the right with everything else that starts a line. `left` kept it pinned
-     to the glass while the whole card mirrored around it. */
-  inset-inline-start: 16px;
+  /* The house recipe, not a fixed pixel offset: `top: 0` plus a SELF-relative
+     translate. A percentage transform resolves against the badge's OWN rendered
+     height, so the badge stays centred on the card's edge whatever that height
+     turns out to be, while the -11 it replaces was only ever correct for one
+     particular number and silently wrong for any other. */
+  top: 0;
+  transform: translateY(-50%);
+  /* No horizontal offset at all, which is the point. With neither `left` nor
+     `inset-inline-start` set, an absolutely positioned box falls back to its CSS
+     STATIC position - where it would have rendered in normal flow - so it
+     inherits the card's own content edge for free and flips under Arabic,
+     Hebrew or Persian for free too. The 16px that stood here was a guessed
+     number and had already drifted: .glim-card pads its content to 20px, so the
+     label sat four pixels inside the text underneath it. A measured edge beats
+     a written one precisely because nobody has to remember to update it. */
   z-index: 1;
   display: inline-flex;
   align-items: center;
@@ -416,10 +444,16 @@
   border-radius: var(--radius-control);
 }
 
+/* No radius on the segment: in the well the TRACK is the one shape, and the
+   segments sit flush inside it. A radius of their own gives the control two
+   silhouettes arguing with each other, and the `calc(... - 3px)` that stood
+   here was a second corner value nobody could read off the track. The 3px of
+   padding is what keeps a square corner inside the track's own arc - a corner
+   at (p,p) stays inside a radius R while p >= 0.293R, which holds for all three
+   shape settings (10px round, 5px soft, 0 square). */
 .glim-seg button {
   padding: 6px 14px;
   border: 0;
-  border-radius: calc(var(--radius-control) - 3px);
   background: transparent;
   color: var(--carbon-text-sub);
   font: inherit;
@@ -442,9 +476,16 @@
  */
 .glim-swatches { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 
+/* The badge sets the size and the swatch FOLLOWS, never the other way round:
+   a swatch is sized to match the reset badge standing at the end of its own
+   row, and that badge takes the one badge size the whole page uses. It read 22
+   here while the badge beside it read 22 and the square action on an instance
+   card read 30 - three answers arrived at by each control measuring its own
+   neighbour, which is exactly the per-role reasoning that produces a page of
+   different-sized circles. */
 .glim-swatch {
-  width: 22px;
-  height: 22px;
+  width: var(--btn-h);
+  height: var(--btn-h);
   padding: 0;
   border: 0;
   border-radius: var(--radius-pill);
@@ -456,56 +497,26 @@
   box-shadow: 0 0 0 2px var(--carbon-surface), 0 0 0 4px var(--carbon-text);
 }
 
-/* The current/custom accent. It used to hide a native <input type="color">
- * behind this circle; it now opens the page's own picker popover
- * (colorpicker.js), which is what the design language asks for and the only
- * version an automated check can actually see.
- */
-/* The "any colour at all" control, and it has to LOOK like one (jdp,
-   2026-08-31: "der farbpicker bei den akzentfarbe-voreinstellungen fehlt.
-   sonst macht der resetbutton ja kein sinn").
+/* `.glim-accent-now` - a ninth circle at the end of the accent row carrying the
+   current colour and a picker glyph - stood here with a 24px box of its own and
+   no call site left anywhere on any page: the job moved onto the swatch itself
+   (a click on the one already in force opens the picker on it, options.js), so
+   the extra control went and only its rules stayed. Removed rather than left as
+   a third square measure nobody could see on screen but every future audit
+   would count - a dead block is exactly how a size register grows a stage that
+   nothing asked for.
 
-   It was a plain filled circle standing among eight other filled circles, so it
-   was on screen the whole time and read as a ninth preset - the one showing the
-   current colour. Nothing said it opened anything. That is also why the reset
-   badge looked pointless: with no way to leave the eight presets, there is
-   nothing to reset FROM.
-
-   Same size as the presets, the current colour underneath, and a glyph on top
-   so it is the one circle in the row that is obviously a button. It sits at the
-   END of the row now, beside the reset badge: "pick anything" and "go back" are
-   the two escapes from the presets, and they belong together. */
-.glim-accent-now {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  padding: 0;
-  border: 0;
-  overflow: hidden;
-  border-radius: var(--radius-pill);
-  box-shadow: var(--hairline);
-  cursor: pointer;
-}
-/* The glyph reads on any colour the user can land on, light or dark, without
-   computing an ink: a white mark with a dark halo is legible on both. */
-.glim-accent-now svg {
-  display: block;
-  color: #fff;
-  filter: drop-shadow(0 0 1.5px rgba(0, 0, 0, 0.85));
-}
-
-/* A small round action beside a row of swatches: reset. An icon badge rather
- * than a text link, and the same 22px circle as the swatches it sits next to,
- * so the row stays one run of equal shapes. */
+   A small round action beside a row of swatches: reset. An icon badge rather
+   than a text link, at the ONE badge size this page uses. The 22 it carried was
+   argued from the swatches it stands next to, and a justification of the form
+   "these may differ because they play different roles" is itself the evidence
+   the split is wrong: a reader sees one row of circles, not two roles. */
 .glim-reset {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
+  width: var(--btn-h);
+  height: var(--btn-h);
   padding: 0;
   border: 0;
   border-radius: var(--radius-pill);
@@ -1032,7 +1043,10 @@
   flex-shrink: 0;
   padding: 1px 7px;
   border-radius: var(--radius-pill);
-  font-size: 11px;
+  /* The token, not the literal it resolves to. The value was right and the
+     source was not, which costs nothing until the day the caption step moves
+     and one badge on one card stays where it was. */
+  font-size: var(--text-caption);
   font-weight: 600;
   letter-spacing: .2px;
   line-height: 1.5;
@@ -1047,8 +1061,8 @@
 .glim-instance-top { display: flex; align-items: center; gap: 8px; min-width: 0; }
 
 /* The actions sit at the BOTTOM of the trailing edge, not centred on it: the
-   "Standard" badge owns the corner above them, and a centred row of 30px
-   buttons in a 72px card reaches up into it. Two things in one corner is the
+   "Standard" badge owns the corner above them, and a centred row of square
+   badges in a 72px card reaches up into it. Two things in one corner is the
    kind of overlap that only shows up on the one card that has both. */
 .glim-instance-actions {
   flex: 0 0 auto;
@@ -1064,12 +1078,16 @@
   padding-block: 0 12px;
   padding-inline: 0 12px;
 }
+/* The square icon badge, at the one size every pressable square on these pages
+   takes. It was 30 while the header badge in the popup was 26 and the one on
+   the options page was 36 - three sizes for one object, which a reader meets
+   all at once the moment a card and a page header sit on the same screen. */
 .glim-square {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
+  width: var(--btn-h);
+  height: var(--btn-h);
   padding: 0;
   border: 0;
   border-radius: var(--radius-control);
@@ -1086,7 +1104,10 @@
   position: absolute;
   inset-inline-end: 8px;
   top: 8px;
-  font-size: 10px;
+  /* The caption step, not a fifth size. 10px was the fourth near-identical
+     caption on the page and the type scale has exactly four rows - a fourth
+     size claiming to be a caption is the bug to fix, not a row to add. */
+  font-size: var(--text-caption);
   text-transform: uppercase;
   letter-spacing: .04em;
   font-weight: 600;

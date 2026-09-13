@@ -292,9 +292,14 @@ async function renderTargets(preferredFromPending) {
           await writeDefaultTarget(picked.instanceId);
           await renderTargets();
         },
-        onQueue: async (picked, halted) => {
+        onQueue: async (picked, halted, el) => {
           const ok = await setQueueHalted(picked.instanceId, halted).catch(() => false);
           statusEl.textContent = ok ? '' : t('options.followFailed');
+          // The control that was pressed says so too, the same way the options
+          // page answers the same refusal on the same card (shared.js's shake).
+          // Two surfaces drawing one object answer a failure alike or the object
+          // stops being one object.
+          if (!ok) shake(el);
           if (ok) await loadStatus();
         },
         onOpen: (picked, url) => {

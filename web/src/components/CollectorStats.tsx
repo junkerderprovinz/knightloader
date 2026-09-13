@@ -12,12 +12,18 @@
 // because "how much of this did I actually narrow down" is the same question
 // on both pages even though the totals underneath it are not.
 //
-// Every figure stays at Counters.tsx's supporting-detail weight (15px value,
+// Every figure stays at supporting-detail weight (body 14px value, caption
 // 11px label), never Downloads.tsx's page-hero 20px: the paste box above this
 // strip is the Collector page's one hero (docs/design-language.md rule 2, "one
-// hero per page"), and nothing below it may compete with that for weight —
-// which is also why OverviewStrip itself, riding in the shell bar on every
-// page including this one, keeps its own bytes figure at 15px rather than 20.
+// hero per page"), and nothing below it may compete with that for weight.
+//
+// Body, not the 15px this copied from Counters.tsx. The type scale is a fixed
+// four-row table - 20 heading / 14 body / 12 dense / 11 caption - and a fifth
+// size found in an audit is the bug to fix, not a fifth row to add. The two
+// places in this app where 15px IS right say why they are (Sidebar.tsx's nav
+// rows, matching BombVault's own rail verbatim on jdp's word); a figure in a
+// side card has no such reason, and "quieter than the hero" is a claim body
+// size already satisfies.
 import { useCallback, useMemo, useState } from 'react';
 import type { Task } from '../lib/api';
 import { useT, type TranslationKey } from '../lib/i18n';
@@ -103,7 +109,7 @@ function weigh(rows: Task[]): Figures {
 function Item({ label, value, tone = 'text-carbon-text' }: { label: string; value: string | number; tone?: string }) {
   return (
     <div className="flex items-baseline gap-1.5">
-      <span className={`glim-num text-[15px] font-semibold leading-none ${tone}`}>{value}</span>
+      <span className={`glim-num text-sm font-semibold leading-none ${tone}`}>{value}</span>
       <span className="text-[11px] text-carbon-textMuted">{label}</span>
     </div>
   );

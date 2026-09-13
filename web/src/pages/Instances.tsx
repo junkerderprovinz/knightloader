@@ -11,13 +11,20 @@ import {
   removeInstance,
 } from '../lib/api';
 import { useT } from '../lib/i18n';
+import { useToast } from '../lib/toast';
 import { PageHeader, Card, Button, InfoBubble, SectionTitle } from '../components/ui';
 import { InstanceCard } from '../components/InstanceCard';
 
 export function Instances() {
   const { t } = useT();
+  const { toast } = useToast();
   const [peers, setPeers] = useState<Instance[]>([]);
-  const [err, setErr] = useState('');
+  // One counter PER discovered row, not one for the list: two rows share this
+  // handler, and a single nonce would shake whichever button was rendered
+  // last rather than the one that was pressed. Bumping it remounts that row's
+  // own button, which is what lets .glim-shake replay on a repeated identical
+  // failure - a class that leaves and returns in the same frame does not.
+  const [shakes, setShakes] = useState<Record<string, number>>({});
   // The configured name (settings/Access.tsx's own IdentityCard), so this
   // instance shows up on its own card the same way a peer does - not the
   // generic "this instance" placeholder (jdp: "unter instanz soll diese
@@ -49,18 +56,33 @@ export function Instances() {
   // trust of its own, and a peer with a password will still refuse it. What
   // makes two instances trust each other is the connection phrase, which they
   // both hold rather than trade.
+  /** Bumps one row's shake counter, which remounts that row's own button. */
+  function shake(id: string) {
+    setShakes((s) => ({ ...s, [id]: (s[id] ?? 0) + 1 }));
+  }
+
   async function onAddFound(f: DiscoveredInstance) {
-    setErr('');
     try {
       const r = await addInstance(f.name, f.url);
       // "Refused us" and "could not be reached" have completely different
       // fixes, so they get different sentences. See addInstance's own doc.
-      if (r.refused) setErr(t('instances.refused'));
-      else if (!r.online) setErr(t('instances.offlineWarning'));
+      // Both go into the toast rather than onto the page: an outcome sentence
+      // left standing beside the button never clears itself, so a refusal
+      // from ten minutes ago reads exactly as current as one from a second
+      // ago - and this one used to sit inside the discovery card, which is
+      // gone entirely the moment the network stops announcing anything.
+      if (r.refused) {
+        toast(t('instances.refused'), 'fail', 'action-failed');
+        shake(f.id);
+      } else if (!r.online) {
+        toast(t('instances.offlineWarning'), 'fail', 'action-failed');
+        shake(f.id);
+      }
       await load();
       await loadFound();
     } catch (e: any) {
-      setErr(String(e?.message ?? e));
+      toast(t('list.failed', { error: String(e?.message ?? e) }), 'fail', 'action-failed');
+      shake(f.id);
     }
   }
 
@@ -98,6 +120,11 @@ export function Instances() {
           // the title verbatim reads as a rendering bug rather than as a hint.
           isSelf={ownName !== ''}
           onOpen={() => navigate('/downloads')}
+          // This grid is one equal-member set, and the card you are standing
+          // on is its first member, not an exception to it: leaving it without
+          // a position left the one card that is always on screen wearing the
+          // single accent while every neighbour beside it was coloured.
+          hue={0}
         />
         {peers.map((p, i) => (
           <InstanceCard
@@ -116,7 +143,9 @@ export function Instances() {
             // A relay peer goes away by disconnecting it or clearing the relay
             // config, not from here.
             onRemove={p.relayId ? undefined : () => onRemove(p.name)}
-            hue={i}
+            // i + 1, because the own-instance card above is position 0 of the
+            // same run - the loop's own index counts peers, not cards.
+            hue={i + 1}
           />
         ))}
       </div>
@@ -135,17 +164,19 @@ export function Instances() {
               {f.known ? (
                 <span className="text-xs text-carbon-textMuted">{t('instances.foundKnown')}</span>
               ) : (
-                <Button kind="secondary" className="px-2.5 text-xs" onClick={() => void onAddFound(f)}>
+                <Button
+                  // Remounted on every failed press of THIS row, so the
+                  // animation plays again on a second identical refusal.
+                  key={shakes[f.id] ?? 0}
+                  kind="secondary"
+                  className={`px-2.5 text-xs${shakes[f.id] ? ' glim-shake' : ''}`}
+                  onClick={() => void onAddFound(f)}
+                >
                   {t('instances.foundAdd')}
                 </Button>
               )}
             </div>
           ))}
-          {/* Moved in from the now-removed manual-add card (jdp,
-              2026-08-26): this is the only remaining action in this file
-              that can set err (onAddFound), so it is the only remaining
-              place that needs to show it. */}
-          {err && <div className="text-statusFail text-sm">{err}</div>}
         </Card>
       )}
 

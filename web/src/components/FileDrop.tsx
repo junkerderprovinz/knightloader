@@ -22,6 +22,7 @@ import { fmtBytes } from '../lib/format';
 import { message } from '../lib/intake';
 import { useT } from '../lib/i18n';
 import { Button } from './ui';
+import { Tip } from './columns';
 import { ProgressBar } from './ProgressBar';
 import { IconCheck } from '../lib/icons';
 
@@ -128,9 +129,12 @@ function ContainerHandedProgress({
           reads as a bar that does not reach the end rather than as a bar with
           a label beside it. */}
       <div className="flex items-baseline gap-2">
-        <p dir="ltr" className="min-w-0 flex-1 truncate text-xs text-carbon-textSub" title={file}>
+        {/* The whole name in the house bubble, never a native `title=` and the
+            operating system's own balloon beside the app's own - see
+            columns.tsx's `Tip`. */}
+        <Tip dir="ltr" tip={file} className="min-w-0 flex-1 truncate text-xs text-carbon-textSub">
           {file}
-        </p>
+        </Tip>
         <span className="glim-num shrink-0 text-[11px] text-carbon-textMuted">{fmtElapsed(elapsed)}</span>
       </div>
       <ProgressBar active percent={0} indeterminate />
@@ -255,9 +259,9 @@ function TorrentFileRow({
         <IconCheck width={12} height={12} />
       </span>
       {/* Paths read left-to-right even in a right-to-left interface. */}
-      <span dir="ltr" className="min-w-0 flex-1 truncate text-start" title={path}>
+      <Tip dir="ltr" tip={path} className="min-w-0 flex-1 truncate text-start">
         {path}
-      </span>
+      </Tip>
       <span className="glim-num shrink-0 text-carbon-textMuted">{fmtBytes(size)}</span>
     </button>
   );
@@ -290,12 +294,20 @@ function TorrentTreeCard({
   }
 
   return (
-    <div className="glim-card flex flex-col gap-3 p-4">
+    // A WELL, NOT A CARD. This box is rendered from FileDrop, which the
+    // collector page hands to AddLinksForm as its `footer` - and AddLinksForm
+    // draws that footer INSIDE its own `.glim-card`. A card here was therefore
+    // a card in a card: the same surface colour and a second drop shadow
+    // floating inside the first, which GlimStone forbids outright ("never nest
+    // a card inside a card - group content with spacing and a section title").
+    // The well is the house's own answer for the nested case, the same swap
+    // EmptyState/LoadingCard/ErrorCard already make behind their `nested` prop.
+    <div className="glim-well flex flex-col gap-3 p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="truncate text-sm font-medium text-carbon-text" title={pending.tree.name}>
+          <Tip tip={pending.tree.name} className="block truncate text-sm font-medium text-carbon-text">
             {pending.tree.name}
-          </p>
+          </Tip>
           <p className="text-xs text-carbon-textSub">
             {t('torrent.tree.summary', { n: selectedCount, total: pending.tree.files.length, size: fmtBytes(selectedSize) })}
           </p>
@@ -316,7 +328,17 @@ function TorrentTreeCard({
         </button>
       </div>
 
-      <div className="max-h-64 overflow-y-auto rounded-[var(--radius-control)] bg-carbon-surface2">
+      {/* Hairlines between the rows, no fill of its own. A ZERO-DELTA
+          ENCLOSURE IS NOT AN ENCLOSURE: this list painted --carbon-surface2
+          inside the card, which was a real step off it - inside the well above,
+          which IS surface2, the identical token computes to the identical
+          colour and the tray disappears with every class name still reading
+          correctly. Separating the rows instead is what the house already does
+          for a list inside a well (Dashboard's own recent lists,
+          DiskSpaceTile), and it leaves the rows unfilled, so their hover stays
+          --carbon-hover - the right rung of rule 21's ramp for something
+          carrying no fill. */}
+      <div className="max-h-64 divide-y divide-carbon-border/60 overflow-y-auto rounded-[var(--radius-control)]">
         {pending.tree.files.map((f, i) => (
           <TorrentFileRow key={f.path} path={f.path} size={f.size} checked={pending.selected[i]} onToggle={() => toggle(i)} />
         ))}

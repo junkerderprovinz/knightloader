@@ -112,7 +112,10 @@ export function QuickAdd() {
       <div className="flex w-full max-w-sm flex-col gap-4">
         <div className="flex items-center gap-2">
           <IconDownloads width={20} height={20} className="text-accentInk" />
-          <span className="text-[15px] font-semibold text-carbon-text">{t('quickadd.title')}</span>
+          {/* The heading step of the type scale, not a 15px in between it and
+              body: this line is this window's page title, and 15px was a
+              fourth caption-sized step nobody had decided on. */}
+          <span className="text-xl font-semibold text-carbon-text">{t('quickadd.title')}</span>
         </div>
 
         {/* Named, always, when this is not the instance being looked at: a

@@ -37,7 +37,7 @@ export function Counters({ counts }: { counts: CountsInput }) {
     <div className="flex flex-wrap items-baseline gap-x-7 gap-y-2">
       {items.map((i) => (
         <div key={i.label} className="flex items-baseline gap-1.5">
-          <span className={`glim-num text-[15px] font-semibold ${i.tone}`}>{i.value}</span>
+          <span className={`glim-num text-[14px] font-semibold ${i.tone}`}>{i.value}</span>
           <span className="text-[11px] text-carbon-textMuted">{i.label}</span>
         </div>
       ))}
@@ -178,9 +178,9 @@ export function OverviewStrip({
   return (
     <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5" role="group" aria-label={t('strip.label')}>
       <span className="flex items-baseline gap-1.5">
-        <span className="glim-num text-[15px] font-semibold leading-none text-carbon-text">{bytes(f.loaded)}</span>
+        <span className="glim-num text-[14px] font-semibold leading-none text-carbon-text">{bytes(f.loaded)}</span>
         <span className="text-[11px] text-carbon-textMuted">{t('strip.of')}</span>
-        <span className="glim-num text-[13px] leading-none text-carbon-textSub">{bytes(f.total)}</span>
+        <span className="glim-num text-[12px] leading-none text-carbon-textSub">{bytes(f.total)}</span>
         <InfoBubble tip={t('strip.hint')} />
       </span>
 

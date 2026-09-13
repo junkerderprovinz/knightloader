@@ -168,10 +168,39 @@
    whichever pass moves those components reads them from here.
    The glyph inside a key control steps with the box (1.25rem -> 1.375rem in
    GlimStone's own reference); that half belongs to the component that draws the
-   glyph, not to this file. */
+   glyph, not to this file.
+
+   AND THE FOUR WIDTH STAGES, which are the other axis of the same control and
+   were missing here entirely (GlimStone rule: "the width does not move between
+   modes, and that is the load-bearing property"). A button keeps the same width
+   whether the label mode shows text and glyph, text alone, or a lone glyph, so
+   switching mode never reflows the page, which means the width cannot come
+   from what is currently RENDERED (a lone glyph is narrow), it comes from the
+   LABEL, which is present in every mode even when it is only the accessible
+   name. Four stages rather than a measurement: measuring real text happens
+   after layout, which is untestable and jitters, while a stage is a pure
+   function of the label and known before first paint, and it gives a row of
+   buttons an aligned edge that individually-measured widths never do.
+
+   The four numbers are GlimStone's own (reference/tokens.css), not derived
+   here, for the same reason --status-warn-bg-strong's value is copied rather
+   than mixed: a house number that gets re-guessed per app is how one product
+   ends up with two of it. They are a FLOOR (min-width), never a fixed width, so
+   a translation that runs longer still fits instead of clipping.
+   Which stage a label falls into is a pure function of that label, and that
+   function belongs to the component that owns the label (GlimStone's
+   reference/controls.ts: labelWidth/widthStage/groupStage), not to a
+   stylesheet; a caller spends the stage it computed as
+   `min-w-[var(--btn-w-sm)]`, the same way it takes the ordinary height as
+   `h-[var(--btn-h)]`. */
 :root {
   --btn-h: 2rem;
   --btn-h-key: 2.5rem;
+
+  --btn-w-xs: 5.5rem;
+  --btn-w-sm: 8rem;
+  --btn-w-md: 11.5rem;
+  --btn-w-lg: 15rem;
 }
 
 /* The key control's height as a class, named as GlimStone names it so the
@@ -696,8 +725,22 @@ body {
    one coloured item and six grey ones: the icons carry the palette even while
    only one of them is selected. A row of chips with no icons has nothing to
    colour here on purpose — eight tinted labels beside eight tinted counts is a
-   colour chart, not a filter. */
-[data-rainbow] .glim-hue-icon:not(.glim-active) svg {
+   colour chart, not a filter.
+
+   NO MODE GATE ON THIS DECLARATION, and that is the mechanism rather than an
+   oversight (GlimStone, "The tab-strip colour rule"): it reads whatever
+   --accent already resolves to on the element, which is the flat accent in
+   Normal mode and the element's own position under a rainbow, so one rule is
+   correct in all of them. It used to sit inside a [data-rainbow] block, and
+   lib/appearance.ts's applyRainbow() REMOVES that attribute when the rainbow is
+   off, so with rainbow off every idle rail glyph and every idle tile icon fell
+   back to its plain muted ink, which is the one thing the rule's own follow-up
+   correction names ("Die Icons der Haupttabs in der Sidebar und die der Tabs in
+   den Settings sollen immer farbig sein, wenn der reaktive Modus ausgeschaltet
+   ist"). Same trap the section warns about, with the mode attribute in the
+   place of :hover. Reactive mode is the ONE mode that rests, and it gets its own
+   explicit rest/hover pair below at higher specificity. */
+.glim-hue-icon:not(.glim-active) svg {
   color: var(--accent-ink);
 }
 /* The rule above stays unconditional in every mode by design — Reactive is
@@ -840,6 +883,28 @@ body {
    hover, a few lines down. This makes that behaviour the rule on rows, whatever
    the colour setting is - so what somebody sees on a row does not depend on
    which rainbow mode they happen to run. */
+/* .glim-nav-row: der Glyph einer Navigationszeile ist 20px, und diese Zahl
+   gehoert dem Haus (GlimStone 1.8.0). Eine Stufe ueber den 16px, die ein Glyph
+   neben Fliesstext nimmt, weil eine Schienenzeile ein groesseres Ziel mit mehr
+   Luft ist und im Nur-Glyph-Modus das Symbol DIE Zeile ist.
+   Warum das eine Regel wurde: es stand nirgends geschrieben, und genau so
+   endeten zwei Anwendungen desselben Hauses bei 20px und bei 14px. KnightLoader
+   war ein dritter Fall - seine Schienenglyphen nahmen den Vorgabewert des
+   Symbolsatzes, 22px, also noch eine vierte Zahl. Gemeldet wird so etwas immer
+   gleich: jemand stellt zwei nebeneinander.
+   Dieselbe Klasse gehoert auf die waagerechte Kachelleiste (components/Tabs.tsx),
+   damit eine Einstellungskachel und eine Schienenzeile nie dasselbe Symbol in
+   zwei Groessen zeigen. Die Zahl steht hier; wer sie bekommt, entscheidet allein
+   die Klasse am Element - dieser Kommentar behauptet nicht, dass sie schon
+   ueberall haengt.
+   flex: none, weil eine Schienenzeile eine Flexzeile ist und der Glyph neben
+   einer langen Beschriftung das erste ist, was ein Flexcontainer zusammenquetscht. */
+.glim-nav-row > svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex: none;
+}
+
 .glim-badge-quiet { background-color: transparent; }
 .glim-badge-quiet:hover,
 .glim-badge-quiet:focus-visible { background-color: var(--carbon-surface3); }
@@ -941,26 +1006,58 @@ body {
    second one that happens to do the same thing. A held tab wiggles along
    with every OTHER tab in the strip (not the held one - see .glim-tab-dragging
    below), so the strip itself communicates "these are all rearrangeable now"
-   the same way an iOS/Android home screen does. */
+   the same way an iOS/Android home screen does.
+
+   A DEGREE OR LESS, and the number is 0.7deg because that is what the phone
+   already turns (mobile/src/components/DragList.tsx's own outputRange). The
+   amplitude used to be 1.6deg, over the cap the language names outright, and
+   over it in the one place where two surfaces of THIS product show the same
+   gesture side by side - which is how such a thing gets reported: somebody
+   holds the two next to each other. One gesture, one number.
+
+   The angles are one token times a fraction, so the asymmetric shape (a
+   slightly shorter swing one way) survives a change of amplitude instead of
+   having to be re-tuned four times. The half-pixel lift is not part of the
+   rotation rule and stays literal.
+
+   WHERE THE ANIMATION ITSELF LIVES: in the motion engine's no-preference gate
+   further down, with every other animation in this file, reading
+   --motion-wiggle-dur. It was a literal .32s sitting outside every gate, so the
+   ONE infinite animation in the app was the one thing the Motion setting could
+   not reach - a reader who set Motion to off kept a strip wiggling forever,
+   which is the exact failure the engine's own rule names first. */
 @keyframes glim-tab-wiggle {
-  0%   { transform: rotate(-1.6deg) translateY(0); }
-  25%  { transform: rotate(1.4deg)  translateY(-0.5px); }
-  50%  { transform: rotate(-1.2deg) translateY(0); }
-  75%  { transform: rotate(1.6deg)  translateY(0.5px); }
-  100% { transform: rotate(-1.6deg) translateY(0); }
+  0%   { transform: rotate(calc(-1 * var(--motion-wiggle-deg))) translateY(0); }
+  25%  { transform: rotate(calc(.875 * var(--motion-wiggle-deg))) translateY(-0.5px); }
+  50%  { transform: rotate(calc(-.75 * var(--motion-wiggle-deg))) translateY(0); }
+  75%  { transform: rotate(var(--motion-wiggle-deg)) translateY(0.5px); }
+  100% { transform: rotate(calc(-1 * var(--motion-wiggle-deg))) translateY(0); }
 }
-.glim-tab-wiggle {
-  animation: glim-tab-wiggle .32s ease-in-out infinite;
-  transform-origin: 50% 50%;
-}
-/* The tab actually under the pointer: faded rather than wiggling with the
-   rest, so the one thing moving under a real finger/cursor doesn't ALSO
-   fight that motion with its own independent animation. */
+/* The tab actually under the pointer. It is faded rather than wiggling with the
+   rest, so the one thing moving under a real finger/cursor doesn't ALSO fight
+   that motion with its own independent animation - and it LIFTS: a small scale,
+   a shadow, and drawn above its neighbours, which is the house form of "this is
+   the one you are holding" (the phone's own DragList sets the same three, with
+   elevation beside z-index for Android). Only the fade was here before, and a
+   row that merely goes pale reads as disabled rather than picked up.
+
+   The paint is unconditional on purpose: a lift is a STATE, not motion, so it
+   still has to read for somebody whose OS asks for less movement - nothing here
+   moves over time. Stopping the wiggle on this one tab is the motion half, and
+   it sits in the gate with the wiggle it has to beat. */
 .glim-tab-dragging {
   opacity: .45;
-  animation: none;
+  transform: scale(1.03);
+  box-shadow: var(--elevation);
+  position: relative;
+  z-index: 1;
 }
 @media (prefers-reduced-motion: reduce) {
+  /* The mode indicator without the motion: the strip still has to say "these
+     are rearrangeable now", and with the wiggle gone nothing else on screen
+     does. Same declarations as the data-motion="off" rule in the gate below -
+     two copies of one substitute, the arrangement .glim-live already uses,
+     because a rule cannot be shared across two different media queries. */
   .glim-tab-wiggle {
     animation: none;
     outline: 2px dashed var(--accent);
@@ -1244,6 +1341,10 @@ body {
     --motion-shake-scale: 1;
     --motion-pulse-dur: 2s;
     --motion-pulse-min-opacity: .45;
+    /* The reorder wiggle, the app's second infinite animation. The angle is the
+       cap the language names, met at the number the phone already turns. */
+    --motion-wiggle-dur: .32s;
+    --motion-wiggle-deg: 0.7deg;
     --motion-shape-dur: 260ms;
     --motion-confirm-dur: 420ms;
     --motion-confirm-glow-mult: 1;
@@ -1290,6 +1391,10 @@ body {
     --motion-shake-dur: 220ms;
     --motion-shake-scale: .5;
     --motion-pulse-min-opacity: .7;
+    /* Half the swing, and the PERIOD is left alone on purpose - the same
+       arrangement --motion-pulse-dur already has one line up: an ambient loop
+       is not calmed by running it faster, only by moving less. */
+    --motion-wiggle-deg: 0.35deg;
     --motion-shape-dur: 140ms;
     --motion-confirm-dur: 260ms;
     --motion-confirm-glow-mult: .5;
@@ -1316,11 +1421,11 @@ body {
      glim-toast-in's own durations below are the exact numbers the (reduce)
      block further down already uses for the same two elements, just reached
      by the slide scale going to 0 instead of forking to a different
-     keyframe. glim-shake and glim-live/glim-pulse are the two documented
-     exceptions — an invisible shake or a zero-duration infinite pulse
-     communicates nothing, so both swap to a real substitute below instead of
-     reading a token at all; their own tokens are therefore not redefined
-     here. */
+     keyframe. glim-shake, glim-live/glim-pulse and glim-tab-wiggle are the
+     documented exceptions: an invisible shake, a zero-duration infinite pulse
+     or a zero-degree wiggle communicates nothing, so each swaps to a real
+     substitute below instead of reading a token at all; their own tokens are
+     therefore not redefined here. */
   :root[data-motion="off"] {
     --motion-page-dur: 180ms;
     /* No travel, no scale, no curve. The DURATIONS stay non-zero here on
@@ -1381,6 +1486,24 @@ body {
      overshoot reads as a bounce right under the reader's eye. */
   .glim-modal-backdrop { animation: glim-fade-in var(--motion-scrim-dur) ease both; }
   .glim-modal-card { animation: glim-modal-in var(--motion-modal-dur) cubic-bezier(.2, .6, .2, 1) both; }
+  /* The reorder wiggle (its keyframe, and the reason for the amplitude, are up
+     with the drag classes near the top of this file). It belongs HERE and not
+     beside its own class for the reason this whole section exists: it is an
+     animation, so the setting has to reach it, and it is the app's one infinite
+     animation, which the engine's own rule names as the first thing that must
+     not be left outside. */
+  .glim-tab-wiggle {
+    animation: glim-tab-wiggle var(--motion-wiggle-dur) ease-in-out infinite;
+    transform-origin: 50% 50%;
+  }
+  /* The held tab does not wiggle with the rest, and this is the half of
+     .glim-tab-dragging that has to sit AFTER the rule it beats: both selectors
+     are one class, so the winner is whichever comes later in the file, and the
+     wiggle moved down here. The class's own paint (the fade and the lift) stays
+     outside every gate, where a state belongs. */
+  .glim-tab-dragging {
+    animation: none;
+  }
 
 
   /* glim-pulse's own "off" state: a zero-duration infinite animation is
@@ -1408,6 +1531,17 @@ body {
      skipped the useful one. */
   :root[data-motion="off"] .glim-locate {
     animation: glim-locate-reduced 900ms ease-out;
+  }
+  /* glim-tab-wiggle's own "off" state, and the same documented exception as the
+     three above: a wiggle with no angle left is an invisible mode indicator, and
+     the mode it indicates ("this strip is rearrangeable now") is the only thing
+     on screen saying so. It takes the substitute the (reduce) block near the top
+     of the file already gives it - one static dashed ring, no movement - rather
+     than a zero-degree rotation nobody can see. */
+  :root[data-motion="off"] .glim-tab-wiggle {
+    animation: none;
+    outline: 2px dashed var(--accent);
+    outline-offset: 2px;
   }
 
   /* THE TRANSITION HALF OF THE ENGINE (GlimStone 1.8.0). Everything above this
@@ -1886,8 +2020,22 @@ body {
 
    Everything below is keyed off data-motion the same way every other
    animation in this file is, so "off" leaves a single glint and no movement
-   at all. A viewer whose OS asks for reduced motion never reaches these rules
-   (see the prefers-reduced-motion block above).
+   at all.
+
+   AND IT SITS IN THE SAME no-preference GATE the rest of the engine does, which
+   it did not before. The sentence here used to claim a viewer whose OS asks for
+   reduced motion never reaches these rules; that was simply untrue - the rules
+   stood at top level, the (reduce) block never named them, and the fallbacks in
+   var(--egg-draw, 11%) and var(--egg-quake, 3px) meant such a viewer got the
+   full draw, a 34-degree strike, the quake and the shockwave through the rail.
+   A written reason that is factually wrong covers nothing, and it is worse than
+   no reason, because the next reader stops looking.
+
+   The keyframes themselves stay outside the gate: a keyframe with nothing
+   playing it does nothing, and the gate is about who plays. Layout (the box,
+   the overflow, the pivot) stays outside for the same reason - it is not
+   motion, and the mark still has to be drawn correctly for a reader who asked
+   for less of it.
    ========================================================================= */
 @keyframes kl-egg-draw {
   from { transform: translateY(0) rotate(0deg); }
@@ -1992,49 +2140,65 @@ body {
   transform-origin: 50% 37%;
 }
 
-.kl-egg[data-egg='draw'] #kl-sword {
-  animation:
-    kl-egg-draw var(--egg-draw-dur, 520ms) cubic-bezier(.2, .7, .3, 1) forwards,
-    kl-egg-sheen var(--egg-sheen-dur, 900ms) ease-out forwards;
-}
-/* Shorter than it was, because the old 620ms is what a sway takes. The curve is
-   `linear` here and NOT a mistake: every segment carries its own timing inside
-   the keyframes above, and a curve stated here would be applied on top of each
-   of them and flatten exactly the acceleration this is about. */
-.kl-egg[data-egg='strike'] #kl-sword {
-  animation: kl-egg-strike var(--egg-strike-dur, 540ms) linear forwards;
-}
-
-/* The mark shakes when the blade lands, not when the swing begins. The delay is
-   the fraction of the strike at which the 16% keyframe sits, so the two are
-   tied to the same duration and stay in step if it is ever retuned. */
-.kl-egg[data-egg='strike'] {
-  animation: kl-egg-quake var(--egg-quake-dur, 420ms) ease-out calc(var(--egg-strike-dur, 540ms) * .16) both;
-}
-
 /* The shield does not move WHILE THE BLADE IS RAISED, and that is the whole
    reason this was rewritten: moving the <img> wobbled the shield along with the
    sword and read as a shaking logo. It does move when something hits it, and
-   that motion comes from .kl-egg above, one level up, so the shield is carried
+   that motion comes from .kl-egg below, one level up, so the shield is carried
    rather than animated - the split between the two layers survives. */
 #kl-shield { transform: none; }
 
-.kl-egg-struck { animation: kl-egg-wave var(--egg-wave-dur, 380ms) ease-out; }
+@media (prefers-reduced-motion: no-preference) {
+  .kl-egg[data-egg='draw'] #kl-sword {
+    animation:
+      kl-egg-draw var(--egg-draw-dur, 520ms) cubic-bezier(.2, .7, .3, 1) forwards,
+      kl-egg-sheen var(--egg-sheen-dur, 900ms) ease-out forwards;
+  }
+  /* Shorter than it was, because the old 620ms is what a sway takes. The curve
+     is `linear` here and NOT a mistake: every segment carries its own timing
+     inside the keyframes above, and a curve stated here would be applied on top
+     of each of them and flatten exactly the acceleration this is about. */
+  .kl-egg[data-egg='strike'] #kl-sword {
+    animation: kl-egg-strike var(--egg-strike-dur, 540ms) linear forwards;
+  }
 
-/* Subtle keeps the gesture and halves the travel; off keeps only the change of
-   light, which is the one part that moves nothing. */
-[data-motion='subtle'] .kl-egg {
-  --egg-draw: 5%;
-  --egg-shove: 3px;
-  --egg-quake: 1.5px;
-  --egg-draw-dur: 380ms;
-  --egg-strike-dur: 400ms;
-  --egg-quake-dur: 280ms;
-  --egg-wave-dur: 260ms;
+  /* The mark shakes when the blade lands, not when the swing begins. The delay
+     is the fraction of the strike at which the 16% keyframe sits, so the two are
+     tied to the same duration and stay in step if it is ever retuned. */
+  .kl-egg[data-egg='strike'] {
+    animation: kl-egg-quake var(--egg-quake-dur, 420ms) ease-out calc(var(--egg-strike-dur, 540ms) * .16) both;
+  }
+
+  .kl-egg-struck { animation: kl-egg-wave var(--egg-wave-dur, 380ms) ease-out; }
+
+  /* Subtle keeps the gesture and halves the travel; off keeps only the change of
+     light, which is the one part that moves nothing. */
+  [data-motion='subtle'] .kl-egg {
+    --egg-draw: 5%;
+    --egg-shove: 3px;
+    --egg-quake: 1.5px;
+    --egg-draw-dur: 380ms;
+    --egg-strike-dur: 400ms;
+    --egg-quake-dur: 280ms;
+    --egg-wave-dur: 260ms;
+  }
+  [data-motion='off'] .kl-egg[data-egg='draw'] #kl-sword {
+    animation: kl-egg-sheen var(--egg-sheen-dur, 900ms) ease-out forwards;
+  }
+  [data-motion='off'] .kl-egg[data-egg='strike'] #kl-sword { animation: none; }
+  [data-motion='off'] .kl-egg[data-egg='strike'] { animation: none; }
+  [data-motion='off'] .kl-egg-struck { animation: none; }
 }
-[data-motion='off'] .kl-egg[data-egg='draw'] #kl-sword {
-  animation: kl-egg-sheen var(--egg-sheen-dur, 900ms) ease-out forwards;
+
+/* OS-level reduced motion gets exactly what data-motion="off" gets, declared
+   once more because a rule cannot be shared across two media queries: the glint
+   and nothing else. The egg is still THERE - holding the wordmark still answers
+   with a change of light, so the reader who found it has found something - it
+   simply does not draw, strike, quake or shove. Everything else in the block
+   above is absent from here rather than switched off, which is the whole point
+   of the gate: a browser reporting reduced motion never meets a data-motion
+   selector for these properties at all. */
+@media (prefers-reduced-motion: reduce) {
+  .kl-egg[data-egg='draw'] #kl-sword {
+    animation: kl-egg-sheen var(--egg-sheen-dur, 900ms) ease-out forwards;
+  }
 }
-[data-motion='off'] .kl-egg[data-egg='strike'] #kl-sword { animation: none; }
-[data-motion='off'] .kl-egg[data-egg='strike'] { animation: none; }
-[data-motion='off'] .kl-egg-struck { animation: none; }

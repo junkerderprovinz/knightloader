@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, Linking, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Animated, Easing, Linking, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import Constants from 'expo-constants';
 import * as Clipboard from 'expo-clipboard';
@@ -22,13 +22,23 @@ const CONTACT_MAIL = 'hello@halleluja.design';
 const COFFEE_URL = 'https://buymeacoffee.com/junkerderprovinz';
 
 /**
- * Which GlimStone this screen implements. A plain constant, kept in step by
- * hand, because there is nothing to import it from: the design language is a
- * document plus a reference, not a package. The same constant lives in the web
- * UI's Settings.tsx and the extension's options.js, and the three are expected
- * to agree.
+ * Which GlimStone this screen implements.
+ *
+ * IT IS STILL A CONSTANT HERE AND IT SHOULD NOT BE. The design language ships
+ * reference/react/version.ts for exactly this, and its own comment describes
+ * this file's previous state word for word: an app that keeps the number next
+ * to its About card has re-created the problem, because the number and the
+ * files it describes are then two places that have to be changed together by
+ * hand. They were not: this said 1.6.0 while the language stood at 1.14.0,
+ * eight releases back, and since the number on screen is a LINK to that
+ * release, a stale one does not merely read wrong, it sends somebody to the
+ * wrong page. Copying that file in beside the rest of the reference, and
+ * importing from it, is the fix; until then this at least agrees with the web
+ * UI's Help.tsx and the extension's options.js, which both read 1.14.0, and
+ * with the latest published release (v1.14.0 - read off the release list, not
+ * off a changelog, because an unreleased tag has nothing behind the link).
  */
-const GLIMSTONE_VERSION = '1.6.0';
+const GLIMSTONE_VERSION = '1.14.0';
 
 /** shapeOf reads the shape back out of the radii the context resolved.
  *
@@ -106,6 +116,44 @@ export default function SettingsScreen({
    *  a ref and not state, because nothing renders from it and re-rendering the
    *  whole page on every frame of a drag would be the point of holding it. */
   const draft = useRef<string | null>(null);
+  /**
+   * The palette row shakes when the instance refuses a write.
+   *
+   * The standing rule for a failed action is that the control which was
+   * pressed says so with a movement, and this page had no movement at all: a
+   * palette edit that never reached the instance left a grey sentence under
+   * the row and nothing else, so the press and a press that worked looked
+   * identical for as long as it took to read. The relay screen has had the
+   * gesture since it was asked for; the settings screen simply never got it.
+   *
+   * The geometry is the language's own, the same numbers the relay screen now
+   * carries and the same ones the web UI and the extension animate: five
+   * segments of 72ms, so 360ms, decaying +-4, -+4, +-2, -+2.
+   *
+   * It sits on the palette's control GROUP rather than on one swatch. Both
+   * things that can fail here - editing a position, and resetting all eight -
+   * are one write of one object to one instance, and they fail together for
+   * the same reason; a nonce per control is for two buttons that do two
+   * different things through one handler.
+   *
+   * THIS ROUTINE IS DUPLICATED from RelayConnectScreen and should not stay
+   * that way: it belongs beside the other shared controls in components/glim.tsx,
+   * so a third screen that needs it finds it instead of typing new numbers.
+   */
+  const paletteWackeln = useRef(new Animated.Value(0)).current;
+  const paletteZittern = useCallback(() => {
+    paletteWackeln.setValue(0);
+    Animated.sequence(
+      [1, -1, 0.5, -0.5, 0].map((zu) =>
+        Animated.timing(paletteWackeln, {
+          toValue: zu,
+          duration: 72,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ),
+    ).start();
+  }, [paletteWackeln]);
   /** True for a moment after the report reached the clipboard, so the button
    *  can say so in its own label.
    *
@@ -424,8 +472,16 @@ export default function SettingsScreen({
                 CSS, so a label with an info bubble beside it would fade with
                 the swatches if the row carried the value. Nothing is faded here
                 that is not actually inert. */}
-            <View
-              style={[styles.swatches, !onSetPalette && styles.dimmed]}
+            <Animated.View
+              style={[
+                styles.swatches,
+                !onSetPalette && styles.dimmed,
+                {
+                  transform: [
+                    { translateX: paletteWackeln.interpolate({ inputRange: [-1, 1], outputRange: [-4, 4] }) },
+                  ],
+                },
+              ]}
               pointerEvents={onSetPalette ? 'auto' : 'none'}
             >
               {rainbow.palette.map((hex, i) => (
@@ -447,14 +503,15 @@ export default function SettingsScreen({
                 onPress={() => {
                   setPaletteError('');
                   if (onSetPalette) {
-                    void onSetPalette(null).catch((e: unknown) =>
-                      setPaletteError(e instanceof Error ? e.message : String(e)),
-                    );
+                    void onSetPalette(null).catch((e: unknown) => {
+                      setPaletteError(e instanceof Error ? e.message : String(e));
+                      paletteZittern();
+                    });
                   }
                 }}
                 label={t('settings.accentReset')}
               />
-            </View>
+            </Animated.View>
           </View>
         )}
         {/* Goes with the row it belongs to. "What else hangs off the mode goes
@@ -679,9 +736,10 @@ export default function SettingsScreen({
           const next = rainbow.palette.slice();
           next[open.index] = hex;
           setPaletteError('');
-          void onSetPalette(next).catch((e: unknown) =>
-            setPaletteError(e instanceof Error ? e.message : String(e)),
-          );
+          void onSetPalette(next).catch((e: unknown) => {
+            setPaletteError(e instanceof Error ? e.message : String(e));
+            paletteZittern();
+          });
         }}
       />
     </ScrollView>
@@ -713,7 +771,10 @@ const styles = StyleSheet.create({
    * It closes nothing by itself: the card's own padding is still the space
    * under the last line, which is why nothing here adds a bottom margin. */
   afterControls: { marginTop: 10 },
-  aboutVersions: { fontSize: TYPE.caption },
+  // Tabular numerals, which the About card's own rule asks for by name: two
+  // version numbers on one line, each of them a number that changes with every
+  // release, so proportional digits make the middle dot wander between builds.
+  aboutVersions: { fontSize: TYPE.caption, fontVariant: ['tabular-nums'] },
   valueGroup: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1 },
   flag: { fontSize: 17 },
   value: { fontSize: TYPE.body },
@@ -723,8 +784,9 @@ const styles = StyleSheet.create({
   // its control, not above it.
   axisRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginTop: 12, marginBottom: 2 },
   axisLabelInline: { marginTop: 0, marginBottom: 0, flexShrink: 0 },
-  // The same shape GlimRow gives every other label on this page.
-  rowLabel: { fontSize: 15, flexShrink: 0 },
+  // The same size GlimRow's own label takes, off the scale in theme/tokens.ts.
+  // Both were 15, a rung between Dense and Body the table does not have.
+  rowLabel: { fontSize: TYPE.body, flexShrink: 0 },
   // One line, always. No wrapping: the children divide what the row has (see
   // Swatch's own note), so nine of them fit whatever the phone is. `flex: 1`
   // here rather than flexShrink, because the row has to CLAIM the space left

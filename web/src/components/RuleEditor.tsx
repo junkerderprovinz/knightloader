@@ -9,7 +9,8 @@ import { useT, type TranslationKey } from '../lib/i18n';
 import type { Category as Drawer } from '../lib/api';
 import { en } from '../lib/locales/en';
 import { IconPlus, IconTrash } from '../lib/icons';
-import { Button, IconBadge, InfoBubble, TextInput, segBase, segOff, segOn } from './ui';
+import { Button, IconBadge, InfoBubble, TextInput } from './ui';
+import { Tabs } from './Tabs';
 
 /**
  * One rule, opened for editing. The Packagizer and the link filter are ONE
@@ -847,9 +848,16 @@ export function RuleEditor({
         />
       </label>
 
-      {/* Section one of two. */}
+      {/* Section one of two. The caption is the eyebrow treatment, not bare
+          semibold text: GlimStone's caption row is ONE size wearing three
+          treatments, and the uppercase letter-spaced one is what names a group
+          without announcing itself as a page heading. The filled notch badge
+          (SectionTitle) is the other answer and the wrong one here - it is
+          absolutely positioned against the nearest positioned ancestor and
+          straddles that box's top EDGE, and this editor opens inline inside a
+          rule row's own well, which has neither. */}
       <section className="flex flex-col gap-2.5">
-        <h3 className="flex items-center text-xs font-semibold text-carbon-textSub">
+        <h3 className="glim-eyebrow flex items-center">
           {rx('settings.rules.sectionIf')}
           <InfoBubble tip={rx('settings.rules.ifHint')} />
         </h3>
@@ -883,7 +891,8 @@ export function RuleEditor({
 
       {/* Section two of two. There is no third; see the note at the top. */}
       <section className="flex flex-col gap-3">
-        <h3 className="flex items-center text-xs font-semibold text-carbon-textSub">
+        {/* The eyebrow treatment, for the reason section one states. */}
+        <h3 className="glim-eyebrow flex items-center">
           {rx('settings.rules.sectionThen')}
           <InfoBubble
             tip={
@@ -1238,7 +1247,32 @@ function ActionField({
   );
 }
 
-/** The segmented control: the chosen one is FILLED with the accent, everywhere. */
+/**
+ * The segmented control: the chosen one is FILLED with the accent, everywhere.
+ *
+ * ONE HORIZONTAL SELECTOR, and this is not a second one. Tabs, filter bars,
+ * segmented controls and the corner picker are the same thing - a row one item
+ * is chosen from - and GlimStone builds them as ONE component, never as a
+ * hand-rolled set of buttons per picker, because the second implementation
+ * drifts from the first the moment either changes. This one had already
+ * drifted, measurably: 0.25rem track padding and gaps against the well's own
+ * 0.2rem, no roving tabindex, no arrow keys, no Home/End, no RTL handling, no
+ * `.glim-hue` and therefore no rainbow position, and no equal segment width.
+ * Worst of it was the resting fill: `segOff` gave every UNCHOSEN segment its
+ * own badge inside a track, which the language rules out by name ("inside a
+ * selector, only the chosen segment is a badge") - and `segOff` is
+ * `bg-carbon-surface2`, the track's own colour, so the enclosure it sat in had
+ * a delta of zero and was not an enclosure at all.
+ *
+ * It stays a named export with its old signature because its call sites read
+ * better as `Segments` (a two- or three-way value on a form row) than as a raw
+ * `Tabs`; everything it draws now comes from the one component.
+ *
+ * `w-fit` is the call-site half of the well's own sizing that Tabs.tsx
+ * documents at its segment class - the track hugs its segments rather than
+ * stretching to a form column - and it is written once here instead of at each
+ * of this component's own call sites.
+ */
 export function Segments<T extends string>({
   value,
   onChange,
@@ -1251,19 +1285,15 @@ export function Segments<T extends string>({
   label: string;
 }) {
   return (
-    <div role="radiogroup" aria-label={label} className="inline-flex gap-1 rounded-[var(--radius-control)] bg-carbon-surface2 p-1">
-      {options.map((o) => (
-        <button
-          key={o.value}
-          role="radio"
-          aria-checked={value === o.value}
-          onClick={() => onChange(o.value)}
-          className={`${segBase} px-3 py-1.5 text-xs ${value === o.value ? segOn : segOff}`}
-        >
-          {o.label}
-        </button>
-      ))}
-    </div>
+    <Tabs
+      variant="well"
+      size="sm"
+      className="w-fit"
+      label={label}
+      active={value}
+      onSelect={(id) => onChange(id as T)}
+      items={options.map((o) => ({ id: o.value, label: o.label }))}
+    />
   );
 }
 

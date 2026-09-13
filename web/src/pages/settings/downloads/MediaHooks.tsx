@@ -1,5 +1,16 @@
 import { useEffect, useState } from 'react';
-import { Button, Card, Field, FieldGroup, IconBadge, NumberInput, SectionTitle, TextInput } from '../../../components/ui';
+import {
+  Button,
+  Card,
+  Field,
+  FieldGroup,
+  IconBadge,
+  Modal,
+  NumberInput,
+  SectionTitle,
+  TextInput,
+  useTooltip,
+} from '../../../components/ui';
 import { Tabs } from '../../../components/Tabs';
 import { IconPlus, IconTrash } from '../../../lib/icons';
 import { useT, type TranslationKey } from '../../../lib/i18n';
@@ -127,6 +138,13 @@ export function MediaHooksCard({ hue }: { hue: number }) {
   const [busy, setBusy] = useState(false);
   const [testing, setTesting] = useState('');
   const [error, setError] = useState('');
+  /** The address whose removal is being confirmed, or null. A real window and
+   *  never window.confirm: a native dialog cannot be styled, speaks the
+   *  browser's language rather than the one picked in this app's own picker,
+   *  and blocks the whole tab while it stands. The refusal three lines below
+   *  already goes to the trouble of answering in the reader's language, and a
+   *  native box straight after it would throw that away again. */
+  const [confirming, setConfirming] = useState<MediaHook | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -276,9 +294,7 @@ export function MediaHooksCard({ hue }: { hue: number }) {
                   }}
                 >
                   <span className="shrink-0 text-sm text-carbon-text">{h.name || h.id}</span>
-                  <span dir="ltr" title={h.url} className="min-w-0 flex-1 truncate text-xs text-carbon-textSub">
-                    {h.host}
-                  </span>
+                  <HostLine host={h.host} url={h.url} />
                   <span className="shrink-0 text-[11px] text-carbon-textMuted">
                     {h.usedBy.length > 0
                       ? t('settings.mediahook.usedBy', { n: h.usedBy.length })
@@ -316,10 +332,7 @@ export function MediaHooksCard({ hue }: { hue: number }) {
                     // Confirmed, because it takes the sealed header value with
                     // it and there is nothing on this page to put it back from:
                     // the value was never here to begin with.
-                    if (!window.confirm(t('settings.mediahook.deleteConfirm', { name: h.name || h.id }))) return;
-                    void run(async () => {
-                      await deleteMediaHook(h.id);
-                    });
+                    setConfirming(h);
                   }}
                 />
               </div>
@@ -355,7 +368,22 @@ export function MediaHooksCard({ hue }: { hue: number }) {
                 onChange={(e) => setDraft({ ...draft, id: e.target.value })}
               />
             </Field>
-            <Field label={t('settings.mediahook.wait')} hint={t('settings.mediahook.waitHint')}>
+            {/* Zero is a real answer and not an unset field, and what it means
+                rides the field's own (i) rather than a grey line under it.
+                Every explanation is a bubble - a sentence printed on the page
+                is read once and then costs that space forever - and the bubble
+                is allowed to be CONDITIONAL, which is exactly what a sentence
+                about a state that comes and goes needs. One control keeps one
+                bubble: a second (i) beside the first would be two triggers for
+                one field. */}
+            <Field
+              label={t('settings.mediahook.wait')}
+              hint={
+                draft.waitSeconds === 0
+                  ? `${t('settings.mediahook.waitHint')} ${t('settings.mediahook.waitImmediate')}`
+                  : t('settings.mediahook.waitHint')
+              }
+            >
               <NumberInput
                 value={draft.waitSeconds}
                 min={0}
@@ -365,12 +393,6 @@ export function MediaHooksCard({ hue }: { hue: number }) {
               />
             </Field>
           </div>
-
-          {/* Zero is a real answer and not an unset field, so it says what it
-              means rather than leaving a bare 0 to be read as "off". */}
-          {draft.waitSeconds === 0 && (
-            <p className="-mt-2 text-[11px] text-carbon-textMuted">{t('settings.mediahook.waitImmediate')}</p>
-          )}
 
           <Field label={t('settings.mediahook.url')} hint={t('settings.mediahook.urlHint')}>
             <TextInput
@@ -393,17 +415,20 @@ export function MediaHooksCard({ hue }: { hue: number }) {
 
           {methods.length > 0 && (
             <FieldGroup label={t('settings.mediahook.method')} hint={t('settings.mediahook.methodHint')}>
-              <div className="overflow-x-auto">
-                <Tabs
-                  variant="well"
-                  size="sm"
-                  className="w-fit"
-                  label={t('settings.mediahook.method')}
-                  active={draft.method}
-                  onSelect={(id) => setDraft({ ...draft, method: id })}
-                  items={methods.map((m) => ({ id: m, label: m }))}
-                />
-              </div>
+              {/* No overflow-x-auto around it. The strip WRAPS, it never
+                  scrolls - a horizontally scrolling selector hides options
+                  behind a gesture nobody makes on a desktop, and a scroller one
+                  level outside the component puts that gesture back after the
+                  strip has already taken it away. It grows in height instead. */}
+              <Tabs
+                variant="well"
+                size="sm"
+                className="w-fit"
+                label={t('settings.mediahook.method')}
+                active={draft.method}
+                onSelect={(id) => setDraft({ ...draft, method: id })}
+                items={methods.map((m) => ({ id: m, label: m }))}
+              />
             </FieldGroup>
           )}
 
@@ -471,6 +496,71 @@ export function MediaHooksCard({ hue }: { hue: number }) {
       )}
 
       {!draft && error && <p className="text-xs text-statusWarn">{error}</p>}
+
+      {/* The stakes in words, in a real window (GlimStone rule 15): the count of
+          drawers is already answered before this opens, so what is left to say
+          is that the sealed header value goes with the address and cannot be
+          put back from here. Cancel and the commit button look alike and
+          neither is red - what warns is the sentence above them, and a colour
+          cannot say more than that. The pair travels together at the end of the
+          row, ordered by the JSX so it mirrors under right-to-left. */}
+      {confirming && (
+        <Modal
+          title={t('settings.mediahook.delete')}
+          onClose={() => setConfirming(null)}
+          footer={
+            <>
+              <span className="flex-1" />
+              <Button kind="ghost" disabled={busy} onClick={() => setConfirming(null)}>
+                {t('common.cancel')}
+              </Button>
+              <Button
+                kind="secondary"
+                disabled={busy}
+                onClick={() => {
+                  const id = confirming.id;
+                  setConfirming(null);
+                  void run(async () => {
+                    await deleteMediaHook(id);
+                  });
+                }}
+              >
+                {t('settings.mediahook.delete')}
+              </Button>
+            </>
+          }
+        >
+          <p className="text-sm text-carbon-textSub">
+            {t('settings.mediahook.deleteConfirm', { name: confirming.name || confirming.id })}
+          </p>
+        </Modal>
+      )}
     </Card>
+  );
+}
+
+/**
+ * The host a stored address is called on, with the whole address on its bubble.
+ *
+ * Its own component only because the bubble is a hook, and a hook cannot be
+ * called from inside the list's map. The house bubble and never a native
+ * `title=`: one control, one tooltip mechanism, and the operating system's own
+ * balloon draws in the OS font, at the pointer instead of at the trigger, and
+ * is untouched by every rule this one follows.
+ */
+function HostLine({ host, url }: { host: string; url: string }) {
+  const tip = useTooltip<HTMLSpanElement>(url);
+  // role and tabIndex come off for the reason ui.tsx's Button gives at its own
+  // copy of this line: this span sits INSIDE the row's edit button, and a
+  // second tab stop with a "note" role there would be a control inside a
+  // control.
+  const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
+  return (
+    <>
+      <span dir="ltr" {...tipHoverProps} className="min-w-0 flex-1 truncate text-xs text-carbon-textSub">
+        {host}
+      </span>
+      {tip.node}
+    </>
   );
 }

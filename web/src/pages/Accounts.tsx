@@ -9,7 +9,14 @@
 // own Group field, never a hardcoded id list here - the same reason
 // AccountsTable is one component the two sections both call, filtered by
 // group at the call site instead of by an if/else on ids baked into it.
-import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type KeyboardEventHandler,
+  type PointerEventHandler,
+} from 'react';
 import {
   type Account,
   type AccountCredential,
@@ -43,9 +50,11 @@ import {
   LoadingCard,
   Modal,
   PageHeader,
+  PasswordInput,
   SectionTitle,
   TextInput,
   Toggle,
+  useTooltip,
 } from '../components/ui';
 import { AccountTable } from '../components/AccountTable';
 import { HosterLoginSection } from '../components/HosterLoginSection';
@@ -355,9 +364,17 @@ function AccountStatus({ account, busy }: { account: Account; busy: boolean }) {
   if (busy) {
     return (
       <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-carbon-textMuted">
-        <span className="inline-flex animate-spin">
-          <IconRetry width={13} height={13} />
-        </span>
+        {/* The house's own "this is happening now" mark, not a spinning glyph.
+            Tailwind's animate-spin is infinite and reads none of the motion
+            tokens, so it kept turning for somebody who had set movement to
+            "off" and for anybody whose system asks for reduced motion - the
+            one category a continuous animation has to answer to. .glim-live
+            already has both stops written for it, and it puts this row's
+            fourth state in the same dot the other three use. */}
+        <span
+          aria-hidden
+          className="glim-live h-1.5 w-1.5 shrink-0 rounded-[var(--radius-pill)] bg-accent"
+        />
         {t('accounts.refreshing')}
       </span>
     );
@@ -553,14 +570,20 @@ function CredentialDialog({
                 </Field>
               )}
 
+              {/* PasswordInput, not a bare type="password" field: a secret
+                  carries its own reveal eye inside the field at the trailing
+                  edge, and these two are the real secrets this dialog asks
+                  for. A key somebody pastes out of a hoster's site is exactly
+                  the value that has to be readable back once, and there was
+                  no way to read it at all. */}
               {picked.kind === 'apiKey' ? (
                 <Field label={t('accounts.keyLabel', { service: picked.label })} hint={t('accounts.keyHint')}>
-                  <TextInput
-                    type="password"
+                  <PasswordInput
                     autoComplete="off"
                     value={apiKey}
-                    onChange={(e) => setApiKey(e.target.value)}
-                    placeholder={t('accounts.placeholder')}
+                    onChange={setApiKey}
+                    showLabel={t('common.showPassword')}
+                    hideLabel={t('common.hidePassword')}
                   />
                 </Field>
               ) : (
@@ -569,7 +592,13 @@ function CredentialDialog({
                     <TextInput autoComplete="off" value={username} onChange={(e) => setUsername(e.target.value)} />
                   </Field>
                   <Field label={t('accounts.passwordField')}>
-                    <TextInput type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                    <PasswordInput
+                      autoComplete="new-password"
+                      value={password}
+                      onChange={setPassword}
+                      showLabel={t('common.showPassword')}
+                      hideLabel={t('common.hidePassword')}
+                    />
                   </Field>
                 </>
               )}
@@ -766,6 +795,56 @@ function RoutingSection({ catalogue, signature }: { catalogue: CatalogueService[
 }
 
 /**
+ * The ladder's drag grip, its own component for one reason: the house bubble
+ * is a hook, and a hook cannot be called from inside the row loop below.
+ *
+ * It used to carry a plain `title=`, which draws the operating system's own
+ * balloon - a second font, at the pointer instead of at the trigger, on the
+ * system's timing, and out of reach of every rule the rest of this app's
+ * tooltips follow. ui.tsx pulls `title` out of Button's and IconBadge's props
+ * for exactly that reason; a hand-written <button> is simply the shape that
+ * sweep never reached. An icon-only control still needs the tooltip
+ * unconditionally - there is no other way to learn what the grip does - so it
+ * moves to useTooltip rather than being dropped.
+ *
+ * `role` and `tabIndex` are stripped off the trigger props, the same way
+ * PasswordInput's own eye does it: a real <button> already has both, and the
+ * hook's `role="note"` would overwrite the one that says this is pressable.
+ */
+function LadderGrip({
+  tip,
+  disabled,
+  onKeyDown,
+  onPointerDown,
+}: {
+  tip: string;
+  disabled: boolean;
+  onKeyDown: KeyboardEventHandler<HTMLButtonElement>;
+  onPointerDown: PointerEventHandler<HTMLButtonElement>;
+}) {
+  const bubble = useTooltip<HTMLButtonElement>(tip);
+  const { role: _role, tabIndex: _tabIndex, ...hover } = bubble.triggerProps;
+  return (
+    <>
+      {bubble.node}
+      <button
+        type="button"
+        disabled={disabled}
+        aria-label={tip}
+        {...hover}
+        className="shrink-0 cursor-grab touch-none rounded-[var(--radius-control)] px-1 py-0.5 text-carbon-textMuted
+          outline-none transition-colors hover:text-carbon-text focus-visible:shadow-[0_0_0_2px_var(--focus-ring)]
+          active:cursor-grabbing disabled:cursor-default"
+        onKeyDown={onKeyDown}
+        onPointerDown={onPointerDown}
+      >
+        <IconGrip width={14} height={16} />
+      </button>
+    </>
+  );
+}
+
+/**
  * The priority ladder, hand-arrangeable (jdp, 2026-09-07: "Die
  * Prioritätsreihenfolge soll per drag and drop anordenbar sein").
  *
@@ -861,14 +940,9 @@ function PriorityLadder({
                 pointer at all: focus it and the arrow keys move the row. That
                 replaces the two arrow badges this row used to carry, which are
                 gone at his request. */}
-            <button
-              type="button"
+            <LadderGrip
+              tip={t('accounts.routing.dragHandle', { name: labelFor(r.id) })}
               disabled={busy}
-              title={t('accounts.routing.dragHandle', { name: labelFor(r.id) })}
-              aria-label={t('accounts.routing.dragHandle', { name: labelFor(r.id) })}
-              className="shrink-0 cursor-grab touch-none rounded-[var(--radius-control)] px-1 py-0.5 text-carbon-textMuted
-                outline-none transition-colors hover:text-carbon-text focus-visible:shadow-[0_0_0_2px_var(--focus-ring)]
-                active:cursor-grabbing disabled:cursor-default"
               onKeyDown={(e) => {
                 if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
                 e.preventDefault();
@@ -940,9 +1014,7 @@ function PriorityLadder({
                 document.addEventListener('pointerup', done);
                 document.addEventListener('pointercancel', cancel);
               }}
-            >
-              <IconGrip width={14} height={16} />
-            </button>
+            />
             <span className="glim-num w-4 shrink-0 text-carbon-textMuted">{i + 1}</span>
             <span className="flex min-w-0 flex-col">
               <span className="truncate text-carbon-text">{labelFor(r.id)}</span>

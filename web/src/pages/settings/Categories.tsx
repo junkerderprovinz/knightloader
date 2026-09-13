@@ -681,53 +681,56 @@ function CategoryRow({
               - so reading the word "Priority" would set a priority. */}
           <div className="grid gap-4 sm:grid-cols-2">
             <FieldGroup label={t('props.priority')} hint={t('settings.categories.priorityHint')}>
-              <div className="overflow-x-auto">
-                {/* Eight segments and not seven: the ladder the server serves,
-                    plus the one that means no opinion. The range is the queue's
-                    own -3..3 and the strip offers nothing outside it, because
-                    ValidateCategories REFUSES an out-of-range priority before
-                    the clamp is ever reached. */}
-                <Tabs
-                  variant="well"
-                  size="sm"
-                  className="w-fit"
-                  label={t('props.priority')}
-                  active={cat.priority === undefined ? INHERIT : String(cat.priority)}
-                  onSelect={(id) => setPriority(id === INHERIT ? undefined : Number(id))}
-                  items={[
-                    // Its OWN word and not props.inherit, which the two strips
-                    // below still use: this field's hint argues at length about
-                    // the difference between "no opinion" and "default", naming
-                    // both in quotes, and a segment reading "Inherit" made the
-                    // explanation point at a word that was not on the screen.
-                    // Extract and collision carry no such sentence, so "Inherit"
-                    // still matches what their own hints say.
-                    { id: INHERIT, label: t('settings.categories.priorityNone') },
-                    ...priorities,
-                  ]}
-                />
-              </div>
+              {/* No `overflow-x-auto` wrapper round any of the three strips on
+                  this row any more. The strip itself already wraps, and a hull
+                  that restores a horizontal scrollbar the moment the track is
+                  wider than the card puts back the exact gesture the language
+                  rules out - one level outside the component, where it looks
+                  like layout rather than like the thing it is. It grows in
+                  height now, which is what wrapping means. */}
+              {/* Eight segments and not seven: the ladder the server serves,
+                  plus the one that means no opinion. The range is the queue's
+                  own -3..3 and the strip offers nothing outside it, because
+                  ValidateCategories REFUSES an out-of-range priority before
+                  the clamp is ever reached. */}
+              <Tabs
+                variant="well"
+                size="sm"
+                className="w-fit"
+                label={t('props.priority')}
+                active={cat.priority === undefined ? INHERIT : String(cat.priority)}
+                onSelect={(id) => setPriority(id === INHERIT ? undefined : Number(id))}
+                items={[
+                  // Its OWN word and not props.inherit, which the two strips
+                  // below still use: this field's hint argues at length about
+                  // the difference between "no opinion" and "default", naming
+                  // both in quotes, and a segment reading "Inherit" made the
+                  // explanation point at a word that was not on the screen.
+                  // Extract and collision carry no such sentence, so "Inherit"
+                  // still matches what their own hints say.
+                  { id: INHERIT, label: t('settings.categories.priorityNone') },
+                  ...priorities,
+                ]}
+              />
             </FieldGroup>
 
             <FieldGroup label={t('props.autoExtract')} hint={t('settings.categories.extractHint')}>
-              <div className="overflow-x-auto">
-                {/* Three segments and never a toggle: a two-state switch cannot
-                    tell "no opinion" from "deliberately packed", and the second
-                    one has to survive a global setting that says unpack. */}
-                <Tabs
-                  variant="well"
-                  size="sm"
-                  className="w-fit"
-                  label={t('props.autoExtract')}
-                  active={cat.extract === undefined ? INHERIT : cat.extract ? 'on' : 'off'}
-                  onSelect={(id) => setExtract(id === INHERIT ? undefined : id === 'on')}
-                  items={[
-                    { id: INHERIT, label: t('props.inherit') },
-                    { id: 'on', label: t('props.on') },
-                    { id: 'off', label: t('props.off') },
-                  ]}
-                />
-              </div>
+              {/* Three segments and never a toggle: a two-state switch cannot
+                  tell "no opinion" from "deliberately packed", and the second
+                  one has to survive a global setting that says unpack. */}
+              <Tabs
+                variant="well"
+                size="sm"
+                className="w-fit"
+                label={t('props.autoExtract')}
+                active={cat.extract === undefined ? INHERIT : cat.extract ? 'on' : 'off'}
+                onSelect={(id) => setExtract(id === INHERIT ? undefined : id === 'on')}
+                items={[
+                  { id: INHERIT, label: t('props.inherit') },
+                  { id: 'on', label: t('props.on') },
+                  { id: 'off', label: t('props.off') },
+                ]}
+              />
             </FieldGroup>
           </div>
 
@@ -753,23 +756,21 @@ function CategoryRow({
                 can never trip the refusal. */}
             {collisions.length > 0 && (
               <FieldGroup label={t('settings.categories.collision')} hint={t('settings.categories.collisionHint')}>
-                <div className="overflow-x-auto">
-                  <Tabs
-                    variant="well"
-                    size="sm"
-                    className="w-fit"
-                    label={t('settings.categories.collision')}
-                    active={cat.collision?.trim() ? cat.collision : INHERIT}
-                    onSelect={(id) => setCollision(id === INHERIT ? '' : id)}
-                    items={[
-                      { id: INHERIT, label: t('props.inherit') },
-                      ...collisions.map((id) => ({
-                        id,
-                        label: COLLISION_LABEL[id] ? t(COLLISION_LABEL[id]) : id,
-                      })),
-                    ]}
-                  />
-                </div>
+                <Tabs
+                  variant="well"
+                  size="sm"
+                  className="w-fit"
+                  label={t('settings.categories.collision')}
+                  active={cat.collision?.trim() ? cat.collision : INHERIT}
+                  onSelect={(id) => setCollision(id === INHERIT ? '' : id)}
+                  items={[
+                    { id: INHERIT, label: t('props.inherit') },
+                    ...collisions.map((id) => ({
+                      id,
+                      label: COLLISION_LABEL[id] ? t(COLLISION_LABEL[id]) : id,
+                    })),
+                  ]}
+                />
               </FieldGroup>
             )}
           </div>
@@ -815,6 +816,44 @@ function CategoryRow({
 }
 
 /**
+ * wheelSteps is the wheel clause on a native <select>: a CLOSED select steps
+ * one option per notch and fires a real `change`, without the platform's own
+ * list opening at all. The platform only wires the wheel up once that list is
+ * already open, which costs a click on a value somebody reaches for
+ * constantly - and a drawer's address is such a value.
+ *
+ * Clamped at both ends instead of wrapping: one notch too many must not land a
+ * value from the other end of the list.
+ *
+ * A ref callback with its own cleanup (React 19) and `{ passive: false }`,
+ * never onWheel: React registers onWheel passive at its root, so preventDefault
+ * inside such a handler does nothing but log a warning, and the page would
+ * scroll away under the pointer while the value changed.
+ *
+ * Word for word the same listener as in components/SearchField.tsx,
+ * components/QueueBar.tsx and components/RuleEditor.tsx. This app's home for it
+ * would be lib/selectScroll.ts, which does not exist yet.
+ */
+function wheelSteps(el: HTMLSelectElement | null) {
+  if (!el) return;
+  const onWheel = (e: WheelEvent) => {
+    // A horizontal wheel says nothing about this control, and a trackpad
+    // reports fractional deltas - so read the sign of deltaY and nothing else.
+    if (el.disabled || el.options.length < 2 || e.deltaY === 0) return;
+    // This handler IS the scroll while the pointer sits on the control.
+    e.preventDefault();
+    const next = Math.min(el.options.length - 1, Math.max(0, el.selectedIndex + (e.deltaY > 0 ? 1 : -1)));
+    if (next === el.selectedIndex) return;
+    el.selectedIndex = next;
+    // A real change event rather than a state write, so the onChange already on
+    // the element picks this up exactly as it would a click on an <option>.
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+  };
+  el.addEventListener('wheel', onWheel, { passive: false });
+  return () => el.removeEventListener('wheel', onWheel);
+}
+
+/**
  * The drawer's own address picker.
  *
  * The one thing it has to get right is an id THIS TABLE NO LONGER HOLDS: a
@@ -854,6 +893,7 @@ function NotifySelect({
       aria-label={label}
       value={value}
       dir="ltr"
+      ref={wheelSteps}
       onChange={(e) => onChange(e.target.value)}
       className="glim-select w-fit appearance-none rounded-[var(--radius-control)] bg-carbon-surface2 px-2.5 py-2 pe-6
         text-sm text-carbon-text outline-none transition-shadow focus:shadow-[0_0_0_2px_var(--focus-ring)]"

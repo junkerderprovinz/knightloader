@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Button, Card, Field, IconBadge, SectionTitle, TextInput } from '../../../components/ui';
+import { Button, Card, Field, IconBadge, Modal, SectionTitle, TextInput, useTooltip } from '../../../components/ui';
 import { IconPlus, IconTrash } from '../../../lib/icons';
 import { useT } from '../../../lib/i18n';
 import {
@@ -79,6 +79,11 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
   const [draft, setDraft] = useState<Draft | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  /** The profile whose removal is being confirmed, or null. A real window and
+   *  never window.confirm: a native dialog cannot be styled, speaks the
+   *  browser's language rather than the one picked in this app's own picker,
+   *  and blocks the whole tab for as long as it stands. */
+  const [confirming, setConfirming] = useState<HeaderProfile | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -178,9 +183,7 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
                 }}
               >
                 <span className="shrink-0 text-sm text-carbon-text">{p.id}</span>
-                <span dir="ltr" title={p.origin} className="min-w-0 flex-1 truncate text-xs text-carbon-textSub">
-                  {p.origin}
-                </span>
+                <OriginLine origin={p.origin} />
                 <span className="shrink-0 text-[11px] text-carbon-textMuted">
                   {t('settings.headerProfiles.count', { n: p.headers.length })}
                 </span>
@@ -200,11 +203,7 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
                   // Confirmed, because it removes a signed-in session from this
                   // machine and there is nothing to undo it with: the value was
                   // never on this page to put back.
-                  if (!window.confirm(t('settings.headerProfiles.deleteConfirm', { id: p.id, origin: p.origin })))
-                    return;
-                  void run(async () => {
-                    await deleteHeaderProfile(p.id);
-                  });
+                  setConfirming(p);
                 }}
               />
             </li>
@@ -317,6 +316,70 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
           </div>
         </div>
       )}
+
+      {/* The stakes in words, in a real window (GlimStone rule 15): which
+          profile, which origin, and that the headers it holds are gone. Cancel
+          and the commit button look alike and neither is red - what warns is
+          the sentence above them, and a colour cannot say more than that. The
+          pair travels together at the end of the row, ordered by the JSX so it
+          mirrors under right-to-left. */}
+      {confirming && (
+        <Modal
+          title={t('settings.headerProfiles.delete')}
+          onClose={() => setConfirming(null)}
+          footer={
+            <>
+              <span className="flex-1" />
+              <Button kind="ghost" disabled={busy} onClick={() => setConfirming(null)}>
+                {t('common.cancel')}
+              </Button>
+              <Button
+                kind="secondary"
+                disabled={busy}
+                onClick={() => {
+                  const id = confirming.id;
+                  setConfirming(null);
+                  void run(async () => {
+                    await deleteHeaderProfile(id);
+                  });
+                }}
+              >
+                {t('settings.headerProfiles.delete')}
+              </Button>
+            </>
+          }
+        >
+          <p className="text-sm text-carbon-textSub">
+            {t('settings.headerProfiles.deleteConfirm', { id: confirming.id, origin: confirming.origin })}
+          </p>
+        </Modal>
+      )}
     </Card>
+  );
+}
+
+/**
+ * The origin a profile matches, with the whole string on its bubble.
+ *
+ * Its own component only because the bubble is a hook, and a hook cannot be
+ * called from inside the list's map. The house bubble and never a native
+ * `title=`: one control, one tooltip mechanism, and the operating system's own
+ * balloon draws in the OS font, at the pointer instead of at the trigger, and
+ * is untouched by every rule this one follows.
+ */
+function OriginLine({ origin }: { origin: string }) {
+  const tip = useTooltip<HTMLSpanElement>(origin);
+  // role and tabIndex come off for the reason ui.tsx's Button gives at its own
+  // copy of this line: this span sits INSIDE the row's edit button, and a
+  // second tab stop with a "note" role there would be a control inside a
+  // control.
+  const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
+  return (
+    <>
+      <span dir="ltr" {...tipHoverProps} className="min-w-0 flex-1 truncate text-xs text-carbon-textSub">
+        {origin}
+      </span>
+      {tip.node}
+    </>
   );
 }

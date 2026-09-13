@@ -9,6 +9,7 @@ import {
   NumberInput,
   SectionTitle,
   TextInput,
+  useTooltip,
 } from '../../../components/ui';
 import { PathInput } from '../../../components/FolderPicker';
 import { Tabs } from '../../../components/Tabs';
@@ -496,6 +497,20 @@ function FeedRow({
   const derived = row.intervalMinutes === 0;
   const effective = derived ? DEFAULT_INTERVAL_MINUTES : row.intervalMinutes;
 
+  // The house bubble on both of the collapsed row's own explanations, never a
+  // native `title=`. One control, one tooltip mechanism: the operating system's
+  // balloon draws in the OS font, at the pointer instead of at the trigger, and
+  // is untouched by every rule the house bubble follows, so a row carrying one
+  // beside a row carrying the other reads as a rendering fault. role and
+  // tabIndex come back off again because both spans sit INSIDE the row's own
+  // expand button, and a second tab stop with a "note" role there would put a
+  // control inside a control - the same removal ui.tsx's Button makes at its
+  // own copy of this line.
+  const urlTip = useTooltip<HTMLSpanElement>(row.url);
+  const { role: _urlRole, tabIndex: _urlTabIndex, ...urlTipProps } = urlTip.triggerProps;
+  const intervalTip = useTooltip<HTMLSpanElement>(t('settings.feeds.interval'));
+  const { role: _ivRole, tabIndex: _ivTabIndex, ...intervalTipProps } = intervalTip.triggerProps;
+
   return (
     <li className={last ? '' : 'border-b border-carbon-border/60'}>
       <div className="group grid grid-cols-[1fr_auto] items-center gap-3 py-2.5">
@@ -509,7 +524,7 @@ function FeedRow({
           {/* dir=ltr and truncated with the whole address as the tooltip: an
               address is never read right to left whatever the interface language
               is, and a feed URL is routinely longer than the row. */}
-          <span dir="ltr" title={row.url} className="min-w-0 flex-1 truncate text-sm text-carbon-text">
+          <span dir="ltr" {...urlTipProps} className="min-w-0 flex-1 truncate text-sm text-carbon-text">
             {row.url || <span className="text-carbon-textMuted">{t('settings.feeds.url')}</span>}
           </span>
           {/* What this row overrides, named by the field it comes from. Nothing
@@ -520,14 +535,16 @@ function FeedRow({
             <Marker icon={<IconPriority width={14} height={14} />} title={t('settings.feeds.priority')} />
           )}
           <span
+            {...intervalTipProps}
             className={`glim-num hidden w-12 shrink-0 text-end text-xs sm:block ${
               derived ? 'text-carbon-textMuted' : 'text-carbon-textSub'
             }`}
-            title={t('settings.feeds.interval')}
           >
             {effective}
           </span>
         </button>
+        {urlTip.node}
+        {intervalTip.node}
         {/* The one row action, on hover and on keyboard focus, so a long list
             reads as content rather than as a wall of buttons. */}
         <div className="flex items-center gap-1.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
@@ -835,7 +852,11 @@ function FeedProbe({ url, filter }: { url: string; filter: string }) {
                       {result.entries.map((e) => (
                         <li key={e.link || e.title} className="flex items-baseline gap-2">
                           <span
-                            className={`shrink-0 text-[10px] uppercase tracking-wider ${
+                            // 11px, the caption step. The type scale has four
+                            // rungs - 20/14/12/11 - and a 10px caption is the
+                            // fourth size the language's own table says to fix
+                            // rather than to add a row for.
+                            className={`shrink-0 text-[11px] uppercase tracking-wider ${
                               e.matches ? 'text-carbon-textSub' : 'text-carbon-textMuted'
                             }`}
                           >
@@ -871,9 +892,19 @@ function FeedProbe({ url, filter }: { url: string; filter: string }) {
  *  when that field is set, so a row of marks says what this subscription
  *  overrides and never how the feed itself is doing. */
 function Marker({ icon, title }: { icon: ReactNode; title: string }) {
+  // The house bubble, never a native `title=`: one control, one tooltip
+  // mechanism, and the OS balloon obeys none of the rules this one does. role
+  // and tabIndex are dropped because this mark sits INSIDE the row's own
+  // expand button - a second tab stop there would be a control inside a
+  // control - and role would overwrite the img role that carries its name.
+  const tip = useTooltip<HTMLSpanElement>(title);
+  const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
   return (
-    <span role="img" aria-label={title} title={title} className="hidden shrink-0 text-carbon-textMuted sm:block">
-      {icon}
-    </span>
+    <>
+      <span role="img" aria-label={title} {...tipHoverProps} className="hidden shrink-0 text-carbon-textMuted sm:block">
+        {icon}
+      </span>
+      {tip.node}
+    </>
   );
 }

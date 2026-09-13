@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Button,
   Card,
@@ -9,9 +10,9 @@ import {
   SectionTitle,
   TextInput,
   segBase,
-  segOff,
   segOn,
 } from '../../components/ui';
+import { Tabs } from '../../components/Tabs';
 import {
   IconArrowDown,
   IconArrowUp,
@@ -786,10 +787,18 @@ function EntryRow({
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field label={cx('settings.schedule.start')}>
-              <TextInput type="time" dir="ltr" value={entry.start} onChange={(e) => onChange({ start: e.target.value })} />
+              <TimePicker
+                label={cx('settings.schedule.start')}
+                value={entry.start}
+                onChange={(start) => onChange({ start })}
+              />
             </Field>
             <Field label={cx('settings.schedule.end')} hint={cx('settings.schedule.endHint')}>
-              <TextInput type="time" dir="ltr" value={entry.end} onChange={(e) => onChange({ end: e.target.value })} />
+              <TimePicker
+                label={cx('settings.schedule.end')}
+                value={entry.end}
+                onChange={(end) => onChange({ end })}
+              />
             </Field>
           </div>
 
@@ -839,6 +848,354 @@ function ActionSelect({
   );
 }
 
+/**
+ * NEVER A NATIVE <input type="time">.
+ *
+ * That control renders the browser's own spinner surface entirely outside the
+ * page's DOM: unstylable, unverifiable by any automated check, and a box whose
+ * only reliable way in is typing the value by hand - which is the one thing an
+ * hour/minute picker exists to remove. Both fields of this editor were one.
+ *
+ * What stands here instead is the shape the language spells out: a compact
+ * "HH:MM" field-BUTTON as the trigger (never an input, because the trigger
+ * must not invite typing), and two independently scrollable role="listbox"
+ * columns in a popover - hours 0-23, minutes in five-minute steps, which is
+ * the sensible default for anything schedule-shaped. Portal-rendered to
+ * <body>, measured off the trigger's own rect, clamped into the viewport with
+ * an 8px margin, flipping above the trigger when opening below would run off
+ * the bottom.
+ *
+ * THE TWO TRAPS THIS SHAPE IS KNOWN FOR, both handled below because both were
+ * found live elsewhere rather than in tests:
+ *
+ *  - A capture-phase scroll listener on `window` receives every scroll event
+ *    on its way DOWN to the real target, including the ones the popover's own
+ *    listbox columns fire. A naive "any scroll closes it" therefore closes the
+ *    popover roughly the moment it opens. So the event's own target is checked
+ *    and a scroll INSIDE the panel is ignored: a scroll in a popover never
+ *    de-anchors it from its trigger the way a page scroll does.
+ *  - Moving focus (or scrolling the selected option into view) BEFORE the real
+ *    position has been measured makes the browser auto-scroll to bring an
+ *    off-screen element into view, which trips the very listener above. Both
+ *    effects are therefore gated on the position being known, not on "open".
+ *
+ * Only one of these is ever open across the app at once, the same singleton
+ * rule the colour picker already keeps.
+ */
+const MINUTE_STEP = 5;
+
+/** The picker currently open, closed by whichever one opens next. */
+let closeOpenTimePicker: (() => void) | null = null;
+
+function pad2(n: number): string {
+  return String(n).padStart(2, '0');
+}
+
+function TimePicker({ value, onChange, label }: { value: string; onChange: (v: string) => void; label: string }) {
+  const clock = parseClock(value);
+  const hour = clock?.h ?? 0;
+  const minute = clock?.m ?? 0;
+
+  const [open, setOpen] = useState(false);
+  // null until the real on-screen position has been measured - see the doc
+  // comment above for why nothing may focus or scroll before it is known.
+  const [at, setAt] = useState<{ left: number; top: number } | null>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
+  const panel = useRef<HTMLDivElement>(null);
+
+  // A stored minute that is not a multiple of the step still has to be
+  // reachable and visible - an old row, or one written by another instance.
+  const minutes = useMemo(() => {
+    const list: number[] = [];
+    for (let m = 0; m < 60; m += MINUTE_STEP) list.push(m);
+    if (!list.includes(minute)) list.push(minute);
+    return list.sort((a, b) => a - b);
+  }, [minute]);
+
+  const close = useCallback(() => {
+    setOpen(false);
+    setAt(null);
+  }, []);
+
+  function toggle() {
+    if (open) {
+      close();
+      return;
+    }
+    closeOpenTimePicker?.();
+    closeOpenTimePicker = close;
+    setOpen(true);
+  }
+
+  useEffect(() => {
+    if (!open) return;
+    return () => {
+      if (closeOpenTimePicker === close) closeOpenTimePicker = null;
+    };
+  }, [open, close]);
+
+  // Measured off the trigger's own rect, with the panel's REAL rendered size
+  // rather than an assumed constant: the height depends on how tall the two
+  // columns end up, and the width on the browser's own scrollbar gutter.
+  useLayoutEffect(() => {
+    if (!open) return;
+    const place = () => {
+      const r = trigger.current?.getBoundingClientRect();
+      const box = panel.current?.getBoundingClientRect();
+      if (!r || !box) return;
+      const margin = 8;
+      const left = Math.min(Math.max(r.left, margin), Math.max(margin, window.innerWidth - box.width - margin));
+      const below = r.bottom + 6;
+      const top =
+        below + box.height <= window.innerHeight - margin || r.top - 6 - box.height < margin
+          ? below
+          : r.top - 6 - box.height;
+      setAt({ left, top });
+    };
+    place();
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onPointerDown = (e: PointerEvent) => {
+      const target = e.target as Node;
+      if (panel.current?.contains(target) || trigger.current?.contains(target)) return;
+      close();
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        close();
+        trigger.current?.focus();
+      }
+    };
+    // Capturing, so a scroll inside any ancestor is seen - and target-checked,
+    // so the popover's own columns do not close it on the way past.
+    const onScroll = (e: Event) => {
+      if (panel.current?.contains(e.target as Node)) return;
+      close();
+    };
+    document.addEventListener('pointerdown', onPointerDown, true);
+    document.addEventListener('keydown', onKey);
+    window.addEventListener('scroll', onScroll, true);
+    window.addEventListener('resize', close);
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown, true);
+      document.removeEventListener('keydown', onKey);
+      window.removeEventListener('scroll', onScroll, true);
+      window.removeEventListener('resize', close);
+    };
+  }, [open, close]);
+
+  const shown = clock ? `${pad2(hour)}:${pad2(minute)}` : value;
+
+  return (
+    <>
+      <button
+        ref={trigger}
+        type="button"
+        // A clock reads left to right whatever the interface language does -
+        // it is data, not prose (see the RTL rules).
+        dir="ltr"
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        aria-label={label}
+        onClick={toggle}
+        // The same box the field it replaces measured, so swapping one control
+        // for another does not orphan it from the row it stands in.
+        className="glim-num w-full rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-1.5 text-start text-sm
+          text-carbon-text outline-none transition-shadow focus:shadow-[0_0_0_2px_var(--focus-ring)]"
+      >
+        {shown}
+      </button>
+      {open &&
+        createPortal(
+          <div
+            ref={panel}
+            dir="ltr"
+            role="dialog"
+            aria-label={label}
+            className="glim-card fixed z-[2147483647] flex gap-1 p-1"
+            style={{
+              left: at?.left ?? 0,
+              top: at?.top ?? 0,
+              // Laid out but off screen for the one frame between mounting and
+              // being measured, so the unplaced first frame never flashes at
+              // the top-left corner.
+              visibility: at ? undefined : 'hidden',
+            }}
+          >
+            <TimeColumn
+              name="HH"
+              values={HOURS}
+              value={hour}
+              ready={at !== null}
+              onPick={(h) => onChange(`${pad2(h)}:${pad2(minute)}`)}
+            />
+            <TimeColumn
+              name="MM"
+              values={minutes}
+              value={minute}
+              ready={at !== null}
+              onPick={(m) => onChange(`${pad2(hour)}:${pad2(m)}`)}
+            />
+          </div>,
+          document.body,
+        )}
+    </>
+  );
+}
+
+const HOURS = Array.from({ length: 24 }, (_, i) => i);
+
+/**
+ * One column of the time picker.
+ *
+ * `name` is "HH"/"MM" rather than a translated word, and deliberately so: the
+ * two columns of a clock face are format tokens, the same class of string as
+ * the `dir="ltr"` the whole control is forced into, and both read the same in
+ * every language this app ships.
+ *
+ * Arrow keys SELECT as they move, the same convention the one horizontal
+ * selector already uses for a single-choice strip; Home/End jump to the ends;
+ * left and right move between the two columns. Every option is a real button,
+ * so Enter and Space already work without a line of code. A roving tabindex
+ * keeps the column one tab stop rather than sixty.
+ */
+function TimeColumn({
+  name,
+  values,
+  value,
+  ready,
+  onPick,
+}: {
+  name: string;
+  values: number[];
+  value: number;
+  ready: boolean;
+  onPick: (v: number) => void;
+}) {
+  const list = useRef<HTMLDivElement>(null);
+
+  /**
+   * Centres the chosen option in THIS column and touches nothing else.
+   *
+   * Deliberately arithmetic on the column's own scrollTop rather than
+   * `scrollIntoView`, which scrolls every scrollable ancestor as well - and a
+   * page scroll is exactly what the popover's outside-scroll listener closes
+   * on, so the tidy-looking call would shut the panel a frame after opening
+   * it. Measured through getBoundingClientRect rather than offsetTop, because
+   * the nearest positioned ancestor here is the fixed panel, not the column.
+   */
+  const centre = useCallback((el: HTMLElement) => {
+    const box = list.current;
+    if (!box) return;
+    const r = el.getBoundingClientRect();
+    const b = box.getBoundingClientRect();
+    box.scrollTop += r.top - b.top - (b.height - r.height) / 2;
+  }, []);
+
+  // Gated on `ready`, never merely on "open": bringing an element that is
+  // still sitting at its unplaced coordinate into view makes the browser
+  // scroll to reach it, which trips that same listener.
+  useEffect(() => {
+    if (!ready) return;
+    const el = list.current?.querySelector('[aria-selected="true"]');
+    if (el instanceof HTMLElement) centre(el);
+  }, [ready, centre]);
+
+  function step(delta: number) {
+    const i = values.indexOf(value);
+    const next = values[Math.min(values.length - 1, Math.max(0, (i < 0 ? 0 : i) + delta))];
+    if (next === undefined || next === value) return;
+    onPick(next);
+    // Focus follows the selection, or the ring would sit on the option that
+    // was chosen a keystroke ago. preventScroll, then centred by hand, for the
+    // reason `centre` above spells out.
+    const el = list.current?.querySelector(`[data-value="${next}"]`);
+    if (el instanceof HTMLElement) {
+      el.focus({ preventScroll: true });
+      centre(el);
+    }
+  }
+
+  function onKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
+    const sideways = e.key === 'ArrowLeft' || e.key === 'ArrowRight';
+    if (sideways) {
+      const panel = e.currentTarget.parentElement;
+      const columns = panel ? Array.from(panel.children) : [];
+      const mine = columns.indexOf(e.currentTarget);
+      const other = columns[mine === 0 ? 1 : 0];
+      const focus = other?.querySelector('[aria-selected="true"]');
+      if (focus instanceof HTMLElement) {
+        e.preventDefault();
+        focus.focus();
+      }
+      return;
+    }
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      step(1);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      step(-1);
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      step(-values.length);
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      step(values.length);
+    }
+  }
+
+  return (
+    <div
+      ref={list}
+      role="listbox"
+      aria-label={name}
+      onKeyDown={onKeyDown}
+      className="glim-num h-44 w-14 overflow-y-auto rounded-[var(--radius-control)] bg-carbon-surface2 p-1"
+    >
+      {values.map((v) => {
+        const on = v === value;
+        return (
+          <button
+            key={v}
+            type="button"
+            role="option"
+            data-value={v}
+            aria-selected={on}
+            // A roving tabindex: the column is one tab stop, not sixty.
+            tabIndex={on ? 0 : -1}
+            onClick={() => onPick(v)}
+            className={`block w-full rounded-[var(--radius-control)] px-1.5 py-1 text-center text-sm transition-colors ${
+              on
+                ? 'bg-accent text-accentContrast'
+                : 'text-carbon-textSub hover:bg-carbon-surface3 hover:text-carbon-text'
+            }`}
+          >
+            {pad2(v)}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/**
+ * Two horizontal selectors, and they are the ONE component rather than two
+ * hand-rolled rows of buttons.
+ *
+ * Both used to be built out of segBase/segOn/segOff directly, which looked
+ * right and behaved like neither: no roving tabindex, no arrow keys, no
+ * Home/End, no direction awareness under RTL, and no rainbow position on the
+ * chosen segment. A second, hand-rolled selector drifts from the first one the
+ * moment either changes, and these two had already drifted from Tabs in five
+ * separate behaviours without a single line of markup admitting it.
+ *
+ * The presets are `select="one"`, the weekday strip is `select="many"` - the
+ * same component, the same well track, the small scale, which is what a
+ * picker repeating once per schedule row takes.
+ */
 function DayPicker({
   days,
   labels,
@@ -856,33 +1213,30 @@ function DayPicker({
     { id: 'weekdays', days: PRESET_WEEKDAYS },
     { id: 'weekends', days: PRESET_WEEKENDS },
   ];
+  const chosen = useMemo(() => new Set(days.map(String)), [days]);
   return (
     <FieldGroup label={cx('settings.schedule.days')} hint={cx('settings.schedule.daysHint')}>
       <div className="flex flex-wrap items-center gap-1.5">
-        {presets.map((p) => (
-          <button
-            key={p.id}
-            type="button"
-            aria-pressed={preset === p.id}
-            onClick={() => onChange(p.days)}
-            className={`${segBase} inline-flex h-8 items-center px-2.5 text-xs ${preset === p.id ? segOn : segOff}`}
-          >
-            {cx(`settings.schedule.preset.${p.id}`)}
-          </button>
-        ))}
-        {/* Custom is a readout, not a button of its own: there is no single
-            array it could set, and the seven toggles below already do the job
-            "pick whichever days" describes. It stays in the same row and the
-            same visual language as the three real presets - matching the
-            "every day / weekdays / weekends / custom" set as asked for - and
-            lights up on its own the moment the toggles below no longer match
-            any of the three.
-            "Same visual language" now means it: unselected, this was bare text
-            among three filled badges, which is the bare-until-selected strip
-            the language rules out by name (see segOff's own comment in ui.tsx).
-            It takes the resting surface its neighbours take and NOT their
-            hover, because a hover response on a readout promises a click that
-            does nothing. */}
+        <Tabs
+          select="one"
+          variant="well"
+          size="sm"
+          className="w-fit"
+          label={cx('settings.schedule.days')}
+          // null while the days match no preset, so no segment is filled and
+          // the readout beside the track is the only thing lit.
+          active={preset === 'custom' ? null : preset}
+          onSelect={(id) => onChange(presets.find((p) => p.id === id)?.days ?? PRESET_EVERYDAY)}
+          items={presets.map((p) => ({ id: p.id, label: cx(`settings.schedule.preset.${p.id}`) }))}
+        />
+        {/* Custom is a readout, not a segment: there is no single array it
+            could set, and the seven-day strip below already does the job "pick
+            whichever days" describes. It stands BESIDE the track rather than
+            inside it for exactly that reason - a fourth segment in the groove
+            would promise a click that does nothing - and lights up on its own
+            the moment the strip below no longer matches any of the three. It
+            takes the resting surface a segment takes and NOT its hover, for
+            the same reason. */}
         <span
           className={`${segBase} inline-flex h-8 items-center px-2.5 text-xs ${
             preset === 'custom' ? segOn : 'bg-carbon-surface2 text-carbon-textMuted'
@@ -891,22 +1245,19 @@ function DayPicker({
           {cx('settings.schedule.preset.custom')}
         </span>
       </div>
-      <div className="flex flex-wrap gap-1" role="group" aria-label={cx('settings.schedule.days')}>
-        {labels.map((label, d) => {
-          const on = days.includes(d);
-          return (
-            <button
-              key={d}
-              type="button"
-              aria-pressed={on}
-              onClick={() => onChange(on ? days.filter((x) => x !== d) : [...days, d].sort((a, b) => a - b))}
-              className={`${segBase} inline-flex h-8 min-w-9 items-center justify-center px-1.5 text-xs ${on ? segOn : segOff}`}
-            >
-              {label}
-            </button>
-          );
-        })}
-      </div>
+      <Tabs
+        select="many"
+        variant="well"
+        size="sm"
+        className="w-fit"
+        label={cx('settings.schedule.days')}
+        active={chosen}
+        onSelect={(id) => {
+          const d = Number(id);
+          onChange(days.includes(d) ? days.filter((x) => x !== d) : [...days, d].sort((a, b) => a - b));
+        }}
+        items={labels.map((label, d) => ({ id: String(d), label }))}
+      />
     </FieldGroup>
   );
 }

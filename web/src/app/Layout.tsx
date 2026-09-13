@@ -268,7 +268,22 @@ export function Layout() {
     // The provider wraps the bar AND the outlet, because the whole point is that
     // the two agree on which instance is being looked at.
     <InstanceProvider>
-      <div className="flex h-screen overflow-hidden bg-carbon-background">
+      {/* DER ABSTAND GEHOERT DEM RAHMEN, NICHT DER SCHIENE, und die Zahl ist die
+          des Hauses. GlimStone 1.8.0: "The rail is a CARD, not a wall" - sie
+          traegt denselben Radius und denselben Grundabstand wie jede andere
+          Karte, der Grund zeigt sich also auf allen vier Seiten und sie klebt
+          nicht am Fensterrand. Die Sprache nennt 1rem ausdruecklich und
+          begruendet warum: die Regel ist einmal nur mit "eine Zahl"
+          ausgeliefert worden, zwei Anwendungen haben sich je eine eigene
+          ausgesucht, und nebeneinander war genau das der ganze Eindruck.
+          Ein pro Anwendung gewaehlter Abstand ist kein Abstand, sondern ein
+          Zufall.
+          Der Abstand steht HIER statt als Rand an der Schiene, damit die Luecke
+          zwischen Schiene und Inhalt und die Luecke um beide herum eine einzige
+          Zahl sind. Das eigene Polster der Seite bleibt davon unberuehrt und
+          liegt weiter bei der Seite: zwischen Schiene und erster Karte addieren
+          sich die beiden schlicht. */}
+      <div className="flex h-screen gap-4 overflow-hidden bg-carbon-background p-4">
         <Sidebar />
         <main className={`flex-1 min-w-0 ${ownsFrame ? 'overflow-hidden' : 'overflow-y-auto'}`}>
           <ShellBar visible={section === 'downloads'} />

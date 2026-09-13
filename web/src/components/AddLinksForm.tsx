@@ -26,6 +26,7 @@ import {
   type Task,
 } from '../lib/api';
 import { useT, type TranslationKey } from '../lib/i18n';
+import { useToast } from '../lib/toast';
 import { useUIState } from '../lib/uistate';
 import { PathInput } from './FolderPicker';
 import { PasteFromClipboardButton } from './PasteFromClipboardButton';
@@ -108,12 +109,17 @@ export function AddLinksForm({
   footer?: React.ReactNode;
 }) {
   const { t } = useT();
+  const { toast } = useToast();
   const priorities = usePriorityTabs();
 
   const [links, setLinks] = useState('');
   const [dragOver, setDragOver] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
+  // Bumped on every failed add, and read as the add badge's own key: the
+  // badge is remounted, which is what lets .glim-shake replay on a second
+  // identical failure. A class that leaves and returns in the same frame does
+  // not restart an animation that has already finished.
+  const [shake, setShake] = useState(0);
 
   const [optionsOpen, setOptionsOpen] = useUIState(OPTIONS_OPEN_KEY, false);
   const [recent, setRecent] = useUIState<string[]>(DESTINATION_HISTORY_KEY, []);
@@ -136,7 +142,6 @@ export function AddLinksForm({
     ).size;
 
     setBusy(true);
-    setError('');
     try {
       const created = await addLinksWithOptions(links, {
         package: pkg,
@@ -160,7 +165,13 @@ export function AddLinksForm({
       if (dir.trim()) setRecent(pushRecent(recent, dir.trim()));
       onStaged(created, submittedCount);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      // Toast plus a shake of the badge that was pressed, never a sentence
+      // left standing on the page. The sentence this replaces was worse than
+      // merely permanent: it lived inside the Options panel, so a failed add
+      // with that panel shut reported nothing at all, and with it open it sat
+      // there looking current long after the attempt it described.
+      toast(t('list.failed', { error: e instanceof Error ? e.message : String(e) }), 'fail', 'action-failed');
+      setShake((n) => n + 1);
     } finally {
       setBusy(false);
     }
@@ -285,12 +296,15 @@ export function AddLinksForm({
             onClick={onChooseFile}
           />
           <IconBadge
+            // Remounted on every failed add, so the shake plays again on a
+            // second identical failure rather than only on the first.
+            key={shake}
             labelled
             icon={<IconPlus width={16} height={16} />}
             hue={2}
             title={t('collector.add')}
             aria-label={t('collector.add')}
-            className="bg-accent text-accentContrast hover:brightness-110"
+            className={`bg-accent text-accentContrast hover:brightness-110${shake ? ' glim-shake' : ''}`}
             onClick={() => void onAdd()}
             disabled={!links.trim() || busy}
           />
@@ -316,7 +330,10 @@ export function AddLinksForm({
           </Field>
           {recent.length > 0 && (
             <div className="flex flex-col gap-1.5">
-              <span className="glim-eyebrow text-xs text-carbon-textSub">
+              {/* No size class: .glim-eyebrow IS the 11px caption step, and a
+                  text-xs on top of it quietly made this one eyebrow a 12px
+                  step the scale does not have. */}
+              <span className="glim-eyebrow text-carbon-textSub">
                 {t('collector.destinationRecent')}
               </span>
               <div dir="ltr" className="flex flex-wrap gap-1.5">
@@ -379,8 +396,6 @@ export function AddLinksForm({
             label={t('collector.overrule')}
             hint={t('collector.overruleHint')}
           />
-
-          {error && <p className="text-sm text-statusFail">{error}</p>}
         </Card>
       )}
     </div>
