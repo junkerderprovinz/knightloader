@@ -537,6 +537,10 @@ func New(dataDir string) (*App, error) {
 		Idle:     a.queueIdleForAction,
 		Fire:     a.fireIdleAction,
 		OnChange: func() { a.Hub.Broadcast("idleAction", a.IdleActionState()) },
+		// Zero in every build anyone runs, which leaves idleaction on its own
+		// default - see idleActionPoll (app_idle.go) for the one test that
+		// moves it and why that makes the test stop measuring the machine.
+		Poll: idleActionPoll,
 	})
 	if err != nil {
 		st.Close()

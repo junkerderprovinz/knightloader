@@ -192,6 +192,13 @@ func TestSeedingTorrentDoesNotBlockTheIdleAction(t *testing.T) {
 }
 
 func TestApplySettingsRefreshesIdleActionWithoutWaitingForThePoll(t *testing.T) {
+	// The poll is pushed a minute out of the way BEFORE the app is built, so
+	// nothing in this test can be the poll doing the work. That is what the
+	// assertion below rests on now - see idleActionPoll (app_idle.go).
+	orig := idleActionPoll
+	idleActionPoll = time.Minute
+	t.Cleanup(func() { idleActionPoll = orig })
+
 	a := newQueueApp(t)
 	// Enabling the action while the queue is already idle (newQueueApp starts
 	// with nothing in it) should arm well inside one poll interval - Refresh
@@ -203,16 +210,18 @@ func TestApplySettingsRefreshesIdleActionWithoutWaitingForThePoll(t *testing.T) 
 	}); err != nil {
 		t.Fatal(err)
 	}
-	// The controller's own poll is two seconds, so a window shorter than that is
-	// what makes this test about Refresh rather than about waiting. One second
-	// was too fine a distinction to draw with a clock: under -race on a shared
-	// CI runner it failed while passing everywhere else, which is a test being
-	// wrong about its instrument rather than the code being wrong.
+	// NOT a stopwatch any more. The window used to be a fraction of the
+	// two-second poll, so that a pass could not be the poll - first one second,
+	// then 1500ms after CI failed on it, and then CI failed on 1500ms too. A
+	// deadline that has to stay under the poll to mean anything is a deadline
+	// that measures how loaded the runner is, and a shared runner under -race
+	// is as loaded as it gets.
 	//
-	// 1500ms keeps the point - a pass here still cannot be the poll, because the
-	// poll has not come round yet - and stops the assertion from turning into a
-	// measurement of how loaded the machine is.
-	if !pollUntil(t, 1500*time.Millisecond, func() bool { return a.IdleActionState().Armed }) {
-		t.Fatal("ApplySettings did not nudge idleAction into arming promptly")
+	// With the poll a minute away the claim is carried by the setup instead of
+	// by the clock: if this arms at all, the refresh armed it. Ten seconds is
+	// then simply "the test is not hanging", and it can be generous precisely
+	// because it no longer proves anything on its own.
+	if !pollUntil(t, 10*time.Second, func() bool { return a.IdleActionState().Armed }) {
+		t.Fatal("ApplySettings did not refresh idleAction: it never armed, and the poll was a minute away")
 	}
 }
