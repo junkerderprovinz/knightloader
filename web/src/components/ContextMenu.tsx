@@ -37,7 +37,11 @@ export interface MenuItem {
   icon?: ReactNode;
   /** Quiet text at the end of the row: a count, a keyboard shortcut. */
   detail?: string;
-  /** Painted as a fault. For entries that destroy something, and only those. */
+  /**
+   * Accepted so the call sites still passing it keep compiling; it paints
+   * nothing. An entry that destroys something is drawn like the entries around
+   * it - what warns is the window it opens, which names what is about to go.
+   */
   danger?: boolean;
   disabled?: boolean;
   /**
@@ -455,15 +459,11 @@ function Panel({
                       item.onSelect?.();
                     }}
                     className={`flex w-full items-center gap-2.5 px-3 py-1.5 text-start text-[13px]
-                      transition-colors outline-none disabled:opacity-35 disabled:pointer-events-none ${
-                        item.danger
-                          ? 'text-statusFail hover:bg-statusFailBg focus-visible:bg-statusFailBg'
-                          : `${item.checked ? 'text-carbon-text' : 'text-carbon-textSub'}
-                             hover:bg-carbon-hover hover:text-carbon-text
-                             focus-visible:bg-carbon-hover focus-visible:text-carbon-text ${
-                               openHere ? 'bg-carbon-hover text-carbon-text' : ''
-                             }`
-                      }`}
+                      transition-colors outline-none disabled:opacity-35 disabled:pointer-events-none
+                      ${item.checked ? 'text-carbon-text' : 'text-carbon-textSub'}
+                      hover:bg-carbon-hover hover:text-carbon-text
+                      focus-visible:bg-carbon-hover focus-visible:text-carbon-text
+                      ${openHere ? 'bg-carbon-hover text-carbon-text' : ''}`}
                   >
                     {/* The gutter sizes the glyph rather than the call site: a
                         CSS height/width beats the width/height attributes an

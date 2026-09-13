@@ -235,7 +235,7 @@ export function MaintenanceCard({ hue }: { hue: number }) {
                 {t('common.cancel')}
               </Button>
               <Button
-                kind="danger"
+                kind="ghost"
                 onClick={() => {
                   setConfirming(false);
                   void start('compact');

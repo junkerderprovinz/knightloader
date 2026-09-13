@@ -994,7 +994,6 @@ function ConditionRow({
         </div>
 
         <IconBadge
-          kind="danger"
           icon={<IconTrash width={15} height={15} />}
           hue={index}
           aria-label={rx('settings.rules.removeCondition')}

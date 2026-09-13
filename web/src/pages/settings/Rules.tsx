@@ -547,7 +547,6 @@ function RuleRow({
             onClick={onDuplicate}
           />
           <IconBadge
-            kind="danger"
             icon={<IconTrash width={14} height={14} />}
             hue={index}
             title={rx('settings.rules.remove')}

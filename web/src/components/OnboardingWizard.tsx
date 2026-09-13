@@ -105,6 +105,15 @@ export function OnboardingWizard() {
       onClose={close}
       footer={
         <>
+          {/* Skip leaves the tour altogether, so it sits furthest from the hand
+              and not at the end of the row, where somebody reaching for Next
+              without reading would land on it. Back and Next keep the pair
+              order: the one that steps back first, the one that goes ahead
+              last. */}
+          <Button kind="ghost" onClick={close}>
+            {t('onboarding.skip')}
+          </Button>
+          <span className="flex-1" />
           {stepIndex > 0 && (
             <Button kind="secondary" onClick={() => setStepIndex((i) => i - 1)}>
               {t('onboarding.back')}
@@ -112,10 +121,6 @@ export function OnboardingWizard() {
           )}
           <Button kind="primary" onClick={last ? close : () => setStepIndex((i) => i + 1)}>
             {last ? t('onboarding.finish') : t('onboarding.next')}
-          </Button>
-          <span className="flex-1" />
-          <Button kind="ghost" onClick={close}>
-            {t('onboarding.skip')}
           </Button>
         </>
       }

@@ -47,6 +47,14 @@
   --color-carbon-textMuted: var(--carbon-text-muted);
   --color-carbon-border: var(--carbon-border);
   --color-carbon-hover: var(--carbon-hover);
+  /* bg-carbon-hoverRaised: hover for anything ALREADY filled with surface3 -
+     the neutral button, a raised segment, a chosen chip (GlimStone 1.8.0's
+     token, rule 21). It has to be named here or it does not exist: Tailwind v4
+     only emits a utility for a key that stands in @theme, and a class that
+     produces nothing looks exactly like a class that was never added.
+     CryptoDonateDialog's selected-chain chip carried hover:bg-carbon-hoverRaised
+     with no such key, so that chip had no hover at all. */
+  --color-carbon-hoverRaised: var(--carbon-hover-raised);
 
   --color-accent: var(--accent);
   --color-accentContrast: var(--accent-contrast);
@@ -124,7 +132,35 @@
   --carbon-surface2:   #393939;
   --carbon-surface3:   #525252;
   --carbon-hover:      #353535;
+  /* One step FURTHER from the surface, which is lighter here and darker in the
+     light theme — the hover for an element that already carries surface3
+     (GlimStone rule 21). `--carbon-hover` is #353535 and sits BELOW surface2's
+     #393939, so a filled control hovered with it goes darker at the one moment
+     somebody is looking straight at it; this is the token that exists so it
+     does not have to. */
+  --carbon-hover-raised: #6f6f6f;
   --carbon-border:     #393939;
+
+  /* THE ABOUT CARD'S BRAND MARKS at rest, and these are NOT the published brand
+     colours (GlimStone 1.9.0/1.10.0). A brand colour is designed against white
+     or against its own fill, so on a neutral button ground each one dies on one
+     side of the theme switch: measured on these two grounds, Buy Me a Coffee's
+     #FFDD00 reads 1.14:1 and Bitcoin's #F7931A 1.5:1 on the light theme's
+     #d1d1d1, while PayPal's navy and GitHub's near-black fail the same way on
+     the dark theme's #525252 — against the 3:1 a graphic needs. So the warm
+     brands are deepened for the light theme and the dark ones lightened for the
+     dark one, which is the job --accent-ink already does for the accent. The
+     TRUE colour is spent on hover as the button's own fill; see
+     .glim-brand-btn further down.
+
+     Values taken from GlimStone's own reference/tokens.css rather than derived
+     here — the whole reason the language grew these tokens is that the rule was
+     written down and the numbers were not, so one adopting app built its own
+     set and the next shipped every mark in the button's ink. */
+  --brand-coffee:  #ffdd00;
+  --brand-bitcoin: #f7931a;
+  --brand-paypal:  #4fb5f0;
+  --brand-github:  #ffffff;
 
   /* Text ramp — four steps, the last still legible at 11px. */
   --carbon-text:       #f4f4f4;
@@ -187,6 +223,15 @@
   /* One elevation, one hairline. Neutral black now, not a warm one: a brown
      shadow under a grey card is visible and reads as a colour cast. */
   --elevation: 0 1px 2px rgba(0, 0, 0, .40), 0 18px 40px -24px rgba(0, 0, 0, .85);
+  /* The ground behind a floating window (GlimStone 1.11.0). ONE value, so
+     making it darker is one edit rather than a hunt through every component
+     that floats one — it was `bg-black/60` typed into each of them, and the
+     app that release was found in had four scrims at two different strengths,
+     the odd one at .50 with nothing able to notice. .65 on a dark ground
+     rather than .60: at .60 the card in front and the page behind sit close
+     enough in value that the eye keeps reading the page, which is the one
+     thing a scrim exists to stop. */
+  --glim-scrim: rgba(0, 0, 0, .65);
   --hairline: inset 0 1px 0 rgba(255, 255, 255, .045);
   --focus-ring: rgba(252, 196, 25, .55);
 
@@ -210,7 +255,18 @@
     --carbon-surface2:   #e8e8e8;
     --carbon-surface3:   #d1d1d1;
     --carbon-hover:      #e0e0e0;
+    /* One step further from the surface, which on a light ramp means darker.
+       See the dark block above for why this token exists at all. */
+    --carbon-hover-raised: #c6c6c6;
     --carbon-border:     #d1d1d1;
+
+    /* The light theme's brand answers: the warm marks deepened so they clear
+       3:1 on #d1d1d1, the dark ones left dark because they already do. The
+       measurements are in the dark block above. */
+    --brand-coffee:  #8a6d00;
+    --brand-bitcoin: #a85d00;
+    --brand-paypal:  #003087;
+    --brand-github:  #181717;
 
     --carbon-text:       #161616;
     --carbon-text-sub:   #525252;
@@ -246,6 +302,9 @@
     --status-neutral-solid: #8d8d8d;
 
     --elevation: 0 1px 2px rgba(0, 0, 0, .06), 0 16px 36px -26px rgba(0, 0, 0, .35);
+    /* .55 rather than the dark theme's .65: a light page reaches the same
+       separation between the card in front and the page behind with less. */
+    --glim-scrim: rgba(0, 0, 0, .55);
     --hairline: inset 0 0 0 1px rgba(0, 0, 0, .05);
     --focus-ring: rgba(142, 106, 0, .5);
 
@@ -267,7 +326,16 @@
   --carbon-surface2:   #e8e8e8;
   --carbon-surface3:   #d1d1d1;
   --carbon-hover:      #e0e0e0;
+  --carbon-hover-raised: #c6c6c6;
   --carbon-border:     #d1d1d1;
+
+  /* The same brand answers as the media block above: an explicit light choice
+     has to reach them too, or a mark deepened for a light-preferring OS goes
+     back to being unreadable the moment somebody picks light by hand. */
+  --brand-coffee:  #8a6d00;
+  --brand-bitcoin: #a85d00;
+  --brand-paypal:  #003087;
+  --brand-github:  #181717;
 
   --carbon-text:       #161616;
   --carbon-text-sub:   #525252;
@@ -314,6 +382,7 @@
   --status-neutral-solid: #8d8d8d;
 
   --elevation: 0 1px 2px rgba(0, 0, 0, .06), 0 16px 36px -26px rgba(0, 0, 0, .35);
+  --glim-scrim: rgba(0, 0, 0, .55);
   --hairline: inset 0 0 0 1px rgba(0, 0, 0, .05);
   --focus-ring: rgba(142, 106, 0, .5);
 
@@ -862,16 +931,41 @@ body {
   0%   { left: -35%; }
   100% { left: 100%; }
 }
+/* Travel AND scale, both as tokens, and the curve with them (GlimStone 1.10.0).
+   Every duration used to be a token and every distance a literal, so the top two
+   intensities ran the same six-pixel slide at two speeds - a difference somebody
+   has to be TOLD about rather than one they can see. The top one now travels
+   three times as far, scales in, and rides a curve that overshoots and settles.
+
+   The language's own rule survives intact, and that is the part to check: the
+   SAME keyframe at all three intensities, never a forked animation. What changes
+   is the number the keyframe reads and the curve it reads it through. */
 @keyframes glim-page-in {
-  from { opacity: 0; transform: translateY(calc(var(--motion-page-slide-scale) * 6px)); }
+  from { opacity: 0; transform: translateY(var(--motion-page-travel)) scale(var(--motion-page-scale)); }
   to   { opacity: 1; transform: none; }
 }
 @keyframes glim-fade-in {
   from { opacity: 0; }
   to   { opacity: 1; }
 }
+/* The toast travels with everything else now. It had been left behind at one
+   distance for all three intensities, under a comment claiming it moved further
+   at the top one - a rule with nothing behind it, which is exactly the failure
+   1.10.0 is otherwise about.
+   AND IT FLIPS NOW, which it did not before: the note further down in this file
+   recorded that this keyframe alone never mirrored under [dir="rtl"], so a toast
+   slid in from the same physical side in Arabic, Hebrew and Persian as in
+   German.
+
+   A DELIBERATE DEVIATION FROM THE REFERENCE, and the better half of the trade:
+   GlimStone writes an RTL twin of every distance out by hand, because a keyframe
+   cannot be flipped by a class sweep. This file already has --dir-sign for
+   exactly that, and glim-panel-in-forward already spends it - so one value times
+   the sign replaces two values that have to be kept in step. Two numbers for one
+   distance is the shape of drift, and the language's own 1.11.0 entry is about
+   removing a value that lived in more than one place. */
 @keyframes glim-toast-in {
-  from { opacity: 0; transform: translateX(calc(var(--motion-toast-slide-scale) * 12px)); }
+  from { opacity: 0; transform: translateX(calc(var(--dir-sign) * var(--glim-toast-slide))); }
   to   { opacity: 1; transform: none; }
 }
 @keyframes glim-pulse {
@@ -980,9 +1074,19 @@ body {
      value the keyframes above and the utilities below actually read. */
   :root {
     --motion-page-dur: 280ms;
+    /* Travels three times as far as the middle intensity and scales in, so the
+       top step earns the lively name it carries instead of being the quiet one
+       played faster. */
+    --motion-page-travel: 18px;
+    --motion-page-scale: .96;
+    /* Overshoots and settles. The control point past 1 is what makes it spring
+       rather than ease, the same shape a React Native spring gives the phone,
+       so the two surfaces move alike rather than merely both moving. */
+    --motion-curve: cubic-bezier(.34, 1.56, .64, 1);
     --motion-page-slide-scale: 1;
     --motion-toast-dur: 220ms;
     --motion-toast-slide-scale: 1;
+    --glim-toast-slide: 24px;
     --motion-fade-dur: 110ms;
     --motion-shake-dur: 360ms;
     --motion-shake-scale: 1;
@@ -1007,9 +1111,15 @@ body {
      the file. */
   :root[data-motion="subtle"] {
     --motion-page-dur: 160ms;
+    /* Smaller travel, no scale, and a curve that only eases. Somebody who asked
+       for less movement asked for less movement, not for a faster bounce. */
+    --motion-page-travel: 6px;
+    --motion-page-scale: 1;
+    --motion-curve: cubic-bezier(.2, .6, .2, 1);
     --motion-page-slide-scale: .5;
     --motion-toast-dur: 130ms;
     --motion-toast-slide-scale: .5;
+    --glim-toast-slide: 12px;
     --motion-fade-dur: 70ms;
     --motion-shake-dur: 220ms;
     --motion-shake-scale: .5;
@@ -1040,9 +1150,19 @@ body {
      here. */
   :root[data-motion="off"] {
     --motion-page-dur: 180ms;
+    /* No travel, no scale, no curve. The DURATIONS stay non-zero here on
+       purpose, unlike GlimStone's own "off" block: this file's note above says
+       why, and it is KnightLoader's documented choice rather than a slip - the
+       element still fades in over the same time the reduced-motion block uses,
+       it simply does not move while doing it. Zeroing the distance is what
+       reaches that, instead of forking to a second keyframe. */
+    --motion-page-travel: 0px;
+    --motion-page-scale: 1;
+    --motion-curve: linear;
     --motion-page-slide-scale: 0;
     --motion-toast-dur: 160ms;
     --motion-toast-slide-scale: 0;
+    --glim-toast-slide: 0px;
     --motion-fade-dur: 0ms;
     --motion-shape-dur: 0ms;
     --motion-confirm-dur: 0ms;
@@ -1057,8 +1177,8 @@ body {
     --motion-panel-dist: 0px;
   }
 
-  .glim-page-enter { animation: glim-page-in var(--motion-page-dur) cubic-bezier(.2, .6, .2, 1) both; }
-  .glim-toast { animation: glim-toast-in var(--motion-toast-dur) cubic-bezier(.2, .6, .2, 1) both; }
+  .glim-page-enter { animation: glim-page-in var(--motion-page-dur) var(--motion-curve) both; }
+  .glim-toast { animation: glim-toast-in var(--motion-toast-dur) var(--motion-curve) both; }
   .glim-live { animation: glim-pulse var(--motion-pulse-dur) ease-in-out infinite; }
   /* Short on purpose: a bubble that fades in slowly reads as lag, because the
      pointer is already there waiting for it. */
@@ -1348,6 +1468,104 @@ body {
 .glim-picker-hex:focus {
   outline: none;
   background-color: var(--carbon-hover);
+}
+
+/* ---------------------------------------------------------------------------
+   The scrim behind a floating window (GlimStone 1.11.0)
+   ---------------------------------------------------------------------------
+   THE SCRIM IS A TOKEN, and it is one because it was a literal. Every element
+   that floats a window carries this class and nothing paints its own ground:
+   no bg-black/50, no second number a component invented for itself. The
+   strength lives in --glim-scrim in each theme block, so "make it darker" is
+   one edit instead of a search through every component that opens something.
+
+   An outlier with a strength of its own is precisely the case 1.11.0 went
+   looking for in another app and found four times over, at two different
+   values, with nothing in the codebase able to notice.
+   --------------------------------------------------------------------------- */
+.glim-modal-backdrop {
+  background: var(--glim-scrim);
+}
+
+/* ---------------------------------------------------------------------------
+   A button carrying somebody else's mark (GlimStone 1.9.0 / 1.10.0)
+   ---------------------------------------------------------------------------
+   Three values per brand, and the split between them is the whole point. The
+   ADJUSTED colour rides at rest (--brand, a theme token, because a published
+   brand colour dies on one of the two grounds); the TRUE colour is spent on
+   HOVER as the button's own fill (--brand-fill), which is the ground that
+   colour was actually drawn for; and the label and the mark both flip to that
+   colour's measured ink (--brand-ink), because a fixed ink on a fill somebody
+   else chose is a contrast nobody can predict.
+
+   The hexes live here and the call site names a brand by class, so no page file
+   holds a colour. The two classes travel together — `.glim-brand-btn` plus one
+   `.glim-brand-<name>`: the first spends the three values and the second is
+   what supplies them, so a button carrying only the first has no --brand to
+   read and paints its mark in the initial fill.
+
+   `svg path` as well as `svg` is not belt-and-braces, it is the half that works
+   for some marks: a fill set on the <svg> only reaches paths that declare none
+   of their own, and a glyph writing fill="currentColor" on the PATH beats an
+   inherited value from its parent. Every mark here is a single-colour drawing,
+   so painting both levels is safe. The selector reaches the button's own <svg>
+   rather than a .glim-btn-glyph wrapper, because this app's About buttons are
+   plain anchors with the mark as a direct child.
+
+   A mark that brings its OWN GROUND takes none of these classes: a coin disc is
+   a filled circle in the brand's colour with a white symbol on it, so what
+   decides whether it can be read sits inside the mark and is the same on either
+   theme. Flattening it to one ink would be redrawing the logo.
+   --------------------------------------------------------------------------- */
+.glim-brand-btn svg,
+.glim-brand-btn svg path {
+  fill: var(--brand);
+  transition: fill 120ms;
+}
+.glim-brand-btn:hover:not(:disabled) {
+  background-color: var(--brand-fill);
+  color: var(--brand-ink);
+}
+.glim-brand-btn:hover:not(:disabled) svg,
+.glim-brand-btn:hover:not(:disabled) svg path {
+  fill: currentColor;
+}
+
+/* One block per brand: the adjusted resting mark (a token, because it changes
+   with the theme), then the true colour and its measured ink, which do not. */
+.glim-brand-coffee {
+  --brand: var(--brand-coffee);
+  --brand-fill: #ffdd00;
+  /* Buy Me a Coffee's own near-black, the ink their button uses. 13.8:1. */
+  --brand-ink: #0d0c22;
+}
+.glim-brand-bitcoin {
+  --brand: var(--brand-bitcoin);
+  --brand-fill: #f7931a;
+  --brand-ink: #161616; /* 7.9:1 */
+}
+.glim-brand-paypal {
+  --brand: var(--brand-paypal);
+  --brand-fill: #003087;
+  --brand-ink: #ffffff; /* 13.4:1 */
+}
+.glim-brand-github {
+  --brand: var(--brand-github);
+  --brand-fill: #181717;
+  --brand-ink: #ffffff; /* 18.3:1 */
+}
+
+/* The house's own button: the route that reaches this app's AUTHORS rather than
+   a third party. It is the one button in that row that follows the colour
+   engine, so all three values are engine tokens — --accent-ink is the token for
+   accent-coloured GRAPHICS on an ordinary surface, which is the same job
+   --brand-* does for the four brands, and the hover pair is the ordinary accent
+   pairing. This one changes with the user's accent and with rainbow mode; a
+   vendor's mark may not. */
+.glim-brand-house {
+  --brand: var(--accent-ink);
+  --brand-fill: var(--accent);
+  --brand-ink: var(--accent-contrast);
 }
 
 /* =========================================================================

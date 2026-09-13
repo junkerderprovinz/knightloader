@@ -211,10 +211,10 @@ export function PackageMoveDialog({
       onClose={onClose}
       footer={
         <>
-          <Button onClick={() => onApply(name.trim())}>{t('pkg.merge')}</Button>
           <Button kind="ghost" onClick={onClose}>
             {t('common.cancel')}
           </Button>
+          <Button onClick={() => onApply(name.trim())}>{t('pkg.merge')}</Button>
           <span className="flex-1" />
           <span className="glim-num text-xs text-carbon-textMuted">
             {count} {t('select.count')}

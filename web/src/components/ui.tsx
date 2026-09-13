@@ -11,13 +11,28 @@ import { useT } from '../lib/i18n';
 import { IconClose, IconEye, IconEyeOff } from '../lib/icons';
 import { openColorPickerPopover } from '../lib/colorPicker';
 
-type ButtonKind = 'primary' | 'secondary' | 'ghost' | 'danger';
+/**
+ * THERE IS NO 'danger', AND ITS ABSENCE IS THE GUARD.
+ *
+ * GlimStone 1.12.0 took status-red off destructive controls, and 1.13.0 removed
+ * the one sanctioned exception rather than relocating it. What warns is the
+ * QUESTION: an irreversible action opens a window that states the stakes in
+ * words and counts, and somebody who has read that and reached for the button
+ * has already been told. A colour cannot say more than the sentence above it,
+ * and red on every delete teaches people to read past it by the third time.
+ *
+ * Deleting the variant from the union rather than leaving it unused is what
+ * makes tsc the check. A variant that still exists comes back, because it can
+ * be argued for convincingly at any single call site; one that does not exist
+ * is a compile error at all of them at once. That is the strongest guard
+ * available here and it costs nothing to run.
+ */
+type ButtonKind = 'primary' | 'secondary' | 'ghost';
 
 const kindClass: Record<ButtonKind, string> = {
   primary: 'bg-accent text-accentContrast hover:brightness-110',
   secondary: 'bg-carbon-surface2 text-carbon-text hover:bg-carbon-surface3',
   ghost: 'text-carbon-textSub hover:bg-carbon-hover hover:text-carbon-text',
-  danger: 'bg-statusFailBg text-carbon-text hover:brightness-110',
 };
 
 /**
@@ -77,11 +92,19 @@ export function Button({
   );
 }
 
-type IconBadgeKind = 'neutral' | 'danger';
+/**
+ * One kind, for the same reason ButtonKind has no 'danger' above: a bin badge
+ * takes the colour its siblings take. This one had a second failure on top of
+ * the rule, worth keeping because it explains why the variant was never right
+ * here: every delete badge already passes `hue`, so the tile was in the colour
+ * engine, and `kind="danger"` painted over it. Under rainbow that produced a
+ * hue-tinted tile with a red glyph in it, because .glim-tint-badge sets only
+ * the box-shadow and left text-statusFail standing.
+ */
+type IconBadgeKind = 'neutral';
 
 const iconBadgeClass: Record<IconBadgeKind, string> = {
   neutral: 'bg-carbon-surface2 text-carbon-textSub hover:bg-carbon-surface3 hover:text-carbon-text',
-  danger: 'bg-statusFailBg text-statusFail hover:brightness-110',
 };
 
 /**
@@ -1411,7 +1434,14 @@ export function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-6"
+      // glim-modal-backdrop, not a number typed here. GlimStone 1.11.0 made the
+      // scrim a token because it was a value the rule described and nothing
+      // held: asked to change it, somebody has to find every place it was
+      // typed. This one was .50 while the language asks for .65 on a dark
+      // ground and .55 on a light one, and at .50 the card in front and the
+      // page behind sit close enough in value that the eye keeps reading the
+      // page, which is the one thing a scrim exists to stop.
+      className="glim-modal-backdrop fixed inset-0 z-50 grid place-items-center p-6"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}

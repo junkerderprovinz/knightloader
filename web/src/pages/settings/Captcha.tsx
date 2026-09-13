@@ -372,7 +372,7 @@ function CredentialEditor({
         {cx('settings.captcha.cancel')}
       </Button>
       {configured && (
-        <Button kind="danger" onClick={() => void remove()} disabled={busy}>
+        <Button kind="ghost" onClick={() => void remove()} disabled={busy}>
           {cx('settings.captcha.remove')}
         </Button>
       )}

@@ -229,8 +229,14 @@ export function EnabledSwitch({
   // enabled by default, so an accent-filled pill per row spends the one colour
   // that means "something is happening here" on the most ordinary fact on the
   // page — a column of gold next to a single gold progress bar, and the bar
-  // stops reading as the thing that matters. On is the quiet state; off is the
-  // exception, and the exception is what earns the ink.
+  // stops reading as the thing that matters.
+  //
+  // And off is not the fault colour either. A link somebody switched off is a
+  // decision, not a failure, and a status colour on a control people press all
+  // day is a colour they stop reading, the same argument that took red off
+  // every delete in this app. Both halves are carbon tones; what tells them
+  // apart is the knob's side and the step between the two grounds, which is the
+  // signal a switch has always carried.
   return (
     <button
       type="button"
@@ -241,7 +247,7 @@ export function EnabledSwitch({
       disabled={busy}
       onClick={flip}
       className={`relative h-3.5 w-7 shrink-0 rounded-[var(--radius-pill)] transition-colors disabled:opacity-40 ${
-        on ? 'bg-carbon-surface3' : 'bg-statusFailBg'
+        on ? 'bg-carbon-surface3' : 'bg-carbon-surface2'
       }`}
     >
       {/* left-0 is load-bearing: without it the knob starts from its static
@@ -249,7 +255,7 @@ export function EnabledSwitch({
           then slides out past the track. */}
       <span
         className={`absolute left-0 top-0.5 h-2.5 w-2.5 rounded-[var(--radius-pill)] shadow-sm transition-[translate] duration-150 ${
-          on ? 'translate-x-4 bg-carbon-textSub' : 'translate-x-0.5 bg-statusFail'
+          on ? 'translate-x-4 bg-carbon-textSub' : 'translate-x-0.5 bg-carbon-textMuted'
         }`}
       />
     </button>

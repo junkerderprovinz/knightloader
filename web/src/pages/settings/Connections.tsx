@@ -369,7 +369,6 @@ function ConnectionRow({
             onClick={() => onMove(1)}
           />
           <IconBadge
-            kind="danger"
             icon={<IconTrash width={14} height={14} />}
             hue={index}
             title={cx('settings.connections.remove')}

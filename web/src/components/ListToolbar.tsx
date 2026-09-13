@@ -268,8 +268,10 @@ function weigh(all: Task[], ids: string[]): Weight {
 
 /**
  * ConfirmRemove states what is about to go and how much of it, before anything
- * goes. The two exits are deliberately unlike each other: taking rows off a list
- * is reversible by pasting the links again, erasing the files is not.
+ * goes. The two exits do different things: taking rows off a list is reversible
+ * by pasting the links again, erasing the files is not. What tells them apart is
+ * the label, the glyph beside it and the counts they are read under, never a
+ * colour on the button.
  */
 function ConfirmRemove({
   title,
@@ -317,23 +319,25 @@ function ConfirmRemove({
       mute={mute}
       footer={
         <>
+          {/* The exit that steps back stands at the start of the row; the two
+              that go through with it stand at its end, in the order of how much
+              each one takes. */}
+          <Button kind="ghost" onClick={onCancel}>
+            {t('common.cancel')}
+          </Button>
+          <span className="flex-1" />
           <Button kind="secondary" onClick={() => onConfirm(false)}>
             {t('remove.fromList')}
           </Button>
           {files && (
             <Button
-              kind="danger"
-              className="bg-statusFailBg"
+              kind="secondary"
               icon={<IconTrashFiles width={16} height={16} />}
               onClick={() => onConfirm(true)}
             >
               {t('remove.withFiles')}
             </Button>
           )}
-          <span className="flex-1" />
-          <Button kind="ghost" onClick={onCancel}>
-            {t('common.cancel')}
-          </Button>
         </>
       }
     >
@@ -1105,6 +1109,10 @@ function taskMenuGroups({
     ],
   };
 
+  // Neither entry is painted as a fault. The glyph, the label and the group
+  // they sit in at the foot of the menu say what they do, and an app that
+  // colours every delete red teaches people to read past the colour by the
+  // third menu they open.
   const gone: MenuGroup = {
     id: 'remove',
     items: [
@@ -1113,7 +1121,6 @@ function taskMenuGroups({
         label: t('task.remove'),
         detail: 'Del',
         icon: <IconTrash width={14} height={14} />,
-        danger: true,
         onSelect: () => void removal.removeNow(ids),
       },
       {
@@ -1121,7 +1128,6 @@ function taskMenuGroups({
         label: t('task.removeWithFiles'),
         detail: 'Shift+Del',
         icon: <IconTrashFiles />,
-        danger: true,
         onSelect: () => removal.askWithFiles(ids),
       },
     ],

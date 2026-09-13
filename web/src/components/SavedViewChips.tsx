@@ -100,10 +100,12 @@ export function SavedViewChips({
             },
           },
           {
+            // Not painted as a fault: the window it opens names the view and
+            // says what goes, which is the warning. A colour cannot say more
+            // than that sentence, and one on every delete is read past.
             id: `${v.id}:delete`,
             label: t('views.delete'),
             icon: <IconTrash />,
-            danger: true,
             onSelect: () => setOpen({ kind: 'delete', view: v }),
           },
         ],

@@ -1167,7 +1167,7 @@ function SystemCards() {
               <Button kind="ghost" onClick={() => setConfirmAction(null)} disabled={acting}>
                 {t('settings.system.confirmCancel')}
               </Button>
-              <Button kind="danger" onClick={() => void confirmLifecycle()} disabled={acting}>
+              <Button kind="ghost" onClick={() => void confirmLifecycle()} disabled={acting}>
                 {acting ? t('settings.system.acting') : t('settings.system.confirmProceed')}
               </Button>
             </>
@@ -1187,7 +1187,7 @@ function SystemCards() {
               <Button kind="ghost" onClick={() => setPendingFile(null)} disabled={restoring}>
                 {t('settings.system.confirmCancel')}
               </Button>
-              <Button kind="danger" onClick={() => void confirmRestore()} disabled={restoring}>
+              <Button kind="ghost" onClick={() => void confirmRestore()} disabled={restoring}>
                 {restoring ? t('settings.system.restoring') : t('settings.system.confirmProceed')}
               </Button>
             </>

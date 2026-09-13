@@ -121,6 +121,9 @@ export function CookieJarDialog({
       onClose={onClose}
       footer={
         <>
+          <Button kind="secondary" disabled={busy} onClick={onClose}>
+            {t('common.cancel')}
+          </Button>
           <Button
             // Both fields are required and neither has a useful empty meaning:
             // an empty jar is the CLEAR gesture on the server, and offering it
@@ -130,9 +133,6 @@ export function CookieJarDialog({
             onClick={() => void save()}
           >
             {task ? t('cookies.save') : t('settings.resolvers.cookieSave')}
-          </Button>
-          <Button kind="secondary" disabled={busy} onClick={onClose}>
-            {t('common.cancel')}
           </Button>
           {error && <p className="min-w-0 text-xs text-statusWarn">{error}</p>}
         </>

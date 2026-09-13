@@ -317,17 +317,20 @@ export function CaptchaModal() {
     <Modal title={title} onClose={() => handleSkip('skip-once')}
       footer={
         <>
+          <Button kind="secondary" onClick={() => handleSkip('skip-once')} disabled={busy}>
+            {t('captcha.cancel')}
+          </Button>
+          {/* Refresh sits between the two: it neither answers the challenge nor
+              walks away from it, it asks the source for a fresh one, so it
+              belongs on neither end of the row. */}
+          <Button kind="ghost" onClick={handleRefresh} disabled={busy}>
+            {t('captcha.refresh')}
+          </Button>
           {showContinue && (
             <Button kind="primary" onClick={handleContinue} disabled={continueDisabled}>
               {t('captcha.continue')}
             </Button>
           )}
-          <Button kind="secondary" onClick={() => handleSkip('skip-once')} disabled={busy}>
-            {t('captcha.cancel')}
-          </Button>
-          <Button kind="ghost" onClick={handleRefresh} disabled={busy}>
-            {t('captcha.refresh')}
-          </Button>
           <span className="flex-1" />
           {displayRemaining !== null && (
             <span className="inline-flex shrink-0 items-center gap-1 text-[11px] text-carbon-textMuted">

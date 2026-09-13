@@ -161,10 +161,15 @@ export function Shortcuts() {
           footer={
             <>
               <span className="flex-1" />
+              {/* Cancel and the commit button look alike, and the commit one
+                  sits at the end because it is the answer that goes ahead.
+                  Neither is recommended by its colour: the sentence below
+                  states what is about to be undone, and a colour cannot say
+                  more than that sentence already does. */}
               <Button kind="ghost" onClick={() => setConfirmResetAll(false)}>
                 {t('common.cancel')}
               </Button>
-              <Button kind="danger" onClick={resetAll}>
+              <Button kind="ghost" onClick={resetAll}>
                 {t('settings.shortcuts.resetAllConfirm')}
               </Button>
             </>
@@ -207,14 +212,19 @@ function ShortcutRow({
       <kbd className="glim-num shrink-0 rounded-[var(--radius-control)] bg-carbon-surface2 px-2 py-1 text-[11px] font-medium text-carbon-textSub">
         {bound ? formatShortcut(bound, t) : ''}
       </kbd>
-      <Button kind="secondary" hue={hue} className="shrink-0 px-2.5 py-1 text-xs" onClick={onChange}>
-        {t('settings.shortcuts.change')}
-      </Button>
+      {/* Reset first, Change last: Reset puts the shipped binding back and
+          Change is the one that moves this row on, so the control that goes
+          ahead sits at the end of the row. Written as JSX order rather than
+          as a flex reversal, so the pair mirrors with the page under ar, he
+          and fa the way every other row does. */}
       {isOverridden && (
         <Button kind="ghost" className="shrink-0 px-2.5 py-1 text-xs" onClick={onReset}>
           {t('settings.shortcuts.reset')}
         </Button>
       )}
+      <Button kind="secondary" hue={hue} className="shrink-0 px-2.5 py-1 text-xs" onClick={onChange}>
+        {t('settings.shortcuts.change')}
+      </Button>
     </div>
   );
 }

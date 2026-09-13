@@ -322,12 +322,21 @@ export function QueueBar() {
           mute="hardStop"
           onClose={() => (stopping ? undefined : setStopCost(null))}
           footer={
+            // Cancel left, proceed right - the one that goes ahead sits at the
+            // end of the row, and the pair mirrors with the page under RTL
+            // because nothing here reverses or reorders it.
+            //
+            // Both wear the same neutral kind, and that is the point: neither is
+            // recommended, the sentence above them decides. `secondary` rather
+            // than `ghost` for the same reason the transport buttons carry it -
+            // a ghost button that is also disabled reads as gone, and both of
+            // these go disabled while the stop is running.
             <>
               <span className="flex-1" />
-              <Button kind="ghost" onClick={() => setStopCost(null)} disabled={stopping}>
+              <Button kind="secondary" onClick={() => setStopCost(null)} disabled={stopping}>
                 {t('queue.hardStopConfirmCancel')}
               </Button>
-              <Button kind="danger" disabled={stopping} onClick={() => void confirmStop()}>
+              <Button kind="secondary" disabled={stopping} onClick={() => void confirmStop()}>
                 {stopping ? t('settings.system.acting') : t('queue.hardStopConfirmProceed')}
               </Button>
             </>

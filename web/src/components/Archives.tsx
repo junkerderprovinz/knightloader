@@ -118,7 +118,6 @@ export function useArchiveMenu({
       id: 'abort',
       label: t('archive.stop'),
       icon: <IconStop />,
-      danger: true,
       onSelect: () => {
         for (const j of running) {
           void abortExtraction(j.id, base).catch((e: unknown) =>

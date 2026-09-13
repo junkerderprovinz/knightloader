@@ -310,7 +310,7 @@ export function EventBell() {
               rather than anywhere a click aimed at a row could reach it. Absent
               entirely while there is nothing to empty. */}
           {events.length > 0 && (
-            <Button kind="danger" className="self-end px-2.5 text-xs" onClick={clearEvents}>
+            <Button kind="secondary" className="self-end px-2.5 text-xs" onClick={clearEvents}>
               {t('events.clear')}
             </Button>
           )}

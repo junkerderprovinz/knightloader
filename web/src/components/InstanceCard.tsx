@@ -193,7 +193,6 @@ export function InstanceCard({
           {onRemove && (
             <span className="opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
               <IconBadge
-                kind="danger"
                 hue={hue}
                 icon={<IconTrash />}
                 title={t('instances.removeTitle', { name })}

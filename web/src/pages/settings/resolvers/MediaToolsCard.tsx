@@ -252,7 +252,24 @@ export function MediaToolsCard({ hue }: { hue: number }) {
           control inside it - the same reason the preset host row below uses
           one. */}
       <FieldGroup label={t('settings.resolvers.toolsActions')} hint={t('settings.resolvers.toolsActionsHint')}>
+        {/* Revert first, Fetch last, the question in between: the button that
+            takes the installed copy FORWARD sits at the end of the row and the
+            one that puts it back at the start. It is the role that decides the
+            place, not how often the button is pressed - Revert is the rarest of
+            the three and still opens the row. All three can be on screen at
+            once (a fetched copy to go back from, and a check that found a tag),
+            so this is a real row and not three alternatives. Ordered by the JSX
+            itself and never by flex-row-reverse or an order-* utility, so the
+            row mirrors with the page under the right-to-left languages this app
+            ships. */}
         <div className="flex flex-wrap items-center gap-3">
+          {/* Only while there is something to go back from. */}
+          {managed && (
+            <Button kind="ghost" disabled={busy} onClick={() => void onRevert()}>
+              {reverting ? t('settings.resolvers.toolsReverting') : t('settings.resolvers.toolsRevert')}
+            </Button>
+          )}
+
           <Button kind="secondary" disabled={busy} onClick={() => void onCheck()}>
             {checking ? t('settings.resolvers.toolsChecking') : t('settings.resolvers.toolsCheck')}
           </Button>
@@ -264,13 +281,6 @@ export function MediaToolsCard({ hue }: { hue: number }) {
           {latest?.checked && latest.tag && (
             <Button kind="primary" disabled={busy} onClick={() => void onFetch()}>
               {fetching ? t('settings.resolvers.toolsFetching') : t('settings.resolvers.toolsFetch')}
-            </Button>
-          )}
-
-          {/* Only while there is something to go back from. */}
-          {managed && (
-            <Button kind="ghost" disabled={busy} onClick={() => void onRevert()}>
-              {reverting ? t('settings.resolvers.toolsReverting') : t('settings.resolvers.toolsRevert')}
             </Button>
           )}
         </div>

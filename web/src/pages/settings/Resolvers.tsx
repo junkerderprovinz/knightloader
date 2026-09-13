@@ -689,14 +689,15 @@ export function Resolvers() {
                         labelOf={audioFormatLabel}
                       />
                     </td>
-                    {/* The one row action, styled the way the host-rules table
-                        styles the same deletion of the same kind of per-host
-                        row: `danger`, and revealed on hover or on keyboard
-                        focus so a long table reads as content rather than as
-                        a column of red buttons. */}
+                    {/* The one row action, and it takes the row's own palette
+                        position like every other badge in this card - a delete
+                        badge is not styled differently from the badges beside
+                        it, and what it does is carried by the trash glyph and
+                        its tooltip. Revealed on hover or on keyboard focus so
+                        a long table reads as content rather than as a column
+                        of buttons. */}
                     <td className="px-2 py-3 text-end">
                       <IconBadge
-                        kind="danger"
                         hue={i}
                         className="opacity-0 transition-opacity focus-visible:opacity-100 group-hover:opacity-100"
                         icon={<IconTrash width={16} height={16} />}

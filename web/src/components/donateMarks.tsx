@@ -18,11 +18,20 @@
 //   cryptocurrency-icons (https://github.com/spothq/cryptocurrency-icons) -
 //   MIT: USD Coin and XRP. Copyright (c) 2018 Christopher Downer.
 //
-// Every mark is monochrome and fills with `currentColor`, like every other
-// symbol in this app, so it takes the ink of the tile it sits on and stays
-// right in both themes and in rainbow mode. Coloured coin logos would be the
-// only coloured drawings in the interface, and on a filled tile the brand
-// colour would sit on a background it was never designed against.
+// A BRAND MARK IS NOT PAINTED IN THE APP'S OWN INK, and the note that used to
+// stand here said the opposite. GlimStone 1.9.0/1.10.0 turned that round: a
+// published brand colour dies on one of the two grounds - Bitcoin's orange on
+// the light theme, GitHub's near-black on the dark one - so the mark rides a
+// per-theme ADJUSTED value at rest and spends its TRUE colour on HOVER, as the
+// button's own fill, with the label and the mark flipping to that fill's ink.
+// The values are the language's (`--brand-*`, one set per theme) and the call
+// site names a brand by class (`.glim-brand-btn` with `.glim-brand-<name>`),
+// so no file here holds a hex and no mark is painted by pattern.
+//
+// `currentColor` below is what a mark takes where no brand class names it: on
+// a coin tile the colour engine fills, the mark takes THAT fill's contrast
+// ink. The accent is the user's to pick and rainbow mode hands every tile its
+// own, so a fixed brand colour there is a contrast nobody can predict.
 // ---------------------------------------------------------------------------
 import type { ReactNode } from "react";
 

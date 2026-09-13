@@ -123,7 +123,10 @@ export function CookieJarsCard({ hue }: { hue: number }) {
                     {/* Revealed on hover or on keyboard focus, the same
                         treatment the host-rules and preset tables give the
                         deletion of a per-host row, so a long list reads as
-                        content rather than as a column of red buttons. */}
+                        content rather than as a column of buttons. The badge
+                        itself is the plain one its siblings wear: nothing that
+                        deletes is painted in a status colour, because what
+                        warns is the question, not the button. */}
                     <IconBadge
                       className="ms-auto opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
                       icon={<IconTrash width={16} height={16} />}
