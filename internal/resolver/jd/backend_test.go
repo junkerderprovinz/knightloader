@@ -63,11 +63,14 @@ func TestAggregateFinishesOnlyWhenEveryFileIs(t *testing.T) {
 
 // fakeJDContainer answers just enough of the Deprecated API for
 // awaitContainerLinks to run a full submit -> settle -> harvest -> remove
-// cycle against something that is not a live JD. It settles immediately
-// (isCollecting always false, the link count never changes) because the
-// settle-detection loop itself is awaitContainerLinks's own pre-existing,
-// unchanged logic — this fake exists to pin AddCryptedV1's wiring into that
-// shared path, not to re-prove the loop.
+// cycle against something that is not a live JD. This fake exists to pin
+// AddCryptedV1's wiring into that shared path, not to exercise the path
+// itself — container_crawl_test.go's fake is the one that puts the wait and
+// the harvest under pressure.
+//
+// It is the plainest JD there is: the container lands in one package under the
+// name it was given, the link count never changes, and no query filter means
+// anything to it, so every query is answered with the same two links.
 type fakeJDContainer struct {
 	t        *testing.T
 	mu       sync.Mutex
@@ -183,12 +186,16 @@ func TestAddCryptedV1SubmitsHarvestsAndCleansUp(t *testing.T) {
 // defence (keyed by URL, not position) actually needs something to defend
 // against.
 type fakeJDCheck struct {
-	t       *testing.T
-	mu      sync.Mutex
-	avail   map[string]string // url -> "ONLINE"/"OFFLINE"/anything else
-	links   string            // the raw links string JD received
-	pkgName string
-	removed []int64
+	t     *testing.T
+	mu    sync.Mutex
+	avail map[string]string // url -> "ONLINE"/"OFFLINE"/anything else
+	// collecting is what isCollecting answers. False here, true in the test
+	// that pins the flag being a hint rather than a gate - on a shared instance
+	// it stays true for as long as anything else is crawling.
+	collecting bool
+	links      string // the raw links string JD received
+	pkgName    string
+	removed    []int64
 }
 
 func newFakeJDCheck(t *testing.T, avail map[string]string) *fakeJDCheck {
@@ -221,6 +228,13 @@ func (f *fakeJDCheck) handler() http.Handler {
 			}
 			_, _ = w.Write([]byte(`{"data":[{"uuid":7,"name":"` + name + `"}]}`))
 		case "/linkgrabberv2/isCollecting":
+			f.mu.Lock()
+			busy := f.collecting
+			f.mu.Unlock()
+			if busy {
+				_, _ = w.Write([]byte(`{"data":true}`))
+				return
+			}
 			_, _ = w.Write([]byte(`{"data":false}`))
 		case "/linkgrabberv2/queryLinks":
 			f.mu.Lock()

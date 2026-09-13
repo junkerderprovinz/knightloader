@@ -6,11 +6,13 @@
 // Instances.tsx, unmodified and unwrapped, not a second implementation that
 // could drift from the first.
 //
-// Deliberately a copy of Accounts.tsx down to the missing gap on the wrapper,
-// including that file's own reason for it: <Instances/> opens with its own
-// `flex flex-col gap-10` and a PageHeader whose title is sr-only (zero visible
-// height), which already reserves one full gap-10 before its first real card.
-// A gap-10 here as well would stack a second 40px on top of the first.
+// Deliberately a copy of Accounts.tsx, gap-10 on the wrapper included - see
+// that file for why the gap has to be here: the sr-only PageHeader <Instances/>
+// opens with is positioned absolutely, so it is not a flex item, takes no row
+// and earns no gap. Both tabs were written on the belief that it did, and both
+// showed the same fault: the toggle card glued to the first card of the page
+// below it (jdp: "in der instanzen und konten tab in den einstellungen ist die
+// oberste card verklebt mit dem darunter").
 import { Instances } from '../Instances';
 import { Card, SectionTitle, ToggleRow } from '../../components/ui';
 import { useT } from '../../lib/i18n';
@@ -22,7 +24,7 @@ export function InstancesTab() {
   const { cfg, patch } = useDraft();
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col gap-10">
       <Card hue={0} className="flex flex-col gap-3">
         <SectionTitle>{t('settings.instances.setupTitle')}</SectionTitle>
         <ToggleRow

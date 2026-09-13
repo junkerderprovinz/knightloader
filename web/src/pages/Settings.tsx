@@ -300,7 +300,22 @@ export function SettingsPage() {
             names) or an InfoBubble tip portaled onto document.body (which
             carries the same hint text a result was matched on). See
             settings/jump.ts. */}
-        <div data-settings-content className="flex min-w-0 flex-1 flex-col gap-6 overflow-y-auto p-6 md:p-8">
+        {/* px-6 md:px-8, no vertical inset, plus glim-column-top - the
+            identical rule app/Layout.tsx applies to every other page's column,
+            and its comment carries the measurement: the vertical inset belongs
+            to the frame, so the last card ends where the sidebar ends (jdp: "in
+            allen tabs und fenstern sollen die obersten und untersten
+            cards/fenster mit der sidebar abschliessen"). This column is the
+            scroller here, so a card flush against its top edge would lose the
+            notch a SectionTitle badge hangs over its own top edge; glim-column-
+            top gives those 12px to that card alone (index.css). On a settings
+            tab the first card is a section card with a badge nearly every time,
+            so here the class almost always fires - and on the rare tab where it
+            does not, the first card sits on the sidebar's line instead. */}
+        <div
+          data-settings-content
+          className="glim-column-top flex min-w-0 flex-1 flex-col gap-6 overflow-y-auto px-6 md:px-8"
+        >
           {/* Top of the content column and not in PageHeader: that renders above
               the rail-plus-column flex, so a field there would push the rail down
               and stop it running from the top of the window to the bottom, which
@@ -393,15 +408,6 @@ function SettingsRail({ pages }: { pages: FeaturePage[] }) {
     // widen to fit the label it reveals would break that on the first
     // mouseover. shrink-0 so a wide table on Advanced pushes the page's own
     // scrollbar rather than squeezing the navigation.
-    //
-    // pt-6 md:pt-8 rather than the p-2 that used to run all the way round
-    // (jdp: "Die settingstabs fangen weiter oben an als die cards"): the rail
-    // and the content column are siblings starting at the same y, so the
-    // column's own p-6 md:p-8 was pushing the first card down while the first
-    // tile stayed pinned near the window edge. The two top paddings are the
-    // same number now, and the first tile lines up with the first card's top
-    // edge. Only the top - the rail keeps its tight px-2/pb-2, since the
-    // bottom of a scrolling column has nothing to line up with.
     <div
       // FLUSH WITH THE SIDEBAR, top and bottom, and that REVERSES what stood
       // here. The rail used to carry pt-6/pb-6 (md: 8) so the first tile lined
@@ -416,10 +422,17 @@ function SettingsRail({ pages }: { pages: FeaturePage[] }) {
       // as a mistake in a way a tile and a card never do - a card is a different
       // kind of thing and is allowed its own inset.
       //
-      // So the padding goes, and what it bought goes with it: the first tile now
-      // sits a card's padding higher than the first card. That is the trade, it
-      // is deliberate, and it is written down here so the next round does not
-      // read the old comment and quietly put it back.
+      // So the padding goes - and what it cost has since been paid back from
+      // the other side: the content column beside it gave up its own p-6 md:p-8
+      // in the same move (px-6 pt-3 md:px-8 now, see the column below and the
+      // frame in app/Layout.tsx). What lines up with this rail's first tile now
+      // is the BADGE on the first card, not the card's own top edge, and that
+      // is the closest the two get without slicing the badge off - the column's
+      // remaining 12px are exactly that notch. "In allen tabs und fenstern
+      // sollen die obersten und untersten cards/fenster mit der sidebar
+      // abschliessen." At the bottom, where nothing hangs over, all three
+      // columns end on the same line. Nothing here gets a pt/pb back without
+      // the other two getting one too.
       className={`flex h-full shrink-0 flex-col gap-2 px-2 ${display === 'glyph' ? 'w-14' : 'w-52'}`}
     >
       <Tabs

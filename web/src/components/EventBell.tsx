@@ -21,7 +21,8 @@
 // reasons written down there - a prompt on first paint, on an origin that is
 // usually plain HTTP on a LAN address, would be a permission dialog for a
 // feature nobody asked for and a refusal that sticks for good.
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { Button, EmptyState, SectionTitle, useTooltip } from './ui';
 import { navBase, navHued, navInactive, NavLabel } from './Sidebar';
@@ -56,6 +57,49 @@ const FAMILY_LABEL: Record<EventFamily, TranslationKey> = {
   accounts: 'events.kind.accounts',
   actions: 'events.kind.actions',
 };
+
+/** The gap kept between the panel and the rail, and between it and the window. */
+const MARGIN = 8;
+
+/**
+ * WHERE THE PANEL GOES, measured against the WINDOW rather than against the row
+ * it hangs off.
+ *
+ * Clamp, then flip, with the same 8px the house's own bubble uses
+ * (ui.tsx's placeBubble) - it opens on the far side of the rail, which is the
+ * right in a left-to-right locale and the left in ar/he/fa, and it crosses to
+ * the other side only when the preferred one would run off the edge AND the
+ * other one genuinely has room. A flip that is unconditional trades one clipped
+ * edge for the opposite one.
+ *
+ * `bottom`, not `top`: the panel grows UPWARD out of the bell, so a list that
+ * gets longer while it is open stays pinned to the row it belongs to instead of
+ * walking off the bottom of the window - and nothing has to re-measure when a
+ * row arrives. maxHeight is whatever is left between that bottom edge and the
+ * top margin, which is what keeps the head of a full list on screen without
+ * measuring the panel's height at all.
+ *
+ * Measuring the panel's own width is legitimate here only because the width is
+ * declared (`w-[22rem]`, capped in vw): a shrink-to-fit fixed box would resize
+ * itself in response to the very `left` this computes, which is the trap
+ * placeBubble's `width: max-content` notes for the tooltip.
+ */
+function placePanel(r: DOMRect, w: number, rtl: boolean): { left: number; bottom: number; maxHeight: number } {
+  const vw = document.documentElement.clientWidth || window.innerWidth;
+  const vh = document.documentElement.clientHeight || window.innerHeight;
+  const after = r.right + MARGIN;
+  const before = r.left - MARGIN - w;
+  const first = rtl ? before : after;
+  const other = rtl ? after : before;
+  const fits = (x: number) => x >= MARGIN && x + w <= vw - MARGIN;
+  const left = fits(first) || !fits(other) ? first : other;
+  const bottom = Math.max(MARGIN, vh - r.bottom);
+  return {
+    left: Math.max(MARGIN, Math.min(vw - MARGIN - w, left)),
+    bottom,
+    maxHeight: vh - bottom - MARGIN,
+  };
+}
 
 /**
  * One line of the log.
@@ -142,8 +186,16 @@ export function EventBell({ hue }: { hue: number }) {
   // preference, and a filter that comes back on its own is a filter that makes
   // the list look empty for a reason nobody can see.
   const [families, setFamilies] = useState<ReadonlySet<EventFamily>>(new Set());
+  // The row's own box, and the panel's anchor. Measured off the WRAPPER rather
+  // than off the button, because the button's ref belongs to the tooltip hook
+  // below - a second `ref` on the same element would quietly take that one's
+  // place and leave the bubble unable to measure its own trigger. The wrapper
+  // hugs the button exactly (one block child in a flex column), so the two
+  // rects are the same rect.
   const wrapRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState<{ left: number; bottom: number; maxHeight: number } | null>(null);
 
   // Opening the panel is what marks the log read, and it is the ONLY thing that
   // does - see markEventsSeen's own note on the three tempting places this must
@@ -169,8 +221,13 @@ export function EventBell({ hue }: { hue: number }) {
     if (!open) return;
     const opener = document.activeElement as HTMLElement | null;
     const raf = requestAnimationFrame(() => scrollRef.current?.focus());
+    // Both boxes, because the panel is no longer a descendant of the row: it
+    // hangs off <body> (see the panel's own note), so a press inside it lands
+    // outside wrapRef and would close the thing that was just being used.
     const onDown = (e: MouseEvent) => {
-      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setEventsPanelOpen(false);
+      const at = e.target as Node;
+      if (wrapRef.current?.contains(at) || panelRef.current?.contains(at)) return;
+      setEventsPanelOpen(false);
     };
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setEventsPanelOpen(false);
@@ -182,6 +239,33 @@ export function EventBell({ hue }: { hue: number }) {
       document.removeEventListener('mousedown', onDown);
       document.removeEventListener('keydown', onKey);
       opener?.focus?.();
+    };
+  }, [open]);
+
+  // Placed before the browser paints, which is what makes the unmeasured first
+  // frame a non-event rather than a flash at the corner of the window. The
+  // `visibility` guard on the panel is the belt the house's own bubble wears
+  // for the same frame.
+  //
+  // Re-placed on a resize, and NOT on a scroll: the rail it hangs off cannot
+  // scroll under it - it is a full-height column in a page that does not scroll
+  // - so there is nothing to go stale. It does not need re-placing when a row
+  // arrives either; see placePanel on why the bottom edge is the anchored one.
+  useLayoutEffect(() => {
+    if (!open) return;
+    const place = () => {
+      const row = wrapRef.current;
+      const panel = panelRef.current;
+      if (!row || !panel) return;
+      setPos(placePanel(row.getBoundingClientRect(), panel.offsetWidth, getComputedStyle(row).direction === 'rtl'));
+    };
+    place();
+    window.addEventListener('resize', place);
+    return () => {
+      window.removeEventListener('resize', place);
+      // Dropped on close so the next opening measures again instead of
+      // spending its first frame at the position of the last one.
+      setPos(null);
     };
   }, [open]);
 
@@ -269,7 +353,10 @@ export function EventBell({ hue }: { hue: number }) {
   const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
 
   return (
-    <div ref={wrapRef} className="relative">
+    // No `relative` on this box any more: nothing is positioned against it now
+    // that the panel is placed against the window, and the unread badge below
+    // hangs off the button's own `relative` (navBase), not off this.
+    <div ref={wrapRef}>
       <button
         type="button"
         aria-haspopup="dialog"
@@ -304,65 +391,100 @@ export function EventBell({ hue }: { hue: number }) {
       </button>
       {tip.node}
 
-      {open && (
-        <div
-          role="dialog"
-          aria-label={name}
-          // bottom-0 start-full: it opens beside the rail and grows upward, so
-          // a long list runs into the window rather than off the bottom of it.
-          // Logical properties throughout, so the panel flips to the other side
-          // of the rail in the Arabic and Hebrew locales without knowing it has.
-          className="glim-card absolute bottom-0 start-full z-40 ms-2 flex w-[22rem] max-w-[calc(100vw-6rem)]
-            flex-col gap-3 p-4"
-        >
-          {/* The one SectionTitle this card gets, and its bubble is where the
-              honesty lives: what the list holds, how much of it, and that it
-              starts over every time the page is loaded. That sentence belongs
-              in the bubble rather than as a line of prose over the rows, where
-              it would be read once and cost that space for ever. */}
-          <SectionTitle hint={t('events.titleHint', { max: CAPACITY })}>{name}</SectionTitle>
+      {open &&
+        createPortal(
+          <div
+            ref={panelRef}
+            role="dialog"
+            aria-label={name}
+            // IT HANGS OFF <body>, AND THAT IS THE WHOLE FIX.
+            //
+            // Positioned in the tree it was `absolute bottom-0 start-full`
+            // beside the row, which held for exactly as long as nothing above
+            // it clipped. The rail now carries `overflow-hidden` (Sidebar.tsx,
+            // so the brand mark cannot cross its rounded corner), and an
+            // overflow box is a clip AND a scroller: a 352px panel beside a
+            // 224px rail pushed that rail's scrollWidth to 572, and opening the
+            // panel focuses its list, so the browser scrolled the RAIL to reach
+            // the focus (scrollLeft 284, measured). What was left on screen was
+            // a 224px strip out of the MIDDLE of the panel - the title badge
+            // reading "NISSE", a sentence stopping mid-word, "Liste" where the
+            // button says "Liste leeren" - with the rail's own logo and rows
+            // shoved out of frame to the left. One cause, two cut edges;
+            // widening anything would have moved the cuts, not removed them.
+            //
+            // At body level nothing clips it, which is the same reason
+            // ContextMenu, ColumnMenu and the house bubble all render there.
+            // The price is that the panel is no longer inside the row for an
+            // outside-press test, which is why that handler checks both boxes.
+            //
+            // The placement is measured (placePanel) rather than expressed in
+            // logical properties, so the side it opens on still follows the
+            // writing direction - the far side of the rail in both, read off
+            // the row's own computed `direction`.
+            style={{
+              left: pos?.left ?? 0,
+              bottom: pos?.bottom ?? 0,
+              maxHeight: pos?.maxHeight,
+              visibility: pos ? undefined : 'hidden',
+            }}
+            className="glim-card fixed z-40 flex w-[22rem] max-w-[calc(100vw-1rem)] flex-col gap-3 p-4"
+          >
+            {/* The one SectionTitle this card gets, and its bubble is where the
+                honesty lives: what the list holds, how much of it, and that it
+                starts over every time the page is loaded. That sentence belongs
+                in the bubble rather than as a line of prose over the rows, where
+                it would be read once and cost that space for ever. */}
+            <SectionTitle hint={t('events.titleHint', { max: CAPACITY })}>{name}</SectionTitle>
 
-          {(chips.length > 1 || families.size > 0) && (
-            <Tabs select="many" size="sm" label={t('events.filterLabel')} items={chips} active={families} onSelect={toggleFamily} />
-          )}
-
-          {/* The scroll lives on this INNER box and never on the card: the
-              section badge above straddles the card's own top edge (`top-0`
-              plus a self-relative `-translate-y-1/2`), and an overflow on its
-              positioning box shears the half that hangs over it off.
-              tabIndex={-1} because focus needs somewhere to land - the ring
-              drops its oldest entry at three hundred, and if that entry is the
-              row somebody had focused, its node unmounts and focus falls to
-              <body>, which restarts the next Tab at the top of the document
-              with the panel still open.
-              Not virtualised, deliberately: three hundred plain rows render
-              once when the panel opens, and a window here would break Tab order
-              to save a cost nothing is paying. */}
-          <div ref={scrollRef} tabIndex={-1} className="-mx-1 max-h-[60vh] overflow-y-auto px-1">
-            {events.length === 0 ? (
-              <EmptyState nested title={t('events.empty')} hint={t('events.emptyHint')} />
-            ) : shown.length === 0 ? (
-              <EmptyState nested title={t('events.noMatch')} />
-            ) : (
-              <div className="flex flex-col">
-                {shown.map((e) => (
-                  <EventRow key={e.id} event={e} onJump={jump} />
-                ))}
-              </div>
+            {(chips.length > 1 || families.size > 0) && (
+              <Tabs select="many" size="sm" label={t('events.filterLabel')} items={chips} active={families} onSelect={toggleFamily} />
             )}
-          </div>
 
-          {/* The one destructive control in here, with no undo behind it, so it
-              stands at the foot of the panel where nothing else is pressed
-              rather than anywhere a click aimed at a row could reach it. Absent
-              entirely while there is nothing to empty. */}
-          {events.length > 0 && (
-            <Button kind="secondary" className="self-end px-2.5 text-xs" onClick={clearEvents}>
-              {t('events.clear')}
-            </Button>
-          )}
-        </div>
-      )}
+            {/* The scroll lives on this INNER box and never on the card: the
+                section badge above straddles the card's own top edge (`top-0`
+                plus a self-relative `-translate-y-1/2`), and an overflow on its
+                positioning box shears the half that hangs over it off.
+                min-h-0 so it is the part that gives when the card runs out of
+                room: the card is capped at the space between the bell and the
+                top of the window (placePanel), and a flex item will not shrink
+                below its own content height without it - which on a short
+                window would push the head of the list off the top edge instead
+                of scrolling it here.
+                tabIndex={-1} because focus needs somewhere to land - the ring
+                drops its oldest entry at three hundred, and if that entry is the
+                row somebody had focused, its node unmounts and focus falls to
+                <body>, which restarts the next Tab at the top of the document
+                with the panel still open.
+                Not virtualised, deliberately: three hundred plain rows render
+                once when the panel opens, and a window here would break Tab order
+                to save a cost nothing is paying. */}
+            <div ref={scrollRef} tabIndex={-1} className="-mx-1 max-h-[60vh] min-h-0 overflow-y-auto px-1">
+              {events.length === 0 ? (
+                <EmptyState nested title={t('events.empty')} hint={t('events.emptyHint')} />
+              ) : shown.length === 0 ? (
+                <EmptyState nested title={t('events.noMatch')} />
+              ) : (
+                <div className="flex flex-col">
+                  {shown.map((e) => (
+                    <EventRow key={e.id} event={e} onJump={jump} />
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* The one destructive control in here, with no undo behind it, so it
+                stands at the foot of the panel where nothing else is pressed
+                rather than anywhere a click aimed at a row could reach it. Absent
+                entirely while there is nothing to empty. */}
+            {events.length > 0 && (
+              <Button kind="secondary" className="self-end px-2.5 text-xs" onClick={clearEvents}>
+                {t('events.clear')}
+              </Button>
+            )}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }

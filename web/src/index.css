@@ -999,6 +999,38 @@ body {
   --color-accentSoft: var(--item-hue-soft);
 }
 
+/* THE NOTCH'S ROOM BELONGS TO THE CARD THAT HAS A NOTCH, NEVER TO THE COLUMN.
+ *
+ * A scrolling column clips at its own top edge, and the badge above is drawn
+ * HALF OUTSIDE its card's top edge, so a card sitting flush against that edge
+ * loses the upper half of its badge. Measured at 1400x900: card top 16, badge
+ * 5 to 27, column clipping at 16 - the overhang is 12px and nothing else.
+ *
+ * The obvious fix is 12px of padding on the column, and it is wrong: it also
+ * pushes down every page whose first card carries no badge (Dashboard's hero,
+ * the instance tiles, the collector's toolbar), and those are exactly the
+ * pages that then miss the line they were asked to sit on ("in allen tabs und
+ * fenstern sollen die obersten und untersten cards/fenster mit der sidebar
+ * abschliessen"). So the room is given to the card that needs it, and a page
+ * with nothing to protect starts on the sidebar's line.
+ *
+ * "First" cannot be `:first-child` here, and that was measured too: most pages
+ * open with PageHeader, which renders a bare `sr-only` header (ui.tsx). It is
+ * positioned absolutely, paints nothing and occupies no line - but it IS the
+ * first child, so `:first-child` skipped exactly the pages that needed this
+ * most. On /accounts that put the badge at y=5 against a column clipping at 16,
+ * which is the sliced notch all over again. What the rule actually means is
+ * "nothing PAINTED stands before it", and `:not(:not(.sr-only) ~ *)` says that
+ * directly: no preceding sibling other than a screen-reader-only one.
+ *
+ * Two depths, because a page either wraps its cards in a root element or is a
+ * card itself. Nothing deeper can match, so a card nested inside another card
+ * keeps the house gap untouched. */
+.glim-column-top > .glim-card:has(.glim-section-badge):not(:not(.sr-only) ~ *),
+.glim-column-top > * > .glim-card:has(.glim-section-badge):not(:not(.sr-only) ~ *) {
+  margin-top: 0.75rem;
+}
+
 /* Long-press-to-wiggle reorder (Tabs.tsx, opt-in `reorderable`) - ported from
    CannonadeCommand's own nav rail, the same reason `.glim-tab-wiggle` and
    `.glim-tab-dragging` are named to match its CSS class shape rather than

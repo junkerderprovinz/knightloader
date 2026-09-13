@@ -133,6 +133,17 @@ function useAppearance() {
  * it scrolls with the page like every other card, sitting where a page's own
  * hero content usually starts, with the identical horizontal inset the page
  * below it uses so the two visually line up as one column.
+ *
+ * It carries a BOTTOM margin and no top one, and that is not a style choice:
+ * on Downloads this is the topmost card of the column, and the topmost card is
+ * meant to start where the sidebar starts (jdp: "in allen tabs und fenstern
+ * sollen die obersten und untersten cards/fenster mit der sidebar
+ * abschliessen"). The column's own top inset is down to the 12px the section
+ * badge needs (see its className below), so an mt here would put this card
+ * back where the complaint found it. What the old mt-6 md:mt-8 was really
+ * doing - holding this card apart from the page's first one - is the mb now.
+ * Under `hidden` the margin goes with the element, so every other page still
+ * starts at the top of its own column.
  */
 function ShellBar({ visible }: { visible: boolean }) {
   const { t } = useT();
@@ -144,7 +155,7 @@ function ShellBar({ visible }: { visible: boolean }) {
       /* items-stretch, not items-center: the speed curve at the trailing edge
          is meant to be as tall as the card itself (jdp, 2026-09-06), and a
          centred row would give it only the height of its own content. */
-      className={`glim-card mx-6 mt-6 items-stretch gap-x-4 gap-y-2 p-5 md:mx-8 md:mt-8
+      className={`glim-card mx-6 mb-6 items-stretch gap-x-4 gap-y-2 p-5 md:mx-8 md:mb-8
         ${visible ? 'flex' : 'hidden'}`}
     >
       {/* Named only when it is not this machine. A tag on every screen would be
@@ -280,9 +291,18 @@ export function Layout() {
           Zufall.
           Der Abstand steht HIER statt als Rand an der Schiene, damit die Luecke
           zwischen Schiene und Inhalt und die Luecke um beide herum eine einzige
-          Zahl sind. Das eigene Polster der Seite bleibt davon unberuehrt und
-          liegt weiter bei der Seite: zwischen Schiene und erster Karte addieren
-          sich die beiden schlicht. */}
+          Zahl sind.
+          Und weil der Rahmen den Abstand nach OBEN und UNTEN schon gibt, hat die
+          Inhaltsspalte darunter fast keinen eigenen mehr: px-6 pt-3 md:px-8.
+          Waagerecht ist das Polster echte Arbeit (es haelt die Karte von der
+          Schiene daneben weg), senkrecht war es der zweite Abstand ueber dem
+          ersten, und genau der hat die oberste Karte tiefer anfangen lassen als
+          die Seitenleiste. Die 1rem des Rahmens sind unten die Luft am Ende des
+          Scrollens: naeher als die Seitenleiste kommt keine Karte an den
+          Fensterrand, weil die Spalte im Rahmen steckt und nicht daneben. Oben
+          steht gar kein Polster mehr; die Kerbe des Abschnittsbadges holt sich
+          ihre 12px an der Karte, die eine hat - die Begruendung steht an der
+          Spalte selbst und in index.css. */}
       <div className="flex h-screen gap-4 overflow-hidden bg-carbon-background p-4">
         <Sidebar />
         <main className={`flex-1 min-w-0 ${ownsFrame ? 'overflow-hidden' : 'overflow-y-auto'}`}>
@@ -301,13 +321,45 @@ export function Layout() {
               gehen") - main's own height is definite here (a flex row's own
               align-items:stretch under h-screen, this file's own outer div),
               so min-h-full itself resolves correctly; flex-grow from there
-              down is what makes a child reliably fill it. */}
+              down is what makes a child reliably fill it.
+
+              px-6 md:px-8, and NO vertical inset at all. It used to be
+              p-6 md:p-8 on top of the frame's own p-4, and that second inset is
+              what made the first card start 24-32px lower than the sidebar
+              beside it (jdp: "in allen tabs und fenstern sollen die obersten
+              und untersten cards/fenster mit der sidebar abschliessen").
+
+              The bottom goes to zero outright. Note where this padding sits: on
+              the SCROLLED element, not on `main`, so its bottom half was
+              genuine air at the end of a long list rather than a fixed frame -
+              that is the thing being given up, and what replaces it is the
+              frame's own 1rem, which no card can ever scroll into because the
+              column is INSIDE the frame. The foot of a list therefore stops
+              exactly where the sidebar stops and still never touches the window
+              edge; a column too short to scroll ends where its content ends, as
+              it always did.
+
+              The top goes to zero too, and the thing that used to stand in the
+              way is handled where it belongs. SectionTitle's badge is a notch
+              drawn half OUTSIDE its card's top edge (top-0 plus
+              -translate-y-1/2, ui.tsx), so a 22px badge reaches 11px above the
+              card; `main` is the scroll container and clips at the frame's
+              inner edge, which sliced that half off - measured live at
+              1400x900: card top 16, badge 5 to 27, column clipping at 16. A
+              12px inset on the COLUMN fixes that card and pushes down every
+              page whose first card has no badge at all (Dashboard's hero,
+              Collector's toolbar, the instance tiles), which is the same
+              defect jdp reported, one notch smaller. So `glim-column-top`
+              hands those 12px to the first card WITH a badge and to nothing
+              else (index.css) - a page with no notch to protect starts on the
+              sidebar's line. The bar above is outside this column and keeps
+              the top line exactly. */}
           <div
             key={section}
             className={
               ownsFrame
                 ? 'glim-page-enter flex h-full w-full min-h-0 flex-col'
-                : 'glim-page-enter flex w-full min-h-full flex-col p-6 md:p-8'
+                : 'glim-page-enter glim-column-top flex w-full min-h-full flex-col px-6 md:px-8'
             }
           >
             <Outlet />
