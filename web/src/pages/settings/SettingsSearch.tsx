@@ -46,6 +46,7 @@ import {
 } from './jump';
 import { SETTINGS_INDEX } from './searchIndex';
 import { hasContent } from './registry';
+import { useStickyReveal } from './stickyReveal';
 import { label as pageLabel } from './tx';
 
 /** How long to wait after the last keystroke before matching. The same 150ms,
@@ -418,6 +419,17 @@ export function SettingsSearch({ pages }: { pages: FeaturePage[] }) {
   const showList = open && settled.trim() !== '';
   let rowIndex = -1;
 
+  // Off screen while the column is being read downward, back on the way up. The
+  // three things that pin it are the three that mean somebody is using it: the
+  // list is open, there is a query in the box, or the box has the focus. The
+  // last is checked against the live document rather than kept as state, because
+  // `open` is already set by onFocus and a second piece of state saying almost
+  // the same thing is a second piece of state to get out of step.
+  const barRef = useRef<HTMLDivElement>(null);
+  const pinned =
+    showList || query !== '' || (typeof document !== 'undefined' && document.activeElement === inputRef.current);
+  const hidden = useStickyReveal(barRef, pinned);
+
   return (
     // Sticky, and with its own opaque ground plus negative margins: the column
     // it sits in is `p-6 md:p-8 overflow-y-auto`, so without them cards would
@@ -429,8 +441,18 @@ export function SettingsSearch({ pages }: { pages: FeaturePage[] }) {
     // NOT in PageHeader. That renders above the rail-plus-column flex, so a field
     // there would push the rail down and stop it running the full window height -
     // the one thing this page's whole layout exists to do.
+    //
+    // It also gets out of the way. Opaque and sticky together mean every card
+    // passes UNDER it, and the card directly under it is the first one on the
+    // page - so reading downward hid the one title that says where you are.
+    // `glim-autohide` carries the slide and lives with the other motion
+    // utilities, which is what makes it vanish under reduced motion without this
+    // file knowing anything about that. See stickyReveal.ts for when, and for
+    // the three states that pin it in place.
     <div
-      className="sticky top-0 z-20 -mx-6 -mt-6 bg-carbon-background px-6 pb-4 pt-6 md:-mx-8 md:-mt-8 md:px-8 md:pt-8"
+      ref={barRef}
+      className={`glim-autohide sticky top-0 z-20 -mx-6 -mt-6 bg-carbon-background px-6 pb-4 pt-6
+        md:-mx-8 md:-mt-8 md:px-8 md:pt-8 ${hidden ? '-translate-y-full' : 'translate-y-0'}`}
       onBlur={(e) => {
         // Closes when focus genuinely leaves the box and its list, not when it
         // moves between the two.

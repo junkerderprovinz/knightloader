@@ -1065,6 +1065,20 @@ body {
   .glim-fade { animation: glim-fade-in var(--motion-fade-dur) ease both; }
   .glim-shake { animation: glim-shake var(--motion-shake-dur) ease-in-out; }
 
+  /* A sticky bar that steps out of the way while its column is read downward,
+     and steps back on the way up. A TRANSITION and not an animation, because
+     the element moves BETWEEN two states the component owns rather than playing
+     a shape once on arrival: an animation would replay from the start every
+     time React re-rendered it, and it cannot be interrupted halfway by a
+     direction change the way a transition can.
+
+     Panel timing, because this is the same gesture at a different edge: a
+     surface leaving and returning along one axis. Outside this block the class
+     does not exist at all, so a viewer who asked for reduced motion gets the
+     bar appearing and disappearing instantly, which is the correct answer and
+     not a degraded one. */
+  .glim-autohide { transition: transform var(--motion-panel-dur) cubic-bezier(.2, .6, .2, 1); }
+
   /* glim-pulse's own "off" state: a zero-duration infinite animation is
      meaningless, so "off" reuses the SAME static-dot fallback the (reduce)
      block further down already gives .glim-live, rather than reading a
