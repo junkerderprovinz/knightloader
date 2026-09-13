@@ -10,6 +10,16 @@
    introduced text-accentInk - "web/dist does not match the sources" against a
    dist that had just been built from exactly those sources. */
 @source not "../dist";
+/* AND NOT THE GUARDS, for the same reason one line up and it bit the same way.
+   web/check-*.mjs are the scripts that HOLD the rules about these classes, so
+   they are full of class names as search patterns: check-scrim looks for
+   bg-black and glim-modal-backdrop, check-theme-tokens for every bg- and text-
+   prefix there is. Tailwind scans the project and cannot tell a pattern being
+   searched FOR from a class being used, so adding six guards made the next
+   build emit utilities that exist nowhere in the app - and CI said "web/dist
+   does not match the sources" about a dist built from exactly those sources.
+   A guard that changes the stylesheet it guards is the tail wagging the dog. */
+@source not "../check-*.mjs";
 
 @custom-variant dark (&:is([data-theme="dark"] *));
 
