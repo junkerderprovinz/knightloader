@@ -2076,7 +2076,7 @@ export const hr: Dict = {
   'events.filterLabel': 'Vrsta',
   'events.kind.downloads': 'Preuzimanja',
   'events.kind.archives': 'Arhive',
-  'events.kind.captcha': 'Captcha',
+  'events.kind.captcha': 'Captche',
   'events.kind.accounts': 'Računi',
   'events.kind.actions': 'Radnje',
   'events.clear': 'Isprazni popis',

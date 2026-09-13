@@ -154,7 +154,7 @@ export const fr: Dict = {
   'settings.archivePasswordsHint': 'Un par ligne. Essayés dans l’ordre si une archive est chiffrée.',
   'settings.lockOn': 'Un mot de passe est défini.',
   'settings.lockOff': 'Aucun mot de passe défini.',
-  'settings.lockHint': 'Protège cette instance de quiconque peut l\'atteindre – sur le même réseau, via un domaine ou via un relay. Une fois défini, il doit être saisi avant même que cette instance s\'ouvre – pour tout le monde, y compris pour vous-même la prochaine fois. Sans mot de passe, quiconque trouve l\'adresse peut voir chaque téléchargement, et ajouter, mettre en pause ou supprimer les siens.',
+  'settings.lockHint': 'Protège cette instance de quiconque peut l\'atteindre: sur le même réseau, via un domaine ou via un relay. Une fois défini, il doit être saisi avant même que cette instance s\'ouvre, pour tout le monde, y compris pour vous-même la prochaine fois. Sans mot de passe, quiconque trouve l\'adresse peut voir chaque téléchargement, et ajouter, mettre en pause ou supprimer les siens.',
   'settings.passwordCurrent': 'Mot de passe actuel',
   'settings.passwordNew': 'Nouveau mot de passe',
   'settings.passwordHint': 'Au moins 8 caractères. Laissez vide pour retirer le verrou.',

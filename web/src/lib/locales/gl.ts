@@ -162,7 +162,7 @@ export const gl: Dict = {
   'settings.archivePasswordsHint': 'Un por liña. Próbanse en orde cando un arquivo está cifrado.',
   'settings.lockOn': 'Hai un contrasinal definido.',
   'settings.lockOff': 'Non hai contrasinal establecido.',
-  'settings.lockHint': 'Protexe esta instancia de calquera que poida acceder a ela – na mesma rede, mediante un dominio ou mediante un relay. Unha vez establecido, hai que introducilo antes de que esta instancia sequera se abra – para calquera, incluído ti mesmo a próxima vez. Sen contrasinal, calquera que atope o enderezo pode ver cada descarga, e engadir, pausar ou eliminar as súas propias.',
+  'settings.lockHint': 'Protexe esta instancia de calquera que poida acceder a ela: na mesma rede, mediante un dominio ou mediante un relay. Unha vez establecido, hai que introducilo antes de que esta instancia sequera se abra, para calquera, incluído ti mesmo a próxima vez. Sen contrasinal, calquera que atope o enderezo pode ver cada descarga, e engadir, pausar ou eliminar as súas propias.',
   'settings.passwordCurrent': 'Contrasinal actual',
   'settings.passwordNew': 'Contrasinal novo',
   'settings.passwordHint': 'Polo menos 8 caracteres. Déixao baleiro para quitar o bloqueo.',
