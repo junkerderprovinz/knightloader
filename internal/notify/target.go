@@ -396,12 +396,18 @@ const (
 	ProblemBadTemplate    = "badTemplate"
 	ProblemUnknownTrigger = "unknownTrigger"
 
-	ProblemDNS         = "dns"
-	ProblemRefused     = "refused"
-	ProblemTLS         = "tls"
-	ProblemTimeout     = "timeout"
-	ProblemAuth        = "auth"
-	ProblemNotFound    = "notFound"
+	ProblemDNS      = "dns"
+	ProblemRefused  = "refused"
+	ProblemTLS      = "tls"
+	ProblemTimeout  = "timeout"
+	ProblemAuth     = "auth"
+	ProblemNotFound = "notFound"
+	// The address answered with a 3xx and the client did not follow it, on
+	// purpose: every value in Target.Headers is a secret this package cannot
+	// recognise, and httpx can only strip the four it knows. See clientFor in
+	// http.go. It is a configuration answer rather than a fault, and the one
+	// thing to do about it is to type the address it points at.
+	ProblemRedirect    = "redirect"
 	ProblemRejected    = "rejected"
 	ProblemRateLimited = "rateLimited"
 	ProblemServer      = "server"

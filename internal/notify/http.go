@@ -113,14 +113,27 @@ func clientFor(timeout time.Duration) *http.Client {
 	if c, ok := clients[timeout]; ok {
 		return c
 	}
-	// The app's shared outbound policy with nothing added: the same user agent,
-	// the same connection ceilings, and - the part that matters here - the same
-	// redirect rule, which strips Authorization, Proxy-Authorization and Cookie
-	// on a hop to another origin (httpx's checkRedirect). That is correct and
-	// must stay, and it is also why a target behind a reverse proxy that
-	// redirects answers 401 with nothing on screen to explain it, which is what
-	// the urlHint and problem.auth copy both warn about.
-	c := httpx.New(httpx.Options{Timeout: timeout})
+	// The app's shared outbound policy: the same user agent and the same
+	// connection ceilings. MaxRedirects is NEGATIVE, and that is the load-bearing
+	// line here.
+	//
+	// httpx's checkRedirect strips Authorization, Proxy-Authorization, Cookie and
+	// Cookie2 on a hop to another origin, and it cannot strip more, because it
+	// has no way to know that a header it was handed is a credential. Target.Headers
+	// says the opposite in as many words: "Headers is where a token goes. EVERY
+	// VALUE HERE IS A SECRET." So X-Gotify-Key, ntfy's own token header and every
+	// webhook's X-Api-Key would ride along to whoever owns the hop, and httpx
+	// follows ten hops by default. internal/mediahook reached this exact
+	// conclusion for the same reason and closed it the same way; this is the
+	// sibling half of that decision, and TestSendDoesNotCarryACustomHeaderAcross-
+	// ARedirect fails if it is ever reopened.
+	//
+	// Negative means "hand the caller the 3xx" (httpx.Options.MaxRedirects), so a
+	// redirecting address is reported as what it is rather than as whatever the
+	// far end answered afterwards. That is also strictly better than what this
+	// did before: a target behind a reverse proxy used to answer 401 with nothing
+	// on screen to explain it, and now the 3xx names the address to type instead.
+	c := httpx.New(httpx.Options{Timeout: timeout, MaxRedirects: -1})
 	clients[timeout] = c
 	return c
 }
@@ -304,8 +317,14 @@ func splitQuery(addr string) (safe, query string) {
 // than any label here could, which is why that code's own sentence points at it.
 func classifyStatus(status int) string {
 	switch {
-	case status >= 200 && status < 400:
+	case status >= 200 && status < 300:
 		return ""
+	// A 3xx only reaches this function because clientFor declines to follow
+	// one. Before that it could not happen at all, which is why this arm used
+	// to read 200..399 and call the whole range fine: harmless then, and a
+	// failure with no cause on screen now.
+	case status >= 300 && status < 400:
+		return ProblemRedirect
 	case status == http.StatusUnauthorized, status == http.StatusForbidden:
 		return ProblemAuth
 	case status == http.StatusNotFound:
