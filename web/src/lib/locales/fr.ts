@@ -2057,7 +2057,6 @@ export const fr: Dict = {
   'events.jump': 'Afficher la ligne',
   'events.jumpGone': 'Ce téléchargement n’est plus dans la liste',
   'commands.openEvents': 'Ouvrir la liste des événements',
-  'list.keysHint': 'La liste se pilote au clavier. Tab y entre, les flèches vont de ligne en ligne, la barre d’espace ajoute une ligne à la sélection ou l’en retire, Maj avec une flèche prend toute une plage, Entrée ouvre les propriétés, et les flèches gauche et droite replient et déplient un paquet. Paramètres, Raccourcis les liste toutes.',
   'settings.shortcuts.listTitle': 'Touches de la liste',
   'settings.shortcuts.listHint': 'Ces touches appartiennent à la liste de téléchargements et à celle du collecteur, et ne peuvent pas être réattribuées. Elles n’agissent que tant qu’une ligne a le focus, aucune ne peut donc prendre une touche à une commande plus haut.',
   'keys.list.move': 'Aller de ligne en ligne',

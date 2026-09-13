@@ -2069,7 +2069,6 @@ export const lt: Dict = {
   'events.jump': 'Parodyti eilutę',
   'events.jumpGone': 'Šio atsisiuntimo sąraše nebėra',
   'commands.openEvents': 'Atverti įvykių sąrašą',
-  'list.keysHint': 'Sąrašą galima valdyti klaviatūra. Su Tab pateksi į jį, rodyklėmis eisi nuo eilutės prie eilutės, tarpo klavišu eilutę paimsi į žymėjimą arba grąžinsi atgal, Shift su rodykle paims visą ruožą, Enter atvers savybes, o kairė ir dešinė rodyklės uždarys ir atvers aplanką. Visi jie surašyti Nustatymuose, skiltyje Spartieji klavišai.',
   'settings.shortcuts.listTitle': 'Sąrašo klavišai',
   'settings.shortcuts.listHint': 'Šie klavišai priklauso atsisiuntimų ir rinktuvo sąrašams, ir iš naujo priskirti jų negalima. Jie veikia tik tada, kai žymeklis stovi ant eilutės, tad nė vienas iš jų neatima klavišo iš aukščiau esančios komandos.',
   'keys.list.move': 'Eiti nuo eilutės prie eilutės',

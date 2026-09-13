@@ -2060,7 +2060,6 @@ export const et: Dict = {
   'events.jump': 'Näita rida',
   'events.jumpGone': 'Seda allalaadimist ei ole enam loendis',
   'commands.openEvents': 'Ava sündmuste loend',
-  'list.keysHint': 'Loendit saab juhtida klaviatuurilt. Tab viib sisse, nooleklahvidega käid reast ritta, tühikuklahv võtab rea valikusse või jälle välja, Shift koos noolega haarab terve vahemiku, Enter avab omadused, ning vasak ja parem nool sulgevad ja avavad kausta. Seadete jaotises Kiirklahvid on nad kõik kirjas.',
   'settings.shortcuts.listTitle': 'Loendi klahvid',
   'settings.shortcuts.listHint': 'Need kuuluvad allalaadimiste loendi ja koguja loendi juurde ning neid ei saa ümber määrata. Nad mõjuvad ainult seni, kuni fookus on real, seepärast ei võta ükski neist ülalolevalt käsult klahvi ära.',
   'keys.list.move': 'Käi reast ritta',

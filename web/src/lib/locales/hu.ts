@@ -2068,7 +2068,6 @@ export const hu: Dict = {
   'events.jump': 'A sor megmutatása',
   'events.jumpGone': 'Ez a letöltés már nincs a listában',
   'commands.openEvents': 'Eseménylista megnyitása',
-  'list.keysHint': 'A lista billentyűzetről is kezelhető. A Tabbal jutsz bele, a nyilakkal sorról sorra lépsz, a szóközzel egy sort a kijelöléshez veszel vagy megint kiveszel belőle, a Shifttel és egy nyíllal egy egész tartományt fogsz meg, az Enterrel megnyitod a tulajdonságokat, a bal és a jobb nyíllal pedig becsukod és kinyitod a mappát. A Beállítások, Gyorsbillentyűk oldalon mind ott áll.',
   'settings.shortcuts.listTitle': 'A lista billentyűi',
   'settings.shortcuts.listHint': 'Ezek a letöltési listához és a gyűjtő linklistájához tartoznak, és nem lehet őket újra kiosztani. Csak addig hatnak, amíg egy soron van a fókusz, ezért egyik sem vesz el billentyűt a fentebbi parancsoktól.',
   'keys.list.move': 'Lépés sorról sorra',

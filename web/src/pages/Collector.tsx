@@ -858,6 +858,8 @@ export function Collector() {
               base="/api"
               selection={selection}
               profile="collector"
+              // Siehe Downloads.tsx: eine Loeschfrage fuer die ganze Seite.
+              onRemovePackage={removal.askWithFiles}
               title={t('collector.listTitle')}
               hue={3}
             />

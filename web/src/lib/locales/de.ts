@@ -2064,7 +2064,6 @@ export const de: Dict = {
   'events.jump': 'Zeile anzeigen',
   'events.jumpGone': 'Dieser Download ist nicht mehr in der Liste',
   'commands.openEvents': 'Ereignisliste öffnen',
-  'list.keysHint': 'Die Liste lässt sich mit der Tastatur bedienen. Mit Tab kommst du hinein, mit den Pfeiltasten gehst du von Zeile zu Zeile, mit der Leertaste nimmst du eine Zeile dazu oder wieder heraus, mit Umschalt und einer Pfeiltaste holst du einen ganzen Bereich, mit Eingabe öffnest du die Eigenschaften, und mit Links und Rechts schließt und öffnest du einen Ordner. Unter Einstellungen, Tastenkürzel stehen sie alle.',
   'settings.shortcuts.listTitle': 'Tasten der Liste',
   'settings.shortcuts.listHint': 'Diese Tasten gehören zur Downloadliste und zur Sammlerliste und lassen sich nicht neu belegen. Sie wirken nur, solange eine Zeile den Fokus hat, deshalb nimmt keine davon einem Befehl weiter oben eine Taste weg.',
   'keys.list.move': 'Von Zeile zu Zeile gehen',

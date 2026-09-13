@@ -2069,7 +2069,6 @@ export const id: Dict = {
   'events.jump': 'Tampilkan barisnya',
   'events.jumpGone': 'Unduhan itu sudah tidak ada di daftar',
   'commands.openEvents': 'Buka daftar peristiwa',
-  'list.keysHint': 'Daftar ini bisa dijalankan dari keyboard. Tab membawamu masuk, tombol panah berjalan dari baris ke baris, spasi mengambil sebuah baris atau mengembalikannya, Shift bersama panah mengambil satu rentang penuh, Enter membuka properti, dan panah kiri dan kanan menutup dan membuka folder. Semuanya tercantum di Pengaturan, Pintasan.',
   'settings.shortcuts.listTitle': 'Tombol daftar',
   'settings.shortcuts.listHint': 'Tombol ini milik daftar unduhan dan daftar pengumpul, dan tidak bisa diikat ulang. Semuanya hanya bekerja selama sebuah baris memegang fokus, jadi tidak satu pun bisa merebut tombol dari perintah di atas.',
   'keys.list.move': 'Berjalan dari baris ke baris',

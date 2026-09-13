@@ -2055,7 +2055,6 @@ export const ca: Dict = {
   'events.jump': 'Mostra la fila',
   'events.jumpGone': 'Aquesta baixada ja no és a la llista',
   'commands.openEvents': 'Obre la llista d’esdeveniments',
-  'list.keysHint': 'La llista es pot fer servir amb el teclat. Amb el tabulador hi entres, amb les fletxes vas de fila en fila, amb la barra espaiadora agafes una fila o la tornes a deixar, amb Maj i una fletxa n’agafes tot un tram, amb Retorn obres les propietats, i amb les fletxes esquerra i dreta pleges i desplegues un paquet. A Configuració, Dreceres hi són totes.',
   'settings.shortcuts.listTitle': 'Tecles de la llista',
   'settings.shortcuts.listHint': 'Aquestes tecles són de la llista de baixades i de la llista del col·lector, i no es poden reassignar. Només actuen mentre una fila té el focus, així que cap d’elles no li pot prendre una tecla a una ordre de més amunt.',
   'keys.list.move': 'Anar de fila en fila',

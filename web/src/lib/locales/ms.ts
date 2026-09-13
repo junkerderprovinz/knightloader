@@ -2068,7 +2068,6 @@ export const ms: Dict = {
   'events.jump': 'Tunjukkan baris itu',
   'events.jumpGone': 'Muat turun itu sudah tiada dalam senarai',
   'commands.openEvents': 'Buka senarai peristiwa',
-  'list.keysHint': 'Senarai ini boleh dikendalikan dengan papan kekunci. Tab membawa anda masuk, kekunci anak panah bergerak dari baris ke baris, bar ruang mengambil satu baris ke dalam pilihan atau mengeluarkannya semula, Shift bersama anak panah mengambil satu julat penuh, Enter membuka sifat, dan anak panah kiri dan kanan menguncupkan dan mengembangkan folder. Di bawah Tetapan, Pintasan semuanya disenaraikan.',
   'settings.shortcuts.listTitle': 'Kekunci senarai',
   'settings.shortcuts.listHint': 'Kekunci ini milik senarai muat turun dan senarai pengumpul, dan tidak boleh diikat semula. Ia hanya berkesan selagi satu baris memegang fokus, jadi tiada satu pun daripadanya boleh merampas kekunci daripada arahan di atas.',
   'keys.list.move': 'Bergerak dari baris ke baris',

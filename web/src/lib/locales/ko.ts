@@ -2060,7 +2060,6 @@ export const ko: Dict = {
   'events.jump': '그 행 보기',
   'events.jumpGone': '그 다운로드는 더 이상 목록에 없습니다',
   'commands.openEvents': '이벤트 목록 열기',
-  'list.keysHint': '목록은 키보드로도 다룰 수 있습니다. Tab으로 목록 안에 들어가고, 화살표 키로 행에서 행으로 옮겨 다니며, 스페이스바로 행을 선택에 넣거나 다시 뺍니다. Shift와 화살표 키로는 한 범위를 통째로 잡고, Enter로는 속성을 열며, 왼쪽과 오른쪽 화살표로 패키지를 닫고 엽니다. 설정의 단축키에 전부 나와 있습니다.',
   'settings.shortcuts.listTitle': '목록의 키',
   'settings.shortcuts.listHint': '이 키들은 다운로드 목록과 수집함 목록에 속하며 다시 바인딩할 수 없습니다. 행이 포커스를 가진 동안에만 동작하므로, 위에 있는 명령에서 키를 빼앗는 일은 없습니다.',
   'keys.list.move': '행에서 행으로 이동',

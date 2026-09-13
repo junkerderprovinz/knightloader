@@ -2053,7 +2053,6 @@ export const pl: Dict = {
   'events.jump': 'Pokaż wiersz',
   'events.jumpGone': 'Tego pobrania nie ma już na liście',
   'commands.openEvents': 'Otwórz listę zdarzeń',
-  'list.keysHint': 'Listą da się sterować z klawiatury. Tabulatorem wchodzisz do środka, strzałkami idziesz od wiersza do wiersza, spacją dobierasz wiersz do zaznaczenia albo go z niego zdejmujesz, Shift ze strzałką bierze cały zakres, Enter otwiera właściwości, a strzałki w lewo i w prawo zamykają i otwierają folder. Wszystkie są wypisane w Ustawieniach, Skróty.',
   'settings.shortcuts.listTitle': 'Klawisze listy',
   'settings.shortcuts.listHint': 'Te należą do listy pobierań i do listy kolektora, i nie da się ich przypisać na nowo. Działają tylko wtedy, gdy fokus jest na wierszu, więc żaden z nich nie odbiera klawisza poleceniu wymienionemu wyżej.',
   'keys.list.move': 'Przechodź od wiersza do wiersza',

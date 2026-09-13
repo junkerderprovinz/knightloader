@@ -2079,7 +2079,6 @@ export const cs: Dict = {
   'events.jump': 'Ukázat řádek',
   'events.jumpGone': 'Tohle stahování už v seznamu není',
   'commands.openEvents': 'Otevřít seznam událostí',
-  'list.keysHint': 'Seznam se dá ovládat z klávesnice. Tabulátorem se do něj dostaneš, šipkami chodíš od řádku k řádku, mezerníkem řádek přibereš do výběru nebo ho zase odebereš, Shift se šipkou vezme celý úsek, Enter otevře vlastnosti a šipky doleva a doprava zavírají a otevírají balíček. V Nastavení, Zkratky jsou vypsané všechny.',
   'settings.shortcuts.listTitle': 'Klávesy seznamu',
   'settings.shortcuts.listHint': 'Tyhle klávesy patří k seznamu stahování a k seznamu sběrače a nedají se přeřadit. Fungují jen tehdy, když stojíš v seznamu na některém řádku, žádná z nich tedy nemůže vzít klávesu příkazu výše.',
   'keys.list.move': 'Chodit od řádku k řádku',

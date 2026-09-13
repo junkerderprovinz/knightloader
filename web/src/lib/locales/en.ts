@@ -2363,7 +2363,6 @@ export const en = {
   'events.jump': 'Show the row',
   'events.jumpGone': 'That download is not in the list any more',
   'commands.openEvents': 'Open the event list',
-  'list.keysHint': 'The list works from the keyboard. Tab moves into it, the arrow keys walk from row to row, the space bar picks a row out or puts it back, Shift with an arrow takes a whole range, Enter opens the properties, and the left and right arrows close and open a folder. Settings, Shortcuts lists them all.',
   'settings.shortcuts.listTitle': 'List keys',
   'settings.shortcuts.listHint': 'These belong to the download list and the collector list and cannot be rebound. They only act while a row has the focus, so none of them can take a key away from a command above.',
   'keys.list.move': 'Walk from row to row',

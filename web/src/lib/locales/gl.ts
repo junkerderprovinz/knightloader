@@ -2066,7 +2066,6 @@ export const gl: Dict = {
   'events.jump': 'Amosar a fila',
   'events.jumpGone': 'Esa descarga xa non está na lista',
   'commands.openEvents': 'Abrir a lista de eventos',
-  'list.keysHint': 'A lista manéxase co teclado. Con Tab entras nela, coas frechas vas de fila en fila, coa barra espaciadora metes unha fila na selección ou sácala outra vez, con Maiús e unha frecha colles un rango enteiro, con Intro ábrense as propiedades, e coas frechas esquerda e dereita pechas e abres un paquete. En Axustes, Atallos, están todas.',
   'settings.shortcuts.listTitle': 'Teclas da lista',
   'settings.shortcuts.listHint': 'Estas pertencen á lista de descargas e á lista do colector, e non se poden reasignar. Só actúan mentres unha fila teña o foco, así que ningunha lle pode quitar unha tecla a un comando de arriba.',
   'keys.list.move': 'Ir de fila en fila',

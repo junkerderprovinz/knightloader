@@ -2068,7 +2068,6 @@ export const tr: Dict = {
   'events.jump': 'Satırı göster',
   'events.jumpGone': 'Bu indirme artık listede değil',
   'commands.openEvents': 'Olay listesini aç',
-  'list.keysHint': 'Liste klavyeyle kullanılabilir. Tab ile içine girersin, ok tuşlarıyla satırdan satıra gidersin, boşluk tuşuyla bir satırı seçime alır ya da seçimden çıkarırsın, Shift ile bir ok tuşu bütün bir aralığı alır, Enter özellikleri açar, sol ve sağ oklar da bir klasörü kapatır ve açar. Ayarlar, Kısayollar altında hepsi yazılı.',
   'settings.shortcuts.listTitle': 'Listenin tuşları',
   'settings.shortcuts.listHint': 'Bunlar indirme listesine ve toplayıcı listesine aittir, yeniden atanamazlar. Yalnızca bir satır odaktayken çalışırlar, bu yüzden hiçbiri yukarıdaki bir komuttan tuş çalmaz.',
   'keys.list.move': 'Satırdan satıra git',

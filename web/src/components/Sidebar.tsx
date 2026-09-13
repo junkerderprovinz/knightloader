@@ -69,7 +69,17 @@ function useDrawAndStrike(): {
     [],
   );
 
-  /** Runs the wave down the rail, one entry after the next. */
+  /**
+   * How long after the release the blade actually lands, in milliseconds.
+   *
+   * It has to match the impact keyframe in .kl-egg's strike animation, which
+   * sits at 16% of a 540ms swing. Before this existed the rail started
+   * shuddering the instant the pointer came up, so the shudder arrived BEFORE
+   * the blow and read as the rail flinching in anticipation.
+   */
+  const IMPACT_MS = 86;
+
+  /** Runs the shudder down the rail, one entry after the next, from the impact. */
   function shove() {
     const rail = document.querySelector('[data-nav-rail]');
     if (!rail) return;
@@ -77,7 +87,7 @@ function useDrawAndStrike(): {
       window.setTimeout(() => {
         el.classList.add('kl-egg-struck');
         window.setTimeout(() => el.classList.remove('kl-egg-struck'), 400);
-      }, i * 45);
+      }, IMPACT_MS + i * 45);
     });
   }
 

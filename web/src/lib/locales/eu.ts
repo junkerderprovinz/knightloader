@@ -2063,7 +2063,6 @@ export const eu: Dict = {
   'events.jump': 'Erakutsi errenkada',
   'events.jumpGone': 'Deskarga hori jada ez dago zerrendan',
   'commands.openEvents': 'Ireki gertaeren zerrenda',
-  'list.keysHint': 'Zerrenda teklatutik erabil daiteke. Tab teklarekin sartzen zara bertan, gezi-teklekin errenkadaz errenkada zoaz, zuriune-barrarekin errenkada bat hautapenera hartzen edo handik ateratzen duzu, Maius eta gezi batekin tarte oso bat hartzen duzu, Sartu teklak propietateak irekitzen ditu, eta ezkerreko eta eskuineko geziek karpeta bat ixten eta irekitzen dute. Ezarpenak, Lasterbideak atalean denak zerrendatuta daude.',
   'settings.shortcuts.listTitle': 'Zerrendaren teklak',
   'settings.shortcuts.listHint': 'Tekla hauek deskargen zerrendari eta biltzailearen zerrendari dagozkie, eta ezin dira berresleitu. Errenkada batek fokua duen bitartean bakarrik dute eragina, beraz haietako batek ere ezin dio goiko komando bati tekla bat kendu.',
   'keys.list.move': 'Joan errenkadaz errenkada',

@@ -2083,7 +2083,6 @@ export const hr: Dict = {
   'events.jump': 'Prikaži redak',
   'events.jumpGone': 'Tog preuzimanja više nema na popisu',
   'commands.openEvents': 'Otvori popis događaja',
-  'list.keysHint': 'Popis se može voditi tipkovnicom. Tabom ulaziš u njega, strelicama ideš od retka do retka, razmaknicom uzimaš redak u odabir ili ga vraćaš van, Shiftom uz strelicu hvataš cijeli raspon, Enterom otvaraš svojstva, a lijevom i desnom strelicom zatvaraš i otvaraš mapu. Pod Postavke, Prečaci stoje sve.',
   'settings.shortcuts.listTitle': 'Tipke popisa',
   'settings.shortcuts.listHint': 'Ove tipke pripadaju popisu preuzimanja i popisu sakupljača i ne mogu se dodijeliti drugačije. Djeluju samo dok je fokus na retku, pa nijedna od njih ne može oduzeti tipku naredbi iznad.',
   'keys.list.move': 'Ići od retka do retka',

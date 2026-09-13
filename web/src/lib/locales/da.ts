@@ -2055,7 +2055,6 @@ export const da: Dict = {
   'events.jump': 'Vis rækken',
   'events.jumpGone': 'Den download er ikke på listen længere',
   'commands.openEvents': 'Åbn begivenhedslisten',
-  'list.keysHint': 'Listen kan betjenes med tastaturet. Med Tab kommer du ind i den, med piletasterne går du fra række til række, med mellemrumstasten tager du en række med eller ud igen, med Skift og en piletast tager du et helt område, med Enter åbner du egenskaberne, og med venstre og højre lukker og åbner du en mappe. Under Indstillinger, Genveje står de alle sammen.',
   'settings.shortcuts.listTitle': 'Listens taster',
   'settings.shortcuts.listHint': 'De her hører til downloadlisten og samlerlisten og kan ikke bindes om. De virker kun, så længe en række har fokus, så ingen af dem kan tage en tast fra en kommando længere oppe.',
   'keys.list.move': 'Gå fra række til række',

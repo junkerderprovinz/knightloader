@@ -120,6 +120,22 @@ export interface CellContext {
    * which of them it uses.
    */
   profile: ListProfile;
+  /**
+   * Die Loeschfrage fuer ein ganzes Paket, gestellt von der Seite und nicht von
+   * der Zeile.
+   *
+   * Die Ordnerzeile hatte keinen Loeschknopf, obwohl das Kontextmenue auf ihr
+   * denselben Weg schon anbot (jdp: "der loeschen button ... soll auch auf dem
+   * ordner erscheinen"). Der Knopf loescht deshalb NICHT selbst: er reicht die
+   * Kennungen des Pakets an genau die Frage weiter, die eine Mehrfachauswahl
+   * auch stellt, samt Zaehlung, Dateiwahl und Rueckgaengig. Eine zweite,
+   * eigene Loeschstrecke waere eine zweite Stelle, an der sich diese Frage
+   * spaeter auseinanderentwickeln kann.
+   *
+   * Optional, weil nicht jede Liste eine Werkzeugleiste mit dieser Frage hat.
+   * Ohne sie erscheint der Knopf gar nicht, statt ins Leere zu greifen.
+   */
+  onRemovePackage?: (ids: string[]) => void;
 }
 
 export interface ColumnDef {

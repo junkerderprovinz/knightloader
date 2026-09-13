@@ -2068,7 +2068,6 @@ export const sl: Dict = {
   'events.jump': 'Pokaži vrstico',
   'events.jumpGone': 'Tega prenosa ni več na seznamu',
   'commands.openEvents': 'Odpri seznam dogodkov',
-  'list.keysHint': 'Seznam se da upravljati s tipkovnico. S Tab prideš vanj, s puščicami hodiš od vrstice do vrstice, s preslednico vrstico dodaš v izbor ali jo spet vzameš iz njega, s Shiftom in puščico zajameš cel obseg, z Enter odpreš lastnosti, z levo in desno puščico pa zapreš in odpreš paket. Pod Nastavitve, Bližnjice so vse naštete.',
   'settings.shortcuts.listTitle': 'Tipke seznama',
   'settings.shortcuts.listHint': 'Te pripadajo seznamu prenosov in seznamu zbiralnika in jih ni mogoče na novo dodeliti. Učinkujejo le, dokler je vrstica v žarišču, zato nobena od njih ne more ukazu zgoraj vzeti tipke.',
   'keys.list.move': 'Pojdi od vrstice do vrstice',

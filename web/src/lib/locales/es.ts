@@ -2060,7 +2060,6 @@ export const es: Dict = {
   'events.jump': 'Mostrar la fila',
   'events.jumpGone': 'Esa descarga ya no está en la lista',
   'commands.openEvents': 'Abrir la lista de eventos',
-  'list.keysHint': 'La lista se maneja con el teclado. Con Tab entras en ella, con las flechas vas de fila en fila, con la barra espaciadora tomas una fila o la sueltas otra vez, con Mayús y una flecha te llevas un rango entero, con Intro abres las propiedades, y con las flechas izquierda y derecha cierras y abres una carpeta. En Ajustes, Atajos están todas.',
   'settings.shortcuts.listTitle': 'Teclas de la lista',
   'settings.shortcuts.listHint': 'Estas pertenecen a la lista de descargas y a la del colector, y no se pueden reasignar. Solo actúan mientras una fila tiene el foco, así que ninguna puede quitarle una tecla a un comando de arriba.',
   'keys.list.move': 'Ir de fila en fila',

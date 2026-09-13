@@ -2058,7 +2058,6 @@ export const pt: Dict = {
   'events.jump': 'Mostrar a linha',
   'events.jumpGone': 'Essa transferência já não está na lista',
   'commands.openEvents': 'Abrir a lista de eventos',
-  'list.keysHint': 'A lista funciona com o teclado. Com Tab entras nela, com as setas andas de linha em linha, com a barra de espaços tiras uma linha da seleção ou voltas a pô-la lá, com Shift e uma seta apanhas um intervalo inteiro, com Enter abres as propriedades, e com as setas esquerda e direita fechas e abres um pacote. Em Definições, Atalhos estão todas.',
   'settings.shortcuts.listTitle': 'Teclas da lista',
   'settings.shortcuts.listHint': 'Estas pertencem à lista de transferências e à lista do coletor e não se podem reatribuir. Só atuam enquanto uma linha tem o foco, por isso nenhuma delas tira uma tecla a um comando acima.',
   'keys.list.move': 'Andar de linha em linha',

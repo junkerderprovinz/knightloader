@@ -2070,7 +2070,6 @@ export const no: Dict = {
   'events.jump': 'Vis raden',
   'events.jumpGone': 'Den nedlastingen står ikke i lista lenger',
   'commands.openEvents': 'Åpne hendelseslista',
-  'list.keysHint': 'Lista lar seg styre fra tastaturet. Med Tab kommer du inn i den, med piltastene går du fra rad til rad, med mellomromstasten tar du en rad med eller ut igjen, med Skift og en piltast tar du et helt område, med Enter åpner du egenskapene, og med venstre og høyre pil lukker og åpner du en pakke. Under Innstillinger, Hurtigtaster står de alle.',
   'settings.shortcuts.listTitle': 'Tastene i lista',
   'settings.shortcuts.listHint': 'Disse hører til nedlastingslista og samlerlista og kan ikke bindes om. De virker bare mens en rad har fokus, derfor kan ingen av dem ta en tast fra en kommando lenger opp.',
   'keys.list.move': 'Gå fra rad til rad',

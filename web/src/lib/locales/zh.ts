@@ -2055,7 +2055,6 @@ export const zh: Dict = {
   'events.jump': '显示这一行',
   'events.jumpGone': '这个下载已经不在列表里了',
   'commands.openEvents': '打开事件列表',
-  'list.keysHint': '这个列表可以用键盘操作。Tab 进到列表里，方向键在行与行之间走，空格键把一行选进来或者再拿出去，Shift 加方向键一次取一整段，Enter 打开属性，左右方向键关上和打开一个文件夹。设置里的“快捷键”页把它们全列出来了。',
   'settings.shortcuts.listTitle': '列表的按键',
   'settings.shortcuts.listHint': '这些按键属于下载列表和收集器列表，不能重新绑定。它们只在某一行拿到焦点时才起作用，所以其中没有哪一个会把上面某条命令的按键抢走。',
   'keys.list.move': '在行与行之间走',

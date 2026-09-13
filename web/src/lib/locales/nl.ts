@@ -2052,7 +2052,6 @@ export const nl: Dict = {
   'events.jump': 'De rij tonen',
   'events.jumpGone': 'Die download staat niet meer in de lijst',
   'commands.openEvents': 'Gebeurtenissenlijst openen',
-  'list.keysHint': 'De lijst werkt met het toetsenbord. Met Tab kom je erin, met de pijltoetsen ga je van rij naar rij, met de spatiebalk neem je een rij erbij of haal je hem er weer uit, met Shift en een pijltoets pak je een heel bereik, met Enter open je de eigenschappen, en met links en rechts klap je een pakket in en uit. Onder Instellingen, Sneltoetsen staan ze allemaal.',
   'settings.shortcuts.listTitle': 'Toetsen van de lijst',
   'settings.shortcuts.listHint': 'Deze horen bij de downloadlijst en bij de linklijst van de verzamelaar, en zijn niet opnieuw toe te wijzen. Ze werken alleen zolang een rij de focus heeft, daarom neemt geen ervan een toets af van een opdracht hierboven.',
   'keys.list.move': 'Van rij naar rij gaan',

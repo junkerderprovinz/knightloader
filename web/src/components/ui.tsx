@@ -224,6 +224,7 @@ export function IconBadge({
   hue,
   active,
   labelled,
+  quiet,
   className = '',
   style,
   title,
@@ -267,6 +268,19 @@ export function IconBadge({
    * tooltip: one string per control, not a second one that can disagree with it.
    */
   labelled?: boolean;
+  /**
+   * No tile until somebody reaches for it. For a badge sitting ON A LIST ROW,
+   * and nowhere else.
+   *
+   * The house rule is a filled square with a glyph, and it stays the rule: a
+   * toolbar, a card header and a settings row all get the tile. A dense list is
+   * where that turns against itself, because six of these on every row over
+   * forty rows read as a wall of boxes rather than as the row's own actions.
+   * The behaviour itself is not new - the reactive rainbow has always drawn
+   * these badges this way - this only stops it depending on which colour mode
+   * somebody happens to run. See .glim-badge-quiet.
+   */
+  quiet?: boolean;
 } & ButtonHTMLAttributes<HTMLButtonElement>) {
   const hued = hue !== undefined;
   // Always called (Rules of Hooks); what it returns only matters where a
@@ -303,7 +317,7 @@ export function IconBadge({
         className={`flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-[var(--radius-control)]
           transition duration-150 select-none disabled:opacity-35 disabled:pointer-events-none
           motion-safe:active:scale-[.98] ${showText ? 'px-2.5 text-xs font-medium' : 'w-8'}
-          ${hued ? 'glim-tint-badge' : ''} ${iconBadgeClass[kind]}
+          ${hued ? 'glim-tint-badge' : ''} ${iconBadgeClass[kind]} ${quiet ? 'glim-badge-quiet' : ''}
           ${active ? 'shadow-[0_0_0_2px_var(--carbon-bg),0_0_0_2px_currentColor]' : ''} ${className}`}
         style={hued ? { ...(hueVars(rainbowAt(hue)) as CSSProperties), ...style } : style}
         {...(title ? tipHoverProps : undefined)}
@@ -1230,6 +1244,28 @@ export function PageHeader({
   subtitle?: string;
   right?: ReactNode;
 }) {
+  // WITH NOTHING VISIBLE IN IT, THE WHOLE HEADER LEAVES THE LAYOUT.
+  //
+  // The title is sr-only by the rule above, so on a page that passes no
+  // subtitle and no `right` this header renders an empty row - and an empty row
+  // is not free. Every page that uses it sits in a `flex flex-col gap-6`, and a
+  // flex child with no content still earns its 24px gap, which is why the
+  // download list appeared to have a tall blank strip above it where nothing
+  // was drawn (jdp: "im downloadtab ist die kopfzeile viel zu hoch").
+  //
+  // sr-only rather than `hidden`, and that is the whole trick: the heading has
+  // to stay readable, it IS the page's accessible name. sr-only positions the
+  // element absolutely, and an absolutely positioned child is not a flex item -
+  // so it takes no row and earns no gap, while still being announced.
+  const bare = !subtitle && !right;
+  if (bare) {
+    return (
+      <header className="sr-only">
+        <h1>{title}</h1>
+      </header>
+    );
+  }
+
   return (
     <header className="flex items-center gap-4">
       <div className="min-w-0">
