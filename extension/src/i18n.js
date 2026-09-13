@@ -47,7 +47,13 @@ const LANGUAGES = [
   { code: 'fi', label: 'Suomi', flag: 'fi' },
   { code: 'no', label: 'Norsk', flag: 'no' },
   { code: 'tr', label: 'Türkçe', flag: 'tr' },
-  { code: 'ar', label: 'العربية', flag: 'sa' },
+  // rtl marks the three catalogues that are set right to left. It is the same
+  // flag on the same three codes as the web UI's own catalogue
+  // (web/src/lib/locales, LanguageDef.rtl), so the two surfaces cannot disagree
+  // about which languages those are. Read by applyDocumentLanguage() below; a
+  // language without the flag is left to default to ltr rather than carrying
+  // `rtl: false` forty times.
+  { code: 'ar', label: 'العربية', flag: 'sa', rtl: true },
   { code: 'zh', label: '中文', flag: 'cn' },
   { code: 'ja', label: '日本語', flag: 'jp' },
   { code: 'ko', label: '한국어', flag: 'kr' },
@@ -56,8 +62,8 @@ const LANGUAGES = [
   { code: 'th', label: 'ไทย', flag: 'th' },
   { code: 'id', label: 'Bahasa Indonesia', flag: 'id' },
   { code: 'ms', label: 'Bahasa Melayu', flag: 'my' },
-  { code: 'he', label: 'עברית', flag: 'il' },
-  { code: 'fa', label: 'فارسی', flag: 'ir' },
+  { code: 'he', label: 'עברית', flag: 'il', rtl: true },
+  { code: 'fa', label: 'فارسی', flag: 'ir', rtl: true },
   { code: 'el', label: 'Ελληνικά', flag: 'gr' },
   { code: 'hu', label: 'Magyar', flag: 'hu' },
   { code: 'ro', label: 'Română', flag: 'ro' },
@@ -5358,12 +5364,48 @@ function resolveAuto() {
 }
 
 /**
+ * applyDocumentLanguage puts the resolved language on <html> as `lang` and,
+ * for the three catalogues marked rtl above, as `dir="rtl"`.
+ *
+ * This extension shipped Arabic, Hebrew and Persian for a release with
+ * nothing anywhere setting `dir`, so all three were laid out left to right:
+ * the text itself still runs the right way (the browser's own bidi algorithm
+ * does that per paragraph), but the page around it does not - labels, button
+ * rows, the section badge on a card and the switch in a row all stood on the
+ * side a reader of those languages looks at last. A translated interface laid
+ * out backwards is worse than an untranslated one, because the words promise
+ * that somebody thought about it.
+ *
+ * `lang` goes on with it and is not a bonus: it is what tells the browser
+ * which font and which hyphenation and which quote marks to use, and it was
+ * missing too - both pages shipped a hard-coded `lang="en"`.
+ *
+ * Guarded on `document`, because i18n.js is also pulled into background.js
+ * through importScripts and a service worker has no document at all. Calling
+ * it from loadLanguage() rather than from each page is what makes it
+ * impossible to forget on the next page somebody adds: every surface already
+ * has to call loadLanguage() before it can render a word.
+ */
+function applyDocumentLanguage(code) {
+  if (typeof document === 'undefined' || !document.documentElement) return;
+  const def = LANGUAGES.find((l) => l.code === code);
+  document.documentElement.setAttribute('lang', code);
+  document.documentElement.setAttribute('dir', def?.rtl ? 'rtl' : 'ltr');
+}
+
+/**
  * loadLanguage resolves the active language for this page load — the
  * explicit choice from Options if one was made, otherwise the browser's own
  * UI language — and caches it in `_lang` so every subsequent, synchronous
  * t() call in this page reads it without another storage round-trip. Every
  * page (popup.js, options.js, picker.js) and background.js's own
  * onInstalled handler call this once before building any user-facing text.
+ *
+ * It also stamps <html lang> and <html dir>, so the direction is settled at
+ * the same moment the language is and never in a second place that could
+ * disagree with this one. Options calls this again when somebody picks a
+ * different language, so a switch into or out of Arabic re-lays the page
+ * rather than needing a reload.
  */
 async function loadLanguage() {
   const stored = await chrome.storage.local.get('language');
@@ -5371,6 +5413,7 @@ async function loadLanguage() {
     typeof stored.language === 'string' && stored.language && LANGUAGES.some((l) => l.code === stored.language)
       ? stored.language
       : resolveAuto();
+  applyDocumentLanguage(_lang);
   return _lang;
 }
 

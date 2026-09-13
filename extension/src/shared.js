@@ -269,7 +269,18 @@ function openInstanceMenu(event, inst, isDefault, onSetDefault) {
   // Measured after it is in the DOM, then clamped: a card near the bottom of a
   // 360px popup would otherwise open a menu off the end of the window.
   const r = menu.getBoundingClientRect();
-  const x = Math.min(event.clientX, document.documentElement.clientWidth - r.width - 8);
+  // A menu grows along the reading direction, so on a right-to-left page it
+  // hangs to the LEFT of the pointer and the cursor sits at its trailing edge.
+  // The clamp alone would have kept it on screen either way, which is why this
+  // was invisible until `dir` was actually being set - "not off the edge" and
+  // "on the side a reader expects" are not the same thing.
+  //
+  // `left` and `top` stay physical on purpose: this is a position: fixed box
+  // placed from a pointer's own viewport coordinates, and those are measured
+  // from the top left of the glass whichever way the page reads.
+  const rtl = document.documentElement.dir === 'rtl';
+  const anchorX = rtl ? event.clientX - r.width : event.clientX;
+  const x = Math.min(anchorX, document.documentElement.clientWidth - r.width - 8);
   const y = Math.min(event.clientY, document.documentElement.clientHeight - r.height - 8);
   menu.style.left = `${Math.max(8, x)}px`;
   menu.style.top = `${Math.max(8, y)}px`;

@@ -3,8 +3,10 @@
 // there is more than one), or point at Options when no phrase has been entered
 // yet.
 //
-// The square gear badge top-right (jdp: "im fenster oben rechts ein
-// quadratischer badge mit zahnrad um die einstellungen zu öffnen") opens that
+// The square gear badge at the end of the header row (jdp: "im fenster oben
+// rechts ein quadratischer badge mit zahnrad um die einstellungen zu öffnen" -
+// the trailing end, which is the left of the glass once the window is read in
+// Arabic, Hebrew or Persian and i18n.js has set dir="rtl") opens that
 // same Options page rather than a second settings surface — it already holds
 // every setting (the phrase, the default instance, the language), so this is
 // just a more discoverable door to it than the old full-width "Instance

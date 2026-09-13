@@ -1,5 +1,11 @@
 <!doctype html>
-<html lang="en">
+<!-- Both attributes are the value BEFORE the language is known, not the value
+     this page ships in: i18n.js replaces them from the resolved language as
+     soon as loadLanguage() returns, which is before any text is written. They
+     are spelled out anyway because a document with no `dir` at all is not
+     "undecided", it is ltr - so leaving it off would mean the one thing that
+     can never be corrected later is also the one thing nobody wrote down. -->
+<html lang="en" dir="ltr">
   <head>
     <meta charset="UTF-8" />
     <title>KnightLoader</title>
@@ -575,13 +581,29 @@
            row of buttons reads as a form. -->
       <p id="aboutText" class="aboutText"></p>
       <p id="aboutCoffee" class="aboutText"></p>
+      <!-- Two classes per button, and they only work as a pair (GlimStone
+           1.10.0): `glim-brand-btn` spends the three values and
+           `glim-brand-<name>` is what supplies them, so a button carrying only
+           the first has no --brand to read and paints its mark in whatever ink
+           the button happens to have. Which is exactly what all three of these
+           did before this pass - options.js writes fill="currentColor" onto
+           every path it builds, which is right for a glyph of ours and wrong
+           for somebody else's logo.
+
+           Named here rather than added in options.js, so the call site says
+           WHICH brand and no colour ever appears in a page file. -->
       <div class="fields">
-        <a id="aboutCoffeeBtn" class="secondary btnlike" target="_blank" rel="noreferrer noopener"></a>
+        <a id="aboutCoffeeBtn" class="secondary btnlike glim-brand-btn glim-brand-coffee" target="_blank" rel="noreferrer noopener"></a>
       </div>
       <p id="aboutReport" class="aboutText"></p>
       <div class="fields">
-        <a id="aboutGithub" class="secondary btnlike" target="_blank" rel="noreferrer noopener"></a>
-        <a id="aboutMail" class="secondary btnlike"></a>
+        <a id="aboutGithub" class="secondary btnlike glim-brand-btn glim-brand-github" target="_blank" rel="noreferrer noopener"></a>
+        <!-- The house's own button, not a brand's: this one reaches the people
+             who wrote the app, so it takes the accent tokens and follows the
+             colour somebody picked and rainbow mode with it. A third party's
+             mark never may - its colour is the one thing about it that is not
+             ours to repaint. -->
+        <a id="aboutMail" class="secondary btnlike glim-brand-btn glim-brand-house"></a>
       </div>
       <!-- Last line in the card, under the buttons (jdp, 2026-09-05), same as
            the web interface and the app. It reads as a footer, which is what it

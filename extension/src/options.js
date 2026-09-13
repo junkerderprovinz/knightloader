@@ -76,6 +76,14 @@ const phrasePaste = document.getElementById('phrasePaste');
  * that linter is a release gate here. Building the nodes is also the honest
  * version - there is no markup to parse and nothing that could ever be handed
  * a string from somewhere else.
+ *
+ * fill="currentColor" is right for a glyph WE drew and wrong for a vendor's
+ * logo, and this one function makes both. It stays, because the About card's
+ * brand buttons override it from the stylesheet rather than here: an author
+ * rule beats a presentation attribute, so `.glim-brand-btn svg path` wins
+ * (glimstone.css, the brand section). Deciding it per call site would put a
+ * colour question inside a shape builder and leave the next glyph to get it
+ * wrong again.
  */
 const NS = 'http://www.w3.org/2000/svg';
 function glyph(d, size) {
@@ -1427,10 +1435,26 @@ async function renderAppearance() {
  * Which GlimStone this page implements. A plain constant, kept in step by
  * hand, because there is nothing to import it from: this extension has no
  * build step, and the design language is a document plus a stylesheet rather
- * than a package. The same constant exists in the web UI's Settings.tsx and
- * the two are expected to agree.
+ * than a package.
+ *
+ * THE NUMBER IS PER SURFACE, and it has to be, because the three of them are
+ * lifted separately. This one went 1.6.0 to 1.14.0 in one step once every
+ * release between had actually been checked against these files: the brand
+ * marks carry their own colours instead of the button's ink, the scrim is a
+ * token, deleting a group asks a real question, the control that goes ahead
+ * sits at the end of its row, and the three right-to-left languages this
+ * extension ships now set `dir` rather than being laid out backwards.
+ *
+ * ONE HALF OF 1.10.0 DOES NOT APPLY HERE and that is a judgement, not an
+ * omission: its motion tokens exist to give three intensities three different
+ * distances, and this extension has no motion setting at all, only fixed
+ * durations and prefers-reduced-motion. There is nothing to tokenise.
+ *
+ * The phone app still says 1.6.0. That disagreement is deliberate too - a card
+ * claiming a release its own files do not speak is worse than one that is
+ * behind.
  */
-const GLIMSTONE_VERSION = '1.6.0';
+const GLIMSTONE_VERSION = '1.14.0';
 
 const REPO_URL = 'https://github.com/junkerderprovinz/knightloader';
 const GLIMSTONE_URL = 'https://github.com/junkerderprovinz/glimstone';

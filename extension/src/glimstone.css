@@ -50,6 +50,24 @@
   --radius-pill: 0;
 }
 
+/* Which way the inline axis runs, as a number, for the handful of places that
+   cannot use a logical property: a `translate`, a keyframe, a transform. Those
+   three take physical values only, so the choice is between writing every
+   distance out twice under a [dir="rtl"] twin - two numbers for one distance,
+   which is the shape of drift - and multiplying the one number by a sign. The
+   web UI's own sheet carries the same token under the same name.
+
+   Direction is a layout fact rather than a motion preference, so this sits
+   outside every gate, and a distance of 0 multiplies out to 0 either way.
+   i18n.js puts the `dir` attribute on <html> as soon as the language is
+   resolved, which is what makes the second block reachable at all. */
+:root {
+  --dir-sign: 1;
+}
+[dir="rtl"] {
+  --dir-sign: -1;
+}
+
 :root,
 [data-theme="dark"] {
   color-scheme: dark;
@@ -74,6 +92,39 @@
      cannot be both, which is why this is a token and not a filter. */
   --carbon-hover-raised: #6f6f6f;
   --carbon-border:     #393939;
+
+  /* THE ABOUT CARD'S BRAND MARKS at rest, and these are NOT the published brand
+     colours (GlimStone 1.10.0, which ships the values as well as the rule).
+
+     A brand colour is drawn against white or against its own fill, so on a
+     neutral button ground each one dies on one side of the theme switch. This
+     page's About buttons are `.secondary`, so the ground they actually sit on
+     is --carbon-surface2: #393939 here and #e8e8e8 in the light theme, and the
+     bar for a graphic is 3:1. Measured on those two grounds, every published
+     colour fails on one of them: Buy Me a Coffee's #FFDD00 reads 1.10:1 on
+     #e8e8e8 and Bitcoin's #F7931A 1.87:1, while PayPal's #003087 reads 1.03:1
+     on #393939 and GitHub's #181717 1.55:1. So the warm brands are deepened for
+     the light theme and the dark ones lightened for the dark one - the job
+     --accent-ink already does for the accent. The TRUE colour is spent on HOVER
+     as the button's own fill; see .glim-brand-btn further down.
+
+     The values are GlimStone's own (reference/tokens.css), not re-derived here:
+     the whole reason the language grew these tokens is that the rule was
+     written down and the numbers were not, so one adopting app built its own
+     set of four and the next read the same paragraph and shipped every mark in
+     the button's ink. Re-measured against THIS surface rather than copied on
+     faith - the extension's ground sits further from mid-grey than the web
+     UI's #525252/#d1d1d1, so every one of them clears the bar by more here:
+     coffee 8.6:1, bitcoin 5.0:1, paypal 5.1:1, github 11.6:1 on #393939, and
+     4.0:1, 4.1:1, 9.7:1, 14.6:1 on the light theme's #e8e8e8.
+
+     All four ship, not only the two this page draws: the tokens are the
+     language's, and a fifth button added later must not have to re-derive the
+     pair that was left out. */
+  --brand-coffee:  #ffdd00;
+  --brand-bitcoin: #f7931a;
+  --brand-paypal:  #4fb5f0;
+  --brand-github:  #ffffff;
 
   /* Text ramp — three steps, the last still legible at 11px. */
   --carbon-text:       #f4f4f4;
@@ -144,6 +195,17 @@
      further from the surface here means DARKER. */
   --carbon-hover-raised: #c6c6c6;
   --carbon-border:     #d1d1d1;
+
+  /* The light theme's brand answers: the warm marks deepened so they carry on
+     #e8e8e8, the dark ones left dark because they already do. Measured on this
+     page's own button ground: coffee 4.0:1, bitcoin 4.1:1, paypal 9.7:1,
+     github 14.6:1. The reasoning and the dark-theme measurements are in the
+     block above, and so is the check that matters here - the published #FFDD00
+     this replaces reads 1.10:1 on the same ground. */
+  --brand-coffee:  #8a6d00;
+  --brand-bitcoin: #a85d00;
+  --brand-paypal:  #003087;
+  --brand-github:  #181717;
 
   --carbon-text:       #161616;
   --carbon-text-sub:   #525252;
@@ -231,6 +293,15 @@
     --carbon-hover-raised: #c6c6c6;
     --carbon-border:     #d1d1d1;
 
+    /* The same brand answers as the [data-theme="light"] block above, and the
+       repetition is the point: a mark deepened for a light-preferring OS goes
+       straight back to being unreadable the moment somebody picks light by
+       hand, if only one of the two blocks carries it. */
+    --brand-coffee:  #8a6d00;
+    --brand-bitcoin: #a85d00;
+    --brand-paypal:  #003087;
+    --brand-github:  #181717;
+
     --carbon-text:       #161616;
     --carbon-text-sub:   #525252;
     --carbon-text-muted: #6f6f6f;
@@ -291,7 +362,11 @@
 .glim-section-badge {
   position: absolute;
   top: -11px;
-  left: 16px;
+  /* The LEADING edge, not the left one: this badge is a label attached to the
+     start of the card's top edge, so under Arabic, Hebrew or Persian it belongs
+     at the right with everything else that starts a line. `left` kept it pinned
+     to the glass while the whole card mirrored around it. */
+  inset-inline-start: 16px;
   z-index: 1;
   display: inline-flex;
   align-items: center;
@@ -460,11 +535,13 @@
   align-items: center;
   gap: 6px;
 }
-/* A colour row reads right to left: the label holds the left edge, everything
- * that can be clicked collects at the trailing edge, in line with every switch
- * on the page (jdp, 2026-08-28: "Die Farbfelder sollen ganz rechts angeordnet
- * sein"). The label's own auto margin does it, so the swatches keep their own
- * spacing rather than being spread by a justify rule. */
+/* A colour row splits at the two ends: the label holds the leading edge and
+ * everything that can be clicked collects at the trailing one, in line with
+ * every switch on the page (jdp, 2026-08-28: "Die Farbfelder sollen ganz rechts
+ * angeordnet sein" - which is the trailing edge for the language he wrote it
+ * in, and the left of the glass in Arabic). The label's own auto margin does
+ * it, on the inline axis, so the row mirrors with the page and the swatches
+ * keep their own spacing rather than being spread by a justify rule. */
 .glim-axis--colours > .glim-axis-label { margin-inline-end: auto; }
 .glim-axis--colours { row-gap: 12px; }
 
@@ -483,6 +560,14 @@
   border-radius: var(--radius-control);
   cursor: crosshair;
 }
+/* THE TWO PICKER HANDLES STAY PHYSICAL, and that is the correct answer rather
+   than the one this pass missed. colorpicker.js positions both of them by
+   writing `style.left` as a percentage of the box - a physical coordinate, the
+   same axis the hue gradient below runs on and the same axis a pointer's
+   clientX arrives on. A saturation/value square and a spectrum are drawings,
+   not text: they do not mirror, and mirroring only the centring margin would
+   leave each handle half its own width away from the colour it is pointing at.
+   The margin has to agree with the property that places it. */
 .glim-picker-dot {
   position: absolute;
   width: .75rem;
@@ -501,6 +586,10 @@
   background: linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00);
   cursor: pointer;
 }
+/* The hue handle, and the second of the two that stay physical - see the note
+   above .glim-picker-dot. Its own gradient runs `to right` for the same reason:
+   a spectrum is a drawing with an order of its own, and colorpicker.js reads
+   and writes positions along it in physical percent. */
 .glim-picker-hdot {
   position: absolute;
   top: -.125rem;
@@ -653,6 +742,12 @@
 @media (prefers-reduced-motion: reduce) {
   .glim-shake { animation: glim-shake-quiet 300ms ease-in-out; }
 }
+/* The arrow, and its `left` is physical for the same reason the picker handles
+   above are: tooltip.js measures the trigger and the bubble with
+   getBoundingClientRect and hands the offset over in --glim-tip-ax, which is a
+   distance from the left of the glass whichever way the page reads. The bubble
+   itself is placed the same way. A logical property here would point the arrow
+   at the opposite end of the bubble from the icon it belongs to. */
 .glim-bubble::before {
   content: '';
   position: absolute;
@@ -725,8 +820,12 @@
 .glim-switch-track {
   position: relative;
   flex: 0 0 auto;
-  order: 2;                    /* switch flush RIGHT, caption flush left - the
-                                  ToggleRow shape, systemwide (jdp). */
+  order: 2;                    /* switch at the END of the row, caption at the
+                                  start - the ToggleRow shape, systemwide (jdp).
+                                  `order` and the auto margin below both run on
+                                  the inline axis, so this is the right way
+                                  round under a right-to-left page too, where
+                                  "the end" is the left of the glass. */
   margin-inline-start: auto;
   width: 36px; height: 20px;
   border-radius: var(--radius-pill);
@@ -734,17 +833,29 @@
   transition: background-color 150ms ease;
 }
 .glim-switch[aria-checked='true'] .glim-switch-track { background-color: var(--accent); }
+/* The knob travels from the track's START to its END, and under a right-to-left
+   page both of those are the other side of the track. Two halves have to agree
+   for that to work: the anchor is logical (inset-inline-start, so the knob
+   begins at the leading edge whichever edge that is), and the travel is
+   physical - `translate` takes no logical form - so it is multiplied by
+   --dir-sign. Anchoring logically and translating physically would have been
+   worse than leaving both physical: the knob would start at the right edge and
+   then move further right, out of its own track.
+
+   Off at the start and on at the end also keeps the switch saying the same
+   thing as everything else on the page, where "further along the line" means
+   "done" - the same axis the button order and the section badge read on. */
 .glim-switch-knob {
   position: absolute;
-  left: 0; top: 2px;
+  inset-inline-start: 0; top: 2px;
   width: 16px; height: 16px;
   border-radius: var(--radius-pill);
   background-color: var(--carbon-bg);
   box-shadow: 0 1px 2px rgba(0, 0, 0, .2);
-  translate: 2px 0;
+  translate: calc(var(--dir-sign) * 2px) 0;
   transition: translate 150ms ease;
 }
-.glim-switch[aria-checked='true'] .glim-switch-knob { translate: 16px 0; }
+.glim-switch[aria-checked='true'] .glim-switch-knob { translate: calc(var(--dir-sign) * 16px) 0; }
 .glim-switch-label { order: 1; }
 .glim-switch:focus-visible { outline: 2px solid var(--focus-ring, var(--accent)); outline-offset: 3px; }
 
@@ -936,7 +1047,7 @@
 .glim-instance-top { display: flex; align-items: center; gap: 8px; min-width: 0; }
 
 /* The actions sit at the BOTTOM of the trailing edge, not centred on it: the
-   "Standard" badge owns the top-right corner, and a centred row of 30px
+   "Standard" badge owns the corner above them, and a centred row of 30px
    buttons in a 72px card reaches up into it. Two things in one corner is the
    kind of overlap that only shows up on the one card that has both. */
 .glim-instance-actions {
@@ -944,7 +1055,13 @@
   display: flex;
   align-items: flex-end;
   gap: 6px;
-  padding: 0 12px 12px 0;
+  /* Two logical halves rather than a physical shorthand with a logical
+     override behind it. The pair used to be `padding: 0 12px 12px 0` followed
+     by `padding-inline: 0 12px`, which happens to compute correctly - the
+     second line overwrites both inline sides - but reads as a physical rule
+     with a patch on it, and the next person to touch the block has to work out
+     which of the two is live. */
+  padding-block: 0 12px;
   padding-inline: 0 12px;
 }
 .glim-square {
@@ -1144,4 +1261,108 @@
   justify-content: flex-end;
   gap: 8px;
   margin-top: 20px;
+}
+
+/* ---------------------------------------------------------------------------
+   THE ABOUT CARD'S BRAND BUTTONS (GlimStone 1.10.0)
+
+   Three values per brand, and the split between them is the whole point. The
+   ADJUSTED colour rides at rest (--brand, a theme token, because a published
+   brand colour dies on one of the two grounds); the TRUE colour is spent on
+   HOVER as the button's own fill (--brand-fill), which is the ground that
+   colour was actually drawn for; and the label and the mark both flip to that
+   colour's measured ink (--brand-ink), because a fixed ink on a fill somebody
+   else chose is a contrast nobody can predict.
+
+   This replaces the previous state of affairs, which was no rule at all: the
+   glyph builder in options.js writes fill="currentColor" onto every path it
+   makes, which is right for a glyph of ours and wrong for a vendor's mark -
+   GitHub's Octicon came out in the button's own text colour, and so did the
+   coffee cup. That is the exact failure the language's brand rule exists to
+   prevent, which is why 1.10.0 stopped describing it in prose and shipped the
+   numbers. The presentation attribute needs no removing: any author rule beats
+   a presentation attribute, so these two selectors win over it outright.
+
+   The hexes live here and the call site names a brand by class, so no page file
+   holds a colour. The two classes travel together - `.glim-brand-btn` plus one
+   `.glim-brand-<name>`: the first spends the three values and the second is
+   what supplies them, so a button carrying only the first has no --brand to
+   read and paints its mark in the initial fill.
+
+   `svg path` as well as `svg` is not belt-and-braces, it is the half that works
+   for these marks: a fill set on the <svg> only reaches paths that declare none
+   of their own, and every path this page builds declares fill="currentColor"
+   itself, which beats an inherited value from its parent. All of them are
+   single-colour drawings, so painting both levels is safe.
+
+   The selector reaches the button's own <svg> rather than a glyph wrapper,
+   because these About buttons are plain anchors with the mark as a direct child
+   (options.html, the About card).
+
+   A mark that brings its OWN GROUND would take none of these classes: a coin
+   disc is a filled circle in the brand's colour with a white symbol on it, so
+   what decides whether it can be read sits inside the mark and is the same on
+   either theme. Flattening it to one ink would be redrawing the logo.
+   --------------------------------------------------------------------------- */
+.glim-brand-btn svg,
+.glim-brand-btn svg path {
+  fill: var(--brand);
+  /* A literal, like every other transition in this file: the extension carries
+     no motion-intensity tokens (that engine lives in the web UI's index.css),
+     so 120ms is the number rather than a var() that would resolve to nothing
+     here. If the tokens ever arrive, this is one of the lines that reads them. */
+  transition: fill 120ms ease;
+}
+.glim-brand-btn:hover:not(:disabled) {
+  background-color: var(--brand-fill);
+  color: var(--brand-ink);
+}
+.glim-brand-btn:hover:not(:disabled) svg,
+.glim-brand-btn:hover:not(:disabled) svg path {
+  fill: currentColor;
+}
+
+/* One block per brand: the adjusted resting mark (a token, because it changes
+   with the theme), then the true colour and its measured ink, which do not.
+   All four ship even though this page draws two of them, so the next button
+   added to the card finds its pair already here.
+
+   The ratios are re-measured here rather than carried over: the reference and
+   the web UI annotate PayPal's pair as 13.4:1, and white on #003087 is 11.85.
+   Still far past the bar, so no colour changes - but a number written down
+   twice is a number that disagrees with itself, and copying one unread is how
+   the wrong half gets quoted next time. */
+.glim-brand-coffee {
+  --brand: var(--brand-coffee);
+  --brand-fill: #ffdd00;
+  /* Buy Me a Coffee's own near-black, the ink their button uses. 14.3:1. */
+  --brand-ink: #0d0c22;
+}
+.glim-brand-bitcoin {
+  --brand: var(--brand-bitcoin);
+  --brand-fill: #f7931a;
+  --brand-ink: #161616; /* 7.9:1 */
+}
+.glim-brand-paypal {
+  --brand: var(--brand-paypal);
+  --brand-fill: #003087;
+  --brand-ink: #ffffff; /* 11.8:1 */
+}
+.glim-brand-github {
+  --brand: var(--brand-github);
+  --brand-fill: #181717;
+  --brand-ink: #ffffff; /* 17.9:1 */
+}
+
+/* The house's own button: the route that reaches this app's AUTHORS rather than
+   a third party, which here is the mail link. It is the one button in that row
+   that follows the colour engine, so all three values are engine tokens -
+   --accent-ink is the token for accent-coloured GRAPHICS on an ordinary
+   surface, which is the same job --brand-* does for the four brands, and the
+   hover pair is the ordinary accent pairing. This one changes with the user's
+   accent and with rainbow mode; a vendor's mark may not. */
+.glim-brand-house {
+  --brand: var(--accent-ink);
+  --brand-fill: var(--accent);
+  --brand-ink: var(--accent-contrast);
 }

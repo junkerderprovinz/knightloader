@@ -177,7 +177,20 @@ function openColorPickerPopover(trigger, initialHex, onChange, onClose) {
   const rect = trigger.getBoundingClientRect();
   const vw = document.documentElement.clientWidth || window.innerWidth;
   const vh = document.documentElement.clientHeight || window.innerHeight;
-  const left = Math.max(8, Math.min(vw - 8 - panel.offsetWidth, rect.left));
+  // WHICH EDGE THE PANEL HANGS FROM DEPENDS ON THE WRITING DIRECTION. Left to
+  // right it lines up with the trigger's left edge and grows rightward; right to
+  // left it lines up with the RIGHT edge and grows the other way, which is where
+  // the eye already is. Pinned to the trigger's left in both, the panel opened
+  // away from the control in Arabic, Hebrew and Persian - the clamp kept it on
+  // screen, so it was never broken enough to look broken, just wrong.
+  //
+  // Read off the document rather than from the language list, because that is
+  // the thing that has actually been applied: i18n.js sets dir on <html>, and if
+  // that ever fails to run, a panel that agrees with the page the user is
+  // looking at is better than one that agrees with a table.
+  const rtl = document.documentElement.dir === 'rtl';
+  const anchor = rtl ? rect.right - panel.offsetWidth : rect.left;
+  const left = Math.max(8, Math.min(vw - 8 - panel.offsetWidth, anchor));
   const fitsBelow = rect.bottom + 8 + panel.offsetHeight <= vh;
   panel.style.left = `${left}px`;
   panel.style.top = `${fitsBelow ? rect.bottom + 8 : Math.max(8, rect.top - 8 - panel.offsetHeight)}px`;

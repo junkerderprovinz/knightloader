@@ -1,5 +1,7 @@
 <!doctype html>
-<html lang="en">
+<!-- The pre-resolution values only; i18n.js overwrites both from the language
+     it resolves, before a single label is written. See options.html. -->
+<html lang="en" dir="ltr">
   <head>
     <meta charset="UTF-8" />
     <title>KnightLoader</title>
@@ -333,11 +335,12 @@
 
            It reads backwards in the source and correctly on the screen, which
            is the usual shape of this correction. `.sendRow` is a flex row, so
-           the pair WOULD mirror with the page under a right-to-left language -
-           but only once something sets `dir` on <html>, and nothing here does
-           yet, although this window ships ar, he and fa. Until it does, "end"
-           and "right of the glass" are the same place for every reader, which
-           is a smaller gap than the one this order just closed but not none. -->
+           the pair mirrors with the page under a right-to-left language - and
+           now it actually does: i18n.js sets `dir` on <html> from the resolved
+           language, so for the ar, he and fa catalogues this window ships,
+           "end" is the left of the glass and the send button goes there with
+           everything else that ends a line. That gap is closed; the note is
+           kept because it is the reason this row is written in this order. -->
       <div class="sendRow">
         <button id="cancelCountdown" class="secondary" type="button" hidden></button>
         <button id="send" class="primary">Send this page</button>
