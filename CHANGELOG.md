@@ -384,6 +384,17 @@ submission and for a fixed download.
   has ever dragged a settings tab into their own order finds the new Zustand
   page at the BOTTOM of their rail rather than beside Diagnose, because the
   stored order is honoured first and whatever it does not name is appended.
+- **The Wails CLI version is read out of `desktop/go.mod` rather than pinned in
+  the workflow.** The two had drifted twice: `go.mod` on v2.13.0 while CI
+  installed v2.10.2, then `go.mod` on v2.15.0 while CI still installed v2.13.0.
+  Neither time did anything fail loudly, the CLI simply built the module with an
+  older toolchain, and the comment saying "bump these together" was a rule with
+  nothing enforcing it. The step now reads the require line and fails outright
+  when it cannot, because a silent fallback to `@latest` is the failure it
+  replaces. The documentation guard moved with it: it used to compare the README
+  against the workflow, which is why it stayed green through the second drift,
+  both files carrying the same wrong number. It reads `desktop/go.mod` now, which
+  is the one place the answer actually comes from.
 - **The Beschriftung setting reaches the whole app.** It used to draw the sidebar
   and the settings rail and nothing else, so it read as a sidebar option rather
   than as a rule. The head card's buttons, both list toolbars and the collector's

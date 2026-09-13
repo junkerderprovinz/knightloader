@@ -78,13 +78,31 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev
 
-      # Pinned to the same Wails version desktop/go.mod requires. With @latest a
-      # new major of the CLI would silently start driving a v2 module and break
-      # tag builds at the worst possible moment. Bump this together with the
-      # require line in desktop/go.mod - this one had already drifted (go.mod
-      # was on v2.13.0, this step still installing v2.10.2) before this change.
+      # READ OUT OF desktop/go.mod, never written here. The CLI and the library
+      # have to be the same version: with @latest a new major of the CLI would
+      # silently start driving a v2 module and break tag builds at the worst
+      # possible moment, and a hand-pinned version drifts the moment somebody
+      # bumps go.mod without remembering this file.
+      #
+      # It has drifted TWICE now, which is what turned the rule into this step.
+      # First go.mod was on v2.13.0 while this installed v2.10.2; then go.mod
+      # went to v2.15.0 while this still installed v2.13.0. A comment saying
+      # "bump these together" is not a guard, and neither time did anything
+      # fail loudly: the CLI simply built the module with an older toolchain.
+      #
+      # The grep is anchored on the require line, and the step fails outright
+      # when it finds nothing rather than falling back to @latest, because a
+      # silent fallback is the exact failure this replaces.
       - name: Install Wails
-        run: go install github.com/wailsapp/wails/v2/cmd/wails@v2.13.0
+        working-directory: desktop
+        run: |
+          version=$(grep -oP "(?<=github\.com/wailsapp/wails/v2 )v[0-9]+\.[0-9]+\.[0-9]+" go.mod | head -1)
+          if [ -z "$version" ]; then
+            echo "could not read the wails version out of desktop/go.mod" >&2
+            exit 1
+          fi
+          echo "installing wails CLI $version, as required by desktop/go.mod"
+          go install github.com/wailsapp/wails/v2/cmd/wails@"$version"
 
       - name: Build
         working-directory: desktop
