@@ -2,22 +2,27 @@
 
 KnightLoader ships as a single static binary with the UI embedded, so a
 container is just that binary plus the two tools its media path shells out to
-(`yt-dlp`, `ffmpeg`). The repository is private, so the image is built where it
-runs instead of being pulled from a registry.
+(`yt-dlp`, `ffmpeg`). There is no published image yet, so it is built where it
+runs rather than pulled from a registry.
 
 ## Deploy (or redeploy after a change)
 
 From a machine that can reach the server over SSH:
 
 ```sh
-# 1. package the working tree (dist is committed, so no Node step is needed)
-tar czf /tmp/kl-src.tgz -C /path/to/knightloader \
-    --exclude=.git --exclude=node_modules --exclude=bin .
+# 1. package the COMMITTED tree (dist is committed, so no Node step is needed)
+#
+#    git archive, not tar of the working directory. tar ships whatever happens
+#    to be lying there: a half-finished edit, a scratch script, a .env somebody
+#    dropped in while debugging. What then runs on the preview box is a state
+#    that exists on no branch, which is the worst thing to be looking at when
+#    something misbehaves and you are trying to work out what is in it.
+git archive --format=tar.gz -o /tmp/kl-src.tgz HEAD
 
 # 2. ship it
 scp -P <ssh-port> /tmp/kl-src.tgz root@<host>:/tmp/kl-src.tgz
 
-# 3. build and (re)start — data and downloads survive, they live on volumes
+# 3. build and (re)start. Data and downloads survive, they live on volumes
 ssh -p <ssh-port> root@<host> '
   rm -rf /tmp/klbuild && mkdir -p /tmp/klbuild &&
   tar xzf /tmp/kl-src.tgz -C /tmp/klbuild &&
