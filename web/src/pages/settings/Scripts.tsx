@@ -446,7 +446,6 @@ function ScriptRow({
         </button>
         <div className="flex items-center gap-1.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
           <IconBadge
-            kind="danger"
             icon={<IconTrash width={14} height={14} />}
             hue={index}
             title={row.saved ? cx('settings.scripts.remove') : cx('settings.scripts.removeNew')}

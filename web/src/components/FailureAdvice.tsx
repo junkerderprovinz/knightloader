@@ -109,6 +109,14 @@ export function FailureAdvice({
       onClose={onClose}
       footer={
         <>
+          {/* Close steps back and so goes first; the remedy is the control that
+              moves this row forward and takes the end of the row. The kind
+              below is what makes that read correctly in both cases: with a
+              remedy beside it Close is the quiet one, and with nothing beside
+              it Close IS the way on. */}
+          <Button kind={action ? 'secondary' : 'primary'} disabled={busy} onClick={onClose}>
+            {t('failure.close')}
+          </Button>
           {action && (
             <Button
               disabled={busy}
@@ -117,9 +125,6 @@ export function FailureAdvice({
               {t(action)}
             </Button>
           )}
-          <Button kind={action ? 'secondary' : 'primary'} disabled={busy} onClick={onClose}>
-            {t('failure.close')}
-          </Button>
         </>
       }
     >

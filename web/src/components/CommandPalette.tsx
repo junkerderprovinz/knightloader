@@ -7,15 +7,21 @@
 // file only reads from - it holds no command list of its own.
 //
 // Overlay mechanics follow ui.tsx's own Modal (see CaptchaModal.tsx, its
-// only real-world caller): a dimmed backdrop, Escape and an outside click
-// both close it, mounted once in Layout.tsx beside CaptchaModal,
-// IdleActionBanner and OnboardingWizard rather than per page - a command
-// has nothing to do with which route happens to be open when it is invoked.
+// only real-world caller): Escape and an outside click both close it,
+// mounted once in Layout.tsx beside CaptchaModal, IdleActionBanner and
+// OnboardingWizard rather than per page - a command has nothing to do with
+// which route happens to be open when it is invoked.
+// The ground behind it is .glim-modal-backdrop and nothing else: GlimStone
+// 1.11.0 made the scrim a token, so its strength reads from --glim-scrim in
+// each theme block (index.css) and no component floating a window carries a
+// number of its own. This one did - a hand-typed bg-black/50, lighter than
+// the token in both themes, with nothing in the codebase able to notice.
+//
 // It is not built on top of <Modal> directly: that component's title-plus-
 // footer shape is for a decision with a primary action, and this is a
 // search field over a list, closer to LanguagePicker.tsx's own dropdown or
 // ContextMenu.tsx's own keyboard walking than to a dialog - so the parts
-// reused are the mechanics (backdrop, Escape, glim-card), not the component.
+// reused are the mechanics (Escape, glim-card), not the component.
 //
 // Open state lives in lib/commandPaletteOpen.ts, not a local useState: a
 // command's own `run` (lib/commands/global.ts's "open command palette"
@@ -171,7 +177,7 @@ export function CommandPalette() {
 
   return (
     <div
-      className="fixed inset-0 z-[70] flex justify-center bg-black/50 px-4 pt-[14vh]"
+      className="glim-modal-backdrop fixed inset-0 z-[70] flex justify-center px-4 pt-[14vh]"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) setCommandPaletteOpen(false);
       }}

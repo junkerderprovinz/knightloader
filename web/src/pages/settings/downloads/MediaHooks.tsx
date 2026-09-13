@@ -293,7 +293,6 @@ export function MediaHooksCard({ hue }: { hue: number }) {
                   {testing === h.id ? t('settings.mediahook.testRunning') : t('settings.mediahook.test')}
                 </Button>
                 <IconBadge
-                  kind="danger"
                   icon={<IconTrash width={14} height={14} />}
                   hue={i}
                   title={t('settings.mediahook.delete')}
@@ -442,12 +441,17 @@ export function MediaHooksCard({ hue }: { hue: number }) {
             </FieldGroup>
           )}
 
+          {/* Cancel first, Save last: the control that takes the form forward
+              sits at the END of the row and the one that steps back at its
+              start. Ordered by the JSX itself and never by flex-row-reverse or
+              an order-* utility, so the pair mirrors with the page under the
+              right-to-left languages this app ships. */}
           <div className="flex items-center gap-3">
-            <Button disabled={busy || draft.id.trim() === '' || draft.url.trim() === ''} onClick={save}>
-              {t('settings.mediahook.save')}
-            </Button>
             <Button kind="ghost" disabled={busy} onClick={() => setDraft(null)}>
               {t('common.cancel')}
+            </Button>
+            <Button disabled={busy || draft.id.trim() === '' || draft.url.trim() === ''} onClick={save}>
+              {t('settings.mediahook.save')}
             </Button>
             {error && <p className="text-xs text-statusWarn">{error}</p>}
           </div>

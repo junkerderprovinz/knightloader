@@ -593,7 +593,6 @@ function RequestRow({
             onClick={() => onMove(1)}
           />
           <IconBadge
-            kind="danger"
             icon={<IconTrash width={14} height={14} />}
             hue={index}
             title={t('settings.reconnect.requestRemove')}

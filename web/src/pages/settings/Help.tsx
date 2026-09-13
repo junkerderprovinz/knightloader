@@ -225,11 +225,17 @@ const PAYPAL: string = '';
 // The handle from .github/FUNDING.yml, so one place knows it.
 const COFFEE_URL = 'https://buymeacoffee.com/junkerderprovinz';
 
-/** The About card's three anchors, dressed identically. One constant rather
- *  than the same forty characters repeated per link: three buttons that are
- *  supposed to be one object should not be three chances to drift. */
+/** The About card's controls, dressed identically. One constant rather than the
+ *  same forty characters repeated per link: controls that are supposed to be
+ *  one object should not be five chances to drift.
+ *
+ *  `glim-brand-btn` rides in here because every one of them wears a mark and
+ *  every mark takes its colour the same way (GlimStone 1.10.0): the adjusted
+ *  value at rest, the true colour as the hover fill, that fill's ink on top.
+ *  WHICH brand is named at each call site with its own `glim-brand-<name>`,
+ *  because a mark is passed explicitly and is never reachable by pattern. */
 const ABOUT_BTN =
-  'inline-flex items-center justify-center gap-2 rounded-[var(--radius-control)] bg-carbon-surface2' +
+  'glim-brand-btn inline-flex items-center justify-center gap-2 rounded-[var(--radius-control)] bg-carbon-surface2' +
   ' px-3.5 py-2 text-sm font-medium text-carbon-text transition duration-150 select-none' +
   ' hover:bg-carbon-surface3 motion-safe:active:scale-[.98]';
 
@@ -246,12 +252,23 @@ function VersionLink({ href, children }: { href: string; children: ReactNode }) 
 }
 
 /**
- * Which GlimStone this app is built against. Kept in step by hand, because the
- * design language is a document plus a stylesheet rather than a package - the
- * same constant lives in the extension's options.js and the app's
- * SettingsScreen, and the three are expected to agree.
+ * Which GlimStone this surface is built against. Kept in step by hand, because
+ * the design language is a document plus a stylesheet rather than a package.
+ *
+ * THE THREE COPIES NO LONGER AGREE, AND THAT IS DELIBERATE. The same constant
+ * lives in the extension's options.js and the app's SettingsScreen, and until
+ * 2026-09-13 all three said 1.6.0. The web UI has since been lifted through
+ * 1.9.0 to 1.14.0: the scrim is a token, nothing destructive is painted red
+ * (ButtonKind has no 'danger' left to pass), the control that goes ahead sits at
+ * the end of its row, the brand marks carry their own colours, and the top
+ * motion intensity travels and springs instead of running the quiet shape
+ * faster. The extension and the app have had none of that pass yet.
+ *
+ * So this number is per SURFACE, not per repository, and raising the other two
+ * to match would be the one thing worse than them differing: a card claiming a
+ * release its own files do not speak. They move when their sweep runs.
  */
-const GLIMSTONE_VERSION = '1.6.0';
+const GLIMSTONE_VERSION = '1.14.0';
 
 /**
  * The About card (jdp, 2026-08-31: "in der App und der Erweiterung und im KL
@@ -289,37 +306,57 @@ export function About({ hue }: { hue: number }) {
           it reads as one offer; three sentences stacked over one row of buttons
           reads as a form. */}
       <p className="text-sm text-carbon-textSub">{t('settings.about.coffee')}</p>
-      {/* Two ways to give, and they are two because they reach different
-          people: the coffee takes a card, the crypto window takes what
-          somebody already holds in a wallet and shows no name at either end.
-          Both stay in THIS row rather than getting a row of their own further
-          down, which is the card's own rule - a sentence sits directly above
-          the thing it asks for, and a second row reads as a second, unrelated
-          offer. */}
+      {/* Up to three ways to give, and they are separate because they reach
+          different people: the coffee and PayPal take a card or a balance, the
+          crypto window takes what somebody already holds in a wallet and shows
+          no name at either end. All of them stay in THIS row rather than
+          getting a row of their own further down, which is the card's own rule
+          - a sentence sits directly above the thing it asks for, and a second
+          row reads as a second, unrelated offer.
+
+          ORDER: the hosted payment pages first, the wallet last (GlimStone
+          1.10.0). It reads as a ramp rather than an alphabet - the routes most
+          people already hold an account for, then the one that needs none and
+          shows no name at either end. */}
       <div className="flex flex-wrap gap-2">
         <a
           href={COFFEE_URL}
           target="_blank"
           rel="noreferrer noopener"
-          className={ABOUT_BTN}
+          className={`${ABOUT_BTN} glim-brand-coffee`}
         >
           <IconBuyMeACoffee size={15} />
           {t('settings.about.coffeeButton')}
         </a>
-        {/* A real button rather than an anchor dressed as one, unlike its two
-            neighbours: this one opens a window in the app instead of going
-            somewhere, so there is no link for the browser's middle click,
-            copy-link or open-in-new-tab to act on. */}
-        <button type="button" className={ABOUT_BTN} onClick={() => setCryptoOpen(true)}>
-          <IconBitcoin size={15} />
-          {t('settings.about.crypto')}
-        </button>
         {PAYPAL !== '' && (
-          <a href={PAYPAL} target="_blank" rel="noreferrer noopener" className={ABOUT_BTN}>
+          <a
+            href={PAYPAL}
+            target="_blank"
+            rel="noreferrer noopener"
+            className={`${ABOUT_BTN} glim-brand-paypal`}
+          >
             <IconPayPal size={15} />
             {t('settings.about.paypal')}
           </a>
         )}
+        {/* A real button rather than an anchor dressed as one, unlike its two
+            neighbours: this one opens a window in the app instead of going
+            somewhere, so there is no link for the browser's middle click,
+            copy-link or open-in-new-tab to act on.
+
+            Its mark is the flat Bitcoin symbol rather than a coin disc, so it
+            takes a brand colour like the two beside it. The language's own card
+            leaves this one button unclassed because the disc IT draws carries
+            its own ground, and the contrast that decides whether such a mark
+            can be read sits inside the drawing. */}
+        <button
+          type="button"
+          className={`${ABOUT_BTN} glim-brand-bitcoin`}
+          onClick={() => setCryptoOpen(true)}
+        >
+          <IconBitcoin size={15} />
+          {t('settings.about.crypto')}
+        </button>
       </div>
       {cryptoOpen && <CryptoDonateDialog onClose={() => setCryptoOpen(false)} />}
       {/* One extra step of space above this line, and only above this one
@@ -337,14 +374,19 @@ export function About({ hue }: { hue: number }) {
           href={REPO_URL}
           target="_blank"
           rel="noreferrer noopener"
-          className={ABOUT_BTN}
+          className={`${ABOUT_BTN} glim-brand-github`}
         >
           <IconGithub width={15} height={15} />
           {t('settings.about.github')}
         </a>
+        {/* THE ONE CONTROL HERE THAT CARRIES NO VENDOR'S MARK, and its class
+            says so: `glim-brand-house` reads the accent tokens, so this button
+            follows the user's accent and rainbow mode. It reaches the app's own
+            authors rather than a third party, and that is the only route that
+            may be coloured by the engine - a vendor's mark never is. */}
         <a
           href={`mailto:${CONTACT_MAIL}?subject=${encodeURIComponent(`KnightLoader ${t('settings.about.mailSubject')}`)}`}
-          className={ABOUT_BTN}
+          className={`${ABOUT_BTN} glim-brand-house`}
         >
           <IconMail width={15} height={15} />
           {t('settings.about.mail')}

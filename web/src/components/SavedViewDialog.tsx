@@ -21,7 +21,7 @@ import type { SavedView } from '../lib/listNarrowing';
  * when the typed name is one of them depends on which question is being asked.
  * Saving reuses a name on purpose, because that is how somebody updates a view
  * they have just adjusted, so it overwrites and the primary button says so
- * first. Renaming cannot: there is nothing to fold the old view into, so a
+ * before it is pressed. Renaming cannot: there is nothing to fold the old view into, so a
  * name already in use would simply make two chips with the same label and no
  * way to tell them apart. Either way the answer is on the button rather than in
  * an error that appears after the click.
@@ -58,11 +58,11 @@ export function ViewNameDialog({
       onClose={onClose}
       footer={
         <>
-          <Button disabled={blocked} onClick={() => onConfirm(clean)}>
-            {overwrites ? t('views.overwriteConfirm') : t('views.saveConfirm')}
-          </Button>
           <Button kind="ghost" onClick={onClose}>
             {t('common.cancel')}
+          </Button>
+          <Button disabled={blocked} onClick={() => onConfirm(clean)}>
+            {overwrites ? t('views.overwriteConfirm') : t('views.saveConfirm')}
           </Button>
           <span className="flex-1" />
           {refusal && <span className="text-sm text-statusFail">{refusal}</span>}
@@ -114,12 +114,16 @@ export function ViewDeleteDialog({
       onClose={onClose}
       footer={
         <>
-          <Button kind="danger" onClick={onConfirm}>
-            {t('views.deleteConfirm')}
-          </Button>
-          <span className="flex-1" />
           <Button kind="ghost" onClick={onClose}>
             {t('common.cancel')}
+          </Button>
+          <span className="flex-1" />
+          {/* Neutral, never a fault colour: what warns is the sentence under
+              the title, and red on every delete in an app is read past by the
+              third time somebody meets it. The same fill the removal window's
+              own commit buttons carry. */}
+          <Button kind="secondary" onClick={onConfirm}>
+            {t('views.deleteConfirm')}
           </Button>
         </>
       }

@@ -769,12 +769,20 @@ function RemoteAccessCard({
             // destructive action that only appears on hover is the one that
             // most needs to be visible before the pointer arrives.
             //
+            // It leads the row because it is the control that steps BACK:
+            // leaving undoes the setup this card is showing, while showing
+            // the phrase again is what somebody adding a fourth instance
+            // came here to press, so that one sits at the end of the row.
+            //
             // Warn, do not block, on the reveal itself: showing the phrase on
             // an unprotected instance hands over the whole GROUP, not just
             // this machine. Not worth refusing over - an instance nothing can
             // reach has no problem here, and this page cannot prove which
             // case it is looking at.
             <div className="flex flex-wrap items-center gap-3">
+              <Button hue={5} disabled={phraseBusy} onClick={() => void onLeave()}>
+                {t('settings.access.phrase.leave')}
+              </Button>
               <Button
                 hue={1}
                 onClick={() => {
@@ -787,9 +795,6 @@ function RemoteAccessCard({
                 }}
               >
                 {t('settings.access.phrase.showAgain')}
-              </Button>
-              <Button hue={5} disabled={phraseBusy} onClick={() => void onLeave()}>
-                {t('settings.access.phrase.leave')}
               </Button>
               {!conn.passwordSet && (
                 <p className="min-w-[12rem] flex-1 text-[11px] leading-relaxed text-statusWarn">

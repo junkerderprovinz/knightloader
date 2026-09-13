@@ -186,7 +186,6 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
                 </span>
               </button>
               <IconBadge
-                kind="danger"
                 icon={<IconTrash width={14} height={14} />}
                 hue={i}
                 title={t('settings.headerProfiles.delete')}
@@ -264,7 +263,6 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
                   />
                 </Field>
                 <IconBadge
-                  kind="danger"
                   icon={<IconTrash width={14} height={14} />}
                   hue={i}
                   title={t('settings.headerProfiles.removeHeader')}
@@ -282,15 +280,20 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
             </Button>
           </div>
 
+          {/* Cancel first, Save last: the control that takes the form forward
+              sits at the END of the row and the one that steps back at its
+              start. Ordered by the JSX itself and never by flex-row-reverse or
+              an order-* utility, so the pair mirrors with the page under the
+              right-to-left languages this app ships. */}
           <div className="flex items-center gap-3">
+            <Button kind="ghost" disabled={busy} onClick={() => setDraft(null)}>
+              {t('common.cancel')}
+            </Button>
             <Button
               disabled={busy || draft.id.trim() === '' || draft.origin.trim() === ''}
               onClick={save}
             >
               {t('settings.headerProfiles.save')}
-            </Button>
-            <Button kind="ghost" disabled={busy} onClick={() => setDraft(null)}>
-              {t('common.cancel')}
             </Button>
             {error && <p className="text-xs text-statusWarn">{error}</p>}
           </div>

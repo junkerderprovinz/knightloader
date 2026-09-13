@@ -260,13 +260,12 @@ export function AccountTable({ rows, label }: { rows: AccountRow[]; label: strin
               ],
             },
             {
-              id: 'danger',
+              id: 'remove',
               items: open.onRemove
                 ? [
                     {
                       id: 'remove',
                       label: t('accounts.remove'),
-                      danger: true,
                       onSelect: open.onRemove,
                     },
                   ]
