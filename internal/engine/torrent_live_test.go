@@ -143,15 +143,30 @@ func TestARealMagnetPutsRealSwarmNumbersOnTheTask(t *testing.T) {
 	if got.Peers <= 0 {
 		t.Fatalf("Peers = %d after 90s; the swarm numbers never reached the task", got.Peers)
 	}
-	// Seeding must be false here and this is not a throwaway assertion: the
-	// field it is derived from, download.Task.Uploading, is TRUE for every
-	// torrent task from the moment it is created. A build that read that field
-	// straight through would report a still-downloading torrent as seeding, and
-	// Wave 10's idle detection would then stop counting it as work owed.
-	if got.Seeding {
-		t.Fatal("a torrent that is still downloading reported itself as seeding")
+	// Seeding must be false WHILE THE FILM IS STILL COMING DOWN, and this is
+	// not a throwaway assertion: the field it is derived from,
+	// download.Task.Uploading, is TRUE for every torrent task from the moment
+	// it is created. A build that read that field straight through would
+	// report a still-downloading torrent as seeding, and Wave 10's idle
+	// detection would then stop counting it as work owed.
+	//
+	// THE CONDITION IS NEW AND IT IS NOT A WEAKENING. The old version asserted
+	// this unconditionally, on the assumption that 123 MiB cannot arrive inside
+	// the few seconds it takes the swarm to answer. On a CI runner it can:
+	// 2026-09-13, "a torrent that is still downloading reported itself as
+	// seeding", while four local runs passed with uploaded=0 and the download
+	// barely started - this line is ten times slower than a datacentre's. And a
+	// finished torrent reporting Seeding is not the bug, it is the FEATURE (see
+	// the neighbouring test, which proves exactly that pair). So the guard now
+	// says what it always meant, and the case it was written for still fails it.
+	done := got.Size > 0 && got.Loaded >= got.Size
+	if !done && got.Seeding {
+		t.Fatalf("a torrent that is still downloading reported itself as seeding (%d of %d bytes)", got.Loaded, got.Size)
 	}
-	if got.Status != core.StatusRunning && got.Status != core.StatusPaused {
+	switch {
+	case done && got.Status != core.StatusDone:
+		t.Fatalf("Status = %q with every byte in, want %q", got.Status, core.StatusDone)
+	case !done && got.Status != core.StatusRunning && got.Status != core.StatusPaused:
 		t.Fatalf("Status = %q, want the task to be running or paused", got.Status)
 	}
 	t.Logf("live swarm: peers=%d seeds=%d uploaded=%d ratio=%.4f size=%d",
