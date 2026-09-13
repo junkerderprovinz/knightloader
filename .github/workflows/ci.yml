@@ -78,11 +78,19 @@ jobs:
             # checks them against, so a Go or web change can falsify a claim
             # without any Markdown being touched. Hence the wide net: the
             # claims it settles are about the whole build, not about docs/.
+            #
+            # desktop/go.mod is in this list for one specific reason: the check
+            # compares the Wails version the README tells a reader to install
+            # against the version that module requires, and a bump to that
+            # require line is the ENTIRE failure mode. Leave it out and the one
+            # change the check exists to catch is the one change that does not
+            # run it. Note `**/*.go` does not cover a go.mod.
             docs:
               - 'README.md'
               - 'docs/**'
               - 'check-docs-claims.mjs'
               - '**/*.go'
+              - 'desktop/go.mod'
               - 'Dockerfile'
               - 'web/src/lib/locales/**'
               - 'web/src/pages/settings/Help.tsx'
@@ -272,6 +280,21 @@ jobs:
       # nowhere else in the catalogues either.
       - name: Locale placeholders
         run: node check-locale-placeholders.mjs
+
+      # The one list in the app where a typo costs a stranger real money and
+      # nobody ever hears about it: somebody who tried to give something away
+      # gets no error, no retry and no support ticket, because they never write.
+      # Two of the five address formats carry a checksum and are verified; the
+      # rest are pinned by length and alphabet. The part that matters most is
+      # the shape of the list, that every network a donor can pick resolves to
+      # the wallet that actually exists on that chain: the list first shipped
+      # offering Tron for a 0x address, which lives on EVM chains only, so a
+      # donor picking Tron would have sent USDT into nothing.
+      #
+      # It was written with the addresses and then left out of this file, which
+      # made it a script somebody has to remember to run. That is not a guard.
+      - name: Donation addresses
+        run: node check-donate-addresses.mjs
 
       - name: Build UI
         run: npm run build
