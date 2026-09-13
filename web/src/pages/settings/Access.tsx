@@ -206,11 +206,14 @@ export function Access() {
 // PUT /api/settings at all.
 function PasswordCard({ cx }: { cx: (k: PendingKey) => string }) {
   const { t } = useT();
+  const { toast } = useToast();
   const [auth, setAuth] = useState<AuthState | null>(null);
   const [current, setCurrent] = useState('');
   const [next, setNext] = useState('');
   const [done, setDone] = useState(false);
-  const [error, setError] = useState('');
+  // The apply button's own failure counter, keyed onto that button so a second
+  // identical refusal builds a fresh DOM node and shakes again.
+  const [shake, setShake] = useState(0);
   // Whether this instance can actually be reached from off this machine -
   // the one fact that turns "no password is set" from a preference into a
   // problem. See routes_remote.go's own doc comment on Exposed.
@@ -226,7 +229,6 @@ function PasswordCard({ cx }: { cx: (k: PendingKey) => string }) {
   }, []);
 
   async function onApply() {
-    setError('');
     try {
       setAuth(await setPassword(current, next));
       setCurrent('');
@@ -234,7 +236,14 @@ function PasswordCard({ cx }: { cx: (k: PendingKey) => string }) {
       setDone(true);
       setTimeout(() => setDone(false), 1800);
     } catch (e) {
-      setError(String(e).replace(/^Error:\s*/, ''));
+      // The reason goes to the toast and the button shakes. It used to stand
+      // beside the button as a sentence that never cleared itself, so a
+      // refusal from earlier in the session read exactly as current as one
+      // from a second ago - and it sat next to a success mark that clears
+      // after 1.8 seconds, so the two outcomes of one click had two different
+      // lifetimes on screen.
+      toast(String(e).replace(/^Error:\s*/, ''), 'fail');
+      setShake((n) => n + 1);
     }
   }
 
@@ -273,7 +282,14 @@ function PasswordCard({ cx }: { cx: (k: PendingKey) => string }) {
           />
         </Field>
         <div className="flex flex-wrap items-center gap-3">
-          <Button kind="secondary" hue={0} onClick={onApply} disabled={locked ? current === '' : next === ''}>
+          <Button
+            key={shake}
+            className={shake > 0 ? 'glim-shake' : ''}
+            kind="secondary"
+            hue={0}
+            onClick={onApply}
+            disabled={locked ? current === '' : next === ''}
+          >
             {next === '' && locked ? t('settings.removePassword') : t('settings.setPassword')}
           </Button>
           {/* Beside the button that changes it, not as a line of its own above
@@ -297,7 +313,6 @@ function PasswordCard({ cx }: { cx: (k: PendingKey) => string }) {
               two features. The sidebar keeps it, moved above Settings so it
               sits where a sign-out usually does. */}
           {done && <span className="text-statusOk text-sm">{t('settings.passwordSaved')}</span>}
-          {error && <span className="text-statusFail text-sm">{error}</span>}
         </div>
       </Card>
   );
@@ -695,19 +710,24 @@ function RemoteAccessCard({
                     <span className="text-[11px] text-carbon-textMuted">{t('settings.access.phrase.qrHint')}</span>
                   </div>
                 )}
-                <div className="flex min-w-0 flex-1 flex-col gap-2">
+                <div className="flex min-w-0 flex-1 items-start gap-1.5">
                   {/* text-base rather than text-xs, and a deliberate exception
                       to this page's own scale: these twelve words are read OUT
                       LOUD or typed on a phone, which is the one case where the
                       size of the type is the feature. */}
                   <code
-                    className="glim-num min-w-0 rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2.5
+                    className="glim-num min-w-0 flex-1 rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2.5
                       text-base leading-relaxed text-carbon-text"
                     dir="ltr"
                   >
                     {phrase}
                   </code>
-                  <p className="text-[11px] text-carbon-textMuted">{t('settings.access.phrase.pasteHint')}</p>
+                  {/* What to do with the twelve words hangs off them as a
+                      bubble rather than standing under them as a grey line.
+                      The sentence was read once, by the one person who set the
+                      group up, and then took that strip of the card for the
+                      rest of the product's life. */}
+                  <InfoBubble tip={t('settings.access.phrase.pasteHint')} />
                 </div>
               </div>
               {/* A way back (jdp, 2026-08-27: "Wenn man die Phrase einblendet,
@@ -744,7 +764,19 @@ function RemoteAccessCard({
             </div>
           ) : revealOpen ? (
             <div className="flex flex-col gap-2">
-              <p className="text-[11px] text-carbon-textMuted">{t('settings.access.phrase.revealWhy')}</p>
+              {/* WHY a password is being asked for here belongs on the (i) of
+                  the control asking for it, not as a grey line above it: a
+                  sentence printed over a control is read once, on the day it
+                  was written, and then costs that strip of the card for the
+                  rest of the product's life. The box had no caption of its own
+                  either, so there was nothing for the bubble to sit beside -
+                  caption plus (i) is the same shape the own-relay card two
+                  sections down already uses for its address and its container
+                  command. */}
+              <span className="flex items-center gap-1.5 text-xs font-semibold text-carbon-textSub">
+                {t('auth.password')}
+                <InfoBubble tip={t('settings.access.phrase.revealWhy')} />
+              </span>
               <div className="flex flex-col gap-2 sm:flex-row">
                 <div className="min-w-0 flex-1">
                   <PasswordInput
@@ -846,7 +878,6 @@ function RelaySection({ onRelayChanged }: { onRelayChanged: () => void }) {
   const [conn, setConn] = useState<ConnectInfo | null>(null);
   const [cfg, setCfg] = useState<RelayConfig | null>(null);
   const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState('');
   const { toast } = useToast();
 
   // Deliberately reloads BOTH: /api/connect answers "which relay is this
@@ -873,9 +904,15 @@ function RelaySection({ onRelayChanged }: { onRelayChanged: () => void }) {
    * are two views of it. Passing the mode explicitly - rather than letting
    * each switch toggle its own boolean - is what makes "exactly one of these,
    * or neither" true by construction instead of by two handlers agreeing.
+   *
+   * It ANSWERS whether the save went through, and that is what lets each of
+   * the four controls calling it shake its own self on refusal. One shared
+   * counter would shake whichever control happened to hold it, including the
+   * one nobody pressed; one save that reports its outcome lets each caller
+   * keep its own. The reason itself goes into the toast, never into a sentence
+   * left standing under the card - a page-resident copy never clears itself.
    */
-  async function saveMode(mode: RelayMode, relayUrl?: string, serve?: boolean) {
-    setErr('');
+  async function saveMode(mode: RelayMode, relayUrl?: string, serve?: boolean): Promise<boolean> {
     setBusy(true);
     try {
       const c = await saveRelayConfig(relayUrl ?? cfg?.relayUrl ?? '', undefined, serve, mode);
@@ -885,8 +922,10 @@ function RelaySection({ onRelayChanged }: { onRelayChanged: () => void }) {
       // this save has just changed the answer to.
       onRelayChanged();
       toast(t2(mode));
+      return true;
     } catch (e) {
-      setErr(e instanceof Error ? e.message : String(e));
+      toast(e instanceof Error ? e.message : String(e), 'fail');
+      return false;
     } finally {
       setBusy(false);
     }
@@ -910,15 +949,14 @@ function RelaySection({ onRelayChanged }: { onRelayChanged: () => void }) {
         cfg={cfg}
         conn={conn}
         busy={busy}
-        onPick={(on) => void saveMode(on ? 'project' : 'off')}
+        onPick={(on) => saveMode(on ? 'project' : 'off')}
       />
       <OwnRelayCard
         cfg={cfg}
         busy={busy}
-        err={err}
-        onPick={(on) => void saveMode(on ? 'own' : 'off')}
-        onSaveAddress={(url) => void saveMode('own', url)}
-        onServe={(v) => void saveMode('own', cfg.relayUrl, v)}
+        onPick={(on) => saveMode(on ? 'own' : 'off')}
+        onSaveAddress={(url) => saveMode('own', url)}
+        onServe={(v) => saveMode('own', cfg.relayUrl, v)}
       />
     </div>
   );
@@ -950,10 +988,13 @@ function ProjectRelayCard({
   cfg: RelayConfig;
   conn: ConnectInfo;
   busy: boolean;
-  onPick: (on: boolean) => void;
+  /** Answers whether the save went through, so a refusal can shake the switch
+   *  that asked for it rather than settling back in silence. */
+  onPick: (on: boolean) => Promise<boolean>;
 }) {
   const { t } = useT();
   const active = cfg.mode === 'project';
+  const [shake, setShake] = useState(0);
 
   return (
     <Card hue={2} className="flex flex-col gap-4">
@@ -981,13 +1022,13 @@ function ProjectRelayCard({
         {t('settings.access.relay.title')}
       </SectionTitle>
 
-      <div>
+      <div key={shake} className={shake > 0 ? 'glim-shake' : undefined}>
         <ToggleRow
           hue={2}
           label={t('settings.access.relay.use')}
           checked={active}
           disabled={busy}
-          onChange={onPick}
+          onChange={(on) => void onPick(on).then((ok) => !ok && setShake((n) => n + 1))}
         />
       </div>
 
@@ -1043,17 +1084,16 @@ function ProjectRelayCard({
 function OwnRelayCard({
   cfg,
   busy,
-  err,
   onPick,
   onSaveAddress,
   onServe,
 }: {
   cfg: RelayConfig;
   busy: boolean;
-  err: string;
-  onPick: (on: boolean) => void;
-  onSaveAddress: (url: string) => void;
-  onServe: (v: boolean) => void;
+  /** All three answer whether the save went through - see ProjectRelayCard. */
+  onPick: (on: boolean) => Promise<boolean>;
+  onSaveAddress: (url: string) => Promise<boolean>;
+  onServe: (v: boolean) => Promise<boolean>;
 }) {
   const { t } = useT();
   // Seeded from the stored value and then owned by the field, so typing is not
@@ -1061,18 +1101,23 @@ function OwnRelayCard({
   const [addr, setAddr] = useState(cfg.relayUrl);
   const [copied, setCopied] = useState(false);
   const active = cfg.mode === 'own';
+  // ONE COUNTER PER CONTROL, never one shared across the three: a failure of
+  // the control that was NOT touched would otherwise shake the wrong one.
+  const [useShake, setUseShake] = useState(0);
+  const [serveShake, setServeShake] = useState(0);
+  const [addrShake, setAddrShake] = useState(0);
 
   return (
     <Card hue={3} className="flex flex-col gap-4">
       <SectionTitle hint={t('settings.access.ownRelay.body')}>{t('settings.access.ownRelay.title')}</SectionTitle>
 
-      <div>
+      <div key={useShake} className={useShake > 0 ? 'glim-shake' : undefined}>
         <ToggleRow
           hue={3}
           label={t('settings.access.ownRelay.use')}
           checked={active}
           disabled={busy}
-          onChange={onPick}
+          onChange={(on) => void onPick(on).then((ok) => !ok && setUseShake((n) => n + 1))}
         />
       </div>
 
@@ -1088,14 +1133,16 @@ function OwnRelayCard({
       {active && (
         <>
           <div className="flex flex-col gap-2 rounded-[var(--radius-control)] bg-carbon-surface2 p-3">
-            <ToggleRow
-              hue={1}
-              label={t('settings.access.ownRelay.serveLabel')}
-              hint={t('settings.access.ownRelay.serveHint')}
-              checked={cfg.serve}
-              disabled={busy}
-              onChange={onServe}
-            />
+            <div key={serveShake} className={serveShake > 0 ? 'glim-shake' : undefined}>
+              <ToggleRow
+                hue={1}
+                label={t('settings.access.ownRelay.serveLabel')}
+                hint={t('settings.access.ownRelay.serveHint')}
+                checked={cfg.serve}
+                disabled={busy}
+                onChange={(v) => void onServe(v).then((ok) => !ok && setServeShake((n) => n + 1))}
+              />
+            </div>
             {cfg.serve && (
               <p className="text-[11px] text-carbon-textMuted">
                 {t('settings.access.ownRelay.serveClients', { count: cfg.serveClients })}
@@ -1116,7 +1163,13 @@ function OwnRelayCard({
                 value={addr}
                 onChange={(e) => setAddr(e.target.value)}
               />
-              <Button hue={1} disabled={busy || addr.trim() === cfg.relayUrl} onClick={() => onSaveAddress(addr.trim())}>
+              <Button
+                key={addrShake}
+                className={addrShake > 0 ? 'glim-shake' : ''}
+                hue={1}
+                disabled={busy || addr.trim() === cfg.relayUrl}
+                onClick={() => void onSaveAddress(addr.trim()).then((ok) => !ok && setAddrShake((n) => n + 1))}
+              >
                 {t('settings.access.ownRelay.save')}
               </Button>
             </div>
@@ -1160,8 +1213,6 @@ function OwnRelayCard({
           </div>
         </>
       )}
-
-      {err && <p className="text-sm text-statusFail">{err}</p>}
     </Card>
   );
 }
@@ -1199,11 +1250,14 @@ function paragraphs(text: string): ReactNode {
 // ---- API tokens -------------------------------------------------------------
 
 function TokensSection({ cx }: { cx: (k: PendingKey) => string }) {
+  const { toast } = useToast();
   const [tokens, setTokens] = useState<ApiToken[]>([]);
   const [showCreate, setShowCreate] = useState(false);
   const [name, setName] = useState('');
   const [creating, setCreating] = useState(false);
-  const [createError, setCreateError] = useState('');
+  // The create button's own failure counter - keyed onto that button, so a
+  // second identical refusal shakes again rather than playing once ever.
+  const [createShake, setCreateShake] = useState(0);
   const [created, setCreated] = useState<NewApiToken | null>(null);
   const [copied, setCopied] = useState(false);
   const [revoking, setRevoking] = useState<string | null>(null);
@@ -1214,7 +1268,6 @@ function TokensSection({ cx }: { cx: (k: PendingKey) => string }) {
   }, []);
 
   async function onCreate() {
-    setCreateError('');
     setCreating(true);
     try {
       const tok = await createToken(name.trim());
@@ -1222,7 +1275,12 @@ function TokensSection({ cx }: { cx: (k: PendingKey) => string }) {
       setName('');
       await load();
     } catch (e) {
-      setCreateError(cx('settings.access.tokens.createFailed').replace('{error}', String(e).replace(/^Error:\s*/, '')));
+      // Toast plus a shake of the button pressed. The window stays open with
+      // the typed name still in it, and the sentence that used to sit under
+      // the field is gone: it never cleared itself, so a refusal from earlier
+      // read exactly as current as the one that just happened.
+      toast(cx('settings.access.tokens.createFailed').replace('{error}', String(e).replace(/^Error:\s*/, '')), 'fail');
+      setCreateShake((n) => n + 1);
     } finally {
       setCreating(false);
     }
@@ -1241,7 +1299,6 @@ function TokensSection({ cx }: { cx: (k: PendingKey) => string }) {
   function closeCreate() {
     setShowCreate(false);
     setCreated(null);
-    setCreateError('');
     setCopied(false);
   }
 
@@ -1316,7 +1373,13 @@ function TokensSection({ cx }: { cx: (k: PendingKey) => string }) {
               <Button kind="ghost" onClick={closeCreate} disabled={creating}>
                 {cx('settings.access.tokens.cancel')}
               </Button>
-              <Button kind="primary" onClick={() => void onCreate()} disabled={creating || name.trim() === ''}>
+              <Button
+                key={createShake}
+                className={createShake > 0 ? 'glim-shake' : ''}
+                kind="primary"
+                onClick={() => void onCreate()}
+                disabled={creating || name.trim() === ''}
+              >
                 {creating ? cx('settings.access.tokens.creating') : cx('settings.access.tokens.create')}
               </Button>
             </>
@@ -1333,7 +1396,6 @@ function TokensSection({ cx }: { cx: (k: PendingKey) => string }) {
               }}
             />
           </Field>
-          {createError && <p className="mt-2 text-sm text-statusFail">{createError}</p>}
         </Modal>
       )}
 

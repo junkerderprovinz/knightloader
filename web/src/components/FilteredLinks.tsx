@@ -5,6 +5,7 @@ import { useT, type TranslationKey } from '../lib/i18n';
 import { en } from '../lib/locales/en';
 import { useToast } from '../lib/toast';
 import { Button, InfoBubble } from './ui';
+import { Tip } from './columns';
 import { IconRetry, IconTrash } from '../lib/icons';
 
 /**
@@ -102,18 +103,23 @@ export function FilteredLinks({ held }: { held: Task[] }) {
           <div key={h.id} className="flex items-baseline gap-3 px-4 py-1 text-xs">
             {/* The rule first, because it is the thing the user goes and edits.
                 It is data on the task, not a name parsed back out of the
-                sentence next to it — that sentence is going to be translated. */}
-            <span className="max-w-[22%] shrink-0 truncate text-carbon-text" title={ruleOf(h)}>
+                sentence next to it — that sentence is going to be translated.
+
+                All three are cut to a share of the row, so all three need the
+                whole string one hover away - in the house bubble, never as a
+                native `title=` and the operating system's own balloon beside
+                the app's own (see columns.tsx's `Tip`). */}
+            <Tip tip={ruleOf(h)} className="max-w-[22%] shrink-0 truncate text-carbon-text">
               {ruleOf(h) || fx('collector.filtered.noRule')}
-            </span>
-            <span className="max-w-[30%] shrink-0 truncate text-carbon-textSub" title={h.skipReason}>
+            </Tip>
+            <Tip tip={h.skipReason} className="max-w-[30%] shrink-0 truncate text-carbon-textSub">
               {h.skipReason}
-            </span>
+            </Tip>
             {/* dir=ltr: a URL is not prose and must not be reordered when the
                 interface language is right-to-left. */}
-            <span dir="ltr" className="min-w-0 flex-1 truncate text-carbon-textMuted" title={h.url}>
+            <Tip dir="ltr" tip={h.url} className="min-w-0 flex-1 truncate text-carbon-textMuted">
               {h.url}
-            </span>
+            </Tip>
             <span className="flex shrink-0 items-center text-carbon-textMuted">
               {originLabel(fx, h.origin)}
               <InfoBubble tip={fx('collector.filtered.originTitle')} />

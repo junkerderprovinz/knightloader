@@ -29,7 +29,15 @@ export interface TabDef {
   /** Stable id — what onSelect hands back, and the route segment where there is one. */
   id: string;
   label: string;
-  /** 16×16 glyph, drawn before the label. In rainbow mode it carries the tab's own hue. */
+  /**
+   * The tab's glyph, drawn before the label. In rainbow mode it carries the
+   * tab's own hue. The SIZE is not the call site's to pass: `glim-nav-row`
+   * sets it to the house's 20px from index.css, the same number a sidebar row
+   * takes, so a settings tab and a nav row can never show one symbol at two
+   * sizes. A `width`/`height` written on the glyph itself is an SVG
+   * presentation attribute and loses to that rule, so a call site still
+   * passing one gets the right size anyway.
+   */
   icon?: ReactNode;
   /** A count or short mark after the label. Quiet by default; ink on the filled tab. */
   badge?: ReactNode;
@@ -98,9 +106,10 @@ interface Common {
    * note"). Opt-in - a strip of quick-filter chips (varying label lengths by
    * design, e.g. the download list's "Fertig"/"Fehlgeschlagen") stays
    * content-sized; a page-navigation strip like Settings' own tabs does not.
-   * Implemented as a shared `ch`-based min-width (character-count, not a
-   * measured pixel width) rather than equal flex-basis, so it still wraps
-   * correctly at narrow viewports instead of forcing one unbroken row.
+   * Implemented as a shared min-width derived from the longest LABEL (visual
+   * units, in `em` - see labelUnits/emWidth) rather than equal flex-basis, so
+   * it still wraps correctly at narrow viewports instead of forcing one
+   * unbroken row.
    */
   equalWidth?: boolean;
   /**
@@ -149,9 +158,18 @@ export type TabsProps =
   | (Common & { select?: 'one'; active: string | null; onSelect: (id: string) => void })
   | (Common & { select: 'many'; active: ReadonlySet<string>; onSelect: (id: string) => void });
 
+// The type scale is a fixed table with four steps - 20/14/12/11 - and a tab
+// takes two of them: `text-sm` (14px, the body step) for a page-level tab,
+// `text-xs` (12px, the dense step) for a filter chip, which is the same "one
+// treatment, two weights" the props above describe. `md` was `text-[13px]`,
+// which is not a step at all: a number between two of them reads as a
+// decision only because it appears often enough, and this house has already
+// been through that once with three near-identical caption sizes (10, 11,
+// 11.5). The weight difference between the two stages survives it - the chip
+// keeps the smaller box AND the smaller step.
 const SIZE = {
   sm: 'gap-1.5 px-2.5 py-1 text-xs',
-  md: 'gap-2 px-3 py-2 text-[13px]',
+  md: 'gap-2 px-3 py-2 text-sm',
 } as const;
 
 // The well variant's own gap/padding/text, kept separate from SIZE above
@@ -173,6 +191,47 @@ const WELL_SIZE: Record<'sm' | 'md', string> = {
   sm: 'gap-1.5 px-2.5 py-1 text-xs',
   md: 'gap-2 px-3 py-1.5 text-sm',
 };
+
+/**
+ * A label's width in VISUAL UNITS, where a CJK or other fullwidth character
+ * counts double because it occupies roughly two Latin cells.
+ *
+ * `label.length` counts UTF-16 code units, which is the wrong number twice
+ * over: a Chinese label came out as narrow as an English one of the same
+ * count, and an emoji or any other astral character counted as two where it
+ * draws one. Ported from glimstone/reference/controls.ts's own `labelWidth`
+ * rather than re-derived, so the ranges cannot drift from the sibling apps'.
+ */
+function labelUnits(label: string): number {
+  let total = 0;
+  for (const ch of label) {
+    const code = ch.codePointAt(0) ?? 0;
+    const fullwidth =
+      (code >= 0x1100 && code <= 0x115f) ||
+      (code >= 0x2e80 && code <= 0xa4cf) ||
+      (code >= 0xac00 && code <= 0xd7a3) ||
+      (code >= 0xf900 && code <= 0xfaff) ||
+      (code >= 0xfe30 && code <= 0xfe6f) ||
+      (code >= 0xff00 && code <= 0xff60) ||
+      (code >= 0xffe0 && code <= 0xffe6);
+    total += fullwidth ? 2 : 1;
+  }
+  return total;
+}
+
+/**
+ * Visual units to a CSS length, in `em` and never in `ch`.
+ *
+ * `ch` measures the "0" glyph, which is narrower than the average letter in
+ * most faces, so a `ch`-based width clips a long label - found in this house
+ * on a 47-unit German one. `0.62em` per unit is the house's own figure, the
+ * same one the shared engine's reveal cap uses, and it is a per-unit figure
+ * rather than a per-character one, which is what makes the CJK doubling above
+ * mean anything.
+ */
+function emWidth(units: number): string {
+  return `${(units * 0.62).toFixed(2)}em`;
+}
 
 export function Tabs(props: TabsProps) {
   const {
@@ -247,23 +306,47 @@ export function Tabs(props: TabsProps) {
 
   const orderedItems = liveOrder ? liveOrder.map((id) => items.find((i) => i.id === id)).filter((i): i is TabDef => !!i) : items;
 
-  // `ch` (the current font's own "0"-glyph width), not a measured pixel
-  // value - no ResizeObserver, no layout effect, just a CSS unit that is
-  // already text-metric-aware. +4 covers the icon, the icon-to-label gap and
-  // the tab's own horizontal padding, which none of the label characters
-  // themselves account for.
-  const maxLabelLen = equalWidth ? Math.max(0, ...items.map((i) => i.label.length)) : 0;
+  // Derived from the label, not measured from the rendered text - no
+  // ResizeObserver and no layout effect, so the width is known before first
+  // paint. +4 units covers the icon, the icon-to-label gap and the tab's own
+  // horizontal padding, which none of the label characters themselves account
+  // for. See labelUnits/emWidth above for why the units are visual ones and
+  // the length is `em`.
+  const maxLabelLen = equalWidth ? Math.max(0, ...items.map((i) => labelUnits(i.label))) : 0;
 
-  // Every well segment's own width: a flat 200px for `md` (unchanged -
-  // Look.tsx/Archives.tsx's 2-3 item pickers, where a content-hugging width
-  // was tried and explicitly rejected: "much too narrow" for a short label
-  // like "Rund"). `sm` uses the same ch-based measurement equalWidth uses
-  // above instead - introduced for TaskProperties' seven-item priority
-  // selector, where inheriting the SAME flat 200px (built for 2-3 items)
-  // is the reason it needed a horizontal scrollbar to hold them at all;
-  // `md`'s own callers never had that problem, so their fixed width is
-  // untouched.
-  const wellWidth = !isWell ? undefined : size === 'sm' ? `${Math.max(0, ...items.map((i) => i.label.length)) + 4}ch` : '200px';
+  // Every well segment's own width, and it is THREE numbers rather than one,
+  // because a single one has now been wrong in both directions.
+  //
+  // It was a flat 200px for `md`. That number exists for a real reason: a
+  // content-hugging width was tried for Look.tsx's 2-3 item pickers and
+  // rejected as "much too narrow" for a short label like "Rund". But a flat
+  // number cannot also hold a long one, and the Advanced page's reclaim picker
+  // is three whole sentences - they arrived cut off mid-word with an ellipsis
+  // (jdp, with a screenshot: "mach die selektoren so breit, dass es platz hat
+  // oder mach ein lauftext. es betrifft mehrere").
+  //
+  // So: a FLOOR that keeps "Rund" from shrinking to nothing, the CONTENT's own
+  // width measured in `ch`, and a CEILING. The ceiling is the half of this
+  // that is easy to leave out and would be a bug: at the content width alone,
+  // three sentence-long options come to well over a thousand pixels and push
+  // the card sideways off the page. Past the ceiling the label WRAPS instead of
+  // being cut, which is the other half of jdp's own choice and the better one -
+  // a marquee on a control is a thing you have to wait for before you can read
+  // it, and you are reading it to decide which one to press.
+  //
+  // The content's own width is derived from the label rather than measured, so
+  // it is known before first paint - no ResizeObserver, no layout effect. +4
+  // units covers the icon, the icon-to-label gap and the tab's own horizontal
+  // padding. The unit is `em` and the count is visual units (CJK double); see
+  // labelUnits/emWidth above for why `ch` and `label.length` were both wrong,
+  // and wrong in the same direction - too narrow, exactly the cut-off labels
+  // the ceiling below was added to stop.
+  //
+  // `sm` keeps the pure content measurement it was given for TaskProperties'
+  // seven-item priority selector, where the flat 200px forced a horizontal
+  // scrollbar. Its labels are single words; a floor would only waste room.
+  const wellLabel = emWidth(Math.max(0, ...items.map((i) => labelUnits(i.label))) + 4);
+  const wellWidth = !isWell ? undefined : size === 'sm' ? wellLabel : `clamp(200px, ${wellLabel}, 22rem)`;
 
   // Mirrors of the state above, read by the document-level listeners further
   // down: those bind once (empty-ish dependency array) rather than re-binding
@@ -275,6 +358,12 @@ export function Tabs(props: TabsProps) {
   reorderingRef.current = reordering;
   const liveOrderRef = useRef<string[] | null>(null);
   liveOrderRef.current = liveOrder;
+  // The order the strip started this gesture in, read by onUp to decide
+  // whether anything actually changed. A ref for the same reason as the three
+  // above: the listeners bind once and must not read an `items` closed over by
+  // whichever render attached them.
+  const idsRef = useRef<string[]>([]);
+  idsRef.current = items.map((i) => i.id);
 
   function cancelHold() {
     if (holdTimer.current !== null) {
@@ -374,7 +463,21 @@ export function Tabs(props: TabsProps) {
       const finalOrder = liveOrderRef.current;
       const didMove = moved.current;
       cancelHold();
-      if (wasReordering && finalOrder && onReorder) onReorder(finalOrder);
+      // A DROP WHERE IT STARTED IS NOT A CHANGE AND MUST NOT WRITE. liveOrder
+      // is seeded with the EXISTING order the moment the hold arms, so an
+      // accidental 300ms press that never moved anywhere still arrived here
+      // with a full, valid, completely unchanged list - and handing that to
+      // onReorder costs a settings write and a debounced PUT to the server for
+      // a gesture that did nothing. `didMove` was already being computed one
+      // line down, but only to swallow the click that follows; it never
+      // guarded the write. Both halves are checked: the pointer has to have
+      // moved AND the resulting order has to differ from the one the strip
+      // started with, since a drag that wanders out and back lands on the
+      // original order just as surely as one that never left.
+      const changed =
+        !!finalOrder &&
+        (finalOrder.length !== idsRef.current.length || finalOrder.some((id, at) => id !== idsRef.current[at]));
+      if (wasReordering && didMove && changed && finalOrder && onReorder) onReorder(finalOrder);
       if (wasReordering && !didMove) {
         // Armed (held past 300ms) but the pointer never actually moved
         // anywhere - the browser still fires a click right after this
@@ -555,9 +658,15 @@ export function Tabs(props: TabsProps) {
             // Glyphen und texte der kacheln sind zu klein"): a vertical tile
             // is a navigation row standing right beside the app's main rail,
             // so it borrows that rail's own measurements verbatim - see
-            // Sidebar.tsx's `navBase`. The glyph follows in Settings.tsx's
-            // pageIcon at the same 22px the sidebar's icons default to.
-            `${segBase} glim-hue glim-hue-icon group ${on ? `glim-active ${segOn}` : segOff}
+            // Sidebar.tsx's `navBase`, which is also where `glim-nav-row`
+            // comes from. That class is the GLYPH's half of the same
+            // borrowing: 20px, the house's number, set in one place in
+            // index.css. Without it the tile fell back to whatever the icon
+            // set emits (22px via Settings.tsx's own pageIcon), so a settings
+            // tile and the nav row beside it showed one symbol at two sizes -
+            // the exact thing the rule names, on the exact two strips it names
+            // them for.
+            `${segBase} glim-nav-row glim-hue glim-hue-icon group ${on ? `glim-active ${segOn}` : segOff}
               flex w-full min-w-0 overflow-hidden text-[15px]
               ${stacked ? 'flex-col items-center justify-center gap-0.5 px-2 py-1.5' : 'flex-row items-center gap-3 px-3 py-2.5'}
               ${fill ? 'min-h-10 flex-1 shrink-0 basis-0' : ''}
@@ -574,10 +683,13 @@ export function Tabs(props: TabsProps) {
             // Archives.tsx's own className) is what keeps the track's
             // visible bg-carbon-surface2 surface from extending past the
             // last segment.
-            `${segBase} glim-hue glim-hue-icon min-w-0 shrink-0 justify-center text-center ${WELL_SIZE[size]}
+            `${segBase} glim-nav-row glim-hue glim-hue-icon min-w-0 shrink-0 justify-center text-center leading-snug ${WELL_SIZE[size]}
               ${on ? 'glim-active bg-accent text-accentContrast' : 'bg-transparent text-carbon-textSub hover:bg-carbon-hover hover:text-carbon-text'}
               flex items-center ${!on && item.dim ? 'opacity-60' : ''}`
-          : `${segBase} glim-hue glim-hue-icon ${on ? `glim-active ${segOn}` : segOff} ${
+          : // glim-nav-row here too: a horizontal selector's tab glyphs take
+            // the SAME 20px as a rail row, so that a settings tab and a nav
+            // row never show one symbol at two sizes on one screen.
+            `${segBase} glim-nav-row glim-hue glim-hue-icon ${on ? `glim-active ${segOn}` : segOff} ${
               SIZE[size]
             } flex min-w-0 max-w-full items-center ${!on && item.dim ? 'opacity-60' : ''}
               ${wiggling ? 'glim-tab-wiggle' : ''} ${dragged ? 'glim-tab-dragging' : ''}`;
@@ -613,7 +725,19 @@ export function Tabs(props: TabsProps) {
           <>
             {showIcon && item.icon}
             {(showLabel || glyphless) && (
-              <span className={`truncate ${labelOnHover ? hiddenLabel : ''}`}>{item.label}</span>
+              // WRAPS in a well segment, TRUNCATES everywhere else, and the
+              // difference is whether the element has a height to give. A well
+              // segment is a box with an explicit width and no fixed height, so
+              // a second line simply makes the strip taller and every segment
+              // with it. A rail row and a horizontal tab strip both sit in a
+              // line whose height is set by its neighbours, so there a second
+              // line would push the row out of its own track - truncating is
+              // right there, and the full text is on the tooltip.
+              <span
+                className={`${isWell ? 'text-pretty break-words' : 'truncate'} ${labelOnHover ? hiddenLabel : ''}`}
+              >
+                {item.label}
+              </span>
             )}
             {item.badge !== undefined && item.badge !== null && (
               // Quiet beside an unselected tab; on the filled one it sits on the
@@ -635,9 +759,16 @@ export function Tabs(props: TabsProps) {
           'aria-label': nameOnly && !glyphless ? item.label : undefined,
           tabIndex: i === roved ? 0 : -1,
           style: isWell
-            ? { ...hueStyle(i), width: wellWidth, justifyContent: 'center' as const }
+            ? // borderRadius 0, and it is written here rather than as a class
+              // because segBase's own `rounded-[var(--radius-control)]` would
+              // otherwise win by stylesheet order, which is not something a
+              // class list can decide. IN THE WELL THE RADIUS SITS ON THE
+              // TRACK: the track is the one shape, and segments rounded inside
+              // it read as a row of separate controls that happen to share a
+              // background, which is the thing the default styling already is.
+              { ...hueStyle(i), width: wellWidth, borderRadius: 0, justifyContent: 'center' as const }
             : equalWidth
-              ? { ...hueStyle(i), minWidth: `${maxLabelLen + 4}ch`, justifyContent: 'center' as const }
+              ? { ...hueStyle(i), minWidth: emWidth(maxLabelLen + 4), justifyContent: 'center' as const }
               : hueStyle(i),
           // No grab cursor, no draggable affordance at rest - a tab is a
           // plain clickable control until a hold arms reorder mode (jdp:

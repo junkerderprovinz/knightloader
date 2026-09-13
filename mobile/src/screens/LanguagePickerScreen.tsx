@@ -78,7 +78,9 @@ export default function LanguagePickerScreen({ onBack }: { onBack: () => void })
 const styles = StyleSheet.create({
   container: { flex: 1 },
   topBar: { padding: 16, paddingTop: 56, gap: 4 },
-  back: { fontSize: 13 },
+  // Off the scale in theme/tokens.ts, like every other size on this screen:
+  // 13 and 15 are rungs between Dense and Body that the table does not have.
+  back: { fontSize: TYPE.dense },
   title: { fontSize: TYPE.heading, fontWeight: '600' },
   list: { paddingHorizontal: 16, paddingBottom: 32 },
   row: {
@@ -94,6 +96,8 @@ const styles = StyleSheet.create({
   // is an icon metric next to that width, not a role on the type scale, which
   // is why it stays a number while the heading beside it does not.
   flag: { fontSize: 20, width: 30 },
-  rowLabel: { fontSize: 15, flex: 1 },
-  check: { fontSize: 15, fontWeight: '700' },
+  rowLabel: { fontSize: TYPE.body, flex: 1 },
+  // The tick rides the row's own text size rather than a number of its own: it
+  // sits on one line with the label and reads as part of it.
+  check: { fontSize: TYPE.body, fontWeight: '700' },
 });

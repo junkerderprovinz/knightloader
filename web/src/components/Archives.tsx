@@ -177,7 +177,7 @@ export function ArchiveJobs({ jobs, base }: { jobs: ExtractJob[]; base: string }
         {shown.map((j) => (
           <div key={j.id} className="flex flex-col gap-1.5">
             <div className="flex items-baseline gap-3">
-              <span className="min-w-0 flex-1 truncate text-[13px] text-carbon-text" dir="ltr">
+              <span className="min-w-0 flex-1 truncate text-[12px] text-carbon-text" dir="ltr">
                 {j.name}
               </span>
               {/* The file open right now, which at depth is one found inside the

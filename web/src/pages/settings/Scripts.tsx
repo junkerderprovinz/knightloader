@@ -315,12 +315,15 @@ function ScriptRow({
   const { toast } = useToast();
   const [draft, setDraft] = useState<ScriptInput>(row.draft);
   const [saving, setSaving] = useState(false);
-  const [saveError, setSaveError] = useState('');
   const [removing, setRemoving] = useState(false);
-  const [removeError, setRemoveError] = useState('');
   const [running, setRunning] = useState(false);
   const [runResult, setRunResult] = useState<ScriptRunResult | null>(null);
-  const [runError, setRunError] = useState('');
+  // ONE COUNTER PER CONTROL, never one shared between the two: a failure of
+  // the button that was NOT pressed would otherwise shake the wrong one. Each
+  // keys its own control, so a second identical refusal builds a fresh DOM
+  // node and the animation replays rather than playing once ever.
+  const [removeShake, setRemoveShake] = useState(0);
+  const [runShake, setRunShake] = useState(0);
 
   const dirty = row.saved === null || !same(draft, inputOf(row.saved));
   // A freshly-added row (row.saved === null) is "dirty" the instant it
@@ -332,23 +335,24 @@ function ScriptRow({
   const update = (fields: Partial<ScriptInput>) => {
     touched.current = true;
     setDraft((d) => ({ ...d, ...fields }));
-    setSaveError('');
-    setRemoveError('');
   };
 
   async function onSave() {
     if (saving) return;
     setSaving(true);
-    setSaveError('');
-    setRemoveError('');
     try {
       const script = row.saved ? await updateScript(row.saved.id, draft) : await createScript(draft);
       onSaved(row.key, script);
       toast(t('settings.saved'), 'ok');
     } catch (e) {
-      const msg = e instanceof ScriptApiError ? e.message : String(e);
-      setSaveError(msg);
-      toast(cx('settings.scripts.saveFailed', { error: msg }), 'fail');
+      // The toast, and nothing beside it: this row used to do both at once -
+      // a toast AND a sentence under the editor - which is the doubling the
+      // language rules out by name. The sentence never cleared itself, so a
+      // failure from earlier in the session read exactly as current as one
+      // from a second ago. No shake, and that is the documented shape rather
+      // than an omission: this is the debounced save of a whole editor, not a
+      // clicked button, so there is no control the refusal belongs to.
+      toast(cx('settings.scripts.saveFailed', { error: e instanceof ScriptApiError ? e.message : String(e) }), 'fail');
     } finally {
       setSaving(false);
     }
@@ -382,17 +386,18 @@ function ScriptRow({
       return;
     }
     setRemoving(true);
-    setRemoveError('');
     try {
       await deleteScript(row.saved.id);
       onRemoved(row.key, row.saved.id);
     } catch (e) {
-      // Its own error state, not saveError - caught live: a failed delete
-      // was rendering through settings.scripts.saveFailed ("Could not
-      // save: …") because this used to reuse setSaveError, which is exactly
-      // the wrong sentence for a Remove click. removeFailed already existed
-      // in PENDING and was simply never wired to anything.
-      setRemoveError(e instanceof ScriptApiError ? e.message : String(e));
+      // Its own sentence, not the save one - caught live: a failed delete was
+      // reported through settings.scripts.saveFailed ("Could not save: …"),
+      // which is exactly the wrong sentence for a Remove click. It goes to the
+      // toast now and the trash badge shakes; the two paragraphs that used to
+      // carry it (one above the fold, one below) are gone, because a sentence
+      // left on the page never clears itself.
+      toast(cx('settings.scripts.removeFailed', { error: e instanceof ScriptApiError ? e.message : String(e) }), 'fail');
+      setRemoveShake((n) => n + 1);
       setRemoving(false);
     }
   }
@@ -401,11 +406,15 @@ function ScriptRow({
     if (!row.saved) return;
     setRunning(true);
     setRunResult(null);
-    setRunError('');
     try {
       setRunResult(await runScript(row.saved.id));
     } catch (e) {
-      setRunError(e instanceof ScriptApiError ? e.message : String(e));
+      // The run could not even be STARTED - a network or server error, not a
+      // verdict about the script. A verdict is what runResult below carries,
+      // and that one stays a plain inline fact. This one is the "you pressed
+      // it, it did not work" case: toast plus a shake of the button pressed.
+      toast(cx('settings.scripts.runFailed', { error: e instanceof ScriptApiError ? e.message : String(e) }), 'fail');
+      setRunShake((n) => n + 1);
     } finally {
       setRunning(false);
     }
@@ -429,8 +438,12 @@ function ScriptRow({
           <span className="min-w-0 flex-1">
             <span className="flex items-center gap-2">
               <span className="truncate text-sm text-carbon-text">{title}</span>
+              {/* The caption step, 11px, and not a tenth size beneath it: the
+                  type scale has exactly four steps and a fourth caption size
+                  claiming to be one is the drift the table was consolidated to
+                  stop. */}
               {dirty && (
-                <span className="shrink-0 rounded-[var(--radius-control)] bg-statusInfoBg px-1.5 py-0.5 text-[10px] text-statusInfo">
+                <span className="shrink-0 rounded-[var(--radius-control)] bg-statusInfoBg px-1.5 py-0.5 text-[11px] text-statusInfo">
                   {cx('settings.scripts.unsaved')}
                 </span>
               )}
@@ -451,6 +464,8 @@ function ScriptRow({
             the word costs this row nothing. */}
         <div className="flex items-center gap-1.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
           <IconBadge
+            key={removeShake}
+            className={removeShake > 0 ? 'glim-shake' : ''}
             labelled
             icon={<IconTrash width={16} height={16} />}
             hue={index}
@@ -461,15 +476,6 @@ function ScriptRow({
           />
         </div>
       </div>
-
-      {/* Repeated below the fold too, same as Schedule.tsx's EntryRow: Remove
-          is reachable from the collapsed row (the trash icon above is
-          outside the `open` block), so a failed delete has to be visible
-          without forcing the row open first - the one place in this row
-          that can be acted on without opening it. */}
-      {!open && removeError && (
-        <p className="pb-2.5 ps-12 text-[11px] text-statusFail">{cx('settings.scripts.removeFailed', { error: removeError })}</p>
-      )}
 
       {open && (
         <div className="glim-well mb-3 flex flex-col gap-4 p-4">
@@ -499,18 +505,27 @@ function ScriptRow({
             </Field>
           </div>
 
+          {/* Skeleton, then the real thing crossfading in - both through the
+              motion engine rather than around it. The placeholder used to run
+              Tailwind's own `animate-pulse`, an endless animation belonging to
+              none of the house keyframes and reading no motion token at all,
+              so it went on pulsing for somebody who had set motion to Off and
+              for anybody whose system asks for reduced motion. `glim-live` is
+              the house pulse and has a real stop in both of those states; the
+              editor arriving is what `glim-content-in` is for. */}
           <Field label={cx('settings.scripts.code')}>
-            <Suspense fallback={<div className="glim-well animate-pulse" style={{ minHeight: '220px' }} />}>
-              <CodeEditor value={draft.code} onChange={(code) => update({ code })} ariaLabel={cx('settings.scripts.code')} />
+            <Suspense fallback={<div className="glim-well glim-live" style={{ minHeight: '220px' }} />}>
+              <div className="glim-content-in">
+                <CodeEditor value={draft.code} onChange={(code) => update({ code })} ariaLabel={cx('settings.scripts.code')} />
+              </div>
             </Suspense>
           </Field>
-
-          {saveError && <p className="text-xs text-statusFail">{cx('settings.scripts.saveFailed', { error: saveError })}</p>}
-          {removeError && <p className="text-xs text-statusFail">{cx('settings.scripts.removeFailed', { error: removeError })}</p>}
 
           <div className="flex flex-wrap items-center gap-3">
             <span className="flex-1" />
             <Button
+              key={runShake}
+              className={runShake > 0 ? 'glim-shake' : ''}
               kind="secondary"
               icon={<IconPlay width={16} height={16} />}
               disabled={runDisabled}
@@ -521,7 +536,11 @@ function ScriptRow({
           </div>
           {runHint && !running && <p className="text-end text-[11px] text-carbon-textMuted">{runHint}</p>}
 
-          {runError && <p className="text-xs text-statusFail">{cx('settings.scripts.runFailed', { error: runError })}</p>}
+          {/* The run's own VERDICT, which is a different thing from a run that
+              could not be started: the test ran and truthfully reported bad
+              news, the same category as a red health badge, so it stays a
+              plain inline fact with no toast and no shake. The other branch,
+              where the call itself failed, is handled in onRun above. */}
           {runResult && (
             <div className="glim-well flex flex-col gap-1.5 p-3 text-xs">
               <p className={runResult.ok ? 'text-statusOk' : 'text-statusFail'}>

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
-import { Button, Card, ErrorCard, Field, InfoBubble, Modal, SectionTitle, TextInput, Toggle, ToggleRow } from '../../components/ui';
+import { Button, Card, ErrorCard, Field, InfoBubble, Modal, SectionTitle, TextInput, Toggle, ToggleRow, useTooltip } from '../../components/ui';
 import { About } from './Help';
 import { Tabs } from '../../components/Tabs';
 import { openColorPickerPopover } from '../../lib/colorPicker';
@@ -208,24 +208,93 @@ function RingSwatch({
   onPick: () => void;
   onEdit?: (el: HTMLElement) => void;
 }) {
+  // The house bubble rather than the `title` attribute: a native title draws
+  // the operating system's own box, at the pointer, in a font no rule here
+  // reaches, right beside the app's own bubble on the same card - two
+  // mechanisms in one row read as a rendering fault.
+  const tip = useTooltip<HTMLButtonElement>(label);
+  const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
   return (
-    <button
-      type="button"
-      title={label}
-      aria-label={label}
-      aria-pressed={selected}
-      onClick={(e) => (selected && onEdit ? onEdit(e.currentTarget) : onPick())}
-      // h-7 w-7, the same square the palette row below uses (jdp, 2026-09-07:
-      // "die farbfelder in der Farben-card sind nicht gleich groß. die der
-      // akzentfarbe sind zu klein"). They were 24px against the palette's 28px,
-      // which is small enough to look like a mistake and large enough to see -
-      // two rows of circles in one card have to be one size or they read as two
-      // different kinds of thing.
-      className={`h-7 w-7 shrink-0 cursor-pointer rounded-[var(--radius-pill)] transition-transform hover:scale-110 ${
-        selected ? 'shadow-[0_0_0_2px_var(--carbon-surface),0_0_0_4px_var(--carbon-text)]' : ''
-      }`}
-      style={{ backgroundColor: color }}
-    />
+    <>
+      <button
+        type="button"
+        aria-label={label}
+        aria-pressed={selected}
+        onClick={(e) => (selected && onEdit ? onEdit(e.currentTarget) : onPick())}
+        // `--btn-h`, the one square size in the app, and the same one the
+        // palette row below uses (jdp, 2026-09-07: "die farbfelder in der
+        // Farben-card sind nicht gleich groß. die der akzentfarbe sind zu
+        // klein"): two rows of circles in one card have to be one size or they
+        // read as two different kinds of thing. The badge sets that size and a
+        // colour swatch follows it, so both rows moved off 28px together with
+        // the two reset badges beside them, in one edit.
+        className={`h-[var(--btn-h)] w-[var(--btn-h)] shrink-0 cursor-pointer rounded-[var(--radius-pill)] transition-transform hover:scale-110 ${
+          selected ? 'shadow-[0_0_0_2px_var(--carbon-surface),0_0_0_4px_var(--carbon-text)]' : ''
+        }`}
+        style={{ backgroundColor: color }}
+        {...tipHoverProps}
+      />
+      {tip.node}
+    </>
+  );
+}
+
+/**
+ * One position of the rainbow palette: the same square as the accent circles
+ * above it, opening the app's own picker on the colour it already wears.
+ *
+ * A component of its own rather than a button inlined in the map, because the
+ * house bubble is a hook and a hook cannot be called per iteration - which is
+ * also what kept the native `title` here until now.
+ */
+function PaletteSwatch({ color, name, onEdit }: { color: string; name: string; onEdit: (el: HTMLElement) => void }) {
+  // `name` and not `label`: this is a control's accessible name, not the
+  // caption of a settings row somebody can jump to from the search - the same
+  // distinction ResetBadge below and Tabs' own `label` prop already make, and
+  // the reason web/check-settings-search.mjs reads the one and not the other.
+  const tip = useTooltip<HTMLButtonElement>(name);
+  const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
+  return (
+    <>
+      <button
+        type="button"
+        aria-label={name}
+        // The one square size in the app - see RingSwatch above for why the
+        // two rows moved off 28px together.
+        className="relative h-[var(--btn-h)] w-[var(--btn-h)] shrink-0 cursor-pointer overflow-hidden rounded-[var(--radius-pill)]"
+        style={{ backgroundColor: color }}
+        onClick={(e) => onEdit(e.currentTarget)}
+        {...tipHoverProps}
+      />
+      {tip.node}
+    </>
+  );
+}
+
+/**
+ * The square that puts a colour row back, at the end of the row it resets.
+ *
+ * Both rows in the Farben card use it, so the two cannot drift apart again:
+ * one box (`--btn-h`, the app's single square size) and one glyph at half of
+ * it, owned here rather than written out at each call site - the 13px and 14px
+ * that used to stand two rows apart were exactly that drift.
+ */
+function ResetBadge({ label, onClick }: { label: string; onClick: () => void }) {
+  const tip = useTooltip<HTMLButtonElement>(label);
+  const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
+  return (
+    <>
+      <button
+        type="button"
+        aria-label={label}
+        onClick={onClick}
+        className="inline-flex h-[var(--btn-h)] w-[var(--btn-h)] shrink-0 items-center justify-center rounded-[var(--radius-pill)] bg-carbon-surface2 text-carbon-textSub transition-colors hover:text-carbon-text"
+        {...tipHoverProps}
+      >
+        <IconRetry width={16} height={16} />
+      </button>
+      {tip.node}
+    </>
   );
 }
 
@@ -249,7 +318,6 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
   const { t } = useT();
   const { cfg, patch, patchNow } = useDraft();
   const { toast } = useToast();
-  const [saveError, setSaveError] = useState('');
 
   // Sprache and Hell/Dunkel are per-browser preferences (localStorage, not
   // this draft's server document - see lib/theme.ts and LanguagePicker.tsx),
@@ -315,7 +383,6 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
       return;
     }
     const id = setTimeout(() => {
-      setSaveError('');
       patchNow({
         shape: cfg.shape,
         accent: cfg.accent,
@@ -326,7 +393,16 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
         rainbowPalette: cfg.rainbowPalette,
       })
         .then(() => toast(t('settings.saved'), 'ok'))
-        .catch((e) => setSaveError(String(e).replace(/^(Error|ApiError):\s*/, '')));
+        // The toast is the whole report, and there is no permanent sentence
+        // beside it any more: a page-resident copy never clears itself, so a
+        // failure from an hour ago reads exactly as current as one from a
+        // second ago until something else happens to overwrite it. No shake
+        // either, and that is the documented shape rather than an omission -
+        // this is the debounced save of a whole page of controls, not one
+        // clicked button, so there is no control the refusal belongs to.
+        .catch((e) =>
+          toast(t('settings.look.saveFailed', { error: String(e).replace(/^(Error|ApiError):\s*/, '') }), 'fail'),
+        );
     }, 400);
     return () => clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -606,24 +682,19 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
                 goes looking for it is exactly the moment it is missing - they
                 check whether a reset exists BEFORE deciding to experiment. The
                 palette's own reset two rows down was already unconditional. */}
-            <button
-              type="button"
-              title={t('settings.accentReset')}
-              aria-label={t('settings.accentReset')}
-              // Every mixed colour forgotten, and the accent with them. Both
-              // halves, because a reset that put the accent back but left eight
-              // hand-mixed circles on screen would have reset nothing anybody
-              // can see.
+            {/* Every mixed colour forgotten, and the accent with them. Both
+                halves, because a reset that put the accent back but left eight
+                hand-mixed circles on screen would have reset nothing anybody
+                can see. Same square as the circles it sits beside, and as the
+                palette's own reset two rows down - one component now, so the
+                two can no longer disagree about the glyph inside the box. */}
+            <ResetBadge
+              label={t('settings.accentReset')}
               onClick={() => {
                 persistSlots(() => ({ customs: {} }));
                 patch({ accent: '' });
               }}
-              // Same square as the circles it sits beside, and as the
-              // palette's own reset two rows down.
-              className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-[var(--radius-pill)] bg-carbon-surface2 text-carbon-textSub transition-colors hover:text-carbon-text"
-            >
-              <IconRetry width={13} height={13} />
-            </button>
+            />
           </div>
         </div>
 
@@ -645,9 +716,22 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
             />
           </div>
 
-          {/* Disabled rather than hidden: a control that vanishes teaches
-              nobody what the mode can do. */}
-          <div className={`flex flex-col gap-3 transition-opacity ${cfg.rainbow ? '' : 'pointer-events-none opacity-50'}`}>
+          {/* ABSENT while the master switch above is off, never dimmed. The
+              switch itself stays - that is the control somebody is looking for
+              when the mode is off - but everything that only has meaning
+              underneath it goes, and the palette editor is the case the rule
+              names outright: eight swatches nobody can open beside a reset
+              nobody can press. A dimmed row is something somebody can see,
+              read and reach for that answers nothing, with the reason sitting
+              one row up, where nobody looks once they have decided this row is
+              the interesting one.
+
+              It also retires a second fault of the wrapper this replaces:
+              opacity composites a whole subtree, so the three (i) bubbles
+              inside it rendered at 50% too - the one element that has to stay
+              readable while the rest recedes was the one nobody could read. */}
+          {cfg.rainbow && (
+          <div className="flex flex-col gap-3">
             <div className="glim-hue flex items-start justify-between gap-4" style={hueVars(rainbowAt(1)) as CSSProperties}>
               <span className="flex items-center gap-1.5 text-sm text-carbon-text">
                 {t('settings.rainbowReactive')}
@@ -684,9 +768,11 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
             {/* The very same job as the accent swatches above, and the same
                 one-row treatment (jdp: "Bei der Zeile der Regenbogen
                 Farbpalette auch Farbpalette davor, ... rechts von dem Text
-                verschieben"): eight native colour inputs, plus an icon-only
-                reset badge - always rendered, disabled rather than hidden
-                along with the rest of this sub-section. */}
+                verschieben"): eight colour squares plus an icon-only reset
+                badge. Nothing here carries a disabled state of its own any
+                more - the whole sub-section is absent while the rainbow is
+                off, so there is no state left in which these could be
+                pressed and do nothing. */}
             <div className="flex flex-wrap items-center justify-between gap-3">
               {/* Same treatment as the Akzentfarbe row above: label at the
                   left edge, colour fields at the right, the card's own width
@@ -703,16 +789,12 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
                   // rather than on the thing being pressed - and the border-2
                   // hairline went with it, since surfaces here are separated by
                   // shade, never by a drawn line.
-                  <button
+                  <PaletteSwatch
                     key={i}
-                    type="button"
-                    disabled={!cfg.rainbow}
-                    title={`${t('settings.rainbowPalette')} ${i + 1}`}
-                    aria-label={`${t('settings.rainbowPalette')} ${i + 1}`}
-                    className="relative h-7 w-7 shrink-0 cursor-pointer overflow-hidden rounded-[var(--radius-pill)] disabled:cursor-not-allowed"
-                    style={{ backgroundColor: hex }}
-                    onClick={(e) =>
-                      openColorPickerPopover(e.currentTarget, hex, (next) => {
+                    color={hex}
+                    name={`${t('settings.rainbowPalette')} ${i + 1}`}
+                    onEdit={(el) =>
+                      openColorPickerPopover(el, hex, (next) => {
                         const list = palette.slice();
                         list[i] = next;
                         patch({ rainbowPalette: list });
@@ -720,22 +802,12 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
                     }
                   />
                 ))}
-                <button
-                  type="button"
-                  disabled={!cfg.rainbow}
-                  title={t('settings.accentReset')}
-                  aria-label={t('settings.accentReset')}
-                  onClick={() => patch({ rainbowPalette: null })}
-                  className="inline-flex h-7 w-7 items-center justify-center rounded-[var(--radius-pill)] bg-carbon-surface2 text-carbon-textSub transition-colors hover:text-carbon-text"
-                >
-                  <IconRetry width={14} height={14} />
-                </button>
+                <ResetBadge label={t('settings.accentReset')} onClick={() => patch({ rainbowPalette: null })} />
               </div>
             </div>
           </div>
+          )}
         </div>
-
-        {saveError && <p className="text-xs text-statusFail">{t('settings.look.saveFailed', { error: saveError })}</p>}
       </Card>
       )}
 
@@ -852,12 +924,20 @@ function LinkIntakeCard() {
   const folderWatch = features.modules.find((m) => m.id === 'watch');
   const folderWatchOff = folderWatch !== undefined && !folderWatch.enabled && folderWatch.parked;
 
+  // An optimistically shown switch the server refuses shakes as it snaps back,
+  // it does not just settle silently while a toast flies past. The counter is
+  // what makes a SECOND identical refusal shake again: the row is keyed on it,
+  // so each failure builds a fresh DOM node for the animation to replay
+  // against - a re-toggled class on the same node plays once and never again.
+  const [cnlShake, setCnlShake] = useState(0);
+
   async function onCnl(next: boolean) {
     setBusy(true);
     try {
       await toggle('cnl', next);
     } catch (e) {
       toast(t('settings.modules.switchFailed', { reason: String(e).replace(/^Error:\s*/, '') }), 'fail');
+      setCnlShake((n) => n + 1);
     } finally {
       setBusy(false);
     }
@@ -869,14 +949,16 @@ function LinkIntakeCard() {
 
       {cnl && (
         <div className="flex flex-col gap-1">
-          <ToggleRow
-            hue={0}
-            label={t('settings.module.cnl')}
-            hint={cnl.reason || undefined}
-            checked={cnl.enabled}
-            disabled={!cnlSwitchable || busy}
-            onChange={(next) => void onCnl(next)}
-          />
+          <div key={cnlShake} className={cnlShake > 0 ? 'glim-shake' : undefined}>
+            <ToggleRow
+              hue={0}
+              label={t('settings.module.cnl')}
+              hint={cnl.reason || undefined}
+              checked={cnl.enabled}
+              disabled={!cnlSwitchable || busy}
+              onChange={(next) => void onCnl(next)}
+            />
+          </div>
           {/* The live reading, not a repeat of the switch: "listening on
               127.0.0.1:9666" and "switched off" are different sentences from
               "on" and "off", and the difference is the whole point on a box
@@ -921,28 +1003,36 @@ function LinkIntakeCard() {
         label={t('settings.autoStart')}
       />
 
-      {/* Disabled rather than hidden: a field that vanishes teaches nobody that
-          the folder watch exists, and the module page is where it is switched,
-          which the hint says. */}
-      <div className={folderWatchOff ? 'pointer-events-none opacity-40' : ''}>
-        <Field
-          label={t('settings.watchDir')}
-          hint={
-            folderWatchOff
-              ? `${t('settings.watchDirHint')} ${t('settings.downloads.watchOff')}`
-              : t('settings.watchDirHint')
-          }
-        >
-          <TextInput
-            dir="ltr"
-            value={cfg.watchDir}
-            placeholder="/watch"
-            spellCheck={false}
-            disabled={folderWatchOff}
-            onChange={(e) => patch({ watchDir: e.target.value })}
-          />
-        </Field>
-      </div>
+      {/* Disabled rather than hidden, and this one is not the sub-switch case:
+          the switch that turns it off lives on the Modules page, not on this
+          card, so removing the field would leave nothing here pointing at
+          where the decision was made - which is exactly what the hint does.
+
+          THE DIMMING IS ON THE FIELD, NOT ON A WRAPPER ROUND IT. It used to be
+          a `pointer-events-none opacity-40` div, and opacity composites the
+          whole subtree: the (i) that carries the reason rendered at 40% too,
+          so the one element that has to stay readable while the rest recedes
+          was the one nobody could read. The label and its bubble now stay at
+          full strength and only the box people cannot type in recedes; the
+          input's own `disabled` was already doing the pointer-events half. */}
+      <Field
+        label={t('settings.watchDir')}
+        hint={
+          folderWatchOff
+            ? `${t('settings.watchDirHint')} ${t('settings.downloads.watchOff')}`
+            : t('settings.watchDirHint')
+        }
+      >
+        <TextInput
+          dir="ltr"
+          value={cfg.watchDir}
+          placeholder="/watch"
+          spellCheck={false}
+          disabled={folderWatchOff}
+          className={folderWatchOff ? 'opacity-40' : ''}
+          onChange={(e) => patch({ watchDir: e.target.value })}
+        />
+      </Field>
     </Card>
   );
 }
@@ -990,48 +1080,62 @@ function MutedDialogsCard() {
  */
 function SystemCards() {
   const { t } = useT();
+  const { toast } = useToast();
   const { data, failed, loading, reload } = useResource<DeploymentInfo>(fetchDeploymentInfo);
 
   const [confirmAction, setConfirmAction] = useState<'quit' | 'restart' | null>(null);
   const [acting, setActing] = useState(false);
-  const [actionError, setActionError] = useState('');
   const [shuttingDown, setShuttingDown] = useState(false);
 
   const fileInput = useRef<HTMLInputElement>(null);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [restoring, setRestoring] = useState(false);
-  const [restoreError, setRestoreError] = useState('');
   const [restoreStatus, setRestoreStatus] = useState('');
+
+  // One counter per confirm button, never one shared between the two: a
+  // failure of the button that was NOT pressed would otherwise shake the wrong
+  // one. Each keys its own button, so a second identical refusal builds a
+  // fresh DOM node and the animation replays instead of playing once ever.
+  const [actShake, setActShake] = useState(0);
+  const [restoreShake, setRestoreShake] = useState(0);
 
   async function confirmLifecycle() {
     if (!confirmAction) return;
     setActing(true);
-    setActionError('');
     try {
       const res = confirmAction === 'quit' ? await requestQuit() : await requestRestart();
       setShuttingDown(true);
+      setConfirmAction(null);
       void res;
     } catch (e) {
-      setActionError(t('settings.system.actionFailed', { error: String(e).replace(/^Error:\s*/, '') }));
+      // The reason goes into the toast and nowhere else - a sentence left on
+      // the page never clears itself, so an hour-old failure reads exactly as
+      // current as a fresh one. The window stays OPEN on failure and the
+      // button that was pressed shakes in it: closing here would spend the
+      // confirm click the user already gave, for a failure that was not their
+      // mistake, and would unmount the one element meant to be seen shaking.
+      toast(t('settings.system.actionFailed', { error: String(e).replace(/^Error:\s*/, '') }), 'fail');
+      setActShake((n) => n + 1);
     } finally {
       setActing(false);
-      setConfirmAction(null);
     }
   }
 
   async function confirmRestore() {
     if (!pendingFile) return;
     setRestoring(true);
-    setRestoreError('');
     try {
       const res = await uploadRestore(pendingFile);
       setRestoreStatus(res.status);
       if (res.restarting) setShuttingDown(true);
+      setPendingFile(null);
     } catch (e) {
-      setRestoreError(t('settings.system.restoreFailed', { error: String(e).replace(/^Error:\s*/, '') }));
+      // Same shape as confirmLifecycle above, and the same reason for keeping
+      // the window standing rather than closing it on the way out.
+      toast(t('settings.system.restoreFailed', { error: String(e).replace(/^Error:\s*/, '') }), 'fail');
+      setRestoreShake((n) => n + 1);
     } finally {
       setRestoring(false);
-      setPendingFile(null);
     }
   }
 
@@ -1103,7 +1207,6 @@ function SystemCards() {
             {t('settings.system.restart')}
           </Button>
         </div>
-        {actionError && <span className="text-sm text-statusFail">{actionError}</span>}
       </Card>
 
       {/* Backup and Restore, one card (jdp, 2026-08-24: "Sicherung und
@@ -1151,8 +1254,7 @@ function SystemCards() {
             {t('settings.system.restoreButton')}
           </Button>
         </div>
-        {restoreError && <span className="text-sm text-statusFail">{restoreError}</span>}
-        {restoreStatus && !restoreError && (
+        {restoreStatus && (
           <span className="text-sm text-statusOk">{t('settings.system.restoreStaged', { status: restoreStatus })}</span>
         )}
       </Card>
@@ -1167,7 +1269,13 @@ function SystemCards() {
               <Button kind="ghost" onClick={() => setConfirmAction(null)} disabled={acting}>
                 {t('settings.system.confirmCancel')}
               </Button>
-              <Button kind="ghost" onClick={() => void confirmLifecycle()} disabled={acting}>
+              <Button
+                key={actShake}
+                className={actShake > 0 ? 'glim-shake' : ''}
+                kind="ghost"
+                onClick={() => void confirmLifecycle()}
+                disabled={acting}
+              >
                 {acting ? t('settings.system.acting') : t('settings.system.confirmProceed')}
               </Button>
             </>
@@ -1187,7 +1295,13 @@ function SystemCards() {
               <Button kind="ghost" onClick={() => setPendingFile(null)} disabled={restoring}>
                 {t('settings.system.confirmCancel')}
               </Button>
-              <Button kind="ghost" onClick={() => void confirmRestore()} disabled={restoring}>
+              <Button
+                key={restoreShake}
+                className={restoreShake > 0 ? 'glim-shake' : ''}
+                kind="ghost"
+                onClick={() => void confirmRestore()}
+                disabled={restoring}
+              >
                 {restoring ? t('settings.system.restoring') : t('settings.system.confirmProceed')}
               </Button>
             </>
@@ -1238,7 +1352,9 @@ function UpdateCard() {
   const [check, setCheck] = useState<UpdateCheckT | null>(null);
   const [checking, setChecking] = useState(false);
   const [installing, setInstalling] = useState(false);
-  const [installError, setInstallError] = useState('');
+  // See SystemCards above: a per-button failure counter, keyed onto the button
+  // so a second identical refusal shakes again instead of once ever.
+  const [installShake, setInstallShake] = useState(0);
   // Once true, stays true: a successful POST /api/system/update-install
   // means the process is already on its way out to relaunch, so there is
   // no "installing" state to return to and nothing further this card
@@ -1263,7 +1379,6 @@ function UpdateCard() {
   }, []);
 
   const onInstall = useCallback(async () => {
-    setInstallError('');
     setInstalling(true);
     try {
       await installUpdate();
@@ -1275,9 +1390,15 @@ function UpdateCard() {
       // someone press the button again is still better than a spinner that
       // never resolves if the install truly did fail before ever swapping
       // anything.
-      setInstallError(String(e).replace(/^(Error|ApiError):\s*/, ''));
+      //
+      // Through the toast and the button's own shake, never as a sentence
+      // left standing under the card: that copy never clears itself, so a
+      // failure from an hour ago looks exactly as current as a fresh one.
+      toast(t('settings.look.updatesInstallFailed', { error: String(e).replace(/^(Error|ApiError):\s*/, '') }), 'fail');
+      setInstallShake((n) => n + 1);
       setInstalling(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- toast/t are stable for this card's lifetime
   }, []);
 
   // Auto-check once, right after the toggle's own current value arrives -
@@ -1341,7 +1462,13 @@ function UpdateCard() {
           {checking ? t('settings.look.updatesChecking') : t('settings.look.updatesCheck')}
         </Button>
         {canInstallNow && (
-          <Button kind="primary" onClick={() => void onInstall()} disabled={installing}>
+          <Button
+            key={installShake}
+            className={installShake > 0 ? 'glim-shake' : ''}
+            kind="primary"
+            onClick={() => void onInstall()}
+            disabled={installing}
+          >
             {installing ? t('settings.look.updatesInstalling') : t('settings.look.updatesInstallNow')}
           </Button>
         )}
@@ -1356,7 +1483,6 @@ function UpdateCard() {
         )}
       </div>
       {installed && <p className="text-sm text-statusOk">{t('settings.look.updatesInstalled')}</p>}
-      {installError && <p className="text-sm text-statusFail">{t('settings.look.updatesInstallFailed', { error: installError })}</p>}
     </Card>
   );
 }

@@ -194,8 +194,26 @@ function Row({
 }) {
   const { t } = useT();
   const blocked = row.identity || row.unknown;
+  /**
+   * THE DIMMING GOES ON THE PARTS, NEVER ON THE ROW (GlimStone 1.9.0).
+   *
+   * It used to sit on the flex container holding all of this, and that is the
+   * trap the rule names: `opacity` composites a whole subtree and a child can
+   * never be less transparent than its parent, so the one (i) that says WHY an
+   * identity row cannot travel rendered at 60% along with the row it was
+   * explaining. The one element that has to stay readable while everything
+   * around it recedes became the one element nobody could read - and it bites
+   * here of all places, because that bubble only exists on the rows that are
+   * dimmed.
+   *
+   * So the class hangs off the key, the markers and the two value lines, and
+   * the (i) between them stays at full strength. The switch needs nothing: it
+   * is `disabled` in exactly this state and already carries its own
+   * `disabled:opacity-40`.
+   */
+  const dim = blocked ? 'opacity-60' : '';
   return (
-    <div className={`flex min-w-0 items-start gap-2.5 ${blocked ? 'opacity-60' : ''}`}>
+    <div className="flex min-w-0 items-start gap-2.5">
       <NeutralSwitch on={on && !blocked} onChange={onChange} name={row.key} disabled={blocked || busy} hue={hue} />
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         {/* The RAW key, and that is a deliberate trade rather than an oversight.
@@ -205,26 +223,26 @@ function Row({
             an identifier. The group heading above and the two values below are
             what make the row readable. */}
         <span className="flex flex-wrap items-center gap-1.5 text-xs text-carbon-text">
-          <span className="font-mono">{row.key}</span>
+          <span className={`font-mono ${dim}`}>{row.key}</span>
           {row.identity && (
             <>
-              <Badge>{t('settings.transfer.identityKey')}</Badge>
+              <Badge dim={dim}>{t('settings.transfer.identityKey')}</Badge>
               <InfoBubble tip={t('settings.transfer.identityKeyHint')} />
             </>
           )}
-          {row.unknown && <Badge>{t('settings.transfer.unknownKey')}</Badge>}
-          {row.same && !row.identity && <Badge>{t('settings.transfer.same')}</Badge>}
-          {row.wholeList && <Badge>{t('settings.transfer.wholeList')}</Badge>}
-          {row.secretless && <Badge warn>{t('settings.transfer.noPassword')}</Badge>}
-          {isNewFolder && <Badge warn>{t('settings.transfer.newFolder')}</Badge>}
+          {row.unknown && <Badge dim={dim}>{t('settings.transfer.unknownKey')}</Badge>}
+          {row.same && !row.identity && <Badge dim={dim}>{t('settings.transfer.same')}</Badge>}
+          {row.wholeList && <Badge dim={dim}>{t('settings.transfer.wholeList')}</Badge>}
+          {row.secretless && <Badge warn dim={dim}>{t('settings.transfer.noPassword')}</Badge>}
+          {isNewFolder && <Badge warn dim={dim}>{t('settings.transfer.newFolder')}</Badge>}
         </span>
         {/* Both sides, always, even when one of them is empty: "here now:
             nothing" is an answer, and leaving the line out would make an empty
             value indistinguishable from a row that failed to render. */}
-        <span className="min-w-0 break-all text-[11px] text-carbon-textMuted">
+        <span className={`min-w-0 break-all text-[11px] text-carbon-textMuted ${dim}`}>
           {t('settings.transfer.colStored')}: {describe(row.stored)}
         </span>
-        <span className="min-w-0 break-all text-[11px] text-carbon-textSub">
+        <span className={`min-w-0 break-all text-[11px] text-carbon-textSub ${dim}`}>
           {t('settings.transfer.colFile')}: {describe(row.incoming)}
         </span>
       </div>
@@ -235,12 +253,18 @@ function Row({
 /** A short marker beside the key. Its own small span rather than one of the
  *  status badges in ui.tsx: those carry a task's state with them, and a row here
  *  is not in a state, it is being described. */
-function Badge({ children, warn = false }: { children: ReactNode; warn?: boolean }) {
+function Badge({ children, warn = false, dim = '' }: { children: ReactNode; warn?: boolean; dim?: string }) {
   return (
     <span
-      className={`rounded-[var(--radius-pill)] px-1.5 py-px text-[10px] leading-[14px] ${
+      // 11px, the caption step. The type scale has four rungs - 20/14/12/11 -
+      // and a 10px caption is the fourth size the language's own table says to
+      // fix rather than to add a row for.
+      //
+      // `dim` is passed in rather than inherited from the row, because a row
+      // that dims itself dims the (i) standing beside these markers with it.
+      className={`rounded-[var(--radius-pill)] px-1.5 py-px text-[11px] leading-[14px] ${
         warn ? 'bg-statusWarnBg text-statusWarn' : 'bg-carbon-surface3 text-carbon-textMuted'
-      }`}
+      } ${dim}`}
     >
       {children}
     </span>

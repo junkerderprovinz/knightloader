@@ -42,13 +42,28 @@ import {
 import { useT, type TranslationKey } from '../lib/i18n';
 import { useToast } from '../lib/toast';
 import { useUIState } from '../lib/uistate';
-import { Button, Card, Field, FieldGroup, IconBadge, InfoBubble, Modal, SectionTitle, TextArea, TextInput } from './ui';
+import {
+  Button,
+  Card,
+  Field,
+  FieldGroup,
+  ErrorCard,
+  IconBadge,
+  InfoBubble,
+  LoadingCard,
+  Modal,
+  SectionTitle,
+  TextArea,
+  TextInput,
+  useTooltip,
+} from './ui';
 import { Tabs } from './Tabs';
 import { ColumnMenu } from './ColumnMenu';
 import {
   COLUMN_BY_ID,
   Checkbox,
   FOLDER_GLYPH,
+  Tip,
   TREE_INDENT,
   VARIANT_KIND_LABEL_KEY,
   applySort,
@@ -353,10 +368,6 @@ function TaskRow({
           <div
             key={col.id}
             dir={col.ltr ? 'ltr' : undefined}
-            // A column that renders plain text gets that text as its native
-            // tooltip, so a name too long for its width is still readable
-            // without widening the column first.
-            title={typeof node === 'string' ? node : undefined}
             // The name cell is the tree column, so a link inside a package is
             // indented under it — the second half of what makes the header above
             // read as a container rather than as another row in bold. Written as
@@ -371,11 +382,24 @@ function TaskRow({
             // the outer level and the package the inner one, i.e. the tree
             // upside down.
             style={col.id === 'name' ? { paddingInlineStart: `${TREE_INDENT}px` } : undefined}
-            className={`min-w-0 truncate text-[12.5px] text-carbon-textSub ${
+            // text-xs is the scale's dense row, which is what a table cell
+            // takes. It was 12.5px, a step the four-row table does not have.
+            className={`min-w-0 truncate text-xs text-carbon-textSub ${
               col.id === 'name' ? 'pe-2' : 'px-2'
             } ${col.align === 'end' ? 'text-end' : col.align === 'center' ? 'text-center' : 'text-start'} ${col.numeric ? 'glim-num' : ''}`}
           >
-            {node}
+            {/* A column that renders plain text carries that text in the house
+                bubble, so a name too long for its width is still readable
+                without widening the column first. The house bubble, never a
+                native `title=` and the operating system's own balloon beside
+                it - see columns.tsx's `Tip`. */}
+            {typeof node === 'string' ? (
+              <Tip tip={node} className="block truncate">
+                {node}
+              </Tip>
+            ) : (
+              node
+            )}
           </div>
         );
       })}
@@ -542,6 +566,11 @@ function PackageName({
   const priorityNames = usePriorityNames();
   const done = items.filter((x) => x.status === 'done').length;
   const label = t(collapsed ? 'task.expand' : 'task.collapse');
+  // The twisty draws a glyph and nothing else, so it needs a tooltip
+  // unconditionally - and it takes the house bubble, never the OS balloon the
+  // native attribute draws (see columns.tsx's `Tip`).
+  const tip = useTooltip<HTMLButtonElement>(label);
+  const { role: _role, tabIndex: _tabIndex, ...hover } = tip.triggerProps;
 
   const count = `${items.length} ${items.length === 1 ? t('task.file') : t('task.files')}${
     done > 0 ? ` · ${done} ${t('overview.done').toLowerCase()}` : ''
@@ -561,12 +590,13 @@ function PackageName({
         tabIndex={focusable ? 0 : -1}
         aria-expanded={!collapsed}
         aria-label={label}
-        title={label}
+        {...hover}
         className="grid h-6 w-6 shrink-0 place-items-center rounded-[var(--radius-control)] text-carbon-textSub
           transition-colors hover:bg-carbon-surface3 hover:text-carbon-text"
       >
         <Twisty open={!collapsed} />
       </button>
+      {tip.node}
       {/* Furniture, never the accent: every package has one, and a column of
           gold folders would spend the one colour that means "something is
           happening here" on the most ordinary fact on the page. */}
@@ -587,15 +617,17 @@ function PackageName({
           is not, below its own floor: with the counts pinned instead, a package
           called "Season One" in a 200px column rendered as "S · 3 files", which
           is the one word on the row nobody can do without. */}
-      <span
-        title={`${name || t('task.ungrouped')} - ${count}`}
-        className="min-w-[5rem] flex-1 truncate text-[13.5px] font-semibold text-carbon-text"
+      {/* text-sm is the scale's body row; it was 13.5px, which is not one of
+          its four steps. */}
+      <Tip
+        tip={`${name || t('task.ungrouped')} - ${count}`}
+        className="min-w-[5rem] flex-1 truncate text-sm font-semibold text-carbon-text"
       >
         {name || t('task.ungrouped')}
-      </span>
-      {/* The count hangs on the name's title as well, so a column too narrow to
-          show it has not hidden anything that cannot be got at. Its own online
-          ratio used to print here too ("5/5 online") - removed (jdp,
+      </Tip>
+      {/* The count hangs in the name's own bubble as well, so a column too
+          narrow to show it has not hidden anything that cannot be got at. Its
+          own online ratio used to print here too ("5/5 online") - removed (jdp,
           2026-08-26: "wenn der statuspunkt grün ist sind ja alle online" -
           the package's own aggregate dot in the Status column, colours
           it exactly that already; printing the same fact a second time in
@@ -639,18 +671,35 @@ function HosterPresetButton({ host, base, focusable }: { host: string; base: str
   );
 }
 
-// No useToast here, deliberately: this dialog reports a failed save inline
-// (setError, rendered in the footer) and reports a successful one by closing.
-// It held an unused `toast` for a while, found by a noUnusedLocals sweep -
-// worth stating rather than silently deleting, so the next reader does not
-// re-add it thinking the success path is missing its feedback.
+// The two failures here are two different kinds and are reported two different
+// ways, which is the judgment GlimStone's failure-feedback section asks for:
+// does a fresh click of the SAME button replace this exact message?
+//
+//   the SAVE failed  - yes. A clicked control that could not do what it was
+//                      asked reports through the two channels every action
+//                      uses: the sentence goes to a toast, and the button that
+//                      was pressed shakes. It used to leave the raw server
+//                      string sitting in the footer until the next click
+//                      overwrote it, which is the one shape that section rules
+//                      out by name - it never clears itself, so an hour-old
+//                      failure looks exactly as current as a fresh one.
+//   the LOAD failed  - no. Nothing was clicked and there is no control to
+//                      shake; the dialog simply has nothing to show, and that
+//                      is a standing fact about its contents, not a refused
+//                      action. It stays where the contents would have been, in
+//                      the house's own ErrorCard.
 function HosterPresetDialog({ host, base, onClose }: { host: string; base: string; onClose: () => void }) {
   const { t } = useT();
+  const { toast } = useToast();
   const [preset, setPreset] = useState<YtdlpHosterPreset | null>(null);
   const [qualities, setQualities] = useState<string[]>([]);
   const [audioFormats, setAudioFormats] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
+  const [loadError, setLoadError] = useState('');
+  // Counted, and read as the Save button's `key`: an animation already at rest
+  // does not replay because a class left and came back in one frame, so a
+  // second identical refusal needs a fresh DOM node to shake.
+  const [shake, setShake] = useState(0);
 
   useEffect(() => {
     let live = true;
@@ -662,7 +711,7 @@ function HosterPresetDialog({ host, base, onClose }: { host: string; base: strin
         setAudioFormats(o.ytdlpAudioFormats ?? []);
       },
       (err) => {
-        if (live) setError(err instanceof Error && err.message ? err.message : String(err));
+        if (live) setLoadError(err instanceof Error && err.message ? err.message : String(err));
       },
     );
     return () => {
@@ -685,7 +734,8 @@ function HosterPresetDialog({ host, base, onClose }: { host: string; base: strin
       await saveHosterPreset(host, preset, base);
       onClose();
     } catch (err) {
-      setError(err instanceof Error && err.message ? err.message : String(err));
+      toast(err instanceof Error && err.message ? err.message : String(err), 'fail');
+      setShake((n) => n + 1);
     } finally {
       setSaving(false);
     }
@@ -696,16 +746,15 @@ function HosterPresetDialog({ host, base, onClose }: { host: string; base: strin
       title={`${t('collector.hosterPreset')} · ${host}`}
       onClose={onClose}
       footer={
-        <>
-          <Button onClick={() => void save()} disabled={!preset || saving}>
-            {t('settings.save')}
-          </Button>
-          {error && <span className="text-sm text-statusFail">{error}</span>}
-        </>
+        <Button key={shake} className={shake > 0 ? 'glim-shake' : ''} onClick={() => void save()} disabled={!preset || saving}>
+          {t('settings.save')}
+        </Button>
       }
     >
-      {!preset ? (
-        <p className="text-sm text-carbon-textMuted">{t('common.loading')}</p>
+      {loadError ? (
+        <ErrorCard nested message={loadError} />
+      ) : !preset ? (
+        <LoadingCard nested label={t('common.loading')} />
       ) : (
         <>
           <p className="text-sm text-carbon-textMuted">{t('collector.hosterPresetIntro', { host })}</p>
@@ -991,6 +1040,61 @@ interface RowDnD {
 }
 
 /**
+ * The 8px grab strip on a column's trailing edge.
+ *
+ * Its own component only so it can hold a hook: it carries the house bubble
+ * rather than a native `title=` (ONE CONTROL, ONE TOOLTIP MECHANISM - see
+ * columns.tsx's `Tip`), and a hook cannot live inside the header's own
+ * `map()`. The handle is invisible furniture with no text of its own, which is
+ * the case GlimStone says needs a tooltip unconditionally.
+ */
+function ResizeHandle({
+  hint,
+  onResize,
+  onReset,
+}: {
+  hint: string;
+  onResize: (phase: 'start' | 'move' | 'end', e: PointerEvent<HTMLElement>) => void;
+  onReset: () => void;
+}) {
+  const tip = useTooltip<HTMLSpanElement>(hint);
+  // role/tabIndex dropped: this element already states role="separator", and
+  // the "note" role the hook hands out would replace it.
+  const { role: _role, tabIndex: _tabIndex, ...hover } = tip.triggerProps;
+  return (
+    <>
+      <span
+        role="separator"
+        aria-orientation="vertical"
+        aria-label={hint}
+        {...hover}
+        onPointerDown={(e) => onResize('start', e)}
+        onPointerMove={(e) => onResize('move', e)}
+        onPointerUp={(e) => onResize('end', e)}
+        // A drag the browser takes away (a context menu, a window switch)
+        // must still settle the width, or the table keeps a hand-painted
+        // track list that the next render silently undoes.
+        onPointerCancel={(e) => onResize('end', e)}
+        onDoubleClick={onReset}
+        className="absolute inset-y-0 end-0 z-10 w-2 cursor-col-resize touch-none"
+      >
+        {/* The visible line, drawn inside the 8px grab area rather than
+            as a border on the cell: a border would sit at the edge of the
+            COLUMN, and the thing to aim at is the handle. Transparent
+            until the header is hovered, the accent once it is, and always
+            ignoring the pointer so it never eats the drag it advertises. */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-y-1 end-[3px] w-px bg-transparent
+            transition-colors group-hover/header:bg-carbon-border"
+        />
+      </span>
+      {tip.node}
+    </>
+  );
+}
+
+/**
  * The header: column labels, and the three things you can do to a column.
  *
  * The label is the draggable element and the resize handle is its sibling rather
@@ -1082,32 +1186,11 @@ function Header({
 
             {/* Double-click gives a column its built-in width back, which is the
                 only way out of a column dragged down to its minimum. */}
-            <span
-              role="separator"
-              aria-orientation="vertical"
-              aria-label={t('columns.resizeHint')}
-              title={t('columns.resizeHint')}
-              onPointerDown={(e) => onResize(col.id, 'start', e)}
-              onPointerMove={(e) => onResize(col.id, 'move', e)}
-              onPointerUp={(e) => onResize(col.id, 'end', e)}
-              // A drag the browser takes away (a context menu, a window switch)
-              // must still settle the width, or the table keeps a hand-painted
-              // track list that the next render silently undoes.
-              onPointerCancel={(e) => onResize(col.id, 'end', e)}
-              onDoubleClick={() => onResizeReset(col.id)}
-              className="absolute inset-y-0 end-0 z-10 w-2 cursor-col-resize touch-none"
-            >
-              {/* The visible line, drawn inside the 8px grab area rather than
-                  as a border on the cell: a border would sit at the edge of the
-                  COLUMN, and the thing to aim at is the handle. Transparent
-                  until the header is hovered, the accent once it is, and always
-                  ignoring the pointer so it never eats the drag it advertises. */}
-              <span
-                aria-hidden
-                className="pointer-events-none absolute inset-y-1 end-[3px] w-px bg-transparent
-                  transition-colors group-hover/header:bg-carbon-border"
-              />
-            </span>
+            <ResizeHandle
+              hint={t('columns.resizeHint')}
+              onResize={(phase, e) => onResize(col.id, phase, e)}
+              onReset={() => onResizeReset(col.id)}
+            />
           </div>
         );
       })}
@@ -1243,7 +1326,11 @@ export function TaskProperties({
   const [extract, setExtract] = useState(start.autoExtract);
   const [touched, setTouched] = useState<Set<PropField>>(() => new Set());
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
+  // The Save button's own failure counter, read as its `key`. A refused save
+  // reports through the two channels every action here uses - the server's
+  // sentence in a toast, the pressed control shaking - and never as a sentence
+  // left standing in the row beside the button, which nothing ever clears.
+  const [shake, setShake] = useState(0);
 
   const panelRef = useRef<HTMLElement>(null);
   useEffect(() => {
@@ -1279,15 +1366,15 @@ export function TaskProperties({
     }
 
     setBusy(true);
-    setError('');
     const r = await setTaskOptions(ids, opts, base);
     setBusy(false);
     if (!r.ok) {
       // These routes refuse with a sentence, and the sentence is the whole point
       // of refusing: a rename that could not happen has a reason, and hiding it
       // behind "save failed" leaves the row promising a name the folder does not
-      // have.
-      setError((await r.text()).trim() || t('list.optionsFailed'));
+      // have. It goes to the toast, which is where a failure is read.
+      toast((await r.text()).trim() || t('list.optionsFailed'), 'fail');
+      setShake((n) => n + 1);
       return;
     }
     setTouched(new Set());
@@ -1375,57 +1462,62 @@ export function TaskProperties({
             each stacked full-width, matching DownloadsSettings.tsx's own
             two-fields-per-row pattern.
 
-            The well track sizes each segment to a fixed width rather than to
-            its label (Tabs.tsx: 200px, ported from BombVault's own picker),
-            so priority's own seven options run wider than either grid column
-            gives it at ordinary widths. overflow-x-auto on the track itself,
-            not on the grid or the card, keeps that scroll local to the one
-            control instead of ever pushing the panel — or the page — sideways. */}
+            IT WRAPS, IT NEVER SCROLLS. The strip used to sit in an
+            `overflow-x-auto` box here, on the reasoning that the well pins
+            every segment to a flat 200px and priority's own seven of them run
+            wider than this grid column. Both halves of that are out of date:
+            the small scale drops the pinning (Tabs.tsx's wellWidth: the `sm`
+            track measures its own labels), and the track itself wraps
+            (Tabs.tsx: "Wraps, never scrolls", added for THIS selector - jdp,
+            2026-08-25: "die buttons so breit machen dass kein horizontaler
+            scrollbar notwendig ist"). A wrapper outside the component put the
+            horizontal scrollbar back one level up, which is the gesture the
+            language rules out; without it the strip grows in height instead. */}
         <div className="grid gap-4 sm:grid-cols-2">
           <FieldGroup
             label={t('props.priority')}
             hint={hint(t('props.priorityHint'), start.priority === null)}
           >
-            <div className="overflow-x-auto">
-              <Tabs
-                variant="well"
-                size="sm"
-                className="w-fit"
-                label={t('props.priority')}
-                active={priority}
-                onSelect={edit('priority', setPriority)}
-                items={priorities.map((p) => ({ id: p.id, label: t(p.label) }))}
-              />
-            </div>
+            <Tabs
+              variant="well"
+              size="sm"
+              className="w-fit"
+              label={t('props.priority')}
+              active={priority}
+              onSelect={edit('priority', setPriority)}
+              items={priorities.map((p) => ({ id: p.id, label: t(p.label) }))}
+            />
           </FieldGroup>
 
           <FieldGroup
             label={t('props.autoExtract')}
             hint={hint(t('props.autoExtractHint'), start.autoExtract === null)}
           >
-            <div className="overflow-x-auto">
-              <Tabs
-                variant="well"
-                size="sm"
-                className="w-fit"
-                label={t('props.autoExtract')}
-                active={extract}
-                onSelect={edit('autoExtract', setExtract)}
-                items={[
-                  { id: 'inherit', label: t('props.inherit') },
-                  { id: 'on', label: t('props.on') },
-                  { id: 'off', label: t('props.off') },
-                ]}
-              />
-            </div>
+            <Tabs
+              variant="well"
+              size="sm"
+              className="w-fit"
+              label={t('props.autoExtract')}
+              active={extract}
+              onSelect={edit('autoExtract', setExtract)}
+              items={[
+                { id: 'inherit', label: t('props.inherit') },
+                { id: 'on', label: t('props.on') },
+                { id: 'off', label: t('props.off') },
+              ]}
+            />
           </FieldGroup>
         </div>
 
         <div className="flex items-center gap-3">
-          <Button disabled={touched.size === 0 || busy} onClick={() => void apply()}>
+          <Button
+            key={shake}
+            className={shake > 0 ? 'glim-shake' : ''}
+            disabled={touched.size === 0 || busy}
+            onClick={() => void apply()}
+          >
             {t('settings.save')}
           </Button>
-          {error && <span className="text-sm text-statusFail">{error}</span>}
         </div>
       </Card>
     </section>
@@ -1825,6 +1917,17 @@ export function TaskListCard({
     const at = without.indexOf(anchor);
     if (at < 0) return null;
     without.splice(after ? at + 1 : at, 0, ...movedIds);
+    // A DROP THAT LANDS WHERE IT STARTED IS NOT A CHANGE and must not write
+    // anything. The three refusals above are all about the drag being
+    // impossible; this one is about it being pointless, and it needs its own
+    // test because the splice can put every id back exactly where it was: drag
+    // a row onto the upper half of the row directly below it, or onto the lower
+    // half of the one directly above, and the result is the list it started
+    // from. That is the SHORTEST movement the gesture can make, not an exotic
+    // edge case, and it used to cost a POST and a write to the stored order.
+    // Compared by result rather than by index, so it also catches a package -
+    // several ids at once - landing back on its own footprint.
+    if (without.length === order.length && without.every((id, i) => id === order[i])) return null;
     return without;
   }
 

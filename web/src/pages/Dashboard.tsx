@@ -1,6 +1,7 @@
-import { useMemo } from 'react';
+import { useMemo, type CSSProperties } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { type Instance, type Settings, fetchInstances, fetchSettings } from '../lib/api';
+import { hueVars, rainbowAt } from '../lib/appearance';
 import { useTasks } from '../lib/useTasks';
 import { useResource } from '../lib/useResource';
 import { fmtBytes, fmtSpeed, pct } from '../lib/format';
@@ -60,14 +61,24 @@ export function Dashboard() {
   );
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-10">
       {/* Subtitle removed (jdp, 2026-08-24: "text entfernen: Alles auf
           einen Blick.") - the title alone already says what this page is. */}
       <PageHeader title={t('overview.title')} />
 
       {/* The one hero of the whole app: this page owns the big figure and the
-          curve; every other page opens quietly. */}
-      <div className="glim-card grid grid-cols-1 items-center gap-4 overflow-hidden p-5 sm:grid-cols-[auto_minmax(0,1fr)] sm:gap-8">
+          curve; every other page opens quietly.
+
+          A hand-rolled card rather than <Card>, so its palette position is set
+          here by hand, exactly the way AddLinksForm.tsx's own head card does
+          it - same contract either way: the class and the properties travel
+          together, or `.glim-hue` resolves --accent to nothing. The position
+          sits on the CONTAINER, so the eyebrow, the counters and the curve
+          inside it all read this card's colour instead of the single accent. */}
+      <div
+        className="glim-card glim-hue grid grid-cols-1 items-center gap-4 overflow-hidden p-5 sm:grid-cols-[auto_minmax(0,1fr)] sm:gap-8"
+        style={hueVars(rainbowAt(0)) as CSSProperties}
+      >
         <div>
           <div className="glim-eyebrow">{t('overview.totalSpeed')}</div>
           <div className="glim-num mt-1 text-[38px] font-semibold leading-none tracking-tight text-carbon-text">
@@ -80,13 +91,13 @@ export function Dashboard() {
         <SpeedGraph value={counts.speed} height={96} />
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+      <div className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         {/* Card, not a bare div (jdp, 2026-08-24, same bug found and fixed on
             Accounts.tsx: SectionTitle's badge is `absolute -top-[11px]` and
             requires its ancestor to be `.glim-card` - a plain flex wrapper
             with no visible box left the badge anchored to nothing, floating
             above the real (nested) card instead of notching over it). */}
-        <Card className="flex flex-col gap-3">
+        <Card hue={1} className="flex flex-col gap-3">
           <SectionTitle>{t('overview.recent')}</SectionTitle>
           {recent.length === 0 ? (
             <EmptyState nested icon={<IconDownloads width={26} height={26} />} title={t('overview.noDownloads')} />
@@ -95,7 +106,7 @@ export function Dashboard() {
               {recent.map((x) => (
                 <div key={x.id} className="flex items-center gap-4 px-5 py-3">
                   <div className="min-w-0 flex-1">
-                    <div className="truncate text-[13.5px] text-carbon-text">{x.name || x.url}</div>
+                    <div className="truncate text-sm text-carbon-text">{x.name || x.url}</div>
                     <div className="mt-1.5 max-w-xs">
                       <ProgressBar
                         percent={pct(x.loaded, x.size, x.status === 'done')}
@@ -117,7 +128,7 @@ export function Dashboard() {
             the full dashboard lives on the Instances page. Card, not a bare
             div, for the same SectionTitle-anchor reason as the recent-
             downloads card above. */}
-        <Card className="flex flex-col gap-3">
+        <Card hue={2} className="flex flex-col gap-3">
           <SectionTitle>{t('overview.instances')}</SectionTitle>
           <div className="glim-well divide-y divide-carbon-border/60 p-0">
             <InstanceRow name={settings?.instanceName || t('instances.thisInstance')} base="/api" />
@@ -136,7 +147,7 @@ export function Dashboard() {
             page's one hero is the live speed curve at the top, and a record you
             go and read is not a second one. */}
         <div className="lg:col-span-2">
-          <VolumeCard />
+          <VolumeCard hue={3} />
         </div>
       </div>
 

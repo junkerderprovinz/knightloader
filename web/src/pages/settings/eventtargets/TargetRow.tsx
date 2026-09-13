@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Field, FieldGroup, IconBadge, NumberInput, TextArea, TextInput, ToggleRow } from '../../../components/ui';
+import { Field, FieldGroup, IconBadge, NumberInput, TextArea, TextInput, ToggleRow, useTooltip } from '../../../components/ui';
 import { Tabs } from '../../../components/Tabs';
 import { IconTrash } from '../../../lib/icons';
 import { useT } from '../../../lib/i18n';
@@ -181,16 +181,15 @@ export function TargetRow({
           {/* What this row would do, in two words: how many events, and whether
               it is allowed to act on them. Both are needed - a target with six
               events ticked and its switch off sends nothing. */}
-          {ticked > 0 && (
-            <span className="glim-num hidden shrink-0 text-xs text-carbon-textSub sm:block" title={t('settings.eventTargets.events')}>
-              {ticked}
-            </span>
-          )}
+          {ticked > 0 && <TickedCount n={ticked} />}
           {/* Only the OFF state is marked. A badge on every switched-on row is a
               badge nobody reads, and the thing worth spotting in a list of six
               targets is the one that is not sending. */}
           {!row.enabled && (
-            <span className="hidden shrink-0 text-[10px] uppercase tracking-wider text-carbon-textMuted sm:block">
+            // 11px, the caption step. The scale has four rungs - 20/14/12/11 -
+            // and a 10px caption is the fourth size the language's own type
+            // table says to fix rather than to add a row for.
+            <span className="hidden shrink-0 text-[11px] uppercase tracking-wider text-carbon-textMuted sm:block">
               {t('settings.modules.off')}
             </span>
           )}
@@ -403,6 +402,58 @@ function clamp(v: number, max: number): number {
 }
 
 /**
+ * How many events this row is ticked for, with its one word of explanation.
+ *
+ * Its own component only because the explanation hangs off a hook: the house
+ * bubble, never a native `title=`. One control, one tooltip mechanism - the
+ * operating system's own balloon draws in the OS font, at the pointer instead
+ * of at the trigger, and obeys none of the rules the house bubble follows, so
+ * a row carrying one sits beside a row carrying the other and reads as a
+ * rendering fault.
+ */
+function TickedCount({ n }: { n: number }) {
+  const { t } = useT();
+  const tip = useTooltip<HTMLSpanElement>(t('settings.eventTargets.events'));
+  // role and tabIndex dropped for the reason ui.tsx's Button gives at its own
+  // copy of this line: this span sits INSIDE the row's expand button, and a
+  // second tab stop with a "note" role there would put a control inside a
+  // control. Hover and focus of the button itself still reach it.
+  const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
+  return (
+    <>
+      <span {...tipHoverProps} className="glim-num hidden shrink-0 text-xs text-carbon-textSub sm:block">
+        {n}
+      </span>
+      {tip.node}
+    </>
+  );
+}
+
+/**
+ * One placeholder name, with what it expands to on the house bubble.
+ *
+ * Its own component for the same reason TickedCount is: the bubble is a hook,
+ * and a hook cannot be called from inside the map below.
+ */
+function PlaceholderChip({ name, tip: tipText, unused }: { name: string; tip: string; unused: boolean }) {
+  const tip = useTooltip<HTMLElement>(tipText);
+  return (
+    <>
+      <code
+        dir="ltr"
+        {...tip.triggerProps}
+        className={`rounded-[var(--radius-control)] bg-carbon-surface2 px-1.5 py-0.5 text-[11px] ${
+          unused ? 'text-carbon-textMuted line-through' : 'text-carbon-textSub'
+        }`}
+      >
+        {name}
+      </code>
+      {tip.node}
+    </>
+  );
+}
+
+/**
  * The names that can be written into the address, a header or the body.
  *
  * From the server, so this list is what this build really fills in. The one
@@ -425,16 +476,12 @@ function Placeholders({ list, picked }: { list: Placeholder[]; picked: string[] 
             picked.length > 0 && p.triggers !== undefined && p.triggers.length > 0 && !p.triggers.some((tr) => picked.includes(tr));
           const name = `%%${p.name}%%`;
           return (
-            <code
+            <PlaceholderChip
               key={p.name}
-              dir="ltr"
-              title={unused ? t('settings.eventTargets.placeholderUnused', { name }) : p.scope}
-              className={`rounded-[var(--radius-control)] bg-carbon-surface2 px-1.5 py-0.5 text-[11px] ${
-                unused ? 'text-carbon-textMuted line-through' : 'text-carbon-textSub'
-              }`}
-            >
-              {name}
-            </code>
+              name={name}
+              unused={unused}
+              tip={unused ? t('settings.eventTargets.placeholderUnused', { name }) : p.scope}
+            />
           );
         })}
       </div>

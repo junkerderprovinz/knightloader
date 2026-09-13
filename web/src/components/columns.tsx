@@ -175,6 +175,66 @@ export interface ColumnDef {
 
 // --- Shared cell furniture -------------------------------------------------
 
+/**
+ * Tip is a piece of on-screen text that carries the HOUSE bubble instead of the
+ * operating system's own.
+ *
+ * ONE CONTROL, ONE TOOLTIP MECHANISM: ui.tsx pulled `title` out of Button and
+ * IconBadge for exactly this reason and says so there; these are the same call
+ * sites on RAW elements, which that sweep never reached. A native `title=`
+ * draws the OS balloon - OS font, at the pointer instead of at the trigger, on
+ * the OS's own timing, and untouched by every rule of GlimStone's tooltip
+ * section - right beside the house bubble the control next to it opens, and the
+ * difference reads as a rendering fault. The plain-DOM answer upstream is one
+ * wireTooltips() call at boot that upgrades a stray `title` to `data-tip`; this
+ * build is React and its engine is useTooltip, which has no delegated upgrader,
+ * so a `title` left on an element is simply the second mechanism.
+ *
+ * It lives in this module for the same reason `hostOf` is re-exported from it:
+ * this is where the list, the collector's facets and the collector's own cards
+ * already take their shared furniture from.
+ */
+export function Tip({
+  tip,
+  className,
+  dir,
+  label,
+  children,
+}: {
+  /** The whole string, of which `children` is usually the truncated half. */
+  tip: ReactNode;
+  className?: string;
+  /** A path or a URL, which reads left-to-right in a right-to-left interface. */
+  dir?: 'ltr';
+  /**
+   * The accessible name, for the call sites whose children are a GLYPH and
+   * nothing else. Truncated text needs none - the whole string is already in
+   * the DOM - but a drawing has no text to be read, and `title` used to be
+   * what supplied it. Set together with `role="img"`, or a screen reader
+   * announces a name on an element it has no reason to stop at.
+   */
+  label?: string;
+  /** Absent where the element IS the drawing - the availability dot's fill. */
+  children?: ReactNode;
+}) {
+  const t = useTooltip<HTMLSpanElement>(tip);
+  // role/tabIndex dropped for the reason ui.tsx's Button states at its own copy
+  // of this line: these sit in rows and cells that already carry their own
+  // focus model (listKeyboard's roving tabindex), and a tab stop per truncated
+  // string would put a dozen of them in every row. Nothing is lost with them -
+  // the full string is in the DOM either way, so a screen reader reads it
+  // whole; the bubble exists for the eye, which is what CSS truncation cuts.
+  const { role: _role, tabIndex: _tabIndex, ...hover } = t.triggerProps;
+  return (
+    <>
+      <span dir={dir} className={className} role={label ? 'img' : undefined} aria-label={label} {...hover}>
+        {children}
+      </span>
+      {t.node}
+    </>
+  );
+}
+
 /** The selection mark: a filled square, as everywhere else in GlimStone. */
 export function Checkbox({
   checked,
@@ -185,21 +245,29 @@ export function Checkbox({
   onChange: () => void;
   label?: string;
 }) {
+  // The house bubble, never the OS balloon - see Tip above. A glyph-only
+  // control needs a tooltip unconditionally (there is no other way to know
+  // what it does), so this one is the mechanism, not the attribute.
+  const tip = useTooltip<HTMLButtonElement>(label);
+  const { role: _role, tabIndex: _tabIndex, ...hover } = tip.triggerProps;
   return (
-    <button
-      type="button"
-      role="checkbox"
-      aria-checked={checked}
-      aria-label={label}
-      title={label}
-      onClick={onChange}
-      className={`grid h-4.5 w-4.5 shrink-0 place-items-center rounded-[var(--radius-control)] transition-colors ${
-        checked ? 'bg-accent text-accentContrast' : 'bg-carbon-surface3/60 text-transparent hover:bg-carbon-surface3'
-      }`}
-      style={{ height: '1.125rem', width: '1.125rem' }}
-    >
-      <IconCheck width={12} height={12} />
-    </button>
+    <>
+      <button
+        type="button"
+        role="checkbox"
+        aria-checked={checked}
+        aria-label={label}
+        {...(label ? hover : undefined)}
+        onClick={onChange}
+        className={`grid h-4.5 w-4.5 shrink-0 place-items-center rounded-[var(--radius-control)] transition-colors ${
+          checked ? 'bg-accent text-accentContrast' : 'bg-carbon-surface3/60 text-transparent hover:bg-carbon-surface3'
+        }`}
+        style={{ height: '1.125rem', width: '1.125rem' }}
+      >
+        <IconCheck width={12} height={12} />
+      </button>
+      {label && tip.node}
+    </>
   );
 }
 
@@ -225,7 +293,17 @@ export function EnabledSwitch({
   const { t } = useT();
   const { toast } = useToast();
   const [busy, setBusy] = useState(false);
+  // Both halves of GlimStone's failure feedback: the toast below carries the
+  // sentence, and this counter makes the switch itself SAY that it refused.
+  // Counted rather than flagged, and read as a `key`, because an animation
+  // already at rest does not restart just because its class left and came back
+  // in the same frame - a second identical rejection needs a fresh DOM node to
+  // play against, the same discipline lib/toast.tsx's push() follows when it
+  // mints a new id for an identical repeated message.
+  const [shake, setShake] = useState(0);
   const label = t(on ? 'task.disable' : 'task.enable');
+  const tip = useTooltip<HTMLButtonElement>(label);
+  const { role: _role, tabIndex: _tabIndex, ...hover } = tip.triggerProps;
 
   async function flip() {
     if (busy || ids.length === 0) return;
@@ -236,6 +314,7 @@ export function EnabledSwitch({
       // The server's own sentence names what refused; a generic failure here
       // would leave a switch that visibly did nothing and no way to find out why.
       toast(err instanceof Error && err.message ? err.message : t('task.switchFailed'), 'fail');
+      setShake((n) => n + 1);
     } finally {
       setBusy(false);
     }
@@ -254,27 +333,31 @@ export function EnabledSwitch({
   // apart is the knob's side and the step between the two grounds, which is the
   // signal a switch has always carried.
   return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={on}
-      aria-label={label}
-      title={label}
-      disabled={busy}
-      onClick={flip}
-      className={`relative h-3.5 w-7 shrink-0 rounded-[var(--radius-pill)] transition-colors disabled:opacity-40 ${
-        on ? 'bg-carbon-surface3' : 'bg-carbon-surface2'
-      }`}
-    >
-      {/* left-0 is load-bearing: without it the knob starts from its static
-          position, which the button's inherited text-align centres, and the knob
-          then slides out past the track. */}
-      <span
-        className={`absolute left-0 top-0.5 h-2.5 w-2.5 rounded-[var(--radius-pill)] shadow-sm transition-[translate] duration-150 ${
-          on ? 'translate-x-4 bg-carbon-textSub' : 'translate-x-0.5 bg-carbon-textMuted'
-        }`}
-      />
-    </button>
+    <>
+      <button
+        key={shake}
+        type="button"
+        role="switch"
+        aria-checked={on}
+        aria-label={label}
+        {...hover}
+        disabled={busy}
+        onClick={flip}
+        className={`relative h-3.5 w-7 shrink-0 rounded-[var(--radius-pill)] transition-colors disabled:opacity-40 ${
+          on ? 'bg-carbon-surface3' : 'bg-carbon-surface2'
+        } ${shake > 0 ? 'glim-shake' : ''}`}
+      >
+        {/* left-0 is load-bearing: without it the knob starts from its static
+            position, which the button's inherited text-align centres, and the
+            knob then slides out past the track. */}
+        <span
+          className={`absolute left-0 top-0.5 h-2.5 w-2.5 rounded-[var(--radius-pill)] shadow-sm transition-[translate] duration-150 ${
+            on ? 'translate-x-4 bg-carbon-textSub' : 'translate-x-0.5 bg-carbon-textMuted'
+          }`}
+        />
+      </button>
+      {tip.node}
+    </>
   );
 }
 
@@ -467,7 +550,10 @@ function RowTooltipContent({ task, t, base }: { task: Task; t: Translate; base: 
 
   return (
     <div className="flex flex-col gap-2">
-      <div dir="ltr" className="break-words text-[12.5px] font-semibold text-carbon-text">
+      {/* text-xs, the scale's 12px dense row, and not a half-pixel step of its
+          own: the type scale is a fixed four-row table (20/14/12/11), and a
+          fifth size found in an audit is the bug to fix, not a row to add. */}
+      <div dir="ltr" className="break-words text-xs font-semibold text-carbon-text">
         {name}
       </div>
       <div className="flex flex-col gap-1.5 border-t border-carbon-border/60 pt-2">
@@ -622,13 +708,19 @@ export function PriorityTag({ value, names, t }: { value: number; names: Map<num
     // wedges and the row beside it named the same rung with a different mark.
     // Up is the accent and down is muted rather than both being one colour: a
     // raised link is the one somebody wants to spot in a long list.
-    <span
-      title={label}
-      aria-label={label}
-      className={`inline-flex shrink-0 leading-none ${value > 0 ? 'text-accent' : 'text-carbon-textMuted'}`}
+    //
+    // --accent-ink, not --accent: the rule takes no thought - a colour on a
+    // `background` is --accent, a colour on `color`/`fill`/`stroke` against the
+    // page is --accent-ink. This glyph is drawn in the text colour on the
+    // card's own ground, and the flat accent there is Sunflower on white in the
+    // light theme, which is the exact case the derived ink token exists for.
+    <Tip
+      tip={label}
+      label={label}
+      className={`inline-flex shrink-0 leading-none ${value > 0 ? 'text-accentInk' : 'text-carbon-textMuted'}`}
     >
       <PriorityGlyph steps={value} />
-    </span>
+    </Tip>
   );
 }
 
@@ -648,12 +740,20 @@ function NameCell({ task, t, base }: { task: Task; t: Translate; base: string })
   // - the two would be hovering the exact same box, and the browser's own
   // delayed tooltip would eventually stack on top of this one.
   const tip = useTooltip<HTMLDivElement>(<RowTooltipContent task={task} t={t} base={base} />);
+  // The "open the advice" button's own bubble. Its visible text is the failure
+  // reason, so the tooltip says something the trigger does not - what pressing
+  // it does - which is the one case a labelled control still earns one.
+  const openTip = useTooltip<HTMLButtonElement>(t('failure.open'));
+  const { role: _openRole, tabIndex: _openTabIndex, ...openHover } = openTip.triggerProps;
   const priorityNames = usePriorityNames();
   return (
     <div className="min-w-0">
       <div className="flex min-w-0 items-center gap-1.5">
         <PriorityTag value={task.priority} names={priorityNames} t={t} />
-        <div dir="ltr" {...tip.triggerProps} className="min-w-0 truncate text-start text-[13.5px] text-carbon-text">
+        {/* text-sm is the scale's body row. It was 13.5px, which is not a step
+            the four-row table has - a half-pixel value only looks like a
+            decision because it was repeated. */}
+        <div dir="ltr" {...tip.triggerProps} className="min-w-0 truncate text-start text-sm text-carbon-text">
           {/* task.ext is a display-only best-effort hint (core.Task.Ext's
               own doc comment), never appended to task.name itself - Name
               stays the resolved-vs-placeholder sentinel every rename/probe
@@ -686,18 +786,21 @@ function NameCell({ task, t, base }: { task: Task; t: Translate; base: string })
               // No stopPropagation: TaskList's CONTROL selector already begins
               // with `button`, so the row's own click-to-select, its
               // double-click-to-open and its dragstart all skip this for free.
-              <button
-                type="button"
-                title={t('failure.open')}
-                className="glim-eyebrow max-w-[45%] shrink-0 truncate underline-offset-2 hover:text-carbon-textSub hover:underline"
-                onClick={() => setWhyOpen(true)}
-              >
-                {t(reason)}
-              </button>
+              <>
+                <button
+                  type="button"
+                  {...openHover}
+                  className="glim-eyebrow max-w-[45%] shrink-0 truncate underline-offset-2 hover:text-carbon-textSub hover:underline"
+                  onClick={() => setWhyOpen(true)}
+                >
+                  {t(reason)}
+                </button>
+                {openTip.node}
+              </>
             ) : (
-              <span title={t(reason)} className="glim-eyebrow max-w-[45%] shrink-0 truncate">
+              <Tip tip={t(reason)} className="glim-eyebrow max-w-[45%] shrink-0 truncate">
                 {t(reason)}
-              </span>
+              </Tip>
             ))}
           {/* The sentence wins the room, and `flex-1 min-w-0` is what gives it
               to it. The pending-retry note used to sit here as `shrink-0` prose,
@@ -711,25 +814,20 @@ function NameCell({ task, t, base }: { task: Task; t: Translate; base: string })
               thing on the line that may shrink, so it takes the whole shortfall
               and the glyph stays beside the sentence it belongs to instead of
               being pushed to the far edge of a wide column. */}
-          {/* The tool's own line stays as the title, so it is one hover away
+          {/* The tool's own line stays in the bubble, so it is one hover away
               and never lost - the plain-language sentence is a translation of
               the failure, not a replacement for the evidence. */}
-          <span title={task.error} className="min-w-0 truncate text-statusFail">
+          <Tip tip={task.error} className="min-w-0 truncate text-statusFail">
             {advice ? t(advice.line) : task.error}
-          </span>
+          </Tip>
           {/* So the note is a glyph now: fixed width, never competing, and it
               still carries the whole sentence for the pointer and the screen
               reader. It is deliberately not the accent — a retry that has not
               happened yet is waiting, not activity. */}
           {retrying && (
-            <span
-              role="img"
-              aria-label={t('task.retryPending')}
-              title={t('task.retryPending')}
-              className="shrink-0 text-carbon-textMuted"
-            >
+            <Tip tip={t('task.retryPending')} label={t('task.retryPending')} className="shrink-0 text-carbon-textMuted">
               <IconRetry width={11} height={11} />
-            </span>
+            </Tip>
           )}
         </div>
       )}
@@ -771,8 +869,11 @@ function ProgressCell({
 // task's.
 function AvailDot({ avail, title, mixed }: { avail: Availability | undefined; title?: string; mixed?: boolean }) {
   return (
-    <span
-      title={title}
+    // A dot with no text of its own: it needs the bubble unconditionally, and
+    // the name with it - see Tip. The house bubble, never the OS balloon.
+    <Tip
+      tip={title}
+      label={title}
       className={`inline-block h-2 w-2 shrink-0 rounded-[var(--radius-pill)] ${
         // Mixed is the package's own third answer and it outranks the verdict
         // below (jdp, 2026-09-06: "der punkt auf dem container kann gelb sein
@@ -882,9 +983,9 @@ function StatusCell({ task, t }: { task: Task; t: Translate }) {
           looking at the status. Muted and truncating, because it is a sentence
           from somebody else's program and may be long. */}
       {task.note && (
-        <span className="min-w-0 truncate text-[11px] text-carbon-textMuted" title={task.note}>
+        <Tip tip={task.note} className="min-w-0 truncate text-[11px] text-carbon-textMuted">
           {task.note}
-        </span>
+        </Tip>
       )}
       {/* Why a queued row is not running (jdp's list, "Grund fürs Warten in der
           Zeile"). The dispatcher has always known - the slot count is full, this
@@ -898,15 +999,15 @@ function StatusCell({ task, t }: { task: Task; t: Translate }) {
           it, and two greys competing on one line is how a cell stops being
           readable. */}
       {!task.note && task.waiting && (
-        // title for the same reason task.note has one: this column is narrow by
-        // default and several of these reasons are longer in German than the
+        // A bubble for the same reason task.note has one: this column is narrow
+        // by default and several of these reasons are longer in German than the
         // space they get, so the ellipsis needs somewhere to lead.
-        <span
+        <Tip
+          tip={t(waitingKey[task.waiting] ?? 'task.waiting.slot')}
           className="min-w-0 truncate text-[11px] text-carbon-textMuted"
-          title={t(waitingKey[task.waiting] ?? 'task.waiting.slot')}
         >
           {t(waitingKey[task.waiting] ?? 'task.waiting.slot')}
-        </span>
+        </Tip>
       )}
       {/* What the row is waiting for after a failure, in the same slot and the
           same grey as the note above it. A queued row's waiting reason and a
@@ -918,21 +1019,25 @@ function StatusCell({ task, t }: { task: Task; t: Translate }) {
       {/* Only a real verdict is shown. An unverified download stays unmarked,
           because a tick that also means "not checked" is worse than none. */}
       {task.checksum === 'ok' && (
-        <span title={t('task.checksumOk')} className="shrink-0 text-statusOk">
+        <Tip tip={t('task.checksumOk')} label={t('task.checksumOk')} className="shrink-0 text-statusOk">
           <IconCheck width={13} height={13} />
-        </span>
+        </Tip>
       )}
       {task.checksum === 'failed' && (
-        <span title={t('task.checksumFail')} className="shrink-0 text-[11px] font-semibold text-statusFail">
+        <Tip
+          tip={t('task.checksumFail')}
+          label={t('task.checksumFail')}
+          className="shrink-0 text-[11px] font-semibold text-statusFail"
+        >
           !
-        </span>
+        </Tip>
       )}
     </span>
   );
 }
 
 // The column's own read of useConnectionLabel above - text truncated to the
-// cell, hint carried as a native title since this box, unlike the name
+// cell, hint carried in the house bubble since this box, unlike the name
 // column, is not already sitting under the row's own rich tooltip.
 /** The host column: its logo, then its name. Blank rows draw neither. */
 function HostCell({ host }: { host: string }) {
@@ -949,9 +1054,9 @@ function ConnectionCell({ task, t, base }: { task: Task; t: Translate; base: str
   const label = useConnectionLabel(task, t, base);
   if (!label) return null;
   return (
-    <span dir="ltr" title={label.hint} className="block truncate text-[11px] text-carbon-textMuted">
+    <Tip dir="ltr" tip={label.hint} className="block truncate text-[11px] text-carbon-textMuted">
       {label.text}
-    </span>
+    </Tip>
   );
 }
 
@@ -1120,6 +1225,7 @@ function VariantPicker({
   disabled,
   render,
   onPick,
+  shake = 0,
 }: {
   value: string;
   options: string[];
@@ -1129,9 +1235,25 @@ function VariantPicker({
   /** How one option reads on screen; the raw value is what is sent. */
   render: (option: string) => string;
   onPick: (value: string) => void;
+  /**
+   * The caller's own failure counter. Every bump shakes this trigger once:
+   * the value was shown optimistically, the server refused it, and a control
+   * that just snaps back says nothing (GlimStone, the motion engine). Keyed on
+   * the number rather than toggled as a class, so a second identical refusal
+   * gets a fresh DOM node and visibly shakes again.
+   */
+  shake?: number;
 }) {
   const menu = useContextMenu();
   const trigger = useRef<HTMLButtonElement>(null);
+  // The house bubble rather than the OS balloon - see Tip. The trigger shows
+  // the chosen value; the tooltip says what the picker chooses, which is not
+  // the same sentence.
+  const tip = useTooltip<HTMLButtonElement>(label);
+  // The wheel listener below needs this element too, and one element takes one
+  // ref: both are filled from the same callback rather than one of them quietly
+  // losing to the other.
+  const { role: _tipRole, tabIndex: _tipTabIndex, ref: tipRef, ...tipHover } = tip.triggerProps;
 
   /**
    * The wheel steps the value here, exactly as it does on the app's remaining
@@ -1179,26 +1301,37 @@ function VariantPicker({
     };
     el.addEventListener('wheel', onWheel, { passive: false });
     return () => el.removeEventListener('wheel', onWheel);
-  }, [disabled, options, value, onPick]);
+    // `shake` is in here because the shake mechanism REPLACES this element: it
+    // keys the button on the counter, so a refusal unmounts the node this
+    // listener is attached to and mounts a fresh one. Without the dependency
+    // the effect would not run again, and the wheel would go on stepping a
+    // button that is no longer in the document - the control would simply stop
+    // answering the wheel after the first refused change.
+  }, [disabled, options, value, onPick, shake]);
 
   return (
     <>
       <button
-        ref={trigger}
+        key={shake}
+        ref={(el) => {
+          trigger.current = el;
+          tipRef.current = el;
+        }}
         type="button"
         disabled={disabled}
         aria-label={label}
-        title={label}
+        {...tipHover}
         aria-haspopup="menu"
         onClick={(e) => {
           e.stopPropagation();
           menu.openAt(anchorBelow(e.currentTarget));
         }}
-        className={VARIANTE_SELECT_CLASS}
+        className={`${VARIANTE_SELECT_CLASS} ${shake > 0 ? 'glim-shake' : ''}`}
       >
         <span className="truncate">{render(value)}</span>
         <IconChevronDown width={12} height={12} className="shrink-0 opacity-70" />
       </button>
+      {tip.node}
       {menu.anchor && (
         <ContextMenu
           anchor={menu.anchor}
@@ -1257,6 +1390,11 @@ function useYtdlpMenus() {
 function VarianteCell({ task, ctx }: { task: Task; ctx: CellContext }) {
   const { toast } = useToast();
   const [busy, setBusy] = useState(false);
+  // One counter EACH, never one shared between the two pickers: they have their
+  // own handlers and their own endpoints, and a shared nonce would shake the
+  // picker nobody touched.
+  const [shakeQuality, setShakeQuality] = useState(0);
+  const [shakeBitrate, setShakeBitrate] = useState(0);
   const menus = useYtdlpMenus();
 
   const kind = variantKindOf(task);
@@ -1296,7 +1434,11 @@ function VarianteCell({ task, ctx }: { task: Task; ctx: CellContext }) {
     try {
       await setTaskOptions([task.id], { variantQuality: value }, ctx.base);
     } catch (err) {
+      // Both halves of GlimStone's failure feedback: the sentence goes to the
+      // toast, and the control that was pressed shakes so the refusal is
+      // visible where the eye already is.
       toast(err instanceof Error && err.message ? err.message : ctx.t('task.switchFailed'), 'fail');
+      setShakeQuality((n) => n + 1);
     } finally {
       setBusy(false);
     }
@@ -1308,6 +1450,7 @@ function VarianteCell({ task, ctx }: { task: Task; ctx: CellContext }) {
       await setTaskOptions([task.id], { audioBitrate: value }, ctx.base);
     } catch (err) {
       toast(err instanceof Error && err.message ? err.message : ctx.t('task.switchFailed'), 'fail');
+      setShakeBitrate((n) => n + 1);
     } finally {
       setBusy(false);
     }
@@ -1327,6 +1470,7 @@ function VarianteCell({ task, ctx }: { task: Task; ctx: CellContext }) {
           disabled={busy}
           render={(o) => o}
           onPick={(v) => void change(v)}
+          shake={shakeQuality}
         />
       )}
       {/* The audio row's own second, independent picker - a bitrate on top
@@ -1341,6 +1485,7 @@ function VarianteCell({ task, ctx }: { task: Task; ctx: CellContext }) {
           disabled={busy}
           render={(b) => (b ? `${b} kbit/s` : ctx.t('columns.variant.bitrateAuto'))}
           onPick={(v) => void changeBitrate(v)}
+          shake={shakeBitrate}
         />
       )}
     </span>

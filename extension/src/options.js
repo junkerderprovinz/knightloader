@@ -98,6 +98,43 @@ function glyph(d, size) {
   svg.appendChild(path);
   return svg;
 }
+/**
+ * The one glyph on this page that is not a single path: the web UI's own
+ * IconInstances (web/src/lib/icons.tsx), copied shape for shape rather than
+ * redrawn, because which glyph means "other instances" is a contract across the
+ * surfaces of one product and not a choice a page makes for itself. Two stacked
+ * units, each with its own lamp - a shape nobody has to be taught.
+ *
+ * It exists for the group list's empty state, which is the one place on this
+ * page that has nothing of its own to show.
+ */
+function instancesGlyph(size) {
+  const svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('viewBox', '0 0 20 20');
+  svg.setAttribute('width', String(size));
+  svg.setAttribute('height', String(size));
+  svg.setAttribute('fill', 'currentColor');
+  svg.setAttribute('aria-hidden', 'true');
+  for (const [x, y, o] of [[2.5, 3, '.55'], [2.5, 12, '.55']]) {
+    const r = document.createElementNS(NS, 'rect');
+    r.setAttribute('x', String(x));
+    r.setAttribute('y', String(y));
+    r.setAttribute('width', '15');
+    r.setAttribute('height', '5');
+    r.setAttribute('rx', '1.5');
+    r.setAttribute('opacity', o);
+    svg.appendChild(r);
+  }
+  for (const cy of ['5.5', '14.5']) {
+    const c = document.createElementNS(NS, 'circle');
+    c.setAttribute('cx', '5.5');
+    c.setAttribute('cy', cy);
+    c.setAttribute('r', '1');
+    svg.appendChild(c);
+  }
+  return svg;
+}
+
 const D_RETRY = 'M8 3V1L5 3.5 8 6V4a3.5 3.5 0 1 1-3.5 3.5H3A5 5 0 1 0 8 3z';
 // The cancelling half of the confirmation window. Every button in this family
 // carries a glyph, and a words-only cancel beside a bin reads as unfinished -
@@ -161,43 +198,38 @@ const D_EYE_OFF =
   'l2.3 2.3 1.1-1.1L2.3 1.3zM8 11a3 3 0 0 1-2.6-4.5l1.2 1.2A1.4 1.4 0 0 0 8 9.4l1.2 1.2A3 3 0 0 1 8 11z' +
   'm7.3-2.6C14.7 9.4 13 11 11 12l-1.4-1.4A3 3 0 0 0 5.4 6.4L4 5a7.6 7.6 0 0 1 4-2c3.6 0 6.5 3.1 7.3 4.6a.8.8 0 0 1 0 .8z';
 
-function say(text, ok) {
+/**
+ * The page's one status line — and it clears itself.
+ *
+ * GlimStone's "Failure feedback" objects to a permanent sentence for one named
+ * reason: it never clears itself, so a failure from ten minutes ago looks
+ * exactly as current as one from a second ago until the next click overwrites
+ * it. The language's own answer is a toast, which is a surface this extension
+ * does not have; what it can have is the property the toast was wanted FOR. Four
+ * seconds is the toast's own duration, so the two surfaces time out alike.
+ *
+ * The timer is cleared before it is set, or two messages in quick succession
+ * leave the first one's clock running and it wipes the second mid-read.
+ *
+ * `hold` is for a PROGRESS message rather than a result — "connecting…", which
+ * describes something still running and is always replaced by its own outcome.
+ * That is not the case the rule is about: a sentence that ages badly is one
+ * reporting something that already finished, and a progress line that vanished
+ * on its own clock while the work was still in flight would be the opposite
+ * defect.
+ */
+let sayTimer = 0;
+
+function say(text, ok, hold) {
   status.textContent = text;
   status.className = ok ? 'ok' : '';
-}
-
-/**
- * The refusal signal (jdp, 2026-08-31: "wenn man drauf klickt und man kenie
- * Phrase eingegeben hat, also es nicht klappt, soll er button kurz zittern. Ist
- * das standardverhalten für ein fehlschlagen von buttons. steht in GS. Die
- * Text-Fehlermeldung die darunter erscheint soll weg").
- *
- * He is right that it is already the standard: GlimStone's "Failure feedback"
- * says every failable action reports through the same two channels, the control
- * plays `glim-shake`, and the permanent inline sentence is REMOVED rather than
- * kept alongside. This page had only the sentence, which has the property the
- * language objects to - it never clears itself, so a failure from ten minutes
- * ago looks exactly as current as one from a second ago.
- *
- * Replay is the part that is easy to get wrong: an animation already at rest
- * does NOT restart because its class left and came back in the same frame, so a
- * second identical refusal would sit still. A component framework solves it by
- * keying the element on a counter, which mints a fresh DOM node. This page has
- * no framework, and cloning the node would be the literal translation of that -
- * but it would also drop every listener bound to the element, which on this
- * page includes the ones that make the button work at all. Forcing a reflow
- * between the remove and the add restarts the animation with the same effect
- * and leaves the node, and its listeners, exactly where they were.
- */
-function shake(el) {
-  if (!el) return;
-  el.classList.remove('glim-shake');
-  // Reading a layout property flushes the pending style change, which is what
-  // makes the class removal a real "animation ended" rather than a no-op the
-  // browser coalesces away. Deliberately not assigned to anything.
-  void el.offsetWidth;
-  el.classList.add('glim-shake');
-  el.addEventListener('animationend', () => el.classList.remove('glim-shake'), { once: true });
+  clearTimeout(sayTimer);
+  if (text && !hold) {
+    sayTimer = setTimeout(() => {
+      status.textContent = '';
+      status.className = '';
+    }, 4000);
+  }
 }
 
 /**
@@ -286,11 +318,11 @@ function applyStaticText() {
   leaveBtn.textContent = '';
   leaveBtn.setAttribute('aria-label', t('options.leave'));
   leaveBtn.setAttribute('data-tip', t('options.leave'));
-  // 18 in a 36px badge: a glyph standing ALONE in a square is half its box
-  // (GlimStone 1.8.0). At 16 it was 44%, which is over half and reads chunky -
-  // there is no word beside it to set the size against, so the only proportion
-  // left is how much of the frame the ink takes.
-  leaveBtn.replaceChildren(glyph(D_TRASH, 18));
+  // 16 in the --btn-h badge: a glyph standing ALONE in a square is half its box
+  // (GlimStone 1.8.0). It was 18 in 36, which is the same half - the box is
+  // what moved. There is no word beside it to set the size against, so the only
+  // proportion left is how much of the frame the ink takes.
+  leaveBtn.replaceChildren(glyph(D_TRASH, 16));
   refreshBtn.textContent = t('options.refresh');
 
   // The confirmation window. Its title is a badge, like every other window and
@@ -472,6 +504,11 @@ phrasePaste.addEventListener('click', async () => {
   } catch {
     if (!erlaubt) {
       say(t('options.phrasePasteBlocked'), false);
+      // The control that was clicked says so itself. Every action that can fail
+      // reports through the same two channels and the button plays glim-shake -
+      // it is not a rule about toggles, it covers a plain action button that
+      // just called something and has to report what came back.
+      shake(phrasePaste);
       return;
     }
   }
@@ -534,9 +571,19 @@ async function renderGroup() {
   }
   list.innerHTML = '';
   if (siblings.length === 0) {
+    // A deliberate empty state, not a grey line where a list should be: the
+    // shared shape is a muted icon at reduced opacity over a muted title. It
+    // needs no .glim-card of its own - it already sits inside the Group card,
+    // and a card inside a card is one elevation too many. The optional action
+    // button is left off because the two actions this state has (connect
+    // somewhere else, refresh) are the controls directly above it, and a third
+    // copy of a button already on screen answers nothing.
     const empty = document.createElement('div');
-    empty.className = 'empty';
-    empty.textContent = t('options.groupEmpty');
+    empty.className = 'emptyState';
+    empty.appendChild(instancesGlyph(28));
+    const title = document.createElement('span');
+    title.textContent = t('options.groupEmpty');
+    empty.appendChild(title);
     list.appendChild(empty);
     return;
   }
@@ -562,7 +609,7 @@ async function renderGroup() {
           // card wearing the badge is worse than no report.
           void renderReport();
         },
-        onQueue: async (picked, halted) => {
+        onQueue: async (picked, halted, el) => {
           const ok = await setQueueHalted(picked.instanceId, halted).catch(() => false);
           if (!ok) {
             // The same sentence the adopt-the-look switch uses when an
@@ -570,6 +617,10 @@ async function renderGroup() {
             // freshly written way of saying "it did not answer" would be a
             // 42-language translation for no new information.
             say(t('options.followFailed'), false);
+            // And the control that was pressed says so itself: the message alone
+            // is half the standard, and it is the half somebody reading the card
+            // rather than the line under it never sees.
+            shake(el);
             return;
           }
           // Re-read rather than assume: the instance decides what its queue
@@ -588,7 +639,7 @@ async function renderGroup() {
 joinForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   joinBtn.disabled = true;
-  say(t('options.joining'), true);
+  say(t('options.joining'), true, true);
   try {
     await writePhrase(phraseInput.value);
   } catch (err) {
@@ -952,6 +1003,12 @@ followInstanceEl.addEventListener('click', async () => {
     if (!ok) {
       followInstanceEl.setAttribute('aria-checked', 'false');
       say(t('options.followFailed'), false);
+      // The switch was shown on optimistically and is being snapped back, which
+      // is the exact case glim-shake was named for: a toggle that quietly
+      // reverts leaves the reader to notice the state changed twice, while the
+      // reason sits in a line the eye may not be on. Reverting silently is the
+      // defect; reverting visibly is the rule.
+      shake(followInstanceEl);
       return;
     }
   } else {
@@ -1076,16 +1133,16 @@ function swatch(hex, { label: name, pressed, onPick, onEdit, onEditClose }) {
   return b;
 }
 
-/** The reset badge: an icon, not a text link, and the same circle as the
- *  swatches it stands beside. */
+/** The reset badge: an icon, not a text link, at the one badge size these pages
+ *  use — and the swatches beside it follow that size rather than setting it. */
 function resetBadge(onClick) {
   const b = document.createElement('button');
   b.type = 'button';
   b.className = 'glim-reset';
-  // 11 in the 22px circle - half its box, the same ratio the bin and the two
-  // in-field controls now carry. This page ran 44%, 47% and 59% side by side
-  // before, which is three answers to one question on one screen.
-  b.appendChild(glyph(D_RETRY, 11));
+  // 16 in the --btn-h circle - half its box, the same ratio every other badge
+  // on these pages carries. It was 11 in 22, which is the same half: the box is
+  // what moved, to the one badge size the page now takes.
+  b.appendChild(glyph(D_RETRY, 16));
   b.setAttribute('data-tip', t('options.accentReset'));
   b.setAttribute('aria-label', t('options.accentReset'));
   b.addEventListener('click', onClick);
@@ -1292,12 +1349,13 @@ async function renderAppearance() {
   // they check whether a reset exists BEFORE deciding to experiment, not after.
   // Consistency inside one card decides it too: two colour rows, one reset each,
   // both always in the same place.
-  // "Any colour at all", at the end of the row and looking like a button (jdp,
-  // 2026-08-31: "der farbpicker bei den akzentfarbe-voreinstellungen fehlt").
-  // It was a plain filled circle before the presets, indistinguishable from
-  // them, so nothing said it opened anything - and with no way off the eight
-  // presets the reset badge beside it had nothing to reset from, which is
-  // exactly how jdp described it.
+  // "Any colour at all" is the swatch itself now, not a ninth circle beside the
+  // eight (jdp, 2026-08-31: "der farbpicker bei den akzentfarbe-voreinstellungen
+  // fehlt"). A click on the one already in force opens the picker on it, which
+  // is what the onEdit branch above does - so the reset badge has something to
+  // reset FROM, which was the half that was actually missing. The separate
+  // control that briefly stood here is gone, and its stylesheet block went with
+  // it rather than being left as a size nothing draws.
   accentSwatches.appendChild(
     resetBadge(async () => {
       // The two row facts are REMOVED, never set to undefined: chrome.storage
@@ -1617,8 +1675,10 @@ copyReportBtn.addEventListener('click', async () => {
   } catch {
     // Clipboard permission is not guaranteed on an extension page in every
     // browser. The report is already on screen, so the fallback is to say so
-    // rather than to fail silently.
+    // rather than to fail silently - and the button that was pressed shakes,
+    // because a copy that did not happen looks exactly like one that did.
     say(t('options.problemsCopyFailed'), false);
+    shake(copyReportBtn);
   }
 });
 

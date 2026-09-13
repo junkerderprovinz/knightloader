@@ -656,7 +656,7 @@ export function Downloads() {
       <div onContextMenu={onContextMenu}>
         {list.length === 0 ? (
           <EmptyState
-            icon={<IconDownloads width={28} height={28} />}
+            icon={<IconDownloads width={26} height={26} />}
             title={t('empty.downloadsTitle')}
             hint={t('empty.downloadsHint')}
           />

@@ -1,6 +1,7 @@
 import { cloneElement, isValidElement, type ReactElement, type ReactNode } from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useAppearance } from '../theme/AppearanceContext';
+import { BTN_H } from '../theme/tokens';
 
 // A small square glyph button - the "+" that opens Connect, the gear that
 // opens Settings, the bin that drops a connection: wherever a screen needs an
@@ -16,18 +17,34 @@ import { useAppearance } from '../theme/AppearanceContext';
 // this component carried a 1px border for as long as it existed, which is the
 // one rule the app broke in the most places at once.
 
-/** The badge's own square. One size app-wide, whatever the badge is for. */
-const BADGE = 36;
+/**
+ * The badge's own square. One size app-wide, whatever the badge is for - and
+ * one size PRODUCT-wide, which is the half this app was missing.
+ *
+ * It was 36, its own number, while the web measured the same square badge at
+ * the ordinary button height and the extension wrote 30 into a stylesheet:
+ * three answers for one object inside one product, none of them written
+ * anywhere that could notice the other two. So it comes off the shared height
+ * token now (see theme/tokens.ts), which is also where the reference puts it -
+ * an icon-only control is a square at the ordinary button height.
+ *
+ * A dense row that needs to stay dense absorbs the size in its own padding.
+ * Shrinking the badge is the other way to do it and it is how a product ends up
+ * with three badge sizes visible on one card.
+ */
+const BADGE = BTN_H;
 
 /**
  * HOW MUCH OF THAT SQUARE THE GLYPH DRAWS: half of it.
  *
- * GlimStone 1.8.0 states the proportion as 16 in 32 and 20 in 40, so 18 in 36,
- * and it is a proportion rather than a size because a lone glyph has no text
- * beside it to be measured against. The 20px a glyph takes next to 14px text is
- * the answer to a different question - there, a mark and its label have to read
- * as one control - and carrying that number into a square is how a badge ends
- * up with its glyph filling two thirds of the frame, which reads as chunky.
+ * GlimStone states the proportion as 16 in 32 and 20 in 40, and with the square
+ * back on the house height this lands on the first of those exactly rather than
+ * extrapolating to a third pair. It is a proportion rather than a size because a
+ * lone glyph has no text beside it to be measured against. The 20px a glyph
+ * takes next to 14px text is the answer to a different question - there, a mark
+ * and its label have to read as one control - and carrying that number into a
+ * square is how a badge ends up with its glyph filling two thirds of the frame,
+ * which reads as chunky.
  *
  * ONE constant, because this badge used to hold two numbers that had never been
  * compared: a drawn glyph arrived at 12 points of ink and a character at a
@@ -335,15 +352,28 @@ export function Play({ color, size = GLYPH_BOX }: { color: string; size?: number
 }
 
 /**
- * Stop: halt the queue. A filled square.
+ * Stop: halt the queue. A filled square, which is the shared assortment's own
+ * answer for "stop, abort" and not a shape picked here.
  *
- * Its silhouette is the whole of what tells it from Play, which is the rule for
- * a pair of state glyphs in one badge: the colour is spent on the badge saying
- * which state is active, so the shape carries the difference. One round shape
- * against one angular one is the usual advice and a triangle against a square
- * is the same idea - never two members of one family, which is how a "play"
- * triangle beside a "pause" pair of bars ends up reading as two states of one
- * control instead of two different things.
+ * ONE OF THESE IS ON SCREEN AT A TIME. The queue badge shows the offer that is
+ * not already true - a triangle while the queue is halted, a square while it
+ * runs - so what tells them apart is the change, and the accessible label
+ * beside it says which in words.
+ *
+ * That is worth stating because the pair rule sounds like it applies here and
+ * does not, and an earlier comment in this spot claimed it did while getting it
+ * backwards. The rule governs a two-option pair drawn SIDE BY SIDE with only
+ * the active one filled: there the colour is spent on the badge saying which is
+ * active, so the silhouettes carry the whole difference, and a round shape
+ * against an angular one is the pairing that survives 16 points. A play
+ * triangle beside a stop square is named in the language as the FAILURE of
+ * that test, not as an example of it - at that size the two read as two states
+ * of one control rather than as two different things.
+ *
+ * So if this control is ever rebuilt as the pair it should be (a cycling badge
+ * asks the reader to infer the alternative from a glyph that is not on screen),
+ * the second segment needs a genuinely different silhouette - a power ring
+ * against this triangle - rather than this square moved into it.
  */
 export function Stop({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
   // A square is as tall as it is wide, so its own grid is its extent.
@@ -617,18 +647,73 @@ export function Github({ color, size = GLYPH_BOX }: { color: string; size?: numb
   );
 }
 
-/** Mail: an envelope, drawn as a body with the flap laid over its top. */
-export function Mail({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
+/**
+ * Mail: an envelope - a filled body with the flap's V laid over its top.
+ *
+ * `hole` is the colour BEHIND the glyph, and the flap only exists when it is
+ * given. React Native cannot cut one shape out of another, so the V is painted
+ * rather than punched, and painting it a guessed colour is exactly the lie the
+ * gear above refuses to tell: the wrong guess is invisible on the one surface
+ * it was tested against and wrong everywhere else. The rotated square used to
+ * carry no colour at all on the theory that the body's own `overflow: hidden`
+ * would crop it into a V - it cropped nothing, because a view with no fill
+ * draws nothing to crop, and the envelope rendered as a plain rounded
+ * rectangle for as long as it had existed.
+ */
+export function Mail({ color, hole, size = GLYPH_BOX }: { color: string; hole?: string; size?: number }) {
   // The envelope is wider than it is tall, so the WIDTH is what fills the box.
   const u = unit(size, 13);
   return (
     <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
       <View style={{ width: 13 * u, height: 9.5 * u, backgroundColor: color, borderRadius: 1.4 * u, overflow: 'hidden' }}>
-        {/* The flap: a square rotated 45 degrees, cropped by the body's own
-            overflow so only the V of it shows. Filled in the badge's ground
-            would be a lie on another surface, so it is the CUT that draws it -
-            two bars meeting at the point, in the surface behind. */}
-        <View style={{ position: 'absolute', top: -6.6 * u, left: 1.4 * u, width: 10.2 * u, height: 10.2 * u, transform: [{ rotate: '45deg' }] }} />
+        {/* A square rotated 45 degrees and hung above the body's top edge, so
+            the body's own overflow keeps only its lower corner: the two edges
+            of that corner are the flap, and the ground colour between them is
+            what draws them. */}
+        {hole ? (
+          <View
+            style={{
+              position: 'absolute',
+              top: -6.6 * u,
+              left: 1.4 * u,
+              width: 10.2 * u,
+              height: 10.2 * u,
+              backgroundColor: hole,
+              transform: [{ rotate: '45deg' }],
+            }}
+          />
+        ) : null}
+      </View>
+    </View>
+  );
+}
+
+/**
+ * Folder: a tab and a body, which is all a folder is at this size.
+ *
+ * The empty package list's own mark. A list with nothing in it gets a
+ * deliberate empty state rather than blank space, and a muted glyph at reduced
+ * opacity is the half of that shape which says WHAT would be there - the words
+ * underneath say why it is not.
+ */
+export function Folder({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
+  // Wider than it is tall (13 across against 2 + 9 less their 0.6 overlap), so
+  // the WIDTH is what fills the box.
+  const u = unit(size, 13);
+  return (
+    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
+      <View style={{ width: 13 * u }}>
+        <View
+          style={{
+            width: 6 * u,
+            height: 2 * u,
+            marginBottom: -0.6 * u,
+            backgroundColor: color,
+            borderTopLeftRadius: 0.8 * u,
+            borderTopRightRadius: 0.8 * u,
+          }}
+        />
+        <View style={{ width: 13 * u, height: 9 * u, backgroundColor: color, borderRadius: 1.4 * u }} />
       </View>
     </View>
   );

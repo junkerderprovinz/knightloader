@@ -11,7 +11,7 @@ import { useAppearance } from '../theme/AppearanceContext';
 import { TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
 import { GlimButton } from '../components/glim';
-import IconBadge, { Back, Connect, Paste, Scan } from '../components/IconBadge';
+import IconBadge, { Back, Connect, Paste, Scan, boxForInk } from '../components/IconBadge';
 import * as Clipboard from 'expo-clipboard';
 
 // Joining the group, which is the whole of connecting this app now: twelve
@@ -75,13 +75,27 @@ export default function RelayConnectScreen({
    * is wrong" is information, and losing it to make the rule tidy would be the
    * rule eating the product. An EMPTY field carries no such information, and
    * that is the case he is describing.
+   *
+   * THE GEOMETRY IS THE HOUSE'S, not this screen's. `glim-shake` is a 360ms
+   * ease-in-out translateX oscillation decaying +-4, -+4, +-2, -+2 through its
+   * middle four keyframes, and the web UI (index.css) and the extension
+   * (glimstone.css) both carry exactly that. This ran five 55ms steps at +-7
+   * instead, so one gesture had three different shapes across one product -
+   * which is the whole reason those numbers are written down at all. Five
+   * segments of 72ms is the same 360ms, and the fractions below are the same
+   * decay read against a +-4 range.
    */
   const wackeln = useRef(new Animated.Value(0)).current;
   const zittern = useCallback(() => {
     wackeln.setValue(0);
     Animated.sequence(
-      [1, -1, 0.6, -0.6, 0].map((zu) =>
-        Animated.timing(wackeln, { toValue: zu, duration: 55, easing: Easing.linear, useNativeDriver: true }),
+      [1, -1, 0.5, -0.5, 0].map((zu) =>
+        Animated.timing(wackeln, {
+          toValue: zu,
+          duration: 72,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
       ),
     ).start();
   }, [wackeln]);
@@ -281,7 +295,7 @@ export default function RelayConnectScreen({
 
       <Animated.View
         style={{
-          transform: [{ translateX: wackeln.interpolate({ inputRange: [-1, 1], outputRange: [-7, 7] }) }],
+          transform: [{ translateX: wackeln.interpolate({ inputRange: [-1, 1], outputRange: [-4, 4] }) }],
         }}
       >
       <GlimButton
@@ -332,8 +346,26 @@ export default function RelayConnectScreen({
                 </View>
               </View>
             )}
+            /* The same empty state every other list in the app draws: a card,
+               a muted glyph at reduced opacity, a muted line. It was a bare
+               sentence on the page ground, which made this the third shape one
+               app used for one situation - and a shape nobody chose, since a
+               list with nothing in it is exactly the moment the page should
+               still look like the page.
+
+               The glyph's size is the role's own number (26 points of ink, the
+               same an empty state takes in the web UI), converted through
+               boxForInk because a drawn glyph here fills less than the box it
+               is handed - see IconBadge. */
             ListEmptyComponent={
-              searching ? null : <Text style={[styles.empty, { color: c.textMuted }]}>{t('relay.noInstances')}</Text>
+              searching ? null : (
+                <View style={[styles.empty, { backgroundColor: c.surface, borderRadius: radii.card }]}>
+                  <View style={styles.emptyIcon}>
+                    <Connect color={c.textMuted} size={boxForInk(26)} />
+                  </View>
+                  <Text style={[styles.emptyText, { color: c.textMuted }]}>{t('relay.noInstances')}</Text>
+                </View>
+              )
             }
           />
           {sibs.length > 0 && (
@@ -370,13 +402,18 @@ export default function RelayConnectScreen({
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 24, paddingTop: 56 },
   topBar: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 4 },
-  title: { fontSize: 22, fontWeight: '600', marginBottom: 8 },
+  // Every size on this screen comes off the scale in theme/tokens.ts. They were
+  // 22, 13 and 15 - a heading one step above the heading step, and two rungs
+  // invented between Dense and Body - which is the ladder the scale exists to
+  // stop: this screen's own title is the same object as Downloads' and Settings'
+  // and has to measure the same.
+  title: { fontSize: TYPE.heading, fontWeight: '600', marginBottom: 8 },
   hint: { fontSize: TYPE.body, marginBottom: 16, lineHeight: 20 },
-  label: { fontSize: 13, marginBottom: 6, marginTop: 12 },
+  label: { fontSize: TYPE.dense, marginBottom: 6, marginTop: 12 },
   input: {
     paddingHorizontal: 14,
     paddingVertical: 12,
-    fontSize: 15,
+    fontSize: TYPE.body,
     borderWidth: 1,
   },
   // Twelve words do not fit on one phone line, and a field that scrolls
@@ -411,7 +448,10 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   rowText: { flex: 1, minWidth: 0 },
-  rowName: { fontSize: 15, fontWeight: '600' },
+  rowName: { fontSize: TYPE.body, fontWeight: '600' },
   rowSub: { fontSize: TYPE.dense, marginTop: 2 },
-  empty: { fontSize: 13, textAlign: 'center', marginTop: 12 },
+  // The empty state's own card, not a loose line of text.
+  empty: { alignItems: 'center', gap: 10, paddingVertical: 24, paddingHorizontal: 24, marginTop: 8 },
+  emptyIcon: { opacity: 0.5 },
+  emptyText: { fontSize: TYPE.body, textAlign: 'center' },
 });

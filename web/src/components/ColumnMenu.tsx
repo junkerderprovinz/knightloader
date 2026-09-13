@@ -117,7 +117,7 @@ export function ColumnMenu({
               aria-checked={shown}
               disabled={disabled}
               onClick={() => onToggle(c.id)}
-              className={`flex min-w-0 flex-1 items-center gap-2.5 rounded-[var(--radius-control)] px-2 py-1.5 text-start text-[13px]
+              className={`flex min-w-0 flex-1 items-center gap-2.5 rounded-[var(--radius-control)] px-2 py-1.5 text-start text-[12px]
                 transition-colors ${
                   disabled
                     ? 'cursor-not-allowed text-carbon-textMuted'
@@ -136,7 +136,7 @@ export function ColumnMenu({
       <button
         role="menuitem"
         onClick={onReset}
-        className="flex w-full items-center rounded-[var(--radius-control)] px-2 py-1.5 text-start text-[13px]
+        className="flex w-full items-center rounded-[var(--radius-control)] px-2 py-1.5 text-start text-[12px]
           text-carbon-textSub transition-colors hover:bg-carbon-hover hover:text-carbon-text"
       >
         {t('columns.reset')}

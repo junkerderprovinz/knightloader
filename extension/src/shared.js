@@ -28,6 +28,40 @@ function deploymentLabel(dep) {
 }
 
 /**
+ * The refusal signal (jdp, 2026-08-31: "wenn man drauf klickt und man kenie
+ * Phrase eingegeben hat, also es nicht klappt, soll er button kurz zittern. Ist
+ * das standardverhalten für ein fehlschlagen von buttons. steht in GS. Die
+ * Text-Fehlermeldung die darunter erscheint soll weg").
+ *
+ * He is right that it is already the standard: GlimStone's "Failure feedback"
+ * says every failable action reports through the same two channels and the
+ * control that was clicked plays `glim-shake` - "systemweit", which is why this
+ * lives here rather than on one page. It sat in options.js while the popup drew
+ * the same card with the same failable controls and had no way to reach it, so
+ * the same press refused on two surfaces answered on only one.
+ *
+ * Replay is the part that is easy to get wrong: an animation already at rest
+ * does NOT restart because its class left and came back in the same frame, so a
+ * second identical refusal would sit still. A component framework solves it by
+ * keying the element on a counter, which mints a fresh DOM node. These pages
+ * have no framework, and cloning the node would be the literal translation of
+ * that - but it would also drop every listener bound to the element, which
+ * includes the ones that make the button work at all. Forcing a reflow between
+ * the remove and the add restarts the animation with the same effect and leaves
+ * the node, and its listeners, exactly where they were.
+ */
+function shake(el) {
+  if (!el) return;
+  el.classList.remove('glim-shake');
+  // Reading a layout property flushes the pending style change, which is what
+  // makes the class removal a real "animation ended" rather than a no-op the
+  // browser coalesces away. Deliberately not assigned to anything.
+  void el.offsetWidth;
+  el.classList.add('glim-shake');
+  el.addEventListener('animationend', () => el.classList.remove('glim-shake'), { once: true });
+}
+
+/**
  * instanceCard draws one instance the way the web UI's own Instances tab draws
  * it (jdp, 2026-08-28: "Im erweiterungsfenster sollen die Instanzen auch als
  * cards erscheinen. Gleich wie im instanzentab."): the mark flush against the
@@ -54,6 +88,15 @@ function instanceCard(inst, { index, isDefault, isChosen, onPick, onSetDefault, 
   if (onPick) {
     card.setAttribute('role', 'radio');
     card.setAttribute('aria-checked', String(!!isChosen));
+    // The SHARED marker class beside the app's own "this one is picked"
+    // attribute, not instead of it. aria-checked is what a screen reader reads;
+    // .glim-active is what the colour engine reads, and in the reactive rainbow
+    // it is the whole difference between a chosen card that shows its position
+    // colour and one that stays grey until the pointer happens to touch it. The
+    // rule asks for colour on hover AND on whatever is active; the stylesheet
+    // already carried the `.glim-hue.glim-active` half and nothing on any page
+    // had ever handed the class out.
+    card.classList.toggle('glim-active', !!isChosen);
     card.tabIndex = 0;
   }
   if (typeof index === 'number') setHue(card, index);
@@ -126,10 +169,10 @@ function instanceCard(inst, { index, isDefault, isChosen, onPick, onSetDefault, 
       // read before you dare press it, and this one sits next to a list where
       // the answer is "which instance was that again".
       actions.appendChild(
-        squareAction(GLYPH_PLAY, t('instance.start'), !live || !halted, () => onQueue(inst, false)),
+        squareAction(GLYPH_PLAY, t('instance.start'), !live || !halted, (el) => onQueue(inst, false, el)),
       );
       actions.appendChild(
-        squareAction(GLYPH_STOP, t('instance.stop'), !live || halted, () => onQueue(inst, true), t('instance.haltedHint')),
+        squareAction(GLYPH_STOP, t('instance.stop'), !live || halted, (el) => onQueue(inst, true, el), t('instance.haltedHint')),
       );
     }
     if (onOpen) {
@@ -137,7 +180,7 @@ function instanceCard(inst, { index, isDefault, isChosen, onPick, onSetDefault, 
       // a control that appears on one card and not on another reads as a fault
       // in the card, not as a property of the instance.
       const url = status?.webUrl ?? '';
-      actions.appendChild(squareAction(GLYPH_OPEN, t('instance.open'), !url, () => onOpen(inst, url)));
+      actions.appendChild(squareAction(GLYPH_OPEN, t('instance.open'), !url, (el) => onOpen(inst, url, el)));
     }
     card.appendChild(actions);
   }
@@ -182,22 +225,24 @@ function squareAction(d, label, disabled, onClick, extraTip) {
   b.setAttribute('data-tip', tip);
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('viewBox', '0 0 16 16');
-  // 15 in .glim-square's 30px box: a glyph standing ALONE in a square is half
-  // of it (GlimStone 1.8.0). There are no words beside it to set the size
+  // 16 in .glim-square's --btn-h box: a glyph standing ALONE in a square is
+  // half of it (GlimStone 1.8.0). There are no words beside it to set the size
   // against, so the only proportion available is how much of the frame the ink
-  // fills. It was 14, and the number matters less than the agreement: the
-  // extension ran three different ratios at once - 47% here, 44% on the icon
-  // badges, 59% on the reset - which on one screen reads as three sizes of the
-  // same object rather than as one decision.
-  svg.setAttribute('width', '15');
-  svg.setAttribute('height', '15');
+  // fills. It was 15 in a 30px box, which is the same half - the box is what
+  // moved, to the one square-badge size the whole extension now takes.
+  svg.setAttribute('width', '16');
+  svg.setAttribute('height', '16');
   svg.setAttribute('aria-hidden', 'true');
   const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
   path.setAttribute('fill', 'currentColor');
   path.setAttribute('d', d);
   svg.appendChild(path);
   b.appendChild(svg);
-  b.addEventListener('click', onClick);
+  // The button hands ITSELF to the handler. A failed action has to shake the
+  // control that was clicked, and the card is rebuilt from the top on every
+  // render, so a caller that kept its own reference would be holding a node
+  // that is no longer on the page by the time the answer comes back.
+  b.addEventListener('click', () => onClick(b));
   return b;
 }
 

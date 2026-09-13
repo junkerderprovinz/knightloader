@@ -11,6 +11,7 @@ import {
   TextInput,
 } from '../../components/ui';
 import { IconArrowDown, IconArrowUp, IconGlobe, IconPlus, IconTrash } from '../../lib/icons';
+import { useToast } from '../../lib/toast';
 import { useT, type TranslationKey } from '../../lib/i18n';
 import { useDraft } from './context';
 import { NeutralSwitch } from './controls';
@@ -575,10 +576,15 @@ function TestPanel({ row }: { row: Connection }) {
 
 function ImportDialog({ onClose, onAdd }: { onClose: () => void; onAdd: (entries: Connection[]) => void }) {
   const cx = useCx();
+  const { toast } = useToast();
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<ImportResult | null>(null);
-  const [error, setError] = useState('');
+  // The reading button's own failure counter. Keyed onto that button, so a
+  // second identical refusal builds a fresh DOM node and shakes again instead
+  // of playing once ever; its partner in the footer is only ever rendered in
+  // the other state, so there is no second button here to shake by mistake.
+  const [shake, setShake] = useState(0);
 
   // The server reports a refused line by NUMBER and never sends the line back —
   // a rejected line is exactly where a password is still in plain text, and that
@@ -588,7 +594,6 @@ function ImportDialog({ onClose, onAdd }: { onClose: () => void; onAdd: (entries
 
   async function read() {
     setBusy(true);
-    setError('');
     try {
       const r = await fetch('/api/connections/import', {
         method: 'POST',
@@ -598,7 +603,12 @@ function ImportDialog({ onClose, onAdd }: { onClose: () => void; onAdd: (entries
       if (!r.ok) throw new Error((await r.text()).trim() || String(r.status));
       setResult((await r.json()) as ImportResult);
     } catch (e) {
-      setError(cx('settings.connections.importFailed', { error: String(e).replace(/^Error:\s*/, '') }));
+      // Toast plus a shake of the button that was pressed, and no sentence
+      // left standing in the window: a page-resident copy never clears itself,
+      // so a refusal from earlier in the session reads exactly as current as
+      // the one that just happened.
+      toast(cx('settings.connections.importFailed', { error: String(e).replace(/^Error:\s*/, '') }), 'fail');
+      setShake((n) => n + 1);
     } finally {
       setBusy(false);
     }
@@ -626,7 +636,12 @@ function ImportDialog({ onClose, onAdd }: { onClose: () => void; onAdd: (entries
               {cx('settings.connections.importAdd', { n: ready })}
             </Button>
           ) : (
-            <Button disabled={busy || text.trim() === ''} onClick={read}>
+            <Button
+              key={shake}
+              className={shake > 0 ? 'glim-shake' : ''}
+              disabled={busy || text.trim() === ''}
+              onClick={read}
+            >
               {busy ? cx('settings.connections.importReading') : cx('settings.connections.importRead')}
             </Button>
           )}
@@ -648,8 +663,6 @@ function ImportDialog({ onClose, onAdd }: { onClose: () => void; onAdd: (entries
           }}
         />
       </Field>
-
-      {error && <p className="text-xs text-statusFail">{error}</p>}
 
       {result && (
         <div className="flex flex-col gap-2">
@@ -701,6 +714,44 @@ function StateLine({ tone, children }: { tone: 'muted' | 'warn'; children: React
   );
 }
 
+/**
+ * wheelSteps is the wheel clause on a native <select>: a CLOSED select steps
+ * one option per notch and fires a real `change`, without the platform's own
+ * list opening at all. The platform only wires the wheel up once that list is
+ * already open, which costs a click on a value somebody reaches for
+ * constantly - and a connection's kind is such a value.
+ *
+ * Clamped at both ends instead of wrapping: one notch too many must not land a
+ * value from the other end of the list.
+ *
+ * A ref callback with its own cleanup (React 19) and `{ passive: false }`,
+ * never onWheel: React registers onWheel passive at its root, so preventDefault
+ * inside such a handler does nothing but log a warning, and the page would
+ * scroll away under the pointer while the value changed.
+ *
+ * Word for word the same listener as in components/SearchField.tsx,
+ * components/QueueBar.tsx and components/RuleEditor.tsx. This app's home for it
+ * would be lib/selectScroll.ts, which does not exist yet.
+ */
+function wheelSteps(el: HTMLSelectElement | null) {
+  if (!el) return;
+  const onWheel = (e: WheelEvent) => {
+    // A horizontal wheel says nothing about this control, and a trackpad
+    // reports fractional deltas - so read the sign of deltaY and nothing else.
+    if (el.disabled || el.options.length < 2 || e.deltaY === 0) return;
+    // This handler IS the scroll while the pointer sits on the control.
+    e.preventDefault();
+    const next = Math.min(el.options.length - 1, Math.max(0, el.selectedIndex + (e.deltaY > 0 ? 1 : -1)));
+    if (next === el.selectedIndex) return;
+    el.selectedIndex = next;
+    // A real change event rather than a state write, so the onChange already on
+    // the element picks this up exactly as it would a click on an <option>.
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+  };
+  el.addEventListener('wheel', onWheel, { passive: false });
+  return () => el.removeEventListener('wheel', onWheel);
+}
+
 /** The one control the design language has no primitive for. Styled to match
  *  TextInput exactly, so a form row does not read as two different systems. */
 function Select({
@@ -715,6 +766,7 @@ function Select({
   return (
     <select
       value={value}
+      ref={wheelSteps}
       onChange={(e) => onChange(e.target.value)}
       className="glim-select appearance-none pe-6 w-full rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2 text-sm text-carbon-text
         outline-none transition-shadow focus:shadow-[0_0_0_2px_var(--focus-ring)]"

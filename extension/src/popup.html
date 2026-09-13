@@ -25,15 +25,22 @@
            be up to 800x600; this is not about reaching that. 280 made #target
            - a page title, which can be long - wrap to three or four lines.
            360 fixed that and was then too narrow for the card the instances
-           grew into: a 48px mark, a name, a status line and three 30px
-           controls do not share 360 without the line being ellipsised into
+           grew into: a 48px mark, a name, a status line and three square
+           badges do not share 360 without the line being ellipsised into
            uselessness. */
         margin: 0;
         width: 420px;
         padding: 16px;
         background: var(--carbon-bg);
         color: var(--carbon-text);
-        font-family: -apple-system, "Segoe UI", sans-serif;
+        /* The same stack the web interface and the options page use, ending in
+           system-ui and sans-serif rather than on a fixed list of named fonts.
+           That tail is what lets a browser fall back PER CHARACTER to whatever
+           the system already has for a script the first choice is thin on - and
+           this extension ships Chinese, Japanese and Korean. Without system-ui,
+           Linux and Android have neither -apple-system nor Segoe UI and drop all
+           the way to the generic sans-serif. */
+        font-family: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif;
         font-size: var(--text-body);
         line-height: 1.4;
       }
@@ -68,14 +75,21 @@
          badge mit zahnrad um die einstellungen zu öffnen") — square, same
          neutral/hover pair as the main app's own IconBadge (neutral kind:
          web/src/components/ui.tsx), reused here in plain CSS since this
-         extension has no build step to pull the component from. */
+         extension has no build step to pull the component from.
+
+         --btn-h, the one square-badge size the whole extension uses, not a
+         number fitted to this header. It was 26 here while the same class on
+         the options page was 36 and the square action on an instance card - a
+         card this very window draws - was 30. Roles are an authoring-side
+         abstraction; a reader sees one window with a header badge above a row
+         of card badges and reads three sizes of the same object. */
       .iconBadge {
         display: flex;
         flex-shrink: 0;
         align-items: center;
         justify-content: center;
-        width: 26px;
-        height: 26px;
+        width: var(--btn-h);
+        height: var(--btn-h);
         padding: 0;
         margin: 0;
         border: 0;
@@ -102,11 +116,15 @@
         color: var(--carbon-text-sub);
         overflow-wrap: anywhere;
       }
-      /* One height for every pressable thing in this window, the same 36 the
-         options page settled on and the same the icon badges are (jdp,
-         2026-09-01 about Send and Cancel: "beide buttons gleich groß machen").
+      /* One height for every pressable thing in this window, --btn-h, the same
+         token the options page and the icon badges read (jdp, 2026-09-01 about
+         Send and Cancel: "beide buttons gleich groß machen").
          They were `display: block` with padding and no height, so each ended up
-         as tall as its own text - fine until two of them stand in one row.
+         as tall as its own text - fine until two of them stand in one row. 36
+         was the first correction and it was a number this window and the
+         options page agreed on between themselves rather than the one the
+         language names, which is how the field beside a button ended up three
+         pixels taller than it.
 
          A flex row rather than a block, because every button here now carries a
          glyph beside its label (jdp: "Alle buttons sollen einen Glyph bekommen.
@@ -119,7 +137,7 @@
         gap: 8px;
         box-sizing: border-box;
         width: 100%;
-        height: 36px;
+        height: var(--btn-h);
         padding: 0 12px;
         margin-bottom: 0;
         border: 0;
@@ -127,7 +145,7 @@
         font: inherit;
         font-weight: 500;
         /* A label may never break over two lines. The height above is a fixed
-           36, so a second line does not make the button taller, it pushes the
+           one, so a second line does not make the button taller, it pushes the
            text out through the top and bottom of its own surface and the
            button beside it stops looking like the same object (jdp,
            2026-09-02: "Buttons wieder nicht gleich groß"). `overflow: hidden`
@@ -157,11 +175,14 @@
       /* Shaped like a text field rather than left native: it sits under a
          label in the same column as the Send button. Same correction as
          options.html's own selects - a filled surface2 and no border, which
-         is what the web UI's field actually is. */
+         is what the web UI's field actually is. The height comes from --btn-h
+         rather than from its own padding, because --btn-h IS what a field
+         measures and the button directly beneath it reads the same token. */
       #instance {
         width: 100%;
         box-sizing: border-box;
-        padding: 7px 8px;
+        height: var(--btn-h);
+        padding: 0 8px;
         border: 0;
         border-radius: var(--radius-control);
         background: var(--carbon-surface2);
@@ -195,7 +216,7 @@
          overflowed, and the algorithm froze send at its automatic min-content
          width - the width of its longest WORD - and handed the rest of the
          line to cancel. That is why the label broke over two lines and spilled
-         out of its fixed 36px box, which is what made the heights look unequal
+         out of its fixed box, which is what made the heights look unequal
          as well.
 
          `flex-basis: 0` on both means the split is (420 - 8) / 2 regardless of
@@ -289,12 +310,14 @@
              stopped reading as a gear at all and became a blob. Caught in a
              store screenshot, not in the code.
 
-             13 in a 26px badge, not 16: a glyph alone in a square is HALF its
-             box (1.8.0). At 16 it filled 62% of the badge, which is the exact
-             ratio the rule was written against ("die glyphen sind zu gross und
-             wirken klobig") - there are no words beside it to match, so the
-             only proportion left is how much of the frame the ink takes. -->
-        <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+             16 in the 32px badge: a glyph alone in a square is HALF its box
+             (1.8.0), and the half moves with the box rather than being restated
+             per size - it was 13 in 26 for the same reason. At 62% it read as
+             chunky, which is the exact ratio the rule was written against ("die
+             glyphen sind zu gross und wirken klobig") - there are no words
+             beside it to match, so the only proportion left is how much of the
+             frame the ink takes. -->
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
           <path
             fill-rule="evenodd"
             clip-rule="evenodd"

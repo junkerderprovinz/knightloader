@@ -109,5 +109,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
   },
-  secondaryButtonText: { fontSize: 16 },
+  // Body, off the scale in theme/tokens.ts. It was 16 - a step above Body that
+  // the table does not have, and one this button had no reason to be on: it
+  // stands beside a GlimButton whose own label is Body.
+  secondaryButtonText: { fontSize: TYPE.body },
 });

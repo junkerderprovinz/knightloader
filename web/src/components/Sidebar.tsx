@@ -5,6 +5,7 @@ import { hueVars, rainbowAt } from '../lib/appearance';
 import { useRainbow } from '../lib/useRainbow';
 import { setHidden, useHidden } from '../lib/sidebarPrefs';
 import { asNavLabelMode, setNavLabels, useNavLabels, type NavLabelMode } from '../lib/navLabels';
+import { useTooltip } from './ui';
 import { useT } from '../lib/i18n';
 import { fetchAuth, fetchSettings, logout } from '../lib/api';
 import { useTasks } from '../lib/useTasks';
@@ -135,10 +136,23 @@ function useDrawAndStrike(): {
 // the rail the first time somebody edits one of the two copies. The import
 // EventBell makes back into this file is a cycle on paper only - it reads these
 // during render, long after both modules have finished evaluating.
+// glim-nav-row traegt die Glyphengroesse des Hauses, 20px. Sie steht HIER statt
+// an jeder Aufrufstelle, weil navBase ohnehin die eine Zeichenkette ist, die
+// jede Schienenzeile teilt - auch die in EventBell.tsx, die sie importiert
+// statt sie abzuschreiben.
 export const navBase =
-  'relative flex items-center rounded-[var(--radius-control)] px-3 py-2.5 text-[15px] font-medium transition duration-150 select-none';
+  'glim-nav-row relative flex items-center rounded-[var(--radius-control)] px-3 py-2.5 text-[15px] font-medium transition duration-150 select-none';
 const navActive = 'glim-active bg-accent text-accentContrast';
-export const navInactive = 'text-[var(--sidebar-text)] hover:bg-carbon-hover hover:text-carbon-text';
+// A QUIET HOVER MOVES, IT DOES NOT ONLY RECOLOUR: 2px of horizontal nudge,
+// motion-safe-gated. On a rail this visually quiet a colour change alone
+// barely reads as "this is reachable", and the nudge was simply missing - a
+// search for `translate` in index.css finds the bubble, the shake, the page
+// entrance, the toast, the panel, the window and the easter egg, and nothing
+// at all for the rail. It sits on this string rather than at the three call
+// sites because the bell and the sign-out row IMPORT this string instead of
+// copying it, so one edit reaches every row in the rail.
+export const navInactive =
+  'text-[var(--sidebar-text)] hover:bg-carbon-hover hover:text-carbon-text motion-safe:hover:translate-x-0.5';
 
 // In rainbow mode the icon carries the item's own hue, so the rail and the
 // glyph agree and the nav reads as a set rather than as one gold item and five
@@ -202,42 +216,60 @@ function Item({
   // centring is what does the work). `group` is what NavLabel's own
   // group-hover rules hang off, and inert in the other three modes.
   const centred = mode === 'glyph' || mode === 'hover';
+  // GLYPH-ONLY GETS THE BUBBLE, HOVER MODE DOES NOT - and it is the house
+  // bubble either way.
+  //
+  // Two separate things were wrong in one attribute. It was gated on
+  // `centred`, which is true in hover mode as well: there the pointer arrives,
+  // the words slide out of the row, and the browser drew its own box saying
+  // the same word on top of them. The words themselves are the reveal in that
+  // mode and a bubble over them is the same information twice. And it was the
+  // NATIVE attribute, which is the other mechanism - the OS's box, in the OS's
+  // font, at the pointer instead of at the trigger, and untouched by every
+  // rule this app's own bubble follows. Button and IconBadge made this same
+  // move already; the rail is one of the call sites on raw elements that was
+  // never swept after them.
+  const tip = useTooltip<HTMLAnchorElement>(mode === 'glyph' ? label : undefined);
+  const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
   return (
-    <NavLink
-      to={to}
-      end={end}
-      style={hueVars(rainbowAt(hue)) as CSSProperties}
-      // The accessible name comes from the visible text in three of the four
-      // modes. Glyph-only has no visible text at all, so it says the name
-      // itself rather than announcing as an unlabelled link.
-      title={centred ? label : undefined}
-      aria-label={mode === 'glyph' ? label : undefined}
-      className={({ isActive }) =>
-        `${navHued} ${navBase} group ${centred ? 'justify-center' : 'gap-3'} ${isActive ? navActive : navInactive}`
-      }
-    >
-      {mode !== 'text' && icon}
-      <NavLabel label={label} mode={mode} />
-      {/* On the filled active item the badge sits on the accent, so it borrows
-          the ink colour instead of the surface tint it uses when idle.
+    <>
+      <NavLink
+        to={to}
+        end={end}
+        style={hueVars(rainbowAt(hue)) as CSSProperties}
+        // The accessible name comes from the visible text in three of the four
+        // modes. Glyph-only has no visible text at all, so it says the name
+        // itself rather than announcing as an unlabelled link.
+        aria-label={mode === 'glyph' ? label : undefined}
+        {...(mode === 'glyph' ? tipHoverProps : {})}
+        className={({ isActive }) =>
+          `${navHued} ${navBase} group ${centred ? 'justify-center' : 'gap-3'} ${isActive ? navActive : navInactive}`
+        }
+      >
+        {mode !== 'text' && icon}
+        <NavLabel label={label} mode={mode} />
+        {/* On the filled active item the badge sits on the accent, so it borrows
+            the ink colour instead of the surface tint it uses when idle.
 
-          In both centred modes it moves to the corner of the glyph rather
-          than disappearing: a queue that is running is worth more than the two
-          characters it costs, and it is the one thing in this rail somebody
-          watches without reading. In hover mode that is also the only way the
-          glyph is genuinely centred at rest - left in the flow, an inline
-          badge sitting beside it would push it off centre by its own width,
-          on exactly the four items that ever carry one. navBase is already
-          `relative`, so this needs no positioning context of its own. */}
-      {badge ? (
-        <span
-          className={`glim-num rounded-[var(--radius-pill)] bg-carbon-surface3/60 px-1.5 py-0.5 text-[11px] font-semibold leading-none text-carbon-textSub [.glim-active_&]:bg-black/15 [.glim-active_&]:text-current
-            ${centred ? 'absolute end-1 top-1' : ''}`}
-        >
-          {badge}
-        </span>
-      ) : null}
-    </NavLink>
+            In both centred modes it moves to the corner of the glyph rather
+            than disappearing: a queue that is running is worth more than the two
+            characters it costs, and it is the one thing in this rail somebody
+            watches without reading. In hover mode that is also the only way the
+            glyph is genuinely centred at rest - left in the flow, an inline
+            badge sitting beside it would push it off centre by its own width,
+            on exactly the four items that ever carry one. navBase is already
+            `relative`, so this needs no positioning context of its own. */}
+        {badge ? (
+          <span
+            className={`glim-num rounded-[var(--radius-pill)] bg-carbon-surface3/60 px-1.5 py-0.5 text-[11px] font-semibold leading-none text-carbon-textSub [.glim-active_&]:bg-black/15 [.glim-active_&]:text-current
+              ${centred ? 'absolute end-1 top-1' : ''}`}
+          >
+            {badge}
+          </span>
+        ) : null}
+      </NavLink>
+      {tip.node}
+    </>
   );
 }
 
@@ -302,8 +334,53 @@ export function Sidebar() {
   // a rail that widened to fit the label it reveals would break that on the
   // first mouseover.
   const narrow = mode === 'glyph';
+
+  // THE POSITION COMES FROM A COUNTER, IN RENDER ORDER, NEVER FROM A LITERAL.
+  //
+  // The six destinations carried hue={0}..hue={5} written out by hand, and two
+  // of them are conditional: hide "Instanzen" in the settings and position 3
+  // goes unspent, so the rail's rainbow has a hole in the middle while Konten
+  // and Einstellungen sit on 4 and 5 regardless. A counter incremented once
+  // per destination AS IT ACTUALLY RENDERS has no such gap - a destination
+  // that is hidden this render consumes no slot, so hiding or showing one
+  // never disturbs the colour of any other. This is the whole of the original
+  // objection to a rail rainbow ("a destination list is user-configured, a
+  // static index can never hold a stable position") answered: the objection
+  // was to the static index, not to the position.
+  //
+  // Reset on every render because it is declared here rather than kept in a
+  // ref: the count has to describe THIS render's tree, not the last one's.
+  let hue = 0;
+  const nextHue = () => hue++;
+
+  // The sign-out row is a rail row like any other and follows the same rule as
+  // Item's own tooltip above: the house bubble, and only in the one mode that
+  // shows no words at all. Declared out here because the row itself is
+  // conditional on `locked` and a hook cannot be.
+  const signOutTip = useTooltip<HTMLButtonElement>(mode === 'glyph' ? t('auth.signOut') : undefined);
+  const { role: _signOutRole, tabIndex: _signOutTabIndex, ...signOutTipProps } = signOutTip.triggerProps;
   return (
-    <aside className={`flex flex-col shrink-0 h-full bg-carbon-sidebar ${narrow ? 'w-16' : 'w-56'}`}>
+    // EINE KARTE, KEINE WAND (GlimStone 1.8.0). Der Radius ist der der Karten,
+    // der Abstand kommt vom Rahmen in app/Layout.tsx. KEIN Schatten, und das ist
+    // ausdruecklich: in einem Haus, dessen Karten keinen haben, tauscht eine
+    // erhoehte Schiene neben flachen Karten nur eine Ungereimtheit gegen eine
+    // andere.
+    // Ihr eigenes Flaechen-Token bleibt, was es war. Was sich aendert, ist die
+    // FORM, nicht die Farbe: die Schiene ist Navigation, und dass sie sich vom
+    // Inhalt abhebt, den sie navigiert, ist der Sinn des eigenen Tokens.
+    // overflow-hidden, weil die Marke oben sonst ueber die runde Ecke hinausragt.
+    //
+    // THE NARROW WIDTH IS 85px, AND IT BELONGS TO THE HOUSE. It used to be a
+    // calculation each app made from its own brand mark plus its row padding,
+    // which produced 96px in one app and 64px in another - and this rail was
+    // the 64, written as `w-16`. Two rails of different widths doing the same
+    // job is the thing a shared language exists to prevent, so the number is
+    // now a number: the mark fits the rail, not the rail the mark, and an app
+    // whose mark does not fit shrinks the mark.
+    <aside
+      className={`flex h-full shrink-0 flex-col overflow-hidden rounded-[var(--radius-card)]
+        bg-carbon-sidebar ${narrow ? 'w-[85px]' : 'w-56'}`}
+    >
       {/* Centered and stacked - jdp's own call for KnightLoader specifically,
           overriding the horizontal BV-matched row this briefly became ("Das
           Logo in der Sidebar wieder größer und Text unter das Logo"): a
@@ -346,11 +423,11 @@ export function Sidebar() {
             open for, and the collector is the room links pass through on their
             way into it. JDownloader puts its download tab first for the same
             reason, and somebody arriving from it reaches for the first entry. */}
-        <Item to="/" end hue={0} mode={mode} label={t('nav.overview')} icon={<IconDashboard />} />
-        <Item to="/downloads" hue={1} mode={mode} label={t('nav.downloads')} icon={<IconDownloads />} badge={active} />
-        <Item to="/collector" hue={2} mode={mode} label={t('nav.collector')} icon={<IconCollector />} badge={collected} />
-        {!hideInstances && <Item to="/instances" hue={3} mode={mode} label={t('nav.instances')} icon={<IconInstances />} />}
-        {!hideAccounts && <Item to="/accounts" hue={4} mode={mode} label={t('nav.accounts')} icon={<IconAccounts />} />}
+        <Item to="/" end hue={nextHue()} mode={mode} label={t('nav.overview')} icon={<IconDashboard />} />
+        <Item to="/downloads" hue={nextHue()} mode={mode} label={t('nav.downloads')} icon={<IconDownloads />} badge={active} />
+        <Item to="/collector" hue={nextHue()} mode={mode} label={t('nav.collector')} icon={<IconCollector />} badge={collected} />
+        {!hideInstances && <Item to="/instances" hue={nextHue()} mode={mode} label={t('nav.instances')} icon={<IconInstances />} />}
+        {!hideAccounts && <Item to="/accounts" hue={nextHue()} mode={mode} label={t('nav.accounts')} icon={<IconAccounts />} />}
       </nav>
 
       {/* Sprache and Hell/Dunkel used to live here too, mirrored from the
@@ -372,37 +449,40 @@ export function Sidebar() {
             card is gone - so it wants the position a sign-out is looked for
             in, not the last row under the settings link. */}
         {locked && (
-          <button
-            title={mode === 'glyph' || mode === 'hover' ? t('auth.signOut') : undefined}
-            aria-label={mode === 'glyph' ? t('auth.signOut') : undefined}
-            onClick={async () => {
-              try {
-                await logout();
-                location.reload();
-              } catch {
-                // logout() now throws on a non-2xx response too, not only a
-                // network failure (api.ts) - caught here so that stays an
-                // inert click rather than an unhandled rejection; there is
-                // no error banner in the sidebar to show anything richer.
-              }
-            }}
-            // Sign out is not an Item (it navigates nowhere), but it is a row
-            // in the same rail and follows the same four modes - one of them
-            // leaving a labelled button among centred glyphs would read as
-            // something the mode had missed rather than as an exception.
-            //
-            // `text-start` because a <button> centres its own text and an <a>
-            // does not, so this row sat a little further in than the five
-            // links above it in every mode that shows a label. Only visible
-            // once text-only mode put a label here with no glyph beside it to
-            // disguise it, but it was always wrong.
-            className={`${navBase} ${navInactive} group w-full text-start ${mode === 'glyph' || mode === 'hover' ? 'justify-center' : 'gap-3'}`}
-          >
-            {mode !== 'text' && <IconSignOut />}
-            <NavLabel label={t('auth.signOut')} mode={mode} />
-          </button>
+          <>
+            <button
+              aria-label={mode === 'glyph' ? t('auth.signOut') : undefined}
+              {...(mode === 'glyph' ? signOutTipProps : {})}
+              onClick={async () => {
+                try {
+                  await logout();
+                  location.reload();
+                } catch {
+                  // logout() now throws on a non-2xx response too, not only a
+                  // network failure (api.ts) - caught here so that stays an
+                  // inert click rather than an unhandled rejection; there is
+                  // no error banner in the sidebar to show anything richer.
+                }
+              }}
+              // Sign out is not an Item (it navigates nowhere), but it is a row
+              // in the same rail and follows the same four modes - one of them
+              // leaving a labelled button among centred glyphs would read as
+              // something the mode had missed rather than as an exception.
+              //
+              // `text-start` because a <button> centres its own text and an <a>
+              // does not, so this row sat a little further in than the five
+              // links above it in every mode that shows a label. Only visible
+              // once text-only mode put a label here with no glyph beside it to
+              // disguise it, but it was always wrong.
+              className={`${navBase} ${navInactive} group w-full text-start ${mode === 'glyph' || mode === 'hover' ? 'justify-center' : 'gap-3'}`}
+            >
+              {mode !== 'text' && <IconSignOut />}
+              <NavLabel label={t('auth.signOut')} mode={mode} />
+            </button>
+            {signOutTip.node}
+          </>
         )}
-        <Item to="/settings" hue={5} mode={mode} label={t('nav.settings')} icon={<IconSettings />} />
+        <Item to="/settings" hue={nextHue()} mode={mode} label={t('nav.settings')} icon={<IconSettings />} />
       </div>
     </aside>
   );

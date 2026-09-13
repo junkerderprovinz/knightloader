@@ -7,7 +7,7 @@ import { useAppearance } from '../theme/AppearanceContext';
 import { contentMax, useWide } from '../theme/layout';
 import { TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
-import IconBadge, { Gear } from '../components/IconBadge';
+import IconBadge, { Connect, Gear, boxForInk } from '../components/IconBadge';
 import SpeedGraph from '../components/SpeedGraph';
 import { GlimButton, StatusBadge } from '../components/glim';
 import { aggregate, fetchInstanceStats, fmtBytes, type InstanceStats } from '../api/stats';
@@ -53,6 +53,29 @@ function statusLine(
 // on screen at first paint with nothing to fetch.
 const MARK = require('../../assets/android-icon-foreground.png');
 
+/**
+ * blend lays `over` on `base` at `alpha`, returning an opaque colour.
+ *
+ * A copy of the one in components/TaskRow.tsx, which is where it was written
+ * and where the reasoning for computing the mix rather than layering a
+ * translucent view sits. It is duplicated here and should not stay that way:
+ * the pair belongs beside the palette in theme/tokens.ts, with both call sites
+ * reading it from there.
+ */
+function blend(base: string, over: string, alpha: number): string {
+  const b = rgb(base);
+  const o = rgb(over);
+  if (!b || !o) return base;
+  const mix = (x: number, y: number) => Math.round(x + (y - x) * alpha);
+  return `rgb(${mix(b.r, o.r)}, ${mix(b.g, o.g)}, ${mix(b.b, o.b)})`;
+}
+
+function rgb(hex: string): { r: number; g: number; b: number } | null {
+  if (!/^#[0-9a-fA-F]{6}$/.test(hex)) return null;
+  const n = parseInt(hex.slice(1), 16);
+  return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+}
+
 type ConnStatus = 'checking' | 'online' | 'offline';
 
 // The home screen, opened straight from a fresh install rather than the
@@ -73,7 +96,7 @@ export default function ConnectionsScreen({
   onOpenSettings: () => void;
 }) {
   const { t } = useT();
-  const { c, accent, radii } = useAppearance();
+  const { c, accent, radii, hueAt, rainbow } = useAppearance();
   const wide = useWide();
   const [connections, setConnections] = useState<ServerConnection[]>([]);
   const [status, setStatus] = useState<Record<string, ConnStatus>>({});
@@ -226,14 +249,38 @@ export default function ConnectionsScreen({
                   </View>
                   {/* Only offered when at least one instance answered: a start
                       button over a group that is entirely unreachable promises
-                      something it cannot do. */}
+                      something it cannot do.
+
+                      BOTH options, with only the one in force filled - the
+                      same pair the instance screen draws and the same one the
+                      browser extension has drawn since it shipped. It was one
+                      badge whose glyph flipped with the state, which asks the
+                      person to infer the alternative from a glyph that is not
+                      on the screen; halting the queues of every instance at
+                      once is about as far from "a preference" as this app
+                      goes. Filled says what the group IS doing, not what the
+                      press would do - a two-option pair is a selector with
+                      icon-only segments - so pressing the filled one does
+                      nothing. */}
                   {gesamt.online > 0 && (
-                    <IconBadge
-                      symbol={gesamt.halted ? '▶' : '■'}
-                      accent={gesamt.halted}
-                      onPress={busy ? () => {} : toggleAll}
-                      accessibilityLabel={t(gesamt.halted ? 'downloads.start' : 'downloads.stop')}
-                    />
+                    <View style={styles.summaryActions}>
+                      <IconBadge
+                        symbol="▶"
+                        accent={!gesamt.halted}
+                        onPress={() => {
+                          if (!busy && gesamt.halted) void toggleAll();
+                        }}
+                        accessibilityLabel={t('downloads.start')}
+                      />
+                      <IconBadge
+                        symbol="■"
+                        accent={gesamt.halted}
+                        onPress={() => {
+                          if (!busy && !gesamt.halted) void toggleAll();
+                        }}
+                        accessibilityLabel={t('downloads.stop')}
+                      />
+                    </View>
                   )}
                 </View>
 
@@ -268,11 +315,39 @@ export default function ConnectionsScreen({
         columnWrapperStyle={wide ? styles.columns : undefined}
         keyExtractor={(conn) => conn.id}
         contentContainerStyle={[styles.list, { maxWidth: contentMax(wide) }]}
-        renderItem={({ item }) => {
+        renderItem={({ item, index }) => {
           const s = status[item.id] ?? 'checking';
+          /* This list is a set of equal members, so each card owns a position
+             in the palette - the thing that turns "rainbow mode" from one
+             wired list into a property of the app. It is also the longest list
+             here and the first screen anybody sees, and it was the one set in
+             the app that had never been wired: the settings screen next door
+             hands positions to five cards and four buttons, so the difference
+             showed up inside one product.
+
+             The position sits on the CARD, not on something inside it, which
+             is what makes it reach the whole row.
+
+             The wash is TaskRow's, number for number: 16% at rest, 22% for a
+             card whose instance is actually downloading. Without a wash the
+             colour would reach the row through nothing at all here - there is
+             no progress bar on this card - and 16 rather than the 7 this
+             family started with is the figure GlimStone names as the one
+             people can actually see. Under the reactive reading the rest
+             colour goes away and only what is running is lit; there is no
+             hover on a phone, so "running" is this list's active state. */
+          const st = stats[item.id];
+          const laeuft = st != null && !st.halted && st.running > 0;
+          const hue = hueAt(index);
           return (
             <TouchableOpacity
-              style={[styles.row, { backgroundColor: c.surface, borderRadius: radii.card }]}
+              style={[
+                styles.row,
+                { backgroundColor: c.surface, borderRadius: radii.card },
+                hue && (!rainbow.reactive || laeuft)
+                  ? { backgroundColor: blend(c.surface, hue, laeuft ? 0.22 : 0.16) }
+                  : null,
+              ]}
               onPress={() => activate(item)}
             >
               {/* The same card the extension draws: logo, name, what it is
@@ -328,9 +403,21 @@ export default function ConnectionsScreen({
             </TouchableOpacity>
           );
         }}
+        /* The shared empty state: a card, a muted glyph at reduced opacity, a
+           muted line, the one action. It had the line and the action and
+           neither of the other two, so the screen somebody sees on a fresh
+           install was text floating on the page ground while every other
+           surface in the app is built out of cards.
+
+           The glyph's size is the role's own number (26 points of ink, what an
+           empty state takes in the web UI), converted through boxForInk
+           because a drawn glyph fills less than the box it is handed. */
         ListEmptyComponent={
           loaded ? (
-            <View style={styles.empty}>
+            <View style={[styles.empty, { backgroundColor: c.surface, borderRadius: radii.card }]}>
+              <View style={styles.emptyIcon}>
+                <Connect color={c.textMuted} size={boxForInk(26)} />
+              </View>
               <Text style={[styles.emptyText, { color: c.textMuted }]}>{t('connections.empty')}</Text>
               <GlimButton hue={0} label={t('connections.emptyButton')} onPress={onAddPress} />
             </View>
@@ -370,9 +457,15 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   summaryTop: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  summaryActions: { flexDirection: 'row', gap: 8 },
   summaryText: { flex: 1, minWidth: 0, gap: 2 },
-  summaryTitle: { fontSize: 15, fontWeight: '600' },
-  summaryLine: { fontSize: TYPE.dense },
+  // Body, off the scale in theme/tokens.ts: 15 is a rung between Dense and Body
+  // that the table does not have.
+  summaryTitle: { fontSize: TYPE.body, fontWeight: '600' },
+  // Counts, bytes and a speed, all rewritten every five seconds, so the figures
+  // take tabular numerals - otherwise the line shuffles sideways as digits
+  // change width while somebody is reading it.
+  summaryLine: { fontSize: TYPE.dense, fontVariant: ['tabular-nums'] },
   queueError: { marginTop: 8, fontSize: TYPE.caption },
   summaryGraph: {},
   brand: { flexDirection: 'row', alignItems: 'center', gap: 0, flexShrink: 1, minWidth: 0 },
@@ -389,7 +482,17 @@ const styles = StyleSheet.create({
   // The negative margins take back what the safe zone padded out. The gap is 0
   // for the same reason: there are already eleven invisible points between the
   // mark and the name.
-  mark: { width: 44, height: 44, marginLeft: -10, marginRight: -6 },
+  //
+  // Logical edges, not left/right: under a right-to-left language the mark and
+  // the name swap sides with the rest of the layout, and a physical margin
+  // would take back the safe zone on whichever side it was written for rather
+  // than on the side the mark has moved to.
+  mark: { width: 44, height: 44, marginStart: -10, marginEnd: -6 },
+  // The WORDMARK, and that is why it is not on the type scale: the scale's own
+  // table sets a heading at 20 and names a brand-name instance as one of the
+  // two sizes deliberately outside it. This is the product's name beside the
+  // product's mark, not this screen's title - the screen titles next door
+  // (Downloads, Settings) are the 20 the scale asks for.
   title: { fontSize: 22, fontWeight: '700' },
   badgeRow: { flexDirection: 'row', gap: 10 },
   list: { ...capped, paddingHorizontal: 16, paddingBottom: 32, gap: 8 },
@@ -408,9 +511,13 @@ const styles = StyleSheet.create({
   rowMarkImg: { width: 38, height: 38 },
   rowText: { flex: 1, minWidth: 0, gap: 2 },
   rowTop: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  rowName: { fontSize: 15, fontWeight: '600', flexShrink: 1 },
-  rowUrl: { fontSize: TYPE.dense, marginTop: 2 },
-  empty: { alignItems: 'center', marginTop: 64, gap: 16, paddingHorizontal: 32 },
+  rowName: { fontSize: TYPE.body, fontWeight: '600', flexShrink: 1 },
+  // File counts, bytes left and a speed, refreshed every five seconds down a
+  // stacked list: both halves of the tabular-numerals rule at once.
+  rowUrl: { fontSize: TYPE.dense, marginTop: 2, fontVariant: ['tabular-nums'] },
+  // The empty state's own card. The padding is the card's; the ground and the
+  // radius are applied at the call site from the resolved tokens.
+  empty: { alignItems: 'center', marginTop: 48, gap: 14, paddingVertical: 28, paddingHorizontal: 24 },
+  emptyIcon: { opacity: 0.5 },
   emptyText: { fontSize: TYPE.body, textAlign: 'center' },
-  emptyButton: { paddingVertical: 12, paddingHorizontal: 20 },
 });

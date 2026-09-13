@@ -1,5 +1,6 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  AccessibilityInfo,
   Animated,
   Easing,
   FlatList,
@@ -40,6 +41,9 @@ import type { CellRendererProps } from '@react-native/virtualized-lists';
  *     other.
  *   - **The others move as it passes**, not on release, so the gap is always
  *     where the row would land.
+ *   - **Reduced motion drops the wiggle and the lift's scale**, and keeps the
+ *     shadow and the gap. The gesture still has to be legible; it just stops
+ *     moving decoratively.
  *
  * Two mechanics are worth knowing before editing this:
  *
@@ -83,6 +87,40 @@ export default function DragList({
   empty?: React.ReactNode;
 }) {
   const [drag, setDrag] = useState<{ from: number; to: number } | null>(null);
+
+  /**
+   * Whether the person using this phone has asked for less movement.
+   *
+   * Reduced motion takes the WIGGLE and the lift's SCALE away and keeps the
+   * shadow and the gap - the gesture still has to be legible, it just stops
+   * moving decoratively. Of everything this component animates, the wiggle is
+   * the clearest case there is: it is a loop that runs for as long as a finger
+   * is down, and a continuous animation is exactly the category the setting
+   * exists for.
+   *
+   * Read from the platform rather than from a switch of our own. React Native
+   * ships both halves of this - the query and the change event - so honouring
+   * it costs no new dependency, which matters here because avoiding new native
+   * dependencies is the stated reason this whole component is hand-rolled.
+   *
+   * Both a state and a ref: the render needs the value to drop the scale, and
+   * the wiggle starts from inside a callback that must not be rebuilt by the
+   * state changes the gesture itself causes.
+   */
+  const [reduziert, setReduziert] = useState(false);
+  const reduziertRef = useRef(false);
+  reduziertRef.current = reduziert;
+  useEffect(() => {
+    let lebt = true;
+    void AccessibilityInfo.isReduceMotionEnabled().then((an) => {
+      if (lebt) setReduziert(an);
+    });
+    const sub = AccessibilityInfo.addEventListener('reduceMotionChanged', setReduziert);
+    return () => {
+      lebt = false;
+      sub.remove();
+    };
+  }, []);
 
   /**
    * The list is FROZEN for as long as a drag is armed.
@@ -185,6 +223,12 @@ export default function DragList({
   const wiggleLoop = useRef<Animated.CompositeAnimation | null>(null);
 
   const startWiggle = useCallback(() => {
+    // Not started at all rather than started and muted: an infinite animation
+    // under reduced motion gets a true stop, not a slower version of itself.
+    // What the wiggle was saying - "this list is editable now" - is still said
+    // by the row that lifts and by the neighbours stepping aside, both of which
+    // stay.
+    if (reduziertRef.current) return;
     wiggleLoop.current?.stop();
     wiggle.setValue(0);
     wiggleLoop.current = Animated.loop(
@@ -444,7 +488,12 @@ export default function DragList({
               {
                 transform: [
                   { translateY: gezogen ? lift : versatz },
-                  { scale: gezogen ? 1.03 : 1 },
+                  // The lift's SCALE is the other half reduced motion drops.
+                  // styles.lifted's shadow and the neighbours' versatz above
+                  // are untouched: they are what tells the eye which row is in
+                  // the hand and where it would land, and neither of them is
+                  // decorative movement.
+                  { scale: gezogen && !reduziert ? 1.03 : 1 },
                   {
                     rotate:
                       armed && !gezogen

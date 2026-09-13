@@ -113,7 +113,7 @@ export function BrowserTools() {
 
       <Card hue={1} className="flex flex-col gap-4">
         <SectionTitle
-          right={extensionVersion && <span className="glim-num text-[11px] text-carbon-textMuted">v{extensionVersion}</span>}
+          right={extensionVersion && <ExtensionVersion version={extensionVersion} />}
         >
           {t('settings.browsertools.extensionTitle')}
         </SectionTitle>
@@ -226,8 +226,17 @@ function AppCard() {
       </div>
       {(canInstall || iOS) && (
         <div className="flex flex-col gap-2 pt-1">
-          <span className="text-xs font-semibold text-carbon-textSub">
+          {/* A CONDITIONAL BUBBLE, not a grey line under the caption. The iOS
+              route is a set of steps somebody has to be told about exactly
+              once, in the one state where there is no Install button to press,
+              and a sentence printed under the caption makes the card taller
+              for everybody in order to answer a question only a Safari visitor
+              is asking. It hangs off the caption rather than off a control
+              because in that state there is no control - the browser offers
+              none - and the caption is the thing being explained. */}
+          <span className="flex items-center gap-1.5 text-xs font-semibold text-carbon-textSub">
             {t('settings.browsertools.installPwaLabel')}
+            {!canInstall && iOS && <InfoBubble tip={t('settings.browsertools.installIOS')} />}
           </span>
           {canInstall && (
             <div>
@@ -235,9 +244,6 @@ function AppCard() {
                 {t('settings.browsertools.install')}
               </Button>
             </div>
-          )}
-          {!canInstall && iOS && (
-            <p className="text-[11px] text-carbon-textMuted">{t('settings.browsertools.installIOS')}</p>
           )}
         </div>
       )}
@@ -257,10 +263,12 @@ function AppCard() {
  * the mobile builds carry their own mobile/vX.Y.Z tags, and GitHub has no way
  * to ask for "the newest release whose tag starts with mobile/".
  */
+const EXTENSION_REPO_URL = 'https://github.com/junkerderprovinz/knightloader';
+
 const APP_URLS = {
   android: '',
   ios: '',
-  apk: 'https://github.com/junkerderprovinz/knightloader/releases',
+  apk: `${EXTENSION_REPO_URL}/releases`,
 };
 
 /**
@@ -329,6 +337,44 @@ const tileClass =
   'flex flex-col items-center justify-center gap-2 rounded-[var(--radius-control)] bg-carbon-surface2 ' +
   'text-carbon-text transition-colors duration-150 hover:bg-carbon-surface3';
 
+/**
+ * The extension's own version, as a link to that version's release page.
+ *
+ * A version string answers "which build is this"; the question straight after
+ * it is always "and what changed", and that lives in the release notes. A
+ * number nobody can follow makes somebody search the repository for a tag they
+ * then have to retype. This one stood here as plain text while the extension's
+ * OWN about card already built exactly this link (extension/src/options.js).
+ *
+ * The tag is DERIVED, never a hand-kept list: this repository ships several
+ * artefacts, so the extension's tags carry their own prefix (`extension/v…`)
+ * beside the server's bare `v…` and the app's `mobile/v…`. The slash stays a
+ * slash, the way the extension writes it and the way the tags are named.
+ *
+ * Only a plain three-part stamp gets the link. A build with no release behind
+ * it (a local build, a preview image) still shows its number - that string is
+ * what somebody puts in a bug report - but a link into a 404 is not a link.
+ *
+ * Muted ink, no underline, exactly as the About card's own version numbers:
+ * --carbon-text-muted and --carbon-text are defined in every theme block and
+ * rebound by no colour mode, so this reads the same in dark, light, system,
+ * rainbow and reactive alike.
+ */
+function ExtensionVersion({ version }: { version: string }) {
+  const plain = <span className="glim-num text-[11px] text-carbon-textMuted">v{version}</span>;
+  if (!/^\d+\.\d+\.\d+$/.test(version)) return plain;
+  return (
+    <a
+      href={`${EXTENSION_REPO_URL}/releases/tag/extension/v${version}`}
+      target="_blank"
+      rel="noreferrer noopener"
+      className="glim-num text-[11px] text-carbon-textMuted no-underline hover:text-carbon-text"
+    >
+      v{version}
+    </a>
+  );
+}
+
 function DownloadTile({
   logo,
   name,
@@ -344,7 +390,13 @@ function DownloadTile({
 }) {
   return (
     <div className="relative">
-      <button type="button" onClick={onClick} title={name} aria-label={name} className={`${tileClass} h-28 w-28`}>
+      {/* No tooltip at all, where this used to carry a native `title`. A
+          tooltip only exists when it adds something the trigger does not
+          already show, and the tile prints its own name as visible text two
+          lines down - so the bubble would have repeated that word back, in the
+          operating system's own box, at the pointer instead of at the trigger,
+          beside the house bubble this same tile already opens for its (i). */}
+      <button type="button" onClick={onClick} aria-label={name} className={`${tileClass} h-28 w-28`}>
         <span className="flex h-14 w-14 shrink-0 items-center justify-center">{logo}</span>
         <span className="text-xs font-medium">{name}</span>
       </button>

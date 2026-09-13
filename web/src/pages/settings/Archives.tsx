@@ -78,10 +78,16 @@ export function Archives() {
   const extractMoveTo = cfg.extractMoveTo ?? '';
   const disposal = cfg.archiveDisposal ?? 'keep';
 
-  // Off is not a reason to hide any of this - see the block below - but it is a
-  // reason to grey it out, and the same is true one level down: an empty
+  // The three questions this page hangs everything else off. Each of them is a
+  // decision made one row up, and what depends on a decision made one row up is
+  // ABSENT until that decision is made, never dimmed - a greyed control is
+  // something somebody can see, read and reach for that answers nothing, with
+  // the reason sitting where nobody looks once they have decided this row is
+  // the interesting one. The switches themselves stay, because those are the
+  // controls somebody came for. One level down the same holds: an empty
   // destination means "beside the archive", where a per-package subfolder would
-  // only nest a folder inside the folder that already names the package.
+  // only nest a folder inside the folder that already names the package, so the
+  // subfolder switch is not there to be reached for either.
   const unpacking = cfg.extract;
   const collecting = extractTo.trim() !== '';
   const keeping = disposal === 'keep';
@@ -107,11 +113,22 @@ export function Archives() {
 
         {/* Flush left, not indented under the switch (jdp: "In der Card von
             'Archive nach dem Download entpacken' soll alles ganz links
-            bündig anfangen") - disabled rather than hidden either way: a
-            destination for extractions that never happen is a control that
-            can only mislead, but removing it teaches nobody that the option
-            exists. */}
-        <div className={`flex flex-col gap-5 transition-opacity ${unpacking ? '' : 'pointer-events-none opacity-40'}`}>
+            bündig anfangen").
+
+            ABSENT while the switch above is off, never dimmed. Everything in
+            here only means something once something is being unpacked, and a
+            dimmed block is a destination, a subfolder switch and a collision
+            policy somebody can see, read and reach for that answer nothing -
+            with the reason one row up, where nobody looks once they have
+            decided this row is the interesting one. The switch itself stays,
+            because that is the control somebody came for.
+
+            The wrapper this replaces had a second fault of its own: opacity
+            composites a whole subtree, so the (i) beside each of these fields
+            rendered at 40% too - the one element that has to stay readable
+            while the rest recedes was the one nobody could read. */}
+        {unpacking && (
+        <div className="flex flex-col gap-5">
           <Field
             layout="row"
             label={t('settings.archives.destination')}
@@ -130,17 +147,20 @@ export function Archives() {
             />
           </Field>
 
-          {/* "Does nothing without a destination" is not something a
-              greyed-out control says for itself, and grey prose under it is
-              what the bubble exists to replace. */}
-          <ToggleRow
-            hue={1}
-            checked={cfg.extractSubfolder ?? false}
-            onChange={(v) => patch({ extractSubfolder: v })}
-            label={t('settings.archives.subfolder')}
-            hint={t('settings.archives.subfolderHint')}
-            disabled={!collecting}
-          />
+          {/* A sub-switch of the destination above it, so it is absent while
+              there is no destination rather than dimmed: "does nothing without
+              a destination" is not something a greyed-out switch says for
+              itself, and the row above is where the answer is. Its bubble
+              still carries what the switch does once it is here. */}
+          {collecting && (
+            <ToggleRow
+              hue={1}
+              checked={cfg.extractSubfolder ?? false}
+              onChange={(v) => patch({ extractSubfolder: v })}
+              label={t('settings.archives.subfolder')}
+              hint={t('settings.archives.subfolderHint')}
+            />
+          )}
 
           {/* The move, and not a second destination. It belongs directly under
               "Unpack to" because the two only make sense read together: that
@@ -200,11 +220,19 @@ export function Archives() {
             </FieldGroup>
           )}
         </div>
+        )}
       </Card>
 
+      {/* The whole card, not a dimmed block inside it: what becomes of an
+          archive afterwards is a question that only exists once something is
+          being unpacked, and a card holding nothing but its own title is what
+          rendering the heading alone would leave behind. Same rule as the
+          block above - what hangs off the mode goes with it, the mode's own
+          switch stays. */}
+      {unpacking && (
       <Card hue={1} className="flex flex-col gap-5">
         <SectionTitle>{t('settings.archives.afterwards')}</SectionTitle>
-        <div className={`flex flex-col gap-5 ${unpacking ? '' : 'pointer-events-none opacity-40'}`}>
+        <div className="flex flex-col gap-5">
           {options && options.archiveDisposals.length > 0 && (
             <FieldGroup
               layout="row"
@@ -230,10 +258,10 @@ export function Archives() {
           )}
 
           {/* Only under "trash", where it is the difference between a folder
-              that empties itself and one that grows forever. Hidden rather than
-              disabled here: unlike the controls above it is not a capability
-              anybody needs to be told about, it is a detail of the answer they
-              have already chosen. */}
+              that empties itself and one that grows forever - a detail of the
+              answer already chosen, absent until that answer is chosen, the
+              same way everything else on this page that hangs off a decision
+              made above it is absent. */}
           {disposal === 'trash' && (
             <Field
               label={t('settings.archives.retention')}
@@ -250,23 +278,27 @@ export function Archives() {
             </Field>
           )}
 
-          {/* Disabled while the archive is being kept, because the sweep has no
+          {/* Absent while the archive is being kept, because the sweep has no
               disposal of its own: a swept .nfo goes the same way the archive
               goes, so "keep everything" cannot coherently mean "keep the
-              archive and destroy the notes beside it". The bubble says which
-              files and, more to the point, how far the sweep reaches: the
-              package's own files and never the folder. On the default layout
-              one folder holds several releases, and a sweep that read the
-              folder would take the neighbours' notes. */}
-          <ToggleRow
-            checked={cfg.deleteInfoFiles ?? false}
-            onChange={(v) => patch({ deleteInfoFiles: v })}
-            label={t('settings.archives.infoFiles')}
-            hint={t('settings.archives.infoFilesHint')}
-            disabled={keeping}
-          />
+              archive and destroy the notes beside it". A switch greyed because
+              of a decision made one row up is the case the language reverses -
+              it can be seen, read and reached for and answers nothing. The
+              bubble says which files and, more to the point, how far the sweep
+              reaches: the package's own files and never the folder. On the
+              default layout one folder holds several releases, and a sweep
+              that read the folder would take the neighbours' notes. */}
+          {!keeping && (
+            <ToggleRow
+              checked={cfg.deleteInfoFiles ?? false}
+              onChange={(v) => patch({ deleteInfoFiles: v })}
+              label={t('settings.archives.infoFiles')}
+              hint={t('settings.archives.infoFilesHint')}
+            />
+          )}
         </div>
       </Card>
+      )}
 
       <Card hue={2} className="flex flex-col gap-5">
         <SectionTitle>{t('settings.archivePasswords')}</SectionTitle>

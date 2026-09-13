@@ -3,7 +3,7 @@ import logoUrl from '../assets/logo.svg';
 import { ApiError, fetchTasks, type Task } from '../lib/api';
 import { fmtSpeed } from '../lib/format';
 import { useT } from '../lib/i18n';
-import { Card, Button, IconBadge, LabelBadge } from './ui';
+import { Card, Button, IconBadge, LabelBadge, useTooltip } from './ui';
 import { IconTrash } from '../lib/icons';
 
 interface Stats {
@@ -63,29 +63,52 @@ export function InstanceRow({ name, base, onOpen }: { name: string; base: string
   const online = stats?.online ?? false;
   const refused = stats?.refused ?? false;
   const state = online ? t('instances.online') : refused ? t('instances.refused') : t('instances.offline');
+
+  // THE HOUSE BUBBLE, not a native title=. The dot carries the state in colour
+  // alone and nothing beside it spells the word out, so it does owe a tooltip -
+  // but the OS balloon is drawn in the OS font, at the pointer instead of at the
+  // trigger, and by none of the rules every other bubble in this app follows.
+  //
+  // Only the hover half of the handle is spread. triggerProps also carries
+  // tabIndex and role='note', and this row is a <button> whenever it can be
+  // opened: a descendant with a tabindex is markup a browser cannot make sense
+  // of inside one, the same reason ColumnMenu keeps its (i) outside its rows.
+  // Nothing is lost by it - aria-label keeps the word in the row's own
+  // accessible name, which is what a keyboard or screen reader arrives at.
+  const tip = useTooltip<HTMLSpanElement>(state);
+  const { ref: tipRef, onMouseEnter, onMouseLeave, 'aria-describedby': tipDescribedBy } = tip.triggerProps;
+
   const body = (
     <>
       <span
+        ref={tipRef}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+        aria-describedby={tipDescribedBy}
         role="img"
         aria-label={state}
-        title={state}
         className={`h-2 w-2 shrink-0 rounded-[var(--radius-pill)] ${online ? 'bg-statusOkSolid' : 'bg-statusFailSolid'}`}
       />
-      <span className="min-w-0 flex-1 truncate text-[13.5px] text-carbon-text">{name}</span>
+      <span className="min-w-0 flex-1 truncate text-[14px] text-carbon-text">{name}</span>
       <span className="glim-num text-xs text-carbon-textSub">
         {stats ? fmtSpeed(stats.speed) || '—' : '—'}
       </span>
     </>
   );
-  return onOpen ? (
-    <button
-      onClick={onOpen}
-      className="flex w-full items-center gap-3 px-6 py-4 text-left transition-colors hover:bg-carbon-hover/50"
-    >
-      {body}
-    </button>
-  ) : (
-    <div className="flex items-center gap-3 px-6 py-4">{body}</div>
+  return (
+    <>
+      {onOpen ? (
+        <button
+          onClick={onOpen}
+          className="flex w-full items-center gap-3 px-6 py-4 text-left transition-colors hover:bg-carbon-hover/50"
+        >
+          {body}
+        </button>
+      ) : (
+        <div className="flex items-center gap-3 px-6 py-4">{body}</div>
+      )}
+      {tip.node}
+    </>
   );
 }
 
@@ -111,9 +134,14 @@ export function InstanceCard({
   base: string;
   onOpen?: () => void;
   onRemove?: () => void;
-  /** This card's position among the OTHER linked instances on Instances.tsx
-   *  - "this instance"'s own card carries none, since it has no remove
-   *  badge to colour and is not one of that set to begin with. */
+  /** This card's position in the palette, handed to the CARD and not to one
+   *  badge inside it (GlimStone: "the position belongs on the container, not
+   *  on the one visible thing inside it"). `.glim-hue` rebinds --accent for
+   *  the whole subtree, so one call here colours the status badge, the Open
+   *  button, the remove badge and the focus ring at once - with the position
+   *  on the remove badge alone, a card whose peer cannot be removed was not
+   *  in the mode at all. Every card in the row is a member of the same
+   *  equal-weight set, this instance's own included. */
   hue?: number;
   /** Marks the card for the instance you are looking at right now. It gets
    *  the same Open button as any peer (pointing at the local download list),
@@ -148,7 +176,7 @@ export function InstanceCard({
     // and so takes whatever height it is handed rather than setting it,
     // which is what keeps a row of cards the same height whatever their
     // contents.
-    <Card padding="none" hover={!!onOpen} className="group relative flex h-full flex-col overflow-hidden">
+    <Card padding="none" hue={hue} hover={!!onOpen} className="group relative flex h-full flex-col overflow-hidden">
       {/* DIE ZWEI SPALTEN SIND EINE ZEILE, und der Knopf darunter ist eine
           zweite. Vorher war der Knopf `absolute bottom-5` und die Textspalte
           hielt mit `pb-16` Platz fuer ihn frei - zwei Zahlen fuer eine Sache,

@@ -51,7 +51,7 @@ export function HosterIcon({ host, size = 18 }: { host: string; size?: number })
         aria-hidden
         style={box}
         className="inline-flex shrink-0 items-center justify-center rounded-[var(--radius-control)]
-          bg-carbon-surface3 text-[10px] font-semibold uppercase text-carbon-textMuted"
+          bg-carbon-surface3 text-[11px] font-semibold uppercase text-carbon-textMuted"
       >
         {clean.charAt(0) || '?'}
       </span>

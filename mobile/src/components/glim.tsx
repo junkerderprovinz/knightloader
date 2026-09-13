@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View, type ViewStyle } from 'react-native';
 import { useAppearance } from '../theme/AppearanceContext';
-import { TYPE } from '../theme/tokens';
+import { BTN_H_KEY, TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
 
 /**
@@ -26,12 +26,19 @@ import { useT } from '../i18n/I18nContext';
  *  is exactly how the web's SectionTitle behaves. */
 export function NotchCard({ title, hue, children }: { title: string; hue?: number; children: ReactNode }) {
   const { c, accent, accentContrast, radii, hueAt, rainbow } = useAppearance();
-  const fill = (rainbow.on && hue !== undefined ? hueAt(hue) : undefined) ?? accent;
+  const { fill, ink } = restingFill(hue, {
+    accent,
+    accentContrast,
+    hueAt,
+    reactive: rainbow.on && rainbow.reactive,
+    muted: c.textMuted,
+    ground: c.bg,
+  });
   return (
     <View style={[styles.cardWrap]}>
       <View style={[styles.card, { backgroundColor: c.surface, borderRadius: radii.card }]}>{children}</View>
       <View style={[styles.notch, { backgroundColor: fill, borderRadius: radii.pill }]}>
-        <Text style={[styles.notchText, { color: contrastFor(fill, accentContrast) }]} numberOfLines={1}>
+        <Text style={[styles.notchText, { color: ink }]} numberOfLines={1}>
           {title}
         </Text>
       </View>
@@ -70,7 +77,14 @@ export function WellSelector<T extends string>({
           <TouchableOpacity
             key={o.value}
             onPress={() => onPick(o.value)}
-            style={[styles.segment, { borderRadius: radii.control }, on && { backgroundColor: fill }]}
+            /* NO radius on the segment. The groove is the one shape here and
+               the radius sits on it; a segment that rounds its own corners
+               inside a rounded track reads as a key loose in a slot rather
+               than as one control with N settled positions. All three
+               surfaces of this product had independently given the segment
+               its own radius, which is what a never-finished port looks like
+               rather than a decision. */
+            style={[styles.segment, on && { backgroundColor: fill }]}
           >
             {/* Computed against the fill it actually landed on, never the flat
                 accent's contrast: a palette position can be far lighter or
@@ -187,6 +201,46 @@ export function SwatchReset({ onPress, label }: { onPress: () => void; label: st
 /** Ink on a fill, mirroring the web's luminance rule closely enough for the
  *  eight palette colours; the resolved accent contrast is the fallback for
  *  the plain-accent case. */
+/**
+ * The fill an element takes when it has no active state of its own, and the ink
+ * that goes on it.
+ *
+ * Reactive is the reading of the rainbow that rests neutral and shows colour on
+ * what is hovered AND on what is active. A phone has no hover, so for anything
+ * carrying neither an active nor a checked state - a card's title badge, a
+ * button - the resting half is the whole of it, and that is not a compromise:
+ * somebody who picked the quiet mode picked the quiet mode.
+ *
+ * It matters that ONE switch reads the same way everywhere in one app. The
+ * download list already rested neutral and coloured what was running, while the
+ * settings screen beside it lit eight cards and every button in them, so the
+ * same setting meant two different things two taps apart.
+ *
+ * The ink is the page's own GROUND rather than the computed black-or-white: the
+ * muted grey sits near enough the middle that white on it is the weaker of the
+ * two, which is why the web binds --accent-contrast to --carbon-bg for exactly
+ * this state instead of letting the contrast function decide.
+ *
+ * WellSelector and GlimToggle do not go through here and must not: their fill
+ * only ever appears on the chosen segment and the switched-on track, which IS
+ * the active state the rule keeps coloured.
+ */
+function restingFill(
+  hue: number | undefined,
+  opts: {
+    accent: string;
+    accentContrast: string;
+    hueAt: (i: number) => string | undefined;
+    reactive: boolean;
+    muted: string;
+    ground: string;
+  },
+): { fill: string; ink: string } {
+  if (opts.reactive) return { fill: opts.muted, ink: opts.ground };
+  const fill = (hue !== undefined ? opts.hueAt(hue) : undefined) ?? opts.accent;
+  return { fill, ink: contrastFor(fill, opts.accentContrast) };
+}
+
 function contrastFor(hex: string, fallback: string): string {
   const m = /^#([0-9a-f]{6})$/i.exec(hex);
   if (!m) return fallback;
@@ -208,7 +262,12 @@ const styles = StyleSheet.create({
    * smudge. 8 is the step this family uses between a control and its
    * neighbour. */
   button: {
-    minHeight: 44,
+    // The taller of the family's TWO heights, and not a third number of this
+    // app's own. A labelled button here is reached with a thumb, so it takes
+    // the step up rather than the one a text field measures - but it takes it
+    // from the pair, because "44 because a phone" is how a product ends up
+    // measuring one object three ways across three surfaces.
+    minHeight: BTN_H_KEY,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -218,14 +277,34 @@ const styles = StyleSheet.create({
   },
   buttonLabel: { fontSize: TYPE.body, fontWeight: '600', flexShrink: 1 },
   buttonOff: { opacity: 0.45 },
-  // Room for the notch above: the badge is 22 tall and overlaps by 11.
-  cardWrap: { marginTop: 24 },
+  /* 40, the house rhythm for stacked cards, and the number the whole family
+   * shares.
+   *
+   * 24 is the value the language names as the CRAMPED one, and it is cramped
+   * for precisely the reason these cards qualify: every one of them carries a
+   * notch badge hanging over its own top edge, so a 24 gap leaves 13 points of
+   * real daylight between one card's body and the next card's title. The same
+   * number serves the gap above the first card, rather than a second number
+   * invented for that one seam. */
+  cardWrap: { marginTop: 40 },
   card: { paddingTop: 24, paddingBottom: 14, paddingHorizontal: 16, gap: 4 },
   notch: {
     position: 'absolute',
-    top: -11,
-    left: 16,
-    height: 22,
+    /* Half over the card's top edge, expressed as a HALF and not as a pixel
+     * offset: the percentage resolves against the badge's own rendered height,
+     * so it stays centred on the edge whatever that height turns out to be. A
+     * hard -11 is only correct while the badge is exactly 22 tall, and on a
+     * phone it stops being 22 the moment somebody raises the system font size
+     * - which is the one platform where that is a setting rather than a
+     * hypothetical.
+     *
+     * `start`, not `left`, for the same family of reason: the app ships
+     * Arabic, Hebrew and Persian, and a badge pinned to the physical left is a
+     * badge that stays there while the card it titles mirrors. */
+    top: 0,
+    start: 16,
+    transform: [{ translateY: '-50%' }],
+    paddingVertical: 3,
     paddingHorizontal: 12,
     justifyContent: 'center',
     elevation: 3,
@@ -234,7 +313,10 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     shadowOffset: { width: 0, height: 1 },
   },
-  notchText: { fontSize: TYPE.dense, fontWeight: '500', textTransform: 'uppercase', letterSpacing: 1.2 },
+  // The line height is stated rather than left to the platform, because it is
+  // half of what makes the badge 22 points tall now that the height is not
+  // written down: 16 of text between 3 and 3 of padding.
+  notchText: { fontSize: TYPE.dense, lineHeight: 16, fontWeight: '500', textTransform: 'uppercase', letterSpacing: 1.2 },
   well: { flexDirection: 'row', padding: 3, gap: 2, alignSelf: 'flex-start' },
   segment: { minWidth: 84, paddingVertical: 7, paddingHorizontal: 14, alignItems: 'center' },
   segmentText: { fontSize: TYPE.dense, fontWeight: '500' },
@@ -244,7 +326,9 @@ const styles = StyleSheet.create({
   knob: { width: 16, height: 16 },
   rowOuter: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 8 },
   rowText: { flex: 1, minWidth: 0, gap: 2 },
-  rowLabel: { fontSize: 15 },
+  // Body, off the table. 15 is not a step of the scale, and a 15 sitting next
+  // to a 14 is how a four-row table grows a fifth row nobody decided on.
+  rowLabel: { fontSize: TYPE.body },
   rowSub: { fontSize: TYPE.caption, lineHeight: 16 },
   // Sized by the ROW, not by a number here (jdp, 2026-09-01: "Die farbfelder
   // bitte enger zusammen rücken, dass sie in einer zeile platz haben").
@@ -261,7 +345,7 @@ const styles = StyleSheet.create({
   // The reset glyph: three quarters of a ring, plus a head on the open end.
   resetRing: { width: '58%', height: '58%', borderWidth: 1.5, borderRightColor: 'transparent' },
   statusBadge: { paddingHorizontal: 7, paddingVertical: 2, flexShrink: 0 },
-  statusText: { fontSize: 11, fontWeight: '600', letterSpacing: 0.2 },
+  statusText: { fontSize: TYPE.caption, fontWeight: '600', letterSpacing: 0.2 },
   resetHead: {
     position: 'absolute',
     right: '18%',
@@ -293,16 +377,25 @@ const styles = StyleSheet.create({
  * an alarm, and "offline" on an instance somebody has not switched on is not an
  * alarm. The extension's own `.glim-status` follows the identical rule, so the
  * two surfaces draw one object.
+ *
+ * That ground is the `*Bg` TOKEN, not the solid with an alpha appended to its
+ * hex string. The old `ink + '26'` landed on the right colour and was still the
+ * wrong mechanism: a string concatenation cannot differ between the two themes
+ * the way the palette does, nothing can search for it, and it quietly assumes
+ * every status colour it is ever handed is a six-digit hex. The palette now
+ * carries all three steps of every family, so this reads the middle one.
  */
 export function StatusBadge({ status }: { status: 'checking' | 'online' | 'offline' }) {
   const { c, radii } = useAppearance();
   const { t } = useT();
   const ink =
     status === 'online' ? c.statusOkSolid : status === 'checking' ? c.statusWarnSolid : c.statusFailSolid;
+  const ground =
+    status === 'online' ? c.statusOkBg : status === 'checking' ? c.statusWarnBg : c.statusFailBg;
   const label =
     status === 'online' ? t('instance.online') : status === 'checking' ? t('instance.checking') : t('instance.offline');
   return (
-    <View style={[styles.statusBadge, { backgroundColor: ink + '26', borderRadius: radii.pill }]}>
+    <View style={[styles.statusBadge, { backgroundColor: ground, borderRadius: radii.pill }]}>
       <Text style={[styles.statusText, { color: ink }]}>{label}</Text>
     </View>
   );
@@ -380,8 +473,13 @@ export function GlimButton({
   style,
 }: {
   label: string;
-  /** Given the resolved ink colour, so a glyph never has to guess it. */
-  icon?: (ink: string) => ReactNode;
+  /** Given the resolved ink colour AND the ground it is standing on, so a
+   *  glyph never has to guess either. The second one is what a composed glyph
+   *  needs to draw a detail that would otherwise be a hole: React Native
+   *  cannot cut a shape out of another, so a flap, a slot or a gear's centre
+   *  has to be PAINTED, and painting it a guessed colour is a lie on the first
+   *  surface it was not tested against. */
+  icon?: (ink: string, ground: string) => ReactNode;
   onPress: () => void;
   hue?: number;
   tone?: 'solid' | 'quiet';
@@ -393,11 +491,18 @@ export function GlimButton({
   style?: ViewStyle;
 }) {
   const { c, accent, accentContrast, radii, hueAt, rainbow } = useAppearance();
-  const fill = (rainbow.on && hue !== undefined ? hueAt(hue) : undefined) ?? accent;
+  const { fill, ink: filledInk } = restingFill(hue, {
+    accent,
+    accentContrast,
+    hueAt,
+    reactive: rainbow.on && rainbow.reactive,
+    muted: c.textMuted,
+    ground: c.bg,
+  });
   const ground = tone === 'solid' ? fill : c.surface2;
   // Two tones, two answers, and no third branch for a destructive one: a quiet
   // button takes the page's own ink whatever it is about to do.
-  const ink = tone === 'solid' ? contrastFor(fill, accentContrast) : c.text;
+  const ink = tone === 'solid' ? filledInk : c.text;
   return (
     <TouchableOpacity
       style={[
@@ -413,7 +518,7 @@ export function GlimButton({
       accessibilityState={{ disabled: !!(disabled || busy) }}
       accessibilityLabel={label}
     >
-      {busy ? <ActivityIndicator color={ink} /> : icon?.(ink)}
+      {busy ? <ActivityIndicator color={ink} /> : icon?.(ink, ground)}
       <Text style={[styles.buttonLabel, { color: ink }]} numberOfLines={1}>
         {label}
       </Text>

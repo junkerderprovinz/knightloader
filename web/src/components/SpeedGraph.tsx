@@ -284,15 +284,21 @@ function Curve({
         </linearGradient>
       </defs>
       <path d={`${d} L${w},${h} L0,${h} Z`} fill="url(#glim-speed-fill)" />
+      {/* --accent-ink, not --accent: the curve and its live dot are the accent
+          drawn AS INK against the card's own ground, which is the side of the
+          split the token exists for - on the light theme the plain accent is
+          sunflower on white, and a hairline suffers from that more than text
+          does, not less. The gradient above keeps --accent on purpose: a 26%
+          wash is a surface, not a mark. */}
       <path
         d={d}
         fill="none"
-        stroke="var(--accent)"
+        stroke="var(--accent-ink)"
         strokeWidth="1.75"
         strokeLinecap="round"
         vectorEffect="non-scaling-stroke"
       />
-      <circle cx={last[0]} cy={last[1]} r="3" fill="var(--accent)" className="glim-live" />
+      <circle cx={last[0]} cy={last[1]} r="3" fill="var(--accent-ink)" className="glim-live" />
     </>
   );
 }
@@ -354,6 +360,11 @@ export function SpeedMeter({
   const drawable = samples.length >= 2;
   const peak = drawable ? Math.max(...samples) : 0;
   const idle = peak === 0;
+  // Drawn once instead of inside the JSX, because the live dot below needs the
+  // curve's last point and smoothPath is the only thing that knows it. Guarded
+  // by the same two conditions the plot itself is: smoothPath divides by
+  // `samples.length - 1` and reads pts[0].
+  const curve = drawable && !idle ? smoothPath(samples, W, H, 2, ceiling) : null;
 
   // Nothing to press (jdp, 2026-09-06: "klick auf den downloadgraph soll keine
   // funktione haben"). It used to open the quick-settings panel, which the
@@ -365,7 +376,7 @@ export function SpeedMeter({
           is exactly a number that a state can take away. The ordinate is the
           ceiling, because that is what the top edge of this box means. */}
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="glim-num self-end text-[10px] leading-none text-carbon-textMuted">
+        <span className="glim-num self-end text-[11px] leading-none text-carbon-textMuted">
           {fmtSpeed(ceiling)}
         </span>
         <svg
@@ -375,7 +386,7 @@ export function SpeedMeter({
           aria-hidden
           focusable="false"
         >
-          {!drawable || idle ? (
+          {!curve ? (
             <line
               x1="0"
               y1={H - 2}
@@ -386,17 +397,28 @@ export function SpeedMeter({
               vectorEffect="non-scaling-stroke"
             />
           ) : (
-            <path
-              d={smoothPath(samples, W, H, 2, ceiling).d}
-              fill="none"
-              stroke="var(--accent)"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              vectorEffect="non-scaling-stroke"
-            />
+            <>
+              {/* --accent-ink for the same reason the hero's curve takes it: a
+                  stroke against the page is the ink half of the accent split. */}
+              <path
+                d={curve.d}
+                fill="none"
+                stroke="var(--accent-ink)"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                vectorEffect="non-scaling-stroke"
+              />
+              {/* The live edge, the same .glim-live pulse the hero's own curve
+                  carries. A chart is not a special case: this reading is the
+                  one people watch while something is actually transferring, and
+                  it was the only live curve in the app with nothing on its tip
+                  saying so. Smaller than the hero's r=3 because the box is 40
+                  units tall rather than 96. */}
+              <circle cx={curve.last[0]} cy={curve.last[1]} r="2" fill="var(--accent-ink)" className="glim-live" />
+            </>
           )}
         </svg>
-        <span className="flex justify-between text-[10px] leading-none text-carbon-textMuted">
+        <span className="flex justify-between text-[11px] leading-none text-carbon-textMuted">
           <span className="glim-num">{spanLabel(seconds)}</span>
           <span className="glim-num">0s</span>
         </span>
@@ -405,7 +427,7 @@ export function SpeedMeter({
           reordered into "s/BiM 4.2" in an Arabic or Hebrew locale. */}
       <span
         dir="ltr"
-        className="glim-num flex items-center text-[13px] font-semibold leading-none text-carbon-text"
+        className="glim-num flex items-center text-[12px] font-semibold leading-none text-carbon-text"
       >
         {fmtSpeed(value) || '0 B/s'}
       </span>

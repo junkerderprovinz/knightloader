@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 import type { Task } from '../api/types';
 import { useAppearance } from '../theme/AppearanceContext';
-import { TYPE, type Palette } from '../theme/tokens';
+import { NUM, TYPE, inkFor, type Palette } from '../theme/tokens';
 import { useT, type TranslationKey } from '../i18n/I18nContext';
 
 const STATUS_KEYS: Record<string, TranslationKey> = {
@@ -45,10 +45,20 @@ function rgb(hex: string): { r: number; g: number; b: number } | null {
   return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
 }
 
-function statusColor(status: string, c: Palette, accent: string): string {
+/**
+ * The word's colour. `accentInk` and not the accent, and that distinction is
+ * the whole of this function's signature.
+ *
+ * A colour on a `background` is the accent; a colour a reader has to READ is
+ * the accent darkened until it can be, because gold text on a white card is
+ * unreadable at 12 points whichever gold it is. The row's own fill - the wash
+ * and the progress bar - still takes the undarkened one, which is why the two
+ * arrive here as two arguments rather than one.
+ */
+function statusColor(status: string, c: Palette, accentInk: string): string {
   switch (status) {
     case 'running':
-      return accent;
+      return accentInk;
     case 'finished':
       return c.statusOkSolid;
     case 'failed':
@@ -62,7 +72,7 @@ function statusColor(status: string, c: Palette, accent: string): string {
 
 export default function TaskRow({ task, index }: { task: Task; index: number }) {
   const { t } = useT();
-  const { c, accent, radii, hueAt, rainbow } = useAppearance();
+  const { c, accent, dark, radii, hueAt, rainbow } = useAppearance();
   // The rainbow hands colours out by POSITION, so this row's colour comes from
   // where it sits, not from its id. A hash keeps a row's colour when the rows
   // above it finish, which sounds better until three rows and eight colours
@@ -72,6 +82,15 @@ export default function TaskRow({ task, index }: { task: Task; index: number }) 
   // The colour this row paints activity in: its own when the mode is on, the
   // single accent otherwise.
   const rowAccent = hue ?? accent;
+  // The same colour where it has to be READ instead of filled.
+  //
+  // The context builds this pair for the flat accent already; the rainbow half
+  // never had a counterpart, so a row's own hue reached a `color:` undarkened
+  // and the word RUNNING stood in sunflower yellow on a white card at 12 points
+  // and bold. Derived here from the one rule the whole family uses - the accent
+  // 55% of the way to black on a light ground, itself on a dark one - rather
+  // than from a second number picked to look right on this screen.
+  const rowInk = dark ? rowAccent : inkFor(rowAccent);
   const pct = task.size > 0 ? Math.min(100, Math.round((task.loaded / task.size) * 100)) : null;
   const statusKey = STATUS_KEYS[task.status];
 
@@ -106,7 +125,7 @@ export default function TaskRow({ task, index }: { task: Task; index: number }) 
         <Text style={[styles.name, { color: c.text }]} numberOfLines={1}>
           {task.name || task.url}
         </Text>
-        <Text style={[styles.status, { color: statusColor(task.status, c, rowAccent) }]}>
+        <Text style={[styles.status, { color: statusColor(task.status, c, rowInk) }]}>
           {statusKey ? t(statusKey) : task.status}
         </Text>
       </View>
@@ -163,7 +182,10 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  name: { fontSize: TYPE.body, fontWeight: '500', flex: 1, marginRight: 8 },
+  // marginEnd, not marginRight: the app ships Arabic, Hebrew and Persian, and a
+  // physical edge is one that keeps its gap on the same side of the screen
+  // while everything around it mirrors.
+  name: { fontSize: TYPE.body, fontWeight: '500', flex: 1, marginEnd: 8 },
   status: { fontSize: TYPE.dense, fontWeight: '600', textTransform: 'uppercase' },
   progressTrack: {
     height: 4,
@@ -172,6 +194,10 @@ const styles = StyleSheet.create({
   },
   progressFill: { height: '100%' },
   footer: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 },
-  meta: { fontSize: TYPE.dense },
+  // Tabular figures: this line is a byte count, a total and a percentage that
+  // are rewritten every refresh, in a row that stacks down the whole screen -
+  // both halves of the rule at once. With proportional digits the footer
+  // shuffles sideways on every tick.
+  meta: { fontSize: TYPE.dense, ...NUM },
   errorText: { fontSize: TYPE.dense, marginTop: 6 },
 });

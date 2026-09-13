@@ -3,7 +3,7 @@ import type { DiskVolume, Settings } from '../lib/api';
 import { useT } from '../lib/i18n';
 import { fits, fmtSpace, folderName, roleLabel, spaceHint, useDiskSpace } from '../lib/useDiskSpace';
 import { ProgressBar } from './ProgressBar';
-import { Card, InfoBubble, SectionTitle } from './ui';
+import { Card, InfoBubble, SectionTitle, useTooltip } from './ui';
 
 /**
  * How much room is left where the downloads are going, one row per FOLDER.
@@ -69,18 +69,36 @@ function Marks({ v, cfg }: { v: DiskVolume; cfg: Settings | null }) {
   return (
     <>
       {marks.map((m) => (
-        // insetInlineStart, not left: the fill underneath grows from the
-        // inline start too, so in a right-to-left language both move together
-        // instead of the mark drifting to the wrong end of its own bar.
-        <span
-          key={m.label}
-          role="img"
-          aria-label={m.label}
-          title={m.label}
-          style={{ insetInlineStart: `${m.at}%` }}
-          className={`absolute inset-y-0 w-[2px] ${m.colour}`}
-        />
+        <Mark key={m.label} at={m.at} label={m.label} colour={m.colour} />
       ))}
+    </>
+  );
+}
+
+/**
+ * One floor, and its own bubble.
+ *
+ * Split out of Marks because the tooltip is a hook and Marks draws a list. The
+ * bubble is the house one rather than a native title=: a 2px bar carries its
+ * whole meaning in where it sits, so it owes an explanation, and the OS balloon
+ * answers it in the OS font at the pointer instead of at the mark, outside
+ * every rule the rest of the app's bubbles keep.
+ */
+function Mark({ at, label, colour }: { at: number; label: string; colour: string }) {
+  const tip = useTooltip<HTMLSpanElement>(label);
+  return (
+    <>
+      {/* insetInlineStart, not left: the fill underneath grows from the
+          inline start too, so in a right-to-left language both move together
+          instead of the mark drifting to the wrong end of its own bar. */}
+      <span
+        {...tip.triggerProps}
+        role="img"
+        aria-label={label}
+        style={{ insetInlineStart: `${at}%` }}
+        className={`absolute inset-y-0 w-[2px] ${colour}`}
+      />
+      {tip.node}
     </>
   );
 }
@@ -101,16 +119,24 @@ export function DiskVolumeRow({ v, cfg, hint }: { v: DiskVolume; cfg: Settings |
   const { t } = useT();
   const room = fits(v);
   const usedPct = v.total > 0 ? Math.min(100, Math.round((v.used / v.total) * 100)) : 0;
+  // The house bubble on both of the row's own truncated-or-unlabelled readings,
+  // where a native title= used to draw the operating system's balloon beside
+  // the app's own. The full path earns one because the visible text is cut down
+  // to the last segment and this is the only place the rest of it still exists;
+  // the size figure earns one because "of 500 GB" is the one number in the row
+  // with no word of its own in front of it.
+  const pathTip = useTooltip<HTMLSpanElement>(v.dir);
+  const sizeTip = useTooltip<HTMLSpanElement>(t('disk.size'));
 
   return (
     <div className="flex flex-col gap-2 px-5 py-3">
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
-        {/* dir="auto" and the whole path in the title: the name is cut down to
-            its last segment to fit, and a path can be written in a right-to-
-            left script, which the shell bar's peer name already allows for. */}
-        <span dir="auto" title={v.dir} className="min-w-0 truncate text-[13.5px] text-carbon-text">
+        {/* dir="auto": a path can be written in a right-to-left script, which
+            the shell bar's peer name already allows for. */}
+        <span {...pathTip.triggerProps} dir="auto" className="min-w-0 truncate text-[14px] text-carbon-text">
           {folderName(v.dir)}
         </span>
+        {pathTip.node}
         <span className="flex shrink-0 items-center text-[11px] text-carbon-textMuted">
           {roleLabel(t, v.role)}
           {hint && <InfoBubble tip={hint} label={t('disk.title')} />}
@@ -163,9 +189,10 @@ export function DiskVolumeRow({ v, cfg, hint }: { v: DiskVolume; cfg: Settings |
                   figures with. A second "of" would be one sentence translated
                   twice in forty-two files. */}
               <span>{t('strip.of')}</span>
-              <span className="glim-num text-carbon-textSub" title={t('disk.size')}>
+              <span {...sizeTip.triggerProps} className="glim-num text-carbon-textSub">
                 {fmtSpace(v.total)}
               </span>
+              {sizeTip.node}
             </span>
             <span className="flex items-baseline gap-1.5">
               <span>{t('disk.used')}</span>
@@ -218,7 +245,7 @@ export function DiskVolumeRow({ v, cfg, hint }: { v: DiskVolume; cfg: Settings |
  * happening. A card standing empty on the busiest page in the app is furniture
  * somebody has to read past on the way to the figures that mean something.
  */
-export function DiskSpaceTile({ settings }: { settings: Settings | null }) {
+export function DiskSpaceTile({ settings, hue }: { settings: Settings | null; hue?: number }) {
   const { t } = useT();
   const report = useDiskSpace();
   const volumes = report?.volumes ?? [];
@@ -229,7 +256,14 @@ export function DiskSpaceTile({ settings }: { settings: Settings | null }) {
     // against the nearest positioned ancestor, and only .glim-card is one. The
     // two cards above this on the page carry the same note, having been the
     // place the bug was found twice.
-    <Card className="flex flex-col gap-3">
+    //
+    // `hue` is passed straight through to the Card and read nowhere else here:
+    // the position belongs on the CONTAINER, and .glim-hue rebinds --accent for
+    // the whole subtree, so one number colours this card's title notch, every
+    // folder's fill bar and the link at the foot at once. The Overview page is
+    // an equal-weight set of cards, and a page that leaves one of them out is
+    // a page that is half in the mode.
+    <Card hue={hue} className="flex flex-col gap-3">
       <SectionTitle hint={spaceHint(t, report)}>{t('disk.title')}</SectionTitle>
       <div className="glim-well divide-y divide-carbon-border/60 p-0">
         {volumes.map((v, i) => (

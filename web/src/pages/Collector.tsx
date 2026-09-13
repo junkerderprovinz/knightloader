@@ -4,7 +4,7 @@ import { useTasks } from '../lib/useTasks';
 import { useReportListView } from '../lib/listview';
 import { useToast } from '../lib/toast';
 import { useT } from '../lib/i18n';
-import { PageHeader, IconBadge, Button, InfoBubble } from '../components/ui';
+import { PageHeader, IconBadge, InfoBubble } from '../components/ui';
 import { Tabs } from '../components/Tabs';
 import {
   TaskListCard,
@@ -260,10 +260,12 @@ export function Collector() {
   }, [selected, reach, toast, t]);
 
   const removal = useRemoval({ all, selected, base: '/api', drawn, onDone: clearSelection });
-  // This page's own useCleanup() instance, now driven by the badge row below
-  // instead of ListActionBar's text-button trigger (which Downloads.tsx keeps
-  // unchanged - this page stopped using that shared component so its own
-  // restyle never touches Downloads' look). Loaded proactively, the same
+  // This page's own useCleanup() instance, driven by the badge row below
+  // instead of ListActionBar's old text-button trigger. Downloads.tsx renders
+  // its own copy of that same badge row rather than the component this page
+  // stopped using, so the two strips are one strip drawn twice: a control
+  // that differs between them is a defect to fix on whichever page is behind,
+  // never a look this file gets to keep to itself. Loaded proactively, the same
   // reason ListMenu loads its own copy on mount rather than waiting for a
   // click: a command visible in a palette that has to wait on a request
   // before it can say whether "clear finished" applies is a command that
@@ -541,9 +543,11 @@ export function Collector() {
             exact same allChosen/cleanup/checkAll/startAll logic
             ListActionBar used to run for this page, and the exact same
             removeNow/askWithFiles/onMore wiring SelectionStrip used to run -
-            only the trigger's shape changed, not what it does - and stays
-            local to this file since Downloads.tsx keeps ListActionBar's and
-            SelectionStrip's own text-button look unchanged.
+            only the trigger's shape changed, not what it does. Downloads.tsx
+            now writes out the same strip in the same order, so the markup is
+            duplicated but the RESULT is not allowed to be: every slot below
+            has to hold the same control its twin over there holds, and the
+            way to check that is to diff the two rows, not to read this one.
 
             The quick-filter strip (Online/Offline/Deaktiviert/Gehalten
             chips, the "Alles anzeigen" clear button, the "N von M
@@ -611,11 +615,21 @@ export function Collector() {
               active={filters}
               onSelect={(id) => narrowing.toggleFilter(id as QuickFilterId)}
               items={offeredFilters.map(({ f, n }) => ({ id: f.id, label: t(f.label), badge: n }))}
+              // The identical badge Downloads.tsx puts in this identical slot
+              // of this identical strip. It used to be a text ghost button
+              // here: one slot, one job, two different controls, which is the
+              // drift only somebody switching tabs ever sees. The badge is the
+              // side that stayed, because this row holds nothing but badges.
               after={
                 filters.size > 0 && (
-                  <Button kind="ghost" className="px-2 py-1 text-xs" onClick={narrowing.clearFilters}>
-                    {t('filter.clear')}
-                  </Button>
+                  <IconBadge
+                    labelled
+                    hue={0}
+                    icon={<IconClose width={16} height={16} />}
+                    title={t('filter.clear')}
+                    aria-label={t('filter.clear')}
+                    onClick={narrowing.clearFilters}
+                  />
                 )
               }
             />
@@ -659,6 +673,11 @@ export function Collector() {
             <IconBadge
               labelled
               hue={0}
+              // The same badge on Downloads.tsx has carried this since it was
+              // written: both open the same popover, so both say so the same
+              // way. Without it this one was the only open popover trigger in
+              // the app whose badge stayed idle while its panel was showing.
+              active={searchOpen}
               icon={<IconSearch width={16} height={16} />}
               title={t('collector.searchToggle')}
               aria-label={t('collector.searchToggle')}

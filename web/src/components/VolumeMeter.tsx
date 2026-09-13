@@ -92,7 +92,7 @@ export function VolumeUsageRow() {
             the same reason SpeedMeter pins its own reading. */}
         <span
           dir="ltr"
-          className={`glim-num text-[13px] font-semibold leading-none ${
+          className={`glim-num text-[12px] font-semibold leading-none ${
             usage.reached ? 'text-statusFail' : 'text-carbon-text'
           }`}
         >

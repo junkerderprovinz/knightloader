@@ -1,3 +1,5 @@
+import type { TextStyle } from 'react-native';
+
 // GlimStone's palette, as this app's tokens.
 //
 // The values are copied verbatim from the shared reference
@@ -20,19 +22,55 @@ export interface Palette {
   surface2: string;
   surface3: string;
   hover: string;
+  /**
+   * Hover for something ALREADY filled with surface3 - the neutral button, a
+   * raised segment.
+   *
+   * One step further from the surface in each theme, which means lighter on
+   * dark and darker on light, and that is why it cannot be a brightness step:
+   * a single brightness value can only move one of those two directions. It
+   * carries no consumer on this surface today, and it is in the palette for
+   * the same reason `hover` is - the names are the contract, and the ramp
+   * stopping at surface3 is exactly how every control sitting ON surface3
+   * reached back down to `hover` and dimmed itself instead.
+   */
+  hoverRaised: string;
   border: string;
 
   text: string;
   textSub: string;
   textMuted: string;
 
+  /**
+   * The five state families, each in all THREE steps.
+   *
+   * `text` is the word, `bg` the ground it sits on, `solid` the filled thing -
+   * and the middle step is the one this file used to leave out, which is how
+   * StatusBadge ended up building its own ground by appending "26" to a hex
+   * string. An alpha step written as string concatenation is not a token: it
+   * cannot differ between the two themes, nothing can find it, and the day the
+   * badge wants a different strength it is a search for a two-character
+   * literal.
+   *
+   * `info` is here for the same reason the other four are, even though nothing
+   * on this surface shows an info state yet: the NAMES are the contract, and a
+   * family missing from the palette is a family the next screen invents a
+   * colour for.
+   */
   statusOkText: string;
+  statusOkBg: string;
   statusOkSolid: string;
   statusFailText: string;
+  statusFailBg: string;
   statusFailSolid: string;
   statusWarnText: string;
+  statusWarnBg: string;
   statusWarnSolid: string;
+  statusInfoText: string;
+  statusInfoBg: string;
+  statusInfoSolid: string;
   statusNeutralText: string;
+  statusNeutralBg: string;
   statusNeutralSolid: string;
 
   /**
@@ -63,6 +101,7 @@ export const DARK: Palette = {
   surface2: '#393939',
   surface3: '#525252',
   hover: '#353535',
+  hoverRaised: '#6f6f6f',
   border: '#393939',
 
   text: '#f4f4f4',
@@ -70,12 +109,19 @@ export const DARK: Palette = {
   textMuted: '#8d8d8d',
 
   statusOkText: '#6fdc8c',
+  statusOkBg: 'rgba(111, 220, 140, 0.13)',
   statusOkSolid: '#6fdc8c',
   statusFailText: '#ff8389',
+  statusFailBg: 'rgba(255, 131, 137, 0.14)',
   statusFailSolid: '#ff8389',
   statusWarnText: '#f1c21b',
+  statusWarnBg: 'rgba(241, 194, 27, 0.12)',
   statusWarnSolid: '#f1c21b',
+  statusInfoText: '#FCC419',
+  statusInfoBg: 'rgba(252, 196, 25, 0.13)',
+  statusInfoSolid: '#FCC419',
   statusNeutralText: '#a8a8a8',
+  statusNeutralBg: 'rgba(255, 255, 255, 0.05)',
   statusNeutralSolid: '#8d8d8d',
 
   // .65, the value tokens.css carries on a dark ground. At .60 the panel in
@@ -92,6 +138,7 @@ export const LIGHT: Palette = {
   surface2: '#e8e8e8',
   surface3: '#d1d1d1',
   hover: '#e0e0e0',
+  hoverRaised: '#c6c6c6',
   border: '#d1d1d1',
 
   text: '#161616',
@@ -99,12 +146,19 @@ export const LIGHT: Palette = {
   textMuted: '#6f6f6f',
 
   statusOkText: '#0e6027',
+  statusOkBg: 'rgba(14, 96, 39, 0.11)',
   statusOkSolid: '#198038',
   statusFailText: '#da1e28',
+  statusFailBg: 'rgba(218, 30, 40, 0.10)',
   statusFailSolid: '#da1e28',
   statusWarnText: '#8E6A00',
+  statusWarnBg: 'rgba(142, 106, 0, 0.10)',
   statusWarnSolid: '#b28600',
+  statusInfoText: '#8E6A00',
+  statusInfoBg: 'rgba(142, 106, 0, 0.12)',
+  statusInfoSolid: '#A87D00',
   statusNeutralText: '#6f6f6f',
+  statusNeutralBg: 'rgba(0, 0, 0, 0.045)',
   statusNeutralSolid: '#8d8d8d',
 
   // .55, not the dark theme's .65: black over a near-white page separates at a
@@ -164,6 +218,47 @@ export const TYPE = {
   dense: 12,
   caption: 11,
 } as const;
+
+/**
+ * Digits that do not jitter while they count.
+ *
+ * The rule is "wherever they change or stack", and a download list is both at
+ * once: a byte count rewritten every second, in a row repeated down the page.
+ * With proportional figures a "1" is narrower than a "7", so the whole footer
+ * shuffles sideways on every refresh - the exact fidget `.glim-num` exists to
+ * stop on the other two surfaces, which have carried it from the start.
+ *
+ * A shared style rather than a literal at each call site, for the same reason
+ * TYPE is a table: the next place that counts something finds it already
+ * written down.
+ *
+ * It is a Latin-digit feature and nothing more - `tabular-nums` has no defined
+ * effect on the Eastern Arabic-Indic or Devanagari digits some locales render,
+ * so where a locale shows its own digits the column has to come from a
+ * fixed-width box instead.
+ */
+export const NUM: TextStyle = { fontVariant: ['tabular-nums'] };
+
+/**
+ * The two button heights, and there is no third.
+ *
+ * `BTN_H` is what an ordinary control measures, and it is also the side of
+ * every square icon badge in the app - the glyph inside then draws to half of
+ * it, which is the pairing the reference states as 16 in 32 and 20 in 40.
+ * `BTN_H_KEY` is the one step up, for a control somebody reaches for with a
+ * thumb rather than a pointer.
+ *
+ * Two, because two reads as a deliberate difference and three reads as a
+ * ladder somebody has to pick a rung from - at which point every button
+ * becomes an argument. This app had picked its own two numbers (36 for the
+ * badge, 44 for the labelled button) while the web measured the same badge at
+ * 32 and the extension at 30: three answers for one object across one product,
+ * none of them written down anywhere that could notice.
+ *
+ * rem values from tokens.css at the usual 16px root, like RADII below.
+ */
+export const BTN_H = 32;
+export const BTN_H_KEY = 40;
 
 /** Radii for one shape. One set for everything, no exception list - that is the
  *  whole shape engine, with no further mechanism behind it. */
