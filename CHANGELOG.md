@@ -129,6 +129,29 @@ submission and for a fixed download.
   pinned in a test with a written justification per entry, and an unauthenticated
   metrics endpoint on a password-locked instance would have to be a decision
   somebody took on purpose.
+- **All forty-two languages carry every one of the new strings.** The fourteen
+  features above brought 661 new keys, and a key present only in English renders
+  as English everywhere: `lib/i18n.tsx` resolves `dict[key] ?? en[key]`, so a
+  missing translation is invisible rather than loud. Every catalogue now holds
+  all 2566 keys with a translation behind each. What is still English is
+  deliberate and written down, 638 values: program and file names (`yt-dlp`,
+  `ffmpeg`, `settings.json`, `KL_YTDLP`), format strings holding no words at all
+  (`{n}/{max} · {countdown}`), the legends printed on keys in the languages whose
+  keyboards carry the Latin ones, and loanwords a language has taken over
+  unchanged. Each of those was looked at in its own language rather than waved
+  through in bulk, which is why the counts differ per language: thirty-four
+  catalogues keep `Home`, twenty-nine keep `Del`.
+- **Placeholders and dashes are guarded per language.** The extension's 120 keys
+  have been checked this way since they were written and the web UI's 2566 had
+  nothing, and the failure is quiet and one-language-deep: drop `{n}` and that
+  language renders "Removed download(s)." with no number in it for ever, while
+  `tsc` is perfectly happy because the type is `string`. Nobody reports that as a
+  missing placeholder. The dash half caught 39 real ones in 32 catalogues,
+  because the rule is usually written "no em dashes" and in German the
+  Gedankenstrich is the EN dash: the source string carried one, and 36
+  translators faithfully copied it past a green check. A dash between digits
+  (`2020–2024`, `10–20 MB`) is correct typography and is left alone, because a
+  check that flags those is one people learn to skip.
 - **The files' owner and mask are on screen.** Which user and group downloads
   land as, per configured folder, and under which umask. It REPORTS and does not
   apply: this image runs as a fixed user, so PUID and PGID are not read, and the
@@ -384,6 +407,23 @@ submission and for a fixed download.
   has ever dragged a settings tab into their own order finds the new Zustand
   page at the BOTTOM of their rail rather than beside Diagnose, because the
   stored order is honoured first and whatever it does not name is appended.
+- **The translation ledger has two lists now, and they mean opposite things.**
+  `untranslated.json` tracked one thing: values still carrying English because no
+  wave had reached them. That list is empty. What it could not express is a value
+  that is English on purpose, so those 638 sat in it as debt, and the next seeding
+  wave would have re-opened all of them and sent forty translators to answer the
+  same question twice. They live in a second list with their reasoning written
+  above them. Both are held against the catalogues the same three ways, and the
+  checker refuses a key that appears in both. One rule is new and hard: a value of
+  some length carrying several words may not be byte-identical to English unless
+  one of the two lists says why. `de.ts` is the calibration for it, and the reason
+  it can be trusted: that file is written by hand by a native speaker and 114 of
+  its values equal the English one, because Downloads is Downloads and so are
+  Status, Import and Online. A check counting those would fire on a correct file,
+  and a check that fires on correct files gets switched off. Sentences are
+  different: `de.ts` has none, the rule found eleven elsewhere, and all eleven
+  turned out to be right to be English and are now written down rather than
+  tolerated by a threshold.
 - **The Wails CLI version is read out of `desktop/go.mod` rather than pinned in
   the workflow.** The two had drifted twice: `go.mod` on v2.13.0 while CI
   installed v2.10.2, then `go.mod` on v2.15.0 while CI still installed v2.13.0.

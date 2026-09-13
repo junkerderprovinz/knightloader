@@ -183,7 +183,7 @@ export const en = {
   'settings.archivePasswordsHint': 'One per line. Tried in order when an archive is encrypted.',
   'settings.lockOn': 'A password is set.',
   'settings.lockOff': 'No password is set.',
-  'settings.lockHint': 'Protects this instance from anyone who can reach it – on the same network, through a domain, or through a relay. Once set, it has to be entered before this instance opens at all, for anyone, including you on your next visit. Without one, anyone who finds the address can see every download, and add, pause or delete their own.',
+  'settings.lockHint': 'Protects this instance from anyone who can reach it: on the same network, through a domain, or through a relay. Once set, it has to be entered before this instance opens at all, for anyone, including you on your next visit. Without one, anyone who finds the address can see every download, and add, pause or delete their own.',
   'settings.passwordCurrent': 'Current password',
   'settings.passwordNew': 'New password',
   'settings.passwordHint': 'At least 8 characters. Leave empty to remove the lock.',

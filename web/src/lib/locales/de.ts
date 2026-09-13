@@ -162,7 +162,7 @@ export const de: Dict = {
   'settings.archivePasswordsHint': 'Eines pro Zeile. Werden der Reihe nach probiert, wenn ein Archiv verschlüsselt ist.',
   'settings.lockOn': 'Passwort ist eingerichtet.',
   'settings.lockOff': 'Kein Passwort gesetzt.',
-  'settings.lockHint': 'Schützt diese Instanz vor jedem, der sie erreichen kann – im selben Netzwerk, über eine Domain oder über ein Relay. Einmal gesetzt, muss es eingegeben werden, bevor diese Instanz überhaupt öffnet – für jeden, auch beim nächsten eigenen Besuch. Ohne Passwort kann jeder, der die Adresse findet, jeden Download sehen und eigene hinzufügen, pausieren oder löschen.',
+  'settings.lockHint': 'Schützt diese Instanz vor jedem, der sie erreichen kann: im selben Netzwerk, über eine Domain oder über ein Relay. Einmal gesetzt, muss es eingegeben werden, bevor diese Instanz überhaupt öffnet, für jeden, auch beim nächsten eigenen Besuch. Ohne Passwort kann jeder, der die Adresse findet, jeden Download sehen und eigene hinzufügen, pausieren oder löschen.',
   'settings.passwordCurrent': 'Aktuelles Passwort',
   'settings.passwordNew': 'Neues Passwort',
   'settings.passwordHint': 'Mindestens 8 Zeichen. Leer lassen, um die Sperre aufzuheben.',

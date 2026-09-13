@@ -22,9 +22,38 @@
 //                   job too, but tsc reports it as one enormous type error per
 //                   file; this names the key.
 //
-// It deliberately does NOT flag every value that happens to equal English.
-// Plenty are right: DRM is DRM, Matrix is Matrix, and a Dutch "Import" is an
-// English one. Only what the ledger claims is checked.
+// IT DOES NOT FLAG EVERY VALUE THAT HAPPENS TO EQUAL ENGLISH, and de.ts is the
+// proof that it must not. de.ts is written by hand by a native speaker, and 114
+// of its values are byte-identical to the English: Downloads is Downloads, so
+// are Status, Import, Online, Captcha. A check counting those would fire on a
+// correct file, and a check that fires on correct files gets switched off.
+//
+// A WHOLE SENTENCE, though, is never a coincidence. So there is one hard rule at
+// the bottom of this file: a value of some length carrying several words may not
+// be byte-identical to English unless the ledger says so, in either list. de.ts
+// passes it with nothing listed, which is exactly the calibration that makes it
+// trustworthy - the yardstick file needs no exemption. It caught eleven on the
+// day it was written, all of them right to be English (the <jd:...> variable
+// names, and "{peers} peers, {seeds} seeds" in the languages that took the
+// BitTorrent words over unchanged), and those eleven are now written down rather
+// than tolerated by a threshold.
+//
+// THE LEDGER HAS TWO LISTS, AND THEY MEAN OPPOSITE THINGS.
+//
+//   locales     still owed. The value is English because nobody has translated
+//               it yet. This shrinks to nothing and is meant to.
+//   identical   reviewed and left. The value is English because English is the
+//               right answer in that language: yt-dlp is yt-dlp, '{n}/{max}'
+//               holds no words, and a keyboard whose Del key says Del wants the
+//               tooltip to say Del. This one is permanent.
+//
+// Both are checked the same three ways, because both are the same kind of claim
+// about the catalogues. What differs is what a failure means: a key that stops
+// being English in `locales` is progress and its entry is simply stale, while
+// one in `identical` is somebody overruling a judgement, which is allowed but
+// has to be written down by dropping the entry. Splitting them is what stops the
+// next seeding wave from re-opening 627 settled questions and sending forty
+// translators to answer them again.
 //
 // Run by CI and by hand: `node web/check-untranslated.mjs`
 import { readFileSync, readdirSync } from 'node:fs';
@@ -81,25 +110,71 @@ try {
 
 const problems = [];
 const translated = [];
+const overruled = [];
 
-for (const [loc, keys] of Object.entries(ledger.locales ?? {})) {
-  const file = `${loc}.ts`;
-  if (!files.includes(file)) {
-    problems.push(`untranslated.json names ${loc}, which is not a catalogue`);
-    continue;
+/**
+ * Checks one of the two lists. Both claim the same thing about a catalogue - the
+ * value is byte-for-byte the English one - so both are verified identically;
+ * `landing` only decides where a key that has stopped being English is reported.
+ */
+function verify(list, label, landing) {
+  for (const [loc, keys] of Object.entries(list ?? {})) {
+    const file = `${loc}.ts`;
+    if (!files.includes(file)) {
+      problems.push(`untranslated.json names ${loc} under ${label}, which is not a catalogue`);
+      continue;
+    }
+    const d = entries(file);
+    for (const k of keys) {
+      if (!en.has(k)) {
+        problems.push(`${loc} ${k}: listed under ${label}, but en.ts no longer has that key - drop the entry`);
+        continue;
+      }
+      const v = d.get(k);
+      if (v === undefined) {
+        problems.push(`${loc} ${k}: listed under ${label} and missing from the catalogue entirely`);
+        continue;
+      }
+      if (v !== en.get(k)) landing.push(`${loc} ${k}`);
+    }
   }
-  const d = entries(file);
+}
+
+verify(ledger.locales, 'locales', translated);
+verify(ledger.identical, 'identical', overruled);
+
+// A key cannot be both owed and settled. Nothing writes both today, but the two
+// lists are edited by different scripts and the contradiction would be invisible
+// otherwise: the debt count would keep it, the review count would keep it, and
+// neither would ever come out.
+for (const [loc, keys] of Object.entries(ledger.identical ?? {})) {
+  const owed = new Set(ledger.locales?.[loc] ?? []);
   for (const k of keys) {
-    if (!en.has(k)) {
-      problems.push(`${loc} ${k}: listed as untranslated, but en.ts no longer has that key - drop the entry`);
-      continue;
-    }
-    const v = d.get(k);
-    if (v === undefined) {
-      problems.push(`${loc} ${k}: listed as untranslated and missing from the catalogue entirely`);
-      continue;
-    }
-    if (v !== en.get(k)) translated.push(`${loc} ${k}`);
+    if (owed.has(k)) problems.push(`${loc} ${k}: listed as owed AND as deliberately identical - pick one`);
+  }
+}
+
+// THE HARD RULE: no sentence left in English that nobody has written down.
+//
+// Thresholds, and why these two together. LENGTH alone would catch the <jd:...>
+// variable list; WORD COUNT alone would catch "Home End Del" style labels. A
+// value that is both long AND several words is prose, and prose that is
+// byte-identical across two languages was not translated. Both lists count as
+// having written it down: `locales` means a wave still owes it, `identical` means
+// somebody looked and left it.
+const LONG = 30;
+const WORDS = 4;
+for (const file of files) {
+  const loc = file.replace('.ts', '');
+  const d = entries(file);
+  const written = new Set([...(ledger.locales?.[loc] ?? []), ...(ledger.identical?.[loc] ?? [])]);
+  for (const [k, ev] of en) {
+    if (written.has(k) || d.get(k) !== ev) continue;
+    const text = ev.replace(/^'|',?$/g, '');
+    if (text.length < LONG || (text.match(/ /g) || []).length < WORDS) continue;
+    problems.push(
+      `${loc} ${k}: a full sentence is still the English one, and nothing in untranslated.json says why`,
+    );
   }
 }
 
@@ -114,8 +189,16 @@ for (const file of files) {
 
 if (translated.length) {
   problems.push(
-    `${translated.length} key(s) have been translated but are still listed in untranslated.json. ` +
-      `Remove their entries: ${translated.slice(0, 6).join(', ')}${translated.length > 6 ? ', ...' : ''}`,
+    `${translated.length} key(s) have been translated but are still listed as owed in untranslated.json. ` +
+      `Run prune-untranslated.mjs: ${translated.slice(0, 6).join(', ')}${translated.length > 6 ? ', ...' : ''}`,
+  );
+}
+
+if (overruled.length) {
+  problems.push(
+    `${overruled.length} key(s) are listed as deliberately identical to English but no longer are. ` +
+      `That is allowed - somebody decided the language does want its own word - but the entry has to go ` +
+      `with it: ${overruled.slice(0, 6).join(', ')}${overruled.length > 6 ? ', ...' : ''}`,
   );
 }
 
@@ -126,10 +209,18 @@ if (problems.length) {
   process.exit(1);
 }
 
-const owed = Object.values(ledger.locales ?? {}).reduce((n, ks) => n + ks.length, 0);
+const count = (l) => Object.values(l ?? {}).reduce((n, ks) => n + ks.length, 0);
+const owed = count(ledger.locales);
 const locales = Object.keys(ledger.locales ?? {}).length;
+const settled = count(ledger.identical);
+
+// Both numbers, always. The settled count is the one worth seeing when the debt
+// is zero: it says 627 values are English because someone looked, not because
+// nobody has yet.
 console.log(
-  owed === 0
-    ? `ok: ${files.length} catalogues, nothing owed`
-    : `ok: ${files.length} catalogues in step; ${owed} value(s) across ${locales} catalogue(s) still carry the English text and are listed as owed`,
+  `ok: ${files.length} catalogues in step; ` +
+    (owed === 0
+      ? 'nothing owed'
+      : `${owed} value(s) across ${locales} catalogue(s) still carry the English text and are listed as owed`) +
+    `; ${settled} reviewed and deliberately identical to English`,
 );
