@@ -414,7 +414,12 @@ func (a *App) RecheckTasks(ids []string) {
 	var order []string
 	for i := range targets {
 		t := targets[i]
-		res := a.Registry.For(t.URL)
+		// The same ranked question staging asks, and for the same reason: line
+		// 434 below writes this answer back onto the live task. With the frozen
+		// registry order here, a Recheck would quietly move a correctly routed
+		// task BACK to "direct", undoing the boost jd.PriorityFor gave its host
+		// - and a Recheck is the one thing somebody does when a link misbehaves.
+		res := a.stagingResolverFor(t.URL)
 		if res == nil {
 			a.setAvailability(t.ID, core.AvailOffline, "no backend handles this link", core.ReasonUnsupported)
 			a.endActivity(ActivityLinkCheck, 1)

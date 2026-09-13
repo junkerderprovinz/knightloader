@@ -868,6 +868,35 @@ func (a *App) listRemoteDir(res resolver.Resolver, u string) []crawler.Result {
 // addResolvedLinksFrom) - and 0 for every caller that does not. It is applied
 // before the resolver runs and, like name, is not allowed to be overwritten by
 // a resolver's placeholder answer of 0 - see the guard below.
+// stagingResolverFor picks the backend a link is COLLECTED with, and it asks
+// the same question dispatch asks rather than a cheaper one.
+//
+// IT USED TO BE Registry.For, AND THAT WAS THE BUG. Registry.For walks the list
+// the registry sorted ONCE at Register time, by the static Info().Prio, where JD
+// sits at 10 and Direct at 40. rankedChain re-ranks per URL through
+// dynamicPrio, which is where jd.PriorityFor lifts a host JD can actually reach
+// to 41 and past Direct. jd/resolver.go's own comment says the per-host boost
+// never reaches the frozen order; the consequence for this door was never drawn.
+//
+// The reason a cheaper question here is not harmless: the collected answer
+// STICKS. resolverForTaskLocked hands back t.Resolver unchanged whenever the
+// recorded backend is routable, and "direct" always is, having no account to be
+// locked out of. So the ranked chain that exists to correct this never ran, and
+// a hoster link whose path happens to end in a filename went out as an
+// anonymous GET with no mode on its row at all - modeForLocked answers
+// ModeUnknown for "direct", which is why the "Free" badge could not appear on
+// the links it was written for.
+//
+// No lock is taken and none is needed: Settings.Get and Registry each hold
+// their own, and stage() does not hold a.mu here.
+func (a *App) stagingResolverFor(u string) resolver.Resolver {
+	chain := rankedChain(a.Registry.All(u), u, a.Settings.Get().ResolverOrder)
+	if len(chain) == 0 {
+		return nil
+	}
+	return chain[0]
+}
+
 func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 	// One clock reading for the whole link, in local time: it is what CreatedAt
 	// gets and what pathvars formats for <jd:date>, and a UTC reading here would
@@ -949,7 +978,7 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 	if sizeHint > 0 {
 		t.Size = sizeHint
 	}
-	res := a.Registry.For(u)
+	res := a.stagingResolverFor(u)
 	if res == nil {
 		// A link is never dropped on the floor. If nothing can handle it, or
 		// resolving fails, it is still staged — with the reason on it — so the
