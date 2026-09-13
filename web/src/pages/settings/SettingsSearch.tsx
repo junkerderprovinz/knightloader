@@ -46,7 +46,6 @@ import {
 } from './jump';
 import { SETTINGS_INDEX } from './searchIndex';
 import { hasContent } from './registry';
-import { useStickyReveal } from './stickyReveal';
 import { label as pageLabel } from './tx';
 
 /** How long to wait after the last keystroke before matching. The same 150ms,
@@ -419,40 +418,30 @@ export function SettingsSearch({ pages }: { pages: FeaturePage[] }) {
   const showList = open && settled.trim() !== '';
   let rowIndex = -1;
 
-  // Off screen while the column is being read downward, back on the way up. The
-  // three things that pin it are the three that mean somebody is using it: the
-  // list is open, there is a query in the box, or the box has the focus. The
-  // last is checked against the live document rather than kept as state, because
-  // `open` is already set by onFocus and a second piece of state saying almost
-  // the same thing is a second piece of state to get out of step.
-  const barRef = useRef<HTMLDivElement>(null);
-  const pinned =
-    showList || query !== '' || (typeof document !== 'undefined' && document.activeElement === inputRef.current);
-  const hidden = useStickyReveal(barRef, pinned);
-
   return (
-    // Sticky, and with its own opaque ground plus negative margins: the column
-    // it sits in is `p-6 md:p-8 overflow-y-auto`, so without them cards would
-    // slide visibly behind a transparent strip and past the box's own edges. The
-    // matching paddings put the input back exactly where it was, which is what
-    // keeps it level with the first tile in the rail beside it (Settings.tsx's
-    // own note on why the rail and the column share a top padding).
+    // IT DOES NOT FLOAT, and that is the whole point of this element's position.
+    //
+    // It used to be `sticky top-0` with an opaque ground, so every card in the
+    // column passed UNDER it while you read - and the card directly under it is
+    // the first one on the page, the one line that says where you are. The first
+    // attempt at fixing that kept the sticky and slid the bar away on the way
+    // down, which is a well-known pattern and still the wrong answer here: it
+    // floats over the content the whole time it is on screen (jdp, twice: "die
+    // suchleiste schwebt immer noch über alles").
+    //
+    // So it sits in the flow, above the first card, and scrolls away with
+    // everything else. You see it when you are at the top of the column, which
+    // is where scrolling up puts you. Nothing overlaps, nothing needs an opaque
+    // strip to hide behind, and there is no scroll listener, no pinned state and
+    // no slide to keep in step with any of it - the whole mechanism that existed
+    // to work around the floating went with the floating.
     //
     // NOT in PageHeader. That renders above the rail-plus-column flex, so a field
     // there would push the rail down and stop it running the full window height -
-    // the one thing this page's whole layout exists to do.
-    //
-    // It also gets out of the way. Opaque and sticky together mean every card
-    // passes UNDER it, and the card directly under it is the first one on the
-    // page - so reading downward hid the one title that says where you are.
-    // `glim-autohide` carries the slide and lives with the other motion
-    // utilities, which is what makes it vanish under reduced motion without this
-    // file knowing anything about that. See stickyReveal.ts for when, and for
-    // the three states that pin it in place.
+    // the one thing this page's whole layout exists to do. Staying the column's
+    // first child is also what keeps it level with the first tile in the rail
+    // beside it (Settings.tsx's own note on why the two share a top padding).
     <div
-      ref={barRef}
-      className={`glim-autohide sticky top-0 z-20 -mx-6 -mt-6 bg-carbon-background px-6 pb-4 pt-6
-        md:-mx-8 md:-mt-8 md:px-8 md:pt-8 ${hidden ? '-translate-y-full' : 'translate-y-0'}`}
       onBlur={(e) => {
         // Closes when focus genuinely leaves the box and its list, not when it
         // moves between the two.
@@ -507,10 +496,13 @@ export function SettingsSearch({ pages }: { pages: FeaturePage[] }) {
         <InfoBubble tip={t('settings.search.hint')} className="me-1" />
       </div>
 
-      {/* A child of the sticky bar and sized to it, never a portal. InfoBubble
-          portals because it is anchored to something that scrolls; this bar does
-          not move, so nothing here has to be re-measured on scroll and the
-          column's own overflow cannot clip it. */}
+      {/* A child of the bar and sized to it, never a portal, and that survived
+          the bar losing its sticky: absolutely positioned INSIDE the thing it
+          belongs to, it travels with it for free. InfoBubble portals because it
+          is anchored to something that scrolls independently of it; this list is
+          not, so there is nothing to re-measure. The bar only ever sits at the
+          top of the column, so the list opens downward into the column rather
+          than into its overflow edge. */}
       {showList && (
         <div className="relative">
           <div
