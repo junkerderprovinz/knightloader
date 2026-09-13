@@ -965,6 +965,7 @@ export const zh: Dict = {
   'accounts.refresh': '刷新',
   'accounts.refreshing': '正在刷新…',
   'accounts.remove': '移除',
+  'accounts.removeConfirm': '{name} 的已保存登录信息会从此实例中删除且无法恢复，因此需要重新输入。',
   'accounts.removed': '已移除。',
   'accounts.rename': '重命名',
   'accounts.renew': '续期',

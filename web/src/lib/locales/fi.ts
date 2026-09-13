@@ -965,6 +965,7 @@ export const fi: Dict = {
   'accounts.refresh': 'Päivitä',
   'accounts.refreshing': 'Päivitetään…',
   'accounts.remove': 'Poista',
+  'accounts.removeConfirm': 'Palvelun {name} tallennetut kirjautumistiedot poistetaan tästä instanssista eikä niitä voi palauttaa, joten ne pitäisi syöttää uudelleen.',
   'accounts.removed': 'Poistettu.',
   'accounts.rename': 'Nimeä uudelleen',
   'accounts.renew': 'Uusi',

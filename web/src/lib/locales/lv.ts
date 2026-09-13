@@ -965,6 +965,7 @@ export const lv: Dict = {
   'accounts.refresh': 'Atsvaidzināt',
   'accounts.refreshing': 'Atsvaidzina…',
   'accounts.remove': 'Noņemt',
+  'accounts.removeConfirm': 'Saglabātie {name} pieteikšanās dati tiek dzēsti no šīs instances un tos nevar atjaunot, tāpēc tie būtu jāievada no jauna.',
   'accounts.removed': 'Noņemts.',
   'accounts.rename': 'Pārdēvēt',
   'accounts.renew': 'Atjaunot',

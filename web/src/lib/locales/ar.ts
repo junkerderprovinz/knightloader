@@ -967,6 +967,7 @@ export const ar: Dict = {
   'accounts.refresh': 'تحديث',
   'accounts.refreshing': 'جارٍ التحديث…',
   'accounts.remove': 'إزالة',
+  'accounts.removeConfirm': 'يتم حذف بيانات الدخول المحفوظة الخاصة بـ {name} من هذه النسخة ولا يمكن استرجاعها، لذا سيلزم إدخالها من جديد.',
   'accounts.removed': 'تمت الإزالة.',
   'accounts.rename': 'إعادة تسمية',
   'accounts.renew': 'تجديد',

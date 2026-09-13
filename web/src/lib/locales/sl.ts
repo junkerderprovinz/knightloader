@@ -965,6 +965,7 @@ export const sl: Dict = {
   'accounts.refresh': 'Osveži',
   'accounts.refreshing': 'Osveževanje…',
   'accounts.remove': 'Odstrani',
+  'accounts.removeConfirm': 'Shranjena prijava za {name} se izbriše iz te instance in je ni mogoče obnoviti, zato bi jo bilo treba vnesti znova.',
   'accounts.removed': 'Odstranjeno.',
   'accounts.rename': 'Preimenuj',
   'accounts.renew': 'Podaljšaj',

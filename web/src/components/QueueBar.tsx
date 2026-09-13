@@ -27,9 +27,10 @@ const RETRY_MS = 5000;
  * out of the bar so the downloads command surface's "stop queue"/"start
  * queue" entries (lib/commands/downloads.ts) call the exact same `toggle`
  * this bar's own button does, instead of a second copy that fetches and
- * halts the queue its own way. QueueBar below is this hook plus the speed
- * limit, which stays local: the limit reads and writes /api/settings, never
- * forwarded to a peer, and a command has no business touching it.
+ * halts the queue its own way. QueueBar below is this hook and the three
+ * buttons on it, nothing else. The speed limit is SpeedLimitField's own
+ * business at the bottom of this file: it reads and writes /api/settings, which
+ * is never forwarded to a peer, and a command has no business touching it.
  */
 export function useQueueControl(base: string, instance: string) {
   const [queue, setQ] = useState<QueueState | null>(null);
@@ -99,9 +100,11 @@ export function useQueueControl(base: string, instance: string) {
 }
 
 /**
- * QueueBar is the master switch plus the speed limit, sitting where the work is
- * rather than three clicks away in Settings. It rides in the shell bar
- * (app/Layout.tsx), so it is on every page and outlives navigation.
+ * QueueBar is the master switch - Play, Pause and the hard Stop - sitting where
+ * the work is rather than three clicks away in Settings. It rides in the shell
+ * bar (app/Layout.tsx), so it is on every page and outlives navigation. The
+ * speed limit used to be part of this component and is SpeedLimitField at the
+ * bottom of this file now; nothing here reads /api/settings any more.
  *
  * The switch is deliberately not "pause everything": halting stops the
  * scheduler from handing out new work and leaves running downloads to finish,
@@ -114,47 +117,51 @@ export function useQueueControl(base: string, instance: string) {
  * is the same value the page is reading.
  */
 /**
- * TRANSPORT_SIZE is the one deliberate exception to the app's button size
- * (jdp, 2026-09-07: "der play, pause und stopp button in der Kopfleiste sollen
- * viel größer sein. diese drei buttons sind größentechnisch eine ausnahme").
+ * TRANSPORT_WIDTH is what is LEFT of the transport buttons' own size once the
+ * height stopped being this file's to invent.
  *
- * Every other control here is 32px square because a page of same-sized things
- * is a page you can scan. These three are not part of that page: they are the
- * one control that starts and stops everything the app does, they sit alone in
- * the head card, and they are what somebody reaches for without looking. A
- * transport control is the one place where "bigger than its neighbours" is the
- * information.
+ * These three were a 48px square, written down here as the app's one sanctioned
+ * exception to its button size (jdp, 2026-09-07: "der play, pause und stopp
+ * button in der Kopfleiste sollen viel größer sein. diese drei buttons sind
+ * größentechnisch eine ausnahme"). GlimStone rule 19 allows exactly two button
+ * heights and says there will not be a third, and a height argued for at its own
+ * call site - however well argued - is precisely how a house ends up with a
+ * ladder somebody has to pick a rung from.
+ *
+ * The request survives and the exemption does not. These three ARE the key
+ * control: the head card exists for them, they are what somebody reaches for
+ * without looking, and that is the definition of --btn-h-key (2.5rem). So they
+ * take `keyControl` like every other key button in the app, and they are bigger
+ * than their neighbours because the ladder's upper rung says so rather than
+ * because this one file said so. From outside, a documented exemption and a
+ * control that simply ignores the rule look identical, which is the argument
+ * 1.13.0 used when it deleted the last approved carve-out in the language
+ * instead of moving it somewhere quieter. The glyph follows the box for free:
+ * Button sizes its own mark from the height it is on.
+ *
+ * The WIDTH stays here, because a width is a call site's business. It is the
+ * menu button's, which is what jdp asked for when the labels went on ("So breit
+ * wie der Menü-Button"), and it only applies while the labelling engine is
+ * showing words: a fixed square cannot hold one. Measured on the preview
+ * instance, "Wiedergabe" needed 77px inside a square whose overflow is visible,
+ * so the word hung out of its own box and across its neighbour - and the words
+ * here are German more often than not. In the glyph modes there is no width
+ * class at all, because a key control with no caption is a square at its own
+ * height and Button already draws it.
  */
-const TRANSPORT_SIZE = 'h-12 w-12 p-0';
-
-/**
- * TRANSPORT_SIZE_LABELLED is the same control once the labelling engine shows text.
- *
- * The square above is the icon-only shape, and it stayed square after these
- * three were given `labelled`: measured on the preview instance, "Wiedergabe"
- * needed 77px inside a 48px button whose overflow is visible, so the word hung
- * out of its own box and across its neighbour. A fixed square cannot hold a
- * word, and the words here are German more often than not.
- *
- * The width is the menu button's, which is what jdp asked for when the labels
- * went on ("So breit wie der Menü-Button"). The HEIGHT stays 48: being bigger
- * than everything around it is the whole point of these three, and that does
- * not stop being true because they grew a caption.
- */
-const TRANSPORT_SIZE_LABELLED = 'h-12 w-44 px-3.5';
+const TRANSPORT_WIDTH = 'w-44';
 
 export function QueueBar() {
   const { t } = useT();
   const { instance, base } = useInstanceScope();
   const { queue, setHalted, stop } = useQueueControl(base, instance);
-  // Same read the Button makes for itself, made here too because the SIZE has
+  // Same read the Button makes for itself, made here too because the WIDTH has
   // to change with the label and only the caller owns the className. The
   // condition MIRRORS Button's own `showText` (ui.tsx) exactly - 'glyph' and
   // 'hover' draw no caption, so they keep the square, and any other reading
-  // here would size a button for a word it is not showing.
+  // here would widen a button for a word it is not showing.
   const labelMode = useNavLabels();
-  const transport = labelMode === 'text' || labelMode === 'both' ? TRANSPORT_SIZE_LABELLED : TRANSPORT_SIZE;
-  const [cfg, setCfg] = useState<Settings | null>(null);
+  const transport = labelMode === 'text' || labelMode === 'both' ? TRANSPORT_WIDTH : '';
   // The hard-stop confirm step: null until the button is pressed, then the
   // cost this exact moment would pay (internal/app/app_queue.go's StopCost -
   // "the warning is half the feature", per its own doc comment). Fetched
@@ -163,50 +170,13 @@ export function QueueBar() {
   const [stopCost, setStopCost] = useState<StopCost | null>(null);
   const [stopping, setStopping] = useState(false);
   const dialogs = useDialogMute();
-  // Held separately from cfg so typing a limit does not fight the field, and
-  // held as text so a half-typed "1." survives the keystroke that follows it.
-  const [limit, setLimit] = useState('');
-  const [unit, setUnit] = useState<RateUnit>('KiB/s');
 
-  // Loaded once, and deliberately not per scope change: the speed limit is a
-  // setting of THIS instance whatever the page is showing, because /api/settings
-  // is not forwarded to a peer either.
-  useEffect(() => {
-    fetchSettings()
-      .then((s) => {
-        setCfg(s);
-        // The unit follows the stored value rather than being remembered
-        // separately: somebody who set 5 MiB/s should not come back to
-        // "5120" in a KiB field and wonder whether it took.
-        const { value, unit } = splitRate(s.speedLimit);
-        setLimit(fmtRateValue(value));
-        setUnit(unit);
-      })
-      .catch(() => setCfg(null));
-  }, []);
-
-  // The limit is saved when the field is left or Enter is pressed, not on every
-  // keystroke: saving per character would send a request for "5", "51", "512".
-  async function commit(next: { value?: string; unit?: RateUnit } = {}) {
-    if (!cfg) return;
-    const raw = next.value ?? limit;
-    const u = next.unit ?? unit;
-    const bytes = joinRate(Math.max(0, Number(raw.replace(',', '.')) || 0), u);
-    // Re-derive the unit from what was actually stored, so typing 2048 KiB/s
-    // settles as "2 MiB/s" instead of leaving the field in a form the app would
-    // never have chosen itself.
-    const settled = splitRate(bytes);
-    setLimit(fmtRateValue(settled.value));
-    setUnit(settled.unit);
-    if (bytes === cfg.speedLimit) return;
-    // PATCH, not the whole document: this bar only ever knows about
-    // speedLimit, and cfg is a snapshot that can already be behind whatever
-    // the Settings page (or another tab) saved since it was fetched - a PUT
-    // built from `{...cfg, speedLimit: bytes}` would silently put every one
-    // of those other fields back to what this bar last saw. See
-    // patchSettings' own doc comment (lib/api.ts).
-    setCfg(await patchSettings({ speedLimit: bytes }));
-  }
+  // No speed-limit state in here any more. This component kept a full second
+  // copy of it - the settings fetch, the value, the unit and a commit() - after
+  // the limit itself moved out to SpeedLimitField below, so every mount asked
+  // /api/settings for a value nothing on screen read. A lever that decides
+  // nothing reads as a lever (GlimStone 1.13.0), and this one also cost a
+  // request.
 
   async function confirmStop() {
     setStopping(true);
@@ -220,28 +190,18 @@ export function QueueBar() {
 
   if (!queue) return null;
 
-  // A peer is in view, and the two controls do NOT land in the same place. The
-  // switch follows the scope, because /api/queue is forwarded to a peer; the
-  // speed limit cannot, because it lives in /api/settings and settings stay on
-  // the machine that configures them.
-  //
-  // Both used to be withheld, with one sentence explaining why. That was the
-  // safe reading of a real trap - a button obeying the peer beside a field
-  // obeying this box, with nothing on screen saying so - but it withheld a
-  // control the server was perfectly willing to forward, so stopping a peer's
-  // queue was impossible from the very bar built to make stopping possible
-  // anywhere. The switch stays and the limit goes, with the limit's absence
-  // explained rather than silent. The shell's scope tag has already named the
-  // peer, so neither line repeats it.
-  const peer = Boolean(instance);
+  // Nothing here is withheld while a peer is in view. The switch follows the
+  // scope, because /api/queue IS forwarded to a peer (see useQueueControl's own
+  // note above), and the speed limit is not in this card at all any more - it
+  // lives in SpeedLimitField, which says for itself why it stays this machine's.
 
   return (
     // A COLUMN, not a row (jdp, 2026-09-07: "die drei button untereinander"),
     // and the head card grows to fit it rather than the buttons shrinking to
     // fit the card - his own call when the two pulled against each other ("die
     // karte soll so hoch werden das die drei untereinander platz haben"). The
-    // three keep TRANSPORT_SIZE; see that constant for why they are the one
-    // size exception in the app.
+    // three are key controls now rather than a size of their own; see
+    // TRANSPORT_WIDTH for what that changed and why.
     <div className="flex w-fit flex-col items-start gap-2">
       {/* Three distinct transport buttons (jdp: "ein schöner Play, Pause,
           Stopp button wie in JD") rather than one that flips between two
@@ -262,8 +222,9 @@ export function QueueBar() {
           carries the real warning. */}
       <Button
         kind={queue.halted ? 'primary' : 'secondary'}
-        icon={<IconPlay width={22} height={22} />}
+        icon={<IconPlay />}
         labelled
+        keyControl
         className={transport}
         onClick={() => void setHalted(false)}
         disabled={!queue.halted}
@@ -272,8 +233,9 @@ export function QueueBar() {
       />
       <Button
         kind={!queue.halted ? 'primary' : 'secondary'}
-        icon={<IconPause width={22} height={22} />}
+        icon={<IconPause />}
         labelled
+        keyControl
         className={transport}
         onClick={() => void setHalted(true)}
         disabled={queue.halted}
@@ -282,8 +244,9 @@ export function QueueBar() {
       />
       <Button
         kind="secondary"
-        icon={<IconStop width={22} height={22} />}
+        icon={<IconStop />}
         labelled
+        keyControl
         className={transport}
         // Silenced, the stop happens on the press. The dialog exists to say
         // what is about to be interrupted, and somebody who ticked "do not
@@ -306,7 +269,7 @@ export function QueueBar() {
           used to sit here - the halted note and the peer's "the limit is this
           machine's" note - said in a paragraph what the controls beside them
           already say by their own state: Play lit means halted, and the limit
-          field is simply absent while a peer is in view. */}
+          is not one of this card's controls at all any more. */}
 
       {/* The speed limit no longer lives in this row. It moved to the far side
           of the speed curve (jdp, 2026-09-07: "der downloadgraph in der
@@ -361,6 +324,47 @@ export function QueueBar() {
 }
 
 /**
+ * wheelSteps is rule 14's wheel clause on a native <select>: a CLOSED select
+ * steps one option per notch and fires a real `change`, without the platform's
+ * own list opening at all. The platform only wires the wheel up once that list
+ * is already open, which costs a click on a value somebody reaches for
+ * constantly - and the wheel belongs to the PICKER, not to the element the
+ * platform happens to draw, so it has to be here rather than left to the widget.
+ *
+ * Clamped at both ends instead of wrapping: one notch too many must not land a
+ * value from the other end of the list.
+ *
+ * A ref callback with its own cleanup (React 19) and `{ passive: false }`,
+ * never onWheel: React registers onWheel passive at its root, so preventDefault
+ * inside such a handler does nothing but log a warning, and the page would
+ * scroll away under the pointer while the value changed.
+ *
+ * The same eight lines sit in components/RuleEditor.tsx and
+ * components/SearchField.tsx, the app's two other native selects. GlimStone
+ * ships one copy as reference/selectScroll.ts and this app's home for it would
+ * be lib/selectScroll.ts, which does not exist yet; three copies of a listener
+ * is the honest price of not inventing that file from inside one component.
+ */
+function wheelSteps(el: HTMLSelectElement | null) {
+  if (!el) return;
+  const onWheel = (e: WheelEvent) => {
+    // A horizontal wheel says nothing about this control, and a trackpad
+    // reports fractional deltas - so read the sign of deltaY and nothing else.
+    if (el.disabled || el.options.length < 2 || e.deltaY === 0) return;
+    // This handler IS the scroll while the pointer sits on the control.
+    e.preventDefault();
+    const next = Math.min(el.options.length - 1, Math.max(0, el.selectedIndex + (e.deltaY > 0 ? 1 : -1)));
+    if (next === el.selectedIndex) return;
+    el.selectedIndex = next;
+    // A real change event rather than a state write, so the onChange already on
+    // the element picks this up exactly as it would a click on an <option>.
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+  };
+  el.addEventListener('wheel', onWheel, { passive: false });
+  return () => el.removeEventListener('wheel', onWheel);
+}
+
+/**
  * SpeedLimitField is the global download limit, as its own control.
  *
  * It used to sit at the right-hand end of the transport row, pushed there by
@@ -369,12 +373,17 @@ export function QueueBar() {
  * reads left to right: what the queue is doing, what it is doing it at, and
  * the two things that change that.
  *
- * It owns its own settings state rather than taking it as a prop. That is not
- * duplication of QueueBar's own fetch: the limit is a setting of THIS instance
- * whatever page is showing (there is no /api/settings on a peer), while
- * QueueBar's queue state is scoped, so the two genuinely answer different
- * questions and were only ever in one component because they were next to each
- * other on screen.
+ * It owns its own settings state rather than taking it as a prop, and it is now
+ * the ONLY place in this file that reads /api/settings: QueueBar kept a second
+ * copy of the same fetch, value, unit and commit for a while after the control
+ * moved out here, asking the server on every mount for something nothing on
+ * screen read.
+ *
+ * What the two answer is genuinely different, which is why they are two
+ * components: the limit is a setting of THIS instance whatever page is showing
+ * (there is no /api/settings on a peer), while the queue state above is scoped
+ * and IS forwarded. They were only ever in one component because they were next
+ * to each other on screen.
  */
 export function SpeedLimitField() {
   const { t } = useT();
@@ -416,6 +425,11 @@ export function SpeedLimitField() {
     if (!el) return;
     function onWheel(e: WheelEvent) {
       if (document.activeElement !== el) return;
+      // A horizontal wheel is not an adjustment of this number. Without the
+      // test a deltaY of 0 read as "downwards" and quietly stepped the limit
+      // DOWN on a sideways flick; a trackpad's fractional deltas are already
+      // handled, because only the sign is read.
+      if (e.deltaY === 0) return;
       e.preventDefault();
       const step = e.shiftKey ? 10 : 1;
       setLimit((cur) => {
@@ -473,8 +487,16 @@ export function SpeedLimitField() {
         />
         {/* The number is read in whichever unit is picked - type 5, choose
             MiB/s, get 5 MiB/s. Converting instead would make that impossible,
-            because switching the unit would rewrite the number just typed. */}
+            because switching the unit would rewrite the number just typed.
+
+            The wheel steps it, like the number beside it and like every other
+            picker in the app (rule 14, see wheelSteps above). The two answer the
+            wheel on different terms and that is not an inconsistency: a number
+            field needs focus first because a page full of them would otherwise
+            edit itself under a scrolling pointer, while a picker with three
+            options answers on hover, which is what the rule asks for. */}
         <select
+          ref={wheelSteps}
           value={unit}
           aria-label={t('queue.limitUnit')}
           onChange={(e) => {

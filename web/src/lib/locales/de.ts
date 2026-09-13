@@ -975,6 +975,7 @@ export const de: Dict = {
   'accounts.refresh': 'Aktualisieren',
   'accounts.refreshing': 'Wird aktualisiert…',
   'accounts.remove': 'Entfernen',
+  'accounts.removeConfirm': 'Die gespeicherte Anmeldung für {name} wird auf dieser Instanz gelöscht und lässt sich nicht wiederherstellen, sie müsste neu eingegeben werden.',
   'accounts.removed': 'Entfernt.',
   'accounts.rename': 'Umbenennen',
   'accounts.renew': 'Verlängern',

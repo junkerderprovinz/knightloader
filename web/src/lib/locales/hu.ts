@@ -965,6 +965,7 @@ export const hu: Dict = {
   'accounts.refresh': 'Frissítés',
   'accounts.refreshing': 'Frissítés…',
   'accounts.remove': 'Eltávolítás',
+  'accounts.removeConfirm': 'A(z) {name} mentett bejelentkezési adatai törlődnek erről a példányról, és nem állíthatók vissza, ezért újra meg kellene adni őket.',
   'accounts.removed': 'Eltávolítva.',
   'accounts.rename': 'Átnevezés',
   'accounts.renew': 'Megújítás',

@@ -1107,6 +1107,7 @@ export const en = {
   'accounts.refresh': 'Refresh',
   'accounts.refreshing': 'Refreshing…',
   'accounts.remove': 'Remove',
+  'accounts.removeConfirm': 'The stored login for {name} is deleted from this instance and cannot be recovered, so it would have to be entered again.',
   'accounts.removed': 'Removed.',
   'accounts.rename': 'Rename',
   'accounts.renew': 'Renew',

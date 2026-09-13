@@ -965,6 +965,7 @@ export const da: Dict = {
   'accounts.refresh': 'Opdater',
   'accounts.refreshing': 'Opdaterer…',
   'accounts.remove': 'Fjern',
+  'accounts.removeConfirm': 'Det gemte login til {name} slettes fra denne instans og kan ikke gendannes, så det skulle indtastes igen.',
   'accounts.removed': 'Fjernet.',
   'accounts.rename': 'Omdøb',
   'accounts.renew': 'Forny',

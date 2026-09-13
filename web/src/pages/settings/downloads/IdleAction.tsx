@@ -374,6 +374,15 @@ export function IdleActionCard({ hue }: { hue: number }) {
           onClose={() => setConfirming(false)}
           footer={
             <>
+              {/* The spacer first, because Modal's footer is a plain flex row
+                  with no justification of its own: without it the pair sits at
+                  the START of a max-w-md window, and the position that is
+                  supposed to mean "this one goes ahead" (GlimStone 1.14.0) has
+                  empty space to its right instead. Cancel then Run, ordered by
+                  the JSX and never by flex-row-reverse or an order-* utility,
+                  so the pair mirrors with the page under right-to-left
+                  languages - "right" means end, not the right of the glass. */}
+              <span className="flex-1" />
               <Button kind="ghost" onClick={() => setConfirming(false)}>
                 {t('common.cancel')}
               </Button>

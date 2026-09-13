@@ -39,7 +39,6 @@ import {
   EmptyState,
   ErrorCard,
   Field,
-  IconBadge,
   InfoBubble,
   LoadingCard,
   Modal,
@@ -50,15 +49,20 @@ import {
 } from '../components/ui';
 import { AccountTable } from '../components/AccountTable';
 import { HosterLoginSection } from '../components/HosterLoginSection';
+// Four names left this list when the row actions moved into AccountTable's own
+// menu: IconBadge, IconEdit, IconSettings and IconTrash were still imported
+// with no call site left to use them. `noUnusedLocals` is off in tsconfig.json,
+// so nothing reported them, and an import that resolves is indistinguishable
+// from one that is used when somebody greps for a glyph. Same reasoning as
+// GlimStone 1.13.0 applied to imports: delete what decides nothing.
 import {
   IconAccounts,
+  IconClose,
   IconGrip,
-  IconEdit,
   IconExternalLink,
   IconPlus,
   IconRetry,
   IconSearch,
-  IconSettings,
   IconTrash,
 } from '../lib/icons';
 import { HosterIcon } from '../components/HosterIcon';
@@ -78,6 +82,9 @@ export function Accounts() {
   const [catalogue, setCatalogue] = useState<CatalogueService[]>([]);
   const [loadError, setLoadError] = useState(false);
   const [dialog, setDialog] = useState<DialogState | null>(null);
+  // The row waiting on an answer before its credential goes. Null at rest, and
+  // the ONLY path to removeAccountCredential - see doRemove below.
+  const [confirming, setConfirming] = useState<Account | null>(null);
   const [refreshing, setRefreshing] = useState<ReadonlySet<string>>(new Set());
 
   const load = useCallback(async () => {
@@ -125,7 +132,13 @@ export function Accounts() {
     }
   }
 
-  async function onRemove(a: Account) {
+  // Asked, not done. What goes here is a key out of the encrypted store, and
+  // there is nothing on this page or behind it to put it back from - the value
+  // was never readable here to begin with. GlimStone 1.12.0: an action that
+  // cannot be reversed opens a window naming what is at stake in words, and the
+  // question is what warns, not a colour.
+  async function doRemove(a: Account) {
+    setConfirming(null);
     try {
       await removeAccountCredential(a.service, a.account);
       toast(t('accounts.removed'), 'info');
@@ -156,7 +169,16 @@ export function Accounts() {
   const debridIds = new Set(catalogue.filter((s) => s.group === 'debrid').map((s) => s.id));
   const debridRows = accounts.filter((a) => debridIds.has(a.service));
 
-  const tableProps = { catalogue: byId, refreshing, onRefresh, onToggle, onRemove, onEdit };
+  const labelOf = (a: Account) => byId.get(a.service)?.label ?? a.service;
+
+  const tableProps = {
+    catalogue: byId,
+    refreshing,
+    onRefresh,
+    onToggle,
+    onRemove: (a: Account) => setConfirming(a),
+    onEdit,
+  };
 
   return (
     <div className="flex flex-col gap-10">
@@ -218,6 +240,43 @@ export function Accounts() {
           onClose={() => setDialog(null)}
           onSaved={load}
         />
+      )}
+
+      {confirming && (
+        <Modal
+          title={t('accounts.remove')}
+          onClose={() => setConfirming(null)}
+          footer={
+            <>
+              {/* Cancel and the commit stand together at the end of the row,
+                  the commit LAST because it is the answer that goes ahead
+                  (GlimStone 1.14.0) - by JSX order alone, so the pair mirrors
+                  with the rest of the page in an RTL language. No
+                  flex-row-reverse and no order-*, which would pin the two to
+                  their visual positions and survive the mirror.
+                  Both carry a mark, because a footer is all glyphs or none -
+                  the lopsided shape GlimStone 1.8.0's confirmGlyph exists to
+                  prevent. Neither is recommended by its colour: the sentence
+                  above says what is at stake, and a red button would only say
+                  it again, worse. */}
+              <span className="flex-1" />
+              <Button kind="ghost" icon={<IconClose width={16} height={16} />} onClick={() => setConfirming(null)}>
+                {t('common.cancel')}
+              </Button>
+              <Button kind="ghost" icon={<IconTrash width={16} height={16} />} onClick={() => void doRemove(confirming)}>
+                {t('accounts.remove')}
+              </Button>
+            </>
+          }
+        >
+          <p className="text-sm text-carbon-text">
+            {/* The account id goes into the name when there is one: two rows of
+                the same service would otherwise ask the identical question. */}
+            {t('accounts.removeConfirm', {
+              name: confirming.account ? `${labelOf(confirming)} · ${confirming.account}` : labelOf(confirming),
+            })}
+          </p>
+        </Modal>
       )}
     </div>
   );

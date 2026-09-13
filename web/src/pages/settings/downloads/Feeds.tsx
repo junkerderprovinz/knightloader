@@ -317,82 +317,97 @@ export function FeedsCard({ hue }: { hue: number }) {
         hint={t('settings.feeds.titleHint')}
         right={
           <div className="flex items-center gap-2">
-            {/* The module's state, not an explanation of it: the list below is
-                dimmed, and this says which of the two reasons a list can be
-                empty this one is. */}
+            {/* The module's state, and while it is off this badge is the whole
+                of what the card says: the Add button beside it is gone rather
+                than greyed. This badge is REPORTING - it answers its own
+                question - which is the one thing GlimStone 1.10.0 keeps on
+                screen while a mode is off. */}
             {parked && <LabelBadge label={t('settings.modules.off')} />}
-            <Button icon={<IconPlus width={16} height={16} />} disabled={parked} onClick={add}>
-              {t('settings.feeds.add')}
-            </Button>
+            {!parked && (
+              <Button icon={<IconPlus width={16} height={16} />} onClick={add}>
+                {t('settings.feeds.add')}
+              </Button>
+            )}
           </div>
         }
       >
         {t('settings.feeds.title')}
       </SectionTitle>
 
-      {/* Dimmed and inert rather than hidden while the module is parked: a card
-          that vanishes teaches nobody that the feature exists, and the switch
-          that brings the stored subscriptions back is one page away. */}
-      <div className={parked ? 'pointer-events-none opacity-40' : ''}>
-        {rowCount === 0 ? (
-          // Inside the card rather than instead of it: the Add button above is
-          // the only way out of this state, and swapping the card for an
-          // EmptyState would take it off the page.
-          <p className="py-6 text-center text-sm text-carbon-textSub">
-            {t('settings.feeds.empty')}
-            <span className="mt-1 block text-[11px] text-carbon-textMuted">{t('settings.feeds.emptyHint')}</span>
-          </p>
-        ) : (
-          <ul className="flex flex-col">
-            {rows.map((row, i) => (
-              <FeedRow
-                key={storedId(row.url)}
-                row={row}
-                index={i}
-                last={i === rowCount - 1}
-                stored
-                priorities={priorities}
-                status={health[row.url]}
-                open={openRow === storedId(row.url)}
-                onToggle={() => setOpenRow(openRow === storedId(row.url) ? '' : storedId(row.url))}
-                onCommitUrl={() => 'ok'}
-                onChange={(next) => write(rows.map((r) => (r.url === row.url ? next : r)))}
-                onRemove={() => write(rows.filter((r) => r.url !== row.url))}
-              />
-            ))}
-            {pending.map((p, i) => (
-              <FeedRow
-                key={p.id}
-                row={p.row}
-                index={rows.length + i}
-                last={rows.length + i === rowCount - 1}
-                stored={false}
-                priorities={priorities}
-                open={openRow === p.id}
-                onToggle={() => setOpenRow(openRow === p.id ? '' : p.id)}
-                onCommitUrl={(typed) => {
-                  // Kept even when it cannot be stored yet, so collapsing a row
-                  // whose address is still half typed does not throw it away.
-                  setPending((list) =>
-                    list.map((r) => (r.id === p.id ? { ...r, row: { ...r.row, url: typed } } : r)),
-                  );
-                  const verdict = commit(typed, p.row);
-                  if (verdict === 'ok') {
-                    setPending((list) => list.filter((r) => r.id !== p.id));
-                    // The row is keyed by its address once it is stored, so it
-                    // remounts here; without this the editor would close on the
-                    // person who just finished typing into it.
-                    setOpenRow(storedId(typed.trim()));
-                  }
-                  return verdict;
-                }}
-                onChange={(next) => setPending((list) => list.map((r) => (r.id === p.id ? { ...r, row: next } : r)))}
-                onRemove={() => setPending((list) => list.filter((r) => r.id !== p.id))}
-              />
-            ))}
-          </ul>
-        )}
-      </div>
+      {/* THE CARD STAYS, WHAT HANGS OFF THE MODULE DOES NOT (GlimStone 1.10.0).
+          The old shape wrapped everything below in `pointer-events-none
+          opacity-40` and argued that a card which vanishes teaches nobody the
+          feature exists. Half of that is right and survives: the card, its
+          title, its (i) and the Off badge above are still here, and they are
+          what says the feature exists. The other half is the shape 1.10.0
+          rejects - a list and an Add button somebody can see, read and reach
+          for that answer nothing, with the reason on a different page
+          entirely. Parking CLEARED settings.feeds server-side, so what the
+          dimming actually covered was the empty-state sentence; that sentence
+          explains what a subscription IS rather than inviting one to be added,
+          so it reads correctly with the module off and stays at full
+          strength. */}
+      {rowCount === 0 ? (
+        // Inside the card rather than instead of it: while the module is
+        // running, the Add button above is the only way out of this state, and
+        // swapping the card for an EmptyState would take it off the page. With
+        // the module parked there is no Add button and this sentence is the
+        // whole body - which it can be, because it says what a subscription is
+        // rather than telling anybody to press something.
+        <p className="py-6 text-center text-sm text-carbon-textSub">
+          {t('settings.feeds.empty')}
+          <span className="mt-1 block text-[11px] text-carbon-textMuted">{t('settings.feeds.emptyHint')}</span>
+        </p>
+      ) : (
+        <ul className="flex flex-col">
+          {rows.map((row, i) => (
+            <FeedRow
+              key={storedId(row.url)}
+              row={row}
+              index={i}
+              last={i === rowCount - 1}
+              stored
+              priorities={priorities}
+              status={health[row.url]}
+              open={openRow === storedId(row.url)}
+              onToggle={() => setOpenRow(openRow === storedId(row.url) ? '' : storedId(row.url))}
+              onCommitUrl={() => 'ok'}
+              onChange={(next) => write(rows.map((r) => (r.url === row.url ? next : r)))}
+              onRemove={() => write(rows.filter((r) => r.url !== row.url))}
+            />
+          ))}
+          {pending.map((p, i) => (
+            <FeedRow
+              key={p.id}
+              row={p.row}
+              index={rows.length + i}
+              last={rows.length + i === rowCount - 1}
+              stored={false}
+              priorities={priorities}
+              open={openRow === p.id}
+              onToggle={() => setOpenRow(openRow === p.id ? '' : p.id)}
+              onCommitUrl={(typed) => {
+                // Kept even when it cannot be stored yet, so collapsing a row
+                // whose address is still half typed does not throw it away.
+                setPending((list) =>
+                  list.map((r) => (r.id === p.id ? { ...r, row: { ...r.row, url: typed } } : r)),
+                );
+                const verdict = commit(typed, p.row);
+                if (verdict === 'ok') {
+                  setPending((list) => list.filter((r) => r.id !== p.id));
+                  // The row is keyed by its address once it is stored, so it
+                  // remounts here; without this the editor would close on the
+                  // person who just finished typing into it.
+                  setOpenRow(storedId(typed.trim()));
+                }
+                return verdict;
+              }}
+              onChange={(next) => setPending((list) => list.map((r) => (r.id === p.id ? { ...r, row: next } : r)))}
+              onRemove={() => setPending((list) => list.filter((r) => r.id !== p.id))}
+            />
+          ))}
+        </ul>
+      )}
     </Card>
   );
 }
@@ -517,7 +532,11 @@ function FeedRow({
             reads as content rather than as a wall of buttons. */}
         <div className="flex items-center gap-1.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
           <IconBadge
-            icon={<IconTrash width={14} height={14} />}
+            // 16 in a 32px badge: a glyph alone in a square is half its box
+            // (GlimStone rule 13), not the smaller drawing a glyph beside text
+            // would be. 14 filled 44% of the tile and made the row read as
+            // uneven against every badge that already had this right.
+            icon={<IconTrash width={16} height={16} />}
             hue={index}
             title={t('settings.feeds.remove')}
             aria-label={t('settings.feeds.remove')}

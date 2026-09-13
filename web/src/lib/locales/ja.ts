@@ -965,6 +965,7 @@ export const ja: Dict = {
   'accounts.refresh': '更新',
   'accounts.refreshing': '更新中…',
   'accounts.remove': '削除',
+  'accounts.removeConfirm': '{name} の保存されたログイン情報はこのインスタンスから削除され、元に戻せないため、もう一度入力し直す必要があります。',
   'accounts.removed': '削除しました。',
   'accounts.rename': '名前を変更',
   'accounts.renew': '更新（延長）',

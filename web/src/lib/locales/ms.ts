@@ -965,6 +965,7 @@ export const ms: Dict = {
   'accounts.refresh': 'Segar semula',
   'accounts.refreshing': 'Menyegarkan semula…',
   'accounts.remove': 'Buang',
+  'accounts.removeConfirm': 'Log masuk tersimpan untuk {name} dipadam daripada instans ini dan tidak boleh dipulihkan, jadi ia perlu dimasukkan semula.',
   'accounts.removed': 'Dibuang.',
   'accounts.rename': 'Namakan semula',
   'accounts.renew': 'Perbaharui',

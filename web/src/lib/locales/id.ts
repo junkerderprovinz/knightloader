@@ -965,6 +965,7 @@ export const id: Dict = {
   'accounts.refresh': 'Segarkan',
   'accounts.refreshing': 'Menyegarkan…',
   'accounts.remove': 'Hapus',
+  'accounts.removeConfirm': 'Info masuk tersimpan untuk {name} dihapus dari instans ini dan tidak dapat dipulihkan, jadi harus dimasukkan lagi.',
   'accounts.removed': 'Dihapus.',
   'accounts.rename': 'Ganti nama',
   'accounts.renew': 'Perpanjang',

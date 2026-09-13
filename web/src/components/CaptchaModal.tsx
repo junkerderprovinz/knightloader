@@ -317,6 +317,19 @@ export function CaptchaModal() {
     <Modal title={title} onClose={() => handleSkip('skip-once')}
       footer={
         <>
+          {/* The clock first, then the spacer, then the three controls. The
+              remaining time is a reading, and it was sitting to the RIGHT of
+              the button that answers the challenge - so the control somebody
+              came for was not at the end of its row, which is what GlimStone
+              1.14.0 asks for ("right is where the hand already is"). Being
+              right of its partner is not enough on its own. */}
+          {displayRemaining !== null && (
+            <span className="inline-flex shrink-0 items-center gap-1 text-[11px] text-carbon-textMuted">
+              <IconClock width={12} height={12} />
+              {fmtCountdown(displayRemaining)}
+            </span>
+          )}
+          <span className="flex-1" />
           <Button kind="secondary" onClick={() => handleSkip('skip-once')} disabled={busy}>
             {t('captcha.cancel')}
           </Button>
@@ -330,13 +343,6 @@ export function CaptchaModal() {
             <Button kind="primary" onClick={handleContinue} disabled={continueDisabled}>
               {t('captcha.continue')}
             </Button>
-          )}
-          <span className="flex-1" />
-          {displayRemaining !== null && (
-            <span className="inline-flex shrink-0 items-center gap-1 text-[11px] text-carbon-textMuted">
-              <IconClock width={12} height={12} />
-              {fmtCountdown(displayRemaining)}
-            </span>
           )}
         </>
       }

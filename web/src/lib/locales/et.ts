@@ -965,6 +965,7 @@ export const et: Dict = {
   'accounts.refresh': 'Värskenda',
   'accounts.refreshing': 'Värskendamine…',
   'accounts.remove': 'Eemalda',
+  'accounts.removeConfirm': 'Salvestatud sisselogimisandmed teenuse {name} jaoks kustutatakse sellest eksemplarist ja neid ei saa taastada, seega tuleks need uuesti sisestada.',
   'accounts.removed': 'Eemaldatud.',
   'accounts.rename': 'Nimeta ümber',
   'accounts.renew': 'Uuenda',

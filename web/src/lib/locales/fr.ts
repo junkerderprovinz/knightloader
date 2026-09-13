@@ -957,6 +957,7 @@ export const fr: Dict = {
   'accounts.refresh': 'Actualiser',
   'accounts.refreshing': 'Actualisation…',
   'accounts.remove': 'Supprimer',
+  'accounts.removeConfirm': 'L’identifiant enregistré pour {name} est supprimé de cette instance et ne peut pas être récupéré, il faudrait donc le saisir à nouveau.',
   'accounts.removed': 'Supprimé.',
   'accounts.rename': 'Renommer',
   'accounts.renew': 'Renouveler',

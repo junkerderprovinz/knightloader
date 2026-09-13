@@ -965,6 +965,7 @@ export const lt: Dict = {
   'accounts.refresh': 'Atnaujinti',
   'accounts.refreshing': 'Atnaujinama…',
   'accounts.remove': 'Šalinti',
+  'accounts.removeConfirm': 'Išsaugoti {name} prisijungimo duomenys ištrinami iš šio egzemplioriaus ir jų atkurti nepavyks, todėl juos reikėtų suvesti iš naujo.',
   'accounts.removed': 'Pašalinta.',
   'accounts.rename': 'Pervadinti',
   'accounts.renew': 'Pratęsti',

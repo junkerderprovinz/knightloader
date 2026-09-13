@@ -121,6 +121,12 @@ export function CookieJarDialog({
       onClose={onClose}
       footer={
         <>
+          {/* This row had no spacer at all, so both buttons sat at its START
+              with the server's refusal to their right. GlimStone 1.14.0 puts
+              the control that goes ahead at the END of its row; the message is
+              a reading and goes in front of the pair. */}
+          {error && <p className="min-w-0 text-xs text-statusWarn">{error}</p>}
+          <span className="flex-1" />
           <Button kind="secondary" disabled={busy} onClick={onClose}>
             {t('common.cancel')}
           </Button>
@@ -134,7 +140,6 @@ export function CookieJarDialog({
           >
             {task ? t('cookies.save') : t('settings.resolvers.cookieSave')}
           </Button>
-          {error && <p className="min-w-0 text-xs text-statusWarn">{error}</p>}
         </>
       }
     >

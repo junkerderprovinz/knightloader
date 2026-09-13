@@ -31,11 +31,56 @@ const CATEGORIES: { id: SearchCategory; label: TranslationKey }[] = [
 ];
 
 /**
+ * wheelSteps is rule 14's wheel clause on a native <select>: a CLOSED select
+ * steps one option per notch and fires a real `change`, without the platform's
+ * own list opening at all. The platform only wires the wheel up once that list
+ * is already open, which costs a click on a value somebody reaches for
+ * constantly - and this is exactly such a value, since narrowing a search to
+ * "Host" and back is something people do several times in a row.
+ *
+ * Clamped at both ends instead of wrapping: one notch too many must not land a
+ * value from the other end of the list.
+ *
+ * A ref callback with its own cleanup (React 19) and `{ passive: false }`,
+ * never onWheel: React registers onWheel passive at its root, so preventDefault
+ * inside such a handler does nothing but log a warning, and the page would
+ * scroll away under the pointer while the value changed.
+ *
+ * The same eight lines sit in components/QueueBar.tsx and
+ * components/RuleEditor.tsx, the app's two other native selects. GlimStone
+ * ships one copy as reference/selectScroll.ts and this app's home for it would
+ * be lib/selectScroll.ts, which does not exist yet; three copies of a listener
+ * is the honest price of not inventing that file from inside one component.
+ */
+function wheelSteps(el: HTMLSelectElement | null) {
+  if (!el) return;
+  const onWheel = (e: WheelEvent) => {
+    // A horizontal wheel says nothing about this control, and a trackpad
+    // reports fractional deltas - so read the sign of deltaY and nothing else.
+    if (el.disabled || el.options.length < 2 || e.deltaY === 0) return;
+    // This handler IS the scroll while the pointer sits on the control.
+    e.preventDefault();
+    const next = Math.min(el.options.length - 1, Math.max(0, el.selectedIndex + (e.deltaY > 0 ? 1 : -1)));
+    if (next === el.selectedIndex) return;
+    el.selectedIndex = next;
+    // A real change event rather than a state write, so the onChange already on
+    // the element picks this up exactly as it would a click on an <option>.
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+  };
+  el.addEventListener('wheel', onWheel, { passive: false });
+  return () => el.removeEventListener('wheel', onWheel);
+}
+
+/**
  * SearchField is the input and its category picker as one control.
  *
- * The picker is a native <select>: it is one of a fixed handful of values, it
- * has to be reachable by keyboard and by screen reader, and six segments of a
- * segmented control would take more width than the field they narrow.
+ * The picker is a native <select>, and rule 18 ("a native control gets
+ * replaced, not persuaded") says it should not stay one: `appearance: none`
+ * reaches the closed box and never the list the platform opens on top of it.
+ * What keeps it here is not that six segments would be wider than the field
+ * they narrow, true as that is - it is that the replacement is ONE listbox
+ * shared by every picker in the app, and building a private one inside the
+ * search field is how a house ends up with two. Debt, written down as debt.
  */
 export function SearchField({
   value,
@@ -85,10 +130,22 @@ export function SearchField({
           className="grid h-6 w-6 shrink-0 place-items-center rounded-[var(--radius-control)]
             text-carbon-textMuted transition-colors hover:bg-carbon-surface3 hover:text-carbon-text"
         >
-          <IconClose width={13} height={13} />
+          {/* Half the box, like 16 in 32 and 20 in 40: a glyph alone in a
+              square has no text beside it to match, so the only proportion
+              available is how much of the frame the ink fills. This was 13.
+              The hover above is surface3 and not --carbon-hover on purpose -
+              the button carries no fill of its own but SITS on surface2, and
+              --carbon-hover is a step below that, so it would darken under the
+              pointer instead of lifting (rule 21). */}
+          <IconClose width={12} height={12} />
         </button>
       )}
+      {/* The wheel steps the category (rule 14, see wheelSteps above): the
+          pointer is already on this box while somebody is reading the list it
+          narrows, and a notch is cheaper than opening the platform's own menu
+          to change one word. */}
       <select
+        ref={wheelSteps}
         value={value.category}
         onChange={(e) => onChange({ ...value, category: e.target.value as SearchCategory })}
         aria-label={t('search.in')}

@@ -186,7 +186,11 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
                 </span>
               </button>
               <IconBadge
-                icon={<IconTrash width={14} height={14} />}
+                // 16 in a 32px badge: a glyph alone in a square is half its box
+                // (GlimStone rule 13), not the smaller drawing a glyph beside
+                // text would be. 14 filled 44% of the tile and made the row read
+                // as uneven against every badge that already had this right.
+                icon={<IconTrash width={16} height={16} />}
                 hue={i}
                 title={t('settings.headerProfiles.delete')}
                 aria-label={`${t('settings.headerProfiles.delete')} · ${p.id}`}
@@ -263,7 +267,9 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
                   />
                 </Field>
                 <IconBadge
-                  icon={<IconTrash width={14} height={14} />}
+                  // Half the box, like every other square badge - see the one
+                  // on the list row above.
+                  icon={<IconTrash width={16} height={16} />}
                   hue={i}
                   title={t('settings.headerProfiles.removeHeader')}
                   aria-label={t('settings.headerProfiles.removeHeader')}
@@ -273,19 +279,32 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
             ))}
             <Button
               className="w-fit"
-              icon={<IconPlus width={14} height={14} />}
+              // 16, the size every other button glyph in this app carries and
+              // the one the Add button at the top of this very card already
+              // used - one symbol at two sizes on one screen is the complaint
+              // GlimStone's own sizing rules were written against.
+              icon={<IconPlus width={16} height={16} />}
               onClick={() => setDraft({ ...draft, lines: [...draft.lines, { name: '', value: '', stored: false }] })}
             >
               {t('settings.headerProfiles.addHeader')}
             </Button>
           </div>
 
-          {/* Cancel first, Save last: the control that takes the form forward
-              sits at the END of the row and the one that steps back at its
-              start. Ordered by the JSX itself and never by flex-row-reverse or
-              an order-* utility, so the pair mirrors with the page under the
-              right-to-left languages this app ships. */}
+          {/* Cancel first, Save last, and the pair really is at the END of the
+              row (GlimStone 1.14.0). The order alone was never the whole rule:
+              in a left-aligned row the advancing button sits in the middle of
+              the well with empty space to its right, which is the position that
+              is supposed to MEAN "this one goes ahead". The spacer is the first
+              child, and the failure message goes in front of the pair rather
+              than after it, so nothing stands to the right of Save.
+
+              Ordered by the JSX itself and never by flex-row-reverse or an
+              order-* utility, so the pair mirrors with the page under the
+              right-to-left languages this app ships - "right" means end, not
+              the right of the glass. */}
           <div className="flex items-center gap-3">
+            <span className="flex-1" />
+            {error && <p className="text-xs text-statusWarn">{error}</p>}
             <Button kind="ghost" disabled={busy} onClick={() => setDraft(null)}>
               {t('common.cancel')}
             </Button>
@@ -295,7 +314,6 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
             >
               {t('settings.headerProfiles.save')}
             </Button>
-            {error && <p className="text-xs text-statusWarn">{error}</p>}
           </div>
         </div>
       )}

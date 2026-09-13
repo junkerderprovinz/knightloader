@@ -75,6 +75,16 @@
 
   --color-statusWarn: var(--status-warn-text);
   --color-statusWarnBg: var(--status-warn-bg);
+  /* bg-statusWarnBgStrong: the OPAQUE warn wash (GlimStone 1.8.0), for a chip
+     that has to hold its own against whatever it sits on. --status-warn-bg
+     directly above is translucent, which is right on a card and wrong on a row
+     that already carries a fill: the row's colour comes straight through it, so
+     the same chip reads as a different colour on a selected row, a hovered row
+     and an idle one. Named here for the same reason --color-carbon-hoverRaised
+     is: Tailwind v4 emits a utility only for a key that stands in @theme, and a
+     class that produces nothing looks exactly like a class that was never
+     added. */
+  --color-statusWarnBgStrong: var(--status-warn-bg-strong);
   --color-statusWarnSolid: var(--status-warn-solid);
 
   --color-statusInfo: var(--status-info-text);
@@ -115,6 +125,58 @@
   --radius-card: 0;
   --radius-control: 0;
   --radius-pill: 0;
+}
+
+/* THE TWO BUTTON HEIGHTS, and there will not be a third (GlimStone 1.8.0,
+   rule 19).
+
+   --btn-h is what an ordinary text field measures (a 20px line box plus 12px of
+   padding), so a button standing in a row of fields matches it instead of
+   standing proud of it. That number came out of a report — "viel zu klobig ...
+   so hoch wie die texteingabefelder" — and it governs almost everything.
+
+   --btn-h-key is the one step up, for the button a surface exists FOR: the
+   control that CREATES the thing the page lists, or one whose press is hard to
+   undo. Two heights, because two reads as a deliberate difference and three
+   reads as a ladder somebody has to pick a rung from, at which point every
+   button becomes an argument. The step is half a rem for a measured reason:
+   four pixels between neighbours gets reported as a bug, eight does not.
+
+   RAISING --btn-h is never the way to get a bigger button — that puts every
+   control in the app out of line with every field beside it to solve a problem
+   two controls have. And a key control standing in a field row has to be
+   CENTRED against its neighbours, not top-aligned, or it reads as exactly the
+   misalignment the single height exists to prevent.
+
+   The numbers live here and nowhere else, so the component files carry no
+   measurement of their own: a caller takes the ordinary height as
+   `h-[var(--btn-h)]` and the key height as the .glim-btn-key class below.
+   Not yet read by this app's own Button/IconBadge (components/ui.tsx) or by the
+   transport row (components/QueueBar.tsx), which still measure 36px, 32px and
+   48px between them — three heights, which is the ladder rule 19 is about.
+   Stated rather than left to be discovered: the tokens are the target, and
+   whichever pass moves those components reads them from here.
+   The glyph inside a key control steps with the box (1.25rem -> 1.375rem in
+   GlimStone's own reference); that half belongs to the component that draws the
+   glyph, not to this file. */
+:root {
+  --btn-h: 2rem;
+  --btn-h-key: 2.5rem;
+}
+
+/* The key control's height as a class, named as GlimStone names it so the
+   gesture is recognisable across the house rather than reinvented per app.
+   Height only: padding, radius and font come from the button that wears it, and
+   a glyph-only key control is SQUARE at the same number — there is no separate
+   class for that, it is `w-[var(--btn-h-key)]` beside this one.
+
+   Bare, not in @layer components: this rule is meant to beat a Tailwind `h-*`
+   utility on the same element, and an unlayered rule does (see .glim-card's own
+   note further down for the time that property of this file was a bug rather
+   than the point). A button wearing this class is 2.5rem tall whatever height
+   utility it was carrying before. */
+.glim-btn-key {
+  height: var(--btn-h-key);
 }
 
 :root,
@@ -214,6 +276,13 @@
 
   --status-warn-text:    #f1c21b;
   --status-warn-bg:      rgba(241, 194, 27, 0.12);
+  /* The opaque twin of the line above, for a warn chip sitting on a row that
+     already has a fill of its own (GlimStone 1.8.0). Value taken from
+     GlimStone's reference/tokens.css rather than mixed here: the translucent
+     one over a hovered row and the translucent one over an idle row are two
+     different colours, and eyeballing a replacement is how the family ends up
+     with three warn yellows. */
+  --status-warn-bg-strong: #3a2f1c;
   --status-warn-solid:   #f1c21b;
 
   --status-neutral-text: #a8a8a8;
@@ -295,6 +364,10 @@
 
     --status-warn-text:    #8E6A00;
     --status-warn-bg:      rgba(142, 106, 0, 0.10);
+    /* The light answer, and it is a pale WASH rather than the dark theme's
+       deep one: an opaque chip is painted on the ramp it stands on, so it
+       inverts with the theme the way every other surface here does. */
+    --status-warn-bg-strong: #fcf4d6;
     --status-warn-solid:   #b28600;
 
     --status-neutral-text: #6f6f6f;
@@ -375,6 +448,9 @@
 
   --status-warn-text:    #8E6A00;
   --status-warn-bg:      rgba(142, 106, 0, 0.10);
+  /* Same value as the media block above: an explicit light choice has to reach
+     it too, or a chip picked by hand goes back to letting the row through. */
+  --status-warn-bg-strong: #fcf4d6;
   --status-warn-solid:   #b28600;
 
   --status-neutral-text: #6f6f6f;
@@ -906,7 +982,7 @@ body {
    The motion engine
    ---------------------------------------------------------------------------
    Ported from upstream GlimStone (docs/design-language.md, "The motion
-   engine" + "Round 2 — seven more animations"). Twelve keyframes/utilities
+   engine" + "Round 2 — seven more animations"). The keyframes and utilities
    below answer one of: is this new, arriving, ongoing, confirmed, changing
    shape, changing colour, or refused? Nothing else in the system animates.
 
@@ -915,7 +991,12 @@ body {
    axis layered on top: duration/distance/amplitude custom properties,
    redefined per [data-motion], consumed by the SAME keyframes at every
    intensity — the identical "one token set, no exception list" shape the
-   shape engine's own radius tokens use above. These tokens resolve ONLY
+   shape engine's own radius tokens use above. THE SETTING REACHES EVERY
+   TRANSITION TOO, not only the keyframes: --motion-control-dur is the duration
+   every colour, shadow and opacity transition in the app runs at — the
+   shape-morph rule below owns the `transition` shorthand on every element and
+   spends it there — because a control that keeps easing after somebody turned
+   motion off is motion they asked not to have. These tokens resolve ONLY
    inside the @media (prefers-reduced-motion: no-preference) block below, per
    GlimStone: the OS-level (reduce) block further down keeps its own
    hard-coded fallback values completely untouched and unconditional, so a
@@ -1093,6 +1174,41 @@ body {
   to   { opacity: 1; transform: none; }
 }
 
+/* A FLOATING WINDOW ARRIVES, it does not appear (GlimStone 1.8.0, "the confirm
+   surface"): the scrim fades up and the card rises a short distance and
+   settles. Both run through this engine, and under reduced motion both collapse
+   to the same short fade, so somebody who asked for less movement still sees
+   that something new is on screen.
+
+   The last wave left this out on the reading that the card's motion predates
+   1.11.0 and only the scrim's COLOUR was that release's subject. The scrim's
+   fade is not the card's motion, though — in GlimStone's reference it sits in
+   the same block as `.glim-modal-backdrop { background: var(--glim-scrim) }` —
+   and leaving it out drove the app into a contradiction it did not have
+   before: CommandPalette's card faded in while its own ground snapped to .65
+   in the same frame, and Modal's card did nothing at all. Two floating windows
+   in one app arriving two different ways is the drift this whole pass is about,
+   so both halves are defined here.
+
+   WHICH HALF IS LIVE TODAY: the ground. Both windows already carry
+   .glim-modal-backdrop, so the scrim fades from the moment this file ships. The
+   card half waits on one class, .glim-modal-card, on the card element in
+   components/ui.tsx and components/CommandPalette.tsx — and when it is added it
+   REPLACES CommandPalette's existing .glim-fade rather than joining it, or that
+   one window runs two entrances at two durations and the drift is back with an
+   extra step.
+
+   ONE DELIBERATE DIFFERENCE FROM THE REFERENCE, and it is this file's own rule
+   winning over a copied one: GlimStone forks at "subtle", swapping the card
+   from glim-modal-in to glim-fade-in. Forking is what 1.10.0 came to stop —
+   the same keyframe at every intensity, reading tokens that change. At
+   "subtle" the travel shrinks and the scale goes to 1, which IS a fade, minus
+   a second animation somebody has to keep in step with this one. */
+@keyframes glim-modal-in {
+  from { opacity: 0; transform: translateY(var(--motion-modal-travel)) scale(var(--motion-modal-scale)); }
+  to   { opacity: 1; transform: none; }
+}
+
 @media (prefers-reduced-motion: no-preference) {
   /* Full-intensity defaults — data-motion="full", and also what the app
      renders before the setting has ever been touched (DEFAULT_MOTION in
@@ -1129,6 +1245,20 @@ body {
     --motion-content-dur: 220ms;
     --motion-panel-dur: 220ms;
     --motion-panel-dist: 18px;
+    /* The floating window's arrival: the card's own rise, and the scrim's
+       fade under it. Two numbers because they are two elements, and the scrim
+       is deliberately the shorter of the pair — the ground has to be there
+       before the card lands on it, not after. */
+    --motion-modal-dur: 260ms;
+    --motion-modal-travel: 10px;
+    --motion-modal-scale: .98;
+    --motion-scrim-dur: 200ms;
+    /* Every TRANSITION in the app reads this one number, so the setting
+       reaches them and not just the keyframes above. 150ms is Tailwind's own
+       default, which is what the `duration-150` on all those buttons and rows
+       asked for — and, as the shape-morph rule below records, was not
+       getting. */
+    --motion-control-dur: 150ms;
   }
 
   /* data-motion="subtle" — smaller numbers, the SAME keyframes throughout.
@@ -1161,6 +1291,13 @@ body {
     --motion-content-dur: 120ms;
     --motion-panel-dur: 130ms;
     --motion-panel-dist: 10px;
+    /* Smaller rise, no scale: at this intensity the card's arrival IS a fade,
+       reached by the numbers rather than by a second keyframe. */
+    --motion-modal-dur: 150ms;
+    --motion-modal-travel: 5px;
+    --motion-modal-scale: 1;
+    --motion-scrim-dur: 150ms;
+    --motion-control-dur: 80ms;
   }
 
   /* data-motion="off" without OS-level reduced motion — "the manual
@@ -1201,6 +1338,21 @@ body {
     --motion-content-dur: 0ms;
     --motion-panel-dur: 0ms;
     --motion-panel-dist: 0px;
+    /* The window still ARRIVES at "off" — the same documented choice
+       glim-page-in and glim-toast-in make a few lines up: the distance goes to
+       zero, the duration does not, so the card fades over the time the (reduce)
+       block uses for the same element without moving while it does. A window
+       that pops in with no transition at all is the hard cut this rule exists
+       to prevent, and it is the one thing a scrim cannot compensate for. */
+    --motion-modal-dur: 160ms;
+    --motion-modal-travel: 0px;
+    --motion-modal-scale: 1;
+    --motion-scrim-dur: 160ms;
+    /* Nothing eases at "off": the house transition set further down reads this
+       token, so every colour, shadow and opacity change in the app lands at
+       once. The universal !important rule beside it is the belt for the
+       transitions this file did not write. */
+    --motion-control-dur: 0s;
   }
 
   .glim-page-enter { animation: glim-page-in var(--motion-page-dur) var(--motion-curve) both; }
@@ -1210,6 +1362,15 @@ body {
      pointer is already there waiting for it. */
   .glim-fade { animation: glim-fade-in var(--motion-fade-dur) ease both; }
   .glim-shake { animation: glim-shake var(--motion-shake-dur) ease-in-out; }
+  /* The floating window, both halves, wherever one is floated from. The
+     backdrop rule is live for both windows today; the card rule waits for
+     .glim-modal-card on the card (see the keyframe's own note above).
+     The curve is the flat ease-out the panel slide and the stagger already use
+     here, NOT --motion-curve: that one overshoots and settles, which is right
+     for a page taking its place and wrong for a window, where the same
+     overshoot reads as a bounce right under the reader's eye. */
+  .glim-modal-backdrop { animation: glim-fade-in var(--motion-scrim-dur) ease both; }
+  .glim-modal-card { animation: glim-modal-in var(--motion-modal-dur) cubic-bezier(.2, .6, .2, 1) both; }
 
 
   /* glim-pulse's own "off" state: a zero-duration infinite animation is
@@ -1239,16 +1400,76 @@ body {
     animation: glim-locate-reduced 900ms ease-out;
   }
 
-  /* Shape-morph: transitions every --radius-card/-control/-pill-driven
-     corner instead of snapping when the Shape picker changes. Scoped to
-     AFTER mount via .glim-shape-armed — lib/appearance.ts's applyShape()
-     arms it two animation frames after its first call — rather than relying
-     on a transition being a no-op on a freshly painted element's own first
-     frame (true, but not the point being guarded against: the mechanism's
-     correctness shouldn't depend on that timing coincidence). */
+  /* THE TRANSITION HALF OF THE ENGINE (GlimStone 1.8.0). Everything above this
+     point is a keyframe, and a keyframe is not where most of this app's motion
+     lives: `transition duration-150` on a button, a badge, a row or a tile is,
+     and a setting that governs the animations and not those governs the smaller
+     half. --motion-control-dur, defined per intensity above, is what ties them
+     to it — and the shape-morph rule below is what makes them exist at all, for
+     a reason worth reading before touching either.
+
+     GlimStone reaches the same place with a second rule naming Tailwind's own
+     `.transition*` utilities. That rule would be dead code HERE, and finding
+     out why is what the paragraph under shape-morph below is about: this app
+     already has a rule that owns the `transition` shorthand on every element,
+     so the token is spent there instead. Every transition in the app reads it,
+     and there is no list of utility classes to keep in step.
+
+     The "off" rule stays anyway, universal and !important: it is the only thing
+     that reaches a transition this file did not write — CodeMirror's own
+     injected stylesheet in the log viewer, or anything a future dependency
+     brings with it. Note it kills DURATIONS, not transitions: a property still
+     lands on its new value, it lands immediately. */
+  :root[data-motion="off"] * {
+    transition-duration: 0s !important;
+  }
+
+  /* Shape-morph, and THE APP'S ONE TRANSITION SET with it.
+     ---------------------------------------------------------------------
+     Transitions every --radius-card/-control/-pill-driven corner instead of
+     snapping when the Shape picker changes. Scoped to AFTER mount via
+     .glim-shape-armed — lib/appearance.ts's applyShape() arms it two animation
+     frames after its first call — rather than relying on a transition being a
+     no-op on a freshly painted element's own first frame (true, but not the
+     point being guarded against: the mechanism's correctness shouldn't depend
+     on that timing coincidence).
+
+     WHY THE LIST IS LONGER THAN THE NAME. This rule matches every element in
+     the document (applyShape puts .glim-shape-armed on <html>), `transition` is
+     a shorthand, and an unlayered rule beats every layered one — so with
+     `transition: border-radius` alone it did not merely add a corner morph, it
+     REPLACED the transition of every element carrying a Tailwind transition
+     utility. Measured, not deduced: a button written
+     `bg-carbon-surface2 transition-colors duration-150 hover:bg-carbon-surface3`
+     reported transitionProperty `border-radius` and duration .26s, so all 43
+     transition-colors, 22 transition-opacity and 15 transition-shadow call
+     sites in this app were snapping with nothing able to notice. That is the
+     collision GlimStone documents under colour-wipe, one rule further down,
+     found on a second pair.
+
+     Two ways out, and this is the one that keeps both halves: the winning rule
+     carries the whole set. Scoping this rule down to the rounded classes
+     instead would not have helped, because the elements that collide — buttons,
+     badges, chips — are precisely the ones that are both rounded AND
+     colour-transitioned.
+
+     The corner keeps its own duration; everything else reads the engine's
+     control duration, which is how the motion setting reaches transitions at
+     all. `transform` is deliberately NOT in the list: it is what drag, wiggle
+     and the easter egg move with, and a house-wide 150ms ease on transform
+     would fight animations that own it. The three transition-transform call
+     sites keep snapping, as they already did. */
   .glim-shape-armed,
   .glim-shape-armed * {
-    transition: border-radius var(--motion-shape-dur) ease;
+    transition:
+      border-radius var(--motion-shape-dur) ease,
+      background-color var(--motion-control-dur) ease,
+      color var(--motion-control-dur) ease,
+      border-color var(--motion-control-dur) ease,
+      box-shadow var(--motion-control-dur) ease,
+      fill var(--motion-control-dur) ease,
+      stroke var(--motion-control-dur) ease,
+      opacity var(--motion-control-dur) ease;
   }
 
   /* Colour-wipe: flipping rainbow on/off/reactive (lib/appearance.ts's
@@ -1269,7 +1490,16 @@ body {
      double-matched element if a future transition-based axis is ever added
      here — two rules both reaching for the bare `transition` shorthand on
      overlapping elements are one accidental specificity tie away from one
-     silently eating the other's entire property list. */
+     silently eating the other's entire property list.
+
+     THAT CHECK HAS NOW BEEN RUN, and the third pair it turned up is written up
+     over the shape-morph rule above: this rule was safe, and the utility
+     classes in the .tsx files were not. The advice above is therefore not
+     hypothetical — it found something the moment somebody did it.
+
+     The list stays the six colour properties, opacity included in neither this
+     rule nor GlimStone's: a rainbow flip changes colours, and for the half
+     second it runs, an element mid-fade holds its opacity instead. */
   .glim-wipe.glim-wipe,
   .glim-wipe.glim-wipe * {
     transition:
@@ -1377,6 +1607,14 @@ body {
   .glim-page-enter { animation: glim-fade-in 180ms ease both; }
   .glim-toast { animation: glim-fade-in 160ms ease both; }
   .glim-shake { animation: glim-shake-reduced 300ms ease-in-out; }
+  /* Both halves of the floating window collapse to the SAME short fade, which
+     is what the rule asks for in as many words: the card stops rising, the
+     ground still comes up under it, and the window is still visibly new rather
+     than simply there. Hard-coded like every other value in this block — no
+     data-motion token is reachable from here by design (see the section
+     header). */
+  .glim-modal-backdrop { animation: glim-fade-in 160ms ease both; }
+  .glim-modal-card { animation: glim-fade-in 160ms ease both; }
   /* Shares one rule's worth of declarations with data-motion="off" above rather
      than inventing a second copy, the same arrangement .glim-live settled on. */
   .glim-locate { animation: glim-locate-reduced 900ms ease-out; }
@@ -1397,8 +1635,10 @@ body {
    replaces the native <input type="color"> the Look page used to hide behind
    a swatch: a native picker hands its surface to the OS, which on Windows is
    a separate top-level window, and nothing automated can prove it opened.
-   One divergence from the reference: no hairline around the saturation
-   square. Surfaces here are separated by shade, never by a drawn line.
+   TWO divergences from the reference, both deliberate and both written down
+   where they happen: no hairline around the saturation square (surfaces here
+   are separated by shade, never by a drawn line), and the hex field's focus
+   fill — see .glim-picker-hex:focus at the end of this section.
    --------------------------------------------------------------------------- */
 .glim-picker {
   width: 100%;
@@ -1478,9 +1718,34 @@ body {
   letter-spacing: 0.02em;
   text-transform: uppercase;
 }
+/* THE ONE PLACE THIS FILE PARTS COMPANY WITH GlimStone's OWN tokens.css, and
+   the decision is written here rather than carried silently: the reference
+   raises this field to --carbon-hover on focus, and this file raises it to
+   --carbon-surface3.
+
+   The field rests on --carbon-surface2. Measured on all three colour modes:
+   dark #393939 -> #353535 is a step DOWN the ramp, so the field dims at the one
+   moment somebody is looking straight at it; light and system #e8e8e8 ->
+   #e0e0e0 does move away from the ground, but by one shade, which is the same
+   near-nothing. --carbon-surface3 is the answer in both directions at once —
+   #525252 on dark, #d1d1d1 on light — and it is the step rule 21 already
+   names for anything filled with surface2, so this is the house ramp applied,
+   not a value invented for one field.
+
+   Why not simply follow the reference: web/check-hover-ramp.mjs exists in this
+   repo BECAUSE the ramp stood as prose in GlimStone's token table and was still
+   got wrong thirteen times across three apps, once here. "It says so in
+   GlimStone's own tokens.css" is therefore an argument against copying it, not
+   for. The reference should be corrected upstream; until it is, the two files
+   disagree on purpose and this paragraph is the record of it.
+
+   `outline: none` stays, and stays legal: the fill IS the focus mark on a
+   filled form field (rule 14), and rule 14 is the one exemption to the global
+   focus ring. Outside a form field a ring is never traded for a brightness or
+   a fill. */
 .glim-picker-hex:focus {
   outline: none;
-  background-color: var(--carbon-hover);
+  background-color: var(--carbon-surface3);
 }
 
 /* ---------------------------------------------------------------------------
@@ -1499,6 +1764,13 @@ body {
 .glim-modal-backdrop {
   background: var(--glim-scrim);
 }
+
+/* The window's ARRIVAL is the other half of the same rule, and it is not here:
+   both .glim-modal-backdrop's fade and .glim-modal-card's rise are animations,
+   so they live in the motion engine above with every other animation and the
+   tokens they read — searching this file for "modal" finds both.
+   .glim-modal-card carries no paint of its own either: the card's surface,
+   radius and shadow come from .glim-card as they always did. */
 
 /* ---------------------------------------------------------------------------
    A button carrying somebody else's mark (GlimStone 1.9.0 / 1.10.0)
@@ -1533,7 +1805,14 @@ body {
 .glim-brand-btn svg,
 .glim-brand-btn svg path {
   fill: var(--brand);
-  transition: fill 120ms;
+  /* Reads the engine's control duration rather than a number of its own: this
+     was the one literal transition left in the file, and a transition the
+     motion setting cannot reach is the same defect as a keyframe it cannot
+     reach. The fallback is the number it used to be, and it is doing real work
+     — --motion-control-dur resolves only inside the no-preference gate, and
+     this rule sits outside every gate, so a browser reporting OS-level reduced
+     motion lands on 120ms here exactly as before. */
+  transition: fill var(--motion-control-dur, 120ms);
 }
 .glim-brand-btn:hover:not(:disabled) {
   background-color: var(--brand-fill);

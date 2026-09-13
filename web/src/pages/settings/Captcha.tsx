@@ -272,11 +272,18 @@ function SolverRow({
           {configured ? cx('settings.captcha.set') : cx('settings.captcha.notSet')}
         </span>
 
+        {/* `labelled` on every badge here, and 16px of glyph in the 32px tile.
+            A row action stands in the Beschriftung setting exactly like a
+            toolbar action: the square is what the setting resolves to in glyph
+            mode, not a control that opts out of it. The row survives the words
+            because the name column beside it is `min-w-0` and truncates - it is
+            a card row, not a table column with a width to defend. */}
         <div className="flex shrink-0 items-center gap-0.5">
           {enabled && (
             <>
               <IconBadge
-                icon={<IconArrowUp width={14} height={14} />}
+                labelled
+                icon={<IconArrowUp width={16} height={16} />}
                 hue={hue}
                 title={cx('settings.captcha.moveUp')}
                 aria-label={cx('settings.captcha.moveUp')}
@@ -284,7 +291,8 @@ function SolverRow({
                 onClick={() => onMove(-1)}
               />
               <IconBadge
-                icon={<IconArrowDown width={14} height={14} />}
+                labelled
+                icon={<IconArrowDown width={16} height={16} />}
                 hue={hue}
                 title={cx('settings.captcha.moveDown')}
                 aria-label={cx('settings.captcha.moveDown')}

@@ -350,10 +350,17 @@ function ConnectionRow({
           </span>
         </button>
         {/* Secondary actions on hover, and on keyboard focus, so a long list
-            reads as content rather than as a wall of buttons. */}
+            reads as content rather than as a wall of buttons.
+            `labelled` on all three, and 16px of glyph in the 32px tile: a row
+            action stands in the Beschriftung setting like everything else, and
+            the square is what that setting resolves to in glyph mode rather
+            than a control that ignores it. The words fit because the summary
+            beside them is `min-w-0` and truncates - this is a card row, not a
+            table column with a width to defend. */}
         <div className="flex items-center gap-1.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
           <IconBadge
-            icon={<IconArrowUp width={14} height={14} />}
+            labelled
+            icon={<IconArrowUp width={16} height={16} />}
             hue={index}
             title={cx('settings.connections.moveUp')}
             aria-label={cx('settings.connections.moveUp')}
@@ -361,7 +368,8 @@ function ConnectionRow({
             onClick={() => onMove(-1)}
           />
           <IconBadge
-            icon={<IconArrowDown width={14} height={14} />}
+            labelled
+            icon={<IconArrowDown width={16} height={16} />}
             hue={index}
             title={cx('settings.connections.moveDown')}
             aria-label={cx('settings.connections.moveDown')}
@@ -369,7 +377,8 @@ function ConnectionRow({
             onClick={() => onMove(1)}
           />
           <IconBadge
-            icon={<IconTrash width={14} height={14} />}
+            labelled
+            icon={<IconTrash width={16} height={16} />}
             hue={index}
             title={cx('settings.connections.remove')}
             aria-label={cx('settings.connections.remove')}
@@ -607,6 +616,11 @@ function ImportDialog({ onClose, onAdd }: { onClose: () => void; onAdd: (entries
           <Button kind="ghost" onClick={onClose}>
             {cx('settings.connections.cancel')}
           </Button>
+          {/* Retreating button first, advancing one at the end of the row, and
+              the spacer above is what puts it there rather than merely to the
+              right of its partner. The two below are ONE button in two states,
+              not a pair: only ever one of them is rendered, so nothing here
+              stands after the advancing button. */}
           {result ? (
             <Button disabled={ready === 0} onClick={() => onAdd(result.entries)}>
               {cx('settings.connections.importAdd', { n: ready })}

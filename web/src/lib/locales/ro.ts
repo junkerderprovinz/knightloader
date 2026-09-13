@@ -966,6 +966,7 @@ export const ro: Dict = {
   'accounts.refresh': 'Reîmprospătează',
   'accounts.refreshing': 'Se reîmprospătează…',
   'accounts.remove': 'Elimină',
+  'accounts.removeConfirm': 'Datele de autentificare salvate pentru {name} sunt șterse de pe această instanță și nu pot fi recuperate, deci ar trebui introduse din nou.',
   'accounts.removed': 'Eliminat.',
   'accounts.rename': 'Redenumește',
   'accounts.renew': 'Reînnoiește',

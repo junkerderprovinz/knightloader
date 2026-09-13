@@ -965,6 +965,7 @@ export const hi: Dict = {
   'accounts.refresh': 'रीफ़्रेश करें',
   'accounts.refreshing': 'रीफ़्रेश हो रहा है…',
   'accounts.remove': 'हटाएँ',
+  'accounts.removeConfirm': '{name} के लिए सहेजा गया लॉगिन इस इंस्टेंस से हटा दिया जाता है और उसे वापस नहीं लाया जा सकता, इसलिए उसे दोबारा दर्ज करना होगा।',
   'accounts.removed': 'हटा दिया गया।',
   'accounts.rename': 'नाम बदलें',
   'accounts.renew': 'नवीनीकृत करें',

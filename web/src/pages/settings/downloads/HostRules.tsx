@@ -342,7 +342,11 @@ function HostRuleRow({
             reads as content rather than as a wall of buttons. */}
         <div className="flex items-center gap-1.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
           <IconBadge
-            icon={<IconTrash width={14} height={14} />}
+            // 16 in a 32px badge: a glyph alone in a square is half its box
+            // (GlimStone rule 13), not the smaller drawing a glyph beside text
+            // would be. 14 filled 44% of the tile and made the row read as
+            // uneven against every badge that already had this right.
+            icon={<IconTrash width={16} height={16} />}
             hue={index}
             title={t('settings.hostRules.remove')}
             aria-label={t('settings.hostRules.remove')}
@@ -413,44 +417,54 @@ function HostRuleRow({
             hint={t('settings.hostRules.neverHint')}
           />
 
-          {/* Dimmed and disabled while "never" is on, because RetryFor reads
-              none of these three once it wins - but deliberately NOT wrapped in
-              pointer-events-none: that would take the (i) bubbles with it, and
-              the bubble is the one place that explains why the fields are dim.
-              Off here does not clear a "never" a level below has already set:
-              the flag merges with OR, so this switch can only ever turn one on. */}
-          <div className={`grid grid-cols-1 gap-4 sm:grid-cols-3 ${never ? 'opacity-40' : ''}`}>
-            <RetryNumber
-              label={t('settings.hostRules.retryDelay')}
-              hint={t('settings.hostRules.retryDelayHint')}
-              value={delay}
-              max={MAX_WAIT}
-              off={never}
-              onValue={(v) => setRetry({ delay: v })}
-            />
-            {/* A ceiling below the first wait is not cut at save time and not
-                rewritten here either - the field keeps the number somebody
-                meant to type. What it gets instead is the number that will
-                actually be in force, so the row does not quietly disagree with
-                itself; the (i) says why in words. */}
-            <RetryNumber
-              label={t('settings.hostRules.retryMax')}
-              hint={t('settings.hostRules.retryMaxHint')}
-              value={ceiling}
-              max={MAX_WAIT}
-              off={never}
-              raisedTo={raisedTo}
-              onValue={(v) => setRetry({ max: v })}
-            />
-            <RetryNumber
-              label={t('settings.hostRules.retryTries')}
-              hint={t('settings.hostRules.retryTriesHint')}
-              value={retry.tries ?? 0}
-              max={MAX_TRIES}
-              off={never}
-              onValue={(v) => setRetry({ tries: v })}
-            />
-          </div>
+          {/* ABSENT while "never" is on, never dimmed (GlimStone 1.10.0).
+              RetryFor reads none of these three once "never" wins, so all three
+              hang off the switch directly above them - and a dimmed control is
+              something somebody can see, read and reach for that answers
+              nothing, with the reason sitting one row up where nobody looks
+              once they have decided this row is the interesting one. The switch
+              stays; what depends on it goes.
+
+              This replaced an `opacity-40` on the grid, and that carried a
+              second fault the rule names separately (1.9.0): opacity applies to
+              a whole subtree and a child cannot be less transparent than its
+              parent, so the three (i) bubbles - the one place that could have
+              said why the fields were dim - rendered at 40% along with them.
+
+              "never" off here does not clear a "never" a level below has
+              already set: the flag merges with OR, so this switch can only ever
+              turn one on. */}
+          {!never && (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <RetryNumber
+                label={t('settings.hostRules.retryDelay')}
+                hint={t('settings.hostRules.retryDelayHint')}
+                value={delay}
+                max={MAX_WAIT}
+                onValue={(v) => setRetry({ delay: v })}
+              />
+              {/* A ceiling below the first wait is not cut at save time and not
+                  rewritten here either - the field keeps the number somebody
+                  meant to type. What it gets instead is the number that will
+                  actually be in force, so the row does not quietly disagree with
+                  itself; the (i) says why in words. */}
+              <RetryNumber
+                label={t('settings.hostRules.retryMax')}
+                hint={t('settings.hostRules.retryMaxHint')}
+                value={ceiling}
+                max={MAX_WAIT}
+                raisedTo={raisedTo}
+                onValue={(v) => setRetry({ max: v })}
+              />
+              <RetryNumber
+                label={t('settings.hostRules.retryTries')}
+                hint={t('settings.hostRules.retryTriesHint')}
+                value={retry.tries ?? 0}
+                max={MAX_TRIES}
+                onValue={(v) => setRetry({ tries: v })}
+              />
+            </div>
+          )}
         </div>
       )}
     </li>
@@ -458,15 +472,13 @@ function HostRuleRow({
 }
 
 /**
- * One of the three retry numbers, switched off by "never".
+ * One of the three retry numbers.
  *
- * `disabled` reaches the input itself, and pointer-events are taken off the
- * control as well, because NumberInput's up and down arrows are separate
- * buttons that do not read the input's disabled state - without this the value
- * could still be clicked up on a row that never retries at all. The block sits
- * around the CONTROL and never around the caption: the (i) beside the label is
- * the one thing that explains why the field is dim, so it has to stay hoverable
- * while it is.
+ * It used to take an `off` flag that dimmed and disabled it while "never" was
+ * on. The caller drops the three of them out of the tree instead (GlimStone
+ * 1.10.0), so there is no off state left to carry - and a prop that decides
+ * nothing is worse than no prop, because it reads like a lever (1.13.0). It was
+ * deleted rather than left accepted-and-ignored for exactly that reason.
  *
  * `raisedTo` is the seconds this field will really be worth when the stored
  * number is not the one that gets used. It is shown as the bare figure in the
@@ -479,7 +491,6 @@ function RetryNumber({
   hint,
   value,
   max,
-  off,
   raisedTo,
   onValue,
 }: {
@@ -487,14 +498,13 @@ function RetryNumber({
   hint: string;
   value: number;
   max: number;
-  off: boolean;
   raisedTo?: number;
   onValue: (n: number) => void;
 }) {
   return (
     <Field label={label} hint={hint}>
-      <span className={`block ${off ? 'pointer-events-none' : ''}`}>
-        <NumberInput value={value} min={0} max={max} disabled={off} onValue={(v) => onValue(clampInt(v, max))} />
+      <span className="block">
+        <NumberInput value={value} min={0} max={max} onValue={(v) => onValue(clampInt(v, max))} />
         {raisedTo !== undefined && (
           <span className="mt-1 flex items-center gap-1 text-xs text-statusWarn">
             <IconWarning width={12} height={12} />

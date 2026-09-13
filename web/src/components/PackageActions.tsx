@@ -116,13 +116,25 @@ export function PackageActions({
 
   return (
     <>
+      {/* `labelled` on all three, because this strip is not its own row: it is
+          rendered INSIDE Collector.tsx's and Downloads.tsx's selection rows,
+          between badges that all opt in. Without it, a person who has set
+          Beschriftung to "text" reads "Clear all", three wordless glyphs, then
+          "Start selected" in one line - which is the defect the label engine
+          exists to prevent, not a compact strip somebody chose. GlimStone 1.8.0
+          rule 13: the variant decides the SHAPE, never whether the words
+          appear, and from outside a documented exemption and a control that
+          ignores the setting look identical. The words are `title`, which each
+          of these already carries, so no catalogue grows a key. */}
       <IconBadge
+        labelled
         icon={<IconFolder width={16} height={16} />}
         title={t('pkg.moveTitle')}
         aria-label={t('pkg.moveTitle')}
         onClick={() => setDialog(true)}
       />
       <IconBadge
+        labelled
         icon={<IconSplitHost width={16} height={16} />}
         title={t('pkg.splitByHost')}
         aria-label={t('pkg.splitByHost')}
@@ -135,6 +147,7 @@ export function PackageActions({
           tooltip. */}
       {packages.length === 1 && (
         <IconBadge
+          labelled
           icon={<IconPriority width={16} height={16} />}
           title={t('pkg.queueOrder')}
           aria-label={t('pkg.queueOrder')}
@@ -211,14 +224,20 @@ export function PackageMoveDialog({
       onClose={onClose}
       footer={
         <>
+          {/* The count first, then the spacer, then the pair. GlimStone 1.14.0
+              asks for the control that goes ahead at the END of its row, which
+              is not the same as merely right of its partner: this row used to
+              read Cancel, Merge, spacer, count, so the button somebody came for
+              sat mid-row with a number to its right. A reading is not a control
+              and has no business in the hand's position. */}
+          <span className="glim-num text-xs text-carbon-textMuted">
+            {count} {t('select.count')}
+          </span>
+          <span className="flex-1" />
           <Button kind="ghost" onClick={onClose}>
             {t('common.cancel')}
           </Button>
           <Button onClick={() => onApply(name.trim())}>{t('pkg.merge')}</Button>
-          <span className="flex-1" />
-          <span className="glim-num text-xs text-carbon-textMuted">
-            {count} {t('select.count')}
-          </span>
         </>
       }
     >

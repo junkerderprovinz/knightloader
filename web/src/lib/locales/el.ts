@@ -965,6 +965,7 @@ export const el: Dict = {
   'accounts.refresh': 'Ανανέωση',
   'accounts.refreshing': 'Ανανέωση…',
   'accounts.remove': 'Αφαίρεση',
+  'accounts.removeConfirm': 'Τα αποθηκευμένα στοιχεία σύνδεσης για {name} διαγράφονται από αυτό το στιγμιότυπο και δεν μπορούν να ανακτηθούν, οπότε θα έπρεπε να εισαχθούν ξανά.',
   'accounts.removed': 'Αφαιρέθηκε.',
   'accounts.rename': 'Μετονομασία',
   'accounts.renew': 'Ανανέωση συνδρομής',

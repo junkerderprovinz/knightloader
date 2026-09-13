@@ -187,7 +187,13 @@ export function CommandPalette() {
         aria-modal="true"
         aria-label={t('commands.paletteLabel')}
         onKeyDown={onKeyDown}
-        className="glim-card glim-fade flex h-fit max-h-[70vh] w-full max-w-lg flex-col overflow-hidden"
+        // glim-modal-card REPLACES glim-fade rather than joining it. Both are
+        // this window's arrival, and running two of them means two durations
+        // for one gesture: the card would finish fading before it finished
+        // rising, or the other way round, depending on which motion intensity
+        // is set. The new one is the house arrival and carries the rise with
+        // the fade, so it is the one that stays.
+        className="glim-card glim-modal-card flex h-fit max-h-[70vh] w-full max-w-lg flex-col overflow-hidden"
       >
         <div className="flex items-center gap-2.5 border-b border-carbon-border/60 px-4 py-3">
           <IconSearch width={16} height={16} className="shrink-0 text-carbon-textMuted" />

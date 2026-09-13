@@ -1,4 +1,4 @@
-﻿import { type ReactNode, useEffect, useState } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useT } from '../../lib/i18n';
 import { Card, SectionTitle } from '../../components/ui';
@@ -210,19 +210,38 @@ const REPO_URL = 'https://github.com/junkerderprovinz/knightloader';
 const CONTACT_MAIL = 'hello@halleluja.design';
 const GLIMSTONE_URL = 'https://github.com/junkerderprovinz/glimstone';
 /**
- * The PayPal.Me page, and it is EMPTY until that page exists.
+ * The PayPal.Me page, read off the one place this repository already publishes
+ * it: README.md's donate row, which links https://paypal.me/hallelujadesign
+ * twice - once in the header and once in the support section near the end -
+ * and both times with the "live" button image rather than a placeholder.
  *
- * The card's own rule, applied to a route rather than to a sentence: never
- * offer a control that reaches nowhere. A PayPal.Me link is created once and
- * cannot be renamed afterwards without asking their support, so the name has
- * to be chosen deliberately rather than guessed at here. Fill this in and the
- * button appears; leave it empty and the card offers coffee and crypto alone.
+ * IT STOOD EMPTY HERE, under a comment saying the page did not exist yet, so
+ * the button below never rendered once although its mark, its brand class and
+ * its translated label were all finished. The card's rule is never to offer a
+ * control that reaches nowhere (GlimStone 1.9.0/1.10.0, which is also where
+ * three give routes in one row come from); the mirror of that rule is that a
+ * route the product advertises on its own front page is one the card owes the
+ * reader. A PayPal.Me link is created once and cannot be renamed afterwards
+ * without asking their support, which is why it is taken from the published
+ * one rather than invented here.
  *
- * Typed as `string` rather than inferred, so the emptiness is a value this
- * file expects to change and not a constant the compiler folds away.
+ * Typed as `string` rather than inferred, so an empty value stays a case this
+ * file handles - no page, no button - and not a constant the compiler folds
+ * away.
  */
-const PAYPAL: string = '';
-// The handle from .github/FUNDING.yml, so one place knows it.
+const PAYPAL: string = 'https://paypal.me/hallelujadesign';
+/**
+ * The coffee handle, from that same donate row in README.md, so one place in
+ * the product knows it (GlimStone 1.7.0: the give button carries the funding
+ * handle the repository already publishes).
+ *
+ * NOT from .github/FUNDING.yml, which is what this line used to claim: that
+ * file carries a `github:` entry and one `custom:` link to the
+ * more-ways-to-support page, and has never had a `buy_me_a_coffee:` line in
+ * it. The handle was right and its stated source was not, which is precisely
+ * why nobody noticed - a wrong provenance note only costs anything on the day
+ * somebody goes to the named file to change the value.
+ */
 const COFFEE_URL = 'https://buymeacoffee.com/junkerderprovinz';
 
 /** The About card's controls, dressed identically. One constant rather than the
@@ -239,14 +258,91 @@ const ABOUT_BTN =
   ' px-3.5 py-2 text-sm font-medium text-carbon-text transition duration-150 select-none' +
   ' hover:bg-carbon-surface3 motion-safe:active:scale-[.98]';
 
-/** A version number that goes where a version number should go. New tab: leaving
- *  Settings to read a changelog is not what anybody meant by clicking a number.
- *  Underlined on hover only - a permanent line under every number turns a quiet
- *  fact into two links shouting at each other. */
-function VersionLink({ href, children }: { href: string; children: ReactNode }) {
+/**
+ * The tag behind a running version string, derived exactly the way GlimStone's
+ * own card derives it (reference/react/AboutCard.tsx): drop the build metadata
+ * that semver puts after a '+', and add a leading 'v' ONLY where the stamp does
+ * not already carry one.
+ *
+ * That second half is the whole reason this function exists here. This build
+ * stamps the number WITH the v: internal/buildinfo/buildinfo.go is filled by
+ * `-X ...buildinfo.Version=vX.Y.Z`, internal/api/routes_system.go hands it to
+ * /api/health untouched, and .github/workflows/release.yml passes
+ * VERSION=${{ github.ref_name }} from tags named v1.0.0. The footer used to
+ * build `/releases/tag/v${version}` from that, so every released build linked
+ * .../tag/vv1.0.0 - a 404 on the one link the card exists to offer, and one
+ * that no dev build could ever show, because a dev build takes the other
+ * branch.
+ */
+export function releaseTag(version: string): string {
+  const bare = version.split('+')[0].trim();
+  if (!bare) return '';
+  return bare.startsWith('v') ? bare : `v${bare}`;
+}
+
+/** A published release, and nothing else, earns a link. GlimStone requires the
+ *  shape to be checked BEFORE an anchor exists at all: a link is only a link if
+ *  something is behind it, and a pre-release, a branch stamp or the documented
+ *  preview image (`--build-arg VERSION=preview`) has no release page to reach. */
+const RELEASE_TAG = /^v\d+\.\d+\.\d+$/;
+
+/**
+ * One version number in the footer: a link where the build is a released tag,
+ * plain text where it is not.
+ *
+ * The number is shown WITHOUT its leading 'v' - the word in front of it already
+ * says "Version" - while the link carries the tag with it, because that is what
+ * the tag is called on GitHub. New tab: leaving Settings to read a changelog is
+ * not what anybody meant by clicking a number.
+ *
+ * MUTED INK AND NO UNDERLINE, WHICH REVERSES WHAT THIS FILE USED TO DO. It
+ * carried `text-accentInk hover:underline`, commented as a deliberate
+ * departure, and the departure does not survive being looked at across the
+ * colour modes: --color-accentInk follows the accent in dark, light and system,
+ * and takes a per-card hue in rainbow, so the footer rendered as two brightly
+ * coloured numbers inside one grey line - the reactive mode was the only one
+ * that landed on the language's own answer, and only by accident, because it
+ * rebinds --accent-ink to the muted tone anyway. GlimStone's rule
+ * (`text-carbon-textMuted no-underline hover:text-carbon-text`) keeps the line
+ * one line: the affordance is the ink lifting under the pointer, which is
+ * enough for a number nobody is hunting for, and it is the same in every theme,
+ * every rainbow and every shape mode because --carbon-text and
+ * --carbon-text-muted are defined in all three theme blocks and rebound by
+ * none of the colour modes. No exception is recorded here, deliberately: a
+ * documented exemption looks exactly like a forgotten control to the next
+ * person reading the card.
+ */
+function VersionNumber({
+  version,
+  repo,
+  unreleased,
+}: {
+  version: string;
+  repo: string;
+  unreleased: string;
+}) {
+  // No stamp at all - the health call has not answered yet, or failed, or a
+  // server answered without the field - and 'dev', which is what buildinfo.go
+  // holds for an untagged local or main build. Neither is a number anybody
+  // could quote, so the working title stands in, exactly as it always has here.
+  // Checked BEFORE the tag is derived, so a missing field cannot take the card
+  // down on its way through releaseTag.
+  if (!version || version === 'dev') return <>{unreleased}</>;
+  const tag = releaseTag(version);
+  // A real stamp with no release behind it - the documented preview image is
+  // the case that exists (`--build-arg VERSION=preview`), a pre-release tag the
+  // case that could. It gets no link, and it is shown exactly as the build
+  // wrote it rather than hidden behind the working title: this string is what
+  // somebody puts in a bug report, and the working title says nothing.
+  if (!RELEASE_TAG.test(tag)) return <>{version}</>;
   return (
-    <a href={href} target="_blank" rel="noreferrer noopener" className="text-accentInk hover:underline">
-      {children}
+    <a
+      href={`${repo}/releases/tag/${encodeURIComponent(tag)}`}
+      target="_blank"
+      rel="noreferrer noopener"
+      className="text-carbon-textMuted no-underline hover:text-carbon-text"
+    >
+      {version.replace(/^v/, '')}
     </a>
   );
 }
@@ -267,6 +363,16 @@ function VersionLink({ href, children }: { href: string; children: ReactNode }) 
  * So this number is per SURFACE, not per repository, and raising the other two
  * to match would be the one thing worse than them differing: a card claiming a
  * release its own files do not speak. They move when their sweep runs.
+ *
+ * AND THAT SWEEP SKIPPED TWO EDITIONS ON THIS SURFACE. 1.7.0 and 1.8.0 were
+ * never applied here: a provenance note on a copied component ("1.8.3") was
+ * read as this app's own version claim, so the run started at 1.9.0 and the two
+ * below it were taken for done. What 1.7.0 asks of THIS file - a tag derived
+ * from the stamp rather than glued to it, and the footer number in the muted
+ * ink - is in as of this round; whatever else those two editions want lives in
+ * other files and moves with them. Which is the standing rule for the number
+ * below, and the one this constant keeps breaking: it rises when an edition is
+ * really through, not when a round that meant to do it ends.
  */
 const GLIMSTONE_VERSION = '1.14.0';
 
@@ -404,18 +510,22 @@ export function About({ hue }: { hue: number }) {
           answers "which build is this"; the question straight after it is
           always "and what changed". GlimStone 1.6.0 makes it the family rule.
 
-          Built from the version, never a hand-kept list of links. A dev build
-          has no release to point at, so it stays plain text rather than
-          offering a link into a 404. */}
+          Built from the version, never a hand-kept list of links, and the tag
+          is DERIVED rather than glued together (releaseTag above): the check
+          used to be "is there a version and is it not 'dev'", which said yes to
+          every build that had a stamp at all and then pasted a second 'v' in
+          front of a stamp that already carried one. A build with no release
+          behind it stays plain text rather than offering a link into a 404, and
+          now that includes the ones that are neither empty nor 'dev'. */}
       <p className="glim-num text-xs text-carbon-textMuted">
         {t('settings.about.version')}{' '}
-        {version && version !== 'dev' ? (
-          <VersionLink href={`${REPO_URL}/releases/tag/v${version}`}>{version}</VersionLink>
-        ) : (
-          t('nav.workingTitle')
-        )}
+        <VersionNumber version={version} repo={REPO_URL} unreleased={t('nav.workingTitle')} />
         {' · GlimStone '}
-        <VersionLink href={`${GLIMSTONE_URL}/releases/tag/v${GLIMSTONE_VERSION}`}>{GLIMSTONE_VERSION}</VersionLink>
+        <VersionNumber
+          version={GLIMSTONE_VERSION}
+          repo={GLIMSTONE_URL}
+          unreleased={t('nav.workingTitle')}
+        />
       </p>
     </Card>
   );

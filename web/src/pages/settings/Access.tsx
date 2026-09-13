@@ -632,7 +632,7 @@ function RemoteAccessCard({
             </Button>
             <Button
               hue={3}
-              icon={<IconClipboard width={14} height={14} />}
+              icon={<IconClipboard width={16} height={16} />}
               onClick={() => {
                 setJoinOpen(!joinOpen);
                 setPhraseErr('');
@@ -730,7 +730,7 @@ function RemoteAccessCard({
                 </Button>
                 <Button
                   kind="secondary"
-                  icon={phraseCopied ? <IconCheck width={15} height={15} /> : <IconClipboard width={15} height={15} />}
+                  icon={phraseCopied ? <IconCheck width={16} height={16} /> : <IconClipboard width={16} height={16} />}
                   onClick={async () => {
                     if (await copyToClipboard(phrase)) {
                       setPhraseCopied(true);
@@ -991,7 +991,11 @@ function ProjectRelayCard({
         />
       </div>
 
-      <p className="text-sm text-carbon-textSub">{t('settings.access.relay.leadProject')}</p>
+      {/* A sentence that FOLLOWS controls takes one extra step of space above
+          it. It leads the block underneath, and under the card's even gap it
+          sat exactly as close to the switch above as to what it introduces. The
+          step goes above the sentence and never below the controls. */}
+      <p className="mt-2 text-sm text-carbon-textSub">{t('settings.access.relay.leadProject')}</p>
 
       {/* The address, and only while this card is the one in force. Showing it
           under a switch that is off would be a card describing a connection
@@ -1072,7 +1076,10 @@ function OwnRelayCard({
         />
       </div>
 
-      <p className="text-sm text-carbon-textSub">{t('settings.access.ownRelay.lead')}</p>
+      {/* Same step as the card above, same reason: a sentence that FOLLOWS
+          controls is separated from them, so it pairs with the block it
+          introduces rather than with the switch it happens to sit under. */}
+      <p className="mt-2 text-sm text-carbon-textSub">{t('settings.access.ownRelay.lead')}</p>
 
       {/* Everything below is the configuration OF that choice, so it appears
           only once the choice is made. A form for a mode that is switched off
@@ -1131,9 +1138,15 @@ function OwnRelayCard({
               >
                 {RELAY_RUN_COMMAND}
               </code>
+              {/* `labelled`, and 16px of glyph in the 32px tile - the size
+                  every square badge in this app shares. A copy action beside a
+                  command stands in the Beschriftung setting like any other
+                  action; the command beside it is `min-w-0` and scrolls, so the
+                  word costs it nothing. */}
               <IconBadge
+                labelled
                 hue={1}
-                icon={copied ? <IconCheck width={14} height={14} /> : <IconClipboard width={14} height={14} />}
+                icon={copied ? <IconCheck width={16} height={16} /> : <IconClipboard width={16} height={16} />}
                 title={t('settings.access.tokens.copy')}
                 aria-label={t('settings.access.tokens.copy')}
                 onClick={async () => {
@@ -1258,9 +1271,14 @@ function TokensSection({ cx }: { cx: (k: PendingKey) => string }) {
                     {tok.lastUsed ? fmtDate(tok.lastUsed) : cx('settings.access.tokens.neverUsed')}
                   </div>
                 </div>
+                {/* `labelled`, and the same 16px mark the IconTile opposite it
+                    carries: a row action stands in the Beschriftung setting
+                    like everything else, and the name and dates beside it are
+                    `min-w-0` and truncate. */}
                 <IconBadge
+                  labelled
                   hue={5}
-                  icon={<IconTrash width={15} height={15} />}
+                  icon={<IconTrash width={16} height={16} />}
                   disabled={revoking === tok.id}
                   title={cx('settings.access.tokens.revoke')}
                   aria-label={cx('settings.access.tokens.revoke')}
@@ -1280,7 +1298,7 @@ function TokensSection({ cx }: { cx: (k: PendingKey) => string }) {
           <Button
             kind="secondary"
             hue={5}
-            icon={<IconPlus width={14} height={14} />}
+            icon={<IconPlus width={16} height={16} />}
             onClick={() => setShowCreate(true)}
           >
             {cx('settings.access.tokens.new')}
@@ -1340,9 +1358,14 @@ function TokensSection({ cx }: { cx: (k: PendingKey) => string }) {
                   {created.secret}
                 </code>
               </div>
+              {/* `labelled`, and 16px of glyph in the 32px tile. The secret is
+                  the one thing on this screen worth copying, so its action is
+                  the last one that should sit outside the Beschriftung
+                  setting. */}
               <IconBadge
+                labelled
                 hue={5}
-                icon={copied ? <IconCheck width={14} height={14} /> : <IconClipboard width={14} height={14} />}
+                icon={copied ? <IconCheck width={16} height={16} /> : <IconClipboard width={16} height={16} />}
                 title={copied ? cx('settings.access.tokens.copied') : cx('settings.access.tokens.copy')}
                 aria-label={copied ? cx('settings.access.tokens.copied') : cx('settings.access.tokens.copy')}
                 onClick={async () => {

@@ -957,6 +957,7 @@ export const pl: Dict = {
   'accounts.refresh': 'Odśwież',
   'accounts.refreshing': 'Odświeżanie…',
   'accounts.remove': 'Usuń',
+  'accounts.removeConfirm': 'Zapisane dane logowania do {name} zostaną usunięte z tej instancji i nie da się ich odzyskać, więc trzeba by je wprowadzić ponownie.',
   'accounts.removed': 'Usunięto.',
   'accounts.rename': 'Zmień nazwę',
   'accounts.renew': 'Odnów',

@@ -574,10 +574,17 @@ function RequestRow({
           {t('settings.reconnect.requestStep', { n: index + 1 })}
         </span>
         <span className="flex-1" />
-        {/* Secondary actions on hover and on keyboard focus - rule 6. */}
+        {/* Secondary actions on hover and on keyboard focus - rule 6.
+            `labelled` on all three, and 16px of glyph in the 32px tile: a row
+            action stands in the Beschriftung setting like everything else, and
+            the square is what that setting resolves to in glyph mode rather
+            than a control that ignores it. The step number beside them keeps
+            its own width and the spacer absorbs the rest, so the words cost
+            this row nothing. */}
         <div className="flex items-center gap-1.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
           <IconBadge
-            icon={<IconArrowUp width={14} height={14} />}
+            labelled
+            icon={<IconArrowUp width={16} height={16} />}
             hue={index}
             title={t('settings.reconnect.requestUp')}
             aria-label={t('settings.reconnect.requestUp')}
@@ -585,7 +592,8 @@ function RequestRow({
             onClick={() => onMove(-1)}
           />
           <IconBadge
-            icon={<IconArrowDown width={14} height={14} />}
+            labelled
+            icon={<IconArrowDown width={16} height={16} />}
             hue={index}
             title={t('settings.reconnect.requestDown')}
             aria-label={t('settings.reconnect.requestDown')}
@@ -593,7 +601,8 @@ function RequestRow({
             onClick={() => onMove(1)}
           />
           <IconBadge
-            icon={<IconTrash width={14} height={14} />}
+            labelled
+            icon={<IconTrash width={16} height={16} />}
             hue={index}
             title={t('settings.reconnect.requestRemove')}
             aria-label={t('settings.reconnect.requestRemove')}

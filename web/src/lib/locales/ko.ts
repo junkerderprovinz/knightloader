@@ -965,6 +965,7 @@ export const ko: Dict = {
   'accounts.refresh': '새로고침',
   'accounts.refreshing': '새로고침 중…',
   'accounts.remove': '제거',
+  'accounts.removeConfirm': '저장된 {name} 로그인 정보가 이 인스턴스에서 삭제되며 되돌릴 수 없으므로 다시 입력해야 합니다.',
   'accounts.removed': '제거했습니다.',
   'accounts.rename': '이름 바꾸기',
   'accounts.renew': '갱신',

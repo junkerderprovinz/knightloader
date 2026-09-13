@@ -965,6 +965,7 @@ export const ca: Dict = {
   'accounts.refresh': 'Actualitza',
   'accounts.refreshing': 'S’està actualitzant…',
   'accounts.remove': 'Elimina',
+  'accounts.removeConfirm': 'L’inici de sessió desat per a {name} s’esborra d’aquesta instància i no es pot recuperar, així que s’hauria de tornar a introduir.',
   'accounts.removed': 'Eliminat.',
   'accounts.rename': 'Canvia el nom',
   'accounts.renew': 'Renova',

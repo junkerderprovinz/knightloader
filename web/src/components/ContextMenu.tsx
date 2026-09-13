@@ -37,12 +37,15 @@ export interface MenuItem {
   icon?: ReactNode;
   /** Quiet text at the end of the row: a count, a keyboard shortcut. */
   detail?: string;
-  /**
-   * Accepted so the call sites still passing it keep compiling; it paints
-   * nothing. An entry that destroys something is drawn like the entries around
-   * it - what warns is the window it opens, which names what is about to go.
-   */
-  danger?: boolean;
+  // THERE IS NO `danger`, AND ITS ABSENCE IS THE GUARD - the same sentence
+  // ui.tsx's ButtonKind carries, for the same reason. It used to stand here as
+  // an accepted-but-inert flag "so the call sites still passing it keep
+  // compiling", and no call site was passing it: GlimStone 1.13.0 deleted
+  // ConfirmDialog's `tone` rather than emptying it, because an optional
+  // property that looks like a switch and decides nothing is worse than no
+  // property at all, and tsc cannot report one nobody passes. An entry that
+  // destroys something is drawn like the entries around it; what warns is the
+  // window it opens, which names what is about to go.
   disabled?: boolean;
   /**
    * Marks the one row of a submenu that is a set of CHOICES rather than a list
