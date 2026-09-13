@@ -281,6 +281,59 @@ jobs:
       - name: Locale placeholders
         run: node check-locale-placeholders.mjs
 
+      # SIX GUARDS FOR THE DESIGN LANGUAGE, added the day the web UI was lifted
+      # from GlimStone 1.6.0 to 1.14.0. Every rule below had already been broken
+      # at least once while it existed only as prose, which is the whole argument
+      # for them being here rather than in a document:
+      #
+      #   scrim        the ground behind a floating window was a number typed
+      #                into each component that floats one, and both copies sat
+      #                at a strength the language does not use.
+      #   theme        a token declared in one theme block and not the other two
+      #                is invisible to anybody working in one colour mode. The
+      #                second half of this one catches the failure that cost the
+      #                most: a Tailwind colour class with no matching @theme key
+      #                generates NO class at all, so hover:bg-carbon-hoverRaised
+      #                sat in the crypto window for weeks doing nothing.
+      #   motion       a --motion-* variable read by a keyframe but set at only
+      #                one intensity makes the property invalid and the animation
+      #                silently still. That is the intended mechanism for reduced
+      #                motion, which is exactly why an accidental one hides.
+      #   brand        .glim-brand-btn without its .glim-brand-<name> twin leaves
+      #                --brand undefined and paints a vendor's mark in the ink it
+      #                inherited.
+      #   status       nothing destructive is painted red (1.12.0), and 1.13.0
+      #                removed the one sanctioned exception rather than moving
+      #                it. What reports STATE keeps its colour; what you press
+      #                does not.
+      #   order        the control that goes ahead sits at the end of its row.
+      #                Eleven of twenty-six pairs were backwards, and two
+      #                confirmation windows of the same kind disagreed with each
+      #                other, which is worse than either order applied
+      #                everywhere.
+      #
+      # Each was validated by breaking what it guards and watching the promised
+      # message, then restoring; one of them found a real fault in ITSELF that
+      # way, printing green over a class list that a JSX attribute had wrapped
+      # across two lines.
+      - name: Modal scrim
+        run: node check-scrim.mjs
+
+      - name: Theme tokens
+        run: node check-theme-tokens.mjs
+
+      - name: Motion tokens
+        run: node check-motion-tokens.mjs
+
+      - name: Brand marks
+        run: node check-brand-marks.mjs
+
+      - name: No status colour on a control
+        run: node check-no-status-on-control.mjs
+
+      - name: Button order
+        run: node check-button-order.mjs
+
       # The one list in the app where a typo costs a stranger real money and
       # nobody ever hears about it: somebody who tried to give something away
       # gets no error, no retry and no support ticket, because they never write.
