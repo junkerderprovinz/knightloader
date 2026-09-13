@@ -141,19 +141,26 @@ if (!built) {
   }
 }
 
-// The Wails CLI the README tells a reader to install, against the one the
-// release build uses. These had drifted to v2.10.2 and v2.13.0, so anyone
-// following the README built the desktop app with a different toolchain than
-// the one that produces the release, which is a class of bug that only ever
-// shows up as "works here, not in CI".
-const DESKTOP_YML = read('.github', 'workflows', 'desktop.yml');
-const wailsIn = (src) => src.match(/wails\/v2\/cmd\/wails@(v[\d.]+)/)?.[1];
-const readmeWails = wailsIn(README);
-const ciWails = wailsIn(DESKTOP_YML);
-if (!readmeWails || !ciWails) {
-  fail('the `wails@<version>` line is missing from README.md or .github/workflows/desktop.yml');
-} else if (readmeWails !== ciWails) {
-  fail(`README.md installs wails ${readmeWails}, .github/workflows/desktop.yml builds releases with ${ciWails}`);
+// The Wails CLI the README tells a reader to install, against the version
+// desktop/go.mod actually requires. Somebody following the README with a
+// different CLI builds the desktop app on a different toolchain than the one
+// that produces the release, which is a class of bug that only ever shows up as
+// "works here, not in CI".
+//
+// COMPARED AGAINST go.mod AND NOT AGAINST THE WORKFLOW, which is the point. The
+// workflow no longer names a version at all: it reads the require line itself,
+// precisely because a hand-pinned copy drifted twice (v2.10.2 against v2.13.0,
+// then v2.13.0 against v2.15.0). While this compared the README to that copy,
+// both could be wrong TOGETHER and it saw nothing, which is exactly what
+// happened the second time. go.mod is the one place the number lives now, so it
+// is the one thing worth comparing against.
+const DESKTOP_GOMOD = read('desktop', 'go.mod');
+const readmeWails = README.match(/wails\/v2\/cmd\/wails@(v[\d.]+)/)?.[1];
+const modWails = DESKTOP_GOMOD.match(/wailsapp\/wails\/v2 (v[\d.]+)/)?.[1];
+if (!readmeWails || !modWails) {
+  fail('the wails install line is missing from README.md, or the require line from desktop/go.mod');
+} else if (readmeWails !== modWails) {
+  fail(`README.md installs wails ${readmeWails}, desktop/go.mod requires ${modWails}`);
 }
 
 // ---------------------------------------------------------------------------
