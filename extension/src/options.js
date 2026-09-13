@@ -48,6 +48,19 @@ const paletteSwatches = document.getElementById('paletteSwatches');
 const followInstanceEl = document.getElementById('followInstance');
 const followInstanceRow = followInstanceEl.closest('.glim-row');
 const accentLabelEl = document.getElementById('accentLabel');
+// The four labels whose rows get dimmed. Held here rather than looked up at the
+// moment of dimming, because renderAppearance() runs on every appearance change
+// and a querySelector per row per render is four lookups for a value that never
+// moves.
+const rainbowLabelEl = document.getElementById('rainbowLabel');
+const rainbowReactiveLabelEl = document.getElementById('rainbowReactiveLabel');
+const rainbowRotateLabelEl = document.getElementById('rainbowRotateLabel');
+const paletteLabelEl = document.getElementById('paletteLabel');
+const leaveConfirmEl = document.getElementById('leaveConfirm');
+const leaveConfirmTitleEl = document.getElementById('leaveConfirmTitle');
+const leaveConfirmMessageEl = document.getElementById('leaveConfirmMessage');
+const leaveConfirmCancelEl = document.getElementById('leaveConfirmCancel');
+const leaveConfirmCommitEl = document.getElementById('leaveConfirmCommit');
 const problemsHeadingEl = document.getElementById('problemsHeading');
 const aboutHeadingEl = document.getElementById('aboutHeading');
 const phraseEye = document.getElementById('phraseEye');
@@ -78,6 +91,12 @@ function glyph(d, size) {
   return svg;
 }
 const D_RETRY = 'M8 3V1L5 3.5 8 6V4a3.5 3.5 0 1 1-3.5 3.5H3A5 5 0 1 0 8 3z';
+// The cancelling half of the confirmation window. Every button in this family
+// carries a glyph, and a words-only cancel beside a bin reads as unfinished -
+// reported in exactly those terms on a sibling app ("löschen hat kein Glyph").
+// The same path popup.js draws for its own cancel, so one mark means "no".
+const D_CROSS =
+  'M4.2 2.8 8 6.6l3.8-3.8 1.4 1.4L9.4 8l3.8 3.8-1.4 1.4L8 9.4l-3.8 3.8-1.4-1.4L6.6 8 2.8 4.2z';
 // A cup with a handle and a saucer, for the thank-you in the About card.
 const D_COFFEE =
   'M2.5 3h8.2v5.2a3.6 3.6 0 0 1-3.6 3.6H6.1A3.6 3.6 0 0 1 2.5 8.2V3z' +
@@ -174,6 +193,71 @@ function shake(el) {
 }
 
 /**
+ * labelWords puts a row label's WORDS in an element of their own.
+ *
+ * The label used to be a bare text node, written with `el.textContent = text`,
+ * with the "(i)" appended after it. That shape cannot be dimmed correctly:
+ * `opacity` composites a subtree, so the only element available to carry the
+ * dimming was the label itself, and the trigger inside it went with it.
+ * GlimStone 1.9.0 calls that a trap rather than a preference, and it is - the
+ * one element that has to stay readable while the row recedes is the one nobody
+ * can read, and it is invisible in the markup.
+ *
+ * Idempotent, like glimSetInfo(): applyStaticText() re-runs on every language
+ * change, and this must not leave a second span behind or drop the icon that
+ * follows it. prepend rather than append, so the words stay ahead of the "(i)".
+ */
+function labelWords(id, text) {
+  const host = document.getElementById(id);
+  if (!host) return;
+  let span = host.querySelector('.glim-label-words');
+  if (!span) {
+    // The English placeholder the markup ships with ("Accent", "Palette") is a
+    // loose text node, and `textContent = text` used to be what removed it.
+    // Prepending a span next to it would have printed the word twice, in two
+    // languages, on the first render. Only text nodes go: the "(i)" is an
+    // element and has to survive a language change.
+    for (const node of [...host.childNodes]) {
+      if (node.nodeType === Node.TEXT_NODE) node.remove();
+    }
+    span = document.createElement('span');
+    span.className = 'glim-label-words';
+    host.prepend(span);
+  }
+  span.textContent = text;
+}
+
+/**
+ * setDimmed dims and deadens a setting, on its PARTS rather than on its row.
+ *
+ * Both halves together, always: dimming alone still lets a click land and a
+ * picker open on a value nothing will read, and taking the pointer events alone
+ * leaves a control that looks live and is not.
+ *
+ * Each caller passes the label's words and the control group, never the flex
+ * container that holds them, so the "(i)" between them keeps full strength -
+ * which is the whole reason this is a function and not two inline assignments.
+ *
+ * The empty string rather than 'auto' and '1': that clears the inline property
+ * and lets the stylesheet decide again. Writing a value back is how a lock gets
+ * set and never cleared - the unlock here once read `el.style.pointerEvents ||
+ * ''`, which consults the very value it is trying to clear.
+ */
+function setDimmed(parts, off) {
+  for (const el of parts) {
+    if (!el) continue;
+    el.style.opacity = off ? '.5' : '';
+    el.style.pointerEvents = off ? 'none' : '';
+  }
+}
+
+/** The words inside a row label, which is the half of it that may be dimmed.
+ *  Null before applyStaticText() has run, which setDimmed() skips. */
+function labelWordsOf(labelEl) {
+  return labelEl?.querySelector('.glim-label-words') ?? null;
+}
+
+/**
  * applyStaticText fills in every fixed label from the current language — called
  * once on load and again whenever the language picker changes it, so nothing
  * needs a page reload to update.
@@ -194,8 +278,25 @@ function applyStaticText() {
   leaveBtn.textContent = '';
   leaveBtn.setAttribute('aria-label', t('options.leave'));
   leaveBtn.setAttribute('data-tip', t('options.leave'));
-  leaveBtn.replaceChildren(glyph(D_TRASH, 16));
+  // 18 in a 36px badge: a glyph standing ALONE in a square is half its box
+  // (GlimStone 1.8.0). At 16 it was 44%, which is over half and reads chunky -
+  // there is no word beside it to set the size against, so the only proportion
+  // left is how much of the frame the ink takes.
+  leaveBtn.replaceChildren(glyph(D_TRASH, 18));
   refreshBtn.textContent = t('options.refresh');
+
+  // The confirmation window. Its title is a badge, like every other window and
+  // every other card heading (rule 15), so it is filled the same way.
+  //
+  // Both buttons are `.secondary`, which is this page's neutral: since 1.12.0 a
+  // destructive control takes the colour its siblings take, and since 1.13.0
+  // there is no tone lever left to pass. Cancel and commit look alike on
+  // purpose - neither is recommended, the sentence above them decides. The
+  // committing one names its action rather than saying "OK", which is what
+  // makes a glanced-at window still answerable.
+  leaveConfirmTitleEl.textContent = t('options.leaveConfirmTitle');
+  leaveConfirmCancelEl.replaceChildren(glyph(D_CROSS, 14), document.createTextNode(t('common.cancel')));
+  leaveConfirmCommitEl.replaceChildren(glyph(D_TRASH, 14), document.createTextNode(t('options.leave')));
 
   languageHeadingEl.textContent = t('options.languageHeading');
   glimSetInfo('languageHeading', t('options.languageSub'));
@@ -220,8 +321,17 @@ function applyStaticText() {
   // is focusable, which is why the captions live outside their switches now -
   // inside a <button> it would be invalid markup and a click on it would flip
   // the switch somebody was only trying to read about.
+  //
+  // The words go into a span of their own rather than straight onto the label,
+  // and that is not tidiness: it is what lets the dimming sit on the PARTS of a
+  // row instead of on the row (GlimStone 1.9.0). `opacity` composites a whole
+  // subtree and a child cannot be less transparent than its parent, so a "(i)"
+  // inside the element carrying the dimming renders dimmed too - and the bubble
+  // is the conditional kind, which means it exists precisely for the state that
+  // hides it. A text node cannot carry a class, so there has to be an element
+  // around the words for the dimming to land on. See setDimmed() below.
   const label = (id, text, tip) => {
-    document.getElementById(id).textContent = text;
+    labelWords(id, text);
     glimSetInfo(id, tip);
   };
   label('accentLabel', t('options.accentLabel'), t('options.accentHint'));
@@ -294,7 +404,9 @@ async function renderPinHint() {
  */
 function renderPhraseEye() {
   const shown = phraseInput.type === 'text';
-  phraseEye.replaceChildren(glyph(shown ? D_EYE_OFF : D_EYE, 16));
+  // Half of .glim-eye's 28px box. It carries no ground at rest but takes one on
+  // hover, so the frame the rule measures against is real.
+  phraseEye.replaceChildren(glyph(shown ? D_EYE_OFF : D_EYE, 14));
   const name = shown ? t('options.phraseHide') : t('options.phraseShow');
   phraseEye.setAttribute('aria-label', name);
   phraseEye.setAttribute('data-tip', name);
@@ -312,7 +424,7 @@ phraseEye.addEventListener('click', () => {
 /** Same treatment as the eye: glyph and accessible name drawn together, so a
  *  language change cannot leave one of them behind. */
 function renderPhrasePaste() {
-  phrasePaste.replaceChildren(glyph(D_PASTE, 16));
+  phrasePaste.replaceChildren(glyph(D_PASTE, 14));
   const name = t('options.phrasePaste');
   phrasePaste.setAttribute('aria-label', name);
   phrasePaste.setAttribute('data-tip', name);
@@ -511,7 +623,85 @@ joinForm.addEventListener('submit', async (e) => {
   void renderReport();
 });
 
-leaveBtn.addEventListener('click', async () => {
+/**
+ * The question that stands between the bin and the deletion.
+ *
+ * GlimStone 1.12.0 took status-red off every destructive control, and the whole
+ * argument rests on this window existing: "what warns is the QUESTION - an
+ * irreversible action opens a window that states the stakes in words and
+ * counts, and somebody who has read it and reached for the button has already
+ * been told." This page had the conclusion without the premise. The bin was
+ * neutral, which was right, and it deleted the phrase and emptied the group on
+ * the press, which made the neutral colour the worst of both - and the comment
+ * beside it in options.html said out loud that a confirmation was there.
+ *
+ * The count is read off the list that is already on screen rather than asked
+ * for: a confirmation that opens after a relay round trip is a confirmation
+ * somebody presses twice. It is honest about what it is - how many instances
+ * are showing right now - and that is the number somebody is looking at.
+ *
+ * Escape and a press on the ground behind both cancel, which is where a second
+ * way out belongs; the window itself has no corner X (1.8.0 makes it optional,
+ * and two controls doing one thing read as a choice).
+ */
+function openLeaveConfirm() {
+  leaveConfirmMessageEl.textContent = t('options.leaveConfirmBody', {
+    count: String(list.querySelectorAll('.glim-instance').length),
+  });
+  leaveConfirmEl.hidden = false;
+  // The cancelling half takes focus, the same way the reference dialog does:
+  // the window opens on the answer that changes nothing.
+  leaveConfirmCancelEl.focus();
+  document.addEventListener('keydown', onLeaveConfirmKey);
+}
+
+/** `back` is the control focus belongs to afterwards. It is not always the bin:
+ *  once the group is gone the bin is hidden, and focusing a hidden element
+ *  quietly drops focus to the body. */
+function closeLeaveConfirm(back) {
+  leaveConfirmEl.hidden = true;
+  document.removeEventListener('keydown', onLeaveConfirmKey);
+  back?.focus();
+}
+
+/**
+ * Escape closes it, and Tab cannot leave it.
+ *
+ * The trap is short because the window holds exactly two controls: forward from
+ * the committing one and backward from the cancelling one both land on the
+ * other. Without it, Tab walks straight out of a window that says aria-modal
+ * and onto the page behind, where every control is still reachable - which is
+ * the one thing "modal" is supposed to mean.
+ */
+function onLeaveConfirmKey(event) {
+  if (event.key === 'Escape') {
+    event.preventDefault();
+    closeLeaveConfirm(leaveBtn);
+    return;
+  }
+  if (event.key !== 'Tab') return;
+  const stops = [leaveConfirmCancelEl, leaveConfirmCommitEl];
+  const at = stops.indexOf(document.activeElement);
+  event.preventDefault();
+  // -1 means focus is somewhere on the page behind, which Tab must pull back
+  // in: forwards to the first stop, backwards to the last.
+  const next = event.shiftKey ? (at <= 0 ? stops.length - 1 : at - 1) : at === stops.length - 1 ? 0 : at + 1;
+  stops[next].focus();
+}
+
+leaveBtn.addEventListener('click', () => openLeaveConfirm());
+leaveConfirmCancelEl.addEventListener('click', () => closeLeaveConfirm(leaveBtn));
+// A press on the ground, not on the window: without the target check, a press
+// that starts inside the card and ends on the backdrop would cancel it.
+leaveConfirmEl.addEventListener('click', (event) => {
+  if (event.target === leaveConfirmEl) closeLeaveConfirm(leaveBtn);
+});
+
+leaveConfirmCommitEl.addEventListener('click', async () => {
+  // Closed first, and focus handed to Connect rather than to the bin: the bin
+  // is about to be hidden by renderGroup(), and the button that is left is the
+  // one that gets you back in.
+  closeLeaveConfirm(joinBtn);
   await forgetGroup();
   phraseInput.value = '';
   // Back to masked: leaving and re-joining is the one moment somebody is most
@@ -636,6 +826,44 @@ function stepCountdown(by) {
 
 cnlCountdownUpEl.addEventListener('click', () => stepCountdown(1));
 cnlCountdownDownEl.addEventListener('click', () => stepCountdown(-1));
+
+/**
+ * The wheel is the third way to nudge the field, and it answers only while the
+ * field has FOCUS.
+ *
+ * That condition is the design and not a caution (GlimStone 1.8.0). A number
+ * input that answers the wheel whenever a pointer happens to pass over it is a
+ * well-known way to change a value somebody was only scrolling past, and
+ * browsers removed the behaviour from the native widget for exactly that
+ * reason. Requiring focus means the field has been deliberately entered first -
+ * the same gesture that already enables the arrow keys - so the wheel becomes a
+ * second way to do what the keyboard and the two arrows do rather than a new
+ * hazard. This page is one long column, and this field sits in the middle of
+ * it.
+ *
+ * A real listener with `passive: false`, because preventDefault is half the
+ * feature: without it the page scrolls while the value changes and the field
+ * slides out from under the pointer mid-adjustment. It is called before the
+ * end-of-range check on purpose - while the field has focus this handler IS the
+ * scroll, whether or not the number moves.
+ *
+ * Up is more, matching the upper arrow and the up key. A trackpad reports
+ * fractional deltas, so only the sign is read. The two steppers already know
+ * where the range ends (markCountdownEnds keeps them current), so there is no
+ * second copy of min and max here.
+ */
+cnlCountdownEl.addEventListener(
+  'wheel',
+  (event) => {
+    if (document.activeElement !== cnlCountdownEl) return;
+    if (event.deltaY === 0) return;
+    const up = event.deltaY < 0;
+    event.preventDefault();
+    if (up ? cnlCountdownUpEl.disabled : cnlCountdownDownEl.disabled) return;
+    stepCountdown(up ? 1 : -1);
+  },
+  { passive: false },
+);
 
 // Written on 'change', not on every keystroke: a number field fires 'input' for
 // each digit, so typing "30" would pass through 3 on the way - and a value of 3
@@ -846,7 +1074,10 @@ function resetBadge(onClick) {
   const b = document.createElement('button');
   b.type = 'button';
   b.className = 'glim-reset';
-  b.appendChild(glyph(D_RETRY, 13));
+  // 11 in the 22px circle - half its box, the same ratio the bin and the two
+  // in-field controls now carry. This page ran 44%, 47% and 59% side by side
+  // before, which is three answers to one question on one screen.
+  b.appendChild(glyph(D_RETRY, 11));
   b.setAttribute('data-tip', t('options.accentReset'));
   b.setAttribute('aria-label', t('options.accentReset'));
   b.addEventListener('click', onClick);
@@ -1119,6 +1350,24 @@ async function renderAppearance() {
   );
 
   followInstanceEl.setAttribute('aria-checked', String(a.followInstance));
+
+  // Reactive, rotation and the palette are ABSENT while the rainbow is off,
+  // never dimmed (GlimStone 1.10.0). The language reversed itself on this and
+  // said why: a dimmed sub-switch is something somebody can see, read and reach
+  // for that answers nothing, and the reason it is dead sits one row up, which
+  // is exactly where nobody looks once they have decided this row is the
+  // interesting one. Reaching it and getting nothing teaches less than its
+  // absence does. The palette editor is named in the reversal by hand - eight
+  // swatches nobody can open beside a reset nobody can press.
+  //
+  // The MODE's own switch stays, and that is the other half of the same rule:
+  // it is the control somebody is looking for. What goes is only what has
+  // meaning underneath it.
+  const rainbowIsOff = !a.rainbow.on;
+  rainbowReactiveRow.hidden = rainbowIsOff;
+  rainbowRotateRow.hidden = rainbowIsOff;
+  paletteRow.hidden = rainbowIsOff;
+
   // Everything the instance decides is shown but not editable while the switch
   // is on — an accent you can click that snaps back on the next refresh is
   // worse than one you cannot click. Theme is not in the list: it stays local
@@ -1128,19 +1377,29 @@ async function renderAppearance() {
   // jdp hit (2026-08-29: "bleiben viele Einstellungen gesperrt"): that reads
   // back the 'none' this very loop wrote a moment ago and hands it straight to
   // itself again, so the lock could be set and never cleared. A fallback that
-  // consults the value you are trying to clear is not a fallback.
+  // consults the value you are trying to clear is not a fallback. setDimmed()
+  // writes the empty string for the same reason.
   //
-  // The rainbow sub-rows have a second reason to be dimmed - the mode being
-  // off - so they are restored to what that decided, not to blank.
-  const rainbowOff = a.rainbow.on ? '' : '.5';
-  for (const el of [accentSwatches, shapeSeg, rainbowRow]) {
-    el.style.pointerEvents = a.followInstance ? 'none' : '';
-    el.style.opacity = a.followInstance ? '.5' : '';
-  }
-  for (const el of [rainbowReactiveRow, rainbowRotateRow, paletteRow]) {
-    el.style.pointerEvents = a.followInstance || !a.rainbow.on ? 'none' : '';
-    el.style.opacity = a.followInstance ? '.5' : rainbowOff;
-  }
+  // Every call names the label's WORDS and the control group, never the row
+  // that holds them: the dimming goes on the parts, so the "(i)" between them
+  // stays readable in exactly the state it exists to explain (1.9.0). The
+  // heading badges are not in any list - a card heading carries its own bubble
+  // and is not what the switch takes over.
+  const off = a.followInstance;
+  // Whichever colour row is not IN FORCE is dimmed and inert (1.8.0). With the
+  // rainbow running, every card on this page carries a palette position and
+  // `[data-rainbow] .glim-hue` rebinds --accent for its whole subtree, so the
+  // accent row decides nothing at all - it is not "less important" then, it is
+  // read by nothing, and a live control nothing reads teaches people the
+  // setting is broken rather than inactive. The symmetric half is the palette
+  // row under a stopped rainbow, and that one is absent rather than dimmed,
+  // because 1.10.0 came later and said so.
+  setDimmed([labelWordsOf(accentLabelEl), accentSwatches], off || a.rainbow.on);
+  setDimmed([shapeSeg], off);
+  setDimmed([labelWordsOf(rainbowLabelEl), rainbowOnEl], off);
+  setDimmed([labelWordsOf(rainbowReactiveLabelEl), rainbowReactiveEl], off);
+  setDimmed([labelWordsOf(rainbowRotateLabelEl), rainbowRotateEl], off);
+  setDimmed([labelWordsOf(paletteLabelEl), paletteSwatches], off);
 
   // The hues last, because rotating or editing the palette changes what every
   // position resolves to, and the report because it names theme, accent and

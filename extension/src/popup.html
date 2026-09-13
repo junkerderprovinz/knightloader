@@ -263,15 +263,36 @@
     <div class="header">
       <img src="logo.svg" alt="" aria-hidden="true" class="mark" />
       <h1>KnightLoader</h1>
-      <button id="openOptions" class="iconBadge" type="button" aria-label="Settings" title="Settings">
+      <!-- One control, one tooltip mechanism (GlimStone 1.8.0). This element
+           carried `title="Settings"` AND a data-tip written by popup.js, which
+           is two bubbles on one button: tooltip.js upgrades a stray native
+           title to a data-tip on first hover, but only where there is no
+           data-tip yet, so here the upgrade never ran and the browser's own
+           balloon fired beside ours. The title is the half that goes - it was
+           also hard-coded English on a window that ships in 42 languages, while
+           the data-tip and the accessible name are both written from the
+           catalogue. Both are set in popup.js for the same reason.
+
+           The aria-label stays, and it is not the same thing: an accessible
+           name is not a bubble, nothing renders it beside ours, and it is the
+           name this button has in the frame before popup.js has read the
+           catalogue. popup.js overwrites it in the reader's own language a
+           moment later, exactly like every other English word in this file. -->
+      <button id="openOptions" class="iconBadge" type="button" aria-label="Settings">
         <!-- The web UI's own gear (web/src/lib/icons.tsx, IconSettings), copied
              path for path. It was a STROKED outline here, which is the one
              thing the design language's icon rule forbids outright: a
              line-drawn glyph sits at a different weight than the filled badges
              and filled switches around it, and at 16px with a 2px stroke it
              stopped reading as a gear at all and became a blob. Caught in a
-             store screenshot, not in the code. -->
-        <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+             store screenshot, not in the code.
+
+             13 in a 26px badge, not 16: a glyph alone in a square is HALF its
+             box (1.8.0). At 16 it filled 62% of the badge, which is the exact
+             ratio the rule was written against ("die glyphen sind zu gross und
+             wirken klobig") - there are no words beside it to match, so the
+             only proportion left is how much of the frame the ink takes. -->
+        <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
           <path
             fill-rule="evenodd"
             clip-rule="evenodd"
@@ -300,9 +321,26 @@
            reingeladen wird und der countdown läuft"). Cancel only exists while
            the clock does: a button that stops something not happening is a
            button that has to be explained. -->
+      <!-- Cancel first, send second, and that is the ROW ORDER rather than a
+           reading order (GlimStone 1.14.0): in a pair, the control that moves
+           the thing forward sits at the end of the line and the one that holds
+           or takes it back sits ahead of it. This is the pair the rule was
+           written for - neither of these is a save or a cancel in vocabulary,
+           they are a clock running and a clock stopped, and the rule still has
+           to decide it. Position is a second signal that survives what colour
+           does not: it still says which is which for a colour-blind reader and
+           after somebody has repainted the accent.
+
+           It reads backwards in the source and correctly on the screen, which
+           is the usual shape of this correction. `.sendRow` is a flex row, so
+           the pair WOULD mirror with the page under a right-to-left language -
+           but only once something sets `dir` on <html>, and nothing here does
+           yet, although this window ships ar, he and fa. Until it does, "end"
+           and "right of the glass" are the same place for every reader, which
+           is a smaller gap than the one this order just closed but not none. -->
       <div class="sendRow">
-        <button id="send" class="primary">Send this page</button>
         <button id="cancelCountdown" class="secondary" type="button" hidden></button>
+        <button id="send" class="primary">Send this page</button>
       </div>
     </div>
 

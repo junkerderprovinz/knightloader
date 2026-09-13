@@ -34,6 +34,24 @@ export interface Palette {
   statusWarnSolid: string;
   statusNeutralText: string;
   statusNeutralSolid: string;
+
+  /**
+   * The ground behind a floating window, as a TOKEN and not a value typed into
+   * whichever component happens to float one (GlimStone 1.11.0).
+   *
+   * It was `#00000088` inside ColorPicker - one number, in one file, in one
+   * theme's worth of thinking. The cost of that shape is not the value being
+   * slightly wrong, it is that "make the scrim darker" becomes a hunt: one
+   * adopting app was found carrying four scrims at two strengths, the odd one
+   * weaker than the rest for as long as it had existed, with nothing able to
+   * notice.
+   *
+   * TWO values, one per theme, and that is the half a single literal cannot
+   * express at all: a light page reaches the same separation with less ink, so
+   * the same alpha that stops the eye reading through on #161616 is heavier
+   * than it needs to be on #f4f4f4.
+   */
+  scrim: string;
 }
 
 // Ground and surfaces are IBM Carbon's neutral greys, deliberately not a warm
@@ -59,6 +77,11 @@ export const DARK: Palette = {
   statusWarnSolid: '#f1c21b',
   statusNeutralText: '#a8a8a8',
   statusNeutralSolid: '#8d8d8d',
+
+  // .65, the value tokens.css carries on a dark ground. At .60 the panel in
+  // front and the page behind sit close enough in value that the eye keeps
+  // reading the page, which is the one thing a scrim is for.
+  scrim: 'rgba(0, 0, 0, 0.65)',
 };
 
 // Carbon's light greys, mirroring the dark ramp step for step.
@@ -83,6 +106,11 @@ export const LIGHT: Palette = {
   statusWarnSolid: '#b28600',
   statusNeutralText: '#6f6f6f',
   statusNeutralSolid: '#8d8d8d',
+
+  // .55, not the dark theme's .65: black over a near-white page separates at a
+  // lower alpha than black over a near-black one, and carrying the darker value
+  // into light mode is how a scrim starts looking like a power cut.
+  scrim: 'rgba(0, 0, 0, 0.55)',
 };
 
 /**

@@ -366,7 +366,25 @@
                every other icon badge in the family - a delete control is not
                styled apart from its neighbours, its meaning is carried by its
                glyph and by the confirmation behind it. The name survives as the
-               accessible name and the tooltip. -->
+               accessible name and the tooltip.
+
+               That last clause used to be a claim rather than a fact: there was
+               no confirmation. The press deleted the phrase and emptied the
+               group on the spot, which is precisely the case GlimStone 1.12.0
+               builds its whole argument on - the neutral colour is only safe
+               BECAUSE a question stands between the press and the deletion, so
+               a neutral bin with nothing behind it is the worst of the two
+               shapes. #leaveConfirm below is that question, and this sentence
+               now describes what the page does.
+
+               Order in the row: this stays at the END and is deliberately not
+               read as half of a 1.14.0 pair with Connect. A pair is two
+               controls answering ONE question, where one moves the thing
+               forward and the other holds it. These answer two: "reach the
+               group again" and "throw the group away", asked at different
+               moments and only ever one of them wanted. It is a row action, the
+               same delete badge every instance card ends with, and those sit at
+               the end of their row. -->
           <button id="leave" class="iconBadge" type="button" hidden></button>
         </div>
       </form>
@@ -420,7 +438,11 @@
         <!-- Label left, everything clickable right, exactly as the web UI's
              own Colours card lays it out. The current colour opens the page's
              own picker; the eight presets are the shortcut; the reset badge
-             appears only once the accent has actually moved. -->
+             is always there at the end of the row. That last clause used to
+             say it appeared only once the accent had moved, which options.js
+             reversed and this comment did not: a control that is sometimes
+             there is a control nobody learns the position of, and people check
+             whether a way back exists BEFORE they experiment, not after. -->
         <!-- The picker button lives INSIDE the swatch row now, at its end, next
              to the reset badge: "pick any colour" and "back to the default" are
              the two ways out of the eight presets, and they belong together.
@@ -432,7 +454,21 @@
         </div>
         <!-- The rainbow: the accent in the plural. The same three switches and
              the same palette the web UI's Look page offers, in the same order,
-             so somebody who set this up there recognises it here. -->
+             so somebody who set this up there recognises it here.
+
+             Four rows stand here and two of them are usually on screen: the
+             MODE's switch is always there, and everything that only means
+             something underneath it - reactive, rotation, the palette - is
+             ABSENT while the mode is off rather than dimmed (GlimStone 1.10.0).
+             renderAppearance() sets `hidden` on the three of them. A dimmed
+             sub-switch is something somebody can see, read and reach for that
+             answers nothing, and the reason it is dead sits one row up, which
+             is exactly where nobody looks.
+
+             The accent row above goes the other way: with the mode RUNNING it
+             is dimmed and inert, because every card then carries a palette
+             position and nothing on the page reads the single accent any more.
+             Whichever colour row is not in force is the one that recedes. -->
         <div class="glim-row" id="rainbowRow">
           <span class="glim-row-label" id="rainbowLabel"></span>
           <button type="button" role="switch" aria-checked="false" id="rainbowOn" class="glim-switch">
@@ -554,6 +590,44 @@
            half. -->
       <p id="aboutVersions" class="aboutVersions glim-num"></p>
     </section>
+
+    <!-- The confirmation window (GlimStone 1.12.0).
+
+         Static markup rather than nodes built at the moment of the press: this
+         extension has no build step and Mozilla's linter fails the package on
+         an innerHTML assignment from a variable, so every other dynamic piece
+         on this page is assembled with createElement. A window that is the same
+         window every time does not need assembling - it needs its two sentences
+         filled in, which options.js does.
+
+         No divider lines, and no close X in the corner (1.8.0, and optional
+         since 1.7.3): two controls doing the same thing, one of them where a
+         window's close button lives, read as a choice rather than as one answer
+         offered twice. The backdrop and Escape are the second way out, which is
+         where a second way out belongs.
+
+         Button order is 1.14.0: the one that holds on the left, the one that
+         goes ahead at the END of the row. Neither carries a status colour -
+         1.12.0 removed the language's one sanctioned red, and 1.13.0 removed
+         the tone lever with it rather than relocating it. What warns is this
+         window's own sentence; a colour cannot say more than the sentence above
+         it, and spending red on every delete teaches people to read past it. -->
+    <div id="leaveConfirm" class="glim-modal-backdrop" hidden>
+      <div
+        class="glim-card glim-modal-card"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="leaveConfirmTitle"
+        aria-describedby="leaveConfirmMessage"
+      >
+        <h2 class="glim-section-badge" id="leaveConfirmTitle"></h2>
+        <p class="glim-modal-message" id="leaveConfirmMessage"></p>
+        <div class="glim-modal-actions">
+          <button id="leaveConfirmCancel" class="secondary" type="button"></button>
+          <button id="leaveConfirmCommit" class="secondary" type="button"></button>
+        </div>
+      </div>
+    </div>
 
     <script src="appearance.js"></script>
     <script src="colorpicker.js"></script>

@@ -64,6 +64,15 @@
   --carbon-surface2:   #393939;
   --carbon-surface3:   #525252;
   --carbon-hover:      #353535;
+  /* Hover for anything ALREADY filled with surface3 - the neutral button, a
+     raised segment (GlimStone 1.8.0, rule 21). The ramp used to stop at
+     surface3, so every control sitting on it reached back down to
+     --carbon-hover, which on this ramp is #353535 and therefore 29 units
+     BELOW surface3: the element dimmed at the one moment somebody was looking
+     straight at it. One step further from the surface in each theme, which is
+     lighter here and darker in the light ramp - a single brightness() value
+     cannot be both, which is why this is a token and not a filter. */
+  --carbon-hover-raised: #6f6f6f;
   --carbon-border:     #393939;
 
   /* Text ramp — three steps, the last still legible at 11px. */
@@ -110,6 +119,13 @@
   /* One elevation, one hairline. Neutral black, not a warm one: a brown
      shadow under a grey card is visible and reads as a colour cast. */
   --elevation: 0 1px 2px rgba(0, 0, 0, .40), 0 18px 40px -24px rgba(0, 0, 0, .85);
+  /* The ground behind a floating window (GlimStone 1.11.0). ONE token, so
+     making it darker is one edit rather than a hunt through every component
+     that floats one - the shape the brand colours were in before the language
+     grew tokens for those. .65 on a dark ground: at .60 the card in front and
+     the page behind sit close enough in value that the eye keeps reading the
+     page, which is the one thing a scrim exists to stop. */
+  --glim-scrim: rgba(0, 0, 0, .65);
   --hairline: inset 0 1px 0 rgba(255, 255, 255, .045);
   --focus-ring: rgba(252, 196, 25, .55);
 }
@@ -124,6 +140,9 @@
   --carbon-surface2:   #e8e8e8;
   --carbon-surface3:   #d1d1d1;
   --carbon-hover:      #e0e0e0;
+  /* The same rule as on the dark ramp, pointing the other way: one step
+     further from the surface here means DARKER. */
+  --carbon-hover-raised: #c6c6c6;
   --carbon-border:     #d1d1d1;
 
   --carbon-text:       #161616;
@@ -163,6 +182,9 @@
   --status-neutral-solid: #8d8d8d;
 
   --elevation: 0 1px 2px rgba(0, 0, 0, .06), 0 16px 36px -26px rgba(0, 0, 0, .35);
+  /* .55, not .65: a light page reaches the same separation with less. Two
+     values rather than one is the whole point of the token. */
+  --glim-scrim: rgba(0, 0, 0, .55);
   --hairline: inset 0 0 0 1px rgba(0, 0, 0, .05);
   --focus-ring: rgba(142, 106, 0, .5);
 }
@@ -206,6 +228,7 @@
     --carbon-surface2:   #e8e8e8;
     --carbon-surface3:   #d1d1d1;
     --carbon-hover:      #e0e0e0;
+    --carbon-hover-raised: #c6c6c6;
     --carbon-border:     #d1d1d1;
 
     --carbon-text:       #161616;
@@ -240,6 +263,7 @@
     --status-neutral-solid: #8d8d8d;
 
     --elevation: 0 1px 2px rgba(0, 0, 0, .06), 0 16px 36px -26px rgba(0, 0, 0, .35);
+    --glim-scrim: rgba(0, 0, 0, .55);
     --hairline: inset 0 0 0 1px rgba(0, 0, 0, .05);
     --focus-ring: rgba(142, 106, 0, .5);
   }
@@ -415,7 +439,10 @@
   cursor: pointer;
   transition: color 150ms ease, background-color 150ms ease;
 }
-.glim-reset:hover { color: var(--carbon-text); background: var(--carbon-hover); }
+/* surface3 at rest, so the hover is --carbon-hover-raised and not
+   --carbon-hover: the badge is already ON the raised step, and reaching back
+   down to #353535 made it go 29 units darker under the pointer. Rule 21. */
+.glim-reset:hover { color: var(--carbon-text); background: var(--carbon-hover-raised); }
 .glim-reset svg { display: block; }
 
 .glim-axis { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
@@ -511,7 +538,10 @@
   letter-spacing: .02em;
   text-transform: uppercase;
 }
-.glim-picker-hex:focus { outline: none; background-color: var(--carbon-hover); }
+/* Rule 14 lets a FORM FIELD trade its focus ring for a brightness step, and
+   this is one. The step has to go UP the ramp though: --carbon-hover is below
+   surface2 on the dark ramp, so focusing the field used to darken it. */
+.glim-picker-hex:focus { outline: none; background-color: var(--carbon-surface3); }
 
 /* ---------------------------------------------------------------------------
    The reveal eye.
@@ -733,6 +763,12 @@
   align-items: center;
   gap: 6px;
 }
+/* The words of a label, in a box of their own. It exists so the dimming has
+   something to land on that is NOT the label: `opacity` composites a subtree,
+   so dimming the label would take the "(i)" beside the words with it, and that
+   bubble is the conditional kind - it exists for exactly the state that would
+   hide it (GlimStone 1.9.0). Purely structural; it inherits everything. */
+.glim-label-words { min-width: 0; }
 .glim-row > .glim-switch { flex: 0 0 auto; width: auto; }
 
 /* ---------------------------------------------------------------------------
@@ -826,7 +862,10 @@
    the card is a display object with three controls in it, and a pointer over
    its whole surface would promise something that does not happen. */
 .glim-instance[role='radio'] { cursor: pointer; }
-.glim-instance[role='radio']:hover { background: var(--carbon-hover); }
+/* The card is filled with surface2, so its hover is surface3 - one step UP the
+   ramp. --carbon-hover sits four units BELOW surface2 on the dark ramp, so the
+   card used to dim under the pointer instead of lifting (rule 21). */
+.glim-instance[role='radio']:hover { background: var(--carbon-surface3); }
 /* Chosen for THIS send: a ring, the same way a selected swatch is marked - an
    inset gap in the page colour, then the accent, so the mark reads as applied
    to the card rather than as the card's own edge. */
@@ -1026,3 +1065,83 @@
 /* The flag: a fixed box so every label starts at the same x, whatever the
    flag's own aspect ratio. */
 .glim-listbox .fi { width: 20px; height: 15px; flex: 0 0 auto; border-radius: 2px; }
+
+/* ---------------------------------------------------------------------------
+   The confirmation window.
+
+   GlimStone 1.12.0 is the reason this exists at all, and the reason it is a
+   real window rather than a colour: "what warns is the QUESTION - an
+   irreversible action opens a window that states the stakes in words and
+   counts, and somebody who has read it and reached for the button has already
+   been told." Until now the extension had the second half of that sentence
+   without the first: the bin beside Connect was neutral, correctly, and it
+   deleted the group on the press with nothing in between - while the markup
+   beside it claimed "the confirmation behind it". A comment is not a dialogue.
+
+   Built from the pieces this sheet already has rather than from a new set:
+   .glim-card is the window (same surface, same radius, same elevation),
+   .glim-section-badge is the title (rule 15: title as a badge), and the two
+   buttons are the page's own. What is new is the ground behind it and the
+   footer row.
+
+   No divider lines anywhere in it (1.8.0): this language separates with
+   surface steps, and a window three sections tall is exactly where somebody
+   reaches for a rule instead. No close X in the corner either - it is optional
+   since 1.7.3, and two controls doing the same thing, one of them where a
+   window's close button lives, read as a choice rather than as one answer
+   offered twice. Backdrop and Escape both cancel, which is where a second way
+   out belongs.
+   --------------------------------------------------------------------------- */
+.glim-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  /* The token, not a typed value: .65 dark and .55 light, set once at the top
+     of this file (GlimStone 1.11.0). */
+  background: var(--glim-scrim);
+}
+.glim-modal-card {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 420px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  /* The section badge hangs 11px over the card's own top edge, so the window
+     cannot clip its own title. .glim-card already carries position: relative. */
+  overflow: visible;
+}
+/* The question itself, and the dialog's accessible description. Body text,
+   because the sentence IS the content here - the same reasoning that makes the
+   About card the one card whose body is prose.
+
+   This is the region that scrolls, and only this one: rule 15 anchors a
+   window's title and its button row and lets the middle move, so a long
+   sentence in a language that needs more of them never pushes the answer off
+   the bottom of the screen. `min-height: 0` is what actually allows it - a flex
+   child's automatic minimum is its content, so without it the message refuses
+   to shrink and the card grows past its own max-height instead. */
+.glim-modal-message {
+  margin: 0;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  font-size: var(--text-body);
+  color: var(--carbon-text-sub);
+  overflow-wrap: anywhere;
+}
+/* The button row, at the end of the line rather than across it: two controls
+   that are not a form do not want the window's whole width. `flex-end` is what
+   puts the committing button at the END (GlimStone 1.14.0) under both writing
+   directions, since `justify-content` follows the inline axis rather than the
+   glass. */
+.glim-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 20px;
+}

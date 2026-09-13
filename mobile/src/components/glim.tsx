@@ -336,10 +336,32 @@ export function StatusBadge({ status }: { status: 'checking' | 'online' | 'offli
  *     farbig, der button soll farbig sein, nicht der TExt". A coloured word on a
  *     grey ground reads as a link, not as a button, and the whole point of the
  *     colour engine is that the pressable THING carries the colour.
- *   - "danger" is quiet with the FAIL colour in the ink, and it deliberately
- *     ignores `hue`: the status colours mean what they mean, and a delete
- *     button that turns teal because it is third in a palette is a delete
- *     button that has stopped warning anybody.
+ *
+ * THERE IS NO "danger", AND ITS ABSENCE IS THE GUARD.
+ *
+ * It was here, it was quiet with the fail colour in the ink, and the argument
+ * beside it was that the status colours mean what they mean and a delete button
+ * turning teal because it is third in a palette has stopped warning anybody.
+ * GlimStone 1.12.0 answered it: a destructive button takes the colour its
+ * siblings take, because what warns is the QUESTION. An irreversible action
+ * opens a window that states the stakes in words and counts, and somebody who
+ * has read that window and reached for the button has already been told. A
+ * colour cannot say more than the sentence above it, and red on every delete in
+ * an app teaches people to read past it by the third time they meet it - which
+ * is the same argument the delete BADGE lost one element earlier, and those
+ * badges have been neutral here since they were drawn. 1.13.0 then removed the
+ * one remaining sanctioned exception rather than relocating it, so there is no
+ * carve-out left for this to sit in.
+ *
+ * Deleted from the union rather than left unused, and that is the whole of the
+ * guard: a variant that still exists comes back, because it can be argued for
+ * convincingly at any ONE call site. A variant that does not exist is a type
+ * error at every call site at once, which is the strongest check available on a
+ * surface with no stylesheet to lint.
+ *
+ * On a phone this matters more than it does in a browser, not less: there is no
+ * hover to soften a red control into a state somebody is merely passing over.
+ * It is simply a red button, sitting there.
  *
  * The contrast is computed FROM THE FILL, through the same contrastFor this
  * file's other controls use, never from the flat accent: a palette position can
@@ -362,7 +384,7 @@ export function GlimButton({
   icon?: (ink: string) => ReactNode;
   onPress: () => void;
   hue?: number;
-  tone?: 'solid' | 'quiet' | 'danger';
+  tone?: 'solid' | 'quiet';
   disabled?: boolean;
   /** Replaces the icon with a spinner and blocks the press. */
   busy?: boolean;
@@ -373,7 +395,9 @@ export function GlimButton({
   const { c, accent, accentContrast, radii, hueAt, rainbow } = useAppearance();
   const fill = (rainbow.on && hue !== undefined ? hueAt(hue) : undefined) ?? accent;
   const ground = tone === 'solid' ? fill : c.surface2;
-  const ink = tone === 'solid' ? contrastFor(fill, accentContrast) : tone === 'danger' ? c.statusFailSolid : c.text;
+  // Two tones, two answers, and no third branch for a destructive one: a quiet
+  // button takes the page's own ink whatever it is about to do.
+  const ink = tone === 'solid' ? contrastFor(fill, accentContrast) : c.text;
   return (
     <TouchableOpacity
       style={[

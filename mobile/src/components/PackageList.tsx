@@ -111,6 +111,28 @@ export default function PackageList({
     if (open[pkg.name]) for (const task of pkg.tasks) rows.push({ kind: 'task', task, index: n++ });
   }
 
+  /**
+   * The question is what warns, and it is the only thing that does.
+   *
+   * The message names the count, which is the whole of why the button no longer
+   * needs a colour: GlimStone 1.12.0 took status-red off destructive controls
+   * and 1.13.0 removed the last sanctioned exception instead of moving it, so
+   * `style: 'destructive'` is gone from the commit button here as it is from the
+   * settings screen's own. The badge that opens this window has been neutral
+   * since it was drawn (Trash in `c.textSub`), so trigger and commit finally
+   * give the same answer rather than two halves of an old one.
+   *
+   * There was a second defect underneath the rule, worth naming because it was
+   * invisible from either platform alone: React Native honours `style` on iOS
+   * and ignores it completely on Android, so the one property painted a red
+   * button on one phone and nothing at all on the other. A flag that only half
+   * the users ever see cannot be carrying the warning for any of them.
+   *
+   * `style: 'cancel'` stays. That is placement, not colour - it tells the
+   * platform which button is the way out, and where each platform puts that is
+   * the platform's business, which is also why 1.14.0's right-goes-ahead rule
+   * has nothing to decide in this window.
+   */
   const confirmDelete = (pkg: Pkg) => {
     Alert.alert(
       t('packages.deleteConfirmTitle'),
@@ -119,7 +141,6 @@ export default function PackageList({
         { text: t('settings.cancel'), style: 'cancel' },
         {
           text: t('packages.deleteConfirmButton'),
-          style: 'destructive',
           onPress: () => onDeletePackage?.(pkg),
         },
       ],

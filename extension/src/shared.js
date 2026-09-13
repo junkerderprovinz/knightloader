@@ -182,8 +182,15 @@ function squareAction(d, label, disabled, onClick, extraTip) {
   b.setAttribute('data-tip', tip);
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('viewBox', '0 0 16 16');
-  svg.setAttribute('width', '14');
-  svg.setAttribute('height', '14');
+  // 15 in .glim-square's 30px box: a glyph standing ALONE in a square is half
+  // of it (GlimStone 1.8.0). There are no words beside it to set the size
+  // against, so the only proportion available is how much of the frame the ink
+  // fills. It was 14, and the number matters less than the agreement: the
+  // extension ran three different ratios at once - 47% here, 44% on the icon
+  // badges, 59% on the reset - which on one screen reads as three sizes of the
+  // same object rather than as one decision.
+  svg.setAttribute('width', '15');
+  svg.setAttribute('height', '15');
   svg.setAttribute('aria-hidden', 'true');
   const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
   path.setAttribute('fill', 'currentColor');
@@ -376,6 +383,38 @@ function listbox(host, options, current, onPick) {
     }
   };
   trigger.addEventListener('click', open);
+
+  /**
+   * The wheel switches the choice without opening the list.
+   *
+   * GlimStone's rule 14 addendum gave a closed <select> this behaviour, and
+   * rule 18 then took every <select> away: replacing the native control is the
+   * right call and losing what it could do is not, so the wheel belongs to the
+   * PICKER rather than to the element a platform happens to draw. This is the
+   * one picker the extension has left.
+   *
+   * A real listener with `passive: false`, not an inline handler: preventDefault
+   * is the whole point, and without it the page scrolls at the same time as the
+   * value changes and the control slides out from under the pointer mid-choice.
+   *
+   * CLAMPED at both ends rather than wrapped. One notch too many at the bottom
+   * of 42 languages must not land on the first one - somebody looking for the
+   * end of a list scrolls until it stops, and a list that answers by jumping to
+   * the other end reads as a fault.
+   */
+  trigger.addEventListener(
+    'wheel',
+    (event) => {
+      if (event.deltaY === 0 || options.length < 2) return;
+      event.preventDefault();
+      const at = options.findIndex((o) => o.value === chosen.value);
+      const next = Math.min(options.length - 1, Math.max(0, at + (event.deltaY > 0 ? 1 : -1)));
+      if (next === at) return;
+      close();
+      onPick(options[next].value);
+    },
+    { passive: false },
+  );
 }
 
 /**

@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { cloneElement, isValidElement, type ReactElement, type ReactNode } from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useAppearance } from '../theme/AppearanceContext';
 
@@ -15,6 +15,63 @@ import { useAppearance } from '../theme/AppearanceContext';
 // No border. GlimStone separates surfaces by shade and never by a drawn line;
 // this component carried a 1px border for as long as it existed, which is the
 // one rule the app broke in the most places at once.
+
+/** The badge's own square. One size app-wide, whatever the badge is for. */
+const BADGE = 36;
+
+/**
+ * HOW MUCH OF THAT SQUARE THE GLYPH DRAWS: half of it.
+ *
+ * GlimStone 1.8.0 states the proportion as 16 in 32 and 20 in 40, so 18 in 36,
+ * and it is a proportion rather than a size because a lone glyph has no text
+ * beside it to be measured against. The 20px a glyph takes next to 14px text is
+ * the answer to a different question - there, a mark and its label have to read
+ * as one control - and carrying that number into a square is how a badge ends
+ * up with its glyph filling two thirds of the frame, which reads as chunky.
+ *
+ * ONE constant, because this badge used to hold two numbers that had never been
+ * compared: a drawn glyph arrived at 12 points of ink and a character at a
+ * 16-point font, in identical 36-point boxes, so the "+" and the gear standing
+ * side by side in the overview's top bar were visibly not one set. Two numbers
+ * for one proportion is the defect; fixing the arithmetic of each separately
+ * would have left it.
+ */
+const BADGE_INK = BADGE / 2;
+
+/**
+ * What to ask a glyph for so its INK lands on `ink` points.
+ *
+ * A glyph's `size` is the box it is given, and the drawn shape is deliberately
+ * smaller than that (see GLYPH_EXTENT below), so a badge that wants 18 points of
+ * ink cannot simply pass 18. Written as a function rather than a constant so the
+ * relationship stays visible: change how much of its box a glyph fills and this
+ * follows, instead of a second number drifting out of step with the first.
+ */
+export function boxForInk(ink: number): number {
+  return (ink * GLYPH_BOX) / GLYPH_EXTENT;
+}
+
+/**
+ * The characters this badge is still asked for, and the glyphs that answer them.
+ *
+ * Call sites pass `symbol="+"` or `symbol="▶"`, which is a perfectly good way to
+ * say WHICH mark is wanted and a bad way to draw one: how much ink a character
+ * puts inside its em box is the font's decision, differs per character and
+ * differs per platform, so "+" and "■" at one font size are not one size on
+ * screen. That is the same argument the glyph section below makes for not using
+ * emoji, arriving one door further along.
+ *
+ * The table lives here rather than at the call sites because the badge is what
+ * knows its own box. A caller names the meaning; the box decides how big it is
+ * drawn, and every badge in the app then agrees without any of them being
+ * edited.
+ */
+const SYMBOL_GLYPHS: Record<string, (p: { color: string; size?: number }) => ReactNode> = {
+  '+': Plus,
+  '▶': Play,
+  '■': Stop,
+};
+
 export default function IconBadge({
   symbol,
   icon,
@@ -22,9 +79,12 @@ export default function IconBadge({
   accessibilityLabel,
   accent,
 }: {
-  /** A text glyph ("+", "⚙"). Ignored when `icon` is given. */
+  /** WHICH mark is wanted, named by its character ("+", "▶"). Resolved to a
+   *  drawn glyph through SYMBOL_GLYPHS; a character with no glyph behind it
+   *  yet is printed as text. Ignored when `icon` is given. */
   symbol?: string;
-  /** A drawn glyph, for anything the font cannot say plainly - see Trash. */
+  /** A drawn glyph, for anything the font cannot say plainly - see Trash. Its
+   *  `size` is set here, so a call site neither states one nor needs to. */
   icon?: ReactNode;
   onPress: () => void;
   accessibilityLabel: string;
@@ -53,11 +113,54 @@ export default function IconBadge({
       {/* The glyph on a filled badge takes the computed ink rather than the
           body text colour: the accent is user-chosen, and white on Sunflower
           is exactly the unreadable pairing contrastOn exists to rule out. On
-          an UNfilled badge the glyph is accent-coloured TEXT on a pale
-          surface, which is accentInk's whole job - see tokens.ts. */}
-      {icon ?? <Text style={[styles.symbol, { color: accent ? accentContrast : accentInk }]}>{symbol}</Text>}
+          an UNfilled badge the glyph is accent-coloured ink on a pale surface,
+          which is accentInk's whole job - see tokens.ts.
+
+          It reaches a `symbol` glyph and not an `icon` one, and that asymmetry
+          is on purpose rather than an oversight: a caller that hands over a
+          finished element has already chosen the colour it wants there, and the
+          bin in a package header is deliberately textSub rather than the
+          accent. */}
+      {drawGlyph(icon, symbol, accent ? accentContrast : accentInk)}
     </TouchableOpacity>
   );
+}
+
+/**
+ * Whatever the badge was given, drawn at the badge's own size.
+ *
+ * A caller hands over a finished element (`icon={<Trash color={...} />}`) or a
+ * character (`symbol="+"`), and neither of them says how big the thing should
+ * be - which is right, because the caller does not know what it is standing in.
+ * So the size is applied HERE, in the component that owns the square, and every
+ * call site in the app lands on one proportion without a single one of them
+ * naming a number. Passing a size at each call site is the other way to do
+ * this, and it is the way the two numbers got out of step in the first place.
+ */
+function drawGlyph(icon: ReactNode, symbol: string | undefined, color: string): ReactNode {
+  const box = boxForInk(BADGE_INK);
+  // `icon` still wins over `symbol` whenever it is there at all, which is the
+  // precedence this component has always had; only glyph COMPONENTS are then
+  // resized. Anything else - a host element, a fragment, something already
+  // sized by its caller - is handed back untouched, because `size` on a view
+  // that does not read it would be quietly ignored and look like the rule had
+  // been applied.
+  if (icon !== undefined && icon !== null) {
+    return isValidElement(icon) && typeof icon.type === 'function'
+      ? cloneElement(icon as ReactElement<{ size?: number }>, { size: box })
+      : icon;
+  }
+  if (symbol) {
+    const Glyph = SYMBOL_GLYPHS[symbol];
+    if (Glyph) return <Glyph color={color} size={box} />;
+    // The fallback, and it is a fallback rather than a mechanism: a character
+    // nothing has been drawn for yet. Its font size comes off the same constant
+    // so the two can never drift again, but an em box is NOT ink - the
+    // character will sit short of the glyphs beside it by however much air its
+    // font leaves around it, and the only real fix is to draw it.
+    return <Text style={[styles.symbol, { color, fontSize: BADGE_INK, lineHeight: BADGE_INK * 1.15 }]}>{symbol}</Text>;
+  }
+  return null;
 }
 
 /* ---------------------------------------------------------------------------
@@ -81,6 +184,13 @@ export default function IconBadge({
    numbers inside a glyph stay readable as proportions of that glyph - the bin
    is still "13 wide, lid 1.5 tall" - and the drawn size stops being an accident
    of how each one happened to be laid out.
+
+   THE BOX BELOW IS THE DEFAULT, NOT THE RULE. A glyph standing beside a label
+   takes it; a glyph alone in a square is sized by that square instead, through
+   boxForInk at the top of this file, because the proportion a lone glyph owes
+   is to its frame and there is no text next to it to match. The two cases are
+   answered separately on purpose - one number serving both is how a glyph ends
+   up correct beside a word and too small inside a badge.
    --------------------------------------------------------------------------- */
 
 /** The box a glyph is given, in points, when nothing else is said. */
@@ -159,6 +269,88 @@ export function Back({ color, size = GLYPH_BOX }: { color: string; size?: number
           marginEnd: 1 * u,
         }}
       />
+    </View>
+  );
+}
+
+/**
+ * Plus: add something. Two crossed bars.
+ *
+ * Shorter and thicker than the "+" it replaces, which is the house rule for
+ * this mark and for the X (GlimStone's glyph reference, rule 7): a cross drawn
+ * to the full grid is long and thin, which manages to look oversized and weak
+ * at once. Ten units of arm against 2.8 of bar reads as a deliberate mark.
+ *
+ * Drawn rather than typed for the reason this whole section exists: a character
+ * puts whatever ink its font decides inside its em box, so "+" beside a drawn
+ * gear was never going to be one size however carefully the font size was
+ * chosen.
+ */
+export function Plus({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
+  // The arms span 10 units of this glyph's own grid.
+  const u = unit(size, 10);
+  // Absolutely placed with no insets, so the parent's own centring puts them
+  // both in the middle - the same construction the gear's teeth use.
+  const bar = { position: 'absolute' as const, backgroundColor: color, borderRadius: 1.4 * u };
+  return (
+    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
+      <View style={[bar, { width: 10 * u, height: 2.8 * u }]} />
+      <View style={[bar, { width: 2.8 * u, height: 10 * u }]} />
+    </View>
+  );
+}
+
+/**
+ * Play: start the queue. The Back triangle, pointing the other way.
+ *
+ * The same numbers and the same construction - a zero-size box with two
+ * transparent borders and one coloured one - deliberately, because these two
+ * are the same shape in this app and two separate drawings of one shape drift
+ * apart the moment either is touched. Only the coloured edge and the nudge
+ * change sides.
+ */
+export function Play({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
+  // The triangle stands 11 units tall, as Back's does.
+  const u = unit(size, 11);
+  return (
+    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
+      <View
+        style={{
+          width: 0,
+          height: 0,
+          borderStyle: 'solid',
+          borderTopWidth: 5.5 * u,
+          borderBottomWidth: 5.5 * u,
+          borderLeftWidth: 8 * u,
+          borderTopColor: 'transparent',
+          borderBottomColor: 'transparent',
+          borderLeftColor: color,
+          // Nudged so the POINT is centred rather than the bounding box, which
+          // is what makes a triangle look pushed towards its flat side.
+          marginStart: 1 * u,
+        }}
+      />
+    </View>
+  );
+}
+
+/**
+ * Stop: halt the queue. A filled square.
+ *
+ * Its silhouette is the whole of what tells it from Play, which is the rule for
+ * a pair of state glyphs in one badge: the colour is spent on the badge saying
+ * which state is active, so the shape carries the difference. One round shape
+ * against one angular one is the usual advice and a triangle against a square
+ * is the same idea - never two members of one family, which is how a "play"
+ * triangle beside a "pause" pair of bars ends up reading as two states of one
+ * control instead of two different things.
+ */
+export function Stop({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
+  // A square is as tall as it is wide, so its own grid is its extent.
+  const u = unit(size, 10);
+  return (
+    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
+      <View style={{ width: 10 * u, height: 10 * u, backgroundColor: color, borderRadius: 1.2 * u }} />
     </View>
   );
 }
@@ -339,12 +531,14 @@ export function Gear({ color, hole, size = GLYPH_BOX }: { color: string; hole: s
 
 const styles = StyleSheet.create({
   badge: {
-    width: 36,
-    height: 36,
+    width: BADGE,
+    height: BADGE,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  symbol: { fontSize: 16, fontWeight: '700', lineHeight: 18 },
+  // No fontSize here: it comes off BADGE_INK at render time, so the square and
+  // the thing inside it cannot be changed independently of each other.
+  symbol: { fontWeight: '700' },
 });
 
 /** Coffee: a cup with a handle. The About card's thank-you, and the one glyph
@@ -398,11 +592,23 @@ export function Coffee({ color, size = GLYPH_BOX }: { color: string; size?: numb
  * nut GitHub heißen".
  */
 export function Github({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
+  // A bitmap is sized by shrinking its FRAME, like the viewfinder's corner
+  // marks and for the same reason: there are no units inside it to scale.
+  //
+  // Measured rather than assumed, which is the rule for any glyph arriving from
+  // outside: the asset is 96x96 and its alpha reaches 96 by 94, so the mark
+  // fills its canvas edge to edge. `contain` therefore drew it to the FULL box
+  // while every hand-drawn glyph beside it drew to GLYPH_EXTENT of one - a
+  // quarter bigger, which in the About card put GitHub's mark visibly above the
+  // envelope next to it with both asking for the same size. Nothing here was
+  // wrong except the one glyph that never went through `unit()` because it had
+  // no units to go through it with.
+  const frame = (size * GLYPH_EXTENT) / GLYPH_BOX;
   return (
     <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
       <Image
         source={require('../../assets/github-mark.png')}
-        style={{ width: size, height: size }}
+        style={{ width: frame, height: frame }}
         tintColor={color}
         resizeMode="contain"
         accessibilityIgnoresInvertColors
