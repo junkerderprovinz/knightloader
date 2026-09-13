@@ -494,6 +494,25 @@ submission and for a fixed download.
   this along when I press start"; once a link is in the queue the switch that
   means something is pause.
 
+### Security
+
+- **An event target's headers no longer follow a redirect to somebody else.** A
+  target row's header values are treated as secrets throughout, and the comment
+  above them says so in capitals, because that is where a ntfy token or a Matrix
+  access token lives. The HTTP client sending those events followed redirects,
+  and a redirect is a reply from the address the operator typed telling the
+  client to repeat the request somewhere else, headers included. So an operator
+  who mistyped a host, or whose ntfy instance moved, could hand a Matrix token
+  to whatever answered at the new address, and nothing in the UI would have said
+  anything went anywhere unusual. The client now refuses redirects outright and
+  reports a 3xx as its own problem kind rather than folding it in with "the
+  server said no", so the test button names what happened instead of showing a
+  status code. `internal/mediahook` closed the same hole first; this was its
+  sibling, and the fix names it so the next transport gets checked before it
+  ships rather than after. The test was written before the fix and watched to
+  fail: it stood up two servers, redirected from one to the other, and read
+  `gotify-secret-value` out of `X-Gotify-Key` on the second.
+
 ### Fixed
 
 - **yt-dlp's own explanation was being thrown away before anything read it.**
