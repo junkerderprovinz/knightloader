@@ -298,6 +298,8 @@ export const hu: Dict = {
   'list.sortedView': 'Rendezett nézet',
   'list.sortedViewTip': 'A rendezés azt a sorrendet változtatja, amit látsz, nem azt, amiben fut. A letöltések továbbra is a sor sorrendjében indulnak.',
   'list.queueOrder': 'Vissza a sor sorrendjéhez',
+  'list.dragNeedsQueueOrder': 'A húzás csak a sor sorrendjében működik. Térj vissza a sor sorrendjéhez, hogy kézzel mozgasd a sorokat.',
+  'list.dragNotInQueue': 'Ez nem mozgatható kézzel: csak a sorban még várakozó linkek, mappa pedig csak akkor, ha a linkjei ugyanazon a prioritáson állnak.',
   'list.controls': 'Listavezérlők',
   'list.actions': 'Listaműveletek',
   'list.failed': 'Ez nem sikerült: {error}',
@@ -1593,7 +1595,7 @@ export const hu: Dict = {
   'commands.group.queue': 'Sor',
   'commands.group.language': 'Nyelv',
   'commands.group.downloads': 'Letöltések',
-  'commands.group.collector': 'Gyűjtő',
+  'commands.group.collector': 'Linkgyűjtő',
 
   'commands.paletteLabel': 'Parancspaletta',
   'commands.searchPlaceholder': 'Írjon be egy parancsot…',

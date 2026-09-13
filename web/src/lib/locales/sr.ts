@@ -298,6 +298,8 @@ export const sr: Dict = {
   'list.sortedView': 'Поређани приказ',
   'list.sortedViewTip': 'Ређање мења редослед који видиш, а не редослед којим се преузима. Преузимања и даље крећу редом из реда чекања.',
   'list.queueOrder': 'Назад на редослед реда чекања',
+  'list.dragNeedsQueueOrder': 'Превлачење ради само у редоследу реда чекања. Врати се на редослед реда чекања да ручно помераш редове.',
+  'list.dragNotInQueue': 'Ово се не може померити ручно: само везе које још чекају у реду, а фасцикла само док њене везе имају исти приоритет.',
   'list.controls': 'Управљање списком',
   'list.actions': 'Радње над списком',
   'list.failed': 'То није успело: {error}',
@@ -1594,7 +1596,7 @@ export const sr: Dict = {
   'commands.group.queue': 'Ред',
   'commands.group.language': 'Језик',
   'commands.group.downloads': 'Преузимања',
-  'commands.group.collector': 'Сакупљач',
+  'commands.group.collector': 'Сакупљач линкова',
 
   'commands.paletteLabel': 'Палета команди',
   'commands.searchPlaceholder': 'Упиши команду…',

@@ -767,8 +767,28 @@ body {
    fill, which turns green the moment it finishes (the state rule) — so on a
    list of completed downloads the palette would be invisible. The wash is an
    inset shadow, not a background, so the row's own hover tint still reads
-   through it at 16% alpha. */
+   through it at 16% alpha.
+
+   THE WASH IS NOW A HOVER, IN EVERY RAINBOW MODE, and that is jdp's call on
+   seeing it on his own list: "die link zeilen sollen im regenbogen modus nicht
+   farbig eingefärbt sein. nur bei mouse over sollen sie farbig werden". He runs
+   `rainbow: true, rainbowReactive: false` (read off his instance), so what he was
+   looking at was this rule painting every row at rest.
+
+   The reasoning above still holds for what the wash IS - it is still the only
+   way a finished row shows its hue, and it is still an inset shadow so the
+   hover tint reads through. What changed is WHEN, and the argument for "always"
+   does not survive a list of forty rows: a palette spread over every row at
+   once stops being a way to tell rows apart and becomes the background. Under
+   the pointer it does the job it was built for.
+
+   What stays coloured at rest is state rather than palette: the running row and
+   the selected row, below. Those two say something, and hiding them until the
+   pointer arrives would hide the thing somebody is looking for. */
 [data-rainbow] .glim-tint {
+  box-shadow: none;
+}
+[data-rainbow] .glim-tint:hover {
   box-shadow: inset 0 0 0 999px var(--item-hue-wash);
 }
 /* The active/selected member of the set gets the stronger soft tint instead of
@@ -784,15 +804,13 @@ body {
 [data-rainbow] .glim-tint.glim-active {
   box-shadow: inset 0 0 0 999px var(--item-hue-soft);
 }
-[data-rainbow='reactive'] .glim-tint {
-  box-shadow: none;
-}
-[data-rainbow='reactive'] .glim-tint:hover {
-  box-shadow: inset 0 0 0 999px var(--item-hue-wash);
-}
-[data-rainbow='reactive'] .glim-tint.glim-active {
-  box-shadow: inset 0 0 0 999px var(--item-hue-soft);
-}
+/* No `[data-rainbow='reactive']` twins here any more, and their absence is the
+   point rather than an omission: the rule above now says for BOTH modes what
+   these three used to say for one. Reactive and full still differ everywhere
+   else - tiles, rail glyphs, section badges - just not on a list row, where
+   "colour on hover" turned out to be the only reading that works at forty rows.
+   Leaving the twins in would have been three rules restating their parent, and
+   the next person to change the parent would have had to find them. */
 
 /* .glim-row / .glim-row-selected: the mark on a list row somebody picked.
 
@@ -811,8 +829,11 @@ body {
 .glim-row-selected:hover {
   background-color: color-mix(in oklab, var(--accent-fixed) 22%, transparent);
 }
-[data-rainbow] .glim-tint.glim-row-selected,
-[data-rainbow='reactive'] .glim-tint.glim-row-selected {
+/* One selector, not two: the bare `[data-rainbow]` already matches `on` and
+   `reactive` alike, so the second line was restating its own neighbour. It went
+   with the reactive twins further up, for the same reason - a rule nobody
+   notices is a rule the next change forgets to carry. */
+[data-rainbow] .glim-tint.glim-row-selected {
   box-shadow: inset 0 0 0 999px color-mix(in oklab, var(--accent-fixed) 22%, transparent);
 }
 .glim-row-selected::before {

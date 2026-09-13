@@ -371,7 +371,11 @@ export function SpeedMeter({
   // hamburger beside it still does - a reading that also acts is a reading
   // somebody triggers while trying to look at it.
   return (
-    <span className="flex h-full flex-1 items-stretch gap-2 px-1.5">
+    // No h-full here either, for the reason ShellStrip's own span carries in
+    // full: a height:100% flex item stops stretching and then resolves its
+    // percentage against a container with no definite height, so it ends up
+    // shorter than the row it is in rather than taller.
+    <span className="flex flex-1 items-stretch gap-2 px-1.5">
       {/* Both axes, always, idle included - the case the rule was written from
           is exactly a number that a state can take away. The ordinate is the
           ceiling, because that is what the top edge of this box means. */}
@@ -379,10 +383,37 @@ export function SpeedMeter({
         <span className="glim-num self-end text-[11px] leading-none text-carbon-textMuted">
           {fmtSpeed(ceiling)}
         </span>
+        {/* h-0 beside flex-auto, and that pair is the whole difference between
+            a curve that FILLS the card and a curve that DECIDES the card.
+            preserveAspectRatio="none" lets one path describe any shape of box;
+            it does not take the svg's intrinsic ratio away. A viewBox and no
+            height is a replaced element whose height follows its width, so in
+            this column the 148:40 ratio quietly turned every pixel of width
+            into a quarter-pixel of height and the card grew to fit: measured
+            live, 481x130 at a 1280px window, 601x163 at 1400, 1121x303 at 1920,
+            while the rest of the card never moved. Making the curve wider (jdp,
+            2026-09-07) therefore made the card taller, which is what "die
+            kopfcard im downloadtab ist immer noch viel zu hoch" was.
+
+            With a zero basis the svg asks for nothing and grows into what the
+            card has left, so it is still exactly as tall as the card (jdp,
+            2026-09-06) and still as wide as the slot can give it - the height
+            is now the card's to set, not the width's. min-h keeps a hairline of
+            plot in the cases where there is nothing left to grow into.
+
+            flex-auto and NOT flex-1, which is the half of this that cost the
+            most to learn. flex-1 is `flex: 1 1 0%`, and a percentage basis in a
+            column whose height is not definite does not mean zero: it falls
+            back to content sizing, and for a box with a ratio "content" is the
+            width all over again. `h-0 flex-1` was measured changing nothing at
+            all - card 229px, curve 601x163, exactly the numbers from before the
+            h-0. flex-auto takes its basis from the height property, so the h-0
+            beside it is the one that is read.
+            web/check-stretched-svg-height.mjs is this paragraph as a gate. */}
         <svg
           viewBox={`0 0 ${W} ${H}`}
           preserveAspectRatio="none"
-          className="min-h-[26px] w-full flex-1"
+          className="h-0 min-h-[26px] w-full flex-auto"
           aria-hidden
           focusable="false"
         >

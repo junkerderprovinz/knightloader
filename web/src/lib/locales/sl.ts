@@ -298,6 +298,8 @@ export const sl: Dict = {
   'list.sortedView': 'Razvrščen pogled',
   'list.sortedViewTip': 'Razvrščanje spremeni vrstni red, ki ga vidiš, ne pa vrstnega reda, po katerem teče. Prenosi se še vedno začnejo po vrsti iz čakalne vrste.',
   'list.queueOrder': 'Nazaj na vrstni red čakalne vrste',
+  'list.dragNeedsQueueOrder': 'Vlečenje deluje samo v vrstnem redu čakalne vrste. Vrni se na vrstni red čakalne vrste, da vrstice premakneš ročno.',
+  'list.dragNotInQueue': 'Tega ni mogoče premakniti ročno: samo povezave, ki še čakajo v čakalni vrsti, mapo pa le, dokler imajo njene povezave isto prednost.',
   'list.controls': 'Upravljanje seznama',
   'list.actions': 'Dejanja seznama',
   'list.failed': 'To ni uspelo: {error}',
@@ -1594,7 +1596,7 @@ export const sl: Dict = {
   'commands.group.queue': 'Vrsta',
   'commands.group.language': 'Jezik',
   'commands.group.downloads': 'Prenosi',
-  'commands.group.collector': 'Zbiralnik',
+  'commands.group.collector': 'Zbiralnik povezav',
 
   'commands.paletteLabel': 'Paleta ukazov',
   'commands.searchPlaceholder': 'Vnesi ukaz…',

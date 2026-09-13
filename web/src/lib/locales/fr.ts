@@ -290,6 +290,8 @@ export const fr: Dict = {
   'list.sortedView': 'Vue triée',
   'list.sortedViewTip': 'Le tri change l’ordre que vous voyez, pas celui qui s’exécute. Les téléchargements démarrent toujours dans l’ordre de la file.',
   'list.queueOrder': 'Revenir à l’ordre de la file',
+  'list.dragNeedsQueueOrder': 'Le glisser-déposer ne fonctionne que dans l’ordre de la file. Revenez à l’ordre de la file pour déplacer des lignes à la main.',
+  'list.dragNotInQueue': 'Impossible de déplacer ceci à la main : seuls les liens encore en attente dans la file, et un dossier seulement tant que ses liens partagent une priorité.',
   'list.controls': 'Contrôles de la liste',
   'list.actions': 'Actions de la liste',
   'list.failed': 'Cela n’a pas fonctionné : {error}',
@@ -1586,7 +1588,7 @@ export const fr: Dict = {
   'commands.group.queue': 'File',
   'commands.group.language': 'Langue',
   'commands.group.downloads': 'Téléchargements',
-  'commands.group.collector': 'Collecteur',
+  'commands.group.collector': 'Collecteur de liens',
 
   'commands.paletteLabel': 'Palette de commandes',
   'commands.searchPlaceholder': 'Tapez une commande…',

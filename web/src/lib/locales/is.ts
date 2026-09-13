@@ -298,6 +298,8 @@ export const is: Dict = {
   'list.sortedView': 'Raðað yfirlit',
   'list.sortedViewTip': 'Röðun breytir röðinni sem þú sérð, ekki röðinni sem keyrir. Niðurhal byrjar áfram í röð biðraðarinnar.',
   'list.queueOrder': 'Aftur í röð biðraðarinnar',
+  'list.dragNeedsQueueOrder': 'Dráttur virkar aðeins í röð biðraðarinnar. Farðu aftur í röð biðraðarinnar til að færa raðir handvirkt.',
+  'list.dragNotInQueue': 'Þetta er ekki hægt að færa handvirkt: aðeins tengla sem bíða enn í biðröðinni, og möppu aðeins þegar tenglar hennar hafa sama forgang.',
   'list.controls': 'Stýringar listans',
   'list.actions': 'Aðgerðir listans',
   'list.failed': 'Þetta gekk ekki: {error}',
@@ -1593,7 +1595,7 @@ export const is: Dict = {
   'commands.group.queue': 'Biðröð',
   'commands.group.language': 'Tungumál',
   'commands.group.downloads': 'Niðurhal',
-  'commands.group.collector': 'Safnari',
+  'commands.group.collector': 'Tenglasafnari',
 
   'commands.paletteLabel': 'Skipanaspjald',
   'commands.searchPlaceholder': 'Skrifaðu skipun…',

@@ -298,6 +298,8 @@ export const zh: Dict = {
   'list.sortedView': '排序视图',
   'list.sortedViewTip': '排序改变的是你看到的顺序，不是实际运行的顺序。下载仍然按队列顺序开始。',
   'list.queueOrder': '回到队列顺序',
+  'list.dragNeedsQueueOrder': '拖动仅在队列顺序下有效。回到队列顺序即可手动移动行。',
+  'list.dragNotInQueue': '这一项无法手动移动：只有仍在队列中等待的链接可以，文件夹则需要其中的链接优先级一致。',
   'list.controls': '列表控件',
   'list.actions': '列表操作',
   'list.failed': '这没成功：{error}',
@@ -1590,7 +1592,7 @@ export const zh: Dict = {
   'commands.group.queue': '队列',
   'commands.group.language': '语言',
   'commands.group.downloads': '下载',
-  'commands.group.collector': '收集器',
+  'commands.group.collector': '链接收集器',
 
   'commands.paletteLabel': '命令面板',
   'commands.searchPlaceholder': '输入命令…',

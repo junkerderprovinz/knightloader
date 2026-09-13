@@ -329,6 +329,8 @@ export const en = {
   'list.sortedView': 'Sorted view',
   'list.sortedViewTip': 'Sorting changes the order you see, not the order that runs. Downloads still start in queue order.',
   'list.queueOrder': 'Back to queue order',
+  'list.dragNeedsQueueOrder': 'Dragging works in queue order only. Switch back to queue order to move rows by hand.',
+  'list.dragNotInQueue': 'This one cannot be moved by hand: only links still waiting in the queue can, and a folder only while its links share one priority.',
   'list.controls': 'List controls',
   'list.actions': 'List actions',
   'list.failed': 'That did not work: {error}',
@@ -1895,7 +1897,7 @@ export const en = {
   // finished, start selected/all, check all. See either file's own doc
   // comment for which existing function each command calls.
   'commands.group.downloads': 'Downloads',
-  'commands.group.collector': 'Collector',
+  'commands.group.collector': 'Link collector',
 
   // components/CommandPalette.tsx (Wave 12): the overlay itself, not any one
   // command in it.

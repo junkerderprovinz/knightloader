@@ -298,6 +298,8 @@ export const el: Dict = {
   'list.sortedView': 'Ταξινομημένη προβολή',
   'list.sortedViewTip': 'Η ταξινόμηση αλλάζει τη σειρά που βλέπετε, όχι τη σειρά που εκτελείται. Οι λήψεις ξεκινούν πάντα με τη σειρά της ουράς.',
   'list.queueOrder': 'Πίσω στη σειρά της ουράς',
+  'list.dragNeedsQueueOrder': 'Η μεταφορά λειτουργεί μόνο στη σειρά της ουράς. Επίστρεψε στη σειρά της ουράς για να μετακινήσεις γραμμές με το χέρι.',
+  'list.dragNotInQueue': 'Αυτό δεν μετακινείται με το χέρι: μόνο σύνδεσμοι που περιμένουν ακόμη στην ουρά, και ένας φάκελος μόνο όσο οι σύνδεσμοί του έχουν την ίδια προτεραιότητα.',
   'list.controls': 'Χειριστήρια λίστας',
   'list.actions': 'Ενέργειες λίστας',
   'list.failed': 'Αυτό δεν πέτυχε: {error}',
@@ -1593,7 +1595,7 @@ export const el: Dict = {
   'commands.group.queue': 'Ουρά',
   'commands.group.language': 'Γλώσσα',
   'commands.group.downloads': 'Λήψεις',
-  'commands.group.collector': 'Συλλέκτης',
+  'commands.group.collector': 'Συλλέκτης συνδέσμων',
 
   'commands.paletteLabel': 'Παλέτα εντολών',
   'commands.searchPlaceholder': 'Πληκτρολόγησε μια εντολή…',

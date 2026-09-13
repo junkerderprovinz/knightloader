@@ -298,6 +298,8 @@ export const fi: Dict = {
   'list.sortedView': 'Järjestetty näkymä',
   'list.sortedViewTip': 'Järjestäminen muuttaa näkemääsi järjestystä, ei sitä jossa lataukset ajetaan. Lataukset alkavat yhä jonon järjestyksessä.',
   'list.queueOrder': 'Takaisin jonon järjestykseen',
+  'list.dragNeedsQueueOrder': 'Raahaus toimii vain jonon järjestyksessä. Palaa jonon järjestykseen, niin voit siirtää rivejä käsin.',
+  'list.dragNotInQueue': 'Tätä ei voi siirtää käsin: vain linkkejä, jotka yhä odottavat jonossa, ja kansiota vain silloin, kun sen linkeillä on sama prioriteetti.',
   'list.controls': 'Listan hallinta',
   'list.actions': 'Listan toiminnot',
   'list.failed': 'Se ei onnistunut: {error}',
@@ -1593,7 +1595,7 @@ export const fi: Dict = {
   'commands.group.queue': 'Jono',
   'commands.group.language': 'Kieli',
   'commands.group.downloads': 'Lataukset',
-  'commands.group.collector': 'Kerääjä',
+  'commands.group.collector': 'Linkkikerääjä',
 
   'commands.paletteLabel': 'Komentopaletti',
   'commands.searchPlaceholder': 'Kirjoita komento…',

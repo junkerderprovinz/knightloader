@@ -290,6 +290,8 @@ export const it: Dict = {
   'list.sortedView': 'Vista ordinata',
   'list.sortedViewTip': "L'ordinamento cambia l'ordine che vedi, non quello in cui i download partono. I download seguono sempre l'ordine della coda.",
   'list.queueOrder': "Torna all'ordine della coda",
+  'list.dragNeedsQueueOrder': "Il trascinamento funziona solo nell'ordine della coda. Torna all'ordine della coda per spostare le righe a mano.",
+  'list.dragNotInQueue': 'Questo non si può spostare a mano: solo i link ancora in attesa nella coda, e una cartella solo finché i suoi link hanno la stessa priorità.',
   'list.controls': "Controlli dell'elenco",
   'list.actions': "Azioni dell'elenco",
   'list.failed': 'Non ha funzionato: {error}',
@@ -1586,7 +1588,7 @@ export const it: Dict = {
   'commands.group.queue': 'Coda',
   'commands.group.language': 'Lingua',
   'commands.group.downloads': 'Download',
-  'commands.group.collector': 'Raccoglitore',
+  'commands.group.collector': 'Raccoglitore di link',
 
   'commands.paletteLabel': 'Palette dei comandi',
   'commands.searchPlaceholder': 'Digita un comando…',

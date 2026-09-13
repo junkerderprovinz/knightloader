@@ -290,6 +290,8 @@ export const es: Dict = {
   'list.sortedView': 'Vista ordenada',
   'list.sortedViewTip': 'Ordenar cambia el orden que ves, no el que se ejecuta. Las descargas siguen empezando en el orden de la cola.',
   'list.queueOrder': 'Volver al orden de la cola',
+  'list.dragNeedsQueueOrder': 'Arrastrar solo funciona en el orden de la cola. Vuelve al orden de la cola para mover filas a mano.',
+  'list.dragNotInQueue': 'Esto no se puede mover a mano: solo los enlaces que siguen esperando en la cola, y una carpeta solo mientras sus enlaces comparten una prioridad.',
   'list.controls': 'Controles de la lista',
   'list.actions': 'Acciones de la lista',
   'list.failed': 'Eso no funcionó: {error}',
@@ -1586,7 +1588,7 @@ export const es: Dict = {
   'commands.group.queue': 'Cola',
   'commands.group.language': 'Idioma',
   'commands.group.downloads': 'Descargas',
-  'commands.group.collector': 'Colector',
+  'commands.group.collector': 'Colector de enlaces',
 
   'commands.paletteLabel': 'Paleta de comandos',
   'commands.searchPlaceholder': 'Escribe un comando…',

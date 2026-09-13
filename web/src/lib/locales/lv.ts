@@ -298,6 +298,8 @@ export const lv: Dict = {
   'list.sortedView': 'Sakārtots skats',
   'list.sortedViewTip': 'Kārtošana maina secību, ko redzi, nevis secību, kādā lejupielādē. Lejupielādes joprojām sākas rindas secībā.',
   'list.queueOrder': 'Atpakaļ uz rindas secību',
+  'list.dragNeedsQueueOrder': 'Vilkšana darbojas tikai rindas secībā. Atgriezies rindas secībā, lai pārvietotu rindas ar roku.',
+  'list.dragNotInQueue': 'Šo nevar pārvietot ar roku: tikai saites, kas vēl gaida rindā, un mapi tikai tad, ja tās saitēm ir viena prioritāte.',
   'list.controls': 'Saraksta vadība',
   'list.actions': 'Saraksta darbības',
   'list.failed': 'Tas neizdevās: {error}',
@@ -1593,7 +1595,7 @@ export const lv: Dict = {
   'commands.group.queue': 'Rinda',
   'commands.group.language': 'Valoda',
   'commands.group.downloads': 'Lejupielādes',
-  'commands.group.collector': 'Savācējs',
+  'commands.group.collector': 'Saišu savācējs',
 
   'commands.paletteLabel': 'Komandu palete',
   'commands.searchPlaceholder': 'Ieraksti komandu…',

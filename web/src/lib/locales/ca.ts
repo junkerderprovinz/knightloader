@@ -298,6 +298,8 @@ export const ca: Dict = {
   'list.sortedView': 'Vista ordenada',
   'list.sortedViewTip': "Ordenar canvia l'ordre que veus, no l'ordre en què s'executa. Les baixades continuen començant per l'ordre de la cua.",
   'list.queueOrder': "Torna a l'ordre de la cua",
+  'list.dragNeedsQueueOrder': "Arrossegar només funciona en l'ordre de la cua. Torna a l'ordre de la cua per moure les files a mà.",
+  'list.dragNotInQueue': 'Això no es pot moure a mà: només els enllaços que encara esperen a la cua, i una carpeta només mentre els seus enllaços comparteixen una prioritat.',
   'list.controls': 'Controls de la llista',
   'list.actions': 'Accions de la llista',
   'list.failed': 'Això no ha funcionat: {error}',
@@ -1593,7 +1595,7 @@ export const ca: Dict = {
   'commands.group.queue': 'Cua',
   'commands.group.language': 'Idioma',
   'commands.group.downloads': 'Baixades',
-  'commands.group.collector': 'Col·lector',
+  'commands.group.collector': 'Recol·lector d\'enllaços',
 
   'commands.paletteLabel': 'Paleta d’ordres',
   'commands.searchPlaceholder': 'Escriu una ordre…',

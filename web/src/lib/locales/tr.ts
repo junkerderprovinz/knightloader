@@ -298,6 +298,8 @@ export const tr: Dict = {
   'list.sortedView': 'Sıralı görünüm',
   'list.sortedViewTip': 'Sıralama gördüğünüz düzeni değiştirir, çalışan düzeni değil. İndirmeler yine kuyruk sırasına göre başlar.',
   'list.queueOrder': 'Kuyruk sırasına dön',
+  'list.dragNeedsQueueOrder': 'Sürükleme yalnızca kuyruk sırasında çalışır. Satırları elle taşımak için kuyruk sırasına dön.',
+  'list.dragNotInQueue': 'Bu elle taşınamaz: yalnızca kuyrukta hâlâ bekleyen bağlantılar taşınır, bir klasör ise yalnızca bağlantıları aynı öncelikteyken.',
   'list.controls': 'Liste denetimleri',
   'list.actions': 'Liste işlemleri',
   'list.failed': 'Bu işe yaramadı: {error}',
@@ -1593,7 +1595,7 @@ export const tr: Dict = {
   'commands.group.queue': 'Kuyruk',
   'commands.group.language': 'Dil',
   'commands.group.downloads': 'İndirmeler',
-  'commands.group.collector': 'Toplayıcı',
+  'commands.group.collector': 'Bağlantı toplayıcı',
 
   'commands.paletteLabel': 'Komut paleti',
   'commands.searchPlaceholder': 'Bir komut yaz…',

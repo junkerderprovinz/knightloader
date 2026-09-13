@@ -88,6 +88,7 @@ import { RetrySkipBadge } from './RetryCountdown';
 import { TaskDetailPanel } from './taskdetail/TaskDetailPanel';
 import { useListKeyboard } from './listKeyboard';
 import { rowKey, useRowWindow, type ListRow, type RowDragKey } from './listRows';
+import { aimAt, previewOrder, sameUnit, stackOffsets } from './rowDrag';
 import {
   IconPause,
   IconPlay,
@@ -130,6 +131,54 @@ const ROW_GRID: CSSProperties = { gridTemplateColumns: 'var(--kl-cols)' };
 // rebuilt for every row on every render of a list several hundred rows long.
 const NO_SLIDE: CSSProperties = {};
 const NO_OFFSETS = new Map<string, number>();
+
+/**
+ * A selected row's own painted ground, as one opaque colour.
+ *
+ * The same colour `.glim-row-selected` paints (index.css: the accent at 22% over
+ * whatever the row lies on, which here is the card's --carbon-surface), written
+ * as a mix rather than as an alpha layer so the row's action strip can REPEAT it
+ * instead of stacking a second 22% on top of it. Inline on the row, because a
+ * selected row keeps this fill under the pointer as well and an inline value is
+ * the only one that beats the hover variant beside it.
+ */
+const SELECTED_GROUND = 'color-mix(in srgb, var(--accent-fixed) 22%, var(--carbon-surface))';
+
+/**
+ * The rainbow wash a link row is painting right now, as the class that repeats
+ * it on that row's action strip.
+ *
+ * The wash is an inset box-shadow on the ROW (index.css's .glim-tint rules), and
+ * an inset shadow paints under its element's own children - so a strip with a
+ * ground of its own covers it and reads as a grey tile punched into a coloured
+ * row. Measured in Rainbow mode, dark theme: the row is rgb(79,70,42) and the
+ * strip was rgb(57,57,57).
+ *
+ * Chosen here rather than written as four stacked CSS variants, because a row
+ * that is both running and selected would then come down to the order Tailwind
+ * happened to generate the two rules in. One row, one class, no ties.
+ *
+ * The literals are spelled out in full: Tailwind reads the source text, so a
+ * class assembled from pieces at runtime is a class that never gets generated.
+ */
+function rowWash(selected: boolean, active: boolean): string {
+  // A selected row's tint replaces its hue wash in every rainbow mode, at rest
+  // and under the pointer alike (index.css, .glim-tint.glim-row-selected).
+  if (selected) {
+    return '[[data-rainbow]_&]:shadow-[inset_0_0_0_999px_color-mix(in_oklab,var(--accent-fixed)_22%,transparent)]';
+  }
+  // A running row carries the stronger soft tint, in both modes, without hover.
+  if (active) return '[[data-rainbow]_&]:shadow-[inset_0_0_0_999px_var(--item-hue-soft)]';
+  // And the plain case: on hover, in BOTH modes. It used to split them - at rest
+  // under Rainbow, on hover under Reactive - and index.css no longer does, on
+  // jdp's call ("die link zeilen sollen im regenbogen modus nicht farbig
+  // eingefärbt sein. nur bei mouse over sollen sie farbig werden"). One rule for
+  // both is now the honest mirror of the row, and the split version would have
+  // painted this strip at rest in Rainbow mode while the row beneath it stayed
+  // plain. Invisible today, because the strip only fades in on the same hover -
+  // which is exactly the kind of agreement that quietly stops being true.
+  return '[[data-rainbow]_&]:group-hover:shadow-[inset_0_0_0_999px_var(--item-hue-wash)]';
+}
 
 /**
  * useCollapsedPackages is the folded set, and the only thing that knows where it
@@ -297,33 +346,45 @@ function TaskRow({
       // previewOffsets. While a drag is in flight this carries a translateY and a
       // transform transition; with no drag the two properties are simply absent
       // again and the row sits where the document flow puts it.
+      //
+      // --row-ground is the row's own painted ground, and the action strip at the
+      // trailing edge wears it - see SELECTED_GROUND and the strip itself. Set
+      // here as an inline property for a selected row on purpose: a selected row
+      // keeps its accent fill under the pointer too (.glim-row-selected:hover
+      // beats the hover utility), and only an inline value beats the hover
+      // variant that would otherwise swap the ground out from under the strip.
       style={
-        { ...hueVars(rainbowAt(index)), ...ROW_GRID, ...dnd.slide({ kind: 'task', id: task.id }) } as CSSProperties
+        {
+          ...hueVars(rainbowAt(index)),
+          ...ROW_GRID,
+          ...(selection?.ids.has(task.id) ? { '--row-ground': SELECTED_GROUND } : null),
+          ...dnd.slide({ kind: 'task', id: task.id }),
+        } as CSSProperties
       }
       // Drag-to-reorder, on the same native HTML5 machinery the column
       // headers already use above (Header's own dragId/onDragStart/onDrop).
-      // Only offered in queue-order view — see dndEnabled in TaskListCard.
       // The CONTROL guard is the same one the package header below already
       // folds by (jdp: everything that is its own control keeps its own
       // gesture) — reused here so a drag never starts out from under the
       // checkbox or an action badge.
-      draggable={dnd.enabled}
+      //
+      // draggable stays TRUE in a sorted view, where the reorder itself is off:
+      // a row that cannot be picked up at all is indistinguishable from a
+      // broken one, so the gesture is accepted and then refused out loud (see
+      // refuseDrag). What follows the drag - dragover, the preview and the drop
+      // - belongs to the row strip, not to this row: see RowDnD.slide.
+      draggable
       onDragStart={(e) => {
-        if (!dnd.enabled || (e.target instanceof Element && e.target.closest(CONTROL))) {
+        if (e.target instanceof Element && e.target.closest(CONTROL)) {
           e.preventDefault();
           return;
         }
+        if (dnd.refuseDrag(e, { kind: 'task', id: task.id })) return;
         dnd.startTask(task.id);
         e.dataTransfer.effectAllowed = 'move';
         e.dataTransfer.setData('text/plain', task.id);
       }}
       onDragEnd={dnd.end}
-      onDragOver={(e) => {
-        if (!dnd.active) return;
-        e.preventDefault();
-        dnd.previewOverTask(task.id, e);
-      }}
-      onDrop={(e) => dnd.dropOnTask(task.id, e)}
       // Click-to-select (jdp, 2026-08-26: "in der linkliste soll man links
       // und ordner mit einem klick markieren können, nicht den ordner
       // aufklappen... mehrere links oder ordner soll man mit klick und
@@ -340,16 +401,17 @@ function TaskRow({
         if (e.target instanceof Element && e.target.closest(CONTROL)) return;
         onOpenProperties?.();
       }}
-      // select-none, only while a drag is actually possible: without it, a
-      // real mouse press-and-drag that starts over the row's own text (the
-      // name or URL column - the columns a hand naturally lands on) is read
-      // by the browser as starting a text selection instead of the native
-      // HTML5 drag, so draggable="true" never gets as far as firing
-      // dragstart at all. The package header beside this row already has
-      // this for the same reason (its own onClick needs the identical
-      // guard) - this row was the one place it had been missed. Left
-      // selectable when dnd is off (a sorted view) since nothing here
-      // competes with it then.
+      // select-none, unconditionally: without it, a real mouse press-and-drag
+      // that starts over the row's own text (the name or URL column - the
+      // columns a hand naturally lands on) is read by the browser as starting a
+      // text selection instead of the native HTML5 drag, so draggable="true"
+      // never gets as far as firing dragstart at all. The package header beside
+      // this row already has this for the same reason (its own onClick needs
+      // the identical guard). It used to be left off in a sorted view, where
+      // the reorder is switched off anyway - and that is no longer a view where
+      // nothing competes with a text selection: the refusal is sent from
+      // dragstart, so the gesture has to REACH dragstart even where it will be
+      // turned down (see refuseDrag).
       // bg-accent/20, not the softer bg-accentSoft token this used at first
       // (jdp, 2026-08-26: "wenn eine zeile ausgewählt ist erkennt man das
       // nicht" - accentSoft is 14% alpha, chosen for a hover/drag hint that
@@ -357,10 +419,30 @@ function TaskRow({
       // mark somebody actually notices). A real background-color layered
       // over glim-tint's own inset box-shadow rainbow wash rather than
       // fighting it for the same CSS property, so both show at once.
-      className={`glim-hue glim-tint ${dnd.enabled ? 'select-none' : ''} ${task.status === 'running' ? 'glim-active' : ''} ${dragging ? 'opacity-50' : ''} ${
+      // THE ROW PAINTS --row-ground AND SO DOES ITS ACTION STRIP: one expression,
+      // one place, because this is the third round on the same fault. The strip
+      // used to name a surface token of its own, and a token is a guess about
+      // what the row is painting - this row hovers to `--carbon-hover` at half
+      // alpha over the card, which is not `--carbon-surface2` and not
+      // `--carbon-surface` either. Measured on the running instance, dark theme:
+      // the hovered row is rgb(45,45,45) and the strip that was meant to match it
+      // was rgb(57,57,57); in the light theme the row is rgb(239,239,239) and the
+      // strip rgb(232,232,232) - a plate that is too light in one theme and too
+      // dark in the other, which is exactly what was reported ("der löschen
+      // button hat immer noch den dunklen Hintergrund bzw. rand"). A variable
+      // cannot be off by a step: whatever this row paints, the strip paints.
+      //
+      // The hover mix is the same colour the `bg-carbon-hover/50` utility used to
+      // composite to, written as an opaque mix instead of an alpha layer so that
+      // the strip can repeat it rather than stack a second layer of it.
+      // has-[:focus-visible] is the keyboard's own hover: the strip opens on the
+      // row a badge inside it is focused on, and the ground has to arrive with it.
+      className={`glim-hue glim-tint select-none ${task.status === 'running' ? 'glim-active' : ''} ${dragging ? 'opacity-50' : ''} ${
         selection?.ids.has(task.id) ? 'glim-row-selected' : ''
-      } group relative grid
-        items-center px-3 py-2 transition-colors hover:bg-carbon-hover/50`}
+      } group relative grid items-center px-3 py-2 transition-colors
+        bg-[var(--row-ground)] [--row-ground:transparent]
+        [--row-hover:color-mix(in_srgb,var(--carbon-hover)_50%,var(--carbon-surface))]
+        hover:[--row-ground:var(--row-hover)] has-[:focus-visible]:[--row-ground:var(--row-hover)]`}
     >
       {columns.map((col) => {
         const node = col.render(task, ctx);
@@ -411,16 +493,26 @@ function TaskRow({
           cells it covers do not read through it, and the context menu on the
           same row offers every one of these verbs for anybody not using a
           pointer.
-          THE GROUND IS THE ROW'S, and it used not to be. This strip carried
-          --carbon-surface with an elevation shadow while the row under it
-          hovers to --carbon-surface2, so it sat DARKER than what it lay on and
-          read as a frame drawn around the buttons rather than as the row
-          continuing (jdp, twice: "der loeschen button hat nach wie vor einen
-          dunklen rahmen"). It was invisible as a fault while the badges
-          themselves were filled tiles - the strip was just the darker gap
-          between them. The moment the tiles went quiet, the plate was all
-          there was left to see. Shadow gone with it: a shadow is what makes a
+          THE GROUND IS THE ROW'S OWN --row-ground, and getting there took three
+          rounds. It carried --carbon-surface with an elevation shadow first, then
+          --carbon-surface2 on the reasoning that the row hovers to surface2. The
+          row does not: it hovers to --carbon-hover at half alpha over the card.
+          Measured, dark theme: row rgb(45,45,45) against a strip of rgb(57,57,57);
+          light theme: row rgb(239,239,239) against rgb(232,232,232). Both rounds
+          were the same mistake - a second opinion about what the row is painting
+          - and the report came back both times ("der löschen button hat immer
+          noch den dunklen Hintergrund bzw. rand"). There is no opinion left here:
+          the row publishes what it paints and the strip reads it.
+          No ground of its own means no shadow either: a shadow is what makes a
           surface float, and this one is not floating, it is the row.
+          The rainbow wash is the other half of what the row paints, and an inset
+          shadow does not reach a child, so the strip repeats the one its row has
+          (index.css's own .glim-tint rules). Which one that is depends on the row
+          and not on the mode alone, so it is chosen here rather than layered in
+          CSS, where an active-and-selected row would come down to stylesheet
+          order. In Reactive mode the wash is a hover reveal, so the strip's copy
+          is too - except on a selected or running row, which carries its tint in
+          that mode at rest.
           IconBadge, not a plain ghost icon (jdp, on the same pattern in
           Rules.tsx: "die icons ... sind nicht im Glimstone. das sollen
           farbige quadratischen badges mit icon sein") - this is the
@@ -453,9 +545,12 @@ function TaskRow({
         // :has() never matches the element itself, so the strip still appears
         // when a badge inside it takes focus and stays out of the way when the
         // row does.
-        className="absolute inset-y-px end-2 z-10 flex items-center gap-1 rounded-[var(--radius-control)]
-          bg-carbon-surface2 px-1 opacity-0 transition-opacity
-          group-hover:opacity-100 [&:has(:focus-visible)]:opacity-100"
+        className={`absolute inset-y-px end-2 z-10 flex items-center gap-1 rounded-[var(--radius-control)]
+          bg-[var(--row-ground)] px-1 opacity-0 transition-opacity
+          group-hover:opacity-100 [&:has(:focus-visible)]:opacity-100 ${rowWash(
+            selection?.ids.has(task.id) ?? false,
+            task.status === 'running',
+          )}`}
       >
         {collected && (
           <IconBadge
@@ -913,7 +1008,14 @@ function PackageRow({
       // über die man drüber hoovert müssen live verrutschen"): a folder header
       // is a row like any other here, so the folders a drag passes step aside
       // while the pointer is still down.
-      style={{ ...ROW_GRID, ...dnd.slide({ kind: 'package', name }) }}
+      // --row-ground: see TaskRow's own identical pair. A folder header rests on
+      // the quiet surface rather than on nothing, so its own resting ground is a
+      // real colour here and not `transparent`.
+      style={{
+        ...ROW_GRID,
+        ...(allSelected ? { '--row-ground': SELECTED_GROUND } : null),
+        ...dnd.slide({ kind: 'package', name }),
+      }}
       // Click-to-select (jdp, 2026-08-26 - see TaskRow's own identical
       // comment for the full request): a plain click on the header now
       // selects the whole package instead of folding it - the twisty
@@ -929,40 +1031,46 @@ function PackageRow({
       }}
       // Drags the whole package as one block — see TaskRow's own drag
       // handlers above for the identical pattern applied to one link.
-      draggable={dnd.enabled}
+      draggable
       onDragStart={(e) => {
-        if (!dnd.enabled || (e.target instanceof Element && e.target.closest(CONTROL))) {
+        if (e.target instanceof Element && e.target.closest(CONTROL)) {
           e.preventDefault();
           return;
         }
+        if (dnd.refuseDrag(e, { kind: 'package', name })) return;
         dnd.startPackage(name);
         e.dataTransfer.effectAllowed = 'move';
         e.dataTransfer.setData('text/plain', name);
       }}
       onDragEnd={dnd.end}
-      onDragOver={(e) => {
-        if (!dnd.active) return;
-        e.preventDefault();
-        dnd.previewOverPackage(name, e);
-      }}
-      onDrop={(e) => dnd.dropOnPackage(name, e)}
       // A colour step, not a rule: the header sits on the quiet surface and
       // the links inside it sit on the card, which is the whole of the weight
-      // difference between a container and its contents. The selected-state
-      // background REPLACES the quiet one rather than sitting alongside it -
-      // two background-color utilities on one element race in Tailwind's
-      // generated stylesheet order (not class-string order), and the quiet
-      // one was silently winning, making a selected package invisible.
+      // difference between a container and its contents. The selected state
+      // REPLACES the quiet ground rather than sitting alongside it, and it is
+      // now one property doing it: this row paints --row-ground and nothing
+      // else, so a selected header cannot lose a race between two background
+      // utilities the way it once did (the quiet one won in Tailwind's
+      // generated stylesheet order and a selected package was invisible).
       // `group` IST DER SCHALTER FUER DEN STREIFEN AM ZEILENENDE, und sein
       // Fehlen hat den Loeschknopf dieser Zeile gebaut und unsichtbar gemacht:
       // der Streifen steht auf opacity-0 und kommt ueber group-hover, und ohne
       // diese Klasse gibt es keinen Vorfahren, auf den sich das beziehen kann.
       // Die Linkzeile hatte sie von Anfang an, diese nie, weil sie bis dahin
       // nichts zu zeigen hatte.
+      // The quiet surface and the hover step are both read off --row-ground now,
+      // so the strip at the trailing edge wears exactly what this row paints -
+      // see TaskRow's own note for the three rounds that took. The resting mix is
+      // the colour `bg-carbon-surface2/80` composited to over the card, written
+      // opaque so the strip can repeat it rather than stack a second 80% on it:
+      // the strip on THIS row is drawn at rest as well (the collector's gear),
+      // which is the state a hover-only ground would have got wrong.
       className={`group relative grid cursor-pointer select-none items-center ${
-        allSelected ? 'glim-row-selected' : 'bg-carbon-surface2/80'
+        allSelected ? 'glim-row-selected' : ''
       } ${divider ? 'border-t border-carbon-border/60' : ''} px-3 py-2.5 transition-colors
-        hover:bg-carbon-surface2 ${dragging ? 'opacity-50' : ''}`}
+        bg-[var(--row-ground)]
+        [--row-ground:color-mix(in_srgb,var(--carbon-surface2)_80%,var(--carbon-surface))]
+        hover:[--row-ground:var(--carbon-surface2)]
+        has-[:focus-visible]:[--row-ground:var(--carbon-surface2)] ${dragging ? 'opacity-50' : ''}`}
     >
       {columns.map((col) => (
         <div
@@ -1004,7 +1112,7 @@ function PackageRow({
       {(ytdlpHost && ctx.profile === 'collector') || ctx.onRemovePackage ? (
         <div
           className={`absolute inset-y-px end-2 z-10 flex items-center gap-1 rounded-[var(--radius-control)]
-            bg-carbon-surface2 px-1 transition-opacity
+            bg-[var(--row-ground)] px-1 transition-opacity
             ${ytdlpHost && ctx.profile === 'collector' ? '' : 'opacity-0 group-hover:opacity-100 [&:has(:focus-visible)]:opacity-100'}`}
         >
           {ytdlpHost && ctx.profile === 'collector' && (
@@ -1033,21 +1141,15 @@ function PackageRow({
 
 /** The bundle TaskRow and PackageGroup share, built once per render in TaskListCard. */
 interface RowDnD {
-  /** False in a sorted view — see dndEnabled in TaskListCard for why. */
-  enabled: boolean;
-  /** Whether some row or package is currently mid-drag, anywhere in the list. */
-  active: boolean;
   draggingTask: string | null;
   draggingPackage: string | null;
   startTask: (id: string) => void;
   startPackage: (name: string) => void;
+  /** Refuses a drag this list cannot do, and SAYS SO instead of letting the
+   *  gesture end in nothing. Returns true when it has taken the gesture over,
+   *  so the caller stops. */
+  refuseDrag: (e: DragEvent<HTMLElement>, unit: RowDragKey) => boolean;
   end: () => void;
-  dropOnTask: (id: string, e: DragEvent<HTMLElement>) => void;
-  dropOnPackage: (name: string, e: DragEvent<HTMLElement>) => void;
-  /** Called from onDragOver, not just onDrop - what makes the rest of the
-   *  list move out of the way live instead of only on release. */
-  previewOverTask: (id: string, e: DragEvent<HTMLElement>) => void;
-  previewOverPackage: (name: string, e: DragEvent<HTMLElement>) => void;
   /** How far this row has to slide to show where the drag in flight would put
    *  it, as the inline style that does it - an empty object when no drag is
    *  running. Every link row and every folder header spreads this into its own
@@ -1763,16 +1865,18 @@ export function TaskListCard({
   //
   // A drag unit is one link or one whole package, moved by the same gesture
   // ("links/ordner", jdp) and built on the same native HTML5 machinery
-  // Header's own column reorder already uses above: a "what is being
-  // dragged" key, onDragStart/onDragOver/onDrop on every draggable and
-  // droppable element, and a rect-vs-pointer check at drop time to decide
-  // before or after.
+  // Header's own column reorder already uses above: a "what is being dragged"
+  // key, onDragStart on every draggable row, and ONE dragover/drop pair for the
+  // whole list (see the row strip), answered from the pointer's Y against the
+  // snapshot the drag froze.
   //
-  // Only offered in queue-order view — a client-side sort is documented
+  // Only carried out in queue-order view — a client-side sort is documented
   // above (applySort's own doc comment) as a VIEW and never the queue
   // itself, and band-mates a size or status sort has scattered across the
   // table would rarely even land next to each other to drag between. The
-  // sortedView banner right above the table already offers the way back.
+  // sortedView banner right above the table offers the way back, and from
+  // 2026-09-13 a drag attempted here is refused OUT LOUD rather than being
+  // quietly impossible - see refuseDrag.
   const dndEnabled = !sort;
   const [rowDrag, setRowDrag] = useState<RowDragKey | null>(null);
   // The row(s) currently under the pointer mid-drag, and which half of it —
@@ -2004,9 +2108,8 @@ export function TaskListCard({
     return true;
   }
 
-  // The one handler behind every row's and every package header's own
-  // onDrop — see dropOnTask/dropOnPackage below, which only add the
-  // rect-vs-pointer "before or after" read and then call this.
+  // What a drop actually does, once dropHere below has said which unit it
+  // landed on and on which side of it.
   function dropRow(target: RowDragKey, after: boolean): void {
     const dragged = rowDrag;
     setRowDrag(null);
@@ -2067,130 +2170,77 @@ export function TaskListCard({
     );
   }
 
-  // The shared tail of both drop handlers: commit the drag where the live
-  // preview has been showing it.
+  // The one drop handler, and it hangs on the row strip rather than on the
+  // rows: a drop lands where the LIVE PREVIEW has been showing it, never where
+  // the element under the pointer happens to be.
   //
-  // dragOver, never the rect of the element the pointer happens to be over.
-  // Two independent reasons, and the second one is new:
+  // dragOver, never a rect. Two independent reasons:
   //
-  //   - previewOver below deliberately aims a FOLDER at other folder HEADERS
-  //     only, so reading the drop off a link row would commit it against a
-  //     different unit than the one the preview just slid it next to - the drag
-  //     would land somewhere nobody aimed at.
-  //   - Every row is now displaced by a transform for as long as the pointer is
-  //     down (previewOffsets), so getBoundingClientRect no longer answers "which
-  //     row is this, and which half of it" the way the pointer sees it - it
-  //     answers where the row has SLID to. The frozen snapshot previewOver reads
-  //     is the only geometry that still describes the list the person is
-  //     dragging over, and dragOver is its answer.
+  //   - A folder aims at whole folders (aimAt), so reading the drop off the
+  //     link row under the pointer would commit it against a different unit
+  //     than the one the preview just slid it next to - the drag would land
+  //     somewhere nobody aimed at.
+  //   - Every row is displaced by a transform for as long as the pointer is
+  //     down, so getBoundingClientRect no longer answers "which row is this,
+  //     and which half of it" the way the pointer sees it - it answers where
+  //     the row has SLID to. The frozen snapshot aimAt reads is the only
+  //     geometry that still describes the list the person is dragging over,
+  //     and dragOver is its answer.
   //
-  // The rect is still the fallback for a drop that somehow arrives with no
-  // preview behind it at all, which is a drop with nothing better to go on.
-  function dropAt(target: RowDragKey, e: DragEvent<HTMLElement>): void {
+  // A drop that somehow arrives with no preview behind it aims once, from the
+  // same snapshot, rather than falling back to a rect that has moved.
+  function dropHere(e: DragEvent<HTMLElement>): void {
     e.preventDefault();
     if (dragOver) {
       dropRow(dragOver.target, dragOver.after);
       return;
     }
-    const r = e.currentTarget.getBoundingClientRect();
-    dropRow(target, e.clientY > r.top + r.height / 2);
+    if (!rowDrag) return;
+    const aim = aimAt(rowSlotsRef.current, e.clientY, rowDrag, {
+      packageOf: (id) => taskById.get(id)?.package ?? '',
+      canTarget: (unit) => unitBand(unit) !== null,
+    });
+    if (aim) dropRow(aim.target, aim.after);
   }
 
-  function dropOnTask(id: string, e: DragEvent<HTMLElement>): void {
-    // A folder dropped onto one of ANOTHER folder's links means "next to that
-    // folder", never "into the middle of it": groupByPackage below re-merges
-    // every row of a package at the package's first appearance, so a folder
-    // spliced between another's links does not stay there - it silently
-    // relocates. Redirecting to the link's own package is the outcome that
-    // actually exists. (Only reached by a drop that somehow arrives with no
-    // preview behind it - dropAt otherwise commits against dragOver.)
-    const target: RowDragKey =
-      rowDrag?.kind === 'package' ? { kind: 'package', name: taskById.get(id)?.package ?? '' } : { kind: 'task', id };
-    dropAt(target, e);
-  }
-
-  function dropOnPackage(name: string, e: DragEvent<HTMLElement>): void {
-    dropAt({ kind: 'package', name }, e);
-  }
-
-  // dragOver's own hit test, shared by every row's and package header's own
-  // onDragOver rather than duplicated. Deliberately NOT `e.currentTarget`'s
-  // own rect: once the live preview starts moving rows, the element the
-  // browser delivers the NEXT dragover to is itself a consequence of the
-  // LAST answer this function gave: under a stationary pointer that sits
-  // right on the boundary between two rows, that is a closed loop (this
-  // function's own output changes what its next input will be), and the
-  // symptom is rows endlessly swapping back and forth rather than settling.
-  // Reading against rowSlotsRef's frozen, pre-drag snapshot instead means
-  // "which row, which half" is a pure function of the pointer's own Y
-  // position and never of whatever this function itself just rendered.
+  // dragOver's own hit test, run from the row strip and the sheet over it -
+  // never from a row, and never against `e.currentTarget`'s rect. Once the live
+  // preview starts moving rows, the element the browser delivers the NEXT
+  // dragover to is itself a consequence of the LAST answer this function gave:
+  // under a stationary pointer sitting on the boundary between two rows, that is
+  // a closed loop (this function's own output changes what its next input will
+  // be), and the symptom is rows endlessly swapping back and forth rather than
+  // settling. Reading against rowSlotsRef's frozen, pre-drag snapshot instead
+  // means "which row, which half" is a pure function of the pointer's own Y and
+  // never of whatever this function itself just rendered.
   //
-  // Still true now that rows are slid rather than reordered, and for the same
-  // reason: the browser hit-tests a transformed element where it is PAINTED, so
-  // e.currentTarget is the row the preview has moved under the pointer, not the
-  // row that lives at that height in the list. Which element the event arrives
-  // on is never read here - only e.clientY is.
+  // Same reason, stated from the browser's side: it hit-tests a transformed
+  // element where it is PAINTED, so the element an event arrives on is the row
+  // the preview has moved under the pointer, not the row that lives at that
+  // height in the list. Which element it arrives on is never read here - only
+  // e.clientY is.
   function previewOver(e: DragEvent<HTMLElement>): void {
     if (!rowDrag) return;
     const band = unitBand(rowDrag);
     if (!band) return;
-    const y = e.clientY;
-    let best: { unit: RowDragKey; top: number; bottom: number } | null = null;
-    let bestDist = Infinity;
-    for (const slot of rowSlotsRef.current) {
-      // A whole folder only ever aims at another folder's header. Its links
-      // are not landing slots for it: groupByPackage re-merges a package at
-      // its first appearance, so "between two links of folder B" is not a
-      // place a folder can come to rest, and offering it as a target meant
-      // the folder appeared to land there and then turned up somewhere else.
-      // A link dragged on its own still aims at anything, unchanged.
-      if (rowDrag.kind === 'package' && slot.unit.kind !== 'package') continue;
-      // A row in ANOTHER band is a legal target now (dropAcrossBands), so it
-      // is offered as one. It used to be skipped here, and that is what made
-      // a cross-band folder drag look like it "went somewhere else": the
-      // nearest SAME-band row won by default, so the drop committed against a
-      // unit nobody had aimed at, several rows away from the pointer. What is
-      // still skipped is a row in no band at all - a finished or failed
-      // download the queue cannot be told to move.
-      if (unitBand(slot.unit) === null) continue;
-      const dist = y < slot.top ? slot.top - y : y > slot.bottom ? y - slot.bottom : 0;
-      if (dist < bestDist) {
-        bestDist = dist;
-        best = slot;
-      }
-    }
-    if (!best) return;
-    const after = y > (best.top + best.bottom) / 2;
-    const target = best.unit;
+    const aim = aimAt(rowSlotsRef.current, e.clientY, rowDrag, {
+      // A link row stands for the folder it is in, which is what makes the
+      // whole of an open folder a landing place for another folder instead of
+      // only its 44px header - see aimAt. A link dragged on its own aims at
+      // single rows, unchanged, and never reaches this.
+      packageOf: (id) => taskById.get(id)?.package ?? '',
+      // A row in ANOTHER band is a legal target (dropAcrossBands), so it is
+      // offered as one. What is skipped is a unit in no band at all: a finished
+      // or failed download the queue cannot be told to move, and a folder whose
+      // links do not agree on one band.
+      canTarget: (unit) => unitBand(unit) !== null,
+    });
+    if (!aim) return;
     setDragOver((prev) => {
-      if (prev && prev.after === after && sameUnit(prev.target, target)) return prev;
-      return { target, after };
+      if (prev && prev.after === aim.after && sameUnit(prev.target, aim.target)) return prev;
+      return aim;
     });
   }
-
-  function sameUnit(a: RowDragKey, b: RowDragKey): boolean {
-    return a.kind === b.kind && (a.kind === 'task' ? a.id === (b as typeof a).id : a.name === (b as typeof a).name);
-  }
-
-  // The band order a live drag would produce right now, band id -> ids -
-  // falls back to bandOrder unchanged (and so does every OTHER band the
-  // current drag has nothing to do with) whenever there is nothing to
-  // preview, so PackageGroup below never has to tell "mid-drag" apart from
-  // "at rest" itself.
-  const liveBandOrder = useMemo(() => {
-    if (!rowDrag || !dragOver) return bandOrder;
-    const band = unitBand(rowDrag);
-    if (!band) return bandOrder;
-    const reordered = reorderedBand(rowDrag, dragOver.target, dragOver.after);
-    if (!reordered) return bandOrder;
-    const next = new Map(bandOrder);
-    next.set(band, reordered);
-    return next;
-    // reorderedBand and unitBand close over bandOrder/view already in their
-    // own dependency chain - bandOrder is the one value this actually
-    // varies with, plus the drag's own two pieces of state.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rowDrag, dragOver, bandOrder]);
 
   // The arrangement the drag in flight is promising: the same groups the table
   // is showing, in the order they would be in if the pointer were released now.
@@ -2211,51 +2261,56 @@ export function TaskListCard({
   //
   // This used to re-sort each group's own tasks in place, which moved LINKS
   // and could never move a FOLDER: the list of groups itself kept its order,
-  // and since reorderedBand keeps a package's ids contiguous, dragging a
-  // folder rearranged nothing at all on screen ("Ich kann ordner nicht per
-  // drag and drop verschieben", jdp). The preview is now built the way the
-  // real list is - one flat run of tasks handed to groupByPackage - so a
-  // folder that moved past another folder genuinely comes out in the new
-  // place, and so does the answer the server will send back. That is the
+  // and since a package's ids stay contiguous, dragging a folder rearranged
+  // nothing at all on screen ("Ich kann ordner nicht per drag and drop
+  // verschieben", jdp). The preview is now built the way the real list is -
+  // one flat run of tasks handed to groupByPackage - so a folder that moved
+  // past another folder genuinely comes out in the new place. That is the
   // point of reusing groupByPackage rather than re-deriving a group order
   // here: the preview cannot promise an arrangement the committed order
   // would not produce, because both come out of the same function.
   //
-  // Only the dragged band's own slots are refilled, in liveBandOrder's new
-  // order, and every other row keeps the slot it holds: the same rule the
-  // server applies to a partial band ("put THESE tasks in THIS order, in the
-  // slots they already occupy", App.ReorderBand). That is what keeps a
-  // second band on screen, and the finished/failed rows that are in no band
-  // at all, from being dragged around by a move they have nothing to do
-  // with.
+  // ONE SPLICE, AND IT IS THE DROP'S OWN (rowDrag.ts's previewOrder): the block
+  // is lifted out where it is and put back against the target's edge. It used
+  // to be a second, band-shaped arrangement instead - the dragged BAND's slots
+  // refilled in a new order, every other row left alone - and that is why a
+  // drag across two priorities showed nothing at all while the pointer was
+  // down: reorderedBand refuses a target in another band (dropAcrossBands is
+  // what carries that drop), so the preview fell straight back to the resting
+  // order and the list stood still for the whole gesture. Measured on a list of
+  // six folders at two priorities: every cross-priority folder drag moved
+  // exactly nothing until the mouse was released. A splice that never asks
+  // which band the target is in cannot have that hole.
   const liveView = useMemo(() => {
     if (!rowDrag || !dragOver) return view;
-    const band = unitBand(rowDrag);
-    if (!band) return view;
-    const reordered = liveBandOrder.get(band);
-    if (!reordered) return view;
-    const member = new Set(reordered);
+    if (!unitBand(rowDrag)) return view;
     const flat = view.flatMap(([, items]) => items);
+    // The MOVABLE ids of each unit, which is what the drop moves too: a
+    // finished link inside a folder is not in the wait queue, so it is not part
+    // of the block that travels and the preview must not pretend it is.
+    const next = previewOrder(
+      flat.map((x) => x.id),
+      unitIds(rowDrag),
+      unitIds(dragOver.target),
+      dragOver.after,
+    );
+    if (!next) return view;
     const byId = new Map(flat.map((x) => [x.id, x] as const));
-    const slots: number[] = [];
-    flat.forEach((x, i) => {
-      if (member.has(x.id)) slots.push(i);
-    });
-    // One slot per id or the two lists describe different things and there is
-    // nothing honest to preview - a mismatch would place one task into two
-    // slots, which React would then render as two rows with the same key.
-    if (slots.length !== reordered.length) return view;
-    const shuffled = [...flat];
-    slots.forEach((at, i) => {
-      const t = byId.get(reordered[i]);
-      if (t) shuffled[at] = t;
-    });
+    const shuffled: Task[] = [];
+    for (const id of next) {
+      const t = byId.get(id);
+      if (t) shuffled.push(t);
+    }
+    // One task per id or the two lists describe different things and there is
+    // nothing honest to preview - a mismatch would drop a row out of the
+    // preview, which React would then render as a row that vanished mid-drag.
+    if (shuffled.length !== flat.length) return view;
     return groupByPackage(shuffled);
-    // unitBand reads view and taskById, both of which liveBandOrder already
-    // varies with; listing them again would only re-run this on renders that
-    // cannot change its result.
+    // unitIds and unitBand read view and taskById, and taskById is derived from
+    // view; listing them again would only re-run this on renders that cannot
+    // change its result.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [view, rowDrag, dragOver, liveBandOrder]);
+  }, [view, rowDrag, dragOver]);
 
   /**
    * How far every row and every folder header has to slide, right now, to show
@@ -2271,19 +2326,11 @@ export function TaskListCard({
    * folded folder and a link are three different boxes, so the offsets are
    * computed from the real measured ones instead of from a single row height.
    *
-   * The arithmetic, all of it off the pre-drag snapshot:
-   *
-   *   - `wanted` is the previewed arrangement flattened to the rows that are
-   *     actually ON SCREEN - a folded folder contributes its header and none of
-   *     its links, and on a windowed list a row the window never drew
-   *     contributes nothing either, because it has no box to move.
-   *   - Those rows are stacked back up from the first slot's top, each taking
-   *     its own measured height, and each keeping the GAP that belongs to its
-   *     new position rather than to itself. The gap is a property of the seam
-   *     between two rows (the rule above a folder header), not of the row that
-   *     happens to sit above it.
-   *   - The offset is then simply "where this row would be" minus "where it
-   *     is", and that is a number a CSS transition can animate on its own.
+   * `wanted` is the previewed arrangement flattened to the rows that are
+   * actually ON SCREEN - a folded folder contributes its header and none of its
+   * links, and on a windowed list a row the window never drew contributes
+   * nothing either, because it has no box to move. The stacking itself is
+   * rowDrag.ts's stackOffsets, where it can be run on plain numbers.
    *
    * Bails out whole rather than in part. A poll that adds or removes a task
    * mid-drag leaves the snapshot describing a list that no longer exists, and
@@ -2298,39 +2345,50 @@ export function TaskListCard({
   function previewOffsets(): Map<string, number> {
     if (!rowDrag || !dragOver) return NO_OFFSETS;
     const slots = rowSlotsRef.current;
-    if (slots.length === 0) return NO_OFFSETS;
-    const geom = new Map(slots.map((s) => [rowKey(s.unit), s] as const));
+    const drawn = new Set(slots.map((s) => rowKey(s.unit)));
     const wanted: string[] = [];
     for (const [name, items] of liveView) {
       const header = rowKey({ kind: 'package', name });
-      if (geom.has(header)) wanted.push(header);
+      if (drawn.has(header)) wanted.push(header);
       if (!collapsed.has(name)) {
         for (const x of items) {
           const key = rowKey({ kind: 'task', id: x.id });
-          if (geom.has(key)) wanted.push(key);
+          if (drawn.has(key)) wanted.push(key);
         }
       }
     }
-    if (wanted.length !== slots.length) return NO_OFFSETS;
-    const out = new Map<string, number>();
-    let y = slots[0].top;
-    for (let i = 0; i < wanted.length; i++) {
-      const g = geom.get(wanted[i]);
-      if (!g) return NO_OFFSETS;
-      out.set(wanted[i], y - g.top);
-      const nextSlot = slots[i + 1];
-      y += g.bottom - g.top + (nextSlot ? nextSlot.top - slots[i].bottom : 0);
-    }
-    return out;
+    return stackOffsets(slots, wanted, rowKey) ?? NO_OFFSETS;
   }
 
   const rowOffsets = previewOffsets();
 
   const dnd: RowDnD = {
-    enabled: dndEnabled,
-    active: rowDrag !== null,
     draggingTask: rowDrag?.kind === 'task' ? rowDrag.id : null,
     draggingPackage: rowDrag?.kind === 'package' ? rowDrag.name : null,
+    // A SORTED VIEW SAYS SO INSTEAD OF DOING NOTHING. The rows used to simply
+    // not be draggable there, which from a chair is the same picture as a
+    // broken list: you pick a folder up, nothing follows the pointer, and
+    // nothing explains why. The banner above the table says the view is sorted;
+    // it has never said that the order cannot be changed while it is.
+    refuseDrag: (e, unit) => {
+      if (!dndEnabled) {
+        e.preventDefault();
+        toast(t('list.dragNeedsQueueOrder'), 'info');
+        return true;
+      }
+      // The second silent dead end, and it was there before the sorted view
+      // ever came up: a row in NO band cannot be reordered at all, so the drag
+      // started, nothing previewed, the drop did nothing and the list looked
+      // broken. A finished or failed download has left the wait queue, and a
+      // folder whose links sit at different priorities has no one band to be
+      // moved into - both are answers, and both are worth saying out loud.
+      if (unitBand(unit) === null) {
+        e.preventDefault();
+        toast(t('list.dragNotInQueue'), 'info');
+        return true;
+      }
+      return false;
+    },
     startTask: (id) => {
       // Taken from the DOM at this exact moment, before any reorder preview
       // has ever run for this drag — the one point at which the rendered
@@ -2346,10 +2404,6 @@ export function TaskListCard({
       setRowDrag(null);
       setDragOver(null);
     },
-    dropOnTask,
-    dropOnPackage,
-    previewOverTask: (_id, e) => previewOver(e),
-    previewOverPackage: (_name, e) => previewOver(e),
     // Every row in the table gets one of these, including the ones that are not
     // moving: the transition has to already be on a row before its offset
     // changes, or the first step aside it makes is a jump. A row with nothing to
@@ -2673,7 +2727,94 @@ export function TaskListCard({
                 aria-label={title}
                 tabIndex={keys.stripTabIndex}
                 onFocus={keys.onStripFocus}
+                // The whole list is one drop target, not one per row: every
+                // dragover bubbles up here from whatever row it landed on, and
+                // the answer comes from the pointer's own Y against the frozen
+                // snapshot rather than from the element the event arrived on.
+                // Once the first one has been seen, the sheet below takes over.
+                //
+                // dragENTER as well as dragover, and that is not belt and braces.
+                // A browser fires dragover repeatedly at whatever the pointer is
+                // resting on, and dragenter when it crosses onto something new -
+                // so a hand that moves quickly down a list of 36px rows can cross
+                // two rows per event and produce a run of dragenter/dragleave
+                // pairs with no dragover among them at all. Measured on this
+                // list: a folder dragged the length of the table in eight moves
+                // got ZERO dragover events, and the preview stood still for the
+                // whole gesture while a slow drag over the same rows worked.
+                onDragEnter={(e) => {
+                  if (!rowDrag) return;
+                  e.preventDefault();
+                  e.dataTransfer.dropEffect = 'move';
+                  previewOver(e);
+                }}
+                onDragOver={(e) => {
+                  if (!rowDrag) return;
+                  e.preventDefault();
+                  e.dataTransfer.dropEffect = 'move';
+                  previewOver(e);
+                }}
+                onDrop={dropHere}
               >
+                {/* ONE STATIONARY SHEET OVER THE ROWS, FOR THE LENGTH OF THE
+                    DRAG. It is what makes a drop land at all.
+
+                    Every row is displaced by a transform while the pointer is
+                    down, the browser hit-tests a transformed element where it is
+                    PAINTED, and it only reconsiders what a drag is over when the
+                    POINTER moves. So the preview slid a row out from under a
+                    stationary pointer, and a release with no last twitch of the
+                    mouse arrived on an element that had never been sent a
+                    dragover: Chromium then fires dragend with NO DROP AT ALL and
+                    the whole gesture is swallowed in silence. Measured on a list
+                    of six folders: every folder released without moving the
+                    mouse again was lost exactly this way, and the identical drag
+                    with one pixel of movement before the release landed. That is
+                    the "funktioniert nicht gut" - it works often enough to look
+                    like bad luck rather than like a bug.
+
+                    This sheet cannot move, so the target cannot change under a
+                    still pointer. The hit test never needed the row element
+                    anyway: it answers from e.clientY against the frozen
+                    snapshot.
+
+                    IT MOUNTS ON THE FIRST DRAGOVER AND NOT AT DRAGSTART, and
+                    that is not tidiness. Covering the row a drag is starting
+                    from - with this sheet, or by taking pointer-events off the
+                    rows, which would do the same job - makes Chromium abandon
+                    the drag between dragstart and the first move: measured, the
+                    page gets dragstart and then dragend immediately, with
+                    nothing in between. By the time the first dragover has
+                    arrived the drag is properly in flight and the sheet is
+                    harmless. The strip below takes that first dragover, by
+                    bubbling from whichever row it landed on. */}
+                {dragOver && (
+                  <div
+                    aria-hidden
+                    className="absolute inset-0 z-20"
+                    // stopPropagation, or the strip below sees the same events a
+                    // second time as they bubble - and a drop handled twice is
+                    // two reorders and two toasts for one gesture. Measured: a
+                    // folder dropped into another priority said "Verschoben..."
+                    // twice and posted the move twice.
+                    onDragEnter={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      e.dataTransfer.dropEffect = 'move';
+                      previewOver(e);
+                    }}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      e.dataTransfer.dropEffect = 'move';
+                      previewOver(e);
+                    }}
+                    onDrop={(e) => {
+                      e.stopPropagation();
+                      dropHere(e);
+                    }}
+                  />
+                )}
                 {keys.probeTop !== null && (
                   <div
                     ref={keys.probeRef}

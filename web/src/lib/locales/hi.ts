@@ -298,6 +298,8 @@ export const hi: Dict = {
   'list.sortedView': 'क्रमबद्ध दृश्य',
   'list.sortedViewTip': 'क्रम बदलने से वही क्रम बदलता है जो आप देखते हैं, वह नहीं जिसमें डाउनलोड चलते हैं। डाउनलोड अब भी कतार के क्रम से शुरू होते हैं।',
   'list.queueOrder': 'कतार के क्रम पर लौटें',
+  'list.dragNeedsQueueOrder': 'खींचना केवल कतार के क्रम में काम करता है। पंक्तियों को हाथ से हटाने के लिए कतार के क्रम पर लौटें।',
+  'list.dragNotInQueue': 'इसे हाथ से नहीं हटाया जा सकता: केवल वे लिंक जो अब भी कतार में प्रतीक्षा कर रहे हैं, और फ़ोल्डर तभी जब उसके सभी लिंक एक ही प्राथमिकता पर हों।',
   'list.controls': 'सूची नियंत्रण',
   'list.actions': 'सूची क्रियाएँ',
   'list.failed': 'यह नहीं हुआ: {error}',
@@ -1593,7 +1595,7 @@ export const hi: Dict = {
   'commands.group.queue': 'कतार',
   'commands.group.language': 'भाषा',
   'commands.group.downloads': 'डाउनलोड',
-  'commands.group.collector': 'कलेक्टर',
+  'commands.group.collector': 'लिंक संग्राहक',
 
   'commands.paletteLabel': 'कमांड पैलेट',
   'commands.searchPlaceholder': 'कोई कमांड टाइप करें…',

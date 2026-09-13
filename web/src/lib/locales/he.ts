@@ -300,6 +300,8 @@ export const he: Dict = {
   'list.sortedView': 'תצוגה ממוינת',
   'list.sortedViewTip': 'המיון משנה את הסדר שאתה רואה, לא את הסדר שרץ. ההורדות עדיין מתחילות לפי סדר התור.',
   'list.queueOrder': 'חזרה לסדר התור',
+  'list.dragNeedsQueueOrder': 'גרירה פועלת רק בסדר התור. חזור לסדר התור כדי להזיז שורות ידנית.',
+  'list.dragNotInQueue': 'אי אפשר להזיז את זה ידנית: רק קישורים שעדיין ממתינים בתור, ותיקייה רק כשלכל הקישורים בה יש אותה עדיפות.',
   'list.controls': 'פקדי הרשימה',
   'list.actions': 'פעולות הרשימה',
   'list.failed': 'זה לא עבד: {error}',
@@ -1595,7 +1597,7 @@ export const he: Dict = {
   'commands.group.queue': 'תור',
   'commands.group.language': 'שפה',
   'commands.group.downloads': 'הורדות',
-  'commands.group.collector': 'אוסף',
+  'commands.group.collector': 'אוסף הקישורים',
 
   'commands.paletteLabel': 'לוח הפקודות',
   'commands.searchPlaceholder': 'הקלד פקודה…',

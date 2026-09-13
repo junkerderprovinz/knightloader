@@ -298,6 +298,8 @@ export const bg: Dict = {
   'list.sortedView': 'Подреден изглед',
   'list.sortedViewTip': 'Подреждането сменя реда, който виждаш, а не реда, в който се тегли. Изтеглянията пак тръгват по реда на опашката.',
   'list.queueOrder': 'Обратно към реда на опашката',
+  'list.dragNeedsQueueOrder': 'Плъзгането работи само в реда на опашката. Върнете се към реда на опашката, за да местите редовете ръчно.',
+  'list.dragNotInQueue': 'Това не може да се мести ръчно: само връзки, които още чакат на опашката, а папка само докато връзките ѝ имат един и същ приоритет.',
   'list.controls': 'Управление на списъка',
   'list.actions': 'Действия със списъка',
   'list.failed': 'Това не се получи: {error}',
@@ -1594,7 +1596,7 @@ export const bg: Dict = {
   'commands.group.queue': 'Опашка',
   'commands.group.language': 'Език',
   'commands.group.downloads': 'Изтегляния',
-  'commands.group.collector': 'Колектор',
+  'commands.group.collector': 'Събирач на връзки',
 
   'commands.paletteLabel': 'Палитра с команди',
   'commands.searchPlaceholder': 'Въведи команда…',

@@ -298,6 +298,8 @@ export const hr: Dict = {
   'list.sortedView': 'Poredani prikaz',
   'list.sortedViewTip': 'Poredak mijenja redoslijed koji vidiš, ne redoslijed kojim se preuzima. Preuzimanja i dalje kreću redom iz reda čekanja.',
   'list.queueOrder': 'Natrag na redoslijed reda čekanja',
+  'list.dragNeedsQueueOrder': 'Povlačenje radi samo u redoslijedu reda čekanja. Vrati se na redoslijed reda čekanja da retke pomakneš ručno.',
+  'list.dragNotInQueue': 'Ovo se ne može pomicati ručno: samo poveznice koje još čekaju u redu, a mapa samo dok njezine poveznice dijele isti prioritet.',
   'list.controls': 'Upravljanje popisom',
   'list.actions': 'Radnje nad popisom',
   'list.failed': 'To nije uspjelo: {error}',
@@ -1594,7 +1596,7 @@ export const hr: Dict = {
   'commands.group.queue': 'Red',
   'commands.group.language': 'Jezik',
   'commands.group.downloads': 'Preuzimanja',
-  'commands.group.collector': 'Sakupljač',
+  'commands.group.collector': 'Sakupljač poveznica',
 
   'commands.paletteLabel': 'Paleta naredbi',
   'commands.searchPlaceholder': 'Upiši naredbu…',

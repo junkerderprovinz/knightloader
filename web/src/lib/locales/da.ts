@@ -298,6 +298,8 @@ export const da: Dict = {
   'list.sortedView': 'Sorteret visning',
   'list.sortedViewTip': 'Sortering ændrer den rækkefølge, du ser, ikke den der kører. Downloads starter stadig i køens rækkefølge.',
   'list.queueOrder': 'Tilbage til køens rækkefølge',
+  'list.dragNeedsQueueOrder': 'Træk virker kun i køens rækkefølge. Gå tilbage til køens rækkefølge for at flytte rækker manuelt.',
+  'list.dragNotInQueue': 'Denne kan ikke flyttes manuelt: kun links, der stadig venter i køen, og en mappe kun, når dens links har samme prioritet.',
   'list.controls': 'Listekontroller',
   'list.actions': 'Listehandlinger',
   'list.failed': 'Det virkede ikke: {error}',
@@ -1593,7 +1595,7 @@ export const da: Dict = {
   'commands.group.queue': 'Kø',
   'commands.group.language': 'Sprog',
   'commands.group.downloads': 'Downloads',
-  'commands.group.collector': 'Samler',
+  'commands.group.collector': 'Linksamler',
 
   'commands.paletteLabel': 'Kommandopalet',
   'commands.searchPlaceholder': 'Skriv en kommando…',

@@ -298,6 +298,8 @@ export const lt: Dict = {
   'list.sortedView': 'Rikiuotas rodinys',
   'list.sortedViewTip': 'Rikiavimas keičia tvarką, kurią matai, o ne tą, kuria siunčiama. Atsiuntimai vis tiek prasideda eilės tvarka.',
   'list.queueOrder': 'Grįžti į eilės tvarką',
+  'list.dragNeedsQueueOrder': 'Vilkti galima tik eilės tvarka. Grįžk į eilės tvarką, kad eilutes perkeltum ranka.',
+  'list.dragNotInQueue': 'Šito ranka perkelti negalima: tik nuorodas, kurios dar laukia eilėje, o aplanką tik tada, kai jo nuorodų prioritetas vienodas.',
   'list.controls': 'Sąrašo valdikliai',
   'list.actions': 'Sąrašo veiksmai',
   'list.failed': 'Nepavyko: {error}',
@@ -1593,7 +1595,7 @@ export const lt: Dict = {
   'commands.group.queue': 'Eilė',
   'commands.group.language': 'Kalba',
   'commands.group.downloads': 'Atsisiuntimai',
-  'commands.group.collector': 'Rinktuvas',
+  'commands.group.collector': 'Nuorodų rinkiklis',
 
   'commands.paletteLabel': 'Komandų paletė',
   'commands.searchPlaceholder': 'Įvesk komandą…',

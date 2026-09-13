@@ -296,18 +296,24 @@ type CrawledLink struct {
 // the container carries inside it — a DLC of a film wants to arrive as the
 // film's own release name, which would leave our links indistinguishable from
 // the ones the user added through JD's own window. It does not always win: a
-// scene DLC that declares several packages of its own has been seen opening
-// into exactly those, none of them carrying the name we passed, and a lookup by
-// name then finds nothing at all while JD's window plainly shows the links
-// (jdp, 2026-09-13: a 11.4 KB Troja DLC that opened in JD and never arrived
-// here, against a 7 KB one that always did).
+// container that declares several packages of its own can open into exactly
+// those, none of them carrying the name we passed, and a lookup by name then
+// finds nothing while JD's window plainly shows the links.
+//
+// That was once blamed for a specific failure, and it was the wrong culprit:
+// the 11.4 KB Troja DLC that would not open created no package in JD's grabber
+// under ANY name. Its links were already there as KnightLoader's own abandoned
+// packages and JD's duplicate manager dropped every one of them without a word
+// (measured 2026-09-13; see Backend.sweepGrabber). The renaming case above is
+// still real and still worth an anchor, but it never was this one.
 //
 // The job id is the other anchor. It is not a better one — queryLinks takes a
-// jobUUIDs filter and that filter has been measured on a live JD answering
-// nothing while the unfiltered query showed every link — it is an INDEPENDENT
-// one, which is the point: see Backend.awaitContainerLinks, which asks both and
-// takes the union, so either failing costs nothing as long as they do not fail
-// together.
+// jobUUIDs filter, and on the shipped JD (revision 48637) that filter is not a
+// filter at all: jobUUIDs:[-1] answers with the entire link grabber, identical
+// to the unfiltered query — it is an INDEPENDENT one, which is the point: see
+// Backend.awaitContainerLinks, which asks both and takes the union, and
+// Backend.jobFilterProbe, which is what keeps a filter that is ignored from
+// being read as a very large crawl.
 func (c *Client) AddContainerLinks(url, packageName string) (int64, error) {
 	data, err := c.call("/linkgrabberv2/addLinks", map[string]any{
 		"links":                    url,
@@ -487,8 +493,15 @@ func (c *Client) CrawledLinksForJob(jobUUID int64) ([]CrawledLink, error) {
 // RemoveCrawled clears our crawl out of the link grabber - the links by id and
 // the packages that held them. Called once they have been read: JD's staging
 // list is not our storage, and leaving every container we ever opened in it
-// both turns the user's own grabber into a bin and leaves JD free to start the
-// links itself.
+// turns the user's own grabber into a bin and leaves JD free to start the links
+// itself.
+//
+// And it POISONS the grabber, which is the consequence that was missed for a
+// long time and the expensive one. JD's duplicate manager silently drops a
+// newly crawled link that the grabber already holds, so one link left behind
+// here is one link that vanishes out of every container carrying it from then
+// on, with no package, no error and nothing in JD's own logs. See
+// Backend.sweepGrabber.
 //
 // Both lists, not either: the packages are what a container opening into
 // several of them leaves behind, and the link ids cover the case where JD told

@@ -298,6 +298,8 @@ export const th: Dict = {
   'list.sortedView': 'มุมมองที่เรียงแล้ว',
   'list.sortedViewTip': 'การเรียงเปลี่ยนแค่ลำดับที่คุณเห็น ไม่ใช่ลำดับที่ทำงานจริง การดาวน์โหลดยังเริ่มตามลำดับคิวเหมือนเดิม',
   'list.queueOrder': 'กลับไปลำดับคิว',
+  'list.dragNeedsQueueOrder': 'การลากใช้ได้เฉพาะในลำดับคิว กลับไปลำดับคิวเพื่อย้ายแถวด้วยตนเอง',
+  'list.dragNotInQueue': 'อันนี้ย้ายด้วยตนเองไม่ได้ ย้ายได้เฉพาะลิงก์ที่ยังรออยู่ในคิว และโฟลเดอร์ย้ายได้เมื่อลิงก์ในนั้นมีลำดับความสำคัญเดียวกัน',
   'list.controls': 'ตัวควบคุมรายการ',
   'list.actions': 'การกระทำกับรายการ',
   'list.failed': 'ทำไม่สำเร็จ: {error}',
@@ -1592,7 +1594,7 @@ export const th: Dict = {
   'commands.group.queue': 'คิว',
   'commands.group.language': 'ภาษา',
   'commands.group.downloads': 'การดาวน์โหลด',
-  'commands.group.collector': 'ตัวรวบรวม',
+  'commands.group.collector': 'ตัวเก็บลิงก์',
 
   'commands.paletteLabel': 'จานคำสั่ง',
   'commands.searchPlaceholder': 'พิมพ์คำสั่ง…',

@@ -759,14 +759,34 @@ export function Tabs(props: TabsProps) {
           'aria-label': nameOnly && !glyphless ? item.label : undefined,
           tabIndex: i === roved ? 0 : -1,
           style: isWell
-            ? // borderRadius 0, and it is written here rather than as a class
-              // because segBase's own `rounded-[var(--radius-control)]` would
-              // otherwise win by stylesheet order, which is not something a
-              // class list can decide. IN THE WELL THE RADIUS SITS ON THE
-              // TRACK: the track is the one shape, and segments rounded inside
-              // it read as a row of separate controls that happen to share a
-              // background, which is the thing the default styling already is.
-              { ...hueStyle(i), width: wellWidth, borderRadius: 0, justifyContent: 'center' as const }
+            ? // THE SEGMENT FOLLOWS THE SHAPE ENGINE, and that REVERSES what
+              // stood here. It used to be a hard `borderRadius: 0`, argued as
+              // "in the well the radius sits on the track": the track is the
+              // one shape, and segments rounded inside it would read as a row
+              // of separate controls sharing a background.
+              //
+              // That argument holds only while the segments are transparent.
+              // The SELECTED one is not - it carries a solid fill, and a solid
+              // fill is a shape whether it was meant to be one or not. Measured
+              // on the live instance at shape "soft" (jdp, who runs it):
+              // track radius 5px, track padding 3.2px, segment radius 0px, the
+              // selected segment filled #ff8389. The padding is smaller than
+              // the radius, so the filled block's square corner sits inside the
+              // track's rounded one and is the only thing in the row that
+              // ignores the knob ("die horizontalen selektoren hier folgen
+              // nicht der formengine"). At shape "round" the gap is wider still.
+              //
+              // Written here rather than as a class for the reason the old
+              // comment gave and which still stands: segBase already carries
+              // `rounded-[var(--radius-control)]`, and which of two classes
+              // wins is decided by stylesheet order rather than by the list.
+              // Stating it inline settles it either way.
+              {
+                ...hueStyle(i),
+                width: wellWidth,
+                borderRadius: 'var(--radius-control)',
+                justifyContent: 'center' as const,
+              }
             : equalWidth
               ? { ...hueStyle(i), minWidth: emWidth(maxLabelLen + 4), justifyContent: 'center' as const }
               : hueStyle(i),
