@@ -43,6 +43,99 @@ submission and for a fixed download.
 
 ### Added
 
+- **Twelve finished features that nobody could reach.** Each was built, tested
+  and wired to nothing: a volume cap with no card to set it on, a retry counter
+  with no denominator on screen, an event list behind a bell that led nowhere, a
+  disk report no page drew, plain-language failure advice with no dialogue to
+  show it in. They are reachable now, and the largest piece of that is the
+  download list from the keyboard.
+- **The download list can be walked, selected and opened from the keyboard.**
+  Arrows move a cursor, Shift extends the selection from the same anchor a
+  Shift-click uses, Space picks a row out the way Ctrl-click does, left and
+  right close and open a folder, Enter opens the properties panel and moves the
+  focus there. It is a real tree with one tab stop rather than one per row, so
+  Tab lands on the list and not on the four hundredth badge inside it. The list
+  is windowed, so "focus row 3000" is not a call to `.focus()` at all: the row
+  is not in the document, and a one-pixel probe is scrolled to its offset first.
+  See `web/src/components/listKeyboard.ts`, which explains every awkward-looking
+  line as one half of that single problem.
+- **The selection says how much of itself is off screen.** A selection survives
+  a search, a filter and a folded package on purpose, so somebody can hold
+  eighteen rows while six are visible, and then Delete takes all eighteen. The
+  action row now reads "18 selected, 12 of them not visible", the number is a
+  button that drops the hidden ones, and the removal dialogue says the same
+  before the press rather than the toast saying it afterwards. The dropped rows
+  come back from the toast, because twelve rows picked one at a time are real
+  work to lose.
+- **The speed curve survives a reload.** The instance records it itself now, one
+  sample a second for the last two minutes and one every ten seconds for the
+  last hour, so the Overview curve draws filled instead of starting flat. It is
+  held in memory only and is empty again after a restart, which the card says.
+  A suspended machine or a moved clock fills the gap with idle rather than
+  drawing one straight line across four missing hours.
+- **The database can be checked, compacted and analysed.** An integrity check
+  reads every page and reports what SQLite finds; compacting rewrites the file
+  at its real size and gives back what deleted rows left inside it; analysing
+  lets SQLite measure the tables again. On demand, or on an interval that ships
+  off. The card names the file's size, what is free INSIDE it, and where the
+  scratch copy of a compaction goes, which on a container is the temporary
+  volume and not the data volume: without that, "database or disk is full" names
+  the wrong disk.
+- **Settings alone can be exported and taken back in, key by key.** Beside the
+  full archive, and deliberately a different thing: the archive moves an
+  INSTALL and applies at the next start, this moves a CONFIGURATION and applies
+  live. The import previews every key and has to be confirmed. Stored passwords
+  are NOT included unless a box that starts unticked is ticked, because an
+  export that lands in a sync folder takes whatever it holds with it.
+- **Events can be sent outward.** Operator-defined targets over plain HTTP:
+  ntfy, Gotify, Matrix, or any webhook, with the address, the method, the
+  headers and the body under the operator's control, a placeholder vocabulary
+  and a test button. The bus had one subscriber and no way to add a second.
+  There is no e-mail here and no half-built seam for one; SMTP is a second
+  transport with its own credential and its own decisions, and it gets its own
+  item.
+- **A category can tell a media library to rescan.** One stored address per
+  category drawer, called once, after the last file of a package has finished
+  AND been moved into place. The one header value such an address may carry is
+  sealed in the credential store rather than kept on the settings row, so it
+  cannot reach the diagnostics bundle.
+- **The end-of-queue action grew three more answers.** Besides doing nothing and
+  pausing, an empty queue can now run one external program, quit KnightLoader
+  cleanly, or suspend the machine. The command is a program and its arguments,
+  never a shell line, and it is checked before it is armed rather than failing
+  at three in the morning. It is redacted everywhere it could travel: the
+  settings page, the diagnostics bundle, the log, and the program's own output
+  before that reaches a log line.
+- **yt-dlp can be kept current.** The Resolvers page shows which yt-dlp and
+  which ffmpeg are actually being run and where they came from, and a button
+  fetches a newer yt-dlp, verifies its checksum, proves it RUNS on this machine
+  and only then swaps it in. Checking GitHub on page open is opt-in and ships
+  off. There is no automatic install: replacing the extractor unattended
+  silently changes what downloads produce, and the same line already stops
+  KnightLoader from updating its own binary.
+- **A start report at boot, and a self test on demand.** The boot pass names
+  every tool it found with its version, every configured folder, and the clock
+  and time zone, into the log and the diagnostics bundle. It only LOOKS: no
+  probe file is written anywhere, because that would wake a spun-down array disk
+  on every container restart. The write test happens when somebody presses the
+  button, and only into a folder that already exists. Beside it, a self test
+  that walks the instance's own checks, and a browser-side card for the reverse
+  proxy in front of it, which is the only place a rewritten header can be seen
+  at all.
+- **A detailed health readout, per subsystem.** What is running, what is
+  waiting, what failed, with a remedy for each, plus a Prometheus rendering of
+  the same figures. Behind the same authentication as everything else and behind
+  a switch that ships off: the list of routes that answer without a session is
+  pinned in a test with a written justification per entry, and an unauthenticated
+  metrics endpoint on a password-locked instance would have to be a decision
+  somebody took on purpose.
+- **The files' owner and mask are on screen.** Which user and group downloads
+  land as, per configured folder, and under which umask. It REPORTS and does not
+  apply: this image runs as a fixed user, so PUID and PGID are not read, and the
+  page says exactly that rather than implying a setting would take effect. A
+  test reads the repository's own Dockerfile and fails in both directions, so
+  the day the image changes, the wording has to change with it.
+
 - **The log is readable, searchable and can be kept on disk.** The last 500
   lines have gone into the diagnostics bundle for a while and could be read
   nowhere else. The Diagnostics page now searches them, filters them by which
@@ -281,6 +374,16 @@ submission and for a fixed download.
 
 ### Changed
 
+- **Two things that look wrong on a fresh install and are not.** Worth reading
+  before filing either as a bug. First: the health card reports "running, with
+  one fault" out of the box, because the download folder does not exist until
+  something has been downloaded into it. That is deliberate and not a special
+  case: the identical state is how a bind mount that did not come up presents,
+  which is the expensive one, and the remedy sentence explains it in plain
+  words. It clears itself the moment anything downloads. Second: anybody who
+  has ever dragged a settings tab into their own order finds the new Zustand
+  page at the BOTTOM of their rail rather than beside Diagnose, because the
+  stored order is honoured first and whatever it does not name is appended.
 - **The Beschriftung setting reaches the whole app.** It used to draw the sidebar
   and the settings rail and nothing else, so it read as a sidebar option rather
   than as a rule. The head card's buttons, both list toolbars and the collector's
