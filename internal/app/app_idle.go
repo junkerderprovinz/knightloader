@@ -16,9 +16,25 @@ package app
 
 import (
 	"log"
+	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/idleaction"
 )
+
+// idleActionPoll is how often the controller re-checks by itself. Zero, which
+// leaves internal/idleaction on its own two-second default, and it exists only
+// so a test can push it OUT OF THE WAY - the same seam and the same reason as
+// internal/resolver/jd's pollInterval.
+//
+// The point is what it lets a test stop doing. "ApplySettings arms without
+// waiting for the poll" used to be checked by racing a stopwatch against the
+// two-second poll, and a stopwatch on a loaded CI runner measures the runner:
+// that assertion was widened from one second to 1.5 for exactly this reason
+// once already, and then failed again at 1.5. With the poll pushed to a minute
+// the claim needs no clock at all - the queue armed, and the only thing that
+// could have armed it is the refresh, because the poll has not come round and
+// will not within the life of the test.
+var idleActionPoll time.Duration
 
 // queueIdleForAction reports whether the wait queue has nothing enabled left
 // to run, start or finish - internal/idleaction.Controller polls this on its
