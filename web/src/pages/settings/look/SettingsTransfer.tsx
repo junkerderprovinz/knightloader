@@ -1,37 +1,81 @@
 import { useRef, useState } from 'react';
-import { Button, Card, InfoBubble, SectionTitle, ToggleRow } from '../../../components/ui';
+import { Button, Card, Modal, SectionTitle, ToggleRow } from '../../../components/ui';
 import { IconDownloads, IconUpload } from '../../../lib/icons';
 import { useT } from '../../../lib/i18n';
-import { ApiError, importSettings, settingsExportURL, type SettingsExportDoc, type Settings } from '../../../lib/api';
+import {
+  ApiError,
+  BACKUP_DOWNLOAD_URL,
+  importSettings,
+  settingsExportURL,
+  uploadRestore,
+  type SettingsExportDoc,
+  type Settings,
+} from '../../../lib/api';
+import { useToast } from '../../../lib/toast';
 import { diffRows, parseExport, type TransferRow } from '../../../lib/settingsTransfer';
 import { fetchSettingsSchema } from '../features';
 import { useDraft } from '../context';
 import { SettingsImportPreview } from './SettingsImportPreview';
 
 /**
- * Nur die Einstellungen: settings.json in one file, and a merging import back.
+ * Two ways out of this box and back into another one, on ONE card (jdp,
+ * 2026-09-13: "Fuer was brauchen wir diese card und die sicherung card? das ist
+ * redundant").
  *
- * It sits directly beside Backup & Restore because the two answer neighbouring
- * questions and somebody will otherwise use the wrong one. The archive moves an
- * INSTALL - database, history, this box's own identity - and applies at the next
- * start-up, wholesale. This moves a CONFIGURATION, takes only what was ticked,
- * and applies live: settings apply through app.PatchSettings, which runs every
- * runtime effect a saved settings page already runs, so there is nothing to
- * restart. That is this feature's real advantage over its sibling and it is
- * worth saying on the card.
+ * They used to be two cards stacked on top of each other, and both of them said
+ * "export" and "import" in the same words with the same two buttons, which is
+ * precisely why they read as the same feature written twice. They are not the
+ * same feature:
  *
- * What neither of them carries is the thing worth saying loudest, which is why
- * settings.transfer.notTravelling has a bubble of its own: the debrid and hoster
- * logins, the header profiles, the captcha keys, the interface login password
- * and the user scripts all live sealed OUTSIDE settings.json (internal/accounts,
- * internal/hosterauth, internal/apitoken, internal/auth, internal/script), and
- * backup.Build does not bundle any of them either. Somebody moving boxes finds
- * that out at three in the morning with an empty queue unless the card says so
- * first.
+ *   - the archive moves an INSTALL. Database, history, this box's own identity,
+ *     the settings and their passwords, in one file, restored wholesale and in
+ *     force at the next start.
+ *   - "settings only" moves a CONFIGURATION. settings.json alone, offered key
+ *     by key in a preview, and only what was ticked is written. It applies
+ *     through app.PatchSettings, which runs every runtime effect a saved
+ *     settings page already runs, so there is nothing to restart. That is this
+ *     half's real advantage over its neighbour and it is worth saying on the
+ *     card.
+ *
+ * Side by side in one card those two sentences are a comparison. In two cards
+ * they were a repetition. Both mechanisms are untouched; what went is the card
+ * frame that used to stand between them.
+ *
+ * TWO BUBBLES, AND NO MORE (jdp, same message: "zudem sind auf der card
+ * uebertrieben viele infobubbles"). One on the title, for what is true of the
+ * whole business: both files are written here, saved by the browser that asked
+ * for them and go nowhere else, and NEITHER of them carries the debrid and
+ * hoster logins, the header profiles, the captcha keys, the interface login
+ * password or the user scripts. Those live sealed outside settings.json
+ * (internal/accounts, internal/hosterauth, internal/apitoken, internal/auth,
+ * internal/script) and backup.Build does not bundle any of them either.
+ * Somebody moving boxes finds that out at three in the morning with an empty
+ * queue unless the card says so first. One on the password switch, because that
+ * is the single control here that writes a secret into a file in clear text.
+ * What the four buttons do is written on the four buttons.
+ *
+ * The deployment fetch that used to gate the archive half lives one component
+ * further up now: nothing on this card needs /api/deployment to have answered,
+ * and a card that vanished because an unrelated request failed was the older
+ * arrangement's accident rather than its intent. `onShutdown` is the one thing
+ * that still crosses over - a restore the server answers with a restart is a
+ * shutdown like any other, and the lifecycle card is where that is said.
  */
-export function SettingsTransfer({ hue }: { hue: number }) {
+export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown: () => void }) {
   const { t } = useT();
+  const { toast } = useToast();
   const draft = useDraft();
+
+  // ---- the whole install: one archive, restored wholesale ----
+  const archiveInput = useRef<HTMLInputElement>(null);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [restoring, setRestoring] = useState(false);
+  const [restoreStatus, setRestoreStatus] = useState('');
+  // Keyed onto the confirm button so a second identical refusal builds a fresh
+  // DOM node and the shake replays instead of playing once ever.
+  const [restoreShake, setRestoreShake] = useState(0);
+
+  // ---- settings only: settings.json, merged key by key ----
   const fileInput = useRef<HTMLInputElement>(null);
 
   /**
@@ -55,6 +99,28 @@ export function SettingsTransfer({ hue }: { hue: number }) {
    *  over will never fire. */
   const [notice, setNotice] = useState<string[]>([]);
   const [failure, setFailure] = useState('');
+
+  async function confirmRestore() {
+    if (!pendingFile) return;
+    setRestoring(true);
+    try {
+      const res = await uploadRestore(pendingFile);
+      setRestoreStatus(res.status);
+      if (res.restarting) onShutdown();
+      setPendingFile(null);
+    } catch (e) {
+      // The reason goes into the toast and nowhere else - a sentence left on
+      // the page never clears itself, so an hour-old failure reads exactly as
+      // current as a fresh one. The window stays OPEN on failure and the button
+      // that was pressed shakes in it: closing here would spend the confirm
+      // click the user already gave, for a failure that was not their mistake,
+      // and would unmount the one element meant to be seen shaking.
+      toast(t('settings.system.restoreFailed', { error: String(e).replace(/^Error:\s*/, '') }), 'fail');
+      setRestoreShake((n) => n + 1);
+    } finally {
+      setRestoring(false);
+    }
+  }
 
   async function choose(file: File) {
     setNotice([]);
@@ -125,77 +191,124 @@ export function SettingsTransfer({ hue }: { hue: number }) {
   }
 
   return (
-    <Card hue={hue} className="flex flex-col gap-3">
-      <SectionTitle hint={t('settings.transfer.hint')}>{t('settings.transfer.title')}</SectionTitle>
+    <Card hue={hue} className="flex flex-col gap-4">
+      <SectionTitle hint={t('settings.transfer.cardHint')}>{t('settings.transfer.cardTitle')}</SectionTitle>
 
-      <ToggleRow
-        hue={0}
-        label={t('settings.transfer.withSecrets')}
-        hint={t('settings.transfer.withSecretsHint')}
-        checked={withSecrets}
-        onChange={setWithSecrets}
-      />
-
-      <input
-        ref={fileInput}
-        type="file"
-        accept="application/json,.json"
-        className="hidden"
-        onChange={(e) => {
-          const f = e.target.files?.[0];
-          // Cleared straight away, or picking the same file twice in a row
-          // raises no change event and a second attempt after a failed one
-          // silently does nothing - the same reason the backup card's own input
-          // and Rules.tsx's import input both do this.
-          e.target.value = '';
-          if (f) void choose(f);
-        }}
-      />
-
-      {/* One bubble per button rather than one sentence in the title badge:
-          these are two different actions, the badge sits over on the left, and
-          Rules.tsx already argues the same case at its own import/export pair. */}
-      <div className="flex flex-wrap items-center gap-2">
-        <Button
-          hue={hue}
-          kind="secondary"
-          icon={<IconDownloads width={16} height={16} />}
-          onClick={() => {
-            // Opened rather than fetched, exactly as the backup download is: the
-            // browser owns the save dialog, and a Blob built here would put the
-            // whole document through this client for no gain.
-            window.location.href = settingsExportURL(withSecrets);
+      {/* The whole install. Deliberately NOT wrapped in a well of its own: two
+          identical sunken boxes one above the other is the shape this merge
+          exists to get rid of, and the difference between the halves is meant
+          to be read in the two sentences rather than seen in two frames. */}
+      <div className="flex flex-col gap-2">
+        <span className="text-sm font-medium text-carbon-text">{t('settings.transfer.archiveLabel')}</span>
+        <p className="text-xs leading-relaxed text-carbon-textSub">{t('settings.transfer.archiveText')}</p>
+        <input
+          ref={archiveInput}
+          type="file"
+          accept="application/zip,.zip"
+          className="hidden"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            // Cleared straight away, or picking the same file twice in a row
+            // raises no change event and a second restore attempt after a failed
+            // one silently does nothing - the same reason the settings input
+            // below and Rules.tsx's import input both do this.
+            e.target.value = '';
+            if (f) setPendingFile(f);
           }}
-        >
-          {t('settings.transfer.export')}
-        </Button>
-        <InfoBubble tip={t('settings.transfer.exportHint')} />
-        <Button
-          hue={hue}
-          kind="secondary"
-          icon={<IconUpload width={16} height={16} />}
-          onClick={() => fileInput.current?.click()}
-          disabled={busy}
-        >
-          {t('settings.transfer.import')}
-        </Button>
-        <InfoBubble tip={t('settings.transfer.importHint')} />
+        />
+        <div className="flex flex-wrap items-center gap-3">
+          <Button
+            hue={hue}
+            kind="secondary"
+            icon={<IconDownloads width={16} height={16} />}
+            onClick={() => {
+              window.location.href = BACKUP_DOWNLOAD_URL;
+            }}
+          >
+            {t('settings.system.backupButton')}
+          </Button>
+          {/* The one that brings something in ends the row (GlimStone 1.14.0),
+              and it carries no status colour: replacing an install is the
+              weightiest thing on this card, which is a reason for the confirm
+              window it opens rather than for a red button. */}
+          <Button
+            hue={hue}
+            kind="secondary"
+            icon={<IconUpload width={16} height={16} />}
+            onClick={() => archiveInput.current?.click()}
+            disabled={restoring}
+          >
+            {t('settings.system.restoreButton')}
+          </Button>
+        </div>
+        {restoreStatus && (
+          <span className="text-sm text-statusOk">{t('settings.system.restoreStaged', { status: restoreStatus })}</span>
+        )}
       </div>
 
-      {/* The quiet second bubble: what is in neither file. It has no button of
-          its own because it is not an action, and it is not loose prose on the
-          card because every explanation in this app lives behind an (i). */}
-      <span className="flex items-center gap-1.5 text-[11px] text-carbon-textMuted">
-        {t('settings.transfer.notTravellingLabel')}
-        <InfoBubble tip={t('settings.transfer.notTravelling')} />
-      </span>
+      {/* Settings only, under it and on the same card. The hairline is the whole
+          of the separation: enough to say "a second thing", not enough to make
+          it a second card again. */}
+      <div className="flex flex-col gap-2 border-t border-carbon-border/60 pt-4">
+        <span className="text-sm font-medium text-carbon-text">{t('settings.transfer.settingsLabel')}</span>
+        <p className="text-xs leading-relaxed text-carbon-textSub">{t('settings.transfer.settingsText')}</p>
 
-      {failure && <span className="text-sm text-statusFail">{failure}</span>}
-      {notice.map((line, i) => (
-        <span key={i} className={i === 0 ? 'text-sm text-statusOk' : 'text-sm text-statusWarn'}>
-          {line}
-        </span>
-      ))}
+        {/* The second and last bubble on this card, on the one control that
+            writes a secret into a file in clear text. No hue of its own: the
+            switch inherits the card's position, the way a lone switch with
+            nothing beside it to distinguish should. */}
+        <ToggleRow
+          label={t('settings.transfer.withSecrets')}
+          hint={t('settings.transfer.withSecretsHint')}
+          checked={withSecrets}
+          onChange={setWithSecrets}
+        />
+
+        <input
+          ref={fileInput}
+          type="file"
+          accept="application/json,.json"
+          className="hidden"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            e.target.value = '';
+            if (f) void choose(f);
+          }}
+        />
+
+        <div className="flex flex-wrap items-center gap-3">
+          <Button
+            hue={hue}
+            kind="secondary"
+            icon={<IconDownloads width={16} height={16} />}
+            onClick={() => {
+              // Opened rather than fetched, exactly as the backup download
+              // above is: the browser owns the save dialog, and a Blob built
+              // here would put the whole document through this client for no
+              // gain.
+              window.location.href = settingsExportURL(withSecrets);
+            }}
+          >
+            {t('settings.transfer.export')}
+          </Button>
+          <Button
+            hue={hue}
+            kind="secondary"
+            icon={<IconUpload width={16} height={16} />}
+            onClick={() => fileInput.current?.click()}
+            disabled={busy}
+          >
+            {t('settings.transfer.import')}
+          </Button>
+        </div>
+
+        {failure && <span className="text-sm text-statusFail">{failure}</span>}
+        {notice.map((line, i) => (
+          <span key={i} className={i === 0 ? 'text-sm text-statusOk' : 'text-sm text-statusWarn'}>
+            {line}
+          </span>
+        ))}
+      </div>
 
       {pending && (
         <SettingsImportPreview
@@ -210,6 +323,32 @@ export function SettingsTransfer({ hue }: { hue: number }) {
             setPreviewError('');
           }}
         />
+      )}
+
+      {pendingFile && (
+        <Modal
+          title={t('settings.system.restoreConfirmTitle')}
+          onClose={() => (restoring ? undefined : setPendingFile(null))}
+          footer={
+            <>
+              <span className="flex-1" />
+              <Button kind="ghost" onClick={() => setPendingFile(null)} disabled={restoring}>
+                {t('settings.system.confirmCancel')}
+              </Button>
+              <Button
+                key={restoreShake}
+                className={restoreShake > 0 ? 'glim-shake' : ''}
+                kind="ghost"
+                onClick={() => void confirmRestore()}
+                disabled={restoring}
+              >
+                {restoring ? t('settings.system.restoring') : t('settings.system.confirmProceed')}
+              </Button>
+            </>
+          }
+        >
+          <p className="text-sm text-carbon-text">{t('settings.system.restoreConfirmBody', { name: pendingFile.name })}</p>
+        </Modal>
       )}
     </Card>
   );

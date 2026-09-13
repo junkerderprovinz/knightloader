@@ -157,7 +157,11 @@ export const navInactive =
 // In rainbow mode the icon carries the item's own hue, so the rail and the
 // glyph agree and the nav reads as a set rather than as one gold item and five
 // grey ones. Without the mode the rule below never matches.
-const navHued = 'glim-hue glim-hue-icon';
+// Exportiert wie navBase und navInactive daneben, und aus demselben Grund: die
+// Glocke ist eine Zeile dieser Schiene, die in einer anderen Datei liegt, und
+// eine abgeschriebene Klassenkette ist die Drift, die beim ersten Bearbeiten
+// einer der beiden Kopien anfaengt.
+export const navHued = 'glim-hue glim-hue-icon';
 
 /**
  * The label, in whichever of the four states the display mode asks for.
@@ -442,7 +446,7 @@ export function Sidebar() {
             never loads. Above sign-out and settings, which are the two things
             somebody reaches for when they have finished looking rather than
             when they are looking. */}
-        <EventBell />
+        <EventBell hue={nextHue()} />
         {/* Sign out sits ABOVE Settings (jdp, 2026-09-07: "in der sidebar soll
             der abmeldebutton über dem einstellungs button sein"). It is also
             the only sign-out left in the app now - the copy on the password
@@ -474,7 +478,16 @@ export function Sidebar() {
               // links above it in every mode that shows a label. Only visible
               // once text-only mode put a label here with no glyph beside it to
               // disguise it, but it was always wrong.
-              className={`${navBase} ${navInactive} group w-full text-start ${mode === 'glyph' || mode === 'hover' ? 'justify-center' : 'gap-3'}`}
+              // navHued wie jede andere Zeile: Abmelden navigiert nirgendwohin,
+              // ist aber eine Zeile dieser Schiene, und ohne die Farbposition
+              // stand hier ein graues Symbol zwischen farbigen.
+              className={`${navHued} ${navBase} ${navInactive} group w-full text-start ${mode === 'glyph' || mode === 'hover' ? 'justify-center' : 'gap-3'}`}
+              // nextHue() direkt hier, in der Reihenfolge, in der die Zeile
+              // gezeichnet wird. Genau einmal aufgerufen, also genau eine Farbe;
+              // und weil der ganze Block an `locked` haengt, verbraucht eine
+              // nicht gezeichnete Abmelden-Zeile auch keine Position und
+              // verschiebt nichts darunter.
+              style={hueVars(rainbowAt(nextHue())) as CSSProperties}
             >
               {mode !== 'text' && <IconSignOut />}
               <NavLabel label={t('auth.signOut')} mode={mode} />

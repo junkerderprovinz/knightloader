@@ -24,7 +24,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button, EmptyState, SectionTitle, useTooltip } from './ui';
-import { navBase, navInactive, NavLabel } from './Sidebar';
+import { navBase, navHued, navInactive, NavLabel } from './Sidebar';
+import { hueVars, rainbowAt } from '../lib/appearance';
+import type { CSSProperties } from 'react';
 import { Tabs, type TabDef } from './Tabs';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { useNavLabels } from '../lib/navLabels';
@@ -114,7 +116,21 @@ function EventRow({ event, onJump }: { event: LoggedEvent; onJump: (target: Even
   );
 }
 
-export function EventBell() {
+/**
+ * hue, wie jede andere Zeile der Schiene.
+ *
+ * Die Glocke navigiert nirgendwohin, sie oeffnet eine Klappe - und genau deshalb
+ * war sie die einzige Zeile ohne Farbposition, zusammen mit Abmelden. Auf dem
+ * Bildschirm heisst das: fuenf farbige Symbole und zwei graue, ohne erkennbaren
+ * Grund (jdp: "die glyphen von ereignisse und abmelden haben keine farbe"). Die
+ * Sprache nimmt von der Regenbogenposition genau eine Art Zeile aus, naemlich
+ * eine EINZELNE ihrer Art ohne Geschwister; eine Schienenzeile neben sechs
+ * anderen Schienenzeilen ist das nicht.
+ *
+ * Die Zahl kommt vom Zaehler des Aufrufers und nicht von hier, damit eine
+ * ausgeblendete Zeile keine Luecke in der Folge hinterlaesst.
+ */
+export function EventBell({ hue }: { hue: number }) {
   const { t } = useT();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -265,7 +281,8 @@ export function EventBell() {
         // and follows the same four label modes, and text-start is here for the
         // reason the sign-out button below it carries it - a <button> centres
         // its own text where an <a> does not.
-        className={`${navBase} ${navInactive} group w-full text-start ${centred ? 'justify-center' : 'gap-3'}`}
+        className={`${navHued} ${navBase} ${navInactive} group w-full text-start ${centred ? 'justify-center' : 'gap-3'}`}
+        style={hueVars(rainbowAt(hue)) as CSSProperties}
       >
         {mode !== 'text' && <IconBell />}
         <NavLabel label={name} mode={mode} />

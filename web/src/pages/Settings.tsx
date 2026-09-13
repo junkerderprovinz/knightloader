@@ -403,12 +403,24 @@ function SettingsRail({ pages }: { pages: FeaturePage[] }) {
     // edge. Only the top - the rail keeps its tight px-2/pb-2, since the
     // bottom of a scrolling column has nothing to line up with.
     <div
-      // Top and bottom match (jdp, 2026-09-07: "Die kacheln in den einstellungen
-      // fangen oben weiter unten an als sie unten aufhören"). Measured on the
-      // preview instance before changing anything: 32px above the first tile,
-      // 8px below the last. The top value is the one to keep, because it is what
-      // lines the first tile up with the first card in the column beside it.
-      className={`flex h-full shrink-0 flex-col gap-2 px-2 pb-6 pt-6 md:pb-8 md:pt-8 ${display === 'glyph' ? 'w-14' : 'w-52'}`}
+      // FLUSH WITH THE SIDEBAR, top and bottom, and that REVERSES what stood
+      // here. The rail used to carry pt-6/pb-6 (md: 8) so the first tile lined
+      // up with the first CARD in the column beside it - measured at the time,
+      // 32px above the first tile against 8px below the last, and the top value
+      // was kept for that alignment.
+      //
+      // jdp is looking at a different pair now: "die einstellungskacheln sollen
+      // unten und oben bündig mit der sidebar anfangen und aufhören". The rail
+      // and the app's own sidebar are two columns of the same kind standing side
+      // by side, and two navigation columns that start at different heights read
+      // as a mistake in a way a tile and a card never do - a card is a different
+      // kind of thing and is allowed its own inset.
+      //
+      // So the padding goes, and what it bought goes with it: the first tile now
+      // sits a card's padding higher than the first card. That is the trade, it
+      // is deliberate, and it is written down here so the next round does not
+      // read the old comment and quietly put it back.
+      className={`flex h-full shrink-0 flex-col gap-2 px-2 ${display === 'glyph' ? 'w-14' : 'w-52'}`}
     >
       <Tabs
         className="min-h-0 flex-1"
