@@ -92,7 +92,11 @@ export function Instances() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    // gap-10, the house gap between stacked cards - pages/Accounts.tsx and
+    // every settings page's own root carry the same one. This page stood at
+    // gap-6 alone, which only became visible once settings/Instances.tsx wrapped
+    // it beside a toggle card at the correct 40: one stack, two rhythms.
+    <div className="flex flex-col gap-10">
       {/* Subtitle removed (jdp, 2026-08-24: "text entfernen: Alle
           KnightLoader von einer Oberfläche aus sehen und steuern.") - the
           title alone already says what this page is. */}

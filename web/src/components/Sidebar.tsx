@@ -374,6 +374,14 @@ export function Sidebar() {
     // Inhalt abhebt, den sie navigiert, ist der Sinn des eigenen Tokens.
     // overflow-hidden, weil die Marke oben sonst ueber die runde Ecke hinausragt.
     //
+    // AND THAT overflow-hidden IS A CLIP AND A SCROLLER, so NOTHING that hangs
+    // off a row of this rail may be positioned inside it. The events panel was,
+    // and the rail clipped it to a 224px strip and then scrolled ITSELF
+    // sideways to reach the focus inside it, taking the logo and every row off
+    // screen with it. Anything that opens beside the rail - a panel, a menu, a
+    // bubble - renders into <body> and measures against the window instead; see
+    // EventBell.tsx, which carries the full account of that failure.
+    //
     // THE NARROW WIDTH IS 85px, AND IT BELONGS TO THE HOUSE. It used to be a
     // calculation each app made from its own brand mark plus its row padding,
     // which produced 96px in one app and 64px in another - and this rail was

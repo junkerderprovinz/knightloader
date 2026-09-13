@@ -5,17 +5,20 @@
 // the toggle card is pages/Accounts.tsx, unmodified and unwrapped, not a
 // second implementation that could drift from the first.
 //
-// The wrapper below carries NO gap of its own between the toggle card and
-// <Accounts/> (jdp, 2026-08-24: "im einstellungs-konten-tab ist der abstand
-// zwischen seitenleiste und debrid card zu groß"). <Accounts/> already opens
-// with its own `flex flex-col gap-10` and a PageHeader whose title is
-// sr-only (zero visible height, see PageHeader's own doc comment) - that
-// alone already reserves one full gap-10 before its first real card. Giving
-// this wrapper its own gap-10 as well, as a plain sibling-of-two flex
-// column would normally want, stacked a SECOND 40px gap on top of the first
-// (toggle card -> 40px -> invisible header -> 40px -> debrid card, 80px
-// total) purely because this is the one settings tab that wraps another
-// already-complete page instead of rendering its own content directly.
+// gap-10 on the wrapper, the house gap every other settings page's own root
+// carries. It stood here WITHOUT one, on the argument that <Accounts/>'s
+// sr-only PageHeader was an invisible flex row already earning a gap-10 of its
+// own, so a gap here would stack a second 40px on top of it.
+//
+// That argument was wrong about the one thing it rested on: sr-only positions
+// the header ABSOLUTELY, and an absolutely positioned child is not a flex item
+// at all - it takes no row and earns no gap. PageHeader says so itself, in the
+// comment that explains why it is sr-only rather than `hidden` (components/
+// ui.tsx). So the wrapper's two children sat at zero distance and the toggle
+// card was glued to the debrid card below it (jdp: "in der instanzen und konten
+// tab in den einstellungen ist die oberste card verklebt mit dem darunter").
+// The invisible header changes nothing here either way; it is the wrapper that
+// has to space its own two children, exactly like any other card stack.
 import { Accounts } from '../Accounts';
 import { Card, SectionTitle, ToggleRow } from '../../components/ui';
 import { useT } from '../../lib/i18n';
@@ -27,7 +30,7 @@ export function AccountsTab() {
   const { cfg, patch } = useDraft();
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col gap-10">
       <Card hue={0} className="flex flex-col gap-3">
         <SectionTitle>{t('settings.accounts.setupTitle')}</SectionTitle>
         <ToggleRow

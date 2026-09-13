@@ -514,8 +514,17 @@ func (a *App) regressGuessedPackages(ids []string) {
 const catchAllPackage = "Various"
 
 // catchAll files whatever is still nameless.
+//
+// It reads through snapshotTasks for the same reason nameBucket above does, and
+// the reason is not tidiness: `created` holds the live rows, and a media link's
+// title probe runs on its own goroutine (stage -> probeYtdlpTitle ->
+// setTaskName, app_tasks.go) which writes Name under a.mu while this walks the
+// very same field. The race detector caught it on the fourth full run, in
+// TestAQuickProbeStillFixesTheGuessedPackage - the one test fast enough to put
+// a probe answer and a paste in the same instant, which is exactly what a
+// person pasting a second batch while the first is still resolving does.
 func (a *App) catchAll(created []*core.Task) {
-	if ids := unpackagedIDs(awaitingMediaProbe.exclude(created)); len(ids) > 0 {
+	if ids := unpackagedIDs(awaitingMediaProbe.exclude(a.snapshotTasks(created))); len(ids) > 0 {
 		a.SetPackage(ids, catchAllPackage)
 	}
 }

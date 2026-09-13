@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strings"
 	"testing"
 )
 
@@ -29,13 +30,26 @@ import (
 // a truncated body rather than the clear failure Errorf reports.
 func decodeCallParams(t *testing.T, rawQuery string, out any) {
 	t.Helper()
-	unescaped, err := url.QueryUnescape(rawQuery)
-	if err != nil {
-		t.Errorf("query %q did not decode: %v", rawQuery, err)
+	if rawQuery == "" {
 		return
 	}
-	if err := json.Unmarshal([]byte("["+unescaped+"]"), out); err != nil {
-		t.Errorf("request body %q did not parse: %v", unescaped, err)
+	// Part by part, not the whole query at once: a call with two parameters
+	// (removeLinks takes a link list and a package list) joins them with a bare
+	// '&', which is not JSON. Each part is separately escaped, so splitting on
+	// '&' cannot cut a value in half - an '&' inside one arrives as %26.
+	parts := strings.Split(rawQuery, "&")
+	decoded := make([]string, 0, len(parts))
+	for _, p := range parts {
+		unescaped, err := url.QueryUnescape(p)
+		if err != nil {
+			t.Errorf("query part %q did not decode: %v", p, err)
+			return
+		}
+		decoded = append(decoded, unescaped)
+	}
+	body := "[" + strings.Join(decoded, ",") + "]"
+	if err := json.Unmarshal([]byte(body), out); err != nil {
+		t.Errorf("request body %q did not parse: %v", body, err)
 	}
 }
 
@@ -43,8 +57,8 @@ func decodeCallParams(t *testing.T, rawQuery string, out any) {
 // the namespace/method, the base64 round-trip of the raw bytes (not of some
 // re-encoding of them — JD writes this straight to a file and feeds it to its
 // own DLC-shaped crawl, so a single stray transform here is a payload JD can
-// no longer make sense of), and the marker/overwrite flags AddContainerLinks
-// already relies on for identifying its own package afterwards.
+// no longer make sense of), and the marker/overwrite flags the crawl is
+// followed by afterwards.
 func TestAddContainerDataSendsInlineBase64(t *testing.T) {
 	var gotPath, gotQuery string
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -95,7 +109,7 @@ func TestAddContainerDataSendsInlineBase64(t *testing.T) {
 		t.Error("autostart = true; a container's links must land in the grabber, not start downloading unread")
 	}
 	if !params[0].OverwritePackagizerRules {
-		t.Error("overwritePackagizerRules = false; without it JD names the package after whatever the container decrypts to, and the marker can no longer find it")
+		t.Error("overwritePackagizerRules = false; without it a packagizer rule renames the package out from under the marker, which is one of the two anchors the crawl is found again by")
 	}
 }
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -96,10 +97,11 @@ func (b *Backend) AddContainer(url, packageName string, timeout time.Duration) (
 	// again in JD's. Using the caller's would collide the moment two containers
 	// were opened into the same package.
 	marker := fmt.Sprintf("KL-%d", time.Now().UnixNano())
-	if _, err := b.c.AddContainerLinks(url, marker); err != nil {
+	job, err := b.c.AddContainerLinks(url, marker)
+	if err != nil {
 		return nil, err
 	}
-	return b.awaitContainerLinks(marker, timeout)
+	return b.awaitContainerLinks(job, marker, timeout)
 }
 
 // AddCryptedV1 hands JD a Click'n'Load v1 ("addcrypted") submission's raw
@@ -112,67 +114,80 @@ func (b *Backend) AddContainer(url, packageName string, timeout time.Duration) (
 // list"), not a second mechanism for the same problem.
 func (b *Backend) AddCryptedV1(data []byte, packageName string, timeout time.Duration) ([]resolver.Result, error) {
 	marker := fmt.Sprintf("KL-%d", time.Now().UnixNano())
-	if _, err := b.c.AddContainerData("dlc", data, marker); err != nil {
+	job, err := b.c.AddContainerData("dlc", data, marker)
+	if err != nil {
 		return nil, err
 	}
-	return b.awaitContainerLinks(marker, timeout)
+	return b.awaitContainerLinks(job, marker, timeout)
 }
 
-// awaitContainerLinks polls JD's link grabber for the package named marker,
-// waits for it to settle, harvests the links (URL, name and size) out of it
-// and removes it so JD does not start it itself. Shared by AddContainer and
-// AddCryptedV1, whose only difference is how the container's bytes reach JD
-// in the first place.
-func (b *Backend) awaitContainerLinks(marker string, timeout time.Duration) ([]resolver.Result, error) {
+// settleReadings is how many identical readings in a row count as "the crawl
+// has finished". A crawler that yields incrementally goes quiet between its own
+// sub-crawls, so one unchanged reading means nothing. Measured on a real DLC: at
+// one second the package held 1 of its 11 links, and harvesting there took that
+// single link and threw the other ten away.
+const settleReadings = 3
+
+// awaitContainerLinks waits for one crawl job to finish, harvests every link it
+// produced (URL, name, size and the crawl's own availability) and takes them
+// back out of JD's grabber so JD does not start them itself. Shared by
+// AddContainer and AddCryptedV1, whose only difference is how the container's
+// bytes reach JD in the first place.
+//
+// Two things here were wrong for as long as a container could be large, and
+// both produced the same picture: the bar runs for the full timeout and nothing
+// ever arrives (jdp, 2026-09-13, on a Troja DLC that JD's own window opened
+// perfectly).
+//
+// The crawl is followed by its JOB and by the marker name, not by the name
+// alone. A scene DLC declares its own packages, and JD has been seen honouring
+// those instead of the name addLinks asked for; the lookup by name then finds
+// nothing, for ever, and the container is reported as never opened. Both anchors
+// are asked every round and their packages unioned, because either one can come
+// back empty on its own (see Client.AddContainerLinks and CrawledLinksForJob).
+//
+// And the crawl is settled by its own link count standing still. JD's
+// isCollecting is global to the instance: on one that is also chewing through
+// Click'n'Load submissions it is true the whole time, so requiring it to go
+// false is requiring something that is not about this crawl at all. It is kept
+// only as a hint that buys one extra confirming reading - which is a delay, not
+// a condition, and cannot hold a finished crawl up for ever.
+func (b *Backend) awaitContainerLinks(job int64, marker string, timeout time.Duration) ([]resolver.Result, error) {
 	deadline := time.Now().Add(timeout)
 	tick := time.NewTicker(pollInterval)
 	defer tick.Stop()
 
-	var pkg int64
+	var pkgs []int64
 	var links []CrawledLink
-	// A crawler that yields incrementally reports "not collecting" in the gaps
-	// between its own sub-crawls, so one quiet reading means nothing. Measured
-	// on a real DLC: at one second the package held 1 of its 11 links and the
-	// crawler was momentarily idle, and harvesting there took that single link
-	// and threw the other ten away. The count has to hold still instead.
 	settled := 0
-	const settledEnough = 3
+	probe := &jobFilterProbe{}
 	for {
 		<-tick.C
 
-		// The package appears only once the crawl has produced something, which
-		// is also why "is it still collecting?" cannot be asked first: right
-		// after the container is handed over JD has not started yet, so it
-		// answers no, and a harvest there reads an empty grabber and concludes
-		// the container was empty. The package existing is the real starting
-		// gun.
-		if pkg == 0 {
-			var err error
-			if pkg, err = b.c.CrawledPackageUUID(marker); err != nil {
-				return nil, err
-			}
+		found, foundPkgs, err := b.crawlOutput(job, marker, probe)
+		if err != nil {
+			return nil, err
 		}
-		if pkg != 0 {
-			busy, err := b.c.Collecting()
-			if err != nil {
-				return nil, err
-			}
-			found, err := b.c.CrawledLinks(pkg)
-			if err != nil {
-				return nil, err
-			}
-			switch {
-			case busy || len(found) == 0 || len(found) != len(links):
-				// Still moving: either the crawler says so, or the count just
-				// changed under us. Either way the container is not all here.
-				settled = 0
-			default:
-				settled++
-			}
-			links = found
-			if settled >= settledEnough {
-				break
-			}
+		if len(found) == 0 || len(found) != len(links) {
+			// Nothing yet, or the count just changed under us: the container is
+			// not all here.
+			settled = 0
+		} else {
+			settled++
+		}
+		links, pkgs = found, foundPkgs
+
+		// Asked only when the count has already stood still, because that is the
+		// only moment it could change anything: a JD that says it is collecting
+		// buys one extra confirming reading, and a JD that says it is not cannot
+		// shorten the wait, having been caught saying so between two sub-crawls
+		// of the very container being waited for.
+		need := settleReadings
+		if settled >= need && b.collecting() {
+			need++
+		}
+		if settled >= need {
+			break
 		}
 
 		if time.Now().After(deadline) {
@@ -186,14 +201,14 @@ func (b *Backend) awaitContainerLinks(marker string, timeout time.Duration) ([]r
 			// minutes of waiting followed by "nothing for you" is the worst of
 			// both.
 			//
-			// pkg == 0 is the genuinely empty case and stays an error: JD never
-			// even created a package, so there is nothing to salvage and the
-			// container really did not open.
-			if pkg == 0 {
-				return nil, fmt.Errorf("jd did not open the container within %s", timeout)
-			}
+			// Nothing found under either anchor is the genuinely empty case and
+			// stays an error: there is nothing to salvage and, as far as
+			// anything here can tell, the container really did not open.
 			if len(links) == 0 {
-				_ = b.c.RemoveCrawledPackage(pkg)
+				if len(pkgs) == 0 {
+					return nil, fmt.Errorf("jd did not open the container within %s", timeout)
+				}
+				_ = b.c.RemoveCrawled(nil, pkgs)
 				return nil, fmt.Errorf("jd opened the container but produced no links within %s", timeout)
 			}
 			log.Printf("jd: container crawl had not settled after %s, keeping the %d link(s) it had by then", timeout, len(links))
@@ -230,10 +245,142 @@ func (b *Backend) awaitContainerLinks(marker string, timeout time.Duration) ([]r
 			})
 		}
 	}
+	// Every package the crawl opened into, and every link inside them - a
+	// container that arrived as three packages and left two of them behind is
+	// two packages JD is still free to start on its own.
+	//
 	// Best effort: we have the links, and failing to tidy JD's grabber is not a
 	// reason to tell the user their container did not open.
-	_ = b.c.RemoveCrawledPackage(pkg)
+	_ = b.c.RemoveCrawled(linkIDs(links), pkgs)
 	return out, nil
+}
+
+// linkIDs is the grabber ids of links we have read, for handing to
+// RemoveCrawled alongside their packages.
+func linkIDs(links []CrawledLink) []int64 {
+	out := make([]int64, 0, len(links))
+	for _, l := range links {
+		out = append(out, l.UUID)
+	}
+	return out
+}
+
+// impossibleJob is an addLinks job id that cannot exist. JD hands those out
+// from a counter of its own that only ever rises, so nothing is ever filed
+// under a negative one - which makes a query for it a question about the
+// filter rather than about any crawl. See jobFilterProbe.
+const impossibleJob = -1
+
+// jobFilterProbe remembers, for one crawl, whether this JD honours queryLinks's
+// jobUUIDs filter.
+//
+// It has to be asked rather than assumed, and the reason is the damage if it is
+// assumed wrongly. JD's API takes its query as a free-form map, so a build that
+// does not know the key does not refuse it - it ignores it and answers with the
+// WHOLE link grabber. A crawl that took that for "the links my container
+// produced" would adopt every package in it, hand the user's own staged links
+// back as the container's contents, and then delete them from the grabber on
+// its way out. One measured build already treats the filter oddly (it answers
+// nothing at all, see Client.AddContainerLinks), which is the cheap failure;
+// this is the expensive one, and it costs one extra call per crawl to rule out.
+type jobFilterProbe struct {
+	decided bool
+	honours bool
+}
+
+// usable answers whether the jobUUIDs filter can be trusted on this JD.
+//
+// The probe is a query for a job that cannot exist while the grabber demonstrably
+// holds something: a filter that is applied answers nothing, and an answer with
+// links in it is the grabber being handed over wholesale. An empty grabber
+// teaches nothing - both behaviours answer the same - so the question is simply
+// left open and asked again on the next round.
+func (p *jobFilterProbe) usable(c *Client, packagesInGrabber int) bool {
+	if p.decided {
+		return p.honours
+	}
+	if packagesInGrabber == 0 {
+		return false
+	}
+	links, err := c.CrawledLinksForJob(impossibleJob)
+	if err != nil {
+		return false // no answer is no verdict; ask again next round
+	}
+	p.decided, p.honours = true, len(links) == 0
+	if !p.honours {
+		log.Printf("jd: this build ignores queryLinks's jobUUIDs filter; following the crawl by its package name alone")
+	}
+	return p.honours
+}
+
+// crawlOutput reads back what one crawl job has produced so far: its links, and
+// the grabber packages they sit in.
+//
+// The job id and the marker name are asked separately and unioned, because
+// neither identifies a crawl on its own. The job filter does not care what JD
+// named anything, which is what a container declaring its own package names
+// needs; the marker name survives a JD whose jobUUIDs filter answers nothing,
+// which has been measured. Packages are the unit that is followed from there,
+// so that a container opening into several is read whole rather than by
+// whichever part happened to answer first.
+//
+// Nothing outside those two anchors is ever read, and nothing outside them is
+// ever removed. The link grabber is shared with the user's own window, and a
+// harvest that guessed at what is his would hand his links to somebody else's
+// package and then clear them out of his.
+func (b *Backend) crawlOutput(job int64, marker string, probe *jobFilterProbe) ([]CrawledLink, []int64, error) {
+	inGrabber, err := b.c.CrawledPackages()
+	if err != nil {
+		return nil, nil, err
+	}
+	seen := map[int64]bool{}
+	var pkgs []int64
+	add := func(id int64) {
+		if id != 0 && !seen[id] {
+			seen[id] = true
+			pkgs = append(pkgs, id)
+		}
+	}
+
+	var byJob []CrawledLink
+	if probe.usable(b.c, len(inGrabber)) {
+		if byJob, err = b.c.CrawledLinksForJob(job); err != nil {
+			return nil, nil, err
+		}
+		for _, l := range byJob {
+			add(l.PackageUUID)
+		}
+	}
+	for _, p := range inGrabber {
+		if p.Name == marker {
+			add(p.UUID)
+		}
+	}
+
+	if len(pkgs) == 0 {
+		// Either nothing has been produced yet, or the job answered with links
+		// while refusing to say which package they are in. In the second case
+		// the links are still ours and still the whole of what the job made, so
+		// they are harvested as they stand - and removed by their own ids
+		// afterwards, which is why RemoveCrawled takes both lists.
+		return byJob, nil, nil
+	}
+	sort.Slice(pkgs, func(i, j int) bool { return pkgs[i] < pkgs[j] })
+	found, err := b.c.CrawledLinks(pkgs...)
+	if err != nil {
+		return nil, nil, err
+	}
+	return found, pkgs, nil
+}
+
+// collecting is JD's global "is the grabber crawling" flag, reduced to what it
+// is worth: a hint. An instance that will not answer it is not an instance whose
+// crawl cannot be read, so an error here is no news rather than a failure - see
+// Client.Collecting for why the flag is unreliable in both directions even when
+// it does answer.
+func (b *Backend) collecting() bool {
+	busy, err := b.c.Collecting()
+	return err == nil && busy
 }
 
 // CheckLinks asks JD's own hoster plugins whether a batch of plain links is
@@ -258,55 +405,50 @@ func (b *Backend) awaitContainerLinks(marker string, timeout time.Duration) ([]r
 // still willing to wait, or the reverse.
 func (b *Backend) CheckLinks(ctx context.Context, urls []string) ([]core.Availability, error) {
 	marker := fmt.Sprintf("KL-check-%d", time.Now().UnixNano())
-	if _, err := b.c.AddPlainLinks(strings.Join(urls, "\n"), marker); err != nil {
+	job, err := b.c.AddPlainLinks(strings.Join(urls, "\n"), marker)
+	if err != nil {
 		return nil, err
 	}
 
-	var pkg int64
+	var pkgs []int64
 	var links []CrawledLink
 	settled := 0
-	const settledEnough = 3
+	probe := &jobFilterProbe{}
 	tick := time.NewTicker(pollInterval)
 	defer tick.Stop()
 	for {
 		select {
 		case <-ctx.Done():
-			if pkg != 0 {
-				_ = b.c.RemoveCrawledPackage(pkg)
-			}
+			_ = b.c.RemoveCrawled(linkIDs(links), pkgs)
 			return nil, ctx.Err()
 		case <-tick.C:
 		}
 
-		if pkg == 0 {
-			var err error
-			if pkg, err = b.c.CrawledPackageUUID(marker); err != nil {
-				return nil, err
-			}
+		found, foundPkgs, err := b.crawlOutput(job, marker, probe)
+		if err != nil {
+			return nil, err
 		}
-		if pkg == 0 {
-			continue // the package appears only once the crawl has produced something
-		}
+		links, pkgs = found, foundPkgs
 
-		busy, err := b.c.Collecting()
-		if err != nil {
-			return nil, err
-		}
-		found, err := b.c.CrawledLinks(pkg)
-		if err != nil {
-			return nil, err
-		}
-		if busy || len(found) != len(urls) {
+		// A batch of plain links has a known length, so "all of them are here"
+		// is the settle condition, not merely "the count stopped moving".
+		// isCollecting is the same hint it is for a container and no more: this
+		// crawl sharing an instance with somebody else's is not a reason for
+		// every check on it to run into its deadline.
+		if len(found) != len(urls) {
 			settled = 0
 		} else {
 			settled++
 		}
-		links = found
-		if settled >= settledEnough {
+		need := settleReadings
+		if settled >= need && b.collecting() {
+			need++
+		}
+		if settled >= need {
 			break
 		}
 	}
-	_ = b.c.RemoveCrawledPackage(pkg)
+	_ = b.c.RemoveCrawled(linkIDs(links), pkgs)
 
 	// Keyed by the URL JD echoed back rather than by position - the same
 	// defence AllDebrid's own CheckLinks already needs (see

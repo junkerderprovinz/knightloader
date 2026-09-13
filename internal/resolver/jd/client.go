@@ -272,6 +272,12 @@ type CrawledLink struct {
 	// for a second crawl, at download time, to learn what this one already
 	// knew.
 	Size int64 `json:"bytesTotal"`
+	// PackageUUID is the grabber package this link ended up in. It is what
+	// turns the answer to "which links did my crawl produce" into "which
+	// packages are mine", and a container that opens into several packages has
+	// no other way of being followed: the package NAME cannot be relied on (see
+	// AddContainerLinks) and the job filter answers links, not packages.
+	PackageUUID int64 `json:"packageUUID"`
 	// Availability is JD's own hoster-plugin verdict on this one link -
 	// "ONLINE", "OFFLINE", or absent/something else when the plugin has no
 	// opinion. Measured against a live JD (rev 48637): a real rapidgator.net
@@ -282,18 +288,26 @@ type CrawledLink struct {
 	Availability string `json:"availability"`
 }
 
-// AddContainerLinks hands JD a container and pins the package it lands in.
+// AddContainerLinks hands JD a container and asks for the package it lands in
+// to be named packageName. It returns the crawl job's id.
 //
-// overwritePackagizerRules is the load-bearing part. Without it JD names the
-// package after what it found *inside* the container — a DLC of a film arrives
-// as the film's own release name — and there is then no way to tell our links
-// from the ones the user added through JD's own window. With it, the name we
-// pass wins, which is how the crawl is identified afterwards.
+// Both halves of that are anchors on the way back, and neither is trusted
+// alone. overwritePackagizerRules asks for the passed name to win over the one
+// the container carries inside it — a DLC of a film wants to arrive as the
+// film's own release name, which would leave our links indistinguishable from
+// the ones the user added through JD's own window. It does not always win: a
+// scene DLC that declares several packages of its own has been seen opening
+// into exactly those, none of them carrying the name we passed, and a lookup by
+// name then finds nothing at all while JD's window plainly shows the links
+// (jdp, 2026-09-13: a 11.4 KB Troja DLC that opened in JD and never arrived
+// here, against a 7 KB one that always did).
 //
-// Identifying it by the job id this returns does not work, however reasonable
-// it looks: queryLinks accepts a jobUUIDs filter and it never matches, staying
-// empty while the unfiltered query shows every link. Measured against a live JD,
-// not assumed.
+// The job id is the other anchor. It is not a better one — queryLinks takes a
+// jobUUIDs filter and that filter has been measured on a live JD answering
+// nothing while the unfiltered query showed every link — it is an INDEPENDENT
+// one, which is the point: see Backend.awaitContainerLinks, which asks both and
+// takes the union, so either failing costs nothing as long as they do not fail
+// together.
 func (c *Client) AddContainerLinks(url, packageName string) (int64, error) {
 	data, err := c.call("/linkgrabberv2/addLinks", map[string]any{
 		"links":                    url,
@@ -315,8 +329,11 @@ func (c *Client) AddContainerLinks(url, packageName string) (int64, error) {
 // under one marker package - the same overwritePackagizerRules pinning
 // AddContainerLinks uses and for the identical reason, so a packagizer rule
 // the user has configured in JD cannot rename the package out from under the
-// marker this app looks it up by afterwards. autostart is always false: this
-// exists for Backend.CheckLinks, which only ever wants JD's crawl-time
+// marker. It returns the job id for the same reason too: plain links are not
+// a container and will not declare package names of their own, but a marker
+// that has been renamed is still a marker that finds nothing, and the job is
+// the anchor that does not depend on a name at all. autostart is always false:
+// this exists for Backend.CheckLinks, which only ever wants JD's crawl-time
 // verdict, never a download.
 func (c *Client) AddPlainLinks(links, packageName string) (int64, error) {
 	data, err := c.call("/linkgrabberv2/addLinks", map[string]any{
@@ -336,11 +353,10 @@ func (c *Client) AddPlainLinks(links, packageName string) (int64, error) {
 }
 
 // AddContainerData hands JD an encrypted container as inline content instead
-// of a URL to fetch, and pins the package it lands in exactly as
-// AddContainerLinks does (same two reasons: overwritePackagizerRules so our
-// name wins over whatever the container decrypts to, and a fresh marker
-// because the returned job id does not filter queryLinks — see
-// AddContainerLinks's own doc).
+// of a URL to fetch, and is followed back exactly as AddContainerLinks is: a
+// fresh marker name, overwritePackagizerRules so that name has the best chance
+// of surviving the crawl, and the returned job id as the second, independent
+// anchor — see AddContainerLinks's own doc for why it takes two.
 //
 // This is Click'n'Load's addcrypted (v1): unlike a .dlc/.ccf/.rsdf a user
 // saved and later uploaded, that payload was never a file anywhere — it
@@ -372,28 +388,32 @@ func (c *Client) AddContainerData(ext string, data []byte, packageName string) (
 	return out.ID, nil
 }
 
-// CrawledPackageUUID finds a link-grabber package by the name we gave it, or 0.
-func (c *Client) CrawledPackageUUID(name string) (int64, error) {
+// CrawledPackages lists what JD's link grabber is holding, ours and everyone
+// else's. The whole list rather than a lookup by name, because the caller needs
+// two things from it: the packages carrying a marker (plural - the name is a
+// request, not an identity, and JD is free to make more than one), and whether
+// the grabber holds anything at all, which is what makes the jobUUIDs probe in
+// Backend.crawlOutput able to tell a filter that works from one that is ignored.
+func (c *Client) CrawledPackages() ([]downloadPackage, error) {
 	data, err := c.call("/linkgrabberv2/queryPackages", map[string]any{"name": true})
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 	var pkgs []downloadPackage
 	if err := json.Unmarshal(data, &pkgs); err != nil {
-		return 0, err
+		return nil, err
 	}
-	for _, p := range pkgs {
-		if p.Name == name {
-			return p.UUID, nil
-		}
-	}
-	return 0, nil
+	return pkgs, nil
 }
 
-// Collecting reports whether the link grabber is still crawling. Asked before
-// reading the results: a container that has produced three of its eleven links
-// looks exactly like a finished one to a query, and harvesting there loses the
-// other eight without any error to notice.
+// Collecting reports whether the link grabber is still crawling ANYTHING. It is
+// a hint and never a gate: the flag is global to the instance, so on one that is
+// also serving Click'n'Load or a paste it stays true for as long as that runs,
+// and a caller that waits for it to go false waits for something that is not
+// about its own crawl at all. It is unreliable in the other direction too - an
+// incremental crawler reports "not collecting" in the gaps between its own
+// sub-crawls. What a crawl has actually finished is decided by its own link
+// count standing still; see Backend.awaitContainerLinks.
 func (c *Client) Collecting() (bool, error) {
 	data, err := c.call("/linkgrabberv2/isCollecting")
 	if err != nil {
@@ -406,18 +426,23 @@ func (c *Client) Collecting() (bool, error) {
 	return busy, nil
 }
 
-// CrawledLinks returns the links in one link-grabber package. Scoped to the
-// package rather than reading the whole grabber, because anything the user put
-// there through JD's own window is theirs and must not be swept up with ours.
-func (c *Client) CrawledLinks(packageUUID int64) ([]CrawledLink, error) {
-	data, err := c.call("/linkgrabberv2/queryLinks", map[string]any{
+// crawledLinkFields is the set of per-link facts every grabber query here asks
+// for. One list, because a query that forgets one of them does not fail - it
+// answers with the field zeroed, which reads downstream as "the crawl did not
+// know", and that is a lie the caller cannot tell from the truth.
+func crawledLinkFields() map[string]any {
+	return map[string]any{
 		"url":          true,
 		"name":         true,
 		"host":         true,
 		"bytesTotal":   true,
 		"availability": true,
-		"packageUUIDs": []int64{packageUUID},
-	})
+		"packageUUID":  true,
+	}
+}
+
+func (c *Client) queryCrawledLinks(q map[string]any) ([]CrawledLink, error) {
+	data, err := c.call("/linkgrabberv2/queryLinks", q)
 	if err != nil {
 		return nil, err
 	}
@@ -428,15 +453,67 @@ func (c *Client) CrawledLinks(packageUUID int64) ([]CrawledLink, error) {
 	return out, nil
 }
 
-// RemoveCrawledPackage clears our package out of the link grabber. Called once
-// its links have been read: JD's staging list is not our storage, and leaving
-// every container we ever opened in it turns the user's own grabber into a bin.
-func (c *Client) RemoveCrawledPackage(packageUUID int64) error {
-	if packageUUID == 0 {
+// CrawledLinks returns the links in the named link-grabber packages. Scoped to
+// them rather than reading the whole grabber, because anything the user put
+// there through JD's own window is theirs and must not be swept up with ours -
+// which is also why no package at all means no query and no links, never the
+// unfiltered one that would answer with the lot.
+func (c *Client) CrawledLinks(packageUUIDs ...int64) ([]CrawledLink, error) {
+	if len(packageUUIDs) == 0 {
+		return nil, nil
+	}
+	q := crawledLinkFields()
+	q["packageUUIDs"] = packageUUIDs
+	return c.queryCrawledLinks(q)
+}
+
+// CrawledLinksForJob returns the links one addLinks job produced, by the id
+// that call handed back.
+//
+// This is the anchor that does not care what JD named the package. It is also
+// the one that has been seen coming back empty on a live JD while the links
+// were plainly there, so a caller has to treat an empty answer as "no news",
+// never as "the container was empty" - see Backend.awaitContainerLinks, which
+// pairs it with the marker name for exactly that reason.
+func (c *Client) CrawledLinksForJob(jobUUID int64) ([]CrawledLink, error) {
+	if jobUUID == 0 {
+		return nil, nil
+	}
+	q := crawledLinkFields()
+	q["jobUUIDs"] = []int64{jobUUID}
+	return c.queryCrawledLinks(q)
+}
+
+// RemoveCrawled clears our crawl out of the link grabber - the links by id and
+// the packages that held them. Called once they have been read: JD's staging
+// list is not our storage, and leaving every container we ever opened in it
+// both turns the user's own grabber into a bin and leaves JD free to start the
+// links itself.
+//
+// Both lists, not either: the packages are what a container opening into
+// several of them leaves behind, and the link ids cover the case where JD told
+// us which links were ours without telling us which package they sit in.
+func (c *Client) RemoveCrawled(linkUUIDs, packageUUIDs []int64) error {
+	linkUUIDs = nonZero(linkUUIDs)
+	packageUUIDs = nonZero(packageUUIDs)
+	if len(linkUUIDs) == 0 && len(packageUUIDs) == 0 {
 		return nil
 	}
-	_, err := c.call("/linkgrabberv2/removeLinks", []int64{}, []int64{packageUUID})
+	_, err := c.call("/linkgrabberv2/removeLinks", linkUUIDs, packageUUIDs)
 	return err
+}
+
+// nonZero drops the ids JD never gave us. A zero in either list of a
+// removeLinks call is not a harmless no-op to guess about, so it does not
+// travel.
+func nonZero(ids []int64) []int64 {
+	out := make([]int64, 0, len(ids))
+	for _, id := range ids {
+		if id != 0 {
+			out = append(out, id)
+		}
+	}
+	return out
 }
 
 // RemoveLinks removes links (and/or whole packages) from the download list.
