@@ -18,7 +18,7 @@
 // typed letters in it reads as a bug rather than as a match on the sentence
 // behind the (i).
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useT, type TranslationKey } from '../../lib/i18n';
 import { en } from '../../lib/locales/en';
 import { IconClose, IconSearch } from '../../lib/icons';
@@ -46,6 +46,7 @@ import {
 } from './jump';
 import { SETTINGS_INDEX } from './searchIndex';
 import { hasContent } from './registry';
+import { useRevealOnScrollUp } from './revealOnScrollUp';
 import { label as pageLabel } from './tx';
 
 /** How long to wait after the last keystroke before matching. The same 150ms,
@@ -223,6 +224,20 @@ export function SettingsSearch({ pages }: { pages: FeaturePage[] }) {
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
 
+  // Festgehalten, solange die Leiste benutzt wird: offen, Text im Feld, oder der
+  // Fokus darin. Ohne das koennte ein einzelner Rad-Tick sie unter der Hand
+  // wegnehmen, die gerade darin tippt.
+  const pinned =
+    open || query !== '' || (typeof document !== 'undefined' && document.activeElement === inputRef.current);
+  // Der Ort ist der Ruecksetzer: eine andere Einstellungsseite ist eine andere
+  // Frage, und die alte Leiste beantwortete die vorige (jdp: "wenn man den tab
+  // wechselt soll sie wieder weg sein").
+  const { pathname } = useLocation();
+  // Steht HIER oben und nicht kurz vor dem return, weil der Palettenbefehl
+  // weiter unten 'show' braucht: ein Haken, der nach seinem Verbraucher
+  // deklariert wird, ist keiner.
+  const { revealed, barRef, hide, show } = useRevealOnScrollUp(pathname, pinned);
+
   const [settled, setSettled] = useState('');
   useEffect(() => {
     const id = window.setTimeout(() => setSettled(query), DEBOUNCE_MS);
@@ -329,9 +344,14 @@ export function SettingsSearch({ pages }: { pages: FeaturePage[] }) {
       return;
     }
     clearSearchFocus();
+    // Erst holen, dann fokussieren. Die Leiste ist normalerweise gar nicht im
+    // Dokument, also gaebe es ohne diese Zeile nichts zu fokussieren und der
+    // Befehl taete stillschweigend nichts. Das requestAnimationFrame wartet
+    // ohnehin einen Rahmen ab, und in dem ist sie gezeichnet.
+    show();
     const raf = requestAnimationFrame(() => inputRef.current?.focus());
     return () => cancelAnimationFrame(raf);
-  }, [focusAskedAt]);
+  }, [focusAskedAt, show]);
 
   // The other half of the jump: the result was picked and the page was told to
   // navigate; now find the thing and mark it. Keyed on the nonce, so asking for
@@ -394,6 +414,12 @@ export function SettingsSearch({ pages }: { pages: FeaturePage[] }) {
       } else if (query) {
         e.preventDefault();
         setQuery('');
+      } else {
+        // Dritter Druck auf Escape, wenn Liste und Feld schon leer sind: die
+        // Leiste geht weg. Sie wurde geholt, also muss sie sich auch wieder
+        // wegschicken lassen, ohne dass jemand dafuer scrollen muss.
+        e.preventDefault();
+        hide();
       }
     } else if (e.key === 'ArrowDown') {
       e.preventDefault();
@@ -418,30 +444,32 @@ export function SettingsSearch({ pages }: { pages: FeaturePage[] }) {
   const showList = open && settled.trim() !== '';
   let rowIndex = -1;
 
+  // Nicht gerufen, also nicht da. Kein Platzhalter, keine Hoehe null, kein
+  // durchsichtiger Streifen: die Leiste ist schlicht nicht im Dokument, und
+  // damit auch nicht in der Tab-Reihenfolge und nicht fuer einen Screenreader.
+  // Das ist der Unterschied zwischen "unsichtbar" und "nicht da", und jdp hat
+  // dreimal das zweite gemeint.
+  if (!revealed) return null;
+
   return (
-    // IT DOES NOT FLOAT, and that is the whole point of this element's position.
+    // IT IS NOT THERE UNTIL SOMEBODY SCROLLS UP FOR IT, and that is the third
+    // answer to one complaint. Sticky-and-sliding floated over the content the
+    // whole time it was up; in the flow it was still visible whenever the column
+    // sat at its top. jdp, plainly: "die suchleiste soll nicht sichtbar sein!!!
+    // erst wenn man nach oben scrollt. wenn man den tab wechselt soll sie wieder
+    // weg sein."
     //
-    // It used to be `sticky top-0` with an opaque ground, so every card in the
-    // column passed UNDER it while you read - and the card directly under it is
-    // the first one on the page, the one line that says where you are. The first
-    // attempt at fixing that kept the sticky and slid the bar away on the way
-    // down, which is a well-known pattern and still the wrong answer here: it
-    // floats over the content the whole time it is on screen (jdp, twice: "die
-    // suchleiste schwebt immer noch über alles").
-    //
-    // So it sits in the flow, above the first card, and scrolls away with
-    // everything else. You see it when you are at the top of the column, which
-    // is where scrolling up puts you. Nothing overlaps, nothing needs an opaque
-    // strip to hide behind, and there is no scroll listener, no pinned state and
-    // no slide to keep in step with any of it - the whole mechanism that existed
-    // to work around the floating went with the floating.
+    // So the component returns null until an upward gesture asks for it, and
+    // then it sits in the flow ABOVE the first card rather than over anything.
+    // Changing settings page takes it away again. See revealOnScrollUp.ts for
+    // why a wheel listener is needed beside the scroll one, and for the scroll
+    // compensation that stops the cards jumping when it arrives.
     //
     // NOT in PageHeader. That renders above the rail-plus-column flex, so a field
     // there would push the rail down and stop it running the full window height -
-    // the one thing this page's whole layout exists to do. Staying the column's
-    // first child is also what keeps it level with the first tile in the rail
-    // beside it (Settings.tsx's own note on why the two share a top padding).
+    // the one thing this page's whole layout exists to do.
     <div
+      ref={barRef}
       onBlur={(e) => {
         // Closes when focus genuinely leaves the box and its list, not when it
         // moves between the two.
