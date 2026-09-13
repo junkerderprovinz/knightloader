@@ -290,6 +290,8 @@ export const nl: Dict = {
   'list.sortedView': 'Gesorteerde weergave',
   'list.sortedViewTip': 'Sorteren verandert de volgorde die je ziet, niet de volgorde die draait. Downloads starten nog steeds in wachtrijvolgorde.',
   'list.queueOrder': 'Terug naar wachtrijvolgorde',
+  'list.dragNeedsQueueOrder': 'Slepen werkt alleen in wachtrijvolgorde. Ga terug naar wachtrijvolgorde om rijen met de hand te verplaatsen.',
+  'list.dragNotInQueue': 'Dit is niet met de hand te verplaatsen: alleen links die nog in de wachtrij staan, en een map alleen zolang haar links dezelfde prioriteit hebben.',
   'list.controls': 'Lijstbediening',
   'list.actions': 'Lijstacties',
   'list.failed': 'Dat werkte niet: {error}',
@@ -1586,7 +1588,7 @@ export const nl: Dict = {
   'commands.group.queue': 'Wachtrij',
   'commands.group.language': 'Taal',
   'commands.group.downloads': 'Downloads',
-  'commands.group.collector': 'Verzamelaar',
+  'commands.group.collector': 'Linkverzamelaar',
 
   'commands.paletteLabel': 'Opdrachtenpalet',
   'commands.searchPlaceholder': 'Typ een opdracht…',

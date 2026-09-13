@@ -290,6 +290,8 @@ export const pl: Dict = {
   'list.sortedView': 'Widok posortowany',
   'list.sortedViewTip': 'Sortowanie zmienia kolejność, którą widzisz, a nie tę, w której pobieranie rusza. Pobierania nadal startują w kolejności kolejki.',
   'list.queueOrder': 'Wróć do kolejności kolejki',
+  'list.dragNeedsQueueOrder': 'Przeciąganie działa tylko w kolejności kolejki. Wróć do kolejności kolejki, aby przenosić wiersze ręcznie.',
+  'list.dragNotInQueue': 'Tego nie da się przenieść ręcznie: tylko linki, które wciąż czekają w kolejce, a folder tylko wtedy, gdy jego linki mają ten sam priorytet.',
   'list.controls': 'Sterowanie listą',
   'list.actions': 'Akcje listy',
   'list.failed': 'To się nie udało: {error}',
@@ -1586,7 +1588,7 @@ export const pl: Dict = {
   'commands.group.queue': 'Kolejka',
   'commands.group.language': 'Język',
   'commands.group.downloads': 'Pobierania',
-  'commands.group.collector': 'Kolektor',
+  'commands.group.collector': 'Kolektor linków',
 
   'commands.paletteLabel': 'Paleta poleceń',
   'commands.searchPlaceholder': 'Wpisz polecenie…',

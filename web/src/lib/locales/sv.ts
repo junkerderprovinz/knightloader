@@ -298,6 +298,8 @@ export const sv: Dict = {
   'list.sortedView': 'Sorterad vy',
   'list.sortedViewTip': 'Sortering ändrar ordningen du ser, inte ordningen som körs. Nedladdningar startar fortfarande i köns ordning.',
   'list.queueOrder': 'Tillbaka till köns ordning',
+  'list.dragNeedsQueueOrder': 'Dra och släpp fungerar bara i köns ordning. Gå tillbaka till köns ordning för att flytta rader för hand.',
+  'list.dragNotInQueue': 'Den här går inte att flytta för hand: bara länkar som fortfarande väntar i kön, och en mapp bara när dess länkar har samma prioritet.',
   'list.controls': 'Listkontroller',
   'list.actions': 'Liståtgärder',
   'list.failed': 'Det gick inte: {error}',
@@ -1594,7 +1596,7 @@ export const sv: Dict = {
   'commands.group.queue': 'Kö',
   'commands.group.language': 'Språk',
   'commands.group.downloads': 'Nedladdningar',
-  'commands.group.collector': 'Samlare',
+  'commands.group.collector': 'Länksamlare',
 
   'commands.paletteLabel': 'Kommandopalett',
   'commands.searchPlaceholder': 'Skriv ett kommando…',

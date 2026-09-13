@@ -298,6 +298,8 @@ export const uk: Dict = {
   'list.sortedView': 'Відсортований вигляд',
   'list.sortedViewTip': 'Сортування змінює порядок, який ви бачите, а не порядок запуску. Завантаження й далі стартують у порядку черги.',
   'list.queueOrder': 'Повернути порядок черги',
+  'list.dragNeedsQueueOrder': 'Перетягування працює лише в порядку черги. Поверніть порядок черги, щоб пересувати рядки вручну.',
+  'list.dragNotInQueue': 'Це не можна пересунути вручну: лише посилання, які ще чекають у черзі, а теку тільки поки її посилання мають однаковий пріоритет.',
   'list.controls': 'Керування списком',
   'list.actions': 'Дії зі списком',
   'list.failed': 'Не вийшло: {error}',
@@ -1594,7 +1596,7 @@ export const uk: Dict = {
   'commands.group.queue': 'Черга',
   'commands.group.language': 'Мова',
   'commands.group.downloads': 'Завантаження',
-  'commands.group.collector': 'Збирач',
+  'commands.group.collector': 'Збирач посилань',
 
   'commands.paletteLabel': 'Палітра команд',
   'commands.searchPlaceholder': 'Введіть команду…',

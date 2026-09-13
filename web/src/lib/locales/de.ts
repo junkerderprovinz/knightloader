@@ -305,6 +305,8 @@ export const de: Dict = {
   'list.sortedView': 'Sortierte Ansicht',
   'list.sortedViewTip': 'Sortieren ändert die Reihenfolge, die du siehst, nicht die, die läuft. Downloads starten weiter in der Reihenfolge der Warteschlange.',
   'list.queueOrder': 'Zurück zur Warteschlange',
+  'list.dragNeedsQueueOrder': 'Ziehen geht nur in der Reihenfolge der Warteschlange. Geh zurück zur Warteschlange, um Zeilen selbst zu verschieben.',
+  'list.dragNotInQueue': 'Das lässt sich nicht von Hand verschieben: nur Links, die noch in der Warteschlange warten, und ein Ordner nur dann, wenn seine Links dieselbe Priorität haben.',
   'list.controls': 'Listensteuerung',
   'list.actions': 'Listenaktionen',
   'list.failed': 'Das hat nicht geklappt: {error}',
@@ -1604,7 +1606,7 @@ export const de: Dict = {
   'commands.group.queue': 'Warteschlange',
   'commands.group.language': 'Sprache',
   'commands.group.downloads': 'Downloads',
-  'commands.group.collector': 'Sammler',
+  'commands.group.collector': 'Linksammler',
 
   'commands.paletteLabel': 'Befehlspalette',
   'commands.searchPlaceholder': 'Befehl eingeben…',

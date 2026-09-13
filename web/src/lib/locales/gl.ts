@@ -298,6 +298,8 @@ export const gl: Dict = {
   'list.sortedView': 'Vista ordenada',
   'list.sortedViewTip': 'Ordenar cambia a orde que ves, non a orde na que se executa. As descargas seguen comezando pola orde da cola.',
   'list.queueOrder': 'Volver á orde da cola',
+  'list.dragNeedsQueueOrder': 'Arrastrar só funciona na orde da cola. Volve á orde da cola para mover filas a man.',
+  'list.dragNotInQueue': 'Isto non se pode mover a man: só as ligazóns que aínda esperan na cola, e un cartafol só mentres as súas ligazóns comparten unha prioridade.',
   'list.controls': 'Controis da lista',
   'list.actions': 'Accións da lista',
   'list.failed': 'Iso non funcionou: {error}',
@@ -1593,7 +1595,7 @@ export const gl: Dict = {
   'commands.group.queue': 'Cola',
   'commands.group.language': 'Idioma',
   'commands.group.downloads': 'Descargas',
-  'commands.group.collector': 'Colector',
+  'commands.group.collector': 'Colector de ligazóns',
 
   'commands.paletteLabel': 'Paleta de comandos',
   'commands.searchPlaceholder': 'Escribe un comando…',

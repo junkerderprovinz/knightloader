@@ -144,6 +144,32 @@ function useAppearance() {
  * doing - holding this card apart from the page's first one - is the mb now.
  * Under `hidden` the margin goes with the element, so every other page still
  * starts at the top of its own column.
+ *
+ * WHAT DECIDES HOW TALL THIS CARD IS, because for a while nothing did and it
+ * got read as a second page (jdp, 2026-09-13: "die kopfcard im downloadtab ist
+ * immer noch viel zu hoch!!").
+ *
+ * The transport column decides, and only it: three key buttons at 2.5rem with
+ * 8px between them is 136px, and jdp asked for exactly that shape and that
+ * consequence (2026-09-07, "die drei button untereinander" and "die karte soll
+ * so hoch werden das die drei untereinander platz haben"). With p-5 around it
+ * the card is 176px, and that is the floor - the way to a flatter card from
+ * here is the three buttons, not the padding.
+ *
+ * What used to decide it was the WIDTH. The speed curve is an svg with a
+ * viewBox and no height, so its 148:40 ratio turned every pixel of width into a
+ * quarter of a pixel of height, and the row grew to fit it: measured on jdp's
+ * own instance at 196px in a 1280 window, 229 at 1400 and 369 at 1920, with the
+ * transport column stuck at 136 the whole time. Widening the curve (2026-09-07,
+ * "der downloadgraph in der kopfzeile soll viel breiter sein") is what made the
+ * card taller, which is why a round that went looking for a wrapped label found
+ * nothing to fix. SpeedGraph.tsx's SpeedMeter carries the fix and
+ * web/check-stretched-svg-height.mjs is the gate for it.
+ *
+ * So anything mounted in here has a budget: 136px, or it becomes the tallest
+ * thing in the row and the card grows to it. The widget column is inside that
+ * today (menu button 32, limit 24, volume meter 25, disk line 20, gaps 24) and
+ * it is the piece to watch, because it is the one that wraps.
  */
 function ShellBar({ visible }: { visible: boolean }) {
   const { t } = useT();
@@ -154,7 +180,9 @@ function ShellBar({ visible }: { visible: boolean }) {
       aria-label={t('shell.bar')}
       /* items-stretch, not items-center: the speed curve at the trailing edge
          is meant to be as tall as the card itself (jdp, 2026-09-06), and a
-         centred row would give it only the height of its own content. */
+         centred row would give it only the height of its own content. It is
+         also what carries the card's height down to the curve now that nothing
+         on the way claims a height of its own - see ShellStrip. */
       className={`glim-card mx-6 mb-6 items-stretch gap-x-4 gap-y-2 p-5 md:mx-8 md:mb-8
         ${visible ? 'flex' : 'hidden'}`}
     >

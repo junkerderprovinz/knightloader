@@ -334,6 +334,15 @@ jobs:
       - name: Button order
         run: node check-button-order.mjs
 
+      # A curve drawn with preserveAspectRatio="none" is still a replaced
+      # element with a ratio, so a viewBox and no height turns width into
+      # height and the card around it grows to fit. The Downloads head card
+      # did exactly that: 200px tall at a 1280 window, 229 at 1400, 369 at
+      # 1920, while its own content stayed 136. Making the curve wider, which
+      # is what jdp had asked for, was what made the card taller.
+      - name: A stretched plot does not decide its card's height
+        run: node check-stretched-svg-height.mjs
+
       # The one list in the app where a typo costs a stranger real money and
       # nobody ever hears about it: somebody who tried to give something away
       # gets no error, no retry and no support ticket, because they never write.

@@ -298,6 +298,8 @@ export const ms: Dict = {
   'list.sortedView': 'Paparan terisih',
   'list.sortedViewTip': 'Pengisihan mengubah susunan yang anda lihat, bukan susunan yang berjalan. Muat turun tetap bermula mengikut susunan baris gilir.',
   'list.queueOrder': 'Kembali ke susunan baris gilir',
+  'list.dragNeedsQueueOrder': 'Seret hanya berfungsi dalam susunan baris gilir. Kembali ke susunan baris gilir untuk memindahkan baris secara manual.',
+  'list.dragNotInQueue': 'Yang ini tidak boleh dialih secara manual: hanya pautan yang masih menunggu dalam baris gilir, dan folder hanya selagi pautannya berkongsi satu keutamaan.',
   'list.controls': 'Kawalan senarai',
   'list.actions': 'Tindakan senarai',
   'list.failed': 'Itu tidak menjadi: {error}',
@@ -1593,7 +1595,7 @@ export const ms: Dict = {
   'commands.group.queue': 'Baris gilir',
   'commands.group.language': 'Bahasa',
   'commands.group.downloads': 'Muat turun',
-  'commands.group.collector': 'Pengumpul',
+  'commands.group.collector': 'Pengumpul pautan',
 
   'commands.paletteLabel': 'Palet arahan',
   'commands.searchPlaceholder': 'Taip arahan…',

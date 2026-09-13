@@ -298,6 +298,8 @@ export const et: Dict = {
   'list.sortedView': 'Järjestatud vaade',
   'list.sortedViewTip': 'Järjestamine muudab järjekorda, mida sa näed, mitte seda, milles alla laaditakse. Allalaadimised algavad ikka järjekorra järgi.',
   'list.queueOrder': 'Tagasi järjekorra järjestusse',
+  'list.dragNeedsQueueOrder': 'Lohistamine töötab ainult järjekorra järjestuses. Mine tagasi järjekorra järjestusse, et ridu käsitsi liigutada.',
+  'list.dragNotInQueue': 'Seda ei saa käsitsi liigutada: ainult linke, mis ootavad veel järjekorras, ja kausta ainult siis, kui ta linkidel on sama prioriteet.',
   'list.controls': 'Loendi juhtnupud',
   'list.actions': 'Loendi toimingud',
   'list.failed': 'See ei õnnestunud: {error}',
@@ -1593,7 +1595,7 @@ export const et: Dict = {
   'commands.group.queue': 'Järjekord',
   'commands.group.language': 'Keel',
   'commands.group.downloads': 'Allalaadimised',
-  'commands.group.collector': 'Koguja',
+  'commands.group.collector': 'Linkide koguja',
 
   'commands.paletteLabel': 'Käsupalett',
   'commands.searchPlaceholder': 'Kirjuta käsk…',

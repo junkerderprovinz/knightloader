@@ -298,6 +298,8 @@ export const id: Dict = {
   'list.sortedView': 'Tampilan terurut',
   'list.sortedViewTip': 'Pengurutan mengubah urutan yang kamu lihat, bukan urutan yang berjalan. Unduhan tetap dimulai sesuai urutan antrean.',
   'list.queueOrder': 'Kembali ke urutan antrean',
+  'list.dragNeedsQueueOrder': 'Seret hanya berfungsi dalam urutan antrean. Kembali ke urutan antrean untuk memindahkan baris secara manual.',
+  'list.dragNotInQueue': 'Yang ini tidak bisa dipindahkan manual: hanya tautan yang masih menunggu di antrean, dan folder hanya selama tautannya memiliki prioritas yang sama.',
   'list.controls': 'Kontrol daftar',
   'list.actions': 'Tindakan daftar',
   'list.failed': 'Itu tidak berhasil: {error}',
@@ -1593,7 +1595,7 @@ export const id: Dict = {
   'commands.group.queue': 'Antrean',
   'commands.group.language': 'Bahasa',
   'commands.group.downloads': 'Unduhan',
-  'commands.group.collector': 'Pengumpul',
+  'commands.group.collector': 'Pengumpul tautan',
 
   'commands.paletteLabel': 'Palet perintah',
   'commands.searchPlaceholder': 'Ketik perintah…',

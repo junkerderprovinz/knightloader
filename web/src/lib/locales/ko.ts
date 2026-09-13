@@ -298,6 +298,8 @@ export const ko: Dict = {
   'list.sortedView': '정렬된 보기',
   'list.sortedViewTip': '정렬은 보이는 순서만 바꾸며 실제로 실행되는 순서는 그대로입니다. 다운로드는 여전히 대기열 순서로 시작합니다.',
   'list.queueOrder': '대기열 순서로 되돌리기',
+  'list.dragNeedsQueueOrder': '끌어서 옮기기는 대기열 순서에서만 됩니다. 행을 직접 옮기려면 대기열 순서로 되돌리세요.',
+  'list.dragNotInQueue': '이건 직접 옮길 수 없습니다. 대기열에서 기다리는 링크만 옮길 수 있고, 폴더는 링크들의 우선순위가 같을 때만 됩니다.',
   'list.controls': '목록 조작',
   'list.actions': '목록 작업',
   'list.failed': '실패했습니다: {error}',
@@ -1593,7 +1595,7 @@ export const ko: Dict = {
   'commands.group.queue': '대기열',
   'commands.group.language': '언어',
   'commands.group.downloads': '다운로드',
-  'commands.group.collector': '수집함',
+  'commands.group.collector': '링크 수집기',
 
   'commands.paletteLabel': '명령 팔레트',
   'commands.searchPlaceholder': '명령 입력…',

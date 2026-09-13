@@ -298,6 +298,8 @@ export const fa: Dict = {
   'list.sortedView': 'نمای مرتب‌شده',
   'list.sortedViewTip': 'مرتب‌سازی ترتیبی را که می‌بینید عوض می‌کند، نه ترتیبی که اجرا می‌شود. دانلودها همچنان به ترتیب صف آغاز می‌شوند.',
   'list.queueOrder': 'بازگشت به ترتیب صف',
+  'list.dragNeedsQueueOrder': 'کشیدن فقط در ترتیب صف کار می‌کند. برای جابه‌جایی دستی ردیف‌ها به ترتیب صف برگرد.',
+  'list.dragNotInQueue': 'این را نمی‌شود دستی جابه‌جا کرد: فقط پیوندهایی که هنوز در صف منتظرند، و یک پوشه تنها وقتی پیوندهایش اولویت یکسانی دارند.',
   'list.controls': 'کنترل‌های فهرست',
   'list.actions': 'کنش‌های فهرست',
   'list.failed': 'این کار نگرفت: {error}',
@@ -1593,7 +1595,7 @@ export const fa: Dict = {
   'commands.group.queue': 'صف',
   'commands.group.language': 'زبان',
   'commands.group.downloads': 'دانلودها',
-  'commands.group.collector': 'جمع‌آور',
+  'commands.group.collector': 'گردآور پیوندها',
 
   'commands.paletteLabel': 'پالت فرمان‌ها',
   'commands.searchPlaceholder': 'یک فرمان تایپ کن…',

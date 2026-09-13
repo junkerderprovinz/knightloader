@@ -298,6 +298,8 @@ export const sk: Dict = {
   'list.sortedView': 'Zoradený pohľad',
   'list.sortedViewTip': 'Zoradenie mení poradie, ktoré vidíte, nie poradie, v ktorom sa sťahuje. Sťahovanie stále štartuje v poradí frontu.',
   'list.queueOrder': 'Späť na poradie frontu',
+  'list.dragNeedsQueueOrder': 'Ťahanie funguje len v poradí frontu. Vráť sa na poradie frontu, aby si riadky presunul ručne.',
+  'list.dragNotInQueue': 'Toto sa nedá presunúť ručne: len odkazy, ktoré ešte čakajú vo fronte, a priečinok len vtedy, keď majú jeho odkazy rovnakú prioritu.',
   'list.controls': 'Ovládanie zoznamu',
   'list.actions': 'Akcie zoznamu',
   'list.failed': 'Toto nevyšlo: {error}',
@@ -1594,7 +1596,7 @@ export const sk: Dict = {
   'commands.group.queue': 'Front',
   'commands.group.language': 'Jazyk',
   'commands.group.downloads': 'Sťahovanie',
-  'commands.group.collector': 'Zberač',
+  'commands.group.collector': 'Zberač odkazov',
 
   'commands.paletteLabel': 'Paleta príkazov',
   'commands.searchPlaceholder': 'Napíš príkaz…',

@@ -298,6 +298,8 @@ export const vi: Dict = {
   'list.sortedView': 'Xem đã sắp xếp',
   'list.sortedViewTip': 'Sắp xếp chỉ đổi thứ tự bạn nhìn thấy, không đổi thứ tự chạy. Các tải xuống vẫn bắt đầu theo thứ tự hàng đợi.',
   'list.queueOrder': 'Về thứ tự hàng đợi',
+  'list.dragNeedsQueueOrder': 'Kéo thả chỉ hoạt động theo thứ tự hàng đợi. Về thứ tự hàng đợi để tự tay di chuyển các hàng.',
+  'list.dragNotInQueue': 'Cái này không thể di chuyển bằng tay: chỉ những liên kết còn chờ trong hàng đợi, và một thư mục chỉ khi các liên kết của nó cùng một mức ưu tiên.',
   'list.controls': 'Điều khiển danh sách',
   'list.actions': 'Hành động trên danh sách',
   'list.failed': 'Không thành công: {error}',
@@ -1593,7 +1595,7 @@ export const vi: Dict = {
   'commands.group.queue': 'Hàng đợi',
   'commands.group.language': 'Ngôn ngữ',
   'commands.group.downloads': 'Tải xuống',
-  'commands.group.collector': 'Bộ thu thập',
+  'commands.group.collector': 'Bộ thu liên kết',
 
   'commands.paletteLabel': 'Bảng lệnh',
   'commands.searchPlaceholder': 'Nhập lệnh…',

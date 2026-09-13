@@ -298,6 +298,8 @@ export const cs: Dict = {
   'list.sortedView': 'Seřazený pohled',
   'list.sortedViewTip': 'Řazení mění pořadí, které vidíte, ne pořadí, ve kterém se stahuje. Stahování stále startuje v pořadí fronty.',
   'list.queueOrder': 'Zpět na pořadí fronty',
+  'list.dragNeedsQueueOrder': 'Přetahování funguje jen v pořadí fronty. Vrať se na pořadí fronty, abys řádky přesunul ručně.',
+  'list.dragNotInQueue': 'Tímhle nelze hýbat ručně: jen odkazy, které ještě čekají ve frontě, a složka jen tehdy, když mají její odkazy stejnou prioritu.',
   'list.controls': 'Ovládání seznamu',
   'list.actions': 'Akce seznamu',
   'list.failed': 'Tohle nevyšlo: {error}',
@@ -1594,7 +1596,7 @@ export const cs: Dict = {
   'commands.group.queue': 'Fronta',
   'commands.group.language': 'Jazyk',
   'commands.group.downloads': 'Stahování',
-  'commands.group.collector': 'Sběrač',
+  'commands.group.collector': 'Sběrač odkazů',
 
   'commands.paletteLabel': 'Paleta příkazů',
   'commands.searchPlaceholder': 'Napiš příkaz…',

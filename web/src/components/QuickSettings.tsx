@@ -230,7 +230,14 @@ export function ShellStrip() {
           the head card's own flexible spacer, so without a grow of its own the
           curve is only as wide as its content (jdp, 2026-09-07: "der
           downloadgraph in der kopfzeile soll viel breiter sein"). */}
-      <span className="flex h-full flex-1 items-stretch gap-2">
+      {/* NO h-full, and that is the opposite of what it looks like. A flex item
+          only stretches to its row while its cross size is `auto`; writing
+          height:100% takes it OUT of the stretch and then resolves it against a
+          flex container whose height is not definite, which lands on auto
+          anyway - measured at 52px inside a 160px card. The card's own
+          items-stretch is what carries the height down here, and it only does
+          it while nothing on the way claims a height of its own. */}
+      <span className="flex flex-1 items-stretch gap-2">
         {/* The curve comes FIRST and takes the width; the two controls sit past
             it (jdp, 2026-09-07: "das hamburgermenü und die
             geschwindigkeitsbegrenzung soll rechts davon sein"). Nothing to

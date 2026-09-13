@@ -298,6 +298,8 @@ export const ro: Dict = {
   'list.sortedView': 'Vedere sortată',
   'list.sortedViewTip': 'Sortarea schimbă ordinea pe care o vezi, nu ordinea în care rulează. Descărcările pornesc tot în ordinea cozii.',
   'list.queueOrder': 'Înapoi la ordinea cozii',
+  'list.dragNeedsQueueOrder': 'Tragerea funcționează doar în ordinea cozii. Întoarce-te la ordinea cozii ca să muți rândurile manual.',
+  'list.dragNotInQueue': 'Acesta nu poate fi mutat manual: doar linkurile care încă așteaptă în coadă, iar un dosar doar cât timp linkurile lui au aceeași prioritate.',
   'list.controls': 'Controalele listei',
   'list.actions': 'Acțiunile listei',
   'list.failed': 'Nu a mers: {error}',
@@ -1597,7 +1599,7 @@ export const ro: Dict = {
   'commands.group.queue': 'Coadă',
   'commands.group.language': 'Limbă',
   'commands.group.downloads': 'Descărcări',
-  'commands.group.collector': 'Colector',
+  'commands.group.collector': 'Colector de linkuri',
 
   'commands.paletteLabel': 'Paleta de comenzi',
   'commands.searchPlaceholder': 'Scrie o comandă…',

@@ -300,6 +300,8 @@ export const ar: Dict = {
   'list.sortedView': 'عرض مرتَّب',
   'list.sortedViewTip': 'الترتيب يغيّر ما تراه لا ما يُنفَّذ. التنزيلات تبدأ كما كانت بترتيب الطابور.',
   'list.queueOrder': 'العودة إلى ترتيب الطابور',
+  'list.dragNeedsQueueOrder': 'السحب يعمل في ترتيب الطابور فقط. عُد إلى ترتيب الطابور لنقل الصفوف يدويًا.',
+  'list.dragNotInQueue': 'لا يمكن تحريك هذا يدويًا: فقط الروابط التي ما زالت تنتظر في الطابور، والمجلد فقط عندما تشترك روابطه في الأولوية نفسها.',
   'list.controls': 'أدوات القائمة',
   'list.actions': 'إجراءات القائمة',
   'list.failed': 'لم ينجح ذلك: {error}',
@@ -1595,7 +1597,7 @@ export const ar: Dict = {
   'commands.group.queue': 'الطابور',
   'commands.group.language': 'اللغة',
   'commands.group.downloads': 'التنزيلات',
-  'commands.group.collector': 'المُجمِّع',
+  'commands.group.collector': 'مجمّع الروابط',
 
   'commands.paletteLabel': 'لوحة الأوامر',
   'commands.searchPlaceholder': 'اكتب أمرًا…',

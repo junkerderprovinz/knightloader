@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"regexp"
 	"sort"
 	"strings"
 	"sync"
@@ -34,6 +35,16 @@ type Backend struct {
 
 	mu   sync.Mutex
 	stop map[string]chan struct{} // taskID -> poll stopper
+	// held is the link-grabber packages this backend is presently using, by
+	// name. Counted rather than flagged because one name is legitimately held
+	// by two things at once: Download holds it across the handover and the
+	// poller it starts holds it again for as long as it watches. A name in here
+	// is live business; everything else in our own namespace is abandoned, and
+	// that is the whole of what makes sweepGrabber safe.
+	held map[string]int
+	// filterSaid is whether the jobUUIDs verdict has already been logged. See
+	// jobFilterProbe.announce.
+	filterSaid bool
 }
 
 func NewBackend(base string, onUpdate func(taskID string, u core.Update)) *Backend {
@@ -41,6 +52,7 @@ func NewBackend(base string, onUpdate func(taskID string, u core.Update)) *Backe
 		c:        NewClient(base),
 		onUpdate: onUpdate,
 		stop:     map[string]chan struct{}{},
+		held:     map[string]int{},
 	}
 }
 
@@ -64,6 +76,106 @@ func (b *Backend) pkgName(taskID string) string { return "KL-" + taskID }
 // var, not a const, so a test does not have to sit through it for real (the
 // same convention internal/provision's stopGrace already uses).
 var pollInterval = time.Second
+
+// ourGrabberPackage matches the names KnightLoader gives its own link-grabber
+// packages, and nothing else.
+//
+// Three shapes go in there and they are all of this form: "KL-" plus a task id
+// (Backend.pkgName, sixteen lower-case hex digits from app.newID), "KL-" plus a
+// nanosecond stamp (a container crawl's marker), and "KL-check-" plus one (a
+// link check's marker). Deliberately tight: the grabber is shared with the
+// user's own window, a package he named himself must never match, and the cost
+// of being wrong here is deleting his links.
+var ourGrabberPackage = regexp.MustCompile(`^KL-(?:check-)?[0-9a-f]+$`)
+
+// holdGrabber marks one grabber package name as in use by this backend, so the
+// sweep leaves it alone. Every caller pairs it with releaseGrabber.
+func (b *Backend) holdGrabber(name string) {
+	b.mu.Lock()
+	b.held[name]++
+	b.mu.Unlock()
+}
+
+func (b *Backend) releaseGrabber(name string) {
+	b.mu.Lock()
+	if b.held[name] <= 1 {
+		delete(b.held, name)
+	} else {
+		b.held[name]--
+	}
+	b.mu.Unlock()
+}
+
+// sweepGrabber takes KnightLoader's own abandoned packages back out of JD's
+// link grabber, and it is not housekeeping: it is the fix for a container that
+// could never be opened a second time.
+//
+// JDownloader's duplicate manager drops a crawled link that is already in the
+// grabber, and it does it silently - no package, not even an empty one, no
+// error, no line in any log. KnightLoader stages every JD-routed download into
+// that same grabber as "KL-<task id>" and, until this, never took one back out:
+// Remove cleared the DOWNLOAD list only, and a link that never got that far
+// (offline, a captcha JD gave up on, or its own leftover from a restart) stayed
+// where it was. JD reloads the grabber at every start (GeneralSettings
+// "savelinkgrabberlistenabled":true), so they accumulate for ever.
+//
+// Measured on the live instance, 2026-09-13: twenty-three such packages, and
+// the Troja DLC whose nineteen links they held opened into NOTHING every single
+// time - JD fetched it, decrypted it and produced no package at all. Deleting
+// exactly one of the twenty-three and re-submitting the identical file produced
+// a package holding exactly that one link. The leftovers were the bug.
+//
+// What is swept is only what nothing is using: a package in our own name shape
+// (see ourGrabberPackage) that no crawl, check or poller currently holds. A
+// download handed to JD moments ago and a second container being opened in
+// parallel are both held, so both survive.
+func (b *Backend) sweepGrabber() {
+	pkgs, err := b.c.CrawledPackages()
+	if err != nil {
+		return // a grabber we cannot read is not one we may delete from
+	}
+	b.mu.Lock()
+	var stale []int64
+	var names []string
+	for _, p := range pkgs {
+		if p.UUID == 0 || b.held[p.Name] > 0 || !ourGrabberPackage.MatchString(p.Name) {
+			continue
+		}
+		stale = append(stale, p.UUID)
+		names = append(names, p.Name)
+	}
+	b.mu.Unlock()
+	if len(stale) == 0 {
+		return
+	}
+	if err := b.c.RemoveCrawled(nil, stale); err != nil {
+		log.Printf("jd: could not clear %d abandoned package(s) out of the link grabber: %v", len(stale), err)
+		return
+	}
+	log.Printf("jd: cleared %d abandoned package(s) out of the link grabber (%s); JD drops new links that duplicate them",
+		len(names), strings.Join(names, ", "))
+}
+
+// dropGrabberPackage removes one named package from the link grabber, when it
+// is there. The targeted counterpart to sweepGrabber, for the moments where the
+// name is known: a task being removed, and a task being handed to JD that may
+// still have its own leftover from a previous run sitting in the way.
+func (b *Backend) dropGrabberPackage(name string) {
+	pkgs, err := b.c.CrawledPackages()
+	if err != nil {
+		return
+	}
+	var ids []int64
+	for _, p := range pkgs {
+		if p.Name == name && p.UUID != 0 {
+			ids = append(ids, p.UUID)
+		}
+	}
+	if len(ids) == 0 {
+		return
+	}
+	_ = b.c.RemoveCrawled(nil, ids)
+}
 
 // AddContainer hands JD an encrypted link container to open — a DLC, CCF or
 // RSDF, which need a key issued to registered clients and which JD holds one
@@ -97,6 +209,14 @@ func (b *Backend) AddContainer(url, packageName string, timeout time.Duration) (
 	// again in JD's. Using the caller's would collide the moment two containers
 	// were opened into the same package.
 	marker := fmt.Sprintf("KL-%d", time.Now().UnixNano())
+	b.holdGrabber(marker)
+	defer b.releaseGrabber(marker)
+	// Before the container goes in, not after it has failed: JD silently drops
+	// every crawled link its grabber already holds, and the links a container
+	// carries are exactly the ones KnightLoader's own abandoned packages are
+	// holding. See sweepGrabber - this is the difference between a container
+	// that opens and one that opens into nothing for ever.
+	b.sweepGrabber()
 	job, err := b.c.AddContainerLinks(url, marker)
 	if err != nil {
 		return nil, err
@@ -114,6 +234,9 @@ func (b *Backend) AddContainer(url, packageName string, timeout time.Duration) (
 // list"), not a second mechanism for the same problem.
 func (b *Backend) AddCryptedV1(data []byte, packageName string, timeout time.Duration) ([]resolver.Result, error) {
 	marker := fmt.Sprintf("KL-%d", time.Now().UnixNano())
+	b.holdGrabber(marker)
+	defer b.releaseGrabber(marker)
+	b.sweepGrabber() // see AddContainer: the same leftovers eat these links too
 	job, err := b.c.AddContainerData("dlc", data, marker)
 	if err != nil {
 		return nil, err
@@ -134,17 +257,20 @@ const settleReadings = 3
 // AddContainer and AddCryptedV1, whose only difference is how the container's
 // bytes reach JD in the first place.
 //
-// Two things here were wrong for as long as a container could be large, and
-// both produced the same picture: the bar runs for the full timeout and nothing
-// ever arrives (jdp, 2026-09-13, on a Troja DLC that JD's own window opened
-// perfectly).
-//
 // The crawl is followed by its JOB and by the marker name, not by the name
-// alone. A scene DLC declares its own packages, and JD has been seen honouring
-// those instead of the name addLinks asked for; the lookup by name then finds
-// nothing, for ever, and the container is reported as never opened. Both anchors
-// are asked every round and their packages unioned, because either one can come
-// back empty on its own (see Client.AddContainerLinks and CrawledLinksForJob).
+// alone, because neither identifies a crawl on its own: the job filter does not
+// care what JD named anything, and the marker name survives a JD whose jobUUIDs
+// filter is useless. Both anchors are asked every round and their packages
+// unioned (see Client.AddContainerLinks and CrawledLinksForJob).
+//
+// Note what this pair does NOT explain, because it was blamed for it once. A
+// container that arrives here and produces nothing at all is not a container
+// whose packages were named something we failed to look for: measured on the
+// live instance on 2026-09-13, the Troja DLC that would not open created no
+// package in JD's grabber under any name. Its links were already sitting there
+// as KnightLoader's own abandoned packages, and JD's duplicate manager had
+// dropped every one of them without a word. That is sweepGrabber's job, not
+// this loop's.
 //
 // And the crawl is settled by its own link count standing still. JD's
 // isCollecting is global to the instance: on one that is also chewing through
@@ -160,7 +286,7 @@ func (b *Backend) awaitContainerLinks(job int64, marker string, timeout time.Dur
 	var pkgs []int64
 	var links []CrawledLink
 	settled := 0
-	probe := &jobFilterProbe{}
+	probe := b.newJobFilterProbe()
 	for {
 		<-tick.C
 
@@ -202,14 +328,34 @@ func (b *Backend) awaitContainerLinks(job int64, marker string, timeout time.Dur
 			// both.
 			//
 			// Nothing found under either anchor is the genuinely empty case and
-			// stays an error: there is nothing to salvage and, as far as
-			// anything here can tell, the container really did not open.
+			// stays an error. What that error SAYS is the part that was worth
+			// fixing: "jd did not open the container" is a sentence about the
+			// symptom, and a user who has just watched a bar run for three
+			// minutes is owed the one thing that helps instead (jdp,
+			// 2026-09-13: "Heute laeuft ein Balken drei Minuten und danach
+			// steht da nichts Brauchbares").
+			//
+			// There is one overwhelmingly likely reason, and it is now measured
+			// rather than guessed: JD accepted the container, decrypted it, and
+			// dropped every link in it because it already had them. Its
+			// duplicate manager does that silently, so nothing in JD's own logs
+			// mentions it either. KnightLoader has already cleared ITS share of
+			// those (sweepGrabber, run before the handover), so what is left for
+			// the user to clear is JD's own two lists.
 			if len(links) == 0 {
 				if len(pkgs) == 0 {
-					return nil, fmt.Errorf("jd did not open the container within %s", timeout)
+					return nil, fmt.Errorf(
+						"jd accepted the container and produced no links within %s. "+
+							"JDownloader silently drops any link it already has, so the usual cause is "+
+							"that these files are already in JDownloader's own link grabber or download list: "+
+							"remove them there, then upload the container again", timeout)
 				}
 				_ = b.c.RemoveCrawled(nil, pkgs)
-				return nil, fmt.Errorf("jd opened the container but produced no links within %s", timeout)
+				return nil, fmt.Errorf(
+					"jd opened the container into an empty package within %s. "+
+						"JDownloader silently drops any link it already has, so the usual cause is "+
+						"that these files are already in JDownloader's own link grabber or download list: "+
+						"remove them there, then upload the container again", timeout)
 			}
 			log.Printf("jd: container crawl had not settled after %s, keeping the %d link(s) it had by then", timeout, len(links))
 			break
@@ -283,9 +429,39 @@ const impossibleJob = -1
 // its way out. One measured build already treats the filter oddly (it answers
 // nothing at all, see Client.AddContainerLinks), which is the cheap failure;
 // this is the expensive one, and it costs one extra call per crawl to rule out.
+//
+// On the shipped JD (revision 48637, JDownloader2 r50639) the filter is ignored
+// outright: queryLinks with jobUUIDs:[-1] answers with the entire link grabber,
+// byte for byte the same as the unfiltered query. Measured 2026-09-13. So on
+// that build the job anchor contributes nothing and the marker name carries the
+// crawl alone. The probe is still what makes that safe rather than catastrophic,
+// which is why it stays: delete the anchor and the guard goes with it.
 type jobFilterProbe struct {
 	decided bool
 	honours bool
+	// announce says the verdict, at most once per backend. The answer is a
+	// property of the JD BUILD and does not change between two uploads, so
+	// repeating it at every single one buries the upload that went differently
+	// (jdp, 2026-09-13: "Im KL-Protokoll steht bei JEDEM Versuch").
+	announce func()
+}
+
+// newJobFilterProbe makes a probe for one crawl whose verdict is announced at
+// most once for the life of this backend. Asked fresh every crawl, because a JD
+// can be updated under a running KnightLoader and the cheap direction of being
+// wrong (falling back to the marker name) is the safe one.
+func (b *Backend) newJobFilterProbe() *jobFilterProbe {
+	return &jobFilterProbe{announce: b.sayFilterIgnoredOnce}
+}
+
+func (b *Backend) sayFilterIgnoredOnce() {
+	b.mu.Lock()
+	said := b.filterSaid
+	b.filterSaid = true
+	b.mu.Unlock()
+	if !said {
+		log.Printf("jd: this build ignores queryLinks's jobUUIDs filter; following the crawl by its package name alone")
+	}
 }
 
 // usable answers whether the jobUUIDs filter can be trusted on this JD.
@@ -307,8 +483,8 @@ func (p *jobFilterProbe) usable(c *Client, packagesInGrabber int) bool {
 		return false // no answer is no verdict; ask again next round
 	}
 	p.decided, p.honours = true, len(links) == 0
-	if !p.honours {
-		log.Printf("jd: this build ignores queryLinks's jobUUIDs filter; following the crawl by its package name alone")
+	if !p.honours && p.announce != nil {
+		p.announce()
 	}
 	return p.honours
 }
@@ -319,10 +495,10 @@ func (p *jobFilterProbe) usable(c *Client, packagesInGrabber int) bool {
 // The job id and the marker name are asked separately and unioned, because
 // neither identifies a crawl on its own. The job filter does not care what JD
 // named anything, which is what a container declaring its own package names
-// needs; the marker name survives a JD whose jobUUIDs filter answers nothing,
-// which has been measured. Packages are the unit that is followed from there,
-// so that a container opening into several is read whole rather than by
-// whichever part happened to answer first.
+// needs; the marker name survives a JD whose jobUUIDs filter answers nothing or
+// is ignored outright, both of which have been measured. Packages are the unit
+// that is followed from there, so that a container opening into several is read
+// whole rather than by whichever part happened to answer first.
 //
 // Nothing outside those two anchors is ever read, and nothing outside them is
 // ever removed. The link grabber is shared with the user's own window, and a
@@ -405,6 +581,8 @@ func (b *Backend) collecting() bool {
 // still willing to wait, or the reverse.
 func (b *Backend) CheckLinks(ctx context.Context, urls []string) ([]core.Availability, error) {
 	marker := fmt.Sprintf("KL-check-%d", time.Now().UnixNano())
+	b.holdGrabber(marker)
+	defer b.releaseGrabber(marker)
 	job, err := b.c.AddPlainLinks(strings.Join(urls, "\n"), marker)
 	if err != nil {
 		return nil, err
@@ -413,7 +591,7 @@ func (b *Backend) CheckLinks(ctx context.Context, urls []string) ([]core.Availab
 	var pkgs []int64
 	var links []CrawledLink
 	settled := 0
-	probe := &jobFilterProbe{}
+	probe := b.newJobFilterProbe()
 	tick := time.NewTicker(pollInterval)
 	defer tick.Stop()
 	for {
@@ -426,6 +604,11 @@ func (b *Backend) CheckLinks(ctx context.Context, urls []string) ([]core.Availab
 
 		found, foundPkgs, err := b.crawlOutput(job, marker, probe)
 		if err != nil {
+			// What has been staged so far still comes out of the grabber. A
+			// check that gave up on a reading error used to leave its own
+			// package behind, and a package left behind is a link JD will drop
+			// out of the next container that carries it (see sweepGrabber).
+			_ = b.c.RemoveCrawled(linkIDs(links), pkgs)
 			return nil, err
 		}
 		links, pkgs = found, foundPkgs
@@ -496,12 +679,25 @@ func statedAvailability(jd string) core.Availability {
 }
 
 // Download hands the link to JD (auto-crawl + start) and polls its progress.
+//
+// The grabber package is held for the whole life of the task and its own
+// leftover is cleared before the link goes in. Both halves are about JD's
+// duplicate manager: a "KL-<task id>" package left over from an earlier attempt
+// at the SAME task makes JD drop the link this attempt is submitting, silently,
+// so the task would sit there until appearLimit and report that the link never
+// reached the download list - having been eaten by its own predecessor. See
+// sweepGrabber.
 func (b *Backend) Download(taskID, url string, _ map[string]string, _ int) {
+	pkg := b.pkgName(taskID)
+	b.holdGrabber(pkg)
 	go func() {
-		if _, err := b.c.AddLinks(url, b.pkgName(taskID), b.dirFor(taskID), true); err != nil {
+		b.dropGrabberPackage(pkg)
+		if _, err := b.c.AddLinks(url, pkg, b.dirFor(taskID), true); err != nil {
+			b.releaseGrabber(pkg)
 			b.onUpdate(taskID, core.Update{Status: core.StatusError, Err: "jd: " + err.Error()})
 			return
 		}
+		defer b.releaseGrabber(pkg)
 		b.poll(taskID)
 	}()
 }
@@ -568,6 +764,12 @@ func (b *Backend) poll(taskID string) {
 	}()
 
 	pkg := b.pkgName(taskID)
+	// Held for as long as anything is watching this task, so the sweep cannot
+	// take a package out from under a crawl that is still running. Counted, not
+	// flagged, because Download holds the same name around the handover and
+	// Resume reaches this with nothing held at all.
+	b.holdGrabber(pkg)
+	defer b.releaseGrabber(pkg)
 	ticker := time.NewTicker(750 * time.Millisecond)
 	defer ticker.Stop()
 
@@ -588,6 +790,12 @@ func (b *Backend) poll(taskID string) {
 			return
 		case <-ticker.C:
 			if !seen && time.Now().After(appearBy) {
+				// Whatever is still sitting in the grabber under our name goes
+				// with it. A link that never made it to the download list is a
+				// link JD is done with, and leaving it there makes JD drop the
+				// same URL out of every container that carries it from now on
+				// (see sweepGrabber).
+				b.dropGrabberPackage(pkg)
 				b.onUpdate(taskID, core.Update{
 					Status: core.StatusError,
 					Err:    "jd: the link never reached JDownloader's download list",
@@ -712,9 +920,19 @@ func aggregate(links []DownloadLink) core.Update {
 //
 // Resume DOES need a counterpart, and getting that wrong here cost a day. See
 // Resume's own comment below.
+// A paused task keeps its grabber name held, which is the third thing this has
+// to do now. The sweep's whole safety argument is "a package nothing is
+// watching is abandoned", and pausing is the one way a task stays alive with
+// nobody watching it: pause a download in the seconds while JD is still
+// crawling it, open a container in that same window, and without the hold the
+// sweep would take the paused crawl away. Resume gives the hold back.
 func (b *Backend) Pause(taskID string) {
 	b.mu.Lock()
 	if s, ok := b.stop[taskID]; ok {
+		// Taken before the poller is told to stop, so the name is never
+		// unheld for even an instant: the poller's own release brings the
+		// count back to this one, not to zero.
+		b.held[b.pkgName(taskID)]++
 		close(s)
 		delete(b.stop, taskID)
 	}
@@ -750,6 +968,9 @@ func (b *Backend) Resume(taskID string) {
 	// still alive - a plain unpause that never went through the dispatcher - and
 	// a second goroutine on the same task would double every reported byte.
 	if !watched {
+		// Nobody watching means Pause is what stopped the last poller, so its
+		// grabber hold is the one to give back. The new poller takes its own.
+		b.releaseGrabber(b.pkgName(taskID))
 		go b.poll(taskID)
 	}
 }
@@ -762,15 +983,27 @@ func (b *Backend) setEnabled(taskID string, enabled bool) {
 }
 
 func (b *Backend) Remove(taskID string, _ bool) {
+	pkg := b.pkgName(taskID)
 	b.mu.Lock()
 	if s, ok := b.stop[taskID]; ok {
 		close(s)
 		delete(b.stop, taskID)
 	}
+	// Every hold on this name goes, Pause's included: the task is gone, so
+	// nothing about it is live business any more and the sweep may have it.
+	delete(b.held, pkg)
 	b.mu.Unlock()
-	if puuid, err := b.c.PackageUUID(b.pkgName(taskID)); err == nil && puuid != 0 {
+	if puuid, err := b.c.PackageUUID(pkg); err == nil && puuid != 0 {
 		_ = b.c.RemoveLinks(nil, []int64{puuid})
 	}
+	// The link grabber half is not tidiness. A task whose link never reached the
+	// download list still has its "KL-<task id>" package staged there, JD
+	// reloads the grabber at every start, and JD then silently drops that URL
+	// out of every container a user opens from then on: the crawl produces no
+	// package at all and nothing anywhere says why. Twenty-three of those were
+	// sitting on the live instance, and they were the reason one particular DLC
+	// had stopped opening. See sweepGrabber.
+	b.dropGrabberPackage(pkg)
 }
 
 func (b *Backend) linkIDs(taskID string) []int64 {

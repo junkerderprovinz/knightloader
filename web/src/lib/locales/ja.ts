@@ -298,6 +298,8 @@ export const ja: Dict = {
   'list.sortedView': '並べ替え表示',
   'list.sortedViewTip': '並べ替えで変わるのは見え方の順序だけで、実行される順序は変わりません。ダウンロードは今までどおりキュー順に始まります。',
   'list.queueOrder': 'キュー順に戻す',
+  'list.dragNeedsQueueOrder': 'ドラッグはキュー順でのみ使えます。行を手で動かすにはキュー順に戻してください。',
+  'list.dragNotInQueue': 'これは手では動かせません。キューで待っているリンクだけが動かせて、フォルダーはリンクの優先度がそろっているときだけです。',
   'list.controls': 'リスト操作',
   'list.actions': 'リストの操作',
   'list.failed': 'うまくいきませんでした: {error}',
@@ -1593,7 +1595,7 @@ export const ja: Dict = {
   'commands.group.queue': 'キュー',
   'commands.group.language': '言語',
   'commands.group.downloads': 'ダウンロード',
-  'commands.group.collector': 'コレクター',
+  'commands.group.collector': 'リンクコレクター',
 
   'commands.paletteLabel': 'コマンドパレット',
   'commands.searchPlaceholder': 'コマンドを入力…',

@@ -290,6 +290,8 @@ export const ru: Dict = {
   'list.sortedView': 'Отсортированный вид',
   'list.sortedViewTip': 'Сортировка меняет порядок, который вы видите, а не порядок запуска. Загрузки по-прежнему стартуют в порядке очереди.',
   'list.queueOrder': 'Вернуть порядок очереди',
+  'list.dragNeedsQueueOrder': 'Перетаскивание работает только в порядке очереди. Верните порядок очереди, чтобы двигать строки вручную.',
+  'list.dragNotInQueue': 'Это нельзя переместить вручную: только ссылки, которые ещё ждут в очереди, а папку только пока у её ссылок один приоритет.',
   'list.controls': 'Управление списком',
   'list.actions': 'Действия со списком',
   'list.failed': 'Не получилось: {error}',
@@ -1586,7 +1588,7 @@ export const ru: Dict = {
   'commands.group.queue': 'Очередь',
   'commands.group.language': 'Язык',
   'commands.group.downloads': 'Загрузки',
-  'commands.group.collector': 'Сборщик',
+  'commands.group.collector': 'Сборщик ссылок',
 
   'commands.paletteLabel': 'Палитра команд',
   'commands.searchPlaceholder': 'Введите команду…',

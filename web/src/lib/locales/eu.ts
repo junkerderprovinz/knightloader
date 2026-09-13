@@ -298,6 +298,8 @@ export const eu: Dict = {
   'list.sortedView': 'Ikuspegi ordenatua',
   'list.sortedViewTip': 'Ordenatzeak ikusten duzun ordena aldatzen du, ez exekutatzen dena. Deskargak ilararen ordenan hasten dira oraindik.',
   'list.queueOrder': 'Itzuli ilararen ordenara',
+  'list.dragNeedsQueueOrder': 'Arrastatzeak ilararen ordenan bakarrik funtzionatzen du. Itzuli ilararen ordenara errenkadak eskuz mugitzeko.',
+  'list.dragNotInQueue': 'Hau ezin da eskuz mugitu: ilaran zain dauden estekak bakarrik, eta karpeta bat bere estekek lehentasun bera dutenean bakarrik.',
   'list.controls': 'Zerrendaren kontrolak',
   'list.actions': 'Zerrendaren ekintzak',
   'list.failed': 'Horrek ez du funtzionatu: {error}',
@@ -1593,7 +1595,7 @@ export const eu: Dict = {
   'commands.group.queue': 'Ilara',
   'commands.group.language': 'Hizkuntza',
   'commands.group.downloads': 'Deskargak',
-  'commands.group.collector': 'Biltzailea',
+  'commands.group.collector': 'Esteka biltzailea',
 
   'commands.paletteLabel': 'Komando-paleta',
   'commands.searchPlaceholder': 'Idatzi komando bat…',
