@@ -668,6 +668,9 @@ export function Downloads() {
             base={base}
             selection={selection}
             revealKey={revealRow}
+            // Die Ordnerzeile fragt ueber dieselbe Strecke wie die Auswahlleiste
+            // und das Kontextmenue, statt eine eigene aufzumachen.
+            onRemovePackage={removal.askWithFiles}
             title={t('downloads.listTitle')}
             // No hint bubble on the badge (jdp, 2026-09-06: "die i infobubble
             // im kartentitel entfernen. auch in der linklisten card"). It used

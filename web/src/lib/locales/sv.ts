@@ -2069,7 +2069,6 @@ export const sv: Dict = {
   'events.jump': 'Visa raden',
   'events.jumpGone': 'Den nedladdningen finns inte i listan längre',
   'commands.openEvents': 'Öppna händelselistan',
-  'list.keysHint': 'Listan går att styra från tangentbordet. Med Tabb kommer du in i den, med piltangenterna går du från rad till rad, med blanksteg tar du med en rad eller plockar bort den igen, med Skift och en piltangent tar du ett helt område, med Enter öppnar du egenskaperna, och med vänster och höger stänger och öppnar du en mapp. Under Inställningar, Kortkommandon står de alla.',
   'settings.shortcuts.listTitle': 'Listans tangenter',
   'settings.shortcuts.listHint': 'De här hör till nedladdningslistan och samlarlistan och går inte att binda om. De verkar bara så länge en rad har fokus, därför tar ingen av dem en tangent från ett kommando här ovanför.',
   'keys.list.move': 'Gå från rad till rad',

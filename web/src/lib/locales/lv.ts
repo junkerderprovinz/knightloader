@@ -2059,7 +2059,6 @@ export const lv: Dict = {
   'events.jump': 'Parādīt rindu',
   'events.jumpGone': 'Šīs lejupielādes sarakstā vairs nav',
   'commands.openEvents': 'Atvērt notikumu sarakstu',
-  'list.keysHint': 'Sarakstu var vadīt ar tastatūru. Ar Tab tu tajā iekļūsti, ar bulttaustiņiem ej no rindas uz rindu, ar atstarpes taustiņu ņem rindu klāt vai izņem to atpakaļ, ar Shift un bulttaustiņu iezīmē vairākas rindas pēc kārtas, ar Enter atver īpašības, un ar bultu pa kreisi un pa labi aizver un atver pakotni. Sadaļā Iestatījumi, Īsinājumtaustiņi tie ir uzskaitīti visi.',
   'settings.shortcuts.listTitle': 'Saraksta taustiņi',
   'settings.shortcuts.listHint': 'Šie taustiņi pieder lejupielāžu sarakstam un savācēja sarakstam, un tos pārsaistīt nevar. Tie darbojas tikai tad, kamēr fokuss ir uz rindas, tāpēc neviens no tiem neatņem taustiņu nevienai komandai augstāk.',
   'keys.list.move': 'Iet no rindas uz rindu',

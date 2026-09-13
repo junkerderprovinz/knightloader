@@ -2069,7 +2069,6 @@ export const fi: Dict = {
   'events.jump': 'Näytä rivi',
   'events.jumpGone': 'Tuota latausta ei ole enää listalla',
   'commands.openEvents': 'Avaa tapahtumalista',
-  'list.keysHint': 'Listaa voi käyttää näppäimistöltä. Tab vie sisään, nuolinäppäimillä kuljet riviltä toiselle, välilyönti poimii rivin mukaan tai panee sen takaisin, Vaihto ja nuoli ottaa kokonaisen välin, Enter avaa ominaisuudet, ja vasen ja oikea nuoli sulkevat ja avaavat kansion. Asetukset, Pikanäppäimet listaa ne kaikki.',
   'settings.shortcuts.listTitle': 'Listan näppäimet',
   'settings.shortcuts.listHint': 'Nämä kuuluvat latauslistaan ja kerääjän listaan, eikä niitä voi sitoa uudelleen. Ne vaikuttavat vain silloin, kun kohdistus on jollain rivillä, joten yksikään niistä ei voi viedä näppäintä ylempänä olevalta komennolta.',
   'keys.list.move': 'Kulje riviltä toiselle',

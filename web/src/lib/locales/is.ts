@@ -2065,7 +2065,6 @@ export const is: Dict = {
   'events.jump': 'Sýna línuna',
   'events.jumpGone': 'Þetta niðurhal er ekki lengur í listanum',
   'commands.openEvents': 'Opna atburðalistann',
-  'list.keysHint': 'Listinn virkar frá lyklaborðinu. Með Tab kemstu inn í hann, með örvatökkunum ferðu úr línu í línu, með bilslánni tekurðu línu inn í valið eða út úr því aftur, með Shift og ör velurðu margar línur í einu, með Enter opnarðu eiginleikana, og með vinstri og hægri ör lokar þú og opnar pakka. Undir Stillingar, Flýtileiðir eru þeir allir taldir upp.',
   'settings.shortcuts.listTitle': 'Takkar listans',
   'settings.shortcuts.listHint': 'Þessir takkar tilheyra niðurhalslistanum og lista safnarans og ekki er hægt að endurúthluta þeim. Þeir virka aðeins á meðan bendillinn stendur á línu í listanum, þess vegna getur enginn þeirra tekið takka af skipun hér fyrir ofan.',
   'keys.list.move': 'Fara úr línu í línu',

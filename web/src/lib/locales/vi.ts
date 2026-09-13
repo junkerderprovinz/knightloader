@@ -2069,7 +2069,6 @@ export const vi: Dict = {
   'events.jump': 'Hiện hàng đó',
   'events.jumpGone': 'Lượt tải đó không còn trong danh sách nữa',
   'commands.openEvents': 'Mở danh sách sự kiện',
-  'list.keysHint': 'Danh sách này dùng được bằng bàn phím. Tab đưa bạn vào trong, các phím mũi tên đi từ hàng này sang hàng khác, phím cách thêm một hàng vào phần đã chọn hoặc lấy nó ra, Shift kèm một phím mũi tên lấy cả một dải hàng, Enter mở thuộc tính, còn mũi tên trái và phải đóng và mở một gói. Cài đặt, Phím tắt liệt kê đủ cả.',
   'settings.shortcuts.listTitle': 'Phím của danh sách',
   'settings.shortcuts.listHint': 'Những phím này thuộc về danh sách tải xuống và danh sách bộ thu thập, và không gán lại được. Chúng chỉ có tác dụng chừng nào một hàng đang giữ tiêu điểm bàn phím, nên không phím nào trong số đó lấy mất một phím của lệnh ở phía trên.',
   'keys.list.move': 'Đi từ hàng này sang hàng khác',

@@ -2069,7 +2069,6 @@ export const ja: Dict = {
   'events.jump': 'その行を表示',
   'events.jumpGone': 'そのダウンロードはもう一覧にありません',
   'commands.openEvents': '出来事の一覧を開く',
-  'list.keysHint': 'この一覧はキーボードで操作できます。Tab で中に入り、矢印キーで行から行へ動き、スペースで行を選択に加えたり外したりします。Shift と矢印で範囲をまとめて取り、Enter でプロパティを開き、左右の矢印でパッケージを閉じたり開いたりします。設定のショートカットに全部並んでいます。',
   'settings.shortcuts.listTitle': 'リストのキー',
   'settings.shortcuts.listHint': 'これはダウンロードリストとコレクターのリストのキーで、割り当てを変えることはできません。行にフォーカスがあるあいだだけ効くので、上にあるコマンドからキーを奪うことはありません。',
   'keys.list.move': '行から行へ動く',

@@ -148,7 +148,20 @@ export function InstanceCard({
     // and so takes whatever height it is handed rather than setting it,
     // which is what keeps a row of cards the same height whatever their
     // contents.
-    <Card padding="none" hover={!!onOpen} className="group relative flex h-full items-stretch overflow-hidden">
+    <Card padding="none" hover={!!onOpen} className="group relative flex h-full flex-col overflow-hidden">
+      {/* DIE ZWEI SPALTEN SIND EINE ZEILE, und der Knopf darunter ist eine
+          zweite. Vorher war der Knopf `absolute bottom-5` und die Textspalte
+          hielt mit `pb-16` Platz fuer ihn frei - zwei Zahlen fuer eine Sache,
+          die zusammenpassen mussten, ohne dass etwas sie zusammenhaelt. Wird der
+          Knopf hoeher, waechst der Text oder aendert sich die Kartenhoehe, legt
+          er sich ueber die Zeile darueber (jdp: "da ist der button zu weit oben
+          und verdeckt sachen").
+          Als echte Zeile kann das nicht mehr passieren: sie nimmt den Platz, den
+          sie braucht, und der Rest der Karte weicht. Der frueher hier notierte
+          Grund gegen eine dritte Zeile - die Karte sei zweispaltig, und eine
+          Zeile ueber die ganze Breite sei keine der beiden Spalten - loest sich
+          damit auf, denn die Spalten liegen jetzt in einer Zeile darueber. */}
+      <div className="flex min-h-0 flex-1 items-stretch">
       {/* The mark, larger again and then larger once more (jdp, 2026-08-27,
           twice: "Das logo in den instanzencard bitte größer") but still on the
           card's own surface with no plate behind it, which was the other half
@@ -177,7 +190,7 @@ export function InstanceCard({
           p-5 and gap-3: an instance card is the one card on its page and it
           holds four short readings, so it was a dense little tile in a lot of
           empty page. The reserved right-hand column grows with it. */}
-      <div className="flex min-w-0 flex-1 flex-col gap-4 p-7 pb-16 pr-36">
+      <div className="flex min-w-0 flex-1 flex-col gap-4 p-7 pr-36">
         {/* Name and address are ONE block with a hairline gap, not two rows of
             the card's own gap-4 (jdp, 2026-09-07: "die IP näher unter den
             namen"). They answer one question together - which machine is this -
@@ -214,22 +227,15 @@ export function InstanceCard({
 
       </div>
 
-      {/* The Open button leaves the padded column and spans the whole card
-          (jdp, 2026-09-07: "Der öffnen button weiter nach unten und soll bis
-          ganz nach rechts gehen"). Inside that column it stopped short of the
-          card's right edge, because the column reserves pr-36 for the status
-          badge - room the badge only needs at the TOP. A row of its own owes
-          that reservation nothing.
+      </div>
 
-          absolute rather than a third flex row: the card is a two-column
-          layout (logo, then content) and a full-width row is neither of those
-          columns. */}
+      {/* Eine eigene Zeile ueber die ganze Kartenbreite (jdp, 2026-09-07: "Der
+          oeffnen button weiter nach unten und soll bis ganz nach rechts gehen").
+          Der Rand kommt hier an den Knopf statt an die Karte, weil die Karte
+          selbst `padding="none"` traegt - das Logo soll sie ja bis an die Kante
+          ausfuellen. */}
       {onOpen && (
-        <Button
-          kind="secondary"
-          onClick={onOpen}
-          className="absolute inset-x-5 bottom-5 justify-center"
-        >
+        <Button kind="secondary" onClick={onOpen} className="mx-5 mb-5 justify-center">
           {t('instances.open')}
         </Button>
       )}

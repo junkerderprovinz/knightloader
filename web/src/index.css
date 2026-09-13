@@ -740,7 +740,33 @@ body {
    badge is small and isolated with nothing beside it to reinforce the colour
    by repetition, so .glim-tint's own 16% (calibrated for a dense list) would
    read as barely-tinted grey at badge size. */
+/* .glim-badge-quiet: a badge sitting ON A LIST ROW shows no tile until you
+   reach for it.
+   The rule above still stands everywhere else - jdp asked for square coloured
+   badges with a glyph rather than bare icons, and that is what a toolbar, a
+   card header and a settings row get. A dense list is the one place it turns
+   against itself: six of these on every row, times forty rows, and the filled
+   tiles read as a wall of grey boxes rather than as the row's own actions
+   (jdp: "der löschen button auf den links hat einen dunklen hintergrund", "die
+   icons auf den links im linksammler haben auch den dunklen hintergrund").
+   This is not a new invention, and that is the argument for it: the reactive
+   rainbow already behaves exactly this way, transparent at rest and filled on
+   hover, a few lines down. This makes that behaviour the rule on rows, whatever
+   the colour setting is - so what somebody sees on a row does not depend on
+   which rainbow mode they happen to run. */
+.glim-badge-quiet { background-color: transparent; }
+.glim-badge-quiet:hover,
+.glim-badge-quiet:focus-visible { background-color: var(--carbon-surface3); }
+
 [data-rainbow] .glim-tint-badge {
+  box-shadow: inset 0 0 0 999px var(--item-hue-badge);
+}
+/* Under a rainbow the hue is the fill, so it follows the same rule: away at
+   rest, back when reached for. Without this the wash would keep painting the
+   tile the quiet rule just took away. */
+[data-rainbow] .glim-badge-quiet.glim-tint-badge { box-shadow: none; }
+[data-rainbow] .glim-badge-quiet.glim-tint-badge:hover,
+[data-rainbow] .glim-badge-quiet.glim-tint-badge:focus-visible {
   box-shadow: inset 0 0 0 999px var(--item-hue-badge);
 }
 [data-rainbow='reactive'] .glim-tint-badge {
@@ -1576,14 +1602,52 @@ body {
    ========================================================================= */
 @keyframes kl-egg-draw {
   from { transform: translateY(0) rotate(0deg); }
-  to   { transform: translateY(calc(-1 * var(--egg-draw, 7%))) rotate(-5deg); }
+  to   { transform: translateY(calc(-1 * var(--egg-draw, 11%))) rotate(-7deg); }
 }
 
+/* THE BLOW, and the timing function is inside the keyframes on purpose.
+   One curve across the whole animation is what made this sway instead of
+   strike (jdp: "das schwert soll mit gewalt nach unten schmettern und alles
+   zum zittern bringen, nicht nur zum schwanken"): a single ease spreads the
+   travel evenly, so the blade drifted down. A strike is not evenly spread. It
+   accelerates into the ground, stops dead, and rebounds.
+
+   So each segment carries its own curve: the descent gets one that piles the
+   distance at the end, and everything after the impact rides an ease-out that
+   drains. The blade also goes PAST its resting angle and comes back, which is
+   what a thing that hit something does. */
 @keyframes kl-egg-strike {
-  0%   { transform: translateY(calc(-1 * var(--egg-draw, 7%))) rotate(-5deg); }
-  35%  { transform: translateY(1%) rotate(24deg); }
-  60%  { transform: translateY(0) rotate(-7deg); }
+  0%   { transform: translateY(calc(-1 * var(--egg-draw, 11%))) rotate(-7deg);
+         animation-timing-function: cubic-bezier(.7, 0, .9, .3); }
+  16%  { transform: translateY(3%) rotate(34deg);
+         animation-timing-function: cubic-bezier(.15, .85, .3, 1); }
+  27%  { transform: translateY(0) rotate(12deg);
+         animation-timing-function: cubic-bezier(.6, 0, .9, .4); }
+  38%  { transform: translateY(1.5%) rotate(27deg);
+         animation-timing-function: cubic-bezier(.2, .8, .3, 1); }
+  55%  { transform: translateY(0) rotate(1deg); }
+  72%  { transform: translateY(0) rotate(-5deg); }
+  88%  { transform: translateY(0) rotate(2deg); }
   100% { transform: translateY(0) rotate(0deg); }
+}
+
+/* THE GROUND SHAKING, on the whole mark, shield included.
+   This reverses a rule that used to stand a few lines below, and the reversal
+   is jdp's: the shield was held still because the DRAW used to wobble the whole
+   logo, which read as a shaking image rather than as a sword being pulled. That
+   still holds while the blade is being raised. An IMPACT is the opposite case -
+   if the shield does not move when something slams into it, nothing was hit.
+   Two axes and a little rotation, because a shake on one axis reads as a slide.
+   It decays rather than stopping, so it ends instead of being cut off. */
+@keyframes kl-egg-quake {
+  0%   { transform: translate(0, 0) rotate(0deg); }
+  12%  { transform: translate(calc(-1 * var(--egg-quake, 3px)), var(--egg-quake, 3px)) rotate(-1.4deg); }
+  26%  { transform: translate(var(--egg-quake, 3px), calc(-.5 * var(--egg-quake, 3px))) rotate(1.1deg); }
+  40%  { transform: translate(calc(-.7 * var(--egg-quake, 3px)), calc(.4 * var(--egg-quake, 3px))) rotate(-.8deg); }
+  56%  { transform: translate(calc(.5 * var(--egg-quake, 3px)), 0) rotate(.5deg); }
+  72%  { transform: translate(calc(-.3 * var(--egg-quake, 3px)), 0) rotate(-.3deg); }
+  88%  { transform: translate(calc(.15 * var(--egg-quake, 3px)), 0) rotate(.15deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
 }
 
 /* The light running up the steel while the blade is drawn. A brightness pulse
@@ -1597,16 +1661,28 @@ body {
   100% { filter: brightness(1); }
 }
 
-/* The wave that passes down the rail after the blow lands. */
+/* The shudder that runs down the rail after the blow lands. It was one push to
+   the side and back, which reads as a nudge; a blow that shook the mark has to
+   shake what stands under it too, so this is the same decaying shape as the
+   quake above, one entry after the next. */
 @keyframes kl-egg-wave {
-  from { transform: translateX(0); }
-  40%  { transform: translateX(var(--egg-shove, 6px)); }
-  to   { transform: translateX(0); }
+  0%   { transform: translate(0, 0); }
+  15%  { transform: translate(var(--egg-shove, 7px), calc(.4 * var(--egg-shove, 7px))); }
+  32%  { transform: translate(calc(-.6 * var(--egg-shove, 7px)), 0); }
+  50%  { transform: translate(calc(.4 * var(--egg-shove, 7px)), 0); }
+  70%  { transform: translate(calc(-.2 * var(--egg-shove, 7px)), 0); }
+  100% { transform: translate(0, 0); }
 }
 
 .kl-egg { position: relative; display: inline-flex; }
 /* The inline mark fills the box the sidebar gave the old <img>, so the two
-   display widths keep the sizes they had. */
+   display widths keep the sizes they had.
+   OVERFLOW VISIBLE, and that is a bug fix rather than tidiness: an <svg> clips
+   to its own viewBox by default, so raising the sword took its point outside
+   the box and the tip was simply cut off at the top (jdp: "oben wird
+   abgeschnitten"). Nothing in the layout changes - the element still occupies
+   the same space - the blade is just allowed to be drawn outside it. */
+.kl-egg, .kl-egg > svg { overflow: visible; }
 .kl-egg > svg { height: 100%; width: auto; display: block; }
 
 /* THE POINT OF THE WHOLE REWRITE: the animation targets #kl-sword, not the
@@ -1632,12 +1708,26 @@ body {
     kl-egg-draw var(--egg-draw-dur, 520ms) cubic-bezier(.2, .7, .3, 1) forwards,
     kl-egg-sheen var(--egg-sheen-dur, 900ms) ease-out forwards;
 }
+/* Shorter than it was, because the old 620ms is what a sway takes. The curve is
+   `linear` here and NOT a mistake: every segment carries its own timing inside
+   the keyframes above, and a curve stated here would be applied on top of each
+   of them and flatten exactly the acceleration this is about. */
 .kl-egg[data-egg='strike'] #kl-sword {
-  animation: kl-egg-strike var(--egg-strike-dur, 620ms) cubic-bezier(.3, 1.4, .4, 1) forwards;
+  animation: kl-egg-strike var(--egg-strike-dur, 540ms) linear forwards;
 }
 
-/* The shield never moves. Stated rather than left implicit, because the whole
-   reason this rewrite exists is that it used to. */
+/* The mark shakes when the blade lands, not when the swing begins. The delay is
+   the fraction of the strike at which the 16% keyframe sits, so the two are
+   tied to the same duration and stay in step if it is ever retuned. */
+.kl-egg[data-egg='strike'] {
+  animation: kl-egg-quake var(--egg-quake-dur, 420ms) ease-out calc(var(--egg-strike-dur, 540ms) * .16) both;
+}
+
+/* The shield does not move WHILE THE BLADE IS RAISED, and that is the whole
+   reason this was rewritten: moving the <img> wobbled the shield along with the
+   sword and read as a shaking logo. It does move when something hits it, and
+   that motion comes from .kl-egg above, one level up, so the shield is carried
+   rather than animated - the split between the two layers survives. */
 #kl-shield { transform: none; }
 
 .kl-egg-struck { animation: kl-egg-wave var(--egg-wave-dur, 380ms) ease-out; }
@@ -1645,14 +1735,17 @@ body {
 /* Subtle keeps the gesture and halves the travel; off keeps only the change of
    light, which is the one part that moves nothing. */
 [data-motion='subtle'] .kl-egg {
-  --egg-draw: 3.5%;
+  --egg-draw: 5%;
   --egg-shove: 3px;
+  --egg-quake: 1.5px;
   --egg-draw-dur: 380ms;
-  --egg-strike-dur: 440ms;
+  --egg-strike-dur: 400ms;
+  --egg-quake-dur: 280ms;
   --egg-wave-dur: 260ms;
 }
 [data-motion='off'] .kl-egg[data-egg='draw'] #kl-sword {
   animation: kl-egg-sheen var(--egg-sheen-dur, 900ms) ease-out forwards;
 }
 [data-motion='off'] .kl-egg[data-egg='strike'] #kl-sword { animation: none; }
+[data-motion='off'] .kl-egg[data-egg='strike'] { animation: none; }
 [data-motion='off'] .kl-egg-struck { animation: none; }

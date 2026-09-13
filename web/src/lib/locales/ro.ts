@@ -2076,7 +2076,6 @@ export const ro: Dict = {
   'events.jump': 'Arată rândul',
   'events.jumpGone': 'Descărcarea aceasta nu mai este în listă',
   'commands.openEvents': 'Deschide lista de evenimente',
-  'list.keysHint': 'Lista se poate folosi de la tastatură. Cu Tab intri în ea, cu tastele săgeți mergi de la un rând la altul, cu bara de spațiu iei un rând în selecție sau îl scoți din ea, cu Shift și o săgeată prinzi un interval întreg, cu Enter deschizi proprietățile, iar cu săgeata stânga și cea dreapta închizi și deschizi un pachet. La Setări, Comenzi rapide sunt toate.',
   'settings.shortcuts.listTitle': 'Tastele listei',
   'settings.shortcuts.listHint': 'Acestea aparțin listei de descărcări și listei colectorului și nu se pot reasigna. Se aplică doar cât timp cursorul stă pe un rând, deci niciuna nu poate lua o tastă unei comenzi de mai sus.',
   'keys.list.move': 'Mergi de la un rând la altul',

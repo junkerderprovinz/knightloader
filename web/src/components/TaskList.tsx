@@ -425,6 +425,7 @@ function TaskRow({
       >
         {collected && (
           <IconBadge
+            quiet
             hue={0}
             // Roving tabindex reaches inside the row too: without it Tab walks
             // every badge of every drawn row and the one-stop list is decorative.
@@ -437,6 +438,7 @@ function TaskRow({
         )}
         {task.status === 'running' && (
           <IconBadge
+            quiet
             hue={0}
             tabIndex={current ? 0 : -1}
             icon={<IconPause width={16} height={16} />}
@@ -447,6 +449,7 @@ function TaskRow({
         )}
         {task.status === 'paused' && (
           <IconBadge
+            quiet
             hue={0}
             tabIndex={current ? 0 : -1}
             icon={<IconPlay width={16} height={16} />}
@@ -460,6 +463,7 @@ function TaskRow({
         <div className="flex items-center gap-1">
           {collected && (
             <IconBadge
+              quiet
               hue={1}
               tabIndex={current ? 0 : -1}
               icon={<IconSearch width={16} height={16} />}
@@ -484,6 +488,7 @@ function TaskRow({
           <RetrySkipBadge task={task} base={base} focusable={current} />
           {settled && (
             <IconBadge
+              quiet
               hue={3}
               tabIndex={current ? 0 : -1}
               icon={<IconRetry width={16} height={16} />}
@@ -493,6 +498,7 @@ function TaskRow({
             />
           )}
           <IconBadge
+            quiet
             hue={4}
             tabIndex={current ? 0 : -1}
             icon={<IconTrash width={16} height={16} />}
@@ -925,14 +931,37 @@ function PackageRow({
           and that is a decision about a link BEFORE it is fetched: once the
           rows are in the queue the choice has already been made, and offering
           it there is offering to change something that is on its way. */}
-      {ytdlpHost && ctx.profile === 'collector' && (
+      {/* Der Streifen am Ende der Ordnerzeile, jetzt fuer zwei Dinge statt fuer
+          eines. Er erscheint beim Zeigen auf die Zeile, genau wie der Streifen
+          einer Linkzeile, damit beide Zeilenarten sich gleich verhalten - das
+          Zahnrad bleibt die Ausnahme und steht auch ohne Zeigen da, weil es
+          eine Einstellung anzeigt und nicht nur eine Handlung anbietet. */}
+      {(ytdlpHost && ctx.profile === 'collector') || ctx.onRemovePackage ? (
         <div
-          className="absolute inset-y-px end-2 z-10 flex items-center rounded-[var(--radius-control)]
-            bg-carbon-surface px-1 shadow-[var(--elevation)]"
+          className={`absolute inset-y-px end-2 z-10 flex items-center gap-1 rounded-[var(--radius-control)]
+            bg-carbon-surface px-1 shadow-[var(--elevation)] transition-opacity
+            ${ytdlpHost && ctx.profile === 'collector' ? '' : 'opacity-0 group-hover:opacity-100 [&:has(:focus-visible)]:opacity-100'}`}
         >
-          <HosterPresetButton host={ytdlpHost} base={base} focusable={current} />
+          {ytdlpHost && ctx.profile === 'collector' && (
+            <HosterPresetButton host={ytdlpHost} base={base} focusable={current} />
+          )}
+          {/* Loescht NICHT selbst: es stellt dieselbe Frage, die eine
+              Mehrfachauswahl stellt, mit Zaehlung, Dateiwahl und Rueckgaengig.
+              Eine eigene Loeschstrecke hier waere eine zweite Stelle, an der
+              sich dieselbe Frage spaeter auseinanderentwickeln kann. */}
+          {ctx.onRemovePackage && (
+            <IconBadge
+              quiet
+              hue={4}
+              tabIndex={current ? 0 : -1}
+              icon={<IconTrash width={16} height={16} />}
+              title={ctx.t('task.remove')}
+              aria-label={ctx.t('task.remove')}
+              onClick={() => ctx.onRemovePackage?.(items.map((x) => x.id))}
+            />
+          )}
         </div>
-      )}
+      ) : null}
     </div>
   );
 }
@@ -1412,6 +1441,7 @@ export function TaskListCard({
   title,
   hue,
   revealKey,
+  onRemovePackage,
 }: {
   groups: [string, Task[]][];
   base: string;
@@ -1441,6 +1471,8 @@ export function TaskListCard({
    * second time. See lib/reveal.ts.
    */
   revealKey?: string;
+  /** Siehe CellContext.onRemovePackage - die Seite stellt die Frage, nicht die Zeile. */
+  onRemovePackage?: (ids: string[]) => void;
 }) {
   const { t } = useT();
   // Only the row reorder reports through this so far (see dropRow): the queue
@@ -1482,7 +1514,10 @@ export function TaskListCard({
   const drag = useRef<{ id: ColumnId; startX: number; startWidth: number; width: number } | null>(null);
 
   const layout = useMemo(() => resolveLayout(profile, stored), [profile, stored]);
-  const ctx = useMemo<CellContext>(() => ({ t, base, profile }), [t, base, profile]);
+  const ctx = useMemo<CellContext>(
+    () => ({ t, base, profile, onRemovePackage }),
+    [t, base, profile, onRemovePackage],
+  );
 
   // A sort on a column that is currently hidden is ignored rather than cleared,
   // so showing the column again brings the order back with it. Applying it while
@@ -2428,12 +2463,17 @@ export function TaskListCard({
               for the column menu, click a label to sort (jdp, same day, on
               where that one should live: "die können wir ja in den
               cardtitelbadge machen"). */}
+          {/* ONE bubble here, not two. A second one used to sit beside the badge
+              spelling out that the list works from the keyboard - Tab in, arrows
+              between rows, space to pick, Enter for the properties. It was
+              removed on jdp's word, in the download window and in the collector,
+              which share this component: an explanation of the keys is not what
+              somebody opening a download list is looking for, and every keystroke
+              it named is already listed under Settings, Shortcuts, which is where
+              a person goes to look them up. Two bubbles side by side also make
+              the reader decide which one holds their answer before they can read
+              either. */}
           <SectionTitle hint={t('columns.headerHint')}>{title}</SectionTitle>
-          {/* A second bubble beside the badge, not a second SectionTitle and not
-              a line of text under the table: the header's own explanation is
-              about sorting and the column menu, and this one is about the keys.
-              One explanation per thing being explained. */}
-          <InfoBubble tip={t('list.keysHint')} />
         </div>
         <div className="overflow-hidden rounded-b-[var(--radius-card)]">
           {/* Sorting is a view of the queue and not the queue. Saying so where the

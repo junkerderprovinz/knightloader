@@ -2053,7 +2053,6 @@ export const it: Dict = {
   'events.jump': 'Mostra la riga',
   'events.jumpGone': 'Questo download non è più nell’elenco',
   'commands.openEvents': 'Apri l’elenco degli eventi',
-  'list.keysHint': 'L’elenco si usa anche da tastiera. Con Tab ci entri, con le frecce vai da una riga all’altra, con la barra spaziatrice aggiungi una riga alla selezione o la togli di nuovo, con Maiusc e una freccia prendi un intero intervallo, con Invio apri le proprietà, e con Sinistra e Destra chiudi e apri un pacchetto. In Impostazioni, Scorciatoie ci sono tutte.',
   'settings.shortcuts.listTitle': 'Tasti dell’elenco',
   'settings.shortcuts.listHint': 'Questi tasti appartengono all’elenco dei download e a quello del raccoglitore e non si possono riassegnare. Agiscono solo mentre una riga ha il focus, quindi nessuno di essi può togliere un tasto a un comando qui sopra.',
   'keys.list.move': 'Andare da una riga all’altra',

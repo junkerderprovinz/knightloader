@@ -2079,7 +2079,6 @@ export const sk: Dict = {
   'events.jump': 'Zobraziť riadok',
   'events.jumpGone': 'Toto sťahovanie už v zozname nie je',
   'commands.openEvents': 'Otvoriť zoznam udalostí',
-  'list.keysHint': 'Zoznam sa dá ovládať z klávesnice. Tabulátorom sa doň dostaneš, šípkami chodíš z riadka na riadok, medzerníkom riadok pridáš do výberu alebo ho z neho vyberieš, so Shiftom a šípkou zoberieš celý úsek, Enterom otvoríš vlastnosti a šípkami doľava a doprava priečinok zavrieš a otvoríš. Všetky sú vypísané v Nastaveniach, Skratky.',
   'settings.shortcuts.listTitle': 'Klávesy zoznamu',
   'settings.shortcuts.listHint': 'Tieto patria zoznamu sťahovaní a zoznamu zberača a nedajú sa priradiť nanovo. Fungujú, len kým je kurzor na riadku, takže žiadny z nich nemôže vziať kláves niektorému príkazu vyššie.',
   'keys.list.move': 'Chodiť z riadka na riadok',
