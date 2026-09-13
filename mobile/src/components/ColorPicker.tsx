@@ -209,8 +209,15 @@ export default function ColorPicker({
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       {/* Tapping the ground closes it, which is what a popover does. The panel
-          itself swallows the press so a drag inside never dismisses. */}
-      <Pressable style={styles.scrim} onPress={onClose}>
+          itself swallows the press so a drag inside never dismisses.
+
+          The darkening comes from the palette (GlimStone 1.11.0), never from a
+          number typed here: it was a flat `#00000088` - alpha .53 - worn in
+          both themes, which is neither of the two values the language actually
+          names and is the shape a scrim is not allowed to have. Inline like
+          every other colour on this page, because a stylesheet is built once
+          and cannot follow a theme change. */}
+      <Pressable style={[styles.scrim, { backgroundColor: c.scrim }]} onPress={onClose}>
         <Pressable
           style={[styles.panel, { backgroundColor: c.surface, borderRadius: radii.card }]}
           onPress={() => {}}
@@ -309,7 +316,9 @@ export default function ColorPicker({
 }
 
 const styles = StyleSheet.create({
-  scrim: { flex: 1, backgroundColor: '#00000088', alignItems: 'center', justifyContent: 'center', padding: 24 },
+  // No backgroundColor here: it is `c.scrim`, applied at render time - see the
+  // Pressable above.
+  scrim: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
   panel: { width: '100%', maxWidth: 320, padding: 16, gap: 12 },
   pad: { width: '100%', aspectRatio: 1, overflow: 'hidden' },
   padRow: { flex: 1, flexDirection: 'row' },

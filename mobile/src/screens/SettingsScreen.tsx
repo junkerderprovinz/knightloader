@@ -152,12 +152,30 @@ export default function SettingsScreen({
   const currentLabel = LANGUAGES.find((l) => l.code === (override ?? lang))?.label ?? (override ?? lang);
   const currentFlag = flagEmoji(LANGUAGES.find((l) => l.code === lang)?.flag ?? '');
 
+  /**
+   * The question that does the warning, now that the button no longer tries to.
+   *
+   * `style: 'destructive'` is gone from the commit button, and it is the same
+   * removal as the one on the button that opens this (GlimStone 1.12.0, and
+   * 1.13.0 for the window itself: the confirmation stopped taking a tone at
+   * all, because a lever that decides nothing still reads as a lever). On iOS
+   * that flag paints the button red - exactly the colour the language took off
+   * destructive controls - and on Android React Native ignores `style`
+   * outright, so the one line was also drawing two different windows on the two
+   * platforms.
+   *
+   * `style: 'cancel'` stays on the other one. That is placement and keyboard
+   * behaviour, not colour: it tells the platform which button is the way out,
+   * and the platform then puts it where its own users look for it. Which is
+   * also why 1.14.0's right-goes-ahead rule does not reach in here - the order
+   * of these two is the operating system's to decide, and a card that fought it
+   * would be the odd window on the phone rather than the consistent one.
+   */
   const confirmRemoveAll = () => {
     Alert.alert(t('settings.removeAllConfirmTitle'), t('settings.removeAllConfirmMessage'), [
       { text: t('settings.cancel'), style: 'cancel' },
       {
         text: t('settings.removeAllConfirmButton'),
-        style: 'destructive',
         onPress: async () => {
           await removeAllConnections();
           onRemovedAllConnections();
@@ -268,7 +286,24 @@ export default function SettingsScreen({
               bottom of Add, the floating action button and the speed curve are
               still painted with it while the mode is on. Locking the row means
               those keep whatever accent was last chosen until the mode goes off
-              again. He asked for it plainly and it is one word to reverse. */}
+              again. He asked for it plainly and it is one word to reverse.
+
+              Dimmed and NOT removed, unlike the palette row further down, and
+              the two look alike enough to be worth separating: this row is
+              reporting rather than refusing. It says the single accent is not
+              in force right now, which is information about the accent itself,
+              and the swatches still show which colour the app goes back to the
+              moment the mode is switched off. The palette row's own reason for
+              being dead is a decision one row above it, which is the case the
+              absence rule exists for.
+
+              The value sits on this inner container and not on the row, which
+              is a rule and not a layout accident: opacity composites the whole
+              subtree in React Native exactly as it does in CSS, so a child can
+              never be less transparent than its parent. Put it on the row and
+              an info bubble beside the label fades with the swatches - and the
+              bubble is the one thing on a dimmed row that still has something
+              to say. */}
           <View style={[styles.swatches, rainbow.on && styles.dimmed]} pointerEvents={rainbow.on ? 'none' : 'auto'}>
             {ACCENTS.map((a, i) => {
               // Each slot wears whatever it was last mixed to, and keeps it.
@@ -354,46 +389,79 @@ export default function SettingsScreen({
             make the same card teal in a browser and pink here. It is also why
             this row is the one place in this card that needs a connection.
 
-            Same treatment as the accent row - label left, swatches right,
-            dimmed while the mode is off, since eight colours that are not
-            being used are worth showing and not worth pressing. */}
-        <View style={styles.axisRow}>
-          <Text style={[styles.rowLabel, { color: rainbow.on ? c.text : c.textMuted }]}>
-            {t('settings.rainbowPalette')}
-          </Text>
-          <View
-            style={[styles.swatches, !rainbow.on && styles.dimmed]}
-            pointerEvents={rainbow.on && onSetPalette ? 'auto' : 'none'}
-          >
-            {rainbow.palette.map((hex, i) => (
-              <Swatch
-                key={i}
-                hex={hex}
-                // Every position is editable and none of them is "selected":
-                // all eight are in force at once, so a press here can only
-                // mean "change this one".
-                selected={false}
-                label={t('settings.rainbowPalettePosition', { position: i + 1 })}
-                onPress={() => setPicking({ kind: 'palette', index: i })}
+            ABSENT while the mode is off, not dimmed, and this row is the case
+            GlimStone 1.10.0 names by hand: a palette editor under a rainbow
+            that is not running is eight swatches nobody can open beside a reset
+            nobody can press. It used to be dimmed on the reasoning that eight
+            colours which are not in use are still the answer to "which eight" -
+            which is true and is not worth what it costs. The reason the row is
+            dead sits one row up, and that is exactly where nobody looks once
+            they have decided this row is the interesting one; reaching a
+            control and getting nothing teaches less than its absence does.
+
+            The MODE's own switch stays where it is, which is the other half of
+            the same rule and is not a detail: a mode whose switch disappears
+            when it is off is a mode nobody can turn back on. What goes is only
+            the thing that has meaning underneath it.
+
+            Deliberately NOT what goes with it: the accent row above, which is
+            dimmed while the rainbow is ON. That one is REPORTING rather than
+            refusing - it says the single accent is not in force at the moment,
+            which is information about the accent itself - and it stays. */}
+        {rainbow.on && (
+          <View style={styles.axisRow}>
+            <Text style={[styles.rowLabel, { color: c.text }]}>{t('settings.rainbowPalette')}</Text>
+            {/* The one state left that is shown and not offered: the mode is on
+                but there is no instance to write a palette to. That is not the
+                sub-switch case - it reports something about the palette itself,
+                which lives on the instance and has none here, rather than a
+                decision made elsewhere on this page - so it is dimmed and inert
+                rather than absent, and the swatches still say which eight
+                colours the positions are wearing.
+
+                The dimming sits on THIS container and never on the row: opacity
+                composites a whole subtree in React Native exactly as it does in
+                CSS, so a label with an info bubble beside it would fade with
+                the swatches if the row carried the value. Nothing is faded here
+                that is not actually inert. */}
+            <View
+              style={[styles.swatches, !onSetPalette && styles.dimmed]}
+              pointerEvents={onSetPalette ? 'auto' : 'none'}
+            >
+              {rainbow.palette.map((hex, i) => (
+                <Swatch
+                  key={i}
+                  hex={hex}
+                  // Every position is editable and none of them is "selected":
+                  // all eight are in force at once, so a press here can only
+                  // mean "change this one".
+                  selected={false}
+                  label={t('settings.rainbowPalettePosition', { position: i + 1 })}
+                  onPress={() => setPicking({ kind: 'palette', index: i })}
+                />
+              ))}
+              {/* Back to the eight the language ships with. `null` is the reset
+                  the instance understands - it clears the stored list rather
+                  than writing the defaults as if somebody had chosen them. */}
+              <SwatchReset
+                onPress={() => {
+                  setPaletteError('');
+                  if (onSetPalette) {
+                    void onSetPalette(null).catch((e: unknown) =>
+                      setPaletteError(e instanceof Error ? e.message : String(e)),
+                    );
+                  }
+                }}
+                label={t('settings.accentReset')}
               />
-            ))}
-            {/* Back to the eight the language ships with. `null` is the reset the
-                instance understands - it clears the stored list rather than
-                writing the defaults as if somebody had chosen them. */}
-            <SwatchReset
-              onPress={() => {
-                setPaletteError('');
-                if (onSetPalette) {
-                  void onSetPalette(null).catch((e: unknown) =>
-                    setPaletteError(e instanceof Error ? e.message : String(e)),
-                  );
-                }
-              }}
-              label={t('settings.accentReset')}
-            />
+            </View>
           </View>
-        </View>
-        {paletteError !== '' && (
+        )}
+        {/* Goes with the row it belongs to. "What else hangs off the mode goes
+            with it" is part of the same rule, and a failure message left
+            standing under a row that is no longer there is the clearest case of
+            it: the sentence would be explaining a control nobody can see. */}
+        {rainbow.on && paletteError !== '' && (
           <Text style={[styles.hint, { color: c.statusFailSolid }]}>{paletteError}</Text>
         )}
       </NotchCard>
@@ -474,23 +542,33 @@ export default function SettingsScreen({
         <View style={styles.buttonRow}>
           <GlimButton
             hue={1}
-                        label={t('settings.aboutCoffeeButton')}
+            label={t('settings.aboutCoffeeButton')}
             icon={(ink) => <Coffee color={ink} />}
             onPress={() => Linking.openURL(COFFEE_URL)}
           />
         </View>
-        <Text style={[styles.aboutText, { color: c.textSub }]}>{t('settings.aboutReport')}</Text>
+        {/* A blank line above this sentence, because it FOLLOWS controls.
+            Without it the coffee button sat as close to this line as to the one
+            it belongs to, so the eye pairs it with the wrong text and the card
+            reads as one column rather than as two offers. The step goes over the
+            SENTENCE and never under the button row: a card whose last row is a
+            control would otherwise end in a gap, which reads as a missing row.
+            The first sentence of the card gets none - there is nothing above it
+            to be separated from. */}
+        <Text style={[styles.aboutText, styles.afterControls, { color: c.textSub }]}>
+          {t('settings.aboutReport')}
+        </Text>
         <View style={styles.buttonRow}>
           <GlimButton
             hue={2}
-                        grow
+            grow
             label={t('settings.aboutGithub')}
             icon={(ink) => <Github color={ink} />}
             onPress={() => Linking.openURL(GITHUB_URL)}
           />
           <GlimButton
             hue={3}
-                        grow
+            grow
             label={t('settings.aboutMail')}
             icon={(ink) => <Mail color={ink} />}
             // A plain mailto, subject prefilled so a mail arrives already saying
@@ -514,11 +592,19 @@ export default function SettingsScreen({
             "Die Versionsnummer (auch von Glimstone) soll immer auf deren
             release auf github zeigen ... Das soll immmer und überall gelten").
             A version answers "which build is this"; the question straight after
-            it is always "and what changed". Now GlimStone 1.6.0 for the family.
+            it is always "and what changed". Which GlimStone that is stands in
+            GLIMSTONE_VERSION at the top of this file and nowhere else - a
+            number repeated in a comment is a number that goes stale on the day
+            the constant moves.
 
             Built from the version, never a hand-kept list of links: that list
-            is wrong the first time somebody forgets it. */}
-        <Text style={[styles.aboutVersions, { color: c.textMuted }]}>
+            is wrong the first time somebody forgets it.
+
+            It follows controls, so it takes the same blank line the report
+            sentence above does. A footer is still a line of text after a button
+            row, and the pairing it would otherwise break is the mail button
+            with the sentence that asked for it. */}
+        <Text style={[styles.aboutVersions, styles.afterControls, { color: c.textMuted }]}>
           {`${t('settings.aboutVersion')} `}
           <Text
             style={{ color: accentInk }}
@@ -537,10 +623,18 @@ export default function SettingsScreen({
       </NotchCard>
 
       <NotchCard title={t('settings.dangerZone')} hue={4}>
-        {/* A surface with red INK, not a red outline: the fail colour carries
-            the meaning, and this language draws no outlines. The confirmation
-            dialog is where the actually destructive control lives. */}
-        <GlimButton tone="danger" label={t('settings.removeAllConnections')} onPress={confirmRemoveAll} />
+        {/* Quiet, and the same ink every other quiet control on the page takes.
+            It carried the fail colour, on the reasoning that a surface with red
+            INK (rather than a red outline, which this language has no line to
+            draw) is how a destructive control says what it is. GlimStone 1.12.0
+            settled that the other way: what warns is the QUESTION below, which
+            names what is about to be gone, and a button that is red before the
+            question is asked is saying it twice and weaker each time.
+
+            The card's own notch still carries its rainbow position, so this row
+            is not colourless - the heading above it is coloured like every other
+            heading. What is gone is the status colour on the CONTROL. */}
+        <GlimButton tone="quiet" label={t('settings.removeAllConnections')} onPress={confirmRemoveAll} />
       </NotchCard>
 
       {/* No version footer any more (jdp, 2026-08-31: "Die vversionsnummer
@@ -608,10 +702,18 @@ const styles = StyleSheet.create({
   // Half-muted and centred: something you look for, not something that
   // competes for attention.
   aboutText: { fontSize: TYPE.body, lineHeight: 20, marginBottom: 8 },
-  // It closes the card now, so it takes a top gap and none underneath: the
-  // button row above already carries its own 10, and the card's padding is the
-  // space below the last line.
-  aboutVersions: { fontSize: TYPE.caption, marginTop: 2 },
+  /* The blank line over a sentence that follows controls.
+   *
+   * 10 is not a new number: it is the same step the button row above already
+   * carries under itself, so the gap between a control row and the next
+   * sentence doubles while the gap between a sentence and its OWN controls
+   * stays as it was. Two to one is what makes the pair read as a pair - the
+   * extension's About card reaches the same ratio with 20 against 8.
+   *
+   * It closes nothing by itself: the card's own padding is still the space
+   * under the last line, which is why nothing here adds a bottom margin. */
+  afterControls: { marginTop: 10 },
+  aboutVersions: { fontSize: TYPE.caption },
   valueGroup: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1 },
   flag: { fontSize: 17 },
   value: { fontSize: TYPE.body },
@@ -633,9 +735,13 @@ const styles = StyleSheet.create({
      or as nine separate controls. Halving it also hands each circle two more
      points of its own, which is where the size actually went. */
   swatches: { flexDirection: 'row', gap: 2, alignItems: 'center', justifyContent: 'flex-end', flex: 1 },
-  // A row that is shown and not offered. Dimmed rather than hidden: eight
-  // colours that are not in use are still the answer to "which eight", and a
-  // control that disappears teaches nobody why.
+  // A row that is shown and not offered, for the one reason that still earns
+  // it: the control is REPORTING something about its own subject - the accent
+  // is not in force under the rainbow, the palette has no instance to be
+  // written to - rather than refusing because of a switch one row up. That
+  // second case is absent now and not dimmed, so this style no longer has the
+  // job it was written for. It stands on a CONTROL GROUP and never on a row
+  // that also carries a label, because opacity composites the subtree.
   dimmed: { opacity: 0.4 },
   report: { padding: 12, marginBottom: 10 },
   reportText: { fontSize: TYPE.caption, lineHeight: 17, fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' },
