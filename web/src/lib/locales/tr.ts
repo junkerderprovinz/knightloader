@@ -965,6 +965,7 @@ export const tr: Dict = {
   'accounts.refresh': 'Yenile',
   'accounts.refreshing': 'Yenileniyor…',
   'accounts.remove': 'Kaldır',
+  'accounts.removeConfirm': '{name} için kayıtlı oturum bilgileri bu örnekten silinir ve geri getirilemez, bu yüzden yeniden girilmesi gerekir.',
   'accounts.removed': 'Kaldırıldı.',
   'accounts.rename': 'Yeniden adlandır',
   'accounts.renew': 'Yenile (süre)',

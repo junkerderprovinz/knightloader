@@ -270,8 +270,12 @@ function weigh(all: Task[], ids: string[]): Weight {
  * ConfirmRemove states what is about to go and how much of it, before anything
  * goes. The two exits do different things: taking rows off a list is reversible
  * by pasting the links again, erasing the files is not. What tells them apart is
- * the label, the glyph beside it and the counts they are read under, never a
- * colour on the button.
+ * the label and the counts they are read under - never a colour on the button,
+ * and since this window's footer became uniform, never a glyph on one of them
+ * either. That is what GlimStone 1.12.0 means by the QUESTION being the
+ * warning: an irreversible action opens a window naming the stakes in words and
+ * counts, and somebody who has read "this also erases 12 files, 4.1 GB on disk"
+ * has already been told.
  */
 function ConfirmRemove({
   title,
@@ -319,22 +323,37 @@ function ConfirmRemove({
       mute={mute}
       footer={
         <>
-          {/* The exit that steps back stands at the start of the row; the two
-              that go through with it stand at its end, in the order of how much
-              each one takes. */}
+          {/* All three travel together at the END of the row, in the order of
+              how far each one goes: step back, then off the list, then off the
+              disk. The cancel button used to be pinned to the far start with
+              the two commits alone at the end, and that was this file's own
+              invention - GlimStone's ConfirmDialog
+              (reference/react/ConfirmDialog.tsx) sets `justify-end` on its
+              footer and stands cancel and commit side by side in it. A pair
+              split across the whole width reads as two lone controls rather
+              than as one question with two answers, and the shape then differs
+              from every other window in the app for no reason a reader can see.
+              The order inside the group is unchanged and is the part 1.14.0
+              actually legislates.
+              NO GLYPH ON ANY OF THEM, and that is a decision, not an omission.
+              "Remove and delete the files" carried IconTrashFiles while its two
+              neighbours carried nothing, which is the mixed footer GlimStone
+              1.8.0's confirmGlyph exists to prevent - every button in a footer
+              wears a mark or none does. Marking only the harshest of the three
+              also re-introduces, in a glyph, exactly what 1.12.0 took away in
+              red: neither commit is recommended here, and the counts above
+              decide which one somebody wants. This app has no glyph resolver
+              over label keys, so the other twenty-four window footers carry no
+              marks at all; none is the answer that agrees with them. */}
+          <span className="flex-1" />
           <Button kind="ghost" onClick={onCancel}>
             {t('common.cancel')}
           </Button>
-          <span className="flex-1" />
           <Button kind="secondary" onClick={() => onConfirm(false)}>
             {t('remove.fromList')}
           </Button>
           {files && (
-            <Button
-              kind="secondary"
-              icon={<IconTrashFiles width={16} height={16} />}
-              onClick={() => onConfirm(true)}
-            >
+            <Button kind="secondary" onClick={() => onConfirm(true)}>
               {t('remove.withFiles')}
             </Button>
           )}
@@ -445,8 +464,14 @@ export function TaskOptionsDialog({
       onClose={onClose}
       footer={
         <>
+          {/* What the server said, then the spacer, then Save. The two used to
+              stand the other way round, which put the one control of this
+              window mid-row with a sentence to its right; GlimStone 1.14.0
+              wants it at the END of its row. `min-w-0` so a long refusal
+              shrinks rather than shoving the button out of the card. */}
+          {error && <span className="min-w-0 text-statusFail text-sm">{error}</span>}
+          <span className="flex-1" />
           <Button onClick={apply}>{t('settings.save')}</Button>
-          {error && <span className="text-statusFail text-sm">{error}</span>}
         </>
       }
     >

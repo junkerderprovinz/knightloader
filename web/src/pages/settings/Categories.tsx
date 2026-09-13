@@ -592,9 +592,16 @@ function CategoryRow({
             </span>
           </span>
         </button>
+        {/* `labelled` on all three, and 16px of glyph in the 32px tile: a row
+            action stands in the Beschriftung setting like everything else, and
+            the square is what that setting resolves to in glyph mode rather
+            than a control that ignores it. The words fit because the name and
+            summary beside them are `min-w-0` and truncate - this is a card row,
+            not a table column with a width to defend. */}
         <div className="flex items-center gap-1.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
           <IconBadge
-            icon={<IconArrowUp width={14} height={14} />}
+            labelled
+            icon={<IconArrowUp width={16} height={16} />}
             hue={index}
             title={t('settings.rules.moveUp')}
             aria-label={t('settings.rules.moveUp')}
@@ -602,7 +609,8 @@ function CategoryRow({
             onClick={() => onMove(-1)}
           />
           <IconBadge
-            icon={<IconArrowDown width={14} height={14} />}
+            labelled
+            icon={<IconArrowDown width={16} height={16} />}
             hue={index}
             title={t('settings.rules.moveDown')}
             aria-label={t('settings.rules.moveDown')}
@@ -610,7 +618,8 @@ function CategoryRow({
             onClick={() => onMove(1)}
           />
           <IconBadge
-            icon={<IconTrash width={14} height={14} />}
+            labelled
+            icon={<IconTrash width={16} height={16} />}
             hue={index}
             title={t('settings.categories.remove')}
             aria-label={t('settings.categories.remove')}

@@ -293,7 +293,11 @@ export function MediaHooksCard({ hue }: { hue: number }) {
                   {testing === h.id ? t('settings.mediahook.testRunning') : t('settings.mediahook.test')}
                 </Button>
                 <IconBadge
-                  icon={<IconTrash width={14} height={14} />}
+                  // 16 in a 32px badge: a glyph alone in a square is half its
+                  // box (GlimStone rule 13), not the smaller drawing a glyph
+                  // beside text would be. 14 filled 44% of the tile and made the
+                  // row read as uneven against the Test button next to it.
+                  icon={<IconTrash width={16} height={16} />}
                   hue={i}
                   title={t('settings.mediahook.delete')}
                   aria-label={`${t('settings.mediahook.delete')} · ${h.name || h.id}`}
@@ -441,19 +445,27 @@ export function MediaHooksCard({ hue }: { hue: number }) {
             </FieldGroup>
           )}
 
-          {/* Cancel first, Save last: the control that takes the form forward
-              sits at the END of the row and the one that steps back at its
-              start. Ordered by the JSX itself and never by flex-row-reverse or
-              an order-* utility, so the pair mirrors with the page under the
-              right-to-left languages this app ships. */}
+          {/* Cancel first, Save last, and the pair really is at the END of the
+              row (GlimStone 1.14.0). The order alone was never the whole rule:
+              in a left-aligned row the advancing button sits in the middle of
+              the well with empty space to its right, which is the position that
+              is supposed to MEAN "this one goes ahead". The spacer is the first
+              child, and the server's refusal goes in front of the pair rather
+              than after it, so nothing stands to the right of Save.
+
+              Ordered by the JSX itself and never by flex-row-reverse or an
+              order-* utility, so the pair mirrors with the page under the
+              right-to-left languages this app ships - "right" means end, not
+              the right of the glass. */}
           <div className="flex items-center gap-3">
+            <span className="flex-1" />
+            {error && <p className="text-xs text-statusWarn">{error}</p>}
             <Button kind="ghost" disabled={busy} onClick={() => setDraft(null)}>
               {t('common.cancel')}
             </Button>
             <Button disabled={busy || draft.id.trim() === '' || draft.url.trim() === ''} onClick={save}>
               {t('settings.mediahook.save')}
             </Button>
-            {error && <p className="text-xs text-statusWarn">{error}</p>}
           </div>
         </div>
       )}

@@ -29,11 +29,90 @@ import { openColorPickerPopover } from '../lib/colorPicker';
  */
 type ButtonKind = 'primary' | 'secondary' | 'ghost';
 
+/**
+ * HOVER IS A TOKEN, AND ON A FILLED ACCENT CONTROL IT IS AN OPACITY STEP.
+ *
+ * `hover:brightness-110` stood on the accent fill here, and it is the mistake
+ * rule 21 names by hand: a single brightness value can only move one way,
+ * while the two themes need opposite directions. A step away from the surface
+ * is LIGHTER on the dark ground and DARKER on the light one, so brightening an
+ * accent fill under a light theme walks the control back towards the page it
+ * is supposed to stand out from. Invisible in the markup, obvious on screen,
+ * and only in one of the modes - which is how it survived this long.
+ *
+ * The surface ramp has a token for every tier and the other two kinds take
+ * them: no fill of its own hovers to `--carbon-hover`, a surface2 fill to
+ * `--carbon-surface3` (web/check-hover-ramp.mjs is the guard on that pair).
+ * An accent fill is not ON that ramp and so has no tier above it; it takes the
+ * step GlimStone's own button takes for its accent tone instead, which is
+ * opacity. Opacity reads the same in both themes because it moves the fill
+ * towards whatever is behind it rather than towards one fixed end of the grey
+ * scale.
+ */
 const kindClass: Record<ButtonKind, string> = {
-  primary: 'bg-accent text-accentContrast hover:brightness-110',
+  primary: 'bg-accent text-accentContrast hover:opacity-90',
   secondary: 'bg-carbon-surface2 text-carbon-text hover:bg-carbon-surface3',
   ghost: 'text-carbon-textSub hover:bg-carbon-hover hover:text-carbon-text',
 };
+
+/**
+ * THE TWO HEIGHTS, AND THERE IS NO THIRD (GlimStone rule 19).
+ *
+ * `--btn-h` (2rem) is what an ordinary text field measures, so a button
+ * standing in a row of fields matches it instead of standing proud of it;
+ * `--btn-h-key` (2.5rem, `.glim-btn-key`) is the one step up, for the button a
+ * surface exists FOR - the control that creates the thing the page lists, or
+ * one whose press is hard to undo. Both numbers live in index.css and nowhere
+ * else, which is why nothing in this file writes a height of its own any more:
+ * this app had 36px buttons, 32px badges and a 48px transport row, and three
+ * heights read as a ladder somebody has to pick a rung from.
+ *
+ * Every square CONTROL in here therefore measures `--btn-h` on both axes, and
+ * the field below measures it too (see `inputClass`). A key control standing in
+ * a field row has to be CENTRED against its neighbours rather than top-aligned,
+ * which is the call site's `items-center`, not something this component can do
+ * for it.
+ *
+ * One square is still short: `Swatch` is 28px, and so are the four hand-built
+ * squares in pages/settings/Look.tsx that were deliberately matched to it. The
+ * language says the badge sets that size and a colour swatch follows it, so the
+ * 28 is wrong - but moving this one alone would split the row it sits in, which
+ * is the same defect one step sideways. It moves when they move, in one edit.
+ */
+const BTN_H = 'h-[var(--btn-h)]';
+const BTN_SQUARE = 'h-[var(--btn-h)] w-[var(--btn-h)]';
+
+/**
+ * RULE 13, THE MEASUREMENT: A GLYPH ALONE IN A SQUARE IS HALF ITS BOX.
+ *
+ * 16px in a 32px control, 20px in a 40px one - not the 20px a glyph takes
+ * BESIDE WORDS, where the mark and 14px text have to read as one control. In a
+ * square there are no words to match, so the only proportion left is how much
+ * of the frame the ink fills, and 62% of it was reported in as many words:
+ * "die glyphen sind zu gross und wirken klobig".
+ *
+ * The size is set HERE, by the component that draws the square, rather than at
+ * the call sites - which is the whole point of this block. Handed to the call
+ * sites it drifted to four different answers across 79 badges (49 at 16px, 27
+ * at 14, two at 15 and one at the icon set's own 22px base), and 14px in a 32px
+ * tile is as wrong in the other direction as 22px is in this one. A number
+ * passed per call site comes back; a number owned by the component cannot.
+ *
+ * `[&>svg]` beats the `width`/`height` written on the glyph itself, and that is
+ * load-bearing rather than lucky: those two are SVG presentation attributes,
+ * which lose to any CSS rule at all. So a call site that still passes 14 gets
+ * the right size anyway, and the leftover numbers are tidy-up rather than
+ * breakage.
+ */
+const GLYPH_16 = '[&>svg]:h-4 [&>svg]:w-4';
+const GLYPH_20 = '[&>svg]:h-5 [&>svg]:w-5';
+/** The mark grows with the box: the key control's step matches the height's. */
+const GLYPH_22 = '[&>svg]:h-[1.375rem] [&>svg]:w-[1.375rem]';
+
+function glyphSize(shape: 'square' | 'besideWords', height: 'btn' | 'key'): string {
+  if (shape === 'square') return height === 'key' ? GLYPH_20 : GLYPH_16;
+  return height === 'key' ? GLYPH_22 : GLYPH_20;
+}
 
 /**
  * hue overrides `kind`'s own colour entirely, the same relationship
@@ -53,6 +132,8 @@ export function Button({
   className = '',
   hue,
   labelled,
+  keyControl = false,
+  title,
   ...rest
 }: {
   kind?: ButtonKind;
@@ -64,51 +145,98 @@ export function Button({
    * buttons, which have a title and no children.
    */
   labelled?: boolean;
+  /**
+   * The SECOND height (`--btn-h-key`, 2.5rem), and the only other one there is.
+   *
+   * It belongs to the button a surface exists FOR: the control that creates the
+   * thing the page lists (Add account, New category, Add feed), or one whose
+   * press is hard to undo. Everything else stays at `--btn-h`, because that is
+   * what the fields beside it measure - raising the ordinary height to make one
+   * control bigger puts every button in the app out of line with every field to
+   * solve a problem two controls have.
+   *
+   * Two, and not three: the transport row's own 48px was argued for on its own
+   * merits at its own call site, which is exactly how a house ends up with a
+   * ladder. That exemption is withdrawn - 48px becomes this height, since a
+   * key control is what those three buttons are.
+   *
+   * A key control standing in a row of fields has to be centred against them,
+   * so the row it sits in carries `items-center`. This component cannot do that
+   * for its own parent.
+   */
+  keyControl?: boolean;
 } & ButtonHTMLAttributes<HTMLButtonElement>) {
   const labelMode = useNavLabels();
   // Only ever fills in for a button that HAS no children of its own: a
   // labelled button already says what it does, and appending its own tooltip
   // to it would say it twice.
   const fallback =
-    labelled && !children && rest.title && (labelMode === 'text' || labelMode === 'both')
-      ? rest.title
-      : undefined;
+    labelled && !children && title && (labelMode === 'text' || labelMode === 'both') ? title : undefined;
   const body = children ?? fallback;
   const hideIcon = labelled && labelMode === 'text' && !!fallback;
-  const iconOnly = icon && !body;
+  const iconOnly = !!icon && !body;
   const hued = hue !== undefined;
+  // ONE CONTROL, ONE TOOLTIP MECHANISM - the same move IconBadge below already
+  // made, for the same reason and now in the same place. `title` used to travel
+  // on through `rest` to the DOM, so a button showed the operating system's own
+  // unstyled box at the pointer while the badge beside it showed the house
+  // bubble at the trigger: two mechanisms, one row, and the difference reads as
+  // a rendering fault. Pulled out of the props here, it never reaches the
+  // element and there is only the one bubble left.
+  const tip = useTooltip<HTMLButtonElement>(title);
+  // role/tabIndex dropped for the reason spelled out at IconBadge's own copy of
+  // this line: a <button> already has both, and the "note" role would tell a
+  // screen reader this is a description rather than a control.
+  const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
   return (
-    <button
-      className={`inline-flex items-center justify-center gap-2 rounded-[var(--radius-control)] text-sm font-medium
-        transition duration-150 select-none disabled:opacity-35 disabled:pointer-events-none
-        motion-safe:active:scale-[.98] ${iconOnly ? 'p-2' : 'px-3.5 py-2'}
-        ${hued ? 'glim-hue bg-accent text-accentContrast hover:brightness-110' : kindClass[kind]} ${className}`}
-      style={hued ? (hueVars(rainbowAt(hue)) as CSSProperties) : undefined}
-      {...rest}
-    >
-      {!hideIcon && icon}
-      {body}
-    </button>
+    <>
+      <button
+        className={`inline-flex items-center justify-center gap-2 rounded-[var(--radius-control)] text-sm font-medium
+          transition duration-150 select-none disabled:opacity-35 disabled:pointer-events-none
+          motion-safe:active:scale-[.98] ${keyControl ? 'glim-btn-key' : BTN_H}
+          ${iconOnly ? (keyControl ? 'w-[var(--btn-h-key)] px-0' : 'w-[var(--btn-h)] px-0') : 'px-3.5'}
+          ${glyphSize(iconOnly ? 'square' : 'besideWords', keyControl ? 'key' : 'btn')}
+          ${hued ? 'glim-hue bg-accent text-accentContrast hover:opacity-90' : kindClass[kind]} ${className}`}
+        style={hued ? (hueVars(rainbowAt(hue)) as CSSProperties) : undefined}
+        // A glyph-only button drew its accessible name from the `title`
+        // attribute, and that attribute is gone now - so the name is stated.
+        // Before the spread, never after, so a call site that passes its own
+        // aria-label still wins.
+        aria-label={iconOnly && title ? title : undefined}
+        {...(title ? tipHoverProps : undefined)}
+        {...rest}
+      >
+        {!hideIcon && icon}
+        {body}
+      </button>
+      {title && tip.node}
+    </>
   );
 }
 
 /**
- * One kind, for the same reason ButtonKind has no 'danger' above: a bin badge
- * takes the colour its siblings take. This one had a second failure on top of
+ * ONE COLOURING, AND NO LEVER BESIDE IT.
+ *
+ * A bin badge takes the colour its siblings take, for the same reason
+ * ButtonKind has no 'danger' above. This one had a second failure on top of
  * the rule, worth keeping because it explains why the variant was never right
  * here: every delete badge already passes `hue`, so the tile was in the colour
  * engine, and `kind="danger"` painted over it. Under rainbow that produced a
  * hue-tinted tile with a red glyph in it, because .glim-tint-badge sets only
  * the box-shadow and left text-statusFail standing.
+ *
+ * What stood here until now was the SWITCH that used to choose between them: a
+ * union with one member, a record with one entry, and a `kind` prop no call
+ * site in the app passed. That is the shape 1.13.0 went after - a lever that
+ * decides nothing is deleted rather than hollowed out, because from the outside
+ * it looks like a choice somebody forgot to make, and it is an invitation to
+ * add the second member back one convincing call site at a time. The reasoning
+ * above is worth keeping; the switch is not, so it is a constant now.
  */
-type IconBadgeKind = 'neutral';
-
-const iconBadgeClass: Record<IconBadgeKind, string> = {
-  neutral: 'bg-carbon-surface2 text-carbon-textSub hover:bg-carbon-surface3 hover:text-carbon-text',
-};
+const iconBadgeClass = 'bg-carbon-surface2 text-carbon-textSub hover:bg-carbon-surface3 hover:text-carbon-text';
 
 /**
- * IconTile is IconBadge's inert twin: the same square, the same `h-8 w-8`
+ * IconTile is IconBadge's inert twin: the same square, the same `--btn-h`
  * footprint, the same hue wash - but a `<span>`, because it marks a row
  * rather than doing anything when pressed.
  *
@@ -133,8 +261,8 @@ export function IconTile({
   return (
     <span
       aria-hidden
-      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--radius-control)]
-        bg-carbon-surface2 text-carbon-textSub ${hued ? 'glim-tint-badge' : ''} ${className}`}
+      className={`flex ${BTN_SQUARE} shrink-0 items-center justify-center rounded-[var(--radius-control)]
+        ${GLYPH_16} bg-carbon-surface2 text-carbon-textSub ${hued ? 'glim-tint-badge' : ''} ${className}`}
       style={hued ? (hueVars(rainbowAt(hue)) as CSSProperties) : undefined}
     >
       {icon}
@@ -183,10 +311,19 @@ export function LabelBadge({
   return (
     <Tag
       {...(onClick ? { type: 'button' as const, onClick } : {})}
-      className={`inline-flex h-8 shrink-0 items-center gap-1.5 rounded-[var(--radius-control)] px-3
+      // The hover is an opacity step and not a rung of the surface ramp, and
+      // this badge is the case that cannot take a rung: it wears three
+      // different fills (the neutral surface2, a status wash, a hue wash) and
+      // one hover has to answer for all three. Only the neutral one has a tier
+      // above it, the status pair would lose the state it exists to report, and
+      // the hue wash is painted as an inset box-shadow - a background utility
+      // sits UNDER that and changes nothing at all. `hover:brightness-110` was
+      // the previous answer, and it is the value rule 21 rules out by name: one
+      // direction, two themes that need opposite ones.
+      className={`inline-flex ${BTN_H} shrink-0 items-center gap-1.5 rounded-[var(--radius-control)] px-3
         text-[11px] font-medium transition duration-150
         ${hued ? 'glim-tint-badge bg-carbon-surface2 text-carbon-textSub' : toneClass}
-        ${onClick ? 'motion-safe:active:scale-[.98] hover:brightness-110' : ''}`}
+        ${onClick ? 'motion-safe:active:scale-[.98] hover:opacity-80' : ''}`}
       style={hued ? (hueVars(rainbowAt(hue)) as CSSProperties) : undefined}
     >
       <span className="whitespace-nowrap">{label}</span>
@@ -202,8 +339,10 @@ export function LabelBadge({
  * stays transparent until hovered and reads as bare floating glyphs rather
  * than a control (jdp, on Rules.tsx's row actions specifically: "die icons
  * die bei mouseover auf die regel erscheinen sind nicht im Glimstone. das
- * sollen farbige quadratischen badges mit icon sein"). `h-8 w-8` matches
- * the sibling apps' own icon-badge footprint (BombVault's Settings.tsx).
+ * sollen farbige quadratischen badges mit icon sein"). The square is
+ * `--btn-h` on both axes, which is the same 32px the sibling apps' own icon
+ * badges measure (BombVault's Settings.tsx) and the same number every other
+ * control in this file now reads - the token, not a repeated `h-8 w-8`.
  *
  * `hue` opts a badge into the rainbow palette the same way Button and
  * SectionTitle already do (jdp: "Bitte alle quadratischen badges in die
@@ -216,11 +355,10 @@ export function LabelBadge({
  * describes for exactly this case. Deliberately NOT `.glim-hue-icon`: that
  * class colours the glyph itself, which is the one thing this request asks
  * to keep neutral — only the tile takes the hue, the icon stays
- * `currentColor` from `iconBadgeClass[kind]` regardless.
+ * `currentColor` from `iconBadgeClass` regardless.
  */
 export function IconBadge({
   icon,
-  kind = 'neutral',
   hue,
   active,
   labelled,
@@ -231,7 +369,6 @@ export function IconBadge({
   ...rest
 }: {
   icon: ReactNode;
-  kind?: IconBadgeKind;
   hue?: number;
   /**
    * Marks a TOGGLE badge (a filter switching on/off, not a one-shot action)
@@ -244,9 +381,16 @@ export function IconBadge({
    * for assistive tech everywhere else this component is already used. A
    * halo ring in the tile's own current colour, not a Button-style
    * `bg-accent` fill: the doc comment above already covers why a fill would
-   * cost the tile its own hue/kind colour, and this app's own rule against
-   * border lines (Look.tsx's colour swatches use the identical halo) rules
-   * out a plain border too.
+   * cost the tile its own hue, and this app's own rule against border lines
+   * (Swatch below uses the identical halo) rules out a plain border too.
+   *
+   * The halo is drawn 2px of page ground and THEN 4px of colour, which is the
+   * one shape that works: both rings used to be 2px, and two box-shadows at the
+   * same spread land on the same rectangle with the first painted over the
+   * second - so the ring somebody was meant to see was covered by the ground
+   * ring in front of it, and an engaged filter looked exactly like an idle one.
+   * Nothing failed; there was simply no ring. Swatch had the right numbers all
+   * along, which is what the comment claiming they were "identical" was reading.
    */
   active?: boolean;
   /**
@@ -259,10 +403,26 @@ export function IconBadge({
    * and, asked which: the head bar, the list toolbars and the collector's own
    * buttons). Those three now opt in.
    *
-   * It is opt-IN rather than automatic for every badge with a title, because a
-   * badge in a table row cannot grow into a labelled button without setting the
-   * width of its column - a row action and a toolbar action look the same and
-   * are not the same thing.
+   * IT IS OPT-IN, AND THAT IS A DEVIATION THIS FILE NO LONGER DEFENDS.
+   *
+   * The argument that stood here was that a badge in a table row cannot grow
+   * into a labelled button without setting the width of its column, so a row
+   * action and a toolbar action are not the same thing. Rule 13 answers it
+   * directly, and the answer is the one this app is the example for: what a
+   * row action's SHAPE decides is the shape, not whether the words appear, and
+   * "from outside, a documented exemption and a control that simply ignores the
+   * setting look identical". It is measurable here - Downloads.tsx has sixteen
+   * of these and every one is `labelled`, while the seven in the rows directly
+   * underneath it (TaskList.tsx) are not, so with Beschriftung on "text and
+   * glyph" one page labels its toolbar and not its rows.
+   *
+   * So the prop is on its way out rather than argued for: the end state is no
+   * prop at all and every badge with a title answering the setting. It is not
+   * deleted in this pass because deleting it is not a component change - 45
+   * call sites currently rely on staying silent, and the row layouts under them
+   * have to be able to hold three verbs per line before the words arrive.
+   * Whoever does that pass removes this prop in the same move; nothing here
+   * should be read as a reason to keep it.
    *
    * The label is `title`, which every one of these already carries as its
    * tooltip: one string per control, not a second one that can disagree with it.
@@ -287,7 +447,15 @@ export function IconBadge({
   // caller opted in and gave a title to show.
   const labelMode = useNavLabels();
   const showText = labelled && !!title && (labelMode === 'text' || labelMode === 'both');
-  const showIcon = !labelled || labelMode !== 'text';
+  // The glyph is only ever dropped where WORDS ARRIVE IN ITS PLACE, which is
+  // the mirror of the rule the label engine already has. `!labelled ||
+  // labelMode !== 'text'` said something subtly different: a badge that opted
+  // in, carried no title and met the text mode lost its glyph and gained
+  // nothing, and rendered as an empty box with its accessible name intact -
+  // nothing throws, nothing goes red, and the mode that does it is the plainest
+  // of the four. A glyph with no label beside it is not decoration to be
+  // stripped; it is the label, drawn.
+  const showIcon = !(labelMode === 'text' && showText);
   // A GlimStone bubble (useTooltip, InfoBubble's own sibling) rather than
   // the native `title` attribute every call site here used to pass
   // straight through to the DOM (jdp, 2026-08-26: "Alle hoover infobubbles
@@ -312,14 +480,22 @@ export function IconBadge({
         type="button"
         aria-pressed={active}
         // A badge showing text is no longer square: it keeps its height and
-        // takes the width its words need. w-8 is therefore conditional, and the
-        // padding only appears with the text it is there to hold.
-        className={`flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-[var(--radius-control)]
+        // takes the width its words need. The fixed width is therefore
+        // conditional, and the padding only appears with the text it is there
+        // to hold. The glyph follows the same fork - 16px alone in the square,
+        // 20px once there are words beside it to read as one control with.
+        className={`flex ${BTN_H} shrink-0 items-center justify-center gap-1.5 rounded-[var(--radius-control)]
           transition duration-150 select-none disabled:opacity-35 disabled:pointer-events-none
-          motion-safe:active:scale-[.98] ${showText ? 'px-2.5 text-xs font-medium' : 'w-8'}
-          ${hued ? 'glim-tint-badge' : ''} ${iconBadgeClass[kind]} ${quiet ? 'glim-badge-quiet' : ''}
-          ${active ? 'shadow-[0_0_0_2px_var(--carbon-bg),0_0_0_2px_currentColor]' : ''} ${className}`}
+          motion-safe:active:scale-[.98]
+          ${showText ? `px-2.5 text-xs font-medium ${GLYPH_20}` : `w-[var(--btn-h)] ${GLYPH_16}`}
+          ${hued ? 'glim-tint-badge' : ''} ${iconBadgeClass} ${quiet ? 'glim-badge-quiet' : ''}
+          ${active ? 'shadow-[0_0_0_2px_var(--carbon-bg),0_0_0_4px_currentColor]' : ''} ${className}`}
         style={hued ? { ...(hueVars(rainbowAt(hue)) as CSSProperties), ...style } : style}
+        // The name a glyph-only badge would otherwise not have: `title` is
+        // pulled out of the props for the bubble and never reaches the DOM, so
+        // it cannot act as the accessible name the way a native tooltip does.
+        // Stated before the spread, so a call site's own aria-label still wins.
+        aria-label={!showText && title ? title : undefined}
         {...(title ? tipHoverProps : undefined)}
         {...rest}
       >
@@ -794,6 +970,12 @@ export function Swatch({
       selected ? 'shadow-[0_0_0_2px_var(--carbon-bg),0_0_0_4px_currentColor]' : ''
     }`;
   const style: CSSProperties = { backgroundColor: color, color };
+  // One hover mechanism in the app, so the colour's name arrives in the house
+  // bubble rather than in the browser's own box. Called before the branch
+  // below, because a hook cannot live inside one, and the node is rendered in
+  // both - it is null until something is actually hovered.
+  const tip = useTooltip<HTMLButtonElement>(label);
+  const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
 
   if (onColor) {
     // The app's own picker, floated under the swatch that opened it - never a
@@ -804,30 +986,36 @@ export function Swatch({
     // unverifiable, because that window is not in the page and no automated
     // check can see it.
     return (
-      <button
-        type="button"
-        title={label}
-        aria-label={label}
-        className={`${shell} cursor-pointer`}
-        style={style}
-        onClick={(e) => {
-          onPick?.();
-          openColorPickerPopover(e.currentTarget, color, onColor);
-        }}
-      />
+      <>
+        <button
+          type="button"
+          aria-label={label}
+          className={`${shell} cursor-pointer`}
+          style={style}
+          onClick={(e) => {
+            onPick?.();
+            openColorPickerPopover(e.currentTarget, color, onColor);
+          }}
+          {...tipHoverProps}
+        />
+        {tip.node}
+      </>
     );
   }
 
   return (
-    <button
-      type="button"
-      title={label}
-      aria-label={label}
-      aria-pressed={selected}
-      onClick={onPick}
-      className={shell}
-      style={style}
-    />
+    <>
+      <button
+        type="button"
+        aria-label={label}
+        aria-pressed={selected}
+        onClick={onPick}
+        className={shell}
+        style={style}
+        {...tipHoverProps}
+      />
+      {tip.node}
+    </>
   );
 }
 
@@ -853,8 +1041,15 @@ export function SwatchRow({
   );
 }
 
+// `py-1.5`, and the one and a half is the whole reason rule 19 can hold: a
+// 14px line box is 20px tall, plus 12px of padding, which is the 2rem
+// `--btn-h` names. The field measured 36px here and every button beside it
+// now measures 32, and a four-pixel difference between neighbours is the
+// thing GlimStone has the bug report for. The number stays written as padding
+// rather than as a height because TextArea shares this string and a textarea
+// that cannot grow is a worse defect than the one being fixed.
 const inputClass =
-  'w-full rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2 text-sm text-carbon-text ' +
+  'w-full rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-1.5 text-sm text-carbon-text ' +
   'placeholder:text-carbon-textMuted outline-none transition-shadow ' +
   'focus:shadow-[0_0_0_2px_var(--focus-ring)]';
 
@@ -916,6 +1111,11 @@ function Stepper({ up = false }: { up?: boolean }) {
  * is hidden outright (glim-num-hide-spin in index.css) and replaced with our
  * own two arrows in the same muted ink as everything else in this file, so
  * "no visible box" actually means no box, not a differently-coloured one.
+ *
+ * Once the native widget is gone, so is the wheel it answered, and the wheel is
+ * the way people reach for a value they are dialling in rather than typing. It
+ * is put back here rather than at a call site: one field in the whole app had
+ * it (QueueBar's rate limit, written correctly and by hand), and 48 did not.
  */
 export function NumberInput({
   value,
@@ -938,9 +1138,52 @@ export function NumberInput({
     if (max !== undefined && n > max) return max;
     return n;
   }
+  const field = useRef<HTMLInputElement>(null);
+  // The handler is attached once and reads the current props through this box,
+  // rather than being torn down and rebuilt on every keystroke. A number field
+  // re-renders on each character typed into it.
+  const live = useRef({ value, step, min, max, onValue, disabled: rest.disabled, readOnly: rest.readOnly });
+  useEffect(() => {
+    live.current = { value, step, min, max, onValue, disabled: rest.disabled, readOnly: rest.readOnly };
+  });
+
+  /**
+   * The wheel steps the value, but ONLY while the field has focus.
+   *
+   * That condition is the design and not a caution. A field that answers the
+   * wheel on hover alone edits whatever a pointer happened to pass over on its
+   * way down the page, which is exactly why browsers took the behaviour off the
+   * native widget; requiring focus makes it the same deliberate gesture the
+   * arrow keys already need. Up is more, matching the upper arrow and the up
+   * key, and only the SIGN of the delta is read because a trackpad reports
+   * fractions.
+   *
+   * A real listener with `{ passive: false }`, never React's `onWheel`: React
+   * registers that one passive at the root, so `preventDefault` inside it does
+   * nothing but log a warning - and without it the page scrolls the field out
+   * from under the pointer while the number is still changing.
+   */
+  useEffect(() => {
+    const el = field.current;
+    if (!el) return;
+    function onWheel(e: WheelEvent) {
+      const s = live.current;
+      if (s.disabled || s.readOnly) return;
+      if (document.activeElement !== el) return;
+      if (e.deltaY === 0) return;
+      e.preventDefault();
+      const next = s.value + (e.deltaY < 0 ? s.step : -s.step);
+      const clamped = s.min !== undefined && next < s.min ? s.min : s.max !== undefined && next > s.max ? s.max : next;
+      if (clamped !== s.value) s.onValue(clamped);
+    }
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+  }, []);
+
   return (
     <span className="relative inline-block w-full">
       <input
+        ref={field}
         type="number"
         className={`${inputClass} glim-num glim-num-hide-spin pr-7 ${className}`}
         value={value}
@@ -1010,6 +1253,13 @@ export function PasswordInput({
   autoFocus?: boolean;
 }) {
   const [reveal, setReveal] = useState(false);
+  const label = reveal ? hideLabel : showLabel;
+  // The house bubble, not the `title` attribute this button used to carry:
+  // every other control in this file explains itself through useTooltip now,
+  // and the one left showing the operating system's own box - at the pointer,
+  // in a font no rule here reaches - is the one that reads as a fault.
+  const tip = useTooltip<HTMLButtonElement>(label);
+  const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
   return (
     <div className="relative">
       <TextInput
@@ -1018,8 +1268,12 @@ export function PasswordInput({
         autoFocus={autoFocus}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="pr-9"
+        // Room for the reveal button, which is the field's own height wide:
+        // the box is square, so its 16px glyph is half of it the way rule 13
+        // asks - a 36px box around the same mark was not.
+        className="pr-8"
       />
+      {tip.node}
       <button
         type="button"
         // Stops the click from also refocusing/moving the caret through a
@@ -1027,9 +1281,9 @@ export function PasswordInput({
         // its own control, not a second way to focus the field.
         onMouseDown={(e) => e.preventDefault()}
         onClick={() => setReveal((r) => !r)}
-        title={reveal ? hideLabel : showLabel}
-        aria-label={reveal ? hideLabel : showLabel}
-        className="absolute inset-y-0 right-0 flex w-9 items-center justify-center text-carbon-textMuted transition-colors hover:text-carbon-text"
+        aria-label={label}
+        {...tipHoverProps}
+        className="absolute inset-y-0 right-0 flex w-[var(--btn-h)] items-center justify-center text-carbon-textMuted transition-colors hover:text-carbon-text"
       >
         {reveal ? <IconEyeOff width={16} height={16} /> : <IconEye width={16} height={16} />}
       </button>
@@ -1442,13 +1696,42 @@ export function SectionTitle({
 export function Modal({
   title,
   onClose,
+  closeLabel,
   children,
   footer,
   mute,
 }: {
   title: string;
   onClose: () => void;
+  /**
+   * The corner X, and the window only has one WHEN THIS IS GIVEN.
+   *
+   * It used to be drawn unconditionally, and seventeen of this app's
+   * twenty-seven windows also carry a Cancel button in their footer - so those
+   * seventeen offered one answer twice, once in the place a window's close
+   * button lives. That reads as a choice between two things rather than as the
+   * same thing said twice, which is how it was reported ("der obere stehen
+   * lassen button weg"). A window whose footer already says how to leave
+   * passes nothing here; a window with no such button passes the label, and the
+   * string is the caller's because this file does not own anyone's wording.
+   *
+   * Escape and a click on the scrim close the window either way, so nothing is
+   * ever trapped by leaving this out.
+   */
+  closeLabel?: string;
   children: ReactNode;
+  /**
+   * The answers, built by the caller: this window has no confirm/cancel pair of
+   * its own, and it is not getting one just to carry a name from the language.
+   * GlimStone's `confirmGlyph` exists because its dialog resolves the cancel
+   * button's glyph from a translation key and cannot resolve the confirm
+   * button's - the confirming verb changes with the action - so the confirm
+   * button ended up as bare words beside a cancel button with a mark. Nothing
+   * here resolves a glyph from a key, so that lopsidedness cannot arise by
+   * itself; it can only be written by hand, and the rule that prevents it is
+   * that a footer is all glyphs or none. Two of three buttons carrying one is
+   * the shape to look for.
+   */
   footer?: ReactNode;
   /**
    * Turns this dialog into one somebody can silence - see lib/dialogmute.ts.
@@ -1460,6 +1743,7 @@ export function Modal({
 }) {
   const { t } = useT();
   const dialogs = useDialogMute();
+  const titleId = useId();
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -1482,11 +1766,29 @@ export function Modal({
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="glim-card w-full max-w-md p-5 flex flex-col gap-5" role="dialog" aria-modal="true">
+      {/* glim-modal-card is the window's ARRIVAL, and it is a class rather than
+          anything typed here: index.css's motion engine carries the keyframe and
+          the three intensity steps, so the rise settles with every other
+          animation in the app and stops with them under reduced motion. The
+          scrim's own fade rides on .glim-modal-backdrop above. Two windows in
+          one app must not arrive in two different ways. */}
+      <div
+        className="glim-card glim-modal-card w-full max-w-md p-5 flex flex-col gap-5"
+        role="dialog"
+        aria-modal="true"
+        // The heading IS the window's name, so it is pointed at rather than
+        // copied into an aria-label that could disagree with it later.
+        aria-labelledby={titleId}
+      >
         <div className="flex items-center gap-3">
-          <h2 className="text-sm font-semibold text-carbon-text">{title}</h2>
+          <h2 id={titleId} className="text-sm font-semibold text-carbon-text">
+            {title}
+          </h2>
           <span className="flex-1" />
-          <Button kind="ghost" icon={<IconClose width={16} height={16} />} onClick={onClose} aria-label={title} />
+          {/* No size on the glyph: a glyph-only button is a square at --btn-h
+              and its mark is half that box, which Button now decides for every
+              one of them at once. */}
+          {closeLabel && <Button kind="ghost" icon={<IconClose />} onClick={onClose} title={closeLabel} />}
         </div>
         {children}
         {/* Above the buttons, not among them: it decides whether this window
@@ -1501,7 +1803,18 @@ export function Modal({
             onChange={(v) => dialogs.setMuted(mute, v)}
           />
         )}
-        {footer && <div className="flex items-center gap-3">{footer}</div>}
+        {/* justify-end, so the pair ends the line rather than starting it.
+            1.14.0 puts the advancing button on the RIGHT because that is where
+            the hand already is, and half of that is only true if the row itself
+            reaches the edge: in a max-w-md window a left-started footer leaves
+            the advancing button sitting in the middle. Twenty-one footers, and
+            eleven of them opened with a `<span className="flex-1" />` to get
+            here by hand while eight did not - one file had it both ways in two
+            windows of the same kind. The window owns the alignment now; a
+            leftover spacer is harmless, and anything that belongs on the LEFT
+            of the pair (a counter, an error line) has to be written before it
+            rather than after. */}
+        {footer && <div className="flex items-center justify-end gap-3">{footer}</div>}
       </div>
     </div>
   );

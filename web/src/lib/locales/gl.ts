@@ -965,6 +965,7 @@ export const gl: Dict = {
   'accounts.refresh': 'Actualizar',
   'accounts.refreshing': 'Actualizando…',
   'accounts.remove': 'Eliminar',
+  'accounts.removeConfirm': 'O acceso gardado para {name} elimínase desta instancia e non se pode recuperar, así que habería que introducilo de novo.',
   'accounts.removed': 'Eliminada.',
   'accounts.rename': 'Renomear',
   'accounts.renew': 'Renovar',

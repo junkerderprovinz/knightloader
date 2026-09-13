@@ -31,7 +31,7 @@ import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
 import { Button, EmptyState, Field, InfoBubble, Modal, TextInput } from './ui';
 import { AccountTable } from './AccountTable';
-import { IconAccounts, IconPlus, IconSearch } from '../lib/icons';
+import { IconAccounts, IconClose, IconPlus, IconSearch, IconTrash } from '../lib/icons';
 import { HosterIcon } from './HosterIcon';
 
 // Faster than ACCOUNTS.HEALTH_POLL_MS (30s): a login this reconciler just
@@ -53,6 +53,9 @@ export function HosterLoginSection() {
   const [logins, setLogins] = useState<HosterLogin[] | null>(null);
   const [hosts, setHosts] = useState<HosterHost[]>([]);
   const [dialog, setDialog] = useState<Dialog | null>(null);
+  // The host waiting on an answer before its login goes. Null at rest, and the
+  // only path to removeHosterLogin - see doRemove below.
+  const [confirming, setConfirming] = useState<HosterLogin | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -90,7 +93,13 @@ export function HosterLoginSection() {
     await load();
   }
 
-  async function onRemove(host: string) {
+  // Asked, not done. The password behind this row lives in the encrypted store
+  // and in JD's own account config, and nothing on this page can read it back -
+  // so the press that drops it is not reversible from anywhere in the app.
+  // GlimStone 1.12.0: name the stake in a window and let the question do the
+  // warning, rather than a colour.
+  async function doRemove(host: string) {
+    setConfirming(null);
     try {
       await removeHosterLogin(host);
       toast(t('accounts.hoster.removed'), 'info');
@@ -121,7 +130,7 @@ export function HosterLoginSection() {
             traffic: { used: Math.max(0, (row.trafficMax ?? 0) - (row.trafficLeft ?? 0)), limit: row.trafficMax ?? 0 },
             onToggle: (v) => void onToggle(row, v),
             onEdit: () => setDialog({ mode: 'edit', login: row }),
-            onRemove: () => void onRemove(row.host),
+            onRemove: () => setConfirming(row),
           }))}
         />
       )}
@@ -162,6 +171,37 @@ export function HosterLoginSection() {
           onClose={() => setDialog(null)}
           onSaved={load}
         />
+      )}
+
+      {confirming && (
+        <Modal
+          title={t('accounts.remove')}
+          onClose={() => setConfirming(null)}
+          footer={
+            <>
+              {/* The same footer the debrid card's own confirmation carries,
+                  and deliberately identical to it: cancel then the commit, the
+                  commit LAST because it is the answer that goes ahead
+                  (GlimStone 1.14.0), ordered by JSX alone so the pair mirrors
+                  in an RTL language. Both wear a mark - a footer is all glyphs
+                  or none - and neither wears a status colour, because the
+                  sentence above is what warns. */}
+              <span className="flex-1" />
+              <Button kind="ghost" icon={<IconClose width={16} height={16} />} onClick={() => setConfirming(null)}>
+                {t('common.cancel')}
+              </Button>
+              <Button
+                kind="ghost"
+                icon={<IconTrash width={16} height={16} />}
+                onClick={() => void doRemove(confirming.host)}
+              >
+                {t('accounts.remove')}
+              </Button>
+            </>
+          }
+        >
+          <p className="text-sm text-carbon-text">{t('accounts.removeConfirm', { name: confirming.host })}</p>
+        </Modal>
       )}
     </div>
   );

@@ -199,7 +199,11 @@ export function TargetRow({
             reads as content rather than as a wall of buttons. */}
         <div className="flex items-center gap-1.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
           <IconBadge
-            icon={<IconTrash width={14} height={14} />}
+            // 16 in a 32px badge: a glyph alone in a square is half its box
+            // (GlimStone rule 13), not the smaller drawing a glyph beside text
+            // would be. 14 filled 44% of the tile and made the row read as
+            // uneven against every badge that already had this right.
+            icon={<IconTrash width={16} height={16} />}
             hue={index}
             title={t('settings.eventTargets.remove')}
             aria-label={t('settings.eventTargets.remove')}

@@ -957,6 +957,7 @@ export const it: Dict = {
   'accounts.refresh': 'Aggiorna',
   'accounts.refreshing': 'Aggiornamento…',
   'accounts.remove': 'Rimuovi',
+  'accounts.removeConfirm': 'L’accesso salvato per {name} viene eliminato da questa istanza e non può essere recuperato, quindi andrebbe inserito di nuovo.',
   'accounts.removed': 'Rimosso.',
   'accounts.rename': 'Rinomina',
   'accounts.renew': 'Rinnova',

@@ -965,6 +965,7 @@ export const uk: Dict = {
   'accounts.refresh': 'Оновити',
   'accounts.refreshing': 'Оновлення…',
   'accounts.remove': 'Прибрати',
+  'accounts.removeConfirm': 'Збережені дані для входу до {name} видаляються з цього екземпляра і їх не можна відновити, тож їх довелося б увести знову.',
   'accounts.removed': 'Прибрано.',
   'accounts.rename': 'Перейменувати',
   'accounts.renew': 'Продовжити',

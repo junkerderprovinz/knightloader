@@ -965,6 +965,7 @@ export const bg: Dict = {
   'accounts.refresh': 'Опресни',
   'accounts.refreshing': 'Опреснява се…',
   'accounts.remove': 'Премахни',
+  'accounts.removeConfirm': 'Запазените данни за вход за {name} се изтриват от този екземпляр и не могат да бъдат възстановени, така че ще трябва да се въведат отново.',
   'accounts.removed': 'Премахнато.',
   'accounts.rename': 'Преименувай',
   'accounts.renew': 'Подновяване',

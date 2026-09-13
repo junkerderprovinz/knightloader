@@ -967,6 +967,7 @@ export const no: Dict = {
   'accounts.refresh': 'Oppdater',
   'accounts.refreshing': 'Oppdaterer…',
   'accounts.remove': 'Fjern',
+  'accounts.removeConfirm': 'Den lagrede innloggingen for {name} slettes fra denne instansen og kan ikke gjenopprettes, så den måtte legges inn på nytt.',
   'accounts.removed': 'Fjernet.',
   'accounts.rename': 'Gi nytt navn',
   'accounts.renew': 'Forny',

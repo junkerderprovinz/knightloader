@@ -444,9 +444,15 @@ function ScriptRow({
             </span>
           </span>
         </button>
+        {/* `labelled`, and 16px of glyph in the 32px tile: a row action stands
+            in the Beschriftung setting like everything else, and the square is
+            what that setting resolves to in glyph mode rather than a control
+            that ignores it. The name beside it is `min-w-0` and truncates, so
+            the word costs this row nothing. */}
         <div className="flex items-center gap-1.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
           <IconBadge
-            icon={<IconTrash width={14} height={14} />}
+            labelled
+            icon={<IconTrash width={16} height={16} />}
             hue={index}
             title={row.saved ? cx('settings.scripts.remove') : cx('settings.scripts.removeNew')}
             aria-label={row.saved ? cx('settings.scripts.remove') : cx('settings.scripts.removeNew')}
@@ -506,7 +512,7 @@ function ScriptRow({
             <span className="flex-1" />
             <Button
               kind="secondary"
-              icon={<IconPlay width={14} height={14} />}
+              icon={<IconPlay width={16} height={16} />}
               disabled={runDisabled}
               onClick={() => void onRun()}
             >

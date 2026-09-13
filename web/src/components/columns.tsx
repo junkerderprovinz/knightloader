@@ -10,7 +10,7 @@
 // renderers into the list component would leave the registry describing columns
 // it cannot draw, which is the drift the registry exists to prevent.
 
-import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { fetchOptions, priorityChoices, setEnabled, setTaskOptions, type Availability, type Task } from '../lib/api';
 import { DIRECT_ID, endpointOf, useConnections } from '../lib/connections';
 import { fmtBytes, fmtDate, fmtEta, fmtSpeed, pct } from '../lib/format';
@@ -340,46 +340,16 @@ const availDot: Record<Exclude<Availability, ''>, string> = {
 
 // --- The row tooltip --------------------------------------------------------
 //
-// New UI text for this wave, kept out of en.ts on purpose: the locale files
-// are 9E's own lane and it runs after 9A-9D land (build-plan.md section 8's
-// Wave 9 note). Same arrangement as components/CollectorFacets.tsx and
-// pages/settings/Captcha.tsx - cx() asks t() first, so the day these two
-// keys land for real in en.ts (and in every other locale) this table stops
-// being consulted and can be deleted without touching anything else here.
-const PENDING = {
-  'task.tooltip.url': 'URL',
-  'task.tooltip.changed': 'Last changed',
-  // build-plan.md's 11.5E (torrent/magnet support) additions. columns.peers/
-  // columns.seeds/columns.ratio are deliberately NOT in this table - it only
-  // backs cx(), and the column header/menu row (TaskList.tsx, ColumnMenu.tsx)
-  // call t() on ColumnDef.labelKey directly, with no fallback of their own -
-  // see the labelKey casts below for where that gap actually lives and why it
-  // cannot be closed from this file.
-  'task.tooltip.infoHash': 'Info hash',
-  'task.tooltip.trackers': 'Trackers',
-  'task.tooltip.swarm': 'Peers / seeds / ratio',
-  'task.tooltip.swarmDetail': '{peers} peers, {seeds} seeds, ratio {ratio}',
-  'task.tooltip.uploaded': 'Uploaded',
-  'task.tooltip.seeding': 'Still seeding',
-} as const;
-
-type PendingKey = keyof typeof PENDING;
-
-function useCx() {
-  const { t } = useT();
-  return useCallback(
-    (key: PendingKey, vars?: Record<string, string | number>) => {
-      // The cast is the whole point: these keys are not in the union yet. It
-      // is narrow - only keys in PENDING can be passed - and it goes with
-      // the table.
-      const translated = t(key as unknown as TranslationKey) as string | undefined;
-      let s: string = translated ?? PENDING[key];
-      if (vars) for (const [k, v] of Object.entries(vars)) s = s.replaceAll(`{${k}}`, String(v));
-      return s;
-    },
-    [t],
-  );
-}
+// The eight strings this tooltip needs used to sit here too, in a PENDING table
+// with an English fallback behind a cx() that asked t() first, because the
+// locale files were a later lane's to write. That lane has landed: all eight
+// are in en.ts and in the 41 other catalogues, so t() has been answering every
+// one of them and the table underneath was never read again. A fallback nobody
+// consults is a second source of truth that can only drift, and a lever that
+// decides nothing reads as a lever (GlimStone 1.13.0) - so it is deleted rather
+// than hollowed out, and the tooltip calls t() like the rest of this file. The
+// same arrangement still stands in several other components; each of those is
+// its own file's to clear.
 
 /**
  * The row tooltip's own date formatting, spelled out in full rather than
@@ -478,7 +448,6 @@ function TooltipField({ label, children, ltr }: { label: string; children: React
  * with the row - see useTooltip in components/ui.tsx for the hover mechanics.
  */
 function RowTooltipContent({ task, t, base }: { task: Task; t: Translate; base: string }) {
-  const cx = useCx();
   const connection = useConnectionLabel(task, t, base);
   // Same signal the Peers/Seeds/Ratio columns and ResolverBadge already key
   // off - the torrent resolver's own Info().ID (internal/resolver/torrent).
@@ -503,7 +472,7 @@ function RowTooltipContent({ task, t, base }: { task: Task; t: Translate; base: 
       </div>
       <div className="flex flex-col gap-1.5 border-t border-carbon-border/60 pt-2">
         {showUrl && (
-          <TooltipField label={cx('task.tooltip.url')} ltr>
+          <TooltipField label={t('task.tooltip.url')} ltr>
             {task.url}
           </TooltipField>
         )}
@@ -525,23 +494,23 @@ function RowTooltipContent({ task, t, base }: { task: Task; t: Translate; base: 
             detail" in the tooltip specifically, a fuller picture than the
             three columns alone give. */}
         {isTorrent && (
-          <TooltipField label={cx('task.tooltip.swarm')} ltr>
-            {cx('task.tooltip.swarmDetail', {
+          <TooltipField label={t('task.tooltip.swarm')} ltr>
+            {t('task.tooltip.swarmDetail', {
               peers: task.peers ?? 0,
               seeds: task.seeds ?? 0,
               ratio: fmtRatio(task.ratio),
             })}
-            {task.seeding ? ` · ${cx('task.tooltip.seeding')}` : ''}
-            {task.uploaded ? ` · ${cx('task.tooltip.uploaded')} ${fmtBytes(task.uploaded)}` : ''}
+            {task.seeding ? ` · ${t('task.tooltip.seeding')}` : ''}
+            {task.uploaded ? ` · ${t('task.tooltip.uploaded')} ${fmtBytes(task.uploaded)}` : ''}
           </TooltipField>
         )}
         {task.infoHash && (
-          <TooltipField label={cx('task.tooltip.infoHash')} ltr>
+          <TooltipField label={t('task.tooltip.infoHash')} ltr>
             {task.infoHash}
           </TooltipField>
         )}
         {task.trackers && task.trackers.length > 0 && (
-          <TooltipField label={cx('task.tooltip.trackers')} ltr>
+          <TooltipField label={t('task.tooltip.trackers')} ltr>
             {task.trackers.join(', ')}
           </TooltipField>
         )}
@@ -567,7 +536,7 @@ function RowTooltipContent({ task, t, base }: { task: Task; t: Translate; base: 
           </TooltipField>
         )}
         {changed && (
-          <TooltipField label={cx('task.tooltip.changed')} ltr>
+          <TooltipField label={t('task.tooltip.changed')} ltr>
             {changed}
           </TooltipField>
         )}
@@ -1099,13 +1068,11 @@ export const VARIANT_KIND_LABEL_KEY: Record<string, TranslationKey> = {
  * isTorrentTask does, instead of widening what every OTHER cell's context
  * has to carry for a menu only this one column reads.
  */
-// RuleEditor.tsx's own <select> treatment (its SelectField, unexported)
-// rather than the bare bg-carbon-surface3/60 box this cell used at first
-// (jdp, 2026-08-26: "Die varianen dropdownlisten sind nicht im GlimStone
-// Style") - the same rounded-control/outline-none/focus-ring shape every
-// other select in the app already carries, just re-declared here rather
-// than exported from RuleEditor.tsx (a settings-page component this
-// row-level cell has no business importing from).
+// The settings tree's own select treatment (RuleEditor.tsx's `Select`),
+// re-declared here rather than imported from it - a row-level cell has no
+// business importing from a settings page component - instead of the bare
+// bg-carbon-surface3/60 box this cell used at first (jdp, 2026-08-26: "Die
+// varianen dropdownlisten sind nicht im GlimStone Style").
 // Readable as a control, not as a word that happens to be clickable (jdp,
 // 2026-09-05: "die varianten dropdown buttons viel zu klein und kaum
 // sichtbar"). Three things were wrong and each of them alone was enough: the
@@ -1113,16 +1080,25 @@ export const VARIANT_KIND_LABEL_KEY: Record<string, TranslationKey> = {
 // edge; 11px is the caption size, below everything else on the row; and there
 // was no chevron, which is the one mark that says "this opens".
 //
-// The chevron is drawn here rather than left to the browser, because
-// `appearance: none` is what stops a native select from painting its own
-// widget chrome on a dark ground - and once it is off, the arrow has to come
-// back from somewhere. An inline SVG in a background image keeps it one
-// element: a wrapper span would need its own pointer-events dance to stay
-// clickable, for a mark that is already just paint.
-const VARIANTE_SELECT_CLASS =
-  'shrink-0 inline-flex items-center gap-1 cursor-pointer rounded-[var(--radius-control)] bg-carbon-surface3 py-1 ps-2 pe-1.5 ' +
-  'text-xs text-carbon-text outline-none transition-shadow hover:bg-carbon-hover ' +
-  'focus-visible:shadow-[0_0_0_2px_var(--focus-ring)] disabled:opacity-40';
+// The chevron is an element of its own (IconChevronDown, in VariantPicker
+// below) and not paint in a background image, because this stopped being a
+// <select> at all - see VariantPicker's own note for why it had to.
+//
+// hover:bg-carbon-hoverRaised, never hover:bg-carbon-hover: this box is FILLED
+// with surface3, and --carbon-hover is the hover for an element carrying no
+// fill of its own. It sits BELOW surface3 on every ramp - 29 units below it on
+// the dark one - so the class this line used to carry dimmed the control at the
+// one moment somebody was looking straight at it (GlimStone rule 21). The
+// replacement is defined in all three colour blocks of index.css and steps in
+// opposite directions in them, lighter on dark (#6f6f6f) and darker on light
+// (#c6c6c6); the rainbow and shape modes do not touch it, this element carries
+// no .glim-hue. ONE template literal rather than three concatenated strings on
+// purpose: check-hover-ramp.mjs reads one class list per literal and names that
+// as its own KNOWN LIMIT, so with the fill in the first string and the hover in
+// the second, the guard written for this exact rule could not see this line.
+const VARIANTE_SELECT_CLASS = `shrink-0 inline-flex items-center gap-1 cursor-pointer rounded-[var(--radius-control)]
+  bg-carbon-surface3 py-1 ps-2 pe-1.5 text-xs text-carbon-text outline-none transition-shadow
+  hover:bg-carbon-hoverRaised focus-visible:shadow-[0_0_0_2px_var(--focus-ring)] disabled:opacity-40`;
 
 /**
  * VariantPicker is the "Variante" cell's own dropdown - a button and a
@@ -1155,9 +1131,60 @@ function VariantPicker({
   onPick: (value: string) => void;
 }) {
   const menu = useContextMenu();
+  const trigger = useRef<HTMLButtonElement>(null);
+
+  /**
+   * The wheel steps the value here, exactly as it does on the app's remaining
+   * native <select>s (QueueBar, RuleEditor, SearchField). That is the whole of
+   * rule 14's wheel clause: the wheel belongs to the PICKER, not to the element
+   * the platform happens to draw, so replacing a <select> with our own menu -
+   * which is what the note above this component describes - must not take the
+   * behaviour away with it.
+   *
+   * Clamped at both ends rather than wrapping: one notch too many must not hand
+   * this download a quality from the other end of the list. A value that is not
+   * in the list at all (the audio row's "auto" bitrate) steps to the first
+   * option, because there is no neighbour to step to from outside the list.
+   *
+   * A real listener with `{ passive: false }` and not onWheel: React registers
+   * onWheel passive at its root, so preventDefault there does nothing but log a
+   * warning, and the list would scroll away under the pointer while the value
+   * changed.
+   *
+   * Worth knowing before this is changed: this picker sits on a LIST ROW, so
+   * while the pointer rests on it the wheel edits a download instead of
+   * scrolling the list, and each notch is a request (setTaskOptions). That is
+   * the rule as written, and jdp asked for it in exactly those terms
+   * ("Dropdownlisten soll man ueberall auch per scrollen umschalten koennen").
+   * If it ever reads as the list refusing to scroll, the answer is a condition
+   * on the gesture, not a quiet exemption for this one picker.
+   */
+  useEffect(() => {
+    const el = trigger.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      // A horizontal wheel says nothing about this control, and a trackpad
+      // reports fractional deltas - so read the sign of deltaY and nothing else.
+      if (disabled || options.length < 2 || e.deltaY === 0) return;
+      // This handler IS the scroll while the pointer sits on the control.
+      e.preventDefault();
+      const at = options.indexOf(value);
+      if (at < 0) {
+        onPick(options[0]);
+        return;
+      }
+      const next = Math.min(options.length - 1, Math.max(0, at + (e.deltaY > 0 ? 1 : -1)));
+      if (next === at) return;
+      onPick(options[next]);
+    };
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+  }, [disabled, options, value, onPick]);
+
   return (
     <>
       <button
+        ref={trigger}
         type="button"
         disabled={disabled}
         aria-label={label}
@@ -1582,22 +1609,19 @@ export const COLUMNS: ColumnDef[] = [
   // (DEFAULT_HIDDEN), the same treatment six other low-traffic columns
   // already get, and readable regardless via the row tooltip above.
   //
-  // labelKey is cast the same way System.tsx/Scripts.tsx's own PENDING keys
-  // are, but with a real difference worth being explicit about: those are
-  // consumed through this file's own cx() (or their page's), which supplies
-  // an English fallback when the catalogue has no entry yet. These three are
-  // consumed by TaskList.tsx and ColumnMenu.tsx calling t(col.labelKey)
-  // directly, with no fallback of their own - neither file is this wave's to
-  // edit, and en.ts is 11.5F's (the translate phase, which lands right after
-  // this lane). Until 11.5F adds 'columns.peers'/'columns.seeds'/
-  // 'columns.ratio', t() returns undefined for these three specifically
-  // (i18n.tsx: `dict[key] ?? en[key]`, both undefined for a key neither
-  // object has) and React renders that as nothing - an empty header cell and
-  // an empty column-menu row, not a raw dotted key. Self-heals the moment
-  // 11.5F lands; see this wave's own report.
+  // These three labelKeys used to be cast through `as unknown as
+  // TranslationKey`, because the catalogue had no entry for them yet and
+  // TaskList.tsx and ColumnMenu.tsx call t(col.labelKey) with no fallback of
+  // their own - so until the translate phase landed, the header cell and the
+  // column-menu row rendered empty. It landed: 'columns.peers', 'columns.seeds'
+  // and 'columns.ratio' are in en.ts and in the 41 other catalogues, so the
+  // keys are members of TranslationKey like every other label in this table and
+  // the casts are gone with the gap they described. A cast that no longer
+  // narrows anything is a lever that decides nothing, and it also hides the
+  // very typo it used to be needed for.
   {
     id: 'peers',
-    labelKey: 'columns.peers' as unknown as TranslationKey,
+    labelKey: 'columns.peers',
     width: 76,
     minWidth: 56,
     align: 'end',
@@ -1612,7 +1636,7 @@ export const COLUMNS: ColumnDef[] = [
   },
   {
     id: 'seeds',
-    labelKey: 'columns.seeds' as unknown as TranslationKey,
+    labelKey: 'columns.seeds',
     width: 76,
     minWidth: 56,
     align: 'end',
@@ -1627,7 +1651,7 @@ export const COLUMNS: ColumnDef[] = [
   },
   {
     id: 'ratio',
-    labelKey: 'columns.ratio' as unknown as TranslationKey,
+    labelKey: 'columns.ratio',
     width: 84,
     minWidth: 60,
     align: 'end',

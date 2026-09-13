@@ -113,6 +113,48 @@ function normaliseHost(raw: string): string {
 }
 
 /**
+ * Rule 14's mouse-wheel addendum (GlimStone 1.8.0): a CLOSED <select> answers
+ * the wheel as well, stepping one option per notch, so a menu somebody reaches
+ * for constantly does not cost a click first. Clamped at both ends rather than
+ * wrapping - one notch too many must not land a value from the other end of the
+ * list, which on this page is the difference between 144p and best.
+ *
+ * A real listener with `{ passive: false }`, never React's `onWheel`, and that
+ * detail is load-bearing rather than fussy: React registers `onWheel` as a
+ * PASSIVE listener on its root, so `preventDefault` inside such a handler does
+ * nothing but log a warning and the page scrolls out from under the pointer
+ * while the value changes. QueueBar.tsx attaches the speed field's wheel
+ * handler natively for exactly this reason.
+ *
+ * The dispatched event is a real bubbling `change`, so the `onChange` already
+ * on the element picks it up exactly as a click on an <option> would, with no
+ * second code path to keep in step.
+ *
+ * SECOND COPY, DELIBERATELY: settings/diagnostics/LogViewerCard.tsx carries
+ * this function verbatim for its own source picker. Both are standing in for
+ * web/src/lib/selectScroll.ts - GlimStone's reference/selectScroll.ts under
+ * this repo's roof - which does not exist yet; the moment it does, these two
+ * collapse into one import and the other thirteen <select> call sites in the
+ * tree get the behaviour with them.
+ */
+function enableSelectWheel(select: HTMLSelectElement | null): () => void {
+  if (!select) return () => {};
+  const onWheel = (event: WheelEvent) => {
+    if (select.disabled || select.options.length < 2 || event.deltaY === 0) return;
+    // This handler IS the scroll while the pointer sits on the control, rather
+    // than a bystander to it.
+    event.preventDefault();
+    const delta = event.deltaY > 0 ? 1 : -1;
+    const next = Math.min(select.options.length - 1, Math.max(0, select.selectedIndex + delta));
+    if (next === select.selectedIndex) return;
+    select.selectedIndex = next;
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+  };
+  select.addEventListener('wheel', onWheel, { passive: false });
+  return () => select.removeEventListener('wheel', onWheel);
+}
+
+/**
  * The one control the design language has no primitive for, the same
  * treatment Connections.tsx gives its own (styled to match TextInput, so a
  * row does not read as two different systems).
@@ -140,8 +182,14 @@ function Select({
   // a select that cannot show its own value would report the first entry as
   // chosen and overwrite the real one on the next edit.
   const items = options.includes(value) ? options : [value, ...options];
+  // The wheel steps the closed menu - see enableSelectWheel above. A callback
+  // ref rather than useRef, so the listener follows a row that mounts, moves
+  // or is removed while the table is edited.
+  const [el, setEl] = useState<HTMLSelectElement | null>(null);
+  useEffect(() => enableSelectWheel(el), [el]);
   return (
     <select
+      ref={setEl}
       aria-label={label}
       value={value}
       onChange={(e) => onChange(e.target.value)}
@@ -533,44 +581,75 @@ export function Resolvers() {
           hue={0}
         />
 
-        {/* ZERO IS NOT ZERO HERE. Sanitize folds anything outside 1..100,
+        {/* ABSENT while the switch above is off, never dimmed (GlimStone
+            1.10.0). Both of these hang off that one switch and answer nothing
+            while it is off, and a dimmed control is something somebody can
+            see, read and reach for that does nothing - with the reason sitting
+            one row up, where nobody looks once they have decided this row is
+            the interesting one. The switch itself stays, because that is the
+            control somebody is actually looking for; what hangs off it goes.
+            This replaced a `pointer-events-none opacity-40` wrapper, which had
+            a second fault of its own: opacity applies to a whole subtree and a
+            child cannot be less transparent than its parent, so the one (i)
+            that could have explained why the field was dim rendered at 40% as
+            well (1.9.0).
+
+            ZERO IS NOT ZERO HERE. Sanitize folds anything outside 1..100,
             0 included, onto the built-in 90 instead of clamping it to the
             nearest end - so a stored 0 behaves as 90 and is shown as 90,
             and the field never sends a 0 back. NumberInput clamps its
             stepper only; typed input goes through Number() untouched,
             which is why the clamp is repeated in onValue. */}
-        <div className={measure.enabled ? '' : 'pointer-events-none opacity-40'}>
-          <Field
-            label={t('settings.resolvers.measureShortPercent')}
-            hint={t('settings.resolvers.measureShortPercentHint')}
-          >
-            <NumberInput
-              value={measure.shortPercent || 90}
-              min={1}
-              max={100}
-              step={1}
-              disabled={!measure.enabled}
-              onValue={(v) => patchMeasure({ shortPercent: Math.max(1, Math.min(100, v)) })}
-            />
-          </Field>
-        </div>
+        {measure.enabled && (
+          <>
+            <Field
+              label={t('settings.resolvers.measureShortPercent')}
+              hint={t('settings.resolvers.measureShortPercentHint')}
+            >
+              <NumberInput
+                value={measure.shortPercent || 90}
+                min={1}
+                max={100}
+                step={1}
+                onValue={(v) => patchMeasure({ shortPercent: Math.max(1, Math.min(100, v)) })}
+              />
+            </Field>
 
-        <ToggleRow
-          checked={measure.failOnShort}
-          onChange={(v) => patchMeasure({ failOnShort: v })}
-          label={t('settings.resolvers.measureFailOnShort')}
-          hint={t('settings.resolvers.measureFailOnShortHint')}
-          disabled={!measure.enabled}
-          hue={1}
-        />
+            <ToggleRow
+              checked={measure.failOnShort}
+              onChange={(v) => patchMeasure({ failOnShort: v })}
+              label={t('settings.resolvers.measureFailOnShort')}
+              hint={t('settings.resolvers.measureFailOnShortHint')}
+              hue={1}
+            />
+          </>
+        )}
       </Card>
 
       <Card hue={8} className="flex flex-col gap-5">
         <SectionTitle>{t('settings.resolvers.liveTitle')}</SectionTitle>
         {/* This switch also gates the detection itself: left off, every
-            download keeps exactly the progress format and the exact
-            parsing it always had, which is why the three rows under it are
-            dimmed rather than hidden - they say what the mode can do. */}
+            download keeps exactly the progress format and the exact parsing it
+            always had.
+
+            THE THREE ROWS UNDER IT ARE NOW ABSENT WHILE IT IS OFF, and that
+            reverses what stood here. The old note argued they should stay,
+            dimmed, because "they say what the mode can do" - which is the
+            argument GlimStone 1.10.0 answers head on: a dimmed sub-switch is
+            something somebody can see, read and reach for that answers
+            nothing, and the reason it is dead sits one row up where nobody
+            looks once they have decided this row is the interesting one. What
+            the mode can do belongs in the (i) on the switch itself, which
+            liveHint already carries, and not in three controls held up as a
+            display case. The switch stays visible with the mode off, because
+            that is the control somebody is looking for; whatever hangs off it
+            goes with it.
+
+            Both limits are floored at 0 in onValue rather than left to the
+            server: a negative one is stored as 0 there, but on the way it
+            would be a limit that stops the recording on its very first
+            progress line. 0 is "no limit" for both, and whichever is
+            reached first stops the recording gently. */}
         <ToggleRow
           checked={live.enabled}
           onChange={(v) => patchLive({ enabled: v })}
@@ -578,41 +657,34 @@ export function Resolvers() {
           hint={t('settings.resolvers.liveHint')}
           hue={0}
         />
-        <ToggleRow
-          checked={live.fromStart}
-          onChange={(v) => patchLive({ fromStart: v })}
-          label={t('settings.resolvers.liveFromStart')}
-          hint={t('settings.resolvers.liveFromStartHint')}
-          disabled={!live.enabled}
-          hue={1}
-        />
-
-        {/* Both limits are floored at 0 in onValue rather than left to the
-            server: a negative one is stored as 0 there, but on the way it
-            would be a limit that stops the recording on its very first
-            progress line. 0 is "no limit" for both, and whichever is
-            reached first stops the recording gently. */}
-        <div className={`flex flex-col gap-5 ${live.enabled ? '' : 'pointer-events-none opacity-40'}`}>
-          <Field label={t('settings.resolvers.liveMaxMinutes')} hint={t('settings.resolvers.liveMaxMinutesHint')}>
-            <NumberInput
-              value={live.maxMinutes}
-              min={0}
-              max={10080}
-              step={1}
-              disabled={!live.enabled}
-              onValue={(v) => patchLive({ maxMinutes: Math.max(0, Math.min(10080, v)) })}
+        {live.enabled && (
+          <>
+            <ToggleRow
+              checked={live.fromStart}
+              onChange={(v) => patchLive({ fromStart: v })}
+              label={t('settings.resolvers.liveFromStart')}
+              hint={t('settings.resolvers.liveFromStartHint')}
+              hue={1}
             />
-          </Field>
-          <Field label={t('settings.resolvers.liveMaxMB')} hint={t('settings.resolvers.liveMaxMBHint')}>
-            <NumberInput
-              value={live.maxMB}
-              min={0}
-              step={1}
-              disabled={!live.enabled}
-              onValue={(v) => patchLive({ maxMB: Math.max(0, v) })}
-            />
-          </Field>
-        </div>
+            <Field label={t('settings.resolvers.liveMaxMinutes')} hint={t('settings.resolvers.liveMaxMinutesHint')}>
+              <NumberInput
+                value={live.maxMinutes}
+                min={0}
+                max={10080}
+                step={1}
+                onValue={(v) => patchLive({ maxMinutes: Math.max(0, Math.min(10080, v)) })}
+              />
+            </Field>
+            <Field label={t('settings.resolvers.liveMaxMB')} hint={t('settings.resolvers.liveMaxMBHint')}>
+              <NumberInput
+                value={live.maxMB}
+                min={0}
+                step={1}
+                onValue={(v) => patchLive({ maxMB: Math.max(0, v) })}
+              />
+            </Field>
+          </>
+        )}
       </Card>
 
       {/* Its own file, and not because this one is long: the window that pastes

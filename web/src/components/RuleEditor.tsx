@@ -659,7 +659,59 @@ function TemplateInput({
   );
 }
 
-/** A plain dropdown in the shape the rest of the settings tree uses. */
+/**
+ * wheelSteps is rule 14's wheel clause on a native <select>: a CLOSED select
+ * steps one option per notch and fires a real `change`, without the platform's
+ * own list opening at all. The platform only wires the wheel up once that list
+ * is already open, which costs a click on a value somebody reaches for
+ * constantly - and the wheel belongs to the PICKER, not to the element the
+ * platform happens to draw, so it has to be here rather than left to the widget.
+ *
+ * Clamped at both ends instead of wrapping: one notch too many must not land a
+ * value from the other end of the list, which on the field picker below would
+ * silently point a condition at something else entirely.
+ *
+ * A ref callback with its own cleanup (React 19) and `{ passive: false }`,
+ * never onWheel: React registers onWheel passive at its root, so preventDefault
+ * inside such a handler does nothing but log a warning, and the page would
+ * scroll away under the pointer while the value changed.
+ *
+ * The same eight lines sit in components/QueueBar.tsx and
+ * components/SearchField.tsx, the app's two other native selects. GlimStone
+ * ships one copy as reference/selectScroll.ts and this app's home for it would
+ * be lib/selectScroll.ts, which does not exist yet; three copies of a listener
+ * is the honest price of not inventing that file from inside one component.
+ */
+function wheelSteps(el: HTMLSelectElement | null) {
+  if (!el) return;
+  const onWheel = (e: WheelEvent) => {
+    // A horizontal wheel says nothing about this control, and a trackpad
+    // reports fractional deltas - so read the sign of deltaY and nothing else.
+    if (el.disabled || el.options.length < 2 || e.deltaY === 0) return;
+    // This handler IS the scroll while the pointer sits on the control.
+    e.preventDefault();
+    const next = Math.min(el.options.length - 1, Math.max(0, el.selectedIndex + (e.deltaY > 0 ? 1 : -1)));
+    if (next === el.selectedIndex) return;
+    el.selectedIndex = next;
+    // A real change event rather than a state write, so the onChange already on
+    // the element picks this up exactly as it would a click on an <option>.
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+  };
+  el.addEventListener('wheel', onWheel, { passive: false });
+  return () => el.removeEventListener('wheel', onWheel);
+}
+
+/**
+ * A plain dropdown in the shape the rest of the settings tree uses.
+ *
+ * Still a native <select>, which rule 18 ("a native control gets replaced, not
+ * persuaded") says it should not be: its open list is drawn by the platform and
+ * `appearance: none` never reaches that list. That is debt this file carries
+ * rather than a choice it defends - the replacement is one shared listbox for
+ * every picker in the app, not a private one in the rule editor. The wheel is
+ * wired here so the behaviour does not have to be invented again on the day the
+ * last <select> goes.
+ */
 function Select<T extends string>({
   value,
   onChange,
@@ -675,6 +727,7 @@ function Select<T extends string>({
 }) {
   return (
     <select
+      ref={wheelSteps}
       aria-label={label}
       value={value}
       onChange={(e) => onChange(e.target.value as T)}
@@ -993,9 +1046,21 @@ function ConditionRow({
           )}
         </div>
 
+        {/* `labelled`, like every other control on the page: rule 13 puts a
+            small single-purpose row action INSIDE the labelling engine rather
+            than beside it, because from outside a documented exemption and a
+            control that ignores the app-wide setting look exactly the same. The
+            words are already here as `title`, so this costs no new key - and the
+            row above wraps, so the badge growing into a labelled button in text
+            mode has somewhere to go. 16px in a 32px square, which is half the
+            box and the proportion the house uses everywhere else; this one sat
+            at 15, the only 15 in the tree. IconBadge sizes its own glyph now,
+            so the number here agrees with the component rather than instructing
+            it - which is why it is written down rather than dropped. */}
         <IconBadge
-          icon={<IconTrash width={15} height={15} />}
+          icon={<IconTrash width={16} height={16} />}
           hue={index}
+          labelled
           aria-label={rx('settings.rules.removeCondition')}
           title={rx('settings.rules.removeCondition')}
           onClick={onRemove}

@@ -965,6 +965,7 @@ export const th: Dict = {
   'accounts.refresh': 'รีเฟรช',
   'accounts.refreshing': 'กำลังรีเฟรช…',
   'accounts.remove': 'นำออก',
+  'accounts.removeConfirm': 'ข้อมูลเข้าสู่ระบบที่บันทึกไว้สำหรับ {name} จะถูกลบออกจากอินสแตนซ์นี้และกู้คืนไม่ได้ จึงต้องกรอกใหม่อีกครั้ง',
   'accounts.removed': 'นำออกแล้ว',
   'accounts.rename': 'เปลี่ยนชื่อ',
   'accounts.renew': 'ต่ออายุ',

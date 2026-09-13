@@ -957,6 +957,7 @@ export const nl: Dict = {
   'accounts.refresh': 'Vernieuwen',
   'accounts.refreshing': 'Bezig met vernieuwen…',
   'accounts.remove': 'Verwijderen',
+  'accounts.removeConfirm': 'De opgeslagen login voor {name} wordt van deze instantie verwijderd en is niet te herstellen, dus hij zou opnieuw ingevoerd moeten worden.',
   'accounts.removed': 'Verwijderd.',
   'accounts.rename': 'Naam wijzigen',
   'accounts.renew': 'Verlengen',

@@ -965,6 +965,7 @@ export const eu: Dict = {
   'accounts.refresh': 'Freskatu',
   'accounts.refreshing': 'Freskatzen…',
   'accounts.remove': 'Kendu',
+  'accounts.removeConfirm': 'Gordetako saio-hasiera {name} zerbitzurako instantzia honetatik ezabatzen da eta ezin da berreskuratu, beraz berriro sartu beharko litzateke.',
   'accounts.removed': 'Kenduta.',
   'accounts.rename': 'Berrizendatu',
   'accounts.renew': 'Berritu',

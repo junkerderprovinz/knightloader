@@ -267,7 +267,7 @@ const APP_URLS = {
  * openIfSet builds the click handler for a store tile whose listing does not
  * exist yet.
  *
- * The tile stays fully alive - same surface, same white hover - rather than
+ * The tile stays fully alive - same surface, same hover step - rather than
  * rendering `disabled` the way it used to. That is jdp's own call twice over:
  * no "not published yet" note anywhere on this card (2026-08-27: "kein hinweis
  * im UI"), and the buttons must light up under the pointer like every other
@@ -299,22 +299,35 @@ function openIfSet(url: string): () => void {
  * the button would make a click on the (i) also fire the download underneath.
  *
  * Vendor marks keep their own colours through the hover; only the surface and
- * the caption move. The Apple mark is the exception and does so deliberately -
- * it is monochrome by definition, and Apple's own guidance is dark-on-light,
- * light-on-dark, which is what inheriting `currentColor` gets.
+ * the caption move.
  *
- * The hover goes light in the dark theme (jdp: "Beim mouseover soll der
- * hintergrund weiß werden") and DARK in the light one. Not a second opinion
- * about the request - white on white is not a hover at all: these tiles sit on
- * a card that is already #ffffff in the light theme, so a literal white hover
- * made the tile vanish into the card instead of lifting off it. Measured, not
- * assumed. What jdp asked for is a step away from the surface, and this is
- * that step in both directions.
+ * THE HOVER IS ONE STEP UP THE SURFACE RAMP AND NOTHING ELSE (GlimStone rule
+ * 21): surface2 at rest, surface3 under the pointer, which is lighter on the
+ * dark theme and darker on the light one because the two themes need opposite
+ * directions. This is GlimStone's own answer for a grid of marks - its
+ * reference CryptoDonateDialog draws its coin tiles with exactly these two
+ * classes, and so does this app's own copy of that window
+ * (components/CryptoDonateDialog.tsx), which is what makes the two tile grids
+ * in KnightLoader one object instead of two.
+ *
+ * IT USED TO CARRY `dark:hover:bg-white dark:hover:text-[#161616]`, and that
+ * is the shape 1.11.0 removed from the scrim: a value the rule describes,
+ * typed into a component instead of held by a token. It was the only tile
+ * class in the tree painting its own hover ground from a literal, and the
+ * literal was written in ONE theme block - so the light theme took the ramp
+ * step and the dark theme took a hard white with a hard near-black ink beside
+ * it, a pair of colours no colour mode owns and the rainbow and glyph modes
+ * cannot follow. The request behind it (jdp: "Beim mouseover soll der
+ * hintergrund weiß werden", then "die jetzigen buttons leuchten nicht auf beim
+ * mouseover") was that the tile LIGHT UP under the pointer, and #393939 to
+ * #525252 is that, in the token the language keeps for it. The same note
+ * already recorded that a literal white was wrong on the light theme, where
+ * the card behind is #ffffff and the tile vanished into it; one ramp answers
+ * both sides instead of one side each.
  */
 const tileClass =
   'flex flex-col items-center justify-center gap-2 rounded-[var(--radius-control)] bg-carbon-surface2 ' +
-  'text-carbon-text transition-colors duration-150 ' +
-  'hover:bg-carbon-surface3 dark:hover:bg-white dark:hover:text-[#161616]';
+  'text-carbon-text transition-colors duration-150 hover:bg-carbon-surface3';
 
 function DownloadTile({
   logo,
@@ -408,11 +421,27 @@ function BrandMark({ svg }: { svg: string }) {
 const PLAY_SVG =
   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><linearGradient id="kl-play-a" x1="60.6" x2="276.6" y1="45.4" y2="261.4" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#00a0ff"/><stop offset=".01" stop-color="#00a1ff"/><stop offset=".26" stop-color="#00beff"/><stop offset=".51" stop-color="#00d2ff"/><stop offset=".76" stop-color="#00dfff"/><stop offset="1" stop-color="#00e3ff"/></linearGradient><linearGradient id="kl-play-b" x1="446.6" x2="34.3" y1="256" y2="256" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ffe000"/><stop offset=".41" stop-color="#ffbd00"/><stop offset=".78" stop-color="#ffa500"/><stop offset="1" stop-color="#ff9c00"/></linearGradient><linearGradient id="kl-play-c" x1="349.6" x2="6.9" y1="295.1" y2="637.8" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ff3a44"/><stop offset="1" stop-color="#c31162"/></linearGradient><linearGradient id="kl-play-d" x1="22.9" x2="176" y1="-38.1" y2="115" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#32a071"/><stop offset=".07" stop-color="#2da771"/><stop offset=".48" stop-color="#15cf74"/><stop offset=".8" stop-color="#06e775"/><stop offset="1" stop-color="#00f076"/></linearGradient><path fill="url(#kl-play-a)" d="M39.6 24.1c-5.6 5.9-8.9 15.1-8.9 27v409.8c0 11.9 3.3 21.1 8.9 27l1.4 1.3L270 259.7v-5.4L41 25.4z"/><path fill="url(#kl-play-b)" d="m346.3 336.3-76.3-76.6v-5.4l76.4-76.5 1.7 1L438.5 231c25.8 14.7 25.8 38.7 0 53.4l-90.4 51.4z"/><path fill="url(#kl-play-c)" d="M348 335.3 270 257 39.6 487.9c8.5 9 22.5 10.1 38.4 1.1z"/><path fill="url(#kl-play-d)" d="M348 178.7 78 25.1C62.1 16 48.1 17.2 39.6 26.2L270 257z"/></svg>';
 
-// Apple's own mark, in currentColor rather than a fixed hex. That is the one
-// exception to "vendor marks keep their colours through the hover" on this
-// page, and it is the correct treatment for this particular mark: Apple's own
-// guidance is a solid logo, dark on light and light on dark, which is exactly
-// what inheriting the tile's text colour produces on both sides of the hover.
+// Apple's own mark, in currentColor rather than a fixed hex, and this is NOT an
+// exception to the brand rule - it is what the rule works out to for this
+// particular mark, which matters because a documented exception and a forgotten
+// button look identical from outside.
+//
+// GlimStone 1.10.0 says a flat vendor mark rides a per-theme ADJUSTED value
+// rather than its published colour, because a brand colour designed against
+// white dies on one of the two grounds. Apple's mark has no published colour to
+// adjust: it is solid black or solid white by definition, and Apple's own
+// guidance is dark on light and light on dark. The adjusted value the rule asks
+// for and the tile's neutral ink are therefore the same colour, in every theme,
+// so inheriting `currentColor` IS the token - --carbon-text, which is set in all
+// three theme blocks. The other six marks bring their own multi-colour ground
+// and take none of this, exactly as the coin discs in the crypto window do not.
+//
+// The one thing that must stay true for this to keep working, and the reason it
+// is written down here: the tile's ink is the NEUTRAL ramp and never the colour
+// engine's. Give `tileClass` an accent or a `.glim-hue` ink and Apple's mark
+// starts following the user's accent and the rainbow, which a vendor's mark may
+// never do. Nothing else on this page is wired to the engine either - see this
+// file's own top comment.
 const APPLE_SVG =
   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 814 1000" fill="currentColor"><path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76.5 0-103.7 40.8-165.9 40.8s-105.6-57-155.5-127C46.7 790.7 0 663 0 541.8c0-194.4 126.4-297.5 250.8-297.5 66.1 0 121.2 43.4 162.7 43.4 39.5 0 101.1-46 176.3-46 28.5 0 130.9 2.6 198.3 99.2zm-234-181.5c31.1-36.9 53.1-88.1 53.1-139.3 0-7.1-.6-14.3-1.9-20.1-50.6 1.9-110.8 33.7-147.1 75.8-28.5 32.4-55.1 83.6-55.1 135.5 0 7.8 1.3 15.6 1.9 18.1 3.2.6 8.4 1.3 13.6 1.3 45.4 0 102.5-30.4 135.5-71.3z"/></svg>';
 

@@ -58,14 +58,22 @@ export function ViewNameDialog({
       onClose={onClose}
       footer={
         <>
+          {/* The refusal is a reading, so it sits at the start and the pair
+              sits at the end - GlimStone 1.14.0 wants the control that goes
+              ahead at the END of its row, and it was standing mid-row with the
+              refusal text to its right. `min-w-0` so a long sentence shrinks
+              instead of pushing the buttons out of the window.
+              Both windows in this file now use the identical footer shape; they
+              did not, and two confirmations of the same kind that lay their
+              buttons out differently is the drift this rule is for. */}
+          {refusal && <span className="min-w-0 text-sm text-statusFail">{refusal}</span>}
+          <span className="flex-1" />
           <Button kind="ghost" onClick={onClose}>
             {t('common.cancel')}
           </Button>
           <Button disabled={blocked} onClick={() => onConfirm(clean)}>
             {overwrites ? t('views.overwriteConfirm') : t('views.saveConfirm')}
           </Button>
-          <span className="flex-1" />
-          {refusal && <span className="text-sm text-statusFail">{refusal}</span>}
         </>
       }
     >
@@ -114,10 +122,15 @@ export function ViewDeleteDialog({
       onClose={onClose}
       footer={
         <>
+          {/* The pair travels together at the end of the row rather than one
+              button at each edge. GlimStone's own ConfirmDialog
+              (reference/react/ConfirmDialog.tsx) sets `justify-end` on this
+              footer and puts cancel and commit side by side in it, so that is
+              the shape, not one this app gets to pick per window. */}
+          <span className="flex-1" />
           <Button kind="ghost" onClick={onClose}>
             {t('common.cancel')}
           </Button>
-          <span className="flex-1" />
           {/* Neutral, never a fault colour: what warns is the sentence under
               the title, and red on every delete in an app is read past by the
               third time somebody meets it. The same fill the removal window's

@@ -47,6 +47,13 @@ export function LogViewerCard({ hue }: { hue: number }) {
     box.current.scrollTop = box.current.scrollHeight;
   }, [follow, shown]);
 
+  // The source picker answers the mouse wheel while it is closed - see
+  // enableSelectWheel below. A callback ref rather than useRef, because the
+  // card returns early while the tail is loading and a useRef would be null
+  // the one time an effect with an empty dependency list ever ran.
+  const [picker, setPicker] = useState<HTMLSelectElement | null>(null);
+  useEffect(() => enableSelectWheel(picker), [picker]);
+
   if (loading) return <LoadingCard label={t('common.loading')} />;
   if (failed) {
     return <ErrorCard message={t('settings.diagnostics.loadFailed')} retry={reload} retryLabel={t('common.retry')} />;
@@ -75,6 +82,7 @@ export function LogViewerCard({ hue }: { hue: number }) {
             were a row of segments. */}
         <span className="flex items-center gap-1.5">
           <select
+            ref={setPicker}
             value={source}
             onChange={(e) => setSource(e.target.value)}
             aria-label={t('settings.diagnostics.logSource')}
@@ -164,13 +172,55 @@ export function LogViewerCard({ hue }: { hue: number }) {
 }
 
 /**
+ * Rule 14's mouse-wheel addendum (GlimStone 1.8.0): a CLOSED <select> answers
+ * the wheel as well, stepping one option per notch, so a menu somebody reaches
+ * for constantly does not cost a click first. Clamped at both ends rather than
+ * wrapping - one notch too many must not land a value from the other end of the
+ * list.
+ *
+ * A real listener with `{ passive: false }`, never React's `onWheel`, and that
+ * detail is load-bearing rather than fussy: React registers `onWheel` as a
+ * PASSIVE listener on its root, so `preventDefault` inside such a handler does
+ * nothing but log a warning and the page scrolls out from under the pointer
+ * while the value changes. QueueBar.tsx attaches the speed field's wheel
+ * handler natively for exactly this reason.
+ *
+ * The dispatched event is a real bubbling `change`, so the `onChange` already
+ * on the element picks it up exactly as a click on an <option> would, with no
+ * second code path to keep in step.
+ *
+ * SECOND COPY, DELIBERATELY: settings/Resolvers.tsx carries this function
+ * verbatim for its own preset selects. Both are standing in for
+ * web/src/lib/selectScroll.ts - GlimStone's reference/selectScroll.ts under
+ * this repo's roof - which does not exist yet; the moment it does, these two
+ * collapse into one import and the other thirteen <select> call sites in the
+ * tree get the behaviour with them.
+ */
+function enableSelectWheel(select: HTMLSelectElement | null): () => void {
+  if (!select) return () => {};
+  const onWheel = (event: WheelEvent) => {
+    if (select.disabled || select.options.length < 2 || event.deltaY === 0) return;
+    // This handler IS the scroll while the pointer sits on the control, rather
+    // than a bystander to it.
+    event.preventDefault();
+    const delta = event.deltaY > 0 ? 1 : -1;
+    const next = Math.min(select.options.length - 1, Math.max(0, select.selectedIndex + delta));
+    if (next === select.selectedIndex) return;
+    select.selectedIndex = next;
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+  };
+  select.addEventListener('wheel', onWheel, { passive: false });
+  return () => select.removeEventListener('wheel', onWheel);
+}
+
+/**
  * The value the picker uses for "everything else".
  *
  * A sentinel and not the empty string, because the empty string is already the
  * server's own answer for a line that names no part of the app - and it is also
  * what "all sources" has to be. Three states, three values.
  */
-const OTHER = ' other';
+const OTHER = 'other';
 
 /** One line, with the download it names turned into a way to filter by it. */
 function Row({ line, onTask, chipLabel }: { line: LogLine; onTask: (id: string) => void; chipLabel: string }) {
@@ -185,8 +235,15 @@ function Row({ line, onTask, chipLabel }: { line: LogLine; onTask: (id: string) 
         title={chipLabel}
         aria-label={chipLabel}
         onClick={() => onTask(id)}
+        // hoverRaised and not hover: the chip is ALREADY filled with surface3,
+        // and GlimStone rule 21 says hover moves UP the surface ramp from
+        // whatever an element sits on. --carbon-hover is #353535 on the dark
+        // ramp, 29 units BELOW surface3's #525252, so the chip would darken at
+        // the one moment somebody is looking straight at it - and on the light
+        // ramp it would go from #d1d1d1 back towards the surface instead of
+        // away from it. Wrong in every colour mode, in opposite directions.
         className="rounded-[var(--radius-control)] bg-carbon-surface3 px-1.5 text-carbon-text
-          transition-colors hover:bg-carbon-hover"
+          transition-colors hover:bg-carbon-hoverRaised"
       >
         {id}
       </button>

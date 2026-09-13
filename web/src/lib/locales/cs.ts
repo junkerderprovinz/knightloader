@@ -965,6 +965,7 @@ export const cs: Dict = {
   'accounts.refresh': 'Obnovit',
   'accounts.refreshing': 'Obnovuje se…',
   'accounts.remove': 'Odebrat',
+  'accounts.removeConfirm': 'Uložené přihlašovací údaje pro {name} se z této instance smažou a nelze je obnovit, takže by se musely zadat znovu.',
   'accounts.removed': 'Odebráno.',
   'accounts.rename': 'Přejmenovat',
   'accounts.renew': 'Obnovit platnost',

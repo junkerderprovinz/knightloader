@@ -620,11 +620,14 @@ function StateBanner({
   );
 }
 
+/** The row's own mark, at the one glyph size this page uses beside text. It
+ *  had been 14px, which is neither the 16px every other glyph on this page
+ *  takes nor anything else with a reason behind it. */
 function actionIcon(action: ScheduleAction) {
-  if (action === 'pause') return <IconPause width={14} height={14} />;
-  if (action === 'resume') return <IconPlay width={14} height={14} />;
-  if (action === 'limit') return <IconSliders width={14} height={14} />;
-  return <IconClock width={14} height={14} />;
+  if (action === 'pause') return <IconPause width={16} height={16} />;
+  if (action === 'resume') return <IconPlay width={16} height={16} />;
+  if (action === 'limit') return <IconSliders width={16} height={16} />;
+  return <IconClock width={16} height={16} />;
 }
 
 function daysSummary(days: number[], labels: string[]): string {
@@ -714,9 +717,16 @@ function EntryRow({
             {nextText}
           </span>
         </button>
+        {/* `labelled` on all three, and 16px of glyph in the 32px tile: a row
+            action stands in the Beschriftung setting like everything else, and
+            the square is what that setting resolves to in glyph mode rather
+            than a control that ignores it. The words fit because the
+            description beside them is `min-w-0` and truncates, and the two
+            secondary columns already drop out below `lg` and `sm`. */}
         <div className="flex items-center gap-1.5">
           <IconBadge
-            icon={<IconArrowUp width={14} height={14} />}
+            labelled
+            icon={<IconArrowUp width={16} height={16} />}
             hue={index}
             title={cx('settings.schedule.moveUp')}
             aria-label={cx('settings.schedule.moveUp')}
@@ -724,7 +734,8 @@ function EntryRow({
             onClick={() => onMove(-1)}
           />
           <IconBadge
-            icon={<IconArrowDown width={14} height={14} />}
+            labelled
+            icon={<IconArrowDown width={16} height={16} />}
             hue={index}
             title={cx('settings.schedule.moveDown')}
             aria-label={cx('settings.schedule.moveDown')}
@@ -732,7 +743,8 @@ function EntryRow({
             onClick={() => onMove(1)}
           />
           <IconBadge
-            icon={<IconTrash width={14} height={14} />}
+            labelled
+            icon={<IconTrash width={16} height={16} />}
             hue={index}
             title={cx('settings.schedule.remove')}
             aria-label={cx('settings.schedule.remove')}
@@ -853,7 +865,7 @@ function DayPicker({
             type="button"
             aria-pressed={preset === p.id}
             onClick={() => onChange(p.days)}
-            className={`${segBase} px-2.5 py-1 text-xs ${preset === p.id ? segOn : segOff}`}
+            className={`${segBase} inline-flex h-8 items-center px-2.5 text-xs ${preset === p.id ? segOn : segOff}`}
           >
             {cx(`settings.schedule.preset.${p.id}`)}
           </button>
@@ -864,8 +876,18 @@ function DayPicker({
             same visual language as the three real presets - matching the
             "every day / weekdays / weekends / custom" set as asked for - and
             lights up on its own the moment the toggles below no longer match
-            any of the three. */}
-        <span className={`${segBase} px-2.5 py-1 text-xs ${preset === 'custom' ? segOn : 'text-carbon-textMuted/60'}`}>
+            any of the three.
+            "Same visual language" now means it: unselected, this was bare text
+            among three filled badges, which is the bare-until-selected strip
+            the language rules out by name (see segOff's own comment in ui.tsx).
+            It takes the resting surface its neighbours take and NOT their
+            hover, because a hover response on a readout promises a click that
+            does nothing. */}
+        <span
+          className={`${segBase} inline-flex h-8 items-center px-2.5 text-xs ${
+            preset === 'custom' ? segOn : 'bg-carbon-surface2 text-carbon-textMuted'
+          }`}
+        >
           {cx('settings.schedule.preset.custom')}
         </span>
       </div>
@@ -878,7 +900,7 @@ function DayPicker({
               type="button"
               aria-pressed={on}
               onClick={() => onChange(on ? days.filter((x) => x !== d) : [...days, d].sort((a, b) => a - b))}
-              className={`${segBase} h-8 min-w-9 px-1.5 text-xs ${on ? segOn : segOff}`}
+              className={`${segBase} inline-flex h-8 min-w-9 items-center justify-center px-1.5 text-xs ${on ? segOn : segOff}`}
             >
               {label}
             </button>

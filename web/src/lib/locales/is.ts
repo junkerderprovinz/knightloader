@@ -965,6 +965,7 @@ export const is: Dict = {
   'accounts.refresh': 'Endurnýja',
   'accounts.refreshing': 'Endurnýjar…',
   'accounts.remove': 'Fjarlægja',
+  'accounts.removeConfirm': 'Vistuðu innskráningunni fyrir {name} er eytt úr þessu tilviki og ekki er hægt að endurheimta hana, svo það þyrfti að slá hana inn aftur.',
   'accounts.removed': 'Fjarlægt.',
   'accounts.rename': 'Endurnefna',
   'accounts.renew': 'Endurnýja áskrift',

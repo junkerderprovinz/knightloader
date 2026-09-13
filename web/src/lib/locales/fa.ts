@@ -965,6 +965,7 @@ export const fa: Dict = {
   'accounts.refresh': 'تازه‌سازی',
   'accounts.refreshing': 'در حال تازه‌سازی…',
   'accounts.remove': 'حذف',
+  'accounts.removeConfirm': 'اطلاعات ورود ذخیره‌شده برای {name} از این نمونه حذف می‌شود و قابل بازیابی نیست، بنابراین باید دوباره وارد شود.',
   'accounts.removed': 'حذف شد.',
   'accounts.rename': 'تغییر نام',
   'accounts.renew': 'تمدید',

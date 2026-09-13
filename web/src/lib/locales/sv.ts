@@ -965,6 +965,7 @@ export const sv: Dict = {
   'accounts.refresh': 'Uppdatera',
   'accounts.refreshing': 'Uppdaterar…',
   'accounts.remove': 'Ta bort',
+  'accounts.removeConfirm': 'Den sparade inloggningen för {name} raderas från den här instansen och går inte att återställa, så den skulle behöva anges på nytt.',
   'accounts.removed': 'Borttaget.',
   'accounts.rename': 'Byt namn',
   'accounts.renew': 'Förnya',

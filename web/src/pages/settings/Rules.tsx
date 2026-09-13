@@ -303,7 +303,12 @@ export function Rules() {
           <InfoBubble tip={rx('settings.rules.setSwitchHint')} />
         </div>
 
-        <p className="text-[11px] leading-snug text-carbon-textSub">
+        {/* A sentence that FOLLOWS controls takes one extra step of space above
+            it. Under the card's even gap this line sat as close to the mode row
+            above as to the switch below, so the eye had to guess which of the
+            two it belonged to. The step goes above the sentence and never below
+            the controls: a card ending in a gap reads as a missing row. */}
+        <p className="mt-2 text-[11px] leading-snug text-carbon-textSub">
           {flavour === 'packagizer' ? rx('settings.rules.packagizerHint') : rx('settings.rules.filterHint')}
         </p>
 
@@ -514,6 +519,11 @@ function RuleRow({
               {rx('settings.rules.matchedCount', { n: matched, total: samples })}
             </span>
           )}
+          {/* The red stays. A status colour is barred from a CONTROL - no
+              button, badge or menu entry here paints itself red - but this chip
+              reports the row's STATE, and state is what the colour is for. It
+              sits inside the expand button rather than on it: the button's own
+              class list carries no status colour at all. */}
           {broken && (
             <span className="shrink-0 rounded-[var(--radius-control)] bg-statusFailBg px-2 py-0.5 text-[11px] text-statusFail">
               {problems.length === 1
@@ -522,9 +532,16 @@ function RuleRow({
             </span>
           )}
         </button>
+        {/* `labelled` on all four, and 16px of glyph in the 32px tile: a row
+            action stands in the Beschriftung setting like everything else, and
+            the square is what that setting resolves to in glyph mode rather
+            than a control that ignores it. The name and summary beside them are
+            `min-w-0` and truncate, and the match count already drops out below
+            `sm`, so four words are a narrower summary and not a broken row. */}
         <div className="flex items-center gap-1.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
           <IconBadge
-            icon={<IconArrowUp width={14} height={14} />}
+            labelled
+            icon={<IconArrowUp width={16} height={16} />}
             hue={index}
             title={rx('settings.rules.moveUp')}
             aria-label={rx('settings.rules.moveUp')}
@@ -532,7 +549,8 @@ function RuleRow({
             onClick={() => onMove(-1)}
           />
           <IconBadge
-            icon={<IconArrowDown width={14} height={14} />}
+            labelled
+            icon={<IconArrowDown width={16} height={16} />}
             hue={index}
             title={rx('settings.rules.moveDown')}
             aria-label={rx('settings.rules.moveDown')}
@@ -540,14 +558,16 @@ function RuleRow({
             onClick={() => onMove(1)}
           />
           <IconBadge
-            icon={<IconDuplicate width={14} height={14} />}
+            labelled
+            icon={<IconDuplicate width={16} height={16} />}
             hue={index}
             title={rx('settings.rules.duplicate')}
             aria-label={rx('settings.rules.duplicate')}
             onClick={onDuplicate}
           />
           <IconBadge
-            icon={<IconTrash width={14} height={14} />}
+            labelled
+            icon={<IconTrash width={16} height={16} />}
             hue={index}
             title={rx('settings.rules.remove')}
             aria-label={rx('settings.rules.remove')}
@@ -612,7 +632,7 @@ function TestBox({
     <Card hue={2} className="flex flex-col gap-4">
       <SectionTitle
         right={
-          <Button kind="secondary" icon={<IconPlus width={14} height={14} />} onClick={() => setSamples([...samples, emptySample()])}>
+          <Button kind="secondary" icon={<IconPlus width={16} height={16} />} onClick={() => setSamples([...samples, emptySample()])}>
             {rx('settings.rules.testAdd')}
           </Button>
         }
@@ -664,9 +684,19 @@ function TestBox({
                 />
               </div>
             </div>
-            <Button
-              kind="ghost"
-              icon={<IconTrash width={15} height={15} />}
+            {/* The row's own square badge rather than a glyph-only ghost
+                button. Three things were wrong with the button and all three
+                are the same rule: a small single-purpose row action belongs in
+                the tile, the bubble and the Beschriftung setting every other
+                action on this page already stands in. As a Button it carried an
+                aria-label and NO tooltip - a glyph with nothing to hover - and
+                its 15px mark in a padding-sized square matched neither. */}
+            <IconBadge
+              labelled
+              hue={2}
+              className="shrink-0"
+              icon={<IconTrash width={16} height={16} />}
+              title={rx('settings.rules.testRemove')}
               aria-label={rx('settings.rules.testRemove')}
               disabled={samples.length === 1}
               onClick={() => setSamples(samples.filter((_, j) => j !== i))}

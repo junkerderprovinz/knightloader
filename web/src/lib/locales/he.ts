@@ -967,6 +967,7 @@ export const he: Dict = {
   'accounts.refresh': 'רענון',
   'accounts.refreshing': 'מרענן…',
   'accounts.remove': 'הסר',
+  'accounts.removeConfirm': 'פרטי הכניסה השמורים עבור {name} נמחקים מהמופע הזה ואי אפשר לשחזר אותם, ולכן יהיה צורך להזין אותם מחדש.',
   'accounts.removed': 'הוסר.',
   'accounts.rename': 'שינוי שם',
   'accounts.renew': 'חידוש',

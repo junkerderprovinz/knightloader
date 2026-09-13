@@ -205,9 +205,21 @@ export function InstanceCard({
           <span className="flex-1" />
           {onRemove && (
             <span className="opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+              {/* 16px in a 32px badge, not lib/icons.tsx's 22px base size.
+                  GlimStone 1.8.0 rule 13: a glyph ALONE in a square is half its
+                  box, because there are no words beside it to match and the
+                  only proportion left is how much of the frame the ink fills -
+                  22 in 32 is 69% and reads as chunky. The 20px a glyph takes is
+                  the size it takes NEXT TO TEXT, and this badge was the one
+                  place in the app still carrying the bare default.
+                  `labelled` for the same reason every other badge in the app's
+                  toolbars carries it: the Beschriftung setting decides whether
+                  the words appear, not the call site. The label is `title`,
+                  which is already here, so no catalogue gains a key. */}
               <IconBadge
+                labelled
                 hue={hue}
-                icon={<IconTrash />}
+                icon={<IconTrash width={16} height={16} />}
                 title={t('instances.removeTitle', { name })}
                 aria-label={t('instances.removeTitle', { name })}
                 onClick={onRemove}

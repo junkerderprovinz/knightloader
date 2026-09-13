@@ -965,6 +965,7 @@ export const vi: Dict = {
   'accounts.refresh': 'Làm mới',
   'accounts.refreshing': 'Đang làm mới…',
   'accounts.remove': 'Gỡ bỏ',
+  'accounts.removeConfirm': 'Thông tin đăng nhập đã lưu cho {name} sẽ bị xóa khỏi phiên bản này và không thể khôi phục, nên sẽ phải nhập lại.',
   'accounts.removed': 'Đã gỡ bỏ.',
   'accounts.rename': 'Đổi tên',
   'accounts.renew': 'Gia hạn',
