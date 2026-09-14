@@ -51,6 +51,8 @@ import {
 import { useToast } from '../../lib/toast';
 import { useDraft, useFeatures } from './context';
 import { NeutralSwitch } from './controls';
+import { PasskeyCard } from './access/PasskeyCard';
+import { TwoFactorCard } from './access/TwoFactorCard';
 import { label, useTx } from './tx';
 
 /**
@@ -157,6 +159,19 @@ export function Access() {
    * be told WHEN to look again.
    */
   const [relayVersion, setRelayVersion] = useState(0);
+  /**
+   * The same counter one subject along: bumped whenever anything changes the
+   * lock, so the password card, the second-factor card and the passkey card
+   * agree about it.
+   *
+   * They genuinely have to. Setting the first password is what makes the other
+   * two possible at all, removing it takes the second factor with it, and
+   * arming or disarming the factor changes a line the password card does not
+   * draw. Three components each fetching /api/auth for themselves is how one
+   * card goes on saying "no password set" next to two that know better - the
+   * defect the relay counter above was added for, in a different row of cards.
+   */
+  const [authVersion, setAuthVersion] = useState(0);
 
   return (
     <div className="flex flex-col gap-10">
@@ -168,7 +183,16 @@ export function Access() {
           deployment, not hidden behind a fetch that has nothing to do with
           it. */}
       <IdentityCard cx={cx} />
-      <PasswordCard cx={cx} />
+      <PasswordCard cx={cx} onAuthChanged={() => setAuthVersion((n) => n + 1)} />
+
+      {/* The two second doors, below the password and above everything about
+          reaching this instance from elsewhere: they are about the same lock
+          the card above them sets.
+          TWO CARDS AND NOT ONE, which is the whole test GlimStone 1.15.0 asks
+          for - not "are these related" (they obviously are, both answer "how do
+          I get in") but "can somebody want this and not that". They can: one
+          makes the password harder to abuse, the other replaces typing it. */}
+      <SecondWaysIn version={authVersion} onChanged={() => setAuthVersion((n) => n + 1)} />
 
       {/* Only the exposed-warning banner now (jdp, 2026-08-26: "Die
           netzwerkzugriffcard entfernen wir. die ist völlig witzlos. auf der
@@ -204,7 +228,15 @@ export function Access() {
 // with the rest of the settings: a password is not a preference you change by
 // accident while adjusting the speed limit, and it does not go through
 // PUT /api/settings at all.
-function PasswordCard({ cx }: { cx: (k: PendingKey) => string }) {
+function PasswordCard({
+  cx,
+  /** Told after the password is set, changed or removed, so the two cards
+   *  below re-read the lock rather than each keeping their own idea of it. */
+  onAuthChanged,
+}: {
+  cx: (k: PendingKey) => string;
+  onAuthChanged: () => void;
+}) {
   const { t } = useT();
   const { toast } = useToast();
   const [auth, setAuth] = useState<AuthState | null>(null);
@@ -235,6 +267,7 @@ function PasswordCard({ cx }: { cx: (k: PendingKey) => string }) {
       setNext('');
       setDone(true);
       setTimeout(() => setDone(false), 1800);
+      onAuthChanged();
     } catch (e) {
       // The reason goes to the toast and the button shakes. It used to stand
       // beside the button as a sentence that never cleared itself, so a
@@ -315,6 +348,44 @@ function PasswordCard({ cx }: { cx: (k: PendingKey) => string }) {
           {done && <span className="text-statusOk text-sm">{t('settings.passwordSaved')}</span>}
         </div>
       </Card>
+  );
+}
+
+/**
+ * The two cards a login with a password can grow, and the one read of
+ * /api/auth they share.
+ *
+ * ONE FETCH FOR TWO CARDS, deliberately. Both need the same three facts - is
+ * there a password, is a second factor armed, how much of the recovery sheet is
+ * left - and each fetching for itself is how one card ends up a state behind
+ * the other after a change either of them made. The counter from the page above
+ * is what re-runs it.
+ *
+ * Nothing is rendered until the first answer arrives. A card that guessed "no
+ * password" for the length of a fetch would offer to set up a second factor and
+ * then refuse when somebody pressed it.
+ */
+function SecondWaysIn({ version, onChanged }: { version: number; onChanged: () => void }) {
+  const [auth, setAuth] = useState<AuthState | null>(null);
+
+  useEffect(() => {
+    fetchAuth()
+      .then(setAuth)
+      .catch(() => setAuth(null));
+  }, [version]);
+
+  if (!auth) return null;
+  return (
+    <>
+      <TwoFactorCard
+        hue={4}
+        passwordSet={auth.enabled}
+        enabled={auth.twoFactor === true}
+        recoveryLeft={auth.recoveryLeft}
+        onChanged={onChanged}
+      />
+      <PasskeyCard hue={6} passwordSet={auth.enabled} />
+    </>
   );
 }
 

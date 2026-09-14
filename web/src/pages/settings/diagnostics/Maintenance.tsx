@@ -206,17 +206,22 @@ export function MaintenanceCard({ hue }: { hue: number }) {
           />
         </FieldGroup>
 
-        {/* Dimmed rather than hidden when there is no schedule: a control that
-            vanishes teaches nobody what the mode can do. A Toggle, never a
-            checkbox. */}
+        {/* ABSENT when there is no schedule, where it used to be dimmed
+            (GlimStone 1.16.0, and ToggleRow's own `disabled` doc in ui.tsx).
+            "Compact on the scheduled run" hangs off there BEING a scheduled
+            run: at an interval of 0 nothing ever runs, so the switch has no
+            state behind it and offers a decision nobody can make. The strip
+            that decides it is the row directly above. A Toggle, never a
+            checkbox, when it is here at all. */}
+        {(cfg.maintenanceIntervalDays ?? 0) > 0 && (
         <ToggleRow
           hue={hue}
           label={t('settings.dbmaint.compactOnSchedule')}
           hint={t('settings.dbmaint.compactOnScheduleHint')}
-          disabled={(cfg.maintenanceIntervalDays ?? 0) === 0}
           checked={cfg.maintenanceCompactOnSchedule ?? false}
           onChange={(maintenanceCompactOnSchedule) => patch({ maintenanceCompactOnSchedule })}
         />
+        )}
 
         {/* A fact, not an explanation, so it is a line and not a bubble. */}
         {data.nextRunAt && (

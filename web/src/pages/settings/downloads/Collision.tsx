@@ -109,37 +109,37 @@ export function CollisionCard({ hue }: { hue: number }) {
         </FieldGroup>
       )}
 
-      {/* Dimmed and locked while the policy is not "keep both", because that is
-          the only answer that counts anything - but not hidden: a number that
-          disappears teaches nobody that the limit exists, and this is the one
-          control on the card that can turn a runaway into a directory nobody
-          can open. Opacity only, no pointer-events-none: the (i) is where the
-          reason for the lock is written, and a wrapper that swallows pointer
-          events would hide exactly the sentence that explains it. */}
-      <div className={renaming ? '' : 'opacity-40'}>
+      {/* ABSENT while the policy is not "keep both", where it used to be dimmed
+          and locked (GlimStone 1.16.0). The old note argued that a number which
+          disappears teaches nobody the limit exists, and that this is the one
+          control on the card able to stop a runaway - both true, and neither
+          survives the question the rule actually asks: does the control still
+          do anything? "Keep both" is the only policy that counts attempts, so
+          under overwrite or skip this box has no state behind it at all. A
+          value that cannot act is not a safeguard somebody is being shown, it
+          is a decision they cannot make, with the reason sitting in the strip
+          directly above - which, unlike a switch on another page, is the row
+          they have just been reading.
+
+          The counter comes back the moment the policy does, carrying the same
+          number: nothing here writes on the way out. */}
+      {renaming && (
         <Field label={t('settings.downloads.collisionAttempts')} hint={t('settings.downloads.collisionAttemptsHint')}>
           <NumberInput
             value={attempts}
             min={0}
             max={1000}
             step={1}
-            disabled={!renaming}
-            // The guard is repeated in the handler because NumberInput's two
-            // arrows are siblings of the <input> and do not inherit its
-            // disabled state: without this they would go on editing a field the
-            // page has just said is dead. And the value is clamped to the same
-            // bounds sanitizeIntake enforces (0 and collide.DefaultMaxAttempts,
+            // The value is clamped to the same bounds sanitizeIntake enforces
+            // (0 and collide.DefaultMaxAttempts,
             // internal/settings/settings_intake.go), so the box never shows a
             // number that the save is going to quietly turn into another one.
             // 0 stays a legal value here: it means the package's own cap of
             // 1000, not "no limit" and not "off".
-            onValue={(v) => {
-              if (!renaming) return;
-              patch({ collisionMaxAttempts: Math.max(0, Math.min(1000, Math.round(v) || 0)) });
-            }}
+            onValue={(v) => patch({ collisionMaxAttempts: Math.max(0, Math.min(1000, Math.round(v) || 0)) })}
           />
         </Field>
-      </div>
+      )}
     </Card>
   );
 }

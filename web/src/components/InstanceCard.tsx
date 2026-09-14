@@ -176,7 +176,33 @@ export function InstanceCard({
     // and so takes whatever height it is handed rather than setting it,
     // which is what keeps a row of cards the same height whatever their
     // contents.
-    <Card padding="none" hue={hue} hover={!!onOpen} className="group relative flex h-full flex-col overflow-hidden">
+    //
+    // NO `hover` ON THE CARD, and it is the one call site in the app that ever
+    // passed it. The prop puts `motion-safe:hover:-translate-y-0.5` on the
+    // surface, which lifted this card two pixels under the pointer - measured
+    // at 14px against its neighbours' 16px on a row of three, so the shared top
+    // edge of the grid broke for as long as a pointer rested anywhere on it
+    // (jdp: "wenn man auf die card hoovert wandert sie nach oben").
+    //
+    // Removed rather than made smaller, for three reasons, and the third is the
+    // one that settles it. GlimStone's motion engine names the five things that
+    // move and then says what does not: "a card doesn't breathe, hover states
+    // change instantly". Rule 21 says hover moves up the SURFACE RAMP, which is
+    // a tone and never a position, and a card's own surface has no rung on that
+    // ramp because a card is not a control. And this card cannot be clicked:
+    // clicking its body does nothing, verified live - the only click target it
+    // has ever had is the Open button below, which takes its own correct
+    // surface2 -> surface3 hover from Button. A lift is the gesture a whole-card
+    // link makes, so on this card it was a promise nothing here could keep.
+    //
+    // Nothing is lost with it gone. The Open button still answers the pointer,
+    // and `group` stays because the remove badge's `group-hover:opacity-100`
+    // reveal is rule 6's, a secondary action appearing on hover - which is a
+    // control arriving, not the surface moving.
+    //
+    // web/check-card-hover.mjs is the guard. The prop itself is now unused in
+    // ui.tsx; removing it there is that file's business, not this one's.
+    <Card padding="none" hue={hue} className="group relative flex h-full flex-col overflow-hidden">
       {/* DIE ZWEI SPALTEN SIND EINE ZEILE, und der Knopf darunter ist eine
           zweite. Vorher war der Knopf `absolute bottom-5` und die Textspalte
           hielt mit `pb-16` Platz fuer ihn frei - zwei Zahlen fuer eine Sache,
@@ -194,13 +220,29 @@ export function InstanceCard({
           twice: "Das logo in den instanzencard bitte größer") but still on the
           card's own surface with no plate behind it, which was the other half
           of that earlier correction.
+          THE THIRD STEP WENT PAST THE RAIL, and back to 7rem is where it lands.
+          `h-36` drew the shield at 144px while the brand mark at the top of the
+          sidebar - the one place the app states its own identity - draws it at
+          `h-28`, 112px. The largest drawing of the app's mark anywhere in the
+          app was a repeat of it on a card in a grid, 29% louder than the brand
+          itself (jdp: "das logo ist ein kleines bischen zu gross"). 7rem is not
+          a number picked to be smaller: it is the size the rail already uses,
+          the only other size the app owns above 40px, and the one the sentence
+          below this has claimed all along - the commit that bumped the class to
+          `h-36` left the prose saying 7rem, so the file described the right
+          size and rendered a different one for three releases.
+          It buys the text column back its width, which is measurable rather
+          than a matter of taste: the reserved right-hand column leaves about
+          145px for three metric labels, and at 144px and at 128px "AUFGABEN"
+          and "TEMPO" render touching, as one word. 112px is the first step at
+          which they separate. web/check-mark-scale.mjs is the guard.
           `max-h-full` rather than a bare height: the right-hand column decides
           how tall the card is, and a mark taller than that column would start
           setting the height itself - which is the one thing the split here
           exists to prevent. It grows to 7rem where the card allows it and
           stops at the card's own edge where it does not. */}
       <div className="flex shrink-0 items-center self-stretch pl-4">
-        <img src={logoUrl} alt="" aria-hidden className="h-36 max-h-full w-auto" />
+        <img src={logoUrl} alt="" aria-hidden className="h-28 max-h-full w-auto" />
       </div>
 
       {/* The state as a badge in the corner, the same shape the connection

@@ -28,6 +28,83 @@ export interface RowSlot {
   bottom: number;
 }
 
+/**
+ * How far a press has to travel before it stops being a click and becomes a
+ * gesture.
+ *
+ * Five pixels, and the number is borrowed rather than invented: it is what
+ * Swing hands its own tables through `DragSource.getDragThreshold()`, so it is
+ * the distance the list this one is copying uses to tell a click from a drag,
+ * and it matches Windows' own SM_CXDRAG. It has to be small enough that a
+ * deliberate drag feels immediate and large enough that the shake in a hand
+ * releasing a button does not turn every click into a one-row selection sweep.
+ *
+ * Measured per axis rather than as a diagonal distance, which is the same thing
+ * Swing does: a hand dragging straight down the list crosses it a pixel or two
+ * earlier than a circle of radius five would, and down the list is the
+ * direction this gesture is actually used in.
+ */
+export const GESTURE_THRESHOLD_PX = 5;
+
+export function pastThreshold(dx: number, dy: number): boolean {
+  return Math.abs(dx) >= GESTURE_THRESHOLD_PX || Math.abs(dy) >= GESTURE_THRESHOLD_PX;
+}
+
+/** One drawn row and the movable task ids it stands for. */
+export interface BlockRow {
+  unit: RowDragKey;
+  /** A folder's own movable links, or the one link a link row is. */
+  ids: readonly string[];
+}
+
+/**
+ * What a move gesture carries: the selected units, in the order the list draws
+ * them.
+ *
+ * A MOVE MOVES THE WHOLE SELECTION and not the row the hand grabbed (jdp,
+ * 2026-09-14: "dann ein zweiter klick den man hält und man kann per drag and
+ * drop verschieben" - the whole marking, the way JDownloader's own table hands
+ * its transfer handler the entire selection rather than the pressed row).
+ *
+ * A FOLDER WHOSE LINKS ARE ALL SELECTED TRAVELS AS A FOLDER, and its links do
+ * not travel a second time on their own. That is the whole answer to "zieht ein
+ * markierter Ordner seine Links mit": there is no separate question, because
+ * clicking a folder header puts every one of that folder's links into the
+ * selection (TaskListCard's own selectUnit), so a selected folder is exactly a
+ * folder whose links are selected. Emitting the folder rather than its links
+ * one by one is what keeps a folder landing as one contiguous run with its own
+ * internal order intact, instead of as N loose links that the drop would then
+ * have to guess how to re-group.
+ *
+ * The other way round is the case where somebody picked three links out of a
+ * folder of eleven: those travel loose, and the folder stays where it is.
+ *
+ * Drawn order and nothing else, because previewOrder splices the block back in
+ * as one contiguous run - the order it is collected in is the order it lands
+ * in, and a person who selected top-to-bottom expects what they see.
+ */
+export function selectedBlock(rows: readonly BlockRow[], selected: ReadonlySet<string>): RowDragKey[] {
+  const out: RowDragKey[] = [];
+  // Ids already accounted for by a folder that is travelling whole. A folder's
+  // own link rows follow its header in `rows`, so this is what stops them being
+  // emitted a second time - and it works for a folded folder too, where those
+  // rows are not drawn at all and there is simply nothing to skip.
+  const taken = new Set<string>();
+  for (const row of rows) {
+    if (row.unit.kind === 'package') {
+      // A folder with no movable link is not a unit at all: there is nothing in
+      // it the queue could be told to move, so it cannot be part of a block.
+      if (row.ids.length === 0 || !row.ids.every((id) => selected.has(id))) continue;
+      out.push(row.unit);
+      for (const id of row.ids) taken.add(id);
+      continue;
+    }
+    if (taken.has(row.unit.id) || !selected.has(row.unit.id)) continue;
+    out.push(row.unit);
+  }
+  return out;
+}
+
 /** Whether two drag units are the same row or the same folder. */
 export function sameUnit(a: RowDragKey, b: RowDragKey): boolean {
   if (a.kind !== b.kind) return false;
@@ -43,6 +120,21 @@ export interface AimContext {
    *  at all: a finished or failed row is in no band, and a folder whose links
    *  disagree has no one band to move into. */
   canTarget: (unit: RowDragKey) => boolean;
+}
+
+/** Whether this drawn row is part of the block in flight. */
+function isMoved(
+  unit: RowDragKey,
+  movedIds: ReadonlySet<string>,
+  movedNames: ReadonlySet<string>,
+  ctx: AimContext,
+): boolean {
+  if (unit.kind === 'package') return movedNames.has(unit.name);
+  if (movedIds.has(unit.id)) return true;
+  // A link of a folder that is itself travelling. The folder moves whole, so
+  // its links are in flight even though nobody named them one by one.
+  const owner = ctx.packageOf(unit.id);
+  return owner !== undefined && movedNames.has(owner);
 }
 
 /**
@@ -63,15 +155,38 @@ export interface AimContext {
  * never lands between two links of another folder: groupByPackage re-merges a
  * package at its first appearance, so that is not a place a folder can come to
  * rest.
+ *
+ * `moved` IS THE WHOLE BLOCK, not the row the hand happened to grab, because
+ * the JDownloader gesture moves the whole selection (see selectedBlock). Two
+ * things follow from that, and both are the difference between a live preview
+ * and a dead one:
+ *
+ *   - the fold-into-folders rule asks whether every unit in flight is a folder,
+ *     not whether the grabbed one is. A block of folders wants folder-sized
+ *     landing places; a block with one loose link in it needs row-sized ones,
+ *     or that link could never come to rest between two links of a folder.
+ *   - NO ROW OF THE BLOCK IS A LANDING PLACE FOR THE BLOCK. Dragging six
+ *     selected rows, the pointer is over one of the six for most of the
+ *     gesture; left in the list of targets, the nearest box is nearly always
+ *     the block itself, previewOrder answers null for that (anchor inside
+ *     moved) and the list stands still - the same dead drag the folder aim was
+ *     written against, arriving from the other side. Skipping them means the
+ *     aim is the nearest row that could actually receive the block.
  */
 export function aimAt(
   slots: readonly RowSlot[],
   y: number,
-  dragged: RowDragKey,
+  moved: readonly RowDragKey[],
   ctx: AimContext,
 ): { target: RowDragKey; after: boolean } | null {
+  // Folder-sized landing places only when EVERY unit in flight is a folder. A
+  // block that also holds a loose link needs the finer answer: a link has to be
+  // able to land between two links of a folder, which a folder never can.
+  const asFolders = moved.length > 0 && moved.every((u) => u.kind === 'package');
+  const movedNames = new Set(moved.flatMap((u) => (u.kind === 'package' ? [u.name] : [])));
+  const movedIds = new Set(moved.flatMap((u) => (u.kind === 'task' ? [u.id] : [])));
   const boxes: { unit: RowDragKey; top: number; bottom: number }[] = [];
-  if (dragged.kind === 'package') {
+  if (asFolders) {
     // Every drawn row folded into the folder it belongs to, so the whole of a
     // folder is one landing place and there are no dead pixels between two
     // headers. A link row of folder B means folder B, which is also the only
@@ -79,7 +194,7 @@ export function aimAt(
     const byName = new Map<string, { top: number; bottom: number }>();
     for (const slot of slots) {
       const name = slot.unit.kind === 'package' ? slot.unit.name : ctx.packageOf(slot.unit.id);
-      if (name === undefined) continue;
+      if (name === undefined || movedNames.has(name)) continue;
       const seen = byName.get(name);
       if (seen) {
         seen.top = Math.min(seen.top, slot.top);
@@ -88,7 +203,10 @@ export function aimAt(
     }
     for (const [name, box] of byName) boxes.push({ unit: { kind: 'package', name }, ...box });
   } else {
-    for (const slot of slots) boxes.push({ unit: slot.unit, top: slot.top, bottom: slot.bottom });
+    for (const slot of slots) {
+      if (isMoved(slot.unit, movedIds, movedNames, ctx)) continue;
+      boxes.push({ unit: slot.unit, top: slot.top, bottom: slot.bottom });
+    }
   }
 
   let best: { unit: RowDragKey; top: number; bottom: number } | null = null;

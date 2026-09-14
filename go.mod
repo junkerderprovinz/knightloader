@@ -13,8 +13,8 @@ require (
 	github.com/klauspost/compress v1.19.2
 	github.com/nwaples/rardecode/v2 v2.4.1
 	github.com/ulikunitz/xz v0.5.16
-	golang.org/x/crypto v0.55.0
-	golang.org/x/mod v0.40.0
+	golang.org/x/crypto v0.57.0
+	golang.org/x/mod v0.41.0
 	golang.org/x/net v0.58.0
 	golang.org/x/time v0.15.0
 	modernc.org/sqlite v1.57.0
@@ -22,9 +22,11 @@ require (
 )
 
 require (
+	github.com/go-webauthn/webauthn v0.18.1
 	github.com/jlaffaye/ftp v0.2.4
 	github.com/pkg/sftp v1.13.11
-	golang.org/x/text v0.41.0
+	golang.org/x/sys v0.48.0
+	golang.org/x/text v0.42.0
 )
 
 require (
@@ -69,6 +71,7 @@ require (
 	github.com/edsrzf/mmap-go v1.2.0 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/felixge/fgprof v0.9.5 // indirect
+	github.com/fxamacker/cbor/v2 v2.9.3 // indirect
 	github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376 // indirect
 	github.com/go-git/go-billy/v5 v5.9.0 // indirect
 	github.com/go-git/go-git/v5 v5.19.2 // indirect
@@ -77,10 +80,14 @@ require (
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-sourcemap/sourcemap v2.1.4+incompatible // indirect
+	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
+	github.com/go-webauthn/x v0.3.1 // indirect
+	github.com/golang-jwt/jwt/v5 v5.3.1 // indirect
 	github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8 // indirect
 	github.com/google/btree v1.1.3 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/go-querystring v1.2.0 // indirect
+	github.com/google/go-tpm v0.9.8 // indirect
 	github.com/google/pprof v0.0.0-20260802141513-ef3492d7dac3 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/websocket v1.5.4-0.20250319132907-e064f32e3674 // indirect
@@ -108,6 +115,7 @@ require (
 	github.com/multiformats/go-varint v0.1.0 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect
 	github.com/onsi/gomega v1.36.3 // indirect
+	github.com/philhofer/fwd v1.2.0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.27 // indirect
 	github.com/pion/datachannel v1.6.0 // indirect
 	github.com/pion/dtls/v3 v3.1.4 // indirect
@@ -141,7 +149,9 @@ require (
 	github.com/spf13/afero v1.15.0 // indirect
 	github.com/stangelandcl/ppmd v0.1.1 // indirect
 	github.com/tidwall/btree v1.8.1 // indirect
+	github.com/tinylib/msgp v1.6.4 // indirect
 	github.com/wlynxg/anet v0.0.5 // indirect
+	github.com/x448/float16 v0.8.4 // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
 	github.com/xiaoqidun/setft v0.0.0-20220310121541-be86327699ad // indirect
 	go.etcd.io/bbolt v1.4.3 // indirect
@@ -151,8 +161,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.41.0 // indirect
 	go4.org v0.0.0-20260112195520-a5071408f32f // indirect
 	golang.org/x/exp v0.0.0-20260410095643-746e56fc9e2f // indirect
-	golang.org/x/sync v0.22.0 // indirect
-	golang.org/x/sys v0.47.0 // indirect
+	golang.org/x/sync v0.23.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	lukechampine.com/blake3 v1.4.1 // indirect
 	modernc.org/libc v1.74.4 // indirect

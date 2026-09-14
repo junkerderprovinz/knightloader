@@ -325,6 +325,25 @@ jobs:
       - name: Motion tokens
         run: node check-motion-tokens.mjs
 
+      # The fourth motion level nobody is offered, and the rule an easter egg
+      # that changes BEHAVIOUR has to keep: switchable back off, and never a
+      # permanent entry in a settings list. Four ways it can go wrong silently -
+      # a picker that starts offering it, a stored one thrown away at boot, a
+      # "found it" flag written to storage, and the token block drifting out of
+      # the reduced-motion gate, which is the only one of the four that could do
+      # real harm.
+      - name: The hidden motion level stays hidden
+        run: node check-hidden-motion-level.mjs
+
+      # Nothing is greyed out AND switched off at once. GlimStone 1.16.0 settled
+      # a six-release contradiction with one question - does the control still
+      # do anything - and that pair is the one shape both of its answers rule
+      # out. It found five, one of them the delete beside a stored sign-in
+      # cookie, unreachable by mouse in exactly the state somebody reaches for
+      # it.
+      - name: Dimmed and inert at once
+        run: node check-dimmed-and-inert.mjs
+
       - name: Brand marks
         run: node check-brand-marks.mjs
 
@@ -333,6 +352,42 @@ jobs:
 
       - name: Button order
         run: node check-button-order.mjs
+
+      # A refused capability explains itself in the reader's own language, never
+      # in the server's. GlimStone 1.15.0 names this test in the rule itself;
+      # the live half of it drives a browser, this is the half that runs on
+      # every build so the property is held between live runs.
+      - name: The passkey refusal is the app's own copy
+        run: node check-passkey-reason.mjs
+
+      # The download list's press gesture, on plain numbers: which row a block
+      # of marked rows is aiming at, what a press on a marked row carries, and
+      # how far a press has to travel before it stops being a click. Written
+      # with the gesture and then left out of this file, which made it a script
+      # somebody has to remember to run - and that is not a guard.
+      - name: Row drag arithmetic
+        run: node check-row-drag.mjs
+
+      # A card is a surface, not a control. The instance cards were handed the
+      # shared Card's `hover` prop, which lifts the surface two pixels under the
+      # pointer - so the one hovered card in a row of three broke the top edge
+      # the other two shared, and did it while advertising a whole-card click
+      # that did not exist (the card body was not clickable at all). The design
+      # language says it twice, in the two sections anybody styling a hover
+      # would open, and it shipped anyway: from the call site, passing a prop
+      # named `hover` looks exactly like asking for the house's own hover.
+      - name: A card does not react to the pointer
+        run: node check-card-hover.mjs
+
+      # The app's shield appears in four places and only one of them is the
+      # brand: the mark in the sidebar. "Make the logo on the cards bigger" is
+      # reasonable, was asked twice, and the second grant put the card's copy at
+      # 144px against the rail's 112 - the loudest drawing of the app's identity
+      # was a repeat of it on a card. The ceiling is read off the rail rather
+      # than typed in, so it cannot drift from it. The comment beside that class
+      # did drift: it still said 7rem while the class said 9.
+      - name: The app mark never outgrows the rail's own
+        run: node check-mark-scale.mjs
 
       # A curve drawn with preserveAspectRatio="none" is still a replaced
       # element with a ratio, so a viewBox and no height turns width into

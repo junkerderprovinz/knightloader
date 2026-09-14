@@ -100,7 +100,25 @@ export function CookieJarsCard({ hue }: { hue: number }) {
         hint={t('settings.resolvers.cookiesHint')}
       />
 
-      <div className={`flex flex-col gap-4 ${enabled ? '' : 'pointer-events-none opacity-40'}`}>
+      {/* THE JARS ARE NOT A SUB-SWITCH, AND THIS IS THE CASE GLIMSTONE 1.16.0
+          MAKES THE EXCEPTION FOR. All of this used to sit under a
+          `pointer-events-none opacity-40` wrapper while the switch above was
+          off, on the reading that everything under a mode goes when the mode
+          does. The question that decides it is whether the control still does
+          anything, and here the answer is on the server: a jar lives in the
+          accounts store, /api/ytdlp/cookies reads and writes it whatever this
+          switch says, and switching yt-dlp's use of cookies off does not delete
+          one. So a stored session stays stored, and the trash badge beside it
+          still removes it for real.
+
+          That is the worst possible control to lock away. Somebody who has just
+          decided a stored sign-in should not be on this machine any more turns
+          the feature off first - and the old wrapper made that the exact
+          gesture that took the delete out of reach, by mouse at least, since
+          `pointer-events-none` is invisible to the keyboard. Nothing here is
+          dimmed either: what says the feature is off is the switch one row up,
+          which is the row somebody has just used. */}
+      <div className="flex flex-col gap-4">
         <FieldGroup label={t('settings.resolvers.cookieJars')} hint={t('settings.resolvers.cookieJarsHint')}>
           {/* The glim-well wrapper with a plain list inside, as the accounts
               table does it - never a nested Card, and never a Card per row. */}
@@ -132,7 +150,11 @@ export function CookieJarsCard({ hue }: { hue: number }) {
                       icon={<IconTrash width={16} height={16} />}
                       title={`${t('settings.resolvers.cookieRemove')} · ${h}`}
                       aria-label={`${t('settings.resolvers.cookieRemove')} · ${h}`}
-                      disabled={busy || !enabled}
+                      // `busy` only: a jar is stored whether yt-dlp is told to
+                      // read one or not, so removing it is an action that still
+                      // acts while the switch above is off. See the block
+                      // comment above the list.
+                      disabled={busy}
                       onClick={() => void run(() => removeYtdlpCookieJar(h))}
                     />
                   </li>
@@ -146,7 +168,10 @@ export function CookieJarsCard({ hue }: { hue: number }) {
           <Button
             kind="secondary"
             icon={<IconPlus width={16} height={16} />}
-            disabled={busy || !enabled}
+            // Same reasoning as the trash badge above: storing a jar is a real
+            // write to a real store, and preparing one before switching the
+            // feature on is an ordinary way round.
+            disabled={busy}
             onClick={() => {
               setError('');
               setAdding(true);
@@ -158,8 +183,11 @@ export function CookieJarsCard({ hue }: { hue: number }) {
         </div>
       </div>
 
-      {/* Outside the dimmed block above: an overlay that inherited its
-          pointer-events-none would be a window nobody could type into. */}
+      {/* Outside the block above, where it has always been: an overlay nested
+          inside a wrapper that was once `pointer-events-none` was a window
+          nobody could type into. The wrapper is gone; the window stays out
+          here, because a floating thing belongs at the card's own level rather
+          than inside one of its rows. */}
       {adding && (
         <CookieJarDialog
           armSwitch={false}

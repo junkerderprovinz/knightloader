@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
-import { Button, Card, ErrorCard, Field, InfoBubble, Modal, SectionTitle, TextInput, Toggle, ToggleRow, useTooltip } from '../../components/ui';
+import { Button, Card, ErrorCard, Field, FieldGroup, InfoBubble, Modal, SectionTitle, TextInput, Toggle, ToggleRow, useTooltip } from '../../components/ui';
 import { About } from './Help';
 import { Tabs } from '../../components/Tabs';
 import { openColorPickerPopover } from '../../lib/colorPicker';
@@ -23,12 +23,13 @@ import { useResource } from '../../lib/useResource';
 import {
   ACCENTS,
   DEFAULT_ACCENT,
+  MOTION_LEVELS,
   RAINBOW,
   SHAPES,
-  type MotionIntensity,
+  type Motion,
   type Shape,
   applyAccent,
-  applyMotionIntensity,
+  applyMotion,
   applyRainbow,
   applyShape,
   cacheAppearance,
@@ -37,6 +38,7 @@ import {
   rainbowAt,
   rainbowFromSettings,
   readCachedMotionIntensity,
+  stormTap,
 } from '../../lib/appearance';
 import { useDraft, useFeatures } from './context';
 import { WATCH_SUPPORTED } from '../../lib/clipboardWatch';
@@ -197,12 +199,20 @@ function RingSwatch({
   color,
   label,
   selected,
+  dim,
   onPick,
   onEdit,
 }: {
   color: string;
   label: string;
   selected: boolean;
+  /**
+   * Recedes, and stays pressable. See the accent row's own comment for the
+   * whole argument: the dimming goes on the CIRCLE and never on a wrapper
+   * around the row, so the caption and the (i) that explains the state keep
+   * full strength (GlimStone 1.9.0's opacity-subtree trap).
+   */
+  dim?: boolean;
   onPick: () => void;
   onEdit?: (el: HTMLElement) => void;
 }) {
@@ -228,7 +238,7 @@ function RingSwatch({
         // the two reset badges beside them, in one edit.
         className={`h-[var(--btn-h)] w-[var(--btn-h)] shrink-0 cursor-pointer rounded-[var(--radius-pill)] transition-transform hover:scale-110 ${
           selected ? 'shadow-[0_0_0_2px_var(--carbon-surface),0_0_0_4px_var(--carbon-text)]' : ''
-        }`}
+        } ${dim ? 'opacity-45' : ''}`}
         style={{ backgroundColor: color }}
         {...tipHoverProps}
       />
@@ -277,7 +287,7 @@ function PaletteSwatch({ color, name, onEdit }: { color: string; name: string; o
  * it, owned here rather than written out at each call site - the 13px and 14px
  * that used to stand two rows apart were exactly that drift.
  */
-function ResetBadge({ label, onClick }: { label: string; onClick: () => void }) {
+function ResetBadge({ label, dim, onClick }: { label: string; dim?: boolean; onClick: () => void }) {
   const tip = useTooltip<HTMLButtonElement>(label);
   const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
   return (
@@ -286,7 +296,9 @@ function ResetBadge({ label, onClick }: { label: string; onClick: () => void }) 
         type="button"
         aria-label={label}
         onClick={onClick}
-        className="inline-flex h-[var(--btn-h)] w-[var(--btn-h)] shrink-0 items-center justify-center rounded-[var(--radius-pill)] bg-carbon-surface2 text-carbon-textSub transition-colors hover:text-carbon-text"
+        className={`inline-flex h-[var(--btn-h)] w-[var(--btn-h)] shrink-0 items-center justify-center rounded-[var(--radius-pill)] bg-carbon-surface2 text-carbon-textSub transition-colors hover:text-carbon-text ${
+          dim ? 'opacity-45' : ''
+        }`}
         {...tipHoverProps}
       >
         <IconRetry width={16} height={16} />
@@ -333,7 +345,28 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
   // Motion intensity is client-only too, same reasoning as shape/accent/
   // rainbow just below: a single-operator tool has no second viewer who
   // needs to agree on how much animation there is.
-  const [motion, setMotion] = useState<MotionIntensity>(readCachedMotionIntensity);
+  const [motion, setMotion] = useState<Motion>(readCachedMotionIntensity);
+
+  // The hidden fourth level, and the two halves of it that look alike and are
+  // not (GlimStone 1.17.0, and lib/appearance.ts's stormTap for the rule).
+  //
+  // `stormFound` is a fact about THIS SCREEN, so it is state and never storage:
+  // leave the settings with something else selected and the segment is gone
+  // until somebody makes the gesture again. The chosen VALUE goes to
+  // localStorage like every other one, which is why a storm survives a reload
+  // and still does not put a fourth entry in anybody's picker.
+  //
+  // It starts true when the level is already IN FORCE, and that is the case
+  // measuring found rather than reading: arriving with a stored storm and then
+  // picking Dezent made the segment vanish under the pointer mid-screen, which
+  // is a step further than the rule asks for ("sturm soll wieder verschwinden
+  // wenn man zb sanft einstellt und die einstellungen verlässt" - set something
+  // else AND LEAVE). A screen showing the level knows it exists; what it may
+  // not do is remember that across a visit.
+  const [stormFound, setStormFound] = useState(() => motion === 'storm');
+  // A ref rather than state: five taps are counting, not rendering, and the
+  // count is deliberately reset by any tap that is not on the top level.
+  const stormTaps = useRef({ taps: 0 });
 
   // What the swatch row edits: the saved palette when it is complete, the
   // built-in hues otherwise. Either way the row shows eight editable colours, so
@@ -350,7 +383,7 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
     applyShape(cfg.shape);
     applyAccent(cfg.accent);
     applyRainbow(rainbow);
-    applyMotionIntensity(motion);
+    applyMotion(motion);
     cacheAppearance(cfg.shape, cfg.accent, rainbow);
   }, [
     cfg.shape,
@@ -577,7 +610,19 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
           of work (the keyframes/data-motion mechanism lives in index.css and
           lib/appearance.ts). hue=8 reuses the slot the Backup/Restore merge
           below just freed, rather than renumbering every other card's own
-          fixed position in the sequence for one new row. */}
+          fixed position in the sequence for one new row.
+
+          THE FOURTH SEGMENT IS NOT ALWAYS THERE, and that is the rule rather
+          than a quirk (GlimStone 1.17.0). The list comes from MOTION_LEVELS,
+          which does not contain the hidden level; `storm` joins it while it has
+          just been FOUND, or while it is the value in force - because a picker
+          that hid the value it is currently showing would be lying about the
+          interface. Nothing about the discovery is written down: `stormFound`
+          is this screen's own state, so choosing something else and leaving
+          takes the segment away again, while the chosen value persists like
+          every other setting. Storing the wrong one of those two halves is what
+          turns a secret into a settings entry somebody has to explain to
+          themselves months later. */}
       {appearance && (
       <Card hue={8} className="flex flex-col gap-3">
         <SectionTitle hint={t('settings.motion.hint')}>
@@ -589,16 +634,22 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
           className="w-fit"
           active={motion}
           onSelect={(id) => {
-            const next = id as MotionIntensity;
+            // The gesture first, because it is a tap on the segment that is
+            // ALREADY active - the one press a picker would otherwise treat as
+            // a no-op and swallow. taps lives in a ref: it is counting, not
+            // rendering, and a re-render per tap would be a state change
+            // nothing on screen can show.
+            const found = stormTap(stormTaps.current, id, motion);
+            const next = found ?? (id as Motion);
+            if (found) setStormFound(true);
             setMotion(next);
-            applyMotionIntensity(next);
+            applyMotion(next);
             cacheMotionIntensity(next);
           }}
-          items={[
-            { id: 'off', label: t('settings.motion.off') },
-            { id: 'subtle', label: t('settings.motion.subtle') },
-            { id: 'full', label: t('settings.motion.full') },
-          ]}
+          items={(stormFound || motion === 'storm' ? [...MOTION_LEVELS, 'storm' as Motion] : MOTION_LEVELS).map((m) => ({
+            id: m,
+            label: t(`settings.motion.${m}` as never),
+          }))}
         />
       </Card>
       )}
@@ -623,10 +674,50 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
             the hand-tuned me-2 that used to stand in for that gap. Every
             other row in this card (Regenbogen-Modus, Reaktiver Modus,
             Farbenrotation) is already built exactly this way. */}
+        {/* THE ROW RAINBOW MODE TAKES OVER, AND THE CASE GLIMSTONE 1.16.0 WAS
+            WRITTEN FOR. Two rules in that document had been contradicting each
+            other for six releases: a control hanging off another mode should be
+            ABSENT, and this exact row should stay with "the dimmed controls the
+            signal that something changed". 1.16.0 settles it with one question,
+            DOES THE CONTROL STILL DO ANYTHING, and this row's answer is
+            measured rather than argued: with rainbow on and the accent set to a
+            colour in no palette position, the Dashboard's own section badge and
+            disk-fill and the Downloads queue's Pause button still paint it,
+            because `[data-rainbow] .glim-hue` only rebinds --accent inside a
+            subtree that owns a position. The value is still doing work; it is
+            simply not in charge of everything any more. Removing the row would
+            hide a setting that is still in effect.
+
+            SO IT DIMS AND STAYS PRESSABLE, which is the one place this goes a
+            step further than the sentence in the document. "Dim it and say who
+            is in charge" is what the rule asks for; making it INERT as well
+            would mean somebody cannot change the colour of the controls it
+            still paints without switching rainbow off first, which is a
+            capability taken away to signal a state. The dimming carries the
+            signal, the (i) carries the reason, and the circles keep working.
+
+            THE DIMMING IS ON THE CIRCLES, NEVER ON THIS FLEX ROW (1.9.0):
+            opacity composites a whole subtree, so a wrapper here would render
+            the (i) that explains the state at 45% as well - the one element
+            that has to stay readable while the rest recedes.
+
+            AND THE (i) GAINS A SENTENCE rather than growing a second glyph
+            beside it. The rule asks for an explanation that appears exactly
+            while the state holds, which this is; two identical (i) marks in one
+            caption would be a rendering fault rather than a second answer, and
+            the watch-folder Field further down this same file already carries
+            the house shape for "the bubble says one more thing while something
+            else is in charge". */}
         <div className="flex flex-wrap items-center justify-between gap-3">
           <span className="flex shrink-0 items-center gap-1.5 text-sm text-carbon-text">
             {t('settings.accent')}
-            <InfoBubble tip={t('settings.accentHint')} />
+            <InfoBubble
+              tip={
+                cfg.rainbow
+                  ? `${t('settings.accentHint')} ${t('settings.accentRainbowOwns')}`
+                  : t('settings.accentHint')
+              }
+            />
           </span>
           {/* Eight circles and a reset, exactly like the palette row further
               down, and nothing else (jdp, 2026-09-01: "der text Voreinstellungen
@@ -666,6 +757,7 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
                   // colour now, so every one of them can need its hex.
                   label={shown.toLowerCase() !== a.hex.toLowerCase() ? shown.toUpperCase() : a.name}
                   selected={mine}
+                  dim={cfg.rainbow}
                   onPick={() => chooseSlot(i, shown)}
                   // Opens on the pressed circle's OWN colour, which is what
                   // makes editing a second custom swatch start where that
@@ -688,6 +780,7 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
                 two can no longer disagree about the glyph inside the box. */}
             <ResetBadge
               label={t('settings.accentReset')}
+              dim={cfg.rainbow}
               onClick={() => {
                 persistSlots(() => ({ customs: {} }));
                 patch({ accent: '' });
@@ -994,36 +1087,37 @@ function LinkIntakeCard() {
         label={t('settings.autoStart')}
       />
 
-      {/* Disabled rather than hidden, and this one is not the sub-switch case:
-          the switch that turns it off lives on the Modules page, not on this
-          card, so removing the field would leave nothing here pointing at
-          where the decision was made - which is exactly what the hint does.
+      {/* A BOX NOBODY CAN TYPE IN BECOMES A SENTENCE (GlimStone 1.16.0). It was
+          a dimmed, disabled field, and the rule's question settles the box:
+          parking the module CLEARS the folder server-side, so while it is
+          parked this field holds nothing, saves nothing and starts nothing.
 
-          THE DIMMING IS ON THE FIELD, NOT ON A WRAPPER ROUND IT. It used to be
-          a `pointer-events-none opacity-40` div, and opacity composites the
-          whole subtree: the (i) that carries the reason rendered at 40% too,
-          so the one element that has to stay readable while the rest recedes
-          was the one nobody could read. The label and its bubble now stay at
-          full strength and only the box people cannot type in recedes; the
-          input's own `disabled` was already doing the pointer-events half. */}
-      <Field
-        label={t('settings.watchDir')}
-        hint={
-          folderWatchOff
-            ? `${t('settings.watchDirHint')} ${t('settings.downloads.watchOff')}`
-            : t('settings.watchDirHint')
-        }
-      >
-        <TextInput
-          dir="ltr"
-          value={cfg.watchDir}
-          placeholder="/watch"
-          spellCheck={false}
-          disabled={folderWatchOff}
-          className={folderWatchOff ? 'opacity-40' : ''}
-          onChange={(e) => patch({ watchDir: e.target.value })}
-        />
-      </Field>
+          The old note's other half is right and is what keeps the row here at
+          all: the switch that did this lives on the Modules page, not on this
+          card, so a field that simply vanished would take the only pointer to
+          the decision with it. A reading is what 1.10.0's own exception leaves
+          on screen - it answers its own question rather than refusing one - and
+          FieldGroup rather than Field because a <label> with no control in it
+          names nothing. The (i) keeps the general explanation; the sentence
+          under it says who is in charge and that the folder comes back.
+
+          The same shape as the collector's countdown on the Downloads page,
+          which hangs off a switch on another page in exactly the same way. */}
+      {folderWatchOff ? (
+        <FieldGroup label={t('settings.watchDir')} hint={t('settings.watchDirHint')}>
+          <span className="text-sm text-carbon-textSub">{t('settings.downloads.watchOff')}</span>
+        </FieldGroup>
+      ) : (
+        <Field label={t('settings.watchDir')} hint={t('settings.watchDirHint')}>
+          <TextInput
+            dir="ltr"
+            value={cfg.watchDir}
+            placeholder="/watch"
+            spellCheck={false}
+            onChange={(e) => patch({ watchDir: e.target.value })}
+          />
+        </Field>
+      )}
     </Card>
   );
 }

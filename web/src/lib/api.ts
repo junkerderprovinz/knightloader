@@ -973,6 +973,31 @@ export interface QueueState {
 export interface AuthState {
   enabled: boolean;
   authenticated: boolean;
+  /**
+   * Whether a second factor is armed, and how much of the recovery sheet is
+   * left. Both are absent for a caller with no session: what defences this
+   * instance has is for somebody already inside, and the sign-in screen learns
+   * what it needs from the login answer instead (see LoginResult).
+   */
+  twoFactor?: boolean;
+  recoveryLeft?: number;
+}
+
+/**
+ * What POST /api/auth/login answers with, which is three states rather than
+ * two.
+ *
+ * `authenticated` is the way in. `twoFactorRequired` with nothing else means
+ * the password was right and the server is asking for the second half - a
+ * question, not a refusal, which is why the server answers 200 to it.
+ * `codeRejected` beside it means the code that was sent was wrong, and it is a
+ * separate field for a reason: without it the screen can only show one of those
+ * two states, and a mistyped digit reads as being asked the same question again
+ * for no visible reason.
+ */
+export interface LoginResult extends AuthState {
+  twoFactorRequired?: boolean;
+  codeRejected?: boolean;
 }
 
 export interface Instance {
@@ -3177,11 +3202,249 @@ export async function fetchAuth(): Promise<AuthState> {
   return json<AuthState>(await fetch('/api/auth'));
 }
 
-// login exchanges the password for a session cookie.
-export async function login(password: string): Promise<AuthState> {
-  const r = await post('/api/auth/login', { password });
-  if (!r.ok) throw new Error(await r.text());
-  return json<AuthState>(r);
+/**
+ * login exchanges the password - and, once a second factor is armed, a code -
+ * for a session cookie.
+ *
+ * It returns rather than throws on the two-factor answers, and that is the
+ * whole reason it is not three lines. A wrong PASSWORD is a refusal and throws,
+ * as it always did; being asked for a code, or having a code turned down, are
+ * states of a sign-in that is still in progress, and a caller that had to read
+ * them out of a thrown Error's message would be parsing prose.
+ */
+export async function login(password: string, code = ''): Promise<LoginResult> {
+  const r = await post('/api/auth/login', { password, code });
+  if (r.ok) return json<LoginResult>(r);
+  const text = (await r.text()).trim();
+  try {
+    const parsed = JSON.parse(text) as LoginResult;
+    if (parsed && parsed.twoFactorRequired) return parsed;
+  } catch {
+    // A plain-text body, which is the wrong-password case.
+  }
+  throw new Error(text || String(r.status));
+}
+
+// ---- the second factor (internal/auth/twofactor.go) ------------------------
+
+/** What POST /api/auth/2fa/begin hands back: shown once, armed by nothing. */
+export interface TOTPEnrolment {
+  /** The base32 secret, for somebody typing it in by hand. */
+  secret: string;
+  /** The otpauth:// URI behind the QR code. */
+  uri: string;
+  /** The same URI as a module grid, so a phone can scan it. Absent only if the
+   *  encoder refused, which nothing here can produce a string long enough for. */
+  qr?: QRMatrix;
+}
+
+/** setupTOTP starts an enrolment. Nothing is armed until confirmTOTP succeeds. */
+export async function setupTOTP(): Promise<TOTPEnrolment> {
+  return json<TOTPEnrolment>(await post('/api/auth/2fa/begin', {}));
+}
+
+/**
+ * confirmTOTP arms the factor and answers with the recovery codes. They exist
+ * in one place after this call - the screen showing them - because the server
+ * keeps only their hashes.
+ */
+export async function confirmTOTP(code: string): Promise<string[]> {
+  const r = await json<{ recoveryCodes: string[] }>(await post('/api/auth/2fa/confirm', { code }));
+  return r.recoveryCodes ?? [];
+}
+
+/** disableTOTP turns the factor off. It costs the same proof as using it. */
+export async function disableTOTP(code: string): Promise<void> {
+  await json<unknown>(await post('/api/auth/2fa/disable', { code }));
+}
+
+// ---- passkeys (internal/api/routes_passkeys.go) -----------------------------
+
+/** One registered credential, as the settings card lists it. */
+export interface PasskeyView {
+  id: string;
+  name: string;
+  /** The address this key is bound to. A key registered through a proxy does
+   *  not exist over the LAN IP, so the row says which one it belongs to. */
+  rpId: string;
+  /** Whether it can answer on the address the browser has open right now. */
+  usableHere: boolean;
+  /** Whether the authenticator says the key is synced to a keychain. */
+  backedUp: boolean;
+  createdAt: number;
+  lastUsedAt: number;
+  transports: string;
+}
+
+export interface PasskeyStatus {
+  /**
+   * Whether this ADDRESS can carry a passkey at all. The verdict, and the only
+   * part of the refusal the interface is allowed to read: the server also sends
+   * a `reason`, in English, for an API caller and the log, and the card writes
+   * its own translated paragraph instead. See internal/api/routes_passkeys.go's
+   * errPasskeyOrigin and web/check-passkey-reason.mjs.
+   */
+  supported: boolean;
+  /** The relying-party id this address resolves to, empty when it has none. */
+  rpId: string;
+  /** How many keys are registered in total, and how many for this address. */
+  total: number;
+  here: number;
+  /** Only present for a caller with a session. */
+  passkeys?: PasskeyView[];
+}
+
+export async function fetchPasskeys(): Promise<PasskeyStatus> {
+  return json<PasskeyStatus>(await fetch('/api/auth/passkeys'));
+}
+
+/** passkeysInBrowser reports whether this browser can do WebAuthn at all. */
+export function passkeysInBrowser(): boolean {
+  return typeof window !== 'undefined' && typeof window.PublicKeyCredential === 'function';
+}
+
+/**
+ * The base64url the WebAuthn JSON uses, both ways.
+ *
+ * Written out rather than pulled in, because it is eight lines and the
+ * alternative is a dependency on the one path whose job is to be trustworthy.
+ * Padding is optional in base64url and the server's encoder omits it, so it is
+ * added back before atob rather than assumed.
+ */
+function fromB64url(s: string): ArrayBuffer {
+  const padded = s.replace(/-/g, '+').replace(/_/g, '/') + '=='.slice(0, (4 - (s.length % 4)) % 4);
+  const raw = atob(padded);
+  // Backed by a plain ArrayBuffer on purpose: a bare `new Uint8Array(n)` is
+  // typed over ArrayBufferLike, which includes SharedArrayBuffer, and the
+  // WebAuthn signatures want a BufferSource that cannot be shared. Returning
+  // the buffer itself sidesteps the whole question at every call site.
+  const buf = new ArrayBuffer(raw.length);
+  const out = new Uint8Array(buf);
+  for (let i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
+  return buf;
+}
+
+function toB64url(buf: ArrayBuffer): string {
+  const bytes = new Uint8Array(buf);
+  let raw = '';
+  for (const b of bytes) raw += String.fromCharCode(b);
+  return btoa(raw).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+/** The fields of the server's options that arrive as base64url and have to
+ *  reach the browser as bytes. */
+type CreationOptions = {
+  challenge: string;
+  user: { id: string; name: string; displayName: string };
+  excludeCredentials?: { id: string; type: string; transports?: string[] }[];
+} & Record<string, unknown>;
+
+type RequestOptions = {
+  challenge: string;
+  allowCredentials?: { id: string; type: string; transports?: string[] }[];
+} & Record<string, unknown>;
+
+/**
+ * registerPasskey runs the whole registration: ask this instance for a
+ * challenge, hand it to the browser, hand the browser's answer back.
+ *
+ * The browser's own refusals - a cancelled prompt, a timeout, an authenticator
+ * that declined - arrive as a thrown DOMException and are left to the caller,
+ * because its message is the useful one and this app has nothing to add to it.
+ */
+export async function registerPasskey(name: string): Promise<void> {
+  const begun = await json<{ ceremonyId: string; options: { publicKey?: CreationOptions } & CreationOptions }>(
+    await post('/api/auth/passkey/register/begin', {}),
+  );
+  const opts = (begun.options.publicKey ?? begun.options) as CreationOptions;
+  const cred = (await navigator.credentials.create({
+    publicKey: {
+      ...(opts as unknown as PublicKeyCredentialCreationOptions),
+      challenge: fromB64url(opts.challenge),
+      user: {
+        ...opts.user,
+        id: fromB64url(opts.user.id),
+      },
+      excludeCredentials: (opts.excludeCredentials ?? []).map((c) => ({
+        ...c,
+        id: fromB64url(c.id),
+        type: 'public-key' as const,
+        transports: c.transports as AuthenticatorTransport[] | undefined,
+      })),
+    },
+  })) as PublicKeyCredential | null;
+  if (!cred) throw new Error('no credential');
+  const response = cred.response as AuthenticatorAttestationResponse;
+  await json<unknown>(
+    await post('/api/auth/passkey/register/finish', {
+      ceremonyId: begun.ceremonyId,
+      name,
+      credential: {
+        id: cred.id,
+        rawId: toB64url(cred.rawId),
+        type: cred.type,
+        response: {
+          clientDataJSON: toB64url(response.clientDataJSON),
+          attestationObject: toB64url(response.attestationObject),
+        },
+        clientExtensionResults: cred.getClientExtensionResults(),
+      },
+    }),
+  );
+}
+
+/** signInWithPasskey is the other direction: a challenge, a signature, a
+ *  session cookie. */
+export async function signInWithPasskey(): Promise<AuthState> {
+  const begun = await json<{ ceremonyId: string; options: { publicKey?: RequestOptions } & RequestOptions }>(
+    await post('/api/auth/passkey/login/begin', {}),
+  );
+  const opts = (begun.options.publicKey ?? begun.options) as RequestOptions;
+  const cred = (await navigator.credentials.get({
+    publicKey: {
+      ...(opts as unknown as PublicKeyCredentialRequestOptions),
+      challenge: fromB64url(opts.challenge),
+      allowCredentials: (opts.allowCredentials ?? []).map((c) => ({
+        ...c,
+        id: fromB64url(c.id),
+        type: 'public-key' as const,
+        transports: c.transports as AuthenticatorTransport[] | undefined,
+      })),
+    },
+  })) as PublicKeyCredential | null;
+  if (!cred) throw new Error('no credential');
+  const response = cred.response as AuthenticatorAssertionResponse;
+  return json<AuthState>(
+    await post('/api/auth/passkey/login/finish', {
+      ceremonyId: begun.ceremonyId,
+      credential: {
+        id: cred.id,
+        rawId: toB64url(cred.rawId),
+        type: cred.type,
+        response: {
+          clientDataJSON: toB64url(response.clientDataJSON),
+          authenticatorData: toB64url(response.authenticatorData),
+          signature: toB64url(response.signature),
+          userHandle: response.userHandle ? toB64url(response.userHandle) : null,
+        },
+        clientExtensionResults: cred.getClientExtensionResults(),
+      },
+    }),
+  );
+}
+
+export async function renamePasskey(id: string, name: string): Promise<void> {
+  await ok(
+    await fetch(`/api/auth/passkeys/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name }),
+    }),
+  );
+}
+
+export async function removePasskey(id: string): Promise<void> {
+  await ok(await fetch(`/api/auth/passkeys/${encodeURIComponent(id)}`, { method: 'DELETE' }));
 }
 
 // logout ends the current session. Throws on a non-2xx response the same

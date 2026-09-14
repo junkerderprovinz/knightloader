@@ -178,6 +178,35 @@ var migrations = []string{
 	// morning's downloads to the wrong folder without anything on screen changing.
 	`ALTER TABLE tasks ADD COLUMN category TEXT NOT NULL DEFAULT ''`,
 	`ALTER TABLE tasks ADD COLUMN extract_dir TEXT NOT NULL DEFAULT ''`,
+	// The registered passkeys: one row per WebAuthn credential the operator has
+	// enrolled. See passkeys.go for what each column is for, and in particular
+	// why rp_id is one of them - a credential is bound to the address it was
+	// created for, so the same instance reached two ways holds two sets.
+	//
+	// In the DATABASE rather than in auth.json beside the password, and the line
+	// is about secrecy rather than about subject. auth.json is 0600 and holds
+	// what must never be read back: the password hash, the session key, the
+	// authenticator secret. Nothing here is a secret at all - a public key and a
+	// handle - so it belongs where rows with names, timestamps and a UNIQUE
+	// index belong, and where a backup already carries it.
+	`CREATE TABLE IF NOT EXISTS passkeys (
+	   id            TEXT PRIMARY KEY,
+	   name          TEXT NOT NULL DEFAULT '',
+	   credential_id BLOB NOT NULL,
+	   public_key    BLOB NOT NULL,
+	   aaguid        BLOB NOT NULL DEFAULT x'',
+	   sign_count    INTEGER NOT NULL DEFAULT 0,
+	   transports    TEXT NOT NULL DEFAULT '',
+	   rp_id         TEXT NOT NULL DEFAULT '',
+	   backed_up     INTEGER NOT NULL DEFAULT 0,
+	   created_at    INTEGER NOT NULL DEFAULT 0,
+	   last_used_at  INTEGER NOT NULL DEFAULT 0
+	 )`,
+	// One authenticator, one row. Without this a key registered twice leaves two
+	// rows answering for it, and the sign-counter check - the only thing that
+	// notices a cloned authenticator - compares against whichever the query
+	// happened to find first.
+	`CREATE UNIQUE INDEX IF NOT EXISTS passkeys_credential_id ON passkeys(credential_id)`,
 }
 
 func Open(path string) (*Store, error) {

@@ -70,11 +70,23 @@ export function StallCard({ hue }: { hue: number }) {
         hint={t('settings.stall.enabledHint')}
       />
 
-      {/* Dimmed while the mark is off, never removed: a control that vanishes
-          teaches nobody what the mode can do. Each control below also carries a
-          real `disabled`, because opacity is not a lock - a keyboard reaches
-          through pointer-events-none. */}
-      <div className={`flex flex-col gap-5 ${enabled ? '' : 'pointer-events-none opacity-40'}`}>
+      {/* ABSENT WHILE THE MARK IS OFF, NEVER DIMMED (GlimStone 1.10.0, and the
+          test 1.16.0 settled it with). These three used to be dimmed and inert
+          under the argument that a control which vanishes teaches nobody what
+          the mode can do; the question that decides it is whether the control
+          still DOES anything, and nothing here does. A timeout of 0 IS the off
+          state, so the box would be showing a number below its own minimum, and
+          the two restart controls are read by nothing while no download is ever
+          marked as stalled. What the switch put away comes back untouched when
+          it comes back on: setEnabled above deliberately writes only
+          stallTimeout, so the restart configuration survives the round trip.
+
+          The dimmed-and-inert wrapper this replaces carried a second fault the
+          rule names separately (1.9.0): opacity composites a whole subtree, so
+          the three (i) bubbles - the only place that could have said why the
+          fields were dim - rendered at 40% along with them. */}
+      {enabled && (
+      <div className="flex flex-col gap-5">
         {/* min is 60 and not 0, so the stepper cannot walk into 1..59, which
             sanitizeStall silently rewrites to 60 (settings_stall.go). A spinner
             offering 30 would be a control that lies about what saving it did.
@@ -90,7 +102,6 @@ export function StallCard({ hue }: { hue: number }) {
             min={MIN_TIMEOUT}
             max={MAX_TIMEOUT}
             step={60}
-            disabled={!enabled}
             onValue={(v) => patch({ stallTimeout: v })}
           />
         </Field>
@@ -107,25 +118,31 @@ export function StallCard({ hue }: { hue: number }) {
           onChange={(v) => patch({ stallRestart: v })}
           label={t('settings.stall.restart')}
           hint={t('settings.stall.restartHint')}
-          disabled={!enabled}
         />
 
         {/* min stays 0 and 0 stays reachable: the server reads 0 as
             DefaultStallRestarts (3), not as unlimited, so raising min to 1 or
             translating 0 into 3 in here would both hide a legal value that
-            means something. Above 20 comes back as 20. Dimmed for two reasons
-            at once - nothing is marked, or nothing is restarted. */}
+            means something. Above 20 comes back as 20.
+
+            ABSENT, not disabled, while the switch directly above it is off:
+            same rule again, one level further in. A restart cap under a restart
+            that is not running has no state behind it either, and the switch
+            deciding it is the row you are looking at rather than one on another
+            page. */}
+        {cfg.stallRestart && (
         <Field label={t('settings.stall.maxRestarts')} hint={t('settings.stall.maxRestartsHint')}>
           <NumberInput
             value={cfg.stallMaxRestarts}
             min={0}
             max={MAX_RESTARTS}
             step={1}
-            disabled={!enabled || !cfg.stallRestart}
             onValue={(v) => patch({ stallMaxRestarts: v })}
           />
         </Field>
+        )}
       </div>
+      )}
     </Card>
   );
 }

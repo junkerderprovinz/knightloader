@@ -88,7 +88,16 @@ import { RetrySkipBadge } from './RetryCountdown';
 import { TaskDetailPanel } from './taskdetail/TaskDetailPanel';
 import { useListKeyboard } from './listKeyboard';
 import { rowKey, useRowWindow, type ListRow, type RowDragKey } from './listRows';
-import { aimAt, previewOrder, sameUnit, stackOffsets } from './rowDrag';
+import {
+  aimAt,
+  pastThreshold,
+  previewOrder,
+  sameUnit,
+  selectedBlock,
+  stackOffsets,
+  type BlockRow,
+  type RowSlot,
+} from './rowDrag';
 import {
   IconPause,
   IconPlay,
@@ -265,7 +274,6 @@ function TaskRow({
   selection,
   index,
   dnd,
-  onSelect,
   onOpenProperties,
   current,
   onKeyDown,
@@ -280,22 +288,18 @@ function TaskRow({
   selection?: Selection;
   /** Position in the rendered list — the rainbow palette position. */
   index: number;
-  /** The row drag-to-reorder machinery — see TaskListCard, the one place it is built. */
+  /** Press, sweep-select and move-by-drag — see TaskListCard, the one place it
+   *  is built, and the one place that knows what a press means. */
   dnd: RowDnD;
-  /** Click-to-select (TaskListCard's own selectUnit) - reads the click's own
-   *  modifier keys, so this row does not have to know Ctrl/Shift's meaning
-   *  itself. Absent wherever selection is (Downloads.tsx renders no
-   *  checkbox column and takes no selection prop today either). */
-  onSelect?: (e: { ctrlKey: boolean; metaKey: boolean; shiftKey: boolean }) => void;
   /** Opens the properties panel for whatever a single click just selected
    *  (jdp, 2026-08-26: "wenn man einmal auf einen link oder einen ordner
    *  klickt kommt sofort die eigenschaften card. die soll erst erscheinen
    *  bei doppelklick" - a plain click used to open it immediately as a
    *  side effect of selecting anything at all, which made a quick
    *  multi-select impossible without the panel flashing open and shut on
-   *  every intermediate click). The double-click's own leading single
-   *  click already ran onSelect above by the time this fires - no
-   *  modifier keys to read here, only "show it now". */
+   *  every intermediate click). The double-click's own leading press has
+   *  already marked this row by the time this fires - no modifier keys to
+   *  read here, only "show it now". */
   onOpenProperties?: () => void;
   /** True for the one row that owns the list's tab stop. Everything focusable
    *  inside a row reads it too, or Tab would still walk four hundred badges. */
@@ -310,7 +314,8 @@ function TaskRow({
   const { t } = useT();
   const collected = task.status === 'collected';
   const settled = task.status === 'done' || task.status === 'error';
-  const dragging = dnd.draggingTask === task.id;
+  const unit: RowDragKey = { kind: 'task', id: task.id };
+  const dragging = dnd.moving(unit);
 
   // In rainbow mode the row owns a colour, and everything inside it that paints
   // activity — the progress fill above all — reads it through --accent without
@@ -358,60 +363,34 @@ function TaskRow({
           ...hueVars(rainbowAt(index)),
           ...ROW_GRID,
           ...(selection?.ids.has(task.id) ? { '--row-ground': SELECTED_GROUND } : null),
-          ...dnd.slide({ kind: 'task', id: task.id }),
+          ...dnd.slide(unit),
         } as CSSProperties
       }
-      // Drag-to-reorder, on the same native HTML5 machinery the column
-      // headers already use above (Header's own dragId/onDragStart/onDrop).
-      // The CONTROL guard is the same one the package header below already
-      // folds by (jdp: everything that is its own control keeps its own
-      // gesture) — reused here so a drag never starts out from under the
-      // checkbox or an action badge.
+      // ONE PRESS, AND THE ROW DOES NOT KNOW WHAT IT MEANS. Selecting, sweeping
+      // a selection over several rows and moving the selection are all the same
+      // pointerdown, told apart by what the pointer does next - see
+      // TaskListCard's own gesture section, which owns every bit of that.
       //
-      // draggable stays TRUE in a sorted view, where the reorder itself is off:
-      // a row that cannot be picked up at all is indistinguishable from a
-      // broken one, so the gesture is accepted and then refused out loud (see
-      // refuseDrag). What follows the drag - dragover, the preview and the drop
-      // - belongs to the row strip, not to this row: see RowDnD.slide.
-      draggable
-      onDragStart={(e) => {
-        if (e.target instanceof Element && e.target.closest(CONTROL)) {
-          e.preventDefault();
-          return;
-        }
-        if (dnd.refuseDrag(e, { kind: 'task', id: task.id })) return;
-        dnd.startTask(task.id);
-        e.dataTransfer.effectAllowed = 'move';
-        e.dataTransfer.setData('text/plain', task.id);
-      }}
-      onDragEnd={dnd.end}
-      // Click-to-select (jdp, 2026-08-26: "in der linkliste soll man links
-      // und ordner mit einem klick markieren können, nicht den ordner
-      // aufklappen... mehrere links oder ordner soll man mit klick und
-      // strg oder umschalttaste auswählen können. wie in windows") -
-      // replaces the checkbox column this row used to carry. Guarded by
-      // CONTROL the same way PackageGroup's own row click already is, so
-      // clicking an action badge or the Enabled switch acts on that
-      // control instead of also selecting the row underneath it.
-      onClick={(e) => {
-        if (e.target instanceof Element && e.target.closest(CONTROL)) return;
-        onSelect?.(e);
-      }}
+      // There is no `draggable` here any more, and its absence is the whole
+      // point rather than a tidy-up: a native HTML5 drag takes the pointer over
+      // as soon as it starts, so a press that might still turn out to be a
+      // selection sweep cannot be one while the row is draggable.
+      onPointerDown={(e) => dnd.press(e, unit)}
+      // Still a double-click and not a second press-and-hold: the properties
+      // panel is opened by a gesture that cannot be confused with a move,
+      // because a double-click never travels the five pixels that start one.
       onDoubleClick={(e) => {
         if (e.target instanceof Element && e.target.closest(CONTROL)) return;
         onOpenProperties?.();
       }}
-      // select-none, unconditionally: without it, a real mouse press-and-drag
-      // that starts over the row's own text (the name or URL column - the
-      // columns a hand naturally lands on) is read by the browser as starting a
-      // text selection instead of the native HTML5 drag, so draggable="true"
-      // never gets as far as firing dragstart at all. The package header beside
-      // this row already has this for the same reason (its own onClick needs
-      // the identical guard). It used to be left off in a sorted view, where
-      // the reorder is switched off anyway - and that is no longer a view where
-      // nothing competes with a text selection: the refusal is sent from
-      // dragstart, so the gesture has to REACH dragstart even where it will be
-      // turned down (see refuseDrag).
+      // select-none, unconditionally, and it matters MORE now than it did under
+      // the native drag: a press-and-drag that starts over the row's own text
+      // (the name or URL column - the columns a hand naturally lands on) draws
+      // a blue text selection across half the table while the row sweep is
+      // running underneath it. The gesture itself still works, because pointer
+      // events do not care what the browser thinks it is selecting, but what
+      // you see is two selections at once. The package header beside this row
+      // has this for the same reason.
       // bg-accent/20, not the softer bg-accentSoft token this used at first
       // (jdp, 2026-08-26: "wenn eine zeile ausgewählt ist erkennt man das
       // nicht" - accentSoft is 14% alpha, chosen for a hover/drag hint that
@@ -943,7 +922,6 @@ function PackageRow({
   onToggleCollapsed,
   divider,
   dnd,
-  onSelect,
   onOpenProperties,
   current,
   onKeyDown,
@@ -965,12 +943,9 @@ function PackageRow({
    *  under every link. So the seam is a property of the header that opens a
    *  package, and the very first row of the table has none. */
   divider: boolean;
-  /** The row drag-to-reorder machinery — see TaskListCard, the one place it is built. */
+  /** See TaskRow's own identical prop: one press, and this row does not know
+   *  what it means. */
   dnd: RowDnD;
-  /** Click-to-select (TaskListCard's own selectUnit) - see TaskRow's own
-   *  identical prop for why the modifier keys travel up rather than being
-   *  read here. */
-  onSelect?: (e: { ctrlKey: boolean; metaKey: boolean; shiftKey: boolean }) => void;
   /** TaskRow's own onOpenProperties, for a double-click on the package
    *  header itself. */
   onOpenProperties?: () => void;
@@ -982,7 +957,8 @@ function PackageRow({
   setsize: number;
 }) {
   const allSelected = selection && items.every((x) => selection.ids.has(x.id));
-  const dragging = dnd.draggingPackage === name;
+  const unit: RowDragKey = { kind: 'package', name };
+  const dragging = dnd.moving(unit);
   const ytdlpHost = items.find((x) => variantKindOf(x) && x.host)?.host;
 
   return (
@@ -1014,35 +990,16 @@ function PackageRow({
       style={{
         ...ROW_GRID,
         ...(allSelected ? { '--row-ground': SELECTED_GROUND } : null),
-        ...dnd.slide({ kind: 'package', name }),
+        ...dnd.slide(unit),
       }}
-      // Click-to-select (jdp, 2026-08-26 - see TaskRow's own identical
-      // comment for the full request): a plain click on the header now
-      // selects the whole package instead of folding it - the twisty
-      // button beside the name is CONTROL's own match, so it keeps
-      // folding/unfolding on its own click exactly as before.
-      onClick={(e) => {
-        if (e.target instanceof Element && e.target.closest(CONTROL)) return;
-        onSelect?.(e);
-      }}
+      // See TaskRow's own identical pair. A press on a folder header selects
+      // the whole folder - the twisty button beside the name is CONTROL's own
+      // match, so it keeps folding and unfolding on its own click.
+      onPointerDown={(e) => dnd.press(e, unit)}
       onDoubleClick={(e) => {
         if (e.target instanceof Element && e.target.closest(CONTROL)) return;
         onOpenProperties?.();
       }}
-      // Drags the whole package as one block — see TaskRow's own drag
-      // handlers above for the identical pattern applied to one link.
-      draggable
-      onDragStart={(e) => {
-        if (e.target instanceof Element && e.target.closest(CONTROL)) {
-          e.preventDefault();
-          return;
-        }
-        if (dnd.refuseDrag(e, { kind: 'package', name })) return;
-        dnd.startPackage(name);
-        e.dataTransfer.effectAllowed = 'move';
-        e.dataTransfer.setData('text/plain', name);
-      }}
-      onDragEnd={dnd.end}
       // A colour step, not a rule: the header sits on the quiet surface and
       // the links inside it sit on the card, which is the whole of the weight
       // difference between a container and its contents. The selected state
@@ -1139,22 +1096,99 @@ function PackageRow({
   );
 }
 
-/** The bundle TaskRow and PackageGroup share, built once per render in TaskListCard. */
+/** The bundle TaskRow and PackageRow share, built once per render in TaskListCard. */
 interface RowDnD {
-  draggingTask: string | null;
-  draggingPackage: string | null;
-  startTask: (id: string) => void;
-  startPackage: (name: string) => void;
-  /** Refuses a drag this list cannot do, and SAYS SO instead of letting the
-   *  gesture end in nothing. Returns true when it has taken the gesture over,
-   *  so the caller stops. */
-  refuseDrag: (e: DragEvent<HTMLElement>, unit: RowDragKey) => boolean;
-  end: () => void;
-  /** How far this row has to slide to show where the drag in flight would put
-   *  it, as the inline style that does it - an empty object when no drag is
+  /** Whether this row is one of the rows a move in flight is carrying. A move
+   *  carries the whole selection, so this is a set and not one key. */
+  moving: (unit: RowDragKey) => boolean;
+  /** The press. Everything it can turn into - a click, a selection sweep, a
+   *  move - is decided by TaskListCard; see its own gesture section. */
+  press: (e: PointerEvent<HTMLElement>, unit: RowDragKey) => void;
+  /** How far this row has to slide to show where the move in flight would put
+   *  it, as the inline style that does it - an empty object when no move is
    *  running. Every link row and every folder header spreads this into its own
    *  style; see TaskListCard's previewOffsets for where the numbers come from. */
   slide: (unit: RowDragKey) => CSSProperties;
+}
+
+/** The three fields TaskListCard's own selectUnit reads off a press. */
+type SelectMods = { ctrlKey: boolean; metaKey: boolean; shiftKey: boolean };
+const PLAIN: SelectMods = { ctrlKey: false, metaKey: false, shiftKey: false };
+
+/**
+ * A press that has not finished being one thing or another yet.
+ *
+ * `mode` is settled at the press itself and never changes afterwards, which is
+ * the whole of what makes the gesture learnable: what a press will do is
+ * decided by what was under it, not by how far it later travels. What the
+ * distance decides is only WHETHER it happens at all (see pastThreshold).
+ */
+interface Gesture {
+  /** 'select' sweeps a range, 'move' carries the selection. */
+  mode: 'select' | 'move';
+  /** The row the press landed on. */
+  unit: RowDragKey;
+  /** Its place in the on-screen order, which is where the sweep measures its
+   *  own direction from. NOT the same thing as the range anchor: a Shift-press
+   *  lands somewhere the anchor is not. */
+  fromIndex: number;
+  pointerId: number;
+  /** Where the press was, in client coordinates - the threshold measures from
+   *  here, never from the previous move. */
+  fromX: number;
+  fromY: number;
+  /** Where the pointer is now. Read by the edge scroll, which has to know where
+   *  the pointer is at a moment when the pointer is not moving. */
+  atX: number;
+  atY: number;
+  /** The keys held at the PRESS. A modifier taken away mid-sweep does not
+   *  change what the sweep is doing, the same way letting go of Shift halfway
+   *  through a Shift-click does not undo it. */
+  mods: SelectMods;
+  /** The selection as the press found it: what Escape puts back, and what a
+   *  Ctrl-sweep adds to. */
+  before: ReadonlySet<string>;
+  /** Whether the pointer has travelled far enough for this to be a gesture at
+   *  all rather than a click. */
+  live: boolean;
+  /** The rows a move is carrying, in drawn order. Empty until `live`. */
+  block: RowDragKey[];
+  /** The last row a sweep selected up to, so a pointer wandering inside one row
+   *  does not rewrite the selection sixty times a second. */
+  sweptTo: number | null;
+  /** The aim a move would commit right now. Kept here as well as in state
+   *  because the drop reads it in the same tick the last move wrote it. */
+  over: { target: RowDragKey; after: boolean } | null;
+}
+
+/** Which drag unit a drawn row element stands for, or null for anything that is
+ *  not a row (the two window spacers, the keyboard's own probe). */
+function unitOfRow(el: HTMLElement): RowDragKey | null {
+  if (el.dataset.taskId !== undefined) return { kind: 'task', id: el.dataset.taskId };
+  if (el.dataset.packageRow !== undefined) return { kind: 'package', name: el.dataset.packageRow };
+  return null;
+}
+
+// How close to the edge of the scrolling box the pointer has to come before the
+// list starts moving under it, and how fast it moves at the very edge.
+//
+// THE EDGE SCROLL IS NOT A FLOURISH: the native HTML5 drag this gesture
+// replaced got it from the browser for free, and a list that cannot be dragged
+// past the bottom of the window is a list where a folder can only ever be moved
+// as far as one screen. 56px is a little over a row and a half, so the band is
+// reachable without being somewhere the pointer sits by accident; 18px a frame
+// is roughly a screenful every two seconds at the very edge, and it eases in
+// across the band so that entering it does not lurch.
+const EDGE_BAND_PX = 56;
+const EDGE_SPEED_PX = 18;
+
+/** The box that actually scrolls this list, or null when it is the page. */
+function scrollerOf(el: HTMLElement | null): HTMLElement | null {
+  for (let n = el?.parentElement ?? null; n; n = n.parentElement) {
+    const overflow = getComputedStyle(n).overflowY;
+    if ((overflow === 'auto' || overflow === 'scroll') && n.scrollHeight > n.clientHeight + 1) return n;
+  }
+  return null;
 }
 
 /**
@@ -1685,9 +1719,9 @@ export function TaskListCard({
   onRemovePackage?: (ids: string[]) => void;
 }) {
   const { t } = useT();
-  // Only the row reorder reports through this so far (see dropRow): the queue
-  // refuses a reorder with a sentence, and a drag that is refused in silence
-  // reads as a drag the app never received.
+  // Only the row move reports through this so far (see dropBlock and
+  // beginGesture): the queue refuses a reorder with a sentence, and a move that
+  // is refused in silence reads as a move the app never received.
   const { toast } = useToast();
   // One subscription for the whole table rather than one per row: the palette
   // changes for every row at once anyway.
@@ -1817,21 +1851,23 @@ export function TaskListCard({
   // Shift-click landed.
   const selectAnchor = useRef<number | null>(null);
 
-  function selectUnit(
-    kind: 'task' | 'package',
-    key: string,
-    ids: string[],
-    e: { ctrlKey: boolean; metaKey: boolean; shiftKey: boolean },
-  ): void {
+  /** Every id between two places in the on-screen order, both ends included.
+   *  Shared by the Shift-range and the press-and-sweep, which have to agree
+   *  about what a range IS or the mouse contradicts itself. */
+  function rangeIds(a: number, b: number): Set<string> {
+    const lo = Math.min(a, b);
+    const hi = Math.max(a, b);
+    const range = new Set<string>();
+    for (let i = lo; i <= hi; i++) selectableOrder[i]?.ids.forEach((id) => range.add(id));
+    return range;
+  }
+
+  function selectUnit(kind: 'task' | 'package', key: string, ids: string[], e: SelectMods): void {
     if (!selection) return;
     const index = selectableOrder.findIndex((u) => u.kind === kind && u.key === key);
     if (index < 0) return;
     if (e.shiftKey && selectAnchor.current !== null) {
-      const lo = Math.min(selectAnchor.current, index);
-      const hi = Math.max(selectAnchor.current, index);
-      const range = new Set<string>();
-      for (let i = lo; i <= hi; i++) selectableOrder[i].ids.forEach((id) => range.add(id));
-      selection.set(range);
+      selection.set(rangeIds(selectAnchor.current, index));
       return; // The anchor itself does not move - see its own comment above.
     }
     if (e.ctrlKey || e.metaKey) {
@@ -1861,59 +1897,118 @@ export function TaskListCard({
   // propertiesOpen's own doc comment above has the full reasoning.
   useEffect(() => setPropertiesOpen(false), [chosenIds]);
 
-  // --- Row drag-to-reorder ---------------------------------------------
+  // --- One press, three meanings ---------------------------------------
   //
-  // A drag unit is one link or one whole package, moved by the same gesture
-  // ("links/ordner", jdp) and built on the same native HTML5 machinery
-  // Header's own column reorder already uses above: a "what is being dragged"
-  // key, onDragStart on every draggable row, and ONE dragover/drop pair for the
-  // whole list (see the row strip), answered from the pointer's Y against the
-  // snapshot the drag froze.
+  // THE GESTURE IS JDOWNLOADER'S, and it is jdp's own description of it (jdp,
+  // 2026-09-14: "ich möchte das drag and drop von links und ordnern wie in JD.
+  // wennman ein ordner anklickt und geklickt hält und nach unten zieht, markiert
+  // man die links und ordner. wenn man einmal draufklickt markiert man, dann ein
+  // zweiter klick den man hält und man kann per drag and drop verschieben"):
   //
-  // Only carried out in queue-order view — a client-side sort is documented
-  // above (applySort's own doc comment) as a VIEW and never the queue
-  // itself, and band-mates a size or status sort has scattered across the
-  // table would rarely even land next to each other to drag between. The
-  // sortedView banner right above the table offers the way back, and from
-  // 2026-09-13 a drag attempted here is refused OUT LOUD rather than being
-  // quietly impossible - see refuseDrag.
+  //   press on an UNMARKED row, then drag  -> sweep a selection over the rows
+  //                                           the pointer passes,
+  //   press and let go                     -> mark that one row,
+  //   press on a MARKED row, then drag     -> move THE WHOLE MARKING.
+  //
+  // It is not an invention of jdp's either: it is what Swing hands every table
+  // that switches drag on, and JDownloader's download table is one
+  // (DownloadsTable calls setDragEnabled and setTransferHandler; verified in the
+  // shipped bytecode of the JDownloader running on the server, rather than from
+  // memory). BasicTableUI's own canStartDrag() is one line - "is the pressed
+  // cell already selected" - and everything else a press could mean falls
+  // through to changeSelection(row, col, false, true), which extends the range
+  // from the anchor. So the rule jdp described from a chair is literally the
+  // rule the toolkit implements, down to the anchored range.
+  //
+  // WHY THIS COULD NOT STAY ON HTML5 DRAG. A native drag takes the pointer over
+  // the instant it starts, and there is no way to hold it back until the app has
+  // decided whether the press was a sweep or a move - dragstart arrives before
+  // the pointer has travelled anywhere it could be judged by. So `draggable` is
+  // gone from the rows and this runs on pointer events. What that buys, beyond
+  // the gesture:
+  //
+  //   - POINTER CAPTURE. Every move and the release come to the strip whatever
+  //     is painted under the pointer, which is what the stationary sheet over
+  //     the rows used to fake. A row sliding out from under a still pointer can
+  //     no longer swallow the drop, so the sheet is gone with it.
+  //   - The hit test can read the pointer's own Y and nothing else, which it
+  //     already wanted to (see aimAt).
+  //
+  // What it costs, and what is paid back below:
+  //
+  //   - the browser's own edge scrolling during a drag (see EDGE_BAND_PX),
+  //   - a press that must not be swallowed by a text selection (select-none on
+  //     the rows) or by the native drag of an <img> inside one (the strip's own
+  //     onDragStart).
+  //
+  // TOUCH IS DELIBERATELY LEFT TO THE BROWSER. A finger pressed on a list and
+  // dragged down means "scroll" everywhere else on this page and on every other
+  // page; taking that over would cost the only way to move down a long list to
+  // buy a gesture that has a keyboard and a context menu as alternatives. The
+  // phone has its own list with its own long-press drag (mobile's DragList), so
+  // nothing is lost that was ever here. A stylus (pointerType 'pen') is a mouse
+  // for this purpose and does get the gesture.
+  //
+  // Only MOVED in queue-order view — a client-side sort is documented above
+  // (applySort's own doc comment) as a VIEW and never the queue itself, and
+  // band-mates a size or status sort has scattered across the table would rarely
+  // even land next to each other to drag between. The sortedView banner right
+  // above the table offers the way back, and a move attempted there is refused
+  // OUT LOUD rather than being quietly impossible. SELECTING is never refused:
+  // the marking has nothing to do with the order the rows are drawn in.
   const dndEnabled = !sort;
-  const [rowDrag, setRowDrag] = useState<RowDragKey | null>(null);
-  // The row(s) currently under the pointer mid-drag, and which half of it —
-  // updated on every dragover, not just the eventual drop. This is what
-  // lets the OTHER rows actually move out of the way live instead of only
-  // snapping into their new order once the mouse is released (jdp,
-  // 2026-08-25: "die elemente sollen live verrutschen wenn ich zb ein link
-  // über einen anderen ziehe").
+  // The rows a move in flight is carrying, in drawn order, or null when nothing
+  // is being moved. Several units, because a move carries the whole marking.
+  const [rowDrag, setRowDrag] = useState<RowDragKey[] | null>(null);
+  // The row currently aimed at mid-move, and which half of it — updated on every
+  // pointer move, not just the eventual drop. This is what lets the OTHER rows
+  // actually move out of the way live instead of only snapping into their new
+  // order once the mouse is released (jdp, 2026-08-25: "die elemente sollen live
+  // verrutschen wenn ich zb ein link über einen anderen ziehe").
   const [dragOver, setDragOver] = useState<{ target: RowDragKey; after: boolean } | null>(null);
+  const gesture = useRef<Gesture | null>(null);
+  const edgeScroll = useRef<{ frame: number; box: HTMLElement | null }>({ frame: 0, box: null });
 
-  // A frozen snapshot of every draggable row's own on-screen position, taken
-  // once at the START of a drag — see snapshotSlots() below for why this
-  // exists at all: without it, previewOver's "which row, which half" read
-  // came from whichever DOM element the browser currently delivers dragover
-  // to, and that element itself moves the moment the live preview reorders
-  // it, feeding its own output back in as its next input (jdp, 2026-08-25:
-  // "jetzt springen die einzelnen elemente... die ganze zeit hin und her").
-  // A snapshot the reorder itself never touches breaks that loop.
+  // A frozen snapshot of every row's own position, taken once at the moment a
+  // MOVE starts — see snapshotSlots() below for why this exists at all: without
+  // it, "which row, which half" came from whichever DOM element the browser
+  // delivered the event to, and that element itself moves the moment the live
+  // preview slides it, feeding its own output back in as its next input (jdp,
+  // 2026-08-25: "jetzt springen die einzelnen elemente... die ganze zeit hin und
+  // her"). A snapshot the preview never touches breaks that loop.
   //
-  // It is now the ONE geometry the whole drag runs on: the list keeps rendering
-  // its resting order for as long as the pointer is down and every row is slid
-  // to its previewed place by a transform (previewOffsets below), so the
-  // document flow the snapshot measured is still the true one at every moment
-  // of the drag. The hit test and what the eye sees can no longer drift apart,
-  // because the second of them is computed FROM the first.
+  // It is the ONE geometry the whole move runs on: the list keeps rendering its
+  // resting order for as long as the pointer is down and every row is slid to
+  // its previewed place by a transform (previewOffsets below), so the document
+  // flow the snapshot measured is still the true one at every moment of the
+  // move. The hit test and what the eye sees cannot drift apart, because the
+  // second of them is computed FROM the first.
+  //
+  // IN THE STRIP'S OWN COORDINATES, not the viewport's, and that changed with
+  // the edge scroll: the snapshot has to survive the list scrolling under the
+  // pointer, and a box measured against the window stops describing the row the
+  // moment anything scrolls. The strip scrolls with its rows, so a top measured
+  // from the strip's own top stays true; the pointer is converted into the same
+  // frame on every read. stackOffsets works on differences and never cared which
+  // origin it was handed.
   //
   // In DOM order, and that matters: previewOffsets stacks rows back up in this
   // order and needs the gap between each pair, not only their own boxes.
   //
   // On a long list this is the WINDOW's rows and not the whole table, because
   // that is what the DOM holds (see useRowWindow) - and it is also exactly the
-  // right set. Every row a drag can aim at is a row somebody can see, so a hit
+  // right set. Every row a move can aim at is a row somebody can see, so a hit
   // test over the window answers the same question the full table would; and a
   // row nobody can see has nothing to show by stepping aside. previewOffsets
   // below is written against that: it previews the rows it measured, rather than
-  // insisting the two lists have the same length.
-  const rowSlotsRef = useRef<{ unit: RowDragKey; top: number; bottom: number }[]>([]);
+  // insisting the two lists have the same length. The one place that shows is a
+  // move that edge-scrolls a WINDOWED list far enough to draw rows the snapshot
+  // never measured: the preview then bails out whole, exactly as it does for a
+  // poll that adds a row, and the drop still lands where the last honest aim
+  // pointed. That is the same graceful stop as before and strictly better than
+  // the native drag, which scrolled against a viewport snapshot and went wrong
+  // on any scroll at all.
+  const rowSlotsRef = useRef<RowSlot[]>([]);
 
   function snapshotSlots(): void {
     const root = stripRef.current;
@@ -1921,18 +2016,21 @@ export function TaskListCard({
       rowSlotsRef.current = [];
       return;
     }
-    const slots: { unit: RowDragKey; top: number; bottom: number }[] = [];
+    const origin = root.getBoundingClientRect().top;
+    const slots: RowSlot[] = [];
     root.querySelectorAll<HTMLElement>('[data-task-id],[data-package-row]').forEach((el) => {
+      const unit = unitOfRow(el);
+      if (!unit) return;
       const r = el.getBoundingClientRect();
-      const unit: RowDragKey | undefined =
-        el.dataset.taskId !== undefined
-          ? { kind: 'task', id: el.dataset.taskId }
-          : el.dataset.packageRow !== undefined
-            ? { kind: 'package', name: el.dataset.packageRow }
-            : undefined;
-      if (unit) slots.push({ unit, top: r.top, bottom: r.bottom });
+      slots.push({ unit, top: r.top - origin, bottom: r.bottom - origin });
     });
     rowSlotsRef.current = slots;
+  }
+
+  /** The pointer's Y in the frame snapshotSlots measured in. */
+  function stripY(clientY: number): number {
+    const root = stripRef.current;
+    return root ? clientY - root.getBoundingClientRect().top : clientY;
   }
 
   // Every task actually on screen, flattened out of the package groups in
@@ -2012,235 +2110,537 @@ export function TaskListCard({
     return (view.find(([n]) => n === u.name)?.[1] ?? []).filter(movable).map((x) => x.id);
   }
 
-  // The splice math behind both a live preview and the eventual drop: the
-  // band `dragged` would end up in if it landed on `target`'s given half
-  // right now, or null for a boundary that refuses the move outright (a
-  // different band, dropping a unit on itself or part of itself, a mixed
-  // package on either end) — the same three reasons dropRow below always
-  // refused, just returning "no" instead of silently doing nothing so a
-  // live preview can tell "moved" from "invalid, ignore this dragover"
-  // too.
-  function reorderedBand(dragged: RowDragKey, target: RowDragKey, after: boolean): string[] | null {
-    const band = unitBand(dragged);
-    if (!band || band !== unitBand(target)) return null;
-    const movedIds = unitIds(dragged);
-    const targetIds = unitIds(target);
-    if (movedIds.some((id) => targetIds.includes(id))) return null;
+  // Every drawn row with the movable ids it stands for - what selectedBlock
+  // walks to work out what a move carries. A folder contributes its own movable
+  // links, which is what lets a folder holding one finished file still travel
+  // as a folder.
+  const blockRows = useMemo<BlockRow[]>(
+    () =>
+      rows.map((r) =>
+        r.kind === 'package'
+          ? { unit: { kind: 'package', name: r.name }, ids: r.items.filter(movable).map((x) => x.id) }
+          : { unit: { kind: 'task', id: r.task.id }, ids: [r.task.id] },
+      ),
+    // movable is a pure helper over its own argument, so rows is the only input.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [rows],
+  );
 
-    const order = bandOrder.get(band) ?? [];
-    const without = order.filter((id) => !movedIds.includes(id));
-    // Anchored on the target's own edge — its first id when the moved block
-    // lands before it, its last when after — so dropping a package (several
-    // ids at once) keeps its own internal order and lands as one
-    // contiguous run, exactly where a single link would have landed alone.
-    const anchor = after ? targetIds[targetIds.length - 1] : targetIds[0];
-    const at = without.indexOf(anchor);
-    if (at < 0) return null;
-    without.splice(after ? at + 1 : at, 0, ...movedIds);
-    // A DROP THAT LANDS WHERE IT STARTED IS NOT A CHANGE and must not write
-    // anything. The three refusals above are all about the drag being
-    // impossible; this one is about it being pointless, and it needs its own
-    // test because the splice can put every id back exactly where it was: drag
-    // a row onto the upper half of the row directly below it, or onto the lower
-    // half of the one directly above, and the result is the list it started
-    // from. That is the SHORTEST movement the gesture can make, not an exotic
-    // edge case, and it used to cost a POST and a write to the stored order.
-    // Compared by result rather than by index, so it also catches a package -
-    // several ids at once - landing back on its own footprint.
-    if (without.length === order.length && without.every((id, i) => id === order[i])) return null;
-    return without;
+  /** Every id a unit stands for, movable or not - what the MARKING covers, as
+   *  against unitIds, which is what the queue can be told to move. A folder
+   *  header paints as selected only when all of its links are, finished ones
+   *  included, so the press has to ask the same question the paint does. */
+  function unitAllIds(u: RowDragKey): string[] {
+    if (u.kind === 'task') return [u.id];
+    return (view.find(([n]) => n === u.name)?.[1] ?? []).map((x) => x.id);
   }
 
-  // The same splice, but for a target in a DIFFERENT band - the case
-  // reorderedBand refuses and the one that made folder drag look dead on a
-  // real list (jdp, 2026-09-07: "Die Ordner im Downloadstab kann ich immer
-  // noch nicht per drag and drop verschieben", after two rounds of fixes
-  // that each worked in a list where every row happened to share a band).
-  //
-  // Measured on his own instance: five folders, two at priority 3 and three
-  // at priority 0. Every drag WITHIN either group already worked; every drag
-  // between them did nothing at all, with no message - which is the whole of
-  // what "still cannot" looks like from a chair.
-  //
-  // The move it does is the only one that can honour where the pointer let
-  // go: the list is ordered by priority before anything else, so a folder
-  // cannot come to rest among rows of another priority while keeping its own.
-  // It therefore takes the target's priority (and forced flag) and is then
-  // spliced into that band at the drop point - the same two-step
-  // move-then-reorder the cross-package link drop above already does, for the
-  // same reason. dropRow says so with a toast: a priority quietly changing
-  // under a drag would be worse than the drag doing nothing.
-  function crossBandOrder(dragged: RowDragKey, target: RowDragKey, after: boolean): string[] | null {
-    const band = unitBand(target);
-    if (!band || band === unitBand(dragged)) return null;
-    const movedIds = unitIds(dragged);
-    const targetIds = unitIds(target);
-    if (movedIds.length === 0 || targetIds.length === 0) return null;
-    if (movedIds.some((id) => targetIds.includes(id))) return null;
+  /** selectUnit, addressed by drag unit rather than by kind and key. */
+  function selectFromUnit(u: RowDragKey, mods: SelectMods): void {
+    if (u.kind === 'task') selectUnit('task', u.id, [u.id], mods);
+    else selectUnit('package', u.name, unitAllIds(u), mods);
+  }
 
-    const order = (bandOrder.get(band) ?? []).filter((id) => !movedIds.includes(id));
+  /**
+   * What a move started on `pressed` carries.
+   *
+   * THE WHOLE MARKING, not the row the hand grabbed (jdp: "und zwar die ganze
+   * Markierung"). With no selection model at all, or with a marking the pressed
+   * row has somehow fallen out of between the press and the first move (a poll
+   * can remove a task mid-gesture), it falls back to the one row - a move that
+   * carries nothing would be the gesture doing nothing, which is the exact
+   * failure this whole file has been chasing.
+   */
+  function blockFor(pressed: RowDragKey): RowDragKey[] {
+    const marked = selection?.ids;
+    if (!marked || marked.size === 0) return [pressed];
+    const block = selectedBlock(blockRows, marked);
+    return block.length > 0 ? block : [pressed];
+  }
+
+  /**
+   * The drop: `block` lands against `target`'s given half, whatever bands and
+   * folders that crosses.
+   *
+   * ONE FUNCTION FOR WHAT USED TO BE FOUR (reorderedBand, crossBandOrder,
+   * dropAcrossBands, dropRow), and the reason is the gesture: a marking is
+   * allowed to hold rows from two priority bands and from three folders at once,
+   * so "same band" and "different band" stopped being two cases and became one
+   * question asked per row. The splice below is band-blind - it takes the TARGET
+   * band's order, drops whatever the block holds out of it, and puts the block
+   * back at the anchor - which is exactly right for both, because a row already
+   * in that band is filtered out and re-inserted and a row from elsewhere is
+   * simply inserted.
+   *
+   * WHAT A MIXED MARKING DOES, and why. The list is ordered by priority before
+   * anything else (the server's own bands), so rows of two priorities cannot
+   * come to rest next to each other while keeping their priorities: either the
+   * drop is refused or the priority changes. Refusing would mean a marking made
+   * with one Shift-click across a band boundary can never be moved, and nothing
+   * on screen would explain why - which is what "das drag and drop funktioniert
+   * überhaupt nicht" has meant every previous time. So the rows take the
+   * priority of the row they were dropped on, exactly as a single row already
+   * did before this gesture existed, and the toast says so: a priority quietly
+   * changing under a drag would be worse than the drag doing nothing, and only
+   * the rows that actually changed are counted.
+   *
+   * Loose links join the folder they were dropped into, the way they do in
+   * JDownloader - but a link that is travelling as part of its OWN folder does
+   * not, because that folder is moving whole and its links are going with it.
+   */
+  function dropBlock(block: readonly RowDragKey[], target: RowDragKey, after: boolean): void {
+    const band = unitBand(target);
+    if (!band) return;
+    const movedIds = block.flatMap(unitIds);
+    const targetIds = unitIds(target);
+    if (movedIds.length === 0 || targetIds.length === 0) return;
+    // Dropped on itself, or on a part of itself. Not a failure, just not a move.
+    const moving = new Set(movedIds);
+    if (targetIds.some((id) => moving.has(id))) return;
+
+    const before = bandOrder.get(band) ?? [];
+    // A Set and not `movedIds.includes`: a marking can be thousands of rows on a
+    // list of thousands, and that pair walked one against the other.
+    const order = before.filter((id) => !moving.has(id));
+    // Anchored on the target's own edge — its first id when the block lands
+    // before it, its last when after — so a folder (several ids at once) keeps
+    // its own internal order and lands as one contiguous run, exactly where a
+    // single link would have landed alone.
     const anchor = after ? targetIds[targetIds.length - 1] : targetIds[0];
     const at = order.indexOf(anchor);
-    if (at < 0) return null;
+    if (at < 0) return;
     order.splice(after ? at + 1 : at, 0, ...movedIds);
-    return order;
-  }
 
-  /** The cross-band drop itself: re-band the dragged rows, then place them. */
-  function dropAcrossBands(dragged: RowDragKey, target: RowDragKey, after: boolean): boolean {
-    const order = crossBandOrder(dragged, target, after);
-    if (!order) return false;
-    const movedIds = unitIds(dragged);
-    const src = taskById.get(movedIds[0]);
-    const dst = taskById.get(unitIds(target)[0]);
-    if (!src || !dst) return false;
+    const dst = taskById.get(targetIds[0]);
+    if (!dst) return;
+    // The rows that have to change hands before the order above means anything.
+    const reband = movedIds.filter((id) => {
+      const x = taskById.get(id);
+      return !!x && bandOf(x) !== band;
+    });
+    const home = target.kind === 'package' ? target.name : (taskById.get(target.id)?.package ?? '');
+    const travellingWithTheirFolder = new Set(
+      block.flatMap((u) => (u.kind === 'package' ? unitIds(u) : [])),
+    );
+    const rehome = movedIds.filter(
+      (id) => !travellingWithTheirFolder.has(id) && (taskById.get(id)?.package ?? '') !== home,
+    );
 
+    // A DROP THAT LANDS WHERE IT STARTED IS NOT A CHANGE and must not write
+    // anything. The refusals above are all about the drop being impossible; this
+    // one is about it being pointless, and it needs its own test because the
+    // splice can put every id back exactly where it was: drag a row onto the
+    // upper half of the row directly below it, or onto the lower half of the one
+    // directly above, and the result is the list it started from. That is the
+    // SHORTEST movement the gesture can make, not an exotic edge case, and it
+    // used to cost a POST and a write to the stored order. Compared by result
+    // rather than by index, so it also catches a whole marking landing back on
+    // its own footprint. Only when nothing else was going to happen either: a
+    // re-band or a change of folder is a real move even at the same index.
+    if (
+      reband.length === 0 &&
+      rehome.length === 0 &&
+      order.length === before.length &&
+      order.every((id, i) => id === before[i])
+    ) {
+      return;
+    }
+
+    // The move goes first and the reorder follows it: a row has to be IN the
+    // band and IN the folder before its position among their rows means
+    // anything. There is no local override of the task order to unwind if this
+    // fails - the next poll or websocket tick is what settles rows back where
+    // the server actually put them - but a refusal has to SAY something.
+    // reorderTasks throws with the server's own sentence (api.ts, ok()), and
+    // swallowing that made a rejected move indistinguishable from a move the app
+    // never noticed, which is precisely how it was reported ("funktioniert
+    // überhaupt nicht").
     void (async () => {
       try {
-        if (src.priority !== dst.priority) await setTaskPriority(movedIds, dst.priority, base);
-        if (!!src.forced !== !!dst.forced) await setTaskForced(movedIds, !!dst.forced, base);
+        if (rehome.length > 0) await setPackage(rehome, home, base);
+        if (reband.length > 0) {
+          const wrongPriority = reband.filter((id) => taskById.get(id)?.priority !== dst.priority);
+          const wrongForced = reband.filter((id) => !!taskById.get(id)?.forced !== !!dst.forced);
+          if (wrongPriority.length > 0) await setTaskPriority(wrongPriority, dst.priority, base);
+          if (wrongForced.length > 0) await setTaskForced(wrongForced, !!dst.forced, base);
+        }
         await reorderTasks(order, base);
-        toast(t('list.dropChangedPriority', { n: movedIds.length }), 'info');
+        if (reband.length > 0) toast(t('list.dropChangedPriority', { n: reband.length }), 'info');
       } catch (err) {
         toast(t('list.failed', { error: err instanceof Error ? err.message : String(err) }), 'fail');
       }
     })();
+  }
+
+  // --- The press ---------------------------------------------------------
+  //
+  // WHAT EACH PRESS MEANS, and the four questions this had to answer before a
+  // line of it was written. They are decided here, together, because deciding
+  // them one at a time is how a gesture ends up with three different ideas of
+  // what "marked" means:
+  //
+  //  1. SHIFT AND CTRL KEEP EVERYTHING THEY HAD. Shift extends the range from
+  //     the anchor, Ctrl adds or removes one unit; neither ever starts a move.
+  //     That last part is a deliberate departure from Swing, which would let
+  //     Shift start one (its modifier map reads Shift as "move"): here Shift is
+  //     the range key and nothing else, because a Shift-press on a row that
+  //     happens to already be marked would otherwise mean "extend" or "carry"
+  //     depending on something the person cannot see. A coin toss is not a
+  //     gesture. Held down through a drag, both keep their meaning: Shift-drag
+  //     extends the range live, Ctrl-drag ADDS the swept range to whatever was
+  //     marked before the press.
+  //
+  //  2. A MARKING THAT SPANS TWO PRIORITY BANDS STILL MOVES, and everything in
+  //     it takes the priority of the row it was dropped on. See dropBlock for
+  //     the whole argument; the short version is that the alternative is a
+  //     marking that cannot be moved for a reason nothing on screen explains.
+  //
+  //  3. A MARKED FOLDER TAKES ITS LINKS, always. There is no second question
+  //     there: pressing a folder header marks every link in it (selectUnit), so
+  //     a marked folder IS a folder whose links are marked, and selectedBlock
+  //     emits the folder rather than its links one by one so that it lands as
+  //     one run with its own order intact.
+  //
+  //  4. WHAT DROPS THE MARKING: a plain press on an unmarked row (it becomes the
+  //     marking), a plain press on a marked row once it is RELEASED without
+  //     travelling (it collapses to that one row), a sweep (it becomes the
+  //     range), and Escape during a sweep (it goes back to what it was before
+  //     the press). What does NOT: a poll or websocket tick, folding a folder,
+  //     a right-click, a refused move, and - the one that makes the whole
+  //     gesture possible - the PRESS on a marked row, which must leave the
+  //     marking alone until it knows whether a move is coming. Pressing the
+  //     empty space below the rows does not clear it either; that space belongs
+  //     to the list's own context menu.
+  //
+  // The deferred collapse in (4) is Swing's too: BasicTableUI holds the
+  // selection change back to mouseReleased whenever the press could have been a
+  // drag, which is exactly why "click once to mark, then click and hold to
+  // move" works there. Doing it at the press instead would destroy the marking
+  // the second press is trying to pick up.
+  function pressRow(e: PointerEvent<HTMLElement>, unit: RowDragKey): void {
+    // Left button only, and one pointer at a time. A right-click belongs to the
+    // context menu, which reads the row it landed on for itself.
+    if (e.button !== 0 || !e.isPrimary) return;
+    // Everything that is its own control keeps its own gesture: an action badge,
+    // the Enabled switch, the folder twisty.
+    if (e.target instanceof Element && e.target.closest(CONTROL)) return;
+    // Touch scrolls. See the section head for why that is a decision and not an
+    // omission.
+    if (e.pointerType === 'touch') return;
+    abortGesture();
+
+    const mods: SelectMods = { ctrlKey: e.ctrlKey, metaKey: e.metaKey, shiftKey: e.shiftKey };
+    const before: ReadonlySet<string> = new Set(selection?.ids ?? []);
+    const ids = unitAllIds(unit);
+    const marked = !!selection && ids.length > 0 && ids.every((id) => before.has(id));
+    const mode: 'select' | 'move' =
+      mods.ctrlKey || mods.metaKey || mods.shiftKey || !marked ? 'select' : 'move';
+
+    // The cursor follows the pointer, so a later Tab into the list resumes from
+    // the row the mouse last touched.
+    keys.setCurrent(rowKey(unit));
+    // A sweep marks its first row straight away - the press is already the first
+    // step of the range, and a row that lights up under the finger is how the
+    // gesture says it has begun. A move marks nothing yet; that is (4) above.
+    if (mode === 'select') selectFromUnit(unit, mods);
+
+    gesture.current = {
+      mode,
+      unit,
+      fromIndex: selectableOrder.findIndex((u) =>
+        unit.kind === 'task' ? u.kind === 'task' && u.key === unit.id : u.kind === 'package' && u.key === unit.name,
+      ),
+      pointerId: e.pointerId,
+      fromX: e.clientX,
+      fromY: e.clientY,
+      atX: e.clientX,
+      atY: e.clientY,
+      mods,
+      before,
+      live: false,
+      block: [],
+      sweptTo: null,
+      over: null,
+    };
+  }
+
+  /** The press has travelled far enough to mean something. Returns false when
+   *  the gesture is refused outright, in which case it is already over. */
+  function beginGesture(g: Gesture, strip: HTMLElement): boolean {
+    if (g.mode === 'move') {
+      // A SORTED VIEW SAYS SO INSTEAD OF DOING NOTHING. Rows used to simply not
+      // be draggable there, which from a chair is the same picture as a broken
+      // list: you pick a folder up, nothing follows the pointer, and nothing
+      // explains why. The banner above the table says the view is sorted; it has
+      // never said that the order cannot be changed while it is.
+      if (!dndEnabled) {
+        toast(t('list.dragNeedsQueueOrder'), 'info');
+        gesture.current = null;
+        return false;
+      }
+      const block = blockFor(g.unit);
+      // The second silent dead end, and it was there long before this gesture: a
+      // row in NO band cannot be reordered at all, so the drag started, nothing
+      // previewed, the drop did nothing and the list looked broken. A finished or
+      // failed download has left the wait queue. Asked of the whole block now
+      // rather than of the pressed row, because a marking that holds one settled
+      // row and four queued ones is a perfectly good move.
+      if (block.every((u) => unitIds(u).length === 0)) {
+        toast(t('list.dragNotInQueue'), 'info');
+        gesture.current = null;
+        return false;
+      }
+      // Taken at this exact moment, before any preview has run for this move —
+      // the one point at which the rendered order is guaranteed to still match
+      // the server's own bandOrder.
+      snapshotSlots();
+      g.block = block;
+      setRowDrag(block);
+    }
+    g.live = true;
+    // From here the strip owns the pointer: every move and the release arrive
+    // here whatever is painted underneath, which is what a list whose rows slide
+    // out from under a still pointer needs and what the old stationary sheet
+    // over the rows was faking.
+    try {
+      strip.setPointerCapture(g.pointerId);
+    } catch {
+      // The pointer is already gone (a window switch mid-press). The gesture
+      // still works for as long as events keep arriving; the release ends it.
+    }
+    edgeScroll.current.box = scrollerOf(strip);
+    if (!edgeScroll.current.frame) edgeScroll.current.frame = requestAnimationFrame(stepEdgeScroll);
     return true;
   }
 
-  // What a drop actually does, once dropHere below has said which unit it
-  // landed on and on which side of it.
-  function dropRow(target: RowDragKey, after: boolean): void {
-    const dragged = rowDrag;
-    setRowDrag(null);
-    setDragOver(null);
-    if (!dragged) return;
-    // A link dropped inside a DIFFERENT package joins that package, the way it
-    // does in JDownloader (jdp, 2026-09-06: "drag and drop soll auch in der
-    // downloadliste funktionieren"). Reordering rows within one package always
-    // worked - verified live on the preview instance, the POST answers 200 and
-    // the rows re-sort - but a link dragged across a package boundary snapped
-    // straight back, because groupByPackage re-merges every row of a package at
-    // that package's first appearance. So the drag looked ignored, which is
-    // exactly the shape "does not work" takes.
-    //
-    // The move goes first and the reorder follows it: the row has to be IN the
-    // package before its position among that package's rows means anything.
-    if (dragged.kind === 'task') {
-      const from = taskById.get(dragged.id)?.package ?? '';
-      const to =
-        target.kind === 'package' ? target.name : (taskById.get(target.id)?.package ?? '');
-      if (from !== to) {
-        setPackage([dragged.id], to, base)
-          .then(() => {
-            const band = unitBand(dragged);
-            const order = band ? reorderedBand(dragged, target, after) : null;
-            if (order) return reorderTasks(order, base);
-          })
-          .catch((err) =>
-            toast(t('list.failed', { error: err instanceof Error ? err.message : String(err) }), 'fail'),
-          );
-        return;
+  function applyGesture(g: Gesture): void {
+    if (g.mode === 'select') sweepTo(g.atX, g.atY);
+    else aimBlock(g.atY);
+  }
+
+  /**
+   * Which row a point is on, live.
+   *
+   * elementFromPoint and not the frozen snapshot, and the two are not
+   * interchangeable: nothing slides during a SWEEP, so the element under the
+   * pointer is the row the eye sees, and reading it live is what keeps the sweep
+   * honest while the list scrolls under it. A move is the opposite case and uses
+   * the snapshot for exactly the opposite reason (see aimBlock).
+   *
+   * Off the rows - past either end of the list, or beside it in the margin - the
+   * nearest row by Y, so sweeping downward past the last row keeps selecting to
+   * the end instead of stopping at whatever the pointer last happened to cross.
+   */
+  function unitUnder(x: number, y: number): RowDragKey | null {
+    const strip = stripRef.current;
+    if (!strip) return null;
+    const hit = document.elementFromPoint(x, y);
+    const row = hit instanceof Element ? hit.closest<HTMLElement>('[data-row-key]') : null;
+    if (row && strip.contains(row)) return unitOfRow(row);
+    let best: HTMLElement | null = null;
+    let bestDist = Infinity;
+    strip.querySelectorAll<HTMLElement>('[data-task-id],[data-package-row]').forEach((el) => {
+      const r = el.getBoundingClientRect();
+      const d = y < r.top ? r.top - y : y > r.bottom ? y - r.bottom : 0;
+      if (d < bestDist) {
+        bestDist = d;
+        best = el;
       }
-    }
-    // A different band, the dragged unit dropped on itself, or a mixed
-    // package on either end: a normal boundary, not a failure. Reverted
-    // visually by the drag simply ending above, no request and no toast —
-    // the reorder endpoint's own contract is that this backend does not
-    // support a list that crosses a band.
-    const without = reorderedBand(dragged, target, after);
-    if (!without) {
-      // Not a dead end any more: a drop aimed at another band moves the rows
-      // into it - see dropAcrossBands. Only a drop on the unit itself, or on
-      // a package whose own rows do not share one band, still ends here doing
-      // nothing, and those two are genuinely not moves.
-      dropAcrossBands(dragged, target, after);
-      return;
-    }
-    // There is still no local override of the task order to unwind if this
-    // fails - the next poll/WS tick is what settles rows back where the
-    // server actually put them - but a refusal has to SAY something. This
-    // used to be a bare `void reorderTasks(...)`, and reorderTasks throws
-    // with the server's own sentence (api.ts, ok()); swallowing that meant a
-    // rejected drag was indistinguishable from a drag the app never noticed,
-    // which is precisely how it was reported ("funktioniert überhaupt
-    // nicht"). One toast turns a silent nothing into a reason.
-    reorderTasks(without, base).catch((err) =>
-      toast(t('list.failed', { error: err instanceof Error ? err.message : String(err) }), 'fail'),
-    );
-  }
-
-  // The one drop handler, and it hangs on the row strip rather than on the
-  // rows: a drop lands where the LIVE PREVIEW has been showing it, never where
-  // the element under the pointer happens to be.
-  //
-  // dragOver, never a rect. Two independent reasons:
-  //
-  //   - A folder aims at whole folders (aimAt), so reading the drop off the
-  //     link row under the pointer would commit it against a different unit
-  //     than the one the preview just slid it next to - the drag would land
-  //     somewhere nobody aimed at.
-  //   - Every row is displaced by a transform for as long as the pointer is
-  //     down, so getBoundingClientRect no longer answers "which row is this,
-  //     and which half of it" the way the pointer sees it - it answers where
-  //     the row has SLID to. The frozen snapshot aimAt reads is the only
-  //     geometry that still describes the list the person is dragging over,
-  //     and dragOver is its answer.
-  //
-  // A drop that somehow arrives with no preview behind it aims once, from the
-  // same snapshot, rather than falling back to a rect that has moved.
-  function dropHere(e: DragEvent<HTMLElement>): void {
-    e.preventDefault();
-    if (dragOver) {
-      dropRow(dragOver.target, dragOver.after);
-      return;
-    }
-    if (!rowDrag) return;
-    const aim = aimAt(rowSlotsRef.current, e.clientY, rowDrag, {
-      packageOf: (id) => taskById.get(id)?.package ?? '',
-      canTarget: (unit) => unitBand(unit) !== null,
     });
-    if (aim) dropRow(aim.target, aim.after);
+    return best ? unitOfRow(best) : null;
   }
 
-  // dragOver's own hit test, run from the row strip and the sheet over it -
-  // never from a row, and never against `e.currentTarget`'s rect. Once the live
-  // preview starts moving rows, the element the browser delivers the NEXT
-  // dragover to is itself a consequence of the LAST answer this function gave:
-  // under a stationary pointer sitting on the boundary between two rows, that is
-  // a closed loop (this function's own output changes what its next input will
-  // be), and the symptom is rows endlessly swapping back and forth rather than
-  // settling. Reading against rowSlotsRef's frozen, pre-drag snapshot instead
-  // means "which row, which half" is a pure function of the pointer's own Y and
-  // never of whatever this function itself just rendered.
-  //
-  // Same reason, stated from the browser's side: it hit-tests a transformed
-  // element where it is PAINTED, so the element an event arrives on is the row
-  // the preview has moved under the pointer, not the row that lives at that
-  // height in the list. Which element it arrives on is never read here - only
-  // e.clientY is.
-  function previewOver(e: DragEvent<HTMLElement>): void {
-    if (!rowDrag) return;
-    const band = unitBand(rowDrag);
-    if (!band) return;
-    const aim = aimAt(rowSlotsRef.current, e.clientY, rowDrag, {
-      // A link row stands for the folder it is in, which is what makes the
-      // whole of an open folder a landing place for another folder instead of
-      // only its 44px header - see aimAt. A link dragged on its own aims at
-      // single rows, unchanged, and never reaches this.
+  /**
+   * The sweep: mark everything between where the press landed and where the
+   * pointer is now.
+   *
+   * A RANGE FROM THE ANCHOR, not a trail of everywhere the pointer has been.
+   * Sweeping down to row nine and back up to row three marks three to five, not
+   * three to nine - which is Swing's own changeSelection(row, col, false, true)
+   * and the only version of this that can be UNDONE by moving the mouse back.
+   * It is also the same range a Shift-click makes, off the same anchor and
+   * through the same rangeIds, so the two gestures cannot come to disagree.
+   *
+   * Only when the row under the pointer has actually changed. A selection write
+   * re-renders every drawn row, and on a long list that is measured in hundreds
+   * of milliseconds (see listRows.ts) - once per row crossed is the cost of the
+   * gesture, once per pointer move would be the gesture being unusable.
+   *
+   * NEVER AGAINST THE DIRECTION THE HAND WENT, and that guard exists because of
+   * something measured rather than imagined. Both pages that host this list grow
+   * a toolbar row the moment anything is marked (Collector.tsx and Downloads.tsx
+   * both render their selection strip behind `selected.size > 0`), so the very
+   * press that marks the first row pushes the whole table DOWN - measured on the
+   * collector at 1400x1100: the row strip's top goes from 485 to 525, a clean
+   * 40px, which is more than one row. The pointer has not moved, but the row
+   * beneath it has, and the next reading answers with the row ABOVE the one that
+   * was pressed. Sweeping five pixels DOWNWARD then marked the folder above,
+   * header and all.
+   *
+   * The rule that fixes it says something true on its own: a range that reaches
+   * back past the row the hand pressed, in the direction the hand did not go, is
+   * never what was meant. Below the press point the sweep can only reach down
+   * from the pressed row, above it only up, and crossing back the other way is
+   * allowed the moment the hand actually crosses - which is what keeps sweeping
+   * down and then back up past the start working. Measured from the PRESSED ROW
+   * and not from the range anchor, because a Shift-press lands somewhere the
+   * anchor is not, and clamping a Shift-drag against the anchor would collapse
+   * the range the moment the hand moved back toward it. With no layout jump
+   * under it the clamp never fires at all: the row under the pointer is always
+   * on the side the pointer travelled to.
+   */
+  function sweepTo(x: number, y: number): void {
+    const g = gesture.current;
+    if (!g || !selection) return;
+    const unit = unitUnder(x, y);
+    if (!unit) return;
+    const under = selectableOrder.findIndex((u) =>
+      unit.kind === 'task' ? u.kind === 'task' && u.key === unit.id : u.kind === 'package' && u.key === unit.name,
+    );
+    if (under < 0) return;
+    const anchor = selectAnchor.current ?? under;
+    const pressed = g.fromIndex < 0 ? under : g.fromIndex;
+    const travel = y - g.fromY;
+    const to = travel > 0 ? Math.max(under, pressed) : travel < 0 ? Math.min(under, pressed) : pressed;
+    if (to === g.sweptTo) return;
+    g.sweptTo = to;
+    const range = rangeIds(anchor, to);
+    // Ctrl held at the press means "and these as well", so the sweep adds to
+    // what was marked before rather than replacing it.
+    selection.set(g.mods.ctrlKey || g.mods.metaKey ? new Set([...g.before, ...range]) : range);
+  }
+
+  /**
+   * The move's own hit test, run against the frozen snapshot and the pointer's
+   * own Y - never against the element the browser delivered the event to.
+   *
+   * Once the preview starts sliding rows, the element under the pointer is
+   * itself a consequence of the LAST answer this gave: under a stationary
+   * pointer sitting on the boundary between two rows that is a closed loop, and
+   * the symptom is rows endlessly swapping back and forth rather than settling.
+   * Reading against a snapshot the preview never touches means "which row, which
+   * half" is a pure function of the pointer's own position.
+   */
+  function aimBlock(clientY: number): void {
+    const g = gesture.current;
+    if (!g || g.block.length === 0) return;
+    const aim = aimAt(rowSlotsRef.current, stripY(clientY), g.block, {
+      // A link row stands for the folder it is in, which is what makes the whole
+      // of an open folder a landing place for another folder instead of only its
+      // 44px header - see aimAt. It is also how aimAt knows that a link of a
+      // folder that is itself travelling is in flight too.
       packageOf: (id) => taskById.get(id)?.package ?? '',
-      // A row in ANOTHER band is a legal target (dropAcrossBands), so it is
-      // offered as one. What is skipped is a unit in no band at all: a finished
-      // or failed download the queue cannot be told to move, and a folder whose
-      // links do not agree on one band.
+      // A row in ANOTHER band is a legal target (dropBlock re-bands what lands
+      // there), so it is offered as one. What is skipped is a unit in no band at
+      // all: a finished or failed download the queue cannot be told to move, and
+      // a folder whose links do not agree on one band.
       canTarget: (unit) => unitBand(unit) !== null,
     });
     if (!aim) return;
-    setDragOver((prev) => {
-      if (prev && prev.after === aim.after && sameUnit(prev.target, aim.target)) return prev;
-      return aim;
-    });
+    g.over = aim;
+    setDragOver((prev) => (prev && prev.after === aim.after && sameUnit(prev.target, aim.target) ? prev : aim));
   }
+
+  // applyGesture through a ref, because the frame loop below re-schedules ITSELF
+  // and would otherwise keep answering out of the render it was started in: a
+  // websocket tick during a long drag rebuilds selectableOrder and the view, and
+  // a scroll step reading last minute's copy of them would sweep against a list
+  // that no longer exists. Every other path into applyGesture comes from an
+  // event handler, which React rebuilds per render and which is therefore always
+  // current.
+  const applyRef = useRef(applyGesture);
+  applyRef.current = applyGesture;
+
+  /** The list crawls under the pointer while the pointer sits near an edge. */
+  function stepEdgeScroll(): void {
+    edgeScroll.current.frame = 0;
+    const g = gesture.current;
+    if (!g || !g.live) return;
+    const box = edgeScroll.current.box;
+    const r = box?.getBoundingClientRect();
+    const above = g.atY - (r ? r.top : 0);
+    const below = (r ? r.bottom : window.innerHeight) - g.atY;
+    let dy = 0;
+    if (above < EDGE_BAND_PX) dy = -Math.ceil(((EDGE_BAND_PX - Math.max(above, 0)) / EDGE_BAND_PX) * EDGE_SPEED_PX);
+    else if (below < EDGE_BAND_PX) dy = Math.ceil(((EDGE_BAND_PX - Math.max(below, 0)) / EDGE_BAND_PX) * EDGE_SPEED_PX);
+    if (dy !== 0) {
+      if (box) box.scrollTop += dy;
+      else window.scrollBy(0, dy);
+      // The content moved under a pointer that did not, so the answer has to be
+      // taken again - otherwise the list scrolls past the place it is pointing
+      // at and the preview stands still through the whole scroll.
+      applyRef.current(g);
+    }
+    edgeScroll.current.frame = requestAnimationFrame(stepEdgeScroll);
+  }
+
+  function stopEdgeScroll(): void {
+    if (edgeScroll.current.frame) cancelAnimationFrame(edgeScroll.current.frame);
+    edgeScroll.current = { frame: 0, box: null };
+  }
+
+  function moveGesture(e: PointerEvent<HTMLElement>): void {
+    const g = gesture.current;
+    if (!g || e.pointerId !== g.pointerId) return;
+    g.atX = e.clientX;
+    g.atY = e.clientY;
+    if (!g.live) {
+      if (!pastThreshold(e.clientX - g.fromX, e.clientY - g.fromY)) return;
+      if (!beginGesture(g, e.currentTarget)) return;
+    }
+    applyGesture(g);
+  }
+
+  /** The release. `commit` is false for a gesture the browser or Escape took
+   *  away rather than one somebody let go of. */
+  function finishGesture(commit: boolean): void {
+    const g = gesture.current;
+    gesture.current = null;
+    stopEdgeScroll();
+    const strip = stripRef.current;
+    if (g && strip?.hasPointerCapture(g.pointerId)) strip.releasePointerCapture(g.pointerId);
+    setRowDrag(null);
+    setDragOver(null);
+    if (!g) return;
+    if (!g.live) {
+      // A press that never travelled. On a marked row that is the deferred
+      // collapse - see (4) in the section head; on an unmarked one the press
+      // itself already did the marking and there is nothing left to do.
+      if (g.mode === 'move') selectFromUnit(g.unit, PLAIN);
+      return;
+    }
+    if (!commit) {
+      // Escape and a cancelled pointer put a sweep back where it started. A move
+      // has changed nothing yet, so there is nothing to put back.
+      if (g.mode === 'select') selection?.set(new Set(g.before));
+      return;
+    }
+    if (g.mode === 'move' && g.over && g.block.length > 0) dropBlock(g.block, g.over.target, g.over.after);
+  }
+
+  function abortGesture(): void {
+    if (gesture.current) finishGesture(false);
+  }
+
+  // Escape lets go of a gesture in flight, which is the one thing a person
+  // holding a mouse button down has no other way to do: there is no "put it back
+  // and forget it" in a press that is already halfway across the list.
+  //
+  // Through a ref, because the listener is installed once and the function it
+  // calls is rebuilt on every render along with everything it reads. The same
+  // ref is what tears a gesture down if the list unmounts mid-press.
+  const abortRef = useRef(abortGesture);
+  abortRef.current = abortGesture;
+  useEffect(() => {
+    const onKey = (e: globalThis.KeyboardEvent) => {
+      if (e.key === 'Escape') abortRef.current();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      abortRef.current();
+    };
+  }, []);
 
   // The arrangement the drag in flight is promising: the same groups the table
   // is showing, in the order they would be in if the pointer were released now.
@@ -2275,22 +2675,26 @@ export function TaskListCard({
   // to be a second, band-shaped arrangement instead - the dragged BAND's slots
   // refilled in a new order, every other row left alone - and that is why a
   // drag across two priorities showed nothing at all while the pointer was
-  // down: reorderedBand refuses a target in another band (dropAcrossBands is
-  // what carries that drop), so the preview fell straight back to the resting
-  // order and the list stood still for the whole gesture. Measured on a list of
-  // six folders at two priorities: every cross-priority folder drag moved
-  // exactly nothing until the mouse was released. A splice that never asks
-  // which band the target is in cannot have that hole.
+  // down: the old preview asked which band the target was in and gave up when
+  // it was a different one, so the list stood still for the whole gesture.
+  // Measured on a list of six folders at two priorities: every cross-priority
+  // folder drag moved exactly nothing until the mouse was released. A splice
+  // that never asks which band the target is in cannot have that hole - and it
+  // is what lets a marking spanning two bands preview honestly now that
+  // dropBlock will actually carry one.
+  //
+  // The block is several units, so the ids come out of all of them, in the order
+  // the list draws them: what the preview shows gathering at the drop point is
+  // exactly what dropBlock splices there.
   const liveView = useMemo(() => {
     if (!rowDrag || !dragOver) return view;
-    if (!unitBand(rowDrag)) return view;
     const flat = view.flatMap(([, items]) => items);
     // The MOVABLE ids of each unit, which is what the drop moves too: a
     // finished link inside a folder is not in the wait queue, so it is not part
     // of the block that travels and the preview must not pretend it is.
     const next = previewOrder(
       flat.map((x) => x.id),
-      unitIds(rowDrag),
+      rowDrag.flatMap(unitIds),
       unitIds(dragOver.target),
       dragOver.after,
     );
@@ -2362,54 +2766,26 @@ export function TaskListCard({
 
   const rowOffsets = previewOffsets();
 
+  // The rows a move is carrying, as the keys the two row components ask about.
+  // A folder's own links are in it as well as its header: they travel with it,
+  // so they dim with it, even though nobody named them one by one.
+  const movingRows = new Set<string>();
+  if (rowDrag) {
+    for (const u of rowDrag) {
+      movingRows.add(rowKey(u));
+      if (u.kind === 'package') for (const id of unitAllIds(u)) movingRows.add(rowKey({ kind: 'task', id }));
+    }
+  }
+
   const dnd: RowDnD = {
-    draggingTask: rowDrag?.kind === 'task' ? rowDrag.id : null,
-    draggingPackage: rowDrag?.kind === 'package' ? rowDrag.name : null,
-    // A SORTED VIEW SAYS SO INSTEAD OF DOING NOTHING. The rows used to simply
-    // not be draggable there, which from a chair is the same picture as a
-    // broken list: you pick a folder up, nothing follows the pointer, and
-    // nothing explains why. The banner above the table says the view is sorted;
-    // it has never said that the order cannot be changed while it is.
-    refuseDrag: (e, unit) => {
-      if (!dndEnabled) {
-        e.preventDefault();
-        toast(t('list.dragNeedsQueueOrder'), 'info');
-        return true;
-      }
-      // The second silent dead end, and it was there before the sorted view
-      // ever came up: a row in NO band cannot be reordered at all, so the drag
-      // started, nothing previewed, the drop did nothing and the list looked
-      // broken. A finished or failed download has left the wait queue, and a
-      // folder whose links sit at different priorities has no one band to be
-      // moved into - both are answers, and both are worth saying out loud.
-      if (unitBand(unit) === null) {
-        e.preventDefault();
-        toast(t('list.dragNotInQueue'), 'info');
-        return true;
-      }
-      return false;
-    },
-    startTask: (id) => {
-      // Taken from the DOM at this exact moment, before any reorder preview
-      // has ever run for this drag — the one point at which the rendered
-      // order is guaranteed to still match the server's own bandOrder.
-      snapshotSlots();
-      setRowDrag({ kind: 'task', id });
-    },
-    startPackage: (name) => {
-      snapshotSlots();
-      setRowDrag({ kind: 'package', name });
-    },
-    end: () => {
-      setRowDrag(null);
-      setDragOver(null);
-    },
+    moving: (unit) => movingRows.has(rowKey(unit)),
+    press: pressRow,
     // Every row in the table gets one of these, including the ones that are not
     // moving: the transition has to already be on a row before its offset
     // changes, or the first step aside it makes is a jump. A row with nothing to
     // do simply carries translateY(0).
     //
-    // The whole style DISAPPEARS the moment the drag ends, which is what puts
+    // The whole style DISAPPEARS the moment the move ends, which is what puts
     // the list back in one frame with no animation - deliberately, and for the
     // same reason as before: what lands after a drop is the server's own order,
     // and sliding into it would read as the app moving something on its own
@@ -2727,94 +3103,49 @@ export function TaskListCard({
                 aria-label={title}
                 tabIndex={keys.stripTabIndex}
                 onFocus={keys.onStripFocus}
-                // The whole list is one drop target, not one per row: every
-                // dragover bubbles up here from whatever row it landed on, and
-                // the answer comes from the pointer's own Y against the frozen
-                // snapshot rather than from the element the event arrived on.
-                // Once the first one has been seen, the sheet below takes over.
+                // THE WHOLE GESTURE HANGS HERE, not on the rows: a press bubbles
+                // up from whichever row it landed on, and from the moment it
+                // becomes a gesture this element holds the pointer capture, so
+                // every move and the release arrive here whatever is painted
+                // underneath. The answer always comes from the pointer's own
+                // position and never from the element the event arrived on.
                 //
-                // dragENTER as well as dragover, and that is not belt and braces.
-                // A browser fires dragover repeatedly at whatever the pointer is
-                // resting on, and dragenter when it crosses onto something new -
-                // so a hand that moves quickly down a list of 36px rows can cross
-                // two rows per event and produce a run of dragenter/dragleave
-                // pairs with no dragover among them at all. Measured on this
-                // list: a folder dragged the length of the table in eight moves
-                // got ZERO dragover events, and the preview stood still for the
-                // whole gesture while a slow drag over the same rows worked.
-                onDragEnter={(e) => {
-                  if (!rowDrag) return;
-                  e.preventDefault();
-                  e.dataTransfer.dropEffect = 'move';
-                  previewOver(e);
+                // THIS IS WHERE THE STATIONARY SHEET USED TO BE, and it is worth
+                // saying what it was for, because the fault it covered is real
+                // and pointer capture is the only reason it is gone. Under the
+                // native HTML5 drag every row was displaced by a transform, the
+                // browser hit-tests a transformed element where it is PAINTED,
+                // and it only reconsiders what a drag is over when the POINTER
+                // moves. So the preview slid a row out from under a stationary
+                // pointer and a release with no last twitch of the mouse arrived
+                // on an element that had never been sent a dragover: Chromium
+                // then fired dragend with NO DROP AT ALL and the gesture was
+                // swallowed in silence. Measured on a list of six folders: every
+                // folder released without moving the mouse again was lost that
+                // way, and the identical drag with one pixel of movement before
+                // the release landed. A full-size invisible sheet over the rows
+                // was what stopped the target changing under a still pointer. A
+                // captured pointer cannot have the fault at all - what is painted
+                // under it is not part of the question any more - so the sheet
+                // came out with the drag it was propping up.
+                onPointerMove={moveGesture}
+                onPointerUp={(e) => {
+                  if (gesture.current?.pointerId === e.pointerId) finishGesture(true);
                 }}
-                onDragOver={(e) => {
-                  if (!rowDrag) return;
-                  e.preventDefault();
-                  e.dataTransfer.dropEffect = 'move';
-                  previewOver(e);
+                // The browser taking the pointer away (a touch turning into a
+                // scroll, a system gesture, a window switch) is not a drop.
+                onPointerCancel={(e) => {
+                  if (gesture.current?.pointerId === e.pointerId) abortGesture();
                 }}
-                onDrop={dropHere}
+                onLostPointerCapture={(e) => {
+                  if (gesture.current?.pointerId === e.pointerId) abortGesture();
+                }}
+                // No native drag may start inside this list any more. Nothing
+                // here sets `draggable`, but an <img> is draggable by default and
+                // the hoster icon in every row is one - a press that lands on it
+                // and moves would hand the pointer to the browser mid-sweep.
+                onDragStart={(e) => e.preventDefault()}
               >
-                {/* ONE STATIONARY SHEET OVER THE ROWS, FOR THE LENGTH OF THE
-                    DRAG. It is what makes a drop land at all.
-
-                    Every row is displaced by a transform while the pointer is
-                    down, the browser hit-tests a transformed element where it is
-                    PAINTED, and it only reconsiders what a drag is over when the
-                    POINTER moves. So the preview slid a row out from under a
-                    stationary pointer, and a release with no last twitch of the
-                    mouse arrived on an element that had never been sent a
-                    dragover: Chromium then fires dragend with NO DROP AT ALL and
-                    the whole gesture is swallowed in silence. Measured on a list
-                    of six folders: every folder released without moving the
-                    mouse again was lost exactly this way, and the identical drag
-                    with one pixel of movement before the release landed. That is
-                    the "funktioniert nicht gut" - it works often enough to look
-                    like bad luck rather than like a bug.
-
-                    This sheet cannot move, so the target cannot change under a
-                    still pointer. The hit test never needed the row element
-                    anyway: it answers from e.clientY against the frozen
-                    snapshot.
-
-                    IT MOUNTS ON THE FIRST DRAGOVER AND NOT AT DRAGSTART, and
-                    that is not tidiness. Covering the row a drag is starting
-                    from - with this sheet, or by taking pointer-events off the
-                    rows, which would do the same job - makes Chromium abandon
-                    the drag between dragstart and the first move: measured, the
-                    page gets dragstart and then dragend immediately, with
-                    nothing in between. By the time the first dragover has
-                    arrived the drag is properly in flight and the sheet is
-                    harmless. The strip below takes that first dragover, by
-                    bubbling from whichever row it landed on. */}
-                {dragOver && (
-                  <div
-                    aria-hidden
-                    className="absolute inset-0 z-20"
-                    // stopPropagation, or the strip below sees the same events a
-                    // second time as they bubble - and a drop handled twice is
-                    // two reorders and two toasts for one gesture. Measured: a
-                    // folder dropped into another priority said "Verschoben..."
-                    // twice and posted the move twice.
-                    onDragEnter={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      e.dataTransfer.dropEffect = 'move';
-                      previewOver(e);
-                    }}
-                    onDragOver={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      e.dataTransfer.dropEffect = 'move';
-                      previewOver(e);
-                    }}
-                    onDrop={(e) => {
-                      e.stopPropagation();
-                      dropHere(e);
-                    }}
-                  />
-                )}
                 {keys.probeTop !== null && (
                   <div
                     ref={keys.probeRef}
@@ -2842,12 +3173,6 @@ export function TaskListCard({
                       setsize={row.setsize}
                       current={keys.currentKey === row.key}
                       onKeyDown={(e) => keys.onRowKeyDown(e, row.key)}
-                      onSelect={(e) => {
-                        // The cursor follows the pointer, so a later Tab into
-                        // the list resumes from the row the mouse last touched.
-                        keys.setCurrent(row.key);
-                        selectUnit('package', row.name, row.items.map((x) => x.id), e);
-                      }}
                       onOpenProperties={() => {
                         setPropertiesAutoFocus(false);
                         setPropertiesOpen(true);
@@ -2868,10 +3193,6 @@ export function TaskListCard({
                       setsize={row.setsize}
                       current={keys.currentKey === row.key}
                       onKeyDown={(e) => keys.onRowKeyDown(e, row.key)}
-                      onSelect={(e) => {
-                        keys.setCurrent(row.key);
-                        selectUnit('task', row.task.id, [row.task.id], e);
-                      }}
                       onOpenProperties={() => {
                         setPropertiesAutoFocus(false);
                         setPropertiesOpen(true);

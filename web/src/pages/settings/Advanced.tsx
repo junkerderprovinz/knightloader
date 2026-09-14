@@ -251,19 +251,24 @@ export function Advanced() {
           hint={tx('settings.advanced.keepMirrorsHint')}
         />
 
-        {/* Dimmed and never hidden while the switch above is off: with no parked
-            copy there is nothing for this one to release. ToggleRow's disabled
-            state keeps its own (i) hoverable on purpose (see ui.tsx), and that
-            bubble is the only place the sentence explaining the dimming lives -
-            hiding the row would take the explanation away with it. */}
+        {/* ABSENT while the switch above is off, where it used to be dimmed
+            (GlimStone 1.16.0, and ToggleRow's own `disabled` doc in ui.tsx,
+            which has said the same thing since 1.10.0: that prop is for a row
+            whose own state is the message, never for a sub-switch). With no
+            parked copy there is nothing for this one to release, so it is a
+            switch somebody can see, read and reach for that answers nothing,
+            with the reason exactly one row up. The old note argued that hiding
+            it takes its (i) away with it - true, and that (i) explains a state
+            that no longer exists once the row does not. */}
+        {cfg.keepMirrors && (
         <ToggleRow
           hue={1}
           checked={cfg.mirrorFailover ?? false}
           onChange={(mirrorFailover) => patch({ mirrorFailover })}
           label={tx('settings.advanced.mirrorFailover')}
           hint={tx('settings.advanced.mirrorFailoverHint')}
-          disabled={!cfg.keepMirrors}
         />
+        )}
       </Card>
 
       {/* Gated on the menu rather than rendered empty: this card holds exactly

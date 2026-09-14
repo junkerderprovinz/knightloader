@@ -14,7 +14,7 @@ import { InfoBubble } from '../components/ui';
 import { connectWS, fetchDeploymentInfo, fetchSettings, fetchUpdateCheck, installUpdate, type Task } from '../lib/api';
 import {
   applyAccent,
-  applyMotionIntensity,
+  applyMotion,
   applyRainbow,
   applyShape,
   cacheAppearance,
@@ -84,7 +84,7 @@ function useAppearance() {
     // callback below. This is what makes the axis live from first paint
     // everywhere Layout mounts, not only once the Look settings row itself
     // mounts.
-    applyMotionIntensity(readCachedMotionIntensity());
+    applyMotion(readCachedMotionIntensity());
 
     let live = true;
     fetchSettings()

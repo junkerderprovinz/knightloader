@@ -394,6 +394,44 @@ submission and for a fixed download.
 - **A plan column and a remaining-allowance bar on both account cards.** Free
   and premium are told apart from what JDownloader answers about the account
   (`validUntil`, `trafficMax`), which it could always say and was never asked.
+- **The login can be given a second factor, a passkey, or both** (GlimStone
+  1.15.0, "The second way in"). Two cards on the Access page rather than one,
+  because they are two decisions somebody can want separately: one makes the
+  password harder to abuse, the other replaces typing it. A login gains a way
+  IN and never a way INSTEAD - the password keeps working in both cases, and
+  removing every passkey locks nobody out.
+  - **The second factor** is a six-digit code from an authenticator app
+    (RFC 6238, written out in `internal/secret` rather than pulled in as a
+    dependency). The enrolment renders the step it is on rather than every
+    control at once: scan or type the secret, prove it with a code, then eight
+    single-use recovery codes shown exactly once - which the card says BEFORE
+    it shows them, and which are acknowledged rather than dismissed. The status
+    line reads the server's answer, never which screen the card is on, so a
+    half-finished enrolment still says off. Turning it off costs the same proof
+    as using it, which is stricter than an ordinary "are you sure" and for a
+    different reason: not regret, but a session somebody walked away from.
+  - **And the way back in, because there is no second person here.** An
+    instance has one password and no user accounts, so nobody can unlock it for
+    you. `knightloader -reset-2fa` turns the factor off from the command line
+    and leaves the password alone; with the app stopped, deleting the `totp`
+    and `recovery` entries from `auth.json` does the same by hand. Both need
+    write access to the data directory, which is the access that could already
+    delete `auth.json` outright and take the password with it - so this grants
+    nothing new, and it is documented rather than hidden, because a way back
+    nobody knows about is not a way back.
+  - **Passkeys**, with the refusal that is most of the feature. WebAuthn binds
+    a credential to a DOMAIN, so a browser refuses the exchange on a bare IP
+    address and again on a certificate it does not trust - which is the default
+    KnightLoader install, reached at `http://[LAN IP]:8749`. That gets no
+    control at all plus the paragraph saying what is wrong, in the reader's own
+    language: the server's verdict crosses over as a boolean and its English
+    sentence stays a diagnostic for the log. A key records the address it was
+    registered for, and one that cannot answer here is MARKED rather than
+    hidden, because a key somebody deliberately created must never look lost.
+  - **The login route grew a throttle**, and it had to: a password is long and
+    slow to check, a six-digit code is a million possibilities and an HMAC. It
+    sits in front of the whole route rather than only the code half, so failing
+    the uncounted half cannot be the way around it.
 
 ### Changed
 
