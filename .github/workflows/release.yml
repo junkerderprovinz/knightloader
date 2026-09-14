@@ -70,16 +70,56 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # Is the tag being built the newest release in this repository?
+      #
+      # checkout fetches no tags, so they are fetched here rather than assumed.
+      # The comparison is done with `sort -V`, which orders versions instead of
+      # strings, so that v1.10.0 counts as newer than v1.9.0.
+      - name: Is this the newest release tag?
+        id: newest
+        if: github.ref_type == 'tag'
+        run: |
+          git fetch --tags --force --quiet
+          newest=$(git tag -l 'v[0-9]*.[0-9]*.[0-9]*' | sort -V | tail -1)
+          echo "this tag: ${GITHUB_REF_NAME}"
+          echo "newest:   ${newest}"
+          if [ "$newest" = "${GITHUB_REF_NAME}" ]; then
+            echo "is_newest=true" >> "$GITHUB_OUTPUT"
+            echo "-> this build moves :latest"
+          else
+            echo "is_newest=false" >> "$GITHUB_OUTPUT"
+            echo "-> this build leaves :latest where it is"
+          fi
+
       - name: Docker metadata (tags + labels)
         id: meta
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6
         with:
           images: ghcr.io/${{ github.repository }}-relay
+          # `latest` means "the newest released version", and nothing else.
+          #
+          # It carried no condition at all, so every build of this job moved it.
+          # The two conditions guard two opposite accidents. Requiring a tag
+          # build stops unreleased code from reaching everyone who pulls
+          # `latest` before there are release notes to read. Requiring that tag
+          # to be the newest one stops a re-cut of an older version from
+          # dragging `latest` backwards onto it, which is what a bare tag gate
+          # on its own would still allow.
+          #
+          # There is no `edge` counterpart here because this workflow is
+          # tag-triggered only: the tip of the default branch never builds or
+          # pushes the relay image.
+          #
+          # Still sharp on purpose: {{major}} and {{major}}.{{minor}} below are
+          # moved by whichever tag built last, so re-cutting an old version
+          # drags them back with it. That is correct for a normal forward
+          # release and wrong only while backporting, which is rare enough to
+          # sort out by hand.
           tags: |
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
-            type=raw,value=latest
+            type=raw,value=latest,enable=${{ github.ref_type == 'tag' && steps.newest.outputs.is_newest == 'true' }}
 
       - name: Build and push
         uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
