@@ -19,6 +19,25 @@ description = "Invented credentials that are test fixtures for the parsers that 
 # landing in the same test tomorrow is still caught. internal/resolver/hostheaders
 # parses a pasted `curl -u user:pass` line, which means the fixture has to look
 # exactly like the thing being parsed or the test exercises a parser nobody uses.
+#
+# The two below are the same shape of exemption, for internal/secret/totp_test.go:
+#
+#   GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ is RFC 6238's own test seed, the base32 of
+#   the ASCII digits "12345678901234567890". It is printed in the RFC, it is in
+#   every TOTP implementation's test suite on earth, and the test exists to
+#   check this code against the published vectors - substituting a different
+#   seed would leave the vectors unverifiable, which is the whole point of
+#   having them.
+#
+#   0123456789abcdef is a sixteen-character counting sequence standing in for an
+#   HMAC key. Anything a scanner would not flag would also be less obviously a
+#   placeholder to a reader, and that trade goes the wrong way in a file about
+#   secrets.
+#
+# Both are matched as literals rather than by file, so a real key landing in
+# that same test tomorrow is still caught.
 regexes = [
   '''demo:s3cret''',
+  '''GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ''',
+  '''0123456789abcdef''',
 ]
