@@ -235,54 +235,60 @@ export function DownloadsSettings() {
       <CollectorCard hue={8} />
 
       {/* The crawl, on its own, because it is the one thing on this page that
-          sends requests to a server nobody here runs. Everything below the
-          master switch is dimmed while it is off - a control that vanished
-          would teach nobody what the mode can do, and one that disagrees with
-          its own disabled siblings does. */}
+          sends requests to a server nobody here runs.
+
+          EVERYTHING BELOW THE MASTER SWITCH IS ABSENT WHILE IT IS OFF, NOT
+          DIMMED (GlimStone 1.10.0, and the test 1.16.0 settled it with: does
+          the control still do anything?). No crawl runs while the switch is
+          off, so a depth, a page cap, a same-host rule and two pattern lists
+          read by nobody are six controls somebody can see, read and reach for
+          that answer nothing - with the reason one row up, which is exactly
+          where nobody looks once they have decided this row is the interesting
+          one. The switch itself stays, because that is the control somebody IS
+          looking for.
+
+          The dimmed-and-inert wrapper this replaces also composited its own
+          explanation away: opacity applies to a whole subtree, so the (i)
+          bubbles inside it rendered at 40% too (1.9.0). */}
       <Card hue={9} className="flex flex-col gap-5">
         <SectionTitle>{t('settings.crawl.title')}</SectionTitle>
         <ToggleRow hue={0} checked={cfg.crawl} onChange={(v) => patch({ crawl: v })} label={t('settings.crawl')} />
 
-        <div className={`flex flex-col gap-5 ${cfg.crawl ? '' : 'pointer-events-none opacity-40'}`}>
+        {cfg.crawl && (
+        <div className="flex flex-col gap-5">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {/* max is the crawler's own ceiling (internal/crawler.MaxDepth), not
                 a number picked here: a spinner that goes to 10 while the server
                 clamps at 3 is a control that lies about what saving it did. */}
             <Field label={t('settings.crawl.depth')} hint={t('settings.crawl.depthHint')}>
-              <NumberInput
-                value={cfg.crawlDepth}
-                min={1}
-                max={3}
-                disabled={!cfg.crawl}
-                onValue={(v) => patch({ crawlDepth: v })}
-              />
+              <NumberInput value={cfg.crawlDepth} min={1} max={3} onValue={(v) => patch({ crawlDepth: v })} />
             </Field>
+            {/* A depth of 1 is one page, so a page CAP counts nothing and a
+                same-host rule has no second host to compare against: both hang
+                off the number beside them rather than off the switch above, and
+                both go for the same reason. */}
+            {cfg.crawlDepth >= 2 && (
             <Field label={t('settings.crawl.maxPages')} hint={t('settings.crawl.maxPagesHint')}>
-              <NumberInput
-                value={cfg.crawlMaxPages}
-                min={1}
-                max={200}
-                disabled={!cfg.crawl || cfg.crawlDepth < 2}
-                onValue={(v) => patch({ crawlMaxPages: v })}
-              />
+              <NumberInput value={cfg.crawlMaxPages} min={1} max={200} onValue={(v) => patch({ crawlMaxPages: v })} />
             </Field>
+            )}
           </div>
 
+          {cfg.crawlDepth >= 2 && (
           <ToggleRow
             hue={1}
             checked={cfg.crawlSameHost}
             onChange={(v) => patch({ crawlSameHost: v })}
             label={t('settings.crawl.sameHost')}
             hint={t('settings.crawl.sameHostHint')}
-            disabled={!cfg.crawl || cfg.crawlDepth < 2}
           />
+          )}
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field label={t('settings.crawl.include')} hint={t('settings.crawl.includeHint')}>
               <TextArea
                 rows={3}
                 spellCheck={false}
-                disabled={!cfg.crawl}
                 value={(cfg.crawlInclude ?? []).join('\n')}
                 onChange={(e) => patch({ crawlInclude: e.target.value.split('\n').filter((p) => p.trim() !== '') })}
               />
@@ -291,13 +297,13 @@ export function DownloadsSettings() {
               <TextArea
                 rows={3}
                 spellCheck={false}
-                disabled={!cfg.crawl}
                 value={(cfg.crawlExclude ?? []).join('\n')}
                 onChange={(e) => patch({ crawlExclude: e.target.value.split('\n').filter((p) => p.trim() !== '') })}
               />
             </Field>
           </div>
         </div>
+        )}
       </Card>
 
       {/* "Sammler überspringen" and the watch folder both left this page for

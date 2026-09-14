@@ -85,10 +85,27 @@ keeping lives on the volumes:
 | `knightloader.db` | tasks; migrated in place on start, tracked by `PRAGMA user_version` |
 | `settings.json` | download folder, limits, extraction, archive passwords |
 | `.keyring` + account store | the encrypted credentials |
-| `auth.json` | the password hash and the key that signs session cookies |
+| `auth.json` | the password hash, the key that signs session cookies, and the second factor (the authenticator secret plus the hashes of the unspent recovery codes) |
 
 Because the session key is persisted, a redeploy does not sign anyone out of a
 password-locked instance.
+
+### Locked out by the second factor
+
+KnightLoader has one password and no user accounts, so nobody else can unlock an
+instance for you. If the authenticator app AND the recovery codes are both gone,
+there are two ways back, and both need write access to the data directory:
+
+```sh
+docker exec -it knightloader knightloader -reset-2fa   # in the container
+knightloader -reset-2fa                                # or beside the data dir
+```
+
+or, with KnightLoader stopped, delete the `totp` and `recovery` entries from
+`auth.json` by hand. Either way the password is untouched: this is a way past
+the SECOND factor and never a way past the first. It grants nothing that
+filesystem access did not already grant, since the same access could delete
+`auth.json` outright and take the password with it.
 
 ## Checking a deploy
 

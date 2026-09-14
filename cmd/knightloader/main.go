@@ -20,6 +20,7 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/api"
 	"github.com/junkerderprovinz/knightloader/internal/app"
+	"github.com/junkerderprovinz/knightloader/internal/auth"
 	"github.com/junkerderprovinz/knightloader/internal/backup"
 	"github.com/junkerderprovinz/knightloader/internal/bridge"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
@@ -51,6 +52,9 @@ func main() {
 	// internal/bridge/clipboard.go's package comment for why this flag alone
 	// does not put clipboard-reading code in the ordinary server binary.
 	watchClipboard := flag.Bool("bridge-clipboard", false, "watch the OS clipboard for hoster links while bridging (build with -tags bridgeclipboard)")
+	// The way back in. See runResetTwoFactor below for why it exists and why it
+	// is not the security hole it looks like.
+	resetTwoFactor := flag.Bool("reset-2fa", false, "turn the second login factor off and exit; the password is untouched. For an operator who has lost both the phone and the recovery codes")
 	flag.Parse()
 	if *remote != "" {
 		runBridge(*remote, *remotePw, *watchClipboard)
@@ -58,6 +62,11 @@ func main() {
 	}
 
 	dataDir := env("KL_DATA", defaultDataDir())
+
+	if *resetTwoFactor {
+		runResetTwoFactor(dataDir)
+		return
+	}
 
 	// A data directory this process cannot write into is the commonest way a
 	// container install fails to start at all, and until now it failed
@@ -364,6 +373,44 @@ func main() {
 		log.Printf("shutdown: not every in-flight request finished within %s: %v", shutdownGrace, err)
 	}
 	cancel()
+}
+
+// runResetTwoFactor turns the second login factor off and exits. The password
+// is untouched.
+//
+// WHY THIS IS HERE AT ALL. KnightLoader has one password and no user accounts,
+// so there is no second person to unlock anything: an operator who has lost the
+// authenticator app AND the recovery codes has locked themselves out of their
+// own downloader for good. Every other answer to that is worse. "Restore a
+// backup" throws away everything since the backup. "Delete auth.json" also
+// deletes the password and the key that signs sessions, which signs everybody
+// out and quietly turns the instance into an open one until somebody notices.
+//
+// WHY IT IS NOT A HOLE. It runs as this binary, against the data directory, on
+// the machine. Anybody who can do that can already delete auth.json and remove
+// the password outright, so this grants no access that was not already granted
+// - it only makes the narrow, non-destructive version of it available instead
+// of the broad, destructive one. It is documented in the card and in the README
+// rather than hidden, because a way back that nobody knows about is not a way
+// back.
+//
+// It deliberately opens nothing else: no store, no settings, no JD. Running it
+// while the server is up would have two processes holding auth.json, so it says
+// what it did and says to restart.
+func runResetTwoFactor(dataDir string) {
+	g, err := auth.Open(dataDir)
+	if err != nil {
+		log.Fatalf("reset-2fa: %v", err)
+	}
+	if !g.TwoFactorEnabled() {
+		log.Printf("reset-2fa: no second factor is set on %s; nothing to do", dataDir)
+		return
+	}
+	if err := g.ClearTwoFactor(); err != nil {
+		log.Fatalf("reset-2fa: %v", err)
+	}
+	log.Printf("reset-2fa: the second factor is off. The password is unchanged. "+
+		"Restart KnightLoader if it is running, sign in with the password, and set the factor up again from Settings > Access (%s)", dataDir)
 }
 
 // runBridge serves Click'n'Load locally and forwards everything it receives to

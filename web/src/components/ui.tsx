@@ -1607,6 +1607,67 @@ export function EmptyState({
   );
 }
 
+/**
+ * UnavailableNotice - what a card shows WHERE A CONTROL WOULD BE, when the
+ * environment does not permit the thing the control would do (GlimStone
+ * 1.15.0).
+ *
+ * There are three answers to a control that cannot act, and only one of them is
+ * this component. The test question decides which:
+ *
+ *   - the grey state says something about the THING the control touches
+ *     -> dim the control, it is reporting;
+ *   - it says something about a decision taken elsewhere on the page
+ *     -> leave the control out, no prose owed;
+ *   - the ENVIRONMENT does not permit the thing at all
+ *     -> leave the control out AND write the reason. That is this.
+ *
+ * Passkeys are the case that produced it: WebAuthn binds a credential to a
+ * domain name, so a browser refuses the whole exchange on a bare IP address and
+ * again on a certificate it does not trust, which is the DEFAULT state of a
+ * self-hosted app opened over its LAN address. Offering a button there means
+ * the browser answers with an error nobody can act on. Saying it first means
+ * somebody reads one sentence and either fixes their setup or stops looking.
+ *
+ * Three things it deliberately does not do:
+ *
+ *   - it does not translate. Every string is a prop, including the title;
+ *   - it does not know what a passkey is. It takes a reason and renders it;
+ *   - it does not take the SERVER's sentence. The caller passes UI copy in the
+ *     reader's own language and the server's verdict travels as a boolean.
+ *     Promoting a diagnostic to be the paragraph that explains a feature is the
+ *     specific mistake this shape exists to prevent, and
+ *     web/check-passkey-reason.mjs is what keeps it prevented.
+ *
+ * Why a paragraph and not an info bubble, when every other explanation in this
+ * app is a bubble: a bubble hangs off a control, and the entire point here is
+ * that there is no control to hang one off.
+ */
+export function UnavailableNotice({
+  title,
+  reason,
+  action,
+}: {
+  /** One line saying what is unavailable. Already translated. */
+  title: string;
+  /** Why, and ideally what would change it. Already translated. */
+  reason: ReactNode;
+  /**
+   * Optional. Something the reader CAN do from here - never the control that
+   * was refused, since offering that again is the button-that-fails this
+   * component exists to remove.
+   */
+  action?: ReactNode;
+}) {
+  return (
+    <div className="rounded-[var(--radius-card)] bg-statusWarnBgSoft px-4 py-3">
+      <p className="text-sm font-medium text-carbon-text">{title}</p>
+      <p className="mt-1 text-sm text-carbon-textSub">{reason}</p>
+      {action && <div className="mt-3">{action}</div>}
+    </div>
+  );
+}
+
 // A quiet placeholder while a page's data is still on the wire. `nested`: see
 // EmptyState's own doc comment just above - the same whole-page-vs-inside-a-
 // card split applies here.

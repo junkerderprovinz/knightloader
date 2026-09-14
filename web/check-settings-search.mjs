@@ -96,6 +96,11 @@ const FILE_PAGES = [
   { file: 'src/pages/settings/Accounts.tsx', pages: ['accounts'] },
   { file: 'src/pages/settings/Instances.tsx', pages: ['instances'] },
   { file: 'src/pages/settings/Access.tsx', pages: ['access'] },
+  // A DIRECTORY, for the same reason downloads/ and look/ are: the second
+  // factor and the passkeys moved into cards of their own beside the password,
+  // and the third one somebody adds there must be scanned without anybody
+  // remembering to come back here.
+  { file: 'src/pages/settings/access/', pages: ['access'] },
   { file: 'src/pages/settings/Advanced.tsx', pages: ['advanced'] },
   { file: 'src/pages/settings/Rules.tsx', pages: ['rules'] },
   // 141 settings.rules.* keys, most of them here rather than in Rules.tsx.
@@ -185,6 +190,10 @@ const EXCLUDED = new Map([
   [
     'settings.system.shuttingDownTitle',
     'the card that REPLACES the lifecycle card while the server is restarting. A result for it would lead somewhere that only exists during a shutdown',
+  ],
+  [
+    'auth.twoFactor.qrLabel',
+    'the accessible name of the QR code image inside the second factor enrolment. It reaches the catalogue through QRCode\'s `label` prop, which is an alt text rather than a caption - the card it belongs to is indexed by its own title, and it only exists while somebody is halfway through an enrolment',
   ],
 
   // ---- a second search box, over a different question ----

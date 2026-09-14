@@ -95,6 +95,14 @@
      class that produces nothing looks exactly like a class that was never
      added. */
   --color-statusWarnBgStrong: var(--status-warn-bg-strong);
+  /* bg-statusWarnBgSoft: the QUIET end of the same family (GlimStone 1.15.0),
+     for a paragraph that explains rather than warns - the box that says why a
+     passkey cannot be registered on this address. The base tone above is right
+     for a chip and too loud behind three lines of prose. Named here for the
+     same reason its two siblings are: a class Tailwind emits nothing for looks
+     exactly like a class nobody added, which is how the box it was written for
+     shipped in the reference app with a radius, a border and no fill at all. */
+  --color-statusWarnBgSoft: var(--status-warn-bg-soft);
   --color-statusWarnSolid: var(--status-warn-solid);
 
   --color-statusInfo: var(--status-info-text);
@@ -322,6 +330,10 @@
      different colours, and eyeballing a replacement is how the family ends up
      with three warn yellows. */
   --status-warn-bg-strong: #3a2f1c;
+  /* The quiet step (GlimStone 1.15.0), value taken from its reference tokens
+     for the same reason the strong one above is: three warn yellows is what
+     eyeballing a fourth produces. */
+  --status-warn-bg-soft: rgba(241, 194, 27, 0.06);
   --status-warn-solid:   #f1c21b;
 
   --status-neutral-text: #a8a8a8;
@@ -407,6 +419,7 @@
        deep one: an opaque chip is painted on the ramp it stands on, so it
        inverts with the theme the way every other surface here does. */
     --status-warn-bg-strong: #fcf4d6;
+    --status-warn-bg-soft: rgba(142, 106, 0, 0.05);
     --status-warn-solid:   #b28600;
 
     --status-neutral-text: #6f6f6f;
@@ -490,6 +503,7 @@
   /* Same value as the media block above: an explicit light choice has to reach
      it too, or a chip picked by hand goes back to letting the row through. */
   --status-warn-bg-strong: #fcf4d6;
+  --status-warn-bg-soft: rgba(142, 106, 0, 0.05);
   --status-warn-solid:   #b28600;
 
   --status-neutral-text: #6f6f6f;
@@ -1146,8 +1160,9 @@ body {
    below answer one of: is this new, arriving, ongoing, confirmed, changing
    shape, changing colour, or refused? Nothing else in the system animates.
 
-   MOTION INTENSITY (data-motion="off"|"subtle"|"full" on <html>, default
-   "full" — applyMotionIntensity() in lib/appearance.ts) is the user-owned
+   MOTION INTENSITY (data-motion="off"|"subtle"|"full" on <html>, plus the
+   hidden "storm" further down — applyMotion() in lib/appearance.ts, default
+   "full") is the user-owned
    axis layered on top: duration/distance/amplitude custom properties,
    redefined per [data-motion], consumed by the SAME keyframes at every
    intensity — the identical "one token set, no exception list" shape the
@@ -1466,6 +1481,78 @@ body {
     --motion-modal-scale: 1;
     --motion-scrim-dur: 150ms;
     --motion-control-dur: 80ms;
+  }
+
+  /* THE HIDDEN FOURTH, data-motion="storm" (GlimStone 1.17.0), and it is a
+     real level rather than a joke.
+
+     Same keyframes, same elements, same tokens: a spring that swings further
+     and takes longer to come to rest. That is what makes a fourth intensity
+     cost one block and nothing else - the language's own rule, that a level is
+     a different NUMBER and never a different animation, paying for itself.
+
+     It is not in the picker. lib/appearance.ts's stormTap() is the gesture that
+     reveals it (set motion to the top level, then tap that same option five
+     more times) and carries the rule it exists to establish: an easter egg that
+     changes BEHAVIOUR has to be one somebody can switch back off, and must not
+     quietly become a permanent entry in a settings list.
+
+     THE NUMBERS. Travel, scale and curve are GlimStone's own storm values
+     unchanged (34px, .9, cubic-bezier(.22, 1.94, .45, 1)), because this app's
+     top level already matches the reference's wild exactly on all three. The
+     DURATIONS are this app's own ladder multiplied by the reference's own
+     storm/wild ratio rather than copied as absolutes: the reference's wild page
+     entrance is 420ms and this one is 280ms (a deliberate difference, see the
+     :root block above), so copying 760ms literally would make the fourth level
+     2.7x the third here and 1.8x there. A hidden level is the last place to
+     ship a number nobody can trace.
+
+     It sits INSIDE this gate with the other three, not beside them, and that is
+     the one thing about it that is a safety property rather than a taste: a
+     machine whose owner asked the operating system for less motion never
+     evaluates a data-motion selector at all, so the secret cannot be used to
+     talk a browser out of an accessibility signal. web/check-hidden-motion-
+     level.mjs fails if this block ever moves out. */
+  :root[data-motion="storm"] {
+    --motion-page-dur: 510ms;
+    --motion-page-travel: 34px;
+    --motion-page-scale: .9;
+    /* Further past 1 than the top visible level's curve, and slower to settle:
+       the overshoot is the whole point of the level. */
+    --motion-curve: cubic-bezier(.22, 1.94, .45, 1);
+    --motion-page-slide-scale: 1.9;
+    --motion-toast-dur: 310ms;
+    --motion-toast-slide-scale: 1.9;
+    --glim-toast-slide: 44px;
+    --motion-fade-dur: 160ms;
+    --motion-shake-dur: 520ms;
+    --motion-shake-scale: 1.8;
+    /* The one period that goes DOWN: an ambient loop gets livelier by running
+       faster, which is the same reasoning that leaves it alone at "subtle" -
+       there, moving less is the only way to calm it. */
+    --motion-pulse-dur: 1.4s;
+    --motion-pulse-min-opacity: .25;
+    --motion-wiggle-deg: 1.3deg;
+    --motion-shape-dur: 470ms;
+    --motion-confirm-dur: 760ms;
+    --motion-confirm-glow-mult: 1.8;
+    --motion-confirm-scale-mult: 1.8;
+    --motion-stagger-step: 54ms;
+    --motion-stagger-cap: 870ms;
+    --motion-wipe-dur: 580ms;
+    --motion-checkmark-dur: 650ms;
+    --motion-content-dur: 400ms;
+    --motion-panel-dur: 400ms;
+    --motion-panel-dist: 34px;
+    --motion-modal-dur: 470ms;
+    --motion-modal-travel: 19px;
+    --motion-modal-scale: .95;
+    --motion-scrim-dur: 360ms;
+    /* --motion-control-dur is deliberately NOT here, and the reference leaves
+       it out of its own storm block for the same reason: a hover tint that
+       takes a quarter of a second is not a livelier interface, it is a slow
+       one. The level is about things that ARRIVE, not about the ones that
+       answer the pointer. */
   }
 
   /* data-motion="off" without OS-level reduced motion — "the manual

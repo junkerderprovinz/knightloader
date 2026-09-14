@@ -79,28 +79,42 @@ export function LogFileCard({ hue, capacity }: { hue: number; capacity: number }
         onChange={(enabled) => patch({ logFile: { ...file, enabled } })}
       />
 
-      {/* Dimmed rather than hidden while the switch is off: a control that
-          vanishes teaches nobody what the mode can do, and somebody deciding
-          whether to switch this on wants to see the size it would use first. */}
-      <div className={`grid grid-cols-1 gap-4 sm:grid-cols-3 ${file.enabled ? '' : 'pointer-events-none opacity-40'}`}>
-        <Field label={t('settings.diagnostics.fileSize')} hint={t('settings.diagnostics.fileSizeHint')}>
-          <NumberInput
-            value={file.maxMb}
-            min={1}
-            max={1024}
-            onValue={(maxMb) => patch({ logFile: { ...file, maxMb } })}
-          />
-        </Field>
+      {/* THE TWO NUMBERS ARE ABSENT WHILE THE SWITCH IS OFF, THE READING STAYS
+          (GlimStone 1.16.0). They used to be dimmed and inert, under the
+          argument that a control which vanishes teaches nobody what the mode
+          can do - which is the argument 1.10.0 reversed and 1.16.0 settled with
+          one question: does the control still do anything? Nothing writes a log
+          file while the switch is off, so a size limit and a rotation count
+          have no state behind them here; they are two boxes somebody can see,
+          read and reach for that answer nothing, with the reason sitting one
+          row up where nobody looks once they have decided this row is the
+          interesting one.
 
-        <Field label={t('settings.diagnostics.fileKeep')} hint={t('settings.diagnostics.fileKeepHint')}>
-          <NumberInput value={file.keep} min={0} max={20} onValue={(keep) => patch({ logFile: { ...file, keep } })} />
-        </Field>
+          The PATH is the other half of the same rule and goes the other way: it
+          is DATA rather than a control, it is answered by the server whether
+          anything is armed or not, and somebody deciding whether to switch the
+          log on is deciding which volume it lands on. An entry that cannot
+          answer is marked, never hidden - and this one can answer. */}
+      <div className={`grid grid-cols-1 gap-4 ${file.enabled ? 'sm:grid-cols-3' : ''}`}>
+        {file.enabled && (
+          <>
+            <Field label={t('settings.diagnostics.fileSize')} hint={t('settings.diagnostics.fileSizeHint')}>
+              <NumberInput
+                value={file.maxMb}
+                min={1}
+                max={1024}
+                onValue={(maxMb) => patch({ logFile: { ...file, maxMb } })}
+              />
+            </Field>
+
+            <Field label={t('settings.diagnostics.fileKeep')} hint={t('settings.diagnostics.fileKeepHint')}>
+              <NumberInput value={file.keep} min={0} max={20} onValue={(keep) => patch({ logFile: { ...file, keep } })} />
+            </Field>
+          </>
+        )}
 
         {/* FieldGroup and not Field: a Field is a <label>, and a label with no
             control in it names nothing. This is a reading. */}
-        {/* The server answers this even while nothing is armed, which is
-            exactly when it is wanted: somebody deciding whether to switch the
-            log on is deciding which volume it lands on. */}
         <FieldGroup label={t('settings.diagnostics.fileWhere')} hint={t('settings.diagnostics.fileWhereHint')}>
           <span className="break-all text-sm text-carbon-text" dir="ltr">
             {data.path}

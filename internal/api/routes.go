@@ -36,6 +36,12 @@ import (
 // SPA's index.html back with a 200.
 func registerAll(reg *Registry, a *app.App) {
 	registerSystem(reg, a)
+	// The two ways a login can be given a second door, beside the password
+	// routes registerSystem owns. Two register functions rather than one,
+	// because they are two decisions somebody can want separately - which is
+	// also why they are two cards on the settings page.
+	registerTwoFactor(reg, a)
+	registerPasskeys(reg, a)
 	registerTasks(reg, a)
 	registerExtract(reg, a)
 	registerBulk(reg, a)

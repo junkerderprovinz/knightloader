@@ -408,30 +408,113 @@ export function applyCachedAppearance(): void {
 // settings PATCH and never arrives in fetchSettings()'s response, so it has
 // no reason to travel through the same cache entry as three fields that do.
 //
-// Wiring: applyMotionIntensity/cacheMotionIntensity/readCachedMotionIntensity
-// are consumed by a settings-page row this module does not own (Look.tsx)
-// and by app/Layout.tsx's own boot-time apply, so the axis is live from
-// first paint everywhere, not only once that settings row mounts.
+// Wiring: applyMotion/cacheMotionIntensity/readCachedMotionIntensity are
+// consumed by a settings-page row this module does not own (Look.tsx) and by
+// app/Layout.tsx's own boot-time apply, so the axis is live from first paint
+// everywhere, not only once that settings row mounts.
+//
+// Motion, MOTION_LEVELS, DEFAULT_MOTION and applyMotion carry the reference
+// module's own names since GlimStone 1.17.0, which is when the reference grew
+// them: the axis had tokens and a document and no copyable implementation, so
+// every adopting app wrote this half itself. The two cache functions have no
+// counterpart there and keep the names they had - the reference does not
+// persist anything, on purpose.
 // ---------------------------------------------------------------------------
 
-export type MotionIntensity = 'off' | 'subtle' | 'full';
+/**
+ * The levels, quietest first.
+ *
+ * `storm` is deliberately LAST and deliberately not in MOTION_LEVELS below. It
+ * is a real level with real numbers - the :root[data-motion="storm"] block in
+ * index.css - and it is not something a picker offers.
+ *
+ * The reference calls this axis' top VISIBLE level "wild" and this app calls it
+ * "full". That difference predates the hidden level and is left alone here on
+ * purpose: the name is a stored value and a translated label in 42 catalogues,
+ * so renaming it is its own piece of work rather than a side effect of adding a
+ * fourth step.
+ */
+export type Motion = 'off' | 'subtle' | 'full' | 'storm';
 
-const MOTION_INTENSITIES: MotionIntensity[] = ['off', 'subtle', 'full'];
+/** What a picker shows. The storm is not in here; see stormTap below. */
+export const MOTION_LEVELS: Motion[] = ['off', 'subtle', 'full'];
 
 /**
- * The richest experience, not a compatibility fallback: this axis is
- * additive polish a user dials DOWN, never one they have to opt into (unlike
- * Theme's "system" default above, which exists because nothing else already
- * reads prefers-color-scheme unconditionally — prefers-reduced-motion, by
- * contrast, already gates every entrance in index.css regardless of this
- * setting, so a "system" option here would just re-derive a signal the app
- * honours everywhere already).
+ * What a STORED value may be, which is a different question from what a picker
+ * renders - and treating the two as one is the mistake an axis with a hidden
+ * level is built to expose. A persisted storm is accepted at boot even though
+ * nothing offers it, or the gesture would have produced a setting that silently
+ * forgets itself on the next reload.
  */
-export const DEFAULT_MOTION: MotionIntensity = 'full';
+export const MOTION_STORED: Motion[] = [...MOTION_LEVELS, 'storm'];
 
-/** applyMotionIntensity sets the attribute the motion tokens key off. */
-export function applyMotionIntensity(m: MotionIntensity): void {
+/**
+ * The richest experience OF THE ONES ON OFFER, not a compatibility fallback:
+ * this axis is additive polish a user dials DOWN, never one they have to opt
+ * into (unlike Theme's "system" default above, which exists because nothing
+ * else already reads prefers-color-scheme unconditionally —
+ * prefers-reduced-motion, by contrast, already gates every entrance in
+ * index.css regardless of this setting, so a "system" option here would just
+ * re-derive a signal the app honours everywhere already).
+ */
+export const DEFAULT_MOTION: Motion = 'full';
+
+/**
+ * applyMotion sets the attribute the motion tokens key off.
+ *
+ * `storm` is accepted here even though no picker offers it: somebody who found
+ * it and then reloaded must get it back. Anything else unrecognised falls to
+ * the default rather than being written through, so a hand-edited storage entry
+ * cannot put an attribute on <html> that no block in index.css answers.
+ */
+export function applyMotion(motion: Motion | string | undefined): void {
+  const m: Motion = MOTION_STORED.includes(motion as Motion) ? (motion as Motion) : DEFAULT_MOTION;
   document.documentElement.dataset.motion = m;
+}
+
+/** How many taps on the level already chosen open the one below the floor. */
+export const STORM_TAPS = 5;
+
+/**
+ * The gesture that reveals the storm, and the rule it carries.
+ *
+ * SET THE MOTION TO THE TOP LEVEL, THEN TAP THAT SAME OPTION FIVE MORE TIMES.
+ * It is the gesture of somebody pressing a button that is already pressed
+ * because they wanted more of it, which is exactly who this level is for. It
+ * cannot be reached from any other level on purpose: tapping "off" five times
+ * means somebody is annoyed, not curious, and a secret that opens under
+ * annoyance is a bug report waiting to be filed.
+ *
+ * THE RULE, and it is the part worth copying rather than the numbers: AN EASTER
+ * EGG THAT CHANGES BEHAVIOUR MUST BE SWITCHABLE BACK OFF, AND MUST NOT QUIETLY
+ * BECOME A PERMANENT ENTRY IN A SETTINGS LIST. The reference's first build
+ * stored a "found it" flag, so one gesture put a fourth option in the picker
+ * for ever - which turns a secret into a setting somebody has to explain to
+ * themselves months later with no memory of how it got there.
+ *
+ * So what keeps it visible is the plain truth about the current state:
+ *
+ *   - it is offered while it is CHOSEN, because a picker that hid the value it
+ *     is currently showing would be lying about the interface;
+ *   - otherwise only for as long as the settings screen stays open.
+ *
+ * The caller owns the screen and therefore owns how long "open" means: `found`
+ * lives in the settings screen's own state, never in storage. The CHOSEN value
+ * persists like any other. The two halves look similar and are not.
+ *
+ * Returns the level to switch to, or undefined when the tap was not the fifth.
+ * Counting lives in the caller for the same reason `found` does.
+ */
+export function stormTap(state: { taps: number }, tapped: string, current: string): Motion | undefined {
+  const top = MOTION_LEVELS[MOTION_LEVELS.length - 1];
+  if (tapped !== top || current !== top) {
+    state.taps = 0;
+    return undefined;
+  }
+  state.taps += 1;
+  if (state.taps < STORM_TAPS) return undefined;
+  state.taps = 0;
+  return 'storm';
 }
 
 const MOTION_CACHE = 'kl-motion';
@@ -440,7 +523,7 @@ const MOTION_CACHE = 'kl-motion';
  * Mirrors the chosen intensity into localStorage so the next load can apply
  * it before first paint — the same reason cacheAppearance above exists.
  */
-export function cacheMotionIntensity(m: MotionIntensity): void {
+export function cacheMotionIntensity(m: Motion): void {
   try {
     localStorage.setItem(MOTION_CACHE, m);
   } catch {
@@ -454,10 +537,10 @@ export function cacheMotionIntensity(m: MotionIntensity): void {
  * recognise, or storage access throwing outright — the same defensive shape
  * applyCachedAppearance above already uses for shape/accent/rainbow.
  */
-export function readCachedMotionIntensity(): MotionIntensity {
+export function readCachedMotionIntensity(): Motion {
   try {
     const raw = localStorage.getItem(MOTION_CACHE);
-    return MOTION_INTENSITIES.includes(raw as MotionIntensity) ? (raw as MotionIntensity) : DEFAULT_MOTION;
+    return MOTION_STORED.includes(raw as Motion) ? (raw as Motion) : DEFAULT_MOTION;
   } catch {
     return DEFAULT_MOTION;
   }

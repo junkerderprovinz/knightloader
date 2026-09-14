@@ -216,30 +216,62 @@ export function EventTargets() {
         hint={t('settings.eventTargets.titleHint')}
         right={
           <div className="flex items-center gap-2">
-            {/* The module's state, not an explanation of it: the list below is
-                dimmed, and this says which of the two reasons a list can be
-                empty this one is. */}
+            {/* The module's state, and while it is off this badge is the whole
+                of what the card's head says: the Add button beside it is GONE
+                rather than greyed, exactly as the feeds card two pages over
+                already does it. A badge is REPORTING - it answers its own
+                question - which is the one thing GlimStone keeps on screen
+                while a mode is off; a disabled Add is the other thing, a
+                control offering a decision nobody can make. */}
             {parked && <LabelBadge label={t('settings.modules.off')} />}
-            <Button icon={<IconPlus width={16} height={16} />} disabled={parked} onClick={add}>
-              {t('settings.eventTargets.add')}
-            </Button>
+            {!parked && (
+              <Button icon={<IconPlus width={16} height={16} />} onClick={add}>
+                {t('settings.eventTargets.add')}
+              </Button>
+            )}
           </div>
         }
       >
         {t('settings.eventTargets.title')}
       </SectionTitle>
 
-      {/* Dimmed and inert rather than hidden while the module is parked: a card
-          that vanishes teaches nobody that the feature exists, and the switch
-          that brings the stored targets back is one page away. */}
-      <div className={parked ? 'pointer-events-none opacity-40' : ''}>
+      {/* THE CARD STAYS, WHAT HANGS OFF THE MODULE DOES NOT (GlimStone 1.10.0,
+          and the question 1.16.0 settles it with). This used to be wrapped in
+          `pointer-events-none opacity-40` while the module was parked, under
+          the argument that a card which vanishes teaches nobody the feature
+          exists. Half of that is right and survives: the card, its title, its
+          (i) and the Off badge above are still here, and they are what says the
+          feature exists.
+
+          The other half does not, and measuring is what settles it. Parking
+          CLEARS settings.eventTargets server-side (verified against a running
+          instance: park with one target stored and the key comes back absent),
+          so while the module is off there are no rows here at all and what the
+          dimming actually covered was the empty-state sentence - prose, which
+          answers its own question and reads correctly at full strength. The one
+          real control was the Add button, and that is gone rather than greyed
+          now, exactly as the feeds card does it.
+
+          The wrapper carried a second fault too (1.9.0): every field in a row
+          carries an (i), and opacity composites a whole subtree, so each of
+          those would have rendered at 40% along with the row it explains. */}
+      <div>
         {total === 0 ? (
           // Inside the card rather than instead of it: the Add button above is
           // the only way out of this state, and swapping the card for an
           // EmptyState would take it off the page.
           <p className="py-6 text-center text-sm text-carbon-textSub">
             {t('settings.eventTargets.empty')}
-            <span className="mt-1 block text-[11px] text-carbon-textMuted">{t('settings.eventTargets.emptyHint')}</span>
+            {/* The second sentence ends in "add one", which is an invitation to
+                press a button that is not on the card while the module is
+                parked. The first sentence says what a target IS and reads
+                correctly either way, so it stays and the invitation goes with
+                the control it points at. */}
+            {!parked && (
+              <span className="mt-1 block text-[11px] text-carbon-textMuted">
+                {t('settings.eventTargets.emptyHint')}
+              </span>
+            )}
           </p>
         ) : (
           <ul className="flex flex-col">

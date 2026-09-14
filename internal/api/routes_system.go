@@ -107,25 +107,85 @@ func registerSystem(reg *Registry, a *app.App) {
 	reg.AddOpen(http.MethodGet, "/api/auth",
 		"whether a password is set and whether this client is logged in; open because the login screen asks it first",
 		func(w http.ResponseWriter, r *http.Request) {
-			writeJSON(w, map[string]bool{
+			in := authenticated(a, r)
+			out := map[string]any{
 				"enabled":       a.Auth.Enabled(),
-				"authenticated": authenticated(a, r),
-			})
+				"authenticated": in,
+			}
+			// What defences this instance has is for somebody already inside.
+			// An anonymous caller learns only whether a password is set, which
+			// the login screen has to be told anyway; whether there is a second
+			// factor on top of it, and how much of the recovery sheet is left,
+			// are answers only the settings card needs and only a session gets.
+			if in {
+				out["twoFactor"] = a.Auth.TwoFactorEnabled()
+				out["recoveryLeft"] = a.Auth.RecoveryLeft()
+			}
+			writeJSON(w, out)
 		})
-	reg.AddOpen(http.MethodPost, "/api/auth/login", "exchange the password for a session; open because it is the way in",
+	// The throttle in front of the login. Built here so it lives as long as the
+	// handler does - see routes_twofactor.go for why a second factor cannot
+	// ship without one.
+	gate := newLoginGate()
+	reg.AddOpen(http.MethodPost, "/api/auth/login", "exchange the password (and a second-factor code, when one is armed) for a session; open because it is the way in",
 		func(w http.ResponseWriter, r *http.Request) {
 			var body struct {
 				Password string `json:"password"`
+				// Code is a six-digit code from the authenticator app, or one of
+				// the recovery codes. Ignored on an instance with no second
+				// factor, so a client that always sends the field is fine.
+				Code string `json:"code"`
 			}
 			if !decodeJSON(w, r, &body) {
 				return
 			}
+			if gate.blocked(r) {
+				http.Error(w, "too many attempts, wait a moment", http.StatusTooManyRequests)
+				return
+			}
 			if !a.Auth.Check(body.Password) {
+				gate.fail(r)
+				// Deliberately says nothing about whether a second factor
+				// exists: the answer to a wrong password is the same on every
+				// instance, so it cannot be used to survey which ones are worth
+				// coming back to.
 				http.Error(w, "wrong password", http.StatusUnauthorized)
 				return
 			}
+			if a.Auth.TwoFactorEnabled() {
+				if body.Code == "" {
+					// Not a refusal - the first half worked and the server is
+					// asking for the second. 200, no session, and a flag the
+					// screen reads to know which step it is on.
+					//
+					// Deliberately NOT counted by the throttle. The sign-in
+					// screen sends the password first and the code second, so
+					// every honest login passes through here exactly once;
+					// counting it would spend an eighth of the burst on being
+					// asked a question, and it can only be reached by somebody
+					// who already has the password.
+					writeJSON(w, map[string]any{
+						"enabled": true, "authenticated": false, "twoFactorRequired": true,
+					})
+					return
+				}
+				if !a.Auth.CheckSecond(body.Code) {
+					gate.fail(r)
+					// codeRejected is what separates "the screen should ask for
+					// a code" from "the code it asked for was wrong". Without
+					// it the sign-in screen can only show one of those two
+					// states, and a mistyped digit reads as the question being
+					// asked again for no reason.
+					writeJSONStatus(w, http.StatusUnauthorized, map[string]any{
+						"enabled": true, "authenticated": false,
+						"twoFactorRequired": true, "codeRejected": true,
+					})
+					return
+				}
+			}
+			gate.pass(r)
 			setSession(w, r, a.Auth.Issue())
-			writeJSON(w, map[string]bool{"enabled": true, "authenticated": true})
+			writeJSON(w, map[string]any{"enabled": true, "authenticated": true})
 		})
 	reg.AddOpen(http.MethodPost, "/api/auth/logout", "drop this client's session; open because logging out of an expired session must work",
 		func(w http.ResponseWriter, r *http.Request) {

@@ -42,15 +42,31 @@ var (
 type stored struct {
 	Hash string `json:"hash"` // bcrypt, empty = no password set
 	Key  string `json:"key"`  // hex, signs session cookies
+	// TOTP is the base32 authenticator secret; empty means no second factor.
+	// It is written only once a code produced from it has been confirmed - see
+	// twofactor.go, where the whole reason for that is spelled out.
+	//
+	// omitempty on both of these, so an instance that never touches the feature
+	// keeps the two-line file it has always had rather than growing two null
+	// entries somebody has to wonder about.
+	TOTP string `json:"totp,omitempty"`
+	// Recovery holds the HMACs of the unspent single-use codes, never the codes.
+	Recovery []string `json:"recovery,omitempty"`
 }
 
-// Guard holds the password and signs sessions.
+// Guard holds the password, the second factor, and signs sessions.
 type Guard struct {
 	path string
 
 	mu   sync.RWMutex
 	hash []byte
 	key  []byte
+	// totp and recovery are the persisted half of the second factor; pending is
+	// the enrolment in flight, which deliberately never reaches the file. See
+	// twofactor.go.
+	totp     string
+	recovery []string
+	pending  *pending
 }
 
 // Open loads (or creates) the lock state in dir.
@@ -61,6 +77,8 @@ func Open(dir string) (*Guard, error) {
 		if err := json.Unmarshal(b, &s); err == nil {
 			g.hash = []byte(s.Hash)
 			g.key, _ = hex.DecodeString(s.Key)
+			g.totp = s.TOTP
+			g.recovery = s.Recovery
 		}
 	}
 	if len(g.key) == 0 {
@@ -92,6 +110,14 @@ func (g *Guard) SetPassword(current, next string) error {
 	if next == "" {
 		g.mu.Lock()
 		g.hash = nil
+		// The second factor goes with it. It hangs off the password, so leaving
+		// it armed would leave an instance that asks for a code with nothing to
+		// add it to - and a sheet of recovery codes still valid against a lock
+		// that no longer exists. Changing a password does NOT do this: rotating
+		// one is no reason to make somebody re-enrol a phone.
+		g.totp = ""
+		g.recovery = nil
+		g.pending = nil
 		g.mu.Unlock()
 		return g.flush()
 	}
@@ -142,6 +168,23 @@ func (g *Guard) Valid(token string) bool {
 	return err == nil && time.Now().Unix() < ts
 }
 
+// DerivedID is a stable, unguessable identifier for this instance, derived from
+// the same key that signs sessions and separated from it by purpose.
+//
+// It exists for WebAuthn, which insists on a user handle even where there is no
+// user: KnightLoader has one password and no accounts, so the account IS the
+// instance. That handle has to survive restarts - a changed one makes every
+// registered credential unusable - and must not be guessable from outside, and
+// the signing key is the only value this app already keeps that is both.
+//
+// Derived rather than handed out. The key itself signs session cookies, so
+// anything that let it leave the process would be a way to mint a session; an
+// HMAC under a named purpose gives a caller something stable to identify the
+// instance by and nothing it can work backwards from.
+func (g *Guard) DerivedID(purpose string) []byte {
+	return g.sign("knightloader:derived:" + purpose)
+}
+
 func (g *Guard) sign(msg string) []byte {
 	g.mu.RLock()
 	key := g.key
@@ -153,7 +196,12 @@ func (g *Guard) sign(msg string) []byte {
 
 func (g *Guard) flush() error {
 	g.mu.RLock()
-	s := stored{Hash: string(g.hash), Key: hex.EncodeToString(g.key)}
+	s := stored{
+		Hash:     string(g.hash),
+		Key:      hex.EncodeToString(g.key),
+		TOTP:     g.totp,
+		Recovery: g.recovery,
+	}
 	g.mu.RUnlock()
 	b, err := json.MarshalIndent(s, "", "  ")
 	if err != nil {

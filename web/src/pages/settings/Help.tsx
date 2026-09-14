@@ -354,11 +354,26 @@ function VersionNumber({
  * THE THREE COPIES NO LONGER AGREE, AND THAT IS DELIBERATE. The same constant
  * lives in the extension's options.js and the app's SettingsScreen, and until
  * 2026-09-13 all three said 1.6.0. The web UI has since been lifted through
- * 1.9.0 to 1.14.0: the scrim is a token, nothing destructive is painted red
+ * 1.9.0 to 1.17.0: the scrim is a token, nothing destructive is painted red
  * (ButtonKind has no 'danger' left to pass), the control that goes ahead sits at
  * the end of its row, the brand marks carry their own colours, and the top
  * motion intensity travels and springs instead of running the quiet shape
- * faster. The extension and the app have had none of that pass yet.
+ * faster. Then 1.15.0's second way in (a second factor and passkeys, each a
+ * card that a login GAINS rather than one that replaces it, with a refusal in
+ * prose where the environment forbids the exchange), 1.16.0's answer to the two
+ * rules that had contradicted each other for six releases (a control whose
+ * value still ACTS stays and dims, one with nothing behind it goes - the accent
+ * row and eight others were sorted by that question, and
+ * web/check-dimmed-and-inert.mjs now holds the line), and 1.17.0's hidden
+ * fourth motion level with the rule it establishes for any easter egg that
+ * changes behaviour. The extension and the app stand at 1.14.0; neither has had
+ * the last three passes.
+ *
+ * ONE THING THIS NUMBER IS AHEAD OF, WRITTEN DOWN RATHER THAN LEFT TO BE FOUND:
+ * 1.10.0 renamed the top motion level from "full" to "wild", and this surface
+ * still calls it "Voll" - a stored value plus a label in 42 catalogues, so the
+ * rename is its own piece of work. It was already missing when the number went
+ * to 1.14.0. Everything else those editions ask of this surface is in.
  *
  * So this number is per SURFACE, not per repository, and raising the other two
  * to match would be the one thing worse than them differing: a card claiming a
@@ -374,7 +389,7 @@ function VersionNumber({
  * below, and the one this constant keeps breaking: it rises when an edition is
  * really through, not when a round that meant to do it ends.
  */
-const GLIMSTONE_VERSION = '1.14.0';
+const GLIMSTONE_VERSION = '1.17.0';
 
 /**
  * The About card (jdp, 2026-08-31: "in der App und der Erweiterung und im KL

@@ -199,6 +199,10 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.downloads.onDupes', hint: 'settings.downloads.onDupesHint' },
         { key: 'settings.downloads.addAtTop', hint: 'settings.downloads.addAtTopHint' },
       ],
+      // What the countdown row reads instead of a spinner while the switch that
+      // drives it is off, one page away (GlimStone 1.16.0 - see
+      // downloads/Collector.tsx).
+      body: ['settings.downloads.autoConfirmOff'],
     },
     {
       title: 'settings.crawl.title',
@@ -368,7 +372,9 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.autoStart' },
         { key: 'settings.watchDir', hint: 'settings.watchDirHint' },
       ],
-      // The extra sentence the watch-folder hint grows while the module is parked.
+      // The sentence that stands in for the watch-folder box while the module
+      // is parked: the field is a reading then, not an input, and this is what
+      // it reads (GlimStone 1.16.0 - see Look.tsx).
       body: ['settings.downloads.watchOff'],
     },
     // Both of these are a single control with its own name on it (the quiet-mode
@@ -459,6 +465,10 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       ],
       body: [
         'settings.accentHint',
+        // The sentence the accent's own (i) grows while rainbow mode owns the
+        // colours, which is also the state the row is dimmed in (GlimStone
+        // 1.16.0 - see Look.tsx).
+        'settings.accentRainbowOwns',
         'settings.rainbowHint',
         'settings.rainbowReactiveHint',
         'settings.rainbowRotateHint',
@@ -497,6 +507,23 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.passwordCurrent' },
         { key: 'settings.passwordNew', hint: 'settings.passwordHint' },
       ],
+    },
+    // The two second doors, in the order the page draws them.
+    {
+      title: 'auth.twoFactor.title',
+      hint: 'auth.twoFactor.hint',
+      rows: [
+        { key: 'auth.twoFactor.confirmLabel' },
+        { key: 'auth.twoFactor.secretManual' },
+        { key: 'auth.twoFactor.disablePrompt' },
+      ],
+      also: ['auth.twoFactor.enable', 'auth.twoFactor.disable', 'auth.twoFactor.codesTitle'],
+    },
+    {
+      title: 'auth.passkey.title',
+      hint: 'auth.passkey.hint',
+      rows: [{ key: 'auth.passkey.nameLabel', hint: 'auth.passkey.nameHint' }],
+      also: ['auth.passkey.add', 'auth.passkey.unavailableTitle', 'auth.passkey.rename'],
     },
     {
       title: 'settings.access.cardTitle',

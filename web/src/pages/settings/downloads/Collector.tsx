@@ -99,7 +99,23 @@ export function CollectorCard({ hue }: { hue: number }) {
     <Card hue={hue} className="flex flex-col gap-5">
       <SectionTitle>{t('settings.downloads.collectorTitle')}</SectionTitle>
 
-      <div className={autoConfirming ? '' : 'opacity-40'}>
+      {/* THE BOX GOES WHILE NOTHING READS IT, THE ROW STAYS AS A READING
+          (GlimStone 1.16.0). It used to be a dimmed, locked spinner, and the
+          question the rule asks settles the box: no countdown runs while
+          "Start added links immediately" is off, so the number has no state
+          behind it and an editable-looking field that answers nothing is a
+          decision nobody can make.
+
+          What the old note got RIGHT is the other half, and it is why this row
+          does not simply vanish the way the stall and crawl fields do: the
+          switch deciding it is not one row up, it is on another page. A control
+          hanging off a switch beside it can go without trace, because the
+          reason is right there; this one would take the only pointer to where
+          the decision was made with it. So what is left is a READING - a
+          FieldGroup rather than a Field, since a <label> with no control in it
+          names nothing - and a reading is the case 1.10.0's own exception keeps
+          on screen: it answers its own question instead of refusing. */}
+      {autoConfirming ? (
         <Field
           label={t('settings.downloads.autoConfirmDelay')}
           hint={t('settings.downloads.autoConfirmDelayHint')}
@@ -109,24 +125,24 @@ export function CollectorCard({ hue }: { hue: number }) {
             min={0}
             max={86400}
             step={1}
-            disabled={!autoConfirming}
-            // The guard is repeated in the handler because NumberInput's two
-            // arrows are siblings of the <input> and do not inherit its
-            // disabled state: without this they would go on editing a field the
-            // page has just said is dead. The ceiling is the server's own -
-            // sanitizeConfirm cuts anything above a day back to a day and a
-            // negative number to 0 (internal/settings/settings_confirm.go) - so
-            // clamping here keeps the box from showing a number the save is
-            // going to quietly turn into another one. 0 is not an off switch:
-            // it confirms the instant a batch is staged, which is what every
-            // install did before this field existed.
-            onValue={(v) => {
-              if (!autoConfirming) return;
-              patch({ autoConfirmDelay: Math.max(0, Math.min(86400, Math.round(v) || 0)) });
-            }}
+            // The ceiling is the server's own - sanitizeConfirm cuts anything
+            // above a day back to a day and a negative number to 0
+            // (internal/settings/settings_confirm.go) - so clamping here keeps
+            // the box from showing a number the save is going to quietly turn
+            // into another one. 0 is not an off switch: it confirms the instant
+            // a batch is staged, which is what every install did before this
+            // field existed.
+            onValue={(v) => patch({ autoConfirmDelay: Math.max(0, Math.min(86400, Math.round(v) || 0)) })}
           />
         </Field>
-      </div>
+      ) : (
+        <FieldGroup
+          label={t('settings.downloads.autoConfirmDelay')}
+          hint={t('settings.downloads.autoConfirmDelayHint')}
+        >
+          <span className="text-sm text-carbon-textSub">{t('settings.downloads.autoConfirmOff')}</span>
+        </FieldGroup>
+      )}
 
       {/* FieldGroup and not Field: a Field is a `<label>` and hands a click on
           its caption to the first control inside it, so a Field around a tab
