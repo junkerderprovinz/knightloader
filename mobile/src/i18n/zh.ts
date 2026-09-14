@@ -120,4 +120,15 @@ export const zh: Dict = {
   'phrase.errWordCount': '这里有 {count} 个词，一组词语需要 {need} 个。',
   'relay.instancesTitle': '此中继上的实例',
   'relay.noInstances': '这一组目前没有实例在线。请检查词语，并确认至少有一台实例正在运行。',
+
+  'settings.motion': '动效',
+  'settings.motion.off': '关闭',
+  'settings.motion.subtle': '轻微',
+  'settings.motion.wild': '完整',
+  'settings.motion.storm': '风暴',
+  'settings.accentRainbowOwns': '彩虹模式正按位置分配颜色。这个颜色仍然作用于所有没有位置的元素。',
+  'settings.motionReduced': '这台手机已设置为减弱动态效果。只要如此，无论选择哪一级，这里都不会有任何动画。',
+  'settings.rainbowPaletteNoInstance': '调色板属于实例。没有连接就没有地方写入颜色，因此各个位置保持内置的八种颜色。',
+
+  'settings.motionHint': '关闭会关闭所有非必要动效;轻微让入场动效保持简短;完整则是最丰富的体验。',
 };

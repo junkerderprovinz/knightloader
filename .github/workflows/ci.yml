@@ -470,6 +470,17 @@ jobs:
       - name: Relay frame parity
         run: node extension/check-relay-seal.mjs
 
+      # The three answers to a control that cannot act (GlimStone 1.15.0 states
+      # the test, 1.16.0 settles the pair that had been contradicting itself):
+      # dim what still acts, remove what does not, and write the reason only
+      # where the environment is what forbids it. Every one of the shapes this
+      # guards was measured on the rendered page before it was fixed, and none
+      # of them is visible to the syntax check or the locale check above - a
+      # wrapper that is dimmed and switched off at once looks correct in a
+      # screenshot of the state it is not in.
+      - name: Refusals
+        run: node extension/check-refusals.mjs
+
       # Mozilla's own linter, run with --self-hosted so it checks the package
       # rather than AMO listing metadata this repository does not have.
       #
@@ -563,6 +574,23 @@ jobs:
       # somebody makes that reference stable, which is normally an optimisation.
       - name: FlatList extraData
         run: node check-extradata.mjs
+
+      # GlimStone 1.17.0's hidden fourth motion level, and the rule it exists to
+      # establish: an easter egg that changes BEHAVIOUR must switch back off and
+      # must not quietly become a permanent entry in a settings list. This guard
+      # RUNS the module rather than grepping it - Node strips the types, so it
+      # calls resolveMotion, asMotion and stormTap for real and measures what
+      # comes back, including that a phone whose owner asked the system for less
+      # motion never gets storm's numbers.
+      - name: Hidden motion level
+        run: node check-hidden-motion-level.mjs
+
+      # GlimStone 1.16.0: nothing is dimmed and switched off at the same time.
+      # On Android that pair is worse than on the web - pointerEvents="none"
+      # takes the subtree away from TalkBack as well, so a control that still
+      # decides something becomes unreachable rather than merely discouraged.
+      - name: Dimmed and inert
+        run: node check-dimmed-and-inert.mjs
 
   # The desktop bundle's own module, compiled and vetted but not packaged.
   #

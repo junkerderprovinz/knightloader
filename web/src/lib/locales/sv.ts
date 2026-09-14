@@ -2708,7 +2708,7 @@ export const sv: Dict = {
   'settings.resolvers.toolsAutoCheckHint': 'En förfrågan till api.github.com varje gång den här sidan laddas, inte mer: ingenting laddas ned och ingenting ersätts utan att du trycker på knappen. Av som standard, för en maskin som du driver själv ska inte ringa ut av sig själv innan du har tillåtit det.',
   'settings.diagnostics.toolsMissing': 'inte hittad',
   'settings.eventTargets.problem.redirect': 'Adressen svarar med en omdirigering, och den här instansen följer den inte. Varje headervärde på den här raden räknas som en hemlighet, och en omdirigering till en annan värd skulle lämna det i händerna på den som driver den värden. Öppna adressen i en webbläsare, se var den landar, och skriv in den adressen här i stället.',
-  'auth.twoFactor.title': 'Andra faktorn',
+  'auth.twoFactor.title': 'Tvåfaktorsautentisering',
   'auth.twoFactor.hint': 'En sexsiffrig kod från en autentiseringsapp, utöver lösenordet. Den står bredvid lösenordet och ersätter det aldrig. Den här instansen har inga användarkonton, så det finns ingen annan som kan låsa upp den åt dig: förvara återställningskoderna någon annanstans än på telefonen som skapar koderna. Är båda borta kör knightloader -reset-2fa på maskinen, eller stoppa KnightLoader och ta bort posterna totp och recovery ur auth.json i datamappen. Lösenordet fungerar ändå vidare.',
   'auth.twoFactor.on': 'På',
   'auth.twoFactor.off': 'Av',

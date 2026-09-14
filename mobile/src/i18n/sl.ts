@@ -120,4 +120,15 @@ export const sl: Dict = {
   'phrase.errWordCount': 'To je {count} besed - fraza jih potrebuje {need}.',
   'relay.instancesTitle': 'Na tem releju',
   'relay.noInstances': 'Trenutno nobena instanca te skupine ni na spletu. Preveri frazo in ali teče vsaj ena instanca.',
+
+  'settings.motion': 'Gibanje',
+  'settings.motion.off': 'Izklopljeno',
+  'settings.motion.subtle': 'Subtilno',
+  'settings.motion.wild': 'Polno',
+  'settings.motion.storm': 'Nevihta',
+  'settings.accentRainbowOwns': 'Mavrični način zdaj razdeljuje barve po položaju. Ta barva še vedno velja povsod, kjer položaja ni.',
+  'settings.motionReduced': 'Telefon je nastavljen na manj gibanja. Dokler je tako, se tu nič ne premika, ne glede na izbrano stopnjo.',
+  'settings.rainbowPaletteNoInstance': 'Paleta pripada instanci. Brez povezave barve ni kam zapisati, zato mesta obdržijo osem vgrajenih barv.',
+
+  'settings.motionHint': 'Izklopljeno izklopi vsako nebistveno animacijo; Subtilno ohranja vstope kratke; Polno je najbogatejša izkušnja.',
 };

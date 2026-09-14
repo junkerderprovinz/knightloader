@@ -388,8 +388,16 @@ function VersionNumber({
  * other files and moves with them. Which is the standing rule for the number
  * below, and the one this constant keeps breaking: it rises when an edition is
  * really through, not when a round that meant to do it ends.
+ *
+ * 1.18.0 is a one-rule edition and it came FROM here: the second-factor card
+ * shipped titled "Zweiter Faktor", jdp reported it, and the language turned out
+ * to describe everything those two cards must do and never what they are
+ * called. The rule now lives in GlimStone ("a card that offers a named,
+ * established capability carries that capability's name"), and this surface
+ * satisfies it - auth.twoFactor.title is the established phrase in all 42
+ * catalogues, looked up per language rather than translated from the English.
  */
-const GLIMSTONE_VERSION = '1.17.0';
+const GLIMSTONE_VERSION = '1.18.0';
 
 /**
  * The About card (jdp, 2026-08-31: "in der App und der Erweiterung und im KL

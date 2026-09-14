@@ -2707,7 +2707,7 @@ export const hu: Dict = {
   'settings.resolvers.toolsAutoCheckHint': 'Egy kérés az api.github.com címre az oldal minden betöltésekor, és semmi több: semmit nem töltünk le és semmit nem cserélünk le anélkül, hogy megnyomnád a gombot. Alapból ki van kapcsolva, mert a magad üzemeltette gépnek nem kell magától kifelé telefonálnia, amíg nem engedted meg.',
   'settings.diagnostics.toolsMissing': 'nem található',
   'settings.eventTargets.problem.redirect': 'A cím átirányítással válaszol, és ez a példány nem követi. Ebben a sorban minden fejlécérték titoknak számít, és egy másik hosztra mutató átirányítás annak a hosztnak az üzemeltetője kezébe adná. Nyisd meg a címet a böngészőben, nézd meg, hova jut, és azt a címet írd be ide.',
-  'auth.twoFactor.title': 'Második lépcső',
+  'auth.twoFactor.title': 'Kétlépcsős azonosítás',
   'auth.twoFactor.hint': 'Hatjegyű kód egy hitelesítő alkalmazásból, a jelszó mellé. A jelszó mellett áll, és soha nem lép a helyébe. Ennek a példánynak nincsenek felhasználói fiókjai, tehát nincs más, aki feloldhatná neked: a helyreállítási kódokat máshol tartsd, mint azon a telefonon, amelyik a kódokat készíti. Ha mindkettő elveszett, futtasd a gépen a knightloader -reset-2fa parancsot, vagy állítsd le a KnightLoadert, és töröld a totp és recovery bejegyzéseket az adatmappa auth.json fájljából. A jelszó mindkét esetben tovább működik.',
   'auth.twoFactor.on': 'Be',
   'auth.twoFactor.off': 'Ki',

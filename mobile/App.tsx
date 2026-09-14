@@ -13,6 +13,7 @@ import SettingsScreen from './src/screens/SettingsScreen';
 import LanguagePickerScreen from './src/screens/LanguagePickerScreen';
 import { fetchAppearance, setRainbowPalette } from './src/api/client';
 import { AppearanceProvider, useAppearance } from './src/theme/AppearanceContext';
+import { MotionProvider } from './src/theme/MotionContext';
 import { I18nProvider } from './src/i18n/I18nContext';
 
 type RootStackParamList = {
@@ -26,16 +27,25 @@ type RootStackParamList = {
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-// The provider sits ABOVE everything, because look is applied at the root of
+// The providers sit ABOVE everything, because look is applied at the root of
 // an app and never by the screen that edits it: a screen that paints itself
 // leaves every other screen behind on the old value, and the settings page is
 // the last place to notice.
+//
+// Motion is its own provider rather than four more fields on the appearance
+// one, and the split is the point: appearance is what an INSTANCE may lead on -
+// colour, corners, the palette - while motion belongs to this phone and the
+// person holding it. Half of it is an operating-system setting no server has
+// any business overriding, and it never travels over the wire in either
+// direction.
 export default function App() {
   return (
     <AppearanceProvider>
-      <I18nProvider>
-        <Shell />
-      </I18nProvider>
+      <MotionProvider>
+        <I18nProvider>
+          <Shell />
+        </I18nProvider>
+      </MotionProvider>
     </AppearanceProvider>
   );
 }
@@ -230,8 +240,9 @@ function Shell() {
                 }}
                 // The rainbow palette belongs to the instance, so editing one
                 // is a write over the wire rather than a local preference - see
-                // setRainbowPalette. Passed only when there IS a connection, so
-                // the row is inert instead of a control that fails.
+                // setRainbowPalette. Passed only when there IS a connection,
+                // which is what makes the settings screen drop the row and say
+                // why instead of drawing eight swatches no press can reach.
                 onSetPalette={
                   conn
                     ? async (palette) => setInstanceAppearance(await setRainbowPalette(conn, palette))

@@ -2692,7 +2692,7 @@ export const it: Dict = {
   'settings.resolvers.toolsAutoCheckHint': 'Una richiesta a api.github.com a ogni caricamento di questa pagina, e nient’altro: non viene scaricato niente e non viene sostituito niente senza che tu prema il pulsante. Di base è spento, perché una macchina che gestisci tu non deve telefonare fuori da sola prima che tu l’abbia permesso.',
   'settings.diagnostics.toolsMissing': 'non trovato',
   'settings.eventTargets.problem.redirect': 'L’indirizzo risponde con un reindirizzamento, e questa istanza non lo segue. Ogni valore di intestazione in questa riga vale come un segreto, e un reindirizzamento verso un altro host lo consegnerebbe a chi possiede quell’host. Apri l’indirizzo in un browser, guarda dove finisce, e scrivi qui quello.',
-  'auth.twoFactor.title': 'Secondo fattore',
+  'auth.twoFactor.title': 'Autenticazione a due fattori',
   'auth.twoFactor.hint': 'Un codice di sei cifre da un\'app di autenticazione, oltre alla password. Sta accanto alla password e non la sostituisce mai. Questa istanza non ha account utente, quindi non c\'è nessun altro che possa sbloccarla al posto tuo: tieni i codici di recupero in un posto diverso dal telefono che produce i codici. Se perdi entrambi, esegui knightloader -reset-2fa sulla macchina, oppure ferma KnightLoader ed elimina le voci totp e recovery dal file auth.json nella cartella dei dati. In ogni caso la password continua a funzionare.',
   'auth.twoFactor.on': 'Attivo',
   'auth.twoFactor.off': 'Disattivo',

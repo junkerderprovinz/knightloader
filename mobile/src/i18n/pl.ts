@@ -120,4 +120,15 @@ export const pl: Dict = {
   'phrase.errWordCount': 'To {count} słów - fraza potrzebuje {need}.',
   'relay.instancesTitle': 'Na tym przekaźniku',
   'relay.noInstances': 'Żadna instancja z tej grupy nie jest teraz online. Sprawdź frazę i to, czy działa przynajmniej jedna instancja.',
+
+  'settings.motion': 'Ruch',
+  'settings.motion.off': 'Wyłączone',
+  'settings.motion.subtle': 'Subtelne',
+  'settings.motion.wild': 'Pełne',
+  'settings.motion.storm': 'Burza',
+  'settings.accentRainbowOwns': 'Tryb tęczy rozdaje teraz kolory według pozycji. Ten kolor nadal obowiązuje wszędzie tam, gdzie pozycji nie ma.',
+  'settings.motionReduced': 'Telefon jest ustawiony na ograniczenie ruchu. Dopóki tak jest, nic się tu nie porusza, niezależnie od wybranego poziomu.',
+  'settings.rainbowPaletteNoInstance': 'Paleta należy do instancji. Bez połączenia nie ma dokąd zapisać koloru, więc pozycje zachowują osiem wbudowanych barw.',
+
+  'settings.motionHint': 'Wyłączone wyłącza każdą zbędną animację; Subtelne skraca pojawienia się; Pełne to najbogatsze wrażenia.',
 };

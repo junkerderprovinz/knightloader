@@ -2994,7 +2994,7 @@ export const en = {
   'settings.resolvers.toolsAutoCheckHint': 'One request to api.github.com each time this page loads, and nothing beyond it: nothing is downloaded and nothing is replaced without you pressing the button. Off by default, because a machine you run yourself should not call out on its own until you have said it may.',
   'settings.diagnostics.toolsMissing': 'not found',
   'settings.eventTargets.problem.redirect': 'The address answers with a redirect and this instance does not follow it. Every header value on this row is treated as a secret, and a redirect to another host would hand it to whoever owns that host. Open the address in a browser, see where it lands, and type that address here instead.',
-  'auth.twoFactor.title': 'Second factor',
+  'auth.twoFactor.title': 'Two-factor authentication',
   'auth.twoFactor.hint': 'A six-digit code from an authenticator app, on top of the password. It stands beside the password and never replaces it. This instance has no user accounts, so there is nobody else who could unlock it for you: keep the recovery codes somewhere other than the phone that produces the codes. If both are gone, run knightloader -reset-2fa on the machine, or stop KnightLoader and delete the totp and recovery entries from auth.json in the data folder. The password keeps working either way.',
   'auth.twoFactor.on': 'On',
   'auth.twoFactor.off': 'Off',

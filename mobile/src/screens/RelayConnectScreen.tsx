@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Animated, Easing, FlatList, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Animated, FlatList, StyleSheet, Text, TextInput, View } from 'react-native';
 import QRScanner from '../components/QRScanner';
 import { closeRelayClient, relayClientFor, type RelaySibling } from '../api/relayClient';
 import { DEFAULT_RELAY_URL, PhraseError, frameKeyFromPhrase, keyFromPhrase } from '../api/seedphrase';
@@ -8,6 +8,7 @@ import { relayIdentity } from '../storage/relayIdentity';
 import { addConnection, listConnections, setActiveConnectionId } from '../storage/connections';
 import type { RelayConnection, ServerConnection } from '../api/types';
 import { useAppearance } from '../theme/AppearanceContext';
+import { useShake } from '../theme/MotionContext';
 import { TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
 import { GlimButton } from '../components/glim';
@@ -76,29 +77,20 @@ export default function RelayConnectScreen({
    * rule eating the product. An EMPTY field carries no such information, and
    * that is the case he is describing.
    *
-   * THE GEOMETRY IS THE HOUSE'S, not this screen's. `glim-shake` is a 360ms
-   * ease-in-out translateX oscillation decaying +-4, -+4, +-2, -+2 through its
-   * middle four keyframes, and the web UI (index.css) and the extension
+   * THE GEOMETRY IS THE HOUSE'S, not this screen's, and it is not even this
+   * file's any more. `glim-shake` is a translateX oscillation decaying +-4,
+   * -+4, +-2, -+2 over 360ms, and the web UI (index.css) and the extension
    * (glimstone.css) both carry exactly that. This ran five 55ms steps at +-7
    * instead, so one gesture had three different shapes across one product -
-   * which is the whole reason those numbers are written down at all. Five
-   * segments of 72ms is the same 360ms, and the fractions below are the same
-   * decay read against a +-4 range.
+   * which is the whole reason those numbers are written down at all.
+   *
+   * The routine now lives in theme/MotionContext's useShake, where it is one
+   * copy instead of the two this file and SettingsScreen were keeping, and how
+   * far and how long it swings comes off the motion level rather than being
+   * typed here: at the quietest level there is no travel at all and the button
+   * dips in opacity instead, because an invisible shake carries no refusal.
    */
-  const wackeln = useRef(new Animated.Value(0)).current;
-  const zittern = useCallback(() => {
-    wackeln.setValue(0);
-    Animated.sequence(
-      [1, -1, 0.5, -0.5, 0].map((zu) =>
-        Animated.timing(wackeln, {
-          toValue: zu,
-          duration: 72,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-      ),
-    ).start();
-  }, [wackeln]);
+  const { style: zitterStil, shake: zittern } = useShake();
   const [sibs, setSibs] = useState<RelaySibling[]>([]);
   // What the running client was opened with. State, not a ref: the instance
   // list below only renders once this is set, so the screen has to re-render
@@ -293,11 +285,7 @@ export default function RelayConnectScreen({
         }}
       />
 
-      <Animated.View
-        style={{
-          transform: [{ translateX: wackeln.interpolate({ inputRange: [-1, 1], outputRange: [-4, 4] }) }],
-        }}
-      >
+      <Animated.View style={zitterStil}>
       <GlimButton
         hue={1}
         label={t('relay.joinButton')}

@@ -2708,7 +2708,7 @@ export const lt: Dict = {
   'settings.resolvers.toolsAutoCheckHint': 'Po vienai užklausai į api.github.com kiekvieną kartą, kai šis puslapis įsikelia, ir daugiau nieko: nieko neatsisiunčiama ir niekas nepakeičiama, kol nepaspaudi mygtuko. Numatyta išjungta, nes mašina, kurią valdai tu pats, neturi pati skambinti į išorę, kol tu to neleidai.',
   'settings.diagnostics.toolsMissing': 'nerasta',
   'settings.eventTargets.problem.redirect': 'Adresas atsako peradresavimu, ir šis egzempliorius jo neseka. Kiekviena šios eilutės antraštės reikšmė laikoma paslaptimi, o peradresavimas į kitą hostą atiduotų ją į rankas tam, kam tas hostas priklauso. Atverk adresą naršyklėje, pažiūrėk, kur jis nuveda, ir įrašyk čia tą adresą.',
-  'auth.twoFactor.title': 'Antras veiksnys',
+  'auth.twoFactor.title': 'Dviejų veiksnių tapatybės nustatymas',
   'auth.twoFactor.hint': 'Šešių skaitmenų kodas iš tapatybės nustatymo programėlės, be slaptažodžio. Jis stovi šalia slaptažodžio ir niekada jo nepakeičia. Ši instancija neturi naudotojų paskyrų, todėl nėra kito žmogaus, kuris ją tau atrakintų: atkūrimo kodus laikyk kitur nei telefone, kuris kodus generuoja. Jei dingo abu, kompiuteryje paleisk knightloader -reset-2fa arba sustabdyk KnightLoader ir ištrink įrašus totp bei recovery iš failo auth.json duomenų aplanke. Slaptažodis abiem atvejais veikia toliau.',
   'auth.twoFactor.on': 'Įjungta',
   'auth.twoFactor.off': 'Išjungta',

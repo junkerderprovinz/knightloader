@@ -2702,7 +2702,7 @@ export const eu: Dict = {
   'settings.resolvers.toolsAutoCheckHint': 'Eskaera bat api.github.com gunera orri hau kargatzen den bakoitzean, eta besterik ez: ez da ezer deskargatzen eta ez da ezer ordezten zuk botoia sakatu gabe. Lehenetsita itzalita, zuk zeuk kudeatzen duzun makina batek ez baitu bere kabuz kanpora deitu behar, zuk baimena eman aurretik.',
   'settings.diagnostics.toolsMissing': 'ez da aurkitu',
   'settings.eventTargets.problem.redirect': 'Helbideak birbideratze batekin erantzuten du, eta instantzia honek ez dio jarraitzen. Errenkada honetako goiburu-balio oro sekretutzat hartzen da, eta beste ostalari baterako birbideratze batek ostalari horren jabearen esku utziko luke. Ireki helbidea nabigatzailean, begiratu non amaitzen duen, eta idatzi hemen helbide hori.',
-  'auth.twoFactor.title': 'Bigarren faktorea',
+  'auth.twoFactor.title': 'Bi faktoreko autentifikazioa',
   'auth.twoFactor.hint': 'Autentifikazio-aplikazio bateko sei zifrako kodea, pasahitzaz gain. Pasahitzaren ondoan dago eta ez du inoiz ordezkatzen. Instantzia honek ez du erabiltzaile-konturik, beraz ez dago beste inor zure ordez desblokeatuko duenik: gorde berreskuratze-kodeak kodeak sortzen dituen telefonoa ez den beste leku batean. Biak galtzen badituzu, exekutatu makinan knightloader -reset-2fa, edo gelditu KnightLoader eta ezabatu totp eta recovery sarrerak datu-karpetako auth.json fitxategitik. Pasahitzak bi kasuetan funtzionatzen jarraitzen du.',
   'auth.twoFactor.on': 'Piztuta',
   'auth.twoFactor.off': 'Itzalita',

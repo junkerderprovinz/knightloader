@@ -206,6 +206,19 @@ header on the socket too, not a query parameter — see `src/api/client.ts`'s
   inline from that object rather than from its stylesheet — a
   `StyleSheet.create` block is built once and cannot follow a theme change.
 
+  Motion is the second axis and sits in its own pair, `motion.ts` (the table
+  of figures per level, plus the gesture that reveals the level no picker
+  lists) and `MotionContext.tsx`. It is separate from appearance because an
+  instance may lead on colour and corners and has no business leading on this:
+  how much a phone moves belongs to that phone, and half of it is an
+  operating-system setting. `MotionContext` is the **only** reader of
+  `AccessibilityInfo.isReduceMotionEnabled` in the app, and that is the phone's
+  stand-in for the web's `@media (prefers-reduced-motion: no-preference)`
+  block: there the accessibility signal wins because of where the CSS sits,
+  here because one function hands every level out and answers `off` while the
+  signal is on. `check-hidden-motion-level.mjs` fails if a second reader
+  appears.
+
 ## Why the app allows cleartext HTTP
 
 `app.json` sets `expo-build-properties`' `android.usesCleartextTraffic: true`,

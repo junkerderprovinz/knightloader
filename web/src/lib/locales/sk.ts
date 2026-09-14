@@ -2718,7 +2718,7 @@ export const sk: Dict = {
   'settings.resolvers.toolsAutoCheckHint': 'Jedna požiadavka na api.github.com pri každom načítaní tejto stránky, nič viac: nič sa nesťahuje a nič sa nenahradí bez toho, aby si stlačil tlačidlo. Štandardne vypnuté, lebo stroj, ktorý si prevádzkuješ sám, nemá sám od seba telefonovať von, kým to nedovolíš.',
   'settings.diagnostics.toolsMissing': 'nenájdené',
   'settings.eventTargets.problem.redirect': 'Adresa odpovedá presmerovaním a táto inštancia ho nesleduje. Každá hodnota hlavičky v tomto riadku sa berie ako tajomstvo, a presmerovanie na iného hostiteľa by ju dalo do ruky jeho prevádzkovateľovi. Otvor adresu v prehliadači, pozri sa, kde pristane, a zadaj tú.',
-  'auth.twoFactor.title': 'Druhý faktor',
+  'auth.twoFactor.title': 'Dvojfaktorové overenie',
   'auth.twoFactor.hint': 'Šesťmiestny kód z overovacej aplikácie, navyše k heslu. Stojí vedľa hesla a nikdy ho nenahrádza. Táto inštancia nemá používateľské účty, takže nie je nikto ďalší, kto by ti ju odomkol: obnovovacie kódy si ulož inam než na telefón, ktorý kódy vytvára. Ak prídeš o oboje, spusti na stroji knightloader -reset-2fa, alebo zastav KnightLoader a zmaž položky totp a recovery zo súboru auth.json v dátovom priečinku. Heslo v oboch prípadoch funguje ďalej.',
   'auth.twoFactor.on': 'Zapnuté',
   'auth.twoFactor.off': 'Vypnuté',

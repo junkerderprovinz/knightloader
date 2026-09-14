@@ -120,4 +120,15 @@ export const ms: Dict = {
   'phrase.errWordCount': 'Ini {count} perkataan - satu frasa perlukan {need}.',
   'relay.instancesTitle': 'Pada geganti ini',
   'relay.noInstances': 'Tiada tika dalam kumpulan ini dalam talian sekarang. Semak frasa itu, dan pastikan sekurang-kurangnya satu tika sedang berjalan.',
+
+  'settings.motion': 'Gerakan',
+  'settings.motion.off': 'Mati',
+  'settings.motion.subtle': 'Halus',
+  'settings.motion.wild': 'Penuh',
+  'settings.motion.storm': 'Ribut',
+  'settings.accentRainbowOwns': 'Mod pelangi sedang mengagihkan warna mengikut kedudukan. Warna ini masih digunakan pada semua yang tiada kedudukan.',
+  'settings.motionReduced': 'Telefon anda ditetapkan untuk mengurangkan gerakan. Selagi begitu, tiada apa-apa bergerak di sini, walau apa pun tahap yang dipilih.',
+  'settings.rainbowPaletteNoInstance': 'Palet milik instans. Tanpa sambungan tiada tempat untuk menulis warna, jadi kedudukannya kekal dengan lapan warna terbina dalam.',
+
+  'settings.motionHint': 'Mati mematikan setiap animasi yang tidak penting; Halus mengekalkan kemunculan yang ringkas; Penuh ialah pengalaman paling kaya.',
 };

@@ -1,18 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  AccessibilityInfo,
-  Animated,
-  Easing,
-  FlatList,
-  PanResponder,
-  StyleSheet,
-  View,
-  type ViewStyle,
-} from 'react-native';
+import { useCallback, useRef, useState } from 'react';
+import { Animated, Easing, FlatList, PanResponder, StyleSheet, View, type ViewStyle } from 'react-native';
 // The cell wrapper's own prop shape, taken from the list rather than
 // re-declared: a hand-written copy is a copy that can drift from the version
 // installed, and this component is only correct if it matches exactly.
 import type { CellRendererProps } from '@react-native/virtualized-lists';
+import { settle, useMotion } from '../theme/MotionContext';
 
 /**
  * Long-press to pick a row up, drag to move it, let go to drop.
@@ -41,9 +33,11 @@ import type { CellRendererProps } from '@react-native/virtualized-lists';
  *     other.
  *   - **The others move as it passes**, not on release, so the gap is always
  *     where the row would land.
- *   - **Reduced motion drops the wiggle and the lift's scale**, and keeps the
- *     shadow and the gap. The gesture still has to be legible; it just stops
- *     moving decoratively.
+ *   - **The quietest motion level drops the wiggle and the lift's scale**, and
+ *     keeps the shadow and the gap. The gesture still has to be legible; it
+ *     just stops moving decoratively. A phone whose owner asked the system for
+ *     less movement resolves to that level whatever is chosen in settings - see
+ *     theme/MotionContext, which is the only place that asks.
  *
  * Two mechanics are worth knowing before editing this:
  *
@@ -89,38 +83,35 @@ export default function DragList({
   const [drag, setDrag] = useState<{ from: number; to: number } | null>(null);
 
   /**
-   * Whether the person using this phone has asked for less movement.
+   * How much this list is allowed to move.
    *
-   * Reduced motion takes the WIGGLE and the lift's SCALE away and keeps the
-   * shadow and the gap - the gesture still has to be legible, it just stops
-   * moving decoratively. Of everything this component animates, the wiggle is
-   * the clearest case there is: it is a loop that runs for as long as a finger
-   * is down, and a continuous animation is exactly the category the setting
-   * exists for.
+   * It used to ask AccessibilityInfo itself, which was right as far as it went
+   * and is now one answer too many: the motion axis (GlimStone's, see
+   * theme/motion.ts) has a user-facing level as well as the system signal, and
+   * the two have to be resolved together or a screen ends up honouring one and
+   * not the other. MotionContext is the single place that reads the platform
+   * and the single place that decides, and the system signal still WINS there -
+   * it resolves to `off` whatever the user picked, so nothing below this line
+   * can animate its way past somebody who asked their phone for less movement.
    *
-   * Read from the platform rather than from a switch of our own. React Native
-   * ships both halves of this - the query and the change event - so honouring
-   * it costs no new dependency, which matters here because avoiding new native
-   * dependencies is the stated reason this whole component is hand-rolled.
-   *
-   * Both a state and a ref: the render needs the value to drop the scale, and
-   * the wiggle starts from inside a callback that must not be rebuilt by the
-   * state changes the gesture itself causes.
+   * What each level takes away is unchanged: at `off` the WIGGLE never starts
+   * and the lift's SCALE is 1, while the shadow and the neighbours' gap stay at
+   * every level - they are what tells the eye which row is in the hand and
+   * where it would land, and neither is decorative movement. Of everything this
+   * component animates the wiggle is the clearest case there is: a loop that
+   * runs for as long as a finger is down, which is exactly the category the
+   * system setting exists for, so it gets a true stop rather than a slower
+   * version of itself.
    */
-  const [reduziert, setReduziert] = useState(false);
-  const reduziertRef = useRef(false);
-  reduziertRef.current = reduziert;
-  useEffect(() => {
-    let lebt = true;
-    void AccessibilityInfo.isReduceMotionEnabled().then((an) => {
-      if (lebt) setReduziert(an);
-    });
-    const sub = AccessibilityInfo.addEventListener('reduceMotionChanged', setReduziert);
-    return () => {
-      lebt = false;
-      sub.remove();
-    };
-  }, []);
+  const { motion, n } = useMotion();
+  // Both ride in refs as well: the wiggle and the drag's end run from inside
+  // callbacks that must not be rebuilt by the state changes the gesture itself
+  // causes - beenden() in particular is the one that must stay identical across
+  // a drag, because two handlers race to call it.
+  const bewegung = useRef(n);
+  bewegung.current = n;
+  const motionRef = useRef(motion);
+  motionRef.current = motion;
 
   /**
    * The list is FROZEN for as long as a drag is armed.
@@ -219,23 +210,32 @@ export default function DragList({
   }).current;
 
   const lift = useRef(new Animated.Value(0)).current;
+  /** How far into the pick-up the dragged row is, 0 to 1. Its own value rather
+   *  than a scale in points, so the level's liftScale can change under it
+   *  without the spring having to be restarted. */
+  const hebung = useRef(new Animated.Value(0)).current;
   const wiggle = useRef(new Animated.Value(0)).current;
   const wiggleLoop = useRef<Animated.CompositeAnimation | null>(null);
 
   const startWiggle = useCallback(() => {
     // Not started at all rather than started and muted: an infinite animation
-    // under reduced motion gets a true stop, not a slower version of itself.
+    // at the quietest level gets a true stop, not a slower version of itself.
     // What the wiggle was saying - "this list is editable now" - is still said
     // by the row that lifts and by the neighbours stepping aside, both of which
     // stay.
-    if (reduziertRef.current) return;
+    const b = bewegung.current;
+    if (b.wiggleDeg === 0 || b.wiggleDur === 0) return;
     wiggleLoop.current?.stop();
     wiggle.setValue(0);
+    // A quarter out, a half back across, a quarter home: the same 1:2:1 this
+    // loop has always run, with the total now coming off the level's table
+    // instead of being three literals.
+    const viertel = b.wiggleDur / 4;
     wiggleLoop.current = Animated.loop(
       Animated.sequence([
-        Animated.timing(wiggle, { toValue: 1, duration: 90, easing: Easing.linear, useNativeDriver: true }),
-        Animated.timing(wiggle, { toValue: -1, duration: 180, easing: Easing.linear, useNativeDriver: true }),
-        Animated.timing(wiggle, { toValue: 0, duration: 90, easing: Easing.linear, useNativeDriver: true }),
+        Animated.timing(wiggle, { toValue: 1, duration: viertel, easing: Easing.linear, useNativeDriver: true }),
+        Animated.timing(wiggle, { toValue: -1, duration: viertel * 2, easing: Easing.linear, useNativeDriver: true }),
+        Animated.timing(wiggle, { toValue: 0, duration: viertel, easing: Easing.linear, useNativeDriver: true }),
       ]),
     );
     wiggleLoop.current.start();
@@ -289,7 +289,17 @@ export default function DragList({
     gefroren.current = liste;
     setDrag({ from: index, to: index });
     startWiggle();
-  }, [startWiggle]);
+    // THE ROW RISES ON THE LEVEL'S OWN SPRING, and this is where GlimStone
+    // 1.17.0's springDamping is actually spent. The scale used to jump from 1
+    // to 1.03 in one frame; it now overshoots a little and settles at the top
+    // visible level, and keeps wobbling noticeably longer at the hidden one -
+    // which is the whole character of that level, reached with a number rather
+    // than with an animation of its own. At `off` settle() writes the value
+    // instead of animating it, and liftScale is 1 there anyway, so the row
+    // simply does not grow.
+    hebung.setValue(0);
+    settle(hebung, 1, motionRef.current);
+  }, [hebung, startWiggle]);
 
   /**
    * End the drag, from wherever notices first.
@@ -306,11 +316,29 @@ export default function DragList({
   const beenden = useCallback(() => {
     cancelArm();
     stopWiggle();
+    // BOTH ARE WRITTEN, NOT SPRUNG, and that is deliberate rather than an
+    // oversight about where the new spring belongs.
+    //
+    // setDrag(null) two lines down takes `gezogen` away on the very next
+    // render, and the row's translateY switches from this value to the
+    // neighbours' plain offset in the same frame - so a spring started here
+    // would animate a number nothing draws. A settle that cannot be seen is
+    // worse than a snap: it reads as working in the code and does nothing on
+    // the screen, which is exactly the shape of defect this file has collected
+    // before. The visible half of the gesture is the pick-up, in arm() above.
+    //
+    // Springing the DROP properly means holding the row at its lifted offset
+    // until it has travelled to its slot, which means not clearing the drag
+    // synchronously - and the synchronous clear is the fix for a race two
+    // handlers have over one lift (see the paragraph above). That is a real
+    // improvement and a separate one; it does not get smuggled in behind an
+    // intensity table.
     lift.setValue(0);
+    hebung.setValue(0);
     panning.current = false;
     dragRef.current = null;
     setDrag(null);
-  }, [cancelArm, lift, stopWiggle]);
+  }, [cancelArm, hebung, lift, stopWiggle]);
   // Through a ref, so the one long-lived PanResponder never captures a stale
   // copy of it.
   const beendenRef = useRef(beenden);
@@ -488,16 +516,26 @@ export default function DragList({
               {
                 transform: [
                   { translateY: gezogen ? lift : versatz },
-                  // The lift's SCALE is the other half reduced motion drops.
-                  // styles.lifted's shadow and the neighbours' versatz above
-                  // are untouched: they are what tells the eye which row is in
-                  // the hand and where it would land, and neither of them is
-                  // decorative movement.
-                  { scale: gezogen && !reduziert ? 1.03 : 1 },
+                  // The lift's SCALE is the other half the quietest level
+                  // drops - liftScale is 1 there, so this reads the table
+                  // rather than branching, and it rides the pick-up spring
+                  // rather than appearing in one frame. styles.lifted's shadow
+                  // and the neighbours' versatz above are untouched at every
+                  // level: they are what tells the eye which row is in the hand
+                  // and where it would land, and neither of them is decorative
+                  // movement.
+                  {
+                    scale: gezogen
+                      ? hebung.interpolate({ inputRange: [0, 1], outputRange: [1, n.liftScale] })
+                      : 1,
+                  },
                   {
                     rotate:
                       armed && !gezogen
-                        ? wiggle.interpolate({ inputRange: [-1, 1], outputRange: ['-0.7deg', '0.7deg'] })
+                        ? wiggle.interpolate({
+                            inputRange: [-1, 1],
+                            outputRange: [`-${n.wiggleDeg}deg`, `${n.wiggleDeg}deg`],
+                          })
                         : '0deg',
                   },
                 ],

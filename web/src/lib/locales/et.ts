@@ -2699,7 +2699,7 @@ export const et: Dict = {
   'settings.resolvers.toolsAutoCheckHint': 'Üks päring aadressile api.github.com iga kord, kui see leht laadib, ja rohkem mitte midagi: midagi ei laadita alla ega asendata ilma, et sa nupule vajutaksid. Vaikimisi väljas, sest masin, mida sa ise pead, ei tohiks omal käel välja helistada enne, kui sa oled seda lubanud.',
   'settings.diagnostics.toolsMissing': 'ei leitud',
   'settings.eventTargets.problem.redirect': 'Aadress vastab ümbersuunamisega ja see eksemplar ei järgi seda. Iga selle rea päise väärtus loeb saladuseks, ja ümbersuunamine teisele hostile annaks selle selle hosti omaniku kätte. Ava aadress brauseris, vaata, kuhu see maandub, ja kirjuta see aadress siia.',
-  'auth.twoFactor.title': 'Teine tegur',
+  'auth.twoFactor.title': 'Kaheastmeline autentimine',
   'auth.twoFactor.hint': 'Kuuekohaline kood autentimisrakendusest, lisaks paroolile. See seisab parooli kõrval ega asenda seda kunagi. Sellel isendil pole kasutajakontosid, seega pole kedagi teist, kes selle sinu eest lahti teeks: hoia taastekoode mujal kui telefonis, mis koode loob. Kui mõlemad on kadunud, käivita masinas knightloader -reset-2fa või peata KnightLoader ja kustuta kirjed totp ja recovery andmekausta failist auth.json. Parool töötab mõlemal juhul edasi.',
   'auth.twoFactor.on': 'Sees',
   'auth.twoFactor.off': 'Väljas',

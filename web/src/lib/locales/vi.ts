@@ -2708,7 +2708,7 @@ export const vi: Dict = {
   'settings.resolvers.toolsAutoCheckHint': 'Một yêu cầu tới api.github.com mỗi lần trang này tải, và không có gì hơn: không có gì được tải xuống và không có gì bị thay mà không có bạn bấm nút. Theo mặc định là tắt, vì một cái máy do bạn tự vận hành thì không nên tự gọi ra bên ngoài trước khi bạn cho phép.',
   'settings.diagnostics.toolsMissing': 'không tìm thấy',
   'settings.eventTargets.problem.redirect': 'Địa chỉ trả lời bằng một lệnh chuyển hướng, và thực thể này không đi theo. Mọi giá trị header trong hàng này đều được coi là điều bí mật, và một lệnh chuyển hướng sang host khác sẽ trao nó vào tay người vận hành host đó. Hãy mở địa chỉ đó trong một trình duyệt, xem nó dẫn tới đâu, rồi nhập địa chỉ ấy vào đây.',
-  'auth.twoFactor.title': 'Yếu tố thứ hai',
+  'auth.twoFactor.title': 'Xác thực hai yếu tố',
   'auth.twoFactor.hint': 'Một mã sáu chữ số từ ứng dụng xác thực, thêm vào bên cạnh mật khẩu. Nó đứng cạnh mật khẩu và không bao giờ thay thế mật khẩu. Thực thể này không có tài khoản người dùng, nên không có ai khác mở khoá hộ bạn: hãy giữ các mã khôi phục ở nơi khác chứ không phải trên chiếc điện thoại tạo ra mã. Nếu mất cả hai, hãy chạy knightloader -reset-2fa trên máy, hoặc dừng KnightLoader rồi xoá hai mục totp và recovery khỏi tệp auth.json trong thư mục dữ liệu. Mật khẩu vẫn hoạt động trong cả hai trường hợp.',
   'auth.twoFactor.on': 'Bật',
   'auth.twoFactor.off': 'Tắt',

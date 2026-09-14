@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, Animated, Easing, Linking, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Animated, Linking, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import Constants from 'expo-constants';
 import * as Clipboard from 'expo-clipboard';
@@ -8,6 +8,8 @@ import { LANGUAGES, flagEmoji } from '../i18n/catalogue';
 import { getLanguageOverride } from '../storage/languagePreference';
 import { removeAllConnections } from '../storage/connections';
 import { useAppearance } from '../theme/AppearanceContext';
+import { useMotion, useShake } from '../theme/MotionContext';
+import { MOTION_LEVELS, stormTap, type Motion } from '../theme/motion';
 import { ACCENTS, SHAPES, accentSlot, type Shape } from '../theme/appearance';
 import { TYPE } from '../theme/tokens';
 import { GlimButton, GlimRow, GlimToggle, NotchCard, Swatch, SwatchReset, WellSelector } from '../components/glim';
@@ -33,12 +35,17 @@ const COFFEE_URL = 'https://buymeacoffee.com/junkerderprovinz';
  * eight releases back, and since the number on screen is a LINK to that
  * release, a stale one does not merely read wrong, it sends somebody to the
  * wrong page. Copying that file in beside the rest of the reference, and
- * importing from it, is the fix; until then this at least agrees with the web
- * UI's Help.tsx and the extension's options.js, which both read 1.14.0, and
- * with the latest published release (v1.14.0 - read off the release list, not
- * off a changelog, because an unreleased tag has nothing behind the link).
+ * importing from it, is the fix; until then it has to be moved by hand with
+ * every lift, which is what just happened again.
+ *
+ * 1.17.0 as of this pass, and the number is earned rather than announced: the
+ * hidden fourth motion level and its rule are in theme/motion.ts, 1.16.0's
+ * settled answer about dimmed controls is applied twice on this very screen,
+ * and 1.15.0 was examined and found not to reach this surface at all (see
+ * api/client.ts for why an app that signs in with a token has no second factor
+ * to ask about).
  */
-const GLIMSTONE_VERSION = '1.14.0';
+const GLIMSTONE_VERSION = '1.17.0';
 
 /** shapeOf reads the shape back out of the radii the context resolved.
  *
@@ -72,8 +79,10 @@ export default function SettingsScreen({
   onRemovedAllConnections: () => void;
   onRefreshAppearance?: () => void;
   /** Write the rainbow palette back to the connected instance. Absent when
-   *  there is no connection to write to, which is what makes the row inert
-   *  rather than a button that fails. */
+   *  there is no connection to write to, and that absence is what removes the
+   *  row rather than dimming it: a control with nothing behind it is furniture
+   *  (GlimStone 1.16.0), and the environment being the reason is what makes the
+   *  sentence in its place obligatory (1.15.0). */
   onSetPalette?: (palette: string[] | null) => Promise<void>;
 }) {
   const { t, lang } = useT();
@@ -97,8 +106,56 @@ export default function SettingsScreen({
     followInstance,
     snapshotAsLocal,
   } = useAppearance();
+  const { chosen: motion, reduced: motionReduced, setMotion } = useMotion();
   const [override, setOverride] = useState<string | null>(null);
   const anyOverride = overridden.accent || overridden.shape || overridden.theme || overridden.rainbow;
+
+  /**
+   * THE HIDDEN FOURTH MOTION LEVEL, and the two halves of it that look alike
+   * and are not (GlimStone 1.17.0; theme/motion.ts's stormTap carries the rule).
+   *
+   * `stormFound` is a fact about THIS SCREEN, so it is state and never storage:
+   * leave the settings with something else selected and the segment is gone
+   * until somebody makes the gesture again. The chosen VALUE goes to
+   * AsyncStorage like every other one, which is why a storm survives the app
+   * being closed and still does not put a fourth entry in anybody's picker.
+   * Storing the wrong one of those two is precisely the mistake the rule was
+   * written after.
+   *
+   * It turns true whenever the level is IN FORCE, and that is the case
+   * measuring "found" rather than reading it. Opening the settings on a stored
+   * storm and then picking Dezent would otherwise make the segment vanish under
+   * the finger mid-screen, which is a step further than the rule asks for
+   * ("sturm soll wieder verschwinden wenn man zb sanft einstellt und die
+   * einstellungen verlässt" - set something else AND LEAVE). A screen showing
+   * the level knows it exists; what it may not do is remember that across a
+   * visit.
+   *
+   * An effect and not a lazy useState initialiser, which is the one place this
+   * differs from the web's version and it is the platform's doing: the stored
+   * level is read out of AsyncStorage asynchronously, so at first render the
+   * value here is still the default and an initialiser would measure the wrong
+   * moment.
+   */
+  const [stormFound, setStormFound] = useState(false);
+  useEffect(() => {
+    if (motion === 'storm') setStormFound(true);
+  }, [motion]);
+  // A ref rather than state: five taps are counting, not rendering, and the
+  // count is deliberately reset by any tap that is not on the top level.
+  const stormTaps = useRef({ taps: 0 });
+
+  /**
+   * What the picker offers.
+   *
+   * MOTION_LEVELS and nothing else, which is the list that deliberately does
+   * not contain the hidden level. `storm` joins it while it has just been
+   * FOUND, or while it is the value in force - because a picker that hid the
+   * value it is currently showing would be lying about the interface.
+   */
+  const motionOptions = (stormFound || motion === 'storm' ? [...MOTION_LEVELS, 'storm' as Motion] : MOTION_LEVELS).map(
+    (m) => ({ value: m, label: t(`settings.motion.${m}`) }),
+  );
   /** Which colour the picker is open on, or null. One piece of state for both
    *  rows: only one picker can be open, so only one of them can be the subject
    *  of it. */
@@ -136,24 +193,16 @@ export default function SettingsScreen({
    * the same reason; a nonce per control is for two buttons that do two
    * different things through one handler.
    *
-   * THIS ROUTINE IS DUPLICATED from RelayConnectScreen and should not stay
-   * that way: it belongs beside the other shared controls in components/glim.tsx,
-   * so a third screen that needs it finds it instead of typing new numbers.
+   * THE ROUTINE IS NO LONGER DUPLICATED. The note that stood here asked for
+   * exactly that and named components/glim.tsx as the home; it is in
+   * theme/MotionContext's useShake instead, because a shake is now a spend of
+   * the motion table and putting it beside the buttons would make the controls
+   * file depend on that context to draw a refusal. One copy, which is what the
+   * note was actually about, and the numbers now follow the chosen level: at
+   * the quietest one there is no travel at all and the group dips in opacity,
+   * because an invisible shake carries no refusal.
    */
-  const paletteWackeln = useRef(new Animated.Value(0)).current;
-  const paletteZittern = useCallback(() => {
-    paletteWackeln.setValue(0);
-    Animated.sequence(
-      [1, -1, 0.5, -0.5, 0].map((zu) =>
-        Animated.timing(paletteWackeln, {
-          toValue: zu,
-          duration: 72,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-      ),
-    ).start();
-  }, [paletteWackeln]);
+  const { style: paletteZitterStil, shake: paletteZittern } = useShake();
   /** True for a moment after the report reached the clipboard, so the button
    *  can say so in its own label.
    *
@@ -323,36 +372,53 @@ export default function SettingsScreen({
               label, and every other row label on this page is 15px body text in
               the ordinary ink. */}
           <Text style={[styles.rowLabel, { color: rainbow.on ? c.textMuted : c.text }]}>{t('settings.accent')}</Text>
-          {/* Dimmed and inert while the rainbow is on (jdp, 2026-09-01: "Wenn
-              man den regenbogenmodus aktiviert soll man die akzentfarben nicht
-              wählen können, mach ja kein sinn").
+          {/* THE ROW RAINBOW MODE TAKES OVER, AND THE CASE GLIMSTONE 1.16.0 WAS
+              WRITTEN FOR.
 
-              Worth being straight about what this costs, because it is not
-              nothing: the rainbow replaces the accent only for things that are
-              one member of a SET - cards, rows, tabs. Anything that is the only
-              one of its kind keeps the single accent, so the button at the
-              bottom of Add, the floating action button and the speed curve are
-              still painted with it while the mode is on. Locking the row means
-              those keep whatever accent was last chosen until the mode goes off
-              again. He asked for it plainly and it is one word to reverse.
+              It was dimmed AND inert here, on a plain request (jdp, 2026-09-01:
+              "Wenn man den regenbogenmodus aktiviert soll man die akzentfarben
+              nicht wählen können, mach ja kein sinn"), and the note that stood
+              here was already uneasy about the cost. 1.16.0 settled the
+              question the note was circling, and it settled it against the
+              inertness: two passages in that document had been contradicting
+              each other for six releases, one saying a control hanging off
+              another mode should be ABSENT and the other saying of this exact
+              row that "the dimmed controls stay the signal that something
+              changed". The test it lands on is DOES THE CONTROL STILL DO
+              ANYTHING.
 
-              Dimmed and NOT removed, unlike the palette row further down, and
-              the two look alike enough to be worth separating: this row is
-              reporting rather than refusing. It says the single accent is not
-              in force right now, which is information about the accent itself,
-              and the swatches still show which colour the app goes back to the
-              moment the mode is switched off. The palette row's own reason for
-              being dead is a decision one row above it, which is the case the
-              absence rule exists for.
+              This row's answer is measured rather than argued. The rainbow
+              recolours only what is one member of a SET - cards, rows, the
+              segments of a selector - because those are the things that ask
+              hueAt for a position. Anything that is the only one of its kind
+              reads `accent` straight: DownloadsScreen's floating action button,
+              SpeedGraph's curve, the Add screen and the QR scanner's frame all
+              still paint the picked colour while the mode is on. The value is
+              still doing work; it is simply not in charge of everything any
+              more, and removing the row would hide a setting that is still in
+              effect.
 
-              The value sits on this inner container and not on the row, which
-              is a rule and not a layout accident: opacity composites the whole
-              subtree in React Native exactly as it does in CSS, so a child can
-              never be less transparent than its parent. Put it on the row and
-              an info bubble beside the label fades with the swatches - and the
-              bubble is the one thing on a dimmed row that still has something
-              to say. */}
-          <View style={[styles.swatches, rainbow.on && styles.dimmed]} pointerEvents={rainbow.on ? 'none' : 'auto'}>
+              SO IT DIMS AND STAYS PRESSABLE. "Dim it and say who is in charge"
+              is what the rule asks for; making it inert as well took away the
+              ability to change the colour of the controls it still paints
+              without switching the whole mode off first, which is a capability
+              removed to signal a state. The dimming carries the signal, the
+              sentence under the row carries the reason, and the circles keep
+              working. pointerEvents is also worse here than its web equivalent:
+              on Android it takes the subtree out of TalkBack's reach along with
+              the finger's, so a row that was merely overridden became a row a
+              screen reader could not read out.
+
+              The honest consequence, stated because the rule states it: if the
+              rainbow is ever made total - every control taking its colour from
+              a position - this value stops acting and the absence rule takes
+              over instead.
+
+              THE DIMMING IS ON THE CIRCLES AND NEVER ON THE ROW: opacity
+              composites the whole subtree in React Native exactly as it does in
+              CSS, so a child can never be less transparent than its parent. Put
+              it on the row and the label fades with the swatches. */}
+          <View style={[styles.swatches, rainbow.on && styles.dimmed]}>
             {ACCENTS.map((a, i) => {
               // Each slot wears whatever it was last mixed to, and keeps it.
               //
@@ -406,6 +472,25 @@ export default function SettingsScreen({
           </View>
         </View>
 
+        {/* The other half of 1.16.0's answer, and it is not optional: "dim it
+            AND SAY WHO IS IN CHARGE". A row that goes pale with no explanation
+            is a row somebody reads as broken.
+
+            A line and not a bubble, which is a deviation this screen has to own
+            rather than drift into: the app has no info-bubble component at all,
+            and the Probleme card above already explains itself in exactly this
+            style. The sentence is the web UI's own accentRainbowOwns, word for
+            word in all forty-two languages, so the same state reads the same
+            way in a browser and here.
+
+            It sits OUTSIDE the dimmed container, which is the whole reason the
+            dim was moved onto the circles: the one element that still has
+            something to say must not fade along with the ones that have gone
+            quiet. */}
+        {rainbow.on && (
+          <Text style={[styles.hint, styles.afterControls, { color: c.textMuted }]}>{t('settings.accentRainbowOwns')}</Text>
+        )}
+
         {/* A switch, not a read-only line (jdp, 2026-08-30: "Regenbogenmodus
             hat kein toggle und kann nicht aktiviert werden"). It used to say
             where the mode was set instead of setting it, on the grounds that
@@ -456,34 +541,56 @@ export default function SettingsScreen({
             dimmed while the rainbow is ON. That one is REPORTING rather than
             refusing - it says the single accent is not in force at the moment,
             which is information about the accent itself - and it stays. */}
-        {rainbow.on && (
+        {/* THE THIRD CASE, and it is not the one this row used to claim.
+
+            The state is: the mode is on, and there is no instance to write a
+            palette to. That was drawn dimmed and inert, on the reasoning that
+            it REPORTS something about the palette rather than about a decision
+            one row up. GlimStone 1.15.0 named the case that reasoning was
+            missing, and 1.16.0 gave it the test that decides: a grey state says
+            something about the THING the control touches (dim it), about a
+            decision taken elsewhere on the page (leave it out), or about the
+            ENVIRONMENT not permitting the thing at all - and only that third
+            one is left out AND owes prose.
+
+            This is the third. The palette does not live on this phone; it lives
+            on the instance, and there is no instance. Nothing a finger does
+            here can reach anything, so eight circles nobody can open beside a
+            reset nobody can press is furniture with the reason a screen away.
+            The eight colours in force are still worth knowing, and that is
+            exactly what the sentence says instead of showing a row that lies
+            about being editable.
+
+            What does NOT go with it is the mode's own switch, which is the
+            other half of the same rule: a mode whose switch disappears when it
+            cannot be configured is a mode nobody can turn back on. */}
+        {rainbow.on && !onSetPalette && (
+          <Text style={[styles.hint, styles.afterControls, { color: c.textMuted }]}>{t('settings.rainbowPaletteNoInstance')}</Text>
+        )}
+
+        {/* The eight colours themselves, only where a press can actually land.
+
+            ABSENT while the mode is off, not dimmed, and this row is the case
+            GlimStone 1.10.0 names by hand: a palette editor under a rainbow
+            that is not running is eight swatches nobody can open beside a reset
+            nobody can press. The reason the row would be dead sits one row up,
+            and that is exactly where nobody looks once they have decided this
+            row is the interesting one.
+
+            Deliberately NOT what goes with it: the accent row above, which is
+            dimmed while the rainbow is ON and stays pressable. That one is
+            still in force on everything that owns no position, which is the
+            distinction 1.16.0 turns on. */}
+        {rainbow.on && onSetPalette && (
           <View style={styles.axisRow}>
             <Text style={[styles.rowLabel, { color: c.text }]}>{t('settings.rainbowPalette')}</Text>
-            {/* The one state left that is shown and not offered: the mode is on
-                but there is no instance to write a palette to. That is not the
-                sub-switch case - it reports something about the palette itself,
-                which lives on the instance and has none here, rather than a
-                decision made elsewhere on this page - so it is dimmed and inert
-                rather than absent, and the swatches still say which eight
-                colours the positions are wearing.
-
-                The dimming sits on THIS container and never on the row: opacity
-                composites a whole subtree in React Native exactly as it does in
-                CSS, so a label with an info bubble beside it would fade with
-                the swatches if the row carried the value. Nothing is faded here
-                that is not actually inert. */}
-            <Animated.View
-              style={[
-                styles.swatches,
-                !onSetPalette && styles.dimmed,
-                {
-                  transform: [
-                    { translateX: paletteWackeln.interpolate({ inputRange: [-1, 1], outputRange: [-4, 4] }) },
-                  ],
-                },
-              ]}
-              pointerEvents={onSetPalette ? 'auto' : 'none'}
-            >
+            {/* Nothing is dimmed here any more, and nothing is inert: the row
+                exists only in the state where every swatch on it works. What is
+                left on this container is the refusal shake, which belongs to
+                the group rather than to one swatch - both things that can fail
+                here, editing a position and resetting all eight, are one write
+                of one object to one instance and they fail together. */}
+            <Animated.View style={[styles.swatches, paletteZitterStil]}>
               {rainbow.palette.map((hex, i) => (
                 <Swatch
                   key={i}
@@ -518,8 +625,67 @@ export default function SettingsScreen({
             with it" is part of the same rule, and a failure message left
             standing under a row that is no longer there is the clearest case of
             it: the sentence would be explaining a control nobody can see. */}
-        {rainbow.on && paletteError !== '' && (
+        {rainbow.on && onSetPalette && paletteError !== '' && (
           <Text style={[styles.hint, { color: c.statusFailSolid }]}>{paletteError}</Text>
+        )}
+      </NotchCard>
+
+      {/* MOTION, and a card of its own rather than a fourth axis inside
+          Appearance.
+
+          GlimStone 1.15.0 gives the test for that split, and it is not "are
+          these related": it is "can somebody want this and not that". Somebody
+          who wants a quieter interface has said nothing at all about colour, so
+          these are two decisions and they get two cards - the same shape the
+          web UI's Look page uses.
+
+          hue={5} and not 2, even though the card sits second in reading order.
+          The four cards below carry fixed positions in this page's own 0-based
+          sequence, and renumbering all of them so a new card could be "next"
+          would re-colour four cards to place one. The web made the same call
+          for the same card and said so. */}
+      <NotchCard title={t('settings.motion')} hue={5}>
+        {/* What the three levels actually do, above the control rather than
+            below it - the same place the Probleme card puts its own sentence,
+            and the reason the "extra step above a sentence that FOLLOWS
+            controls" rule does not apply here. A paragraph and not a bubble
+            because this app has no bubble component; the deviation is the
+            screen's, consistently applied, rather than a one-off.
+
+            The sentence names three levels and the picker sometimes shows
+            four, and that is correct: a hidden level does not get an entry in
+            the text that explains the visible ones. */}
+        <Text style={[styles.hint, { color: c.textMuted }]}>{t('settings.motionHint')}</Text>
+        <WellSelector
+          options={motionOptions}
+          value={motion}
+          onPick={(v) => {
+            // THE GESTURE FIRST, because it is a press on the segment that is
+            // ALREADY active - the one press a picker would otherwise treat as
+            // a no-op and swallow. The count lives in a ref: five taps are
+            // counting, not rendering, and a re-render per tap would be a state
+            // change nothing on screen can show.
+            const gefunden = stormTap(stormTaps.current, v, motion);
+            setMotion(gefunden ?? v);
+          }}
+        />
+
+        {/* The one thing the phone can say here that a browser cannot.
+            Without it, somebody whose system is set to reduce motion picks the
+            liveliest level, sees nothing change, and reports a bug - which is
+            the whole failure the "say who is in charge" half of 1.16.0 exists
+            to prevent, arriving from the operating system instead of from
+            another row.
+
+            The picker is NOT dimmed and NOT removed while this is true, and
+            that is deliberate rather than an omission. It is not the
+            environment-refusal case: the value is stored, it is real, and it
+            takes effect again the moment the system setting changes - so a
+            control that vanished here would be hiding a preference that is
+            still somebody's. The sentence carries the state; the control keeps
+            doing its job. */}
+        {motionReduced && (
+          <Text style={[styles.hint, styles.afterControls, { color: c.textMuted }]}>{t('settings.motionReduced')}</Text>
         )}
       </NotchCard>
 

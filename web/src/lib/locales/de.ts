@@ -2695,7 +2695,7 @@ export const de: Dict = {
   'settings.resolvers.toolsAutoCheckHint': 'Eine Anfrage an api.github.com bei jedem Laden dieser Seite, mehr nicht: Es wird nichts heruntergeladen und nichts ersetzt, ohne dass du den Knopf drückst. Standardmäßig aus, weil eine Maschine, die du selbst betreibst, nicht von sich aus nach draußen telefonieren soll, bevor du es erlaubt hast.',
   'settings.diagnostics.toolsMissing': 'nicht gefunden',
   'settings.eventTargets.problem.redirect': 'Die Adresse antwortet mit einer Weiterleitung, und dieser Instanz folgt ihr nicht. Jeder Kopfzeilenwert in dieser Zeile gilt als Geheimnis, und eine Weiterleitung auf einen anderen Host würde ihn dessen Betreiber in die Hand geben. Ruf die Adresse im Browser auf, schau, wo sie landet, und trag die ein.',
-  'auth.twoFactor.title': 'Zweiter Faktor',
+  'auth.twoFactor.title': 'Zwei-Faktor-Authentifizierung',
   'auth.twoFactor.hint': 'Ein sechsstelliger Code aus einer Authenticator-App, zusätzlich zum Passwort. Er steht neben dem Passwort und ersetzt es nie. Diese Instanz hat keine Benutzerkonten, es gibt also niemanden, der dich wieder aufsperren könnte: Bewahre die Wiederherstellungscodes woanders auf als auf dem Handy, das die Codes erzeugt. Sind beide weg, führ auf der Maschine knightloader -reset-2fa aus oder stopp KnightLoader und lösch die Einträge totp und recovery aus der auth.json im Datenordner. Das Passwort funktioniert in beiden Fällen weiter.',
   'auth.twoFactor.on': 'An',
   'auth.twoFactor.off': 'Aus',

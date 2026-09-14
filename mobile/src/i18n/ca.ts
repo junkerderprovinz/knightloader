@@ -120,4 +120,15 @@ export const ca: Dict = {
   'phrase.errWordCount': 'Són {count} paraules - una frase en necessita {need}.',
   'relay.instancesTitle': 'En aquest relé',
   'relay.noInstances': 'Ara mateix no hi ha cap instància d’aquest grup en línia. Comprova la frase i que almenys una instància estigui funcionant.',
+
+  'settings.motion': 'Moviment',
+  'settings.motion.off': 'Desactivat',
+  'settings.motion.subtle': 'Subtil',
+  'settings.motion.wild': 'Complet',
+  'settings.motion.storm': 'Tempesta',
+  'settings.accentRainbowOwns': 'El mode arc de Sant Martí reparteix ara els colors per posició. Aquest color encara pinta tot allò que no té posició.',
+  'settings.motionReduced': 'El teu telèfon està configurat per reduir el moviment. Mentre sigui així, aquí no es mou res, sigui quin sigui el nivell triat.',
+  'settings.rainbowPaletteNoInstance': 'La paleta pertany a la instància. Sense connexió no hi ha on escriure un color, així que les posicions conserven els vuit colors integrats.',
+
+  'settings.motionHint': 'Desactivat apaga tota animació no essencial; Subtil manté les entrades breus; Complet és l\'experiència més rica.',
 };

@@ -2722,7 +2722,7 @@ export const hr: Dict = {
   'settings.resolvers.toolsAutoCheckHint': 'Jedan zahtjev na api.github.com pri svakom učitavanju ove stranice, i ništa više: ništa se ne preuzima i ništa ne zamjenjuje dok ne pritisneš gumb. Zadano isključeno, jer računalo koje sam držiš ne bi smjelo samo od sebe zvati van prije nego što si to dopustio.',
   'settings.diagnostics.toolsMissing': 'nije pronađeno',
   'settings.eventTargets.problem.redirect': 'Adresa odgovara preusmjeravanjem, a ova ga instanca ne slijedi. Svaka vrijednost zaglavlja u ovom retku vrijedi kao tajna, a preusmjeravanje na drugog poslužitelja predalo bi je u ruke onome tko taj poslužitelj drži. Otvori adresu u pregledniku, pogledaj gdje završi, i tu adresu upiši ovdje.',
-  'auth.twoFactor.title': 'Drugi faktor',
+  'auth.twoFactor.title': 'Dvofaktorska autentifikacija',
   'auth.twoFactor.hint': 'Šesteroznamenkasti kod iz aplikacije za autentifikaciju, uz lozinku. Stoji uz lozinku i nikada je ne zamjenjuje. Ova instanca nema korisničkih računa, pa nema nikoga drugog tko bi je otključao umjesto tebe: kodove za oporavak čuvaj drugdje nego na telefonu koji ih stvara. Ako nestane oboje, pokreni na stroju knightloader -reset-2fa, ili zaustavi KnightLoader i izbriši unose totp i recovery iz datoteke auth.json u mapi s podacima. Lozinka u oba slučaja radi dalje.',
   'auth.twoFactor.on': 'Uključeno',
   'auth.twoFactor.off': 'Isključeno',

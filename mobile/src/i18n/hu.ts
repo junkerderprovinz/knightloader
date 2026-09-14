@@ -120,4 +120,15 @@ export const hu: Dict = {
   'phrase.errWordCount': 'Ez {count} szó - egy kifejezéshez {need} kell.',
   'relay.instancesTitle': 'Ezen a relén',
   'relay.noInstances': 'Ennek a csoportnak jelenleg egyetlen példánya sincs online. Ellenőrizd a kifejezést, és hogy legalább egy példány fut-e.',
+
+  'settings.motion': 'Mozgás',
+  'settings.motion.off': 'Ki',
+  'settings.motion.subtle': 'Visszafogott',
+  'settings.motion.wild': 'Teljes',
+  'settings.motion.storm': 'Vihar',
+  'settings.accentRainbowOwns': 'A szivárvány mód most pozíció szerint osztja a színeket. Ez a szín továbbra is mindenre érvényes, aminek nincs pozíciója.',
+  'settings.motionReduced': 'A telefonod kevesebb mozgásra van állítva. Amíg ez így van, itt semmi sem mozdul, bármelyik szint is van kiválasztva.',
+  'settings.rainbowPaletteNoInstance': 'A paletta a példányhoz tartozik. Kapcsolat nélkül nincs hová írni egy színt, így a pozíciók megtartják a nyolc beépített színt.',
+
+  'settings.motionHint': 'A Ki minden nem lényeges animációt kikapcsol; a Visszafogott rövidre fogja a megjelenéseket; a Teljes a leggazdagabb élmény.',
 };

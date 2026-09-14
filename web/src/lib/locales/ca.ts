@@ -2694,7 +2694,7 @@ export const ca: Dict = {
   'settings.resolvers.toolsAutoCheckHint': 'Una petició a api.github.com cada cop que es carrega aquesta pàgina, i res més: no es baixa res i no se substitueix res sense que premis el botó. Desactivat per defecte, perquè una màquina que gestiones tu no ha de trucar a fora pel seu compte fins que no ho hagis permès.',
   'settings.diagnostics.toolsMissing': 'no s’ha trobat',
   'settings.eventTargets.problem.redirect': 'L’adreça respon amb una redirecció, i aquesta instància no la segueix. Cada valor de capçalera d’aquesta fila es tracta com un secret, i una redirecció cap a un altre amfitrió el posaria a mans de qui el gestiona. Obre l’adreça al navegador, mira on va a parar, i escriu aquí aquella adreça.',
-  'auth.twoFactor.title': 'Segon factor',
+  'auth.twoFactor.title': 'Autenticació de dos factors',
   'auth.twoFactor.hint': 'Un codi de sis xifres d\'una aplicació d\'autenticació, a més de la contrasenya. Va al costat de la contrasenya i no la substitueix mai. Aquesta instància no té comptes d\'usuari, així que no hi ha ningú més que la pugui desbloquejar per tu: guarda els codis de recuperació en un lloc diferent del telèfon que genera els codis. Si perds tots dos, executa knightloader -reset-2fa a la màquina, o atura el KnightLoader i esborra les entrades totp i recovery del fitxer auth.json de la carpeta de dades. La contrasenya continua funcionant en tots dos casos.',
   'auth.twoFactor.on': 'Activat',
   'auth.twoFactor.off': 'Desactivat',

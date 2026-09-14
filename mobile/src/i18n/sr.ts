@@ -120,4 +120,15 @@ export const sr: Dict = {
   'phrase.errWordCount': 'То је {count} речи — фраза их захтева {need}.',
   'relay.instancesTitle': 'Na ovom releju',
   'relay.noInstances': 'Ниједна инстанца ове групе тренутно није на мрежи. Провери фразу и да ли ради бар једна инстанца.',
+
+  'settings.motion': 'Покрет',
+  'settings.motion.off': 'Искључено',
+  'settings.motion.subtle': 'Суптилно',
+  'settings.motion.wild': 'Пуно',
+  'settings.motion.storm': 'Олуја',
+  'settings.accentRainbowOwns': 'Дугин режим сада додељује боје по позицији. Ова боја и даље важи свуда где позиције нема.',
+  'settings.motionReduced': 'Telefon ti je podešen na manje kretanja. Dok je tako, ovde se ništa ne pomera, koji god nivo da je izabran.',
+  'settings.rainbowPaletteNoInstance': 'Paleta pripada instanci. Bez veze nema gde da se upiše boja, pa položaji zadržavaju osam ugrađenih boja.',
+
+  'settings.motionHint': 'Искључено гаси сваку небитну анимацију; Суптилно држи уласке кратким; Пуно је најбогатије искуство.',
 };

@@ -120,4 +120,15 @@ export const eu: Dict = {
   'phrase.errWordCount': '{count} hitz dira - esaldi batek {need} behar ditu.',
   'relay.instancesTitle': 'Erlai honetan',
   'relay.noInstances': 'Une honetan talde honetako instantziarik ez dago linean. Egiaztatu esaldia eta gutxienez instantzia bat martxan dagoela.',
+
+  'settings.motion': 'Mugimendua',
+  'settings.motion.off': 'Desaktibatuta',
+  'settings.motion.subtle': 'Diskretua',
+  'settings.motion.wild': 'Osoa',
+  'settings.motion.storm': 'Ekaitza',
+  'settings.accentRainbowOwns': 'Ostadar moduak koloreak posizioaren arabera banatzen ditu orain. Kolore honek posiziorik ez duen guztia margotzen du oraindik.',
+  'settings.motionReduced': 'Zure telefonoa mugimendua murrizteko ezarrita dago. Hala den bitartean, hemen ez da ezer mugitzen, aukeratutako maila edozein dela ere.',
+  'settings.rainbowPaletteNoInstance': 'Paleta instantziarena da. Konexiorik gabe ez dago kolore bat idazteko lekurik, beraz, posizioek barneko zortzi koloreak gordetzen dituzte.',
+
+  'settings.motionHint': 'Desaktibatuak funtsezkoa ez den animazio oro itzaltzen du; Diskretuak sarrerak laburrak mantentzen ditu; Osoak eskaintzen du esperientziarik oparoena.',
 };

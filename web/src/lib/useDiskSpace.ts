@@ -18,7 +18,12 @@ import { en } from './locales/en';
  * that refusal is the point rather than an oversight: this route describes the
  * disks of THIS machine, and a row drawn under a peer's name would be a
  * confident answer to a question about a different box. Whatever is mounted
- * beside a peer's list gates itself on the scope instead (see DiskSpaceStrip).
+ * beside a peer's list gates itself on the scope instead.
+ *
+ * There is exactly one reader left, components/DiskSpaceTile.tsx on Overview.
+ * The shell bar had a one-line version of the same two numbers and lost it on
+ * 14.09.2026 (jdp: "kannst du diesen text rausschmeissen"), so the sentence
+ * above is now a rule with one place to keep rather than two.
  */
 
 // Just outside the server's own few-second cache, so a tab is rarely handed the

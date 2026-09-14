@@ -120,4 +120,15 @@ export const nl: Dict = {
   'phrase.errWordCount': 'Dat zijn {count} woorden - een zin heeft er {need} nodig.',
   'relay.instancesTitle': 'Op deze relay',
   'relay.noInstances': 'Er is nu geen instantie uit deze groep online. Controleer de zin en of er minstens één instantie draait.',
+
+  'settings.motion': 'Beweging',
+  'settings.motion.off': 'Uit',
+  'settings.motion.subtle': 'Subtiel',
+  'settings.motion.wild': 'Volledig',
+  'settings.motion.storm': 'Storm',
+  'settings.accentRainbowOwns': 'De regenboogmodus deelt de kleuren nu per positie uit. Deze kleur geldt nog steeds voor alles zonder positie.',
+  'settings.motionReduced': 'Je telefoon staat ingesteld op minder beweging. Zolang dat zo is, beweegt hier niets, welk niveau je ook kiest.',
+  'settings.rainbowPaletteNoInstance': 'Het palet hoort bij de instantie. Zonder verbinding is er nergens om een kleur naartoe te schrijven, dus de posities houden de acht ingebouwde kleuren.',
+
+  'settings.motionHint': 'Uit schakelt elke niet-essentiële animatie uit; Subtiel houdt intredes kort; Volledig is de rijkste ervaring.',
 };

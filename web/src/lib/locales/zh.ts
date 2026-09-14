@@ -2694,7 +2694,7 @@ export const zh: Dict = {
   'settings.resolvers.toolsAutoCheckHint': '这个页面每次加载时向 api.github.com 发一个请求，仅此而已：你不按那个按钮，就什么都不会被下载、什么都不会被替换。默认关着，因为一台你自己运行的机器，在你允许之前不该自己往外打电话。',
   'settings.diagnostics.toolsMissing': '没找到',
   'settings.eventTargets.problem.redirect': '这个地址用一个重定向作答，而这个实例不跟着走。这一行里每一个请求头的值都当机密对待，重定向到另一个主机，就等于把它交到那个主机的主人手里。在浏览器里打开这个地址，看它最后落在哪儿，把那个地址填在这里。',
-  'auth.twoFactor.title': '第二因素',
+  'auth.twoFactor.title': '两步验证',
   'auth.twoFactor.hint': '除密码外，再加一个验证器应用生成的六位数字。它站在密码旁边，永远不会取代密码。本实例没有用户账号，也就没有别人能替你解锁：把恢复码存放在生成验证码的那部手机以外的地方。两者都丢失时，在机器上运行 knightloader -reset-2fa，或者停止 KnightLoader 并从数据目录的 auth.json 中删除 totp 和 recovery 两项。无论哪种方式，密码都照常可用。',
   'auth.twoFactor.on': '已开启',
   'auth.twoFactor.off': '已关闭',

@@ -29,6 +29,7 @@ const cnlHeadingEl = document.getElementById('cnlHeading');
 const cnlToggleEl = document.getElementById('cnlToggle');
 const cnlEnabledEl = document.getElementById('cnlEnabled');
 const cnlCountdownEl = document.getElementById('cnlCountdown');
+const cnlCountdownRow = document.getElementById('cnlCountdownRow');
 const cnlCountdownLabelEl = document.getElementById('cnlCountdownLabel');
 const cnlCountdownUnitEl = document.getElementById('cnlCountdownUnit');
 const cnlCountdownUpEl = document.getElementById('cnlCountdownUp');
@@ -46,7 +47,10 @@ const rainbowRotateRow = document.getElementById('rainbowRotateRow');
 const paletteRow = document.getElementById('paletteRow');
 const paletteSwatches = document.getElementById('paletteSwatches');
 const followInstanceEl = document.getElementById('followInstance');
-const followInstanceRow = followInstanceEl.closest('.glim-row');
+const followInstanceRow = document.getElementById('followInstanceRow');
+const followUnavailableEl = document.getElementById('followUnavailable');
+const followUnavailableTitleEl = document.getElementById('followUnavailableTitle');
+const followUnavailableReasonEl = document.getElementById('followUnavailableReason');
 const accentLabelEl = document.getElementById('accentLabel');
 // The four labels whose rows get dimmed. Held here rather than looked up at the
 // moment of dimming, because renderAppearance() runs on every appearance change
@@ -268,26 +272,70 @@ function labelWords(id, text) {
 }
 
 /**
- * setDimmed dims and deadens a setting, on its PARTS rather than on its row.
+ * setDimmed MARKS a setting, on its PARTS rather than on its row. It no longer
+ * deadens it, and that split is GlimStone 1.16.0.
  *
- * Both halves together, always: dimming alone still lets a click land and a
- * picker open on a value nothing will read, and taking the pointer events alone
- * leaves a control that looks live and is not.
+ * IT USED TO DO BOTH, and the doctrine behind that was the language's own until
+ * 1.16.0 made the two halves answer separate questions. The old comment here
+ * read: "Both halves together, always: dimming alone still lets a click land and
+ * a picker open on a value nothing will read." That is true of a control with
+ * nothing behind it, and 1.16.0's answer for that control is not to deaden it -
+ * it is to take it off the page.
+ *
+ * THE TEST IS WHETHER THE CONTROL STILL DOES ANYTHING. No state behind it,
+ * remove it; state that still shows somewhere, dim it and say who is in charge.
+ * Dimmed AND switched off is the one shape both halves rule out, because
+ * whichever half is true, that pair is the wrong answer to it.
+ *
+ * AND THE PAIR CARRIES A SECOND FAULT, which is why it is worth banning rather
+ * than arguing case by case: `pointer-events: none` is invisible to the
+ * KEYBOARD. Measured on this page, not reasoned about - with rainbow mode on,
+ * the accent row rendered at opacity .5 with pointer-events none, and focusing
+ * the second swatch and pressing it still set --accent to #1d99f3 and wrote it
+ * to storage. The row was unreachable by mouse and perfectly reachable by Tab,
+ * which is worse than either honest answer.
+ *
+ * So a control that genuinely refuses uses setRefused() below, which sets the
+ * button's own `disabled` - a state a screen reader reads, the keyboard cannot
+ * fire, and the bubble beside it can still explain.
  *
  * Each caller passes the label's words and the control group, never the flex
  * container that holds them, so the "(i)" between them keeps full strength -
- * which is the whole reason this is a function and not two inline assignments.
+ * which is the whole reason this is a function and not two inline assignments,
+ * and it matters most here, because the bubble is the conditional kind that
+ * exists FOR the state doing the dimming.
  *
- * The empty string rather than 'auto' and '1': that clears the inline property
- * and lets the stylesheet decide again. Writing a value back is how a lock gets
- * set and never cleared - the unlock here once read `el.style.pointerEvents ||
- * ''`, which consults the very value it is trying to clear.
+ * The empty string rather than '1': that clears the inline property and lets the
+ * stylesheet decide again. Writing a value back is how a lock gets set and never
+ * cleared - the unlock here once read `el.style.pointerEvents || ''`, which
+ * consults the very value it is trying to clear.
  */
 function setDimmed(parts, off) {
   for (const el of parts) {
     if (!el) continue;
     el.style.opacity = off ? '.5' : '';
-    el.style.pointerEvents = off ? 'none' : '';
+  }
+}
+
+/**
+ * setRefused switches controls off through their OWN disabled state.
+ *
+ * The other half of the split above, and the only one that may take a control's
+ * answer away. Every element handed to it is a real <button> - the swatches, the
+ * reset badges, the segment buttons and the switches all are - so `disabled` is
+ * available, carries into the accessibility tree, and takes the keyboard with
+ * it. The greying comes from the stylesheet's own `:disabled` rules rather than
+ * from an inline opacity, so there is exactly one place that decides what a dead
+ * control looks like.
+ *
+ * `groups` are containers; each one's buttons are switched, which keeps the call
+ * sites reading like the rows they describe rather than like DOM queries.
+ */
+function setRefused(groups, off) {
+  for (const el of groups) {
+    if (!el) continue;
+    const buttons = el.tagName === 'BUTTON' ? [el] : [...el.querySelectorAll('button')];
+    for (const b of buttons) b.disabled = off;
   }
 }
 
@@ -380,6 +428,20 @@ function applyStaticText() {
   label('rainbowRotateLabel', t('options.rainbowRotate'), t('options.rainbowRotateHint'));
   label('paletteLabel', t('options.paletteLabel'), t('options.paletteHint'));
   label('followInstanceLabel', t('options.followInstance'), t('options.followInstanceHint'));
+
+  // The refusal notice that stands where the follow switch would be with no
+  // group (GlimStone 1.15.0). Its TITLE is the switch's own label, deliberately:
+  // the box is there in place of that control, and somebody looking for the
+  // setting should find the words they were looking for rather than a second
+  // paraphrase of them. The reason names the card that fixes it - "what is wrong
+  // AND what would change it" is both halves of the rule, and a notice that only
+  // states the problem leaves somebody hunting for the cure.
+  //
+  // The reason is UI copy in the reader's own language, never a diagnostic: the
+  // relay's own failure strings are English and belong in the group card's
+  // status line, not in the paragraph that explains a feature.
+  followUnavailableTitleEl.textContent = t('options.followInstance');
+  followUnavailableReasonEl.textContent = t('options.followNoGroup', { card: t('options.groupHeading') });
 
   const pinHeading = document.getElementById('pinHeading');
   const pinBody = document.getElementById('pinBody');
@@ -489,28 +551,39 @@ function renderPhrasePaste() {
  * that shows a phrase it will silently repair reads as a field that rejected it.
  */
 phrasePaste.addEventListener('click', async () => {
-  let erlaubt = false;
   try {
-    erlaubt = await chrome.permissions.request({ permissions: ['clipboardRead'] });
+    await chrome.permissions.request({ permissions: ['clipboardRead'] });
   } catch {
     // Firefox rejects the request outright when the page has lost the gesture,
     // and Chrome throws when the permission is not listed as optional. Both
     // land in the same place as a refusal: try the read anyway, because a
     // browser that already granted it needs no request at all.
   }
+  // The answer is deliberately not kept. What the request RESOLVED with says
+  // nothing useful here - a browser that granted the permission long ago
+  // resolves true without a prompt, and one that has it already needs no
+  // request at all - so the only honest test is whether the read itself works.
   let text = '';
   try {
     text = await navigator.clipboard.readText();
   } catch {
-    if (!erlaubt) {
-      say(t('options.phrasePasteBlocked'), false);
-      // The control that was clicked says so itself. Every action that can fail
-      // reports through the same two channels and the button plays glim-shake -
-      // it is not a rule about toggles, it covers a plain action button that
-      // just called something and has to report what came back.
-      shake(phrasePaste);
-      return;
-    }
+    // A FAILED READ IS REPORTED WHATEVER THE PERMISSION SAID, and the `erlaubt`
+    // guard that used to sit here got that backwards. It reported only when the
+    // request had been refused and stayed silent when it had been GRANTED - so
+    // the one case where somebody has every reason to expect the button to work
+    // (they approved it, and the read still threw: a dismissed paste prompt on
+    // Firefox, a clipboard holding something that is not text) fell through with
+    // an empty string, hit the `if (!worte) return` below, and did nothing at
+    // all. A button that does nothing and says nothing is the shape "Failure
+    // feedback" exists to remove: reported once, loudly, in the one place built
+    // for it, with the control that caused it visibly saying so.
+    say(t('options.phrasePasteBlocked'), false);
+    // The control that was clicked says so itself. Every action that can fail
+    // reports through the same two channels and the button plays glim-shake -
+    // it is not a rule about toggles, it covers a plain action button that
+    // just called something and has to report what came back.
+    shake(phrasePaste);
+    return;
   }
   const worte = String(text).trim().toLowerCase().split(/\s+/).filter(Boolean).join(' ');
   if (!worte) return;
@@ -676,6 +749,11 @@ joinForm.addEventListener('submit', async (e) => {
   }
   joinBtn.disabled = false;
   await renderGroup();
+  // Joining gives the Look card its follow switch back, in place of the notice
+  // explaining that there was nothing to follow. Same reason as the report
+  // below: a card that only catches up on the next page load is a card that
+  // disagrees with the one directly above it.
+  await renderAppearance();
   // The report names whether this browser is in a group and how many instances
   // answered, so it has to be redrawn when that changes - a report still saying
   // "no phrase stored" under a list of two instances is worse than no report.
@@ -762,6 +840,24 @@ leaveConfirmCommitEl.addEventListener('click', async () => {
   // one that gets you back in.
   closeLeaveConfirm(joinBtn);
   await forgetGroup();
+  // Leaving un-follows, and puts the local look back with it.
+  //
+  // Without this, "follow the instance" would be stuck ON with no instance to
+  // follow and, since 1.15.0 removes the switch where it cannot act, no control
+  // left to turn it off - a lock that can be set and never cleared, which is the
+  // same defect this page already fixed once in setDimmed's own history.
+  // Restoring rather than merely flipping the flag is the other half: a switch
+  // is a claim that it can be undone, and undone means the thing that was put
+  // away comes back.
+  const { followInstance } = await chrome.storage.local.get('followInstance');
+  if (followInstance === true) {
+    await restoreLocalLook();
+    await writeAppearance({ followInstance: false });
+    const back = await readAppearance();
+    applyShape(back.shape);
+    applyAccent(back.accent);
+    applyRainbow(back.rainbow);
+  }
   phraseInput.value = '';
   // Back to masked: leaving and re-joining is the one moment somebody is most
   // likely to walk away from an open options page.
@@ -769,6 +865,9 @@ leaveConfirmCommitEl.addEventListener('click', async () => {
   renderPhraseEye();
   say(t('options.left'), true);
   await renderGroup();
+  // The Look card changes with the group: the follow switch goes and the notice
+  // takes its place. Without this the swap would wait for the next page load.
+  await renderAppearance();
   void renderReport();
 });
 
@@ -805,6 +904,14 @@ async function renderLanguagePicker() {
       await loadLanguage();
       applyStaticText();
       await renderLanguagePicker();
+      // The Click'n'Load card is the one whose text does NOT all live in
+      // applyStaticText: the countdown's label, its unit and the two steppers'
+      // names are written by renderCnl, which ran once at boot and was never
+      // asked again. Measured on the rendered page while checking something
+      // else: switching to German turned the switch's own caption into
+      // "Click'n'Load-Knöpfe abfangen" and left "Countdown before sending" and
+      // "seconds" standing underneath it, in English, for good.
+      await renderCnl();
       await renderAppearance();
       await renderGroup();
       void renderReport();
@@ -835,7 +942,26 @@ async function renderCnl() {
   const stored = await chrome.storage.local.get('cnlEnabled');
   // Absent means on: background.js sets it on install, and a storage read that
   // lost the flag should not silently turn the main feature off.
-  cnlEnabledEl.setAttribute('aria-checked', String(stored.cnlEnabled !== false));
+  const on = stored.cnlEnabled !== false;
+  cnlEnabledEl.setAttribute('aria-checked', String(on));
+
+  // THE COUNTDOWN IS A SUB-CONTROL, AND IT GOES WITH ITS PARENT (GlimStone
+  // 1.10.0, and 1.16.0 for the test that decides it).
+  //
+  // The question 1.16.0 settles is whether the control still DOES anything, and
+  // this one's answer is measurable rather than arguable: the number is read in
+  // exactly one place, popup.js's startCountdown(), which only ever runs for a
+  // parked send whose origin is 'cnl'. With this switch off, background.js's
+  // handleCnl() returns before parking anything and syncCnlScripts() has
+  // unregistered the catcher in every page, so no such send can exist. There is
+  // no state behind the field at all, so leaving it on screen offers a decision
+  // nobody can make, with the reason sitting one row up, which is precisely
+  // where nobody looks once they have decided this row is the interesting one.
+  //
+  // Absent rather than dimmed, and never dimmed AND switched off: see
+  // setDimmed() for why that pair is the one shape both halves of the rule
+  // forbid.
+  cnlCountdownRow.hidden = !on;
 
   cnlCountdownLabelEl.textContent = t('options.cnlCountdown');
   cnlCountdownUnitEl.textContent = t('options.seconds');
@@ -937,6 +1063,10 @@ cnlCountdownEl.addEventListener('change', async () => {
 cnlEnabledEl.addEventListener('click', async () => {
   const on = cnlEnabledEl.getAttribute('aria-checked') !== 'true';
   cnlEnabledEl.setAttribute('aria-checked', String(on));
+  // The countdown row appears and disappears WITH the switch, not on the next
+  // page load: a sub-control that only goes away after a reload is a dimmed one
+  // wearing a delay.
+  cnlCountdownRow.hidden = !on;
   await chrome.storage.local.set({ cnlEnabled: on });
   await chrome.runtime.sendMessage({ type: 'knightloader-cnl-scripts', on }).catch(() => {});
   // Deliberately silent. The switch itself is the feedback, and say() writes
@@ -1417,6 +1547,17 @@ async function renderAppearance() {
 
   followInstanceEl.setAttribute('aria-checked', String(a.followInstance));
 
+  // THE ENVIRONMENT REFUSAL (GlimStone 1.15.0): with no group, there is no
+  // instance to take a look from, so the switch is not offered at all and a
+  // paragraph says why. See the markup in options.html for the argument; here is
+  // only the swap. `joined` is read from the phrase rather than from the roster,
+  // deliberately: a group that is joined and momentarily offline is a REACHABILITY
+  // problem the switch's own failure path already reports, and taking the control
+  // away every time an instance is asleep would be a refusal that comes and goes.
+  const joined = (await readPhrase()) !== '';
+  followInstanceRow.hidden = !joined;
+  followUnavailableEl.hidden = joined;
+
   // Reactive, rotation and the palette are ABSENT while the rainbow is off,
   // never dimmed (GlimStone 1.10.0). The language reversed itself on this and
   // said why: a dimmed sub-switch is something somebody can see, read and reach
@@ -1439,33 +1580,77 @@ async function renderAppearance() {
   // worse than one you cannot click. Theme is not in the list: it stays local
   // on purpose (see adoptFromInstance).
   //
+  // The refusal is now the CONTROL's own `disabled` rather than a wrapper's
+  // pointer-events (GlimStone 1.16.0, and setRefused() carries the argument):
+  // the old wrapper was invisible to the keyboard, so every row below could be
+  // Tabbed into and fired while it looked dead. The dimming still rides along,
+  // from the stylesheet's `:disabled` rules, so there is one place that decides
+  // what a dead control looks like.
+  //
   // The unlock used to read `el.style.pointerEvents || ''`, which is the bug
   // jdp hit (2026-08-29: "bleiben viele Einstellungen gesperrt"): that reads
   // back the 'none' this very loop wrote a moment ago and hands it straight to
   // itself again, so the lock could be set and never cleared. A fallback that
-  // consults the value you are trying to clear is not a fallback. setDimmed()
-  // writes the empty string for the same reason.
+  // consults the value you are trying to clear is not a fallback. The lock is a
+  // boolean written outright now, which cannot get into that state at all.
   //
   // Every call names the label's WORDS and the control group, never the row
   // that holds them: the dimming goes on the parts, so the "(i)" between them
   // stays readable in exactly the state it exists to explain (1.9.0). The
   // heading badges are not in any list - a card heading carries its own bubble
   // and is not what the switch takes over.
-  const off = a.followInstance;
-  // Whichever colour row is not IN FORCE is dimmed and inert (1.8.0). With the
-  // rainbow running, every card on this page carries a palette position and
-  // `[data-rainbow] .glim-hue` rebinds --accent for its whole subtree, so the
-  // accent row decides nothing at all - it is not "less important" then, it is
-  // read by nothing, and a live control nothing reads teaches people the
-  // setting is broken rather than inactive. The symmetric half is the palette
-  // row under a stopped rainbow, and that one is absent rather than dimmed,
-  // because 1.10.0 came later and said so.
+  //
+  // `&& joined` is the belt: an install that was following when its group went
+  // away still carries followInstance: true in storage, and the switch that
+  // would clear it is no longer on the page. The leave button clears both, so
+  // this only ever catches a state written by an older build.
+  const off = a.followInstance && joined;
+  setRefused([shapeSeg], off);
+  setRefused([rainbowOnEl, rainbowReactiveEl, rainbowRotateEl], off);
+  setRefused([paletteSwatches], off);
+  setDimmed([labelWordsOf(rainbowLabelEl)], off);
+  setDimmed([labelWordsOf(rainbowReactiveLabelEl)], off);
+  setDimmed([labelWordsOf(rainbowRotateLabelEl)], off);
+  setDimmed([labelWordsOf(paletteLabelEl)], off);
+
+  // THE ACCENT ROW, AND THE CASE GLIMSTONE 1.16.0 WAS WRITTEN FOR.
+  //
+  // Two rules in that document had been contradicting each other for six
+  // releases - a control hanging off another mode should be ABSENT, and this
+  // exact row should stay with "the dimmed controls the signal that something
+  // changed" - and 1.16.0 settles it with one question: DOES THE CONTROL STILL
+  // DO ANYTHING?
+  //
+  // The comment that used to stand here answered "no", on the grounds that
+  // "every card on this page carries a palette position". That is true of THIS
+  // page and it is not true of the extension, which is the surface the setting
+  // belongs to: paintHues() in popup.js hands positions to the header and the
+  // send button only, so the tab strip's own pressed segment and both collector
+  // buttons (.primary, background: var(--accent)) go on painting the picked
+  // accent with the rainbow running. The value is still doing work; it is
+  // simply not in charge of everything any more, and removing the row would
+  // hide a setting that is still in effect.
+  //
+  // SO IT DIMS AND STAYS PRESSABLE. "Dim it and say who is in charge" is what
+  // the rule asks for; making it inert as well would mean somebody cannot
+  // change the colour of the controls it still paints without switching the
+  // rainbow off first, which is a capability taken away to signal a state - and
+  // it is what this page did until now, with a wrapper the keyboard walked
+  // straight through anyway.
+  //
+  // While the instance decides the look, the row is genuinely refused instead,
+  // because then the value really is not this browser's to set.
   setDimmed([labelWordsOf(accentLabelEl), accentSwatches], off || a.rainbow.on);
-  setDimmed([shapeSeg], off);
-  setDimmed([labelWordsOf(rainbowLabelEl), rainbowOnEl], off);
-  setDimmed([labelWordsOf(rainbowReactiveLabelEl), rainbowReactiveEl], off);
-  setDimmed([labelWordsOf(rainbowRotateLabelEl), rainbowRotateEl], off);
-  setDimmed([labelWordsOf(paletteLabelEl), paletteSwatches], off);
+  setRefused([accentSwatches], off);
+  // AND THE "(i)" GAINS A SENTENCE rather than a second glyph beside it: the
+  // conditional bubble the language prescribes for exactly this row, appearing
+  // while the state holds and saying who is in charge (GlimStone 1.8.0's
+  // conditional-bubble rule, pointed at from 1.16.0). Same sentence the web
+  // UI's own Look page appends, word for word in all 42 catalogues.
+  glimSetInfo(
+    'accentLabel',
+    a.rainbow.on ? `${t('options.accentHint')} ${t('options.accentRainbowOwns')}` : t('options.accentHint'),
+  );
 
   // The hues last, because rotating or editing the palette changes what every
   // position resolves to, and the report because it names theme, accent and
@@ -1496,23 +1681,54 @@ async function renderAppearance() {
  * than a package.
  *
  * THE NUMBER IS PER SURFACE, and it has to be, because the three of them are
- * lifted separately. This one went 1.6.0 to 1.14.0 in one step once every
- * release between had actually been checked against these files: the brand
- * marks carry their own colours instead of the button's ink, the scrim is a
- * token, deleting a group asks a real question, the control that goes ahead
- * sits at the end of its row, and the three right-to-left languages this
- * extension ships now set `dir` rather than being laid out backwards.
+ * lifted separately. It went 1.6.0 to 1.14.0 in one step once every release
+ * between had actually been checked against these files: the brand marks carry
+ * their own colours instead of the button's ink, the scrim is a token, deleting
+ * a group asks a real question, the control that goes ahead sits at the end of
+ * its row, and the three right-to-left languages this extension ships now set
+ * `dir` rather than being laid out backwards.
  *
- * ONE HALF OF 1.10.0 DOES NOT APPLY HERE and that is a judgement, not an
- * omission: its motion tokens exist to give three intensities three different
- * distances, and this extension has no motion setting at all, only fixed
- * durations and prefers-reduced-motion. There is nothing to tokenise.
+ * 1.14.0 TO 1.17.0, and what each of the three actually cost here:
+ *
+ *   1.15.0 "The second way in". Two of its three cards are about a LOGIN, and
+ *     this extension has none: it joins a phrase group and membership IS the
+ *     credential, so it holds no password, sends no Authorization header and
+ *     calls /api/auth/login from nowhere. What DOES apply is the release's
+ *     third refusal case - a capability the environment forbids is refused with
+ *     the reason rather than offered as a button that fails - and this page had
+ *     one: "take the look from the default instance", offered with no group to
+ *     take it from, which turned on optimistically and snapped back. It is
+ *     removed now, with the paragraph the rule owes standing in its place, on
+ *     --status-warn-bg-soft, the token 1.15.0 added for exactly that box.
+ *
+ *   1.16.0 "a control whose value still ACTS stays, dimmed; one that does
+ *     nothing goes". Two rows answered it wrongly in opposite directions. The
+ *     Click'n'Load countdown stood fully live while the feature was switched
+ *     off, where nothing can read it; it is absent now. The accent row was
+ *     dimmed AND made inert under rainbow mode, which is the one shape both
+ *     halves of the rule forbid - and its value still paints the popup's tab
+ *     strip and both collector buttons, so it dims, keeps working, and says who
+ *     is in charge through the conditional bubble the language prescribes.
+ *
+ *   1.17.0 "storm", the hidden fourth motion level. NOTHING TO ADOPT, and that
+ *     is a measurement rather than a shrug: this extension has no motion axis
+ *     at all - no data-motion attribute, no picker, no stored level, not one
+ *     occurrence of "full" or "wild" in any of these files or any of the 42
+ *     catalogues - so there is no floor for a fourth step to sit below and no
+ *     picker for it to stay out of. What the release DOES ask of a surface with
+ *     one fixed level is that the numbers be the top level's numbers, and they
+ *     are: glim-shake runs 360ms with the decaying +-4/+-4/+-2/+-2 swing, the
+ *     bubble fades in 110ms, and both match the web UI's own top-level
+ *     --motion-shake-dur and --motion-fade-dur exactly. The reduced-motion
+ *     substitution the language insists on is there too, as glim-shake-quiet.
+ *     The same measurement settles the "wild, not full" rename that has been
+ *     outstanding since 1.10.0: there is no name here to rename.
  *
  * The phone app still says 1.6.0. That disagreement is deliberate too - a card
  * claiming a release its own files do not speak is worse than one that is
  * behind.
  */
-const GLIMSTONE_VERSION = '1.14.0';
+const GLIMSTONE_VERSION = '1.17.0';
 
 const REPO_URL = 'https://github.com/junkerderprovinz/knightloader';
 const GLIMSTONE_URL = 'https://github.com/junkerderprovinz/glimstone';

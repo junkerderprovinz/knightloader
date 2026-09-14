@@ -2708,7 +2708,7 @@ export const ja: Dict = {
   'settings.resolvers.toolsAutoCheckHint': 'このページを読み込むたびに api.github.com へ 1 回だけ問い合わせます。それ以上のことはしません。あなたがボタンを押さないかぎり、何もダウンロードされず、何も置き換えられません。既定はオフです。自分で動かしているマシンが、あなたが許すまで自分から外へ電話をかけるべきではないからです。',
   'settings.diagnostics.toolsMissing': '見つかりません',
   'settings.eventTargets.problem.redirect': 'そのアドレスはリダイレクトで応答し、このインスタンスはそれを追いません。この行のヘッダーの値はどれも秘密として扱われ、別のホストへのリダイレクトは、それをそのホストの持ち主に渡してしまいます。アドレスをブラウザーで開き、どこに着くかを見て、そのアドレスをここに入力してください。',
-  'auth.twoFactor.title': '2 要素目',
+  'auth.twoFactor.title': '二要素認証',
   'auth.twoFactor.hint': 'パスワードに加えて、認証アプリの 6 桁コードを使います。パスワードの横に立つもので、置き換えることは決してありません。このインスタンスには利用者アカウントがなく、代わりにロックを解除してくれる人はいません。復旧コードは、コードを生成する端末とは別の場所に保管してください。両方とも失った場合は、マシン上で knightloader -reset-2fa を実行するか、KnightLoader を停止してデータフォルダーの auth.json から totp と recovery の項目を削除します。どちらの場合もパスワードはそのまま使えます。',
   'auth.twoFactor.on': 'オン',
   'auth.twoFactor.off': 'オフ',
