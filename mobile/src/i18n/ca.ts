@@ -124,11 +124,11 @@ export const ca: Dict = {
   'settings.motion': 'Moviment',
   'settings.motion.off': 'Desactivat',
   'settings.motion.subtle': 'Subtil',
-  'settings.motion.wild': 'Complet',
+  'settings.motion.wild': 'Intens',
   'settings.motion.storm': 'Tempesta',
   'settings.accentRainbowOwns': 'El mode arc de Sant Martí reparteix ara els colors per posició. Aquest color encara pinta tot allò que no té posició.',
   'settings.motionReduced': 'El teu telèfon està configurat per reduir el moviment. Mentre sigui així, aquí no es mou res, sigui quin sigui el nivell triat.',
   'settings.rainbowPaletteNoInstance': 'La paleta pertany a la instància. Sense connexió no hi ha on escriure un color, així que les posicions conserven els vuit colors integrats.',
 
-  'settings.motionHint': 'Desactivat apaga tota animació no essencial; Subtil manté les entrades breus; Complet és l\'experiència més rica.',
+  'settings.motionHint': 'Desactivat apaga tota animació no essencial; Subtil manté les entrades breus; Intens és l\'experiència més rica.',
 };

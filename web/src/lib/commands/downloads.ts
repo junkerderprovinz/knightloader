@@ -14,6 +14,7 @@
 // lists that can disagree" lib/commands/types.ts's own doc comment warns
 // against.
 import { pause, resume, restartTasks, moveTasks, queueMove } from '../api';
+import { MOVE_STATES } from '../../components/ListToolbar';
 import { IconArrowDown, IconArrowUp, IconBottom, IconCheck, IconPause, IconPlay, IconRetry, IconSearch, IconTop, IconTrash } from '../icons';
 import type { Command, CommandContext } from './types';
 
@@ -29,20 +30,61 @@ import type { Command, CommandContext } from './types';
  * there first (PackageActions.tsx's own comment, verbatim reasoning, on why
  * its own "queue order" menu is offered only while `packages.length === 1`).
  *
- * Only moveUp/moveDown below use this — moveTop/moveBottom instead mirror
- * Downloads.tsx's own always-visible toolbar badges, which move the raw
- * selection via moveTasks() rather than a resolved package name, and carry
- * no such restriction. queueMove is package-scoped for all four directions,
- * but this app's own UI only exposes an id-based, unrestricted equivalent
- * for top/bottom (the toolbar badges) — up/down exist only behind
- * PackageActions' single-package-gated submenu, so that is the one both
- * commands below stay consistent with.
+ * Only moveUp/moveDown below use this. moveTop/moveBottom send the selection's
+ * raw ids instead — the two shapes the server's own move takes, Selection{Ids}
+ * and Selection{Package}, which land in the same app.MoveIn either way
+ * (internal/app/app_queue.go). The reason the pair is split that way is the
+ * single-package rule above and nothing else: a step of one place has to say
+ * which package arrives there first, and "top"/"bottom" does not.
+ *
+ * THE BADGES THIS COMMENT USED TO POINT AT ARE GONE. It said moveTop/moveBottom
+ * "mirror Downloads.tsx's own always-visible toolbar badges", and those four
+ * page-level badges were folded into one "Reihenfolge" badge that opens
+ * queueMenuGroup (ListToolbar.tsx) — the same group the right-click menu shows.
+ * So the surface these two commands have to stay level with is that group, and
+ * the group drops its move entry for a selection the server would refuse
+ * (MOVE_STATES). See canMoveSelection below, which is how they now do it.
  */
 function singlePackage(ctx: CommandContext): string | null {
   const chosen = ctx.tasks.filter((x) => ctx.selection.includes(x.id));
   if (chosen.length === 0) return null;
   const names = new Set(chosen.map((x) => x.package ?? ''));
   return names.size === 1 ? [...names][0]! : null;
+}
+
+/**
+ * WHETHER THE SERVER WOULD MOVE ANY OF THIS SELECTION.
+ *
+ * MOVE_STATES is the browser's copy of movable() in internal/app/app_queue.go,
+ * declared in ListToolbar.tsx beside the menu that reads it and held level with
+ * the Go per status by check-queue-reach.mjs. MoveIn picks the movable rows out
+ * of whatever selection it is handed, so a selection holding none of them is a
+ * request that changes nothing — and /api/tasks/move answers it 204 either way,
+ * which is why nothing on the way back could ever have reported it.
+ *
+ * Measured on a running instance before this gate existed, with small.bin (done)
+ * and missing.bin (error) selected: the palette offered "Nach ganz oben
+ * Alt+Pos1" enabled, pressing it sent POST /api/tasks/move -> 204, and
+ * GET /api/tasks was byte-identical before and after (both positions still 0).
+ */
+function canMoveSelection(ctx: CommandContext): boolean {
+  return ctx.tasks.some((x) => ctx.selection.includes(x.id) && MOVE_STATES.includes(x.status));
+}
+
+/**
+ * The same question for the package form: singlePackage()'s answer, but only
+ * while that package still has something in it the server would move.
+ *
+ * It asks about the PACKAGE and not about the selected rows on purpose, because
+ * that is what the request does: queueMove({ package }) moves the whole package,
+ * so one finished row picked inside a package that is still downloading is an
+ * ordinary, working move. Measured against the server with a package whose rows
+ * were all done/error: POST /api/queue/move -> 200 {"ids":[],"count":0}.
+ */
+function movablePackage(ctx: CommandContext): string | null {
+  const name = singlePackage(ctx);
+  if (name === null) return null;
+  return ctx.tasks.some((x) => (x.package ?? '') === name && MOVE_STATES.includes(x.status)) ? name : null;
 }
 
 export const downloadsCommands: Command[] = [
@@ -140,7 +182,14 @@ export const downloadsCommands: Command[] = [
   },
   {
     id: 'downloads.toggleSearch',
-    labelKey: 'search.placeholder',
+    // The badge's name, not the empty field's hint. This was
+    // `search.placeholder` ("Search this list…"), so the palette listed a
+    // command called "Search this list…" and matched typing against it - the
+    // same string doing two jobs whose requirements point opposite ways, which
+    // is what web/check-placeholder-as-label.mjs now refuses. One control, one
+    // name: the badge on Downloads.tsx that this command presses says "Suche",
+    // and a person looking for it in the palette types that.
+    labelKey: 'search.toggle',
     icon: IconSearch,
     group: 'commands.group.downloads',
     surfaces: ['downloads'],
@@ -165,12 +214,19 @@ export const downloadsCommands: Command[] = [
     // accelerator is PackageControllerTable.KEY_STROKE_ALT_HOME
     // (`KeyStroke.getKeyStroke(KeyEvent.VK_HOME, InputEvent.ALT_MASK)`).
     defaultShortcut: 'alt+home',
-    enabled: (ctx) => ctx.selection.length > 0,
-    visible: (ctx) => ctx.selection.length > 0,
-    // The same moveTasks(...) SelectionStrip's own "Move top" badge calls
-    // (Downloads.tsx) — the selection's raw ids, not a resolved package
-    // name, so this stays enabled for exactly the same selections that
-    // badge is already clickable for.
+    // LEFT OUT rather than greyed, which is this file's own habit (see
+    // clearFinished above) and the queue menu's: ListToolbar.tsx drops the
+    // whole move entry for a selection the server would refuse, so a palette
+    // that still listed it — enabled, with its shortcut printed beside it —
+    // would be the second list types.ts warns about, disagreeing with the
+    // first about the same verb.
+    enabled: (ctx) => canMoveSelection(ctx),
+    visible: (ctx) => canMoveSelection(ctx),
+    // moveTasks(ids, 'top') is the id form of the very step the queue menu's
+    // "Nach ganz oben" runs (queueMenuGroup in ListToolbar.tsx): both arrive at
+    // app.MoveIn with a Selection of ids. The gate above is that entry's gate,
+    // read off the same MOVE_STATES, so the two surfaces cannot disagree about
+    // which selections the verb is offered for.
     run: (ctx) => void moveTasks(ctx.selection, 'top', ctx.base),
   },
   {
@@ -183,9 +239,13 @@ export const downloadsCommands: Command[] = [
     // org/jdownloader/gui/toolbar/action/MoveUpAction.java
     // (PackageControllerTable.KEY_STROKE_ALT_UP).
     defaultShortcut: 'alt+up',
-    enabled: (ctx) => singlePackage(ctx) !== null,
-    visible: (ctx) => singlePackage(ctx) !== null,
-    run: (ctx) => void queueMove({ package: singlePackage(ctx)! }, 'up', ctx.base),
+    // movablePackage, not singlePackage: the single-package rule says which
+    // package a step belongs to, and it says nothing about whether the server
+    // would take the step. Measured on a package of done/error rows, this pair
+    // was as dead as top/bottom were — 200 {"ids":[],"count":0}, nothing moved.
+    enabled: (ctx) => movablePackage(ctx) !== null,
+    visible: (ctx) => movablePackage(ctx) !== null,
+    run: (ctx) => void queueMove({ package: movablePackage(ctx)! }, 'up', ctx.base),
   },
   {
     id: 'downloads.moveDown',
@@ -197,9 +257,9 @@ export const downloadsCommands: Command[] = [
     // org/jdownloader/gui/toolbar/action/MoveDownAction.java
     // (PackageControllerTable.KEY_STROKE_ALT_DOWN).
     defaultShortcut: 'alt+down',
-    enabled: (ctx) => singlePackage(ctx) !== null,
-    visible: (ctx) => singlePackage(ctx) !== null,
-    run: (ctx) => void queueMove({ package: singlePackage(ctx)! }, 'down', ctx.base),
+    enabled: (ctx) => movablePackage(ctx) !== null,
+    visible: (ctx) => movablePackage(ctx) !== null,
+    run: (ctx) => void queueMove({ package: movablePackage(ctx)! }, 'down', ctx.base),
   },
   {
     id: 'downloads.moveBottom',
@@ -211,9 +271,10 @@ export const downloadsCommands: Command[] = [
     // org/jdownloader/gui/toolbar/action/MoveToBottomAction.java
     // (PackageControllerTable.KEY_STROKE_ALT_END).
     defaultShortcut: 'alt+end',
-    enabled: (ctx) => ctx.selection.length > 0,
-    visible: (ctx) => ctx.selection.length > 0,
-    // The same moveTasks(...) SelectionStrip's own "Move bottom" badge calls.
+    enabled: (ctx) => canMoveSelection(ctx),
+    visible: (ctx) => canMoveSelection(ctx),
+    // The mirror of moveTop above, down to the gate: the queue menu's "Nach
+    // ganz unten", sent as ids.
     run: (ctx) => void moveTasks(ctx.selection, 'bottom', ctx.base),
   },
 ];

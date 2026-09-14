@@ -9,6 +9,7 @@ import {
 import { clockSkewMs, fmtSkew, skewStatus } from '../../../lib/selftest';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import { fmtBytes, fmtDate } from '../../../lib/format';
+import { happened } from '../../../lib/countdown';
 import { Button, Card, SectionTitle } from '../../../components/ui';
 import { IconRetry } from '../../../lib/icons';
 import { CHECK_NAMES, CheckRow, SubRow, adviceKeyFor, useLine } from './rows';
@@ -107,7 +108,14 @@ export function SelfTestCard({ hue }: { hue: number }) {
   // deliberately does not 404 there, so this needs no special case.
   useEffect(refresh, [refresh]);
 
-  const running = run !== null && run.id !== '' && !run.finishedAt;
+  // happened(), not `!run.finishedAt`. selftest.Run tags that field `omitzero`
+  // today, so the truthiness test happens to be right - and a tag three
+  // directories away is not something this line can vouch for. Every other
+  // time.Time in this app is tagged `omitempty`, which does NOTHING to a
+  // struct, so those arrive as "0001-01-01T00:00:00Z" and read as true. One
+  // predicate for all of them costs nothing here and cannot be broken by a Go
+  // edit that never opens this file (web/check-go-timestamps.mjs holds it).
+  const running = run !== null && run.id !== '' && !happened(run.finishedAt);
   useEffect(() => {
     if (!running) return;
     const id = window.setInterval(refresh, POLL_MS);
@@ -195,7 +203,10 @@ export function SelfTestCard({ hue }: { hue: number }) {
         </div>
       )}
 
-      {run?.finishedAt && (
+      {/* `run !== null` still carries its own weight: happened() answers a
+          question about the timestamp, not about the run, so it cannot narrow
+          the row the way the optional chain it replaces did. */}
+      {run !== null && happened(run.finishedAt) && (
         <span className="text-[11px] text-carbon-textMuted">
           {t('settings.selftest.lastRun', { when: fmtDate(run.finishedAt) })}
         </span>

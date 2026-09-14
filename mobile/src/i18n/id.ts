@@ -124,11 +124,11 @@ export const id: Dict = {
   'settings.motion': 'Gerakan',
   'settings.motion.off': 'Nonaktif',
   'settings.motion.subtle': 'Halus',
-  'settings.motion.wild': 'Penuh',
+  'settings.motion.wild': 'Dinamis',
   'settings.motion.storm': 'Badai',
   'settings.accentRainbowOwns': 'Mode pelangi sedang membagikan warna menurut posisi. Warna ini tetap berlaku untuk semua yang tidak punya posisi.',
   'settings.motionReduced': 'Ponsel Anda disetel untuk mengurangi gerakan. Selama itu berlaku, tidak ada yang bergerak di sini, apa pun tingkat yang dipilih.',
   'settings.rainbowPaletteNoInstance': 'Palet milik instans. Tanpa koneksi tidak ada tempat untuk menulis warna, jadi posisinya tetap memakai delapan warna bawaan.',
 
-  'settings.motionHint': 'Nonaktif mematikan setiap animasi yang tidak penting; Halus membuat kemunculan tetap singkat; Penuh adalah pengalaman paling kaya.',
+  'settings.motionHint': 'Nonaktif mematikan setiap animasi yang tidak penting; Halus membuat kemunculan tetap singkat; Dinamis adalah pengalaman paling kaya.',
 };

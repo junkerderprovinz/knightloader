@@ -124,11 +124,11 @@ export const lt: Dict = {
   'settings.motion': 'Judesys',
   'settings.motion.off': 'Išjungta',
   'settings.motion.subtle': 'Subtilu',
-  'settings.motion.wild': 'Pilna',
+  'settings.motion.wild': 'Laukinis',
   'settings.motion.storm': 'Audra',
   'settings.accentRainbowOwns': 'Vaivorykštės režimas dabar dalija spalvas pagal poziciją. Ši spalva vis dar galioja visur, kur pozicijos nėra.',
   'settings.motionReduced': 'Jūsų telefone nustatyta mažinti judesį. Kol taip yra, čia niekas nejuda, kad ir koks lygis būtų pasirinktas.',
   'settings.rainbowPaletteNoInstance': 'Paletė priklauso egzemplioriui. Be ryšio nėra kur įrašyti spalvos, todėl pozicijos išlaiko aštuonias įtaisytąsias spalvas.',
 
-  'settings.motionHint': 'Išjungta išjungia kiekvieną nebūtiną animaciją; Subtilu palieka trumpus atsiradimus; Pilna yra turtingiausia patirtis.',
+  'settings.motionHint': 'Išjungta išjungia kiekvieną nebūtiną animaciją; Subtilu palieka trumpus atsiradimus; Laukinis yra turtingiausia patirtis.',
 };

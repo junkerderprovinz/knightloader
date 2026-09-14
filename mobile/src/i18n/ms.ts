@@ -124,11 +124,11 @@ export const ms: Dict = {
   'settings.motion': 'Gerakan',
   'settings.motion.off': 'Mati',
   'settings.motion.subtle': 'Halus',
-  'settings.motion.wild': 'Penuh',
+  'settings.motion.wild': 'Dinamik',
   'settings.motion.storm': 'Ribut',
   'settings.accentRainbowOwns': 'Mod pelangi sedang mengagihkan warna mengikut kedudukan. Warna ini masih digunakan pada semua yang tiada kedudukan.',
   'settings.motionReduced': 'Telefon anda ditetapkan untuk mengurangkan gerakan. Selagi begitu, tiada apa-apa bergerak di sini, walau apa pun tahap yang dipilih.',
   'settings.rainbowPaletteNoInstance': 'Palet milik instans. Tanpa sambungan tiada tempat untuk menulis warna, jadi kedudukannya kekal dengan lapan warna terbina dalam.',
 
-  'settings.motionHint': 'Mati mematikan setiap animasi yang tidak penting; Halus mengekalkan kemunculan yang ringkas; Penuh ialah pengalaman paling kaya.',
+  'settings.motionHint': 'Mati mematikan setiap animasi yang tidak penting; Halus mengekalkan kemunculan yang ringkas; Dinamik ialah pengalaman paling kaya.',
 };

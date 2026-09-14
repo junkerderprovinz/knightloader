@@ -16,6 +16,7 @@ import {
   type QueueState,
   type Task,
   type TaskOptionsPatch,
+  type TaskStatus,
   cleanupPreview,
   deleteTasks,
   fetchOptions,
@@ -39,6 +40,7 @@ import {
   undoDelete,
 } from '../lib/api';
 import { fmtBytes } from '../lib/format';
+import { happened } from '../lib/countdown';
 import { useDialogMute, type DialogId } from '../lib/dialogmute';
 import { useToast } from '../lib/toast';
 import { useT, type TranslationKey } from '../lib/i18n';
@@ -91,7 +93,7 @@ import {
  * right-click that waits for a request before it can draw its entries is a menu
  * whose bottom half appears after you have read past it.
  */
-function useQueueVerbs(base: string) {
+export function useQueueVerbs(base: string) {
   const [choices, setChoices] = useState<PriorityChoice[]>([]);
   const [queue, setQueue] = useState<QueueState | null>(null);
 
@@ -136,7 +138,7 @@ function useQueueVerbs(base: string) {
   };
 }
 
-type QueueVerbs = ReturnType<typeof useQueueVerbs>;
+export type QueueVerbs = ReturnType<typeof useQueueVerbs>;
 
 // --- Quick filters --------------------------------------------------------
 
@@ -181,7 +183,17 @@ export const QUICK_FILTERS: QuickFilter[] = [
   // running as far as every other part of the app is concerned: it holds a slot
   // and reports a status. Finding those is the whole point - a queue that looks
   // busy at 0 B/s is the case somebody opens this list to explain.
-  { id: 'stalled', label: 'filter.stalled', match: (t) => !!t.stalledSince },
+  //
+  // happened(), not `!!`. `stalledSince` is a Go time.Time, and `omitempty` does
+  // nothing to a struct, so a download that has never stalled arrives carrying
+  // "0001-01-01T00:00:00Z" - a non-empty string, and therefore truthy. This
+  // filter matched EVERY task in the list for exactly that reason: a chip
+  // reading "Standing still 34" beside "Waiting 34" over a queue that was
+  // stopped and had never moved a byte (jdp, screenshot of the selection row).
+  // It is not only a wrong count: the chip is offered at all only when its
+  // count is above zero (offeredQuickFilters), so this phantom put a permanent
+  // extra chip in both list toolbars and pressing it changed nothing.
+  { id: 'stalled', label: 'filter.stalled', match: (t) => happened(t.stalledSince) },
 ];
 
 /**
@@ -872,6 +884,190 @@ export interface ListContext {
  * An entry that cannot act on any of the selected rows is left out instead of
  * shown greyed: a menu of nine dead verbs is a menu nobody reads to the end of.
  */
+/**
+ * WHO MAY BE MOVED. Mirrors movable() in internal/app/app_queue.go, which is a
+ * pure exclusion list: everything except a download that has finished or finally
+ * failed, because those two have no place left in the wait order for a step to
+ * move them through.
+ *
+ * Measured per status in internal/app/queue_reach_test.go and held level with
+ * the Go by check-queue-reach.mjs, which reads both files and compares the two
+ * sets in both directions.
+ */
+export const MOVE_STATES: readonly TaskStatus[] = [
+  'collected',
+  'queued',
+  'running',
+  'paused',
+  'extracting',
+];
+
+/**
+ * WHO MAY BE GIVEN A PRIORITY — a DIFFERENT question, which is the whole reason
+ * these are two lists and not one.
+ *
+ * The server answers it for every state there is: SetPriorityIn resolves its
+ * selection with a nil keep, so nothing is filtered out before the write. On a
+ * finished or failed download the value orders nothing while it sits there, and
+ * it is still not a dead control: RestartTasksIn clears the status, the error,
+ * the byte count and the routing and deliberately leaves Priority alone, so the
+ * value is in force the moment the row goes back into the queue. "Set these to
+ * highest, then restart them" is an ordinary thing to want, and it was measured
+ * before it was offered (TestPriorityOnAFinishedTaskSurvivesItsRestart).
+ *
+ * THE REGRESSION THESE TWO LISTS EXIST FOR: one predicate used to gate both
+ * verbs, and it named queued/paused/collected only. A selection of RUNNING
+ * downloads therefore got an empty queue group — no move, no priority — and
+ * since the page draws its "Reihenfolge" badge only when that group has
+ * entries, and the right-click menu had carried the same gate all along, the
+ * four move verbs and the seven priorities became reachable from nowhere at
+ * all. The server had been taking both for running downloads the entire time.
+ */
+export const PRIORITY_STATES: readonly TaskStatus[] = [
+  'collected',
+  'queued',
+  'running',
+  'paused',
+  'extracting',
+  'done',
+  'error',
+];
+
+/**
+ * WHO MAY CARRY THE STOP MARK, the third question in the same menu.
+ *
+ * The mark fires when a task reaches 'done' (app_dispatch.go), so it is offered
+ * on a download that still has that transition ahead of it. An already finished
+ * or failed one would arm a mark nothing can ever trip. 'extracting' is left out
+ * for the same reason: its download is over and its own completion is not the
+ * dispatcher's done-transition.
+ */
+export const STOP_MARK_STATES: readonly TaskStatus[] = ['collected', 'queued', 'running', 'paused'];
+
+/**
+ * Everything a selection's place in the wait order can be told, as ONE menu
+ * group: move it, give it a priority, mark it as the last one before a stop.
+ *
+ * EXPORTED BECAUSE IT HAS TWO CALLERS AND MUST NOT HAVE TWO COPIES. The
+ * right-click menu below is one; Downloads.tsx's own "Queue order" badge is the
+ * other, and that badge exists because the six page-level badges it replaced
+ * were where this went wrong the first time. Four of them were `moveTasks` and
+ * `setPriority` called straight from the page, and the priority pair was not a
+ * step at all: `setPriority(ids, 1)` writes the ABSOLUTE value 1 of the
+ * server's seven (-3..3, app_queue.go), so "raise priority" pressed twice left
+ * a task exactly where the first press put it, and pressed on a task already at
+ * highest it silently DEMOTED it. That defect was fixed here, in the menu, and
+ * survived on the page for as long as the page built its own entries. One
+ * builder is what stops it coming back: the badge and the right-click menu now
+ * offer the same verbs, under the same names, through the same calls.
+ *
+ * `queue` is useQueueVerbs()'s answer — the priorities this server implements
+ * and where the stop mark sits — so a caller needs that hook, which is why it
+ * is exported too.
+ */
+export function queueMenuGroup({
+  chosen,
+  ids,
+  base,
+  t,
+  fail,
+  queue,
+}: {
+  chosen: Task[];
+  ids: string[];
+  base: string;
+  t: (key: TranslationKey, vars?: Record<string, string | number>) => string;
+  fail: (e: unknown) => void;
+  queue: QueueVerbs;
+}): MenuGroup {
+  const guard = (run: () => Promise<unknown>) => () => {
+    void run().catch(fail);
+  };
+  const some = (p: (x: Task) => boolean) => chosen.some(p);
+
+  // Two gates, not one, because the server has two answers - see MOVE_STATES
+  // and PRIORITY_STATES above. A single predicate covering both is what took
+  // the whole queue group away from a selection of running downloads.
+  const queueGroup: MenuGroup = { id: 'queue', items: [] };
+  if (some((x) => MOVE_STATES.includes(x.status))) {
+    // Four steps, one route. The old pair of entries here called setPriority
+    // with a fixed 1 and -1, which is not a step at all: pressing "raise" twice
+    // left a task exactly where the first press put it, and pressing it on a
+    // task the Packagizer had already set to highest silently demoted it.
+    const step = (where: QueueMove) => guard(() => queueMove({ ids }, where, base));
+    queueGroup.items.push({
+      id: 'move',
+      label: t('menu.move'),
+      icon: <IconTop width={14} height={14} />,
+      submenu: [
+        {
+          id: 'steps',
+          items: [
+            { id: 'top', label: t('task.moveTop'), icon: <IconTop width={14} height={14} />, onSelect: step('top') },
+            { id: 'up', label: t('task.moveUp'), icon: <IconArrowUp width={14} height={14} />, onSelect: step('up') },
+            { id: 'down', label: t('task.moveDown'), icon: <IconArrowDown width={14} height={14} />, onSelect: step('down') },
+            { id: 'bottom', label: t('task.moveBottom'), icon: <IconBottom width={14} height={14} />, onSelect: step('bottom') },
+          ],
+        },
+      ],
+    });
+  }
+
+  // Behind one word, the way JDownloader keeps it: seven more entries in a menu
+  // that already has a dozen would bury everything under them. The tick marks
+  // the value the whole selection is already at — a selection that disagrees
+  // gets no tick rather than the first row's answer. `checked` rather than a
+  // tick in the icon slot, so every rung can carry its own glyph as well; see
+  // PriorityGlyph for why both are needed at once.
+  //
+  // Its OWN gate, and it used to be nested inside the move's. Nesting it made
+  // the narrower of the two answers decide both, which is how a selection the
+  // server writes priorities for all day was offered none.
+  //
+  // `queue.choices` is the other half of the gate and a different kind of
+  // question: it is this SERVER's list of rungs, fetched once, so a build
+  // talking to an instance that implements none offers none.
+  if (queue.choices.length > 0 && some((x) => PRIORITY_STATES.includes(x.status))) {
+    const agreed = chosen.every((x) => x.priority === chosen[0].priority)
+      ? chosen[0].priority
+      : undefined;
+    queueGroup.items.push({
+      id: 'priority',
+      label: t('menu.priority'),
+      icon: <IconPriority />,
+      submenu: [
+        {
+          id: 'values',
+          items: queue.choices.map((p) => ({
+            id: p.id,
+            label: t(`priority.${p.id}` as TranslationKey),
+            icon: <PriorityGlyph steps={p.value} />,
+            checked: p.value === agreed,
+            onSelect: guard(() => queuePriority({ ids }, p.value, base)),
+          })),
+        },
+      ],
+    });
+  }
+
+  // The stop mark is one task, so it is offered on one row and never on forty:
+  // an entry that silently picked the first of a selection would arm a mark on
+  // a download nobody pointed at. There is exactly one mark in the app and this
+  // toggles it — arming a second would only move it.
+  if (chosen.length === 1 && STOP_MARK_STATES.includes(chosen[0].status)) {
+    const only = chosen[0];
+    const armed = queue.stopMark === only.id;
+    queueGroup.items.push({
+      id: 'stopMark',
+      label: t(armed ? 'queue.stopMarkOn' : 'queue.stopMark'),
+      icon: <IconStopMark />,
+      onSelect: () => void queue.mark(armed ? '' : only.id).catch(fail),
+    });
+  }
+
+  return queueGroup;
+}
+
 function taskMenuGroups({
   chosen,
   ids,
@@ -1010,78 +1206,7 @@ function taskMenuGroups({
     onSelect: () => void recheckTasks(ids, base),
   });
 
-  // Queue order only means something while something is still waiting to run.
-  // A package of finished downloads has no position to raise.
-  const queueGroup: MenuGroup = { id: 'queue', items: [] };
-  const waiting = (x: Task) =>
-    x.status === 'queued' || x.status === 'paused' || x.status === 'collected';
-  if (some(waiting)) {
-    // Four steps, one route. The old pair of entries here called setPriority
-    // with a fixed 1 and -1, which is not a step at all: pressing "raise" twice
-    // left a task exactly where the first press put it, and pressing it on a
-    // task the Packagizer had already set to highest silently demoted it.
-    const step = (where: QueueMove) => guard(() => queueMove({ ids }, where, base));
-    queueGroup.items.push({
-      id: 'move',
-      label: t('menu.move'),
-      icon: <IconTop width={14} height={14} />,
-      submenu: [
-        {
-          id: 'steps',
-          items: [
-            { id: 'top', label: t('task.moveTop'), icon: <IconTop width={14} height={14} />, onSelect: step('top') },
-            { id: 'up', label: t('task.moveUp'), icon: <IconArrowUp width={14} height={14} />, onSelect: step('up') },
-            { id: 'down', label: t('task.moveDown'), icon: <IconArrowDown width={14} height={14} />, onSelect: step('down') },
-            { id: 'bottom', label: t('task.moveBottom'), icon: <IconBottom width={14} height={14} />, onSelect: step('bottom') },
-          ],
-        },
-      ],
-    });
-
-    // Behind one word, the way JDownloader keeps it: seven more entries in a
-    // menu that already has a dozen would bury everything under them. The tick
-    // marks the value the whole selection is already at — a selection that
-    // disagrees gets no tick rather than the first row's answer. `checked`
-    // rather than a tick in the icon slot, so every rung can carry its own
-    // glyph as well; see PriorityGlyph for why both are needed at once.
-    if (queue.choices.length > 0) {
-      const agreed = chosen.every((x) => x.priority === chosen[0].priority)
-        ? chosen[0].priority
-        : undefined;
-      queueGroup.items.push({
-        id: 'priority',
-        label: t('menu.priority'),
-        icon: <IconPriority />,
-        submenu: [
-          {
-            id: 'values',
-            items: queue.choices.map((p) => ({
-              id: p.id,
-              label: t(`priority.${p.id}` as TranslationKey),
-              icon: <PriorityGlyph steps={p.value} />,
-              checked: p.value === agreed,
-              onSelect: guard(() => queuePriority({ ids }, p.value, base)),
-            })),
-          },
-        ],
-      });
-    }
-  }
-
-  // The stop mark is one task, so it is offered on one row and never on forty:
-  // an entry that silently picked the first of a selection would arm a mark on
-  // a download nobody pointed at. There is exactly one mark in the app and this
-  // toggles it — arming a second would only move it.
-  if (chosen.length === 1 && (waiting(chosen[0]) || chosen[0].status === 'running')) {
-    const only = chosen[0];
-    const armed = queue.stopMark === only.id;
-    queueGroup.items.push({
-      id: 'stopMark',
-      label: t(armed ? 'queue.stopMarkOn' : 'queue.stopMark'),
-      icon: <IconStopMark />,
-      onSelect: () => void queue.mark(armed ? '' : only.id).catch(fail),
-    });
-  }
+  const queueGroup = queueMenuGroup({ chosen, ids, base, t, fail, queue });
 
   const state: MenuGroup = { id: 'state', items: [] };
   if (some((x) => !x.enabled))

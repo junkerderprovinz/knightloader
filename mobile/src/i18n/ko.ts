@@ -124,11 +124,11 @@ export const ko: Dict = {
   'settings.motion': '모션',
   'settings.motion.off': '끄기',
   'settings.motion.subtle': '은은하게',
-  'settings.motion.wild': '전체',
+  'settings.motion.wild': '거칠게',
   'settings.motion.storm': '폭풍',
   'settings.accentRainbowOwns': '지금은 무지개 모드가 위치에 따라 색을 나눠 줍니다. 이 색은 위치가 없는 모든 곳에 계속 적용됩니다.',
   'settings.motionReduced': '이 휴대폰은 동작 줄이기로 설정되어 있습니다. 그동안에는 어떤 단계를 골라도 여기서는 아무것도 움직이지 않습니다.',
   'settings.rainbowPaletteNoInstance': '팔레트는 인스턴스에 속합니다. 연결이 없으면 색을 쓸 곳도 없으므로 각 위치는 기본 여덟 가지 색을 그대로 유지합니다.',
 
-  'settings.motionHint': '끄기는 필수적이지 않은 모든 애니메이션을 끕니다. 은은하게는 등장을 짧게 유지합니다. 전체는 가장 풍부한 경험입니다.',
+  'settings.motionHint': '끄기는 필수적이지 않은 모든 애니메이션을 끕니다. 은은하게는 등장을 짧게 유지합니다. 거칠게는 가장 풍부한 경험입니다.',
 };

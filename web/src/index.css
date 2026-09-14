@@ -1160,9 +1160,9 @@ body {
    below answer one of: is this new, arriving, ongoing, confirmed, changing
    shape, changing colour, or refused? Nothing else in the system animates.
 
-   MOTION INTENSITY (data-motion="off"|"subtle"|"full" on <html>, plus the
+   MOTION INTENSITY (data-motion="off"|"subtle"|"wild" on <html>, plus the
    hidden "storm" further down — applyMotion() in lib/appearance.ts, default
-   "full") is the user-owned
+   "wild") is the user-owned
    axis layered on top: duration/distance/amplitude custom properties,
    redefined per [data-motion], consumed by the SAME keyframes at every
    intensity — the identical "one token set, no exception list" shape the
@@ -1330,7 +1330,7 @@ body {
 /* The ring's resting state, and the one part of this that sits outside every
    motion gate: both keyframes above animate outline-color, so the outline has to
    already exist for either of them to have anything to work on - under
-   data-motion="off" and under OS reduced motion just as much as at full. It is
+   data-motion="off" and under OS reduced motion just as much as at wild. It is
    transparent, so an element can wear this class and show nothing at all. */
 .glim-locate {
   outline: 2px solid transparent;
@@ -1385,10 +1385,18 @@ body {
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  /* Full-intensity defaults — data-motion="full", and also what the app
-     renders before the setting has ever been touched (DEFAULT_MOTION in
-     lib/appearance.ts is 'full'). One token per timing/distance/amplitude
-     value the keyframes above and the utilities below actually read. */
+  /* The top visible level's defaults — data-motion="wild", and also what the
+     app renders before the setting has ever been touched (DEFAULT_MOTION in
+     lib/appearance.ts is 'wild'). One token per timing/distance/amplitude
+     value the keyframes above and the utilities below actually read.
+
+     THE SELECTOR IS A BARE :root AND THAT IS THE RULE, not a shortcut. A
+     stylesheet names the QUIET levels and never the lively one: written
+     :root[data-motion="wild"], this block would stop covering `storm`, which
+     is MORE motion and wants the livelier numbers rather than none of them,
+     and the quiet blocks below would have nothing left to override. Bare
+     :root covers wild, storm and the attribute being absent, and goes on
+     covering whatever is added above them (GlimStone 2.0.0). */
   :root {
     --motion-page-dur: 280ms;
     /* Travels three times as far as the middle intensity and scales in, so the
@@ -1409,6 +1417,20 @@ body {
     --motion-shake-scale: 1;
     --motion-pulse-dur: 2s;
     --motion-pulse-min-opacity: .45;
+    /* THE STORM LEVEL'S TWO PULSE NUMBERS, PARKED HERE SO THEY EXIST ONCE.
+       They are read twice: by :root[data-motion="storm"] below, which is the
+       level, and by .kl-storm-curve further down, which is the 1337 egg
+       switching ONE element onto that level without touching the user's own
+       setting. Written out in both places instead, they would be two numbers
+       for one thing - the shape of drift --dir-sign is already in this file to
+       avoid, and the day somebody retunes the storm pulse the egg would quietly
+       stop being the storm. They sit in the bare :root rather than in the storm
+       block because the egg has to read them at every intensity, and they carry
+       the --egg- prefix rather than --motion- because they are constants and
+       not a rung of the ladder: check-motion-tokens.mjs would otherwise, quite
+       correctly, demand a per-intensity value for each. */
+    --egg-storm-pulse-dur: 1.4s;
+    --egg-storm-pulse-min: .25;
     /* The reorder wiggle, the app's second infinite animation. The angle is the
        cap the language names, met at the number the phone already turns. */
     --motion-wiggle-dur: .32s;
@@ -1530,8 +1552,8 @@ body {
     /* The one period that goes DOWN: an ambient loop gets livelier by running
        faster, which is the same reasoning that leaves it alone at "subtle" -
        there, moving less is the only way to calm it. */
-    --motion-pulse-dur: 1.4s;
-    --motion-pulse-min-opacity: .25;
+    --motion-pulse-dur: var(--egg-storm-pulse-dur);
+    --motion-pulse-min-opacity: var(--egg-storm-pulse-min);
     --motion-wiggle-deg: 1.3deg;
     --motion-shape-dur: 470ms;
     --motion-confirm-dur: 760ms;
@@ -1886,6 +1908,194 @@ body {
   .glim-panel-in-back {
     animation: glim-panel-in-back var(--motion-panel-dur) cubic-bezier(.2, .6, .2, 1) both;
   }
+
+  /* =========================================================================
+     FOUR MOMENTS THAT DID NOT MOVE, and the three eggs whose motion lives on
+     this axis. Everything below is INSIDE this gate on purpose - it is the
+     same safety property the storm block a few hundred lines up carries: a
+     machine whose owner asked the operating system for less motion never
+     evaluates a data-motion selector at all, and an easter egg is the last
+     place to make an exception to that.
+
+     The keyframes these play sit outside every gate, with the egg's own
+     section at the end of this file: a keyframe with nothing playing it does
+     nothing, and the gate is about who plays.
+     ========================================================================= */
+
+  /* THE SIDEBAR COUNT ROLLS INSTEAD OF SWAPPING. The badge in the rail is the
+     one number in this app somebody watches without reading it, and it changed
+     by replacing one glyph with another in a single frame - so a queue going
+     from 9 to 10 and a queue going from 9 to 1 looked identical. The new value
+     arrives from above, which is the direction a counter turns.
+
+     It rides --motion-content-dur, which every other "this content is new"
+     fade already reads, so at "off" the duration is 0 and the number simply
+     is what it is. Nothing is switched off here and nothing needs a substitute:
+     a count that lands instantly is the correct "off", not a missing message. */
+  .kl-count {
+    animation: kl-count-roll var(--motion-content-dur) var(--motion-curve) both;
+  }
+
+  /* THE FRONT EDGE OF THE PROGRESS BAR IS ALIVE WHILE THE DOWNLOAD IS. The
+     determinate fill was a flat block that grew, so a download moving at
+     40 KiB/s and a download that had stalled at the same percentage drew
+     exactly the same picture. The edge breathes on the app's own ambient loop -
+     glim-pulse, the same keyframe the live dot on the speed curve uses - so
+     "this is moving" is said the same way in both places rather than in two.
+
+     A SECOND CLASS, AND IT IS THE WHOLE POINT OF THE RULE. .kl-bar-edge is the
+     mark itself and is drawn on any fill with room for it (the plain rule at
+     the foot of this file); .kl-bar-edge-live is the claim that something is
+     happening, and only the caller knows that. Carried by the one class, the
+     animation ran on every drawn row - measured on a list of 101, all 43 edges
+     in the window pulsing, forty of them finished files at 100% and one of them
+     a row somebody had paused on purpose. The mark is a state and the loop is
+     news, and news that is always on is not news.
+
+     It also settles the arithmetic. This page ran ONE infinite animation before
+     the edge existed - the dot on the speed curve - and one per drawn row after
+     it. Now it runs one per row that is genuinely moving bytes, which on a
+     queue is the concurrency setting and not the length of the list.
+
+     Its period is --motion-pulse-dur, and the two exemptions that token already
+     carries apply unchanged: "subtle" leaves the PERIOD alone (an ambient loop
+     is calmed by moving less, not by running faster - the amplitude does come
+     down, through --motion-pulse-min-opacity) and "off" gets a real stop rather
+     than a zero-length infinite animation, which is what the substitute below
+     is. The edge stays PAINTED at "off": it is a state, and the bar's leading
+     edge is still where the fill ends. */
+  .kl-bar-edge-live {
+    animation: glim-pulse var(--motion-pulse-dur) ease-in-out infinite;
+  }
+  :root[data-motion="off"] .kl-bar-edge-live {
+    animation: none;
+    opacity: 1;
+  }
+
+  /* THE TIP OF THE SPEED CURVE THROWS A RING. The tip already carried the
+     .glim-live dot, so it was not the dead corner it was reported as - what it
+     had was a dot changing opacity in place, which reads as a highlight rather
+     than as a reading arriving. The halo is the same beat made visible: one
+     ring per pulse, leaving the dot, on the SAME period, so the two are one
+     gesture and not two clocks.
+
+     PURE DECORATION, SO "off" REMOVES IT ENTIRELY rather than freezing it. That
+     is the difference between this and .glim-live one rule up: the dot has to
+     stay because it marks where "now" is on the curve, and the ring marks
+     nothing the dot does not. */
+  .kl-tip-halo {
+    animation: kl-tip-halo var(--motion-pulse-dur) linear infinite;
+  }
+  :root[data-motion="off"] .kl-tip-halo {
+    animation: none;
+    opacity: 0;
+  }
+
+  /* THE CREST TURNS (easter egg: the crest on the About card - docs/easter-eggs.md).
+     Press and hold and it shows its back, which carries the commit this build
+     came from; let go and it turns back. Nothing is stored.
+
+     THE DOUBLED CLASS IS NOT A TYPO, and it is the trap the colour-wipe rule
+     below this section documents at length: .glim-shape-armed * owns the bare
+     `transition` shorthand on every element in the document, deliberately
+     WITHOUT transform in its list, and two same-specificity rules reaching for
+     one shorthand do not merge - the winner takes the whole property list.
+
+     WHAT THE DOUBLING ACTUALLY BUYS, because an earlier version of this
+     paragraph got it wrong and called a single class "a coin flip decided by
+     source order". Nothing here is a coin flip. .glim-shape-armed * is (0,1,0),
+     `*` contributing nothing; a bare .kl-crest-turn would be (0,1,0) as well;
+     the two sit in the same layer, so the later one wins, every time, for ever.
+     Measured rather than reasoned: rewriting THIS RULE'S OWN selectorText to a
+     single class in place, at its own position in the sheet, leaves the crest
+     reading transitionProperty `transform` and duration .26s - unchanged.
+
+     So the doubling is not what makes it work today. It is what stops the
+     ORDER from being the thing that makes it work: these two rules are 230
+     lines apart, the file is edited by hand, and a tie broken by which
+     paragraph happens to come second is a tie one reorganisation loses
+     silently, taking the whole egg with it and leaving a crest that snaps.
+     Doubled it outranks that rule outright wherever either ends up, and the
+     only thing this wrapper gives up in exchange is the house colour
+     transition on an element that has no colours of its own.
+
+     --motion-shape-dur is the right token rather than a new one: a crest showing
+     its back is the app's "changing shape" beat, which is what that token times
+     everywhere else. At "off" it is 0 and the crest still turns, instantly - the
+     egg exists at every intensity and is a different number at each, which is
+     the whole rule about levels. Under OS-level reduced motion this rule is not
+     reached at all, so the turn is likewise instant, which is the same answer by
+     the same mechanism. */
+  .kl-crest-turn.kl-crest-turn {
+    transition: transform var(--motion-shape-dur) var(--motion-curve);
+  }
+
+  /* THE SPEED CURVE ON THE STORM CURVE (easter egg: 1337).
+     With the speed limit standing at exactly 1337 KiB/s, this one element runs
+     on the hidden fourth motion level. It is the same act as choosing a level,
+     scoped to one curve: the two numbers come from the storm block's own
+     constants rather than from copies, so retuning the level retunes the egg.
+
+     It does NOT touch data-motion on <html>, which belongs to the user's own
+     setting and has to keep saying what they chose. And it cannot outrun "off"
+     or reduced motion, which is the half worth being sure about: the substitute
+     rules above and the (reduce) block below switch .glim-live and .kl-tip-halo
+     off by NAME, and a token this rule hands them changes nothing about a rule
+     that says `animation: none`. */
+  .kl-storm-curve {
+    --motion-pulse-dur: var(--egg-storm-pulse-dur);
+    --motion-pulse-min-opacity: var(--egg-storm-pulse-min);
+  }
+
+  /* THE SLEEPING KNIGHT (easter egg). An empty state that has stood untouched
+     long enough closes down: two slow blinks, then the mark settles and dims.
+     Anything arriving unmounts the empty state, so the way out is the ordinary
+     one - there is nothing to switch off and nothing to store.
+
+     THE DELAY IS THE WHOLE MECHANISM AND IT COSTS NOTHING. No timer, no
+     interval, no React state: one animation-delay, scheduled by the compositor
+     and thrown away with the element. `both` holds the FROM keyframe during the
+     delay, and the FROM keyframe is exactly what the mark looks like with no
+     rule at all, so an empty state that is replaced after two seconds has been
+     charged for nothing.
+
+     Six times --motion-content-dur, not a number of its own: two blinks and a
+     settle do not fit in one content fade, and a literal here would be the one
+     duration in this file the setting could not reach.
+
+     At "off" it is switched off outright rather than run at zero, and that is
+     the rule for decoration: a mark that jumps to a dimmed state with no
+     movement is not a quieter joke, it is a mark that looks broken. */
+  .kl-doze {
+    animation: kl-doze calc(var(--motion-content-dur) * 6) ease-in-out var(--kl-doze-wait, 24s) both;
+  }
+  :root[data-motion="off"] .kl-doze {
+    animation: none;
+  }
+
+  /* THE PARADE (easter egg). A package of many files closing in one go sends a
+     row of small shields across the bubble before the checkmark is drawn.
+
+     It rides the toast's own tokens and invents no second clock: the sweep is
+     four content fades long, the shields are spaced by --motion-stagger-step
+     and capped by --motion-stagger-cap exactly as .glim-stagger's own rows are,
+     and the checkmark is the app's .glim-checkmark held back by the length of
+     the sweep. At "off" all three numbers are 0, so the bubble draws its
+     checkmark at once and the parade has already finished - nothing to switch
+     off, because the level did it.
+
+     --dir-sign carries the direction, so the shields ride out of the bubble's
+     trailing edge in an Arabic or Hebrew locale rather than always rightwards. */
+  .kl-parade {
+    animation: kl-parade calc(var(--motion-content-dur) * 4) ease-in-out both;
+    animation-delay: min(calc(var(--stagger-index, 0) * var(--motion-stagger-step)), var(--motion-stagger-cap));
+  }
+  /* Longhand AFTER .glim-checkmark's shorthand a few rules up, which is what
+     lets it add a delay without restating the animation: the shorthand resets
+     animation-delay, so the order of these two rules is load-bearing. */
+  .kl-parade-check {
+    animation-delay: calc(var(--motion-content-dur) * 4);
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .glim-page-enter { animation: glim-fade-in 180ms ease both; }
@@ -1911,6 +2121,40 @@ body {
      so both genuinely share one rule's worth of declarations rather than
      data-motion="off" inventing a second, separately-maintained copy. */
   .glim-live { animation: none; opacity: 1; }
+  /* The two ambient loops added with the four new moments, given the same true
+     stop .glim-live gets one line up rather than a slower version of themselves.
+     They share a rule's worth of declarations with their data-motion="off"
+     counterparts above for the reason that pair already records: a rule cannot
+     be shared across two media queries, so the choice is one copy here or two
+     separately-maintained recipes.
+
+     The bar's edge keeps its paint and the curve's halo does not, which is the
+     same split the pair above makes: the edge says where the fill ends, which
+     is a fact about the bar; the halo says nothing the dot beneath it does not
+     already say.
+
+     Named by the MARK's class and not by .kl-bar-edge-live, deliberately: the
+     live class only ever appears alongside this one, and the mark is what has
+     to keep its opacity whether or not the caller said anything was moving.
+     There is no cascade fight to lose either way - the animation itself lives
+     inside the no-preference gate, which this query is the other side of. */
+  .kl-bar-edge { animation: none; opacity: 1; }
+  .kl-tip-halo { animation: none; opacity: 0; }
+  /* The parade's shields, and this one is a bug fix rather than a symmetry.
+     Every other rule in this block replaces a movement; this one replaces a
+     movement that was the ONLY thing keeping five marks off the bubble's own
+     text. Unlike data-motion="off", where the sweep still runs and simply runs
+     at zero - so it ends where it always ends, off the trailing edge and
+     invisible - this query never reaches the animation at all, and a row with
+     no animation on it is five shields sitting at full opacity across the
+     message. Measured, not reasoned about.
+
+     So under reduced motion the row is not shown, and the checkmark is drawn
+     immediately: .glim-checkmark's unconditional base at the top of this file
+     is "fully drawn, no animation", and the delay that holds it back for the
+     sweep lives inside the no-preference gate with the sweep itself. The
+     bubble says the same thing with no procession in front of it. */
+  .kl-parade { animation: none; opacity: 0; }
 }
 
 /* ---------------------------------------------------------------------------
@@ -2340,5 +2584,186 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .kl-egg[data-egg='draw'] #kl-sword {
     animation: kl-egg-sheen var(--egg-sheen-dur, 900ms) ease-out forwards;
+  }
+}
+
+/* ===========================================================================
+   Four more eggs, and four moments that stood still
+   ---------------------------------------------------------------------------
+   The keyframes and the LAYOUT for everything the block inside the motion gate
+   plays. Split the same way .kl-egg above is split, and for the same two
+   reasons: a keyframe with nothing playing it does nothing, so it costs nothing
+   to leave outside the gate, and a box, a pivot or an overflow rule is not
+   motion - the mark still has to be drawn correctly for a reader who asked for
+   less of it.
+
+   docs/easter-eggs.md is the list, including the interaction that turns each
+   one off again. The rule all of them follow: an egg that changes behaviour has
+   to be switchable back off and must not quietly become a permanent entry in a
+   settings list. Nothing below writes anything anywhere.
+   =========================================================================== */
+
+/* The sidebar count, arriving from above. Small travel on purpose: the badge is
+   a 11px number in a 20px corner, and anything further reads as the badge
+   falling off the glyph rather than as the number turning over. */
+@keyframes kl-count-roll {
+  from { opacity: 0; transform: translateY(-45%); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* The ring leaving the tip of the speed curve. transform rather than the SVG
+   `r` attribute, which CSS can animate in current browsers and could not in the
+   ones this app still runs on; transform-box below is what makes the scale
+   happen about the circle's own centre instead of the viewBox origin.
+
+   IT STARTS AT THE DOT'S OWN SIZE, so the ring is born at the dot's edge rather
+   than inside it: the two circles share a radius in the markup, and scale 1 is
+   therefore exactly "on the dot".
+
+   LINEAR, AND THAT IS MEASURED. On an ease-out - which is the obvious curve for
+   an expanding ring, and what this had - the opacity is eased with everything
+   else, so the ring was down to 0.23 of its own 0.55 within the first twentieth
+   of the cycle and invisible for the rest of it: a ping nobody could see, twice
+   a second. Straight lines on both properties keep it readable for half its
+   life, which is what a beat has to be to read as a beat. */
+@keyframes kl-tip-halo {
+  from { transform: scale(1); opacity: .6; }
+  to   { transform: scale(3.2); opacity: 0; }
+}
+.kl-tip-halo {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+}
+
+/* The doze. Two blinks and a settle, in one keyframe rather than three chained
+   animations: the eye reads "it is nodding off" from the second blink being
+   slower than the first, and a chain would need three delays kept in step with
+   one duration.
+
+   IT ENDS DIMMED AND SLIGHTLY SHORTER, NOT CLOSED. A mark squashed flat is not
+   a sleeping mark, it is a missing one, and the empty state's glyph is the only
+   thing in that box carrying any weight at all. */
+@keyframes kl-doze {
+  0%   { transform: scaleY(1);   opacity: 1; }
+  42%  { transform: scaleY(.08); opacity: .75; }
+  50%  { transform: scaleY(1);   opacity: .95; }
+  78%  { transform: scaleY(.08); opacity: .7; }
+  100% { transform: scaleY(.92) translateY(1px); opacity: .5; }
+}
+/* inline-flex and a bottom origin: an icon that shrinks about its centre slides
+   up while it closes, which reads as the mark leaving rather than resting. */
+.kl-doze {
+  display: inline-flex;
+  transform-origin: 50% 100%;
+}
+
+/* The parade, riding out of the bubble's trailing edge. --dir-sign is the same
+   token the directional panel slide spends, so the shields march the way the
+   reader's own language runs. */
+@keyframes kl-parade {
+  0%   { opacity: 0; transform: translateX(calc(var(--dir-sign) * -160%)); }
+  18%  { opacity: 1; }
+  82%  { opacity: 1; }
+  100% { opacity: 0; transform: translateX(calc(var(--dir-sign) * 160%)); }
+}
+/* The row lies OVER the bubble's text and takes no pointer events: the bubble
+   still says what finished while the shields pass, and the dismiss button under
+   them stays pressable for the whole sweep. A bubble that cannot be dismissed
+   while its own joke is running would be the egg eating a control, which is the
+   blade's own rule one section up. */
+.kl-parade-row {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  overflow: hidden;
+  pointer-events: none;
+  border-radius: inherit;
+  color: var(--accent-ink);
+}
+
+/* The crest on the About card.
+   ---------------------------------------------------------------------------
+   Two faces in one grid cell, the back pre-turned, the pair turned as a unit.
+   A grid rather than an absolutely positioned back, so the box is as big as the
+   crest without anybody measuring anything.
+
+   backface-visibility is what makes the two faces take turns; without it both
+   render and the back reads as a mirrored ghost through the front. */
+.kl-crest {
+  perspective: 420px;
+  display: inline-flex;
+  /* A press-and-hold on a control that is ALSO a text run underneath: the
+     selection that a long press would otherwise start is not part of the
+     gesture, and on a touch screen it is what the gesture turns into. */
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.kl-crest-turn {
+  display: grid;
+  transform-style: preserve-3d;
+}
+.kl-crest-face {
+  grid-area: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.kl-crest-back {
+  transform: rotateY(180deg);
+}
+.kl-crest[data-turned='yes'] .kl-crest-turn {
+  transform: rotateY(180deg);
+}
+
+/* The progress bar's leading edge.
+   ---------------------------------------------------------------------------
+   Inside the fill, at its trailing end, so `inset-inline-end` puts it on the
+   correct side under [dir="rtl"] without a second rule.
+
+   A WHITE HIGHLIGHT AND NOT A TOKEN, which is the one deliberate exception in
+   this rule. It is painted ON the fill and never on the page's ground: the fill
+   is --accent or --status-ok-solid, both saturated mid-tones that are the same
+   colour in every theme, so what this needs is "brighter than whatever is under
+   it" rather than a colour of its own. A theme token here would be the wrong
+   question answered precisely - --accent-contrast is near-black ink for text
+   sitting on gold, and a near-black cap on the front of a gold bar reads as a
+   notch cut out of it rather than as an edge.
+
+   THE FILL IS THE EDGE'S OWN MEASURING STICK, which is what the container below
+   is for and the only reason this element has one. ProgressBar knows a
+   PERCENTAGE and nothing else; how many pixels that comes to is known here and
+   nowhere else, and it is a different number on a table cell, on the Overview
+   card and on a disk tile. So the guard cannot live in the component: measured
+   at 1% of a 110px rail, the fill was 1.09px while this mark was 3px, so it
+   covered the whole of the fill AND began 1.91px to the left of it - a download
+   that had just started drew a white stub where its first coloured pixel should
+   have been, with a 6px white glow around it. A mark that is wider than the
+   thing it marks is not an edge.
+
+   9px, three times the mark's own width, so the fill keeps two thirds of itself
+   when the edge appears. Below that there is no edge to show and the bar is
+   simply the accent, which is the truthful picture of a download that has
+   barely begun. */
+.kl-bar-fill {
+  container: kl-bar / inline-size;
+}
+.kl-bar-edge {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 0;
+  width: 3px;
+  border-radius: var(--radius-pill);
+  background: rgb(255 255 255 / .55);
+  box-shadow: 0 0 6px 1px rgb(255 255 255 / .35);
+  pointer-events: none;
+}
+@container kl-bar (max-width: 9px) {
+  .kl-bar-edge {
+    display: none;
   }
 }

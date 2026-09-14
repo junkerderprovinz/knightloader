@@ -585,27 +585,45 @@ export function Collector() {
               drin") - the search badge is the row's own fixed anchor point
               (its popover opens from it every time), so a variable number
               of filter chips sits on the side that does not push it around
-              as chips appear and disappear. */}
-          <IconBadge
-            labelled
-            hue={0}
-            active={filters.has('uncheckable')}
-            icon={<IconWarning width={16} height={16} />}
-            title={t('filter.uncheckable')}
-            aria-label={t('filter.uncheckable')}
-            disabled={uncheckableCount === 0 && !filters.has('uncheckable')}
-            onClick={() => narrowing.toggleFilter('uncheckable')}
-          />
-          <IconBadge
-            labelled
-            hue={1}
-            active={filters.has('unchecked')}
-            icon={<IconClock width={16} height={16} />}
-            title={t('filter.unchecked')}
-            aria-label={t('filter.unchecked')}
-            disabled={uncheckedCount === 0 && !filters.has('unchecked')}
-            onClick={() => narrowing.toggleFilter('unchecked')}
-          />
+              as chips appear and disappear.
+
+              DRAWN ONLY WHEN THERE IS SOMETHING TO FIND, which is the rule
+              their four siblings in the strip beside them have always
+              followed (offeredQuickFilters, ListToolbar.tsx: "a filter with
+              nothing to match is left off ... but one that is switched ON
+              stays even at zero, or turning a filter on could make its own
+              chip disappear out from under it"). These two were the
+              exception, greyed rather than absent, and the exception cost the
+              row two permanently drawn labelled badges - 219 points in
+              German, 281 in Hungarian, measured at 1366 - that on a checked
+              collection can do nothing at all. Greying was never the milder
+              choice: a disabled control still has to be read past, and this
+              row is the one place in the app where that is paid for in
+              wrapped lines. Nothing is reachable one day and gone the next:
+              the badge returns the moment a link lands that it would match,
+              which is exactly when it starts being able to do something. */}
+          {(uncheckableCount > 0 || filters.has('uncheckable')) && (
+            <IconBadge
+              labelled
+              hue={0}
+              active={filters.has('uncheckable')}
+              icon={<IconWarning width={16} height={16} />}
+              title={t('filter.uncheckable')}
+              aria-label={t('filter.uncheckable')}
+              onClick={() => narrowing.toggleFilter('uncheckable')}
+            />
+          )}
+          {(uncheckedCount > 0 || filters.has('unchecked')) && (
+            <IconBadge
+              labelled
+              hue={1}
+              active={filters.has('unchecked')}
+              icon={<IconClock width={16} height={16} />}
+              title={t('filter.unchecked')}
+              aria-label={t('filter.unchecked')}
+              onClick={() => narrowing.toggleFilter('unchecked')}
+            />
+          )}
 
           {offeredFilters.length > 0 && (
             <Tabs
@@ -679,8 +697,18 @@ export function Collector() {
               // the app whose badge stayed idle while its panel was showing.
               active={searchOpen}
               icon={<IconSearch width={16} height={16} />}
-              title={t('collector.searchToggle')}
-              aria-label={t('collector.searchToggle')}
+              // `search.toggle`, the key the download list's own badge uses.
+              // This said `collector.searchToggle` and that key no longer
+              // exists in any of the 42 catalogues - it was renamed to this one
+              // and the call site was not moved with it, so `t()` fell through
+              // to an undefined English entry and the badge rendered with NO
+              // title at all: no printed words under Beschriftung "text", and
+              // `aria-label={undefined}`, which left the only glyph-only
+              // control in this row with no accessible name whatsoever. Two
+              // badges that open the same popover on two pages now read the
+              // same key, which is also why the rename cannot repeat itself.
+              title={t('search.toggle')}
+              aria-label={t('search.toggle')}
               aria-expanded={searchOpen}
               onClick={() => setSearchOpen((v) => !v)}
             />

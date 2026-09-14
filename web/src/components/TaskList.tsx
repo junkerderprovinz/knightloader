@@ -1021,13 +1021,42 @@ function PackageRow({
       // opaque so the strip can repeat it rather than stack a second 80% on it:
       // the strip on THIS row is drawn at rest as well (the collector's gear),
       // which is the state a hover-only ground would have got wrong.
+      //
+      // THE HOVER GOES UP THE RAMP, WHICH IS RULE 21 AND NOT A TASTE. This row
+      // used to hover to --carbon-surface2 - the same tone its resting mix is
+      // made of, at 100% instead of 80%, which is 4/255 in the dark theme.
+      // Measured on a running instance: rgb(53,53,53) -> rgb(57,57,57), ΔL* 1.8,
+      // against the link row beneath it moving 3.8 plain and 12.3 in Rainbow.
+      // That is the "kaum" in jdp's report ("können wir das hoover highlighten
+      // der ordner gleich machen wie der links? Bei den ordnern sieht man es
+      // kaum"). A row RESTING on the surface2 tier belongs on surface3, the same
+      // step this repo's own secondary button takes; the link row rests on
+      // nothing and so is the one allowed to take --carbon-hover.
+      //
+      // WRITTEN AT THE SAME 80% AS THE RESTING GROUND, and that is the half that
+      // was measured rather than reasoned. Flat `var(--carbon-surface3)` is the
+      // literal reading of rule 21 and it costs this row two of its own parts:
+      // the Aktiv switch's ON track and the hoster badge are both FILLED with
+      // --carbon-surface3 (components/columns.tsx, components/HosterIcon.tsx), so
+      // a row painted surface3 swallows them whole - measured ΔL* 0.00 between
+      // row and track in BOTH themes, i.e. the switch loses its shape at the one
+      // moment somebody is pointing at it. Moving the same 80% plane one step
+      // instead keeps the row's construction ("the surface2 tier composited over
+      // the card") and keeps a step under everything standing on it: measured
+      // rgb(53,53,53) -> rgb(73,73,73) dark and rgb(237) -> rgb(218) light, a
+      // hover of ΔL* 8.9 / 6.8 - never below the link row's own step (3.8 / 5.2)
+      // - with ΔL* 3.9 / 3.2 left between the row and the switch on it.
+      // web/check-hover-ramp.mjs now reads this custom-property form too; before
+      // this round it only knew the `bg-carbon-*` spelling and could not see the
+      // one place that got it wrong.
       className={`group relative grid cursor-pointer select-none items-center ${
         allSelected ? 'glim-row-selected' : ''
       } ${divider ? 'border-t border-carbon-border/60' : ''} px-3 py-2.5 transition-colors
         bg-[var(--row-ground)]
         [--row-ground:color-mix(in_srgb,var(--carbon-surface2)_80%,var(--carbon-surface))]
-        hover:[--row-ground:var(--carbon-surface2)]
-        has-[:focus-visible]:[--row-ground:var(--carbon-surface2)] ${dragging ? 'opacity-50' : ''}`}
+        [--row-raised:color-mix(in_srgb,var(--carbon-surface3)_80%,var(--carbon-surface))]
+        hover:[--row-ground:var(--row-raised)]
+        has-[:focus-visible]:[--row-ground:var(--row-raised)] ${dragging ? 'opacity-50' : ''}`}
     >
       {columns.map((col) => (
         <div

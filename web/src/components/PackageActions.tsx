@@ -44,12 +44,18 @@ function hostOf(raw: string): string {
 }
 
 /**
- * PackageActions is the package-organising badges merged into Collector.tsx's
- * own selection-mode action row (jdp, 2026-08-24: "die sollen in der
- * gleichen zeile wie die quadratischen badges erscheinen, nicht in einer
- * neuen Zeile") - three square IconBadges, not the text buttons this used to
- * render, so they read as the same kind of control as the badges around them
- * rather than as a different, unlabelled control floating among them.
+ * PackageActions is everything a selection's PACKAGE can be told, behind one
+ * badge in Collector.tsx's and Downloads.tsx's shared selection row (jdp,
+ * 2026-08-24: "die sollen in der gleichen zeile wie die quadratischen badges
+ * erscheinen, nicht in einer neuen Zeile").
+ *
+ * It was three badges until 2026-09-14. They were not three ideas: every one of
+ * them answers "which package do these links belong to", which is what makes
+ * them a menu rather than a row. Three separately-labelled buttons for one idea
+ * is also what made the row unreadable - "In ein Paket verschieben", "Nach
+ * Hoster aufteilen" and "Ganzes Paket verschieben" side by side are three long
+ * German sentences that have to be read to the end before they can be told
+ * apart, and they come before the verbs somebody actually came for.
  *
  * Moving and merging are the same operation seen from two sides — several
  * tasks ending up under one name — so they share a dialog instead of being two
@@ -116,59 +122,85 @@ export function PackageActions({
 
   return (
     <>
-      {/* `labelled` on all three, because this strip is not its own row: it is
-          rendered INSIDE Collector.tsx's and Downloads.tsx's selection rows,
-          between badges that all opt in. Without it, a person who has set
-          Beschriftung to "text" reads "Clear all", three wordless glyphs, then
-          "Start selected" in one line - which is the defect the label engine
-          exists to prevent, not a compact strip somebody chose. GlimStone 1.8.0
-          rule 13: the variant decides the SHAPE, never whether the words
-          appear, and from outside a documented exemption and a control that
-          ignores the setting look identical. The words are `title`, which each
-          of these already carries, so no catalogue grows a key. */}
+      {/* ONE badge, not three (jdp, 2026-09-14, screenshot of the selection
+          row: "wenn man auf alle auswählen klickt kommen viele buttons ...
+          schaffen wir es alle buttons in eine Zeile zu packen?").
+          Measured, at 1366 points in German with Beschriftung on "text and
+          glyph": the three badges cost 175 + 162 + 183 points plus their gaps,
+          536 of the 1030 the row's whole column has. Behind one word they cost
+          75. Nothing moved into a right-click-only place - this badge is a
+          button, its menu is ContextMenu's own role="menu" with arrow keys, and
+          every entry keeps the name it had on its badge.
+          `labelled`, because this strip is rendered INSIDE Collector.tsx's and
+          Downloads.tsx's selection rows between badges that all opt in.
+          Without it, a person who has set Beschriftung to "text" reads "Clear
+          all", a wordless glyph, then "Start selected" in one line - which is
+          the defect the label engine exists to prevent, not a compact strip
+          somebody chose. GlimStone 1.8.0 rule 13: the variant decides the
+          SHAPE, never whether the words appear. */}
       <IconBadge
         labelled
         icon={<IconFolder width={16} height={16} />}
-        title={t('pkg.moveTitle')}
-        aria-label={t('pkg.moveTitle')}
-        onClick={() => setDialog(true)}
+        title={t('pkg.menu')}
+        aria-label={t('pkg.menu')}
+        aria-haspopup="menu"
+        aria-expanded={!!order.anchor}
+        onClick={(e) => order.openAt(anchorBelow(e.currentTarget))}
       />
-      <IconBadge
-        labelled
-        icon={<IconSplitHost width={16} height={16} />}
-        title={t('pkg.splitByHost')}
-        aria-label={t('pkg.splitByHost')}
-        onClick={splitByHost}
-      />
-      {/* A distinct glyph (three descending bars, not an arrow) rather than
-          the four arrow icons the queue-order submenu itself opens with — the
-          two sets do different things to different rows, and side by side as
-          identical arrows they would be told apart only by hovering for a
-          tooltip. */}
-      {packages.length === 1 && (
-        <IconBadge
-          labelled
-          icon={<IconPriority width={16} height={16} />}
-          title={t('pkg.queueOrder')}
-          aria-label={t('pkg.queueOrder')}
-          onClick={(e) => order.openAt(anchorBelow(e.currentTarget))}
-        />
-      )}
       {order.anchor && (
         <ContextMenu
           anchor={order.anchor}
-          label={t('pkg.queueOrder')}
+          label={t('pkg.menu')}
           onClose={order.close}
           groups={[
             {
-              id: 'order',
+              id: 'package',
               items: [
-                { id: 'top', label: t('task.moveTop'), icon: <IconTop width={14} height={14} />, onSelect: () => void move('top') },
-                { id: 'up', label: t('task.moveUp'), icon: <IconArrowUp width={14} height={14} />, onSelect: () => void move('up') },
-                { id: 'down', label: t('task.moveDown'), icon: <IconArrowDown width={14} height={14} />, onSelect: () => void move('down') },
-                { id: 'bottom', label: t('task.moveBottom'), icon: <IconBottom width={14} height={14} />, onSelect: () => void move('bottom') },
+                {
+                  id: 'move',
+                  label: t('pkg.moveTitle'),
+                  icon: <IconFolder width={14} height={14} />,
+                  onSelect: () => setDialog(true),
+                },
+                {
+                  id: 'split',
+                  label: t('pkg.splitByHost'),
+                  icon: <IconSplitHost width={14} height={14} />,
+                  onSelect: () => void splitByHost(),
+                },
               ],
             },
+            // Offered for one package and only one, unchanged: "send this
+            // package to the top" over three at once has no defensible answer
+            // about which of them arrives there first. A distinct glyph (three
+            // descending bars, not an arrow) rather than the four arrows its
+            // own submenu opens with, so the entry and its contents are not
+            // four identical arrows in a column.
+            ...(packages.length === 1
+              ? [
+                  {
+                    id: 'order',
+                    items: [
+                      {
+                        id: 'queueOrder',
+                        label: t('pkg.queueOrder'),
+                        icon: <IconPriority width={14} height={14} />,
+                        submenu: [
+                          {
+                            id: 'steps',
+                            items: [
+                              { id: 'top', label: t('task.moveTop'), icon: <IconTop width={14} height={14} />, onSelect: () => void move('top') },
+                              { id: 'up', label: t('task.moveUp'), icon: <IconArrowUp width={14} height={14} />, onSelect: () => void move('up') },
+                              { id: 'down', label: t('task.moveDown'), icon: <IconArrowDown width={14} height={14} />, onSelect: () => void move('down') },
+                              { id: 'bottom', label: t('task.moveBottom'), icon: <IconBottom width={14} height={14} />, onSelect: () => void move('bottom') },
+                            ],
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                ]
+              : []),
           ]}
         />
       )}

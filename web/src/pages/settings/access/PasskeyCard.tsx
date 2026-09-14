@@ -246,6 +246,18 @@ export function PasskeyCard({
           </div>
         )}
 
+        {/* THE SAME WORD AS THE SECOND FACTOR'S BUTTON, and the plus is what
+            tells them apart (GlimStone 2.1.0). This one said "Add a passkey"
+            while the card above said "Enable"; two verbs for one act - opening a
+            guided sequence that ends with a capability armed - and a reader
+            meeting both in this tab had to work out whether the difference meant
+            anything. The word is `auth.twoFactor.enable`'s, per language, and
+            web/check-enrolment-buttons.mjs holds the two keys to one value in
+            all 42 catalogues so they cannot drift apart again.
+
+            The glyph is the plus and not a key: a key is what the ROWS above
+            wear, one per registered credential, and this button is the act of
+            adding one to that list. */}
         {passwordSet && addressOK && browserOK && !adding && (
           <div>
             <Button

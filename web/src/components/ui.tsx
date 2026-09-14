@@ -1599,7 +1599,34 @@ export function EmptyState({
 }) {
   return (
     <div className={`${nested ? 'glim-well' : 'glim-card'} flex flex-col items-center gap-2 p-10 text-center`}>
-      {icon && <div className="text-carbon-textMuted/60">{icon}</div>}
+      {/* THE SLEEPING KNIGHT (docs/easter-eggs.md), and it had to become
+          something slightly different from what was ordered, because of what
+          this box actually draws.
+          -------------------------------------------------------------------
+          The order was "the figure in the empty state closes its eyes". There
+          is no figure and there never was: every caller hands this slot a
+          20-unit house glyph - a download arrow on the queue, a magnifier on a
+          search with no hits, a keyboard on the shortcuts page - and a glyph
+          has no eyes to close. Drawing eyelids over an arrow would be the joke
+          explained rather than told, and swapping in a knight's helm is not
+          available from here: the mark is the caller's, and the one caller that
+          matters is off-limits this round.
+
+          So the mark itself does the blinking. Two slow blinks and a settle, on
+          the box that holds whatever glyph it was given, which reads as "this
+          has been standing here a while" against any of them.
+
+          THE WAY OUT IS THE ORDINARY ONE AND COSTS NOTHING. There is no timer,
+          no interval and no state: one CSS animation-delay, held in its opening
+          frame - which is exactly the mark with no rule on it at all - until it
+          fires. Anything arriving unmounts this component, and an empty state
+          that lived for two seconds was charged for nothing. Nothing is stored,
+          so there is nothing to reset and no settings list to creep into.
+
+          It hangs on the motion axis like every other decoration here: at
+          motion "off" it does not happen at all, and under OS-level reduced
+          motion the rule is never reached. See .kl-doze in index.css. */}
+      {icon && <div className="kl-doze text-carbon-textMuted/60">{icon}</div>}
       <div className="text-sm text-carbon-textSub">{title}</div>
       {hint && <div className="text-[11px] text-carbon-textMuted">{hint}</div>}
       {action && <div className="mt-2">{action}</div>}

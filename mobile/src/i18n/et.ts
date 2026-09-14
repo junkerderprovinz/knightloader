@@ -124,11 +124,11 @@ export const et: Dict = {
   'settings.motion': 'Liikumine',
   'settings.motion.off': 'Väljas',
   'settings.motion.subtle': 'Peen',
-  'settings.motion.wild': 'Täielik',
+  'settings.motion.wild': 'Metsik',
   'settings.motion.storm': 'Torm',
   'settings.accentRainbowOwns': 'Vikerkaarerežiim jagab praegu värvid positsiooni järgi. See värv kehtib endiselt kõikjal, kus positsiooni pole.',
   'settings.motionReduced': 'Sinu telefon on seatud liikumist vähendama. Seni kuni see kehtib, ei liigu siin miski, ükskõik milline tase on valitud.',
   'settings.rainbowPaletteNoInstance': 'Palett kuulub eksemplarile. Ühenduseta pole kohta, kuhu värvi kirjutada, nii et positsioonid hoiavad kaheksat sisseehitatud värvi.',
 
-  'settings.motionHint': 'Väljas lülitab välja iga mittevajaliku animatsiooni; Peen hoiab sisenemised lühikesed; Täielik on kõige rikkalikum kogemus.',
+  'settings.motionHint': 'Väljas lülitab välja iga mittevajaliku animatsiooni; Peen hoiab sisenemised lühikesed; Metsik on kõige rikkalikum kogemus.',
 };

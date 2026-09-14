@@ -39,6 +39,7 @@ jobs:
       # the exact blind spot its own comment describes.
       desktop: ${{ steps.filter.outputs.desktop }}
       docs: ${{ steps.filter.outputs.docs }}
+      queuereach: ${{ steps.filter.outputs.queuereach }}
     steps:
       # Only needed for the push-to-main case: paths-filter diffs against the
       # previous commit via git, which needs it to be present locally. On
@@ -94,6 +95,28 @@ jobs:
               - 'Dockerfile'
               - 'web/src/lib/locales/**'
               - 'web/src/pages/settings/Help.tsx'
+              - '.github/workflows/ci.yml'
+            # The queue-reach guard compares the browser's two state sets with
+            # the server's own, so EITHER side can falsify it on its own. A
+            # narrowing in the browser hides a verb the server still carries
+            # out; a narrowing in Go leaves a control on screen that answers
+            # nothing. Both nets are therefore wide: every Go file, because
+            # movable() and SetPriorityIn could move, and every web file that
+            # decides whether one of those verbs is reachable.
+            #
+            # Downloads.tsx and lib/commands/downloads.ts are on this list
+            # because half the regression sat in them and the job did not run:
+            # the page draws the badge that opens the queue group, the palette
+            # offers the same four move verbs a second time, and a change to
+            # either of them alone used to match nothing here. A guard that does
+            # not run for the change it exists for is a guard nobody has.
+            queuereach:
+              - '**/*.go'
+              - 'check-queue-reach.mjs'
+              - 'web/src/components/ListToolbar.tsx'
+              - 'web/src/pages/Downloads.tsx'
+              - 'web/src/lib/commands/downloads.ts'
+              - 'web/src/lib/api.ts'
               - '.github/workflows/ci.yml'
 
   server:
@@ -245,6 +268,17 @@ jobs:
       - name: Ranking and folding
         run: node check-rank.mjs
 
+      # A list column's width is the one number here nobody can check by
+      # reading it: it looks like taste, and every round of "too wide" / "too
+      # narrow" moves it by whatever the last person guessed while the comment
+      # above it keeps the round before. The Variante column went 132 -> 236 in
+      # the same commit that made its cell stop shrinking and start wrapping,
+      # and the reason written down for the 236 was the behaviour that commit
+      # had just fixed. This holds each width against what its cell was
+      # measured to need, in all 42 locales.
+      - name: List column widths
+        run: node check-column-widths.mjs
+
       # GlimStone rule 21: something already filled with surface2 hovers to
       # surface3, never to carbon-hover, which sits BELOW it on the dark ramp
       # and therefore DIMS a filled element under the pointer. The rule was in
@@ -261,6 +295,21 @@ jobs:
       # comes back empty rather than an error anybody sees.
       - name: Search query parser
         run: node check-search-query.mjs
+
+      # Go's zero time is a NON-EMPTY STRING on the wire, so `!!task.nextTry`
+      # answers yes for a download waiting for nothing. tsc cannot see it (the
+      # type is `string | undefined` either way), no test covers it, and it has
+      # shipped twice: a "Standing still" chip that stood over every row of a
+      # stopped queue, and a retry glyph telling five dead failures they were
+      # about to be retried. The script reads the Go structs for the field names,
+      # so it cannot go stale the way a list typed into it would.
+      #
+      # It lives in the web job rather than beside the Go suite on purpose. The
+      # rule it enforces is uniform - never test a timestamp for truthiness, whatever
+      # its struct tag says - so the Go side is only ever consulted for NAMES,
+      # and a name that is new is a name no .tsx can already be reading.
+      - name: No Go timestamp read as a yes/no
+        run: node check-go-timestamps.mjs
 
       # A key that is in en.ts and in no other catalogue is a compile error in 41
       # files, so a wave whose translation pass has not run yet seeds the English
@@ -335,6 +384,17 @@ jobs:
       - name: The hidden motion level stays hidden
         run: node check-hidden-motion-level.mjs
 
+      # The top motion level is `wild`, not `full`. That string is a wire
+      # format - the data-motion attribute, the selectors that match it, the
+      # value in storage - so the rename GlimStone 2.0.0 made a MAJOR release
+      # for has to hold in four places at once, and the fourth is the one with
+      # teeth: a value saved under the old name is sitting in real instances
+      # and has to keep resolving, which this measures by importing the module
+      # rather than by reading it. The same script holds the rule that a
+      # stylesheet names the QUIET levels and never the lively one.
+      - name: The top motion level is wild
+        run: node check-motion-top-level.mjs
+
       # Nothing is greyed out AND switched off at once. GlimStone 1.16.0 settled
       # a six-release contradiction with one question - does the control still
       # do anything - and that pair is the one shape both of its answers rule
@@ -360,6 +420,24 @@ jobs:
       - name: The passkey refusal is the app's own copy
         run: node check-passkey-reason.mjs
 
+      # One act, one word. The two cards on the access page that enrol a login
+      # control had grown two verbs for the same thing, which GlimStone 2.1.0
+      # turned into a rule after reporting it here. Nothing else compares the
+      # two labels: each is a perfectly good string in 42 catalogues, and a
+      # build, a type check and a screenshot all pass while they disagree.
+      - name: The enrolment buttons say one word
+        run: node check-enrolment-buttons.mjs
+
+      # A field's grey hint is not a button's name. The download list's search
+      # badge was labelled `search.placeholder` ("Search this list…"), so with
+      # Beschriftung on "text and glyph" it PRINTED that whole invitation - the
+      # longest label in a row that already could not hold its own buttons - and
+      # the command palette listed the same command under the same sentence.
+      # Nothing in the type system notices: a placeholder and a label are both
+      # `string`, both compile, both render.
+      - name: A placeholder is not a label
+        run: node check-placeholder-as-label.mjs
+
       # The download list's press gesture, on plain numbers: which row a block
       # of marked rows is aiming at, what a press on a marked row carries, and
       # how far a press has to travel before it stops being a click. Written
@@ -378,6 +456,13 @@ jobs:
       # named `hover` looks exactly like asking for the house's own hover.
       - name: A card does not react to the pointer
         run: node check-card-hover.mjs
+
+      # Written against the third repaint of the same complaint and then left
+      # out of this file, which made it a script somebody has to remember to
+      # run. Its own opening paragraph says why that is not a guard, so it is
+      # registered here; it has been green since it was written.
+      - name: A row strip wears the row's own ground
+        run: node check-row-strip-ground.mjs
 
       # The app's shield appears in four places and only one of them is the
       # brand: the mark in the sidebar. "Make the logo on the cards bigger" is
@@ -538,6 +623,36 @@ jobs:
       # No dependencies and nothing to install: node:fs against the tree.
       - name: Documented claims
         run: node check-docs-claims.mjs
+
+  # Its own job, for the same reason the docs one is: half of what it reads is
+  # Go, and the web job is skipped on a Go-only change - which is precisely when
+  # the server's answer about a state can move out from under the browser.
+  #
+  # What it exists for: the download list's "Reihenfolge" badge and the
+  # right-click menu were both gated on one predicate naming queued, paused and
+  # collected, so a selection of RUNNING downloads got no move verbs and no
+  # priorities from anywhere in the app - while the server took both, all day.
+  # A selection of finally failed tasks lost the priorities the same way. The
+  # pattern is the one worth guarding: a surface narrows a condition and nothing
+  # notices, because no test builds the state in which the verb was still
+  # wanted. So the browser's state sets are read off the server's and compared
+  # per status, in both directions, and the behaviour they claim is measured in
+  # internal/app/queue_reach_test.go, which this check refuses to run without.
+  queue-reach:
+    needs: changes
+    if: needs.changes.outputs.queuereach == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: "24"
+
+      # No dependencies and nothing to install: node:fs against the tree.
+      - name: The queue verbs reach as far as the server does
+        run: node check-queue-reach.mjs
 
   mobile:
     needs: changes

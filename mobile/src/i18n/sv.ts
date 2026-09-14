@@ -124,11 +124,11 @@ export const sv: Dict = {
   'settings.motion': 'Rörelse',
   'settings.motion.off': 'Av',
   'settings.motion.subtle': 'Diskret',
-  'settings.motion.wild': 'Full',
+  'settings.motion.wild': 'Vild',
   'settings.motion.storm': 'Storm',
   'settings.accentRainbowOwns': 'Regnbågsläget delar just nu ut färgerna efter position. Den här färgen gäller fortfarande allt som saknar position.',
   'settings.motionReduced': 'Din telefon är inställd på mindre rörelse. Så länge det gäller rör sig ingenting här, oavsett vilken nivå som är vald.',
   'settings.rainbowPaletteNoInstance': 'Paletten tillhör instansen. Utan anslutning finns det ingenstans att skriva en färg, så positionerna behåller de åtta inbyggda färgerna.',
 
-  'settings.motionHint': 'Av stänger av all icke väsentlig animation; Diskret håller entréer korta; Full är den rikaste upplevelsen.',
+  'settings.motionHint': 'Av stänger av all icke väsentlig animation; Diskret håller entréer korta; Vild är den rikaste upplevelsen.',
 };

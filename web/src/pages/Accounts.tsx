@@ -54,7 +54,6 @@ import {
   SectionTitle,
   TextInput,
   Toggle,
-  useTooltip,
 } from '../components/ui';
 import { AccountTable } from '../components/AccountTable';
 import { HosterLoginSection } from '../components/HosterLoginSection';
@@ -795,52 +794,49 @@ function RoutingSection({ catalogue, signature }: { catalogue: CatalogueService[
 }
 
 /**
- * The ladder's drag grip, its own component for one reason: the house bubble
- * is a hook, and a hook cannot be called from inside the row loop below.
+ * The ladder's drag grip.
  *
- * It used to carry a plain `title=`, which draws the operating system's own
- * balloon - a second font, at the pointer instead of at the trigger, on the
- * system's timing, and out of reach of every rule the rest of this app's
- * tooltips follow. ui.tsx pulls `title` out of Button's and IconBadge's props
- * for exactly that reason; a hand-written <button> is simply the shape that
- * sweep never reached. An icon-only control still needs the tooltip
- * unconditionally - there is no other way to learn what the grip does - so it
- * moves to useTooltip rather than being dropped.
+ * NO BUBBLE ON HOVER, at jdp's word on seeing it over this very ladder ("der
+ * verschiebeninfotext weg, also die infoblase die bei mouseover erscheint",
+ * with a screenshot of the resolver order reading "Debrid-Link verschieben").
+ * A grip is one of the few glyphs that says what it does by looking like what
+ * it does, and a balloon that repeats it follows the pointer down the whole
+ * ladder, one per row, while somebody is trying to see the ORDER.
  *
- * `role` and `tabIndex` are stripped off the trigger props, the same way
- * PasswordInput's own eye does it: a real <button> already has both, and the
- * hook's `role="note"` would overwrite the one that says this is pressable.
+ * The argument that used to stand here - "an icon-only control still needs the
+ * tooltip unconditionally, there is no other way to learn what the grip does" -
+ * is the reason the label did not simply go with the bubble. It is right about
+ * the name and wrong about the balloon: the name is what a screen reader reads,
+ * and it stays, as `aria-label`. What is dropped is the drawing of it.
+ *
+ * It also used to carry a plain `title=` before that, which drew the operating
+ * system's own balloon; that must not come back as the way to "keep" the
+ * tooltip. `aria-label` names the control without painting anything.
  */
 function LadderGrip({
-  tip,
+  label,
   disabled,
   onKeyDown,
   onPointerDown,
 }: {
-  tip: string;
+  label: string;
   disabled: boolean;
   onKeyDown: KeyboardEventHandler<HTMLButtonElement>;
   onPointerDown: PointerEventHandler<HTMLButtonElement>;
 }) {
-  const bubble = useTooltip<HTMLButtonElement>(tip);
-  const { role: _role, tabIndex: _tabIndex, ...hover } = bubble.triggerProps;
   return (
-    <>
-      {bubble.node}
-      <button
-        type="button"
-        disabled={disabled}
-        aria-label={tip}
-        {...hover}
-        className="shrink-0 cursor-grab touch-none rounded-[var(--radius-control)] px-1 py-0.5 text-carbon-textMuted
-          outline-none transition-colors hover:text-carbon-text focus-visible:shadow-[0_0_0_2px_var(--focus-ring)]
-          active:cursor-grabbing disabled:cursor-default"
-        onKeyDown={onKeyDown}
-        onPointerDown={onPointerDown}
-      >
-        <IconGrip width={14} height={16} />
-      </button>
-    </>
+    <button
+      type="button"
+      disabled={disabled}
+      aria-label={label}
+      className="shrink-0 cursor-grab touch-none rounded-[var(--radius-control)] px-1 py-0.5 text-carbon-textMuted
+        outline-none transition-colors hover:text-carbon-text focus-visible:shadow-[0_0_0_2px_var(--focus-ring)]
+        active:cursor-grabbing disabled:cursor-default"
+      onKeyDown={onKeyDown}
+      onPointerDown={onPointerDown}
+    >
+      <IconGrip width={14} height={16} />
+    </button>
   );
 }
 
@@ -941,7 +937,7 @@ function PriorityLadder({
                 replaces the two arrow badges this row used to carry, which are
                 gone at his request. */}
             <LadderGrip
-              tip={t('accounts.routing.dragHandle', { name: labelFor(r.id) })}
+              label={t('accounts.routing.dragHandle', { name: labelFor(r.id) })}
               disabled={busy}
               onKeyDown={(e) => {
                 if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;

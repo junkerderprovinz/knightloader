@@ -265,7 +265,22 @@ function Item({
             `relative`, so this needs no positioning context of its own. */}
         {badge ? (
           <span
-            className={`glim-num rounded-[var(--radius-pill)] bg-carbon-surface3/60 px-1.5 py-0.5 text-[11px] font-semibold leading-none text-carbon-textSub [.glim-active_&]:bg-black/15 [.glim-active_&]:text-current
+            // THE NUMBER ROLLS INSTEAD OF SWAPPING. `key` is what does it: a
+            // changed key is a new element, and a new element plays its
+            // entrance animation - the same mechanism .glim-page-in and
+            // .glim-toast-in already rely on, rather than a second one invented
+            // for a two-character badge. Without it the class would sit on an
+            // element that is never re-created and the animation would play
+            // once, on the first queue this rail ever saw.
+            //
+            // This is the one number in the rail somebody watches without
+            // reading it, and it changed by replacing one glyph with another
+            // inside a single frame: 9 to 10 and 9 to 1 drew the same picture.
+            // .kl-count is one --motion-content-dur, so at motion "off" the
+            // number simply is what it is, which is the correct quiet version
+            // of "it changed" rather than a missing message.
+            key={badge}
+            className={`kl-count glim-num rounded-[var(--radius-pill)] bg-carbon-surface3/60 px-1.5 py-0.5 text-[11px] font-semibold leading-none text-carbon-textSub [.glim-active_&]:bg-black/15 [.glim-active_&]:text-current
               ${centred ? 'absolute end-1 top-1' : ''}`}
           >
             {badge}

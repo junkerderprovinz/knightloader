@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useT } from '../../lib/i18n';
 import { Card, SectionTitle } from '../../components/ui';
 import { fetchHealth } from '../../lib/api';
-import { IconGithub, IconMail } from '../../lib/icons';
+import { IconCrest, IconGithub, IconMail } from '../../lib/icons';
 import { IconBitcoin, IconBuyMeACoffee, IconPayPal } from '../../components/donateMarks';
 import { CryptoDonateDialog } from '../../components/CryptoDonateDialog';
 
@@ -366,18 +366,41 @@ function VersionNumber({
  * row and eight others were sorted by that question, and
  * web/check-dimmed-and-inert.mjs now holds the line), and 1.17.0's hidden
  * fourth motion level with the rule it establishes for any easter egg that
- * changes behaviour. The extension and the app stand at 1.14.0; neither has had
- * the last three passes.
+ * changes behaviour. The extension and the app say 1.17.0 (the clause here said
+ * 1.14.0 and had been left behind by their own sweeps); neither has had a pass
+ * since, and both now carry a number the release list does not have - see the
+ * fold below, which is a defect on those two surfaces and not this one's to fix.
  *
- * ONE THING THIS NUMBER IS AHEAD OF, WRITTEN DOWN RATHER THAN LEFT TO BE FOUND:
- * 1.10.0 renamed the top motion level from "full" to "wild", and this surface
- * still calls it "Voll" - a stored value plus a label in 42 catalogues, so the
- * rename is its own piece of work. It was already missing when the number went
- * to 1.14.0. Everything else those editions ask of this surface is in.
+ * THE ONE THING THAT NUMBER WAS AHEAD OF IS DONE, AND IT IS WHAT 2.0.0 IS FOR.
+ * The note that stood here said the top motion level had been renamed from
+ * "full" to "wild" while this surface still called it "Voll" - a stored value
+ * plus a label in 42 catalogues, so the rename was its own piece of work. It is
+ * that work that 2.0.0 is a MAJOR release for: `wild` is what goes into
+ * data-motion, what index.css matches on and what sits in localStorage, so an
+ * app keeping the old spelling speaks a different wire format from the language
+ * it claims and from its own phone app, which had already moved. Done in this
+ * round: the type, the two lists, the default, the attribute, every comment that
+ * named the old value, the key in all 42 catalogues and the word behind it - in
+ * the phone's catalogues too, so both surfaces say one thing. The saved value is
+ * TRANSLATED on the way in (MIGRATED_MOTION in lib/appearance.ts) rather than
+ * dropped, because a value that falls through to the default is a setting that
+ * looks like it forgot itself. web/check-motion-top-level.mjs holds all of it,
+ * and measures the migration by importing the module rather than reading it.
  *
  * So this number is per SURFACE, not per repository, and raising the other two
  * to match would be the one thing worse than them differing: a card claiming a
  * release its own files do not speak. They move when their sweep runs.
+ *
+ * AND THE NUMBER THAT STOOD HERE WAS A 404, which is the failure this card's own
+ * rule was written about. GlimStone FOLDED its release history at 2.0.0: the
+ * editions this comment keeps naming - 1.10.0 through 1.19.0 - were never cut as
+ * releases and were rolled into 2.0.0 instead, so the published list is v1.0.0
+ * to v1.9.0, then v2.0.0 and v2.1.0. Every version on this card is a LINK to its
+ * own release page, so "1.18.0" did not merely read wrong: measured on
+ * 2026-09-14, .../releases/tag/v1.18.0 answered 404 and v2.1.0 answered 200. The
+ * earlier editions named above are kept in this comment as the record of what
+ * was done when; as VERSIONS they no longer exist, and the only number that may
+ * stand below is one the release list has.
  *
  * AND THAT SWEEP SKIPPED TWO EDITIONS ON THIS SURFACE. 1.7.0 and 1.8.0 were
  * never applied here: a provenance note on a copied component ("1.8.3") was
@@ -396,8 +419,47 @@ function VersionNumber({
  * established capability carries that capability's name"), and this surface
  * satisfies it - auth.twoFactor.title is the established phrase in all 42
  * catalogues, looked up per language rather than translated from the English.
+ *
+ * 2.0.0 IS THE MOTION RENAME ABOVE, plus the rest of that edition, and the rest
+ * of it was already here or already true. Checked one by one rather than
+ * assumed, because this constant's own standing rule is that it rises when an
+ * edition is really through: the scrim is a token at .65/.55, the soft warn fill
+ * exists in all three theme blocks and the refusal box has a real ground, the
+ * toast travels 24/12/0 with its RTL twin coming from --dir-sign, the enrolment
+ * cards carry all four of what an enrolment owes, nothing destructive is red and
+ * no ConfirmDialog `tone` survives to be dropped (there is none, and ContextMenu
+ * has no `danger` either). Three of that edition's rules were verified as
+ * already-correct rather than changed, and each is worth naming because "no diff"
+ * and "not looked at" are the same commit otherwise. A rule must name the QUIET
+ * motion levels: this stylesheet has no rule that names a lively one at all,
+ * because the top level's block IS the bare :root - correct by construction, and
+ * guarded now so it stays that way. A sentence that FOLLOWS controls takes a
+ * step of space above it: the About card below is the only card here that runs
+ * sentence-controls-sentence-controls, and it has carried that step since
+ * 2026-09-06. The give buttons run hosted-page first, wallet last: coffee,
+ * PayPal, the crypto window, in that order in the JSX. `IconSave` is Vecteezy's
+ * drawing in every app that speaks this language - this one has no save glyph at
+ * all, so there is nothing to align; its save controls are worded buttons. And
+ * the glyph-crop rule was measured rather than eyeballed: all 60 glyphs in
+ * lib/icons.tsx, getBBox() on live markup, ink between 55% and 100% of the
+ * 20-unit grid with the bulk between 68% and 75%, so none of them is the
+ * three-quarter outlier that rule is about.
+ *
+ * 2.1.0 is two rules, and the first of them is this surface's own report again.
+ * The two cards that enrol a login control said different things - "Einrichten"
+ * on the second factor and "Passkey hinzufügen" on the passkey card - for one
+ * act, so both now say this app's own word for starting a setup, looked up per
+ * language from auth.twoFactor.enable rather than translated afresh, and each
+ * wears the glyph of its own capability: a shield with a check, and a plus.
+ * web/check-enrolment-buttons.mjs holds the two to one word in all 42
+ * catalogues. The other rule is 22, a card CONFIGURES and the shell OPERATES:
+ * gone through here and nothing to move. The password card lost its sign-out on
+ * 2026-09-07, before the rule existed; the one card on these pages that is
+ * nothing but operations (quit and restart) configures nothing, and rule 22's
+ * own test - where does the capability live once the button is gone - answers
+ * "nowhere", so it stays.
  */
-const GLIMSTONE_VERSION = '1.18.0';
+const GLIMSTONE_VERSION = '2.1.0';
 
 /**
  * The About card (jdp, 2026-08-31: "in der App und der Erweiterung und im KL
@@ -416,13 +478,104 @@ const GLIMSTONE_VERSION = '1.18.0';
  * and one more entry in the settings rail for two sentences and two links would
  * be a tile nobody visits on purpose. hue 11 continues this page's own run.
  */
+/**
+ * THE CREST, AND THE COMMIT ON ITS BACK (docs/easter-eggs.md).
+ *
+ * Press and hold: it turns, and the back carries the revision this build was
+ * made from. Let go and it turns back. Nothing is stored, nothing is announced,
+ * and no settings list gains an entry - which is the rule every egg in this app
+ * follows and the reason the list exists.
+ *
+ * IT ONLY TURNS WHEN THERE IS SOMETHING TRUE ON THE BACK. With no revision -
+ * an older server that does not send the field, or a build made where nothing
+ * stamped one (buildinfo.Revision spells out both) - this renders the crest as
+ * a plain mark with no press behaviour at all, rather than turning to show a
+ * dash or the word "unknown". A back with a made-up identifier on it is worse
+ * than no back: the whole excuse for putting real information inside a joke is
+ * that somebody hunting a stale deploy can read it, and a plausible wrong answer
+ * is the one outcome that leaves them worse off than silence.
+ *
+ * SEVEN CHARACTERS, and NOT because that is what git prints. An earlier version
+ * of this note claimed the seven matched `git log --oneline`; measured in this
+ * repository both that and `git rev-parse --short HEAD` print EIGHT
+ * (7b3546ba), because git's short form is adaptive - it grows with the history
+ * until a prefix is unambiguous, so it is a moving number and a different one
+ * per clone. Seven is the fixed form: it is what GitHub's own commit UI shows,
+ * it is a valid prefix for `git show` and `git checkout`, and pinned here it
+ * means the back of the crest is the same width in every build of every clone
+ * for the rest of the app's life. Not the full forty, and not in a native
+ * `title` either: the house rule is that an explanation is an info bubble and
+ * never the operating system's own box, and a bubble here would be a label
+ * announcing the secret it is hiding.
+ *
+ * THE BACK IS ORDINARY TEXT IN THE DOCUMENT AT ALL TIMES, and that is a
+ * decision rather than an oversight. Measured: Ctrl+F finds the revision and a
+ * select-all copies it, with nobody having pressed anything. Rendering it only
+ * while turned would take that away, and the thing it would take it away from
+ * is the only non-pointer route there is: this element is aria-hidden with no
+ * keyboard path by design (see below), so find-in-page is how somebody who
+ * cannot press and hold reads the revision at all. There is also nothing here
+ * worth hiding - /api/health serves the same string to anyone who can open this
+ * page, and the version line one row down is the public answer to "which build
+ * is this". The egg is the GESTURE, not the datum, and a joke that made the
+ * datum harder to reach would be paying for the joke with the information.
+ *
+ * IT IS DECORATION IN THE ACCESSIBILITY TREE AND THAT IS DELIBERATE, the same
+ * call the blade in the sidebar makes (Sidebar.tsx's useDrawAndStrike). Giving
+ * it a role and a name would mean writing that name in 42 catalogues, and every
+ * one of those sentences would have to either describe the gesture - which
+ * hands the surprise to the one reader who never looks - or say nothing useful
+ * at all. What is NOT lost by this is the information: the version number a few
+ * lines down is the answer to "which build is this" for everybody, and the
+ * revision is the extra half a step for somebody already standing in front of a
+ * deploy they do not trust.
+ */
+function Crest({ commit }: { commit: string }) {
+  const [turned, setTurned] = useState(false);
+  const mark = <IconCrest width={34} height={34} className="shrink-0 text-carbon-textMuted" />;
+  // No revision, no back, and no press behaviour either - see the note above on
+  // why a back with nothing true on it is worse than a crest that only sits
+  // there. This is the ordinary state on any server older than this field.
+  if (!commit) return mark;
+  return (
+    <span
+      className="kl-crest shrink-0"
+      data-turned={turned ? 'yes' : 'no'}
+      aria-hidden
+      onPointerDown={() => setTurned(true)}
+      onPointerUp={() => setTurned(false)}
+      onPointerLeave={() => setTurned(false)}
+      onPointerCancel={() => setTurned(false)}
+    >
+      <span className="kl-crest-turn">
+        <span className="kl-crest-face">{mark}</span>
+        {/* dir="ltr": a hexadecimal revision is one token and must not be
+            reordered in an Arabic or Hebrew locale, the same rule the speed
+            figure in the shell strip carries. */}
+        <span
+          dir="ltr"
+          className="kl-crest-face kl-crest-back glim-num text-[11px] font-semibold leading-none text-carbon-textSub"
+        >
+          {commit.slice(0, 7)}
+        </span>
+      </span>
+    </span>
+  );
+}
+
 export function About({ hue }: { hue: number }) {
   const { t } = useT();
   const [version, setVersion] = useState('');
+  const [commit, setCommit] = useState('');
   const [cryptoOpen, setCryptoOpen] = useState(false);
   useEffect(() => {
     fetchHealth()
-      .then((h) => setVersion(h.version))
+      .then((h) => {
+        setVersion(h.version);
+        // ?? '', not a fallback string: see the Crest above on why an absent
+        // revision has to stay absent all the way down.
+        setCommit(h.commit ?? '');
+      })
       .catch(() => {});
   }, []);
   return (
@@ -473,11 +626,31 @@ export function About({ hue }: { hue: number }) {
             somewhere, so there is no link for the browser's middle click,
             copy-link or open-in-new-tab to act on.
 
-            Its mark is the flat Bitcoin symbol rather than a coin disc, so it
-            takes a brand colour like the two beside it. The language's own card
-            leaves this one button unclassed because the disc IT draws carries
-            its own ground, and the contrast that decides whether such a mark
-            can be read sits inside the drawing. */}
+            ITS MARK IS A COIN DISC AND IT STILL TAKES A BRAND CLASS, which is
+            the opposite of what the note here used to say ("the flat Bitcoin
+            symbol rather than a coin disc") and of what the reference card does
+            with the same button. Measured rather than argued: `IconBitcoin` is
+            `CoinMark('btc')`, Simple Icons' bitcoin, whose ink fills its whole
+            24-unit box - a disc, not a glyph.
+
+            The exception in the language is not "a disc", it is A MARK THAT
+            BRINGS ITS OWN GROUND, and the test for that is whether the drawing
+            is more than one colour. This one is not: it is a single path with
+            the ₿ knocked OUT of it, so the symbol shows whatever is behind the
+            button, and what makes it readable is the ground rather than
+            anything inside the mark. Leave the class off and the resting mark
+            falls back to the button's own ink - a grey disc with a grey hole in
+            it, on both themes. check-brand-marks.mjs encodes exactly this test
+            ("no mark drawn in MORE THAN ONE COLOUR inside a .glim-brand-btn")
+            and passes this button deliberately.
+
+            All four states measured live: at rest the adjusted brand rides the
+            disc (#F7931A on the dark ground, #A85D00 on the light one), on
+            hover the button takes Bitcoin's true #F7931A as its fill and the
+            disc flips to that colour's ink, so the ₿ reads as orange-on-dark
+            inside an orange button. A two-colour redraw with a white symbol
+            would fix nothing here and would put a hex in this file, which the
+            marks' own header rules out. */}
         <button
           type="button"
           className={`${ABOUT_BTN} glim-brand-bitcoin`}
@@ -540,16 +713,30 @@ export function About({ hue }: { hue: number }) {
           front of a stamp that already carried one. A build with no release
           behind it stays plain text rather than offering a link into a 404, and
           now that includes the ones that are neither empty nor 'dev'. */}
-      <p className="glim-num text-xs text-carbon-textMuted">
-        {t('settings.about.version')}{' '}
-        <VersionNumber version={version} repo={REPO_URL} unreleased={t('nav.workingTitle')} />
-        {' · GlimStone '}
-        <VersionNumber
-          version={GLIMSTONE_VERSION}
-          repo={GLIMSTONE_URL}
-          unreleased={t('nav.workingTitle')}
-        />
-      </p>
+      {/* THE CREST SITS IN THIS ROW AND NOT AT THE HEAD OF THE CARD, which is
+          where it was first put and where it could not go. The card's heading is
+          a badge the Card itself positions absolutely on its top edge (GlimStone
+          1.4.0), so a mark "beside the title" is a mark alone on a line under a
+          floating badge - measured on screen, not deduced.
+
+          This is the better place anyway, and for the reason the egg exists: the
+          back of the crest carries the revision, the line beside it carries the
+          version, and the question that makes either of them worth reading is
+          "which build am I actually looking at". Two halves of one answer belong
+          on one line. */}
+      <div className="flex items-center gap-3">
+        <Crest commit={commit} />
+        <p className="glim-num text-xs text-carbon-textMuted">
+          {t('settings.about.version')}{' '}
+          <VersionNumber version={version} repo={REPO_URL} unreleased={t('nav.workingTitle')} />
+          {' · GlimStone '}
+          <VersionNumber
+            version={GLIMSTONE_VERSION}
+            repo={GLIMSTONE_URL}
+            unreleased={t('nav.workingTitle')}
+          />
+        </p>
+      </div>
     </Card>
   );
 }

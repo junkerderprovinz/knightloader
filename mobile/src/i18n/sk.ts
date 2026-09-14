@@ -124,11 +124,11 @@ export const sk: Dict = {
   'settings.motion': 'Pohyb',
   'settings.motion.off': 'Vypnuté',
   'settings.motion.subtle': 'Jemné',
-  'settings.motion.wild': 'Plné',
+  'settings.motion.wild': 'Divoké',
   'settings.motion.storm': 'Búrka',
   'settings.accentRainbowOwns': 'Dúhový režim teraz rozdáva farby podľa pozície. Táto farba stále platí všade, kde žiadna pozícia nie je.',
   'settings.motionReduced': 'Telefón má nastavené obmedzenie pohybu. Kým to platí, nič sa tu nehýbe, nech je zvolená akákoľvek úroveň.',
   'settings.rainbowPaletteNoInstance': 'Paleta patrí inštancii. Bez pripojenia nie je kam zapísať farbu, takže pozície si ponechajú osem vstavaných farieb.',
 
-  'settings.motionHint': 'Vypnuté vypne každú nepodstatnú animáciu; Jemné udržiava vstupy krátke; Plné je najbohatší zážitok.',
+  'settings.motionHint': 'Vypnuté vypne každú nepodstatnú animáciu; Jemné udržiava vstupy krátke; Divoké je najbohatší zážitok.',
 };

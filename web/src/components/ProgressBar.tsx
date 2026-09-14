@@ -18,6 +18,7 @@ export function ProgressBar({
   percent,
   active,
   indeterminate,
+  moving = false,
   tone = 'accent',
 }: {
   percent: number;
@@ -31,6 +32,17 @@ export function ProgressBar({
    * caller says when something is actually running.
    */
   indeterminate?: boolean;
+  /**
+   * Whether bytes are actually moving RIGHT NOW, which is the only thing that
+   * may breathe on this bar. Exactly the same question `indeterminate` above
+   * exists to stop the bar answering on its own, asked for the other half of
+   * the component: the determinate fill.
+   *
+   * FALSE BY DEFAULT, because most bars in this app are not transfers at all -
+   * a quota on an account, the free space on a disk - and a caller that has no
+   * opinion must not get a moving one.
+   */
+  moving?: boolean;
   tone?: 'accent' | 'ok';
 }) {
   if (!active) return null;
@@ -52,9 +64,50 @@ export function ProgressBar({
         />
       ) : (
         <div
-          className="h-full rounded-[var(--radius-control)] transition-[width] duration-500 ease-out"
+          className="kl-bar-fill relative h-full rounded-[var(--radius-control)] transition-[width] duration-500 ease-out"
           style={{ width: `${clamped}%`, background: fill }}
-        />
+        >
+          {/* THE FRONT EDGE, which was dead. A determinate fill is a flat block
+              that grows, so a download moving at 40 KiB/s and one that stalled
+              at the same percentage drew exactly the same picture - and the
+              growth itself is far too slow to read as movement on anything
+              larger than a few megabytes.
+
+              TWO SEPARATE QUESTIONS, and running them together is how the fix
+              for that became a second version of the same bug. The edge is
+              DRAWN whenever there is a fill under it, because where the fill
+              ends is a fact about the bar and stays true when nothing is
+              happening. It BREATHES only while `moving`, because that is a
+              claim about right now.
+
+              Written as `clamped > 0` alone it claimed the second thing on the
+              strength of the first. Measured on a live list of 101: 43 edges
+              drawn in the window, every one of them `glim-pulse running 2s`,
+              among them forty finished rows at 100% and a deliberately paused
+              one at 70%. A file that had been done for an hour said it was
+              moving, and paused against running still drew the same picture -
+              which is the exact defect this edge was added to end.
+              The other half of that reading is arithmetic: one infinite
+              animation for the page (the live dot on the speed curve) had
+              become one per drawn row.
+
+              It breathes on glim-pulse, the app's own ambient loop, which is
+              the same keyframe and the same period that live dot uses: "this is
+              moving" is then said one way in this app rather than two. index.css
+              carries the rule, its "off" stop and its reduced-motion stop.
+
+              Only on a fill with a real width behind it. At 0% the sliver would
+              sit on the left edge of an empty track pretending to be progress,
+              which is the same lie `indeterminate` above exists to stop the bar
+              telling. The guard used to stop there, and one pixel too early:
+              measured at 1% on a 110px rail, the fill was 1.09px and the 3px
+              edge sat on the whole of it and 1.91px past its left as well, so a
+              download that had just started drew a white sliver instead of a
+              coloured one. Where the fill is narrower than the edge, there is
+              no edge to mark - index.css asks the fill itself whether it has
+              room, which is the only place that number exists. */}
+          {clamped > 0 && <span className={`kl-bar-edge${moving ? ' kl-bar-edge-live' : ''}`} />}
+        </div>
       )}
     </div>
   );

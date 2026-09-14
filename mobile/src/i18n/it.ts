@@ -124,11 +124,11 @@ export const it: Dict = {
   'settings.motion': 'Movimento',
   'settings.motion.off': 'Disattivato',
   'settings.motion.subtle': 'Sottile',
-  'settings.motion.wild': 'Completo',
+  'settings.motion.wild': 'Intenso',
   'settings.motion.storm': 'Tempesta',
   'settings.accentRainbowOwns': 'La modalità arcobaleno distribuisce ora i colori per posizione. Questo colore vale ancora per tutto ciò che non ha una posizione.',
   'settings.motionReduced': 'Il telefono è impostato per ridurre il movimento. Finché è così, qui non si muove nulla, qualunque livello sia scelto.',
   'settings.rainbowPaletteNoInstance': 'La palette appartiene all\'istanza. Senza connessione non c\'è dove scrivere un colore, quindi le posizioni mantengono gli otto colori integrati.',
 
-  'settings.motionHint': 'Disattivato spegne ogni animazione non essenziale; Sottile mantiene brevi gli ingressi; Completo è l\'esperienza più ricca.',
+  'settings.motionHint': 'Disattivato spegne ogni animazione non essenziale; Sottile mantiene brevi gli ingressi; Intenso è l\'esperienza più ricca.',
 };
