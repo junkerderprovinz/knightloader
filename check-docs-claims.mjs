@@ -255,6 +255,119 @@ if (/^ *(ENV +)?KL_CNL=/m.test(DOCKERFILE)) {
 }
 
 // ---------------------------------------------------------------------------
+// 3b. Every documented `docker build` of this image passes the revision in.
+//
+// The image is built where it runs - there is none published - so the build
+// commands in README.md and docs/preview-deploy.md are not illustrations, they
+// ARE the build most people make. And the binary cannot work the revision out
+// for itself inside that build: .dockerignore excludes .git, so the Go
+// toolchain in the build stage has no repository and stamps no vcs.revision
+// (buildinfo.Revision's own doc comment spells out the whole arrangement), and
+// the preview deploy ships the tree with `git archive`, which carries no .git
+// to exclude in the first place.
+//
+// Measured, building exactly the way the Dockerfile builds - the tree with no
+// .git, ldflags with COMMIT empty - against the same tree built in the
+// worktree:
+//
+//     container-shaped  {"commit":"","status":"ok","version":"preview"}
+//     worktree          {"commit":"7b3546ba52f5…","status":"ok","version":"dev"}
+//
+// An empty commit is a correct answer and the app says so honestly: the About
+// card draws a plain crest and the revision is simply unknown. What is not
+// correct is a documented command that produces it by omission, on the build
+// shape nearly every user has. So: a `docker build` naming this Dockerfile
+// passes VERSION and COMMIT, or it is not documented here.
+// ---------------------------------------------------------------------------
+
+// THIS IS A LIST BECAUSE "SAYS docker build" AND "TELLS A READER TO RUN docker
+// build" ARE DIFFERENT SENTENCES, and only the second one can be wrong. The two
+// documents here hand somebody a command to paste; every other mention in the
+// tree is prose ABOUT a command, and docs/easter-eggs.md:108 quotes
+// `docker build --build-arg VERSION=preview …` with no COMMIT DELIBERATELY,
+// because that broken line is the evidence in its own account of the bug.
+// Measured by widening this list to easter-eggs.md and decisions.md: five
+// failures, not one of them a command anybody would run.
+//
+// A third document that really does give a reader a build command BELONGS HERE,
+// and the backstop under the loop is what makes that happen rather than hoping
+// the next author reads this paragraph.
+const BUILD_DOCS = [
+  ['README.md', README],
+  ['docs/preview-deploy.md', read('docs', 'preview-deploy.md')],
+];
+if (!/ARG COMMIT=/.test(DOCKERFILE)) {
+  fail('Dockerfile no longer takes a COMMIT build arg, so no documented build can stamp the revision');
+}
+
+/**
+ * The `docker build` lines of THIS image that a reader is meant to RUN.
+ *
+ * Inside a fenced block only, which is the one mechanical difference between an
+ * instruction and a mention: every runnable command in these documents is
+ * fenced and all three prose mentions in the tree are not. Dockerfile.relay is
+ * skipped either way - it builds a different binary, with no UI and no crest.
+ */
+function buildCommands(text) {
+  const out = [];
+  let fenced = false;
+  text.split(/\r?\n/).forEach((line, i) => {
+    if (/^\s*```/.test(line)) {
+      fenced = !fenced;
+      return;
+    }
+    if (!fenced || !/\bdocker build\b/.test(line) || /Dockerfile\.relay/.test(line)) return;
+    out.push({ line: i + 1, text: line });
+  });
+  return out;
+}
+
+let commandsSeen = 0;
+for (const [name, text] of BUILD_DOCS) {
+  for (const cmd of buildCommands(text)) {
+    commandsSeen++;
+    for (const arg of ['VERSION', 'COMMIT']) {
+      if (!new RegExp(String.raw`--build-arg\s+${arg}=`).test(cmd.text)) {
+        fail(
+          `${name}:${cmd.line} documents a \`docker build\` with no --build-arg ${arg}=. ` +
+            (arg === 'COMMIT'
+              ? 'The build context has no .git (.dockerignore excludes it, and git archive never ships it), ' +
+                'so the binary it makes answers {"commit":""} and the About card\'s crest never turns.'
+              : 'The version under the wordmark would read "dev" on a deployed image.'),
+        );
+      }
+    }
+  }
+}
+if (commandsSeen === 0) {
+  fail('no `docker build` command found in README.md or docs/preview-deploy.md - this check is looking in the wrong place');
+}
+
+// The document nobody added to the list. README.md and docs/ are the pages that
+// tell a reader what to run TODAY, so a build command appearing in one of them
+// has to fail until it is checked like the other two.
+//
+// .github/release-notes/ is deliberately out of scope: those are an account of
+// what was true on a past day, and a check about today's Dockerfile would be
+// asking somebody to edit history to make CI green.
+const listed = new Set(BUILD_DOCS.map(([name]) => name));
+const livingDocs = [
+  'README.md',
+  ...readdirSync(join(here, 'docs'))
+    .filter((f) => f.endsWith('.md'))
+    .map((f) => `docs/${f}`),
+];
+for (const name of livingDocs) {
+  if (listed.has(name)) continue;
+  for (const cmd of buildCommands(read(...name.split('/')))) {
+    fail(
+      `${name}:${cmd.line} hands a reader a \`docker build\` of this image, and ${name} is not in BUILD_DOCS in ` +
+        'check-docs-claims.mjs - so nothing checks that it passes VERSION and COMMIT. Add it to that list.',
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
 // 4. Every resolver is named in the README.
 //
 // The resolvers ARE the architecture (README.md's Overview says so), so a whole
