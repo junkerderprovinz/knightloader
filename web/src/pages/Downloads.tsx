@@ -1,13 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  type Instance,
-  pause,
-  resume,
-  restartTasks,
-  fetchInstances,
-  setPriority,
-  moveTasks,
-} from '../lib/api';
+import { type Instance, pause, resume, restartTasks, fetchInstances } from '../lib/api';
 import { useTasks } from '../lib/useTasks';
 import { useReportListView } from '../lib/listview';
 import { useT } from '../lib/i18n';
@@ -29,7 +21,9 @@ import {
   targetPackage,
   targetTaskId,
   cleanupItems,
+  queueMenuGroup,
   useCleanup,
+  useQueueVerbs,
   useRemoval,
   type ListContext,
   type MenuTarget,
@@ -51,14 +45,11 @@ import { usePublishCommandPageContext } from '../lib/commands/pageContext';
 import {
   IconSearch,
   IconDownloads,
-  IconArrowUp,
-  IconArrowDown,
-  IconTop,
-  IconBottom,
   IconCheck,
   IconClose,
   IconPause,
   IconPlay,
+  IconPriority,
   IconRetry,
   IconTrash,
   IconTrashFiles,
@@ -102,6 +93,16 @@ export function Downloads() {
   // A second anchor of its own: the clean-up menu opens under a badge, while
   // `menu` above is the row/selection context menu opened at a pointer.
   const cleanupMenu = useContextMenu();
+  // And a third, for the queue-order badge that replaced the four queue badges
+  // this row used to carry. Its own anchor rather than `menu`'s: that one is
+  // opened at a pointer and carries the whole right-click menu, and sharing it
+  // would put a dozen unrelated entries under a badge named "Reihenfolge".
+  const orderMenu = useContextMenu();
+  // The priorities this server implements and where the stop mark sits - the
+  // two things the queue entries need and neither the list nor the menu holds.
+  // Fetched on mount, never when the menu opens: a badge whose menu appears a
+  // request later is a badge whose bottom half arrives after it was read past.
+  const queueVerbs = useQueueVerbs(base);
   // What the pointer landed on. A link, a package header and the empty space
   // below the rows each offer a different menu.
   const [target, setTarget] = useState<MenuTarget>({ kind: 'selection' });
@@ -396,6 +397,28 @@ export function Downloads() {
   const selectedIds = chosen.map((x) => x.id);
   const selectedOnDisk = chosen.some((x) => x.loaded > 0);
 
+  // The queue-order badge's menu, built by the exact function the right-click
+  // menu builds its own queue group with (ListToolbar.tsx). Built here rather
+  // than inside the badge, because whether the badge is drawn at all is a
+  // question about the entries: the group knows which of the three verbs the
+  // server will carry out for this selection, and a badge that opens an empty
+  // menu is worse than no badge.
+  //
+  // It is empty far less often than this once assumed, and assuming otherwise
+  // is what took the badge away from every running download. The group's own
+  // two sets (MOVE_STATES, PRIORITY_STATES) are read off the server, and the
+  // server writes a priority on every state there is - so a selection of
+  // finished or failed rows still gets the seven rungs, which is the half of
+  // "set these to highest, then restart them" the page had stopped offering.
+  const queueGroup = queueMenuGroup({
+    chosen,
+    ids: selectedIds,
+    base,
+    t,
+    fail: (e) => toast(e instanceof Error ? e.message : String(e), 'fail'),
+    queue: queueVerbs,
+  });
+
   return (
     <div className="flex flex-col gap-6">
       <PageHeader title={t('downloads.title')} />
@@ -478,8 +501,20 @@ export function Downloads() {
               hue={0}
               active={searchOpen}
               icon={<IconSearch width={16} height={16} />}
-              title={t('search.placeholder')}
-              aria-label={t('search.placeholder')}
+              // The badge's OWN name, not the empty field's grey hint (jdp,
+              // 2026-09-14: "der Suchbutton soll einfach "Suche" heissen").
+              // `search.placeholder` is "Diese Liste durchsuchen…", an
+              // invitation to type, ending in an ellipsis because the sentence
+              // is finished by typing - and IconBadge PRINTS `title` once
+              // Beschriftung is on "text" or "text and glyph", so the row read
+              // "Auswahl aufheben · Diese Liste durchsuchen… · In ein Paket
+              // verschieben". 183 points of the row's 1030, measured, for one
+              // button that means "Suche" (78). The collector's twin carries
+              // this same key, and so does the command palette's entry
+              // (lib/commands/downloads.ts) - one control, one name, three
+              // places, kept honest by web/check-placeholder-as-label.mjs.
+              title={t('search.toggle')}
+              aria-label={t('search.toggle')}
               aria-expanded={searchOpen}
               onClick={() => setSearchOpen((v) => !v)}
             />
@@ -525,41 +560,67 @@ export function Downloads() {
           {selected.size > 0 ? (
             <>
               <PackageActions tasks={list} selected={selected} base={base} />
-              {/* Queue order only means something while something is waiting,
-                  so these ride with the selection rather than sitting on the
-                  page all the time. */}
-              <IconBadge
-                labelled
-                icon={<IconArrowUp width={16} height={16} />}
-                hue={0}
-                title={t('task.priorityUp')}
-                aria-label={t('task.priorityUp')}
-                onClick={() => setPriority(ids(), 1, base)}
-              />
-              <IconBadge
-                labelled
-                icon={<IconArrowDown width={16} height={16} />}
-                hue={1}
-                title={t('task.priorityDown')}
-                aria-label={t('task.priorityDown')}
-                onClick={() => setPriority(ids(), -1, base)}
-              />
-              <IconBadge
-                labelled
-                icon={<IconTop width={16} height={16} />}
-                hue={2}
-                title={t('task.moveTop')}
-                aria-label={t('task.moveTop')}
-                onClick={() => moveTasks(ids(), 'top', base)}
-              />
-              <IconBadge
-                labelled
-                icon={<IconBottom width={16} height={16} />}
-                hue={3}
-                title={t('task.moveBottom')}
-                aria-label={t('task.moveBottom')}
-                onClick={() => moveTasks(ids(), 'bottom', base)}
-              />
+              {/* ONE badge where four stood, and the four were not only too
+                  wide - two of them were lying.
+                  "Priorität erhöhen" called setPriority(ids, 1), and that is
+                  not a step: it writes the ABSOLUTE value 1 of the server's
+                  seven priorities (-3..3, internal/app/app_queue.go), so
+                  pressing it twice left a download exactly where the first
+                  press put it, and pressing it on a download the Packagizer had
+                  already set to "highest" silently DEMOTED it. "Priorität
+                  senken" had the mirror fault. That defect was found and fixed
+                  once already - in the right-click menu, which has offered a
+                  real four-step move and the seven priorities by name ever
+                  since - and it survived here because this page built its own
+                  entries instead of asking for the menu's. It now asks:
+                  queueMenuGroup is the very group ListToolbar's own menu shows,
+                  so the badge and the right-click cannot disagree again.
+                  Nothing is lost by the fold. Every verb keeps its name, the
+                  two priority buttons become the seven real rungs under
+                  "Priorität", the menu is a role="menu" with arrow keys and the
+                  badge that opens it is an ordinary tab stop.
+                  Queue order is about a selection rather than about the page,
+                  so this rides with the selection instead of sitting there all
+                  the time. What it offers is the group's business and not this
+                  row's: the four move verbs go when the server would refuse the
+                  move, the seven priorities stay for every state because the
+                  server writes one on every state. The badge is rendered when
+                  the group has entries and hidden when it has none - never on a
+                  guess made here about which states still have a wait ahead of
+                  them. That guess was the bug: it said queued, paused and
+                  collected, and a selection of RUNNING downloads lost the badge
+                  and, with the right-click menu gated the same way, every route
+                  to the verbs at once. */}
+              {queueGroup.items.length > 0 && (
+                <IconBadge
+                  labelled
+                  icon={<IconPriority width={16} height={16} />}
+                  // 2, which is what the "move to top" badge it replaces had,
+                  // so this row's colour run is unchanged by the fold.
+                  //
+                  // NOT 0, and the reason is narrower than it used to read
+                  // here. The old note said the search badge two places to its
+                  // left "already wears it, and two identical washes in one row
+                  // read as one pair", which describes a picture the page
+                  // mostly cannot draw. Measured on the selection row: with the
+                  // rainbow off - the shipped default - no badge on this row
+                  // carries a wash at all, `hue` being inert then by design.
+                  // With it on, this badge does wear its colour at rest
+                  // (.glim-tint-badge, an inset wash), but the search badge
+                  // beside it is a TOGGLE and carries only .glim-hue, so it
+                  // stays uncoloured until it is switched on. The pair is
+                  // therefore possible in exactly one state, a rainbow running
+                  // with the search open, and that is the state worth avoiding:
+                  // two adjacent badges of the same hue, one of them lit
+                  // because it is active, read as one control.
+                  hue={2}
+                  title={t('queue.order')}
+                  aria-label={t('queue.order')}
+                  aria-haspopup="menu"
+                  aria-expanded={!!orderMenu.anchor}
+                  onClick={(e) => orderMenu.openAt(anchorBelow(e.currentTarget))}
+                />
+              )}
               <IconBadge
                 labelled
                 hue={3}
@@ -686,6 +747,18 @@ export function Downloads() {
       {/* Under the rows, because an extraction is what happens after one of them
           finished, and only while there is one to look at. */}
       <ArchiveJobs jobs={jobs} base={base} />
+
+      {/* The queue-order badge's own menu, anchored under it. Same group, same
+          entries and same names as the right-click menu's queue section, because
+          it is literally that group - see queueMenuGroup in ListToolbar.tsx. */}
+      {orderMenu.anchor && queueGroup.items.length > 0 && (
+        <ContextMenu
+          anchor={orderMenu.anchor}
+          label={t('queue.order')}
+          onClose={orderMenu.close}
+          groups={[queueGroup]}
+        />
+      )}
 
       {/* The clean-up badge's own menu, anchored under it. */}
       {cleanupMenu.anchor && cleanup.classes && (

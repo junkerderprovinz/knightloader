@@ -1,4 +1,5 @@
 import { FieldGroup } from '../../../components/ui';
+import { happened } from '../../../lib/countdown';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import type { EventTargetStatus } from '../../../lib/eventtargets';
 
@@ -25,7 +26,11 @@ import type { EventTargetStatus } from '../../../lib/eventtargets';
  */
 export function TargetHealth({ status }: { status?: EventTargetStatus }) {
   const { t } = useT();
-  const known = status !== undefined && status.lastAttempt !== undefined;
+  // happened() for the same reason it is used on lastOk below, which this line
+  // read `status.lastAttempt !== undefined` while ignoring: undefined is not the
+  // only way a Go timestamp has nothing in it, and `omitzero` on
+  // notify.Health.LastAttempt is what makes absence the signal at all.
+  const known = status !== undefined && happened(status.lastAttempt);
 
   return (
     <FieldGroup label={t('settings.eventTargets.status')} hint={t('settings.eventTargets.droppedHint')}>
@@ -37,8 +42,16 @@ export function TargetHealth({ status }: { status?: EventTargetStatus }) {
             <span className="text-carbon-textMuted">
               {t('settings.eventTargets.lastAttempt')}: {fmtWhen(status.lastAttempt)}
             </span>
+            {/* happened(), not `status.lastOk` on its own. LastOK is a Go
+                time.Time, and it is only ever genuinely absent because the
+                struct happens to tag it `omitzero` - which is a fact about a
+                file in internal/notify that this line cannot see. Tagged the
+                usual `omitempty` it would arrive as "0001-01-01T00:00:00Z",
+                a non-empty string, and this target would claim a successful
+                delivery it never made. One predicate for every timestamp in
+                the app, held by web/check-go-timestamps.mjs. */}
             <span className="text-carbon-textMuted">
-              {status.lastOk
+              {happened(status.lastOk)
                 ? `${t('settings.eventTargets.lastOk')}: ${fmtWhen(status.lastOk)}`
                 : t('settings.eventTargets.lastOkNever')}
             </span>

@@ -124,11 +124,11 @@ export const hu: Dict = {
   'settings.motion': 'Mozgás',
   'settings.motion.off': 'Ki',
   'settings.motion.subtle': 'Visszafogott',
-  'settings.motion.wild': 'Teljes',
+  'settings.motion.wild': 'Vad',
   'settings.motion.storm': 'Vihar',
   'settings.accentRainbowOwns': 'A szivárvány mód most pozíció szerint osztja a színeket. Ez a szín továbbra is mindenre érvényes, aminek nincs pozíciója.',
   'settings.motionReduced': 'A telefonod kevesebb mozgásra van állítva. Amíg ez így van, itt semmi sem mozdul, bármelyik szint is van kiválasztva.',
   'settings.rainbowPaletteNoInstance': 'A paletta a példányhoz tartozik. Kapcsolat nélkül nincs hová írni egy színt, így a pozíciók megtartják a nyolc beépített színt.',
 
-  'settings.motionHint': 'A Ki minden nem lényeges animációt kikapcsol; a Visszafogott rövidre fogja a megjelenéseket; a Teljes a leggazdagabb élmény.',
+  'settings.motionHint': 'A Ki minden nem lényeges animációt kikapcsol; a Visszafogott rövidre fogja a megjelenéseket; a Vad a leggazdagabb élmény.',
 };

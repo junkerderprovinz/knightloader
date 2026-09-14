@@ -124,11 +124,11 @@ export const he: Dict = {
   'settings.motion': 'תנועה',
   'settings.motion.off': 'כבוי',
   'settings.motion.subtle': 'עדין',
-  'settings.motion.wild': 'מלא',
+  'settings.motion.wild': 'פראי',
   'settings.motion.storm': 'סערה',
   'settings.accentRainbowOwns': 'מצב הקשת מחלק כעת את הצבעים לפי מיקום. הצבע הזה עדיין חל על כל מה שאין לו מיקום.',
   'settings.motionReduced': 'הטלפון שלך מוגדר להפחתת תנועה. כל עוד זה כך, שום דבר כאן לא זז, בכל רמה שנבחרה.',
   'settings.rainbowPaletteNoInstance': 'לוח הצבעים שייך למופע. בלי חיבור אין לאן לכתוב צבע, ולכן המיקומים שומרים על שמונת הצבעים המובנים.',
 
-  'settings.motionHint': 'כבוי מכבה כל אנימציה לא חיונית; עדין שומר על כניסות קצרות; מלא הוא החוויה העשירה ביותר.',
+  'settings.motionHint': 'כבוי מכבה כל אנימציה לא חיונית; עדין שומר על כניסות קצרות; פראי הוא החוויה העשירה ביותר.',
 };

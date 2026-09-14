@@ -125,13 +125,13 @@ export const en = {
   'settings.motion': 'Motion',
   'settings.motion.off': 'Off',
   'settings.motion.subtle': 'Subtle',
-  'settings.motion.wild': 'Full',
+  'settings.motion.wild': 'Wild',
   'settings.motion.storm': 'Storm',
   'settings.accentRainbowOwns': 'Rainbow mode is handing out colours by position right now. This one still paints everything that owns no position.',
   'settings.motionReduced': 'Your phone is set to reduce motion. While it is, nothing here moves, whichever level is chosen.',
   'settings.rainbowPaletteNoInstance': 'The palette belongs to the instance. With no connection there is nowhere to write a colour, so the positions keep the eight built-in ones.',
 
-  'settings.motionHint': 'Off turns off every non-essential animation; Subtle keeps entrances brief; Full is the richest experience.',
+  'settings.motionHint': 'Off turns off every non-essential animation; Subtle keeps entrances brief; Wild is the richest experience.',
 } as const;
 
 export type Dict = { [K in keyof typeof en]: string };

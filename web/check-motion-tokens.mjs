@@ -10,7 +10,7 @@
 // and not a faster one, it is no animation whatsoever: the element appears.
 // A token only the "off" block forgets is the quieter half, because it still
 // resolves. It falls through to the :root defaults, and those defaults ARE the
-// full intensity, so a reader who set Motion to off keeps the 18px page slide
+// top level, so a reader who set Motion to off keeps the 18px page slide
 // and the 24px toast throw. Neither shows up in a build, a type check or a
 // screenshot, and both look in an editor exactly like the correct file.
 //
@@ -40,7 +40,7 @@
 //
 // WHAT IT DOES NOT SEE. It reads src/index.css and nothing else, so a token
 // spent in an inline style in a .tsx file is invisible to it. It judges
-// presence and never value, so a "subtle" number larger than the "full" one
+// presence and never value, so a "subtle" number larger than the "wild" one
 // passes without comment. It says nothing about the OS-level
 // (prefers-reduced-motion: reduce) block, which hard-codes every value on
 // purpose and must keep doing so. It does not model the universal
@@ -106,8 +106,8 @@ const gate = css.indexOf('@media (prefers-reduced-motion: no-preference)');
 if (gate < 0) die('the no-preference gate is gone from index.css, and every token with it');
 const [gs, ge] = block(css.indexOf('{', gate));
 
-const TIER_SELECTOR = { ':root': 'full', ':root[data-motion="subtle"]': 'subtle', ':root[data-motion="off"]': 'off' };
-const defs = { full: new Set(), subtle: new Set(), off: new Set() };
+const TIER_SELECTOR = { ':root': 'wild', ':root[data-motion="subtle"]': 'subtle', ':root[data-motion="off"]': 'off' };
+const defs = { wild: new Set(), subtle: new Set(), off: new Set() };
 const tierAt = {};
 /** Rules that read tokens, and the keyframe each one plays. */
 const users = [];
@@ -135,7 +135,14 @@ for (const rule of rulesIn(gs, ge)) {
   const plays = rule.text.match(/animation\s*:\s*([\w-]+)/);
   users.push({ ...rule, classes, plays: plays ? plays[1] : null, label: classes.length ? `.${classes[0]}` : rule.selector });
 }
-for (const tier of ['full', 'subtle', 'off']) if (!tierAt[tier]) die(`no :root block for data-motion="${tier}" inside the gate`);
+// The top level's block is the BARE :root, never `:root[data-motion="wild"]` -
+// a rule names the quiet levels and never the lively one, or it stops covering
+// storm (GlimStone 2.0.0, and check-motion-top-level.mjs holds that line).
+for (const tier of ['wild', 'subtle', 'off']) {
+  if (tierAt[tier]) continue;
+  const sel = Object.keys(TIER_SELECTOR).find((k) => TIER_SELECTOR[k] === tier);
+  die(`no \`${sel}\` block inside the gate, so the ${tier} level has no numbers`);
+}
 
 /** The declaration a read sits in: its property, and its full text. */
 function declaration(text, i) {
@@ -184,8 +191,8 @@ for (const m of css.matchAll(/@keyframes\s+([\w-]+)\s*\{/g)) {
 }
 
 const tokens = new Set(reads.map((r) => r.token));
-if (tokens.size < 20 || defs.full.size < 20) {
-  die(`only ${tokens.size} token(s) read and ${defs.full.size} defined, which is too few to be this file`);
+if (tokens.size < 20 || defs.wild.size < 20) {
+  die(`only ${tokens.size} token(s) read and ${defs.wild.size} defined, which is too few to be this file`);
 }
 
 const seen = new Set();
@@ -194,7 +201,7 @@ const problems = [];
     --motion-shake-scale four times and that is one deliberate gap, not four. */
 const deliberate = new Set();
 for (const r of reads) {
-  if (!defs.full.has(r.token)) {
+  if (!defs.wild.has(r.token)) {
     if (r.fallback || seen.has(r.token)) continue;
     seen.add(r.token);
     problems.push(
@@ -220,7 +227,7 @@ for (const r of reads) {
     seen.add(key);
     problems.push(
       `${rel}:${tierAt[tier]} [data-motion="${tier}"] never sets ${r.token}, read by ${r.where} (${rel}:${r.line}) ` +
-        `and nothing switches that off here, so it keeps the full-intensity value`,
+        `and nothing switches that off here, so it keeps the top level's own value`,
     );
   }
 }

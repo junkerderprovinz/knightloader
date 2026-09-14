@@ -124,11 +124,11 @@ export const zh: Dict = {
   'settings.motion': '动效',
   'settings.motion.off': '关闭',
   'settings.motion.subtle': '轻微',
-  'settings.motion.wild': '完整',
+  'settings.motion.wild': '狂野',
   'settings.motion.storm': '风暴',
   'settings.accentRainbowOwns': '彩虹模式正按位置分配颜色。这个颜色仍然作用于所有没有位置的元素。',
   'settings.motionReduced': '这台手机已设置为减弱动态效果。只要如此，无论选择哪一级，这里都不会有任何动画。',
   'settings.rainbowPaletteNoInstance': '调色板属于实例。没有连接就没有地方写入颜色，因此各个位置保持内置的八种颜色。',
 
-  'settings.motionHint': '关闭会关闭所有非必要动效;轻微让入场动效保持简短;完整则是最丰富的体验。',
+  'settings.motionHint': '关闭会关闭所有非必要动效;轻微让入场动效保持简短;狂野则是最丰富的体验。',
 };

@@ -543,12 +543,45 @@ export function ContextMenu({
 
   // Focus goes into the menu on open and comes back on close — unless an item
   // has already moved it somewhere better, which is what opening a dialog does.
-  useEffect(() => {
+  //
+  // useLayoutEffect, AND THAT IS THE WHOLE FIX. As a passive effect this was
+  // broken at both ends, and the symptom was that Escape left focus on <body>
+  // in every menu in the app — pre-existing, and it started hurting the day the
+  // selection row grew two menus of its own.
+  //
+  // Passive effects fire bottom-up, so the Panel's own "focus my first entry"
+  // effect had already run by the time this one captured `opener`: what it
+  // captured was the first menu item, not the control that opened the menu.
+  // Layout effects fire in the same order, but the Panel's focus is a PASSIVE
+  // effect and the whole layout phase is over before it runs — so here the
+  // opener is still the opener.
+  //
+  // And the cleanup: passive destroys run AFTER the DOM is detached, so by then
+  // the browser had already moved focus to <body> and `panels` had been emptied
+  // by the Panel's own layout cleanup. Both tests were therefore false and
+  // nothing was ever restored. On a deletion React runs a parent's layout
+  // destroy BEFORE its children's, so from here the panels are still registered
+  // and still on screen, and `document.activeElement` is still the entry that
+  // was focused when Escape was pressed.
+  //
+  // Running in the mutation phase does not trample a dialog an entry opened:
+  // deletions are committed before the new tree's layout effects and before
+  // React honours an `autoFocus`, so the dialog takes focus after this hands it
+  // back, which is the order that was wanted anyway.
+  useLayoutEffect(() => {
     const opener = document.activeElement as HTMLElement | null;
     const open = panels.current;
     return () => {
       const at = document.activeElement;
-      if (at && [...open].some((el) => el.contains(at))) opener?.focus?.();
+      // Only when focus is still INSIDE the menu. A menu closed by clicking
+      // something else must not pull focus off whatever was clicked, and one
+      // closed by an entry that opened a dialog must not pull it out of the
+      // dialog.
+      if (!at || ![...open].some((el) => el.contains(at))) return;
+      // A re-render can have replaced the opener's node while the menu was up;
+      // focusing a detached element silently does nothing, so say so rather
+      // than pretending the focus went home.
+      if (opener?.isConnected) opener.focus?.();
     };
   }, []);
 

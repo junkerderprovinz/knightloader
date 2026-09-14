@@ -32,6 +32,32 @@ export function goTimeMs(iso?: string): number | null {
 }
 
 /**
+ * happened is goTimeMs for the callers that want the FACT and not the moment:
+ * has this actually taken place.
+ *
+ * It exists because `!!task.someTime` reads like the obvious way to ask and is
+ * WRONG FOR EVERY GO TIMESTAMP IN THIS APP - "0001-01-01T00:00:00Z" is a
+ * non-empty string and therefore truthy, so that test answers yes always. The
+ * "Standing still" quick filter (ListToolbar.tsx) was written exactly that way
+ * and matched every download in the list, which put a permanent chip reading
+ * "Standing still 34" over a stopped queue in which nothing had ever moved a
+ * byte (jdp, screenshot of the selection row). The mistake is invisible in
+ * review because the wrong version is shorter and compiles; a named predicate
+ * is what makes the right one the obvious thing to write.
+ *
+ * A named predicate turned out not to be enough on its own: it shipped a
+ * SECOND time, as `task.status === 'error' && !!task.nextTry` on the name
+ * cell's retry glyph, which told five failed rows waiting for nothing that they
+ * were about to be retried. So this is now a rule with a machine behind it -
+ * web/check-go-timestamps.mjs reads every `time.Time` out of the Go structs and
+ * refuses a truthiness test on any of them, whatever its struct tag says. Call
+ * this; there is no shorter spelling left that passes.
+ */
+export function happened(iso?: string): boolean {
+  return goTimeMs(iso) !== null;
+}
+
+/**
  * fmtCountdown is "45s" under a minute and "4:12" above it, lifted verbatim from
  * IdleActionBanner so the app has one countdown shape rather than one per
  * feature.

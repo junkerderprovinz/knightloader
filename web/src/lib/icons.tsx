@@ -365,6 +365,39 @@ export const IconLock = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+/**
+ * The second factor: a shield with a check carved out of it.
+ *
+ * It is the glyph GlimStone 2.1.0 names for this capability, and it is on the
+ * button that STARTS the enrolment rather than beside the card's title, because
+ * that rule is what makes the glyph load-bearing: the second factor's button and
+ * the passkey's now read the same word, so the mark is the only thing telling
+ * them apart, and it is picked from the meaning of the capability rather than
+ * from the verb they share.
+ *
+ * NOT IconLock, although a padlock is the obvious drawing for "a protection".
+ * The padlock is the settings rail's own glyph for this page (registry.tsx), one
+ * column to the left of this button and lit while somebody is reading it - so
+ * the button would repeat the page's mark and say nothing the title has not
+ * already said.
+ *
+ * THE CHECK IS NOT DECORATION EITHER, and this is where the app's own identity
+ * comes in: KnightLoader's mark IS a shield. A plain one at this size would be a
+ * small monochrome copy of the logo sitting in the rail two columns away. The
+ * carved check is what makes it a verification glyph instead - a different
+ * silhouette, and the one gap in the fill is deep enough to survive 22px.
+ * Checked at that size before it shipped, not reasoned about.
+ */
+export const IconShieldCheck = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M10 2.7 4 4.8v5.7c0 2.9 2.4 5.4 6 6.4 3.6-1 6-3.5 6-6.4V4.8L10 2.7Zm-.95 10.05L6.15 9.85l1.4-1.4 1.5 1.5L12.6 6.4 14 7.8l-4.95 4.95Z"
+    />
+  </svg>
+);
+
 /** Advanced: faders, for the page where every value can be set by hand. */
 export const IconSliders = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
@@ -726,3 +759,49 @@ export function IconGrip(p: SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
+
+/**
+ * IconShield is the bare shield: the same silhouette IconShieldCheck carves its
+ * check out of, with nothing carved out of it.
+ *
+ * It exists for the parade (lib/toast.tsx), where a row of these sweeps a
+ * bubble that closes a package of many files. At the 10px that row draws them
+ * at, the carved check in IconShieldCheck closes into a grey smudge and the two
+ * glyphs become the same drawing badly - so the small one is its own path
+ * rather than the big one scaled down. The outline is shared BY COPY of the
+ * single `d` that draws it, deliberately: an icon file whose glyphs reference
+ * each other's path data is one where a nudge to the shield's shoulder silently
+ * redraws every mark built on it.
+ */
+export const IconShield = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="M10 2.7 4 4.8v5.7c0 2.9 2.4 5.4 6 6.4 3.6-1 6-3.5 6-6.4V4.8L10 2.7Z" />
+  </svg>
+);
+
+/**
+ * IconCrest is the app's own arms: the shield with the sword standing in it.
+ *
+ * It is the mark, redrawn as a glyph rather than reused as artwork. The real
+ * logo (assets/logo.svg) is a multi-colour drawing sized for a 112px rail, and
+ * the two places that need it as markup already pay for it - the sidebar
+ * inlines it so CSS can move the blade, everything else uses <img> so the
+ * browser caches and decodes it off the main thread. A settings card that
+ * wanted a 40px monochrome crest had neither option available cheaply, and the
+ * third way - a second <img> on a page most people open once - is exactly the
+ * "an image every user loads" this file's own glyphs exist to avoid.
+ *
+ * The sword is CARVED with evenodd rather than drawn as a second filled shape
+ * on top, per this file's rule at the top: a knocked-out blade shows whatever
+ * ground the crest sits on, so it reads on the card in every theme and in
+ * rainbow, where a second shape tuned against one background would not.
+ */
+export const IconCrest = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M10 2.7 4 4.8v5.7c0 2.9 2.4 5.4 6 6.4 3.6-1 6-3.5 6-6.4V4.8L10 2.7Zm-.65 3.35L10 4.9l.65 1.15V7.3h1.85v1.2h-1.85v5.2h-1.3V8.5H7.5V7.3h1.85V6.05Z"
+    />
+  </svg>
+);

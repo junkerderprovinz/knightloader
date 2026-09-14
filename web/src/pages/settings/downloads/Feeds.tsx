@@ -24,6 +24,7 @@ import {
   type FeedTest,
   type PriorityChoice,
 } from '../../../lib/api';
+import { happened } from '../../../lib/countdown';
 import { useDraft, useFeatures } from '../context';
 
 /**
@@ -727,7 +728,14 @@ function FeedRow({
  */
 function FeedHealth({ status }: { status?: FeedStatus }) {
   const { t } = useT();
-  const known = status?.lastPolledAt !== undefined;
+  // happened(), and not `status?.lastPolledAt !== undefined`. The field is only
+  // ever genuinely absent because feedRow tags it `omitzero` in
+  // internal/api/routes_feeds.go, which is a fact this line cannot see; tagged
+  // the usual `omitempty` a zero time would arrive as "0001-01-01T00:00:00Z",
+  // which is not undefined either, and this row would print a poll that never
+  // ran. Same predicate for every timestamp in the app, held by
+  // web/check-go-timestamps.mjs.
+  const known = status !== undefined && happened(status.lastPolledAt);
 
   return (
     <FieldGroup label={t('settings.feeds.status')} hint={t('settings.feeds.lastPolledHint')}>

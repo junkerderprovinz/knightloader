@@ -7,6 +7,7 @@ import { PathInput } from '../../components/FolderPicker';
 import { Tabs } from '../../components/Tabs';
 import { fetchOptions } from '../../lib/api';
 import { useT, type TranslationKey } from '../../lib/i18n';
+import { isLeet } from '../../lib/leet';
 import { useDraft } from './context';
 // Eight cards that each own one subject, in their own files under ./downloads.
 // They live beside this page rather than inside it because this file was the
@@ -140,12 +141,58 @@ export function DownloadsSettings() {
         </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t('settings.speedLimit')} hint={t('settings.speedHint')}>
-            <NumberInput
-              value={Math.round(cfg.speedLimit / 1024)}
-              min={0}
-              step={256}
-              onValue={(v) => patch({ speedLimit: Math.max(0, v) * 1024 })}
-            />
+            <span className="flex items-center gap-2">
+              <span className="min-w-0 flex-1">
+                <NumberInput
+                  value={Math.round(cfg.speedLimit / 1024)}
+                  min={0}
+                  step={256}
+                  onValue={(v) => patch({ speedLimit: Math.max(0, v) * 1024 })}
+                />
+              </span>
+              {/* 1337 (docs/easter-eggs.md). THE NUMBER STAYS IN THE FIELD and the
+                word stands beside it. A field that shows something other than
+                what was typed into it is a bug for one second before it is a
+                joke, and the second is the one that gets reported.
+
+                THE UNIT IS THE HALF THAT IS EASY TO GET WRONG. settings.speedLimit
+                is BYTES per second on the wire (lib/api.ts) and this field draws
+                and writes KiB, which is what the /1024 above and the *1024 beside
+                it are. So the comparison is against 1337 KiB in bytes and never
+                against the raw setting, which would be 1337 B/s - a limit nobody
+                would ever type and an egg nobody would ever find. isLeet is
+                derived from cfg, not from the keystroke, so it follows a value
+                pasted in, stepped to, or restored from a settings import just as
+                it follows one typed.
+
+                  BESIDE THE NUMBER AND NOT UNDER IT. Dropped straight into the
+                  Field it stacked below the input, which puts it exactly where
+                  this page's hints and error lines live - so the joke read as a
+                  validation message about the number above it. A word to the
+                  right of a field is an annotation; a word underneath one is a
+                  complaint.
+
+                  THE FIELD GETS NARROWER WHILE THE WORD STANDS, and it is left
+                  that way on purpose. Measured on the live page: 420px with any
+                  other limit, 383.9px with 1337 - the word takes its 36px out
+                  of the `flex-1` beside it. Both alternatives are worse. Hold
+                  the space open always and a secret shapes the layout when it
+                  is OFF, which is precisely what docs/easter-eggs.md's one rule
+                  forbids, and it would hold a different width open in each of
+                  42 languages. Lift the word out of the flow and it overlaps
+                  the number as soon as the panel is narrow. What is left is a
+                  field that still has room for far more digits than the five a
+                  KiB/s limit can hold, so nothing is cut off and the number
+                  goes on reading exactly as typed.
+
+                  Off is typing a different number, which is also how it is
+                  switched on: there is no state anywhere and nothing to reset. */}
+              {isLeet(cfg.speedLimit) && (
+                <span className="shrink-0 text-[11px] leading-none text-carbon-textMuted">
+                  {t('settings.motion.storm')}
+                </span>
+              )}
+            </span>
           </Field>
           <Field label={t('settings.maxRetries')} hint={t('settings.maxRetriesHint')}>
             <NumberInput value={cfg.maxRetries} min={0} max={20} onValue={(v) => patch({ maxRetries: v })} />

@@ -11,7 +11,7 @@ import { QRCode } from '../../../components/QRCode';
 import { ApiError, confirmTOTP, disableTOTP, setupTOTP, type TOTPEnrolment } from '../../../lib/api';
 import { copyToClipboard } from '../../../lib/clipboard';
 import { useT } from '../../../lib/i18n';
-import { IconCheck, IconClipboard } from '../../../lib/icons';
+import { IconCheck, IconClipboard, IconShieldCheck } from '../../../lib/icons';
 import { useToast } from '../../../lib/toast';
 
 /**
@@ -162,7 +162,21 @@ export function TwoFactorCard({
       {/* OFF. One button, and the sentence above it saying what the next screen
           will show - the "a secret shown once says so beforehand" rule, said
           before the enrolment rather than on the screen that is already too
-          late to go back from. */}
+          late to go back from.
+
+          THE BUTTON SAYS WHAT THE PASSKEY CARD'S BUTTON SAYS, and the glyph is
+          what tells them apart (GlimStone 2.1.0). It used to say "Enable" while
+          the card below said "Add passkey", which made a reader meeting both in
+          one tab work out whether the different wording meant a different thing.
+          It does not: both open a guided sequence that ends with a capability
+          armed. So both take this app's own word for starting a setup - the one
+          this key has held since it was written, looked up per language rather
+          than translated afresh - and this one wears a shield while the other
+          wears a plus, each picked from its own capability.
+
+          THE KEY STAYS `enable` THOUGH THE WORD IS NOT "Enable". A key is what a
+          glyph, a search index and a check hang off; renaming it to match a
+          label is how a stable handle becomes another thing that moves. */}
       {passwordSet && !enabled && step.kind === 'idle' && (
         <div className="flex flex-col gap-3">
           <p className="text-sm text-carbon-textSub">{t('auth.twoFactor.beforeYouStart')}</p>
@@ -172,6 +186,7 @@ export function TwoFactorCard({
               className={shake > 0 ? 'glim-shake' : ''}
               kind="secondary"
               hue={hue}
+              icon={<IconShieldCheck width={16} height={16} />}
               disabled={busy}
               onClick={() => void begin()}
             >

@@ -258,7 +258,26 @@ export function AddLinksForm({
             </div>
           )}
         </div>
-        <div className="flex items-center gap-3 px-4 pb-4">
+        {/* THE ROW WRAPS, AND THE TRAILING GROUP WRAPS AS ONE. Every badge here
+            is shrink-0 and the labels are on by default (DEFAULT_NAV_LABELS is
+            'both'), so this run is wider than the card on any ordinary window:
+            measured on a running instance at 1500px it needs 837px inside a
+            550px card, and with `flex` alone the last two badges - Datei wählen
+            and the add button itself - were laid out past the card's right edge,
+            at x=1125 against a card ending at x=838, where the NEXT card paints
+            over them. The collector's own add button was invisible and
+            unclickable at every width below roughly 1900px, in the default label
+            mode. It needed 822px before this round renamed the button, so the
+            rename neither caused it nor is excused by it.
+            The spacer that used to sit in the middle of this row is what makes
+            wrapping alone wrong: `flex-1` eats the whole remainder of the first
+            line, so the moment anything wraps, EVERYTHING after the spacer drops
+            to a line of its own - measured, that put the add button alone on a
+            second line at 1920px, where the old row still fitted. The trailing
+            actions are one group instead, pushed over by `ms-auto`: they stay at
+            the end of the first line while there is room, and move down together
+            when there is not. */}
+        <div className="flex flex-wrap items-center gap-3 px-4 pb-4">
           {/* Square glyph badges, not text buttons (jdp, 2026-08-24: "Optionen
               soll ein quadratisches badge mit zahnrad sein, ordner hinzufügen
               ein quadratisches badge mit ordner symbol und zum sammler
@@ -282,32 +301,38 @@ export function AddLinksForm({
               add/choose actions, because they switch a MODE rather than doing
               something to what is in the box. */}
           <LinkIntakeButtons />
-          <span className="flex-1" />
-          <PasteFromClipboardButton pkg={pkg} />
-          {/* Opens FileDrop's picker (jdp: "Dropzone mit Dateiwählen button
-              neben dem Zum-Sammler-Button") - the file-intake trigger sits
-              beside the link-intake one instead of in its own row below. */}
-          <IconBadge
-            labelled
-            icon={<IconFolder width={16} height={16} />}
-            hue={1}
-            title={t('container.choose')}
-            aria-label={t('container.choose')}
-            onClick={onChooseFile}
-          />
-          <IconBadge
-            // Remounted on every failed add, so the shake plays again on a
-            // second identical failure rather than only on the first.
-            key={shake}
-            labelled
-            icon={<IconPlus width={16} height={16} />}
-            hue={2}
-            title={t('collector.add')}
-            aria-label={t('collector.add')}
-            className={`bg-accent text-accentContrast hover:brightness-110${shake ? ' glim-shake' : ''}`}
-            onClick={() => void onAdd()}
-            disabled={!links.trim() || busy}
-          />
+          {/* ms-auto, not a `flex-1` spacer: see the note above this row. It
+              wraps inside itself as well, because on a narrow card these three
+              alone are wider than the card is (measured at 1366px: 437px of
+              buttons in a 416px card), and a group that cannot break is a group
+              that hangs over the edge again. */}
+          <div className="ms-auto flex flex-wrap items-center justify-end gap-3">
+            <PasteFromClipboardButton pkg={pkg} />
+            {/* Opens FileDrop's picker (jdp: "Dropzone mit Dateiwählen button
+                neben dem Zum-Sammler-Button") - the file-intake trigger sits
+                beside the link-intake one instead of in its own row below. */}
+            <IconBadge
+              labelled
+              icon={<IconFolder width={16} height={16} />}
+              hue={1}
+              title={t('container.choose')}
+              aria-label={t('container.choose')}
+              onClick={onChooseFile}
+            />
+            <IconBadge
+              // Remounted on every failed add, so the shake plays again on a
+              // second identical failure rather than only on the first.
+              key={shake}
+              labelled
+              icon={<IconPlus width={16} height={16} />}
+              hue={2}
+              title={t('collector.add')}
+              aria-label={t('collector.add')}
+              className={`bg-accent text-accentContrast hover:brightness-110${shake ? ' glim-shake' : ''}`}
+              onClick={() => void onAdd()}
+              disabled={!links.trim() || busy}
+            />
+          </div>
         </div>
         {footer && <div className="flex flex-col gap-1.5 px-4 pb-4">{footer}</div>}
       </div>

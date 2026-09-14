@@ -424,20 +424,33 @@ export function applyCachedAppearance(): void {
 /**
  * The levels, quietest first.
  *
+ * THESE FOUR STRINGS ARE FIXED, and they are a wire format rather than wording:
+ * they go into the `data-motion` attribute, index.css matches on them, and
+ * localStorage holds them. An app that renames one has not made a local choice -
+ * the tokens keyed to the old spelling stop matching and a value already saved
+ * under the old name fails validation. What somebody READS is a separate
+ * question and lives in the catalogues (German: Aus, Dezent, Wild, Sturm).
+ *
  * `storm` is deliberately LAST and deliberately not in MOTION_LEVELS below. It
  * is a real level with real numbers - the :root[data-motion="storm"] block in
  * index.css - and it is not something a picker offers.
  *
- * The reference calls this axis' top VISIBLE level "wild" and this app calls it
- * "full". That difference predates the hidden level and is left alone here on
- * purpose: the name is a stored value and a translated label in 42 catalogues,
- * so renaming it is its own piece of work rather than a side effect of adding a
- * fourth step.
+ * THE TOP VISIBLE LEVEL WAS CALLED "full" HERE UNTIL GlimStone 2.0.0, and the
+ * note that stood in this spot argued for leaving it: the name is a stored value
+ * plus a label in 42 catalogues, so the rename is its own piece of work rather
+ * than a side effect of adding a fourth step. The first half of that was right
+ * and the conclusion has expired. 2.0.0 is a MAJOR release for exactly this
+ * string, because it is the one thing an adopting app writes into the DOM, and
+ * the phone half of this repo already spells it `wild` - so the cost of waiting
+ * had stopped being "one more edition out of step" and become two surfaces of
+ * one product speaking two wire formats. The work it named is done below and in
+ * MIGRATED_MOTION: the stored value is translated on the way in rather than
+ * dropped, which is the whole of what "its own piece of work" meant.
  */
-export type Motion = 'off' | 'subtle' | 'full' | 'storm';
+export type Motion = 'off' | 'subtle' | 'wild' | 'storm';
 
 /** What a picker shows. The storm is not in here; see stormTap below. */
-export const MOTION_LEVELS: Motion[] = ['off', 'subtle', 'full'];
+export const MOTION_LEVELS: Motion[] = ['off', 'subtle', 'wild'];
 
 /**
  * What a STORED value may be, which is a different question from what a picker
@@ -457,7 +470,7 @@ export const MOTION_STORED: Motion[] = [...MOTION_LEVELS, 'storm'];
  * index.css regardless of this setting, so a "system" option here would just
  * re-derive a signal the app honours everywhere already).
  */
-export const DEFAULT_MOTION: Motion = 'full';
+export const DEFAULT_MOTION: Motion = 'wild';
 
 /**
  * applyMotion sets the attribute the motion tokens key off.
@@ -532,14 +545,51 @@ export function cacheMotionIntensity(m: Motion): void {
 }
 
 /**
+ * Spellings this axis used to store, and what each one is now.
+ *
+ * ONE ENTRY, AND IT IS THE WHOLE REASON THIS TABLE EXISTS. GlimStone 2.0.0
+ * renamed the top visible level from `full` to `wild`, and that string is not
+ * only in this source - it is in the localStorage of every instance anybody has
+ * ever set this on. Dropped, it falls through to DEFAULT_MOTION, and from the
+ * outside a setting that resets itself on the next load is indistinguishable
+ * from one that was never saved.
+ *
+ * IT HAPPENS TO LAND ON THE RIGHT LEVEL TODAY AND THAT IS NOT AN ARGUMENT.
+ * DEFAULT_MOTION is the top visible level, and the retired name WAS the top
+ * visible level, so a build with no table here looks correct on every machine.
+ * The coincidence is between two decisions that have nothing to do with each
+ * other: the default is a settings question ("what should somebody who never
+ * touched this get") and the alias is a compatibility one ("what did they
+ * actually choose"). Change the first - which is allowed, and cheap, and would
+ * be done by somebody reading only the paragraph above DEFAULT_MOTION - and
+ * every instance that had ever picked the top level silently loses it.
+ *
+ * It is deliberately NOT in MOTION_STORED. That list is what a live value may
+ * legally be; this one is translated on the way in and written back in the new
+ * spelling, so the bridge carries a value across once rather than for ever.
+ */
+const MIGRATED_MOTION: Record<string, Motion> = { full: 'wild' };
+
+/**
  * Applied at boot (see app/Layout.tsx). Falls back to DEFAULT_MOTION on
  * anything unexpected — no localStorage, a value this build doesn't
  * recognise, or storage access throwing outright — the same defensive shape
  * applyCachedAppearance above already uses for shape/accent/rainbow.
+ *
+ * A read that finds a retired spelling REPAIRS it. A getter with a side effect
+ * is worth a second look and this one earns it: the write is idempotent, it
+ * happens at most once per browser, and the alternative is an alias that has to
+ * be carried in this file for as long as the app exists because nothing else
+ * would ever clear it.
  */
 export function readCachedMotionIntensity(): Motion {
   try {
     const raw = localStorage.getItem(MOTION_CACHE);
+    if (raw !== null && raw in MIGRATED_MOTION) {
+      const now = MIGRATED_MOTION[raw] as Motion;
+      cacheMotionIntensity(now);
+      return now;
+    }
     return MOTION_STORED.includes(raw as Motion) ? (raw as Motion) : DEFAULT_MOTION;
   } catch {
     return DEFAULT_MOTION;

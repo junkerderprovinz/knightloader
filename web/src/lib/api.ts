@@ -3583,7 +3583,20 @@ export async function fetchRemoteAccess(): Promise<RemoteAccessInfo> {
   return json<RemoteAccessInfo>(await fetch('/api/remote-access'));
 }
 
-export async function fetchHealth(): Promise<{ status: string; version: string }> {
+/**
+ * Liveness, the running version, and the revision that version was built from.
+ *
+ * `commit` is OPTIONAL IN THE TYPE and always present on the wire from this
+ * build onwards (internal/api/routes_system.go sends the key even when it is
+ * empty). The `?` is for the other server: this page is served by whatever
+ * instance it is pointed at, including an older one and including a peer over
+ * the relay, and a field that arrived undefined would otherwise be typed as a
+ * string. The two states a reader has to keep apart - "this build does not know
+ * its revision" (empty) and "this server predates the field" (absent) - are
+ * both falsy and are both handled the same way by the one caller that reads it:
+ * no revision, no crest back.
+ */
+export async function fetchHealth(): Promise<{ status: string; version: string; commit?: string }> {
   return json(await fetch('/api/health'));
 }
 

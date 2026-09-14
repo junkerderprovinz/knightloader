@@ -32,7 +32,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Button, InfoBubble, Toggle } from '../components/ui';
 import { recordEvent, type EventSubject } from './eventLog';
-import { IconClose } from './icons';
+import { IconClose, IconShield } from './icons';
 import { useT } from './i18n';
 import { NOTIFY_EVENTS, channelFor, showSystem } from './notify';
 import { useUIState } from './uistate';
@@ -90,6 +90,84 @@ interface ToastMessage {
   tone: ToastTone;
   kind: NotificationKind;
   action?: ToastAction;
+  /** The parade (docs/easter-eggs.md). See PARADE_AT below. */
+  parade?: boolean;
+}
+
+/**
+ * THE PARADE (docs/easter-eggs.md): how many files closing in one go counts as
+ * "a package of many", and how close together they have to land.
+ *
+ * EIGHT, AND THE NUMBER IS A MEASUREMENT RATHER THAN A TASTE. This app finishes
+ * one task per LINK, not per package (app/Layout.tsx's useCompletionToasts
+ * watches task status), so a package closing produces one of these per file.
+ * The common shapes in this app's own lists are a single file and a multi-volume
+ * archive set, and a set is typically three to six parts - which is why the
+ * threshold is not three: at three the parade would fire on an ordinary evening
+ * and stop being a surprise, which is the one thing an egg cannot survive.
+ * Eight in twelve seconds is a big folder arriving at once and is not something
+ * that happens by accident.
+ *
+ * TWELVE SECONDS, because the window is what makes this "in one go" rather than
+ * "eight at some point today". A counter with no window would eventually fire on
+ * any instance that has been running long enough, which is a parade nobody can
+ * connect to anything they did.
+ *
+ * IT COSTS TWO NUMBERS AND ONE COMPARISON, and only on the code path where a
+ * download or an extraction has just finished. Nothing runs while idle, nothing
+ * is scheduled, and nothing is stored - the count lives in a ref that dies with
+ * the tab, so a reload is a fresh count and no settings list ever hears about
+ * any of it.
+ */
+const PARADE_AT = 8;
+const PARADE_WINDOW_MS = 12_000;
+
+/** How many shields ride in the row. Five is what fits a bubble at this size
+ *  with the stagger below still legible as a procession rather than a blur. */
+const PARADE_SHIELDS = 5;
+
+/**
+ * The row of shields, and the checkmark it hands over to.
+ *
+ * A checkmark AT ALL is new here: the bubble has always carried a coloured tone
+ * dot, and .glim-checkmark has sat in index.css since the motion engine's second
+ * round with no consumer. This is it - drawn, once, after the shields have
+ * passed, which is the order the egg is described in ("before the checkmark is
+ * drawn"). Its own delay is the length of the sweep, and both are computed from
+ * the same token, so the two stay in step at every intensity including the
+ * hidden one.
+ *
+ * pathLength="1" is what .glim-checkmark's stroke-dasharray of 1 needs to draw
+ * the whole glyph regardless of the path's real geometry - see that rule's own
+ * note in index.css.
+ */
+function Parade() {
+  return (
+    <>
+      <span className="kl-parade-row" aria-hidden>
+        {Array.from({ length: PARADE_SHIELDS }, (_, i) => (
+          <span
+            key={i}
+            className="kl-parade"
+            style={{ ['--stagger-index' as string]: i }}
+          >
+            <IconShield width={11} height={11} />
+          </span>
+        ))}
+      </span>
+      <svg width={14} height={14} viewBox="0 0 20 20" className="shrink-0" aria-hidden focusable="false">
+        <path
+          className="glim-checkmark kl-parade-check"
+          pathLength="1"
+          d="M4.5 10.5 8.5 14.5 15.5 6"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </>
+  );
 }
 
 interface ToastAPI {
@@ -244,10 +322,24 @@ function ToastBubble({ item, onDismiss }: { item: ToastMessage; onDismiss: (id: 
       // colour as the card behind it is a bubble somebody misses (jdp,
       // 2026-09-07: "sich besser vom hintergund abheben"). The ring is what
       // carries it on a light theme, where a shadow alone barely reads.
-      className="glim-toast pointer-events-auto flex items-center gap-2.5 rounded-[var(--radius-control)]
+      // relative: the parade's row is absolutely positioned across the whole
+      // bubble, and without a containing block of its own it would measure
+      // against the page. Unconditional rather than set only on a parade
+      // bubble, because `relative` paints nothing and a class that appears for
+      // one bubble in ten thousand is a class nobody remembers is conditional.
+      className="glim-toast pointer-events-auto relative flex items-center gap-2.5 rounded-[var(--radius-control)]
         bg-carbon-surface2 px-4 py-2.5 text-sm text-carbon-text shadow-[var(--elevation)] ring-1 ring-carbon-border"
     >
-      <span className={`h-2 w-2 shrink-0 rounded-[var(--radius-pill)] ${TONE_DOT[item.tone]}`} />
+      {/* The parade replaces the tone dot rather than joining it: this bubble
+          says one thing finished well, and a coloured dot plus a drawn check
+          would be that said twice. Every other bubble is untouched. */}
+      {item.parade ? (
+        <span className={`flex shrink-0 items-center ${toneClass[item.tone]}`}>
+          <Parade />
+        </span>
+      ) : (
+        <span className={`h-2 w-2 shrink-0 rounded-[var(--radius-pill)] ${TONE_DOT[item.tone]}`} />
+      )}
       <span className={toneClass[item.tone]}>{item.message}</span>
       <span className="flex-1" />
       {item.action && (
@@ -359,6 +451,13 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
   const dismiss = useCallback((id: number) => setItems((s) => s.filter((m) => m.id !== id)), []);
 
+  // The parade's whole memory: how many files have closed in this burst, and
+  // when the last one landed. Two numbers in a ref, so they never re-render
+  // anything and never leave the tab - see PARADE_AT for why this is the
+  // honest reading of "a package of many files finishes in one go", and why it
+  // is deliberately not stored.
+  const burst = useRef({ count: 0, at: 0 });
+
   const toast = useCallback(
     (
       message: string,
@@ -428,8 +527,29 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         return;
       }
 
+      // THE PARADE'S COUNTER, and it sits HERE rather than beside the
+      // completion watcher that feeds it, for the same reason recordEvent sits
+      // above every early return: toast() is the one funnel every notification
+      // in this app passes through, so a count taken here describes what the
+      // reader is actually being shown. Counted after the quiet-mode and
+      // channel returns above on purpose - a burst routed to the operating
+      // system or swallowed by quiet mode has no bubbles to march across.
+      //
+      // Only the two kinds that mean "a file is finished" are counted. A burst
+      // of failures is not a parade, and a burst of plain saves is somebody
+      // editing settings quickly.
+      let parade = false;
+      if (k === 'download-done' || k === 'extraction-done') {
+        const now = Date.now();
+        burst.current.count = now - burst.current.at > PARADE_WINDOW_MS ? 1 : burst.current.count + 1;
+        burst.current.at = now;
+        // Exactly at the threshold, never past it: the row sweeps ONCE for the
+        // package, not on every bubble after the eighth.
+        parade = burst.current.count === PARADE_AT;
+      }
+
       const id = ++seq.current;
-      setItems((s) => [...s, { id, message, tone, kind: k, action }]);
+      setItems((s) => [...s, { id, message, tone, kind: k, action, parade }]);
     },
     [],
   );

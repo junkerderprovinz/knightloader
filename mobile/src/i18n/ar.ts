@@ -124,11 +124,11 @@ export const ar: Dict = {
   'settings.motion': 'الحركة',
   'settings.motion.off': 'إيقاف',
   'settings.motion.subtle': 'خفيف',
-  'settings.motion.wild': 'كامل',
+  'settings.motion.wild': 'جامح',
   'settings.motion.storm': 'عاصفة',
   'settings.accentRainbowOwns': 'وضع قوس قزح يوزّع الألوان حسب الموضع الآن. هذا اللون ما زال يظهر في كل ما لا يملك موضعًا.',
   'settings.motionReduced': 'هاتفك مضبوط على تقليل الحركة. وما دام كذلك، لا يتحرّك شيء هنا مهما كان المستوى المختار.',
   'settings.rainbowPaletteNoInstance': 'اللوحة اللونية تخصّ النسخة. وبدون اتصال لا يوجد مكان لكتابة لون، لذا تحتفظ المواضع بالألوان الثمانية المدمجة.',
 
-  'settings.motionHint': 'إيقاف يعطّل كل حركة غير ضرورية؛ خفيف يجعل الظهور موجزاً؛ كامل هو التجربة الأغنى.',
+  'settings.motionHint': 'إيقاف يعطّل كل حركة غير ضرورية؛ خفيف يجعل الظهور موجزاً؛ جامح هو التجربة الأغنى.',
 };

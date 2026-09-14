@@ -88,7 +88,12 @@ export function Dashboard() {
             <Counters counts={counts} />
           </div>
         </div>
-        <SpeedGraph value={counts.speed} height={96} />
+        {/* The limit rides along on the settings document this page already
+            reads for the instance name above - no second request, and nothing
+            fetched for the sake of an easter egg (the 1337 one; see
+            docs/easter-eggs.md and SpeedGraph's own `limit` prop). 0 until the
+            fetch lands, which is "unlimited" and is the honest first paint. */}
+        <SpeedGraph value={counts.speed} height={96} limit={settings?.speedLimit ?? 0} />
       </div>
 
       <div className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
@@ -108,10 +113,19 @@ export function Dashboard() {
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-sm text-carbon-text">{x.name || x.url}</div>
                     <div className="mt-1.5 max-w-xs">
+                      {/* `moving` and `indeterminate` read the same status for
+                          the same reason (see ProgressCell in columns.tsx):
+                          this card shows the last few downloads whatever state
+                          they settled in, so most of these rows are finished
+                          ones and a finished row must not claim to be working.
+                          A row that IS running gets the same breathing front
+                          edge it has in the list - the card and the list say
+                          "this is moving" the one way. */}
                       <ProgressBar
                         percent={pct(x.loaded, x.size, x.status === 'done')}
                         active={x.status !== 'error'}
                         indeterminate={x.status === 'running' && x.size <= 0}
+                        moving={x.status === 'running' || x.status === 'extracting'}
                         tone={x.status === 'done' ? 'ok' : 'accent'}
                       />
                     </div>

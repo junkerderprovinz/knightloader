@@ -124,11 +124,11 @@ export const is: Dict = {
   'settings.motion': 'Hreyfing',
   'settings.motion.off': 'Slökkt',
   'settings.motion.subtle': 'Fíngert',
-  'settings.motion.wild': 'Fullt',
+  'settings.motion.wild': 'Villt',
   'settings.motion.storm': 'Stormur',
   'settings.accentRainbowOwns': 'Regnbogastillingin úthlutar litum eftir stöðu núna. Þessi litur gildir enn alls staðar þar sem engin staða er.',
   'settings.motionReduced': 'Síminn þinn er stilltur á minni hreyfingu. Á meðan svo er hreyfist ekkert hér, sama hvaða stig er valið.',
   'settings.rainbowPaletteNoInstance': 'Litaspjaldið tilheyrir tilvikinu. Án tengingar er hvergi hægt að skrifa lit, svo stöðurnar halda innbyggðu litunum átta.',
 
-  'settings.motionHint': 'Slökkt slekkur á allri ónauðsynlegri hreyfingu; Fíngert heldur innkomum stuttum; Fullt er ríkulegasta upplifunin.',
+  'settings.motionHint': 'Slökkt slekkur á allri ónauðsynlegri hreyfingu; Fíngert heldur innkomum stuttum; Villt er ríkulegasta upplifunin.',
 };

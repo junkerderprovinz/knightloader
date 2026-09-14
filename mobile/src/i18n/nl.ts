@@ -124,11 +124,11 @@ export const nl: Dict = {
   'settings.motion': 'Beweging',
   'settings.motion.off': 'Uit',
   'settings.motion.subtle': 'Subtiel',
-  'settings.motion.wild': 'Volledig',
+  'settings.motion.wild': 'Wild',
   'settings.motion.storm': 'Storm',
   'settings.accentRainbowOwns': 'De regenboogmodus deelt de kleuren nu per positie uit. Deze kleur geldt nog steeds voor alles zonder positie.',
   'settings.motionReduced': 'Je telefoon staat ingesteld op minder beweging. Zolang dat zo is, beweegt hier niets, welk niveau je ook kiest.',
   'settings.rainbowPaletteNoInstance': 'Het palet hoort bij de instantie. Zonder verbinding is er nergens om een kleur naartoe te schrijven, dus de posities houden de acht ingebouwde kleuren.',
 
-  'settings.motionHint': 'Uit schakelt elke niet-essentiële animatie uit; Subtiel houdt intredes kort; Volledig is de rijkste ervaring.',
+  'settings.motionHint': 'Uit schakelt elke niet-essentiële animatie uit; Subtiel houdt intredes kort; Wild is de rijkste ervaring.',
 };

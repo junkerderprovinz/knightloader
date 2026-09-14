@@ -124,11 +124,11 @@ export const da: Dict = {
   'settings.motion': 'Bevægelse',
   'settings.motion.off': 'Fra',
   'settings.motion.subtle': 'Diskret',
-  'settings.motion.wild': 'Fuld',
+  'settings.motion.wild': 'Vild',
   'settings.motion.storm': 'Storm',
   'settings.accentRainbowOwns': 'Regnbuetilstanden fordeler lige nu farverne efter position. Denne farve gælder stadig alt det, der ikke har en position.',
   'settings.motionReduced': 'Din telefon er indstillet til mindre bevægelse. Så længe det gælder, bevæger intet sig her, uanset hvilket niveau der er valgt.',
   'settings.rainbowPaletteNoInstance': 'Paletten hører til instansen. Uden forbindelse er der ingen steder at skrive en farve hen, så positionerne beholder de otte indbyggede farver.',
 
-  'settings.motionHint': 'Fra slukker for al ikke-væsentlig animation; Diskret holder indtog korte; Fuld er den rigeste oplevelse.',
+  'settings.motionHint': 'Fra slukker for al ikke-væsentlig animation; Diskret holder indtog korte; Vild er den rigeste oplevelse.',
 };

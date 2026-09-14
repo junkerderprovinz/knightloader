@@ -124,11 +124,11 @@ export const ro: Dict = {
   'settings.motion': 'Mișcare',
   'settings.motion.off': 'Dezactivat',
   'settings.motion.subtle': 'Discret',
-  'settings.motion.wild': 'Complet',
+  'settings.motion.wild': 'Intens',
   'settings.motion.storm': 'Furtună',
   'settings.accentRainbowOwns': 'Modul curcubeu împarte acum culorile după poziție. Această culoare se aplică în continuare la tot ce nu are o poziție.',
   'settings.motionReduced': 'Telefonul tău este setat să reducă mișcarea. Cât timp este așa, nimic nu se mișcă aici, indiferent de nivelul ales.',
   'settings.rainbowPaletteNoInstance': 'Paleta aparține instanței. Fără conexiune nu există unde să fie scrisă o culoare, așa că pozițiile păstrează cele opt culori încorporate.',
 
-  'settings.motionHint': 'Dezactivat oprește orice animație neesențială; Discret păstrează intrările scurte; Complet este experiența cea mai bogată.',
+  'settings.motionHint': 'Dezactivat oprește orice animație neesențială; Discret păstrează intrările scurte; Intens este experiența cea mai bogată.',
 };

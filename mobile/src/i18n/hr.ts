@@ -124,11 +124,11 @@ export const hr: Dict = {
   'settings.motion': 'Pokret',
   'settings.motion.off': 'Isključeno',
   'settings.motion.subtle': 'Suptilno',
-  'settings.motion.wild': 'Puno',
+  'settings.motion.wild': 'Divlje',
   'settings.motion.storm': 'Oluja',
   'settings.accentRainbowOwns': 'Dugin način trenutačno dijeli boje po položaju. Ova boja i dalje vrijedi svugdje gdje položaja nema.',
   'settings.motionReduced': 'Telefon ti je postavljen na manje kretanja. Dok je tako, ovdje se ništa ne miče, koja god razina bila odabrana.',
   'settings.rainbowPaletteNoInstance': 'Paleta pripada instanci. Bez veze nema kamo zapisati boju, pa položaji zadržavaju osam ugrađenih boja.',
 
-  'settings.motionHint': 'Isključeno gasi svaku nebitnu animaciju; Suptilno drži ulaske kratkima; Puno je najbogatije iskustvo.',
+  'settings.motionHint': 'Isključeno gasi svaku nebitnu animaciju; Suptilno drži ulaske kratkima; Divlje je najbogatije iskustvo.',
 };

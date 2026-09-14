@@ -124,11 +124,11 @@ export const fr: Dict = {
   'settings.motion': 'Mouvement',
   'settings.motion.off': 'Désactivé',
   'settings.motion.subtle': 'Discret',
-  'settings.motion.wild': 'Complet',
+  'settings.motion.wild': 'Intense',
   'settings.motion.storm': 'Tempête',
   'settings.accentRainbowOwns': 'Le mode arc-en-ciel distribue les couleurs par position pour l\'instant. Celle-ci s\'applique encore à tout ce qui n\'a pas de position.',
   'settings.motionReduced': 'Votre téléphone est réglé sur moins d\'animations. Tant que c\'est le cas, rien ne bouge ici, quel que soit le niveau choisi.',
   'settings.rainbowPaletteNoInstance': 'La palette appartient à l\'instance. Sans connexion, aucune couleur ne peut être écrite quelque part ; les positions gardent les huit couleurs intégrées.',
 
-  'settings.motionHint': 'Désactivé coupe toute animation non essentielle ; Discret garde les entrées brèves ; Complet offre l\'expérience la plus riche.',
+  'settings.motionHint': 'Désactivé coupe toute animation non essentielle ; Discret garde les entrées brèves ; Intense offre l\'expérience la plus riche.',
 };

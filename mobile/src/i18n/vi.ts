@@ -124,11 +124,11 @@ export const vi: Dict = {
   'settings.motion': 'Chuyển động',
   'settings.motion.off': 'Tắt',
   'settings.motion.subtle': 'Nhẹ nhàng',
-  'settings.motion.wild': 'Đầy đủ',
+  'settings.motion.wild': 'Mạnh mẽ',
   'settings.motion.storm': 'Bão',
   'settings.accentRainbowOwns': 'Chế độ cầu vồng đang chia màu theo vị trí. Màu này vẫn áp dụng cho mọi thứ không có vị trí.',
   'settings.motionReduced': 'Điện thoại của bạn được đặt để giảm chuyển động. Chừng nào còn vậy, ở đây sẽ không có gì chuyển động, dù chọn mức nào.',
   'settings.rainbowPaletteNoInstance': 'Bảng màu thuộc về phiên bản máy chủ. Không có kết nối thì cũng không có nơi để ghi một màu, nên các vị trí giữ nguyên tám màu tích hợp.',
 
-  'settings.motionHint': 'Tắt sẽ tắt mọi hiệu ứng không cần thiết; Nhẹ nhàng giữ các hiệu ứng xuất hiện ngắn gọn; Đầy đủ là trải nghiệm phong phú nhất.',
+  'settings.motionHint': 'Tắt sẽ tắt mọi hiệu ứng không cần thiết; Nhẹ nhàng giữ các hiệu ứng xuất hiện ngắn gọn; Mạnh mẽ là trải nghiệm phong phú nhất.',
 };

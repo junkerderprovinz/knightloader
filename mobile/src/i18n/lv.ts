@@ -124,11 +124,11 @@ export const lv: Dict = {
   'settings.motion': 'Kustība',
   'settings.motion.off': 'Izslēgts',
   'settings.motion.subtle': 'Smalks',
-  'settings.motion.wild': 'Pilns',
+  'settings.motion.wild': 'Mežonīgs',
   'settings.motion.storm': 'Vētra',
   'settings.accentRainbowOwns': 'Varavīksnes režīms pašlaik izdala krāsas pēc pozīcijas. Šī krāsa joprojām attiecas uz visu, kam pozīcijas nav.',
   'settings.motionReduced': 'Tālrunī ir iestatīta mazāka kustība. Kamēr tā ir, šeit nekas nekustas, lai kāds līmenis būtu izvēlēts.',
   'settings.rainbowPaletteNoInstance': 'Palete pieder instancei. Bez savienojuma krāsu nav kur ierakstīt, tāpēc pozīcijas patur astoņas iebūvētās krāsas.',
 
-  'settings.motionHint': 'Izslēgts izslēdz katru nevajadzīgo animāciju; Smalks notur ienākšanas īsas; Pilns ir bagātīgākā pieredze.',
+  'settings.motionHint': 'Izslēgts izslēdz katru nevajadzīgo animāciju; Smalks notur ienākšanas īsas; Mežonīgs ir bagātīgākā pieredze.',
 };

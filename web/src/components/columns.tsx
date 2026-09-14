@@ -25,7 +25,7 @@ import { ContextMenu, anchorBelow, useContextMenu } from './ContextMenu';
 import { HosterIcon } from './HosterIcon';
 import { ProgressBar } from './ProgressBar';
 import { ResolverBadge, StatusPill } from './StatusPill';
-import { RetryNote } from './RetryCountdown';
+import { RetryNote, retryPending } from './RetryCountdown';
 import { useTooltip } from './ui';
 
 
@@ -158,6 +158,25 @@ export interface ColumnDef {
   onlyIn?: ListProfile[];
   /** Default width in CSS pixels; what the user drags overrides it. */
   width: number;
+  /**
+   * The default width where one list can afford a different one, the same
+   * per-list shape `labelByProfile` above already takes for the header.
+   *
+   * Not a nicety: the two lists have measurably different amounts of room, and
+   * a single number has to be the smaller of the two. At a 1600px window
+   * (measured on the live instance) the collector's default set comes to 1240px
+   * of tracks in 1264px of room and its LAST column carries the surplus - the
+   * Variante column rendered 420px wide there and 740px at 1920, against a cell
+   * that never needs more than 222. The downloads set has no such slack: it
+   * already scrolls inside its own card below about 1500px, so every pixel
+   * added to a column there is a pixel of sideways scrolling. One number for
+   * both lists would either leave the collector's name column starved or make
+   * the downloads table scroll further, and both of those are real.
+   *
+   * Widths a user drags are stored per list already (`list.columns.<profile>`),
+   * so this is only the starting point following the same split.
+   */
+  widthByProfile?: Partial<Record<ListProfile, number>>;
   minWidth: number;
   align: 'start' | 'center' | 'end';
   /** Tabular digits, for a value that changes while somebody is looking at it. */
@@ -543,9 +562,12 @@ function RowTooltipContent({ task, t, base }: { task: Task; t: Translate; base: 
   const added = fmtDateFull(task.createdAt);
   const finished = fmtDateFull(task.finishedAt);
   const changed = fmtDateFull(task.changedAt);
-  // Only shown while a retry is actually pending - a settled error carries no
-  // nextTry, and the icon it sits beside already says "retrying automatically";
-  // the exact moment is the one part of that sentence the row has no room for.
+  // Only shown while a retry is actually pending, and fmtDateFull is what
+  // decides that rather than the field: a settled error does NOT arrive with an
+  // empty nextTry, it arrives with Go's zero time, and the formatter answers ''
+  // for that (format.ts's own reasoning - "printing 1.1.1 there would be a
+  // value, and a value is something people try to explain"). Testing this
+  // string is therefore right where testing task.nextTry would not be.
   const retryAt = task.status === 'error' ? fmtDateFull(task.nextTry) : '';
 
   return (
@@ -727,7 +749,24 @@ export function PriorityTag({ value, names, t }: { value: number; names: Map<num
 function NameCell({ task, t, base }: { task: Task; t: Translate; base: string }) {
   // A pending automatic retry is not the same as a dead task, and saying so
   // stops people restarting something that is already about to restart.
-  const retrying = task.status === 'error' && !!task.nextTry;
+  //
+  // retryPending and not a reading of its own. This was written
+  // `task.status === 'error' && !!task.nextTry`, which is the Go zero-time trap
+  // RetryCountdown's deadlineOf documents and countdown.ts's happened() exists
+  // for: NextTry is a time.Time, omitempty does nothing to a struct, so a task
+  // that is waiting for nothing arrives carrying "0001-01-01T00:00:00Z" and a
+  // non-empty string is true. Measured on a live list, five failed rows with no
+  // retry due between them, all five wearing the glyph and its
+  // "Wird automatisch wiederholt".
+  //
+  // Asking the shared predicate rather than fixing the `!!` in place is the
+  // other half. RetryCountdown says in as many words that the four readers of a
+  // failed row agree by all calling retryStateOf; this was a fifth reader that
+  // did not, and a corrected copy here would still have claimed a pending retry
+  // on a row that gave up, or on one whose deadline is long past. The status
+  // cell beside it says which of the four states the row is actually in, so
+  // nothing is lost by this glyph being honest about the one it names.
+  const retrying = retryPending(task);
   const reason = task.reason ? reasonKey[task.reason] : undefined;
   const advice = adviceFor(task.reason);
   const [whyOpen, setWhyOpen] = useState(false);
@@ -855,7 +894,18 @@ function ProgressCell({
   return (
     <div className="flex items-center gap-2">
       <div className="min-w-0 flex-1">
-        <ProgressBar percent={p} active={active} indeterminate={live && !done && size <= 0} tone={done ? 'ok' : 'accent'} />
+        {/* `live` answers both of the bar's "is anything happening" questions,
+            because it is the same question: a bar with no size behind it loops,
+            a bar with one breathes at its front edge, and a row in a stopped
+            queue does neither. Passing it to only one of them is what left
+            every finished and paused row pulsing. */}
+        <ProgressBar
+          percent={p}
+          active={active}
+          indeterminate={live && !done && size <= 0}
+          moving={live}
+          tone={done ? 'ok' : 'accent'}
+        />
       </div>
       <span className="glim-num w-9 shrink-0 text-end text-[11px] text-carbon-textMuted">{p}%</span>
     </div>
@@ -1515,7 +1565,32 @@ export const COLUMNS: ColumnDef[] = [
   {
     id: 'name',
     labelKey: 'columns.name',
+    // 340 leaves 272px for the name itself once the tree indent and the cell's
+    // trailing padding are paid, and 272px is not enough for the names this app
+    // is pointed at (jdp, 2026-09-14: "Die namensspalte ist sehr schmal").
+    // Measured on the live instance, in the collector, at text-sm: a scene
+    // release - "Some.Very.Long.Scene.Release.Name.2026.German.DL.1080p.
+    // BluRay.x264-GROUPNAME.mkv" - wants 557px and showed 272, and every one of
+    // the five rows of a yt-dlp package was cut as well (392 to 462px wanted).
+    //
+    // The collector's 460 is not a taste number either: it is what there is to
+    // take. That list's last column carries all the surplus (see gridTemplate),
+    // so at 1600px the Variante column was rendering 420px wide for a cell that
+    // needs at most 222 - the name's extra 120px comes straight out of that
+    // blank and the table still fits exactly as before (tracks 1240px at 1600
+    // before and after; the Variante column went 420 -> 300 there, 740 -> 620
+    // at 1920). The narrow end costs 44px: with the Variante column's own
+    // default coming down from 236 to 160 in the same pass, the collector's
+    // minimum goes 1056 -> 1100, measured as 180px of sideways scrolling at a
+    // 1280px window instead of 136, and 60 instead of 16 at 1400.
+    //
+    // Downloads keeps 340 because it has nothing to take it from: measured at
+    // 1400px it already overruns its card by 86px, and the same 120px there
+    // would be 120px more of that. That list's own surplus sits in the progress
+    // column at wide windows only (284px at 1600, 604px at 1920), which is the
+    // same last-column stretch and a separate decision from this one.
     width: 340,
+    widthByProfile: { collector: 460 },
     minWidth: TREE_INDENT + NAME_TEXT_FLOOR,
     align: 'start',
     hideable: false,
@@ -1720,13 +1795,35 @@ export const COLUMNS: ColumnDef[] = [
   {
     id: 'variant',
     labelKey: 'columns.variant',
-    // Wide enough for the row that carries the most: the audio row's kind
-    // label plus its format picker plus its bitrate picker. At the old 132 the
-    // two selects were shaved to a single letter each - measured on the live
-    // instance, where "opus" and "128 kbit/s" rendered as "c" and "A" (jdp,
-    // 2026-09-05: "viel zu klein und kaum sichtbar"). A control narrower than
-    // its own shortest value is not a small control, it is a broken one.
-    width: 236,
+    // Sized for the row every yt-dlp package HAS, not for the one row in five
+    // that carries the most (jdp, 2026-09-14: "mach die so breit wie sie nur
+    // sein muss"). Measured on the live instance in all 42 locales, cell
+    // content on one line plus the cell's own 16px of padding:
+    //
+    //   video       143 (lt)   audio       216 (bg), 222 worst case
+    //   thumbnail    90 (he)   subtitle     77 (da)   description 81 (eu)
+    //
+    // Four of the five kinds fit in 90px; only the audio row, with its second
+    // picker, wants 216. 160 carries the video row - the one kind that shares a
+    // package with every other - in every language, and lets the audio row wrap
+    // when the column is actually that narrow.
+    //
+    // Wrapping is what happens now, and it is why this number could come down
+    // from 236. The comment that stood here said 236 was needed because at 132
+    // the two pickers were "shaved to a single letter each" ("opus" as "c"),
+    // reported by jdp on 2026-09-05. That was true of the build before the fix
+    // and not of the one after it: the same commit gave the pickers shrink-0
+    // and the cell flex-wrap. Driven to 132 on the live instance now, both
+    // pickers render at full size (55px and 95px, nothing clipped) with the
+    // bitrate one on a second line, and the row grows 40px -> 70px. So the
+    // number was buying "the audio row stays on one line", not "the controls
+    // stay readable", and it was charging every other row for it.
+    //
+    // minWidth is about the widest SINGLE control, because a picker cannot
+    // shrink (shrink-0) and the cell clips rather than squeezes it: the widest
+    // one measured is Finnish "Automaattinen" at 107px, 123px with the padding.
+    // 132 stands.
+    width: 160,
     minWidth: 132,
     align: 'start',
     hideable: true,
@@ -2030,7 +2127,10 @@ export function resolveLayout(profile: ListProfile, stored: ColumnLayout | null 
   const widthOf = (id: ColumnId): number => {
     const def = COLUMN_BY_ID.get(id);
     if (!def) return 0;
-    return Math.max(def.minWidth, Math.round(widths[id] ?? def.width));
+    // A width somebody dragged first, then this list's own default, then the
+    // shared one. The per-list default is only a starting point: it is read
+    // before anything is stored, and the store already keeps widths per list.
+    return Math.max(def.minWidth, Math.round(widths[id] ?? def.widthByProfile?.[profile] ?? def.width));
   };
   const visible = order.filter((c) => !hidden.has(c.id));
   return { order, visible, hidden, widths, widthOf };

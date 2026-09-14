@@ -124,11 +124,11 @@ export const fi: Dict = {
   'settings.motion': 'Liike',
   'settings.motion.off': 'Pois',
   'settings.motion.subtle': 'Hienovarainen',
-  'settings.motion.wild': 'Täysi',
+  'settings.motion.wild': 'Villi',
   'settings.motion.storm': 'Myrsky',
   'settings.accentRainbowOwns': 'Sateenkaaritila jakaa värit nyt sijainnin mukaan. Tämä väri vaikuttaa yhä kaikkeen, jolla ei ole sijaintia.',
   'settings.motionReduced': 'Puhelimesi on asetettu vähentämään liikettä. Niin kauan kuin näin on, täällä ei liiku mikään, oli taso mikä tahansa.',
   'settings.rainbowPaletteNoInstance': 'Paletti kuuluu instanssille. Ilman yhteyttä väriä ei ole minne kirjoittaa, joten paikat säilyttävät kahdeksan sisäänrakennettua väriä.',
 
-  'settings.motionHint': 'Pois kytkee pois kaikki ei-välttämättömät animaatiot; Hienovarainen pitää saapumiset lyhyinä; Täysi on rikkain kokemus.',
+  'settings.motionHint': 'Pois kytkee pois kaikki ei-välttämättömät animaatiot; Hienovarainen pitää saapumiset lyhyinä; Villi on rikkain kokemus.',
 };

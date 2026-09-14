@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from 'react';
 import { fmtSpeed } from '../lib/format';
 import { useT, type TranslationKey } from '../lib/i18n';
+import { isLeet } from '../lib/leet';
 import { useUIState } from '../lib/uistate';
 import { useSpeedWindow, type SpeedScale } from '../lib/speedHistory';
 import { InfoBubble } from './ui';
@@ -144,10 +145,21 @@ export function SpeedGraph({
   value,
   height = 96,
   points = 60,
+  limit = 0,
 }: {
   value: number;
   height?: number;
   points?: number;
+  /**
+   * The instance's speed limit in BYTES per second, or 0 for unlimited.
+   *
+   * Passed in rather than fetched here, and that is the cheap half of the egg
+   * it exists for: the Overview page this hero sits on already reads the whole
+   * settings document for other reasons (pages/Dashboard.tsx), so the limit is
+   * a prop off a fetch that was happening anyway rather than a second request
+   * made by a chart. Defaulted, so every other caller is unaffected.
+   */
+  limit?: number;
 }) {
   const cx = useCx();
 
@@ -186,7 +198,21 @@ export function SpeedGraph({
   const idle = peak === 0;
 
   return (
-    <div className="relative">
+    /* kl-storm-curve is the 1337 egg (docs/easter-eggs.md): with the limit
+       standing at exactly 1337 KiB/s this plot runs on the hidden fourth motion
+       level for as long as the limit stands. The class carries nothing but two
+       custom properties (see index.css), so the cost of NOT triggering it is one
+       string comparison per render and no rule matching anything.
+
+       IT SCOPES THE LEVEL, IT DOES NOT CHOOSE IT. data-motion on <html> stays
+       whatever the reader set, because that attribute is their setting and has
+       to keep saying so - the picker, the boot reader and the phone all take it
+       at its word. And the class cannot outrun "off" or an operating system
+       asking for less motion: both switch this plot's animations off by name,
+       and a token handed to a rule that says `animation: none` changes nothing.
+
+       Off is typing a different limit. Nothing here is stored. */
+    <div className={`relative ${isLeet(limit) ? 'kl-storm-curve' : ''}`}>
       {/* The ordinate, printed ABOVE the plot rather than in a column beside it
           (GlimStone 1.6.0). A vertical scale that follows its own window means
           "tall for you" and nothing else, so the height carries no meaning
@@ -221,7 +247,22 @@ export function SpeedGraph({
           <span className="glim-num text-[11px] leading-none text-carbon-textMuted">{fmtSpeed(ceiling)}</span>
         </span>
       </div>
-      <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="block w-full" style={{ height }} aria-hidden>
+      {/* overflow-visible, and it is a fix rather than tidiness - the same one
+          the sidebar's blade needed and for the same reason (see .kl-egg in
+          index.css): an <svg> clips to its own viewBox, the newest sample sits
+          exactly ON the right edge by construction, and the ring the tip throws
+          therefore had its outer half sliced off at the moment it was widest.
+          Measured on screen, not deduced. Nothing about the layout changes: the
+          element still occupies the same box, the ring is simply allowed to be
+          drawn outside it, and it has faded to nothing well before it is wide
+          enough to reach the axis labels below. */}
+      <svg
+        viewBox={`0 0 ${W} ${H}`}
+        preserveAspectRatio="none"
+        className="block w-full overflow-visible"
+        style={{ height }}
+        aria-hidden
+      >
         {!drawable || idle ? (
           <line
             x1="0"
@@ -297,6 +338,31 @@ function Curve({
         strokeWidth="1.75"
         strokeLinecap="round"
         vectorEffect="non-scaling-stroke"
+      />
+      {/* THE TIP, AND WHAT WAS ACTUALLY MISSING FROM IT. The dot below is not
+          new - it has carried .glim-live, the app's ambient opacity pulse, since
+          the curve was written. What a dot changing opacity in place reads as is
+          a highlight, not a reading arriving, which is why the tip looked static
+          to anyone watching it.
+
+          The ring is that same beat made into a movement: one halo per pulse,
+          leaving the dot, on the SAME --motion-pulse-dur, so the two are one
+          gesture rather than two clocks running side by side. Drawn BEFORE the
+          dot so it expands out from under it instead of over it.
+
+          It is pure decoration and is removed outright at motion "off" and under
+          OS-level reduced motion, unlike the dot, which stays: the dot marks
+          where "now" is on the curve and the ring marks nothing the dot does
+          not. Both rules live in index.css beside their tokens. */}
+      <circle
+        cx={last[0]}
+        cy={last[1]}
+        r="3"
+        fill="none"
+        stroke="var(--accent-ink)"
+        strokeWidth="1.25"
+        vectorEffect="non-scaling-stroke"
+        className="kl-tip-halo"
       />
       <circle cx={last[0]} cy={last[1]} r="3" fill="var(--accent-ink)" className="glim-live" />
     </>
