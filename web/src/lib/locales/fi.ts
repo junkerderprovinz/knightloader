@@ -2709,7 +2709,7 @@ export const fi: Dict = {
   'settings.resolvers.toolsAutoCheckHint': 'Yksi pyyntö osoitteeseen api.github.com joka kerta, kun tämä sivu latautuu, eikä mitään sen enempää: mitään ei ladata eikä mitään korvata ilman että painat painiketta. Oletuksena pois päältä, koska koneen, jota ajat itse, ei pidä soittaa ulos omin päin, ennen kuin olet antanut siihen luvan.',
   'settings.diagnostics.toolsMissing': 'ei löytynyt',
   'settings.eventTargets.problem.redirect': 'Osoite vastaa uudelleenohjauksella, eikä tämä instanssi seuraa sitä. Jokainen tämän rivin otsakearvo on salaisuus, ja uudelleenohjaus toiseen isäntään antaisi sen tuon isännän omistajalle. Avaa osoite selaimessa, katso mihin se päätyy, ja kirjoita se osoite tähän sen sijaan.',
-  'auth.twoFactor.title': 'Toinen tekijä',
+  'auth.twoFactor.title': 'Kaksivaiheinen tunnistautuminen',
   'auth.twoFactor.hint': 'Kuusinumeroinen koodi todennussovelluksesta salasanan lisäksi. Se on salasanan rinnalla eikä koskaan korvaa sitä. Tässä instanssissa ei ole käyttäjätilejä, joten kukaan muu ei voi avata sitä puolestasi: säilytä palautuskoodit muualla kuin puhelimessa, joka koodit tuottaa. Jos molemmat katoavat, aja koneella knightloader -reset-2fa tai pysäytä KnightLoader ja poista merkinnät totp ja recovery tiedostosta auth.json datakansiossa. Salasana toimii kummassakin tapauksessa edelleen.',
   'auth.twoFactor.on': 'Päällä',
   'auth.twoFactor.off': 'Pois',

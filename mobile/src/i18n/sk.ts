@@ -120,4 +120,15 @@ export const sk: Dict = {
   'phrase.errWordCount': 'Je to {count} slov - fráza ich potrebuje {need}.',
   'relay.instancesTitle': 'Na tomto relé',
   'relay.noInstances': 'Žiadna inštancia tejto skupiny teraz nie je online. Skontroluj frázu a či beží aspoň jedna inštancia.',
+
+  'settings.motion': 'Pohyb',
+  'settings.motion.off': 'Vypnuté',
+  'settings.motion.subtle': 'Jemné',
+  'settings.motion.wild': 'Plné',
+  'settings.motion.storm': 'Búrka',
+  'settings.accentRainbowOwns': 'Dúhový režim teraz rozdáva farby podľa pozície. Táto farba stále platí všade, kde žiadna pozícia nie je.',
+  'settings.motionReduced': 'Telefón má nastavené obmedzenie pohybu. Kým to platí, nič sa tu nehýbe, nech je zvolená akákoľvek úroveň.',
+  'settings.rainbowPaletteNoInstance': 'Paleta patrí inštancii. Bez pripojenia nie je kam zapísať farbu, takže pozície si ponechajú osem vstavaných farieb.',
+
+  'settings.motionHint': 'Vypnuté vypne každú nepodstatnú animáciu; Jemné udržiava vstupy krátke; Plné je najbohatší zážitok.',
 };

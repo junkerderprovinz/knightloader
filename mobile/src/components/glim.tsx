@@ -58,6 +58,22 @@ export function WellSelector<T extends string>({
   onPick: (v: T) => void;
 }) {
   const { c, accent, accentContrast, radii, hueAt } = useAppearance();
+  // Four segments do not fit a narrow phone at the three-segment geometry.
+  //
+  // The groove sizes itself to its content and each segment carries a floor of
+  // 84 points, which is what keeps two or three of them even rather than each
+  // one hugging its own word. Four of those is about 350 points before the
+  // card's padding, and a 360-point phone has under 300 to give - so the last
+  // segment would have been cut off by the card's edge. That state is reachable
+  // on exactly one row (the motion picker, once the hidden fourth level has
+  // been found), and a secret that arrives half off the screen reads as a bug
+  // rather than as a find.
+  //
+  // The floor is dropped only in that case, so the rows that already fit are
+  // untouched: this is a fix for a new state, not a re-layout of three existing
+  // ones. Below the floor the segments share what the row has, and the labels
+  // stay on one line.
+  const eng = options.length > 3;
   return (
     <View style={[styles.well, { backgroundColor: c.surface2, borderRadius: radii.control }]}>
       {options.map((o, i) => {
@@ -84,13 +100,16 @@ export function WellSelector<T extends string>({
                surfaces of this product had independently given the segment
                its own radius, which is what a never-finished port looks like
                rather than a decision. */
-            style={[styles.segment, on && { backgroundColor: fill }]}
+            style={[styles.segment, eng && styles.segmentEng, on && { backgroundColor: fill }]}
           >
             {/* Computed against the fill it actually landed on, never the flat
                 accent's contrast: a palette position can be far lighter or
                 darker than the accent, and reusing accentContrast is how white
                 text ends up on a pale mint segment. */}
-            <Text style={[styles.segmentText, { color: on ? contrastFor(fill, accentContrast) : c.textSub }]}>
+            <Text
+              numberOfLines={1}
+              style={[styles.segmentText, { color: on ? contrastFor(fill, accentContrast) : c.textSub }]}
+            >
               {o.label}
             </Text>
           </TouchableOpacity>
@@ -317,8 +336,15 @@ const styles = StyleSheet.create({
   // half of what makes the badge 22 points tall now that the height is not
   // written down: 16 of text between 3 and 3 of padding.
   notchText: { fontSize: TYPE.dense, lineHeight: 16, fontWeight: '500', textTransform: 'uppercase', letterSpacing: 1.2 },
-  well: { flexDirection: 'row', padding: 3, gap: 2, alignSelf: 'flex-start' },
+  // maxWidth so the groove can never grow past the card it sits in: it sizes
+  // itself to its content, and content that does not fit would otherwise run
+  // under the card's edge rather than being made to share.
+  well: { flexDirection: 'row', padding: 3, gap: 2, alignSelf: 'flex-start', maxWidth: '100%' },
   segment: { minWidth: 84, paddingVertical: 7, paddingHorizontal: 14, alignItems: 'center' },
+  // Four or more: the floor goes and the segments share the row instead. See
+  // WellSelector's own note for why this is a fix for one new state rather than
+  // a re-layout of the rows that already fit.
+  segmentEng: { minWidth: 0, paddingHorizontal: 10, flexShrink: 1 },
   segmentText: { fontSize: TYPE.dense, fontWeight: '500' },
   // No borderRadius here: it comes from the shape engine at render time, and
   // a value baked into the stylesheet cannot follow a setting.

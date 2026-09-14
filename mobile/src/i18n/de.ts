@@ -120,4 +120,15 @@ export const de: Dict = {
   'settings.rainbowPalettePosition': 'Palettenposition {position}',
   'settings.rainbowPalette': 'Farbpalette',
   'settings.pickerDone': 'Fertig',
+
+  'settings.motion': 'Bewegung',
+  'settings.motion.off': 'Aus',
+  'settings.motion.subtle': 'Dezent',
+  'settings.motion.wild': 'Voll',
+  'settings.motion.storm': 'Sturm',
+  'settings.accentRainbowOwns': 'Der Regenbogenmodus vergibt die Farben gerade nach Position. Diese Farbe wirkt weiter, aber nur noch dort, wo keine Position gilt.',
+  'settings.motionReduced': 'Dein Telefon ist auf weniger Bewegung eingestellt. Solange das gilt, bewegt sich hier nichts, egal welche Stufe gewählt ist.',
+  'settings.rainbowPaletteNoInstance': 'Die Palette gehört zur Instanz. Ohne Verbindung gibt es nichts, wohin eine Farbe geschrieben werden könnte; die Positionen tragen die acht eingebauten Farben.',
+
+  'settings.motionHint': 'Aus schaltet jede nicht notwendige Animation ab; Dezent hält Einblendungen kurz; Voll ist die reichhaltigste Erfahrung.',
 };

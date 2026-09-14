@@ -120,4 +120,15 @@ export const es: Dict = {
   'phrase.errWordCount': 'Son {count} palabras - una frase necesita {need}.',
   'relay.instancesTitle': 'En este relé',
   'relay.noInstances': 'Ahora mismo no hay ninguna instancia de este grupo en línea. Comprueba la frase y que al menos una instancia esté funcionando.',
+
+  'settings.motion': 'Movimiento',
+  'settings.motion.off': 'Desactivado',
+  'settings.motion.subtle': 'Sutil',
+  'settings.motion.wild': 'Completo',
+  'settings.motion.storm': 'Tormenta',
+  'settings.accentRainbowOwns': 'El modo arcoíris reparte ahora los colores por posición. Este color sigue aplicándose a todo lo que no tiene posición.',
+  'settings.motionReduced': 'Tu teléfono está configurado para reducir el movimiento. Mientras sea así, aquí no se mueve nada, sea cual sea el nivel elegido.',
+  'settings.rainbowPaletteNoInstance': 'La paleta pertenece a la instancia. Sin conexión no hay adónde escribir un color, así que las posiciones conservan los ocho colores integrados.',
+
+  'settings.motionHint': 'Desactivado apaga toda animación no esencial; Sutil mantiene las entradas breves; Completo es la experiencia más rica.',
 };

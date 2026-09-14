@@ -181,6 +181,13 @@
   --status-warn-text:    #f1c21b;
   --status-warn-bg:      rgba(241, 194, 27, 0.12);
   --status-warn-solid:   #f1c21b;
+  /* The QUIET end of the warn family (GlimStone 1.15.0), for a paragraph that
+     EXPLAINS rather than warns. It exists because the refusal notice below
+     reached for exactly this name before it existed anywhere: the family had a
+     base tone and a strong tone, only the FAILURE family had a soft step, so a
+     box written against it ships with a radius, a border and no fill at all and
+     nothing in a build can notice. Value copied from the reference verbatim. */
+  --status-warn-bg-soft: rgba(241, 194, 27, 0.06);
 
   --status-neutral-text: #a8a8a8;
   --status-neutral-bg:   rgba(255, 255, 255, 0.05);
@@ -257,6 +264,7 @@
   --status-warn-text:    #8E6A00;
   --status-warn-bg:      rgba(142, 106, 0, 0.10);
   --status-warn-solid:   #b28600;
+  --status-warn-bg-soft: rgba(142, 106, 0, 0.05);
 
   --status-neutral-text: #6f6f6f;
   --status-neutral-bg:   rgba(0, 0, 0, 0.045);
@@ -347,6 +355,7 @@
     --status-warn-text:    #8E6A00;
     --status-warn-bg:      rgba(142, 106, 0, 0.10);
     --status-warn-solid:   #b28600;
+    --status-warn-bg-soft: rgba(142, 106, 0, 0.05);
 
     --status-neutral-text: #6f6f6f;
     --status-neutral-bg:   rgba(0, 0, 0, 0.045);
@@ -557,6 +566,84 @@
 .glim-axis--colours { row-gap: 12px; }
 
 /* ---------------------------------------------------------------------------
+   A control that refuses says so ITSELF (GlimStone 1.16.0).
+
+   These four rules exist so options.js can stop dimming a row from the outside.
+   It used to reach for `opacity: .5` plus `pointer-events: none` on a whole
+   control group, which is the one shape 1.16.0 rules out from both ends: if the
+   value still acts, switching it off is a lie about something still in force,
+   and if it does not act, dimming it leaves furniture somebody can see, read and
+   reach for that answers nothing.
+
+   And the wrapper carries a second fault that is the reason to ban the pair
+   rather than argue it case by case: `pointer-events: none` is invisible to the
+   KEYBOARD. Measured on this very page - with rainbow mode on, the accent row
+   rendered at opacity .5 with pointer-events none, and a Tab to the second
+   swatch plus Enter still set --accent to #1d99f3 and wrote it to storage. The
+   row was unreachable by mouse and perfectly reachable by keyboard, which is
+   worse than either honest answer.
+
+   `disabled` on the button is the honest one: a screen reader reads it, the
+   keyboard cannot fire it, and the bubble beside it still explains why.
+   --------------------------------------------------------------------------- */
+.glim-swatch:disabled,
+.glim-reset:disabled,
+.glim-seg button:disabled,
+.glim-switch:disabled {
+  opacity: .5;
+  cursor: default;
+}
+/* The hovers go with it, or a dead control still lights up under the pointer.
+   The segment rule names aria-pressed="false" rather than :not(:disabled) on the
+   hover above it, and that is not a style choice: `.glim-seg button:hover` and
+   `.glim-seg button[aria-pressed="true"]` tie on specificity today and the
+   pressed one wins by sitting later, so adding a :not() to the hover would break
+   that tie the wrong way and paint the chosen segment's text in the page ink on
+   its own accent fill. Every segment carries the attribute either way
+   (renderSeg writes String(o.value === current)), so naming the false one costs
+   nothing and touches only the segments this is about. */
+.glim-reset:disabled:hover { color: var(--carbon-text-sub); background: var(--carbon-surface3); }
+.glim-seg button[aria-pressed="false"]:disabled:hover { color: var(--carbon-text-sub); }
+
+/* ---------------------------------------------------------------------------
+   The refusal notice: what stands where a control would be, when the
+   ENVIRONMENT does not permit the thing the control would do (GlimStone 1.15.0,
+   "The second way in", and reference/react/UnavailableNotice.tsx).
+
+   There are three answers to a control that cannot act, and only one of them is
+   this box. Does the grey state say something about the THING the control
+   touches (dim it, it is reporting), about a decision taken elsewhere on the
+   page (leave it out), or about the environment not permitting the thing at all
+   (leave it out AND write the reason)? Only the third owes prose.
+
+   Why a paragraph and not an info bubble, when rule 8 says every explanation is
+   a bubble: a bubble hangs off a control, and the whole point is that there is
+   no control here to hang it off.
+
+   One shape, one treatment: the soft warn fill, and it is a real token rather
+   than a name invented at the call site - see --status-warn-bg-soft above, which
+   is exactly the value the language added in 1.15.0 after an adopting app
+   shipped this box with a radius, a border and no fill. */
+.glim-unavailable {
+  border-radius: var(--radius-card);
+  background: var(--status-warn-bg-soft);
+  padding: 12px 16px;
+}
+.glim-unavailable-title {
+  display: block;
+  font-size: var(--text-body);
+  font-weight: 500;
+  color: var(--carbon-text);
+}
+.glim-unavailable-reason {
+  display: block;
+  margin-top: 4px;
+  font-size: var(--text-dense);
+  line-height: 1.5;
+  color: var(--carbon-text-sub);
+}
+
+/* ---------------------------------------------------------------------------
    The colour picker: a saturation/value square, a hue bar, a hex field.
 
    Ported from the shared reference (glimstone/reference/tokens.css) - see
@@ -737,7 +824,16 @@
    counter remount the language describes for a component framework.
 
    Reduced motion gets a brief opacity pulse rather than nothing - the refusal
-   still has to be visible to somebody who turned animation off. */
+   still has to be visible to somebody who turned animation off.
+
+   THE NUMBERS ARE THE TOP LEVEL'S NUMBERS, and that is what a surface with one
+   fixed intensity owes the language (checked against GlimStone 1.17.0, which
+   added a hidden fourth). 360ms here is the web UI's own --motion-shake-dur at
+   its top level, and the bubble's 110ms above is its --motion-fade-dur there -
+   both read off index.css rather than guessed, so this extension runs at the
+   level an app defaults to instead of at a third set of numbers nobody chose.
+   There is no data-motion attribute on this page and no picker to put one on,
+   so there is no floor for `storm` to sit below. */
 @keyframes glim-shake {
   0%, 100% { transform: translateX(0); }
   20% { transform: translateX(-4px); }
@@ -1331,7 +1427,14 @@
   /* A literal, like every other transition in this file: the extension carries
      no motion-intensity tokens (that engine lives in the web UI's index.css),
      so 120ms is the number rather than a var() that would resolve to nothing
-     here. If the tokens ever arrive, this is one of the lines that reads them. */
+     here. If the tokens ever arrive, this is one of the lines that reads them.
+
+     Re-checked against GlimStone 1.17.0, which added a fourth intensity: still
+     nothing to tokenise. The axis needs a picker and a stored level before a
+     token means anything, and this extension has neither - see the note on
+     GLIMSTONE_VERSION in options.js for the whole measurement. The motion this
+     file DOES run is pinned to the top level's own numbers, which is what a
+     single-level surface owes. */
   transition: fill 120ms ease;
 }
 .glim-brand-btn:hover:not(:disabled) {

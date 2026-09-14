@@ -120,4 +120,15 @@ export const is: Dict = {
   'phrase.errWordCount': 'Þetta eru {count} orð - setning þarf {need}.',
   'relay.instancesTitle': 'Á þessum endurvarpa',
   'relay.noInstances': 'Ekkert tilvik í þessum hópi er tengt núna. Athugaðu setninguna og hvort að minnsta kosti eitt tilvik sé í gangi.',
+
+  'settings.motion': 'Hreyfing',
+  'settings.motion.off': 'Slökkt',
+  'settings.motion.subtle': 'Fíngert',
+  'settings.motion.wild': 'Fullt',
+  'settings.motion.storm': 'Stormur',
+  'settings.accentRainbowOwns': 'Regnbogastillingin úthlutar litum eftir stöðu núna. Þessi litur gildir enn alls staðar þar sem engin staða er.',
+  'settings.motionReduced': 'Síminn þinn er stilltur á minni hreyfingu. Á meðan svo er hreyfist ekkert hér, sama hvaða stig er valið.',
+  'settings.rainbowPaletteNoInstance': 'Litaspjaldið tilheyrir tilvikinu. Án tengingar er hvergi hægt að skrifa lit, svo stöðurnar halda innbyggðu litunum átta.',
+
+  'settings.motionHint': 'Slökkt slekkur á allri ónauðsynlegri hreyfingu; Fíngert heldur innkomum stuttum; Fullt er ríkulegasta upplifunin.',
 };

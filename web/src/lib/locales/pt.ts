@@ -2697,7 +2697,7 @@ export const pt: Dict = {
   'settings.resolvers.toolsAutoCheckHint': 'Um pedido a api.github.com de cada vez que esta página carrega, e nada mais do que isso: não se transfere nada e não se substitui nada sem tu premires o botão. Desligado por predefinição, porque uma máquina que geres tu não deve telefonar para fora por sua conta antes de tu teres dito que pode.',
   'settings.diagnostics.toolsMissing': 'não encontrado',
   'settings.eventTargets.problem.redirect': 'O endereço responde com um redirecionamento e esta instância não o segue. Cada valor de cabeçalho nesta linha é tratado como um segredo, e um redirecionamento para outro anfitrião entregá-lo-ia a quem for dono desse anfitrião. Abre o endereço num navegador, vê onde ele aterra, e escreve aqui esse endereço.',
-  'auth.twoFactor.title': 'Segundo fator',
+  'auth.twoFactor.title': 'Autenticação em dois fatores',
   'auth.twoFactor.hint': 'Um código de seis dígitos de uma aplicação de autenticação, além da palavra-passe. Fica ao lado da palavra-passe e nunca a substitui. Esta instância não tem contas de utilizador, por isso não há mais ninguém que a possa desbloquear por ti: guarda os códigos de recuperação num sítio diferente do telemóvel que produz os códigos. Se perderes ambos, executa knightloader -reset-2fa na máquina, ou para o KnightLoader e apaga as entradas totp e recovery do ficheiro auth.json na pasta de dados. A palavra-passe continua a funcionar em qualquer dos casos.',
   'auth.twoFactor.on': 'Ligado',
   'auth.twoFactor.off': 'Desligado',

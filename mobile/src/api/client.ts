@@ -93,6 +93,45 @@ async function relayRequest(conn: ServerConnection, path: string, init?: Request
 // checkConnection is what the connect screen calls before saving anything:
 // it proves the URL is reachable and the token is accepted, without
 // requiring a password (a token stands on its own, see routes_tokens.go).
+//
+// THE SECOND WAY IN, AND WHY IT DOES NOT REACH THIS APP (GlimStone 1.15.0).
+//
+// That release writes down what a login with a password can grow: a second
+// factor, a passkey, or both. The obvious reading is that this app's sign-in
+// should learn to ask for a six-digit code when an instance has one armed,
+// because POST /api/auth/login answers {"twoFactorRequired":true} rather than
+// a session. It should not, and the reason is one line up: THIS APP HAS NO
+// SIGN-IN. It never posts to /api/auth/login at all. Every call it makes,
+// direct or through the relay, carries a named API token in an Authorization
+// header (see httpRequest and relayRequest above), and internal/api's own
+// `authenticated` accepts that token on its own - the second factor sits in
+// front of the PASSWORD exchange, which this client never performs. There is
+// no 401 here to fix, and a code field would be a form with nothing behind it.
+//
+// The same release's maxim is what settles it: a login gains a way IN, never a
+// way INSTEAD. A token IS the way in here, it was minted by somebody already
+// inside, and it can be revoked from the instance that issued it.
+//
+// PASSKEYS ARE REFUSED, WITH THE REASON, WHICH IS THE THIRD CASE THAT RELEASE
+// NAMES - a capability the environment forbids is refused with the reason, not
+// offered as a button that fails. Three measurements, any one of which is
+// enough:
+//
+//   1. WebAuthn does not exist in this runtime. React Native's navigator is
+//      `{product: 'ReactNative'}` (Libraries/Core/setUpNavigator.js) - there is
+//      no navigator.credentials and no PublicKeyCredential anywhere in the
+//      framework, so /api/auth/passkey/login/begin has no counterpart to hand
+//      its challenge to.
+//   2. There would be nothing to attach one to. A passkey replaces typing a
+//      password, and this app types no password.
+//   3. The app deliberately blocks the permissions a native credential flow
+//      would need: USE_BIOMETRIC and USE_FINGERPRINT are both in app.json's
+//      blockedPermissions.
+//
+// So there is no control and no half-built screen, and this paragraph is the
+// prose that rule says such a refusal owes. It is here rather than on a
+// settings screen because there is no control for it to sit beside, and this
+// is the file somebody reaches for when they ask "where does the app log in".
 export async function checkConnection(conn: ServerConnection): Promise<AuthState> {
   return request<AuthState>(conn, '/api', '/auth');
 }

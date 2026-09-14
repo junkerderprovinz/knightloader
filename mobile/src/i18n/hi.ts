@@ -120,4 +120,15 @@ export const hi: Dict = {
   'phrase.errWordCount': 'ये {count} शब्द हैं - वाक्यांश को {need} चाहिए।',
   'relay.instancesTitle': 'इस रिले पर',
   'relay.noInstances': 'इस समूह का कोई इंस्टेंस अभी ऑनलाइन नहीं है। वाक्यांश जाँचें, और कि कम से कम एक इंस्टेंस चल रहा हो।',
+
+  'settings.motion': 'गति',
+  'settings.motion.off': 'बंद',
+  'settings.motion.subtle': 'सूक्ष्म',
+  'settings.motion.wild': 'पूर्ण',
+  'settings.motion.storm': 'तूफ़ान',
+  'settings.accentRainbowOwns': 'रेनबो मोड अभी रंग स्थिति के अनुसार बाँट रहा है। यह रंग अब भी हर उस चीज़ पर लागू है जिसकी कोई स्थिति नहीं है।',
+  'settings.motionReduced': 'आपका फ़ोन कम गति के लिए सेट है। जब तक ऐसा है, यहाँ कुछ भी नहीं हिलता, चाहे कोई भी स्तर चुना हो।',
+  'settings.rainbowPaletteNoInstance': 'पैलेट इंस्टेंस का है। कनेक्शन के बिना रंग लिखने की कोई जगह नहीं है, इसलिए स्थान अपने आठ अंतर्निहित रंग ही रखते हैं।',
+
+  'settings.motionHint': 'बंद हर गैर-ज़रूरी एनिमेशन को बंद कर देता है; सूक्ष्म प्रवेशों को संक्षिप्त रखता है; पूर्ण सबसे समृद्ध अनुभव है।',
 };

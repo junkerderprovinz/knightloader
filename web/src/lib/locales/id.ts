@@ -2708,7 +2708,7 @@ export const id: Dict = {
   'settings.resolvers.toolsAutoCheckHint': 'Satu permintaan ke api.github.com setiap kali halaman ini dimuat, dan tidak lebih dari itu: tidak ada yang diunduh dan tidak ada yang diganti tanpa kamu menekan tombolnya. Mati secara bawaan, sebab mesin yang kamu jalankan sendiri tidak boleh menelepon ke luar atas kemauannya sendiri sebelum kamu mengizinkannya.',
   'settings.diagnostics.toolsMissing': 'tidak ditemukan',
   'settings.eventTargets.problem.redirect': 'Alamatnya menjawab dengan pengalihan, dan instans ini tidak mengikutinya. Setiap nilai header di baris ini dianggap rahasia, dan pengalihan ke host lain akan menyerahkannya kepada siapa pun yang memiliki host itu. Buka alamatnya di peramban, lihat ke mana ia mendarat, lalu masukkan alamat itu di sini.',
-  'auth.twoFactor.title': 'Faktor kedua',
+  'auth.twoFactor.title': 'Autentikasi dua faktor',
   'auth.twoFactor.hint': 'Kode enam angka dari aplikasi autentikasi, sebagai tambahan atas kata sandi. Ia berdiri di samping kata sandi dan tidak pernah menggantikannya. Instansi ini tidak punya akun pengguna, jadi tidak ada orang lain yang bisa membukanya untukmu: simpan kode pemulihan di tempat lain, bukan di ponsel yang menghasilkan kodenya. Kalau keduanya hilang, jalankan knightloader -reset-2fa di mesin, atau hentikan KnightLoader dan hapus entri totp dan recovery dari berkas auth.json di folder data. Kata sandi tetap berfungsi dalam kedua kasus.',
   'auth.twoFactor.on': 'Aktif',
   'auth.twoFactor.off': 'Nonaktif',

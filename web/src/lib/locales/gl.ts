@@ -2705,7 +2705,7 @@ export const gl: Dict = {
   'settings.resolvers.toolsAutoCheckHint': 'Unha petición a api.github.com cada vez que se carga esta páxina, e nada máis: non se descarga nada e non se substitúe nada sen que premas o botón. Apagado por defecto, porque unha máquina que xestionas ti non debe telefonear cara a fóra por si soa antes de que o permitas.',
   'settings.diagnostics.toolsMissing': 'non atopado',
   'settings.eventTargets.problem.redirect': 'O enderezo responde cunha redirección, e esta instancia non a segue. Cada valor de cabeceira desta fila trátase como un segredo, e unha redirección a outro host poñeríallo na man a quen sexa dono dese host. Abre o enderezo nun navegador, mira onde acaba, e escribe aquí ese enderezo.',
-  'auth.twoFactor.title': 'Segundo factor',
+  'auth.twoFactor.title': 'Autenticación en dous pasos',
   'auth.twoFactor.hint': 'Un código de seis cifras dunha aplicación de autenticación, ademais do contrasinal. Vai a carón do contrasinal e nunca o substitúe. Esta instancia non ten contas de usuario, así que non hai ninguén máis que a poida desbloquear por ti: garda os códigos de recuperación nun sitio distinto do teléfono que xera os códigos. Se perdes ambos, executa knightloader -reset-2fa na máquina, ou detén o KnightLoader e borra as entradas totp e recovery do ficheiro auth.json no cartafol de datos. O contrasinal segue a funcionar en calquera caso.',
   'auth.twoFactor.on': 'Activado',
   'auth.twoFactor.off': 'Desactivado',

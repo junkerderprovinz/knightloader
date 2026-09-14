@@ -120,4 +120,15 @@ export const tr: Dict = {
   'phrase.errWordCount': 'Bu {count} kelime - bir ifade için {need} gerekiyor.',
   'relay.instancesTitle': 'Bu rölede',
   'relay.noInstances': 'Şu anda bu gruptan hiçbir örnek çevrimiçi değil. İfadeyi ve en az bir örneğin çalıştığını kontrol et.',
+
+  'settings.motion': 'Hareket',
+  'settings.motion.off': 'Kapalı',
+  'settings.motion.subtle': 'İnce',
+  'settings.motion.wild': 'Tam',
+  'settings.motion.storm': 'Fırtına',
+  'settings.accentRainbowOwns': 'Gökkuşağı modu şu anda renkleri konuma göre dağıtıyor. Bu renk, konumu olmayan her şeyde hâlâ geçerli.',
+  'settings.motionReduced': 'Telefonunuz hareketi azaltacak şekilde ayarlı. Bu böyle olduğu sürece, hangi seviye seçili olursa olsun burada hiçbir şey hareket etmez.',
+  'settings.rainbowPaletteNoInstance': 'Palet örneğe aittir. Bağlantı yokken bir rengin yazılacağı bir yer de yoktur, bu yüzden konumlar yerleşik sekiz rengi korur.',
+
+  'settings.motionHint': 'Kapalı, gerekli olmayan tüm animasyonları kapatır; İnce, girişleri kısa tutar; Tam ise en zengin deneyimdir.',
 };

@@ -2710,7 +2710,7 @@ export const no: Dict = {
   'settings.resolvers.toolsAutoCheckHint': 'Én forespørsel til api.github.com hver gang denne siden lastes, og ikke noe mer: ingenting lastes ned og ingenting erstattes uten at du trykker på knappen. Av som standard, fordi en maskin du driver selv, ikke skal ringe ut på egen hånd før du har sagt at den får lov.',
   'settings.diagnostics.toolsMissing': 'ikke funnet',
   'settings.eventTargets.problem.redirect': 'Adressen svarer med en videresending, og denne instansen følger den ikke. Hver hodeverdi i denne raden regnes som en hemmelighet, og en videresending til en annen vert ville gitt den fra seg til den som eier den verten. Åpne adressen i en nettleser, se hvor den havner, og skriv inn den adressen her i stedet.',
-  'auth.twoFactor.title': 'Andre faktor',
+  'auth.twoFactor.title': 'Tofaktorautentisering',
   'auth.twoFactor.hint': 'En sekssifret kode fra en autentiseringsapp, i tillegg til passordet. Den står ved siden av passordet og erstatter det aldri. Denne instansen har ingen brukerkontoer, så det finnes ingen andre som kan låse den opp for deg: oppbevar gjenopprettingskodene et annet sted enn på telefonen som lager kodene. Er begge borte, kjør knightloader -reset-2fa på maskinen, eller stopp KnightLoader og slett oppføringene totp og recovery fra auth.json i datamappen. Passordet virker uansett videre.',
   'auth.twoFactor.on': 'På',
   'auth.twoFactor.off': 'Av',

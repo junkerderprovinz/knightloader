@@ -2694,7 +2694,7 @@ export const da: Dict = {
   'settings.resolvers.toolsAutoCheckHint': 'Én forespørgsel til api.github.com hver gang denne side indlæses, og ikke mere: der bliver ikke hentet noget og ikke erstattet noget, uden at du trykker på knappen. Slået fra som standard, fordi en maskine, du selv driver, ikke skal ringe ud af sig selv, før du har sagt, at den må.',
   'settings.diagnostics.toolsMissing': 'ikke fundet',
   'settings.eventTargets.problem.redirect': 'Adressen svarer med en omdirigering, og denne instans følger den ikke. Hver headerværdi i denne række gælder som en hemmelighed, og en omdirigering til en anden vært ville lægge den i hænderne på den, der driver værten. Åbn adressen i en browser, se, hvor den lander, og skriv den adresse ind her i stedet.',
-  'auth.twoFactor.title': 'Anden faktor',
+  'auth.twoFactor.title': 'Tofaktorgodkendelse',
   'auth.twoFactor.hint': 'En sekscifret kode fra en godkendelsesapp, oven i adgangskoden. Den står ved siden af adgangskoden og erstatter den aldrig. Denne instans har ingen brugerkonti, så der er ingen andre, der kan låse den op for dig: gem gendannelseskoderne et andet sted end på den telefon, der laver koderne. Er begge væk, så kør knightloader -reset-2fa på maskinen, eller stop KnightLoader og slet posterne totp og recovery fra auth.json i datamappen. Adgangskoden virker under alle omstændigheder videre.',
   'auth.twoFactor.on': 'Til',
   'auth.twoFactor.off': 'Fra',

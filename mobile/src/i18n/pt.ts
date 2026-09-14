@@ -120,4 +120,15 @@ export const pt: Dict = {
   'phrase.errWordCount': 'São {count} palavras - uma frase precisa de {need}.',
   'relay.instancesTitle': 'Neste relay',
   'relay.noInstances': 'Neste momento não há nenhuma instância deste grupo online. Verifica a frase e se pelo menos uma instância está a correr.',
+
+  'settings.motion': 'Movimento',
+  'settings.motion.off': 'Desativado',
+  'settings.motion.subtle': 'Subtil',
+  'settings.motion.wild': 'Completo',
+  'settings.motion.storm': 'Tempestade',
+  'settings.accentRainbowOwns': 'O modo arco-íris está a distribuir as cores por posição. Esta cor continua a aplicar-se a tudo o que não tem posição.',
+  'settings.motionReduced': 'O teu telemóvel está definido para reduzir o movimento. Enquanto for assim, nada aqui se move, seja qual for o nível escolhido.',
+  'settings.rainbowPaletteNoInstance': 'A paleta pertence à instância. Sem ligação não há para onde escrever uma cor, por isso as posições mantêm as oito cores integradas.',
+
+  'settings.motionHint': 'Desativado desliga toda a animação não essencial; Subtil mantém as entradas breves; Completo é a experiência mais rica.',
 };

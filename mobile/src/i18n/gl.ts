@@ -120,4 +120,15 @@ export const gl: Dict = {
   'phrase.errWordCount': 'Son {count} palabras - unha frase precisa {need}.',
   'relay.instancesTitle': 'Neste relé',
   'relay.noInstances': 'Agora mesmo non hai ningunha instancia deste grupo en liña. Comproba a frase e que polo menos unha instancia estea a funcionar.',
+
+  'settings.motion': 'Movemento',
+  'settings.motion.off': 'Desactivado',
+  'settings.motion.subtle': 'Sutil',
+  'settings.motion.wild': 'Completo',
+  'settings.motion.storm': 'Tormenta',
+  'settings.accentRainbowOwns': 'O modo arco da vella reparte agora as cores por posición. Esta cor segue a aplicarse a todo o que non ten posición.',
+  'settings.motionReduced': 'O teu teléfono está configurado para reducir o movemento. Mentres sexa así, aquí non se move nada, sexa cal sexa o nivel escollido.',
+  'settings.rainbowPaletteNoInstance': 'A paleta pertence á instancia. Sen conexión non hai onde escribir unha cor, así que as posicións conservan as oito cores integradas.',
+
+  'settings.motionHint': 'Desactivado apaga toda animación non esencial; Sutil mantén as entradas breves; Completo é a experiencia máis rica.',
 };

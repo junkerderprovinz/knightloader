@@ -2715,7 +2715,7 @@ export const ro: Dict = {
   'settings.resolvers.toolsAutoCheckHint': 'O cerere către api.github.com la fiecare încărcare a acestei pagini, nimic mai mult: nu se descarcă nimic și nu se înlocuiește nimic fără să apeși butonul. Implicit oprit, fiindcă o mașină pe care o ții tu nu trebuie să telefoneze afară de la sine înainte să îi dai voie.',
   'settings.diagnostics.toolsMissing': 'nu a fost găsit',
   'settings.eventTargets.problem.redirect': 'Adresa răspunde cu o redirectare, iar această instanță nu o urmează. Fiecare valoare de antet din acest rând este socotită un secret, iar o redirectare către altă gazdă l-ar da în mâna celui care ține acea gazdă. Deschide adresa într-un browser, vezi unde ajunge, și scrie aici adresa aceea.',
-  'auth.twoFactor.title': 'Al doilea factor',
+  'auth.twoFactor.title': 'Autentificare în doi pași',
   'auth.twoFactor.hint': 'Un cod din șase cifre dintr-o aplicație de autentificare, pe lângă parolă. Stă alături de parolă și nu o înlocuiește niciodată. Această instanță nu are conturi de utilizator, deci nu există altcineva care să o deblocheze pentru tine: ține codurile de recuperare în altă parte decât pe telefonul care produce codurile. Dacă le pierzi pe amândouă, rulează pe mașină knightloader -reset-2fa, sau oprește KnightLoader și șterge intrările totp și recovery din fișierul auth.json din folderul de date. Parola funcționează mai departe în ambele cazuri.',
   'auth.twoFactor.on': 'Pornit',
   'auth.twoFactor.off': 'Oprit',

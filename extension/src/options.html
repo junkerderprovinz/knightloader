@@ -465,12 +465,36 @@
            reads GET /api/appearance, which is on the list a group member may
            reach through the relay - so it costs no permission at all. First,
            because it decides whether the three cards below it are yours to
-           set at all. -->
-      <div class="glim-row">
+           set at all.
+
+           THE SWITCH IS REMOVED, NOT DIMMED, WHILE THIS BROWSER IS IN NO GROUP
+           (GlimStone 1.15.0). There is no instance to take a look from, so the
+           switch cannot act at all: pressing it used to turn on optimistically,
+           fail against a relay session that had nothing to talk to, snap back
+           and report through a toast - a button offered in a place it cannot
+           work, which is the exact shape 1.15.0 replaces with "no control at
+           all plus the paragraph saying what is wrong". The notice below takes
+           its place and names the card that fixes it; options.js swaps the two.
+
+           The rule is written about the ENVIRONMENT (a browser refusing
+           WebAuthn on a bare IP) and the same section applies it to an app
+           PRECONDITION in the next bullet but one: both passkey cards remove
+           their entry control when there is no password yet rather than dimming
+           it. No group is this page's version of that precondition. -->
+      <div class="glim-row" id="followInstanceRow">
         <span class="glim-row-label" id="followInstanceLabel"></span>
         <button type="button" role="switch" aria-checked="false" id="followInstance" class="glim-switch">
           <span class="glim-switch-track"><span class="glim-switch-knob"></span></span>
         </button>
+      </div>
+      <!-- Static markup filled by options.js, like the confirmation window
+           further down and for the same reason: this page assembles everything
+           dynamic with createElement because Mozilla's linter fails the package
+           on an innerHTML assignment, and a box that is the same box every time
+           needs its two sentences filled in rather than assembling. -->
+      <div class="glim-unavailable" id="followUnavailable" hidden>
+        <span class="glim-unavailable-title" id="followUnavailableTitle"></span>
+        <span class="glim-unavailable-reason" id="followUnavailableReason"></span>
       </div>
     </section>
 

@@ -17,7 +17,6 @@ import { useT } from '../lib/i18n';
 import { useInstanceScope } from '../lib/instance';
 import { useTasks } from '../lib/useTasks';
 import { SpeedLimitField } from './QueueBar';
-import { DiskSpaceStrip } from './DiskSpaceStrip';
 import { useToast } from '../lib/toast';
 import { Button, Field, Modal, NumberInput } from './ui';
 import { SpeedMeter } from './SpeedGraph';
@@ -271,11 +270,24 @@ export function ShellStrip() {
             </Button>
             <SpeedLimitField />
             <VolumeMeter />
-            {/* Inside the local branch and nowhere else: /api/diskspace is not
-                forwarded and not relay-allowed, so a row drawn over a peer's
-                list would describe the wrong machine's disks with complete
-                confidence. */}
-            <DiskSpaceStrip />
+            {/* NO DISK ROW HERE ANY MORE (jdp, 14.09.2026: "kannst du diesen
+                text rausschmeissen: downloads / Frei / 864 GiB / Noch zu
+                schreiben / 8.9 GiB"). It was the same second copy the account
+                chip was before it: free space and what the queue still owes are
+                on the Overview tile, which is where somebody goes to act on
+                them, and in the head card they answered a question nobody had
+                asked.
+
+                It was also the one thing left that could still grow this card.
+                Measured: with an empty queue the strip is one line, and the
+                moment anything is waiting "Noch zu schreiben" adds a second and
+                the card goes from 176px to 183px; a missing or very long path
+                added a third. The card is content-driven now, and this was the
+                content that moved.
+
+                DiskSpaceStrip went with it rather than being left unmounted -
+                see components/DiskSpaceTile.tsx, which is the reader that
+                stays, and lib/useDiskSpace.ts, which both of them shared. */}
           </span>
         )}
       </span>

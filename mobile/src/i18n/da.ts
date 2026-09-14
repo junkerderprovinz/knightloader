@@ -120,4 +120,15 @@ export const da: Dict = {
   'phrase.errWordCount': 'Det er {count} ord - en sætning skal have {need}.',
   'relay.instancesTitle': 'På dette relæ',
   'relay.noInstances': 'Ingen instans i denne gruppe er online lige nu. Tjek sætningen, og at mindst én instans kører.',
+
+  'settings.motion': 'Bevægelse',
+  'settings.motion.off': 'Fra',
+  'settings.motion.subtle': 'Diskret',
+  'settings.motion.wild': 'Fuld',
+  'settings.motion.storm': 'Storm',
+  'settings.accentRainbowOwns': 'Regnbuetilstanden fordeler lige nu farverne efter position. Denne farve gælder stadig alt det, der ikke har en position.',
+  'settings.motionReduced': 'Din telefon er indstillet til mindre bevægelse. Så længe det gælder, bevæger intet sig her, uanset hvilket niveau der er valgt.',
+  'settings.rainbowPaletteNoInstance': 'Paletten hører til instansen. Uden forbindelse er der ingen steder at skrive en farve hen, så positionerne beholder de otte indbyggede farver.',
+
+  'settings.motionHint': 'Fra slukker for al ikke-væsentlig animation; Diskret holder indtog korte; Fuld er den rigeste oplevelse.',
 };

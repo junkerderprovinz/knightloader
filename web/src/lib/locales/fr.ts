@@ -2696,7 +2696,7 @@ export const fr: Dict = {
   'settings.resolvers.toolsAutoCheckHint': 'Une requête vers api.github.com à chaque chargement de cette page, et rien de plus : rien n’est téléchargé et rien n’est remplacé sans que vous appuyiez sur le bouton. Désactivé par défaut, parce qu’une machine que vous exploitez vous-même ne doit pas téléphoner dehors d’elle-même avant que vous l’ayez autorisé.',
   'settings.diagnostics.toolsMissing': 'introuvable',
   'settings.eventTargets.problem.redirect': 'L’adresse répond par une redirection, et cette instance ne la suit pas. Chaque valeur d’en-tête de cette ligne est traitée comme un secret, et une redirection vers un autre hôte la livrerait à celui à qui cet hôte appartient. Ouvrez l’adresse dans un navigateur, regardez où elle atterrit, et saisissez cette adresse-là ici.',
-  'auth.twoFactor.title': 'Deuxième facteur',
+  'auth.twoFactor.title': 'Authentification à deux facteurs',
   'auth.twoFactor.hint': 'Un code à six chiffres venant d\'une application d\'authentification, en plus du mot de passe. Il accompagne le mot de passe et ne le remplace jamais. Cette instance n\'a pas de comptes utilisateurs, donc personne d\'autre ne peut la déverrouiller pour vous : gardez les codes de récupération ailleurs que sur le téléphone qui produit les codes. Si les deux ont disparu, lancez knightloader -reset-2fa sur la machine, ou arrêtez KnightLoader et supprimez les entrées totp et recovery du fichier auth.json dans le dossier de données. Le mot de passe continue de fonctionner dans les deux cas.',
   'auth.twoFactor.on': 'Activé',
   'auth.twoFactor.off': 'Désactivé',

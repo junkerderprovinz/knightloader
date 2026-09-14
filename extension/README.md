@@ -116,11 +116,21 @@ group sibling and is admitted on that basis alone (`relayForwardable` in
 
 `popup.html` (toolbar), `picker.html` (the send-to window), `options.html`.
 All three draw the same instance card and the same GlimStone
-(`glimstone.css`) — one implementation each in `shared.js`, because three pages
-of one product drawing their own version of the same card is how three pages
-become three slightly different products. Appearance, including the rainbow,
-follows the same engines as the web UI (`appearance.js`), and can be adopted
-from the default instance in one switch.
+(`glimstone.css`, currently 1.17.0) — one implementation each in `shared.js`,
+because three pages of one product drawing their own version of the same card is
+how three pages become three slightly different products. Appearance, including
+the rainbow, follows the same engines as the web UI (`appearance.js`), and can be
+adopted from the default instance in one switch — where there is a group to adopt
+from. Where there is not, the switch is not offered at all and a paragraph says
+why, which is what the language asks for when the environment, rather than a
+setting, is what rules a control out.
+
+There is no motion axis here: no `data-motion`, no picker, no stored level. The
+fixed durations this extension does run are pinned to the web UI's own top-level
+numbers, so one surface with one level runs at the level an app defaults to.
 
 42 languages in `i18n.js`, checked against the web UI's set by
 `check-locales.mjs`, which fails on both a missing key and an unused one.
+`check-refusals.mjs` guards the other half: that nothing is dimmed and switched
+off at the same time, that a control hanging off a switch goes away with it, and
+that the one refusal owing a reason has a translated one on a real fill.

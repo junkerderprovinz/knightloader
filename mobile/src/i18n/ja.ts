@@ -120,4 +120,15 @@ export const ja: Dict = {
   'phrase.errWordCount': '{count} 語です。フレーズには {need} 語必要です。',
   'relay.instancesTitle': 'このリレー上のインスタンス',
   'relay.noInstances': 'このグループのインスタンスは現在どれもオンラインではありません。フレーズと、少なくとも1台が動いているかを確認してください。',
+
+  'settings.motion': 'モーション',
+  'settings.motion.off': 'オフ',
+  'settings.motion.subtle': '控えめ',
+  'settings.motion.wild': 'フル',
+  'settings.motion.storm': 'ストーム',
+  'settings.accentRainbowOwns': 'いまはレインボーモードが位置ごとに色を割り当てています。この色は位置を持たない要素すべてに引き続き効きます。',
+  'settings.motionReduced': 'この端末は視差効果を減らす設定になっています。その間はどの段階を選んでも、ここでは何も動きません。',
+  'settings.rainbowPaletteNoInstance': 'パレットはインスタンスのものです。接続がなければ色を書き込む先がないため、各位置は内蔵の8色のままになります。',
+
+  'settings.motionHint': 'オフはすべての不要なアニメーションを無効にします。控えめは登場を短く保ちます。フルは最も豊かな体験です。',
 };

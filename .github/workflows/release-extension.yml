@@ -58,12 +58,14 @@ jobs:
           fi
           wc -l "$file"
 
-      # The same gate CI runs, repeated here rather than assumed: a release is
-      # exactly the moment a locale short one key would ship unnoticed.
-      - name: Syntax and locale parity
+      # The same gates CI runs, repeated here rather than assumed: a release is
+      # exactly the moment a locale short one key, or a control that refuses in
+      # the wrong way, would ship unnoticed.
+      - name: Syntax, locale parity and refusals
         run: |
           for f in extension/src/*.js; do node --check "$f"; done
           node extension/check-locales.mjs
+          node extension/check-refusals.mjs
 
       # src/ ships as plain files - no build step - so the zip is the directory
       # itself. Built from src/ rather than from the repo root so the archive

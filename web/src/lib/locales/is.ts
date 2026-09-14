@@ -2704,7 +2704,7 @@ export const is: Dict = {
   'settings.resolvers.toolsAutoCheckHint': 'Ein beiðni á api.github.com í hvert sinn sem þessi síða hleðst, og ekkert umfram það: ekkert er sótt og engu er skipt út án þess að þú ýtir á hnappinn. Slökkt frá verksmiðju, því vél sem þú rekur sjálfur á ekki að hringja út af sjálfsdáðum fyrr en þú hefur leyft það.',
   'settings.diagnostics.toolsMissing': 'fannst ekki',
   'settings.eventTargets.problem.redirect': 'Slóðin svarar með áframsendingu og þetta tilvik fylgir henni ekki. Hvert hausgildi í þessari línu gildir sem leyndarmál, og áframsending á annan hýsil myndi rétta rekstraraðila hans það í hendur. Opnaðu slóðina í vafra, sjáðu hvar hún lendir, og sláðu þá slóð inn hér í staðinn.',
-  'auth.twoFactor.title': 'Annar þáttur',
+  'auth.twoFactor.title': 'Tveggja þátta auðkenning',
   'auth.twoFactor.hint': 'Sex stafa kóði úr auðkenningarforriti, til viðbótar við lykilorðið. Hann stendur við hlið lykilorðsins og kemur aldrei í staðinn fyrir það. Þetta tilvik hefur enga notendareikninga, svo það er enginn annar sem getur opnað það fyrir þig: geymdu endurheimtarkóðana annars staðar en í símanum sem býr þá til. Séu báðir horfnir, keyrðu knightloader -reset-2fa á vélinni, eða stöðvaðu KnightLoader og eyddu færslunum totp og recovery úr auth.json í gagnamöppunni. Lykilorðið virkar áfram í báðum tilvikum.',
   'auth.twoFactor.on': 'Kveikt',
   'auth.twoFactor.off': 'Slökkt',

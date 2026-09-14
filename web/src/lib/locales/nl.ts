@@ -2691,7 +2691,7 @@ export const nl: Dict = {
   'settings.resolvers.toolsAutoCheckHint': 'Eén verzoek aan api.github.com bij elke keer dat deze pagina laadt, meer niet: er wordt niets gedownload en niets vervangen zonder dat jij op de knop drukt. Standaard uit, want een machine die je zelf beheert hoort niet uit zichzelf naar buiten te bellen voordat je het hebt toegestaan.',
   'settings.diagnostics.toolsMissing': 'niet gevonden',
   'settings.eventTargets.problem.redirect': 'Het adres antwoordt met een omleiding, en deze instantie volgt die niet. Elke headerwaarde in deze rij geldt als geheim, en een omleiding naar een andere host zou hem aan de beheerder daarvan in handen geven. Open het adres in een browser, kijk waar het uitkomt, en vul dat adres hier in.',
-  'auth.twoFactor.title': 'Tweede factor',
+  'auth.twoFactor.title': 'Tweefactorauthenticatie',
   'auth.twoFactor.hint': 'Een code van zes cijfers uit een authenticator-app, bovenop het wachtwoord. Hij staat naast het wachtwoord en vervangt het nooit. Deze instantie heeft geen gebruikersaccounts, dus er is niemand anders die hem voor je kan ontgrendelen: bewaar de herstelcodes ergens anders dan op de telefoon die de codes maakt. Zijn ze allebei weg, voer dan knightloader -reset-2fa uit op de machine, of stop KnightLoader en verwijder de regels totp en recovery uit auth.json in de datamap. Het wachtwoord blijft in beide gevallen werken.',
   'auth.twoFactor.on': 'Aan',
   'auth.twoFactor.off': 'Uit',

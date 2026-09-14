@@ -120,4 +120,15 @@ export const ar: Dict = {
   'phrase.errWordCount': 'هذه {count} كلمة - العبارة تحتاج إلى {need}.',
   'relay.instancesTitle': 'على هذا المُرحّل',
   'relay.noInstances': 'لا توجد أي نسخة من هذه المجموعة متصلة الآن. تحقّق من العبارة ومن تشغيل نسخة واحدة على الأقل.',
+
+  'settings.motion': 'الحركة',
+  'settings.motion.off': 'إيقاف',
+  'settings.motion.subtle': 'خفيف',
+  'settings.motion.wild': 'كامل',
+  'settings.motion.storm': 'عاصفة',
+  'settings.accentRainbowOwns': 'وضع قوس قزح يوزّع الألوان حسب الموضع الآن. هذا اللون ما زال يظهر في كل ما لا يملك موضعًا.',
+  'settings.motionReduced': 'هاتفك مضبوط على تقليل الحركة. وما دام كذلك، لا يتحرّك شيء هنا مهما كان المستوى المختار.',
+  'settings.rainbowPaletteNoInstance': 'اللوحة اللونية تخصّ النسخة. وبدون اتصال لا يوجد مكان لكتابة لون، لذا تحتفظ المواضع بالألوان الثمانية المدمجة.',
+
+  'settings.motionHint': 'إيقاف يعطّل كل حركة غير ضرورية؛ خفيف يجعل الظهور موجزاً؛ كامل هو التجربة الأغنى.',
 };
