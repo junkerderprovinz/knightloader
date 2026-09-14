@@ -167,7 +167,11 @@ No image is published anywhere yet (see the notice above), so it is built where
 it runs rather than pulled from a registry:
 
 ```sh
-docker build --build-arg VERSION=preview -t knightloader:preview .
+# COMMIT is not optional dressing: .dockerignore keeps .git out of the build
+# context, so the toolchain inside the image has no repository to read and the
+# binary would not know which revision it is. VERSION shows under the wordmark,
+# COMMIT answers as `commit` on GET /api/health.
+docker build --build-arg VERSION=preview --build-arg COMMIT="$(git rev-parse HEAD)" -t knightloader:preview .
 
 docker run -d --name knightloader \
   --restart unless-stopped \
@@ -376,6 +380,7 @@ hook for one. Everything else is a plain Go package with its own tests.
 go test ./... -count=1        # server
 cd web && npm ci && npx tsc --noEmit && npm run build
 node check-docs-claims.mjs    # the numbers this file and docs/ assert
+node check-queue-reach.mjs    # the browser offers the queue verbs the server takes
 ```
 
 A handful of tests open a socket on a real network interface instead of on

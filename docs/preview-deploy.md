@@ -19,15 +19,28 @@ From a machine that can reach the server over SSH:
 #    something misbehaves and you are trying to work out what is in it.
 git archive --format=tar.gz -o /tmp/kl-src.tgz HEAD
 
+#    ...and read the revision HERE, where the repository is. This is the only
+#    moment in the whole deploy that knows it. The archive above carries no
+#    .git (and .dockerignore would exclude one anyway), so the Go toolchain in
+#    the build stage on the far end has nothing to read and stamps no
+#    vcs.revision of its own. Left out, the image answers {"commit":""} - the
+#    version line still reads "preview", and the crest on the About card, which
+#    is how you tell two preview builds apart, does not turn at all.
+commit=$(git rev-parse HEAD)
+
 # 2. ship it
 scp -P <ssh-port> /tmp/kl-src.tgz root@<host>:/tmp/kl-src.tgz
 
 # 3. build and (re)start. Data and downloads survive, they live on volumes
+#
+#    The '"$commit"' splice is the ordinary one: the command runs inside single
+#    quotes on the far end, so this closes them, lets the LOCAL shell expand the
+#    variable, and opens them again.
 ssh -p <ssh-port> root@<host> '
   rm -rf /tmp/klbuild && mkdir -p /tmp/klbuild &&
   tar xzf /tmp/kl-src.tgz -C /tmp/klbuild &&
   cd /tmp/klbuild &&
-  docker build --build-arg VERSION=preview -t knightloader:preview . &&
+  docker build --build-arg VERSION=preview --build-arg COMMIT='"$commit"' -t knightloader:preview . &&
   docker rm -f knightloader;
   docker run -d --name knightloader \
     --restart unless-stopped \
@@ -44,7 +57,14 @@ ssh -p <ssh-port> root@<host> '
 
 `--user 99:100` makes downloaded files land as `nobody:users`, which is what the
 rest of an Unraid box expects. `VERSION` is stamped into the binary and shown
-under the wordmark in the sidebar.
+under the wordmark in the sidebar; `COMMIT` is stamped the same way and is what
+`GET /api/health` answers as `commit`. Check both after a deploy:
+
+```sh
+curl -s http://<host>:8749/api/health
+# want: {"commit":"<the hash you built>","status":"ok","version":"preview"}
+# a "" commit means the build arg was dropped somewhere, not that the tree is dirty
+```
 
 Every container on this box gets its own `br0.20` IP rather than a host port
 mapping — this is the standing convention for every self-hosted service here,

@@ -19,10 +19,23 @@ var appearanceFields = []string{
 }
 
 func registerSystem(reg *Registry, a *app.App) {
+	// THE THIRD FIELD WAS ADDED DELIBERATELY, which is what
+	// TestTheOldHealthRouteIsUntouched asks for in writing: "adding one is
+	// safe, and this is the place to decide that deliberately". `status` and
+	// `version` are unchanged and stay unchanged - the phone app compares the
+	// literal "ok", the container HEALTHCHECK reads the exit code, and the
+	// Click'n'Load bridge refuses to start on anything else.
+	//
+	// `commit` is the source revision, and it is ALWAYS PRESENT AND SOMETIMES
+	// EMPTY rather than omitted when unknown: a caller that has to distinguish
+	// "this server is too old to tell me" from "this build does not know its
+	// own revision" can do neither if the key comes and goes. buildinfo.Revision
+	// carries the full account of where the string comes from and why it may be
+	// empty.
 	reg.AddOpen(http.MethodGet, "/api/health",
-		"liveness and the running version; open so a container orchestrator can probe a locked instance",
+		"liveness, the running version and the commit it was built from; open so a container orchestrator can probe a locked instance",
 		func(w http.ResponseWriter, r *http.Request) {
-			writeJSON(w, map[string]string{"status": "ok", "version": buildinfo.Version})
+			writeJSON(w, map[string]string{"status": "ok", "version": buildinfo.Version, "commit": buildinfo.Revision()})
 		})
 
 	reg.Add(http.MethodGet, "/api/ws", "the live task, queue and activity stream",

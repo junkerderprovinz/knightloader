@@ -2,8 +2,45 @@
 // -ldflags "-X github.com/junkerderprovinz/knightloader/internal/buildinfo.Version=vX.Y.Z".
 package buildinfo
 
+import "runtime/debug"
+
 // Version is the running build; "dev" for untagged local/main builds.
 var Version = "dev"
+
+// Commit is the source revision this build was made from, stamped the same way
+// Version is: -ldflags "-X ...buildinfo.Commit=$(git rev-parse HEAD)". Empty
+// where nothing stamped it - read through Revision below, never directly.
+var Commit = ""
+
+// Revision is the commit this build came from, or "" when nothing knows it.
+//
+// TWO SOURCES, AND THE ORDER IS THE POINT. The ldflags stamp wins, because the
+// container build is the one deployment where the other source cannot work:
+// .dockerignore excludes .git, so the Go toolchain inside that build stage has
+// no repository to read and embeds no VCS stamp at all. Everything else - a
+// plain `go build` in the worktree, the desktop build, CI - gets it for free
+// from the toolchain's own `vcs.revision`, which is why that fallback is here
+// rather than a second build flag nobody remembers to pass.
+//
+// AN EMPTY STRING IS A REAL ANSWER AND IS RETURNED AS ONE. The one thing this
+// function must never do is invent, shorten or substitute: a build identifier
+// that looks plausible and is not is worse for the "am I looking at a stale
+// deploy" question than no identifier, because it answers it wrongly instead of
+// not at all. Every caller has to handle "" (web/src/pages/settings/Help.tsx
+// draws no back at all in that case).
+func Revision() string {
+	if Commit != "" {
+		return Commit
+	}
+	if info, ok := debug.ReadBuildInfo(); ok {
+		for _, s := range info.Settings {
+			if s.Key == "vcs.revision" {
+				return s.Value
+			}
+		}
+	}
+	return ""
+}
 
 // Deployment says which binary this build is: "container" for
 // cmd/knightloader (the default a fresh import of this package always

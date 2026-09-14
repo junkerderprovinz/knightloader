@@ -46,7 +46,7 @@ func healthServer(t *testing.T, metrics bool) (*app.App, *httptest.Server) {
 // TestTheOldHealthRouteIsUntouched is the most important test in this file and
 // the one least about the feature being added.
 //
-// /api/health answers two fields, a literal "ok" and a 200, and three shipped
+// /api/health answers three fields, a literal "ok" and a 200, and three shipped
 // things read it: the phone app's LAN discovery compares the string, the
 // container's HEALTHCHECK reads the exit code, and the Click'n'Load bridge
 // refuses to start on anything else. The phone app in particular updates on its
@@ -54,6 +54,22 @@ func healthServer(t *testing.T, metrics bool) (*app.App, *httptest.Server) {
 // phone in the wild stop finding the instance and there would be no way to take
 // it back. This test is the tripwire on somebody helpfully wiring the new
 // report into the old address.
+//
+// THE COUNT WENT FROM TWO TO THREE ON PURPOSE, which is the decision the old
+// wording invited ("adding one is safe, and this is the place to decide that
+// deliberately"). The third is `commit`, read by the About card's crest
+// (web/src/pages/settings/Help.tsx). The two fields that were already here did
+// not move and are still asserted individually above the count, because the
+// count alone would go on passing if somebody swapped one of them for the new
+// one.
+//
+// `commit` is asserted PRESENT AND A STRING, never non-empty: it is empty in
+// this test binary and in every `go test` run, because the Go toolchain stamps
+// vcs.revision into `go build` output and not into test binaries. Asserting it
+// carried a real sha here would be a test that only passes where nobody runs
+// it. What matters to the caller is that the key always exists, so that "" is
+// readable as "this build does not know" rather than as "this server is too old
+// to say" - see buildinfo.Revision.
 func TestTheOldHealthRouteIsUntouched(t *testing.T) {
 	_, srv := healthServer(t, false)
 	code, raw := getRaw(t, srv.URL+"/api/health")
@@ -70,7 +86,10 @@ func TestTheOldHealthRouteIsUntouched(t *testing.T) {
 	if _, ok := got["version"].(string); !ok {
 		t.Errorf("version is missing or not a string: %s", raw)
 	}
-	if len(got) != 2 {
+	if _, ok := got["commit"].(string); !ok {
+		t.Errorf("commit is missing or not a string (%s); the key has to be there even when the build cannot fill it, or \"\" and \"too old to answer\" look the same to a caller", raw)
+	}
+	if len(got) != 3 {
 		t.Errorf("the liveness answer has grown to %d fields (%s); adding one is safe, and this is the place to decide that deliberately", len(got), raw)
 	}
 }

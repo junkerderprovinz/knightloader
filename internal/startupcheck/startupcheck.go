@@ -175,9 +175,20 @@ type Check struct {
 
 // Report is one whole pass.
 type Report struct {
-	State      string    `json:"state"`
-	StartedAt  time.Time `json:"startedAt"`
-	FinishedAt time.Time `json:"finishedAt,omitempty"`
+	State     string    `json:"state"`
+	StartedAt time.Time `json:"startedAt"`
+	// FinishedAt is when the pass ended, and is ABSENT while it is still
+	// running.
+	//
+	// omitzero and not omitempty. omitempty has never done anything to a struct
+	// and time.Time is one, so the tag this field carried was decoration: a pass
+	// in flight shipped `"finishedAt":"0001-01-01T00:00:00Z"`, which is a
+	// non-empty string and therefore true to every reader that tests it. Nothing
+	// reads this field today - the card prints startedAt and nothing else - so
+	// the lie was never told out loud, which is exactly the kind of trap that is
+	// cheap now and expensive the day somebody writes `if (report.finishedAt)`.
+	// internal/selftest's Run has the same field and already gets this right.
+	FinishedAt time.Time `json:"finishedAt,omitzero"`
 	// Probed says this pass was allowed to write its probe file at all. False
 	// for every boot pass (see the package comment), true only for one somebody
 	// pressed the button for. It is a property of the PASS and not of a row,

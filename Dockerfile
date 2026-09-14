@@ -11,9 +11,28 @@ RUN go mod download
 
 COPY . .
 ARG VERSION=dev
+# The source revision, and it has to be passed IN rather than read here: the
+# .dockerignore beside this file excludes .git, so the Go toolchain in this
+# stage has no repository to read and stamps no vcs.revision of its own
+# (buildinfo.Revision documents the whole arrangement). Left unset the binary
+# simply does not know its commit and says so - an empty default is correct
+# here, a made-up one would not be.
+#
+#   docker build --build-arg VERSION=preview --build-arg COMMIT=$(git rev-parse HEAD) .
+#
+# AND IT SAYS SO WHEN IT IS MISSING. An empty default is the correct VALUE, but
+# a silent one is how the documented preview build spent its life producing
+# images that answered {"commit":""}: nothing failed, nothing was logged, and
+# the only symptom was a crest on the About card that would not turn. A line in
+# the build log is what turns "wrong" into "noticed". It is a warning and not an
+# error on purpose - building without a repository to hand is legitimate, and a
+# build that refuses to finish over a missing identifier would be worse than the
+# identifier being missing.
+ARG COMMIT=
 # Pure Go (modernc SQLite), so a static binary needs no cgo.
-RUN CGO_ENABLED=0 go build \
-      -ldflags="-s -w -X github.com/junkerderprovinz/knightloader/internal/buildinfo.Version=${VERSION}" \
+RUN [ -n "${COMMIT}" ] || echo 'WARNING: no --build-arg COMMIT, so this image will not know its revision: GET /api/health answers an empty commit and the About crest cannot turn' >&2; \
+    CGO_ENABLED=0 go build \
+      -ldflags="-s -w -X github.com/junkerderprovinz/knightloader/internal/buildinfo.Version=${VERSION} -X github.com/junkerderprovinz/knightloader/internal/buildinfo.Commit=${COMMIT}" \
       -o /out/knightloader ./cmd/knightloader
 
 FROM alpine:3.24@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b
