@@ -107,6 +107,45 @@ the SECOND factor and never a way past the first. It grants nothing that
 filesystem access did not already grant, since the same access could delete
 `auth.json` outright and take the password with it.
 
+## Behind a reverse proxy: turn asset caching OFF
+
+A proxy that adds its own `Cache-Control` to static files will serve a stale app
+after every update, and it can do so for the better part of a day.
+
+The reason is a pair of decisions that are individually fine. KnightLoader's
+bundle filenames carry **no content hash** (`app.js`, `de.js`, not
+`app.a1b2c3.js`), because the binary redeploys by replacing the whole embedded
+build and a hash would only move the problem to `index.html`. To make that safe
+the server answers every asset with an **ETag and `Cache-Control: no-cache`**,
+which is not "do not cache" but "revalidate before use" — exactly right for a
+file at a fixed address.
+
+A proxy's asset-caching feature then overwrites that header. Measured on Nginx
+Proxy Manager with its "Asset Caching" option on:
+
+```
+direct     Cache-Control: no-cache          ETag: "d238…"
+via proxy  Cache-Control: max-age=66907     Expires: …
+```
+
+Eighteen hours in which a browser that has the page open never asks again, so a
+fixed-address file behaves like a hashed one without being one. Somebody sees
+yesterday's interface, a hard reload fixes it, and nothing in either log says
+why.
+
+So: **leave the proxy's asset caching off for this host.** In NPM that is the
+"Cache Assets" switch on the proxy host; it is on by default in the UI. Check it
+the same way:
+
+```sh
+curl -sD - -o /dev/null https://<name>/assets/de.js | grep -i 'cache-control'
+# want: Cache-Control: no-cache
+```
+
+The same applies to any other proxy that offers an "expires" or "static asset"
+rule. The app's own answer is already correct; the job of the proxy here is to
+pass it through.
+
 ## Checking a deploy
 
 ```sh
