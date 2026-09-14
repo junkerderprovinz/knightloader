@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/collide"
 	"github.com/junkerderprovinz/knightloader/internal/core"
@@ -27,10 +28,33 @@ func stagedIn(t *testing.T, dir, name, body string) string {
 	return path
 }
 
+// gone waits for a path to disappear, rather than asking once.
+//
+// IT HAS TO WAIT, and CI is where that showed. Removing the emptied working
+// folder is the LAST thing delivery does, after the move that the waitFor above
+// each call site is watching for - so on a loaded runner the test arrived
+// between the two and read a folder that was about to go:
+//
+//	deliver_test.go:196: /tmp/.../003-0fc7b5b4 is still there after everything
+//	in it was delivered
+//
+// Five local runs passed straight afterwards, which is what an assertion racing
+// a background step looks like from here. Waiting costs nothing where the
+// caller is synchronous (the plain delivery test calls deliverDownload itself
+// and the folder is already gone on the first look), and it does not soften the
+// claim: a folder that is never removed still fails, thirty seconds later.
 func gone(t *testing.T, path string) bool {
 	t.Helper()
-	_, err := os.Stat(path)
-	return errors.Is(err, os.ErrNotExist)
+	deadline := time.Now().Add(30 * time.Second)
+	for {
+		if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
+			return true
+		}
+		if time.Now().After(deadline) {
+			return false
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
 }
 
 // TestAFinishedDownloadLeavesTheWorkingFolder is the plain half of the feature:
