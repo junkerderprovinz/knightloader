@@ -151,6 +151,29 @@ export function IconBuyMeACoffee({ size = 16 }: { size?: number }): ReactNode {
  * option. This replaced a neutral wallet drawing, which was correct and said
  * nothing.
  */
+/**
+ * The letterform alone, with the disc cut away.
+ *
+ * The same drawing as the tile's, not a second one traced by hand: the coin
+ * mark is one path, a disc with the symbol wound against it, so dropping the
+ * first subpath leaves the letter filling and its two counters open. The
+ * leading move is absolute because the original's was relative to the disc
+ * that is now gone, and the box is the house crop, square and tight to the
+ * measured ink so `xMidYMid meet` scales it to the button's 16px.
+ *
+ * WHY THE DISC LOST ITS PLACE HERE, having held it deliberately: it survives
+ * the brand class, since the symbol is knocked out of a single path rather
+ * than painted on top, and it still reads as an orange dot at this size. What
+ * the eye is given is the shape of the ground instead of the shape of the
+ * letter, which is the opposite of what a row of five marks is for. The disc
+ * keeps the coin tiles in the donation window, where it is large and nothing
+ * repaints it.
+ */
+const BTC_LETTER = PATHS.btc.d.slice(PATHS.btc.d.indexOf("m-6.35-4.613")).replace(
+  "m-6.35-4.613",
+  "M17.288 10.291"
+);
+
 export function IconBitcoin({ size = 16 }: { size?: number }): ReactNode {
-  return <CoinMark coin="btc" size={size} />;
+  return <Mark box="3.961 4.178 15.2 15.2" d={BTC_LETTER} size={size} />;
 }

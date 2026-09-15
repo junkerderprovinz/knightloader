@@ -1498,7 +1498,7 @@ export const en = {
   'task.mode.free': 'Free',
   'task.mode.premium': 'Premium',
   'settings.about.title': 'About KnightLoader',
-  'settings.about.body': 'A one-knight crusade: free, open-source tools that did not exist in this shape. No accounts, no telemetry, and nothing readable ever leaves your own walls. Forged on evenings and weekends with a lot of heart, because waiting was not an option.',
+  'settings.about.body': 'A one-knight crusade: good-looking open-source tools that did not exist in the shape I wanted, built until nothing is missing. It is free, with no accounts, no telemetry, no ads and no paid tier. No asterisk anywhere. Nothing readable ever leaves your own walls. Forged on evenings and weekends, with heart and stubbornness.',
   'settings.about.coffeeButton': 'Buy me a coffee',
   'settings.about.crypto': 'Crypto',
   'settings.about.paypal': 'PayPal',
@@ -1508,11 +1508,11 @@ export const en = {
   'settings.about.cryptoNoTag': 'No destination tag and no memo needed.',
   'common.copy': 'Copy',
   'common.copied': 'Copied',
-  'settings.about.coffee': 'KnightLoader is free and stays free. A donation keeps the project alive and covers what it costs: the domain, the server, and the evenings that go into it.',
+  'settings.about.coffee': "If KnightLoader has earned a place on your server or computer, toss a coin to your knight: it helps cover the costs and keeps the project alive. It also makes this knight's heart beat a little faster. Three ways below, whichever suits you.",
   'settings.about.report': 'Problems, wishes or suggestions? Open an issue on GitHub, or send an email.',
   'settings.about.version': 'Version',
   'settings.about.github': 'GitHub',
-  'settings.about.mail': 'Send an email',
+  'settings.about.mail': 'Email',
   'settings.about.mailSubject': 'Feedback',
 
   // The script editor (pages/settings/Scripts.tsx) and its manual-invocation
