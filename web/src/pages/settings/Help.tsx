@@ -626,31 +626,26 @@ export function About({ hue }: { hue: number }) {
             somewhere, so there is no link for the browser's middle click,
             copy-link or open-in-new-tab to act on.
 
-            ITS MARK IS A COIN DISC AND IT STILL TAKES A BRAND CLASS, which is
-            the opposite of what the note here used to say ("the flat Bitcoin
-            symbol rather than a coin disc") and of what the reference card does
-            with the same button. Measured rather than argued: `IconBitcoin` is
-            `CoinMark('btc')`, Simple Icons' bitcoin, whose ink fills its whole
-            24-unit box - a disc, not a glyph.
+            ITS MARK IS THE BARE LETTERFORM AND IT TAKES A BRAND CLASS, which
+            settles a question this note argued the other way for two rounds.
+            The old reading was that the coin disc may stay, because the ₿ is
+            knocked OUT of a single path rather than painted on top, so the
+            class paints the disc without swallowing the symbol. That much is
+            true and was measured, and it is not the deciding test. At 15px in
+            a row beside a cup and a P, a filled circle with a hole in it hands
+            the eye the shape of the GROUND rather than the shape of the
+            letter, so the one button that should say "crypto" says "orange
+            dot". The letterform says it at any size.
 
-            The exception in the language is not "a disc", it is A MARK THAT
-            BRINGS ITS OWN GROUND, and the test for that is whether the drawing
-            is more than one colour. This one is not: it is a single path with
-            the ₿ knocked OUT of it, so the symbol shows whatever is behind the
-            button, and what makes it readable is the ground rather than
-            anything inside the mark. Leave the class off and the resting mark
-            falls back to the button's own ink - a grey disc with a grey hole in
-            it, on both themes. check-brand-marks.mjs encodes exactly this test
-            ("no mark drawn in MORE THAN ONE COLOUR inside a .glim-brand-btn")
-            and passes this button deliberately.
-
-            All four states measured live: at rest the adjusted brand rides the
-            disc (#F7931A on the dark ground, #A85D00 on the light one), on
-            hover the button takes Bitcoin's true #F7931A as its fill and the
-            disc flips to that colour's ink, so the ₿ reads as orange-on-dark
-            inside an orange button. A two-colour redraw with a white symbol
-            would fix nothing here and would put a hex in this file, which the
-            marks' own header rules out. */}
+            What the language actually forbids in this row is a mark that
+            brings its own ground, and the clearest case is a two-colour coin
+            logo: the class paints every path with one ink, so a white symbol
+            on a filled circle disappears into the circle. Such a mark belongs
+            on the coin tiles in the donation window, where it is large,
+            nothing repaints it, and telling eight logos apart is the job.
+            check-brand-marks.mjs encodes that test ("no mark drawn in MORE
+            THAN ONE COLOUR inside a .glim-brand-btn") and this button passes
+            it the easy way now: one path, one colour, no ground. */}
         <button
           type="button"
           className={`${ABOUT_BTN} glim-brand-bitcoin`}
