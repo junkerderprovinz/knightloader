@@ -5,6 +5,7 @@ import { CoinMark } from './donateMarks';
 import { QRCode } from './QRCode';
 import { hueVars, rainbowAt } from '../lib/appearance';
 import { qrMatrix } from '../lib/qrmatrix';
+import { IconClose } from '../lib/icons';
 import { CRYPTO_COINS, type CryptoCoin, type CryptoNetwork } from '../lib/donate';
 import { useT } from '../lib/i18n';
 import { useNavLabels } from '../lib/navLabels';
@@ -37,12 +38,17 @@ import { useNavLabels } from '../lib/navLabels';
 // Modal already owns Escape, the backdrop click and the corner close, so this
 // file adds no second way to shut it.
 //
-// IT DOES ASK FOR THE CORNER X, and it is the one window in the app that has
-// to. Modal draws that square only for a caller that passes a label, because
-// seventeen of these windows carry a Cancel button in their footer and an X
-// above it offers the same answer twice. This one has no footer at all: nothing
-// in it is a decision, the address is simply on screen. Without the X the only
-// ways out were Escape and a click on the scrim, and neither is visible.
+// THE WAY OUT IS A BUTTON IN THE FOOTER, with its word and its glyph, and it
+// follows the labelling engine like every other button in the app: text, text
+// with glyph, or glyph alone, whichever the one setting says.
+//
+// It went the other way for an afternoon - the corner X, permanently
+// glyph-only - and that was taken back the same day (jdp: "der schließenbutton
+// soll unten in der card sein mit text und glyph und der beschriftungsengine
+// folgen"). The defect the corner was fixing is real and stands: this window
+// had NO visible way out at all, because it has no footer of its own and Modal
+// only draws its corner X for a caller that asks. The fix is the footer, not
+// the corner.
 // ---------------------------------------------------------------------------
 
 export function CryptoDonateDialog({ onClose }: { onClose: () => void }) {
@@ -91,7 +97,19 @@ export function CryptoDonateDialog({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <Modal title={t('settings.about.cryptoTitle')} onClose={onClose} closeLabel={t('common.close')}>
+    <Modal
+      title={t('settings.about.cryptoTitle')}
+      onClose={onClose}
+      footer={
+        <Button
+          kind="primary"
+          labelled
+          icon={<IconClose width={16} height={16} />}
+          title={t('common.close')}
+          onClick={onClose}
+        />
+      }
+    >
       <p className="text-sm text-carbon-textSub">{t('settings.about.cryptoIntro')}</p>
 
       {/* The answer, first. */}
