@@ -196,6 +196,8 @@ export const lt: Dict = {
   'settings.removePassword': 'Šalinti slaptažodį',
 
   'common.cancel': 'Atsisakyti',
+
+  'common.close': 'Uždaryti',
   'pkg.moveTitle': 'Perkelti į paketą',
   'pkg.name': 'Paketo pavadinimas',
   'pkg.merge': 'Sujungti į vieną paketą',

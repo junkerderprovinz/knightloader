@@ -196,6 +196,8 @@ export const th: Dict = {
   'settings.removePassword': 'ลบรหัสผ่าน',
 
   'common.cancel': 'ยกเลิก',
+
+  'common.close': 'ปิด',
   'pkg.moveTitle': 'ย้ายไปยังแพ็กเกจ',
   'pkg.name': 'ชื่อแพ็กเกจ',
   'pkg.merge': 'รวมเป็นแพ็กเกจเดียว',

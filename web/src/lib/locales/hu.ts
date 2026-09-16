@@ -196,6 +196,8 @@ export const hu: Dict = {
   'settings.removePassword': 'Jelszó eltávolítása',
 
   'common.cancel': 'Mégse',
+
+  'common.close': 'Bezárás',
   'pkg.moveTitle': 'Áthelyezés csomagba',
   'pkg.name': 'Csomag neve',
   'pkg.merge': 'Egy csomagba vonás',

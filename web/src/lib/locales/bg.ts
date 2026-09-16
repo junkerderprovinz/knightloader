@@ -196,6 +196,8 @@ export const bg: Dict = {
   'settings.removePassword': 'Премахни паролата',
 
   'common.cancel': 'Отказ',
+
+  'common.close': 'Затвори',
   'pkg.moveTitle': 'Премести в пакет',
   'pkg.name': 'Име на пакета',
   'pkg.merge': 'Слей в един пакет',

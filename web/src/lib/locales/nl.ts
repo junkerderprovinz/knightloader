@@ -188,6 +188,8 @@ export const nl: Dict = {
   'settings.removePassword': 'Wachtwoord verwijderen',
 
   'common.cancel': 'Annuleren',
+
+  'common.close': 'Sluiten',
   'pkg.moveTitle': 'Naar een pakket verplaatsen',
   'pkg.name': 'Pakketnaam',
   'pkg.merge': 'Samenvoegen tot één pakket',

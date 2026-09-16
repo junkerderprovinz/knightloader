@@ -196,6 +196,8 @@ export const ca: Dict = {
   'settings.removePassword': 'Treu la contrasenya',
 
   'common.cancel': 'Cancel·la',
+
+  'common.close': 'Tanca',
   'pkg.moveTitle': 'Mou a un paquet',
   'pkg.name': 'Nom del paquet',
   'pkg.merge': 'Fusiona en un paquet',

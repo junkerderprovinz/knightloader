@@ -198,6 +198,8 @@ export const he: Dict = {
   'settings.removePassword': 'הסר סיסמה',
 
   'common.cancel': 'ביטול',
+
+  'common.close': 'סגור',
   'pkg.moveTitle': 'העברה לחבילה',
   'pkg.name': 'שם החבילה',
   'pkg.merge': 'מיזוג לחבילה אחת',

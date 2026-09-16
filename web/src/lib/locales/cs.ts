@@ -196,6 +196,8 @@ export const cs: Dict = {
   'settings.removePassword': 'Odstranit heslo',
 
   'common.cancel': 'Zrušit',
+
+  'common.close': 'Zavřít',
   'pkg.moveTitle': 'Přesunout do balíčku',
   'pkg.name': 'Název balíčku',
   'pkg.merge': 'Sloučit do jednoho balíčku',

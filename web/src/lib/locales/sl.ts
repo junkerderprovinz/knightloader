@@ -196,6 +196,8 @@ export const sl: Dict = {
   'settings.removePassword': 'Odstrani geslo',
 
   'common.cancel': 'Prekliči',
+
+  'common.close': 'Zapri',
   'pkg.moveTitle': 'Premakni v paket',
   'pkg.name': 'Ime paketa',
   'pkg.merge': 'Združi v en paket',

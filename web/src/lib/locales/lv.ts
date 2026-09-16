@@ -196,6 +196,8 @@ export const lv: Dict = {
   'settings.removePassword': 'Noņemt paroli',
 
   'common.cancel': 'Atcelt',
+
+  'common.close': 'Aizvērt',
   'pkg.moveTitle': 'Pārvietot uz paku',
   'pkg.name': 'Pakas nosaukums',
   'pkg.merge': 'Apvienot vienā pakā',

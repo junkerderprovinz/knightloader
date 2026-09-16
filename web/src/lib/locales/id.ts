@@ -196,6 +196,8 @@ export const id: Dict = {
   'settings.removePassword': 'Hapus kata sandi',
 
   'common.cancel': 'Batal',
+
+  'common.close': 'Tutup',
   'pkg.moveTitle': 'Pindah ke paket',
   'pkg.name': 'Nama paket',
   'pkg.merge': 'Gabung jadi satu paket',

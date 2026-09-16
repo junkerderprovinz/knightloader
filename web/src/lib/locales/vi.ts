@@ -196,6 +196,8 @@ export const vi: Dict = {
   'settings.removePassword': 'Gỡ mật khẩu',
 
   'common.cancel': 'Hủy',
+
+  'common.close': 'Đóng',
   'pkg.moveTitle': 'Chuyển sang gói',
   'pkg.name': 'Tên gói',
   'pkg.merge': 'Gộp thành một gói',

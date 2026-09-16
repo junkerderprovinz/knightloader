@@ -196,6 +196,8 @@ export const fa: Dict = {
   'settings.removePassword': 'حذف رمز',
 
   'common.cancel': 'انصراف',
+
+  'common.close': 'بستن',
   'pkg.moveTitle': 'انتقال به یک بسته',
   'pkg.name': 'نام بسته',
   'pkg.merge': 'ادغام در یک بسته',

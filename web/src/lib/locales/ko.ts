@@ -196,6 +196,8 @@ export const ko: Dict = {
   'settings.removePassword': '암호 해제',
 
   'common.cancel': '취소',
+
+  'common.close': '닫기',
   'pkg.moveTitle': '패키지로 이동',
   'pkg.name': '패키지 이름',
   'pkg.merge': '하나의 패키지로 합치기',

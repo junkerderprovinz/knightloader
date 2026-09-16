@@ -198,6 +198,8 @@ export const no: Dict = {
   'settings.removePassword': 'Fjern passord',
 
   'common.cancel': 'Avbryt',
+
+  'common.close': 'Lukk',
   'pkg.moveTitle': 'Flytt til en pakke',
   'pkg.name': 'Pakkenavn',
   'pkg.merge': 'Slå sammen til én pakke',

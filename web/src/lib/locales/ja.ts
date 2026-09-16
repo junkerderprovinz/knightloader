@@ -196,6 +196,8 @@ export const ja: Dict = {
   'settings.removePassword': 'パスワードを解除',
 
   'common.cancel': 'キャンセル',
+
+  'common.close': '閉じる',
   'pkg.moveTitle': 'パッケージへ移動',
   'pkg.name': 'パッケージ名',
   'pkg.merge': 'ひとつのパッケージに統合',

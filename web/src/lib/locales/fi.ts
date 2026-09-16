@@ -196,6 +196,8 @@ export const fi: Dict = {
   'settings.removePassword': 'Poista salasana',
 
   'common.cancel': 'Peruuta',
+
+  'common.close': 'Sulje',
   'pkg.moveTitle': 'Siirrä pakettiin',
   'pkg.name': 'Paketin nimi',
   'pkg.merge': 'Yhdistä yhdeksi paketiksi',

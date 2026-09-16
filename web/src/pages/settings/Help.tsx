@@ -211,7 +211,7 @@ const CONTACT_MAIL = 'hello@halleluja.design';
 const GLIMSTONE_URL = 'https://github.com/junkerderprovinz/glimstone';
 /**
  * The PayPal.Me page, read off the one place this repository already publishes
- * it: README.md's donate row, which links https://paypal.me/hallelujadesign
+ * it: README.md's donate row, which links https://www.paypal.com/donate/?business=UWM4XMNDSUBNN&currency_code=EUR&item_name=KnightLoader
  * twice - once in the header and once in the support section near the end -
  * and both times with the "live" button image rather than a placeholder.
  *
@@ -229,7 +229,7 @@ const GLIMSTONE_URL = 'https://github.com/junkerderprovinz/glimstone';
  * file handles - no page, no button - and not a constant the compiler folds
  * away.
  */
-const PAYPAL: string = 'https://paypal.me/hallelujadesign';
+const PAYPAL: string = 'https://www.paypal.com/donate/?business=UWM4XMNDSUBNN&currency_code=EUR&item_name=KnightLoader';
 /**
  * The coffee handle, from that same donate row in README.md, so one place in
  * the product knows it (GlimStone 1.7.0: the give button carries the funding

@@ -36,6 +36,13 @@ import { useNavLabels } from '../lib/navLabels';
 // because it has to look like the other dialogs standing beside it here. The
 // Modal already owns Escape, the backdrop click and the corner close, so this
 // file adds no second way to shut it.
+//
+// IT DOES ASK FOR THE CORNER X, and it is the one window in the app that has
+// to. Modal draws that square only for a caller that passes a label, because
+// seventeen of these windows carry a Cancel button in their footer and an X
+// above it offers the same answer twice. This one has no footer at all: nothing
+// in it is a decision, the address is simply on screen. Without the X the only
+// ways out were Escape and a click on the scrim, and neither is visible.
 // ---------------------------------------------------------------------------
 
 export function CryptoDonateDialog({ onClose }: { onClose: () => void }) {
@@ -84,7 +91,7 @@ export function CryptoDonateDialog({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <Modal title={t('settings.about.cryptoTitle')} onClose={onClose}>
+    <Modal title={t('settings.about.cryptoTitle')} onClose={onClose} closeLabel={t('common.close')}>
       <p className="text-sm text-carbon-textSub">{t('settings.about.cryptoIntro')}</p>
 
       {/* The answer, first. */}

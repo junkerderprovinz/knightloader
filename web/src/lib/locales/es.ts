@@ -188,6 +188,8 @@ export const es: Dict = {
   'settings.removePassword': 'Quitar la contraseña',
 
   'common.cancel': 'Cancelar',
+
+  'common.close': 'Cerrar',
   'pkg.moveTitle': 'Mover a un paquete',
   'pkg.name': 'Nombre del paquete',
   'pkg.merge': 'Unir en un solo paquete',

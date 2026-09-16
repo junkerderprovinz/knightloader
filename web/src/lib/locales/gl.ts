@@ -196,6 +196,8 @@ export const gl: Dict = {
   'settings.removePassword': 'Quitar o contrasinal',
 
   'common.cancel': 'Cancelar',
+
+  'common.close': 'Pechar',
   'pkg.moveTitle': 'Mover a un paquete',
   'pkg.name': 'Nome do paquete',
   'pkg.merge': 'Xuntar nun só paquete',
