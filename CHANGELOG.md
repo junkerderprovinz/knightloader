@@ -39,6 +39,21 @@ The copy of the extension most people run does not come from its tag. Settings
 binary is running, so that one tracks the server. The tag exists for a store
 submission and for a fixed download.
 
+## [1.1.2] - 2026-09-16
+
+### Removed
+
+- **The crest on the About card.** It was an easter egg: a small coat of arms
+  beside the version line that turned when you pressed and held it, with the
+  seven characters of this build's revision on its back. Gone with everything
+  it touched - the component, the mark in the icon set, the turn in the
+  stylesheet, the state that fed it, and its entry in the easter-egg list.
+- **With it, the revision leaves the interface.** It still reaches the browser
+  and `/api/health` still answers with it, but the back of that crest was the
+  only place it was ever drawn. That matters on a `preview` build, where the
+  version line reads the same in every build and the revision is what tells two
+  of them apart; `docs/preview-deploy.md` points at /api/health for it now.
+
 ## [1.1.1] - 2026-09-16
 
 ### Fixed
