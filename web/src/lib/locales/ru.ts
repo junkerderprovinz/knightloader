@@ -188,6 +188,8 @@ export const ru: Dict = {
   'settings.removePassword': 'Удалить пароль',
 
   'common.cancel': 'Отмена',
+
+  'common.close': 'Закрыть',
   'pkg.moveTitle': 'Переместить в пакет',
   'pkg.name': 'Имя пакета',
   'pkg.merge': 'Объединить в один пакет',

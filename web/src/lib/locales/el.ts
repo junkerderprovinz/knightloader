@@ -196,6 +196,8 @@ export const el: Dict = {
   'settings.removePassword': 'Αφαίρεση κωδικού',
 
   'common.cancel': 'Άκυρο',
+
+  'common.close': 'Κλείσιμο',
   'pkg.moveTitle': 'Μετακίνηση σε πακέτο',
   'pkg.name': 'Όνομα πακέτου',
   'pkg.merge': 'Συγχώνευση σε ένα πακέτο',

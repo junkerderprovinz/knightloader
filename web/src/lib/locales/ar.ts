@@ -198,6 +198,8 @@ export const ar: Dict = {
   'settings.removePassword': 'إزالة كلمة المرور',
 
   'common.cancel': 'إلغاء',
+
+  'common.close': 'إغلاق',
   'pkg.moveTitle': 'النقل إلى حزمة',
   'pkg.name': 'اسم الحزمة',
   'pkg.merge': 'الدمج في حزمة واحدة',

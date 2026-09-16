@@ -196,6 +196,8 @@ export const zh: Dict = {
   'settings.removePassword': '取消密码',
 
   'common.cancel': '取消',
+
+  'common.close': '关闭',
   'pkg.moveTitle': '移到包',
   'pkg.name': '包名称',
   'pkg.merge': '合并为一个包',

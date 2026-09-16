@@ -196,6 +196,8 @@ export const is: Dict = {
   'settings.removePassword': 'Fjarlægja lykilorð',
 
   'common.cancel': 'Hætta við',
+
+  'common.close': 'Loka',
   'pkg.moveTitle': 'Færa í pakka',
   'pkg.name': 'Heiti pakka',
   'pkg.merge': 'Sameina í einn pakka',

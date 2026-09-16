@@ -196,6 +196,8 @@ export const eu: Dict = {
   'settings.removePassword': 'Kendu pasahitza',
 
   'common.cancel': 'Utzi',
+
+  'common.close': 'Itxi',
   'pkg.moveTitle': 'Eraman pakete batera',
   'pkg.name': 'Paketearen izena',
   'pkg.merge': 'Batu pakete bakarrean',

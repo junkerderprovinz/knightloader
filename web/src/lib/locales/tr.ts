@@ -196,6 +196,8 @@ export const tr: Dict = {
   'settings.removePassword': 'Parolayı kaldır',
 
   'common.cancel': 'Vazgeç',
+
+  'common.close': 'Kapat',
   'pkg.moveTitle': 'Bir pakete taşı',
   'pkg.name': 'Paket adı',
   'pkg.merge': 'Tek pakette birleştir',

@@ -196,6 +196,8 @@ export const ro: Dict = {
   'settings.removePassword': 'Elimină parola',
 
   'common.cancel': 'Anulează',
+
+  'common.close': 'Închide',
   'pkg.moveTitle': 'Mută într-un pachet',
   'pkg.name': 'Numele pachetului',
   'pkg.merge': 'Unește într-un pachet',

@@ -203,6 +203,8 @@ export const de: Dict = {
   'settings.removePassword': 'Passwort entfernen',
 
   'common.cancel': 'Abbrechen',
+
+  'common.close': 'Schließen',
   'pkg.moveTitle': 'In ein Paket verschieben',
   'pkg.name': 'Paketname',
   'pkg.merge': 'Zu einem Paket zusammenführen',

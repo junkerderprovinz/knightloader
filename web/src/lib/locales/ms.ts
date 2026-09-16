@@ -196,6 +196,8 @@ export const ms: Dict = {
   'settings.removePassword': 'Buang kata laluan',
 
   'common.cancel': 'Batal',
+
+  'common.close': 'Tutup',
   'pkg.moveTitle': 'Pindah ke pakej',
   'pkg.name': 'Nama pakej',
   'pkg.merge': 'Gabung jadi satu pakej',

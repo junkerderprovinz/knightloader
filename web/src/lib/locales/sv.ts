@@ -196,6 +196,8 @@ export const sv: Dict = {
   'settings.removePassword': 'Ta bort lösenord',
 
   'common.cancel': 'Avbryt',
+
+  'common.close': 'Stäng',
   'pkg.moveTitle': 'Flytta till ett paket',
   'pkg.name': 'Paketnamn',
   'pkg.merge': 'Slå ihop till ett paket',

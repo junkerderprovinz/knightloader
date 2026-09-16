@@ -196,6 +196,8 @@ export const uk: Dict = {
   'settings.removePassword': 'Видалити пароль',
 
   'common.cancel': 'Скасувати',
+
+  'common.close': 'Закрити',
   'pkg.moveTitle': 'Перемістити до пакета',
   'pkg.name': 'Назва пакета',
   'pkg.merge': 'Обʼєднати в один пакет',

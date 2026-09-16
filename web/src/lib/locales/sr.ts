@@ -196,6 +196,8 @@ export const sr: Dict = {
   'settings.removePassword': 'Уклони лозинку',
 
   'common.cancel': 'Откажи',
+
+  'common.close': 'Затвори',
   'pkg.moveTitle': 'Премести у пакет',
   'pkg.name': 'Име пакета',
   'pkg.merge': 'Споји у један пакет',

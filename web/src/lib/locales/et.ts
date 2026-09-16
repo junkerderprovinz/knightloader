@@ -196,6 +196,8 @@ export const et: Dict = {
   'settings.removePassword': 'Eemalda parool',
 
   'common.cancel': 'Loobu',
+
+  'common.close': 'Sulge',
   'pkg.moveTitle': 'Liiguta pakki',
   'pkg.name': 'Paki nimi',
   'pkg.merge': 'Liida üheks pakiks',

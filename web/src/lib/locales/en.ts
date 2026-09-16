@@ -224,6 +224,8 @@ export const en = {
   'settings.removePassword': 'Remove password',
 
   'common.cancel': 'Cancel',
+
+  'common.close': 'Close',
   'pkg.moveTitle': 'Move to a package',
   'pkg.name': 'Package name',
   'pkg.merge': 'Merge into one package',

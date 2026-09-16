@@ -196,6 +196,8 @@ export const hi: Dict = {
   'settings.removePassword': 'पासवर्ड हटाएँ',
 
   'common.cancel': 'रद्द',
+
+  'common.close': 'बंद करें',
   'pkg.moveTitle': 'पैकेज में ले जाएँ',
   'pkg.name': 'पैकेज नाम',
   'pkg.merge': 'एक पैकेज में मिलाएँ',

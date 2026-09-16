@@ -196,6 +196,8 @@ export const hr: Dict = {
   'settings.removePassword': 'Ukloni lozinku',
 
   'common.cancel': 'Odustani',
+
+  'common.close': 'Zatvori',
   'pkg.moveTitle': 'Premjesti u paket',
   'pkg.name': 'Naziv paketa',
   'pkg.merge': 'Spoji u jedan paket',
