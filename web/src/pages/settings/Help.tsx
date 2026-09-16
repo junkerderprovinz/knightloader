@@ -210,10 +210,10 @@ const REPO_URL = 'https://github.com/junkerderprovinz/knightloader';
 const CONTACT_MAIL = 'hello@halleluja.design';
 const GLIMSTONE_URL = 'https://github.com/junkerderprovinz/glimstone';
 /**
- * The PayPal.Me page, read off the one place this repository already publishes
- * it: README.md's donate row, which links https://www.paypal.com/donate/?business=UWM4XMNDSUBNN&currency_code=EUR&item_name=KnightLoader
- * twice - once in the header and once in the support section near the end -
- * and both times with the "live" button image rather than a placeholder.
+ * PayPal's donation page, read off the one place this repository already
+ * publishes it: README.md's donate row, which links it twice - once in the
+ * header and once in the support section near the end - and both times with the
+ * "live" button image rather than a placeholder.
  *
  * IT STOOD EMPTY HERE, under a comment saying the page did not exist yet, so
  * the button below never rendered once although its mark, its brand class and
@@ -221,15 +221,21 @@ const GLIMSTONE_URL = 'https://github.com/junkerderprovinz/glimstone';
  * control that reaches nowhere (GlimStone 1.9.0/1.10.0, which is also where
  * three give routes in one row come from); the mirror of that rule is that a
  * route the product advertises on its own front page is one the card owes the
- * reader. A PayPal.Me link is created once and cannot be renamed afterwards
- * without asking their support, which is why it is taken from the published
- * one rather than invented here.
+ * reader.
+ *
+ * A HOSTED DONATION BUTTON, and the same address in every repository. It was a
+ * PayPal.Me link until now, which opens on a handle rather than on a sentence
+ * about what the money is for; the open `?business=<id>` donate address was
+ * tried in between and PayPal refused it for this account, because that
+ * endpoint needs an account confirmed for donations. The button is that
+ * confirmation, and it carries its own copy, its own suggested amounts and its
+ * own list of projects - which is why the project is not named in the link.
  *
  * Typed as `string` rather than inferred, so an empty value stays a case this
  * file handles - no page, no button - and not a constant the compiler folds
  * away.
  */
-const PAYPAL: string = 'https://www.paypal.com/donate/?business=UWM4XMNDSUBNN&currency_code=EUR&item_name=KnightLoader';
+const PAYPAL: string = 'https://www.paypal.com/donate/?hosted_button_id=76FVV52TKXTUS';
 /**
  * The coffee handle, from that same donate row in README.md, so one place in
  * the product knows it (GlimStone 1.7.0: the give button carries the funding
