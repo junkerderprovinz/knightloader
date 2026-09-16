@@ -102,7 +102,7 @@ function paintHues() {
   openOptionsBtn.setAttribute('aria-label', t('common.settings'));
   openOptionsBtn.setAttribute('data-tip', t('common.settings'));
   instanceLabelEl.textContent = t('popup.sendToLabel');
-  label(sendBtn, t('popup.send'), G_SEND);
+  label(sendBtn, t(sendLabelKey(pending)), G_SEND);
   targetEl.textContent = t('popup.loading');
   targetEl.hidden = false;
 
@@ -128,6 +128,7 @@ function paintHues() {
     // here would be a second chance to get a different answer.
     group = pending.siblings ?? [];
     targetEl.textContent = pending.payload?.title || pending.payload?.url || pending.payload?.text || t('picker.untitled');
+    label(sendBtn, t(sendLabelKey(pending)), G_SEND);
     if (group.length === 0) {
       statusEl.textContent = t('popup.noneOnline');
       return;
@@ -330,7 +331,7 @@ function cancelCountdown() {
   if (countdownTimer === null) return;
   clearInterval(countdownTimer);
   countdownTimer = null;
-  label(sendBtn, t('popup.send'), G_SEND);
+  label(sendBtn, t(sendLabelKey(pending)), G_SEND);
   // The cancel goes with the clock it stops. A button that stops something not
   // happening is a button that has to be explained.
   cancelBtn.hidden = true;
@@ -422,16 +423,38 @@ sendBtn.addEventListener('click', async () => {
   if (!payload || !chosen) return;
   sendBtn.disabled = true;
   // No "sending…" line (jdp: "der Text 'Wird gesendet' kann weg"). This window
-  // closes on the next line, so the sentence would flash for a frame and then
-  // be gone — and the toolbar badge is what actually reports the outcome.
-  chrome.runtime.sendMessage({ type: 'knightloader-send-to', target: chosen, payload });
-  // Closed straight away rather than waiting for the answer: the send happens
-  // in the service worker and outlives this window, and the toolbar badge is
-  // what reports it either way (background.js's flashBadge). Waiting here would
-  // hold a popup open on a spinner for a result it is not the right place to
-  // show.
-  window.close();
+  // closes as soon as the worker has the send, so the sentence would flash for
+  // a frame and then be gone, and the toolbar badge is what reports the outcome.
+  await handOver({ type: 'knightloader-send-to', target: chosen, payload });
 });
+
+/**
+ * Hands one send to the service worker, then closes this window.
+ *
+ * The await is for the HAND-OVER, not for the delivery. The send itself happens
+ * in the worker and outlives this window, and the toolbar badge reports it
+ * (background.js's flashBadge); holding the popup open on a spinner for that
+ * result would still be wrong.
+ *
+ * What it must not do is close before the worker has the message. It used to,
+ * on the line after sendMessage, and whenever the worker was asleep - the normal
+ * state half a minute after anything last happened - the worker had not started
+ * by the time the window was gone, and the send vanished with no badge and
+ * nothing at the instance. Measured 2026-09-17 on the same press, page and
+ * instance: worker asleep, the instance's tasks went 0 -> 0; awake, 0 -> 1.
+ * The worker answers straight away (see its onMessage listener), so this waits
+ * for a start-up and a reply, never for the relay.
+ */
+async function handOver(message) {
+  try {
+    await chrome.runtime.sendMessage(message);
+  } catch {
+    // A worker that could not be reached at all. Closing still beats a popup
+    // frozen on a disabled button, and a send that never arrived shows no
+    // check mark on the toolbar icon either way.
+  }
+  window.close();
+}
 
 // --- The collector -----------------------------------------------------
 //
@@ -529,7 +552,7 @@ function appendToBox(text) {
   linksEl.value = (have ? have + '\n' : '') + found.join('\n');
 }
 
-addLinksBtn.addEventListener('click', () => {
+addLinksBtn.addEventListener('click', async () => {
   cancelCountdown();
   const found = linksIn(linksEl.value);
   if (found.length === 0) {
@@ -540,10 +563,10 @@ addLinksBtn.addEventListener('click', () => {
   // The same message every other send in this window uses, so a batch pasted
   // here takes the identical path through the service worker - including the
   // badge that reports whether it arrived.
-  chrome.runtime.sendMessage({
+  addLinksBtn.disabled = true;
+  await handOver({
     type: 'knightloader-send-to',
     target: chosen,
     payload: { text: found.join('\n'), title: t('popup.collectorPackage') },
   });
-  window.close();
 });

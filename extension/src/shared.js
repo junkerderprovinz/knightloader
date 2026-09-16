@@ -474,6 +474,32 @@ function listbox(host, options, current, onPick) {
 }
 
 /**
+ * The translation key for the popup's send button, given what is parked.
+ *
+ * With nothing parked the popup sends the current tab, so "Send this page" is
+ * right. A parked send is something else: a right-clicked link, image or
+ * selection that needed a choice between instances, or a caught Click'n'Load
+ * batch. Labelling all of those "Send this page" put the page title above a
+ * button that then sent a link (store-review dry run, 2026-09-16).
+ *
+ * A parked page, and a payload from before `kind` existed, keep the page label.
+ */
+function sendLabelKey(pending) {
+  if (!pending) return 'popup.send';
+  if (pending.origin === 'cnl') return 'popup.sendLinks';
+  switch (pending.payload?.kind) {
+    case 'link':
+      return 'popup.sendLink';
+    case 'image':
+      return 'popup.sendImage';
+    case 'selection':
+      return 'popup.sendSelection';
+    default:
+      return 'popup.send';
+  }
+}
+
+/**
  * How long a caught Click'n'Load batch waits before it sends itself.
  *
  * Seconds; 0 means "ask me", which is what this extension did unconditionally

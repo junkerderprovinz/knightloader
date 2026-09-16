@@ -107,11 +107,10 @@ extension runs in the pages you visit until you switch it back on.
 | Permission | Used for |
 | --- | --- |
 | `contextMenus` | The four right-click entries: send link, image, selection, page. |
-| `activeTab` | Reading the current tab's address and title when you press send. |
 | `storage` | The settings listed above. |
 | `scripting` | Registering and unregistering the Click'n'Load scripts. |
 | `declarativeNetRequest` | Answering the `127.0.0.1:9666/jdcheck.js` probe. |
-| Access to all websites | Running the Click'n'Load script in pages that may carry a button. |
+| Access to all websites | Running the Click'n'Load script in pages that may carry a button, and reading the current tab's address and title when you press send in the toolbar popup. |
 | `clipboardRead` (optional) | Pasting your phrase with the paste button. Requested only when you press it, and read only then. |
 
 ## What the extension does not do
