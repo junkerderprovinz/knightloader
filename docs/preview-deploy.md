@@ -23,9 +23,10 @@ git archive --format=tar.gz -o /tmp/kl-src.tgz HEAD
 #    moment in the whole deploy that knows it. The archive above carries no
 #    .git (and .dockerignore would exclude one anyway), so the Go toolchain in
 #    the build stage on the far end has nothing to read and stamps no
-#    vcs.revision of its own. Left out, the image answers {"commit":""} - the
-#    version line still reads "preview", and the crest on the About card, which
-#    is how you tell two preview builds apart, does not turn at all.
+#    vcs.revision of its own. Left out, the image answers {"commit":""}, and
+#    since the version line reads "preview" in every one of these builds, that
+#    field is the only thing that tells two of them apart. /api/health is where
+#    you read it.
 commit=$(git rev-parse HEAD)
 
 # 2. ship it

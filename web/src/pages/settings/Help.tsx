@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useT } from '../../lib/i18n';
 import { Card, SectionTitle } from '../../components/ui';
 import { fetchHealth } from '../../lib/api';
-import { IconCrest, IconGithub, IconMail } from '../../lib/icons';
+import { IconGithub, IconMail } from '../../lib/icons';
 import { IconBitcoin, IconBuyMeACoffee, IconPayPal } from '../../components/donateMarks';
 import { CryptoDonateDialog } from '../../components/CryptoDonateDialog';
 
@@ -484,103 +484,14 @@ const GLIMSTONE_VERSION = '2.1.0';
  * and one more entry in the settings rail for two sentences and two links would
  * be a tile nobody visits on purpose. hue 11 continues this page's own run.
  */
-/**
- * THE CREST, AND THE COMMIT ON ITS BACK (docs/easter-eggs.md).
- *
- * Press and hold: it turns, and the back carries the revision this build was
- * made from. Let go and it turns back. Nothing is stored, nothing is announced,
- * and no settings list gains an entry - which is the rule every egg in this app
- * follows and the reason the list exists.
- *
- * IT ONLY TURNS WHEN THERE IS SOMETHING TRUE ON THE BACK. With no revision -
- * an older server that does not send the field, or a build made where nothing
- * stamped one (buildinfo.Revision spells out both) - this renders the crest as
- * a plain mark with no press behaviour at all, rather than turning to show a
- * dash or the word "unknown". A back with a made-up identifier on it is worse
- * than no back: the whole excuse for putting real information inside a joke is
- * that somebody hunting a stale deploy can read it, and a plausible wrong answer
- * is the one outcome that leaves them worse off than silence.
- *
- * SEVEN CHARACTERS, and NOT because that is what git prints. An earlier version
- * of this note claimed the seven matched `git log --oneline`; measured in this
- * repository both that and `git rev-parse --short HEAD` print EIGHT
- * (7b3546ba), because git's short form is adaptive - it grows with the history
- * until a prefix is unambiguous, so it is a moving number and a different one
- * per clone. Seven is the fixed form: it is what GitHub's own commit UI shows,
- * it is a valid prefix for `git show` and `git checkout`, and pinned here it
- * means the back of the crest is the same width in every build of every clone
- * for the rest of the app's life. Not the full forty, and not in a native
- * `title` either: the house rule is that an explanation is an info bubble and
- * never the operating system's own box, and a bubble here would be a label
- * announcing the secret it is hiding.
- *
- * THE BACK IS ORDINARY TEXT IN THE DOCUMENT AT ALL TIMES, and that is a
- * decision rather than an oversight. Measured: Ctrl+F finds the revision and a
- * select-all copies it, with nobody having pressed anything. Rendering it only
- * while turned would take that away, and the thing it would take it away from
- * is the only non-pointer route there is: this element is aria-hidden with no
- * keyboard path by design (see below), so find-in-page is how somebody who
- * cannot press and hold reads the revision at all. There is also nothing here
- * worth hiding - /api/health serves the same string to anyone who can open this
- * page, and the version line one row down is the public answer to "which build
- * is this". The egg is the GESTURE, not the datum, and a joke that made the
- * datum harder to reach would be paying for the joke with the information.
- *
- * IT IS DECORATION IN THE ACCESSIBILITY TREE AND THAT IS DELIBERATE, the same
- * call the blade in the sidebar makes (Sidebar.tsx's useDrawAndStrike). Giving
- * it a role and a name would mean writing that name in 42 catalogues, and every
- * one of those sentences would have to either describe the gesture - which
- * hands the surprise to the one reader who never looks - or say nothing useful
- * at all. What is NOT lost by this is the information: the version number a few
- * lines down is the answer to "which build is this" for everybody, and the
- * revision is the extra half a step for somebody already standing in front of a
- * deploy they do not trust.
- */
-function Crest({ commit }: { commit: string }) {
-  const [turned, setTurned] = useState(false);
-  const mark = <IconCrest width={34} height={34} className="shrink-0 text-carbon-textMuted" />;
-  // No revision, no back, and no press behaviour either - see the note above on
-  // why a back with nothing true on it is worse than a crest that only sits
-  // there. This is the ordinary state on any server older than this field.
-  if (!commit) return mark;
-  return (
-    <span
-      className="kl-crest shrink-0"
-      data-turned={turned ? 'yes' : 'no'}
-      aria-hidden
-      onPointerDown={() => setTurned(true)}
-      onPointerUp={() => setTurned(false)}
-      onPointerLeave={() => setTurned(false)}
-      onPointerCancel={() => setTurned(false)}
-    >
-      <span className="kl-crest-turn">
-        <span className="kl-crest-face">{mark}</span>
-        {/* dir="ltr": a hexadecimal revision is one token and must not be
-            reordered in an Arabic or Hebrew locale, the same rule the speed
-            figure in the shell strip carries. */}
-        <span
-          dir="ltr"
-          className="kl-crest-face kl-crest-back glim-num text-[11px] font-semibold leading-none text-carbon-textSub"
-        >
-          {commit.slice(0, 7)}
-        </span>
-      </span>
-    </span>
-  );
-}
-
 export function About({ hue }: { hue: number }) {
   const { t } = useT();
   const [version, setVersion] = useState('');
-  const [commit, setCommit] = useState('');
   const [cryptoOpen, setCryptoOpen] = useState(false);
   useEffect(() => {
     fetchHealth()
       .then((h) => {
         setVersion(h.version);
-        // ?? '', not a fallback string: see the Crest above on why an absent
-        // revision has to stay absent all the way down.
-        setCommit(h.commit ?? '');
       })
       .catch(() => {});
   }, []);
@@ -725,19 +636,16 @@ export function About({ hue }: { hue: number }) {
           version, and the question that makes either of them worth reading is
           "which build am I actually looking at". Two halves of one answer belong
           on one line. */}
-      <div className="flex items-center gap-3">
-        <Crest commit={commit} />
-        <p className="glim-num text-xs text-carbon-textMuted">
-          {t('settings.about.version')}{' '}
-          <VersionNumber version={version} repo={REPO_URL} unreleased={t('nav.workingTitle')} />
-          {' · GlimStone '}
-          <VersionNumber
-            version={GLIMSTONE_VERSION}
-            repo={GLIMSTONE_URL}
-            unreleased={t('nav.workingTitle')}
-          />
-        </p>
-      </div>
+      <p className="glim-num text-xs text-carbon-textMuted">
+        {t('settings.about.version')}{' '}
+        <VersionNumber version={version} repo={REPO_URL} unreleased={t('nav.workingTitle')} />
+        {' · GlimStone '}
+        <VersionNumber
+          version={GLIMSTONE_VERSION}
+          repo={GLIMSTONE_URL}
+          unreleased={t('nav.workingTitle')}
+        />
+      </p>
     </Card>
   );
 }
