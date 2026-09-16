@@ -39,6 +39,28 @@ The copy of the extension most people run does not come from its tag. Settings
 binary is running, so that one tracks the server. The tag exists for a store
 submission and for a fixed download.
 
+## [1.1.1] - 2026-09-16
+
+### Fixed
+
+- **The crypto window had no visible way out at all.** Escape closed it and so
+  did a click on the dimmed ground, and neither of those is something a reader
+  can see. It fell through a rule that is right everywhere else: a window only
+  draws the X in its corner when it asks for one, because seventeen of this
+  app's windows carry a Cancel button in their footer and an X above that
+  offers the same answer twice. This window has no footer, because nothing in
+  it is a decision, so it was the one window the rule left without an exit.
+- **`common.close` exists in all forty-two languages now.** The word was
+  missing as a shared string, which is part of why that corner control had
+  never been asked for.
+
+### Changed
+
+- **The PayPal button opens a donation page rather than a handle.** It says who
+  is being paid, carries a sentence about what the money does, offers three
+  amounts and a free one, takes a card without a PayPal account, and has a box
+  for making it monthly.
+
 ## [1.1.0] - 2026-09-16
 
 ### Added
