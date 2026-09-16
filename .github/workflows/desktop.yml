@@ -95,8 +95,16 @@ jobs:
       # silent fallback is the exact failure this replaces.
       - name: Install Wails
         working-directory: desktop
+        # bash on every runner, and a portable expression inside it. This step
+        # is the same three lines on all three platforms, and it ran on none of
+        # them but Linux: Windows executes a `run:` block in PowerShell unless
+        # told otherwise, which cannot parse `$(...)` or `[ -z ... ]`, and
+        # macOS ships BSD grep, which has no -P at all. Both failed at the
+        # first line, so the version read never happened rather than reading
+        # something wrong - which is the good half of how this was found.
+        shell: bash
         run: |
-          version=$(grep -oP "(?<=github\.com/wailsapp/wails/v2 )v[0-9]+\.[0-9]+\.[0-9]+" go.mod | head -1)
+          version=$(sed -n 's|.*github\.com/wailsapp/wails/v2 \(v[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\).*|\1|p' go.mod | head -1)
           if [ -z "$version" ]; then
             echo "could not read the wails version out of desktop/go.mod" >&2
             exit 1
