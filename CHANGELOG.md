@@ -39,6 +39,19 @@ The copy of the extension most people run does not come from its tag. Settings
 binary is running, so that one tracks the server. The tag exists for a store
 submission and for a fixed download.
 
+## [1.1.3] - 2026-09-16
+
+### Changed
+
+- **The crypto window closes from a button in its footer, not from a corner X.**
+  It carries its word and its glyph and follows the labelling setting like
+  every other button: the word with its glyph, the word alone, or the glyph
+  alone, whichever that one setting says.
+- **The defect the corner was introduced for is still fixed.** This window had
+  no visible way out at all: it has no footer of its own, and Modal draws its
+  corner X only for a caller that asks for one, so this window fell between the
+  two and left Escape and a click on the dimmed ground as the only exits.
+
 ## [1.1.2] - 2026-09-16
 
 ### Removed
