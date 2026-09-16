@@ -1991,45 +1991,6 @@ body {
     opacity: 0;
   }
 
-  /* THE CREST TURNS (easter egg: the crest on the About card - docs/easter-eggs.md).
-     Press and hold and it shows its back, which carries the commit this build
-     came from; let go and it turns back. Nothing is stored.
-
-     THE DOUBLED CLASS IS NOT A TYPO, and it is the trap the colour-wipe rule
-     below this section documents at length: .glim-shape-armed * owns the bare
-     `transition` shorthand on every element in the document, deliberately
-     WITHOUT transform in its list, and two same-specificity rules reaching for
-     one shorthand do not merge - the winner takes the whole property list.
-
-     WHAT THE DOUBLING ACTUALLY BUYS, because an earlier version of this
-     paragraph got it wrong and called a single class "a coin flip decided by
-     source order". Nothing here is a coin flip. .glim-shape-armed * is (0,1,0),
-     `*` contributing nothing; a bare .kl-crest-turn would be (0,1,0) as well;
-     the two sit in the same layer, so the later one wins, every time, for ever.
-     Measured rather than reasoned: rewriting THIS RULE'S OWN selectorText to a
-     single class in place, at its own position in the sheet, leaves the crest
-     reading transitionProperty `transform` and duration .26s - unchanged.
-
-     So the doubling is not what makes it work today. It is what stops the
-     ORDER from being the thing that makes it work: these two rules are 230
-     lines apart, the file is edited by hand, and a tie broken by which
-     paragraph happens to come second is a tie one reorganisation loses
-     silently, taking the whole egg with it and leaving a crest that snaps.
-     Doubled it outranks that rule outright wherever either ends up, and the
-     only thing this wrapper gives up in exchange is the house colour
-     transition on an element that has no colours of its own.
-
-     --motion-shape-dur is the right token rather than a new one: a crest showing
-     its back is the app's "changing shape" beat, which is what that token times
-     everywhere else. At "off" it is 0 and the crest still turns, instantly - the
-     egg exists at every intensity and is a different number at each, which is
-     the whole rule about levels. Under OS-level reduced motion this rule is not
-     reached at all, so the turn is likewise instant, which is the same answer by
-     the same mechanism. */
-  .kl-crest-turn.kl-crest-turn {
-    transition: transform var(--motion-shape-dur) var(--motion-curve);
-  }
-
   /* THE SPEED CURVE ON THE STORM CURVE (easter egg: 1337).
      With the speed limit standing at exactly 1337 KiB/s, this one element runs
      on the hidden fourth motion level. It is the same act as choosing a level,
@@ -2681,43 +2642,6 @@ body {
   pointer-events: none;
   border-radius: inherit;
   color: var(--accent-ink);
-}
-
-/* The crest on the About card.
-   ---------------------------------------------------------------------------
-   Two faces in one grid cell, the back pre-turned, the pair turned as a unit.
-   A grid rather than an absolutely positioned back, so the box is as big as the
-   crest without anybody measuring anything.
-
-   backface-visibility is what makes the two faces take turns; without it both
-   render and the back reads as a mirrored ghost through the front. */
-.kl-crest {
-  perspective: 420px;
-  display: inline-flex;
-  /* A press-and-hold on a control that is ALSO a text run underneath: the
-     selection that a long press would otherwise start is not part of the
-     gesture, and on a touch screen it is what the gesture turns into. */
-  -webkit-user-select: none;
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
-}
-.kl-crest-turn {
-  display: grid;
-  transform-style: preserve-3d;
-}
-.kl-crest-face {
-  grid-area: 1 / 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-}
-.kl-crest-back {
-  transform: rotateY(180deg);
-}
-.kl-crest[data-turned='yes'] .kl-crest-turn {
-  transform: rotateY(180deg);
 }
 
 /* The progress bar's leading edge.

@@ -778,30 +778,3 @@ export const IconShield = (p: SVGProps<SVGSVGElement>) => (
     <path d="M10 2.7 4 4.8v5.7c0 2.9 2.4 5.4 6 6.4 3.6-1 6-3.5 6-6.4V4.8L10 2.7Z" />
   </svg>
 );
-
-/**
- * IconCrest is the app's own arms: the shield with the sword standing in it.
- *
- * It is the mark, redrawn as a glyph rather than reused as artwork. The real
- * logo (assets/logo.svg) is a multi-colour drawing sized for a 112px rail, and
- * the two places that need it as markup already pay for it - the sidebar
- * inlines it so CSS can move the blade, everything else uses <img> so the
- * browser caches and decodes it off the main thread. A settings card that
- * wanted a 40px monochrome crest had neither option available cheaply, and the
- * third way - a second <img> on a page most people open once - is exactly the
- * "an image every user loads" this file's own glyphs exist to avoid.
- *
- * The sword is CARVED with evenodd rather than drawn as a second filled shape
- * on top, per this file's rule at the top: a knocked-out blade shows whatever
- * ground the crest sits on, so it reads on the card in every theme and in
- * rainbow, where a second shape tuned against one background would not.
- */
-export const IconCrest = (p: SVGProps<SVGSVGElement>) => (
-  <svg {...base(p)}>
-    <path
-      fillRule="evenodd"
-      clipRule="evenodd"
-      d="M10 2.7 4 4.8v5.7c0 2.9 2.4 5.4 6 6.4 3.6-1 6-3.5 6-6.4V4.8L10 2.7Zm-.65 3.35L10 4.9l.65 1.15V7.3h1.85v1.2h-1.85v5.2h-1.3V8.5H7.5V7.3h1.85V6.05Z"
-    />
-  </svg>
-);

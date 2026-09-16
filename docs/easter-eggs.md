@@ -26,9 +26,9 @@ Two consequences that every entry below has to satisfy:
   look similar and are not. `storm` is remembered because it is the current
   setting; that the picker once offered it is remembered by nobody.
 
-Nothing below writes to storage. Four of the six have no state at all: they are a
+Nothing below writes to storage. Three of the five have no state at all: they are a
 question asked of the current value (the limit), of a pointer that is currently
-down (the crest, the blade), or of how long an element has already been on screen
+down (the blade), or of how long an element has already been on screen
 (the knight). The parade keeps two numbers in a ref that dies with the tab.
 
 ## Shipped
@@ -80,61 +80,6 @@ details are easy to get wrong and are all load-bearing:
 - It sits **inside** the `prefers-reduced-motion: no-preference` gate, not
   beside it, so a hidden "more animation" switch can never talk a browser out of
   an accessibility signal.
-
-### The crest
-
-**Gesture:** press and hold the crest beside the version line at the foot of the
-About card. It turns, and its back carries the seven-character revision this
-build was made from. Releasing turns it back.
-
-**Where:** `Crest` in `web/src/pages/settings/Help.tsx` holds the gesture;
-`.kl-crest` in `web/src/index.css` is the turn, and `IconCrest` in
-`web/src/lib/icons.tsx` is the mark. The revision reaches the page through
-`buildinfo.Revision()` and `/api/health`, which grew a third field for it.
-
-**Off:** let go. Nothing is stored.
-
-The commit did not reach the interface before this, and getting it there was the
-larger half of the work: `VERSION` is stamped by `-ldflags` at build time and the
-revision was not. It has two sources now, in this order. The `-X ...Commit=` flag
-wins, because `.dockerignore` excludes `.git` and the toolchain inside that build
-stage therefore has no repository to read; everything else - a plain `go build`
-in the worktree, the desktop build, CI - gets `vcs.revision` from the toolchain
-for free, which is why the fallback is a fallback and not a second flag somebody
-has to remember.
-
-**And that flag was not being passed, so the egg was dead in the one build shape
-most people have.** The documented container build read
-`docker build --build-arg VERSION=preview …` with no `COMMIT` at all. Measured,
-building exactly the way the Dockerfile builds - the tree with no `.git`, the
-ldflags with an empty COMMIT - beside the same tree built in the worktree:
-
-```
-container-shaped   {"commit":"","status":"ok","version":"preview"}
-worktree           {"commit":"7b3546ba52f5…","status":"ok","version":"dev"}
-```
-
-Nothing was broken and nothing was logged: the crest simply drew as a plain mark
-and did not turn, which is the correct behaviour for an unknown revision and
-therefore indistinguishable from the egg not existing. Three things hold it shut
-now. The build commands in `README.md` and `docs/preview-deploy.md` pass
-`--build-arg COMMIT=`; `check-docs-claims.mjs` fails if a documented
-`docker build` of this image ever drops it again; and the Dockerfile writes a
-warning into the build log when it is built without one, so a hand-typed build
-says so instead of quietly producing a binary that does not know itself.
-
-**Seven characters, and seven is a decision.** `git rev-parse --short HEAD` and
-`git log --oneline` both print eight in this repository today, because git's
-short form grows with the history until a prefix is unambiguous - it is a moving
-number and a different one per clone. The back of the crest is pinned to seven,
-which is what GitHub's commit UI shows and is a prefix `git show` still resolves,
-so the mark is the same width in every build of every clone.
-
-**An unknown revision stays unknown.** With nothing stamped and nothing embedded,
-the field is the empty string, the crest renders as a plain mark and does not
-turn at all. That is the whole reason this egg is allowed to carry real
-information: the excuse for it is somebody hunting a stale deploy, and a
-plausible wrong identifier answers that question wrongly instead of not at all.
 
 ### 1337
 
