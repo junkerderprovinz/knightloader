@@ -112,8 +112,29 @@ jobs:
           echo "installing wails CLI $version, as required by desktop/go.mod"
           go install github.com/wailsapp/wails/v2/cmd/wails@"$version"
 
+      # KL_STARTUP_CHECK=0, and it is not a workaround for CI being poor: it is
+      # the switch the program itself offers, used for the one situation it was
+      # written for.
+      #
+      # Wails generates its bindings by RUNNING the binary it just built. This
+      # binary's first act is the start report - Java, yt-dlp, ffmpeg, ffprobe,
+      # the data directory, every download folder - which spawns four processes
+      # and reports what it finds. On a build machine none of those tools are
+      # installed and none of them matter, and on macOS the missing yt-dlp and
+      # ffmpeg took the binding generation down with them: "ERROR ... yt-dlp:
+      # executable file not found in $PATH", exit 1, no macOS bundle on the
+      # release. Linux and Windows survived it only because those runner images
+      # happen to ship ffmpeg, which is luck rather than a difference worth
+      # having.
+      #
+      # Set for every platform, not just the one that failed: a diagnostic pass
+      # over a machine that will never run the app answers a question nobody
+      # asked, and leaving it on anywhere leaves the same trap for whichever
+      # runner image drops a tool next.
       - name: Build
         working-directory: desktop
+        env:
+          KL_STARTUP_CHECK: "0"
         run: |
           go mod tidy
           wails build -platform ${{ matrix.platform }} -clean ${{ matrix.extra }}
