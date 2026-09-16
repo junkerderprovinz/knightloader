@@ -40,7 +40,6 @@
   "permissions": [
     "contextMenus",
     "storage",
-    "activeTab",
     "scripting",
     "declarativeNetRequest"
   ],

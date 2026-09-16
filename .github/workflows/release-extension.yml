@@ -66,6 +66,7 @@ jobs:
           for f in extension/src/*.js; do node --check "$f"; done
           node extension/check-locales.mjs
           node extension/check-refusals.mjs
+          node extension/check-popup-send.mjs
 
       # src/ ships as plain files - no build step - so the zip is the directory
       # itself. Built from src/ rather than from the repo root so the archive

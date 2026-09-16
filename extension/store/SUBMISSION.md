@@ -124,12 +124,6 @@ Both dashboards ask the same questions. Each justification below is under the
 > this browser within the user's group, the default instance, and interface
 > settings (language, theme, Click'n'Load on or off, countdown length).
 
-`activeTab` (drop this entry if the permission is removed from the manifest)
-
-> Reads the address and title of the current tab when the user presses "Send this
-> page" in the toolbar popup, including when the user has restricted the
-> extension's site access.
-
 `scripting`
 
 > Registers and unregisters the two Click'n'Load content scripts at runtime. When
@@ -146,13 +140,15 @@ Both dashboards ask the same questions. Each justification below is under the
 
 Host permission `<all_urls>`
 
-> Needed for Click'n'Load only. The buttons can be on any website, and the script
-> that catches them has to run in the page before the site's own code, in every
-> frame, including blank frames a site opens for the button. It acts only on
-> requests addressed to 127.0.0.1:9666 or localhost:9666: those are stopped and
-> their link list is handed to the extension. Every other request passes through
-> unchanged and is not recorded. Users can switch the feature off in the options,
-> which removes the scripts from all pages.
+> Mainly for Click'n'Load. The buttons can be on any website, and the script that
+> catches them has to run in the page before the site's own code, in every frame,
+> including blank frames a site opens for the button. It acts only on requests
+> addressed to 127.0.0.1:9666 or localhost:9666: those are stopped and their link
+> list is handed to the extension. Every other request passes through unchanged
+> and is not recorded. Users can switch the feature off in the options, which
+> removes the scripts from all pages. The same access lets the toolbar popup read
+> the current tab's address and title when the user presses "Send this page",
+> which is why the extension does not also request activeTab.
 
 `clipboardRead` (optional permission)
 

@@ -566,6 +566,13 @@ jobs:
       - name: Refusals
         run: node extension/check-refusals.mjs
 
+      # The popup's send button said "Send this page" over a right-clicked link
+      # it was about to send. The label comes from what was clicked now, and
+      # this holds the three places that have to agree: the payload's kind, the
+      # key it maps to, and the popup asking for that key instead of naming one.
+      - name: Send label
+        run: node extension/check-popup-send.mjs
+
       # Mozilla's own linter, run with --self-hosted so it checks the package
       # rather than AMO listing metadata this repository does not have.
       #

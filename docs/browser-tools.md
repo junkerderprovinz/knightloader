@@ -84,9 +84,13 @@ Instances tab draws, with a **Standard** badge on the default and a right-click
 to move it.
 
 Permissions: `contextMenus`, `storage` (the phrase, the default instance, the
-language, the appearance, the Click'n'Load switch), `activeTab` (the popup
-reading the current tab at the moment you press send), `scripting`, and
-`<all_urls>`. The last two exist for one feature only:
+language, the appearance, the Click'n'Load switch), `scripting`,
+`declarativeNetRequest` and `<all_urls>`, plus `clipboardRead` as an optional
+permission for the paste button next to the phrase. There is no `activeTab`:
+the popup reads the current tab's address through the site access `<all_urls>`
+already grants, and Chrome's review counts `activeTab` beside it as a
+permission the extension does not need. Apart from that one read, `scripting`,
+`declarativeNetRequest` and `<all_urls>` exist for one feature only:
 
 ### Click'n'Load, in the browser
 

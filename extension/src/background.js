@@ -146,15 +146,19 @@ chrome.storage.onChanged.addListener(async (changes, area) => {
   }
 });
 
+// `kind` is for the popup, not the instance: when a choice between instances
+// parks the send, the button has to name what it is about to send, and with the
+// page title above it a right-clicked link looked like "send this page"
+// (sendLabelKey in shared.js). deliver() reads only url, text and title.
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   const payload =
     info.menuItemId === MENU_LINK
-      ? { url: info.linkUrl, title: tab?.title }
+      ? { kind: 'link', url: info.linkUrl, title: tab?.title }
       : info.menuItemId === MENU_IMAGE
-        ? { url: info.srcUrl, title: tab?.title }
+        ? { kind: 'image', url: info.srcUrl, title: tab?.title }
         : info.menuItemId === MENU_SELECTION
-          ? { text: info.selectionText, title: tab?.title }
-          : { url: info.pageUrl || tab?.url, title: tab?.title };
+          ? { kind: 'selection', text: info.selectionText, title: tab?.title }
+          : { kind: 'page', url: info.pageUrl || tab?.url, title: tab?.title };
   await sendToInstance(payload);
 });
 
@@ -310,9 +314,14 @@ async function deliver(target, payload) {
   }
 }
 
-chrome.runtime.onMessage.addListener((msg) => {
+chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg?.type === 'knightloader-send-to' && msg.target && msg.payload) {
     void deliver(msg.target, msg.payload);
+    // Answered at once, before the delivery: the popup waits for this reply
+    // and then closes (popup.js's handOver). It proves the send is in this
+    // worker now, which is all the popup has to know; the badge reports the
+    // rest.
+    sendResponse({ accepted: true });
   }
   if (msg?.type === 'knightloader-cnl') {
     void handleCnl(msg);
