@@ -45,20 +45,14 @@ skipped or reordered.
    nothing about you beyond" in the policy are not true yet.
 3. **Merge to `main`.** The privacy policy URL points at `main`, which serves the
    old policy until the merge.
-4. **Fold the releases into 1.0.0.** The stores get version 1.0.0, so the
-   development releases go first: delete the GitHub releases and the tags
-   `extension/v1.0.0` to `extension/v1.23.0`. Their notes stay in the git history
-   of `.github/release-notes/extension/`. Then, in a clone that has run
-   `git fetch --prune --prune-tags origin` (a plain fetch keeps the deleted tags,
-   and the old `extension/v1.0.0` passes every check of the release workflow),
-   tag `main`, confirm `git rev-parse extension/v1.0.0^{commit}` equals
-   `origin/main`, and push that one tag, never `--tags`. The release workflow
-   checks it against the manifest (1.0.0) and publishes one release, "Browser
-   Extension 1.0.0", with the folded notes.
+4. **Release.** The tag `extension/vX.Y.Z` on `main` publishes "Browser Extension
+   X.Y.Z" once the release workflow has checked it against the manifest. Tag from
+   a clone that has run `git fetch --prune --prune-tags origin`, confirm
+   `git rev-parse extension/vX.Y.Z^{commit}` equals `origin/main`, and push that
+   one tag, never `--tags`.
 5. **Package:** the zip that release carries. It is `extension/src` zipped as it
    is, with no build step, so a reviewer can compare it file by file with the tag.
-   Never submit a zip from one of the folded development releases: they told
-   Firefox the extension collects no data, which is wrong.
+   Submit no other zip.
 6. **Reviewer instance and files** (see "Reviewer notes"): run a dedicated
    instance named "Review" whose group holds that instance only, with a web UI
    password set and its download queue paused. Serve `test-page/index.html` and

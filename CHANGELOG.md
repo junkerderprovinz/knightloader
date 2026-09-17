@@ -21,13 +21,6 @@ not contain, or not bumping it for changes it does.
 Both are released at `mobile/v1.0.0` and `extension/v1.0.0`. KnightLoader
 itself is released at `v1.0.0`.
 
-Before its first browser-store submission, the extension's development releases
-`extension/v1.0.0` to `extension/v1.23.0` are folded into one `extension/v1.0.0`:
-the store listings start at 1.0.0, and a store user should not meet a version
-history of work nobody outside the project installed from a store. The old
-releases and tags are removed when the folded 1.0.0 is published from `main`;
-their notes remain in the git history of `.github/release-notes/extension/`.
-
 Each tag runs its own workflow and no other: a `*` in a GitHub ref filter does
 not cross a `/`, so `mobile/v1.0.0` is invisible to the bare `v*.*.*` pattern
 and the reverse. Each workflow refuses a tag whose version does not match the
