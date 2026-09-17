@@ -58,10 +58,13 @@ skipped or reordered.
    Submit no other zip.
 6. **Reviewer instance and files** (see "Reviewer notes"): run a dedicated
    instance named "Review" whose group holds that instance only, with a web UI
-   password set and its download queue paused. Serve `test-page/index.html` and
-   `review-walkthrough.mp4` from the reviewer host, then fill the placeholders `<TEST_PAGE>`, `<WEBUI_URL>`, `<VIDEO_URL>`, `<PHRASE>`
-   and `<WEBUI_PASSWORD>`. The phrase and the password go into the dashboard
-   fields and nowhere else; they are never committed, because the phrase is the
+   password set and its download queue paused. It is up: `review.halleluja.design`
+   serves the instance, `/test/` the test page and `/test/walkthrough.mp4` the
+   video, all three through a Cloudflare tunnel because the relay holds port 443
+   and the host firewall opens nothing else. Its queue is paused by a schedule
+   rather than by hand, so a restart cannot start a download. What is left to
+   fill in are `<PHRASE>` and `<WEBUI_PASSWORD>`: they go into the dashboard
+   fields and nowhere else, never into the repository, because the phrase is the
    key to the reviewer group.
 
 Reference:
@@ -277,11 +280,10 @@ notes says to pin it.
 additional instructions 500)
 
 The phrase goes into the Username field, because the 500 characters of additional
-instructions do not hold it together with three addresses. The text below is 373
-characters with its placeholders; filled in, it has to stay at or under 500. On
-submission day, fill in the real addresses, count the whole text including line
-breaks, and shorten `<VIDEO_URL>` (a short link) if it runs over, because the last
-line is what the field cuts.
+instructions do not hold it together with three addresses. The text below carries
+the real addresses and is under the limit as it stands. Count it again if it is
+edited, including line breaks, and shorten the video link if it runs over,
+because the last line is what the field cuts.
 
 - Username: `<PHRASE>`
 - Password: `<WEBUI_PASSWORD>`
@@ -289,10 +291,10 @@ line is what the field cuts.
 
 > Username = connection phrase, Password = web UI password.
 > 1. Options page (opens on install): paste the phrase, press Connect. Pin the icon.
-> 2. Open <TEST_PAGE>, right-click the trailer link > Send link to KnightLoader. Icon shows a check.
+> 2. Open https://review.halleluja.design/test/, right-click the trailer link > Send link to KnightLoader. Icon shows a check.
 > 3. Press the Click'n'Load button there; popup counts down, sends.
-> 4. Both show up at <WEBUI_URL> > Link collector.
-> Video: <VIDEO_URL>
+> 4. Both show up at https://review.halleluja.design > Link collector.
+> Video: https://review.halleluja.design/test/walkthrough.mp4
 
 **Edge Add-ons** (Notes for certification)
 
@@ -305,32 +307,32 @@ line is what the field cuts.
 > 2. Paste this connection phrase into the Remote access field and press Connect:
 >    <PHRASE>
 >    One instance, "Review", appears as Online.
-> 3. Open <TEST_PAGE>. Right-click the trailer link and choose "Send link to
+> 3. Open https://review.halleluja.design/test/. Right-click the trailer link and choose "Send link to
 >    KnightLoader". The toolbar icon shows a green check mark.
 > 4. On the same page, press the "Click'n'Load: both films" button. The extension
 >    popup opens, counts down from 5 and sends the two film links.
-> 5. Open <WEBUI_URL> and sign in with the password <WEBUI_PASSWORD>. The links
+> 5. Open https://review.halleluja.design and sign in with the password <WEBUI_PASSWORD>. The links
 >    from steps 3 and 4 are listed under Link collector.
 >
-> A recording of these steps: <VIDEO_URL>
+> A recording of these steps: https://review.halleluja.design/test/walkthrough.mp4
 >
 > The instance only collects links; its download queue is paused and nothing is
 > downloaded.
 
 **AMO** (Notes for reviewers)
 
-> Same steps as the video at <VIDEO_URL>:
+> Same steps as the video at https://review.halleluja.design/test/walkthrough.mp4:
 >
 > 1. Pin the add-on (Extensions button, gear next to KnightLoader, Pin to
 >    Toolbar); its only confirmation is a check mark on that icon.
 > 2. Open the add-on's options, paste this connection phrase into Remote access,
 >    press Connect: <PHRASE>
-> 3. Open <TEST_PAGE>, right-click the trailer link, "Send link to KnightLoader".
+> 3. Open https://review.halleluja.design/test/, right-click the trailer link, "Send link to KnightLoader".
 >    The add-on's toolbar icon shows a check mark.
 > 4. Press "Click'n'Load: both films" on that page; the popup counts down and
 >    sends. Before Firefox 149 an add-on cannot open its popup without a click:
 >    the icon shows "…" instead, and clicking it starts the countdown.
-> 5. Check arrival at <WEBUI_URL>, password <WEBUI_PASSWORD>, Link collector.
+> 5. Check arrival at https://review.halleluja.design, password <WEBUI_PASSWORD>, Link collector.
 >
 > Notes on the code, which is unminified and has no build step:
 >
