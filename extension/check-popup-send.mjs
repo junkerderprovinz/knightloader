@@ -65,7 +65,9 @@ if (!sendLabelKey) {
 
 // 1. Every right-click payload says what it is.
 const background = read('src', 'background.js');
-const onClicked = background.slice(background.indexOf('chrome.contextMenus.onClicked.addListener'));
+const onClickedAt = background.search(/chrome\.contextMenus\??\.onClicked\.addListener/);
+if (onClickedAt < 0) fail('src/background.js: no chrome.contextMenus.onClicked listener found');
+const onClicked = background.slice(Math.max(onClickedAt, 0));
 const handler = onClicked.slice(0, onClicked.indexOf('\n});') + 4);
 for (const kind of ['link', 'image', 'selection', 'page']) {
   if (!new RegExp(`kind:\\s*'${kind}'`).test(handler)) {
@@ -74,7 +76,12 @@ for (const kind of ['link', 'image', 'selection', 'page']) {
 }
 
 // 3. The popup never names the page label itself.
-const popup = read('src', 'popup.js').replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+//
+// Comments are blanked, not removed, so every line keeps its number and a
+// failure points at the real line in popup.js. `[ \t]*` and not `\s*` before a
+// line comment: `\s` crosses newlines and would take blank lines with it.
+const blank = (s) => s.replace(/[^\n]/g, '');
+const popup = read('src', 'popup.js').replace(/\/\*[\s\S]*?\*\//g, blank).replace(/^[ \t]*\/\/.*$/gm, '');
 for (const m of popup.matchAll(/t\(\s*'popup\.send'\s*\)/g)) {
   fail(`src/popup.js:${popup.slice(0, m.index).split('\n').length} labels the send button with 'popup.send' directly - go through sendLabelKey(pending)`);
 }
@@ -94,7 +101,7 @@ if (!handOverDef) {
     fail('src/popup.js: handOver() has to await chrome.runtime.sendMessage() and only then call window.close()');
   }
 }
-const outside = handOverDef ? popup.replace(handOverDef[0], '') : popup;
+const outside = handOverDef ? popup.replace(handOverDef[0], blank(handOverDef[0])) : popup;
 for (const m of outside.matchAll(/chrome\.runtime\.sendMessage\(\s*\{\s*type:\s*'knightloader-send-to'/g)) {
   fail(`src/popup.js:${outside.slice(0, m.index).split('\n').length} sends 'knightloader-send-to' outside handOver() - the window can close before the worker has it`);
 }
@@ -109,8 +116,36 @@ if (!/\(\s*msg\s*,\s*_?sender\s*,\s*sendResponse\s*\)/.test(listenerBody) || !/k
   fail("src/background.js: the onMessage listener does not answer 'knightloader-send-to' with sendResponse()");
 }
 
+// 6. The current tab is read when somebody presses send, not when the popup
+//    opens. Since activeTab went, the host permission is what fills in a tab's
+//    address and title, and the privacy policy and the store justification say
+//    the popup reads them on send. Read at start-up, every glance at the popup
+//    read the page's address.
+const sendAt = popup.search(/sendBtn\.addEventListener\(\s*'click'/);
+const lineAt = (i) => popup.slice(0, i).split('\n').length;
+if (sendAt < 0) {
+  fail('src/popup.js: no click listener on the send button found');
+} else {
+  const sendEnd = popup.indexOf('\n});', sendAt) + 4;
+  const helper = popup.match(/async function currentTabPayload\s*\(\s*\)\s*\{[\s\S]*?\n\}/);
+  const helperAt = helper ? helper.index : -1;
+  const inSend = (i) => i > sendAt && i < sendEnd;
+  const inHelper = (i) => helper && i > helperAt && i < helperAt + helper[0].length;
+  const queries = [...popup.matchAll(/chrome\.tabs\.query\(/g)];
+  if (!queries.some((q) => inSend(q.index) || inHelper(q.index))) fail('src/popup.js: the send button does not read the current tab');
+  for (const q of queries.filter((q) => !inSend(q.index) && !inHelper(q.index))) {
+    fail(`src/popup.js:${lineAt(q.index)} reads the current tab outside the send handler`);
+  }
+  if (helper) {
+    for (const c of popup.matchAll(/currentTabPayload\(\s*\)/g)) {
+      if (c.index === helperAt + helper[0].indexOf('currentTabPayload(')) continue;
+      if (!inSend(c.index)) fail(`src/popup.js:${lineAt(c.index)} calls currentTabPayload() outside the send handler`);
+    }
+  }
+}
+
 if (problems.length) {
   for (const p of problems) console.error(`✗ ${p}`);
   process.exit(1);
 }
-console.log('ok: the send button names what is waiting, and every send reaches the worker before the popup closes');
+console.log('ok: the send button names what is waiting, reads the tab only on send, and every send reaches the worker before the popup closes');

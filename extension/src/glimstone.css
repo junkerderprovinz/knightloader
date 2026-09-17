@@ -13,9 +13,9 @@
  * person has to finish, and "this page is too small to need it" is the
  * reasoning that leaves them to do it.
  *
- * Shared by options.html, popup.html and picker.html. One file rather than
- * three copies of the same block, which is how three pages of one product end
- * up three slightly different products.
+ * Shared by options.html and popup.html. One file rather than two
+ * copies of the same block, which is how two pages of one product end
+ * up two slightly different products.
  */
 
 

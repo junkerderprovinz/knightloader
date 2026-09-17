@@ -2,8 +2,8 @@
 
 Three ways to hand KnightLoader a link from somewhere that is not KnightLoader
 itself: a page you are already looking at, a right-click menu, or your
-device's own Share sheet. All three are configured from **Settings > Browser
-tools**. The bookmarklet and the share target land on `/quickadd`
+device's own Share sheet. All three are configured from **Settings > Browser &
+App**. The bookmarklet and the share target land on `/quickadd`
 (`web/src/pages/QuickAdd.tsx`); the extension no longer does, and the section
 on it below says what it does instead and why.
 
@@ -94,9 +94,12 @@ permission the extension does not need. Apart from that one read, `scripting`,
 
 ### Click'n'Load, in the browser
 
-`cnl-main.js` runs in the page's MAIN world and takes over the four ways a
-Click'n'Load button submits (`fetch`, `XHR`, `HTMLFormElement.submit`, and a
-capture-phase `submit` listener), decodes the payload with `cnl.js` — AES-128-CBC,
+`cnl-main.js` runs in the page's MAIN world and takes over every way a
+Click'n'Load button reaches the port: `fetch`, `XHR`, `HTMLFormElement.submit`
+and a capture-phase `submit` listener, `navigator.sendBeacon`, `window.open`
+(with the same hooks inside same-origin windows it opens), the `src` setter of
+iframe, image and script elements, and a capture-phase click on plain links. It
+decodes the payload with `cnl.js` — AES-128-CBC,
 key equals IV, both padding conventions found in the wild — and hands the links
 to the service worker, which relays them to the chosen instance with
 `origin: 'cnl'`. The page is answered `success\r\n`, exactly as a local
@@ -107,7 +110,10 @@ It is **on from the first second** — it is what most people install this for �
 and the switch on the options page really removes it:
 `chrome.scripting.unregisterContentScripts` takes both scripts away, verifiable
 with `chrome.scripting.getRegisteredContentScripts()`, which is more than a
-static `content_scripts` entry could ever offer.
+static `content_scripts` entry could ever offer, and the `cnl` ruleset that
+answers `jdcheck.js` is switched off with it. That holds for pages opened or
+reloaded afterwards; a tab already open keeps its script until it reloads, and
+a submission caught there is dropped.
 
 This is the answer to the case a loopback port cannot serve: KnightLoader on a
 server, a browser on a laptop, and a CnL button on a website that only knows how
@@ -122,7 +128,7 @@ nothing about this shape blocks it later.
 
 `web/public/manifest.webmanifest` declares `share_target` pointing at
 `/quickadd` with a plain `GET` (`url`/`text`/`title` become query
-parameters) — the same shape the bookmarklet and the extension already use,
+parameters) — the same shape the bookmarklet already uses,
 so there is exactly one page that knows how to turn a shared blob into a
 staged link. `web/public/sw.js` is a deliberately empty pass-through service
 worker; it exists only because most browsers gate the install prompt behind

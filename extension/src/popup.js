@@ -70,7 +70,6 @@ const statusEl = document.getElementById('status');
 const openOptionsBtn = document.getElementById('openOptions');
 openOptionsBtn.addEventListener('click', () => chrome.runtime.openOptionsPage());
 
-let activeTab = null;
 let group = [];
 let chosen = null;
 /** A payload the service worker parked for this window: a Click'n'Load batch,
@@ -149,8 +148,6 @@ function paintHues() {
   // elsewhere it only restated what the button underneath already says. Where
   // it DOES carry something nothing else does - a parked Click'n'Load batch,
   // a right-clicked link - it stays, above.
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  activeTab = tab;
   targetEl.hidden = true;
 
   if (!(await readPhrase())) {
@@ -419,7 +416,12 @@ sendBtn.addEventListener('click', async () => {
   cancelCountdown();
   // Either a payload the service worker parked here, or the tab this window
   // opened over. Never both, and never neither.
-  const payload = pending ? pending.payload : activeTab?.url ? { url: activeTab.url, title: activeTab.title } : null;
+  //
+  // The tab is read HERE, on the press, and not when the popup opens. Since
+  // activeTab went, the site access is what fills in a tab's address and title,
+  // and read at start-up every glance at the popup read the page's address -
+  // which the privacy policy says happens when you press send.
+  const payload = pending ? pending.payload : await currentTabPayload();
   if (!payload || !chosen) return;
   sendBtn.disabled = true;
   // No "sending…" line (jdp: "der Text 'Wird gesendet' kann weg"). This window
@@ -427,6 +429,13 @@ sendBtn.addEventListener('click', async () => {
   // a frame and then be gone, and the toolbar badge is what reports the outcome.
   await handOver({ type: 'knightloader-send-to', target: chosen, payload });
 });
+
+/** The page this popup was opened over, as a send payload, or null when the
+ *  browser gives no address for it (an internal page, or site access withheld). */
+async function currentTabPayload() {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  return tab?.url ? { url: tab.url, title: tab.title } : null;
+}
 
 /**
  * Hands one send to the service worker, then closes this window.

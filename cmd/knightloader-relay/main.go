@@ -53,12 +53,31 @@ import (
 const shutdownGrace = 5 * time.Second
 
 func main() {
+	// No client address reaches the log. The relay logs nothing about who
+	// connects, but net/http's server log names the client on every failed or
+	// abandoned TLS handshake, some HTTP/2 errors and any panic, and on a
+	// systemd host that went into the journal with no retention while the
+	// privacy policy said the relay keeps no record. The standard logger is
+	// wrapped as well as the server's ErrorLog, so nothing that falls back to
+	// log.Printf can bring an address back.
+	logOut := relay.RedactAddrs(os.Stderr)
+	log.SetOutput(logOut)
+
 	// 8760 is clear of both ports a machine running KnightLoader already has
 	// taken (:8749 for the app, :9666 for Click'n'Load), so the relay can be
 	// tried out on the same box before it moves to its own container.
 	addr := env("KL_RELAY_ADDR", ":8760")
 
 	r := relay.New()
+	// Rate-limit records are also dropped on the request path, at most once a
+	// minute; the timer covers a relay that goes quiet, so a failed address is
+	// forgotten within 61 minutes of its last attempt either way (see
+	// limiter.sweep, and the figure in extension/PRIVACY.md).
+	go func() {
+		for range time.Tick(time.Minute) {
+			r.SweepLimiter()
+		}
+	}()
 	mux := http.NewServeMux()
 	// Same shape as the app's own GET /api/health, so one orchestrator health
 	// check works against either process without a second parser.
@@ -87,7 +106,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("listen: %v", err)
 	}
-	srv := &http.Server{Handler: mux}
+	srv := &http.Server{Handler: mux, ErrorLog: log.New(logOut, "", log.LstdFlags)}
 
 	if domain != "" {
 		m := &autocert.Manager{

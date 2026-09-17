@@ -9,6 +9,14 @@ See `docs/browser-tools.md` at the repo root for the full picture, including
 how this relates to the bookmarklet and the PWA share target, and
 `docs/clicknload.md` for the protocol itself.
 
+## Privacy
+
+What the extension stores, what it sends and to whom is in the
+[privacy policy](PRIVACY.md).
+
+KnightLoader's use of user data received through this extension adheres to the
+Chrome Web Store User Data Policy, including the Limited Use requirements.
+
 ## Setup is one connection phrase
 
 The options page asks for the twelve words your instances already share, and
@@ -76,9 +84,12 @@ and it must never end up in a package.
 
 ## Click'n'Load
 
-`cnl-main.js` runs in the page's MAIN world and takes over the four ways such a
-button submits — `fetch`, `XHR`, `HTMLFormElement.submit`, and a capture-phase
-`submit` listener — decodes the payload (`cnl.js`: AES-128-CBC, key equals IV,
+`cnl-main.js` runs in the page's MAIN world and takes over every way such a
+button reaches the port: `fetch`, `XHR`, `HTMLFormElement.submit` and a
+capture-phase `submit` listener, `navigator.sendBeacon`, `window.open` (and the
+same hooks inside same-origin windows it opens), the `src` setter of iframe,
+image and script elements, and a capture-phase click on plain links. It then
+decodes the payload (`cnl.js`: AES-128-CBC, key equals IV,
 key from `jk`, and both zero and PKCS#7 padding, because both occur in the
 wild) and hands the links to the service worker, which relays them. The page
 gets `success\r\n` back, the same answer a local JDownloader gives. Sites find
@@ -87,14 +98,22 @@ a downloader at all because `cnl-main.js` sets `window.jdownloader` at
 
 It is **on by default**: it is the reason most people install this, and a
 switch that reads "on" while waiting for someone to find a permission dialog
-would be a lie. That is what `<all_urls>` in the manifest is for, and it is
-used for nothing else — such a button can be on any site, so the set cannot be
-narrowed in advance.
+would be a lie. That is mainly what `<all_urls>` in the manifest is for: such a
+button can be on any site, so the set cannot be narrowed in advance. The same
+access also lets the popup read the current tab's address and title when you
+press send, and a right-click send read the page title, which is why there is no
+`activeTab`.
 
 Switching it off in the options unregisters both content scripts
 (`chrome.scripting.unregisterContentScripts`), which
-`chrome.scripting.getRegisteredContentScripts()` will confirm. Off means gone,
-not dormant — more than a static `content_scripts` entry could offer.
+`chrome.scripting.getRegisteredContentScripts()` will confirm, and switches off
+the `cnl` ruleset that answers `jdcheck.js`
+(`declarativeNetRequest.updateEnabledRulesets`). Off means gone for every page
+opened or reloaded after that; a tab that was already open keeps its script
+until it reloads, and a submission caught there is dropped rather than sent.
+The ruleset state is written again on every start and update, because a static
+ruleset's enabled state does not survive an update. `check-background.mjs`
+holds all of this.
 
 ## Why it no longer opens a window
 
@@ -114,8 +133,9 @@ group sibling and is admitted on that basis alone (`relayForwardable` in
 
 ## Surfaces
 
-`popup.html` (toolbar), `picker.html` (the send-to window), `options.html`.
-All three draw the same instance card and the same GlimStone
+`popup.html` (the toolbar popup, which is also the send-to window when a send
+is parked for a choice or a Click'n'Load batch is caught) and `options.html`.
+Both draw the same instance card and the same GlimStone
 (`glimstone.css`, currently 1.17.0) — one implementation each in `shared.js`,
 because three pages of one product drawing their own version of the same card is
 how three pages become three slightly different products. Appearance, including

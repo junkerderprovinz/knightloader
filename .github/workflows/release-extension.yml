@@ -67,6 +67,7 @@ jobs:
           node extension/check-locales.mjs
           node extension/check-refusals.mjs
           node extension/check-popup-send.mjs
+          node extension/check-background.mjs
 
       # src/ ships as plain files - no build step - so the zip is the directory
       # itself. Built from src/ rather than from the repo root so the archive

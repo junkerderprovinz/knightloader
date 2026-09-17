@@ -167,3 +167,59 @@ func TestClientAddrDropsThePort(t *testing.T) {
 		}
 	}
 }
+
+// An address that fails once and never comes back - the usual scanner - is
+// forgotten once its failure has aged out, not kept until the process ends.
+// The privacy policy promises that bound, so it is tested here rather than
+// read off the constants.
+func TestLimiterForgetsAnAddressThatNeverReturns(t *testing.T) {
+	l, advance := testLimiter()
+	l.fail("198.51.100.7")
+	advance(failWindow + time.Second)
+	l.sweep()
+	if n := l.tracked(); n != 0 {
+		t.Fatalf("%d records left after the failure aged out, want 0", n)
+	}
+}
+
+// A record is not dropped while its address is still being refused: sweeping
+// it early would lift the block.
+func TestLimiterKeepsABlockedAddressUntilTheBlockEnds(t *testing.T) {
+	l, advance := testLimiter()
+	for i := 0; i < failsBeforeBlock+16; i++ {
+		l.fail("198.51.100.7")
+	}
+	advance(failWindow + time.Minute)
+	l.sweep()
+	if !l.blocked("198.51.100.7") {
+		t.Fatal("the sweep lifted a block that had not run out")
+	}
+}
+
+// Whatever the history, a record is gone no later than maxBlock after the
+// address's last failed attempt. maxBlock is an hour; the policy says so.
+func TestLimiterRetentionIsBoundedByMaxBlockAfterTheLastFailure(t *testing.T) {
+	for _, fails := range []int{1, failsBeforeBlock - 1, failsBeforeBlock, failsBeforeBlock + 3, failsBeforeBlock + 40} {
+		l, advance := testLimiter()
+		for i := 0; i < fails; i++ {
+			l.fail("198.51.100.7")
+		}
+		advance(maxBlock + time.Second)
+		l.sweep()
+		if n := l.tracked(); n != 0 {
+			t.Fatalf("after %d failures, %d records left one hour past the last failure, want 0", fails, n)
+		}
+	}
+}
+
+// The request path sweeps on its own, at most once a minute, so a relay that
+// only ever sees traffic still forgets without a separate timer.
+func TestLimiterSweepsOnTheRequestPath(t *testing.T) {
+	l, advance := testLimiter()
+	l.fail("198.51.100.7")
+	advance(maxBlock + time.Second)
+	l.blocked("203.0.113.9")
+	if n := l.tracked(); n != 0 {
+		t.Fatalf("%d records left after a request came in past the retention bound, want 0", n)
+	}
+}

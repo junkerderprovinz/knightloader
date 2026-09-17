@@ -45,33 +45,41 @@ function menuTitles() {
   };
 }
 
+// Every use of chrome.contextMenus in this file is guarded. A browser without
+// the API (Firefox for Android has none) otherwise throws on the first use, and
+// at top level that TypeError stops the whole file: the message listener
+// further down is never registered, and every popup send is lost without a
+// word. Guarded, such a browser simply has no right-click entries and keeps the
+// popup and Click'n'Load. check-background.mjs loads this file without the API.
 chrome.runtime.onInstalled.addListener(async (details) => {
   await loadLanguage();
-  const titles = menuTitles();
-  chrome.contextMenus.create({
-    id: MENU_PAGE,
-    title: titles[MENU_PAGE],
-    contexts: ['page'],
-  });
-  chrome.contextMenus.create({
-    id: MENU_LINK,
-    title: titles[MENU_LINK],
-    contexts: ['link'],
-  });
-  chrome.contextMenus.create({
-    id: MENU_IMAGE,
-    title: titles[MENU_IMAGE],
-    // A separate entry from MENU_LINK: Chrome shows both 'link' and 'image'
-    // together when an image is itself wrapped in an <a>, and the two
-    // usually point at different URLs (a thumbnail's link vs. its full-size
-    // src) — collapsing them into one entry would leave no way to choose.
-    contexts: ['image'],
-  });
-  chrome.contextMenus.create({
-    id: MENU_SELECTION,
-    title: titles[MENU_SELECTION],
-    contexts: ['selection'],
-  });
+  if (chrome.contextMenus) {
+    const titles = menuTitles();
+    chrome.contextMenus.create({
+      id: MENU_PAGE,
+      title: titles[MENU_PAGE],
+      contexts: ['page'],
+    });
+    chrome.contextMenus.create({
+      id: MENU_LINK,
+      title: titles[MENU_LINK],
+      contexts: ['link'],
+    });
+    chrome.contextMenus.create({
+      id: MENU_IMAGE,
+      title: titles[MENU_IMAGE],
+      // A separate entry from MENU_LINK: Chrome shows both 'link' and 'image'
+      // together when an image is itself wrapped in an <a>, and the two
+      // usually point at different URLs (a thumbnail's link vs. its full-size
+      // src) — collapsing them into one entry would leave no way to choose.
+      contexts: ['image'],
+    });
+    chrome.contextMenus.create({
+      id: MENU_SELECTION,
+      title: titles[MENU_SELECTION],
+      contexts: ['selection'],
+    });
+  }
 
   // Click'n'Load is ON from the first second (jdp, 2026-08-28: "Das ist ja das
   // Hauptfeature warum man sich die Erweiterung installiert!"). The manifest
@@ -138,7 +146,7 @@ async function nichtInDerLeiste() {
 // wake up on the storage write and push updated titles onto the existing
 // menu items via chrome.contextMenus.update rather than recreating them.
 chrome.storage.onChanged.addListener(async (changes, area) => {
-  if (area !== 'local' || !changes.language) return;
+  if (area !== 'local' || !changes.language || !chrome.contextMenus) return;
   await loadLanguage();
   const titles = menuTitles();
   for (const [id, title] of Object.entries(titles)) {
@@ -150,7 +158,7 @@ chrome.storage.onChanged.addListener(async (changes, area) => {
 // parks the send, the button has to name what it is about to send, and with the
 // page title above it a right-clicked link looked like "send this page"
 // (sendLabelKey in shared.js). deliver() reads only url, text and title.
-chrome.contextMenus.onClicked.addListener(async (info, tab) => {
+chrome.contextMenus?.onClicked.addListener(async (info, tab) => {
   const payload =
     info.menuItemId === MENU_LINK
       ? { kind: 'link', url: info.linkUrl, title: tab?.title }
@@ -481,6 +489,19 @@ function cnlScriptMatches(have, want) {
  * until something compares and rewrites it.
  */
 async function syncCnlScripts(on) {
+  // The jdcheck.js redirect (cnl-rules.json) is part of Click'n'Load too, and
+  // follows the same switch. Left out, switching the feature off unregistered
+  // the page scripts while the static ruleset went on answering every site's
+  // probe with a file from this extension - which the privacy policy and the
+  // store texts said did not happen. Written on every sync and in its own try,
+  // for two reasons: a scripting failure below must not skip it, and a static
+  // ruleset's enabled state does not survive an extension update, so an update
+  // would otherwise switch the redirect back on for somebody who turned it off.
+  try {
+    await chrome.declarativeNetRequest.updateEnabledRulesets(on ? { enableRulesetIds: ['cnl'] } : { disableRulesetIds: ['cnl'] });
+  } catch (e) {
+    console.warn('[KnightLoader] Click’n’Load redirect rule not switched:', e);
+  }
   try {
     const have = await chrome.scripting.getRegisteredContentScripts();
     const mine = have.filter((s) => s.id.startsWith('cnl-'));

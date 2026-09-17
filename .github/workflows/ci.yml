@@ -573,6 +573,15 @@ jobs:
       - name: Send label
         run: node extension/check-popup-send.mjs
 
+      # The background scripts, loaded for real against a stubbed chrome and
+      # once WITHOUT the context-menu API: a top-level contextMenus call used to
+      # stop background.js before its message listener, so a browser without
+      # menus lost every popup send in silence. Also holds the jdcheck.js
+      # ruleset to the Click'n'Load switch and makes leaving forget the browser
+      # id. Each of these was a false sentence in the privacy policy first.
+      - name: Background
+        run: node extension/check-background.mjs
+
       # Mozilla's own linter, run with --self-hosted so it checks the package
       # rather than AMO listing metadata this repository does not have.
       #
@@ -591,6 +600,16 @@ jobs:
       # from a single cross-browser manifest is the service-worker notice
       # itself, so it is filtered out by name rather than by turning the whole
       # gate advisory - a linter nobody has to obey is a linter nobody reads.
+      #
+      # The second skipped code is a deliberate choice, not a silenced problem.
+      # The add-on is offered on desktop Firefox only: without a
+      # browser_specific_settings.gecko_android key AMO does not list it for
+      # Android at all, which is right, because Firefox for Android has no
+      # context-menu API and the extension has never been tested there. The
+      # linter still measures Android against gecko.strict_min_version (140)
+      # and notes that data_collection_permissions needs Android 142. Raising
+      # that minimum would drop desktop Firefox ESR 140; adding gecko_android to
+      # quiet it would put the add-on on Android. Neither is wanted.
       - name: web-ext lint
         run: |
           cd extension/src
@@ -598,7 +617,7 @@ jobs:
           printf '%s' "$out" | node -e '
             let s = ""; process.stdin.on("data", c => s += c).on("end", () => {
               let r; try { r = JSON.parse(s); } catch { console.error("web-ext lint produced no JSON"); process.exit(1); }
-              const skip = new Set(["BACKGROUND_SERVICE_WORKER_IGNORED"]);
+              const skip = new Set(["BACKGROUND_SERVICE_WORKER_IGNORED", "KEY_FIREFOX_ANDROID_UNSUPPORTED_BY_MIN_VERSION"]);
               const bad = [...(r.errors ?? []), ...(r.warnings ?? [])].filter(m => !skip.has(m.code));
               for (const m of bad) console.error(`${m.code}: ${m.message} (${m.file ?? "manifest.json"})`);
               if (bad.length) { console.error(`${bad.length} web-ext finding(s)`); process.exit(1); }
