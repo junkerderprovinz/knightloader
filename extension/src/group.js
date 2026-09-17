@@ -39,9 +39,13 @@ async function writePhrase(phrase) {
   return normalised;
 }
 
-/** Leaves the group: the phrase and the remembered target both go. */
+/** Leaves the group: the phrase, the remembered target and this browser's
+ *  random member id all go. The id went on living before, so a browser that
+ *  left one group and joined another reconnected under the same id - which
+ *  the relay could tie together, and which the privacy policy should not
+ *  have to explain away. A new id is generated on the next join. */
 async function forgetGroup() {
-  await chrome.storage.local.remove(['phrase', 'defaultInstance']);
+  await chrome.storage.local.remove(['phrase', 'defaultInstance', 'selfId']);
 }
 
 /** The relay instance id this browser sends to when it is not asked. */

@@ -66,10 +66,16 @@ type attempts struct {
 // through a real backoff - a test that waits out a one-minute block is a
 // test nobody runs.
 type limiter struct {
-	mu    sync.Mutex
-	addrs map[string]*attempts
-	now   func() time.Time
+	mu        sync.Mutex
+	addrs     map[string]*attempts
+	now       func() time.Time
+	lastSweep time.Time
 }
+
+// sweepEvery is how often the request path may walk the whole map to drop
+// records that have run out. Once a minute keeps the walk off the hot path of
+// a flood while still bounding how long an address outlives its record.
+const sweepEvery = time.Minute
 
 func newLimiter() *limiter {
 	return &limiter{addrs: map[string]*attempts{}, now: time.Now}
@@ -81,8 +87,53 @@ func newLimiter() *limiter {
 func (l *limiter) blocked(addr string) bool {
 	l.mu.Lock()
 	defer l.mu.Unlock()
+	now := l.now()
+	l.maybeSweepLocked(now)
 	a := l.addrs[addr]
-	return a != nil && l.now().Before(a.blockedUntil)
+	return a != nil && now.Before(a.blockedUntil)
+}
+
+// sweep drops every record whose failures have aged out and whose block, if
+// it had one, is over.
+//
+// Without it a record lived until that same address completed a handshake,
+// the map filled up, or the process restarted - so a scanner that failed once
+// stayed in memory for the life of the relay, while the privacy policy said an
+// hour. With it, a record runs out no later than maxBlock (one hour) after the
+// address's last failed attempt - failWindow is shorter than that, and a block
+// never outlasts maxBlock - and is deleted by the next sweep, so within
+// maxBlock + sweepEvery (61 minutes). The privacy policy states that figure.
+//
+// Called from the request path at most once per sweepEvery, and on a timer by
+// the public relay (cmd/knightloader-relay), so a relay that goes quiet
+// forgets as well.
+func (l *limiter) sweep() {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	l.sweepLocked(l.now())
+}
+
+func (l *limiter) maybeSweepLocked(now time.Time) {
+	if now.Sub(l.lastSweep) < sweepEvery {
+		return
+	}
+	l.sweepLocked(now)
+}
+
+func (l *limiter) sweepLocked(now time.Time) {
+	l.lastSweep = now
+	for k, a := range l.addrs {
+		if now.Sub(a.last) > failWindow && !now.Before(a.blockedUntil) {
+			delete(l.addrs, k)
+		}
+	}
+}
+
+// tracked is how many addresses have a record right now. For the tests.
+func (l *limiter) tracked() int {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	return len(l.addrs)
 }
 
 // fail records one failed handshake and extends the block if the address
@@ -91,6 +142,7 @@ func (l *limiter) fail(addr string) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	now := l.now()
+	l.maybeSweepLocked(now)
 
 	a := l.addrs[addr]
 	if a == nil {

@@ -1,18 +1,20 @@
 # Privacy policy: KnightLoader browser extension
 
-Last updated: 16 September 2026. Applies to version 1.23.0 and later, until this
+Last updated: 17 September 2026. Applies to version 1.24.0 and later, until this
 date changes.
 
 ## The short version
 
 The extension sends what you choose to send (a link, an image address, selected
-text, or the current page) to KnightLoader instances that you run yourself. It
-has no analytics, no advertising, no accounts and no tracking.
+text, the current page, or links you paste, drop or load into its collector) to
+KnightLoader instances that you run yourself. It has no analytics, no advertising,
+no accounts and no tracking.
 
-It reaches your instances through a relay operated by this project. The relay
-passes messages along but cannot read them, because they are encrypted with a key
-that only your own devices hold. It does see that a browser is connected, from
-which IP address, and which instance a message is addressed to.
+It reaches your instances through a relay operated by the party named under "Who
+is responsible". The relay passes messages along but cannot read them, because
+they are encrypted with a key that only your own devices hold. It does see that a
+browser is connected, from which IP address, and which instance a message is
+addressed to.
 
 ## What is stored in your browser
 
@@ -20,9 +22,9 @@ Everything below is kept in the browser's own extension storage, in your browser
 profile. We back none of it up, and removing the extension removes all of it.
 
 - Your connection phrase: the twelve words your KnightLoader instances share.
-- A random browser ID of 40 hexadecimal characters, generated on first use. It
-  contains nothing about you or your device. The relay uses it to recognise a
-  reconnect from this browser as the same member of your group.
+- A random browser ID of 40 hexadecimal characters, generated when this browser
+  joins a group. It contains nothing about you or your device. The relay uses it
+  to recognise a reconnect from this browser as the same member of your group.
 - Which of your instances is the default target.
 - Settings: interface language, whether Click'n'Load interception is on, the
   Click'n'Load countdown length, and whether the "pin the extension" hint has
@@ -40,11 +42,12 @@ closes.
 
 ### To the relay
 
-The relay is `relay.halleluja.design`, operated by this project on a server in
-Germany. Every connection to it carries:
+The relay is `relay.halleluja.design`, on a server in Germany. Every connection
+to it carries:
 
 - A group key derived from your phrase with a one-way hash. It cannot be turned
-  back into the words, and the phrase itself never leaves the browser.
+  back into the words, and the phrase itself never leaves the browser. Whoever
+  presents this key joins your group, so it works like a password for the group.
 - Your random browser ID and the ID of the instance a message is for, which the
   relay needs for routing.
 - Encrypted messages (AES-GCM, with a second key derived from your phrase that the
@@ -52,20 +55,25 @@ Germany. Every connection to it carries:
   links you send and the names of your instances.
 - Your IP address, as with any connection on the internet.
 
-The relay keeps no record of who connects or what they send, with two exceptions,
-both about failed connections. When a connection fails the relay's own handshake,
-its IP address is held in memory for rate limiting, for at most one hour. When a
-connection fails the TLS handshake before it reaches the relay (usually a
-scanner), the web server library writes the IP address to the server's system log.
+The relay keeps no record of who connects or what they send, and its error log
+never contains IP addresses. The one exception is a connection that fails the
+relay's own handshake, for example with a mistyped phrase: its IP address is held
+in memory to slow down repeated failures, and deleted within 61 minutes of that
+address's last failed attempt.
 
 ### To your own instances
 
 These travel through the relay, and only your instances can read them:
 
-- When you send something: the link, image address, selected text or page address
-  you chose, and the page title, which your instance uses as the package name.
+- When you send something from a page: the link, image address, selected text or
+  page address you chose, and the page title, which your instance uses as the
+  package name.
 - When a Click'n'Load button is caught (see below): the links decoded from that
   button's submission, and the package name the site gave or else the page title.
+- When you use the popup's link collector: the links found in text you paste or
+  drop there, or in files you pick or drop there. The browser reads a file
+  locally; only the links it contains are sent, never the file, under the fixed
+  package name "From the browser".
 - While the popup or options page is open: requests for your instances' queue
   status and web addresses, a request to pause or resume a queue when you press
   that button, and a request for an instance's appearance settings if you chose to
@@ -84,23 +92,29 @@ on. Such a button can be on any site, so to catch it the extension has to run a
 small script in every page and frame. That is why it asks for access to all
 websites when you install it.
 
-While Click'n'Load is on, that script does three things:
+While Click'n'Load is on:
 
-- It checks where the page's own requests are going (fetch, XMLHttpRequest, form
-  submissions and beacons). A request aimed at `127.0.0.1:9666` or
+- The script checks where the page is about to send something: fetch,
+  XMLHttpRequest, form submissions, beacons, window.open (and the same calls
+  inside windows the page opens itself), clicks on links, and addresses given to
+  iframe, image and script elements. Anything aimed at `127.0.0.1:9666` or
   `localhost:9666` is stopped, its link list is handed to the extension, and the
-  page is told it succeeded. Every other request is passed on unchanged, and
-  nothing about it is kept or sent.
-- It sets two global variables, `jdownloader` and `version`, which sites read to
-  decide whether to show a Click'n'Load button at all.
+  page is told it succeeded. Everything else is passed on unchanged, and nothing
+  about it is kept or sent.
+- The script sets two global variables, `jdownloader` and `version`, which sites
+  read to decide whether to show a Click'n'Load button at all.
 - For sites that decide by loading `http://127.0.0.1:9666/jdcheck.js`, a
   declarative network rule answers that request with a file bundled in the
   extension.
 
 Apart from a submission aimed at that address, the script does not read page
 content, form fields, passwords or cookies, and it does not change how a page
-looks. Switching Click'n'Load off unregisters the scripts, so no code from this
-extension runs in the pages you visit until you switch it back on.
+looks.
+
+Switching Click'n'Load off removes the script and switches the network rule off.
+From then on, no code from this extension runs in pages you open or reload. A tab
+that was already open keeps the script until you reload it, but a button caught
+there is no longer sent anywhere.
 
 ## Permissions
 
@@ -108,18 +122,48 @@ extension runs in the pages you visit until you switch it back on.
 | --- | --- |
 | `contextMenus` | The four right-click entries: send link, image, selection, page. |
 | `storage` | The settings listed above. |
-| `scripting` | Registering and unregistering the Click'n'Load scripts. |
-| `declarativeNetRequest` | Answering the `127.0.0.1:9666/jdcheck.js` probe. |
-| Access to all websites | Running the Click'n'Load script in pages that may carry a button, and reading the current tab's address and title when you press send in the toolbar popup. |
+| `scripting` | Adding and removing the Click'n'Load script. |
+| `declarativeNetRequest` | Answering the `127.0.0.1:9666/jdcheck.js` probe while Click'n'Load is on. |
+| Access to all websites | Running the Click'n'Load script in pages that may carry a button; reading the current tab's address and title when you press send in the toolbar popup; reading the page title when you send something with a right-click. |
 | `clipboardRead` (optional) | Pasting your phrase with the paste button. Requested only when you press it, and read only then. |
 
 ## What the extension does not do
 
 - It has no analytics, telemetry or crash reporting.
-- It shows no advertising, and it does not sell or share data with anyone.
-- It does not read or record your browsing history. It sees a page's address only
-  when you send that page or something on it.
+- It shows no advertising, and it does not sell data or share it with anyone.
+- It does not record your browsing history, and a page's address leaves your
+  browser only when you send that page or something on it.
 - It runs no remote code. Everything the extension runs ships inside the package.
+
+## Your choices and your data
+
+- **See what is stored:** the options page shows your phrase (behind the eye
+  button), your default instance and every setting.
+- **Switch Click'n'Load off** in the options, as described above.
+- **Leave the group** with the bin button next to the phrase: the phrase, the
+  default instance and the browser ID are deleted.
+- **Remove the extension** to delete everything it stored.
+- **Relay data:** the relay holds nothing about you beyond the rate-limit entry
+  described above, which deletes itself within 61 minutes. For any question about it,
+  or to exercise your rights, write to the contact address below.
+
+## Who is responsible
+
+The relay and this policy are the responsibility of:
+
+<OPERATOR NAME>
+<POSTAL ADDRESS>
+privacy@halleluja.design
+
+The relay runs on a server rented from Hetzner Online GmbH, Germany, which
+processes this data on our behalf.
+
+Under the EU General Data Protection Regulation, forwarding your messages rests on
+Art. 6(1)(b), because it is the service you use the extension for, and the
+short-lived rate-limit entry rests on Art. 6(1)(f), our interest in keeping the
+relay available. You have the right to access, correct and delete your data, to
+restrict or object to its processing, and to complain to a data protection
+supervisory authority.
 
 ## Children
 
@@ -136,7 +180,3 @@ visible in the repository's history.
 The extension is free software under the AGPL-3.0. Everything described here can
 be checked against the source:
 https://github.com/junkerderprovinz/knightloader/tree/main/extension/src
-
-## Contact
-
-privacy@halleluja.design
