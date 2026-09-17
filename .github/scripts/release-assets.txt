@@ -1,0 +1,14 @@
+# Every file a release has to carry before it is published, read by
+# publish-when-complete.sh. {tag} stands for the tag, vX.Y.Z.
+#
+# The names without a version are what the README's download buttons link.
+# The versioned ones and checksums.txt are what internal/update asks for.
+
+# desktop.yml
+knightloader-windows-amd64.zip
+knightloader-macos-universal.zip
+knightloader-linux-amd64.zip
+knightloader-{tag}-windows-amd64.zip
+knightloader-{tag}-macos-universal.zip
+knightloader-{tag}-linux-amd64.zip
+checksums.txt

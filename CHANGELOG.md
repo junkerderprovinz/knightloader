@@ -35,6 +35,20 @@ The copy of the extension most people run does not come from its tag. Settings
 binary is running, so that one tracks the server. The tag exists for a store
 submission and for a fixed download.
 
+## [Unreleased]
+
+### Changed
+
+- **A release goes public only once its desktop zips are attached.** The README's
+  desktop buttons lead to `/releases/latest/download/`, and a release used to be
+  "latest" from the moment `release.yml` created it, twenty minutes and more
+  before `desktop.yml` attached the zips, so the buttons answered 404 for that
+  long. `release.yml` now creates a draft, and `desktop.yml` publishes it once
+  every file in `.github/scripts/release-assets.txt` is uploaded. Until then the
+  buttons and the in-app update check keep serving the previous release.
+- **"Latest" goes only to the newest plain vX.Y.Z tag**, so re-cutting an older
+  version publishes it without pulling the badge and the download buttons back.
+
 ## [1.1.5] - 2026-09-17
 
 ### Changed

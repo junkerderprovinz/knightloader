@@ -23,23 +23,32 @@ jobs:
       # The notes are written by hand and live in the repo. Publishing them from
       # a file rather than generating them keeps the release readable: a list of
       # commit subjects says what was touched, not what changed for the user.
-      - name: Locate the notes for this tag
-        id: notes
+      #
+      # AS A DRAFT. desktop.yml publishes it once the zips are attached, so the
+      # README's download buttons keep serving the previous release meanwhile;
+      # .github/scripts/publish-when-complete.sh explains the rest. Created with
+      # gh rather than action-gh-release, which looks a release up by its tag
+      # and does not see a draft there: a re-run would add a second draft
+      # instead of finding the first.
+      - name: Create the release as a draft
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
+          set -eu
+          if gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "$GITHUB_REF_NAME already has a release"
+            exit 0
+          fi
           file=".github/release-notes/${GITHUB_REF_NAME}.md"
           if [ -s "$file" ]; then
-            echo "path=$file" >> "$GITHUB_OUTPUT"
+            set -- --notes-file "$file"
           else
             echo "No notes at $file; falling back to generated ones." >&2
-            echo "path=" >> "$GITHUB_OUTPUT"
+            set -- --generate-notes
           fi
-
-      - uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3
-        with:
           # The title is the version alone: the repository name is already above it.
-          name: ${{ github.ref_name }}
-          body_path: ${{ steps.notes.outputs.path }}
-          generate_release_notes: ${{ steps.notes.outputs.path == '' }}
+          gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" \
+            --draft --verify-tag --title "$GITHUB_REF_NAME" "$@"
 
   # The two images, one job per image.
   #
