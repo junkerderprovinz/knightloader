@@ -28,13 +28,19 @@ skipped or reordered.
 2. **Deploy the relay** built from the same commit to `relay.halleluja.design`.
    The policy describes the running relay: rate-limit entries deleted within 61
    minutes, no IP addresses in its log. Older relay builds do neither.
-3. **Merge to `main`** and cut the tag `extension/vX.Y.Z` from `main`. The privacy
-   policy URL points at `main`, which serves the old policy until the merge.
-4. **Package:** the zip the release workflow attaches to that tag. It is
-   `extension/src` zipped as it is, with no build step, so a reviewer can compare
-   it file by file with the tag. **Use 1.24.0 or later.** 1.23.0 told Firefox that
-   it collects no data, which is wrong.
-5. **Reviewer instance and files** (see "Reviewer notes"): serve
+3. **Merge to `main`.** The privacy policy URL points at `main`, which serves the
+   old policy until the merge.
+4. **Fold the releases into 1.0.0.** The stores get version 1.0.0, so the
+   development releases go first: delete the GitHub releases and the tags
+   `extension/v1.0.0` to `extension/v1.23.0`. Their notes stay in the git history
+   of `.github/release-notes/extension/`. Then push the tag `extension/v1.0.0` on
+   `main`; the release workflow checks it against the manifest (1.0.0) and
+   publishes one release, "Browser Extension 1.0.0", with the folded notes.
+5. **Package:** the zip that release carries. It is `extension/src` zipped as it
+   is, with no build step, so a reviewer can compare it file by file with the tag.
+   Never submit a zip from one of the folded development releases: they told
+   Firefox the extension collects no data, which is wrong.
+6. **Reviewer instance and files** (see "Reviewer notes"): serve
    `test-page/index.html` and `review-walkthrough.mp4` from the reviewer host, then
    fill the placeholders `<TEST_PAGE>`, `<WEBUI_URL>`, `<VIDEO_URL>`, `<PHRASE>`
    and `<WEBUI_PASSWORD>`. The phrase and the password go into the dashboard

@@ -1,7 +1,7 @@
 # Privacy policy: KnightLoader browser extension
 
-Last updated: 17 September 2026. Applies to version 1.24.0 and later, until this
-date changes.
+Last updated: 17 September 2026. Applies to version 1.0.0, the first store
+release, and later, until this date changes.
 
 ## The short version
 
@@ -144,8 +144,8 @@ there is no longer sent anywhere.
   default instance and the browser ID are deleted.
 - **Remove the extension** to delete everything it stored.
 - **Relay data:** the relay holds nothing about you beyond the rate-limit entry
-  described above, which deletes itself within 61 minutes. For any question about it,
-  or to exercise your rights, write to the contact address below.
+  described above, which deletes itself within 61 minutes. For any question
+  about it, or to exercise your rights, write to the contact address below.
 
 ## Who is responsible
 
