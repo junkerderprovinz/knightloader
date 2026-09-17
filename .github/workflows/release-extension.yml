@@ -102,36 +102,14 @@ jobs:
           make_latest: false
           files: ${{ steps.zip.outputs.path }}
 
-      # The README's download button needs a link that stays the same from one
-      # release to the next. GitHub offers that only as /releases/latest/download/
-      # of the product's own latest release, which this is not (see make_latest
-      # above). So the newest zip also goes to one standing release,
-      # extension/latest, as knightloader-extension.zip, and that release's tag
-      # follows it.
-      #
-      # Only from the newest extension tag, so re-cutting an older version
-      # cannot put the older zip behind the button. The checkout above carries
-      # no tags, hence the fetch.
+      # The newest zip also goes to the standing release extension/latest, as
+      # knightloader-extension.zip, which is where the README download button
+      # leads. .github/scripts/publish-newest.sh says why, and why only the
+      # newest tag does it. A pushed tag only: a dispatched run publishes
+      # nothing.
       - name: The newest zip under a fixed name
-        if: github.ref_type == 'tag'
+        if: github.event_name == 'push' && github.ref_type == 'tag'
         env:
           GH_TOKEN: ${{ github.token }}
-          VERSION: ${{ steps.version.outputs.bare }}
           ZIP: ${{ steps.zip.outputs.path }}
-        run: |
-          set -eu
-          git fetch --tags --force --quiet
-          newest=$(git tag -l 'extension/v*.*.*' --sort=-v:refname | head -1)
-          if [ "$newest" != "$GITHUB_REF_NAME" ]; then
-            echo "$GITHUB_REF_NAME is not the newest extension tag ($newest), so extension/latest stays as it is"
-            exit 0
-          fi
-          cp "$ZIP" knightloader-extension.zip
-          notes="The newest browser extension, under a file name that does not change between releases. This is Browser Extension $VERSION: [release notes](https://github.com/$GITHUB_REPOSITORY/releases/tag/$GITHUB_REF_NAME)."
-          if gh release view extension/latest --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh api -X PATCH "repos/$GITHUB_REPOSITORY/git/refs/tags/extension/latest" -f sha="$GITHUB_SHA" -F force=true >/dev/null
-            gh release edit extension/latest --repo "$GITHUB_REPOSITORY" --title "Browser Extension, newest" --notes "$notes" --latest=false
-          else
-            gh release create extension/latest --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "Browser Extension, newest" --notes "$notes" --latest=false
-          fi
-          gh release upload extension/latest knightloader-extension.zip --repo "$GITHUB_REPOSITORY" --clobber
+        run: bash .github/scripts/publish-newest.sh extension "$ZIP" knightloader-extension.zip "Browser Extension"

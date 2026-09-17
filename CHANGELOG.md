@@ -67,8 +67,11 @@ submission and for a fixed download.
   desktop row, then the row below it. Three rows need slightly more than seven
   seconds of travel, so this page's loop is 8.2 seconds, at the house speed and
   with the house pause.
-- **The release workflow can be dispatched from a branch.** It then builds both
-  images for both architectures and pushes neither.
+- **The release workflow can be dispatched.** It then builds both images for
+  both architectures and pushes neither, and releases nothing.
+- **Both images move `latest` only after their build**, from the tags as they
+  stand at that moment. An older tag's build that finishes last can no longer
+  drag `latest` back onto itself.
 
 ## [1.1.3] - 2026-09-16
 

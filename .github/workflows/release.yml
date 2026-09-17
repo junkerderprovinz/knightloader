@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   release:
-    if: github.ref_type == 'tag'
+    if: github.event_name == 'push' && github.ref_type == 'tag'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -41,177 +41,125 @@ jobs:
           body_path: ${{ steps.notes.outputs.path }}
           generate_release_notes: ${{ steps.notes.outputs.path == '' }}
 
-  # The self-hostable relay (Dockerfile.relay, cmd/knightloader-relay).
+  # The two images, one job per image.
   #
-  # It existed as a Dockerfile nothing ever built, which made the escape hatch
-  # the privacy document points at - "run your own relay" - something a person
+  # KnightLoader itself (Dockerfile): for the README's Docker button and for
+  # anybody who wants the container without building it.
+  #
+  # The self-hostable relay (Dockerfile.relay, cmd/knightloader-relay). It
+  # existed as a Dockerfile nothing ever built, which made the escape hatch the
+  # privacy document points at - "run your own relay" - something a person
   # could only take by cloning the repository and building it themselves. The
   # settings page now offers the address field and a copyable run command, and
   # a run command naming an image nobody publishes is worse than no offer at
-  # all.
-  #
-  # Its own image rather than a mode of the main one, for the reasons
+  # all. Its own image rather than a mode of the main one, for the reasons
   # Dockerfile.relay opens with: no yt-dlp, no ffmpeg, no JRE, and no state
   # beyond the current connection list.
   #
-  # Pushed from a tag only, like the release above it. Nothing reaches a public
-  # registry until a tag is cut deliberately; a dispatched run builds and
-  # stops there.
-  relay-image:
-    name: Relay image (amd64 + arm64)
+  # Pushed from a pushed tag only, like the release above. Nothing reaches a
+  # public registry until a tag is cut deliberately; a dispatched run builds
+  # both architectures and stops there, on a tag ref as much as on a branch.
+  images:
+    name: ${{ matrix.name }} image (amd64 + arm64)
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - uses: docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8 # v4
-      - uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4
-
-      - name: Log in to GHCR
-        if: github.ref_type == 'tag'
-        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      # Is the tag being built the newest release in this repository?
-      #
-      # checkout fetches no tags, so they are fetched here rather than assumed.
-      # The comparison is done with `sort -V`, which orders versions instead of
-      # strings, so that v1.10.0 counts as newer than v1.9.0.
-      - name: Is this the newest release tag?
-        id: newest
-        if: github.ref_type == 'tag'
-        run: |
-          git fetch --tags --force --quiet
-          newest=$(git tag -l 'v[0-9]*.[0-9]*.[0-9]*' | sort -V | tail -1)
-          echo "this tag: ${GITHUB_REF_NAME}"
-          echo "newest:   ${newest}"
-          if [ "$newest" = "${GITHUB_REF_NAME}" ]; then
-            echo "is_newest=true" >> "$GITHUB_OUTPUT"
-            echo "-> this build moves :latest"
-          else
-            echo "is_newest=false" >> "$GITHUB_OUTPUT"
-            echo "-> this build leaves :latest where it is"
-          fi
-
-      - name: Docker metadata (tags + labels)
-        id: meta
-        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6
-        with:
-          images: ghcr.io/${{ github.repository }}-relay
-          # `latest` means "the newest released version", and nothing else.
-          #
-          # It carried no condition at all, so every build of this job moved it.
-          # The two conditions guard two opposite accidents. Requiring a tag
-          # build stops unreleased code from reaching everyone who pulls
-          # `latest` before there are release notes to read. Requiring that tag
-          # to be the newest one stops a re-cut of an older version from
-          # dragging `latest` backwards onto it, which is what a bare tag gate
-          # on its own would still allow.
-          #
-          # There is no `edge` counterpart here because this workflow is
-          # tag-triggered only: the tip of the default branch never builds or
-          # pushes the relay image.
-          #
-          # Still sharp on purpose: {{major}} and {{major}}.{{minor}} below are
-          # moved by whichever tag built last, so re-cutting an old version
-          # drags them back with it. That is correct for a normal forward
-          # release and wrong only while backporting, which is rare enough to
-          # sort out by hand.
-          tags: |
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
-            type=raw,value=latest,enable=${{ github.ref_type == 'tag' && steps.newest.outputs.is_newest == 'true' }}
-
-      - name: Build and push
-        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
-        with:
-          context: .
-          file: Dockerfile.relay
-          platforms: linux/amd64,linux/arm64
-          push: ${{ github.ref_type == 'tag' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          build-args: |
-            VERSION=${{ github.ref_name }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          provenance: true
-          sbom: true
-
-  # KnightLoader itself (Dockerfile), for the README's Docker button and for
-  # anybody who wants the container without building it.
-  #
-  # Same rules as the relay image above, and for the same reasons: pushed from a
-  # tag only, `latest` moved only by the newest release tag, and a dispatched
-  # run builds both architectures and pushes nothing.
-  #
-  # COMMIT is passed in because .dockerignore keeps .git out of the build
-  # context, so the toolchain inside the image has no repository to read (see
-  # the Dockerfile). Without it GET /api/health answers an empty commit.
-  image:
-    name: Container image (amd64 + arm64)
-    runs-on: ubuntu-latest
+    # The main image compiles the whole server for arm64 under QEMU.
     timeout-minutes: 60
     permissions:
       contents: read
       packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Container
+            file: Dockerfile
+            image: ghcr.io/junkerderprovinz/knightloader
+          - name: Relay
+            file: Dockerfile.relay
+            image: ghcr.io/junkerderprovinz/knightloader-relay
+    env:
+      PUSH: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8 # v4
       - uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4
 
       - name: Log in to GHCR
-        if: github.ref_type == 'tag'
+        if: env.PUSH == 'true'
         uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Is this the newest release tag?
-        id: newest
-        if: github.ref_type == 'tag'
-        run: |
-          git fetch --tags --force --quiet
-          newest=$(git tag -l 'v[0-9]*.[0-9]*.[0-9]*' | sort -V | tail -1)
-          echo "this tag: ${GITHUB_REF_NAME}"
-          echo "newest:   ${newest}"
-          if [ "$newest" = "${GITHUB_REF_NAME}" ]; then
-            echo "is_newest=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "is_newest=false" >> "$GITHUB_OUTPUT"
-          fi
-
+      # No `latest` here: see the step after the build.
+      #
+      # Still sharp on purpose: {{major}} and {{major}}.{{minor}} below are
+      # moved by whichever tag built last, so re-cutting an old version drags
+      # them back with it. That is correct for a normal forward release and
+      # wrong only while backporting, which is rare enough to sort out by hand.
       - name: Docker metadata (tags + labels)
         id: meta
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6
         with:
-          images: ghcr.io/${{ github.repository }}
+          images: ${{ matrix.image }}
           tags: |
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
-            type=raw,value=latest,enable=${{ github.ref_type == 'tag' && steps.newest.outputs.is_newest == 'true' }}
 
+      # COMMIT is passed because .dockerignore keeps .git out of the build
+      # context, so the toolchain inside the image has no repository to read
+      # (see the Dockerfile); without it GET /api/health answers an empty
+      # commit. The relay declares no COMMIT and ignores it.
       - name: Build and push
         uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
         with:
           context: .
-          file: Dockerfile
+          file: ${{ matrix.file }}
           platforms: linux/amd64,linux/arm64
-          push: ${{ github.ref_type == 'tag' }}
+          push: ${{ env.PUSH == 'true' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             VERSION=${{ github.ref_name }}
             COMMIT=${{ github.sha }}
-          cache-from: type=gha,scope=image
-          cache-to: type=gha,mode=max,scope=image
+          cache-from: type=gha,scope=${{ matrix.name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.name }}
           provenance: true
           sbom: true
+
+      # `latest` means "the newest released version", and nothing else.
+      #
+      # It carried no condition at all once, so every build moved it. Two
+      # conditions guard two opposite accidents. Only a pushed tag moves it,
+      # which stops unreleased code from reaching everyone who pulls `latest`
+      # before there are release notes to read. And only the newest tag moves
+      # it, which stops a re-cut of an older version from dragging `latest`
+      # backwards onto it.
+      #
+      # AFTER the build rather than before, and from tags fetched now. A tag
+      # list read at checkout cannot know about a tag pushed during a
+      # forty-minute arm64 build, and then the older build, finishing last,
+      # would move `latest` back onto itself. Pointing `latest` at the version
+      # just pushed copies the manifest in the registry; nothing is rebuilt.
+      #
+      # checkout fetches no tags, so they are fetched here rather than assumed,
+      # and ordered with `sort -V`, so that v1.10.0 counts as newer than v1.9.0.
+      # Only plain vX.Y.Z tags count.
+      - name: Move latest if this is the newest release tag
+        if: env.PUSH == 'true'
+        env:
+          IMAGE: ${{ matrix.image }}
+        run: |
+          set -eu
+          git fetch --tags --force --quiet
+          newest=$(git tag -l 'v*' | grep -E '^v[0-9]+[.][0-9]+[.][0-9]+$' | sort -V | tail -1)
+          echo "this tag: ${GITHUB_REF_NAME}"
+          echo "newest:   ${newest}"
+          if [ "$newest" != "${GITHUB_REF_NAME}" ]; then
+            echo "-> latest stays where it is"
+            exit 0
+          fi
+          docker buildx imagetools create --tag "${IMAGE}:latest" "${IMAGE}:${GITHUB_REF_NAME#v}"
+          echo "-> ${IMAGE}:latest is ${GITHUB_REF_NAME#v}"
