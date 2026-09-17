@@ -11,15 +11,21 @@
  * two-tone tile that runs to the edge. A store renders its own card around the
  * icon and asks for transparent padding instead.
  *
- * Same machinery as .github/assets/gen-banner.mjs: text becomes SVG paths
- * (opentype.js), so rendering needs no installed font. Bree Serif for the name,
- * Lato for the line under it.
+ * Bree Serif for the name, Lato for the line under it, both fetched to the OS
+ * temp dir and handed to resvg as font files, so rendering needs no installed
+ * font. opentype.js only MEASURES the text, for the layout.
+ *
+ * The text is real SVG <text>, set by resvg, and NOT glyph outlines turned into
+ * paths the way .github/assets/gen-banner.mjs does it. Outlines drew broken
+ * letters here, depending on where a line landed: a caption rendered as one
+ * path stopped 296 px in, and as one path per glyph it still drew the first
+ * "n" of "Connect" as a stub. The same strings set as <text> come out whole.
  *
  * No browser is named anywhere in these images. Edge's policy 1.1.2 rejects a
  * listing that references another browser, and one set of images serves all
  * three stores.
  *
- * Deps (global): opentype.js, @resvg/resvg-js. Fonts are fetched to the OS temp dir.
+ * Deps (global): opentype.js, @resvg/resvg-js.
  * Run: node extension/store/gen-store-assets.mjs
  */
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
@@ -40,17 +46,20 @@ const NAME = "KnightLoader";
 const LINE = "Send links to your own download manager";
 const BG = "#0d1117", NAME_FILL = "#e6edf3", LINE_FILL = "#9aa4ad";
 
-async function loadFont(file, url) {
+async function fontFile(file, url) {
   const path = join(tmpdir(), file);
   if (!existsSync(path)) {
     const res = await fetch(url);
     if (!res.ok) throw new Error(`${file}: font fetch ${res.status}`);
     writeFileSync(path, Buffer.from(await res.arrayBuffer()));
   }
-  return opentype.parse(readFileSync(path));
+  return path;
 }
-const nameFont = await loadFont("KnightLoader-BreeSerif-Regular.ttf", "https://github.com/google/fonts/raw/main/ofl/breeserif/BreeSerif-Regular.ttf");
-const lineFont = await loadFont("KnightLoader-Lato-Regular.ttf", "https://github.com/google/fonts/raw/main/ofl/lato/Lato-Regular.ttf");
+const nameFile = await fontFile("KnightLoader-BreeSerif-Regular.ttf", "https://github.com/google/fonts/raw/main/ofl/breeserif/BreeSerif-Regular.ttf");
+const lineFile = await fontFile("KnightLoader-Lato-Regular.ttf", "https://github.com/google/fonts/raw/main/ofl/lato/Lato-Regular.ttf");
+const nameFont = opentype.parse(readFileSync(nameFile));
+const lineFont = opentype.parse(readFileSync(lineFile));
+const FONTS = { fontFiles: [nameFile, lineFile], loadSystemFonts: false, defaultFontFamily: "Lato" };
 
 const logoRaw = readFileSync(LOGO, "utf8").replace(/<\?xml[^>]*\?>\s*/, "");
 const [, , , vbW, vbH] = logoRaw.match(/viewBox="([\d.\-]+)\s+([\d.\-]+)\s+([\d.]+)\s+([\d.]+)"/).map(Number);
@@ -67,7 +76,7 @@ function logo(x, y, w, h) {
 
 function emit(file, w, h, body, background) {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">${body}</svg>`;
-  const opts = { fitTo: { mode: "width", value: w } };
+  const opts = { fitTo: { mode: "width", value: w }, font: FONTS };
   if (background) opts.background = background;
   writeFileSync(join(__dir, file), new Resvg(svg, opts).render().asPng());
   console.log(`wrote ${file} (${w}x${h})`);
@@ -91,8 +100,8 @@ function tile(file, w, h, logoH, nameSize, lineSize, gap) {
   if (groupW > w * 0.94) throw new Error(`${file}: text does not fit (${groupW.toFixed(0)} of ${w})`);
   emit(file, w, h, `<rect width="${w}" height="${h}" fill="${BG}"/>
     ${logo(x0, (h - logoH) / 2, logoW, logoH)}
-    <path d="${nameFont.getPath(NAME, textX, nameBase, nameSize).toPathData(2)}" fill="${NAME_FILL}"/>
-    <path d="${lineFont.getPath(LINE, textX, lineBase, lineSize).toPathData(2)}" fill="${LINE_FILL}"/>`, BG);
+    <text x="${textX.toFixed(2)}" y="${nameBase.toFixed(2)}" font-family="Bree Serif" font-size="${nameSize}" fill="${NAME_FILL}">${NAME}</text>
+    <text x="${textX.toFixed(2)}" y="${lineBase.toFixed(2)}" font-family="Lato" font-size="${lineSize}" fill="${LINE_FILL}">${LINE}</text>`, BG);
 }
 
 emit("store-icon-128.png", 128, 128, logo(16, 16, 96, 96));
