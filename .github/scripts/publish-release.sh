@@ -69,3 +69,9 @@ gh release create "$tag" \
   --latest="$latest" \
   "$@"
 echo "published $tag with $# files, latest=$latest"
+
+# Handed on, so the job that moves the image tag does not decide this a second
+# time and the two answers cannot drift apart.
+if [ -n "${GITHUB_OUTPUT:-}" ]; then
+  echo "latest=$latest" >> "$GITHUB_OUTPUT"
+fi
