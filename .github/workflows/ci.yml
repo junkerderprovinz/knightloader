@@ -746,7 +746,8 @@ jobs:
   # Compile-only on purpose. A real Wails build needs GTK/WebKit system
   # packages and produces an artifact nobody consumes on a normal push; what
   # actually goes wrong here is a type error against the main module, and
-  # `go build` catches that in seconds. desktop.yml still owns real packaging.
+  # `go build` catches that in seconds. desktop.yml, called by release.yml,
+  # still owns real packaging.
   #
   # webkit2_41 matches desktop.yml's own build tag: Wails binds
   # webkit2gtk-4.0 by default and Ubuntu 24.04 only ships 4.1, which is the

@@ -140,10 +140,33 @@ jobs:
           go mod tidy
           wails build -platform ${{ matrix.platform }} -clean ${{ matrix.extra }}
 
+      # ZIPPED HERE, ON THE RUNNER THAT BUILT IT. An artifact does not keep file
+      # modes: the bundle came back from upload-artifact without its execute
+      # bits and was zipped that way afterwards, so the published Linux and
+      # macOS zips held `KnightLoader` and `KnightLoader.app/Contents/MacOS/
+      # KnightLoader` as mode 644 (checked on v1.1.4 and v1.1.5), a program that
+      # does not start after unzipping. Zipped where the build left it, the
+      # modes are still right, and the artifact carries the zip unchanged.
+      #
+      # Same layout as before: the contents of build/bin at the root of the zip,
+      # which is what internal/update extracts. -y keeps a symlink inside the
+      # .app a symlink. Windows has no execute bit to lose, and Compress-Archive
+      # is the zip that runner is sure to have.
+      - name: Zip the bundle
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          cd desktop/build/bin
+          zip -qry "$GITHUB_WORKSPACE/knightloader-${{ matrix.slug }}.zip" .
+      - name: Zip the bundle
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: Compress-Archive -Path desktop/build/bin/* -DestinationPath "knightloader-${{ matrix.slug }}.zip"
+
       # Named by the slug, not the platform string: "windows/amd64" contains a
       # slash, which artifact names and release assets both take badly.
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: knightloader-${{ matrix.slug }}
-          path: desktop/build/bin/*
+          path: knightloader-${{ matrix.slug }}.zip
           if-no-files-found: error
