@@ -157,6 +157,12 @@ jobs:
     permissions:
       contents: write
     steps:
+      # Only the publishing script and its list, and before the download:
+      # checkout empties the workspace it lands in.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          sparse-checkout: .github/scripts
+
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           path: bundles
@@ -200,10 +206,11 @@ jobs:
           (cd dist && sha256sum *.zip > checksums.txt)
           cat dist/checksums.txt
 
-      # The release is created by release.yml on the same tag, and these builds
-      # take twenty minutes longer than it does — but a runner queue can invert
-      # that, and uploading to a release that does not exist yet fails outright.
-      # So wait for it rather than racing it.
+      # The release is created by release.yml on the same tag, as a draft, and
+      # these builds take twenty minutes longer than it does — but a runner
+      # queue can invert that, and uploading to a release that does not exist
+      # yet fails outright. So wait for it rather than racing it. gh finds a
+      # draft by its tag as well.
       - name: Wait for the release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -229,3 +236,12 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh release upload "$GITHUB_REF_NAME" dist/*.zip dist/checksums.txt --clobber --repo "$GITHUB_REPOSITORY"
+
+      # The release goes public only now, with every file the download buttons
+      # and internal/update ask for already on it. Until then the buttons keep
+      # serving the previous release instead of answering 404. The list is
+      # .github/scripts/release-assets.txt.
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash .github/scripts/publish-when-complete.sh
