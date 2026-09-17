@@ -9,15 +9,16 @@ directory, because that is how the ref name reads:
 | `mobile/v1.0.0` | `mobile/v1.0.0.md` |
 | `extension/v1.2.0` | `extension/v1.2.0.md` |
 
-The three behave differently on a missing file, on purpose. KnightLoader's own
-release falls back to generated notes; the app and the extension **stop**
-instead. `softprops/action-gh-release` swallows an unreadable `body_path` and
-publishes an empty release with only a warning in the log - after a
-three-quarter-hour APK build that is quieter than a failure and just as wrong,
-so those two workflows check for the file first.
+All three **stop** on a missing file. `softprops/action-gh-release` swallows an
+unreadable `body_path` and publishes an empty release with only a warning in the
+log - after a three-quarter-hour APK build that is quieter than a failure and
+just as wrong, so the app and extension workflows check for the file first.
+KnightLoader's own release used to fall back to generated notes and no longer
+does: a generated list of commit subjects is exactly what these files replace.
 
-`release.yml` publishes the matching file as the release body when a `v*.*.*`
-tag is pushed, and falls back to generated notes only when the file is missing.
+For a `v*.*.*` tag, `release.yml` checks for the file first, runs the desktop
+build, and only then creates the release, with this file as its body and the
+zips attached in the same step. A release is never public without its downloads.
 
 Two rules, both because the GitHub release title already carries the name and
 version:

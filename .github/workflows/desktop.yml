@@ -1,12 +1,13 @@
 name: desktop
 
-# Builds the native desktop bundles (Windows/macOS/Linux) with Wails. Manual /
-# tag-triggered because desktop packaging is a release step, separate from the
-# always-on server build.
+# Builds the native desktop bundles (Windows/macOS/Linux) with Wails and keeps
+# them as artifacts. Manual, or called by release.yml on a release tag, because
+# desktop packaging is a release step, separate from the always-on server build.
+# It attaches nothing itself: release.yml creates the release with the zips once
+# this is done, so a release is never public without its downloads.
 on:
   workflow_dispatch:
-  push:
-    tags: ["v*.*.*"]
+  workflow_call:
 
 permissions:
   contents: read
@@ -146,102 +147,3 @@ jobs:
           name: knightloader-${{ matrix.slug }}
           path: desktop/build/bin/*
           if-no-files-found: error
-
-  # Without this job the bundles are built on every tag and then thrown away
-  # when the artifact expires: green CI, and nobody outside Actions can download
-  # the desktop app at all. This attaches them to the release the tag creates.
-  attach:
-    needs: build
-    if: startsWith(github.ref, 'refs/tags/v')
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      # Only the publishing script and its list, and before the download:
-      # checkout empties the workspace it lands in.
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          sparse-checkout: .github/scripts
-
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
-        with:
-          path: bundles
-
-      # One archive per platform, named for the tag, so a download sitting in
-      # somebody's folder still says which version it is.
-      #
-      # And a second copy of each under a name with no version in it, for the
-      # README's download buttons. GitHub serves the newest release's asset from
-      # /releases/latest/download/<exact name>, with no pattern and no wildcard,
-      # so a name carrying the version could only ever be linked for the one
-      # release it belongs to. internal/update keeps asking for the versioned
-      # name, which stays.
-      - name: Package
-        run: |
-          set -eu
-          mkdir -p dist
-          for d in bundles/knightloader-*; do
-            [ -d "$d" ] || continue
-            slug="${d#bundles/knightloader-}"
-            (cd "$d" && zip -qr "../../dist/knightloader-${GITHUB_REF_NAME}-${slug}.zip" .)
-            cp "dist/knightloader-${GITHUB_REF_NAME}-${slug}.zip" "dist/knightloader-${slug}.zip"
-          done
-          ls -lh dist
-
-      # sha256 alongside each zip so a download can be checked against what
-      # this pipeline actually produced, not just trusted because it arrived
-      # over TLS from a real GitHub asset host - internal/update's Download
-      # (see that package's own doc comment) fetches this file next to the
-      # platform zip and refuses to hand the download to Apply if the digest
-      # does not match. Run from inside dist/ so the entries in the file are
-      # bare filenames with no "dist/" prefix: that is what lets Download
-      # match an entry by the same asset name it already downloaded under,
-      # and what lets a human run `sha256sum -c checksums.txt` by hand from
-      # inside a folder holding just the downloaded zip and this file. The copies
-      # without a version are listed too, so a zip taken from a README button
-      # can be checked the same way.
-      - name: Checksums
-        run: |
-          set -eu
-          (cd dist && sha256sum *.zip > checksums.txt)
-          cat dist/checksums.txt
-
-      # The release is created by release.yml on the same tag, as a draft, and
-      # these builds take twenty minutes longer than it does — but a runner
-      # queue can invert that, and uploading to a release that does not exist
-      # yet fails outright. So wait for it rather than racing it. gh finds a
-      # draft by its tag as well.
-      - name: Wait for the release
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -eu
-          for i in $(seq 1 30); do
-            if gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-              echo "release $GITHUB_REF_NAME is there"
-              exit 0
-            fi
-            echo "waiting for release $GITHUB_REF_NAME ($i/30)"
-            sleep 20
-          done
-          echo "release $GITHUB_REF_NAME never appeared; is release.yml failing?" >&2
-          exit 1
-
-      # dist/checksums.txt is listed alongside the zip glob explicitly rather
-      # than widened into it (a `dist/*` glob would also happily sweep up
-      # anything else that ever lands in dist/) - it does not match
-      # `dist/*.zip` on its own, so without this it would silently never
-      # reach the release at all.
-      - name: Attach the bundles
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh release upload "$GITHUB_REF_NAME" dist/*.zip dist/checksums.txt --clobber --repo "$GITHUB_REPOSITORY"
-
-      # The release goes public only now, with every file the download buttons
-      # and internal/update ask for already on it. Until then the buttons keep
-      # serving the previous release instead of answering 404. The list is
-      # .github/scripts/release-assets.txt.
-      - name: Publish the release
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: bash .github/scripts/publish-when-complete.sh
