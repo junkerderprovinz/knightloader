@@ -440,8 +440,10 @@ sendBtn.addEventListener('click', async () => {
  * on the line after sendMessage, and whenever the worker was asleep - the normal
  * state half a minute after anything last happened - the worker had not started
  * by the time the window was gone, and the send vanished with no badge and
- * nothing at the instance. Measured 2026-09-17 on the same press, page and
- * instance: worker asleep, the instance's tasks went 0 -> 0; awake, 0 -> 1.
+ * nothing at the instance. Measured 2026-09-17 with the worker asleep before
+ * every trial and nothing attached to it, an extension page sending a unique
+ * link to one instance: send and close at once, 0 of 3 arrived; wait for the
+ * reply and then close, 3 of 3.
  * The worker answers straight away (see its onMessage listener), so this waits
  * for a start-up and a reply, never for the relay.
  */

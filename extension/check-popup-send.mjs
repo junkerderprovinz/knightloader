@@ -19,9 +19,10 @@
  * The hand-over. popup.js sent its message and closed on the next line. When
  * the service worker was asleep, the normal state half a minute after anything
  * last happened, the worker had not started by the time the window was gone and
- * the send vanished: no badge, nothing at the instance. Measured on the same
- * press, same page, same instance: worker asleep, tasks 0 -> 0; worker awake,
- * 0 -> 1. So:
+ * the send vanished: no badge, nothing at the instance. Measured with the
+ * worker asleep before every trial and nothing attached to it: send and close
+ * at once, 0 of 3 unique links arrived; wait for the reply and then close,
+ * 3 of 3. So:
  *
  *   4. popup.js never calls window.close() in a send path except through
  *      handOver(), which awaits the message first.
