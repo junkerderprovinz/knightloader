@@ -22,9 +22,12 @@ Do these in order. The stores compare the dashboard answers with the privacy
 policy at its URL and with what the extension does, so nothing below may be
 skipped or reordered.
 
-1. **Fill in the operator** in `extension/PRIVACY.md` ("Who is responsible"): the
-   placeholders `<OPERATOR NAME>` and `<POSTAL ADDRESS>`. Accept Hetzner's data
-   processing agreement in the Hetzner Cloud console if that has not been done.
+1. **The operator** is named in `extension/PRIVACY.md` ("Who is responsible"),
+   with the contact address and no postal address: Art. 13 GDPR asks for the
+   controller's identity and contact details, and a street address is not among
+   them. Add one if a supervisory authority or a store ever asks for it. Accept
+   Hetzner's data processing agreement in the Hetzner Cloud console if that has
+   not been done.
 2. **Deploy the relay** built from the same commit to `relay.halleluja.design`.
    The policy describes the running relay: rate-limit entries deleted within 61
    minutes, no IP addresses in its log. Older relay builds do neither, and what

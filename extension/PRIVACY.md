@@ -1,6 +1,6 @@
 # Privacy policy: KnightLoader browser extension
 
-Last updated: 17 September 2026. Applies to version 1.0.0, the first store
+Last updated: 18 September 2026. Applies to version 1.0.0, the first store
 release, and later, until this date changes.
 
 ## The short version
@@ -163,8 +163,7 @@ there is no longer sent anywhere.
 
 The relay and this policy are the responsibility of:
 
-<OPERATOR NAME>
-<POSTAL ADDRESS>
+Georg Düringer (Halleluja Design)
 privacy@halleluja.design
 
 The relay runs on a server rented from Hetzner Online GmbH, Germany, which
