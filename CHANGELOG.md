@@ -51,6 +51,19 @@ submission and for a fixed download.
   older one does not pull the badge, the buttons and the update check back.
 - **A tag without release notes stops before the builds** instead of publishing
   a generated list of commit subjects, the same as the app and the extension.
+- **`latest` on both images moves only after the GitHub release is out**, by the
+  same rule as the "Latest" badge, so the badge, the download buttons and
+  `docker pull …:latest` always name the same version. The image jobs also
+  wait for the notes check now.
+
+### Fixed
+
+- **The Linux and macOS desktop zips hold a program that runs.** The bundles
+  went through a build artifact before they were zipped, and an artifact drops
+  file modes, so `KnightLoader` on Linux and the executable inside
+  `KnightLoader.app` on macOS came out as mode 644 (checked on v1.1.4 and
+  v1.1.5). They are zipped on the machine that built them now, where the modes
+  are still right.
 
 ## [1.1.5] - 2026-09-17
 
