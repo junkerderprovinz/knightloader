@@ -146,9 +146,9 @@ jobs:
   # beyond the current connection list.
   #
   # Pushed from a pushed tag only, and only after the notes check, like the
-  # release. A dispatched run builds both architectures and stops there. The
-  # version tags go up with the build; `latest` waits for the release, see
-  # image-latest below.
+  # release. A dispatched run builds both architectures and stops there. Only
+  # the exact version goes up with the build; the moving tags wait for the
+  # release, see image-latest below.
   images:
     needs: notes
     name: ${{ matrix.name }} image (amd64 + arm64)
@@ -183,12 +183,8 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # No `latest` here: see image-latest.
-      #
-      # Still sharp on purpose: {{major}} and {{major}}.{{minor}} below are
-      # moved by whichever tag built last, so re-cutting an old version drags
-      # them back with it. That is correct for a normal forward release and
-      # wrong only while backporting, which is rare enough to sort out by hand.
+      # No moving tag here at all: `latest`, `1.1` and `1` are set by
+      # image-latest, once the release exists and only for the newest one.
       - name: Docker metadata (tags + labels)
         id: meta
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6
@@ -200,10 +196,12 @@ jobs:
           # `latest` half an hour before the release existed, and image-latest
           # below only corrected it afterwards.
           flavor: latest=false
+          # The exact version only. `1.1` and `1` follow the release, like
+          # `latest`, and image-latest moves all three together: pushed here
+          # they would name an unreleased build for as long as a release takes,
+          # and keep naming it if that release never came.
           tags: |
             type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
 
       # COMMIT is passed because .dockerignore keeps .git out of the build
       # context, so the toolchain inside the image has no repository to read
@@ -238,8 +236,8 @@ jobs:
   # manifest in the registry; nothing is rebuilt, and imagetools needs no
   # builder for it.
   image-latest:
-    needs: [images, publish]
-    if: needs.publish.outputs.latest == 'true'
+    needs: publish
+    if: github.event_name == 'push' && github.ref_type == 'tag'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -259,10 +257,26 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Move latest to this release
+      - name: Move the floating tags to this release
         env:
           IMAGE: ${{ matrix.image }}
+          LATEST: ${{ needs.publish.outputs.latest }}
         run: |
           set -eu
-          docker buildx imagetools create --tag "${IMAGE}:latest" "${IMAGE}:${GITHUB_REF_NAME#v}"
-          echo "${IMAGE}:latest is ${GITHUB_REF_NAME#v}"
+          # An ANSWER, not a guess: publish-release.sh decided this and handed
+          # it on. Empty means it never said, and a silent skip would leave the
+          # badge on this version while the image tags stay on the last one,
+          # green all the way.
+          case "$LATEST" in
+            true) ;;
+            false) echo "the release is not the newest one, so the tags stay where they are"; exit 0 ;;
+            *) echo "::error::publish did not say whether $GITHUB_REF_NAME is the latest release, so the image tags are not moved blindly."; exit 1 ;;
+          esac
+          version="${GITHUB_REF_NAME#v}"
+          # The tag the build pushed, checked rather than assumed: the build
+          # derives it from the ref through metadata-action, this job by
+          # stripping the v, and a tag those two spell differently would fail
+          # here after the release is already public.
+          docker buildx imagetools inspect "${IMAGE}:${version}" > /dev/null
+          docker buildx imagetools create             --tag "${IMAGE}:latest"             --tag "${IMAGE}:${version%.*}"             --tag "${IMAGE}:${version%%.*}"             "${IMAGE}:${version}"
+          echo "${IMAGE}: latest, ${version%.*} and ${version%%.*} are ${version}"
