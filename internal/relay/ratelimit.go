@@ -38,12 +38,19 @@ const (
 	// Ten in ten minutes is not a person.
 	failsBeforeBlock = 10
 
-	// baseBlock is the first refusal window, doubling with each further
-	// failure while blocked. Deliberately short at the start - an address
-	// that trips this once may be a person on a bad script, and a minute
-	// costs them nothing while a persistent caller reaches maxBlock fast.
+	// baseBlock is the first refusal window. It doubles with each further
+	// failure during a block or within failWindow of its end - the second case
+	// is the one a single caller hits, since a blocked address is refused before
+	// its handshake can fail again. Deliberately short at the start - an
+	// address that trips this once may be a person on a bad script, and a
+	// minute costs them nothing while a persistent caller reaches maxBlock
+	// after six blocks.
+	//
+	// maxBlock is 50 minutes rather than an hour so a record still runs out
+	// within the 61 minutes the privacy policy states: maxBlock + failWindow,
+	// plus sweepEvery for the sweep to find it.
 	baseBlock = 1 * time.Minute
-	maxBlock  = 1 * time.Hour
+	maxBlock  = 50 * time.Minute
 
 	// maxTrackedAddrs bounds the limiter's own memory, so the mechanism
 	// meant to stop resource exhaustion cannot become the thing causing it.
@@ -99,10 +106,12 @@ func (l *limiter) blocked(addr string) bool {
 // Without it a record lived until that same address completed a handshake,
 // the map filled up, or the process restarted - so a scanner that failed once
 // stayed in memory for the life of the relay, while the privacy policy said an
-// hour. With it, a record runs out no later than maxBlock (one hour) after the
-// address's last failed attempt - failWindow is shorter than that, and a block
-// never outlasts maxBlock - and is deleted by the next sweep, so within
-// maxBlock + sweepEvery (61 minutes). The privacy policy states that figure.
+// hour. With it, a record runs out failWindow after the address was last
+// active - its last failed attempt or the end of its block, whichever is later.
+// A block never ends more than maxBlock after the failure that set it, so the
+// record runs out no later than maxBlock + failWindow (60 minutes) after the
+// last failed attempt and is deleted by the next sweep, within 61 minutes. The
+// privacy policy states that figure, and ratelimit_test.go holds it.
 //
 // Called from the request path at most once per sweepEvery, and on a timer by
 // the public relay (cmd/knightloader-relay), so a relay that goes quiet
@@ -123,7 +132,7 @@ func (l *limiter) maybeSweepLocked(now time.Time) {
 func (l *limiter) sweepLocked(now time.Time) {
 	l.lastSweep = now
 	for k, a := range l.addrs {
-		if now.Sub(a.last) > failWindow && !now.Before(a.blockedUntil) {
+		if now.Sub(lastActive(a)) > failWindow {
 			delete(l.addrs, k)
 		}
 	}
@@ -152,8 +161,11 @@ func (l *limiter) fail(addr string) {
 	}
 	// A gap longer than the window means the previous failures have aged
 	// out; start the count again rather than letting an address accumulate
-	// one failure a day into a block.
-	if !a.last.IsZero() && now.Sub(a.last) > failWindow {
+	// one failure a day into a block. The gap is counted from the end of a
+	// block, not from the failure that set it: a 16-minute block outlasts
+	// failWindow, and counting from the failure reset the backoff for every
+	// caller that simply waited the block out.
+	if !a.last.IsZero() && now.Sub(lastActive(a)) > failWindow {
 		a.fails = 0
 		a.blockFor = 0
 	}
@@ -184,7 +196,17 @@ func (l *limiter) succeed(addr string) {
 	delete(l.addrs, addr)
 }
 
-// evictIfFullLocked drops the least recently active record to make room.
+// lastActive is when an address last did something the limiter still holds
+// against it: its last failure, or the end of its block if that is later.
+func lastActive(a *attempts) time.Time {
+	if a.blockedUntil.After(a.last) {
+		return a.blockedUntil
+	}
+	return a.last
+}
+
+// evictIfFullLocked drops the least recently active record to make room, so a
+// full map gives up an address whose block is still running last.
 // Called with the lock held.
 func (l *limiter) evictIfFullLocked() {
 	if len(l.addrs) < maxTrackedAddrs {
@@ -193,8 +215,8 @@ func (l *limiter) evictIfFullLocked() {
 	var oldestKey string
 	var oldest time.Time
 	for k, a := range l.addrs {
-		if oldestKey == "" || a.last.Before(oldest) {
-			oldestKey, oldest = k, a.last
+		if t := lastActive(a); oldestKey == "" || t.Before(oldest) {
+			oldestKey, oldest = k, t
 		}
 	}
 	delete(l.addrs, oldestKey)

@@ -33,8 +33,11 @@ profile. We back none of it up, and removing the extension removes all of it.
   follow an instance's appearance, and, while you follow one, a copy of your own
   appearance settings so they can be restored.
 
-While a send waits for you to pick an instance, the link, its title and the list
-of your instances are held in the browser's session storage. The popup deletes
+While a send waits in the popup, for you to pick an instance or for the
+Click'n'Load countdown, it is held in the browser's session storage: what is being
+sent (the link, image address, selected text or page address with the page title,
+or the links and package name of a caught Click'n'Load button), which instance is
+the default, and the list of your instances with their names. The popup deletes
 that entry as soon as it reads it, and the browser clears session storage when it
 closes.
 
@@ -52,14 +55,17 @@ to it carries:
   relay needs for routing.
 - Encrypted messages (AES-GCM, with a second key derived from your phrase that the
   relay never receives). The relay cannot read their content, which includes the
-  links you send and the names of your instances.
+  links you send and the names of your instances. An instance still on
+  KnightLoader 1.0.0 is the exception: it sends its own name unencrypted, which
+  version 1.1.0 and later no longer do.
 - Your IP address, as with any connection on the internet.
 
 The relay keeps no record of who connects or what they send, and its error log
 never contains IP addresses. The one exception is a connection that fails the
-relay's own handshake, for example with a mistyped phrase: its IP address is held
-in memory to slow down repeated failures, and deleted within 61 minutes of that
-address's last failed attempt.
+relay's own handshake, for example one that closes or stalls before it identifies
+itself (a scanner, or a popup closed while it was connecting): its IP address is
+held in memory to slow down repeated failures, and deleted within 61 minutes of
+that address's last failed attempt.
 
 ### To your own instances
 
@@ -72,8 +78,9 @@ These travel through the relay, and only your instances can read them:
   button's submission, and the package name the site gave or else the page title.
 - When you use the popup's link collector: the links found in text you paste or
   drop there, or in files you pick or drop there. The browser reads a file
-  locally; only the links it contains are sent, never the file, under the fixed
-  package name "From the browser".
+  locally; only the links it contains are sent, never the file, under a fixed
+  package name ("From the browser", in the extension's language) rather than a
+  page title.
 - While the popup or options page is open: requests for your instances' queue
   status and web addresses, a request to pause or resume a queue when you press
   that button, and a request for an instance's appearance settings if you chose to
@@ -95,9 +102,10 @@ websites when you install it.
 While Click'n'Load is on:
 
 - The script checks where the page is about to send something: fetch,
-  XMLHttpRequest, form submissions, beacons, window.open (and the same calls
-  inside windows the page opens itself), clicks on links, and addresses given to
-  iframe, image and script elements. Anything aimed at `127.0.0.1:9666` or
+  XMLHttpRequest, form submissions, beacons, window.open, clicks on links, and
+  addresses given to iframe, image and script elements. In a window the page opens
+  on its own site, it also checks fetch, XMLHttpRequest and form submissions.
+  Anything aimed at `127.0.0.1:9666` or
   `localhost:9666` is stopped, its link list is handed to the extension, and the
   page is told it succeeded. Everything else is passed on unchanged, and nothing
   about it is kept or sent.
@@ -143,9 +151,13 @@ there is no longer sent anywhere.
 - **Leave the group** with the bin button next to the phrase: the phrase, the
   default instance and the browser ID are deleted.
 - **Remove the extension** to delete everything it stored.
-- **Relay data:** the relay holds nothing about you beyond the rate-limit entry
-  described above, which deletes itself within 61 minutes. For any question
-  about it, or to exercise your rights, write to the contact address below.
+- **Relay data:** while a connection is open, the relay holds what it needs to
+  route it (your IP address, the group key, your browser ID and the encrypted
+  messages passing through) and drops all of it when the connection closes.
+  Beyond that it holds nothing about you except the rate-limit entry described
+  above, which is deleted within 61 minutes of that address's last failed
+  attempt. For any question about it, or to exercise your rights, write to the
+  contact address below.
 
 ## Who is responsible
 
@@ -162,8 +174,8 @@ Under the EU General Data Protection Regulation, forwarding your messages rests 
 Art. 6(1)(b), because it is the service you use the extension for, and the
 short-lived rate-limit entry rests on Art. 6(1)(f), our interest in keeping the
 relay available. You have the right to access, correct and delete your data, to
-restrict or object to its processing, and to complain to a data protection
-supervisory authority.
+restrict or object to its processing, to receive it in a portable format, and to
+complain to a data protection supervisory authority.
 
 ## Children
 

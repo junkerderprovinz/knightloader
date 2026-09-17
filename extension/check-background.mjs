@@ -15,9 +15,9 @@
  *      too. Only the content scripts were unregistered, so the static
  *      declarativeNetRequest ruleset kept answering sites' probes with code
  *      from this extension. The ruleset has to follow the switch both ways,
- *      even when the scripting call fails, and the state has to be written
- *      again on every sync because a ruleset's enabled state does not survive
- *      an extension update.
+ *      even when the scripting call fails, and an update and a browser start
+ *      have to write the stored state again, because a ruleset's enabled state
+ *      does not survive an extension update.
  *   3. Leaving the group removes the random browser ID as well, so a browser
  *      that joins another group is not the same member to the relay.
  */
@@ -140,6 +140,25 @@ for (const scriptingThrows of [false, true]) {
   }
 }
 
+// 2b. An update and a browser start write the stored state again. Chrome resets
+//     a static ruleset to its manifest default on every update, so without this
+//     somebody who switched Click'n'Load off gets the redirect back.
+for (const stored of [false, undefined]) {
+  for (const path of ['update', 'startup']) {
+    const { chrome, calls, store } = makeChrome({ withMenus: true });
+    if (stored !== undefined) store.cnlEnabled = stored;
+    const { error } = load(chrome);
+    if (error) { fail(error); continue; }
+    if (path === 'update') for (const f of chrome.runtime.onInstalled.listeners) await f({ reason: 'update' });
+    else for (const f of chrome.runtime.onStartup.listeners) f();
+    await new Promise((r) => setTimeout(r, 0)); // onStartup returns no promise
+    const want = stored === false ? 'disableRulesetIds' : 'enableRulesetIds';
+    const other = stored === false ? 'enableRulesetIds' : 'disableRulesetIds';
+    const has = (k) => calls.dnr.some((o) => Array.isArray(o[k]) && o[k].includes('cnl'));
+    if (!has(want) || has(other)) fail(`on ${path} with cnlEnabled ${stored === undefined ? 'not stored' : stored} the 'cnl' ruleset was not ${stored === false ? 'disabled' : 'enabled'}`);
+  }
+}
+
 // 3. Leaving forgets the browser ID.
 {
   const { chrome, calls } = makeChrome({ withMenus: true });
@@ -157,4 +176,4 @@ if (problems.length) {
   for (const p of problems) console.error(`✗ ${p}`);
   process.exit(1);
 }
-console.log('ok: background survives without context menus, the jdcheck ruleset follows the switch, leaving forgets the browser id');
+console.log('ok: background survives without context menus, the jdcheck ruleset follows the switch and every update and start re-applies it, leaving forgets the browser id');

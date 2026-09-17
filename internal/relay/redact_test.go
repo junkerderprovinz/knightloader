@@ -21,6 +21,12 @@ func TestRedactAddrsHidesAddressesAndKeepsTheMessage(t *testing.T) {
 		{"http2: server: error reading preface from client 203.0.113.9:40000: bogus greeting\n",
 			"http2: server: error reading preface from client [address]: bogus greeting\n"},
 		{"http: panic serving [::1]:8080: boom\n", "http: panic serving [address]: boom\n"},
+		// A link-local peer carries its interface name as the zone, which is
+		// how net.TCPAddr prints it for a self-hosted relay on the local link.
+		{"http: TLS handshake error from [fe80::1%eth0]:443: EOF\n",
+			"http: TLS handshake error from [address]: EOF\n"},
+		{"read tcp [2a01:4f8::1]:443->[fe80::7%enp3s0]:5555: reset\n",
+			"read tcp [address]->[address]: reset\n"},
 		{"dial 192.0.2.1 failed\n", "dial [address] failed\n"},
 		// What must survive: a certificate failure is only ever reported
 		// through this log, and hiding it would surface as an expired

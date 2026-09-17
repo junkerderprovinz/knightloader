@@ -86,8 +86,8 @@ and it must never end up in a package.
 
 `cnl-main.js` runs in the page's MAIN world and takes over every way such a
 button reaches the port: `fetch`, `XHR`, `HTMLFormElement.submit` and a
-capture-phase `submit` listener, `navigator.sendBeacon`, `window.open` (and the
-same hooks inside same-origin windows it opens), the `src` setter of iframe,
+capture-phase `submit` listener, `navigator.sendBeacon`, `window.open` (and,
+inside same-origin windows it opens, the fetch, XHR and form hooks), the `src` setter of iframe,
 image and script elements, and a capture-phase click on plain links. It then
 decodes the payload (`cnl.js`: AES-128-CBC, key equals IV,
 key from `jk`, and both zero and PKCS#7 padding, because both occur in the

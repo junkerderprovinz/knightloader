@@ -7,10 +7,12 @@ import (
 
 // addrPattern matches the two shapes a client address takes in the standard
 // library's server log lines: an IPv4 address, and an IPv6 address in
-// brackets, each with or without a port. Bare IPv6 without brackets is left
+// brackets, each with or without a port. The bracketed form may carry a zone,
+// which for a link-local peer is the interface name ([fe80::1%eth0]), so the
+// zone is any text up to the bracket. Bare IPv6 without brackets is left
 // alone on purpose: net/http always brackets it, and a looser pattern would
 // eat timestamps like 12:00:00.
-var addrPattern = regexp.MustCompile(`\[[0-9A-Fa-f:.%]+\](?::\d+)?|\b(?:\d{1,3}\.){3}\d{1,3}(?::\d+)?\b`)
+var addrPattern = regexp.MustCompile(`\[[0-9A-Fa-f:.]+(?:%[^\]\s]+)?\](?::\d+)?|\b(?:\d{1,3}\.){3}\d{1,3}(?::\d+)?\b`)
 
 // RedactAddrs wraps w so that client IP addresses never reach it.
 //
