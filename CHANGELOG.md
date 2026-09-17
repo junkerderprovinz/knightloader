@@ -35,7 +35,7 @@ The copy of the extension most people run does not come from its tag. Settings
 binary is running, so that one tracks the server. The tag exists for a store
 submission and for a fixed download.
 
-## [Unreleased]
+## [1.1.6] - 2026-09-18
 
 ### Changed
 
