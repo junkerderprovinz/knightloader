@@ -20,9 +20,17 @@ of their own.
   collects no data, which is wrong (see the Firefox section).
 - Privacy policy URL:
   https://github.com/junkerderprovinz/knightloader/blob/main/extension/PRIVACY.md
-- Reviewer access: the reviewer phrase, the test page address and the video link go
-  into the dashboard fields and nowhere else. They are never committed here,
-  because the phrase is the key to the reviewer group.
+- Reviewer access: the reviewer phrase and the web UI password go into the
+  dashboard fields and nowhere else. They are never committed here, because the
+  phrase is the key to the reviewer group.
+- Test page: `test-page/index.html` in this folder, built by `test-page/build.mjs`.
+  It has a trailer link to right-click and a Click'n'Load button for two other
+  files, so the two sends do not overlap. It has to be served from the reviewer
+  host; `<TEST_PAGE>` below is its address there.
+- Video: `review-walkthrough.mp4` in this folder, 47 seconds with captions, recorded
+  against a throwaway instance on this test page: connect with a phrase, send a
+  right-clicked link, catch a Click'n'Load button, see both arrive. `<VIDEO_URL>`
+  is its address once it is published.
 
 ## Listing (all three stores)
 
@@ -224,10 +232,10 @@ with realistic addresses and the phrase moved out).
 > 2. Paste this connection phrase into the Remote access field and press Connect:
 >    <PHRASE>
 >    One instance, "Review", appears as Online.
-> 3. Open <TEST_PAGE>. Right-click one of the links and choose "Send link to
+> 3. Open <TEST_PAGE>. Right-click the trailer link and choose "Send link to
 >    KnightLoader". The toolbar icon shows a green check mark.
-> 4. On the same page, press the "Click'n'Load: all files" button. The extension
->    popup opens, counts down from 5 and sends the three links.
+> 4. On the same page, press the "Click'n'Load: both films" button. The extension
+>    popup opens, counts down from 5 and sends the two film links.
 > 5. Open <WEBUI_URL> and sign in with the password <WEBUI_PASSWORD>. The links
 >    from steps 3 and 4 are listed under Link collector.
 >
@@ -242,8 +250,8 @@ with realistic addresses and the phrase moved out).
 >
 > 1. Open the add-on's options, paste this connection phrase into Remote access,
 >    press Connect: <PHRASE>
-> 2. Open <TEST_PAGE>, right-click a link, "Send link to KnightLoader".
-> 3. Press "Click'n'Load: all files" on that page; the popup counts down and sends.
+> 2. Open <TEST_PAGE>, right-click the trailer link, "Send link to KnightLoader".
+> 3. Press "Click'n'Load: both films" on that page; the popup counts down and sends.
 > 4. Check arrival at <WEBUI_URL>, password <WEBUI_PASSWORD>, Link collector.
 >
 > Notes on the code, which is unminified and has no build step:
