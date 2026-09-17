@@ -196,18 +196,52 @@ func TestLimiterKeepsABlockedAddressUntilTheBlockEnds(t *testing.T) {
 	}
 }
 
-// Whatever the history, a record is gone no later than maxBlock after the
-// address's last failed attempt. maxBlock is an hour; the policy says so.
-func TestLimiterRetentionIsBoundedByMaxBlockAfterTheLastFailure(t *testing.T) {
+// policyRetention is the figure extension/PRIVACY.md and the store data
+// declaration give for how long a failed address is kept. Changing a constant
+// above without changing those texts has to fail here.
+const policyRetention = 61 * time.Minute
+
+// Whatever the history, a record has run out policyRetention - sweepEvery after
+// the address's last failed attempt, so the next sweep (at most sweepEvery
+// later) deletes it within the published figure.
+func TestLimiterRetentionIsBoundedAfterTheLastFailure(t *testing.T) {
 	for _, fails := range []int{1, failsBeforeBlock - 1, failsBeforeBlock, failsBeforeBlock + 3, failsBeforeBlock + 40} {
 		l, advance := testLimiter()
 		for i := 0; i < fails; i++ {
 			l.fail("198.51.100.7")
 		}
-		advance(maxBlock + time.Second)
+		advance(policyRetention - sweepEvery + time.Second)
 		l.sweep()
 		if n := l.tracked(); n != 0 {
-			t.Fatalf("after %d failures, %d records left one hour past the last failure, want 0", fails, n)
+			t.Fatalf("after %d failures, %d records left %s past the last failure, want 0", fails, n, policyRetention-sweepEvery)
+		}
+	}
+}
+
+// A single caller never fails while it is blocked: ServeHTTP answers 429 before
+// the handshake, so fail() only runs once a block is over. The backoff still
+// has to keep growing on that path, or a patient caller cycles through the
+// short blocks forever. The relay's sweep timer can also fire between the end
+// of a block and the next try, so it runs on every step here and must not wipe
+// the record either.
+func TestLimiterBackoffGrowsForACallerThatWaitsOutEachBlock(t *testing.T) {
+	for _, every := range []time.Duration{time.Second, 37 * time.Second} {
+		l, advance := testLimiter()
+		var longest time.Duration
+		for elapsed := time.Duration(0); elapsed < 6*time.Hour; elapsed += every {
+			l.sweep()
+			if !l.blocked("198.51.100.7") {
+				l.fail("198.51.100.7")
+			}
+			a := l.addrs["198.51.100.7"]
+			if a == nil || a.blockFor < longest {
+				t.Fatalf("a caller retrying every %s had its backoff reset at %s, after reaching %s", every, elapsed, longest)
+			}
+			longest = a.blockFor
+			advance(every)
+		}
+		if longest != maxBlock {
+			t.Fatalf("a caller retrying every %s reached a longest block of %s, want %s", every, longest, maxBlock)
 		}
 	}
 }
@@ -217,7 +251,7 @@ func TestLimiterRetentionIsBoundedByMaxBlockAfterTheLastFailure(t *testing.T) {
 func TestLimiterSweepsOnTheRequestPath(t *testing.T) {
 	l, advance := testLimiter()
 	l.fail("198.51.100.7")
-	advance(maxBlock + time.Second)
+	advance(policyRetention)
 	l.blocked("203.0.113.9")
 	if n := l.tracked(); n != 0 {
 		t.Fatalf("%d records left after a request came in past the retention bound, want 0", n)

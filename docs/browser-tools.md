@@ -97,7 +97,7 @@ permission the extension does not need. Apart from that one read, `scripting`,
 `cnl-main.js` runs in the page's MAIN world and takes over every way a
 Click'n'Load button reaches the port: `fetch`, `XHR`, `HTMLFormElement.submit`
 and a capture-phase `submit` listener, `navigator.sendBeacon`, `window.open`
-(with the same hooks inside same-origin windows it opens), the `src` setter of
+(and, inside same-origin windows it opens, the fetch, XHR and form hooks), the `src` setter of
 iframe, image and script elements, and a capture-phase click on plain links. It
 decodes the payload with `cnl.js` — AES-128-CBC,
 key equals IV, both padding conventions found in the wild — and hands the links

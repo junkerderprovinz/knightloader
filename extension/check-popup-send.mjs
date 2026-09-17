@@ -142,6 +142,14 @@ if (sendAt < 0) {
       if (!inSend(c.index)) fail(`src/popup.js:${lineAt(c.index)} calls currentTabPayload() outside the send handler`);
     }
   }
+  // Without a phrase the same button reads "Add an instance" and only opens the
+  // options page; the listener still fires, so it must stop before the tab read.
+  const sendBody = popup.slice(sendAt, sendEnd);
+  const read = sendBody.search(/currentTabPayload\(\s*\)|chrome\.tabs\.query\(/);
+  const guard = sendBody.search(/if\s*\(\s*!chosen\s*\)\s*return/);
+  if (read >= 0 && (guard < 0 || guard > read)) {
+    fail(`src/popup.js:${lineAt(sendAt + read)} reads the current tab before the send handler knows there is a target`);
+  }
 }
 
 if (problems.length) {

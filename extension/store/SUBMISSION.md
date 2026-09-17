@@ -27,7 +27,19 @@ skipped or reordered.
    processing agreement in the Hetzner Cloud console if that has not been done.
 2. **Deploy the relay** built from the same commit to `relay.halleluja.design`.
    The policy describes the running relay: rate-limit entries deleted within 61
-   minutes, no IP addresses in its log. Older relay builds do neither.
+   minutes, no IP addresses in its log. Older relay builds do neither, and what
+   they wrote stays in the journal after the deploy, so as root on the relay host:
+   - Check that the new build runs: `GET /health` reports this commit's version.
+   - Clear what older builds wrote: `journalctl --rotate --vacuum-time=1s`, as one
+     command so the files just rotated go too. journald cannot delete a single
+     unit's lines, so this clears the whole host journal.
+   - If rsyslog is installed (`dpkg -s rsyslog`), remove the relay's lines from
+     `/var/log/syslog*` and `/var/log/daemon.log*` as well.
+   - Check that nothing is left: `journalctl -u <relay unit> | grep -E
+     '\b([0-9]{1,3}\.){3}[0-9]{1,3}\b|\[[0-9A-Fa-f:]+'` prints nothing.
+
+   Until this is done, "its error log never contains IP addresses" and "holds
+   nothing about you beyond" in the policy are not true yet.
 3. **Merge to `main`.** The privacy policy URL points at `main`, which serves the
    old policy until the merge.
 4. **Fold the releases into 1.0.0.** The stores get version 1.0.0, so the
@@ -307,10 +319,11 @@ line is what the field cuts.
 > Notes on the code, which is unminified and has no build step:
 >
 > - `cnl-main.js` runs in the MAIN world. It wraps fetch, XMLHttpRequest,
->   HTMLFormElement.submit, navigator.sendBeacon and window.open, applies the same
->   wrappers inside same-origin windows the page opens, redefines the `src` setter
->   of HTMLIFrameElement, HTMLImageElement and HTMLScriptElement, and adds
->   capture-phase `submit` and link `click` listeners. It only acts on URLs whose
+>   HTMLFormElement.submit, navigator.sendBeacon and window.open. Inside
+>   same-origin windows the page opens, it wraps only fetch, XMLHttpRequest and
+>   HTMLFormElement.submit and adds a capture-phase submit listener. It redefines
+>   the `src` setter of HTMLIFrameElement, HTMLImageElement and HTMLScriptElement,
+>   and adds capture-phase `submit` and link `click` listeners. It only acts on URLs whose
 >   host is 127.0.0.1:9666 or localhost:9666 (the Click'n'Load protocol) and passes
 >   everything else to the original functions and setters. The `jk` field of a
 >   submission is JavaScript supplied by the site; `cnl.js` extracts the hex key

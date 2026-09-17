@@ -414,6 +414,10 @@ function showPane() {
 
 sendBtn.addEventListener('click', async () => {
   cancelCountdown();
+  // No target means nothing can be sent: without a phrase this same button is
+  // "Add an instance" and only opens the options page, so stop before the tab
+  // is read.
+  if (!chosen) return;
   // Either a payload the service worker parked here, or the tab this window
   // opened over. Never both, and never neither.
   //
@@ -422,7 +426,7 @@ sendBtn.addEventListener('click', async () => {
   // and read at start-up every glance at the popup read the page's address -
   // which the privacy policy says happens when you press send.
   const payload = pending ? pending.payload : await currentTabPayload();
-  if (!payload || !chosen) return;
+  if (!payload) return;
   sendBtn.disabled = true;
   // No "sending…" line (jdp: "der Text 'Wird gesendet' kann weg"). This window
   // closes as soon as the worker has the send, so the sentence would flash for
