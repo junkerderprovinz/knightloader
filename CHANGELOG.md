@@ -35,6 +35,24 @@ The copy of the extension most people run does not come from its tag. Settings
 binary is running, so that one tracks the server. The tag exists for a store
 submission and for a fixed download.
 
+## [Unreleased]
+
+### Fixed
+
+- **The image build no longer takes `latest` before the release exists.**
+  `docker/metadata-action` adds `latest` by itself unless told not to, so the
+  guard added in 1.1.6 decided nothing: on v1.1.6 the build moved `latest` half
+  an hour before the release was created, and the job meant to decide it only
+  corrected it afterwards. The build sets version tags only now.
+
+### Changed
+
+- **A release waits for its images too**, not only for the desktop bundles, so
+  a published release always has both.
+- **"Latest" is decided once**, by the script that publishes the release, and
+  the job that moves the image tag takes that answer instead of working it out
+  a second time.
+
 ## [1.1.6] - 2026-09-18
 
 ### Changed
