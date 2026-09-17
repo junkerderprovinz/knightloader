@@ -30,25 +30,35 @@ A one-knight job: I build it, keep it running, work through the issues and add w
 If it has earned a place on your server or computer, toss a coin to your knight: it helps cover the costs and keeps the project alive. It also makes this knight's heart beat a little faster. Three ways below, whichever suits you.
 </p>
 
+<!-- give-buttons: written by scripts/gen_download_buttons.py -->
+<p align="center">
+  <a href="https://buymeacoffee.com/junkerderprovinz"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(4320,0,841.9,245.3))" alt="Buy me a coffee" width="160" height="46.618"></a>
+  &nbsp;
+  <a href="https://www.paypal.com/donate/?hosted_button_id=76FVV52TKXTUS"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(5161.9,0,841.9,245.3))" alt="PayPal" width="160" height="46.618"></a>
+  &nbsp;
+  <a href="https://junkerderprovinz.github.io/junkerderprovinz/"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(6003.8,0,841.9,245.3))" alt="Donate with crypto" width="160" height="46.618"></a>
+</p>
+<!-- /give-buttons -->
+
 <br>
 
 <div align="center">
 
 > # ⚠️ Under development — please do not install this yet
 >
-> **KnightLoader has not had its first release.** This repository is public so
+> **KnightLoader is not ready for anyone to run.** This repository is public so
 > the work can be followed and the browser extension can go through store
-> review, not because it is ready for anyone to run.
+> review.
 >
-> There is **no `v1.0.0` tag, no published container image, and no Community
-> Applications entry** — and that is deliberate. What is here changes daily,
+> The releases, the container image and the downloads below exist so the builds
+> can be tested. There is **no Community Applications entry**, and that is
+> deliberate. What is here changes daily,
 > including things that will break an existing setup without a migration path:
 > the storage format, the settings document, and the wire protocol instances
 > use to reach each other.
 >
 > **If you install it now, expect to lose your configuration and your queue.**
-> Nothing here is supported, and no upgrade path is promised until the first
-> release.
+> Nothing here is supported, and no upgrade path is promised yet.
 >
 > Watch the repository if you want to know when that changes.
 
@@ -56,12 +66,25 @@ If it has earned a place on your server or computer, toss a coin to your knight:
 
 <br>
 
+<!-- download-buttons: written by scripts/gen_download_buttons.py -->
 <p align="center">
-  <a href="https://buymeacoffee.com/junkerderprovinz"><img src="https://raw.githubusercontent.com/junkerderprovinz/junkerderprovinz/main/donate/buttons/give.svg#svgView(viewBox(0,0,841.9,245.3))" alt="Buy me a coffee" width="160" height="46.62"></a>
+  <a href="https://github.com/junkerderprovinz/knightloader/releases/latest/download/knightloader-windows-amd64.zip"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(0,0,720,245.3))" alt="Download for Windows" width="195" height="66.435"></a>
   &nbsp;
-  <a href="https://www.paypal.com/donate/?hosted_button_id=76FVV52TKXTUS"><img src="https://raw.githubusercontent.com/junkerderprovinz/junkerderprovinz/main/donate/buttons/give.svg#svgView(viewBox(841.9,0,841.9,245.3))" alt="PayPal" width="160" height="46.62"></a>
+  <a href="https://github.com/junkerderprovinz/knightloader/releases/latest/download/knightloader-macos-universal.zip"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(720,0,720,245.3))" alt="Download for macOS" width="195" height="66.435"></a>
   &nbsp;
-  <a href="https://junkerderprovinz.github.io/junkerderprovinz/"><img src="https://raw.githubusercontent.com/junkerderprovinz/junkerderprovinz/main/donate/buttons/give.svg#svgView(viewBox(1683.8,0,841.9,245.3))" alt="Donate with crypto" width="160" height="46.62"></a>
+  <a href="https://github.com/junkerderprovinz/knightloader/releases/latest/download/knightloader-linux-amd64.zip"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(1440,0,720,245.3))" alt="Download for Linux" width="195" height="66.435"></a>
+</p>
+<p align="center">
+  <a href="https://github.com/junkerderprovinz/knightloader/pkgs/container/knightloader"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(2160,0,720,245.3))" alt="Run it with Docker" width="195" height="66.435"></a>
+  &nbsp;
+  <a href="https://github.com/junkerderprovinz/knightloader/releases/download/mobile/latest/knightloader-android.apk"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(2880,0,720,245.3))" alt="Download the Android app" width="195" height="66.435"></a>
+  &nbsp;
+  <a href="https://github.com/junkerderprovinz/knightloader/releases/download/extension/latest/knightloader-extension.zip"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(3600,0,720,245.3))" alt="Download the browser extension" width="195" height="66.435"></a>
+</p>
+<!-- /download-buttons -->
+
+<p align="center">
+  <sub>Always the newest build &nbsp;·&nbsp; <a href="https://github.com/junkerderprovinz/knightloader/releases">release notes and checksums</a> &nbsp;·&nbsp; <a href="#3-quick-start">how to run each one</a></sub>
 </p>
 
 <br>
@@ -164,16 +187,10 @@ go run ./cmd/knightloader      # then open http://localhost:8749
 <details>
 <summary><b>Docker</b></summary>
 
-No image is published anywhere yet (see the notice above), so it is built where
-it runs rather than pulled from a registry:
+Every release tag publishes `ghcr.io/junkerderprovinz/knightloader` for amd64
+and arm64 (see the notice above before you run it):
 
 ```sh
-# COMMIT is not optional dressing: .dockerignore keeps .git out of the build
-# context, so the toolchain inside the image has no repository to read and the
-# binary would not know which revision it is. VERSION shows under the wordmark,
-# COMMIT answers as `commit` on GET /api/health.
-docker build --build-arg VERSION=preview --build-arg COMMIT="$(git rev-parse HEAD)" -t knightloader:preview .
-
 docker run -d --name knightloader \
   --restart unless-stopped \
   -p 8749:8749 \
@@ -181,7 +198,17 @@ docker run -d --name knightloader \
   -v /path/to/downloads:/data/downloads \
   -v /path/to/watch:/watch \
   -e TZ=Europe/Berlin \
-  knightloader:preview
+  ghcr.io/junkerderprovinz/knightloader:latest
+```
+
+To build it where it runs instead:
+
+```sh
+# COMMIT is not optional dressing: .dockerignore keeps .git out of the build
+# context, so the toolchain inside the image has no repository to read and the
+# binary would not know which revision it is. VERSION shows under the wordmark,
+# COMMIT answers as `commit` on GET /api/health.
+docker build --build-arg VERSION=preview --build-arg COMMIT="$(git rev-parse HEAD)" -t knightloader:preview .
 ```
 
 On Unraid add `--user 99:100` so finished files land as `nobody:users`, and see
@@ -196,8 +223,8 @@ tab: the engine, the resolvers, the API and the UI are identical, because the
 window is served by the very same HTTP handler the container serves.
 
 Every release tag builds `windows/amd64`, `darwin/universal` and `linux/amd64`
-and attaches the three archives to that release. **There is no release yet** —
-the first tag is still to come, so for now the app is built from source:
+and attaches the three archives to that release, which is where the download
+buttons at the top lead. To build it from source instead:
 
 ```sh
 go install github.com/wailsapp/wails/v2/cmd/wails@v2.15.0
@@ -424,12 +451,14 @@ A one-knight job: I build it, keep it running, work through the issues and add w
 
 If it has earned a place on your server or computer, toss a coin to your knight: it helps cover the costs and keeps the project alive. It also makes this knight's heart beat a little faster. Three ways below, whichever suits you.
 
+<!-- give-buttons: written by scripts/gen_download_buttons.py -->
 <p align="center">
-  <a href="https://buymeacoffee.com/junkerderprovinz"><img src="https://raw.githubusercontent.com/junkerderprovinz/junkerderprovinz/main/donate/buttons/give.svg#svgView(viewBox(0,0,841.9,245.3))" alt="Buy me a coffee" width="160" height="46.62"></a>
+  <a href="https://buymeacoffee.com/junkerderprovinz"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(4320,0,841.9,245.3))" alt="Buy me a coffee" width="160" height="46.618"></a>
   &nbsp;
-  <a href="https://www.paypal.com/donate/?hosted_button_id=76FVV52TKXTUS"><img src="https://raw.githubusercontent.com/junkerderprovinz/junkerderprovinz/main/donate/buttons/give.svg#svgView(viewBox(841.9,0,841.9,245.3))" alt="PayPal" width="160" height="46.62"></a>
+  <a href="https://www.paypal.com/donate/?hosted_button_id=76FVV52TKXTUS"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(5161.9,0,841.9,245.3))" alt="PayPal" width="160" height="46.618"></a>
   &nbsp;
-  <a href="https://junkerderprovinz.github.io/junkerderprovinz/"><img src="https://raw.githubusercontent.com/junkerderprovinz/junkerderprovinz/main/donate/buttons/give.svg#svgView(viewBox(1683.8,0,841.9,245.3))" alt="Donate with crypto" width="160" height="46.62"></a>
+  <a href="https://junkerderprovinz.github.io/junkerderprovinz/"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(6003.8,0,841.9,245.3))" alt="Donate with crypto" width="160" height="46.618"></a>
 </p>
+<!-- /give-buttons -->
 
 Problems, wishes or suggestions? Don't hesitate to open an [issue](https://github.com/junkerderprovinz/knightloader/issues).

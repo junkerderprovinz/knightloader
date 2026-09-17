@@ -163,6 +163,13 @@ jobs:
 
       # One archive per platform, named for the tag, so a download sitting in
       # somebody's folder still says which version it is.
+      #
+      # And a second copy of each under a name with no version in it, for the
+      # README's download buttons. GitHub serves the newest release's asset from
+      # /releases/latest/download/<exact name>, with no pattern and no wildcard,
+      # so a name carrying the version could only ever be linked for the one
+      # release it belongs to. internal/update keeps asking for the versioned
+      # name, which stays.
       - name: Package
         run: |
           set -eu
@@ -171,6 +178,7 @@ jobs:
             [ -d "$d" ] || continue
             slug="${d#bundles/knightloader-}"
             (cd "$d" && zip -qr "../../dist/knightloader-${GITHUB_REF_NAME}-${slug}.zip" .)
+            cp "dist/knightloader-${GITHUB_REF_NAME}-${slug}.zip" "dist/knightloader-${slug}.zip"
           done
           ls -lh dist
 
@@ -183,7 +191,9 @@ jobs:
       # bare filenames with no "dist/" prefix: that is what lets Download
       # match an entry by the same asset name it already downloaded under,
       # and what lets a human run `sha256sum -c checksums.txt` by hand from
-      # inside a folder holding just the downloaded zip and this file.
+      # inside a folder holding just the downloaded zip and this file. The copies
+      # without a version are listed too, so a zip taken from a README button
+      # can be checked the same way.
       - name: Checksums
         run: |
           set -eu
