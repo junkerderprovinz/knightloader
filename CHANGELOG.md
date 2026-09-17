@@ -39,6 +39,37 @@ The copy of the extension most people run does not come from its tag. Settings
 binary is running, so that one tracks the server. The tag exists for a store
 submission and for a fixed download.
 
+## [Unreleased]
+
+### Added
+
+- **Download buttons in the README, in two rows.** Windows, macOS and Linux
+  first, then Docker, the Android app and the browser extension. Each points at
+  the newest build, so a release does not need a README edit.
+- **A container image of KnightLoader itself.** Every release tag publishes
+  `ghcr.io/junkerderprovinz/knightloader` for amd64 and arm64, beside the relay
+  image, and only the newest release tag moves `latest`.
+- **The desktop zips also carry a name without the version**, because
+  `/releases/latest/download/` needs a name that stays the same from one release
+  to the next. `checksums.txt` lists both names.
+- **A standing release each for the app and the extension.** A new app or
+  extension release also copies its file to `mobile/latest` as
+  `knightloader-android.apk`, or to `extension/latest` as
+  `knightloader-extension.zip`, which is where the README buttons lead.
+
+### Changed
+
+- **The notice at the top of the README says what exists now.** The releases,
+  the image and the downloads are there so the builds can be tested; there is
+  still no Community Applications entry, and the advice not to install it yet
+  stays. The donation row moves up under the paragraph that announces it.
+- **One band crosses all three rows of buttons in turn**: the donation row, the
+  desktop row, then the row below it. Three rows need slightly more than seven
+  seconds of travel, so this page's loop is 8.2 seconds, at the house speed and
+  with the house pause.
+- **The release workflow can be dispatched from a branch.** It then builds both
+  images for both architectures and pushes neither.
+
 ## [1.1.3] - 2026-09-16
 
 ### Changed

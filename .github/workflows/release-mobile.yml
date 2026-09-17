@@ -225,3 +225,35 @@ jobs:
           # in every workflow that is not the product's own.
           make_latest: false
           files: ${{ steps.apk.outputs.path }}
+
+      # The README's download button needs a link that stays the same from one
+      # release to the next. GitHub offers that only as /releases/latest/download/
+      # of the product's own latest release, which this is not (see make_latest
+      # above). So the newest app also goes to one standing release, mobile/latest,
+      # as knightloader-android.apk, and that release's tag follows it.
+      #
+      # Only from the newest app tag, so re-cutting an older version cannot put
+      # the older APK behind the button.
+      - name: The newest app under a fixed name
+        if: github.ref_type == 'tag'
+        working-directory: ${{ github.workspace }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.bare }}
+          APK: ${{ steps.apk.outputs.path }}
+        run: |
+          set -eu
+          newest=$(git tag -l 'mobile/v*.*.*' --sort=-v:refname | head -1)
+          if [ "$newest" != "$GITHUB_REF_NAME" ]; then
+            echo "$GITHUB_REF_NAME is not the newest app tag ($newest), so mobile/latest stays as it is"
+            exit 0
+          fi
+          cp "$APK" knightloader-android.apk
+          notes="The newest Android app, under a file name that does not change between releases. This is App $VERSION: [release notes](https://github.com/$GITHUB_REPOSITORY/releases/tag/$GITHUB_REF_NAME)."
+          if gh release view mobile/latest --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh api -X PATCH "repos/$GITHUB_REPOSITORY/git/refs/tags/mobile/latest" -f sha="$GITHUB_SHA" -F force=true >/dev/null
+            gh release edit mobile/latest --repo "$GITHUB_REPOSITORY" --title "App, newest" --notes "$notes" --latest=false
+          else
+            gh release create mobile/latest --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "App, newest" --notes "$notes" --latest=false
+          fi
+          gh release upload mobile/latest knightloader-android.apk --repo "$GITHUB_REPOSITORY" --clobber
