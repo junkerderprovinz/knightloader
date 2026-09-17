@@ -39,15 +39,18 @@ submission and for a fixed download.
 
 ### Changed
 
-- **A release goes public only once its desktop zips are attached.** The README's
+- **A release goes public only with its desktop zips attached.** The README's
   desktop buttons lead to `/releases/latest/download/`, and a release used to be
-  "latest" from the moment `release.yml` created it, twenty minutes and more
-  before `desktop.yml` attached the zips, so the buttons answered 404 for that
-  long. `release.yml` now creates a draft, and `desktop.yml` publishes it once
-  every file in `.github/scripts/release-assets.txt` is uploaded. Until then the
-  buttons and the in-app update check keep serving the previous release.
-- **"Latest" goes only to the newest plain vX.Y.Z tag**, so re-cutting an older
-  version publishes it without pulling the badge and the download buttons back.
+  "latest" from the moment it was created, twenty minutes and more before
+  `desktop.yml` attached the zips, so the buttons answered 404 for that long and
+  the in-app update check met a release without files. `release.yml` now runs
+  the desktop build itself and creates the release once it is done, with the
+  zips and `checksums.txt` in the same command. A failed build leaves no
+  half-finished release behind.
+- **"Latest" goes only to the newest published version**, so re-cutting an
+  older one does not pull the badge, the buttons and the update check back.
+- **A tag without release notes stops before the builds** instead of publishing
+  a generated list of commit subjects, the same as the app and the extension.
 
 ## [1.1.5] - 2026-09-17
 

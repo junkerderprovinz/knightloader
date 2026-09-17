@@ -1,54 +1,157 @@
 name: Release
 
+# THE RELEASE COMES LAST. The README's desktop buttons point at
+# /releases/latest/download/<name>, and a release is "latest" from the moment it
+# is published. It used to be published straight away while desktop.yml
+# attached the zips twenty minutes and more later, so every release left the
+# buttons, and the in-app update check, facing a release with nothing on it
+# (measured on v1.1.5: 404). Now this workflow runs the desktop build and
+# creates the release only when it is done, with the zips and checksums.txt in
+# one command: gh makes it a draft, uploads, and publishes it complete. A build
+# that fails leaves no release at all; re-running the failed jobs finishes it.
 on:
   push:
     tags:
       - "v*.*.*"
-  # Builds both images from a branch and pushes neither, so an image change can
-  # be tried before a tag depends on it. Nothing is released and nothing
-  # reaches a registry.
+  # Builds everything from a branch, packages the zips and pushes and publishes
+  # nothing, so a change to this chain or to an image can be tried before a tag
+  # depends on it.
   workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  release:
-    if: github.event_name == 'push' && github.ref_type == 'tag'
+  # The notes are written by hand and live in the repo. Publishing them from a
+  # file rather than generating them keeps the release readable: a list of
+  # commit subjects says what was touched, not what changed for the user. So a
+  # tag without notes stops here, before half an hour of builds, rather than
+  # falling back to a generated list.
+  notes:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      # The notes are written by hand and live in the repo. Publishing them from
-      # a file rather than generating them keeps the release readable: a list of
-      # commit subjects says what was touched, not what changed for the user.
+      - name: Notes exist for this tag
+        if: github.ref_type == 'tag'
+        run: |
+          file=".github/release-notes/${GITHUB_REF_NAME}.md"
+          if [ ! -s "$file" ]; then
+            echo "::error::no release notes at $file - write them before tagging."
+            exit 1
+          fi
+
+  desktop:
+    needs: notes
+    uses: ./.github/workflows/desktop.yml
+
+  publish:
+    needs: desktop
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      # Every artifact of this run, each in a folder named after it.
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          path: bundles
+
+      # One archive per platform, named for the tag, so a download sitting in
+      # somebody's folder still says which version it is.
       #
-      # AS A DRAFT. desktop.yml publishes it once the zips are attached, so the
-      # README's download buttons keep serving the previous release meanwhile;
-      # .github/scripts/publish-when-complete.sh explains the rest. Created with
-      # gh rather than action-gh-release, which looks a release up by its tag
-      # and does not see a draft there: a re-run would add a second draft
-      # instead of finding the first.
-      - name: Create the release as a draft
+      # And a second copy of each under a name with no version in it, for the
+      # README's download buttons. GitHub serves the newest release's asset from
+      # /releases/latest/download/<exact name>, with no pattern and no wildcard,
+      # so a name carrying the version could only ever be linked for the one
+      # release it belongs to. internal/update keeps asking for the versioned
+      # name, which stays.
+      - name: Package
+        run: |
+          set -eu
+          mkdir -p dist
+          for d in bundles/knightloader-*; do
+            [ -d "$d" ] || continue
+            slug="${d#bundles/knightloader-}"
+            (cd "$d" && zip -qr "../../dist/knightloader-${GITHUB_REF_NAME}-${slug}.zip" .)
+            cp "dist/knightloader-${GITHUB_REF_NAME}-${slug}.zip" "dist/knightloader-${slug}.zip"
+          done
+          ls -lh dist
+
+      # sha256 alongside each zip so a download can be checked against what
+      # this pipeline actually produced, not just trusted because it arrived
+      # over TLS from a real GitHub asset host - internal/update's Download
+      # (see that package's own doc comment) fetches this file next to the
+      # platform zip and refuses to hand the download to Apply if the digest
+      # does not match. Run from inside dist/ so the entries in the file are
+      # bare filenames with no "dist/" prefix: that is what lets Download
+      # match an entry by the same asset name it already downloaded under,
+      # and what lets a human run `sha256sum -c checksums.txt` by hand from
+      # inside a folder holding just the downloaded zip and this file. The copies
+      # without a version are listed too, so a zip taken from a README button
+      # can be checked the same way.
+      - name: Checksums
+        run: |
+          set -eu
+          (cd dist && sha256sum *.zip > checksums.txt)
+          cat dist/checksums.txt
+
+      # Only from a pushed tag. A dispatched run stops after packaging.
+      #
+      # A DRAFT FOR THIS TAG is what a failed earlier attempt leaves behind: it
+      # is private and its files belong to that attempt, so it goes, and the
+      # files below are the only ones the release carries. A PUBLISHED release
+      # for this tag stops the run. Re-cutting a published version is a
+      # deliberate act: delete that release first.
+      #
+      # "LATEST" only when no published release has a newer plain vX.Y.Z tag, so
+      # re-cutting an older version does not pull the badge, the download
+      # buttons and the in-app update back to it. Counted over published
+      # releases rather than tags: a newer tag whose release never came out must
+      # not keep this one from being the newest that exists.
+      #
+      # --target is the commit that was built. If the tag vanished while this
+      # ran, GitHub would otherwise recreate it on the default branch.
+      #
+      # dist/checksums.txt is named alongside the zip glob explicitly rather than
+      # widened into dist/*, which would also sweep up anything else that ever
+      # lands in dist/.
+      - name: Publish
+        if: github.event_name == 'push' && github.ref_type == 'tag'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          set -eu
-          if gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            echo "$GITHUB_REF_NAME already has a release"
-            exit 0
+          set -euo pipefail
+          releases=$(gh api --paginate "repos/$GITHUB_REPOSITORY/releases?per_page=100" \
+            -q '.[] | select(.tag_name == env.GITHUB_REF_NAME) | "\(.id) \(.draft)"')
+          while read -r id draft; do
+            [ -n "$id" ] || continue
+            if [ "$draft" != "true" ]; then
+              echo "::error::$GITHUB_REF_NAME is already published. To re-cut it, delete that release first."
+              exit 1
+            fi
+            gh api -X DELETE "repos/$GITHUB_REPOSITORY/releases/$id"
+            echo "removed the draft $id an earlier attempt left"
+          done <<< "$releases"
+
+          newest=$( { gh release list --repo "$GITHUB_REPOSITORY" --exclude-drafts --limit 1000 \
+            --json tagName -q '.[].tagName'; echo "$GITHUB_REF_NAME"; } \
+            | grep -E '^v[0-9]+[.][0-9]+[.][0-9]+$' | sort -V | tail -1)
+          latest=false
+          if [ "$newest" = "$GITHUB_REF_NAME" ]; then
+            latest=true
           fi
-          file=".github/release-notes/${GITHUB_REF_NAME}.md"
-          if [ -s "$file" ]; then
-            set -- --notes-file "$file"
-          else
-            echo "No notes at $file; falling back to generated ones." >&2
-            set -- --generate-notes
-          fi
+
           # The title is the version alone: the repository name is already above it.
-          gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" \
-            --draft --verify-tag --title "$GITHUB_REF_NAME" "$@"
+          gh release create "$GITHUB_REF_NAME" \
+            --repo "$GITHUB_REPOSITORY" \
+            --verify-tag --target "$GITHUB_SHA" \
+            --title "$GITHUB_REF_NAME" \
+            --notes-file ".github/release-notes/${GITHUB_REF_NAME}.md" \
+            --latest="$latest" \
+            dist/*.zip dist/checksums.txt
+          echo "published $GITHUB_REF_NAME, latest=$latest"
 
   # The two images, one job per image.
   #
@@ -65,7 +168,7 @@ jobs:
   # Dockerfile.relay opens with: no yt-dlp, no ffmpeg, no JRE, and no state
   # beyond the current connection list.
   #
-  # Pushed from a pushed tag only, like the release above. Nothing reaches a
+  # Pushed from a pushed tag only, like the release. Nothing reaches a
   # public registry until a tag is cut deliberately; a dispatched run builds
   # both architectures and stops there, on a tag ref as much as on a branch.
   images:
