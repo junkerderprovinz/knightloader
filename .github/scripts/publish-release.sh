@@ -54,7 +54,9 @@ printf '%s\n' "$existing" | while read -r id _draft; do
 done
 
 published=$(gh release list --repo "$repo" --exclude-drafts --limit 1000 --json tagName -q '.[].tagName')
-newest=$(printf '%s\n%s\n' "$published" "$tag" | grep -E '^v[0-9]+[.][0-9]+[.][0-9]+$' | sort -V | tail -1)
+# The `|| true` keeps a repository whose releases are all pre-releases from
+# failing here: "no plain version anywhere" is an answer, not an error.
+newest=$(printf '%s\n%s\n' "$published" "$tag" | { grep -E '^v[0-9]+[.][0-9]+[.][0-9]+$' || true; } | sort -V | tail -1)
 latest=false
 if [ "$newest" = "$tag" ]; then
   latest=true

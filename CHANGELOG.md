@@ -49,6 +49,10 @@ submission and for a fixed download.
 
 - **A release waits for its images too**, not only for the desktop bundles, so
   a published release always has both.
+- **The moving image tags follow the release.** `latest`, `1.1` and `1` are set
+  once the release for that version is published, and only for the newest one.
+  The build pushes the exact version alone, so a tag whose release never came
+  out cannot leave anyone pinned to `:1` on an unreleased build.
 - **"Latest" is decided once**, by the script that publishes the release, and
   the job that moves the image tag takes that answer instead of working it out
   a second time.
