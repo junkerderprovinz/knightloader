@@ -35,8 +35,11 @@ skipped or reordered.
      unit's lines, so this clears the whole host journal.
    - If rsyslog is installed (`dpkg -s rsyslog`), remove the relay's lines from
      `/var/log/syslog*` and `/var/log/daemon.log*` as well.
-   - Check that nothing is left: `journalctl -u <relay unit> | grep -E
-     '\b([0-9]{1,3}\.){3}[0-9]{1,3}\b|\[[0-9A-Fa-f:]+'` prints nothing.
+   - Check that nothing is left: `journalctl -u <relay unit> -o cat | grep -E
+     '\b([0-9]{1,3}\.){3}[0-9]{1,3}\b|\[[0-9A-Fa-f]*:[0-9A-Fa-f:.]*(%[^]]*)?\]'`
+     prints nothing. `-o cat` drops the `knightloader-relay[812]:` prefix, and the
+     pattern needs a colon inside the brackets, so the relay's own `[address]`
+     placeholder does not match.
 
    Until this is done, "its error log never contains IP addresses" and "holds
    nothing about you beyond" in the policy are not true yet.
@@ -45,16 +48,21 @@ skipped or reordered.
 4. **Fold the releases into 1.0.0.** The stores get version 1.0.0, so the
    development releases go first: delete the GitHub releases and the tags
    `extension/v1.0.0` to `extension/v1.23.0`. Their notes stay in the git history
-   of `.github/release-notes/extension/`. Then push the tag `extension/v1.0.0` on
-   `main`; the release workflow checks it against the manifest (1.0.0) and
-   publishes one release, "Browser Extension 1.0.0", with the folded notes.
+   of `.github/release-notes/extension/`. Then, in a clone that has run
+   `git fetch --prune --prune-tags origin` (a plain fetch keeps the deleted tags,
+   and the old `extension/v1.0.0` passes every check of the release workflow),
+   tag `main`, confirm `git rev-parse extension/v1.0.0^{commit}` equals
+   `origin/main`, and push that one tag, never `--tags`. The release workflow
+   checks it against the manifest (1.0.0) and publishes one release, "Browser
+   Extension 1.0.0", with the folded notes.
 5. **Package:** the zip that release carries. It is `extension/src` zipped as it
    is, with no build step, so a reviewer can compare it file by file with the tag.
    Never submit a zip from one of the folded development releases: they told
    Firefox the extension collects no data, which is wrong.
-6. **Reviewer instance and files** (see "Reviewer notes"): serve
-   `test-page/index.html` and `review-walkthrough.mp4` from the reviewer host, then
-   fill the placeholders `<TEST_PAGE>`, `<WEBUI_URL>`, `<VIDEO_URL>`, `<PHRASE>`
+6. **Reviewer instance and files** (see "Reviewer notes"): run a dedicated
+   instance named "Review" whose group holds that instance only, with a web UI
+   password set and its download queue paused. Serve `test-page/index.html` and
+   `review-walkthrough.mp4` from the reviewer host, then fill the placeholders `<TEST_PAGE>`, `<WEBUI_URL>`, `<VIDEO_URL>`, `<PHRASE>`
    and `<WEBUI_PASSWORD>`. The phrase and the password go into the dashboard
    fields and nowhere else; they are never committed, because the phrase is the
    key to the reviewer group.
@@ -109,7 +117,7 @@ Edge shows it read-only):
 >
 > Setting it up takes one step: enter the twelve-word connection phrase your
 > KnightLoader instances share. The extension stores no server address and no
-> password.
+> web interface password; the phrase is the only credential it keeps.
 >
 > You need a running KnightLoader instance. KnightLoader is free and open source:
 > https://github.com/junkerderprovinz/knightloader
@@ -175,7 +183,8 @@ Both dashboards ask the same questions. Each justification below is under the
 
 > Keeps the user's settings in the browser: the connection phrase, a random ID for
 > this browser within the user's group, the default instance, and interface
-> settings (language, theme, Click'n'Load on or off, countdown length).
+> settings (language, theme, Click'n'Load on or off, countdown length). While a
+> send waits in the popup, it is held in session storage until the popup reads it.
 
 `scripting`
 
@@ -188,7 +197,7 @@ Both dashboards ask the same questions. Each justification below is under the
 > One static ruleset with two rules. Before showing a Click'n'Load button, download
 > sites load http://127.0.0.1:9666/jdcheck.js to check whether a receiver is
 > present. The two rules answer exactly that request (for 127.0.0.1 and localhost)
-> with a two-line file bundled in the extension, so the button appears and can be
+> with a small script bundled in the extension, so the button appears and can be
 > caught. No other request is matched, blocked or changed. The ruleset is switched
 > off together with Click'n'Load.
 
@@ -196,7 +205,8 @@ Host permission `<all_urls>`
 
 > Mainly for Click'n'Load. The buttons can be on any website, and the script that
 > catches them has to run in the page before the site's own code, in every frame,
-> including blank frames a site opens for the button. It acts only on requests
+> including blank frames a site opens for the button. Apart from declaring the two
+> globals sites check (jdownloader, version), it acts only on requests
 > addressed to 127.0.0.1:9666 or localhost:9666: those are stopped and their link
 > list is handed to the extension. Every other request passes through unchanged
 > and is not recorded. Switching the feature off in the options removes the script
@@ -213,14 +223,15 @@ Host permission `<all_urls>`
 **Remote code**: No, I am not using remote code. Every script ships in the
 package; messages from the relay are data and are never executed.
 
-**Data usage**: tick these four, leave the rest unticked.
+**Data usage**: tick these five, leave the rest unticked.
 
 | Category | Why |
 | --- | --- |
-| Web history | The address and title of a page the user chooses to send. |
+| Web history | The address and title of a page the user chooses to send, and the title of the page a link, image, selection or Click'n'Load batch is sent from. |
+| User activity | The Click'n'Load script checks, in the browser, where each request, form submission and link click in a page goes, to catch those aimed at 127.0.0.1:9666. Nothing else about them is kept or sent. |
 | Website content | Links, image addresses and selected text the user sends, links pasted or loaded into the popup's collector, and link lists from Click'n'Load buttons. |
 | Authentication information | The connection phrase is a credential. It stays in the browser, but a key derived from it is sent to the relay to join the user's group. |
-| Location | The IP address the relay receives on every connection. It is kept only after a failed relay handshake, in memory, for at most 61 minutes. |
+| Location | The IP address the relay receives on every connection. It is kept only after a failed relay handshake, in memory for rate limiting, and deleted within 61 minutes of that address's last failed attempt. |
 
 Everything the extension sends goes to the user's own instances, through a relay
 operated by the developer. Chrome's exemption for clients of user-specified servers
@@ -245,9 +256,13 @@ single purpose, no use for creditworthiness or lending).
   the extension has never been tested there. Do not add Android in the dashboard;
   with the key present, AMO locks that setting.
 - **Minimum version**: Firefox 140, the first desktop version with
-  `data_collection_permissions`. That keeps Firefox ESR 140.
-- **Source code**: not needed. The scripts are plain files, not minified, bundled
-  or generated.
+  `data_collection_permissions`. That keeps Firefox ESR 140. Before Firefox 149,
+  `action.openPopup()` needs a user gesture, so a caught Click'n'Load button cannot
+  open the popup there: the toolbar icon shows "…", and a click on it starts the
+  countdown. The AMO notes say so.
+- **Source code**: not needed. The scripts are plain, unminified files with no
+  build step; `wordlist.js` is the BIP39 English word list turned into a JS array
+  (the source file's hash is in its header).
 - **Privacy policy**: tick "This add-on has a privacy policy" and paste the text of
   `extension/PRIVACY.md`, or link to it.
 
@@ -287,9 +302,9 @@ line is what the field cuts.
 > This extension sends links to a self-hosted KnightLoader download manager, so it
 > needs a running instance to do anything. We run one for certification.
 >
-> 1. Install the extension. Its options page opens. Pin the extension (puzzle
->    piece in the toolbar, then the pin next to KnightLoader), because its only
->    confirmation is a check mark on its toolbar icon.
+> 1. Install the extension. Its options page opens. Show KnightLoader in the
+>    toolbar (Extensions button in the toolbar, then the toolbar option next to
+>    KnightLoader), because its only confirmation is a check mark on its icon.
 > 2. Paste this connection phrase into the Remote access field and press Connect:
 >    <PHRASE>
 >    One instance, "Review", appears as Online.
@@ -309,12 +324,16 @@ line is what the field cuts.
 
 > Same steps as the video at <VIDEO_URL>:
 >
-> 1. Open the add-on's options, paste this connection phrase into Remote access,
+> 1. Pin the add-on (Extensions button, gear next to KnightLoader, Pin to
+>    Toolbar); its only confirmation is a check mark on that icon.
+> 2. Open the add-on's options, paste this connection phrase into Remote access,
 >    press Connect: <PHRASE>
-> 2. Open <TEST_PAGE>, right-click the trailer link, "Send link to KnightLoader".
+> 3. Open <TEST_PAGE>, right-click the trailer link, "Send link to KnightLoader".
 >    The add-on's toolbar icon shows a check mark.
-> 3. Press "Click'n'Load: both films" on that page; the popup counts down and sends.
-> 4. Check arrival at <WEBUI_URL>, password <WEBUI_PASSWORD>, Link collector.
+> 4. Press "Click'n'Load: both films" on that page; the popup counts down and
+>    sends. Before Firefox 149 an add-on cannot open its popup without a click:
+>    the icon shows "…" instead, and clicking it starts the countdown.
+> 5. Check arrival at <WEBUI_URL>, password <WEBUI_PASSWORD>, Link collector.
 >
 > Notes on the code, which is unminified and has no build step:
 >
@@ -323,14 +342,16 @@ line is what the field cuts.
 >   same-origin windows the page opens, it wraps only fetch, XMLHttpRequest and
 >   HTMLFormElement.submit and adds a capture-phase submit listener. It redefines
 >   the `src` setter of HTMLIFrameElement, HTMLImageElement and HTMLScriptElement,
->   and adds capture-phase `submit` and link `click` listeners. It only acts on URLs whose
->   host is 127.0.0.1:9666 or localhost:9666 (the Click'n'Load protocol) and passes
->   everything else to the original functions and setters. The `jk` field of a
+>   and adds capture-phase `submit` and link `click` listeners. It only acts on
+>   URLs whose host is 127.0.0.1:9666 or localhost:9666 (the Click'n'Load
+>   protocol) and passes everything else to the original functions and setters.
+>   It also sets `window.jdownloader` and `window.version` when the page has not,
+>   because sites check them before showing a button. The `jk` field of a
 >   submission is JavaScript supplied by the site; `cnl.js` extracts the hex key
 >   from it with a regular expression and never evaluates it.
 > - `relay.js` talks to the relay over one WebSocket per action. Payloads are
 >   sealed with AES-GCM (WebCrypto) using a key derived from the phrase; the relay
->   only sees routing IDs.
+>   sees the group key and routing IDs, never the content.
 > - `wordlist.js` is the phrase word list and `i18n.js` holds 42 locales, which is
 >   why both are large.
 

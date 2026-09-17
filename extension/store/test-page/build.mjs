@@ -1,6 +1,7 @@
 /**
  * Builds index.html beside this file: the test page for store reviewers, and
- * the page the reviewer video and screenshots were recorded on.
+ * the page the reviewer video was recorded on. The store screenshots show an
+ * earlier version of it.
  *
  * It carries the two things a reviewer has to try:
  *
