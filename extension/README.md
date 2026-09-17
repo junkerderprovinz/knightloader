@@ -113,7 +113,8 @@ opened or reloaded after that; a tab that was already open keeps its script
 until it reloads, and a submission caught there is dropped rather than sent.
 The ruleset state is written again on every start and update, because a static
 ruleset's enabled state does not survive an update. `check-background.mjs`
-holds all of this.
+holds the ruleset part: it follows the switch both ways and is written again on
+start and update.
 
 ## Why it no longer opens a window
 
@@ -149,8 +150,8 @@ There is no motion axis here: no `data-motion`, no picker, no stored level. The
 fixed durations this extension does run are pinned to the web UI's own top-level
 numbers, so one surface with one level runs at the level an app defaults to.
 
-42 languages in `i18n.js`, checked against the web UI's set by
-`check-locales.mjs`, which fails on both a missing key and an unused one.
+42 languages in `i18n.js`, checked by `check-locales.mjs`, which fails on both a
+missing key and an unused one.
 `check-refusals.mjs` guards the other half: that nothing is dimmed and switched
 off at the same time, that a control hanging off a switch goes away with it, and
 that the one refusal owing a reason has a translated one on a real fill.

@@ -83,13 +83,16 @@ the group drawn as instance cards in both, the same card the web UI's own
 Instances tab draws, with a **Standard** badge on the default and a right-click
 to move it.
 
-Permissions: `contextMenus`, `storage` (the phrase, the default instance, the
-language, the appearance, the Click'n'Load switch), `scripting`,
+Permissions: `contextMenus`, `storage` (the phrase, a random browser ID, the
+default instance, the language, the appearance and whether to follow an
+instance's, the Click'n'Load switch and countdown, whether the pin hint was
+shown, and in session storage a send waiting for the popup), `scripting`,
 `declarativeNetRequest` and `<all_urls>`, plus `clipboardRead` as an optional
 permission for the paste button next to the phrase. There is no `activeTab`:
-the popup reads the current tab's address through the site access `<all_urls>`
-already grants, and Chrome's review counts `activeTab` beside it as a
-permission the extension does not need. Apart from that one read, `scripting`,
+the popup reads the current tab's address and title through the site access
+`<all_urls>` already grants, a right-click send reads the page title the same
+way, and Chrome's review counts `activeTab` beside it as a permission the
+extension does not need. Apart from those reads, `scripting`,
 `declarativeNetRequest` and `<all_urls>` exist for one feature only:
 
 ### Click'n'Load, in the browser
@@ -148,7 +151,8 @@ left that wants it.
 
 ## What this deliberately does not do
 
-No hosted relay, and no attempt to speak MyJDownloader's own vocabulary or
+No account, and no attempt to speak MyJDownloader's own vocabulary or
 protocol — the same ruling `/api/help` states for the API generally applies
-here: KnightLoader reaches exactly the instance you configured, directly,
-and there is nothing else to sign into.
+here. Sends reach the instances in your group through the project's relay
+(`relay.halleluja.design`), which forwards sealed messages it cannot read, and
+there is nothing to sign into.

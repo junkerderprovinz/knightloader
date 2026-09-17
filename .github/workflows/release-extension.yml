@@ -68,6 +68,25 @@ jobs:
           node extension/check-refusals.mjs
           node extension/check-popup-send.mjs
           node extension/check-background.mjs
+          node extension/check-relay-seal.mjs
+
+      # The same lint and skip list as ci.yml, where the two skipped codes are
+      # explained. The zip below is what goes to AMO, so its lint result is the
+      # one that counts.
+      - name: web-ext lint
+        run: |
+          cd extension/src
+          out=$(npx --yes web-ext lint --self-hosted --output=json 2>/dev/null || true)
+          printf '%s' "$out" | node -e '
+            let s = ""; process.stdin.on("data", c => s += c).on("end", () => {
+              let r; try { r = JSON.parse(s); } catch { console.error("web-ext lint produced no JSON"); process.exit(1); }
+              const skip = new Set(["BACKGROUND_SERVICE_WORKER_IGNORED", "KEY_FIREFOX_ANDROID_UNSUPPORTED_BY_MIN_VERSION"]);
+              const bad = [...(r.errors ?? []), ...(r.warnings ?? [])].filter(m => !skip.has(m.code));
+              for (const m of bad) console.error(`${m.code}: ${m.message} (${m.file ?? "manifest.json"})`);
+              if (bad.length) { console.error(`${bad.length} web-ext finding(s)`); process.exit(1); }
+              console.log("web-ext lint clean");
+            });
+          '
 
       # src/ ships as plain files - no build step - so the zip is the directory
       # itself. Built from src/ rather than from the repo root so the archive
