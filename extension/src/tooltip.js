@@ -23,6 +23,10 @@
   const BUBBLE_ID = 'glim-bubble';
   let currentTrigger = null;
   let wired = false;
+  // Whether the last input was a pointer rather than a key. Focus that follows
+  // a press is a side effect (the click itself, or a dialog handing focus back
+  // to its opener), so it must not open the bubble.
+  let pointerWasLast = false;
 
   function bubbleEl() {
     let el = document.getElementById(BUBBLE_ID);
@@ -79,6 +83,7 @@
     wired = true;
 
     function over(event) {
+      if (event.type === 'focusin' && pointerWasLast) return;
       const target = event.target;
       if (!(target instanceof Element)) return;
       const trigger = target.closest('[data-tip], [title]');
@@ -109,7 +114,15 @@
     document.addEventListener('focusin', over);
     document.addEventListener('focusout', out);
     // A press means the person is acting, not reading.
-    document.addEventListener('pointerdown', hide, true);
+    document.addEventListener(
+      'pointerdown',
+      () => {
+        pointerWasLast = true;
+        hide();
+      },
+      true,
+    );
+    document.addEventListener('keydown', () => (pointerWasLast = false), true);
     // Capture, so an inner scrollable container counts too — any scroll
     // de-anchors a fixed-position bubble from what it was pointing at.
     window.addEventListener('scroll', hide, true);
@@ -162,13 +175,12 @@
   /**
    * refreshTip re-reads a trigger's `data-tip` while its bubble is open.
    *
-   * Needed by any control whose tip changes as a RESULT of clicking it - a
-   * reveal eye reading "show the phrase" one moment and "hide it" the next.
-   * The events fire in the order pointerdown, focusin, click: the press hides
-   * the bubble, focus immediately re-shows it, and only then does the click
-   * handler change the text - so without this the bubble sits there stating
-   * the opposite of what the button now does. Caught by looking at a
-   * screenshot, not by reading the code.
+   * Needed by any control whose tip changes as a result of pressing it, like a
+   * reveal eye reading "show the phrase" one moment and "hide it" the next. A
+   * keyboard user's bubble is already open from the focus when Enter or Space
+   * runs the click handler, so without this it would go on stating the
+   * opposite of what the button now does. A mouse press hides the bubble, and
+   * the focus that follows it does not reopen it.
    */
   function refreshTip(el) {
     if (currentTrigger === el) show(el);
