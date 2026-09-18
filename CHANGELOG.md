@@ -39,6 +39,12 @@ submission and for a fixed download.
 
 ### Fixed
 
+- **Browser extension 1.0.1: a tooltip no longer stays up after a click.**
+  Focus opens a tooltip only after keyboard input now, so Cancel in the
+  "leave the group" window, which hands focus back to the bin, no longer leaves
+  the bin's tooltip standing where the pointer is not. The tooltip engine
+  follows GlimStone 2.6.1.
+
 - **The image build no longer takes `latest` before the release exists.**
   `docker/metadata-action` adds `latest` by itself unless told not to, so the
   guard added in 1.1.6 decided nothing: on v1.1.6 the build moved `latest` half
