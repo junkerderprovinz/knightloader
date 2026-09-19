@@ -43,7 +43,7 @@ submission and for a fixed download.
   Focus opens a tooltip only after keyboard input now, so Cancel in the
   "leave the group" window, which hands focus back to the bin, no longer leaves
   the bin's tooltip standing where the pointer is not. The tooltip engine
-  follows GlimStone 2.6.1.
+  follows GlimStone 2.6.0.
 
 - **The image build no longer takes `latest` before the release exists.**
   `docker/metadata-action` adds `latest` by itself unless told not to, so the
