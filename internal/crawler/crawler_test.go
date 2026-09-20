@@ -46,11 +46,6 @@ func wantResults(t *testing.T, got, want []Result) {
 	}
 }
 
-// TestCrawlCollectsFileLinksInDocumentOrder is the core promise of the package:
-// one page URL becomes the many file links it points at. If it fails, either
-// something that is not a download leaked into the task list (an anchor, a
-// mailto:, a link to the next page) or a relative link was queued unresolved
-// and would 404 the moment the engine tried to fetch it.
 func TestCrawlCollectsFileLinksInDocumentOrder(t *testing.T) {
 	page := `<html><body>
 		<a href="#top">back to top</a>
@@ -74,15 +69,11 @@ func TestCrawlCollectsFileLinksInDocumentOrder(t *testing.T) {
 		{URL: srv.URL + "/gallery/two.mkv", Name: "Two"},
 		{URL: "https://cdn.example.net/three.iso", Name: "Three"},
 		{URL: srv.URL + "/media/clip.mp4", Name: "clip.mp4"},
-		// No entry for the page's <img>: an ordinary page is full of logos and
-		// tracking pixels, and none of them is what a link was pasted for.
 	})
 }
 
-// TestCrawlIndexOfListing pins the shape this package was written for. An
-// autoindex is a wall of anchors where the parent link and the subdirectories
-// look exactly like the files; treating "../" or "sub/" as a download would
-// queue directories as tasks.
+// TestCrawlIndexOfListing checks that an autoindex's parent and subdirectory
+// links are not taken for files.
 func TestCrawlIndexOfListing(t *testing.T) {
 	page := `<html><head><title>Index of /pub/</title></head><body>
 <h1>Index of /pub/</h1><hr><pre><a href="../">../</a>
@@ -93,20 +84,12 @@ func TestCrawlIndexOfListing(t *testing.T) {
 	srv := serve(t, "text/html", page)
 
 	got := crawl(t, srv.URL+"/pub/", HTML{})
-	// The title rides along on every result, which is what lets the batch be
-	// named after the page: a listing's own URL ends in "pub/" or a bare number,
-	// and neither is a package name anybody would recognise.
 	wantResults(t, got, []Result{
 		{URL: srv.URL + "/pub/debian-12.iso", Name: "debian-12.iso", Title: "Index of /pub/"},
 		{URL: srv.URL + "/pub/notes.txt", Name: "notes.txt", Title: "Index of /pub/"},
 	})
 }
 
-// TestCrawlTitleIgnoresSVGAndCapsLength pins the two ways the page title goes
-// wrong. An inline icon in a page's navigation carries its own <title>, and
-// taking it would name the whole crawl after whatever the designer wrote in
-// there; and the title is copied onto every result, so an uncapped one turns a
-// two-thousand-link crawl into megabytes of the same sentence.
 func TestCrawlTitleIgnoresSVGAndCapsLength(t *testing.T) {
 	t.Run("svg title is not the page title", func(t *testing.T) {
 		page := `<html><head><title>Real page</title></head><body>
@@ -126,8 +109,7 @@ func TestCrawlTitleIgnoresSVGAndCapsLength(t *testing.T) {
 	})
 
 	t.Run("an overlong title is cut to the cap", func(t *testing.T) {
-		// Multi-byte on purpose: cutting UTF-8 by byte would end the title in a
-		// broken glyph, and the count is in runes for exactly that reason.
+		// Multi-byte, so a cut by byte would leave invalid UTF-8.
 		long := strings.Repeat("ä", maxTitleRunes+50)
 		page := `<html><head><title>` + long + `</title></head><body><a href="/f.zip">f</a></body></html>`
 		srv := serve(t, "text/html", page)
@@ -141,9 +123,8 @@ func TestCrawlTitleIgnoresSVGAndCapsLength(t *testing.T) {
 	})
 }
 
-// TestCrawlNonHTMLResponseIsOneUnparsedResult guards the case where the user
-// pasted a file, not a page. The body here is valid HTML full of links, so a
-// crawler that ignored the content type would explode one download into five.
+// TestCrawlNonHTMLResponseIsOneUnparsedResult serves HTML full of links under
+// a non-HTML type; it must stay one download.
 func TestCrawlNonHTMLResponseIsOneUnparsedResult(t *testing.T) {
 	body := `<html><body><a href="/a.zip">a</a><a href="/b.zip">b</a></body></html>`
 	for _, ct := range []string{"application/octet-stream", "application/zip", ""} {
@@ -155,9 +136,6 @@ func TestCrawlNonHTMLResponseIsOneUnparsedResult(t *testing.T) {
 	}
 }
 
-// TestCrawlMaxLinksTruncates pins the cap that keeps one paste from becoming an
-// unmanageable task list. Truncation must keep document order, so the user gets
-// the top of the page rather than an arbitrary subset of it.
 func TestCrawlMaxLinksTruncates(t *testing.T) {
 	var sb strings.Builder
 	sb.WriteString("<html><body>")
@@ -174,22 +152,18 @@ func TestCrawlMaxLinksTruncates(t *testing.T) {
 		{URL: srv.URL + "/f02.bin", Name: "file 02"},
 	})
 
-	// Zero has to mean "use the default", not "collect nothing".
 	if n := len(crawl(t, srv.URL+"/list", HTML{})); n != 50 {
 		t.Errorf("MaxLinks 0 collected %d links, want all 50 (zero must mean default)", n)
 	}
 }
 
-// TestCrawlRefusesDeclaredOversizePage pins the cheap half of the size guard: a
-// declared length over the cap is refused before any of the body is read.
 func TestCrawlRefusesDeclaredOversizePage(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
 		w.Header().Set("Content-Length", fmt.Sprint(int64(4)<<30))
 		io.WriteString(w, "<html><body>")
 	}))
-	// The handler deliberately sends less than it declared, which the server
-	// reports; silence it so the test output stays readable.
+	// The handler sends less than it declared, which the server logs.
 	srv.Config.ErrorLog = log.New(io.Discard, "", 0)
 	defer srv.Close()
 
@@ -199,10 +173,9 @@ func TestCrawlRefusesDeclaredOversizePage(t *testing.T) {
 	}
 }
 
-// TestCrawlRefusesOversizeStreamWithoutDrainingIt pins the expensive half: a
-// chunked response declares no length, so the read itself must stop at the cap.
-// If it did not, this crawl would buffer 64 MB (and a real host could stream
-// forever) — the failure mode is the crawler killing its own machine.
+// TestCrawlRefusesOversizeStreamWithoutDrainingIt checks that a chunked
+// response with no declared length is cut off at the cap rather than read in
+// full.
 func TestCrawlRefusesOversizeStreamWithoutDrainingIt(t *testing.T) {
 	const (
 		chunk  = 256 << 10
@@ -219,7 +192,7 @@ func TestCrawlRefusesOversizeStreamWithoutDrainingIt(t *testing.T) {
 			n, err := w.Write(blob)
 			served.Add(int64(n))
 			if err != nil {
-				return // the crawler hung up, which is the point
+				return // the crawler hung up
 			}
 			w.(http.Flusher).Flush()
 		}
@@ -231,17 +204,14 @@ func TestCrawlRefusesOversizeStreamWithoutDrainingIt(t *testing.T) {
 	if !errors.Is(err, ErrPageTooLarge) {
 		t.Fatalf("Crawl of a 64 MB page = %v, want ErrPageTooLarge", err)
 	}
-	// Socket buffering means the server gets a little ahead of the reader, so
-	// this only asserts the stream was abandoned, not the exact byte it stopped at.
+	// Socket buffering lets the server get ahead of the reader, so only check
+	// that the stream was abandoned early.
 	if got := served.Load(); got >= chunk*chunks/2 {
 		t.Errorf("server wrote %d bytes, want it cut off well before %d (body was drained, not refused)",
 			got, chunk*chunks)
 	}
 }
 
-// TestCrawlWithoutFileLinksIsEmptyNotAnError pins that a page of nothing but
-// navigation is a legitimate answer. Returning an error here would make the UI
-// show a failure for a page that simply has no downloads on it.
 func TestCrawlWithoutFileLinksIsEmptyNotAnError(t *testing.T) {
 	page := `<html><body>
 		<a href="/about.html">about</a>
@@ -263,9 +233,6 @@ func TestCrawlWithoutFileLinksIsEmptyNotAnError(t *testing.T) {
 	}
 }
 
-// TestCrawlResolvesLinksAgainstFinalURL pins that relative links resolve
-// against where the page came from. Resolving against the requested URL instead
-// would silently point every link at the wrong directory after a redirect.
 func TestCrawlResolvesLinksAgainstFinalURL(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/old", func(w http.ResponseWriter, r *http.Request) {
@@ -282,9 +249,6 @@ func TestCrawlResolvesLinksAgainstFinalURL(t *testing.T) {
 	wantResults(t, got, []Result{{URL: srv.URL + "/new/moved.zip", Name: "Moved"}})
 }
 
-// TestCrawlStopsRedirectLoop pins the hop limit. Without it a page that
-// redirects to itself keeps a crawl going until the client's own default gives
-// up, which is twice as many round trips to the same hostile host.
 func TestCrawlStopsRedirectLoop(t *testing.T) {
 	var hits atomic.Int64
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -302,9 +266,8 @@ func TestCrawlStopsRedirectLoop(t *testing.T) {
 	}
 }
 
-// TestCrawlRejectsNonHTTPStatus keeps a 404 page from being crawled for links.
-// Error pages are full of navigation, and collecting it would turn a dead link
-// into a handful of live but wrong ones.
+// TestCrawlRejectsNonHTTPStatus keeps a 404 page's navigation from being
+// collected as links.
 func TestCrawlRejectsNonHTTPStatus(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
@@ -318,9 +281,6 @@ func TestCrawlRejectsNonHTTPStatus(t *testing.T) {
 	}
 }
 
-// TestMatch pins the scheme guard. Anything the engine cannot fetch over HTTP
-// must be refused here, or the crawler claims a link and fails on it later
-// instead of letting another backend have it.
 func TestMatch(t *testing.T) {
 	pages := []string{
 		"http://example.com/",
@@ -348,16 +308,12 @@ func TestMatch(t *testing.T) {
 	}
 }
 
-// TestCrawlRejectsNonHTTPURL pins that Match and Crawl agree: a URL Match turns
-// down must not sneak through Crawl by another path.
 func TestCrawlRejectsNonHTTPURL(t *testing.T) {
 	if _, err := (HTML{}).Crawl(context.Background(), "ftp://example.com/pub/"); err == nil {
 		t.Fatal("Crawl of an ftp URL succeeded, want an error")
 	}
 }
 
-// TestHTMLSatisfiesCrawler fails at compile time if the generic crawler drifts
-// away from the interface the registry will hold it by.
 func TestHTMLSatisfiesCrawler(t *testing.T) {
 	var c Crawler = HTML{}
 	if c.Info().ID != "html" {
@@ -365,10 +321,9 @@ func TestHTMLSatisfiesCrawler(t *testing.T) {
 	}
 }
 
-// TestOrdinaryPageYieldsNothing is the case that made <img> collection a bug
-// rather than a feature: a hoster page is ordinary HTML full of furniture. If
-// the crawler returns anything here, the app treats the page as "crawled" and
-// the link the user actually pasted is dropped in favour of logos and pixels.
+// TestOrdinaryPageYieldsNothing checks that a hoster page's images and
+// navigation produce no results, so the pasted link is not replaced by logos
+// and pixels.
 func TestOrdinaryPageYieldsNothing(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html")

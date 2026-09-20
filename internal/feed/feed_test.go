@@ -6,9 +6,8 @@ import (
 	"time"
 )
 
-// rssDoc is a plain RSS 2.0 document with the three shapes that matter: an entry
-// whose enclosure is the real file, an entry with only a link, and an entry with
-// no address at all.
+// rssDoc has an entry whose enclosure is the file, an entry with only a link,
+// and an entry with no address at all.
 const rssDoc = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0">
   <channel>
@@ -34,8 +33,8 @@ const rssDoc = `<?xml version="1.0" encoding="UTF-8"?>
   </channel>
 </rss>`
 
-// atomDoc is the same feed in the other format, with the two link traps: a
-// rel="self" that points at the feed itself, and a relative alternate.
+// atomDoc has a rel="self" link pointing at the feed and a relative
+// alternate.
 const atomDoc = `<?xml version="1.0" encoding="UTF-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
   <title>Turmwache</title>
@@ -68,12 +67,9 @@ func TestParseRSS(t *testing.T) {
 	}
 
 	first := f.Items[0]
-	// The title arrives across three lines with eight spaces of indentation in
-	// the document, and it becomes a package name and a folder on somebody's disk.
 	if first.Title != "Folge 1" {
 		t.Errorf("title is %q, want %q", first.Title, "Folge 1")
 	}
-	// The enclosure is the file; the link beside it is the page about the file.
 	if first.Link != "https://example.invalid/files/folge-1.mp3" {
 		t.Errorf("link is %q, want the enclosure", first.Link)
 	}
@@ -88,8 +84,7 @@ func TestParseRSS(t *testing.T) {
 	if second.Link != "https://example.invalid/folge-2" {
 		t.Errorf("relative link resolved to %q, want it against the feed address", second.Link)
 	}
-	// A day number without its leading zero is not RFC 822 and is extremely
-	// common; refusing it would leave a real feed with no date at all.
+	// A single-digit day is not RFC 822 but is common.
 	if second.Published.IsZero() {
 		t.Error("the sloppy date was not read at all")
 	}
@@ -106,8 +101,6 @@ func TestParseAtom(t *testing.T) {
 	if len(f.Items) != 2 {
 		t.Fatalf("got %d items, want 2", len(f.Items))
 	}
-	// Taking the first link blindly would stage the feed's own address once per
-	// entry.
 	if got := f.Items[0].Link; got != "https://example.invalid/runde/1" {
 		t.Errorf("link is %q; rel=self was taken instead of the alternate, or the relative href was not resolved", got)
 	}
@@ -119,10 +112,8 @@ func TestParseAtom(t *testing.T) {
 	}
 }
 
-// TestParseRSS1 covers the third layout. RSS 1.0 is RDF, so its items sit at
-// the root beside the channel rather than inside it, and a parser that only
-// looks inside produces zero entries with no error at all: a subscription that
-// simply never adds anything and never says why.
+// TestParseRSS1 covers RSS 1.0, whose items sit beside the channel; missing
+// them parses to zero entries without an error.
 func TestParseRSS1(t *testing.T) {
 	doc := `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://purl.org/rss/1.0/">
@@ -139,8 +130,6 @@ func TestParseRSS1(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	// The channel's own title still names the feed even though the entries are
-	// not inside it.
 	if f.Title != "Steinbruch" {
 		t.Errorf("feed title is %q, want Steinbruch", f.Title)
 	}
@@ -152,12 +141,9 @@ func TestParseRSS1(t *testing.T) {
 	}
 }
 
-// TestParseReadsALatin1Feed covers the failure that is invisible from the
-// outside: without a charset reader the whole document is refused and the
-// subscription silently produces nothing forever.
 func TestParseReadsALatin1Feed(t *testing.T) {
-	// The title carries 0xE4 (a-umlaut in ISO-8859-1) and 0x93/0x94, which are
-	// the quotes Windows-1252 puts where ISO-8859-1 has control characters.
+	// 0xE4 is a-umlaut in ISO-8859-1; 0x93 and 0x94 are Windows-1252 quotes
+	// where ISO-8859-1 has control characters.
 	doc := "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n" +
 		"<rss version=\"2.0\"><channel><title>K\xe4se</title>" +
 		"<item><title>\x93Gr\xfc\xdfe\x94</title><link>https://example.invalid/a</link></item>" +
@@ -180,15 +166,11 @@ func TestParseRefusesAnEncodingItCannotRead(t *testing.T) {
 	if err == nil {
 		t.Fatal("an unreadable encoding was accepted")
 	}
-	// The label has to be in the message, or the log leaves somebody guessing
-	// which encoding was asked for.
 	if !strings.Contains(err.Error(), "Shift_JIS") {
 		t.Errorf("the error does not name the encoding: %v", err)
 	}
 }
 
-// TestKeyPrefersTheFeedsOwnIdentifier is the dedupe rule stated as a test: a
-// publisher who moves a post to a new address has not published a new post.
 func TestKeyPrefersTheFeedsOwnIdentifier(t *testing.T) {
 	before := Item{Title: "Folge 1", Link: "https://example.invalid/folge-1", GUID: "kf-0001"}
 	moved := Item{Title: "Folge 1 (korrigiert)", Link: "https://example.invalid/2026/folge-1", GUID: "kf-0001"}
@@ -196,8 +178,7 @@ func TestKeyPrefersTheFeedsOwnIdentifier(t *testing.T) {
 		t.Error("an entry that kept its guid but changed its title and address got a new key; it would be staged twice")
 	}
 
-	// And with no guid the link has to carry the identity on its own, or every
-	// feed without one would re-stage its whole window on every single poll.
+	// Without a guid the link alone carries the identity.
 	a := Item{Title: "Folge 2", Link: "https://example.invalid/folge-2"}
 	b := Item{Title: "Folge 2 (korrigiert)", Link: "https://example.invalid/folge-2"}
 	if a.Key() != b.Key() {
@@ -207,9 +188,7 @@ func TestKeyPrefersTheFeedsOwnIdentifier(t *testing.T) {
 		t.Error("two different entries share a key")
 	}
 
-	// The guid and the link are hashed the same way on purpose: a feed that
-	// starts publishing as its guid the value it used to publish only as its link
-	// must not arrive a second time.
+	// A value moving from link to guid must keep its key.
 	sameValue := Item{Title: "Folge 2", Link: "https://example.invalid/folge-2", GUID: "https://example.invalid/folge-2"}
 	if sameValue.Key() != a.Key() {
 		t.Error("the same value read out of guid and out of link produced two keys")
@@ -220,14 +199,11 @@ func TestSanitize(t *testing.T) {
 	four := 4
 	got := Sanitize([]Subscription{
 		{URL: "  https://example.invalid/rss.xml  ", IntervalMinutes: 0, TitleFilter: " Folge "},
-		// The same address again, which a person can reasonably type twice. Two
-		// pollers over one feed would share one memory and stage everything twice.
 		{URL: "https://example.invalid/rss.xml", IntervalMinutes: 60},
 		{URL: "https://example.invalid/atom.xml", IntervalMinutes: -5},
 		{URL: "https://example.invalid/slow.xml", IntervalMinutes: 999999},
 		{URL: "https://example.invalid/prio.xml", Priority: &four},
-		// What an interface's "add a row" button produces before anything is
-		// typed into it.
+		// An empty row as an "add row" button leaves it.
 		{URL: "   "},
 	})
 	if len(got) != 4 {
@@ -268,11 +244,8 @@ func TestValidate(t *testing.T) {
 		{"plain", Subscription{URL: "https://example.invalid/rss.xml"}, true},
 		{"with a filter", Subscription{URL: "https://example.invalid/rss.xml", TitleFilter: `^Folge \d+`}, true},
 		{"no address", Subscription{}, false},
-		// A file:// feed would be a way to read any file on the box through a
-		// settings field.
 		{"a local file", Subscription{URL: "file:///etc/passwd"}, false},
 		{"no host", Subscription{URL: "https://"}, false},
-		// The one that must never be dropped and silently run unfiltered.
 		{"a filter that will not compile", Subscription{URL: "https://example.invalid/rss.xml", TitleFilter: "("}, false},
 	} {
 		t.Run(tc.name, func(t *testing.T) {

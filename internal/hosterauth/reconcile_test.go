@@ -12,8 +12,6 @@ import (
 	jdresolver "github.com/junkerderprovinz/knightloader/internal/resolver/jd"
 )
 
-// ---- plan(): the pure add/remove/status decision -------------------------
-
 func TestPlanAddsWhatJDIsMissing(t *testing.T) {
 	desired := []DesiredLogin{{Host: "rapidgator.net", Username: "u", Password: "p"}}
 	p := plan(desired, nil, map[string]time.Time{}, time.Now())
@@ -21,7 +19,7 @@ func TestPlanAddsWhatJDIsMissing(t *testing.T) {
 		t.Fatalf("Add = %+v, want the one desired host that JD does not have", p.Add)
 	}
 	if len(p.Remove) != 0 {
-		t.Errorf("Remove = %v, want none - nothing was actually there to remove", p.Remove)
+		t.Errorf("Remove = %v, want none", p.Remove)
 	}
 	if got := p.States["rapidgator.net"].Status; got != StatusQueued {
 		t.Errorf("status = %q, want %q for a login just added", got, StatusQueued)
@@ -32,7 +30,7 @@ func TestPlanRemovesWhatIsNoLongerDesired(t *testing.T) {
 	actual := []jdAccount{{UUID: 7, Hostname: "uploaded.net", InfoMap: &jdAccountInfo{Valid: true}}}
 	p := plan(nil, actual, map[string]time.Time{}, time.Now())
 	if len(p.Remove) != 1 || p.Remove[0] != 7 {
-		t.Fatalf("Remove = %v, want [7] - the user deleted this login in KL", p.Remove)
+		t.Fatalf("Remove = %v, want [7]", p.Remove)
 	}
 	if len(p.Add) != 0 {
 		t.Errorf("Add = %v, want none", p.Add)
@@ -44,60 +42,53 @@ func TestPlanKeepsDesiredAndPresentAlone(t *testing.T) {
 	actual := []jdAccount{{UUID: 1, Hostname: "rapidgator.net", InfoMap: &jdAccountInfo{Valid: true}}}
 	p := plan(desired, actual, map[string]time.Time{}, time.Now())
 	if len(p.Add) != 0 || len(p.Remove) != 0 {
-		t.Fatalf("Add=%v Remove=%v, want neither - this login is desired and already present", p.Add, p.Remove)
+		t.Fatalf("Add=%v Remove=%v, want neither", p.Add, p.Remove)
 	}
 }
 
-// TestPlanHostMatchIsCaseAndWWWInsensitive pins the normalizeHost contract
-// plan's byHost map depends on: a desired host and JD's reported hostname
-// must compare equal regardless of case or a leading "www.".
+// A desired host and JD's reported hostname compare equal regardless of case
+// or a leading "www.", which is what plan's byHost map depends on.
 func TestPlanHostMatchIsCaseAndWWWInsensitive(t *testing.T) {
 	desired := []DesiredLogin{{Host: "WWW.Rapidgator.NET", Username: "u", Password: "p"}}
 	actual := []jdAccount{{UUID: 1, Hostname: "rapidgator.net", InfoMap: &jdAccountInfo{Valid: true}}}
 	p := plan(desired, actual, map[string]time.Time{}, time.Now())
 	if len(p.Add) != 0 {
-		t.Errorf("Add = %v, want none - www./case must not make this look missing", p.Add)
+		t.Errorf("Add = %v, want none; www. and case must not make this look missing", p.Add)
 	}
 }
 
-// ---- the three-way status: queued must never collapse into rejected ------
-
-// TestPlanQueuedWithinGraceNotRejected is requirement 2, pinned directly: a
-// login JD has not yet validated must read as "still checking", never as
-// "wrong password", until the grace window has actually elapsed.
+// A login JD has not yet validated reads as "still checking" until the grace
+// window has elapsed, never as "wrong password".
 func TestPlanQueuedWithinGraceNotRejected(t *testing.T) {
 	now := time.Now()
 	desired := []DesiredLogin{{Host: "rapidgator.net", Username: "u", Password: "p"}}
 	actual := []jdAccount{{UUID: 1, Hostname: "rapidgator.net", InfoMap: &jdAccountInfo{Valid: false}}}
-	firstFail := map[string]time.Time{"rapidgator.net": now.Add(-1 * time.Minute)} // well inside rejectGrace (2m)
+	firstFail := map[string]time.Time{"rapidgator.net": now.Add(-1 * time.Minute)} // inside rejectGrace
 
 	p := plan(desired, actual, firstFail, now)
 	got := p.States["rapidgator.net"]
 	if got.Status != StatusQueued {
-		t.Fatalf("status = %q, want %q - JD has not had rejectGrace to validate this yet", got.Status, StatusQueued)
+		t.Fatalf("status = %q, want %q; JD has not had rejectGrace to validate this yet", got.Status, StatusQueued)
 	}
 }
 
-// TestPlanRejectedAfterGraceElapses is the other half: once the grace window
-// has genuinely passed with JD still saying invalid, the status must flip to
-// rejected so the user is told to fix the password instead of waiting forever.
+// Once the grace window has passed with JD still saying invalid, the status
+// flips to rejected so the user is told to fix the password.
 func TestPlanRejectedAfterGraceElapses(t *testing.T) {
 	now := time.Now()
 	desired := []DesiredLogin{{Host: "rapidgator.net", Username: "u", Password: "p"}}
 	actual := []jdAccount{{UUID: 1, Hostname: "rapidgator.net", InfoMap: &jdAccountInfo{Valid: false}}}
-	firstFail := map[string]time.Time{"rapidgator.net": now.Add(-3 * time.Minute)} // past rejectGrace (2m)
+	firstFail := map[string]time.Time{"rapidgator.net": now.Add(-3 * time.Minute)} // past rejectGrace
 
 	p := plan(desired, actual, firstFail, now)
 	got := p.States["rapidgator.net"]
 	if got.Status != StatusRejected {
-		t.Fatalf("status = %q, want %q - the grace window has elapsed", got.Status, StatusRejected)
+		t.Fatalf("status = %q, want %q after the grace window", got.Status, StatusRejected)
 	}
 }
 
-// TestPlanNotYetOnJDIsQueuedNotRejected is the other shape of "not active
-// yet": a login this reconciler is about to add for the first time (present
-// in neither actual nor firstFail) must never read as rejected - it hasn't
-// even reached JD yet, let alone been checked.
+// A login that is in neither actual nor firstFail has not reached JD at all,
+// so it reads as queued rather than rejected.
 func TestPlanNotYetOnJDIsQueuedNotRejected(t *testing.T) {
 	desired := []DesiredLogin{{Host: "rapidgator.net", Username: "u", Password: "p"}}
 	p := plan(desired, nil, map[string]time.Time{}, time.Now())
@@ -106,16 +97,12 @@ func TestPlanNotYetOnJDIsQueuedNotRejected(t *testing.T) {
 	}
 }
 
-// ---- Reconcile against a fake JD client (never a real one) ---------------
-
-// fakeJD is jdAccounts without a network - the accounts it "has" are exactly
-// what the test seeds it with, and addAccount/removeAccounts record what
-// Reconcile asked for so the test can assert on the calls themselves, not
-// just their side effects.
+// fakeJD is jdAccounts without a network. It holds the accounts the test seeds
+// it with and records the calls Reconcile makes.
 type fakeJD struct {
 	accounts   []jdAccount
 	nextUUID   int64
-	added      []DesiredLogin // hoster/username/password exactly as addAccount received them
+	added      []DesiredLogin // exactly as addAccount received them
 	removedIDs []int64
 	hosters    []string
 	queryErr   error
@@ -167,7 +154,7 @@ func newTestReconciler(t *testing.T, jd jdAccounts) (*Reconciler, *Store) {
 	store := NewStore(acc)
 	r := &Reconciler{
 		store:     store,
-		jdBase:    func() string { return "http://127.0.0.1:0" }, // never dialled: newJD is overridden below
+		jdBase:    func() string { return "http://127.0.0.1:0" }, // never dialled, newJD is overridden below
 		newJD:     func(string) jdAccounts { return jd },
 		states:    map[string]LoginState{},
 		firstFail: map[string]time.Time{},
@@ -230,11 +217,8 @@ func TestReconcileNoJDConfiguredIsAQuietError(t *testing.T) {
 	}
 }
 
-// ---- the credential never leaves as anything but the one addAccount call -
-
-// TestLoginStateNeverCarriesTheCredential is a structural guarantee as much
-// as a test: LoginState (what every API response and every log line built
-// from Reconciler's own state can see) has no field a password could occupy.
+// LoginState is what every API response and every log line built from
+// Reconciler's state can see, and it has no field a password could occupy.
 func TestLoginStateNeverCarriesTheCredential(t *testing.T) {
 	const secret = "hunter2-do-not-leak-me"
 	st := LoginState{Host: "rapidgator.net", Username: "u", Status: StatusQueued, Detail: "waiting"}
@@ -247,10 +231,8 @@ func TestLoginStateNeverCarriesTheCredential(t *testing.T) {
 	}
 }
 
-// TestReconcileErrorsNeverContainTheCredential drives a failing addAccount
-// through Reconcile with a real-shaped username/password and checks the
-// error text - the one place a bug could format a credential into a message
-// meant for a log line.
+// A failing pass formats an error that ends up in a log line, so it is checked
+// against a real-shaped username and password.
 func TestReconcileErrorsNeverContainTheCredential(t *testing.T) {
 	const user, pass = "victim-user", "hunter2-do-not-leak-me"
 	fake := &fakeJD{queryErr: errors.New("jd accounts/queryAccounts: HTTP 500")}
@@ -269,20 +251,15 @@ func TestReconcileErrorsNeverContainTheCredential(t *testing.T) {
 }
 
 // setHostActiveForTest clears internal/resolver/jd's package-level active-host
-// state after a test that set it, so one test cannot leave state another test
-// (or resolver_test.go's own tests) observes.
+// state, so one test does not leave state another one observes.
 func setHostActiveForTest(t *testing.T, host string, active bool) {
 	t.Helper()
 	jdresolver.SetHostActive(host, active)
 }
 
-// ---- the on/off switch (jdp, 2026-09-06) ----------------------------------
-
-// TestDisabledLoginIsRemovedFromJD is the whole mechanism in one test: a
-// switched-off login is not in `desired`, so plan() sees a JD account nobody
-// wants and asks for it to go. Anything less than that - leaving it in JD and
-// only greying the row - would be a switch that changes what the page says and
-// nothing about what actually downloads.
+// A switched-off login is not in `desired`, so plan sees a JD account nobody
+// wants and asks for it to go. Leaving it in JD and only greying the row would
+// change what the page says and nothing about what downloads.
 func TestDisabledLoginIsRemovedFromJD(t *testing.T) {
 	fake := &fakeJD{accounts: []jdAccount{{UUID: 9, Hostname: "rapidgator.net", InfoMap: &jdAccountInfo{Valid: true}}}}
 	r, store := newTestReconciler(t, fake)
@@ -296,27 +273,25 @@ func TestDisabledLoginIsRemovedFromJD(t *testing.T) {
 		t.Fatalf("Reconcile: %v", err)
 	}
 	if len(fake.removedIDs) != 1 || fake.removedIDs[0] != 9 {
-		t.Fatalf("removed = %v, want [9] - a switched-off login must leave JD's account list", fake.removedIDs)
+		t.Fatalf("removed = %v, want [9]; a switched-off login must leave JD's account list", fake.removedIDs)
 	}
-	// And the credential is still there: off is not delete, which is the whole
-	// difference between the toggle and the bin beside it.
+	// Off is not delete: the credential stays.
 	cred, err := store.Get("rapidgator.net")
 	if err != nil || cred.IsZero() {
 		t.Fatalf("credential after switching off = %+v (err %v), want it kept", cred, err)
 	}
 }
 
-// TestDisabledLoginReadsAsOffNotAsActive: States answers from the switch, not
-// from the last state a reconcile pass happened to leave behind. Reading the
-// cached one would show "active" for a login JD has just been told to drop.
+// States answers from the switch, not from the last state a reconcile pass
+// left behind. The cached one would read "active" for a login JD was told to
+// drop.
 func TestDisabledLoginReadsAsOffNotAsActive(t *testing.T) {
 	fake := &fakeJD{accounts: []jdAccount{{UUID: 3, Hostname: "rapidgator.net", InfoMap: &jdAccountInfo{Valid: true}}}}
 	r, store := newTestReconciler(t, fake)
 	if err := store.Set("rapidgator.net", accounts.Credential{Username: "u", Password: "p"}); err != nil {
 		t.Fatalf("store.Set: %v", err)
 	}
-	// On first: this is what writes the "active" state the assertion below
-	// must not come back to.
+	// Writes the "active" state the assertion below must not come back to.
 	if _, err := r.Reconcile(context.Background()); err != nil {
 		t.Fatalf("Reconcile: %v", err)
 	}
@@ -340,9 +315,7 @@ func TestDisabledLoginReadsAsOffNotAsActive(t *testing.T) {
 	}
 }
 
-// TestEnabledNilMeansEverythingOn keeps the field optional: a caller that has
-// no opinion about switches gets exactly the behaviour this package had before
-// they existed.
+// A nil Enabled means every stored login is on.
 func TestEnabledNilMeansEverythingOn(t *testing.T) {
 	fake := &fakeJD{}
 	r, store := newTestReconciler(t, fake)

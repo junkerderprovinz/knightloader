@@ -13,9 +13,10 @@ import (
 	"github.com/coder/websocket"
 )
 
-// fakeConn is a connection whose Write can be held open on demand, which is how
-// these tests model a viewer on a bad link. Every field except the channels and
-// the atomics is set before Add, so the writer goroutine only ever reads them.
+// fakeConn is a connection whose Write can be held open on demand, which is
+// how these tests model a viewer on a bad link. Every field except the
+// channels and the atomics is set before Add, so the writer goroutine only
+// reads them.
 type fakeConn struct {
 	writes  chan []byte
 	block   chan struct{} // if non-nil, Write waits for it to be closed
@@ -85,9 +86,8 @@ func recv(t *testing.T, f *fakeConn, msg string) []byte {
 	}
 }
 
-// TestBroadcastDoesNotWaitForASlowClient is the whole point of the per-client
-// queue. If it failed, one viewer stuck in Write would add its write timeout to
-// every progress update the other viewers are waiting for.
+// Without the per-client queue, one viewer stuck in Write would add its write
+// timeout to every progress update the other viewers are waiting for.
 func TestBroadcastDoesNotWaitForASlowClient(t *testing.T) {
 	h := New()
 	slow := newFakeConn()
@@ -134,9 +134,9 @@ func TestBroadcastDoesNotWaitForASlowClient(t *testing.T) {
 	}
 }
 
-// TestOverFullClientIsDropped pins the back-pressure decision: a client that
-// cannot drain its queue is disconnected, not waited for. Without this the
-// queue would only move the stall from the broadcaster into memory growth.
+// A client that cannot drain its queue is disconnected, not waited for.
+// Otherwise the queue would only move the stall from the broadcaster into
+// memory growth.
 func TestOverFullClientIsDropped(t *testing.T) {
 	h := New()
 	stuck := newFakeConn()
@@ -167,9 +167,9 @@ func TestOverFullClientIsDropped(t *testing.T) {
 	}
 }
 
-// TestWriteErrorRemovesClient covers the other way a connection dies: the write
-// fails outright. A client left registered after that would collect broadcasts
-// forever and eventually be dropped for a queue overflow that never mattered.
+// The other way a connection dies: the write fails outright. A client left
+// registered would collect broadcasts forever and eventually be dropped for a
+// queue overflow that never mattered.
 func TestWriteErrorRemovesClient(t *testing.T) {
 	h := New()
 	broken := newFakeConn()
@@ -181,10 +181,10 @@ func TestWriteErrorRemovesClient(t *testing.T) {
 	waitFor(t, broken.closed.Load, "client with a failing write was never closed")
 }
 
-// TestSendToKeepsOrderWithBroadcast pins that a per-connection message goes
-// through the same queue as the fan-out. A snapshot written straight to the
-// socket could otherwise be overtaken by a task update the writer already had
-// queued, and the UI would show stale state until the next event.
+// A per-connection message goes through the same queue as the fan-out. A
+// snapshot written straight to the socket could be overtaken by a task update
+// the writer already had queued, and the UI would show stale state until the
+// next event.
 func TestSendToKeepsOrderWithBroadcast(t *testing.T) {
 	h := New()
 	c := newFakeConn()
@@ -209,9 +209,9 @@ func TestSendToKeepsOrderWithBroadcast(t *testing.T) {
 	}
 }
 
-// TestAddRemoveUnderConcurrency runs the real access pattern: HTTP handlers add
-// and remove connections while the download loop broadcasts. Under -race this
-// fails if any of the hub state is touched outside the lock.
+// The real access pattern: HTTP handlers add and remove connections while the
+// download loop broadcasts. Under -race this fails if any hub state is touched
+// outside the lock.
 func TestAddRemoveUnderConcurrency(t *testing.T) {
 	h := New()
 	var wg sync.WaitGroup
@@ -245,9 +245,8 @@ func TestAddRemoveUnderConcurrency(t *testing.T) {
 	waitFor(t, func() bool { return h.Len() == 0 }, "connections were left registered")
 }
 
-// TestRemoveLeavesNoGoroutine guards the writer goroutines. Every WebSocket
-// visitor starts one, so a writer that outlived its connection would leak a
-// goroutine and a queue per page load.
+// Every WebSocket visitor starts a writer goroutine, so one that outlived its
+// connection would leak a goroutine and a queue per page load.
 func TestRemoveLeavesNoGoroutine(t *testing.T) {
 	h := New()
 	settle := func(target int) bool {
@@ -281,12 +280,9 @@ func TestRemoveLeavesNoGoroutine(t *testing.T) {
 		h.Remove(c)
 	}
 
-	// Wait for BOTH signals, not just the goroutine count: NumGoroutine() is a
-	// process-wide counter, so it can coincidentally settle to the baseline
-	// from unrelated scheduling even before every one of these 50 connections
-	// has actually run its own cleanup and set closed - checking count alone
-	// made this test intermittently flaky (github.com/junkerderprovinz/knightloader
-	// CI, three unrelated PRs blocked by the same failure the same day).
+	// Both signals, not just the goroutine count: NumGoroutine is process-wide
+	// and can settle to the baseline from unrelated scheduling before every
+	// one of these connections has run its own cleanup.
 	waitFor(t, func() bool {
 		for _, c := range cs {
 			if !c.closed.Load() {
@@ -302,10 +298,7 @@ func TestRemoveLeavesNoGoroutine(t *testing.T) {
 	}
 }
 
-// TestUnsubscribedConnectionStillReceivesEverything pins the default every
-// consumer before Subscribe existed was already written against: a
-// connection that never sends a subscribe message must keep seeing every
-// kind, unchanged, forever.
+// A connection that never sends a subscribe message keeps seeing every kind.
 func TestUnsubscribedConnectionStillReceivesEverything(t *testing.T) {
 	h := New()
 	c := newFakeConn()
@@ -322,8 +315,8 @@ func TestUnsubscribedConnectionStillReceivesEverything(t *testing.T) {
 	}
 }
 
-// TestSubscribeNarrowsToNamedKinds is the feature itself: a connection that
-// only wants "activity" must not be woken for every "task" update in between.
+// A connection that only wants "activity" is not woken for every "task"
+// update in between.
 func TestSubscribeNarrowsToNamedKinds(t *testing.T) {
 	h := New()
 	c := newFakeConn()
@@ -346,9 +339,8 @@ func TestSubscribeNarrowsToNamedKinds(t *testing.T) {
 	}
 }
 
-// TestSubscribeCallsAddRatherThanReplace: two subscribe calls compose, so a
-// page that asks for "task" and, separately, for "activity" ends up wanting
-// both rather than only whichever call happened last.
+// Two subscribe calls compose, so a page that asks for "task" and separately
+// for "activity" ends up wanting both rather than only the later call.
 func TestSubscribeCallsAddRatherThanReplace(t *testing.T) {
 	h := New()
 	c := newFakeConn()
@@ -373,9 +365,8 @@ func TestSubscribeCallsAddRatherThanReplace(t *testing.T) {
 	}
 }
 
-// TestSubscribeWildcardResetsToEverything is the way back out of a narrowed
-// stream without a client having to enumerate every kind this build knows
-// about, several of which (like the test-sentinel above) it may not.
+// The way back out of a narrowed stream without a client having to enumerate
+// every kind this build knows.
 func TestSubscribeWildcardResetsToEverything(t *testing.T) {
 	h := New()
 	c := newFakeConn()
@@ -394,8 +385,7 @@ func TestSubscribeWildcardResetsToEverything(t *testing.T) {
 	}
 }
 
-// TestUnsubscribeRemovesOnlyNamedKinds narrows a connection with Subscribe
-// and then trims it further with Unsubscribe, leaving the rest of the
+// Unsubscribe trims a narrowed connection further, leaving the rest of the
 // allowlist in force.
 func TestUnsubscribeRemovesOnlyNamedKinds(t *testing.T) {
 	h := New()
@@ -419,10 +409,8 @@ func TestUnsubscribeRemovesOnlyNamedKinds(t *testing.T) {
 	}
 }
 
-// TestUnsubscribeOnAnUnrestrictedConnectionIsANoOp pins the documented
-// limitation: there is no blocklist mode, so unsubscribing before ever
-// subscribing changes nothing and the connection goes on receiving
-// everything.
+// There is no blocklist mode, so unsubscribing before ever subscribing changes
+// nothing and the connection goes on receiving everything.
 func TestUnsubscribeOnAnUnrestrictedConnectionIsANoOp(t *testing.T) {
 	h := New()
 	c := newFakeConn()
@@ -437,9 +425,8 @@ func TestUnsubscribeOnAnUnrestrictedConnectionIsANoOp(t *testing.T) {
 	}
 }
 
-// TestSubscribeOnAnUnregisteredConnectionIsANoOp: a call racing Remove (the
-// WebSocket closed while its own read loop was mid-parse of a subscribe
-// frame) must not panic or resurrect a client entry.
+// A call racing Remove, with the socket closed while its read loop was
+// mid-parse of a subscribe frame, must not panic or resurrect a client entry.
 func TestSubscribeOnAnUnregisteredConnectionIsANoOp(t *testing.T) {
 	h := New()
 	c := newFakeConn()
@@ -450,12 +437,8 @@ func TestSubscribeOnAnUnregisteredConnectionIsANoOp(t *testing.T) {
 	}
 }
 
-// TestSubscribeUnderConcurrency runs Subscribe, Unsubscribe and Broadcast
-// from many goroutines at once against the same connections: the pattern
-// -race exists to catch, matched to TestAddRemoveUnderConcurrency just above
-// for the same reason. This package's own history is two real races that
-// only ever reproduced in CI (see the Wave 8 commits this comment's sibling
-// tests already point at).
+// Subscribe, Unsubscribe and Broadcast from many goroutines at once against
+// the same connections, the pattern -race exists to catch.
 func TestSubscribeUnderConcurrency(t *testing.T) {
 	h := New()
 	const conns = 8

@@ -12,8 +12,8 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/secret"
 )
 
-// locked is a Guard in the only state a second factor is allowed to exist in:
-// with a password already set.
+// locked returns a Guard with a password set, the only state a second factor
+// can exist in.
 func locked(t *testing.T) (*Guard, string) {
 	t.Helper()
 	dir := t.TempDir()
@@ -36,10 +36,6 @@ func codeNow(t *testing.T, sec string) string {
 	return c
 }
 
-// TestSecondFactorNeedsAFirstOne. GlimStone: a login gains a way IN, never a way
-// INSTEAD. A second factor on an instance with no password protects nothing and
-// only adds a way to be locked out, so the guard refuses to start the enrolment
-// at all rather than leaving the card to remember.
 func TestSecondFactorNeedsAFirstOne(t *testing.T) {
 	g, err := Open(t.TempDir())
 	if err != nil {
@@ -53,10 +49,8 @@ func TestSecondFactorNeedsAFirstOne(t *testing.T) {
 	}
 }
 
-// TestAHalfFinishedEnrolmentIsNotArmed is the rule about the status line, tested
-// where the status line reads from. Showing a QR code must change nothing the
-// authority answers with, or the card claims a protection that is not there and
-// the next login refuses a code nobody has yet.
+// TestAHalfFinishedEnrolmentIsNotArmed checks that showing a QR code changes
+// neither what TwoFactorEnabled reports nor the file.
 func TestAHalfFinishedEnrolmentIsNotArmed(t *testing.T) {
 	g, dir := locked(t)
 	sec, uri, err := g.BeginTwoFactor("KnightLoader", "this instance")
@@ -69,8 +63,6 @@ func TestAHalfFinishedEnrolmentIsNotArmed(t *testing.T) {
 	if g.TwoFactorEnabled() {
 		t.Error("the factor reads as armed after nothing but a QR code was shown")
 	}
-	// And nothing reached the file either, so a restart in the middle leaves no
-	// half-armed instance behind.
 	var s stored
 	b, err := os.ReadFile(filepath.Join(dir, "auth.json"))
 	if err != nil {
@@ -101,8 +93,7 @@ func TestEnrolmentArmsOnlyOnAConfirmedCode(t *testing.T) {
 		t.Fatal(err)
 	}
 	if len(codes) != secret.RecoveryCodeCount {
-		t.Errorf("got %d recovery codes, want %d - the card promises this number before it shows them",
-			len(codes), secret.RecoveryCodeCount)
+		t.Errorf("got %d recovery codes, want %d", len(codes), secret.RecoveryCodeCount)
 	}
 	if !g.TwoFactorEnabled() {
 		t.Fatal("the factor is not armed after a confirmed code")
@@ -111,7 +102,6 @@ func TestEnrolmentArmsOnlyOnAConfirmedCode(t *testing.T) {
 		t.Errorf("RecoveryLeft = %d, want %d", g.RecoveryLeft(), secret.RecoveryCodeCount)
 	}
 
-	// It survives a restart, which is the only reason it is on disk at all.
 	again, err := Open(dir)
 	if err != nil {
 		t.Fatal(err)
@@ -124,10 +114,6 @@ func TestEnrolmentArmsOnlyOnAConfirmedCode(t *testing.T) {
 	}
 }
 
-// TestTheSecretIsNeverHandedBackOnceItIsArmed. It is shown exactly once, during
-// the enrolment, and the screen that shows it says so. A second Begin while the
-// factor is on would quietly hand out a fresh one and be a way to read the
-// armed instance's secret out of an open session.
 func TestTheSecretIsNeverHandedBackOnceItIsArmed(t *testing.T) {
 	g, _ := locked(t)
 	sec, _, err := g.BeginTwoFactor("KnightLoader", "this instance")
@@ -142,9 +128,6 @@ func TestTheSecretIsNeverHandedBackOnceItIsArmed(t *testing.T) {
 	}
 }
 
-// TestTurningItOffCostsTheSameProofAsUsingIt. GlimStone states this as stricter
-// than the ordinary confirmation rule and for a different reason: not regret,
-// but a session somebody walked away from.
 func TestTurningItOffCostsTheSameProofAsUsingIt(t *testing.T) {
 	g, _ := locked(t)
 	sec, _, err := g.BeginTwoFactor("KnightLoader", "this instance")
@@ -169,12 +152,10 @@ func TestTurningItOffCostsTheSameProofAsUsingIt(t *testing.T) {
 		t.Error("the factor is still armed after a valid code turned it off")
 	}
 	if g.RecoveryLeft() != 0 {
-		t.Errorf("RecoveryLeft = %d after turning the factor off, want 0 - a stale sheet of codes is a way in nobody remembers granting", g.RecoveryLeft())
+		t.Errorf("RecoveryLeft = %d after turning the factor off, want 0", g.RecoveryLeft())
 	}
 }
 
-// TestARecoveryCodeWorksOnceAndThenIsGone. It is the way back in when the phone
-// is lost, so it has to work; it is written on paper, so it must not work twice.
 func TestARecoveryCodeWorksOnceAndThenIsGone(t *testing.T) {
 	g, dir := locked(t)
 	sec, _, err := g.BeginTwoFactor("KnightLoader", "this instance")
@@ -194,8 +175,6 @@ func TestARecoveryCodeWorksOnceAndThenIsGone(t *testing.T) {
 	if g.CheckSecond(codes[2]) {
 		t.Error("the same recovery code was accepted twice")
 	}
-	// Spending one is a write, not only a change in memory: a code used just
-	// before a restart must not come back.
 	again, err := Open(dir)
 	if err != nil {
 		t.Fatal(err)
@@ -206,15 +185,11 @@ func TestARecoveryCodeWorksOnceAndThenIsGone(t *testing.T) {
 	if again.RecoveryLeft() != secret.RecoveryCodeCount-1 {
 		t.Errorf("RecoveryLeft after a restart = %d, want %d", again.RecoveryLeft(), secret.RecoveryCodeCount-1)
 	}
-	// And it turns the factor off, which is the other half of "a way back in".
 	if err := again.DisableTwoFactor(codes[4]); err != nil {
 		t.Errorf("DisableTwoFactor with a recovery code: %v", err)
 	}
 }
 
-// TestRemovingThePasswordTakesTheSecondFactorWithIt. The factor hangs off the
-// password; leaving it armed against a password that no longer exists would
-// leave an instance that asks for a code and has nothing to add it to.
 func TestRemovingThePasswordTakesTheSecondFactorWithIt(t *testing.T) {
 	g, _ := locked(t)
 	sec, _, err := g.BeginTwoFactor("KnightLoader", "this instance")
@@ -232,11 +207,6 @@ func TestRemovingThePasswordTakesTheSecondFactorWithIt(t *testing.T) {
 	}
 }
 
-// TestChangingThePasswordKeepsTheSecondFactor is the other side of the rule
-// above, and the one that would be easy to get wrong by clearing on every
-// SetPassword: rotating a password is not a reason to make somebody re-enrol a
-// phone, and a factor that quietly switched itself off there would be a
-// protection somebody believes in and does not have.
 func TestChangingThePasswordKeepsTheSecondFactor(t *testing.T) {
 	g, _ := locked(t)
 	sec, _, err := g.BeginTwoFactor("KnightLoader", "this instance")
@@ -257,12 +227,6 @@ func TestChangingThePasswordKeepsTheSecondFactor(t *testing.T) {
 	}
 }
 
-// TestClearTwoFactorIsTheWayBackIn is the documented escape hatch: somebody who
-// can reach the data directory can turn the factor off without a code, because
-// that same person could delete auth.json outright. It is the answer to the one
-// question this screen has to answer for a tool with no second human in it -
-// see cmd/knightloader's -reset-2fa flag, which is this method with a main()
-// around it.
 func TestClearTwoFactorIsTheWayBackIn(t *testing.T) {
 	g, dir := locked(t)
 	sec, _, err := g.BeginTwoFactor("KnightLoader", "this instance")
@@ -278,8 +242,6 @@ func TestClearTwoFactorIsTheWayBackIn(t *testing.T) {
 	if g.TwoFactorEnabled() {
 		t.Fatal("ClearTwoFactor left the factor armed")
 	}
-	// The password is untouched, which is the whole point: this is a way past
-	// the second factor, never a way past the first one.
 	if !g.Check("correct-horse") {
 		t.Error("ClearTwoFactor removed the password as well")
 	}
@@ -295,9 +257,6 @@ func TestClearTwoFactorIsTheWayBackIn(t *testing.T) {
 	}
 }
 
-// TestCheckSecondAnswersNoWhileTheFactorIsOff. Nothing may be accepted as a
-// second factor on an instance that has none, or an empty code would be a valid
-// answer to a question nobody asked.
 func TestCheckSecondAnswersNoWhileTheFactorIsOff(t *testing.T) {
 	g, _ := locked(t)
 	for _, s := range []string{"", "000000", "abcde-fghij"} {

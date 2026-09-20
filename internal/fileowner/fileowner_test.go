@@ -1,20 +1,9 @@
 package fileowner
 
-// The rule this package exists for, and the two ways it is easy to get wrong.
-//
-// MOST OF THIS FILE DRIVES judge WITH CONSTRUCTED MEASUREMENTS RATHER THAN WITH
-// A REAL FOLDER, and that is the point rather than a shortcut. The failure being
-// tested - a folder this process CAN write to whose files still come out
-// belonging to somebody else - needs a share owned by another account, and a
-// test that could only reach it on a NAS is a test that runs nowhere. Splitting
-// the measurement from the judgement means the judgement is pinned on every
-// platform, Windows included, which is also the only reason this file says
-// anything at all on the machine most of it is written on.
-//
-// The handful of tests that do touch the disk are the ones about the SIDE
-// EFFECTS - that a check leaves nothing behind, that a folder which is not there
-// is not created - because those are true on every filesystem and are the part
-// that would quietly litter somebody's download share.
+// Most tests drive judge with constructed measurements, since the real case (a
+// share owned by another account) only exists on a NAS; this way the rule is
+// tested on every platform. The tests that touch the disk cover side effects:
+// nothing left behind, nothing created.
 
 import (
 	"errors"
@@ -24,10 +13,8 @@ import (
 	"testing"
 )
 
-// measured is a probe as it comes back from a folder that this process could
-// write to perfectly well: the file and the sub-folder were both created, and
-// every mode is the ordinary one a umask of 022 produces. Each test then breaks
-// exactly one thing about it, so what is being judged is never in doubt.
+// measured is a probe from a healthy, writable folder with a 022 umask. Each
+// test breaks one thing about it.
 func measured() Probe {
 	return Probe{
 		Dir: "/downloads", Exists: true, Known: true,
@@ -38,14 +25,8 @@ func measured() Probe {
 }
 
 // TestAWritableFolderStillFailsWhenTheFilesComeOutOwnedByTheWrongAccount is the
-// bug this whole package was written for, and the one an ordinary write probe
-// cannot see. settings.Validate writes .knightloader-write-test into the folder
-// and removes it again; on a share mounted through shfs that write SUCCEEDS
-// while the process is uid 1000 and the share is 99:100, and the file simply
-// lands owned by 1000. Every check built on "could I write" then reports green
-// while the media server next door goes on reporting an empty library.
-//
-// So the assertion is deliberately about a probe with NO error in it at all.
+// case a write probe passes: the write succeeds, but the file belongs to the
+// process (1000) rather than the share (99:100).
 func TestAWritableFolderStillFailsWhenTheFilesComeOutOwnedByTheWrongAccount(t *testing.T) {
 	p := measured()
 	p.FileUID, p.FileGID = 1000, 1000
@@ -57,10 +38,8 @@ func TestAWritableFolderStillFailsWhenTheFilesComeOutOwnedByTheWrongAccount(t *t
 	}
 }
 
-// TestTheGroupOfTheFileCountsAndNotOnlyItsOwner covers the half of the same
-// question a set-group-id folder produces: the uid matches because this process
-// created the file, and the GROUP is the folder's rather than the process's, or
-// the other way round. Comparing uids alone would call that a match.
+// TestTheGroupOfTheFileCountsAndNotOnlyItsOwner covers a matching uid with a
+// different group, as a set-group-id folder produces.
 func TestTheGroupOfTheFileCountsAndNotOnlyItsOwner(t *testing.T) {
 	p := measured()
 	p.FileGID, p.FileGroup = 1000, "knight"
@@ -69,26 +48,20 @@ func TestTheGroupOfTheFileCountsAndNotOnlyItsOwner(t *testing.T) {
 	}
 }
 
-// TestTheSubFolderIsJudgedBeforeTheFile is the trap a file-only probe walks
-// into. With a umask of 077 the FILE can be 0640 and perfectly readable by the
-// group while the sub-folder it sits in is 0700, and nothing gets inside that
-// folder whatever the file allows. Every download in this app lands in a
-// sub-folder (the per-package level, and the extractor's own output directory),
-// so the folder is the answer that has to be reported first.
+// TestTheSubFolderIsJudgedBeforeTheFile: downloads land in sub-folders, so a
+// sub-folder nobody can enter is reported ahead of the file's problems.
 func TestTheSubFolderIsJudgedBeforeTheFile(t *testing.T) {
 	p := measured()
 	p.SubdirMode = 0o700
 	p.FileMode = 0o600
-	p.FileUID = 1000 // and the owner is wrong too, so the ORDER is what is tested
+	p.FileUID = 1000 // wrong owner too, so the order is what is tested
 	if got := judge(p); got != VerdictDirUnreadable {
 		t.Errorf("a sub-folder nothing can enter was judged %q, not %q; the smaller problem was reported and the door is still locked", got, VerdictDirUnreadable)
 	}
 }
 
-// TestASubFolderThatCanBeListedButNotEnteredStillFails pins the second half of
-// the 0o050 mask. Read without execute lists the names and opens nothing, which
-// on a media server is the worst of the three states: the scan finds files and
-// every one of them fails.
+// TestASubFolderThatCanBeListedButNotEnteredStillFails: read without execute
+// lists names but opens nothing.
 func TestASubFolderThatCanBeListedButNotEnteredStillFails(t *testing.T) {
 	p := measured()
 	p.SubdirMode = 0o745 // group r, no group x
@@ -97,8 +70,6 @@ func TestASubFolderThatCanBeListedButNotEnteredStillFails(t *testing.T) {
 	}
 }
 
-// TestAFileWithNoGroupReadIsReportedEvenWhenTheOwnerIsRight is the umask half on
-// its own: everything belongs to the right account and nothing else can open it.
 func TestAFileWithNoGroupReadIsReportedEvenWhenTheOwnerIsRight(t *testing.T) {
 	p := measured()
 	p.FileMode = 0o600
@@ -107,20 +78,14 @@ func TestAFileWithNoGroupReadIsReportedEvenWhenTheOwnerIsRight(t *testing.T) {
 	}
 }
 
-// TestAHealthyFolderIsNotReportedAsAProblem is the other direction, and it
-// matters as much: a check that cried wolf on the ordinary 99:100 share with a
-// umask of 022 would be switched off by everyone within a week.
 func TestAHealthyFolderIsNotReportedAsAProblem(t *testing.T) {
 	if got := judge(measured()); got != VerdictOK {
 		t.Errorf("the ordinary healthy folder was judged %q, not %q", got, VerdictOK)
 	}
 }
 
-// TestAPlatformWithNoOwnersSaysSoRatherThanComparingTwoZeroes is the third
-// answer, in this package's own currency. Without the Known check the Windows
-// build compares uid 0 with uid 0, finds them equal, and pronounces a folder
-// healthy on the strength of two numbers that were never read - which is a
-// confident wrong answer, the one thing a readout must never produce.
+// TestAPlatformWithNoOwnersSaysSoRatherThanComparingTwoZeroes: without the
+// Known check two unread zeros would compare equal and read as healthy.
 func TestAPlatformWithNoOwnersSaysSoRatherThanComparingTwoZeroes(t *testing.T) {
 	p := Probe{Dir: `C:\Downloads`, Exists: true} // Known false, every number zero
 	if got := judge(p); got != VerdictUnknown {
@@ -128,12 +93,8 @@ func TestAPlatformWithNoOwnersSaysSoRatherThanComparingTwoZeroes(t *testing.T) {
 	}
 }
 
-// TestTheSetGroupIdBitSurvivesIntoTheReadout. A set-group-id download folder is
-// one of the two reasons this package measures instead of computing - it is
-// what hands a new file a group its creator is not in - so a readout that
-// dropped the bit would be describing a different folder than the one on disk.
-// os.FileMode keeps it in a high bit of its own and Perm() drops it outright,
-// which is the easy mistake here.
+// TestTheSetGroupIdBitSurvivesIntoTheReadout: FileMode.Perm drops setgid,
+// which explains a new file's group.
 func TestTheSetGroupIdBitSurvivesIntoTheReadout(t *testing.T) {
 	if got := permBits(os.ModeDir | os.ModeSetgid | 0o775); got != 0o2775 {
 		t.Errorf("a set-group-id folder came out as %s, not %s", Octal(got), Octal(0o2775))
@@ -143,8 +104,6 @@ func TestTheSetGroupIdBitSurvivesIntoTheReadout(t *testing.T) {
 	}
 }
 
-// TestOctalIsPaddedSoTheColumnsLineUp. Four digits always: a page that printed
-// "644" beside "2775" reads as two numbers of different kinds.
 func TestOctalIsPaddedSoTheColumnsLineUp(t *testing.T) {
 	for mode, want := range map[uint32]string{0o644: "0644", 0o22: "0022", 0o2775: "2775", 0: "0000"} {
 		if got := Octal(mode); got != want {
@@ -153,10 +112,8 @@ func TestOctalIsPaddedSoTheColumnsLineUp(t *testing.T) {
 	}
 }
 
-// TestACheckLeavesNothingBehind is the promise this package makes to somebody's
-// download share. It writes into folders that are visible over SMB and watched
-// by media scanners, so a leaked probe file is not untidiness - it is a stray
-// entry in a library, or a file an operator finds later and dares not delete.
+// TestACheckLeavesNothingBehind: the probe writes into folders visible over
+// SMB and watched by media scanners.
 func TestACheckLeavesNothingBehind(t *testing.T) {
 	dir := t.TempDir()
 	if p := Check(dir); p.Verdict == VerdictNotWritable || p.Verdict == VerdictMissing {
@@ -175,12 +132,6 @@ func TestACheckLeavesNothingBehind(t *testing.T) {
 	}
 }
 
-// TestAMissingFolderIsReportedAndNotCreated. settings.Validate already
-// MkdirAll's every configured folder as it is saved, so a folder that is not
-// there when this runs is a folder that went away - a mount that did not come
-// up, a share that was renamed. Creating it here would hide precisely that, and
-// would put a directory on disk as a side effect of a check nobody asked to
-// change anything with.
 func TestAMissingFolderIsReportedAndNotCreated(t *testing.T) {
 	dir := filepath.Join(t.TempDir(), "not-mounted")
 	p := Check(dir)
@@ -195,11 +146,9 @@ func TestAMissingFolderIsReportedAndNotCreated(t *testing.T) {
 	}
 }
 
-// TestAFileIsMeasuredAsThisProcessAndNotAsThePackageThinksItShouldBe is the one
-// assertion that needs a real kernel: the probe file has to come back owned by
-// whoever this process actually is. It is what proves the measurement is a
-// measurement - a Check that returned invented numbers would pass every test
-// above this one.
+// TestAFileIsMeasuredAsThisProcessAndNotAsThePackageThinksItShouldBe needs a
+// real kernel: the probe file must come back owned by this process, which
+// proves the numbers are measured.
 func TestAFileIsMeasuredAsThisProcessAndNotAsThePackageThinksItShouldBe(t *testing.T) {
 	if !supported {
 		t.Skip("this build has no file owners to read; internal/api and the CI runner cover the branch that does")
@@ -221,10 +170,8 @@ func TestAFileIsMeasuredAsThisProcessAndNotAsThePackageThinksItShouldBe(t *testi
 	}
 }
 
-// TestTheAdviceNamesTheFolderTheOwnerAndTheCommandToRun is the whole value of
-// the boot line. Without it the operator sees `start: permission denied` with no
-// path, no owner and no uid, and the fix is one chown they have no way to guess.
-// The command has to be complete enough to paste.
+// TestTheAdviceNamesTheFolderTheOwnerAndTheCommandToRun: the chown line has to
+// be complete enough to paste.
 func TestTheAdviceNamesTheFolderTheOwnerAndTheCommandToRun(t *testing.T) {
 	folder := Owner{Path: "/data", Exists: true, IsDir: true, Known: true, UID: 0, GID: 0, User: "root", Group: "root", Mode: 0o755}
 	me := Identity{Known: true, UID: 1000, GID: 1000, User: "knight", Group: "knight"}
@@ -236,9 +183,6 @@ func TestTheAdviceNamesTheFolderTheOwnerAndTheCommandToRun(t *testing.T) {
 	}
 }
 
-// TestTheAdviceDoesNotInventAChownWhereThereIsNothingToChown. On the Windows
-// desktop build the fix is an ACL, and a chown line there sends somebody to a
-// command that does not exist on their machine.
 func TestTheAdviceDoesNotInventAChownWhereThereIsNothingToChown(t *testing.T) {
 	folder := Owner{Path: `C:\data`, Exists: true, IsDir: true}
 	got := advice(`C:\data`, folder, Identity{}, errors.New("Access is denied."))
@@ -250,11 +194,8 @@ func TestTheAdviceDoesNotInventAChownWhereThereIsNothingToChown(t *testing.T) {
 	}
 }
 
-// TestAnUnnamedAccountIsStillFullyDescribed. A container started with
-// --user 99:100 runs as a uid nothing in the image's /etc/passwd mentions, and
-// that is the most common configuration this feature reports on. The numbers
-// alone are the answer; a line that fell back to "(unknown)" would be dropping
-// the part that goes into the command.
+// TestAnUnnamedAccountIsStillFullyDescribed: --user 99:100 has no passwd
+// entry, and the numbers are what the command needs.
 func TestAnUnnamedAccountIsStillFullyDescribed(t *testing.T) {
 	if got := describe(99, 100, "", ""); got != "99:100" {
 		t.Errorf("describe(99, 100, \"\", \"\") = %q, want \"99:100\"", got)
@@ -264,9 +205,7 @@ func TestAnUnnamedAccountIsStillFullyDescribed(t *testing.T) {
 	}
 }
 
-// TestAWritableFolderProducesNoBootLineAtAll. The line is a diagnosis and not a
-// status report: on every healthy install it must say nothing, or it becomes one
-// more line nobody reads in a log people only open when something is wrong.
+// TestAWritableFolderProducesNoBootLineAtAll: the line is only for a problem.
 func TestAWritableFolderProducesNoBootLineAtAll(t *testing.T) {
 	if line, ok := Advise(t.TempDir()); ok {
 		t.Errorf("a perfectly writable folder produced a warning: %s", line)

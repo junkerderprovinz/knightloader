@@ -31,26 +31,22 @@ type Engine struct {
 	onUpdate func(taskID string, u core.Update)
 
 	// done is closed by Close, and wg counts every goroutine this engine
-	// started. Together they are what makes Close mean it: before they existed
-	// Start's own goroutine could still be mid-resolve while the downloader
-	// underneath was being torn down, and the torrent stats poller would have
-	// kept reading a closed library forever.
+	// started, so Close can wait for them before tearing the library down.
 	done      chan struct{}
 	wg        sync.WaitGroup
 	closeOnce sync.Once
 	closeErr  error
 	pollOnce  sync.Once
-	// closed is set under mu, by Close, before wg.Wait ever runs - see Start's
-	// own comment for why a plain e.done check is not enough on its own.
+	// closed is set under mu by Close before wg.Wait runs; see Start.
 	closed bool
 
 	// metadataTimeout overrides how long a magnet may wait for its file list.
-	// Zero means defaultMetadataTimeout; a test sets it short.
+	// Zero means defaultMetadataTimeout.
 	metadataTimeout time.Duration
 }
 
-// SetMetadataTimeout caps how long a magnet may spend waiting for the swarm to
-// send its file list. Zero restores the built-in default.
+// SetMetadataTimeout caps how long a magnet may wait for the swarm to send
+// its file list. Zero restores the default.
 func (e *Engine) SetMetadataTimeout(d time.Duration) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
@@ -72,8 +68,8 @@ func New(dir string, onUpdate func(taskID string, u core.Update)) (*Engine, erro
 		return nil, err
 	}
 	// Setup reloads the stored config, overriding the values above. Raise
-	// Gopeed's internal concurrency cap afterwards so the app-level scheduler
-	// (global + per-host slots) is the only authority on what runs.
+	// Gopeed's own concurrency cap afterwards so the app's scheduler alone
+	// decides what runs.
 	if sc, err := d.GetConfig(); err == nil && sc.MaxRunning < 64 {
 		sc.MaxRunning = 64
 		_ = d.PutConfig(sc)
@@ -92,8 +88,8 @@ func New(dir string, onUpdate func(taskID string, u core.Update)) (*Engine, erro
 }
 
 // UseProxy routes every engine download through a proxy. KnightLoader points
-// this at its own loopback proxy, which is where the speed limit is applied —
-// the download library itself offers no rate-limit hook.
+// it at its own loopback proxy, which applies the speed limit, since the
+// library has no rate-limit hook.
 func (e *Engine) UseProxy(hostPort string) error {
 	cfg, err := e.d.GetConfig()
 	if err != nil {
@@ -115,13 +111,9 @@ func (e *Engine) UseProxy(hostPort string) error {
 	return e.d.PutConfig(cfg)
 }
 
-// btProtocolConfig mirrors gopeed's own internal/protocol/bt.config
-// field-for-field (identical json tags) - this package cannot import that
-// type directly, it is unexported. GetConfig/PutConfig round-trip
-// ProtocolConfig["bt"] through JSON regardless of which concrete Go type is
-// on either side of it (gopeed's own pkg/util.MapToStruct is exactly
-// json.Marshal then json.Unmarshal), so a same-tagged mirror here reads and
-// writes it correctly without gopeed ever exporting the real one.
+// btProtocolConfig mirrors gopeed's unexported bt config with identical json
+// tags. ProtocolConfig["bt"] round-trips through JSON (util.MapToStruct), so
+// the mirror reads and writes it correctly.
 type btProtocolConfig struct {
 	ListenPort int      `json:"listenPort"`
 	Trackers   []string `json:"trackers"`
@@ -130,33 +122,14 @@ type btProtocolConfig struct {
 	SeedTime   int64    `json:"seedTime"`
 }
 
-// SetTorrentConfig pushes this instance's listen-port, seed-ratio and
-// seed-duration policy into gopeed's own per-protocol config -
-// DownloaderStoreConfig.ProtocolConfig["bt"] is the one surface that actually
-// reaches a running torrent. See settings_torrent.go's own SeedRatioTarget/
-// SeedDurationSeconds/Port doc comments for why exactly these three fields
-// and no others: UploadLimitKiBs and the DHT/PEX toggles have nowhere to go
-// through this same surface, verified there, not re-verified here.
-// Trackers/SeedKeep are read back and written back unchanged - this
-// instance has no setting for either, and leaving them as whatever is
-// already configured (gopeed's own zero-value defaults, since nothing on
-// this side ever sets them) is correct, not a gap.
+// SetTorrentConfig writes the listen port and seeding targets into gopeed's
+// bt protocol config; Trackers and SeedKeep are passed through unchanged.
+// Call it at boot and on every settings save.
 //
-// Call it once at boot and again on every settings save (mirroring UseProxy
-// above) - but the two calls do not carry equal weight. seedRatio and
-// seedDurationSeconds reach every torrent task from here on: gopeed's own
-// Fetcher.Setup reads ProtocolConfig["bt"] fresh for each new task
-// (internal/protocol/bt/fetcher.go's Setup calling ctl.GetConfig(&f.config)),
-// so a later call here changes what the NEXT torrent added does, without
-// reaching back into one already running (its own Fetcher already holds its
-// own copy). port does not: internal/protocol/bt/fetcher.go's initClient
-// reads f.config.ListenPort into the shared torrent.Client's own config
-// exactly once, on the first torrent this process ever starts ("if client
-// != nil { return }"), and never again - a later call here still saves the
-// new port correctly, but it only takes if no torrent has started yet this
-// process. That is gopeed's own constraint, not something a caller on this
-// side of it can work around; see settings_torrent.go's Port doc comment
-// for where it was first verified.
+// The seeding targets reach every torrent started afterwards, since gopeed
+// reads the config per task. The port does not: gopeed builds its shared
+// torrent client once, on the first torrent of the process, so a new port
+// only applies if no torrent has started yet.
 func (e *Engine) SetTorrentConfig(port int, seedRatio float64, seedDurationSeconds int) error {
 	cfg, err := e.d.GetConfig()
 	if err != nil {
@@ -174,32 +147,13 @@ func (e *Engine) SetTorrentConfig(port int, seedRatio float64, seedDurationSecon
 }
 
 // Close stops every goroutine this engine started and then shuts the download
-// library down, in that order.
+// library down, in that order, so nothing of ours is calling into it while it
+// is torn down. It is idempotent, since the app shuts down from more than one
+// place.
 //
-// THE ORDER IS THE POINT. Waiting first means nothing of ours is still calling
-// into the library when it is torn down. The one goroutine that cannot be
-// waited for is the bare resolve inside resolveTorrent, which is parked in the
-// torrent client with no way to be interrupted - what releases that one is the
-// d.Close() below, and its own caller has already stopped listening for it.
-// It is idempotent because the app shuts down from more than one place - a
-// second call must not close an already-closed channel or hand the download
-// library a second Close.
-//
-// THE WAIT IS BOUNDED, and the bound is not laziness. Every goroutine started
-// here watches e.done and leaves promptly, except the one thing that cannot:
-// a resolve already inside the download library, which takes no context. A
-// shutdown that hung on one slow host would be a worse failure than the race
-// this wait exists to close, so after closeGrace the library is shut down
-// anyway - which is also what releases the resolve.
-//
-// e.closed is set here, under e.mu, BEFORE anything else - not as a second
-// copy of what e.done already says, but because it is the one half of the
-// handshake Start's own e.mu.Lock can serialise against. e.done alone lets a
-// caller observe "not closed yet" and then still lose the race to actually
-// call wg.Add before this function's own wg.Wait begins - narrow, but a race
-// detector run with real network activity behind it did find that window.
-// Setting the flag under the same lock Start checks it under closes the
-// window rather than shrinking it.
+// The wait is capped at closeGrace. A resolve already inside the library
+// takes no context and cannot be interrupted; closing the library is what
+// releases it, and a shutdown that hung on one slow host would be worse.
 func (e *Engine) Close() error {
 	e.closeOnce.Do(func() {
 		e.mu.Lock()
@@ -220,55 +174,34 @@ func (e *Engine) Close() error {
 	return e.closeErr
 }
 
-// closeGrace is how long Close waits for its own goroutines before shutting the
-// download library down underneath whatever is left.
+// closeGrace is how long Close waits for its own goroutines before shutting
+// the download library down anyway.
 const closeGrace = 10 * time.Second
 
-// Download resolves the direct URL (to learn name+size), then starts a task.
-// It runs async so the caller (an HTTP handler) never blocks on the network.
-//
-// This is the shape every download backend shares, and it deliberately carries
-// no collision policy. Only this engine can be told the name it must write; a
-// task handed to headless JD or TorBox is fetched in another process that names
-// the file itself. Widening the shared shape would put a decision on every
-// backend that all but one of them would drop on the floor.
+// Download resolves the direct URL (to learn name and size), then starts a
+// task. It runs async so the caller never blocks on the network. It takes no
+// collision policy, since other backends name the file in another process.
 func (e *Engine) Download(taskID, url string, headers map[string]string, conns int) {
 	e.DownloadTo(taskID, url, headers, conns, "")
 }
 
-// DownloadTo is Download with an explicit destination; an empty dir falls back
-// to the engine's default. It routes nothing: the download goes out the way
-// every download went out before connections could be named, which is over the
-// loopback proxy UseProxy configured.
+// DownloadTo is Download with an explicit destination; an empty dir falls
+// back to the engine's default. It goes out over the loopback proxy.
 func (e *Engine) DownloadTo(taskID, url string, headers map[string]string, conns int, dir string) {
 	e.DownloadVia(taskID, url, headers, conns, dir, proxycfg.Route{})
 }
 
-// DownloadVia is DownloadTo carried on one named outbound connection.
+// DownloadVia is DownloadTo over one named outbound connection. Gopeed
+// prefers a request's own proxy over the global one, so the route is one
+// field on the request.
 //
-// This is the whole of per-download routing, and it is one field on the request
-// because that is all gopeed needs: setupFetcher resolves the request's own
-// proxy ahead of the global one ("task request proxy config has higher
-// priority"), so a per-download connection is stated where the download is
-// stated. No dialer, no second proxy, no chain - and the small version is the
-// right one to build, because the large one was sized against a belief about
-// this library that turned out to be wrong.
-//
-// It has a cost, and the cost is real rather than theoretical: a request that
-// names its own proxy no longer passes through the loopback proxy, and the
-// loopback proxy is the only place this build can meter bytes. A routed download
-// is therefore an unthrottled download until metering moves to a listener per
-// task, which is the arrangement the bandwidth budget is designed around. Until
-// then, routing wins over the speed limit for the downloads that are routed.
+// A request with its own proxy bypasses the loopback proxy, which is the only
+// place bytes are metered, so a routed download is not throttled.
 func (e *Engine) DownloadVia(taskID, url string, headers map[string]string, conns int, dir string, route proxycfg.Route) {
 	e.Start(Job{TaskID: taskID, URL: url, Headers: headers, Conns: conns, Dir: dir, Route: route})
 }
 
 // Job is one download as the engine takes it.
-//
-// A struct rather than a longer parameter list, because the list had reached six
-// and the two this wave adds are a policy and a cap - the kind that compile
-// perfectly well in the wrong order.
 type Job struct {
 	TaskID  string
 	URL     string
@@ -276,56 +209,35 @@ type Job struct {
 	Conns   int
 	// Dir is where the file lands; empty means the engine's own folder.
 	Dir string
-	// WorkDir is where the bytes are WRITTEN while they are still arriving, when
-	// the caller keeps that apart from where the file belongs. Empty - the
-	// default, and what every caller had before this field existed - writes
-	// straight into Dir.
+	// WorkDir is where the bytes are written while they arrive, when the
+	// caller keeps that apart from Dir; empty writes straight into Dir.
 	//
-	// It changes two things here and nothing else. The download is created in
-	// this folder rather than in Dir, so a .part file never appears at the
-	// destination for a mover or a library scanner to trip over. And the
-	// collision policy below is NOT applied: a working folder is shared by the
-	// downloads heading for one destination and by nothing else, so a name
-	// decided against it would be decided against the wrong folder, and a
-	// counted name settled here would be carried to the destination and count
-	// again there. The policy travels with the file instead and is applied by
-	// whoever moves it into Dir, which is also the only moment the destination's
-	// contents are worth looking at - see internal/workdir.
-	//
-	// Getting the file the rest of the way is deliberately not this engine's
-	// job. It is the caller that knows whether a checksum is still owed on the
-	// download and whether an archive is about to be unpacked out of it, and a
-	// backend that delivered on its own would move the first volume of a
-	// five-part set out from under the four that are still arriving.
+	// With a working folder no .part file appears at the destination, and the
+	// collision policy is not applied here: the working folder is the wrong
+	// place to decide a name, and whoever moves the file into Dir applies it
+	// (see internal/workdir). Moving the file is the caller's job, since only
+	// it knows whether a checksum or an extraction still needs the file where
+	// it is.
 	WorkDir string
 	Route   proxycfg.Route
 
 	// TorrentSelect names which files of a multi-file torrent to fetch, by
-	// index in the resolved file list. Nil fetches all of them, which is what
-	// the download library reads an empty selection as. Ignored for every job
-	// whose URL is not a torrent.
+	// index in the resolved file list. Nil fetches all of them.
 	TorrentSelect []int
-	// Trackers are extra announce URLs to add to a torrent. Ignored for a
-	// private torrent by the library itself, which is the correct behaviour and
-	// not something this side has to remember.
+	// Trackers are extra announce URLs for a torrent. The library ignores
+	// them for a private torrent.
 	Trackers []string
 
-	// Collision is what to do when the resolved name is already taken. EMPTY
-	// MEANS NO POLICY AT ALL, which is not what the collide package reads it as:
-	// there an empty policy is its own default, Rename. The difference is
-	// deliberate and it is why this is not passed straight through - the older
-	// entry points above set no policy, and folding them onto a default would
-	// give every caller that never asked for one a silent rename.
+	// Collision is what to do when the resolved name is taken. Empty means no
+	// policy at all, unlike collide, where empty means Rename; the older entry
+	// points set none and must not get a silent rename.
 	Collision collide.Policy
-	// MaxCollisionAttempts caps how many counted names a rename tries. Zero means
-	// the collide package's own cap.
+	// MaxCollisionAttempts caps how many counted names a rename tries. Zero
+	// means collide's own cap.
 	MaxCollisionAttempts int
 }
 
-// writeDir is the folder this job's bytes go into, which is the working folder
-// whenever the caller named one and the destination otherwise. Everything that
-// touches the disk on the way in reads this; Dir stays what it is, because it
-// is where the file ends up and that is a different question.
+// writeDir is the folder this job's bytes are written into.
 func (j Job) writeDir() string {
 	if j.WorkDir != "" {
 		return j.WorkDir
@@ -333,27 +245,16 @@ func (j Job) writeDir() string {
 	return j.Dir
 }
 
-// placed reports whether this job's collision policy is decided here at all. A
-// job writing into a working folder carries its policy to the destination
-// instead - see Job.WorkDir.
+// placed reports whether this job's collision policy is decided here; see
+// Job.WorkDir.
 func (j Job) placed() bool { return j.Collision != "" && j.WorkDir == "" }
 
-// Start resolves the URL (to learn the name, the size and the shape of what is
-// on the other end), settles where the file lands, and then starts the task.
+// Start resolves the URL to learn the name, size and kind of resource,
+// settles where the file lands, and starts the task.
 func (e *Engine) Start(j Job) {
-	// Closed already, checked and counted as ONE atomic step under e.mu - not
-	// a plain e.done check followed by a separate e.wg.Add. Those two as
-	// separate steps still race: Close can set e.closed and start its own
-	// wg.Wait in the gap between this goroutine's check and its Add, which is
-	// exactly "sync: WaitGroup misuse: Add called concurrently with Wait" -
-	// documented Go runtime behaviour that panics the whole process rather
-	// than losing one task, and narrow enough that it took a race-detector run
-	// against a real, live BitTorrent swarm (dispatchLocked's own raw `go
-	// a.Engine.Start(...)`, never awaited by design - see its own comment) to
-	// actually land in the window. Locked together, there is no window: either
-	// this Add happens before Close's closed=true is visible, and Close's
-	// later Wait counts it correctly, or closed=true is already visible here
-	// and this returns before Add is ever called.
+	// Checking closed and calling wg.Add under one lock keeps Close's Wait
+	// from starting between the two, which panics with "WaitGroup misuse".
+	// The window was hit under the race detector with a live torrent swarm.
 	e.mu.Lock()
 	if e.closed {
 		e.mu.Unlock()
@@ -366,20 +267,8 @@ func (e *Engine) Start(j Job) {
 	if j.Dir == "" {
 		j.Dir = e.dir
 	}
-	// A magnet or an uploaded .torrent goes down the torrent branch, and the
-	// test for that is the URL itself rather than a flag on the Job.
-	//
-	// THE DISPATCHER IS NOT ASKED, on purpose. Which protocol a link belongs to
-	// is already decided by its scheme, and the library underneath decides it
-	// exactly this way (Downloader.parseFm walks its fetch managers' scheme
-	// filters). Making the caller state it as well would be a second copy of
-	// that decision, in a place with less information, that can disagree - and
-	// the way it would disagree is a magnet dispatched as an HTTP job, which
-	// resolves as a torrent anyway and skips every check below.
-	//
-	// The Add above already covers this branch too - startTorrent no longer
-	// takes its own, for the identical reason this function does not take two:
-	// one Add per Start call, whichever branch it ends up on.
+	// The scheme decides the protocol, as it does inside the library, so the
+	// caller does not state it a second time.
 	if torrent.IsURI(j.URL) {
 		e.startTorrent(j)
 		return
@@ -398,12 +287,11 @@ func (e *Engine) Start(j Job) {
 			return
 		}
 		_, size := metaOf(rr.Res)
-		// Settled before Create, because Create is what starts the transfer.
+		// Settled before Create, which starts the transfer.
 		name, err := place(j, rr.Res, opts)
 		if err != nil {
-			// The name goes out with the failure. It costs one field and it stops
-			// the retry loop guessing: the app can only pre-empt a collision for a
-			// task whose name it knows, and until this resolve it did not.
+			// Report the name with the failure, so the app can pre-empt the
+			// collision on a retry.
 			e.emit(j.TaskID, core.Update{Status: core.StatusError, Name: name, Err: err.Error()})
 			return
 		}
@@ -420,45 +308,31 @@ func (e *Engine) Start(j Job) {
 	}()
 }
 
-// place applies the collision policy to what was just resolved, writes the name
-// the download must use into opts, and reports the name to show on the task.
+// place applies the collision policy to the resolved resource, writes the
+// chosen name into opts and returns the name to show. It runs here because
+// the resolve is the first moment the real name exists, and not at all for a
+// job with a working folder.
 //
-// IT RUNS HERE AND NOT IN THE DISPATCHER because this is the first moment the
-// real name exists. Before the resolve there is only whatever the resolver made
-// of the URL, and a collision decided on a guessed name is a decision about a
-// different file.
-//
-// IT DOES NOT RUN AT ALL for a job with a working folder. The folder being
-// written to is then not the folder the file ends up in, and a policy applied
-// to the wrong folder is worse than none: it would count up against whatever
-// the working folder happens to hold and then count up a second time at the
-// destination. See Job.WorkDir.
-//
-// opts is the very struct the download runs with: Downloader.Resolve keeps the
-// pointer it was given and Create is called with no options of its own, so a
-// name written here is the name the fetcher reads. It has also had the library's
-// own path placeholders expanded into it by then, which is the other reason to
-// be here - reserving against the folder we asked for rather than the one that
-// came back would reserve in a folder nothing is written to.
+// opts is the struct the download runs with: Resolve keeps the pointer and
+// Create takes no options, so a name set here is what the fetcher uses. Its
+// path placeholders have been expanded by then, so the reservation happens in
+// the folder that is actually written to.
 func place(j Job, res *base.Resource, opts *base.Options) (string, error) {
 	name, _ := metaOf(res)
 	if !j.placed() || res == nil {
 		return name, nil
 	}
 	if res.Name != "" {
-		// A resource that carries a name of its own is a FOLDER, and Options.Name
-		// then names that folder rather than a file in it. Handing it a file name
-		// would apply the policy to the wrong thing entirely, and quietly: the
-		// download would succeed, into a directory called "movie (2).mkv".
+		// A resource with its own name is a folder, and Options.Name then
+		// names the folder. A file name there would produce a directory
+		// called "movie (2).mkv".
 		return name, placeFolder(j, res, opts)
 	}
 	if len(res.Files) == 0 || res.Files[0].Name == "" {
-		// Nothing was named, so there is nothing to reserve and no honest name to
-		// invent. Left to the library, which is where the name is coming from.
+		// Nothing named, so nothing to reserve; the library picks the name.
 		return name, nil
 	}
-	// Where the single file actually goes, which is not always opts.Path: the
-	// library joins the file's own relative path in between.
+	// The library joins the file's relative path onto opts.Path.
 	dir := filepath.Join(opts.Path, filepath.FromSlash(res.Files[0].Path))
 	r, err := collide.Options{MaxAttempts: j.MaxCollisionAttempts}.
 		Handover(filepath.Join(dir, res.Files[0].Name), j.Collision)
@@ -472,8 +346,8 @@ func place(j Job, res *base.Resource, opts *base.Options) (string, error) {
 	return opts.Name, nil
 }
 
-// placeFolder is place for a multi-file resource. The task's own name is left
-// alone: it is the first file's, and moving the folder does not move that.
+// placeFolder is place for a multi-file resource. The task keeps the first
+// file's name.
 func placeFolder(j Job, res *base.Resource, opts *base.Options) error {
 	r, err := collide.Options{MaxAttempts: j.MaxCollisionAttempts}.
 		HandoverFolder(filepath.Join(opts.Path, res.Name), j.Collision)
@@ -487,23 +361,13 @@ func placeFolder(j Job, res *base.Resource, opts *base.Options) error {
 	return nil
 }
 
-// requestProxy is the route as gopeed reads it.
+// requestProxy is the route as gopeed reads it. A route without a proxy
+// returns nil, which gopeed reads as "use the global config", the metered
+// loopback proxy.
 //
-// A route with no proxy returns nil, and nil is the answer that matters here.
-// gopeed reads nil as "follow the global config", which is the loopback proxy -
-// so a download deliberately sent over the machine's own connection is still
-// metered and still unproxied, which is exactly what the direct gateway means.
-//
-// The mode that looks right for it is the one that must never be used.
-// RequestProxyModeNone does not mean "no upstream proxy", it means no proxy
-// handler at all: it would take the download off the loopback proxy as well, and
-// the speed limit would silently stop applying to every download somebody
-// explicitly marked direct. The bug reads as "the limit does nothing", weeks
-// later, on the one setting a user was deliberate about.
-//
-// Nothing here has to defend against socks4: proxycfg.Entry.Route refuses those
-// kinds before a Route can exist, because this ends in http.ProxyURL and that
-// has never spoken socks4.
+// RequestProxyModeNone looks right for a direct route but removes the proxy
+// handler altogether, which would silently drop the speed limit. socks4 needs
+// no check here, since proxycfg refuses it before a Route exists.
 func requestProxy(r proxycfg.Route) *base.RequestProxy {
 	if !r.Proxied() {
 		return nil
@@ -520,8 +384,8 @@ func requestProxy(r proxycfg.Route) *base.RequestProxy {
 func (e *Engine) Pause(taskID string)  { e.filterOp(taskID, e.d.Pause) }
 func (e *Engine) Resume(taskID string) { e.filterOp(taskID, e.d.Continue) }
 
-// Remove drops the task. deleteFiles also erases what was already written —
-// used for a restart (the partial must go), never for tidying the list.
+// Remove drops the task. deleteFiles also erases what was already written,
+// which a restart needs; tidying the list does not.
 func (e *Engine) Remove(taskID string, deleteFiles bool) {
 	e.mu.Lock()
 	gid := e.toGopeed[taskID]
@@ -555,24 +419,10 @@ func (e *Engine) onEvent(ev *download.Event) {
 	}
 	switch ev.Key {
 	case download.EventKeyProgress:
-		// A PROGRESS EVENT AFTER THE DONE EVENT IS NOT PROGRESS, and until
-		// torrents existed there was no such thing so this branch could assume
-		// otherwise. The download library's speed loop ticks for every task that
-		// is "running OR uploading", and a torrent goes on uploading for hours
-		// after it is done - so a finished torrent produces a progress event
-		// twice a second, forever, and mapping each of them to StatusRunning
-		// dragged the task back out of done immediately after it settled.
-		//
-		// The symptom was not subtle and it was still invisible without a live
-		// run: the task showed as running with a complete file and a full
-		// download bar, permanently. Downstream it is worse than cosmetic -
-		// Wave 10's end-of-queue idle action would see work owed for as long as
-		// anything seeds, which is exactly the outcome decision 4 of the torrent
-		// spec exists to prevent.
-		//
-		// Dropped rather than translated, because the seeding phase already has
-		// an owner: the stats poller, which reports peers, ratio and the end of
-		// seeding on its own three-second tick.
+		// A finished torrent keeps uploading, and the library's speed loop
+		// sends progress for it twice a second. Treating that as running would
+		// pull the task out of done, and the idle action would never fire. The
+		// stats poller reports the seeding phase instead.
 		if ev.Task.Status == base.DownloadStatusDone {
 			return
 		}
@@ -586,10 +436,9 @@ func (e *Engine) onEvent(ev *download.Event) {
 		if pr := ev.Task.Progress; pr != nil {
 			u.Loaded = pr.Downloaded
 		}
-		// The seeding flag travels WITH the done, not three seconds behind it on
-		// the next poll. In that gap a torrent would be done and not seeding,
-		// which is the one combination that means "finished, nothing owed" - and
-		// the idle action fires on exactly that reading.
+		// The seeding flag goes out with done rather than on the next poll;
+		// in between, done-and-not-seeding would read as "nothing owed" to the
+		// idle action.
 		if e.isTorrent(taskID) {
 			if s, _, ok := e.readTorrentStats(ev.Task.ID); ok {
 				u.Torrent = &s
@@ -597,10 +446,7 @@ func (e *Engine) onEvent(ev *download.Event) {
 		}
 		e.emit(taskID, u)
 	case download.EventKeyError:
-		// The failure leaves here as text and is given its typed reason in the
-		// app. An Update carries no reason field on purpose: one classifier that
-		// the engine, JD, yt-dlp and every debrid service pass through is what
-		// makes a full disk read as a full disk whichever of them hit it.
+		// The app classifies the message, the same way for every backend.
 		msg := "download error"
 		if ev.Err != nil {
 			msg = ev.Err.Error()

@@ -1,45 +1,22 @@
 package hosterauth
 
-// A minimal client for JD's account-management Deprecated API - the
-// "accounts" namespace, which nothing else in this app talks to yet
-// (internal/resolver/jd/client.go only ever touches downloadsV2, linkgrabberv2
-// and config/set). Kept as this package's own small client rather than a
-// method added to that file's Client type: this wave owns
-// internal/resolver/jd/resolver.go only, not client.go, and the account
-// namespace is a genuinely different concern (who JD is logged in as) from
-// what that client already does (moving bytes).
-//
-// VERIFIED, NOT GUESSED - read directly off JD's own open-source
-// implementation (fetched 2026-08-09), not inferred from a third-party
-// wrapper or the unrelated cloud "AccountsV2" MyJDownloader API:
+// A minimal client for the "accounts" namespace of JD's Deprecated API, which
+// internal/resolver/jd's client does not cover. The calls follow JD's own
+// sources:
 //   https://github.com/mirror/jdownloader/blob/master/src/org/jdownloader/api/accounts/AccountAPI.java
-//     - @ApiNamespace("accounts") fixes the endpoint prefix; @APIParameterNames
-//       on each method fixes the positional query-parameter order below.
+//     (namespace and positional parameter order)
 //   https://github.com/mirror/jdownloader/blob/master/src/org/jdownloader/api/accounts/AccountAPIImpl.java
-//     - what each method actually does: addAccount resolves the hoster string
-//       through JD's own PluginFinder.assignHost and returns false rather than
-//       erroring when it cannot; queryAccounts' infoMap carries exactly the
-//       keys asked for ("username", "validUntil", "trafficLeft", "trafficMax",
-//       "enabled", "valid") as literal JsonMap.put keys, not getter-derived
-//       names, so those six strings are certain.
+//     (addAccount returns false when PluginFinder cannot resolve the hoster;
+//     queryAccounts' infoMap keys are literal strings)
 //   https://github.com/mirror/jdownloader/blob/master/src/org/jdownloader/api/accounts/AccountAPIStorable.java
-//     - the getUUID()/getHostname()/getInfoMap() shape queryAccounts returns.
+//     (the uuid/hostname/infoMap shape)
 //   https://github.com/jdownloader-mirror/appwork-utils/blob/master/src/org/appwork/remoteapi/APIQuery.java
-//     - APIQuery is a bare HashMap<String,Object>, so "query" travels as one
-//       flat JSON object, the same shape internal/resolver/jd/client.go's
-//       QueryDownloads already sends for its own map[string]any query param.
+//     (a query is one flat JSON object)
 //
-// The one thing NOT verified against a real instance: getUUID()/getHostname()
-// serialise as JSON keys "uuid"/"hostname". That is inferred by analogy with
-// DownloadLink and CrawledLink in internal/resolver/jd/client.go, whose own
-// doc history shows JD's Storable layer lower-camels a getter the same way
-// (getBytesLoaded -> "bytesLoaded", getUUID -> "uuid" there) - a real pattern
-// in this exact API family, not a guess out of nowhere, but this package has
-// never been run against a live JD. jdAccount's fields are decoded loosely
-// (missing or renamed keys leave the zero value rather than erroring) so a
-// wrong guess here degrades to "this account looks unconfirmed" instead of a
-// hard failure - see Reconcile's handling of a present-but-unrecognised
-// account.
+// The "uuid" and "hostname" keys follow the lower-camel naming JD uses for
+// DownloadLink and CrawledLink. jdAccount decodes loosely, so a renamed key
+// reads as an unconfirmed account rather than an error.
+
 import (
 	"context"
 	"encoding/json"
@@ -54,27 +31,18 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
 )
 
-// jdAccountInfo is the subset of AccountAPIImpl.queryAccounts' infoMap this
-// package asks for - see the fieldRequested calls in that method.
-// Six fields, not three, since 2026-09-07: jdp asked for the same columns on
-// the hoster card that the debrid card has (traffic, expiry, premium or free),
-// and JD was already being asked for exactly the wrong half of what it can
-// answer. Measured against the live sidecar with his own ddownload account:
+// jdAccountInfo is the part of queryAccounts' infoMap this package asks for.
+// JD reports nothing about the plan beyond these six fields; a free account
+// answers validUntil -1 and trafficMax 0, a premium one a real expiry:
 //
 //	{"valid":true,"trafficMax":0,"validUntil":-1,"trafficLeft":0,
 //	 "enabled":true,"username":"…"}
-//
-// which is the shape of a FREE account - no expiry (-1, not 0) and no quota.
-// A premium one carries a real timestamp in validUntil. Those two are the only
-// evidence JD gives about the plan; it answers nothing at all for any key
-// outside the documented six, which was checked by asking for "premium",
-// "type" and "status" and getting an unchanged answer back.
 type jdAccountInfo struct {
 	Username string `json:"username,omitempty"`
 	Enabled  bool   `json:"enabled,omitempty"`
 	Valid    bool   `json:"valid,omitempty"`
-	// ValidUntil is a unix timestamp in MILLISECONDS (JD's own convention
-	// throughout its API), or -1 for an account with nothing to expire.
+	// ValidUntil is a unix timestamp in milliseconds, or -1 for an account
+	// with nothing to expire.
 	ValidUntil  int64 `json:"validUntil,omitempty"`
 	TrafficLeft int64 `json:"trafficLeft,omitempty"`
 	TrafficMax  int64 `json:"trafficMax,omitempty"`
@@ -87,10 +55,8 @@ type jdAccount struct {
 	InfoMap  *jdAccountInfo `json:"infoMap"`
 }
 
-// jdAccounts is the narrow slice of JD's account API the reconciler needs -
-// exactly what jdClient implements against a real JD sidecar, and what a test
-// fakes instead of one. Named for what it is asked to do, not for the fact
-// that jdClient happens to answer it.
+// jdAccounts is the part of JD's account API the reconciler uses; tests fake
+// it.
 type jdAccounts interface {
 	queryAccounts(ctx context.Context) ([]jdAccount, error)
 	addAccount(ctx context.Context, hoster, username, password string) (bool, error)
@@ -98,12 +64,9 @@ type jdAccounts interface {
 	listPremiumHosters(ctx context.Context) ([]string, error)
 }
 
-// jdClient is the real jdAccounts, talking to a headless JD's Deprecated API
-// exactly the way internal/resolver/jd/client.go's own call() helper does:
-// GET, one URL-encoded JSON blob per positional parameter, a {"data": ...}
-// envelope in the response. Kept as a private, minimal copy of that
-// convention rather than a shared helper, because sharing one would mean
-// editing client.go, which belongs to internal/resolver/jd this wave.
+// jdClient talks to a headless JD's Deprecated API the way
+// internal/resolver/jd's client does: GET, one URL-encoded JSON value per
+// positional parameter, and a {"data": ...} envelope in the response.
 type jdClient struct {
 	base string
 	hc   *http.Client
@@ -136,8 +99,7 @@ func (c *jdClient) call(ctx context.Context, path string, params ...any) (json.R
 	}
 	defer resp.Body.Close()
 	body, _ := io.ReadAll(resp.Body)
-	// Same scrub internal/resolver/jd/client.go applies: JD's Deprecated API can
-	// emit non-UTF-8 bytes inside string values, which breaks encoding/json.
+	// JD can emit non-UTF-8 bytes inside strings, which encoding/json rejects.
 	if !utf8.Valid(body) {
 		body = []byte(strings.ToValidUTF8(string(body), "�"))
 	}
@@ -153,23 +115,11 @@ func (c *jdClient) call(ctx context.Context, path string, params ...any) (json.R
 	return env.Data, nil
 }
 
-// queryAccounts asks JD for every configured account, with username, enabled
-// and valid included - valid is what tells a queued login from a rejected one
-// apart (see plan in reconcile.go).
+// queryAccounts asks JD for every configured account; valid tells a queued
+// login from a rejected one.
 //
-// NO maxResults and NO startAt, and that is the whole of a fix measured against
-// a live JD rather than reasoned from the sources. The pair was here because
-// APIQuery documents -1 as "all of them" - true of APIQuery, and AccountQuery
-// is not one. JD answers HTTP 500 to the mere PRESENCE of either field,
-// whatever its value: probed against the bundled JDownloader 48637 with -1, 0
-// and both, all five hundreds, while the identical call without them returns
-// `{"data":[]}` and the empty object does too.
-//
-// This is the first time this package has run against a real JD, and the
-// file's own header said so: "this package has never been run against a live
-// JD". The cost of that was a reconcile loop failing every thirty seconds since
-// the day it shipped, and 408 identical lines in the log of an instance that
-// otherwise looked healthy.
+// The query has no maxResults or startAt: JD 48637 answers HTTP 500 to either
+// field whatever its value, although APIQuery documents -1 as "all".
 func (c *jdClient) queryAccounts(ctx context.Context) ([]jdAccount, error) {
 	data, err := c.call(ctx, "/accounts/queryAccounts", map[string]any{
 		"username":    true,
@@ -189,23 +139,15 @@ func (c *jdClient) queryAccounts(ctx context.Context) ([]jdAccount, error) {
 	return out, nil
 }
 
-// addAccount asks JD to add a login for hoster. It reports the boolean
-// AccountAPIImpl.addAccount returns - true once JD's PluginFinder resolved
-// hoster to a plugin and filed the account, NOT once the login has been
-// checked. A true here is "JD accepted the request", not "the password is
-// right" - that distinction is exactly why Reconcile treats a freshly-added
-// account as queued rather than active until JD's own account checker has
-// had a turn (see the grace window in reconcile.go).
+// addAccount asks JD to add a login for hoster. True means JD resolved the
+// hoster to a plugin and filed the account, not that the password works,
+// which is why Reconcile treats a new account as queued (see rejectGrace).
 //
-// The credential travels in this one call and nowhere else in this package:
-// no log line, no error string and no return value here ever carries
-// username or password - see the security tests in reconcile_test.go.
+// The credential appears in this call only, never in a log line, error or
+// return value; call's errors never echo their parameters.
 func (c *jdClient) addAccount(ctx context.Context, hoster, username, password string) (bool, error) {
 	data, err := c.call(ctx, "/accounts/addAccount", hoster, username, password)
 	if err != nil {
-		// The error itself must never repeat the parameters call() was given -
-		// and it does not: call()'s own error paths (HTTP status, bad JSON) never
-		// echo their input, only the path and the response's own shape.
 		return false, err
 	}
 	var ok bool
@@ -215,11 +157,8 @@ func (c *jdClient) addAccount(ctx context.Context, hoster, username, password st
 	return ok, nil
 }
 
-// removeAccounts asks JD to drop the given account ids. A nil or empty slice
-// is a no-op rather than a call that means "remove nothing JD understands
-// that as" - the caller (Reconcile) never has a reason to send one, but a
-// defensive no-op costs nothing and avoids relying on JD's own reading of an
-// empty array.
+// removeAccounts asks JD to drop the given account ids. An empty list sends
+// nothing rather than relying on how JD reads an empty array.
 func (c *jdClient) removeAccounts(ctx context.Context, ids []int64) error {
 	if len(ids) == 0 {
 		return nil
@@ -228,11 +167,8 @@ func (c *jdClient) removeAccounts(ctx context.Context, ids []int64) error {
 	return err
 }
 
-// listPremiumHosters returns JD's own list of hosts its premium plugins
-// cover - AccountAPIImpl.listPremiumHoster filters HostPluginController's
-// full plugin list down to isPremium() ones. This is the primary source for
-// the "add a login" host picker; curatedHosts (reconcile.go) is only the
-// fallback while JD is unreachable.
+// listPremiumHosters returns the hosts JD's premium plugins cover. It is the
+// primary source for the host picker; curatedHosts is the fallback.
 func (c *jdClient) listPremiumHosters(ctx context.Context) ([]string, error) {
 	data, err := c.call(ctx, "/accounts/listPremiumHoster")
 	if err != nil {

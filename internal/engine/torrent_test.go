@@ -8,11 +8,8 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 )
 
-// landingPaths has to mirror where the download library really writes, because
-// the containment check is only worth anything if it checks the paths that get
-// used. The two shapes are the whole rule: a resource with a Name is a folder
-// torrent and everything nests under it, a resource without one is a single
-// file whose name is the entire path.
+// TestLandingPathsMirrorWhereTheLibraryWrites: the containment check is only
+// worth something if it checks the paths the library really writes.
 func TestLandingPathsMirrorWhereTheLibraryWrites(t *testing.T) {
 	folder := &base.Resource{Name: "Show.S01", Files: []*base.FileInfo{
 		{Name: "ep01.mkv", Path: ""},
@@ -38,12 +35,10 @@ func TestLandingPathsMirrorWhereTheLibraryWrites(t *testing.T) {
 	}
 }
 
-// THE GATE THE MAGNET PATH DEPENDS ON. A magnet's file list is never seen by
-// the resolver - it arrives from the swarm after the download library already
-// has the link - so this composition is the only thing standing between a
-// hostile swarm and a write outside the download folder. Tested as the engine
-// actually composes it, resource in and refusal out, rather than by testing the
-// two halves separately and assuming they meet.
+// TestAHostileResolvedTorrentIsRefusedBeforeAnythingIsCreated tests the check
+// as the engine composes it. A magnet's file list never passes the resolver,
+// so this is all that stands between a hostile swarm and a write outside the
+// download folder.
 func TestAHostileResolvedTorrentIsRefusedBeforeAnythingIsCreated(t *testing.T) {
 	dir := t.TempDir()
 	hostile := []*base.Resource{
@@ -65,11 +60,8 @@ func TestAHostileResolvedTorrentIsRefusedBeforeAnythingIsCreated(t *testing.T) {
 	}
 }
 
-// The size shown for a partial selection has to be the selection's size, and
-// the library will not work it out on this path: base.Resource.CalcSize is
-// called with nil during a bt resolve, so res.Size is the whole torrent however
-// few files were asked for. Verified live - a resolve limited to one 1.5 KB
-// subtitle still reported 129 MB - which is why this is computed here.
+// TestTheSizeShownIsTheSelectionsAndNotTheWholeTorrents: a bt resolve reports
+// the whole torrent's size however few files are selected.
 func TestTheSizeShownIsTheSelectionsAndNotTheWholeTorrents(t *testing.T) {
 	res := &base.Resource{Name: "Show.S01", Size: 1000, Files: []*base.FileInfo{
 		{Name: "a.mkv", Size: 700},
@@ -82,8 +74,7 @@ func TestTheSizeShownIsTheSelectionsAndNotTheWholeTorrents(t *testing.T) {
 	if _, size := torrentMeta(res, []int{1, 2}); size != 300 {
 		t.Fatalf("size = %d, want 300 for the two selected files", size)
 	}
-	// An index the torrent does not have contributes nothing rather than
-	// panicking: the selection is client-supplied and arrives here as integers.
+	// The selection comes from the client, so out-of-range indices are ignored.
 	if _, size := torrentMeta(res, []int{0, 99, -1}); size != 700 {
 		t.Fatalf("size = %d, want 700 with the impossible indices ignored", size)
 	}
@@ -92,11 +83,8 @@ func TestTheSizeShownIsTheSelectionsAndNotTheWholeTorrents(t *testing.T) {
 	}
 }
 
-// Start decides for itself which pipeline a job belongs in, from the URL. If
-// this ever stops being true, a magnet dispatched through the ordinary path
-// would be built with an HTTP request extra and skip the containment check
-// entirely - and it would still download, which is why it needs a test rather
-// than a reading.
+// TestStartRecognisesTheTorrentShapesFromTheURLAlone: a magnet sent down the
+// HTTP path would still download, but without the containment check.
 func TestStartRecognisesTheTorrentShapesFromTheURLAlone(t *testing.T) {
 	cases := []struct {
 		url  string

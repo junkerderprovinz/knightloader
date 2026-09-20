@@ -11,73 +11,65 @@ import (
 )
 
 // Status is everything GET /api/mediatools answers and everything the
-// diagnostics bundle carries about these three programs. It NEVER contains
-// anything fetched from the network - see Prober.Read.
+// diagnostics bundle carries about these three programs. Nothing in it is
+// fetched from the network, see Prober.Read.
 type Status struct {
 	Ytdlp   Tool `json:"ytdlp"`
 	FFmpeg  Tool `json:"ffmpeg"`
 	FFprobe Tool `json:"ffprobe"`
 	// Managed is the record of a fetched copy, present whenever one has been
-	// recorded - INCLUDING when that copy no longer starts, which is exactly
-	// the case somebody needs to be told about. Ytdlp.Source says whether it is
-	// the one running.
+	// recorded, including when that copy no longer starts, which is the case
+	// somebody needs to be told about. Ytdlp.Source says whether it is the one
+	// running.
 	Managed *ManagedRecord `json:"managed,omitempty"`
 	// ManagedPath is where a fetched copy lives, sent alongside Managed. It
-	// exists because of the one state where Ytdlp.Path is NOT that file: a
-	// recorded copy that no longer starts. There the resolver has already
-	// fallen back, Ytdlp.Path names the fallback, and the sentence the page has
-	// to write is "a fetched copy is recorded at X and it does not start" - so
-	// X has to arrive as its own field rather than be reconstructed by the
-	// browser from a data directory it is never told.
+	// exists for the one state where Ytdlp.Path is not that file: a recorded
+	// copy that no longer starts, where the resolver has fallen back and
+	// Ytdlp.Path names the fallback. The page writes "a fetched copy is
+	// recorded at X and it does not start", and the browser is never told the
+	// data directory X would have to be built from.
 	ManagedPath string `json:"managedPath,omitempty"`
 	// Shadowed is what would run if the fetched copy were removed, and it is
 	// nil unless a fetched copy is actually in force.
 	//
-	// This field is the answer to the slow failure this whole feature would
-	// otherwise create. The container image is rebuilt on every release and its
-	// packaged yt-dlp moves forward with it; a copy fetched into /data in March
-	// sits there unchanged for ever and keeps shadowing that. So the operator
-	// who fetched once to fix a broken extractor ends up, a year and a half
-	// later, running an OLDER yt-dlp than the image ships - having "fixed" it.
-	// Without this field and the sentence the settings card builds from it, the
-	// feature makes the long run worse rather than better.
+	// The container image is rebuilt on every release and its packaged yt-dlp
+	// moves forward with it, while a copy fetched into /data in March sits
+	// there unchanged and keeps shadowing it. Without this field, and the
+	// sentence the settings card builds from it, the operator who fetched once
+	// to fix a broken extractor ends up running an older yt-dlp than the image
+	// ships.
 	Shadowed *Tool `json:"shadowed,omitempty"`
 }
 
 // cacheTTL is how long one set of `--version` spawns is reused.
 //
-// It is not a performance tweak, it is a bound on process creation. GET
-// /api/mediatools is read by the Resolvers settings page on every load AND by
+// A bound on process creation rather than a performance tweak. GET
+// /api/mediatools is read by the Resolvers settings page on every load and by
 // buildDiagnostics on every GET /api/diagnostics, and the diagnostics page has
 // a refresh button somebody holds down. Without a cache, a browser tab left
-// open on it is a fountain of three (sometimes four) short-lived processes.
+// open on it is a fountain of short-lived processes.
 const cacheTTL = 60 * time.Second
 
 // Prober reads the three versions and caches the answer.
 //
 // A value on app.App rather than a package-level singleton, for the reason
-// internal/httpx's own package doc gives about clients: "a package-level client
-// is a dependency nothing declares". A test cannot give one instance a
-// different data directory without every other instance in the process
-// silently receiving it too, and nothing in the wiring would show that they
-// share.
+// internal/httpx's package doc gives about clients: a test cannot give one
+// instance a different data directory without every other instance in the
+// process receiving it too, and nothing in the wiring shows that they share.
 type Prober struct {
 	dataDir string
 
-	// mu is held across the probe itself, not just around the cache fields.
-	// That serialises concurrent callers onto ONE set of spawns instead of
-	// letting five simultaneous page loads each start their own three
-	// processes - which is the behaviour this cache exists for in the first
-	// place. The cost is that a caller can wait out another caller's probe;
-	// with the per-spawn timeout above that is bounded and it is the cheaper
-	// side of the trade.
+	// mu is held across the probe itself, not only around the cache fields, so
+	// concurrent callers share one set of spawns instead of five simultaneous
+	// page loads each starting three processes. The cost is that a caller can
+	// wait out another caller's probe, which the per-spawn timeout bounds.
 	mu     sync.Mutex
 	cached Status
 	// stamp fingerprints the fetched copy (its size and modification time) so
-	// an install or a removal invalidates the cache even if Invalidate is not
-	// called - a file swapped underneath us by hand is exactly the situation
-	// where a stale version string is most misleading. It is a stat, not a
-	// spawn, so checking it on every read is free.
+	// an install or a removal invalidates the cache even when Invalidate is
+	// not called: a file swapped by hand is where a stale version string is
+	// most misleading. It is a stat rather than a spawn, so checking it on
+	// every read is free.
 	stamp string
 	at    time.Time
 	have  bool
@@ -98,11 +90,11 @@ func (p *Prober) Invalidate() {
 
 // Read answers the current status, from the cache when it is still good.
 //
-// IT NEVER TOUCHES THE NETWORK, and that is a hard property rather than a
-// current fact: this is what the settings page loads on mount and what the
-// diagnostics bundle embeds, so a GitHub call folded in here would turn opening
-// a settings page into an outbound request nobody opted into. Asking GitHub is
-// its own route, behind its own button and its own opt-in switch.
+// It never touches the network, and that is a property to keep: this is what
+// the settings page loads on mount and what the diagnostics bundle embeds, so
+// a GitHub call folded in here would turn opening a settings page into an
+// outbound request nobody opted into. Asking GitHub is its own route, behind
+// its own button and its own opt-in switch.
 func (p *Prober) Read() Status {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -118,9 +110,9 @@ func (p *Prober) Read() Status {
 }
 
 // fingerprint is a cheap stat of the fetched copy. Only the managed copy is
-// fingerprinted: a system yt-dlp replaced by a package upgrade is caught by the
-// TTL, while the managed one is the file THIS process replaces and must never
-// be described from a stale reading.
+// fingerprinted: a system yt-dlp replaced by a package upgrade is caught by
+// the TTL, while the managed one is the file this process replaces and must
+// not be described from a stale reading.
 func (p *Prober) fingerprint() string {
 	if p.dataDir == "" {
 		return ""
@@ -148,10 +140,9 @@ func (p *Prober) probe() Status {
 		st.Ytdlp.Detail = "no yt-dlp found: neither a fetched copy, nor KL_YTDLP, nor \"yt-dlp\" on PATH"
 	}
 
-	// ffmpeg and ffprobe take "-version" with ONE dash, unlike yt-dlp's two.
-	// That is not a typo to be tidied up: with two dashes ffmpeg exits 1 and
-	// prints its usage, and the row would read "not found" for a program that
-	// is installed and working.
+	// ffmpeg and ffprobe take "-version" with one dash, unlike yt-dlp's two.
+	// With two dashes ffmpeg exits 1 and prints its usage, and the row would
+	// read "not found" for a program that is installed and working.
 	st.FFmpeg = probeTool(lookup("ffmpeg"), "-version", ffmpegVersion)
 	st.FFprobe = probeTool(lookup("ffprobe"), "-version", ffmpegVersion)
 
@@ -162,9 +153,9 @@ func (p *Prober) probe() Status {
 		}
 	}
 
-	// Only when the fetched copy is the one running: "what would run instead"
-	// is a question with no meaning otherwise, and answering it anyway would
-	// mean a fourth spawn on every probe for a line nothing draws.
+	// Only when the fetched copy is the one running: otherwise "what would
+	// run instead" means nothing, and answering it would cost a fourth spawn
+	// on every probe for a line nothing draws.
 	if source == SourceManaged {
 		fallbackPath, fallbackSource, _ := resolveSystemYtdlp()
 		shadowed := probeTool(fallbackPath, "--version", ytdlpVersion)
@@ -188,7 +179,7 @@ func resolveSystemYtdlp() (string, Source, string) {
 }
 
 // lookup resolves a bare program name to a full path when PATH has it, and
-// hands back the bare name when it does not - so a Tool that was not found
+// hands back the bare name when it does not, so a Tool that was not found
 // still names what was looked for rather than showing an empty cell.
 func lookup(name string) string {
 	if p, err := exec.LookPath(name); err == nil {
@@ -197,10 +188,10 @@ func lookup(name string) string {
 	return name
 }
 
-// probeTool runs one program's version flag and reads the answer through parse.
-// Everything it can go wrong with ends up in Detail verbatim, because the
+// probeTool runs one program's version flag and reads the answer through
+// parse. Whatever went wrong ends up in Detail verbatim, because the
 // difference between "not installed", "installed but the wrong architecture"
-// and "installed on a volume mounted noexec" is entirely in that string.
+// and "installed on a volume mounted noexec" is in that string.
 func probeTool(bin, flag string, parse func(string) string) Tool {
 	t := Tool{Path: bin}
 	if bin == "" {
@@ -236,11 +227,11 @@ func firstLine(s string) string {
 func ytdlpVersion(line string) string { return strings.TrimSpace(line) }
 
 // ffmpegVersion pulls the version out of "ffmpeg version 6.1.2-r1 Copyright
-// (c) 2000-2024 the FFmpeg developers" - the third whitespace token.
+// (c) 2000-2024 the FFmpeg developers", the third whitespace token.
 //
-// A build with an unusual banner falls back to the whole first line rather than
-// to an empty cell: an unparsed line is still a fact somebody can read in a bug
-// report, while a blank one looks like the program is missing.
+// A build with an unusual banner falls back to the whole first line rather
+// than to an empty cell: an unparsed line is still a fact somebody can read in
+// a bug report, while a blank one looks like a missing program.
 func ffmpegVersion(line string) string {
 	fields := strings.Fields(line)
 	if len(fields) >= 3 && fields[1] == "version" {

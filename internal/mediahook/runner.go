@@ -2,35 +2,34 @@ package mediahook
 
 // runner.go: the loop that owns the calls, and the two waits in front of them.
 //
-// THE SUBSCRIBER MUST NOT MAKE THE CALL, which is what this whole file is for.
-// script.Bus delivers synchronously, on the publisher's own goroutine, and says
-// so in capitals: "EVERY SUBSCRIBER MUST RETURN PROMPTLY". The publisher for
-// package.done is the app's own package sweep, a ticker shared with everything
-// else that watches the queue, and an HTTP call inside Subscribe would stall
-// that sweep for up to twenty seconds per address. So Enqueue drops the fact
-// into a bounded channel and returns, exactly as script.Host.fire does, and this
-// loop is what actually goes out on the network.
+// The subscriber must not make the call. script.Bus delivers synchronously, on
+// the publisher's own goroutine, and requires every subscriber to return
+// promptly. The publisher for package.done is the app's package sweep, a
+// ticker shared with everything else that watches the queue, and an HTTP call
+// inside Subscribe would stall it for up to twenty seconds per address. So
+// Enqueue drops the fact into a bounded channel and returns, and this loop is
+// what goes out on the network.
 //
 // # The two waits
 //
-// THE COALESCE WINDOW is the user's own, per address (Hook.WaitSeconds). Twenty
-// packages finishing in one 2-second sweep is twenty firings, and a library scan
-// costs the media server real work: it walks a directory tree, hashes what is
-// new and talks to a metadata provider. Twenty of those, started together, is a
-// media server that is unusable for ten minutes because a download finished. One
-// scan a minute later costs nobody anything. Zero seconds is a real answer and
-// means "call after every package".
+// The coalesce window is the user's own, per address (Hook.WaitSeconds).
+// Twenty packages finishing in one two-second sweep is twenty firings, and a
+// library scan costs the media server real work: it walks a directory tree,
+// hashes what is new and talks to a metadata provider. Twenty of those started
+// together leave the media server unusable for ten minutes because a download
+// finished. Zero seconds is a real answer and means "call after every
+// package".
 //
-// THE DELIVERY WAIT is not the user's and cannot be switched off. package.done
-// fires the moment nothing is left to WAIT for, and on an install with a working
-// folder configured the finished file is at that moment still in the working
-// folder: app_dispatch.go sets the status and then spawns the checksum and the
-// move, which for a 40 GB film across a filesystem boundary is minutes. A scan
-// started then finds nothing and never looks again, and it bites exactly the
-// installs that set a working folder BECAUSE a scanner was picking up half
-// files. So the call is held until the app says the package's files have
-// actually landed - see Options.Ready - with a ceiling, because a move that
-// failed for good would otherwise mean a call that never happens at all.
+// The delivery wait is not the user's and cannot be switched off. package.done
+// fires the moment nothing is left to wait for, and on an install with a
+// working folder the finished file is still in that folder: app_dispatch.go
+// sets the status and then spawns the checksum and the move, which for a 40 GB
+// film across a filesystem boundary is minutes. A scan started then finds
+// nothing and never looks again, and it bites the installs that set a working
+// folder because a scanner was picking up half files. So the call is held
+// until the app says the package's files have landed (Options.Ready), with a
+// ceiling, because a move that failed for good would otherwise mean a call
+// that never happens at all.
 
 import (
 	"context"
@@ -50,42 +49,39 @@ const defaultTick = time.Second
 // DeliveryGrace is how long a call may be held waiting for the finished files to
 // reach their destination folder before it goes out anyway.
 //
-// It exists because the delivery wait is a promise about a move this package
-// cannot see the inside of. A move can fail permanently - no room on the target
-// volume, a collision policy of "skip", a read-only mount - and the app records
-// that on the row and leaves the file where it is. Without a ceiling the scan
-// for that package would simply never be requested, which is the one failure
-// mode worse than scanning too early: nothing on any page would say so.
+// A move can fail permanently (no room on the target volume, a collision
+// policy of "skip", a read-only mount) and the app then records that on the row
+// and leaves the file where it is. Without a ceiling the scan for that package
+// would never be requested and nothing on any page would say so.
 //
-// A quarter of an hour is chosen against the case it is FOR rather than against
-// the failure: a 40 GB film copied across a filesystem boundary on a spinning
-// disk is a few minutes, and a set of them is a few more.
+// A quarter of an hour is measured against the case it is for: a 40 GB film
+// copied across a filesystem boundary on a spinning disk is a few minutes, and
+// a set of them is a few more.
 const DeliveryGrace = 15 * time.Minute
 
-// queueDepth bounds the hand-over channel. Sixteen addresses times a handful of
-// packages settling in one sweep, with room to spare; a queue this deep can only
-// fill if the loop itself is stuck, and a full queue is answered the way
-// script.Host.fire answers one, with a log line and a dropped call rather than a
-// stalled publisher.
+// queueDepth bounds the hand-over channel: sixteen addresses times a handful
+// of packages settling in one sweep, with room to spare. A queue this deep can
+// only fill if the loop is stuck, and a full one costs a log line and a
+// dropped call rather than a stalled publisher.
 const queueDepth = 256
 
 // Options configures a Runner.
 type Options struct {
 	// Store is where the header values are read from. Nil sends every call
-	// without its header, which is a Runner nobody wired a credential store into
-	// and is worth surviving rather than crashing a download path over.
+	// without its header, which is a Runner nobody wired a credential store
+	// into and is worth surviving rather than crashing a download path over.
 	Store *Store
 
-	// Hooks reads the live list. A FUNCTION and not a slice, because the settings
-	// document is edited while this runs: an address changed during a coalesce
-	// window has to be called as it is NOW, not as it was when the package
-	// finished. It is called from this package's own goroutine, so it must not
-	// take a lock this package's callers already hold.
+	// Hooks reads the live list. A function and not a slice, because the
+	// settings document is edited while this runs and an address changed
+	// during a coalesce window has to be called as it is now. It runs on this
+	// package's own goroutine, so it must not take a lock this package's
+	// callers already hold.
 	Hooks func() []Hook
 
 	// Ready answers whether one package's files have reached the folders they
-	// belong in. Nil means "always ready", which is right for a test and for any
-	// embedding with no working folder - see the delivery wait above.
+	// belong in. Nil means always ready, which is right for a test and for an
+	// embedding with no working folder, see the delivery wait above.
 	//
 	// It is called from the loop's goroutine, once per tick per waiting call, so
 	// it has to be cheap and must not block.
@@ -135,10 +131,8 @@ type armed struct {
 // waiting is one address with a call owed on it.
 type waiting struct {
 	// first is the package that armed this call and count is how many were
-	// folded into it. The first one by NAME, not by arrival: two packages
-	// finishing in one sweep arrive in a sorted order the app went out of its way
-	// to make deterministic, and a result that named a different one of them on
-	// every run would be a report nobody could reproduce.
+	// folded into it. First by name and not by arrival, so a result does not
+	// name a different package on every run.
 	first string
 	count int
 	// fireAt is when the coalesce window closes.
@@ -193,11 +187,11 @@ func (r *Runner) Start() {
 // Close stops the loop and waits for a call in flight to finish, so that nothing
 // is still writing to a store being torn down once this returns.
 //
-// It FLUSHES NOTHING. A call held back because its files have not landed yet is
-// a call whose whole point was the files having landed, and firing it on the way
-// out would tell the media server to scan a folder the app just stopped moving
-// things into. What is dropped is logged, by address, because a missed scan is
-// otherwise invisible: the library is simply missing an episode.
+// It flushes nothing. A call held back because its files have not landed was
+// waiting for exactly that, and firing it on the way out would tell the media
+// server to scan a folder the app just stopped moving things into. What is
+// dropped is logged by address, because a missed scan is otherwise invisible:
+// the library is simply missing an episode.
 func (r *Runner) Close() error {
 	r.cancel()
 	r.wg.Wait()
@@ -206,10 +200,9 @@ func (r *Runner) Close() error {
 
 // Enqueue records that one package finished and wants hookID called.
 //
-// NON-BLOCKING, ALWAYS. Its caller is a bus subscriber running on the app's own
-// package sweep - see the file comment - so a full queue drops this one call
-// with a log line rather than holding that sweep up. The same answer
-// script.Host.fire gives for the same contract.
+// It never blocks. Its caller is a bus subscriber running on the app's package
+// sweep, so a full queue drops this one call with a log line rather than
+// holding the sweep up.
 func (r *Runner) Enqueue(hookID, packageName string) {
 	id := HookID(hookID)
 	if id == "" {
@@ -225,11 +218,10 @@ func (r *Runner) Enqueue(hookID, packageName string) {
 // CallNow makes one call immediately and records it as the last result, which is
 // what the Test button on the settings page does.
 //
-// It goes out on the same client and through the same Call as a real firing, on
-// purpose: a test that used a different client, followed redirects or skipped
-// the header would prove nothing about the thing it is testing. ctx is the
-// request's own, so a browser that navigated away does not leave this waiting on
-// somebody's server for the full ceiling.
+// It goes out on the same client and through the same Call as a real firing: a
+// test that used a different client, followed redirects or skipped the header
+// would prove nothing. ctx is the request's own, so a browser that navigated
+// away does not leave this waiting on somebody's server for the full ceiling.
 func (r *Runner) CallNow(ctx context.Context, h Hook) Result {
 	res := Call(ctx, r.client, h, r.value(h.ID))
 	res.Test = true
@@ -240,11 +232,10 @@ func (r *Runner) CallNow(ctx context.Context, h Hook) Result {
 // Last is the most recent call for one address, test calls included, and false
 // when this process has not called it yet.
 //
-// IN MEMORY ONLY, and the interface says so where a person can read it. What
-// would be gained by persisting it is a line on a page after a restart; what it
-// would cost is a second document written on every download, inside the store's
-// own budget, that can come back corrupt - the identical trade feed.Health
-// already made and wrote down.
+// In memory only, which the interface says where a person can read it.
+// Persisting it would buy a line on a page after a restart and cost a second
+// document written on every download that can come back corrupt, the same
+// trade feed.Health makes.
 func (r *Runner) Last(hookID string) (Result, bool) {
 	id := HookID(hookID)
 	if id == "" {
@@ -279,13 +270,11 @@ func (r *Runner) value(hookID string) string {
 // loop is the whole of this package's own concurrency: one goroutine, one map of
 // waiting calls, one ticker.
 //
-// The calls go out ON THIS GOROUTINE and not on one of their own. A second
-// address's scan being asked for twenty seconds late is not something anybody
-// can perceive, and the alternative is concurrency in a loop with no need of it:
-// a call per goroutine would need its own in-flight bookkeeping per address to
-// stop one address being called twice at once, which is a lock and a leak for no
-// gain. Close waits for the loop, so a call in flight is finished before the
-// stores it reads are torn down.
+// The calls go out on this goroutine and not on one of their own. A second
+// address's scan arriving twenty seconds late is imperceptible, while a call
+// per goroutine would need in-flight bookkeeping per address to stop one
+// address being called twice at once. Close waits for the loop, so a call in
+// flight finishes before the stores it reads are torn down.
 func (r *Runner) loop() {
 	defer r.wg.Done()
 	ticker := time.NewTicker(r.tick)
@@ -321,10 +310,9 @@ func (r *Runner) arm(pending map[string]*waiting, a armed) {
 	if w == nil {
 		w = &waiting{
 			first: a.pkg,
-			// The window is measured from the FIRST package that armed the call
-			// and is never extended by a later one. Extending it would mean a box
-			// finishing a package a minute for an hour never calls at all, which
-			// is the shape of bug that only shows up on the busiest install.
+			// The window is measured from the first package that armed the
+			// call and is never extended by a later one, or a box finishing a
+			// package a minute for an hour would never call at all.
 			fireAt:   a.arrived.Add(time.Duration(h.WaitSeconds) * time.Second),
 			giveUpAt: a.arrived.Add(r.grace),
 		}
@@ -338,10 +326,9 @@ func (r *Runner) arm(pending map[string]*waiting, a armed) {
 
 // due sends every call whose window has closed and whose files have landed.
 func (r *Runner) due(pending map[string]*waiting, now time.Time) {
-	// Sorted, because map iteration is random and two addresses coming due in the
-	// same tick would otherwise be called in a different order every time - the
-	// kind of nondeterminism that makes an intermittent report impossible to
-	// reproduce. The app's own package sweep sorts for the same reason.
+	// Sorted, because map iteration is random and two addresses coming due in
+	// the same tick would otherwise be called in a different order every
+	// time, which makes an intermittent report impossible to reproduce.
 	ids := make([]string, 0, len(pending))
 	for id := range pending {
 		ids = append(ids, id)
@@ -365,17 +352,17 @@ func (r *Runner) due(pending map[string]*waiting, now time.Time) {
 		res.Package, res.Packages = w.first, w.count
 		r.record(id, res)
 		if !res.OK {
-			// The HOST and never the whole address: Plex's own documented refresh
-			// call carries its token in the query string, and this line reaches
-			// the log ring and from there the diagnostics bundle.
+			// The host and never the whole address: Plex's documented refresh
+			// call carries its token in the query string, and this line
+			// reaches the log ring and from there the diagnostics bundle.
 			log.Printf("mediahook: the call to %s (%s) did not work: %s", id, urlHost(h.URL), res.problem())
 		}
 	}
 }
 
 // problem is what a log line says went wrong: the code, plus the raw sentence
-// when there is one. The code alone would be a word nobody can search for, and
-// the sentence alone loses which of the eleven cases it was folded onto.
+// when there is one. The code alone is a word nobody can search for, and the
+// sentence alone loses which case it was folded onto.
 func (res Result) problem() string {
 	switch {
 	case res.Error != "" && res.Code != "":
@@ -390,9 +377,8 @@ func (res Result) problem() string {
 }
 
 // filesLanded asks the embedding whether this package's files are where they
-// belong. A Runner with no Ready answers yes, which is the honest answer for an
-// install with no working folder: the file was written straight to its
-// destination and there was never anything to wait for.
+// belong. A Runner with no Ready answers yes, which is right for an install
+// with no working folder: the file was written straight to its destination.
 func (r *Runner) filesLanded(pkg string) bool {
 	if r.ready == nil || pkg == "" {
 		return true

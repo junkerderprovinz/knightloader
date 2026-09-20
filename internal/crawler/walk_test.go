@@ -14,11 +14,9 @@ import (
 	"time"
 )
 
-// site serves a fixed set of HTML pages and records which paths were actually
-// requested. The record is the point: most of what a walk must NOT do is
-// invisible in the results (a page it should never have fetched contributes
-// nothing either way), so these tests assert on the request log rather than
-// only on what came back.
+// site serves a fixed set of HTML pages and records which paths were
+// requested. Most of what a walk must not do leaves no trace in the results,
+// so the tests assert on the request log as well.
 type site struct {
 	mu   sync.Mutex
 	hits []string
@@ -60,8 +58,6 @@ func (s *site) requestedPath(path string) bool {
 	return false
 }
 
-// urls is the result list reduced to what these tests compare on. Names and
-// titles are the single-page crawler's business and are pinned in crawler_test.go.
 func urls(in []Result) []string {
 	out := make([]string, 0, len(in))
 	for _, r := range in {
@@ -79,11 +75,9 @@ func deepCrawl(t *testing.T, page string, opt Options) []Result {
 	return out
 }
 
-// TestWalkDepthReachesSubpages is the reason this file exists: a collection
-// thread is a table of contents, so the single-page crawl finds NOTHING on it
-// and every subpage had to be pasted by hand. Depth 1 must still find nothing
-// here - that is the behaviour every existing install keeps - and depth 2 must
-// find the files one level down.
+// TestWalkDepthReachesSubpages uses a table-of-contents page with no files
+// of its own: depth 1 finds nothing and depth 2 finds the files one level
+// down.
 func TestWalkDepthReachesSubpages(t *testing.T) {
 	s := newSite(t, map[string]string{
 		"/thread": `<html><body>
@@ -108,9 +102,6 @@ func TestWalkDepthReachesSubpages(t *testing.T) {
 	}
 }
 
-// TestWalkThreeLevels pins that depth actually counts levels rather than being
-// an on/off switch, and that the third level is the last one - MaxDepth is 3
-// and a page below it must not be fetched.
 func TestWalkThreeLevels(t *testing.T) {
 	s := newSite(t, map[string]string{
 		"/a": `<html><body><a href="/b">b</a></body></html>`,
@@ -127,17 +118,13 @@ func TestWalkThreeLevels(t *testing.T) {
 		t.Error("depth 3 fetched a fourth level")
 	}
 
-	// Above the ceiling is clamped, not refused: the number comes from a
-	// settings file, and one bad integer must not stop pages being pasted.
 	if _, err := (HTML{}).CrawlDeep(context.Background(), s.srv.URL+"/a", Options{Depth: 99}); err != nil {
 		t.Errorf("depth 99 = error %v, want it clamped to MaxDepth and run", err)
 	}
 }
 
-// TestWalkStopsOnALoop is the answer to "page A links B, B links A". Without a
-// visited set the walk bounces between them until the page budget is spent and
-// reports the same file once per bounce, so both halves are asserted: each page
-// is fetched exactly once, and the shared file appears exactly once.
+// TestWalkStopsOnALoop checks that pages linking each other are fetched once
+// each and the shared file is reported once.
 func TestWalkStopsOnALoop(t *testing.T) {
 	s := newSite(t, map[string]string{
 		"/a": `<html><body><a href="/b">b</a><a href="/shared.zip">shared</a></body></html>`,
@@ -146,7 +133,7 @@ func TestWalkStopsOnALoop(t *testing.T) {
 
 	got := deepCrawl(t, s.srv.URL+"/a", Options{Depth: 3, MaxPages: 50})
 	if want := []string{s.srv.URL + "/shared.zip"}; strings.Join(urls(got), ",") != strings.Join(want, ",") {
-		t.Errorf("found %v, want the one file once - the loop was walked more than once", urls(got))
+		t.Errorf("found %v, want the one file once; the loop was walked more than once", urls(got))
 	}
 	hits := s.requested()
 	if len(hits) != 2 {
@@ -154,19 +141,14 @@ func TestWalkStopsOnALoop(t *testing.T) {
 	}
 }
 
-// TestWalkSameHost pins both halves of the host rule, which are deliberately
-// not the same rule: pages off the host are not followed, subdomains count as
-// off the host, and FILES anywhere are still kept - a listing whose downloads
-// sit on a CDN is the ordinary case, not the exception.
+// TestWalkSameHost checks that pages on another host are not followed while
+// files on any host are still kept.
 func TestWalkSameHost(t *testing.T) {
 	other := newSite(t, map[string]string{
 		"/elsewhere": `<html><body><a href="/stranger.zip">stranger</a></body></html>`,
 	})
-	// Addressed by a different NAME for the same machine. httptest binds every
-	// server to 127.0.0.1, so two servers differ only by port - which the host
-	// rule deliberately ignores, a site on two ports still being that site.
-	// "localhost" is a hostname the seed's own 127.0.0.1 is not, which is
-	// exactly the comparison the rule makes.
+	// httptest binds every server to 127.0.0.1 and the host rule ignores the
+	// port, so the other server is addressed by a different name.
 	elsewhere := strings.Replace(other.srv.URL, "127.0.0.1", "localhost", 1)
 
 	s := newSite(t, map[string]string{
@@ -190,19 +172,14 @@ func TestWalkSameHost(t *testing.T) {
 		t.Errorf("the other host saw %v, want nothing with SameHost on", other.requested())
 	}
 
-	// Off, the same page reaches the other host's file.
 	got = deepCrawl(t, s.srv.URL+"/index", Options{Depth: 2, SameHost: false})
 	if !strings.Contains(strings.Join(urls(got), ","), "/stranger.zip") {
 		t.Errorf("with SameHost off the walk found %v, want the other host's file too", urls(got))
 	}
 }
 
-// TestSameHostExcludesSubdomains pins the answer to the question the setting
-// raises and no integration test can ask, since a test cannot bind
-// news.example.com: a subdomain is a DIFFERENT host and the walk stops at it.
-// Deciding otherwise needs the public suffix list, and the shortcut everyone
-// reaches for instead ("compare the last two labels") makes every *.github.io
-// page one site - which is a walk off the user's page onto a stranger's.
+// TestSameHostExcludesSubdomains covers what a test server cannot bind: a
+// subdomain is a different host.
 func TestSameHostExcludesSubdomains(t *testing.T) {
 	w := &walk{host: "example.com", sameHost: true, visited: map[string]bool{}}
 	for _, c := range []struct {
@@ -211,7 +188,7 @@ func TestSameHostExcludesSubdomains(t *testing.T) {
 	}{
 		{"https://example.com/page", true},
 		{"http://example.com/page", true},    // the scheme is not part of the rule
-		{"https://example.com:8443/p", true}, // nor is the port: one site, two doors
+		{"https://example.com:8443/p", true}, // nor is the port
 		{"https://EXAMPLE.com/page", true},   // hosts are case-insensitive
 		{"https://news.example.com/p", false},
 		{"https://www.example.com/p", false},
@@ -227,10 +204,8 @@ func TestSameHostExcludesSubdomains(t *testing.T) {
 	}
 }
 
-// TestWalkMaxPagesCountsFetchesNotLinks pins the unit of the page cap. The seed
-// here points at four subpages and each carries three files, so a cap that
-// counted links would stop somewhere inside the second page; counting requests
-// stops it after exactly three fetches.
+// TestWalkMaxPagesCountsFetchesNotLinks sets a page cap of three over
+// subpages with three files each; counting requests yields six files.
 func TestWalkMaxPagesCountsFetchesNotLinks(t *testing.T) {
 	pages := map[string]string{
 		"/index": `<html><body>
@@ -244,8 +219,6 @@ func TestWalkMaxPagesCountsFetchesNotLinks(t *testing.T) {
 	s := newSite(t, pages)
 
 	got := deepCrawl(t, s.srv.URL+"/index", Options{Depth: 2, MaxPages: 3})
-	// Three fetches: the seed plus two subpages, so two subpages' worth of
-	// files - six, not the three a link-counting cap would have allowed.
 	if len(s.requested()) != 3 {
 		t.Errorf("server saw %d requests, want exactly the 3 the cap allows: %v", len(s.requested()), s.requested())
 	}
@@ -254,10 +227,8 @@ func TestWalkMaxPagesCountsFetchesNotLinks(t *testing.T) {
 	}
 }
 
-// TestWalkExcludeIsNotFetchedAtAll pins the asymmetry between the two filters.
-// Exclude has to keep the crawl AWAY from a page, not merely drop its results:
-// a filter that only refuses what came back has already sent the request to the
-// address the user filtered out.
+// TestWalkExcludeIsNotFetchedAtAll checks that an excluded page is never
+// requested, not merely dropped from the results.
 func TestWalkExcludeIsNotFetchedAtAll(t *testing.T) {
 	s := newSite(t, map[string]string{
 		"/index": `<html><body>
@@ -277,10 +248,8 @@ func TestWalkExcludeIsNotFetchedAtAll(t *testing.T) {
 	}
 }
 
-// TestWalkIncludeNarrowsFilesWithoutCuttingTheWalk pins the other half. An
-// include pattern is written about the downloads somebody wants, so applying it
-// to the pages on the way there would stop the walk at the first hop and make
-// the depth they set in the same settings block do nothing.
+// TestWalkIncludeNarrowsFilesWithoutCuttingTheWalk checks that an include
+// pattern about files does not stop the walk at the first page.
 func TestWalkIncludeNarrowsFilesWithoutCuttingTheWalk(t *testing.T) {
 	s := newSite(t, map[string]string{
 		"/index": `<html><body><a href="/season1">season one</a></body></html>`,
@@ -299,10 +268,6 @@ func TestWalkIncludeNarrowsFilesWithoutCuttingTheWalk(t *testing.T) {
 	}
 }
 
-// TestWalkRefusesABadPatternBeforeFetching pins that an unparseable pattern
-// fails loudly and costs no request. Dropping it silently would leave the user
-// looking at a filter box that is not filtering, and the crawl would return
-// MORE links than they asked for - the failure nobody inspects.
 func TestWalkRefusesABadPatternBeforeFetching(t *testing.T) {
 	s := newSite(t, map[string]string{"/index": `<html><body><a href="/f.zip">f</a></body></html>`})
 
@@ -318,19 +283,15 @@ func TestWalkRefusesABadPatternBeforeFetching(t *testing.T) {
 	}
 }
 
-// TestWalkCancelKeepsNothing pins what an abort means. Half a crawl staged as
-// though it were the whole one is a list somebody trusts to be complete, so a
-// cancelled run reports the cancellation and no links - the same answer
-// AbortExtraction gives when it takes a half-written extraction back off disk.
+// TestWalkCancelKeepsNothing checks that a cancelled walk returns no links, so
+// a partial list is not taken for a complete one.
 func TestWalkCancelKeepsNothing(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	var served int
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		served++
 		if served > 1 {
-			// The second page is where the abort lands: the first has already
-			// produced results, which is exactly the state that must not be
-			// handed back as a finished crawl.
+			// Cancel on the second page, after the first has produced results.
 			cancel()
 			time.Sleep(20 * time.Millisecond)
 		}
@@ -348,10 +309,6 @@ func TestWalkCancelKeepsNothing(t *testing.T) {
 	}
 }
 
-// TestWalkSkipsADeadSubpageButNotADeadSeed pins the split between the two
-// failures. The seed is the address the user pasted, so its failure is the
-// answer to what they asked for; one dead subpage out of twenty must not throw
-// away the nineteen that answered.
 func TestWalkSkipsADeadSubpageButNotADeadSeed(t *testing.T) {
 	s := newSite(t, map[string]string{
 		"/index": `<html><body><a href="/gone">gone</a><a href="/alive">alive</a></body></html>`,
@@ -360,7 +317,7 @@ func TestWalkSkipsADeadSubpageButNotADeadSeed(t *testing.T) {
 
 	got := deepCrawl(t, s.srv.URL+"/index", Options{Depth: 2})
 	if want := []string{s.srv.URL + "/found.zip"}; strings.Join(urls(got), ",") != strings.Join(want, ",") {
-		t.Errorf("found %v, want %v - one 404 subpage must not take the others with it", urls(got), want)
+		t.Errorf("found %v, want %v; one 404 subpage must not take the others with it", urls(got), want)
 	}
 
 	if _, err := (HTML{}).CrawlDeep(context.Background(), s.srv.URL+"/missing", Options{Depth: 2}); err == nil {
@@ -368,9 +325,6 @@ func TestWalkSkipsADeadSubpageButNotADeadSeed(t *testing.T) {
 	}
 }
 
-// TestWalkLinkBudgetIsForTheWholeWalk pins that MaxLinks is not applied per
-// page. Applied per page it multiplies by the page cap, and a depth-3 crawl of
-// twenty dense pages is a task list nobody can undo.
 func TestWalkLinkBudgetIsForTheWholeWalk(t *testing.T) {
 	var index strings.Builder
 	index.WriteString("<html><body>")
@@ -398,9 +352,8 @@ func TestWalkLinkBudgetIsForTheWholeWalk(t *testing.T) {
 	}
 }
 
-// TestWalkFetchesAFileBehindAPageLink pins the one thing a deep walk can find
-// that no extension rule can: /download.php?id=7 looks like a page and serves a
-// file. It is why the walk asks the server rather than judging the URL twice.
+// TestWalkFetchesAFileBehindAPageLink covers /download.php?id=7, which looks
+// like a page and serves a file.
 func TestWalkFetchesAFileBehindAPageLink(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/index" {

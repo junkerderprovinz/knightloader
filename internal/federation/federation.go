@@ -2,12 +2,9 @@
 // peer instances are stored locally, and their REST APIs are proxied so the UI
 // can view and control every instance from one place.
 //
-// A peer is reached one of two ways, and List/Proxy hide which: over plain
-// HTTP to an address somebody stored (the original path - a LAN IP, or a
-// domain behind a reverse proxy), or through a self-hosted relay both sides
-// dial out to when neither can accept an inbound connection. The relay is
-// additive and optional; with none configured this package behaves exactly as
-// it did before one existed.
+// A peer is reached over HTTP at a stored address, or through a self-hosted
+// relay both sides dial out to when neither accepts inbound connections.
+// List and Proxy hide which. The relay is optional.
 package federation
 
 import (
@@ -34,66 +31,43 @@ import (
 // Instance is a peer KnightLoader, either reachable over HTTP at URL or
 // visible through the relay under RelayID.
 type Instance struct {
-	// Name is the stable address every route below keys on
-	// (/api/instances/{name}/...) - for a stored peer, the name somebody
-	// chose when adding it; for a relay peer, always its InstanceID. Never
-	// the relay's own announced display name, which two different
-	// instances are free to share and which any instance is free to
-	// change at any time - see DisplayName.
+	// Name is the stable key routes address a peer by
+	// (/api/instances/{name}/...): the chosen name for a stored peer, the
+	// InstanceID for a relay peer. A relay peer's announced name is not used,
+	// since peers may share or change it; see DisplayName.
 	Name string `json:"name"`
 	URL  string `json:"url"`
-	// DisplayName is what a relay peer calls itself, set only when it
-	// differs from Name (i.e. only for relay peers, and only once they have
-	// announced a name at all). A stored peer never sets it: Name already
-	// is what the person who added it chose to see. The UI shows this over
-	// Name when present; nothing here or on the wire ever addresses a peer
-	// by it, which is what makes it safe for two peers to share one.
+	// DisplayName is what a relay peer calls itself, set only when it differs
+	// from Name. The UI shows it; nothing addresses a peer by it.
 	DisplayName string `json:"displayName,omitempty"`
-	// RelayID is the instance ID a call is addressed to when this peer is only
-	// reachable through the relay, and is empty for every stored peer. It is
-	// never written to instances.json, because it is never true for longer
-	// than the relay connection that produced it: a relay peer comes and goes
-	// live, and one remembered across a restart would be a peer this instance
-	// cannot reach and cannot explain.
-	//
-	// The UI reads it to say how a peer is reached; the API layer does not
-	// need to, which is the point of it being on the same struct.
+	// RelayID is the instance ID to address when the peer is only reachable
+	// through the relay, and empty for stored peers. It is never persisted,
+	// since it is only true while the relay connection lasts.
 	RelayID string `json:"relayId,omitempty"`
 }
 
-// RelayTransport is the relay client seen from here: the sibling list it keeps
-// live, one call over it, and the ability to shut the connection down.
-// Declared as an interface rather than taking *relay.Client so this package's
-// tests can exercise a relay peer without a socket - *relay.Client satisfies
-// it as it stands, with no adapter.
+// RelayTransport is the relay client as this package uses it. It is an
+// interface so tests can run relay peers without a socket; *relay.Client
+// satisfies it as is.
 type RelayTransport interface {
-	// Siblings is the instances the relay makes visible right now. It is empty
-	// while the relay is unreachable, which is the whole of the outage
-	// handling here: no relay, no relay peers, nothing else affected.
+	// Siblings is the instances the relay makes visible now; empty while the
+	// relay is unreachable.
 	Siblings() []relay.Announce
-	// Proxy calls one sibling, addressed by its instance ID. authorization is
-	// the Authorization header value the target should see, or "" for none.
+	// Proxy calls one sibling by instance ID. authorization is the
+	// Authorization header value the target should see, or "".
 	Proxy(ctx context.Context, target, method, path string, body []byte, authorization string) ([]byte, int, error)
-	// Connected reports whether the socket to the relay is up right now.
-	//
-	// Siblings() alone cannot answer that: it is empty both when the relay is
-	// unreachable and when it is perfectly fine but nobody else is on the key.
-	// Those need telling apart - one is a configuration mistake to go fix, the
-	// other is normal - and nothing above this could tell them apart before.
+	// Connected reports whether the socket to the relay is up. Siblings alone
+	// cannot tell an unreachable relay from one where nobody else is on the
+	// key.
 	Connected() bool
-	// Close stops the connection for good. SetRelay calls it on whatever
-	// transport it is replacing, which is what makes reconfiguring the relay
-	// (a new address, a new key, or switching it off) safe to call as often
-	// as a settings save happens, rather than leaking one socket per save.
+	// Close stops the connection for good.
 	Close() error
 }
 
 var nameRe = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9 _.-]{0,31}$`)
 
-// peerTimeout bounds one call to another instance. A peer that is switched off
-// answers instantly; one that is reachable but wedged is the case this exists
-// for, and the dashboard polls every peer, so a generous ceiling here is paid
-// once per peer per tick.
+// peerTimeout bounds one call to another instance, for a peer that is
+// reachable but wedged.
 const peerTimeout = 15 * time.Second
 
 // Manager persists the peer list and talks to peers.
@@ -103,8 +77,8 @@ type Manager struct {
 
 	mu   sync.Mutex
 	list map[string]Instance // by name
-	rt   RelayTransport      // nil until SetRelay, and again after it is cleared
-	pt   PeerTokens          // nil until SetPeerTokens: peers are then called unauthenticated
+	rt   RelayTransport      // nil while no relay is configured
+	pt   PeerTokens          // nil means peers are called unauthenticated
 }
 
 // Load reads instances.json from dir (missing file = empty list).
@@ -125,9 +99,7 @@ func Load(dir string) (*Manager, error) {
 	return m, nil
 }
 
-// RelayConnected reports whether a relay is configured AND its socket is up.
-// False means either no relay at all or one that cannot be reached - the
-// caller that wants to tell those apart has the stored config to check.
+// RelayConnected reports whether a relay is configured and its socket is up.
 func (m *Manager) RelayConnected() bool {
 	m.mu.Lock()
 	rt := m.rt
@@ -135,13 +107,9 @@ func (m *Manager) RelayConnected() bool {
 	return rt != nil && rt.Connected()
 }
 
-// SetRelay installs the transport that reaches relay-visible peers, or clears
-// it with nil when relay mode is switched off - and closes whatever transport
-// it is replacing, so calling this again (a new address, a new key, an
-// application restart's own first call) never leaks the previous connection.
-// Peers the relay reports are not stored and not persisted: they appear and
-// disappear with the relay connection itself, so there is nothing here to
-// save and nothing to load back.
+// SetRelay installs the transport for relay peers, or clears it with nil, and
+// closes the transport it replaces so repeated settings saves do not leak
+// connections. Relay peers are never stored.
 func (m *Manager) SetRelay(rt RelayTransport) {
 	m.mu.Lock()
 	prev := m.rt
@@ -152,23 +120,15 @@ func (m *Manager) SetRelay(rt RelayTransport) {
 	}
 }
 
-// PeerTokens supplies the credential a call to one peer must carry.
-//
-// A hook rather than a field on Instance, because an Instance is written to
-// instances.json in plaintext and a bearer token is a secret - the same
-// separation settings.RelayURL and the relay key already keep (see
-// settings_relay.go's own doc comment). The implementation lives with the
-// encrypted store; this package only asks.
-//
-// Empty is a valid answer and means "call it unauthenticated", which is what
-// every peer call did before peer tokens existed and what a manually added
-// peer still does.
+// PeerTokens supplies the credential a call to one peer must carry. It is a
+// hook rather than an Instance field because instances.json is plaintext and
+// the token is a secret kept in the encrypted store. An empty token means the
+// peer is called unauthenticated.
 type PeerTokens interface {
 	TokenFor(peer string) string
 }
 
-// SetPeerTokens installs the lookup. Safe to call with nil, which restores the
-// old credential-free behaviour.
+// SetPeerTokens installs the lookup; nil calls peers unauthenticated.
 func (m *Manager) SetPeerTokens(pt PeerTokens) {
 	m.mu.Lock()
 	m.pt = pt
@@ -185,13 +145,8 @@ func (m *Manager) tokenFor(peer string) string {
 	return pt.TokenFor(peer)
 }
 
-// List returns the peers sorted by what a person reads as their name: the
-// stored ones plus whatever the relay currently makes visible, in one list,
-// because the Instances page shows one list. Sorted by DisplayName where a
-// relay peer has one, not by Name - Name is now always that peer's raw
-// InstanceID (reachable's own doc comment explains why), and sorting on a
-// column nobody sees would scatter relay peers through the list in an order
-// that looks arbitrary next to the friendly names right beside them.
+// List returns the stored peers and the relay-visible ones in one list,
+// sorted by what a person reads: DisplayName where there is one, else Name.
 func (m *Manager) List() []Instance {
 	all, _ := m.reachable()
 	out := make([]Instance, 0, len(all))
@@ -208,22 +163,13 @@ func (m *Manager) List() []Instance {
 	return out
 }
 
-// reachable is every peer addressable right now, keyed by the name the API
-// layer addresses it as, together with the transport the relay ones need. Both
-// come out of one call so a relay that disconnects between resolving a name
-// and using it cannot leave a relay peer with no way to reach it.
+// reachable returns every peer addressable now, keyed by name, together with
+// the relay transport, from one snapshot so a relay peer never outlives its
+// transport.
 //
-// A relay peer is always keyed by its InstanceID, never by the name it
-// announced. An earlier version tried to key it by that name when nothing
-// else had it yet, falling back to the ID only on a collision - which let
-// the same peer's address change on its own: removing an unrelated stored
-// peer, or an unrelated sibling connecting or disconnecting, could flip a
-// peer already in use from one key to the other with nothing about that
-// peer itself having changed. A stored peer's Name is validated against
-// nameRe (max 32 chars); an InstanceID is 40 hex characters
-// (newInstanceID, internal/settings), so the two key spaces can never
-// collide - every peer's address is decided once, by what kind of peer it
-// is, and never moves again for as long as it is reachable at all.
+// A relay peer is always keyed by its InstanceID, so its address never shifts
+// when other peers come and go. Stored names are at most 32 characters and
+// InstanceIDs are 40 hex characters, so the two cannot collide.
 func (m *Manager) reachable() (map[string]Instance, RelayTransport) {
 	m.mu.Lock()
 	rt := m.rt
@@ -236,9 +182,8 @@ func (m *Manager) reachable() (map[string]Instance, RelayTransport) {
 		return out, nil
 	}
 	for _, sib := range rt.Siblings() {
-		// A client-only sibling (the mobile app) is on the key to CALL
-		// instances, not to be one - listing it would offer a peer that
-		// answers 501 to every route. See relay.Announce.Client.
+		// A client-only sibling (the mobile app) calls instances but is not
+		// one; see relay.Announce.Client.
 		if sib.Client {
 			continue
 		}
@@ -255,12 +200,8 @@ func (m *Manager) reachable() (map[string]Instance, RelayTransport) {
 func (m *Manager) Add(in Instance) error {
 	in.Name = strings.TrimSpace(in.Name)
 	in.URL = strings.TrimRight(strings.TrimSpace(in.URL), "/")
-	// A stored peer is an HTTP peer by definition, addressed by the Name it
-	// is given here. Dropping these rather than rejecting them keeps the
-	// route that decodes an Instance straight off a request body
-	// (routes_federation.go) from turning a field the UI only reads into a
-	// way to store a peer that claims a relay identity or a display name
-	// that disagrees with its own address.
+	// A stored peer is an HTTP peer. The route decodes the request body
+	// straight into an Instance, so these read-only fields are cleared.
 	in.RelayID = ""
 	in.DisplayName = ""
 	if !nameRe.MatchString(in.Name) {
@@ -299,41 +240,24 @@ func (m *Manager) flushLocked() error {
 	return os.WriteFile(m.path, b, 0o600)
 }
 
-// Proxy forwards an API call to a peer and returns its response body.
-// method + path are the peer-local API route (e.g. GET /api/tasks).
-//
-// The transport is chosen from the peer, not from the caller: a relay-visible
-// peer goes over the relay, a stored one over HTTP, and the route that calls
-// this (and the page behind it) never learns which.
+// Proxy forwards an API call to a peer and returns its response body. method
+// and path are the peer-local route (e.g. GET /api/tasks). The transport
+// follows from the peer, so callers never learn which one was used.
 func (m *Manager) Proxy(ctx context.Context, name, method, path string, body []byte) ([]byte, int, error) {
 	all, rt := m.reachable()
 	in, ok := all[name]
 	if !ok {
 		return nil, http.StatusNotFound, fmt.Errorf("federation: unknown instance %q", name)
 	}
-	// rt is never nil here when RelayID is set: the entry came from that same
-	// transport in the same call, above.
-	//
-	// The credential is looked up by the name this peer is ADDRESSED as, which
-	// is not the same key for both transports and is worth being precise
-	// about, because an earlier version of this comment claimed it was.
-	//
-	// A stored peer is addressed by its pairing name; a RELAY peer by its
-	// 40-hex InstanceID (see reachable). Both are looked up here by the key
-	// they are actually addressed as, which is the key the pairing exchange
-	// files the credential under - routes_pairing.go picks one or the other
-	// depending on how the pairing travelled.
-	//
-	// That symmetry is newer than it looks. While pairing was HTTP-only, a
-	// relay peer's credential could only ever be filed under a name, the lookup
-	// here asked for an id, and nothing matched - so relay peers were called
-	// unauthenticated and a password-protected one refused everything, which is
-	// issue #26 surviving in exactly the deployment the relay exists for.
+	// The token is looked up under the key the peer is addressed by: the
+	// pairing name for a stored peer, the InstanceID for a relay peer. The
+	// pairing exchange files it under the same key (routes_pairing.go).
 	auth := ""
 	if tok := m.tokenFor(name); tok != "" {
 		auth = "Bearer " + tok
 	}
 	if in.RelayID != "" {
+		// rt is set, since this entry came from it in the same snapshot.
 		return rt.Proxy(ctx, in.RelayID, method, path, body, auth)
 	}
 	var rd io.Reader
@@ -359,13 +283,9 @@ func (m *Manager) Proxy(ctx context.Context, name, method, path string, body []b
 	return b, resp.StatusCode, nil
 }
 
-// ErrUnauthorized is what Ping reports when a peer was REACHED and refused the
-// call. Distinguished from every other failure because the fix is completely
-// different and the two look identical from outside: unreachable means check
-// the address or the network, refused means this instance holds no credential
-// the peer accepts, which pairing is what supplies. Reporting both as "offline"
-// is what made a password-protected peer indistinguishable from a switched-off
-// one - the state issue #26 was about.
+// ErrUnauthorized is what Ping reports when a peer answered but refused the
+// call. It is kept apart from being unreachable because the fix differs:
+// pairing supplies the missing credential.
 var ErrUnauthorized = errors.New("federation: the peer refused this instance's credentials")
 
 // Ping checks a peer by listing its tasks.

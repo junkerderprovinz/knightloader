@@ -15,20 +15,15 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/ghrelease"
 )
 
-// ---------------------------------------------------------------------------
-// A yt-dlp that is not yt-dlp.
-//
 // Everything in this package that matters spawns a program and reads what it
-// prints, so the tests need a real executable that behaves like yt-dlp in a way
-// they control. A shell script is not an option (Windows will not exec one) and
-// building a helper with `go build` costs seconds per test.
+// prints, so the tests need a real executable that behaves like yt-dlp in a
+// way they control. A shell script is not an option, because Windows will not
+// exec one, and building a helper with `go build` costs seconds per test.
 //
-// So: the test binary is its own fake. TestMain checks one environment
-// variable, and when it is set, behaves as the program named by it instead of
-// running any tests. Copying THIS binary to <tools>/yt-dlp makes the copy do
-// exactly the same thing, because it inherits the variable from the process
-// that spawned it.
-// ---------------------------------------------------------------------------
+// So the test binary is its own fake: TestMain checks one environment
+// variable and, when it is set, behaves as the program named by it instead of
+// running any tests. A copy of this binary at <tools>/yt-dlp does the same,
+// because it inherits the variable from the process that spawned it.
 
 const fakeEnv = "KL_MEDIATOOLS_FAKE_BEHAVIOUR"
 
@@ -68,17 +63,13 @@ func fakeYtdlp(t *testing.T, path string) {
 	}
 }
 
-// isolate takes the machine's own yt-dlp out of the picture, so a developer who
-// happens to have one installed does not get different results from CI.
+// isolate takes the machine's own yt-dlp out of the picture, so a developer
+// who happens to have one installed does not get different results from CI.
 func isolate(t *testing.T) {
 	t.Helper()
 	t.Setenv("KL_YTDLP", "")
 	t.Setenv("PATH", t.TempDir())
 }
-
-// ---------------------------------------------------------------------------
-// Version ordering
-// ---------------------------------------------------------------------------
 
 // The comparison is a separate function from internal/update's isNewer for one
 // specific reason, and this is it: yt-dlp publishes a fourth segment for a
@@ -89,8 +80,7 @@ func TestVersionComparisonNeverSaysSameWhenItCannotTell(t *testing.T) {
 	cases := []struct {
 		latest, current, want string
 	}{
-		// The case the whole function exists for: a hotfix published hours
-		// after the release somebody already has.
+		// A hotfix published hours after the release somebody already has.
 		{"2026.08.11.1", "2026.08.11", CompareNewer},
 		{"2026.08.11", "2026.08.11.1", CompareOlder},
 
@@ -116,10 +106,6 @@ func TestVersionComparisonNeverSaysSameWhenItCannotTell(t *testing.T) {
 	}
 }
 
-// ---------------------------------------------------------------------------
-// Version strings as the two programs actually print them
-// ---------------------------------------------------------------------------
-
 func TestVersionLinesAreRead(t *testing.T) {
 	if got := ffmpegVersion("ffmpeg version 6.1.2-r1 Copyright (c) 2000-2024 the FFmpeg developers"); got != "6.1.2-r1" {
 		t.Errorf("Alpine's ffmpeg banner read as %q", got)
@@ -137,10 +123,6 @@ func TestVersionLinesAreRead(t *testing.T) {
 		t.Errorf("yt-dlp's own line read as %q", got)
 	}
 }
-
-// ---------------------------------------------------------------------------
-// Which yt-dlp actually runs
-// ---------------------------------------------------------------------------
 
 func TestResolveYtdlpPrecedence(t *testing.T) {
 	t.Run("nothing anywhere falls back to the bare name", func(t *testing.T) {
@@ -218,12 +200,8 @@ func TestResolveYtdlpPrecedence(t *testing.T) {
 	})
 }
 
-// ---------------------------------------------------------------------------
-// The install sequence
-// ---------------------------------------------------------------------------
-
-// release builds a release whose assets are the named ones, with the digests of
-// `body` - the same bytes every candidate would download.
+// release builds a release whose assets are the named ones, with the digests
+// of `body`, the bytes every candidate would download.
 func release(t *testing.T, tag string, body []byte, names ...string) (ghrelease.Release, []checksum.Sum) {
 	t.Helper()
 	sum := sha256.Sum256(body)
@@ -257,10 +235,9 @@ func selfBytes(t *testing.T) []byte {
 	return b
 }
 
-// THE PROPERTY THIS FEATURE LIVES OR DIES BY: a candidate that downloads and
-// verifies but does not RUN here must leave the working copy exactly as it was.
-// The glibc build on the musl container is precisely this case, and it is the
-// one an operator meets first.
+// A candidate that downloads and verifies but does not run here has to leave
+// the working copy as it was. The glibc build on the musl container is that
+// case, and the one an operator meets first.
 func TestAFailedSmokeTestReplacesNothing(t *testing.T) {
 	isolate(t)
 	dir := t.TempDir()
@@ -306,8 +283,7 @@ func TestAFailedSmokeTestReplacesNothing(t *testing.T) {
 }
 
 // A digest that does not match means the bytes are not the bytes the release
-// published, and there is exactly one right answer: throw them away and touch
-// nothing.
+// published, so they are thrown away and nothing is touched.
 func TestAWrongChecksumReplacesNothing(t *testing.T) {
 	isolate(t)
 	dir := t.TempDir()
@@ -329,9 +305,8 @@ func TestAWrongChecksumReplacesNothing(t *testing.T) {
 }
 
 // A release with no digests at all is refused rather than installed
-// unverified - internal/update takes the same line for its own downloads, for
-// the same reason: a release missing its digests is broken or tampered with,
-// not merely old.
+// unverified, the line internal/update takes for its own downloads: a release
+// missing its digests is broken or tampered with, not merely old.
 func TestAReleaseWithoutDigestsIsRefused(t *testing.T) {
 	isolate(t)
 	dir := t.TempDir()
@@ -348,10 +323,9 @@ func TestAReleaseWithoutDigestsIsRefused(t *testing.T) {
 	}
 }
 
-// The candidate list is not decoration: on the Alpine container the glibc build
-// cannot start and the zipapp is what works, so the second candidate has to be
-// tried after the first one fails its smoke test - not instead of the install
-// failing.
+// On the Alpine container the glibc build cannot start and the zipapp is what
+// works, so the second candidate has to be tried after the first one fails its
+// smoke test, rather than the install failing.
 func TestTheSecondCandidateIsTriedWhenTheFirstWillNotRun(t *testing.T) {
 	isolate(t)
 	dir := t.TempDir()
@@ -372,15 +346,15 @@ func TestTheSecondCandidateIsTriedWhenTheFirstWillNotRun(t *testing.T) {
 		t.Fatalf("the record disagrees with what was installed: %+v", rec)
 	}
 
-	// And the whole point: the resolver now starts it.
+	// And the resolver starts it.
 	path, source, detail := ResolveYtdlp(dir)
 	if source != SourceManaged || path != BinaryPath(dir) {
 		t.Fatalf("the fetched copy is not the one that would run: %q from %q (%s)", path, source, detail)
 	}
 }
 
-// A binary that runs but claims to be a different version is not the release it
-// came from, whatever the digest said - a mislabelled or re-uploaded asset.
+// A binary that runs but claims a different version is not the release it came
+// from, whatever the digest said: a mislabelled or re-uploaded asset.
 func TestAVersionThatDisagreesWithTheTagIsRefused(t *testing.T) {
 	isolate(t)
 	dir := t.TempDir()
@@ -457,10 +431,6 @@ func TestRemovePutsTheSystemCopyBack(t *testing.T) {
 	}
 }
 
-// ---------------------------------------------------------------------------
-// The probe, and the one property it must never lose
-// ---------------------------------------------------------------------------
-
 func TestProberReportsTheFetchedCopyAndWhatItShadows(t *testing.T) {
 	isolate(t)
 	dir := t.TempDir()
@@ -531,7 +501,7 @@ func TestTheProbeIsCachedAndInvalidatable(t *testing.T) {
 		t.Fatalf("first read: %+v", first.Ytdlp)
 	}
 
-	// Change what the binary would print. A cached read must NOT notice.
+	// Change what the binary would print. A cached read must not notice.
 	t.Setenv(fakeEnv, "print:2099.01.01")
 	if again := p.Read(); again.Ytdlp.Version != "2026.08.11" {
 		t.Fatalf("the second read re-spawned instead of using the cache: %q", again.Ytdlp.Version)

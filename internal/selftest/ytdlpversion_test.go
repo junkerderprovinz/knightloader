@@ -2,11 +2,10 @@ package selftest
 
 // The version parser, against strings real yt-dlp builds actually print.
 //
-// The point of the table is the THIRD column of cases: the ones that must come
-// back false. A parser that quietly turned a distribution's own numbering into
-// a date would put "your yt-dlp is 700 days old" in front of somebody whose
-// yt-dlp is current, and the advice attached to that row tells them to go and
-// replace a working binary.
+// The cases that matter are the ones that come back false. A parser that
+// turned a distribution's own numbering into a date would put "your yt-dlp is
+// 700 days old" in front of somebody whose yt-dlp is current, and the advice
+// attached to that row tells them to replace a working binary.
 
 import (
 	"testing"
@@ -89,11 +88,10 @@ func TestAgeVerdictMarksTheTwoThresholdsWhereTheyAreDocumented(t *testing.T) {
 	}
 }
 
-// TestAFutureVersionIsNotReportedAsNegativeDaysOld pins the clamp, which is not
-// hypothetical: a nightly is built somewhere else, and the clock check next
-// door exists precisely because this machine's own idea of the date is one of
-// the things that can be wrong. "-1 days old" on that screen is a bug report
-// about this feature rather than about anybody's yt-dlp.
+// A nightly is built somewhere else, and the clock check next door exists
+// because this machine's own idea of the date is one of the things that can be
+// wrong. "-1 days old" on that screen is a bug report about this feature
+// rather than about anybody's yt-dlp.
 func TestAFutureVersionIsNotReportedAsNegativeDaysOld(t *testing.T) {
 	now := time.Date(2026, 9, 8, 12, 0, 0, 0, time.UTC)
 	got, days := AgeVerdict(now.Add(48*time.Hour), now)

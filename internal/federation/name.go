@@ -1,23 +1,10 @@
 package federation
 
-// Turning a name a person chose for THEMSELVES into one this package can
-// address a peer by.
-//
-// nameRe is deliberately narrow: a peer name is a path segment
-// (/api/instances/{name}/...), a key in instances.json and a label in the UI,
-// and widening it would widen all three at once. The cost was invisible until
-// something started deriving a peer name automatically rather than asking for
-// one: an instance called "Bürglers Keller", or one on a host whose name runs
-// past 32 characters, could not be added as a peer AT ALL - not by pairing
-// (pairingSelf hands instanceDisplayName straight over), and not from the
-// discovery card. The rejection surfaced as "federation: invalid instance
-// name" on the far side, about a name the user never typed and cannot see.
-//
-// So: the rule stays, and everything that DERIVES a name runs it through
-// SanitiseName first. Where a person types the name themselves - the manual
-// add form - the rule is still enforced as written, because there the error
-// message lands next to the field that caused it and is the fastest way to
-// learn the rule.
+// nameRe is narrow because a peer name is a URL path segment, a key in
+// instances.json and a UI label at once. A name typed by a person is checked
+// against it as is; a name derived from elsewhere (an instance's display
+// name for pairing or discovery) goes through SanitiseName first, or a name
+// such as "Bürglers Keller" could not be added at all.
 
 import (
 	"strings"
@@ -31,17 +18,13 @@ import (
 // maxNameLen matches nameRe's own ceiling: one leading character plus 31 more.
 const maxNameLen = 32
 
-// deAccent decomposes and drops combining marks, so "Bürglers" becomes
-// "Burglers" rather than "B-rglers". Built once - the transformer is stateful,
-// so it is cloned per call rather than shared.
+// deAccent drops combining marks after decomposition, so "Bürglers" becomes
+// "Burglers".
 var deAccent = runes.Remove(runes.In(unicode.Mn))
 
-// standIn covers the letters that decomposition CANNOT help with, because they
-// are distinct letters rather than an ASCII letter plus a mark: Nordic, Polish
-// and Icelandic ones, and the German sharp s. Without this, Ærø sanitises to
-// "r" - a Danish instance losing most of its name to a rule about URL
-// segments. Everything here uses the transliteration its own language already
-// uses when ASCII is all that is available.
+// standIn covers letters that decomposition cannot reduce to ASCII, using
+// each language's own ASCII transliteration. Without it "Ærø" would become
+// "r".
 var standIn = map[rune]string{
 	'æ': "ae", 'Æ': "AE",
 	'ø': "o", 'Ø': "O",
@@ -53,14 +36,10 @@ var standIn = map[rune]string{
 	'ı': "i", 'œ': "oe", 'Œ': "OE",
 }
 
-// SanitiseName turns any string into one nameRe accepts.
-//
-// Accents are folded rather than replaced, so a European name survives as
-// something its owner recognises. Anything left that the rule does not permit
-// becomes a hyphen, runs of hyphens collapse, and the result is trimmed to fit.
-// A string with nothing usable in it at all returns "", which callers treat as
-// "no name to offer" rather than substituting an invented one - a peer called
-// "instance-1" that the user never chose is worse than an honest refusal.
+// SanitiseName turns any string into one nameRe accepts. Accents are folded,
+// anything else not permitted becomes a single hyphen, and the result is cut
+// to fit. It returns "" when nothing usable is left, and callers then offer no
+// name rather than inventing one.
 func SanitiseName(s string) string {
 	folded, _, err := transform.String(transform.Chain(norm.NFD, deAccent, norm.NFC), s)
 	if err != nil {
@@ -78,16 +57,14 @@ func SanitiseName(s string) string {
 			b.WriteString(standIn[r])
 			lastHyphen = false
 		case r == ' ' || r == '_' || r == '.' || r == '-':
-			// Permitted verbatim by nameRe, but a run of them is noise.
+			// Allowed by nameRe, but runs of them collapse.
 			if !lastHyphen {
 				b.WriteRune(r)
 				lastHyphen = true
 			}
 		default:
-			// Anything else - CJK, emoji, punctuation, a control character -
-			// has no ASCII form to fold to. One hyphen stands in for a run of
-			// them, so a fully non-Latin name collapses to "" below rather
-			// than to a row of dashes.
+			// No ASCII form (CJK, emoji, punctuation, controls). A run becomes
+			// one hyphen, and a wholly non-Latin name ends up "".
 			if !lastHyphen && b.Len() > 0 {
 				b.WriteRune('-')
 				lastHyphen = true
@@ -96,8 +73,8 @@ func SanitiseName(s string) string {
 	}
 
 	out := strings.Trim(b.String(), " _.-")
-	// The rule's first character must be alphanumeric, and the whole thing has
-	// to fit. Trimmed again after cutting, in case the cut landed on a space.
+	// The first character must be alphanumeric; trim again after cutting in
+	// case the cut landed on a separator.
 	for out != "" && !isAlnumASCII(rune(out[0])) {
 		out = out[1:]
 	}

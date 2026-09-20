@@ -6,9 +6,8 @@ import (
 	"time"
 )
 
-// fakeClock is a controllable Now(), the same shape internal/schedule's own
-// tests use a fakeClock for: it lets a countdown be walked past its deadline
-// in one call instead of a real test sleeping DefaultDelaySeconds.
+// fakeClock is a controllable Now, so a countdown can be walked past its
+// deadline in one call instead of a test sleeping DefaultDelaySeconds.
 type fakeClock struct {
 	mu  sync.Mutex
 	now time.Time
@@ -125,9 +124,8 @@ func TestArmsOnlyOnTheRisingEdgeOfIdle(t *testing.T) {
 		t.Errorf("FireAt = %v, want %v", *st.FireAt, want)
 	}
 
-	// A second tick while still idle must not re-arm (which would push
-	// FireAt further out and mean "just wait" quietly resets every clock the
-	// interface is showing).
+	// A second tick while still idle must not re-arm: that would push FireAt
+	// further out and reset every clock the interface is showing.
 	fireAtBefore := *st.FireAt
 	h.c.tick()
 	st2 := h.c.State()
@@ -224,9 +222,9 @@ func TestCancelDisarmsAndSuppressesTheRestOfTheStretch(t *testing.T) {
 		t.Fatal("still armed after Cancel")
 	}
 
-	// Time passing past the original deadline, while the queue is still idle,
-	// must not fire - cancelling means "not now", and a tick that quietly
-	// re-armed or fired anyway would make the button a lie.
+	// Time passing the original deadline while the queue is still idle must
+	// not fire: cancelling means "not now", and a tick that re-armed or fired
+	// anyway would make the button a lie.
 	h.clock.advance(time.Minute)
 	h.c.tick()
 	if fired := h.firedActions(); len(fired) != 0 {
@@ -276,14 +274,10 @@ func TestBecomingBusyAgainDisarmsAWaitingCountdown(t *testing.T) {
 	}
 }
 
-// TestSwitchingActionOffMidCountdownDisarms pins the exact bug build-plan.md's
-// Wave 10 review found and reproduced live: with the queue idle and a
-// countdown already armed, switching Action to none neither the "queue went
-// busy" case (idleNow is still true) nor the "arm" case (already armed)
-// matches - so before this test's fix, the switch statement did nothing at
-// all, c.action kept its stale pre-change value, and the fire check fired it
-// anyway the moment the original deadline passed, despite the settings page
-// reading the feature as off the whole time.
+// With the queue idle and a countdown armed, switching Action to none matches
+// neither the "queue went busy" case (idleNow is still true) nor the arm case
+// (already armed). Without its own case the stale action fires the moment the
+// original deadline passes, while the settings page reads the feature as off.
 func TestSwitchingActionOffMidCountdownDisarms(t *testing.T) {
 	h := newHarness(t)
 	h.setConfig(Config{Action: ActionPause, DelaySeconds: 60})
@@ -294,8 +288,8 @@ func TestSwitchingActionOffMidCountdownDisarms(t *testing.T) {
 		t.Fatal("did not arm")
 	}
 
-	// Switched off mid-countdown, the queue still idle throughout - no
-	// "went busy" transition to rely on.
+	// Switched off mid-countdown, the queue still idle throughout, so there
+	// is no "went busy" transition to rely on.
 	h.setConfig(Config{Action: ActionNone, DelaySeconds: 60})
 	h.c.tick()
 	if h.c.State().Armed {
@@ -309,8 +303,8 @@ func TestSwitchingActionOffMidCountdownDisarms(t *testing.T) {
 		t.Fatalf("fired the stale action after being switched off: %v", fired)
 	}
 
-	// Turning it back on, still within the same idle stretch, is a fresh
-	// chance - settled was deliberately not forced true by the disarm above.
+	// Turning it back on within the same idle stretch is a fresh chance: the
+	// disarm above does not set settled.
 	h.setConfig(Config{Action: ActionPause, DelaySeconds: 30})
 	h.c.tick()
 	if !h.c.State().Armed {
@@ -318,18 +312,11 @@ func TestSwitchingActionOffMidCountdownDisarms(t *testing.T) {
 	}
 }
 
-// TestArmsFromAConfigChangeWithNoInterveningBusyPeriod pins the exact bug an
-// earlier "rising edge of idle" design had, and the fix for the bug the
-// level-triggered replacement introduced in turn (build-plan.md's Wave 10
-// review: arming on a boot-idle queue with no work ever having happened this
-// run). On an ordinary boot the queue is usually already idle (nothing has
-// been added yet) before anyone has configured an action, and that idle
-// state can go on being true right up to and past the moment the feature is
-// switched on - the harness below never calls setIdle(false) at all, on
-// purpose. A plain tick must NOT arm in that state (everBusy is false and
-// nothing forced it) - only an explicit Refresh, the same call ApplySettings
-// makes on every settings save, may arm a queue that has been idle since the
-// very first tick.
+// On an ordinary boot the queue is idle before anyone has configured an
+// action, and stays idle past the moment the feature is switched on, so the
+// harness below never calls setIdle(false). A plain tick must not arm in that
+// state; only an explicit Refresh, the call ApplySettings makes on every
+// settings save, may arm a queue that has been idle since the first tick.
 func TestArmsFromAConfigChangeWithNoInterveningBusyPeriod(t *testing.T) {
 	h := newHarness(t)
 	h.setIdle(true)
@@ -338,19 +325,16 @@ func TestArmsFromAConfigChangeWithNoInterveningBusyPeriod(t *testing.T) {
 		t.Fatal("armed despite Action=none")
 	}
 
-	// The queue never went busy in between. A plain tick must still refuse
-	// to arm even after the config change - it takes Refresh, exactly the
-	// call ApplySettings makes, to prove this was a real settings save and
-	// not just another poll of a queue that has been idle since boot.
+	// The queue never went busy in between, so a plain tick still refuses to
+	// arm after the config change: it takes Refresh to tell a real settings
+	// save from another poll of a queue that has been idle since boot.
 	h.setConfig(Config{Action: ActionPause, DelaySeconds: 30})
 	h.c.tick()
 	if h.c.State().Armed {
-		t.Fatal("armed from a plain tick with no Refresh - everBusy is false and nothing forced this arm")
+		t.Fatal("armed from a plain tick with no Refresh; everBusy is false and nothing forced this arm")
 	}
 
-	// Refresh (build-plan.md's Wave 10B brief: "the countdown must survive a
-	// page reload... fires even if nobody is watching the tab") is what
-	// actually takes effect promptly here.
+	// Refresh is what takes effect promptly here.
 	h.c.Refresh()
 	h.c.tick()
 	st := h.c.State()
@@ -362,13 +346,10 @@ func TestArmsFromAConfigChangeWithNoInterveningBusyPeriod(t *testing.T) {
 	}
 }
 
-// TestDoesNotArmOnAnIdleBootWithAPersistedConfig is the review's own
-// reproduction: a queue idle since Start, with Action already configured
-// (as it would be after a restart carrying a saved setting forward), must
-// not arm on an ordinary poll - only a real busy period or an explicit
-// Refresh may unlock the first arm. Without this gate, every restart of an
-// instance with the feature already on silently paused the queue a moment
-// after boot, before the user had added anything.
+// A queue idle since Start with Action already configured, as after a restart
+// carrying a saved setting forward, must not arm on an ordinary poll: only a
+// real busy period or an explicit Refresh unlocks the first arm. Without that
+// gate, a restart with the feature on pauses the queue a moment after boot.
 func TestDoesNotArmOnAnIdleBootWithAPersistedConfig(t *testing.T) {
 	h := newHarness(t)
 	h.setConfig(Config{Action: ActionPause, DelaySeconds: 60}) // as if loaded from a previous session
@@ -395,11 +376,10 @@ func TestDoesNotArmOnAnIdleBootWithAPersistedConfig(t *testing.T) {
 }
 
 func TestConfigIsReadFreshEveryTick(t *testing.T) {
-	// A settings save mid-countdown is not this test's concern (arming
-	// already captured the action and delay at the moment it armed); what
-	// matters is that a save made BEFORE the next idle stretch is what that
-	// stretch honours, not whatever was configured when the controller was
-	// built.
+	// A save made before the next idle stretch is what that stretch honours,
+	// not whatever was configured when the controller was built. A save
+	// mid-countdown is a different question: arming captured the action and
+	// the delay already.
 	h := newHarness(t)
 	h.setConfig(Config{Action: ActionNone, DelaySeconds: 60})
 	h.setIdle(true)
@@ -450,10 +430,9 @@ func TestOnChangeFiresExactlyOnArmAndOnFire(t *testing.T) {
 func TestStateReportsIdleEvenWhenNothingIsArmed(t *testing.T) {
 	h := newHarness(t)
 	h.setIdle(true)
-	// Action stays ActionNone (Defaults()): idle is true, but nothing is
-	// configured to happen about it. The interface still needs to know the
-	// queue is idle - a settings page toggling the action on reads this
-	// value to say "this would arm right now" rather than "nothing to see".
+	// Action stays ActionNone: idle is true, but nothing is configured to
+	// happen about it. The settings page reads Idle to say "this would arm
+	// right now" when the action is toggled on.
 	st := h.c.State()
 	if !st.Idle {
 		t.Error("State().Idle is false while Idle() reports true")
@@ -494,7 +473,7 @@ func TestNewControllerRequiresItsCallbacks(t *testing.T) {
 }
 
 func TestStartAndCloseLifecycle(t *testing.T) {
-	// Close before Start must not hang - a boot that fails between
+	// Close before Start must not hang: a boot that fails between
 	// NewController and Start still runs a deferred Close.
 	c, err := NewController(Options{
 		Config: func() Config { return Defaults() },
@@ -511,8 +490,8 @@ func TestStartAndCloseLifecycle(t *testing.T) {
 	// Start after Close is a documented no-op, not a panic.
 	c.Start()
 
-	// A real, running controller closes promptly - poll set tiny so this
-	// test does not depend on defaultPoll's real two seconds.
+	// A running controller closes promptly, with poll set small so this test
+	// does not wait out defaultPoll.
 	fired := make(chan Action, 1)
 	c2, err := NewController(Options{
 		Config: func() Config { return Config{Action: ActionPause, DelaySeconds: 5} },
@@ -534,7 +513,7 @@ func TestStartAndCloseLifecycle(t *testing.T) {
 			t.Errorf("Close: %v", err)
 		}
 	case <-time.After(5 * time.Second):
-		t.Fatal("Close did not return - the loop goroutine is stuck or was never actually started")
+		t.Fatal("Close did not return; the loop goroutine is stuck or was never started")
 	}
 	// The fake clock never advances past the five-second delay, so nothing
 	// should have fired despite many polls at a millisecond each.

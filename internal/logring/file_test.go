@@ -24,7 +24,7 @@ func read(t *testing.T, path string) string {
 	return string(b)
 }
 
-// TestTheFileGetsTheLiveLines is the feature at its plainest.
+// Live lines reach the file.
 func TestTheFileGetsTheLiveLines(t *testing.T) {
 	dir := t.TempDir()
 	r := New(10)
@@ -46,12 +46,11 @@ func TestTheFileGetsTheLiveLines(t *testing.T) {
 	}
 }
 
-// TestArmingReplaysWhatIsAlreadyInTheRing is the trap this feature is built
-// around. The sink cannot be attached where the ring is: the data directory and
-// the setting that asks for a file are both unknown until well into the boot,
-// so everything that explains a BAD boot has already been logged by the time
-// the file opens. Without the replay the file starts mid-boot and silently
-// omits exactly the lines somebody switched it on to read.
+// The sink cannot be attached where the ring is: the data directory and the
+// setting that asks for a file are both unknown until well into the boot, so
+// everything that explains a bad boot is logged by the time the file opens.
+// Without the replay the file starts mid-boot and omits the lines somebody
+// switched it on to read.
 func TestArmingReplaysWhatIsAlreadyInTheRing(t *testing.T) {
 	dir := t.TempDir()
 	r := New(10)
@@ -80,10 +79,9 @@ func TestArmingReplaysWhatIsAlreadyInTheRing(t *testing.T) {
 	}
 }
 
-// TestArmingTwiceDoesNotReplayTwice. A saved settings page re-arms the sink,
-// which reopens the same path in append mode. A watermark that started again
-// with each sink would write the whole ring in a second time and the operator
-// would read the same morning twice.
+// A saved settings page re-arms the sink, which reopens the same path in
+// append mode. A watermark that started again with each sink would write the
+// whole ring in a second time.
 func TestArmingTwiceDoesNotReplayTwice(t *testing.T) {
 	dir := t.TempDir()
 	r := New(10)
@@ -107,8 +105,8 @@ func TestArmingTwiceDoesNotReplayTwice(t *testing.T) {
 	}
 }
 
-// TestRotationKeepsExactlyWhatWasAskedFor. Keep+1 files, the live one at index
-// 0, and nothing past the last generation left lying on the volume.
+// Keep+1 files, the live one at index 0, and nothing past the last generation
+// left lying on the volume.
 func TestRotationKeepsExactlyWhatWasAskedFor(t *testing.T) {
 	dir := t.TempDir()
 	r := New(500)
@@ -135,8 +133,8 @@ func TestRotationKeepsExactlyWhatWasAskedFor(t *testing.T) {
 	if got := read(t, base+".3"); got != "" {
 		t.Errorf("a third generation survived a Keep of 2: %q", got)
 	}
-	// The renamed file next to the live one has to be OLDER than it, or the
-	// shift ran the wrong way round and reading the log backwards is nonsense.
+	// The renamed file next to the live one has to be older than it, or the
+	// shift ran the wrong way round.
 	if strings.Contains(read(t, base+".1"), "number 8") {
 		t.Error("the newest line ended up in .1 rather than in the live file")
 	}
@@ -150,8 +148,8 @@ func TestRotationKeepsExactlyWhatWasAskedFor(t *testing.T) {
 	}
 }
 
-// TestKeepZeroKeepsOnlyTheLiveFile. Zero is a real answer and not a way of
-// switching the log off - somebody with a small volume means it.
+// Zero is a real answer and not a way of switching the log off: somebody with
+// a small volume means it.
 func TestKeepZeroKeepsOnlyTheLiveFile(t *testing.T) {
 	dir := t.TempDir()
 	r := New(500)
@@ -179,10 +177,9 @@ func TestKeepZeroKeepsOnlyTheLiveFile(t *testing.T) {
 	}
 }
 
-// TestARecordLargerThanTheCapDoesNotLoopTheRotation. Rotating an empty file for
-// an oversized record would rename a nothing, write the record anyway, and do
-// it again for the next line - throwing away every generation on the disk in
-// the space of a second.
+// Rotating an empty file for an oversized record would rename nothing, write
+// the record anyway and do it again for the next line, throwing away every
+// generation on disk within a second.
 func TestARecordLargerThanTheCapDoesNotLoopTheRotation(t *testing.T) {
 	dir := t.TempDir()
 	r := New(10)
@@ -206,13 +203,11 @@ func TestARecordLargerThanTheCapDoesNotLoopTheRotation(t *testing.T) {
 	}
 }
 
-// TestAFileThatCannotBeOpenedReportsItselfRatherThanFailingSilently. The sink
-// is attached even when opening failed, because a nil sink is
-// indistinguishable from the switch being off - and "off" is the one thing this
-// state must not look like.
+// The sink is attached even when opening failed, because a nil sink looks the
+// same as the switch being off, which is the one thing this state is not.
 func TestAFileThatCannotBeOpenedReportsItselfRatherThanFailingSilently(t *testing.T) {
 	base := t.TempDir()
-	// A regular FILE where the log directory should be, so MkdirAll cannot
+	// A regular file where the log directory should be, so MkdirAll cannot
 	// succeed on any platform.
 	blocker := filepath.Join(base, "not-a-directory")
 	if err := os.WriteFile(blocker, []byte("in the way"), 0o600); err != nil {
@@ -247,13 +242,11 @@ func TestAFileThatCannotBeOpenedReportsItselfRatherThanFailingSilently(t *testin
 	}
 }
 
-// TestAWriteFailureSwitchesTheSinkOffAndSaysWhy, and does so without recursing.
-//
 // The handle is closed out from under the sink, which is what a volume going
-// away looks like from inside a write. If the failure path ever reported itself
-// through log.Printf it would re-enter (*Ring).Write on this very goroutine,
-// with the ring's mutex already held, and this test would hang rather than fail
-// - which is why the structural guard below exists as well.
+// away looks like from inside a write. A failure path reporting itself through
+// log.Printf would re-enter (*Ring).Write on this goroutine with the ring's
+// mutex held, and this test would hang rather than fail, which is why the
+// structural guard below exists as well.
 func TestAWriteFailureSwitchesTheSinkOffAndSaysWhy(t *testing.T) {
 	dir := t.TempDir()
 	r := New(10)
@@ -264,9 +257,8 @@ func TestAWriteFailureSwitchesTheSinkOffAndSaysWhy(t *testing.T) {
 
 	r.Write([]byte("before the volume went away\n"))
 
-	// Reaching into the sink is the point: there is no portable way to make a
-	// real disk fill up inside a unit test, and a test that could not reach the
-	// failure would report nothing at all.
+	// Reaching into the sink, because there is no portable way to fill a real
+	// disk inside a unit test.
 	r.mu.Lock()
 	sink := r.sink
 	r.mu.Unlock()
@@ -297,21 +289,18 @@ func TestAWriteFailureSwitchesTheSinkOffAndSaysWhy(t *testing.T) {
 	}
 }
 
-// TestTheFileSinkNeverLogs is a structural guard, and it guards the one bug in
-// this feature that takes the whole instance down rather than degrading it.
+// A structural guard against the one bug here that takes the whole instance
+// down rather than degrading it.
 //
 // The sink is called from inside (*Ring).Write with the ring's mutex held and
-// sits downstream of the tap this package installs on the standard logger. A
-// logging call from any failure path in here deadlocks on a mutex the same
-// goroutine already holds - and on a build where it somehow did not, it would
-// fail, log, fail again and die on a full stack.
+// sits downstream of the tap this package installs on the standard logger, so
+// a logging call from a failure path deadlocks on a mutex the same goroutine
+// already holds.
 //
-// Written as a source scan because the failure this prevents is somebody
-// ADDING the line, not the line misbehaving; and parsed rather than grepped,
-// because the first draft of this test matched the sentence you are reading
-// and failed on a comment. It cannot see a call that reaches the logger
-// indirectly through another package, which is why nothing on the write path
-// calls into one - see file.go's own rule 1.
+// Written as a source scan, because what it prevents is somebody adding such a
+// line, and parsed rather than grepped so it does not match this comment. It
+// cannot see a call that reaches the logger through another package, which is
+// why nothing on the write path calls into one, see file.go's rule 1.
 func TestTheFileSinkNeverLogs(t *testing.T) {
 	for _, name := range []string{"file.go", "source.go"} {
 		file, err := parser.ParseFile(token.NewFileSet(), name, nil, parser.SkipObjectResolution)
@@ -338,9 +327,8 @@ func TestTheFileSinkNeverLogs(t *testing.T) {
 	}
 }
 
-// TestGenerationPathRefusesAnIndexItDoesNotKeep. The number arrives from a URL,
-// and this is the only place it is range-checked - the download route never
-// joins anything into a path itself.
+// The number arrives from a URL and this is the only place it is
+// range-checked: the download route never joins anything into a path itself.
 func TestGenerationPathRefusesAnIndexItDoesNotKeep(t *testing.T) {
 	dir := t.TempDir()
 	r := New(10)
@@ -366,10 +354,10 @@ func TestGenerationPathRefusesAnIndexItDoesNotKeep(t *testing.T) {
 	}
 }
 
-// TestRedactedDropsThePath. The diagnostics bundle is a file people attach to
-// public bug reports, and a desktop data directory is
-// C:\Users\<their real name>\AppData\... - the same argument
-// TestDiagnosticsShipsNoPaths already pins for the store and settings paths.
+// The diagnostics bundle is a file people attach to public bug reports, and a
+// desktop data directory reads C:\Users\<their real name>\AppData\..., the
+// same argument TestDiagnosticsShipsNoPaths pins for the store and settings
+// paths.
 func TestRedactedDropsThePath(t *testing.T) {
 	st := FileState{Enabled: true, Path: `C:\Users\Someone\AppData\kl\logs\knightloader.log`, Bytes: 42}
 	got := st.Redacted()
@@ -384,8 +372,7 @@ func TestRedactedDropsThePath(t *testing.T) {
 	}
 }
 
-// TestFileStatusWithNothingArmed. The card reads this on every install that has
-// never switched the feature on, which is all of them on the day it ships.
+// The card reads this on every install that has never switched the feature on.
 func TestFileStatusWithNothingArmed(t *testing.T) {
 	r := New(10)
 	st := r.FileStatus()
@@ -397,9 +384,8 @@ func TestFileStatusWithNothingArmed(t *testing.T) {
 	}
 }
 
-// TestClosingWhatWasNeverOpened. Both mains call CloseFile from their shutdown
-// path unconditionally, and the overwhelmingly common case is that nothing was
-// ever armed.
+// Both mains call CloseFile from their shutdown path unconditionally, and the
+// common case is that nothing was ever armed.
 func TestClosingWhatWasNeverOpened(t *testing.T) {
 	r := New(10)
 	if err := r.CloseFile(); err != nil {

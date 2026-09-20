@@ -78,7 +78,7 @@ func TestRunnerSleepsToTheNextChange(t *testing.T) {
 		t.Errorf("first apply = %+v, want the base state", got)
 	}
 	if got := clock.waited(t); got != time.Hour {
-		t.Errorf("waited %s, want 1h — the window opens at 22:00", got)
+		t.Errorf("waited %s, want 1h; the window opens at 22:00", got)
 	}
 
 	clock.advance(ts(2, 22, 0))
@@ -86,7 +86,7 @@ func TestRunnerSleepsToTheNextChange(t *testing.T) {
 		t.Errorf("apply at the opening edge = %+v, want the window's limit", got)
 	}
 	if got := clock.waited(t); got != 8*time.Hour {
-		t.Errorf("waited %s, want 8h — the window closes at 06:00 the next morning", got)
+		t.Errorf("waited %s, want 8h; the window closes at 06:00 the next morning", got)
 	}
 
 	// Re-installing the same timetable must wake the loop (a saved settings page

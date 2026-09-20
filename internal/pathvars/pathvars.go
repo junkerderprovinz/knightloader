@@ -161,7 +161,7 @@ func sanitizeSegment(s string) string {
 }
 
 // javaLayouts maps SimpleDateFormat letter runs to Go reference-time layouts.
-// SSS is deliberately absent: Go only treats "000" as fractional seconds when a
+// SSS is absent because Go only treats "000" as fractional seconds when a
 // separator precedes it, so formatDate handles milliseconds itself.
 // Only the runs a folder template realistically uses are listed; anything else
 // is copied through verbatim, for the same reason an unknown placeholder is.

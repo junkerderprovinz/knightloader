@@ -5,10 +5,9 @@ import (
 	"testing"
 )
 
-// TestSinceReturnsOnlyWhatIsNewer is the whole reason the cursor exists. A
-// follow view polls every two seconds; without this it could only re-fetch all
-// five hundred lines and diff them, which cannot tell a repeated line from a
-// new one.
+// A follow view polls every two seconds. Without a cursor it could only
+// re-fetch all five hundred lines and diff them, which cannot tell a repeated
+// line from a new one.
 func TestSinceReturnsOnlyWhatIsNewer(t *testing.T) {
 	r := New(10)
 	r.Write([]byte("one\ntwo\nthree\n"))
@@ -33,9 +32,9 @@ func TestSinceReturnsOnlyWhatIsNewer(t *testing.T) {
 	}
 }
 
-// TestSinceCountsWhatFellOut is the half that makes following honest. A busy
-// instance can log more than the ring holds between two polls, and a view that
-// silently joined the two halves would show a continuous log with a hole in it.
+// A busy instance can log more than the ring holds between two polls, and a
+// view that joined the two halves would show a continuous log with a hole in
+// it.
 func TestSinceCountsWhatFellOut(t *testing.T) {
 	r := New(5)
 	for i := 1; i <= 5; i++ {
@@ -59,9 +58,9 @@ func TestSinceCountsWhatFellOut(t *testing.T) {
 	}
 }
 
-// TestSinceTakesTheOldestWhenLimited. Taking the newest would throw away the
-// lines in between with nothing to say so; taking the oldest lets the cursor
-// advance and the next poll picks up the rest.
+// Taking the newest would throw away the lines in between with nothing to say
+// so; taking the oldest lets the cursor advance and the next poll picks up the
+// rest.
 func TestSinceTakesTheOldestWhenLimited(t *testing.T) {
 	r := New(10)
 	for i := 1; i <= 6; i++ {
@@ -77,9 +76,9 @@ func TestSinceTakesTheOldestWhenLimited(t *testing.T) {
 	}
 }
 
-// TestSinceSurvivesACursorFromADeadProcess. Sequence numbers reset on restart,
-// so a page left open across one holds a number larger than anything this
-// process has. Answering "nothing new" would leave that page blank for ever.
+// Sequence numbers reset on restart, so a page left open across one holds a
+// number larger than anything this process has. Answering "nothing new" would
+// leave that page blank.
 func TestSinceSurvivesACursorFromADeadProcess(t *testing.T) {
 	r := New(10)
 	r.Write([]byte("after the restart\n"))
@@ -95,9 +94,8 @@ func TestSinceSurvivesACursorFromADeadProcess(t *testing.T) {
 	}
 }
 
-// TestSinceNeverAnswersNil. The result is JSON-encoded straight into a
-// response, and a null there is a .map() that throws on a page which had
-// nothing to draw.
+// The result is JSON-encoded straight into a response, and a null there is a
+// .map() that throws on a page with nothing to draw.
 func TestSinceNeverAnswersNil(t *testing.T) {
 	r := New(10)
 	got, _, _ := r.Since(0, 0)
@@ -111,9 +109,8 @@ func TestSinceNeverAnswersNil(t *testing.T) {
 	}
 }
 
-// TestLinesIsUnchangedByTheCursor. The diagnostics bundle and its own tests
-// read Lines(), and a bundle whose log section had become an array of objects
-// would break every reader that already knows the old shape.
+// The diagnostics bundle and its own tests read Lines, and a bundle whose log
+// section was an array of objects would break every reader of it.
 func TestLinesIsUnchangedByTheCursor(t *testing.T) {
 	r := New(10)
 	r.Write([]byte("alpha\nbeta\n"))

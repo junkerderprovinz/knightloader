@@ -2,8 +2,7 @@
 // instance often sits on a LAN where "anyone who can reach the port" is not the
 // same as "anyone who should control the downloads".
 //
-// It is off by default: a fresh install behaves exactly as before until a
-// password is set. Sessions are signed cookies rather than a server-side table,
+// It is off until a password is set. Sessions are signed cookies rather than a server-side table,
 // so a restart does not log everyone out.
 package auth
 
@@ -42,15 +41,10 @@ var (
 type stored struct {
 	Hash string `json:"hash"` // bcrypt, empty = no password set
 	Key  string `json:"key"`  // hex, signs session cookies
-	// TOTP is the base32 authenticator secret; empty means no second factor.
-	// It is written only once a code produced from it has been confirmed - see
-	// twofactor.go, where the whole reason for that is spelled out.
-	//
-	// omitempty on both of these, so an instance that never touches the feature
-	// keeps the two-line file it has always had rather than growing two null
-	// entries somebody has to wonder about.
+	// TOTP is the base32 authenticator secret, written only once a code from
+	// it has been confirmed. Empty means no second factor.
 	TOTP string `json:"totp,omitempty"`
-	// Recovery holds the HMACs of the unspent single-use codes, never the codes.
+	// Recovery holds the HMACs of the unspent single-use codes.
 	Recovery []string `json:"recovery,omitempty"`
 }
 
@@ -58,15 +52,12 @@ type stored struct {
 type Guard struct {
 	path string
 
-	mu   sync.RWMutex
-	hash []byte
-	key  []byte
-	// totp and recovery are the persisted half of the second factor; pending is
-	// the enrolment in flight, which deliberately never reaches the file. See
-	// twofactor.go.
+	mu       sync.RWMutex
+	hash     []byte
+	key      []byte
 	totp     string
 	recovery []string
-	pending  *pending
+	pending  *pending // never written to the file
 }
 
 // Open loads (or creates) the lock state in dir.
@@ -101,8 +92,8 @@ func (g *Guard) Enabled() bool {
 }
 
 // SetPassword sets, changes or (with an empty next) removes the password. When
-// a password is already set, the current one has to be supplied — otherwise
-// anyone with an open session could silently lock the owner out.
+// a password is already set, the current one has to be supplied, so an open
+// session cannot lock the owner out.
 func (g *Guard) SetPassword(current, next string) error {
 	if g.Enabled() && !g.Check(current) {
 		return ErrWrongPassword
@@ -110,11 +101,9 @@ func (g *Guard) SetPassword(current, next string) error {
 	if next == "" {
 		g.mu.Lock()
 		g.hash = nil
-		// The second factor goes with it. It hangs off the password, so leaving
-		// it armed would leave an instance that asks for a code with nothing to
-		// add it to - and a sheet of recovery codes still valid against a lock
-		// that no longer exists. Changing a password does NOT do this: rotating
-		// one is no reason to make somebody re-enrol a phone.
+		// The second factor hangs off the password and goes with it. Changing
+		// the password keeps it, since rotating one is no reason to re-enrol a
+		// phone.
 		g.totp = ""
 		g.recovery = nil
 		g.pending = nil
@@ -168,19 +157,10 @@ func (g *Guard) Valid(token string) bool {
 	return err == nil && time.Now().Unix() < ts
 }
 
-// DerivedID is a stable, unguessable identifier for this instance, derived from
-// the same key that signs sessions and separated from it by purpose.
-//
-// It exists for WebAuthn, which insists on a user handle even where there is no
-// user: KnightLoader has one password and no accounts, so the account IS the
-// instance. That handle has to survive restarts - a changed one makes every
-// registered credential unusable - and must not be guessable from outside, and
-// the signing key is the only value this app already keeps that is both.
-//
-// Derived rather than handed out. The key itself signs session cookies, so
-// anything that let it leave the process would be a way to mint a session; an
-// HMAC under a named purpose gives a caller something stable to identify the
-// instance by and nothing it can work backwards from.
+// DerivedID is a stable, unguessable identifier for this instance, derived
+// from the session signing key and separated from it by purpose. WebAuthn
+// needs such a user handle; handing out an HMAC rather than the key keeps the
+// key, which can mint sessions, inside the process.
 func (g *Guard) DerivedID(purpose string) []byte {
 	return g.sign("knightloader:derived:" + purpose)
 }

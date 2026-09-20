@@ -5,21 +5,18 @@
 //
 // It listens on 127.0.0.1 only and is never exposed.
 //
-// It is the meter, and being the meter is the whole of it: this proxy chains
-// into nothing. It dials the target itself, which is why a download that comes
-// through here is both metered and unproxied - and why "the direct gateway" and
-// "the loopback proxy" are the same path, not two.
+// It is the meter and nothing else: this proxy chains into no other one. It
+// dials the target itself, which is why a download that comes through here is
+// both metered and unproxied, and why "the direct gateway" and "the loopback
+// proxy" are the same path.
 //
-// The hazard that follows from that is worth stating where somebody reading this
-// package will find it. Per-download routing works by naming a proxy on the
-// download request itself, and gopeed resolves the request's proxy INSTEAD of
-// the global one, not in addition to it. So a routed download does not come past
-// here at all and is not metered. That is a deliberate trade in this build (see
-// Engine.DownloadVia); the reason it is not fixed here is that carrying an
-// upstream proxy per download would need this one listener to learn which
-// download each connection belongs to, and a request carries nothing that says
-// so. The arrangement that answers it is a listener per task, which is what the
-// bandwidth budget is being built around - not a chain bolted onto this file.
+// Per-download routing works by naming a proxy on the download request itself,
+// and gopeed resolves the request's proxy instead of the global one rather
+// than in addition to it, so a routed download does not come past here and is
+// not metered (see Engine.DownloadVia). Carrying an upstream proxy per
+// download would need this one listener to know which download each connection
+// belongs to, and a request says nothing about that; the arrangement that
+// answers it is a listener per task.
 package netproxy
 
 import (
@@ -101,8 +98,8 @@ func (s *Server) serve(w http.ResponseWriter, r *http.Request) {
 	s.forward(w, r)
 }
 
-// tunnel handles HTTPS: the client asks for a raw pipe to host:port, so there is
-// nothing to inspect — the bytes coming back are simply metered on their way
+// tunnel handles HTTPS: the client asks for a raw pipe to host:port, so there
+// is nothing to inspect and the bytes coming back are metered on their way
 // through.
 func (s *Server) tunnel(w http.ResponseWriter, r *http.Request) {
 	upstream, err := net.DialTimeout("tcp", hostPort(r.Host, "443"), 30*time.Second)

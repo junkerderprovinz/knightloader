@@ -4,13 +4,9 @@ package idleaction
 // with it as a value rather than as a sentence, and the check that answers
 // "would this work?" without running anything.
 //
-// This file is modelled on internal/reconnect deliberately, not
-// coincidentally. That package already solved the same three problems in this
-// same codebase - a user-supplied program, a Runner injected so no test ever
-// spawns a process (reconnect.Runner), and a closed set of Problem codes so
-// the sentence can be translated in the browser rather than written in
-// English on the server (reconnect.ConfigProblem). Inventing a second shape
-// for the same job is how the two drift.
+// It follows internal/reconnect, which solves the same three problems: a
+// user-supplied program, a Runner injected so no test spawns a process, and a
+// closed set of problem codes so the browser picks the words.
 
 import (
 	"context"
@@ -23,16 +19,11 @@ import (
 
 // CommandSpec is the program ActionCommand runs, as the operator wrote it.
 //
-// A PROGRAM AND ARGUMENTS, NEVER A SHELL COMMAND LINE, and that is not an
-// oversight to be fixed by the first bug report that asks for it.
-// exec.CommandContext does not invoke a shell (the same fact
-// internal/resolver/ytdlp/options.go documents twice), and
-// internal/reconnect/config.go says outright why it has no shell-command-line
-// field either. So `systemctl suspend && echo ok`, `curl ... | logger` and
-// `cmd /c foo > log.txt` do not work here, cannot be made to work by quoting,
-// and belong in a script file this points at instead. The hint text on the
-// settings page says exactly that, in all 42 languages, because these will be
-// the first three reports this feature gets.
+// A program and arguments, not a shell command line: exec.CommandContext
+// invokes no shell, so `systemctl suspend && echo ok`, `curl ... | logger` and
+// `cmd /c foo > log.txt` do not work here and cannot be made to work by
+// quoting. They belong in a script file this points at, which is what the hint
+// text on the settings page says.
 type CommandSpec struct {
 	// Program is the executable. Resolved through the same PATH lookup
 	// exec.Command itself would use (see Preflight), so a bare "systemctl"
@@ -42,55 +33,45 @@ type CommandSpec struct {
 	// which is what keeps an argument with a space in it one argument.
 	Args []string `json:"args,omitempty"`
 	// TimeoutSeconds is how long the program may run before it is killed.
-	// Being killed is NOT the same as having failed - see ProblemTimeout.
+	// Being killed is not the same as having failed, see ProblemTimeout.
 	TimeoutSeconds int `json:"timeoutSeconds"`
 }
 
-// The bounds Sanitize enforces. The floor exists because a one-second limit
-// kills nearly everything worth running here before it has finished starting;
-// the ceiling exists because an end-of-queue action that is still running an
-// hour later has stopped being an end-of-queue action.
+// The bounds Sanitize enforces. A one-second limit kills nearly everything
+// worth running here before it has finished starting, and an end-of-queue
+// action still running an hour later has stopped being one.
 const (
-	// DefaultCommandTimeout is exported for the same reason
-	// DefaultDelaySeconds is: the settings form shows the number, and a
-	// second copy of it written into the frontend is the copy that goes
-	// stale.
+	// DefaultCommandTimeout is exported because the settings form shows the
+	// number, and a second copy in the frontend is the copy that goes stale.
 	DefaultCommandTimeout = 60
 	minCommandTimeout     = 5
 	maxCommandTimeout     = 3600
 )
 
-// maxCommandOutput is how much of the program's own output is kept. Copied
-// from internal/reconnect's constant of the same name, with the same
-// reasoning: a script that dumps a megabyte on failure must not put a
-// megabyte into the log line, the hub broadcast and the settings page that
-// report it.
+// maxCommandOutput is how much of the program's own output is kept: a script
+// that dumps a megabyte on failure must not put a megabyte into the log line,
+// the hub broadcast and the settings page that report it.
 const maxCommandOutput = 512
 
 // RedactedCommand is what Redacted puts in place of the stored command line,
 // and the value WithSecretsFrom reads back as "the client did not retype it".
-// It is deliberately the same visible placeholder reconnect.RedactedPassword
-// uses, because it has to survive the same round trip and mean the same
-// thing: an EMPTY program still has to mean "clear it", or a command could
-// never be removed through the settings form once one had been saved.
+// It is the placeholder reconnect.RedactedPassword uses, and an empty program
+// still means "clear it", so a saved command can be removed again through the
+// settings form.
 const RedactedCommand = "********"
 
-// Sanitize repairs what a caller must never be refused over - reading a
-// settings file an older or hand-edited build wrote. It always succeeds, the
-// same rule Config.Sanitize follows and for the same reason: the one path
-// that feeds it never fails a whole settings save over one field.
+// Sanitize repairs a settings file an older or hand-edited build wrote. It
+// always succeeds, the rule Config.Sanitize follows: the path that feeds it
+// never fails a whole settings save over one field.
 func (s CommandSpec) Sanitize() CommandSpec {
 	s.Program = strings.TrimSpace(s.Program)
 	if len(s.Args) > 0 {
-		// A blank argument is dropped rather than passed through. Passed
-		// through it becomes an empty argv entry, which most programs read
-		// as an empty positional argument and a few read as an error, and
-		// neither is what somebody who left a blank line in the box meant.
-		// Surrounding whitespace is NOT trimmed from the rest: an argument
-		// may legitimately contain leading or trailing spaces, and quietly
-		// removing them produces a command that fails with a message from
-		// the program that never mentions the reason - the same call
-		// reconnect.Sanitize makes about the router password.
+		// A blank argument becomes an empty argv entry, which most programs
+		// read as an empty positional argument and a few as an error, so it
+		// is dropped. Surrounding whitespace stays on the rest: an argument
+		// may legitimately carry leading or trailing spaces, and removing
+		// them leaves a command that fails with a message from the program
+		// that never mentions the reason.
 		args := make([]string, 0, len(s.Args))
 		for _, a := range s.Args {
 			if strings.TrimSpace(a) == "" {
@@ -120,38 +101,26 @@ func (s CommandSpec) Timeout() time.Duration {
 // Configured reports whether there is anything to run at all.
 func (s CommandSpec) Configured() bool { return strings.TrimSpace(s.Program) != "" }
 
-// Redacted replaces the whole command line - program AND arguments - with a
-// placeholder, leaving only the timeout, which is a number and gives nothing
-// away.
+// Redacted replaces the whole command line, program and arguments, with a
+// placeholder, leaving only the timeout.
 //
-// WHY THE WHOLE LINE AND NOT JUST THE ARGUMENTS (jdp's call, and it is not
-// reopened here): Settings.Redacted feeds two readers, GET /api/settings and
-// the diagnostics bundle (internal/api/routes_diagnostics.go), and the second
-// one is a file people attach to PUBLIC bug reports. A command line is a
-// secret store nobody declared: `wget --header=Authorization:\ Bearer\ abc123
-// http://nas/suspend` puts a token in an argument, and the program half is no
-// safer - routes_diagnostics.go already refuses to put PATHS in that bundle
-// for its own store, in so many words, because a desktop path reads
-// C:\Users\<a person's real name>\AppData\... Redacting the arguments and
-// leaving the path is the "patched three sites, missed the fourth" shape that
-// reconnect.redact's own comment warns about, so the line goes as one thing.
+// The line goes as one thing because Settings.Redacted feeds both GET
+// /api/settings and the diagnostics bundle, which people attach to public bug
+// reports. An argument can carry a token (`wget --header=Authorization:\
+// Bearer\ abc123 http://nas/suspend`), and the program half is no safer, since
+// a desktop path reads C:\Users\<a real name>\AppData\...
 //
-// What the operator loses is seeing their own command printed back on the
-// settings page; what they get instead is POST /api/idle-action/check, which
-// resolves the STORED spec and reports the real path and the real argv on
-// demand, over an authenticated route, into a page rather than into a file.
-// That is a live answer to "what will actually run", which is the question
-// the printed-back field only appeared to answer.
+// POST /api/idle-action/check resolves the stored spec and reports the real
+// path and argv on demand, over an authenticated route, so the operator can
+// still see what would run.
 func (s CommandSpec) Redacted() CommandSpec {
 	if s.Program != "" {
 		s.Program = RedactedCommand
 	}
 	if len(s.Args) > 0 {
-		// Each argument is replaced individually rather than the list being
-		// dropped, so the page can still say how many there are: "three
-		// arguments, hidden" is diagnostically useful and gives nothing
-		// away, while an empty list would read as "no arguments" and send
-		// somebody looking for a bug that is not there.
+		// Each argument is replaced individually so the page can still say
+		// how many there are. An empty list would read as "no arguments" and
+		// send somebody looking for a bug that is not there.
 		out := make([]string, len(s.Args))
 		for i := range out {
 			out[i] = RedactedCommand
@@ -165,9 +134,9 @@ func (s CommandSpec) Redacted() CommandSpec {
 // form that was shown a redacted spec sends the placeholder back untouched,
 // and without this every save from that page would wipe the stored command.
 //
-// The two halves are restored INDEPENDENTLY, and each only when it is still
-// exactly the placeholder: retyping the program while leaving the arguments
-// alone is a real edit somebody will make, and so is the reverse.
+// The two halves are restored independently, each only while it is still
+// exactly the placeholder: retyping the program and leaving the arguments
+// alone is a real edit, and so is the reverse.
 func (s CommandSpec) WithSecretsFrom(prev CommandSpec) CommandSpec {
 	if s.Program == RedactedCommand {
 		s.Program = prev.Program
@@ -190,18 +159,14 @@ func allRedacted(args []string) bool {
 // RedactIn substitutes the stored command line out of text the program itself
 // produced, before that text reaches a log line.
 //
-// This exists because of where the log goes. log.Printf is tapped by
-// internal/logring and the last lines of that ring are copied verbatim into
-// the diagnostics bundle (internal/api/routes_diagnostics.go), which is a
-// file people attach to public bug reports. Redacting the stored spec while
-// letting a program echo its own argv into a log line that then travels in
-// the same file would be a redaction that holds right up until the first
-// program that prints its usage banner on a bad argument - which is most of
-// them.
+// log.Printf is tapped by internal/logring, and the last lines of that ring
+// are copied into the diagnostics bundle people attach to public bug reports.
+// Redacting the stored spec while a program echoes its own argv into that same
+// file is a redaction that holds until the first program that prints its usage
+// banner on a bad argument.
 //
-// One choke point on purpose, exactly as reconnect.redact argues for itself:
-// the alternative is patching the log call, the broadcast and the settings
-// card separately, and that is how the fourth site gets missed.
+// One choke point, so the log call, the broadcast and the settings card cannot
+// drift apart.
 func (s CommandSpec) RedactIn(text string) string {
 	if text == "" {
 		return text
@@ -231,12 +196,10 @@ func (s CommandSpec) RedactIn(text string) string {
 }
 
 // Problem is why a run, or a check, did not come out clean. A closed set of
-// codes rather than free text, for the reason internal/app's ActivityKind and
-// reconnect.ConfigProblem both give: the sentence is not translatable and the
-// interface is, so the code crosses the wire and the browser picks the words.
-// Translating on the server would need the reader's language on a settings
-// request and would write the log in whatever the last reader happened to
-// prefer.
+// codes rather than free text, so the code crosses the wire and the browser
+// picks the words. Translating on the server would need the reader's language
+// on a settings request and would write the log in whatever the last reader
+// preferred.
 type Problem string
 
 const (
@@ -251,7 +214,7 @@ const (
 	// a JRE on alpine (Dockerfile), so systemctl, curl, ssh, sudo and bash
 	// are all simply absent.
 	ProblemNotFound Problem = "notFound"
-	// ProblemNotExecutable is a file that IS there and cannot be executed -
+	// ProblemNotExecutable is a file that is there and cannot be executed:
 	// the execute bit, or a file the running user cannot read. In the
 	// container that user is uid 1000 and not root (Dockerfile's USER
 	// knight), which is the fix nobody guesses on their own.
@@ -262,57 +225,48 @@ const (
 	// this process is allowed to do to the machine.
 	ProblemPermission Problem = "permission"
 	// ProblemTimeout is the program still running when its limit expired, so
-	// it was killed. NOT folded into ProblemExit, because it is the one
-	// outcome here that routinely means the job WAS done: a command that
-	// suspends the machine is killed on the way down about as often as it
-	// returns.
+	// it was killed. Not folded into ProblemExit, because it routinely means
+	// the job was done: a command that suspends the machine is killed on the
+	// way down about as often as it returns.
 	ProblemTimeout Problem = "timeout"
 	// ProblemExit is a program that ran and reported failure itself.
 	ProblemExit Problem = "exit"
 	// ProblemNotSupported is the action being configured on a build that
-	// cannot carry it out - quit with no RequestExit, suspend with no
-	// RequestSuspend. It exists because Actions() is deliberately NOT
-	// filtered by capability (see its own comment), so a stored action can
-	// legitimately outrun the build that reads it, and the operator has to be
-	// told rather than left with a countdown that promised something and did
-	// nothing.
+	// cannot carry it out: quit with no RequestExit, suspend with no
+	// RequestSuspend. Actions is not filtered by capability, so a stored
+	// action can outrun the build that reads it, and the operator is told
+	// rather than left with a countdown that did nothing.
 	ProblemNotSupported Problem = "notSupported"
 )
 
 // Check is what a preflight found. It never runs anything.
 type Check struct {
 	Problem Problem `json:"problem,omitempty"`
-	// ResolvedPath is what the program name actually resolves to, which is
-	// the single most useful line at 3am: "systemctl" resolving to nothing
-	// and "/usr/bin/systemctl" resolving to itself are different problems
-	// with different fixes.
+	// ResolvedPath is what the program name resolves to. "systemctl"
+	// resolving to nothing and "/usr/bin/systemctl" resolving to itself are
+	// different problems with different fixes.
 	ResolvedPath string `json:"resolvedPath,omitempty"`
-	// Argv is the exact argument vector, resolved program first - the answer
-	// to "what will actually run", which matters most for the operator who
-	// believes a shell is involved.
+	// Argv is the exact argument vector, resolved program first: what would
+	// run, for the operator who believes a shell is involved.
 	Argv []string `json:"argv,omitempty"`
-	// Deployment is "container" or "desktop". Filled in by the HTTP layer
-	// (internal/api/routes_idleaction.go), NOT here: this package would have
-	// to import internal/buildinfo to answer it, and its package doc promises
-	// to stay out of the caller's vocabulary. The field lives here because it
-	// travels with the answer and the browser needs it to pick between two
-	// different explanations of the same problem code.
+	// Deployment is "container" or "desktop", filled in by the HTTP layer
+	// (internal/api/routes_idleaction.go) so this package does not have to
+	// import internal/buildinfo. It travels with the answer because the
+	// browser picks between two explanations of the same problem code.
 	Deployment string `json:"deployment"`
 }
 
 // Runner executes an external program and reports its combined output. A
-// function type rather than a direct call to os/exec, copied from
-// reconnect.Runner for its exact reason: a test can then prove which program
-// WOULD have run without any test run ever spawning a process.
+// function type rather than a direct call to os/exec, so a test can prove
+// which program would have run without spawning a process.
 type Runner func(ctx context.Context, name string, args ...string) (string, error)
 
 // ExecRunner is the default Runner.
 //
 // CombinedOutput, so the program's own complaint is captured whichever stream
-// it chose - reconnect's execRunner makes the same call for the same stated
-// reason: a command that fails silently is untraceable, because an exit
-// status alone never says which line gave up. The output is capped here
-// rather than at the far end, so nothing downstream ever holds the megabyte.
+// it chose: an exit status alone never says which line gave up. The output is
+// capped here rather than at the far end, so nothing downstream holds the
+// megabyte.
 func ExecRunner(ctx context.Context, name string, args ...string) (string, error) {
 	out, err := exec.CommandContext(ctx, name, args...).CombinedOutput()
 	return TrimOutput(string(out)), err
@@ -328,17 +282,14 @@ func TrimOutput(s string) string {
 	return s
 }
 
-// Preflight resolves the program and reports what it found, WITHOUT running
-// anything. This is the button somebody presses at 3am, and the whole reason
-// it can be trusted is that pressing it costs nothing: it stats a file, it
-// does not suspend a machine.
+// Preflight resolves the program and reports what it found without running
+// anything: it stats a file, it does not suspend a machine.
 //
-// lookPath is injected so this is testable against a table of answers rather
-// than against whatever happens to be installed on the machine running the
-// tests - pass nil for exec.LookPath, which is the same resolution
-// exec.Command itself performs, including Windows' extension handling. Using
-// os.Stat instead would be a second, subtly different resolver: it would
-// refuse a bare "systemctl" that would in fact have run perfectly.
+// lookPath is injected so this can be tested against a table of answers rather
+// than against whatever is installed on the machine running the tests. nil
+// means exec.LookPath, the resolution exec.Command itself performs, including
+// Windows' extension handling. os.Stat would be a second, subtly different
+// resolver that refuses a bare "systemctl" which would have run.
 func (s CommandSpec) Preflight(lookPath func(string) (string, error)) Check {
 	if lookPath == nil {
 		lookPath = exec.LookPath
@@ -360,13 +311,10 @@ func (s CommandSpec) Preflight(lookPath func(string) (string, error)) Check {
 // lookProblem turns a lookup failure into one of the closed codes.
 //
 // A permission error here means the file exists and cannot be executed, which
-// is exec.LookPath's own contract (it checks the executable bit and reports
-// fs.ErrPermission when it is missing) - so it maps to ProblemNotExecutable
-// rather than to ProblemPermission, which is about what a program is allowed
-// to DO once it has started. Anything else at all is reported as
-// ProblemNotFound: every remaining lookup failure means "this program cannot
-// be started as written", and that is the sentence which then names what the
-// container image does and does not contain, which is the actionable half.
+// is exec.LookPath's contract, so it maps to ProblemNotExecutable rather than
+// to ProblemPermission, which is about what a program may do once it has
+// started. Every other lookup failure means the program cannot be started as
+// written, which is what ProblemNotFound says.
 func lookProblem(err error) Problem {
 	switch {
 	case errors.Is(err, fs.ErrPermission):
@@ -380,57 +328,48 @@ func lookProblem(err error) Problem {
 // the program's own exit status.
 //
 // timedOut is passed in rather than sniffed from the error because only the
-// caller can tell the two cancellations apart: a context that expired because
-// the SPEC's timeout ran out is a timeout, and a context cancelled because
-// the app is shutting down is not - and both surface here as the same killed
-// process. internal/app/app_idle_command.go checks
-// errors.Is(ctx.Err(), context.DeadlineExceeded) for exactly that reason.
+// caller can tell the two cancellations apart: the spec's timeout running out
+// is a timeout, the app shutting down is not, and both surface here as the
+// same killed process. internal/app/app_idle_command.go checks
+// errors.Is(ctx.Err(), context.DeadlineExceeded) for that.
 func Classify(err error, timedOut bool) (Problem, int) {
 	if timedOut {
-		// Checked BEFORE err == nil on purpose: a program killed at the
-		// deadline can still exit 0 on some platforms, and reporting that as
-		// a clean run would tell the operator the machine went to sleep when
-		// what actually happened is that we stopped waiting to find out.
+		// Checked before err == nil: a program killed at the deadline can
+		// still exit 0 on some platforms, and reporting that as a clean run
+		// would claim the machine went to sleep when we only stopped waiting
+		// to find out.
 		return ProblemTimeout, 0
 	}
 	if err == nil {
 		return ProblemNone, 0
 	}
-	// An INTERFACE and not *exec.ExitError, which is what this matched
-	// first. os.ProcessState's fields are unexported and there is no
-	// portable way to build one, so a table test could only reach this
-	// branch by actually spawning a process - and a test suite that shells
-	// out fails differently on every machine, which is the exact thing
-	// Runner and Preflight's injected lookPath exist to avoid. *exec.ExitError
-	// satisfies this interface, so production behaviour is unchanged, and a
-	// test can now hand over an error that reports the status it wants.
+	// An interface rather than *exec.ExitError: os.ProcessState's fields are
+	// unexported and there is no portable way to build one, so a table test
+	// could only reach this branch by spawning a process. *exec.ExitError
+	// satisfies the interface, and a test can hand over an error that
+	// reports the status it wants.
 	var coder interface{ ExitCode() int }
 	switch {
 	case errors.Is(err, exec.ErrNotFound), errors.Is(err, fs.ErrNotExist):
 		return ProblemNotFound, 0
 	case errors.Is(err, fs.ErrPermission):
-		// ProblemPermission and NOT ProblemNotExecutable, which is the split
-		// between this function and Preflight and is worth stating: a
-		// preflight has stat'ed the file and can honestly say "the execute
-		// bit is missing", so it gets the file-mode sentence. A refused RUN
-		// knows less than that - it can be the mode, a nosuid/noexec mount,
-		// a seccomp or no-new-privileges policy - so it gets the sentence
-		// about what THIS PROCESS is allowed to do, which in the container
-		// means uid 1000 with no root and no reach onto the host. Sending
+		// ProblemPermission and not ProblemNotExecutable, which is the split
+		// against Preflight: a preflight has stat'ed the file and can name
+		// the execute bit. A refused run knows less, since it can be the
+		// mode, a nosuid or noexec mount, a seccomp or no-new-privileges
+		// policy, so it reports what this process is allowed to do. Sending
 		// somebody to chmod a file that is already 0755 is worse than saying
 		// less.
 		return ProblemPermission, 0
 	case errors.As(err, &coder):
 		return ProblemExit, coder.ExitCode()
 	default:
-		// Something went wrong that is not the program's own verdict - a
-		// fork failure, a broken pipe on the output. ProblemPermission is
-		// deliberately NOT the catch-all: guessing "you are not allowed"
-		// sends the operator to look at uids and capabilities for a problem
-		// that is neither. ProblemExit with an exit code of -1, which is
-		// what os/exec itself uses for "never got a status", keeps the
-		// program's own captured output as the thing the sentence shows,
-		// and that output is the only real evidence in this branch.
+		// Something that is not the program's own verdict: a fork failure, a
+		// broken pipe on the output. ProblemPermission is not the catch-all,
+		// because guessing "you are not allowed" sends the operator to look
+		// at uids and capabilities for a problem that is neither.
+		// ProblemExit with -1, what os/exec uses for "never got a status",
+		// keeps the captured output as the evidence the sentence shows.
 		return ProblemExit, -1
 	}
 }

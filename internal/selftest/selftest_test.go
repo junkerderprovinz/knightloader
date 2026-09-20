@@ -36,10 +36,9 @@ func TestWorstRanksByHowMuchAttentionEachDeserves(t *testing.T) {
 	}
 }
 
-// TestEveryPlannedCheckHasAnIdAndTheListIsWhatThePageDraws keeps Order and the
-// seven constants from drifting apart. The page draws one pending row per entry
-// in Order before a single result has landed, so an id that is in the list and
-// nowhere else is a row that stays "waiting" for ever.
+// Order and the seven constants must not drift apart. The page draws one
+// pending row per entry in Order before a result has landed, so an id that is
+// in the list and nowhere else is a row that stays "waiting".
 func TestEveryPlannedCheckHasAnIdAndTheListIsWhatThePageDraws(t *testing.T) {
 	want := map[string]bool{
 		CheckJD: true, CheckYtdlp: true, CheckFolders: true, CheckAccounts: true,

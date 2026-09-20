@@ -5,8 +5,6 @@ import (
 	"testing"
 )
 
-// seed builds a set holding the given entries, which is how a caller uses it:
-// feed in what is already staged, then ask about the candidate.
 func seed(p Policy, entries ...Entry) *Set {
 	s := New(p)
 	for _, e := range entries {
@@ -15,13 +13,9 @@ func seed(p Policy, entries ...Entry) *Set {
 	return s
 }
 
-// TestArchiveVolumesAreNeverMirrors is the failure that costs a user their
-// download rather than their patience. Every volume of a split archive carries
-// the same base name and, because the splitter cuts at a fixed size, the same
-// byte count - so a mirror check that trusts either signal declares part 2 a
-// mirror of part 1, never fetches it, and leaves behind a set that cannot be
-// unpacked. The volume marker has to overrule the policy, including the policies
-// that never look at a file name at all.
+// TestArchiveVolumesAreNeverMirrors checks every policy against volumes of
+// one split archive, which share a base name and a size. Merging one would
+// leave a set that cannot be unpacked.
 func TestArchiveVolumesAreNeverMirrors(t *testing.T) {
 	sets := []struct {
 		name  string
@@ -36,18 +30,12 @@ func TestArchiveVolumesAreNeverMirrors(t *testing.T) {
 		{"zip span against its final segment", "Film.z01", "Film.zip"},
 		{"generic split parts", "Film.mkv.001", "Film.mkv.002"},
 		{"whole archive against a split part", "Film.7z", "Film.7z.001"},
-		// The shapes below are numbered by something the marker table does not
-		// recognise, which is the point: a set that is safe only for the eight
-		// spellings somebody thought to list is not safe. Each of these merged
-		// part 2 into part 1 under size-only, where every part collides by
-		// construction, and took the archive with it.
+		// Numbering shapes the marker table does not list.
 		{"four digit split parts", "Film.mkv.0001", "Film.mkv.0002"},
 		{"rar volumes past r99", "Film.r99", "Film.r100"},
 		{"two digit split parts", "Film.tar.gz.01", "Film.tar.gz.02"},
 		{"zip segments past z99", "Film.z100", "Film.z101"},
 	}
-	// The same digest is deliberately not tested here: two volumes never have
-	// one. Everything else a policy can key on is identical between the parts.
 	const size = 100 << 20
 	for _, set := range sets {
 		for _, p := range Policies() {
@@ -55,7 +43,7 @@ func TestArchiveVolumesAreNeverMirrors(t *testing.T) {
 				s := seed(p, Entry{ID: "1", URL: "https://a.example/1", Name: set.first, Size: size})
 				got := s.Check(Entry{URL: "https://b.example/2", Name: set.next, Size: size})
 				if got.Verdict != NotSeen {
-					t.Fatalf("%q against %q: verdict = %v (%s, of %q), want %v - a volume of the archive would have been dropped",
+					t.Fatalf("%q against %q: verdict = %v (%s, of %q), want %v; a volume of the archive would have been dropped",
 						set.next, set.first, got.Verdict, got.Signal, got.Of.Name, NotSeen)
 				}
 			})
@@ -63,10 +51,6 @@ func TestArchiveVolumesAreNeverMirrors(t *testing.T) {
 	}
 }
 
-// TestNumberedSiblings pins the veto that catches the part numbering the marker
-// table does not know, in both directions: it has to fire on consecutive members
-// of a set, and it must stay out of the way of two spellings of one name, or it
-// would refuse the merges the whole package exists to make.
 func TestNumberedSiblings(t *testing.T) {
 	tests := []struct {
 		name string
@@ -92,9 +76,6 @@ func TestNumberedSiblings(t *testing.T) {
 			if got := numberedSiblings(tt.a, tt.b); got != tt.want {
 				t.Fatalf("numberedSiblings(%q, %q) = %v, want %v", tt.a, tt.b, got, tt.want)
 			}
-			// The question is symmetric; a set that answered it differently
-			// depending on which link was pasted first would merge or refuse by
-			// accident of ordering.
 			if got := numberedSiblings(tt.b, tt.a); got != tt.want {
 				t.Fatalf("numberedSiblings(%q, %q) = %v, want %v", tt.b, tt.a, got, tt.want)
 			}
@@ -102,10 +83,8 @@ func TestNumberedSiblings(t *testing.T) {
 	}
 }
 
-// TestAgreeingDigestsDoNotOverruleTheSiblingVeto records a deliberate choice: a
-// digest is treated as evidence, not proof, because the digests this package is
-// handed include the 32 bit CRC out of a release name. An extra download is the
-// price; a wrongly merged archive part is unrecoverable.
+// TestAgreeingDigestsDoNotOverruleTheSiblingVeto: a 32-bit CRC from a release
+// name is evidence, not proof, so it cannot merge two volumes.
 func TestAgreeingDigestsDoNotOverruleTheSiblingVeto(t *testing.T) {
 	const crc = "1a2b3c4d"
 	s := seed(PolicyHashOnly, Entry{ID: "1", URL: "https://a.example/1", Name: "Film.mkv.0001",
@@ -117,9 +96,6 @@ func TestAgreeingDigestsDoNotOverruleTheSiblingVeto(t *testing.T) {
 	}
 }
 
-// If this fails, two spellings of the same volume ("part1" and "part01", which
-// packers use interchangeably) are downloaded twice, which is the missed-merge
-// half of the same normalisation.
 func TestSameVolumeSpelledDifferentlyIsAMirror(t *testing.T) {
 	s := seed(PolicyFilenameAndSize, Entry{ID: "1", URL: "https://a.example/1", Name: "Film.part1.rar", Size: 100})
 	got := s.Check(Entry{URL: "https://b.example/2", Name: "FILM.PART01.RAR", Size: 100})
@@ -128,14 +104,11 @@ func TestSameVolumeSpelledDifferentlyIsAMirror(t *testing.T) {
 	}
 }
 
-// If this fails, pasting the same list twice queues everything twice, whatever
-// the user configured - duplicate detection is not a policy question.
 func TestDuplicateURLIsRefusedUnderEveryPolicy(t *testing.T) {
 	for _, p := range Policies() {
 		t.Run(string(p), func(t *testing.T) {
 			s := seed(p, Entry{ID: "1", URL: "https://host.example/file.rar", Name: "file.rar", Size: 10})
-			// Nothing but the URL is repeated: a re-paste rarely carries the
-			// name and size the resolver has since filled in.
+			// A re-paste carries only the URL, not the resolved name and size.
 			got := s.Check(Entry{URL: "https://host.example/file.rar"})
 			if got.Verdict != Duplicate {
 				t.Fatalf("verdict = %v, want %v", got.Verdict, Duplicate)
@@ -150,9 +123,6 @@ func TestDuplicateURLIsRefusedUnderEveryPolicy(t *testing.T) {
 	}
 }
 
-// If this fails, either the same link written two equivalent ways is downloaded
-// twice, or - far worse - two different links are collapsed into one because
-// something that identifies the file was normalised away.
 func TestURLIsFoldedOnlyWhereItIsCaseInsensitive(t *testing.T) {
 	tests := []struct {
 		name  string
@@ -215,9 +185,6 @@ func TestURLIsFoldedOnlyWhereItIsCaseInsensitive(t *testing.T) {
 	}
 }
 
-// TestPolicyDecidesWhatCountsAsAMirror pins each policy to the merges it
-// promises and the ones it refuses, because a policy that quietly behaves like
-// its neighbour makes the whole choice meaningless.
 func TestPolicyDecidesWhatCountsAsAMirror(t *testing.T) {
 	const (
 		md5A = "d41d8cd98f00b204e9800998ecf8427e"
@@ -321,10 +288,9 @@ func TestPolicyDecidesWhatCountsAsAMirror(t *testing.T) {
 	}
 }
 
-// TestUnknownSignalsNeverMatchEachOther is the bug that empties a paste. Links
-// are staged before anything has resolved them, so name, size and hash are all
-// routinely absent - and if "absent" is allowed to be a bucket key, every link
-// after the first becomes a mirror of it and is silently thrown away.
+// TestUnknownSignalsNeverMatchEachOther covers unresolved links, whose name,
+// size and hash are absent. If absence were a bucket key, every link after
+// the first would be dropped as its mirror.
 func TestUnknownSignalsNeverMatchEachOther(t *testing.T) {
 	tests := []struct {
 		name   string
@@ -365,15 +331,13 @@ func TestUnknownSignalsNeverMatchEachOther(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := seed(tt.policy, tt.a).Check(tt.b); got.Verdict != NotSeen {
-				t.Fatalf("verdict = %v (%s), want %v - an unresolved link was thrown away",
+				t.Fatalf("verdict = %v (%s), want %v; an unresolved link was thrown away",
 					got.Verdict, got.Signal, NotSeen)
 			}
 		})
 	}
 }
 
-// If this fails, a filename heuristic overrules proof: two files whose digests
-// disagree are not the same file, however alike their names are.
 func TestConflictingDigestsOverruleAMatchingName(t *testing.T) {
 	const (
 		md5A = "d41d8cd98f00b204e9800998ecf8427e"
@@ -391,8 +355,7 @@ func TestConflictingDigestsOverruleAMatchingName(t *testing.T) {
 		t.Fatalf("verdict = %v, want %v under filename-only too", got.Verdict, NotSeen)
 	}
 
-	// Digests of different algorithms say nothing about each other, so they must
-	// not be read as a conflict and must not block the name match.
+	// Digests of different algorithms cannot contradict each other.
 	other := Entry{URL: "https://c.example/3", Name: "setup.exe", Size: 4096,
 		Hash: Hash{Kind: "sha256", Hex: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}}
 	if got := seed(PolicyFilenameOnly, have).Check(other); got.Verdict != Mirror {
@@ -400,8 +363,6 @@ func TestConflictingDigestsOverruleAMatchingName(t *testing.T) {
 	}
 }
 
-// TestNormalize pins the comparison form, including the parts that must survive
-// it: the display name and the volume marker.
 func TestNormalize(t *testing.T) {
 	tests := []struct {
 		in     string
@@ -422,11 +383,9 @@ func TestNormalize(t *testing.T) {
 		{in: "Film.zip", base: "film", volume: "zip-last"},
 		{in: "Film.z09", base: "film", volume: "zip-part9"},
 		{in: "Film.mkv.003", base: "film.mkv", volume: "split-part3"},
-		// A four digit run is a release year far more often than it is volume
-		// number 2024, and reading it as a volume would split a file off from
-		// its own mirror.
+		// Four digits are a release year, not volume 2024.
 		{in: "Film.2024", base: "film.2024"},
-		// Placeholders, not names: comparing them merges unrelated links.
+		// Placeholders, not names.
 		{in: "https://host.example/download", base: ""},
 		{in: "", base: ""},
 		{in: "   ", base: ""},
@@ -447,8 +406,6 @@ func TestNormalize(t *testing.T) {
 	}
 }
 
-// If this fails, asking the set a question changes its answer, and a caller that
-// checks a link twice - once to decide, once to report - gets two verdicts.
 func TestCheckDoesNotAddTheCandidate(t *testing.T) {
 	s := seed(PolicyFilenameAndSize)
 	cand := Entry{URL: "https://a.example/1", Name: "film.mkv", Size: 10}
@@ -462,9 +419,6 @@ func TestCheckDoesNotAddTheCandidate(t *testing.T) {
 	}
 }
 
-// If this fails, a set kept across a task being renamed or removed answers with
-// entries that no longer exist, and the user is told their link is a duplicate
-// of nothing.
 func TestReAddReplacesAndRemoveForgets(t *testing.T) {
 	s := New(PolicyFilenameOnly)
 	s.Add(Entry{ID: "1", URL: "https://a.example/1", Name: "old-name.mkv"})
@@ -472,8 +426,6 @@ func TestReAddReplacesAndRemoveForgets(t *testing.T) {
 	if s.Len() != 1 {
 		t.Fatalf("Len = %d after adding the same URL twice, want 1", s.Len())
 	}
-	// The superseded name must not keep matching, or the set reports a mirror of
-	// a file that is no longer called that.
 	if got := s.Check(Entry{URL: "https://b.example/2", Name: "old-name.mkv"}); got.Verdict != NotSeen {
 		t.Fatalf("verdict = %v for the replaced name, want %v", got.Verdict, NotSeen)
 	}
@@ -481,8 +433,7 @@ func TestReAddReplacesAndRemoveForgets(t *testing.T) {
 		t.Fatalf("verdict = %v for the current name, want %v", got.Verdict, Mirror)
 	}
 
-	// Removal is by URL and must take the mirror buckets with it, not just the
-	// URL index.
+	// Removal has to clear the mirror buckets as well as the URL index.
 	s.Remove("https://A.example/1")
 	if s.Len() != 0 {
 		t.Fatalf("Len = %d after Remove, want 0", s.Len())
@@ -493,13 +444,10 @@ func TestReAddReplacesAndRemoveForgets(t *testing.T) {
 	if got := s.Check(Entry{URL: "https://b.example/2", Name: "new-name.mkv"}); got.Verdict != NotSeen {
 		t.Fatalf("verdict = %v after Remove, want %v", got.Verdict, NotSeen)
 	}
-	// Removing something the set never held must not disturb it.
 	s.Remove("https://nowhere.example/x")
 	s.Remove("")
 }
 
-// If this fails, an entry with nothing to identify it is filed anyway and every
-// later entry like it collides with it.
 func TestEntryWithoutURLIsIgnored(t *testing.T) {
 	s := New(PolicyFilenameOnly)
 	s.Add(Entry{ID: "1", Name: "film.mkv"})
@@ -512,12 +460,9 @@ func TestEntryWithoutURLIsIgnored(t *testing.T) {
 	}
 }
 
-// TestCheckReadsOneBucketNotTheWholeList pins the property the whole design
-// exists for: a ten thousand entry download list is ordinary, and a check that
-// walked it per pasted URL would turn a paste into a hang. The number of records
-// a query compares is the size of the collision bucket its signature lands in,
-// so that is what is asserted - measuring wall clock instead would only prove
-// how fast the machine running the test is.
+// TestCheckReadsOneBucketNotTheWholeList asserts the size of the bucket a
+// query compares against rather than wall-clock time, which would only
+// measure the machine.
 func TestCheckReadsOneBucketNotTheWholeList(t *testing.T) {
 	const n = 20000
 	s := New(PolicyFilenameAndSize)
@@ -533,9 +478,7 @@ func TestCheckReadsOneBucketNotTheWholeList(t *testing.T) {
 		t.Fatalf("Len = %d, want %d", s.Len(), n)
 	}
 
-	// One key per entry rather than one shared key: if the signature ever
-	// degenerated into a constant, every bucket lookup would return the whole
-	// list and the map would be a scan wearing a hash table's clothes.
+	// One key per entry; a constant signature would make every lookup a scan.
 	if len(s.buckets) != n {
 		t.Fatalf("the set holds %d keys for %d entries, want one each", len(s.buckets), n)
 	}
@@ -552,8 +495,6 @@ func TestCheckReadsOneBucketNotTheWholeList(t *testing.T) {
 		t.Fatalf("verdict = %v of %q, want %v of entry 12345", got.Verdict, got.Of.ID, Mirror)
 	}
 
-	// A candidate matching nothing must land in an empty bucket rather than in a
-	// populated one it then has to walk to conclude nothing is there.
 	miss := Entry{URL: "https://mirror.example/y", Name: "nothing-like-it.bin", Size: 7}
 	missSigs := s.signatures(newRecord(miss))
 	if len(missSigs) != 1 {
@@ -567,8 +508,6 @@ func TestCheckReadsOneBucketNotTheWholeList(t *testing.T) {
 	}
 }
 
-// If this fails, a settings file from another build either crashes the add path
-// or silently picks a policy the user never chose.
 func TestParsePolicy(t *testing.T) {
 	tests := []struct {
 		in   string
@@ -600,8 +539,6 @@ func TestParsePolicy(t *testing.T) {
 			t.Fatalf("%q does not survive ParsePolicy", p)
 		}
 	}
-	// An unusable policy handed to New must behave like the default rather than
-	// like "off", which would disable mirror detection without saying so.
 	if got := New("nonsense").Policy(); got != DefaultPolicy {
 		t.Fatalf("New(%q).Policy() = %q, want %q", "nonsense", got, DefaultPolicy)
 	}

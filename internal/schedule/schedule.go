@@ -4,10 +4,10 @@
 // morning hands the line back.
 //
 // The evaluator is pure: a rule set plus a time.Time is the whole input. That is
-// what makes Next possible — the answer can be asked for instants that have not
-// happened yet, so the caller learns when the state will change and sleeps until
-// then instead of waking every second to compare clocks. Runner is the thin loop
-// that does exactly that.
+// what makes Next possible: the answer can be asked for instants that have not
+// happened yet, so the caller learns when the state will change and sleeps
+// until then instead of waking every second to compare clocks. Runner is the
+// thin loop that does that.
 //
 // Everything here is wall-clock time in the location of the time.Time it is
 // handed, which for a Runner is time.Local. That makes the zone database part of
@@ -31,8 +31,8 @@ import (
 // Coverage depends on nothing but the weekday and the minute of the day, so the
 // timetable repeats every week and a week of lookahead looks like enough. It is
 // not. A window whose clock times fall in the stretch a spring-forward jump
-// deletes does not run that day at all, and it has no edges that day either —
-// there is no instant to report. A weekday that appears only once then
+// deletes does not run that day at all, and it has no edges that day either,
+// so there is no instant to report. A weekday that appears only once then
 // contributes nothing, Next says "never", and a nightly window that would have
 // run again the following week is instead dropped for good: the runner parks on
 // a nil channel until someone saves the settings page.
@@ -64,16 +64,16 @@ const (
 	// second, slower set of limits (settings.QuietLimits) takes over from the
 	// ordinary ones.
 	//
-	// It carries no numbers of its own, and that is the point rather than an
-	// omission. The same mode is switched on by hand from the queue, so a window
-	// with its own figures would mean "how quiet is quiet" had two answers on one
-	// box, and the button would be unable to reach the one the window used.
+	// It carries no numbers of its own. The same mode is switched on by hand
+	// from the queue, so a window with its own figures would give "how quiet
+	// is quiet" two answers on one box, and the button could not reach the one
+	// the window used.
 	//
-	// There is deliberately no counterpart that turns the mode back OFF the way
-	// ActionResume undoes ActionPause. That action would only be reachable as
-	// "quiet all evening EXCEPT between eight and nine", which nobody has asked
-	// for, and every action added here is another value a stored row can carry
-	// and every editor has to keep meaning.
+	// There is no counterpart that turns the mode back off the way
+	// ActionResume undoes ActionPause. Such an action would only be reachable
+	// as "quiet all evening except between eight and nine", and every action
+	// added here is another value a stored row can carry and every editor has
+	// to keep meaning.
 	ActionQuiet Action = "quiet"
 )
 
@@ -99,8 +99,8 @@ type Entry struct {
 	Action Action `json:"action"`
 
 	// Limit is the cap in bytes per second for ActionLimit, where 0 means
-	// unlimited — that is how a window says "take the brakes off". Ignored by the
-	// other actions.
+	// unlimited, which is how a window says "take the brakes off". Ignored by
+	// the other actions.
 	Limit int64 `json:"limit,omitempty"`
 
 	// Disabled parks a row without deleting it. The flag is negative on purpose:
@@ -171,7 +171,7 @@ func Compile(entries []Entry) Schedule {
 // Validate reports why an entry cannot be used, so the API can refuse a bad row
 // with a reason the user can act on instead of storing a window that silently
 // never fires. A row it accepts is a row Compile keeps, unless the user has
-// parked it with Disabled — that is a choice, not a defect, so it is not
+// parked it with Disabled, which is a choice rather than a defect and not
 // something to refuse a save over.
 func (e Entry) Validate() error {
 	_, err := e.compile()
@@ -195,9 +195,9 @@ func (e Entry) compile() (rule, error) {
 		return rule{}, errors.New("start and end are the same minute; a window needs a length")
 	}
 	if len(e.Days) == 0 {
-		// "Every day" is deliberately not the meaning of an empty list. A pause
-		// window that quietly applies to all seven days because a checkbox was
-		// missed is a worse surprise than a row that refuses to save.
+		// An empty list does not mean "every day". A pause window that applies
+		// to all seven days because a checkbox was missed is a worse surprise
+		// than a row that refuses to save.
 		return rule{}, errors.New("pick at least one weekday")
 	}
 	r := rule{start: start, end: end, wrap: end < start, action: e.Action, limit: e.Limit}
@@ -252,14 +252,14 @@ func (r rule) covers(t time.Time) bool {
 //     jumps, short by the length of the jump. It is back to its normal length the
 //     following week.
 //
-// The stretch is not always an hour — Lord Howe moves by thirty minutes, Troll by
-// two, and Kiritimati once moved by a whole day — which is why nothing here
+// The stretch is not always an hour. Lord Howe moves by thirty minutes, Troll
+// by two, and Kiritimati once moved by a whole day, which is why nothing here
 // reasons about how far a clock jumped, only about which wall clocks existed.
 //
 // The alternative is to pin windows to elapsed time and serve the missing hour
 // anyway, which drags every following night off the wall clock the user typed.
 //
-// base is the state where no entry covers t — the speed limit and pause switch
+// base is the state where no entry covers t: the speed limit and pause switch
 // the user set by hand. It is a parameter rather than an assumed zero because "no
 // window applies" and "a window says unlimited" are different answers, and
 // folding them together would let an unrelated pause window quietly wipe the
@@ -294,7 +294,7 @@ func (s Schedule) At(t time.Time, base State) State {
 // Sleeping through it is safe: nothing changes in between, which is the property
 // the package exists for.
 //
-// The second result is false when the answer never changes again — an empty
+// The second result is false when the answer never changes again: an empty
 // timetable, or one whose windows all agree with what is already in force.
 //
 // base matters here too: when a window only asserts what the user already set by
@@ -442,8 +442,8 @@ func zoneTransitions(t, end time.Time) []time.Time {
 // input may append seconds; they are checked and then dropped, because rejecting
 // a row over a trailing ":00" nobody typed is a mystery from the outside, while
 // waving the field through unread would accept "22:00:banana" as a time and
-// store a row the user has no reason to doubt. The schedule's resolution is the
-// minute, so a seconds value that is there and valid is deliberately ignored.
+// store a row the user has no reason to doubt. The schedule's resolution is
+// the minute, so a seconds value that is there and valid is ignored.
 // 24:00 is not accepted: a window that ends at midnight is written "00:00" and
 // wraps, and having two spellings for one edge invites them to drift apart.
 func parseClock(s string) (int, error) {

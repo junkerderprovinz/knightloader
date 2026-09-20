@@ -18,16 +18,9 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
 )
 
-// TestAnUnroutedDownloadFollowsTheGlobalProxy is the trap this mapping exists to
-// avoid, and it is worth a test rather than a comment because both answers look
-// correct.
-//
-// nil means "follow the global config", which is the loopback proxy the speed
-// limit lives in. The mode that reads like the right one for an unproxied
-// download - RequestProxyModeNone - means no proxy handler at all, so it would
-// take the download off the meter as well. The bug that follows is a speed limit
-// that silently does nothing, on the downloads somebody was most deliberate
-// about.
+// TestAnUnroutedDownloadFollowsTheGlobalProxy checks for nil, which keeps the
+// loopback meter. RequestProxyModeNone looks equivalent but would drop the
+// speed limit.
 func TestAnUnroutedDownloadFollowsTheGlobalProxy(t *testing.T) {
 	for _, name := range []string{"no route at all", "the direct gateway"} {
 		r := proxycfg.Route{}
@@ -44,10 +37,8 @@ func TestAnUnroutedDownloadFollowsTheGlobalProxy(t *testing.T) {
 	}
 }
 
-// TestARoutedDownloadNamesItsOwnProxy. Custom is the only mode gopeed resolves
-// in favour of the request; follow and none both hand the download back to the
-// global config, which would mean the connection the user picked was ignored
-// with nothing to say so.
+// TestARoutedDownloadNamesItsOwnProxy checks for the custom mode, the only
+// one gopeed resolves in favour of the request.
 func TestARoutedDownloadNamesItsOwnProxy(t *testing.T) {
 	e := proxycfg.Entry{ID: "3", Kind: proxycfg.KindSOCKS5, Host: "proxy.lan", Port: 1080, Username: "alice", Password: "s3cret", Enabled: true}
 	r, err := e.Route()
@@ -68,16 +59,13 @@ func TestARoutedDownloadNamesItsOwnProxy(t *testing.T) {
 	if *got != want {
 		t.Fatalf("requestProxy = %+v, want %+v", *got, want)
 	}
-	// The handler is what gopeed actually calls; a mode or a field it does not
-	// like produces a nil one and the download quietly goes out unproxied.
 	if got.ToHandler() == nil {
 		t.Fatal("gopeed built no proxy handler from this route, so the download would go out unproxied")
 	}
 }
 
-// oneFile is what the HTTP fetcher resolves to: a resource with no name of its
-// own and a single file in it. A resource that DOES carry a name is a folder,
-// which is the case placeFolder exists for.
+// oneFile is what the HTTP fetcher resolves to: no name of its own and a
+// single file. A named resource is a folder.
 func oneFile(name string) *base.Resource {
 	return &base.Resource{Size: 7, Files: []*base.FileInfo{{Name: name, Size: 7}}}
 }
@@ -86,9 +74,8 @@ func optsIn(dir string) *base.Options {
 	return &base.Options{Path: dir}
 }
 
-// wouldRenameTo is what the download library's own duplicate check would do to
-// the name we hand it. It splits on "/" and nothing else, so the path is built
-// the way the library builds it rather than with filepath.
+// wouldRenameTo runs the library's own duplicate check on name. It splits on
+// "/" only, so the path is built with path rather than filepath.
 func wouldRenameTo(t *testing.T, dir, name string) string {
 	t.Helper()
 	got, err := gopeed.CheckDuplicateAndRename(path.Join(filepath.ToSlash(dir), name))
@@ -105,11 +92,9 @@ func writeFile(t *testing.T, p string) {
 	}
 }
 
-// THE TRAP THIS WIRING EXISTS FOR. The fetcher manager reports AutoRename true
-// unconditionally and there is no configuration that turns it off, so whatever
-// name it is handed goes through its own duplicate check. If the reservation is
-// still sitting on that name the check finds a file and counts again: the user
-// asked for one rename and gets "movie (2) (2).mkv", one more bracket per retry.
+// TestTheLibraryDoesNotRenameOnTopOfOurRename: the fetcher always runs its
+// own duplicate check, so a reservation left on the name would turn
+// "movie (2).mkv" into "movie (2) (2).mkv".
 func TestTheLibraryDoesNotRenameOnTopOfOurRename(t *testing.T) {
 	dir := t.TempDir()
 	writeFile(t, filepath.Join(dir, "movie.mkv"))
@@ -128,16 +113,11 @@ func TestTheLibraryDoesNotRenameOnTopOfOurRename(t *testing.T) {
 	if got := wouldRenameTo(t, dir, opts.Name); got != opts.Name {
 		t.Fatalf("the library would turn %q into %q", opts.Name, got)
 	}
-	// The file that was already there is what the whole policy is protecting.
 	if b, err := os.ReadFile(filepath.Join(dir, "movie.mkv")); err != nil || string(b) != "already here" {
 		t.Fatalf("the existing file was touched: %q, %v", b, err)
 	}
 }
 
-// The name has to be sanitized before it is reserved, not after. If this fails,
-// the reservation is made under one name and the library writes another, so it
-// reserved nothing and the download lands on top of whatever is at the name it
-// really uses.
 func TestTheReservedNameIsTheNameTheLibraryWillWrite(t *testing.T) {
 	cases := []struct {
 		name string
@@ -157,9 +137,7 @@ func TestTheReservedNameIsTheNameTheLibraryWillWrite(t *testing.T) {
 			if want := gopeed.SafeFilename(got); want != got {
 				t.Fatalf("handed over %q, which the library rewrites to %q", got, want)
 			}
-			// And the reservation really was made at that name: with the sanitized
-			// name occupied, the next attempt must count up instead of handing the
-			// same one out again.
+			// With the sanitised name occupied, the next attempt must count up.
 			writeFile(t, filepath.Join(dir, got))
 			next, err := place(Job{Collision: collide.Rename}, oneFile(c.file), optsIn(dir))
 			if err != nil {
@@ -175,10 +153,6 @@ func TestTheReservedNameIsTheNameTheLibraryWillWrite(t *testing.T) {
 	}
 }
 
-// A resource that carries a name of its own is a FOLDER, and Options.Name then
-// names the folder rather than a file inside it. If this fails, the policy is
-// applied to the wrong thing and it does not even fail visibly: the download
-// succeeds, into a directory called "movie (2).mkv".
 func TestAMultiFileResourceIsTreatedAsTheFolderItIs(t *testing.T) {
 	dir := t.TempDir()
 	if err := os.Mkdir(filepath.Join(dir, "Show.S01"), 0o755); err != nil {
@@ -194,7 +168,6 @@ func TestAMultiFileResourceIsTreatedAsTheFolderItIs(t *testing.T) {
 	if opts.Name != "Show.S01 (2)" {
 		t.Fatalf("Options.Name = %q, want the counted FOLDER name Show.S01 (2)", opts.Name)
 	}
-	// The task keeps the file's name: renaming the folder did not move the file.
 	if name != "ep01.mkv" {
 		t.Fatalf("reported name = %q, want the file's own", name)
 	}
@@ -203,8 +176,6 @@ func TestAMultiFileResourceIsTreatedAsTheFolderItIs(t *testing.T) {
 	}
 }
 
-// Overwrite on a folder would delete a tree nobody named. Refusing is the honest
-// answer; if this fails, a setting chosen for files empties a directory.
 func TestOverwriteIsRefusedForAFolderRatherThanApplied(t *testing.T) {
 	dir := t.TempDir()
 	inside := filepath.Join(dir, "Show.S01")
@@ -226,8 +197,6 @@ func TestOverwriteIsRefusedForAFolderRatherThanApplied(t *testing.T) {
 	}
 }
 
-// Skip settles the task instead of downloading, and it must name the file that
-// is in the way: "not downloaded" with nothing after it tells nobody anything.
 func TestSkipRefusesToStartAndSaysWhat(t *testing.T) {
 	dir := t.TempDir()
 	writeFile(t, filepath.Join(dir, "movie.mkv"))
@@ -248,9 +217,8 @@ func TestSkipRefusesToStartAndSaysWhat(t *testing.T) {
 	}
 }
 
-// An empty policy means NO policy here, and the collide package reads the same
-// empty string as its own default. If this fails, every caller of the plain
-// Download entry point silently gains a rename it never asked for.
+// TestNoPolicyLeavesTheLibraryToNameTheFile: an empty policy is no policy
+// here, although collide reads it as Rename.
 func TestNoPolicyLeavesTheLibraryToNameTheFile(t *testing.T) {
 	dir := t.TempDir()
 	writeFile(t, filepath.Join(dir, "movie.mkv"))
@@ -271,35 +239,22 @@ func TestNoPolicyLeavesTheLibraryToNameTheFile(t *testing.T) {
 	}
 }
 
-// TestAWorkingFolderIsWhereTheBytesGo. Dir is where the file ends up and
-// WorkDir is where it is written, and the whole feature is worth nothing if the
-// download library is handed the first of those.
 func TestAWorkingFolderIsWhereTheBytesGo(t *testing.T) {
 	dest, work := t.TempDir(), t.TempDir()
 	j := Job{Dir: dest, WorkDir: work}
 	if got := j.writeDir(); got != work {
 		t.Fatalf("writeDir = %q, want the working folder %q", got, work)
 	}
-	// And with no working folder named, nothing about the old behaviour moves.
 	if got := (Job{Dir: dest}).writeDir(); got != dest {
 		t.Fatalf("writeDir = %q, want the destination %q", got, dest)
 	}
 }
 
-// TestAJobWithAWorkingFolderDecidesNoNameHere is the trap this pairing exists
-// to avoid, and both halves of it are silent.
-//
-// A working folder is shared by the downloads heading for one destination and
-// by nothing else, so a collision decided against it is a decision about the
-// wrong folder. Worse, it does not stop there: the counted name would be
-// carried to the destination by the mover, which applies the policy again, so
-// one collision would produce "film (2) (2).mkv" - the very shape
-// TestTheLibraryDoesNotRenameOnTopOfOurRename above exists to keep out of the
-// download folder.
+// TestAJobWithAWorkingFolderDecidesNoNameHere: a name counted in the working
+// folder would be counted again at the destination by the mover.
 func TestAJobWithAWorkingFolderDecidesNoNameHere(t *testing.T) {
 	work := t.TempDir()
-	// A namesake sitting in the working folder, which is the ordinary case: it
-	// is the same file, half written, from the attempt before this one.
+	// A half-written file from the previous attempt.
 	writeFile(t, filepath.Join(work, "movie.mkv"))
 
 	opts := optsIn(work)
@@ -313,8 +268,7 @@ func TestAJobWithAWorkingFolderDecidesNoNameHere(t *testing.T) {
 	if name != "movie.mkv" {
 		t.Fatalf("name = %q, want the resolved one", name)
 	}
-	// The same job without the working folder still decides a name, so this is
-	// the working folder doing it and not a policy that stopped working.
+	// Without the working folder the same job does decide a name.
 	plain := optsIn(work)
 	if _, err := place(Job{Dir: work, Collision: collide.Rename}, oneFile("movie.mkv"), plain); err != nil {
 		t.Fatalf("place: %v", err)
@@ -324,17 +278,9 @@ func TestAJobWithAWorkingFolderDecidesNoNameHere(t *testing.T) {
 	}
 }
 
-// TestStartAfterCloseAnswersInsteadOfPanicking is the guard at the top of
-// Start proven rather than merely present: every path through Start ends in
-// e.wg.Add(1), and by the time a caller can reach Start after Close has
-// begun, Close is already past close(e.done) and quite possibly already
-// inside e.wg.Wait(). Add racing a Wait already under way is not a slow
-// task, it is documented Go runtime behaviour ("sync: WaitGroup misuse: Add
-// called concurrently with Wait") that panics the whole process. Close has
-// already fully returned here, which is the one interleaving guaranteed to
-// still be true by the time this Start call runs, so this is the
-// deterministic slice of the race rather than an attempt to reproduce the
-// timing-dependent one.
+// TestStartAfterCloseAnswersInsteadOfPanicking covers the deterministic part
+// of the Start/Close race: a wg.Add after Close has begun its Wait would
+// panic the process.
 func TestStartAfterCloseAnswersInsteadOfPanicking(t *testing.T) {
 	var mu sync.Mutex
 	var got *core.Update
@@ -350,9 +296,6 @@ func TestStartAfterCloseAnswersInsteadOfPanicking(t *testing.T) {
 		t.Fatalf("Close: %v", err)
 	}
 
-	// A URL nothing could ever answer - if the guard did not stop this before
-	// e.wg.Add(1), this would hang or panic rather than merely fail the
-	// assertions below.
 	e.Start(Job{TaskID: "late-1", URL: "http://127.0.0.1:1/unreachable"})
 
 	mu.Lock()
@@ -368,21 +311,10 @@ func TestStartAfterCloseAnswersInsteadOfPanicking(t *testing.T) {
 	}
 }
 
-// TestConcurrentStartAndCloseNeverPanics is the interleaving the test above
-// cannot reach: Close already fully returned there, which is the one
-// ordering the old select/default guard actually handled correctly. What it
-// missed - Start's own e.done check and its e.wg.Add(1) as two separate
-// steps, with Close free to land its own e.wg.Wait in between - only shows
-// up when a Start call is genuinely racing a Close, not following one.
-// That gap needed a real, live BitTorrent swarm and the race detector to
-// surface at all (see this package's own git history) - synthetic
-// concurrency here cannot force the exact interleaving on demand, so this
-// runs many overlapping attempts and leans on -race in CI to catch what a
-// single run might miss. A caller-side panic recovered into t.Errorf is a
-// clean, attributable failure; an unrecovered WaitGroup-misuse panic on some
-// other goroutine crashes the whole test binary instead, which is still a
-// failure but a cruder one - this exists to make the common case the clean
-// one.
+// TestConcurrentStartAndCloseNeverPanics races Start against Close many
+// times. The exact interleaving cannot be forced, so this relies on -race in
+// CI; a recovered panic reports cleanly, an unrecovered one crashes the test
+// binary.
 func TestConcurrentStartAndCloseNeverPanics(t *testing.T) {
 	for i := 0; i < 20; i++ {
 		e, err := New(t.TempDir(), func(string, core.Update) {})
@@ -424,20 +356,14 @@ func TestConcurrentStartAndCloseNeverPanics(t *testing.T) {
 		select {
 		case <-done:
 		case <-time.After(10 * time.Second):
-			t.Fatalf("round %d: Start/Close never finished - deadlock, not a data race", i)
+			t.Fatalf("round %d: Start/Close never finished; deadlock, not a data race", i)
 		}
 	}
 }
 
-// TestSetTorrentConfigReachesGopeedsOwnProtocolConfig is the read side of the
-// write SetTorrentConfig does: gopeed's own Fetcher.Setup (internal/protocol/
-// bt/fetcher.go) reads ProtocolConfig["bt"] back through exactly the same
-// GetConfig + util.MapToStruct path this test uses, so decoding it back the
-// same way is what "did this actually reach gopeed" means from this side of
-// the boundary. Distinct, mutually unmistakable values for the three fields -
-// not e.g. matching port and seed-duration - so a positional-argument mix-up
-// in SetTorrentConfig's own body would fail this test rather than pass it by
-// coincidence.
+// TestSetTorrentConfigReachesGopeedsOwnProtocolConfig reads the config back
+// the way gopeed's fetcher does. The three values differ so a swapped
+// argument fails.
 func TestSetTorrentConfigReachesGopeedsOwnProtocolConfig(t *testing.T) {
 	e, err := New(t.TempDir(), func(string, core.Update) {})
 	if err != nil {
@@ -468,16 +394,8 @@ func TestSetTorrentConfigReachesGopeedsOwnProtocolConfig(t *testing.T) {
 	}
 }
 
-// TestSetTorrentConfigLeavesUnrelatedConfigAlone is the read-modify-write
-// this function has to be, not the construct-fresh-and-overwrite it would be
-// one refactor away from becoming: base.DownloaderStoreConfig carries proxy,
-// download directory, concurrency cap and every other protocol's own config
-// alongside ProtocolConfig["bt"], all in the one struct GetConfig/PutConfig
-// round-trip whole. A version of SetTorrentConfig that built a fresh
-// DownloaderStoreConfig instead of mutating the one GetConfig returned would
-// still pass the test above and silently wipe the proxy this engine's own
-// speed limiter depends on (see UseProxy's own doc comment) - this is what
-// catches that.
+// TestSetTorrentConfigLeavesUnrelatedConfigAlone guards the read-modify-write:
+// writing a fresh config would wipe the proxy the speed limit depends on.
 func TestSetTorrentConfigLeavesUnrelatedConfigAlone(t *testing.T) {
 	e, err := New(t.TempDir(), func(string, core.Update) {})
 	if err != nil {
@@ -515,12 +433,6 @@ func TestSetTorrentConfigLeavesUnrelatedConfigAlone(t *testing.T) {
 	}
 }
 
-// TestSetTorrentConfigOverwritesRatherThanAccumulates guards the other
-// direction from the two tests above: a second call with different numbers
-// must leave the second call's numbers in place, not the first's and not
-// some mix of both - the read-modify-write reads gopeed's CURRENT bt config
-// each time, which on a naive implementation could mean an old field
-// surviving a call that meant to replace it.
 func TestSetTorrentConfigOverwritesRatherThanAccumulates(t *testing.T) {
 	e, err := New(t.TempDir(), func(string, core.Update) {})
 	if err != nil {

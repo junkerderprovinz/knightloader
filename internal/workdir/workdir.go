@@ -64,12 +64,10 @@ import (
 const keyDigest = 4
 
 // tmpPrefix names the copy in flight during a cross-filesystem move. It is
-// created in the DESTINATION folder, because a copy has to land on the
-// destination's own filesystem before a rename can put it in place atomically -
-// which is the whole point of the exercise. The dot keeps it out of the way of
-// the scanners this package exists to protect: an entry starting with one is
-// skipped by every library scanner worth the name, and it is removed either way
-// the copy ends.
+// created in the destination folder, because a copy has to land on the
+// destination's own filesystem before a rename can put it in place atomically.
+// The dot keeps it out of the way of the scanners this package exists to
+// protect, and it is removed whichever way the copy ends.
 const tmpPrefix = ".knightloader-move-"
 
 // copyChunk is how much is written between two cancellation checks, matching
@@ -92,12 +90,12 @@ var ErrUnsupportedEntry = errors.New("workdir: this kind of file cannot be copie
 // root answers the destination itself, which is the off switch: with no working
 // folder configured every caller keeps writing exactly where it wrote before.
 //
-// IT IS KEYED BY THE DESTINATION AND NEVER BY THE TASK, and that is the
-// difference between an archive that unpacks and one that does not. A five-part
-// rar is five separate downloads, and internal/extract finds the other four
-// volumes by listing the folder the first one is in. A folder per task would
-// give every part a private folder of its own, and every multi-volume set in
-// the app would quietly stop being a set.
+// It is keyed by the destination and never by the task, which is the
+// difference between an archive that unpacks and one that does not. A
+// five-part rar is five separate downloads, and internal/extract finds the
+// other four volumes by listing the folder the first one is in. A folder per
+// task would give every part a private folder and every multi-volume set in
+// the app would stop being a set.
 //
 // The name carries the destination's own last segment so a folder can be
 // recognised by eye, plus a digest of the whole path so that "/tv/Show/Season 1"
@@ -476,12 +474,11 @@ func copyTree(ctx context.Context, src, dst string) error {
 
 // copyInto copies src into the already-open dst and closes it either way.
 //
-// THE FLUSH IS NOT OPTIONAL, and it is what costs. A write that has only
+// The flush is not optional and it is what costs. A write that has only
 // reached the page cache is a file the kernel has promised to write later, and
-// the very next thing this package does is delete the only other copy. On a
-// forty gigabyte film the flush is the price of the source still being there
-// after a power cut two seconds later, which is the failure the whole package
-// exists for.
+// the next thing this package does is delete the only other copy. On a forty
+// gigabyte film the flush is the price of the source still being there after a
+// power cut two seconds later.
 func copyInto(ctx context.Context, dst *os.File, src string, info fs.FileInfo) error {
 	in, err := os.Open(src)
 	if err != nil {
@@ -520,12 +517,12 @@ func copyInto(ctx context.Context, dst *os.File, src string, info fs.FileInfo) e
 	if err := dst.Close(); err != nil {
 		return err
 	}
-	// The modification time is carried over, and it is not cosmetic: a library
-	// sorted by "date added" reads it, and a mover that stamped every delivered
-	// file with the moment it was delivered would put a two-year-old archive's
-	// contents at the top of that list. Folder times are deliberately not
-	// carried - a folder's own time changes as its children are written, so
-	// there is no honest value to copy.
+	// The modification time is carried over, and it is not cosmetic: a
+	// library sorted by "date added" reads it, and a mover that stamped every
+	// delivered file with the moment of delivery would put a two-year-old
+	// archive's contents at the top of that list. Folder times are not
+	// carried, because a folder's own time changes as its children are
+	// written and there is no true value to copy.
 	return os.Chtimes(name, time.Now(), info.ModTime())
 }
 

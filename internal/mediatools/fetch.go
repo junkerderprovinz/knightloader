@@ -16,11 +16,11 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/ghrelease"
 )
 
-// ytdlpRepo is yt-dlp's own repository. Unauthenticated, and deliberately no
-// token anywhere in this package: GitHub allows 60 unauthenticated requests an
-// hour per address, which is generous for a button somebody presses, while a
-// stored credential would turn a version check into a secret this project has
-// to protect, rotate and keep out of the diagnostics bundle.
+// ytdlpRepo is yt-dlp's own repository, asked unauthenticated and with no token
+// anywhere in this package: GitHub allows 60 unauthenticated requests an hour
+// per address, which is plenty for a button somebody presses, while a stored
+// credential would turn a version check into a secret to protect, rotate and
+// keep out of the diagnostics bundle.
 const ytdlpRepo = "yt-dlp/yt-dlp"
 
 // checksumAsset is the file yt-dlp publishes alongside every release binary. It
@@ -37,10 +37,10 @@ const maxBinaryBytes = 120 << 20
 // maxChecksumBytes caps the sums file. It is a few dozen short lines.
 const maxChecksumBytes = 1 << 20
 
-// smokeTimeout bounds the one run of the freshly staged binary. Generous
-// compared with probeTimeout on purpose: a PyInstaller bundle unpacks itself
-// into a temp directory the first time it starts, and on a slow disk that is
-// genuinely several seconds before it prints anything.
+// smokeTimeout bounds the one run of the freshly staged binary. Generous next
+// to probeTimeout, because a PyInstaller bundle unpacks itself into a temp
+// directory the first time it starts, which on a slow disk is several seconds
+// before it prints anything.
 const smokeTimeout = 30 * time.Second
 
 // Latest is the answer to "what does GitHub say the newest release is", with
@@ -52,10 +52,10 @@ type Latest struct {
 	// Compare is one of the four CompareX constants. Never a bool: see
 	// CompareVersions for why "cannot be ordered" has to be sayable.
 	Compare string `json:"compare"`
-	// Detail carries GitHub's own refusal verbatim when Checked is false - the
-	// rate-limit sentence, the 404 - instead of collapsing every failure into
-	// "could not check" the way internal/update does. "Wait an hour" and "that
-	// repository moved" are different problems with different answers.
+	// Detail carries GitHub's own refusal verbatim when Checked is false, the
+	// rate-limit sentence or the 404, rather than collapsing every failure
+	// into "could not check". "Wait an hour" and "that repository moved" are
+	// different problems with different answers.
 	Detail string `json:"detail,omitempty"`
 }
 
@@ -63,10 +63,10 @@ type Latest struct {
 // `installed` (what the running yt-dlp printed, which may be empty when there
 // is no yt-dlp at all).
 //
-// This is the ONLY function in this package that touches the network on its
-// own, and nothing calls it except an explicit press of the button or the
-// opt-in "ask when this page opens" switch. Probing versions and reading the
-// record never leave the box.
+// It is the only function in this package that touches the network on its own,
+// and nothing calls it except a press of the button or the opt-in "ask when
+// this page opens" switch. Probing versions and reading the record never leave
+// the box.
 func CheckLatest(ctx context.Context, installed string) Latest {
 	rel, err := ghrelease.Latest(ctx, ytdlpRepo)
 	if err != nil {
@@ -82,25 +82,22 @@ func CheckLatest(ctx context.Context, installed string) Latest {
 // Install fetches the newest yt-dlp release, verifies it, proves it runs on
 // this machine, and only then puts it where ResolveYtdlp will find it.
 //
-// THE ORDER IS THE ENTIRE SAFETY STORY, so it is written out here as well as
-// being visible below:
+// The order is the safety story:
 //
 //  1. ask GitHub for the release;
-//  2. refuse outright if the release has no SHA2-256SUMS - never fall back to
-//     an unverified download, for exactly the reason internal/update gives for
-//     its own checksums.txt: a release missing its digests is a broken or
-//     tampered release, not an old one this should be lenient about;
+//  2. refuse outright if the release has no SHA2-256SUMS, never falling back
+//     to an unverified download: a release missing its digests is a broken or
+//     tampered release, not an old one to be lenient about;
 //  3. for each candidate asset for this platform, best first: download it to a
 //     ".part" file under a size cap and check the byte count against what the
 //     release says;
-//  4. verify its SHA-256 against the entry for that exact asset name, requiring
-//     a 256-bit digest;
+//  4. verify its SHA-256 against the entry for that exact asset name,
+//     requiring a 256-bit digest;
 //  5. make it executable;
-//  6. RUN IT, and require exit 0 and the release's own tag on stdout. This is
-//     the genuinely new step and the one that cannot be skipped: the glibc
-//     build refuses to start on the musl container with an error that reads
-//     like a missing file, and a /data mounted noexec accepts the chmod and
-//     then refuses the exec. Neither is detectable any other way;
+//  6. run it, and require exit 0 and the release's own tag on stdout. The
+//     glibc build refuses to start on the musl container with an error that
+//     reads like a missing file, and a /data mounted noexec accepts the chmod
+//     and then refuses the exec. Neither is detectable any other way;
 //  7. only now swap it into place, rename-aside first so a Windows lock cannot
 //     leave nothing installed at all;
 //  8. write the record.
@@ -137,13 +134,12 @@ func Install(ctx context.Context, dataDir string) (ManagedRecord, error) {
 }
 
 // fetcher writes one release asset to a path on disk. It is a parameter of
-// install rather than a direct call so that the sequence that MATTERS - verify,
-// make executable, run, and only then replace - can be exercised without a
-// network at all. There is no way to point the live path at a test server:
-// internal/ghrelease pins every request to GitHub's own hosts, which is the
-// property that makes running the downloaded file safe in the first place, and
-// weakening it to make a test easier would be trading the guarantee for the
-// test of the guarantee.
+// install rather than a direct call so the sequence (verify, make executable,
+// run, and only then replace) can be exercised without a network. The live
+// path cannot be pointed at a test server: internal/ghrelease pins every
+// request to GitHub's own hosts, which is what makes running the downloaded
+// file safe, and weakening it for a test would trade the guarantee for the
+// test of it.
 type fetcher func(ctx context.Context, a ghrelease.Asset, dst string) error
 
 func downloadAsset(ctx context.Context, a ghrelease.Asset, dst string) error {
@@ -161,10 +157,9 @@ func downloadAsset(ctx context.Context, a ghrelease.Asset, dst string) error {
 
 // install is everything after the release metadata is in hand: the candidate
 // walk, the verification, the smoke test and the swap. names is passed in
-// rather than read from candidates() so a test can drive the two-candidate
-// fallback on any host - that fallback is real on linux/amd64, which is the
-// deployment this feature exists for, and unreachable on the machine the tests
-// usually run on.
+// rather than read from candidates so a test can drive the two-candidate
+// fallback on any host. That fallback is real on linux/amd64, the deployment
+// this exists for, and unreachable on the machine the tests usually run on.
 func install(ctx context.Context, dataDir string, names []string, rel ghrelease.Release, sums []checksum.Sum, fetch fetcher) (ManagedRecord, error) {
 	var rec ManagedRecord
 	if err := os.MkdirAll(ToolsDir(dataDir), 0o755); err != nil {
@@ -230,9 +225,8 @@ func stage(ctx context.Context, asset ghrelease.Asset, sums []checksum.Sum, stag
 		return "", fmt.Errorf("the download does not match the SHA-256 %s publishes for it, so it was thrown away", checksumAsset)
 	}
 
-	// Before the smoke test, not after: on Unix the file cannot be started at
-	// all without it, and the whole point of the next step is to find out
-	// whether it starts.
+	// Before the smoke test, because on Unix the file cannot be started at
+	// all without it.
 	if err := os.Chmod(staged, 0o755); err != nil {
 		return "", err
 	}
@@ -265,10 +259,9 @@ func digestFor(sums []checksum.Sum, name string) string {
 // smokeTest runs the staged file and requires it to identify itself as the
 // release it came from.
 //
-// A CHECKSUM PROVES THE BYTES, NOT THAT THEY RUN HERE. That is the whole
-// argument for this step. The two ways a perfectly intact yt-dlp still cannot
-// be started on the machine that just downloaded it are both invisible until
-// something tries:
+// A checksum proves the bytes and not that they run here. The two ways an
+// intact yt-dlp still cannot be started on the machine that downloaded it are
+// both invisible until something tries:
 //
 //   - musl (the Alpine container): the glibc PyInstaller build fails to exec
 //     with ENOENT, reported as "no such file or directory" for a file that is
@@ -296,7 +289,7 @@ func smokeTest(ctx context.Context, staged, tag string) (string, error) {
 	return got, nil
 }
 
-// startAdvice turns the two exec failures that will actually happen into a
+// startAdvice turns the two exec failures that happen in practice into a
 // sentence naming what to do about them. Without it, "permission denied" and
 // "no such file or directory" are both errors nobody can place: the first
 // points at a file that is there and readable, the second at one that is there
@@ -306,7 +299,7 @@ func startAdvice(err error) string {
 	case errors.Is(err, fs.ErrPermission):
 		return ". The data directory is very likely mounted so that programs inside it cannot be started (noexec). Either mount it without that restriction, or leave this alone and keep using the system's own yt-dlp"
 	case errors.Is(err, fs.ErrNotExist):
-		return ". The file is there, so this is the system refusing to start it rather than a missing path - which is what a build for a different C library looks like (a glibc build on a musl system such as Alpine). There is nothing to fix here by hand; the next candidate is tried automatically"
+		return ". The file is there, so this is the system refusing to start it rather than a missing path, which is what a build for a different C library looks like (a glibc build on a musl system such as Alpine). There is nothing to fix here by hand; the next candidate is tried automatically"
 	}
 	return ""
 }
@@ -314,13 +307,13 @@ func startAdvice(err error) string {
 // swapIn puts the staged file where the resolver looks, moving the previous one
 // aside first.
 //
-// The rename-aside is internal/update's own pattern (Apply) and it is here for
-// the same Windows reason: an open file cannot be replaced by a rename, and
-// while yt-dlp is spawned per download rather than held open, a swap attempted
-// during one would otherwise fail with "Access is denied" and leave the
-// download half-served. Renaming the old one out of the way and moving the new
-// one in is permitted where an overwrite is not, and a ".old" that cannot be
-// deleted yet is harmless - the next install replaces it.
+// The rename-aside is internal/update's pattern (Apply), here for the same
+// Windows reason: an open file cannot be replaced by a rename, and while
+// yt-dlp is spawned per download rather than held open, a swap attempted
+// during one would fail with "Access is denied" and leave the download
+// half-served. Renaming the old one out of the way and moving the new one in
+// is permitted where an overwrite is not, and a ".old" that cannot be deleted
+// yet is replaced by the next install.
 func swapIn(staged, final string) error {
 	old := final + ".old"
 	_ = os.RemoveAll(old)

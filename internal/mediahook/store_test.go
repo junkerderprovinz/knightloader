@@ -9,9 +9,9 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
 )
 
-// planted is the one string every assertion about leaking hunts for: a single
-// distinctive needle, so a hit anywhere is unambiguous and a miss is not a
-// coincidence. The same arrangement hostheaders' own leak_test.go uses.
+// planted is the needle every assertion about leaking hunts for, distinctive
+// enough that a hit anywhere is unambiguous. The arrangement hostheaders'
+// leak_test.go uses.
 const planted = "SECRET-emby-9f3a-nothing-may-print-this"
 
 func mustAccounts(t *testing.T) (*accounts.Store, string) {
@@ -53,9 +53,9 @@ func TestSetValueGetRemoveRoundTrip(t *testing.T) {
 	}
 }
 
-// TestAnEmptyValueIsADelete pins the reading every secret in this app gives an
-// empty string, and the one that makes the placeholder necessary: without it a
-// stored token could never be removed through a settings form at all.
+// The reading every secret in this app gives an empty string, and the one that
+// makes the placeholder necessary: without it a stored token could never be
+// removed through a settings form.
 func TestAnEmptyValueIsADelete(t *testing.T) {
 	acc, _ := mustAccounts(t)
 	s := NewStore(acc)
@@ -70,9 +70,8 @@ func TestAnEmptyValueIsADelete(t *testing.T) {
 	}
 }
 
-// TestTheValueNeverReachesTheAccountsFileInTheClear is the whole reason this
-// store exists rather than a field on the settings row. It reads the file the
-// store actually wrote, because that file is what a backup copies and what
+// Why this store exists rather than a field on the settings row. It reads the
+// file the store wrote, because that file is what a backup copies and what
 // somebody looks at when a bug report goes wrong.
 func TestTheValueNeverReachesTheAccountsFileInTheClear(t *testing.T) {
 	acc, dir := mustAccounts(t)
@@ -94,11 +93,10 @@ func TestTheValueNeverReachesTheAccountsFileInTheClear(t *testing.T) {
 	}
 }
 
-// TestAStoreWithNoAccountsAnswersRatherThanCrashing covers the App assembled by
-// hand in a test and the embedding that wired nothing. The reads are silent and
-// the writes are loud, which is the split hostheaders.ErrNoStore draws: a save
-// that reports success and stores nothing is how somebody finds out weeks later
-// that their token was never there.
+// The App assembled by hand in a test, and the embedding that wired nothing.
+// Reads are silent and writes are loud, the split hostheaders.ErrNoStore
+// draws: a save that reports success and stores nothing is how somebody finds
+// out weeks later that their token was never there.
 func TestAStoreWithNoAccountsAnswersRatherThanCrashing(t *testing.T) {
 	var s *Store
 	if got := s.Value("jellyfin"); got != "" {
@@ -116,9 +114,8 @@ func TestAStoreWithNoAccountsAnswersRatherThanCrashing(t *testing.T) {
 	}
 }
 
-// TestAnUnusableIDStoresNothing keeps the two halves of the id rule together: an
-// id HookID refuses is one no drawer could point at, so storing a value under it
-// would be a credential nothing can ever read and nothing can ever remove.
+// An id HookID refuses is one no drawer could point at, so storing a value
+// under it would be a credential nothing can read and nothing can remove.
 func TestAnUnusableIDStoresNothing(t *testing.T) {
 	acc, _ := mustAccounts(t)
 	s := NewStore(acc)

@@ -2,30 +2,25 @@ package selftest
 
 // The zone reading.
 //
-// WHAT THIS FILE DELIBERATELY DOES NOT ASSERT: that setting TZ changes the
-// offset. It does not, and a test that expected it to would be testing a state
-// the program cannot reach - Go resolves time.Local once, during package
-// initialisation, and no amount of os.Setenv afterwards moves it. That is
-// exactly why ZoneReport reads the environment separately from time.Local
-// instead of trusting one to describe the other.
+// Nothing here asserts that setting TZ changes the offset. It does not: Go
+// resolves time.Local once during package initialisation and no later
+// os.Setenv moves it, which is why ZoneReport reads the environment separately
+// from time.Local.
 //
-// AND IT DOES NOT ASSERT THAT A REAL ZONE RESOLVES. "Europe/Berlin" resolving
-// depends on the zone database being installed on whatever machine runs the
-// suite, which is a fact about the test runner rather than about this code -
-// on a stripped container it is legitimately absent, and a green suite must
-// not require anybody to install tzdata to run it. The direction that CAN be
-// asserted everywhere is the failing one: a name no database will ever have.
+// Nothing asserts that a real zone resolves either. "Europe/Berlin" resolving
+// depends on the zone database being installed on the machine running the
+// suite, which is a fact about the runner rather than about this code, and a
+// green suite must not require anybody to install tzdata. The direction that
+// can be asserted everywhere is the failing one: a name no database will have.
 
 import (
 	"testing"
 	"time"
 )
 
-// TestAnUnsetTZNeverReportsTheZoneDatabaseAsUnreadable is the one that keeps
-// the ordinary container quiet. Nothing was asked of the database, so nothing
-// failed, and reporting otherwise would put "the zone database could not be
-// read" in front of every install that simply never set TZ - which is most of
-// them, and for which the sentence is meaningless.
+// Nothing was asked of the database, so nothing failed. Reporting otherwise
+// would put "the zone database could not be read" in front of every install
+// that never set TZ, which is most of them.
 func TestAnUnsetTZNeverReportsTheZoneDatabaseAsUnreadable(t *testing.T) {
 	t.Setenv("TZ", "")
 	z := ZoneReport()

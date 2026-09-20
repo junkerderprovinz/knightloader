@@ -5,13 +5,12 @@ import (
 	"time"
 )
 
-// TestClockVerdicts is a table over clockFacts rather than over the environment,
-// and that is the only way this can be tested at all: Go decides time.Local
-// exactly once, on first use, from the environment the process started in, so
-// t.Setenv("TZ", …) changes nothing. A test written against the environment
-// would pass on a CI runner that happens to be on UTC, fail on a machine in
-// Europe/Berlin, and - worst of the three - could pass on both while exercising
-// none of the branches it claims to.
+// A table over clockFacts rather than over the environment, which is the only
+// way this can be tested: Go decides time.Local once, on first use, from the
+// environment the process started in, so t.Setenv("TZ", …) changes nothing. A
+// test written against the environment would pass on a runner that happens to
+// be on UTC, fail on a machine in Europe/Berlin, or pass on both while
+// exercising none of the branches it claims to.
 func TestClockVerdicts(t *testing.T) {
 	berlin := clockFacts{TZ: "Europe/Berlin", ZoneName: "CEST", Offset: 7200, LocalName: "Europe/Berlin", ZoneDBOK: true, TZLoadOK: true}
 

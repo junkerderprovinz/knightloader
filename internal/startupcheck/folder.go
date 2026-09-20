@@ -14,20 +14,19 @@ import (
 
 // probePrefix is the leading part of the file name the write test uses.
 //
-// THE LEADING DOT IS NOT COSMETIC. internal/watch/poller.go picks up any
-// .txt/.crawljob dropped into the watched folder whose name does NOT start with
-// a dot, so a probe called "knightloader-check.txt" landing in a watched folder
-// is read as a link list and its contents are staged as downloads. Both probes
-// this app already has (settings_paths.go and watch/watcher.go) start with a
-// dot for the same reason.
+// The leading dot is not cosmetic. internal/watch/poller.go picks up any
+// .txt or .crawljob dropped into the watched folder whose name does not start
+// with a dot, so a probe called "knightloader-check.txt" landing in a watched
+// folder is read as a link list and staged as downloads. The other two probes
+// in this app (settings_paths.go and watch/watcher.go) start with a dot for
+// the same reason.
 //
-// AND THE REST OF THE NAME IS UNIQUE PER PASS, which is where this one differs
-// from both of them. They use fixed names, and a fixed name breaks in two ways
-// this feature would hit immediately: two KnightLoader instances sharing one
-// share - which is the federation case this app is built for - each delete the
-// other's probe and both report failure, and a probe left behind by a process
-// that was killed means the next boot's Remove deletes a stranger's file and
-// calls it a pass.
+// The rest of the name is unique per pass, which is where this one differs
+// from those two. A fixed name breaks in two ways: two instances sharing one
+// share, which is the federation case this app is built for, each delete the
+// other's probe and both report failure, and a probe left behind by a killed
+// process means the next boot's Remove deletes a stranger's file and calls it
+// a pass.
 const probePrefix = ".knightloader-startup-"
 
 // probeName is one pass's probe file name: the process id, so two instances on
@@ -36,27 +35,27 @@ const probePrefix = ".knightloader-startup-"
 func probeName() string {
 	var b [4]byte
 	if _, err := rand.Read(b[:]); err != nil {
-		// Falls back to the clock rather than to a constant. A constant here
-		// would quietly reintroduce the fixed name this whole comment is about.
+		// Falls back to the clock rather than to a constant, which would
+		// reintroduce the fixed name.
 		return fmt.Sprintf("%s%d-%08x", probePrefix, os.Getpid(), time.Now().UnixNano()&0xffffffff)
 	}
 	return fmt.Sprintf("%s%d-%02x%02x%02x%02x", probePrefix, os.Getpid(), b[0], b[1], b[2], b[3])
 }
 
-// Folder reports what one folder is, and - only when probe is true - whether
-// this process can write in it.
+// Folder reports what one folder is, and, when probe is true, whether this
+// process can write in it.
 //
-// dir must be ABSOLUTE and must already be cut back to the fixed prefix of
-// whatever template it came from; see FolderTarget.Dir. A relative path is
-// refused rather than resolved, because it resolves against whatever the
-// process's working directory happens to be, which is the same reason
-// settings.sanitizePaths refuses to store one.
+// dir must be absolute and already cut back to the fixed prefix of whatever
+// template it came from, see FolderTarget.Dir. A relative path is refused
+// rather than resolved, because it resolves against whatever the process's
+// working directory happens to be, the reason settings.sanitizePaths refuses
+// to store one.
 //
-// IT NEVER CREATES ANYTHING. When the folder is not there the answer is
-// CodeMissing plus the deepest folder above it that IS there, which is the
-// sentence that tells an operator in one second that a mount is down:
-// "/mnt/user/media is not there, the nearest existing folder is /mnt". See the
-// package comment for what creating it instead would cost.
+// It never creates anything. When the folder is not there the answer is
+// CodeMissing plus the deepest folder above it that is, which is what tells an
+// operator that a mount is down: "/mnt/user/media is not there, the nearest
+// existing folder is /mnt". See the package comment for what creating it
+// instead would cost.
 func Folder(ctx context.Context, dir, role string, probe bool, timeout time.Duration) Check {
 	c := Check{ID: IDFolder, Role: role, Subject: dir}
 
@@ -87,14 +86,12 @@ func Folder(ctx context.Context, dir, role string, probe bool, timeout time.Dura
 	// away blocks for as long as that mount takes to give up, which on a
 	// hard-mounted NFS export is for ever.
 	//
-	// SO THIS LEAKS A GOROUTINE ON A DEAD MOUNT, and that is the deliberate
-	// trade rather than an oversight. The alternatives are worse in both
-	// directions: waiting for it turns a diagnostic into the boot hang it was
-	// written to prevent (with Dockerfile's HEALTHCHECK then restarting the
-	// container into a loop), and there is no third option - Go cannot cancel a
-	// blocked syscall. The goroutine holds one buffered slot and nothing else,
-	// it finishes the moment the mount answers or the kernel gives up on it,
-	// and it still removes its own probe file if it got as far as writing one.
+	// That leaks a goroutine on a dead mount, which is the accepted trade:
+	// waiting for it turns a diagnostic into the boot hang it was written to
+	// prevent, with Dockerfile's HEALTHCHECK then restarting the container
+	// into a loop, and Go cannot cancel a blocked syscall. The goroutine
+	// holds one buffered slot, finishes the moment the mount answers or the
+	// kernel gives up, and still removes its own probe file if it wrote one.
 	done := make(chan Check, 1)
 	go func() { done <- inspect(dir, role, probe) }()
 
@@ -122,14 +119,13 @@ func inspect(dir, role string, probe bool) Check {
 		c.Measured = DeepestExisting(dir)
 		switch {
 		case errors.Is(err, fs.ErrNotExist):
-			// Warn, not fail, and this is the row most likely to be
+			// Warn and not fail, and this is the row most likely to be
 			// misread. A download folder that does not exist yet is the
-			// NORMAL state of a fresh install - it is created by whoever
-			// writes the first file into it - and it is also exactly what a
+			// normal state of a fresh install, since it is created by
+			// whoever writes the first file into it, and it is also what a
 			// share that failed to mount looks like. The two cannot be told
 			// apart from in here, so the row says which folder is missing
-			// and which one above it is not, and lets the person who knows
-			// their own box decide.
+			// and which one above it is not.
 			c.Verdict = VerdictWarn
 			c.Code = CodeMissing
 		case errors.Is(err, fs.ErrPermission):
@@ -165,13 +161,13 @@ func inspect(dir, role string, probe bool) Check {
 		return c
 	}
 	if err := os.Remove(name); err != nil {
-		// ITS OWN FINDING, with its own remedy. A folder where a file can be
-		// created and not deleted is a real state - an SMB share with a
+		// Its own finding, with its own remedy. A folder where a file can be
+		// created and not deleted is a real state (an SMB share with a
 		// delete-denying ACL, a directory with the sticky bit, an exhausted
-		// inode table - and its consequence is different from "cannot write":
-		// a download arrives and can then never be renamed, moved out of the
-		// working folder, or cleaned up. Unchecked it is also the long-run
-		// mess, leaving one dotfile per press in the download folder for years.
+		// inode table) and its consequence differs from "cannot write": a
+		// download arrives and can then never be renamed, moved out of the
+		// working folder or cleaned up. Unchecked it also leaves one dotfile
+		// per press in the download folder.
 		c.Verdict = VerdictFail
 		c.Code = CodeNotRemoved
 		c.Err = clamp(err.Error())
@@ -187,13 +183,12 @@ func inspect(dir, role string, probe bool) Check {
 // check permissions on a filesystem that is mounted read-only.
 //
 // Matched on the errno rather than on the message, so it survives a translated
-// libc. On Windows none of the three POSIX numbers is what the OS actually
-// returns (it has its own ERROR_WRITE_PROTECT and ERROR_DISK_FULL), so a
-// desktop install falls through to CodeError and shows the system's own
-// sentence instead - which is a worse answer than a code, and still a true one.
-// Mapping the Windows numbers as well would mean a build-tagged file per
-// platform for a case that has never been reported on the build where downloads
-// go to a mounted share.
+// libc. On Windows none of the three POSIX numbers is what the OS returns (it
+// has its own ERROR_WRITE_PROTECT and ERROR_DISK_FULL), so a desktop install
+// falls through to CodeError and shows the system's own sentence, which is a
+// worse answer than a code and still a true one. Mapping the Windows numbers
+// would mean a build-tagged file per platform for a case that has never been
+// reported on the build where downloads go to a mounted share.
 func writeCode(err error) string {
 	switch {
 	case errors.Is(err, fs.ErrPermission):
@@ -210,13 +205,11 @@ func writeCode(err error) string {
 // DeepestExisting is dir itself when it is a directory today, else the nearest
 // folder above it that is.
 //
-// THE THIRD COPY OF THIS WALK IN THE TREE, and written down as such rather than
-// quietly added: app_diskreport.go's deepestExistingDir and
-// routes_folders.go's own are the other two. It is not imported from either
-// because both live in packages that import settings, and this package's whole
-// point is that it does not (see the package comment). If one of the three ever
-// grows a rule the others do not have, this comment is where somebody finds out
-// there are two more to fix.
+// The third copy of this walk in the tree: app_diskreport.go's
+// deepestExistingDir and routes_folders.go's own are the other two. It is not
+// imported from either, because both live in packages that import settings and
+// this one does not (see the package comment). If one of the three grows a rule
+// the others lack, there are two more to fix.
 func DeepestExisting(dir string) string {
 	for {
 		if fi, err := os.Stat(dir); err == nil && fi.IsDir() {

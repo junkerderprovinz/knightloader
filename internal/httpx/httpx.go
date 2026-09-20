@@ -1,20 +1,16 @@
 // Package httpx is the one outbound HTTP policy this app has. Every request
-// that leaves the box - a router being asked for a new address, a page being
-// crawled, a debrid API being polled - is made by a client built here, so that
-// a proxy, a user agent, a redirect rule or a connection ceiling is one edit
-// instead of fifteen scattered http.Client literals.
+// that leaves the box is made by a client built here, so a proxy, a user
+// agent, a redirect rule or a connection ceiling is one edit instead of
+// fifteen scattered http.Client literals.
 //
-// Clients come from New rather than from one client the package exports.
-// A package-level client is a dependency nothing declares: a test cannot give
-// one subsystem a stub without every other subsystem silently receiving the
-// same stub, and nothing in the wiring shows which of them share a connection
-// pool. Sharing is still fine here, it just has to be written down at the call
-// site where it can be seen.
+// Clients come from New rather than from one client the package exports, so a
+// test can give one subsystem a stub without every other subsystem receiving
+// it, and a shared pool is written down at the call site.
 //
 // This is not the download path. Downloaded bytes are metered through
-// internal/netproxy and must not carry a whole-request deadline: a transfer
-// that runs for an hour is not a stuck request. Clients from here are for the
-// short control-plane calls that happen around a download.
+// internal/netproxy and carry no whole-request deadline: a transfer that runs
+// for an hour is not a stuck request. Clients from here are for the short
+// control-plane calls around a download.
 package httpx
 
 import (
@@ -34,9 +30,8 @@ import (
 // immortal.
 const NoTimeout = time.Duration(-1)
 
-// The ceilings. None of these is tuning: each one exists so that a specific way
-// of hanging terminates on its own instead of pinning the goroutine that
-// started it for the life of the process.
+// The ceilings. Each one lets a specific way of hanging terminate on its own
+// instead of pinning the goroutine that started it.
 const (
 	// DefaultTimeout bounds a whole request, body included. Everything this
 	// package is pointed at answers in a few kilobytes, so a minute is already a
@@ -53,10 +48,10 @@ const (
 	// is indistinguishable from a slow server without it.
 	DefaultTLSHandshakeTimeout = 10 * time.Second
 
-	// DefaultResponseHeaderTimeout is the one that catches the nastiest case: a
-	// host that accepts everything and answers nothing. Without it such a peer
-	// is only noticed when the overall Timeout expires, and a caller that opted
-	// out of that ceiling would wait forever.
+	// DefaultResponseHeaderTimeout catches a host that accepts everything and
+	// answers nothing. Without it such a peer is only noticed when the overall
+	// Timeout expires, and a caller that opted out of that ceiling waits
+	// forever.
 	DefaultResponseHeaderTimeout = 30 * time.Second
 
 	// DefaultMaxRedirects bounds the hop chain. An unbounded chain is the
@@ -65,10 +60,10 @@ const (
 	DefaultMaxRedirects = 10
 )
 
-// The connection pool. It is bounded rather than generous on purpose: a hoster
-// that is being polled by five subsystems at once should see a handful of
-// reused connections, not one per request, and a self-hosted box behind a
-// consumer router runs out of NAT table entries long before it runs out of RAM.
+// The connection pool, kept small: a hoster polled by five subsystems at once
+// should see a handful of reused connections rather than one per request, and
+// a box behind a consumer router runs out of NAT table entries long before it
+// runs out of RAM.
 const (
 	idleConnTimeout     = 90 * time.Second
 	keepAlive           = 30 * time.Second
@@ -116,9 +111,8 @@ type Options struct {
 	Jar http.CookieJar
 }
 
-// NoProxy is the Proxy for a client that must never be sent through one - a
-// loopback call, or a LAN router that an operator's HTTP_PROXY would otherwise
-// swallow.
+// NoProxy is the Proxy for a client that must stay direct: a loopback call, or
+// a LAN router that an operator's HTTP_PROXY would otherwise swallow.
 func NoProxy(*http.Request) (*url.URL, error) { return nil, nil }
 
 // UserAgent identifies the app and the build to the far end. A host that
@@ -217,10 +211,10 @@ func checkRedirect(max int) func(*http.Request, []*http.Request) error {
 		if len(via) == 0 {
 			return nil
 		}
-		// The comparison is against the *first* request, not the previous hop,
+		// The comparison is against the first request, not the previous hop,
 		// because net/http rebuilds each hop's headers from that first request:
 		// a header deleted at hop one would be copied in again at hop two, and a
-		// chain A -> B -> A would arrive back at A stripped of the credential it
+		// chain A to B to A would arrive back at A stripped of the credential it
 		// is entitled to.
 		if !sameOrigin(via[0].URL, req.URL) {
 			for _, h := range credentialHeaders {
@@ -232,17 +226,17 @@ func checkRedirect(max int) func(*http.Request, []*http.Request) error {
 }
 
 // credentialHeaders authenticate us to the host they were set for and mean
-// nothing anywhere else - at best they are ignored, at worst an open redirect
-// hands the router password or a debrid API key to whoever owns the hop. Go
-// drops some of these by itself, but only across a registered domain: to it,
-// 127.0.0.1:9090 and 127.0.0.1:7070 are the same place, which on a self-hosted
-// box is two unrelated applications.
+// nothing anywhere else: an open redirect would hand the router password or a
+// debrid API key to whoever owns the hop. Go drops some of these by itself,
+// but only across a registered domain, and to it 127.0.0.1:9090 and
+// 127.0.0.1:7070 are the same place, which on a self-hosted box is two
+// unrelated applications.
 var credentialHeaders = []string{"Authorization", "Proxy-Authorization", "Cookie", "Cookie2"}
 
 // sameOrigin compares scheme, host and port, which is the scope a credential
-// was handed out for. A downgrade from https to http on the same host is a
-// different origin on purpose: forwarding a bearer token onto a plaintext hop
-// gives it to everyone on the path.
+// was handed out for. A downgrade from https to http on the same host counts
+// as a different origin: forwarding a bearer token onto a plaintext hop gives
+// it to everyone on the path.
 func sameOrigin(a, b *url.URL) bool {
 	if a == nil || b == nil {
 		return false
@@ -268,17 +262,16 @@ func originPort(u *url.URL) string {
 }
 
 // userAgentTransport stamps the app's identity on requests that did not bring
-// their own. It sits on the transport rather than being set per request,
-// because the point of this package is that a caller cannot forget.
+// their own. It sits on the transport rather than on each request, so a caller
+// cannot forget it.
 type userAgentTransport struct {
 	base http.RoundTripper
 	ua   string
 }
 
 func (t *userAgentTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	// An explicitly empty User-Agent means "send none" to net/http, so presence
-	// of the key is the test, not its value. Overriding that would take away the
-	// one way a caller has of staying anonymous.
+	// An explicitly empty User-Agent means "send none" to net/http, so the key
+	// being present is the test, not its value.
 	if _, set := req.Header["User-Agent"]; set || t.ua == "" {
 		return t.base.RoundTrip(req)
 	}

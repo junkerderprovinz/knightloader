@@ -1,21 +1,11 @@
-// Package container reads the link-container files a download manager is
-// expected to open: a plain list of links, and the encrypted formats the
-// scene has used for twenty years — DLC, CCF and RSDF.
+// Package container reads link-container files: a plain list of links, and
+// the encrypted DLC, CCF and RSDF formats.
 //
-// Only the plain formats are decoded here, and that is a deliberate line
-// rather than a gap. A .dlc cannot be opened offline by anyone: the key lives
-// with a service that hands it out to registered clients, which is why no open
-// client generates or decrypts one on its own. Rather than borrow somebody
-// else's application key and pretend to be their client, KnightLoader hands
-// the container to the headless JDownloader it already ships as its catch-all
-// backend, which has its own key and does this legitimately.
-//
-// So this package answers two questions and refuses to guess at a third:
-// what kind of container is this, and — when it is a plain one — which links
-// are inside it. For an encrypted one it returns ErrNeedsBackend, having first
-// checked that the file really is what its name claims, so the caller can say
-// "this needs the JDownloader backend, which is not configured" instead of
-// "something went wrong".
+// Only plain lists are decoded here. A .dlc can only be opened with a key a
+// service hands out to registered clients, so KnightLoader passes encrypted
+// containers to its bundled headless JDownloader, which has its own key,
+// rather than borrowing another client's. For an encrypted file this package
+// checks that it really is what its name claims and returns ErrNeedsBackend.
 package container
 
 import (
@@ -32,41 +22,32 @@ import (
 type Kind string
 
 const (
-	// KindText is a plain list of links, one per line — the format every
-	// forum post and every "links.txt" in a zip actually uses.
+	// KindText is a plain list of links, one per line.
 	KindText Kind = "text"
 	KindDLC  Kind = "dlc"
 	KindCCF  Kind = "ccf"
 	KindRSDF Kind = "rsdf"
-	// KindUnknown is a file we should not pretend to understand.
+	// KindUnknown is a file this package does not understand.
 	KindUnknown Kind = "unknown"
 )
 
-// ErrNeedsBackend means the container is real and well-formed but encrypted,
-// so a backend holding the key has to open it. The caller is expected to hand
-// the bytes to that backend rather than to report a failure: this is not a
-// broken file, it is a file we deliberately do not decrypt ourselves.
+// ErrNeedsBackend means the container is well-formed but encrypted, and the
+// caller should hand the bytes to the JDownloader backend rather than report
+// a failure.
 var ErrNeedsBackend = errors.New("this container is encrypted and has to be opened by the JDownloader backend")
 
-// ErrEmpty is a container with nothing usable in it. Kept separate from a
-// parse failure because "you dropped an empty file" and "this file is not what
-// it claims to be" are different mistakes with different fixes.
+// ErrEmpty is a container with nothing usable in it, kept apart from a parse
+// failure because the fix is different.
 var ErrEmpty = errors.New("no links in this file")
 
-// maxBytes caps what will be read as a container. Link lists and containers
-// are kilobytes; a hundred megabytes of anything is either a mistake or an
-// attempt to make the server allocate it, and neither deserves the memory.
+// MaxBytes caps what will be read as a container. Real ones are kilobytes.
 const MaxBytes = 8 << 20
 
-// dlcKeyLen is the length of the key block a DLC carries at its very end. It
-// is fixed by the format, and a file too short to hold one cannot be a DLC no
-// matter what its name says.
+// dlcKeyLen is the fixed length of the key block at the end of a DLC.
 const dlcKeyLen = 88
 
-// Detect names the format. The extension is a hint, never the answer: a file
-// saved as "links.dlc" from a browser that appended .txt, or a .dlc renamed by
-// a forum's uploader, are both routine. The content decides, and the extension
-// only breaks ties between formats that look alike.
+// Detect names the format. The content decides and the extension only breaks
+// ties, since renamed files are routine.
 func Detect(name string, data []byte) Kind {
 	ext := strings.ToLower(name)
 	if i := strings.LastIndex(ext, "."); i >= 0 {
@@ -75,42 +56,35 @@ func Detect(name string, data []byte) Kind {
 		ext = ""
 	}
 
-	// A link list is recognisable without any guessing: it contains a scheme
-	// we can act on. Checked first because it is the only format we can fully
-	// serve, and because a text file whose extension somebody renamed is the
-	// most common case of all.
+	// A link list is the only format served fully here and the most common
+	// one to arrive under a wrong extension.
 	if looksLikeLinks(data) {
 		return KindText
 	}
 
 	switch {
 	case ext == "txt" || ext == "text":
-		// A .txt with no scheme in it is still a link list as far as the user
-		// is concerned — they dropped it meaning to add links. Classifying it
-		// as text lets the answer be "no links in this file", which names what
-		// to fix, instead of "unrecognised format", which does not.
+		// A .txt without links is still meant as a link list, so the answer
+		// becomes "no links in this file" rather than "unrecognised format".
 		return KindText
 	case isDLC(data):
 		return KindDLC
 	case ext == "rsdf" && isHexBlob(data):
 		return KindRSDF
 	case ext == "ccf":
-		// CCF has no signature worth trusting; it is a legacy format whose
-		// only reliable marker is its name. Sending it to a backend that will
-		// reject it beats refusing a file that might well be valid.
+		// CCF has no signature worth trusting; its name is the only marker.
 		return KindCCF
 	case ext == "dlc":
-		// Named .dlc but structurally not one. Reported as DLC anyway so the
-		// caller's error names the format the user believes they have.
+		// Not structurally a DLC, but reported as one so the error names the
+		// format the user believes they have.
 		return KindDLC
 	}
 	return KindUnknown
 }
 
 // Links returns the links in a plain container. For an encrypted one it
-// returns ErrNeedsBackend, and for anything unrecognised an error naming what
-// was actually seen — a caller that logs "unsupported container" without
-// saying what it looked at leaves the user with nothing to act on.
+// returns ErrNeedsBackend, and for anything unrecognised an error naming the
+// file.
 func Links(name string, data []byte) ([]string, error) {
 	if len(data) == 0 {
 		return nil, ErrEmpty
@@ -137,11 +111,9 @@ func Links(name string, data []byte) ([]string, error) {
 	}
 }
 
-// ValidateDLC checks that a file really is a DLC before anything is done with
-// it. The point is the error message: a truncated download, an HTML error page
-// saved with a .dlc name, or a file the browser gzipped are all common, and
-// each produces a different, useless failure much later — inside a backend, or
-// in a service request — unless it is caught here.
+// ValidateDLC checks that a file really is a DLC, so a truncated download or
+// an HTML error page saved as .dlc gets a clear reason here instead of an
+// unexplained decryption failure later.
 func ValidateDLC(data []byte) error {
 	body := strings.TrimSpace(string(data))
 	if len(body) <= dlcKeyLen {
@@ -150,9 +122,7 @@ func ValidateDLC(data []byte) error {
 	if !isBase64(body) {
 		return errors.New("this file is not a DLC: a DLC is base64 from end to end, and this contains other bytes (a truncated download or an error page saved under the wrong name)")
 	}
-	// The last 88 characters are the key block, itself base64 around another
-	// base64 string. If that does not decode, the file is damaged in a way
-	// that will otherwise only surface as a decryption failure with no cause.
+	// The last 88 characters are the key block, itself base64.
 	key := body[len(body)-dlcKeyLen:]
 	raw, err := base64.StdEncoding.DecodeString(key)
 	if err != nil {
@@ -164,9 +134,8 @@ func ValidateDLC(data []byte) error {
 	return nil
 }
 
-// isDLC is the structural test Detect uses: base64 throughout and long enough
-// to carry a key block. Deliberately looser than ValidateDLC, which is there
-// to explain a rejection rather than to classify.
+// isDLC is Detect's structural test: base64 throughout and long enough to
+// carry a key block. ValidateDLC is stricter and explains a rejection.
 func isDLC(data []byte) bool {
 	body := strings.TrimSpace(string(data))
 	return len(body) > dlcKeyLen && isBase64(body)
@@ -199,13 +168,9 @@ func isHexBlob(data []byte) bool {
 	return n > 0
 }
 
-// looksLikeLinks reports whether the bytes are a link list. It requires an
-// actual scheme rather than merely being printable, because "printable" is
-// also true of a README, and staging a README's every word as a download is
-// worse than refusing the file.
+// looksLikeLinks reports whether the first 8 KiB contain a link scheme. Being
+// printable is not enough, or a README would be queued word by word.
 func looksLikeLinks(data []byte) bool {
-	// Only the head is examined: a link list announces itself immediately, and
-	// scanning eight megabytes to answer a yes/no question is wasted work.
 	head := data
 	if len(head) > 8<<10 {
 		head = head[:8<<10]
@@ -215,17 +180,9 @@ func looksLikeLinks(data []byte) bool {
 		strings.Contains(s, "magnet:?")
 }
 
-// parseText pulls the links out of a text file, sharing the one scanner
-// every other intake path uses (internal/linkscan) rather than a second,
-// looser splitter of its own - a wave that only fixed the paste box would
-// leave a container's own .txt list unable to rejoin a mail-wrapped link or
-// tell a matched Wikipedia-style bracket from an unmatched one, exactly the
-// gap this delegation exists to close. Links above has already turned the
-// file down when it holds nothing scheme-shaped at all (see looksLikeLinks
-// and Detect), so parseText itself always applies the full scanner, with
-// none of the settings-driven off switch POST /api/links has: a container
-// is a file somebody deliberately handed over as a link list, not free-form
-// prose that might not be one.
+// parseText pulls the links out of a text file with the scanner every other
+// intake path uses. A container is always scanned fully, since somebody
+// handed it over as a link list.
 func parseText(s string) []string {
 	return linkscan.Extract(s)
 }

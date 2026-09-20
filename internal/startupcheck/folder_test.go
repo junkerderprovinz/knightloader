@@ -75,14 +75,13 @@ func TestFolderProbeWritesAndTakesItBack(t *testing.T) {
 	}
 }
 
-// TestProbeNameHidesFromTheWatchFolderAndIsUniquePerPass covers the two
-// properties of the file name that are not cosmetic.
+// Two properties of the file name that are not cosmetic.
 //
-// The dot: internal/watch/poller.go picks up any .txt/.crawljob in the watched
-// folder that does NOT start with one, so a visibly named probe dropped there is
-// read as a link list and staged as downloads.
+// The dot: internal/watch/poller.go picks up any .txt or .crawljob in the
+// watched folder that does not start with one, so a visibly named probe
+// dropped there is read as a link list and staged as downloads.
 //
-// The uniqueness: both probes this app already has use fixed names, and two
+// The uniqueness: the other two probes in this app use fixed names, and two
 // instances sharing one share would each delete the other's and both report
 // failure.
 func TestProbeNameHidesFromTheWatchFolderAndIsUniquePerPass(t *testing.T) {

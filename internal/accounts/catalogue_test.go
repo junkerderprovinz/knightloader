@@ -2,11 +2,6 @@ package accounts
 
 import "testing"
 
-// TestCatalogueIntegrity guards the properties every consumer of Catalogue is
-// entitled to assume without re-checking: no entry is missing the fields the
-// accounts page needs to render it, no id repeats (a duplicate id would make
-// Store.Get ambiguous about which entry it belongs to), and Kind/Group only
-// ever hold one of the values this package defines.
 func TestCatalogueIntegrity(t *testing.T) {
 	seen := map[string]bool{}
 	for _, svc := range Catalogue {
@@ -47,13 +42,8 @@ func TestLookup(t *testing.T) {
 	}
 }
 
-// TestCaptchaSolverEntries guards the two facts internal/captcha's solver
-// clients and internal/settings' sanitizeCaptcha both depend on by the
-// literal id string, with no shared Go constant tying them together (see
-// catalogue.go's own doc comment: ids are coordinated by convention, the
-// same way "torbox"/"alldebrid"/"realdebrid" already are) - a rename here
-// with no matching update there would silently orphan every stored solver
-// key.
+// TestCaptchaSolverEntries pins the solver ids, which internal/captcha and
+// internal/settings match by literal string.
 func TestCaptchaSolverEntries(t *testing.T) {
 	for _, id := range []string{"2captcha", "anticaptcha"} {
 		svc, ok := Lookup(id)
@@ -61,7 +51,7 @@ func TestCaptchaSolverEntries(t *testing.T) {
 			t.Fatalf("Lookup(%q) not found", id)
 		}
 		if svc.Kind != KindAPIKey {
-			t.Errorf("%s: kind = %q, want apiKey - both services issue a single key", id, svc.Kind)
+			t.Errorf("%s: kind = %q, want apiKey", id, svc.Kind)
 		}
 		if svc.Group != GroupCaptchaSolver {
 			t.Errorf("%s: group = %q, want captchaSolver", id, svc.Group)

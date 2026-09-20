@@ -1,12 +1,10 @@
 package idleaction
 
-// Everything in this file runs against handmade errors and a fake lookPath.
-// NOTHING HERE SPAWNS A PROCESS, which is the whole reason Runner and
-// Preflight's lookPath are injected in the first place - a test suite that
-// shells out is a test suite that fails differently on every machine and on
-// CI, and internal/reconnect made exactly this call for exactly this reason.
-// It is also why Classify matches an ExitCode() interface: the concrete
-// *exec.ExitError cannot be built without running something.
+// Everything in this file runs against handmade errors and a fake lookPath,
+// so nothing here spawns a process: a suite that shells out fails differently
+// on every machine. That is also why Classify matches an ExitCode interface,
+// since the concrete *exec.ExitError cannot be built without running
+// something.
 
 import (
 	"context"
@@ -42,10 +40,9 @@ func TestCommandSanitizeClampsTheTimeout(t *testing.T) {
 func TestCommandSanitizeTrimsTheProgramAndDropsBlankArgs(t *testing.T) {
 	got := CommandSpec{
 		Program: "  /usr/bin/systemctl \n",
-		// The third one is not blank and must survive with its spaces: an
-		// argument may legitimately have them, and quietly trimming produces
-		// a command that fails with a message from the program that never
-		// mentions the reason.
+		// The third one is not blank and keeps its spaces: an argument may
+		// legitimately have them, and trimming leaves a command that fails
+		// with a message that never mentions the reason.
 		Args: []string{"suspend", "   ", " --now "},
 	}.Sanitize()
 	if got.Program != "/usr/bin/systemctl" {
@@ -60,9 +57,9 @@ func TestCommandSanitizeTrimsTheProgramAndDropsBlankArgs(t *testing.T) {
 }
 
 func TestCommandSanitizeKeepsAnEmptyProgramRatherThanInventingOne(t *testing.T) {
-	// The empty spec is the normal state of every install that has never
-	// configured a command, and it must stay empty: a default program here
-	// would be this package deciding what to run on somebody's machine.
+	// The empty spec is the normal state of an install that has never
+	// configured a command, and a default program here would be this package
+	// deciding what to run on somebody's machine.
 	got := CommandSpec{}.Sanitize()
 	if got.Program != "" {
 		t.Errorf("Program = %q, want it left empty", got.Program)
@@ -72,7 +69,6 @@ func TestCommandSanitizeKeepsAnEmptyProgramRatherThanInventingOne(t *testing.T) 
 	}
 }
 
-// TestPreflightNeverRuns is the promise the whole button rests on.
 func TestPreflightNeverRuns(t *testing.T) {
 	looked := 0
 	spec := CommandSpec{Program: "systemctl", Args: []string{"suspend"}}
@@ -115,10 +111,10 @@ func TestPreflightReportsEachProblem(t *testing.T) {
 			spec: CommandSpec{Program: "systemctl", Args: []string{"suspend", "--now"}},
 			look: func(n string) (string, error) { return "/usr/bin/" + n, nil },
 			want: ProblemNone,
-			// The RESOLVED path leads the vector, not the word the operator
+			// The resolved path leads the vector, not the word the operator
 			// typed: "systemctl" resolving to /usr/bin/systemctl and
-			// "systemctl" resolving to nothing are different problems with
-			// different fixes, and only the resolved form says which.
+			// resolving to nothing are different problems with different
+			// fixes, and only the resolved form says which.
 			wantArg: []string{"/usr/bin/systemctl", "suspend", "--now"},
 		},
 	}
@@ -150,10 +146,9 @@ func TestClassify(t *testing.T) {
 	}{
 		{name: "a clean run", want: ProblemNone},
 		{
-			// Checked before err == nil on purpose - see Classify. A killed
-			// program reported as a clean run would tell the operator the
-			// machine went to sleep when what happened is that we stopped
-			// waiting to find out.
+			// Checked before err == nil, see Classify. A killed program
+			// reported as a clean run would claim the machine went to sleep
+			// when we only stopped waiting to find out.
 			name: "killed at the deadline, even with no error", timedOut: true, want: ProblemTimeout,
 		},
 		{name: "killed at the deadline with an error too", err: context.DeadlineExceeded, timedOut: true, want: ProblemTimeout},
@@ -190,35 +185,32 @@ func TestClassify(t *testing.T) {
 
 // exitErr stands in for an *exec.ExitError carrying a known status.
 //
-// os.ProcessState cannot be built by hand - its fields are unexported and
-// there is no constructor - so the only way to get a real one is to spawn a
-// process that fails, and this package's whole testing stance is that nothing
-// here spawns anything. Classify matches an ExitCode() interface rather than
-// the concrete type for exactly this reason (see its own comment); the
-// production error satisfies it and so does this.
+// os.ProcessState cannot be built by hand, so a real one would mean spawning a
+// process that fails. Classify matches an ExitCode interface instead, which
+// the production error satisfies and so does this.
 type exitErr int
 
 func (e exitErr) Error() string { return "exit status " + string(rune('0'+int(e))) }
 func (e exitErr) ExitCode() int { return int(e) }
 
 func TestCommandRedactionRoundTrip(t *testing.T) {
-	// The shape the settings form actually produces: the page is shown the
-	// redacted spec and sends it straight back with only the timeout changed.
+	// The shape the settings form produces: the page is shown the redacted
+	// spec and sends it back with only the timeout changed.
 	stored := CommandSpec{Program: "/usr/bin/wget", Args: []string{"--header=Authorization: Bearer abc123", "http://nas/suspend"}, TimeoutSeconds: 60}
 	shown := stored.Redacted()
 	if shown.Program != RedactedCommand {
 		t.Errorf("Program = %q, want it hidden", shown.Program)
 	}
 	if len(shown.Args) != 2 {
-		t.Fatalf("Args = %q, want the COUNT kept so the page can say how many there are", shown.Args)
+		t.Fatalf("Args = %q, want the count kept so the page can say how many there are", shown.Args)
 	}
 	for i, a := range shown.Args {
 		if a != RedactedCommand {
-			t.Errorf("Args[%d] = %q, want it hidden - a token lives in an argument far more often than in a path", i, a)
+			t.Errorf("Args[%d] = %q, want it hidden; a token lives in an argument more often than in a path", i, a)
 		}
 	}
 	if shown.TimeoutSeconds != 60 {
-		t.Errorf("TimeoutSeconds = %d, want the number left alone: it gives nothing away and the form needs it", shown.TimeoutSeconds)
+		t.Errorf("TimeoutSeconds = %d, want the number left alone: the form needs it", shown.TimeoutSeconds)
 	}
 
 	back := shown
@@ -236,9 +228,8 @@ func TestCommandRedactionRoundTrip(t *testing.T) {
 }
 
 func TestAnEmptyProgramStillClearsTheStoredOne(t *testing.T) {
-	// The one case a placeholder must never swallow. Without this, a command
-	// could be configured once and never removed through the form again -
-	// the same rule reconnect.RedactedPassword's own comment states.
+	// The one case a placeholder must not swallow: without it, a command
+	// could be configured once and never removed through the form again.
 	stored := CommandSpec{Program: "/usr/bin/wget", Args: []string{"http://nas/suspend"}}
 	got := CommandSpec{Program: "", Args: nil}.WithSecretsFrom(stored)
 	if got.Program != "" {
@@ -260,10 +251,9 @@ func TestRetypingOnlyTheProgramKeepsTheArguments(t *testing.T) {
 	}
 }
 
-// TestRedactInKeepsTheCommandLineOutOfTheLog is the second door on the same
-// secret: the settings document is redacted, and this is what stops a program
-// echoing its own arguments back into a log line that the diagnostics bundle
-// then copies verbatim.
+// The second door on the same secret: the settings document is redacted, and
+// this stops a program echoing its own arguments into a log line the
+// diagnostics bundle copies verbatim.
 func TestRedactInKeepsTheCommandLineOutOfTheLog(t *testing.T) {
 	spec := CommandSpec{Program: "/usr/bin/wget", Args: []string{"--header=Authorization: Bearer abc123"}}
 	out := spec.RedactIn("wget: unrecognised option '--header=Authorization: Bearer abc123'\nusage: /usr/bin/wget [option]...")

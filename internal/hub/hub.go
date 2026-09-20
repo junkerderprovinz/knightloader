@@ -39,20 +39,16 @@ type client struct {
 	conn Conn
 	send chan []byte
 	// quit is closed exactly once, by stop, to end the writer goroutine. The
-	// send channel is deliberately never closed: Broadcast pushes into it
-	// without holding the hub lock, so closing it would race a live send.
+	// send channel is never closed: Broadcast pushes into it without holding
+	// the hub lock, so closing it would race a live send.
 	quit chan struct{}
 	once sync.Once
 
-	// subs is the set of Broadcast kinds this connection wants, or nil for
-	// every connection until it asks otherwise. That is the default every
-	// consumer before Subscribe existed was already written against, and it
-	// stays exactly that for any connection that never sends a subscribe
-	// message.
+	// subs is the set of Broadcast kinds this connection wants, nil until it
+	// asks for a narrower set, which means everything.
 	//
 	// Read and written only under the owning Hub's mu, same as the map that
-	// holds this client; it is not its own little lock, so wants (below)
-	// must never be called without mu already held.
+	// holds this client, so wants must not be called without mu held.
 	subs map[string]bool
 }
 
@@ -162,10 +158,8 @@ func (h *Hub) Broadcast(typ string, data any) {
 	}
 	h.mu.Unlock()
 	// The marshalled message is shared by every queue; nothing writes to it
-	// after this point, so one copy is enough. enqueue is called outside mu
-	// deliberately (unchanged from before this filter existed): a full queue
-	// makes it call Remove, which re-takes mu, and Go's Mutex is not
-	// reentrant.
+	// after this point, so one copy is enough. enqueue runs outside mu because
+	// a full queue makes it call Remove, which takes mu again.
 	for _, cl := range clients {
 		h.enqueue(cl, msg)
 	}
@@ -173,16 +167,14 @@ func (h *Hub) Broadcast(typ string, data any) {
 
 // Subscribe narrows which Broadcast kinds a connection receives from then on.
 //
-// The first call on a connection narrows it from the default "everything" to
-// exactly the named kinds; a later call only ADDS to whatever set is already
-// in force, so two subscribe calls compose rather than the second discarding
-// the first. Send every kind you want in one call if that is not the
-// intent. A kind of "*" resets to "everything" rather than being treated as a
-// literal type nothing ever broadcasts under, which is the way back out of a
-// narrowed stream without enumerating every kind this build knows about.
+// The first call narrows a connection from "everything" to the named kinds; a
+// later call adds to the set already in force, so two calls compose rather
+// than the second replacing the first. A kind of "*" resets to "everything",
+// which is the way out of a narrowed stream without enumerating every kind
+// this build knows.
 //
-// Subscribing an unregistered connection (Add has not run, or Remove already
-// has) is a no-op: there is no client entry for a set to live on.
+// Subscribing an unregistered connection is a no-op: there is no client entry
+// for a set to live on.
 func (h *Hub) Subscribe(c Conn, kinds []string) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
@@ -207,9 +199,8 @@ func (h *Hub) Subscribe(c Conn, kinds []string) {
 // Unsubscribe removes kinds from a connection's own allowlist.
 //
 // It is a no-op on a connection that never called Subscribe: there is no
-// allowlist yet to remove from, and turning that into "everything except
-// these" would need a second, opposite kind of filter (a blocklist) this
-// package does not otherwise have. Subscribe with the kinds actually wanted
+// allowlist to remove from, and "everything except these" would need a
+// blocklist this package does not have. Subscribe with the kinds wanted
 // instead.
 func (h *Hub) Unsubscribe(c Conn, kinds []string) {
 	h.mu.Lock()

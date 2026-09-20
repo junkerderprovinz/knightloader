@@ -12,9 +12,9 @@ type Clock interface {
 	Now() time.Time
 	// After returns a channel that fires once d has passed, together with a
 	// function that releases the timer when the wait is abandoned. Abandoning is
-	// the normal case here — every saved settings page cuts one short — and a
-	// wait can be a week long, so a timer nobody releases sits in the runtime for
-	// that whole week.
+	// the normal case here, since every saved settings page cuts one short,
+	// and a wait can be a week long, so a timer nobody releases sits in the
+	// runtime for that whole week.
 	After(d time.Duration) (<-chan time.Time, func())
 }
 
@@ -39,8 +39,8 @@ type Options struct {
 
 	// Base reports the state to fall back to where no entry applies: the speed
 	// limit and pause switch the user set by hand. It is read again on every pass,
-	// so the timetable never has to be reloaded to pick up a new manual limit —
-	// but a change made while the loop is asleep only reaches Apply at the next
+	// so the timetable never has to be reloaded to pick up a new manual limit.
+	// A change made while the loop is asleep only reaches Apply at the next
 	// boundary, so a caller that wants it reflected at once calls Set. Nil means
 	// the zero state.
 	Base func() State

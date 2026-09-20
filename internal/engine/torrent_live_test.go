@@ -11,22 +11,16 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/testenv"
 )
 
-// sintelMagnet is the Blender Foundation's Sintel: public domain, permanently
-// and heavily seeded, and the torrent anacrolix's own test suite leans on. A
-// run that finds no swarm here is a network that cannot reach one, not a dead
-// torrent.
+// sintelMagnet is the Blender Foundation's Sintel: public domain and heavily
+// seeded. A run that finds no swarm here cannot reach one at all.
 const sintelMagnet = "magnet:?xt=urn:btih:08ada5a7a6183aae1e09d831df6748d566095a10&dn=Sintel&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A6969%2Fannounce&tr=udp%3A%2F%2Fexplodie.org%3A6969&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce"
 
-// unsharedMagnet is a syntactically perfect magnet for a torrent that does not
-// exist. Not all zeroes: that one is refused before it gets anywhere near a
-// swarm, because the torrent client panics on it (see torrent.checkMagnet), and
-// a test that used it would be testing the refusal rather than the wait.
+// unsharedMagnet is a valid magnet for a torrent that does not exist. An
+// all-zero hash would be refused before any wait (see torrent.checkMagnet).
 const unsharedMagnet = "magnet:?xt=urn:btih:1111111111111111111111111111111111111111"
 
-// taskSink is a core.Task behind the same lock every reader and writer of it
-// uses. The updates arrive on the engine's own goroutines and the test body
-// reads on its own, and Wave 8 shipped two CI-only races by not doing this in
-// exactly this shape.
+// taskSink is a core.Task behind a lock, since updates arrive on the engine's
+// goroutines while the test reads on its own.
 type taskSink struct {
 	mu sync.Mutex
 	t  core.Task
@@ -50,7 +44,6 @@ func (s *taskSink) apply(_ string, u core.Update) {
 	if u.Err != "" {
 		s.t.Error = u.Err
 	}
-	// The one line the app itself has to gain, and the reason it is one line.
 	if u.Torrent != nil {
 		u.Torrent.ApplyTo(&s.t)
 	}
@@ -62,36 +55,23 @@ func (s *taskSink) snapshot() core.Task {
 	return s.t
 }
 
-// THE END-TO-END PROOF. A real magnet link, the real embedded engine, no mock
-// of gopeed anywhere: the swarm's own peer and seed counts have to arrive on
-// core.Task's new fields by the ordinary update path, because that is the only
-// thing that shows the whole chain is connected. Every part of it was
-// individually plausible and one of them - which field Seeding comes from - was
-// wrong in the obvious reading.
+// TestARealMagnetPutsRealSwarmNumbersOnTheTask runs a real magnet through the
+// real engine and checks that swarm numbers reach the task by the ordinary
+// update path.
 func TestARealMagnetPutsRealSwarmNumbersOnTheTask(t *testing.T) {
 	testenv.RequireWideListener(t)
 	if testing.Short() {
 		t.Skip("this joins a real BitTorrent swarm")
 	}
 	if raceEnabled {
-		// Not this package's race: gopeed v1.9.3's own bt.Fetcher reads and
-		// writes its upload-byte counter from two of its own goroutines with
-		// no lock between them (internal/protocol/bt/fetcher.go's doUpload
-		// vs. UploadedBytes/seedRadio), reachable only by real, sustained
-		// swarm activity - a synthetic test cannot force it and this
-		// package's own code never touches that counter directly, only the
-		// public Stats() this test calls through core.TorrentStats.ApplyTo.
-		// Caught live on 2026-08-11 by exactly this test under CI's -race
-		// run, real peers and seeds already on the task (see the CI log this
-		// wave's own commit history points to) - not a false positive, a
-		// real bug, just not one this repository's code can fix without
-		// patching a pinned third-party module. The non-race Test step still
-		// runs this test on every CI run, which is what actually proves the
-		// feature works.
-		t.Skip("gopeed v1.9.3's own bt.Fetcher has an internal data race under real upload activity - see comment")
+		// gopeed v1.9.3's bt.Fetcher updates its upload counter from two
+		// goroutines without a lock (doUpload against UploadedBytes), which
+		// only real swarm traffic reaches. The fix belongs in gopeed; the
+		// non-race test run still covers this.
+		t.Skip("gopeed v1.9.3's own bt.Fetcher has an internal data race under real upload activity; see comment")
 	}
-	// Not t.TempDir: the torrent client can still be holding a .part file when
-	// the test body returns, and TempDir's own cleanup fails the test over it.
+	// Not t.TempDir: the torrent client can still hold a .part file when the
+	// test returns, which fails TempDir's cleanup.
 	dir, err := os.MkdirTemp("", "kl-bt-live-*")
 	if err != nil {
 		t.Fatal(err)
@@ -104,8 +84,6 @@ func TestARealMagnetPutsRealSwarmNumbersOnTheTask(t *testing.T) {
 		t.Fatalf("New: %v", err)
 	}
 	defer e.Close()
-	// Long enough for a real swarm to answer, short enough that a runner with
-	// no way out to the internet says so instead of sitting there.
 	e.SetMetadataTimeout(60 * time.Second)
 
 	const id = "live-1"
@@ -118,13 +96,10 @@ func TestARealMagnetPutsRealSwarmNumbersOnTheTask(t *testing.T) {
 		time.Sleep(500 * time.Millisecond)
 		got = sink.snapshot()
 		if got.Status == core.StatusError {
-			// A runner with no outbound UDP, or no route at all, cannot join a
-			// swarm and there is nothing this test can say about the code.
 			t.Skipf("could not reach a swarm from this machine: %s", got.Error)
 		}
 		if !paused && got.Peers > 0 {
-			// Stop pulling data the moment the numbers are real. The proof is
-			// the peer count, not the film.
+			// The peer count is the proof; no need to fetch the film.
 			e.Pause(id)
 			paused = true
 		}
@@ -143,22 +118,9 @@ func TestARealMagnetPutsRealSwarmNumbersOnTheTask(t *testing.T) {
 	if got.Peers <= 0 {
 		t.Fatalf("Peers = %d after 90s; the swarm numbers never reached the task", got.Peers)
 	}
-	// Seeding must be false WHILE THE FILM IS STILL COMING DOWN, and this is
-	// not a throwaway assertion: the field it is derived from,
-	// download.Task.Uploading, is TRUE for every torrent task from the moment
-	// it is created. A build that read that field straight through would
-	// report a still-downloading torrent as seeding, and Wave 10's idle
-	// detection would then stop counting it as work owed.
-	//
-	// THE CONDITION IS NEW AND IT IS NOT A WEAKENING. The old version asserted
-	// this unconditionally, on the assumption that 123 MiB cannot arrive inside
-	// the few seconds it takes the swarm to answer. On a CI runner it can:
-	// 2026-09-13, "a torrent that is still downloading reported itself as
-	// seeding", while four local runs passed with uploaded=0 and the download
-	// barely started - this line is ten times slower than a datacentre's. And a
-	// finished torrent reporting Seeding is not the bug, it is the FEATURE (see
-	// the neighbouring test, which proves exactly that pair). So the guard now
-	// says what it always meant, and the case it was written for still fails it.
+	// Seeding must be false while the download is incomplete, since
+	// Task.Uploading is true from creation. On a fast runner the whole film
+	// can arrive before the pause, and a finished torrent seeding is correct.
 	done := got.Size > 0 && got.Loaded >= got.Size
 	if !done && got.Seeding {
 		t.Fatalf("a torrent that is still downloading reported itself as seeding (%d of %d bytes)", got.Loaded, got.Size)
@@ -173,30 +135,19 @@ func TestARealMagnetPutsRealSwarmNumbersOnTheTask(t *testing.T) {
 		got.Peers, got.Seeds, got.Uploaded, got.Ratio, got.Size)
 }
 
-// THE FLAG, PROVEN AGAINST A REAL SWARM. A finished torrent has to come out of
-// this as StatusDone with Seeding set beside it, and never as a status of its
-// own: build-plan section 4 conflict 2, unbroken since Wave 1. It is the pair
-// that matters - a build that made seeding a status would pass an assertion
-// about seeding and quietly break every exhaustive mapping of the seven.
-//
-// It downloads one subtitle file out of Sintel to get there in seconds instead
-// of minutes. The index is hardcoded and that is safe in a way a hardcoded
-// index usually is not: a torrent's file list is inside its info hash, so the
-// magnet at the top of this file cannot ever name a different list of files
-// without becoming a different magnet.
+// TestAFinishedTorrentIsDoneWithASeedingFlagBesideIt checks against a real
+// swarm that a finished torrent is StatusDone with Seeding set, not a status
+// of its own. It fetches one subtitle file; the index is stable because the
+// file list is part of the info hash.
 func TestAFinishedTorrentIsDoneWithASeedingFlagBesideIt(t *testing.T) {
 	testenv.RequireWideListener(t)
 	if testing.Short() {
 		t.Skip("this joins a real BitTorrent swarm")
 	}
 	if raceEnabled {
-		// This test does not merely risk gopeed's own upload-counter race
-		// (see TestARealMagnetPutsRealSwarmNumbersOnTheTask's identical
-		// comment) - it actively waits for Seeding to become true, which
-		// means waiting specifically for the upload activity that triggers
-		// it. Skipped for the same reason, same fix owner (gopeed, not this
-		// repository).
-		t.Skip("gopeed v1.9.3's own bt.Fetcher has an internal data race under real upload activity - see TestARealMagnetPutsRealSwarmNumbersOnTheTask")
+		// Waiting for Seeding means waiting for the upload activity that
+		// triggers gopeed's race; see TestARealMagnetPutsRealSwarmNumbersOnTheTask.
+		t.Skip("gopeed v1.9.3's own bt.Fetcher has an internal data race under real upload activity; see TestARealMagnetPutsRealSwarmNumbersOnTheTask")
 	}
 	dir, err := os.MkdirTemp("", "kl-bt-seed-*")
 	if err != nil {
@@ -240,12 +191,9 @@ func TestAFinishedTorrentIsDoneWithASeedingFlagBesideIt(t *testing.T) {
 	if !got.Seeding {
 		t.Fatal("a finished torrent is not seeding; the flag never reached the task")
 	}
-	// The size shown is the selection's, not the whole 129 MB torrent - the
-	// download library does not recompute it on this path, so the engine does.
 	if got.Size != 1514 {
 		t.Fatalf("Size = %d, want the 1514 bytes actually asked for", got.Size)
 	}
-	// And still a status the rest of the app already understands.
 	for _, s := range []core.Status{core.StatusCollected, core.StatusQueued, core.StatusRunning, core.StatusPaused, core.StatusExtracting, core.StatusDone, core.StatusError} {
 		if got.Status == s {
 			return
@@ -254,9 +202,8 @@ func TestAFinishedTorrentIsDoneWithASeedingFlagBesideIt(t *testing.T) {
 	t.Fatalf("Status = %q, which is not one of the seven", got.Status)
 }
 
-// A magnet nobody is sharing must fail with a sentence rather than sit in the
-// list forever. Downloader.Resolve takes no context and blocks inside the
-// torrent client, so this deadline is the only thing that ends the wait.
+// TestAMagnetNobodyIsSharingFailsWithAReason: the metadata deadline is the
+// only thing that ends the wait for an unshared magnet.
 func TestAMagnetNobodyIsSharingFailsWithAReason(t *testing.T) {
 	testenv.RequireWideListener(t)
 	if testing.Short() {
@@ -276,7 +223,6 @@ func TestAMagnetNobodyIsSharingFailsWithAReason(t *testing.T) {
 	defer e.Close()
 	e.SetMetadataTimeout(2 * time.Second)
 
-	// An info hash of all zeroes, with no trackers. Nothing is sharing it.
 	e.DownloadTorrent("dead-1", unsharedMagnet, dir, nil)
 
 	deadline := time.Now().Add(30 * time.Second)
@@ -292,9 +238,6 @@ func TestAMagnetNobodyIsSharingFailsWithAReason(t *testing.T) {
 	t.Fatal("a magnet nobody is sharing never settled; it would sit in the list forever")
 }
 
-// Close has to wait for what it started. Before the engine counted its own
-// goroutines, a magnet mid-resolve was still calling into the download library
-// while the library was being torn down underneath it.
 func TestCloseWaitsForTheTorrentGoroutinesItStarted(t *testing.T) {
 	testenv.RequireWideListener(t)
 	if testing.Short() {
@@ -321,7 +264,6 @@ func TestCloseWaitsForTheTorrentGoroutinesItStarted(t *testing.T) {
 	case <-time.After(30 * time.Second):
 		t.Fatal("Close hung; the resolve wait does not observe shutdown")
 	}
-	// And a second Close must not panic on an already-closed channel: the app
-	// shuts down from more than one place.
+	// A second Close must not panic on an already-closed channel.
 	_ = e.Close()
 }

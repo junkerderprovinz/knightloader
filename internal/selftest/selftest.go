@@ -1,59 +1,49 @@
 // Package selftest is the vocabulary one instance uses to describe itself to
 // its own operator: seven checks, each answered with a typed status, a stable
-// code, the substitutions that code's sentence needs, and - where somebody
-// else did the talking - that other side's own untranslated words.
+// code, the substitutions that code's sentence needs, and, where somebody else
+// did the talking, that other side's own untranslated words.
 //
-// WHY A PACKAGE AND NOT A STRUCT INSIDE internal/app. Two of the three things
-// here are pure functions over strings and clocks (the yt-dlp version parser,
-// the zone reading), and pure is exactly what makes them testable: a version
-// parser that lives on *App can only be exercised by building an App, opening
-// a store and mocking a process, which is three moving parts guarding one
-// regexp. The third thing, the Result/Run vocabulary, is shared by the runner
-// (internal/app) and the route (internal/api), and a type owned by one of
-// those two would make the other import it for a reason that has nothing to do
-// with what that package is for.
+// A package rather than a struct inside internal/app, because two of the three
+// things here are pure functions over strings and clocks (the yt-dlp version
+// parser, the zone reading), and a version parser living on *App could only be
+// exercised by building an App, opening a store and mocking a process. The
+// third, the Result and Run vocabulary, is shared by the runner (internal/app)
+// and the route (internal/api), and a type owned by one would make the other
+// import it for an unrelated reason.
 //
-// WHAT IS DELIBERATELY NOT HERE: the checks themselves. Every one of them
-// needs the App - the credentials, the folders, the JD address, the relay's
-// live socket - so the runner lives in internal/app/app_selftest.go and this
-// package never learns what an account is. That split is the same one
-// internal/portmap and internal/proxycfg already keep: the vocabulary and the
-// pure logic here, the wiring where the state is.
+// The checks themselves are not here. Every one of them needs the App: the
+// credentials, the folders, the JD address, the relay's live socket. So the
+// runner lives in internal/app/app_selftest.go and this package never learns
+// what an account is, the split internal/portmap and internal/proxycfg keep.
 //
-// THE INTERFACE PICKS THE WORDS. Nothing in this package produces a sentence
-// for a person to read. It produces a Code, and the browser looks that code's
-// sentence up in whichever of the forty-two locales is loaded - the same rule
-// reconnect.ConfigProblem.Code and portmap's Reason constants already state,
-// and for the same reason: the server has no idea which language is in front
-// of the person who pressed the button. The one exception is Detail, which is
-// somebody ELSE's sentence (a router's fault string, a provider's refusal, a
-// Go transport error) and is passed through verbatim rather than being
-// paraphrased into a code that would lose what it said.
+// The interface picks the words. Nothing here produces a sentence for a person
+// to read; it produces a Code, and the browser looks that code's sentence up
+// in whichever locale is loaded, the rule reconnect.ConfigProblem.Code and
+// portmap's Reason constants follow. The one exception is Detail, which is
+// somebody else's sentence (a router's fault string, a provider's refusal, a
+// Go transport error) and is passed through verbatim.
 package selftest
 
 import "time"
 
 // Status is how one check came out.
 //
-// FIVE VALUES, AND THE LAST TWO ARE THE POINT. "skipped" and "unknown" are
-// different answers and collapsing them is the single easiest mistake in this
-// whole feature - the same distinction internal/diskspace's second return
-// value exists to keep, where "this platform cannot be asked" had to stay
-// apart from "zero bytes free" or every guard in the app would stop a healthy
-// machine.
+// Five values, and the last two matter most. "skipped" and "unknown" are
+// different answers, the distinction internal/diskspace's second return value
+// keeps between "this platform cannot be asked" and "zero bytes free":
 //
 //   - skipped: there is nothing configured here to check. The relay is
 //     switched off; no debrid account exists; JD provisioning was opted out
 //     of. Nothing is wrong and nothing needs doing.
-//   - unknown: it IS configured, and this build cannot find out. The torrent
+//   - unknown: it is configured and this build cannot find out. The torrent
 //     port is set and only a machine outside this network could say whether it
 //     is reachable; the platform has no way to measure a volume. Something
-//     might well be wrong and this instance is not the one that can say.
+//     might be wrong and this instance is not the one that can say.
 //
-// Neither is ever rendered as the word "off". A relay somebody deliberately
-// switched off is described as their own choice ("you have switched the relay
-// off"), not labelled with a status word, because a status word invites the
-// reading that the app decided something.
+// Neither is rendered as the word "off". A relay somebody switched off is
+// described as their own choice ("you have switched the relay off") rather
+// than labelled with a status word, which would suggest the app decided
+// something.
 type Status string
 
 const (
@@ -67,8 +57,8 @@ const (
 	// not answer, a folder this process cannot write into, a login the
 	// provider refused.
 	StatusFail Status = "fail"
-	// StatusSkipped is "nothing is configured here" - see the type's own
-	// comment for why this must never merge with StatusUnknown.
+	// StatusSkipped is "nothing is configured here". See the type's comment
+	// for why it stays apart from StatusUnknown.
 	StatusSkipped Status = "skipped"
 	// StatusUnknown is "configured, and this build cannot find out".
 	StatusUnknown Status = "unknown"
@@ -89,8 +79,8 @@ const (
 	// about or a parent of it.
 	CheckFolders = "folders"
 	// CheckAccounts is every configured debrid login, asked whether it still
-	// works. The ONLY check that leaves this machine, and it only ever
-	// reaches providers the operator set up themselves.
+	// works. The only check that leaves this machine, and it reaches only
+	// providers the operator set up themselves.
 	CheckAccounts = "accounts"
 	// CheckRelay is the relay connection as the relay client already knows
 	// it. It dials nothing of its own - see the runner.
@@ -123,9 +113,9 @@ var Order = []string{
 
 // Result is one check, or one row inside one check.
 type Result struct {
-	// ID is a check id from Order, or - inside Rows - the identifier of the
+	// ID is a check id from Order, or, inside Rows, the identifier of the
 	// thing that row describes (a folder path, an account's metaKey). It is
-	// never shown as-is: the page has the name in its own language.
+	// not shown as it stands: the page has the name in its own language.
 	ID string `json:"id"`
 	// Status is the verdict. See Status.
 	Status Status `json:"status"`
@@ -135,20 +125,19 @@ type Result struct {
 	Code string `json:"code"`
 	// Params are that sentence's substitutions: {version}, {days}, {dir},
 	// {measured}, {free}, {port}, {label}. Byte counts travel as decimal
-	// strings of BYTES and are formatted by the browser's own fmtBytes, never
-	// pre-formatted here - a server that writes "4,2 GB" has decided the
-	// reader's language and their thousands separator.
+	// strings of bytes and are formatted by the browser's own fmtBytes: a
+	// server that writes "4,2 GB" has decided the reader's language and their
+	// thousands separator.
 	Params map[string]string `json:"params,omitempty"`
-	// Detail is the OTHER side's own words: a Go error, a provider's refusal,
-	// a router's fault string. English and untranslated on purpose, exactly
-	// as portmap.Result.Detail is - the words did not come from this app, and
-	// paraphrasing them into a code would throw away the only part of the
-	// answer that names the actual problem.
+	// Detail is the other side's own words: a Go error, a provider's refusal,
+	// a router's fault string. English and untranslated, as
+	// portmap.Result.Detail is, because paraphrasing them into a code would
+	// throw away the part of the answer that names the problem.
 	Detail string `json:"detail,omitempty"`
 	// Rows is one level of nesting and no more: one row per debrid account,
-	// one per folder. A tree would need a tree renderer, and nothing here has
-	// ever wanted one - the parent carries the worst of its children's
-	// statuses and the summary sentence, the children carry the specifics.
+	// one per folder. A tree would need a tree renderer. The parent carries
+	// the worst of its children's statuses and the summary sentence, the
+	// children carry the specifics.
 	Rows []Result `json:"rows,omitempty"`
 	// At is when this result landed.
 	At time.Time `json:"at"`
@@ -156,9 +145,9 @@ type Result struct {
 
 // Run is one sweep.
 type Run struct {
-	// ID identifies this sweep. The page holds it so that a result arriving
-	// for a run it did not start - a second tab pressed the button - is
-	// recognisable as such rather than being drawn as its own.
+	// ID identifies this sweep. The page holds it so a result arriving for a
+	// run it did not start, because a second tab pressed the button, is
+	// recognisable rather than drawn as its own.
 	ID string `json:"id"`
 	// StartedAt is when the sweep began.
 	StartedAt time.Time `json:"startedAt"`
@@ -168,10 +157,9 @@ type Run struct {
 	// omitempty has never done anything to one.
 	FinishedAt time.Time `json:"finishedAt,omitzero"`
 	// Planned is every check id this sweep will report, in Order. It is sent
-	// with the very first answer so the page can draw all seven rows as
-	// pending immediately - without it the list grows from nothing and the
-	// reader cannot tell a check that has not run yet from one that is not
-	// part of this build.
+	// with the first answer so the page can draw all seven rows as pending at
+	// once: otherwise the list grows from nothing and the reader cannot tell
+	// a check that has not run yet from one that is not part of this build.
 	Planned []string `json:"planned"`
 	// Results are the checks that have landed, in Order. Never nil: a nil
 	// slice encodes as JSON null and the page that walks it throws instead of
@@ -182,11 +170,10 @@ type Run struct {
 // Worst is the most severe status in a set, for a parent row that summarises
 // its children.
 //
-// The ordering is by how much attention each deserves rather than by any
-// natural order of the words: fail beats warn beats unknown beats skipped
-// beats pass. unknown sits ABOVE skipped deliberately - a parent whose rows
-// are half "not configured" and half "cannot find out" should read as the
-// second, because the second is the one with an open question in it.
+// The ordering is by how much attention each deserves: fail beats warn beats
+// unknown beats skipped beats pass. unknown sits above skipped, so a parent
+// whose rows are half "not configured" and half "cannot find out" reads as the
+// second, the one with an open question in it.
 //
 // An empty set is StatusSkipped: there was nothing to check, which is what a
 // parent with no rows means every time it happens here (no debrid account, no
@@ -204,11 +191,9 @@ func Worst(statuses ...Status) Status {
 	for _, s := range statuses {
 		r, ok := rank[s]
 		if !ok {
-			// A status this function has not been taught about. Left alone
-			// rather than treated as the worst or the best: a value that is
-			// not one of the five is a bug in whatever produced it, and
-			// silently promoting it to "fail" would put an alarm in front of
-			// somebody for a typo in a code path.
+			// A status this function does not know. Left alone rather than
+			// treated as the worst or the best: promoting it to "fail" would
+			// put an alarm in front of somebody for a typo in a code path.
 			continue
 		}
 		if r > best {

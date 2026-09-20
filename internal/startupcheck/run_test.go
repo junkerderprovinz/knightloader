@@ -32,12 +32,11 @@ func sameStrings(a, b []string) bool {
 	return true
 }
 
-// TestRunAnswersForEveryTargetInTheSafeOrder.
-//
-// The order is not cosmetic. The data directory is local and answers instantly;
-// the tools are each bounded by their own deadline; the clock costs nothing; the
-// configured folders are the only rows that can wait on a mount that has gone
-// away, so they go last and only they can be eaten by the total deadline.
+// The order is not cosmetic. The data directory is local and answers
+// instantly, the tools are each bounded by their own deadline, the clock costs
+// nothing, and the configured folders are the only rows that can wait on a
+// mount that has gone away, so they go last and only they can be eaten by the
+// total deadline.
 func TestRunAnswersForEveryTargetInTheSafeOrder(t *testing.T) {
 	base := t.TempDir()
 
@@ -71,18 +70,16 @@ func TestRunAnswersForEveryTargetInTheSafeOrder(t *testing.T) {
 	}
 }
 
-// TestRunTimesOutIntoRowsRatherThanIntoSilence.
-//
-// A pass that ran out of time must still answer for everything it was given. An
-// absent row is invisible - it reads exactly like a folder nobody configured -
-// and a timeout row is a finding somebody can act on.
+// A pass that ran out of time still answers for everything it was given. An
+// absent row is invisible and reads like a folder nobody configured, while a
+// timeout row is a finding somebody can act on.
 //
 // Driven from a cancelled parent rather than from a tiny Total, because Total
 // alone is a race: a context deadline of a nanosecond still fires on a timer,
-// and Windows' timer resolution is coarse enough that two stats against a local
-// temp folder finish first and the test passes for the wrong reason. A cancelled
-// parent is also a state the program genuinely reaches - a boot pass still
-// running when Close cancels a.ctx arrives here exactly like this.
+// and Windows' timer resolution is coarse enough that two stats against a
+// local temp folder finish first and the test passes for the wrong reason. A
+// cancelled parent is also a state the program reaches, when a boot pass is
+// still running as Close cancels a.ctx.
 func TestRunTimesOutIntoRowsRatherThanIntoSilence(t *testing.T) {
 	base := t.TempDir()
 	ctx, cancel := context.WithCancel(context.Background())
@@ -107,11 +104,10 @@ func TestRunTimesOutIntoRowsRatherThanIntoSilence(t *testing.T) {
 	}
 }
 
-// TestRunAppliesItsTotalDeadline proves the budget is a real one rather than a
-// field nothing reads: with a Total of a nanosecond and a real subprocess in
-// front of them, every folder row is past the deadline by the time it is
-// reached. The subprocess is what makes it deterministic - spawning a process
-// costs far more than any timer resolution this could otherwise race.
+// The budget has to be real rather than a field nothing reads: with a Total of
+// a nanosecond and a real subprocess in front of them, every folder row is past
+// the deadline by the time it is reached. The subprocess is what makes it
+// deterministic, since spawning one costs far more than any timer resolution.
 func TestRunAppliesItsTotalDeadline(t *testing.T) {
 	base := t.TempDir()
 
@@ -130,9 +126,8 @@ func TestRunAppliesItsTotalDeadline(t *testing.T) {
 	}
 }
 
-// TestRunNeverAnswersWithANilCheckList. A nil slice encodes as JSON null and the
-// page that walks it throws instead of drawing nothing; app_diskreport.go
-// initialises its own list for exactly this.
+// A nil slice encodes as JSON null and the page that walks it throws instead
+// of drawing nothing, which is why app_diskreport.go initialises its own list.
 func TestRunNeverAnswersWithANilCheckList(t *testing.T) {
 	rep := Run(context.Background(), Input{SkipClock: true})
 	if rep.Checks == nil {
@@ -153,9 +148,8 @@ func TestRunNeverAnswersWithANilCheckList(t *testing.T) {
 	}
 }
 
-// TestRunProbesOnlyWhenAsked is the owner's decision at the level of a whole
-// pass: the boot writes nothing anywhere, and the human press writes into every
-// folder that is there.
+// At the level of a whole pass: the boot writes nothing anywhere, and a press
+// of the button writes into every folder that is there.
 func TestRunProbesOnlyWhenAsked(t *testing.T) {
 	base := t.TempDir()
 	one := filepath.Join(base, "one")

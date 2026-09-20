@@ -185,8 +185,8 @@ func TestEnsureJarRefusesWrongMagicBytes(t *testing.T) {
 	assertNoJar(t, p)
 }
 
-// Right first four bytes, broken archive: the magic-byte check alone would let a
-// truncated (or deliberately padded) download through to the JVM.
+// Right first four bytes, broken archive: the magic-byte check alone would let
+// a truncated or padded download through to the JVM.
 func TestEnsureJarRefusesTruncatedArchive(t *testing.T) {
 	jar := fakeJar(t)
 	srv, _ := serveBody(t, "application/java-archive", jar[:len(jar)/2])
@@ -262,7 +262,7 @@ func TestEnsureJarSkipsFetchWhenAlreadyProvisioned(t *testing.T) {
 		t.Fatal(err)
 	}
 	if n := hits.Load(); n != 0 {
-		t.Errorf("server hits = %d, want 0 — an existing jar was re-downloaded", n)
+		t.Errorf("server hits = %d, want 0; an existing jar was re-downloaded", n)
 	}
 }
 
@@ -311,10 +311,10 @@ func TestEnsureJarRefusesNonOKStatus(t *testing.T) {
 
 const sleeperEnv = "KL_PROVISION_TEST_SLEEPER"
 
-// TestSleeperHelperProcess is not a test of its own: the Stop tests re-execute
-// this binary with sleeperEnv set to get a child process that stays alive until
-// something terminates it. Re-executing ourselves keeps the tests free of any
-// external program and behaves the same on every platform.
+// Not a test of its own: the Stop tests re-execute this binary with sleeperEnv
+// set to get a child process that stays alive until something terminates it.
+// Re-executing the test binary keeps the tests free of any external program
+// and behaves the same on every platform.
 func TestSleeperHelperProcess(t *testing.T) {
 	if os.Getenv(sleeperEnv) != "1" {
 		t.Skip("helper process, not a test")

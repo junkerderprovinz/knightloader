@@ -13,29 +13,27 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
 )
 
-// scriptedDoer answers both halves of a real attempt - the device
-// description GET and the two SOAP POSTs - without ever opening a socket,
-// the same discipline reconnect's own tests hold to (see upnp_test.go's
-// descDoer) and for the same reason: a router discovered on the LAN is not
-// something any test here may actually talk to.
+// scriptedDoer answers both halves of a real attempt, the device description
+// GET and the two SOAP POSTs, without opening a socket, as reconnect's own
+// tests do: a router discovered on the LAN is not something a test may talk
+// to.
 //
 // Requests are dispatched by host: a GET goes to whichever URL was asked
 // for, and a POST is routed to the handler registered for its target host,
 // so a test with two gateways can give each one its own script.
 type scriptedDoer struct {
 	byHost map[string]hostScript
-	// requests records every request actually sent, host included, so a
-	// test can assert a hostile or unreachable candidate was never spoken
-	// to at all rather than only checking the final Result.
+	// requests records every request sent, host included, so a test can
+	// assert that a hostile or unreachable candidate was never spoken to
+	// rather than only checking the final Result.
 	requests []string
 }
 
 type hostScript struct {
 	description string
 	// soap answers a POST by action name. A host with no entry for an
-	// action that is actually called fails the test loudly rather than
-	// silently, because a nil handler here has silently hidden a real bug
-	// in this suite before.
+	// action that is called fails the test rather than returning nothing,
+	// which would hide a real bug.
 	soap map[string]func(reqBody string) (status int, body string)
 }
 
@@ -82,11 +80,9 @@ func actionFromSOAPAction(h string) string {
 	return strings.TrimSuffix(h[i+1:], `"`)
 }
 
-// wanIPDescription is a device description with one WANIPConnection
-// service, nested the way a real gateway nests it - InternetGatewayDevice >
-// WANDevice > WANConnectionDevice - which upnp_test.go's own description()
-// helper notes is load-bearing: a flat service list passes tests a real
-// parser fails.
+// wanIPDescription is a device description with one WANIPConnection service,
+// nested the way a real gateway nests it (InternetGatewayDevice, WANDevice,
+// WANConnectionDevice). A flat service list passes tests a real parser fails.
 func wanIPDescription(controlURL string) string {
 	return `<?xml version="1.0"?><root xmlns="urn:schemas-upnp-org:device-1-0">` +
 		`<device><deviceType>urn:schemas-upnp-org:device:InternetGatewayDevice:1</deviceType>` +
@@ -100,8 +96,8 @@ func wanIPDescription(controlURL string) string {
 }
 
 // noWANServiceDescription is a gateway that answers the search and the
-// description fetch, but is not an internet gateway at all - a printer, a
-// smart-home hub, anything else that speaks SSDP.
+// description fetch but is not an internet gateway: a printer, a smart-home
+// hub, anything else that speaks SSDP.
 func noWANServiceDescription() string {
 	return `<?xml version="1.0"?><root xmlns="urn:schemas-upnp-org:device-1-0">` +
 		`<device><deviceType>urn:schemas-upnp-org:device:Basic:1</deviceType></device></root>`
@@ -150,8 +146,7 @@ func baseRequest() Request {
 	}
 }
 
-// TestAttemptConfirmsAMappingTheRouterReadsBack is the happy path: the
-// router accepts AddPortMapping and its own read-back agrees.
+// The happy path: the router accepts AddPortMapping and its read-back agrees.
 func TestAttemptConfirmsAMappingTheRouterReadsBack(t *testing.T) {
 	doer := &scriptedDoer{byHost: map[string]hostScript{
 		"192.168.1.1": {
@@ -185,13 +180,10 @@ func TestAttemptConfirmsAMappingTheRouterReadsBack(t *testing.T) {
 	}
 }
 
-// TestAttemptSendsTheInjectedLocalIPAsNewInternalClient is the check that
-// closes the loop between localIPFor's own job and what actually reaches
-// the router: a wrong NewInternalClient produces a mapping the router
-// confirms and no real peer can use, silently. This asserts on the literal
-// request body, not just on the Result, because a bug that put the wrong
-// value into the envelope while still reporting Confirmed would pass every
-// other test in this file.
+// A wrong NewInternalClient produces a mapping the router confirms and no peer
+// can use. The assertion is on the request body rather than on the Result,
+// because a bug that put the wrong value into the envelope while still
+// reporting Confirmed would pass every other test in this file.
 func TestAttemptSendsTheInjectedLocalIPAsNewInternalClient(t *testing.T) {
 	var addBody string
 	doer := &scriptedDoer{byHost: map[string]hostScript{
@@ -223,10 +215,9 @@ func TestAttemptSendsTheInjectedLocalIPAsNewInternalClient(t *testing.T) {
 	}
 }
 
-// TestAttemptReportsNoSuchEntryAsFailedNotUnconfirmed is the one case this
-// whole package exists to get right: a router that says yes to
-// AddPortMapping and then, when asked, says there is no such mapping. That
-// is proof, not merely an absence of proof, and Outcome must say Failed.
+// A router that says yes to AddPortMapping and then, when asked, says there is
+// no such mapping. That is proof rather than an absence of proof, so Outcome
+// says Failed.
 func TestAttemptReportsNoSuchEntryAsFailedNotUnconfirmed(t *testing.T) {
 	doer := &scriptedDoer{byHost: map[string]hostScript{
 		"192.168.1.1": {
@@ -251,11 +242,8 @@ func TestAttemptReportsNoSuchEntryAsFailedNotUnconfirmed(t *testing.T) {
 	}
 }
 
-// TestAttemptReportsAnUnimplementedReadBackAsUnconfirmed covers the common,
-// non-failure case docs/torrent-support.md's own risk note names: a router
-// that applies the mapping and simply does not implement the query action.
-// This must read as Unconfirmed, never as Failed and never as a plain
-// success.
+// A router that applies the mapping and does not implement the query action.
+// That reads as Unconfirmed, never as Failed and never as a plain success.
 func TestAttemptReportsAnUnimplementedReadBackAsUnconfirmed(t *testing.T) {
 	doer := &scriptedDoer{byHost: map[string]hostScript{
 		"192.168.1.1": {
@@ -280,12 +268,10 @@ func TestAttemptReportsAnUnimplementedReadBackAsUnconfirmed(t *testing.T) {
 	}
 }
 
-// TestAttemptReportsAMismatchedReadBackAsFailed covers a mapping table that
-// already has this external port pointed somewhere else - a stale entry
-// from a machine that used to have this address, or a second box on the
-// network racing for the same port. The router's own answer disagrees with
-// what was just requested, which is a Failed, not a Confirmed with the
-// wrong facts in it.
+// A mapping table that already has this external port pointed somewhere else:
+// a stale entry from a machine that used to have this address, or a second box
+// racing for the same port. The router's answer disagrees with what was
+// requested, which is Failed rather than Confirmed with the wrong facts in it.
 func TestAttemptReportsAMismatchedReadBackAsFailed(t *testing.T) {
 	doer := &scriptedDoer{byHost: map[string]hostScript{
 		"192.168.1.1": {
@@ -313,10 +299,8 @@ func TestAttemptReportsAMismatchedReadBackAsFailed(t *testing.T) {
 	}
 }
 
-// TestAttemptRollsOverWhenAddPortMappingItselfIsRefused is the case
-// reconnect's own upnp() already handles for ForceTermination/
-// RequestConnection: a service that flatly refuses the action is not the
-// end of the attempt while another candidate remains.
+// A service that refuses the action is not the end of the attempt while
+// another candidate remains, as in reconnect's own upnp.
 func TestAttemptRollsOverWhenAddPortMappingItselfIsRefused(t *testing.T) {
 	doer := &scriptedDoer{byHost: map[string]hostScript{
 		"192.168.1.1": {
@@ -354,9 +338,8 @@ func TestAttemptRollsOverWhenAddPortMappingItselfIsRefused(t *testing.T) {
 	}
 }
 
-// TestAttemptReportsNoGatewayHonestly is the ordinary case for anyone not on
-// a UPnP-capable router at all - most self-hosted boxes behind a consumer
-// modem in bridge mode, notably. It must be Failed/noGateway, not an error
+// The ordinary case for anyone not on a UPnP-capable router, such as a box
+// behind a consumer modem in bridge mode: Failed and noGateway, not an error
 // that reads like a bug in this app.
 func TestAttemptReportsNoGatewayHonestly(t *testing.T) {
 	req := baseRequest()
@@ -372,11 +355,9 @@ func TestAttemptReportsNoGatewayHonestly(t *testing.T) {
 	}
 }
 
-// TestAttemptReportsADiscoveryTransportErrorAsNoGateway covers ssdpSearch's
-// own "could not even send the search" case (no route for multicast at
-// all), which is a different shape of failure from "sent it and nobody
-// answered" but must land in the same honest bucket for a caller that only
-// wants to know whether to suggest UPnP at all.
+// ssdpSearch's "could not send the search at all" case, with no route for
+// multicast. A different failure from "sent it and nobody answered", but the
+// same bucket for a caller that only wants to know whether to suggest UPnP.
 func TestAttemptReportsADiscoveryTransportErrorAsNoGateway(t *testing.T) {
 	req := baseRequest()
 	req.HTTP = &scriptedDoer{byHost: map[string]hostScript{}}
@@ -400,9 +381,8 @@ type errBoomType struct{}
 
 func (errBoomType) Error() string { return "boom" }
 
-// TestAttemptReportsNoWANServiceAsRefused covers a device that answers SSDP
-// and serves a description, but is not an internet gateway - a smart plug,
-// a media server, anything else on the LAN that happens to speak SSDP too.
+// A device that answers SSDP and serves a description but is not an internet
+// gateway: a smart plug, a media server, anything else that speaks SSDP.
 func TestAttemptReportsNoWANServiceAsRefused(t *testing.T) {
 	doer := &scriptedDoer{byHost: map[string]hostScript{
 		"192.168.1.1": {description: noWANServiceDescription()},
@@ -422,15 +402,9 @@ func TestAttemptReportsNoWANServiceAsRefused(t *testing.T) {
 	}
 }
 
-// TestAttemptNeverCallsAHostileControlURL is the adversarial case this
-// package inherits from reconnect.WANServices rather than having to prove
-// again from scratch (see upnp_test.go's own
-// TestWANServicesKeepsTheControlURLOnTheHostThatAnswered): a device
-// description naming a controlURL on a different host must never be
-// followed. This test exists to prove the protection actually reaches all
-// the way through Attempt, not only through reconnect's own package - the
-// same class of gap the Wave 10 file-containment lesson this wave was
-// briefed on turned out to be.
+// A device description naming a controlURL on a different host must not be
+// followed. reconnect.WANServices is what enforces that; this proves the
+// protection reaches all the way through Attempt.
 func TestAttemptNeverCallsAHostileControlURL(t *testing.T) {
 	doer := &scriptedDoer{byHost: map[string]hostScript{
 		"192.168.1.1": {description: wanIPDescription("http://10.0.0.9:9999/ctl")},
@@ -463,9 +437,7 @@ func TestAttemptNeverCallsAHostileControlURL(t *testing.T) {
 	}
 }
 
-// TestAttemptRefusesAnOutOfRangePort and its protocol counterpart are the
-// "caller made a mistake" errors, the only case Attempt's error return is
-// for - see Attempt's own doc comment.
+// A caller mistake, which is the only case Attempt's error return is for.
 func TestAttemptRefusesAnOutOfRangePort(t *testing.T) {
 	for _, p := range []int{0, -1, 65536, 100000} {
 		req := baseRequest()
@@ -484,10 +456,8 @@ func TestAttemptRefusesAnUnknownProtocol(t *testing.T) {
 	}
 }
 
-// TestAttemptDefaultsExternalPortAndProtocol pins the two conveniences a
-// caller (the settings page's "attempt UPnP mapping" button, specifically)
-// relies on rather than having to fill in: the external port mirrors the
-// internal one, and the protocol defaults to TCP.
+// The two defaults the settings page's "attempt UPnP mapping" button relies
+// on: the external port mirrors the internal one, and the protocol is TCP.
 func TestAttemptDefaultsExternalPortAndProtocol(t *testing.T) {
 	var addBody string
 	doer := &scriptedDoer{byHost: map[string]hostScript{
@@ -523,10 +493,9 @@ func TestAttemptDefaultsExternalPortAndProtocol(t *testing.T) {
 }
 
 // protocolOf reads NewProtocol back out of a captured AddPortMapping or
-// GetSpecificPortMappingEntry request body, so a script can answer the TCP
-// half and the UDP half of an AttemptPort call differently - both go
-// through the same action name against the same service, and only the
-// argument tells them apart.
+// GetSpecificPortMappingEntry request body, so a script can answer the TCP and
+// UDP halves of an AttemptPort call differently: both go through the same
+// action against the same service, and only the argument tells them apart.
 func protocolOf(reqBody string) string {
 	if strings.Contains(reqBody, "<NewProtocol>UDP</NewProtocol>") {
 		return "UDP"
@@ -534,8 +503,7 @@ func protocolOf(reqBody string) string {
 	return "TCP"
 }
 
-// TestAttemptPortConfirmsOnlyWhenBothProtocolsConfirm is combine's own
-// contract: a torrent listen port is not usably confirmed off one protocol
+// combine's contract: a torrent listen port is not confirmed off one protocol
 // alone.
 func TestAttemptPortConfirmsOnlyWhenBothProtocolsConfirm(t *testing.T) {
 	doer := &scriptedDoer{byHost: map[string]hostScript{
@@ -564,9 +532,8 @@ func TestAttemptPortConfirmsOnlyWhenBothProtocolsConfirm(t *testing.T) {
 	}
 }
 
-// TestAttemptPortDowngradesToTheWorseProtocol is the case that matters most:
-// one protocol's read-back cannot be confirmed while the other's can, and
-// the combined answer must not quietly report the better half only.
+// One protocol's read-back cannot be confirmed while the other's can, and the
+// combined answer must not report the better half only.
 func TestAttemptPortDowngradesToTheWorseProtocol(t *testing.T) {
 	doer := &scriptedDoer{byHost: map[string]hostScript{
 		"192.168.1.1": {
@@ -600,10 +567,8 @@ func TestAttemptPortDowngradesToTheWorseProtocol(t *testing.T) {
 	}
 }
 
-// TestAttemptPortReportsFailedWhenEitherProtocolIsRefused covers the
-// stronger case: AddPortMapping itself refuses one protocol outright (a
-// router that maps TCP but has never implemented UDP forwarding, which is a
-// real firmware gap, not a hypothetical one). Failed must win over
+// AddPortMapping refuses one protocol outright, which is what a router that
+// maps TCP and never implemented UDP forwarding does. Failed wins over
 // Confirmed, the same way it wins over Unconfirmed.
 func TestAttemptPortReportsFailedWhenEitherProtocolIsRefused(t *testing.T) {
 	doer := &scriptedDoer{byHost: map[string]hostScript{
@@ -634,10 +599,9 @@ func TestAttemptPortReportsFailedWhenEitherProtocolIsRefused(t *testing.T) {
 	}
 }
 
-// TestAttemptHonoursAPinnedLocationWithoutDiscovering mirrors
-// reconnect.Config.UPnPLocation: a network whose multicast is filtered but
-// whose gateway is otherwise reachable must still work, and pinning it must
-// skip discovery outright rather than merely preferring the pinned address.
+// As with reconnect.Config.UPnPLocation: a network whose multicast is filtered
+// but whose gateway is reachable still works, and pinning skips discovery
+// rather than preferring the pinned address.
 func TestAttemptHonoursAPinnedLocationWithoutDiscovering(t *testing.T) {
 	doer := &scriptedDoer{byHost: map[string]hostScript{
 		"192.168.1.1": {

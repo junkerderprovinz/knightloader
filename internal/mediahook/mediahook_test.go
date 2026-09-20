@@ -113,10 +113,9 @@ func TestSanitizeStopsAtTheCeiling(t *testing.T) {
 	}
 }
 
-// TestSanitizeDoesNotEditTheCallersSlice is the promise sanitizeCategories and
-// sanitizeHostRules both make in writing: what the caller handed in is still
-// holding the same backing array, and a settings document that keeps changing
-// underneath whoever submitted it is a bug people find months later.
+// The caller still holds the same backing array, as with sanitizeCategories
+// and sanitizeHostRules: a settings document that changes underneath whoever
+// submitted it is a bug people find months later.
 func TestSanitizeDoesNotEditTheCallersSlice(t *testing.T) {
 	in := []Hook{{ID: "  Jellyfin ", URL: "http://jellyfin.lan/", Method: "post"}}
 	Sanitize(in)
@@ -137,10 +136,9 @@ func TestHostIsWhatTheCardPrints(t *testing.T) {
 	}
 }
 
-// TestIsPrivateTargetErrsTowardsSayingSoOutLoud pins the direction of the one
-// answer this can be wrong about. False draws an extra sentence saying the call
-// leaves this machine; true withholds it. Withholding it wrongly is the mistake
-// nobody can see, so a host NAME - which could be anything - answers false.
+// The direction of the one answer this can be wrong about: false draws an
+// extra sentence saying the call leaves this machine, true withholds it, and
+// withholding it wrongly cannot be seen, so a host name answers false.
 func TestIsPrivateTargetErrsTowardsSayingSoOutLoud(t *testing.T) {
 	for _, c := range []struct {
 		url  string
@@ -163,9 +161,8 @@ func TestIsPrivateTargetErrsTowardsSayingSoOutLoud(t *testing.T) {
 	}
 }
 
-// TestMethodsOffersOnlyWhatIsSent is the same promise every other menu in
-// GET /api/options makes: a value this build cannot honour must never be
-// selectable.
+// As with every other menu in GET /api/options, a value this build cannot
+// honour must not be selectable.
 func TestMethodsOffersOnlyWhatIsSent(t *testing.T) {
 	for _, m := range Methods() {
 		if got := methodOf(Hook{Method: m}); got != m {
@@ -174,13 +171,12 @@ func TestMethodsOffersOnlyWhatIsSent(t *testing.T) {
 	}
 }
 
-// TestHookCarriesNoValueField is the one structural promise this package makes,
-// and it is asserted rather than commented because breaking it is one word.
+// Asserted rather than commented, because breaking it is one word.
 //
 // Hook is a settings field: it is serialised into settings.json, into the
-// diagnostics bundle people attach to public bug reports, and reflected into the
-// Advanced key table as an editable row. A value field here would put a media
-// server token in all three.
+// diagnostics bundle people attach to public bug reports, and reflected into
+// the Advanced key table as an editable row. A value field here would put a
+// media server token in all three.
 func TestHookCarriesNoValueField(t *testing.T) {
 	tp := reflect.TypeOf(Hook{})
 	for i := range tp.NumField() {

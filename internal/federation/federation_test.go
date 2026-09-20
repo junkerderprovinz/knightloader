@@ -12,27 +12,21 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/relay"
 )
 
-// fakeRelay stands in for *relay.Client, which satisfies RelayTransport as it
-// stands. Siblings are returned in the order given, sorted by instance ID the
-// way the real client sorts them, so the collision rule below is exercised
-// against the same input order production sees.
+// fakeRelay stands in for *relay.Client and records the last call it was asked
+// to make.
 type fakeRelay struct {
 	sibs []relay.Announce
 
-	// The last call this transport was asked to make, so a test can prove the
-	// instance ID was used as the address rather than the display name.
 	target, method, path string
 	body                 []byte
-	// auth is what the credential hook produced for this call, so a test
-	// can prove a peer token reaches the relay transport too.
-	auth string
+	auth                 string
 
 	resp   []byte
 	status int
 	err    error
 
-	// down makes Connected() report false, for the case a relay is configured
-	// but unreachable - which must NOT look the same as no relay at all.
+	// down makes Connected report false: a relay that is configured but
+	// unreachable.
 	down   bool
 	closed bool
 }
@@ -61,10 +55,8 @@ func newManager(t *testing.T) *Manager {
 	return m
 }
 
-// TestManualPeersAreUntouchedByRelaySupport: the stored-peer path is the one
-// that already worked, and adding a second transport must not have moved any
-// of it - the list, the file it is written to, and the HTTP call all behave as
-// they did before a relay existed.
+// TestManualPeersAreUntouchedByRelaySupport checks the stored-peer path end to
+// end: the list, the HTTP call and the file on disk.
 func TestManualPeersAreUntouchedByRelaySupport(t *testing.T) {
 	peer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/api/tasks" {
@@ -96,8 +88,6 @@ func TestManualPeersAreUntouchedByRelaySupport(t *testing.T) {
 		t.Errorf("ping: %v", err)
 	}
 
-	// The stored file is the other half of "unchanged": a reloaded manager has
-	// to find the same peer, with no relay field written into it.
 	saved, err := os.ReadFile(filepath.Join(dir, "instances.json"))
 	if err != nil {
 		t.Fatalf("read instances.json: %v", err)
@@ -114,8 +104,6 @@ func TestManualPeersAreUntouchedByRelaySupport(t *testing.T) {
 	}
 }
 
-// TestRelayPeersAppearWithoutBeingStored: relay peers come and go with the
-// connection, so they must show up in List and never reach instances.json.
 func TestRelayPeersAppearWithoutBeingStored(t *testing.T) {
 	dir := t.TempDir()
 	m, err := Load(dir)
@@ -127,8 +115,6 @@ func TestRelayPeersAppearWithoutBeingStored(t *testing.T) {
 	}}
 	m.SetRelay(rt)
 
-	// Name is the address (always the InstanceID for a relay peer, see
-	// reachable's own doc comment) - DisplayName is what carries "Laptop".
 	list := m.List()
 	if len(list) != 1 || list[0].Name != "id-bravo" || list[0].DisplayName != "Laptop" || list[0].RelayID != "id-bravo" || list[0].URL != "" {
 		t.Fatalf("got %+v, want one relay peer addressed as id-bravo, displayed as Laptop", list)
@@ -137,7 +123,6 @@ func TestRelayPeersAppearWithoutBeingStored(t *testing.T) {
 		t.Errorf("instances.json exists, want a relay peer never written to disk")
 	}
 
-	// The relay going away takes its peers with it, and nothing else.
 	rt.sibs = nil
 	if list := m.List(); len(list) != 0 {
 		t.Errorf("got %+v, want no peers once the relay sees none", list)
@@ -151,10 +136,6 @@ func TestRelayPeersAppearWithoutBeingStored(t *testing.T) {
 	}
 }
 
-// TestSetRelayClosesTheTransportItReplaces: reconfiguring the relay (a new
-// address, a new key) has to close the old connection rather than leaking it
-// - this is what makes SetRelay safe to call on every settings save instead
-// of only once at boot.
 func TestSetRelayClosesTheTransportItReplaces(t *testing.T) {
 	m := newManager(t)
 	first := &fakeRelay{}
@@ -173,8 +154,6 @@ func TestSetRelayClosesTheTransportItReplaces(t *testing.T) {
 	}
 }
 
-// TestProxyReachesARelayPeerThroughTheTransport: the API layer calls one Proxy
-// with a name and never learns which transport carried it.
 func TestProxyReachesARelayPeerThroughTheTransport(t *testing.T) {
 	m := newManager(t)
 	rt := &fakeRelay{
@@ -184,9 +163,6 @@ func TestProxyReachesARelayPeerThroughTheTransport(t *testing.T) {
 	}
 	m.SetRelay(rt)
 
-	// Addressed by instance ID, the peer's Name - "Laptop" is only its
-	// DisplayName, and DisplayName is never an address (see the assertion
-	// below, and reachable's own doc comment for why).
 	body, code, err := m.Proxy(context.Background(), "id-bravo", http.MethodPost, "/api/links", []byte(`{"url":"x"}`))
 	if err != nil {
 		t.Fatalf("proxy: %v", err)
@@ -199,15 +175,13 @@ func TestProxyReachesARelayPeerThroughTheTransport(t *testing.T) {
 			rt.target, rt.method, rt.path, rt.body)
 	}
 	if _, code, err := m.Proxy(context.Background(), "Laptop", http.MethodGet, "/api/tasks", nil); err == nil || code != http.StatusNotFound {
-		t.Errorf("got %d %v proxying by the display name, want a 404 - display names never route", code, err)
+		t.Errorf("got %d %v proxying by the display name, want a 404; display names never route", code, err)
 	}
 }
 
-// TestPeerNamesCollide: an instance nobody has named announces its hostname,
-// and two containers from one image routinely share it, so a shared
-// DisplayName must never keep a peer from being listed or reached - and a
-// stored peer must never lose its own address to a relay peer sharing its
-// name, because a relay peer no longer competes for one at all.
+// TestPeerNamesCollide covers shared display names (two containers from one
+// image announce the same hostname): every peer stays listed and reachable,
+// and a stored peer keeps its name.
 func TestPeerNamesCollide(t *testing.T) {
 	tests := []struct {
 		name   string
@@ -217,9 +191,8 @@ func TestPeerNamesCollide(t *testing.T) {
 	}{
 		{
 			name: "a stored peer keeps its name even when a relay peer announces the same one",
-			// A port nothing listens on: this peer is only ever resolved
-			// here, never called, and refusing instantly keeps the resolve
-			// check below from waiting out a real peerTimeout.
+			// Nothing listens on this port, so the resolve check below fails
+			// fast instead of waiting out peerTimeout.
 			stored: []Instance{{Name: "NAS", URL: "http://127.0.0.1:1"}},
 			sibs:   []relay.Announce{{InstanceID: "id-nas", Name: "NAS"}},
 			want:   map[string]string{"NAS": "", "id-nas": "id-nas"},
@@ -260,10 +233,8 @@ func TestPeerNamesCollide(t *testing.T) {
 					t.Errorf("%q is reached as %q, want %q", name, got[name], relayID)
 				}
 			}
-			// Every address in the list has to actually resolve, which is the
-			// whole point of handing them out. 404 is the one status Proxy
-			// gives an address it could not place; whether the peer behind it
-			// then answers is a different question, and not this one.
+			// Every listed address must resolve; 404 is what Proxy returns for
+			// one it cannot place.
 			for name := range got {
 				if _, code, _ := m.Proxy(context.Background(), name, http.MethodGet, "/api/tasks", nil); code == http.StatusNotFound {
 					t.Errorf("%q is listed but does not resolve to a peer", name)
@@ -273,27 +244,19 @@ func TestPeerNamesCollide(t *testing.T) {
 	}
 }
 
-// TestRelayPeerAddressSurvivesUnrelatedChanges is the regression this whole
-// scheme exists for: a relay peer's address (its Name/InstanceID) must never
-// change because something ELSE about the reachable set changed - not a
-// same-named stored peer coming or going, and not another sibling coming or
-// going. The older, name-first scheme flipped a peer between its friendly
-// name and its ID exactly on events like these, silently breaking anything
-// that had cached the address from before.
+// TestRelayPeerAddressSurvivesUnrelatedChanges checks that a relay peer's
+// address stays put while other stored peers and siblings come and go.
 func TestRelayPeerAddressSurvivesUnrelatedChanges(t *testing.T) {
 	m := newManager(t)
 	rt := &fakeRelay{sibs: []relay.Announce{{InstanceID: "id-a", Name: "Cellar"}}}
 	m.SetRelay(rt)
 	addressBefore := m.List()[0].Name
 
-	// A stored peer sharing the relay peer's DisplayName arrives...
 	if err := m.Add(Instance{Name: "Cellar", URL: "http://127.0.0.1:1"}); err != nil {
 		t.Fatalf("add: %v", err)
 	}
-	// ...and a second sibling joins, then leaves again.
 	rt.sibs = append(rt.sibs, relay.Announce{InstanceID: "id-b", Name: "Other"})
 	rt.sibs = rt.sibs[:1]
-	// ...and the stored peer is removed again.
 	if err := m.Remove("Cellar"); err != nil {
 		t.Fatalf("remove: %v", err)
 	}
@@ -307,8 +270,6 @@ func TestRelayPeerAddressSurvivesUnrelatedChanges(t *testing.T) {
 	}
 }
 
-// TestUnknownInstanceIsStill404: a name nobody serves must not become a relay
-// call to an empty target now that there are two transports to pick from.
 func TestUnknownInstanceIsStill404(t *testing.T) {
 	m := newManager(t)
 	rt := &fakeRelay{sibs: []relay.Announce{{InstanceID: "id-bravo", Name: "Laptop"}}}
@@ -323,9 +284,8 @@ func TestUnknownInstanceIsStill404(t *testing.T) {
 	}
 }
 
-// TestAddNeverStoresARelayIdentity: routes_federation decodes an Instance
-// straight off a request body, so the field the UI only reads must not be a
-// way to store a peer that claims to be relay-reachable.
+// TestAddNeverStoresARelayIdentity: the route decodes an Instance from the
+// request body, so RelayID must not be a way to store a relay identity.
 func TestAddNeverStoresARelayIdentity(t *testing.T) {
 	m := newManager(t)
 	if err := m.Add(Instance{Name: "NAS", URL: "http://192.168.20.30:8749", RelayID: "id-somebody-else"}); err != nil {
@@ -337,16 +297,9 @@ func TestAddNeverStoresARelayIdentity(t *testing.T) {
 	}
 }
 
-// TestClientOnlySiblingsAreNotListedAsInstances: the mobile companion app
-// joins the relay key to CALL instances, not to be one - it serves no API, so
-// an entry for it in this list would be somewhere the UI offers to open and
-// which then answers 501 to every route. Every connection must announce
-// before the relay will join it to a key, so "just don't announce" is not
-// available and the announce carries a flag instead.
-//
-// Pinned as its own test because the failure is silent and remote: it would
-// show up as a stray, broken peer on OTHER people's Instances pages, not
-// anywhere the phone's own owner would look.
+// TestClientOnlySiblingsAreNotListedAsInstances: the mobile app joins the
+// relay key to call instances and serves no API. Listed, it would appear as a
+// broken peer on other people's Instances pages.
 func TestClientOnlySiblingsAreNotListedAsInstances(t *testing.T) {
 	m, err := Load(t.TempDir())
 	if err != nil {
@@ -359,16 +312,12 @@ func TestClientOnlySiblingsAreNotListedAsInstances(t *testing.T) {
 
 	list := m.List()
 	if len(list) != 1 || list[0].Name != "id-nas" {
-		t.Fatalf("got %+v, want only the real instance - a client-only sibling is not a place to go", list)
+		t.Fatalf("got %+v, want only the real instance; a client-only sibling is not a place to go", list)
 	}
 }
 
 // TestRelayConnectedDistinguishesUnreachableFromAbsent: an empty sibling list
-// is ambiguous - it means both "the relay is fine, nobody else is on the key"
-// and "the relay cannot be reached at all". Those want different reactions
-// from the user, and nothing above this layer could tell them apart, because
-// relay.Client.Connected() had no callers even though its own doc comment
-// calls it the honest answer to whether relay pairing is working.
+// means either "nobody else on the key" or "relay unreachable".
 func TestRelayConnectedDistinguishesUnreachableFromAbsent(t *testing.T) {
 	m, err := Load(t.TempDir())
 	if err != nil {
@@ -379,7 +328,6 @@ func TestRelayConnectedDistinguishesUnreachableFromAbsent(t *testing.T) {
 		t.Error("no relay configured at all, want RelayConnected false")
 	}
 
-	// Configured and up, but nobody else on the key: no peers, yet connected.
 	up := &fakeRelay{}
 	m.SetRelay(up)
 	if !m.RelayConnected() {
@@ -389,33 +337,23 @@ func TestRelayConnectedDistinguishesUnreachableFromAbsent(t *testing.T) {
 		t.Error("want no peers from an empty relay")
 	}
 
-	// Configured but unreachable: also no peers - and this is the case that
-	// used to be indistinguishable from the one above.
 	m.SetRelay(&fakeRelay{down: true})
 	if m.RelayConnected() {
 		t.Error("relay configured but down, want RelayConnected false")
 	}
 }
 
-// TestBothTransportsCarryTheirPeerCredential pins the symmetry the two
-// transports have to keep: each looks its credential up by the key it actually
-// ADDRESSES the peer as, and both find one.
-//
-// Not symmetric for a long time, and the asymmetry was invisible. A stored peer
-// is addressed by its pairing name, a relay peer by its 40-hex InstanceID - and
-// while pairing was HTTP-only, a relay peer's credential could only ever be
-// filed under a name. The lookup asked for an id, nothing matched, and relay
-// peers were called unauthenticated: a password-protected instance reachable
-// only that way refused every call, which is issue #26 surviving in precisely
-// the deployment the relay exists for.
+// TestBothTransportsCarryTheirPeerCredential checks that each transport looks
+// the token up under the key it addresses the peer by: the pairing name over
+// HTTP, the InstanceID over the relay. Without the latter, a
+// password-protected relay peer refuses every call (#26).
 func TestBothTransportsCarryTheirPeerCredential(t *testing.T) {
 	m, err := Load(t.TempDir())
 	if err != nil {
 		t.Fatal(err)
 	}
-	// Filed the way the pairing exchange files them: a stored peer under its
-	// name, a relay peer under its instance id. The display name is present and
-	// deliberately unused - it is not an address and nothing may key on it.
+	// Filed as the pairing exchange files them. The display name entry must
+	// never be used.
 	m.SetPeerTokens(staticTokens{
 		"cellar":   "secret-for-cellar",
 		"id-bravo": "secret-for-the-relay-peer",
@@ -429,10 +367,9 @@ func TestBothTransportsCarryTheirPeerCredential(t *testing.T) {
 		t.Fatalf("relay proxy: %v", err)
 	}
 	if rt.auth != "Bearer secret-for-the-relay-peer" {
-		t.Errorf("relay call carried %q, want the credential filed under the instance id - without it a password-protected relay peer answers 401 forever", rt.auth)
+		t.Errorf("relay call carried %q, want the credential filed under the instance id; without it a password-protected relay peer answers 401 forever", rt.auth)
 	}
 
-	// The HTTP half, unchanged, for contrast.
 	var seen string
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		seen = r.Header.Get("Authorization")
@@ -450,7 +387,6 @@ func TestBothTransportsCarryTheirPeerCredential(t *testing.T) {
 	}
 }
 
-// staticTokens is a PeerTokens hook backed by a plain map.
 type staticTokens map[string]string
 
 func (s staticTokens) TokenFor(peer string) string { return s[peer] }

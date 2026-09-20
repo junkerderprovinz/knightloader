@@ -16,8 +16,8 @@ import (
 type soapDoer struct {
 	status int
 	body   string
-	// bodyReader, when set, is used instead of body - for the one test that
-	// needs a reader shaped a certain way rather than a fixed string.
+	// bodyReader, when set, is used instead of body, for the test that needs
+	// a reader rather than a fixed string.
 	bodyReader io.Reader
 
 	gotAction      string // the SOAPAction header, verbatim
@@ -45,12 +45,10 @@ func testService() reconnect.Service {
 	return reconnect.Service{ServiceType: testServiceType, ControlURL: "http://192.168.1.1:5000/ctl/IPConn"}
 }
 
-// TestSoapEnvelopeOrdersArgumentsAndEscapesValues is the reason soapEnvelope
-// takes a slice of pairs rather than a map: firmware that requires
-// arguments in the order the action's own definition lists them would
-// otherwise get them in map iteration order, which Go deliberately
-// randomises. It also has to survive a description with XML metacharacters
-// in it - the field is free text a user typed into a settings page.
+// Why soapEnvelope takes a slice of pairs rather than a map: firmware that
+// needs the arguments in the order the action's definition lists them would
+// otherwise get Go's randomised map order. The description also has to survive
+// XML metacharacters, since it is free text from a settings page.
 func TestSoapEnvelopeOrdersArgumentsAndEscapesValues(t *testing.T) {
 	args := []soapArg{
 		{"NewExternalPort", "6881"},
@@ -85,10 +83,8 @@ func TestSoapEnvelopeOrdersArgumentsAndEscapesValues(t *testing.T) {
 	}
 }
 
-// TestSoapCallSendsTheSpecifiedSOAPAction pins the header shape a good deal
-// of router firmware refuses without: the quotes around the value are
-// required by the specification, and reconnect's own soap() carries the
-// identical note.
+// The header shape router firmware refuses without: the quotes around the
+// value are required by the specification.
 func TestSoapCallSendsTheSpecifiedSOAPAction(t *testing.T) {
 	d := &soapDoer{status: http.StatusOK, body: ""}
 	if _, err := soapCall(context.Background(), d, testService(), "AddPortMapping", nil); err != nil {
@@ -100,9 +96,8 @@ func TestSoapCallSendsTheSpecifiedSOAPAction(t *testing.T) {
 	}
 }
 
-// TestSoapCallReturnsAFaultErrorOnAFault is what lets attemptOn act on a
-// router's specific UPnP error code (upnpNoSuchEntry) instead of only being
-// able to display an opaque string.
+// What lets attemptOn act on a router's specific UPnP error code
+// (upnpNoSuchEntry) instead of only displaying an opaque string.
 func TestSoapCallReturnsAFaultErrorOnAFault(t *testing.T) {
 	fault := `<?xml version="1.0"?><s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">` +
 		`<s:Body><s:Fault><faultcode>s:Client</faultcode><faultstring>UPnPError</faultstring>` +
@@ -124,10 +119,9 @@ func TestSoapCallReturnsAFaultErrorOnAFault(t *testing.T) {
 	}
 }
 
-// TestSoapCallRefusesAnUnparsableFailure is the case a fault parser cannot
-// help with: a 500 whose body is not a UPnP fault at all - an HTML error
-// page from a reverse proxy in front of the router's admin interface, most
-// realistically. It must still be an error, just not a *faultError.
+// A 500 whose body is not a UPnP fault at all, such as an HTML error page from
+// a reverse proxy in front of the router's admin interface. Still an error,
+// just not a *faultError.
 func TestSoapCallRefusesAnUnparsableFailure(t *testing.T) {
 	d := &soapDoer{status: http.StatusInternalServerError, body: "<html><body>Internal Server Error</body></html>"}
 	_, err := soapCall(context.Background(), d, testService(), "AddPortMapping", nil)
@@ -140,10 +134,9 @@ func TestSoapCallRefusesAnUnparsableFailure(t *testing.T) {
 	}
 }
 
-// hugeReader produces up to n bytes without ever allocating them at once,
-// so the test that proves soapCall bounds its read can ask for far more
-// than any real UPnP answer without the test itself being the slow, memory-
-// hungry thing.
+// hugeReader produces up to n bytes without allocating them at once, so the
+// test that proves soapCall bounds its read can ask for far more than any real
+// UPnP answer without itself being slow.
 type hugeReader struct{ remaining int64 }
 
 func (r *hugeReader) Read(p []byte) (int, error) {
@@ -161,9 +154,9 @@ func (r *hugeReader) Read(p []byte) (int, error) {
 	return int(n), nil
 }
 
-// countingReader records how many bytes were actually pulled through it, so
-// a bound enforced by io.LimitReader can be checked directly rather than
-// inferred from how fast the test happened to run.
+// countingReader records how many bytes were pulled through it, so a bound
+// enforced by io.LimitReader can be checked directly rather than inferred from
+// how fast the test ran.
 type countingReader struct {
 	r     io.Reader
 	total int64
@@ -175,14 +168,11 @@ func (c *countingReader) Read(p []byte) (int, error) {
 	return n, err
 }
 
-// TestSoapCallBoundsAnOversizedResponse is the adversarial case: a gateway
-// is a device on the LAN, not a trusted server, and a SOAP answer with no
-// cap on how much of it gets read is a denial-of-service vector as much as
-// the device description fetch this exact pattern was already fixed for in
-// reconnect (maxDescriptionBody, maxSOAPBody). The response here offers 50MB
-// - answering it with a real buffer would make this the slowest test in the
-// package if the bound were missing; instead it proves the bound is there by
-// counting what was actually consumed.
+// A gateway is a device on the LAN and not a trusted server, so a SOAP answer
+// read without a cap is as much a denial-of-service vector as the device
+// description fetch reconnect bounds with maxDescriptionBody. The response
+// here offers 50MB, and the test counts what was consumed rather than waiting
+// for it.
 func TestSoapCallBoundsAnOversizedResponse(t *testing.T) {
 	huge := &countingReader{r: &hugeReader{remaining: 50 << 20}}
 	d := &soapDoer{status: http.StatusOK, bodyReader: huge}
@@ -199,8 +189,7 @@ func TestSoapCallBoundsAnOversizedResponse(t *testing.T) {
 	}
 }
 
-// TestParseSpecificEntryReadsClientAndPort is the ordinary case a router
-// answering a mapping it actually has produces.
+// The ordinary case: a router answering about a mapping it has.
 func TestParseSpecificEntryReadsClientAndPort(t *testing.T) {
 	body := getEntryResponse("u", "192.168.1.50", "6881")
 	client, port, ok := parseSpecificEntry([]byte(body))
@@ -212,11 +201,9 @@ func TestParseSpecificEntryReadsClientAndPort(t *testing.T) {
 	}
 }
 
-// TestParseSpecificEntryIgnoresNamespacePrefix matches reconnect's own
-// soapFault behaviour and the comment on parseSpecificEntry claiming it:
-// firmware disagrees about whether the response element is prefixed u:,
-// SOAP-ENV: or not prefixed at all, and encoding/xml matches on local name
-// when the struct tag names no namespace of its own.
+// Firmware disagrees about whether the response element is prefixed u:,
+// SOAP-ENV: or not at all, and encoding/xml matches on local name when the
+// struct tag names no namespace, as in reconnect's soapFault.
 func TestParseSpecificEntryIgnoresNamespacePrefix(t *testing.T) {
 	for _, prefix := range []string{"u", "SOAP-ENV", ""} {
 		t.Run("prefix="+prefix, func(t *testing.T) {
@@ -229,10 +216,9 @@ func TestParseSpecificEntryIgnoresNamespacePrefix(t *testing.T) {
 	}
 }
 
-// TestParseSpecificEntryRejectsGarbage covers the responses that must never
-// be read as a confirmed mapping: empty, truncated, and a body that is XML
-// but not this response at all (echoing the request back, which some very
-// old firmware has been seen to do on an action it does not understand).
+// Responses that must not read as a confirmed mapping: empty, truncated, and a
+// body that is XML but not this response, such as the request echoed back,
+// which old firmware does for an action it does not understand.
 func TestParseSpecificEntryRejectsGarbage(t *testing.T) {
 	cases := []string{
 		"",
@@ -247,9 +233,8 @@ func TestParseSpecificEntryRejectsGarbage(t *testing.T) {
 	}
 }
 
-// getEntryResponse builds a GetSpecificPortMappingEntryResponse body with
-// the given namespace prefix (matching TestParseSpecificEntryIgnoresNamespacePrefix)
-// and internal client/port.
+// getEntryResponse builds a GetSpecificPortMappingEntryResponse body with the
+// given namespace prefix and internal client and port.
 func getEntryResponse(prefix, client, port string) string {
 	tag := "GetSpecificPortMappingEntryResponse"
 	if prefix != "" {

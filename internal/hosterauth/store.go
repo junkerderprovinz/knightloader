@@ -1,53 +1,30 @@
-// Package hosterauth is the native, per-host hoster login: KL's own host
-// list, username/password form and per-row sync status, all rendered in KL's
-// Carbon UI (see the frontend HosterLoginSection) - never JD's own web
-// interface. Saving a login here does not teach this app to speak the
-// hoster's site; it writes the credential into the headless-JD sidecar's OWN
-// account config through JD's Remote API, so JD's already-working, ~15 years
-// of community-maintained plugins do the actual login. This is the same
-// "JD's UI never shown, everything through JD's API" rule
-// internal/resolver/jd/client.go already follows for AddLinks and the rest -
-// only the API surface (account management, not downloads) is new this wave.
+// Package hosterauth manages native per-host hoster logins in KnightLoader's
+// own UI. A saved login is written into the headless JD sidecar's account
+// config through JD's Remote API, so JD's plugins do the actual login; JD's
+// own interface is never shown.
 //
-// Reconciler (reconcile.go) is the half that talks to JD and decides what
-// changed; Store (this file) is the half that remembers what the user asked
-// for. Credentials are sealed by internal/accounts.Store, the same
-// AES-256-GCM-at-rest store and the same Redacted/WithSecretsFrom convention
-// every other credential in this app already uses (see
-// internal/accounts/accounts.go) - hoster logins are filed there under their
-// own pseudo-service id rather than growing a second encryption scheme, or a
-// second definition of what "redacted" means, next to the first.
+// Reconciler (reconcile.go) talks to JD; Store keeps what the user asked for.
+// Credentials are sealed by internal/accounts.Store, like every other
+// credential, under their own pseudo-service id.
 package hosterauth
 
 import "github.com/junkerderprovinz/knightloader/internal/accounts"
 
-// Service is the pseudo catalogue id native hoster logins are filed under in
-// the shared accounts.Store, with the host as the "account" component of the
-// (service, account) key accounts.Store already indexes by. It is
-// deliberately not an entry in accounts.Catalogue: the catalogue is a short,
-// hand-maintained list a picker searches (torbox, alldebrid, ...), while a
-// hoster login is one row per host from a list that can run into the
-// hundreds and changes with what JD itself reports - a different shape of
-// list entirely, which is why this package keeps its own.
-// Exported because the app keys its own per-account metadata
-// (account_meta.json: the Enabled switch, the display label) by the same
-// (service, account) pair - so the two files address one row with one string
-// instead of two copies of a literal that could drift apart silently.
+// Service is the pseudo-service id hoster logins are filed under in
+// accounts.Store, with the host as the account id. It is not in
+// accounts.Catalogue, which is a short fixed list, while hoster logins are
+// one per host from JD's list of hundreds. The app keys its per-account
+// metadata (account_meta.json) by the same pair.
 const Service = "hosterauth"
 
-// Store persists native hoster logins, one per host, in the store every other
-// credential in this app already trusts.
+// Store persists native hoster logins, one per host.
 type Store struct {
 	accounts *accounts.Store
 }
 
-// NewStore wraps the app's existing encrypted store. It takes an
-// *accounts.Store rather than opening its own, on purpose: two independent
-// Store instances pointed at the same accounts.json would each hold their own
-// in-memory snapshot of the whole file, and the second one to write would
-// silently erase whatever the other had just saved. Sharing the app's one
-// instance is what keeps every credential - debrid keys and hoster logins
-// alike - safe under the same lock.
+// NewStore wraps the app's existing encrypted store. Two stores on the same
+// accounts.json would each hold their own snapshot and overwrite each other's
+// saves.
 func NewStore(accounts *accounts.Store) *Store {
 	return &Store{accounts: accounts}
 }

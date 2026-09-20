@@ -1,25 +1,13 @@
-// Package backup builds the downloadable snapshot of everything a restore
-// needs to bring an install back, and validates and stages an uploaded one.
+// Package backup builds the downloadable snapshot an install can be restored
+// from, and validates and stages an uploaded one.
 //
-// The snapshot is the SQLite store (tasks, history, ui state — one file,
-// see store.Store.BackupTo) plus settings.json, which is also where the
-// rule sets (Packagizer, LinkFilter) and the timetable (Schedule) already
-// live — see settings.Settings's own doc comment. There is no separate
-// rules.json or schedule.json to also bundle; grep the tree before assuming
-// otherwise, because an earlier design sketch did split them out and the
-// wiring that landed did not.
-//
-// A restore never touches the live store or settings file directly. Both
-// are files a running process already has open, and neither this process
-// nor SQLite is happy about that file changing out from under the open
-// handle — on Windows a file already open cannot even be replaced by that
-// route, and on every platform a store built for exactly one connection
-// (store.Open's SetMaxOpenConns(1)) has no way to be told "the bytes under
-// you just changed, reopen". So the promise this package keeps instead is:
-// validate an upload to exhaustion against a throwaway copy, and only once
-// every check has passed, stage the result where the NEXT process
-// start-up — before it opens anything in the data directory at all — will
-// find and apply it. See ApplyPending.
+// The snapshot is the SQLite store plus settings.json, which also holds the
+// rule sets and the schedule. A restore never replaces the live files, since
+// the running process holds them open (Windows refuses the replacement, and
+// the single-connection store cannot be told to reopen). Stage validates an
+// upload against a throwaway copy and leaves the result for ApplyPending to
+// put in place at the next start-up, before anything in the data directory
+// is opened.
 package backup
 
 import (
@@ -39,35 +27,29 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-// The zip entry names, which double as the on-disk file names both inside
-// the staging directory and in the data directory itself — one constant
-// each rather than two spellings that could drift apart.
+// The zip entry names, which are also the file names in the staging and data
+// directories.
 const (
 	dbEntry       = "knightloader.db"
 	settingsEntry = "settings.json"
 	manifestEntry = "manifest.json"
 )
 
-// MaxUploadBytes bounds an uploaded bundle. An install with years of task
-// history is a few megabytes; this leaves two orders of magnitude of
-// headroom before a restore is refused as unreasonable, rather than the
-// server buffering however much a request claims to be sending.
+// MaxUploadBytes bounds an uploaded bundle, and each entry read from one. An
+// install with years of history is a few megabytes.
 const MaxUploadBytes = 512 << 20
 
 const (
-	// pendingDirName is where a fully validated restore waits for the next
-	// start-up to apply it.
+	// pendingDirName is where a validated restore waits for the next
+	// start-up.
 	pendingDirName = "restore-pending"
-	// stagingDirName is where Stage writes while it is still assembling
-	// that restore. It is renamed to pendingDirName only once every file is
-	// down, so ApplyPending — which only ever looks at pendingDirName — can
-	// never see a half-written attempt.
+	// stagingDirName is where Stage assembles a restore. It is renamed to
+	// pendingDirName only once complete, so ApplyPending never sees a
+	// half-written attempt.
 	stagingDirName = "restore-pending.staging"
 )
 
-// Manifest identifies one bundle: what build made it and when. It travels
-// inside the archive as manifest.json and is what a rejected or accepted
-// restore can name in its answer, instead of "invalid file".
+// Manifest identifies one bundle: what build made it and when.
 type Manifest struct {
 	Version    string    `json:"version"`
 	Deployment string    `json:"deployment"`
@@ -76,27 +58,11 @@ type Manifest struct {
 
 // Build writes one backup archive to w.
 //
-// settingsJSON is expected to be the running instance's settings encoded
-// exactly as it holds them — secrets included. That is deliberate and safe
-// here in a way it would not be on an ordinary settings read: a backup that
-// cannot put a router or proxy password back is not a backup, and this
-// package has no HTTP concerns of its own, so the caller (the /api/system/
-// backup route) is what is responsible for requiring the session that every
-// other route needs. See that route's own comment.
-//
-// "Secrets included" grew a fourth member with the event targets: every header
-// value on every row in Settings.EventTargets is in here in full, which means a
-// backup zip can now contain a push token or a Matrix access token as well as
-// the two passwords. That is correct - a restore that could not put them back
-// would leave an instance that silently stops reporting - and it is written
-// down here because the set is not obvious from this file. The copy on the
-// button already says the archive holds passwords and to keep it somewhere
-// private, which is the sentence this widens rather than a new promise.
-//
-// dbPath is expected to already be a consistent, standalone snapshot —
-// store.Store.BackupTo, which uses SQLite's VACUUM INTO — not a raw copy of
-// the live file, which could race whatever else is writing to it at the
-// same moment.
+// settingsJSON includes every secret (router and proxy passwords, event
+// target headers such as push tokens), because a restore that cannot put them
+// back is not a restore. The caller's route is responsible for requiring a
+// session. dbPath must be a consistent snapshot from store.Store.BackupTo,
+// not the live file.
 func Build(w io.Writer, manifest Manifest, settingsJSON []byte, dbPath string) (err error) {
 	zw := zip.NewWriter(w)
 	defer func() {
@@ -142,22 +108,13 @@ func writeEntry(zw *zip.Writer, name string, data []byte) error {
 	return nil
 }
 
-// Stage validates an uploaded bundle to exhaustion and, only once every
-// check has passed, writes it into dataDir where ApplyPending will find it
-// at the next process start-up. Nothing under dataDir is touched before
-// that last, all-or-nothing step — every check up to it runs against the
-// upload itself and a throwaway copy of its database, never against
-// anything live.
+// Stage validates an uploaded bundle and, once every check has passed, writes
+// it into dataDir for ApplyPending. Nothing under dataDir is touched before
+// that final step.
 //
-// runningVersion is compared against the manifest so a backup made by a
-// newer build than the one asked to restore it is refused with a reason,
-// rather than handed to a schema and a settings shape this build may not
-// fully understand. Either side being unparseable as a released version
-// (buildinfo.Version is "dev" on every untagged build) skips the
-// comparison rather than guessing.
-//
-// On success it returns the manifest that was staged, so the caller can
-// report what is about to be applied.
+// A bundle made by a newer version than runningVersion is refused. The
+// comparison is skipped when either side is not a release version, such as
+// "dev".
 func Stage(dataDir string, zipBytes []byte, runningVersion string) (Manifest, error) {
 	zr, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
 	if err != nil {
@@ -177,12 +134,8 @@ func Stage(dataDir string, zipBytes []byte, runningVersion string) (Manifest, er
 	if err != nil {
 		return Manifest{}, err
 	}
-	// Decoded into the real struct, not merely checked as JSON: a type
-	// mismatch here (a string where a number belongs) is exactly what a
-	// truncated or hand-edited upload produces, and json.Unmarshal already
-	// refuses that for free — a generic "is this JSON" check would let it
-	// through and hand the mismatch to Settings.Set on the next boot
-	// instead, far from where the upload that caused it can be named.
+	// Decoding into the real struct catches a type mismatch from a truncated
+	// or hand-edited file here, where the upload can still be named.
 	var probe settings.Settings
 	if err := json.Unmarshal(settingsRaw, &probe); err != nil {
 		return Manifest{}, fmt.Errorf("the backup's settings.json does not match this build's settings shape: %w", err)
@@ -209,11 +162,9 @@ func Stage(dataDir string, zipBytes []byte, runningVersion string) (Manifest, er
 	return manifest, nil
 }
 
-// readEntry reads one zip entry fully, bounded the same way an upload's
-// total size already is — a zip entry's declared size is attacker-supplied
-// the moment this is fed an upload rather than a backup this instance wrote
-// itself, and decompression bombs are exactly a small file claiming to
-// unpack into an enormous one.
+// readEntry reads one zip entry, bounded by MaxUploadBytes because the
+// declared size of an uploaded entry cannot be trusted (a decompression
+// bomb).
 func readEntry(zr *zip.Reader, name string) ([]byte, error) {
 	f, err := zr.Open(name)
 	if err != nil {
@@ -227,11 +178,8 @@ func readEntry(zr *zip.Reader, name string) ([]byte, error) {
 	return b, nil
 }
 
-// validateDatabase opens raw as a standalone SQLite file — never the live
-// one — and runs the checks that separate "a KnightLoader backup" from
-// "some other file with this name": SQLite's own integrity check, and the
-// presence of the tasks table every migration since the first has assumed
-// exists.
+// validateDatabase opens raw as a standalone SQLite file and checks that it
+// passes SQLite's integrity check and has a tasks table.
 func validateDatabase(raw []byte) error {
 	tmp, err := os.CreateTemp("", "kl-restore-validate-*.db")
 	if err != nil {
@@ -271,23 +219,12 @@ func validateDatabase(raw []byte) error {
 	return nil
 }
 
-// stageFiles writes settingsRaw, dbRaw and manifest into a fresh staging
-// directory, then commits it with one rename — so ApplyPending, which only
-// ever looks at pendingDirName, never observes a partly written attempt,
-// and a process killed mid-write leaves nothing for it to find at all.
-//
-// A restore staged before this one, if there was one and nobody has
-// restarted to apply it yet, is replaced: the most recently validated
-// upload wins, the same way saving a settings page twice replaces the
-// first save rather than merging with it.
+// stageFiles writes the restore into a fresh staging directory and commits it
+// with one rename. A restore staged earlier and not yet applied is replaced.
 func stageFiles(dataDir string, settingsRaw, dbRaw []byte, manifest Manifest) error {
 	staging := filepath.Join(dataDir, stagingDirName)
 	final := filepath.Join(dataDir, pendingDirName)
 
-	// A leftover from an earlier, abandoned attempt — the process was
-	// killed mid-write, or this validation simply never got as far as the
-	// commit rename below. Either way, starting clean beats layering a new
-	// attempt on top of a half-written one.
 	if err := os.RemoveAll(staging); err != nil {
 		return fmt.Errorf("backup: could not clear a previous staging attempt: %w", err)
 	}
@@ -317,21 +254,13 @@ func stageFiles(dataDir string, settingsRaw, dbRaw []byte, manifest Manifest) er
 	return nil
 }
 
-// ApplyPending looks for a restore Stage left behind and, if there is one,
-// puts it in place of the live store and settings file. Call it at
-// start-up, before store.Open or settings.Load touch either — see the
-// package doc comment for why that ordering is what makes this safe on
-// every platform this ships for.
+// ApplyPending puts a restore left by Stage in place of the live store and
+// settings file. Call it at start-up, before store.Open or settings.Load.
 //
-// It copies rather than moves the staged files into the data directory, and
-// removes the staging directory only once both copies have succeeded — so a
-// crash between the two leaves the pending directory exactly as able to
-// finish the job on the NEXT start-up as it was on this one, instead of
-// missing the file the first copy already consumed by moving it away.
-//
-// applied reports whether there was anything to apply, so the caller can
-// log accordingly; a missing pending directory is the ordinary case on
-// every boot that is not completing a restore; and is not an error.
+// It copies rather than moves the staged files and removes the pending
+// directory only after both copies succeed, so a crash in between leaves
+// everything needed to finish on the next start-up. applied reports whether
+// there was anything to apply.
 func ApplyPending(dataDir string) (applied bool, manifest Manifest, err error) {
 	pending := filepath.Join(dataDir, pendingDirName)
 	if _, statErr := os.Stat(pending); errors.Is(statErr, os.ErrNotExist) {
@@ -341,7 +270,7 @@ func ApplyPending(dataDir string) (applied bool, manifest Manifest, err error) {
 	}
 
 	if mf, readErr := os.ReadFile(filepath.Join(pending, manifestEntry)); readErr == nil {
-		_ = json.Unmarshal(mf, &manifest) // best effort — a missing or corrupt manifest must not block the restore it describes
+		_ = json.Unmarshal(mf, &manifest) // a broken manifest must not block the restore
 	}
 
 	if err := copyFile(filepath.Join(pending, settingsEntry), filepath.Join(dataDir, settingsEntry)); err != nil {
@@ -350,12 +279,8 @@ func ApplyPending(dataDir string) (applied bool, manifest Manifest, err error) {
 	if err := copyFile(filepath.Join(pending, dbEntry), filepath.Join(dataDir, dbEntry)); err != nil {
 		return false, manifest, fmt.Errorf("restore: could not put %s in place: %w", dbEntry, err)
 	}
-	// A journal left behind by whichever database sat here before must not
-	// survive onto the one that just replaced it — SQLite would try to
-	// reconcile it against content it has never seen. Best effort: a
-	// missing file (the ordinary case — the previous process shut down
-	// cleanly) is not an error, and nothing here is fatal to the restore
-	// that already succeeded above.
+	// A journal left by the replaced database would be reconciled against
+	// content it has never seen.
 	for _, suffix := range []string{"-journal", "-wal", "-shm"} {
 		_ = os.Remove(filepath.Join(dataDir, dbEntry+suffix))
 	}
@@ -368,10 +293,9 @@ func ApplyPending(dataDir string) (applied bool, manifest Manifest, err error) {
 	return true, manifest, nil
 }
 
-// copyFile copies src to dst through a temporary file beside dst, renamed
-// into place only once fully written — so a process killed mid-copy leaves
-// the OLD dst intact rather than a truncated new one masquerading as it.
-// src is never modified, which is what makes ApplyPending safe to retry.
+// copyFile copies src to dst through a temporary file renamed into place, so
+// a crash mid-copy leaves the old dst intact. src is never modified, which
+// keeps ApplyPending retryable.
 func copyFile(src, dst string) error {
 	in, err := os.Open(src)
 	if err != nil {

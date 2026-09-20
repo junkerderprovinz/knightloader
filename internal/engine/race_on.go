@@ -2,6 +2,5 @@
 
 package engine
 
-// raceEnabled is true only in a binary built with -race. See
-// torrent_live_test.go's own use of it for what it exists to skip and why.
+// raceEnabled reports a -race build; see torrent_live_test.go.
 const raceEnabled = true

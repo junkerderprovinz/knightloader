@@ -9,12 +9,10 @@ import (
 	"time"
 )
 
-// Clock is the time source Controller reads. Injected so a test can drive a
-// countdown without waiting for one - the same reason
-// internal/schedule.Clock exists, though this one only ever needs Now: a
-// countdown here is checked against the wall clock on every poll rather than
-// slept for its exact length, because the poll interval is already short next
-// to any delay worth having a cancel button for (see defaultPoll).
+// Clock is the time source Controller reads, injected so a test can drive a
+// countdown without waiting for one. Only Now is needed: a countdown is
+// checked against the wall clock on every poll rather than slept for its exact
+// length.
 type Clock interface {
 	Now() time.Time
 }
@@ -23,13 +21,12 @@ type systemClock struct{}
 
 func (systemClock) Now() time.Time { return time.Now() }
 
-// State is the countdown as it stands right now - everything a client needs
-// to draw it without polling faster than the controller itself does.
+// State is the countdown as it stands, everything a client needs to draw it
+// without polling faster than the controller itself does.
 type State struct {
 	Config Config `json:"config"`
-	// Idle is whether the queue has nothing left to do right now, read fresh
-	// for every State call rather than from the last poll - see
-	// Controller.State.
+	// Idle is whether the queue has nothing left to do, read fresh for every
+	// State call rather than from the last poll.
 	Idle bool `json:"idle"`
 	// Armed is whether a countdown is currently running.
 	Armed bool `json:"armed"`
@@ -37,20 +34,16 @@ type State struct {
 	Action Action `json:"action,omitempty"`
 	// FireAt is the absolute instant the action fires, nil when nothing is
 	// armed. Absolute rather than "seconds left", so a client that reloads
-	// the page - or one that was simply asleep for a few seconds - draws the
-	// same deadline the server is counting down to instead of restarting its
-	// own clock from a number that was already stale by the time it arrived.
-	// The same reason ScheduleState.Next and the captcha modal's ExpiresAt
-	// are both absolute instants rather than a duration.
+	// the page, or was asleep for a few seconds, draws the deadline the
+	// server is counting down to instead of restarting its own clock from a
+	// number that was stale on arrival.
 	FireAt *time.Time `json:"fireAt,omitempty"`
 }
 
 // defaultPoll is how often the controller re-checks Idle while nothing is
-// armed, and how often it checks a running countdown against the clock.
-// Short next to any delay worth a cancel button (DefaultDelaySeconds is a
-// full minute; minDelaySeconds refuses anything under five seconds), so the
-// gap between "the queue actually went idle" and "the countdown visibly
-// started" is not something a person watching would notice.
+// armed, and how often it checks a running countdown against the clock. Short
+// next to any delay worth a cancel button, so the gap between the queue going
+// idle and the countdown starting is not one a person would notice.
 const defaultPoll = 2 * time.Second
 
 // Options configures a Controller.
@@ -75,10 +68,8 @@ type Options struct {
 }
 
 // Controller owns exactly one goroutine, started by Start and stopped by
-// Close - the same shape internal/schedule.Runner already uses for the same
-// reason: a background loop that reacts to more than a fixed timetable needs
-// somewhere to hold state between wake-ups, and a bare goroutine has nowhere
-// to put it that Close could find again.
+// Close, the shape internal/schedule.Runner uses: a loop that reacts to more
+// than a fixed timetable needs somewhere to hold state between wake-ups.
 type Controller struct {
 	cfg      func() Config
 	idle     func() bool
@@ -89,10 +80,9 @@ type Controller struct {
 
 	// wake lets Cancel and Refresh ask for an immediate re-evaluation instead
 	// of waiting up to poll for the next tick. Buffered by one and sent to
-	// without blocking, the identical shape schedule.Runner's own wake
-	// channel already uses: two requests arriving before the loop gets to the
+	// without blocking: two requests arriving before the loop gets to the
 	// first collapse into one wake-up, which loses nothing because tick
-	// always re-reads current state rather than acting on stale news.
+	// re-reads current state anyway.
 	wake chan struct{}
 	stop chan struct{}
 	done chan struct{}
@@ -102,43 +92,29 @@ type Controller struct {
 
 	mu      sync.Mutex
 	started bool
-	// settled is true once the current idle stretch has already been acted
-	// on - fired, or cancelled - so it is not re-armed on every remaining
-	// tick of the same stretch. Cleared the instant the queue has something
-	// to do again, which is what makes the NEXT idle stretch a fresh chance.
+	// settled is true once the current idle stretch has been acted on, fired
+	// or cancelled, so it is not re-armed on every remaining tick of the same
+	// stretch. It is cleared the moment the queue has something to do again,
+	// which makes the next idle stretch a fresh chance.
 	//
-	// This, together with armed, is most of the state machine - there is
-	// deliberately no separate "was idle last tick" flag for the ordinary
-	// case. The queue being idle when the controller has nothing armed and
-	// this stretch is not yet settled is a reason to arm, whether that is
-	// because idle just became true a moment ago or because a settings save
-	// turned the feature on while the queue already had nothing to do (see
-	// Refresh) - a save made while already idle must arm on its very next
-	// tick, not wait for a busy period that may never come. An earlier
-	// version of this file tracked a "rising edge of idle" instead and armed
-	// only on the transition - which quietly meant that exact save-while-
-	// idle case could never arm at all, because the one edge there ever was
-	// had already been consumed, harmlessly, by the very first tick at boot.
+	// Together with armed this is most of the state machine, and there is no
+	// "was idle last tick" flag: idle with nothing armed and the stretch not
+	// settled is a reason to arm, whether idle just became true or a settings
+	// save turned the feature on while the queue already had nothing to do
+	// (see Refresh).
 	//
-	// What level-triggering alone still got wrong: a boot with the queue
-	// ALREADY idle (nothing pending) and Action already configured from a
-	// PRIOR session armed on that very first tick too, with nobody having
-	// touched anything - so a queue that had simply never been given work
-	// this run got silently paused a minute after every ordinary restart.
-	// everBusy is what tells those two boot-time cases apart from an
-	// explicit tick (see tick's own explicit parameter): a queue this
-	// Controller has genuinely seen busy at least once may arm on an
-	// ordinary poll once it goes idle, exactly as before; a queue that has
-	// been idle since Start may only arm on an EXPLICIT tick - Refresh,
-	// i.e. a real settings save - never on a routine poll finding nothing
-	// new to report.
+	// everBusy separates a queue this Controller has seen busy at least once,
+	// which may arm on an ordinary poll, from one that has been idle since
+	// Start, which may only arm on an explicit tick. Without it an ordinary
+	// restart with an action configured in an earlier session would pause a
+	// queue that was never given work this run.
 	settled  bool
 	armed    bool
 	action   Action
 	fireAt   time.Time
 	everBusy bool
-	// forceArm is set by Refresh and consumed (read once, cleared) by the
-	// very next tick - see Refresh's own doc comment.
+	// forceArm is set by Refresh and read once, then cleared, by the next
+	// tick.
 	forceArm bool
 }
 
@@ -168,11 +144,10 @@ func NewController(o Options) (*Controller, error) {
 	}, nil
 }
 
-// Start begins watching in the background. Calling it twice, or calling it
-// after Close, is a no-op - see schedule.Runner.Start for the same guard and
-// the same reason: a boot that fails between NewController and Start still
-// runs a deferred Close, and without this the loop would start afterwards and
-// could call Fire into a half torn down app.
+// Start begins watching in the background. Calling it twice, or after Close,
+// is a no-op: a boot that fails between NewController and Start still runs a
+// deferred Close, and the loop must not start afterwards and call Fire into a
+// half torn down app.
 func (c *Controller) Start() {
 	c.startOnce.Do(func() {
 		c.mu.Lock()
@@ -187,9 +162,9 @@ func (c *Controller) Start() {
 	})
 }
 
-// Close stops the loop and waits for an in-flight tick (Fire included) to
+// Close stops the loop and waits for an in-flight tick, Fire included, to
 // return, so the caller can tear down whatever Fire talks to without racing
-// it - the same promise schedule.Runner.Close makes about Apply.
+// it.
 func (c *Controller) Close() error {
 	c.closeOnce.Do(func() { close(c.stop) })
 	c.mu.Lock()
@@ -201,11 +176,9 @@ func (c *Controller) Close() error {
 	return nil
 }
 
-// Cancel calls off a countdown in progress. It is a no-op when nothing is
+// Cancel calls off a countdown in progress, and is a no-op when nothing is
 // armed. It does not turn the feature off: the next time the queue goes from
-// busy to idle, a fresh countdown starts under whatever is configured then -
-// "not now" rather than "not ever", which is what JDownloader's own countdown
-// dialog means by Cancel too.
+// busy to idle, a fresh countdown starts under whatever is configured then.
 func (c *Controller) Cancel() {
 	c.mu.Lock()
 	changed := c.armed
@@ -221,11 +194,10 @@ func (c *Controller) Cancel() {
 }
 
 // Refresh asks the controller to re-read Config now rather than at the next
-// poll, so a settings save made while the queue happens to already be idle
-// arms - or disarms - immediately instead of up to Poll later. forceArm is
-// what makes the "arms" half true even for a queue that has been idle since
-// boot with nothing observed busy yet - see everBusy and tick's own doc
-// comment for why an ordinary poll must not arm that same queue on its own.
+// poll, so a settings save made while the queue is already idle arms, or
+// disarms, immediately. forceArm makes the arming half hold for a queue that
+// has been idle since boot, which an ordinary poll must not arm on its own
+// (see everBusy).
 func (c *Controller) Refresh() {
 	c.mu.Lock()
 	c.forceArm = true
@@ -259,12 +231,10 @@ func (c *Controller) loop() {
 	defer close(c.done)
 	ticker := time.NewTicker(c.poll)
 	defer ticker.Stop()
-	// One immediate pass rather than waiting out the first Poll - forceArm
-	// is left false for it (the zero value): a fresh boot is not a person
-	// saving a setting, and a queue that is idle purely because nothing has
-	// been added yet this run must not arm just because Action happens to
-	// already be configured from a previous session. See tick's own doc
-	// comment and everBusy.
+	// One immediate pass rather than waiting out the first Poll, with
+	// forceArm left false: a fresh boot is not a person saving a setting, and
+	// a queue that is idle because nothing has been added yet must not arm on
+	// an action configured in an earlier session.
 	c.tick()
 	for {
 		select {
@@ -281,32 +251,20 @@ func (c *Controller) loop() {
 // tick is one evaluation pass: read the current idle state and configuration,
 // decide whether to arm, disarm or fire, and act on it.
 //
-// Arming needs idle now, not already armed, not settled for this stretch,
-// and (everBusy OR forceArm) - never a transition. A transition ("idle just
-// became true") sounds like the safer trigger and is not: the controller's
-// very first tick, at Start, already observes whatever the queue's state
-// happens to be, and on an ordinary boot that is usually idle (nothing has
-// been added yet). If arming required a FRESH edge, a settings page saved
-// while the queue is already idle (Refresh's whole reason to exist) could
-// never arm at all, because the one edge there ever was had already been
-// consumed, harmlessly, by the very first tick. So the base condition is
-// level-triggered, re-checked in full on every tick - but level-triggering
-// alone armed on a boot-idle queue with a config left over from a previous
-// session, too, silently pausing a queue that had never been given work
-// this run. everBusy||forceArm is what keeps the level-trigger for the case
-// it exists for (Refresh while idle) without also matching plain "still
-// idle since boot, nobody touched anything." forceArm is read once and
-// cleared here regardless of which branch of the switch below actually
-// runs, so a Refresh that arrives while the queue happens to be busy (and
-// therefore hits the first case, not the arm case) does not leave a stale
-// forceArm sitting around to incorrectly free some LATER, unrelated tick
-// from the everBusy gate it exists to enforce.
+// Arming needs idle now, nothing armed, the stretch not settled, and either
+// everBusy or forceArm. The condition is level-triggered rather than a
+// transition, because the first tick at Start consumes the only edge there
+// ever was and a settings page saved while the queue is already idle could
+// then never arm. everBusy and forceArm keep that level trigger from also
+// matching a queue that has merely been idle since boot.
 //
-// settled is what stops that same level-triggered condition from re-arming
-// every remaining tick of one continuous idle stretch once it has already
-// been dealt with - fired, or cancelled. It is cleared only when idle goes
-// false: the queue getting something new to do is the one event that makes
-// the NEXT idle stretch a fresh chance.
+// forceArm is read once and cleared here whichever branch runs, so a Refresh
+// arriving while the queue is busy leaves nothing behind to free a later tick
+// from the everBusy gate.
+//
+// settled stops the same condition from re-arming on every remaining tick of
+// one idle stretch once it has been dealt with. It is cleared only when idle
+// goes false, the one event that makes the next stretch a fresh chance.
 func (c *Controller) tick() {
 	cfg := c.cfg()
 	idleNow := c.idle()
@@ -319,33 +277,23 @@ func (c *Controller) tick() {
 	c.forceArm = false
 	switch {
 	case !idleNow:
-		// Something to do again. Whatever made the queue idle before no
-		// longer holds, so a countdown in flight is called off - firing an
-		// action on the strength of an idle stretch that has already ended
-		// would be acting on stale news - and settled resets so the NEXT
-		// idle stretch starts clean rather than being silently skipped by a
-		// Cancel or a Fire that belonged to a different one. Also the one
-		// place everBusy is set: a queue that is busy even once this run is
-		// no longer "idle purely because nothing has happened yet", so a
-		// later idle stretch is free to arm on an ordinary poll same as
-		// before this fix.
+		// Something to do again. A countdown in flight is called off, since
+		// firing on an idle stretch that has ended would act on stale news,
+		// and settled resets so the next stretch is not skipped by a Cancel
+		// or a Fire that belonged to a different one. This is also the one
+		// place everBusy is set: a queue that has been busy once is no
+		// longer idle purely because nothing has happened yet.
 		c.armed = false
 		c.settled = false
 		c.everBusy = true
 	case c.armed && cfg.Action == ActionNone:
-		// The feature was switched off (or Action set to "do nothing")
-		// while a countdown armed under the PREVIOUS configuration was
-		// still running. Without this case, neither branch above matches
-		// (idleNow is still true, and c.armed is already true so the arm
-		// branch's !c.armed guard refuses it too) - the switch would do
-		// nothing at all, c.action would keep the stale value, and the
-		// fire check below would act on it anyway, pausing a queue whose
-		// own settings page reads the feature as off. settled is
-		// deliberately left untouched (not forced true, the way Cancel
-		// sets it): this is "nothing is configured", not "this stretch
-		// has been dealt with", so re-enabling the action later in the
-		// same idle stretch is free to arm fresh on its very next tick,
-		// exactly what Refresh's "arms OR disarms immediately" promises.
+		// The action was switched off while a countdown armed under the
+		// earlier configuration was still running. Without this case no
+		// branch matches, c.action keeps its stale value and the fire check
+		// below acts on it, pausing a queue whose settings page reads the
+		// feature as off. settled stays as it is: this is "nothing is
+		// configured", not "this stretch has been dealt with", so switching
+		// the action back on in the same stretch arms on the next tick.
 		c.armed = false
 	case !c.armed && !c.settled && cfg.Action != ActionNone && (c.everBusy || forceArm):
 		c.armed = true

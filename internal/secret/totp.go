@@ -9,16 +9,15 @@
 // 6238's own printed vectors without a temporary directory anywhere in sight,
 // and it is what keeps the guard's file format free of the details of a hash.
 //
-// WRITTEN OUT RATHER THAN IMPORTED, on purpose. The whole of TOTP is the forty
-// lines below: an HMAC over a 30-second counter, truncated to six digits. Adding
-// a module for that would put a supply-chain dependency on the one code path
-// whose entire job is to be trustworthy, and the specification has not moved
-// since 2011.
+// Written out rather than imported. The whole of TOTP is the forty lines
+// below, an HMAC over a 30-second counter truncated to six digits, and a module
+// for that would put a supply-chain dependency on the one code path whose job
+// is to be trustworthy. The specification has not moved since 2011.
 //
-// SHA-1 IS NOT A MISTAKE HERE. RFC 6238 names it, every authenticator app
-// implements it, and the construction is HMAC, where SHA-1's collision weakness
-// does not apply. An install that reached for SHA-256 because it sounds safer
-// would simply fail to enrol in Google Authenticator.
+// SHA-1 is not a mistake here. RFC 6238 names it, every authenticator app
+// implements it, and the construction is HMAC, where SHA-1's collision
+// weakness does not apply. Reaching for SHA-256 because it sounds safer would
+// fail to enrol in Google Authenticator.
 package secret
 
 import (
@@ -169,17 +168,13 @@ func TOTPURI(issuer, account, secret string) string {
 	return "otpauth://totp/" + label + "?" + q.Encode()
 }
 
-// ---------------------------------------------------------------------------
-// Recovery codes
-// ---------------------------------------------------------------------------
-
 // RecoveryCodeCount is how many single-use codes are handed out when the second
 // factor is switched on. Eight is enough to survive a lost phone and few enough
-// that people actually write them down.
+// that people write them down.
 //
-// Exported because the interface has to say the number BEFORE it shows the
-// codes, and a screen that promises "eight" while the store hands out ten is the
-// kind of disagreement nothing notices.
+// Exported because the interface says the number before it shows the codes, and
+// a screen that promises eight while the store hands out ten is a disagreement
+// nothing else notices.
 const RecoveryCodeCount = 8
 
 const recoveryHalfLen = 5 // characters per half, "abcde-fghij"
@@ -191,11 +186,11 @@ const recoveryAlphabet = "abcdefghjkmnpqrstuvwxyz23456789"
 // NewRecoveryCodes returns fresh single-use codes in plain text - shown to the
 // operator exactly once - together with their stored hashes.
 //
-// The stored form is a plain HMAC and deliberately not bcrypt. Unlike a
-// human-chosen password these codes carry about fifty bits of entropy each, so
-// there is no dictionary for a slow hash to slow down; bcrypt here would only
-// make every login slower by eight verifications. It is the same argument
-// internal/apitoken already makes for its own hashing, one door along.
+// The stored form is a plain HMAC rather than bcrypt. Unlike a human-chosen
+// password these codes carry about fifty bits of entropy each, so there is no
+// dictionary for a slow hash to slow down, and bcrypt would only make every
+// login slower by eight verifications. internal/apitoken makes the same
+// argument for its own hashing.
 func NewRecoveryCodes(key string) (plain []string, hashed []string, err error) {
 	plain = make([]string, 0, RecoveryCodeCount)
 	hashed = make([]string, 0, RecoveryCodeCount)

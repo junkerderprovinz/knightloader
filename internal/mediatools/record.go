@@ -4,33 +4,32 @@
 // neither is a Go package - they are separate programs KnightLoader spawns,
 // installed by the container image or by whoever set the desktop build up.
 //
-// Three things live here, and they are three because the first two must never
-// touch the network:
+// Three things live here, split because the first two must never touch the
+// network:
 //
-//   - RESOLVE (resolve.go): which yt-dlp is actually going to run, out of the
-//     managed copy, KL_YTDLP and PATH, and why the other two are not.
-//   - PROBE (probe.go): what version each of the three programs reports,
-//     behind a short cache so the settings page and the diagnostics bundle can
-//     both read it on every load without turning into a process fountain.
-//   - FETCH (fetch.go): downloading a yt-dlp release from GitHub, verifying it
-//     against the release's own SHA2-256SUMS, PROVING IT RUNS on this machine,
-//     and only then putting it where the resolver will start it.
+//   - resolve.go: which yt-dlp is going to run, out of the managed copy,
+//     KL_YTDLP and PATH, and why the other two are not.
+//   - probe.go: what version each of the three programs reports, behind a
+//     short cache so the settings page and the diagnostics bundle can both
+//     read it on every load without turning into a process fountain.
+//   - fetch.go: downloading a yt-dlp release from GitHub, verifying it against
+//     the release's own SHA2-256SUMS, proving it runs on this machine, and
+//     only then putting it where the resolver will start it.
 //
-// WHY THIS IS NOT UNDER internal/resolver/. check-docs-claims.mjs walks every
-// directory under internal/resolver/ and fails on one it has no README name
-// for, because "the resolvers ARE the architecture". This is not a resolver: it
-// resolves no links and answers no Match. It is the tooling underneath one.
+// It is not under internal/resolver/ because it is not a resolver: it resolves
+// no links and answers no Match, it is the tooling underneath one.
+// check-docs-claims.mjs walks every directory under internal/resolver/ and
+// fails on one it has no README name for.
 //
-// WHY THE RECORD IS NOT IN settings.json, which is the obvious place for it and
-// the wrong one for three separate reasons. The settings shell PUTs the whole
-// document, so a record written here would be clobbered by whatever stale draft
-// an unrelated browser tab saved next (which is exactly why
-// routes_resolvers.go's own writes go through PatchSettings). settings.json is
+// The record is not in settings.json for three reasons. The settings shell
+// PUTs the whole document, so a record written there would be clobbered by
+// whatever stale draft an unrelated browser tab saved next, which is why
+// routes_resolvers.go's own writes go through PatchSettings. settings.json is
 // serialised whole into the diagnostics bundle attached to public bug reports.
-// And internal/backup zips settings.json plus the database and nothing else, so
-// a record in there would travel to a restored machine and point the resolver
-// at a binary that does not exist on it. <dataDir>/tools/ytdlp.json is outside
-// all three, and being outside all three is the point.
+// And internal/backup zips settings.json plus the database and nothing else,
+// so a record in there would travel to a restored machine and point the
+// resolver at a binary that does not exist on it. <dataDir>/tools/ytdlp.json
+// is outside all three.
 package mediatools
 
 import (
@@ -49,16 +48,16 @@ import (
 // bundle answers "which yt-dlp was that" without a second round trip.
 //
 // SHA256 is the digest the release published and this file was verified
-// against, not one computed later. It is in the diagnostics bundle on purpose
-// and is safe to be: it is a public digest of a public file.
+// against, not one computed later. It travels in the diagnostics bundle, which
+// is safe: it is a public digest of a public file.
 type ManagedRecord struct {
 	Tag    string `json:"tag"`
 	Asset  string `json:"asset"`
 	SHA256 string `json:"sha256"`
-	// Version is what the staged file PRINTED at the smoke test, not what the
-	// tag says it should print. The two agreeing is what Install requires
-	// before it replaces anything; storing the printed one means a later build
-	// that loosens that rule still records the truth.
+	// Version is what the staged file printed at the smoke test, not what the
+	// tag says it should print. Install requires the two to agree before it
+	// replaces anything, and storing the printed one keeps the record true if
+	// a later build loosens that.
 	Version   string    `json:"version"`
 	FetchedAt time.Time `json:"fetchedAt"`
 }
@@ -69,10 +68,9 @@ type ManagedRecord struct {
 // run" from their own files at a glance.
 func ToolsDir(dataDir string) string { return filepath.Join(dataDir, "tools") }
 
-// BinaryPath is where a fetched yt-dlp is put. The name has no tag in it on
-// purpose: the resolver has to be able to name the file without reading the
-// record first, and a per-tag name would leave every superseded copy on disk
-// for ever.
+// BinaryPath is where a fetched yt-dlp is put. The name carries no tag: the
+// resolver has to name the file without reading the record first, and a
+// per-tag name would leave every superseded copy on disk.
 func BinaryPath(dataDir string) string {
 	name := "yt-dlp"
 	if runtime.GOOS == "windows" {
@@ -118,10 +116,10 @@ func saveRecord(dataDir string, rec ManagedRecord) error {
 }
 
 // Remove deletes the fetched copy and its record, putting KL_YTDLP and PATH
-// back in charge. Both removals are attempted even if the first fails: a record
-// left behind with no binary is the "recorded but unusable" state resolve.go
-// already has to survive, but a binary left behind with no record is a file
-// nothing will ever start and nothing will ever mention again.
+// back in charge. Both removals are attempted even if the first fails: a
+// record with no binary is the "recorded but unusable" state resolve.go has to
+// survive anyway, while a binary with no record is a file nothing will ever
+// start or mention again.
 func Remove(dataDir string) error {
 	binErr := os.Remove(BinaryPath(dataDir))
 	if errors.Is(binErr, fs.ErrNotExist) {

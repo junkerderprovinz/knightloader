@@ -2,7 +2,7 @@
 // build so the user gets full hoster coverage out of the box without ever
 // seeing JD's own UI. It downloads JDownloader.jar on first run, enables the
 // local Deprecated API KnightLoader talks to, and launches it in the
-// background. Nothing here is bundled in the repo — JD is fetched from its
+// background. Nothing here is bundled in the repo: JD is fetched from its
 // official source at runtime.
 package provision
 
@@ -27,10 +27,10 @@ import (
 
 // defaultJarURL is JDownloader's official self-updating launcher jar. The
 // scheme is load-bearing: whatever comes back from this URL is handed straight
-// to a JVM as executable code, so over plain HTTP anyone on the path between us
-// and the host — a hostile access point, a transparent proxy, an ISP box —
-// would get to pick what runs on the user's machine. HTTPS makes that a
-// certificate problem instead of a free-for-all.
+// to a JVM as executable code, so over plain HTTP anyone on the path between
+// us and the host (a hostile access point, a transparent proxy, an ISP box)
+// would pick what runs on the user's machine. HTTPS makes that a certificate
+// problem instead.
 const defaultJarURL = "https://installer.jdownloader.org/JDownloader.jar"
 
 // maxJarBytes caps the download. The launcher jar is a couple of megabytes;
@@ -94,13 +94,12 @@ var jarMagic = []byte{'P', 'K', 0x03, 0x04}
 
 // verifyJar refuses anything that is not really a jar.
 //
-// The check is deliberately on the bytes on disk and not on the Content-Type
-// header. A header is only a claim made by whoever answered the request, and
-// setting it to application/java-archive costs an attacker (or a captive portal
-// serving its login page) exactly nothing. The file is the thing that gets
-// executed, so the file is the thing that has to be inspected. Refusing is
-// always the right answer when it does not look like a jar: not having JD is a
-// missing feature, running an attacker's jar is a compromised machine.
+// The check is on the bytes on disk and not on the Content-Type header, which
+// is only a claim by whoever answered the request and costs an attacker, or a
+// captive portal serving its login page, nothing to set. The file is what gets
+// executed, so the file is what is inspected. Refusing is the right answer when
+// it does not look like a jar: not having JD is a missing feature, running an
+// attacker's jar is a compromised machine.
 func verifyJar(path string) error {
 	f, err := os.Open(path)
 	if err != nil {
@@ -124,10 +123,9 @@ func verifyJar(path string) error {
 }
 
 // EnsureJar downloads JDownloader.jar into Dir if it is not there yet. The
-// download is verified before it is moved into place, and a jar already on disk
-// that no longer verifies is thrown away and fetched again — a file left behind
-// by an older, unchecked build would otherwise keep being executed on every
-// start.
+// download is verified before it is moved into place, and a jar already on
+// disk that no longer verifies is thrown away and fetched again, so a file
+// left behind by an older, unchecked build is not executed on every start.
 func (p *Provisioner) EnsureJar(ctx context.Context) error {
 	if p.Provisioned() {
 		if err := verifyJar(p.jarPath()); err == nil {
@@ -156,9 +154,9 @@ func (p *Provisioner) EnsureJar(ctx context.Context) error {
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("provision: download JD: HTTP %d", resp.StatusCode)
 	}
-	// The declared length is only a hint — it can lie or be absent entirely — so
-	// the cap that counts is the one on the bytes actually written below. Looking
-	// at it first merely saves pulling down something we would reject anyway.
+	// The declared length is a hint that can lie or be absent, so the cap that
+	// counts is the one on the bytes written below. Looking at it first only
+	// saves pulling down something that would be rejected anyway.
 	if resp.ContentLength > maxJarBytes {
 		return fmt.Errorf("provision: download JD: declared size %d exceeds the %d byte cap", resp.ContentLength, maxJarBytes)
 	}

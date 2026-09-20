@@ -10,19 +10,16 @@ import (
 // known is every non-pointer time.Time in this tree that still carries
 // `omitempty`, listed on purpose.
 //
-// THIS LIST MAY ONLY EVER GET SHORTER. It is not an exemption list and none of
-// these is correct; each one is a field whose tag says it can be absent and
-// which is in fact always sent, as the year one. They are here rather than
-// fixed because flipping a tag to `omitzero` CHANGES THE WIRE - the field stops
-// being sent at all - and every one of these is read by the web app, the mobile
-// app or both, so each is its own decision with its own reading of who breaks.
-// internal/startupcheck.Report.FinishedAt was the one that could be flipped
-// without a reader anywhere to break, and it was.
+// The list may only get shorter. It is not an exemption list and none of these
+// is correct: each is a field whose tag says it can be absent and which is
+// always sent, as the year one. They are listed rather than fixed because
+// flipping a tag to `omitzero` changes the wire, the field stops being sent at
+// all, and every one of these is read by the web app, the mobile app or both,
+// so each is its own decision about who breaks.
 //
-// The test below fails on anything NOT in this list, which is the whole point:
-// the debt is fixed in size, and the eleventh one cannot be added quietly.
-// It also fails on anything in the list that is no longer there, so the list
-// cannot rot into a lie of its own.
+// The test below fails on anything not in the list, so the debt is fixed in
+// size and the next one cannot be added quietly. It also fails on anything in
+// the list that is no longer there, so the list cannot rot.
 var known = []string{
 	// Task is the one on every row of the downloads table. All four of these are
 	// read by web/src/components/columns.tsx, TimesCard.tsx, ListToolbar.tsx and

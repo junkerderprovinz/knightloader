@@ -35,8 +35,8 @@ func TestExtract(t *testing.T) {
 			[]string{"https://example.com/b", "https://example.com/a"},
 		},
 		{
-			// The whole point of requiring a scheme or a domain shape: a
-			// README must not become a download list of its own words.
+			// A scheme or a domain shape is required, so a README does not
+			// become a download list of its own words.
 			"prose with no links",
 			"This archive contains the film in 2160p.",
 			nil,
@@ -128,18 +128,16 @@ func TestExtract(t *testing.T) {
 			[]string{"https://example.com/a/very/long/path/that/got/wrapped/right/here/by/the/mail/client/and/continues/on/this/line.zip"},
 		},
 		{
-			// The false positive this design accepts is the mirror image of
-			// the one above: a wrap landing exactly where a NEW sentence also
-			// starts lower-case. Documented as a known limit, not fixed here.
+			// The accepted false positive, the mirror image of the one
+			// above: a wrap landing where a new sentence starts lower-case.
 			"a capitalised new sentence right after a wrap is not absorbed",
 			"https://example.com/a/wrapped/link/that/ends/right/here/at/the/break\nThanks for downloading!",
 			[]string{"https://example.com/a/wrapped/link/that/ends/right/here/at/the/break"},
 		},
 		{
-			// The one bug this package exists to not have: two complete,
-			// independent links pasted one per line must never fuse into one
-			// just because the first happens to end lower-case, which nearly
-			// every URL does.
+			// Two independent links pasted one per line must not fuse
+			// because the first ends lower-case, which nearly every URL
+			// does.
 			"two independent links never fuse into one",
 			"https://example.com/first\nhttps://example.com/second",
 			[]string{"https://example.com/first", "https://example.com/second"},
@@ -222,9 +220,8 @@ func TestTrimToken(t *testing.T) {
 
 func TestTrimTokenDoesNotBlowUpOnAPathologicalBracketRun(t *testing.T) {
 	// One opener followed by ten thousand closers: strip down to the single
-	// balanced pair, not to nothing and not by recomputing strings.Count on
-	// every one of them. This is a correctness-of-complexity test as much as
-	// a value one - it must finish, not just finish correctly.
+	// balanced pair, without recomputing strings.Count for each of them. The
+	// test is about the running time as much as the value.
 	tok := "https://example.org/a("
 	for i := 0; i < 10000; i++ {
 		tok += ")"

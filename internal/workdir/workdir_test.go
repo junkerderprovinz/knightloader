@@ -198,9 +198,9 @@ func TestAWholeFolderCrossesWithItsFilesAndTimes(t *testing.T) {
 	}
 	// A copy is written under a temporary name, and a temporary name is made
 	// private (0700 for a folder, 0600 for a file). Delivered as it stands,
-	// that is a release the media server running as another user cannot open -
-	// which on a box where several users share one library is the whole point
-	// of the delivery failing to work.
+	// that is a release the media server running as another user cannot open,
+	// which on a box where several users share one library is a delivery that
+	// does not work.
 	if runtime.GOOS != "windows" {
 		if info.Mode().Perm()&0o044 == 0 {
 			t.Errorf("the delivered file is mode %v, want the source's own readable one", info.Mode().Perm())

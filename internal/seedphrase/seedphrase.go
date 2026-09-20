@@ -1,32 +1,27 @@
 // Package seedphrase turns the secret that groups a person's own instances
 // into twelve words, and back.
 //
-// This is the whole of what somebody copies from one KnightLoader to
-// another (jdp, 2026-08-27: "eine zeichenfolge oder eine Seed phrase ...
-// die man dann in allen anderen Instanzen einfügen kann"). It carries the
-// secret and nothing else - not an address, because the relay's address is
-// a compiled-in constant, which is exactly what lets the phrase stay this
-// short and why there is no login step anywhere in the flow. See
-// docs/superpowers/specs/2026-08-27-public-relay-seed-phrase-design.md.
+// This is the whole of what somebody copies from one KnightLoader to another.
+// It carries the secret and nothing else, not an address, because the relay's
+// address is a compiled-in constant, which is what lets the phrase stay this
+// short and why there is no login step anywhere in the flow.
 //
 // # Why the BIP39 wordlist
 //
-// Not because of cryptocurrency, and the UI must never call this a wallet
-// seed. The list is reused because of one property that is expensive to
-// reproduce and easy to get wrong: its 2048 words were chosen so that no
-// two share their first four letters, none are near-homophones, and none
-// carry accents. That is what makes a phrase safe to read aloud down a
-// phone line and safe to type on a mobile keyboard - the two things this
-// format exists for. The word file is the official list, embedded rather
-// than fetched, and its content is pinned by TestWordlistIsTheOfficialOne.
+// Not because of cryptocurrency, and the UI does not call this a wallet seed.
+// The list is reused for one property that is expensive to reproduce and easy
+// to get wrong: its 2048 words were chosen so that no two share their first
+// four letters, none are near-homophones and none carry accents. That is what
+// makes a phrase safe to read aloud down a phone line and safe to type on a
+// mobile keyboard. The word file is the official list, embedded rather than
+// fetched, and its content is pinned by TestWordlistIsTheOfficialOne.
 //
 // # Why 128 bits
 //
-// An earlier draft of the relay design specified 256. That is 24 words,
-// and the difference between a phrase somebody will actually type on a
-// phone and one they will give up on. At 2^128 guessing is not a threat
-// model any rate limit needs to help with, so the extra 12 words buy
-// nothing real and cost the feature its usability.
+// 256 bits is 24 words, the difference between a phrase somebody will type on
+// a phone and one they will give up on. At 2^128 guessing is not a threat
+// model any rate limit needs to help with, so the extra 12 words buy nothing
+// and cost the feature its usability.
 //
 // The BIP39 checksum rides along for free and earns its place: a mistyped
 // word is caught here, with the offending word named, instead of surfacing
@@ -185,9 +180,8 @@ func Decode(phrase string) ([]byte, error) {
 	for i, w := range got {
 		idx, ok := wordIndex[w]
 		if !ok {
-			// Naming the word and its position is the whole point: "word 7
-			// (\"recieve\") is not in the list" is a fixable message,
-			// "invalid phrase" is not.
+			// "word 7 (\"recieve\") is not in the list" is a message
+			// somebody can act on, "invalid phrase" is not.
 			return nil, &DecodeError{Reason: ReasonUnknownWord, Word: w, Position: i + 1}
 		}
 		setBits(full, i*bitsPerWord, bitsPerWord, idx)
