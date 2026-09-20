@@ -31,54 +31,24 @@ import { useToast } from '../../lib/toast';
 import { NeutralSwitch } from './controls';
 
 /**
- * The timetable editor: a table of windows, each pausing, resuming or
- * capping the queue for as long as it is open.
+ * Schedule edits the timetable: windows that pause, resume or cap the queue
+ * while they are open. It reads and writes PUT /api/schedule rather than the
+ * settings draft, so a timetable save never carries a stale unrelated field
+ * (routes_schedule.go), and it saves itself.
  *
- * OUTSIDE THE SETTINGS DRAFT, ON PURPOSE. Every other sub-page in this shell
- * reads and writes settings.SettingsPage's one shared draft, saved wholesale
- * by the shell's own Save bar - see context.tsx's own doc comment on why
- * ("dropping a field... would delete somebody's rule set"). This page does
- * not: it reads and writes only PUT /api/schedule, a dedicated route this
- * wave adds specifically so a timetable save can never be the stale side of
- * that shared draft, and can never carry an unrelated field along with it.
- * See routes_schedule.go's doc comment for the full reasoning and for the
- * one direction of the race that choice does NOT close. One consequence
- * worth being explicit about: this page's own unsaved edits do not feed the
- * shell's sticky "Unsaved changes" bar at the bottom of every other settings
- * page, because they were never part of what that bar watches. This page
- * carries its own, directly below the table.
- *
- * ORDER IS MEANING, NOT LAYOUT. schedule.Schedule.At applies every window
- * that covers the current moment in order, last write to a field wins - the
- * same rule a rule set applies. A broad "pause every night" above a narrow
- * "except for the download I queue by hand at midnight" is two rows; the same
- * two rows the other way round pause right over the exception. Move up/down
- * is therefore not a cosmetic reorder control, and it says so once, in the
- * list's own hint, rather than on every row.
- *
- * THE NEXT-EXECUTION COLUMN IS A HINT, NOT THE ENGINE'S OWN ANSWER.
- * ScheduleState.next (the aggregate this page polls for, see StateBanner) is
- * the one DST-correct, cumulative answer - internal/schedule/schedule.go
- * spends a long comment on why that question is hard. What is shown per row
- * here is a much narrower, locally-computed question - "when does THIS row's
- * own window next open" - answered with plain calendar arithmetic in the
- * reader's own local time. It is close enough to be useful while a row is
- * being edited and is never treated as authoritative; the banner above the
- * table is.
+ * Order matters: every window covering the moment applies in order and the
+ * last write to a field wins, as in a rule set. The per-row "next" column is a
+ * local hint in the reader's time; the banner shows the server's DST-correct
+ * answer.
  */
 
-// Mirrors schedule.Action. Left open rather than a closed union, matching the
-// rest of this app's server-named-enum fields (Reason, Origin in lib/api.ts):
-// the three below are everything this build ships, and an unrecognised value
-// from a newer server still renders (as its own raw string) instead of
-// failing to compile.
+// Mirrors schedule.Action, left open so an unknown value from a newer server
+// still renders as its raw string.
 type ScheduleAction = 'pause' | 'resume' | 'limit' | (string & {});
 
 const KNOWN_ACTIONS: ScheduleAction[] = ['pause', 'resume', 'limit'];
 
-/** Mirrors schedule.Entry. Days are 0 = Sunday .. 6 = Saturday, exactly
- *  time.Weekday's own numbering and, not coincidentally, JavaScript's
- *  Date.getDay() - chosen so this page never converts between the two. */
+/** Mirrors schedule.Entry. Days are 0 = Sunday .. 6 = Saturday, as in both time.Weekday and Date.getDay(). */
 interface ScheduleEntry {
   name?: string;
   days: number[];
@@ -119,13 +89,9 @@ type SaveResult =
   | { ok: false; rowErrors?: undefined; error: string };
 
 /**
- * saveSchedule posts the whole ordered table to the dedicated route (never to
- * PUT /api/settings - see the page-level doc comment) and reads back either
- * the applied state or, for a 400, which rows were refused and why. Not
- * routed through lib/api.ts's shared `json()` helper: that helper's error
- * parsing is built for the single-sentence {error,code,params} envelope PUT
- * /api/settings answers with, and this route's refusal is a LIST of
- * {row,error} pairs a flat sentence cannot carry.
+ * saveSchedule posts the ordered table to its own route and reads back the
+ * applied state or, for a 400, the refused rows. It skips lib/api.ts's json()
+ * helper, whose error parsing expects one sentence rather than a list.
  */
 async function saveSchedule(entries: ScheduleEntry[]): Promise<SaveResult> {
   const r = await fetch('/api/schedule', {
@@ -144,13 +110,8 @@ async function saveSchedule(entries: ScheduleEntry[]): Promise<SaveResult> {
 }
 
 /**
- * The strings this page needs, keyed by where they are going.
- *
- * i18n for this wave lands in one later, dedicated pass across every locale
- * at once (the same one-writer-per-wave rule locales/* has followed since
- * Wave 1) - see Connections.tsx's identical table and useCx for the
- * precedent this mirrors. The lookup asks the real catalogue first, so the
- * day these keys land in en.ts this table stops being consulted.
+ * PENDING holds the English strings until the catalogue has them; the lookup
+ * asks the catalogue first.
  */
 const PENDING = {
   'settings.schedule.title': 'Schedule',
@@ -233,10 +194,10 @@ function presetOf(days: number[]): 'every' | 'weekdays' | 'weekends' | 'custom' 
   return 'custom';
 }
 
-/** Short weekday names in the reader's own language, indexed 0 = Sunday.
- *  Pinned to UTC on both sides - the anchor date and the formatter - so the
- *  browser's own timezone can never shift which calendar day (and so which
- *  weekday name) index 0 resolves to for a reader in, say, UTC+14. */
+/**
+ * shortWeekdayLabels names the weekdays in the reader's language, 0 = Sunday,
+ * pinned to UTC so the reader's timezone cannot shift the day.
+ */
 function shortWeekdayLabels(locale: string): string[] {
   const fmt = new Intl.DateTimeFormat(locale || undefined, { weekday: 'short', timeZone: 'UTC' });
   const sunday = Date.UTC(2023, 0, 1); // a Sunday
@@ -256,9 +217,7 @@ function parseClock(s: string): { h: number; m: number } | null {
   return { h, m: min };
 }
 
-/** Mirrors rule.covers in internal/schedule/schedule.go, in the reader's own
- *  local time - see the page doc comment for why this is a display hint and
- *  not a second implementation of the engine. */
+/** isActiveNow mirrors rule.covers in schedule.go, in the reader's local time, as a hint. */
 function isActiveNow(entry: ScheduleEntry, now: Date): boolean {
   if (entry.disabled) return false;
   const days = entry.days;
@@ -271,14 +230,13 @@ function isActiveNow(entry: ScheduleEntry, now: Date): boolean {
   const nowM = now.getHours() * 60 + now.getMinutes();
   const d = now.getDay();
   if (endM > startM) return days.includes(d) && nowM >= startM && nowM < endM;
-  // Wraps past midnight: belongs to the day it opened on, exactly as the Go
-  // evaluator treats it - testing today's date for the tail too would also
-  // mark the morning BEFORE this window's own start as active.
+  // A window past midnight belongs to the day it opened on, as in the Go
+  // evaluator.
   if (days.includes(d) && nowM >= startM) return true;
   return days.includes((d + 6) % 7) && nowM < endM;
 }
 
-/** The instant an active window closes; null when it is not active now. */
+/** activeUntil returns when an active window closes, or null. */
 function activeUntil(entry: ScheduleEntry, now: Date): Date | null {
   if (!isActiveNow(entry, now)) return null;
   const start = parseClock(entry.start);
@@ -288,17 +246,16 @@ function activeUntil(entry: ScheduleEntry, now: Date): Date | null {
   const endM = end.h * 60 + end.m;
   const nowM = now.getHours() * 60 + now.getMinutes();
   const until = new Date(now);
-  // Wrapping and still on the starting side of midnight: the end is
-  // tomorrow's clock face, not today's.
+  // Past midnight and still before it: the end is tomorrow.
   if (endM <= startM && nowM >= startM) until.setDate(until.getDate() + 1);
   until.setHours(end.h, end.m, 0, 0);
   return until;
 }
 
-/** When this row's window next OPENS - a narrower question than
- *  ScheduleState.next, see the page doc comment. Walks at most a week and a
- *  day ahead, which is always enough: within eight consecutive calendar days
- *  every weekday value occurs at least twice. */
+/**
+ * nextOccurrence returns when this row's window next opens. Eight days ahead
+ * are always enough to find it.
+ */
 function nextOccurrence(entry: ScheduleEntry, now: Date): Date | null {
   if (entry.disabled) return null;
   const days = entry.days;
@@ -338,15 +295,10 @@ interface Row {
   entry: ScheduleEntry;
 }
 
-/** loaded.entries -> editable rows, with a fresh client-only React key per
- *  row (the server has no id for one, and re-using array position would key
- *  two different rows identically the moment one is deleted, letting an
- *  edit in one land in another - see Connections.tsx's identical freshID
- *  for the same trap) and Days normalised to a real array. Days has no
- *  `omitempty` tag on the Go side, so a hand-edited settings.json missing the
- *  key, or explicit null, arrives here as JSON null rather than being
- *  dropped - Validate refuses saving such a row but does not retroactively
- *  fix one already on disk, and every helper below assumes a real array.
+/**
+ * toRows gives each entry a client-side React key, since the server has none,
+ * and turns a null Days (possible in a hand-edited settings.json) into an
+ * array.
  */
 function toRows(entries: ScheduleEntry[]): Row[] {
   return entries.map((entry) => ({ key: freshKey(), entry: { ...entry, days: entry.days ?? [] } }));
@@ -373,10 +325,8 @@ export function Schedule() {
     if (loaded) setRows(toRows(loaded.entries));
   }, [loaded]);
 
-  // The aggregate state banner is polled independently of `rows`, and never
-  // writes into it: a poll landing while the table has unsaved edits must
-  // not discard them, which is exactly the failure this page's own doc
-  // comment says the shared settings draft has for every OTHER field.
+  // Polled on its own and never written into `rows`, so a poll cannot discard
+  // unsaved edits.
   const [live, setLive] = useState<Pick<ScheduleState, 'state' | 'next'> | null>(null);
   useEffect(() => {
     if (loaded) setLive({ state: loaded.state, next: loaded.next });
@@ -386,15 +336,13 @@ export function Schedule() {
       fetchSchedule()
         .then((s) => setLive({ state: s.state, next: s.next }))
         .catch(() => {
-          /* the banner keeps its last known answer rather than blanking on one failed poll */
+          /* The banner keeps its last answer through a failed poll. */
         });
     }, 30_000);
     return () => clearInterval(iv);
   }, []);
 
-  // Drives every row's live next-execution/active-now text. 30s is plenty for
-  // a column whose finest unit is a minute - this is a hint beside a form,
-  // not a countdown clock.
+  // Refreshes the per-row hints; their finest unit is a minute.
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
     const iv = setInterval(() => setNow(new Date()), 30_000);
@@ -409,7 +357,7 @@ export function Schedule() {
         if (alive && o.scheduleActions?.length) setActions(o.scheduleActions);
       },
       () => {
-        /* the fixed fallback above still lets the page work */
+        /* The fixed fallback above still lets the page work. */
       },
     );
     return () => {
@@ -487,17 +435,9 @@ export function Schedule() {
     }
   }
 
-  // Saves itself, like every other settings tab (jdp: "In allen
-  // Einstellungstabs soll alles was man einstellt automatisch sofort
-  // gespeichert werden, ohne dass ein Speichern Button erscheint") - this
-  // page was one of a handful sitting entirely outside the shared draft the
-  // main fix covers (routes_schedule.go's own dedicated PUT, see this file's
-  // module doc comment for why), so it needed its own copy of the same
-  // debounced-watch pattern rather than inheriting it for free. A longer
-  // 900ms delay than the shared shell's 600ms: a row here is a whole time
-  // range being typed field by field (a start time, an end time, a day
-  // selection), and firing mid-edit would surface a row's own validation
-  // error before the row is even finished, not just waste a request.
+  // Saves itself like every settings tab, through its own route, after 900ms
+  // rather than 600ms, since a row is typed field by field and would show its
+  // validation error half done.
   const saveTimer = useRef<number | null>(null);
   useEffect(() => {
     if (!dirty) return;
@@ -522,7 +462,6 @@ export function Schedule() {
 
   return (
     <div className="flex flex-col gap-10">
-      {/* No subtitle (jdp, 2026-09-07). */}
       <PageHeader title={cx('settings.schedule.title')} />
 
       <StateBanner live={live} cx={cx} locale={locale} />
@@ -586,9 +525,7 @@ function ErrorState({ message, retry, retryLabel }: { message: string; retry: ()
   );
 }
 
-/** What the timetable says right now, and when that next changes - read
- *  straight from the server's own cumulative, DST-correct evaluation
- *  (ScheduleState.state/.next), never recomputed here. */
+/** StateBanner shows the server's current state and next change, never recomputed here. */
 function StateBanner({
   live,
   cx,
@@ -621,9 +558,7 @@ function StateBanner({
   );
 }
 
-/** The row's own mark, at the one glyph size this page uses beside text. It
- *  had been 14px, which is neither the 16px every other glyph on this page
- *  takes nor anything else with a reason behind it. */
+/** actionIcon returns the row's mark at 16px, the glyph size used beside text. */
 function actionIcon(action: ScheduleAction) {
   if (action === 'pause') return <IconPause width={16} height={16} />;
   if (action === 'resume') return <IconPlay width={16} height={16} />;
@@ -632,10 +567,7 @@ function actionIcon(action: ScheduleAction) {
 }
 
 function daysSummary(days: number[], labels: string[]): string {
-  // Filtered rather than trusted as 0..6: Validate refuses an out-of-range
-  // weekday on SAVE, but GET does not re-check a row already on disk, so a
-  // hand-edited settings.json can still hand this a value with nothing at
-  // that index in `labels`.
+  // Filtered, since a hand-edited settings.json can hold a weekday outside 0..6.
   return [...days]
     .filter((d) => d >= 0 && d < labels.length)
     .sort((a, b) => a - b)
@@ -689,7 +621,7 @@ function EntryRow({
         ? cx('settings.schedule.next', { when: fmtWhen(next, locale) })
         : cx('settings.schedule.never');
 
-  const description = entry.name?.trim() || `${actionLabel(entry.action)} · ${entry.start}–${entry.end}`;
+  const description = entry.name?.trim() || `${actionLabel(entry.action)} · ${entry.start}-${entry.end}`;
   const preset = presetOf(entry.days);
 
   return (
@@ -718,12 +650,8 @@ function EntryRow({
             {nextText}
           </span>
         </button>
-        {/* `labelled` on all three, and 16px of glyph in the 32px tile: a row
-            action stands in the Beschriftung setting like everything else, and
-            the square is what that setting resolves to in glyph mode rather
-            than a control that ignores it. The words fit because the
-            description beside them is `min-w-0` and truncates, and the two
-            secondary columns already drop out below `lg` and `sm`. */}
+        {/* `labelled`, so the actions follow the Beschriftung setting; the
+            description truncates instead. */}
         <div className="flex items-center gap-1.5">
           <IconBadge
             labelled
@@ -754,9 +682,7 @@ function EntryRow({
         </div>
       </div>
 
-      {/* Repeated below the fold too - a row collapsed straight after a
-          failed save (or one a reader jumps to from elsewhere) must not
-          leave the only copy of the reason hidden behind a click. */}
+      {/* Repeated on a collapsed row, so the reason is not hidden behind a click. */}
       {!open && error && (
         <p className="pb-2 text-xs text-statusFail">{cx('settings.schedule.rowError', { row: index + 1, error })}</p>
       )}
@@ -826,11 +752,8 @@ function ActionSelect({
   onChange: (a: ScheduleAction) => void;
   label: (a: ScheduleAction) => string;
 }) {
-  // A value this build does not recognise (an older row, or a newer server)
-  // is kept as an option of its own rather than silently swapped for the
-  // first known one - switching a saved action on the strength of a menu
-  // that simply had nothing else to offer would be exactly the kind of
-  // save-time surprise this whole editor exists to avoid.
+  // A value the menu does not list stays an option of its own rather than
+  // being swapped for the first known one.
   const options = actions.includes(value) ? actions : [value, ...actions];
   return (
     <select
@@ -849,42 +772,19 @@ function ActionSelect({
 }
 
 /**
- * NEVER A NATIVE <input type="time">.
+ * The time picker replaces a native <input type="time">, whose spinner cannot
+ * be styled. A compact "HH:MM" button opens a portaled popover with an hour
+ * column and a minute column in five-minute steps, placed off the trigger and
+ * clamped into the viewport.
  *
- * That control renders the browser's own spinner surface entirely outside the
- * page's DOM: unstylable, unverifiable by any automated check, and a box whose
- * only reliable way in is typing the value by hand - which is the one thing an
- * hour/minute picker exists to remove. Both fields of this editor were one.
- *
- * What stands here instead is the shape the language spells out: a compact
- * "HH:MM" field-BUTTON as the trigger (never an input, because the trigger
- * must not invite typing), and two independently scrollable role="listbox"
- * columns in a popover - hours 0-23, minutes in five-minute steps, which is
- * the sensible default for anything schedule-shaped. Portal-rendered to
- * <body>, measured off the trigger's own rect, clamped into the viewport with
- * an 8px margin, flipping above the trigger when opening below would run off
- * the bottom.
- *
- * THE TWO TRAPS THIS SHAPE IS KNOWN FOR, both handled below because both were
- * found live elsewhere rather than in tests:
- *
- *  - A capture-phase scroll listener on `window` receives every scroll event
- *    on its way DOWN to the real target, including the ones the popover's own
- *    listbox columns fire. A naive "any scroll closes it" therefore closes the
- *    popover roughly the moment it opens. So the event's own target is checked
- *    and a scroll INSIDE the panel is ignored: a scroll in a popover never
- *    de-anchors it from its trigger the way a page scroll does.
- *  - Moving focus (or scrolling the selected option into view) BEFORE the real
- *    position has been measured makes the browser auto-scroll to bring an
- *    off-screen element into view, which trips the very listener above. Both
- *    effects are therefore gated on the position being known, not on "open".
- *
- * Only one of these is ever open across the app at once, the same singleton
- * rule the colour picker already keeps.
+ * The window scroll listener ignores scrolls inside the panel, or the columns
+ * would close it, and nothing focuses or scrolls before the position is
+ * measured, or the browser's own scroll would trip that listener. Only one
+ * picker is open at a time.
  */
 const MINUTE_STEP = 5;
 
-/** The picker currently open, closed by whichever one opens next. */
+/** The open picker's close function, called when another opens. */
 let closeOpenTimePicker: (() => void) | null = null;
 
 function pad2(n: number): string {
@@ -897,14 +797,12 @@ function TimePicker({ value, onChange, label }: { value: string; onChange: (v: s
   const minute = clock?.m ?? 0;
 
   const [open, setOpen] = useState(false);
-  // null until the real on-screen position has been measured - see the doc
-  // comment above for why nothing may focus or scroll before it is known.
+  // null until the position is measured; see the note above.
   const [at, setAt] = useState<{ left: number; top: number } | null>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLDivElement>(null);
 
-  // A stored minute that is not a multiple of the step still has to be
-  // reachable and visible - an old row, or one written by another instance.
+  // A stored minute off the step stays reachable and visible.
   const minutes = useMemo(() => {
     const list: number[] = [];
     for (let m = 0; m < 60; m += MINUTE_STEP) list.push(m);
@@ -934,9 +832,8 @@ function TimePicker({ value, onChange, label }: { value: string; onChange: (v: s
     };
   }, [open, close]);
 
-  // Measured off the trigger's own rect, with the panel's REAL rendered size
-  // rather than an assumed constant: the height depends on how tall the two
-  // columns end up, and the width on the browser's own scrollbar gutter.
+  // Measured with the panel's real size, which depends on the columns and the
+  // scrollbar gutter.
   useLayoutEffect(() => {
     if (!open) return;
     const place = () => {
@@ -968,8 +865,7 @@ function TimePicker({ value, onChange, label }: { value: string; onChange: (v: s
         trigger.current?.focus();
       }
     };
-    // Capturing, so a scroll inside any ancestor is seen - and target-checked,
-    // so the popover's own columns do not close it on the way past.
+    // Capturing, to see scrolls in any ancestor; the panel's own are ignored.
     const onScroll = (e: Event) => {
       if (panel.current?.contains(e.target as Node)) return;
       close();
@@ -993,15 +889,13 @@ function TimePicker({ value, onChange, label }: { value: string; onChange: (v: s
       <button
         ref={trigger}
         type="button"
-        // A clock reads left to right whatever the interface language does -
-        // it is data, not prose (see the RTL rules).
+        // A clock reads left to right in every language.
         dir="ltr"
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-label={label}
         onClick={toggle}
-        // The same box the field it replaces measured, so swapping one control
-        // for another does not orphan it from the row it stands in.
+        // The size of the field it replaces.
         className="glim-num w-full rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-1.5 text-start text-sm
           text-carbon-text outline-none transition-shadow focus:shadow-[0_0_0_2px_var(--focus-ring)]"
       >
@@ -1018,9 +912,7 @@ function TimePicker({ value, onChange, label }: { value: string; onChange: (v: s
             style={{
               left: at?.left ?? 0,
               top: at?.top ?? 0,
-              // Laid out but off screen for the one frame between mounting and
-              // being measured, so the unplaced first frame never flashes at
-              // the top-left corner.
+              // Hidden for the frame before it is measured.
               visibility: at ? undefined : 'hidden',
             }}
           >
@@ -1048,18 +940,10 @@ function TimePicker({ value, onChange, label }: { value: string; onChange: (v: s
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 
 /**
- * One column of the time picker.
- *
- * `name` is "HH"/"MM" rather than a translated word, and deliberately so: the
- * two columns of a clock face are format tokens, the same class of string as
- * the `dir="ltr"` the whole control is forced into, and both read the same in
- * every language this app ships.
- *
- * Arrow keys SELECT as they move, the same convention the one horizontal
- * selector already uses for a single-choice strip; Home/End jump to the ends;
- * left and right move between the two columns. Every option is a real button,
- * so Enter and Space already work without a line of code. A roving tabindex
- * keeps the column one tab stop rather than sixty.
+ * TimeColumn is one column of the time picker. `name` is "HH" or "MM", format
+ * tokens that read the same in every language. Arrow keys select as they move,
+ * Home and End jump to the ends, left and right switch columns, and a roving
+ * tabindex keeps the column one tab stop.
  */
 function TimeColumn({
   name,
@@ -1077,14 +961,8 @@ function TimeColumn({
   const list = useRef<HTMLDivElement>(null);
 
   /**
-   * Centres the chosen option in THIS column and touches nothing else.
-   *
-   * Deliberately arithmetic on the column's own scrollTop rather than
-   * `scrollIntoView`, which scrolls every scrollable ancestor as well - and a
-   * page scroll is exactly what the popover's outside-scroll listener closes
-   * on, so the tidy-looking call would shut the panel a frame after opening
-   * it. Measured through getBoundingClientRect rather than offsetTop, because
-   * the nearest positioned ancestor here is the fixed panel, not the column.
+   * Centres the chosen option in this column only, by scrollTop, since
+   * scrollIntoView would also scroll the page and close the popover.
    */
   const centre = useCallback((el: HTMLElement) => {
     const box = list.current;
@@ -1094,9 +972,7 @@ function TimeColumn({
     box.scrollTop += r.top - b.top - (b.height - r.height) / 2;
   }, []);
 
-  // Gated on `ready`, never merely on "open": bringing an element that is
-  // still sitting at its unplaced coordinate into view makes the browser
-  // scroll to reach it, which trips that same listener.
+  // Only once placed, or scrolling to the option would move the page.
   useEffect(() => {
     if (!ready) return;
     const el = list.current?.querySelector('[aria-selected="true"]');
@@ -1108,9 +984,7 @@ function TimeColumn({
     const next = values[Math.min(values.length - 1, Math.max(0, (i < 0 ? 0 : i) + delta))];
     if (next === undefined || next === value) return;
     onPick(next);
-    // Focus follows the selection, or the ring would sit on the option that
-    // was chosen a keystroke ago. preventScroll, then centred by hand, for the
-    // reason `centre` above spells out.
+    // Focus follows the selection, without scrolling the page.
     const el = list.current?.querySelector(`[data-value="${next}"]`);
     if (el instanceof HTMLElement) {
       el.focus({ preventScroll: true });
@@ -1164,7 +1038,6 @@ function TimeColumn({
             role="option"
             data-value={v}
             aria-selected={on}
-            // A roving tabindex: the column is one tab stop, not sixty.
             tabIndex={on ? 0 : -1}
             onClick={() => onPick(v)}
             className={`block w-full rounded-[var(--radius-control)] px-1.5 py-1 text-center text-sm transition-colors ${
@@ -1182,19 +1055,9 @@ function TimeColumn({
 }
 
 /**
- * Two horizontal selectors, and they are the ONE component rather than two
- * hand-rolled rows of buttons.
- *
- * Both used to be built out of segBase/segOn/segOff directly, which looked
- * right and behaved like neither: no roving tabindex, no arrow keys, no
- * Home/End, no direction awareness under RTL, and no rainbow position on the
- * chosen segment. A second, hand-rolled selector drifts from the first one the
- * moment either changes, and these two had already drifted from Tabs in five
- * separate behaviours without a single line of markup admitting it.
- *
- * The presets are `select="one"`, the weekday strip is `select="many"` - the
- * same component, the same well track, the small scale, which is what a
- * picker repeating once per schedule row takes.
+ * DayPicker offers the presets (select="one") and the weekday strip
+ * (select="many") through Tabs, so both get keyboard handling, RTL and the
+ * rainbow position.
  */
 function DayPicker({
   days,
@@ -1223,20 +1086,13 @@ function DayPicker({
           size="sm"
           className="w-fit"
           label={cx('settings.schedule.days')}
-          // null while the days match no preset, so no segment is filled and
-          // the readout beside the track is the only thing lit.
+          // null while the days match no preset, so only the readout is lit.
           active={preset === 'custom' ? null : preset}
           onSelect={(id) => onChange(presets.find((p) => p.id === id)?.days ?? PRESET_EVERYDAY)}
           items={presets.map((p) => ({ id: p.id, label: cx(`settings.schedule.preset.${p.id}`) }))}
         />
-        {/* Custom is a readout, not a segment: there is no single array it
-            could set, and the seven-day strip below already does the job "pick
-            whichever days" describes. It stands BESIDE the track rather than
-            inside it for exactly that reason - a fourth segment in the groove
-            would promise a click that does nothing - and lights up on its own
-            the moment the strip below no longer matches any of the three. It
-            takes the resting surface a segment takes and NOT its hover, for
-            the same reason. */}
+        {/* Custom is a readout beside the track rather than a segment, since
+            there is no single array it could set. */}
         <span
           className={`${segBase} inline-flex h-8 items-center px-2.5 text-xs ${
             preset === 'custom' ? segOn : 'bg-carbon-surface2 text-carbon-textMuted'
@@ -1263,14 +1119,8 @@ function DayPicker({
 }
 
 /**
- * Value-plus-unit, the same idea as QueueBar's own speed limit field and for
- * the same reason: switching the unit must not rewrite the number the user
- * just typed, so the shown amount is local state, only re-derived from the
- * canonical bytes value (via splitRate) once a change has actually
- * committed - never on every keystroke, or a field mid-way through "1.5"
- * would fight the person typing it. Unlike QueueBar's, a "commit" here is
- * local only (the row is not saved until the page's own Save is pressed), so
- * it can afford to run on every change instead of waiting for blur/Enter.
+ * RateField keeps the typed amount in local state, like QueueBar's speed
+ * field, so switching the unit does not rewrite the number being typed.
  */
 function RateField({
   value,

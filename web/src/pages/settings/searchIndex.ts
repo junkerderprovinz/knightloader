@@ -1,104 +1,47 @@
 // What the settings search knows about: every page, every card on it, and the
-// caption plus (i) text of every row on those cards - as translation KEYS, never
-// as text.
+// caption and (i) text of every row, as translation keys. The search resolves
+// them through `t`, so the index is in the reader's language.
 //
-// That is the whole of the "right in all 42 languages with no extra work"
-// promise. Nothing here is a string somebody would have to translate again; the
-// search resolves every key through the same `t` the page itself renders with,
-// so the index is in whatever language the reader is already looking at.
+// It is written by hand rather than derived, because settings pages reach the
+// catalogue through several helpers, keep keys in other files, share files
+// between rail entries and do not map key prefixes to pages.
+// web/check-settings-search.mjs keeps it in step with the pages; `--dump`
+// prints what the pages draw.
 //
-// WHY THIS IS DECLARED AND NOT DERIVED
-//
-// The obvious idea is to grow this out of registry.tsx plus the key prefixes and
-// have it maintain itself. It does not survive contact with the tree, in four
-// separate ways:
-//
-//   - four helper names reach the catalogue, not one. Settings pages call `t(`,
-//     `tx(` (tx.ts), `cx(` (a per-file fallback over a local PENDING table in
-//     Access, Captcha, Connections, Diagnostics, Schedule, Scripts and Torrents)
-//     and `rx(` (RuleEditor's useRx). Six of the twenty-four pages are
-//     invisible to anything that only knows the first.
-//   - a page's keys are not in that page's file. Most of settings.rules.* lives
-//     in components/RuleEditor.tsx, and the Downloads page is eight files.
-//   - one file draws two rail entries. Look.tsx renders both /settings/look and
-//     /settings/appearance, split by `{appearance && (` / `{general && (`.
-//   - a key prefix does not name its page. The Downloads page carries
-//     settings.downloads.*, settings.stall.*, settings.crawl.*,
-//     settings.hostRules.*, settings.feeds.* and a pile of bare
-//     settings.<one-segment> keys - and those same prefixes also hold toasts and
-//     refusals, which are not rows anybody can jump to.
-//
-// So it is written down, and web/check-settings-search.mjs (run by CI) is what
-// keeps it from rotting: a key a page draws and this file does not name fails
-// the build, and so does a key here that the page stopped drawing or that en.ts
-// never had. `node web/check-settings-search.mjs --dump` prints what the pages
-// actually draw, which is how this file was filled in the first place.
-//
-// TYPE-ONLY IMPORT, ON PURPOSE. This module must stay parseable as data - the
-// check script reads it as text rather than compiling it - and it must add
-// nothing to the bundle but the object below.
+// The import is type-only, since the check script reads this file as text.
 import type { TranslationKey } from '../../lib/i18n';
 
-/** One control's caption, and the text behind its (i). Both are searched; the
- *  caption is what the result row shows and what the jump anchors on. */
+/** One control's caption and its (i) text; the caption is what a result shows and where it jumps. */
 export interface SettingsRow {
-  /** The exact key passed to Field/FieldGroup/ToggleRow's `label`. It is what
-   *  ui.tsx's Caption emits as `data-glim-label`, which is the whole of the
-   *  jump mechanism: no per-row id, no data attribute at ~190 call sites. */
+  /** The key passed as `label`, which Caption emits as `data-glim-label` for the jump. */
   key: TranslationKey;
   /** The exact key passed to its `hint`, when it has one. */
   hint?: TranslationKey;
 }
 
-/** One Card. `title` is the key inside its SectionTitle - at most one per Card,
- *  which is what makes the title a unique handle on the card in the DOM. */
+/** One Card; `title` is its SectionTitle key, unique within the card. */
 export interface SettingsCard {
   title: TranslationKey;
   /** SectionTitle's own optional `hint`. */
   hint?: TranslationKey;
   rows: SettingsRow[];
   /**
-   * A NAME this card carries that is not a row: a status badge, a caption drawn
-   * beside a bare Toggle rather than through Caption, a select whose only name
-   * is its aria-label, a sub-heading.
-   *
-   * Offered as its own result and shown by name, exactly like a row - but
-   * picking it lands on the CARD, because there is no caption in the DOM to
-   * scroll to. The alternative was to call these rows and let every one of them
-   * fail the row lookup and fall through to "that row is not on screen right
-   * now", which would be the search telling the reader something untrue about
-   * their own page.
-   *
-   * Short text only. Prose belongs in `body` below: a paragraph shown as a
-   * result's own first line is a result nobody can read at a glance.
+   * Short names on the card that are not rows, such as a badge, a caption
+   * beside a bare Toggle or an aria-label. They show as results and jump to the
+   * card, since there is no caption to scroll to.
    */
   also?: TranslationKey[];
-  /**
-   * PROSE this card carries: an explanation, an empty-state sentence, a help
-   * topic's body, the second half of a hint built from two keys.
-   *
-   * Searched and never displayed. A hit shows the card, marked the same way a
-   * hint match is - because that is what it is, and because a result row whose
-   * first line is four hundred characters of paragraph is worse than no result.
-   */
+  /** Prose on the card; searched, never shown as a result's text. */
   body?: TranslationKey[];
 }
 
 /**
- * Keyed by the page id the SERVER hands out (internal/api/routes_features.go's
- * featurePages), which is the same id registry.tsx maps to a component and
- * lib/commands/settings.ts already mints a palette command for. Cards in the
- * order the page DRAWS them, not the order the file happens to define them in,
- * so a result list reads like the page.
- *
- * This is not the list of pages. That comes from GET /api/features every time,
- * so a page the server did not send is never offered - see SettingsSearch.tsx.
+ * SETTINGS_INDEX is keyed by the page id from featurePages, with the cards in
+ * the order the page draws them. Only pages the server sends are offered.
  */
 export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
   modules: [
-    // The rows are the modules the server sent, named by the server. Nothing to
-    // index: a module list that changes per deployment cannot be written down
-    // here without lying about some of them.
+    // The rows are the modules the server sent, which vary per deployment.
     { title: 'settings.modules.sectionShipped', hint: 'settings.modules.fixedAtBuild', rows: [] },
     { title: 'settings.modules.sectionDesktop', rows: [] },
     { title: 'settings.modules.sectionNotBuilt', rows: [] },
@@ -179,9 +122,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.downloads.diskCriticalSpace', hint: 'settings.downloads.diskCriticalSpaceHint' },
       ],
     },
-    // Directly after the disk floors, the same order the page draws them in:
-    // both are guards on whether a download STARTS, one measured against the
-    // volume and one against the period's allowance.
     {
       title: 'settings.volume.title',
       hint: 'settings.volume.titleHint',
@@ -199,9 +139,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.downloads.onDupes', hint: 'settings.downloads.onDupesHint' },
         { key: 'settings.downloads.addAtTop', hint: 'settings.downloads.addAtTopHint' },
       ],
-      // What the countdown row reads instead of a spinner while the switch that
-      // drives it is off, one page away (GlimStone 1.16.0 - see
-      // downloads/Collector.tsx).
+      // What the countdown row reads while its switch is off.
       body: ['settings.downloads.autoConfirmOff'],
     },
     {
@@ -239,9 +177,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.downloads.idleCommandVerify', hint: 'settings.downloads.idleCommandVerifyHint' },
         { key: 'idleAction.lastRun', hint: 'idleAction.lastRunHint' },
       ],
-      // The five menu entries and the two buttons. Names rather than rows:
-      // picking one lands on the card, because a tab inside a strip and a
-      // button have no caption in the DOM to scroll to.
+      // The menu entries and buttons have no caption, so they land on the card.
       also: [
         'settings.downloads.idleActionPause',
         'settings.downloads.idleActionQuit',
@@ -250,12 +186,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         'settings.downloads.idleCommandCheck',
         'settings.downloads.idleCommandRun',
       ],
-      // Prose the card carries without a caption of its own: the deployment
-      // sentence in the card title's own (i), the per-action explanation that
-      // shares the menu's (i), the warning about what a command line is
-      // stored as, and the placeholder that says a command IS stored even
-      // though the box is empty. Searched, never shown as a result's own
-      // first line.
+      // Prose the card carries without a caption of its own.
       body: [
         'settings.downloads.idleDeploymentContainer',
         'settings.downloads.idleDeploymentDesktop',
@@ -266,12 +197,8 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         'settings.downloads.idleCommandStored',
       ],
     },
-    // The folder-ownership check. No rows: the card draws a button, a status
-    // line and one block per folder, none of them a Field with a caption in the
-    // DOM to jump to - so the role names go in `also` (offered by name, landing
-    // on the card) and every sentence goes in `body`, which is searched and
-    // never displayed. Somebody typing "besitzer", "chown" or "rechte" has to
-    // find this card, and those words are only in the prose.
+    // The folder check draws no captioned rows, so the role names go in `also`
+    // and the sentences, where words like "chown" live, in `body`.
     {
       title: 'settings.owner.checkTitle',
       hint: 'settings.owner.checkHint',
@@ -301,9 +228,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         'settings.owner.fix.past',
       ],
     },
-    // The address called once a package has finished and its files are in
-    // place. Its own card file is downloads/MediaHooks.tsx, which the
-    // downloads/ directory entry in check-settings-search.mjs already scans.
     {
       title: 'settings.mediahook.title',
       hint: 'settings.mediahook.hint',
@@ -361,7 +285,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     },
   ],
 
-  // The General tab. Look.tsx's `{general && …}` half, in the order it draws.
+  // The General tab, Look.tsx's `{general && …}` half.
   look: [
     {
       title: 'settings.sectionLinkIntake',
@@ -372,26 +296,13 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.autoStart' },
         { key: 'settings.watchDir', hint: 'settings.watchDirHint' },
       ],
-      // The sentence that stands in for the watch-folder box while the module
-      // is parked: the field is a reading then, not an input, and this is what
-      // it reads (GlimStone 1.16.0 - see Look.tsx).
+      // What the watch-folder row reads while the module is parked.
       body: ['settings.downloads.watchOff'],
     },
-    // Both of these are a single control with its own name on it (the quiet-mode
-    // switch, the language picker), so the card title is the only caption there
-    // is to find.
+    // A single named control each, so the card title is the only caption.
     { title: 'notifications.quiet', rows: [] },
-    // The per-event notification matrix. Title and explanation only, and the
-    // seven event rows deliberately NOT listed: their keys live in
-    // NOTIFY_EVENTS (lib/notify.ts) and the card renders them from that table,
-    // so this page's own source never mentions one. The checker is right to
-    // refuse them - an index entry for a key the page does not draw is a result
-    // that jumps to a row nothing can scroll to.
-    //
-    // What it costs: searching for "captcha" does not surface the captcha rows
-    // of this card. What it buys: searching for "notification" opens the card,
-    // and the seven rows are then on screen. Making the rows findable means
-    // moving their keys onto the page, which would be a table written twice.
+    // The event rows come from NOTIFY_EVENTS and never appear in the page's
+    // source, so only the card is indexed.
     { title: 'notifications.title', hint: 'notifications.titleHint', rows: [] },
     { title: 'lang.label', rows: [] },
     { title: 'settings.dialogs.title', hint: 'settings.dialogs.hint', rows: [] },
@@ -399,26 +310,19 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       title: 'settings.look.updatesTitle',
       hint: 'settings.look.updatesHint',
       rows: [{ key: 'settings.look.updatesAutoInstall', hint: 'settings.look.updatesAutoInstallHint' }],
-      // The daily-check switch is drawn beside its own hand-built caption rather
-      // than through Caption, so it has no anchor to land on.
+      // The daily-check switch has a hand-built caption with no anchor.
       also: ['settings.look.updatesAuto'],
-      // The container build swaps in its own sentence for the auto-install hint.
+      // The container build uses its own sentence for the auto-install hint.
       body: ['settings.look.updatesAutoInstallContainerHint'],
     },
     { title: 'settings.system.lifecycleTitle', hint: 'settings.system.unavailable', rows: [] },
-    // ONE card where there were two (jdp, 2026-09-13: "Fuer was brauchen wir
-    // diese card und die sicherung card? das ist redundant"). The archive and
-    // "settings only" are two rows of it now, so the two former card titles are
-    // `also` entries rather than titles of their own - and a search for the word
-    // backup has to keep landing somewhere, which is exactly what this line is
-    // for.
+    // The archive and "settings only" share one card, so the old card titles
+    // are `also` entries and a search for backup still lands here.
     {
       title: 'settings.transfer.cardTitle',
       hint: 'settings.transfer.cardHint',
       rows: [{ key: 'settings.transfer.withSecrets', hint: 'settings.transfer.withSecretsHint' }],
-      // Names this card carries that are not rows: the two row headings and the
-      // four Buttons. None of them emits a data-glim-label, so none of them has
-      // an anchor to scroll to, and the hit lands on the card.
+      // Row headings and buttons, with no anchor of their own.
       also: [
         'settings.transfer.archiveLabel',
         'settings.transfer.settingsLabel',
@@ -428,21 +332,14 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         'settings.transfer.import',
       ],
       body: ['settings.transfer.archiveText', 'settings.transfer.settingsText'],
-      // The import preview's own forty-odd strings are deliberately not here,
-      // and they need no EXCLUDED entry either: SettingsImportPreview.tsx hands
-      // them to the catalogue through InfoBubble tips, plain children and a
-      // Modal title, none of which the check script scans as a row or a card,
-      // so it never asks about them. That is the right outcome twice over - a
-      // search result that jumped to a row inside a dialog which does not exist
-      // until a file has been chosen would lead nowhere at all.
+      // The import preview's strings stay out: its dialog exists only once a
+      // file is chosen.
     },
-    // Rendered by Help.tsx, drawn at the foot of this page (jdp, 2026-09-07:
-    // "die Über-card soll in den allgemein-tab ganz nach unten") - which is why
-    // Help.tsx maps to two pages in the check script's own table.
+    // Drawn by Help.tsx at the foot of this page.
     { title: 'settings.about.title', rows: [] },
   ],
 
-  // The same component's `{appearance && …}` half.
+  // The `{appearance && …}` half of the same component.
   appearance: [
     { title: 'settings.shape', hint: 'settings.shapeHint', rows: [] },
     { title: 'settings.navLabels.title', hint: 'settings.navLabels.hint', rows: [] },
@@ -450,10 +347,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     {
       title: 'settings.colours',
       rows: [],
-      // Every row in this card is a hand-built caption span beside a bare
-      // Toggle rather than a ToggleRow, so none of them carries an anchor. They
-      // are still the words somebody searches for, so they are findable and the
-      // hit lands on the card.
+      // Every row here is a caption beside a bare Toggle, with no anchor.
       also: [
         'settings.accent',
         'settings.rainbow',
@@ -465,9 +359,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       ],
       body: [
         'settings.accentHint',
-        // The sentence the accent's own (i) grows while rainbow mode owns the
-        // colours, which is also the state the row is dimmed in (GlimStone
-        // 1.16.0 - see Look.tsx).
+        // The accent's (i) while rainbow mode owns the colours.
         'settings.accentRainbowOwns',
         'settings.rainbowHint',
         'settings.rainbowReactiveHint',
@@ -508,7 +400,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.passwordNew', hint: 'settings.passwordHint' },
       ],
     },
-    // The two second doors, in the order the page draws them.
     {
       title: 'auth.twoFactor.title',
       hint: 'auth.twoFactor.hint',
@@ -529,8 +420,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       title: 'settings.access.cardTitle',
       hint: 'settings.access.phrase.body',
       rows: [],
-      // Three badges in the card's own header row, reporting rather than
-      // setting: how this works, whether it is connected, and which relay.
+      // The three badges in the card's header.
       also: [
         'settings.access.phrase.howButton',
         'settings.access.phrase.statusConnected',
@@ -578,9 +468,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       title: 'settings.advanced.retryTitle',
       rows: [{ key: 'settings.advanced.retryTries', hint: 'settings.advanced.retryTriesHint' }],
     },
-    // The generated key table. Its own search box, over the raw dotted paths and
-    // their JSON values, is a different question from this one and stays out of
-    // the index - see the check script's EXCLUDED list.
+    // The key table has its own search box and stays out of the index.
     { title: 'settings.advanced.allSettings', rows: [] },
   ],
 
@@ -601,10 +489,8 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     {
       title: 'settings.rules.listTitle',
       rows: [],
-      // The rule editor's own condition and action fields. Every one of them is
-      // a bare select or box carrying an aria-label rather than a Caption, and
-      // all of them only exist while a rule is open for editing - so they are
-      // searchable text on this card, never a row to be scrolled to.
+      // The rule editor's fields carry aria-labels and exist only while a rule
+      // is open.
       also: [
         'settings.rules.fieldPicker',
         'settings.rules.opPicker',
@@ -675,9 +561,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.reconnect.requestBody', hint: 'settings.reconnect.requestBodyHint' },
         { key: 'settings.reconnect.importLabel', hint: 'settings.reconnect.importHint' },
       ],
-      // The HTTP method's own sub-heading. It draws a second title badge inside
-      // this one card, so it is not a card of its own here: the jump resolves a
-      // card through `.closest('.glim-card')` and would land on this one anyway.
+      // The method's sub-heading belongs to this card.
       also: ['settings.reconnect.requests'],
       body: ['settings.reconnect.requestsHint'],
     },
@@ -782,11 +666,8 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       rows: [
         { key: 'settings.resolvers.cookies', hint: 'settings.resolvers.cookiesHint' },
         { key: 'settings.resolvers.cookieJars', hint: 'settings.resolvers.cookieJarsHint' },
-        // The host box and the jar box used to be two rows sitting open on the
-        // page. They are inside CookieJarDialog now, behind the Add button, so
-        // the search may no longer offer to jump to them: the jump resolves a
-        // label in the DOM and neither is in it until somebody presses Add.
-        // What stays findable is the card and the button that opens the dialog.
+        // The host and jar boxes live in CookieJarDialog, so only the button
+        // that opens it is a row.
         { key: 'cookies.add' },
       ],
     },
@@ -794,8 +675,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       title: 'settings.resolvers.presetsTitle',
       hint: 'settings.resolvers.presetsHint',
       rows: [{ key: 'settings.resolvers.presetHost', hint: 'settings.resolvers.presetHostHint' }],
-      // The per-host overrides are a table of bare selects named only by their
-      // aria-label, one per column.
+      // The per-host overrides are bare selects named by aria-label.
       also: ['settings.resolvers.moduleUnavailable'],
       body: ['settings.resolvers.moduleUnavailableHint'],
     },
@@ -827,8 +707,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
   ],
 
   captcha: [
-    // One card: a drag-sortable list of the solvers the server knows about, each
-    // row named by the server rather than by the catalogue.
+    // The solver rows are named by the server.
     { title: 'settings.captcha.orderTitle', hint: 'settings.captcha.orderHint', rows: [], body: ['settings.captcha.orderEmpty'] },
   ],
 
@@ -846,9 +725,8 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       ],
       body: ['settings.schedule.empty', 'settings.schedule.emptyHint'],
     },
-    // The status banner above this card is NOT here: its title key
-    // (settings.schedule.statusTitle) is missing from en.ts, so it resolves to
-    // undefined - see the check script's EXCLUDED list for what to do about it.
+    // The status banner stays out: settings.schedule.statusTitle is missing
+    // from en.ts (see EXCLUDED in the check script).
   ],
 
   health: [
@@ -860,15 +738,9 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.health.uptime', hint: 'settings.health.uptimeHint' },
         { key: 'settings.health.startedAt' },
       ],
-      // The card's own status badge is the summary word itself (health.state.*,
-      // looked up from a server id), so there is nothing fixed to index for it -
-      // the same reason disk.role.* is absent from the downloads page's entry.
+      // The card's badge is a state looked up from a server id.
       body: [
-        // The (i) beside that badge, and the one piece of prose on this page
-        // that has to be findable: somebody who reads a failure here and then
-        // sees /api/health still answering "ok" needs to be able to search for
-        // why. It is a `tip=`, which the check script does not scan, so it is
-        // named here on purpose rather than as a row.
+        // A `tip=`, which the check script does not scan.
         'settings.health.oldHealthHint',
         'settings.health.sampled',
         'settings.health.loadFailed',
@@ -877,10 +749,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     {
       title: 'settings.health.parts',
       hint: 'settings.health.partsHint',
-      // Every row on this card is a part the SERVER named (health.part.*) with
-      // a state and a remedy it also named (health.state.*, health.remedy.*).
-      // None of them appears literally in the page's source - they are built
-      // from ids - so none can be indexed, exactly as disk.role.* cannot.
+      // Every row is built from server ids, so none can be indexed.
       rows: [],
     },
     {
@@ -906,9 +775,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
   ],
 
   diagnostics: [
-    // The system card, indexed at last: its title key reached en.ts with this
-    // wave, which is exactly what the check script's `waitingOn` exclusion was
-    // waiting for. The exclusion came out in the same commit.
     {
       title: 'settings.diagnostics.systemTitle',
       hint: 'settings.diagnostics.subtitle',
@@ -920,9 +786,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.diagnostics.goroutines' },
       ],
     },
-    // The start report has no rows of its own: every line on it is a check the
-    // SERVER named, so there is no caption in the catalogue to jump to. The
-    // button and the three empty-state sentences are what make it findable.
+    // Every line of the start report is a check the server named.
     {
       title: 'settings.diagnostics.startupTitle',
       hint: 'settings.diagnostics.startupHint',
@@ -935,12 +799,8 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         'settings.diagnostics.startupRecheckHint',
       ],
     },
-    // The self-test's two cards carry no ROWS in this sense: every line on them
-    // is a readout with no caption in the DOM, so there is nothing for a jump to
-    // scroll to. The seven check names and the four proxy checks go in `also`
-    // instead, which lands on the card - and the advice, which is where the
-    // words somebody would actually search for live ("nginx", "Upgrade", "TZ",
-    // "uid"), goes in `body`.
+    // The self-test lines have no captions, so the check names go in `also`
+    // and the advice, with words like "nginx" or "TZ", in `body`.
     {
       title: 'settings.selftest.title',
       hint: 'settings.selftest.hint',
@@ -985,10 +845,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         'settings.selftest.proxy.ws.failedAdvice',
       ],
     },
-    // The log itself, now its own file (diagnostics/LogViewerCard.tsx). The
-    // gap banner is indexed as body text although it only appears after lines
-    // have actually been lost: somebody searching for "fell out" is searching
-    // in exactly that state.
+    // The gap banner is indexed although it only shows after lines were lost.
     {
       title: 'settings.diagnostics.logTitle',
       hint: 'settings.diagnostics.logHint',
@@ -999,10 +856,8 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       ],
       body: ['settings.diagnostics.logEmpty', 'settings.diagnostics.logNoMatches', 'settings.diagnostics.logGap'],
     },
-    // The optional copy on disk. The problem sentence and its advice are body
-    // text for the same reason as the gap banner above, and for the same reason
-    // the settings.json row on the maintenance card below indexes its own
-    // conditional (i).
+    // The problem sentences only show while the file is not written, which is
+    // when somebody searches for them.
     {
       title: 'settings.diagnostics.fileTitle',
       rows: [
@@ -1025,10 +880,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       rows: [
         { key: 'settings.dbmaint.storeSize', hint: 'settings.dbmaint.storeSizeHint' },
         { key: 'settings.dbmaint.reclaimable', hint: 'settings.dbmaint.reclaimableHint' },
-        // The (i) beside settings.json only appears while the file is not there
-        // yet, which is the one state that needs explaining. Indexed by that
-        // hint anyway: somebody searching for why it says "not written yet" is
-        // searching in exactly that state.
+        // Indexed with the (i) that only shows while the file is missing.
         { key: 'settings.dbmaint.settingsSize', hint: 'settings.dbmaint.settingsMissingHint' },
         { key: 'settings.dbmaint.check', hint: 'settings.dbmaint.checkHint' },
         { key: 'settings.dbmaint.compact', hint: 'settings.dbmaint.compactHint' },
@@ -1064,12 +916,8 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         'settings.dbmaint.loadFailed',
       ],
     },
-    // The identity strip, drawn after the maintenance card. uid/gid/umask are
-    // in `also` and not in `rows`: they are drawn by a local Stat component,
-    // which emits no data-glim-label, so calling them rows would make every one
-    // of them fail the row lookup and fall through to "that row is not on
-    // screen" - the search telling the reader something untrue about their own
-    // page.
+    // uid, gid and umask are local Stat readings without data-glim-label, so
+    // they go in `also`.
     {
       title: 'settings.owner.identityTitle',
       hint: 'settings.owner.identityHint',
@@ -1146,12 +994,8 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         'settings.eventTargets.lastOk',
         'settings.eventTargets.attemptsDefault',
       ],
-      // The settings.eventTargets.problem.* sentences are deliberately NOT here.
-      // They are built as `settings.eventTargets.problem.${code}` from whatever
-      // the server classified the last failure as, so no source mentions any of
-      // them literally and the reverse check in check-settings-search.mjs would
-      // (correctly) call every one of them a result pointing at a row that is
-      // not there.
+      // The problem.* sentences are built from a server code, so no source
+      // names them.
       body: [
         'settings.eventTargets.empty',
         'settings.eventTargets.emptyHint',
@@ -1173,18 +1017,11 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
   ],
 
   shortcuts: [
-    // The card titles only. Its rows ARE the command names, and the command
-    // palette (mod+k) already searches exactly those - a second box beside it
-    // offering the same list is one search too many. The per-group cards below
-    // it are titled from commands.group.*, which the palette also already
-    // groups by.
+    // The command palette already searches the command names, so only the
+    // card titles are here.
     { title: 'settings.nav.shortcuts', hint: 'settings.shortcuts.subtitle', rows: [] },
-    // The list keys are the exception to the paragraph above, and for the
-    // reason it gives: they are NOT commands, so the palette does not carry
-    // them and this card is the only place they are written down. Its own rows
-    // are a static table of key/meaning pairs rather than controls, so the card
-    // is indexed by its title and hint and the table is left alone - the same
-    // shape the per-group command cards have.
+    // The list keys are not commands, so this card is the only place they are
+    // written down; its table is left alone.
     { title: 'settings.shortcuts.listTitle', hint: 'settings.shortcuts.listHint', rows: [] },
   ],
 };

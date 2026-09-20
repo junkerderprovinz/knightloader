@@ -12,31 +12,12 @@ import { ProxyCheckCard } from './diagnostics/ProxyCheck';
 import { SelfTestCard } from './diagnostics/SelfTest';
 import { StartupReportCard } from './diagnostics/StartupReport';
 
-/**
- * The diagnostics page: what this build is, what it is running on, and its
- * own recent log output - one live preview and one button that saves the same
- * document to a file, for attaching to a bug report.
- *
- * The ONE card this component still draws is not part of the settings draft
- * (context.tsx's useDraft): there is nothing to save on it, only something to
- * read and, on demand, write to a file. The seven cards below it live in their
- * own files under diagnostics/ and split three ways - the start report, the
- * self-test, the reverse-proxy check and the ownership strip are readings and
- * write nothing at all; the log viewer holds its own filters and cursor; and
- * the log-file and maintenance cards are the exceptions that carry real
- * settings fields and patch the draft like any other page. Each says which it
- * is in its own file.
- * The two fetches - the preview on mount and the one right before a download -
- * are deliberately separate calls rather than one cached response, because the
- * whole point of the log lines and the goroutine count is that they keep
- * moving; a bundle built from whatever the page happened to load with would
- * be stale the moment something new gets logged.
- *
- * The strings this page needs are not in en.ts yet - locale files are one
- * writer's lane per wave (10F, phase 3 of this one, same arrangement
- * Captcha.tsx and Connections.tsx already use), and the lookup below asks the
- * real catalogue first, so the day these keys land it stops being consulted.
- */
+// The diagnostics page shows what this build is and what it runs on, with a
+// button that saves the same bundle to a file for a bug report. The download
+// fetches a fresh bundle, since the log lines and goroutine count keep moving.
+//
+// PENDING holds the English strings until the catalogue has them; the lookup
+// asks the catalogue first.
 const PENDING = {
   'settings.diagnostics.subtitle':
     'What this build is, what it is running on, and its own recent log output - for attaching to a bug report.',
@@ -72,19 +53,14 @@ function useCx() {
   );
 }
 
-/**
- * The raw "container"/"desktop" the server sends (internal/buildinfo.Deployment)
- * translated for display, with the raw value itself as the fallback - a third
- * deployment kind a later wave adds must still show up as something rather
- * than as a blank cell.
- */
+/** deploymentLabel translates buildinfo.Deployment, falling back to the raw value. */
 function deploymentLabel(cx: ReturnType<typeof useCx>, raw: string): string {
   if (raw === 'container') return cx('settings.diagnostics.deployment.container');
   if (raw === 'desktop') return cx('settings.diagnostics.deployment.desktop');
   return raw;
 }
 
-/** A JSON-safe, sortable filename stamp - not fmtDate, which is locale-formatted for reading, not for a filename. */
+/** fileStamp is a sortable UTC stamp for the file name. */
 function fileStamp(): string {
   return new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+Z$/, 'Z');
 }
@@ -110,9 +86,6 @@ export function Diagnostics() {
     setError('');
     setDownloading(true);
     try {
-      // Fetched fresh rather than reusing `data`: see the page's own doc
-      // comment above for why a bundle built from a stale preview defeats
-      // the point of shipping live log lines and a goroutine count at all.
       const fresh = await fetchDiagnostics();
       saveJSON(fresh, `knightloader-diagnostics-${fileStamp()}.json`);
     } catch (e) {
@@ -138,11 +111,8 @@ export function Diagnostics() {
           <Stat label={cx('settings.diagnostics.goVersion')} value={data.goVersion} />
           <Stat label={cx('settings.diagnostics.platform')} value={`${data.os}/${data.arch}`} />
           <Stat label={cx('settings.diagnostics.goroutines')} value={String(data.goroutines)} />
-          {/* Plain string literals, not catalogue keys, and deliberately:
-              "yt-dlp" and "ffmpeg" are program names, the same word in
-              every locale (Resolvers.tsx makes the same argument for codec
-              names). It also keeps them out of check-settings-search.mjs's
-              forward pass, which scans every label= in a settings page. */}
+          {/* Program names need no translation, and as literals they stay out
+              of check-settings-search.mjs's scan of label= props. */}
           <Stat label="yt-dlp" value={data.mediaTools?.ytdlp?.version || cx('settings.diagnostics.toolsMissing')} />
           <Stat label="ffmpeg" value={data.mediaTools?.ffmpeg?.version || cx('settings.diagnostics.toolsMissing')} />
         </div>
@@ -156,49 +126,20 @@ export function Diagnostics() {
         {error && <span className="text-sm text-statusFail">{error}</span>}
       </Card>
 
-      {/* THE HUES BELOW ARE A SEQUENCE, 0..7 IN DRAW ORDER, AND NOTHING ELSE.
-          The palette position belongs to the page's card ORDER (ui.tsx's Card),
-          so a badge sequence that jumps reads as a bug. Five separate waves
-          added a card to this page at once, each numbering against the file as
-          it stood when they started; the rule that survives every one of those
-          merges is this one, so the whole page is renumbered here rather than
-          any single card's suggestion being taken literally. Add a card, and
-          renumber from the top again. */}
-
-      {/* Directly under the system card, because it answers the next question
-          that card raises: this is what the build it just named actually found
-          when it started. It reads the bundle the page already loaded rather
-          than fetching again - two ways of reading one document are two things
-          that can disagree. */}
+      {/* The hues number the cards 0..7 in draw order; renumber when adding one. */}
       <StartupReportCard hue={1} report={data.startup} />
 
-      {/* The two self-test cards sit between the system readout and the log,
-          because that is the order somebody debugging reads the page in: what
-          this build is, then what it can find wrong with itself, then the raw
-          lines. */}
       <SelfTestCard hue={2} />
       <ProxyCheckCard hue={3} />
 
-      {/* The reading first, then the setting that keeps it: somebody opens this
-          page to READ the log, and the file card is the "and you can keep these"
-          that follows. logHint's own wording says "the log file below", so the
-          order is part of the copy and not only of the layout.
-
-          `capacity` is handed down rather than fetched again: this component
-          already has it out of the diagnostics bundle, and a second copy of the
-          ring's own number is a second thing to keep in step. */}
+      {/* logHint speaks of "the log file below", so the order is part of the copy. */}
       <LogViewerCard hue={4} />
       <LogFileCard hue={5} capacity={data.logCapacity} />
 
       <MaintenanceCard hue={6} />
 
-      {/* Who this instance writes files as. It fetches its own document rather
-          than reading `data.ownership` from the bundle above, and the reason is
-          the same one the two fetches on this page already have: the bundle is
-          a snapshot taken on mount, and this card is the one somebody keeps
-          open while they change a run command in another window. It draws
-          nothing at all if its request fails, so a side reading can never
-          replace the diagnostics somebody came here for. */}
+      {/* Fetches its own reading, since people keep it open while they change
+          the run command. */}
       <OwnershipCard hue={7} />
     </div>
   );

@@ -10,37 +10,14 @@ import type { Command } from '../../lib/commands/types';
 import { ListKeysCard } from './shortcuts/ListKeys';
 
 /**
- * The Shortcuts settings tab: every command that ships with a default
- * keyboard shortcut, grouped the same way the eventual command palette
- * groups them (`Command.group`), each showing the binding actually in
- * effect and a way to change or reset it.
+ * The Shortcuts tab lists every command with a default shortcut, grouped by
+ * `Command.group`, with the binding in effect and a way to change or reset it.
+ * It uses allCommands() rather than a surface filter, so a command from a
+ * closed tab stays rebindable. Rebindings live in the uistate field that the
+ * keyboard dispatcher also reads (lib/commands/overrides.ts).
  *
- * DELIBERATELY UNFILTERED. allCommands() (lib/commands/allCommands.ts) is
- * every command this build declares, across every surface, not
- * useCommands(surface, ctx) filtered down to "reachable from here right
- * now" - a shortcut bound to a Collector-only command has to stay visible
- * and rebindable while looking at this page from Settings, or it could
- * never be found again once the Collector tab that showed it is closed.
- *
- * PERSISTENCE. Rebindings live in one uistate field
- * (lib/commands/overrides.ts's SHORTCUT_OVERRIDES_FIELD,
- * "commands.shortcutOverrides") through the existing useUIState hook - the
- * same server-persisted, debounced, cross-browser store every other
- * remembered layout in this app already uses (uistate.ts's own doc
- * comment). The global keyboard dispatcher built in parallel this same wave
- * reads the identical field with overrides.ts's non-hook
- * readShortcutOverrides(), so a rebind here takes effect everywhere without
- * a second storage path to keep in sync.
- *
- * `group` IS NOT RELIABLY A TranslationKey. types.ts's own doc comment on
- * Command.group asks every command file to set it to one
- * ("commands.group.navigation"), and global.ts/queue.ts/language.ts/
- * settings.ts do - but downloads.ts and collector.ts (landed the same wave,
- * a different lane) set it to a bare English word ("Downloads",
- * "Collector") instead. groupLabel() below is tx.ts's own label() pattern
- * copied rather than reinvented: try it as a real key, fall back to the raw
- * string when it is not one - the same reason a page id with no
- * settings.nav.<id> entry still renders instead of crashing.
+ * groupLabel treats `group` as a catalogue key when it is one and falls back to
+ * the raw string, since some command files set a plain word.
  */
 function groupLabel(t: (key: TranslationKey) => string, group: string): string {
   return group in en ? t(group as TranslationKey) : group;
@@ -66,9 +43,7 @@ export function Shortcuts() {
   const [captureFor, setCaptureFor] = useState<Command | null>(null);
   const [confirmResetAll, setConfirmResetAll] = useState(false);
 
-  // Static per render - every command file's own array is a module-level
-  // constant, so there is nothing here that changes between renders and
-  // needs a dependency list.
+  // The command arrays are module-level constants.
   const commands = useMemo(() => allCommands().filter((c) => !!c.defaultShortcut), []);
   const groups = useMemo(() => groupCommands(commands), [commands]);
   const hasOverrides = Object.keys(overrides).length > 0;
@@ -107,15 +82,8 @@ export function Shortcuts() {
 
       {groups.map(([group, cmds], i) => (
         <div key={group} className="flex flex-col gap-3">
-          {/* Two separate flex children, not one shared divide-y flow (jdp,
-              2026-08-24: "die erste feine trennlinie unter dem
-              cardtitelbadge kann weg. in allen cards") - `divide-y` puts a
-              border-top on every child but the first, so with the title
-              wrapper as divide-y's own first child, the FIRST shortcut row
-              (its second child) was the one getting a divider nobody
-              wanted, right under the badge. The rows below still divide
-              from EACH OTHER exactly as before - only the title-to-first-row
-              seam lost its line. */}
+          {/* The title sits outside the divide-y flow, so no divider lands
+              under the badge. */}
           <Card hue={i + 1} padding="none" className="flex flex-col">
             <div className="p-5 pb-0">
               <SectionTitle>{groupLabel(t, group)}</SectionTitle>
@@ -136,12 +104,8 @@ export function Shortcuts() {
         </div>
       ))}
 
-      {/* Last, and outside the groups above, because it is not one of them:
-          nothing in it is a command and nothing in it can be rebound. It still
-          belongs on this page - a key somebody cannot find is a key that does
-          not exist to them, and this is the page they come to looking. Its hue
-          carries on from the last group so the badge colours keep counting
-          instead of restarting. */}
+      {/* Not a command group: these keys cannot be rebound. Its hue carries on
+          from the last group. */}
       <ListKeysCard hue={groups.length + 1} />
 
       {captureFor && (
@@ -161,11 +125,6 @@ export function Shortcuts() {
           footer={
             <>
               <span className="flex-1" />
-              {/* Cancel and the commit button look alike, and the commit one
-                  sits at the end because it is the answer that goes ahead.
-                  Neither is recommended by its colour: the sentence below
-                  states what is about to be undone, and a colour cannot say
-                  more than that sentence already does. */}
               <Button kind="ghost" onClick={() => setConfirmResetAll(false)}>
                 {t('common.cancel')}
               </Button>
@@ -193,11 +152,7 @@ function ShortcutRow({
   overrides: ShortcutOverrides;
   onChange: () => void;
   onReset: () => void;
-  /** The enclosing group's own SectionTitle hue (jdp, 2026-08-24: "die
-   *  ganzen ändern buttons sind nicht in der fabrenginge bzw im
-   *  regenbogenmodus") - every row's "Change" button in one group shares
-   *  that group's own colour, so the badge and its rows read as one set
-   *  rather than the badge being the only coloured thing in the card. */
+  /** The group's hue, shared by every Change button in it. */
   hue: number;
 }) {
   const { t } = useT();
@@ -212,11 +167,8 @@ function ShortcutRow({
       <kbd className="glim-num shrink-0 rounded-[var(--radius-control)] bg-carbon-surface2 px-2 py-1 text-[11px] font-medium text-carbon-textSub">
         {bound ? formatShortcut(bound, t) : ''}
       </kbd>
-      {/* Reset first, Change last: Reset puts the shipped binding back and
-          Change is the one that moves this row on, so the control that goes
-          ahead sits at the end of the row. Written as JSX order rather than
-          as a flex reversal, so the pair mirrors with the page under ar, he
-          and fa the way every other row does. */}
+      {/* Reset, then Change, which moves the row on. JSX order, so the pair
+          mirrors in right-to-left languages. */}
       {isOverridden && (
         <Button kind="ghost" className="shrink-0 px-2.5 py-1 text-xs" onClick={onReset}>
           {t('settings.shortcuts.reset')}
@@ -229,14 +181,9 @@ function ShortcutRow({
   );
 }
 
-// A combo is not complete while only one of these is held - the capture
-// listener below waits for a real key on top of them before it has
-// anything worth recording. Mirrors shortcuts.ts's own modifier handling,
-// kept local rather than imported: this is the one place in the app that
-// builds a combo FROM a live keydown rather than parsing an already-typed
-// one, so it belongs beside the UI that captures it, in the exact string
-// shape parseShortcut/formatShortcut (lib/commands/shortcuts.ts) already
-// read and render.
+// A combo is incomplete while only modifiers are held. Kept here rather than
+// in lib/commands/shortcuts.ts because this is the one place that builds a
+// combo from a live keydown, in the shape parseShortcut reads.
 const MODIFIER_ONLY_KEYS = new Set(['Control', 'Meta', 'Alt', 'Shift']);
 
 function comboFromKeydown(e: KeyboardEvent): string | null {
@@ -251,17 +198,10 @@ function comboFromKeydown(e: KeyboardEvent): string | null {
 }
 
 /**
- * The rebind flow: click "Change", then press a key combination. Escape
- * cancels rather than being recorded as a binding - Modal's own Escape
- * handling (ui.tsx) already means "close this" everywhere else in the app,
- * and a command bound to the same key a person expects to close the dialog
- * with would be unreachable the moment it mattered.
- *
- * The listener is attached in the capture phase on window and stops
- * propagation, so nothing else - a page's own keydown handler, the
- * browser's default action for the key just pressed - sees the keystroke
- * while this dialog is open. It detaches whenever this component unmounts,
- * whether that is a successful save (the parent drops captureFor) or Cancel.
+ * CaptureModal records the next key combination for a command. Escape cancels
+ * instead of being recorded, since it closes dialogs everywhere else. The
+ * listener runs in the capture phase on window and stops propagation, so
+ * nothing else sees the keystroke while the dialog is open.
  */
 function CaptureModal({
   cmd,

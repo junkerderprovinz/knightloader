@@ -22,23 +22,11 @@ import { TargetHealth } from './TargetHealth';
 import { TargetProbe } from './TargetProbe';
 
 /**
- * One target, collapsed to what it is called and where it reports to, expanded
- * to the whole request.
- *
- * THREE FIELDS ARE TYPED HERE AND COMMITTED ON THE WAY OUT, and the reason is
- * the same one for all three: the settings shell autosaves 600 ms after any
- * draft change, and the server refuses the ENTIRE settings document when one row
- * will not validate. "https" on its way to "https://ntfy.example/x", a header
- * line on its way to having a colon, and "%%task" on its way to "%%task.name%%"
- * would each fire a save, be refused, and take every unrelated edit on every
- * other settings page with them. Everything else on this row - the name, the
- * method, the switch, the events, the two numbers - cannot be typed into an
- * invalid state at all, and writes straight through.
- *
- * A REFUSED VALUE IS MARKED AND KEPT, NEVER CORRECTED. What was typed stays on
- * screen with the halo on it, and the collapsed row above goes on showing what
- * is really stored - which is the honest difference between the two. Correcting
- * it would be this page deciding what somebody meant.
+ * TargetRow shows one target, collapsed to its name and host, expanded to the
+ * whole request. The address, headers and body are committed on blur, because
+ * the server refuses the whole settings document when one row is invalid and
+ * the autosave would fire mid-typing. A refused value stays on screen, marked,
+ * while the collapsed row shows what is stored.
  */
 export function TargetRow({
   row,
@@ -57,19 +45,17 @@ export function TargetRow({
   row: EventTargetRow;
   index: number;
   last: boolean;
-  /** Already in the shared draft, and therefore already a target the server
-   *  knows about and can report health for. */
+  /** Already in the shared draft, so the server can report its health. */
   stored: boolean;
   open: boolean;
-  /** From GET /api/scripts/triggers - the registry that actually fires them. */
+  /** From GET /api/scripts/triggers. */
   triggers: string[];
-  /** From GET /api/eventtargets/placeholders - the expander's own table. */
+  /** From GET /api/eventtargets/placeholders. */
   placeholders: Placeholder[];
   status?: EventTargetStatus;
   onToggle: () => void;
   onChange: (next: EventTargetRow) => void;
-  /** Set only for a row that is not in the draft yet: called the moment its
-   *  address is one the server will take. */
+  /** For a row not in the draft yet: called once its address is valid. */
   onCommit?: (next: EventTargetRow) => void;
   onRemove: () => void;
 }) {
@@ -82,11 +68,8 @@ export function TargetRow({
   const [bodyText, setBodyText] = useState(row.body ?? '');
   const [bodyBad, setBodyBad] = useState(false);
 
-  // The save answer REPLACES the draft, so a value the server trimmed, or a
-  // header value it dropped because the address moved, comes back spelled
-  // differently from what was typed. Follow it rather than holding the old text
-  // on screen: what came back is what this target now does, and the dropped
-  // header is the single most important thing on this row to see happen.
+  // The save answer replaces the draft, and the server may have trimmed a
+  // value or dropped a header because the address moved, so follow it.
   useEffect(() => {
     setUrlText(row.url);
     setUrlBad(false);
@@ -108,10 +91,8 @@ export function TargetRow({
     }
     if (!usableAddress(url)) {
       setUrlBad(true);
-      // Kept even though it cannot be stored, so collapsing a half-typed row
-      // does not throw away what was typed into it. Safe for an unsaved row
-      // because nothing validates it there; for a stored one the draft is left
-      // alone, which is what keeps the save from being refused.
+      // An unsaved row keeps the half-typed address; a stored row's draft is
+      // left alone so the save is not refused.
       if (!stored) onChange({ ...row, url });
       return;
     }
@@ -122,9 +103,8 @@ export function TargetRow({
 
   const commitHeaders = () => {
     const parsed = parseHeaders(headersText);
-    // Null and not "skip the bad line": a header quietly dropped is a token that
-    // quietly stops being sent, and the far end then answers 401 with nothing
-    // here to explain it.
+    // A bad line refuses the whole block, since a dropped header is a token
+    // that silently stops being sent.
     if (parsed === null || Object.values(parsed).some((v) => !balancedTemplate(v))) {
       setHeadersBad(true);
       return;
@@ -153,10 +133,8 @@ export function TargetRow({
     onChange(next);
   };
 
-  // The host the SERVER read out of the address where there is one, so the row
-  // and the status table cannot disagree; the locally parsed one for a target
-  // that has never been saved, which is the only case the server has nothing to
-  // say about.
+  // The server's reading of the host where it has one, so the row and the
+  // status table agree.
   const host = status?.host || hostOf(urlText);
   const ticked = row.triggers?.length ?? 0;
   const method: TargetMethod = row.method ?? 'POST';
@@ -170,46 +148,28 @@ export function TargetRow({
             <span className="block truncate text-sm text-carbon-text">
               {row.name.trim() || <span className="text-carbon-textMuted">{t('settings.eventTargets.name')}</span>}
             </span>
-            {/* The HOST and never the whole address: ntfy and Gotify both take
-                their credential in the query, and a collapsed row is the one
-                thing on this page somebody screenshots. dir=ltr because a host
-                is never read right to left whatever the interface language is. */}
+            {/* Only the host, since ntfy and Gotify take their credential in
+                the query. */}
             <span dir="ltr" className="block truncate text-[11px] text-carbon-textMuted">
               {host}
             </span>
           </span>
-          {/* What this row would do, in two words: how many events, and whether
-              it is allowed to act on them. Both are needed - a target with six
-              events ticked and its switch off sends nothing. */}
           {ticked > 0 && <TickedCount n={ticked} />}
-          {/* Only the OFF state is marked. A badge on every switched-on row is a
-              badge nobody reads, and the thing worth spotting in a list of six
-              targets is the one that is not sending. */}
+          {/* Only the off state is marked. */}
           {!row.enabled && (
-            // 11px, the caption step. The scale has four rungs - 20/14/12/11 -
-            // and a 10px caption is the fourth size the language's own type
-            // table says to fix rather than to add a row for.
             <span className="hidden shrink-0 text-[11px] uppercase tracking-wider text-carbon-textMuted sm:block">
               {t('settings.modules.off')}
             </span>
           )}
         </button>
-        {/* The one row action, on hover and on keyboard focus, so a long list
-            reads as content rather than as a wall of buttons. */}
         <div className="flex items-center gap-1.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
           <IconBadge
-            // 16 in a 32px badge: a glyph alone in a square is half its box
-            // (GlimStone rule 13), not the smaller drawing a glyph beside text
-            // would be. 14 filled 44% of the tile and made the row read as
-            // uneven against every badge that already had this right.
+            // A lone glyph takes half its 32px badge.
             icon={<IconTrash width={16} height={16} />}
             hue={index}
             title={t('settings.eventTargets.remove')}
             aria-label={t('settings.eventTargets.remove')}
-            // Keeping focus in the address box means no blur, and therefore no
-            // commit, in front of this click. Without it a new row whose address
-            // was just typed would be written into the draft on the way out and
-            // this press would then remove a row that no longer exists.
+            // No blur, so no commit happens in front of the removal.
             onMouseDown={(e) => e.preventDefault()}
             onClick={onRemove}
           />
@@ -218,8 +178,6 @@ export function TargetRow({
 
       {open && (
         <div className="glim-well mb-3 flex flex-col gap-4 p-4">
-          {/* A ToggleRow and never a checkbox, and first on the row because it
-              is the only control here that changes what the instance does. */}
           <ToggleRow
             label={t('settings.eventTargets.enabled')}
             hint={t('settings.eventTargets.enabledHint')}
@@ -238,10 +196,7 @@ export function TargetRow({
               spellCheck={false}
               value={urlText}
               placeholder="https://ntfy.example/my-topic"
-              // aria-invalid and no commit, rather than a corrected value. The
-              // halo is the same shape the focus ring uses and loses to it while
-              // the box is focused, which is where a correction is being made
-              // anyway.
+              // Marked, not corrected; the focus ring covers the halo while typing.
               aria-invalid={urlBad}
               className={urlBad ? 'shadow-[0_0_0_2px_var(--status-warn-text)]' : ''}
               onChange={(e) => {
@@ -257,16 +212,12 @@ export function TargetRow({
               }}
             />
           </Field>
-          {/* Said here rather than only in the bubble above: this is the one
-              sentence on the page that names what the feature actually does with
-              the machine it runs on. */}
           {host !== '' && (
             <p className="text-xs text-carbon-textMuted">{t('settings.eventTargets.leavesTheBox', { host })}</p>
           )}
 
-          {/* A FieldGroup and not a Field: a Field is a <label>, and a label
-              hands a click on its caption to the first control inside it, which
-              here would silently pick GET. */}
+          {/* FieldGroup, because a Field's label would pass a click on the
+              caption to GET. */}
           <FieldGroup label={t('settings.eventTargets.method')} hint={t('settings.eventTargets.methodHint')}>
             <Tabs
               size="sm"
@@ -282,10 +233,8 @@ export function TargetRow({
           </FieldGroup>
 
           <Field label={t('settings.eventTargets.headers')} hint={t('settings.eventTargets.headersHint')}>
-            {/* The halo sits on a wrapper and not on the control: ui.tsx's
-                TextArea sets its own className and spreads the caller's props
-                AFTER it, so a className passed in here would replace the input
-                styling outright rather than add to it. */}
+            {/* The halo sits on a wrapper because TextArea's className prop
+                would replace its own styling. */}
             <div className={headersBad ? 'rounded-[var(--radius-control)] shadow-[0_0_0_2px_var(--status-warn-text)]' : ''}>
               <TextArea
                 dir="ltr"
@@ -303,9 +252,7 @@ export function TargetRow({
             </div>
           </Field>
 
-          {/* GET sends no body, so the template is left out rather than shown
-              and quietly ignored - a field that does nothing is a field somebody
-              spends ten minutes on. */}
+          {/* GET sends no body. */}
           {method !== 'GET' && (
             <Field label={t('settings.eventTargets.body')} hint={t('settings.eventTargets.bodyHint')}>
               <div className={bodyBad ? 'rounded-[var(--radius-control)] shadow-[0_0_0_2px_var(--status-warn-text)]' : ''}>
@@ -341,10 +288,8 @@ export function TargetRow({
           <Placeholders list={placeholders} picked={row.triggers ?? []} />
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {/* 0 is a value here and not a blank: it means this row has no
-                opinion and takes the server's three. min is therefore 0 and not
-                1, and the number in force is shown beside the box so the two
-                readings are never confused. */}
+            {/* 0 takes the server's default of three, which is shown beside
+                the box. */}
             <Field label={t('settings.eventTargets.attempts')} hint={t('settings.eventTargets.attemptsHint')}>
               <div className="flex items-center gap-2">
                 <NumberInput
@@ -379,9 +324,6 @@ export function TargetRow({
             </Field>
           </div>
 
-          {/* Only for a stored row: a target the server has never seen has no
-              health, and every line of it would read as a fault on something
-              that does not exist yet. */}
           {stored && <TargetHealth status={status} />}
           <TargetProbe row={{ ...row, url: urlText.trim() }} />
         </div>
@@ -390,10 +332,10 @@ export function TargetRow({
   );
 }
 
-/** The number as notify.Sanitize would store it: 0 passes through untouched
- *  because it is a value and not a blank, and anything else lands inside the
- *  band the server would silently pull it into anyway - so the box does not
- *  change under the cursor once the save comes back. */
+/**
+ * clamp stores a number the way notify.Sanitize would, keeping 0, so the box
+ * does not change once the save comes back.
+ */
 function clamp(v: number, max: number): number {
   if (!Number.isFinite(v)) return 0;
   const whole = Math.round(v);
@@ -401,23 +343,12 @@ function clamp(v: number, max: number): number {
   return Math.min(whole, max);
 }
 
-/**
- * How many events this row is ticked for, with its one word of explanation.
- *
- * Its own component only because the explanation hangs off a hook: the house
- * bubble, never a native `title=`. One control, one tooltip mechanism - the
- * operating system's own balloon draws in the OS font, at the pointer instead
- * of at the trigger, and obeys none of the rules the house bubble follows, so
- * a row carrying one sits beside a row carrying the other and reads as a
- * rendering fault.
- */
+/** TickedCount shows how many events are ticked, with the house tooltip. */
 function TickedCount({ n }: { n: number }) {
   const { t } = useT();
   const tip = useTooltip<HTMLSpanElement>(t('settings.eventTargets.events'));
-  // role and tabIndex dropped for the reason ui.tsx's Button gives at its own
-  // copy of this line: this span sits INSIDE the row's expand button, and a
-  // second tab stop with a "note" role there would put a control inside a
-  // control. Hover and focus of the button itself still reach it.
+  // The span sits inside the row's expand button, so it takes no role and no
+  // tab stop of its own.
   const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
   return (
     <>
@@ -429,12 +360,7 @@ function TickedCount({ n }: { n: number }) {
   );
 }
 
-/**
- * One placeholder name, with what it expands to on the house bubble.
- *
- * Its own component for the same reason TickedCount is: the bubble is a hook,
- * and a hook cannot be called from inside the map below.
- */
+/** PlaceholderChip is its own component because the tooltip is a hook. */
 function PlaceholderChip({ name, tip: tipText, unused }: { name: string; tip: string; unused: boolean }) {
   const tip = useTooltip<HTMLElement>(tipText);
   return (
@@ -454,13 +380,8 @@ function PlaceholderChip({ name, tip: tipText, unused }: { name: string; tip: st
 }
 
 /**
- * The names that can be written into the address, a header or the body.
- *
- * From the server, so this list is what this build really fills in. The one
- * thing it adds on top of the names is the warning that matters: a placeholder
- * whose payload none of the ticked events carries is not an error, it simply
- * expands to nothing, and a message that arrives with a blank where the file
- * name should be is the hardest kind of mistake to trace back to this page.
+ * Placeholders lists the names the server fills into the address, a header or
+ * the body, and marks the ones no ticked event carries, which expand to nothing.
  */
 function Placeholders({ list, picked }: { list: Placeholder[]; picked: string[] }) {
   const { t } = useT();
@@ -469,9 +390,8 @@ function Placeholders({ list, picked }: { list: Placeholder[]; picked: string[] 
     <FieldGroup label={t('settings.eventTargets.placeholders')} hint={t('settings.eventTargets.placeholdersHint')}>
       <div className="flex flex-wrap gap-1.5">
         {list.map((p) => {
-          // Empty triggers means every trigger carries it, so it is never
-          // unused. Nothing ticked at all is its own state and is reported by
-          // the events picker, not repeated here for forty names.
+          // Empty triggers means every event carries it. Nothing ticked is
+          // reported by the events picker instead.
           const unused =
             picked.length > 0 && p.triggers !== undefined && p.triggers.length > 0 && !p.triggers.some((tr) => picked.includes(tr));
           const name = `%%${p.name}%%`;

@@ -17,45 +17,21 @@ import {
 import { useDraft } from '../context';
 
 /**
- * Whether this instance keeps a copy of its own log on disk, and what is
- * already there.
- *
- * WHY IT IS OFF UNTIL SOMEBODY SWITCHES IT ON. An update must not start writing
- * files nobody asked for. On an Unraid box the app's data folder is usually on
- * the array, and an unbuffered write per log line is a spinning disk that never
- * gets to sleep - so this ships off, upgrades read as off, and the (i) says so
- * in the first sentence rather than leaving somebody to discover it.
- *
- * WHY THERE IS NO PATH BOX. The server has no path setting at all, on purpose:
- * the Advanced page reflects the whole settings document into free text boxes,
- * so a path typed there that does not exist, or that the account inside the
- * container may not write, would stop the log with nothing on screen connecting
- * the two. The folder is fixed beside the database and KL_LOG_DIR moves it,
- * which is a thing somebody sets once at the machine rather than a field that
- * can be wrong quietly.
- *
- * TWO KINDS OF STATE, DELIBERATELY SEPARATE, the same split the maintenance
- * card beside this one makes: the three settings are part of the shared draft
- * and the shell autosaves them, while the file's own state - where it is, how
- * big it has grown, what went wrong - is a resource read from the server. There
- * is no Save button here for the same reason there is none anywhere else in
- * settings.
+ * LogFileCard switches the on-disk copy of the log and lists what is there. It
+ * ships off so an update does not keep an array disk awake. The folder sits
+ * beside the database and only KL_LOG_DIR moves it, so there is no path box.
+ * The settings belong to the shared draft; the file's state is read from the
+ * server.
  */
 export function LogFileCard({ hue, capacity }: { hue: number; capacity: number }) {
   const { t } = useT();
   const { cfg, patch, dirty } = useDraft();
   const { data, failed, loading, reload } = useResource<LogFileState>(fetchLogFileState);
 
-  // A settings document from a server that predates this key has no logFile at
-  // all. Defaulted here rather than trusted, because every control below reads
-  // it and a card that threw on an older server would take the whole page with
-  // it.
+  // An older server sends no logFile.
   const file = cfg.logFile ?? { enabled: false, maxMb: 8, keep: 3 };
 
-  // Re-read the file's state the moment the draft stops being dirty, which is
-  // the shell telling us it has saved. A timer would be a guess at the autosave
-  // debounce, and polling would keep a laptop warm on a settings tab nobody is
-  // looking at - the argument the maintenance card makes for its own interval.
+  // The draft turning clean means the shell has saved, so the state is re-read then.
   const wasDirty = useRef(dirty);
   useEffect(() => {
     if (wasDirty.current && !dirty) reload();
@@ -79,22 +55,8 @@ export function LogFileCard({ hue, capacity }: { hue: number; capacity: number }
         onChange={(enabled) => patch({ logFile: { ...file, enabled } })}
       />
 
-      {/* THE TWO NUMBERS ARE ABSENT WHILE THE SWITCH IS OFF, THE READING STAYS
-          (GlimStone 1.16.0). They used to be dimmed and inert, under the
-          argument that a control which vanishes teaches nobody what the mode
-          can do - which is the argument 1.10.0 reversed and 1.16.0 settled with
-          one question: does the control still do anything? Nothing writes a log
-          file while the switch is off, so a size limit and a rotation count
-          have no state behind them here; they are two boxes somebody can see,
-          read and reach for that answer nothing, with the reason sitting one
-          row up where nobody looks once they have decided this row is the
-          interesting one.
-
-          The PATH is the other half of the same rule and goes the other way: it
-          is DATA rather than a control, it is answered by the server whether
-          anything is armed or not, and somebody deciding whether to switch the
-          log on is deciding which volume it lands on. An entry that cannot
-          answer is marked, never hidden - and this one can answer. */}
+      {/* The size and rotation boxes are absent while the switch is off. The
+          path stays, since it tells where the log would land. */}
       <div className={`grid grid-cols-1 gap-4 ${file.enabled ? 'sm:grid-cols-3' : ''}`}>
         {file.enabled && (
           <>
@@ -113,8 +75,7 @@ export function LogFileCard({ hue, capacity }: { hue: number; capacity: number }
           </>
         )}
 
-        {/* FieldGroup and not Field: a Field is a <label>, and a label with no
-            control in it names nothing. This is a reading. */}
+        {/* FieldGroup, because a label with no control in it names nothing. */}
         <FieldGroup label={t('settings.diagnostics.fileWhere')} hint={t('settings.diagnostics.fileWhereHint')}>
           <span className="break-all text-sm text-carbon-text" dir="ltr">
             {data.path}
@@ -133,9 +94,7 @@ export function LogFileCard({ hue, capacity }: { hue: number; capacity: number }
   );
 }
 
-/** One line saying whether anything is being written, and how much of the cap
- *  is used. A fact rather than an explanation, so it is a line and not a
- *  bubble. */
+/** State says whether anything is being written and how much of the cap is used. */
 function State({ state }: { state: LogFileState }) {
   const { t } = useT();
   if (!state.enabled) {
@@ -149,19 +108,9 @@ function State({ state }: { state: LogFileState }) {
 }
 
 /**
- * What to do when the log is not being written, laid out in the order somebody
- * at three in the morning needs it: what is wrong, then what to check, then
- * whether the volume is the reason.
- *
- * THE LAST SENTENCE OF THE ADVICE IS THE IMPORTANT ONE. "The log file stopped"
- * reads as "logging stopped" unless something says otherwise, so the hint ends
- * by saying the lines are still in memory and still go into the diagnostics
- * bundle. Nothing else stopped.
- *
- * THE FREE-SPACE LINE HAS THREE STATES AND NOT TWO. The server answers "I could
- * not measure it" separately from a figure, because a readout that drew nought
- * bytes free on a platform it cannot ask is a picture of a full disk somebody
- * would go hunting through.
+ * Problem says why the log is not being written, what to check and whether the
+ * volume is the reason. Free space has a third state for "could not measure",
+ * so an unknown figure never reads as a full disk.
  */
 function Problem({ state, capacity }: { state: LogFileState; capacity: number }) {
   const { t } = useT();
@@ -169,10 +118,7 @@ function Problem({ state, capacity }: { state: LogFileState; capacity: number })
     <div className="flex flex-col gap-2">
       <span className="flex items-center gap-1.5 text-sm text-statusFail">
         {t('settings.diagnostics.fileProblem', { error: state.problem ?? '' })}
-        {/* The line count comes from the page shell, which already has it out
-            of the diagnostics bundle. Typing 500 here would be a second copy of
-            a number the server owns, and the two would part company the day
-            somebody changed the ring. */}
+        {/* The ring size comes from the diagnostics bundle, not a copy here. */}
         <InfoBubble tip={t('settings.diagnostics.fileProblemHint', { path: state.path, n: capacity })} />
       </span>
       <span className="text-[11px] text-carbon-textMuted">
@@ -185,11 +131,9 @@ function Problem({ state, capacity }: { state: LogFileState; capacity: number })
 }
 
 /**
- * The files on disk, newest first, each one downloadable.
- *
- * A plain link and not a fetch-and-save button: the route answers text/plain
- * with a Content-Disposition, so the browser does the whole job, and a file
- * that can be gigabytes has no business being read into a Blob in a tab first.
+ * Generations lists the files on disk, newest first. Each is a plain link,
+ * since the route sends a Content-Disposition and a large file should not pass
+ * through a Blob.
  */
 function Generations({ generations }: { generations: LogGeneration[] }) {
   const { t } = useT();

@@ -7,29 +7,11 @@ import { useT } from '../../lib/i18n';
 import { Button, Card, InfoBubble, SectionTitle } from '../../components/ui';
 
 /**
- * Every way to reach KnightLoader from outside the app itself: a bookmarklet,
- * the MV3 browser extension (extension/src), and the native apps.
- *
- * The extension download used to be built per instance, with this instance's
- * address baked into a config.default.json. It is now byte-identical to the
- * source (internal/api/routes_browsertools.go), because the extension is set
- * up with the connection phrase and holds no addresses at all - which is also
- * what makes a store package reproducible from a checkout.
- *
- * The app card moved here from the Zugang tab (jdp, 2026-08-27: "Die App card
- * dann bitte in den Browser-Werkzeuge verschieben und den Tab Browser & App
- * benennen"), and it took its keys with it: it lived under
- * settings.access.remote.* while it sat on that page, and a key named after
- * the page it used to be on is the kind of thing nobody dares delete two
- * waves later. The rail label follows the same move - one tab that answers
- * "how do I get at this from somewhere else", whether that somewhere is a
- * browser or a phone.
- *
- * The bookmarklet and the PWA share target land on /quickadd (pages/
- * QuickAdd.tsx), so this page only ever has to build the address and the
- * drag-target, not the staging logic. The extension no longer does: it carries
- * its own relay client and posts to /api/links through the group, which is the
- * only way to reach an instance that has no address to open a window at.
+ * BrowserTools lists every way to reach KnightLoader from outside the app: a
+ * bookmarklet, the browser extension and the native apps. The extension
+ * download is byte-identical to the source, since it is set up with the
+ * connection phrase and holds no address. The bookmarklet and the PWA share
+ * target land on /quickadd.
  */
 export function BrowserTools() {
   const { t } = useT();
@@ -49,13 +31,8 @@ export function BrowserTools() {
       <li>{t('settings.browsertools.installChromiumStep2')}</li>
       <li>{t('settings.browsertools.installChromiumStep3')}</li>
       <li>{t('settings.browsertools.installChromiumStep4')}</li>
-      {/* The step that was missing, and it is the one that reads as a failed
-          install without it (jdp, three rounds, most recently 2026-09-01: "es
-          kommt die meldung erweiterung geladen aber es zeigt sie nicht an").
-          Chrome loads the extension, reports it as enabled with no warnings and
-          no errors, and deliberately keeps it off the toolbar until somebody
-          pins it. Measured on Chrome 151: state ENABLED, installWarnings [],
-          manifestErrors [], isOnToolbar false. */}
+      {/* Chrome keeps a freshly loaded extension off the toolbar until it is
+          pinned, which otherwise reads as a failed install. */}
       <li>{t('settings.browsertools.installChromiumStep5')}</li>
     </ol>
   );
@@ -72,20 +49,13 @@ export function BrowserTools() {
     <div className="flex flex-col gap-10">
       <Card hue={0} className="flex flex-col gap-3">
         <SectionTitle>{t('settings.browsertools.bookmarkletTitle')}</SectionTitle>
-        {/* A real numbered list, not a flowing paragraph - jdp: "Bitte
-            aufzählungen immer untereinander", the same rule the install
-            steps below now follow too. */}
         <ol className="list-decimal space-y-1.5 pl-4 text-sm text-carbon-textSub">
           <li>{t('settings.browsertools.bookmarkletStep1')}</li>
           <li>{t('settings.browsertools.bookmarkletStep2')}</li>
         </ol>
         <div className="flex flex-wrap items-center gap-3">
-          {/* A real link, not a button with an onClick — dragging IS the
-              install step, and only an <a href="javascript:..."> is
-              draggable into a bookmarks bar carrying that code. The icon is
-              KnightLoader's own app mark (jdp: "Das lesezeichen soll das
-              logo als icon anzeigen"), not a generic download glyph -
-              dragging this in is dragging in KnightLoader itself. */}
+          {/* A real javascript: link, since only that can be dragged into a
+              bookmarks bar. */}
           <a
             href={bookmarklet}
             onClick={(e) => e.preventDefault()}
@@ -117,20 +87,9 @@ export function BrowserTools() {
         >
           {t('settings.browsertools.extensionTitle')}
         </SectionTitle>
-        {/* One badge per browser, each the real brand mark (Simple Icons,
-            taken 1:1 - never hand-rebuilt) instead of GlimStone's own
-            monochrome glyph set: a Firefox logo re-tinted to the accent
-            colour would stop reading as Firefox, so these sit outside the
-            rainbow/accent system on purpose, same as any other semantic
-            colour (see e.g. a delete action staying red under any accent).
-            Chrome/Edge/Brave/Opera/Vivaldi are the same .zip and the same
-            install flow (Chromium's own Developer Mode + Load unpacked) -
-            one shared instruction bubble, not five copies of it. Firefox
-            gets the .xpi and its own bubble (routes_browsertools.go's own
-            doc comment explains why the archive itself is identical either
-            way). Each bubble sits in its badge's own corner (jdp: "das i
-            icon soll in die ecke der jeweiligen downloadcard") rather than
-            as a paragraph below the row. */}
+        {/* One tile per browser with its real brand mark, outside the accent
+            system. The Chromium browsers share one .zip and one instruction
+            bubble; Firefox gets the .xpi and its own. */}
         <div className="flex flex-wrap gap-3">
           <DownloadTile logo={<LogoChrome />} name="Chrome" onClick={badgeAction('Chrome', downloadZip)} hint={chromiumHint} hintLabel={installLabel} />
           <DownloadTile logo={<LogoEdge />} name="Edge" onClick={badgeAction('Edge', downloadZip)} hint={chromiumHint} hintLabel={installLabel} />
@@ -147,62 +106,26 @@ export function BrowserTools() {
 }
 
 /**
- * The native apps, and installing this page itself as the smaller second
- * option below them.
- *
- * The three tiles are DownloadTile, the same component the six browsers above
- * use - see its own doc comment. They briefly carried jdp's two official store
- * badges instead (2026-08-27: "auf dem Desktop sind zwei svg dateien. die
- * Buttons bitte in die card einpflegen"); that shape is gone, and with it the
- * altered artwork Google's guidelines would not have allowed.
- *
- * No "not published yet" note anywhere on this card, deliberately (jdp, same
- * message: "kein hinweis im UI. KL wird erst veröffentlicht wenn alles fertig
- * ist"): by the time anybody who is not jdp sees this page, the listings
- * exist and the URLs below are filled in.
+ * AppCard offers the native apps, and installing this page as a web app as
+ * the smaller second option.
  */
 function AppCard() {
   const { t } = useT();
   const { available: canInstall, promptInstall } = useInstallPrompt();
-  // Safari (desktop and iOS) never fires beforeinstallprompt, so
-  // useInstallPrompt's `available` is permanently false there - this is the
-  // one place that still has something useful to say instead of nothing: the
-  // manual Share-sheet route, iOS's only way to install any web app.
+  // Safari never fires beforeinstallprompt, so iOS gets the Share-sheet steps.
   const iOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 
   return (
     <Card hue={3} className="flex flex-col gap-4">
-      {/* The app's own version, beside the title exactly as the extension card
-          carries the extension's (jdp, 2026-08-27: "Die Versionsnummer bitte
-          auch in der App card anzeigen"). Read from mobile/app.json at build
-          time, never typed here - see vite.config.ts for why that distinction
-          is load-bearing rather than tidy. */}
+      {/* The app's version is read from mobile/app.json at build time (vite.config.ts). */}
       <SectionTitle
         hint={t('settings.browsertools.appBody')}
         right={<span className="glim-num text-[11px] text-carbon-textMuted">v{__MOBILE_VERSION__}</span>}
       >
         {t('settings.browsertools.appTitle')}
       </SectionTitle>
-      {/* Literally the same component as the browser downloads above (jdp,
-          2026-08-27: "Kannst du die App download buttons und die der
-          browsererweiterung gleich machen?", then again after the first cut:
-          "die jetzigen buttons leuchten nicht auf beim mouseover"). Not a
-          matching copy - one Tile, used twice - because a shape that has to be
-          kept in step by hand is the shape that drifts.
-
-          That replaced jdp's two store badges, and it settles a real problem
-          with them: Google's badge guidelines forbid altering their artwork,
-          and fitting a wide wordmark plate into this card meant altering it.
-          A brand glyph with the store's name under it is the app's own button,
-          not a modified official badge - and it is the same object the six
-          browsers already are.
-
-          There is deliberately no iOS equivalent of the APK: Apple has no
-          sideloading. Without a store listing the only routes are TestFlight
-          (a beta programme, 90 days, needs its own developer account) or the
-          EU's alternative marketplaces, and neither is a file somebody
-          downloads from here. The card's own hint says so rather than leaving
-          a conspicuous gap unexplained. */}
+      {/* The same tiles as the browser downloads. There is no iOS file, since
+          Apple allows no sideloading; the card's hint says so. */}
       <div className="flex flex-wrap items-center gap-3">
         <DownloadTile
           logo={<BrandMark svg={PLAY_SVG} />}
@@ -214,10 +137,7 @@ function AppCard() {
           name={t('settings.browsertools.storeIOS')}
           onClick={openIfSet(APP_URLS.ios)}
         />
-        {/* The APK gets KnightLoader's own mark (jdp: "Bitte auch ein Logo für
-            die APK Card") - the other two tiles wear the shop's logo because
-            the shop is what you are being sent to, and this one sends you to
-            the app itself. */}
+        {/* The APK leads to the app itself, so it wears KnightLoader's mark. */}
         <DownloadTile
           logo={<img src={logoUrl} alt="" aria-hidden className="h-full w-full object-contain" />}
           name={t('settings.browsertools.apkLabel')}
@@ -226,14 +146,8 @@ function AppCard() {
       </div>
       {(canInstall || iOS) && (
         <div className="flex flex-col gap-2 pt-1">
-          {/* A CONDITIONAL BUBBLE, not a grey line under the caption. The iOS
-              route is a set of steps somebody has to be told about exactly
-              once, in the one state where there is no Install button to press,
-              and a sentence printed under the caption makes the card taller
-              for everybody in order to answer a question only a Safari visitor
-              is asking. It hangs off the caption rather than off a control
-              because in that state there is no control - the browser offers
-              none - and the caption is the thing being explained. */}
+          {/* The iOS steps sit in a bubble on the caption, shown only where the
+              browser offers no Install button. */}
           <span className="flex items-center gap-1.5 text-xs font-semibold text-carbon-textSub">
             {t('settings.browsertools.installPwaLabel')}
             {!canInstall && iOS && <InfoBubble tip={t('settings.browsertools.installIOS')} />}
@@ -251,18 +165,9 @@ function AppCard() {
   );
 }
 
-/**
- * Where the three app buttons go. The two store URLs are empty until a
- * listing actually goes live (jdp is filling them in once the apps are
- * published) - same arrangement as STORE_URLS above for the extension, and
- * the same reason it is a constant rather than a setting: which store a
- * release exists in is a fact about the build, not about this instance.
- *
- * The APK link points at the releases INDEX rather than /releases/latest,
- * which would be wrong the moment a server release outranks a mobile one -
- * the mobile builds carry their own mobile/vX.Y.Z tags, and GitHub has no way
- * to ask for "the newest release whose tag starts with mobile/".
- */
+// The APK links the releases index rather than /releases/latest, because
+// mobile builds carry their own mobile/vX.Y.Z tags and "latest" may be a
+// server release. An empty store URL means the listing is not live yet.
 const EXTENSION_REPO_URL = 'https://github.com/junkerderprovinz/knightloader';
 
 const APP_URLS = {
@@ -272,17 +177,8 @@ const APP_URLS = {
 };
 
 /**
- * openIfSet builds the click handler for a store tile whose listing does not
- * exist yet.
- *
- * The tile stays fully alive - same surface, same hover step - rather than
- * rendering `disabled` the way it used to. That is jdp's own call twice over:
- * no "not published yet" note anywhere on this card (2026-08-27: "kein hinweis
- * im UI"), and the buttons must light up under the pointer like every other
- * download here ("die jetzigen buttons leuchten nicht auf beim mouseover") -
- * a `disabled` button is exactly what was swallowing that hover. Until a URL
- * lands in APP_URLS the click simply does nothing, which nobody but jdp will
- * ever be in a position to notice.
+ * openIfSet opens a store listing once its URL is set and does nothing before,
+ * so the tile keeps its hover instead of rendering disabled.
  */
 function openIfSet(url: string): () => void {
   return () => {
@@ -291,74 +187,18 @@ function openIfSet(url: string): () => void {
 }
 
 /**
- * One download target: a square tile carrying a mark and a name, and nothing
- * else. The tile itself is the button.
- *
- * This is the ONE download shape on the page - the six browsers, the two
- * stores and the APK are all this component (jdp, 2026-08-27: "Kannst du die
- * App download buttons und die der browsererweiterung gleich machen?"). They
- * are the same act, so they are the same object; the App card used to build
- * its own wider variant and that alone made a store listing read as a
- * different KIND of thing from an extension download.
- *
- * An optional `hint` renders as an (i) bubble pinned to the tile's own
- * top-right corner, as a sibling of the button rather than a child of it -
- * InfoBubble is its own focusable, hoverable element, and nesting it inside
- * the button would make a click on the (i) also fire the download underneath.
- *
- * Vendor marks keep their own colours through the hover; only the surface and
- * the caption move.
- *
- * THE HOVER IS ONE STEP UP THE SURFACE RAMP AND NOTHING ELSE (GlimStone rule
- * 21): surface2 at rest, surface3 under the pointer, which is lighter on the
- * dark theme and darker on the light one because the two themes need opposite
- * directions. This is GlimStone's own answer for a grid of marks - its
- * reference CryptoDonateDialog draws its coin tiles with exactly these two
- * classes, and so does this app's own copy of that window
- * (components/CryptoDonateDialog.tsx), which is what makes the two tile grids
- * in KnightLoader one object instead of two.
- *
- * IT USED TO CARRY `dark:hover:bg-white dark:hover:text-[#161616]`, and that
- * is the shape 1.11.0 removed from the scrim: a value the rule describes,
- * typed into a component instead of held by a token. It was the only tile
- * class in the tree painting its own hover ground from a literal, and the
- * literal was written in ONE theme block - so the light theme took the ramp
- * step and the dark theme took a hard white with a hard near-black ink beside
- * it, a pair of colours no colour mode owns and the rainbow and glyph modes
- * cannot follow. The request behind it (jdp: "Beim mouseover soll der
- * hintergrund weiß werden", then "die jetzigen buttons leuchten nicht auf beim
- * mouseover") was that the tile LIGHT UP under the pointer, and #393939 to
- * #525252 is that, in the token the language keeps for it. The same note
- * already recorded that a literal white was wrong on the light theme, where
- * the card behind is #ffffff and the tile vanished into it; one ramp answers
- * both sides instead of one side each.
+ * The class of DownloadTile, the one download shape on the page for browsers,
+ * stores and the APK alike. Hover moves one step up the surface ramp, as the
+ * coin tiles of the crypto window do, and vendor marks keep their colours.
  */
 const tileClass =
   'flex flex-col items-center justify-center gap-2 rounded-[var(--radius-control)] bg-carbon-surface2 ' +
   'text-carbon-text transition-colors duration-150 hover:bg-carbon-surface3';
 
 /**
- * The extension's own version, as a link to that version's release page.
- *
- * A version string answers "which build is this"; the question straight after
- * it is always "and what changed", and that lives in the release notes. A
- * number nobody can follow makes somebody search the repository for a tag they
- * then have to retype. This one stood here as plain text while the extension's
- * OWN about card already built exactly this link (extension/src/options.js).
- *
- * The tag is DERIVED, never a hand-kept list: this repository ships several
- * artefacts, so the extension's tags carry their own prefix (`extension/v…`)
- * beside the server's bare `v…` and the app's `mobile/v…`. The slash stays a
- * slash, the way the extension writes it and the way the tags are named.
- *
- * Only a plain three-part stamp gets the link. A build with no release behind
- * it (a local build, a preview image) still shows its number - that string is
- * what somebody puts in a bug report - but a link into a 404 is not a link.
- *
- * Muted ink, no underline, exactly as the About card's own version numbers:
- * --carbon-text-muted and --carbon-text are defined in every theme block and
- * rebound by no colour mode, so this reads the same in dark, light, system,
- * rainbow and reactive alike.
+ * ExtensionVersion links the extension's version to its release page. The tag
+ * is derived with the `extension/v` prefix these releases carry; a stamp that
+ * is not a plain three-part version shows without a link.
  */
 function ExtensionVersion({ version }: { version: string }) {
   const plain = <span className="glim-num text-[11px] text-carbon-textMuted">v{version}</span>;
@@ -375,6 +215,7 @@ function ExtensionVersion({ version }: { version: string }) {
   );
 }
 
+/** The optional (i) is a sibling of the button, so clicking it starts no download. */
 function DownloadTile({
   logo,
   name,
@@ -390,12 +231,7 @@ function DownloadTile({
 }) {
   return (
     <div className="relative">
-      {/* No tooltip at all, where this used to carry a native `title`. A
-          tooltip only exists when it adds something the trigger does not
-          already show, and the tile prints its own name as visible text two
-          lines down - so the bubble would have repeated that word back, in the
-          operating system's own box, at the pointer instead of at the trigger,
-          beside the house bubble this same tile already opens for its (i). */}
+      {/* No tooltip: the tile already shows its name. */}
       <button type="button" onClick={onClick} aria-label={name} className={`${tileClass} h-28 w-28`}>
         <span className="flex h-14 w-14 shrink-0 items-center justify-center">{logo}</span>
         <span className="text-xs font-medium">{name}</span>
@@ -410,13 +246,9 @@ function DownloadTile({
 }
 
 /**
- * Filled in once a listing actually goes live in that store - empty for now,
- * since submission needs jdp's own developer accounts (Chrome Web Store,
- * Microsoft Partner Center, addons.mozilla.org) and none exist yet. Brave,
- * Opera and Vivaldi install straight from the Chrome Web Store rather than
- * running their own listing, so they share Chrome's URL once it exists.
- * Until a URL is set here, that badge keeps downloading the packaged
- * extension directly - see badgeAction() below.
+ * Store listings, empty until each goes live. Brave, Opera and Vivaldi install
+ * from the Chrome Web Store; until a URL is set the badge downloads the
+ * packaged extension instead.
  */
 const STORE_URLS: Record<'Chrome' | 'Edge' | 'Firefox', string> = {
   Chrome: '',
@@ -424,8 +256,7 @@ const STORE_URLS: Record<'Chrome' | 'Edge' | 'Firefox', string> = {
   Firefox: '',
 };
 
-/** badgeAction opens the live store listing once one exists, otherwise falls
- *  back to downloading the packaged extension straight from this instance. */
+/** badgeAction opens the store listing once one exists, else downloads the package. */
 function badgeAction(store: 'Chrome' | 'Edge' | 'Firefox', fallback: () => void): () => void {
   const url = STORE_URLS[store];
   return url ? () => window.open(url, '_blank', 'noopener,noreferrer') : fallback;
@@ -440,20 +271,9 @@ function downloadXpi() {
 }
 
 /**
- * Real brand marks, jdp's own SVGs (Chrome/Edge/Brave/Opera/Vivaldi from
- * each vendor's own brand assets, Firefox from Mozilla's), reproduced whole
- * and unedited - the full official multi-colour artwork, not a Simple
- * Icons-style single-hex silhouette. Rendered via dangerouslySetInnerHTML
- * rather than hand-converted to JSX: these files carry gradients, `<use>`
- * references and kebab-case SVG attributes (stop-color, clip-path, …) that
- * a manual JSX port could silently mistranslate - injecting the markup
- * as-is is the only way to guarantee it renders exactly as given. Every id
- * is prefixed per logo (kl-<name>-*) so six of these sitting in the same
- * page can never collide (two files both defining id="a" would otherwise
- * make one badge borrow the wrong gradient). Kept local to this page: every
- * other icon in lib/icons.tsx is a `currentColor` glyph in the GlimStone
- * style, and these are fixed-colour brand marks that must NOT flow through
- * the accent/rainbow system on purpose (see this file's own top comment).
+ * BrandMark injects an official multi-colour brand SVG as-is, since gradients,
+ * `<use>` references and kebab-case attributes are easy to break in a JSX port.
+ * Every id carries a per-logo prefix (kl-<name>-*) so the marks cannot collide.
  */
 function BrandMark({ svg }: { svg: string }) {
   return (
@@ -465,35 +285,13 @@ function BrandMark({ svg }: { svg: string }) {
   );
 }
 
-// Google Play's own four-facet mark, its official geometry and its official
-// gradients - the icon, not the "GET IT ON" badge. The badge is the piece
-// Google's brand guidelines forbid altering, and fitting one into a card
-// meant altering it; the icon carries no such condition and, with the store's
-// name set under it by the tile itself, says the same thing.
+// Google Play's icon rather than the badge, whose artwork may not be altered.
 const PLAY_SVG =
   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><linearGradient id="kl-play-a" x1="60.6" x2="276.6" y1="45.4" y2="261.4" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#00a0ff"/><stop offset=".01" stop-color="#00a1ff"/><stop offset=".26" stop-color="#00beff"/><stop offset=".51" stop-color="#00d2ff"/><stop offset=".76" stop-color="#00dfff"/><stop offset="1" stop-color="#00e3ff"/></linearGradient><linearGradient id="kl-play-b" x1="446.6" x2="34.3" y1="256" y2="256" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ffe000"/><stop offset=".41" stop-color="#ffbd00"/><stop offset=".78" stop-color="#ffa500"/><stop offset="1" stop-color="#ff9c00"/></linearGradient><linearGradient id="kl-play-c" x1="349.6" x2="6.9" y1="295.1" y2="637.8" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ff3a44"/><stop offset="1" stop-color="#c31162"/></linearGradient><linearGradient id="kl-play-d" x1="22.9" x2="176" y1="-38.1" y2="115" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#32a071"/><stop offset=".07" stop-color="#2da771"/><stop offset=".48" stop-color="#15cf74"/><stop offset=".8" stop-color="#06e775"/><stop offset="1" stop-color="#00f076"/></linearGradient><path fill="url(#kl-play-a)" d="M39.6 24.1c-5.6 5.9-8.9 15.1-8.9 27v409.8c0 11.9 3.3 21.1 8.9 27l1.4 1.3L270 259.7v-5.4L41 25.4z"/><path fill="url(#kl-play-b)" d="m346.3 336.3-76.3-76.6v-5.4l76.4-76.5 1.7 1L438.5 231c25.8 14.7 25.8 38.7 0 53.4l-90.4 51.4z"/><path fill="url(#kl-play-c)" d="M348 335.3 270 257 39.6 487.9c8.5 9 22.5 10.1 38.4 1.1z"/><path fill="url(#kl-play-d)" d="M348 178.7 78 25.1C62.1 16 48.1 17.2 39.6 26.2L270 257z"/></svg>';
 
-// Apple's own mark, in currentColor rather than a fixed hex, and this is NOT an
-// exception to the brand rule - it is what the rule works out to for this
-// particular mark, which matters because a documented exception and a forgotten
-// button look identical from outside.
-//
-// GlimStone 1.10.0 says a flat vendor mark rides a per-theme ADJUSTED value
-// rather than its published colour, because a brand colour designed against
-// white dies on one of the two grounds. Apple's mark has no published colour to
-// adjust: it is solid black or solid white by definition, and Apple's own
-// guidance is dark on light and light on dark. The adjusted value the rule asks
-// for and the tile's neutral ink are therefore the same colour, in every theme,
-// so inheriting `currentColor` IS the token - --carbon-text, which is set in all
-// three theme blocks. The other six marks bring their own multi-colour ground
-// and take none of this, exactly as the coin discs in the crypto window do not.
-//
-// The one thing that must stay true for this to keep working, and the reason it
-// is written down here: the tile's ink is the NEUTRAL ramp and never the colour
-// engine's. Give `tileClass` an accent or a `.glim-hue` ink and Apple's mark
-// starts following the user's accent and the rainbow, which a vendor's mark may
-// never do. Nothing else on this page is wired to the engine either - see this
-// file's own top comment.
+// Apple's mark uses currentColor: it is black or white by definition, so the
+// tile's neutral ink is the right colour in every theme. That holds only while
+// tileClass never takes an accent ink.
 const APPLE_SVG =
   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 814 1000" fill="currentColor"><path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76.5 0-103.7 40.8-165.9 40.8s-105.6-57-155.5-127C46.7 790.7 0 663 0 541.8c0-194.4 126.4-297.5 250.8-297.5 66.1 0 121.2 43.4 162.7 43.4 39.5 0 101.1-46 176.3-46 28.5 0 130.9 2.6 198.3 99.2zm-234-181.5c31.1-36.9 53.1-88.1 53.1-139.3 0-7.1-.6-14.3-1.9-20.1-50.6 1.9-110.8 33.7-147.1 75.8-28.5 32.4-55.1 83.6-55.1 135.5 0 7.8 1.3 15.6 1.9 18.1 3.2.6 8.4 1.3 13.6 1.3 45.4 0 102.5-30.4 135.5-71.3z"/></svg>';
 

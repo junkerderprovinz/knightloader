@@ -47,21 +47,10 @@ import { NotificationsCard } from './look/Notifications';
 import { SettingsTransfer } from './look/SettingsTransfer';
 
 /**
- * accentSlot is which of the eight preset positions a colour belongs to.
- *
- * An exact preset answers with itself; anything else answers with the nearest,
- * and that is what gives a hand-mixed accent a home. The row shows the eight
- * presets and marks the one in force - so a colour that is no preset used to be
- * in force and shown nowhere. The separate "current colour" circle that used to
- * cover that case is gone (jdp, 2026-09-01: "links neben dem resetbutton ist
- * ein farbfeld mit stift. das kann weg"), so the slot it was nudged out of
- * keeps it, wears it, and re-opens the picker on it.
- *
- * Plain squared RGB distance, deliberately not a perceptual metric: it only has
- * to be stable and unsurprising for eight widely separated hues, and every
- * fancier answer here is a colour-science argument nobody can check by looking.
- * Kept byte-identical with the extension's own accentSlot (src/appearance.js)
- * so the same colour lands in the same slot in both.
+ * accentSlot returns which of the eight preset positions a colour belongs to:
+ * its own when it is a preset, otherwise the nearest by squared RGB distance.
+ * It matches the extension's accentSlot (src/appearance.js), so a colour lands
+ * in the same slot in both.
  */
 function accentSlot(hex: string): number {
   const p = (h: string) => {
@@ -84,63 +73,27 @@ function accentSlot(hex: string): number {
 }
 
 /**
- * What the accent row remembers about itself: which circle was pressed, and
- * what each circle has been mixed to.
- *
- * Neither fact is in the settings document. The server carries one `accent`
- * string and nothing else about this row (see Settings.accent in lib/api.ts),
- * and that is the right shape for it: `accent` is the colour in FORCE, the one
- * value every other surface reads. These two are row state, so they stay in
- * this browser, in localStorage beside the appearance cache
- * (lib/appearance.ts). The app does the same thing for the same reason - it
- * keeps them in its local override layer rather than sending them to the
- * instance (mobile/src/theme/AppearanceContext.tsx). The cost is that the seven
- * colours NOT in force do not travel to a second browser: the colour in force
- * does, because that one is a server setting, and the row there adopts it into
- * its nearest circle (see the seeding effect in Look) rather than showing eight
- * untouched presets. Carrying all eight between browsers would mean two more
- * fields in the settings document, which is a server change and not one this
- * row is worth on its own.
+ * The accent row's own memory: which circle was pressed and what each circle
+ * was mixed to. The settings document carries only the accent in force, so
+ * this stays in localStorage like the app's local override layer; another
+ * browser adopts the accent into its nearest circle.
  */
 const SLOTS_KEY = 'kl-accent-slots';
 
 interface SlotMemory {
   /**
-   * WHICH slot is chosen, as its own stored fact rather than arithmetic on the
-   * colour (jdp, 2026-09-02: "wenn ich zb. alle farbfelder rot machen will geht
-   * das nicht. nicht alle farbfelder speichern dann die farbe").
-   *
-   * Deriving the choice through accentSlot works only while every circle holds
-   * a different colour. Mix two of them to the same red and both answer with
-   * themselves: two circles are marked at once, and a press on either opens the
-   * picker instead of choosing, so the row stops behaving like a row. A choice
-   * is not recoverable from a value once two values are equal.
-   *
-   * undefined means nobody has pressed a circle in this browser yet, and the
-   * arithmetic is still the right answer.
+   * The chosen slot, stored rather than derived from the colour, since two
+   * circles mixed to the same colour would otherwise both be marked. Undefined
+   * until a circle is pressed in this browser.
    */
   slot?: number;
-  /**
-   * A colour somebody mixed, remembered against the PRESET SLOT they mixed it
-   * in. Keyed by slot index as a string, because that is what JSON gives back.
-   *
-   * Without this the row could hold exactly ONE mixed colour - the accent
-   * itself, painted over whichever preset it sits nearest - so choosing any
-   * other circle threw the mixed one away and coming back showed the preset
-   * again (jdp, 2026-09-01: "wenn man ein Farbfeld bearbeitet setzt es die
-   * farbe wieder zurück, sobald man ein anderes farbfeld auswählt"). Eight
-   * circles that can each hold a colour is what the row has always looked like
-   * it did.
-   */
+  /** Mixed colours by slot index, as strings because that is what JSON returns. */
   customs: Record<string, string>;
 }
 
 /**
- * Read on the way IN, so the row never has to defend itself against a stored
- * value the picker could not have produced: only real six-digit hex against a
- * real slot number survives. localStorage is shared with everything else on
- * this origin and outlives any one build of this page, so a key of this name
- * holding something else entirely is an ordinary case, not a hostile one.
+ * readSlotMemory keeps only six-digit hex values against real slot numbers,
+ * since other code on this origin may use the same key.
  */
 function readSlotMemory(): SlotMemory {
   try {
@@ -160,8 +113,7 @@ function readSlotMemory(): SlotMemory {
       typeof slot === 'number' && Number.isInteger(slot) && slot >= 0 && slot < ACCENTS.length ? slot : undefined;
     return { slot: chosen, customs };
   } catch {
-    // An unreadable memory is no memory: the row falls back to the presets and
-    // the nearest-preset arithmetic, which is exactly a fresh browser.
+    // An unreadable memory falls back to the presets, like a fresh browser.
     return { customs: {} };
   }
 }
@@ -170,30 +122,14 @@ function writeSlotMemory(m: SlotMemory): void {
   try {
     localStorage.setItem(SLOTS_KEY, JSON.stringify(m));
   } catch {
-    // Private mode, a full quota, storage switched off: the colour is already
-    // applied and already on its way to the instance, so a failed write costs
-    // the row's memory at the next load, not anything now.
+    // Storage may be unavailable; the colour is applied and saved regardless.
   }
 }
 
 /**
- * One round colour button, doing both jobs.
- *
- * Not selected, a click SELECTS it. Already selected, a click opens the picker
- * on it. That pairing is what let the ninth circle go: every colour in the row
- * is editable, and reaching the editor costs the click that selects it - a
- * click somebody about to change a colour was going to make anyway.
- *
- * No drawn ring around the circle any more: surfaces here are separated by
- * shade, never by a line, and the selected state is a shadow standing off the
- * card's own ground. Same rule and same numbers as the extension's
- * .glim-swatch, so the two rows look identical side by side.
- *
- * It stays local to this page rather than becoming a third variant of ui.tsx's
- * own `Swatch` (control-radius, halo-shadow selection), which styles something
- * else now. The proportions came off the real BombVault test container's own
- * accent widget, read from its live DOM rather than from the repo or the docs
- * (jdp: "Nein das ist falsch! Hier ist der Testcontainer erreichbar...").
+ * RingSwatch is a round colour button: a click selects it, and a click on the
+ * selected one opens the picker. The selected state is a shadow rather than a
+ * ring, matching the extension's .glim-swatch.
  */
 function RingSwatch({
   color,
@@ -206,20 +142,12 @@ function RingSwatch({
   color: string;
   label: string;
   selected: boolean;
-  /**
-   * Recedes, and stays pressable. See the accent row's own comment for the
-   * whole argument: the dimming goes on the CIRCLE and never on a wrapper
-   * around the row, so the caption and the (i) that explains the state keep
-   * full strength (GlimStone 1.9.0's opacity-subtree trap).
-   */
+  /** Dims the circle only, so the caption and its (i) keep full strength. */
   dim?: boolean;
   onPick: () => void;
   onEdit?: (el: HTMLElement) => void;
 }) {
-  // The house bubble rather than the `title` attribute: a native title draws
-  // the operating system's own box, at the pointer, in a font no rule here
-  // reaches, right beside the app's own bubble on the same card - two
-  // mechanisms in one row read as a rendering fault.
+  // The house tooltip rather than a native title.
   const tip = useTooltip<HTMLButtonElement>(label);
   const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
   return (
@@ -229,13 +157,8 @@ function RingSwatch({
         aria-label={label}
         aria-pressed={selected}
         onClick={(e) => (selected && onEdit ? onEdit(e.currentTarget) : onPick())}
-        // `--btn-h`, the one square size in the app, and the same one the
-        // palette row below uses (jdp, 2026-09-07: "die farbfelder in der
-        // Farben-card sind nicht gleich groß. die der akzentfarbe sind zu
-        // klein"): two rows of circles in one card have to be one size or they
-        // read as two different kinds of thing. The badge sets that size and a
-        // colour swatch follows it, so both rows moved off 28px together with
-        // the two reset badges beside them, in one edit.
+        // `--btn-h`, the app's one square size, shared with the palette row and
+        // the reset badges.
         className={`h-[var(--btn-h)] w-[var(--btn-h)] shrink-0 cursor-pointer rounded-[var(--radius-pill)] transition-transform hover:scale-110 ${
           selected ? 'shadow-[0_0_0_2px_var(--carbon-surface),0_0_0_4px_var(--carbon-text)]' : ''
         } ${dim ? 'opacity-45' : ''}`}
@@ -248,18 +171,12 @@ function RingSwatch({
 }
 
 /**
- * One position of the rainbow palette: the same square as the accent circles
- * above it, opening the app's own picker on the colour it already wears.
- *
- * A component of its own rather than a button inlined in the map, because the
- * house bubble is a hook and a hook cannot be called per iteration - which is
- * also what kept the native `title` here until now.
+ * PaletteSwatch is one rainbow palette position, opening the picker on its
+ * colour. A component, because the tooltip is a hook.
  */
 function PaletteSwatch({ color, name, onEdit }: { color: string; name: string; onEdit: (el: HTMLElement) => void }) {
-  // `name` and not `label`: this is a control's accessible name, not the
-  // caption of a settings row somebody can jump to from the search - the same
-  // distinction ResetBadge below and Tabs' own `label` prop already make, and
-  // the reason web/check-settings-search.mjs reads the one and not the other.
+  // `name`, not `label`: an accessible name, not a caption the settings search
+  // jumps to.
   const tip = useTooltip<HTMLButtonElement>(name);
   const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
   return (
@@ -267,8 +184,7 @@ function PaletteSwatch({ color, name, onEdit }: { color: string; name: string; o
       <button
         type="button"
         aria-label={name}
-        // The one square size in the app - see RingSwatch above for why the
-        // two rows moved off 28px together.
+        // The app's one square size, as in RingSwatch.
         className="relative h-[var(--btn-h)] w-[var(--btn-h)] shrink-0 cursor-pointer overflow-hidden rounded-[var(--radius-pill)]"
         style={{ backgroundColor: color }}
         onClick={(e) => onEdit(e.currentTarget)}
@@ -279,14 +195,7 @@ function PaletteSwatch({ color, name, onEdit }: { color: string; name: string; o
   );
 }
 
-/**
- * The square that puts a colour row back, at the end of the row it resets.
- *
- * Both rows in the Farben card use it, so the two cannot drift apart again:
- * one box (`--btn-h`, the app's single square size) and one glyph at half of
- * it, owned here rather than written out at each call site - the 13px and 14px
- * that used to stand two rows apart were exactly that drift.
- */
+/** ResetBadge puts a colour row back; both rows use it so they stay alike. */
 function ResetBadge({ label, dim, onClick }: { label: string; dim?: boolean; onClick: () => void }) {
   const tip = useTooltip<HTMLButtonElement>(label);
   const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
@@ -309,16 +218,9 @@ function ResetBadge({ label, dim, onClick }: { label: string; dim?: boolean; onC
 }
 
 /**
- * Which half of this page is being shown.
- *
- * The theming cards moved to a tab of their own (jdp, 2026-09-07: "alle theming
- * sachen schieben wir in einen neuen aussehen tab. sonst wir der allgemein tab
- * zu unübersichtlich"), and this component is what draws both. It is ONE
- * component rather than two files because the five appearance cards and the
- * general ones read the same draft, the same accent-slot memory, the same
- * palette and the same save error - splitting the markup would have meant
- * hoisting all of that into a third module both imported, which is a much
- * larger change than the one asked for.
+ * Which half of the page is drawn: the General tab or the Aussehen tab. One
+ * component, because both halves share the draft, the accent memory, the
+ * palette and the save error.
  */
 type LookSection = 'general' | 'appearance';
 
@@ -329,55 +231,32 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
   const { cfg, patch, patchNow } = useDraft();
   const { toast } = useToast();
 
-  // Sprache and Hell/Dunkel are per-browser preferences (localStorage, not
-  // this draft's server document - see lib/theme.ts and LanguagePicker.tsx),
-  // so they already save themselves the instant they change with nothing
-  // further to do here. They live ONLY here now, not in the sidebar too.
+  // Language and light/dark are per-browser (lib/theme.ts, LanguagePicker.tsx)
+  // and save themselves.
   const [theme, setThemeState] = useState(getTheme);
   useEffect(() => onThemeChange(setThemeState), []);
 
-  // Read from the store rather than from `cfg`, so the selector always shows
-  // what the rails are actually drawing. The two agree, but only one of them
-  // is the thing on screen, and this is a card whose whole subject is what is
-  // on screen.
+  // From the store, so the selector shows what the rails draw.
   const navLabels = useNavLabels();
 
-  // Motion intensity is client-only too, same reasoning as shape/accent/
-  // rainbow just below: a single-operator tool has no second viewer who
-  // needs to agree on how much animation there is.
+  // Motion intensity is per-browser too.
   const [motion, setMotion] = useState<Motion>(readCachedMotionIntensity);
 
-  // The hidden fourth level, and the two halves of it that look alike and are
-  // not (GlimStone 1.17.0, and lib/appearance.ts's stormTap for the rule).
-  //
-  // `stormFound` is a fact about THIS SCREEN, so it is state and never storage:
-  // leave the settings with something else selected and the segment is gone
-  // until somebody makes the gesture again. The chosen VALUE goes to
-  // localStorage like every other one, which is why a storm survives a reload
-  // and still does not put a fourth entry in anybody's picker.
-  //
-  // It starts true when the level is already IN FORCE, and that is the case
-  // measuring found rather than reading: arriving with a stored storm and then
-  // picking Dezent made the segment vanish under the pointer mid-screen, which
-  // is a step further than the rule asks for ("sturm soll wieder verschwinden
-  // wenn man zb sanft einstellt und die einstellungen verlässt" - set something
-  // else AND LEAVE). A screen showing the level knows it exists; what it may
-  // not do is remember that across a visit.
+  // The hidden fourth level (lib/appearance.ts's stormTap). Finding it is state
+  // of this screen and never stored, so leaving with another level selected
+  // hides it again; the chosen value is stored like any other. It starts found
+  // while it is the level in force.
   const [stormFound, setStormFound] = useState(() => motion === 'storm');
-  // A ref rather than state: five taps are counting, not rendering, and the
-  // count is deliberately reset by any tap that is not on the top level.
+  // Counting, not rendering; any tap off the top level resets it.
   const stormTaps = useRef({ taps: 0 });
 
-  // What the swatch row edits: the saved palette when it is complete, the
-  // built-in hues otherwise. Either way the row shows eight editable colours, so
-  // "reset" and "never customised" look the same and behave the same.
+  // The saved palette when complete, else the built-in hues, so "reset" and
+  // "never customised" look alike.
   const palette =
     cfg.rainbowPalette && cfg.rainbowPalette.length === RAINBOW.length ? cfg.rainbowPalette : RAINBOW;
 
-  // The look follows every pick here so what is on screen is what is selected.
-  // It is applied to the document root and not to this page: a look that only
-  // existed while this page was mounted would be no look at all, which is why
-  // Layout.tsx does the same thing at boot. This is the live preview half.
+  // Every pick is applied to the document root at once as a live preview;
+  // Layout.tsx applies the saved look at boot.
   useEffect(() => {
     const rainbow = rainbowFromSettings(cfg);
     applyShape(cfg.shape);
@@ -392,21 +271,14 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
     cfg.rainbowReactive,
     cfg.rainbowRotate,
     cfg.rainbowSeed,
-    // The palette is an array, so the effect has to depend on its contents; the
-    // identity changes on every keystroke of the colour picker anyway.
+    // The palette is an array, so the effect depends on its contents.
     cfg.rainbowPalette?.join(),
     motion,
   ]);
 
-  // Saves the instant anything on this page changes - every other settings
-  // page still goes through the shared draft + the sticky Save bar (a rule
-  // set or a resolver's API key is not something a stray click should
-  // silently persist), but this page is nothing but instant visual feedback
-  // already, via the effect above. Debounced on the same schedule as
-  // Advanced's search box, so dragging a colour sends one PATCH once it
-  // settles rather than one per input event; the very first run is skipped,
-  // since that one fires on mount with the value just loaded from the
-  // server, not a change to save.
+  // This page saves every change at once, debounced like Advanced's search, so
+  // dragging a colour sends one PATCH. The first run is skipped, since it only
+  // sees the value loaded from the server.
   const first = useRef(true);
   useEffect(() => {
     if (first.current) {
@@ -424,13 +296,7 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
         rainbowPalette: cfg.rainbowPalette,
       })
         .then(() => toast(t('settings.saved'), 'ok'))
-        // The toast is the whole report, and there is no permanent sentence
-        // beside it any more: a page-resident copy never clears itself, so a
-        // failure from an hour ago reads exactly as current as one from a
-        // second ago until something else happens to overwrite it. No shake
-        // either, and that is the documented shape rather than an omission -
-        // this is the debounced save of a whole page of controls, not one
-        // clicked button, so there is no control the refusal belongs to.
+        // Only a toast: the debounced save has no button to shake.
         .catch((e) =>
           toast(t('settings.look.saveFailed', { error: String(e).replace(/^(Error|ApiError):\s*/, '') }), 'fail'),
         );
@@ -449,42 +315,29 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
 
   const accentLive = live(cfg.accent);
 
-  // The accent row's own memory, mirrored into a ref so a writer never has to
-  // wait for a render to see what the last writer did. That matters here more
-  // than anywhere else on this page: the picker's onChange fires on every drag
-  // frame, so a handler spreading the map its closure was built with would
-  // write the frame before it back out of existence.
+  // Mirrored into a ref so each writer sees the last write at once; the picker
+  // fires on every drag frame.
   const [slots, setSlots] = useState<SlotMemory>(readSlotMemory);
   const liveSlots = useRef(slots);
   liveSlots.current = slots;
   const persistSlots = useCallback((update: (prev: SlotMemory) => SlotMemory) => {
     const next = update(liveSlots.current);
-    // Into the ref FIRST, so a second call in the same tick builds on this one
-    // rather than on the render that has not happened yet.
+    // The ref first, so a second call in the same tick builds on this one.
     liveSlots.current = next;
     setSlots(next);
     writeSlotMemory(next);
   }, []);
 
-  /** What circle `i` shows: its own mixed colour, or the preset under it. */
+  /** shownAt is what circle `i` shows: its mixed colour or its preset. */
   const shownAt = (i: number) => slots.customs[String(i)] ?? ACCENTS[i].hex;
   const wearsAccent = (i: number) => shownAt(i).toLowerCase() === accentLive;
 
-  // A colour arriving from the instance that no circle holds is adopted by the
-  // nearest one, so the row can keep it.
-  //
-  // The accent is an INSTANCE setting and this memory is per-browser, so a
-  // colour mixed in another browser (or in the app) reaches this row with no
-  // memory behind it. Without this it would be shown nowhere and the very first
-  // press on any circle would overwrite it, which is the original defect wearing
-  // different clothes. An empty slot is filled and a mixed one is never
-  // overwritten: a remembered colour is somebody's choice, and the accent is
-  // only the current one.
+  // An accent that no circle holds, such as one mixed in another browser, is
+  // adopted by its nearest circle when that one is empty; a mixed colour is
+  // never overwritten.
   useEffect(() => {
     if (!cfg.accent) return;
-    // Read through the ref, so this does not re-run for every memory change of
-    // its own making, and does not fight a drag frame that has already stored
-    // the colour.
+    // Through the ref, so this does not re-run for its own writes.
     const memory = liveSlots.current;
     const held = (i: number) => memory.customs[String(i)] ?? ACCENTS[i].hex;
     if (ACCENTS.some((_, i) => held(i).toLowerCase() === accentLive)) return;
@@ -493,22 +346,9 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
     persistSlots((p) => ({ slot: i, customs: { ...p.customs, [String(i)]: accentLive } }));
   }, [cfg.accent, accentLive, persistSlots]);
 
-  // Which circle is marked, in three tiers, most authoritative first.
-  //
-  // 1. The stored choice, while it still agrees with the colour in force. This
-  //    is the fix itself: two circles mixed to the same red both ANSWER to that
-  //    red, so only a stored choice can say which of them was pressed.
-  // 2. Otherwise any circle that wears the accent exactly. The stored choice has
-  //    gone stale - somebody moved the accent from another browser or from the
-  //    app - and a circle showing the live colour is a better answer than
-  //    arithmetic.
-  // 3. Otherwise the nearest preset, which is what a browser that has never
-  //    touched this row gets, and what this page did for every case before.
-  //    One corner survives here on purpose: an accent that drifted to a colour
-  //    no circle holds, whose nearest circle is already mixed to something
-  //    else, marks a circle that is not wearing the accent. The alternative is
-  //    overwriting a colour somebody mixed on purpose, and a mark in the wrong
-  //    place is cheaper than a memory destroyed.
+  // The marked circle: the stored choice while it still wears the accent, else
+  // any circle wearing the accent exactly, else the nearest preset. The last
+  // case can mark a circle mixed to another colour rather than overwrite it.
   const worn = ACCENTS.findIndex((_, i) => wearsAccent(i));
   const markedSlot =
     slots.slot !== undefined && wearsAccent(slots.slot)
@@ -517,15 +357,13 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
         ? worn
         : accentSlot(accentLive);
 
-  /** Press an unchosen circle: it becomes the chosen one, and the app wears
-   *  what that circle SHOWS - its own mixed colour, not the preset under it. */
+  /** chooseSlot makes a circle the chosen one and wears what it shows. */
   const chooseSlot = (i: number, hex: string) => {
     persistSlots((p) => ({ ...p, slot: i }));
     patch({ accent: hex });
   };
 
-  /** A drag in the picker: the colour belongs to that slot from now on, and is
-   *  worn at once, so the circle recolours under the open popover. */
+  /** mixSlot stores a picked colour in its slot and wears it at once. */
   const mixSlot = (i: number, hex: string) => {
     persistSlots((p) => ({ ...p, slot: i, customs: { ...p.customs, [String(i)]: hex } }));
     patch({ accent: hex });
@@ -533,26 +371,13 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
 
   return (
     <div className="flex flex-col gap-10">
-      {/* Every card title below is a "notch" badge - a filled pill sitting
-          half over the card's own top edge - and carries its own rainbow
-          position (hue 0-4, this page's own sequence), exactly like the
-          real BombVault test container's five Aussehen-tab cards. Read
-          directly off that container's DOM, not the repo or GlimStone's
-          docs, both of which turned out to describe something not actually
-          live anywhere jdp was looking (jdp: "Bitte orientiere dich am
-          Bombvault-Testcontainer!!!", then, when the WRONG container had
-          been the reference all along: "Nein das ist falsch! Hier ist der
-          Testcontainer erreichbar..."). */}
+      {/* Each card title is a notch badge with its own rainbow position. */}
       {appearance && (
       <Card hue={0} className="flex flex-col gap-3">
         <SectionTitle hint={t('settings.shapeHint')}>
           {t('settings.shape')}
         </SectionTitle>
-        {/* The well variant (Tabs.tsx) - one shared padded track, equal
-            segments, no per-item glyph (jdp: "die Auswahlfelder der Ecken
-            soll ein horizontaler Selektor werden, Auswahlflächen ohne
-            icon") - ported from the real container's own Corners picker,
-            not the bare-badge default this used before. */}
+        {/* The well variant of Tabs: one padded track, equal segments, no glyphs. */}
         <Tabs
           label={t('settings.shape')}
           variant="well"
@@ -564,23 +389,9 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
       </Card>
       )}
 
-      {/* How much of a navigation entry is drawn - the sidebar and the
-          settings rail together, from one control (jdp, 2026-08-27: "Man soll
-          per horizontalem Selektor wählen können ob bei den Tabs (Settings und
-          Sidebar) nur glyph, nur text oder text und glyph angezeigt werden
-          soll oder glyph und text nur bei mouseover").
-
-          One selector, not two, and here rather than in the rail it governs:
-          somebody who wants glyphs wants glyphs, and this is the card
-          collection every other look-of-the-app knob already lives in. hue=9
-          continues the sequence rather than displacing a card that has held
-          its palette position since wave 4.
-
-          Writes through the store as well as the draft (setNavLabels), which
-          is what makes the rail beside this card restyle itself under the
-          pointer instead of on the next navigation - the sidebar renders
-          outside this page's provider entirely and cannot see the draft at
-          all. See lib/navLabels.ts. */}
+      {/* How navigation entries are drawn, for the sidebar and the settings rail
+          at once. It writes through the store as well as the draft, since the
+          sidebar renders outside this page's provider (lib/navLabels.ts). */}
       {appearance && (
       <Card hue={9} className="flex flex-col gap-3">
         <SectionTitle hint={t('settings.navLabels.hint')}>
@@ -606,23 +417,9 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
       </Card>
       )}
 
-      {/* Motion intensity - the settings-UI half of a separate parallel piece
-          of work (the keyframes/data-motion mechanism lives in index.css and
-          lib/appearance.ts). hue=8 reuses the slot the Backup/Restore merge
-          below just freed, rather than renumbering every other card's own
-          fixed position in the sequence for one new row.
-
-          THE FOURTH SEGMENT IS NOT ALWAYS THERE, and that is the rule rather
-          than a quirk (GlimStone 1.17.0). The list comes from MOTION_LEVELS,
-          which does not contain the hidden level; `storm` joins it while it has
-          just been FOUND, or while it is the value in force - because a picker
-          that hid the value it is currently showing would be lying about the
-          interface. Nothing about the discovery is written down: `stormFound`
-          is this screen's own state, so choosing something else and leaving
-          takes the segment away again, while the chosen value persists like
-          every other setting. Storing the wrong one of those two halves is what
-          turns a secret into a settings entry somebody has to explain to
-          themselves months later. */}
+      {/* Motion intensity (index.css, lib/appearance.ts). The hidden fourth
+          level joins the list only while it has just been found or is in
+          force. */}
       {appearance && (
       <Card hue={8} className="flex flex-col gap-3">
         <SectionTitle hint={t('settings.motion.hint')}>
@@ -634,11 +431,8 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
           className="w-fit"
           active={motion}
           onSelect={(id) => {
-            // The gesture first, because it is a tap on the segment that is
-            // ALREADY active - the one press a picker would otherwise treat as
-            // a no-op and swallow. taps lives in a ref: it is counting, not
-            // rendering, and a re-render per tap would be a state change
-            // nothing on screen can show.
+            // A tap on the active segment, which a picker would otherwise
+            // swallow, counts toward the hidden level.
             const found = stormTap(stormTaps.current, id, motion);
             const next = found ?? (id as Motion);
             if (found) setStormFound(true);
@@ -658,56 +452,11 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
       <Card hue={1} className="flex flex-col gap-4">
         <SectionTitle>{t('settings.colours')}</SectionTitle>
 
-        {/* One row, not a label above a row of its own (jdp: "Akzentfarbe:
-            die Farbfelder nicht in eine neue Zeile sondern rechts von dem
-            Text Akzentfarbe verschieben") - exactly how the real BombVault
-            test container lays this row out: "Akzentfarbe:" then the swatch
-            then "Voreinstellungen:" then all eight presets, one flex-wrap
-            line.
-
-            justify-between with the swatches in a group of their own, not
-            justify-end with everything in one flat row (jdp: "Text
-            Akzentfarbe und farbpalette linksbündig platzieren"): the label
-            belongs at the card's left edge like every other label on this
-            page, the colour fields stay at the right edge, and the space
-            between them is whatever the card is wide - which also retires
-            the hand-tuned me-2 that used to stand in for that gap. Every
-            other row in this card (Regenbogen-Modus, Reaktiver Modus,
-            Farbenrotation) is already built exactly this way. */}
-        {/* THE ROW RAINBOW MODE TAKES OVER, AND THE CASE GLIMSTONE 1.16.0 WAS
-            WRITTEN FOR. Two rules in that document had been contradicting each
-            other for six releases: a control hanging off another mode should be
-            ABSENT, and this exact row should stay with "the dimmed controls the
-            signal that something changed". 1.16.0 settles it with one question,
-            DOES THE CONTROL STILL DO ANYTHING, and this row's answer is
-            measured rather than argued: with rainbow on and the accent set to a
-            colour in no palette position, the Dashboard's own section badge and
-            disk-fill and the Downloads queue's Pause button still paint it,
-            because `[data-rainbow] .glim-hue` only rebinds --accent inside a
-            subtree that owns a position. The value is still doing work; it is
-            simply not in charge of everything any more. Removing the row would
-            hide a setting that is still in effect.
-
-            SO IT DIMS AND STAYS PRESSABLE, which is the one place this goes a
-            step further than the sentence in the document. "Dim it and say who
-            is in charge" is what the rule asks for; making it INERT as well
-            would mean somebody cannot change the colour of the controls it
-            still paints without switching rainbow off first, which is a
-            capability taken away to signal a state. The dimming carries the
-            signal, the (i) carries the reason, and the circles keep working.
-
-            THE DIMMING IS ON THE CIRCLES, NEVER ON THIS FLEX ROW (1.9.0):
-            opacity composites a whole subtree, so a wrapper here would render
-            the (i) that explains the state at 45% as well - the one element
-            that has to stay readable while the rest recedes.
-
-            AND THE (i) GAINS A SENTENCE rather than growing a second glyph
-            beside it. The rule asks for an explanation that appears exactly
-            while the state holds, which this is; two identical (i) marks in one
-            caption would be a rendering fault rather than a second answer, and
-            the watch-folder Field further down this same file already carries
-            the house shape for "the bubble says one more thing while something
-            else is in charge". */}
+        {/* Label on the left, circles on the right. While rainbow mode is on
+            the accent still paints controls outside any palette position, so
+            the row stays and the circles dim but stay pressable; the dimming
+            sits on the circles so the (i), which then explains who is in
+            charge, keeps full strength. */}
         <div className="flex flex-wrap items-center justify-between gap-3">
           <span className="flex shrink-0 items-center gap-1.5 text-sm text-carbon-text">
             {t('settings.accent')}
@@ -719,65 +468,32 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
               }
             />
           </span>
-          {/* Eight circles and a reset, exactly like the palette row further
-              down, and nothing else (jdp, 2026-09-01: "der text Voreinstellungen
-              soll weg ... dann sind die farbfelder der akzentfarbe genau
-              gleihc viel wie die der farbpalette").
-
-              Three controls went to get there: the caption, because eight
-              colour circles in a row labelled "Accent" do not need a second
-              word saying they are colours to choose from; and the separate
-              current/custom circle, which read as a ninth preset and was the
-              only reason the row was longer than the palette's. What it did -
-              open the picker on any colour - every circle now does. */}
+          {/* Eight circles and a reset, like the palette row. Every circle opens
+              the picker once selected. */}
           <div className="flex flex-wrap items-center gap-2">
             {ACCENTS.map((a, i) => {
-              // Each circle wears whatever it was last mixed to, and keeps it.
-              //
-              // It used to wear the live accent painted over its nearest preset,
-              // which meant the row could hold exactly one mixed colour: press
-              // any other circle and the mixed one was simply gone. Now the
-              // remembered colour comes from the slot's own memory, so pressing
-              // a neighbour cannot touch it - see SlotMemory above.
+              // Each circle wears what it was last mixed to (SlotMemory).
               const shown = shownAt(i);
               const mine = i === markedSlot;
               return (
                 <RingSwatch
-                  // Keyed by the PRESET, never by `shown`. A key that moves with
-                  // the colour would give this button a new DOM node on the
-                  // first drag frame, and the open picker's outside-click
-                  // handler is bound to the old one - the exact trap
-                  // openColorPickerPopover documents in lib/colorPicker.ts.
+                  // Keyed by the preset: a key that followed the colour would
+                  // replace the node on the first drag frame and break the
+                  // picker's outside-click handling (lib/colorPicker.ts).
                   key={a.hex}
                   color={shown}
-                  // Named while it wears its preset; its own value once it does
-                  // not, because "Sunflower" on a circle that is no longer
-                  // Sunflower is the one label worse than no label. Not limited
-                  // to the chosen circle any more: every circle can hold a mixed
-                  // colour now, so every one of them can need its hex.
+                  // The preset's name while it wears it, else its hex.
                   label={shown.toLowerCase() !== a.hex.toLowerCase() ? shown.toUpperCase() : a.name}
                   selected={mine}
                   dim={cfg.rainbow}
                   onPick={() => chooseSlot(i, shown)}
-                  // Opens on the pressed circle's OWN colour, which is what
-                  // makes editing a second custom swatch start where that
-                  // swatch is rather than at the accent.
+                  // Opens on the circle's own colour.
                   onEdit={(el) => openColorPickerPopover(el, shown, (hex) => mixSlot(i, hex))}
                 />
               );
             })}
-            {/* Always rendered, where it used to appear only once the accent had
-                moved off the default. A control that is sometimes there is a
-                control nobody learns the position of, and the moment somebody
-                goes looking for it is exactly the moment it is missing - they
-                check whether a reset exists BEFORE deciding to experiment. The
-                palette's own reset two rows down was already unconditional. */}
-            {/* Every mixed colour forgotten, and the accent with them. Both
-                halves, because a reset that put the accent back but left eight
-                hand-mixed circles on screen would have reset nothing anybody
-                can see. Same square as the circles it sits beside, and as the
-                palette's own reset two rows down - one component now, so the
-                two can no longer disagree about the glyph inside the box. */}
+            {/* Always shown. It forgets every mixed colour and the accent
+                with them. */}
             <ResetBadge
               label={t('settings.accentReset')}
               dim={cfg.rainbow}
@@ -790,10 +506,8 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
         </div>
 
         <div className="flex flex-col gap-3">
-          {/* The master switch, and each of the two sub-switches below it,
-              carries its OWN rainbow position - a separate 0-based sequence
-              from the card titles above, exactly as measured live: this
-              set of three rows is its own equal-member set. */}
+          {/* The master switch and its two sub-switches form their own hue
+              sequence. */}
           <div className="glim-hue flex items-start justify-between gap-4" style={hueVars(rainbowAt(0)) as CSSProperties}>
             <span className="flex items-center gap-1.5 text-sm text-carbon-text">
               {t('settings.rainbow')}
@@ -807,20 +521,8 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
             />
           </div>
 
-          {/* ABSENT while the master switch above is off, never dimmed. The
-              switch itself stays - that is the control somebody is looking for
-              when the mode is off - but everything that only has meaning
-              underneath it goes, and the palette editor is the case the rule
-              names outright: eight swatches nobody can open beside a reset
-              nobody can press. A dimmed row is something somebody can see,
-              read and reach for that answers nothing, with the reason sitting
-              one row up, where nobody looks once they have decided this row is
-              the interesting one.
-
-              It also retires a second fault of the wrapper this replaces:
-              opacity composites a whole subtree, so the three (i) bubbles
-              inside it rendered at 50% too - the one element that has to stay
-              readable while the rest recedes was the one nobody could read. */}
+          {/* Absent while rainbow mode is off, since the palette does nothing
+              then. */}
           {cfg.rainbow && (
           <div className="flex flex-col gap-3">
             <div className="glim-hue flex items-start justify-between gap-4" style={hueVars(rainbowAt(1)) as CSSProperties}>
@@ -845,9 +547,7 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
                 label={t('settings.rainbowRotate')}
                 checked={cfg.rainbowRotate}
                 onChange={(v) =>
-                  // Turning rotation on draws a fresh offset, so the switch does
-                  // something visible instead of re-applying the rotation the
-                  // palette already had.
+                  // A fresh offset, so switching rotation on changes something.
                   patch({
                     rainbowRotate: v,
                     rainbowSeed: v ? 1 + Math.floor(Math.random() * (RAINBOW.length - 1)) : 0,
@@ -856,30 +556,16 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
               />
             </div>
 
-            {/* The very same job as the accent swatches above, and the same
-                one-row treatment (jdp: "Bei der Zeile der Regenbogen
-                Farbpalette auch Farbpalette davor, ... rechts von dem Text
-                verschieben"): eight colour squares plus an icon-only reset
-                badge. Nothing here carries a disabled state of its own any
-                more - the whole sub-section is absent while the rainbow is
-                off, so there is no state left in which these could be
-                pressed and do nothing. */}
+            {/* Label on the left, eight squares and a reset on the right, like
+                the accent row. */}
             <div className="flex flex-wrap items-center justify-between gap-3">
-              {/* Same treatment as the Akzentfarbe row above: label at the
-                  left edge, colour fields at the right, the card's own width
-                  as the gap between them. */}
               <span className="flex shrink-0 items-center gap-1.5 text-sm text-carbon-text">
                 {t('settings.rainbowPaletteLabel')}
                 <InfoBubble tip={t('settings.rainbowPaletteHint')} />
               </span>
               <div className="flex flex-wrap items-center gap-2">
                 {palette.map((hex, i) => (
-                  // A real button carrying its own accessible name, opening the
-                  // app's own picker. It used to be a label wrapping a native
-                  // colour input, which meant the name had to sit on the input
-                  // rather than on the thing being pressed - and the border-2
-                  // hairline went with it, since surfaces here are separated by
-                  // shade, never by a drawn line.
+                  // A button with its own accessible name, opening the app's picker.
                   <PaletteSwatch
                     key={i}
                     color={hex}
@@ -904,11 +590,7 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
 
       {general && <LinkIntakeCard />}
 
-      {/* Above Quiet mode, not merged into it: the reading order is "what each
-          event does" and then "and here is the one switch that mutes the
-          harmless ones". Hue 12 rather than the next free small number - it
-          wraps to palette position 4, which does not collide with the hue 2 of
-          the card immediately below it. */}
+      {/* Hue 12 wraps to palette position 4, apart from the card below. */}
       {general && <NotificationsCard hue={12} />}
 
       {general && (
@@ -921,10 +603,8 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
       {general && (
       <Card hue={3} className="flex flex-col gap-3">
         <SectionTitle>{t('lang.label')}</SectionTitle>
-        {/* standalone: OnboardingWizard.tsx mounts a second, simultaneous
-            instance of this same component - see LanguagePicker.tsx's own
-            doc comment for why that needs its own local open/closed state
-            rather than the shared store every other instance reads. */}
+        {/* standalone: OnboardingWizard mounts a second instance at the same
+            time (see LanguagePicker.tsx). */}
         <LanguagePicker
           direction="down"
           standalone
@@ -953,36 +633,18 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
       {general && <MutedDialogsCard />}
       {general && <UpdateCard />}
       {general && <SystemCards />}
-      {/* Last on the General tab (jdp, 2026-09-07: "die Über-card soll in den
-          allgemein-tab ganz nach unten"). It is the one card nobody comes here
-          FOR, and the one everybody eventually looks for: a version and a way
-          to get in touch belong at the bottom of the first tab, not on a help
-          page somebody has to think of. */}
+      {/* Last on the General tab, where a version and a contact are looked for. */}
       {general && <About hue={10} />}
     </div>
   );
 }
 
 /**
- * Linkeingang: the two ways a link can reach the collector WITHOUT anybody
- * typing it here (jdp, 2026-09-07: "Neue Karte Linkeingang im Allgemein-Tab").
- *
- * On the General tab rather than under Zugang, where the Click'n'Load switch
- * used to live filed among the listener ports. That grouping was about which
- * doors this instance answers on; this one is about how links get in, which is
- * the question somebody actually opens the settings with.
- *
- * The two rows are deliberately unlike each other, and the card says so:
- *
- *  - Click'n'Load is a real listener in the server process, switched over the
- *    API, and it is the same state Modules.tsx's own row shows. It is on out
- *    of the box now, in the binary and in the container alike.
- *  - The clipboard watch runs in THIS browser tab and nowhere else, so it is a
- *    remembered client field, and it is simply not offered where the browser
- *    cannot read the clipboard at all - which is every plain-HTTP LAN address,
- *    the ordinary way this app is reached. Rather than a switch that would
- *    stand at "on" over something that never runs, the row explains itself and
- *    points at the Ctrl+V that does work everywhere.
+ * LinkIntakeCard holds the two ways a link reaches the collector without being
+ * typed. Click'n'Load is a server listener switched over the API, the same
+ * state the Modules page shows. The clipboard watch runs in this tab only and
+ * is not offered where the browser cannot read the clipboard, such as a
+ * plain-HTTP LAN address; the row points at Ctrl+V instead.
  */
 function LinkIntakeCard() {
   const { t } = useT();
@@ -995,24 +657,14 @@ function LinkIntakeCard() {
   const cnl = features.modules.find((m) => m.id === 'cnl');
   const cnlSwitchable = !!cnl && cnl.verdict === 'shipped' && cnl.switch !== 'none';
 
-  // The registry, not the settings value, decides whether the folder field is
-  // live. Switching the folder-watch module off clears the folder and parks it;
-  // leaving the field editable here would let somebody type a folder back in and
-  // restart the watcher while the modules page still reads "off". The two would
-  // then disagree, which is exactly what a kill switch may not do.
-  //
-  // `parked` and not just `!enabled`: an empty folder on a fresh install is also
-  // "off", and locking the field for that reason would leave nowhere to type the
-  // first folder - the switch cannot turn on what was never set up either, so
-  // the two would deadlock and folder watch would be unreachable forever.
+  // The module registry decides whether the folder field is live, so it cannot
+  // disagree with the Modules page. `parked` rather than `!enabled`, because an
+  // empty folder on a fresh install also reads as off.
   const folderWatch = features.modules.find((m) => m.id === 'watch');
   const folderWatchOff = folderWatch !== undefined && !folderWatch.enabled && folderWatch.parked;
 
-  // An optimistically shown switch the server refuses shakes as it snaps back,
-  // it does not just settle silently while a toast flies past. The counter is
-  // what makes a SECOND identical refusal shake again: the row is keyed on it,
-  // so each failure builds a fresh DOM node for the animation to replay
-  // against - a re-toggled class on the same node plays once and never again.
+  // Keyed onto the row, so a switch the server refuses shakes again on every
+  // refusal.
   const [cnlShake, setCnlShake] = useState(0);
 
   async function onCnl(next: boolean) {
@@ -1043,9 +695,7 @@ function LinkIntakeCard() {
               onChange={(next) => void onCnl(next)}
             />
           </div>
-          {/* The live reading, not a repeat of the switch: "listening on
-              127.0.0.1:9666" and "switched off" are different sentences from
-              "on" and "off", and the difference is the whole point on a box
+          {/* The live reading, such as the address it listens on, which matters
               where JDownloader may already hold the port. */}
           {cnl.detail && (
             <span className="text-[11px] text-carbon-textMuted" dir="ltr">
@@ -1075,11 +725,6 @@ function LinkIntakeCard() {
         </div>
       )}
 
-      {/* Both moved in from the Downloads tab (jdp, 2026-09-07, after weighing
-          four proposals for restructuring the settings and keeping only this
-          one). "Skip the collector" and the watch folder are ways a link gets
-          IN, the same question as the two switches above, and each was the only
-          thing in a card of its own over there. */}
       <ToggleRow
         hue={2}
         checked={cfg.autoConfirm}
@@ -1087,22 +732,8 @@ function LinkIntakeCard() {
         label={t('settings.autoStart')}
       />
 
-      {/* A BOX NOBODY CAN TYPE IN BECOMES A SENTENCE (GlimStone 1.16.0). It was
-          a dimmed, disabled field, and the rule's question settles the box:
-          parking the module CLEARS the folder server-side, so while it is
-          parked this field holds nothing, saves nothing and starts nothing.
-
-          The old note's other half is right and is what keeps the row here at
-          all: the switch that did this lives on the Modules page, not on this
-          card, so a field that simply vanished would take the only pointer to
-          the decision with it. A reading is what 1.10.0's own exception leaves
-          on screen - it answers its own question rather than refusing one - and
-          FieldGroup rather than Field because a <label> with no control in it
-          names nothing. The (i) keeps the general explanation; the sentence
-          under it says who is in charge and that the folder comes back.
-
-          The same shape as the collector's countdown on the Downloads page,
-          which hangs off a switch on another page in exactly the same way. */}
+      {/* While the module is parked the folder is cleared, so the field becomes
+          a reading that names the switch on the Modules page. */}
       {folderWatchOff ? (
         <FieldGroup label={t('settings.watchDir')} hint={t('settings.watchDirHint')}>
           <span className="text-sm text-carbon-textSub">{t('settings.downloads.watchOff')}</span>
@@ -1123,15 +754,8 @@ function LinkIntakeCard() {
 }
 
 /**
- * The way back from "do not show this again" (jdp, 2026-09-06: "in den
- * einstellungen muss es aber einen bereich geben diese optoin wieder rückgängig
- * zu machen").
- *
- * One switch per silenced dialog rather than a single "show everything again"
- * button, because somebody who silenced three confirmations rarely regrets all
- * three - and a list that shows WHICH ones are off is also the only place the
- * decision is visible at all once it has been made. The card is absent while
- * nothing is silenced: an empty list of things you have not done is furniture.
+ * MutedDialogsCard brings back dialogs silenced with "do not show this again",
+ * one switch each. It is absent while nothing is silenced.
  */
 function MutedDialogsCard() {
   const { t } = useT();
@@ -1155,41 +779,22 @@ function MutedDialogsCard() {
 }
 
 /**
- * Quit/restart and the transfer card, formerly their own "System" tab
- * (build-plan.md's Wave 10/10D), merged in here (jdp, 2026-08-24: "Alles was im
- * Systemtab ist in den Allgemein-Tab mergen") since neither needed a dedicated
- * tab of their own any more than Updates above already didn't.
- *
- * TWO COMPONENTS RATHER THAN ONE, and the split is not cosmetic. The archive
- * buttons used to live in the same function as the deployment fetch, so a slow
- * or failed /api/deployment took them down with the quit/restart controls they
- * have nothing to do with - the fetch answers "can this box quit itself", which
- * is not a question a backup download has ever asked. LifecycleCard keeps the
- * fetch and disappears alone; the transfer card draws either way.
- *
- * What the two still share is `shuttingDown`, because a restore the server
- * answers with a restart is a shutdown exactly like the one the restart button
- * asks for, and the sentence about it belongs on the card that owns the
- * lifecycle rather than on the one that happened to trigger it.
+ * SystemCards holds quit and restart and the transfer card. LifecycleCard does
+ * the deployment fetch alone, so a slow /api/deployment never hides the
+ * transfer card; both share `shuttingDown`, since a restore can restart the
+ * server.
  */
 function SystemCards() {
   const [shuttingDown, setShuttingDown] = useState(false);
   return (
     <>
       <LifecycleCard shuttingDown={shuttingDown} onShutdown={() => setShuttingDown(true)} />
-      {/* hue 7, the position the archive card already had, and About below
-          keeps its 10. See the card's own doc comment for why the archive and
-          "settings only" are one card now and what each of the two files
-          carries. */}
       <SettingsTransfer hue={7} onShutdown={() => setShuttingDown(true)} />
     </>
   );
 }
 
-/** Quit and restart, and the one card that says what they do on THIS
- *  deployment. Self-contained and independently loading, same as UpdateCard: a
- *  slow or failed /api/deployment delays or drops only this card, never the
- *  controls around it. */
+/** LifecycleCard loads on its own, so a failed deployment fetch drops only this card. */
 function LifecycleCard({ shuttingDown, onShutdown }: { shuttingDown: boolean; onShutdown: () => void }) {
   const { t } = useT();
   const { toast } = useToast();
@@ -1198,9 +803,7 @@ function LifecycleCard({ shuttingDown, onShutdown }: { shuttingDown: boolean; on
   const [confirmAction, setConfirmAction] = useState<'quit' | 'restart' | null>(null);
   const [acting, setActing] = useState(false);
 
-  // Keyed onto the confirm button rather than counted somewhere shared, so a
-  // second identical refusal builds a fresh DOM node and the animation replays
-  // instead of playing once ever.
+  // Keyed onto the confirm button so a repeated refusal shakes again.
   const [actShake, setActShake] = useState(0);
 
   async function confirmLifecycle() {
@@ -1212,12 +815,7 @@ function LifecycleCard({ shuttingDown, onShutdown }: { shuttingDown: boolean; on
       setConfirmAction(null);
       void res;
     } catch (e) {
-      // The reason goes into the toast and nowhere else - a sentence left on
-      // the page never clears itself, so an hour-old failure reads exactly as
-      // current as a fresh one. The window stays OPEN on failure and the
-      // button that was pressed shakes in it: closing here would spend the
-      // confirm click the user already gave, for a failure that was not their
-      // mistake, and would unmount the one element meant to be seen shaking.
+      // The window stays open so the pressed button can shake.
       toast(t('settings.system.actionFailed', { error: String(e).replace(/^Error:\s*/, '') }), 'fail');
       setActShake((n) => n + 1);
     } finally {
@@ -1225,9 +823,7 @@ function LifecycleCard({ shuttingDown, onShutdown }: { shuttingDown: boolean; on
     }
   }
 
-  // Same choice as UpdateCard just above: render nothing while this
-  // section's own fetch is in flight rather than a separate loading card
-  // popping into an otherwise-instant page.
+  // Nothing while loading, like UpdateCard.
   if (loading) return null;
   if (failed || !data) {
     return <ErrorCard message={t('settings.system.loadFailed')} retry={reload} retryLabel="↻" />;
@@ -1244,21 +840,9 @@ function LifecycleCard({ shuttingDown, onShutdown }: { shuttingDown: boolean; on
 
   return (
     <>
-      {/* The former standalone "Übersicht" card (deployment badge + the
-          same intro sentence this whole section already opens with once)
-          removed outright (jdp, 2026-08-24: "Übersicht card entfernen") -
-          the one fact worth keeping, what quit/restart actually do on THIS
-          deployment, still shows right below, now as the card's own hint
-          rather than data.note's raw English. */}
       <Card hue={6} className="flex flex-col gap-3">
-        {/* What quit/restart actually do here used to print data.note
-            straight from the wire - internal/api/routes_lifecycle.go's own
-            deploymentInfo() hardcodes that sentence in English regardless of
-            the browser's locale, so it never went through this app's i18n at
-            all. Told through the two translated lifecycleNote* keys instead,
-            keyed off the same data.deployment this page already has -
-            the unavailable reason still wins when there is one, since a
-            control that cannot be used at all is the more urgent fact. */}
+        {/* The note comes from translated keys by deployment, since the server
+            sends it in English; an unavailable reason wins. */}
         <SectionTitle
           hint={
             !data.canQuit || !data.canRestart
@@ -1269,11 +853,7 @@ function LifecycleCard({ shuttingDown, onShutdown }: { shuttingDown: boolean; on
           {t('settings.system.lifecycleTitle')}
         </SectionTitle>
         <div className="flex flex-wrap items-center gap-3">
-          {/* hue on both, and both `kind="primary"` now (jdp: "Der beenden
-              button soll nicht extra anders eingefärbt sein") - hue already
-              overrides kind's own colour entirely (see Button's own doc
-              comment in ui.tsx), so the two read identically styled, the
-              only difference their label/icon and which confirm-modal opens. */}
+          {/* hue overrides kind's colour, so both buttons look alike. */}
           <Button
             hue={6}
             kind="primary"
@@ -1325,34 +905,10 @@ function LifecycleCard({ shuttingDown, onShutdown }: { shuttingDown: boolean; on
 }
 
 /**
- * Both deployments now (jdp, 2026-08-23: "#19 bauen"; 2026-08-24: "warum
- * machen wir da nicht irgendwo ein toggle um auto update zu aktivieren? Am
- * besten im allgemein-Tab", which first landed desktop-only; then, once a
- * container user hit the same hard `deployment !== 'desktop'` gate this
- * card used to have and asked where the card and toggle had gone: shown on
- * BOTH builds, because checking GitHub and telling someone a newer release
- * exists is equally harmless either way - a GET request and a notification,
- * not a self-update). The manual "Check for updates" button always works on
- * both; the toggle additionally makes this card check once as soon as it
- * mounts with the toggle already on, without asking - the setting
- * round-trips to the server the same as every other field on this page,
- * autosaved by the shared draft. Off by default: an outbound call to GitHub
- * every time this page is opened is an opt-in, not something a fresh
- * install does before being asked.
- *
- * What still differs by deployment is only what "update available" tells
- * you to do about it by default - a container cannot replace itself from
- * the inside, so its "update available" state points at the release
- * instead (routes_features.go's updaterReason) - never whether a check can
- * run, and on desktop specifically not whether an install can now be
- * triggered from here either: internal/update's Download/Apply/Relaunch
- * (jdp, 2026-08-24: "kannst du bei updates auch ein toggle machen für
- * updates automatisch installieren?", after weighing the security tradeoff
- * explicitly and choosing the real thing over the safer "check only"
- * default this card shipped with first) do the actual download, atomic
- * swap and relaunch; this card only offers the toggle and the manual
- * button, same "settings page does not own the mechanism" split every
- * other control here already follows.
+ * UpdateCard checks GitHub for a newer release on both deployments, on request
+ * or once on mount when the auto-check switch is on (off by default). A
+ * container is pointed at the release; the desktop build can also install
+ * through internal/update, which does the download, swap and relaunch.
  */
 function UpdateCard() {
   const { t } = useT();
@@ -1362,13 +918,9 @@ function UpdateCard() {
   const [check, setCheck] = useState<UpdateCheckT | null>(null);
   const [checking, setChecking] = useState(false);
   const [installing, setInstalling] = useState(false);
-  // See SystemCards above: a per-button failure counter, keyed onto the button
-  // so a second identical refusal shakes again instead of once ever.
+  // Keyed onto the button so a repeated refusal shakes again.
   const [installShake, setInstallShake] = useState(0);
-  // Once true, stays true: a successful POST /api/system/update-install
-  // means the process is already on its way out to relaunch, so there is
-  // no "installing" state to return to and nothing further this card
-  // should let a click do.
+  // Once true, stays true: the process is on its way to relaunch.
   const [installed, setInstalled] = useState(false);
 
   useEffect(() => {
@@ -1394,16 +946,8 @@ function UpdateCard() {
       await installUpdate();
       setInstalled(true);
     } catch (e) {
-      // A network error here is genuinely ambiguous (routes_lifecycle.go's
-      // own comment: the process may already be exiting to relaunch by the
-      // time this rejects) - but showing a plausible failure and letting
-      // someone press the button again is still better than a spinner that
-      // never resolves if the install truly did fail before ever swapping
-      // anything.
-      //
-      // Through the toast and the button's own shake, never as a sentence
-      // left standing under the card: that copy never clears itself, so a
-      // failure from an hour ago looks exactly as current as a fresh one.
+      // A network error is ambiguous, since the process may already be
+      // exiting, but a retryable failure beats a spinner that never ends.
       toast(t('settings.look.updatesInstallFailed', { error: String(e).replace(/^(Error|ApiError):\s*/, '') }), 'fail');
       setInstallShake((n) => n + 1);
       setInstalling(false);
@@ -1411,22 +955,15 @@ function UpdateCard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- toast/t are stable for this card's lifetime
   }, []);
 
-  // Auto-check once, right after the toggle's own current value arrives -
-  // not on every render. Both deployments reach this now; the check itself
-  // (internal/update.Check) has never cared which one is asking.
+  // Auto-check once, when the switch's value arrives.
   useEffect(() => {
     if (cfg.autoUpdateCheck) void onCheck();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- fires once
     // when deployment/autoUpdateCheck first resolve, not on every cfg change.
   }, [deployment, cfg.autoUpdateCheck]);
 
-  // Auto-install, once, the moment a check this page itself ran (manual or
-  // automatic - both flow through the same `check` state) finds something
-  // available and the toggle is on. Deliberately NOT re-checked whenever
-  // cfg.autoUpdateInstall flips true on its own - toggling it on does not
-  // reach back into a `check` result from before the toggle existed in
-  // this session, matching autoUpdateCheck's own "acts on what happens
-  // from here, not on stale state" behaviour above.
+  // Auto-install once, when a check this page ran finds an update and the
+  // switch is on; turning the switch on does not act on an older result.
   useEffect(() => {
     if (deployment === 'desktop' && cfg.autoUpdateInstall && check?.checked && check.available && !installing && !installed) {
       toast(t('settings.look.updatesAutoInstalling', { version: check.latest ?? '' }), 'info');
@@ -1435,9 +972,7 @@ function UpdateCard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- reacts only to a fresh check result
   }, [check]);
 
-  // Wait for deployment to resolve rather than guessing - one flash of the
-  // wrong copy (desktop's install-oriented link, briefly, on a container) is
-  // exactly the overpromise this card exists to avoid.
+  // Wait for the deployment rather than flash the wrong copy.
   if (deployment === null) return null;
   const isDesktop = deployment === 'desktop';
   const canInstallNow = isDesktop && !installed && check?.checked && check.available;
@@ -1451,15 +986,8 @@ function UpdateCard() {
         <span className="text-sm text-carbon-text">{t('settings.look.updatesAuto')}</span>
         <Toggle checked={cfg.autoUpdateCheck} onChange={(v) => patch({ autoUpdateCheck: v })} label={t('settings.look.updatesAuto')} hideLabel />
       </div>
-      {/* Always shown, same reasoning as the Auto-Check row above and the
-          card's own doc comment: shown on both, only what it explains
-          differs. A container cannot ever install an update from here
-          (routes_lifecycle.go's own POST /api/system/update-install stays
-          501 there), so this reads-only-disables + explains rather than
-          disappearing - jdp hit exactly the "disappeared instead of
-          disabled" version of this on the auto-check toggle earlier this
-          same campaign (see updater doc comment above) and it was the
-          wrong call there too. */}
+      {/* Shown on both builds; a container cannot install from here (the route
+          answers 501), so the row is disabled and says why. */}
       <ToggleRow
         label={t('settings.look.updatesAutoInstall')}
         hint={isDesktop ? t('settings.look.updatesAutoInstallHint') : t('settings.look.updatesAutoInstallContainerHint')}
@@ -1498,14 +1026,8 @@ function UpdateCard() {
 }
 
 /**
- * The accent actually in force, lower-cased for comparison. An empty setting
- * means the built-in one, so "nothing chosen" and "the default chosen by hand"
- * mark the same swatch, which is the truth: the alternative is a row where the
- * live colour is unmarked until you click it.
- *
- * Still the fallback marker, not the marker. Which circle is chosen is a stored
- * fact now (see SlotMemory), and this answers only while nothing is stored or
- * what is stored has gone stale against the instance.
+ * live returns the accent in force, lower-cased, with an empty setting meaning
+ * the built-in one. It is the fallback when no stored slot choice applies.
  */
 function live(accent: string | undefined): string {
   return (accent || DEFAULT_ACCENT).toLowerCase();

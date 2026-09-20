@@ -58,111 +58,56 @@ import {
 export function Downloads() {
   const { t } = useT();
   const [instances, setInstances] = useState<Instance[]>([]);
-  // Not page state: the shell bar's transport controls have to act on the same
-  // instance this list is showing, and they cannot read a useState from in here.
-  // See lib/instance.tsx.
+  // Shared scope, so the shell bar's transport controls act on the instance
+  // this list shows (lib/instance.tsx).
   const { instance, base, select } = useInstanceScope();
-  // The search text and the quick filters are STORED, not page state: they used
-  // to be two useState calls, so walking to Settings and back put the whole
-  // list back and the query had to be typed again. They now live in the same
-  // interface-state document that already remembers this list's columns and its
-  // sort order. See lib/listNarrowing.ts, which also owns the sanitising every
-  // read out of that document has to go through.
-  //
-  // The page is the ONE owner: it calls this once and passes the pieces down.
-  // Two readers of the field would be fine, two writers in one commit are not.
+  // The search text and quick filters are stored in the interface-state
+  // document, so they survive leaving the page (lib/listNarrowing.ts). The page
+  // is their one writer and passes the pieces down.
   const narrowing = useListNarrowing('downloads', DOWNLOAD_FILTERS);
   const { search, filters } = narrowing;
-  // The search field and its quick filters used to sit in a permanent row of
-  // their own (jdp: "was jetzt neben dem Suchfeld steht soll weg") - now they
-  // live behind the square badge on the stats line and only take up room
-  // while somebody is actually narrowing the list.
+  // The search lives behind the badge on the stats line.
   const [searchOpen, setSearchOpen] = useState(false);
-  // The popover's own anchor, so a click anywhere else closes it - the
-  // collector's own search badge already works exactly this way, and jdp asked
-  // for the two to be identical (2026-09-06: "die suche soll exakt wie im
-  // sammlertb nach unten aufploppen").
+  // The popover's anchor, so an outside click closes it, as in the collector.
   const searchRef = useRef<HTMLDivElement>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  // What TaskListCard is currently being asked to scroll to. Carries the
-  // request's nonce, so jumping to the same row twice running is two distinct
-  // values and not one the card's guard has already seen.
+  // The row TaskListCard should scroll to, with the request's nonce so a
+  // second jump to the same row is a new value.
   const [revealRow, setRevealRow] = useState<string | undefined>(undefined);
   const { toast } = useToast();
   const menu = useContextMenu();
-  // A second anchor of its own: the clean-up menu opens under a badge, while
-  // `menu` above is the row/selection context menu opened at a pointer.
+  // The clean-up menu opens under a badge; `menu` above opens at the pointer.
   const cleanupMenu = useContextMenu();
-  // And a third, for the queue-order badge that replaced the four queue badges
-  // this row used to carry. Its own anchor rather than `menu`'s: that one is
-  // opened at a pointer and carries the whole right-click menu, and sharing it
-  // would put a dozen unrelated entries under a badge named "Reihenfolge".
+  // The queue-order badge's own anchor, apart from the right-click menu.
   const orderMenu = useContextMenu();
-  // The priorities this server implements and where the stop mark sits - the
-  // two things the queue entries need and neither the list nor the menu holds.
-  // Fetched on mount, never when the menu opens: a badge whose menu appears a
-  // request later is a badge whose bottom half arrives after it was read past.
+  // The priorities the server implements and where the stop mark sits, fetched
+  // on mount so the menu opens complete.
   const queueVerbs = useQueueVerbs(base);
-  // What the pointer landed on. A link, a package header and the empty space
-  // below the rows each offer a different menu.
+  // A link, a package header and empty space each offer their own menu.
   const [target, setTarget] = useState<MenuTarget>({ kind: 'selection' });
-  // The same folded set the list card reads, because folding is also a menu
-  // entry and the menu belongs to the page.
+  // The same folded set the list card reads; folding is also a menu entry.
   const folds = useCollapsedPackages('downloads');
   const tasks = useTasks(instance);
-  // Unpacking is its own stream, not a field on the task: an archive has its own
-  // progress, its own failure and its own stop, and folding those onto the row
-  // that fetched it is what made an extraction invisible in the first place.
+  // Extraction has its own progress, failure and stop, so it is its own stream.
   const jobs = useExtractJobs(instance);
 
   useEffect(() => {
     fetchInstances().then(setInstances);
   }, []);
 
-  // Everything this instance holds, collector included: a removal has to be able
-  // to weigh bytes that the download list itself never shows.
+  // Everything this instance holds, collector included, since a removal weighs
+  // bytes the list never shows.
   const all = useMemo(() => Object.values(tasks), [tasks]);
 
-  // position over createdAt between two tasks that are BOTH still in the
-  // wait queue: position is what drag-to-reorder and the menu's own
-  // top/up/down/bottom moves actually write (App.ReorderBand/renumberBand),
-  // and staying on createdAt here meant a reorder kept saving and
-  // broadcasting a real change that this list re-sorted right back out of
-  // view on every render. A settled task's position is frozen at whatever
-  // it happened to be the moment it left the queue and compares to
-  // nothing - createdAt is kept for any comparison touching one, unchanged
-  // from before.
   const list = useMemo(
     () =>
       all
         .filter((x) => x.status !== 'collected')
         .sort((a, b) => {
-          // Queue rank first, and that ordering is the whole fix (jdp,
-          // 2026-09-06: "in der downloadliste kann ich ordner nach wie vor
-          // nicht per drag and drop verschieben").
-          //
-          // What stood here compared two DIFFERENT keys depending on the pair:
-          // position when both rows were still in the queue, createdAt as soon
-          // as either one was not. That is not a total order - a settled row
-          // could sort before a queued row that sorted before another settled
-          // row that sorted before the first - and a comparator that
-          // contradicts itself lets a sort produce any arrangement it likes.
-          //
-          // Measured live on the preview instance, dragging one folder above
-          // another: the server accepted the reorder and renumbered exactly as
-          // asked (the moved folder's links really did take the lower
-          // positions), and the list did not move. One link in the folder had
-          // failed, and that settled row - compared by createdAt against
-          // everything - kept sorting near the top; groupByPackage re-merges a
-          // package at its FIRST row, so the whole folder stayed anchored where
-          // its dead link sat. The drag looked ignored, which is exactly the
-          // shape "does not work" takes.
-          //
-          // So: everything still in the queue first, in the order the queue
-          // holds it, then everything settled, oldest first. Both halves are
-          // ordered by one key each, so the result is the same every time, and
-          // a folder's place in the list is decided by the links a reorder can
-          // actually move.
+          // Everything still in the queue first, by queue position (what a
+          // reorder writes), then everything settled, oldest first. One key per
+          // half keeps the order total, so a failed link cannot anchor its
+          // package near the top and make a drag look ignored.
           const settledA = a.status === 'done' || a.status === 'error' ? 1 : 0;
           const settledB = b.status === 'done' || b.status === 'error' ? 1 : 0;
           if (settledA !== settledB) return settledA - settledB;
@@ -178,7 +123,6 @@ export function Downloads() {
   );
   const groups = useMemo(() => groupByPackage(filtered), [filtered]);
 
-  // Selections follow the list: anything that leaves it stops being selected.
   useEffect(() => {
     setSelected((prev) => {
       const live = new Set(list.map((x) => x.id));
@@ -187,40 +131,28 @@ export function Downloads() {
     });
   }, [list]);
 
-  // "Show me that row", from the event list behind the sidebar's bell.
-  //
-  // Depends on `tasks` and not only on the request, and that is the point:
-  // Layout keys its page div on the SECTION alone, so arriving here from a peer
-  // scope does not remount this page - useTasks resets to {} and refills from
-  // the socket, and the row this is looking for turns up a beat after the
-  // press. lib/reveal.ts holds the deadline for the case where it never does.
+  // "Show me that row", from the event list behind the sidebar's bell. It
+  // depends on `tasks` because arriving from a peer scope refills the list a
+  // beat after the press; lib/reveal.ts holds the deadline.
   const reveal = useRevealRequest();
   useEffect(() => {
     if (!reveal) return;
     const task = tasks[reveal.id];
     if (!task || task.status === 'collected') return;
-    // Claimed FIRST, so the deadline is off before this effect starts changing
-    // the state it itself depends on.
+    // Claimed first, so the deadline stops before this effect changes state.
     claimReveal(reveal.nonce);
-    // Cleared only where they would actually hide THIS row. Wiping a search
-    // somebody is in the middle of, for a jump that would have worked anyway,
-    // is its own bug. The category survives the clear: it is a setting, the
-    // text is the query.
+    // Filters are cleared only when they would hide this row; the category is
+    // a setting and survives.
     if (!matchesQuickFilters(task, filters)) narrowing.clearFilters();
     if (!matchesSearch(task, search)) narrowing.setSearch({ text: '', category: search.category });
-    // '' is the ungrouped bucket's real name, not a missing one. A folded
-    // package contributes no rows at all, so the row would have no key, no
-    // offset and no element for the card to find.
+    // '' is the ungrouped bucket's real name. A folded package draws no rows.
     folds.expand([task.package || '']);
     setSelected(new Set([reveal.id]));
-    // Selecting the row IS the mark - .glim-row-selected already paints the
-    // accent wash and the inline-start edge, so a jump needs no highlight of
-    // its own.
+    // Selecting the row marks it; .glim-row-selected paints the wash.
     setRevealRow(`task:${reveal.id}#${reveal.nonce}`);
   }, [reveal, tasks, filters, search, folds, narrowing]);
 
-  // Closes the search popover on an outside click or Escape, the same handler
-  // the collector's own popover uses.
+  // Closes the search popover on an outside click or Escape, as in the collector.
   useEffect(() => {
     if (!searchOpen) return;
     const onClick = (e: MouseEvent) => {
@@ -237,14 +169,11 @@ export function Downloads() {
 
   const clearSelection = useCallback(() => setSelected(new Set()), []);
 
-  // What the list is actually DRAWING, which is narrower than `filtered` by
-  // every folded package. See lib/selectionReach.ts for why that difference is
-  // the whole point and why this cannot come from lib/listview.ts's `visible`.
+  // The rows actually drawn, narrower than `filtered` by every folded package
+  // (lib/selectionReach.ts).
   const drawn = useDrawnRows(groups, folds.collapsed);
   const reach = useMemo(() => selectionReach(selected, drawn), [selected, drawn]);
-  // Drops the rows nobody can see out of the selection, and offers the whole
-  // selection back. Twelve rows Ctrl-clicked one at a time are real work, and
-  // once the narrowing has moved on there is no reconstructing which they were.
+  // Drops hidden rows from the selection and can offer the whole selection back.
   const reduceToShown = useCallback(() => {
     const before = new Set(selected);
     setSelected(new Set(reach.shown));
@@ -255,23 +184,16 @@ export function Downloads() {
   }, [selected, reach, toast, t]);
 
   const removal = useRemoval({ all, selected, base, drawn, onDone: clearSelection });
-  // The clean-up flow's own instance for this page's command surface (a
-  // third caller of useCleanup, the same as ListActionBar and ListMenu below
-  // already are — see that hook's own doc comment). Loaded proactively, the
-  // same reason ListMenu loads its own copy on mount rather than waiting for
-  // a click: a command visible in a palette that has to wait on a request
-  // before it can say whether "clear finished" applies is a command that
-  // answers late.
+  // The command surface's clean-up instance, loaded at once so "clear finished"
+  // knows whether it applies.
   const cleanup = useCleanup(all);
   useEffect(() => {
     void cleanup.load().catch(() => {
-      /* the badge row above the list reports this on click; a command does not nag twice */
+      /* The badge row reports this on click; a command does not report twice. */
     });
   }, [cleanup.load]);
 
-  // "Select all" means the rows on screen, never the whole queue: with a
-  // filter on, the two are different sets and only one of them is the one
-  // somebody is looking at.
+  // "Select all" means the rows on screen, not the whole queue.
   const allChosen = filtered.length > 0 && filtered.every((x) => selected.has(x.id));
 
   async function openCleanup(el: HTMLButtonElement | null): Promise<void> {
@@ -283,16 +205,11 @@ export function Downloads() {
     }
   }
 
-  // The shell's overview strip offers Total / Visible / Selected, and "visible"
-  // is the one it cannot work out for itself: the search text and the quick
-  // filters are page state. Told which rows, it sums them from its own stream —
-  // see lib/listview.ts.
+  // The shell's overview strip cannot know which rows are visible, so it is told
+  // (lib/listview.ts).
   useReportListView(filtered, selected);
-  // The command surface's own bridge (lib/commands/pageContext.ts): the exact
-  // setSelected/removal/cleanup this page already holds, so
-  // lib/commands/downloads.ts's selectAll/removeSelected/clearFinished call
-  // the identical functions the toolbar's own buttons call, never a second
-  // copy of what those verbs mean here.
+  // The commands in lib/commands/downloads.ts call the same functions as the
+  // toolbar (lib/commands/pageContext.ts).
   usePublishCommandPageContext(
     useMemo(
       () => ({ setSelection: setSelected, removal, cleanup, toggleSearch: () => setSearchOpen((v) => !v) }),
@@ -301,12 +218,9 @@ export function Downloads() {
   );
   const chosen = useMemo(() => all.filter((x) => selected.has(x.id)), [all, selected]);
   const archiveGroups = useArchiveMenu({ chosen, base, jobs });
-  // Reveal-in-folder and open-natively only ever mean this instance's own
-  // filesystem, never a federated peer's - see FileActions.tsx.
+  // Reveal and open natively only on this instance's own filesystem.
   const fileGroups = useFileMenu({ chosen, base, local: instance === '' });
-  // Wave 11B: a saved script becomes a manual command on this table's own
-  // context menu - the census's "DOWNLOAD_TABLE_CONTEXT_MENU_BUTTON" half of
-  // the row. See ScriptActions.tsx.
+  // Saved scripts become manual commands on this menu (ScriptActions.tsx).
   const scriptGroups = useScriptMenu({ chosen, base });
 
   const selection: Selection = {
@@ -338,11 +252,9 @@ export function Downloads() {
     return { running, queued, done, error, speed };
   }, [list]);
 
-  // Read off the stored narrowing rather than recomputed here, so the badge
-  // that clears it and the dot that reports it cannot disagree with it.
+  // From the stored narrowing, so the badge and its dot agree.
   const narrowed = narrowing.active;
-  // The same chips the collector shows, over this list's own eight states.
-  // Shared logic rather than a second copy, so the two rows cannot drift.
+  // The collector's chips over this list's states, from shared logic.
   const offeredFilters = useMemo(() => offeredQuickFilters(DOWNLOAD_FILTERS, list, filters), [list, filters]);
 
   const pauseAll = () => list.filter((x) => x.status === 'running').forEach((x) => pause(x.id, base));
@@ -350,21 +262,14 @@ export function Downloads() {
   const retryFailed = () => restartTasks([], base);
 
   /**
-   * Right-click opens the menu for what it landed on, and takes the selection
-   * with it — acting on something the user cannot see highlighted is how the
-   * wrong download gets deleted.
-   *
-   * A link becomes the selection when it was not one already. A package header
-   * takes the whole package, unless the package is already inside a bigger
-   * selection, in which case that selection is what the user can see and what
-   * the menu keeps acting on. Empty space acts on the list itself.
+   * onContextMenu opens the menu for what the pointer landed on and takes the
+   * selection with it. A link becomes the selection unless it is in one; a
+   * package header takes its package unless a larger selection holds it; empty
+   * space acts on the list.
    */
   function onContextMenu(e: React.MouseEvent): void {
-    // Something closer to the pointer has already claimed this right-click — the
-    // column header opens its own menu on it. Read off the native event, not the
-    // synthetic one: React captures `defaultPrevented` when it builds the
-    // synthetic event, so it is still false here however many handlers below
-    // have called preventDefault.
+    // The column header may have claimed this right-click. Read off the native
+    // event, since React fixes the synthetic defaultPrevented when it builds it.
     if (e.nativeEvent.defaultPrevented) return;
     const id = targetTaskId(e);
     const pkg = id === null ? targetPackage(e) : null;
@@ -393,23 +298,13 @@ export function Downloads() {
     local: instance === '',
   };
 
-  // What the selection-half of the action row needs twice each.
   const selectedIds = chosen.map((x) => x.id);
   const selectedOnDisk = chosen.some((x) => x.loaded > 0);
 
-  // The queue-order badge's menu, built by the exact function the right-click
-  // menu builds its own queue group with (ListToolbar.tsx). Built here rather
-  // than inside the badge, because whether the badge is drawn at all is a
-  // question about the entries: the group knows which of the three verbs the
-  // server will carry out for this selection, and a badge that opens an empty
-  // menu is worse than no badge.
-  //
-  // It is empty far less often than this once assumed, and assuming otherwise
-  // is what took the badge away from every running download. The group's own
-  // two sets (MOVE_STATES, PRIORITY_STATES) are read off the server, and the
-  // server writes a priority on every state there is - so a selection of
-  // finished or failed rows still gets the seven rungs, which is the half of
-  // "set these to highest, then restart them" the page had stopped offering.
+  // The queue-order badge's menu, built by the right-click menu's own function
+  // (queueMenuGroup), so the badge shows only when the group has entries. The
+  // server sets a priority in every state, so finished and failed rows keep
+  // the seven rungs.
   const queueGroup = queueMenuGroup({
     chosen,
     ids: selectedIds,
@@ -423,23 +318,11 @@ export function Downloads() {
     <div className="flex flex-col gap-6">
       <PageHeader title={t('downloads.title')} />
 
-      {/* ONE row for everything this page can do, right-hugging, directly above
-          the list - the collector's own row, down to the order of its parts
-          (jdp, 2026-09-06: "all diese sachen sollen als buttons in einer zeile
-          stehen"). It used to be three stacked rows: a speed-and-counters line,
-          a badge row, and a selection strip that appeared underneath and pushed
-          the list down every time somebody clicked a link.
-          The counters line is gone entirely (jdp, same round, screenshot of it:
-          "Was man im screenshot sieht bitte alles entfernen") - the speed is in
-          the head card's own curve and the four states are the filter chips
-          right here, each with its own count.
-          "Mehr" and the shortcut bubble are not carried over, for the same
-          reason the collector dropped them: the menu behind "Mehr" is the one a
-          right-click on the selection already opens. */}
+      {/* One right-aligned row for every action, directly above the list, in
+          the collector's order. */}
       {list.length > 0 && (
         <div className="flex shrink-0 flex-wrap items-center gap-2" role="group" aria-label={t('list.actions')}>
-          {/* Left of the spacer, which nothing else on this row uses: the chips
-              cost no new line, and this row already wraps. */}
+          {/* Left of the spacer, which nothing else here uses. */}
           <SavedViewChips
             profile="downloads"
             allowed={DOWNLOAD_FILTERS}
@@ -501,26 +384,15 @@ export function Downloads() {
               hue={0}
               active={searchOpen}
               icon={<IconSearch width={16} height={16} />}
-              // The badge's OWN name, not the empty field's grey hint (jdp,
-              // 2026-09-14: "der Suchbutton soll einfach "Suche" heissen").
-              // `search.placeholder` is "Diese Liste durchsuchen…", an
-              // invitation to type, ending in an ellipsis because the sentence
-              // is finished by typing - and IconBadge PRINTS `title` once
-              // Beschriftung is on "text" or "text and glyph", so the row read
-              // "Auswahl aufheben · Diese Liste durchsuchen… · In ein Paket
-              // verschieben". 183 points of the row's 1030, measured, for one
-              // button that means "Suche" (78). The collector's twin carries
-              // this same key, and so does the command palette's entry
-              // (lib/commands/downloads.ts) - one control, one name, three
-              // places, kept honest by web/check-placeholder-as-label.mjs.
+              // The badge's own name rather than the field's placeholder, which
+              // Beschriftung would print; web/check-placeholder-as-label.mjs
+              // keeps it so.
               title={t('search.toggle')}
               aria-label={t('search.toggle')}
               aria-expanded={searchOpen}
               onClick={() => setSearchOpen((v) => !v)}
             />
-            {/* The panel can close with a filter still active - this is the one
-                sign of that once it does, so "why is my list short" has an
-                answer without reopening the panel to find it. */}
+            {/* Shows that a filter is still active once the panel is closed. */}
             {narrowed && !searchOpen && (
               <span
                 aria-hidden
@@ -537,12 +409,8 @@ export function Downloads() {
             )}
           </div>
 
-          {/* The one control that undoes ALL of it at once, beside the badge
-              whose dot reports it. The "Show everything" button inside the chip
-              strip still clears the quick filters and only those, so nothing
-              that already existed changed meaning; this is the reset for a list
-              that came back narrowed from last time, which is a state that could
-              not happen before the narrowing was stored. */}
+          {/* Clears search and filters at once; "Show everything" in the chip
+              strip still clears only the quick filters. */}
           {narrowed && (
             <>
               <IconBadge
@@ -560,59 +428,15 @@ export function Downloads() {
           {selected.size > 0 ? (
             <>
               <PackageActions tasks={list} selected={selected} base={base} />
-              {/* ONE badge where four stood, and the four were not only too
-                  wide - two of them were lying.
-                  "Priorität erhöhen" called setPriority(ids, 1), and that is
-                  not a step: it writes the ABSOLUTE value 1 of the server's
-                  seven priorities (-3..3, internal/app/app_queue.go), so
-                  pressing it twice left a download exactly where the first
-                  press put it, and pressing it on a download the Packagizer had
-                  already set to "highest" silently DEMOTED it. "Priorität
-                  senken" had the mirror fault. That defect was found and fixed
-                  once already - in the right-click menu, which has offered a
-                  real four-step move and the seven priorities by name ever
-                  since - and it survived here because this page built its own
-                  entries instead of asking for the menu's. It now asks:
-                  queueMenuGroup is the very group ListToolbar's own menu shows,
-                  so the badge and the right-click cannot disagree again.
-                  Nothing is lost by the fold. Every verb keeps its name, the
-                  two priority buttons become the seven real rungs under
-                  "Priorität", the menu is a role="menu" with arrow keys and the
-                  badge that opens it is an ordinary tab stop.
-                  Queue order is about a selection rather than about the page,
-                  so this rides with the selection instead of sitting there all
-                  the time. What it offers is the group's business and not this
-                  row's: the four move verbs go when the server would refuse the
-                  move, the seven priorities stay for every state because the
-                  server writes one on every state. The badge is rendered when
-                  the group has entries and hidden when it has none - never on a
-                  guess made here about which states still have a wait ahead of
-                  them. That guess was the bug: it said queued, paused and
-                  collected, and a selection of RUNNING downloads lost the badge
-                  and, with the right-click menu gated the same way, every route
-                  to the verbs at once. */}
+              {/* One badge for queue order, opening the same group as the
+                  right-click menu: moves by step and the seven priorities by
+                  name. It shows whenever the group has entries. */}
               {queueGroup.items.length > 0 && (
                 <IconBadge
                   labelled
                   icon={<IconPriority width={16} height={16} />}
-                  // 2, which is what the "move to top" badge it replaces had,
-                  // so this row's colour run is unchanged by the fold.
-                  //
-                  // NOT 0, and the reason is narrower than it used to read
-                  // here. The old note said the search badge two places to its
-                  // left "already wears it, and two identical washes in one row
-                  // read as one pair", which describes a picture the page
-                  // mostly cannot draw. Measured on the selection row: with the
-                  // rainbow off - the shipped default - no badge on this row
-                  // carries a wash at all, `hue` being inert then by design.
-                  // With it on, this badge does wear its colour at rest
-                  // (.glim-tint-badge, an inset wash), but the search badge
-                  // beside it is a TOGGLE and carries only .glim-hue, so it
-                  // stays uncoloured until it is switched on. The pair is
-                  // therefore possible in exactly one state, a rainbow running
-                  // with the search open, and that is the state worth avoiding:
-                  // two adjacent badges of the same hue, one of them lit
-                  // because it is active, read as one control.
+                  // Not 0: with rainbow on and search open, two adjacent badges
+                  // of one hue would read as one control.
                   hue={2}
                   title={t('queue.order')}
                   aria-label={t('queue.order')}
@@ -650,8 +474,7 @@ export function Downloads() {
             </>
           ) : (
             <>
-              {/* Each bulk verb appears only when it can do something, so the
-                  row stays short instead of showing three dead badges. */}
+              {/* Each bulk verb appears only when it can do something. */}
               {counts.running > 0 && (
                 <IconBadge
                   labelled
@@ -706,12 +529,8 @@ export function Downloads() {
         </div>
       )}
 
-      {/* Directly above the rows, and only while the failures are actually
-          several different problems. It is not part of the action row above: a
-          chip here says what IS wrong rather than offering another verb, and it
-          would be the only entry in that row whose label changes with the state
-          of the list. ErrorCauses draws nothing at all below two groups, so the
-          ordinary evening keeps the page it had. */}
+      {/* Above the rows while the failures have several causes; draws nothing
+          below two groups. */}
       <ErrorCauses tasks={list} base={base} />
 
       <div onContextMenu={onContextMenu}>
@@ -729,28 +548,19 @@ export function Downloads() {
             base={base}
             selection={selection}
             revealKey={revealRow}
-            // Die Ordnerzeile fragt ueber dieselbe Strecke wie die Auswahlleiste
-            // und das Kontextmenue, statt eine eigene aufzumachen.
+            // The same removal path as the selection bar and the context menu.
             onRemovePackage={removal.askWithFiles}
             title={t('downloads.listTitle')}
-            // No hint bubble on the badge (jdp, 2026-09-06: "die i infobubble
-            // im kartentitel entfernen. auch in der linklisten card"). It used
-            // to explain what this list is, which was worth saying once and is
-            // not worth a permanent (i) on the title of the page's main table:
-            // by the time somebody has links in here they know what the list
-            // is, and the bubble was in the way of the thing it described.
             hue={0}
           />
         )}
       </div>
 
-      {/* Under the rows, because an extraction is what happens after one of them
-          finished, and only while there is one to look at. */}
+      {/* Under the rows, while an extraction is running. */}
       <ArchiveJobs jobs={jobs} base={base} />
 
-      {/* The queue-order badge's own menu, anchored under it. Same group, same
-          entries and same names as the right-click menu's queue section, because
-          it is literally that group - see queueMenuGroup in ListToolbar.tsx. */}
+      {/* The queue-order menu under its badge, the same group as the
+          right-click menu's queue section. */}
       {orderMenu.anchor && queueGroup.items.length > 0 && (
         <ContextMenu
           anchor={orderMenu.anchor}
@@ -760,7 +570,6 @@ export function Downloads() {
         />
       )}
 
-      {/* The clean-up badge's own menu, anchored under it. */}
       {cleanupMenu.anchor && cleanup.classes && (
         <ContextMenu
           anchor={cleanupMenu.anchor}
@@ -770,8 +579,7 @@ export function Downloads() {
         />
       )}
 
-      {/* `all`, not `list`: a removal has to weigh bytes that belong to rows this
-          page never shows, and a clean-up class picks its own. */}
+      {/* `all`, since a removal weighs bytes of rows this page never shows. */}
       <ListMenu
         anchor={menu.anchor}
         onClose={menu.close}
@@ -784,10 +592,8 @@ export function Downloads() {
         extraGroups={[...archiveGroups, ...fileGroups, ...scriptGroups]}
       />
       {removal.dialog}
-      {/* This page's own useCleanup() instance (above) — raised by
-          lib/commands/downloads.ts's "clear finished" command as well as by
-          ListActionBar/ListMenu's own "Clean up" entries, each with its own
-          copy of this same hook. */}
+      {/* The dialog of this page's useCleanup(), also raised by the "clear
+          finished" command. */}
       {cleanup.dialog}
     </div>
   );

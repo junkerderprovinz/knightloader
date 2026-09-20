@@ -29,32 +29,12 @@ import { useT } from '../../lib/i18n';
 import { useDraft } from './context';
 
 /**
- * The reconnect page: how this box asks the router for a new public address.
- *
- * Four decisions here are not layout.
- *
- * THE METHOD DECIDES WHAT IS ON SCREEN. Five methods share one page, and the
- * fields of four of them are noise to the fifth. Somebody who picked UPnP is
- * looking at a page with no interpreter, no request list and no program path on
- * it, because every one of those would read as a thing they had failed to fill
- * in. The values stay in the draft while they are hidden, so switching methods
- * to look at another one and coming back loses nothing.
- *
- * THE PASSWORD IS NEVER RENDERED BACK. The server sends the placeholder
- * "********" in place of a stored router password; the box shows empty and the
- * draft keeps the placeholder, which is what the save merges back into the real
- * one. Painting the placeholder into the field would teach people their password
- * is eight characters long, and clearing the field on load would wipe it on the
- * next save of any other setting on this page.
- *
- * THE CHECK URL HAS NO DEFAULT, ON PURPOSE. A self-hosted download manager must
- * not start reporting its address to a service nobody chose. The preset strip is
- * a shortcut for people who do not care which one, not a default.
- *
- * THE RUN POLICY IS DESCRIBED, NOT IMPLEMENTED. Automatic reconnects are fired
- * by internal/app/app_dispatch.go and nowhere else. This page has one button
- * that runs one reconnect because the user pressed it; a second trigger living
- * in the interface would fire on a page nobody has open.
+ * Reconnect sets how this box asks the router for a new public address. Only
+ * the chosen method's fields are shown; hidden values stay in the draft. The
+ * stored router password comes back masked, the box stays empty and the draft
+ * keeps the mask, which the save merges back. The check URL has no default, so
+ * no address is reported to a service nobody chose. Automatic reconnects run
+ * in internal/app/app_dispatch.go; this page only runs one on request.
  */
 
 /** Mirrors reconnect.Config. */
@@ -84,13 +64,13 @@ interface ReconnectConfig {
   timeoutSeconds: number;
 }
 
-/** GET /api/reconnect. `reason` is Validate's own sentence, not a second opinion. */
+/** GET /api/reconnect. */
 interface ReconnectState {
   busy: boolean;
   configured: boolean;
-  /** The server's English sentence. The fallback, not the first choice. */
+  /** The server's English sentence, used when the code has no translation. */
   reason?: string;
-  /** The same fact as a value, which is the half this side can translate. */
+  /** The same fact as a code, which can be translated. */
   reasonCode?: string;
   reasonN?: number;
   reasonMethod?: string;
@@ -98,13 +78,8 @@ interface ReconnectState {
 }
 
 /**
- * What is missing, in the reader's language.
- *
- * The server sends both halves and this prefers the code, because the sentence
- * is English and the interface is not. An unrecognised code falls back to the
- * sentence rather than to nothing: a server that grows a tenth reason before
- * this file learns the word for it should still say something true, in the
- * wrong language, instead of leaving a blank where the explanation was.
+ * useReasonText translates the reason code and falls back to the server's
+ * English sentence for a code this build does not know.
  */
 function useReasonText(state: ReconnectState | null): string {
   const { t } = useT();
@@ -113,8 +88,7 @@ function useReasonText(state: ReconnectState | null): string {
   if (!code) return state.reason ?? '';
   const key = `settings.reconnect.reason.${code}` as never;
   const text = t(key, { n: state.reasonN ?? 0, method: state.reasonMethod ?? '', var: state.reasonVar ?? '' });
-  // t() answers with the key itself when it has no entry, which on screen is a
-  // dotted identifier and not an explanation.
+  // t() returns the key itself when there is no entry.
   return text === key ? (state.reason ?? '') : text;
 }
 
@@ -147,17 +121,12 @@ interface RouterAddress {
   interface?: string;
 }
 
-/**
- * What the server sends instead of a stored router password. Kept as a constant
- * because it is a protocol value shared with reconnect.RedactedPassword, not a
- * string somebody may prettify.
- */
+/** The mask for a stored router password; a protocol value shared with reconnect.RedactedPassword. */
 const REDACTED = '********';
 
 /**
- * The band reconnect.Sanitize folds these two numbers into, and the value it
- * uses when one of them is unset. Both are shown rather than enforced quietly,
- * so nobody meets them by typing 3600 and finding 900 there after the save.
+ * The band reconnect.Sanitize folds these numbers into and the value it uses
+ * when one is unset, shown so a save does not change a number unexpectedly.
  */
 const INTERVAL = { lo: 1, hi: 60, fallback: 5 };
 const TIMEOUT = { lo: 5, hi: 900, fallback: 120 };
@@ -168,15 +137,7 @@ const DEFAULTS: ReconnectConfig = {
   timeoutSeconds: TIMEOUT.fallback,
 };
 
-/**
- * The five methods, in the order the Go constants declare them.
- *
- * Every glyph is one the app already draws for the same idea, which is the rule
- * the settings tab bar follows: the globe for something going out over the
- * network, the two stacked boxes for another device on it, the play arrow for a
- * program being started, and the box with an arrow leaving it for the script
- * that is written out to a file and handed to an interpreter.
- */
+/** The five methods in the order the Go constants declare them. */
 const METHODS: { id: Method; icon: ReactNode }[] = [
   { id: 'none', icon: <IconClose width={16} height={16} /> },
   { id: 'command', icon: <IconPlay width={16} height={16} /> },
@@ -186,12 +147,8 @@ const METHODS: { id: Method; icon: ReactNode }[] = [
 ];
 
 /**
- * The check services offered as a shortcut.
- *
- * Deliberately a handful and deliberately plain-text endpoints: the parser
- * copes with HTML, but a body that is one address is the cheapest and the
- * hardest to misread. The labels are host names, so they are not translated -
- * a domain is not a word.
+ * Check services offered as a shortcut, all plain-text endpoints. Host names
+ * are not translated.
  */
 const CHECK_PRESETS: { id: string; url: string }[] = [
   { id: 'ipify', url: 'https://api.ipify.org' },
@@ -201,9 +158,7 @@ const CHECK_PRESETS: { id: string; url: string }[] = [
   { id: 'checkip.amazonaws.com', url: 'https://checkip.amazonaws.com' },
 ];
 
-/** The settings type in lib/api.ts does not name `reconnect` yet, and the draft
- *  carries it regardless - see the note on SettingsDraft.cfg. These two casts are
- *  the whole of that gap. */
+/** lib/api.ts's Settings does not declare `reconnect`, hence the casts. */
 function readReconnect(cfg: unknown): ReconnectConfig {
   return { ...DEFAULTS, ...((cfg as { reconnect?: ReconnectConfig }).reconnect ?? {}) };
 }
@@ -223,9 +178,7 @@ export function Reconnect() {
 
   const [state, setState] = useState<ReconnectState | null>(null);
 
-  // Polled rather than read once: `busy` is true for as long as a run takes, a
-  // run can be started by a hoster limit rather than by this page, and a strip
-  // that says "idle" through the whole of one is worse than no strip at all.
+  // Polled, since a hoster limit can start a run while the page is open.
   useEffect(() => {
     let alive = true;
     const read = async () => {
@@ -252,9 +205,8 @@ export function Reconnect() {
     <div className="flex flex-col gap-10">
       <Card hue={0} className="flex flex-col gap-5">
         <SectionTitle>{t('settings.reconnect.setupTitle')}</SectionTitle>
-        {/* FieldGroup, not Field: a Field is a `<label>` and hands its clicks to
-            the first control inside it, which for a tab strip is the first tab.
-            See ui.tsx. */}
+        {/* FieldGroup, because a Field's label would pass a click on the
+            caption to the first tab. */}
         <FieldGroup layout="row" label={t('settings.reconnect.method')} hint={t('settings.reconnect.methodHint')}>
           <Tabs
             label={t('settings.reconnect.method')}
@@ -265,8 +217,7 @@ export function Reconnect() {
             onSelect={(id) => write({ method: id as Method })}
             items={METHODS.map((m) => ({
               id: m.id,
-              // No cast: the ids are a union of literals, so the template
-              // resolves to five real keys and a sixth method would not compile.
+              // The ids are a literal union, so each template is a real key.
               label: t(`settings.reconnect.method.${m.id}`),
               icon: m.icon,
             }))}
@@ -296,9 +247,7 @@ export function Reconnect() {
   );
 }
 
-/** Which methods substitute %%router%%, %%username%% and %%password%%. UPnP asks
- *  the network instead of logging in, so offering it a login is offering three
- *  fields that do nothing. */
+/** usesRouterFields tells which methods take the router login; UPnP asks the network instead. */
 function usesRouterFields(m: Method): boolean {
   return m === 'command' || m === 'http' || m === 'script';
 }
@@ -381,10 +330,8 @@ function ScriptFields({ rc, write }: FieldProps) {
 }
 
 /**
- * The router login, shared by the three methods that speak to the router
- * themselves. The three fields are the %%router%%, %%username%% and %%password%%
- * variables and nothing else, which is why they sit below the method's own
- * fields rather than above them: they are what those fields refer to.
+ * RouterFields holds the router login, the %%router%%, %%username%% and
+ * %%password%% variables of the three methods that talk to the router.
  */
 function RouterFields({ rc, write }: FieldProps) {
   const { t } = useT();
@@ -392,9 +339,7 @@ function RouterFields({ rc, write }: FieldProps) {
   const [found, setFound] = useState('');
   const [failed, setFailed] = useState('');
 
-  // The placeholder is what the server sends in place of a stored password. An
-  // untouched draft keeps it, which is what tells the save "unchanged"; the box
-  // itself stays empty, so nobody is shown eight characters that are not theirs.
+  // An untouched draft keeps the mask, which tells the save "unchanged".
   const stored = rc.password === REDACTED;
 
   async function find() {
@@ -412,8 +357,7 @@ function RouterFields({ rc, write }: FieldProps) {
           : t('settings.reconnect.routerFound', { address: a.address }),
       );
     } catch (e) {
-      // Named, never silent. A button that fills nothing in and says nothing
-      // reads as a broken button rather than as a box with no gateway to read.
+      // A failed lookup is named rather than silent.
       setFailed(t('settings.reconnect.routerFailed', { reason: String(e).replace(/^Error:\s*/, '') }));
     } finally {
       setFinding(false);
@@ -424,8 +368,7 @@ function RouterFields({ rc, write }: FieldProps) {
     <>
       <div className="flex items-end gap-3">
         <div className="min-w-0 flex-1">
-          {/* The button is OUTSIDE the Field. A `<label>` around both would hand
-              a click on the word "Router address" to whichever came first. */}
+          {/* The button sits outside the Field, whose label would pass it clicks. */}
           <Field label={t('settings.reconnect.router')} hint={t('settings.reconnect.routerHint')}>
             <TextInput
               dir="ltr"
@@ -473,7 +416,6 @@ function RouterFields({ rc, write }: FieldProps) {
   );
 }
 
-/** The HTTP method's request list, and the LiveHeader import that fills it. */
 function RequestFields({ rc, write }: FieldProps) {
   const { t } = useT();
   const [importing, setImporting] = useState(false);
@@ -498,9 +440,7 @@ function RequestFields({ rc, write }: FieldProps) {
             <Button kind="secondary" onClick={() => setImporting(!importing)}>
               {t('settings.reconnect.import')}
             </Button>
-            {/* Secondary, not primary: the one accent-filled button on this page
-                is "Run it now", because the accent means activity and adding an
-                empty row to a list is not any. Rule 3. */}
+            {/* Secondary: the one primary button here is "Run it now". */}
             <Button
               kind="secondary"
               icon={<IconPlus width={16} height={16} />}
@@ -546,9 +486,7 @@ function RequestFields({ rc, write }: FieldProps) {
   );
 }
 
-/** The verbs a router script uses. Free entry is deliberately not offered: a
- *  mistyped verb produces a request the router answers with a parse error, and
- *  the reconnect then reports a status code instead of a missing letter. */
+/** The verbs a router script uses; free entry would let a typo reach the router. */
 const VERBS = ['GET', 'POST', 'PUT', 'DELETE', 'HEAD'];
 
 function RequestRow({
@@ -574,13 +512,8 @@ function RequestRow({
           {t('settings.reconnect.requestStep', { n: index + 1 })}
         </span>
         <span className="flex-1" />
-        {/* Secondary actions on hover and on keyboard focus - rule 6.
-            `labelled` on all three, and 16px of glyph in the 32px tile: a row
-            action stands in the Beschriftung setting like everything else, and
-            the square is what that setting resolves to in glyph mode rather
-            than a control that ignores it. The step number beside them keeps
-            its own width and the spacer absorbs the rest, so the words cost
-            this row nothing. */}
+        {/* Row actions show on hover and focus. `labelled` makes them follow the
+            Beschriftung setting. */}
         <div className="flex items-center gap-1.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
           <IconBadge
             labelled
@@ -652,17 +585,9 @@ function RequestRow({
 }
 
 /**
- * The LiveHeader import, inline rather than in a dialog.
- *
- * Both halves of the answer have to be readable at once - what mapped and what
- * did not, each refusal with its line number and the line itself - and that is a
- * two-column read, not something to do in a narrow modal on top of the list it
- * is about to replace.
- *
- * A script with a refused line is not offered for use at all. The parser fills
- * in as far as it got so the mapped half can be seen, but half a router script
- * is a login with no reboot, and that failure surfaces days later as "the
- * address did not change" at three in the morning.
+ * ImportPanel reads a LiveHeader script inline, showing what mapped and every
+ * refused line side by side. A script with a refused line cannot be used, since
+ * half a router script logs in without rebooting.
  */
 function ImportPanel({
   onClose,
@@ -708,8 +633,7 @@ function ImportPanel({
           spellCheck={false}
           value={text}
           placeholder={'[[[HSRC]]]\nGET /login.cgi HTTP/1.1\nHost: %%%routerip%%%\n[[[/HSRC]]]'}
-          // Any edit invalidates the last reading, so the Use button can never
-          // apply requests parsed from text that is no longer on screen.
+          // Any edit invalidates the last reading, so Use never applies stale requests.
           onChange={(e) => {
             setText(e.target.value);
             setResult(null);
@@ -717,9 +641,7 @@ function ImportPanel({
         />
       </Field>
 
-      {/* Either read, or use what was read - never both at once. Any edit to the
-          text drops the result, so the pair cannot get out of step with what is
-          on screen, and the panel keeps to one filled button. */}
+      {/* Read or use, never both; an edit drops the result. */}
       <div className="flex items-center gap-2">
         <span className="flex-1" />
         <Button kind="ghost" onClick={onClose}>
@@ -764,16 +686,14 @@ function ImportPanel({
           )}
 
           {problems.length > 0 && (
-            // Every refusal, with the line it belongs to and the line itself.
-            // A message under a forty-line paste leaves somebody counting rows.
+            // Every refusal with its line number and the line itself.
             <ul className="flex max-h-56 flex-col gap-2 overflow-y-auto">
               {problems.map((p, i) => (
                 <li key={i} className="text-xs">
                   <span className="glim-num text-carbon-textMuted">
                     {t('settings.reconnect.importLine', { n: p.line })}
                   </span>
-                  {/* An explicit space, not only the margin: without it a screen
-                      reader reads the number and the line as one word. */}
+                  {/* A real space, so a screen reader does not run number and line together. */}
                   {' '}
                   <span dir="ltr" className="ms-2 break-all text-carbon-textSub">
                     {p.text}
@@ -791,7 +711,6 @@ function ImportPanel({
   );
 }
 
-/** The check URL, its shortcuts, and the two waits. */
 function CheckFields({ rc, write }: FieldProps) {
   const { t } = useT();
   const url = (rc.checkUrl ?? '').trim();
@@ -812,10 +731,7 @@ function CheckFields({ rc, write }: FieldProps) {
         />
       </Field>
 
-      {/* The same strip as everywhere else, so "one of these is in force" reads
-          the way it does on the corner picker. Nothing is filled while the URL is
-          somebody's own, which is the honest picture: the presets are a shortcut,
-          and no service is chosen for anyone. */}
+      {/* No preset is selected while the URL is somebody's own. */}
       <FieldGroup label={t('settings.reconnect.checkPresets')} hint={t('settings.reconnect.checkPresetsHint')}>
         <Tabs
           label={t('settings.reconnect.checkPresets')}
@@ -855,16 +771,8 @@ function CheckFields({ rc, write }: FieldProps) {
 }
 
 /**
- * What a number outside the band will actually be stored as.
- *
- * Sanitize folds it without saying so, and a field that reads 3600 before a save
- * and 900 after it is the kind of thing people stop trusting the whole page
- * over. It mirrors Sanitize exactly, zero included: zero means "unset" there and
- * comes back as the default rather than as the floor, so reporting the floor
- * here would be a different lie in the same place.
- *
- * This is a fact about the value, not an explanation of the control, so it is on
- * the page rather than behind the (i).
+ * Clamped shows what a number outside the band will be stored as, mirroring
+ * Sanitize: zero means unset and comes back as the default, not the floor.
  */
 function Clamped({ value, band }: { value: number; band: { lo: number; hi: number; fallback: number } }) {
   const { t } = useT();
@@ -874,16 +782,11 @@ function Clamped({ value, band }: { value: number; band: { lo: number; hi: numbe
   return <StateLine tone="warn">{t('settings.reconnect.clamped', { n: folded })}</StateLine>;
 }
 
-/**
- * The state strip, the one button, and the truth about when this happens on its
- * own.
- */
+/** RunPanel shows the state, the run button and when reconnects happen on their own. */
 function RunPanel({ state, disabled }: { state: ReconnectState | null; disabled: boolean }) {
   const { t } = useT();
-  // Everything in this panel is about the SAVED configuration: the state comes
-  // from the server, and so does the run. While the form is dirty the two are
-  // different things, and saying nothing about that is how somebody picks a
-  // method, presses run, and watches the instance do what it was doing before.
+  // The state and the run use the saved configuration, which differs while
+  // the form is dirty.
   const { dirty } = useDraft();
   const reasonText = useReasonText(state);
   const [running, setRunning] = useState(false);
@@ -899,9 +802,7 @@ function RunPanel({ state, disabled }: { state: ReconnectState | null; disabled:
     try {
       const r = await fetch('/api/reconnect', { method: 'POST' });
       if (r.status === 409) {
-        // Not a failure. Something else is already doing exactly what this
-        // button asks for, and reporting it as an error would have people press
-        // it again into the same refusal.
+        // Another run is already doing this, so it is not reported as a failure.
         setNote({ tone: 'muted', text: t('settings.reconnect.runBusy') });
         return;
       }
@@ -921,12 +822,8 @@ function RunPanel({ state, disabled }: { state: ReconnectState | null; disabled:
           label={state?.configured ? t('settings.reconnect.stateConfigured') : t('settings.reconnect.stateNotConfigured')}
           tone={state === null ? 'muted' : state.configured ? 'ok' : 'muted'}
         />
-        {/* Only once something could actually run. Drawn unconditionally, the
-            two facts sit side by side in the same grey and read as one
-            sentence - "not configured, ready" - which is a contradiction the
-            reader has to resolve before noticing they are two separate
-            questions. Whether a reconnect is running is not a fact about an
-            instance that has none to run. */}
+        {/* Only once something could run, or "not configured" and "ready" read
+            as one sentence. */}
         {state?.configured && (
           <Fact
             label={busy ? t('settings.reconnect.stateBusy') : t('settings.reconnect.stateIdle')}
@@ -943,14 +840,11 @@ function RunPanel({ state, disabled }: { state: ReconnectState | null; disabled:
         </Button>
       </div>
 
-      {/* While the form is dirty this says the one thing that matters, and the
-          readiness line below is suppressed: it describes the saved
-          configuration, so against an edited form it contradicts what is on
-          screen - "switched off" under a method strip pointing at Requests. */}
+      {/* While dirty this replaces the readiness line, which describes the saved
+          configuration. */}
       {dirty && <StateLine tone="warn">{t('settings.reconnect.runUsesSaved')}</StateLine>}
 
-      {/* Validate's own words, pointing at the field rather than at the method
-          strip - which is already set to something, and is not what is missing. */}
+      {/* Validate's own words, pointing at the missing field. */}
       {!dirty && state && !state.configured && !disabled && reasonText && (
         <StateLine tone="warn">{t('settings.reconnect.notReady', { reason: reasonText })}</StateLine>
       )}
@@ -980,8 +874,7 @@ function RunPanel({ state, disabled }: { state: ReconnectState | null; disabled:
   );
 }
 
-/** One word of state with a dot in front of it. No box, no border: the dot
- *  carries the colour and the shade carries the separation. */
+/** Fact is one word of state behind a coloured dot. */
 function Fact({ label, tone }: { label: string; tone: 'ok' | 'muted' | 'live' }) {
   const dot =
     tone === 'ok' ? 'bg-statusOkSolid' : tone === 'live' ? 'bg-accent glim-live' : 'bg-carbon-surface3';
@@ -995,18 +888,15 @@ function Fact({ label, tone }: { label: string; tone: 'ok' | 'muted' | 'live' })
 
 type Tone = 'muted' | 'warn' | 'fail';
 
-/** A fact about the current state, in one of the state hues. Not an explanation:
- *  those live behind the (i) beside the label. */
+/** StateLine is a fact in a state hue; explanations sit behind the (i). */
 function StateLine({ tone, children }: { tone: Tone; children: ReactNode }) {
   const cls = tone === 'fail' ? 'text-statusFail' : tone === 'warn' ? 'text-statusWarn' : 'text-carbon-textMuted';
   return <p className={`text-xs ${cls}`}>{children}</p>;
 }
 
 /**
- * The one control the design language has no primitive for, styled to match
- * TextInput exactly. It is a copy of the Select in Connections.tsx, and the two
- * belong in ui.tsx the moment a third page needs one - two copies is a pair, a
- * third is drift nobody can fix in one place.
+ * Select is styled to match TextInput, a copy of the one in Connections.tsx;
+ * a third user should move it into ui.tsx.
  */
 function Select({
   value,
@@ -1035,15 +925,9 @@ interface FieldProps {
 }
 
 /**
- * A list edited one line at a time.
- *
- * The text is held here rather than derived from the array on every keystroke,
- * and that is the whole reason this component exists. A textarea whose value is
- * `lines.join('\n')` eats the Enter key: the empty line it produces is dropped
- * on the way out and the cursor jumps back to the end of the line above, so a
- * second argument can never be typed. Re-seeding only when the array disagrees
- * with what this text parses to keeps an outside change visible without ever
- * rewriting a keystroke under the cursor.
+ * LinesArea edits a list one line at a time. It keeps its own text, because a
+ * value joined from the array drops the empty line Enter makes; it re-seeds only
+ * when the array disagrees with the text.
  */
 function LinesArea({
   lines,
@@ -1061,8 +945,7 @@ function LinesArea({
   useEffect(() => {
     const incoming = lines ?? [];
     if (splitLines(text).join('\n') !== incoming.join('\n')) setText(incoming.join('\n'));
-    // `text` is deliberately not a dependency: this effect is about the array
-    // arriving from somewhere else, not about the typing that produced it.
+    // Follows the array arriving from elsewhere, not the typing that made it.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lines]);
 
@@ -1082,11 +965,8 @@ function LinesArea({
 }
 
 /**
- * The headers of one request, as the "Name: value" lines they were recorded as.
- *
- * Same arrangement as LinesArea, and here the round trip is worse than a lost
- * newline: a name typed one letter at a time has no colon yet, so the map is
- * empty, so the letter disappears as it is typed.
+ * HeadersArea edits a request's headers as "Name: value" lines, keeping its own
+ * text like LinesArea, since a name typed without its colon yet would vanish.
  */
 function HeadersArea({
   headers,
@@ -1124,9 +1004,7 @@ function splitLines(s: string): string[] {
     .filter(Boolean);
 }
 
-/** Headers are edited as "Name: value" lines, which is how they were recorded
- *  and how every router script in the wild writes them. Sorted by name, so the
- *  text does not reshuffle itself when the map is rebuilt. */
+/** headersToText writes "Name: value" lines, sorted so the text does not reshuffle. */
 function headersToText(h?: Record<string, string>): string {
   if (!h) return '';
   return Object.keys(h)

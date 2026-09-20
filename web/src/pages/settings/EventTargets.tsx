@@ -14,69 +14,22 @@ import { useDraft, useFeatures } from './context';
 import { TargetRow } from './eventtargets/TargetRow';
 
 /**
- * Where this instance reports to when something happens: one row per address,
- * each with its own method, headers, body template and list of events.
+ * EventTargets lists the addresses this instance reports to when something
+ * happens, each with its own method, headers, body template and events. It is
+ * the outbound side of the event bus internal/script publishes on, and is
+ * named apart from the in-browser notifications on purpose.
  *
- * It is the outbound half of the event bus internal/script already publishes on.
- * The bus had exactly one subscriber (the script host) and no way for an
- * operator to add a second one without writing JavaScript, so "tell my phone
- * when a package finishes" was a scripting task. This page makes it four fields.
- *
- * SIX THINGS ABOUT THIS PAGE ARE DECISIONS RATHER THAN LAYOUT.
- *
- * IT IS NOT THE NOTIFICATIONS CARD, and the naming is deliberate the whole way
- * down. settings/look/Notifications.tsx routes an event to a toast or an OS
- * notification, never leaves the browser, is unavailable outright on an ordinary
- * plain-HTTP deployment, and already owns the word "Benachrichtigungen". This
- * one leaves the machine and reaches a server the operator named. Two controls
- * with one name and different reach is the confusion this page must not create,
- * so it is "Ereignisziele" / "Event targets" everywhere, including in the
- * package name on the other side.
- *
- * NOTHING IS FILLED IN AND NOTHING IS ON. A new row arrives switched off with no
- * event ticked, and both halves matter: a target that fired on all eleven events
- * the moment it was created would send two hundred messages the first time
- * somebody pasted a container, and an upgrade must not start sending because a
- * default said so. The server agrees by construction - `eventTargets` is absent
- * from every settings.json written before this existed and decodes to nil.
- *
- * THE AUTOSAVE TRAP is why three fields never reach the draft while they are
- * half typed. The settings shell saves 600 ms after any draft change, and
- * routes_settings.go's validateRows refuses the WHOLE settings PATCH when one
- * row fails, naming the row number. Typing "https" into an address, or "{" into
- * a body with a placeholder still being opened, would therefore fire a save, be
- * refused, and take every unrelated edit on every other settings page down with
- * it. The address, the headers and the body are held in the row's own state and
- * committed on the way out, exactly as Feeds.tsx already does for its address
- * and its title filter.
- *
- * THE HEALTH IS THE SERVER'S, NOT A GUESS, and it is blanked by a restart. An
- * absent lastAttempt means "nothing since the server started", never "never" -
- * the health table lives in memory beside the dispatcher and the targets
- * themselves live in settings.json, so a target that has been delivering for a
- * year reads as silent for the seconds after a container update. Drawing that as
- * a problem would be a false alarm on every boot.
- *
- * A HEADER VALUE IS A SECRET AND THIS BROWSER HAS NEVER SEEN ONE. The server
- * serves eight stars in place of every stored value and merges the real one back
- * on save, and only while the row still points at the same address. That last
- * clause is the security of the feature rather than a nicety: this browser is
- * what types the address, so a token that followed a changed one could be aimed
- * at a machine the client controls. It is why changing the address drops the
- * stored value, why the copy says so, and why the test button's answer shows
- * stars again where the token went.
- *
- * THE EVENTS ARE THE SCRIPT EDITOR'S EVENTS. The list comes from
- * GET /api/scripts/triggers, from the registry that actually fires them, and the
- * labels come from lib/triggers.ts, which both pages now read. A second list
- * here would offer events the server cannot honour and miss ones it can.
+ * A new row starts off with no event ticked. The address, headers and body are
+ * committed on blur, because the server refuses the whole settings document
+ * when one row is invalid. Header values come back as stars and are merged
+ * back on save only while the row keeps its address, so a token cannot be
+ * redirected to another machine.
  */
 
-/** A row that has been added but has no address the server would take, and
- *  therefore nothing that can safely be written into the shared draft yet. A
- *  blank row is DROPPED by notify.Sanitize, which is exactly what an untouched
- *  Add button produces, so putting it in the draft early would autosave it, get
- *  it deleted, and make it vanish under the cursor. */
+/**
+ * PendingRow is a new row without a usable address. It stays out of the draft,
+ * where notify.Sanitize would drop it on the next autosave.
+ */
 interface PendingRow {
   key: string;
   row: EventTargetRow;
@@ -86,13 +39,9 @@ let pendingCounter = 0;
 const freshKey = () => `p${(pendingCounter++).toString(36)}`;
 
 /**
- * The lowest positive number no row is using, as a string.
- *
- * The SAME scheme notify.identify uses on the server, and assigned here rather
- * than left to the save for one concrete reason: the id is what the health table
- * joins on and what React keys the row by, so a row with no id until the save
- * round-trips is a row whose editor closes under whoever is typing in it.
- * identify keeps the first non-empty claim, so an id minted here survives.
+ * nextId returns the lowest unused positive number, as notify.identify does.
+ * The id is assigned here because the health table and the React key depend on
+ * it before the save returns.
  */
 function nextId(rows: EventTargetRow[]): string {
   const taken = new Set(rows.map((r) => r.id));
@@ -103,14 +52,8 @@ function nextId(rows: EventTargetRow[]): string {
 }
 
 /**
- * The health table, keyed by target id exactly as the server keys it.
- *
- * Fetched once on mount and NOT polled. The numbers in it change when an event
- * happens, which on a quiet instance is never, and a card that re-fetched every
- * few seconds would be asking a question whose answer cannot have changed,
- * forever, on a settings page left open in a background tab. A failure leaves
- * the map empty, so every row reads as "nothing since the server started" -
- * which is exactly what is true when nothing answered.
+ * useHealth fetches the health table once, keyed by target id. It changes only
+ * when an event fires, so it is not polled.
  */
 function useHealth(): Record<string, EventTargetStatus> {
   const [health, setHealth] = useState<Record<string, EventTargetStatus>>({});
@@ -124,7 +67,7 @@ function useHealth(): Record<string, EventTargetStatus> {
         setHealth(byID);
       },
       () => {
-        /* No status is drawn, which is the honest state when nothing answered. */
+        /* No status is drawn when nothing answered. */
       },
     );
     return () => {
@@ -134,11 +77,7 @@ function useHealth(): Record<string, EventTargetStatus> {
   return health;
 }
 
-/** The trigger vocabulary and the placeholder vocabulary, both from the server.
- *  Neither is ever guessed at here: a picker built from a list written on this
- *  side offers events the registry cannot fire and names the expander does not
- *  fill in, and both mistakes are invisible until somebody's message arrives
- *  wrong. */
+/** useVocabulary loads the trigger and placeholder lists from the server. */
 function useVocabulary(): { triggers: string[]; placeholders: Placeholder[] } {
   const [triggers, setTriggers] = useState<string[]>(FALLBACK_TRIGGERS);
   const [placeholders, setPlaceholders] = useState<Placeholder[]>([]);
@@ -162,49 +101,39 @@ export function EventTargets() {
   const { cfg, patch } = useDraft();
   const { features } = useFeatures();
 
-  // Undefined and not null: the field is omitempty on the Go side, deliberately,
-  // so that a settings.json written before this feature existed decodes to
-  // nothing and this instance sends nothing.
+  // omitempty, so an older settings.json sends nothing.
   const rows = cfg.eventTargets ?? [];
   const health = useHealth();
   const { triggers, placeholders } = useVocabulary();
 
-  // Switched off on the Modules page, which CLEARED settings.eventTargets and
-  // parked the rows server-side, so anything typed here now would be typed into
-  // a list the server is not reading. Tested on parked as well as enabled, never
-  // on enabled alone: an empty list on a fresh install also reads as off, and
-  // locking for that reason would leave nowhere to type the first address.
+  // The Modules page parks the rows and clears the list. Checked with `parked`,
+  // because an empty list on a fresh install also reads as off.
   const module = features.modules.find((m) => m.id === 'eventtargets');
   const parked = module !== undefined && !module.enabled && module.parked;
 
   const [openRow, setOpenRow] = useState('');
   const [pending, setPending] = useState<PendingRow[]>([]);
 
-  // Never patch({ eventTargets: undefined }), which the settings shell's diff
-  // would send as a changed key with no value. An emptied list goes out as []
-  // and comes back absent, which is the same thing said the server's way.
+  // An emptied list goes out as [], never undefined, which the shell's diff
+  // would send as a key without a value.
   const write = (next: EventTargetRow[]) => patch({ eventTargets: next });
 
   const add = () => {
     const row: PendingRow = {
       key: freshKey(),
-      // Off, with nothing ticked and no opinion about attempts or the time
-      // limit. Every one of those zeroes is load-bearing - see this file's own
-      // opening note.
+      // Off, nothing ticked, and no opinion on attempts or the time limit.
       row: { id: '', name: '', enabled: false, url: '', attempts: 0, timeoutSeconds: 0 },
     };
     setPending((p) => [...p, row]);
     setOpenRow(row.key);
   };
 
-  /** Move a pending row into the draft under the address that was typed, once
-   *  the server would take it. */
+  /** Moves a pending row into the draft once its address is valid. */
   const commit = (key: string, next: EventTargetRow) => {
     const id = nextId(rows);
     write([...rows, { ...next, id }]);
     setPending((list) => list.filter((r) => r.key !== key));
-    // The row is keyed by its id once it is stored, so it remounts here.
-    // Without this the editor would close on whoever just finished typing.
+    // The stored row is keyed by its id, so it remounts; keep it open.
     setOpenRow(id);
   };
 
@@ -216,13 +145,7 @@ export function EventTargets() {
         hint={t('settings.eventTargets.titleHint')}
         right={
           <div className="flex items-center gap-2">
-            {/* The module's state, and while it is off this badge is the whole
-                of what the card's head says: the Add button beside it is GONE
-                rather than greyed, exactly as the feeds card two pages over
-                already does it. A badge is REPORTING - it answers its own
-                question - which is the one thing GlimStone keeps on screen
-                while a mode is off; a disabled Add is the other thing, a
-                control offering a decision nobody can make. */}
+            {/* While the module is off the badge replaces the Add button. */}
             {parked && <LabelBadge label={t('settings.modules.off')} />}
             {!parked && (
               <Button icon={<IconPlus width={16} height={16} />} onClick={add}>
@@ -235,38 +158,14 @@ export function EventTargets() {
         {t('settings.eventTargets.title')}
       </SectionTitle>
 
-      {/* THE CARD STAYS, WHAT HANGS OFF THE MODULE DOES NOT (GlimStone 1.10.0,
-          and the question 1.16.0 settles it with). This used to be wrapped in
-          `pointer-events-none opacity-40` while the module was parked, under
-          the argument that a card which vanishes teaches nobody the feature
-          exists. Half of that is right and survives: the card, its title, its
-          (i) and the Off badge above are still here, and they are what says the
-          feature exists.
-
-          The other half does not, and measuring is what settles it. Parking
-          CLEARS settings.eventTargets server-side (verified against a running
-          instance: park with one target stored and the key comes back absent),
-          so while the module is off there are no rows here at all and what the
-          dimming actually covered was the empty-state sentence - prose, which
-          answers its own question and reads correctly at full strength. The one
-          real control was the Add button, and that is gone rather than greyed
-          now, exactly as the feeds card does it.
-
-          The wrapper carried a second fault too (1.9.0): every field in a row
-          carries an (i), and opacity composites a whole subtree, so each of
-          those would have rendered at 40% along with the row it explains. */}
+      {/* Parking clears the list on the server, so while the module is off
+          only the empty-state sentence remains. */}
       <div>
         {total === 0 ? (
-          // Inside the card rather than instead of it: the Add button above is
-          // the only way out of this state, and swapping the card for an
-          // EmptyState would take it off the page.
+          // Inside the card rather than an EmptyState, which would hide Add.
           <p className="py-6 text-center text-sm text-carbon-textSub">
             {t('settings.eventTargets.empty')}
-            {/* The second sentence ends in "add one", which is an invitation to
-                press a button that is not on the card while the module is
-                parked. The first sentence says what a target IS and reads
-                correctly either way, so it stays and the invitation goes with
-                the control it points at. */}
+            {/* The invitation to add one goes with the Add button. */}
             {!parked && (
               <span className="mt-1 block text-[11px] text-carbon-textMuted">
                 {t('settings.eventTargets.emptyHint')}
@@ -302,9 +201,7 @@ export function EventTargets() {
                 placeholders={placeholders}
                 open={openRow === p.key}
                 onToggle={() => setOpenRow(openRow === p.key ? '' : p.key)}
-                // Kept in local state even when it cannot be stored yet, so
-                // collapsing a row whose address is still half typed does not
-                // throw away what was typed into it.
+                // Kept so collapsing a half-typed row keeps the text.
                 onChange={(next) => setPending((list) => list.map((r) => (r.key === p.key ? { ...r, row: next } : r)))}
                 onCommit={(next) => commit(p.key, next)}
                 onRemove={() => setPending((list) => list.filter((r) => r.key !== p.key))}

@@ -23,58 +23,15 @@ import { useTriggerLabel } from '../../lib/triggers';
 import { IconCode, IconPlay, IconPlus, IconTrash } from '../../lib/icons';
 
 /**
- * Scripts: JD's "Event Scripter" (census family E), split across two agents
- * this wave. This page is 11B's half: the editor surface (census row
- * "Script Editor: %s1") and, via components/ScriptActions.tsx, the
- * manual-invocation button (census row "Toolbar / Main Menu / Contextmenu /
- * Traymenu Button Pressed").
- *
- * internal/script (11A) and internal/api/routes_scripts.go are both real and
- * wired end to end - see lib/scripts.ts's file doc comment. Every field on
- * Script/ScriptRunResult below is typed from the actual Go structs in
- * internal/script/script.go, not guessed.
- *
- * SCOPE, against the census row's full wish list: syntax highlighting and a
- * Show Help pane's worth of intent are here (the trigger picker doubles as
- * that - see triggerHint). Auto Format and Test Compile are not: both need an
- * opinion about JavaScript formatting/parsing this build has no vendored tool
- * for yet, and a "format" button that silently does nothing would be worse
- * than the row staying missing. Test Run is here in full - see onRun below.
- *
- * PER-SCRIPT SAVE, NOT A WHOLE-LIST PUT - unlike this file's neighbours
- * Schedule.tsx and Rules.tsx. Both of those are defensible for what they hold
- * (a handful of short, rarely-conflicting rows); a script carries real
- * authored code, or the point of the code box above is aesthetic. Two browser
- * tabs open on the same script list, one adding a row while the other edits
- * one, must not let whichever PUT lands second silently erase the other's
- * work - internal/script/store.go's own doc comment gives the identical
- * reason for scripts.json being its own file rather than living in
- * settings.Settings, one layer further out. Every row here owns its own
- * POST/PUT and its own dirty flag, so the only thing two tabs can race is two
- * edits to the SAME script, which a normal HTTP response ordering answers
- * well enough for a single self-hosted user.
- *
- * Registered in the settings rail: internal/api/routes_features.go's
- * featurePages() lists a FeaturePage{id:"scripts"} entry, and the
- * "scripting" module row points its Page field at it (Verdict:
- * VerdictShipped) rather than at Advanced.
+ * Scripts edits the event scripts run by internal/script, with syntax
+ * highlighting and a test run. Each script saves through its own POST or PUT
+ * rather than a whole-list PUT, so two tabs editing different scripts cannot
+ * erase each other's code.
  */
 
 /**
- * Lazy, not a static import - the one deviation from how every sibling
- * settings page in registry.tsx is loaded, and deliberately narrow: it is
- * CodeEditor that is heavy (CodeMirror plus its language/state/view/commands
- * packages - measured, not assumed: the production build's own app.js
- * nearly doubled the moment CodeEditor's static import landed here, and
- * Vite's own build output flagged the >500kB chunk warning on it), not this
- * page. Every other settings page stays a static import; only the one
- * component actually pulling in a third-party editor is deferred, fetched
- * the first time a row is opened rather than by everyone who ever loads
- * Settings. Matches the same reasoning lib/locales/index.ts already gives
- * for the exact same technique applied to locale dictionaries ("42 languages
- * eagerly bundled would make every visitor download 41 they will never
- * read") - this is that argument applied to the one other genuinely large,
- * often-unused piece the frontend now carries.
+ * CodeEditor is loaded lazily because CodeMirror doubles the main bundle, and
+ * most visitors never open a script.
  */
 const CodeEditor = lazy(() => import('../../components/CodeEditor').then((m) => ({ default: m.CodeEditor })));
 
@@ -89,10 +46,8 @@ interface Row {
 let keyCounter = 0;
 const freshKey = () => `k${Date.now().toString(36)}${keyCounter++}`;
 
-// Every ScriptInput field, timeoutMs included - dropping it here would make
-// `same(draft, inputOf(row.saved))` compare a draft that HAS the key against
-// a baseline that never does, leaving a row's dirty flag stuck true forever
-// the moment anyone touches the time-limit field, saved or not.
+// Every ScriptInput field, timeoutMs included, or the dirty check against the
+// saved row would stay true once the time limit is touched.
 function inputOf(s: Script): ScriptInput {
   return { name: s.name, trigger: s.trigger, enabled: s.enabled, code: s.code, timeoutMs: s.timeoutMs };
 }
@@ -105,14 +60,8 @@ function toRows(list: Script[]): Row[] {
 }
 
 /**
- * The strings this page needs, keyed by where they are going.
- *
- * i18n for this wave lands in one later, dedicated pass across every locale
- * at once (the same one-writer-per-wave rule locales/* has followed since
- * Wave 1) - see Schedule.tsx and Connections.tsx's identical tables and
- * useCx for the precedent this mirrors. The lookup asks the real catalogue
- * first, so the day these keys land in en.ts this table stops being
- * consulted and can be deleted without touching anything else here.
+ * PENDING holds the English strings until the catalogue has them; the lookup
+ * asks the catalogue first.
  */
 const PENDING = {
   'settings.scripts.title': 'Scripts',
@@ -165,8 +114,7 @@ function useCx(): Cx {
   const { t } = useT();
   return useCallback(
     (key: PendingKey, vars?: Record<string, string | number>) => {
-      // The cast is the whole point: these keys are not in the union yet. It is
-      // narrow — only keys in PENDING can be passed — and it goes with the table.
+      // These keys are not in the union yet; only PENDING keys can be passed.
       const translated = t(key as unknown as TranslationKey) as string | undefined;
       let s: string = translated ?? PENDING[key];
       if (vars) for (const [k, v] of Object.entries(vars)) s = s.replaceAll(`{${k}}`, String(v));
@@ -175,15 +123,6 @@ function useCx(): Cx {
     [t],
   );
 }
-
-// The trigger-to-label map used to live here, with entries for FOUR of the
-// eleven triggers internal/script actually fires - so checksum.failed,
-// package.done and five others were drawn in this menu as their own raw dotted
-// ids among a list of sentences. It has moved to lib/triggers.ts, whole, because
-// the event targets page offers the same vocabulary and a second private copy
-// beside this one is exactly the drift AllTriggers' own doc comment argues
-// against one layer down. See useTriggerLabel there, including why an id this
-// build does not know still renders as itself.
 
 export function Scripts() {
   const { t } = useT();
@@ -196,9 +135,7 @@ export function Scripts() {
     if (loaded) setRows(toRows(loaded));
   }, [loaded]);
 
-  // Fetched once, from 11A's own trigger registry - see lib/scripts.ts's
-  // fetchScriptTriggers for why this is asked for rather than hard-coded, and
-  // why it never resolves to an unusable empty list.
+  // From the server's trigger registry (fetchScriptTriggers), never empty.
   const [triggers, setTriggers] = useState<ScriptTrigger[]>(FALLBACK_TRIGGERS);
   useEffect(() => {
     let alive = true;
@@ -213,10 +150,7 @@ export function Scripts() {
     const row: Row = {
       key: freshKey(),
       saved: null,
-      // cx(), not PENDING directly: once these keys land in en.ts a new
-      // script's starter comment should read in whichever language the
-      // catalogue is answering in, the same as everything else this page
-      // shows - not permanently frozen at the English fallback text.
+      // Through cx, so the starter comment follows the catalogue's language.
       draft: { name: '', trigger: 'manual', enabled: true, code: cx(DEFAULT_CODE_KEY) },
     };
     setRows([row, ...rows]);
@@ -228,9 +162,7 @@ export function Scripts() {
       prev ? prev.map((r) => (r.key === oldKey ? { key: script.id, saved: script, draft: inputOf(script) } : r)) : prev,
     );
     setOpenKey(script.id);
-    // The list's own GET is not re-run: the row that just saved already holds
-    // the server's answer, and reloading here would blow away every OTHER
-    // row's unsaved draft that happened to be open at the same time.
+    // No reload of the list, which would drop other rows' unsaved drafts.
     setLoaded((prev) => {
       if (!prev) return prev;
       const i = prev.findIndex((s) => s.id === script.id || s.id === oldKey);
@@ -251,7 +183,6 @@ export function Scripts() {
 
   return (
     <div className="flex flex-col gap-10">
-      {/* No subtitle (jdp, 2026-09-07). */}
       <PageHeader title={cx('settings.scripts.title')} />
 
       <Card hue={0} className="flex flex-col gap-4">
@@ -318,19 +249,13 @@ function ScriptRow({
   const [removing, setRemoving] = useState(false);
   const [running, setRunning] = useState(false);
   const [runResult, setRunResult] = useState<ScriptRunResult | null>(null);
-  // ONE COUNTER PER CONTROL, never one shared between the two: a failure of
-  // the button that was NOT pressed would otherwise shake the wrong one. Each
-  // keys its own control, so a second identical refusal builds a fresh DOM
-  // node and the animation replays rather than playing once ever.
+  // One counter per control, so a refusal shakes the button that was pressed.
   const [removeShake, setRemoveShake] = useState(0);
   const [runShake, setRunShake] = useState(0);
 
   const dirty = row.saved === null || !same(draft, inputOf(row.saved));
-  // A freshly-added row (row.saved === null) is "dirty" the instant it
-  // exists, before anyone has typed a single character - the auto-save
-  // effect below must not fire on that alone, or add() would create an
-  // untitled, empty script the moment its row appears. touched flips true
-  // only from a real field edit, so an unopened new row just sits there.
+  // A new row counts as dirty at once; touched keeps the autosave from
+  // creating an empty script before anything is typed.
   const touched = useRef(false);
   const update = (fields: Partial<ScriptInput>) => {
     touched.current = true;
@@ -345,24 +270,15 @@ function ScriptRow({
       onSaved(row.key, script);
       toast(t('settings.saved'), 'ok');
     } catch (e) {
-      // The toast, and nothing beside it: this row used to do both at once -
-      // a toast AND a sentence under the editor - which is the doubling the
-      // language rules out by name. The sentence never cleared itself, so a
-      // failure from earlier in the session read exactly as current as one
-      // from a second ago. No shake, and that is the documented shape rather
-      // than an omission: this is the debounced save of a whole editor, not a
-      // clicked button, so there is no control the refusal belongs to.
+      // Only a toast: the debounced save has no button to shake.
       toast(cx('settings.scripts.saveFailed', { error: e instanceof ScriptApiError ? e.message : String(e) }), 'fail');
     } finally {
       setSaving(false);
     }
   }
 
-  // Saves itself like every other settings tab (jdp: "In allen
-  // Einstellungstabs soll alles was man einstellt automatisch sofort
-  // gespeichert werden, ohne dass ein Speichern Button erscheint") - a
-  // longer 900ms delay than the shared shell's 600ms since a keystroke
-  // here can be mid-line of actual authored code, not a single field.
+  // Saves itself like every settings tab, after 900ms rather than 600ms,
+  // since a keystroke may be mid-line in code.
   const saveTimer = useRef<number | null>(null);
   useEffect(() => {
     if (!touched.current || !dirty) return;
@@ -390,12 +306,7 @@ function ScriptRow({
       await deleteScript(row.saved.id);
       onRemoved(row.key, row.saved.id);
     } catch (e) {
-      // Its own sentence, not the save one - caught live: a failed delete was
-      // reported through settings.scripts.saveFailed ("Could not save: …"),
-      // which is exactly the wrong sentence for a Remove click. It goes to the
-      // toast now and the trash badge shakes; the two paragraphs that used to
-      // carry it (one above the fold, one below) are gone, because a sentence
-      // left on the page never clears itself.
+      // Its own sentence rather than the save one, and the trash badge shakes.
       toast(cx('settings.scripts.removeFailed', { error: e instanceof ScriptApiError ? e.message : String(e) }), 'fail');
       setRemoveShake((n) => n + 1);
       setRemoving(false);
@@ -409,10 +320,7 @@ function ScriptRow({
     try {
       setRunResult(await runScript(row.saved.id));
     } catch (e) {
-      // The run could not even be STARTED - a network or server error, not a
-      // verdict about the script. A verdict is what runResult below carries,
-      // and that one stays a plain inline fact. This one is the "you pressed
-      // it, it did not work" case: toast plus a shake of the button pressed.
+      // The run could not start. A verdict about the script is runResult below.
       toast(cx('settings.scripts.runFailed', { error: e instanceof ScriptApiError ? e.message : String(e) }), 'fail');
       setRunShake((n) => n + 1);
     } finally {
@@ -438,10 +346,6 @@ function ScriptRow({
           <span className="min-w-0 flex-1">
             <span className="flex items-center gap-2">
               <span className="truncate text-sm text-carbon-text">{title}</span>
-              {/* The caption step, 11px, and not a tenth size beneath it: the
-                  type scale has exactly four steps and a fourth caption size
-                  claiming to be one is the drift the table was consolidated to
-                  stop. */}
               {dirty && (
                 <span className="shrink-0 rounded-[var(--radius-control)] bg-statusInfoBg px-1.5 py-0.5 text-[11px] text-statusInfo">
                   {cx('settings.scripts.unsaved')}
@@ -450,18 +354,12 @@ function ScriptRow({
             </span>
             <span className="block truncate text-[11px] text-carbon-textMuted">
               {triggerLabel(draft.trigger)}
-              {/* No "last run" line: internal/script.Script (script.go) persists
-                  no run history at all - Result only ever exists for the
-                  duration of one Test Run, held below in this row's own
-                  runResult state, never written back to the saved script. */}
+              {/* No "last run" line: internal/script keeps no run history. */}
             </span>
           </span>
         </button>
-        {/* `labelled`, and 16px of glyph in the 32px tile: a row action stands
-            in the Beschriftung setting like everything else, and the square is
-            what that setting resolves to in glyph mode rather than a control
-            that ignores it. The name beside it is `min-w-0` and truncates, so
-            the word costs this row nothing. */}
+        {/* `labelled`, so the actions follow the Beschriftung setting; the
+            name truncates instead. */}
         <div className="flex items-center gap-1.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
           <IconBadge
             key={removeShake}
@@ -505,14 +403,8 @@ function ScriptRow({
             </Field>
           </div>
 
-          {/* Skeleton, then the real thing crossfading in - both through the
-              motion engine rather than around it. The placeholder used to run
-              Tailwind's own `animate-pulse`, an endless animation belonging to
-              none of the house keyframes and reading no motion token at all,
-              so it went on pulsing for somebody who had set motion to Off and
-              for anybody whose system asks for reduced motion. `glim-live` is
-              the house pulse and has a real stop in both of those states; the
-              editor arriving is what `glim-content-in` is for. */}
+          {/* The placeholder uses the house pulse and the editor fades in, so
+              both follow the motion level and reduced motion. */}
           <Field label={cx('settings.scripts.code')}>
             <Suspense fallback={<div className="glim-well glim-live" style={{ minHeight: '220px' }} />}>
               <div className="glim-content-in">
@@ -536,11 +428,8 @@ function ScriptRow({
           </div>
           {runHint && !running && <p className="text-end text-[11px] text-carbon-textMuted">{runHint}</p>}
 
-          {/* The run's own VERDICT, which is a different thing from a run that
-              could not be started: the test ran and truthfully reported bad
-              news, the same category as a red health badge, so it stays a
-              plain inline fact with no toast and no shake. The other branch,
-              where the call itself failed, is handled in onRun above. */}
+          {/* The run's verdict stays inline, even when the news is bad; a run
+              that could not start is handled in onRun. */}
           {runResult && (
             <div className="glim-well flex flex-col gap-1.5 p-3 text-xs">
               <p className={runResult.ok ? 'text-statusOk' : 'text-statusFail'}>
@@ -575,16 +464,10 @@ function TriggerSelect({
   options: ScriptTrigger[];
   onChange: (t: ScriptTrigger) => void;
 }) {
-  // The labels come from lib/triggers.ts now rather than from a `cx` prop, so
-  // this picker and the event targets page cannot disagree about what
-  // package.done is called.
+  // Labels from lib/triggers.ts, shared with the event targets page.
   const triggerLabel = useTriggerLabel();
-  // A value this build's registry does not currently list is kept as an
-  // option of its own rather than silently swapped for the first known one -
-  // matching Schedule.tsx's ActionSelect for the identical reason: switching
-  // a saved trigger on the strength of a menu that simply had nothing else to
-  // offer would be exactly the kind of save-time surprise a picker exists to
-  // prevent.
+  // A value the registry does not list stays an option of its own rather than
+  // being swapped for the first known one, as in Schedule.tsx's ActionSelect.
   const shown = options.includes(value) ? options : [value, ...options];
   return (
     <select

@@ -29,13 +29,8 @@ import {
 import { useT, type TranslationKey } from '../../lib/i18n';
 import { useDraft, useFeatures } from './context';
 
-// Keyed by the id the server sends (YtdlpOptions.quality and the
-// /api/options ytdlpQualities menu below), each pointing at the real
-// settings.resolvers.* catalogue entry rather than embedding English text
-// here - an id the list has no key for still falls back to the raw id, the
-// same "never a blank tab" rule QUALITY_LABELS used before this page had
-// any i18n at all. Read only on a video row - see YtdlpOptions.quality.
-//
+// Labels by the quality id the server sends; an id without one shows raw.
+// Read only on a video row.
 const QUALITY_KEYS: Record<string, TranslationKey> = {
   best: 'settings.resolvers.quality.best',
   '4320p': 'settings.resolvers.quality.4320p',
@@ -50,19 +45,13 @@ const QUALITY_KEYS: Record<string, TranslationKey> = {
   custom: 'settings.resolvers.quality.custom',
 };
 
-// Every other entry in ytdlp.AudioFormats() (aac, alac, flac, m4a, mp3,
-// opus, vorbis, wav) is a codec name, which is the same word in every
-// locale and is therefore rendered as the raw id - only "best" is a word
-// somebody reads, and it means exactly what the quality strip's own "best"
-// means, so it borrows that entry instead of a second string saying the
-// same thing in a slightly different way.
+// The other formats are codec names, shown raw; "best" borrows the quality
+// strip's label.
 const AUDIO_FORMAT_KEYS: Record<string, TranslationKey> = {
   best: 'settings.resolvers.quality.best',
 };
 
-// The five "Variante" rows every yt-dlp link is staged as, named with the
-// list's own column labels so the preset table and the download list call
-// the same row the same thing.
+// Named like the download list's own variant labels.
 const VARIANT_KEYS: Record<YtdlpVariantKind, TranslationKey> = {
   video: 'columns.variant.video',
   audio: 'columns.variant.audio',
@@ -71,10 +60,7 @@ const VARIANT_KEYS: Record<YtdlpVariantKind, TranslationKey> = {
   description: 'columns.variant.description',
 };
 
-// What ytdlp.DefaultHosterPreset() hands out for a host with no row: all
-// five variants staged and enabled, best quality, best audio. Written here
-// as well so a freshly added row starts as the thing it is replacing,
-// rather than as an empty preset that would silently stage nothing.
+// ytdlp.DefaultHosterPreset(), so a new row starts as what it replaces.
 const DEFAULT_PRESET: YtdlpHosterPreset = {
   variants: [...YTDLP_VARIANT_KINDS],
   quality: 'best',
@@ -82,67 +68,35 @@ const DEFAULT_PRESET: YtdlpHosterPreset = {
 };
 
 /**
- * The one key normalisation on this page, and it is load-bearing.
- *
- * A preset is looked up with the host a task carries, and that host has
- * already been www-stripped by hostOf (internal/app/app.go) before
- * HosterPresetFor ever sees it. The settings sanitizer, on the other hand,
- * only trims and lower-cases what this page sends (sanitizeResolvers,
- * internal/settings/settings_resolvers.go). So a row typed as
- * "www.youtube.com" - or pasted as a whole watch URL, which is what anybody
- * with the link in their clipboard will do - is stored happily and then
- * never matches a single download. Normalising here is what closes that
- * gap from the only side this page controls.
+ * normaliseHost reduces a typed host or pasted URL to a www-stripped host. A
+ * task's host arrives www-stripped (hostOf), while sanitizeResolvers only trims
+ * and lower-cases, so without this a row for "www.youtube.com" would never
+ * match.
  */
 function normaliseHost(raw: string): string {
   const typed = raw.trim().toLowerCase();
   if (!typed) return '';
   let host: string;
   try {
-    // Parsed rather than string-chopped so a pasted address loses its
-    // scheme, path, query and port in one step; a bare host is given a
-    // scheme first, because URL refuses to parse one without.
+    // Parsed as a URL so scheme, path, query and port go in one step.
     host = new URL(typed.includes('://') ? typed : `https://${typed}`).hostname;
   } catch {
-    // Not a URL at all (a stray space, a half-typed host). Keep what was
-    // typed minus anything path-shaped rather than throwing the entry away:
-    // the server still trims and lower-cases whatever arrives.
+    // Not a URL: keep the part before any slash; the server trims the rest.
     host = typed.split('/')[0] ?? typed;
   }
   return host.replace(/^www\./, '');
 }
 
 /**
- * Rule 14's mouse-wheel addendum (GlimStone 1.8.0): a CLOSED <select> answers
- * the wheel as well, stepping one option per notch, so a menu somebody reaches
- * for constantly does not cost a click first. Clamped at both ends rather than
- * wrapping - one notch too many must not land a value from the other end of the
- * list, which on this page is the difference between 144p and best.
- *
- * A real listener with `{ passive: false }`, never React's `onWheel`, and that
- * detail is load-bearing rather than fussy: React registers `onWheel` as a
- * PASSIVE listener on its root, so `preventDefault` inside such a handler does
- * nothing but log a warning and the page scrolls out from under the pointer
- * while the value changes. QueueBar.tsx attaches the speed field's wheel
- * handler natively for exactly this reason.
- *
- * The dispatched event is a real bubbling `change`, so the `onChange` already
- * on the element picks it up exactly as a click on an <option> would, with no
- * second code path to keep in step.
- *
- * SECOND COPY, DELIBERATELY: settings/diagnostics/LogViewerCard.tsx carries
- * this function verbatim for its own source picker. Both are standing in for
- * web/src/lib/selectScroll.ts - GlimStone's reference/selectScroll.ts under
- * this repo's roof - which does not exist yet; the moment it does, these two
- * collapse into one import and the other thirteen <select> call sites in the
- * tree get the behaviour with them.
+ * enableSelectWheel lets a closed <select> step one option per wheel notch,
+ * clamped at both ends, and fires a bubbling `change` for its onChange. It uses
+ * a native non-passive listener because React's onWheel is passive and cannot
+ * prevent the page scroll. LogViewerCard.tsx has a copy.
  */
 function enableSelectWheel(select: HTMLSelectElement | null): () => void {
   if (!select) return () => {};
   const onWheel = (event: WheelEvent) => {
     if (select.disabled || select.options.length < 2 || event.deltaY === 0) return;
-    // This handler IS the scroll while the pointer sits on the control, rather
-    // than a bystander to it.
     event.preventDefault();
     const delta = event.deltaY > 0 ? 1 : -1;
     const next = Math.min(select.options.length - 1, Math.max(0, select.selectedIndex + delta));
@@ -155,14 +109,8 @@ function enableSelectWheel(select: HTMLSelectElement | null): () => void {
 }
 
 /**
- * The one control the design language has no primitive for, the same
- * treatment Connections.tsx gives its own (styled to match TextInput, so a
- * row does not read as two different systems).
- *
- * A tab strip is what this page uses for the same two menus at the top -
- * but nine qualities plus nine audio formats on every table ROW would be
- * wider than the table they sit in, and a preset table is a grid of small
- * decisions, not nine strips.
+ * Select is styled to match TextInput, as in Connections.tsx. Rows use it
+ * rather than tab strips, which would not fit a table row.
  */
 function Select({
   value,
@@ -177,14 +125,10 @@ function Select({
   options: string[];
   labelOf: (id: string) => string;
 }) {
-  // A stored value the menu does not carry (an older build's id, or the
-  // options fetch having failed entirely) is prepended rather than dropped:
-  // a select that cannot show its own value would report the first entry as
-  // chosen and overwrite the real one on the next edit.
+  // A stored value missing from the menu is kept as an option, or the select
+  // would show the first entry and overwrite the real value on the next edit.
   const items = options.includes(value) ? options : [value, ...options];
-  // The wheel steps the closed menu - see enableSelectWheel above. A callback
-  // ref rather than useRef, so the listener follows a row that mounts, moves
-  // or is removed while the table is edited.
+  // A callback ref, so the wheel listener follows rows that mount and move.
   const [el, setEl] = useState<HTMLSelectElement | null>(null);
   useEffect(() => enableSelectWheel(el), [el]);
   return (
@@ -206,32 +150,11 @@ function Select({
 }
 
 /**
- * Resolvers is the settings page for internal/resolver/*'s own configurable
- * knobs. Today that is yt-dlp alone: Direct/HTTPFallback take no options,
- * the debrid and TorBox backends are pure credential clients configured on
- * the Accounts page, and the headless-JD backend delegates to JD's own
- * settings - see settings_resolvers.go's own doc comment for the full
- * reasoning, and docs/jd-feature-census.md's "(per-plugin option list)" row
- * for why yt-dlp is the one place this was ever missing.
- *
- * WHICH service handles a link at all - the routing order, the JD sidecar's
- * reachability - is not repeated here: it already has a live section on the
- * Accounts page (RoutingSection, fetchResolverPriority/fetchJDStatus). This
- * page is the other half, what yt-dlp specifically does once a link has
- * already been routed to it.
- *
- * THREE LAYERS DECIDE WHAT A LINK ACTUALLY DOWNLOADS, and this page is the
- * bottom one: the per-row picker in the download list (core.Task.Variant /
- * Task.AudioBitrate) beats the per-host preset, which beats these
- * instance-wide defaults. And the middle layer always answers today -
- * expandYtdlpVariants bakes the preset's quality into the video row's
- * variant string and its audioFormat into the audio row's, and
- * HosterPreset.Sanitize guarantees both are non-empty, while
- * ytdlpOptionsForTask only falls back to a settings value when the variant
- * string carries no sub of its own. So quality and audioFormat here reach
- * nothing that was staged through variant expansion, which is every yt-dlp
- * link. That is not hidden: both hints say so, and the per-host card at the
- * foot of the page is where the answer that does reach a new link lives.
+ * Resolvers configures yt-dlp, the one resolver with options of its own; the
+ * routing order lives on the Accounts page. The per-row picker in the download
+ * list beats the per-host preset, which beats these defaults, and every staged
+ * yt-dlp link carries its preset's quality and audio format, so the defaults
+ * here only reach what variant expansion does not set. The hints say so.
  */
 export function Resolvers() {
   const { t } = useT();
@@ -242,10 +165,7 @@ export function Resolvers() {
   const [audioFormats, setAudioFormats] = useState<string[]>([]);
   const [audioBitrates, setAudioBitrates] = useState<string[]>([]);
   useEffect(() => {
-    // `alive`, not the `live` this guard is called everywhere else in the
-    // app: `live` is the livestream option block on this page now, and a
-    // mount guard shadowing it inside one callback is the kind of thing
-    // that reads correctly and means something else.
+    // Not `live`, which names the livestream options on this page.
     let alive = true;
     void fetchOptions().then(
       (o) => {
@@ -255,8 +175,7 @@ export function Resolvers() {
         setAudioBitrates(o.ytdlpAudioBitrates ?? []);
       },
       () => {
-        /* the page still renders with whatever is already stored; the
-           picker stays out rather than offering a guess at the menu */
+        /* The page renders with what is stored; the picker stays out. */
       },
     );
     return () => {
@@ -266,10 +185,8 @@ export function Resolvers() {
 
   const ytdlp = cfg.ytdlp;
   const patchYtdlp = (fields: Partial<YtdlpOptions>) => patch({ ytdlp: { ...ytdlp, ...fields } });
-  // embed/measure/live are nested one level deeper than everything else on
-  // this page, so each gets its own spread. Never rebuild ytdlp from
-  // scratch: the settings document carries more than this TS type names,
-  // and the shell PATCHes whole top-level keys.
+  // embed, measure and live are nested a level deeper, so each gets its own
+  // spread; the shell patches whole top-level keys.
   const embed = ytdlp.embed;
   const measure = ytdlp.measure;
   const live = ytdlp.live;
@@ -277,18 +194,14 @@ export function Resolvers() {
   const patchMeasure = (fields: Partial<YtdlpMeasure>) => patchYtdlp({ measure: { ...measure, ...fields } });
   const patchLive = (fields: Partial<YtdlpLive>) => patchYtdlp({ live: { ...live, ...fields } });
 
-  // A Go map that was never written marshals as null, not as {}, so this
-  // field can arrive null however non-optional the TS type is.
+  // A Go map never written marshals as null.
   const presets = cfg.ytdlpPresets ?? {};
   const presetRows = Object.entries(presets).sort(([a], [b]) => a.localeCompare(b));
   const [newHost, setNewHost] = useState('');
   const [duplicate, setDuplicate] = useState(false);
 
-  // Every preset write rebuilds the map from `presets` above - which is the
-  // draft as it stands this render, not a value captured earlier. The gear
-  // badge on a collector package writes the SAME map through POST
-  // /api/ytdlp/preset with a read-modify-write of its own, so a map built
-  // from a stale copy here would quietly drop whatever that badge saved.
+  // Rebuilt from this render's draft, since the collector's gear badge writes
+  // the same map through POST /api/ytdlp/preset.
   const writePreset = (host: string, fields: Partial<YtdlpHosterPreset>) => {
     const current = presets[host];
     if (!current) return;
@@ -301,16 +214,12 @@ export function Resolvers() {
     const next = current.variants.includes(kind)
       ? current.variants.filter((v) => v !== kind)
       : [...current.variants, kind];
-    // Rebuilt in the fixed staging order rather than in click order: the
-    // server keeps the order it is given, and a row whose switches read
-    // video/audio before a click and audio/video after it looks like it
-    // changed something it did not.
+    // Kept in staging order, so toggling back and forth stores the same list.
     writePreset(host, { variants: YTDLP_VARIANT_KINDS.filter((k) => next.includes(k)) });
   };
 
-  // A real reset, not a disable: with no row of its own the host falls back
-  // to all five variants on at best quality, which is why there is no
-  // "enabled" switch on a row here.
+  // Without a row the host falls back to all five variants at best quality,
+  // so removing is the reset and rows need no switch.
   const removePreset = (host: string) => {
     const next = { ...presets };
     delete next[host];
@@ -332,10 +241,7 @@ export function Resolvers() {
   const qualityLabel = (q: string) => (QUALITY_KEYS[q] ? t(QUALITY_KEYS[q]) : q);
   const audioFormatLabel = (f: string) => (AUDIO_FORMAT_KEYS[f] ? t(AUDIO_FORMAT_KEYS[f]) : f);
 
-  // Derived from the module registry, not guessed at: whether the yt-dlp
-  // binary was actually found at start-up is live state, the same "never a
-  // stored flag" rule every row on the modules page follows - see
-  // routes_features.go's own file comment.
+  // Whether the binary was found is live state from the module registry.
   const module = features.modules.find((m) => m.id === 'ytdlp');
 
   return (
@@ -348,15 +254,8 @@ export function Resolvers() {
           </Card>
       )}
 
-      {/* First, and above the options, because somebody who lands on this page
-          is usually here because a media link that worked last month stopped
-          working - and an out of date yt-dlp is by a wide margin the most
-          common reason for that. The quality strip below is a preference; this
-          is the fact. Its own file for the same reason CookieJars has one: the
-          card carries a fetch, a verification and a swap, and none of that
-          belongs in the middle of a page of option strips. hue 1 pushed the
-          quality card to 2, which fills the gap the palette sequence already
-          had rather than shifting eight cards. */}
+      {/* First, since an outdated yt-dlp is the usual reason somebody opens
+          this page. */}
       <MediaToolsCard hue={1} />
 
       <Card hue={2} className="flex flex-col gap-5">
@@ -394,15 +293,9 @@ export function Resolvers() {
         />
       </Card>
 
-      {/* Whether a subtitle row exists at all, per hoster, lives on that
-          hoster's own "Variante" preset now (the gear badge on a link's
-          package row, and the per-host table at the foot of this page) -
-          this card is only the knobs that still apply instance-wide once a
-          subtitle row is enabled: which languages, whether auto-generated
-          captions count, and whether a row that wrote nothing is allowed to
-          settle green. The embed card further down has no language field of
-          its own either: its "mux subtitles" switch reads the two above,
-          so the muxed tracks and the .srt files cannot disagree. */}
+      {/* Whether a subtitle row exists is set per hoster in the presets; this
+          card holds the instance-wide knobs. The embed card reuses these
+          languages, so muxed tracks and .srt files agree. */}
       <Card hue={3} className="flex flex-col gap-5">
         <SectionTitle>{t('settings.resolvers.subtitlesTitle')}</SectionTitle>
         <Field label={t('settings.resolvers.subtitleLangs')} hint={t('settings.resolvers.subtitleLangsHint')}>
@@ -420,12 +313,9 @@ export function Resolvers() {
           label={t('settings.resolvers.subtitleAuto')}
           hue={0}
         />
-        {/* The backend runs yt-dlp with warnings switched off, so "that
-            language was never on offer" arrives as nothing at all and the
-            row settles green over an empty folder. This is the only switch
-            that turns that silence into a failure, and it stays off by
-            default because turning it on makes rows fail that an existing
-            install has been settling green for months. */}
+        {/* yt-dlp runs without warnings, so a missing language would settle
+            green over an empty folder; this turns that into a failure. Off by
+            default, since it fails rows existing installs settle green. */}
         <ToggleRow
           checked={ytdlp.subtitleStrict}
           onChange={(v) => patchYtdlp({ subtitleStrict: v })}
@@ -448,16 +338,12 @@ export function Resolvers() {
         </Field>
       </Card>
 
-      {/* Below the output filename card on purpose: music mode's own naming
-          scheme only applies while that field is empty, and its hint says
-          so about the field directly above it. */}
+      {/* Below the output filename card, since music mode's naming applies only
+          while that field is empty. */}
       <Card hue={5} className="flex flex-col gap-5">
         <SectionTitle>{t('settings.resolvers.audioTitle')}</SectionTitle>
 
-        {/* Menu from the server, never a guessed one - the sanitizer folds
-            anything not on this list, empty included, to "best", so a tab
-            this build invented would silently become something else on
-            save. */}
+        {/* The menu comes from the server; the sanitizer folds anything else to "best". */}
         {audioFormats.length > 0 && (
           <FieldGroup label={t('settings.resolvers.audioFormat')} hint={t('settings.resolvers.audioFormatHint')}>
             <Tabs
@@ -471,13 +357,8 @@ export function Resolvers() {
           </FieldGroup>
         )}
 
-        {/* The empty id is a real entry, not a gap: "" is what the audio row
-            sends when it passes no --audio-quality at all, and the list's
-            own "Auto" label is the one already used by the per-row bitrate
-            picker. Not disabled while audioFormat is "best", even though it
-            does nothing there: the format can also be chosen per row, so a
-            greyed-out field here would be greying out a value that is still
-            about to be used. The hint carries that instead. */}
+        {/* "" means no --audio-quality at all. Not disabled while the format is
+            "best", since a row can still pick a format that uses it. */}
         {audioBitrates.length > 0 && (
           <FieldGroup label={t('settings.resolvers.audioBitrate')} hint={t('settings.resolvers.audioBitrateHint')}>
             <Tabs
@@ -491,13 +372,8 @@ export function Resolvers() {
           </FieldGroup>
         )}
 
-        {/* Free text, and it stays free text: ytdlp.AvailableAudioLangs is
-            computed per source and never lands on a task or on
-            /api/options, so any menu here would be this build guessing at
-            what a given video carries. The server keeps only letters,
-            digits and hyphens and silently drops the rest rather than
-            refusing the save - a stray bracket or comma would change the
-            shape of the format selector, not just the language. */}
+        {/* Free text: the available languages vary per source. The server keeps
+            only letters, digits and hyphens. */}
         <Field label={t('settings.resolvers.audioLang')} hint={t('settings.resolvers.audioLangHint')}>
           <TextInput
             dir="ltr"
@@ -508,9 +384,8 @@ export function Resolvers() {
           />
         </Field>
 
-        {/* Music mode switches embedded metadata on for the audio row by
-            itself, whatever the embed card below says: filling tags in and
-            then never writing them would rename the files and tag nothing. */}
+        {/* Music mode writes metadata on the audio row whatever the embed card
+            says, or the tags it fills in would never be written. */}
         <ToggleRow
           checked={ytdlp.music}
           onChange={(v) => patchYtdlp({ music: v })}
@@ -542,9 +417,8 @@ export function Resolvers() {
           hint={t('settings.resolvers.embedChaptersHint')}
           hue={2}
         />
-        {/* Reads the subtitles card above for its languages (empty meaning
-            en) and for the auto-caption switch, so the muxed tracks and the
-            .srt files can never disagree about what was asked for. */}
+        {/* Uses the subtitles card's languages (empty means en) and auto-caption
+            switch. */}
         <ToggleRow
           checked={embed.subs}
           onChange={(v) => patchEmbed({ subs: v })}
@@ -559,9 +433,8 @@ export function Resolvers() {
           hint={t('settings.resolvers.embedSplitChaptersHint')}
           hue={4}
         />
-        {/* The one row here that is not a yt-dlp flag: KnightLoader writes
-            the sidecar itself, from the info json it asks for and deletes
-            again, and a failed write never fails the download. */}
+        {/* KnightLoader writes this sidecar itself from the info json, and a
+            failed write never fails the download. */}
         <ToggleRow
           checked={embed.nfo}
           onChange={(v) => patchEmbed({ nfo: v })}
@@ -581,25 +454,8 @@ export function Resolvers() {
           hue={0}
         />
 
-        {/* ABSENT while the switch above is off, never dimmed (GlimStone
-            1.10.0). Both of these hang off that one switch and answer nothing
-            while it is off, and a dimmed control is something somebody can
-            see, read and reach for that does nothing - with the reason sitting
-            one row up, where nobody looks once they have decided this row is
-            the interesting one. The switch itself stays, because that is the
-            control somebody is actually looking for; what hangs off it goes.
-            This replaced a `pointer-events-none opacity-40` wrapper, which had
-            a second fault of its own: opacity applies to a whole subtree and a
-            child cannot be less transparent than its parent, so the one (i)
-            that could have explained why the field was dim rendered at 40% as
-            well (1.9.0).
-
-            ZERO IS NOT ZERO HERE. Sanitize folds anything outside 1..100,
-            0 included, onto the built-in 90 instead of clamping it to the
-            nearest end - so a stored 0 behaves as 90 and is shown as 90,
-            and the field never sends a 0 back. NumberInput clamps its
-            stepper only; typed input goes through Number() untouched,
-            which is why the clamp is repeated in onValue. */}
+        {/* Absent while the switch is off. Sanitize folds anything outside
+            1..100, 0 included, onto 90, so onValue clamps typed input too. */}
         {measure.enabled && (
           <>
             <Field
@@ -628,28 +484,10 @@ export function Resolvers() {
 
       <Card hue={8} className="flex flex-col gap-5">
         <SectionTitle>{t('settings.resolvers.liveTitle')}</SectionTitle>
-        {/* This switch also gates the detection itself: left off, every
-            download keeps exactly the progress format and the exact parsing it
-            always had.
-
-            THE THREE ROWS UNDER IT ARE NOW ABSENT WHILE IT IS OFF, and that
-            reverses what stood here. The old note argued they should stay,
-            dimmed, because "they say what the mode can do" - which is the
-            argument GlimStone 1.10.0 answers head on: a dimmed sub-switch is
-            something somebody can see, read and reach for that answers
-            nothing, and the reason it is dead sits one row up where nobody
-            looks once they have decided this row is the interesting one. What
-            the mode can do belongs in the (i) on the switch itself, which
-            liveHint already carries, and not in three controls held up as a
-            display case. The switch stays visible with the mode off, because
-            that is the control somebody is looking for; whatever hangs off it
-            goes with it.
-
-            Both limits are floored at 0 in onValue rather than left to the
-            server: a negative one is stored as 0 there, but on the way it
-            would be a limit that stops the recording on its very first
-            progress line. 0 is "no limit" for both, and whichever is
-            reached first stops the recording gently. */}
+        {/* This switch also gates the detection, so with it off progress is
+            parsed as before, and the rows under it are absent. Both limits are
+            floored at 0 in onValue, since a negative one would stop the
+            recording at once; 0 means no limit. */}
         <ToggleRow
           checked={live.enabled}
           onChange={(v) => patchLive({ enabled: v })}
@@ -687,11 +525,7 @@ export function Resolvers() {
         )}
       </Card>
 
-      {/* Its own file, and not because this one is long: the window that pastes
-          a jar is also opened from a failed download, and a card that kept its
-          own copy of that form would be the copy that stops matching the
-          dialog. What lives there is the whole feature - the switch, the list
-          of sites with a jar, and the way in. */}
+      {/* Its own file, since the jar form is shared with a failed download. */}
       <CookieJarsCard hue={9} />
 
       <Card hue={10} className="flex flex-col gap-5">
@@ -699,8 +533,6 @@ export function Resolvers() {
           {t('settings.resolvers.presetsTitle')}
         </SectionTitle>
 
-        {/* The glim-well wrapper with a plain table inside, as the accounts
-            table does it - never a nested Card, and never a Card per row. */}
         <div className="glim-well overflow-x-auto p-0">
           {presetRows.length === 0 ? (
             <p className="px-4 py-3 text-sm text-carbon-textMuted">{t('settings.resolvers.presetsEmpty')}</p>
@@ -724,14 +556,10 @@ export function Resolvers() {
               <tbody className="divide-y divide-carbon-border/40">
                 {presetRows.map(([host, preset], i) => (
                   <tr key={host} className="group transition-colors hover:bg-carbon-hover">
-                    {/* Read-only in the row: the key is what a lookup
-                        matches on, so renaming it in place would move
-                        every setting on the row to a different site
-                        without saying so. Remove it and add the other. */}
+                    {/* Read-only, since the host is the lookup key; remove the
+                        row and add another instead. */}
                     <td className="px-4 py-3 font-medium text-carbon-text">{host}</td>
-                    {/* Hued by COLUMN, not by row: the five switches are
-                        five different things, and every row's answer to
-                        "video?" should read as the same question. */}
+                    {/* Hued by column, since each switch is its own question. */}
                     {YTDLP_VARIANT_KINDS.map((kind, k) => (
                       <td key={kind} className="px-2 py-3">
                         <Toggle
@@ -761,13 +589,7 @@ export function Resolvers() {
                         labelOf={audioFormatLabel}
                       />
                     </td>
-                    {/* The one row action, and it takes the row's own palette
-                        position like every other badge in this card - a delete
-                        badge is not styled differently from the badges beside
-                        it, and what it does is carried by the trash glyph and
-                        its tooltip. Revealed on hover or on keyboard focus so
-                        a long table reads as content rather than as a column
-                        of buttons. */}
+                    {/* The row's action, shown on hover and focus. */}
                     <td className="px-2 py-3 text-end">
                       <IconBadge
                         hue={i}
@@ -785,9 +607,7 @@ export function Resolvers() {
           )}
         </div>
 
-        {/* FieldGroup, not Field: this caption sits over an input AND a
-            button, and a <label> wrapping a button forwards its own clicks
-            to the input. */}
+        {/* FieldGroup, because a label around a button passes clicks to the input. */}
         <FieldGroup label={t('settings.resolvers.presetHost')} hint={t('settings.resolvers.presetHostHint')}>
           <div className="flex items-center gap-2">
             <TextInput
@@ -812,9 +632,7 @@ export function Resolvers() {
             </Button>
           </div>
         </FieldGroup>
-        {/* Borrowed from the host-rules table rather than given a second
-            string of its own: it is the same sentence about the same
-            mistake on the same kind of key. */}
+        {/* The host rules' sentence, since it is the same mistake. */}
         {duplicate && <p className="text-xs text-statusWarn">{t('settings.hostRules.duplicate')}</p>}
       </Card>
     </div>

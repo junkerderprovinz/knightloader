@@ -23,44 +23,23 @@ import { useDraft } from './context';
 import { NeutralSwitch } from './controls';
 
 /**
- * The rule lists: the Packagizer and the link filter, which are one engine used
- * twice and therefore one page with two modes.
- *
- * Three things here are decisions rather than layout.
- *
- * THE LISTS ARE PART OF THE SETTINGS DRAFT. They are fields of the settings
- * document, PUT /api/settings already carries them, and the save bar in the
- * shell is the only thing that writes. There is no Save on this page, and the
- * two routes it does call — the grammar and the dry run — store nothing.
- *
- * COMPILE RUNS ON EVERY EDIT, and its problems are drawn on the rule, and on the
- * condition, that caused them. A rule engine's worst failure is the silent one:
- * an unparsable pattern read as "matched nothing" looks exactly like a rule that
- * is simply too narrow, and somebody can stare at it for an hour. The engine
- * already reports it properly; this page's whole job is to not throw that away.
- *
- * THE TEST BOX IS NOT A NICETY. Without it, a rule is written and its mistake is
- * found three downloads later, in a folder somewhere. With it, the answer is on
- * screen before the page is even saved.
+ * Rules edits the Packagizer and the link filter, one engine used twice. The
+ * lists are part of the settings draft; the grammar and dry-run routes store
+ * nothing. Compile runs on every edit and its problems are drawn on the rule
+ * and condition that caused them, and a test box shows what a pasted link
+ * would do before anything is saved.
  */
 
-/** Which settings field each flavour lives in. */
 const FIELD: Record<Flavour, 'packagizer' | 'linkFilter'> = {
   packagizer: 'packagizer',
   filter: 'linkFilter',
 };
 
-/**
- * The settings type in lib/api.ts does not name the two rule sets yet, and the
- * draft carries them regardless — see the note on SettingsDraft.cfg. These two
- * casts are the whole of that gap, and both go the moment the fields are
- * declared there.
- */
+/** lib/api.ts's Settings does not declare the two rule sets, hence the casts. */
 function readSet(cfg: unknown, flavour: Flavour): RuleSet {
   return (cfg as Record<string, RuleSet | undefined>)[FIELD[flavour]] ?? {};
 }
 
-/** One sample link in the test box, held as the text the user typed. */
 interface Sample {
   url: string;
   filename: string;
@@ -99,10 +78,7 @@ export function Rules() {
     patch({ [FIELD[flavour]]: next } as unknown as Parameters<typeof patch>[0]);
   const writeRules = (next: Rule[]) => write({ ...set, rules: next });
 
-  // The grammar is fetched once. A form built from a list written out in the
-  // client instead would offer whatever this file happens to say, and an
-  // operator the engine refuses produces a rule that saves cleanly and never
-  // fires — invisible from both ends.
+  // The grammar comes from the engine, so the form offers only what it accepts.
   useEffect(() => {
     let live = true;
     fetch('/api/rules/grammar')
@@ -114,24 +90,16 @@ export function Rules() {
     };
   }, []);
 
-  // A rule chip in the task detail panel links here by NAME, because there is
-  // no id to link by: rules.Rule carries Name, Disabled, Conditions and Action
-  // and nothing else. The panel therefore hands the name over and this page
-  // resolves it, rather than the panel fetching /api/settings to resolve it
-  // itself.
+  // A rule chip in the task panel links here by name, since a rule has no id.
   const [params, setParams] = useSearchParams();
   const wanted = params.get('rule');
   useEffect(() => {
     if (!wanted) return;
-    // The English literal from internal/rules' own ruleName, NOT
-    // rx('settings.rules.unnamed'). The server writes `fmt.Sprintf("rule %d",
-    // index+1)` - lower case, English, unconditional - while the catalogue says
-    // "Rule {n}" / "Regel {n}", so comparing against the translated form misses
-    // in every language, English included, on the capital R alone.
+    // The server names an unnamed rule `rule N` in English and lower case, so
+    // the translated label would never match.
     const nameAt = (r: Rule, i: number) => r.name?.trim() || `rule ${i + 1}`;
     let hit = false;
-    // Both sets, because the Packagizer and the link filter both write into the
-    // same matchedRules field.
+    // Both sets write into the same matchedRules field.
     for (const f of ['packagizer', 'filter'] as Flavour[]) {
       const i = (readSet(cfg, f).rules ?? []).findIndex((r, j) => nameAt(r, j) === wanted);
       if (i >= 0) {
@@ -142,15 +110,10 @@ export function Rules() {
         break;
       }
     }
-    // Never silently nothing. A rule renamed since the link was staged is
-    // unfindable by design, and an unnamed one stored as "rule 3" points at
-    // whatever is third TODAY, which this page's own move, duplicate and remove
-    // reorder freely. Saying so is the whole difference between a dead link and
-    // an explained one.
+    // A renamed rule, or an unnamed one that has moved, cannot be found; say so.
     if (!hit) setNotice(rx('settings.rules.notFound', { name: wanted }));
-    // A one-shot instruction, not state. Left in the address it would re-open
-    // the rule on every draft edit (cfg gets a fresh identity per patch) and
-    // fight anybody who then clicked a different rule.
+    // A one-shot instruction; left in the address it would reopen the rule on
+    // every draft edit.
     setParams(
       (p) => {
         const n = new URLSearchParams(p);
@@ -161,11 +124,8 @@ export function Rules() {
     );
   }, [wanted, cfg, rx, setParams]);
 
-  // The dry run, debounced, on every edit to either the set or the samples.
-  //
-  // Serialised into the dependency rather than compared by identity: the draft
-  // hands back a fresh object whenever the field is absent, which as a dependency
-  // would re-run this forever.
+  // The dry run, debounced, on every edit to the set or the samples. Serialised,
+  // because the draft hands back a fresh object when the field is absent.
   const setJSON = JSON.stringify(set);
   const linksJSON = JSON.stringify(
     samples
@@ -194,8 +154,7 @@ export function Rules() {
           setPreviewError('');
         })
         .catch((e: unknown) => {
-          // An abort is this effect cleaning up after itself, not a failure to
-          // report: showing it would flash an error on every keystroke.
+          // The effect aborting its own request is not a failure.
           if (e instanceof DOMException && e.name === 'AbortError') return;
           setPreviewError(e instanceof Error ? e.message : String(e));
         });
@@ -222,8 +181,7 @@ export function Rules() {
     const next = [...rules];
     [next[index], next[to]] = [next[to], next[index]];
     writeRules(next);
-    // The open rule follows the row it belongs to. Leaving the index alone
-    // would silently swap which rule the editor below is writing into.
+    // The open rule follows its row.
     if (openRule === index) setOpenRule(to);
     else if (openRule === to) setOpenRule(index);
   };
@@ -280,9 +238,7 @@ export function Rules() {
             onChange={(f) => {
               setFlavour(f);
               setOpenRule(-1);
-              // The report belongs to the list that was on screen. Kept, it would
-              // draw the old list's problems on the new list's rules for the
-              // quarter-second before the next dry run answers.
+              // The old list's report would mark the new list's rules.
               setReport(null);
             }}
             options={[
@@ -291,10 +247,8 @@ export function Rules() {
             ]}
           />
           <span className="flex-1" />
-          {/* The one accent switch on the page: this is the "is this engine
-              doing anything at all" question, which is exactly what the accent
-              means. Everything below it is a column, and a column of gold would
-              claim nine things are happening. */}
+          {/* The one accent switch on the page, since it says whether the
+              engine does anything at all. */}
           <Toggle
             checked={on}
             onChange={(v) => write({ ...set, disabled: !v })}
@@ -303,11 +257,7 @@ export function Rules() {
           <InfoBubble tip={rx('settings.rules.setSwitchHint')} />
         </div>
 
-        {/* A sentence that FOLLOWS controls takes one extra step of space above
-            it. Under the card's even gap this line sat as close to the mode row
-            above as to the switch below, so the eye had to guess which of the
-            two it belonged to. The step goes above the sentence and never below
-            the controls: a card ending in a gap reads as a missing row. */}
+        {/* The extra space above ties the sentence to the switch below. */}
         <p className="mt-2 text-[11px] leading-snug text-carbon-textSub">
           {flavour === 'packagizer' ? rx('settings.rules.packagizerHint') : rx('settings.rules.filterHint')}
         </p>
@@ -329,14 +279,7 @@ export function Rules() {
         <SectionTitle
           right={
             <div className="flex items-center gap-2">
-              {/* One InfoBubble per button rather than folding both into the
-                  SectionTitle's own hint below: that hint sits inside the
-                  section's title badge, over on the left, while Import and
-                  Export explain two DIFFERENT actions on the right - one
-                  combined sentence up there would explain neither well, and
-                  would sit visually far from the buttons it is about. This
-                  file's own stopAfterMatch row (above) already pairs a hint
-                  with its own label rather than a shared one further away. */}
+              {/* One bubble per button, since Import and Export do different things. */}
               <Button kind="secondary" onClick={() => fileInput.current?.click()}>
                 {rx('settings.rules.import')}
               </Button>
@@ -361,8 +304,7 @@ export function Rules() {
           className="hidden"
           onChange={(e) => {
             const f = e.target.files?.[0];
-            // Cleared straight away, or picking the same file twice in a row
-            // raises no change event and the second import silently does nothing.
+            // Cleared so picking the same file again fires a change event.
             e.target.value = '';
             if (f) void importJSON(f);
           }}
@@ -374,9 +316,7 @@ export function Rules() {
         )}
 
         {rules.length === 0 ? (
-          // Inside the card, not instead of it: Add and Import are the way out
-          // of this state, and swapping the card for an EmptyState would take
-          // them off the page.
+          // Inside the card rather than an EmptyState, which would hide Add.
           <p className="py-6 text-center text-sm text-carbon-textSub">
             {rx('settings.rules.empty')}
             <span className="mt-1 block text-[11px] text-carbon-textMuted">
@@ -423,13 +363,8 @@ export function Rules() {
 }
 
 /**
- * parseRuleSet accepts a whole set or a bare array of rules, and refuses
- * anything else with the reason.
- *
- * The shape check is deliberately shallow: the dry run runs the moment the
- * import lands and reports every rule the engine cannot use, on that rule. A
- * strict validator here would be a second, worse copy of Compile, and the two
- * would disagree.
+ * parseRuleSet accepts a whole set or a bare array of rules. The shape check
+ * stays shallow, since the dry run reports every unusable rule right after.
  */
 function parseRuleSet(text: string): RuleSet {
   const raw: unknown = JSON.parse(text);
@@ -443,9 +378,7 @@ function parseRuleSet(text: string): RuleSet {
       throw new Error('a rule’s conditions are not a list');
     }
   }
-  // Only the three fields this page owns are carried over. An exported file from
-  // a later version with fields we do not know would otherwise be written into
-  // the settings document wholesale and saved there.
+  // Only the three fields this page owns, so unknown fields are not saved.
   const s = set as RuleSet;
   return { rules, disabled: Boolean(s.disabled), stopAfterMatch: Boolean(s.stopAfterMatch) };
 }
@@ -476,7 +409,6 @@ function RuleRow({
   problems: Problem[];
   matched: number;
   samples: number;
-  /** The drawers the category action picks from, straight from the draft. */
   categories: Drawer[];
   onToggle: () => void;
   onChange: (next: Rule) => void;
@@ -511,19 +443,14 @@ function RuleRow({
               {ruleSummary(rx, rule, flavour)}
             </span>
           </span>
-          {/* The count is a fact about the dry run, not activity, so it is not
-              the accent — and it is only shown once there is something to have
-              matched, or "matched 0 of 0" reads as a rule that is broken. */}
+          {/* Shown only once there are samples, or "0 of 0" reads as broken. */}
           {samples > 0 && !broken && (
             <span className="glim-num hidden shrink-0 text-[11px] text-carbon-textMuted sm:block">
               {rx('settings.rules.matchedCount', { n: matched, total: samples })}
             </span>
           )}
-          {/* The red stays. A status colour is barred from a CONTROL - no
-              button, badge or menu entry here paints itself red - but this chip
-              reports the row's STATE, and state is what the colour is for. It
-              sits inside the expand button rather than on it: the button's own
-              class list carries no status colour at all. */}
+          {/* Red reports the rule's state; it sits inside the expand button,
+              whose own classes carry no status colour. */}
           {broken && (
             <span className="shrink-0 rounded-[var(--radius-control)] bg-statusFailBg px-2 py-0.5 text-[11px] text-statusFail">
               {problems.length === 1
@@ -532,12 +459,8 @@ function RuleRow({
             </span>
           )}
         </button>
-        {/* `labelled` on all four, and 16px of glyph in the 32px tile: a row
-            action stands in the Beschriftung setting like everything else, and
-            the square is what that setting resolves to in glyph mode rather
-            than a control that ignores it. The name and summary beside them are
-            `min-w-0` and truncate, and the match count already drops out below
-            `sm`, so four words are a narrower summary and not a broken row. */}
+        {/* `labelled`, so the actions follow the Beschriftung setting; the name
+            and summary truncate instead. */}
         <div className="flex items-center gap-1.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
           <IconBadge
             labelled
@@ -576,11 +499,8 @@ function RuleRow({
         </div>
       </div>
 
-      {/* Drawn on the rule whether or not it is open, because the whole point is
-          that a broken rule is findable in a list of forty without opening each
-          one. A rule with any problem is dropped WHOLE by the engine, and saying
-          so is the difference between "this rule is subtly off" and "this rule
-          is not running". */}
+      {/* Shown on a closed rule too, so a broken one is found without opening
+          each. The engine drops a rule with any problem whole. */}
       {broken && !open && (
         <p className="pb-2.5 ps-12 text-[11px] text-statusFail">{rx('settings.rules.notRunning')}</p>
       )}
@@ -603,13 +523,9 @@ function RuleRow({
 }
 
 /**
- * The test box. Paste a link and a file name, see which rules match, in order,
- * and what comes out.
- *
- * It runs against the list AS EDITED, not as stored, through rules.Preview —
- * which is the same Apply and Check staging calls, on a throwaway Matcher so
- * that previewing three links cannot make the next real download call itself
- * "_4".
+ * TestBox shows which rules match a pasted link and file name, in order, and
+ * what comes out. It runs the list as edited through rules.Preview, on a
+ * throwaway Matcher so a preview cannot rename the next real download.
  */
 function TestBox({
   flavour,
@@ -684,13 +600,7 @@ function TestBox({
                 />
               </div>
             </div>
-            {/* The row's own square badge rather than a glyph-only ghost
-                button. Three things were wrong with the button and all three
-                are the same rule: a small single-purpose row action belongs in
-                the tile, the bubble and the Beschriftung setting every other
-                action on this page already stands in. As a Button it carried an
-                aria-label and NO tooltip - a glyph with nothing to hover - and
-                its 15px mark in a padding-sized square matched neither. */}
+            {/* The row's own badge, with its tooltip and the Beschriftung setting. */}
             <IconBadge
               labelled
               hue={2}
@@ -745,8 +655,7 @@ function Outcomes({
           (idx) => report.rules.find((r) => r.index === idx)?.name ?? String(idx + 1),
         );
         const rejected = flavour === 'filter' && l.verdict.rejected;
-        // Built from the same labels the editor uses, so the preview cannot
-        // name a setting differently from the control that produced it.
+        // The editor's own labels, so the preview names settings the same way.
         const extras: string[] = [];
         if (l.effect.comment) extras.push(`${actionLabel(rx, 'comment')}: ${l.effect.comment}`);
         if (l.effect.priority !== undefined) {
@@ -779,10 +688,7 @@ function Outcomes({
             {rejected && (
               <p className="text-[11px] text-statusFail">
                 {l.verdict.reason}
-                {/* The engine writes its own reason when the rule has none, and
-                    that sentence already names the rule. Appending the name
-                    again reads as "by rule 1 — by rule 1", which looks like a
-                    bug in the page rather than a rejection worth reading. */}
+                {/* The engine's own reason already names the rule. */}
                 {l.verdict.rule && !l.verdict.reason?.includes(l.verdict.rule)
                   ? ` - ${rx('settings.rules.resultBy', { rule: l.verdict.rule })}`
                   : ''}
@@ -795,9 +701,8 @@ function Outcomes({
                 : `${rx('settings.rules.resultMatched')}: ${names.join(' → ')}`}
             </p>
 
-            {/* The Packagizer half of the answer. Shown even for a rejected link
-                in the filter mode: the two lists are edited on the same page and
-                the effect is what the OTHER list would do to it. */}
+            {/* Shown for a link the filter rejects too: it is what the other
+                list would do. */}
             {flavour === 'packagizer' && (
               <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-[11px]">
                 <dt className="text-carbon-textMuted">{rx('settings.rules.resultPackage')}</dt>
@@ -809,12 +714,8 @@ function Outcomes({
                   {l.effect.dir ? (
                     l.effect.dir
                   ) : (
-                    // No rule named a folder. This page deliberately does NOT
-                    // compute the settings folder itself: the real answer adds a
-                    // per-package subfolder, expands its own variables and has a
-                    // fallback, and a second copy of that arithmetic here would
-                    // eventually print a path the app does not use — which, in a
-                    // preview, would be believed.
+                    // No rule named a folder. The real folder is not computed
+                    // here, since a second copy of that logic would drift.
                     <>
                       <span className="text-carbon-textMuted">
                         {downloadDir || rx('settings.rules.folderFromSettings')}

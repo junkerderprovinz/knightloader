@@ -7,26 +7,15 @@ import { useT, type TranslationKey } from '../../lib/i18n';
 import { useDraft } from './context';
 
 /**
- * Everything about an archive: whether it is unpacked, where the files land,
- * what happens when something of that name is already there, and what becomes
- * of the archive itself afterwards.
- *
- * Three of those five had no home at all before this page: the extraction
- * destination, the collision policy and the disposal existed only in the
- * settings document, which meant the only way to reach them was the advanced
- * key table.
+ * Archives settles everything about an archive: whether it is unpacked, where
+ * the files land, what happens to a name already taken and what becomes of the
+ * archive afterwards.
  */
 
 /**
- * The choices this page offers come from GET /api/options, not from a list in
- * this file.
- *
- * Nor are they the download page's lists. An extraction honours a different set
- * of collision policies from a download - it has nobody to ask, and it decides
- * per folder rather than per file - so the server sends what the extractor
- * itself accepts. Hard-coding them here is how a build ends up offering a word
- * the server folds away on save, which looks exactly like the setting refusing
- * to stick.
+ * useArchiveOptions reads the choices from GET /api/options. The extractor
+ * accepts other collision policies than a download, so its lists come from the
+ * server rather than from this file.
  */
 function useArchiveOptions(): { options: ApiOptions | null; failed: boolean } {
   const [options, setOptions] = useState<ApiOptions | null>(null);
@@ -46,9 +35,7 @@ function useArchiveOptions(): { options: ApiOptions | null; failed: boolean } {
   return { options, failed };
 }
 
-// A server value is looked up rather than switched on, and an id with no string
-// falls back to the id itself: a policy or a disposal a later build adds shows
-// up in the strip under its own name instead of as a blank tab.
+// An id without a label shows as itself.
 const COLLISION_LABEL: Partial<Record<string, TranslationKey>> = {
   overwrite: 'settings.archives.collision.overwrite',
   rename: 'settings.archives.collision.rename',
@@ -69,64 +56,25 @@ export function Archives() {
   const choices = (ids: string[] | undefined, labels: Partial<Record<string, TranslationKey>>) =>
     (ids ?? []).map((id) => ({ id, label: labels[id] ? t(labels[id]) : id }));
 
-  // Read through a fallback, exactly as the password list is. The draft is
-  // typed as a subset of a document the SERVER owns, so a field an older server
-  // has not learnt to send yet arrives undefined - and the page has to render an
-  // empty box for it rather than throw on a .trim() and take the whole settings
-  // shell down with it.
+  // An older server may not send these fields.
   const extractTo = cfg.extractTo ?? '';
   const extractMoveTo = cfg.extractMoveTo ?? '';
   const disposal = cfg.archiveDisposal ?? 'keep';
 
-  // The three questions this page hangs everything else off. Each of them is a
-  // decision made one row up, and what depends on a decision made one row up is
-  // ABSENT until that decision is made, never dimmed - a greyed control is
-  // something somebody can see, read and reach for that answers nothing, with
-  // the reason sitting where nobody looks once they have decided this row is
-  // the interesting one. The switches themselves stay, because those are the
-  // controls somebody came for. One level down the same holds: an empty
-  // destination means "beside the archive", where a per-package subfolder would
-  // only nest a folder inside the folder that already names the package, so the
-  // subfolder switch is not there to be reached for either.
+  // What depends on a switch is absent until the switch is on. An empty
+  // destination means "beside the archive", where a per-package subfolder
+  // would only nest a folder.
   const unpacking = cfg.extract;
   const collecting = extractTo.trim() !== '';
   const keeping = disposal === 'keep';
 
   return (
     <div className="flex flex-col gap-10">
-      {/* What this build actually opens, in one line, taken from the extractor
-          rather than written out here. It is drawn only once the server has
-          answered: a page that names formats out of its own head goes on
-          promising one the build stopped reading, and nothing anywhere catches
-          it. A well rather than a card, because the page's first raised surface
-          should be the settings themselves. */}
-      {/* The list of supported extensions is gone (jdp, 2026-09-07: "Öffnet
-          .tar .gz .bz2 .xz .zst .zip .rar .7z" among the info texts to remove).
-          It answered a question nobody on this page is asking: somebody here
-          has already got an archive and wants to know what happens to it, and
-          the two cards below say that. The formats still reach the interface
-          where they matter - the extraction card's own text names them. */}
-
       <Card hue={0} className="flex flex-col gap-5">
         <SectionTitle>{t('settings.archives.extractionTitle')}</SectionTitle>
         <ToggleRow hue={0} checked={cfg.extract} onChange={(v) => patch({ extract: v })} label={t('settings.extract')} />
 
-        {/* Flush left, not indented under the switch (jdp: "In der Card von
-            'Archive nach dem Download entpacken' soll alles ganz links
-            bündig anfangen").
-
-            ABSENT while the switch above is off, never dimmed. Everything in
-            here only means something once something is being unpacked, and a
-            dimmed block is a destination, a subfolder switch and a collision
-            policy somebody can see, read and reach for that answer nothing -
-            with the reason one row up, where nobody looks once they have
-            decided this row is the interesting one. The switch itself stays,
-            because that is the control somebody came for.
-
-            The wrapper this replaces had a second fault of its own: opacity
-            composites a whole subtree, so the (i) beside each of these fields
-            rendered at 40% too - the one element that has to stay readable
-            while the rest recedes was the one nobody could read. */}
+        {/* Flush left under the switch, and absent while it is off. */}
         {unpacking && (
         <div className="flex flex-col gap-5">
           <Field
@@ -134,11 +82,7 @@ export function Archives() {
             label={t('settings.archives.destination')}
             hint={`${t('settings.archives.destinationHint')} ${t('settings.pathVars')}`}
           >
-            {/* The shared chooser and not a bare path box: it browses the
-                SERVER, which is the only machine that knows what is mounted
-                where, and picking a folder replaces only the fixed part of the
-                value so a placeholder tail survives. See
-                components/FolderPicker.tsx. */}
+            {/* The shared chooser browses the server, which knows what is mounted. */}
             <PathInput
               value={extractTo}
               placeholder={t('settings.archives.besideArchive')}
@@ -147,11 +91,6 @@ export function Archives() {
             />
           </Field>
 
-          {/* A sub-switch of the destination above it, so it is absent while
-              there is no destination rather than dimmed: "does nothing without
-              a destination" is not something a greyed-out switch says for
-              itself, and the row above is where the answer is. Its bubble
-              still carries what the switch does once it is here. */}
           {collecting && (
             <ToggleRow
               hue={1}
@@ -162,32 +101,10 @@ export function Archives() {
             />
           )}
 
-          {/* The move, and not a second destination. It belongs directly under
-              "Unpack to" because the two only make sense read together: that
-              one is where the extractor WRITES, so a half-unpacked release
-              sits there for as long as it runs, and this one is where the
-              finished files go afterwards. The files, not the release folder -
-              nothing arrives wrapped in a "Show.S01.COMPLETE.WEB" that no
-              library asked for.
-
-              Two things the bubble cannot carry on its own. A template is
-              allowed here, but the value is measured by its FIXED head
-              (fixedPrefix, internal/settings/settings_staging.go), so
-              "/serien/<jd:packagename>" counts as absolute while
-              "<jd:packagename>/unpacked" has no fixed part at all, counts as
-              relative and is silently cleared on save - the box simply comes
-              back empty, with no error to explain it. And unlike the download
-              folder this path is never probed when it is saved, so a target
-              that cannot be written keeps quiet until a finished extraction
-              tries to move into it.
-
-              Not disabled by `collecting`, unlike the subfolder switch above:
-              the move happens wherever the unpacking landed, so it means
-              something with the destination empty too. A Packagizer rule that
-              named a folder for a single link still beats it.
-
-              The shared chooser again, for the reason the destination gives
-              above - and here the surviving tail is the point, not a detail. */}
+          {/* Where the finished files go once unpacked. A template counts as
+              absolute by its fixed head (fixedPrefix), so a value with no fixed
+              part is cleared on save, and the path is not probed until a move
+              tries it. It applies with an empty destination too. */}
           <Field
             layout="row"
             label={t('settings.archives.moveTo')}
@@ -201,13 +118,8 @@ export function Archives() {
             />
           </Field>
 
-          {/* FieldGroup and not Field: a Field is a `<label>`, and a label
-              around a tab strip hands a click on the caption to the first tab -
-              so clicking the word "If it is already there" would set the
-              policy. See ui.tsx. The well variant, in the same line as its
-              own caption (jdp: "'Wenn eine Datei schon da ist' soll ein
-              horizontaler Selektor werden, in die gleiche Zeile wie der
-              Text"), same as Ecken/Design on the Aussehen page. */}
+          {/* FieldGroup, because a Field's label would pass a click on the
+              caption to the first tab. */}
           {options && options.archiveCollisions.length > 0 && (
             <FieldGroup layout="row" label={t('settings.archives.collision')} hint={t('settings.archives.collisionHint')}>
               <Tabs
@@ -223,12 +135,7 @@ export function Archives() {
         )}
       </Card>
 
-      {/* The whole card, not a dimmed block inside it: what becomes of an
-          archive afterwards is a question that only exists once something is
-          being unpacked, and a card holding nothing but its own title is what
-          rendering the heading alone would leave behind. Same rule as the
-          block above - what hangs off the mode goes with it, the mode's own
-          switch stays. */}
+      {/* The whole card goes while nothing is unpacked. */}
       {unpacking && (
       <Card hue={1} className="flex flex-col gap-5">
         <SectionTitle>{t('settings.archives.afterwards')}</SectionTitle>
@@ -237,12 +144,8 @@ export function Archives() {
             <FieldGroup
               layout="row"
               label={t('settings.archives.disposal')}
-              // The bubble carries the whole truth about the middle answer,
-              // because there is no recycle bin in a container to move anything
-              // into: "trash" is a rename into a hidden folder plus a sweep by
-              // age, and a setting that implies otherwise is a promise broken
-              // quietly. The folder is named by the server so the two cannot
-              // drift apart.
+              // A container has no recycle bin: "trash" moves into a hidden
+              // folder the server names and sweeps by age.
               hint={t('settings.archives.disposalHint', {
                 folder: options.archiveTrashFolder,
               })}
@@ -257,11 +160,6 @@ export function Archives() {
             </FieldGroup>
           )}
 
-          {/* Only under "trash", where it is the difference between a folder
-              that empties itself and one that grows forever - a detail of the
-              answer already chosen, absent until that answer is chosen, the
-              same way everything else on this page that hangs off a decision
-              made above it is absent. */}
           {disposal === 'trash' && (
             <Field
               label={t('settings.archives.retention')}
@@ -278,16 +176,9 @@ export function Archives() {
             </Field>
           )}
 
-          {/* Absent while the archive is being kept, because the sweep has no
-              disposal of its own: a swept .nfo goes the same way the archive
-              goes, so "keep everything" cannot coherently mean "keep the
-              archive and destroy the notes beside it". A switch greyed because
-              of a decision made one row up is the case the language reverses -
-              it can be seen, read and reached for and answers nothing. The
-              bubble says which files and, more to the point, how far the sweep
-              reaches: the package's own files and never the folder. On the
-              default layout one folder holds several releases, and a sweep
-              that read the folder would take the neighbours' notes. */}
+          {/* Absent while the archive is kept, since swept files go the same
+              way as the archive. The sweep takes the package's own files, never
+              the whole folder. */}
           {!keeping && (
             <ToggleRow
               checked={cfg.deleteInfoFiles ?? false}
@@ -314,9 +205,7 @@ export function Archives() {
         </Field>
       </Card>
 
-      {/* Said once, at the bottom, and only when the lists really did not
-          arrive. The alternative is drawing the choosers from a list this build
-          carries, which is the one thing the endpoint exists to prevent. */}
+      {/* Only when the option lists did not arrive. */}
       {failed && <p className="text-xs text-statusFail">{t('settings.archives.optionsFailed')}</p>}
     </div>
   );

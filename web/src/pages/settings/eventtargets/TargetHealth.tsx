@@ -4,32 +4,13 @@ import { useT, type TranslationKey } from '../../../lib/i18n';
 import type { EventTargetStatus } from '../../../lib/eventtargets';
 
 /**
- * What the server knows about this target right now.
- *
- * ONLY EVER DRAWN FOR A STORED ROW. A target that has never been saved has no
- * worker and no health, so every line here would read as a fault on something
- * that does not exist yet.
- *
- * THE ABSENT-STATUS CASE IS THE ONE THAT MATTERS, and it is deliberately quiet.
- * The health table lives in memory beside the dispatcher and the targets
- * themselves live in settings.json, so a target with no lastAttempt has sent
- * nothing SINCE THE SERVER STARTED, which is a different statement from "never".
- * A target that has been delivering for a year reads as silent for the seconds
- * after a container update, and drawing that as a problem would be a false alarm
- * on every boot. So the counters are withheld in that state rather than printed
- * as zeroes.
- *
- * A REFUSAL IS NOT AN ERROR AND IS DRAWN SEPARATELY. lastError is empty whenever
- * the far end answered at all, whatever it answered; the answer is in lastStatus
- * and lastCode. Folding the two together would report a wrong token as a network
- * problem the target will get over, and send somebody to look at their firewall.
+ * TargetHealth shows what the server knows about a stored target. The health
+ * lives in memory, so no lastAttempt means nothing was sent since the server
+ * started, and the counters are withheld rather than shown as zeroes. A refusal
+ * by the far end is shown apart from a transport error.
  */
 export function TargetHealth({ status }: { status?: EventTargetStatus }) {
   const { t } = useT();
-  // happened() for the same reason it is used on lastOk below, which this line
-  // read `status.lastAttempt !== undefined` while ignoring: undefined is not the
-  // only way a Go timestamp has nothing in it, and `omitzero` on
-  // notify.Health.LastAttempt is what makes absence the signal at all.
   const known = status !== undefined && happened(status.lastAttempt);
 
   return (
@@ -42,30 +23,16 @@ export function TargetHealth({ status }: { status?: EventTargetStatus }) {
             <span className="text-carbon-textMuted">
               {t('settings.eventTargets.lastAttempt')}: {fmtWhen(status.lastAttempt)}
             </span>
-            {/* happened(), not `status.lastOk` on its own. LastOK is a Go
-                time.Time, and it is only ever genuinely absent because the
-                struct happens to tag it `omitzero` - which is a fact about a
-                file in internal/notify that this line cannot see. Tagged the
-                usual `omitempty` it would arrive as "0001-01-01T00:00:00Z",
-                a non-empty string, and this target would claim a successful
-                delivery it never made. One predicate for every timestamp in
-                the app, held by web/check-go-timestamps.mjs. */}
             <span className="text-carbon-textMuted">
               {happened(status.lastOk)
                 ? `${t('settings.eventTargets.lastOk')}: ${fmtWhen(status.lastOk)}`
                 : t('settings.eventTargets.lastOkNever')}
             </span>
             <span className="text-carbon-textMuted">{t('settings.eventTargets.sentCount', { n: status.sent })}</span>
-            {/* Only when it has happened. A permanent "0 dropped" line is a line
-                everybody stops reading, and this number only means anything the
-                moment it is not zero. */}
             {status.dropped > 0 && (
               <span className="text-statusWarn">{t('settings.eventTargets.dropped', { n: status.dropped })}</span>
             )}
-            {/* The typed reason first, because it is the one in the reader's own
-                language and the one that says what to try. The server's own
-                sentence follows it where there is one, since a transport failure
-                nothing recognised is still better read than guessed at. */}
+            {/* The translated reason first, then the server's own words. */}
             {status.lastCode && <span className="text-statusWarn">{problemText(t, status.lastCode)}</span>}
             {status.lastError && <span className="text-carbon-textMuted">{status.lastError}</span>}
           </>
@@ -76,14 +43,8 @@ export function TargetHealth({ status }: { status?: EventTargetStatus }) {
 }
 
 /**
- * The sentence for a notify.Problem code, or the code itself.
- *
- * The fallback is the whole reason this is a function rather than a template
- * literal at the call site: a build newer than this frontend can classify a
- * failure this one has no key for, and `t()` on a key the catalogue does not
- * have returns undefined despite its `string` type - which the first
- * .toLowerCase() downstream turns into a blank page. Showing the bare code is
- * ugly and true; showing nothing is neither.
+ * problemText returns the sentence for a notify.Problem code, or the code
+ * itself when this build has no key for it, since `t()` returns undefined then.
  */
 function problemText(t: (key: TranslationKey) => string, code: string): string {
   const key = `settings.eventTargets.problem.${code}` as TranslationKey;
@@ -91,10 +52,10 @@ function problemText(t: (key: TranslationKey) => string, code: string): string {
   return text && text !== key ? text : code;
 }
 
-/** An RFC3339 stamp in the reader's own locale, or the raw string when the
- *  server sends something this browser will not parse. Never a relative "3
- *  minutes ago": this value is fetched once, on mount, so a relative time would
- *  go on ageing on screen while the number behind it stood still. */
+/**
+ * fmtWhen formats an RFC3339 stamp in the reader's locale, or returns it raw
+ * when it does not parse. It is absolute because the value is fetched once.
+ */
 function fmtWhen(iso?: string): string {
   if (!iso) return '';
   const d = new Date(iso);

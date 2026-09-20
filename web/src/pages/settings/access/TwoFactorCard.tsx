@@ -15,37 +15,15 @@ import { IconCheck, IconClipboard, IconShieldCheck } from '../../../lib/icons';
 import { useToast } from '../../../lib/toast';
 
 /**
- * The second factor: a six-digit code from an authenticator app, beside the
- * password and never in its place.
- *
- * THE CARD RENDERS THE STEP IT IS ON, not every control at once with most of
- * them disabled. Off is one button. The enrolment is a code to scan, the same
- * secret in type-able form, and a field to prove the app took it. Then the
- * recovery codes, once. Then on, with the way out.
- *
- * Three rules this interface has to carry, because each has a failure that
- * looks like success:
- *
- *   - the status line reads the SERVER's answer, never the step this component
- *     is on. A half-finished enrolment that has shown a QR code and had no code
- *     confirmed still says off, because that is what the login will do;
- *   - the recovery codes are shown exactly once, so the card says so BEFORE it
- *     shows them and asks for an acknowledgement rather than a dismissal.
- *     Nothing else leaves that step;
- *   - turning it off costs the same proof as using it. Stricter than this app's
- *     ordinary "are you sure" windows and for a different reason: not regret,
- *     but a session somebody walked away from.
- *
- * And the one that has no equivalent in an app with user accounts: there is
- * nobody here to unlock anything. So the (i) on the title says, before anybody
- * arms this, what happens if the phone and the paper are both gone.
+ * TwoFactorCard sets up a six-digit authenticator code beside the password and
+ * shows one step at a time: off, scan and confirm, the recovery codes once,
+ * then on. The status line reads the server's answer, not the step, and turning
+ * it off asks for a code so an unattended session cannot remove it.
  */
 export function TwoFactorCard({
   hue,
-  /** Whether a password is set at all. Without one there is nothing for a
-   *  second factor to be second to, and the server refuses the enrolment. */
+  /** Whether a password is set; without one the server refuses the enrolment. */
   passwordSet,
-  /** The server's answer, and the only thing the status line reads. */
   enabled,
   recoveryLeft,
   /** Called after the factor is armed or removed, so the page re-reads it. */
@@ -59,9 +37,7 @@ export function TwoFactorCard({
 }) {
   const { t } = useT();
   const { toast } = useToast();
-  // One state, three shapes, so the card cannot render two steps at once - the
-  // failure a handful of independent booleans produces the first time two of
-  // them are true.
+  // One state, so the card cannot render two steps at once.
   const [step, setStep] = useState<
     { kind: 'idle' } | ({ kind: 'scan' } & TOTPEnrolment) | { kind: 'codes'; codes: string[] }
   >({ kind: 'idle' });
@@ -69,23 +45,12 @@ export function TwoFactorCard({
   const [busy, setBusy] = useState(false);
   const [disarming, setDisarming] = useState(false);
   const [copied, setCopied] = useState(false);
-  // The failing button's own counter, keyed onto it, so a second identical
-  // refusal builds a fresh node and shakes again.
+  // Keyed onto the failing button so a repeated refusal shakes again.
   const [shake, setShake] = useState(0);
 
   /**
-   * The toast, and the one decision in it worth writing down.
-   *
-   * A rejected code is the failure this card produces most often, and the
-   * server answers it with an English sentence, because a server's errors are
-   * diagnostics. So the ONE case this app has its own words for gets them -
-   * `auth.twoFactor.codeWrong`, in the reader's language - and everything else
-   * falls back to what the server said, which is better than a generic sentence
-   * of ours that says less. The server's 401 is what distinguishes the two;
-   * matching on the text would break the moment either side is reworded.
-   *
-   * That is the fallback rule right way round: the app's own copy first, the
-   * server's string only where the app has nothing better.
+   * A rejected code (401) gets the translated `auth.twoFactor.codeWrong`;
+   * anything else shows the server's message.
    */
   function fail(e: unknown) {
     const rejected = e instanceof ApiError && e.status === 401;
@@ -144,8 +109,6 @@ export function TwoFactorCard({
     <Card hue={hue} className="flex flex-col gap-5">
       <SectionTitle hint={t('auth.twoFactor.hint')}>{t('auth.twoFactor.title')}</SectionTitle>
 
-      {/* The status line, and it reads `enabled` - the server's word - rather
-          than which step this component happens to be showing. */}
       <div className="flex items-center gap-2">
         <span
           className={`inline-block h-2 w-2 rounded-[var(--radius-pill)] ${
@@ -159,24 +122,9 @@ export function TwoFactorCard({
 
       {!passwordSet && <p className="text-sm text-carbon-textSub">{t('auth.twoFactor.needsPassword')}</p>}
 
-      {/* OFF. One button, and the sentence above it saying what the next screen
-          will show - the "a secret shown once says so beforehand" rule, said
-          before the enrolment rather than on the screen that is already too
-          late to go back from.
-
-          THE BUTTON SAYS WHAT THE PASSKEY CARD'S BUTTON SAYS, and the glyph is
-          what tells them apart (GlimStone 2.1.0). It used to say "Enable" while
-          the card below said "Add passkey", which made a reader meeting both in
-          one tab work out whether the different wording meant a different thing.
-          It does not: both open a guided sequence that ends with a capability
-          armed. So both take this app's own word for starting a setup - the one
-          this key has held since it was written, looked up per language rather
-          than translated afresh - and this one wears a shield while the other
-          wears a plus, each picked from its own capability.
-
-          THE KEY STAYS `enable` THOUGH THE WORD IS NOT "Enable". A key is what a
-          glyph, a search index and a check hang off; renaming it to match a
-          label is how a stable handle becomes another thing that moves. */}
+      {/* The sentence warns that the recovery codes are shown once, before the
+          enrolment starts. The button shares its word with the passkey card's
+          and is told apart by the shield. */}
       {passwordSet && !enabled && step.kind === 'idle' && (
         <div className="flex flex-col gap-3">
           <p className="text-sm text-carbon-textSub">{t('auth.twoFactor.beforeYouStart')}</p>
@@ -196,16 +144,13 @@ export function TwoFactorCard({
         </div>
       )}
 
-      {/* Scan, then prove. Both on screen together, because the code has to be
-          typed while the app is still open on the same secret. */}
+      {/* Scan and confirm share the screen, since the code is typed while the
+          app shows the new secret. */}
       {step.kind === 'scan' && (
         <div className="flex flex-col gap-5">
           <p className="text-sm text-carbon-text">{t('auth.twoFactor.scan')}</p>
-          {/* self-start, or the card's flex column stretches the code's white
-              ground across the full width and leaves the modules in one corner
-              of a white slab. Measured in the browser, not reasoned about: the
-              wrapper is inline-block and looks safe, but a flex child stretches
-              regardless of its own display. */}
+          {/* self-start, or the flex column stretches the white ground across
+              the card whatever the wrapper's display. */}
           {step.qr && (
             <div className="self-start">
               <QRCode matrix={step.qr} label={t('auth.twoFactor.qrLabel')} />
@@ -241,7 +186,6 @@ export function TwoFactorCard({
               }}
             />
           </Field>
-          {/* Cancel opens the row, the control that goes ahead ends it. */}
           <div className="flex items-center gap-3">
             <span className="flex-1" />
             <Button
@@ -267,10 +211,8 @@ export function TwoFactorCard({
         </div>
       )}
 
-      {/* The codes, once. There is exactly one control out of this step and its
-          label is an acknowledgement, not a dismissal: no cancel, nothing that
-          advances on its own, and the card is armed already, so leaving by any
-          other route would mean a locked instance with no way back. */}
+      {/* The factor is armed already, so the only way out is acknowledging
+          that the codes were saved. */}
       {step.kind === 'codes' && (
         <div className="flex flex-col gap-3">
           <p className="text-sm font-medium text-carbon-text">{t('auth.twoFactor.codesTitle')}</p>
@@ -301,9 +243,7 @@ export function TwoFactorCard({
         </div>
       )}
 
-      {/* ON. How much of the sheet is left, and the way out - which asks for a
-          code before it does anything, so an unattended session cannot remove
-          the protection it is sitting behind. */}
+      {/* Turning it off asks for a code first. */}
       {enabled && step.kind === 'idle' && (
         <div className="flex flex-col gap-3">
           {recoveryLeft !== undefined && (

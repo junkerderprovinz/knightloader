@@ -3,24 +3,14 @@ import type { Settings } from '../../lib/api';
 import type { FeatureState } from './features';
 
 /**
- * The draft every sub-page edits, held by the shell rather than by the page.
- *
- * Sub-pages are the reason this exists. With one long scroll there was one form
- * and one Save; split across thirteen routes, a draft owned by the page would
- * be discarded the moment somebody clicked the rail — so changing the speed
- * limit and then the accent colour would silently lose the first one. The draft
- * lives above the router outlet, so a rail move is not a form submit and the
- * save bar can say what is still outstanding.
+ * SettingsDraft is the draft every sub-page edits. The shell holds it above the
+ * router outlet, so moving through the rail keeps unsaved edits.
  */
 export interface SettingsDraft {
   /**
-   * The whole settings document as the server sent it.
-   *
-   * Typed as Settings, which is a SUBSET of what is really in here — the server
-   * also sends packagizer, linkFilter, connections, reconnect and schedule, and
-   * PUT /api/settings replaces the document wholesale. So every edit spreads the
-   * object rather than rebuilding it: dropping a field on the way through would
-   * delete somebody's rule set with no error anywhere.
+   * The whole settings document as the server sent it. Settings types only part
+   * of it and PUT replaces the document wholesale, so every edit spreads the
+   * object instead of rebuilding it.
    */
   cfg: Settings;
   /** Merge one or more fields into the draft. */
@@ -29,29 +19,15 @@ export interface SettingsDraft {
   replace: (next: Settings) => void;
   dirty: boolean;
   /**
-   * Patches AND saves the named fields immediately, bypassing the shared
-   * Save bar - for pages where every change is already its own live preview
-   * (Look.tsx: jdp "Wenn einstellungen geändert werden, zb die badge form,
-   * dann soll man das nicht speichern müssen"). Only the named fields are
-   * sent and only they are folded back into `draft`/`saved` on return, so an
-   * unsaved edit sitting on a DIFFERENT page's fields survives untouched.
+   * Patches and saves the named fields at once, for pages where every change is
+   * its own live preview. Only those fields are sent and folded back, so an
+   * unsaved edit on another page survives.
    */
   patchNow: (fields: Partial<Settings>) => Promise<void>;
   /**
-   * Folds an already-applied document back into BOTH `saved` and `draft` for
-   * exactly the named keys, without sending anything.
-   *
-   * It exists for the settings import, which writes through its own route
-   * (POST /api/settings/import) rather than through the save bar. Without this
-   * the shell's two copies still hold the PRE-import values, and the autosave
-   * that fires 600ms after the reader's next unrelated edit sends the difference
-   * between them - which is every imported key, put straight back, silently,
-   * with a green toast. patchNow above already solves exactly this for its own
-   * writes; this is the same fold minus the request.
-   *
-   * Only the named keys are folded, for the same reason patchNow only folds the
-   * fields it sent: an unsaved edit sitting on a different settings page must
-   * not be replaced by whatever this tab happens to have just learned.
+   * Folds an already-applied document into both `saved` and `draft` for the
+   * named keys without sending anything. The settings import writes through its
+   * own route, and without this the next autosave would put the old values back.
    */
   reseed: (applied: Settings, keys: string[]) => void;
 }
@@ -82,9 +58,8 @@ export function SettingsProvider({
 }
 
 /**
- * useDraft throws rather than returning null when a page is mounted outside the
- * shell. A sub-page rendered without the draft would silently show the defaults
- * of an empty object and save them over the user's configuration.
+ * useDraft throws outside the shell, because a page without the draft would
+ * save empty defaults over the user's configuration.
  */
 export function useDraft(): SettingsDraft {
   const v = useContext(DraftCtx);

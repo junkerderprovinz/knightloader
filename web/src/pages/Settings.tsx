@@ -15,31 +15,14 @@ import { FALLBACK_PAGE, hasContent, pageIcon, renderSettingsPage } from './setti
 import { SettingsSearch } from './settings/SettingsSearch';
 import { label, useTx } from './settings/tx';
 
-/**
- * Absolute, so that relative resolution inside a splat route is never a
- * question anyone has to answer twice.
- */
+/** Absolute, so resolution inside a splat route never matters. */
 const pagePath = (id: string) => `/settings/${id}`;
 
 /**
- * The settings shell: the rail, the draft and the save bar. Every actual
- * control lives in pages/settings/, one file per sub-page.
- *
- * It used to be one long scroll, and waves 3 to 11 each add a section to it —
- * which is the contention that turned app.go into eight files. Sub-pages are the
- * same answer: a wave adds a file and one line in registry.tsx instead of
- * editing a page four other people are also editing.
- *
- * Two things the split has to get right, and both are here rather than in the
- * pages:
- *
- *   - the DRAFT survives a rail move. Owned by a page it would be discarded on
- *     every click, so changing the speed limit and then the accent would lose
- *     the first silently. One draft, one save, thirteen routes.
- *   - a page that is remembered and no longer exists falls back to General
- *     rather than rendering an empty frame, and the fallback happens only after
- *     the page list has arrived — redirecting before then would throw away the
- *     remembered page on every reload.
+ * SettingsPage is the settings shell: the rail, the draft and the autosave.
+ * The controls live in pages/settings/, one file per sub-page. The draft lives
+ * here so it survives moving through the rail, and a remembered page that no
+ * longer exists falls back only once the page list has arrived.
  */
 export function SettingsPage() {
   const { t } = useT();
@@ -54,8 +37,7 @@ export function SettingsPage() {
     reload: reloadFeatures,
   } = useResource<FeatureState>(fetchFeatures);
 
-  // The edited copy. Seeded from the server's answer and reseeded whenever a
-  // save or a module switch produces a new one.
+  // The edited copy, reseeded whenever a save or a module switch produces a new one.
   const [draft, setDraft] = useState<Settings | null>(null);
   useEffect(() => {
     if (saved) setDraft(saved);
@@ -70,10 +52,8 @@ export function SettingsPage() {
   );
 
   const patch = useCallback((fields: Partial<Settings>) => {
-    // Spread, never rebuild: the server sends more fields than the Settings type
-    // names — the rule sets, the connections, the timetable — and PUT replaces
-    // the document wholesale. A patch that dropped them would delete somebody's
-    // Packagizer with no error anywhere.
+    // Spread, never rebuild: the server sends more fields than Settings names
+    // and PUT replaces the document wholesale.
     setDraft((d) => (d ? { ...d, ...fields } : d));
   }, []);
 
@@ -83,10 +63,8 @@ export function SettingsPage() {
     setDraft((d) => (d ? { ...d, ...fields } : d));
     const applied = await patchSettings(fields);
     const keys = Object.keys(fields) as Array<keyof Settings>;
-    // Fold back only the fields this call actually sent - not the whole
-    // document `applied` carries - so an edit still sitting unsaved on a
-    // different page (Rules, a resolver's API key, ...) is never quietly
-    // replaced by whatever this tab last loaded from the server.
+    // Fold back only the fields this call sent, so an unsaved edit on another
+    // page survives.
     const appliedDoc = applied as unknown as Record<string, unknown>;
     setSaved((s) => {
       if (!s) return s;
@@ -105,22 +83,10 @@ export function SettingsPage() {
   }, []);
 
   /**
-   * reseed is patchNow's fold with the request taken out: a caller that has
-   * ALREADY written through some other route tells the shell what the server now
-   * holds, for exactly the keys it wrote.
-   *
-   * The settings import (POST /api/settings/import) is the caller this exists
-   * for, and without it the import undoes itself. The shell keeps `draft` and
-   * the `saved` baseline it was seeded from, and the debounced autosave above
-   * sends the DIFFERENCE between the two - so after an import that neither copy
-   * knows about, the reader's next unrelated edit anywhere in the settings sends
-   * the pre-import value of every imported key straight back over it. Silently,
-   * and with a success toast, which is what makes it invisible in testing unless
-   * somebody happens to save something else afterwards.
-   *
-   * Keys are taken as a list rather than derived from the applied document,
-   * because the server decides what it actually took over: a key that was asked
-   * for and skipped must not be folded in as though it had been.
+   * reseed folds what the server now holds into `draft` and `saved` for the
+   * named keys, for callers that wrote through another route. Without it the
+   * next autosave after a settings import would send the old values back. The
+   * keys come from the server, since it decides what it took over.
    */
   const reseed = useCallback((applied: Settings, keys: string[]) => {
     const appliedDoc = applied as unknown as Record<string, unknown>;
@@ -138,18 +104,9 @@ export function SettingsPage() {
     if (!draft || !saved || saving) return;
     setSaving(true);
     try {
-      // PATCH, not the whole document: only the top-level fields this draft
-      // actually changed are sent, computed against `saved` (the copy this
-      // draft was seeded from), never the whole thing. `draft`/`saved` carry
-      // more real keys than the Settings type names (packagizer, connections,
-      // reconnect, ... - see SettingsDraft's own doc comment on `cfg`), so
-      // the diff walks the real runtime object rather than TypeScript's
-      // narrower view of it. A field a DIFFERENT browser tab saved in the
-      // meantime, one this tab never touched, survives instead of being
-      // silently put back to whatever stale copy this tab loaded with - see
-      // patchSettings' own doc comment (lib/api.ts) and PATCH
-      // /api/settings's (routes_settings.go) for the server side of that
-      // promise.
+      // A PATCH of only the top-level fields that differ from `saved`, walking
+      // the runtime object, so a field another tab saved in the meantime is
+      // not put back (patchSettings in lib/api.ts).
       const savedDoc = saved as unknown as Record<string, unknown>;
       const draftDoc = draft as unknown as Record<string, unknown>;
       const changed: Record<string, unknown> = {};
@@ -160,8 +117,7 @@ export function SettingsPage() {
       const applied = await patchSettings(changed as Partial<Settings>);
       setSaved(applied);
       setDraft(applied);
-      // The registry reads live settings, so a save can have moved a module: the
-      // watch folder cleared by hand is the folder-watch module going off.
+      // A save can move a module, such as clearing the watch folder.
       reloadFeatures();
       toast(t('settings.saved'), 'ok');
     } catch (e) {
@@ -171,14 +127,8 @@ export function SettingsPage() {
     }
   }
 
-  // Saves the instant anything changes, on EVERY settings tab (jdp: "In
-  // allen Einstellungstabs soll alles was man einstellt automatisch sofort
-  // gespeichert werden, ohne dass ein Speichern Button erscheint und man den
-  // anklicken muss") - reuses onSave()'s own diff-against-`saved` logic
-  // verbatim, just triggered by a debounced watch on the draft instead of a
-  // manual click. `dirty` starts false (draft seeded from saved), so this
-  // is inert until an actual edit lands; no separate skip-first-mount guard
-  // needed the way Look.tsx's own field-watching effect requires one.
+  // Every settings tab saves itself, debounced, through onSave's diff against
+  // `saved`. `dirty` starts false, so this is inert until an edit lands.
   const saveTimer = useRef<number | null>(null);
   useEffect(() => {
     if (!dirty) return;
@@ -197,13 +147,8 @@ export function SettingsPage() {
   }, [draft]);
 
   /**
-   * What the refusal says, in the reader's language when the server said which
-   * refusal it was.
-   *
-   * A code that has no entry here falls through to the server's sentence rather
-   * than to the key: an untranslated explanation is worth more than a dotted
-   * identifier, and far more than the SyntaxError this used to show, back when
-   * the client handed a plain-text 400 straight to JSON.parse.
+   * saveErrorText translates a refusal the server identified by code and
+   * falls back to the server's sentence otherwise.
    */
   function saveErrorText(e: unknown): string {
     if (e instanceof ApiError && e.code) {
@@ -216,14 +161,8 @@ export function SettingsPage() {
 
   const toggle = useCallback(
     async (id: string, enabled: boolean) => {
-      // A module switch writes immediately, so an unrelated field left
-      // dirty on another tab used to make this throw outright (jdp, 2026-08-23:
-      // "wenn ich ein modul deaktivieren will kommt: ... Speichere oder
-      // verwirf zuerst die offenen Änderungen") - every tab already autosaves
-      // itself 600ms after an edit (see the debounced effect above), so the
-      // right answer is to flush that pending save right now rather than
-      // reject the switch: the two writes still happen in order, they just
-      // both happen instead of one of them failing.
+      // Flush a pending autosave first rather than refusing the switch, so both
+      // writes happen in order.
       if (dirty) {
         if (saveTimer.current !== null) {
           window.clearTimeout(saveTimer.current);
@@ -233,10 +172,8 @@ export function SettingsPage() {
       }
       const next = await setFeature(id, enabled);
       setFeatures(next);
-      // A module switch writes settings on the server — it clears the watch
-      // folder, empties the timetable. Re-reading them is not a refresh for
-      // tidiness: the draft still holds the old value, and the next save would
-      // put it straight back and quietly undo the switch.
+      // A module switch changes settings on the server; the draft must follow,
+      // or the next save would undo the switch.
       const fresh = await fetchSettings();
       setSaved(fresh);
       setDraft(fresh);
@@ -263,66 +200,23 @@ export function SettingsPage() {
 
   return (
     <SettingsProvider draft={settingsDraft} features={featureAccess}>
-      {/* The title is rendered for screen readers only — the rail entry beside
-          it already says the same word. See PageHeader. */}
+      {/* For screen readers only; the rail already names the page. */}
       <PageHeader title={t('settings.title')} />
-      {/* A column of tiles down the left, flush against the sidebar and
-          running the window's full height (jdp, 2026-08-27: "In KL machen wir
-          die einstellungen anders als sonst in GL-Anwendungen. Wir verfolgen
-          optisch den Ansatz aus JD Highlighter: Alle Einstellungstabs werden
-          rechts von der Sidebar vertikal in kacheln angezeigt. die kacheln
-          sollen sich immer von ganz oben bis ganz nach unten in einer spalte
-          anordnen").
-
-          This was a strip across the top, and before that a rail down the
-          side, and the argument for the strip was that GlimStone should be
-          the same everywhere. It still is - a KnightLoader-only exception is
-          exactly what jdp is asking for here, and it is recorded as one in
-          the project note rather than smuggled into the shared design
-          language. What it costs is the page's full width, which is what the
-          wide tables on Advanced and Rules were always short of; what it buys
-          is twenty destinations you can read at once instead of a strip that
-          wraps to three lines.
-
-          Only the content column scrolls. The rail is a fixed frame, so
-          moving between pages never moves the tabs - see app/Layout.tsx for
-          the one exception it makes to give this page a definite height to
-          fill. */}
+      {/* A column of tiles beside the sidebar, running the window's full
+          height. Only the content column scrolls; app/Layout.tsx gives this
+          page a definite height for that. */}
       <div className="flex min-h-0 flex-1">
         <SettingsRail pages={features.pages} />
 
-        {/* No sticky Save/Discard bar any more - every edit on every settings
-            tab saves itself automatically (the debounced effect above),
-            confirmed by the same toast Look.tsx's own auto-save already
-            uses. */}
-        {/* data-settings-content, so the search's own DOM lookups are scoped to
-            this column and can never pick up the rail (which draws the same page
-            names) or an InfoBubble tip portaled onto document.body (which
-            carries the same hint text a result was matched on). See
-            settings/jump.ts. */}
-        {/* px-6 md:px-8, no vertical inset, plus glim-column-top - the
-            identical rule app/Layout.tsx applies to every other page's column,
-            and its comment carries the measurement: the vertical inset belongs
-            to the frame, so the last card ends where the sidebar ends (jdp: "in
-            allen tabs und fenstern sollen die obersten und untersten
-            cards/fenster mit der sidebar abschliessen"). This column is the
-            scroller here, so a card flush against its top edge would lose the
-            notch a SectionTitle badge hangs over its own top edge; glim-column-
-            top gives those 12px to that card alone (index.css). On a settings
-            tab the first card is a section card with a badge nearly every time,
-            so here the class almost always fires - and on the rare tab where it
-            does not, the first card sits on the sidebar's line instead. */}
+        {/* data-settings-content scopes the search's DOM lookups to this
+            column (settings/jump.ts). The padding matches app/Layout.tsx, and
+            glim-column-top keeps the first card's badge notch (index.css). */}
         <div
           data-settings-content
           className="glim-column-top flex min-w-0 flex-1 flex-col gap-6 overflow-y-auto px-6 md:px-8"
         >
-          {/* Top of the content column and not in PageHeader: that renders above
-              the rail-plus-column flex, so a field there would push the rail down
-              and stop it running from the top of the window to the bottom, which
-              is the single reason app/Layout.tsx gives this one page its own
-              frame. Outside the Routes below, so a search survives moving between
-              sections - and so the jump it started still has somewhere to run
-              once the new page has mounted. */}
+          {/* Here rather than in PageHeader, which would push the rail down, and
+              outside the Routes so a search and its jump survive a page change. */}
           <SettingsSearch pages={features.pages} />
           <Routes>
             <Route index element={<RememberedPage pages={features.pages} />} />
@@ -332,49 +226,14 @@ export function SettingsPage() {
           </Routes>
         </div>
       </div>
-      {/* The version footer is gone (jdp, 2026-08-31: "Die vversionsnummer
-          sollen dann nicht nochmal unter den card im hintergrund angeziegt
-          werden"). It lives in the About card on the Help page now, beside the
-          two things somebody who just read a version number usually wants
-          next - see settings/Help.tsx. GlimStone 1.7.0 makes that the rule for
-          the whole family rather than this app's own preference. */}
     </SettingsProvider>
   );
 }
 
 /**
- * The section tiles, down the left.
- *
- * Three shapes in three months: a left rail of hand-rolled NavLinks, then a
- * strip across the top, and now a column of tiles beside the sidebar. Only the
- * middle one was a design decision of mine; the first and third are jdp's, and
- * this one is the one that sticks - see the block comment at the call site for
- * what it is copying and what it costs.
- *
- * What did NOT change across all three is that this is the app's one chooser
- * component (Tabs.tsx), the same one the download list's quick filters and the
- * corner picker on Look use. The active section is FILLED exactly the way an
- * active filter and an active segment are, and in rainbow mode each tile takes
- * its own palette position. Nothing here restates how a tab looks - a vertical
- * copy of that would have been a second answer to a question this codebase has
- * already answered twice.
- *
- * Every tile is also a real link. Ctrl-clicking Advanced to read it beside
- * Downloads is a thing people do with something that looks like navigation, and
- * a column of buttons quietly swallows the gesture.
- */
-/**
- * orderPages applies a saved custom order, then appends anything the saved
- * order doesn't mention (a page added since the order was last saved) in the
- * registry's own order — so a new settings page shows up rather than
- * silently vanishing because an old order array doesn't name it yet, and a
- * page removed from the registry since just drops out on its own (the
- * `.filter` below only keeps ids `pages` still has).
- *
- * Exported because the settings search groups its results in the same order the
- * rail draws its tiles in, and a second copy of eight lines is a second place
- * for "what happens to a page the stored order has never heard of" to be
- * answered differently.
+ * orderPages applies a saved custom order and appends the pages it does not
+ * name in registry order, so a new page shows up and a removed one drops out.
+ * The settings search uses it too.
  */
 export function orderPages(pages: FeaturePage[], order: string[]): FeaturePage[] {
   const byId = new Map(pages.map((p) => [p.id, p]));
@@ -383,56 +242,27 @@ export function orderPages(pages: FeaturePage[], order: string[]): FeaturePage[]
   return [...known, ...pages.filter((p) => !seen.has(p.id))];
 }
 
+/**
+ * SettingsRail draws the section tiles with Tabs, the app's one chooser. Every
+ * tile is a real link, so Ctrl-click opens a page beside the current one.
+ */
 function SettingsRail({ pages }: { pages: FeaturePage[] }) {
   const { tx } = useTx();
   const navigate = useNavigate();
   const here = useMatch('/settings/:page');
-  // Live, not read once: the selector that changes this sits on the Aussehen
-  // tab, inside this very rail's own content column, and a rail that only
-  // restyled itself on the next navigation would make that selector look
-  // broken. See lib/navLabels.ts.
+  // Live, since the selector that changes it sits in this page's own column
+  // (lib/navLabels.ts).
   const display = useNavLabels();
-  // Persisted drag order (jdp: "die Tabs in den Einstellungen soll man nach
-  // Belieben anordnen können") — same useUIState store as the remembered
-  // last-open page below, a per-browser preference rather than a server
-  // setting: which order somebody likes their own tabs in has nothing to do
-  // with what the instance itself is configured to do.
+  // The drag order is a per-browser preference, like the remembered page.
   const [order, setOrder] = useUIState<string[]>('settingsTabOrder', []);
   const ordered = orderPages(pages, order);
 
   return (
-    // The rail's own width follows the display mode, and glyph-only is the
-    // one mode that changes it: with no label ever drawn there is nothing to
-    // be wide for. Hover mode stays full width on purpose - its whole promise
-    // is that nothing moves when the pointer arrives, and a rail that had to
-    // widen to fit the label it reveals would break that on the first
-    // mouseover. shrink-0 so a wide table on Advanced pushes the page's own
-    // scrollbar rather than squeezing the navigation.
+    // Glyph-only narrows the rail; hover mode keeps its width so nothing moves
+    // under the pointer. shrink-0 keeps wide tables from squeezing it.
     <div
-      // FLUSH WITH THE SIDEBAR, top and bottom, and that REVERSES what stood
-      // here. The rail used to carry pt-6/pb-6 (md: 8) so the first tile lined
-      // up with the first CARD in the column beside it - measured at the time,
-      // 32px above the first tile against 8px below the last, and the top value
-      // was kept for that alignment.
-      //
-      // jdp is looking at a different pair now: "die einstellungskacheln sollen
-      // unten und oben bündig mit der sidebar anfangen und aufhören". The rail
-      // and the app's own sidebar are two columns of the same kind standing side
-      // by side, and two navigation columns that start at different heights read
-      // as a mistake in a way a tile and a card never do - a card is a different
-      // kind of thing and is allowed its own inset.
-      //
-      // So the padding goes - and what it cost has since been paid back from
-      // the other side: the content column beside it gave up its own p-6 md:p-8
-      // in the same move (px-6 pt-3 md:px-8 now, see the column below and the
-      // frame in app/Layout.tsx). What lines up with this rail's first tile now
-      // is the BADGE on the first card, not the card's own top edge, and that
-      // is the closest the two get without slicing the badge off - the column's
-      // remaining 12px are exactly that notch. "In allen tabs und fenstern
-      // sollen die obersten und untersten cards/fenster mit der sidebar
-      // abschliessen." At the bottom, where nothing hangs over, all three
-      // columns end on the same line. Nothing here gets a pt/pb back without
-      // the other two getting one too.
+      // No vertical padding, so the rail starts and ends flush with the
+      // sidebar; the content column beside it keeps only the badge notch.
       className={`flex h-full shrink-0 flex-col gap-2 px-2 ${display === 'glyph' ? 'w-14' : 'w-52'}`}
     >
       <Tabs
@@ -443,28 +273,18 @@ function SettingsRail({ pages }: { pages: FeaturePage[] }) {
         label={tx('settings.railLabel')}
         active={here?.params.page ?? null}
         onSelect={(id) => navigate(pagePath(id))}
-        // Arrow keys move focus without selecting. Selecting as they move is what
-        // a JTabbedPane does and what Tabs defaults to, but every selection here
-        // pushes a history entry — holding Right to reach Advanced would leave
-        // twelve of them behind and turn the Back button into a chore.
+        // Arrow keys move focus without selecting, since every selection pushes
+        // a history entry.
         activateOnFocus={false}
-        // The long hold is the whole gesture (jdp: "die sollen einfach mit
-        // langem klick per drag and drop verschoben werden können"). A pencil
-        // badge used to sit at the foot of this rail and arm the wiggle in one
-        // click; it is gone, along with Tabs' `editMode` prop that only it
-        // ever passed.
+        // A long press starts the drag.
         reorderable
         onReorder={setOrder}
-        // No equalWidth: every tile in a column is already the column's width,
-        // which is what the strip across the top needed that setting to fake.
         items={ordered.map((p) => ({
           id: p.id,
           label: label(tx, 'settings.nav.', p.id),
           icon: pageIcon(p.id),
           href: pagePath(p.id),
-          // A page with no controls yet is dimmed, not hidden or disabled: the
-          // address works, the page explains itself, and saying so before the
-          // click is cheaper than after it.
+          // A page without controls is dimmed, not hidden: it still explains itself.
           dim: !hasContent(p.id),
         }))}
       />
@@ -473,12 +293,9 @@ function SettingsRail({ pages }: { pages: FeaturePage[] }) {
 }
 
 /**
- * The index route: go to the page that was open last.
- *
- * It waits for the stored value to arrive before deciding. useUIState hands out
- * its fallback until the document loads, so redirecting on the first render
- * would send everybody to General and then write General back as the remembered
- * page — the setting would erase itself on every reload.
+ * RememberedPage redirects to the page that was open last. It waits for the
+ * stored value, since useUIState returns its fallback until then and an early
+ * redirect would overwrite the remembered page.
  */
 function RememberedPage({ pages }: { pages: FeaturePage[] }) {
   const [remembered] = useUIState<string>('settingsPage', FALLBACK_PAGE);
