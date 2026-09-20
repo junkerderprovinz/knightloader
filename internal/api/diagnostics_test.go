@@ -19,9 +19,8 @@ import (
 )
 
 // getDiagnostics fetches the bundle and hands back the status, the decoded
-// shape and the raw body - callers that need to look for a substring that has
-// no field of its own (a secret that must not be there at all, however it
-// might be spelled in JSON) want the raw bytes, not the struct.
+// shape and the raw body. A caller looking for a secret that must not be in
+// the document at all, however it is spelled, needs the raw bytes.
 func getDiagnostics(t *testing.T, url string) (int, Diagnostics, []byte) {
 	t.Helper()
 	resp, err := http.Get(url + "/api/diagnostics")
@@ -41,8 +40,8 @@ func getDiagnostics(t *testing.T, url string) (int, Diagnostics, []byte) {
 	return resp.StatusCode, d, raw
 }
 
-// TestDiagnosticsAnswersTheBasics is what a bug report actually needs: which
-// build, which platform, and whether the process looks alive.
+// TestDiagnosticsAnswersTheBasics: which build, which platform, and whether
+// the process looks alive.
 func TestDiagnosticsAnswersTheBasics(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
@@ -54,9 +53,9 @@ func TestDiagnosticsAnswersTheBasics(t *testing.T) {
 	if d.Version == "" {
 		t.Error("version is empty")
 	}
-	// buildinfo.Deployment defaults to "container" and nothing in this test's
-	// path (app.New + Handler, not cmd/knightloader/main.go) ever sets it to
-	// "desktop" - see buildinfo.go's own doc comment on why that default exists.
+	// buildinfo.Deployment defaults to "container", and this test's path
+	// (app.New plus Handler, not cmd/knightloader/main.go) never sets it to
+	// "desktop".
 	if d.Deployment != "container" {
 		t.Errorf("deployment = %q, want the package default %q", d.Deployment, "container")
 	}
@@ -80,10 +79,10 @@ func TestDiagnosticsAnswersTheBasics(t *testing.T) {
 	}
 }
 
-// TestDiagnosticsRedactsSecrets mirrors TestSettingsNeverShipASecret
-// (settings_test.go): the bundle carries the settings document, which is
-// exactly where the router password and every proxy password live, and this
-// is a file a user may attach to a public bug report.
+// TestDiagnosticsRedactsSecrets mirrors TestSettingsNeverShipASecret in
+// settings_test.go: the bundle carries the settings document, where the router
+// password and every proxy password live, and people attach it to public bug
+// reports.
 func TestDiagnosticsRedactsSecrets(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
@@ -111,20 +110,19 @@ func TestDiagnosticsRedactsSecrets(t *testing.T) {
 			t.Errorf("GET /api/diagnostics shipped %q in the bundle", secret)
 		}
 	}
-	// Redacted, not silently dropped - the field should still say a secret is
-	// configured, or the bundle would misreport an install with a reconnect
-	// method set up as one with none at all.
+	// Redacted rather than dropped: the field still says a secret is
+	// configured, or the bundle reports an install with a reconnect method set
+	// up as one with none.
 	if !bytes.Contains(raw, []byte(reconnect.RedactedPassword)) {
 		t.Error("the router password field is missing rather than redacted")
 	}
 }
 
 // TestDiagnosticsRedactsArchivePasswords covers the gap Settings.Redacted()
-// itself deliberately leaves open (that method is also what GET /api/settings
-// uses, where the Archives page needs to show a user their own passwords to
-// edit them) - the diagnostics route has to redact this one field further on
-// its own, because unlike a settings page this bundle is meant to be attached
-// to a public bug report.
+// leaves open, since GET /api/settings uses the same method and the Archives
+// page has to show a user their own passwords to edit them. The diagnostics
+// route redacts this field further, because the bundle is attached to public
+// bug reports.
 func TestDiagnosticsRedactsArchivePasswords(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
@@ -146,17 +144,15 @@ func TestDiagnosticsRedactsArchivePasswords(t *testing.T) {
 	}
 }
 
-// TestDiagnosticsCarriesTheDatabaseSizes is the half of the maintenance
-// feature that belongs in a bug report. "The list takes a second to sort" and
-// "the database is 6 GB, 4 of which is space deleted rows left behind" are the
-// same report, and without these four fields nobody reading it could tell.
+// TestDiagnosticsCarriesTheDatabaseSizes: "the list takes a second to sort"
+// and "the database is 6 GB, 4 of which is space deleted rows left behind" are
+// the same report, and without these four fields nobody reading it could tell.
 func TestDiagnosticsCarriesTheDatabaseSizes(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
 
-	// Something in the database, so the size is a measurement rather than the
-	// size of an empty schema - and so a zero here means a bug rather than an
-	// empty install.
+	// Something in the database, so the size is a measurement rather than an
+	// empty schema and a zero means a bug.
 	for i := 0; i < 8; i++ {
 		if err := a.Store.Save(&core.Task{
 			ID:        fmt.Sprintf("diag-%d", i),
@@ -177,9 +173,9 @@ func TestDiagnosticsCarriesTheDatabaseSizes(t *testing.T) {
 	if !bytes.Contains(raw, []byte(`"storeReclaimableBytes"`)) {
 		t.Errorf("storeReclaimableBytes is missing from the bundle: %s", raw)
 	}
-	// settings.json is written the first time a settings page is saved and not
-	// before, so the flag has to say which of the two states this is - "0 bytes"
-	// for a file that does not exist is a different claim, and the wrong one.
+	// settings.json is written the first time a settings page is saved, so the
+	// flag has to say which of the two states this is: "0 bytes" for a file
+	// that does not exist is a different claim.
 	if d.SettingsPresent {
 		t.Error("settingsPresent is true on an instance that has never saved a settings page")
 	}
@@ -192,13 +188,10 @@ func TestDiagnosticsCarriesTheDatabaseSizes(t *testing.T) {
 	}
 }
 
-// TestDiagnosticsShipsNoPaths is the same argument the redaction tests above
-// make, for a different kind of secret. This bundle is a file people attach to
-// PUBLIC bug reports; a desktop data directory is
-// C:\Users\<their real name>\AppData\..., and the database's file name is one
-// grep away from telling somebody exactly what to look for. The sizes go in the
-// bundle, the paths go on the session-guarded maintenance route and nowhere
-// else.
+// TestDiagnosticsShipsNoPaths makes the redaction tests' argument for a
+// different kind of secret. People attach this bundle to public bug reports,
+// and a desktop data directory sits under the user's own name. The sizes go in
+// the bundle; the paths go on the session-guarded maintenance route.
 func TestDiagnosticsShipsNoPaths(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
@@ -213,13 +206,10 @@ func TestDiagnosticsShipsNoPaths(t *testing.T) {
 	}
 }
 
-// spellingsInJSON is every way one path could appear in the response body, and
-// it exists because the first draft of the test above found the database's file
-// name and missed the directory it sits in - on Windows a path is
-// C:\Users\...\Temp\..., and json.Marshal doubles every one of those
-// backslashes, so a search for the literal string finds nothing while the path
-// is sitting in the document in plain sight. The forward-slash spelling is here
-// for the same class of miss on the platforms that use it.
+// spellingsInJSON is every way one path could appear in the response body.
+// json.Marshal doubles the backslashes in a Windows path, so a search for the
+// literal string finds nothing while the path sits in the document in plain
+// sight; the forward-slash spelling covers the same miss elsewhere.
 func spellingsInJSON(t *testing.T, path string) []string {
 	t.Helper()
 	encoded, err := json.Marshal(path)
@@ -233,9 +223,8 @@ func spellingsInJSON(t *testing.T, path string) []string {
 	return out
 }
 
-// TestDiagnosticsIncludesRecentLogLines is the point of tapping the standard
-// logger at all: an ordinary log.Print from anywhere in the process has to
-// reach the bundle with no plumbing at that call site.
+// TestDiagnosticsIncludesRecentLogLines: an ordinary log.Print from anywhere
+// in the process reaches the bundle with no plumbing at that call site.
 func TestDiagnosticsIncludesRecentLogLines(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()

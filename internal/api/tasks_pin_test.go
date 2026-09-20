@@ -1,8 +1,8 @@
 package api
 
-// The options route's own half of pinning a task to a backend: that the field
-// arrives, and that a backend this instance does not have is refused BEFORE
-// any of the other fields in the same request have been applied.
+// The options route's half of pinning a task to a backend: the field arrives,
+// and a backend this instance does not have is refused before any other field
+// in the same request has been applied.
 
 import (
 	"encoding/json"
@@ -28,17 +28,16 @@ func tasksNow(t *testing.T, base string) []core.Task {
 	return out
 }
 
-// TestTheOptionsRoutePinsABackend is the wiring: the field on the request
-// reaches the task, and it comes back on the list so the row can say which
-// backend it is nailed to.
+// TestTheOptionsRoutePinsABackend: the field on the request reaches the task
+// and comes back on the list, so the row can say which backend it is pinned
+// to.
 func TestTheOptionsRoutePinsABackend(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
 	id := stage(t, a, "https://host.example/one.bin")[0].ID
 
 	// "direct" is registered by every App at construction, so this is a
-	// backend the instance genuinely has rather than a name that happens to
-	// look plausible.
+	// backend the instance has rather than a plausible-looking name.
 	code, body := postJSON(t, http.MethodPost, srv.URL+"/api/tasks/options",
 		map[string]any{"ids": []string{id}, "resolver": "direct"})
 	if code != http.StatusNoContent {
@@ -64,11 +63,10 @@ func TestTheOptionsRoutePinsABackend(t *testing.T) {
 	}
 }
 
-// TestAnUnknownBackendIsRefusedBeforeAnythingIsApplied is the order the
-// handler is written in, pinned down. One request carries a rename, a comment
-// and a pin; if the pin is checked after the rest have landed, the caller gets
-// a 400 and a selection that was edited anyway, which is the half-applied edit
-// SetTaskOptions' own contract exists to rule out.
+// TestAnUnknownBackendIsRefusedBeforeAnythingIsApplied pins the order the
+// handler is written in. One request carries a rename, a comment and a pin; if
+// the pin were checked after the rest had landed, the caller would get a 400
+// and a selection that was edited anyway.
 func TestAnUnknownBackendIsRefusedBeforeAnythingIsApplied(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()

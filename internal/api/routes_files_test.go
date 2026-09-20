@@ -1,12 +1,11 @@
 package api
 
-// The part of package 20 that is actually visible from outside: what headers
-// come back for an allowlisted type versus everything else, that a locked
-// instance still locks this route, and that SafeTaskFile's refusals map to
-// the right status. The path-containment logic itself belongs to
-// internal/app's own test suite (app_files_test.go), including the one
-// escape shape that cannot be reached from here at all - see
-// TestServeTaskFileSymlinkEscapeIs403's doc comment for why that is not a gap.
+// The file route as seen from outside: what headers come back for an
+// allowlisted type and for everything else, that a locked instance locks this
+// route too, and that SafeTaskFile's refusals map to the right status. The
+// path containment itself is app_files_test.go's, including the one escape
+// shape that cannot be reached from here (see
+// TestServeTaskFileSymlinkEscapeIs403).
 
 import (
 	"io"
@@ -40,10 +39,9 @@ func filesServer(t *testing.T) (*app.App, string, *httptest.Server) {
 
 func strp(s string) *string { return &s }
 
-// putFile writes data under name inside base, then stages a task and points
-// it there through the same public options route the properties panel uses -
-// no reaching into app-internal state, because the point of this file is what
-// a normal caller can make the route do.
+// putFile writes data under name inside base, then stages a task and points it
+// there through the same options route the properties panel uses, so these
+// tests only ask what an ordinary caller can make the route do.
 func putFile(t *testing.T, a *app.App, base, name string, data []byte) string {
 	t.Helper()
 	if err := os.WriteFile(filepath.Join(base, name), data, 0o644); err != nil {
@@ -111,9 +109,9 @@ func TestServeTaskFileAttachmentForUnlistedType(t *testing.T) {
 }
 
 // TestServeTaskFileNeverSniffsAnHTMLPayload is the case the allowlist exists
-// for: a hoster-served file with HTML bytes and an innocuous .txt name must
-// still go out as text/plain, or opening it inline runs the payload at this
-// app's own origin with this app's own session live in the tab.
+// for: a hoster-served file with HTML bytes and an innocuous .txt name goes
+// out as text/plain, or opening it inline runs the payload at this app's
+// origin with this app's session live in the tab.
 func TestServeTaskFileNeverSniffsAnHTMLPayload(t *testing.T) {
 	a, base, srv := filesServer(t)
 	id := putFile(t, a, base, "readme.txt", []byte("<script>document.title='pwned'</script>"))
@@ -130,9 +128,9 @@ func TestServeTaskFileNeverSniffsAnHTMLPayload(t *testing.T) {
 	}
 }
 
-// TestServeTaskFileContentLengthMatchesTheBytes is the declared header, not
-// just the bytes that eventually arrive - the two can only disagree if
-// something along the way guessed rather than measured.
+// TestServeTaskFileContentLengthMatchesTheBytes checks the declared header as
+// well as the bytes that arrive: the two can only disagree if something along
+// the way guessed rather than measured.
 func TestServeTaskFileContentLengthMatchesTheBytes(t *testing.T) {
 	a, base, srv := filesServer(t)
 	data := []byte("exactly this many bytes and no more")
@@ -179,15 +177,13 @@ func TestServeTaskFileNotYetStartedIs404(t *testing.T) {
 	}
 }
 
-// TestServeTaskFileSymlinkEscapeIs403 is the one shape of the escape check
-// reachable from an ordinary HTTP caller: SetTaskOptions cuts a rename to a
-// single path segment (rules.FileSegment) before it ever reaches a task, so a
-// name carrying "../" cannot be staged through this route's own front door -
-// internal/app's TestSafeTaskFileNameWithSeparatorIsRefused covers that shape
-// directly against SafeTaskFile instead, which is the only way to construct
-// it at all. A symlink planted inside the task's own folder needs no bad name
-// to prove the same point, and unlike the separator case it is something a
-// download folder can genuinely end up holding.
+// TestServeTaskFileSymlinkEscapeIs403 is the one shape of the escape check an
+// ordinary HTTP caller can reach. SetTaskOptions cuts a rename to a single
+// path segment (rules.FileSegment) before it reaches a task, so a name
+// carrying "../" cannot be staged through this route at all; internal/app's
+// TestSafeTaskFileNameWithSeparatorIsRefused covers that shape against
+// SafeTaskFile directly. A symlink inside the task's own folder makes the same
+// point and is something a download folder can end up holding.
 func TestServeTaskFileSymlinkEscapeIs403(t *testing.T) {
 	a, base, srv := filesServer(t)
 	outside := t.TempDir()
@@ -216,11 +212,9 @@ func TestServeTaskFileSymlinkEscapeIs403(t *testing.T) {
 	}
 }
 
-// TestServeTaskFileRequiresASession is the fact package 20's security
-// argument depends on: this route was registered with reg.Add, not
-// reg.AddOpen, so once a password is set it is exactly as locked as every
-// other route under /api/ - verified end to end here rather than trusted from
-// reading registerFiles.
+// TestServeTaskFileRequiresASession: the route is registered with reg.Add, not
+// reg.AddOpen, so once a password is set it is as locked as every other route
+// under /api/. Verified end to end rather than read off registerFiles.
 func TestServeTaskFileRequiresASession(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
@@ -244,8 +238,8 @@ func TestServeTaskFileRequiresASession(t *testing.T) {
 }
 
 // TestTaskFileStatusMapping is the refusal-to-status table on its own,
-// including the one refusal (a stored name with a separator) that has no
-// HTTP-reachable way to occur - see TestServeTaskFileSymlinkEscapeIs403.
+// including the one refusal a stored name with a separator raises, which no
+// HTTP caller can produce (see TestServeTaskFileSymlinkEscapeIs403).
 func TestTaskFileStatusMapping(t *testing.T) {
 	cases := []struct {
 		name string

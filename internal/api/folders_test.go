@@ -35,7 +35,7 @@ func foldersURL(srv *httptest.Server, path string) string {
 }
 
 // getFolders asks for one listing and decodes it, failing the test on anything
-// but a 200 - the status is asserted separately where it is the point.
+// but a 200.
 func getFolders(t *testing.T, srv *httptest.Server, path string) folderListing {
 	t.Helper()
 	code, raw := getRaw(t, foldersURL(srv, path))
@@ -49,13 +49,9 @@ func getFolders(t *testing.T, srv *httptest.Server, path string) folderListing {
 	return got
 }
 
-// TestTheSplitMatchesTheFolderThatGetsCreated is the assertion the whole feature
-// rests on, and it is deliberately not a table of strings: it checks the split
-// against the directory internal/settings actually creates for the same
-// template. splitTemplate is a twin of that package's unexported fixedPrefix, so
-// the only test worth having is one that fails when the twins come apart - a
-// chooser that splits one segment deeper offers a folder the app will never
-// create, and one that splits earlier writes a fixed segment out of the path.
+// TestTheSplitMatchesTheFolderThatGetsCreated checks splitTemplate against the
+// directory settings.Validate actually creates for the same template, so it
+// fails when the two splits come apart.
 func TestTheSplitMatchesTheFolderThatGetsCreated(t *testing.T) {
 	base := t.TempDir()
 	tpl := filepath.Join(base, "downloads", "<jd:date>", "<jd:hoster>")
@@ -74,17 +70,14 @@ func TestTheSplitMatchesTheFolderThatGetsCreated(t *testing.T) {
 	if _, err := os.Stat(filepath.Join(want, "<jd:date>")); err == nil {
 		t.Error("a folder literally named <jd:date> exists, so the two splits no longer agree")
 	}
-	// Concatenation is how the interface puts the value back together, so the
-	// two halves have to be exactly the template that came in.
+	// The interface re-assembles the value by concatenation.
 	if fixed+tail != tpl {
 		t.Errorf("%q + %q is not %q", fixed, tail, tpl)
 	}
 }
 
-// TestBrowsingReportsTheTemplateTail is the same rule seen through the wire. The
-// interface cannot preserve a naming scheme it was never told about, and a
-// response that quietly answered with only the fixed part would have every
-// caller writing the plain folder back into the setting.
+// TestBrowsingReportsTheTemplateTail checks the same rule over the wire, since
+// the interface can only keep a naming scheme it is told about.
 func TestBrowsingReportsTheTemplateTail(t *testing.T) {
 	base := t.TempDir()
 	if err := os.MkdirAll(filepath.Join(base, "downloads"), 0o755); err != nil {
@@ -105,10 +98,8 @@ func TestBrowsingReportsTheTemplateTail(t *testing.T) {
 	}
 }
 
-// TestAFolderThatDoesNotExistYetSaysSo covers the case a chooser normally gets
-// wrong: somebody types the folder they are about to use. Answering with an
-// empty dialog and no explanation reads as a broken picker, so the route walks
-// up to what is really there and says the rest is new.
+// TestAFolderThatDoesNotExistYetSaysSo checks that a typed folder that does not
+// exist yet is reported as new, with the deepest existing folder listed.
 func TestAFolderThatDoesNotExistYetSaysSo(t *testing.T) {
 	base := t.TempDir()
 	if err := os.Mkdir(filepath.Join(base, "already-here"), 0o755); err != nil {
@@ -132,9 +123,7 @@ func TestAFolderThatDoesNotExistYetSaysSo(t *testing.T) {
 	}
 }
 
-// TestOnlyFoldersAreListed is the route's other half of "never file contents":
-// it does not open a file, and it does not even say one is there. A picker that
-// lists file names is a directory listing of the host with extra steps.
+// TestOnlyFoldersAreListed checks that files are neither opened nor named.
 func TestOnlyFoldersAreListed(t *testing.T) {
 	base := t.TempDir()
 	if err := os.Mkdir(filepath.Join(base, "keep"), 0o755); err != nil {
@@ -159,10 +148,8 @@ func TestOnlyFoldersAreListed(t *testing.T) {
 	}
 }
 
-// TestPathsOutsideTheRootsAreRefused checks the narrowing knob does something.
-// An operator who sets it has decided the chooser may not see the rest of the
-// machine, and a boundary that only stops the paths the interface happens to
-// offer is not a boundary.
+// TestPathsOutsideTheRootsAreRefused checks that KL_BROWSE_ROOTS refuses a
+// path asked for directly, not only the paths the interface offers.
 func TestPathsOutsideTheRootsAreRefused(t *testing.T) {
 	allowed, forbidden := t.TempDir(), t.TempDir()
 	t.Setenv(envBrowseRoots, allowed)
@@ -175,21 +162,19 @@ func TestPathsOutsideTheRootsAreRefused(t *testing.T) {
 	if strings.TrimSpace(string(raw)) == "" {
 		t.Error("the refusal says nothing, so the dialog has nothing to show")
 	}
-	// The allowed root still works, or the test above proves only that
-	// everything is refused.
+	// The allowed root still works, or the check above would pass on a route
+	// that refuses everything.
 	if got := getFolders(t, srv, allowed); got.Listed != allowed {
 		t.Errorf("the allowed root listed %q", got.Listed)
 	}
 }
 
-// TestASymlinkOutOfTheBoundaryIsNotOffered is why the boundary check resolves
-// instead of comparing prefixes. One `ln -s` inside an allowed folder would
-// otherwise hand out the whole disk through a path that passes any prefix test.
+// TestASymlinkOutOfTheBoundaryIsNotOffered checks that the boundary resolves
+// symlinks rather than comparing prefixes.
 func TestASymlinkOutOfTheBoundaryIsNotOffered(t *testing.T) {
 	allowed, forbidden := t.TempDir(), t.TempDir()
 	if err := os.Symlink(forbidden, filepath.Join(allowed, "escape")); err != nil {
-		// Windows needs a privilege for this; the rule is the same either way and
-		// the platform that ships is the one that can make the link.
+		// Windows needs a privilege to create symlinks.
 		t.Skipf("symlinks are not available here: %v", err)
 	}
 	if err := os.Mkdir(filepath.Join(allowed, "inside"), 0o755); err != nil {
@@ -207,17 +192,15 @@ func TestASymlinkOutOfTheBoundaryIsNotOffered(t *testing.T) {
 	if len(got.Entries) != 1 || got.Entries[0].Name != "inside" {
 		t.Errorf("entries are %+v, want only the folder that is really inside", got.Entries)
 	}
-	// Following it by hand is refused too, so the filtering above is a courtesy
-	// and not the protection.
+	// Asking for the link directly is refused too.
 	code, _ := getRaw(t, foldersURL(srv, filepath.Join(allowed, "escape")))
 	if code != http.StatusForbidden {
 		t.Errorf("asking for the link directly answered %d, want 403", code)
 	}
 }
 
-// TestASymlinkedFolderInsideTheBoundaryIsOffered is the other half: resolving
-// must not mean hiding. A machine whose /downloads is a link to the array would
-// otherwise show a chooser with nothing in it.
+// TestASymlinkedFolderInsideTheBoundaryIsOffered checks that resolving links
+// does not hide the ones that stay inside the boundary.
 func TestASymlinkedFolderInsideTheBoundaryIsOffered(t *testing.T) {
 	base := t.TempDir()
 	real := filepath.Join(base, "real")
@@ -238,18 +221,14 @@ func TestASymlinkedFolderInsideTheBoundaryIsOffered(t *testing.T) {
 	if len(got.Entries) != 1 || got.Entries[0].Name != "linked" {
 		t.Fatalf("entries are %+v, want the linked folder", got.Entries)
 	}
-	// The path offered is the one the user typed their way into, not the link's
-	// target: browsing must never rewrite somebody's folder to wherever a link
-	// happened to point.
+	// The offered path keeps the link, not its target.
 	if got.Entries[0].Path != filepath.Join(here, "linked") {
 		t.Errorf("the entry's path is %q, want %q", got.Entries[0].Path, filepath.Join(here, "linked"))
 	}
 }
 
-// TestARootsListThatNamesNothingIsRefusedLoudly pins the direction a mistake in
-// the narrowing knob has to fail in. A typo that fell back to the whole
-// filesystem would widen exactly the boundary somebody set it to narrow, and
-// nothing on screen would ever mention it.
+// TestARootsListThatNamesNothingIsRefusedLoudly checks that a typo in
+// KL_BROWSE_ROOTS fails instead of widening the boundary to everything.
 func TestARootsListThatNamesNothingIsRefusedLoudly(t *testing.T) {
 	t.Setenv(envBrowseRoots, "relative/path")
 	_, srv := foldersServer(t)
@@ -263,9 +242,7 @@ func TestARootsListThatNamesNothingIsRefusedLoudly(t *testing.T) {
 	}
 }
 
-// TestARelativePathIsRefused keeps the route agreeing with settings.Validate:
-// a relative folder is resolved against the process's working directory, which
-// is not something a user can reason about.
+// TestARelativePathIsRefused keeps the route agreeing with settings.Validate.
 func TestARelativePathIsRefused(t *testing.T) {
 	_, srv := foldersServer(t)
 	code, raw := getRaw(t, srv.URL+"/api/folders?path=downloads")
@@ -274,9 +251,6 @@ func TestARelativePathIsRefused(t *testing.T) {
 	}
 }
 
-// TestTheChooserOpensWhereDownloadsGo is why the route reads the settings at
-// all. Opened on anything else, the first thing every user does is navigate away
-// from it.
 func TestTheChooserOpensWhereDownloadsGo(t *testing.T) {
 	base := t.TempDir()
 	if err := os.Mkdir(filepath.Join(base, "sub"), 0o755); err != nil {
@@ -302,8 +276,6 @@ func TestTheChooserOpensWhereDownloadsGo(t *testing.T) {
 	}
 }
 
-// TestTheParentIsOnlyOfferedInsideTheBoundary stops the dialog from showing a
-// way up that answers 403 when it is pressed.
 func TestTheParentIsOnlyOfferedInsideTheBoundary(t *testing.T) {
 	base := t.TempDir()
 	sub := filepath.Join(base, "sub")
@@ -321,8 +293,6 @@ func TestTheParentIsOnlyOfferedInsideTheBoundary(t *testing.T) {
 	}
 }
 
-// TestEntriesAreNeverNull keeps an empty folder from arriving as JSON null,
-// which a list renderer has to guard for separately every single time.
 func TestEntriesAreNeverNull(t *testing.T) {
 	_, srv := foldersServer(t)
 	empty := t.TempDir()
@@ -335,10 +305,8 @@ func TestEntriesAreNeverNull(t *testing.T) {
 	}
 }
 
-// TestTheDefaultBoundaryIsTheWholeFilesystem states the boundary out loud, so
-// narrowing it later is a deliberate edit to a test that says what changed. With
-// nothing set, anything absolute this process can read may be listed - see the
-// file header for why that is the right default for a download manager.
+// TestTheDefaultBoundaryIsTheWholeFilesystem pins the default boundary, so
+// narrowing it takes an edit here.
 func TestTheDefaultBoundaryIsTheWholeFilesystem(t *testing.T) {
 	roots, err := browseRoots(t.TempDir())
 	if err != nil {

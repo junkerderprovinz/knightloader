@@ -122,9 +122,9 @@ func readAll(r *http.Response) ([]byte, error) {
 	return buf.Bytes(), err
 }
 
-// relayOnlyPeer is a relay transport carrying exactly one sibling with no
-// address of its own - a desktop build, or anything behind a relay. It answers
-// one path so the proxy below has something real to reach.
+// relayOnlyPeer is a relay transport carrying one sibling with no address of
+// its own, such as a desktop build. It answers one path so the proxy below has
+// something real to reach.
 type relayOnlyPeer struct {
 	sibs    []relay.Announce
 	gotPath string
@@ -143,20 +143,14 @@ func (r *relayOnlyPeer) Proxy(_ context.Context, target, method, path string, bo
 }
 
 // TestRelayOnlyPeerIsListedAndReachable pins the two facts the browser
-// extension's relay support rests on (issue #27).
+// extension's relay support rests on (issue #27). The extension can only open
+// an HTTP connection to an address, so a peer reachable through a relay alone
+// is routed to through an instance that can be opened:
 //
-// The extension can only open an HTTP connection to an address, so a peer
-// reachable ONLY through a relay used to be dropped from its sync - silently,
-// and then reported as "No new instances found". The fix keeps such a peer and
-// routes to it through an instance that CAN be opened, using the very route
-// this test drives. Both halves have to hold:
-//
-//  1. GET /api/instances lists it, with an EMPTY url - that emptiness is the
-//     signal the extension keys on, so it is part of the contract, not an
-//     accident of serialisation.
-//  2. POST /api/instances/{name}/links actually reaches it over the relay -
-//     otherwise the extension would show a peer it still cannot send to,
-//     which is the original bug wearing a different hat.
+//  1. GET /api/instances lists it with an empty url, which is the signal the
+//     extension keys on and part of the contract.
+//  2. POST /api/instances/{name}/links reaches it over the relay, so the
+//     extension does not show a peer it cannot send to.
 func TestRelayOnlyPeerIsListedAndReachable(t *testing.T) {
 	a, err := app.New(t.TempDir())
 	if err != nil {
@@ -199,7 +193,7 @@ func TestRelayOnlyPeerIsListedAndReachable(t *testing.T) {
 	}
 
 	// The peer is addressed by the name the list gave, which is what the
-	// extension stores - no second naming scheme.
+	// extension stores.
 	body := bytes.NewReader([]byte(`{"links":"https://example.com/file.zip"}`))
 	pr, err := http.Post(srv.URL+"/api/instances/"+listed[0].Name+"/links", "application/json", body)
 	if err != nil {
@@ -220,16 +214,11 @@ func TestRelayOnlyPeerIsListedAndReachable(t *testing.T) {
 	}
 }
 
-// TestAddingAPasswordProtectedPeerSaysWhy pins the honest half of what
-// "adding" actually does.
-//
-// Adding a peer by address - typed, or one click from the discovery card -
-// stores an address and exchanges nothing. So a peer with a password set
-// refuses the very next call, and for a while the page reported that as
-// "offline": the same word it uses for a machine that is switched off, with a
-// completely different fix behind it. Worse, the hint above the discovery card
-// claimed in 42 languages that adding was what exchanged credentials, which it
-// never did.
+// TestAddingAPasswordProtectedPeerSaysWhy covers what adding a peer does.
+// Adding by address, typed or from the discovery card, stores an address and
+// exchanges nothing, so a peer with a password refuses the next call. Reported
+// as "offline" that is the same word a switched-off machine gets, with a
+// different fix behind it.
 func TestAddingAPasswordProtectedPeerSaysWhy(t *testing.T) {
 	locked, err := app.New(t.TempDir())
 	if err != nil {
@@ -268,10 +257,9 @@ func TestAddingAPasswordProtectedPeerSaysWhy(t *testing.T) {
 		return got.Online, got.Refused
 	}
 
-	// Reached, and refused: a credential problem, not a reachability one. The
-	// fix is to put both instances in the same phrase group; the fix for the
-	// case below is to switch a machine on. Two sentences, so they must be two
-	// answers.
+	// Reached and refused: a credential problem, fixed by putting both
+	// instances in the same phrase group. The case below is fixed by switching
+	// a machine on, so the two need different answers.
 	online, refused := add("locked", lockedSrv.URL)
 	if online {
 		t.Error("online = true for a peer that answered 401")

@@ -1,10 +1,7 @@
 package api
 
-// Route-level tests for the media library call, against a real app on a
-// throwaway data directory - the shape routes_hostheaders_test.go uses next
-// door, and for the same reason: what is asserted here is what actually crosses
-// the wire and what actually lands in the encrypted store, and a stubbed app can
-// answer for neither.
+// Route-level tests for the media library call against a real app, since what
+// matters is what crosses the wire and what lands in the encrypted store.
 
 import (
 	"encoding/json"
@@ -21,9 +18,8 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
-// hookToken is the one string every leak assertion in this file hunts for: a
-// single distinctive needle, so a hit anywhere is unambiguous and a miss is not a
-// coincidence.
+// hookToken is the distinctive value every leak assertion in this file looks
+// for.
 const hookToken = "SECRET-emby-4t9x-no-response-may-carry-this"
 
 func mediaHookServer(t *testing.T) (*app.App, *httptest.Server) {
@@ -38,9 +34,7 @@ func mediaHookServer(t *testing.T) (*app.App, *httptest.Server) {
 	return a, srv
 }
 
-// storeHook saves one address THROUGH THE ROUTE, so every assertion below is
-// about what this HTTP surface did rather than about a store a test filled in
-// behind its back.
+// storeHook saves one address through the route itself.
 func storeHook(t *testing.T, srv *httptest.Server, body map[string]any) []byte {
 	t.Helper()
 	code, raw := postJSON(t, http.MethodPost, srv.URL+"/api/mediahooks", body)
@@ -102,8 +96,6 @@ func decodeRows(t *testing.T, raw []byte) []hookRow {
 	return rows
 }
 
-// TestTheListingCarriesNamesAndNeverTheValue is the one promise this surface
-// makes that cannot be taken back once broken.
 func TestTheListingCarriesNamesAndNeverTheValue(t *testing.T) {
 	_, srv := mediaHookServer(t)
 	storeHook(t, srv, jellyfinBody())
@@ -123,9 +115,8 @@ func TestTheListingCarriesNamesAndNeverTheValue(t *testing.T) {
 	if r.Host != "jellyfin.lan:8096" {
 		t.Errorf("host = %q", r.Host)
 	}
-	// A host NAME is not something this can resolve without a lookup, and it
-	// answers false rather than guessing - which draws the extra "this leaves
-	// your network" sentence. Erring that way is the point.
+	// A host name is not resolved, so it reports false and the card warns
+	// that the call may leave the network.
 	if r.Private {
 		t.Error("a host name was reported as private without a lookup")
 	}
@@ -140,11 +131,8 @@ func TestTheListingCarriesNamesAndNeverTheValue(t *testing.T) {
 	}
 }
 
-// TestThePlaceholderKeepsTheStoredValue is the trap every secret in this app
-// carries, and the one HeaderProfiles.tsx documents at length: the listing has no
-// value to send back, so a form that re-sent what it was given would send an
-// empty one - and empty means "clear this" here as it does everywhere else. A
-// person editing the WAIT would silently lose their token.
+// TestThePlaceholderKeepsTheStoredValue checks that editing the wait with the
+// placeholder in the value field keeps the stored token.
 func TestThePlaceholderKeepsTheStoredValue(t *testing.T) {
 	a, srv := mediaHookServer(t)
 	storeHook(t, srv, jellyfinBody())
@@ -161,16 +149,12 @@ func TestThePlaceholderKeepsTheStoredValue(t *testing.T) {
 	if len(rows) != 1 || rows[0].WaitSeconds != 300 {
 		t.Errorf("the edit did not land: %+v", rows)
 	}
-	// And the placeholder itself was never sealed as the value, which is the
-	// other half of the same mistake: eight stars sent as a token is a 401
-	// nobody can diagnose.
+	// The placeholder itself must never be sealed as the value.
 	if got := a.MediaHookStore().Value("jellyfin"); got == accounts.Redacted {
 		t.Error("the literal placeholder was stored as the header value")
 	}
 }
 
-// TestAnEmptyValueClears, which has to keep working or a stored token could
-// never be removed through the page at all.
 func TestAnEmptyValueClears(t *testing.T) {
 	a, srv := mediaHookServer(t)
 	storeHook(t, srv, jellyfinBody())
@@ -211,9 +195,7 @@ func TestASaveIsRefusedWithASentenceNamingTheField(t *testing.T) {
 			if !strings.Contains(string(raw), c.want) {
 				t.Errorf("the refusal is %q, which does not say %q", raw, c.want)
 			}
-			// And nothing was stored on the way to the refusal - including the
-			// value, which is the half that would otherwise be sealed under an
-			// id no row names.
+			// Neither the row nor the value was stored.
 			if len(a.Settings.Get().MediaHooks) != 0 || a.MediaHookStore().Has("jellyfin") {
 				t.Error("a refused save left something behind")
 			}
@@ -221,10 +203,9 @@ func TestASaveIsRefusedWithASentenceNamingTheField(t *testing.T) {
 	}
 }
 
-// TestDeleteIsRefusedWhileADrawerStillCallsIt. ValidateMediaHooks refuses the
-// whole settings document for a drawer pointing at an address that is not there,
-// so deleting one out from under a drawer would leave the settings page
-// unsaveable with nothing on it saying why.
+// TestDeleteIsRefusedWhileADrawerStillCallsIt checks the refusal that keeps a
+// drawer from pointing at a missing address, which would make every settings
+// save fail.
 func TestDeleteIsRefusedWhileADrawerStillCallsIt(t *testing.T) {
 	a, srv := mediaHookServer(t)
 	storeHook(t, srv, jellyfinBody())
@@ -245,8 +226,7 @@ func TestDeleteIsRefusedWhileADrawerStillCallsIt(t *testing.T) {
 	if _, ok := a.Settings.Get().MediaHookFor("jellyfin"); !ok {
 		t.Error("the address was deleted anyway")
 	}
-	// The listing says the same thing the refusal does, so somebody can find the
-	// drawers before pressing the button rather than after.
+	// The listing names the same drawers before anyone presses delete.
 	rows := decodeRows(t, listHooks(t, srv))
 	if len(rows) != 1 || len(rows[0].UsedBy) != 1 || rows[0].UsedBy[0] != "serien" {
 		t.Errorf("usedBy = %v", rows[0].UsedBy)
@@ -264,8 +244,6 @@ func TestDeleteTakesTheSealedValueWithIt(t *testing.T) {
 	if _, ok := a.Settings.Get().MediaHookFor("jellyfin"); ok {
 		t.Error("the address is still in the table")
 	}
-	// A value left sealed under an id nothing names is a credential nobody can
-	// see and nobody can remove.
 	if a.MediaHookStore().Has("jellyfin") {
 		t.Error("the header value outlived the address it belonged to")
 	}
@@ -279,15 +257,10 @@ func TestDeletingSomethingThatIsNotThereIs404(t *testing.T) {
 	}
 }
 
-// TestTheTestCallAnswers200WithTheReasonInTheBody is the same call POST
-// /api/feeds/test makes: the request was perfectly good, it was the far end that
-// was not, and a 4xx would have the browser log the one answer somebody is meant
-// to read.
 func TestTheTestCallAnswers200WithTheReasonInTheBody(t *testing.T) {
 	_, srv := mediaHookServer(t)
 
-	// A listener taken straight back down, so the address is one nothing can be
-	// listening on rather than a number picked and hoped for.
+	// A listener closed straight away gives an address nothing listens on.
 	l, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatal(err)
@@ -315,12 +288,10 @@ func TestTheTestCallAnswers200WithTheReasonInTheBody(t *testing.T) {
 	if !res.Test {
 		t.Error("the call was not recorded as a test")
 	}
-	// The raw sentence travels for the log, and the value never does.
 	if strings.Contains(string(raw), hookToken) {
 		t.Fatalf("the header value is in the test result: %s", raw)
 	}
-	// And the card can draw it afterwards, which is what makes the button worth
-	// pressing at all.
+	// The card can show the result afterwards.
 	rows := decodeRows(t, listHooks(t, srv))
 	if len(rows) != 1 || string(rows[0].Last) == "null" {
 		t.Errorf("the last call was not recorded: %s", rows[0].Last)
@@ -335,10 +306,8 @@ func TestTestingSomethingThatIsNotStoredIs404(t *testing.T) {
 	}
 }
 
-// TestTheSecondAddressDoesNotReplaceTheFirst, and the order is the order the
-// picker on the Categories page offers: an edited address that jumped to the
-// bottom of that menu would read as a different address to whoever was looking
-// at it.
+// TestTheSecondAddressDoesNotReplaceTheFirst also checks that an edit keeps
+// the address's place in the Categories picker.
 func TestTheSecondAddressDoesNotReplaceTheFirst(t *testing.T) {
 	_, srv := mediaHookServer(t)
 	storeHook(t, srv, jellyfinBody())

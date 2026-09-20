@@ -13,8 +13,8 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/auth"
 )
 
-// TestUnprotectedByDefault keeps a fresh install working exactly as before: no
-// password, no login, nothing in the way.
+// TestUnprotectedByDefault: a fresh install has no password, no login and
+// nothing in the way.
 func TestUnprotectedByDefault(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
@@ -29,8 +29,8 @@ func TestUnprotectedByDefault(t *testing.T) {
 	}
 }
 
-// TestPasswordLocksTheApi is the whole point: once a password is set, an
-// unauthenticated caller is turned away, and a correct login gets back in.
+// TestPasswordLocksTheApi: once a password is set an unauthenticated caller is
+// turned away, and a correct login gets back in.
 func TestPasswordLocksTheApi(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
@@ -172,10 +172,8 @@ func TestChangePasswordNeedsCurrent(t *testing.T) {
 	}
 }
 
-// TestAPITokenGrantsAccess is the whole point of internal/apitoken: a client
-// that has never seen the session cookie, and does not send one, still gets
-// in with a Bearer token, and a bad one is refused exactly like a bad
-// password would be.
+// TestAPITokenGrantsAccess: a client that sends no session cookie gets in with
+// a Bearer token, and a bad one is refused like a bad password.
 func TestAPITokenGrantsAccess(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
@@ -210,9 +208,8 @@ func TestAPITokenGrantsAccess(t *testing.T) {
 	}
 }
 
-// TestRevokedTokenStopsAuthenticating is named tokens' reason to exist: one
-// device's credential can be pulled without touching the shared password or
-// any other token.
+// TestRevokedTokenStopsAuthenticating: one device's credential can be pulled
+// without touching the shared password or any other token.
 func TestRevokedTokenStopsAuthenticating(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
@@ -244,12 +241,9 @@ func TestRevokedTokenStopsAuthenticating(t *testing.T) {
 	}
 }
 
-// TestTokenMintedBeforePasswordIsRevokedWhenPasswordIsSet closes the standing
-// bypass apitoken.Store.RevokeAll exists for (see its own doc comment): a
-// token minted while the instance had no password protecting it must not go
-// on working once one is set. Reproduced live before this fix: exactly this
-// token kept authenticating after the very password change meant to lock the
-// instance down.
+// TestTokenMintedBeforePasswordIsRevokedWhenPasswordIsSet covers the bypass
+// apitoken.Store.RevokeAll exists for: a token minted while the instance had
+// no password must stop working once one is set.
 func TestTokenMintedBeforePasswordIsRevokedWhenPasswordIsSet(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
@@ -359,10 +353,10 @@ func newJar(t *testing.T) http.CookieJar {
 	return jar
 }
 
-// TestAssetsRevalidate is the reason a redeploy can leave a browser on an old
-// UI. The bundle names carry no content hash and the embedded files have no
-// modification time, so without an ETag the browser has no way to tell that
-// app.js changed and is free to keep serving the old one from cache.
+// TestAssetsRevalidate covers what leaves a browser on an old UI after a
+// redeploy: the bundle names carry no content hash and the embedded files have
+// no modification time, so without an ETag nothing tells the browser that
+// app.js changed.
 func TestAssetsRevalidate(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
@@ -401,12 +395,10 @@ func TestAssetsRevalidate(t *testing.T) {
 	}
 }
 
-// TestManifestServesTheRealContentType is spaHandler's own mime.AddExtensionType
-// call: Go's mime package has no built-in mapping for .webmanifest, so
-// without it http.FileServer falls through to content sniffing, which reads
-// a manifest's leading "{" as plain text - the PWA install prompt and
-// several browsers' own manifest parsers expect application/manifest+json,
-// not text/plain.
+// TestManifestServesTheRealContentType covers spaHandler's
+// mime.AddExtensionType call. Go's mime package has no mapping for
+// .webmanifest, so without it http.FileServer sniffs the leading "{" as plain
+// text, and the PWA install prompt expects application/manifest+json.
 func TestManifestServesTheRealContentType(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()

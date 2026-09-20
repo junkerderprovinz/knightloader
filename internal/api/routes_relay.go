@@ -1,20 +1,10 @@
 package api
 
-// The self-hosted relay's own configuration: the address this instance dials
-// out to, and whether the key that authorises it there is stored.
-//
-// The two halves live in two different stores on purpose, and this file is
-// the only thing that knows both. The address is public identity and sits in
-// settings.json beside KnownDomains (internal/settings/settings_relay.go);
-// the key IS the authorization check the relay makes, so it is sealed in
-// internal/accounts under relay.AccountService, the same place a TorBox or
-// debrid key goes. That asymmetry is also why the relay does not simply ride
-// along on PUT /api/settings: GET /api/settings hands the whole document
-// back, and a secret must never be reachable through a route that does that.
-//
-// Nothing here ever answers with the key. Like GET /api/accounts and
-// GET /api/tokens before it, this route reports state - whether something is
-// configured - and never the credential itself.
+// The relay configuration: the address this instance dials out to, kept in
+// settings.json, and the key that authorises it there, sealed in
+// internal/accounts under relay.AccountService. The key is never answered
+// with, and it does not ride on /api/settings, which hands the whole document
+// back.
 
 import (
 	"bytes"
@@ -39,14 +29,8 @@ import (
 type relayConfig struct {
 	RelayURL string `json:"relayUrl"`
 	KeySet   bool   `json:"keySet"`
-	// Connected is whether the socket to that relay is actually up right now,
-	// not whether a URL and a key happen to be stored.
-	//
-	// Without it the Access page could only infer "live" from the config being
-	// filled in, which is true for a typo'd address, a key the relay rejects
-	// and a relay that is simply down - all three then looked identical to a
-	// working relay with nobody else connected to it. relay.Client.Connected()
-	// existed for exactly this and had no callers at all.
+	// Connected is whether the socket to that relay is up right now, which a
+	// stored address and key alone cannot tell.
 	Connected bool `json:"connected"`
 	// Serve is whether this instance is itself running the relay, under
 	// /relay/connect on its own address.
@@ -55,21 +39,15 @@ type relayConfig struct {
 	// one included if it dials its own relay. Zero while Serve is false.
 	ServeClients int `json:"serveClients"`
 	// Mode is which relay this instance uses: "project", "own" or "off".
-	// Always one of the three - settings.RelayModeOf resolves the empty
-	// value an older install stores, so no caller has to know that history.
+	// settings.RelayModeOf resolves the empty value older installs store.
 	Mode string `json:"mode"`
 }
 
 func registerRelay(reg *Registry, a *app.App) {
-	// The relay's own socket, on this instance's address. Open, because the
-	// relay key in the first frame IS the credential and there is no other:
-	// every instance dialling in is a different machine with no session here,
-	// which is the whole point. relay.Server admits only the key this instance
-	// stores, so an open route is not an open relay.
-	//
-	// One Server for the life of the process, with the switch read per
-	// connection. Building it on demand would drop every connected sibling
-	// each time an unrelated setting was saved.
+	// The relay socket is open: instances dialling in have no session here,
+	// and the relay key in the first frame is the credential. One Server lives
+	// for the whole process with the switch read per connection, so saving an
+	// unrelated setting does not drop connected siblings.
 	srv := relay.New()
 	srv.Admit = func(key string) bool {
 		if !a.Settings.Get().RelayServe {
@@ -79,19 +57,14 @@ func registerRelay(reg *Registry, a *app.App) {
 		if err != nil || stored == "" {
 			return false
 		}
-		// Constant time, because this is a bearer credential and the caller
-		// controls the guess. The relay's own minimum key length keeps the
-		// comparison from being a useful oracle about length alone.
+		// Constant time, because the caller controls the guess.
 		return subtle.ConstantTimeCompare([]byte(key), []byte(stored)) == 1
 	}
 	reg.AddOpen(http.MethodGet, "/relay/connect",
 		"the relay socket, when this instance is serving one - authorised by the relay key in the first frame, never by a session",
 		func(w http.ResponseWriter, r *http.Request) {
-			// Answered as a route that is not there, rather than as one that
-			// refuses: with the switch off this instance is not a relay, and
-			// saying "no such endpoint" is the same answer any KnightLoader
-			// that never had the feature gives. A client that gets it can
-			// treat every version alike.
+			// With the switch off this instance is not a relay, so it answers
+			// like a version without the feature.
 			if !a.Settings.Get().RelayServe {
 				http.Error(w, "no such endpoint: "+r.Method+" "+r.URL.Path, http.StatusNotFound)
 				return
@@ -110,35 +83,19 @@ func registerRelay(reg *Registry, a *app.App) {
 		func(w http.ResponseWriter, r *http.Request) {
 			var body struct {
 				RelayURL string `json:"relayUrl"`
-				// Key is a pointer because three requests have to be told
-				// apart and only two of them carry a string. Absent means
-				// "leave the stored key alone", which is the ordinary save of
-				// an edited address from a form that was never shown the key
-				// and so has nothing to send back; "" means "clear it", the
-				// only way a stored secret can ever be removed on purpose
-				// (accounts.Store.Set has read an empty secret as delete
-				// since it existed); anything else replaces it. A plain
-				// string could express two of those, and the one it would
-				// have to give up is the common one.
+				// Key is absent to keep the stored key, "" to clear it, and
+				// anything else to replace it.
 				Key *string `json:"key"`
-				// Serve is a pointer for the same reason Key is: a form that
-				// only edited the address must not carry the switch back to
-				// whatever it happened to be when that form was drawn.
-				Serve *bool `json:"serve"`
-				// Mode likewise: the address field and the mode switches are
-				// separate controls on the page, and a save from one must not
-				// carry the other back.
-				Mode *string `json:"mode"`
+				// Serve and Mode are pointers so a save from one control does
+				// not carry the others back.
+				Serve *bool   `json:"serve"`
+				Mode  *string `json:"mode"`
 			}
 			if !decodeJSON(w, r, &body) {
 				return
 			}
-			// SetPartial rather than a read-modify-write of the whole
-			// document, for the reason PATCH /api/settings' own comment
-			// spells out: this route must not carry every other setting a
-			// concurrent editor is changing back to whatever this caller last
-			// saw. Sanitising the address - trim, no trailing slash - is
-			// sanitizeRelay's job on the way to disk, not this handler's.
+			// SetPartial, so a concurrent edit to other settings survives.
+			// sanitizeRelay trims the address on the way to disk.
 			patch, err := json.Marshal(body.RelayURL)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -154,11 +111,8 @@ func registerRelay(reg *Registry, a *app.App) {
 				fields["relayServe"] = serve
 			}
 			if body.Mode != nil {
-				// Refused rather than coerced. An unrecognised mode would be
-				// stored, read back by RelayModeOf as "not one of the three",
-				// and fall through to the legacy inference - so a typo in a
-				// client would present as a setting that saves and then
-				// quietly does something else.
+				// An unknown mode would be stored and then fall through to
+				// RelayModeOf's legacy inference, so it is refused.
 				switch *body.Mode {
 				case settings.RelayModeProject, settings.RelayModeOwn, settings.RelayModeOff:
 				default:
@@ -187,20 +141,14 @@ func registerRelay(reg *Registry, a *app.App) {
 		})
 }
 
-// relayConfigOf reads the configuration back out of the two stores that hold
-// it, so GET and PUT can never describe it differently - PUT answers with
-// what is now stored, not with what it was sent. A credential that will not
-// decrypt reads as "no key set", the same reading app.accountRow already
-// gives an unreadable one: there is nothing usable there either way, and the
-// difference belongs in a log, not in a boolean the settings page draws a
-// checkmark from.
+// relayConfigOf reads the configuration back from the two stores, so PUT
+// answers with what is stored. A key that will not decrypt reads as not set,
+// as in app.accountRow.
 func relayConfigOf(a *app.App, srv *relay.Server) relayConfig {
 	key, err := a.Accounts.Get(relay.AccountService)
 	cfg := a.Settings.Get()
-	// The count is reported only while the switch is on. A relay just switched
-	// off keeps whatever sockets were already open until each drops on its own,
-	// and a number that outlived the switch would read as the feature still
-	// running rather than as it finishing.
+	// Sockets opened before the switch went off linger until they drop, so the
+	// count is only reported while it is on.
 	clients := 0
 	if cfg.RelayServe {
 		clients = srv.Len()
@@ -215,73 +163,29 @@ func relayConfigOf(a *app.App, srv *relay.Server) relayConfig {
 	}
 }
 
-// applyRelay (re)builds the relay client from whatever is currently stored
-// and installs it on a.Federation, replacing (and so closing - see
-// federation.Manager.SetRelay) whatever was there before. Called from two
-// places: once at boot, as internal/api.Handler's own last step, so a
-// configuration saved in an earlier run reconnects without anyone touching
-// the settings page again; and once per PUT /api/relay/config, so pressing
-// Save connects rather than only writing a file somebody has to restart the
-// process to have read.
+// relayTarget answers which relay applyRelay dials, with which key, and under
+// which key the frames are sealed.
 //
-// Clearing the address or the key - or a client that fails to construct, or
-// a.SelfServeHandler() not being ready yet, which only happens if this is
-// somehow called before Handler finishes wiring itself - all take the same
-// path: SetRelay(nil). A failure to CONNECT is never logged as more than
-// that either, and never returned to a PUT caller: the save itself succeeded,
-// and a relay that happens to be unreachable right now must not read as
-// "your settings were rejected" - the whole premise of making the relay
-// optional and self-hosted is that its outages never touch this instance's
-// own operation, so a client left to keep retrying in the background is
-// exactly the right outcome, not an error surfaced to whoever just saved an
-// address.
-// relayTarget answers the three questions applyRelay needs: which relay to
-// dial, with which key, and under which key its frames are sealed.
-//
-// The seed phrase comes first. Once somebody has activated remote access,
-// the secret their phrase decodes to is the whole configuration - the
-// address is relay.DefaultRelayURL unless they deliberately pointed this
-// instance at their own relay, and the key is derived, never stored or sent
-// as the secret itself (see relay.DeriveKey).
-//
-// The frame key is derived from that same secret under a DIFFERENT domain
-// (relay.DeriveFrameKey), which is what lets the relay hold one and never
-// compute the other. It is the whole basis of the claim the connection card
-// makes about a relay not being able to read what passes through it.
-//
-// The hand-entered relay key remains as the second path, unchanged, for a
-// self-hosted relay somebody set up before the phrase existed or prefers to
-// keep configuring by hand. Neither path knows about the other: an instance
-// has a seed or it does not. That path has no secret to derive from, so its
-// frame key comes from the relay key itself - a weaker guarantee, spelled
-// out in full at relay.FrameKeyFromRelayKey, and one no UI text claims.
+// A stored connection secret from the seed phrase comes first: the relay key
+// and the frame key are derived from it under different domains
+// (relay.DeriveKey, relay.DeriveFrameKey), so the relay can hold one and never
+// compute the other. Without a seed, a hand-entered relay key is used, and the
+// frame key comes from it (relay.FrameKeyFromRelayKey), a weaker guarantee no
+// UI text claims.
 func relayTarget(a *app.App) (url, key string, frameKey []byte) {
 	cfg := a.Settings.Get()
-	// "No relay" is answered here, before any credential is read, because it
-	// is the one answer that needs no address and no key: an instance with
-	// the relay switched off is not misconfigured, it is configured. Reading
-	// the seed first and only then noticing would log a stored-secret warning
-	// at somebody who deliberately turned the feature off.
+	// Checked before any credential is read, so switching the relay off does
+	// not log warnings about the stored secret.
 	if cfg.RelayModeOf() == settings.RelayModeOff {
 		return "", "", nil
 	}
-	// Only "own" honours the stored address. In project mode the address
-	// field may still hold a value somebody typed and then switched away
-	// from, and dialling it because it happens to be non-empty would make the
-	// mode switch do nothing - the exact shape of bug the mode field was
-	// added to remove.
+	// Only "own" honours the stored address; in project mode the field may
+	// still hold an address somebody switched away from.
 	override := ""
 	if cfg.RelayModeOf() == settings.RelayModeOwn {
 		override = cfg.RelayURL
-		// "My own relay" with no address is NOT the project relay, and this
-		// used to dial it anyway (jdp, 2026-09-07: "der verbunden badge
-		// schaltet auf verbunden sobald das eigene relay ativiert wird ohne,
-		// dass es eingerichtet ist"). The badge was the visible half; the real
-		// half is that somebody who deliberately switched to their own relay
-		// was connected to somebody else's, and told they were connected.
-		//
-		// An unconfigured choice is not a fallback. Nothing is dialled until
-		// there is an address, and the card says so.
+		// Own relay without an address dials nothing rather than falling back
+		// to the project relay.
 		if strings.TrimSpace(override) == "" {
 			log.Printf("relay: own relay is selected but no address is set, nothing is dialled")
 			return "", "", nil
@@ -291,9 +195,8 @@ func relayTarget(a *app.App) (url, key string, frameKey []byte) {
 	if secretHex, err := a.Accounts.Get(relay.SeedAccountService); err == nil && secretHex != "" {
 		secret, err := hex.DecodeString(secretHex)
 		if err != nil || len(secret) != seedphrase.SecretLen {
-			// Sealed but unusable. Loud, because the instance will now sit
-			// there looking configured while reaching nothing, and the fix
-			// (re-enter the phrase) is not one anybody guesses from silence.
+			// Logged, because the instance looks configured while reaching
+			// nothing.
 			log.Printf("relay: the stored connection secret is malformed, remote access is off until the phrase is entered again")
 			return "", "", nil
 		}
@@ -313,6 +216,10 @@ func relayTarget(a *app.App) (url, key string, frameKey []byte) {
 	return override, manual, relay.FrameKeyFromRelayKey(manual)
 }
 
+// applyRelay rebuilds the relay client from what is stored and installs it on
+// a.Federation, which closes the previous one. It runs at boot and after every
+// relay or name change. A relay that cannot be reached is not an error for the
+// caller; the client keeps retrying in the background.
 func applyRelay(a *app.App) {
 	relayURL, key, frameKey := relayTarget(a)
 	serve := a.SelfServeHandler()
@@ -342,38 +249,20 @@ func applyRelay(a *app.App) {
 	a.Federation.SetRelay(c)
 }
 
-// relayProxyHandler turns one inbound relay call into a normal request
-// against serve - this instance's own fully-wired HTTP handler, the same one
-// a browser tab or an API token reaches. A relay-visible sibling therefore
-// sees exactly the same routes and behaviour a direct HTTP peer already
-// does.
+// relayProxyHandler turns one inbound relay call into a request against serve,
+// the same handler a browser or an API token reaches.
 //
-// # Why a sibling is authenticated, and what that costs
-//
-// Anything arriving here came off a socket the relay only joins to other
-// connections presenting the SAME group key - the key derived from the
-// connection phrase. So the sender has already proved group membership
-// before this function runs, and the request is marked as such.
-//
-// That mark is what makes a password-protected instance usable from its own
-// siblings. It used to answer 401 to all of them, because the phrase and the
-// credential were unrelated things and only a separate pairing exchange
-// closed the gap. It is not a loosening: whoever holds the phrase can join
-// the group anyway, and every screen that hands one out says so.
-//
-// What it does mean is that the surface reachable this way has to be the
-// narrow one, which is enforced HERE rather than left to each route. The set
-// is exactly what the outbound half is willing to forward (see the
-// /api/instances/{name}/{rest...} route): tasks, links and the queue. A
-// sibling cannot read this instance's accounts, change its password, mint an
-// API token or ask for the phrase back.
+// The relay only joins sockets presenting the same group key, derived from the
+// connection phrase, so the sender has proved group membership and the request
+// is marked authenticated. Whoever holds the phrase can join the group anyway.
+// In return the reachable surface is limited here by relayForwardable, so a
+// sibling cannot read accounts, change the password, mint a token or ask for
+// the phrase.
 func relayProxyHandler(serve http.Handler) relay.ProxyHandler {
 	return func(ctx context.Context, call relay.ProxyCall) (int, []byte) {
 		if !relayForwardable(call.Method, call.Path) {
-			// Refused before the handler sees it, so a route added later is
-			// not silently exposed to peers by existing: this list is an
-			// allowlist and a new route is outside it until somebody says
-			// otherwise.
+			// An allowlist, so a route added later is not exposed to peers
+			// until somebody adds it.
 			return http.StatusForbidden, []byte("route not proxied")
 		}
 		var body io.Reader
@@ -388,24 +277,14 @@ func relayProxyHandler(serve http.Handler) relay.ProxyHandler {
 		if len(call.Body) > 0 {
 			httpReq.Header.Set("Content-Type", "application/json")
 		}
-		// Set, never appended to: the frame is the only source of this header,
-		// so a caller cannot stack a second value onto one the relay path
-		// might otherwise have added. An empty field leaves the request
-		// unauthenticated, which is what every relay call was before the
-		// field existed and still is for instance-to-instance traffic.
+		// Set rather than added, so the frame is the header's only source.
 		if call.Authorization != "" {
 			httpReq.Header.Set("Authorization", call.Authorization)
 		}
 		rec := newRelayRecorder()
-		// Recovered, because there is no server here to do it.
-		//
-		// An ordinary request is served by net/http, which wraps every handler
-		// in a recover and turns a panic into a dropped connection. This one is
-		// dispatched by hand from the goroutine reading relay frames, so a
-		// handler that panics takes the whole instance down - reachable by
-		// anybody who can send a frame. Found by a bodyless POST panicking in
-		// decodeJSON (see api.go's own `body`); that particular hole is closed,
-		// and this is the reason a second one would not cost the process.
+		// There is no net/http server here to recover a panicking handler, and
+		// this runs on the goroutine reading relay frames, so a panic would take
+		// the whole instance down.
 		status, out := func() (s int, b []byte) {
 			defer func() {
 				if r := recover(); r != nil {
@@ -420,27 +299,17 @@ func relayProxyHandler(serve http.Handler) relay.ProxyHandler {
 	}
 }
 
-// relayForwardable is the one list of what a group sibling may reach on this
-// instance.
+// relayForwardable is the list of what a group sibling may reach on this
+// instance. It is wider than the browser's outbound filter on
+// /api/instances/{name}/{rest...}, because the phone app is a group member too
+// and asks things a browser never asks a peer.
 //
-// It is deliberately NOT the same list as the outbound web-proxy filter on
-// /api/instances/{name}/{rest...}. That one is what a BROWSER may ask this
-// instance to relay onward, and it is narrower. This one is what any group
-// member may ask of us, and the phone app is a group member too: it needs to
-// know whether it reached something alive, which instances are in the group,
-// and what the instance looks like, none of which a browser ever asks a peer
-// for. The narrow list is a subset of this one, which is the direction that
-// is safe.
-//
-// The task, link and queue routes carry any method - the queue travels with
-// the task list because it is that list's master switch, and showing a
-// sibling's downloads while being unable to stop them is a half-connected
-// instance. Everything else here is GET only: a sibling may look, never
-// change. Settings, accounts, tokens, scripts and the phrase are outside the
-// list entirely.
+// The task, link and queue routes take any method, since showing a sibling's
+// downloads without being able to stop them would be half a connection. The
+// rest is read-only apart from the appearance fields. Settings, accounts,
+// tokens, scripts and the phrase are not on the list.
 func relayForwardable(method, path string) bool {
-	// Query strings are part of a task listing's own vocabulary (filters,
-	// paging); the decision here is about the route, not its arguments.
+	// The decision is about the route, not its query arguments.
 	if i := strings.IndexByte(path, '?'); i >= 0 {
 		path = path[:i]
 	}
@@ -454,51 +323,23 @@ func relayForwardable(method, path string) bool {
 		strings.HasPrefix(rest, "tasks/") || strings.HasPrefix(rest, "queue/") {
 		return true
 	}
-	// Read-only, and each for a reason a companion would otherwise have to do
-	// without: "did I reach something, and does it want a password", "which
-	// instances are in this group", the seven cosmetic fields that let a
-	// companion wear the instance's own accent, and the addresses this
-	// instance answers on. /api/appearance exists precisely so the third one
-	// is not a licence to read /api/settings.
-	//
-	// remote-access is the newest and the one worth justifying. The browser
-	// extension holds no addresses at all any more - the phrase replaced them
-	// - which also left it unable to offer "open this instance's interface",
-	// because it had no URL to open. Asking the instance itself is the answer
-	// that keeps the property that made the phrase model worth having: it
-	// travels inside the encrypted frame, so the RELAY still never learns
-	// where anybody's instance lives. The alternative, putting an address in
-	// the announce, would have handed exactly that to the relay operator.
-	//
-	// What it discloses is bounded by who can ask: holding the phrase already
-	// means being able to drive this instance's queue and read its task list.
-	// Somebody with that is not learning anything new from the address of a
-	// thing they are already operating.
-	// The one writable exception, and it is narrow on purpose: POST
-	// /api/appearance sets seven cosmetic fields and reaches nothing else (see
-	// appearanceFields in routes_system.go). It is here because the phone could
-	// wear the instance's palette and not change it, which made the palette a
-	// thing you can only edit from a browser - and the palette has to live on
-	// the instance, because colours are handed out by POSITION and two clients
-	// that disagree about position three disagree about every card.
-	//
-	// What it grants is bounded by who can ask, the same argument the GET list
-	// below rests on: holding the phrase already means being able to drive this
-	// instance's queue and read its task list. Being able to repaint it as well
-	// is strictly less than that. /api/settings stays outside the list.
+	// Setting the seven appearance fields is less than a phrase holder can
+	// already do through the queue.
 	if method == http.MethodPost && rest == "appearance" {
 		return true
 	}
+	// Reads a companion needs: whether a password is wanted, the group's
+	// instances, the look, and the addresses this instance answers on. The
+	// addresses travel inside the encrypted frame, so the relay operator
+	// never learns them.
 	if method == http.MethodGet {
 		return rest == "auth" || rest == "instances" || rest == "appearance" || rest == "remote-access"
 	}
 	return false
 }
 
-// relayRecorder buffers one handler's response in memory - the smallest
-// http.ResponseWriter this needs. net/http/httptest.ResponseRecorder would
-// do the same job, but it is a testing helper (see its own package doc), not
-// something a real, non-test request/response cycle should depend on.
+// relayRecorder buffers one handler's response in memory, so production code
+// does not depend on httptest.
 type relayRecorder struct {
 	header http.Header
 	status int

@@ -1,24 +1,11 @@
 package api
 
-// The module registry: one row per subsystem, with a verdict this build can
-// stand behind, and a kill switch for the ones that have a real one.
+// The module registry: one row per subsystem, with a verdict about this build
+// and a kill switch for the ones that have a real one. It is compiled in
+// because it answers "what is in this binary", which settings.json cannot.
 //
-// It is compiled in rather than derived from the settings file, because the
-// question it answers is "what is in this binary", and a settings key can only
-// ever answer "what did somebody configure". A subsystem nobody has configured
-// and a subsystem that was never built look identical from settings.json, and
-// the second one needs a reason printed next to it.
-//
-// Three consumers read this table — the modules page, the settings rail's list
-// of sub-pages, and the self-describing index — so it lives here once. Three
-// copies of "which subsystems exist" drift within a wave or two, and the drift
-// is silent: the page keeps offering a switch for something the build dropped.
-//
-// The rule the rest of this file is built around: Enabled is DERIVED from live
-// state on every request and never read back from a stored flag. A stored flag
-// is how a switch and the thing it switches end up disagreeing, and that
-// disagreement is invisible — the page says folder watch is off while the
-// watcher goes on adding links.
+// Enabled is derived from live state on every request and never read back
+// from a stored flag, so the switch and the thing it switches cannot disagree.
 
 import (
 	"encoding/json"
@@ -40,127 +27,98 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
-// FeatureVerdict is what this build can honestly say about a subsystem. Three
-// answers, because "not there" and "not there in this build" are different
-// facts and a user who reads the second one as the first files a bug.
+// FeatureVerdict is what this build can say about a subsystem. "Not there" and
+// "not there in this build" are different facts.
 type FeatureVerdict string
 
 const (
-	// VerdictShipped: the code is in this binary and reachable from the server.
+	// VerdictShipped means the code is in this binary and reachable from the
+	// server.
 	VerdictShipped FeatureVerdict = "shipped"
-	// VerdictDesktop: built, but only reachable in the desktop bundle. The
-	// container has no desktop session to put it in.
+	// VerdictDesktop means the module is only reachable in the desktop bundle.
 	VerdictDesktop FeatureVerdict = "desktop"
-	// VerdictNotBuilt: absent, and Reason says why. Never an empty section
-	// labelled "not installed", which reads as a broken page rather than a
-	// decision — Go has no portable dynamic plugin loading, so the set of
-	// modules is fixed when the binary is built and the page says so.
+	// VerdictNotBuilt means the module is absent and Reason says why. Go has no
+	// portable plugin loading, so the set of modules is fixed at build time.
 	VerdictNotBuilt FeatureVerdict = "not-built"
 )
 
-// FeatureSwitch is how a module is switched, and — the part that matters — a
-// declaration of whether it can be switched from here at all.
+// FeatureSwitch is how a module is switched, if it can be switched from here
+// at all.
 type FeatureSwitch string
 
 const (
-	// SwitchNone: there is no switch. Reason says why, and the interface renders
-	// the control disabled carrying that reason. A switch that stores a boolean
-	// nothing reads is worse than no switch, because it looks like it worked.
+	// SwitchNone means there is no switch; the interface shows the control
+	// disabled with Reason. A switch that stores a boolean nothing reads would
+	// look like it worked.
 	SwitchNone FeatureSwitch = "none"
 
-	// SwitchSetting: a boolean the subsystem re-reads every time it is about to
-	// act, so clearing it stops the next action. Nothing already in flight is
-	// killed, and none of these subsystems holds a goroutine open between
-	// actions, so there is nothing left running to leak.
+	// SwitchSetting is a boolean the subsystem re-reads before each action, so
+	// clearing it stops the next one. Nothing in flight is killed, and none of
+	// these subsystems holds a goroutine open between actions.
 	SwitchSetting FeatureSwitch = "setting"
 
-	// SwitchParked: the subsystem is configured by a value rather than by a flag,
-	// so "off" means clearing that value — which genuinely tears it down, because
-	// the app applies the cleared value the same way it applies any other save.
-	// The old value is parked so switching back on restores it instead of handing
-	// the user an empty field and a shrug.
+	// SwitchParked is for a subsystem configured by a value rather than a flag:
+	// "off" clears the value, which tears it down like any other save, and the
+	// old value is parked so switching back on restores it.
 	SwitchParked FeatureSwitch = "parked"
 )
 
 // Feature is one subsystem as this build has it.
 type Feature struct {
-	// ID is stable and is what the interface looks a label up by. The label is
-	// deliberately not here: a server string cannot be translated by the browser,
-	// and this instance does not know which of the 42 locales is looking at it.
+	// ID is what the interface looks the translated label up by.
 	ID string `json:"id"`
 
 	Verdict FeatureVerdict `json:"verdict"`
 
 	// Page is the settings sub-page this module is configured on, empty when it
-	// has none. It is what lets a page with nothing shipped behind it explain
-	// itself out of this table rather than inventing its own excuse.
+	// has none.
 	Page string `json:"page"`
 
-	// Enabled is computed from live state on every request. See the file comment.
+	// Enabled is computed from live state on every request.
 	Enabled bool `json:"enabled"`
 
 	Switch FeatureSwitch `json:"switch"`
 
 	// Parked is whether a SwitchParked module has a value waiting to come back.
-	//
-	// It is the difference between "somebody switched this off" and "this was
-	// never set up", and without it the two are the same row. That collapse is a
-	// deadlock on a fresh install: the page that configures the module disables
-	// its field because the module reads off, and the switch refuses to turn on
-	// because nothing is configured, so there is no way in from either end.
+	// Without it "switched off" and "never set up" look the same, and on a fresh
+	// install the page would disable the field while the switch refuses to turn
+	// on for lack of a value.
 	Parked bool `json:"parked"`
 
 	// Reason is why the verdict is what it is, or why there is no switch. It is
-	// English prose from the server for the same reason a Go error is: it is a
-	// fact about this build, and inventing a translation key per build fact means
-	// 42 files change every time a subsystem lands.
+	// untranslated English, like a Go error, because it is a fact about this
+	// build.
 	Reason string `json:"reason,omitempty"`
 
-	// Detail is one line of live state — the folder being watched, the port, how
-	// many rules there are — so the row says something even when the switch does
-	// not apply.
+	// Detail is one line of live state (the folder being watched, the port, how
+	// many rules there are).
 	Detail string `json:"detail,omitempty"`
 }
 
 // FeaturePage is one settings sub-page as registered. Every page is listed even
-// when it is empty: a later wave then fills a page that already exists, with a
-// route people may already have bookmarked, instead of inventing one and
-// deciding its name and place all over again.
+// when it is empty, so its address and place in the rail stay stable. Whether
+// a page has controls yet is for the interface to know.
 type FeaturePage struct {
 	ID string `json:"id"`
-	// Modules are the module ids configured on this page, so the page can render
-	// the registry's reason for what is missing instead of writing its own.
+	// Modules are the module ids configured on this page.
 	Modules []string `json:"modules"`
 }
 
-// Deliberately no "is this page built yet" flag. Whether a page has controls is
-// a fact only the interface can know — it is whether a component exists — and a
-// server-side copy of it is a copy that goes stale the first time a wave ships
-// the page and forgets the flag, silently, with the rail then greying out a page
-// full of controls. This table owns the SET and the ORDER of the pages; the
-// interface owns which of them it can draw.
-
-// FeatureState is the whole registry as one document, because the modules page
-// and the rail both need all of it and two requests would let them disagree for
-// as long as the second one is in flight.
+// FeatureState is the whole registry as one document, so the modules page and
+// the rail cannot disagree.
 type FeatureState struct {
 	Modules []Feature     `json:"modules"`
 	Pages   []FeaturePage `json:"pages"`
 }
 
-// parkBucket is where a kill switch keeps the value it cleared.
-//
-// The interface-state store is reused rather than a settings field being added,
-// because the value parked here is not configuration — nothing reads it but the
-// switch that wrote it — and because a settings field is a schema change in a
-// file another lane owns. It gets a bucket of its own so the browser, which
-// writes its layout bucket whole, cannot overwrite it.
+// parkBucket is the interface-state bucket where a kill switch keeps the value
+// it cleared. The value is not configuration, since only the switch reads it,
+// and a bucket of its own keeps the browser's whole-bucket layout writes off it.
 const parkBucket = "features"
 
-// errNoSwitch is a module the caller tried to switch that has no switch. It is
-// a 400 rather than a silent no-op: the interface already knows from the table
-// which rows are switchable, so a request for one that is not is a client bug
-// and hiding it makes the client bug permanent.
+// errNoSwitch is a module the caller tried to switch that has no switch. The
+// table already says which rows are switchable, so this is a client bug and
+// answers 400.
 var errNoSwitch = errors.New("this module has no switch here")
 
 func registerFeatures(reg *Registry, a *app.App) {
@@ -181,19 +139,14 @@ func registerFeatures(reg *Registry, a *app.App) {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
-			// The whole table comes back rather than the one row: switching folder
-			// watch off changes what the Downloads page may offer, and a client that
-			// patched one row locally would keep showing the stale rest.
+			// The whole table, since one switch can change what other rows and
+			// pages may offer.
 			writeJSON(w, featureState(a))
 		})
 
-	// What the advanced key table needs that GET /api/settings cannot tell it.
 	reg.Add(http.MethodGet, "/api/settings/defaults", "the factory settings and the type of every settings key, for the advanced table's per-row reset",
 		func(w http.ResponseWriter, r *http.Request) {
 			writeJSON(w, settingsSchema{
-				// Redacted for the same reason the live settings are: this is served
-				// to a browser, and a default that is a secret today is a secret
-				// tomorrow.
 				Values: settings.Defaults().Redacted(),
 				Kinds:  settingsKinds(),
 			})
@@ -208,18 +161,9 @@ type settingsSchema struct {
 	Kinds map[string]string `json:"kinds"`
 }
 
-// settingsKinds reads the type of every settings field off the struct.
-//
-// The table cannot work this out from the values alone, and the failure is not
-// cosmetic: Go writes an empty []string as JSON null, so `archivePasswords`
-// arrives indistinguishable from an unset string. A row that guessed "text"
-// there would hand the user a text box, and the string they typed into it would
-// be refused by the decoder on save — an edit that cannot work, offered as if it
-// could.
-//
-// It also surfaces the keys `omitempty` drops on the way out: an empty
-// connection list is a key the user should be able to see and fill, not a key
-// that appears only once somebody has already used another page to create it.
+// settingsKinds reads the type of every settings field off the struct. The
+// values alone cannot tell: an empty []string encodes as null, and a key
+// dropped by omitempty would not appear at all.
 func settingsKinds() map[string]string {
 	out := map[string]string{}
 	collectKinds(reflect.TypeOf(settings.Settings{}), "", out)
@@ -257,9 +201,8 @@ func collectKinds(t reflect.Type, prefix string, out map[string]string) {
 		case reflect.String:
 			out[path] = "text"
 		case reflect.Slice, reflect.Array, reflect.Map:
-			// Stopped at, not walked into, and the table agrees: a rule list exploded
-			// into one row per condition is a hundred rows whose ORDER is load-bearing
-			// and which nobody can safely edit one at a time.
+			// Not walked into: a rule list is ordered and cannot be edited
+			// safely one condition at a time.
 			out[path] = "list"
 		case reflect.Struct:
 			collectKinds(ft, path, out)
@@ -289,24 +232,13 @@ func featureList(a *app.App) []Feature {
 			Parked: parked["watch"], Detail: watchDetail(s),
 		},
 		{
-			// Parked rather than a boolean, exactly like watch above and for the
-			// same reason: a subscription list is configured by its contents, so
-			// "off" means clearing it, and the app tears the runner down the way it
-			// applies any other save. Parking is what lets somebody switch feeds off
-			// for a week without retyping every address afterwards.
 			ID: "feeds", Verdict: VerdictShipped, Page: "downloads",
 			Switch: SwitchParked, Enabled: len(s.Feeds) > 0,
 			Parked: parked["feeds"], Detail: countDetail(len(s.Feeds), "subscription", "subscriptions"),
 		},
 		{
-			// Parked rather than a boolean, exactly like feeds above: a target
-			// list is configured by its contents, so "off" means clearing it,
-			// and parking is what lets somebody stop every message for a week
-			// without retyping an address, a token and a body template.
-			//
-			// Enabled counts the rows that would actually send rather than the
-			// rows that exist: a target being built, and one with no event
-			// ticked, are configuration and not activity.
+			// Enabled counts the targets that would send, not the rows that
+			// exist.
 			ID: "eventtargets", Verdict: VerdictShipped, Page: "eventtargets",
 			Switch: SwitchParked, Enabled: enabledEventTargets(s) > 0,
 			Parked: parked["eventtargets"],
@@ -333,10 +265,6 @@ func featureList(a *app.App) []Feature {
 		{
 			ID: "packagizer", Verdict: VerdictShipped, Page: "rules",
 			Switch: SwitchNone, Enabled: len(s.Packagizer.Rules) > 0,
-			// Spelled out rather than left blank: the obvious switch here would be
-			// an Enabled flag on the rule set, and an Enabled flag defaults to false,
-			// which switches both engines off on the first boot after the upgrade.
-			// The symptom reads as a matching bug, not as a settings bug.
 			Reason: "a rule set is switched off by having no rules; there is no separate flag, " +
 				"because a flag that defaults to off would silently disable every existing rule on upgrade",
 			Detail: countDetail(len(s.Packagizer.Rules), "rule", "rules"),
@@ -355,12 +283,8 @@ func featureList(a *app.App) []Feature {
 			Detail: countDetail(enabledConnections(s), "connection in use", "connections in use"),
 		},
 		{
-			// Filed under "look" - the Allgemein tab - and not under
-			// "access" any more (jdp, 2026-09-07: "können wir das nicht
-			// standardmäßig aktivieren und den Toggle nicht in einen
-			// anderen Tab verschieben?"). Click'n'Load is how links get
-			// IN; the Zugang tab is about who gets in, which is a
-			// different question that happened to share a port list.
+			// On the General tab: Click'n'Load is how links get in, while the
+			// access tab is about who gets in.
 			ID: "cnl", Verdict: VerdictShipped, Page: "look",
 			Switch: cnlSwitch(a), Enabled: cnlEnabled(a),
 			Reason: cnlReason(a),
@@ -389,10 +313,6 @@ func featureList(a *app.App) []Feature {
 		{
 			ID: "torrents", Verdict: VerdictShipped, Page: "torrents",
 			Switch: SwitchNone, Enabled: resolverRegistered(a, "torrent"),
-			// A magnet link or an uploaded .torrent is routed by matching the same
-			// live resolver table jd/ytdlp register on above (resolverRegistered),
-			// so there is no separate flag here to disagree with it - same
-			// reasoning as the two rows just above.
 			Reason: "a magnet link or .torrent upload is routed by matching the live resolver table above; " +
 				"there is no separate flag here to disagree with it",
 			Detail: torrentsDetail(a),
@@ -406,20 +326,13 @@ func featureList(a *app.App) []Feature {
 			Detail: captchaDetail(a),
 		},
 		{
-			// Filed under "access", the tab that already holds the password,
-			// the connection phrase and the relay: this row is not about how
-			// downloads behave, it is about who may reach in and create them.
+			// On the access tab: it decides who may reach in and create
+			// downloads, not how downloads behave.
 			ID: "downloadclient", Verdict: VerdictShipped, Page: "access",
 			Switch: SwitchSetting, Enabled: s.DownloadClientAPI,
 			Detail: downloadClientDetail(a, s),
 		},
 		{
-			// Filed under "health", the page that draws the same reading in
-			// words. A plain setting rather than a parked value, for the reason
-			// downloadclient above is one: the route re-reads the flag on every
-			// single request (routes_health.go), so clearing it closes the door
-			// on the next call with nothing left holding a socket open, which is
-			// exactly what SwitchSetting promises.
 			ID: "metrics", Verdict: VerdictShipped, Page: "health",
 			Switch: SwitchSetting, Enabled: s.Metrics,
 			Detail: metricsDetail(a, s),
@@ -450,28 +363,9 @@ func featureList(a *app.App) []Feature {
 	}
 }
 
-// updaterVerdict/updaterReason are both buildinfo.Deployment-aware (jdp,
-// 2026-08-23: "bei der Docker version soll halt stehen dass es in app nicht
-// notwendig ist weil es über zb unraid selbst läuft", then "#19 bauen" once
-// the container-only wording landed; jdp, 2026-08-24, once a container user
-// hit that same container-only gate on the General tab's own update card
-// and asked where it had gone: "warum machen wir da nicht irgendwo ein
-// toggle um auto update zu aktivieren?" - the card now shows on both
-// builds, so this row's reason had to stop claiming there is nothing to see
-// here on a container). Checking and being told a newer release exists is
-// harmless on either deployment - it is only ever a GET to GitHub plus a
-// notification - so what still differs is not whether the row is built but
-// what it can honestly promise to DO: desktop can hand you a page to fetch
-// an installer from, and a container - which cannot replace itself from
-// the inside - cannot, so its General tab points at the same release but
-// says to update the way you deployed this container instead.
-// VerdictDesktop rather than VerdictShipped because there is no real on/off
-// state to show as a switch-less row's enabled/disabled text would imply;
-// it sorts into the same "only reachable in the desktop bundle" section
-// tray/windowpolicy already use. Page is "look" (the General tab, where the
-// card actually lives), not "advanced" (the raw key/value table every
-// setting is technically also editable from) - same convention every other
-// row in this table follows, pointing at the page that configures it.
+// updaterVerdict depends on the deployment: both builds can check for a newer
+// release, but only the desktop build can hand over an installer, since a
+// container cannot replace itself from the inside.
 func updaterVerdict() FeatureVerdict {
 	if buildinfo.Deployment == "desktop" {
 		return VerdictDesktop
@@ -489,118 +383,57 @@ func updaterReason() string {
 		"(docker pull, Unraid Community Applications, Watchtower, ...), which is what the deployment that runs it already does or lets you do"
 }
 
-// featurePages is the sub-page list, in rail order.
-//
-// Every page is here whether or not anything draws it yet. A wave then fills a
-// page that already exists, at an address people may already have bookmarked,
-// instead of inventing one and re-deciding its name and its place in the rail —
-// and until then the page explains itself out of the module rows filed under it.
+// featurePages is the sub-page list, in rail order. Pages without a module row
+// (appearance, categories, shortcuts, diagnostics, help, browsertools) hold
+// preferences or tools rather than a subsystem with an on/off state.
 func featurePages() []FeaturePage {
 	return []FeaturePage{
-		// First in the rail (jdp, 2026-08-24: "Der aussehen Tab soll in
-		// Allgemein umbenannt werden und immer an erster stelle stehen") -
-		// the id and route stay "look" (a rename here would break every
-		// bookmarked /settings/look URL and the stored settingsTabOrder/
-		// settingsPage UI-state values for no visible benefit); only the
-		// displayed label (settings.nav.look) changed to "Allgemein".
+		// The General tab keeps the id "look" so bookmarked addresses and the
+		// stored tab order still resolve.
 		{ID: "look", Modules: []string{"updater", "cnl"}},
-		// Straight after General, because it is what General used to hold
-		// (jdp, 2026-09-07: "alle theming sachen schieben wir in einen neuen
-		// aussehen tab. sonst wir der allgemein tab zu unübersichtlich").
-		// No Feature{} row of its own: corners, colours and motion are
-		// preferences, not a subsystem with an on/off switch, the same
-		// reasoning shortcuts and diagnostics below already carry.
 		{ID: "appearance"},
 		{ID: "modules"},
 		{ID: "downloads", Modules: []string{"watch", "feeds", "crawler", "checksums"}},
 		{ID: "archives", Modules: []string{"extraction"}},
 		{ID: "rules", Modules: []string{"packagizer", "linkfilter"}},
-		// Directly after Rules, because the two point at each other: a
-		// Packagizer rule files links into a category, and ValidateCategories
-		// refuses a rule naming one that does not exist. Somebody who has just
-		// been told a rule names a missing category should find the table in
-		// the next rail entry, not three pages away.
-		//
-		// No Modules of its own. A category table is switched off by being
-		// empty, and a module row would put a second, disagreeable answer
-		// beside that - the same reasoning appearance and shortcuts carry.
+		// Right after rules, because a Packagizer rule naming a missing
+		// category is refused and the table should be one step away.
 		{ID: "categories"},
 		{ID: "connections", Modules: []string{"connections"}},
 		{ID: "reconnect", Modules: []string{"reconnect"}},
 		{ID: "accounts", Modules: []string{"jd"}},
-		// Files the existing "federation" module row, which had Page: ""
-		// and therefore reported live peer counts to nowhere - the module
-		// list showed it, no page ever claimed it. The tab itself is the
-		// Instanzen page plus its hide-from-sidebar toggle (jdp,
-		// 2026-08-27), the same arrangement accounts above has.
 		{ID: "instances", Modules: []string{"federation"}},
 		{ID: "resolvers", Modules: []string{"ytdlp"}},
 		{ID: "torrents", Modules: []string{"torrents"}},
 		{ID: "captcha", Modules: []string{"captcha"}},
 		{ID: "schedule", Modules: []string{"scheduler"}},
-		// After the timetable, because the two are the same kind of page: a
-		// list of rows that make the instance act on its own without anybody
-		// watching. It is NOT filed under downloads - a target reports on
-		// eleven different events, only four of which are about a download.
+		// Not under downloads: most of the events a target reports on are
+		// not about a download.
 		{ID: "eventtargets", Modules: []string{"eventtargets"}},
-		// Same reasoning as look/diagnostics below: rebinding a keyboard
-		// shortcut has nothing to switch on or off, so there is no Feature{}
-		// row filed under this id either - just a real, bookmarkable
-		// address in the rail (Wave 12).
 		{ID: "shortcuts"},
-		// The password, the phrase and the relay all live here and none of
-		// them is a Feature{} row; the SABnzbd-shaped download client is the
-		// one module filed under this page, and it belongs here rather than
-		// under downloads because it is a door into the instance, not a
-		// setting about how downloads behave.
 		{ID: "access", Modules: []string{"downloadclient"}},
 		{ID: "scripts", Modules: []string{"scripting"}},
 		{ID: "advanced"},
-		// diagnostics and help carry no module row of their own, same as
-		// look above: the log ring and the diagnostics bundle are
-		// always-on infrastructure rather than a subsystem with an on/off
-		// switch, and help is static content. They are filed here only so
-		// each gets a real, bookmarkable address in the rail the way every
-		// other sub-page does. Quit/restart/backup/restore (Wave 10/10D)
-		// used to be a fourth id here ("system") for the same reason, but
-		// merged into "look" (jdp, 2026-08-24: "Alles was im Systemtab ist
-		// in den Allgemein-Tab mergen") since none of the four needed a
-		// dedicated tab any more than Updates already didn't - not
-		// aliased, since nothing outside this repo could have bookmarked
-		// an address that never shipped past a preview deploy.
-		// Directly before diagnostics, because the two are the operator's pair
-		// and they are read in that order: this page says whether the instance
-		// is working right now, and the next one hands over a bundle for a bug
-		// report about why it was not. The one module filed under it is the
-		// metrics address, which belongs here rather than under access because
-		// it is not a way IN - it is the same reading this page draws, in a
-		// format a monitoring system fetches.
+		// Health comes before diagnostics: one says whether the instance works
+		// now, the other hands over a bundle for a report about why it did not.
 		{ID: "health", Modules: []string{"metrics"}},
 		{ID: "diagnostics"},
 		{ID: "help"},
-		// Same reasoning as look/diagnostics above: the bookmarklet,
-		// the extension zip and the PWA install step are tools, not a
-		// subsystem with live state to report, so there is no Feature{} row
-		// filed under this id — just a real, bookmarkable address in the rail.
 		{ID: "browsertools"},
 	}
 }
 
-// setFeature switches one module. Every branch here changes state the subsystem
-// itself reads; there is deliberately no default branch that stores a flag.
+// setFeature switches one module. Every branch changes state the subsystem
+// itself reads; no branch stores a flag of its own.
 func setFeature(a *app.App, id string, on bool) error {
-	// The stored settings, not the redacted ones a client was shown: the router
-	// and proxy passwords have to round-trip through this save untouched, and the
-	// merge in Store.Set only puts back a password the client sent as the
-	// placeholder.
+	// The stored settings, not the redacted ones a client was shown, so the
+	// router and proxy passwords survive this save.
 	next := a.Settings.Get()
 
 	switch id {
 	case "cnl":
-		// Bypasses the shared ApplySettings tail below on purpose: this is
-		// not a settings field, it is a live net.Listener - see app.App's
-		// own CnLPort/CnLToggle doc comment for why that pair exists and why
-		// it is deliberately not persisted here alongside everything else.
+		// A live listener rather than a setting, so it skips ApplySettings
+		// (see app.App.CnLToggle).
 		if a.CnLToggle == nil {
 			return fmt.Errorf("%s: %w", id, errNoSwitch)
 		}
@@ -613,15 +446,10 @@ func setFeature(a *app.App, id string, on bool) error {
 	case "checksums":
 		next.VerifyChecksums = on
 	case "downloadclient":
-		// A plain setting rather than a parked value: the route re-reads this
-		// flag on every single request (see routes_downloadclient.go's serve),
-		// so clearing it closes the door on the next call with nothing left
-		// holding a socket open, which is exactly what SwitchSetting promises.
+		// The route re-reads the flag on every request, so clearing it closes
+		// the door on the next call.
 		next.DownloadClientAPI = on
 	case "metrics":
-		// Same shape and same reasoning as downloadclient directly above: the
-		// metrics route re-reads this flag on every request, so clearing it
-		// makes the address stop existing on the next call.
 		next.Metrics = on
 
 	case "watch":
@@ -698,18 +526,15 @@ func setFeature(a *app.App, id string, on bool) error {
 		return fmt.Errorf("%s: %w", id, errNoSwitch)
 	}
 
-	// One path in and out: ApplySettings is what restarts the watcher, re-arms
-	// the timetable and recompiles the rules. Writing the store directly would
-	// persist the change and leave every one of those running on the old value.
+	// ApplySettings restarts the watcher, re-arms the timetable and recompiles
+	// the rules; writing the store directly would leave them on the old value.
 	_, err := a.ApplySettings(next)
 	return err
 }
 
-// parkValue remembers the value a kill switch is about to clear.
-//
-// A zero value is never parked. Switching an already-off module off again would
-// otherwise overwrite the folder somebody set last month with an empty string,
-// and the switch would then be a one-way door with no error to say so.
+// parkValue remembers the value a kill switch is about to clear. A zero value
+// is never parked, so switching an already-off module off again cannot
+// overwrite the value parked earlier.
 func parkValue(a *app.App, id string, v any) error {
 	b, err := json.Marshal(v)
 	if err != nil {
@@ -730,9 +555,7 @@ func parkValue(a *app.App, id string, v any) error {
 	return a.SetUIState(parkBucket, string(out))
 }
 
-// unparkValue reads a parked value back. It reports whether there was one, so
-// the caller can refuse with a sentence instead of silently switching a module
-// on with nothing behind it.
+// unparkValue reads a parked value back and reports whether there was one.
 func unparkValue(a *app.App, id string, into any) bool {
 	doc, err := parkDoc(a)
 	if err != nil {
@@ -745,9 +568,8 @@ func unparkValue(a *app.App, id string, into any) bool {
 	return json.Unmarshal(raw, into) == nil
 }
 
-// parkedIDs is which modules have a value waiting to come back. Read once per
-// table build rather than per row: it is one database read either way, and
-// three rows asking separately could disagree if a switch landed in between.
+// parkedIDs is which modules have a value waiting to come back. It is read once
+// per table build so the rows cannot disagree with each other.
 func parkedIDs(a *app.App) map[string]bool {
 	doc, err := parkDoc(a)
 	if err != nil {
@@ -770,9 +592,8 @@ func parkDoc(a *app.App) (map[string]json.RawMessage, error) {
 		return doc, nil
 	}
 	if err := json.Unmarshal([]byte(value), &doc); err != nil {
-		// A bucket somebody else wrote something unreadable into must not make the
-		// switch unusable: the park is a convenience, and starting a fresh document
-		// costs at most one remembered value.
+		// An unreadable bucket must not make the switch unusable; starting over
+		// costs at most the remembered values.
 		return map[string]json.RawMessage{}, nil
 	}
 	return doc, nil
@@ -790,38 +611,23 @@ func isEmptyJSON(b []byte) bool {
 
 func extractionDetail(s settings.Settings) string {
 	if !s.Extract {
-		// Said explicitly, because the switch stops the next extraction and not one
-		// already under way, and somebody watching a progress bar after switching
-		// it off deserves to know that is expected.
 		return "off; an extraction already under way finishes"
 	}
 	switch extract.ParseDisposal(s.ArchiveDisposal) {
 	case extract.DisposalDelete:
 		return "archives are deleted after a successful extraction"
 	case extract.DisposalTrash:
-		// The folder is named rather than the word "trash" left to stand on its
-		// own: it is a hidden folder under the download directory and not a
-		// recycle bin, and this row is one of the two places anybody reads what
-		// the setting actually does.
+		// Named, because it is a hidden folder under the download directory
+		// and not a recycle bin.
 		return "archives are moved to " + extract.TrashName + " after a successful extraction"
 	}
 	return "archives are kept after extraction"
 }
 
-// downloadClientDetail is the one live line the SABnzbd bridge row shows, and
-// it exists to say the two things somebody switching this on cannot find out
-// any other way.
-//
-// The first is that the switch alone opens nothing: the route refuses every
-// call without a valid API token, so an instance with no token is a bridge
-// nothing can talk to, and "on" with no explanation would look broken.
-//
-// The second is the folder. With subfolderByPackage off, every grab lands in
-// the same download folder, so the path this bridge reports to Sonarr as a
-// finished download's location is a folder holding everything else as well -
-// and Sonarr's importer then has several releases where it expects one. That is
-// not a bug in the bridge and it cannot be fixed from the bridge, so the row
-// says it out loud instead.
+// downloadClientDetail is the live line of the SABnzbd bridge row. It warns
+// when no API token exists, since the route then refuses every call, and when
+// per-package folders are off, since the importer then finds several releases
+// in the folder the bridge reports.
 func downloadClientDetail(a *app.App, s settings.Settings) string {
 	if !s.DownloadClientAPI {
 		return "off; Sonarr and Radarr get a 404 from it, the same as for an endpoint that does not exist"
@@ -848,9 +654,8 @@ func watchDetail(s settings.Settings) string {
 
 func reconnectDetail(s settings.Settings) string {
 	if err := s.Reconnect.Validate(); err != nil {
-		// The package's own sentence, not "switched off": it distinguishes an
-		// unconfigured reconnect from a half-configured one, and folding both into
-		// "off" is how somebody spends an evening on a form that was already saved.
+		// Validate's sentence tells an unconfigured reconnect from a
+		// half-configured one.
 		return err.Error()
 	}
 	return "method: " + s.Reconnect.Method
@@ -864,10 +669,8 @@ func jdDetail(a *app.App) string {
 }
 
 // resolverRegistered reports whether a resolver with this id is in the live
-// routing table right now. rewireBackends only registers ytdlp.Resolver once
-// the binary has actually run (Backend.Available), so this is the same
-// "derived from live state, never a stored flag" signal every other row in
-// this table already uses - see the file comment.
+// routing table right now. The ytdlp resolver is only registered once the
+// binary has actually run.
 func resolverRegistered(a *app.App, id string) bool {
 	for _, rid := range a.Registry.IDs() {
 		if rid == id {
@@ -877,28 +680,19 @@ func resolverRegistered(a *app.App, id string) bool {
 	return false
 }
 
-// ytdlpDetail mirrors jdDetail's own two-branch shape: either the backend is
-// not reachable at all, or a live one-line summary of what the next
-// download would actually do with the stored resolver options.
+// ytdlpDetail says why yt-dlp is unavailable, or which one runs and with what
+// quality.
 func ytdlpDetail(a *app.App, s settings.Settings) string {
-	// The same cached snapshot the Resolvers page and the diagnostics bundle
-	// read, through the same call - never a probe of its own, which would be a
-	// second answer able to disagree with the first.
+	// The cached snapshot the Resolvers page and the diagnostics bundle read,
+	// so the three cannot disagree.
 	tools := a.MediaTools()
 	if !resolverRegistered(a, "ytdlp") {
 		detail := "yt-dlp binary not found (a copy fetched on the Resolvers page, KL_YTDLP, or \"yt-dlp\" on PATH); media pages fail with the hoster's own error instead"
 		if tools.Ytdlp.Detail != "" {
-			// The concrete reason when there is one: "the fetched copy at
-			// /data/tools/yt-dlp does not start: ..." says considerably more
-			// than a list of the places that were looked in.
 			detail += " (" + tools.Ytdlp.Detail + ")"
 		}
 		return detail
 	}
-	// The version and where it came from, ahead of the quality. This row used
-	// to say only "quality: best", which is a preference - while the question
-	// somebody arrives here with, after a media link stopped working, is which
-	// yt-dlp is running and how old it is.
 	out := "quality: " + string(s.Ytdlp.Quality)
 	if tools.Ytdlp.Version != "" {
 		out = "yt-dlp " + tools.Ytdlp.Version + " (" + string(tools.Ytdlp.Source) + "); " + out
@@ -906,21 +700,9 @@ func ytdlpDetail(a *app.App, s settings.Settings) string {
 	return out
 }
 
-// torrentsDetail mirrors jdDetail/ytdlpDetail's own two-branch shape, read
-// live rather than assumed - Enabled and this string say the same live fact
-// two different ways on purpose, the same pairing every other resolver row
-// in this table already uses.
-//
-// app.go registers torrent.Resolver{} at boot alongside Direct/HTTPFallback
-// (unconditionally, unlike jd/ytdlp/torbox/debrid, which register only once
-// their own backend is confirmed reachable - a magnet or an uploaded
-// .torrent needs no external service to be resolvable at all), so the false
-// branch below is not expected to fire in this build. It stays rather than
-// being deleted because Enabled is still computed from live state and not
-// hardcoded true: a future build that makes registration conditional on
-// something (a build tag, a settings switch) keeps an honest row for free
-// instead of silently going stale the way this same string did earlier in
-// this wave, when it described a gap that had not yet closed.
+// torrentsDetail reads the live routing table like the other resolver rows.
+// The torrent resolver is registered unconditionally at boot, so the first
+// branch only matters if that ever becomes conditional.
 func torrentsDetail(a *app.App) string {
 	if !resolverRegistered(a, "torrent") {
 		return "the torrent resolver is not registered on the live routing table; " +
@@ -929,12 +711,8 @@ func torrentsDetail(a *app.App) string {
 	return "magnet links and uploaded .torrent files are routed to the embedded torrent engine"
 }
 
-// captchaDetail mirrors jdDetail's own two-branch shape rather than a
-// separate live check: internal/captcha.JDSource answers ErrJDNotConfigured
-// for the identical reason ContainerBackendConfigured is false, so asking
-// twice would only risk the two disagreeing. CaptchaChallenges is a cache
-// read (its own doc comment), never a live JD call, so this costs nothing
-// worth avoiding on every module-registry request.
+// captchaDetail checks the same condition as jdDetail, since captcha.JDSource
+// fails for the same reason. CaptchaChallenges is a cache read, not a JD call.
 func captchaDetail(a *app.App) string {
 	if !a.ContainerBackendConfigured() {
 		return "no backend configured (KL_JD); a link needing one fails with the hoster's own error instead"
@@ -942,16 +720,9 @@ func captchaDetail(a *app.App) string {
 	return countDetail(len(a.CaptchaChallenges()), "challenge waiting right now", "challenges waiting right now")
 }
 
-// cnlPort mirrors what cmd/knightloader/main.go does with KL_CNL. It is read
-// again rather than reported by the app because the listener's handle never
-// reaches the app — which is also why this module has no switch. The two
-// readings agreeing is a convention, so the default lives in one named constant
-// on each side and this comment is the pointer between them.
-// cnlPort reads the boot-time KL_CNL value, used only as the pre-toggle
-// fallback below (a.CnLEnabled unwired - desktop, or a test with no App
-// embedding it) and no longer as the row's live state once a.CnLEnabled is
-// set, which is a real read of whether the listener is actually up right
-// now rather than a guess from the environment it started with.
+// cnlPort reads KL_CNL the way cmd/knightloader/main.go does. It is the
+// fallback for an App that does not wire a.CnLPort, such as the desktop build
+// or a test.
 func cnlPort() int {
 	v := os.Getenv("KL_CNL")
 	if v == "" {
@@ -964,10 +735,9 @@ func cnlPort() int {
 	return n
 }
 
-// cnlSwitch/cnlEnabled/cnlReason/cnlDetail: a.CnLPort/a.CnLToggle are set
-// only by cmd/knightloader/main.go (see app.App's own doc comment on why
-// desktop never wires them) - unwired falls back to the old env-var-only
-// read, exactly what this row showed before the toggle existed.
+// cnlSwitch and the helpers after it depend on a.CnLPort and a.CnLToggle,
+// which only cmd/knightloader/main.go sets; without them the row falls back to
+// the environment.
 func cnlSwitch(a *app.App) FeatureSwitch {
 	if a.CnLToggle == nil {
 		return SwitchNone
@@ -987,11 +757,6 @@ func cnlReason(a *app.App) string {
 		return "the standard Click'n'Load port, 127.0.0.1:9666 unless KL_CNL names another - " +
 			"switching this off here does not change KL_CNL itself, so a restart still comes back up the way the environment says"
 	}
-	// This is the one named in the brief that genuinely cannot be wired from
-	// here, and saying so beats shipping a switch that closes nothing: the
-	// listener is created in cmd/knightloader/main.go and its handle never
-	// reaches the app, so nothing reachable from an HTTP handler can close
-	// the port.
 	return "the listener is started by the process, not by the app: KL_CNL picks the port " +
 		"(KL_CNL=0 switches it off) and closing it needs a restart"
 }
@@ -999,8 +764,7 @@ func cnlReason(a *app.App) string {
 func cnlDetail(a *app.App) string {
 	if a.CnLPort != nil {
 		if p := a.CnLPort(); p > 0 {
-			// This IS "listening", not "configured to": CnLPort only reports
-			// non-zero once Start actually bound the port.
+			// CnLPort is only non-zero once the port is actually bound.
 			return fmt.Sprintf("listening on 127.0.0.1:%d", p)
 		}
 		return "switched off"
@@ -1008,10 +772,8 @@ func cnlDetail(a *app.App) string {
 	if cnlPort() <= 0 {
 		return "switched off with KL_CNL=0"
 	}
-	// Deliberately "configured to listen" and not "listening": a port already
-	// held by a running JDownloader is logged at start-up and not fatal, and this
-	// handler has no way to tell the two apart. Claiming it is up would be the
-	// same lie as a switch that does nothing.
+	// Only "configured": a port already held by a running JDownloader is
+	// logged at start-up, and this handler cannot tell the two apart.
 	return fmt.Sprintf("configured to listen on 127.0.0.1:%d; the start-up log says whether the port was free", cnlPort())
 }
 
@@ -1025,9 +787,8 @@ func enabledConnections(s settings.Settings) int {
 	return n
 }
 
-// enabledScripts mirrors enabledConnections' own shape: a.Scripts.ListScripts
-// is scripts.json's live contents, not a settings field, the same reason
-// federation's own count just above reads a.Federation.List rather than s.
+// enabledScripts counts the enabled scripts in scripts.json, which is not part
+// of the settings.
 func enabledScripts(a *app.App) int {
 	n := 0
 	for _, sc := range a.Scripts.ListScripts() {
@@ -1038,8 +799,8 @@ func enabledScripts(a *app.App) int {
 	return n
 }
 
-// countDetail writes "3 rules" or "1 rule", and says nothing at all for zero —
-// a row already reads as off, and "0 rules" beside it is noise.
+// countDetail writes "3 rules" or "1 rule", and nothing for zero, where the
+// row already reads as off.
 func countDetail(n int, one, many string) string {
 	if n == 0 {
 		return ""

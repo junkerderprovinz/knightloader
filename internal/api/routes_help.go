@@ -1,13 +1,9 @@
 package api
 
 // GET /api/help: a self-describing index of the whole REST and WebSocket
-// surface, generated from the registration table in routes.go rather than
-// hand-maintained (see that file's own comment on why nothing may attach a
-// route outside it). Retrofitting this after eleven waves of hand-registered
-// routes would mean auditing roughly two hundred of them by hand; built from
-// the table itself, this index can never drift from what is actually
-// reachable, because it is not a second description of the table, it is a
-// read of the table.
+// surface, read out of the registration table in routes.go rather than
+// maintained by hand (see that file for why nothing may attach a route outside
+// it). Being a read of the table, it cannot drift from what is reachable.
 
 import (
 	"net/http"
@@ -24,18 +20,14 @@ type HelpIndex struct {
 	// this API before: how it is guarded, and what "open" below means.
 	About string `json:"about"`
 	// Vocabulary is why every route name here is KnightLoader's own, never
-	// JDownloader's Deprecated API or My.JDownloader's remote namespaces.
-	// This is the field section 8's Wave 11 amendment asks for by name, so a
-	// future contributor reads a decision here instead of an absence and
-	// does not go half-build a compatibility shim that buys nothing.
+	// JDownloader's Deprecated API or My.JDownloader's remote namespaces, so
+	// that the absence reads as a decision rather than a gap.
 	Vocabulary string `json:"vocabulary"`
 	// RemoteAccess is why there is no hosted relay and no pairing route, and
 	// points at what this build offers instead: GET /api/remote-access and
 	// POST /api/tokens.
 	RemoteAccess string `json:"remoteAccess"`
-	// Routes is the full table, sorted by path then method, the same slice
-	// TestOnlyTheseRoutesAreOpen and TestEveryRouteDescribesItself already
-	// hold every route in this build to.
+	// Routes is the full table, sorted by path then method.
 	Routes []Route `json:"routes"`
 }
 
@@ -80,11 +72,9 @@ func registerHelp(reg *Registry, a *app.App) {
 				About:        helpAbout,
 				Vocabulary:   helpVocabulary,
 				RemoteAccess: helpRemoteAccess,
-				// Read fresh on every request rather than captured once at
-				// registration time: registerHelp itself runs partway through
-				// registerAll, so a snapshot taken then would miss whatever the
-				// call list still had left to register. reg's own slice is
-				// complete by the time Handler ever answers a real request.
+				// Read on every request rather than captured at registration
+				// time: registerHelp runs partway through registerAll, so a
+				// snapshot taken there would miss the rest of the table.
 				Routes: reg.Routes(),
 			})
 		})

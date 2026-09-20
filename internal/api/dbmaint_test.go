@@ -14,13 +14,11 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/core"
 )
 
-// maintServer attaches this file's routes and nothing else - the same helper
-// shape routes_ytdlpcookies_test.go's cookieServer uses, and for the same
-// reason. testServer builds the whole table through registerAll, and the one
-// line that puts this subsystem into that list lives in routes.go;
-// TestEverySubsystemIsRegistered is already the guard for that line being
-// there, and duplicating the check here would leave two things to keep in step.
-// This helper is about the handlers.
+// maintServer attaches this file's routes and nothing else, like
+// routes_ytdlpcookies_test.go's cookieServer. testServer would build the whole
+// table through registerAll; whether this subsystem is on that list is
+// TestEverySubsystemIsRegistered's question, and these tests are about the
+// handlers.
 func maintServer(t *testing.T) (*httptest.Server, *app.App) {
 	t.Helper()
 	a := testApp(t)
@@ -33,9 +31,9 @@ func maintServer(t *testing.T) (*httptest.Server, *app.App) {
 	return srv, a
 }
 
-// getMaintenance reads the state, and hands back the raw body too - a test
-// looking for something that must not be in the document at all wants the
-// bytes, not the struct.
+// getMaintenance reads the state and hands back the raw body too, since a test
+// looking for something that must not be in the document at all needs the
+// bytes rather than the struct.
 func getMaintenance(t *testing.T, base string) (int, app.MaintenanceState, []byte) {
 	t.Helper()
 	resp, err := http.Get(base + "/api/system/maintenance")
@@ -96,11 +94,11 @@ func waitIdle(t *testing.T, base string) app.MaintenanceState {
 	}
 }
 
-// seedBigRows puts a real amount of content in the database in very few writes:
-// a handful of rows with a large comment each, rather than thousands of small
-// ones. It is what makes a compaction take long enough to still be running when
-// the next request arrives - see TestASecondStartIsAConflict - without spending
-// ten seconds of the test run on inserts.
+// seedBigRows puts a real amount of content in the database in few writes: a
+// handful of rows with a large comment each rather than thousands of small
+// ones. It makes a compaction take long enough to still be running when the
+// next request arrives (TestASecondStartIsAConflict) without spending ten
+// seconds of the run on inserts.
 func seedBigRows(t *testing.T, a *app.App, rows, sizeEach int) {
 	t.Helper()
 	padding := strings.Repeat("z", sizeEach)
@@ -118,9 +116,9 @@ func seedBigRows(t *testing.T, a *app.App, rows, sizeEach int) {
 	}
 }
 
-// TestMaintenanceReportsRealSizes is the readout the page is built on. Every
-// figure here is a measurement rather than a placeholder, and a zero in any of
-// them renders as a confident claim about somebody's disk.
+// TestMaintenanceReportsRealSizes: every figure here is a measurement rather
+// than a placeholder, and a zero renders as a confident claim about somebody's
+// disk.
 func TestMaintenanceReportsRealSizes(t *testing.T) {
 	srv, a := maintServer(t)
 	seedBigRows(t, a, 4, 64<<10)
@@ -147,14 +145,14 @@ func TestMaintenanceReportsRealSizes(t *testing.T) {
 	if st.NextRunAt != nil {
 		t.Errorf("a fresh instance reports a next run while the interval is 0: %v", *st.NextRunAt)
 	}
-	// The paths belong on THIS route and nowhere else, so the route has to
-	// actually carry them - the diagnostics test asserts the other half.
+	// The paths belong on this route and nowhere else, so it has to carry
+	// them; the diagnostics test asserts the other half.
 	if !bytes.Contains(raw, []byte("storePath")) || !bytes.Contains(raw, []byte("settingsPath")) {
 		t.Errorf("the maintenance document has no paths in it: %s", raw)
 	}
 }
 
-// TestCheckRunsAndReportsThroughTheRoute is the whole loop the page performs:
+// TestCheckRunsAndReportsThroughTheRoute walks the loop the page performs:
 // start, poll, read the verdict.
 func TestCheckRunsAndReportsThroughTheRoute(t *testing.T) {
 	srv, a := maintServer(t)
@@ -165,8 +163,8 @@ func TestCheckRunsAndReportsThroughTheRoute(t *testing.T) {
 		t.Fatalf("POST check answered %d, want 202: %s", code, raw)
 	}
 	// 202 means accepted and not finished, so the document that comes back
-	// with it has to say what was accepted - otherwise the page has to make a
-	// second call just to find out what it started.
+	// has to say what was accepted, or the page makes a second call to find
+	// out what it started.
 	if st.Running != "check" && st.Last == nil {
 		t.Errorf("the 202 said neither what is running nor what finished: %s", raw)
 	}
@@ -183,22 +181,20 @@ func TestCheckRunsAndReportsThroughTheRoute(t *testing.T) {
 	}
 }
 
-// TestASecondStartIsAConflict is the guard that keeps two rewrites from
-// queueing on one connection. 409 and not 429: this is a conflict with a
-// specific thing that is happening, and the body says what it is so the page
-// can show it rather than inventing a message.
+// TestASecondStartIsAConflict keeps two rewrites from queueing on one
+// connection. 409 and not 429, since this is a conflict with a run that is
+// happening, and the body says which so the page need not invent a message.
 //
 // The window is made real rather than hoped for: twenty megabytes of live rows
-// means the compaction is copying a file for hundreds of milliseconds, while
-// the second request is one round trip on a loopback socket. And the claim
-// itself is taken inside StartMaintenance BEFORE the 202 is written, so the
-// second request cannot arrive early - only late, which is what the size of the
-// database is for.
+// keeps the compaction copying for hundreds of milliseconds while the second
+// request is one round trip on a loopback socket. The claim is taken inside
+// StartMaintenance before the 202 is written, so the second request cannot
+// arrive early.
 func TestASecondStartIsAConflict(t *testing.T) {
 	srv, a := maintServer(t)
-	// Kept, not deleted: a compaction's cost is the LIVE bytes it copies, so a
-	// database that is mostly free list would be rewritten almost instantly and
-	// this test would have nothing to observe.
+	// Kept rather than deleted: a compaction's cost is the live bytes it
+	// copies, so a database that is mostly free list would be rewritten
+	// instantly and this test would have nothing to observe.
 	seedBigRows(t, a, 40, 512<<10)
 
 	code, first, raw := postMaintenance(t, srv.URL, "compact")
@@ -226,9 +222,8 @@ func TestASecondStartIsAConflict(t *testing.T) {
 	}
 }
 
-// TestAnUnknownActionIsRefused keeps the route from answering 202 to a typo and
-// then doing nothing at all, which is the failure a free-text verb always ends
-// in.
+// TestAnUnknownActionIsRefused keeps the route from answering 202 to a typo
+// and then doing nothing, which is where a free-text verb ends up.
 func TestAnUnknownActionIsRefused(t *testing.T) {
 	srv, _ := maintServer(t)
 	for _, action := range []string{"", "vacuum", "Compact", "drop"} {
@@ -253,9 +248,9 @@ func TestAnUnknownActionIsRefused(t *testing.T) {
 	}
 }
 
-// TestMaintenanceNeedsASession is the ordinary rule for everything under /api/,
-// stated here because this route sends the data directory's real paths and
-// starts work that freezes every write on the box. reg.Add and never AddOpen.
+// TestMaintenanceNeedsASession states the ordinary rule for everything under
+// /api/ here, because this route sends the data directory's real paths and
+// starts work that freezes every write on the box.
 func TestMaintenanceNeedsASession(t *testing.T) {
 	a := testApp(t)
 	reg := newRegistry()

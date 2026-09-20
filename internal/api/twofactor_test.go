@@ -11,9 +11,9 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/secret"
 )
 
-// armTwoFactor puts an instance in the state the whole of this file is about: a
-// password, a confirmed second factor, and the secret in the test's hands so it
-// can produce codes the way an authenticator app would.
+// armTwoFactor puts an instance in the state this file is about: a password, a
+// confirmed second factor, and the secret in the test's hands so it can
+// produce codes the way an authenticator app would.
 func armTwoFactor(t *testing.T, a *app.App, password string) (totpSecret string, recovery []string) {
 	t.Helper()
 	if err := a.Auth.SetPassword("", password); err != nil {
@@ -55,8 +55,8 @@ type loginAnswer struct {
 	TwoFactorRequired bool `json:"twoFactorRequired"`
 }
 
-// TestThePasswordAloneIsNotEnoughOnceAFactorIsArmed. The whole feature in one
-// test: the right password with no code opens nothing, and says why.
+// TestThePasswordAloneIsNotEnoughOnceAFactorIsArmed: the right password with
+// no code opens nothing, and says why.
 func TestThePasswordAloneIsNotEnoughOnceAFactorIsArmed(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
@@ -111,9 +111,9 @@ func TestThePasswordAloneIsNotEnoughOnceAFactorIsArmed(t *testing.T) {
 	}
 }
 
-// TestAWrongPasswordIsStillAWrongPassword. The code field must not become a way
-// past the first factor: a valid code with the wrong password opens nothing,
-// and the answer says nothing about the code either way.
+// TestAWrongPasswordIsStillAWrongPassword: the code field must not become a
+// way past the first factor, so a valid code with the wrong password opens
+// nothing and the answer says nothing about the code either way.
 func TestAWrongPasswordIsStillAWrongPassword(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
@@ -135,8 +135,8 @@ func TestAWrongPasswordIsStillAWrongPassword(t *testing.T) {
 	}
 }
 
-// TestARecoveryCodeIsAWayIn. It is the reason the recovery sheet exists, so the
-// login route has to take one where it takes a six-digit code.
+// TestARecoveryCodeIsAWayIn: the login route takes one wherever it takes a
+// six-digit code, which is what the recovery sheet is for.
 func TestARecoveryCodeIsAWayIn(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
@@ -155,10 +155,10 @@ func TestARecoveryCodeIsAWayIn(t *testing.T) {
 	}
 }
 
-// TestTheLoginThrottleMakesGuessingSixDigitsPointless. A second factor with
-// unlimited attempts is not a second factor: a million guesses at machine speed
-// is a few minutes. The throttle is what turns that into years, and it covers
-// the password half too - one door, one counter.
+// TestTheLoginThrottleMakesGuessingSixDigitsPointless: a million guesses at
+// machine speed is a few minutes, so a second factor with unlimited attempts
+// is not one. The throttle turns that into years, and it covers the password
+// half of the route as well.
 func TestTheLoginThrottleMakesGuessingSixDigitsPointless(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
@@ -172,8 +172,8 @@ func TestTheLoginThrottleMakesGuessingSixDigitsPointless(t *testing.T) {
 	if last != http.StatusTooManyRequests {
 		t.Fatalf("after %d wrong codes the route still answered %d, want 429", loginFailBurst+1, last)
 	}
-	// And the throttle refuses the RIGHT answer too while it is in force, which
-	// is the only way it can be a throttle rather than an oracle.
+	// The throttle refuses a correct code too while it is in force; letting
+	// one through would tell an attacker when a guess was right.
 	code, err := secret.TOTPCode(sec, time.Now())
 	if err != nil {
 		t.Fatal(err)
@@ -183,9 +183,9 @@ func TestTheLoginThrottleMakesGuessingSixDigitsPointless(t *testing.T) {
 	}
 }
 
-// TestAuthStateTellsASignedInCallerAboutTheFactorAndNobodyElse. The card needs
-// to know; an anonymous prober is told only whether a password exists, which is
-// what the login screen already has to be told.
+// TestAuthStateTellsASignedInCallerAboutTheFactorAndNobodyElse: the card needs
+// to know, while an anonymous prober is told only whether a password exists,
+// which the login screen has to be told anyway.
 func TestAuthStateTellsASignedInCallerAboutTheFactorAndNobodyElse(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
@@ -243,9 +243,9 @@ func TestAuthStateTellsASignedInCallerAboutTheFactorAndNobodyElse(t *testing.T) 
 	}
 }
 
-// TestTheEnrolmentRoutesNeedASession. Everything about the second factor is
-// behind the lock except the login itself: an anonymous caller who could start
-// an enrolment could arm a factor on somebody else's instance.
+// TestTheEnrolmentRoutesNeedASession: everything about the second factor is
+// behind the lock except the login itself, since an anonymous caller who could
+// start an enrolment could arm a factor on somebody else's instance.
 func TestTheEnrolmentRoutesNeedASession(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
@@ -325,7 +325,7 @@ func TestTheEnrolmentRunsEndToEndOverHTTP(t *testing.T) {
 		t.Fatal("the factor is not armed after a confirmed code")
 	}
 
-	// Turning it off costs a code, exactly as using it does.
+	// Turning it off costs a code, as using it does.
 	resp, err = client.Post(srv.URL+"/api/auth/2fa/disable", "application/json", bytes.NewReader([]byte(`{"code":"000000"}`)))
 	if err != nil {
 		t.Fatal(err)

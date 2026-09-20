@@ -10,23 +10,9 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 )
 
-// requireContainerDeployment guards every test in this file that assumes
-// the ordinary container path against buildinfo.Deployment being left on
-// "desktop" by an unrelated, earlier test elsewhere in this package.
-//
-// It has to do the save-and-restore itself rather than trust the value
-// already there: routes_lifecycle_test.go's TestDeploymentReflectsDesktop
-// sets buildinfo.Deployment = "desktop" and only THEN calls its own
-// lifecycleServer helper, whose prev := buildinfo.Deployment therefore
-// snapshots "desktop" instead of whatever came before it, so its own
-// t.Cleanup restores "desktop" right back, not the container default -
-// the shared global stays stuck on "desktop" for every test that happens
-// to run after it in the same binary, which is exactly what this file's
-// own tests were seen failing to, only when run as part of the full
-// package rather than filtered to this file alone. Fixed here rather than
-// there: that file is a different lane, and defending against a global a
-// test elsewhere can leave in either state is the more robust fix anyway,
-// since it holds regardless of which other test mutated it or how.
+// requireContainerDeployment sets buildinfo.Deployment to "container" for the
+// test and restores it afterwards, whatever state another test left the
+// shared global in.
 func requireContainerDeployment(t *testing.T) {
 	t.Helper()
 	prev := buildinfo.Deployment
@@ -34,10 +20,8 @@ func requireContainerDeployment(t *testing.T) {
 	t.Cleanup(func() { buildinfo.Deployment = prev })
 }
 
-// getRemoteAccess is remote access's own request builder, because several
-// tests below need to set the Host header to something other than the
-// loopback address httptest.NewServer actually listens on, and http.Get has
-// no way to do that.
+// getRemoteAccess requests /api/remote-access, optionally with a Host other
+// than the loopback address httptest listens on.
 func getRemoteAccess(t *testing.T, url, hostOverride string) (int, RemoteAccessInfo) {
 	t.Helper()
 	req, err := http.NewRequest(http.MethodGet, url+"/api/remote-access", nil)
@@ -52,8 +36,7 @@ func getRemoteAccess(t *testing.T, url, hostOverride string) (int, RemoteAccessI
 	return code, out
 }
 
-// doJSON is getJSON (links_test.go) for a request already built, needed here
-// because Host cannot be set on a plain http.Get URL.
+// doJSON is getJSON for a request already built.
 func doJSON(t *testing.T, req *http.Request, into any) int {
 	t.Helper()
 	resp, err := http.DefaultClient.Do(req)
@@ -69,9 +52,8 @@ func doJSON(t *testing.T, req *http.Request, into any) int {
 	return resp.StatusCode
 }
 
-// TestRemoteAccessListsTheConnectionThatAskedFirst pins the one address this
-// route can state as proven rather than inferred: whatever Host the request
-// itself arrived on, first in the list.
+// TestRemoteAccessListsTheConnectionThatAskedFirst checks that the address the
+// request arrived on, the only one that is proven, comes first.
 func TestRemoteAccessListsTheConnectionThatAskedFirst(t *testing.T) {
 	requireContainerDeployment(t)
 	srv, _ := testServer(t)
@@ -97,13 +79,7 @@ func TestRemoteAccessListsTheConnectionThatAskedFirst(t *testing.T) {
 }
 
 // TestRemoteAccessTrustsForwardedProtoForScheme covers a reverse proxy that
-// terminates TLS itself and talks to this instance over plain HTTP - the
-// ordinary shape for a domain in front of a container (Nginx Proxy Manager,
-// Traefik, Caddy). r.TLS is nil on a request like that even though the
-// address a phone would actually use is https, so the reported address -
-// which both the plain QR and the pairing-code QR are built from - has to
-// trust X-Forwarded-Proto the same way requestOrigin (routes_containers.go)
-// already does, or every one of them carries the wrong scheme.
+// terminates TLS and talks plain HTTP to the container.
 func TestRemoteAccessTrustsForwardedProtoForScheme(t *testing.T) {
 	requireContainerDeployment(t)
 	srv, _ := testServer(t)
@@ -133,9 +109,8 @@ func TestRemoteAccessTrustsForwardedProtoForScheme(t *testing.T) {
 	}
 }
 
-// TestRemoteAccessNotExposedWhenLoopbackAndUnprotected: no password is the
-// ordinary state of a fresh install, and by itself must never trip the loud
-// warning. It needs the OTHER half too, an actual non-loopback request.
+// TestRemoteAccessNotExposedWhenLoopbackAndUnprotected checks that a missing
+// password alone, the state of every fresh install, does not trip the warning.
 func TestRemoteAccessNotExposedWhenLoopbackAndUnprotected(t *testing.T) {
 	requireContainerDeployment(t)
 	srv, _ := testServer(t)
@@ -150,9 +125,6 @@ func TestRemoteAccessNotExposedWhenLoopbackAndUnprotected(t *testing.T) {
 	}
 }
 
-// TestRemoteAccessExposedOnNonLoopbackRequestWithNoPassword is the loud
-// warning's proof half: a request that genuinely arrived addressed to a
-// non-loopback host, with nothing protecting it, must be flagged.
 func TestRemoteAccessExposedOnNonLoopbackRequestWithNoPassword(t *testing.T) {
 	requireContainerDeployment(t)
 	srv, _ := testServer(t)
@@ -164,20 +136,9 @@ func TestRemoteAccessExposedOnNonLoopbackRequestWithNoPassword(t *testing.T) {
 	}
 }
 
-// TestRemoteAccessNotExposedOnNonLoopbackRequestWithAPassword: the same
-// non-loopback request is not a problem once a password protects it, which
-// is the entire condition the warning exists to catch, not "non-loopback" by
-// itself.
-//
-// Authenticated with a Bearer token rather than a login cookie: Go's
-// net/http cookiejar keys its lookup off the request being sent, and a
-// request whose Host has been overridden away from the jar's own idea of
-// where it is going (exactly what this test needs, to simulate a
-// non-loopback Host without actually standing up a second listener) does
-// not get the cookie attached, empirically confirmed against the standard
-// library rather than assumed. A token's Authorization header has no such
-// interaction, and is a perfectly realistic way for a real client to
-// authenticate this exact route in the first place.
+// TestRemoteAccessNotExposedOnNonLoopbackRequestWithAPassword authenticates
+// with a bearer token because the cookie jar does not attach a cookie to a
+// request whose Host was overridden.
 func TestRemoteAccessNotExposedOnNonLoopbackRequestWithAPassword(t *testing.T) {
 	requireContainerDeployment(t)
 	srv, a := testServer(t)
@@ -214,11 +175,8 @@ func TestRemoteAccessNotExposedOnNonLoopbackRequestWithAPassword(t *testing.T) {
 	}
 }
 
-// TestRemoteAccessIgnoresKLAddr pins a deliberate decision: the loud warning
-// is proof-based (see requestIsNonLoopback's own comment for why), and does
-// not additionally trip, or fail to trip, based on how KL_ADDR is set. A
-// change that reintroduces a KL_ADDR-derived signal has to edit this test on
-// purpose, not discover it broke something by accident.
+// TestRemoteAccessIgnoresKLAddr pins that the warning does not depend on
+// KL_ADDR (see requestIsNonLoopback).
 func TestRemoteAccessIgnoresKLAddr(t *testing.T) {
 	for _, addr := range []string{"", ":8749", "0.0.0.0:8749", "127.0.0.1:8749"} {
 		t.Run("KL_ADDR="+addr, func(t *testing.T) {
@@ -237,16 +195,9 @@ func TestRemoteAccessIgnoresKLAddr(t *testing.T) {
 	}
 }
 
-// TestRemoteAccessExposedWhenListeningWidelyEvenFromLoopback closes the gap
-// TestRemoteAccessNotExposedWhenLoopbackAndUnprotected above deliberately
-// does NOT cover: that test's own request is loopback specifically to prove
-// loopback-plus-no-password is not automatically a problem, but an admin
-// looking at their own Access page is *always* on loopback relative to
-// themselves, no matter how exposed the instance actually is to everyone
-// else. Reproduced live before this fix: a LAN-reachable, password-less
-// instance showed the warning to a visitor from another machine and never
-// once to the admin sitting at the box itself, because every request they
-// ever made was, by definition, the loopback case the other test covers.
+// TestRemoteAccessExposedWhenListeningWidelyEvenFromLoopback checks that an
+// admin viewing the page from loopback still sees the warning when the
+// listener is reachable from the LAN.
 func TestRemoteAccessExposedWhenListeningWidelyEvenFromLoopback(t *testing.T) {
 	requireContainerDeployment(t)
 	prev := buildinfo.ListensWidely
@@ -265,14 +216,8 @@ func TestRemoteAccessExposedWhenListeningWidelyEvenFromLoopback(t *testing.T) {
 	}
 }
 
-// TestPreferredAddress is the pure half of the QR-loopback fix (formerly
-// firstNonLoopback): given a mixed list, it must skip every loopback entry
-// and return the first real one, not just the head of the slice - and now,
-// reach past a bare LAN IP for a known domain the moment one exists,
-// regardless of where in the list it sits (jdp: "Die domain soll auch mit
-// dem QR Code an die App weitergegeben werden" - a domain is what a phone
-// outside this LAN can still use once it has left the network the LAN IP
-// only ever worked on).
+// TestPreferredAddress checks that loopback entries are skipped and a known
+// domain wins over a LAN IP wherever it sits in the list.
 func TestPreferredAddress(t *testing.T) {
 	cases := []struct {
 		name  string
@@ -300,7 +245,7 @@ func TestPreferredAddress(t *testing.T) {
 			"https://knightloader.example.com", true,
 		},
 		{
-			"no domain known falls back to the first real address, same as before",
+			"no domain known falls back to the first real address",
 			[]ReachableAddress{
 				{URL: "http://192.168.1.20:8749", Loopback: false, Domain: false},
 				{URL: "http://192.168.1.30:8749", Loopback: false, Domain: false},
@@ -318,10 +263,6 @@ func TestPreferredAddress(t *testing.T) {
 	}
 }
 
-// TestRemoteAccessQRMatchesThePrimaryAddress: the code has to be for
-// something, and it has to be the same something the page's own address
-// list already names first, or scanning it takes you somewhere the page
-// never mentioned.
 func TestRemoteAccessQRMatchesThePrimaryAddress(t *testing.T) {
 	requireContainerDeployment(t)
 	srv, _ := testServer(t)
@@ -347,9 +288,6 @@ func TestRemoteAccessQRMatchesThePrimaryAddress(t *testing.T) {
 	}
 }
 
-// TestIsDomainHost pins the one distinction preferredAddress needs: a real
-// hostname behind a reverse proxy or VPN still works once whatever is
-// scanning the QR code has left this LAN, a bare IP literal never does.
 func TestIsDomainHost(t *testing.T) {
 	cases := []struct {
 		hostport string
@@ -373,12 +311,8 @@ func TestIsDomainHost(t *testing.T) {
 	}
 }
 
-// TestRemoteAccessRemembersDomainSeenOnARequest is rememberDomain's own
-// integration proof: the moment a request genuinely arrives on a real
-// domain, it has to end up in Settings.KnownDomains, or it stops being
-// listed the instant a later request comes in over the LAN IP instead (the
-// whole reason this field exists - see settings_identity.go's own doc
-// comment).
+// TestRemoteAccessRemembersDomainSeenOnARequest checks that a domain a request
+// arrived on is saved, so it stays listed when later requests use the LAN IP.
 func TestRemoteAccessRemembersDomainSeenOnARequest(t *testing.T) {
 	requireContainerDeployment(t)
 	srv, a := testServer(t)
@@ -401,10 +335,6 @@ func TestRemoteAccessRemembersDomainSeenOnARequest(t *testing.T) {
 	}
 }
 
-// TestRemoteAccessDoesNotRememberLoopbackOrBareIP: rememberDomain's whole
-// point is a real domain, not every address a request happens to arrive on
-// - a loopback request or a bare LAN IP must never end up in
-// Settings.KnownDomains.
 func TestRemoteAccessDoesNotRememberLoopbackOrBareIP(t *testing.T) {
 	requireContainerDeployment(t)
 	srv, a := testServer(t)
@@ -424,8 +354,6 @@ func TestRemoteAccessDoesNotRememberLoopbackOrBareIP(t *testing.T) {
 	}
 }
 
-// TestRemoteAccessDoesNotDuplicateAlreadyKnownDomain: replaying a request on
-// a domain already in Settings.KnownDomains must not grow the list.
 func TestRemoteAccessDoesNotDuplicateAlreadyKnownDomain(t *testing.T) {
 	requireContainerDeployment(t)
 	srv, a := testServer(t)
@@ -449,12 +377,8 @@ func TestRemoteAccessDoesNotDuplicateAlreadyKnownDomain(t *testing.T) {
 	}
 }
 
-// TestRemoteAccessKnownDomainKeepsItsOwnScheme: a known domain is reached
-// through a reverse proxy that ordinarily terminates TLS, so it has to keep
-// the scheme it was remembered with (u.Scheme from the stored URL) rather
-// than borrowing whatever scheme the CURRENT request happens to carry - a
-// request arriving over plain LAN http must not turn a remembered
-// "https://kl.example.com" into "http://kl.example.com" in the address list.
+// TestRemoteAccessKnownDomainKeepsItsOwnScheme checks that a plain HTTP LAN
+// request does not turn a remembered https domain into http.
 func TestRemoteAccessKnownDomainKeepsItsOwnScheme(t *testing.T) {
 	requireContainerDeployment(t)
 	srv, a := testServer(t)
@@ -466,7 +390,6 @@ func TestRemoteAccessKnownDomainKeepsItsOwnScheme(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// A plain, unencrypted LAN request - no TLS, no X-Forwarded-Proto.
 	_, info := getRemoteAccess(t, srv.URL, "192.0.2.10:8749")
 
 	var found *ReachableAddress
@@ -483,10 +406,8 @@ func TestRemoteAccessKnownDomainKeepsItsOwnScheme(t *testing.T) {
 	}
 }
 
-// TestRemoteAccessDesktopReportsNothingToWarnAbout: the desktop build never
-// opens a TCP port at all (see remoteAccessInfo's own comment), so it must
-// not print a network address or an exposure warning built from request
-// fields that describe an in-process asset fetch instead of a real peer.
+// TestRemoteAccessDesktopReportsNothingToWarnAbout checks that the desktop
+// build, which opens no TCP port, reports no address and no exposure.
 func TestRemoteAccessDesktopReportsNothingToWarnAbout(t *testing.T) {
 	prev := buildinfo.Deployment
 	buildinfo.Deployment = "desktop"

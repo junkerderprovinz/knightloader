@@ -3,11 +3,11 @@ package api
 // Where the interface keeps what it has to remember between reloads.
 //
 // One opaque blob per key, rather than a settings field per remembered thing.
-// Column widths, which packages are folded shut and which settings page was open
-// last are the interface's own business: giving each one a settings field means a
-// schema change, a migration and a translated label every time a list gains a
-// column, and it puts a browser's layout into a document that is shared by every
-// client of the instance and validated on save.
+// Column widths, which packages are folded shut and which settings page was
+// open last are the interface's own business: a field each would mean a schema
+// change, a migration and a translated label every time a list gains a column,
+// and it would put a browser's layout into a document every client of the
+// instance shares and every save validates.
 
 import (
 	"bytes"
@@ -30,9 +30,9 @@ func isJSONDocument(b []byte) bool {
 }
 
 // uiStateKey is the bucket a request asks for, defaulting to the shared one. A
-// client that wants a layout of its own passes ?key=; two browsers sharing the
-// default is deliberate, because a single-user instance wants its layout to
-// follow it from one machine to the next.
+// client that wants a layout of its own passes ?key=; two browsers share the
+// default so a single-user instance's layout follows it from one machine to
+// the next.
 func uiStateKey(r *http.Request) string {
 	if k := r.URL.Query().Get("key"); k != "" {
 		return k
@@ -48,9 +48,9 @@ func registerUIState(reg *Registry, a *app.App) {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
-			// A bucket nothing has been written to answers with an empty document
-			// rather than 404: a fresh browser's first load is the normal case, and it
-			// wants the built-in layout, not an error to handle.
+			// An unwritten bucket answers with an empty document rather than
+			// 404: a fresh browser's first load wants the built-in layout,
+			// not an error to handle.
 			if value == "" {
 				value = "{}"
 			}
@@ -59,17 +59,17 @@ func registerUIState(reg *Registry, a *app.App) {
 		})
 	reg.Add(http.MethodPut, "/api/uistate", "replace what this client stored about its own layout",
 		func(w http.ResponseWriter, r *http.Request) {
-			// Read with a hard ceiling rather than trusting Content-Length: the store
-			// refuses an oversized blob anyway, and without this the server would hold
-			// the whole thing in memory first in order to be told so.
+			// A ceiling rather than trusting Content-Length: the store refuses
+			// an oversized blob anyway, but not before the server has held the
+			// whole thing in memory.
 			body, err := io.ReadAll(http.MaxBytesReader(w, r.Body, store.MaxUIStateBytes+1))
 			if err != nil {
 				http.Error(w, "this interface state is larger than the limit", http.StatusRequestEntityTooLarge)
 				return
 			}
-			// Checked for being JSON at all, because it is handed straight back out
-			// again on GET: a client that stored something else would get it back and
-			// fail to parse its own layout with nothing saying where it came from.
+			// Checked here because GET hands it straight back: a client that
+			// stored something else would fail to parse its own layout with
+			// nothing to say where it came from.
 			if !isJSONDocument(body) {
 				http.Error(w, "interface state has to be a JSON object", http.StatusBadRequest)
 				return

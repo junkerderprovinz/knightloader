@@ -11,10 +11,8 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
-// TestEveryModuleWithoutASwitchSaysWhy is the invariant the whole registry
-// exists for. A row with no switch and no reason renders as a dead control, and
-// a dead control with nothing beside it is indistinguishable from a bug — which
-// is exactly the report this table is meant to prevent.
+// TestEveryModuleWithoutASwitchSaysWhy checks that no row renders as a dead
+// control without a reason beside it.
 func TestEveryModuleWithoutASwitchSaysWhy(t *testing.T) {
 	for _, m := range featureList(testApp(t)) {
 		if m.Switch == SwitchNone && strings.TrimSpace(m.Reason) == "" {
@@ -29,9 +27,8 @@ func TestEveryModuleWithoutASwitchSaysWhy(t *testing.T) {
 	}
 }
 
-// TestModulePagesExist keeps the two halves of the table pointing at each other.
-// A module filed under a page that is not registered is a reason nobody ever
-// reads, because the page it would have been printed on does not exist.
+// TestModulePagesExist keeps the module rows and the page list pointing at
+// each other.
 func TestModulePagesExist(t *testing.T) {
 	pages := map[string]bool{}
 	for _, p := range featurePages() {
@@ -59,9 +56,8 @@ func TestModulePagesExist(t *testing.T) {
 	}
 }
 
-// TestSwitchesReachTheSubsystem is the test that makes "real kill switch" mean
-// something. It does not check that a boolean was stored — storing a boolean is
-// the failure — it checks that the state the subsystem itself reads has changed.
+// TestSwitchesReachTheSubsystem checks that a switch changes the state the
+// subsystem itself reads.
 func TestSwitchesReachTheSubsystem(t *testing.T) {
 	a := testApp(t)
 
@@ -80,14 +76,12 @@ func TestSwitchesReachTheSubsystem(t *testing.T) {
 	}
 }
 
-// TestParkedSwitchRestoresWhatItCleared covers the failure a naive kill switch
-// has: switching folder watch off has to stop the watcher, which means clearing
-// the folder, which must not lose the folder.
+// TestParkedSwitchRestoresWhatItCleared checks that switching folder watch off
+// clears the folder and switching it on brings the same folder back.
 func TestParkedSwitchRestoresWhatItCleared(t *testing.T) {
 	a := testApp(t)
-	// A real absolute path, because sanitize drops a relative watch folder and
-	// "/tmp/..." is relative on Windows — the test would then be asserting
-	// against a value the settings store never accepted.
+	// Sanitize drops a relative watch folder, and "/tmp/..." is relative on
+	// Windows.
 	dir := t.TempDir()
 
 	s := a.Settings.Get()
@@ -110,9 +104,8 @@ func TestParkedSwitchRestoresWhatItCleared(t *testing.T) {
 	}
 }
 
-// TestParkingAnAlreadyEmptyValueKeepsTheOldOne is the one-way-door bug: two
-// clients both switching an already-off module off would otherwise park an
-// empty string over the folder that is waiting to come back.
+// TestParkingAnAlreadyEmptyValueKeepsTheOldOne checks that switching an
+// already-off module off again does not park an empty value over the old one.
 func TestParkingAnAlreadyEmptyValueKeepsTheOldOne(t *testing.T) {
 	a := testApp(t)
 	dir := t.TempDir()
@@ -135,9 +128,8 @@ func TestParkingAnAlreadyEmptyValueKeepsTheOldOne(t *testing.T) {
 	}
 }
 
-// TestSwitchingOnWithNothingParkedSaysSo. Answering 204 and leaving the module
-// off would look like the switch is broken; the message names the page the
-// value has to be set on.
+// TestSwitchingOnWithNothingParkedSaysSo checks that the error names the page
+// the value has to be set on.
 func TestSwitchingOnWithNothingParkedSaysSo(t *testing.T) {
 	a := testApp(t)
 	for _, id := range []string{"watch", "scheduler", "reconnect"} {
@@ -152,9 +144,8 @@ func TestSwitchingOnWithNothingParkedSaysSo(t *testing.T) {
 	}
 }
 
-// TestUnswitchableModulesAreRefused. The table already tells the client which
-// rows can be switched, so a request for one that cannot is a client bug, and
-// answering 200 to it makes that bug permanent and invisible.
+// TestUnswitchableModulesAreRefused checks that a request to switch a row
+// without a switch is an error rather than a silent success.
 func TestUnswitchableModulesAreRefused(t *testing.T) {
 	a := testApp(t)
 	for _, id := range []string{"cnl", "captcha", "tray", "federation", "nonsense"} {
@@ -164,10 +155,8 @@ func TestUnswitchableModulesAreRefused(t *testing.T) {
 	}
 }
 
-// TestEnabledIsDerivedNotStored. The park is a convenience, never the answer to
-// "is this on": a settings write from anywhere else — the Advanced table, a
-// script, another browser — has to move the module row with it, or the page
-// says off while the watcher adds links.
+// TestEnabledIsDerivedNotStored checks that a settings write from outside the
+// switch moves the module row with it.
 func TestEnabledIsDerivedNotStored(t *testing.T) {
 	a := testApp(t)
 	if err := setFeature(a, "watch", false); err != nil {
@@ -220,17 +209,15 @@ func TestScheduleAndReconnectParkTheirOwnShape(t *testing.T) {
 	if got.Reconnect.Method != reconnect.MethodCommand {
 		t.Errorf("reconnect method came back as %q, want %q", got.Reconnect.Method, reconnect.MethodCommand)
 	}
-	// The password is not part of what the switch parked, so the round trip must
-	// not have disturbed it — a kill switch that clears a credential on the way
-	// past is a data-loss bug wearing a toggle.
+	// The command is not part of what the switch parked and must survive the
+	// round trip.
 	if got.Reconnect.Command != "/bin/true" {
 		t.Errorf("the reconnect command was lost: %q", got.Reconnect.Command)
 	}
 }
 
-// TestDefaultsAreRedacted. The route feeds the per-row reset in the advanced
-// table, so it is served to a browser like any other settings response — and a
-// default that is a secret today is a secret tomorrow.
+// TestDefaultsAreRedacted checks that the defaults served to the advanced
+// table carry no router password.
 func TestDefaultsAreRedacted(t *testing.T) {
 	b, err := json.Marshal(settings.Defaults().Redacted())
 	if err != nil {

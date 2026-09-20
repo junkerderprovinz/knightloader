@@ -1,17 +1,13 @@
 package api
 
-// The connection manager's two verbs that are not a settings save.
+// The connection manager's two verbs that are not a settings save: reading a
+// pasted list, and finding out whether a row works.
 //
-// The list of connections itself deliberately has no endpoint here. It is part
-// of the settings document, it is served redacted by GET /api/settings and
-// written by PUT /api/settings, and that path already validates every row and
-// merges back the passwords the client was never shown. A second write path for
-// the same field would be a second place for that merge to be forgotten, and the
-// symptom of forgetting it — every proxy password cleared on the next save — is
-// one nobody notices until a download fails days later.
-//
-// What is left is the two things a save cannot do: read a pasted list, and find
-// out whether a row actually works.
+// The list itself has no endpoint here. It is part of the settings document,
+// and PUT /api/settings already validates every row and merges back the
+// passwords the client was never shown. A second write path would be a second
+// place to forget that merge, and forgetting it clears every proxy password on
+// the next save.
 
 import (
 	"net/http"
@@ -22,10 +18,9 @@ import (
 )
 
 func registerConnections(reg *Registry, a *app.App) {
-	// Parse only. Nothing is stored, because the whole reason the parser names
-	// the lines it refuses is that somebody is meant to read them before the list
-	// is committed — and because writing here would collide with the settings
-	// draft the page is already holding.
+	// Parse only. The refused lines are meant to be read before the list is
+	// committed, and a write here would collide with the settings draft the
+	// page is holding.
 	reg.Add(http.MethodPost, "/api/connections/import",
 		"read a pasted proxy list into rows, naming every line it refuses and why; stores nothing",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -50,12 +45,11 @@ func registerConnections(reg *Registry, a *app.App) {
 			if !decodeJSON(w, r, &body) {
 				return
 			}
-			// The password is the one field the client cannot send: it was never
-			// shown one. Merge is the same machinery a save goes through, so a test
-			// answers about exactly the connection a save would write — including
-			// its refusal to carry a password to a row whose endpoint has been
-			// edited, which is why testing an edited host asks for the password
-			// again instead of quietly probing with the old one.
+			// The client was never shown the password, so a test goes through
+			// the same merge a save does and probes exactly the connection a
+			// save would write. Merge refuses to carry a password to a row
+			// whose endpoint was edited, so testing an edited host asks for
+			// the password again rather than probing with the old one.
 			merged := proxycfg.Merge([]proxycfg.Entry{body.Entry}, a.Settings.Get().Connections)
 			// Bounded by the request's own context: a browser that navigated away
 			// must not leave a goroutine waiting on a proxy that will never answer.

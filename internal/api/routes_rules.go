@@ -2,16 +2,14 @@ package api
 
 // The rule editor's two reads. Neither of them stores anything.
 //
-// The rule sets themselves have no endpoint here, for the same reason the
-// connection list has none: they are fields of the settings document, GET and
-// PUT /api/settings already carry them, and a second write path is a second
-// place to get the round trip wrong. The symptom of getting it wrong on a link
-// filter is links disappearing, which is the one failure this whole subsystem
-// exists to prevent.
+// The rule sets have no endpoint here, for the reason the connection list has
+// none: they are fields of the settings document that GET and PUT
+// /api/settings already carry, and a second write path is a second place to
+// get the round trip wrong. On a link filter that shows up as links
+// disappearing.
 //
 // What is left is the two questions a save cannot answer: what may a rule
-// contain, and what would this set — the one being edited right now, not the one
-// on disk — do to a link.
+// contain, and what would the set being edited right now do to a link.
 
 import (
 	"net/http"
@@ -21,41 +19,35 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/rules"
 )
 
-// maxPreviewLinks bounds one dry run.
-//
-// The cost is rules × links and both halves come from the request, so a single
-// POST could otherwise ask this instance to run ten thousand rules against ten
-// thousand samples while somebody's downloads are waiting for the same CPU. The
-// test box is a place to try three or four links; a limit far above what the
-// interface offers, refused out loud, is enough.
+// maxPreviewLinks bounds one dry run. The cost is rules times links and both
+// halves come from the request, so one POST could otherwise run ten thousand
+// rules against ten thousand samples while downloads wait for the same CPU.
 const maxPreviewLinks = 50
 
-// previewLink is one sample as the editor sends it. It is not rules.Candidate
-// itself because Candidate carries Added as a time, which is the server's to
-// fill in: the date variables have to preview against this machine's clock, or
-// a folder named by <jd:year> would read back whatever the browser was told to
-// claim.
+// previewLink is one sample as the editor sends it. Not rules.Candidate
+// itself, whose Added is the server's to fill in: the date variables preview
+// against this machine's clock, or a folder named by <jd:year> reads back
+// whatever the browser claimed.
 type previewLink struct {
 	URL      string `json:"url"`
 	Filename string `json:"filename"`
 	Source   string `json:"source"`
 	Package  string `json:"package"`
 	Filesize int64  `json:"filesize"`
-	// Hoster and Filetype are deliberately absent. Candidate derives both, and a
-	// preview that accepted them from the client could be made to disagree with
-	// what staging will really compute — which is the one thing a dry run must
-	// never do.
+	// Hoster and Filetype are absent because Candidate derives both. Accepting
+	// them from the client would let a dry run disagree with what staging
+	// computes.
 }
 
-// The app is not used: both routes answer from the request body and the
-// compiled-in grammar, and that is the property worth keeping. A dry run that
-// reached into the running instance would be answering about the stored set
-// while the user is looking at an unsaved one.
+// registerRules ignores the app, and that is the property worth keeping: both
+// routes answer from the request body and the compiled-in grammar. A dry run
+// that reached into the running instance would describe the stored set while
+// the user is looking at an unsaved one.
 func registerRules(reg *Registry, _ *app.App) {
-	// Static: the grammar is compiled in and identical for every client. It is a
-	// route rather than a constant in the bundle so that a form can never offer an
-	// operator this build refuses — a mismatch there produces a rule that saves
-	// cleanly and then silently never fires.
+	// The grammar is compiled in and identical for every client, but served
+	// rather than kept as a constant in the bundle: a form offering an
+	// operator this build refuses produces a rule that saves cleanly and
+	// never fires.
 	reg.Add(http.MethodGet, "/api/rules/grammar",
 		"the fields, operators, actions, variables, categories and bounds a rule may be built from",
 		func(w http.ResponseWriter, r *http.Request) {

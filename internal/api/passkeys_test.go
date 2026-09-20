@@ -10,12 +10,9 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/store"
 )
 
-// TestRPIDRefusesAnAddressThatCannotCarryAPasskey is the whole shape of the
-// feature in one function. WebAuthn binds a credential to a DOMAIN; an IP
-// address is not one, and a browser refuses the exchange outright. A
-// self-hosted instance opened on its LAN address is therefore the case that
-// cannot work, and it is the DEFAULT case - so it gets an answer rather than a
-// button that fails.
+// TestRPIDRefusesAnAddressThatCannotCarryAPasskey checks that a host name
+// yields a relying-party id and an IP address is refused, since WebAuthn binds
+// a credential to a domain.
 func TestRPIDRefusesAnAddressThatCannotCarryAPasskey(t *testing.T) {
 	cases := []struct {
 		host string
@@ -53,17 +50,14 @@ func TestRPIDRefusesAnAddressThatCannotCarryAPasskey(t *testing.T) {
 	}
 }
 
-// TestTheVerdictTravelsAsABooleanAndTheReasonIsADiagnostic is the front half of
-// GlimStone's own test for this surface. The server answers `supported: false`,
-// which is what the interface reads; the sentence beside it is a diagnostic for
-// an API caller and a log, and the interface writes its own translated copy.
-// The other half of that test - that nothing renders this string - is
-// web/check-passkey-reason.mjs.
+// TestTheVerdictTravelsAsABooleanAndTheReasonIsADiagnostic checks the server
+// half: `supported: false` plus an English diagnostic. That the interface never
+// renders the diagnostic is checked by web/check-passkey-reason.mjs.
 func TestTheVerdictTravelsAsABooleanAndTheReasonIsADiagnostic(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
 
-	// httptest serves on 127.0.0.1, which is exactly the refused case.
+	// httptest serves on 127.0.0.1, which is the refused case.
 	var body struct {
 		Supported bool   `json:"supported"`
 		Reason    string `json:"reason"`
@@ -89,9 +83,9 @@ func TestTheVerdictTravelsAsABooleanAndTheReasonIsADiagnostic(t *testing.T) {
 	}
 }
 
-// TestThePasskeyListIsOnlyForSomebodySignedIn. The counts are public because the
-// login screen has to decide whether to offer the button before anybody is in;
-// the names and addresses of the registered keys are not.
+// TestThePasskeyListIsOnlyForSomebodySignedIn checks that the counts are
+// public, for the login screen, while the registered keys are listed only to a
+// session.
 func TestThePasskeyListIsOnlyForSomebodySignedIn(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
@@ -148,8 +142,7 @@ func TestThePasskeyListIsOnlyForSomebodySignedIn(t *testing.T) {
 	if len(in.Passkeys) != 1 {
 		t.Fatalf("a signed-in caller got %d keys, want 1", len(in.Passkeys))
 	}
-	// A key registered somewhere else is LISTED and MARKED, never hidden:
-	// hiding it would make a key somebody deliberately created look lost.
+	// A key registered for another address is listed and marked, not hidden.
 	if in.Passkeys[0].UsableHere {
 		t.Error("a key bound to kl.example.com claims it works on an IP address")
 	}
@@ -158,10 +151,9 @@ func TestThePasskeyListIsOnlyForSomebodySignedIn(t *testing.T) {
 	}
 }
 
-// TestRegisteringAPasskeyNeedsASessionAndAPassword. Both halves matter and for
-// different reasons: without a session anybody could enrol a key on somebody
-// else's instance, and without a password there is no login for a passkey to be
-// a second way into.
+// TestRegisteringAPasskeyNeedsASessionAndAPassword checks that an anonymous
+// caller cannot enrol a key, and that a signed-in one on an IP address is
+// refused.
 func TestRegisteringAPasskeyNeedsASessionAndAPassword(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
@@ -193,9 +185,8 @@ func TestRegisteringAPasskeyNeedsASessionAndAPassword(t *testing.T) {
 	}
 }
 
-// TestPasskeyLoginRefusesWhenNoneCanAnswerHere. Beginning a ceremony with no
-// credential for this address would raise a browser prompt that cannot succeed,
-// which is the same button-that-fails the refusal exists to remove.
+// TestPasskeyLoginRefusesWhenNoneCanAnswerHere checks that no ceremony starts
+// when no credential is registered for this address.
 func TestPasskeyLoginRefusesWhenNoneCanAnswerHere(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
@@ -212,9 +203,6 @@ func TestPasskeyLoginRefusesWhenNoneCanAnswerHere(t *testing.T) {
 	}
 }
 
-// TestRenamingAndRemovingAPasskey. Removing one is the operation the dialog
-// warns about; renaming one is free, because the name means nothing to the
-// protocol.
 func TestRenamingAndRemovingAPasskey(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
@@ -264,9 +252,8 @@ func TestRenamingAndRemovingAPasskey(t *testing.T) {
 	}
 }
 
-// TestAnAnonymousCallerCannotRemoveAPasskey. Removing every passkey locks nobody
-// out, which is exactly why it must not be an open door: an attacker who could
-// clear the list would strip a protection without needing to defeat it.
+// TestAnAnonymousCallerCannotRemoveAPasskey checks that clearing keys needs a
+// session, so nobody can strip that protection without defeating it.
 func TestAnAnonymousCallerCannotRemoveAPasskey(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()

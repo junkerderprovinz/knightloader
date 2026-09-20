@@ -30,8 +30,7 @@ func transferServer(t *testing.T) (*app.App, *httptest.Server) {
 }
 
 // postImport sends one import and returns the decoded answer, failing the test
-// on anything but a 200. The refusal paths have their own helper below, so a
-// test that expects success never has to check a status itself.
+// on anything but a 200.
 func postImport(t *testing.T, srv *httptest.Server, doc settings.PortableDoc, keys []string) importResult {
 	t.Helper()
 	body, err := json.Marshal(importRequest{Document: doc, Keys: keys})
@@ -74,29 +73,16 @@ func refuseImport(t *testing.T, srv *httptest.Server, doc settings.PortableDoc, 
 	out := map[string]any{}
 	_ = json.Unmarshal(raw, &out)
 	if _, ok := out["error"]; !ok {
-		// Not fatal: a refusal that answered plain text still explained itself,
-		// and the client understands both. The tests that care assert on the
-		// typed half explicitly.
+		// A plain-text refusal still explains itself.
 		out["error"] = strings.TrimSpace(string(raw))
 	}
 	return resp.StatusCode, out
 }
 
-// TestImportLeavesUnnamedSettingsExactlyAsStored is THE test of this feature,
-// and it is aimed at one specific mistake somebody will eventually make: sending
-// the import through ApplySettings (PUT's path) instead of PatchSettings.
-//
-// PUT decodes into a fresh `var s settings.Settings`, so every key the body
-// omits becomes Go's ZERO value rather than its default - the exact opposite of
-// what Load does, which unmarshals over Defaults() "so new fields keep their
-// default value". An import routed that way switches extract, autoStart,
-// crawlSameHost, verifyChecksums and preParserEnabled off, sets maxConcurrent
-// and maxPerHost to 0 and blanks shape and navLabels, on a box whose owner asked
-// to take over a speed limit and nothing else.
-//
-// So: the receiving box is given values that are neither the defaults nor the
-// document's, one single key is imported, and everything else has to still be
-// standing afterwards.
+// TestImportLeavesUnnamedSettingsExactlyAsStored imports one key into a box
+// whose values differ from both the defaults and the document, and checks that
+// nothing else changed. Routing the import through the PUT path would reset
+// omitted keys to their zero values.
 func TestImportLeavesUnnamedSettingsExactlyAsStored(t *testing.T) {
 	a, srv := transferServer(t)
 
@@ -111,8 +97,7 @@ func TestImportLeavesUnnamedSettingsExactlyAsStored(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// The sending box: the one key that is meant to travel, and around it the
-	// zero values that a PUT-shaped import would smear over everything.
+	// The one key meant to travel, surrounded by zero values.
 	src := settings.Defaults()
 	src.SpeedLimit = 1 << 20
 	src.MaxConcurrent = 0
@@ -134,13 +119,12 @@ func TestImportLeavesUnnamedSettingsExactlyAsStored(t *testing.T) {
 	if got.SpeedLimit != 1<<20 {
 		t.Errorf("speedLimit = %d, want the imported %d", got.SpeedLimit, 1<<20)
 	}
-	// Each of these is a separate line on purpose: when this test fails, the
-	// name of the field that was reset is the whole of the diagnosis.
+	// One check per field, so a failure names the field that was reset.
 	if got.MaxConcurrent != 9 {
-		t.Errorf("maxConcurrent = %d, want the stored 9 - an unnamed key was overwritten", got.MaxConcurrent)
+		t.Errorf("maxConcurrent = %d, want the stored 9; an unnamed key was overwritten", got.MaxConcurrent)
 	}
 	if got.MaxPerHost != 5 {
-		t.Errorf("maxPerHost = %d, want the stored 5 - an unnamed key was overwritten", got.MaxPerHost)
+		t.Errorf("maxPerHost = %d, want the stored 5; an unnamed key was overwritten", got.MaxPerHost)
 	}
 	if !got.Extract {
 		t.Error("extract was switched off by an import that never named it")
@@ -149,23 +133,14 @@ func TestImportLeavesUnnamedSettingsExactlyAsStored(t *testing.T) {
 		t.Error("autoStart was switched off by an import that never named it")
 	}
 	if got.InstanceName != "the receiving box" {
-		t.Errorf("instanceName = %q, want the stored name - an unnamed key was overwritten", got.InstanceName)
+		t.Errorf("instanceName = %q, want the stored name; an unnamed key was overwritten", got.InstanceName)
 	}
 }
 
-// TestImportNamesTheSecretsThatDidNotTravel covers the two failures that save
-// cleanly and only show up hours later:
-//
-//   - a proxy row arrives with a username and no password, and dials anyway
-//     (proxycfg.Merge returns next untouched when prev is empty, which is a
-//     fresh box; Validate never looks at the password), sending the traffic the
-//     user was hiding out over their own connection;
-//   - the router password is silently cleared, and the nightly reconnect then
-//     reports "the address did not change", which points the operator at their
-//     router rather than at an empty field.
-//
-// Both have to come back as machine-readable codes, and the placeholder must
-// never be what gets stored.
+// TestImportNamesTheSecretsThatDidNotTravel covers a proxy row that arrives
+// without its password and dials anyway, and a cleared router password that
+// makes the nightly reconnect fail. Both must come back as codes, and the
+// redaction placeholder must never be stored.
 func TestImportNamesTheSecretsThatDidNotTravel(t *testing.T) {
 	a, srv := transferServer(t)
 
@@ -199,13 +174,11 @@ func TestImportNamesTheSecretsThatDidNotTravel(t *testing.T) {
 	}
 	for code := range want {
 		if !got[code] {
-			t.Errorf("incomplete = %v, missing %q - nothing tells the user to type it back in", res.Incomplete, code)
+			t.Errorf("incomplete = %v, missing %q; nothing tells the user to type it back in", res.Incomplete, code)
 		}
 	}
 
 	stored := a.Settings.Get()
-	// The placeholder is a display value, never a password. If it is what got
-	// stored, the reconnect posts eight asterisks to the router forever.
 	if stored.Reconnect.Password == reconnect.RedactedPassword {
 		t.Error("the redaction placeholder was stored as the router password")
 	}
@@ -218,17 +191,15 @@ func TestImportNamesTheSecretsThatDidNotTravel(t *testing.T) {
 	if stored.Connections[0].Password != "" {
 		t.Errorf("a proxy password appeared out of a secretless document: %q", stored.Connections[0].Password)
 	}
-	// And the row that carries no password is still the row the user chose to
-	// take over - the point of `incomplete` is that it is reported, not that the
-	// import silently drops half of it.
+	// The row still arrives; the missing password is reported, not dropped
+	// with it.
 	if stored.Connections[0].Username != "vpn" {
 		t.Errorf("the connection row did not arrive: %#v", stored.Connections[0])
 	}
 }
 
-// TestImportKeepsThisBoxIdentity pins NeverPortable at the route as well as in
-// the package: a hand-edited document that names instanceId must not be able to
-// hand this box somebody else's id, whatever the caller asks for.
+// TestImportKeepsThisBoxIdentity checks at the route that a hand-edited
+// document cannot give this box another instance id.
 func TestImportKeepsThisBoxIdentity(t *testing.T) {
 	a, srv := transferServer(t)
 	mine := a.Settings.Get().InstanceID
@@ -240,7 +211,7 @@ func TestImportKeepsThisBoxIdentity(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	// Put them back in by hand, which is exactly what a text editor can do.
+	// Put back by hand, as a text editor could.
 	doc.Settings["instanceId"] = json.RawMessage(`"ffffffffffffffffffffffffffffffffffffffff"`)
 	doc.Settings["knownDomains"] = json.RawMessage(`["somebody-elses.example.invalid"]`)
 
@@ -254,18 +225,15 @@ func TestImportKeepsThisBoxIdentity(t *testing.T) {
 		}
 	}
 	if got := a.Settings.Get(); got.InstanceID != mine {
-		t.Errorf("instanceId = %q, want the box's own %q - two boxes now collide in one relay group", got.InstanceID, mine)
+		t.Errorf("instanceId = %q, want the box's own %q; two boxes now collide in one relay group", got.InstanceID, mine)
 	} else if len(got.KnownDomains) != 0 {
-		t.Errorf("knownDomains = %v, want none - those addresses never pointed at this box", got.KnownDomains)
+		t.Errorf("knownDomains = %v, want none; those addresses never pointed at this box", got.KnownDomains)
 	}
 }
 
-// TestImportReportsKeysThisBuildDoesNotHave covers the silence
-// settings.ApplyPatch would otherwise leave: it merges as raw JSON and
-// re-unmarshals into Settings, and encoding/json drops an unrecognised key
-// without an error. A document old enough to carry `deleteArchive` (which became
-// archiveDisposal, and is mapped only by migrate(), which runs solely inside
-// Load against settings.json's own bytes) would import as absolutely nothing.
+// TestImportReportsKeysThisBuildDoesNotHave checks that a key this build has no
+// field for, such as the old deleteArchive, is reported rather than dropped
+// silently by encoding/json.
 func TestImportReportsKeysThisBuildDoesNotHave(t *testing.T) {
 	_, srv := transferServer(t)
 
@@ -275,13 +243,12 @@ func TestImportReportsKeysThisBuildDoesNotHave(t *testing.T) {
 	}
 	doc.Settings["deleteArchive"] = json.RawMessage(`true`)
 
-	// Not even asked for, and still reported: the person who needs to know is
-	// the one still standing in front of the old box.
+	// Reported even when not asked for.
 	res := postImport(t, srv, doc, []string{"speedLimit"})
 	if !contains(res.Unknown, "deleteArchive") {
 		t.Errorf("unknown = %v, want it to name deleteArchive", res.Unknown)
 	}
-	// Asked for as well, which must not double-report it or apply it.
+	// Asked for, it is neither reported twice nor applied.
 	res = postImport(t, srv, doc, []string{"deleteArchive"})
 	if !contains(res.Unknown, "deleteArchive") {
 		t.Errorf("unknown = %v, want it to name deleteArchive", res.Unknown)
@@ -294,15 +261,10 @@ func TestImportReportsKeysThisBuildDoesNotHave(t *testing.T) {
 	}
 }
 
-// TestImportRefusesADocumentFromANewerBuild copies backup.Stage's own one-way
-// version guard: an OLDER document is the normal case and the whole point of an
-// export kept for two years, a NEWER one is refused, and the refusal has to
-// carry the typed half so the interface can say it in the reader's language.
-//
-// buildinfo.Version is a package variable and this test writes it. That is safe
-// here and nowhere near safe in general: nothing in this package calls
-// t.Parallel(), so the tests in it run one at a time, and the value is put back
-// before the test returns.
+// TestImportRefusesADocumentFromANewerBuild checks the one-way version guard,
+// as in backup.Stage: an older document is accepted, a newer one refused with
+// a code the interface can translate. It writes buildinfo.Version, which is
+// safe because no test in this package runs in parallel.
 func TestImportRefusesADocumentFromANewerBuild(t *testing.T) {
 	was := buildinfo.Version
 	buildinfo.Version = "v1.9.0"
@@ -319,7 +281,7 @@ func TestImportRefusesADocumentFromANewerBuild(t *testing.T) {
 		t.Errorf("status = %d, want 400", status)
 	}
 	if env["code"] != "transfer.tooNew" {
-		t.Errorf("code = %v, want transfer.tooNew - the refusal cannot be translated", env["code"])
+		t.Errorf("code = %v, want transfer.tooNew; the refusal cannot be translated", env["code"])
 	}
 	params, _ := env["params"].(map[string]any)
 	if params["version"] != "v2.0.0" || params["running"] != "v1.9.0" {
@@ -334,10 +296,8 @@ func TestImportRefusesADocumentFromANewerBuild(t *testing.T) {
 	postImport(t, srv, older, []string{"speedLimit"})
 }
 
-// TestExportOmitsSecretsUnlessAskedFor is the owner's decision, pinned (jdp,
-// 2026-09-08: the tick exists and is off when the dialog opens). The parameter
-// is a whitelist of one spelling, so a caller that has not been taught about it
-// gets the safe answer rather than the leak.
+// TestExportOmitsSecretsUnlessAskedFor checks that only the exact spelling
+// "include" puts passwords into the export.
 func TestExportOmitsSecretsUnlessAskedFor(t *testing.T) {
 	a, srv := transferServer(t)
 	s := a.Settings.Get()
@@ -399,17 +359,13 @@ func TestExportOmitsSecretsUnlessAskedFor(t *testing.T) {
 	}
 }
 
-// TestImportReportsRulesThisBuildCannotCompile is the other silence: sanitizeRules
-// changes nothing on purpose, because a filter rule that vanishes on save is a
-// filter the user goes on believing in. So a broken set saves cleanly and never
-// fires, and an import that answered only "ok" would be that failure delivered
-// through a new door.
+// TestImportReportsRulesThisBuildCannotCompile checks that an imported rule
+// set that saves cleanly but cannot compile is counted in the answer.
 func TestImportReportsRulesThisBuildCannotCompile(t *testing.T) {
 	_, srv := transferServer(t)
 
 	src := settings.Defaults()
-	// A pattern the engine cannot parse. The set is enabled, so the compile is
-	// actually attempted rather than skipped.
+	// A pattern the engine cannot parse, in an enabled set.
 	raw := json.RawMessage(
 		`{"rules":[{"name":"broken","conditions":[{"field":"url","op":"matches","value":"([unclosed"}],` +
 			`"action":{"reject":true}}]}`)

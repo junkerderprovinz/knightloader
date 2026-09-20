@@ -15,10 +15,8 @@ import (
 )
 
 // feedStateBucket is the interface-state key internal/app keeps each
-// subscription's record of what it has already staged under. Spelled out here
-// rather than exported from that package: this test has to look at the stored
-// bytes the way anything else would, and a helper that read them through the
-// same code that writes them could agree with a bug.
+// subscription's staged-entry record under. It is spelled out so the test
+// reads the stored bytes independently of the code that writes them.
 const feedStateBucket = "feeds"
 
 // feedServer serves one small RSS document with three entries, two of which
@@ -67,28 +65,14 @@ func postFeedTest(t *testing.T, base, url, filter string) (int, feedTest, string
 	return resp.StatusCode, out, string(raw)
 }
 
-// TestATestFetchStagesNothingAndRemembersNothing is the guard the test route was
-// written around, and it is aimed squarely at the shortcut somebody will
-// eventually take: answering this route by running the subscription's own poll
-// and reporting what came back.
+// TestATestFetchStagesNothingAndRemembersNothing guards against answering the
+// test route with the subscription's own poll. That would stage the feed's
+// whole window, and it would record every entry as seen, so the subscription
+// saved afterwards would add nothing.
 //
-// Both halves of that shortcut are one-way from the user's side.
-//
-// Staging puts a publisher's whole current window into the collector because
-// somebody pressed a button labelled "test", and on an instance with
-// auto-confirm on it starts downloading all of it.
-//
-// Writing the memory is worse, because it is silent. A poll marks every entry in
-// the document as seen, so an address that has been TESTED and not yet saved
-// would arrive already seeded: the subscription is then created, adds nothing at
-// all, and the entries it was created for are gone for good. Nothing anywhere
-// says why.
-//
-// The store is pre-loaded with an empty record for this address, which is the
-// state that makes both halves reachable at once: an empty record that EXISTS
-// means the subscription has run before and remembers nothing, so the seeding
-// pass is behind it and the polling path would stage every entry it matched
-// rather than quietly writing them down.
+// The store starts with an empty record for this address, meaning the
+// subscription has seeded and remembers nothing, so a poll would both stage
+// and record.
 func TestATestFetchStagesNothingAndRemembersNothing(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
@@ -103,9 +87,8 @@ func TestATestFetchStagesNothingAndRemembersNothing(t *testing.T) {
 	if code != http.StatusOK {
 		t.Fatalf("POST /api/feeds/test answered %d: %s", code, raw)
 	}
-	// Checked first, and this matters more than it looks: a route that fetched
-	// nothing at all would pass every assertion below. The guard only means
-	// something once the fetch it guards has demonstrably happened.
+	// Checked first, since a route that fetched nothing would pass everything
+	// below.
 	if out.Title != "Kellerfunk" || out.Total != 3 || out.Matched != 2 || len(out.Entries) != 3 {
 		t.Fatalf("the test fetch did not actually read the feed: %s", raw)
 	}
@@ -123,13 +106,9 @@ func TestATestFetchStagesNothingAndRemembersNothing(t *testing.T) {
 	}
 }
 
-// stagedWithin waits up to d for links to appear and returns whatever it found.
-//
-// Waited for rather than sampled once, because the path this guards against
-// hands entries over on a goroutine of its own (app.onFeedEntry spawns), so a
-// check made the instant the response lands would pass against a broken version
-// purely by being early. That is the shape of blind guard this repository has
-// been bitten by before, so the wait is the test.
+// stagedWithin waits up to d for links to appear and returns whatever it
+// found. app.onFeedEntry stages on its own goroutine, so a single early check
+// would pass against a broken version.
 func stagedWithin(a *app.App, d time.Duration) []string {
 	deadline := time.Now().Add(d)
 	for {
@@ -144,10 +123,8 @@ func stagedWithin(a *app.App, d time.Duration) []string {
 	}
 }
 
-// TestATestFetchShowsTheTitlesAFilterIsWrittenAgainst is what the route is for.
-// A title filter is a regular expression typed against titles nobody has seen,
-// so an answer that reported only a count would leave somebody guessing at the
-// spelling of the very thing they are matching.
+// TestATestFetchShowsTheTitlesAFilterIsWrittenAgainst checks that each title
+// comes back with whether the filter takes it, not only a count.
 func TestATestFetchShowsTheTitlesAFilterIsWrittenAgainst(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
@@ -172,18 +149,16 @@ func TestATestFetchShowsTheTitlesAFilterIsWrittenAgainst(t *testing.T) {
 		t.Fatalf("got %d entries, want %d: %s", len(out.Entries), len(want), raw)
 	}
 
-	// No filter is "take everything" and never "take nothing", which is the one
-	// reading of an empty pattern that a person types blind can afford.
+	// No filter takes everything.
 	_, all, raw := postFeedTest(t, srv.URL, feeds.URL, "")
 	if all.Matched != all.Total || all.Total != 3 {
 		t.Errorf("with no filter %d of %d entries matched, want all three: %s", all.Matched, all.Total, raw)
 	}
 }
 
-// TestATestFetchRefusesAnAddressThisProcessMustNotFetch is the same narrowing
-// the subscription itself is validated with. This route reaches an address a
-// person just typed, so a file:// one would be a way to read any file on the box
-// through a settings field.
+// TestATestFetchRefusesAnAddressThisProcessMustNotFetch checks the same
+// validation a subscription gets, so a file:// address cannot read files on
+// the box.
 func TestATestFetchRefusesAnAddressThisProcessMustNotFetch(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
@@ -203,9 +178,8 @@ func TestATestFetchRefusesAnAddressThisProcessMustNotFetch(t *testing.T) {
 	}
 }
 
-// TestAFeedThatCannotBeReadIsAnAnswerNotAnError: the request was perfectly good,
-// it is the publisher's server that was not, and a 4xx would have the browser
-// log the one answer somebody is meant to read.
+// TestAFeedThatCannotBeReadIsAnAnswerNotAnError checks that a failing
+// publisher yields a 200 with the reason, since the request itself was fine.
 func TestAFeedThatCannotBeReadIsAnAnswerNotAnError(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
@@ -229,10 +203,6 @@ func TestAFeedThatCannotBeReadIsAnAnswerNotAnError(t *testing.T) {
 	}
 }
 
-// TestTheFeedTableReportsASubscriptionThatIsBeingPolled is the whole point of
-// GET /api/feeds. Everything it answers used to exist only as log lines, so a
-// subscription that had been answering 403 for a fortnight looked exactly like
-// one whose publisher had posted nothing.
 func TestTheFeedTableReportsASubscriptionThatIsBeingPolled(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
@@ -245,10 +215,7 @@ func TestTheFeedTableReportsASubscriptionThatIsBeingPolled(t *testing.T) {
 		t.Fatalf("PUT /api/settings answered %d: %s", code, msg)
 	}
 
-	// The runner polls the moment it starts, on its own goroutine, so the row is
-	// waited for rather than read once. A restart-shaped blank (nothing polled
-	// yet) is a legitimate answer this route has to be able to give, which is
-	// exactly why it cannot be asserted on immediately.
+	// The runner polls on its own goroutine, so the row is waited for.
 	var row feedRow
 	deadline := time.Now().Add(5 * time.Second)
 	for {
@@ -278,25 +245,20 @@ func TestTheFeedTableReportsASubscriptionThatIsBeingPolled(t *testing.T) {
 	if row.Remembered != 3 {
 		t.Errorf("remembered = %d, want the three entries the document carried", row.Remembered)
 	}
-	// The seeding pass stages nothing, and the table saying so is the whole
-	// answer to "I added a feed and nothing happened".
+	// The seeding pass stages nothing.
 	if got := stagedWithin(a, 200*time.Millisecond); len(got) != 0 {
 		t.Errorf("the first poll staged %v", got)
 	}
 }
 
-// TestTheFeedTableNamesARowThatIsNotBeingPolled covers the row that matters
-// most: one that is saved and dead. Listing only what the runner accepted would
-// leave it out of the table altogether, which is the same silence this route
-// exists to end.
+// TestTheFeedTableNamesARowThatIsNotBeingPolled covers a saved row the runner
+// does not poll, which a listing of the runner alone would leave out.
 func TestTheFeedTableNamesARowThatIsNotBeingPolled(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
 
-	// Written straight into the store rather than saved through the API, because
-	// the API refuses this row on purpose (validateRows). A hand-edited
-	// settings.json is how it gets there, and it is precisely then that somebody
-	// needs the table to say something.
+	// Written to the store directly, as a hand-edited settings.json would be;
+	// the API refuses this row.
 	if _, err := a.Settings.Set(settingsWith(func(s *settings.Settings) {
 		s.Feeds = []feed.Subscription{{URL: "ftp://example.invalid/rss.xml"}}
 	})); err != nil {

@@ -1,19 +1,5 @@
 package api
 
-// Note on running these: as this file was written, the internal/api package
-// does not compile at all - routes_captcha_skip.go (7D, this same wave)
-// already calls a.AbortCaptcha, which lands in 7A's app_captcha.go and had
-// not yet, since 7A/7B/7C/7D all run in parallel (see
-// routes_captcha_widget.go's own "THE REQUEST CONTRACT" for where that is
-// confirmed in the working tree). That is a package-wide compile error, so no
-// test in this package - not only these - can run until 7A lands, regardless
-// of which route it exercises. These tests are written to the same
-// conventions as their siblings (folders_test.go, reconnect_test.go) and
-// their logic - the templates, the CSP strings and the vendor-identification
-// matrix - was verified in an isolated scratch program outside this module
-// before this file was written, precisely because this package could not
-// build to prove it directly.
-
 import (
 	"io"
 	"net/http"
@@ -23,10 +9,7 @@ import (
 	"testing"
 )
 
-// captchaWidgetServer is the widget route alone on a throwaway app. The route
-// itself never reads the app (see routes_captcha_widget.go's own "THE
-// REQUEST CONTRACT" for why), so a is unused here - kept only to match every
-// sibling route test's setup shape in this package.
+// captchaWidgetServer is the widget route alone on a throwaway app.
 func captchaWidgetServer(t *testing.T) *httptest.Server {
 	t.Helper()
 	a := testApp(t)
@@ -47,9 +30,8 @@ func captchaWidgetURL(srv *httptest.Server, id string, params url.Values) string
 	return u
 }
 
-// getCaptchaWidget is getRaw (reconnect_test.go) plus the response itself,
-// because these tests assert on headers - the Content-Security-Policy above
-// all - not only on the body.
+// getCaptchaWidget is getRaw plus the response, since these tests assert on
+// headers too.
 func getCaptchaWidget(t *testing.T, u string) (*http.Response, []byte) {
 	t.Helper()
 	resp, err := http.Get(u)
@@ -64,11 +46,8 @@ func getCaptchaWidget(t *testing.T, u string) (*http.Response, []byte) {
 	return resp, body
 }
 
-// TestCaptchaWidgetRequiresSiteKey pins the one real client error this route
-// has: everything else about an unrecognised request degrades honestly
-// (see TestCaptchaWidgetAmbiguousSignalsDegradeHonestly), but a request with
-// no siteKey at all has nothing to render and is a 400, not a 200 with an
-// empty widget.
+// TestCaptchaWidgetRequiresSiteKey checks that a request without a siteKey is
+// a 400, the one client error this route has.
 func TestCaptchaWidgetRequiresSiteKey(t *testing.T) {
 	srv := captchaWidgetServer(t)
 	resp, body := getCaptchaWidget(t, captchaWidgetURL(srv, "1", url.Values{}))
@@ -77,11 +56,9 @@ func TestCaptchaWidgetRequiresSiteKey(t *testing.T) {
 	}
 }
 
-// TestCaptchaWidgetRecaptchaSignalsRenderTheVendorScript is the decision
-// matrix from the file's own "THE SIGNAL THAT DOES DISAMBIGUATE", exercised
-// over real HTTP: each of the three independent, vendor-exclusive signals
-// must render the same live reCAPTCHA page, with a CSP scoped to Google's own
-// origins and no other vendor mentioned.
+// TestCaptchaWidgetRecaptchaSignalsRenderTheVendorScript checks that each of
+// the three signals that prove reCAPTCHA renders the live page, with a CSP
+// scoped to Google's origins.
 func TestCaptchaWidgetRecaptchaSignalsRenderTheVendorScript(t *testing.T) {
 	cases := []struct {
 		name   string
@@ -133,11 +110,8 @@ func TestCaptchaWidgetRecaptchaSignalsRenderTheVendorScript(t *testing.T) {
 	}
 }
 
-// TestCaptchaWidgetAmbiguousSignalsDegradeHonestly is the other half of the
-// matrix: a request that does NOT prove reCAPTCHA - because it could equally
-// be hCaptcha, or an ordinary reCAPTCHA v2 "normal" checkbox, and
-// isUnambiguouslyRecaptcha does not guess between them - must answer with the
-// honest no-script page, never a guess dressed up as a render.
+// TestCaptchaWidgetAmbiguousSignalsDegradeHonestly checks that a request that
+// could be either vendor gets the page without scripts.
 func TestCaptchaWidgetAmbiguousSignalsDegradeHonestly(t *testing.T) {
 	cases := []struct {
 		name   string
@@ -183,11 +157,8 @@ func TestCaptchaWidgetAmbiguousSignalsDegradeHonestly(t *testing.T) {
 	}
 }
 
-// TestCaptchaWidgetEscapesUntrustedFields is the concrete regression test for
-// the reasoning in this route's own doc comment: SiteKey and friends are
-// whatever JD relayed from a hoster's page, untrusted, and must never be able
-// to break out of the HTML attribute or inline-script context they are
-// placed in.
+// TestCaptchaWidgetEscapesUntrustedFields checks that the fields JD relays from
+// a hoster's page cannot break out of their HTML or script context.
 func TestCaptchaWidgetEscapesUntrustedFields(t *testing.T) {
 	srv := captchaWidgetServer(t)
 	xss := `"><script>alert(1)</script>`
@@ -203,10 +174,7 @@ func TestCaptchaWidgetEscapesUntrustedFields(t *testing.T) {
 	}
 }
 
-// TestCaptchaWidgetSetsDefensiveHeaders pins the response headers this file's
-// handler sets beside the CSP itself - a nosniff'd, uncached, explicitly
-// text/html response, matching routes_containers.go's own precedent for a
-// route whose entire body is untrusted-adjacent content.
+// TestCaptchaWidgetSetsDefensiveHeaders pins the headers set beside the CSP.
 func TestCaptchaWidgetSetsDefensiveHeaders(t *testing.T) {
 	srv := captchaWidgetServer(t)
 	resp, _ := getCaptchaWidget(t, captchaWidgetURL(srv, "1", url.Values{"siteKey": {"k"}, "enterprise": {"1"}}))
@@ -222,10 +190,8 @@ func TestCaptchaWidgetSetsDefensiveHeaders(t *testing.T) {
 	}
 }
 
-// TestCaptchaWidgetNonceDiffersPerResponse guards against a nonce that was
-// accidentally hoisted to a package-level constant or otherwise reused - a
-// fixed nonce defeats the entire point of using one instead of
-// 'unsafe-inline'.
+// TestCaptchaWidgetNonceDiffersPerResponse checks that the nonce is not reused;
+// a fixed one would be no better than 'unsafe-inline'.
 func TestCaptchaWidgetNonceDiffersPerResponse(t *testing.T) {
 	srv := captchaWidgetServer(t)
 	u := captchaWidgetURL(srv, "1", url.Values{"siteKey": {"k"}, "enterprise": {"1"}})
@@ -241,11 +207,9 @@ func TestCaptchaWidgetNonceDiffersPerResponse(t *testing.T) {
 	}
 }
 
-// TestCaptchaWidgetCSPAppliesOnlyToThisRoute is this assignment's own central
-// requirement, pinned directly against the full, real registration table -
-// not just this route's own isolated test server - so a future change adding
-// a shared "security headers" middleware in api.go and accidentally widening
-// this policy's reach would fail here first.
+// TestCaptchaWidgetCSPAppliesOnlyToThisRoute runs against the full
+// registration table, so a shared header middleware that widened the policy's
+// reach would fail here.
 func TestCaptchaWidgetCSPAppliesOnlyToThisRoute(t *testing.T) {
 	reg := buildRegistry(t)
 	mux := http.NewServeMux()
@@ -278,12 +242,8 @@ func mustContainAll(t *testing.T, s string, subs []string) {
 	}
 }
 
-// assertNoBareWildcard is the mechanical half of "never a wildcard": a
-// source-expression token that is exactly "*" would allow any origin
-// whatsoever, which is a different thing from hCaptcha's own documented
-// *.hcaptcha.com (a single named registrable domain) - a pattern this file's
-// recaptcha branch never even uses. See routes_captcha_widget.go's own "THE
-// CSP ITSELF" for that distinction spelled out in full.
+// assertNoBareWildcard fails on a source that is exactly "*", which allows any
+// origin, unlike a named domain pattern such as *.hcaptcha.com.
 func assertNoBareWildcard(t *testing.T, csp string) {
 	t.Helper()
 	for _, directive := range strings.Split(csp, ";") {

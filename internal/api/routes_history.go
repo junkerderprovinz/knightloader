@@ -1,13 +1,10 @@
 package api
 
-// The download history: what this instance has fetched, which is not the same
-// question as what is in the list.
-//
-// It is a route of its own rather than a flag on the task list, because the two
-// have different lifetimes. The list is a working set - cleared by hand, trimmed
-// by retention after a month - and the history outlives every one of those. A
-// client asking "did I already download this" has to be able to ask something
-// that survives somebody pressing "clear finished".
+// The download history: what this instance has fetched, which is not what is
+// in the list. A route of its own rather than a flag on the task list, because
+// the list is a working set, cleared by hand and trimmed by retention, while
+// "did I already download this" has to survive somebody pressing "clear
+// finished".
 
 import (
 	"net/http"
@@ -16,15 +13,14 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/app"
 )
 
-// defaultHistoryPage is what a client that names no limit gets. A bound rather
-// than everything: the table is capped in the thousands, and a page that renders
-// all of it by default is a page that gets slower the longer the instance has
-// been useful.
+// defaultHistoryPage bounds what a client that names no limit gets: the table
+// runs into the thousands, and rendering all of it by default gets slower the
+// longer the instance has been in use.
 const defaultHistoryPage = 500
 
-// historyLimit reads ?limit=, refusing nothing: a value that is not a number is
-// not an error worth an HTTP status, it is a client that meant the default.
-// Zero and below are honoured as "everything", which is what an export asks for.
+// historyLimit reads ?limit=, refusing nothing: a value that is not a number
+// is a client that meant the default. Zero and below mean everything, which is
+// what an export asks for.
 func historyLimit(r *http.Request) int {
 	raw := r.URL.Query().Get("limit")
 	if raw == "" {

@@ -37,9 +37,9 @@ func getRaw(t *testing.T, url string) (int, []byte) {
 }
 
 // TestReconnectStateNamesTheMissingField is why the state route carries a
-// reason at all. "Not configured" beside a method that is plainly selected sends
-// people to the on/off switch, which is already on; the field that is empty is
-// three rows further down and nothing on the page points at it.
+// reason. "Not configured" beside a method that is plainly selected sends
+// people to the on/off switch, which is already on, while the empty field is
+// three rows further down with nothing pointing at it.
 func TestReconnectStateNamesTheMissingField(t *testing.T) {
 	a, srv := reconnectServer(t)
 
@@ -65,17 +65,16 @@ func TestReconnectStateNamesTheMissingField(t *testing.T) {
 	if got.Configured {
 		t.Error("a command method with no program came back as configured")
 	}
-	// The exact words are Validate's, not this route's - that is the whole point
-	// of taking the message from there - so the assertion is on the field it has
-	// to name rather than on the sentence around it.
+	// The words are Validate's, not this route's, so the assertion is on the
+	// field it has to name rather than on the sentence around it.
 	if !strings.Contains(got.Reason, "command") {
 		t.Errorf("the reason %q never mentions the empty field", got.Reason)
 	}
 }
 
-// TestReconnectStateIsQuietWhenItIsFine checks the other direction: a working
-// configuration must not hand the page a sentence to display, or the settings
-// form grows a permanent complaint about nothing.
+// TestReconnectStateIsQuietWhenItIsFine: a working configuration hands the
+// page no sentence to display, or the settings form grows a permanent
+// complaint about nothing.
 func TestReconnectStateIsQuietWhenItIsFine(t *testing.T) {
 	a, srv := reconnectServer(t)
 	s := a.Settings.Get()
@@ -101,10 +100,10 @@ func TestReconnectStateIsQuietWhenItIsFine(t *testing.T) {
 	}
 }
 
-// TestReconnectImportShowsBothHalves is the contract the import route exists
-// for. A script that is nine tenths right has to come back as nine tenths of a
-// request list plus the line that was refused, with its number: the alternative
-// is an error under a forty-line paste and somebody counting rows by hand.
+// TestReconnectImportShowsBothHalves: a script that is nine tenths right comes
+// back as nine tenths of a request list plus the refused line and its number.
+// The alternative is an error under a forty-line paste and somebody counting
+// rows by hand.
 func TestReconnectImportShowsBothHalves(t *testing.T) {
 	_, srv := reconnectServer(t)
 
@@ -138,17 +137,17 @@ func TestReconnectImportShowsBothHalves(t *testing.T) {
 	if got.Problems[0].Text == "" {
 		t.Error("the refused line came back without its text, so the page cannot show which one it was")
 	}
-	// A script with a refused line must not be storable, and the only thing that
-	// says so is this field - the two lists on their own read as a successful
+	// A script with a refused line must not be storable, and this field is the
+	// only thing that says so: the two lists on their own read as a successful
 	// import with a note attached.
 	if got.Error == "" {
 		t.Error("a refused script came back with no error, which reads as a clean import")
 	}
 }
 
-// TestReconnectImportRefusesAnEmptyPasteOutLoud pins the failure that produces
-// no per-line problem at all. A form that cleared itself and said nothing here
-// looks exactly like a successful import of nothing.
+// TestReconnectImportRefusesAnEmptyPasteOutLoud covers the failure that
+// produces no per-line problem. A form that cleared itself and said nothing
+// looks like a successful import of nothing.
 func TestReconnectImportRefusesAnEmptyPasteOutLoud(t *testing.T) {
 	_, srv := reconnectServer(t)
 	code, raw := postJSON(t, http.MethodPost, srv.URL+"/api/reconnect/import", map[string]string{"text": "   \n\n"})
@@ -167,10 +166,10 @@ func TestReconnectImportRefusesAnEmptyPasteOutLoud(t *testing.T) {
 	}
 }
 
-// TestReconnectRouterAnswersOrSaysWhy is deliberately platform-agnostic: the
-// gateway is only readable on Linux, and the point of the route is that the two
-// outcomes are told apart. What it must never do is answer 200 with nothing in
-// it, which is the shape that leaves the field silently blank.
+// TestReconnectRouterAnswersOrSaysWhy stays platform-agnostic, since the
+// gateway is only readable on Linux and what matters is that the two outcomes
+// are told apart. A 200 with nothing in it leaves the field blank with no
+// explanation.
 func TestReconnectRouterAnswersOrSaysWhy(t *testing.T) {
 	_, srv := reconnectServer(t)
 	code, raw := getRaw(t, srv.URL+"/api/reconnect/router")

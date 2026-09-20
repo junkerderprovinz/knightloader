@@ -1,10 +1,9 @@
 package api
 
-// End-to-end coverage for the WebSocket control protocol: internal/hub's own
-// tests prove Subscribe/Unsubscribe/Broadcast are race-free and correct in
-// isolation; this file proves handleWSControl (api.go) actually wires a real
-// client's "subscribe" frame into that hub, over a real connection, which is
-// the part hub_test.go cannot see at all.
+// End-to-end coverage for the WebSocket control protocol. internal/hub's own
+// tests cover Subscribe, Unsubscribe and Broadcast in isolation; this file
+// covers handleWSControl (api.go) wiring a real client's subscribe frame into
+// that hub over a real connection, which hub_test.go cannot see.
 
 import (
 	"context"
@@ -54,9 +53,9 @@ func readOneOfType(t *testing.T, c *websocket.Conn, typ string) map[string]any {
 	return nil
 }
 
-// expectNothingOfType fails if typ arrives within the window, which is the
-// whole assertion a subscription filter needs: not that the wanted kind
-// arrives, but that an UNWANTED one does not.
+// expectNothingOfType fails if typ arrives within the window. That is the
+// assertion a subscription filter needs: not that the wanted kind arrives, but
+// that an unwanted one does not.
 func expectNothingOfType(t *testing.T, c *websocket.Conn, typ string, within time.Duration) {
 	t.Helper()
 	ctx, cancel := context.WithTimeout(context.Background(), within)
@@ -73,9 +72,9 @@ func expectNothingOfType(t *testing.T, c *websocket.Conn, typ string, within tim
 	}
 }
 
-// TestWSSubscribeNarrowsTheLiveStream is the feature end to end: a real
-// client dials /api/ws, sends a subscribe frame, and a broadcast of an
-// un-subscribed kind never reaches it while a subscribed one does.
+// TestWSSubscribeNarrowsTheLiveStream end to end: a client dials /api/ws,
+// sends a subscribe frame, and a broadcast of an unsubscribed kind never
+// reaches it while a subscribed one does.
 func TestWSSubscribeNarrowsTheLiveStream(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
@@ -94,10 +93,9 @@ func TestWSSubscribeNarrowsTheLiveStream(t *testing.T) {
 	}
 	cancel()
 
-	// Give the server's read loop a moment to actually apply the subscribe
-	// frame before the broadcasts below race it; the hub's own tests already
-	// prove Subscribe is correct once called; this is only proving the wire
-	// gets it there at all.
+	// Give the server's read loop a moment to apply the subscribe frame before
+	// the broadcasts below race it. The hub's own tests cover Subscribe once
+	// called; this only covers the wire getting it there.
 	time.Sleep(150 * time.Millisecond)
 
 	a.Hub.Broadcast("queue", "should be filtered")
@@ -109,9 +107,9 @@ func TestWSSubscribeNarrowsTheLiveStream(t *testing.T) {
 	}
 }
 
-// TestWSUnsubscribedConnectionIsUnaffectedByOthersSubscribing checks the
-// isolation the per-connection design promises: one socket narrowing itself
-// must not narrow a second, independent socket on the same hub.
+// TestWSUnsubscribedConnectionIsUnaffectedByOthersSubscribing: one socket
+// narrowing itself must not narrow a second, independent socket on the same
+// hub.
 func TestWSUnsubscribedConnectionIsUnaffectedByOthersSubscribing(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
@@ -140,8 +138,8 @@ func TestWSUnsubscribedConnectionIsUnaffectedByOthersSubscribing(t *testing.T) {
 }
 
 // TestWSMalformedControlFrameDoesNotCloseTheSocket: a client sending garbage
-// on this socket (a bug, an unrelated protocol version) must not be
-// disconnected over it. See handleWSControl's own doc comment.
+// on this socket, through a bug or an unrelated protocol version, is not
+// disconnected over it. See handleWSControl.
 func TestWSMalformedControlFrameDoesNotCloseTheSocket(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
@@ -165,8 +163,8 @@ func TestWSMalformedControlFrameDoesNotCloseTheSocket(t *testing.T) {
 	}
 }
 
-// TestWSSubscribeWildcardReturnsToEverything exercises the "*" reset over
-// the wire, the way back out of a narrowed stream a real client uses.
+// TestWSSubscribeWildcardReturnsToEverything exercises the "*" reset over the
+// wire, the way a client leaves a narrowed stream.
 func TestWSSubscribeWildcardReturnsToEverything(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()

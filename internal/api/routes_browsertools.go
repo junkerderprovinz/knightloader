@@ -1,15 +1,13 @@
 package api
 
-// The bookmarklet needs no route at all — it is generated client-side from
-// window.location.origin (web/src/lib/browserTools.ts) and opens
-// /quickadd, a page the SPA already serves. This file is the one piece of
-// build-plan.md's 11D that a browser cannot build for itself: packaging the
-// MV3 extension's source (package extension), with this specific instance's
-// own address already filled in so installing it takes no configuration
-// step for the common case of one browser, one instance. Two routes, not
-// one: Chromium browsers (Chrome/Edge/Brave) load an unpacked .zip via
-// Developer Mode, but Firefox's own install flow looks for a .xpi - the
-// identical archive under a different name and content-type.
+// Packaging the MV3 extension's source (package extension) for download. The
+// bookmarklet needs no route: it is generated client-side from
+// window.location.origin (web/src/lib/browserTools.ts) and opens /quickadd,
+// which the SPA already serves.
+//
+// Two routes rather than one because Chromium browsers load an unpacked .zip
+// through Developer Mode while Firefox's install flow looks for a .xpi, which
+// is the same archive under a different name and content-type.
 
 import (
 	"archive/zip"
@@ -22,24 +20,19 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/app"
 )
 
-// a goes unused below: unlike every other routes_*.go file, packaging a
-// static, per-request zip touches no app state. It stays in the signature
-// anyway, for the same registerX(reg, a) shape every subsystem in
-// routes.go's registerAll uses — a reader should not have to learn a second
-// calling convention for the one file that happens not to need it.
+// registerBrowserTools takes an app it never reads: packaging a static zip
+// touches no state, but the signature keeps the registerX(reg, a) shape
+// routes.go's registerAll uses.
 func registerBrowserTools(reg *Registry, a *app.App) {
 	reg.Add(http.MethodGet, "/api/browser-extension.zip",
 		"the Manifest V3 browser extension, packaged with this instance's own address pre-filled",
 		func(w http.ResponseWriter, r *http.Request) {
 			downloadExtension(w, r, "knightloader-extension.zip", "application/zip")
 		})
-	// Firefox's own install flow (about:addons drag-and-drop, or
-	// about:debugging's "Load Temporary Add-on") looks for a .xpi, not a
-	// bare .zip - jdp: "Bei JD offizieller Homepage kann man für Firefox
-	// z.B. eine xpi Datei runterladen", after a first pass here only ever
-	// offered one generic zip for every browser. An XPI IS a zip - Mozilla's
-	// own format is exactly that, under a different extension and
-	// content-type - so this is the identical archive, not a second build.
+	// Firefox's install flow (about:addons drag-and-drop, or
+	// about:debugging's "Load Temporary Add-on") looks for a .xpi, which is a
+	// zip under a different extension and content-type, so this serves the
+	// same archive rather than a second build.
 	reg.Add(http.MethodGet, "/api/browser-extension.xpi",
 		"the identical browser extension, packaged as a .xpi for Firefox's own install flow",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -52,10 +45,9 @@ func registerBrowserTools(reg *Registry, a *app.App) {
 		})
 }
 
-// extensionVersion reads manifest.json straight out of the same embedded
-// tree downloadExtension packages, so this number can never drift from what
-// actually ships in the zip/xpi - a hand-copied constant in the frontend
-// would silently go stale the next time manifest.json's version is bumped.
+// extensionVersion reads manifest.json out of the same embedded tree
+// downloadExtension packages, so the number cannot drift from what ships in
+// the archive the way a constant copied into the frontend would.
 func extensionVersion(w http.ResponseWriter, r *http.Request) {
 	raw, err := fs.ReadFile(extension.Dist, "src/manifest.json")
 	if err != nil {
@@ -76,18 +68,13 @@ func extensionVersion(w http.ResponseWriter, r *http.Request) {
 }
 
 // downloadExtension zips extension.Dist's src/ tree under whichever filename
-// and content-type the caller's own browser-family route asked for.
+// and content-type the caller's route asked for.
 //
-// It used to substitute config.default.json on the way through, baking this
-// instance's own address into the download so installing it took no
-// configuration step. That is gone with the phrase rework: the extension no
-// longer knows what an instance address is — it joins the group with the
-// connection phrase and asks the relay who is in it (extension/src/group.js).
-//
-// The download is therefore byte-identical to what a `git clone` checkout
-// contains, and to what goes into a browser store. One artefact, one thing to
-// reason about, and no per-instance flavour that has to be explained to a
-// store reviewer.
+// Nothing is substituted on the way through: the extension joins the group
+// with the connection phrase and asks the relay who is in it
+// (extension/src/group.js), so it needs no instance address baked in. The
+// download is byte-identical to a checkout and to what goes into a browser
+// store.
 func downloadExtension(w http.ResponseWriter, r *http.Request, filename, contentType string) {
 	sub, err := fs.Sub(extension.Dist, "src")
 	if err != nil {
@@ -119,10 +106,8 @@ func downloadExtension(w http.ResponseWriter, r *http.Request, filename, content
 		walkErr = zw.Close()
 	}
 	if walkErr != nil {
-		// Too late for http.Error, the same reasoning as downloadBackup in
-		// routes_backup.go: headers and possibly some zip bytes are already on
-		// the wire, so the failure is logged rather than turned into a status
-		// code nobody downstream will see.
+		// Too late for http.Error, as in downloadBackup: headers and some zip
+		// bytes are already on the wire.
 		log.Printf("browsertools: %s did not finish writing to the response: %v", filename, walkErr)
 	}
 }

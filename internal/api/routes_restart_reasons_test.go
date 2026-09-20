@@ -1,8 +1,8 @@
 package api
 
-// The retry button, aimed. See app.RestartTasksIn for why a list of failures is
-// several problems rather than one, and routes_tasks.go for the field that
-// carries the answer.
+// The retry button, aimed at one cause. See app.RestartTasksIn for why a list
+// of failures is several problems rather than one, and routes_tasks.go for the
+// field that carries the answer.
 
 import (
 	"fmt"
@@ -17,22 +17,21 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/store"
 )
 
-// seedFailed brings up an instance whose list already holds one errored task per
+// seedFailed brings up an instance whose list holds one errored task per
 // reason given, and hands back the ids in that order.
 //
 // It writes the rows into the store and only then opens the app on that
-// directory, because there is no exported way to drive a link to a CHOSEN
+// directory, because there is no exported way to drive a link to a chosen
 // failure: every http link matches resolver.HTTPFallback, so "unsupported" is
-// unreachable from a paste, and the reasons that need a real host - a spent
-// allowance, a 404, a full disk - need that host to answer. Boot is the app's
-// own supported way of reading a task back (app.go's reload, and reviveOnBoot
-// leaves a settled row exactly as it found it), so a seeded failure is the same
-// object the app would have had after a restart, not a fixture shaped like one.
+// unreachable from a paste, and a spent allowance, a 404 or a full disk need a
+// real host to answer. Boot is the app's supported way of reading a task back
+// (app.go's reload, and reviveOnBoot leaves a settled row as it found it), so
+// a seeded failure is the object the app would have had after a restart.
 //
-// The queue is halted before the server is attached. A restarted task otherwise
-// reaches a real backend within milliseconds, fails against host.example, and
-// settles back to "error" - so the test would be reading the SECOND failure and
-// calling it proof that the retry never happened.
+// The queue is halted before the server is attached. Otherwise a restarted
+// task reaches a real backend within milliseconds, fails against host.example
+// and settles back to "error", and the test would read that second failure as
+// proof the retry never happened.
 func seedFailed(t *testing.T, reasons ...core.Reason) (*httptest.Server, *app.App, []string) {
 	t.Helper()
 	dir := t.TempDir()
@@ -83,12 +82,10 @@ func statusOf(t *testing.T, a *app.App, id string) core.Status {
 	return ""
 }
 
-// TestRestartOnlyTheNamedCause is the whole worth of the reason list.
-//
-// Two dead links and one spent allowance is the small version of the situation
-// the feature is for: the allowance is the one worth trying again, and the two
-// dead links are the ones that must be left alone, because throwing them at the
-// host once more only proves what the host already said.
+// TestRestartOnlyTheNamedCause: two dead links and one spent allowance is the
+// small version of what the reason list is for. The allowance is worth trying
+// again; throwing the dead links at the host once more only proves what the
+// host already said.
 func TestRestartOnlyTheNamedCause(t *testing.T) {
 	srv, a, seeded := seedFailed(t, core.ReasonGone, core.ReasonLimit, core.ReasonGone)
 
@@ -109,12 +106,9 @@ func TestRestartOnlyTheNamedCause(t *testing.T) {
 }
 
 // TestRestartCanAimAtTheUnclassifiedGroup pins the empty reason as a group in
-// its own right.
-//
-// core.ReasonUnknown is the empty string, so it is exactly the value a filter
-// written the obvious way ("skip the blanks") throws out - and the rows nothing
-// classified are usually the largest pile in the list. A chip that cannot be
-// pressed is worse than no chip.
+// its own right. core.ReasonUnknown is the empty string, the value a filter
+// written the obvious way throws out, and the rows nothing classified are
+// usually the largest pile in the list.
 func TestRestartCanAimAtTheUnclassifiedGroup(t *testing.T) {
 	srv, a, seeded := seedFailed(t, core.ReasonUnknown, core.ReasonGone)
 
@@ -132,8 +126,8 @@ func TestRestartCanAimAtTheUnclassifiedGroup(t *testing.T) {
 	}
 }
 
-// TestRestartWithNoReasonsStillTakesEverything is the promise to every caller
-// that predates the field: an absent reason list means what it always meant.
+// TestRestartWithNoReasonsStillTakesEverything: an absent reason list means
+// every errored task.
 func TestRestartWithNoReasonsStillTakesEverything(t *testing.T) {
 	srv, a, seeded := seedFailed(t, core.ReasonGone, core.ReasonLimit)
 

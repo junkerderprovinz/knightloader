@@ -82,10 +82,10 @@ func problemCount(t *testing.T, body map[string]any, list string) int {
 	return len(got)
 }
 
-// TestRuleProblemsReachTheFormOnSaveAndOnLoad is the point of keeping a broken
-// rule on disk. Storing it and never mentioning it again would be worse than
-// dropping it: the user sees their rule in the list, believes it is filtering,
-// and finds out otherwise from the download folder.
+// TestRuleProblemsReachTheFormOnSaveAndOnLoad is why a broken rule is kept on
+// disk. Storing it and never mentioning it again is worse than dropping it:
+// the user sees their rule in the list, believes it is filtering, and finds
+// out otherwise from the download folder.
 func TestRuleProblemsReachTheFormOnSaveAndOnLoad(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
@@ -116,8 +116,8 @@ func TestRuleProblemsReachTheFormOnSaveAndOnLoad(t *testing.T) {
 		t.Errorf("PUT reported %d packagizer problems, want the impossible range named", n)
 	}
 
-	// And again on the next visit to the page, which is the one that matters:
-	// the user comes back tomorrow and has to be told the same thing.
+	// And again on the next visit: the user comes back tomorrow and has to be
+	// told the same thing.
 	loaded := getSettings(t, srv.URL)
 	if n := problemCount(t, loaded, "linkFilter"); n != 1 {
 		t.Errorf("GET reported %d filter problems, want the broken rule still named", n)
@@ -132,10 +132,10 @@ func TestRuleProblemsReachTheFormOnSaveAndOnLoad(t *testing.T) {
 	}
 }
 
-// TestSettingsNeverShipASecret pins the one thing GET must not do. Two passwords
-// live in the settings now, and handing them to every connected browser makes
-// the merge machinery that puts them back on save protect a value the client
-// already has.
+// TestSettingsNeverShipASecret pins the one thing GET must not do. Two
+// passwords live in the settings, and handing them to every connected browser
+// leaves the merge machinery that puts them back on save protecting a value
+// the client already has.
 func TestSettingsNeverShipASecret(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
@@ -172,7 +172,7 @@ func TestSettingsNeverShipASecret(t *testing.T) {
 		}
 	}
 
-	// The secrets are still on disk, or the redaction would just be data loss.
+	// The secrets are still on disk, or the redaction is data loss.
 	stored := a.Settings.Get()
 	if stored.Reconnect.Password != "router-secret" {
 		t.Errorf("the router password was not stored: %q", stored.Reconnect.Password)
@@ -183,9 +183,9 @@ func TestSettingsNeverShipASecret(t *testing.T) {
 }
 
 // TestRefusedRowsComeBackWithAReason keeps a row from disappearing on save.
-// Sanitize's job is to drop what cannot be used; explaining it is this
-// endpoint's, and a connection that vanishes silently is blamed on the proxy
-// weeks later.
+// Sanitize drops what cannot be used and this endpoint explains it; a
+// connection that vanishes without a word gets blamed on the proxy weeks
+// later.
 func TestRefusedRowsComeBackWithAReason(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
@@ -229,10 +229,10 @@ func TestRefusedRowsComeBackWithAReason(t *testing.T) {
 	}
 }
 
-// TestOptionsOnlyOffersWhatTheAppHonours stops the settings form from listing a
-// value nothing acts on. collide.Ask parks a task until a human answers, and
+// TestOptionsOnlyOffersWhatTheAppHonours stops the settings form from listing
+// a value nothing acts on. collide.Ask parks a task until a human answers, and
 // there is neither a status for that nor a way to answer, so a task set to it
-// would sit in the queue forever with nothing saying why.
+// would sit in the queue with nothing saying why.
 func TestOptionsOnlyOffersWhatTheAppHonours(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
@@ -243,9 +243,9 @@ func TestOptionsOnlyOffersWhatTheAppHonours(t *testing.T) {
 	}
 	defer resp.Body.Close()
 	// Decoded loosely and narrowed per key, because not everything this route
-	// answers with is a menu: the archive help text needs the name of the trash
-	// folder, which is one string. Insisting on []string here would fail the
-	// whole test on the shape of a value it has no opinion about.
+	// answers with is a menu: the archive help text needs the name of the
+	// trash folder, which is one string. Insisting on []string would fail this
+	// test on the shape of a value it has no opinion about.
 	var raw map[string]json.RawMessage
 	if err := json.NewDecoder(resp.Body).Decode(&raw); err != nil {
 		t.Fatal(err)
@@ -270,8 +270,8 @@ func TestOptionsOnlyOffersWhatTheAppHonours(t *testing.T) {
 		}
 	}
 	// The rule vocabulary is served by GET /api/rules/grammar, built from the
-	// engine. A second hand-written copy here is how a dropdown comes to offer an
-	// operator Compile refuses, which saves cleanly and then never fires.
+	// engine. A second hand-written copy is how a dropdown comes to offer an
+	// operator Compile refuses, which saves cleanly and never fires.
 	for _, gone := range []string{"ruleFields", "ruleOps", "ruleActions"} {
 		// Against the raw response, not the narrowed map: a key that came back
 		// as something other than a list would slip through the narrowing, and
@@ -299,6 +299,3 @@ func TestOptionsOnlyOffersWhatTheAppHonours(t *testing.T) {
 		}
 	}
 }
-
-// TestRuleTestRunsWithoutTouchingTheCollector is what makes a rule list editable
-// at all. The alternative is pasting real links to find out what a rule does,

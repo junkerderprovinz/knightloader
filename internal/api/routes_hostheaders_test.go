@@ -1,10 +1,7 @@
 package api
 
-// Route-level tests for the header profiles, against a real app on a throwaway
-// data directory - the shape routes_ytdlpcookies_test.go uses next door, and
-// for the same reason: what is asserted here is what actually crosses the wire
-// and what actually lands in the encrypted store, and a stubbed app can answer
-// for neither.
+// Route-level tests for the header profiles against a real app, since what
+// matters is what crosses the wire and what lands in the encrypted store.
 
 import (
 	"encoding/json"
@@ -20,15 +17,12 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver/hostheaders"
 )
 
-// planted is the one string every assertion in this file hunts for, the same
-// arrangement internal/resolver/hostheaders' own leak_test.go uses: a single
-// distinctive needle, so a hit anywhere is unambiguous and a miss is not a
-// coincidence.
+// planted is the distinctive value every leak assertion in this file looks
+// for.
 const planted = "SECRET-h7k2-no-response-may-carry-this"
 
-// The origin is written one way and stored another. OriginOf spells the port
-// out on everything it normalises, so asserting against the stored form is what
-// catches a route that echoed the request instead of re-reading the store.
+// OriginOf spells out the port, so asserting on the stored form catches a
+// route that echoed the request instead of re-reading the store.
 const (
 	forumTyped  = "https://forum.example.org"
 	forumStored = "https://forum.example.org:443"
@@ -46,9 +40,7 @@ func hostHeaderServer(t *testing.T) (*app.App, *httptest.Server) {
 	return a, srv
 }
 
-// plantProfile stores a profile carrying the needle THROUGH THE ROUTE, so every
-// assertion below is about what this HTTP surface did rather than about a store
-// a test filled in behind its back.
+// plantProfile stores a profile carrying planted through the route itself.
 func plantProfile(t *testing.T, srv *httptest.Server, id, origin string) {
 	t.Helper()
 	code, raw := postJSON(t, http.MethodPost, srv.URL+"/api/hostheaders", map[string]any{
@@ -64,8 +56,7 @@ func plantProfile(t *testing.T, srv *httptest.Server, id, origin string) {
 	}
 }
 
-// listProfiles is the raw listing bytes, because what several of these tests are
-// about is the bytes and not the decoded shape.
+// listProfiles returns the raw listing bytes.
 func listProfiles(t *testing.T, srv *httptest.Server) []byte {
 	t.Helper()
 	resp, err := srv.Client().Get(srv.URL + "/api/hostheaders")
@@ -83,9 +74,8 @@ func listProfiles(t *testing.T, srv *httptest.Server) []byte {
 	return out
 }
 
-// listedIDs is the names the listing carries. Decoded rather than matched as a
-// substring: "forum" is inside "forum-2", so a test asking whether the forum
-// profile is still there would be answered by a different profile entirely.
+// listedIDs is the names the listing carries, decoded because "forum" is a
+// substring of "forum-2".
 func listedIDs(t *testing.T, srv *httptest.Server) []string {
 	t.Helper()
 	var list []hostheaders.Listing
@@ -99,13 +89,9 @@ func listedIDs(t *testing.T, srv *httptest.Server) []string {
 	return out
 }
 
-// sealedNames is what a profile actually holds, read the one way that package
-// lets a value out at all (Set.Attach). Only a test asks this; no route does.
-//
-// It answers NAMES and never the values, sorted, so that a failing assertion
-// can print what it found without this file becoming the leak it is guarding
-// against - a t.Fatalf of a map[string]string prints the sessions in the clear,
-// into a CI log.
+// sealedNames is the sorted header names a profile holds, read through
+// Set.Attach. Names only, so a failing assertion prints no session into a CI
+// log.
 func sealedNames(t *testing.T, a *app.App, id, origin string) []string {
 	t.Helper()
 	out := make([]string, 0, 4)
@@ -121,10 +107,8 @@ func sealedProfile(t *testing.T, a *app.App, id, origin string) map[string]strin
 	return hostheaders.NewStore(a.Accounts).Get(id).Attach(origin)
 }
 
-// TestTheProfileListingCarriesNoHeaderValue is the guard this whole surface is
-// built around. The listing is what a settings page loads, so a value in it is
-// a live session in a browser, in a screenshot, and in whatever bug report that
-// screenshot ends up attached to.
+// TestTheProfileListingCarriesNoHeaderValue checks that the listing a settings
+// page loads carries no header value.
 func TestTheProfileListingCarriesNoHeaderValue(t *testing.T) {
 	a, srv := hostHeaderServer(t)
 	plantProfile(t, srv, "forum", forumTyped)
@@ -141,31 +125,25 @@ func TestTheProfileListingCarriesNoHeaderValue(t *testing.T) {
 	if len(list) != 1 || list[0].ID != "forum" || list[0].Origin != forumStored {
 		t.Fatalf("the listing is %v, want one entry for the forum profile on %s", list, forumStored)
 	}
-	// The names still come through, or the page cannot say what the profile
-	// holds - and they are what makes the assertion above mean anything: a
-	// listing of nothing would satisfy it too.
+	// The names still come through; an empty listing would pass the check
+	// above too.
 	if got := list[0].Headers; len(got) != 2 {
 		t.Errorf("the listing names %v, want the two header names", got)
 	}
-	// And the values really are stored. Without this the whole test passes on
-	// a save that quietly did nothing at all.
+	// The values really are stored, or the test would pass on a save that did
+	// nothing.
 	if got := sealedProfile(t, a, "forum", forumStored)["X-Auth-Token"]; got != planted {
 		t.Fatal("the profile did not survive the save, so nothing above proves anything")
 	}
 }
 
-// TestNoDiagnosticsBundleCarriesAHeaderValue is the other exposure, and it is
-// the reason these values are sealed in accounts.Store under a pseudo service
-// id rather than kept in settings.json: the bundle serialises the settings and
-// this process's own log tail, and it is the file people attach to public bug
-// reports. A handler that logged what it was saving, or an error that quoted
-// what it refused, would put a session straight back into it.
+// TestNoDiagnosticsBundleCarriesAHeaderValue checks that neither the settings
+// nor the log tail in the bundle picks up a value, including from refusals,
+// whose natural wording would quote what was wrong.
 func TestNoDiagnosticsBundleCarriesAHeaderValue(t *testing.T) {
 	a, srv := hostHeaderServer(t)
 	plantProfile(t, srv, "forum", forumTyped)
 
-	// The refusals too. They are the paths where a value escapes most easily,
-	// because the natural sentence to write names the thing that was wrong.
 	refusals := []map[string]any{
 		{"id": "forum", "origin": "ftp://forum.example.org/x?token=" + planted,
 			"headers": []map[string]string{{"name": "Cookie", "value": planted}}},
@@ -193,15 +171,9 @@ func TestNoDiagnosticsBundleCarriesAHeaderValue(t *testing.T) {
 	}
 }
 
-// TestChangingAProfileDoesNotMeanRetypingItsHeaders is what the placeholder is
-// for. The listing carries no values, so a form re-sending what it was given
-// sends empty ones - and empty means "clear this" in this store as it does in
-// every other one here. Without the put-back, adding one header to a profile
-// deletes the two that were already in it, and the user finds out at the next
-// download.
-//
-// It also covers the save being keyed by the origin: this body names no id at
-// all, and still edits the profile that origin already has.
+// TestChangingAProfileDoesNotMeanRetypingItsHeaders checks that sending the
+// placeholder keeps the stored values, and that a save without an id edits the
+// profile its origin already has.
 func TestChangingAProfileDoesNotMeanRetypingItsHeaders(t *testing.T) {
 	a, srv := hostHeaderServer(t)
 	plantProfile(t, srv, "forum", forumTyped)
@@ -230,11 +202,9 @@ func TestChangingAProfileDoesNotMeanRetypingItsHeaders(t *testing.T) {
 	}
 }
 
-// TestAStoredHeaderDoesNotFollowAProfileToAnotherOrigin is the cross-origin
-// rule reaching this file. redirect.go stops a header from crossing an origin
-// boundary during a fetch; the same crossing is available here by re-pointing a
-// stored profile at another host and sending the placeholder for its values,
-// which would file a forum's session under a CDN nobody ever logged in to.
+// TestAStoredHeaderDoesNotFollowAProfileToAnotherOrigin checks that re-pointing
+// a profile at another host with the placeholder cannot file a forum's session
+// under that host.
 func TestAStoredHeaderDoesNotFollowAProfileToAnotherOrigin(t *testing.T) {
 	a, srv := hostHeaderServer(t)
 	plantProfile(t, srv, "forum", forumTyped)
@@ -245,39 +215,28 @@ func TestAStoredHeaderDoesNotFollowAProfileToAnotherOrigin(t *testing.T) {
 		"origin":  cdn,
 		"headers": []map[string]string{{"name": "Cookie", "value": hostheaders.Redacted}},
 	})
-	// What was stored comes first, and it is asserted whatever the status was:
-	// a 200 that moved the credential and a 400 that moved it anyway are the
-	// same leak, and only one of the two is visible in the status line.
+	// The store is checked first, whatever the status, since a 400 that moved
+	// the credential anyway would be the same leak.
 	if names := sealedNames(t, a, "forum", cdn+":443"); len(names) != 0 {
 		t.Fatalf("the stored headers followed the profile to another origin: %v", names)
 	}
 	if code != http.StatusBadRequest {
 		t.Errorf("moving a profile with the placeholder answered %d, want %d: %s", code, http.StatusBadRequest, raw)
 	}
-	// The profile it was moved away from is untouched, rather than half-saved
-	// or emptied by the refusal.
 	if got := sealedProfile(t, a, "forum", forumStored)["Cookie"]; got != "session="+planted {
 		t.Error("the refusal did not leave the original profile alone")
 	}
 }
 
-// TestASavedProfileIsRoutableWithoutARestart guards which store these routes
-// write through.
-//
-// hostheaders.Store keeps an origin index because Resolver.Match is called
-// under the app's lock, and that index is dropped only by a write through the
-// same store. Writing through a second store of our own would seal the profile,
-// list it, and leave routing ignoring it until internal/app next rewires its
-// backends - an account change, or six hours.
+// TestASavedProfileIsRoutableWithoutARestart checks that the routes write
+// through the live resolver's store, whose origin index only its own writes
+// reset.
 func TestASavedProfileIsRoutableWithoutARestart(t *testing.T) {
 	a, srv := hostHeaderServer(t)
 	link := forumTyped + "/attachments/1/x.rar"
 
-	// The index has to be built COLD, before the save. It is built lazily, so
-	// an index first built afterwards is correct whichever store did the
-	// writing, and this test would pass without asserting anything. This call
-	// is what an ordinary paste before the save does, and it is what leaves a
-	// stale index behind.
+	// Builds the lazy index before the save, as an ordinary paste would;
+	// otherwise the test would pass whichever store did the writing.
 	if claimsLink(a, link) {
 		t.Fatal("the resolver already claims the link, so the assertion below proves nothing")
 	}
@@ -301,11 +260,8 @@ func claimsLink(a *app.App, link string) bool {
 	return false
 }
 
-// TestDeletingAProfileRemovesIt, and answers an unknown name rather than
-// cheerfully claiming to have removed one. Somebody deleting a profile is
-// removing their own logged-in session from this machine; a 204 on a name that
-// stored nothing leaves them believing a live session is gone while it is still
-// sealed under the name they meant to type.
+// TestDeletingAProfileRemovesIt also checks that an unknown name is a 404, so
+// a typo cannot look like a removed session.
 func TestDeletingAProfileRemovesIt(t *testing.T) {
 	a, srv := hostHeaderServer(t)
 	plantProfile(t, srv, "forum", forumTyped)
@@ -327,12 +283,8 @@ func TestDeletingAProfileRemovesIt(t *testing.T) {
 	}
 }
 
-// TestASaveThatWouldQuietlyDestroyAProfileIsRefused collects the four bodies
-// that must not be stored. Each one is a shape a page can send by accident, and
-// each one would otherwise take a working profile away: a save with no headers
-// left in it reads as a delete, a second profile for one origin loses a coin
-// toss it is never told about, and a name the store cannot address is a profile
-// no rule can ever name.
+// TestASaveThatWouldQuietlyDestroyAProfileIsRefused covers bodies a page can
+// send by accident that would otherwise lose a working profile.
 func TestASaveThatWouldQuietlyDestroyAProfileIsRefused(t *testing.T) {
 	a, srv := hostHeaderServer(t)
 	plantProfile(t, srv, "forum", forumTyped)
@@ -365,7 +317,6 @@ func TestASaveThatWouldQuietlyDestroyAProfileIsRefused(t *testing.T) {
 		}
 	}
 
-	// The profile all of that was aimed at is still there, values and all.
 	if got := listedIDs(t, srv); !slices.Contains(got, "forum") {
 		t.Fatalf("a refused save took the stored profile with it: %v", got)
 	}
@@ -374,9 +325,6 @@ func TestASaveThatWouldQuietlyDestroyAProfileIsRefused(t *testing.T) {
 	}
 }
 
-// TestHeaderProfileRoutesNeedASession. The listing names the sites somebody has
-// logins for, and the writes reach the credential store: neither may answer
-// without a session on a password-protected instance.
 func TestHeaderProfileRoutesNeedASession(t *testing.T) {
 	reg := newRegistry()
 	registerHostHeaders(reg, testApp(t))

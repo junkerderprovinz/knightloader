@@ -13,9 +13,8 @@ import (
 )
 
 // credentialBody is the wire shape of a secret coming in. Which fields matter
-// is decided by the service's catalogue Kind - the handler does not enforce
-// that, the same trust accounts.Credential itself places in whatever it is
-// given (see internal/accounts/accounts.go).
+// follows from the service's catalogue Kind; like accounts.Credential, the
+// handler does not enforce it.
 type credentialBody struct {
 	Service  string `json:"service"`
 	Account  string `json:"account"`
@@ -41,10 +40,9 @@ func registerAccounts(reg *Registry, a *app.App) {
 			writeJSON(w, accounts.Catalogue)
 		})
 
-	// Checks a credential against its service without storing it - the "new
-	// account" dialogue calls this before Save, so a typo shows up before it
-	// is persisted rather than on the first download. "Save anyway" is a
-	// frontend choice: this endpoint only ever reports what it found.
+	// The "new account" dialogue calls this before Save, so a typo shows up
+	// before it is persisted rather than on the first download. Whether to
+	// save anyway is the frontend's choice; this only reports what it found.
 	reg.Add(http.MethodPost, "/api/accounts/verify", "check a credential against its service without storing it",
 		func(w http.ResponseWriter, r *http.Request) {
 			var body credentialBody
@@ -80,9 +78,8 @@ func registerAccounts(reg *Registry, a *app.App) {
 			writeJSON(w, a.TestAccount(body.Service, body.Account))
 		})
 
-	// Stores or clears one account's credential. A zero credential (every
-	// field empty) clears it, mirroring the convention accounts.Store.Set has
-	// always had for a bare secret.
+	// A zero credential (every field empty) clears the account, the same
+	// convention accounts.Store.Set uses for a bare secret.
 	reg.Add(http.MethodPost, "/api/accounts", "store or clear one account's credential",
 		func(w http.ResponseWriter, r *http.Request) {
 			var body credentialBody
@@ -100,10 +97,8 @@ func registerAccounts(reg *Registry, a *app.App) {
 			w.WriteHeader(http.StatusNoContent)
 		})
 
-	// Renames an account's display label. Kept apart from the credential
-	// endpoint above so that editing a label can never, through an empty
-	// secret field in the same request, be mistaken for clearing the
-	// credential too.
+	// Kept apart from the credential endpoint so that renaming an account
+	// cannot clear its credential through an empty secret field.
 	reg.Add(http.MethodPost, "/api/accounts/label", "rename one account's display label",
 		func(w http.ResponseWriter, r *http.Request) {
 			var body struct {

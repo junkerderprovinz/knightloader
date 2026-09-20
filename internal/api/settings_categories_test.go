@@ -1,8 +1,8 @@
 package api
 
 // The named drawers over the settings API. There is no interface for them yet,
-// so this is the whole door: if a category cannot be created and changed here,
-// it cannot be created and changed at all.
+// so if a category cannot be created and changed here it cannot be created and
+// changed at all.
 
 import (
 	"bytes"
@@ -17,11 +17,10 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
-// patchSettings sends a partial settings body the way the form's own section
-// saves do, and returns the status with either the decoded body or the plain
-// error text. PATCH rather than PUT is what a category editor would use: a page
-// that posts the WHOLE document back would carry a stale copy of every other
-// field with it.
+// patchSettings sends a partial settings body the way the form's section saves
+// do, and returns the status with either the decoded body or the plain error
+// text. PATCH rather than PUT is what a category editor would use: a page that
+// posts the whole document back carries a stale copy of every other field.
 func patchSettings(t *testing.T, url, body string) (int, map[string]any, string) {
 	t.Helper()
 	req, err := http.NewRequest(http.MethodPatch, url+"/api/settings", bytes.NewReader([]byte(body)))
@@ -46,11 +45,11 @@ func patchSettings(t *testing.T, url, body string) (int, map[string]any, string)
 	return resp.StatusCode, out, ""
 }
 
-// TestADrawerIsCreatedAndChangedThroughTheSettingsAPI walks the whole life of a
+// TestADrawerIsCreatedAndChangedThroughTheSettingsAPI walks the life of a
 // category through the one door there is: create it with a name alone, read it
 // back off the page, change it, and read the change back. The id derived on
-// creation has to be the id it still has after the rename, or every download
-// already filed in it would quietly stop being in it.
+// creation has to survive the rename, or every download already filed in it
+// stops being in it.
 func TestADrawerIsCreatedAndChangedThroughTheSettingsAPI(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
@@ -67,10 +66,10 @@ func TestADrawerIsCreatedAndChangedThroughTheSettingsAPI(t *testing.T) {
 		t.Errorf("the created drawer's id = %v, want it derived from the name", got)
 	}
 
-	// The folder is added by a second save, which is how somebody actually
-	// fills a form in. It has to be a real one: the route creates and probes it
-	// exactly as it does the global download folder, so a drawer that names a
-	// folder nobody can write to is refused at the moment it is typed.
+	// The folder is added by a second save, which is how somebody fills a form
+	// in. It has to be a real one: the route creates and probes it as it does
+	// the global download folder, so a drawer naming a folder nobody can write
+	// to is refused at the moment it is typed.
 	dir := filepath.Join(t.TempDir(), "serien")
 	body, err := json.Marshal(map[string]any{"categories": []settings.Category{{
 		ID: "serien", Name: "TV", Dir: dir, Priority: intPtr(2), Extract: boolPtr(true),
@@ -94,8 +93,8 @@ func TestADrawerIsCreatedAndChangedThroughTheSettingsAPI(t *testing.T) {
 		t.Errorf("collision = %v, want %q", got, collide.Skip)
 	}
 
-	// And on the next visit to the page, which is the read that matters: the
-	// person comes back tomorrow and the drawers have to still be there.
+	// And on the next visit to the page: somebody comes back tomorrow and the
+	// drawers have to still be there.
 	loaded := categoriesOf(t, getSettings(t, srv.URL))
 	if len(loaded) != 1 || loaded[0]["name"] != "TV" {
 		t.Errorf("the drawer did not survive to the next load: %v", loaded)
@@ -103,9 +102,9 @@ func TestADrawerIsCreatedAndChangedThroughTheSettingsAPI(t *testing.T) {
 }
 
 // TestARefusedDrawerSaysWhy is the difference between this route and the
-// sanitiser behind it. sanitize drops what it cannot use, silently; a person
-// who has just typed two drawers with one name has to be told, or they are left
-// with two rows on screen, one save, and one row.
+// sanitiser behind it. sanitize drops what it cannot use without a word, and
+// somebody who has just typed two drawers with one name is otherwise left with
+// two rows on screen, one save and one row.
 func TestARefusedDrawerSaysWhy(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
@@ -144,15 +143,14 @@ func TestARefusedDrawerSaysWhy(t *testing.T) {
 	}
 }
 
-// TestARuleFilingLinksInAMissingDrawerIsRefused is the reference check the
-// whole model turns on, over the wire. A Packagizer rule naming a category that
-// does not exist does nothing at all, silently, on every link it matches - so
-// the save is refused and the message names both the rule and the drawer.
+// TestARuleFilingLinksInAMissingDrawerIsRefused is the reference check over
+// the wire. A Packagizer rule naming a category that does not exist does
+// nothing on every link it matches, without a word, so the save is refused and
+// the message names both the rule and the drawer.
 //
-// The second half is the half that keeps this from being a cage: the same
-// document with the drawer in it saves cleanly, so deleting a category is a
-// matter of sending the rule change with it rather than something that cannot
-// be done.
+// The second half keeps that from being a cage: the same document with the
+// drawer in it saves cleanly, so deleting a category means sending the rule
+// change with it rather than being impossible.
 func TestARuleFilingLinksInAMissingDrawerIsRefused(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
@@ -184,9 +182,9 @@ func TestARuleFilingLinksInAMissingDrawerIsRefused(t *testing.T) {
 	}
 }
 
-// TestTheCategoriesKeyIsAlwaysOnThePage is what "no omitempty" buys the
-// frontend: a fresh install has to serve the key as null rather than leave it
-// out, or there is no way to type a field that is sometimes simply absent.
+// TestTheCategoriesKeyIsAlwaysOnThePage is what leaving omitempty off buys the
+// frontend: a fresh install serves the key as null rather than omitting it, or
+// there is no way to type a field that is sometimes absent.
 func TestTheCategoriesKeyIsAlwaysOnThePage(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()

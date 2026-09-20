@@ -57,11 +57,9 @@ func ids(tasks []*core.Task) []string {
 	return out
 }
 
-// TestStagedLinksAreEnabled is the other half of the migration's default. The
-// column defaults to 1 so that stored tasks survive the upgrade; this is the
-// path that would put a 0 there afterwards — a Task built from a literal that
-// forgets the field is staged already switched off, and nothing in the interface
-// would explain why it never starts.
+// TestStagedLinksAreEnabled guards the staging path: a Task built from a
+// literal that forgets the field arrives switched off, and nothing in the
+// interface would explain why it never starts.
 func TestStagedLinksAreEnabled(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
@@ -73,10 +71,9 @@ func TestStagedLinksAreEnabled(t *testing.T) {
 	}
 }
 
-// TestBulkEnableAndHold is the selection acting as one. Both flags exist so that
-// a link can be parked without being confused with a paused download, and the
-// route answers with what it touched so the interface does not have to re-fetch
-// the list to find out.
+// TestBulkEnableAndHold: a selection acts as one. Both flags exist so a link
+// can be parked without being confused with a paused download, and the route
+// answers with what it touched so the interface need not re-fetch the list.
 func TestBulkEnableAndHold(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
@@ -120,9 +117,9 @@ func TestBulkEnableAndHold(t *testing.T) {
 	}
 }
 
-// TestBulkDeleteIsOneRequest is why the route exists at all. Clearing a list
-// through the per-task route is one request, one store write and one broadcast
-// per row, which on a real list is slow enough to look like a hang.
+// TestBulkDeleteIsOneRequest: clearing a list through the per-task route is a
+// request, a store write and a broadcast per row, which on a real list is slow
+// enough to look like a hang.
 func TestBulkDeleteIsOneRequest(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
@@ -142,10 +139,9 @@ func TestBulkDeleteIsOneRequest(t *testing.T) {
 	}
 }
 
-// TestCleanupPreviewDoesNotRemove is the difference between a confirmation
-// dialog that can say what it is about to do and one that can only say "12
-// downloads". These classes select more than people picture, and a preview that
-// removed anything would be a trap rather than a preview.
+// TestCleanupPreviewDoesNotRemove: the classes select more than people picture,
+// so the confirmation dialog has to be able to say what it is about to do, and
+// a preview that removed anything would be a trap.
 func TestCleanupPreviewDoesNotRemove(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
@@ -178,10 +174,9 @@ func TestCleanupPreviewDoesNotRemove(t *testing.T) {
 	}
 }
 
-// TestUnknownCleanupClassSaysWhichExist keeps a stale client from getting a bare
-// 400. The menu is generated from the same list, so this only happens to an old
-// build talking to a new one — which is exactly when naming the classes that do
-// exist is worth the two lines.
+// TestUnknownCleanupClassSaysWhichExist: the menu is generated from the same
+// list, so only an old build talking to a new one reaches this, which is when
+// naming the classes that exist is worth the two lines.
 func TestUnknownCleanupClassSaysWhichExist(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
@@ -195,8 +190,8 @@ func TestUnknownCleanupClassSaysWhichExist(t *testing.T) {
 	}
 }
 
-// TestUIStateSurvivesAReload is the whole point of the store: column widths and
-// a collapse tree that come back after F5 without a settings field per column.
+// TestUIStateSurvivesAReload: column widths and a collapse tree come back
+// after a reload without a settings field per column.
 func TestUIStateSurvivesAReload(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
@@ -285,8 +280,8 @@ func uploadContainer(t *testing.T, url, name string, data []byte) (int, []byte) 
 	return resp.StatusCode, out
 }
 
-// TestTextContainerIsStagedDirectly is the format nobody needs a key for: a
-// links.txt out of a forum post, staged like a paste.
+// TestTextContainerIsStagedDirectly: a links.txt needs no key and is staged
+// like a paste.
 func TestTextContainerIsStagedDirectly(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
@@ -301,20 +296,18 @@ func TestTextContainerIsStagedDirectly(t *testing.T) {
 	}
 }
 
-// TestEncryptedContainerRefusesWithTheReason is the honest half of the feature.
-// A .dlc cannot be opened without a key that is issued to registered clients,
-// and this build does not borrow one — so with no JD backend configured the
-// answer has to name that, not fail generically. "Unsupported file" would send
-// somebody looking for a corrupt download that is not corrupt.
+// TestEncryptedContainerRefusesWithTheReason: a .dlc needs a key issued to
+// registered clients, so with no JD backend configured the answer has to name
+// that. "Unsupported file" would send somebody looking for a corrupt download
+// that is not corrupt.
 func TestEncryptedContainerRefusesWithTheReason(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
 
-	// Structurally a DLC: base64 from end to end, and long enough that the last 88
-	// characters are a key block that decodes. It is not a real container — there
-	// is nothing here that could open one — but it has to get past the structural
-	// check, because that check is what tells a truncated download from a file
-	// that needs a key.
+	// Structurally a DLC: base64 end to end, long enough that the last 88
+	// characters decode as a key block. Nothing here could open a container,
+	// but it has to pass the structural check, which is what tells a truncated
+	// download from a file that needs a key.
 	dlc := []byte(strings.Repeat("QUJD", 122))
 	code, body := uploadContainer(t, srv.URL, "release.dlc", dlc)
 	if code != http.StatusServiceUnavailable {
@@ -326,7 +319,7 @@ func TestEncryptedContainerRefusesWithTheReason(t *testing.T) {
 }
 
 // TestBrokenContainerSaysWhatIsWrongWithIt keeps the container package's own
-// wording. A truncated download and an HTML error page saved under a .dlc name
+// wording: a truncated download and an HTML error page saved under a .dlc name
 // are both routine, and each has a different fix.
 func TestBrokenContainerSaysWhatIsWrongWithIt(t *testing.T) {
 	srv, _ := testServer(t)

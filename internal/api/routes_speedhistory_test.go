@@ -1,19 +1,17 @@
 package api
 
-// GET /api/stats/speed over a real app, because the SHAPE of the answer is the
-// whole contract here. The client takes .length off both arrays without
-// checking, reads the step and the cap out of the document rather than carrying
-// a second copy of them, and decides whether to draw a curve at all from
-// whether recordingSince is there.
+// GET /api/stats/speed over a real app, where the shape of the answer is the
+// contract. The client takes .length off both arrays without checking, reads
+// the step and the cap out of the document rather than carrying a second copy,
+// and decides whether to draw a curve from whether recordingSince is there.
 //
-// What the ring DOES - dropping its oldest entry, filling a suspend with zeros,
-// averaging ten fine readings into one coarse bucket - is pinned in
-// internal/app/speedhistory_test.go instead, and deliberately. Driving those
-// from here would mean either sleeping through real seconds or exporting a
-// "push a sample" seam that exists for no other caller; over there the sampler
-// can be handed fabricated instants and a four hour suspend costs microseconds.
-// What is left for this file is everything the wire adds: the encoding, the
-// registration, and the promise that no query parameter changes any of it.
+// What the ring does, dropping its oldest entry, filling a suspend with zeros,
+// averaging ten fine readings into one coarse bucket, is pinned in
+// internal/app/speedhistory_test.go, where the sampler can be handed
+// fabricated instants and a four hour suspend costs microseconds. Driving that
+// from here would mean sleeping through real seconds or exporting a push-a-
+// sample seam no other caller needs. What is left here is what the wire adds:
+// the encoding, the registration, and that no query parameter changes either.
 
 import (
 	"encoding/json"
@@ -39,13 +37,12 @@ func speedServer(t *testing.T) (*app.App, *httptest.Server) {
 	return a, srv
 }
 
-// TestTheSpeedRecordIsNeverNullAndDeclaresItsOwnBounds is trap 9 at the wire.
-//
-// A ring that has never been written answers "recent": null if it was built
-// with `var out []int64`, and the client's `.length` throws on exactly the first
-// load after a restart - the moment this whole feature exists for. Decoding
-// into the struct would hide it, because JSON null and an empty array both
-// decode to a usable Go slice, so the raw bytes are checked as well.
+// TestTheSpeedRecordIsNeverNullAndDeclaresItsOwnBounds: a ring that has never
+// been written answers "recent": null if it was built with var out []int64,
+// and the client's .length throws on the first load after a restart, which is
+// the moment this feature is for. Decoding into the struct would hide it,
+// since JSON null and an empty array both decode to a usable Go slice, so the
+// raw bytes are checked as well.
 func TestTheSpeedRecordIsNeverNullAndDeclaresItsOwnBounds(t *testing.T) {
 	_, srv := speedServer(t)
 
@@ -89,14 +86,14 @@ func TestTheSpeedRecordIsNeverNullAndDeclaresItsOwnBounds(t *testing.T) {
 	if got.HourStep != 10 || got.HourCap != 360 {
 		t.Errorf("the hour record describes itself as %d s x %d, want 10 s x 360", got.HourStep, got.HourCap)
 	}
-	// Bounded by construction, observed at the wire: this is the promise that
-	// lets the route do without a ?limit at all.
+	// Bounded by construction, observed at the wire: the promise that lets the
+	// route do without a ?limit.
 	if len(got.Recent) > got.RecentCap || len(got.Hour) > got.HourCap {
 		t.Errorf("%d of %d recent and %d of %d hourly: an answer longer than the cap it declares",
 			len(got.Recent), got.RecentCap, len(got.Hour), got.HourCap)
 	}
-	// recordingSince is present exactly when there is something to be recording
-	// since - which is what tells "this instance was quiet" apart from "this
+	// recordingSince is present exactly when there is something to be
+	// recording since, which tells "this instance was quiet" apart from "this
 	// instance had not started yet".
 	_, hasSince := raw["recordingSince"]
 	if recorded := len(got.Recent) > 0 || len(got.Hour) > 0; recorded != hasSince {
@@ -107,18 +104,16 @@ func TestTheSpeedRecordIsNeverNullAndDeclaresItsOwnBounds(t *testing.T) {
 	}
 }
 
-// TestTheSpeedRouteTakesNoParameters is trap 13, and it is written against the
-// source rather than against a response for the same reason
-// TestNothingRegistersOutsideTheTable is: the failure this prevents is somebody
-// WRITING the line, and by the time a ?limit= is honoured there is nothing left
-// to assert against - an answer truncated to what the caller asked for looks
-// exactly like an answer that was that long.
+// TestTheSpeedRouteTakesNoParameters is written against the source rather than
+// against a response, like TestNothingRegistersOutsideTheTable: the failure it
+// prevents is somebody writing the line, and once a ?limit= is honoured an
+// answer truncated to what the caller asked for looks like an answer that was
+// that long.
 //
-// routes_stats.go:14-18 states the rule for the volume curves: both are bounded
-// by construction, "which is a promise a limit parameter would quietly take
-// away". The same holds here, and more sharply, because this record is the seed
-// for a graph: a client that could ask for fewer samples than the ring holds
-// would draw a window shorter than its own abscissa claims.
+// routes_stats.go states the rule for the volume curves, and it holds more
+// sharply here because this record seeds a graph: a client that could ask for
+// fewer samples than the ring holds would draw a window shorter than its own
+// abscissa claims.
 func TestTheSpeedRouteTakesNoParameters(t *testing.T) {
 	src, err := os.ReadFile("routes_speedhistory.go")
 	if err != nil {
@@ -133,16 +128,12 @@ func TestTheSpeedRouteTakesNoParameters(t *testing.T) {
 	}
 }
 
-// TestTheSpeedRouteSaysItIsMemoryOnly is the three a.m. contract, and the
-// cheapest third of it.
-//
-// "Why is my curve flat" has two answers that look identical on the page - the
-// sampler is dead, or the box was quiet - and it has a third that is neither:
-// the process restarted a minute ago and the record starts empty every time. It
-// is answered in three places on purpose (the diagnostics row counts the
-// samples, the info bubble says it beside the graph), and this is the one an
-// operator meets first, because the self-describing index at GET /api/ prints
-// these summaries and nothing else.
+// TestTheSpeedRouteSaysItIsMemoryOnly: "why is my curve flat" has two answers
+// that look identical on the page, the sampler is dead or the box was quiet,
+// and a third that is neither, the process restarted a minute ago and the
+// record starts empty every time. It is answered in three places, and this
+// summary is the one an operator meets first, because the self-describing
+// index at GET /api/ prints these and nothing else.
 func TestTheSpeedRouteSaysItIsMemoryOnly(t *testing.T) {
 	a := testApp(t)
 	reg := newRegistry()

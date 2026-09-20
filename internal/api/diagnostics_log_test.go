@@ -16,12 +16,9 @@ import (
 
 // logServer is these four routes on a server of their own.
 //
-// A registry with one subsystem on it rather than buildRegistry's full table,
-// for the reason TestAnUnknownApiPathIs404 builds its own too: what is being
-// tested here is what the handlers answer, and a full table drags in every
-// other subsystem's boot. That this subsystem is actually in registerAll is a
-// different question, and TestEverySubsystemIsRegistered already asks it of
-// every routes_*.go in the package - including this one.
+// One subsystem rather than buildRegistry's full table, which would drag in
+// every other subsystem's boot. Whether this one is in registerAll is
+// TestEverySubsystemIsRegistered's question.
 func logServer(t *testing.T) *httptest.Server {
 	t.Helper()
 	reg := newRegistry()
@@ -47,11 +44,10 @@ func get(t *testing.T, url string) (int, []byte) {
 	return resp.StatusCode, body
 }
 
-// TestNoneOfTheseRoutesAnswersWithoutASession. A log line can carry a feed URL
-// with an indexer's API key in its query string (internal/feed's poller logs
-// subscription addresses verbatim) and the crawler logs the pages it walks the
-// same way. These four are the reason routes_test.go's open list is worth
-// pinning, and none of them belongs on it.
+// TestNoneOfTheseRoutesAnswersWithoutASession: a log line can carry a feed URL
+// with an indexer's API key in its query string, since internal/feed's poller
+// logs subscription addresses verbatim and the crawler logs the pages it
+// walks.
 func TestNoneOfTheseRoutesAnswersWithoutASession(t *testing.T) {
 	reg := newRegistry()
 	registerDiagnosticsLog(reg, testApp(t))
@@ -66,9 +62,9 @@ func TestNoneOfTheseRoutesAnswersWithoutASession(t *testing.T) {
 	}
 }
 
-// TestTheTailAnswersWithACursor is what makes following possible at all: the
-// second poll must return only what arrived since the first, or a follow view
-// can do nothing but re-fetch five hundred lines and guess.
+// TestTheTailAnswersWithACursor: the second poll returns only what arrived
+// since the first, or a follow view can do nothing but re-fetch five hundred
+// lines and guess.
 func TestTheTailAnswersWithACursor(t *testing.T) {
 	srv := logServer(t)
 
@@ -115,10 +111,9 @@ func TestTheTailAnswersWithACursor(t *testing.T) {
 	}
 }
 
-// TestTheTailNamesTheSourceAndTheDownload. Both rules describe lines this tree
-// writes, so they are decided on the server; a copy in the browser would drift
-// the first time somebody reworded a log call, and the drift would show up as a
-// filter that quietly matches nothing.
+// TestTheTailNamesTheSourceAndTheDownload: both rules describe lines this tree
+// writes, so they are decided on the server. A copy in the browser would drift
+// into a filter that matches nothing the first time a log call is reworded.
 func TestTheTailNamesTheSourceAndTheDownload(t *testing.T) {
 	srv := logServer(t)
 
@@ -162,10 +157,10 @@ func TestTheTailNamesTheSourceAndTheDownload(t *testing.T) {
 	}
 }
 
-// TestTheTailHonoursALimitAndABadCursor. A cursor that cannot be read is a
-// hand-typed URL or a client that has lost its place, and starting over is both
-// harmless and what the caller wanted - an error would leave the page showing a
-// refusal instead of a log.
+// TestTheTailHonoursALimitAndABadCursor: a cursor that cannot be read means a
+// hand-typed URL or a client that lost its place, and starting over is what
+// either wanted. An error would leave the page showing a refusal instead of a
+// log.
 func TestTheTailHonoursALimitAndABadCursor(t *testing.T) {
 	srv := logServer(t)
 	for i := 0; i < 4; i++ {
@@ -188,9 +183,8 @@ func TestTheTailHonoursALimitAndABadCursor(t *testing.T) {
 	}
 }
 
-// TestTheTailNeverAnswersNull. `entries` is fed straight into a .map on the
-// page, and JSON null there blanks the whole card - the same class of bug
-// routes_features.go documents for archivePasswords.
+// TestTheTailNeverAnswersNull: entries is fed straight into a .map on the
+// page, and JSON null there blanks the whole card.
 func TestTheTailNeverAnswersNull(t *testing.T) {
 	srv := logServer(t)
 	_, body := get(t, srv.URL+"/api/diagnostics/log?since=999999999")
@@ -202,8 +196,8 @@ func TestTheTailNeverAnswersNull(t *testing.T) {
 	}
 }
 
-// TestTheFileStateAnswersOnAnInstanceThatHasNeverArmedIt, which is every
-// install on the day this ships.
+// TestTheFileStateAnswersOnAnInstanceThatHasNeverArmedIt, which is what a
+// fresh install is.
 func TestTheFileStateAnswersOnAnInstanceThatHasNeverArmedIt(t *testing.T) {
 	srv := logServer(t)
 	code, body := get(t, srv.URL+"/api/diagnostics/logfile")
@@ -231,12 +225,9 @@ func TestTheFileStateAnswersOnAnInstanceThatHasNeverArmedIt(t *testing.T) {
 // TestDownloadingALogFile covers the one route that answers something other
 // than JSON, and the three ways of asking for a file that is not there.
 func TestDownloadingALogFile(t *testing.T) {
-	// The server FIRST and the sink second, and the order is load-bearing:
-	// logServer builds an app.App, app.New applies the log-file setting, and
-	// the shipped setting is off - so an app built after the sink was armed
-	// disarms it again. That is the boot half of applyLogFile's two call sites
-	// doing exactly what it is there for, and it costs this test nothing but
-	// the order of two lines.
+	// The server first and the sink second: logServer builds an app.App,
+	// app.New applies the log-file setting, and the shipped setting is off, so
+	// an app built after the sink was armed disarms it again.
 	srv := logServer(t)
 
 	dir := t.TempDir()
@@ -280,20 +271,17 @@ func TestDownloadingALogFile(t *testing.T) {
 }
 
 // TestTheDiagnosticsBundleCarriesNoLogPath is TestDiagnosticsShipsNoPaths with
-// the sink actually armed, which is the one state that test cannot reach: it
-// runs against an instance that never switched the log file on, so the path
-// field it would have to catch is empty either way.
+// the sink armed, the one state that test cannot reach: it runs against an
+// instance that never switched the log file on, so the path field is empty
+// either way.
 //
-// The bundle is a file people attach to PUBLIC bug reports and a desktop data
-// directory is C:\Users\<their real name>\AppData\..., so the log file's state
-// travels in it with the path stripped (logring.FileState.Redacted) while the
-// unredacted path goes out on the session-guarded /api/diagnostics/logfile
-// route. This test is what stops that Redacted() from being dropped in a later
-// edit as a piece of ceremony nobody could see the point of.
+// The bundle is attached to public bug reports and a desktop data directory is
+// under the user's own name, so the log file's state travels with the path
+// stripped (logring.FileState.Redacted) while the unredacted path goes out on
+// the session-guarded /api/diagnostics/logfile route.
 //
-// It reads the RAW body rather than a field, deliberately: it has to keep
-// working whatever shape the log-file section of the bundle takes, and a
-// missing redaction is a substring problem rather than a typed one.
+// It reads the raw body rather than a field, so it keeps working whatever
+// shape the log-file section of the bundle takes.
 func TestTheDiagnosticsBundleCarriesNoLogPath(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
@@ -320,12 +308,10 @@ func TestTheDiagnosticsBundleCarriesNoLogPath(t *testing.T) {
 	}
 }
 
-// TestThePerDownloadLogFindsItsLinesAndAdmitsWhatItMisses.
-//
-// The "partial" flag is the point of this test as much as the lines are. Seven
-// of this tree's log call sites record which download they are about and the
-// other 149 do not, so a card that showed an empty list without saying why is a
-// card people report as broken.
+// TestThePerDownloadLogFindsItsLinesAndAdmitsWhatItMisses covers the partial
+// flag as much as the lines: only a few of this tree's log call sites record
+// which download they are about, so a card showing an empty list without
+// saying why gets reported as broken.
 func TestThePerDownloadLogFindsItsLinesAndAdmitsWhatItMisses(t *testing.T) {
 	srv := logServer(t)
 

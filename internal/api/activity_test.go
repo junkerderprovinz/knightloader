@@ -24,10 +24,10 @@ func postAbort(t *testing.T, base, kind string) (int, int) {
 	return resp.StatusCode, out.Cancelled
 }
 
-// TestAbortActivityRouteIsRegistered is the check this table exists for: a
-// route nobody attached answers with the SPA's index.html and a 200, which
-// looks exactly like a route that worked. Aborting on an idle instance is a
-// legitimate zero, so a JSON body with a count is what tells the two apart.
+// TestAbortActivityRouteIsRegistered: a route nobody attached answers with the
+// SPA's index.html and a 200, which looks like a route that worked. Aborting
+// on an idle instance is a legitimate zero, so the JSON body with a count is
+// what tells the two apart.
 func TestAbortActivityRouteIsRegistered(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
@@ -42,8 +42,8 @@ func TestAbortActivityRouteIsRegistered(t *testing.T) {
 }
 
 // TestAbortActivityRefusesAnUnknownKind keeps a typo from looking like an
-// answer. "nothing was running" and "that is not a kind" are the same number,
-// and only one of them is a client bug worth reporting.
+// answer: "nothing was running" and "that is not a kind" are the same number,
+// and only one of them is a client bug.
 func TestAbortActivityRefusesAnUnknownKind(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()

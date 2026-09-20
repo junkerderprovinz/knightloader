@@ -6,10 +6,9 @@ import (
 	"testing"
 )
 
-// TestHelpListsEveryRegisteredRoute is the point of generating this index
-// from the registration table instead of writing it by hand: it cannot list
-// fewer routes than the server actually answers, and it cannot list a route
-// that was renamed or removed.
+// TestHelpListsEveryRegisteredRoute: generated from the registration table,
+// the index cannot list fewer routes than the server answers, nor one that was
+// renamed or removed.
 func TestHelpListsEveryRegisteredRoute(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
@@ -37,11 +36,10 @@ func TestHelpListsEveryRegisteredRoute(t *testing.T) {
 	}
 }
 
-// TestHelpExplainsWhyThereIsNoMyJDShim is the specific sentence section 8's
-// Wave 11 amendment asks for by name: a future contributor reading this
-// route learns the decision instead of finding silence and half-building a
-// shim that would not even work, since MyJDownloader's own clients speak to
-// AppWork's relay and cannot be pointed at a plain server instead of it.
+// TestHelpExplainsWhyThereIsNoMyJDShim: reading this route has to turn up the
+// decision rather than silence, since MyJDownloader's own clients speak to
+// AppWork's relay and cannot be pointed at a plain server, so a shim would not
+// work.
 func TestHelpExplainsWhyThereIsNoMyJDShim(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
@@ -57,9 +55,9 @@ func TestHelpExplainsWhyThereIsNoMyJDShim(t *testing.T) {
 	}
 }
 
-// TestHelpExplainsNoHostedRelay is the same discipline for 11C's own remote
-// access page: the absence of a pairing/relay feature reads as a decision on
-// this route, not only on a settings page a script never looks at.
+// TestHelpExplainsNoHostedRelay: the absence of a pairing or hosted relay
+// feature reads as a decision on this route, not only on a settings page a
+// script never looks at.
 func TestHelpExplainsNoHostedRelay(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
@@ -75,11 +73,10 @@ func TestHelpExplainsNoHostedRelay(t *testing.T) {
 	}
 }
 
-// TestHelpNeedsASession: the index names internal route paths and their
-// guard requirements, which is exactly the kind of quiet recon an
-// unauthenticated LAN visitor on a password-protected instance should not
-// get for free. See routes.go's own two justifications for what "open"
-// means, neither of which this route qualifies for.
+// TestHelpNeedsASession: the index names route paths and their guard
+// requirements, which an unauthenticated LAN visitor to a password-protected
+// instance should not get for free. See routes.go for what "open" means;
+// neither reason fits this route.
 func TestHelpNeedsASession(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
@@ -98,8 +95,8 @@ func TestHelpNeedsASession(t *testing.T) {
 }
 
 // TestHelpReportsVersionAndDeployment: a bug report or an integration script
-// reading this index should not have to make a second call just to learn
-// which build it is talking to.
+// reading this index should not need a second call to learn which build it is
+// talking to.
 func TestHelpReportsVersionAndDeployment(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()

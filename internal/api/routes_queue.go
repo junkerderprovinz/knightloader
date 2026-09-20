@@ -3,10 +3,10 @@ package api
 // The queue: the master switch, the stop mark, the hard stop, and everything
 // that changes where a selection sits in the wait order.
 //
-// Every route here that acts on tasks takes the same selection shape — ids, a
-// package name, or all of them — rather than one id in the path. The interface
-// acts on a selection, and a route per row turns a hundred-row selection into a
-// hundred requests, a hundred store writes and a hundred broadcasts.
+// Every route here that acts on tasks takes the same selection shape (ids, a
+// package name, or all of them) rather than one id in the path. A route per
+// row turns a hundred-row selection into a hundred requests, store writes and
+// broadcasts.
 
 import (
 	"net/http"
@@ -14,13 +14,10 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/app"
 )
 
-// requireSelection refuses a request that names nothing to act on.
-//
-// "All of them" has to be asked for explicitly, which is why an empty body is
-// not read as it: a client that meant to send a selection and sent none is a
-// bug, and re-ordering the entire queue is the worst available way to report
-// it. The routes that legitimately mean "everything" (start, restart) live in
-// routes_tasks.go and say so in their summary.
+// requireSelection refuses a request that names nothing to act on. "All of
+// them" has to be asked for with all:true, since a client that meant to send a
+// selection and sent none is a bug, and re-ordering the whole queue is a poor
+// way to report it.
 func requireSelection(w http.ResponseWriter, sel app.Selection) bool {
 	if len(sel.Ids) > 0 || sel.Package != nil || sel.All {
 		return true
@@ -61,21 +58,18 @@ func registerQueue(reg *Registry, a *app.App) {
 			if body.StopMark != nil {
 				a.SetStopMark(*body.StopMark)
 			}
-			// Quiet mode rides the same route as the master switch because it is
-			// the same kind of thing: one grip that changes what the queue is
-			// allowed to do right now. GET needs nothing, QueueState already
-			// carries the flag out.
+			// Quiet mode rides the same route as the master switch: both
+			// change what the queue may do right now. QueueState already
+			// carries the flag, so the GET needs nothing.
 			if body.Quiet != nil {
 				a.SetQuiet(*body.Quiet)
 			}
 			writeJSON(w, a.Queue())
 		})
 
-	// The hard stop is two routes because the warning is half the feature. The
-	// GET works out what stopping would throw away and takes nothing; the POST
-	// stops. A single route that did both would leave the interface guessing at
-	// the cost, and a guess that overstates itself once is a dialog nobody reads
-	// again.
+	// Two routes, because the warning is half the feature: the GET works out
+	// what stopping would throw away and takes nothing, the POST stops. One
+	// route doing both would leave the interface guessing at the cost.
 	reg.Add(http.MethodGet, "/api/queue/stop", "what stopping every transfer right now would throw away",
 		func(w http.ResponseWriter, r *http.Request) {
 			writeJSON(w, a.StopCost())
@@ -91,10 +85,9 @@ func registerQueue(reg *Registry, a *app.App) {
 			writeJSON(w, a.Counters())
 		})
 
-	// Served rather than compiled into the interface, for the same reason the
-	// cleanup classes are: a menu built from the client's own list offers
-	// whatever that build was compiled with, and an entry the server does not
-	// implement is a control that does nothing when it is pressed.
+	// Served rather than compiled into the interface, as the cleanup classes
+	// are: a menu built from the client's own list offers entries the server
+	// does not implement.
 	reg.Add(http.MethodGet, "/api/queue/priorities", "the seven priorities the queue orders by, highest first",
 		func(w http.ResponseWriter, r *http.Request) {
 			writeJSON(w, app.Priorities())
@@ -131,13 +124,9 @@ func registerQueue(reg *Registry, a *app.App) {
 			bulkDone(w, a.MoveIn(body.Selection, body.Where))
 		})
 
-	// The drag-and-drop reorder: not a step but a whole new order for one band,
-	// so it takes a plain id list rather than app.Selection - a drag already
-	// knows exactly which rows moved and where, and it is the interface's own
-	// contract for the drag surface, not a case of "id, package, or all". It
-	// lives here rather than in routes_tasks.go because it is the same manual
-	// order every other route in this file orders, only driven by a complete
-	// list instead of a relative step.
+	// The drag-and-drop reorder is a whole new order for one band rather than
+	// a step, so it takes a plain id list: a drag knows which rows moved and
+	// where, which is not a case of "ids, package, or all".
 	reg.Add(http.MethodPost, "/api/tasks/reorder", "put one whole band of the wait queue in the exact order given, as a drag would",
 		func(w http.ResponseWriter, r *http.Request) {
 			var body struct {
@@ -165,10 +154,9 @@ func registerQueue(reg *Registry, a *app.App) {
 			bulkDone(w, a.ForceDownload(body.Selection))
 		})
 
-	// The bulk switch for disabled links. /api/tasks/enabled can only be handed
-	// ids, which the list can only produce for the rows a filter left on screen;
-	// this one also takes a whole package, and all:true for "switch every link
-	// that is off back on".
+	// The bulk switch for disabled links. /api/tasks/enabled takes only ids,
+	// which the list can produce for the rows a filter left on screen; this
+	// one also takes a whole package, and all:true.
 	reg.Add(http.MethodPost, "/api/queue/enabled", "switch a selection, a package, or every disabled link on or off",
 		func(w http.ResponseWriter, r *http.Request) {
 			var body struct {

@@ -1,15 +1,10 @@
 package api
 
-// The script editor's REST surface (build-plan.md's Wave 11, 11B) - CRUD
-// over internal/script's own store, "run now" for both the editor's Test
-// Run button and the task row's manual action (components/ScriptActions.tsx),
-// and the trigger vocabulary the editor's picker is built from. See
-// internal/script's own package doc comment, "wiring this in is deliberately
-// not this package's job", and web/src/lib/scripts.ts's file doc comment for
-// the exact wire shape this file was written against - every route, verb and
-// field name below matches that file's proposal, because it was checked
-// field-for-field against internal/script/script.go's own JSON tags rather
-// than guessed.
+// The script editor's REST surface: CRUD over internal/script's store, "run
+// now" for the editor's Test Run button and the task row's manual action
+// (components/ScriptActions.tsx), and the trigger vocabulary the picker is
+// built from. The wire shape is web/src/lib/scripts.ts's, field for field with
+// internal/script/script.go's JSON tags.
 
 import (
 	"net/http"
@@ -84,10 +79,8 @@ func registerScripts(reg *Registry, a *app.App) {
 				http.Error(w, "script not found", http.StatusNotFound)
 				return
 			}
-			// An absent body means "no task", the same tolerance decodeBody's
-			// own doc comment gives for the routes where that is a valid
-			// request rather than a malformed one - the toolbar-placed Test
-			// Run button has no task to send at all.
+			// An absent body means no task, the tolerance decodeBody
+			// describes: the toolbar's Test Run button has none to send.
 			var body struct {
 				TaskID string `json:"taskId"`
 			}
@@ -111,13 +104,11 @@ func registerScripts(reg *Registry, a *app.App) {
 		})
 }
 
-// scriptInput is POST/PUT's body - ScriptInput's exact fields
-// (web/src/lib/scripts.ts), decoded into its own narrow struct rather than
-// straight into script.Script so a request body can never set ID,
-// CreatedAt or UpdatedAt itself; toScript is the one place those three are
-// filled in, always from the server's own side (an empty id for a create,
-// the URL's id for an update - internal/script/store.go's save then decides
-// CreatedAt from whichever of the two that turns out to be).
+// scriptInput is the POST and PUT body, ScriptInput's fields from
+// web/src/lib/scripts.ts. Narrower than script.Script so a request cannot set
+// ID, CreatedAt or UpdatedAt itself: toScript fills the id from the server's
+// side, empty for a create and the URL's for an update, and
+// internal/script/store.go decides CreatedAt from that.
 type scriptInput struct {
 	Name      string         `json:"name"`
 	Trigger   script.Trigger `json:"trigger"`

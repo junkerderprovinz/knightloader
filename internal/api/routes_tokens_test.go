@@ -41,8 +41,8 @@ func getTokens(t *testing.T, url string) []apitoken.Token {
 	return out
 }
 
-// TestTokenLifecycleOverHTTP is the whole CRUD story: issue, see it listed
-// without its secret, revoke it, see it gone.
+// TestTokenLifecycleOverHTTP walks the CRUD: issue, see it listed without its
+// secret, revoke it, see it gone.
 func TestTokenLifecycleOverHTTP(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
@@ -86,9 +86,8 @@ func TestTokenLifecycleOverHTTP(t *testing.T) {
 }
 
 // TestCreateTokenRefusesAnEmptyName mirrors apitoken.ErrEmptyName through the
-// HTTP layer: a client typo (an empty POST body, or a name of only spaces)
-// must not silently create an unlabelled credential nobody can tell apart
-// from the next one.
+// HTTP layer: an empty POST body, or a name of only spaces, must not create an
+// unlabelled credential nobody can tell from the next one.
 func TestCreateTokenRefusesAnEmptyName(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
@@ -119,9 +118,9 @@ func TestRevokeUnknownTokenIs404(t *testing.T) {
 	}
 }
 
-// TestManagingTokensNeedsASession is the ordinary guard, checked here rather
-// than assumed: token routes are not accidentally left open the way the
-// login routes deliberately are.
+// TestManagingTokensNeedsASession checks the ordinary guard rather than
+// assuming it: none of the token routes is on the open list the login routes
+// are on.
 func TestManagingTokensNeedsASession(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()

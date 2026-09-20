@@ -1,20 +1,13 @@
 package api
 
-// The connection phrase: activating remote access, showing the phrase
-// again, and joining a group somebody else's instance already started.
+// The connection phrase: activating remote access, showing the phrase again,
+// and joining a group another instance already started. There is no account
+// or login: the relay address is compiled in (relay.DefaultRelayURL) and
+// holding the secret is the whole authorization.
 //
-// This is the whole user-facing surface of the feature jdp asked for
-// (2026-08-27: "eine zeichenfolge oder eine Seed phrase ... die man dann in
-// allen anderen Instanzen einfügen kann"). There is no account here, no
-// registration and no login, because there is nothing to log into: the
-// relay's address is compiled in (relay.DefaultRelayURL) and possession of
-// the secret is the entire authorization. See
-// docs/superpowers/specs/2026-08-27-public-relay-seed-phrase-design.md.
-//
-// Everything below stores the SECRET and hands out the PHRASE. The relay
-// only ever sees relay.DeriveKey of that secret, so neither the operator of
-// the relay nor anyone who reaches its memory can reconstruct what a person
-// would have to type.
+// The secret is stored and the phrase handed out; the relay only ever sees
+// relay.DeriveKey of the secret, so neither its operator nor its memory can
+// give back what a person would type.
 
 import (
 	"encoding/hex"
@@ -27,31 +20,25 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
-// ConnectInfo is what GET /api/connect answers with. Deliberately never the
-// phrase itself - that needs the password (see the reveal route).
+// ConnectInfo is what GET /api/connect answers with. It never carries the
+// phrase, which needs the password (see the reveal route).
 type ConnectInfo struct {
 	// Active is whether this instance has a connection secret at all.
 	Active bool `json:"active"`
-	// Connected is whether the relay socket is actually up right now, which
-	// is a different question: a stored secret with a relay that cannot be
-	// reached is configured but not working, and collapsing the two is what
-	// made the old relay card unable to say which was wrong.
+	// Connected is whether the relay socket is up right now; a stored secret
+	// with an unreachable relay is configured but not working.
 	Connected bool `json:"connected"`
-	// PasswordSet mirrors GET /api/auth, so the page can warn - before
-	// anything is generated - that the phrase it is about to hand out
-	// reaches every instance in the group, and that this one is unprotected.
+	// PasswordSet lets the page warn, before a phrase is generated, that the
+	// phrase reaches every instance in the group and this one is unprotected.
 	PasswordSet bool `json:"passwordSet"`
-	// RelayURL is which relay this instance dials: the compiled-in default,
-	// or an override somebody set to point at their own.
+	// RelayURL is the relay this instance dials: the compiled-in default or an
+	// override.
 	RelayURL string `json:"relayUrl"`
-	// SelfHosted is whether that is an override rather than the default -
-	// the one bit of the address a person actually needs to see.
+	// SelfHosted is whether RelayURL is an override.
 	SelfHosted bool `json:"selfHosted"`
-	// RelayMode is the same three-way answer relayConfig carries: "project",
-	// "own" or "off". SelfHosted stays beside it rather than being replaced,
-	// because it is a different question with a different answer - an
-	// instance in "off" mode is not self-hosting anything, and a boolean has
-	// nowhere to say so.
+	// RelayMode is "project", "own" or "off", as in relayConfig. An instance
+	// in "off" mode is not self-hosting anything, which SelfHosted alone
+	// cannot say.
 	RelayMode string `json:"relayMode"`
 }
 
@@ -65,10 +52,8 @@ func registerConnect(reg *Registry, a *app.App) {
 	reg.Add(http.MethodPost, "/api/connect/activate",
 		"mint a new connection phrase for this instance and start dialling the relay - answers with the phrase, the only time it is returned without the password",
 		func(w http.ResponseWriter, r *http.Request) {
-			// Refusing to replace an existing secret rather than silently
-			// minting a new one: that would orphan every instance already
-			// joined to the old phrase, and the caller would have no way to
-			// tell it had happened. Leaving is explicit (DELETE below).
+			// Replacing an existing secret would orphan every instance joined
+			// to the old phrase; leaving is an explicit DELETE.
 			if existing, err := a.Accounts.Get(relay.SeedAccountService); err == nil && existing != "" {
 				http.Error(w, "this instance already has a connection phrase - remove it first to start a new group", http.StatusConflict)
 				return
@@ -82,7 +67,10 @@ func registerConnect(reg *Registry, a *app.App) {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			armRelayForPhrase(a)
+			// No relay mode is written: an unset mode already resolves to the
+			// project relay, and writing one would stop RelayModeOf from
+			// inferring "own" from a typed address.
+			applyRelay(a)
 			writeJSON(w, map[string]any{"phrase": phrase, "qr": renderQR(phrase), "info": connectInfo(a)})
 		})
 
@@ -97,12 +85,8 @@ func registerConnect(reg *Registry, a *app.App) {
 			}
 			secret, err := seedphrase.Decode(body.Phrase)
 			if err != nil {
-				// The reason and its specifics, not a sentence. Whoever
-				// mistyped a word is looking at a UI in their own language,
-				// and a sentence written in Go can only be in one - the
-				// browser has the translations, so it writes the sentence and
-				// this says what happened. `error` stays alongside for
-				// anything reading the body as plain text.
+				// The reason and its details rather than a sentence, so the
+				// browser can explain the mistyped word in the user's language.
 				var de *seedphrase.DecodeError
 				if errors.As(err, &de) {
 					w.WriteHeader(http.StatusBadRequest)
@@ -122,7 +106,7 @@ func registerConnect(reg *Registry, a *app.App) {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			armRelayForPhrase(a)
+			applyRelay(a)
 			writeJSON(w, connectInfo(a))
 		})
 
@@ -132,15 +116,13 @@ func registerConnect(reg *Registry, a *app.App) {
 			var body struct {
 				Password string `json:"password"`
 			}
-			// Body optional: an instance with no password has nothing to
-			// re-enter, and requiring an empty field would be theatre.
+			// The body is optional; without a password there is nothing to
+			// re-enter.
 			_ = decodeBody(r, &body)
 
-			// A live session is not enough here. It may have been opened
-			// hours ago on a screen nobody is sitting at any more, and what
-			// is behind this button is not this instance's own password but
-			// the key to every instance in the group. Same reasoning GitHub
-			// applies before showing a token again.
+			// A session is not enough: it may have been left open on an
+			// unattended screen, and the phrase unlocks every instance in the
+			// group.
 			if a.Auth.Enabled() && !a.Auth.Check(body.Password) {
 				http.Error(w, "the password is required to show the phrase again", http.StatusForbidden)
 				return
@@ -160,21 +142,16 @@ func registerConnect(reg *Registry, a *app.App) {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			// The QR rides along here too, not only on activate: the second
-			// time somebody needs the phrase is exactly when a phone is the
-			// thing they are typing it into, and that is the case worth not
-			// making them type twelve words by hand.
+			// The QR comes along, since the phrase is usually needed again to
+			// set up a phone.
 			writeJSON(w, map[string]any{"phrase": phrase, "qr": renderQR(phrase)})
 		})
 
 	reg.Add(http.MethodDelete, "/api/connect",
 		"leave the group: forget this instance's connection secret and stop dialling the relay",
 		func(w http.ResponseWriter, r *http.Request) {
-			// Already idempotent one layer down: accounts.Set with an empty
-			// secret deletes, and deleting a key that was never there is a
-			// map delete plus a write, not an error. So a second click on a
-			// page that had gone stale succeeds quietly, which is what the
-			// caller wanted either way.
+			// Idempotent: setting an empty secret deletes it, whether or not
+			// one was stored.
 			if err := a.Accounts.Set(relay.SeedAccountService, ""); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
@@ -186,25 +163,15 @@ func registerConnect(reg *Registry, a *app.App) {
 
 func connectInfo(a *app.App) ConnectInfo {
 	secretHex, _ := a.Accounts.Get(relay.SeedAccountService)
-	// Which relay this instance is POINTED AT, which is not the same
-	// question relayTarget answers. That one reports what to actually dial
-	// right now and is empty until there is a secret to dial with; this one
-	// has to be answerable before anything is activated, because the page
-	// says "you will be connecting through here" while the button is still
-	// unpressed.
+	// Which relay this instance points at, answerable before anything is
+	// activated; relayTarget instead reports what to dial right now.
 	cfg := a.Settings.Get()
 	mode := cfg.RelayModeOf()
 	url := cfg.RelayURL
-	// Read from the MODE now, not from "is the address field non-empty". The
-	// old inference could not tell "I switched back to the project's relay"
-	// from "I still have my own address typed in the box", and the badge this
-	// feeds would have gone on naming a relay nobody was dialling.
 	selfHosted := mode == settings.RelayModeOwn
 	if !selfHosted {
 		url = relay.DefaultRelayURL
 	}
-	// Nothing is dialled at all in this mode, so there is no address to show
-	// and an old one would be a lie the page tells at a glance.
 	if mode == settings.RelayModeOff {
 		url = ""
 	}
@@ -216,31 +183,4 @@ func connectInfo(a *app.App) ConnectInfo {
 		SelfHosted:  selfHosted,
 		RelayMode:   mode,
 	}
-}
-
-// armRelayForPhrase is applyRelay under a name that says WHEN it is called, and
-// it deliberately writes no setting.
-//
-// jdp asked whether the project relay should simply be on out of the box
-// (2026-09-07) and chose "off, but on automatically when a phrase is created".
-// Reading the code afterwards: that is already exactly what happens, by two
-// separate mechanisms rather than by one flag.
-//
-//   - settings.RelayModeOf resolves a never-touched relayMode to "project", so
-//     nobody has to switch anything on.
-//   - relayTarget returns no address and no key until a seed phrase exists, so
-//     an instance standing alone dials nothing at all, whatever the mode says.
-//
-// A first draft of this function wrote "project" into the setting here, to make
-// that explicit. It was reverted, and the test that caught it is the reason
-// worth recording: RelayModeOf also INFERS "own" from a hand-typed address when
-// the mode has never been set, and writing the mode takes that inference away -
-// so somebody who types their own relay address without touching the mode
-// switch would silently stay on the project relay. An explicit value that
-// changes nothing is not worth breaking a fallback that does something.
-//
-// What it still does is call applyRelay, so a phrase created or entered right
-// now brings the connection up immediately rather than at the next restart.
-func armRelayForPhrase(a *app.App) {
-	applyRelay(a)
 }

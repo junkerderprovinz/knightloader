@@ -41,12 +41,9 @@ func undo(t *testing.T, base, token string) bulkResult {
 	return out
 }
 
-// TestRemovedRowsComeBack is the feature in one pass: the rows really leave, and
-// the token really brings them home.
-//
-// It checks the list rather than only the answer, because a route that reports
-// two ids and restores nothing is exactly the failure an answer-only test would
-// call a pass.
+// TestRemovedRowsComeBack: the rows leave, and the token brings them back. It
+// checks the list rather than only the answer, because a route that reports
+// two ids and restores nothing is what an answer-only test would call a pass.
 func TestRemovedRowsComeBack(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
@@ -84,11 +81,10 @@ func TestRemovedRowsComeBack(t *testing.T) {
 	}
 }
 
-// TestErasingTheFilesOffersNoUndo is the one case the bin must refuse.
-//
-// The bytes are gone, so a token here would be a button promising a restore it
-// cannot make: the row would come back pointing at a file that no longer exists,
-// and the person who pressed it would find out at the next transfer.
+// TestErasingTheFilesOffersNoUndo is the one case the bin refuses. The bytes
+// are gone, so a token would be a button promising a restore it cannot make:
+// the row comes back pointing at a file that does not exist, and whoever
+// pressed it finds out at the next transfer.
 func TestErasingTheFilesOffersNoUndo(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
@@ -103,11 +99,10 @@ func TestErasingTheFilesOffersNoUndo(t *testing.T) {
 	}
 }
 
-// TestAnUndoTokenIsGoodOnce keeps a second press from inventing rows.
-//
-// Two browsers watch one instance and both show the message, so the same token
-// genuinely does get pressed twice. The second press has to be a quiet "nothing
-// came back", never a duplicate of a download that is already in the list.
+// TestAnUndoTokenIsGoodOnce keeps a second press from inventing rows. Two
+// browsers watching one instance both show the message, so the same token does
+// get pressed twice; the second press answers "nothing came back" rather than
+// duplicating a download that is already in the list.
 func TestAnUndoTokenIsGoodOnce(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
@@ -126,11 +121,10 @@ func TestAnUndoTokenIsGoodOnce(t *testing.T) {
 	}
 }
 
-// TestAnUnknownUndoTokenIsNotAnError pins the shape of "too late".
-//
-// The window closing is the ordinary end of a token's life, not a fault, and a
-// 404 here would be reported as a broken button by everybody who pressed one
-// second after the bin emptied.
+// TestAnUnknownUndoTokenIsNotAnError pins the shape of "too late". The window
+// closing is the ordinary end of a token's life, and a 404 would be reported
+// as a broken button by everybody who pressed one second after the bin
+// emptied.
 func TestAnUnknownUndoTokenIsNotAnError(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()

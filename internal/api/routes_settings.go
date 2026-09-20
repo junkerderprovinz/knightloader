@@ -41,56 +41,35 @@ func registerSettings(reg *Registry, a *app.App) {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
-			// The working folder gets the same treatment, and it matters more:
-			// every download writes there first, so a folder that cannot be
-			// written stops everything rather than misplacing one path.
+			// Every download writes to the working folder first.
 			if err := settings.Validate("the working folder", s.WorkDir); err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
-			// Rows that carry their own validator are refused here with the reason,
-			// rather than being dropped by sanitize on the way to disk. A connection or
-			// a schedule window that vanishes on save is the same class of bug as a
-			// download folder that silently reverts, except the user blames the proxy
-			// for it weeks later.
+			// Refused with the reason rather than silently dropped by sanitize.
 			if err := validateRows(s); err != nil {
 				writeValidationError(w, err)
 				return
 			}
 			before := a.Settings.Get().InstanceName
-			// The relay address too: a PUT replaces the whole document, so a
-			// changed relay has to reconnect the client exactly as a changed
-			// name does. See the PATCH branch below for why that matters.
 			beforeRelay := a.Settings.Get().RelayURL
 			applied, err := a.ApplySettings(s)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			// Same reasoning as PATCH's own call below: the relay only learns
-			// this instance's display name once, at connect time, so a
-			// changed name has to reconnect the relay client to actually
-			// reach any sibling.
+			// The relay and the LAN announce only send the name when they
+			// connect, so a new name or relay address needs a reconnect.
 			if applied.InstanceName != before || applied.RelayURL != beforeRelay {
 				applyRelay(a)
-				// The LAN announce carries the same name and goes just as
-				// stale (internal/discovery.SetSelf) - one rename, both
-				// announces, rather than fixing one and leaving the other to
-				// be noticed later.
 				discoveryRefresh()
 			}
 			writeJSON(w, settingsBody(a, applied))
 		})
-	// PATCH is PUT's answer to the trap PUT's own summary names: PUT decodes and
-	// writes back the WHOLE document, so a browser that loaded the page before a
-	// concurrent edit elsewhere posts its stale copy of EVERY OTHER field back
-	// over that edit, silently. A patch body names only the fields it means to
-	// change; anything it does not name is read fresh from what is actually
-	// stored right now, under the same lock that then writes the merge back.
-	// settings.Store.SetPartial's own comment has the exact mechanism. Two
-	// clients patching two different sections at once, someone on the
-	// Reconnect page, someone else flipping the speed limit, therefore both
-	// survive, which two concurrent PUTs of the whole document cannot promise.
+	// PATCH merges only the named fields onto what is stored, under the store's
+	// lock (settings.Store.SetPartial), so two clients editing different
+	// sections at once both survive. A PUT of a stale page would overwrite the
+	// other edit.
 	reg.Add(http.MethodPatch, "/api/settings",
 		"update only the named top-level fields; every field a caller did not name is left exactly as stored",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -102,13 +81,9 @@ func registerSettings(reg *Registry, a *app.App) {
 				http.Error(w, "the patch names no fields to change", http.StatusBadRequest)
 				return
 			}
-			// Validated against a PREVIEW of the merge, built the same way
-			// SetPartial itself will build the real one, just outside its lock,
-			// so a patch gets the identical two refusals PUT already gives a whole
-			// document that fails them. This preview can go stale by the
-			// microseconds before SetPartial's own authoritative merge; see
-			// settings.ApplyPatch's own comment for why that is not a correctness
-			// problem, only ever a value sanitize would have clamped anyway.
+			// Validated against a preview of the merge built outside the lock.
+			// It can go stale before SetPartial's own merge; settings.ApplyPatch
+			// says why that is harmless.
 			preview, err := settings.ApplyPatch(a.Settings.Get(), patch)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
@@ -118,8 +93,6 @@ func registerSettings(reg *Registry, a *app.App) {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
-			// Same check for the working folder, for the same reason as on PUT:
-			// every download writes there before it writes anywhere else.
 			if err := settings.Validate("the working folder", preview.WorkDir); err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
@@ -133,26 +106,9 @@ func registerSettings(reg *Registry, a *app.App) {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			// The relay only learns this instance's display name once, in the
-			// hello frame a connection opens with (see protocol.go's own
-			// comment: clients never send a later announce, only their
-			// initial one) - so a name changed here would otherwise sit
-			// stale on every sibling's Instances page until something else
-			// happened to reconnect the relay client. Reconnecting on every
-			// unrelated settings save would be wasteful; this only fires when
-			// the patch actually touched the one field the relay announce is
-			// built from.
-			// The relay client is rebuilt for BOTH of the things it is built
-			// from: the name it announces, and the relay it dials.
-			//
-			// relayUrl was missing, and the gap was worse than it sounds. The
-			// whole "point it at a relay you run" promise (docs/connecting.md,
-			// and the About card's "nothing ever leaves your own walls") rests
-			// on being able to change this address - and saving it the way the
-			// documentation describes left the live client dialling the default
-			// relay until the process happened to restart. Somebody who moved
-			// to their own relay would have had every reason to believe they
-			// had, and been wrong until the next reboot.
+			// The relay client is rebuilt only when the patch touches what it
+			// is built from: the name it announces in its hello frame, and the
+			// relay it dials.
 			if _, ok := patch["instanceName"]; ok {
 				applyRelay(a)
 				discoveryRefresh()
@@ -161,55 +117,29 @@ func registerSettings(reg *Registry, a *app.App) {
 			}
 			writeJSON(w, settingsBody(a, applied))
 		})
-	// One place every dropdown in the settings form comes from. Hard-coding these
-	// in the interface is how a package gains a value nobody can select, and how a
-	// value the app cannot honour stays selectable after it has been withdrawn.
+	// Served from the packages that implement the choices, so the form cannot
+	// offer a value the app does not honour.
 	reg.Add(http.MethodGet, "/api/options", "every fixed choice the settings form offers, taken from the packages that implement them",
 		func(w http.ResponseWriter, r *http.Request) {
 			writeJSON(w, options())
 		})
-	// The dry run used to live here too, as POST /api/rules/test. It is gone:
-	// POST /api/rules/preview in routes_rules.go answers the same question from
-	// the same engine, and two doors to one room is how a client picks the worse
-	// one without ever finding out.
-	//
-	// Worse, specifically. That route called Compile directly, which honours the
-	// set's master switch — so a set that was switched off came back with no
-	// problems and every link accepted, including a set holding a pattern the
-	// engine cannot parse. A dry run that reports "nothing is wrong" about a rule
-	// list that does not compile is the exact failure this whole subsystem exists
-	// to prevent, and it had no bound on the sample count either.
 }
 
-// settingsResponse is the settings plus what the rule engine could not compile.
-// The two travel together on purpose: a rule dropped for a broken regular
-// expression that the form never mentions is a rule the user goes on believing
-// in, and for a filter that means links they think are blocked and are not.
+// settingsResponse is the settings plus what the rule engine could not compile,
+// so the form can show a rule that was dropped for a broken pattern.
 type settingsResponse struct {
 	settings.Settings
 	Problems app.RuleProblems `json:"problems"`
 }
 
-// settingsBody is the only shape the settings ever leave in. Redacted is not
-// optional here: the moment a client is shown the router password or a proxy
-// password, the merge machinery that puts them back on save is protecting a
-// value the client already holds.
+// settingsBody is the only shape the settings leave in, always redacted.
 func settingsBody(a *app.App, s settings.Settings) settingsResponse {
 	return settingsResponse{Settings: s.Redacted(), Problems: a.RuleProblems()}
 }
 
-// writeValidationError refuses a save with the reason, and with the typed
-// version of the reason when the failing validator has one.
-//
-// The envelope exists because the sentence is English and the interface is
-// translated into forty-two languages. Translating here is not the answer: the
-// server would need the reader's language on a settings request, and the same
-// message goes to the log, which would then be written in whatever the last
-// browser preferred. So the code travels and the interface picks the words.
-//
-// Only reconnect speaks in codes today. A validator without one still sends its
-// sentence, and the client shows that rather than nothing - being untranslated
-// is a smaller failure than being silent.
+// writeValidationError refuses a save with the English reason and, when the
+// validator has one, a code and parameters the interface translates. A
+// validator without a code still sends its sentence.
 func writeValidationError(w http.ResponseWriter, err error) {
 	out := map[string]any{"error": err.Error()}
 	var p *reconnect.ConfigProblem
@@ -229,12 +159,8 @@ func writeValidationError(w http.ResponseWriter, err error) {
 			out["params"] = params
 		}
 	}
-	// The event targets speak in codes too, and the prefix is chosen so that
-	// Settings.tsx's own saveErrorText needs no change at all: it builds
-	// `settings.` + code, so "eventTargets.problem.badUrl" resolves to
-	// settings.eventTargets.problem.badUrl, which is a key every locale already
-	// carries because the page itself draws it beside the row. One code, one
-	// sentence, in whichever of the forty-two languages the reader is using.
+	// Settings.tsx prefixes the code with "settings.", which makes this the
+	// key the event target page already uses beside the row.
 	var np *notify.Problem
 	if errors.As(err, &np) {
 		out["code"] = "eventTargets.problem." + np.Code
@@ -258,16 +184,16 @@ func writeValidationError(w http.ResponseWriter, err error) {
 }
 
 // validateRows refuses the rows that carry their own validator, naming the one
-// that failed. Only sanitize would otherwise see them, and sanitize's job is to
-// drop what it cannot use rather than to explain it.
+// that failed. Otherwise only sanitize would see them, and it drops what it
+// cannot use without saying so.
 func validateRows(s settings.Settings) error {
 	for i, e := range s.Connections {
 		if err := proxycfg.Validate(e); err != nil {
 			return fmt.Errorf("connection %d: %w", i+1, err)
 		}
 	}
-	// An unconfigured reconnect is the normal state of a fresh install, not a
-	// reason to refuse the whole settings page. Only a half-filled one is.
+	// An unconfigured reconnect is normal on a fresh install; only a
+	// half-filled one is refused.
 	if s.Reconnect.Method != reconnect.MethodNone && s.Reconnect.Method != "" {
 		if err := s.Reconnect.Validate(); err != nil {
 			return err
@@ -278,58 +204,28 @@ func validateRows(s settings.Settings) error {
 			return fmt.Errorf("schedule row %d: %w", i+1, err)
 		}
 	}
-	// Refused at save rather than dropped by the sanitiser, which is what
-	// settings_feeds.go deliberately does not do. A subscription whose title
-	// filter will not compile is the case that matters: dropped, the row would go
-	// on being polled with no filter at all and stage the publisher's whole feed,
-	// so the only safe outcomes are "the user fixes it" or "it is never polled",
-	// and this is the one of the two they can see.
+	// A feed whose title filter does not compile must not be polled at all,
+	// or it would stage the whole feed.
 	for i, e := range s.Feeds {
 		if err := e.Validate(); err != nil {
 			return fmt.Errorf("feed row %d: %w", i+1, err)
 		}
 	}
-	// The event targets, on the same terms as the feeds above and for a sharper
-	// version of the same reason. A target dropped by the sanitiser stops
-	// sending, and a target that has stopped sending is indistinguishable from
-	// one that simply has nothing to report - so the mistake would be found the
-	// week after the download that was meant to be announced.
-	//
-	// notify.Validate returns *Problem rather than error on purpose: assigning
-	// it to an `err` first is how a typed nil becomes a non-nil error interface
-	// and refuses every save on this page forever.
+	// notify.Validate returns *Problem rather than error, so it is checked
+	// before being wrapped; a typed nil in an error variable is not nil.
 	for i, e := range s.EventTargets {
 		if p := notify.Validate(e); p != nil {
 			return fmt.Errorf("event target %d: %w", i+1, p)
 		}
 	}
-	// The category table, and the references into it. Refused here rather than
-	// left to sanitize for the reason every other row on this list is: sanitize
-	// drops what it cannot use, so two categories sharing an id would become one
-	// category on the next load, with nothing on the page to say which drawer
-	// went and why the downloads filed there stopped landing where they used to.
-	// settings.ValidateCategories carries the full reasoning, including why a
-	// PACKAGIZER rule pointing at a category that does not exist is refused
-	// while a TASK pointing at one is left exactly as it is.
 	if err := s.ValidateCategories(); err != nil {
 		return err
 	}
-	// The stored addresses called after a package finishes, and the references
-	// into that table from the drawers. Refused here for the same reason the
-	// category table above is, with one extra edge to it: a drawer pointing at an
-	// address that is not stored is a drawer that calls NOTHING, silently, on
-	// every package ever filed in it - and the whole point of the feature is that
-	// somebody stops having to check whether their library noticed.
-	// settings.ValidateMediaHooks carries the full reasoning.
 	if err := s.ValidateMediaHooks(); err != nil {
 		return err
 	}
-	// The folder each drawer names, on the same terms as DownloadDir above: a
-	// destination that cannot be written to is refused at the moment it is
-	// typed, not discovered later by a download that landed somewhere else.
-	// settings.Validate creates the fixed part of the path and probes it, so a
-	// category folder is real by the time the save returns - the same promise
-	// the global download folder already makes.
+	// settings.Validate creates and probes each category folder, as it does
+	// for the download folder.
 	for i, c := range s.Categories {
 		if err := settings.Validate("the folder", c.Dir); err != nil {
 			return fmt.Errorf("category %d (%s): %w", i+1, categoryLabel(c, i), err)
@@ -338,10 +234,8 @@ func validateRows(s settings.Settings) error {
 	return nil
 }
 
-// categoryLabel names a category in a message: its name when it has one, its id
-// when it does not, and its position when it has neither - the same
-// "an unnamed row still has to be findable" rule rules.ruleName follows. The
-// position alone would be useless on a page where the rows are dragged around.
+// categoryLabel names a category in a message: its name, else its id, else its
+// position, which alone is little help on a page where rows are reordered.
 func categoryLabel(c settings.Category, index int) string {
 	if n := strings.TrimSpace(c.Name); n != "" {
 		return n
@@ -357,87 +251,33 @@ func categoryLabel(c settings.Category, index int) string {
 func options() map[string]any {
 	return map[string]any{
 		"mirrorPolicies": dedupe.Policies(),
-		// collide.Ask is deliberately withheld. It means "park the task until a
-		// human answers", and there is no status for that and no way to answer, so
-		// a task set to it would sit in the queue forever with nothing saying why.
+		// collide.Ask would park a task with no status and no way to answer.
 		"collisionPolicies": policiesExcept(collide.Policies(), collide.Ask),
-		// confirm.UseGlobal is withheld for the same reason collide.Ask is just
-		// above, from the other direction: it means "defer to the instance's own
-		// default", and offered as a choice for the instance's own default it
-		// would defer to itself. Ask stays in the menu here - unlike collide.Ask,
-		// it is a real, answerable state for THIS field when the confirm is
-		// interactive (internal/confirm.Trigger.Interactive), and it only
-		// degrades to a fixed fallback for the triggers that are not.
+		// confirm.UseGlobal would make the global default defer to itself.
+		// Ask stays, since interactive triggers can answer it.
 		"confirmPolicies": confirmPoliciesForAGlobalDefault(),
-		// Archives get their own two lists rather than borrowing the one above.
-		// An extraction can honour a different set from a download - it has
-		// nobody to ask, and it decides per folder rather than per file - so the
-		// package that implements archive collisions is the one that says which
-		// words the archive page may offer.
+		// Extraction has its own lists: it has nobody to ask and decides per
+		// folder rather than per file.
 		"archiveCollisions": extract.Collisions(),
 		"archiveDisposals":  extract.Disposals(),
-		// Served for the same reason as its two siblings above: the menu is built
-		// from what this server implements, not from what the client was compiled
-		// with. It was missing, and the symptom was not a broken menu but no menu
-		// at all - resumeOnStart was honoured at boot with nothing anywhere to set
-		// it, which is a setting only somebody editing settings.json can reach.
-		"resumeModes": settings.ResumeModes(),
-		// The reclaim trust tiers, strictest first, which is the order the
-		// exported helper promises and the order a control has to offer them
-		// in. Same story as resumeModes directly above: the helper existed and
-		// carried a doc comment saying an interface would want it, and nothing
-		// ever called it, so the setting was reachable only by editing
-		// settings.json.
-		"reclaimTrustModes": settings.ReclaimTrustModes(),
-		// The two methods a media-library call can be sent with, from the package
-		// that sends them, same reasoning as every other list here: a verb this
-		// build cannot send must never be selectable. Two entries today, and it
-		// is still served rather than written into the interface, because the
-		// browser would then hold the second copy that goes stale.
-		"mediaHookMethods": mediahook.Methods(),
-		// A number rather than a list, and the first one in this map. The
-		// category table's own ceiling belongs with the menus for the same
-		// reason they do: hardcoding 64 in the browser is a second copy of a
-		// Go constant, and the copy is the one that goes stale silently.
-		"maxCategories": settings.MaxCategories,
-		// The folder "trash" actually means, so the help text can name it
-		// instead of implying a recycle bin the container does not have. It
-		// travels with the menu rather than being spelled out in 42 locale
-		// files, where renaming it would mean 42 edits and 41 of them forgotten.
+		"resumeModes":       settings.ResumeModes(),
+		// Strictest first, the order the control offers them in.
+		"reclaimTrustModes":  settings.ReclaimTrustModes(),
+		"mediaHookMethods":   mediahook.Methods(),
+		"maxCategories":      settings.MaxCategories,
 		"archiveTrashFolder": extract.TrashName,
-		// The capability line on the archive page. Asked of the extractor rather
-		// than typed into the interface, because a list of formats written down
-		// on the far side of an HTTP boundary drifts the first time a reader is
-		// added or retired, and the drift is invisible: the page goes on
-		// promising a format the build no longer opens.
-		"archiveFormats": extract.Formats(),
+		"archiveFormats":     extract.Formats(),
 		"proxyKinds": []proxycfg.Kind{
 			proxycfg.KindNone, proxycfg.KindDirect,
 			proxycfg.KindHTTP, proxycfg.KindHTTPS,
 			proxycfg.KindSOCKS4, proxycfg.KindSOCKS4A, proxycfg.KindSOCKS5,
 		},
-		// The resolver options page's own quality menu, and the audio-format
-		// menu the "Variante" preset editor's own Audio row offers - both from
-		// the package that reads them, same reasoning as every other list
-		// here: a value this build cannot honour must never be selectable.
-		// There is no sibling subtitle-mode menu any more: whether a subtitle
-		// row exists at all is that row's own Enabled switch under the
-		// "Variante" model now, not a mode chosen here.
 		"ytdlpQualities":     ytdlp.Qualities(),
 		"ytdlpAudioFormats":  ytdlp.AudioFormats(),
 		"ytdlpAudioBitrates": ytdlp.AudioBitrates(),
-		// The rule vocabulary is NOT here. It used to be: three hand-written lists
-		// of fields, operators and actions, next to the engine that defines all
-		// three. GET /api/rules/grammar builds them from the engine instead, and
-		// the copy had already drifted — it offered no filter action at all, and
-		// the interface's own type for this response had stopped declaring one of
-		// the three lists. A menu built from the stale copy offers an operator the
-		// engine refuses, which saves cleanly and then never fires.
+		// The rule vocabulary comes from GET /api/rules/grammar.
 		"scheduleActions": []schedule.Action{schedule.ActionPause, schedule.ActionResume, schedule.ActionLimit},
-		// The cleanup menu is generated from the classes the app implements, for
-		// the same reason as everything else here: a menu entry the server does not
-		// recognise is a button that answers 400.
-		"cleanupClasses": app.CleanupClasses(),
+		"cleanupClasses":  app.CleanupClasses(),
 	}
 }
 
@@ -453,11 +293,7 @@ func policiesExcept(in []collide.Policy, drop collide.Policy) []collide.Policy {
 	return out
 }
 
-// confirmPoliciesForAGlobalDefault is confirm.Policies() with UseGlobal
-// dropped - a separate small filter rather than a second call to
-// policiesExcept, which is typed for collide.Policy specifically and would
-// need generifying (a signature change to a function this file already
-// exports) to serve a second package's enum too.
+// confirmPoliciesForAGlobalDefault is confirm.Policies() without UseGlobal.
 func confirmPoliciesForAGlobalDefault() []confirm.Policy {
 	all := confirm.Policies()
 	out := make([]confirm.Policy, 0, len(all))
@@ -469,8 +305,7 @@ func confirmPoliciesForAGlobalDefault() []confirm.Policy {
 	return out
 }
 
-// problemsOrEmpty keeps a JSON null out of the response: a client checking the
-// length of the list should not have to check for null first.
+// problemsOrEmpty keeps a JSON null out of the response.
 func problemsOrEmpty(in []rules.Problem) []rules.Problem {
 	if in == nil {
 		return []rules.Problem{}
