@@ -7,25 +7,15 @@ import (
 	"testing"
 )
 
-// The header names the redirect tests watch. "Authorization" is the one
-// internal/httpx already strips across an origin change; "X-Forum-Token" is
-// the one only this package can strip, because httpx's list is a fixed four
-// names and the whole point of a header profile is that the name is whatever
-// the user's forum, seedbox or Nextcloud asks for.
+// Authorization is also stripped by internal/httpx; X-Forum-Token stands for a
+// user-chosen name that only this package knows to strip.
 const (
 	secretToken = "forum-session-2c9f1b7a-do-not-leak"
 	secretBasic = "Basic ZGVtbzpzM2NyZXQ="
 )
 
-// site is one test server whose URL is known before it starts serving.
-//
-// httptest.NewServer only publishes its URL after the handler is installed,
-// so a handler that has to redirect to its own address (or to the other
-// server's) can only be written by assigning a variable the serving goroutine
-// then reads - a data race the detector is right to report, even though the
-// first request happens long afterwards. NewUnstartedServer allocates the
-// listener up front, so the address exists before anything is running and
-// every handler here is closed over a value that never changes.
+// site is one test server whose URL is known before it starts serving, so a
+// handler can redirect to it without a data race.
 type site struct {
 	srv  *httptest.Server
 	URL  string
@@ -40,8 +30,8 @@ func newSite(t *testing.T) *site {
 	return s
 }
 
-// serve installs the handler and starts the server. Every request's headers
-// are recorded first, which is what the assertions read.
+// serve installs the handler and starts the server, recording every request's
+// headers.
 func (s *site) serve(h http.HandlerFunc) {
 	s.srv.Config.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		s.seen <- r.Header.Clone()
@@ -76,20 +66,8 @@ func profileFor(t *testing.T, origin string) Set {
 	return set
 }
 
-// TestHeadersDoNotFollowARedirectAcrossAnOrigin is the test the whole package
-// hangs on.
-//
-// A forum that redirects its attachment links to a CDN is ordinary, and so is
-// an open redirect on a host somebody configured a login for. Either one hands
-// the stored credential to a server the user never named, unless the headers
-// are deleted on the hop that leaves the origin - Set.checkRedirect in
-// redirect.go.
-//
-// The X-Forum-Token assertion is the one that only this package can satisfy:
-// net/http strips nothing here (two httptest servers are both 127.0.0.1, which
-// its registered-domain rule reads as the same place) and internal/httpx
-// strips Authorization and three other fixed names, none of which is a header
-// a user chose.
+// Both test servers are on 127.0.0.1, which net/http treats as one domain, so
+// only checkRedirect can strip the headers here.
 func TestHeadersDoNotFollowARedirectAcrossAnOrigin(t *testing.T) {
 	cdn := newSite(t)
 	cdn.serve(func(w http.ResponseWriter, r *http.Request) { _, _ = w.Write([]byte("bytes")) })
@@ -115,8 +93,6 @@ func TestHeadersDoNotFollowARedirectAcrossAnOrigin(t *testing.T) {
 	if got := sent.Get("Authorization"); got != "" {
 		t.Errorf("the CDN received Authorization %q; a stored header followed a redirect off its own origin", got)
 	}
-	// And the answer handed to the download backend carries nothing either:
-	// the chain ended somewhere the profile does not cover.
 	if len(probe.Headers) != 0 {
 		t.Errorf("Preflight returned %d headers for a URL off the profile's origin, want none", len(probe.Headers))
 	}
@@ -125,10 +101,8 @@ func TestHeadersDoNotFollowARedirectAcrossAnOrigin(t *testing.T) {
 	}
 }
 
-// TestHeadersSurviveARedirectInsideTheOrigin is the other half. A guard that
-// dropped the headers on every hop would be safe and useless: a Nextcloud that
-// redirects /s/<token>/download to /remote.php/... is one origin the whole way
-// and the credential has to survive it, or the feature never works at all.
+// A Nextcloud redirecting /s/<token>/download to /remote.php/... stays on one
+// origin, and the credential has to survive that.
 func TestHeadersSurviveARedirectInsideTheOrigin(t *testing.T) {
 	nc := newSite(t)
 	nc.serve(func(w http.ResponseWriter, r *http.Request) {
@@ -160,14 +134,8 @@ func TestHeadersSurviveARedirectInsideTheOrigin(t *testing.T) {
 	}
 }
 
-// TestHeadersComeBackAfterALoopThroughAStranger is the case Set.Attach alone
-// cannot catch, and the reason checkRedirect compares against the profile's
-// origin rather than against where the chain started or where it ended.
-//
-// home -> stranger -> home ends on the profile's own origin, so the answer
-// handed to the backend is correct however the middle hop was handled. The
-// leak is in the middle: the stranger is sent a request, and without the strip
-// that request carries the credential.
+// A chain home -> stranger -> home ends on the profile's origin, so Attach
+// alone would not notice the stranger being sent the credential.
 func TestHeadersComeBackAfterALoopThroughAStranger(t *testing.T) {
 	home, bounce := newSite(t), newSite(t)
 	home.serve(func(w http.ResponseWriter, r *http.Request) {
@@ -201,9 +169,6 @@ func TestHeadersComeBackAfterALoopThroughAStranger(t *testing.T) {
 	}
 }
 
-// TestPreflightRefusesAProfileWithNoOrigin pins the one state Attach cannot
-// make safe: a set with no origin matches nothing, and a preflight for it
-// would be a request with no scope at all.
 func TestPreflightRefusesAProfileWithNoOrigin(t *testing.T) {
 	var s Set
 	if _, err := s.Preflight(context.Background(), nil, "https://example.org/x"); err == nil {
@@ -211,9 +176,6 @@ func TestPreflightRefusesAProfileWithNoOrigin(t *testing.T) {
 	}
 }
 
-// TestTheProbeReadsTheStatusLine, because a 404 that reports "online" puts a
-// green dot on a link that is gone, and a 403 that reports "offline" puts a
-// dead marker on a link whose only problem is an expired cookie.
 func TestTheProbeReadsTheStatusLine(t *testing.T) {
 	site := newSite(t)
 	site.serve(func(w http.ResponseWriter, r *http.Request) {

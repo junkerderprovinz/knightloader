@@ -10,16 +10,8 @@ import (
 	"testing"
 )
 
-// Linksnappy and Offcloud are held to a different standard than the four
-// services in newservices_test.go, and these tests say so: their vendors
-// publish no API reference any more, so the field names come from a working
-// open-source client and from what the live service answers without an account
-// (see each file's own "where this one's field names come from" section).
-//
-// What is tested here is therefore not only "does it read the expected shape"
-// but "does an answer it does NOT recognise fail safely" - because for these
-// two, an unrecognised answer is a real possibility rather than a theoretical
-// one.
+// Linksnappy and Offcloud publish no complete API reference, so besides the
+// expected shapes these tests check that an unrecognised answer fails safely.
 
 func newLinksnappyAt(base string) *Linksnappy {
 	l := NewLinksnappy("u", "p")
@@ -33,9 +25,7 @@ func newOffcloudAt(base string) *Offcloud {
 	return o
 }
 
-// TestLinksnappyHostsReadsTheMeasuredShape uses the exact body the live service
-// answered on 2026-09-06, Status as a string included. A numeric decode would
-// fail on every row and empty the whole routing table.
+// The body is the one the live service answers, with Status as a string.
 func TestLinksnappyHostsReadsTheMeasuredShape(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		_, _ = io.WriteString(w, `{"status":"OK","error":false,"return":{
@@ -57,9 +47,7 @@ func TestLinksnappyHostsReadsTheMeasuredShape(t *testing.T) {
 	}
 }
 
-// TestLinksnappyRefusalIsASentenceNotABool pins the trap in this API's own
-// envelope: "error" is the boolean false on success and a SENTENCE on failure.
-// Decoding it as a string would fail on every successful call instead.
+// "error" is false on success and a sentence on failure.
 func TestLinksnappyRefusalIsASentenceNotABool(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		_, _ = io.WriteString(w, `{"status":"ERROR","error":"Invalid Username"}`)
@@ -81,8 +69,8 @@ func TestLinksnappyUnlockReadsTheLinksArray(t *testing.T) {
 			_, _ = io.WriteString(w, `{"status":"OK","error":false,"return":{}}`)
 			return
 		}
-		// linkgen answers a BARE object, not the envelope every other endpoint
-		// uses, and its size arrives as a string.
+		// linkgen answers a bare object without the envelope, with size as a
+		// string.
 		_, _ = io.WriteString(w, `{"links":[{"status":"OK","error":false,
 			"generated":"https://dl.example/one","filename":"File.ext","filehost":"rapidgator.net","size":"125002"}]}`)
 	}))
@@ -97,9 +85,7 @@ func TestLinksnappyUnlockReadsTheLinksArray(t *testing.T) {
 	}
 }
 
-// TestLinksnappyUnlockReportsAPerLinkRefusal: the call succeeds and the one
-// entry inside it carries the failure. Reading only the transport would report
-// a dead link as a successful unlock with an empty URL.
+// The call succeeds but the entry inside it carries the failure.
 func TestLinksnappyUnlockReportsAPerLinkRefusal(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if strings.HasSuffix(r.URL.Path, "/AUTHENTICATE") {
@@ -117,10 +103,6 @@ func TestLinksnappyUnlockReportsAPerLinkRefusal(t *testing.T) {
 	}
 }
 
-// TestOffcloudSitesAcceptsThreeShapesAndRefusesNonsense is the honest half of
-// this service: its site list is documented nowhere, so three plausible shapes
-// are accepted and anything else yields nothing, which makes the resolver claim
-// no links rather than claim links it cannot then unlock.
 func TestOffcloudSitesAcceptsThreeShapesAndRefusesNonsense(t *testing.T) {
 	cases := []struct {
 		name string
@@ -137,9 +119,7 @@ func TestOffcloudSitesAcceptsThreeShapesAndRefusesNonsense(t *testing.T) {
 			t.Errorf("%s: %q missing from %v", c.name, c.want, got)
 		}
 	}
-	// A category label, a status word and a bare count are not hosts, and a
-	// routing table that carries one claims every link on a name that is not a
-	// domain at all.
+	// Category labels and counts are not hosts.
 	noise := parseSites(json.RawMessage(`{"categories":["video","hosters"],"count":["12"]}`))
 	if len(noise) != 0 {
 		t.Errorf("non-domain strings were taken as hosts: %v", noise)
@@ -149,8 +129,6 @@ func TestOffcloudSitesAcceptsThreeShapesAndRefusesNonsense(t *testing.T) {
 	}
 }
 
-// TestOffcloudReportsTheAddOnItIsMissing turns the documented one-word refusal
-// into something a person can act on. "premium" on its own says nothing.
 func TestOffcloudReportsTheAddOnItIsMissing(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		_, _ = io.WriteString(w, `{"not_available":"premium"}`)
@@ -185,8 +163,6 @@ func TestOffcloudUnlockReadsTheInstantAnswer(t *testing.T) {
 	}
 }
 
-// TestOffcloudRefusedKeyIsAnError: a 401 is the one thing this API gives a
-// credential check to work with, since it publishes no account endpoint at all.
 func TestOffcloudRefusedKeyIsAnError(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)

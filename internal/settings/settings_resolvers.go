@@ -6,16 +6,12 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
 )
 
-// settings_resolvers.go: per-resolver configuration that a resolver backend
-// reads but had no field on Settings to read it FROM - see
-// docs/jd-feature-census.md's "(per-plugin option list)" and "Variante"
-// rows. yt-dlp is the only resolver with anything real to configure here:
-// Direct and HTTPFallback (internal/resolver) take no options at all, the
-// debrid and TorBox backends are pure credential+API clients (internal/
-// accounts owns those, not this file), and the headless-JD backend
-// delegates entirely to JD's own settings. A resolver that later grows a
-// real, per-instance knob gets a field here the same way Ytdlp did, rather
-// than a second settings page for one field.
+// Per-resolver configuration. yt-dlp is the only resolver with anything to
+// configure here: Direct and HTTPFallback take no options, the debrid and
+// TorBox backends are credential and API clients that internal/accounts owns,
+// and the headless-JD backend delegates to JD's own settings. A resolver that
+// grows a per-instance knob gets a field here the way Ytdlp did, rather than a
+// second settings page for one field.
 
 func sanitizeResolvers(n Settings) Settings {
 	n.Ytdlp = n.Ytdlp.Sanitize()
@@ -36,12 +32,11 @@ func sanitizeResolvers(n Settings) Settings {
 // lower-cased, no blank, no repeat, and nil rather than an empty slice so an
 // empty order reads the same on disk however it got there.
 //
-// A repeat is the one thing that genuinely breaks the order rather than merely
-// looking untidy: dispatch walks it as "try these in turn", and a duplicate id
-// would hand the same resolver two different ranks, so which one a stable sort
-// used would depend on where the duplicate sat. Unknown ids are left alone on
-// purpose - see the field's own comment in settings.go for why this package
-// has no business deciding which resolver ids exist.
+// A repeat is what breaks the order rather than merely looking untidy:
+// dispatch walks it as "try these in turn", and a duplicate id hands the same
+// resolver two ranks, so which one a stable sort used would depend on where the
+// duplicate sat. Unknown ids are left alone, see ResolverOrder in settings.go
+// for why this package does not decide which resolver ids exist.
 func cleanResolverOrder(in []string) []string {
 	if len(in) == 0 {
 		return nil

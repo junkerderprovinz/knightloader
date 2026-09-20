@@ -36,10 +36,6 @@ func TestCookieStoreRoundTripsOneJarPerHost(t *testing.T) {
 	}
 }
 
-// TestCookieStoreSealsTheJarOnDisk is the reason this uses accounts.Store at
-// all: the file the store writes must not carry the session in the clear.
-// Everything that reads the data directory - a backup, a bind mount somebody
-// browses, a support request asking for "the config folder" - sees this file.
 func TestCookieStoreSealsTheJarOnDisk(t *testing.T) {
 	dir := t.TempDir()
 	a, err := accounts.Open(dir)
@@ -59,11 +55,6 @@ func TestCookieStoreSealsTheJarOnDisk(t *testing.T) {
 	}
 }
 
-// TestCookieStoreWalksUpToTheParentDomain is where the session actually
-// lives: YouTube serves pages from www.youtube.com and music.youtube.com, and
-// somebody exporting a jar names it after the site they were on. Matching
-// only the exact host would leave a jar saved as "youtube.com" unused for a
-// music.youtube.com link, which looks exactly like the feature not working.
 func TestCookieStoreWalksUpToTheParentDomain(t *testing.T) {
 	s := newCookieStore(t)
 	if err := s.Set("youtube.com", "jar"); err != nil {
@@ -80,8 +71,6 @@ func TestCookieStoreWalksUpToTheParentDomain(t *testing.T) {
 	}
 }
 
-// TestCookieStoreMostSpecificHostWins: somebody with a separate login for one
-// subdomain must get that one rather than the site-wide jar.
 func TestCookieStoreMostSpecificHostWins(t *testing.T) {
 	s := newCookieStore(t)
 	if err := s.Set("youtube.com", "site-wide"); err != nil {
@@ -121,9 +110,6 @@ func TestCookieStoreRemoveClearsTheEntry(t *testing.T) {
 	}
 }
 
-// TestCookieStoreOnANilStoreAnswersNothing: the hook on Backend is optional,
-// and a build that never wired one must not panic on the one path that reads
-// it.
 func TestCookieStoreOnANilStoreAnswersNothing(t *testing.T) {
 	var s *CookieStore
 	if got := s.Text("https://youtube.com/x"); got != "" {
@@ -152,9 +138,7 @@ func TestWriteCookieFileIsPrivateAndRemovable(t *testing.T) {
 		t.Errorf("file holds %q, want the jar verbatim", body)
 	}
 	if runtime.GOOS != "windows" {
-		// Windows has no POSIX mode and its Chmod is close to a no-op, so the
-		// assertion is skipped there rather than being written to pass
-		// vacuously - see writeCookieFile's own comment.
+		// Windows has no POSIX modes.
 		info, err := os.Stat(path)
 		if err != nil {
 			t.Fatalf("stat: %v", err)
@@ -167,15 +151,11 @@ func TestWriteCookieFileIsPrivateAndRemovable(t *testing.T) {
 	if _, err := os.Stat(path); !os.IsNotExist(err) {
 		t.Errorf("the file survived cleanup (stat err = %v)", err)
 	}
-	// Twice, because run() both defers it and may call it early on a path
-	// that gives up before spawning.
+	// A second call must be harmless.
 	cleanup()
 }
 
-// TestCookieFileErrorsCarryNothingAboutTheJar is the rule in cookies.go's own
-// file comment: an error string here goes into the task's Err field, from
-// there into the log ring, and from there into the diagnostics bundle
-// somebody attaches to a public bug report.
+// Error strings reach the task, the log and the diagnostics bundle.
 func TestCookieFileErrorsCarryNothingAboutTheJar(t *testing.T) {
 	const secret = "top-secret-session"
 	_, _, err := writeCookieFile(filepath.Join(t.TempDir(), "no", "such", "dir"), "SID\t"+secret)

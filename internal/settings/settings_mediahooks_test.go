@@ -1,11 +1,10 @@
 package settings
 
-// The stored addresses, and the one reference into them a drawer carries. Every
-// claim below is one somebody has to be able to rely on before pointing a drawer
-// at a media server: that an empty table changes nothing, that a table an older
-// install has never seen loads as empty rather than as null, that a drawer
-// pointing at nothing is refused where it can still be fixed, and that a drawer's
-// reference survives a save that has nothing to do with it.
+// The stored addresses, and the one reference into them a drawer carries: that
+// an empty table changes nothing, that a table an older install has never seen
+// loads as empty rather than as null, that a drawer pointing at nothing is
+// refused where it can still be fixed, and that a drawer's reference survives a
+// save that has nothing to do with it.
 
 import (
 	"encoding/json"
@@ -23,9 +22,8 @@ func plex() mediahook.Hook {
 	return mediahook.Hook{ID: "plex", URL: "https://plex.example.org/library/sections/3/refresh", Method: mediahook.MethodGet}
 }
 
-// TestNoAddressesChangesNothing is the promise a fresh install and every
-// existing one rely on: this key is empty, so nothing is called, and the
-// document behaves exactly as it did before the key existed.
+// The key is empty on a fresh install and on every existing one, so nothing is
+// called and the document behaves as it did before the key existed.
 func TestNoAddressesChangesNothing(t *testing.T) {
 	s := Defaults()
 	if len(s.MediaHooks) != 0 {
@@ -45,10 +43,9 @@ func TestNoAddressesChangesNothing(t *testing.T) {
 	}
 }
 
-// TestASettingsFileFromBeforeThisKeyLoadsAsEmpty. The field carries no omitempty
-// so the server always SENDS it, but a document written by an older build simply
-// does not have it, and decoding one has to answer an empty list rather than
-// anything a page would have to guard against.
+// The field carries no omitempty so the server always sends it, but a document
+// written by an older build does not have it, and decoding one answers an empty
+// list rather than anything a page has to guard against.
 func TestASettingsFileFromBeforeThisKeyLoadsAsEmpty(t *testing.T) {
 	var s Settings
 	if err := json.Unmarshal([]byte(`{"downloadDir":"/downloads","categories":[{"id":"serien"}]}`), &s); err != nil {
@@ -120,14 +117,10 @@ func TestValidateMediaHooksRefusesWhatCannotWork(t *testing.T) {
 	}
 }
 
-// TestADanglingDrawerReferenceIsRefusedAndNotCleared is the asymmetry this
-// feature borrows from ValidateCategories, and it is worth pinning both halves.
-//
-// A drawer pointing at an address that is not stored calls NOTHING, silently, on
-// every package ever filed in it - which is the exact failure the feature exists
-// to end, so it is refused at the door. What must NOT happen is the sanitiser
-// quietly clearing it instead: that would undo somebody's setting because they
-// hand-edited their addresses list, with nothing anywhere to say so.
+// A drawer pointing at an address that is not stored calls nothing, silently,
+// on every package filed in it, so it is refused at the door. The sanitiser
+// must not clear it instead, which would undo somebody's setting because they
+// hand-edited their addresses list, with nothing to say so.
 func TestADanglingDrawerReferenceIsRefusedAndNotCleared(t *testing.T) {
 	s := Defaults()
 	s.Categories = []Category{{ID: "serien", Notify: "Jellyfin"}}
@@ -146,9 +139,8 @@ func TestADanglingDrawerReferenceIsRefusedAndNotCleared(t *testing.T) {
 	}
 }
 
-// TestAReferenceThatCouldNeverBeAnIDIsDropped. HookID answers empty for a
-// spelling no address can ever be stored under, and empty is the honest reading:
-// there is nothing to point at and nothing to fix.
+// HookID answers empty for a spelling no address can be stored under, which is
+// the honest reading: there is nothing to point at and nothing to fix.
 func TestAReferenceThatCouldNeverBeAnIDIsDropped(t *testing.T) {
 	s := Defaults()
 	s.Categories = []Category{{ID: "serien", Notify: "jellyfin lan"}}
@@ -193,9 +185,9 @@ func TestTheLookupsAnswerWhatTheRoutesAsk(t *testing.T) {
 	if got := s.NotifyHookFor("musik"); got != "" {
 		t.Errorf("NotifyHookFor(musik) = %q, want nothing", got)
 	}
-	// Sorted, and by KEY rather than by name: the sentence this feeds is "set
-	// these drawers to call nothing first", and only the key is a handle the
-	// person can act on.
+	// Sorted, and by key rather than by name: the sentence this feeds asks
+	// somebody to set these drawers to call nothing first, and only the key is
+	// a handle they can act on.
 	users := s.MediaHookUsers("jellyfin")
 	if len(users) != 2 || users[0] != "filme" || users[1] != "serien" {
 		t.Errorf("MediaHookUsers(jellyfin) = %v, want [filme serien]", users)
@@ -210,9 +202,8 @@ func TestTheLookupsAnswerWhatTheRoutesAsk(t *testing.T) {
 	}
 }
 
-// TestADrawersOtherFieldsSurviveTheNewOne. The reference is one more field on a
-// struct several pages write, and a save from the Categories page must not lose
-// it any more than it loses the folder.
+// The reference is one more field on a struct several pages write, and a save
+// from the Categories page must not lose it any more than it loses the folder.
 func TestADrawersOtherFieldsSurviveTheNewOne(t *testing.T) {
 	s := Defaults()
 	s.MediaHooks = []mediahook.Hook{jellyfin()}

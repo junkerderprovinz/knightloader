@@ -41,11 +41,8 @@ func configured() Settings {
 	return s
 }
 
-// TestPortableWithSecretsRoundTripsIntoAnEqualDocument is the whole promise of
-// the export: the file, applied on the far side, reproduces the configuration
-// it was taken from. Everything except the two keys that are this box's own
-// identity, which is the one deliberate difference and is asserted separately
-// below.
+// The file, applied on the far side, reproduces the configuration it was taken
+// from, apart from the two identity keys asserted separately below.
 func TestPortableWithSecretsRoundTripsIntoAnEqualDocument(t *testing.T) {
 	src := configured()
 	doc, err := Portable(src, true, "v1.2.3", "container", time.Now())
@@ -59,7 +56,7 @@ func TestPortableWithSecretsRoundTripsIntoAnEqualDocument(t *testing.T) {
 		t.Errorf("secrets = %q, want %q", doc.Secrets, SecretsIncluded)
 	}
 
-	// Applied onto a FRESH document, the way a second box would, and through the
+	// Applied onto a fresh document, the way a second box would, and through the
 	// same ApplyPatch the import route uses rather than a hand-rolled merge.
 	got, err := ApplyPatch(Defaults(), doc.Settings)
 	if err != nil {
@@ -82,18 +79,14 @@ func TestPortableWithSecretsRoundTripsIntoAnEqualDocument(t *testing.T) {
 	}
 }
 
-// TestPortableNeverCarriesThisBoxIdentity is the guard on NeverPortable. Two
-// boxes carrying one instanceId occupy a single slot in a relay group, and the
-// symptom is a sibling that "keeps going offline" with nothing naming the
-// cause - so the id must not be in the file at all, whether or not the caller
-// asked for secrets.
+// Two boxes carrying one instanceId occupy a single slot in a relay group, and
+// the symptom is a sibling that keeps going offline with nothing naming the
+// cause. The id must not be in the file, whether or not the caller asked for
+// secrets.
 func TestPortableNeverCarriesThisBoxIdentity(t *testing.T) {
-	// Spelled out here rather than read back from NeverPortable(), and that is
-	// the difference between a test and a tautology: ranging over the very list
-	// under test means an empty NeverPortable() asserts nothing at all and the
-	// test goes green while every identity key travels. Measured, not guessed -
-	// emptying that function left this test passing until the two keys were
-	// written down here.
+	// Spelled out rather than read back from NeverPortable(): ranging over the
+	// list under test would leave an empty NeverPortable() asserting nothing,
+	// green while every identity key travels.
 	identity := []string{"instanceId", "knownDomains"}
 	named := map[string]bool{}
 	for _, k := range NeverPortable() {
@@ -115,21 +108,18 @@ func TestPortableNeverCarriesThisBoxIdentity(t *testing.T) {
 				t.Errorf("includeSecrets=%v: %q is in the exported document and must never be", withSecrets, k)
 			}
 		}
-		// The identity is dropped, and the name beside it is not: instanceName is
-		// a label somebody chose and is perfectly portable. Asserted so a future
-		// widening of NeverPortable has to be deliberate.
+		// The identity is dropped and the name beside it is not: instanceName is
+		// a label somebody chose, and it travels.
 		if _, ok := doc.Settings["instanceName"]; !ok {
 			t.Errorf("includeSecrets=%v: instanceName was dropped too, and it is not an identity", withSecrets)
 		}
 	}
 }
 
-// TestPortableWithoutSecretsStripsAllThreeAndSaysSo covers the trap that
-// Redacted() alone does not close: it hides the router and proxy passwords and
-// deliberately leaves ArchivePasswords alone, because that field is ordinary
-// visible config on the Archives page. An export that only called Redacted()
-// would ship every archive password in clear text under a toggle claiming
-// otherwise.
+// Redacted() hides the router and proxy passwords and leaves ArchivePasswords
+// alone, because that field is ordinary visible config on the Archives page. An
+// export that only called Redacted() would ship every archive password in clear
+// text under a toggle claiming otherwise.
 func TestPortableWithoutSecretsStripsAllThreeAndSaysSo(t *testing.T) {
 	doc, err := Portable(configured(), false, "v1.2.3", "container", time.Now())
 	if err != nil {
@@ -143,9 +133,8 @@ func TestPortableWithoutSecretsStripsAllThreeAndSaysSo(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	// Searched over the whole encoded document rather than field by field: the
-	// question this test asks is "can somebody who opens this file in an editor
-	// read my passwords", and that question is about the bytes.
+	// Searched over the whole encoded document rather than field by field,
+	// because the question is what somebody opening the file in an editor reads.
 	for _, secret := range []string{"router-secret", "proxy-secret", "hunter2", "correct horse"} {
 		if strings.Contains(string(raw), secret) {
 			t.Errorf("the secretless export still contains %q", secret)
@@ -160,20 +149,19 @@ func TestPortableWithoutSecretsStripsAllThreeAndSaysSo(t *testing.T) {
 		t.Errorf("archivePasswords = %v, want empty", archives)
 	}
 
-	// And the file has to SAY which passwords are missing, because both of them
-	// fail silently on the far side: a proxy dials with a username and no
-	// password, and a reconnect posts an empty password and reports "the address
-	// did not change", which points the operator at their router.
+	// The file has to say which passwords are missing, because both fail
+	// silently on the far side: a proxy dials with a username and no password,
+	// and a reconnect posts an empty password and reports that the address did
+	// not change, which points the operator at their router.
 	want := []string{SecretlessReconnect, SecretlessConnections, SecretlessArchivePasswords}
 	if got := doc.Secretless(); !reflect.DeepEqual(got, want) {
 		t.Errorf("Secretless() = %v, want %v", got, want)
 	}
 }
 
-// TestSecretlessIsQuietWhenNothingIsMissing pins the other half. A list that
-// cries wolf on a complete document is a list people learn to ignore, and the
-// two cases that would produce a false alarm are a UPnP reconnect (which needs
-// no password at all) and an anonymous proxy.
+// A list that cries wolf on a complete document is one people learn to ignore.
+// The two cases that would produce a false alarm are a UPnP reconnect, which
+// needs no password, and an anonymous proxy.
 func TestSecretlessIsQuietWhenNothingIsMissing(t *testing.T) {
 	s := Defaults()
 	s.Reconnect = reconnect.Config{Method: reconnect.MethodUPnP, CheckURL: "https://example.invalid/ip"}
@@ -188,10 +176,9 @@ func TestSecretlessIsQuietWhenNothingIsMissing(t *testing.T) {
 	}
 }
 
-// TestSecretlessJudgesTheDocumentAndNotItsClaim is why Secretless reads
-// d.Settings rather than d.Secrets: the secrets field is a string in a file
-// somebody can edit, and a document claiming "included" while carrying the
-// redaction placeholder is exactly what a well-meaning hand edit produces.
+// Secretless reads d.Settings rather than d.Secrets, because the secrets field
+// is a string in a file somebody can edit: a document claiming "included" while
+// carrying the redaction placeholder is what a hand edit produces.
 func TestSecretlessJudgesTheDocumentAndNotItsClaim(t *testing.T) {
 	doc, err := Portable(configured(), false, "v1.2.3", "container", time.Now())
 	if err != nil {
@@ -221,7 +208,7 @@ func TestPortableDocCheck(t *testing.T) {
 
 	t.Run("an untagged build compares nothing", func(t *testing.T) {
 		// "dev" is not semver, and refusing to import into a development build
-		// would make the feature untestable by the person writing it.
+		// would make the feature untestable.
 		d := ok()
 		d.Version = "dev"
 		if err := d.Check("dev"); err != nil {

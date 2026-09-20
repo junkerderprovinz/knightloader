@@ -9,22 +9,12 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/core"
 )
 
-// TestPriorityForDefaultsWithNoNativeLogin pins the DEFAULT answer: a host
-// nothing has activated must route exactly as it always has, at the same
-// value Info().Prio already gives (basePrio) - a per-host nudge that changed
-// the answer for every host it had never heard of would not be a nudge.
 func TestPriorityForDefaultsWithNoNativeLogin(t *testing.T) {
 	if got := PriorityFor("https://never-activated.example/file/123"); got != basePrio {
 		t.Errorf("PriorityFor = %d, want the default %d for a host with no native login", got, basePrio)
 	}
 }
 
-// TestPriorityForRisesOnceHostIsActive pins the other half: once
-// internal/hosterauth's reconciler calls SetHostActive for a host, that
-// host's links must outrank resolver.Direct's fixed 40 - see the doc comment
-// on activeLoginPrio for why. Since 2026-09-07 it must outrank the debrid
-// services too: a premium account at the hoster itself is what a multihoster
-// unlock approximates, so it wins over one.
 func TestPriorityForRisesOnceHostIsActive(t *testing.T) {
 	const host = "priority-test-rapidgator.example"
 	t.Cleanup(func() { SetHostActive(host, false) })
@@ -37,8 +27,7 @@ func TestPriorityForRisesOnceHostIsActive(t *testing.T) {
 		t.Errorf("activeLoginPrio = %d must exceed resolver.Direct's Prio (40) or the nudge does nothing", activeLoginPrio)
 	}
 
-	// www. and case must not matter - the same host arrives differently from a
-	// browser paste and from JD's own account list.
+	// A browser paste and JD's account list spell the same host differently.
 	if got := PriorityFor("HTTPS://WWW." + host + "/x.zip"); got != activeLoginPrio {
 		t.Errorf("PriorityFor = %d, want %d for a www./case variant of the same host", got, activeLoginPrio)
 	}
@@ -49,10 +38,6 @@ func TestPriorityForRisesOnceHostIsActive(t *testing.T) {
 	}
 }
 
-// TestPriorityForUnrelatedHostUnaffected is the "not a global bump" guard: one
-// active host must not raise the answer for a different one, or the nudge
-// would quietly send every plain file link through JD the moment any single
-// hoster login is confirmed active.
 func TestPriorityForUnrelatedHostUnaffected(t *testing.T) {
 	const activeHost = "priority-test-active.example"
 	const otherHost = "priority-test-other.example"
@@ -64,10 +49,6 @@ func TestPriorityForUnrelatedHostUnaffected(t *testing.T) {
 	}
 }
 
-// TestCheckWithNoBackendIsUncheckable pins the same nil-safety
-// debrid.Resolver.Svc already established: a bare jd.Resolver{}, the shape
-// every routing test in this package constructs, must answer every link
-// uncheckable rather than panic on a nil Backend.
 func TestCheckWithNoBackendIsUncheckable(t *testing.T) {
 	r := Resolver{}
 	got, err := r.Check(context.Background(), []string{"https://host.example/a", "https://host.example/b"})
@@ -79,9 +60,6 @@ func TestCheckWithNoBackendIsUncheckable(t *testing.T) {
 	}
 }
 
-// TestCheckDelegatesToBackend pins the other half: once a Backend is wired
-// in, Check hands the call straight through rather than adding its own
-// interpretation on top.
 func TestCheckDelegatesToBackend(t *testing.T) {
 	orig := pollInterval
 	pollInterval = 5 * time.Millisecond
@@ -102,17 +80,8 @@ func TestCheckDelegatesToBackend(t *testing.T) {
 	}
 }
 
-// TestPriorityForRisesForAHostJDKnowsWithNoLogin is the "free mode, like
-// JDownloader" requirement, and it is a genuine change of behaviour rather than
-// a tidy-up (jdp, 2026-09-02: "Wenn man links runterladen möchte für die kein
-// premium account hinterlegt ist muss das angezeigt werden un der link im free
-// modus heruntergeladen werden. wie in JD").
-//
-// Before this, a hoster link with no login went to resolver.Direct, whose fetch
-// is a plain HTTP GET that knows nothing about hosters: for most of them that
-// saves the landing PAGE under the real file name and calls it a successful
-// download. JD's own plugin for that host is the only thing in this app that can
-// do the free-mode dance, so it has to outrank a blind GET.
+// A hoster link without a login goes to JD's free mode rather than to a plain
+// GET that would save the hoster's landing page.
 func TestPriorityForRisesForAHostJDKnowsWithNoLogin(t *testing.T) {
 	t.Cleanup(func() { SetKnownHosts(nil) })
 	SetKnownHosts([]string{"Rapidgator.NET", "www.example-hoster.com"})
@@ -126,15 +95,11 @@ func TestPriorityForRisesForAHostJDKnowsWithNoLogin(t *testing.T) {
 			t.Errorf("PriorityFor(%q) = %d, want %d - a host JD has a plugin for must outrank a blind GET", raw, got, knownHostPrio)
 		}
 	}
-	// A host JD does not know is unchanged: nothing here may quietly promote
-	// every link to the catch-all.
 	if got := PriorityFor("https://not-a-hoster.example/file"); got != basePrio {
 		t.Errorf("PriorityFor(unknown host) = %d, want the unchanged default %d", got, basePrio)
 	}
 }
 
-// TestSetKnownHostsReplacesRatherThanAccumulates: a host JD stops supporting has
-// to stop outranking Direct on the very next pass, not linger until a restart.
 func TestSetKnownHostsReplacesRatherThanAccumulates(t *testing.T) {
 	t.Cleanup(func() { SetKnownHosts(nil) })
 	SetKnownHosts([]string{"one.example"})
@@ -148,12 +113,7 @@ func TestSetKnownHostsReplacesRatherThanAccumulates(t *testing.T) {
 	}
 }
 
-// TestPriorityForLeavesMediaSitesToYtdlp is the 2026-09-07 half of a problem
-// that first arrived through TorBox on 2026-09-06 and came back through a
-// different door: JD has a plugin for YouTube too, its plugin list carries 714
-// entries on jdp's own instance, and the known-host boost would put a YouTube
-// link in JD's hands and past yt-dlp - the one backend that turns such a link
-// into the five keepable rows with a quality to pick.
+// JD has a plugin for YouTube too, but only yt-dlp offers formats and quality.
 func TestPriorityForLeavesMediaSitesToYtdlp(t *testing.T) {
 	t.Cleanup(func() { SetKnownHosts(nil); SetFileHosts(nil) })
 	SetKnownHosts([]string{"rapidgator.net", "youtube.com"})
@@ -165,8 +125,7 @@ func TestPriorityForLeavesMediaSitesToYtdlp(t *testing.T) {
 	if got := PriorityFor("https://youtube.com/watch?v=x"); got != basePrio {
 		t.Errorf("PriorityFor(media site) = %d, want the unboosted %d so yt-dlp gets it", got, basePrio)
 	}
-	// A confirmed login still wins, media site or not: if somebody really has a
-	// premium account at that host, using it is not this rule's business.
+	// A confirmed login still wins on a media site.
 	SetHostActive("youtube.com", true)
 	t.Cleanup(func() { SetHostActive("youtube.com", false) })
 	if got := PriorityFor("https://youtube.com/watch?v=x"); got != activeLoginPrio {
@@ -174,12 +133,9 @@ func TestPriorityForLeavesMediaSitesToYtdlp(t *testing.T) {
 	}
 }
 
-// TestNoClassificationKeepsTheOldBoost is the degenerate case this must not
-// break: an install with no debrid account and no TorBox key has nothing that
-// could classify a host, and JD is then the only thing that can fetch from a
-// hoster at all. An empty set means "nobody has classified anything", never
-// "everything is a media site".
-func TestNoClassificationKeepsTheOldBoost(t *testing.T) {
+// Without a debrid account or TorBox key nothing classifies hosts, and JD is
+// the only way to fetch from a hoster.
+func TestNoClassificationKeepsTheKnownHostBoost(t *testing.T) {
 	t.Cleanup(func() { SetKnownHosts(nil); SetFileHosts(nil) })
 	SetKnownHosts([]string{"rapidgator.net"})
 	SetFileHosts(nil)
@@ -189,11 +145,8 @@ func TestNoClassificationKeepsTheOldBoost(t *testing.T) {
 	}
 }
 
-// TestTheLadderIsOrderedAsIntended states the whole ranking in one place, in
-// the terms it was decided in: a premium account at the hoster beats a
-// multihoster unlock, a multihoster beats JD's free mode, and JD's free mode
-// beats a blind GET. The numbers themselves are in three packages, so this is
-// the only place the ORDER between them is written down.
+// A premium account at the hoster beats a multihoster unlock, which beats JD's
+// free mode, which beats a plain GET. The numbers live in three packages.
 func TestTheLadderIsOrderedAsIntended(t *testing.T) {
 	const directPrio = 40 // resolver.Direct's own Info().Prio
 	const lowestDebrid = 44

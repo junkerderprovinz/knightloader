@@ -24,17 +24,11 @@ import (
 	"golang.org/x/crypto/ssh/knownhosts"
 )
 
-// A REAL SSH SERVER SERVING A FAKE FILE SYSTEM. SFTP is a subsystem inside
-// SSH, so there is no way to exercise the handshake, the host-key policy and a
-// refused password without a genuine server on the other end - and those three
-// are exactly the parts of sftp.go worth testing. The files it serves are the
-// same in-memory tree the FTP fake uses, so nothing here touches a disk.
-
+// fakeSFTP is a real SSH server, needed to exercise the handshake, host keys
+// and refused passwords, serving the FTP fake's in-memory tree.
 type fakeSFTP struct {
 	addr string
-	// pub is this server's host key, which the known-hosts tests need in order
-	// to write a DIFFERENT one into the file and prove the client refuses.
-	pub ssh.PublicKey
+	pub  ssh.PublicKey
 }
 
 func newFakeSFTP(t *testing.T, user, pass string, tree map[string]fakeNode) *fakeSFTP {
@@ -99,8 +93,7 @@ func serveSSH(c net.Conn, cfg *ssh.ServerConfig, tree map[string]fakeNode) {
 		}
 		go func(ch ssh.Channel, reqs <-chan *ssh.Request) {
 			for req := range reqs {
-				// A subsystem request's payload is a length-prefixed name, and
-				// "sftp" is the only one this fixture answers.
+				// The payload is a length-prefixed subsystem name.
 				ok := req.Type == "subsystem" && len(req.Payload) >= 4 &&
 					string(req.Payload[4:4+binary.BigEndian.Uint32(req.Payload[:4])]) == "sftp"
 				_ = req.Reply(ok, nil)
@@ -138,8 +131,6 @@ func (m memFS) Fileread(r *sftp.Request) (io.ReaderAt, error) {
 	return bytes.NewReader(n.data), nil
 }
 
-// Read-only on purpose: this package downloads, and a fixture that could write
-// would be testing a capability the FS interface deliberately does not have.
 func (memFS) Filewrite(*sftp.Request) (io.WriterAt, error) { return nil, os.ErrPermission }
 func (memFS) Filecmd(*sftp.Request) error                  { return os.ErrPermission }
 
@@ -202,11 +193,8 @@ func (i memInfo) ModTime() time.Time { return time.Unix(0, 0) }
 func (i memInfo) IsDir() bool        { return i.node.dir }
 func (i memInfo) Sys() any           { return nil }
 
-// ---- the tests -------------------------------------------------------------
-
-// dialerFor points the known-hosts file at the test's own temp directory, the
-// same way the app points it at its data directory - never at the user's own
-// ~/.ssh/known_hosts, which a test has no business appending to.
+// dialerFor keeps the known-hosts file in the test's temp directory instead of
+// ~/.ssh/known_hosts.
 func dialerFor(t *testing.T) Dialer {
 	t.Helper()
 	return Dialer{KnownHostsFile: filepath.Join(t.TempDir(), "known_hosts")}
@@ -232,8 +220,6 @@ func TestSFTPReadsAFileAndResumesAtAnExactOffset(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer fs.Close()
-	// SFTP addresses reads by offset in the protocol itself, so there is no
-	// restart command to be refused and a resumed read is exact.
 	rc, err := fs.Open(context.Background(), "/pub/notes.txt", 3)
 	if err != nil {
 		t.Fatalf("Open at an offset: %v", err)
@@ -263,10 +249,6 @@ func TestSFTPWrongPasswordAndMissingFileAreDifferentAnswers(t *testing.T) {
 }
 
 func TestSFTPWithNoAccountSaysSoRatherThanFailingAtTheHandshake(t *testing.T) {
-	// There is no anonymous SFTP, so this is worth naming before a single
-	// packet leaves: "no account is stored" sends somebody to the accounts
-	// page, "unable to authenticate" sends them looking for a typo in a
-	// password they never typed.
 	s := newFakeSFTP(t, "alice", "secret", ftpTree())
 	r := Resolver{Dialer: dialerFor(t)}
 	_, err := r.Resolve(context.Background(), request(LinkOf(s.target("/pub/notes.txt"))))
@@ -281,9 +263,7 @@ func TestSFTPRemembersAHostKeyAndRefusesAChangedOne(t *testing.T) {
 	d := Dialer{KnownHostsFile: filepath.Join(dir, "known_hosts")}
 	login := Login{Username: "alice", Password: "secret"}
 
-	// First use: nothing is known yet, so the key is accepted and written
-	// down. A headless app has no terminal to answer a prompt on, so refusing
-	// here would mean it could never reach a server at all.
+	// First use: the key is accepted and recorded.
 	fs, err := d.Dial(context.Background(), s.target("/"), login)
 	if err != nil {
 		t.Fatalf("first connection: %v", err)
@@ -297,9 +277,7 @@ func TestSFTPRemembersAHostKeyAndRefusesAChangedOne(t *testing.T) {
 		t.Errorf("the recorded line does not look like a host key: %q", written)
 	}
 
-	// Second use, same key: accepted, and no duplicate line - the file is
-	// re-read on every dial rather than kept in memory, so a line removed by
-	// hand takes effect without a restart.
+	// Second use with the same key: accepted without a duplicate line.
 	fs, err = d.Dial(context.Background(), s.target("/"), login)
 	if err != nil {
 		t.Fatalf("second connection: %v", err)
@@ -310,9 +288,7 @@ func TestSFTPRemembersAHostKeyAndRefusesAChangedOne(t *testing.T) {
 		t.Errorf("the key was written twice:\n%s", again)
 	}
 
-	// A DIFFERENT key on a host that is already known: either the server was
-	// rebuilt or somebody is in the middle, and the client cannot tell which -
-	// so it refuses and names the file to fix, exactly as ssh(1) does.
+	// A different key for a known host is refused.
 	other := Dialer{KnownHostsFile: filepath.Join(t.TempDir(), "known_hosts")}
 	line := knownhosts.Line([]string{knownhosts.Normalize(s.addr)}, testSigner(t).PublicKey())
 	if err := os.WriteFile(other.KnownHostsFile, []byte(line+"\n"), 0o600); err != nil {

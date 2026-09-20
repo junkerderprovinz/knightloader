@@ -5,10 +5,9 @@ import (
 	"testing"
 )
 
-// TestLogFileShipsOff is the shipping decision, pinned. An update that started
-// writing files nobody asked for would be a behaviour change nobody agreed to,
-// and on an Unraid box appdata is usually on the array: a write per log line is
-// a spinning disk that never gets to sleep.
+// An update that started writing files nobody asked for is a behaviour change
+// nobody agreed to, and on an Unraid box appdata is usually on the array, where
+// a write per log line keeps a spinning disk awake.
 func TestLogFileShipsOff(t *testing.T) {
 	d := DefaultLogFile()
 	if d.Enabled {
@@ -19,10 +18,9 @@ func TestLogFileShipsOff(t *testing.T) {
 	}
 }
 
-// TestAnUpgradeReadsAsOffWithTheDefaultsIntact is what every existing install
-// gets. settings.Load unmarshals the stored document OVER Defaults(), so a
+// settings.Load unmarshals the stored document over Defaults(), so a
 // settings.json written before this key existed leaves the whole block at
-// whatever Defaults put there - off, with two usable numbers behind it, so that
+// whatever Defaults put there: off, with two usable numbers behind it, so that
 // switching it on later does something sensible without a second trip.
 func TestAnUpgradeReadsAsOffWithTheDefaultsIntact(t *testing.T) {
 	got := DefaultLogFile()
@@ -40,10 +38,9 @@ func TestAnUpgradeReadsAsOffWithTheDefaultsIntact(t *testing.T) {
 	}
 }
 
-// TestASavedDocumentKeepsWhatWasSaved. The mirror of the test above: once the
-// key IS in the document, the stored values win over the defaults, including a
-// Keep of zero - which is a real answer and must not be read as "nothing was
-// stored, use three".
+// The mirror of the test above: once the key is in the document, the stored
+// values win over the defaults, including a Keep of zero, which is a real
+// answer rather than "nothing was stored, use three".
 func TestASavedDocumentKeepsWhatWasSaved(t *testing.T) {
 	got := DefaultLogFile()
 	if err := json.Unmarshal([]byte(`{"enabled":true,"maxMb":64,"keep":0}`), &got); err != nil {
@@ -57,9 +54,8 @@ func TestASavedDocumentKeepsWhatWasSaved(t *testing.T) {
 	}
 }
 
-// TestSanitizeClampsAndNeverRefuses is this package's posture everywhere: a
-// figure it cannot use is the absence of one, not an error the user has to
-// dismiss before the rest of their edits will save.
+// This package's posture everywhere: a figure it cannot use is the absence of
+// one rather than an error to dismiss before the rest of the edits will save.
 func TestSanitizeClampsAndNeverRefuses(t *testing.T) {
 	cases := []struct {
 		name string
@@ -67,9 +63,9 @@ func TestSanitizeClampsAndNeverRefuses(t *testing.T) {
 		want LogFile
 	}{
 		{
-			// A cleared box is "I did not type a number", not "one megabyte":
-			// a file that rotates every few minutes is not what clearing it
-			// meant.
+			// A cleared box means no number was typed rather than one
+			// megabyte: a file that rotates every few minutes is not what
+			// clearing it meant.
 			"a cleared size falls back to the default",
 			LogFile{MaxMB: 0, Keep: 3},
 			LogFile{MaxMB: DefaultLogMaxMB, Keep: 3},
@@ -109,9 +105,8 @@ func TestSanitizeClampsAndNeverRefuses(t *testing.T) {
 	}
 }
 
-// TestSanitizeNeverTouchesTheSwitch. Clamping a number must never be able to
-// switch a feature on or off - that is the user's own decision and the one
-// thing on this block that has no sensible fallback.
+// Clamping a number must not switch a feature on or off, the one thing on this
+// block with no sensible fallback.
 func TestSanitizeNeverTouchesTheSwitch(t *testing.T) {
 	for _, on := range []bool{true, false} {
 		if got := (LogFile{Enabled: on, MaxMB: -5, Keep: -5}).Sanitized(); got.Enabled != on {
@@ -120,9 +115,9 @@ func TestSanitizeNeverTouchesTheSwitch(t *testing.T) {
 	}
 }
 
-// TestMaxBytesConvertsOnce. The megabyte-to-byte conversion happens in one
-// place so that a caller cannot hand internal/logring a figure in the wrong
-// unit - a cap of 8 read as 8 bytes rotates on every single line.
+// The megabyte-to-byte conversion happens in one place, so a caller cannot hand
+// internal/logring a figure in the wrong unit: a cap of 8 read as 8 bytes
+// rotates on every line.
 func TestMaxBytesConvertsOnce(t *testing.T) {
 	if got := (LogFile{MaxMB: 8}).MaxBytes(); got != 8<<20 {
 		t.Errorf("MaxBytes() = %d, want %d", got, 8<<20)

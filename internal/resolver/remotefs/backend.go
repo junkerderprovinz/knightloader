@@ -17,10 +17,8 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/core"
 )
 
-// Downloader is the byte-transfer backend a WebDAV link is handed on to - the
-// embedded engine, in production. Declared here rather than imported so this
-// package does not depend on internal/engine for one method set, which is the
-// same trade internal/resolver/debrid's own Downloader already makes.
+// Downloader is the byte-transfer backend a WebDAV link is handed on to, the
+// embedded engine in production.
 type Downloader interface {
 	Download(taskID, url string, headers map[string]string, conns int)
 	Pause(taskID string)
@@ -28,37 +26,22 @@ type Downloader interface {
 	Remove(taskID string, deleteFiles bool)
 }
 
-// partSuffix marks a file that is still arriving.
-//
-// A download in progress MUST NOT sit at its final name. Half a file called
-// season1.mkv is indistinguishable from the whole thing to every other program
-// on the machine - a media server will index it, a backup will copy it, a user
-// will open it and conclude the download is broken. It also gives resume
-// something unambiguous to measure: the length of the part file is the offset
-// to continue from, and there is no way to confuse it with a file that was
-// finished earlier.
+// partSuffix marks a file that is still arriving, so no media server or
+// backup takes half a file for the whole one. The part file's length is also
+// the offset a resume continues from.
 const partSuffix = ".klpart"
 
-// progressEvery is how often a running transfer reports itself. Every read
-// would be thousands of updates a second, each one taking the app's lock and
-// broadcasting to every open browser.
+// progressEvery is how often a running transfer reports itself; every report
+// takes the app's lock and reaches every open browser.
 const progressEvery = 500 * time.Millisecond
 
-// copyBuffer is the read size, and also the burst the speed limiter is built
-// with. Large enough that a fast local NAS is not spending its time in system
-// calls, small enough that a paused download stops within a few hundred
-// kilobytes rather than a few megabytes.
+// copyBuffer is the read size and the speed limiter's burst: large enough for
+// a fast NAS, small enough that a pause stops within a few hundred kilobytes.
 const copyBuffer = 256 << 10
 
-// Backend fetches what the engine cannot.
-//
-// IT DELIBERATELY DOES NOT FETCH EVERYTHING IT COULD. A WebDAV target resolves
-// to an ordinary https URL (see Resolver.Resolve), and that one is handed
-// straight to the engine, which already has chunked range requests, the
-// outbound connection picker, the collision policy and the speed limiter. What
-// is left here is FTP, FTPS and SFTP - three protocols nothing else in the
-// tree speaks - and for those this file is a single-stream downloader with
-// resume, which is what those protocols actually offer.
+// Backend fetches what the engine cannot. WebDAV targets resolve to plain
+// https URLs and go to the engine (see Resolver.Resolve); FTP, FTPS and SFTP
+// are downloaded here as a single stream with resume.
 type Backend struct {
 	accounts Accounts
 	dialer   Dialer
@@ -67,31 +50,21 @@ type Backend struct {
 
 	onUpdate func(taskID string, u core.Update)
 
-	// Dir returns the destination for one task; nil, or an empty answer, falls
-	// back to the backend's own directory. The same per-task closure shape
-	// internal/resolver/ytdlp's backend uses, and for the same reason: a
-	// settings change has to take effect on the next download rather than at
-	// the next restart.
+	// Dir returns the destination for one task; nil or "" falls back to the
+	// backend's own directory. It is asked per task so a settings change
+	// applies to the next download.
 	Dir func(taskID string) string
-	// RateLimit returns the speed limit in force right now, in bytes per
-	// second, 0 for none. Read once per buffer rather than captured, because
-	// the limit is what a nightly schedule writes and a download that started
-	// at six in the evening must slow down at midnight without being
-	// restarted.
-	//
-	// These bytes do not pass through internal/netproxy's meter - they are not
-	// HTTP and never touch the engine - so this is the ONLY thing that makes a
-	// speed limit true for an FTP or SFTP transfer.
+	// RateLimit returns the speed limit in force, in bytes per second, 0 for
+	// none. It is read once per buffer so a scheduled limit applies to a
+	// running transfer, and it is the only limit these non-HTTP transfers see.
 	RateLimit func() int64
 
 	mu     sync.Mutex
 	cancel map[string]context.CancelFunc
 	link   map[string]string
 	part   map[string]string
-	// engineTasks are the ones handed to the engine (WebDAV). Pause, Resume
-	// and Remove have to reach whoever is actually holding the transfer, and
-	// guessing from the URL again on every call would be one more place for
-	// the two halves to disagree.
+	// engineTasks are the tasks handed to the engine (WebDAV), so Pause,
+	// Resume and Remove reach whoever holds the transfer.
 	engineTasks map[string]bool
 }
 
@@ -142,8 +115,7 @@ func (b *Backend) Resume(taskID string) {
 	link := b.link[taskID]
 	b.mu.Unlock()
 	if link != "" {
-		// The part file is what carries the progress across the pause, so
-		// there is nothing else to restore: run measures it and continues.
+		// run measures the part file and continues from there.
 		go b.run(taskID, link)
 	}
 }
@@ -164,11 +136,8 @@ func (b *Backend) Remove(taskID string, deleteFiles bool) {
 	delete(b.link, taskID)
 	delete(b.part, taskID)
 	b.mu.Unlock()
-	// The part file goes whether or not deleteFiles was asked for, and the
-	// finished file only when it was. A half-finished .klpart is this
-	// backend's own scratch space and belongs to a task that no longer exists;
-	// leaving it behind means the next attempt at the same link resumes from
-	// bytes nobody asked to keep.
+	// The part file always goes, or a later attempt at the same link would
+	// resume from it; the finished file only with deleteFiles.
 	if part != "" {
 		_ = os.Remove(part)
 		if deleteFiles {
@@ -204,11 +173,8 @@ func (b *Backend) run(taskID, link string) {
 		b.mu.Unlock()
 	}()
 
-	// httpsIsWebDAV is true here without consulting an account, and it costs
-	// nothing: Download above has already sent every http(s) link to the
-	// engine, so nothing that reaches this function can be one. The flag only
-	// decides whether Parse refuses an https scheme outright, and refusing it
-	// here would be refusing a link that cannot arrive.
+	// Download sends every http(s) link to the engine, so the flag cannot
+	// matter here.
 	t, err := Parse(link, true)
 	if err != nil {
 		b.fail(taskID, err)
@@ -231,11 +197,8 @@ func (b *Backend) run(taskID, link string) {
 		b.fail(taskID, fmt.Errorf("remotefs: %w", err))
 		return
 	}
-	// collide.SafeName rather than the server's name as given: it is the
-	// download library's own rewrite, so a name this backend writes and a name
-	// the engine would have written for the same task are the same name - and
-	// a server that answers a listing with "../../etc/passwd" cannot name a
-	// file outside the download directory.
+	// collide.SafeName gives the same name the engine would write and keeps a
+	// server-supplied "../../etc/passwd" inside the download directory.
 	name := collide.SafeName(Name(t))
 	part := filepath.Join(dir, name+partSuffix)
 	b.mu.Lock()
@@ -264,11 +227,8 @@ func (b *Backend) run(taskID, link string) {
 		b.fail(taskID, fmt.Errorf("remotefs: %w", err))
 		return
 	}
-	// A part file longer than the file on the server means the server's copy
-	// changed while this download was paused. Continuing from an offset past
-	// the end would append nothing and then declare a truncated file finished,
-	// so the part is thrown away and the download starts again - which loses
-	// bytes that were, by then, bytes of a different file.
+	// A part file longer than the remote file means the server's copy changed
+	// during a pause, so the download starts over.
 	if remote.Size > 0 && offset > remote.Size {
 		if err := os.Remove(part); err != nil && !errors.Is(err, os.ErrNotExist) {
 			b.fail(taskID, fmt.Errorf("remotefs: %w", err))
@@ -282,9 +242,7 @@ func (b *Backend) run(taskID, link string) {
 	if remote.Size == 0 || offset < remote.Size {
 		if err := b.transfer(ctx, taskID, fs, t.Path, part, offset, remote.Size); err != nil {
 			if ctx.Err() != nil {
-				// Paused or removed. The status is the app's to write (see
-				// app.stop, which writes it before telling the backend), and a
-				// second one from here would race it.
+				// Paused or removed; the app has already written the status.
 				return
 			}
 			b.fail(taskID, err)
@@ -321,10 +279,8 @@ func (b *Backend) transfer(ctx context.Context, taskID string, fs FS, remotePath
 	}
 	defer rc.Close()
 
-	// A cancelled context has to break a Read that is already blocked on a
-	// socket, and neither the FTP library nor SFTP takes a context per call -
-	// so the stream is closed out from under the read, which is what makes
-	// Pause take effect in milliseconds instead of at the next TCP timeout.
+	// Neither the FTP nor the SFTP library takes a context per read, so a
+	// cancellation closes the stream under a blocked Read.
 	done := make(chan struct{})
 	defer close(done)
 	go func() {
@@ -340,29 +296,22 @@ func (b *Backend) transfer(ctx context.Context, taskID string, fs FS, remotePath
 		return fmt.Errorf("remotefs: %w", err)
 	}
 	written, copyErr := b.copy(ctx, taskID, f, rc, offset, size)
-	// Closed before the error is reported, not after: the bytes have to be on
-	// disk before anything else measures the part file, and a resume that
-	// starts from a length the operating system had not flushed yet is a hole
-	// in the middle of the file.
+	// Closed before returning, so a resume measures a flushed part file.
 	if err := f.Close(); err != nil && copyErr == nil {
 		copyErr = fmt.Errorf("remotefs: %w", err)
 	}
 	if copyErr != nil {
 		return copyErr
 	}
-	// A transfer that ended early with no error at all is the one failure a
-	// downloader must never call success: the file would be renamed to its
-	// final name, the task would go green, and the truncation would surface
-	// weeks later in whatever tried to open it.
+	// A stream that ends early without an error must not pass as finished.
 	if size > 0 && written != size {
 		return fmt.Errorf("remotefs: %s ended after %d of %d bytes", remotePath, written, size)
 	}
 	return nil
 }
 
-// copy is io.Copy with three things bolted on that io.Copy cannot have: a
-// progress report on a timer, the speed limit in force right now, and a
-// cancellation that does not wait for the next read to return.
+// copy is io.Copy with periodic progress reports, the current speed limit and
+// cancellation.
 func (b *Backend) copy(ctx context.Context, taskID string, dst io.Writer, src io.Reader, start, size int64) (int64, error) {
 	buf := make([]byte, copyBuffer)
 	total := start
@@ -379,11 +328,8 @@ func (b *Backend) copy(ctx context.Context, taskID string, dst io.Writer, src io
 			}
 			total += int64(n)
 			if want := b.limit(); want > 0 {
-				// Rebuilt only when the number actually changed, so the common
-				// case (a constant limit, or none) allocates once per download
-				// rather than once per buffer. The burst is the buffer size
-				// because WaitN refuses outright to wait for more than the
-				// burst it was built with.
+				// Rebuilt only when the limit changes. The burst is the buffer
+				// size because WaitN fails for n above the burst.
 				if lim == nil || limAt != want {
 					limAt = want
 					lim = rate.NewLimiter(rate.Limit(want), copyBuffer)
@@ -411,9 +357,7 @@ func (b *Backend) copy(ctx context.Context, taskID string, dst io.Writer, src io
 			}
 			return total, fmt.Errorf("remotefs: %w", rerr)
 		}
-		// Checked between reads as well, so a stalled server whose socket was
-		// closed by the watcher above still ends promptly even if the read
-		// returned nothing rather than an error.
+		// Also checked between reads, for a read that returned nothing.
 		if ctx.Err() != nil {
 			return total, ctx.Err()
 		}
@@ -428,15 +372,10 @@ func (b *Backend) limit() int64 {
 }
 
 // finish moves the completed part file onto its real name and reports the name
-// it ended up with.
-//
-// collide.Handover picks that name against a real reservation rather than a
-// "does it exist" test, which is what keeps two downloads finishing in the
-// same instant from both choosing "film (2).mkv". The policy is Rename and not
-// the configured one, deliberately: a delegated backend never receives the
-// collision policy (see app.HonoursCollisionPolicy, which answers false for
-// every one of them), and Rename is the only policy that neither destroys a
-// file somebody already had nor stalls a queue nobody is watching.
+// it ended up with. collide.Handover reserves the name, so two downloads
+// finishing at once cannot both pick "film (2).mkv". Delegated backends never
+// receive the configured collision policy (see app.HonoursCollisionPolicy),
+// and Rename neither destroys an existing file nor stalls the queue.
 func (b *Backend) finish(part, target string) (string, error) {
 	res, err := collide.Handover(target, collide.Rename)
 	if err != nil {

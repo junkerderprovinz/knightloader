@@ -2,13 +2,11 @@ package settings
 
 import "testing"
 
-// TestMaintenanceShipsOff is the one assertion in this file that is about a
-// person's install rather than about arithmetic. Both fields have to be at
-// their zero value out of the box, because an int absent from an older
-// settings.json unmarshals to exactly that - which is what makes the update
-// that introduces database maintenance a no-op on every instance already
-// running. A default of anything else would have somebody's database freezing
-// every write at four in the morning because they installed a new version.
+// Both fields are at their zero value out of the box, because an int absent
+// from an older settings.json unmarshals to exactly that, which is what makes
+// the update that introduces database maintenance a no-op on every instance
+// already running. Anything else would freeze somebody's database writes at
+// four in the morning because they installed a new version.
 func TestMaintenanceShipsOff(t *testing.T) {
 	d := Defaults()
 	if d.MaintenanceIntervalDays != 0 {
@@ -22,11 +20,9 @@ func TestMaintenanceShipsOff(t *testing.T) {
 	}
 }
 
-// TestSanitizeMaintenanceClampsTheInterval covers the two ends. The negative
-// case is not tidiness: the due check compares now against the armed-at stamp
-// plus the interval, so a negative one puts that moment in the past and the
-// database would compact itself on the next tick, and the tick after that, for
-// ever.
+// Both ends. The due check compares now against the armed-at stamp plus the
+// interval, so a negative one puts that moment in the past and the database
+// compacts itself on every tick.
 func TestSanitizeMaintenanceClampsTheInterval(t *testing.T) {
 	for _, c := range []struct {
 		in, want int
@@ -46,10 +42,9 @@ func TestSanitizeMaintenanceClampsTheInterval(t *testing.T) {
 	}
 }
 
-// TestCompactOnScheduleSurvivesTheScheduleBeingOff pins a deliberate
-// non-behaviour. Somebody who switches the schedule off for a fortnight and on
-// again should find their answer to "and compact too" where they left it; the
-// interface dims that switch rather than hiding it for the same reason.
+// Somebody who switches the schedule off for a fortnight and on again finds
+// their answer to "and compact too" where they left it, which is why the
+// interface dims that switch rather than hiding it.
 func TestCompactOnScheduleSurvivesTheScheduleBeingOff(t *testing.T) {
 	out := sanitize(Settings{MaintenanceIntervalDays: 0, MaintenanceCompactOnSchedule: true})
 	if !out.MaintenanceCompactOnSchedule {
@@ -57,11 +52,9 @@ func TestCompactOnScheduleSurvivesTheScheduleBeingOff(t *testing.T) {
 	}
 }
 
-// TestSanitizeMaintenanceIsInTheChain is what makes the two tests above mean
-// anything for a real save: the hooks are only run because sanitize's own list
-// names them, and a field cleaned by a function nothing calls is a field that
-// is never cleaned. Asserted through sanitize rather than through
-// sanitizeMaintenance directly for exactly that reason.
+// The hooks run only because sanitize's own list names them, and a field
+// cleaned by a function nothing calls is never cleaned. Asserted through
+// sanitize rather than sanitizeMaintenance for that reason.
 func TestSanitizeMaintenanceIsInTheChain(t *testing.T) {
 	if got := sanitize(Settings{MaintenanceIntervalDays: -5}).MaintenanceIntervalDays; got != 0 {
 		t.Errorf("sanitize left the interval at %d; sanitizeMaintenance is not in sanitize's list", got)

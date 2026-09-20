@@ -9,17 +9,13 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 )
 
-// A real magnet link, the one cmd/spike-torrent proved the whole stats path
-// against. Kept whole rather than trimmed: the parts a test would be tempted to
-// cut (the tracker list, the display name) are the parts Resolve reads.
+// A real magnet link, complete with the trackers and display name Resolve
+// reads.
 const sintelMagnet = "magnet:?xt=urn:btih:08ada5a7a6183aae1e09d831df6748d566095a10&dn=Sintel&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A6969%2Fannounce"
 
 var res Resolver
 
-// TestMatchTakesTheTwoIntakeShapesAndNothingElse. The two false cases matter
-// more than the two true ones: an https link to a .torrent file belongs to the
-// direct resolver, and claiming it here would turn a plain GET into a swarm
-// join against a file nobody has read.
+// An https link to a .torrent file belongs to the direct resolver.
 func TestMatchTakesTheTwoIntakeShapesAndNothingElse(t *testing.T) {
 	torrentBytes := singleFile(t, "movie.mkv", 4<<20)
 	cases := []struct {
@@ -47,9 +43,7 @@ func TestMatchTakesTheTwoIntakeShapesAndNothingElse(t *testing.T) {
 	}
 }
 
-// Match runs on every pasted line, so it has to survive whatever is in one
-// without taking the process down with it. A panic here is a paste box that
-// kills the app.
+// Match runs on every pasted line, so it must survive any input.
 func TestMatchDoesNotPanicOnRubbish(t *testing.T) {
 	for _, in := range []string{
 		"data:application/x-bittorrent;base64,",
@@ -70,11 +64,8 @@ func TestMatchDoesNotPanicOnRubbish(t *testing.T) {
 	}
 }
 
-// A magnet with no info hash PARSES CLEANLY in the library gopeed hands it to
-// (anacrolix's ParseMagnetV2Uri returns no error for it), and the torrent
-// client then waits forever for metadata about nothing. This is the exact
-// "accepted now, confusing failure later" shape the wave brief named, so the
-// refusal has to happen here and has to say why.
+// ParseMagnetV2Uri accepts a magnet without an info hash, and the client would
+// then wait forever for metadata.
 func TestAMagnetWithNoInfoHashIsRefusedWithAReason(t *testing.T) {
 	_, err := res.Resolve(context.Background(), resolver.Request{URL: "magnet:?dn=Something+Nice&tr=udp%3A%2F%2Ftracker.example.org%3A6969"})
 	if !errors.Is(err, ErrBadMagnet) {
@@ -85,19 +76,9 @@ func TestAMagnetWithNoInfoHashIsRefusedWithAReason(t *testing.T) {
 	}
 }
 
-// THE TWO MAGNET LINKS THAT KILL THE PROCESS, refused here so they never
-// reach the code that dies on them.
-//
-// Found by running the malformed cases rather than by reading: the torrent
-// client this app ends up inside asserts on a non-zero v1 info hash with a bare
-// panic (anacrolix/torrent Client.AddTorrentOpt, panicif.Zero), on a goroutine
-// gopeed owns, so nothing above it can recover and the whole instance goes
-// down. Both of these are a line of text somebody can paste into the add box.
-//
-// If this test ever starts failing because the refusals were relaxed, run the
-// engine's own live suite before believing the library was fixed - the failure
-// mode is a panic, not an error, and it will not show up as a red test in this
-// package.
+// Both magnets reach anacrolix/torrent's panicif.Zero on a gopeed goroutine
+// and kill the process. Before relaxing these refusals, run the engine's live
+// suite: the failure is a panic there, not a red test here.
 func TestTheTwoMagnetsThatCrashTheTorrentClientAreRefused(t *testing.T) {
 	cases := []struct {
 		name string
@@ -142,15 +123,12 @@ func TestAGoodMagnetResolvesToItselfWithItsDisplayName(t *testing.T) {
 	if got.Name != "Sintel" {
 		t.Fatalf("Name = %q, want the display name", got.Name)
 	}
-	// A resolver that states a connection count has that number read as a
-	// per-host chunk ceiling, and it means nothing to a swarm. See Direct.
+	// A connection count would be read as a per-host chunk ceiling.
 	if got.Connections != 0 {
 		t.Fatalf("Connections = %d; a torrent has no opinion about chunks", got.Connections)
 	}
 }
 
-// With no dn there is still something true to show. "download" would be a
-// guess; the info hash is the torrent.
 func TestAMagnetWithNoNameFallsBackToItsInfoHash(t *testing.T) {
 	const hash = "08ada5a7a6183aae1e09d831df6748d566095a10"
 	got, err := res.Resolve(context.Background(), resolver.Request{URL: "magnet:?xt=urn:btih:" + hash})
@@ -162,11 +140,8 @@ func TestAMagnetWithNoNameFallsBackToItsInfoHash(t *testing.T) {
 	}
 }
 
-// Resolve re-encodes the bytes it parsed rather than passing the caller's URI
-// through, so the engine can only ever be handed something that went through
-// Parse. Proven by handing in a URI whose base64 has been padded with
-// whitespace: the same bytes, a different string, and the answer has to be the
-// canonical one.
+// Resolve re-encodes the bytes it parsed, so the engine only receives what
+// went through Parse.
 func TestResolveHandsOnTheBytesItActuallyChecked(t *testing.T) {
 	raw := singleFile(t, "movie.mkv", 4<<20)
 	canonical := EncodeBytes(raw)
@@ -185,8 +160,6 @@ func TestResolveHandsOnTheBytesItActuallyChecked(t *testing.T) {
 	}
 }
 
-// A hostile .torrent must be refused HERE, by the resolver, and not left to
-// fail somewhere further in. This is the one the wave brief singled out.
 func TestResolveRefusesATraversingTorrent(t *testing.T) {
 	b := multiFile(t, "Show.S01", []fileInfo{
 		file(1024, "..", "..", "..", "etc", "passwd"),
@@ -197,8 +170,7 @@ func TestResolveRefusesATraversingTorrent(t *testing.T) {
 	}
 }
 
-// Describe is what the collector's file tree is drawn from. A magnet has no
-// tree yet and must say so by having none, not by failing.
+// A magnet has no file tree yet, which is not an error.
 func TestDescribeAnswersAnEmptyTreeForAMagnetAndARealOneForAFile(t *testing.T) {
 	md, err := res.Describe(sintelMagnet)
 	if err != nil {
@@ -229,8 +201,6 @@ func TestDescribeAnswersAnEmptyTreeForAMagnetAndARealOneForAFile(t *testing.T) {
 	}
 }
 
-// ParseUpload is the intake gate: there must be no way to get a stageable URI
-// out of it without the parse having passed.
 func TestParseUploadWillNotHandBackAURIForBytesItRefused(t *testing.T) {
 	b := multiFile(t, "..", []fileInfo{file(10, "ep01.mkv")}, false)
 	_, uri, err := ParseUpload(b)

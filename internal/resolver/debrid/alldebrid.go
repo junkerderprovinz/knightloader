@@ -54,15 +54,9 @@ func (a *AllDebrid) get(ctx context.Context, path string, q url.Values, out any)
 	return a.send(req, path, out)
 }
 
-// post sends a form-encoded call with the key in an Authorization header, which
-// is the only authentication AllDebrid documents today ("You must send the
-// apikey ... in an Authorization: Bearer header"; the agent parameter went in
-// January 2025). The GET dialect above is left exactly as it is because it is
-// what this build has been shipping and working with - this is a new call, so it
-// speaks the documented form rather than inheriting a deprecated one.
-//
-// It is also a POST because the parameter is an array: /link/infos takes link[]
-// once per link, and fifty of those belong in a body, not in a query string.
+// post sends a form-encoded call with the key as a Bearer token, the only
+// authentication AllDebrid documents. It is a POST because /link/infos takes
+// link[] once per link, and a batch of those belongs in a body.
 func (a *AllDebrid) post(ctx context.Context, path string, form url.Values, out any) error {
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, a.base+path, strings.NewReader(form.Encode()))
 	if err != nil {
@@ -75,9 +69,8 @@ func (a *AllDebrid) post(ctx context.Context, path string, form url.Values, out 
 	return a.send(req, path, out)
 }
 
-// send performs the call and unwraps AllDebrid's envelope, which is where the
-// real failure lives: the transport is happy, the status is 200, and the reason
-// nothing worked is a code inside the body.
+// send performs the call and unwraps AllDebrid's envelope, which reports
+// failures as a code in a 200 response.
 func (a *AllDebrid) send(req *http.Request, path string, out any) error {
 	resp, err := a.hc.Do(req)
 	if err != nil {
@@ -101,29 +94,17 @@ func (a *AllDebrid) send(req *http.Request, path string, out any) error {
 	return nil
 }
 
-// adBatch is how many links go into one /link/infos call. AllDebrid documents a
-// rate limit (12 requests a second, 600 a minute) but no ceiling on the size of
-// the array, so this is chosen low enough that no answer to that question can
-// break it, and high enough that a two-hundred-link collector is four calls.
+// adBatch is how many links go into one /link/infos call. AllDebrid documents
+// a rate limit but no maximum array size, so this stays conservative.
 const adBatch = 100
 
-// CheckLinks asks /link/infos about a batch of links.
+// CheckLinks asks /link/infos about a batch of links. The endpoint returns
+// name and size but no download link, so it costs no traffic.
 //
-// Free, and that was established before it was wired: /link/infos returns the
-// file name and size a hoster reports and hands back no download link at all, so
-// there is nothing for the account to be billed for. Traffic on this service is
-// spent by /link/unlock, which is the call the download path makes and this one
-// deliberately does not.
-//
-// The verdicts come from the per-link error object, which is the only place
-// AllDebrid says a link is dead: the envelope is still status "success" when
-// every link in it is gone. Only LINK_DOWN ("This link is not available on the
-// file hoster website") is the host saying the file is not there. Everything
-// else is uncheckable and deliberately so - LINK_TEMPORARY_UNAVAILABLE and
-// LINK_HOST_UNAVAILABLE are maintenance, LINK_PASS_PROTECTED is a file that
-// demonstrably exists behind a password, and LINK_IS_MISSING is not about the
-// link at all ("No link was sent"), which is exactly the sort of code that gets
-// read as "gone" by anything matching on the name.
+// Only LINK_DOWN in the per-link error means the file is gone. The other codes
+// are maintenance (LINK_TEMPORARY_UNAVAILABLE, LINK_HOST_UNAVAILABLE), a file
+// behind a password (LINK_PASS_PROTECTED) or a request problem
+// (LINK_IS_MISSING), and read as uncheckable.
 func (a *AllDebrid) CheckLinks(ctx context.Context, links []string) ([]core.Availability, error) {
 	verdict := make(map[string]core.Availability, len(links))
 	for start := 0; start < len(links); start += adBatch {
@@ -142,10 +123,8 @@ func (a *AllDebrid) CheckLinks(ctx context.Context, links []string) ([]core.Avai
 			verdict[info.Link] = info.verdict()
 		}
 	}
-	// Keyed by the link the service echoed rather than by position: nothing in
-	// AllDebrid's answer promises the order of the request, and reading it back
-	// positionally is how every verdict after one re-ordered entry lands on the
-	// wrong row. A link with no entry at all falls through to uncheckable.
+	// Matched by the echoed link because AllDebrid does not promise to keep
+	// the request order. A link without an entry ends up uncheckable.
 	out := make([]core.Availability, len(links))
 	for i, l := range links {
 		out[i] = verdict[l]
@@ -153,9 +132,7 @@ func (a *AllDebrid) CheckLinks(ctx context.Context, links []string) ([]core.Avai
 	return resolver.Answers(out, len(links)), nil
 }
 
-// adLinkInfo is one entry of /link/infos. The error is a pointer because its
-// absence is the answer: an entry that carries none is a link the hoster
-// described, which is the only "online" this endpoint gives.
+// adLinkInfo is one entry of /link/infos. An entry without an error is online.
 type adLinkInfo struct {
 	Link  string `json:"link"`
 	Error *struct {
@@ -193,20 +170,10 @@ func (a *AllDebrid) Hosts(ctx context.Context) (map[string]bool, error) {
 	return set, nil
 }
 
-// Account reads /user: plan and premium expiry.
-// https://docs.alldebrid.com/#user - field names verified against that page
-// (isPremium, isTrial, premiumUntil).
-//
-// AllDebrid documents no overall byte cap for a premium account - its own
-// pitch is unlimited hosts, and the FAQ's caveat is entirely about individual
-// "limited hosts" sharing a quota among every AllDebrid user
-// (limitedHostersQuotas in this same response), not about this account's own
-// traffic. So a premium (or trial) account reads Unlimited here rather than a
-// made-up ceiling; the per-hoster figure is a different axis this one
-// account-wide reading does not attempt to collapse into a single number. A
-// free account (isPremium and isTrial both false) has no unlock capability at
-// all, so Traffic stays the zero value - not Unlimited, and not a fabricated
-// limit either.
+// Account reads /user (https://docs.alldebrid.com/#user) for plan and premium
+// expiry. AllDebrid has no account-wide byte cap for premium, only quotas on
+// some hosts shared by all users, so a premium account reads Unlimited. A free
+// account cannot unlock and keeps zero Traffic.
 func (a *AllDebrid) Account(ctx context.Context) (AccountInfo, error) {
 	var data struct {
 		User struct {

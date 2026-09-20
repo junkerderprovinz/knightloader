@@ -21,8 +21,8 @@ func sanitizeArchives(n Settings) Settings {
 	n.ExtractTo = strings.TrimSpace(n.ExtractTo)
 	// A relative extraction folder has the same problem as a relative download
 	// folder: it resolves against whatever the process's working directory
-	// happens to be, which is not something a user can reason about. Dropping
-	// it falls back to "beside the archive", which is always somewhere real.
+	// happens to be. Dropping it falls back to beside the archive, which is
+	// always somewhere real.
 	//
 	// The check is against the fixed prefix, because this folder may be a
 	// template: "/unpacked/<jd:packagename>" is absolute and "<jd:date>" alone
@@ -31,11 +31,9 @@ func sanitizeArchives(n Settings) Settings {
 	if n.ExtractTo != "" && !filepath.IsAbs(fixedPrefix(n.ExtractTo)) {
 		n.ExtractTo = ""
 	}
-	// Both of these go through the parser that the extractor itself uses, so an
-	// unknown word becomes the same thing here as it would there. Storing the
-	// folded value rather than the raw one means the settings file says what
-	// the app will actually do, which is the difference between a user reading
-	// their own configuration and guessing at it.
+	// Both go through the parser the extractor uses, so an unknown word becomes
+	// the same thing here as it would there. Storing the folded value rather
+	// than the raw one means the settings file says what the app will do.
 	n.ArchiveDisposal = string(extract.ParseDisposal(n.ArchiveDisposal))
 	n.ExtractCollision = string(extract.ParseCollision(n.ExtractCollision))
 	if n.TrashRetentionDays < 0 {

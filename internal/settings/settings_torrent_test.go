@@ -2,11 +2,9 @@ package settings
 
 import "testing"
 
-// TestTorrentDefaultsMirrorGopeedsOwn pins the numbers in defaultTorrent
-// against the vendored source they were read from (see the field doc
-// comments on Torrent), so a dependency bump that changes gopeed's own
-// DefaultConfig is a failing test here rather than a silent drift between
-// what this app claims its default is and what gopeed's actually does.
+// The numbers in defaultTorrent are gopeed's, so a dependency bump that changes
+// its DefaultConfig fails here rather than drifting between what this app
+// claims its default is and what gopeed does.
 func TestTorrentDefaultsMirrorGopeedsOwn(t *testing.T) {
 	d := Defaults()
 	if d.Torrent.SeedRatioTarget != 1.0 {
@@ -29,12 +27,9 @@ func TestTorrentDefaultsMirrorGopeedsOwn(t *testing.T) {
 	}
 }
 
-// TestSanitizeTorrentFloorsNegativesAndBadPort pins the one rule this domain
-// has: nothing typed into a number field can produce a value with no honest
-// meaning. It deliberately starts from non-default settings rather than
-// Defaults(), the same as TestSanitizeKeepsLimitsUsable does for the older
-// fields, so this is proven against an arbitrary bad document and not just
-// the one this package happens to write out today.
+// Nothing typed into a number field produces a value with no honest meaning.
+// The cases start from arbitrary settings rather than Defaults(), as
+// TestSanitizeKeepsLimitsUsable does, so this holds for any bad document.
 func TestSanitizeTorrentFloorsNegativesAndBadPort(t *testing.T) {
 	cases := []struct {
 		name string
@@ -77,11 +72,9 @@ func TestSanitizeTorrentFloorsNegativesAndBadPort(t *testing.T) {
 	}
 }
 
-// TestEffectiveDHTPEXPrivateAlwaysWins is decision 5 of the grilling, as a
-// table: whatever the instance default says, a private torrent's own
-// EffectiveDHT/EffectivePEX is always false, and a non-private torrent's is
-// exactly the instance default, in both directions - a setting that is off
-// must not somehow read as on for an ordinary public torrent either.
+// Whatever the instance default says, a private torrent's EffectiveDHT and
+// EffectivePEX are false, and a public torrent's are the instance default in
+// both directions: a setting that is off must not read as on either.
 func TestEffectiveDHTPEXPrivateAlwaysWins(t *testing.T) {
 	cases := []struct {
 		name              string

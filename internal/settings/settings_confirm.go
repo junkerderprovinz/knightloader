@@ -1,10 +1,9 @@
 package settings
 
-// settings_confirm.go: the confirm-time policy this instance applies when a
-// batch leaves the collector - OnDupes, OnOffline, AddAtTop and the
-// AutoConfirm/AutoConfirmDelay/AutoStart split (see their own doc comments
-// on the Settings struct in settings.go) - plus the one migration that split
-// demands from every existing install.
+// The confirm-time policy this instance applies when a batch leaves the
+// collector: OnDupes, OnOffline, AddAtTop and the AutoConfirm,
+// AutoConfirmDelay and AutoStart split, whose doc comments are on the Settings
+// struct, plus the migration that split demands from every existing install.
 
 import (
 	"encoding/json"
@@ -13,18 +12,16 @@ import (
 )
 
 // sanitizeConfirm folds OnDupes and OnOffline onto a policy this instance can
-// actually apply as a GLOBAL default: any of the four real outcomes, never
-// UseGlobal (a default cannot defer to itself) and never anything this build
-// does not recognise - confirm.Parse already refuses both by falling back to
-// confirm.DefaultPolicy, the same "an unreadable settings file can never stop
-// links from being added" rule sanitizeIntake applies to MirrorPolicy and
-// CollisionPolicy just above.
+// apply as a global default: any of the four real outcomes, never UseGlobal,
+// since a default cannot defer to itself, and never a value this build does not
+// recognise. confirm.Parse refuses both by falling back to
+// confirm.DefaultPolicy, the rule sanitizeIntake applies to MirrorPolicy and
+// CollisionPolicy so that an unreadable settings file can never stop links from
+// being added.
 //
-// AutoConfirmDelay is clamped the same way MaxRetries is: a negative number
-// makes no sense as a wait, and a delay above a day is almost certainly a
-// stray digit rather than a real preference - the countdown this bounds is
-// meant to be read by a person watching it count down, not set once and
-// forgotten for a week.
+// AutoConfirmDelay is clamped the way MaxRetries is: a negative number is not a
+// wait, and a delay above a day is a stray digit. The countdown it bounds is
+// meant to be watched.
 func sanitizeConfirm(n Settings) Settings {
 	n.OnDupes = string(confirm.Parse(n.OnDupes))
 	n.OnOffline = string(confirm.Parse(n.OnOffline))
@@ -38,38 +35,26 @@ func sanitizeConfirm(n Settings) Settings {
 	return n
 }
 
-// migrateAutoStart maps the single autoStart flag an older build wrote onto
-// the three fields that replaced it - AutoConfirm (skip the collector
-// without a click), AutoConfirmDelay (how long to wait first, which the old
-// flag never had at all) and AutoStart (once something reaches the queue -
-// by hand or on its own - start it immediately). It runs on the raw bytes,
-// once, at load, for the reason migrateArchiveDisposal does: AutoStart keeps
-// its JSON key across the split but changes what it means, so letting a
-// legacy document's "autoStart" reach the new AutoStart field through the
-// ordinary json.Unmarshal in Load (which it does, same key, same type) would
-// carry the OLD meaning into the field under its NEW one.
+// migrateAutoStart maps the single autoStart flag an older build wrote onto the
+// three fields that replaced it: AutoConfirm, AutoConfirmDelay and AutoStart.
+// It runs on the raw bytes, once, at load, for the reason
+// migrateArchiveDisposal does: AutoStart keeps its JSON key across the split
+// but changes what it means, so a legacy document's "autoStart" reaching the
+// new field through the ordinary json.Unmarshal in Load would carry the old
+// meaning into the field under its new one.
 //
-// Detected by the absence of autoConfirm, a key no build before this one
-// ever wrote. Its presence - even false - means this document already
-// carries the split, and nothing here may touch it: a save from a client
-// that deliberately turned autoConfirm off would otherwise be undone on
-// every later load, exactly the trap TestTheNewKeyWinsOverTheOldBoolean
-// already pins for the archive-disposal migration.
+// The absence of autoConfirm, a key no earlier build wrote, is what marks a
+// legacy document. Its presence, even false, means the document already carries
+// the split and nothing here may touch it, or a save from a client that turned
+// autoConfirm off would be undone on every later load.
 //
-// The old flag conflated confirm and start, and there is nothing on a
-// legacy document to tell the two apart, so both new fields inherit its one
-// value - true maps to both true, or every install that had it on wakes up
-// with every future batch parked in the collector, confirmed by nothing.
-// False maps AutoConfirm to false, matching exactly what an unset flag
-// always did (nothing was ever auto-confirmed), and AutoStart to true
-// regardless of which way the old flag pointed: false only ever governed
-// whether a batch skipped the collector on its own, and the one route that
-// was ALWAYS there before this split - a person clicking "start" on a
-// collected batch - has always started it immediately once clicked. That
-// behaviour has nothing to do with the old flag and nothing here may change
-// it retroactively, which is why AutoStart's own default (Defaults, above)
-// already agrees with this unconditionally, for the installs that carry no
-// legacy flag to read at all.
+// The old flag conflated confirm and start, and a legacy document has nothing
+// to tell the two apart. True maps to AutoConfirm true, or every install that
+// had it on wakes up with every future batch parked in the collector. False
+// maps AutoConfirm to false, which is what an unset flag always did, and
+// AutoStart to true either way: clicking "start" on a collected batch has
+// always started it, and the old flag only governed whether a batch skipped the
+// collector on its own.
 func migrateAutoStart(raw []byte, n Settings) Settings {
 	var old struct {
 		AutoStart   *bool `json:"autoStart"`

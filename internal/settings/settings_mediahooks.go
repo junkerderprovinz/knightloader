@@ -6,21 +6,18 @@ package settings
 // file is only the settings document's half: where the list hangs, what a save
 // refuses, and what the sanitiser does with a hand-edited file.
 //
-// WHY THE LIST IS HERE AND THE VALUE IS NOT. The address, the method, the header
-// NAME and the wait are configuration: they belong in settings.json, they belong
-// in a backup, and they belong in the diagnostics bundle where somebody helping
-// with a bug report can see them. The header VALUE is a credential and is sealed
-// in accounts.Store instead - see internal/mediahook's package comment for the
-// three separate places a string field on this struct would have leaked it.
+// The address, the method, the header name and the wait are configuration: they
+// belong in settings.json, in a backup, and in the diagnostics bundle somebody
+// helping with a bug report reads. The header value is a credential and is
+// sealed in accounts.Store instead, see internal/mediahook's package comment
+// for the places a string field here would have leaked it.
 //
-// WHY THE DRAWER POINTS AT THE HOOK AND NOT THE OTHER WAY ROUND. A drawer is
-// already the thing with an identity, a picker, a table and a settings home
-// (settings_categories.go), and its id is stable by construction. The two
-// rejected anchors both fail on identity: a Packagizer rule's identity is its
-// NAME, which falls back to its POSITION when it has none (rules.ruleName), so a
-// hook keyed on a rule would break the moment somebody renamed or reordered
-// their rules; and a resolved folder prefix is not an identity at all, it is a
-// string that changes when a template variable expands differently.
+// The drawer points at the hook rather than the other way round, because a
+// drawer already has an identity, a picker, a table and a settings home
+// (settings_categories.go), and its id is stable by construction. Both other
+// anchors fail on identity: a Packagizer rule's identity is its name, falling
+// back to its position when it has none (rules.ruleName), and a resolved folder
+// prefix changes when a template variable expands differently.
 
 import (
 	"fmt"
@@ -41,17 +38,15 @@ func sanitizeMediaHooks(n Settings) Settings {
 // ValidateMediaHooks reports the first thing wrong with the table, in words
 // meant for whoever is looking at the form.
 //
-// Refusal rather than sanitising, for the reason validateRows exists at all: a
-// row that vanishes on save is a row the user goes on believing in, and this one
-// would go on believing in it while their library quietly stopped being scanned.
+// Refusal rather than sanitising, for the reason validateRows exists: a row
+// that vanishes on save is a row the user goes on believing in, here while
+// their library stops being scanned.
 //
-// It also checks the references INTO the table from the drawers, and that is the
-// same asymmetry ValidateCategories draws for the Packagizer: a drawer pointing
-// at an address that is not there is a drawer that calls nothing, silently, on
-// every package ever filed in it - which is the exact failure this feature
-// exists to end. A TASK's own dead category id, by contrast, is history and is
-// left alone; there is no equivalent of that here, because nothing but a drawer
-// ever names a hook.
+// It also checks the references into the table from the drawers, the asymmetry
+// ValidateCategories draws for the Packagizer: a drawer pointing at an address
+// that is not there calls nothing on every package filed in it. Nothing but a
+// drawer ever names a hook, so there is no equivalent of a task's dead category
+// id to leave alone.
 func (s Settings) ValidateMediaHooks() error {
 	if len(s.MediaHooks) > mediahook.MaxHooks {
 		return fmt.Errorf("there are %d stored addresses; the limit is %d", len(s.MediaHooks), mediahook.MaxHooks)
@@ -83,9 +78,8 @@ func (s Settings) ValidateMediaHooks() error {
 
 // categoryKey names a drawer the way a message about it has to: its own id when
 // it has one, otherwise the id its name would produce, which is what the save
-// would have stored. It is not categoryLabel's job (that one is for humans and
-// prefers the name); this one has to name the KEY, because the key is what the
-// dangling reference is about.
+// would have stored. It names the key rather than the label, because the key is
+// what a dangling reference is about.
 func categoryKey(c Category) string {
 	if id := CategoryID(c.ID); id != "" {
 		return id
@@ -93,20 +87,16 @@ func categoryKey(c Category) string {
 	return CategoryID(c.Name)
 }
 
-// NotifyHookFor is the address a drawer calls, or "" when it calls nothing -
-// which is every drawer until somebody changes it, and every drawer whose id
-// names no category at all.
+// NotifyHookFor is the address a drawer calls, or "" when it calls nothing,
+// which is every drawer until somebody changes it and every id that names no
+// category.
 func (s Settings) NotifyHookFor(categoryID string) string {
 	return mediahook.HookID(s.CategoryFor(categoryID).Notify)
 }
 
 // MediaHookUsers is every drawer pointing at one address, by category id,
-// sorted.
-//
-// Two callers, and they are the reason it is here rather than in either route:
-// the listing says "picked on N drawers" so that an address nothing calls can be
-// recognised as stored-and-idle, and the delete refuses with the drawers named
-// so that "it will not delete" is answerable rather than mysterious.
+// sorted. The listing counts the drawers so an address nothing calls reads as
+// stored and idle, and a refused delete names them.
 func (s Settings) MediaHookUsers(hookID string) []string {
 	want := mediahook.HookID(hookID)
 	if want == "" {
@@ -127,7 +117,7 @@ func (s Settings) MediaHookUsers(hookID string) []string {
 
 // MediaHookFor is one stored address by id, and false when nothing is stored
 // under that name. The lookup every route and the runner make, in one place, so
-// that "an id names nothing" is answered the same way everywhere.
+// that an id naming nothing is answered the same way everywhere.
 func (s Settings) MediaHookFor(id string) (mediahook.Hook, bool) {
 	want := mediahook.HookID(id)
 	if want == "" {

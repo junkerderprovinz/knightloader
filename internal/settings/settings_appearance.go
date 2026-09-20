@@ -16,20 +16,15 @@ const (
 	ShapeSquare = "square"
 )
 
-// How much of a navigation entry is drawn: in the sidebar, and in the settings
-// rail, which are the app's two sets of tabs (jdp, 2026-08-27: "Man soll per
-// horizontalem Selektor wählen können ob bei den Tabs (Settings und Sidebar)
-// nur glyph, nur text oder text und glyph angezeigt werden soll oder glyph und
-// text nur bei mouseover").
+// How much of a navigation entry is drawn, in the sidebar and in the settings
+// rail, the app's two sets of tabs.
 //
-// NavLabelsHover is the interesting one and deserves saying out loud, because
-// it is not the collapsing rail it sounds like: NOTHING resizes. The tile and
-// the sidebar row keep the exact size they have in NavLabelsBoth; at rest the
-// glyph sits centred in that space, and on hover it moves aside - up in a
-// settings tile, left in a sidebar row - and the label appears in the room it
-// leaves. jdp's own description, and better than the three alternatives
-// offered: a rail that grows or overlays on hover moves the page under the
-// pointer, and this one cannot.
+// NavLabelsHover is not the collapsing rail it sounds like: nothing resizes.
+// The tile and the sidebar row keep the size they have in NavLabelsBoth; at
+// rest the glyph sits centred in that space, and on hover it moves aside, up in
+// a settings tile and left in a sidebar row, with the label appearing in the
+// room it leaves. A rail that grows or overlays on hover moves the page under
+// the pointer, and this one cannot.
 const (
 	NavLabelsBoth  = "both"
 	NavLabelsGlyph = "glyph"

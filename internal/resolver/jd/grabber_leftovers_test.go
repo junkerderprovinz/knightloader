@@ -11,19 +11,9 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/core"
 )
 
-// fakeJDDupes is a JD with its duplicate manager switched on, which is how the
-// shipped one is configured and how the live instance was measured
-// (cfg/jd.controlling.linkcollector.LinkCollectorConfig.json:
-// "dupemanagerenabled":true, and LinkgrabberSettings
-// "defaultonaddeddupeslinksaction":"ASK" - a question a headless JD has nobody
-// to ask).
-//
-// The behaviour that matters is the silent half: a crawl whose links are
-// already sitting in the link grabber produces NOTHING. No package, no empty
-// package, no error, no log line. Measured on the live instance on 2026-09-13:
-// a Troja DLC whose nineteen links were all present as KnightLoader leftovers
-// created no package at all, and the same file created one holding exactly one
-// link the moment one leftover was deleted.
+// fakeJDDupes is a JD with its duplicate manager on, as shipped
+// ("dupemanagerenabled":true). A crawl whose links are already in the grabber
+// produces nothing: no package, no error, no log line.
 type fakeJDDupes struct {
 	t  *testing.T
 	mu sync.Mutex
@@ -112,9 +102,8 @@ func (f *fakeJDDupes) handler() http.Handler {
 			decodeCallParams(f.t, r.URL.RawQuery, &params)
 			f.mu.Lock()
 			defer f.mu.Unlock()
-			// This JD is the measured one: it does not know the jobUUIDs key, so
-			// it answers that query with the whole grabber. Backend's probe is
-			// what has to notice.
+			// Like the shipped JD, this one ignores jobUUIDs and answers with
+			// the whole grabber.
 			var links []grabLink
 			if len(params) > 0 && len(params[0].PackageUUIDs) > 0 {
 				ids := map[int64]bool{}
@@ -165,8 +154,8 @@ func (f *fakeJDDupes) handler() http.Handler {
 	})
 }
 
-// trojaContents is the container that would not open: three links that are also
-// already sitting in the grabber as KnightLoader's own leftovers.
+// trojaContents is a container whose three links also sit in the grabber as
+// KnightLoader's own leftovers.
 func trojaContents() []grabLink {
 	return []grabLink{
 		{UUID: 701, URL: "https://rapidgator.example/file/aaa", Name: "troja.part01.rar", BytesTotal: 4096, Availability: "ONLINE"},
@@ -175,10 +164,8 @@ func trojaContents() []grabLink {
 	}
 }
 
-// leftoverPackages is what a JD looks like after KnightLoader has staged those
-// same links through Backend.Download and never taken them out again: one
-// abandoned "KL-<task id>" package per link, plus a package of the user's own
-// that is none of our business.
+// leftoverPackages holds one abandoned "KL-<task id>" package per link of
+// trojaContents, plus a package of the user's own.
 func leftoverPackages() []grabPkg {
 	return []grabPkg{
 		{uuid: 601, name: "KL-107a116b0657e424", links: []grabLink{
@@ -196,18 +183,8 @@ func leftoverPackages() []grabPkg {
 	}
 }
 
-// TestAddContainerClearsItsOwnLeftoversBeforeOpening is the measured failure,
-// in a test.
-//
-// JDownloader drops a crawled link that is already in its grabber, silently.
-// KnightLoader stages every JD-routed download into that same grabber as
-// "KL-<task id>" and never takes it back out, so after one container has been
-// downloaded once, its links sit there for ever and the SAME container can
-// never be opened again: the crawl yields nothing, JD says nothing, and the
-// upload runs into its full timeout.
-//
-// The leftovers are KnightLoader's own rubbish, so KnightLoader clears them.
-// The user's own package is not ours and must survive.
+// Without the sweep JD's duplicate manager would drop every link of the
+// container. The user's own package must survive it.
 func TestAddContainerClearsItsOwnLeftoversBeforeOpening(t *testing.T) {
 	fastPoll(t)
 
@@ -242,13 +219,8 @@ func TestAddContainerClearsItsOwnLeftoversBeforeOpening(t *testing.T) {
 	}
 }
 
-// TestSweepKeepsWhatIsStillInFlight is the price of the sweep, and the reason
-// it is not a blanket "delete everything called KL-".
-//
-// A download that was handed to JD moments ago has a "KL-<task id>" package in
-// the grabber that is mid-crawl, and a second container being opened at the
-// same time has its own marker package there. Neither is abandoned, and
-// sweeping either would kill a job that is working.
+// A running download, container or check holds its package, and the sweep
+// must leave those alone.
 func TestSweepKeepsWhatIsStillInFlight(t *testing.T) {
 	f := &fakeJDDupes{t: t, packages: []grabPkg{
 		{uuid: 611, name: "KL-aaaabbbbccccdddd"},            // a live download
@@ -283,14 +255,7 @@ func TestSweepKeepsWhatIsStillInFlight(t *testing.T) {
 	}
 }
 
-// TestPausedTaskSurvivesTheSweep closes the one hole the sweep's safety
-// argument has.
-//
-// "A package nothing is watching is abandoned" is true of every state except
-// one: a paused task is alive, the user means to come back to it, and nothing
-// is watching it. Pause a download while JD is still crawling it, open a
-// container in the same few seconds, and a sweep with no memory of the pause
-// would take the crawl away under it.
+// A paused task has no poller but is not abandoned.
 func TestPausedTaskSurvivesTheSweep(t *testing.T) {
 	f := &fakeJDDupes{t: t, packages: []grabPkg{
 		{uuid: 631, name: "KL-aaaabbbbccccdddd"},
@@ -305,7 +270,7 @@ func TestPausedTaskSurvivesTheSweep(t *testing.T) {
 	defer srv.Close()
 
 	b := NewBackend(srv.URL, func(string, core.Update) {})
-	// A poller is watching, exactly as Download would have left it.
+	// A poller is watching, as Download would have left it.
 	stop := make(chan struct{})
 	b.mu.Lock()
 	b.stop["aaaabbbbccccdddd"] = stop
@@ -332,13 +297,8 @@ func TestPausedTaskSurvivesTheSweep(t *testing.T) {
 	}
 }
 
-// TestRemoveTakesTheTaskOutOfTheGrabberToo pins the leak at its source.
-//
-// Remove used to clear the DOWNLOAD list only. A task whose link never got that
-// far - and on the measured instance twenty-three had not - left its grabber
-// package behind for ever, JD reloads the grabber on every restart
-// (GeneralSettings "savelinkgrabberlistenabled":true), and from then on every
-// container carrying that link opens into nothing.
+// A task whose link never reached the download list still has a package in
+// the grabber, which JD keeps across restarts.
 func TestRemoveTakesTheTaskOutOfTheGrabberToo(t *testing.T) {
 	f := &fakeJDDupes{t: t, packages: []grabPkg{
 		{uuid: 621, name: "KL-107a116b0657e424", links: []grabLink{

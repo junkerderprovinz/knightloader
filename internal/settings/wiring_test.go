@@ -12,8 +12,7 @@ import (
 )
 
 // brokenFilter is a rule set nobody can compile: the pattern opens a group it
-// never closes. It is the shape the whole "do not sanitise a rule list" decision
-// exists for.
+// never closes.
 func brokenFilter() rules.Set {
 	return rules.Set{
 		StopAfterMatch: true,
@@ -27,10 +26,10 @@ func brokenFilter() rules.Set {
 	}
 }
 
-// TestBrokenRuleSurvivesTheRoundTrip is the reason neither rule list has a
-// sanitiser. A rule the engine cannot compile is exactly the rule the user has
-// to see: dropped on save it disappears from the form with nothing to explain
-// it, and for a filter that means links they go on believing are being blocked.
+// Why neither rule list has a sanitiser. A rule the engine cannot compile is
+// the rule somebody has to see: dropped on save it disappears from the form
+// with nothing to explain it, and for a filter that means links they go on
+// believing are blocked.
 func TestBrokenRuleSurvivesTheRoundTrip(t *testing.T) {
 	dir := t.TempDir()
 	st, err := Load(dir)
@@ -65,8 +64,8 @@ func TestBrokenRuleSurvivesTheRoundTrip(t *testing.T) {
 		t.Errorf("the reloaded rule is named %q", back.LinkFilter.Rules[0].Name)
 	}
 
-	// And it is still reportable, which is the other half of the bargain: the
-	// rule is kept unusable, not kept and quietly applied.
+	// And it is still reportable: the rule is kept unusable rather than kept
+	// and applied.
 	m, problems := rules.Compile(back.LinkFilter)
 	if len(problems) != 1 {
 		t.Fatalf("Compile reported %d problems, want the broken rule named", len(problems))
@@ -76,11 +75,10 @@ func TestBrokenRuleSurvivesTheRoundTrip(t *testing.T) {
 	}
 }
 
-// TestSanitizeKeepsWhatOnlyTheUserCanFix pins which of the new fields are folded
-// onto a safe value and which are left exactly as written. The split is the
-// whole design: a policy string is a choice from a fixed menu and folding an
-// unknown one costs nothing, while a rule list or a timetable is text the user
-// wrote and folding it means deleting their work.
+// Which fields are folded onto a safe value and which are left as written. A
+// policy string is a choice from a fixed menu and folding an unknown one costs
+// nothing, while a rule list or a timetable is text somebody wrote, and folding
+// that deletes their work.
 func TestSanitizeKeepsWhatOnlyTheUserCanFix(t *testing.T) {
 	// A window a compiler would refuse: no weekday ticked.
 	badWindow := schedule.Entry{Start: "22:00", End: "06:00", Action: schedule.ActionPause}

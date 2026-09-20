@@ -22,9 +22,8 @@ func TestSanitizeCaptchaEmptyStaysNil(t *testing.T) {
 	}
 }
 
-// TestDefaultsHaveNoCaptchaSolverOrder guards the fresh-install behaviour
-// Settings.CaptchaSolverOrder's own doc comment promises: nothing tried
-// automatically, straight to the human prompt, until a person configures one.
+// Nothing is tried automatically on a fresh install, straight to the human
+// prompt, until somebody configures a solver.
 func TestDefaultsHaveNoCaptchaSolverOrder(t *testing.T) {
 	if got := Defaults().CaptchaSolverOrder; len(got) != 0 {
 		t.Errorf("Defaults().CaptchaSolverOrder = %v, want empty", got)

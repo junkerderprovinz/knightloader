@@ -16,15 +16,11 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/rules"
 )
 
-// leaked is the value every assertion in this file hunts for. It is one
-// distinctive string so that a hit anywhere is unambiguous.
+// leaked is the value every assertion in this file hunts for.
 const leaked = "SECRET-tR7q-nobody-may-print-this"
 
 // renderings is every way a value can end up in a log line, a JSON response or
-// a diagnostics bundle. fmt reaches Stringer for %v, %s and %+v and GoStringer
-// for %#v; encoding/json reaches MarshalJSON. A type that closes all five
-// cannot be printed wrongly by accident, which is the property this package
-// needs and a "remember to redact at the call site" rule can never have.
+// a diagnostics bundle.
 func renderings(t *testing.T, v any) map[string]string {
 	t.Helper()
 	out := map[string]string{
@@ -66,8 +62,6 @@ func leakProfile(t *testing.T, origin string) Set {
 	return set
 }
 
-// TestTheTypesThemselvesCannotPrintAHeader is the first line of defence: no
-// call site has to remember anything, because the value has no printable form.
 func TestTheTypesThemselvesCannotPrintAHeader(t *testing.T) {
 	set := leakProfile(t, "https://box.lan")
 	mustNotLeak(t, "a Set", set)
@@ -75,20 +69,14 @@ func TestTheTypesThemselvesCannotPrintAHeader(t *testing.T) {
 	for _, h := range set.Headers {
 		mustNotLeak(t, "one Header", h)
 	}
-	// The names still come through, or a settings page could not say what a
-	// profile holds.
+	// The names still come through for the settings page.
 	if got := fmt.Sprintf("%v", set); !strings.Contains(got, "X-Auth-Token") {
 		t.Errorf("a redacted Set prints as %q, and a settings page needs the names in it", got)
 	}
 }
 
-// TestARuleSetCarriesTheNameAndNeverTheHeaders is the diagnostics-bundle case
-// and the reason rules.Action.Headers is a profile name.
-//
-// internal/api/routes_diagnostics.go serialises settings.Settings, which holds
-// the Packagizer rule set, into the file a person attaches to a public bug
-// report. A header value in a rule action would be in every one of those
-// forever.
+// Rule sets end up in the diagnostics bundle, so a rule names a profile and
+// never carries header values.
 func TestARuleSetCarriesTheNameAndNeverTheHeaders(t *testing.T) {
 	set := rules.Set{Rules: []rules.Rule{{
 		Name:       "forum attachments",
@@ -108,10 +96,6 @@ func TestARuleSetCarriesTheNameAndNeverTheHeaders(t *testing.T) {
 	mustNotLeak(t, "a rule effect", effect)
 }
 
-// TestTheSealedFileHoldsCiphertextOnly is the at-rest half. It is the same
-// assertion internal/accounts' own round-trip test makes, repeated here
-// because this package is what decides which file the values land in - and
-// landing in settings.json instead would defeat every other test above.
 func TestTheSealedFileHoldsCiphertextOnly(t *testing.T) {
 	dir := t.TempDir()
 	acc, err := accounts.Open(dir)
@@ -129,16 +113,12 @@ func TestTheSealedFileHoldsCiphertextOnly(t *testing.T) {
 	if strings.Contains(string(b), leaked) {
 		t.Fatal("the header value is in accounts.json in the clear")
 	}
-	// And it really is stored, or the assertion above would be satisfied by
-	// the feature simply not working.
+	// It must still be stored, or the check above proves nothing.
 	if got := store.Get("forum").Attach("https://forum.example.org/x"); got["X-Auth-Token"] != leaked {
 		t.Fatalf("the profile did not survive the round trip: %v", store.Get("forum"))
 	}
 }
 
-// TestTheSettingsListingHasNoValuesInIt is the HTTP-response case: whatever
-// route eventually renders the profile list serialises this, and a value in it
-// would go straight to a browser.
 func TestTheSettingsListingHasNoValuesInIt(t *testing.T) {
 	store := NewStore(mustAccounts(t))
 	if err := store.Save("forum", leakProfile(t, "https://forum.example.org")); err != nil {
@@ -154,15 +134,9 @@ func TestTheSettingsListingHasNoValuesInIt(t *testing.T) {
 	mustNotLeak(t, "the settings listing", list)
 }
 
-// TestNoUpdateTheAppWOULDPUBLISHCarriesAHeader walks every answer this package
-// gives on a download path and serialises the core.Update the dispatcher
-// builds from it, the way internal/app does on a resolve failure
-// (core.Update{Status: StatusError, Err: err.Error()}) and on a success.
-//
-// An Update is the value that reaches the task list, the log ring and from
-// there the diagnostics bundle, so this is the shape that actually has to be
-// clean - not just the types.
-func TestNoUpdateTheAppWOULDPUBLISHCarriesAHeader(t *testing.T) {
+// The core.Update the dispatcher builds from each resolve outcome reaches the
+// task list, the log and the diagnostics bundle, so none may carry a value.
+func TestNoPublishedUpdateCarriesAHeader(t *testing.T) {
 	cdn := newSite(t)
 	cdn.serve(func(w http.ResponseWriter, r *http.Request) { http.Error(w, "no", http.StatusForbidden) })
 
@@ -184,9 +158,8 @@ func TestNoUpdateTheAppWOULDPUBLISHCarriesAHeader(t *testing.T) {
 	}
 	res := Resolver{Profiles: store}
 
-	// Every path a link can take through this resolver, including the two that
-	// fail. A dead host is included because an unreachable server is where a
-	// naive implementation puts the whole request into the error string.
+	// Includes an unreachable host, whose error is where a request most
+	// easily ends up in the message.
 	links := []string{
 		forum.URL + "/file.zip",
 		forum.URL + "/away",
@@ -199,9 +172,7 @@ func TestNoUpdateTheAppWOULDPUBLISHCarriesAHeader(t *testing.T) {
 			mustNotLeak(t, "the error for "+link, core.Update{Status: core.StatusError, Err: err.Error()})
 			continue
 		}
-		// The Update the dispatcher publishes. Result.Headers is deliberately
-		// NOT part of it: it goes to engine.Job and nowhere else, which is the
-		// one place a header value is allowed to be.
+		// Result.Headers goes only to engine.Job, never into an Update.
 		mustNotLeak(t, "the update for "+link, core.Update{
 			Status: core.StatusRunning,
 			Name:   result.Name,
@@ -212,9 +183,6 @@ func TestNoUpdateTheAppWOULDPUBLISHCarriesAHeader(t *testing.T) {
 	}
 }
 
-// TestAnErrorNeverQuotesTheValueItRefused: the error paths are where a value
-// most easily escapes, because the natural sentence to write names the thing
-// that was wrong with it.
 func TestAnErrorNeverQuotesTheValueItRefused(t *testing.T) {
 	long := leaked + strings.Repeat("x", MaxValueLen)
 	cases := []struct {

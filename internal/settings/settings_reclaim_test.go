@@ -9,15 +9,11 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/reclaim"
 )
 
-// TestAnUpgradeGetsNoDiskRunAtBoot is the promise the whole "already on the
-// disk" pass has to keep to somebody who did nothing but install an update:
-// the settings document gains a POLICY and no switch, so there is nothing in
-// here that a new version could set and thereby hand them a scan of a
-// ten-thousand-row list in front of the queue.
-//
-// It is written as an assertion about the keys rather than as a comment,
-// because "there is no boot switch" is exactly the kind of promise a later
-// wave adds a field to without noticing.
+// The settings document gains a policy and no switch, so there is nothing a new
+// version could set that hands somebody a scan of a ten-thousand-row list in
+// front of the queue. Asserted about the keys rather than said in a comment,
+// because "there is no boot switch" is the kind of promise a later field breaks
+// without anybody noticing.
 func TestAnUpgradeGetsNoDiskRunAtBoot(t *testing.T) {
 	b, err := json.Marshal(Defaults())
 	if err != nil {
@@ -38,11 +34,10 @@ func TestAnUpgradeGetsNoDiskRunAtBoot(t *testing.T) {
 	}
 }
 
-// TestTheDefaultTrustIsTheRecordTier pins the middle rung. The strict tier
-// would make the feature a no-op for anybody whose hosters publish no hashes,
-// and the most trusting one is wrong often enough to matter on a build whose
-// download library creates the destination file at full length before it
-// fetches a byte (see reclaim.Trust).
+// The middle rung. The strict tier makes the feature a no-op for anybody whose
+// hosters publish no hashes, and the most trusting one is wrong often enough to
+// matter on a build whose download library creates the destination file at full
+// length before it fetches a byte (see reclaim.Trust).
 func TestTheDefaultTrustIsTheRecordTier(t *testing.T) {
 	if got := Defaults().ReclaimTrust; got != ReclaimTrustRecord {
 		t.Errorf("default ReclaimTrust = %q, want %q", got, ReclaimTrustRecord)
@@ -53,9 +48,8 @@ func TestTheDefaultTrustIsTheRecordTier(t *testing.T) {
 	}
 }
 
-// TestAnInstallFromBeforeThisKeyBehavesLikeAFreshOne. Nothing rewrites
-// settings.json on upgrade, so the key is simply absent for every existing
-// install, and an absent key must not become a fourth, unnamed tier.
+// Nothing rewrites settings.json on upgrade, so the key is absent for every
+// existing install, and an absent key must not become a fourth, unnamed tier.
 func TestAnInstallFromBeforeThisKeyBehavesLikeAFreshOne(t *testing.T) {
 	dir := t.TempDir()
 	if err := os.WriteFile(filepath.Join(dir, "settings.json"), []byte(`{"maxConcurrent":9}`), 0o600); err != nil {
@@ -74,9 +68,8 @@ func TestAnInstallFromBeforeThisKeyBehavesLikeAFreshOne(t *testing.T) {
 	}
 }
 
-// TestAnUnusableTrustValueIsFoldedOntoTheDefault keeps a hand-edited or
-// foreign-build value from becoming the most trusting tier by accident, which
-// is the only direction that costs anything here.
+// A hand-edited or foreign-build value must not become the most trusting tier
+// by accident, which is the only direction that costs anything here.
 func TestAnUnusableTrustValueIsFoldedOntoTheDefault(t *testing.T) {
 	for _, in := range []string{"", "everything", "SIZE!", "true"} {
 		n := sanitizeReclaim(Settings{ReclaimTrust: in})
@@ -91,9 +84,9 @@ func TestAnUnusableTrustValueIsFoldedOntoTheDefault(t *testing.T) {
 	}
 }
 
-// TestAChosenTrustSurvivesASave is the round trip through the one path
-// everything written to disk goes down. A value that sanitize silently
-// rewrote would be a setting the user re-picks and never sees stick.
+// The round trip through the one path everything written to disk goes down. A
+// value sanitize rewrote would be a setting somebody re-picks and never sees
+// stick.
 func TestAChosenTrustSurvivesASave(t *testing.T) {
 	dir := t.TempDir()
 	s, err := Load(dir)

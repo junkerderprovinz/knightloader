@@ -5,10 +5,9 @@ import (
 	"testing"
 )
 
-// TestAFreshInstallWritesStraightToItsDestination is the default this pair of
-// fields lives or dies by. Anything other than empty here means somebody who
-// installed an update starts copying every download across a filesystem
-// boundary, gigabytes at a time, for a problem they may not have.
+// Anything other than empty here means somebody who installed an update starts
+// copying every download across a filesystem boundary, gigabytes at a time, for
+// a problem they may not have.
 func TestAFreshInstallWritesStraightToItsDestination(t *testing.T) {
 	d := Defaults()
 	if d.WorkDir != "" {
@@ -19,10 +18,9 @@ func TestAFreshInstallWritesStraightToItsDestination(t *testing.T) {
 	}
 }
 
-// TestARelativeStagingPathIsDropped. A relative path resolves against whatever
-// the process's working directory happens to be, and for a working folder that
-// would put a download's bytes somewhere nobody can name - which for the folder
-// this build then MOVES OUT OF is worse than for one it only writes into.
+// A relative path resolves against whatever the process's working directory
+// happens to be, which for a working folder puts a download's bytes somewhere
+// nobody can name and then moves them out of it.
 func TestARelativeStagingPathIsDropped(t *testing.T) {
 	got := sanitizeStaging(Settings{WorkDir: " incomplete ", ExtractMoveTo: "unpacked"})
 	if got.WorkDir != "" {
@@ -33,12 +31,11 @@ func TestARelativeStagingPathIsDropped(t *testing.T) {
 	}
 }
 
-// TestAWorkingFolderIsNotATemplate is the one place these two fields
-// deliberately disagree. ExtractMoveTo may hold placeholders and is checked
-// through its fixed prefix like every other folder template; a working folder
-// may not, because its whole job is to be ONE folder shared by the downloads
-// heading for one destination, and a per-package or per-date template would
-// scatter the parts of a multi-volume archive across several of them.
+// The one place these two fields disagree. ExtractMoveTo may hold placeholders
+// and is checked through its fixed prefix like every other folder template; a
+// working folder may not, because its job is to be one folder shared by the
+// downloads heading for one destination, and a per-package or per-date template
+// would scatter the parts of a multi-volume archive across several.
 func TestAWorkingFolderIsNotATemplate(t *testing.T) {
 	abs := filepath.Join(t.TempDir(), "incomplete")
 	got := sanitizeStaging(Settings{
@@ -58,9 +55,8 @@ func TestAWorkingFolderIsNotATemplate(t *testing.T) {
 	}
 }
 
-// TestStagingGoesThroughTheOneSanitizePath. A hook that is written but never
-// listed in sanitize is a setting that validates in its own test and not in the
-// app, which is the failure this whole file layout exists to prevent.
+// A hook that is written but never listed in sanitize is a setting that
+// validates in its own test and not in the app.
 func TestStagingGoesThroughTheOneSanitizePath(t *testing.T) {
 	got := sanitize(Settings{WorkDir: "incomplete", ExtractMoveTo: " "})
 	if got.WorkDir != "" || got.ExtractMoveTo != "" {

@@ -38,10 +38,6 @@ func TestSaveGetRemoveRoundTrip(t *testing.T) {
 	}
 }
 
-// TestTheOriginIndexFollowsEveryWrite is the one thing the cache can get
-// wrong: Match answers from it while the app's lock is held, so an index that
-// outlived the profile it describes would keep claiming links for a credential
-// that is no longer there.
 func TestTheOriginIndexFollowsEveryWrite(t *testing.T) {
 	s := NewStore(mustAccounts(t))
 	link := "https://box.lan:8080/files/x.zip"
@@ -71,11 +67,6 @@ func TestTheOriginIndexFollowsEveryWrite(t *testing.T) {
 	}
 }
 
-// TestTwoProfilesOnOneOriginResolveTheSameWayEveryTime. Two profiles for one
-// origin is a configuration mistake with no right answer, and the wrong way to
-// handle it is to let map order pick - a link would then be fetched with a
-// different credential after a restart, which is the kind of "it worked
-// yesterday" that costs an evening.
 func TestTwoProfilesOnOneOriginResolveTheSameWayEveryTime(t *testing.T) {
 	s := NewStore(mustAccounts(t))
 	for _, id := range []string{"zebra", "alpha", "middle"} {
@@ -93,9 +84,6 @@ func TestTwoProfilesOnOneOriginResolveTheSameWayEveryTime(t *testing.T) {
 	}
 }
 
-// TestImportTakesTheOriginFromTheFormWhenThePasteHasNone is what makes a bare
-// cookie block usable: the user was just looking at the site, and asking them
-// to also type it is the step that gets guessed wrong.
 func TestImportTakesTheOriginFromTheFormWhenThePasteHasNone(t *testing.T) {
 	s := NewStore(mustAccounts(t))
 	set, err := s.Import("nc", "https://cloud.example.org/index.php/apps/files", "nc_session=zzz; oc_pass=yyy")
@@ -110,8 +98,6 @@ func TestImportTakesTheOriginFromTheFormWhenThePasteHasNone(t *testing.T) {
 	}
 }
 
-// TestImportPrefersThePasteOverTheForm: a curl line already names the address
-// it was copied from, and that is the more reliable of the two.
 func TestImportPrefersThePasteOverTheForm(t *testing.T) {
 	s := NewStore(mustAccounts(t))
 	set, err := s.Import("forum", "https://typed-by-hand.example.net",
@@ -134,11 +120,6 @@ func TestSaveRefusesANameNothingCouldAddress(t *testing.T) {
 	}
 }
 
-// TestAStoreWithNoAccountsStoreFailsLoudlyOnAWriteAndQuietlyOnARead. A save
-// that reports success and stores nothing is how somebody finds out weeks
-// later that their profile was never there; a read on a download path must not
-// produce an error string, because that string ends up in the diagnostics
-// bundle.
 func TestAStoreWithNoAccountsStoreFailsLoudlyOnAWriteAndQuietlyOnARead(t *testing.T) {
 	var s *Store
 	if err := s.Save("x", Set{Origin: "https://box.lan", Headers: []Header{{Name: "A", Value: "b"}}}); err == nil {

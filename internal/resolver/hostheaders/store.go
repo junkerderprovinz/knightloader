@@ -1,14 +1,5 @@
 package hostheaders
 
-// store.go: where the header values live, which is the same sealed file every
-// other credential in this app already lives in.
-//
-// See the package comment for why that matters: settings.json is what the
-// diagnostics bundle serialises, and a header block kept there would be in
-// every bug report anybody ever filed. Nothing in this file writes a value
-// anywhere but into accounts.Store, and nothing in it returns a value except
-// Get, whose result is a Set - a type that cannot be printed in the clear.
-
 import (
 	"encoding/json"
 	"errors"
@@ -20,49 +11,33 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
 )
 
-// Service is the pseudo catalogue id header profiles are filed under in the
-// shared accounts.Store, with the profile id as the "account" half of the
-// (service, account) key that store already indexes by.
-//
-// The same arrangement hosterauth.Service and ytdlp.CookieService use, and for
-// the same reason: accounts.Catalogue is a short, hand-maintained list of
-// services a picker searches, while this is one row per origin from a list
-// only the user's own pasting decides.
+// Service is the pseudo service id header profiles are filed under in the
+// shared accounts.Store, with the profile id as the account half of the key,
+// as hosterauth and ytdlp's cookie store do.
 const Service = "hostheaders"
 
 // Store keeps one header profile per user-chosen id.
 type Store struct {
-	// accounts is the app's own store rather than one opened here, for the
-	// reason hosterauth.NewStore documents at length: two accounts.Store
-	// instances over one accounts.json each hold their own in-memory snapshot
-	// of the whole file, and the second to write silently erases what the
-	// first had just saved.
+	// accounts is the app's own store: a second accounts.Store over the same
+	// file would overwrite the first one's writes.
 	accounts *accounts.Store
 
 	// mu guards the origin index below.
 	mu sync.RWMutex
 	// byOrigin maps an origin to the profile id serving it, or nil while the
-	// index has not been built.
-	//
-	// IT EXISTS BECAUSE Match IS CALLED UNDER THE APP'S LOCK, once per
-	// registered resolver per staged link - the same constraint
-	// remotefs.Resolver states for its Accounts interface. Answering it from
-	// the sealed store would mean an AES-GCM open per profile per link, on a
-	// paste of several thousand, while the dispatcher's mutex is held.
+	// index has not been built. Match runs under the app's lock for every
+	// staged link, which rules out decrypting profiles there.
 	byOrigin map[string]string
 }
 
 // NewStore wraps the app's existing encrypted store.
 func NewStore(a *accounts.Store) *Store { return &Store{accounts: a} }
 
-// ErrNoStore is a Store nobody wired an accounts.Store into. It is an error
-// and not a silent empty answer on the write paths, because a save that
-// reports success and stores nothing is how a person finds out weeks later
-// that their profile was never there.
+// ErrNoStore is returned by the write paths of a Store without an
+// accounts.Store, so a save never reports success without storing anything.
 var ErrNoStore = errors.New("hostheaders: no credential store configured")
 
-// IDs lists the stored profile ids, sorted. Names only, never content: this is
-// what a settings page renders.
+// IDs lists the stored profile ids, sorted.
 func (s *Store) IDs() []string {
 	if s == nil || s.accounts == nil {
 		return nil
@@ -70,9 +45,7 @@ func (s *Store) IDs() []string {
 	return s.accounts.AccountIDs(Service)
 }
 
-// Save stores (or, with a zero Set, clears) one profile. The set is normalised
-// first, so what is sealed is what a later read will hand back, rather than
-// whatever shape the paste happened to have.
+// Save stores (or, with a zero Set, clears) one profile, normalised first.
 func (s *Store) Save(id string, set Set) error {
 	if s == nil || s.accounts == nil {
 		return ErrNoStore
@@ -89,9 +62,7 @@ func (s *Store) Save(id string, set Set) error {
 		return err
 	}
 	if len(norm.Headers) == 0 {
-		// Every header in the paste was blank. Treated as a delete rather than
-		// as an error, because that is what accounts.Store.Set has always read
-		// an empty secret as, and a form that clears every box means it.
+		// All headers blank: a form with every box cleared means delete.
 		return s.remove(pid)
 	}
 	blob, err := json.Marshal(wire{Origin: norm.Origin, Headers: flatten(norm)})
@@ -125,15 +96,9 @@ func (s *Store) remove(pid string) error {
 	return nil
 }
 
-// Get returns one profile, or a zero Set when there is none.
-//
-// A decryption failure answers the zero Set and no error, the same way
-// ytdlp.CookieStore.Text does and for the identical reason: this result is
-// reached on a download path, an error from here would travel into a task's
-// Err field and from there into the diagnostics bundle, and the only failures
-// possible (a truncated accounts.json, a .keyring replaced under a running
-// install) are ones the debrid credentials in the same file report far more
-// loudly than a header profile ever could.
+// Get returns one profile, or a zero Set when there is none. A decryption
+// failure also yields the zero Set: this runs on the download path, and a
+// broken accounts.json already shows up through every other credential in it.
 func (s *Store) Get(id string) Set {
 	if s == nil || s.accounts == nil {
 		return Set{}
@@ -154,10 +119,7 @@ func (s *Store) Get(id string) Set {
 	for _, h := range w.Headers {
 		set.Headers = append(set.Headers, Header{Name: h.Name, Value: h.Value})
 	}
-	// Re-normalised on the way out rather than trusted as stored: the file it
-	// came from can be older than the current rules about what a header may
-	// look like, and a value that would be refused on save must not be sent
-	// just because it was saved before the rule existed.
+	// Normalised again because the profile may predate the current rules.
 	norm, err := Normalize(set)
 	if err != nil {
 		return Set{}
@@ -165,11 +127,8 @@ func (s *Store) Get(id string) Set {
 	return norm
 }
 
-// ForURL returns the profile serving rawurl's own origin, together with its
-// id, or a zero Set when nothing is stored for that origin.
-//
-// It is an EXACT origin lookup and never a search: see the package comment on
-// why a parent domain's profile does not cover a sub-domain.
+// ForURL returns the profile stored for exactly rawurl's origin, with its id,
+// or a zero Set.
 func (s *Store) ForURL(rawurl string) (string, Set) {
 	origin := OriginOf(rawurl)
 	if origin == "" {
@@ -182,9 +141,8 @@ func (s *Store) ForURL(rawurl string) (string, Set) {
 	return id, s.Get(id)
 }
 
-// Covers reports whether any stored profile serves rawurl's origin. It is the
-// question Resolver.Match asks, and it is answered from the index rather than
-// from the sealed store - see Store.byOrigin.
+// Covers reports whether any stored profile serves rawurl's origin, answered
+// from the index.
 func (s *Store) Covers(rawurl string) bool {
 	origin := OriginOf(rawurl)
 	if origin == "" {
@@ -194,13 +152,8 @@ func (s *Store) Covers(rawurl string) bool {
 	return ok
 }
 
-// Listing is one profile as a settings page sees it: what it is called, which
-// origin it covers, and which header names it holds.
-//
-// No values, and that is a property of the TYPE and not of whatever route
-// renders it. A listing struct with a value field on it would be safe exactly
-// as long as every future handler remembered to blank it, and the first one
-// that forgot would put a session cookie in an HTTP response.
+// Listing is one profile as a settings page sees it. It has no value field,
+// so no handler can leak a value by forgetting to blank one.
 type Listing struct {
 	ID      string   `json:"id"`
 	Origin  string   `json:"origin"`
@@ -225,8 +178,7 @@ func (s *Store) List() []Listing {
 	return out
 }
 
-// Origins lists the origins that have a profile, sorted, with no values. What
-// a settings page shows beside each profile name.
+// Origins lists the origins that have a profile, sorted.
 func (s *Store) Origins() []string {
 	idx := s.index()
 	out := make([]string, 0, len(idx))
@@ -238,13 +190,8 @@ func (s *Store) Origins() []string {
 }
 
 // index builds the origin lookup on first use and keeps it until a write
-// invalidates it.
-//
-// Two profiles claiming one origin is a configuration mistake with no right
-// answer, so the one whose id sorts first wins and it wins the same way on
-// every boot. Picking by map order instead would route a link through a
-// different credential after a restart, which is the kind of "it worked
-// yesterday" that costs an evening to track down.
+// invalidates it. When two profiles claim one origin, the id that sorts first
+// wins, so the choice is the same after every restart.
 func (s *Store) index() map[string]string {
 	if s == nil || s.accounts == nil {
 		return nil
@@ -280,14 +227,8 @@ func (s *Store) invalidate() {
 	s.mu.Unlock()
 }
 
-// wire is the sealed shape, and it is a separate type from Set on purpose.
-//
-// Set.MarshalJSON redacts, which is what keeps a header out of a log and out
-// of the diagnostics bundle - and it is exactly why Set must never be the type
-// that gets persisted: sealing it would seal the placeholders and destroy the
-// credential on the first save. wire has plain string fields and no marshaller
-// of its own, it is unexported, and json.Marshal on it is the only line in
-// this package that turns a header value into bytes.
+// wire is the sealed shape. It is separate from Set because Set.MarshalJSON
+// redacts, and persisting a Set would store the placeholders.
 type wire struct {
 	Origin  string      `json:"origin"`
 	Headers []wireEntry `json:"headers"`
@@ -308,13 +249,7 @@ func flatten(s Set) []wireEntry {
 
 // Import parses a pasted cookie block, header block or curl command line and
 // saves it under id, scoped to the origin the paste names or, when it names
-// none, to fallbackURL.
-//
-// The two-source origin is what makes a bare cookie block usable at all: a
-// "Copy as cURL" paste carries its own URL and needs nothing else, while
-// "document.cookie" or a header block copied out of the network panel carries
-// no address, and asking the user to also type the site they were just looking
-// at is the step that gets guessed wrong.
+// none (a bare cookie block), to fallbackURL.
 func (s *Store) Import(id, fallbackURL, text string) (Set, error) {
 	set, err := Parse(text)
 	if err != nil {

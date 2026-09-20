@@ -15,9 +15,8 @@ func hasArg(args []string, flag string) bool {
 	return false
 }
 
-// valueAfter returns the argument immediately following flag's last
-// occurrence, and whether flag was found at all - good enough for the
-// single-valued flags buildArgs ever emits.
+// valueAfter returns the argument after the first occurrence of flag, and
+// whether flag was found.
 func valueAfter(args []string, flag string) (string, bool) {
 	for i, a := range args {
 		if a == flag && i+1 < len(args) {
@@ -27,10 +26,7 @@ func valueAfter(args []string, flag string) (string, bool) {
 	return "", false
 }
 
-// TestBuildArgsZeroValueMatchesTheOldHardcodedBehaviour is the regression
-// this whole file exists to pin: before Options, run() always built exactly
-// this slice (see options.go's own doc comment on Options).
-func TestBuildArgsZeroValueMatchesTheOldHardcodedBehaviour(t *testing.T) {
+func TestBuildArgsZeroValueIsThePlainInvocation(t *testing.T) {
 	dir := filepath.Join("some", "dir")
 	args := buildArgs(dir, Options{})
 
@@ -68,14 +64,8 @@ func TestBuildArgsHeightCappedQuality(t *testing.T) {
 	}
 }
 
-// TestBuildArgsQualityAudioOnlyFoldsToNoOpinionUnderVariantVideo pins
-// QualityAudioOnly's retirement (options.go's own doc comment on the
-// constant): Qualities() no longer offers it, so Sanitize folds an old
-// saved value onto QualityBest the same as any other value it no longer
-// recognises - a video-variant row with it set passes no -f at all rather
-// than the audio-extraction behaviour the preset used to trigger. Getting
-// audio-only now means enabling the Audio row (VariantAudio, tested below)
-// and leaving Video off, not a video-quality preset in disguise.
+// A stored QualityAudioOnly is folded onto QualityBest; audio-only is the
+// audio variant.
 func TestBuildArgsQualityAudioOnlyFoldsToNoOpinionUnderVariantVideo(t *testing.T) {
 	args := buildArgs("d", Options{Quality: QualityAudioOnly})
 	if hasArg(args, "-f") {
@@ -108,11 +98,7 @@ func TestBuildArgsVariantAudioHonoursAudioFormat(t *testing.T) {
 	}
 }
 
-// TestBuildArgsVariantAudioFormatBestOmitsDashAudioFormat is the same "no
-// opinion" shape formatSelector's own QualityBest branch uses: "best" is
-// AudioFormats()'s own default entry, standing for "whatever yt-dlp already
-// picks", not a real -x --audio-format target worth naming on the command
-// line.
+// "best" means no transcode, so no --audio-format is passed.
 func TestBuildArgsVariantAudioFormatBestOmitsDashAudioFormat(t *testing.T) {
 	args := buildArgs("d", Options{Variant: VariantAudio, AudioFormat: "best"})
 	if hasArg(args, "--audio-format") {
@@ -128,9 +114,7 @@ func TestBuildArgsVariantThumbnailAddsSkipDownloadAndWriteThumbnail(t *testing.T
 	if !hasArg(args, "--write-thumbnail") {
 		t.Errorf("VariantThumbnail did not pass --write-thumbnail: %v", args)
 	}
-	// Forces a deterministic container (jdp, 2026-08-26: "dateiendungen
-	// werden immer noch nicht angezeigt") - applyProbeFormats
-	// (app_ytdlp_variants.go) reads this same fact to answer Ext="jpg".
+	// A fixed format lets applyProbeFormats show Ext="jpg".
 	got, ok := valueAfter(args, "--convert-thumbnails")
 	if !ok || got != "jpg" {
 		t.Errorf("--convert-thumbnails = %q (found=%v), want %q", got, ok, "jpg")
@@ -152,8 +136,7 @@ func TestBuildArgsVariantSubtitleAddsSkipDownloadWriteSubsAndDefaultLangs(t *tes
 	if hasArg(args, "--write-auto-subs") {
 		t.Errorf("VariantSubtitle with SubtitleAuto=false passed --write-auto-subs, want none: %v", args)
 	}
-	// Forces a deterministic format, same reasoning as --convert-thumbnails
-	// above - applyProbeFormats reads this same fact to answer Ext="srt".
+	// A fixed format lets applyProbeFormats show Ext="srt".
 	if got, ok := valueAfter(args, "--sub-format"); !ok || got != "srt" {
 		t.Errorf("--sub-format = %q (found=%v), want %q", got, ok, "srt")
 	}
@@ -185,20 +168,14 @@ func TestBuildArgsCustomQualityUsesCustomFormatVerbatim(t *testing.T) {
 }
 
 func TestBuildArgsCustomQualityWithNoFormatOmitsDashF(t *testing.T) {
-	// An empty CustomFormat must not become `-f ""`, which yt-dlp refuses -
-	// falling through to "no opinion" is strictly safer than handing it a
-	// blank selector.
+	// yt-dlp refuses `-f ""`.
 	args := buildArgs("d", Options{Quality: QualityCustom})
 	if hasArg(args, "-f") {
 		t.Errorf("buildArgs passed -f with an empty custom format: %v", args)
 	}
 }
 
-// TestBuildArgsVariantVideoAddsNoSubtitleFlags is TestBuildArgsSubtitlesOff's
-// replacement under the row model: a video row has no subtitle fields to
-// read at all any more (SubtitleLangs/SubtitleAuto are read only under
-// VariantSubtitle, see Options.SubtitleLangs's own doc comment), so passing
-// them alongside VariantVideo must have no effect on this row's own args.
+// Without Embed.Subs, a video row ignores the subtitle fields.
 func TestBuildArgsVariantVideoAddsNoSubtitleFlags(t *testing.T) {
 	args := buildArgs("d", Options{Variant: VariantVideo, SubtitleAuto: true, SubtitleLangs: "de"})
 	for _, flag := range []string{"--write-subs", "--write-auto-subs", "--embed-subs", "--sub-langs"} {
@@ -208,10 +185,7 @@ func TestBuildArgsVariantVideoAddsNoSubtitleFlags(t *testing.T) {
 	}
 }
 
-// TestBuildArgsVariantVideoForcesMkvMerge is [87]'s own video case: a merge
-// target has to be fixed ahead of time for applyProbeFormats
-// (app_ytdlp_variants.go) to be able to answer Ext="mkv" as a fact rather
-// than a guess about which two streams formatSelector's own selector picks.
+// A fixed merge target lets applyProbeFormats show Ext="mkv".
 func TestBuildArgsVariantVideoForcesMkvMerge(t *testing.T) {
 	args := buildArgs("d", Options{Variant: VariantVideo})
 	got, ok := valueAfter(args, "--merge-output-format")
@@ -245,17 +219,8 @@ func TestBuildArgsCustomOutputTemplate(t *testing.T) {
 	}
 }
 
-// TestBuildArgsAsksForConcurrentFragmentsAndChunkedRanges pins the two flags
-// added on 2026-09-06, after jdp measured KnightLoader against JDownloader on
-// the same video: "Youtube lädt super langsam herunter. das geht in jd viel
-// schneller".
-//
-// Both are needed and neither replaces the other: --concurrent-fragments is
-// what stops a fragmented download paying one round trip per fragment in
-// series, and --http-chunk-size is yt-dlp's own documented answer to a server
-// that throttles a single long-running response. A future edit that drops
-// either one puts the slowness back for a different reason each time, which is
-// exactly the kind of half-fix a test is for.
+// Both flags are needed: one avoids a round trip per fragment in series, the
+// other avoids throttling of a single long response.
 func TestBuildArgsAsksForConcurrentFragmentsAndChunkedRanges(t *testing.T) {
 	args := buildArgs(filepath.Join("some", "dir"), Options{})
 
@@ -267,22 +232,16 @@ func TestBuildArgsAsksForConcurrentFragmentsAndChunkedRanges(t *testing.T) {
 	}
 }
 
-// TestConcurrentFragmentsDividesTheSpeedLimit is the correctness half of that
-// change, and the reason it could not simply be "add a flag".
-//
-// --limit-rate is per fragment CONNECTION. Asking for four of them and still
-// passing the whole limit would let a throttled download run at four times the
-// speed the user set - a nightly speed window that silently is not one. This
-// asserts the arithmetic at the one place it happens rather than the flag.
+// --limit-rate applies per fragment connection, so the limit must be divided
+// among them.
 func TestConcurrentFragmentsDividesTheSpeedLimit(t *testing.T) {
 	const limit = 4_000_000
 	per := limit / concurrentFragments
 	if per*concurrentFragments != limit {
 		t.Fatalf("the divided limit (%d x %d) does not add back up to %d", per, concurrentFragments, limit)
 	}
-	// And the floor: a limit below the fragment count must not round to 0,
-	// which yt-dlp reads as no limit at all - the failure mode being guarded
-	// against is "the speed cap turned itself off", not a rounding error.
+	// A limit below the fragment count rounds to 0, which yt-dlp reads as
+	// unlimited, so run needs its floor.
 	if 3/concurrentFragments != 0 {
 		t.Fatalf("this test's premise is wrong: %d/%d no longer rounds to zero", 3, concurrentFragments)
 	}

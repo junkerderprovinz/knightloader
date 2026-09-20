@@ -8,11 +8,8 @@ import (
 	"time"
 )
 
-// TestHostCacheKeepsLastGoodOnFailure is the fix itself: a transient error
-// from the live source must not empty the set a resolver is matching against.
-// Before HostCache existed, whatever called a service's Hosts and got this
-// exact error handed the empty result straight to Registry.Register, and the
-// service silently claimed nothing until the process restarted.
+// A transient error from the live source must not empty the set a resolver
+// matches against.
 func TestHostCacheKeepsLastGoodOnFailure(t *testing.T) {
 	boom := errors.New("boom: the service timed out")
 	calls := 0
@@ -33,13 +30,11 @@ func TestHostCacheKeepsLastGoodOnFailure(t *testing.T) {
 		t.Fatalf("first refresh left %v, want the two hosts fetched", good)
 	}
 
-	// Construct the failure.
 	err := c.Refresh(context.Background())
 	if !errors.Is(err, boom) {
 		t.Fatalf("second refresh error = %v, want boom", err)
 	}
 
-	// Assert the list is unchanged.
 	if got := c.Hosts(); !reflect.DeepEqual(got, good) {
 		t.Errorf("Hosts() after a failed refresh = %v, want the last good set %v unchanged", got, good)
 	}
@@ -50,9 +45,7 @@ func TestHostCacheKeepsLastGoodOnFailure(t *testing.T) {
 		t.Errorf("LastError = %v, want boom recorded so staleness is explainable", got)
 	}
 
-	// And a later success clears the memory of the failure and moves the set
-	// again - the cache must not get stuck reporting an old error forever.
-	calls = 0 // one more "success" call
+	// A later success clears the recorded error and replaces the set.
 	c.Fetch = func(context.Context) (map[string]bool, error) {
 		return map[string]bool{"c.example": true}, nil
 	}
@@ -67,10 +60,7 @@ func TestHostCacheKeepsLastGoodOnFailure(t *testing.T) {
 	}
 }
 
-// TestHostCacheNeverSucceededIsNil pins the state before any refresh has ever
-// run - and before any persisted set has been loaded: nil, which every Match
-// built on HostInSet reads as "matches nothing", correctly, because nothing
-// has looked yet.
+// Before any successful refresh or persisted set, Hosts is nil.
 func TestHostCacheNeverSucceededIsNil(t *testing.T) {
 	c := &HostCache{Fetch: func(context.Context) (map[string]bool, error) {
 		return nil, errors.New("still booting")
@@ -87,11 +77,6 @@ func TestHostCacheNeverSucceededIsNil(t *testing.T) {
 	}
 }
 
-// TestHostCacheSeedsFromLoadAndCallsSaveOnlyOnSuccess pins the persistence
-// seam a fresh HostCache is reconstructed against every time
-// rewireBackends-style code runs: Load supplies what a previous process
-// already knew, and Save is asked to remember a fetch that actually worked -
-// never one that didn't, which would just rewrite the same bytes for nothing.
 func TestHostCacheSeedsFromLoadAndCallsSaveOnlyOnSuccess(t *testing.T) {
 	persisted := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
 	var saved map[string]bool
@@ -110,9 +95,6 @@ func TestHostCacheSeedsFromLoadAndCallsSaveOnlyOnSuccess(t *testing.T) {
 		},
 	}
 
-	// Seeded set is visible before any refresh, and a failed refresh must not
-	// erase it - the same guarantee as the live-source test above, this time
-	// against the persisted seed rather than an earlier live fetch.
 	if got := c.Hosts(); !got["seeded.example"] {
 		t.Fatalf("Hosts() before any refresh = %v, want the seeded set", got)
 	}

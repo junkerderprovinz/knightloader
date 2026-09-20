@@ -6,11 +6,7 @@ import (
 	"time"
 )
 
-// TestParseProgressReadsTheShapeAnInstallWithoutTheLiveSwitchStillSends is
-// the compatibility half live.go's file comment promises: the guard is off on
-// every install until somebody turns it on, and the plain progress line is
-// what those spawn with.
-func TestParseProgressReadsTheShapeAnInstallWithoutTheLiveSwitchStillSends(t *testing.T) {
+func TestParseProgressReadsThePlainShape(t *testing.T) {
 	p, ok := parseProgress(`KLP:{"downloaded_bytes":42,"total_bytes":100,"speed":7.5,"filename":"a.mkv"}`)
 	if !ok {
 		t.Fatalf("the plain progress line no longer parses")
@@ -36,10 +32,7 @@ func TestParseProgressReadsTheLiveWrapper(t *testing.T) {
 	}
 }
 
-// TestParseProgressFallsBackToTheEstimatedTotal pins behaviour the old inline
-// decode had and that the extracted one must not lose: a DASH or m3u8 source
-// reports no exact total, only yt-dlp's estimate, and losing it makes every
-// fragmented download show no size at all.
+// DASH and m3u8 sources report only yt-dlp's estimate.
 func TestParseProgressFallsBackToTheEstimatedTotal(t *testing.T) {
 	p, ok := parseProgress(`KLP:{"downloaded_bytes":1,"total_bytes_estimate":52428800.0}`)
 	if !ok {
@@ -63,9 +56,6 @@ func TestParseProgressRejectsWhatIsNotAProgressLine(t *testing.T) {
 	}
 }
 
-// TestParseLiveFlagOnlyBelievesTheTwoWordsItKnows: yt-dlp writes NA for a
-// field the extractor never set, and treating an unrecognised value as "live"
-// would put the recording caps on an ordinary download.
 func TestParseLiveFlagOnlyBelievesTheTwoWordsItKnows(t *testing.T) {
 	cases := []struct {
 		in          string
@@ -86,11 +76,6 @@ func TestParseLiveFlagOnlyBelievesTheTwoWordsItKnows(t *testing.T) {
 	}
 }
 
-// TestLiveGuardStartsTheClockAtTheFirstLiveByte, not at the spawn: yt-dlp
-// does real work before a byte arrives - extraction, whatever anti-bot
-// gauntlet the site puts up, waiting for a scheduled premiere to actually
-// begin - and charging that against "record for 60 minutes" hands back a
-// recording noticeably shorter than the number somebody set.
 func TestLiveGuardStartsTheClockAtTheFirstLiveByte(t *testing.T) {
 	g := newLiveGuard(Live{Enabled: true, MaxMinutes: 60})
 	if g.active() {
@@ -137,9 +122,7 @@ func TestLiveGuardStopsAtTheSizeLimit(t *testing.T) {
 	}
 }
 
-// TestLiveGuardWithNoLimitsNeverStops: the switch is also what turns the note
-// and the detection on, so somebody who wants to SEE that a link is a stream
-// without capping it must not have it capped anyway.
+// The switch alone enables detection and the note, not a cap.
 func TestLiveGuardWithNoLimitsNeverStops(t *testing.T) {
 	g := newLiveGuard(Live{Enabled: true})
 	g.begin(time.Now().Add(-72 * time.Hour))
@@ -148,9 +131,6 @@ func TestLiveGuardWithNoLimitsNeverStops(t *testing.T) {
 	}
 }
 
-// TestSanitizeFloorsNegativeLiveLimits: a negative number reaching the guard
-// compares true on the very first progress line and stops the recording the
-// instant it starts.
 func TestSanitizeFloorsNegativeLiveLimits(t *testing.T) {
 	o := Options{Live: Live{Enabled: true, MaxMinutes: -5, MaxMB: -1}}
 	got := o.Sanitize().Live

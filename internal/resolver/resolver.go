@@ -1,7 +1,6 @@
-// Package resolver is KnightLoader's plugin seam. Everything that turns a
-// pasted link into a concrete, downloadable target — a direct URL, a premium
-// hoster, a debrid unlock, yt-dlp, or a headless-JD delegation — implements
-// Resolver. v1 ships built-in resolvers; native hoster plugins come later.
+// Package resolver turns a pasted link into a downloadable target. Direct
+// URLs, premium hosters, debrid unlocks, yt-dlp and headless JD each
+// implement Resolver.
 package resolver
 
 import (
@@ -13,9 +12,7 @@ import (
 )
 
 // Info identifies a resolver and sets its routing priority (higher wins).
-//
-// Tagged for JSON because PriorityFor exists to make that order visible to a
-// user, not only to act on internally - see Registry.PriorityFor.
+// It carries JSON tags because PriorityFor shows the order to the user.
 type Info struct {
 	ID   string `json:"id"`
 	Prio int    `json:"prio"`
@@ -23,21 +20,13 @@ type Info struct {
 
 // AccountSep separates a service id from an account id inside a resolver id.
 //
-// A resolver id is one BACKEND SLOT, not one service. Most slots are a
-// service's only one and keep the bare catalogue id ("alldebrid") - which is
-// what every stored task, every hand-arranged order and every log line in
-// this app has always said, and what they all keep saying. A SECOND login on
-// the same service (accounts.Store.AccountIDs) gets a slot of its own behind
-// this separator, so the two are registered separately, benched separately by
-// account health, and reachable separately in the fallback chain. Before
-// slots existed the routing table had exactly one entry per service id, so a
-// person's second TorBox key could be added, listed and labelled on the
-// accounts page and was never once asked for a download.
-//
-// "#" is safe as the separator because service ids come from one place: the
-// fixed catalogue in internal/accounts, which contains none. Account ids may
-// be typed by a person, so the FIRST "#" is always the separator and anything
-// after it - "#" included - belongs to the account id.
+// A resolver id names one backend slot. A service's default account keeps the
+// bare catalogue id ("alldebrid"), which stored tasks, orders and logs already
+// use; every further login on the same service gets its own slot behind this
+// separator, so it is registered, benched and tried in the fallback chain on
+// its own. Service ids come from the fixed catalogue in internal/accounts and
+// never contain "#", while account ids are typed by people, so the first "#"
+// is the separator and everything after it belongs to the account id.
 const AccountSep = "#"
 
 // SlotID is the resolver id one (service, account) pair registers under: the
@@ -50,13 +39,9 @@ func SlotID(service, account string) string {
 	return service + AccountSep + account
 }
 
-// SplitSlot reads a slot id back into the pair SlotID built it from.
-//
-// An id with no separator answers (id, "") - a service's default account,
-// which covers every id written before slots existed and every resolver that
-// has no account at all (jd, ytdlp, direct, http, torrent). So this is safe
-// to call on any resolver id whatever; whether the service part means
-// anything is the caller's own question to ask.
+// SplitSlot reads a slot id back into the pair SlotID built it from. An id
+// without a separator yields (id, ""), which covers default accounts and
+// resolvers that have no account at all (jd, ytdlp, direct, http, torrent).
 func SplitSlot(id string) (service, account string) {
 	if i := strings.Index(id, AccountSep); i >= 0 {
 		return id[:i], id[i+len(AccountSep):]
@@ -67,21 +52,15 @@ func SplitSlot(id string) (service, account string) {
 // Request is what the resolver is asked to resolve.
 type Request struct {
 	URL string
-	// Headers names the stored header profile this task was given - by a
-	// Packagizer rule (rules.Action.Headers) or by hand on the row. Empty is
-	// the ordinary case and means "no profile was named", which every resolver
-	// but internal/resolver/hostheaders ignores and that one reads as "pick
-	// the profile stored for this link's own origin".
+	// Headers names the stored header profile this task was given, by a
+	// Packagizer rule or by hand. Empty means none was named, which
+	// internal/resolver/hostheaders reads as "use the profile for this link's
+	// origin" and every other resolver ignores.
 	//
-	// IT IS A NAME AND NEVER THE HEADERS THEMSELVES, which is the whole
-	// security arrangement rather than a detail of it. The values are sealed
-	// in internal/accounts.Store; a Request travels through the dispatcher and
-	// is built from a core.Task that is persisted and serialised, so a header
-	// value carried here would be one copy of the secret too many - the same
-	// reason internal/resolver/remotefs looks its own login up again instead
-	// of being handed one.
+	// It is a name and never the header values: those stay sealed in
+	// accounts.Store, while a Request is built from a task that gets persisted
+	// and serialised.
 	Headers string
-	// Account and Captcha providers are added when premium/debrid land.
 }
 
 // Result is a concrete download target the engine can fetch.
@@ -91,19 +70,9 @@ type Result struct {
 	Headers     map[string]string
 	Size        int64
 	Connections int
-	// Available is a verdict this resolution ALREADY produced, when it
-	// produced one. Empty means "nothing was learned", which is the normal
-	// case: resolving is not checking.
-	//
-	// It exists for the one path where the two genuinely happen together. A
-	// link container is opened by JD's crawler, and that crawl reports each
-	// link's availability in the same answer that carries its name and size -
-	// so throwing the verdict away meant a freshly opened DLC landed in the
-	// collector with a grey dot on every row and needed a full second crawl,
-	// by hand, to say what the first one had already said (jdp, 2026-09-06:
-	// "bei dlc links funktioniert die status anzeige immer noch nicht"). In
-	// JDownloader the same links show online or offline the moment the
-	// container opens, and they now do here.
+	// Available is set when resolving already produced an availability
+	// verdict, as JD's crawl of a link container does. Empty means nothing was
+	// learned, which is the normal case.
 	Available core.Availability
 }
 
@@ -114,53 +83,30 @@ type Resolver interface {
 	Resolve(ctx context.Context, req Request) (Result, error)
 }
 
-// Checker is the optional other half of a resolver: a backend that can be asked
-// whether a link is still there without fetching it. Implementing it is what
-// moves a service's links off core.AvailUnknown, which says "nobody has looked"
-// and is a lie the moment somebody presses Check.
+// Checker is implemented by a backend that can tell whether links are still
+// online without fetching them.
 //
-// The batch is the interface and not an optimisation inside it. Every service
-// that answers this question answers it for a list, and a caller holding fifty
-// links that asks fifty times is a caller whose key gets rate-limited - so the
-// one-link form is deliberately absent, because it is the shape that would get
-// written by accident.
-//
-// The contract is one verdict per URL, in the order they were given. A service
-// that cannot answer for a particular link returns core.AvailUncheckable for it
-// rather than dropping it, because a short slice silently re-aligns every
-// verdict after the gap onto the wrong link. Callers should still run the answer
-// through Answers, which is the only cheap defence against a service that
-// changes its mind about that.
-//
-// An error means the batch was not answered at all - a refused key, a service
-// that is down. It never means "these links are gone": the caller files the
-// whole batch as uncheckable and says so.
+// It takes a batch because every service answers for a list, and asking once
+// per link gets an API key rate-limited. The answer holds one verdict per URL
+// in input order, with core.AvailUncheckable for a link the service cannot
+// judge; callers still pass it through Answers. An error means the batch was
+// not answered at all, never that the links are gone.
 type Checker interface {
 	Check(ctx context.Context, urls []string) ([]core.Availability, error)
 }
 
-// HostCapper is the optional other half of a resolver that can state a
-// ceiling on how many chunks one download against a given host may safely
-// open - the per-host fact a multihoster account sometimes has an opinion
-// about (see internal/resolver/debrid.HostLimiter), read by
-// app.connsFor as one more ceiling in its chain.
-//
-// Kept off Resolver itself for the same reason Checker is: a resolver with
-// nothing to say about a host must not be forced to grow a method that
-// invents a number. 0 means "no opinion" - read by the caller exactly like
-// every other absent ceiling in connsFor, never as "zero connections".
+// HostCapper is implemented by a resolver that can cap how many chunks one
+// download from a given host may open, such as a multihoster with per-host
+// limits (see debrid.HostLimiter). A result of 0 means no opinion, not zero
+// connections.
 type HostCapper interface {
 	HostCap(host string) int
 }
 
 // Answers squares what a Checker returned against the number of links it was
 // asked about, filling anything missing with core.AvailUncheckable and dropping
-// anything extra.
-//
-// It exists because the alternative is an index-out-of-range in the caller, and
-// the input is a remote service's JSON: the day a provider adds an entry for a
-// link it expanded, or omits one it did not recognise, is a day this app must
-// still be able to draw its list.
+// anything extra. The input is a remote service's JSON, so its length cannot
+// be trusted.
 func Answers(got []core.Availability, want int) []core.Availability {
 	out := make([]core.Availability, want)
 	for i := range out {
@@ -168,10 +114,8 @@ func Answers(got []core.Availability, want int) []core.Availability {
 			out[i] = got[i]
 			continue
 		}
-		// AvailUncheckable and not AvailUnknown, including for an empty string the
-		// service did send: a link that went out in a check request has been looked
-		// at, whatever came back. Leaving it "" would put it back among the links
-		// nobody has touched and hide it from the person who just asked.
+		// A link that went out in a check request has been looked at, so it
+		// must not fall back among the links nobody has checked.
 		out[i] = core.AvailUncheckable
 	}
 	return out
@@ -257,23 +201,7 @@ func (r *Registry) For(url string) Resolver {
 	return nil
 }
 
-// AllInfo lists every registered resolver's identity, in the exact order
-// resolverForTaskLocked would try them for a URL every one of them matched -
-// highest priority first, ties broken by registration order (see Register).
-// It is host-independent: what a user configures determines who is even in
-// this list, priority alone determines the order within it.
-//
-// This is the "user-visible" half of routing priority. Before it, the only
-// way to answer "which of my two debrid accounts actually gets asked first"
-// was to read Info.Prio in the source of each resolver package - a deterministic
-// order nobody could see was, in every way that matters to the person who
-// configured it, the same as no order at all.
-// List is every registered resolver, in the registry's own frozen order.
-//
-// The unfiltered sibling of All, added for internal/app's ResolverPriority:
-// the Prioritätsreihenfolge card shows the whole ladder with no host in hand,
-// and re-ranking it the way dispatch does needs the Resolvers themselves, not
-// the Infos AllInfo flattens them to.
+// List returns every registered resolver in registry order, unfiltered by URL.
 func (r *Registry) List() []Resolver {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
@@ -282,6 +210,9 @@ func (r *Registry) List() []Resolver {
 	return out
 }
 
+// AllInfo lists every registered resolver's identity in the order dispatch
+// would try them for a URL all of them match: highest priority first, ties
+// broken by registration order.
 func (r *Registry) AllInfo() []Info {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
@@ -292,14 +223,10 @@ func (r *Registry) AllInfo() []Info {
 	return out
 }
 
-// PriorityFor narrows AllInfo to the services that would actually be asked
-// for one host - the chain resolverForTaskLocked and nextResolverLocked walk
-// when a link on that host comes in, in the order they walk it.
-//
-// host is turned into a URL because Match is written against one: every
-// resolver in this tree only ever inspects the scheme and the hostname, so a
-// synthetic "https://<host>/" matches exactly what a real link on that host
-// would.
+// PriorityFor narrows AllInfo to the resolvers that would be asked for a link
+// on host, in the order dispatch asks them. Resolvers only inspect the scheme
+// and hostname in Match, so a synthetic "https://<host>/" stands in for a real
+// link.
 func (r *Registry) PriorityFor(host string) []Info {
 	list := r.All("https://" + host + "/")
 	out := make([]Info, 0, len(list))

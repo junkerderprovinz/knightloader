@@ -29,11 +29,7 @@ type Client struct {
 }
 
 func NewClient(key string) *Client {
-	// httpx, not a bare client: every call here carries the user's API key as a
-	// bearer token, and httpx is what drops it if a hop ever redirects off the
-	// API host. The host is well known and unlikely to do that, which is exactly
-	// the reasoning a policy exists to replace - the question is not whether this
-	// host would, it is whether the token can leave with a redirect at all.
+	// httpx drops the bearer token if a redirect ever leaves the API host.
 	return &Client{key: key, base: apiBase, hc: httpx.New(httpx.Options{Timeout: apiTimeout})}
 }
 
@@ -80,49 +76,31 @@ func (c *Client) do(ctx context.Context, method, path string, form url.Values, o
 }
 
 // AccountInfo is one account's plan, premium expiry and lifetime downloaded
-// bytes, as read by Account. Its own small type rather than debrid.AccountInfo
-// - this package does not otherwise depend on internal/resolver/debrid, and
-// borrowing that type for one struct literal is not worth the import.
+// bytes. It mirrors debrid.AccountInfo without importing that package.
 type AccountInfo struct {
 	Tier      string
 	Traffic   TrafficInfo
 	ExpiresAt time.Time
 }
 
-// TrafficInfo mirrors debrid.TrafficInfo field-for-field on purpose - the
-// caller (app.fetchAccountInfo) folds either into the same app.TrafficState -
-// but is its own type for the reason AccountInfo is.
+// TrafficInfo mirrors debrid.TrafficInfo; the app folds both into the same
+// app.TrafficState.
 type TrafficInfo struct {
 	UsedBytes  int64
 	LimitBytes int64
 	Unlimited  bool
 }
 
-// planNames maps GetUserData's numeric plan to TorBox's own vocabulary -
-// verified against api-docs.torbox.app's UserService documentation ("0 is
-// Free plan, 1 is Essential plan ($3 plan), 2 is Pro plan ($10 plan), 3 is
-// Standard plan ($5 plan)"). An id this build does not recognise (a plan
-// added after this was written) reads "unknown" rather than a blank string -
-// still distinct from AccountInfo never having been read at all, which is
-// the caller's "unknown" (app.AccountHealth's zero value), not this one.
+// planNames maps the numeric plan to TorBox's names, per its UserService
+// documentation. An unknown id reads "unknown".
 var planNames = map[int]string{0: "free", 1: "essential", 2: "pro", 3: "standard"}
 
-// Account reads /api/user/me: plan, premium expiry and lifetime downloaded
-// bytes. Field names (plan, is_subscribed, premium_expires_at,
-// total_downloaded) verified against the official Go SDK's own struct
-// (github.com/TorBox-App/torbox-sdk-go, pkg/user/get_user_data_ok_response.go)
-// - api-docs.torbox.app itself is a client-rendered page with nothing in its
-// HTML to verify field names against.
+// Account reads /api/user/me for plan, premium expiry and lifetime downloaded
+// bytes; field names follow TorBox's Go SDK.
 //
-// TorBox's API exposes no account-wide byte cap for any plan - that struct
-// has total_downloaded (a lifetime counter, carried here as Used) and nothing
-// resembling a limit, for Free through Standard alike. Unlimited is read from
-// IsSubscribed rather than from the plan number, so a lapsed subscription
-// still showing a paid plan value does not go on claiming unlimited traffic
-// once TorBox itself no longer calls the account subscribed - and a genuine
-// Free-tier account is left at the zero value (not Unlimited, not a
-// fabricated limit) rather than badged "Unlimited", which free real-world
-// restrictions this endpoint does not expose would make misleading.
+// TorBox exposes no byte cap for any plan. Unlimited follows is_subscribed
+// rather than the plan number, so a lapsed subscription stops reading as
+// unlimited, and a free account keeps zero traffic.
 func (c *Client) Account(ctx context.Context) (AccountInfo, error) {
 	var data struct {
 		Plan             int     `json:"plan"`
@@ -150,15 +128,11 @@ func (c *Client) Account(ctx context.Context) (AccountInfo, error) {
 }
 
 // Hoster describes one supported file host. TorBox returns either a single
-// `domain` or a `domains` list depending on the host.
+// domain or a domains list depending on the host.
 //
-// Type is "hoster" for a real file-hosting service (rapidgator, etc.) or
-// "stream" for a media/social page TorBox unlocks by scraping it (YouTube,
-// Twitch, TikTok, Instagram, ...) - the same shape yt-dlp exists to serve
-// directly. Kept as a plain string rather than an enum: this only ever
-// filters a domain set, and a value TorBox adds later that this app does not
-// yet know about should fail open (treated as "not a plain hoster", so it
-// stays eligible for yt-dlp) rather than fail to compile.
+// Type is "hoster" for a file-hosting service or "stream" for a media site
+// TorBox scrapes (YouTube, Twitch, ...), which yt-dlp serves directly. Any
+// other value counts as not a plain hoster, so it stays with yt-dlp.
 type Hoster struct {
 	Name    string   `json:"name"`
 	Domain  string   `json:"domain"`

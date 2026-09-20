@@ -15,21 +15,17 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
 )
 
-// RealDebrid speaks the Real-Debrid REST 1.0 API.
-// https://api.real-debrid.com/ — auth is a Bearer API token.
+// RealDebrid speaks the Real-Debrid REST 1.0 API (https://api.real-debrid.com/)
+// with a Bearer API token.
 type RealDebrid struct {
 	token string
 	base  string
 	hc    *http.Client
 
-	// chunkMu guards chunkCaps, which Unlock writes from whatever goroutine a
-	// download happens to run on (see debrid.Backend.start) and HostLimit
-	// reads from the dispatch path - two callers that were never one before
-	// this field existed.
+	// chunkMu guards chunkCaps, written by Unlock on download goroutines and
+	// read by HostLimit from dispatch.
 	chunkMu sync.Mutex
-	// chunkCaps remembers, per hoster host, the smallest "chunks" Real-Debrid
-	// has ever reported for a link on it - see HostLimit for what this
-	// answers and rememberChunkCap for why the smallest one wins.
+	// chunkCaps holds the smallest "chunks" reported per hoster host.
 	chunkCaps map[string]int
 }
 
@@ -58,21 +54,16 @@ func (r *RealDebrid) do(ctx context.Context, method, path string, form url.Value
 	return nil
 }
 
-// rdError is Real-Debrid's failure body. The numeric code is the part worth
-// reading: the sentence is prose, but 24 is "File unavailable" whatever else
-// changes around it.
+// rdError is Real-Debrid's failure body. The numeric code is stable where the
+// message text is not.
 type rdError struct {
 	Error string `json:"error"`
 	Code  int    `json:"error_code"`
 }
 
-// raw performs the call and hands back the status alongside the body, because
-// one caller needs the status itself rather than an error built from it - a
-// check has to tell a 503 that means "this file is gone" from a 503 that means
-// "come back later", and both arrive as the same status with a different code.
-//
-// auth is a parameter for the same reason: /unrestrict/check is deliberately
-// called without the token. See CheckLinks.
+// raw performs the call and returns status and body, so a check can read the
+// error code behind a 503. auth is false for /unrestrict/check (see
+// CheckLinks).
 func (r *RealDebrid) raw(ctx context.Context, method, path string, form url.Values, auth bool) (int, []byte, error) {
 	var body io.Reader
 	if form != nil {
@@ -113,28 +104,13 @@ func (r *RealDebrid) Hosts(ctx context.Context) (map[string]bool, error) {
 }
 
 // rdCheckParallel is how many /unrestrict/check calls are in flight at once.
-//
-// Small on purpose. Real-Debrid meters by address, and the endpoint takes one
-// link per call, so a fifty-link collector is fifty requests however they are
-// arranged - the only thing left to decide is whether they arrive as a burst
-// that earns a "Slow down" for the whole household or as a queue nobody
-// notices. Four is the queue.
+// Real-Debrid rate-limits by address and checks one link per call, so a large
+// batch goes out as a small queue rather than a burst.
 const rdCheckParallel = 4
 
-// CheckLinks asks /unrestrict/check about each link.
-//
-// Free, and the API's own shape is the proof rather than a promise in a
-// sentence: the endpoint requires no authentication at all, so there is no
-// account for it to bill. That is also why the call goes out with the token
-// deliberately stripped - the one way this could ever start costing the user
-// something is if Real-Debrid began attributing it to whoever signed it, and a
-// request carrying no credential cannot be attributed to anybody. The unlock
-// path, which does spend traffic, is /unrestrict/link and is somewhere else.
-//
-// It is fanned out rather than batched because Real-Debrid has no batch form
-// for it. That is not a reason to call it link by link from the caller: the
-// interface stays a batch so the fan-out is bounded here, once, instead of
-// being however fast the caller's loop happens to run.
+// CheckLinks asks /unrestrict/check about each link. The endpoint needs no
+// authentication, and the token is left off so the check can never be billed
+// to the account.
 func (r *RealDebrid) CheckLinks(ctx context.Context, links []string) ([]core.Availability, error) {
 	out := make([]core.Availability, len(links))
 	sem := make(chan struct{}, rdCheckParallel)
@@ -145,21 +121,16 @@ func (r *RealDebrid) CheckLinks(ctx context.Context, links []string) ([]core.Ava
 			defer wg.Done()
 			sem <- struct{}{}
 			defer func() { <-sem }()
-			// Each goroutine owns its own index and reads nothing the others write,
-			// which is what makes the shared slice safe without a mutex here.
+			// Each goroutine writes only its own index.
 			out[i] = r.checkOne(ctx, link)
 		}()
 	}
 	wg.Wait()
-	// No length guard on the way out: the slice was sized from the request and
-	// every index is written by exactly one goroutine, so the contract holds by
-	// construction here rather than by inspection.
 	return out, nil
 }
 
-// checkOne is one link's verdict. It never returns an error: a link the service
-// would not talk about is uncheckable, and letting that end the whole batch
-// would throw away the forty-nine answers that did arrive.
+// checkOne is one link's verdict. A failure makes that link uncheckable
+// rather than failing the whole batch.
 func (r *RealDebrid) checkOne(ctx context.Context, link string) core.Availability {
 	status, raw, err := r.raw(ctx, http.MethodPost, "/unrestrict/check", url.Values{"link": {link}}, false)
 	if err != nil {
@@ -171,10 +142,8 @@ func (r *RealDebrid) checkOne(ctx context.Context, link string) core.Availabilit
 		return rdVerdict(e.Code)
 	}
 	var out struct {
-		// A pointer, because absent and zero are different answers. Real-Debrid
-		// sends supported:0 for a host it cannot unlock, which is worth knowing;
-		// a response that omits the field entirely says nothing, and reading that
-		// as a zero would file every such link as uncheckable.
+		// supported:0 marks a host Real-Debrid cannot unlock; an absent
+		// field says nothing.
 		Supported *int `json:"supported"`
 	}
 	if json.Unmarshal(raw, &out) == nil && out.Supported != nil && *out.Supported == 0 {
@@ -184,29 +153,20 @@ func (r *RealDebrid) checkOne(ctx context.Context, link string) core.Availabilit
 }
 
 // rdVerdict reads Real-Debrid's numeric error code as a statement about the
-// link. Two codes are the host saying the file is not there; everything else is
-// about the service, the hoster or this address, and none of those is a reason
-// to tell somebody their link is dead.
+// link. Only two codes say the file is gone; the rest are about the service,
+// the hoster or this address.
 func rdVerdict(code int) core.Availability {
 	switch code {
 	case 24, // File unavailable
-		35: // Infringing file - taken down, and not coming back
+		35: // Infringing file
 		return core.AvailOffline
 	}
 	return core.AvailUncheckable
 }
 
-// Account reads /user: account type and premium expiry. Field names and the
-// "2032-06-06T04:42:42.000Z" expiration shape are Real-Debrid's own
-// documented example response.
-//
-// Real-Debrid markets and behaves as unlimited bandwidth for a premium
-// account, and /user carries no overall byte-cap field to contradict that -
-// so a premium account reads Unlimited here. /traffic exists but answers a
-// different question: it is keyed per hoster, for the handful of restricted
-// hosts Real-Debrid itself rations, and deliberately not summarised into this
-// one account-wide reading, the same reasoning AllDebrid.Account gives for
-// leaving out limitedHostersQuotas.
+// Account reads /user for account type and premium expiry. A premium account
+// reads Unlimited: /user has no byte cap, and /traffic only covers the few
+// hosts Real-Debrid rations individually.
 func (r *RealDebrid) Account(ctx context.Context) (AccountInfo, error) {
 	var data struct {
 		Type       string `json:"type"` // "premium" or "free"
@@ -217,10 +177,7 @@ func (r *RealDebrid) Account(ctx context.Context) (AccountInfo, error) {
 	}
 	info := AccountInfo{Tier: data.Type, Traffic: TrafficInfo{Unlimited: data.Type == "premium"}}
 	if data.Expiration != "" {
-		// RFC3339Nano, not RFC3339: Real-Debrid's own example carries
-		// milliseconds ("...042.000Z") that the plain RFC3339 layout has no
-		// verb for, and Go's parser only accepts a fractional-seconds
-		// component when the layout itself expresses one.
+		// The value carries milliseconds ("2032-06-06T04:42:42.000Z").
 		if t, err := time.Parse(time.RFC3339Nano, data.Expiration); err == nil {
 			info.ExpiresAt = t
 		}
@@ -233,10 +190,7 @@ func (r *RealDebrid) Unlock(ctx context.Context, link string) (Direct, error) {
 		Filename string `json:"filename"`
 		Filesize int64  `json:"filesize"`
 		Download string `json:"download"`
-		// Chunks is Real-Debrid's own "Max Chunks allowed" for this specific
-		// link (documented on /unrestrict/link, and identically on
-		// /unrestrict/check, /downloads and /torrents - verified against
-		// api.real-debrid.com). See rememberChunkCap for what happens to it.
+		// Chunks is Real-Debrid's "Max Chunks allowed" for this link.
 		Chunks int `json:"chunks"`
 	}
 	if err := r.do(ctx, http.MethodPost, "/unrestrict/link", url.Values{"link": {link}}, &out); err != nil {
@@ -250,23 +204,10 @@ func (r *RealDebrid) Unlock(ctx context.Context, link string) (Direct, error) {
 }
 
 // rememberChunkCap records the smallest "chunks" Real-Debrid has reported for
-// link's host.
-//
-// LEARNED OPPORTUNISTICALLY, NOT FETCHED UP FRONT, because there is nothing
-// to fetch up front: Real-Debrid publishes no per-host table of this anywhere
-// in its API (checked against /hosts, /hosts/status, /hosts/domains and
-// /hosts/regex - none of them carry it). The only place the number is ever
-// stated is on a response about a link Real-Debrid has just unlocked, so the
-// cache starts empty for every host and fills in as real downloads use it -
-// see HostLimit for the "0 means nothing learned yet" half of that contract.
-//
-// The smallest seen, not the latest: two different unlocks reporting 4 and
-// then 16 for the same host both came from the one API, and the smaller of
-// the two is the one no request against that host has ever been refused for.
-// A chunks of 0 or less is dropped rather than remembered - Real-Debrid
-// omitting the field entirely must not be read as "zero chunks allowed",
-// which connsFor would then apply as a hard stop on every future download to
-// that host.
+// link's host. No endpoint publishes a per-host table, so the limit is learned
+// from unlock answers as downloads happen. The smallest value wins because no
+// request has been refused at that count, and a missing field (0) is not
+// recorded, since connsFor would read it as a hard stop.
 func (r *RealDebrid) rememberChunkCap(link string, chunks int) {
 	if chunks <= 0 {
 		return
@@ -286,9 +227,8 @@ func (r *RealDebrid) rememberChunkCap(link string, chunks int) {
 	}
 }
 
-// HostLimit satisfies debrid.HostLimiter: 0 until a real Unlock response has
-// said otherwise for this exact host, which is the same "no opinion" zero
-// every other absent ceiling in connsFor's chain already means.
+// HostLimit satisfies HostLimiter. It is 0 (no opinion) until an Unlock
+// answer has reported chunks for this host.
 func (r *RealDebrid) HostLimit(host string) int {
 	r.chunkMu.Lock()
 	defer r.chunkMu.Unlock()

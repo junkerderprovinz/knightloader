@@ -14,31 +14,13 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
 )
 
-// Offcloud speaks the Offcloud API.
+// Offcloud speaks the Offcloud API (github.com/Offcloud/offcloud-api): the key
+// goes in the query string and POST /instant unlocks a link.
 //
-// WHERE THIS ONE'S FIELD NAMES COME FROM, in two halves that differ in how
-// certain they are:
-//
-//   - DOCUMENTED by Offcloud themselves (github.com/Offcloud/offcloud-api, read
-//     2026-09-06): the base is https://offcloud.com/api, the key travels as the
-//     query parameter "?key=", and POST /instant takes `url` and answers
-//     {requestId, fileName, url, site, status, originalLink, createdOn}. A
-//     refusal answers the single word in `not_available` (premium, links,
-//     proxy, video) or an `error` message. "All requests return JSON, including
-//     errors."
-//   - NOT DOCUMENTED anywhere: a list of supported sites. Their README has no
-//     such endpoint at all. POST /api/sites?key= exists - measured 2026-09-06,
-//     it answers 401 {"error":"NOAUTH"} without a key rather than 404 - but its
-//     response shape is published nowhere, so parseSites below accepts three
-//     plausible shapes and takes whatever looks like a domain out of them.
-//
-// jdp asked for it on those terms (2026-09-06: "Jetzt einbauen, Feldnamen aus
-// fremden Bibliotheken"). The failure mode is bounded on purpose: a shape
-// parseSites does not recognise yields an empty set, which makes this resolver
-// claim NO links at all rather than claim links it cannot then unlock. An
-// unclaimed link falls through to the next backend; a wrongly claimed one stops
-// every other backend from getting its turn, and that is the difference this
-// design is choosing between.
+// The supported-sites endpoint POST /api/sites exists but its answer is not
+// documented, so parseSites accepts several shapes. An unrecognised shape
+// yields no hosts, which leaves links to the next backend instead of claiming
+// ones this service cannot unlock.
 type Offcloud struct {
 	key  string
 	base string
@@ -52,8 +34,8 @@ func NewOffcloud(key string) *Offcloud {
 func (*Offcloud) ID() string    { return "offcloud" }
 func (*Offcloud) Label() string { return "Offcloud" }
 
-// post sends a form-encoded call with the key in the query string, which is
-// what the documentation calls "the best way to authentificate".
+// post sends a form-encoded call with the key in the query string, as the
+// documentation recommends.
 func (o *Offcloud) post(ctx context.Context, path string, form url.Values) ([]byte, error) {
 	u := o.base + path
 	if o.key != "" {
@@ -75,9 +57,8 @@ func (o *Offcloud) post(ctx context.Context, path string, form url.Values) ([]by
 	if err != nil {
 		return nil, err
 	}
-	// The status line matters here, unlike Premiumize's: an unauthenticated
-	// call answers 401 with {"error":"NOAUTH"}, and that is the one signal a
-	// credential check can rely on.
+	// A bad key answers 401 {"error":"NOAUTH"}, the only reliable signal for
+	// a credential check.
 	if resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden {
 		return nil, fmt.Errorf("offcloud %s: the API key was refused", path)
 	}
@@ -99,14 +80,10 @@ func (o *Offcloud) Hosts(ctx context.Context) (map[string]bool, error) {
 	return set, nil
 }
 
-// parseSites takes every domain-shaped string out of an answer whose exact
-// shape is not published. Three are tried, because those are the three an
-// endpoint like this is written as in practice: a flat array of names, an array
-// of objects, or a map of category to names. Anything else contributes nothing.
-//
-// "Domain-shaped" is doing real work: it is what keeps a category label, a
-// status word or an id out of a routing table where an entry means "this
-// resolver will handle every link on that host".
+// parseSites takes every domain-shaped string out of an answer whose shape is
+// not published: a flat array of names, an array of objects, or a map of
+// category to names. Requiring a domain shape keeps labels and ids out of the
+// routing table.
 func parseSites(raw json.RawMessage) map[string]bool {
 	set := map[string]bool{}
 	add := func(s string) {
@@ -147,9 +124,9 @@ func parseSites(raw json.RawMessage) map[string]bool {
 	return set
 }
 
-// offcloudError reads the two documented ways this API says no: an `error`
-// message, and the `not_available` word that names which add-on the account is
-// missing. Returns "" when the answer carries neither.
+// offcloudError reads the two documented refusals: an "error" message, and
+// the "not_available" word naming the add-on the account lacks. It returns ""
+// when the answer carries neither.
 func offcloudError(raw json.RawMessage) string {
 	var body struct {
 		Error        string `json:"error"`
@@ -195,8 +172,6 @@ func (o *Offcloud) Unlock(ctx context.Context, link string) (Direct, error) {
 	if got.URL == "" {
 		return Direct{}, errors.New("offcloud: no direct link returned")
 	}
-	// No size: /instant does not report one, and the engine learns it from the
-	// Content-Length of the transfer it is about to start anyway. A zero here
-	// means "not stated", which every reader of Direct already handles.
+	// /instant reports no size; the engine takes it from Content-Length.
 	return Direct{URL: got.URL, Name: got.FileName}, nil
 }

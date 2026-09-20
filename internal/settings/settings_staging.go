@@ -2,8 +2,8 @@ package settings
 
 // Where a download is written while it is still arriving, and where the
 // unpacked content ends up afterwards. Both fields are empty on a fresh install
-// and on every install that upgrades into them, and empty means exactly what
-// this build did before they existed - see their own doc comments on Settings.
+// and on every install that upgrades into them. See their doc comments on
+// Settings.
 
 import (
 	"path/filepath"
@@ -14,15 +14,14 @@ func sanitizeStaging(n Settings) Settings {
 	n.WorkDir = strings.TrimSpace(n.WorkDir)
 	// A relative working folder has the same problem as a relative download
 	// folder: it resolves against whatever the process's working directory
-	// happens to be, which is not something a user can reason about. Dropping
-	// it falls back to writing straight to the destination, which is what every
-	// install did before this field existed.
+	// happens to be. Dropping it falls back to writing straight to the
+	// destination.
 	//
-	// It is checked as written and NOT through fixedPrefix, unlike ExtractMoveTo
-	// below: a working folder holds no placeholders on purpose. Its whole job is
-	// to be one folder that several downloads heading for one destination share,
-	// and a template would split that folder per package or per date and leave
-	// every multi-volume archive with its parts in four different places.
+	// Checked as written rather than through fixedPrefix, unlike ExtractMoveTo
+	// below, because a working folder holds no placeholders. Its job is to be
+	// one folder several downloads heading for one destination share, and a
+	// template would split it per package or per date and leave a multi-volume
+	// archive with its parts in four places.
 	if n.WorkDir != "" && !filepath.IsAbs(n.WorkDir) {
 		n.WorkDir = ""
 	}

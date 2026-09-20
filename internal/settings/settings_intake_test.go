@@ -7,10 +7,9 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/crawler"
 )
 
-// TestCrawlDefaultsAreTodaysBehaviour is the promise made to every install
-// that already exists: one page, no filters. A default that crawled deeper
-// would mean an update turning one paste into dozens of requests at somebody
-// else's server, which is not a decision an update gets to make.
+// One page, no filters. A default that crawled deeper would turn one paste into
+// dozens of requests at somebody else's server, which is not a decision an
+// update gets to make.
 func TestCrawlDefaultsAreTodaysBehaviour(t *testing.T) {
 	d := Defaults()
 	if !d.Crawl {
@@ -22,7 +21,7 @@ func TestCrawlDefaultsAreTodaysBehaviour(t *testing.T) {
 	if len(d.CrawlInclude) != 0 || len(d.CrawlExclude) != 0 {
 		t.Errorf("a fresh install starts with filters %v / %v, want none", d.CrawlInclude, d.CrawlExclude)
 	}
-	// The one default that is NOT the zero value, and only because at depth 1
+	// The one default that is not the zero value, and only because at depth 1
 	// it does nothing at all: the first person to raise the depth gets the safe
 	// answer to "may it wander off this site" without being asked.
 	if !d.CrawlSameHost {
@@ -30,10 +29,9 @@ func TestCrawlDefaultsAreTodaysBehaviour(t *testing.T) {
 	}
 }
 
-// TestSettingsFileFromAnOlderBuildKeepsTheOnePageCrawl is the migration case
-// with no migration code: these keys are simply absent from every settings.json
-// written before they existed, so they decode as zero. CrawlDepth 0 has to come
-// out of that as the single page, never as "unset, so use the ceiling".
+// The migration case with no migration code: the keys are absent from a
+// settings.json written before they existed, so they decode as zero, and
+// CrawlDepth 0 has to come out of that as the single page.
 func TestSettingsFileFromAnOlderBuildKeepsTheOnePageCrawl(t *testing.T) {
 	var old Settings
 	if err := json.Unmarshal([]byte(`{"crawl":true,"maxConcurrent":4}`), &old); err != nil {
@@ -48,10 +46,9 @@ func TestSettingsFileFromAnOlderBuildKeepsTheOnePageCrawl(t *testing.T) {
 	}
 }
 
-// TestSanitizeFoldsTheCrawlNumbersIntoRange pins that an impossible number is
-// clamped rather than refused. These arrive from a file another build - or a
-// hand edit - may have written, and the punishment for one bad integer must
-// never be that pasting a page stops working.
+// An impossible number is clamped rather than refused. These arrive from a file
+// another build, or a hand edit, may have written, and one bad integer must not
+// stop a pasted page from working.
 func TestSanitizeFoldsTheCrawlNumbersIntoRange(t *testing.T) {
 	for _, c := range []struct {
 		name           string
@@ -74,13 +71,12 @@ func TestSanitizeFoldsTheCrawlNumbersIntoRange(t *testing.T) {
 	}
 }
 
-// TestSanitizeDropsBlankPatternsAndKeepsBrokenOnes pins the split between the
-// two things a filter box can contain. A blank line is what a textarea leaves
-// behind on every stray return and matches EVERYTHING - as an exclude that is
-// "crawl nothing", silently - so it goes. A pattern that does not compile stays
-// exactly as typed: the crawler refuses the run and names the box it came from,
-// whereas deleting it would leave somebody looking at a filter they believe is
-// filtering.
+// The split between the two things a filter box can contain. A blank line is
+// what a textarea leaves behind on a stray return and matches everything, which
+// as an exclude means crawling nothing, so it goes. A pattern that does not
+// compile stays as typed: the crawler refuses the run and names the box it came
+// from, whereas deleting it would leave somebody looking at a filter they
+// believe is filtering.
 func TestSanitizeDropsBlankPatternsAndKeepsBrokenOnes(t *testing.T) {
 	got := sanitize(Settings{
 		CrawlExclude: []string{"sample", "", "   ", "("},
@@ -94,10 +90,8 @@ func TestSanitizeDropsBlankPatternsAndKeepsBrokenOnes(t *testing.T) {
 	}
 }
 
-// TestSanitizeDoesNotEditTheCallersPatternList guards the classic in-place
-// filter. Settings is copied by value, but a slice field is a view onto memory
-// the caller still holds, so compacting into in[:0] would shorten somebody
-// else's list from a function that promised to return a new one.
+// Settings is copied by value, but a slice field is a view onto memory the
+// caller still holds, so compacting into in[:0] would shorten their list.
 func TestSanitizeDoesNotEditTheCallersPatternList(t *testing.T) {
 	mine := []string{"keep", "", "also"}
 	sanitize(Settings{CrawlExclude: mine})

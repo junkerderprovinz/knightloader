@@ -6,11 +6,8 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/core"
 )
 
-// TestAnswersNeverShortensTheBatch pins the one thing every caller of a Checker
-// depends on and none of them can verify: the answer is as long as the question.
-// A service that drops an entry it did not recognise would otherwise slide every
-// verdict after the gap onto the wrong link, and the row that reads "offline" is
-// then a file that is perfectly fine.
+// A service that drops an entry would otherwise shift every later verdict onto
+// the wrong link.
 func TestAnswersNeverShortensTheBatch(t *testing.T) {
 	cases := []struct {
 		name string
@@ -35,10 +32,7 @@ func TestAnswersNeverShortensTheBatch(t *testing.T) {
 			want: []core.Availability{core.AvailOnline, core.AvailOnline, core.AvailOnline},
 		},
 		{
-			// An empty string means "not checked", and a link that went out in a
-			// check request has been checked whatever came back. Left as "" it
-			// rejoins the links nobody has looked at and vanishes from the answer
-			// the user just asked for.
+			// An empty string means "not checked", but this link was checked.
 			name: "a service that answered with the empty string",
 			got:  []core.Availability{core.AvailOnline, "", core.AvailOffline},
 			want: []core.Availability{core.AvailOnline, core.AvailUncheckable, core.AvailOffline},
