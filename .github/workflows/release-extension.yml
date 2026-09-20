@@ -1,15 +1,9 @@
 name: Release (browser extension)
 
-# The extension carries its own version in src/manifest.json and is tagged on
-# its own, for the same reason the app is: it is installed separately and
-# upgrades separately.
-#
-# ONE honest caveat, because the shape here is unusual. The copy most people
-# run does NOT come from this release: Settings > Browser tools serves a zip
-# built from the extension embedded in whatever server binary they are running
-# (extension/embed.go), so that copy tracks the server, not this tag. This tag
-# and its zip exist for a browser store submission and for anyone who wants a
-# fixed, downloadable build - not as the primary channel.
+# The extension is versioned in src/manifest.json and tagged on its own, since
+# it installs and upgrades separately. Most people get it from Settings >
+# Browser tools, which serves the copy embedded in their server
+# (extension/embed.go); this zip is for store submissions and fixed downloads.
 on:
   push:
     tags:
@@ -43,11 +37,8 @@ jobs:
           fi
           echo "version $declared"
 
-      # action-gh-release swallows an unreadable body_path and publishes an
-      # EMPTY release, with only a warning buried in the log - quieter than a
-      # failure and just as wrong. release.yml probes for the file and falls
-      # back to generated notes; here a release without hand-written notes is a
-      # mistake, so it stops instead.
+      # action-gh-release publishes an empty release when body_path cannot be
+      # read, with only a warning in the log.
       - name: Notes exist for this tag
         if: github.ref_type == 'tag'
         run: |
@@ -58,9 +49,7 @@ jobs:
           fi
           wc -l "$file"
 
-      # The same gates CI runs, repeated here rather than assumed: a release is
-      # exactly the moment a locale short one key, or a control that refuses in
-      # the wrong way, would ship unnoticed.
+      # The same checks CI runs, repeated so a release cannot skip them.
       - name: Syntax, locale parity and refusals
         run: |
           for f in extension/src/*.js; do node --check "$f"; done
@@ -70,9 +59,7 @@ jobs:
           node extension/check-background.mjs
           node extension/check-relay-seal.mjs
 
-      # The same lint and skip list as ci.yml, where the two skipped codes are
-      # explained. The zip below is what goes to AMO, so its lint result is the
-      # one that counts.
+      # Same lint and skip list as ci.yml, which explains the skipped codes.
       - name: web-ext lint
         run: |
           cd extension/src
@@ -88,9 +75,7 @@ jobs:
             });
           '
 
-      # src/ ships as plain files - no build step - so the zip is the directory
-      # itself. Built from src/ rather than from the repo root so the archive
-      # unpacks to a loadable extension rather than to a path.
+      # Zipped from inside src/ so the archive unpacks to a loadable extension.
       - name: Zip it
         id: zip
         run: |
@@ -101,33 +86,18 @@ jobs:
           ls -l "$out"
 
       - uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3
-        # A workflow_dispatch run is for checking that the zip still builds.
-        # Without this it reaches here with github.ref_name holding a BRANCH,
-        # looks for release notes under that name, finds none, and publishes an
-        # empty release from a branch - the silent-empty-release failure the
-        # notes gate above exists to prevent, arriving through the one door
-        # that gate skips.
+        # A dispatched run only checks that the zip builds; from a branch it
+        # would find no notes and publish an empty release.
         if: github.ref_type == 'tag'
         with:
-          # See release-mobile.yml for why the product is named here rather
-          # than left as the bare ref.
           name: Browser Extension ${{ steps.version.outputs.bare }}
           body_path: .github/release-notes/${{ github.ref_name }}.md
-          # NOT the repository's "Latest" release. That badge belongs to the
-          # PRODUCT's own tag (v1.0.0 and up), and a surface release is a
-          # component of it: a visitor who lands on the releases page and sees
-          # "Latest: Browser Extension 1.19.0" reads it as the version of
-          # KnightLoader, which it is not. GitHub marks whatever was published
-          # most recently unless told otherwise, so this has to be said out loud
-          # in every workflow that is not the product's own.
+          # The Latest badge belongs to the main vX.Y.Z release, and GitHub
+          # would otherwise give it to whatever was published last.
           make_latest: false
           files: ${{ steps.zip.outputs.path }}
 
-      # The newest zip also goes to the standing release extension/latest, as
-      # knightloader-extension.zip, which is where the README download button
-      # leads. .github/scripts/publish-newest.sh says why, and why only the
-      # newest tag does it. A pushed tag only: a dispatched run publishes
-      # nothing.
+      # For the README download button; see .github/scripts/publish-newest.sh.
       - name: The newest zip under a fixed name
         if: github.event_name == 'push' && github.ref_type == 'tag'
         env:

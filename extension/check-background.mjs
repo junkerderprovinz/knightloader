@@ -1,25 +1,15 @@
 /**
- * The background scripts, run for real against a stubbed `chrome`.
+ * Runs the background scripts against a stubbed `chrome`.
  *
- * Three things a store review found on 2026-09-17, each of which no syntax or
- * locale check could see:
- *
- *   1. A browser without the context-menu API (Firefox for Android has none)
- *      must still get a working background. background.js called
- *      chrome.contextMenus at top level, the TypeError stopped the file there,
- *      and the message listener below it was never registered: every popup
- *      send was then lost without a word. Here the scripts load with no
- *      contextMenus at all, and the listeners, the install path and a language
- *      change all have to survive.
- *   2. Switching Click'n'Load off has to switch off the jdcheck.js redirect
- *      too. Only the content scripts were unregistered, so the static
- *      declarativeNetRequest ruleset kept answering sites' probes with code
- *      from this extension. The ruleset has to follow the switch both ways,
- *      even when the scripting call fails, and an update and a browser start
- *      have to write the stored state again, because a ruleset's enabled state
- *      does not survive an extension update.
- *   3. Leaving the group removes the random browser ID as well, so a browser
- *      that joins another group is not the same member to the relay.
+ *   1. Without the context-menu API (Firefox for Android has none) the scripts
+ *      still load, register their listeners and survive install and a
+ *      language change. A top-level contextMenus call would stop the file
+ *      before the message listener and lose every popup send.
+ *   2. The jdcheck.js ruleset follows the Click'n'Load switch both ways, even
+ *      when the scripting call fails, and an update or a browser start applies
+ *      the stored state again, since an update resets a ruleset's state.
+ *   3. Leaving the group also removes the random browser ID, so the relay does
+ *      not see the same member in another group.
  */
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -140,9 +130,8 @@ for (const scriptingThrows of [false, true]) {
   }
 }
 
-// 2b. An update and a browser start write the stored state again. Chrome resets
-//     a static ruleset to its manifest default on every update, so without this
-//     somebody who switched Click'n'Load off gets the redirect back.
+// 2b. An update and a browser start apply the stored state again, since Chrome
+//     resets a static ruleset to its manifest default on every update.
 for (const stored of [false, undefined]) {
   for (const path of ['update', 'startup']) {
     const { chrome, calls, store } = makeChrome({ withMenus: true });

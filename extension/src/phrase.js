@@ -1,22 +1,14 @@
 /**
  * The extension's half of the connection phrase.
  *
- * A port of internal/seedphrase and the phone's own mobile/src/api/seedphrase.ts,
- * deliberately line for line: all three have to agree on every one of the 2048
- * words and on the bit packing, or the key derived here quietly differs from the
- * server's and the symptom is "the relay never connects" with nothing in any log.
+ * A line-for-line port of internal/seedphrase and mobile/src/api/seedphrase.ts.
+ * All three must agree on the 2048 words and the bit packing, or the derived
+ * key differs and the relay never connects, with nothing in any log.
  *
- * It decodes locally rather than asking a server, for the same reason the phone
- * does: the whole point of the phrase is the case where this browser cannot
- * reach any instance yet — there is nobody to ask.
+ * It decodes locally because the phrase is for a browser that cannot reach any
+ * instance yet. Unlike the phone it hashes with WebCrypto, so it is async.
  *
- * The one deliberate difference from the phone: hashing is WebCrypto, so
- * everything here is async. The phone hand-rolls SHA-256 because its runtime has
- * no reliable subtle crypto; a browser extension always does, and reimplementing
- * a hash to keep a signature synchronous would be trading a real risk for a
- * cosmetic one.
- *
- * The UI must never call this a wallet seed. It is a Verbindungsphrase.
+ * The UI calls this a connection phrase, never a wallet seed.
  */
 
 const SECRET_LEN = 16;
@@ -24,23 +16,17 @@ const WORD_COUNT = 12;
 const BITS_PER_WORD = 11;
 const CHECKSUM_BITS = (SECRET_LEN * 8) / 32; // BIP39's own rule
 
-/** relay.DefaultRelayURL. Compiled in on the server for the same reason it is a
- *  constant here: it is what keeps a phrase twelve words instead of a URL plus
- *  a key. */
+/** relay.DefaultRelayURL. A fixed relay keeps the phrase at twelve words
+ *  instead of a URL plus a key. */
 const DEFAULT_RELAY_URL = 'wss://relay.halleluja.design/relay/connect';
 
 /** relay.keyDomain. Changing this string orphans every phrase in existence. */
 const KEY_DOMAIN = 'knightloader/relay/group-key/v1';
 
 /**
- * The second domain over the same secret, mirroring internal/relay/key.go's
- * frameDomain.
- *
- * The separate domain is the entire point, and worth restating where somebody
- * reading only this file will see it: the relay is HANDED the group key in every
- * hello frame. A frame key derived from that value, or under the same domain,
- * would be a key the relay already holds — and the encryption would protect
- * nothing from the one party it is aimed at.
+ * The second domain over the same secret, mirroring frameDomain in
+ * internal/relay/key.go. The relay receives the group key in every hello frame,
+ * so a frame key under the same domain would be one the relay already holds.
  */
 const FRAME_KEY_DOMAIN = 'knightloader/relay/frame-key/v1';
 
@@ -85,14 +71,10 @@ function setBits(b, offset, count, v) {
 }
 
 /**
- * decodePhrase parses twelve words back into the secret they carry.
- *
- * Input is normalised first, because it arrives from a paste, a QR scan, or
- * somebody typing what was read to them: case is ignored and any run of
- * whitespace counts as one separator.
- *
- * Throws PhraseError, never a bare string, so the options page can pick a
- * translated sentence instead of showing one this file chose.
+ * decodePhrase parses twelve words back into the secret they carry. Case is
+ * ignored and any whitespace separates words, since input comes from pastes,
+ * QR scans and typing. Throws PhraseError so the caller can show a translated
+ * reason.
  */
 async function decodePhrase(phrase) {
   const got = String(phrase).trim().toLowerCase().split(/\s+/).filter(Boolean);
@@ -104,8 +86,7 @@ async function decodePhrase(phrase) {
   for (let i = 0; i < got.length; i++) {
     const idx = PHRASE_INDEX.get(got[i]);
     if (idx === undefined) {
-      // Naming the word and its position is the point: bisecting a twelve-word
-      // phrase by hand is not a thing to ask of anybody.
+      // The word and its position spare the user a search through twelve.
       throw new PhraseError({ reason: 'unknown_word', word: got[i], position: i + 1 });
     }
     setBits(full, i * BITS_PER_WORD, BITS_PER_WORD, idx);
@@ -120,12 +101,8 @@ async function decodePhrase(phrase) {
 }
 
 /**
- * deriveKey turns the secret into what the relay is actually told.
- *
- * The secret never travels. The relay matches connections presenting the same
- * derived key and cannot work backwards to the words, which is what lets
- * somebody else run the relay without being able to reconstruct anybody's
- * phrase — including us.
+ * deriveKey turns the secret into the key the relay sees. The secret never
+ * travels, so whoever runs the relay cannot recover the words.
  */
 async function deriveKey(secret) {
   const domain = phraseUtf8(KEY_DOMAIN);
@@ -136,8 +113,7 @@ async function deriveKey(secret) {
 }
 
 /** deriveFrameKey returns the 32-byte key that seals proxy frames, mirroring
- *  relay.DeriveFrameKey. See FRAME_KEY_DOMAIN above for why it is a second
- *  domain rather than the same one. */
+ *  relay.DeriveFrameKey. */
 async function deriveFrameKey(secret) {
   const domain = phraseUtf8(FRAME_KEY_DOMAIN);
   const buf = new Uint8Array(domain.length + secret.length);
@@ -146,7 +122,7 @@ async function deriveFrameKey(secret) {
   return await sha256(buf);
 }
 
-/** Both keys from the words, which is what every caller here actually wants. */
+/** Both keys from the words. */
 async function keysFromPhrase(phrase) {
   const secret = await decodePhrase(phrase);
   return { key: await deriveKey(secret), frameKey: await deriveFrameKey(secret) };

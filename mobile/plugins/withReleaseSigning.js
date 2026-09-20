@@ -3,29 +3,20 @@ const { withAppBuildGradle } = require('expo/config-plugins');
 /**
  * Gives the release build a signing config of its own.
  *
- * `expo prebuild` generates an app/build.gradle whose RELEASE buildType signs
- * with `signingConfigs.debug` - the template even carries the warning:
+ * `expo prebuild` generates an app/build.gradle whose release buildType signs
+ * with `signingConfigs.debug`. That keystore is `androiddebugkey` with the
+ * password `android`, the same one on every Android developer's machine, so
+ * anyone could build an update Android accepts as coming from us, and Play
+ * refuses such an APK outright.
  *
- *     release {
- *         // Caution! In production, you need to generate your own keystore file.
- *         signingConfig signingConfigs.debug
+ * It cannot be corrected later without hurting people either. Android
+ * identifies an app by package name and signing certificate, so changing the
+ * key turns version N+1 into a different app: every installed copy has to be
+ * uninstalled first, taking its settings and paired instances with it.
  *
- * That keystore is `androiddebugkey` with the password `android`, the same one
- * on every Android developer's machine on earth. An APK published with it is
- * not merely "unsigned in spirit": anyone can build an update Android will
- * accept as coming from us, and Play refuses it outright.
- *
- * It also cannot be corrected later without hurting people. Android identifies
- * an app by (package name, signing certificate), so changing the key turns
- * version N+1 into a different app: every installed copy has to be uninstalled
- * first, and its settings and paired instances go with it. There is exactly one
- * safe moment to get this right, and it is before the first release anybody
- * installs.
- *
- * android/ is generated rather than committed, so this cannot be a one-line
- * edit to a checked-in gradle file. A plugin is the version of that edit which
- * survives `prebuild --clean`, and it applies the same way on a laptop as in
- * CI instead of living in one workflow's sed.
+ * android/ is generated rather than committed, so this cannot be an edit to a
+ * checked-in gradle file. A plugin survives `prebuild --clean` and applies the
+ * same way on a laptop as in CI, instead of living in one workflow's sed.
  *
  * The credentials come from the environment, never from the repository:
  *
@@ -34,13 +25,11 @@ const { withAppBuildGradle } = require('expo/config-plugins');
  *   KL_ANDROID_KEY_ALIAS       the key inside it
  *   KL_ANDROID_KEY_PASSWORD    that key's password
  *
- * With none of them set (or set empty) the build falls back to the debug key, which is right
- * for `npm run android` on a laptop and would be quietly wrong for a release.
- * So the fallback is NOT the safety net here: release-mobile.yml refuses to
- * build a tag without the secrets at all, and then verifies the finished APK's
- * certificate is not the debug one. A build that silently produced the wrong
- * artifact is the failure this is guarding against, and an env var being set is
- * not proof that it did not happen - the certificate in the APK is.
+ * With none of them set the build falls back to the debug key, which is right
+ * for `npm run android` on a laptop. The fallback is not the safety net for a
+ * release: release-mobile.yml refuses to build a tag without the secrets, and
+ * then verifies the finished APK's certificate is not the debug one, because an
+ * env var being set is no proof of what ended up in the artifact.
  */
 module.exports = function withReleaseSigning(config) {
   return withAppBuildGradle(config, (cfg) => {
@@ -65,25 +54,22 @@ module.exports = function withReleaseSigning(config) {
     src = src.replace(
       debugBlock,
       `        release {
-            // Absolute path, or one relative to android/app. Left entirely
-            // unset when the environment carries nothing, so configuring this
-            // block cannot fail a local build that is never going to use it.
-            // Groovy truth, not a null check: the workflow sets this to the
-            // EMPTY string on a non-tag build, and "" is not null.
+            // Absolute path, or one relative to android/app. Left unset when
+            // the environment carries nothing, so configuring this block cannot
+            // fail a local build that is never going to use it. Groovy truth
+            // rather than a null check, because the workflow sets this to the
+            // empty string on a non-tag build.
             def ks = System.getenv('KL_ANDROID_KEYSTORE')
             if (ks) {
                 storeFile file(ks)
                 storePassword System.getenv('KL_ANDROID_STORE_PASSWORD')
                 keyAlias System.getenv('KL_ANDROID_KEY_ALIAS')
                 keyPassword System.getenv('KL_ANDROID_KEY_PASSWORD')
-                // AGP enables v2 and leaves v3 off. v3 is what a modern APK
-                // carries, and it is the scheme that supports key ROTATION -
-                // the only mechanism by which a compromised or lost signing
-                // key could ever be replaced without every installed copy
-                // having to be uninstalled first. Turning it on costs nothing
-                // and is the difference between "no way out" and "a way out"
-                // on the one failure this project cannot otherwise recover
-                // from. v1 stays off: minSdk is 24, so nothing reads it.
+                // AGP enables v2 and leaves v3 off. v3 is the scheme that
+                // supports key rotation, the only way a compromised or lost
+                // signing key can be replaced without every installed copy
+                // having to be uninstalled first. v1 stays off: minSdk is 24,
+                // so nothing reads it.
                 enableV2Signing true
                 enableV3Signing true
             }

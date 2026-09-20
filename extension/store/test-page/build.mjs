@@ -10,10 +10,9 @@
  *     as the IV, zero padding), aimed at http://127.0.0.1:9666 like every
  *     Click'n'Load button on the web, with two other files in its batch.
  *
- * The batch deliberately does not contain the right-click link. With the same
- * link in both, the second send is folded into the first as a duplicate and
- * the instance says "1 link(s) were not added", which reads like a failure in
- * a review.
+ * The batch leaves out the right-click link. Sent twice, it would be folded in
+ * as a duplicate and the instance would report "1 link(s) were not added",
+ * which reads like a failure in a review.
  *
  * Every file is a Blender open movie, CC BY, checked online when this was
  * written. The key is random per build, so the committed index.html changes on

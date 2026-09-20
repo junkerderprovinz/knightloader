@@ -3,77 +3,59 @@
 //
 // GlimStone 1.17.0 adds `storm`: a fourth intensity nobody is offered, reached
 // by setting motion to the top level and tapping that same option five more
-// times. The numbers are the cheap half. The rule it exists to establish is the
-// expensive one, and it is what this script guards:
+// times. The rule it establishes is that an easter egg which changes behaviour
+// has to be switchable back off and must not turn into a permanent entry in a
+// settings list.
 //
-//   AN EASTER EGG THAT CHANGES BEHAVIOUR MUST BE SWITCHABLE BACK OFF, AND MUST
-//   NOT QUIETLY BECOME A PERMANENT ENTRY IN A SETTINGS LIST.
-//
-// WHY THIS IS NOT THE WEB'S SCRIPT WITH THE PATHS CHANGED. There is no CSS on a
-// phone, so there is no `@media (prefers-reduced-motion: no-preference)` block
-// to check a selector's position inside. The gate here is a function call -
-// AccessibilityInfo.isReduceMotionEnabled() - and a function call has no
-// position, only callers. So the phone's version of "the storm sits inside the
-// gate" is "there is exactly ONE reader of that signal, every level resolves
-// through it, and it answers `off` for every level including the hidden one."
-// That is checked by RUNNING the module rather than by reading it: node strips
-// the types and calls the real functions, so these are measurements and not
+// The web's version of this script checks where a selector sits inside
+// `@media (prefers-reduced-motion: no-preference)`. A phone has no such block,
+// only a function call, so the phone's equivalent is that one file reads the
+// signal, every level resolves through it, and it answers `off` for every level
+// including the hidden one. That is checked by running the module: node strips
+// the types and calls the real functions, so these are measurements rather than
 // pattern matches.
 //
-// WHAT BREAKS WITHOUT EACH CHECK, and every one of them is invisible in a
-// build, a type check and a screenshot alike:
+// What each check catches, all of it invisible in a build, a type check and a
+// screenshot alike:
 //
-//   gate      A "more animation" switch that does not pass through the reduced
-//             motion signal is the one way this level could genuinely do harm:
-//             a phone whose owner asked the operating system for less motion
-//             would get MORE movement than the three visible levels can
-//             produce. The other three are safe because of where the gate sits
-//             and not because of a check in front of each of them, so the
+//   gate      A level that does not pass through the reduced-motion signal
+//             would give a phone whose owner asked the system for less motion
+//             more movement than the three visible levels can produce. The
+//             other three are safe because of where the gate sits, so the
 //             fourth has to reach it by the same road. A second screen reading
-//             AccessibilityInfo for itself is the failure: the signal then has
-//             two readers that can disagree, and the one that forgets is the
-//             one that animates.
+//             AccessibilityInfo for itself gives the signal two readers that
+//             can disagree, and the one that forgets is the one that animates.
 //
-//   numbers   A level is a different NUMBER, never a different animation. A
+//   numbers   A level is a different number, never a different animation. A
 //             storm that leaves a figure out inherits the top visible level's
-//             own value and arrives as a slightly longer wild, which gets
-//             reported as "the egg does nothing"; one that invents a figure the
-//             other levels do not have is a forked animation wearing an
-//             intensity's clothes. And the one figure the language names for
-//             the phone by hand - springDamping 0.34 against wild's 0.68 - is
-//             checked as a value, because it is the whole reason the two
-//             surfaces overshoot ALIKE rather than merely both overshooting.
+//             value and arrives as a slightly longer wild; one that invents a
+//             figure the other levels lack is a forked animation wearing an
+//             intensity's clothes. springDamping 0.34 against wild's 0.68 is
+//             checked as a value, because it is what makes the two surfaces
+//             overshoot alike rather than merely both overshooting.
 //
-//   picker    The list a picker renders must not contain storm. This is the
-//             defect the whole rule came from: the first build stored a "found
-//             it" flag and one gesture put a fourth option in the settings for
-//             ever after, which turns a secret into a setting somebody has to
-//             explain to themselves months later with no memory of how it got
-//             there.
+//   picker    The list a picker renders must not contain storm. The first build
+//             stored a "found it" flag, so one gesture put a fourth option in
+//             the settings for good.
 //
-//   stored    ...while a STORED storm is still accepted at boot, or the gesture
-//             produces a setting that silently forgets itself on the next
-//             launch. Validating a stored value and populating a picker are two
-//             different questions and this is the axis where treating them as
-//             one shows up, so the two lists have to be two lists.
+//   stored    A stored storm is still accepted at boot, or the gesture produces
+//             a setting that forgets itself on the next launch. Validating a
+//             stored value and populating a picker are two questions, so the
+//             two lists have to be two lists.
 //
 //   gesture   Five taps on the top level, from the top level, and nothing else.
-//             Four taps must not open it, a tap on another level must reset the
-//             count, and tapping "off" five times must do nothing at all - a
-//             secret that opens under annoyance is a bug report waiting to be
-//             filed.
+//             Four taps do not open it, a tap on another level resets the
+//             count, and tapping "off" five times does nothing: a secret that
+//             opens under annoyance is a bug report waiting to be filed.
 //
 //   memory    The "found it" fact lives in the settings screen's own state and
-//             NEVER in storage. It is the same mistake as the picker one, one
-//             layer down: persist it and the option is back on the next launch,
-//             which is exactly the permanent entry the rule forbids. Grep-shaped
-//             on purpose - any storage write whose key or value mentions the
-//             hidden level is the failure, wherever it is written.
+//             never in storage; persist it and the option is back on the next
+//             launch. Grep-shaped, so any storage write whose key or value
+//             mentions the hidden level is the failure.
 //
-// WHAT IT DOES NOT SEE. It cannot tell whether a screen actually SPENDS the
-// numbers it is handed: a component that keeps its old literal 4px shake passes
-// here and is caught by looking at the screen. It judges the picker's call site
-// by shape, so a fourth entry assembled through a variable it cannot follow
+// It cannot tell whether a screen actually spends the numbers it is handed: a
+// component that keeps its own literal 4px shake passes here. It judges the
+// picker's call site by shape, so a fourth entry assembled through a variable
 // would slip past.
 //
 // Run by hand and by CI, from mobile/: `node check-hidden-motion-level.mjs`
@@ -89,8 +71,6 @@ const fail = (why) => problems.push(why);
 
 const MOTION_MODULE = 'src/theme/motion.ts';
 const GATE_FILE = 'src/theme/MotionContext.tsx';
-
-// --- the module, actually run ----------------------------------------------
 
 let m = null;
 try {
@@ -113,7 +93,7 @@ if (m) {
     fail(`${MOTION_MODULE}: MOTION_STORED does not accept 'storm', so a found level forgets itself on the next launch`);
   }
 
-  // The boot reader validates against the STORED list, measured rather than read.
+  // The boot reader validates against the stored list, measured rather than read.
   if (typeof m.asMotion !== 'function') fail(`${MOTION_MODULE}: no asMotion() - nothing turns a stored string back into a level at boot`);
   else {
     if (m.asMotion('storm') !== 'storm') {
@@ -124,7 +104,7 @@ if (m) {
     }
   }
 
-  // --- gate: reduced motion wins over every level, the hidden one included ---
+  // Reduced motion wins over every level, the hidden one included.
   if (typeof m.resolveMotion !== 'function') {
     fail(`${MOTION_MODULE}: no resolveMotion() - there is no single place where the OS signal beats the chosen level`);
   } else {
@@ -142,10 +122,10 @@ if (m) {
     }
   }
 
-  // --- numbers: same figures at every level, and the two the language names ---
+  // The same figures at every level, and the two the language names.
   const table = m.MOTION;
   if (!table || typeof table !== 'object') {
-    fail(`${MOTION_MODULE}: no MOTION table - a level has to BE a set of numbers, or it is a forked animation`);
+    fail(`${MOTION_MODULE}: no MOTION table - a level has to be a set of numbers, or it is a forked animation`);
   } else {
     const top = table.wild;
     if (!top) fail(`${MOTION_MODULE}: MOTION has no 'wild' entry - the top visible level is what the hidden one is measured against`);
@@ -178,7 +158,7 @@ if (m) {
         fail(
           `${MOTION_MODULE}: springDamping is ${JSON.stringify(table.wild?.springDamping)} at wild and ` +
             `${JSON.stringify(table.storm?.springDamping)} at storm; GlimStone 1.17.0 names 0.68 and 0.34 for the phone, ` +
-            `so that this surface and the web overshoot ALIKE rather than merely both overshooting`,
+            `so that this surface and the web overshoot alike rather than merely both overshooting`,
         );
       }
       // Somebody who asked for less movement asked for less movement, not for a
@@ -191,7 +171,7 @@ if (m) {
     }
   }
 
-  // --- the gesture, exercised ------------------------------------------------
+  // The gesture, exercised.
   if (typeof m.stormTap !== 'function') {
     fail(`${MOTION_MODULE}: no stormTap() - the gesture is the whole mechanism and it belongs in one function`);
   } else {
@@ -221,11 +201,9 @@ if (m) {
     s = { taps: 0 };
     opened = false;
     for (let i = 0; i < taps + 2; i++) if (m.stormTap(s, top, 'subtle') !== undefined) opened = true;
-    if (opened) fail(`${MOTION_MODULE}: the storm opens while another level is in force - the gesture is pressing a button that is ALREADY pressed`);
+    if (opened) fail(`${MOTION_MODULE}: the storm opens while another level is in force - the gesture is pressing a button that is already pressed`);
   }
 }
-
-// --- one reader of the OS signal, and it is the gate ------------------------
 
 const walk = (dir) => {
   const out = [];
@@ -237,9 +215,9 @@ const walk = (dir) => {
   return out;
 };
 
-/** Comments blanked, offsets kept byte for byte, so a line number is the real
- *  one AND a paragraph EXPLAINING what is not persisted is not read as a
- *  persistence. Written the naive way this check fails on its own doctrine. */
+/** Comments blanked with their offsets kept byte for byte, so a line number is
+ *  the real one and a paragraph about what is not persisted is not read as a
+ *  persistence. */
 const strip = (text) =>
   text
     .replace(/\/\*[\s\S]*?\*\//g, (c) => c.replace(/[^\n]/g, ' '))
@@ -260,8 +238,6 @@ if (readers.length === 0) {
   );
 }
 
-// --- the "found it" flag never reaches storage ------------------------------
-
 for (const file of files) {
   const code = strip(readFileSync(file, 'utf8'));
   code.split('\n').forEach((line, i) => {
@@ -269,12 +245,10 @@ for (const file of files) {
     if (!/storm|stormFound|motionFound|gefunden/i.test(line)) return;
     fail(
       `${rel(file)}:${i + 1} a storage line mentions the hidden level: "${line.trim().slice(0, 90)}" - ` +
-        `the CHOSEN value persists like any other, the "found it" fact never does`,
+        `the chosen value persists like any other, the "found it" fact never does`,
     );
   });
 }
-
-// --- the picker's call site -------------------------------------------------
 
 const SETTINGS = 'src/screens/SettingsScreen.tsx';
 const settings = strip(readFileSync(join(here, SETTINGS), 'utf8'));

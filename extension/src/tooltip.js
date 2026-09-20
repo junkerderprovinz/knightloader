@@ -1,23 +1,11 @@
 /**
- * The tooltip / info-bubble engine, ported from
+ * The tooltip and info bubble engine, ported line for line from
  * glimstone/reference/tooltip.ts.
  *
- * ONE floating bubble, a single <body> child, shared by every hover tooltip and
- * every "(i)" icon on the page — not a popup per trigger. Anchored locally it
- * would be at the mercy of every `overflow: hidden` above it, and one card's
- * clipping would turn an explanation into a sliver.
- *
- * Ported rather than approximated, and that distinction is the point: an
- * adopting app that built its own bubble alongside a different tooltip
- * implementation is the exact inconsistency the design language calls out by
- * name. The positioning maths below is the reference file's, line for line —
- * clamp into the viewport, flip above when opening below would clip, arrow
- * tracks the trigger's real centre even when the bubble has been clamped
- * off-centre.
- *
- * A plain script for a <script> tag, like every other file here: this
- * extension has no build step, so `src/` can be loaded unpacked straight from
- * a checkout.
+ * One floating bubble, a direct child of <body>, serves every tooltip and "(i)"
+ * icon, so no `overflow: hidden` on a card can clip it. It is clamped into the
+ * viewport, flips above when opening below would clip, and its arrow follows
+ * the trigger's centre.
  */
 (() => {
   const BUBBLE_ID = 'glim-bubble';
@@ -60,12 +48,10 @@
     const w = el.offsetWidth;
     const h = el.offsetHeight;
     const cx = rect.left + rect.width / 2;
-    // Clamped into the viewport, not merely centred on the trigger — an icon
-    // near either edge would otherwise push the bubble half off-screen.
+    // Clamped so an icon near either edge does not push the bubble off-screen.
     const x = Math.max(8 + w / 2, Math.min(vw - 8 - w / 2, cx));
     el.style.left = `${x}px`;
-    // Flips above only when opening below would clip AND there is room up
-    // there; a trigger at the very top keeps opening downward.
+    // Flips above only when below would clip and there is room above.
     const above = rect.bottom + 8 + h > vh && rect.top - 8 - h >= 0;
     el.classList.toggle('glim-bubble--above', above);
     el.style.top = `${above ? rect.top - 8 - h : rect.bottom + 8}px`;
@@ -123,20 +109,17 @@
       true,
     );
     document.addEventListener('keydown', () => (pointerWasLast = false), true);
-    // Capture, so an inner scrollable container counts too — any scroll
-    // de-anchors a fixed-position bubble from what it was pointing at.
+    // Capture, so scrolling an inner container also hides the fixed bubble.
     window.addEventListener('scroll', hide, true);
-    // Escape dismisses it WITHOUT moving focus off the trigger, so a keyboard
-    // user can clear a tip covering nearby content and keep working.
+    // Escape hides the tip but keeps focus on the trigger.
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape' && currentTrigger) hide();
     });
   }
 
   /**
-   * The "(i)" trigger. Rides the same bubble as everything else. `text` is both
-   * the bubble's content and the icon's accessible name — set them together, so
-   * a language switch can never change one and leave the other.
+   * The "(i)" trigger. `text` is both the bubble's content and the icon's
+   * accessible name, set together so a language switch changes both.
    */
   function infoIcon(text) {
     const span = document.createElement('span');
@@ -153,12 +136,9 @@
   }
 
   /**
-   * setInfo puts (or updates) an info icon on a card heading.
-   *
-   * Every explanatory sentence on this page goes through here rather than into
-   * a paragraph under the control (jdp, 2026-08-28: "Alle infotexte in i
-   * infobubbles!"). Idempotent, because applyStaticText() re-runs on every
-   * language change and must not leave a row of icons behind.
+   * setInfo puts or updates the info icon on a card heading, where every
+   * explanation on the page lives. applyStaticText() calls it again on each
+   * language change, so it reuses an existing icon.
    */
   function setInfo(headingId, text) {
     const heading = document.getElementById(headingId);
@@ -173,14 +153,9 @@
   }
 
   /**
-   * refreshTip re-reads a trigger's `data-tip` while its bubble is open.
-   *
-   * Needed by any control whose tip changes as a result of pressing it, like a
-   * reveal eye reading "show the phrase" one moment and "hide it" the next. A
-   * keyboard user's bubble is already open from the focus when Enter or Space
-   * runs the click handler, so without this it would go on stating the
-   * opposite of what the button now does. A mouse press hides the bubble, and
-   * the focus that follows it does not reopen it.
+   * refreshTip re-reads a trigger's `data-tip` while its bubble is open, for a
+   * control whose tip changes when pressed, such as the reveal eye. With the
+   * keyboard the bubble is already open when Enter runs the click handler.
    */
   function refreshTip(el) {
     if (currentTrigger === el) show(el);

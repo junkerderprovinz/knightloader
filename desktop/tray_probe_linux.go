@@ -9,22 +9,13 @@ import (
 	"github.com/godbus/dbus/v5"
 )
 
-// probeTimeout bounds the startup probe. A session bus that is present but
-// unresponsive must not hang app startup waiting for it; a probe that never
-// answers is exactly as unavailable as one that answers "no".
+// probeTimeout keeps an unresponsive session bus from hanging startup.
 const probeTimeout = 2 * time.Second
 
-// probeTray reports whether a tray host is actually likely to show the icon
-// before ever calling systray.Run - see tray.go's doc comment for why this
-// matters more than it would on Windows or macOS. GNOME ships no
-// StatusNotifierWatcher at all without a shell extension, i3/sway have none
-// without a bar that provides it, and a minimal container-ish desktop
-// session may have no session bus at all; all three must read as "no tray",
-// not as a silently invisible icon.
-//
-// This checks the exact bus name github.com/cardinalby/go-systray itself
-// calls RegisterStatusNotifierItem on (systray_unix.go's register()), so the
-// probe answers precisely the question "will that call succeed".
+// probeTray reports whether a tray host will show the icon. GNOME has no
+// StatusNotifierWatcher without an extension, i3 and sway need a bar that
+// provides one, and a minimal session may have no bus at all. It checks the
+// bus name go-systray registers with.
 func probeTray() (ok bool, reason string) {
 	ctx, cancel := context.WithTimeout(context.Background(), probeTimeout)
 	defer cancel()

@@ -13,20 +13,16 @@ export class ApiError extends Error {
   }
 }
 
-// Every call takes a connection (which instance + token to talk to) and a base
-// path prefix. base defaults to '/api', the connection's own instance; a
-// peer's routes proxy through the connected server at
-// '/api/instances/{name}' instead (internal/api/routes_federation.go) -
-// same host, same token, only the prefix changes. That mirrors the web UI's
-// own lib/api.ts, so this app and the web client never drift on the shape of
-// a "which instance is this for" call.
+// Every call takes a connection and a base path prefix. base is '/api' for the
+// connection's own instance; a peer's routes proxy through the connected server
+// at '/api/instances/{name}' (internal/api/routes_federation.go), same host and
+// token, only the prefix changes. The web UI's lib/api.ts is shaped the same
+// way, so the two clients cannot drift on it.
 //
-// This function is also the ONE place that knows a connection has a transport
-// at all. Everything above it - every screen, every exported call below -
-// works in terms of (connection, base, path), so a relay connection reaches
-// exactly the same routes with exactly the same code, including the federation
-// proxy prefix: a relay-reached instance's OWN peers stay browsable, because
-// that is just another path the target resolves for itself.
+// This is also the only place that knows a connection has a transport at all.
+// Everything above it works in terms of (connection, base, path), so a relay
+// connection reaches the same routes with the same code, federation prefix
+// included.
 export async function request<T>(conn: ServerConnection, base: string, path: string, init?: RequestInit): Promise<T> {
   const { status, body, statusText } = isRelayConnection(conn)
     ? await relayRequest(conn, base + path, init)
@@ -90,48 +86,25 @@ async function relayRequest(conn: ServerConnection, path: string, init?: Request
   return { status: r.status, body: r.body, statusText: `relay ${r.status}` };
 }
 
-// checkConnection is what the connect screen calls before saving anything:
-// it proves the URL is reachable and the token is accepted, without
-// requiring a password (a token stands on its own, see routes_tokens.go).
+// checkConnection is what the connect screen calls before saving anything: it
+// proves the URL is reachable and the token is accepted, without requiring a
+// password (a token stands on its own, see routes_tokens.go).
 //
-// THE SECOND WAY IN, AND WHY IT DOES NOT REACH THIS APP (GlimStone 1.15.0).
+// This app has no sign-in, which is why neither a second factor nor a passkey
+// reaches it. It never posts to /api/auth/login; every call carries a named API
+// token in an Authorization header, and internal/api's `authenticated` accepts
+// that token on its own, while the second factor sits in front of the password
+// exchange this client never performs.
 //
-// That release writes down what a login with a password can grow: a second
-// factor, a passkey, or both. The obvious reading is that this app's sign-in
-// should learn to ask for a six-digit code when an instance has one armed,
-// because POST /api/auth/login answers {"twoFactorRequired":true} rather than
-// a session. It should not, and the reason is one line up: THIS APP HAS NO
-// SIGN-IN. It never posts to /api/auth/login at all. Every call it makes,
-// direct or through the relay, carries a named API token in an Authorization
-// header (see httpRequest and relayRequest above), and internal/api's own
-// `authenticated` accepts that token on its own - the second factor sits in
-// front of the PASSWORD exchange, which this client never performs. There is
-// no 401 here to fix, and a code field would be a form with nothing behind it.
-//
-// The same release's maxim is what settles it: a login gains a way IN, never a
-// way INSTEAD. A token IS the way in here, it was minted by somebody already
-// inside, and it can be revoked from the instance that issued it.
-//
-// PASSKEYS ARE REFUSED, WITH THE REASON, WHICH IS THE THIRD CASE THAT RELEASE
-// NAMES - a capability the environment forbids is refused with the reason, not
-// offered as a button that fails. Three measurements, any one of which is
-// enough:
-//
-//   1. WebAuthn does not exist in this runtime. React Native's navigator is
-//      `{product: 'ReactNative'}` (Libraries/Core/setUpNavigator.js) - there is
-//      no navigator.credentials and no PublicKeyCredential anywhere in the
-//      framework, so /api/auth/passkey/login/begin has no counterpart to hand
-//      its challenge to.
-//   2. There would be nothing to attach one to. A passkey replaces typing a
-//      password, and this app types no password.
-//   3. The app deliberately blocks the permissions a native credential flow
-//      would need: USE_BIOMETRIC and USE_FINGERPRINT are both in app.json's
-//      blockedPermissions.
-//
-// So there is no control and no half-built screen, and this paragraph is the
-// prose that rule says such a refusal owes. It is here rather than on a
-// settings screen because there is no control for it to sit beside, and this
-// is the file somebody reaches for when they ask "where does the app log in".
+// Passkeys are refused with the reason rather than offered as a button that
+// fails (GlimStone 1.15.0). WebAuthn does not exist in this runtime: React
+// Native's navigator is `{product: 'ReactNative'}`, with no
+// navigator.credentials and no PublicKeyCredential, so
+// /api/auth/passkey/login/begin has nothing to hand its challenge to. There
+// would also be no password for a passkey to replace, and app.json blocks
+// USE_BIOMETRIC and USE_FINGERPRINT. The reason sits here rather than beside a
+// control because there is no control, and this is the file somebody opens when
+// they ask where the app logs in.
 export async function checkConnection(conn: ServerConnection): Promise<AuthState> {
   return request<AuthState>(conn, '/api', '/auth');
 }
@@ -164,13 +137,9 @@ export async function deleteTasks(conn: ServerConnection, ids: string[], deleteF
   });
 }
 
-// --- Queue master switch ------------------------------------------------
-//
-// "Start/stop this instance" in this app's UI is this switch, the same one
-// the web UI's quick controls flip - KnightLoader has no remote power-on for
-// the server process itself (there's no relay, see routes_remote.go's own
-// doc comment), only the queue it already runs can be halted or released.
-
+// "Start/stop this instance" is the queue switch the web UI's quick controls
+// flip. There is no remote power-on for the server process itself (see
+// routes_remote.go); only the queue it already runs can be halted or released.
 export async function fetchQueue(conn: ServerConnection, base = '/api'): Promise<QueueState> {
   return request<QueueState>(conn, base, '/queue');
 }
@@ -180,28 +149,27 @@ export async function fetchQueue(conn: ServerConnection, base = '/api'): Promise
  *
  * The collector is a staging area: a link that arrives from a container, a
  * right-click or the watch folder lands there with status "collected" and does
- * nothing until somebody says go. This is that "go", per package or for the
- * whole collector - the same route the web UI's own Start button calls.
+ * nothing until somebody says go. This is that go, per package or for the whole
+ * collector, and the route the web UI's Start button calls.
  */
 export async function startTasks(conn: ServerConnection, ids: string[], base = '/api'): Promise<StartResult> {
   const r = await request<StartResult | undefined>(conn, base, '/tasks/start', {
     method: 'POST',
     body: JSON.stringify({ ids }),
   });
-  // An instance older than this answer replies 204 with no body, which request
+  // An instance too old for this answer replies 204 with no body, which request
   // turns into undefined. Read as "it started something and had nothing to
-  // report", which is exactly what a 204 used to mean here.
+  // report".
   return r ?? { started: ids.length, skipped: 0, released: false, blocked: false };
 }
 
 /**
  * What a start actually did.
  *
- * It exists because "nothing happened" had three causes and the route answered
- * 204 to all of them: a halted queue, a link filter holding the named tasks, or
- * ids matching nothing. See App.StartTasks in internal/app/app_queue.go - the
- * shape is the server's, named the same on both sides so a field cannot mean
- * one thing there and another here.
+ * "Nothing happened" has three causes a bare 204 cannot tell apart: a halted
+ * queue, a link filter holding the named tasks, or ids matching nothing. The
+ * shape is the server's (App.StartTasks in internal/app/app_queue.go), named
+ * the same on both sides.
  */
 export interface StartResult {
   started: number;
@@ -213,15 +181,11 @@ export interface StartResult {
 }
 
 /**
- * The new order after a drag (jdp, 2026-08-31: "Das drag and drop für links und
- * linkordner fehlt").
- *
- * The same call the web interface's own drag-and-drop makes, against the same
- * route: "put one whole band of the wait queue in the exact order given, as a
- * drag would". Both surfaces therefore write the same shape and neither has a
- * private idea of what an order is - which matters here more than usual,
- * because a phone and a browser can be looking at the same queue at the same
- * moment.
+ * The new order after a drag: one whole band of the wait queue in the exact
+ * order given. The same call the web interface's drag-and-drop makes against
+ * the same route, so neither surface has a private idea of what an order is,
+ * which matters because a phone and a browser can be looking at the same queue
+ * at the same moment.
  */
 export async function reorderTasks(conn: ServerConnection, ids: string[], base = '/api'): Promise<void> {
   await request(conn, base, '/tasks/reorder', { method: 'POST', body: JSON.stringify({ ids }) });
@@ -235,20 +199,17 @@ export async function setQueueHalted(conn: ServerConnection, halted: boolean, ba
 }
 
 /**
- * The HARD stop, and the difference is the whole point (jdp, 2026-08-31: "wenn
- * man auf den stopp button drückt werden sie nicht gestoppt").
+ * The hard stop.
  *
- * POST /api/queue with `halted: true` stops the DISPATCHER: nothing new starts,
- * and whatever is already downloading runs to the end. That is deliberate on
- * the server (`SetHalted`'s own doc comment: "killing a transfer mid-file
- * throws away work the user did not ask to lose") and it is the wrong verb for
- * a button labelled stop, because the thing somebody is watching move keeps
- * moving. POST /api/queue/stop is `StopAll`: every transfer in flight is
- * stopped where it is AND the queue is halted behind them, which is what the
- * web interface's own stop button has always called.
+ * POST /api/queue with `halted: true` stops the dispatcher: nothing new starts,
+ * and whatever is already downloading runs to the end, because killing a
+ * transfer mid-file throws away work nobody asked to lose (see `SetHalted`).
+ * That is the wrong verb for a button labelled stop, so this calls
+ * POST /api/queue/stop, `StopAll`, which stops every transfer in flight and
+ * halts the queue behind them, as the web interface's stop button does.
  *
  * Relay-forwardable like every other queue route (`queue/` prefix, see
- * routes_relay.go), so this works from the phone over the relay too.
+ * routes_relay.go).
  */
 export async function stopAll(conn: ServerConnection, base = '/api'): Promise<QueueState> {
   const res = await request<{ queue: QueueState }>(conn, base, '/queue/stop', {
@@ -258,43 +219,25 @@ export async function stopAll(conn: ServerConnection, base = '/api'): Promise<Qu
   return res.queue;
 }
 
-// --- Federation: the peer instances the connected server itself knows -----
+// The live task stream mirrors internal/api's /api/ws contract: on connect the
+// server sends one {"type":"snapshot","data":Task[]} with the full list, then
+// {"type":"task","data":Task} messages as things change. Both fold into one
+// onSnapshot(tasks) callback, since every screen wants the current list rather
+// than the delta mechanics.
 //
-// Three calls lived here - list, add, remove - against the connected server's
-// own base. They went with InstancesScreen, the only caller (see App.tsx for
-// why that screen went). `addInstance` in particular took a name and an
-// address by hand, which is the path the connection phrase replaced
-// everywhere else in this app; leaving the call sitting here is how it finds
-// its way back into a screen.
-
-
-// --- Live task stream -------------------------------------------------
-//
-// Mirrors internal/api's /api/ws contract: on connect the server sends one
-// {"type":"snapshot","data":Task[]} with the full current list, then
-// incremental {"type":"task","data":Task} messages as things change. This
-// client folds both into one onSnapshot(tasks) callback rather than
-// exposing the wire protocol, since every screen just wants "the current
-// list", not the delta mechanics.
-//
-// Only a DIRECTLY connected server's own queue has this. Two separate cases
-// forward plain REST calls rather than a WebSocket upgrade, and each falls
-// back to pollTasks below: the federation proxy (routes_federation.go), so a
-// peer's tasks are never streamed, and the relay (internal/relay), which
-// carries request/response frames and has no tunnel for a socket either.
-//
-// liveTasks picks the right one, so a screen can just ask for "the tasks,
-// kept current" without knowing which transport it ended up with.
+// Only a directly connected server's own queue has this. The federation proxy
+// (routes_federation.go) and the relay (internal/relay) both forward plain REST
+// calls with no socket to upgrade, so they fall back to pollTasks. liveTasks
+// picks between them, so a screen can ask for the tasks kept current without
+// knowing which transport it got.
 export type UnsubscribeFn = () => void;
 
 /**
  * An unsubscribe that can also be asked to pull once, now.
  *
- * A plain function with a property, so every existing caller keeps working: it
- * is still a valid React effect cleanup and still assignable to `() => void`.
- * `refresh` is optional because the streaming path does not need one - a direct
- * connection is told about the change before the request that caused it has
- * even answered.
+ * A plain function with a property, so it is still a valid React effect cleanup
+ * and still assignable to `() => void`. `refresh` is optional because a direct
+ * connection is told about a change before the request that caused it answers.
  */
 export type LiveTasks = UnsubscribeFn & { refresh?: () => Promise<void> };
 
@@ -328,11 +271,10 @@ export function subscribeTasks(
   };
 
   const connect = () => {
-    // The server's guard (internal/api/api.go, bearerToken()) only ever reads
-    // the Authorization header, no query-param fallback. Browsers' WebSocket
-    // has no way to set one, but React Native's does - a non-standard third
-    // constructor argument, not in the browser spec - which is why this only
-    // works from the app, not from a plain web client hitting the same URL.
+    // The server's guard (internal/api/api.go, bearerToken()) reads only the
+    // Authorization header, with no query-param fallback. A browser's WebSocket
+    // cannot set one; React Native's takes a third constructor argument that
+    // is not in the browser spec, so this works from the app alone.
     type RNWebSocketCtor = new (url: string, protocols: string[], options: { headers: Record<string, string> }) => WebSocket;
     socket = new (WebSocket as unknown as RNWebSocketCtor)(wsUrl, [], {
       headers: { Authorization: `Bearer ${conn.token}` },
@@ -356,9 +298,8 @@ export function subscribeTasks(
           tasks.delete(msg.data);
           emit();
         }
-        // Other broadcast kinds (activity, activitySnapshot, ...) are ignored
-        // here on purpose - this client only tracks the queue, not the
-        // activity feed.
+        // Other broadcast kinds (activity, activitySnapshot and so on) are
+        // ignored: this client tracks the queue, not the activity feed.
       } catch (err) {
         onError?.(err);
       }
@@ -385,8 +326,7 @@ export function subscribeTasks(
 }
 
 // pollTasks is subscribeTasks' equivalent for a proxied peer, which has no
-// WebSocket to attach to (see the doc comment above). Same callback shape,
-// so a screen can point at either without caring which one it got.
+// WebSocket to attach to. Same callback shape, so a screen can point at either.
 export function pollTasks(
   conn: ServerConnection,
   base: string,
@@ -396,12 +336,10 @@ export function pollTasks(
 ): UnsubscribeFn {
   let stopped = false;
   let timer: ReturnType<typeof setTimeout> | null = null;
-  // Which request is the newest. Two fetches can be in flight at once the
-  // moment anything asks for an immediate refresh on top of the running cycle,
-  // and over a relay the older one can land last - which would put the state
-  // from BEFORE the action back on screen, a fraction of a second after the
-  // action worked. A counter is the whole defence: an answer that is not the
-  // newest is dropped rather than applied.
+  // Which request is the newest. An immediate refresh on top of the running
+  // cycle puts two fetches in flight, and over a relay the older one can land
+  // last, putting the state from before the action back on screen. An answer
+  // that is not the newest is dropped.
   let issued = 0;
 
   const tick = async () => {
@@ -435,21 +373,18 @@ export function pollTasks(
 }
 
 /**
- * fetchAppearance reads the look this instance is configured with - the accent,
- * the shape and the rainbow state - so the app can show the same product as
- * that instance's own web UI rather than a second opinion about it.
+ * fetchAppearance reads the accent, the shape and the rainbow state an instance
+ * is configured with, so the app shows the same product as that instance's own
+ * web UI.
  *
- * Taken from GET /api/appearance, which exists for this. It used to read the
- * whole of GET /api/settings and pick seven fields out - a fair trade against
- * inventing a route, right up until a phone joined the group over the relay
- * and that call became "hand a sibling every download path and connection you
- * have configured, so it can find out which shade of orange to paint a
- * button". The narrow route is what keeps /api/settings off the relay
- * allowlist entirely.
+ * It reads GET /api/appearance rather than picking the fields out of
+ * /api/settings, which would hand a sibling every download path and connection
+ * the instance has configured. That is what keeps /api/settings off the relay
+ * allowlist.
  *
- * Never throws. An instance too old to carry these fields, or one that cannot
- * be reached right now, means the app keeps GlimStone's own defaults, which is
- * exactly what it shows before any connection exists.
+ * Never throws. An instance too old for these fields, or one out of reach,
+ * leaves the app on GlimStone's defaults, which is what it shows before any
+ * connection exists.
  */
 export async function fetchAppearance(conn: ServerConnection): Promise<InstanceAppearance | undefined> {
   try {
@@ -471,20 +406,16 @@ export async function fetchAppearance(conn: ServerConnection): Promise<InstanceA
 /**
  * Write the rainbow palette back to the instance.
  *
- * The palette is the one part of the look that is deliberately NOT a local
- * choice: colours are handed out by POSITION, so a palette kept on the phone
- * would make the same card teal in a browser and pink here. Editing it
- * therefore means editing the instance's, which is why this posts rather than
- * storing anything (jdp, 2026-09-01: "wo sind die farbfelder für den
- * regenbogenmodus?", and before that "alle farbfelder lassen sich nicht
- * bearbeiten").
+ * The palette is the one part of the look that is not a local choice: colours
+ * are handed out by position, so a palette kept on the phone would make the
+ * same card teal in a browser and pink here. Editing it means editing the
+ * instance's, so this posts rather than storing anything.
  *
  * `null` is the reset: it clears the stored list so the instance falls back to
- * GlimStone's own eight, which is the same shape the web UI's reset badge
- * sends.
+ * GlimStone's own eight, the same shape the web UI's reset badge sends.
  *
- * Answers with the instance's new look, so the caller can apply exactly what
- * was stored rather than what it hoped would be.
+ * Answers with the instance's new look, so the caller applies what was stored
+ * rather than what it hoped would be.
  */
 export async function setRainbowPalette(
   conn: ServerConnection,

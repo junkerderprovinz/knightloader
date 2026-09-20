@@ -1,10 +1,8 @@
 name: desktop
 
-# Builds the native desktop bundles (Windows/macOS/Linux) with Wails and keeps
-# them as artifacts. Manual, or called by release.yml on a release tag, because
-# desktop packaging is a release step, separate from the always-on server build.
-# It attaches nothing itself: release.yml creates the release with the zips once
-# this is done, so a release is never public without its downloads.
+# Builds the Wails desktop bundles as artifacts, by hand or from release.yml.
+# It attaches nothing itself: release.yml publishes the release with the zips
+# once this is done.
 on:
   workflow_dispatch:
   workflow_call:
@@ -26,16 +24,10 @@ jobs:
             platform: darwin/universal
             slug: macos-universal
             extra: ""
-          # Wails binds webkit2gtk-4.0 unless told otherwise, and Ubuntu 24.04
-          # does not carry it any more: 4.1 is the only one packaged. The apt
-          # line below installs 4.1 correctly and the build still failed, with
-          # pkg-config asking for "webkit2gtk-4.0, required by virtual:world",
-          # which reads like a missing package rather than a version the distro
-          # dropped. The tag is Wails' own answer to that (v2.6 and later), and
-          # it is Linux-only because the other two platforms do not use webkit
-          # at all. Carried as a whole flag string so the expansion is empty on
-          # those two - the step runs under bash on Linux and pwsh on Windows,
-          # and no conditional-expansion syntax works in both.
+          # Wails binds webkit2gtk-4.0 by default and Ubuntu 24.04 ships only
+          # 4.1, which pkg-config reports as a missing package. The flag is a
+          # whole string so it expands to nothing on the other platforms, where
+          # the step runs under pwsh or bash.
           - os: ubuntu-latest
             platform: linux/amd64
             slug: linux-amd64
@@ -45,11 +37,8 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      # Deliberately the *root* go.mod, not desktop/go.mod. The desktop module
-      # replaces the server module with ../, so it compiles the server sources
-      # and inherits their higher go directive; pinning to the desktop module's
-      # own (lower) version would fail to build the very code it wraps. This
-      # also keeps the desktop bundles on the same compiler as the container.
+      # The root go.mod, not desktop/go.mod: the desktop module compiles the
+      # server sources through its replace and needs their higher go directive.
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
         with:
           go-version-file: go.mod
@@ -60,49 +49,19 @@ jobs:
           cache: npm
           cache-dependency-path: web/package-lock.json
 
-      # No libayatana-appindicator3-dev here: the obvious next line for the
-      # tray icon (package 21), but github.com/cardinalby/go-systray - a
-      # Wails-compatible fork of fyne.io/systray, chosen specifically
-      # because plain fyne.io/systray's macOS AppDelegate class collides
-      # with Wails' own - implements the Linux tray over the
-      # StatusNotifierItem D-Bus interface directly (godbus, pure Go), not
-      # through libappindicator/GTK. Verified by reading
-      # systray_unix.go/systray_menu_unix.go: no cgo directives, no
-      # pkg-config, no gtk import anywhere in the unix-tagged sources - only
-      # systray_darwin.go/.m link against Cocoa, which Xcode on the macOS
-      # runner already provides. If the tray library is ever swapped for one
-      # that draws the Linux icon through libappindicator/GTK instead,
-      # revisit this step.
+      # No libayatana-appindicator3-dev: go-systray talks StatusNotifierItem
+      # over D-Bus in pure Go on Linux.
       - name: Linux WebKit deps
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev
 
-      # READ OUT OF desktop/go.mod, never written here. The CLI and the library
-      # have to be the same version: with @latest a new major of the CLI would
-      # silently start driving a v2 module and break tag builds at the worst
-      # possible moment, and a hand-pinned version drifts the moment somebody
-      # bumps go.mod without remembering this file.
-      #
-      # It has drifted TWICE now, which is what turned the rule into this step.
-      # First go.mod was on v2.13.0 while this installed v2.10.2; then go.mod
-      # went to v2.15.0 while this still installed v2.13.0. A comment saying
-      # "bump these together" is not a guard, and neither time did anything
-      # fail loudly: the CLI simply built the module with an older toolchain.
-      #
-      # The grep is anchored on the require line, and the step fails outright
-      # when it finds nothing rather than falling back to @latest, because a
-      # silent fallback is the exact failure this replaces.
+      # The CLI must match the library version in desktop/go.mod, so it is read
+      # from there and the step fails if it cannot find it. bash on every
+      # runner, and sed rather than grep -P, which BSD grep on macOS lacks.
       - name: Install Wails
         working-directory: desktop
-        # bash on every runner, and a portable expression inside it. This step
-        # is the same three lines on all three platforms, and it ran on none of
-        # them but Linux: Windows executes a `run:` block in PowerShell unless
-        # told otherwise, which cannot parse `$(...)` or `[ -z ... ]`, and
-        # macOS ships BSD grep, which has no -P at all. Both failed at the
-        # first line, so the version read never happened rather than reading
-        # something wrong - which is the good half of how this was found.
         shell: bash
         run: |
           version=$(sed -n 's|.*github\.com/wailsapp/wails/v2 \(v[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\).*|\1|p' go.mod | head -1)
@@ -113,25 +72,8 @@ jobs:
           echo "installing wails CLI $version, as required by desktop/go.mod"
           go install github.com/wailsapp/wails/v2/cmd/wails@"$version"
 
-      # KL_STARTUP_CHECK=0, and it is not a workaround for CI being poor: it is
-      # the switch the program itself offers, used for the one situation it was
-      # written for.
-      #
-      # Wails generates its bindings by RUNNING the binary it just built. This
-      # binary's first act is the start report - Java, yt-dlp, ffmpeg, ffprobe,
-      # the data directory, every download folder - which spawns four processes
-      # and reports what it finds. On a build machine none of those tools are
-      # installed and none of them matter, and on macOS the missing yt-dlp and
-      # ffmpeg took the binding generation down with them: "ERROR ... yt-dlp:
-      # executable file not found in $PATH", exit 1, no macOS bundle on the
-      # release. Linux and Windows survived it only because those runner images
-      # happen to ship ffmpeg, which is luck rather than a difference worth
-      # having.
-      #
-      # Set for every platform, not just the one that failed: a diagnostic pass
-      # over a machine that will never run the app answers a question nobody
-      # asked, and leaving it on anywhere leaves the same trap for whichever
-      # runner image drops a tool next.
+      # Wails runs the built binary to generate bindings, and the start report
+      # fails on a runner without yt-dlp or ffmpeg.
       - name: Build
         working-directory: desktop
         env:
@@ -140,18 +82,10 @@ jobs:
           go mod tidy
           wails build -platform ${{ matrix.platform }} -clean ${{ matrix.extra }}
 
-      # ZIPPED HERE, ON THE RUNNER THAT BUILT IT. An artifact does not keep file
-      # modes: the bundle came back from upload-artifact without its execute
-      # bits and was zipped that way afterwards, so the published Linux and
-      # macOS zips held `KnightLoader` and `KnightLoader.app/Contents/MacOS/
-      # KnightLoader` as mode 644 (checked on v1.1.4 and v1.1.5), a program that
-      # does not start after unzipping. Zipped where the build left it, the
-      # modes are still right, and the artifact carries the zip unchanged.
-      #
-      # Same layout as before: the contents of build/bin at the root of the zip,
-      # which is what internal/update extracts. -y keeps a symlink inside the
-      # .app a symlink. Windows has no execute bit to lose, and Compress-Archive
-      # is the zip that runner is sure to have.
+      # Zipped on the build runner because artifacts lose file modes, which
+      # left the Linux and macOS binaries without their execute bit. The zip
+      # holds build/bin at its root, which internal/update expects, and -y keeps
+      # symlinks inside the .app.
       - name: Zip the bundle
         if: runner.os != 'Windows'
         shell: bash
@@ -163,8 +97,7 @@ jobs:
         shell: pwsh
         run: Compress-Archive -Path desktop/build/bin/* -DestinationPath "knightloader-${{ matrix.slug }}.zip"
 
-      # Named by the slug, not the platform string: "windows/amd64" contains a
-      # slash, which artifact names and release assets both take badly.
+      # Named by the slug, since the platform string contains a slash.
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: knightloader-${{ matrix.slug }}

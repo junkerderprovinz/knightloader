@@ -1,25 +1,11 @@
 // Shared by background.js (importScripts), popup.js, picker.js and options.js
-// (<script> tag) — one copy of anything more than one of them needs.
-//
-// It used to hold the whole instance model: a stored {name, url} registry, the
-// origin baked into config.default.json at download time, a quickadd URL
-// builder, and the entryTarget/entryLabel pair that decided which of a peer's
-// two possible addresses to open. All of it went with the phrase rework — see
-// group.js, which stores one phrase and asks the relay who is in the group.
-//
-// What is here now is what all three surfaces draw: the instance card, and the
-// listbox the language picker is built from. One implementation each, because
-// three pages of one product drawing their own version of the same card is how
-// three pages become three slightly different products.
+// (<script> tag): the instance card, the language listbox and the other pieces
+// more than one page draws, so the pages stay alike.
 
 /**
- * deploymentLabel names what an instance IS, since in the phrase model there is
- * no address to show instead.
- *
- * Written out rather than built by interpolating the value into the key, which
- * is what it was first: a key assembled at runtime is invisible to
- * check-locales.mjs, which then reported both translations as dead and would
- * have had them deleted by the next person tidying up.
+ * deploymentLabel names what an instance is, since there is no address to
+ * show. The keys are written out because check-locales.mjs cannot see a key
+ * assembled at runtime.
  */
 function deploymentLabel(dep) {
   if (dep === 'desktop') return t('picker.deployment.desktop');
@@ -28,74 +14,41 @@ function deploymentLabel(dep) {
 }
 
 /**
- * The refusal signal (jdp, 2026-08-31: "wenn man drauf klickt und man kenie
- * Phrase eingegeben hat, also es nicht klappt, soll er button kurz zittern. Ist
- * das standardverhalten für ein fehlschlagen von buttons. steht in GS. Die
- * Text-Fehlermeldung die darunter erscheint soll weg").
+ * shake plays GlimStone's failure feedback on the control that was clicked.
  *
- * He is right that it is already the standard: GlimStone's "Failure feedback"
- * says every failable action reports through the same two channels and the
- * control that was clicked plays `glim-shake` - "systemweit", which is why this
- * lives here rather than on one page. It sat in options.js while the popup drew
- * the same card with the same failable controls and had no way to reach it, so
- * the same press refused on two surfaces answered on only one.
- *
- * Replay is the part that is easy to get wrong: an animation already at rest
- * does NOT restart because its class left and came back in the same frame, so a
- * second identical refusal would sit still. A component framework solves it by
- * keying the element on a counter, which mints a fresh DOM node. These pages
- * have no framework, and cloning the node would be the literal translation of
- * that - but it would also drop every listener bound to the element, which
- * includes the ones that make the button work at all. Forcing a reflow between
- * the remove and the add restarts the animation with the same effect and leaves
- * the node, and its listeners, exactly where they were.
+ * Removing and re-adding the class in one frame does not restart an animation,
+ * and cloning the node would drop its listeners, so a forced reflow sits in
+ * between.
  */
 function shake(el) {
   if (!el) return;
   el.classList.remove('glim-shake');
-  // Reading a layout property flushes the pending style change, which is what
-  // makes the class removal a real "animation ended" rather than a no-op the
-  // browser coalesces away. Deliberately not assigned to anything.
+  // Reading a layout property flushes the class removal.
   void el.offsetWidth;
   el.classList.add('glim-shake');
   el.addEventListener('animationend', () => el.classList.remove('glim-shake'), { once: true });
 }
 
 /**
- * instanceCard draws one instance the way the web UI's own Instances tab draws
- * it (jdp, 2026-08-28: "Im erweiterungsfenster sollen die Instanzen auch als
- * cards erscheinen. Gleich wie im instanzentab."): the mark flush against the
- * left edge running the card's full height, the name, what it is, and a badge
- * in the corner for the default.
+ * instanceCard draws one instance as the web UI's Instances tab does: the mark
+ * along the left edge, the name, what it is, and a badge for the default.
  *
- * `onPick` makes the card the chooser for this send; `onSetDefault` is offered
- * on right-click rather than as a permanent button, because the default is set
- * once and then not thought about again — a control for it on every card would
- * be louder than the thing it does.
- *
- * `hue` is this card's position in the palette. It is set through setHue() so
- * the class and the custom properties can never be handed out separately.
+ * `onPick` makes the card the chooser for this send. `onSetDefault` sits in the
+ * right-click menu, since the default is set once and a button on every card
+ * would be louder than it deserves. `index` is the card's palette position.
  */
 function instanceCard(inst, { index, isDefault, isChosen, onPick, onSetDefault, status, onQueue, onOpen }) {
-  // A DIV, not a BUTTON, since the card grew actions of its own: a button
-  // inside a button is invalid markup, and browsers resolve it by dropping the
-  // inner one - so the play control would simply not have existed. Where the
-  // card is pickable it takes the radio role and the keyboard behaviour that
-  // role owes, which a plain div would otherwise have quietly lost.
+  // A div, since the card holds buttons and a button inside a button is
+  // dropped by browsers. A pickable card gets the radio role and its keyboard
+  // handling instead.
   const card = document.createElement('div');
   card.className = 'glim-instance';
   card.dataset.instanceId = inst.instanceId;
   if (onPick) {
     card.setAttribute('role', 'radio');
     card.setAttribute('aria-checked', String(!!isChosen));
-    // The SHARED marker class beside the app's own "this one is picked"
-    // attribute, not instead of it. aria-checked is what a screen reader reads;
-    // .glim-active is what the colour engine reads, and in the reactive rainbow
-    // it is the whole difference between a chosen card that shows its position
-    // colour and one that stays grey until the pointer happens to touch it. The
-    // rule asks for colour on hover AND on whatever is active; the stylesheet
-    // already carried the `.glim-hue.glim-active` half and nothing on any page
-    // had ever handed the class out.
+    // aria-checked is for screen readers; .glim-active lets the reactive
+    // rainbow colour the chosen card at rest, not only on hover.
     card.classList.toggle('glim-active', !!isChosen);
     card.tabIndex = 0;
   }
@@ -118,11 +71,8 @@ function instanceCard(inst, { index, isDefault, isChosen, onPick, onSetDefault, 
   what.className = 'glim-instance-what';
   what.textContent = deploymentLabel(inst.deployment);
 
-  // The name and its status badge share a line (jdp, 2026-09-01: "der
-  // statuspunkt soll ein kleiner badge mit online/offlin text sein"). Only where
-  // the caller actually ASKED about the status: `undefined` means it did not,
-  // and inventing "online" for a card that never checked would be the worst
-  // possible thing for a status to do.
+  // The status badge shares the name's line. `undefined` means the caller did
+  // not ask, and a card that never checked must not claim to be online.
   if (status !== undefined) {
     const top = document.createElement('span');
     top.className = 'glim-instance-top';
@@ -135,9 +85,8 @@ function instanceCard(inst, { index, isDefault, isChosen, onPick, onSetDefault, 
     body.append(name, what);
   }
 
-  // What the instance is DOING, when somebody asked for it. Undefined means
-  // the caller did not ask (the popup does not, so it stays fast); null means
-  // it asked and got nothing back, which is a different fact and says so.
+  // What the instance is doing. The popup does not ask, so it stays fast;
+  // null means it asked and got no answer.
   if (status !== undefined) {
     const line = document.createElement('span');
     line.className = 'glim-instance-stats glim-num';
@@ -155,8 +104,8 @@ function instanceCard(inst, { index, isDefault, isChosen, onPick, onSetDefault, 
     card.appendChild(badge);
   }
 
-  // The three square actions. Only drawn when the caller supplies handlers, so
-  // the popup and the send-to window keep the compact card they had.
+  // The square actions, only when the caller supplies handlers, so the popup
+  // and the send-to window keep a compact card.
   if (onQueue || onOpen) {
     const actions = document.createElement('span');
     actions.className = 'glim-instance-actions';
@@ -164,10 +113,8 @@ function instanceCard(inst, { index, isDefault, isChosen, onPick, onSetDefault, 
     const live = status !== null && status !== undefined;
 
     if (onQueue) {
-      // Start and stop as two separate controls rather than one that changes
-      // meaning: a single toggle whose glyph flips is a control you have to
-      // read before you dare press it, and this one sits next to a list where
-      // the answer is "which instance was that again".
+      // Two controls rather than one toggle whose glyph flips, which would have
+      // to be read before every press.
       actions.appendChild(
         squareAction(GLYPH_PLAY, t('instance.start'), !live || !halted, (el) => onQueue(inst, false, el)),
       );
@@ -176,9 +123,8 @@ function instanceCard(inst, { index, isDefault, isChosen, onPick, onSetDefault, 
       );
     }
     if (onOpen) {
-      // Disabled rather than hidden when the instance has no address to open:
-      // a control that appears on one card and not on another reads as a fault
-      // in the card, not as a property of the instance.
+      // Disabled rather than hidden without an address, so every card has the
+      // same controls.
       const url = status?.webUrl ?? '';
       actions.appendChild(squareAction(GLYPH_OPEN, t('instance.open'), !url, (el) => onOpen(inst, url, el)));
     }
@@ -187,8 +133,7 @@ function instanceCard(inst, { index, isDefault, isChosen, onPick, onSetDefault, 
 
   if (onPick) {
     card.addEventListener('click', (e) => {
-      // A press on one of the actions is not a pick: without this, starting a
-      // download would also silently change where the next send goes.
+      // Pressing an action must not also change where the next send goes.
       if (e.target.closest('.glim-instance-actions')) return;
       onPick(inst);
     });
@@ -208,9 +153,8 @@ function instanceCard(inst, { index, isDefault, isChosen, onPick, onSetDefault, 
   return card;
 }
 
-/* The three glyphs the card draws. Filled shapes, built as nodes rather than
-   assigned as innerHTML - Mozilla's linter fails a package on an innerHTML
-   assignment from a variable, and it is a release gate here. */
+/* The card's glyphs, built as nodes because Mozilla's linter, a release gate
+   here, fails an innerHTML assignment from a variable. */
 const GLYPH_PLAY = 'M5 3.5v9l8-4.5z';
 const GLYPH_STOP = 'M4.5 4.5h7v7h-7z';
 const GLYPH_OPEN = 'M9 2h5v5h-1.5V4.56L7.8 9.26 6.74 8.2l4.7-4.7H9zM3 4h4v1.5H4.5v6h6V9H12v4H3z';
@@ -220,16 +164,12 @@ function squareAction(d, label, disabled, onClick, extraTip) {
   b.type = 'button';
   b.className = 'glim-square';
   b.disabled = !!disabled;
-  const tip = extraTip ? `${label} — ${extraTip}` : label;
+  const tip = extraTip ? `${label}: ${extraTip}` : label;
   b.setAttribute('aria-label', label);
   b.setAttribute('data-tip', tip);
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('viewBox', '0 0 16 16');
-  // 16 in .glim-square's --btn-h box: a glyph standing ALONE in a square is
-  // half of it (GlimStone 1.8.0). There are no words beside it to set the size
-  // against, so the only proportion available is how much of the frame the ink
-  // fills. It was 15 in a 30px box, which is the same half - the box is what
-  // moved, to the one square-badge size the whole extension now takes.
+  // A glyph alone in a square fills half of it (GlimStone 1.8.0).
   svg.setAttribute('width', '16');
   svg.setAttribute('height', '16');
   svg.setAttribute('aria-hidden', 'true');
@@ -238,21 +178,16 @@ function squareAction(d, label, disabled, onClick, extraTip) {
   path.setAttribute('d', d);
   svg.appendChild(path);
   b.appendChild(svg);
-  // The button hands ITSELF to the handler. A failed action has to shake the
-  // control that was clicked, and the card is rebuilt from the top on every
-  // render, so a caller that kept its own reference would be holding a node
-  // that is no longer on the page by the time the answer comes back.
+  // The button passes itself so a failure shakes the clicked node, since the
+  // card is rebuilt on every render.
   b.addEventListener('click', () => onClick(b));
   return b;
 }
 
 /**
- * statusLine turns the two queue readings into one line.
- *
- * Built from words the web UI already ships in all 42 languages - its own
- * status labels and counter nouns - rather than from new sentences: a status
- * word standing alone is grammatical everywhere, which "3 running" written out
- * as a sentence is not.
+ * statusLine turns the two queue readings into one line of standalone status
+ * words and counters, which read correctly in every language where a sentence
+ * such as "3 running" would not.
  */
 function statusLine(s) {
   const q = s.queue ?? {};
@@ -262,18 +197,15 @@ function statusLine(s) {
   else if ((c.running ?? q.running ?? 0) > 0) parts.push(t('instance.running'));
   else if ((c.files ?? 0) > 0) parts.push(t('instance.queued'));
 
-  // The file count is ALWAYS shown, zero included. An empty queue with an
-  // empty line let the card change height the moment a download appeared, and
-  // a list that twitches while you look at it is worse than a line that
-  // sometimes reads "0 files". It also answers the question the line exists
-  // for - "is this thing doing anything" - instead of leaving it blank.
+  // The file count is shown even at zero, so the card keeps its height when a
+  // download appears.
   parts.push(`${c.files ?? 0} ${t('instance.files')}`);
   if ((c.remaining ?? 0) > 0) parts.push(`${fmtBytes(c.remaining)} ${t('instance.left')}`);
   if ((c.speed ?? 0) > 0) parts.push(`${fmtBytes(c.speed)}/s`);
   return parts.join(' · ');
 }
 
-/** Binary units, the same ladder the web UI's own fmtBytes walks. */
+/** Binary units, as the web UI's fmtBytes. */
 function fmtBytes(n) {
   if (!Number.isFinite(n) || n <= 0) return '0 B';
   const units = ['B', 'KiB', 'MiB', 'GiB', 'TiB'];
@@ -287,12 +219,9 @@ function fmtBytes(n) {
 }
 
 /**
- * The right-click menu. One entry today, and deliberately still a menu: a
- * right-click that opens nothing teaches people the gesture does nothing here,
- * and the entry says out loud what the default even means.
- *
- * Only ever one menu on the page — a second right-click replaces the first
- * rather than stacking, and any click, Escape or scroll closes it.
+ * The card's right-click menu. It has one entry, and the entry explains what
+ * the default is. A second right-click replaces the menu; a click outside,
+ * Escape or a scroll closes it.
  */
 function openInstanceMenu(event, inst, isDefault, onSetDefault) {
   closeInstanceMenu();
@@ -311,18 +240,10 @@ function openInstanceMenu(event, inst, isDefault, onSetDefault) {
   menu.appendChild(item);
 
   document.body.appendChild(menu);
-  // Measured after it is in the DOM, then clamped: a card near the bottom of a
-  // 360px popup would otherwise open a menu off the end of the window.
+  // Measured once in the DOM, then clamped into the small popup window.
   const r = menu.getBoundingClientRect();
-  // A menu grows along the reading direction, so on a right-to-left page it
-  // hangs to the LEFT of the pointer and the cursor sits at its trailing edge.
-  // The clamp alone would have kept it on screen either way, which is why this
-  // was invisible until `dir` was actually being set - "not off the edge" and
-  // "on the side a reader expects" are not the same thing.
-  //
-  // `left` and `top` stay physical on purpose: this is a position: fixed box
-  // placed from a pointer's own viewport coordinates, and those are measured
-  // from the top left of the glass whichever way the page reads.
+  // On a right-to-left page the menu hangs to the left of the pointer. left
+  // and top stay physical because pointer coordinates are.
   const rtl = document.documentElement.dir === 'rtl';
   const anchorX = rtl ? event.clientX - r.width : event.clientX;
   const x = Math.min(anchorX, document.documentElement.clientWidth - r.width - 8);
@@ -331,11 +252,8 @@ function openInstanceMenu(event, inst, isDefault, onSetDefault) {
   menu.style.top = `${Math.max(8, y)}px`;
 
   setTimeout(() => {
-    // OUTSIDE only, and this is not a nicety: a plain
-    // `pointerdown -> close` listener also fires for the press on the menu's
-    // own entry, which removes the menu before that press ever becomes a click
-    // — so the entry looked dead and the default never changed. Caught by
-    // driving it rather than by reading it.
+    // Only presses outside close it; otherwise pressing the entry would remove
+    // the menu before the click lands.
     document.addEventListener('pointerdown', onMenuPointerDown, true);
     document.addEventListener('keydown', escInstanceMenu);
     window.addEventListener('scroll', closeInstanceMenu, { once: true, capture: true });
@@ -358,13 +276,9 @@ function closeInstanceMenu() {
 }
 
 /**
- * listbox builds the language picker: a field-shaped trigger that opens a real
- * list, because a native <option> can hold plain text and nothing else and a
- * flag beside a language name is therefore impossible in one.
- *
- * `options` are { value, label, flag }. The flag is a `fi fi-XX` span from the
- * same generated stylesheet the web UI uses, so the two lists show the identical
- * artwork rather than two approximations of it.
+ * listbox builds the language picker, since a native <option> cannot show a
+ * flag. `options` are { value, label, flag }; the flag is a `fi fi-XX` span
+ * from the same stylesheet the web UI uses.
  */
 function listbox(host, options, current, onPick) {
   host.innerHTML = '';
@@ -415,8 +329,7 @@ function listbox(host, options, current, onPick) {
     }
     host.appendChild(menu);
     trigger.setAttribute('aria-expanded', 'true');
-    // Scrolled to the current choice: a list of 42 languages that opens at the
-    // top makes somebody scroll to find where they already are.
+    // Opens scrolled to the current choice.
     menu.querySelector('[aria-selected="true"]')?.scrollIntoView({ block: 'nearest' });
     setTimeout(() => {
       document.addEventListener('pointerdown', onAway);
@@ -441,22 +354,10 @@ function listbox(host, options, current, onPick) {
   trigger.addEventListener('click', open);
 
   /**
-   * The wheel switches the choice without opening the list.
-   *
-   * GlimStone's rule 14 addendum gave a closed <select> this behaviour, and
-   * rule 18 then took every <select> away: replacing the native control is the
-   * right call and losing what it could do is not, so the wheel belongs to the
-   * PICKER rather than to the element a platform happens to draw. This is the
-   * one picker the extension has left.
-   *
-   * A real listener with `passive: false`, not an inline handler: preventDefault
-   * is the whole point, and without it the page scrolls at the same time as the
-   * value changes and the control slides out from under the pointer mid-choice.
-   *
-   * CLAMPED at both ends rather than wrapped. One notch too many at the bottom
-   * of 42 languages must not land on the first one - somebody looking for the
-   * end of a list scrolls until it stops, and a list that answers by jumping to
-   * the other end reads as a fault.
+   * The wheel changes the choice without opening the list, as a closed
+   * <select> does (GlimStone rule 14). `passive: false` so preventDefault keeps
+   * the page from scrolling at the same time. It stops at both ends rather
+   * than wrapping.
    */
   trigger.addEventListener(
     'wheel',
@@ -474,15 +375,10 @@ function listbox(host, options, current, onPick) {
 }
 
 /**
- * The translation key for the popup's send button, given what is parked.
- *
- * With nothing parked the popup sends the current tab, so "Send this page" is
- * right. A parked send is something else: a right-clicked link, image or
- * selection that needed a choice between instances, or a caught Click'n'Load
- * batch. Labelling all of those "Send this page" put the page title above a
- * button that then sent a link (store-review dry run, 2026-09-16).
- *
- * A parked page, and a payload from before `kind` existed, keep the page label.
+ * The translation key for the popup's send button, given what is parked: the
+ * current tab when nothing is, otherwise a right-clicked link, image or
+ * selection, or a caught Click'n'Load batch. A payload without `kind` keeps the
+ * page label.
  */
 function sendLabelKey(pending) {
   if (!pending) return 'popup.send';
@@ -500,16 +396,9 @@ function sendLabelKey(pending) {
 }
 
 /**
- * How long a caught Click'n'Load batch waits before it sends itself.
- *
- * Seconds; 0 means "ask me", which is what this extension did unconditionally
- * before the setting existed. Five is the default because that is roughly what
- * JDownloader's own extension gives you - long enough to read where it is
- * going and reach for another instance, short enough that nobody waits.
- *
- * Clamped on the way OUT rather than only on the way in: a value written by an
- * older build, or by hand in the storage inspector, must not be able to park a
- * popup for an hour.
+ * How long a caught Click'n'Load batch waits before it sends itself, in
+ * seconds; 0 means ask. Five matches JDownloader's own extension. The value is
+ * clamped on read too, so a hand-edited one cannot park the popup for an hour.
  */
 const CNL_COUNTDOWN_DEFAULT = 5;
 const CNL_COUNTDOWN_MAX = 60;

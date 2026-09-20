@@ -6,20 +6,18 @@ import { TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
 import { GlimButton } from './glim';
 
-// A full-screen modal scanner, not a screen of its own: every place that
-// wants a QR code (the address card on ConnectScreen, a pairing code on
-// InstancesScreen) just needs "hand me one decoded string back", not a spot
-// in the navigation stack.
+// A full-screen modal scanner rather than a screen of its own: a caller that
+// wants a QR code needs one decoded string back rather than a spot in the
+// navigation stack.
 export default function QRScanner({ visible, onScanned, onClose, hint }: { visible: boolean; onScanned: (data: string) => void; onClose: () => void; hint: string }) {
   const { t } = useT();
   const { c, accent, radii } = useAppearance();
   const [permission, requestPermission] = useCameraPermissions();
   const [locked, setLocked] = useState(false);
 
-  // The component stays mounted (it only renders null below) across opens
-  // and closes, so `locked` from a PREVIOUS scan would otherwise still be
-  // true the next time this reopens - every scan after the first silently
-  // doing nothing.
+  // The component stays mounted across opens and closes, rendering null, so
+  // `locked` from an earlier scan would still be true the next time it opens
+  // and every scan after the first would do nothing.
   useEffect(() => {
     if (visible) setLocked(false);
   }, [visible]);
@@ -67,8 +65,8 @@ export default function QRScanner({ visible, onScanned, onClose, hint }: { visib
   );
 }
 
-// Colours and radii are applied inline from the resolved tokens, never baked
-// in here: a stylesheet is built once and cannot follow a theme change.
+// Colours and radii are applied inline from the resolved tokens rather than
+// baked in here: a stylesheet is built once and cannot follow a theme change.
 const styles = StyleSheet.create({
   container: { flex: 1 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 16 },

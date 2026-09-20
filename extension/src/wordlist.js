@@ -1,8 +1,6 @@
-// The BIP39 English wordlist, generated from internal/seedphrase/english.txt
-// so the extension, the phone and the server can never disagree about it. Do
-// not hand-edit: a single changed word shifts every index after it, and every
-// phrase this extension decodes would silently derive a different key - with
-// the symptom "the relay never connects" and nothing in any log.
+// The BIP39 English wordlist, generated from internal/seedphrase/english.txt so
+// the extension, the phone and the server agree on it. Do not edit by hand: one
+// changed word shifts every later index and changes the derived keys.
 //
 // Source file SHA-256: 2f5eed53a4727b4bf8880d8f3f199efc90e58503646d9ff8eff3a2ed3b24dbda
 const WORDS = [

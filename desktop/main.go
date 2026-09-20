@@ -1,12 +1,9 @@
-// Command desktop is KnightLoader's native desktop app: the same server (engine,
-// resolvers, API, embedded UI) running inside a Wails webview window, plus
-// provision-on-first-run of a private headless JDownloader for full hoster
-// coverage. It reuses the server's HTTP handler as the Wails asset handler, so
-// the UI and the entire REST/WebSocket API are identical to the container build.
+// Command desktop is KnightLoader's native desktop app: the same server running
+// inside a Wails webview window, with its HTTP handler as the asset handler, so
+// the UI and the REST and WebSocket API match the container build.
 //
-// This module is built per-platform in CI (see .github/workflows/desktop.yml);
-// `wails build` produces the Windows/macOS/Linux bundles. It is intentionally a
-// separate Go module so the Wails toolchain never touches the server build.
+// It is a separate Go module so the Wails toolchain never touches the server
+// build; .github/workflows/desktop.yml builds it per platform.
 package main
 
 import (
@@ -28,15 +25,10 @@ import (
 )
 
 func main() {
-	// buildinfo.Deployment defaults to "container" - correct for
-	// cmd/knightloader, wrong here. Set before app.New below, per that
-	// var's own doc comment ("whichever one constructs the App sets this
-	// before serving a single request") - GET /api/system/deployment and
-	// the Diagnostics page both read it, and both exist specifically so a
-	// user can tell which build they are running.
+	// Must be set before app.New; the default is "container".
 	buildinfo.Deployment = "desktop"
-	// The desktop opens no listener, so it never announces - but it still
-	// LISTENS, so it can find the server on its own network and add it.
+	// The desktop opens no listener, so it never announces, but it still
+	// listens for servers on its network.
 	buildinfo.DiscoveryEnabled = true
 
 	dataDir := dataDir()
@@ -44,8 +36,7 @@ func main() {
 		log.Fatalf("data dir: %v", err)
 	}
 
-	// Provision a private headless JDownloader on first run so the desktop app
-	// has full hoster coverage out of the box (no JD UI ever shown).
+	// A private headless JDownloader gives full hoster coverage out of the box.
 	if os.Getenv("KL_JD") == "" {
 		pv := provision.New(filepath.Join(dataDir, "jd"))
 		log.Printf("provisioning headless JDownloader (first run may take a few minutes)…")
@@ -63,45 +54,21 @@ func main() {
 		log.Fatalf("start: %v", err)
 	}
 
-	// The start report (internal/startupcheck), the same call the server binary
-	// makes: Java, yt-dlp, ffmpeg and ffprobe with their versions, the data
-	// directory, every folder a download can land in, and which clock a
-	// schedule window is read against. It goes into the log and into the
-	// diagnostics bundle, and it holds nothing back while it runs.
-	//
-	// It is here rather than inside app.New for the reason app_preflight.go
-	// spells out: app.New is what several hundred tests call, and a pass that
-	// spawns four processes has no business in a constructor. There is no
-	// listener to wait for on this build, so this is the earliest honest place.
-	//
-	// os.Getenv rather than the server's envInt, because this file has no such
-	// helper and one line does not earn one. Any value other than "0" leaves it
-	// on, which matches "on by default" from the other side.
+	// Outside app.New because every test calls the constructor and this spawns
+	// four processes. KL_STARTUP_CHECK=0 turns it off, as on the server.
 	if os.Getenv("KL_STARTUP_CHECK") != "0" {
 		a.StartStartupCheck()
 	} else {
 		a.MarkStartupCheckOff()
 	}
 
-	// Desktop-local window/tray preferences: never settings.Settings, which
-	// is served whole to every browser connected to this same server and
-	// would let a phone on the LAN decide whether this one installation's
-	// window starts hidden. See config.go's doc comment.
+	// Window and tray preferences stay out of settings.Settings, which every
+	// connected browser reads and writes; see config.go.
 	tc := newTrayController(a.Hub, filepath.Join(dataDir, "desktop.json"))
 
-	// Wired here, not left nil like RequestExit above: RequestExit stays
-	// unset on desktop because window/tray already own a graceful path to
-	// a.Close() with no need of it (see its own doc comment on App), but
-	// self-updating needs a NEW capability neither of those existing paths
-	// has - swap the running binary for a newer one, spawn it, THEN exit -
-	// so it gets its own field rather than overloading RequestExit's
-	// existing, unrelated meaning. update.Download/Apply/Relaunch (all
-	// deployment-agnostic, independently tested) do the actual work; this
-	// closure only supplies what only desktop/main.go knows: this process's
-	// own executable, and tc.quit() - the exact same shutdown path the
-	// tray's own Quit menu item already uses, verified to reach
-	// OnShutdown -> a.Close() correctly regardless of the live
-	// close-to-tray preference.
+	// RequestExit stays nil here because the window and tray already shut
+	// down through a.Close. Updating swaps the binary, starts the new one and
+	// then quits through tc.quit, the path the tray's Quit item uses.
 	a.RequestUpdateInstall = func(ctx context.Context) error {
 		zipPath, _, err := update.Download(ctx, buildinfo.Version)
 		if err != nil {
@@ -117,65 +84,34 @@ func main() {
 		}
 		_, newRunnable, err := update.CurrentExecutable()
 		if err != nil {
-			// Apply already swapped the files - report the resolve
-			// failure but fall back to the path we swapped in at, which is
-			// correct on Windows/Linux (install path IS the runnable) and
-			// only wrong on the macOS bundle case this error path implies
-			// something already unexpected about.
+			// Apply already swapped the files. The install path is the
+			// runnable on Windows and Linux; only a macOS bundle differs.
 			newRunnable = installPath
 		}
 		if err := update.Relaunch(newRunnable, os.Args[1:]); err != nil {
 			return err
 		}
-		// The HTTP response for this request still needs to reach the
-		// browser before the process tears down - same reasoning as
-		// requestExit's own "shutting down" response racing the actual
-		// exit, which routes_lifecycle.go's own comment already accepts as
-		// expected. Async so this closure (and the HTTP handler awaiting
-		// it) returns first.
+		// Quit asynchronously so the HTTP response reaches the browser first.
 		go tc.quit()
 		return nil
 	}
 
-	// Wired here for the same reason RequestUpdateInstall just above is, and
-	// left nil everywhere else for the same reason RequestExit is: putting
-	// the MACHINE to sleep is a capability only this build has, and the
-	// container's process is PID 1 in a namespace with no reach onto the
-	// host's power state at all. It is the third of the three function
-	// fields on App rather than an overload of either existing one, because
-	// sleeping is not quitting - the process stays, the downloads stay, and
-	// the machine comes back - and internal/idleaction decides which
-	// end-of-queue actions to OFFER by asking which of these three are
-	// wired, never by asking which binary is running. See desktop/power.go.
+	// Only the desktop can put the machine to sleep; internal/idleaction offers
+	// the action when this is set. See power.go.
 	a.RequestSuspend = requestSuspend
 
-	// Both Wails and the tray library want the real OS main thread on macOS,
-	// and systray.Run blocks in its own native loop until Quit() - so it is
-	// started in a goroutine before wails.Run, the established community
-	// pattern for this exact combination (see tray.go's package doc for the
-	// research this rests on). Never started at all when the probe already
-	// found no tray host: an icon nothing can show is not worth the log
-	// noise, and it keeps "close/minimize to tray" unreachable by
-	// construction rather than by a runtime check that could be missed.
-	//
-	// Deliberately a raw goroutine, not tc.spawn: tc.onShutdown calls
-	// tc.wg.Wait() before calling systray.Quit(), and this goroutine only
-	// returns once systray.Quit() is called - tracking it in the same
-	// WaitGroup that gates that same call would deadlock shutdown.
+	// Wails and systray both want the main thread on macOS and systray.Run
+	// blocks, so the tray runs in a goroutine started before wails.Run. It is
+	// not tracked by tc.spawn: onShutdown waits on that group before calling
+	// systray.Quit, which is what ends this goroutine.
 	if tc.isTrayAvailable() {
 		go runTray(tc)
 	}
 
-	// Bound so the frontend can reach reveal-in-folder and open-natively
-	// (files.go): package 20's two desktop-only actions, reachable from the
-	// frontend as window.go.main.DesktopFiles.*. The container/browser build
-	// never registers this type at all, which is what makes those two
-	// buttons refuse with a stated reason there instead of doing nothing -
-	// see files.go's package doc.
+	// Exposed to the frontend as window.go.main.DesktopFiles for reveal in
+	// folder and open natively; see files.go.
 	desktopFiles := newDesktopFiles(a)
 
-	// The server's HTTP handler serves the SPA, REST and WebSocket; Wails runs
-	// it as the in-window asset handler.
 	err = wails.Run(&options.App{
 		Title:            "KnightLoader",
 		Width:            1100,
@@ -186,25 +122,17 @@ func main() {
 		AssetServer:      &assetserver.Options{Handler: api.Handler(a)},
 		Bind:             []interface{}{desktopFiles},
 		StartHidden:      tc.effectiveStartHidden(),
-		// Left false deliberately: the Windows, macOS and Linux frontends
-		// all route the native close signal through OnBeforeClose only when
-		// this is false (verified against v2.13.0's per-platform frontend
-		// sources - true skips OnBeforeClose entirely on Windows and just
-		// hides unconditionally). Everything close/minimize/tray do is
-		// decided dynamically inside the hooks below instead, from the live
-		// preference, so a change from the tray menu takes effect without a
-		// restart.
+		// With true, Wails v2.13.0 skips OnBeforeClose on Windows and always
+		// hides. The hooks below decide from the live preference instead, so
+		// a change in the tray menu applies without a restart.
 		HideWindowOnClose: false,
 		OnStartup:         tc.onWailsStartup,
 		OnBeforeClose:     tc.onBeforeClose,
 		OnShutdown: func(context.Context) {
 			tc.onShutdown()
 			_ = a.Close()
-			// After a.Close, so that anything the shutdown itself logs still
-			// reaches the file somebody switched on to read about shutdowns.
-			// Closing is tidiness rather than durability - every record is
-			// written unbuffered - but on Windows it is what releases the
-			// handle, and this build is mostly Windows.
+			// After a.Close so the shutdown's own records reach the file.
+			// Writes are unbuffered; closing releases the Windows handle.
 			_ = logring.CloseFile()
 		},
 	})

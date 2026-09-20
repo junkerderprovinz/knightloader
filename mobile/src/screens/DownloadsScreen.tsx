@@ -12,14 +12,13 @@ import SpeedGraph from '../components/SpeedGraph';
 import { fmtBytes } from '../api/stats';
 import { deleteTasks, reorderTasks, startTasks } from '../api/client';
 
-// peer, when set, means this screen is showing a FEDERATION PEER of conn
-// rather than conn's own queue: base becomes the proxy prefix
-// (/api/instances/{name}, see internal/api/routes_federation.go).
+// peer, when set, means this screen is showing a federation peer of conn rather
+// than conn's own queue, so base becomes the proxy prefix (/api/instances/{name},
+// see internal/api/routes_federation.go).
 //
-// Whether the task list then streams or polls is liveTasks' decision, not
-// this screen's - a federation peer and a relay connection both forward
-// plain REST calls with no socket to attach to, and only api/client.ts knows
-// which of those is in play.
+// Whether the task list then streams or polls is liveTasks' decision: a
+// federation peer and a relay connection both forward plain REST calls with no
+// socket to attach to, and only api/client.ts knows which is in play.
 export default function DownloadsScreen({
   conn,
   peer,
@@ -44,17 +43,16 @@ export default function DownloadsScreen({
   const [connected, setConnected] = useState(false);
   const [queue, setQueue] = useState<QueueState | null>(null);
   const [queueBusy, setQueueBusy] = useState(false);
-  /** What the last start or stop actually did, when it did not work. Shown
-   *  rather than swallowed, the same line the overview carries: a control that
-   *  reports nothing is indistinguishable from a control that does nothing. */
+  /** What the last start or stop did, when it did not work. Shown rather than
+   *  swallowed, the same line the overview carries: a control that reports
+   *  nothing cannot be told apart from one that does nothing. */
   const [startError, setStartError] = useState('');
-  // Which half of the instance is on screen (jdp, 2026-08-30: "Zwei tabs soll
-  // es geben: Dowload und Sammler"). The two are one task list with one status
-  // telling them apart - "collected" means staged and not started - so this is
-  // a filter over what already streams, not a second request.
+  // Which half of the instance is on screen. The two are one task list with one
+  // status telling them apart, since "collected" means staged and not started,
+  // so this is a filter over what already streams rather than a second request.
   const [tab, setTab] = useState<'downloads' | 'collector'>('downloads');
-  // Summed from the task list this screen already streams: no second request,
-  // and no second truth about the same number.
+  // Summed from the task list this screen already streams, so there is no
+  // second request and no second truth about the same number.
   const speed = tasks.reduce((n, t) => n + (t.speed || 0), 0);
   const collected = tasks.filter((x) => x.status === 'collected');
   const queued = tasks.filter((x) => x.status !== 'collected');
@@ -92,17 +90,16 @@ export default function DownloadsScreen({
     };
   }, [conn, base]);
 
-  // try/finally with no catch was the bug, not a style choice: the finally
-  // cleared the spinner and the rejection went nowhere, so a queue call the
-  // instance refused looked exactly like a button that was not wired up.
+  // try/finally with no catch clears the spinner and sends the rejection
+  // nowhere, so a queue call the instance refused looks like a button that was
+  // never wired up.
   //
-  // Stopping calls /api/queue/stop, not /api/queue with halted:true (jdp,
-  // 2026-08-31: "wenn man auf den stopp button drückt werden sie nicht
-  // gestoppt"). Halting stops the DISPATCHER and lets whatever is already
-  // downloading run to the end - which is the right default for the server and
-  // the wrong verb for this button, because the bar somebody is watching keeps
-  // moving. See stopAll() in api/client.ts. Starting is still the plain
-  // release, because there is no second kind of start.
+  // Stopping calls /api/queue/stop rather than /api/queue with halted:true.
+  // Halting stops the dispatcher and lets whatever is already downloading run
+  // to the end, which is the right default for the server and the wrong verb
+  // for this button, because the bar somebody is watching keeps moving. See
+  // stopAll() in api/client.ts. Starting is the plain release, since there is
+  // no second kind of start.
   const toggleHalted = async (nextHalted: boolean) => {
     setQueueBusy(true);
     setStartError('');
@@ -118,24 +115,15 @@ export default function DownloadsScreen({
   return (
     <View style={[styles.container, { backgroundColor: c.bg }]}>
       <View style={styles.topBar}>
-        {/* The way out is a badge on the LEFT of the name, exactly like the one
-            in Settings (jdp, 2026-08-31: "wenn ich eine instanz öffne soll
-            statt dem übersichtsbutton ein zurückbutton links neben dem namen
-            sein (Wie in den einstellungen)").
-
-            It was a text button called "Übersicht" over on the right, which is
-            a destination rather than a direction - and this app already has one
-            gesture for "back to where I came from", drawn one way, on the
-            settings screen. Two shapes for one meaning is the thing worth
-            fixing here, not the wording. */}
+        {/* The way out is a badge to the left of the name, as in Settings. A
+            text button naming a destination is a second shape for the one
+            meaning this app already draws one way. */}
         <IconBadge icon={<Back color={c.textSub} />} onPress={peer && onBackToOwn ? onBackToOwn : onSwitchConnection} accessibilityLabel={t('settings.back')} />
         <View style={styles.topBarLeft}>
           <Text style={[styles.title, { color: c.text }]}>{peer ? (peer.displayName ?? peer.name) : conn.name}</Text>
-          {/* Only while it is NOT connected (jdp, 2026-08-30: "der
-              verbundentext soll weg"). "verbunden" is the ordinary case, so it
-              said nothing on the screen it occupied - a label that is true
-              almost always is a label nobody reads. Still connecting, or
-              dropped, is worth saying, so that half stays. */}
+          {/* Only while it is not connected. Connected is the ordinary case, so
+              a label saying so is one nobody reads. Still connecting, or
+              dropped, is worth saying. */}
           {!connected && (
             <Text style={[styles.connState, { color: c.statusWarnSolid }]}>
               {t('downloads.connecting')}
@@ -143,17 +131,12 @@ export default function DownloadsScreen({
           )}
         </View>
         <View style={styles.topBarRight}>
-          {/* Removing THIS connection belongs here, on the thing being removed
-              (jdp, 2026-08-30: "der löschenbutton soll nur in der instanz
-              drinnen zu sehen sein, nicht auf der card"). On the overview it
-              sat on every row of a list you tap to open, which is a mis-tap
-              waiting to happen.
+          {/* Removing this connection belongs here, on the thing being removed.
+              On the overview it would sit on every row of a list somebody taps
+              to open, which is a mis-tap waiting to happen.
 
-              It is the only badge left on this side. The gear went (jdp,
-              2026-08-31: "Der Eisntellungsbutton soll in der instanzansicht
-              weg. den soll es nur in der übersicht geben"): settings are not a
-              property of one instance, and offering them from inside one
-              suggests they are. One door, on the screen that owns them. */}
+              It is the only badge on this side. Settings are not a property of
+              one instance, so the gear lives on the overview alone. */}
           {!peer && onRemoveConnection && (
             <IconBadge
               icon={<Trash color={c.textSub} />}
@@ -164,33 +147,26 @@ export default function DownloadsScreen({
         </View>
       </View>
 
-      {/* Grouped into packages, not one row per link. A container is ONE thing
-          somebody added; a flat list of its hundred files says nothing about
-          what was added. Same reasoning as the web interface and JDownloader.
+      {/* Grouped into packages rather than one row per link. A container is one
+          thing somebody added, and a flat list of its hundred files says
+          nothing about what was added, which is why the web interface and
+          JDownloader group the same way.
 
-          Everything above the rows travels as this list's HEADER rather than as
-          its siblings, and that is the fix for the strip sitting narrower than
-          the cards and hard against the left edge (jdp, 2026-08-31: "Der
-          download/Sammler selektor soll bündig mit den cards sien"). As
-          siblings, each piece carried its own copy of the list's width cap,
-          centring and margins - four places to keep in step, and they were not.
-          Inside the content container there is nothing to keep in step. */}
+          Everything above the rows travels as this list's header rather than as
+          its siblings. As siblings, each piece carries its own copy of the
+          list's width cap, centring and margins, four places to keep in step;
+          inside the content container there are none. */}
       <PackageList
         tasks={tab === 'collector' && collected.length > 0 ? collected : queued}
         empty={connected ? t('downloads.empty') : t('downloads.emptyConnecting')}
         header={
           <>
-            {/* One card, figures and curve together (jdp, 2026-09-01: "in der
-                instanzansicht ist er wieder eine eigene card. es soll auch mit
-                der card darüber veschmolzen werden").
-
-                They were two objects: a queue bar card, and the graph as a
-                sibling below it wearing a surface and a radius of its own,
-                which is a card by every property that makes something look like
-                one. Side by side on a tablet, they were two cards even more
-                plainly. The overview's summary card has held both in one box
-                since [358]'s first half; this is the same reading of the same
-                instance, so it is the same box. */}
+            {/* One card, figures and curve together. A graph sitting below the
+                queue bar with a surface and a radius of its own is a second
+                card by every property that makes something look like one, and
+                on a tablet the two stand side by side. The overview's summary
+                card holds both in one box, and this is the same reading of the
+                same instance. */}
             <View style={[styles.queueCard, { backgroundColor: c.surface, borderRadius: radii.card }]}>
               <View style={styles.queueBar}>
                 <Text style={[styles.queueLabel, { color: c.textMuted }]}>
@@ -239,24 +215,17 @@ export default function DownloadsScreen({
                 )}
               </View>
 
-              {/* Shown whenever something is IN the queue, not only while bytes
-                  are moving (jdp, 2026-08-31: "Wo ist der downloadgraph in der
-                  übericht und in der instanz ansicht?").
-
-                  The old test was `speed > 0`, on the reasoning that an idle
-                  graph is a row of nothing costing the height of a graph. That
-                  is right for an empty instance and wrong for exactly the case
-                  he was looking at: a queue that says "running" while nothing
-                  moves. There, a line flat at zero is not nothing - it is the
-                  answer. So: something queued, graph; nothing queued, no
-                  graph. */}
+              {/* Shown whenever something is in the queue rather than only
+                  while bytes are moving. Testing `speed > 0` is right for an
+                  empty instance and wrong for a queue that says "running" while
+                  nothing moves, where a line flat at zero is the answer. */}
               {(speed > 0 || queued.length > 0) && <SpeedGraph speed={speed} />}
             </View>
 
             {/* Why the last start or stop did not take. One line, in the fail
-                colour, and only when there is something to say. Outside the
-                card on purpose: it is about the last press, not about the
-                queue - the same placement the overview gives its own. */}
+                colour, only when there is something to say. Outside the card,
+                because it is about the last press rather than about the queue,
+                the placement the overview gives its own. */}
             {startError !== '' && (
               <Text style={[styles.queueError, { color: c.statusFailSolid }]} numberOfLines={2}>
                 {startError}
@@ -264,8 +233,7 @@ export default function DownloadsScreen({
             )}
 
             {/* The strip only appears once there is something staged: a tab
-                that is always empty is a tab that teaches you to ignore the
-                strip. */}
+                that is always empty teaches people to ignore the strip. */}
             {collected.length > 0 && (
               <View style={styles.tabs}>
                 <WellSelector
@@ -283,43 +251,33 @@ export default function DownloadsScreen({
         onStartPackage={
           tab === 'collector' && collected.length > 0
             ? async (pkg) => {
-                // Straight into the queue and out of this tab (jdp: "der klick
-                // auf den playbutton verschiebt den order in den downloadtab
-                // und startet den download"). Switching tabs first would leave
-                // somebody looking at a collector that is one package emptier
-                // for no visible reason.
+                // Straight into the queue and out of this tab. Switching tabs
+                // first would leave somebody looking at a collector one package
+                // emptier for no visible reason.
                 //
-                // And it says so when it fails. This call used to end in
-                // `.catch(() => {})`, which is the exact shape that made "die
-                // ganzen play/Stop buttons haben derzeit keine wirkung"
-                // unanswerable elsewhere in this app: the tab switched, the
-                // package stayed where it was, and nothing on screen knew why.
-                // A refused start is now a line, and the tab only changes when
-                // there is actually something to see in it.
+                // A refused start is a line, and the tab only changes when
+                // there is something to see in it. Swallowing the rejection
+                // would switch the tab while the package stayed where it was,
+                // with nothing on screen knowing why.
                 setStartError('');
                 try {
                   const r = await startTasks(conn, pkg.tasks.map((x) => x.id), base);
-                  // The three ways a start can do nothing, each said out loud
-                  // (jdp, four rounds of "es lädt nicht herunter"). The server
-                  // now reports which one it was; leaving that unread here
-                  // would put the silence back one layer down.
+                  // The three ways a start can do nothing, each said out loud.
+                  // The server reports which one it was, and leaving that
+                  // unread here would put the silence back one layer down.
                   if (r.blocked) setStartError(t('downloads.startBlocked'));
                   else if (r.started === 0 && r.skipped > 0) setStartError(t('downloads.startSkipped', { n: r.skipped }));
                   // The switch flipped on the server, so show it now rather
                   // than at the next five-second poll.
                   if (r.released) setQueue((q) => (q ? { ...q, halted: false } : q));
                   if (r.started > 0) {
-                    // Pull once before switching, so the package is THERE when
-                    // the tab arrives (jdp, 2026-09-03: "wenn ich bei einem
-                    // ordner im sammler auf play drücke dauert es lange bis er
-                    // im downloadtab erscheint").
-                    //
-                    // Nothing optimistic is invented here: this asks the server
-                    // and shows what it answers. On a direct connection the
-                    // socket has usually delivered it already and this costs one
-                    // extra request; over the relay it is the difference between
-                    // seeing the move now and waiting out the three-second
-                    // polling cycle plus a round trip.
+                    // Pull once before switching, so the package is there when
+                    // the tab arrives. Nothing optimistic is invented: this
+                    // asks the server and shows what it answers. On a direct
+                    // connection the socket has usually delivered it already
+                    // and this costs one request; over the relay it is the
+                    // difference between seeing the move now and waiting out
+                    // the polling cycle plus a round trip.
                     await live.current?.refresh?.().catch(() => {
                       /* the next tick will get it; a failed refresh is not a
                          reason to leave somebody on the wrong tab */
@@ -332,13 +290,12 @@ export default function DownloadsScreen({
               }
             : undefined
         }
-        // Both tabs, not only the collector (jdp, 2026-08-31: "man soll ordner
-        // auch löschen können"): a package in the queue is as likely to be the
-        // one somebody wants rid of. The list itself asks first, so this only
-        // ever runs on a yes.
+        // Both tabs rather than only the collector: a package in the queue is
+        // as likely to be the one somebody wants rid of. The list asks first,
+        // so this runs only on a yes.
         //
-        // The files stay: this removes the entries, not what has already been
-        // downloaded. Erasing those is a second, differently dangerous
+        // The files stay: this removes the entries rather than what has already
+        // been downloaded. Erasing those is a second, differently dangerous
         // decision, and a folder's bin badge is not the place to offer it.
         onDeletePackage={async (pkg) => {
           setStartError('');
@@ -348,20 +305,12 @@ export default function DownloadsScreen({
             setStartError(e instanceof Error ? e.message : String(e));
           }
         }}
-        /* BOTH tabs reorder, and the belief that the collector could not is
-           what made drag and drop look broken for five rounds.
-
-           The reasoning here used to be "nothing in the collector is in the
-           wait queue yet, so there is no order to write". The server disagrees
-           and always did: a band is every task that is neither done nor failed
-           (movable, app_queue.go), a staged one included, and it carries a
-           position like any other. So the gesture armed, the row lifted, the
-           neighbours moved aside - and the drop was dropped on the floor by the
-           `undefined` that used to be here, with nothing on screen to say so.
-
-           jdp's video of 2026-09-01 is entirely of this: three packages, the
-           play badge on each of them, which only the collector draws. Every
-           drag in it was discarded before it reached the network. */
+        /* Both tabs reorder. A band is every task that is neither done nor
+           failed (movable, app_queue.go), a staged one included, and it carries
+           a position like any other, so the collector has an order to write.
+           Passing `undefined` here arms the gesture, lifts the row and moves
+           the neighbours aside, and then drops the result with nothing on
+           screen to say so. */
         onReorder={async (ids) => {
           setStartError('');
           try {
@@ -382,11 +331,12 @@ export default function DownloadsScreen({
   );
 }
 
-// Colours and radii are applied inline from the resolved tokens, never baked
-// in here: a stylesheet is built once and cannot follow a theme change.
-// One column stretched across a tablet is a card 900 points wide with its
-// text at one edge and its badge at the other. A cap plus centring costs a
-// phone nothing (640 is wider than every phone) and makes a tablet readable.
+// Colours and radii are applied inline from the resolved tokens rather than
+// baked in here: a stylesheet is built once and cannot follow a theme change.
+//
+// One column stretched across a tablet is a card 900 points wide with its text
+// at one edge and its badge at the other. A cap plus centring costs a phone
+// nothing, since 640 is wider than every phone, and makes a tablet readable.
 const capped = { width: '100%' as const, maxWidth: 640, alignSelf: 'center' as const };
 
 const styles = StyleSheet.create({
@@ -394,8 +344,8 @@ const styles = StyleSheet.create({
   topBar: { ...capped,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    // Centre, not flex-start: the back badge and the title now share this row,
-    // and a 36px badge top-aligned against a 20px line reads as a mistake.
+    // Centre rather than flex-start: the back badge and the title share this
+    // row, and a badge top-aligned against a 20px line reads as a mistake.
     alignItems: 'center',
     gap: 12,
     padding: 16,
@@ -405,29 +355,29 @@ const styles = StyleSheet.create({
   topBarRight: { flexDirection: 'row', gap: 12, alignItems: 'center' },
   title: { fontSize: TYPE.heading, fontWeight: '600' },
   connState: { fontSize: TYPE.dense, marginTop: 2 },
-  // No horizontal margin any more: these live inside the list's own content
-  // container, which already carries the padding, the cap and the centring.
-  // Keeping a margin here would inset them from the cards by another 16.
-  // The card. Same padding and gap as the overview's summary card, so the two
-  // readings of one instance are drawn in one box on both screens.
+  // No horizontal margin: these live inside the list's own content container,
+  // which carries the padding, the cap and the centring, and a margin here
+  // would inset them from the cards by another 16. Same padding and gap as the
+  // overview's summary card, so the two readings of one instance are drawn in
+  // one box on both screens.
   queueCard: { padding: 14, gap: 10, marginBottom: 12 },
   // The top line inside it: state on the left, the start/stop pair on the right.
   queueBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   queueActions: { flexDirection: 'row', gap: 8 },
-  // Dense, off the scale in theme/tokens.ts - 13 was a rung between Dense and
-  // Body that the table does not have. The figures in this line (the active
-  // count, the speed) are rewritten every second, so they take tabular
-  // numerals: without them the whole line shifts sideways as digits change
-  // width, which is the one thing a live number must not do.
+  // Dense, off the scale in theme/tokens.ts, since 13 is a rung between dense
+  // and body that the table does not have. The active count and the speed are
+  // rewritten every second, so they take tabular numerals; without them the
+  // line shifts sideways as digits change width.
   queueLabel: { fontSize: TYPE.dense, fontVariant: ['tabular-nums'] },
   queueError: { marginBottom: 8, fontSize: TYPE.caption },
   tabs: { marginBottom: 10 },
   empty: { textAlign: 'center', marginTop: 48 },
   fab: {
     position: 'absolute',
-    // The trailing edge, not "right": under a right-to-left language the whole
-    // layout mirrors and a physical edge is the one thing that stays put, so
-    // the button would end up on the side the thumb has just stopped expecting.
+    // The trailing edge rather than right: under a right-to-left language the
+    // whole layout mirrors while a physical edge stays put, leaving the button
+    // on the side the thumb has stopped expecting.
+
     insetInlineEnd: 20,
     bottom: 32,
     width: 56,

@@ -8,26 +8,16 @@ import { TYPE } from '../theme/tokens';
 /**
  * A colour picker: a saturation/value pad, a hue rail and a hex field.
  *
- * It exists because the app could show colours and not change them - the eight
- * accent presets were the whole of what a colour could be, and the rainbow
- * palette could not be touched at all (jdp, 2026-08-31: "alle farbfelder lassen
- * sich nicht bearbeiten", and again 2026-09-01: "wo sind die farbfelder für den
- * regenbogenmodus?").
- *
  * The maths is the extension's `colorpicker.js` and the shared reference behind
  * it (glimstone, reference/colorPicker.ts), transcribed rather than re-derived
  * by eye, so a colour mixed on a phone and the same colour mixed in a browser
  * are the same six digits.
  *
- * Drawn from plain Views and one PanResponder. Two things are deliberately not
- * used here:
- *
- *   - a gradient library. The pad is a grid of flat cells, which is what a
- *     gradient looks like once it is quantised anyway, and it costs no native
- *     module - the same call every glyph in IconBadge already makes.
- *   - react-native-gesture-handler. PanResponder is in React Native itself;
- *     the alternative is a native dependency, a new prebuild and a new .apk
- *     story, for one drag.
+ * Drawn from plain Views and one PanResponder. No gradient library: the pad is
+ * a grid of flat cells, which is what a gradient looks like once quantised, and
+ * it costs no native module. No react-native-gesture-handler either, since
+ * PanResponder is in React Native itself and the alternative is a native
+ * dependency, a new prebuild and a new .apk story for one drag.
  */
 
 export function hexToHsv(hex: string): { h: number; s: number; v: number } | null {
@@ -113,22 +103,18 @@ export default function ColorPicker({
   const [hsv, setHsv] = useState(start);
   // Read by the pan handlers, which are built once: a handler closing over
   // `hsv` would hold the value from the render that created it, and the drag
-  // would snap back to where it began on every frame. Same trap DragList
-  // documents at length.
+  // would snap back to where it began on every frame.
   const live = useRef(hsv);
   live.current = hsv;
 
   /**
    * Re-seed from `initial` every time this opens.
    *
-   * `useState(start)` runs ONCE, at mount - and this component never unmounts,
-   * because a Modal is toggled by its `visible` prop rather than by being taken
-   * out of the tree. So the second time it opened it was still holding the
-   * colour from the first time, and the first frame of the next drag wrote that
-   * old colour into whichever swatch had just been pressed. From outside:
-   * "wenn man ein Farbfeld bearbeitet setzt es die farbe wieder zurück, sobald
-   * man ein anderes farbfeld auswählt" (jdp, 2026-09-01) - the edit appeared to
-   * jump to another swatch and the first one to revert.
+   * `useState(start)` runs once, at mount, and this component never unmounts,
+   * because a Modal is toggled by its `visible` prop rather than taken out of
+   * the tree. Without this it opens holding the colour from the last time, and
+   * the first frame of the next drag writes that colour into whichever swatch
+   * was pressed.
    *
    * Keyed on `visible` rather than on `initial`: `initial` changes as the drag
    * moves (the caller applies the accent live), so re-seeding on it would fight
@@ -144,7 +130,7 @@ export default function ColorPicker({
   } else if (!visible && warSichtbar.current) {
     warSichtbar.current = false;
   }
-  /** The pad's own box in SCREEN coordinates, measured rather than assumed. */
+  /** The pad's own box in screen coordinates, measured rather than assumed. */
   const box = useRef({ x: 0, y: 0, w: 1 });
   const padRef = useRef<View>(null);
 
@@ -153,21 +139,13 @@ export default function ColorPicker({
       PanResponder.create({
         onStartShouldSetPanResponder: () => true,
         onMoveShouldSetPanResponder: () => true,
-        // moveX/moveY, never nativeEvent.locationX (jdp, 2026-09-01: "Der
-        // farbpicker spinnt. ich kann nur sehr helle oder sehr schwarze farbe
-        // auswähle").
-        //
-        // locationX is relative to the touch's TARGET, and the target is the
-        // deepest view under the finger - which here is one of the pad's own
-        // grid cells, not the pad. So x ran 0..19 instead of 0..288 and was
-        // then divided by the pad's width: saturation never left the first few
-        // per cent, and value never left the top few. Almost white, or black
-        // once the hue collapsed. The pad held the responder the whole time,
-        // which is exactly what makes this one hard to see - the handler was
-        // firing correctly and reading the wrong number.
-        //
-        // gestureState's moveX/moveY are screen coordinates and belong to no
-        // view at all, so they cannot pick up a child's origin.
+        // moveX and moveY rather than nativeEvent.locationX. locationX is
+        // relative to the touch's target, and the target is the deepest view
+        // under the finger, one of the pad's grid cells. Divided by the pad's
+        // width that leaves saturation in the first few per cent and value in
+        // the top few, while the pad holds the responder throughout and the
+        // handler fires correctly on the wrong number. gestureState's
+        // coordinates are the screen's and belong to no view.
         onPanResponderGrant: (_e, g) => move(g.x0, g.y0),
         onPanResponderMove: (_e, g) => move(g.moveX, g.moveY),
       }),
@@ -186,11 +164,9 @@ export default function ColorPicker({
 
   const current = hsvToHex(hsv.h, hsv.s, hsv.v);
 
-  // The grid is rebuilt only when the HUE changes, never while dragging.
-  //
-  // Without this the drag was rebuilding 225 cells and running 225 colour
-  // conversions on every frame, which is the other half of "es hängt". Only
-  // the marker actually moves during a drag, and a marker is one view.
+  // The grid is rebuilt only when the hue changes, never while dragging.
+  // Otherwise a drag rebuilds 225 cells and runs 225 colour conversions on
+  // every frame, when only the marker moves and a marker is one view.
   const cells = useMemo(
     () =>
       Array.from({ length: PAD }, (_, row) => (
@@ -211,26 +187,23 @@ export default function ColorPicker({
       {/* Tapping the ground closes it, which is what a popover does. The panel
           itself swallows the press so a drag inside never dismisses.
 
-          The darkening comes from the palette (GlimStone 1.11.0), never from a
-          number typed here: it was a flat `#00000088` - alpha .53 - worn in
-          both themes, which is neither of the two values the language actually
-          names and is the shape a scrim is not allowed to have. Inline like
-          every other colour on this page, because a stylesheet is built once
-          and cannot follow a theme change. */}
+          The darkening comes from the palette (GlimStone 1.11.0) rather than
+          from a number typed here, which would be one alpha worn in both
+          themes. Applied inline like every other colour on this page, because a
+          stylesheet is built once and cannot follow a theme change. */}
       <Pressable style={[styles.scrim, { backgroundColor: c.scrim }]} onPress={onClose}>
         <Pressable
           style={[styles.panel, { backgroundColor: c.surface, borderRadius: radii.card }]}
           onPress={() => {}}
         >
           {/* The pad: saturation left to right, value bottom to top, at the
-              hue chosen on the rail below. A grid of flat cells - see the file
-              comment for why that is not a compromise. */}
+              hue chosen on the rail below. */}
           <View
             ref={padRef}
             style={[styles.pad, { borderRadius: radii.control }]}
-            // measureInWindow, not the layout event's own x/y: those are
-            // relative to the parent, and the gesture reports screen
-            // coordinates. Re-measured on every layout because the panel is
+            // measureInWindow rather than the layout event's own x/y, which
+            // are relative to the parent while the gesture reports screen
+            // coordinates. Re-measured on every layout, because the panel is
             // inside a Modal that lays out after it mounts.
             onLayout={() => {
               padRef.current?.measureInWindow((x, y, w) => {
@@ -240,11 +213,11 @@ export default function ColorPicker({
             {...responder.panHandlers}
           >
             {cells}
-            {/* Where you are. Two nested views, not a border: this language
-                separates surfaces by shade and never by a drawn line, and the
-                Swatch beside it draws its own selection ring exactly this way.
-                The outer ink flips with the value under it so the marker stays
-                visible in a white corner and a black one alike. */}
+            {/* The marker: two nested views rather than a border, since this
+                language separates surfaces by shade and the Swatch beside it
+                draws its selection ring the same way. The outer ink flips with
+                the value under it, so it stays visible in a white corner and a
+                black one alike. */}
             <View
               pointerEvents="none"
               style={[
@@ -300,13 +273,12 @@ export default function ColorPicker({
                 onPick(n);
               }}
             />
-            {/* No hue on purpose, and this is the one deliberate exception in
-                the app: without one GlimButton resolves to the accent, which is
-                exactly what this button should wear. It closes a dialog whose
-                whole subject is a colour, and giving it a palette POSITION would
-                paint it in a colour that has nothing to do with the one being
-                mixed. It is still in the engine - same component, same height,
-                same gap - just not in the rotation. */}
+            {/* No hue here, which is the one exception in the app. Without
+                one GlimButton resolves to the accent, and this button closes a
+                dialog whose subject is a colour, so a palette position would
+                paint it in a colour unrelated to the one being mixed. It is
+                still the same component at the same height and gap, only out of
+                the rotation. */}
             <GlimButton label={t('settings.pickerDone')} onPress={onClose} />
           </View>
         </Pressable>
@@ -316,7 +288,7 @@ export default function ColorPicker({
 }
 
 const styles = StyleSheet.create({
-  // No backgroundColor here: it is `c.scrim`, applied at render time - see the
+  // No backgroundColor here: it is `c.scrim`, applied at render time by the
   // Pressable above.
   scrim: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
   panel: { width: '100%', maxWidth: 320, padding: 16, gap: 12 },

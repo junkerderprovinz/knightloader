@@ -1,38 +1,22 @@
 /**
  * Talking to the group through the relay.
  *
- * The extension joins the phrase group the same way the phone does — as a
- * CLIENT, not as an instance — and asks a sibling to do something on its behalf.
- * Two calls are all it needs, and both are on the server's own list of what a
- * group member may reach (internal/api/routes_relay.go, relayForwardable):
+ * Like the phone, the extension joins the phrase group as a client and asks a
+ * sibling to act for it, through routes a group member may reach
+ * (relayForwardable in internal/api/routes_relay.go). Membership is the
+ * credential, so no token, password or address is needed.
  *
- *   GET  /api/instances   which instances are in this group
- *   POST /api/links       put these links in one of them
+ * Each call opens a socket, says hello, asks and closes. The extension only
+ * acts on a button press, and a long-lived socket would fight the MV3 service
+ * worker's idle shutdown.
  *
- * That list is why the phrase alone is enough here. A relayed call arrives at
- * the instance marked as coming from a group sibling, and membership IS the
- * credential — no token, no password, and no address for this browser to know.
- * Before this file existed, the options page asked for a name and an address,
- * which was the pre-phrase model still standing in a product that had moved on
- * (jdp, 2026-08-28: "Wieso muss man eine Instanz per Name & Adresse hinzufügen?
- * Das soll doch jetzt alles ausschliesslich via Phrase laufen.").
- *
- * ONE-SHOT, deliberately. The phone holds its socket open because it shows a
- * live task list; this extension sends when somebody presses a button and has
- * nothing to watch in between. So a call opens the socket, says hello, asks,
- * and closes. That also sidesteps the MV3 service worker's own idle shutdown,
- * which a long-lived socket here would be permanently fighting.
- *
- * The frame layer is a port of mobile/src/api/relayFrame.ts, which is itself a
- * port of internal/relay/seal.go and protocol.go. All three have to agree byte
- * for byte or this browser joins a group and can speak to nobody in it, so
- * everything that could drift is stated once, here: the AAD layout, the nonce
- * length, and the nonce||ciphertext framing. AES-GCM comes from WebCrypto
- * rather than a bundled library — the phone ships @noble/ciphers because its
- * runtime's own crypto is not dependable, and a browser has no such excuse.
+ * The frame layer ports mobile/src/api/relayFrame.ts, itself a port of
+ * internal/relay/seal.go and protocol.go. The AAD layout, the nonce length and
+ * the nonce||ciphertext framing must match byte for byte. AES-GCM comes from
+ * WebCrypto.
  */
 
-const RELAY_NONCE_LEN = 12; // relay.nonceLen — AES-GCM's standard nonce size
+const RELAY_NONCE_LEN = 12; // relay.nonceLen, AES-GCM's standard nonce size
 const RELAY_HELLO = 'hello';
 const RELAY_ANNOUNCE = 'announce';
 const RELAY_PRESENCE = 'presence';
@@ -40,35 +24,30 @@ const RELAY_PROXY_REQUEST = 'proxy-request';
 const RELAY_PROXY_RESPONSE = 'proxy-response';
 
 /**
- * How long to listen for the group before deciding who is in it.
- *
- * The relay pushes one `announce` per sibling right after hello — nothing is
- * asked for, so there is no reply to wait on and no "that was all" frame. The
- * only honest stopping rule is a short quiet period after the last one, with a
- * hard cap so a silent group (nobody else online) still finishes.
+ * How long to listen for the group before deciding who is in it. The relay
+ * pushes one `announce` per sibling after hello with no closing frame, so the
+ * roster is settled after a quiet period, capped for a group nobody else is in.
  */
 const RELAY_ROSTER_QUIET_MS = 350;
 const RELAY_ROSTER_MAX_MS = 2500;
 
-/** How long one call may take, socket included. Generous: the sibling stages
- *  the links synchronously, and a browser that gave up early would report a
- *  failure for something that then happened anyway. */
+/** How long one call may take, socket included. The sibling stages links
+ *  synchronously, and giving up early would report a failure for a send that
+ *  still happens. */
 const RELAY_TIMEOUT_MS = 20000;
 
 const relayUtf8 = (s) => new TextEncoder().encode(s);
 const relayFromUtf8 = (b) => new TextDecoder().decode(b);
 
 /**
- * The routing fields necessarily travel in the clear, so they are bound into
- * the seal: a relay cannot redirect a frame and have it still open. The \x00
- * separator and the per-direction label both matter — the label is what stops
- * an answer being replayed as a question.
+ * The routing fields travel in the clear, so they are bound into the seal and a
+ * redirected frame will not open. The per-direction label stops an answer from
+ * being replayed as a question.
  */
 const relayRequestAAD = (requestId, target) => relayUtf8(`proxy-request\x00${requestId}\x00${target}`);
 const relayResponseAAD = (requestId) => relayUtf8(`proxy-response\x00${requestId}`);
-/** An announce keeps exactly one field in the clear — the instance id the
- *  relay routes on — and binds its seal to it, so a relay cannot attach one
- *  instance's sealed identity to another connection. Mirrors
+/** An announce keeps only the instance id in the clear and binds its seal to
+ *  it, so a relay cannot attach one identity to another connection. Mirrors
  *  relay.announceAAD. */
 const relayAnnounceAAD = (instanceId) => relayUtf8(`announce\x00${instanceId}`);
 
@@ -91,8 +70,7 @@ async function relayGcmKey(raw) {
   return crypto.subtle.importKey('raw', raw, 'AES-GCM', false, ['encrypt', 'decrypt']);
 }
 
-/** Nonce ‖ ciphertext, base64. Exactly the framing relay.seal writes: the Go
- *  side reads the first nonceLen bytes as the nonce and hands the rest to GCM. */
+/** Nonce ‖ ciphertext, base64, the framing relay.seal writes. */
 async function relaySeal(frameKey, aad, plaintext) {
   const key = await relayGcmKey(frameKey);
   const nonce = crypto.getRandomValues(new Uint8Array(RELAY_NONCE_LEN));
@@ -106,11 +84,9 @@ async function relaySeal(frameKey, aad, plaintext) {
 }
 
 /**
- * relayOpen reverses relaySeal. Null for every failure — a wrong key, a
- * truncated frame, a tampered one — deliberately not telling them apart, the
- * same choice relay.ErrSealed makes and for the same reason: the caller's move
- * is identical in every case, and distinguishing them tells an attacker which
- * guess was closer.
+ * relayOpen reverses relaySeal and returns null for every failure, like
+ * relay.ErrSealed: the caller acts the same either way, and telling them apart
+ * would help an attacker.
  */
 async function relayOpen(frameKey, aad, sealedB64) {
   try {
@@ -135,15 +111,10 @@ function relayRequestId() {
 }
 
 /**
- * relaySession opens one socket, joins the group, hands the caller the roster
- * and a way to ask a sibling something, then closes — whatever the caller did.
- *
- * One socket per user action, not one held open: see this file's own opening
- * comment. `work` receives { siblings, call } and whatever it returns is what
- * this resolves with.
- *
- * `siblings` excludes clients (other phones, other browsers): they are routable
- * but they are not somewhere to send a download to.
+ * relaySession opens one socket, joins the group, calls `work` with
+ * { siblings, call } and closes again, resolving with what `work` returns.
+ * `siblings` leaves out clients such as phones and browsers, which cannot take
+ * a download.
  */
 async function relaySession({ url, key, frameKey, selfId, selfName }, work) {
   const socket = await new Promise((resolve, reject) => {
@@ -197,13 +168,10 @@ async function relaySession({ url, key, frameKey, selfId, selfName }, work) {
     switch (frame?.type) {
       case RELAY_ANNOUNCE: {
         if (typeof d.instanceId !== 'string' || !d.instanceId) return;
-        // The identity arrives sealed — see relay.Identity. Three cases, the
-        // same three the Go and mobile ports handle: a seal that opens is
-        // used; no seal at all is an instance still on a version from before
-        // this and its plaintext is read as it always was; a seal that will
-        // NOT open is a peer on another frame key, kept in the roster under
-        // its id with no name rather than hidden, so a key mismatch shows up
-        // as an unnamed instance instead of as nothing at all.
+        // As in the Go and mobile ports: a seal that opens is used, no seal
+        // means an older instance with a plaintext identity, and a seal that
+        // does not open is a peer on another frame key, listed without a name
+        // so the mismatch stays visible.
         let id = d;
         if (typeof d.sealed === 'string' && d.sealed) {
           const plain = await relayOpen(frameKey, relayAnnounceAAD(d.instanceId), d.sealed);
@@ -216,8 +184,7 @@ async function relaySession({ url, key, frameKey, selfId, selfName }, work) {
             }
           }
         }
-        // An announce for an id already known is that instance reconnecting,
-        // not a second one — replace rather than append.
+        // A known id is that instance reconnecting.
         siblings.set(d.instanceId, {
           instanceId: d.instanceId,
           name: typeof id.name === 'string' ? id.name : '',
@@ -236,16 +203,15 @@ async function relaySession({ url, key, frameKey, selfId, selfName }, work) {
         const p = pending.get(d.requestId);
         if (!p) return;
         pending.delete(d.requestId);
-        // The error field is plaintext because the RELAY writes it and holds no
-        // key. Read it first, and never treat an unsealed response as a result.
+        // The relay writes the error field and holds no key, so it is
+        // plaintext. An unsealed response is never a result.
         if (d.error) {
           p.reject(new Error(`relay: ${d.error}`));
           return;
         }
         const plain = await relayOpen(frameKey, relayResponseAAD(d.requestId), d.sealed || '');
         if (!plain) {
-          // Not an answer from the sibling at all: the frame that came back
-          // could not have been written by anybody holding this phrase.
+          // Nobody holding this phrase wrote that frame.
           p.reject(new Error('relay: the answer could not be opened'));
           return;
         }
@@ -267,18 +233,14 @@ async function relaySession({ url, key, frameKey, selfId, selfName }, work) {
   const send = (type, data) => socket.send(JSON.stringify({ type, data }));
 
   try {
-    // Hello has to be the FIRST frame: the relay reads exactly one, on its own
-    // deadline, before it will join this socket to anything.
+    // Hello has to be the first frame; the relay reads one on a deadline
+    // before joining the socket to anything.
     send(RELAY_HELLO, {
       key,
       announce: {
         instanceId: selfId,
-        // Everything except the id the relay routes on goes into the seal:
-        // the name, the 'extension' marker, and the client flag that says
-        // "route to me, but do not list me as somewhere to go" (without which
-        // this browser would appear as a browsable instance on every other
-        // instance's Instances page and answer 501 to everything asked of
-        // it). All three are for siblings; none of them is for the relay.
+        // Everything but the routing id is sealed. The client flag keeps this
+        // browser off the other instances' lists of download targets.
         sealed: await relaySeal(
           frameKey,
           relayAnnounceAAD(selfId),
@@ -324,9 +286,7 @@ async function relaySession({ url, key, frameKey, selfId, selfName }, work) {
       send(RELAY_PROXY_REQUEST, {
         requestId,
         target,
-        // Everything except the two routing fields goes inside the seal, so the
-        // relay carrying this frame sees which instance it is for and nothing
-        // about what is being asked.
+        // The relay sees only the two routing fields, not what is asked.
         sealed: await relaySeal(
           frameKey,
           relayRequestAAD(requestId, target),

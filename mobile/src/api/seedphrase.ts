@@ -1,11 +1,10 @@
 // The phone's half of the connection phrase.
 //
-// It decodes locally rather than asking a server, because the whole point of
-// the phrase is the case where this phone cannot reach any instance yet -
-// there is nobody to ask. A port of internal/seedphrase, deliberately line
-// for line: the two must agree on every one of the 2048 words and on the bit
-// packing, or the key derived here quietly differs from the server's and the
-// symptom is "the relay never connects" with nothing in any log.
+// It decodes locally rather than asking a server, because the phrase is for
+// the case where this phone cannot reach any instance yet. A line-for-line port
+// of internal/seedphrase: the two have to agree on every one of the 2048 words
+// and on the bit packing, or the key derived here differs from the server's and
+// the symptom is a relay that never connects, with nothing in any log.
 //
 // The UI must never call this a wallet seed. It is a Verbindungsphrase.
 
@@ -83,8 +82,8 @@ export function decodePhrase(phrase: string): Uint8Array {
   for (let i = 0; i < got.length; i++) {
     const idx = INDEX.get(got[i]);
     if (idx === undefined) {
-      // Naming the word and its position is the point: bisecting a
-      // twelve-word phrase by hand is not a thing to ask of anybody.
+      // The word and its position, so nobody has to bisect twelve words by
+      // hand.
       throw new PhraseError({ reason: 'unknown_word', word: got[i], position: i + 1 });
     }
     setBits(full, i * BITS_PER_WORD, BITS_PER_WORD, idx);
@@ -114,7 +113,7 @@ export function deriveKey(secret: Uint8Array): string {
   return toHex(sha256(buf));
 }
 
-/** keyFromPhrase is the whole journey, for the one caller that wants it. */
+/** keyFromPhrase decodes a phrase and derives its relay key in one step. */
 export function keyFromPhrase(phrase: string): string {
   return deriveKey(decodePhrase(phrase));
 }
@@ -130,11 +129,10 @@ const FRAME_KEY_DOMAIN = 'knightloader/relay/frame-key/v1';
  * deriveFrameKey returns the 32-byte key that seals proxy frames, mirroring
  * relay.DeriveFrameKey.
  *
- * The separate domain is the entire point and is worth restating here, where
- * somebody reading only the phone's half will see it: the relay is HANDED
- * deriveKey's output in every hello frame. A frame key derived from that
- * value, or under the same domain, would be a key the relay already holds,
- * and the encryption would protect nothing from the one party it is aimed at.
+ * The domain has to be a second one because the relay is handed deriveKey's
+ * output in every hello frame. A frame key derived from that value, or under
+ * the same domain, would be a key the relay already holds, and the encryption
+ * would protect nothing from the party it is aimed at.
  */
 export function deriveFrameKey(secret: Uint8Array): Uint8Array {
   const domain = utf8(FRAME_KEY_DOMAIN);

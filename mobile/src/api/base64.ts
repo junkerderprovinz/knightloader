@@ -1,11 +1,9 @@
 // Base64 and UTF-8 by hand, in both directions.
 //
-// By hand rather than via atob/btoa/TextEncoder because none of those is
-// guaranteed present on every Hermes/React Native version this app might run
-// on, and both things that need them here - decoding a pairing code during
-// onboarding (api/pairing.ts) and carrying request bodies over the relay
-// (api/relayClient.ts) - are load-bearing enough that "works on some engine
-// builds" is not good enough.
+// By hand rather than via atob/btoa/TextEncoder, none of which is guaranteed
+// present on every Hermes and React Native version this ships to. Both callers,
+// the pairing code in onboarding (api/pairing.ts) and the request bodies the
+// relay carries (api/relayClient.ts), have to work on all of them.
 //
 // Both base64 alphabets are handled by one pair of functions: Go's
 // encoding/json marshals a []byte with StdEncoding (+ / =), which is what
@@ -31,10 +29,9 @@ export function base64Decode(input: string): number[] {
   for (const ch of input.trim()) {
     if (ch === '=') break;
     const v = VALUE[ch];
-    // Unknown characters (line breaks in a wrapped payload, stray spaces) are
-    // skipped rather than treated as an error: every real caller here is
-    // decoding something a machine produced, and a decoder that throws on
-    // whitespace would fail on a perfectly valid payload someone pasted.
+    // Line breaks in a wrapped payload and stray spaces are skipped rather
+    // than treated as an error, so a pasted but otherwise valid payload still
+    // decodes.
     if (v === undefined) continue;
     buffer = (buffer << 6) | v;
     bits += 6;

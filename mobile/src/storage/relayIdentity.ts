@@ -2,16 +2,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // This device's own id on a relay.
 //
-// The relay needs one before it will join a connection to a key at all, and it
-// has to be STABLE: it is how the relay tells a reconnecting client from a
-// second one, and joining under a fresh id every launch would leave the old
-// one lingering in every sibling's view until it timed out. So it is generated
-// once and kept.
+// The relay needs one before it joins a connection to a key, and it has to be
+// stable: it is how the relay tells a reconnecting client from a second one,
+// and a fresh id every launch would leave the old one in every sibling's view
+// until it timed out. So it is generated once and kept.
 //
-// Not a secret - it identifies, it does not authorise, exactly like an
-// instance's own InstanceID - so AsyncStorage rather than the keychain, same
-// call as storage/languagePreference.ts. The relay KEY is the credential and
-// lives with the connection in the keychain.
+// It identifies rather than authorises, like an instance's own InstanceID, so
+// AsyncStorage rather than the keychain. The relay key is the credential and
+// lives with the connection.
 const KEY = 'knightloader-relay-identity';
 
 let cached: string | null = null;
@@ -35,15 +33,15 @@ export function relayIdentity(): Promise<string> {
         return stored;
       }
     } catch {
-      // Unreadable storage is not worth failing a connection over - fall
-      // through and use a fresh id for this run.
+      // Unreadable storage is not worth failing a connection over; a fresh id
+      // for this run will do.
     }
     const id = `phone-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
     try {
       await AsyncStorage.setItem(KEY, id);
     } catch {
-      // Same reasoning: unwritable storage costs a stable id across launches,
-      // not the ability to connect now.
+      // Unwritable storage costs a stable id across launches, not the ability
+      // to connect now.
     }
     cached = id;
     return id;

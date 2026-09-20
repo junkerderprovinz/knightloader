@@ -1,10 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Not a secret, unlike storage/connections.ts - a plain preference, so
-// AsyncStorage rather than the OS keychain.
+// A plain preference rather than a secret, so AsyncStorage rather than the OS
+// keychain.
 const KEY = 'knightloader-language-override';
 
-/** null means "no override" - follow the device's own language setting. */
+/** null means no override: follow the device's own language setting. */
 export async function getLanguageOverride(): Promise<string | null> {
   return AsyncStorage.getItem(KEY);
 }

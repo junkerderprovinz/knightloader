@@ -62,6 +62,7 @@ submission and for a fixed download.
 - **"Latest" is decided once**, by the script that publishes the release, and
   the job that moves the image tag takes that answer instead of working it out
   a second time.
+- **Tidied the code comments and log messages.**
 
 ## [1.1.6] - 2026-09-18
 

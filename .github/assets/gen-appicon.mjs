@@ -1,10 +1,7 @@
-// Composes the desktop app icon (a plain square tile - the OS applies its own
-// corner mask, so this stays unrounded): the knight-helm logo centred on the
-// app's own dark ground colour (GlimStone's --carbon-bg, #161616), scaled to
-// leave comfortable padding. Wails reads desktop/build/appicon.png (1024x1024)
-// and generates the platform .ico/.icns from it at build time - that file is
-// the one exception carved out of desktop/build/'s own .gitignore rule (a
-// real repo asset, not a build output; see the .gitignore comment).
+// Composes the desktop app icon: the logo centred on GlimStone's --carbon-bg in
+// a square tile, left unrounded because the OS applies its own mask. Wails
+// builds the platform .ico and .icns from desktop/build/appicon.png, the one
+// committed file under desktop/build.
 // Run: node .github/assets/gen-appicon.mjs
 import { readFileSync, writeFileSync } from "node:fs";
 import { join, dirname } from "node:path";
@@ -29,7 +26,6 @@ const BG = "#161616";
 const PAD = 0.07; // fraction of SIZE reserved as margin on each side
 const availW = SIZE * (1 - PAD * 2);
 const availH = SIZE * (1 - PAD * 2);
-// Fit the tall helm inside the available box, preserving aspect ratio.
 const scale = Math.min(availW / VB_W, availH / VB_H);
 const logoW = VB_W * scale, logoH = VB_H * scale;
 const x = (SIZE - logoW) / 2, y = (SIZE - logoH) / 2;

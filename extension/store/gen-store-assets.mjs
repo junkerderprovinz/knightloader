@@ -11,15 +11,13 @@
  * two-tone tile that runs to the edge. A store renders its own card around the
  * icon and asks for transparent padding instead.
  *
- * Bree Serif for the name, Lato for the line under it, both fetched to the OS
- * temp dir and handed to resvg as font files, so rendering needs no installed
- * font. opentype.js only MEASURES the text, for the layout.
+ * Bree Serif for the name and Lato for the line under it are fetched to the
+ * temp dir and handed to resvg, so no installed font is needed. opentype.js only
+ * measures the text for the layout.
  *
- * The text is real SVG <text>, set by resvg, and NOT glyph outlines turned into
- * paths the way .github/assets/gen-banner.mjs does it. Outlines drew broken
- * letters here, depending on where a line landed: a caption rendered as one
- * path stopped 296 px in, and as one path per glyph it still drew the first
- * "n" of "Connect" as a stub. The same strings set as <text> come out whole.
+ * The text is SVG <text> set by resvg rather than glyph outlines as in
+ * .github/assets/gen-banner.mjs, because outlines drew broken letters at some
+ * positions here.
  *
  * No browser is named anywhere in these images. Edge's policy 1.1.2 rejects a
  * listing that references another browser, and one set of images serves all

@@ -2,23 +2,16 @@ import { fetchQueue, request } from './client';
 import type { ServerConnection } from './types';
 
 /**
- * What one instance is DOING, in the figures the whole family shows.
+ * What one instance is doing, in the figures the whole family shows. The
+ * browser extension's instance card answers the same question with the same
+ * numbers.
  *
- * The browser extension's own instance card answers exactly this question, and
- * the app's overview answered a different one: it printed the relay address
- * ("über Relay …"), which says where the connection goes rather than what is
- * happening at the other end (jdp, 2026-08-30: "über relay text soll nicht
- * dort stehen. dort sollen die gleichen infos in der card stehen wie in den
- * cards in der browsererweiterung"). One shape, three surfaces.
- *
- * Read from /api/queue/counters, which is the server's own answer to this
- * question and the one the extension reads. The first cut derived the numbers
- * from the task list instead, on the belief that no counters endpoint existed -
- * it does, it is relay-forwardable like every other queue route, and it counts
- * FILES OWED rather than rows on screen (done, failed and collected tasks are
- * excluded, disabled ones are counted but contribute no speed). Deriving them
- * here meant two calls per instance AND a second, quietly different definition
- * of the same four numbers.
+ * Read from /api/queue/counters, the server's own answer and the one the
+ * extension reads. It is relay-forwardable like every other queue route and
+ * counts files owed rather than rows on screen: done, failed and collected
+ * tasks are excluded, disabled ones are counted but contribute no speed.
+ * Deriving the same figures from the task list would mean a second call per
+ * instance and a second definition of them.
  */
 export interface InstanceStats {
   files: number;
@@ -38,12 +31,9 @@ interface RawCounters {
 }
 
 /**
- * Why this returns a reason and not just null: the overview swallowed every
- * failure (`.catch(() => null)`), so an instance that refused a call, a token
- * that had expired and a relay that never answered all rendered as the same
- * silent nothing - and when jdp reported that the play/stop buttons "have no
- * effect", the app had thrown away every piece of evidence that could have
- * said why. A card that cannot show numbers should say what stopped it.
+ * A reason rather than null, because an instance that refused the call, an
+ * expired token and a relay that never answered are three different things and
+ * a card that cannot show numbers should say which one stopped it.
  */
 export type StatsResult = { ok: true; stats: InstanceStats } | { ok: false; reason: string };
 
@@ -80,9 +70,9 @@ export function aggregate(all: (InstanceStats | null)[]): InstanceStats & {
     running: live.reduce((n, s) => n + s.running, 0),
     speed: live.reduce((n, s) => n + s.speed, 0),
     remaining: live.reduce((n, s) => n + s.remaining, 0),
-    // Halted only when EVERY instance that answered is halted: a single
-    // running instance means the group is not stopped, and a play button that
-    // claimed otherwise would be lying about the thing it offers to do.
+    // Halted only when every instance that answered is halted: one running
+    // instance means the group is not stopped, and a play button that claimed
+    // otherwise would be lying about what it offers to do.
     halted: live.length > 0 && live.every((s) => s.halted),
     online: live.length,
     total: all.length,

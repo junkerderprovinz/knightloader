@@ -1,11 +1,6 @@
-// Command spike-download is the KnightLoader M0 engine spike.
-//
-// It proves the two things the whole engine layer depends on, by embedding the
-// Gopeed download library in-process (no aria2, no subprocess):
-//
-//	[1] custom per-request headers are actually sent — we inject an X-KL-Spike
-//	    token and confirm the echo server reflects it back in the downloaded body;
-//	[2] live progress/speed events fire during a multi-connection download.
+// Command spike-download checks the two things the engine layer relies on in
+// the embedded Gopeed library: that custom request headers are sent, and that
+// progress events fire during a multi-connection download.
 //
 // Run: go run ./cmd/spike-download   (URLs overridable via KL_SPIKE_ECHO / KL_SPIKE_FILE)
 package main
@@ -26,11 +21,11 @@ func main() {
 	dir, err := os.MkdirTemp("", "kl-spike-*")
 	must(err)
 	defer os.RemoveAll(dir)
-	fmt.Println("KnightLoader M0 — engine spike (embedded Gopeed", gopeedVersion(), ")")
+	fmt.Println("KnightLoader engine spike (embedded Gopeed", gopeedVersion(), ")")
 	fmt.Println("download dir:", dir)
 
 	cfg := (&download.DownloaderConfig{
-		RefreshInterval: 300, // ms — how often progress events fire
+		RefreshInterval: 300, // ms between progress events
 		DownloaderStoreConfig: &base.DownloaderStoreConfig{
 			DownloadDir: dir,
 			MaxRunning:  3,
@@ -44,7 +39,7 @@ func main() {
 	d.Listener(func(e *download.Event) {
 		select {
 		case events <- e:
-		default: // drop if the consumer is between tasks — a spike doesn't need every tick
+		default: // a spike does not need every tick
 		}
 	})
 
@@ -52,7 +47,6 @@ func main() {
 	echoURL := env("KL_SPIKE_ECHO", "https://httpbin.org/headers")
 	fileURL := env("KL_SPIKE_FILE", "https://httpbin.org/bytes/2097152")
 
-	// [1] custom-header injection round-trips through the engine.
 	fmt.Println("\n[1] custom-header injection ->", echoURL)
 	p1 := run(d, dir, events, echoURL, map[string]string{
 		"User-Agent": "KnightLoader/0.0-spike",
@@ -67,17 +61,16 @@ func main() {
 		os.Exit(1)
 	}
 
-	// [2] live progress on a multi-connection download.
 	fmt.Println("\n[2] progress + multi-connection ->", fileURL)
 	p2 := run(d, dir, events, fileURL, map[string]string{"User-Agent": "KnightLoader/0.0-spike"}, 4)
 	fi, err := os.Stat(p2)
 	must(err)
 	fmt.Printf("  PASS: downloaded %s (%d bytes)\n", filepath.Base(p2), fi.Size())
 
-	fmt.Println("\nM0 engine spike: OK — Gopeed embeds, custom headers work, progress streams.")
+	fmt.Println("\nengine spike: OK (Gopeed embeds, custom headers work, progress streams)")
 }
 
-// run creates one direct download, streams its progress, and returns the file path on done.
+// run creates one direct download, prints its progress and returns the file path.
 func run(d *download.Downloader, dir string, events chan *download.Event, url string, header map[string]string, conns int) string {
 	req := &base.Request{
 		URL:   url,

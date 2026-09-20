@@ -84,8 +84,8 @@ export default function AddDownloadScreen({
   );
 }
 
-// Colours and radii are applied inline from the resolved tokens, never baked
-// in here: a stylesheet is built once and cannot follow a theme change.
+// Colours and radii are applied inline from the resolved tokens rather than
+// baked in here: a stylesheet is built once and cannot follow a theme change.
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 24, paddingTop: 56 },
   title: { fontSize: TYPE.heading, fontWeight: '600', marginBottom: 8 },
@@ -109,8 +109,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
   },
-  // Body, off the scale in theme/tokens.ts. It was 16 - a step above Body that
-  // the table does not have, and one this button had no reason to be on: it
-  // stands beside a GlimButton whose own label is Body.
+  // Body, off the scale in theme/tokens.ts: 16 is a step above body that the
+  // table does not have, and this button stands beside a GlimButton whose label
+  // is body.
   secondaryButtonText: { fontSize: TYPE.body },
 });

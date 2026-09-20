@@ -1,21 +1,11 @@
 // The colour picker: a saturation/value square, a hue bar and a hex field,
-// drawn in this page's own DOM.
+// drawn in the page's own DOM.
 //
-// Ported from the shared reference (github.com/junkerderprovinz/glimstone,
-// reference/colorPicker.ts) with its types stripped, the same way
-// appearance.js was - this extension has no build step, src/ ships as plain
-// files. The VALUES and the geometry are copied, not re-picked by eye.
-//
-// Why this exists rather than <input type="color">: the design language rules
-// the native input out (jdp, building CannonadeCommand: "ich will das
-// Farbwählfeld fest integriert", and again in another app: "es soll sich kein
-// komplett neues Fenster öffnen"). A native picker also hands its surface to
-// the browser, which on Windows opens a genuinely separate top-level window -
-// and nothing in an automated check can ever prove that window opened
-// correctly, because it is not in the page. This one is real DOM either way.
-//
-// The one deliberate divergence from the reference: no hairline around the SV
-// square. Surfaces here are separated by shade, never by a line.
+// Ported from glimstone's reference/colorPicker.ts with the types stripped;
+// values and geometry are copied. The design language rules out
+// <input type="color">, which on Windows opens a separate window outside the
+// page. Unlike the reference, the SV square has no hairline, since surfaces
+// here are separated by shade.
 
 function pickerHexToHsv(hex) {
   const m = /^#?([0-9a-f]{6})$/i.exec(hex || '');
@@ -61,9 +51,8 @@ function normalizeHex(value) {
 }
 
 /**
- * colorPicker builds the bare widget. onChange fires on every drag frame with
- * a lowercase hex - the caller decides whether that is cheap enough to apply
- * immediately, which for a stored colour in extension storage it is.
+ * colorPicker builds the bare widget. onChange fires with a lowercase hex on
+ * every drag frame.
  */
 function colorPicker(initialHex, onChange) {
   const el = document.createElement('div');
@@ -140,10 +129,8 @@ function colorPicker(initialHex, onChange) {
 let openPickerPopover = null;
 
 /**
- * openColorPickerPopover floats the picker under the swatch that opened it,
- * rather than embedding it: a settings card that grows by a picker every time
- * a colour is added is a card that stops being a card. Only one is ever open,
- * the same way a browser only ever has one dropdown open.
+ * openColorPickerPopover floats the picker under the swatch that opened it, so
+ * the settings card does not grow. Only one is open at a time.
  */
 function openColorPickerPopover(trigger, initialHex, onChange, onClose) {
   openPickerPopover?.close();
@@ -177,17 +164,8 @@ function openColorPickerPopover(trigger, initialHex, onChange, onClose) {
   const rect = trigger.getBoundingClientRect();
   const vw = document.documentElement.clientWidth || window.innerWidth;
   const vh = document.documentElement.clientHeight || window.innerHeight;
-  // WHICH EDGE THE PANEL HANGS FROM DEPENDS ON THE WRITING DIRECTION. Left to
-  // right it lines up with the trigger's left edge and grows rightward; right to
-  // left it lines up with the RIGHT edge and grows the other way, which is where
-  // the eye already is. Pinned to the trigger's left in both, the panel opened
-  // away from the control in Arabic, Hebrew and Persian - the clamp kept it on
-  // screen, so it was never broken enough to look broken, just wrong.
-  //
-  // Read off the document rather than from the language list, because that is
-  // the thing that has actually been applied: i18n.js sets dir on <html>, and if
-  // that ever fails to run, a panel that agrees with the page the user is
-  // looking at is better than one that agrees with a table.
+  // In a right-to-left page the panel lines up with the trigger's right edge.
+  // The direction is read from <html>, which is what i18n.js actually applied.
   const rtl = document.documentElement.dir === 'rtl';
   const anchor = rtl ? rect.right - panel.offsetWidth : rect.left;
   const left = Math.max(8, Math.min(vw - 8 - panel.offsetWidth, anchor));
@@ -205,17 +183,13 @@ function openColorPickerPopover(trigger, initialHex, onChange, onClose) {
     window.removeEventListener('scroll', close, true);
     window.removeEventListener('resize', close);
     if (openPickerPopover?.el === panel) openPickerPopover = null;
-    // onClose is this port's one addition to the shared reference, and it is
-    // needed for a reason the reference has not hit yet: while the popover is
-    // open, the row that owns the trigger must NOT be re-rendered - replacing
-    // the trigger element strands the popover's own outside-click handler on a
-    // node no longer in the page. So the caller applies the colour live and
-    // redraws the row here, once, when the picker is gone.
+    // Not in the reference. Re-rendering the trigger's row while the popover
+    // is open would strand the outside-click handler on a detached node, so
+    // the caller redraws the row here.
     onClose?.();
   }
-  // Capture phase, and the trigger is excluded on purpose: a second click on
-  // the swatch should re-open through the caller's own handler rather than be
-  // swallowed here first.
+  // The trigger is excluded so a second click on the swatch reaches the
+  // caller's own handler.
   function onPointerDown(event) {
     const target = event.target;
     if (target instanceof Node && (panel.contains(target) || trigger.contains(target))) return;
@@ -226,9 +200,7 @@ function openColorPickerPopover(trigger, initialHex, onChange, onClose) {
   }
   document.addEventListener('pointerdown', onPointerDown, true);
   document.addEventListener('keydown', onKeyDown);
-  // Fixed position de-anchors from its trigger the moment the page moves, so
-  // it closes rather than floating somewhere wrong - same call the tooltip
-  // bubble makes.
+  // A fixed panel loses its trigger when the page moves, so it closes.
   window.addEventListener('scroll', close, true);
   window.addEventListener('resize', close);
 
