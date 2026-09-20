@@ -1,66 +1,50 @@
 // Every motion token a keyframe or a utility class reads is set at all three
-// motion intensities, or is deliberately not set and has a substitute rule.
+// motion intensities, or is left unset and has a substitute rule.
 //
-// WHAT BREAKS WITHOUT IT. The motion engine in src/index.css is built as one
-// token set read by one set of keyframes, so "less motion" is a smaller number
-// and never a second animation. A dropped token in that arrangement fails in
-// two ways, and both are silent. A token no block defines at all makes its
+// The motion engine in src/index.css is one token set read by one set of
+// keyframes, so less motion is a smaller number and never a second animation.
+// A dropped token fails in two silent ways. A token no block defines makes its
 // whole declaration invalid at computed-value time, so
-// `animation: glim-toast-in var(--motion-toast-dur) ...` is not a slower toast
-// and not a faster one, it is no animation whatsoever: the element appears.
-// A token only the "off" block forgets is the quieter half, because it still
-// resolves. It falls through to the :root defaults, and those defaults ARE the
-// top level, so a reader who set Motion to off keeps the 18px page slide
-// and the 24px toast throw. Neither shows up in a build, a type check or a
-// screenshot, and both look in an editor exactly like the correct file.
+// `animation: glim-toast-in var(--motion-toast-dur) ...` is no animation at all
+// and the element simply appears. A token only the "off" block forgets still
+// resolves, falling through to the :root defaults, which are the top level, so
+// a reader who set motion to off keeps the 18px page slide and the 24px toast
+// throw.
 //
-// WHY THIS IS A SCRIPT AND NOT ANOTHER PARAGRAPH. index.css says the rule
-// already, at length, in the section header above the engine. The rule is not
-// what is hard here. The three blocks are three flat lists roughly fifty lines
-// apart, they are NOT meant to be identical, and today they genuinely differ in
-// five places on purpose: "off" leaves the shake and pulse tokens alone because
-// it replaces both animations outright, and "subtle" leaves the pulse period
-// alone because an infinite ambient loop cannot be calmed by running it faster.
-// So "these lists do not line up" is the normal, correct state of this file,
-// and an eye reading down them has no way to tell the fifth deliberate gap from
-// the first accidental one. Prose cannot mark which gaps are intended. This can,
-// because it does not take the gaps on trust: it goes and finds the substitute.
+// The three blocks are flat lists fifty lines apart and are not meant to be
+// identical: "off" leaves the shake and pulse tokens alone because it replaces
+// both animations outright, and "subtle" leaves the pulse period alone because
+// an infinite ambient loop cannot be calmed by running it faster. Gaps are
+// therefore the normal state of the file, and an eye reading down the lists
+// cannot tell an intended gap from an accidental one.
 //
-// HOW IT DECIDES A GAP IS DELIBERATE, which is the whole accuracy of it. A
-// token missing from an intensity is forgiven only when every class that reads
-// it is switched off at that intensity by a `:root[data-motion="..."]` rule of
-// its own, which is exactly the mechanism the file uses: .glim-live and
-// .glim-shake read no token under "off" because they are handed a different
-// animation there. Delete that substitute rule and the exemption stops holding
-// the same second, which is the coupling worth having. The one exemption not
-// derived from a substitute rule is the period of an `infinite` animation under
-// "subtle", and it is narrow on purpose: it covers the duration named in the
-// animation shorthand and nothing the keyframes read, so the pulse's amplitude
-// is still required to come down at "subtle" even though its period may stand.
+// A gap is forgiven only when every class that reads the token is switched off
+// at that intensity by a `:root[data-motion="..."]` rule of its own, which is
+// the mechanism the file uses: .glim-live and .glim-shake read no token under
+// "off" because they are handed a different animation there. Delete the
+// substitute and the exemption stops holding. The one exemption not derived
+// from a substitute rule is the period of an `infinite` animation under
+// "subtle"; it covers the duration named in the animation shorthand and nothing
+// the keyframes read, so the pulse's amplitude still has to come down.
 //
-// WHAT IT DOES NOT SEE. It reads src/index.css and nothing else, so a token
-// spent in an inline style in a .tsx file is invisible to it. It judges
-// presence and never value, so a "subtle" number larger than the "wild" one
-// passes without comment. It says nothing about the OS-level
-// (prefers-reduced-motion: reduce) block, which hard-codes every value on
-// purpose and must keep doing so. It does not model the universal
-// `transition-duration: 0s !important` belt as anything but a substitute for
-// transitions. It ignores --dir-sign, which is a layout fact deliberately kept
-// outside the motion gate. And it does not look for the opposite defect, a
-// token defined and read by nobody: two exist today, --motion-page-slide-scale
-// and --motion-toast-slide-scale, left behind when the toast moved to
-// --glim-toast-slide, and they cost a line each and nothing else.
+// Not seen: a token spent in an inline style in a .tsx file, since only
+// src/index.css is read; values, so a "subtle" number larger than the "wild"
+// one passes; the OS-level (prefers-reduced-motion: reduce) block, which
+// hard-codes every value; the universal `transition-duration: 0s !important`
+// belt, modelled only as a substitute for transitions; --dir-sign, a layout
+// fact kept outside the motion gate; and the opposite defect, a token nobody
+// reads.
 //
-// Run by hand from web/: `node check-motion-tokens.mjs`
+// Run from web/: `node check-motion-tokens.mjs`
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const rel = 'src/index.css';
 const file = join(dirname(fileURLToPath(import.meta.url)), rel);
-// Comments blanked, offsets kept byte for byte, so every reported line is the
-// real one AND a token merely NAMED in a paragraph is not read by anything.
-// The engine's own prose names half these tokens while explaining them.
+// Comments blanked, offsets kept byte for byte, so line numbers stay right and
+// a token merely named in a paragraph does not count as a read. The engine's
+// own prose names half of them while explaining them.
 const css = readFileSync(file, 'utf8').replace(/\/\*[\s\S]*?\*\//g, (c) => c.replace(/[^\n]/g, ' '));
 
 const lineAt = (i) => css.slice(0, i).split('\n').length;
@@ -135,9 +119,9 @@ for (const rule of rulesIn(gs, ge)) {
   const plays = rule.text.match(/animation\s*:\s*([\w-]+)/);
   users.push({ ...rule, classes, plays: plays ? plays[1] : null, label: classes.length ? `.${classes[0]}` : rule.selector });
 }
-// The top level's block is the BARE :root, never `:root[data-motion="wild"]` -
-// a rule names the quiet levels and never the lively one, or it stops covering
-// storm (GlimStone 2.0.0, and check-motion-top-level.mjs holds that line).
+// The top level's block is the bare :root, never `:root[data-motion="wild"]`:
+// a rule names the quiet levels and not the lively one, or it stops covering
+// storm (GlimStone 2.0.0, held by check-motion-top-level.mjs).
 for (const tier of ['wild', 'subtle', 'off']) {
   if (tierAt[tier]) continue;
   const sel = Object.keys(TIER_SELECTOR).find((k) => TIER_SELECTOR[k] === tier);
@@ -172,9 +156,9 @@ const frames = new Set();
 for (const m of css.matchAll(/@keyframes\s+([\w-]+)\s*\{/g)) {
   const [bs, be] = block(css.indexOf('{', m.index));
   const text = css.slice(bs, be);
-  // A keyframe is read BY the classes that play it, and those classes are what
-  // an intensity can switch off, so the token inherits their fate and not its
-  // own. Nothing plays it means nothing excuses it either.
+  // A keyframe is read by the classes that play it, and those are what an
+  // intensity can switch off, so its tokens inherit their fate. A keyframe
+  // nothing plays has nothing to excuse it either.
   const classes = [...new Set(users.filter((u) => u.plays === m[1]).flatMap((u) => u.classes))];
   for (const r of text.matchAll(READ)) {
     frames.add(m[1]);
@@ -198,7 +182,7 @@ if (tokens.size < 20 || defs.wild.size < 20) {
 const seen = new Set();
 const problems = [];
 /** Counted per token and intensity, not per read: one keyframe spends
-    --motion-shake-scale four times and that is one deliberate gap, not four. */
+    --motion-shake-scale four times and that is one gap, not four. */
 const deliberate = new Set();
 for (const r of reads) {
   if (!defs.wild.has(r.token)) {

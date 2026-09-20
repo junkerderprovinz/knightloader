@@ -1,37 +1,33 @@
-// GlimStone rule 21: hover moves UP the surface ramp.
+// GlimStone rule 21: hover moves up the surface ramp.
 //
 // `--carbon-hover` (#353535) is the hover fill for something carrying no fill
-// of its own - a transparent row on a card. It sits BELOW `--carbon-surface2`
-// (#393939), so putting it on an element that is ALREADY filled with surface2
-// makes that element four units darker under the pointer. It dims at the one
-// moment somebody is looking straight at it, which reads as no hover at all.
-// Anything already filled with surface2 hovers to `--carbon-surface3`
-// (#525252), which is the step this repo's own secondary button takes, and
-// anything filled with surface3 to `--carbon-hover-raised` (#6f6f6f), which was
-// added for exactly that: the ramp used to stop at surface3, so the controls
-// sitting ON it reached back down to `--carbon-hover` - a 29-unit drop.
+// of its own, a transparent row on a card. It sits below `--carbon-surface2`
+// (#393939), so on an element already filled with surface2 it makes that
+// element four units darker under the pointer, dimming at the moment somebody
+// is looking straight at it, which reads as no hover at all. Anything filled
+// with surface2 hovers to `--carbon-surface3` (#525252), the step this repo's
+// secondary button takes, and anything filled with surface3 to
+// `--carbon-hover-raised` (#6f6f6f), which exists because a control sitting on
+// surface3 would otherwise reach back down to `--carbon-hover`, a 29-unit drop.
 //
-// A script rather than a note, because the note existed: GlimStone's token
-// table has said "hover on surface2" beside `--carbon-surface3` since the
-// beginning, and thirteen places across three apps still had it the other way,
-// one of them here. Prose that has already failed to stop a mistake does not
-// stop it by being repeated.
+// The token table has said "hover on surface2" beside `--carbon-surface3` from
+// the beginning, and thirteen places across three apps still had it the other
+// way round, so a script rather than another paragraph.
 //
-// Run by hand or from CI: `node web/check-hover-ramp.mjs`.
-//
-// It looks inside each STRING LITERAL, not at lines. That distinction is the
-// whole accuracy of it: a variant table writes one class list per line, so
+// It looks inside each string literal rather than at lines, which is where its
+// accuracy comes from: a variant table writes one class list per line, so
 //
 //   secondary: 'bg-carbon-surface2 … hover:bg-carbon-surface3',
 //   ghost:     'text-carbon-textSub hover:bg-carbon-hover …',
 //
-// has the fill and the hover on ADJACENT lines belonging to different
-// variants, and a line window flags the ghost variant - which has no fill at
-// all and is written exactly right. Both of this repo's near-misses were that
-// shape.
+// has the fill and the hover on adjacent lines belonging to different variants,
+// and a line window flags the ghost variant, which has no fill at all and is
+// written right. Both near-misses in this repo were that shape.
 //
-// KNOWN LIMIT: a class list split across two literals joined with `+` is read
-// as two, so a fill in one half and a hover in the other slips past.
+// The limit: a class list split across two literals joined with `+` is read as
+// two, so a fill in one half and a hover in the other slips past.
+//
+// Run: `node web/check-hover-ramp.mjs`.
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -43,9 +39,9 @@ const RAMP = [
   { filled: 'bg-carbon-surface2', hover: 'hover:bg-carbon-surface3' },
   { filled: 'bg-carbon-surface3', hover: 'hover:bg-carbon-hoverRaised' },
 ];
-// Anchored, because `hover:bg-carbon-hoverRaised` CONTAINS
+// Anchored, because `hover:bg-carbon-hoverRaised` contains
 // `hover:bg-carbon-hover`: a plain substring test reports every correctly
-// written surface3 control as the very mistake it avoids.
+// written surface3 control as the mistake it avoids.
 const WRONG = /hover:bg-carbon-hover(?![A-Za-z-])/;
 
 function sources(dir) {
@@ -68,7 +64,7 @@ if (files.length < 20) {
 const QUOTED = /'(?:[^'\\\n]|\\.)*'|"(?:[^"\\\n]|\\.)*"/g;
 const TEMPLATE = /`(?:[^`\\]|\\.)*`/g;
 
-/** Every piece of text that is ONE class list, with where it starts. */
+/** Every piece of text that is one class list, with where it starts. */
 function classLists(text) {
   const pieces = [];
   for (const found of text.matchAll(QUOTED)) pieces.push([found[0], found.index]);
@@ -85,26 +81,22 @@ function classLists(text) {
   return pieces;
 }
 
-// THE SECOND SHAPE, and the reason this file grew a second half: a row that
-// publishes its own ground as a CUSTOM PROPERTY names no `bg-carbon-*` class at
-// all, so everything above is blind to it. The download list's folder header is
-// written exactly that way -
+// The second shape: a row that publishes its own ground as a custom property
+// names no `bg-carbon-*` class, so everything above is blind to it. The
+// download list's folder header is written that way,
 //
 //   [--row-ground:color-mix(in_srgb,var(--carbon-surface2)_80%,var(--carbon-surface))]
 //   hover:[--row-ground:var(--carbon-surface2)]
 //
-// - and that is rule 21 broken in the one form its own guard could not see: a
-// row resting ON the surface2 tier, hovering to surface2 flat, which is a step
-// of 4/255 in the dark theme (measured on a running instance: rgb(53,53,53) at
-// rest, rgb(57,57,57) under the pointer, ΔL* 1.8 against the link row's own
-// 3.8 plain and 12.3 in Rainbow). jdp saw it as no hover at all: "bei den
-// ordnern sieht man es kaum".
+// and that is rule 21 broken where its own guard cannot see: a row resting on
+// the surface2 tier and hovering to surface2 flat, a step of 4/255 in the dark
+// theme, rgb(53,53,53) at rest against rgb(57,57,57) under the pointer, which
+// reads as no hover at all.
 //
-// The tier of a value is the HIGHEST ramp token it names, so a mix reading
-// "surface2 80%, surface" counts as surface2 - the tone it is mostly made of.
-// That is an approximation in one direction only (a 10% mix would be reported
-// as its strong token too), and it is the safe direction: it can ask for a
-// bigger step than strictly needed, never for a smaller one.
+// The tier of a value is the highest ramp token it names, so a mix reading
+// "surface2 80%, surface" counts as surface2, the tone it is mostly made of.
+// The approximation runs in one direction only, asking for a bigger step than
+// strictly needed and never a smaller one.
 const TIERS = [
   [/--carbon-hover-raised|--carbon-hoverRaised/, 4, '--carbon-hover-raised'],
   [/--carbon-surface3/, 3, '--carbon-surface3'],
@@ -114,9 +106,9 @@ const TIERS = [
 /** The ramp tier a ground expression sits on. 0 is "the card, or nothing". */
 function tierOf(value, lists) {
   // One level of indirection: a row may hover to `var(--row-hover)` and define
-  // `--row-hover` in the same class list. Following it is what keeps the LINK
-  // row (transparent at rest, --carbon-hover at half alpha under the pointer)
-  // read as the tier it actually paints instead of as tier 0.
+  // `--row-hover` in the same class list. Following it keeps the link row
+  // (transparent at rest, --carbon-hover at half alpha under the pointer) read
+  // as the tier it paints rather than as tier 0.
   const seen = new Set();
   let v = value;
   for (let i = 0; i < 4; i++) {
@@ -173,7 +165,7 @@ for (const path of files) {
       if (up > resting) continue;
       problems.push(
         `${path.slice(src.length + 1)}:${line()} -> ${variants}[${name}:…] rests on ${restName} and ` +
-          `rises to ${upName}: a row filled with one tone has to hover to the tone ABOVE it`,
+          `rises to ${upName}: a row filled with one tone hovers to the tone above it`,
       );
     }
   }
@@ -181,7 +173,7 @@ for (const path of files) {
 problems.sort();
 
 if (problems.length) {
-  console.error(`check-hover-ramp: ${problems.length} filled element(s) hovering to the tone BELOW their own.`);
+  console.error(`check-hover-ramp: ${problems.length} filled element(s) hovering to the tone below their own.`);
   console.error("Each line names the class it should carry instead:");
   for (const p of problems) console.error(`  ${p}`);
   process.exit(1);

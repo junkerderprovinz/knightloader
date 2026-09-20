@@ -1,51 +1,29 @@
 // Placeholder parity across the 42 web catalogues, and the dash rule with it.
 //
-// WHY THIS EXISTS. extension/check-locales.mjs has guarded the extension's 120
-// keys this way since it was written, and the web UI's 2500 had nothing at all.
-// The failure is quiet and one-language-deep: a translator drops {n} and that
-// language renders "Removed download(s)." with no number in it, for ever, while
-// tsc is perfectly happy because the type is `string`. Nobody who reads that
-// language reports it as a missing placeholder, they report it as a weird
-// sentence, if they report it at all.
+// A dropped placeholder fails quietly and one language deep: that catalogue
+// renders "Removed download(s)." with no number in it for ever, and tsc is
+// happy either way because the type is `string`. extension/check-locales.mjs
+// guards the extension's catalogues the same way.
 //
-// WHAT IT CHECKS
+// Placeholders: every {name} in the English value appears in the translation,
+// none dropped, none invented, none misspelt. Order is free, and several
+// languages have to move them.
 //
-//   placeholders  every {name} in the English value appears in the translation,
-//                 none dropped, none invented, none misspelt. Order is free: a
-//                 language may move them, and several must.
-//   dashes        no dash standing between clauses, except in bg, ru, sr and uk,
-//                 where one is ordinary punctuation and its absence reads as a
-//                 mistake. jdp's standing rule, and it covers UI strings rather
-//                 than only prose.
+// Dashes: none standing between clauses, except in bg, ru, sr and uk, where it
+// is ordinary punctuation and its absence reads as a mistake. Both lengths
+// count, because the German Gedankenstrich is the shorter one. A dash between
+// digits is left alone, so the test is whitespace on both sides rather than
+// presence.
 //
-//                 BOTH LENGTHS, and the short one is the whole reason this note
-//                 exists. The rule is usually written "no em dashes", so the
-//                 first version of this check looked for U+2014 only - and in
-//                 German the Gedankenstrich IS the en dash, U+2013. The source
-//                 catalogues carried "reach it – on the same network", which is
-//                 exactly the construction the rule is about, and 36 translators
-//                 dutifully copied it past a green check.
+// Not checked: whether a value equals its English source. Plenty legitimately
+// do, and what stays English by intent is listed in untranslated.json and
+// checked by its own script.
 //
-//                 A dash BETWEEN DIGITS is left alone: 2020–2024 and 10–20 MB
-//                 are correct typography in every language here, and flagging
-//                 them would teach people to ignore this check. The test is
-//                 therefore "surrounded by whitespace", not "present".
+// The scanner is line-based because the catalogues carry comment lines between
+// entries: a lazy [\s\S]*? up to the next key runs past a comment and swallows
+// the following value.
 //
-// WHAT IT DELIBERATELY DOES NOT CHECK
-//
-//   Whether a value equals the English one. Plenty legitimately do: DRM is DRM,
-//   Matrix is Matrix, a Dutch "Import" is an English one. What is untranslated
-//   ON PURPOSE lives in untranslated.json and is checked by its own script.
-//
-// THE SCANNER IS LINE-BASED, AND THAT IS LOAD-BEARING. A regex that captured
-// [\s\S]*? up to the next entry looks right and is not: these files carry
-// comment lines BETWEEN entries, so a lazy match runs past the comment and
-// swallows the FOLLOWING key's value. Written that way, this check accused all
-// 41 catalogues of dropping {n} and {reason} from a key whose English has
-// neither, de.ts included - and de.ts is written by hand. A check that accuses
-// every file at once is accusing itself.
-//
-// Run by CI and by hand: `node web/check-locale-placeholders.mjs`
+// Run: `node web/check-locale-placeholders.mjs`
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -57,11 +35,11 @@ const dir = join(here, 'src/lib/locales');
 const DASH_OK = new Set(['bg', 'ru', 'sr', 'uk']);
 
 /**
- * A dash STANDING BETWEEN CLAUSES: em or en, with whitespace on both sides.
+ * A dash standing between clauses: em or en, with whitespace on both sides.
  *
- * Whitespace on both sides is what separates the construction from the correct
- * uses. 2020–2024 and 10–20 MB are right in every language here, and a check
- * that flagged them would be one people learn to skip.
+ * The whitespace separates it from the correct uses. A year range or a size
+ * range is right in every language here, and a check that flagged those is one
+ * people learn to skip.
  */
 const clauseDash = /\s[–—]\s/;
 

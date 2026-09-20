@@ -1,54 +1,33 @@
 // A card is a surface, not a control: no page hands one a hover state.
 //
-// WHAT BREAKS WITHOUT IT. GlimStone's motion engine names the five things that
-// are allowed to move - arriving, ongoing, refused - and then says what is not:
-// "a settled page doesn't idle-animate, a card doesn't breathe, hover states
-// change instantly". Rule 21 says the same thing from the colour side: hover
-// moves UP THE SURFACE RAMP, which is a TONE and never a position. A card lifted
-// under the pointer disobeys both, and the way it disobeys them is invisible in
-// a screenshot, because a screenshot has no pointer in it.
+// GlimStone's motion engine says a settled page does not idle-animate, a card
+// does not breathe and hover states change instantly. Rule 21 says the same
+// from the colour side: hover moves up the surface ramp, which is a tone and
+// never a position. A lifted card disobeys both, and it does so invisibly in a
+// screenshot, because a screenshot has no pointer in it. The instance cards
+// share one top edge across a grid row, and lifting one of them by two pixels
+// breaks that edge for as long as the pointer rests on it. A lift is also the
+// gesture a whole-card link makes, on a card whose only click target is the
+// Open button inside it.
 //
-// It is worse than decorative. The instance cards sit in a grid row that shares
-// one top edge, and lifting one of them by two pixels breaks that edge for as
-// long as the pointer is over it - measured at 16px vs 14px on a row of three
-// (jdp: "wenn man auf die card hoovert wandert sie nach oben"). And a lift is a
-// PROMISE: it is the gesture a whole-card link makes. The card that carried it
-// here could not be clicked at all - clicking its body did nothing, because the
-// only click target it ever had was the Open button inside it.
+// It takes a script because the prop reads `hover`, lives on the shared Card,
+// and from the call site looks like asking for the house's own hover: nothing
+// type-errors, and the defect exists only while a pointer rests on the element.
 //
-// A SCRIPT RATHER THAN A NOTE, and the note is the reason. The rule is written
-// out twice in the design language, in the two sections anybody styling a hover
-// would open, and it still shipped: the prop reads `hover`, it lives on the
-// shared Card, and passing it looks from the call site exactly like asking for
-// the house's own hover - the one thing it is not. Nothing fails, nothing type-
-// errors, and the defect only exists while a pointer is resting on the element.
-// Prose that sits in the file somebody is about to copy from does not stop this.
+// The unit is the call site rather than the class list. What a card does under
+// the pointer is the page's choice, so the page is where the rule bites; a
+// check written against the rendered classes would accuse the shared component
+// of a decision it does not make.
 //
-// WHAT IT CHECKS. One question: does any `<Card …>` element carry a `hover`
-// attribute. That is the whole rule, and the call site is deliberately the unit
-// rather than the class list. What a card does under the pointer is decided by
-// the page that renders it, so the page is where the rule has to bite; a check
-// written against the rendered class list would be accusing the shared
-// component of a choice it does not make.
+// Not seen: the `hover` prop's own declaration in ui.tsx, which with no call
+// site left is dead code rather than a defect; a lift written by hand into a
+// Card's `className`, which the question can only widen to cover once the prop
+// is gone; and a horizontal nudge, which is allowed. The sidebar's rail rows
+// carry `motion-safe:hover:translate-x-0.5` with their own reasoning: a row
+// that also takes a colour step moves two pixels along the reading direction,
+// in a vertical stack where a sideways move breaks no shared edge.
 //
-// WHAT IT DELIBERATELY DOES NOT SEE.
-//
-//   The `hover` prop's own declaration and implementation in ui.tsx. With no
-//   call site left it is dead code, and dead code is not a defect this check
-//   can honestly report as one - but it is also the only thing standing between
-//   this rule and a wider one. Once the prop is gone from ui.tsx, the question
-//   can widen to "no element carrying `glim-card` moves vertically on hover",
-//   which would also catch a lift written by hand into a `className`.
-//   A hover lift spelled out in a Card's own `className` today. See above: the
-//   rule can only widen once the prop it would collide with is removed.
-//   A HORIZONTAL hover nudge, which is a different thing and is allowed. The
-//   sidebar's rail rows carry `motion-safe:hover:translate-x-0.5` with a
-//   reasoned comment beside them: a row that ALSO takes a colour step gets two
-//   pixels along the reading direction, toward the thing it opens, in a
-//   vertical stack where a sideways move breaks no shared edge. None of those
-//   three conditions holds for a card in a grid row.
-//
-// Run by hand or from CI: `node web/check-card-hover.mjs`.
+// Run: `node web/check-card-hover.mjs`.
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -165,9 +144,8 @@ for (const path of files) {
   }
 }
 
-// Cards exist in this app by the dozen. Nought found means the tag scanner went
-// blind, and a check reporting "ok: 0" is the one failure it cannot catch about
-// itself.
+// Cards exist here by the dozen, so none found means the tag scanner went
+// blind.
 if (cards === 0) {
   console.error('check-card-hover: no <Card> element found at all - the tag scanner went blind.');
   process.exit(1);

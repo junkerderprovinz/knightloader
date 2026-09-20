@@ -1,33 +1,21 @@
-// A strip that floats over a list row wears the ROW'S ground, never a token of
+// A strip that floats over a list row wears the row's ground, never a token of
 // its own.
 //
-// THE PROBLEM IT EXISTS FOR, and it is the reason this is a script and not a
-// note: the download list's row-end action strip has now been repainted three
-// times against the same report ("der löschen button hat immer noch den dunklen
-// Hintergrund bzw. rand", jdp). Each round picked a surface token that looked
-// like the right one - `--carbon-surface` first, then `--carbon-surface2` - and
-// a token is a SECOND OPINION about what the row underneath is painting. A link
-// row hovers to `--carbon-hover` at half alpha over the card, which is neither
-// of those, and in Rainbow mode it also carries a hue wash that no grey token
-// has. Measured on the running instance, dark theme: the hovered row is
-// rgb(45,45,45) and the strip meant to match it was rgb(57,57,57); light theme,
-// rgb(239,239,239) against rgb(232,232,232) - too light in one theme and too
-// dark in the other, from the same one token.
+// A surface token is a second opinion about what the row underneath paints. A
+// link row hovers to `--carbon-hover` at half alpha over the card, which no
+// surface token matches, and in Rainbow mode it carries a hue wash that no grey
+// token has: measured in the dark theme, the hovered row is rgb(45,45,45) and
+// the strip meant to match it rgb(57,57,57); in the light theme rgb(239,239,239)
+// against rgb(232,232,232). So the row publishes what it paints as
+// `--row-ground` and anything lying on it reads that.
 //
-// So the rule is not "use this token" (the last two rounds were that rule, and
-// both were wrong). It is: the row publishes what it paints as `--row-ground`,
-// and anything lying on the row reads it. A variable cannot be a step off.
+// Such a strip is, in a file that draws list rows (one carrying
+// `data-row-key`), a class list that pins a flex run of controls over a row's
+// full height at its trailing edge: `absolute`, `inset-y-*`, `end-*` and `flex`
+// together. A resize handle pinned the same way paints nothing, and a progress
+// fill or an input's stepper lies on a control rather than on a row.
 //
-// WHAT COUNTS AS SUCH A STRIP: in a file that draws list ROWS (one carrying
-// `data-row-key`), a class list that pins a FLEX run of controls over a row's
-// full height at its trailing edge - `absolute`, `inset-y-*`, `end-*` and
-// `flex` together. That is the shape both of this list's strips have, and it is
-// the shape anybody copying one would reach for. A resize handle pinned the
-// same way is not a run of controls and paints nothing, so it is not this; nor
-// is a progress fill or an input's own stepper, which lie on a control rather
-// than on a row.
-//
-// Run by hand or from CI: `node web/check-row-strip-ground.mjs`.
+// Run: `node web/check-row-strip-ground.mjs`.
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';

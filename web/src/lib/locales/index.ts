@@ -1,11 +1,8 @@
 import { en, type Dict } from './en';
 
-// Loaders, not dictionaries: 42 languages eagerly bundled would make every
-// visitor download 41 they will never read. Each import() becomes its own chunk
-// and is fetched when that language is actually chosen.
-//
-// English is the exception — it is bundled, because it is both the most likely
-// choice and the fallback while another language is still on the wire.
+// Loaders rather than dictionaries: each language is its own chunk, fetched
+// when chosen. English is bundled, since it is the fallback while another
+// language loads.
 const LOADERS: Record<string, () => Promise<Dict>> = {
   en: async () => en,
   de: async () => (await import('./de')).de,

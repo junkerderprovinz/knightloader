@@ -1,54 +1,31 @@
 // A stretched plot may not decide how tall its card is.
 //
-// WHY THIS EXISTS. `preserveAspectRatio="none"` is how this app draws a curve
-// into a box of any shape: the viewBox stops being a size and becomes a
-// coordinate system, so one path describes a wide flat band as happily as a
-// square. What it does NOT do is stop the svg having an intrinsic aspect ratio.
-// An svg with a viewBox and no height is a replaced element whose height
-// follows its width, and inside a flex column that is a height the parent then
-// grows to fit. The wider the card, the taller the card.
+// `preserveAspectRatio="none"` turns the viewBox into a coordinate system, so
+// one path draws a wide flat band as happily as a square. It does not stop the
+// svg having an intrinsic aspect ratio: an svg with a viewBox and no height is
+// a replaced element whose height follows its width, and in a flex column the
+// parent grows to fit it. The Downloads head card was measured doing exactly
+// that, 200px tall in a 1280px window and 369px in a 1920px one, while its own
+// content stayed at 136px.
 //
-// That is not a theory. The Downloads head card (app/Layout.tsx's ShellBar) was
-// measured on a live instance carrying exactly this defect, in a build where
-// everything else in the card was flat:
+// So a stretched svg has to be handed a height, in one of three ways:
 //
-//     window 1280x720   card 200px   curve 481x130
-//     window 1400x900   card 229px   curve 601x163
-//     window 1920x1080  card 369px   curve 1121x303
+//   * `style={{ height }}` or a `height=` attribute, a size the caller picks,
+//     as the Overview hero does.
+//   * `h-0` beside `flex-auto`: no height of its own, grow into what is left.
+//     The card decides, the curve follows, and a wider card is not a taller one.
+//   * `h-full`, the parent's height, which the parent had better have.
 //
-// The card's own content - three transport buttons stacked, 136px - never
-// changed. The entire growth was the curve's viewBox ratio (148:40) turning the
-// width it had been given into a height nobody asked for, and the taller the
-// window the worse it reads: at 1920 a status bar was eating a third of the
-// window. jdp reported it twice ("die kopfcard im downloadtab ist immer noch
-// viel zu hoch!!"), and a round that went looking for wrapped text in the bar
-// found nothing, because the height was never text.
-//
-// THE RULE. An svg that stretches must be handed a height. Any of these count,
-// and they are the three honest ways to say it:
-//
-//   * `style={{ height }}` or a `height=` attribute - a size chosen by the
-//     caller, which is what the Overview hero does.
-//   * `h-0` beside `flex-auto` - no height of its own, grow into what is left.
-//     This is what a plot that fills a card's height needs: the card decides,
-//     the curve follows, and a wider card is not a taller one.
-//   * `h-full` - take the parent's height, which the parent had better have.
-//
-// AND THE HEIGHT ALONE IS NOT ENOUGH, which is the part that cost an afternoon.
-// `flex-1` is `flex: 1 1 0%`, and a PERCENTAGE basis against a column whose
-// height is not definite is not zero - it falls back to content sizing, and for
-// a replaced element with a ratio "content" means the width again. `h-0 flex-1`
-// was measured doing exactly nothing: card 229px, curve 601x163, the same
-// numbers as with no height at all. `flex-auto` is `flex: 1 1 auto`, which
-// takes its basis from the height property, so there the `h-0` is read. So a
-// stretched svg may not carry `flex-1` unless it also states a basis in real
+// The height alone is not enough. `flex-1` is `flex: 1 1 0%`, and a percentage
+// basis against a column whose height is not definite falls back to content
+// sizing, which for a replaced element with a ratio means the width again;
+// `h-0 flex-1` was measured changing nothing at all. `flex-auto` is
+// `flex: 1 1 auto` and takes its basis from the height property, so there the
+// `h-0` is read. A stretched svg may carry `flex-1` only beside a basis in real
 // units (`basis-0`, `basis-[26px]`).
 //
-// WHAT IT CANNOT SEE. Whether the height it ends up with is the RIGHT one, and
-// whether some other child of the same card is the tall one instead. This
-// checks one specific way a card grows without anybody choosing to make it
-// grow; it is not a layout test, and there is no layout test in this gate to
-// hide behind.
+// Not checked: whether the height it ends up with is the right one, or whether
+// another child of the same card is the tall one.
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 

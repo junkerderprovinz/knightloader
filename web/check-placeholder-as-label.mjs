@@ -1,65 +1,44 @@
 // A field's placeholder is not a button's name.
 //
-// WHY THIS EXISTS. `search.placeholder` is "Search this list…" - the grey hint
-// inside the empty search box, written in the voice of an invitation and ending
-// in an ellipsis because the sentence is meant to be finished by typing. It was
-// also, on the downloads page, the LABEL of the badge that opens that box, so
-// the row read "Clear selection · Search this list… · Move into a package"
-// (jdp, screenshot: "der Suchbutton soll einfach \"Suche\" heißen"). One string
-// was doing two jobs whose requirements point in opposite directions: a
-// placeholder is a whole invitation and wants to be long, a button label is a
-// name and wants to be one word. Whichever way the string is then edited, one of
-// the two call sites gets worse, and nothing in the type system notices - both
-// are `string`, both compile, both render.
+// `search.placeholder` is "Search this list…", the grey hint inside the empty
+// box, written as an invitation and ending in an ellipsis because typing
+// finishes the sentence. As the label of the badge that opens that box it made
+// the toolbar read "Clear selection · Search this list… · Move into a package".
+// One string doing both jobs pulls in two directions, a placeholder wants to be
+// a whole invitation and a label wants to be one word, and the type system
+// notices nothing because both are `string`. A placeholder is also the most
+// tempting string in a catalogue to reuse, being the only one already written
+// about the thing the control opens.
 //
-// It is not a one-off slip either. A placeholder is the most tempting string in
-// any catalogue to reuse, because it is the only one already written about the
-// exact thing the control opens, and the reuse looks free right up to the moment
-// a row has to fit on one line: those labels are the longest in the app.
+// Three spellings are caught:
 //
-// WHAT IT CHECKS.
-//
-//   title={t('*.placeholder')}   ui.tsx's IconBadge renders `title` as the
-//                                badge's VISIBLE words once Beschriftung is set
-//                                to "text" or "text and glyph" (see its
-//                                `labelled` prop), so a placeholder key here is
-//                                literally a sentence printed on a button.
-//
-//   labelKey: '*.placeholder'    the command palette's own name for an entry
-//                                (lib/commands/*). Same defect, different
-//                                spelling: the palette lists the command by this
-//                                string and matches typing against it.
-//
+//   title={t('*.placeholder')}    ui.tsx's IconBadge prints `title` as the
+//                                 badge's visible words once Beschriftung is
+//                                 set to text (see its `labelled` prop).
+//   labelKey: '*.placeholder'     the command palette lists the entry by this
+//                                 string and matches typing against it.
 //   aria-label={t('*.placeholder')}
-//                                a control's accessible NAME. The third
-//                                spelling, and the one a hurried fix reaches
-//                                for: renaming the badge's `title` and leaving
-//                                its aria-label behind gives a button that
-//                                prints "Suche" and announces "Search this
-//                                list…", which is worse than either half alone.
+//                                 a control's accessible name. Renaming the
+//                                 badge's `title` and leaving the aria-label
+//                                 behind gives a button that prints "Suche" and
+//                                 announces "Search this list…".
 //
-// WHAT IT DELIBERATELY ALLOWS. `aria-label={t(k)}` on the field whose own
-// `placeholder={t(k)}` is the same key, within the same element.
-// components/SearchField.tsx and pages/settings/SettingsSearch.tsx both carry
-// the pair on one `<input>`, which is the ordinary way to give a box with no
-// visible label an accessible name: there the placeholder IS the name of the
-// thing, because the thing is the box. The exemption is deliberately narrow —
-// the SAME key, and near enough to be the same tag — so it cannot be claimed by
-// a badge that merely happens to sit in a file that also has a search field.
+// Allowed: `aria-label={t(k)}` on the field whose own `placeholder={t(k)}` is
+// the same key, within the same element, as components/SearchField.tsx and
+// pages/settings/SettingsSearch.tsx both do. There the placeholder is the name
+// of the thing, because the thing is the box. The exemption asks for the same
+// key near enough to be the same tag, so a badge that happens to sit in a file
+// with a search field cannot claim it.
 //
-// WHAT IT DOES NOT SEE. A key that means "placeholder" without being spelled
-// `.placeholder`: the suffix is the only evidence available without reading the
-// catalogue's prose. Nor does it resolve which element an attribute belongs to —
-// that means parsing JSX — so the window below is a proximity test and not a
-// tree walk. Both doors it does stand in are the ones the mistake walks through.
+// Not seen: a key that means "placeholder" without being spelled that way, and
+// which element an attribute belongs to, which would mean parsing JSX, so the
+// window below is a proximity test rather than a tree walk.
 //
-// IT DOES NOT READ src/lib/locales. It used to, and that made its own
-// blind-run tripwire useless: 42 catalogues each define `search.placeholder`,
-// so the count sat at 220 and could not have collapsed however many call sites
-// stopped matching. Counting the CODE means the number it guards is the number
-// it is about.
+// src/lib/locales is skipped. The 42 catalogues each define
+// `search.placeholder`, and counting those would leave the blind-run tripwire
+// below unable to fall however many call sites stopped matching.
 //
-// Run by hand or from CI: `node web/check-placeholder-as-label.mjs`.
+// Run: `node web/check-placeholder-as-label.mjs`.
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -67,7 +46,7 @@ import { fileURLToPath } from 'node:url';
 const web = dirname(fileURLToPath(import.meta.url));
 const src = join(web, 'src');
 
-/** The catalogues are data, not call sites - see the note above. */
+/** The catalogues are data, not call sites. */
 const LOCALES = join(src, 'lib', 'locales');
 
 function sources(dir) {
@@ -119,7 +98,7 @@ for (const path of files) {
   }
   for (const found of text.matchAll(ARIA)) {
     // The field's own name, or a control wearing the field's hint? Only a
-    // `placeholder=` carrying THIS key, close enough to be the same tag, makes
+    // `placeholder=` carrying this key, close enough to be the same tag, makes
     // it the former.
     const near = text.slice(Math.max(0, found.index - SAME_TAG), found.index + SAME_TAG);
     if (near.includes(`placeholder={t('${found[1]}')}`)) continue;

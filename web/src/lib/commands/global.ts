@@ -1,13 +1,6 @@
-// The always-visible commands: build-plan.md's Wave-1D note names this file
-// as where "mod+k opens the palette" is registered, plus a plain "go to X"
-// for each of the app's six main pages so the palette also works as a
-// keyboard-driven address bar, not only a page-scoped action list - see
-// lib/locales/en.ts's own "commands.go*" block, prepared for exactly these
-// six entries.
-//
-// group is a real TranslationKey string, not literal English, per this
-// codebase's own i18n rule and lib/commands/types.ts's own doc comment on
-// Command.group.
+// The commands available everywhere: opening the palette and the event log,
+// switching the theme, and a "go to X" for each main page, so the palette also
+// works as a keyboard address bar.
 import {
   IconAccounts,
   IconBell,
@@ -24,7 +17,7 @@ import { setEventsPanelOpen } from '../eventLog';
 import { toggleTheme } from '../theme';
 import type { Command, CommandSurface } from './types';
 
-/** Exported so CommandPalette.tsx can read this exact command's own defaultShortcut rather than a second, hardcoded "mod+k". */
+/** Exported so CommandPalette.tsx reads this command's shortcut instead of hard-coding "mod+k". */
 export const OPEN_PALETTE_ID = 'app.commandPalette.open';
 
 /** One "go to X" per surface with a real page, sharing the same run/enabled/visible shape. */
@@ -47,12 +40,9 @@ export const GLOBAL_COMMANDS: Command[] = [
     defaultShortcut: 'mod+k',
     enabled: () => true,
     visible: () => true,
-    // Sets the flag rather than toggling it: CommandPalette.tsx already has
-    // to recognise this same shortcut itself before any page exists to run
-    // this command from (see its own comment on why), and a future keyboard
-    // dispatcher matching the identical keystroke a second time must be
-    // harmless rather than closing what the first listener just opened -
-    // "always open" is idempotent under two listeners, "toggle" is not.
+    // Opens rather than toggles: CommandPalette.tsx also listens for this
+    // keystroke, and a toggle would let the second listener close what the
+    // first opened.
     run: () => setCommandPaletteOpen(true),
   },
   {
@@ -66,16 +56,11 @@ export const GLOBAL_COMMANDS: Command[] = [
     defaultShortcut: 'mod+shift+e',
     enabled: () => true,
     visible: () => true,
-    // Sets the flag rather than toggling it, the same reasoning the palette's
-    // own entry above gives: "always open" stays correct if a second listener
-    // ever matches the same keystroke, and "toggle" closes what the first one
-    // just opened.
+    // Opens rather than toggles, for the same reason as the palette above.
     run: () => setEventsPanelOpen(true),
   },
   {
     id: 'theme.toggle',
-    // Reuses the existing theme.toggle key (lib/locales/en.ts, already
-    // shipped for Sidebar.tsx's own button) rather than a near-duplicate.
     labelKey: 'theme.toggle',
     icon: IconMoon,
     group: 'commands.group.general',
@@ -83,10 +68,8 @@ export const GLOBAL_COMMANDS: Command[] = [
     defaultShortcut: 'mod+shift+m',
     enabled: () => true,
     visible: () => true,
-    // toggleTheme() itself notifies every onThemeChange() subscriber
-    // (lib/theme.ts) — Sidebar.tsx's own sun/moon icon included — so firing
-    // this from the keyboard, with no click anywhere near that button,
-    // still leaves it showing the theme that is actually active.
+    // toggleTheme notifies its subscribers, so the sidebar's sun/moon icon
+    // follows.
     run: () => {
       toggleTheme();
     },
@@ -100,10 +83,7 @@ export const GLOBAL_COMMANDS: Command[] = [
       surfaces: ['global'],
       defaultShortcut: shortcut,
       enabled: () => true,
-      // Left out of its own destination's list: jumping to the page already
-      // open is a no-op with nothing to show for it, the same reason a
-      // sidebar never highlights a second "you are here" link beside the one
-      // it already draws for the active route.
+      // Hidden on its own page, where it would do nothing.
       visible: (ctx) => ctx.surface !== surface,
       run: (ctx) => ctx.navigate(path),
     }),

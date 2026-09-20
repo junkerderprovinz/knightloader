@@ -4,27 +4,10 @@ import { requestSearchFocus } from '../../pages/settings/jump';
 import type { Command } from './types';
 
 /**
- * One command per settings sub-page, so the palette can jump straight to
- * e.g. "Settings: Torrents" instead of a click through Settings' own rail.
- *
- * The id list and its order mirror registry.tsx's PAGES map exactly.
- *
- * "Exactly" is load-bearing and was not true for a while: accounts, instances
- * and appearance all grew real components in registry.tsx and none of them was
- * added here, so three settings pages were simply unreachable from the palette
- * while this comment still explained why one of them had no component. A list
- * that has to be kept in step by hand drifts, and the drift is invisible
- * because a missing command looks exactly like a command nobody typed - hence
- * web/check-settings-pages.mjs, which fails when the two sets part company.
- *
- * labelKey reuses each page's existing settings.nav.<id> key (tx.ts's own
- * `label()` helper, Tabs.tsx) rather than minting a second "Settings: X"
- * string per page - one English name per page, not two that can drift.
- *
- * run() calls the exact navigate() every page already gets from
- * react-router's useNavigate(), pointed at the exact path Settings.tsx's own
- * pagePath() builds (`/settings/${id}`) - never a re-derivation of that
- * route.
+ * One command per settings page, so the palette can jump straight to
+ * "Torrents". The ids and their order match registry.tsx's PAGES, which
+ * check-settings-pages.mjs enforces. Labels reuse each page's
+ * settings.nav.<id> key.
  */
 const SETTINGS_PAGES: { id: string; labelKey: Command['labelKey'] }[] = [
   { id: 'modules', labelKey: 'settings.nav.modules' },
@@ -59,14 +42,8 @@ export const settingsCommands: Command[] = [
       id: `settings.open.${id}`,
       labelKey,
       group: 'commands.group.settings',
-      // 'global', not 'settings' - the whole point named in this file's own doc
-      // comment above ("jump straight to Settings: Torrents instead of a click
-      // through Settings' own rail") requires being reachable from EVERY page,
-      // the same way global.ts's own six "go to X" nav commands are. Scoped to
-      // 'settings' this list would only ever appear once already on a settings
-      // page, where clicking the rail tab is no slower than the palette - the
-      // one place these commands are actually worth pressing mod+k for is
-      // everywhere else, which is exactly what 'settings' excluded.
+      // Global: the jump is worth having from other pages, not from settings,
+      // where the rail is just as quick.
       surfaces: ['global'],
       enabled: () => true,
       visible: () => true,
@@ -74,17 +51,9 @@ export const settingsCommands: Command[] = [
     }),
   ),
   {
-    // Not a page entry, so it is not in SETTINGS_PAGES above and
-    // check-settings-pages.mjs's parity check (which reads `{ id: '<id>'` out of
-    // that array) is untouched by it.
-    //
-    // It navigates AND asks for focus, in that order, because those are two
-    // different things and only one of them can be done from here: the field is
-    // mounted three routes away and this function has no reference to it, so the
-    // ask goes through the same module-scope store the jump itself uses. Landing
-    // on Settings with the cursor already in the box is the whole point - a
-    // command that only navigated would leave somebody who typed "search
-    // settings" one more click away from searching settings.
+    // Not a page, so it stays out of SETTINGS_PAGES and the parity check.
+    // The search field is not mounted yet, so focus is requested through the
+    // same module-level store the jump uses.
     id: 'settings.search',
     labelKey: 'settings.search.command',
     icon: IconSearch,
@@ -103,20 +72,12 @@ export const settingsCommands: Command[] = [
     icon: IconRetry,
     group: 'commands.group.settings',
     surfaces: ['global'],
-    // Real JDownloader 2's own mod+U ("check for updates") — source:
-    // jd/gui/swing/jdgui/components/toolbar/actions/UpdateAction.java,
-    // `setAccelerator(KeyEvent.VK_U)` (the single-arg AppAction overload,
-    // which itself adds the platform menu-shortcut mask).
+    // JDownloader 2's own shortcut for checking for updates.
     defaultShortcut: 'mod+u',
     enabled: () => true,
     visible: () => true,
-    // Exactly the two calls settings/Look.tsx's own UpdateCard makes
-    // (fetchDeploymentInfo to pick the desktop/container wording,
-    // fetchUpdateCheck for the result), reported as a toast instead of
-    // UpdateCard's own inline state - this command has no page mounted to
-    // hold that state in, and the page itself still shows the full card
-    // for anyone who wants the persistent "Check for updates" button and
-    // the clickable release link.
+    // The same two calls as Look.tsx's UpdateCard, reported as a toast since
+    // no page is mounted to hold the result.
     run: async (ctx) => {
       try {
         const [deploy, check] = await Promise.all([fetchDeploymentInfo(), fetchUpdateCheck()]);

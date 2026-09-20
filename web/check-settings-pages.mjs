@@ -1,18 +1,12 @@
-// The settings rail and the command palette have to name the same pages.
+// Checks that the settings rail and the command palette name the same pages.
 //
-// They are two hand-kept lists of the same set: registry.tsx's PAGES map says
-// which sub-pages have a component, and lib/commands/settings.ts says which
-// ones the palette can jump to. Nothing enforced that they agree, and by
-// 2026-09-07 three pages had drifted out of the palette (accounts, instances,
-// appearance) while the comment there still explained why one of them had no
-// component yet.
+// Two hand-kept lists of the same set: registry.tsx's PAGES map says which
+// sub-pages have a component, lib/commands/settings.ts which ones the palette
+// can jump to. Drift is invisible from the outside, because a missing command
+// looks like a command nobody typed and a stale one only shows up when
+// somebody picks it and lands on the placeholder.
 //
-// The drift is invisible from the outside: a missing command looks exactly
-// like a command nobody typed, and a stale one only shows up when somebody
-// picks it and lands on the "not built yet" placeholder. So it gets a check
-// rather than a promise in a comment.
-//
-// Run by CI and by hand: `node web/check-settings-pages.mjs`.
+// Run: `node web/check-settings-pages.mjs`.
 
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -26,7 +20,7 @@ function registryPages() {
   const start = src.indexOf('PAGES');
   if (start === -1) throw new Error('PAGES not found in registry.tsx');
   // Only the map's own entries: two spaces of indent, an id, then an arrow
-  // function. Deeper indentation belongs to something nested inside a page.
+  // function. Deeper indentation belongs to something nested in a page.
   return new Set([...src.slice(start).matchAll(/^ {2}([a-z][a-zA-Z]*): \(\) =>/gm)].map((m) => m[1]));
 }
 

@@ -1,36 +1,24 @@
-// tabIndicator is the browser-tab equivalent of a desktop tray tooltip: while
-// the queue owes work, the favicon carries a percent ring and the title
-// carries the numbers behind it; the moment nothing is owed, both go back to
-// exactly what they were before this file ever touched them.
-//
-// Framework-free on purpose, the same split appearance.ts uses for the same
-// reason: this is DOM and canvas work with nothing React-specific in it, and
-// keeping it that way is what makes the restore-on-idle contract simple
-// enough to read in one pass. The hook that drives it from live task data is
-// components/TabIndicator.tsx.
+// The browser tab as a tray tooltip: while the queue owes work, the favicon
+// carries a percent ring and the title the numbers behind it; when nothing is
+// owed, both return to exactly what they were. Plain DOM and canvas;
+// components/TabIndicator.tsx drives it from live task data.
 
 import type { Task } from './api';
 import { fmtSpeed, pct } from './format';
 import { DEFAULT_ACCENT } from './appearance';
 
-/**
- * A row still owed work - mirrors components/Counters.tsx's own `owed()`,
- * which is itself the server's rule (app.Counters, see that file's comment):
- * finished, failed and staged-in-the-collector rows are not "the queue" any
- * more. Kept as a private copy rather than an import: Counters.tsx does not
- * export it, and this feature has no reason to change a component file that
- * is not its own.
- */
+// owed mirrors owed() in components/Counters.tsx, the server's rule: finished,
+// failed and collector rows are not part of the queue.
 function owed(t: Task): boolean {
   return t.status !== 'done' && t.status !== 'error' && t.status !== 'collected';
 }
 
 export interface Activity {
-  /** Actually transferring bytes right now - status === 'running', not queued, not extracting. */
+  /** Rows transferring bytes right now (status 'running'). */
   running: number;
-  /** Still owed: queued, running, paused or extracting. Zero is the idle state everything restores to. */
+  /** Rows still owed: queued, running, paused or extracting. Zero means idle. */
   total: number;
-  /** Loaded/size bytes over every owed, enabled row with a known size - the same rows Counters.tsx's shell strip weighs by default (includeDisabled false). */
+  /** Loaded over size for owed, enabled rows of known size, as Counters.tsx weighs them. */
   percent: number;
   /** Sum of the speed field on rows actually running. */
   speed: number;
@@ -50,10 +38,7 @@ export function measureActivity(tasks: Record<string, Task>): Activity {
       running++;
       speed += t.speed;
     }
-    // A disabled link is never going to fetch, so - matching weigh()'s own
-    // default view in Counters.tsx - it stays out of the byte math, or a
-    // queue with a few switched-off links parks the ring at a permanent
-    // partial fill nothing is ever going to close.
+    // Disabled links never fetch and would keep the ring from ever closing.
     if (t.enabled && t.size > 0) {
       size += t.size;
       loaded += t.loaded;
@@ -62,32 +47,20 @@ export function measureActivity(tasks: Record<string, Task>): Activity {
   return { running, total, percent: pct(loaded, size, false), speed };
 }
 
-/**
- * formatTabTitle. `base` is whatever document.title held before this feature
- * touched it, captured once by the caller - never a literal "KnightLoader"
- * here, so a page that ever starts setting its own title keeps it.
- */
+/** formatTabTitle prefixes the counts to `base`, the title the caller
+ *  captured before changing it. */
 export function formatTabTitle(a: Activity, base: string): string {
   const parts = [`${a.running}/${a.total}`, `${a.percent}%`, fmtSpeed(a.speed) || '0 B/s'];
   return `(${parts.join(' · ')}) ${base}`;
 }
 
-// --- The ring -----------------------------------------------------------
+// A favicon has room for one shape and one short number: the arc shows the
+// percent and the centre the running count, capped at one digit. The exact
+// counts are in the title.
 //
-// A favicon is a 16-32px circle, which is room for one glanceable shape and
-// one short number, not two counts and a percent all at once. The arc
-// carries percent - the thing that actually changes second to second - and
-// the centre carries the running count, capped at one digit, because that is
-// the number that answers "is anything happening" at a glance. The exact
-// running/total pair lives in the title instead, where hovering the tab
-// shows it in full, the same way hovering a tray icon would.
-//
-// Colours are fixed rather than read from the live --accent custom property:
-// the accent can be mid rainbow-rotation, which a canvas snapshot has no way
-// to follow, and DEFAULT_ACCENT is the one colour every install already
-// agrees means "active" (index.css's own --status-info-solid is the same
-// hex). The grey is index.css's --status-neutral-solid, the same tone
-// StatusPill gives a paused or queued row.
+// Fixed colours, since a canvas snapshot cannot follow a rotating rainbow
+// accent: DEFAULT_ACCENT (the --status-info-solid hex) for active and
+// --status-neutral-solid's grey for waiting.
 
 const RING_SIZE = 64;
 const RING_STROKE = 8;
@@ -98,7 +71,7 @@ const RING_ACTIVE = DEFAULT_ACCENT;
 const RING_WAITING = '#8d8d8d';
 const LABEL_INK = '#f4f4f4';
 
-/** renderRingFavicon returns a data: URL, or '' if canvas is unavailable (never thrown - a missing favicon is not worth failing anything over). */
+/** renderRingFavicon returns a data: URL, or '' when canvas is unavailable. */
 export function renderRingFavicon(a: Activity): string {
   const canvas = document.createElement('canvas');
   canvas.width = RING_SIZE;
@@ -111,9 +84,7 @@ export function renderRingFavicon(a: Activity): string {
 
   ctx.clearRect(0, 0, RING_SIZE, RING_SIZE);
 
-  // The disc, so the ring reads as one solid roundel against a light OR a
-  // dark browser chrome rather than a stray arc that half-vanishes on one of
-  // the two.
+  // A disc behind the ring, so it reads on light and dark browser chrome alike.
   ctx.beginPath();
   ctx.arc(c, c, r - RING_STROKE / 2 + 1, 0, Math.PI * 2);
   ctx.fillStyle = DISC_FILL;
@@ -153,9 +124,7 @@ export function renderRingFavicon(a: Activity): string {
   return canvas.toDataURL('image/png');
 }
 
-// --- Applying it to the document, and undoing that exactly ----------------
-
-/** What the page's own <link rel="icon"> looked like before this feature ever ran, so idle can restore it verbatim rather than guessing at a default. */
+/** The page's <link rel="icon"> before it was changed, so idle restores it exactly. */
 export interface IconSnapshot {
   existed: boolean;
   href: string;
@@ -183,13 +152,8 @@ export function applyIcon(dataUrl: string): void {
   link.setAttribute('href', dataUrl);
 }
 
-/**
- * restoreIcon undoes applyIcon. No link existed before this feature touched
- * the page today (index.html ships none), so the ordinary path removes the
- * one it created; the `existed` branch only matters if a real favicon is
- * ever added later, and it puts that one back exactly as it was rather than
- * leaving today's assumption baked in.
- */
+/** restoreIcon undoes applyIcon: it removes a link it created, or restores
+ *  the one that was there. */
 export function restoreIcon(snap: IconSnapshot): void {
   const link = iconLink();
   if (!link) return;

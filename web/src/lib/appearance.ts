@@ -1,37 +1,22 @@
 // Appearance is the set of looks the user owns: how rounded the interface is,
-// and what colour it uses for activity — one accent, or a palette handed out by
-// position. All of it is applied to the document root, so every component picks
-// it up through the same tokens it already reads and nothing has to be told
-// about the change.
+// and which colour marks activity, one accent or a palette handed out by
+// position. Everything is applied to the document root, so components pick it
+// up through the tokens they already read.
 //
-// This file stays free of React on purpose: it is the piece a sibling app
-// copies, and a design language should not arrive with a framework attached.
-// The React binding is the small hook in useRainbow.ts.
-//
-// This is KnightLoader's own implementation. The canonical reference copy
-// lives at https://github.com/junkerderprovinz/glimstone/blob/main/reference/appearance.ts
+// No React here: this is the file a sibling app copies. The React binding is
+// useRainbow.ts. The reference copy lives at
+// https://github.com/junkerderprovinz/glimstone/blob/main/reference/appearance.ts
 
 export type Shape = 'round' | 'soft' | 'square';
 
 export const SHAPES: Shape[] = ['round', 'soft', 'square'];
 
-/**
- * The built-in accent. Empty in settings means this.
- *
- * It is the sibling apps' own default rather than a colour of our own: these
- * share a design language, and a family whose members open in different colours
- * is a family only on paper.
- */
+/** The built-in accent, shared with the sibling apps. Empty in settings means this. */
 export const DEFAULT_ACCENT = '#FCC419';
 
 /**
- * ACCENTS are the presets offered in the picker — the same eight the siblings
- * offer (the original five plus Orange/Teal/Pink, confirmed live off the real
- * BombVault test container — the same eight hues as RAINBOW below, just in
- * the presets' own order rather than the palette's position order), so a
- * person who set "Blue" in one app finds the same blue here. A free colour
- * field sits beside them, so this list is a shortcut rather than a
- * restriction.
+ * The picker's presets, the same eight the sibling apps offer, so "Blue" is
+ * the same blue everywhere. A free colour field sits beside them.
  */
 export const ACCENTS: { name: string; hex: string }[] = [
   { name: 'Sunflower', hex: '#FCC419' },
@@ -45,16 +30,14 @@ export const ACCENTS: { name: string; hex: string }[] = [
 ];
 
 /**
- * RAINBOW is the default palette: a full turn of the wheel, but tuned to the
- * same warm, slightly dusty register as the accent presets, so switching the
- * mode on changes how much colour there is and not which family it belongs to.
- * The length is fixed — colours are handed out by position, so a palette that
- * could grow would re-colour every existing row the moment one was added.
+ * The default palette: a full turn of the wheel in the same register as the
+ * accent presets. Its length is fixed, since colours are handed out by
+ * position and a longer palette would re-colour every existing row.
  */
 export const RAINBOW: string[] = [
   '#FF8389', // red 30
   '#FF832B', // orange 40
-  '#FCC419', // sunflower — the default accent, so one row always matches it
+  '#FCC419', // sunflower, the default accent, so one row always matches it
   '#6FDC8C', // green 30
   '#3DDBD9', // teal 30
   '#1D99F3', // blue
@@ -87,23 +70,11 @@ export function applyShape(shape: Shape | string | undefined): void {
   armShapeTransition();
 }
 
-// Module-level so it only ever arms once per page load, no matter how many
-// times applyShape() itself gets called (the cached boot apply, the live
-// -settings apply once fetchSettings() resolves, every future edit from the
-// picker) — see armShapeTransition() below.
 let shapeTransitionArmed = false;
 
-/**
- * Arms the shape-morph transition (index.css's .glim-shape-armed) two
- * animation frames after the first call. GlimStone's own "Round 2"
- * motion-engine note: scoped to AFTER mount deliberately, not just relying
- * on a transition being a harmless no-op on a freshly painted element's own
- * first frame (true, but not the point being guarded against — the
- * mechanism's correctness shouldn't quietly depend on a timing coincidence a
- * future change could break). The class stays off for the app's own very
- * first paint, which needs no transition at all, only the correct end
- * state, and turns every FUTURE shape change into one.
- */
+// armShapeTransition turns on the shape-morph transition (.glim-shape-armed)
+// two frames after the first call, so the first paint never animates and every
+// later shape change does.
 function armShapeTransition(): void {
   if (shapeTransitionArmed) return;
   shapeTransitionArmed = true;
@@ -116,10 +87,8 @@ function armShapeTransition(): void {
 
 /**
  * applyAccent overrides the accent tokens, or clears the override so the
- * theme's own gold comes back. The contrast colour is computed rather than
- * configured: a light accent with white text on it is unreadable, and asking
- * the user to pick a second colour to fix the first one is not a setting, it is
- * a trap.
+ * theme's gold comes back. The contrast colour is computed, so a light accent
+ * never ends up with white text on it.
  */
 export function applyAccent(hex: string | undefined): void {
   const root = document.documentElement.style;
@@ -135,14 +104,9 @@ export function applyAccent(hex: string | undefined): void {
   root.setProperty('--accent-soft', `rgba(${r}, ${g}, ${b}, 0.14)`);
 }
 
-// ---------------------------------------------------------------------------
-// Rainbow
-//
-// The live state is module-level because it is a property of the document, not
-// of any one component: the sidebar and the download list must agree on which
-// colour position three is, and they never meet in the tree. Readers subscribe
-// instead of being handed a prop through six intermediate components.
-// ---------------------------------------------------------------------------
+// The rainbow state is module-level because it belongs to the document: the
+// sidebar and the download list must agree on which colour position three is,
+// and they never meet in the component tree.
 
 let state: RainbowState = RAINBOW_OFF;
 const listeners = new Set<() => void>();
@@ -157,22 +121,15 @@ export function subscribeRainbow(fn: () => void): () => void {
   return () => listeners.delete(fn);
 }
 
-/**
- * The resolved on/off/reactive mode as of the last applyRainbow() call, or
- * undefined before the first one. Tracked purely so a genuine mode CHANGE
- * (fires the colour-wipe below) can be told apart from the initial boot
- * apply and from a no-op re-apply of the same resolved state — neither of
- * those should wipe. GlimStone, "The motion engine" > "Round 2" >
- * "Colour-wipe".
- */
+// The mode as of the last applyRainbow call, so that only a real mode change
+// triggers the colour wipe, not the first apply or a repeat of the same state.
 let lastRainbowMode: 'off' | 'on' | 'reactive' | undefined;
 let wipeTimeout: ReturnType<typeof setTimeout> | undefined;
 
 /**
  * applyRainbow stores the new state, mirrors it onto the document root and
- * wakes the readers. The custom properties are set even when the mode is off so
- * that a stylesheet can reference `--rb-3` without having to know; the
- * `data-rainbow` attribute is what actually turns the look on.
+ * wakes the readers. The custom properties are set even when the mode is off,
+ * so a stylesheet can use `--rb-3` regardless; `data-rainbow` turns the look on.
  */
 export function applyRainbow(next: Partial<RainbowState> | undefined): void {
   const merged: RainbowState = { ...RAINBOW_OFF, ...next };
@@ -196,17 +153,9 @@ export function applyRainbow(next: Partial<RainbowState> | undefined): void {
   for (const fn of listeners) fn();
 }
 
-/**
- * Colour-wipe: a genuine on/off/reactive change wipes every hued element's
- * colour over one fixed window instead of each snapping independently. A
- * temporary .glim-wipe class on the root arms a `transition` on the colour
- * properties (index.css) for the --motion-wipe-dur token's own duration,
- * then comes back off. Reads the duration from the live DOM rather than
- * duplicating it as a number here, so it tracks whatever data-motion has
- * already resolved it to (0 at "off", shorter at "subtle") without this
- * module needing to know the axis' own numbers. GlimStone, "The motion
- * engine" > "Round 2" > "Colour-wipe".
- */
+// triggerColourWipe puts .glim-wipe on the root for the length of
+// --motion-wipe-dur, so every hued colour fades over one window instead of
+// snapping. The duration is read from the live DOM, so it follows data-motion.
 function triggerColourWipe(): void {
   const root = document.documentElement;
   root.classList.add('glim-wipe');
@@ -220,9 +169,8 @@ function triggerColourWipe(): void {
 }
 
 /**
- * rainbowAt is the colour at a position, rotation applied. It answers even when
- * the mode is off, because the settings page has to show the palette it is
- * editing.
+ * rainbowAt is the colour at a position, rotation applied. It answers even
+ * when the mode is off, because the settings page shows the palette it edits.
  */
 export function rainbowAt(i: number): string {
   const p = state.palette;
@@ -230,17 +178,15 @@ export function rainbowAt(i: number): string {
   const n = ((Math.trunc(i) % p.length) + p.length) % p.length;
   const color = p[(n + off) % p.length];
   if (color === undefined) {
-    // Unreachable in practice: usablePalette() never lets state.palette go
-    // empty, but the index is computed via modulo, which TS can't verify.
+    // usablePalette never lets the palette go empty; this satisfies the type checker.
     throw new Error('rainbowAt: palette is empty');
   }
   return color;
 }
 
 /**
- * rainbowColor is what a component asks for: the colour this item should use,
- * or undefined when the mode is off and the single accent applies. Returning
- * undefined rather than the accent keeps the accent in CSS, where a theme
+ * rainbowColor is the colour an item should use, or undefined when the mode is
+ * off. Undefined rather than the accent keeps the accent in CSS, where a theme
  * change still reaches it.
  */
 export function rainbowColor(i: number): string | undefined {
@@ -248,14 +194,10 @@ export function rainbowColor(i: number): string | undefined {
 }
 
 /**
- * hueVars are the inline custom properties an element carrying a palette
- * position sets on itself. The matching `.glim-hue` rules in index.css decide
- * whether the hue is shown at rest or held back until hover, so a component
- * only has to say which colour it owns, never which mode is active.
- *
- * The class and these properties always travel together: `.glim-hue` with no
- * `--item-hue` under it would resolve the accent to nothing. Components get
- * both from one call — `hueStyle()` in components/ui.tsx.
+ * hueVars are the inline custom properties an element with a palette position
+ * sets on itself; the `.glim-hue` rules in index.css decide when the hue shows.
+ * The class and these properties always travel together, which hueStyle() in
+ * components/ui.tsx takes care of.
  */
 export function hueVars(hex: string | undefined): Record<string, string> {
   if (!valid(hex)) return {};
@@ -264,33 +206,22 @@ export function hueVars(hex: string | undefined): Record<string, string> {
     '--item-hue': hex,
     '--item-hue-ink': contrastOn(hex),
     '--item-hue-soft': `rgba(${r}, ${g}, ${b}, 0.22)`,
-    // The wash covers a whole row, so it sits below the soft tint - but not as
-    // far below as an earlier 7% figure: real feedback across sibling apps
-    // said the mode "does nothing" at that strength even though the mechanism
-    // was wiring correctly (the values genuinely differed row to row). 16% is
-    // the floor - still short of 22%'s "colour chart" territory, but no longer
-    // indistinguishable from the ground colour at a glance.
+    // A wash covers a whole row, so it stays below the soft tint. Much less
+    // than 16% and the mode looks like it does nothing.
     '--item-hue-wash': `rgba(${r}, ${g}, ${b}, 0.16)`,
-    // A compact circular badge (an icon toggle, an undo/redo/zoom action) has
-    // no neighbouring row to reinforce the colour by repetition the way a list
-    // does, and reads as barely-tinted grey at the wash's own 16% once shrunk
-    // to badge size. This tier is deliberately separate from the wash above
-    // rather than just raising it - a list row's own 16% is calibrated for a
-    // different reason (dense/at-scale is exactly where subtlety matters) and
-    // must stay put.
+    // A small badge has no neighbouring rows to repeat its colour and reads as
+    // grey at the row wash's strength.
     '--item-hue-badge': `rgba(${r}, ${g}, ${b}, 0.5)`,
-    // The focus ring follows the position too. A gold ring around a teal tab is
-    // the one place the single accent leaks back into the plural mode, and it
-    // is the most visible one, because it only ever appears on the element the
-    // keyboard is standing on.
+    // The focus ring follows the position too, so no gold ring appears around
+    // a teal tab.
     '--item-hue-ring': `rgba(${r}, ${g}, ${b}, 0.55)`,
   };
 }
 
 /**
- * rainbowFromSettings maps the server's flat fields onto the state this module
- * keeps. The parameter is structural rather than the imported Settings type so
- * this file can be lifted into a sibling app unchanged.
+ * rainbowFromSettings maps the server's flat fields onto this module's state.
+ * The parameter is structural rather than the Settings type so the file can be
+ * lifted into a sibling app unchanged.
  */
 export function rainbowFromSettings(s: {
   rainbow?: boolean;
@@ -308,7 +239,7 @@ export function rainbowFromSettings(s: {
   };
 }
 
-/** A palette is taken only in full — see the matching rule on the server. */
+/** A palette is taken only in full, as on the server. */
 function usablePalette(p: string[] | undefined): string[] {
   if (!p || p.length !== RAINBOW.length || !p.every(valid)) return RAINBOW;
   return p;
@@ -318,8 +249,7 @@ function usablePalette(p: string[] | undefined): string[] {
 export function contrastOn(hex: string): string {
   if (!valid(hex)) return '#FFFFFF';
   const { r, g, b } = parse(hex);
-  // Carbon's own ink, not a warm near-black: on a yellow accent a brown-tinted
-  // black reads as a smudge, and it was the last hard-coded warm value left.
+  // Carbon's ink rather than a warm near-black, which smudges on yellow.
   return luminance(r, g, b) > 0.55 ? '#161616' : '#FFFFFF';
 }
 
@@ -332,12 +262,8 @@ function parse(hex: string): { r: number; g: number; b: number } {
   return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
 }
 
-/**
- * luminance is the perceptual brightness used to decide black or white on top.
- * The sRGB channels are linearised first, because the raw values overstate how
- * bright blue is and understate green, which is exactly the case that produces
- * unreadable buttons.
- */
+// luminance is the relative luminance of an sRGB colour. The channels are
+// linearised first, since raw values overstate blue and understate green.
 function luminance(r: number, g: number, b: number): number {
   const lin = (c: number) => {
     const v = c / 255;
@@ -346,11 +272,8 @@ function luminance(r: number, g: number, b: number): number {
   return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
 }
 
-/**
- * Appearance is mirrored into localStorage purely so the first paint after a
- * reload is already right. The settings on the server stay the source of truth;
- * this only avoids a flash of the default look while they are being fetched.
- */
+// Appearance is mirrored into localStorage only so the first paint after a
+// reload is already right. The server's settings stay the source of truth.
 const CACHE = 'kl-appearance';
 
 interface Cached {
@@ -386,99 +309,40 @@ export function applyCachedAppearance(): void {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Motion intensity
-//
-// The third user-owned axis alongside Shape and Accent/Rainbow above —
-// GlimStone's docs/design-language.md, "The user-owned axes" > "Motion
-// intensity" and "The motion engine" > "Round 2". data-motion on <html>
-// resolves the duration/distance/amplitude tokens index.css's keyframes
-// read; this module only ever sets the attribute and mirrors it to
-// localStorage — the same "single mechanism, nothing downstream has to know
-// which setting produced the value" shape Shape and Accent above already
-// use.
-//
-// Unlike Shape/Accent/Rainbow, this axis is NOT part of the server's
-// settings — it has nothing to round-trip (GlimStone's own "Persistence"
-// note under Motion intensity: "the same 'single-operator tool, no second
-// viewer who needs to agree on the current setting' reasoning Shape and
-// Accent already give... for staying client-side"). It gets its own
-// localStorage key rather than folding into CACHE's combined shape/accent
-// /rainbow blob above, for exactly that reason: it is never written by a
-// settings PATCH and never arrives in fetchSettings()'s response, so it has
-// no reason to travel through the same cache entry as three fields that do.
-//
-// Wiring: applyMotion/cacheMotionIntensity/readCachedMotionIntensity are
-// consumed by a settings-page row this module does not own (Look.tsx) and by
-// app/Layout.tsx's own boot-time apply, so the axis is live from first paint
-// everywhere, not only once that settings row mounts.
-//
-// Motion, MOTION_LEVELS, DEFAULT_MOTION and applyMotion carry the reference
-// module's own names since GlimStone 1.17.0, which is when the reference grew
-// them: the axis had tokens and a document and no copyable implementation, so
-// every adopting app wrote this half itself. The two cache functions have no
-// counterpart there and keep the names they had - the reference does not
-// persist anything, on purpose.
-// ---------------------------------------------------------------------------
+// Motion intensity is the third user-owned axis (GlimStone, "Motion
+// intensity"). data-motion on <html> selects the duration and distance tokens
+// index.css reads. Unlike shape and accent it is not a server setting and has
+// its own localStorage key. Look.tsx and app/Layout.tsx apply it, so it is
+// live from first paint. The cache functions have no counterpart in the
+// GlimStone reference, which persists nothing.
 
 /**
- * The levels, quietest first.
- *
- * THESE FOUR STRINGS ARE FIXED, and they are a wire format rather than wording:
- * they go into the `data-motion` attribute, index.css matches on them, and
- * localStorage holds them. An app that renames one has not made a local choice -
- * the tokens keyed to the old spelling stop matching and a value already saved
- * under the old name fails validation. What somebody READS is a separate
- * question and lives in the catalogues (German: Aus, Dezent, Wild, Sturm).
- *
- * `storm` is deliberately LAST and deliberately not in MOTION_LEVELS below. It
- * is a real level with real numbers - the :root[data-motion="storm"] block in
- * index.css - and it is not something a picker offers.
- *
- * THE TOP VISIBLE LEVEL WAS CALLED "full" HERE UNTIL GlimStone 2.0.0, and the
- * note that stood in this spot argued for leaving it: the name is a stored value
- * plus a label in 42 catalogues, so the rename is its own piece of work rather
- * than a side effect of adding a fourth step. The first half of that was right
- * and the conclusion has expired. 2.0.0 is a MAJOR release for exactly this
- * string, because it is the one thing an adopting app writes into the DOM, and
- * the phone half of this repo already spells it `wild` - so the cost of waiting
- * had stopped being "one more edition out of step" and become two surfaces of
- * one product speaking two wire formats. The work it named is done below and in
- * MIGRATED_MOTION: the stored value is translated on the way in rather than
- * dropped, which is the whole of what "its own piece of work" meant.
+ * The levels, quietest first. The strings are a wire format: they go into the
+ * `data-motion` attribute, index.css matches them and localStorage stores
+ * them. Labels come from the catalogues. `storm` is a real level that no
+ * picker offers, so it is not in MOTION_LEVELS. The top visible level was
+ * `full` before GlimStone 2.0.0; see MIGRATED_MOTION.
  */
 export type Motion = 'off' | 'subtle' | 'wild' | 'storm';
 
 /** What a picker shows. The storm is not in here; see stormTap below. */
 export const MOTION_LEVELS: Motion[] = ['off', 'subtle', 'wild'];
 
-/**
- * What a STORED value may be, which is a different question from what a picker
- * renders - and treating the two as one is the mistake an axis with a hidden
- * level is built to expose. A persisted storm is accepted at boot even though
- * nothing offers it, or the gesture would have produced a setting that silently
- * forgets itself on the next reload.
- */
+/** What a stored value may be. A stored storm is kept, so the hidden level
+ *  survives a reload. */
 export const MOTION_STORED: Motion[] = [...MOTION_LEVELS, 'storm'];
 
 /**
- * The richest experience OF THE ONES ON OFFER, not a compatibility fallback:
- * this axis is additive polish a user dials DOWN, never one they have to opt
- * into (unlike Theme's "system" default above, which exists because nothing
- * else already reads prefers-color-scheme unconditionally —
- * prefers-reduced-motion, by contrast, already gates every entrance in
- * index.css regardless of this setting, so a "system" option here would just
- * re-derive a signal the app honours everywhere already).
+ * The richest level on offer: users dial motion down. There is no "system"
+ * option, because prefers-reduced-motion already gates every animation in
+ * index.css.
  */
 export const DEFAULT_MOTION: Motion = 'wild';
 
 /**
- * applyMotion sets the attribute the motion tokens key off.
- *
- * `storm` is accepted here even though no picker offers it: somebody who found
- * it and then reloaded must get it back. Anything else unrecognised falls to
- * the default rather than being written through, so a hand-edited storage entry
- * cannot put an attribute on <html> that no block in index.css answers.
+ * applyMotion sets the attribute the motion tokens key off. Anything not in
+ * MOTION_STORED falls back to the default, so a hand-edited storage entry
+ * cannot put an unmatched value on <html>.
  */
 export function applyMotion(motion: Motion | string | undefined): void {
   const m: Motion = MOTION_STORED.includes(motion as Motion) ? (motion as Motion) : DEFAULT_MOTION;
@@ -489,34 +353,17 @@ export function applyMotion(motion: Motion | string | undefined): void {
 export const STORM_TAPS = 5;
 
 /**
- * The gesture that reveals the storm, and the rule it carries.
+ * stormTap counts taps towards revealing the storm level: set the motion to
+ * the top level, then tap that same option five more times. Tapping any other
+ * level resets the count.
  *
- * SET THE MOTION TO THE TOP LEVEL, THEN TAP THAT SAME OPTION FIVE MORE TIMES.
- * It is the gesture of somebody pressing a button that is already pressed
- * because they wanted more of it, which is exactly who this level is for. It
- * cannot be reached from any other level on purpose: tapping "off" five times
- * means somebody is annoyed, not curious, and a secret that opens under
- * annoyance is a bug report waiting to be filed.
- *
- * THE RULE, and it is the part worth copying rather than the numbers: AN EASTER
- * EGG THAT CHANGES BEHAVIOUR MUST BE SWITCHABLE BACK OFF, AND MUST NOT QUIETLY
- * BECOME A PERMANENT ENTRY IN A SETTINGS LIST. The reference's first build
- * stored a "found it" flag, so one gesture put a fourth option in the picker
- * for ever - which turns a secret into a setting somebody has to explain to
- * themselves months later with no memory of how it got there.
- *
- * So what keeps it visible is the plain truth about the current state:
- *
- *   - it is offered while it is CHOSEN, because a picker that hid the value it
- *     is currently showing would be lying about the interface;
- *   - otherwise only for as long as the settings screen stays open.
- *
- * The caller owns the screen and therefore owns how long "open" means: `found`
- * lives in the settings screen's own state, never in storage. The CHOSEN value
- * persists like any other. The two halves look similar and are not.
+ * An easter egg that changes behaviour must be switchable back off and must
+ * not become a permanent settings entry. So the storm option is offered while
+ * it is chosen, and otherwise only while the settings screen stays open: the
+ * caller keeps the tap count and the "found" flag in the screen's own state,
+ * never in storage. The chosen value persists like any other.
  *
  * Returns the level to switch to, or undefined when the tap was not the fifth.
- * Counting lives in the caller for the same reason `found` does.
  */
 export function stormTap(state: { taps: number }, tapped: string, current: string): Motion | undefined {
   const top = MOTION_LEVELS[MOTION_LEVELS.length - 1];
@@ -532,10 +379,7 @@ export function stormTap(state: { taps: number }, tapped: string, current: strin
 
 const MOTION_CACHE = 'kl-motion';
 
-/**
- * Mirrors the chosen intensity into localStorage so the next load can apply
- * it before first paint — the same reason cacheAppearance above exists.
- */
+/** cacheMotionIntensity stores the level so the next load applies it before first paint. */
 export function cacheMotionIntensity(m: Motion): void {
   try {
     localStorage.setItem(MOTION_CACHE, m);
@@ -545,42 +389,18 @@ export function cacheMotionIntensity(m: Motion): void {
 }
 
 /**
- * Spellings this axis used to store, and what each one is now.
- *
- * ONE ENTRY, AND IT IS THE WHOLE REASON THIS TABLE EXISTS. GlimStone 2.0.0
- * renamed the top visible level from `full` to `wild`, and that string is not
- * only in this source - it is in the localStorage of every instance anybody has
- * ever set this on. Dropped, it falls through to DEFAULT_MOTION, and from the
- * outside a setting that resets itself on the next load is indistinguishable
- * from one that was never saved.
- *
- * IT HAPPENS TO LAND ON THE RIGHT LEVEL TODAY AND THAT IS NOT AN ARGUMENT.
- * DEFAULT_MOTION is the top visible level, and the retired name WAS the top
- * visible level, so a build with no table here looks correct on every machine.
- * The coincidence is between two decisions that have nothing to do with each
- * other: the default is a settings question ("what should somebody who never
- * touched this get") and the alias is a compatibility one ("what did they
- * actually choose"). Change the first - which is allowed, and cheap, and would
- * be done by somebody reading only the paragraph above DEFAULT_MOTION - and
- * every instance that had ever picked the top level silently loses it.
- *
- * It is deliberately NOT in MOTION_STORED. That list is what a live value may
- * legally be; this one is translated on the way in and written back in the new
- * spelling, so the bridge carries a value across once rather than for ever.
+ * Retired spellings and what they are now. `full` was renamed `wild` in
+ * GlimStone 2.0.0 and is still in users' localStorage. It happens to match
+ * DEFAULT_MOTION, but the table keeps the choice if the default changes. Not
+ * in MOTION_STORED: it is translated once and written back.
  */
 const MIGRATED_MOTION: Record<string, Motion> = { full: 'wild' };
 
 /**
- * Applied at boot (see app/Layout.tsx). Falls back to DEFAULT_MOTION on
- * anything unexpected — no localStorage, a value this build doesn't
- * recognise, or storage access throwing outright — the same defensive shape
- * applyCachedAppearance above already uses for shape/accent/rainbow.
- *
- * A read that finds a retired spelling REPAIRS it. A getter with a side effect
- * is worth a second look and this one earns it: the write is idempotent, it
- * happens at most once per browser, and the alternative is an alias that has to
- * be carried in this file for as long as the app exists because nothing else
- * would ever clear it.
+ * readCachedMotionIntensity returns the stored level, applied at boot by
+ * app/Layout.tsx. Anything unexpected, including a storage error, gives
+ * DEFAULT_MOTION. A retired spelling is rewritten in place, once per browser,
+ * so the alias does not have to be kept forever.
  */
 export function readCachedMotionIntensity(): Motion {
   try {

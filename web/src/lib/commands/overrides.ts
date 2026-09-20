@@ -1,19 +1,10 @@
-// Where a rebound keyboard shortcut lives, and the one comparison both the
-// Shortcuts settings tab and the global keyboard dispatcher (built in
-// parallel this same wave) need to agree on: what a command's binding
-// actually is right now, override or default.
+// Where rebound keyboard shortcuts live, and what a command's current binding
+// is, so the Shortcuts settings tab and the keyboard dispatcher agree.
 import { peekUIState, useUIState } from '../uistate';
 import type { Command } from './types';
 
-/**
- * The uistate field every rebound shortcut is written under - one flat
- * Record<commandId, comboString>, deliberately obvious and greppable so the
- * dispatcher reads the exact same document rather than a second storage
- * path that could drift from this one. See uistate.ts's own doc comment for
- * why a field on the shared bucket, and not a new endpoint, is already the
- * whole answer here: server-persisted, debounced, survives a reload and
- * follows the user across browsers on this single-user instance.
- */
+/** The uistate field holding every rebound shortcut as commandId -> combo.
+ *  The shared bucket is server-persisted, so bindings follow the user. */
 export const SHORTCUT_OVERRIDES_FIELD = 'commands.shortcutOverrides';
 
 export type ShortcutOverrides = Record<string, string>;
@@ -25,14 +16,8 @@ export function useShortcutOverrides(): [ShortcutOverrides, (next: ShortcutOverr
   return useUIState<ShortcutOverrides>(SHORTCUT_OVERRIDES_FIELD, EMPTY_OVERRIDES);
 }
 
-/**
- * readShortcutOverrides is the non-hook reader - what the global keyboard
- * dispatcher calls from inside a document-level keydown handler, not from a
- * component. peekUIState never waits on the network read (its own doc
- * comment), which is the right default on a hot path: the bucket is already
- * filled in by the one GET this app issues at boot, well before a person's
- * first keystroke.
- */
+/** readShortcutOverrides is the non-hook reader for the dispatcher's keydown
+ *  handler. It does not wait for the network; the bucket is loaded at boot. */
 export function readShortcutOverrides(): ShortcutOverrides {
   return peekUIState<ShortcutOverrides>(SHORTCUT_OVERRIDES_FIELD, EMPTY_OVERRIDES);
 }
@@ -43,11 +28,9 @@ export function effectiveShortcut(cmd: Command, overrides: ShortcutOverrides): s
 }
 
 /**
- * findConflict is what the rebind flow refuses against: the other command,
- * if any, whose CURRENT binding (its own override, or its default) already
- * matches the combo just pressed. The command being edited is excluded, so
- * pressing the key it already has is a harmless no-op save rather than a
- * refusal naming itself as the conflict.
+ * findConflict returns the other command whose current binding already
+ * matches combo. The command being edited is excluded, so pressing its own
+ * key is a harmless save rather than a conflict with itself.
  */
 export function findConflict(
   commands: Command[],

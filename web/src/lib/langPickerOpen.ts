@@ -1,19 +1,8 @@
 import { useSyncExternalStore } from 'react';
 
-/**
- * Whether the sidebar's language picker (components/LanguagePicker.tsx) has
- * its dropdown open, hoisted to module scope for the identical reason
- * appearance.ts's rainbow state is (see useRainbow.ts's own doc comment):
- * the command palette and the picker never meet in the component tree, so a
- * palette command that opens or closes the dropdown needs a store neither
- * side has to be handed a prop through several intermediate components to
- * reach, not a second, disconnected open flag.
- *
- * LanguagePicker itself reads this through useLangPickerOpen() instead of a
- * local useState - same component, same click-outside/Escape handling,
- * just driven by state that lives one level higher so something outside it
- * can drive it too.
- */
+// Whether the sidebar's language dropdown is open. Module-level so palette
+// commands can open and close it; the picker and the palette never meet in
+// the component tree.
 let open = false;
 const listeners = new Set<() => void>();
 
@@ -40,7 +29,7 @@ export function toggleLangPickerOpen(): void {
   set(!open);
 }
 
-/** React binding - useSyncExternalStore, same reason useRainbow() uses it: read during render, not learned an effect-tick late. */
+/** The React binding, read during render rather than an effect later. */
 export function useLangPickerOpen(): boolean {
   return useSyncExternalStore(subscribeLangPickerOpen, langPickerOpen, () => langPickerOpen());
 }

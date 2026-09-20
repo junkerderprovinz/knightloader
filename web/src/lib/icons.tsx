@@ -1,16 +1,10 @@
 // Monochrome inline icons (currentColor), 20-22px, in the GlimStone house style.
 //
-// Every glyph is a filled solid shape (fill="currentColor"), never a stroked
-// outline - GlimStone's own "Icon glyphs" section (added after this file was
-// found to be a stroke/fill mix with no rule behind it): a line-drawn icon
-// sits at a different visual weight than the filled badges, filled switches
-// and filled active states everywhere around it. A detail that has to read
-// as a thin line (a lock's shackle, a slider's track) is still drawn as a
-// thin FILLED shape, never a <path stroke>. Where a glyph needs a visible
-// gap inside a solid fill (a checkmark cut into a badge, the bar of a "!"),
-// that gap is carved with fillRule="evenodd" rather than layering a second,
-// background-coloured shape on top - the latter only looks right on the one
-// background it was tuned against.
+// Every glyph is a filled shape, never a stroked outline, so it matches the
+// weight of the filled badges and switches around it (GlimStone, "Icon
+// glyphs"). A thin line is drawn as a thin filled shape. A gap inside a fill
+// is carved with fillRule="evenodd" rather than painted over in a background
+// colour, which would only look right on one background.
 import type { SVGProps } from 'react';
 
 const base = (p: SVGProps<SVGSVGElement>) => ({
@@ -29,9 +23,7 @@ export const IconDownloads = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-/** The upload counterpart: IconDownloads' own path mirrored vertically
- *  (y' = 19 - y around its glyph's centre) so the arrow points up into a
- *  tray instead of down out of one, for the restore/upload button. */
+/** IconDownloads mirrored vertically (y' = 19 - y), for the restore/upload button. */
 export const IconUpload = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
     <path d="M8.5 16.5H11.5V9H16L10 2.5L4 9H8.5Z" />
@@ -244,11 +236,8 @@ export const IconSignOut = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-// The password reveal toggle: a filled lens with its pupil cut out via
-// evenodd (two closed subpaths in one path, the same carved-gap technique
-// this file's own header comment describes), and its "off" counterpart adds
-// a diagonal filled bar rather than a stroked line - this house style draws
-// every glyph as solid shapes, never <path stroke>.
+// The password reveal toggle: a lens with the pupil carved out. The "off"
+// version adds a filled diagonal bar.
 export const IconEye = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
     <path
@@ -271,22 +260,9 @@ export const IconEyeOff = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-/* ---------------------------------------------------------------------------
-   The settings tab bar.
-
-   Ten glyphs for the ten settings sections that had no icon in the app yet
-   (eight from the original settings shell, plus Diagnostics and Help from
-   10C). The other five reuse what is already here, on purpose: Downloads,
-   Accounts and Connections are the same idea as the sidebar entry and the
-   connection row that already carry those glyphs, Reconnect is the retry
-   arrow the task list uses for "do it again", and General is the gear — one
-   idea, one drawing.
-
-   Every one of these is drawn to survive 16px, which is the only size the tab
-   bar ever asks for: no glyph here needs more than a handful of filled
-   shapes, and none of them is a picture of a thing nobody could name out
-   loud. Every settings tab has one - GlimStone's own rule (no exceptions).
-   --------------------------------------------------------------------------- */
+// The settings tabs. Every tab has a glyph (GlimStone's rule), each drawn to
+// read at 16px. Downloads, Accounts, Connections, Reconnect and General reuse
+// the sidebar, connection, retry and gear glyphs: one idea, one drawing.
 
 /** Modules: a switch, because the page is a column of them. */
 export const IconModules = (p: SVGProps<SVGSVGElement>) => (
@@ -304,7 +280,7 @@ export const IconArchive = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-/** Rules: a funnel — what the packagizer and the link filter do to a list. */
+/** Rules: a funnel, which is what the packagizer and the link filter do to a list. */
 export const IconFilter = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
     <path d="M3 4.5h14l-5.4 6.2v5.1l-3.2 1.7v-6.8Z" />
@@ -330,15 +306,8 @@ export const IconClock = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-/**
- * Events: a bell, for the sidebar's own notification log.
- *
- * Filled, like every glyph in this file, and not the hollow outline a bell is
- * usually drawn as - see this file's own opening note on why a line-drawn icon
- * sits at the wrong weight beside the filled badges around it. The clapper is a
- * separate shape rather than a notch carved out of the body: it reads as the
- * part that moves, which is what makes a bell a bell at 22px.
- */
+/** Events: a bell, for the sidebar's notification log. The clapper is a
+ *  separate shape, which is what makes it read as a bell at 22px. */
 export const IconBell = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
     <path d="M10 2a1 1 0 0 1 1 1v.6a4.9 4.9 0 0 1 3.9 4.8v2.4l1.1 2a.75.75 0 0 1-.65 1.1H4.65A.75.75 0 0 1 4 12.8l1.1-2V8.4A4.9 4.9 0 0 1 9 3.6V3a1 1 0 0 1 1-1Z" />
@@ -366,27 +335,10 @@ export const IconLock = (p: SVGProps<SVGSVGElement>) => (
 );
 
 /**
- * The second factor: a shield with a check carved out of it.
- *
- * It is the glyph GlimStone 2.1.0 names for this capability, and it is on the
- * button that STARTS the enrolment rather than beside the card's title, because
- * that rule is what makes the glyph load-bearing: the second factor's button and
- * the passkey's now read the same word, so the mark is the only thing telling
- * them apart, and it is picked from the meaning of the capability rather than
- * from the verb they share.
- *
- * NOT IconLock, although a padlock is the obvious drawing for "a protection".
- * The padlock is the settings rail's own glyph for this page (registry.tsx), one
- * column to the left of this button and lit while somebody is reading it - so
- * the button would repeat the page's mark and say nothing the title has not
- * already said.
- *
- * THE CHECK IS NOT DECORATION EITHER, and this is where the app's own identity
- * comes in: KnightLoader's mark IS a shield. A plain one at this size would be a
- * small monochrome copy of the logo sitting in the rail two columns away. The
- * carved check is what makes it a verification glyph instead - a different
- * silhouette, and the one gap in the fill is deep enough to survive 22px.
- * Checked at that size before it shipped, not reasoned about.
+ * The second factor: a shield with a check carved out (GlimStone 2.1.0). It
+ * sits on the enrolment button, whose label matches the passkey's, so the
+ * glyph tells them apart. Not IconLock, which is this page's own rail glyph.
+ * The check keeps it from reading as a copy of KnightLoader's shield logo.
  */
 export const IconShieldCheck = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
@@ -421,13 +373,8 @@ export const IconDiagnostics = (p: SVGProps<SVGSVGElement>) => (
 /** Help: a question mark, same circle radius as Schedule's clock and Connections' globe. */
 export const IconHelp = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
-    {/* One path, not a circle plus a separate glyph path (jdp: "Hilf icon
-        ist ein runder Kreis ohne icon") - as two currentColor-filled
-        siblings the "?" sat directly on top of the identically-coloured
-        circle and was invisible. Combined into one evenodd path, the same
-        technique IconWarning already uses, so the "?"'s own sub-path
-        actually carves through the circle instead of just repainting the
-        same colour over it. */}
+    {/* One evenodd path, so the "?" is carved out of the circle; as a separate
+        shape in the same colour it would be invisible. */}
     <path
       fillRule="evenodd"
       clipRule="evenodd"
@@ -437,8 +384,8 @@ export const IconHelp = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-/** Scripts (Wave 11B): angle brackets, the one glyph that reads as "code" at
- *  16px without also reading as a browser tab or a terminal window. */
+/** Scripts: angle brackets, which read as "code" at 16px without looking like
+ *  a browser tab or a terminal. */
 export const IconCode = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
     <path d="M7.9 5.3 2.6 10l5.3 4.7 1.3-1.5L5.4 10l3.8-3.2Z" />
@@ -454,12 +401,8 @@ export const IconClipboard = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-/**
- * "Open natively" (desktop only): a small app window, distinct from
- * IconExternalLink's arrow-leaving-a-box, which already means "goes to a
- * website" (Buy Premium/Renew). This one means "hands off to another
- * application on this machine".
- */
+/** "Open natively" (desktop only): an app window, handing off to another
+ *  application on this machine. IconExternalLink means "goes to a website". */
 export const IconApp = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
     <rect x="3.5" y="4.5" width="13" height="11" rx="1.5" opacity=".3" />
@@ -467,13 +410,7 @@ export const IconApp = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-/**
- * Remote access's loud warning (build-plan.md's Wave 11 amendment on 11C): a
- * triangle with an exclamation mark, the one glyph this app has no quieter
- * equivalent of on purpose. The mark itself is carved out of the solid
- * triangle with fillRule="evenodd" rather than drawn as a second shape, so it
- * reads correctly regardless of whatever sits behind the icon.
- */
+/** A warning triangle with the "!" carved out, for remote access's loud warning. */
 export const IconWarning = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
     <path
@@ -484,27 +421,18 @@ export const IconWarning = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-/** API tokens: a key, distinct from IconLock's padlock (the shared
- *  password) by shape alone, the same distinction the two credentials
- *  themselves keep. */
+/** API tokens: a key, as distinct from IconLock's padlock (the shared
+ *  password) as the two credentials are. */
 export const IconKey = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
-    {/* Redrawn horizontal (jdp, 2026-08-27: "Angelegte API Token haben ein
-        ganz komisches icon"). The previous one was a diagonal key assembled
-        from three rotate(-45) rectangles, and rotated rectangles are what
-        made it look broken rather than stylised: at the sizes this renders
-        at, their corners land between pixels, so the shaft arrived visibly
-        wobbly and the two teeth as detached specks. Flat geometry on whole
-        coordinates instead - a ring, a straight shaft, two teeth pointing
-        down - which is also how every other glyph in this file is built. */}
+    {/* Horizontal on whole coordinates: rotated shapes land between pixels at
+        this size and look broken. */}
     <path d="M6.5 6a4 4 0 1 0 0 8 4 4 0 0 0 0-8Zm0 2.4a1.6 1.6 0 1 1 0 3.2 1.6 1.6 0 0 1 0-3.2Z" />
     <path d="M10.2 9h7.3v2h-1.3v2.4h-2V11h-1.2v2.4h-2V11h-.8V9Z" />
   </svg>
 );
 
-/** Keyboard shortcuts: a keyboard's own outline with a row of keys and a
- *  spacebar, distinct from IconKey's API-token key by shape and by idea -
- *  nothing here is a credential. */
+/** Keyboard shortcuts: a keyboard with a row of keys and a spacebar. */
 export const IconKeyboard = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
     <rect x="2.5" y="5.5" width="15" height="9" rx="1.5" opacity=".3" />
@@ -518,10 +446,8 @@ export const IconKeyboard = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-/** The menu/hamburger trigger: three horizontal filled bars, always exactly
- *  three, never a sliders/equalizer glyph standing in for it (GlimStone's
- *  own rule - the two read as different controls, "adjust a value" vs "open
- *  a menu", to anyone who has seen either convention before). */
+/** The menu trigger: three bars. Never a sliders glyph, which means "adjust a
+ *  value" (GlimStone's rule). */
 export const IconMenu = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
     <rect x="3" y="5" width="14" height="2" rx="1" />
@@ -530,10 +456,7 @@ export const IconMenu = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-/** System: the standard power glyph, for the page that quits/restarts the
- *  process and backs up or restores its data - shipped without an icon
- *  originally ("does not yet warrant inventing a new glyph"); every settings
- *  tab has one, no exceptions (GlimStone's own rule). */
+/** System: the power glyph, for the page that quits, restarts, backs up and restores. */
 export const IconPower = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
     <path
@@ -544,10 +467,8 @@ export const IconPower = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-/** Browser tools: a browser window (chrome bar + three window-control dots),
- *  for the page that hands out the bookmarklet, the extension and the PWA
- *  install step - the same "shipped without one" gap IconPower's own doc
- *  comment explains. */
+/** Browser tools: a browser window, for the page with the bookmarklet, the
+ *  extension and the PWA install. */
 export const IconBrowser = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
     <rect x="2.5" y="3.5" width="15" height="13" rx="1.5" opacity=".3" />
@@ -571,18 +492,9 @@ export const IconCoffee = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-/** GitHub's own mark, for the button that goes there.
- *
- *  The one third-party logo in this set, and deliberately so: a logo is
- *  recognised or it is not, and the drawn-here bug it replaced was a picture of
- *  "a problem" standing in for a picture of "GitHub" (jdp, 2026-09-01). The
- *  button says GitHub and nothing else, so the mark is doing the work the verb
- *  used to.
- *
- *  Scaled rather than redrawn: GitHub publish the mark on a 16 viewBox and this
- *  set draws on 20, so the group carries the 1.25 instead of every coordinate
- *  being multiplied by hand into numbers nobody could check against the
- *  original. */
+/** GitHub's mark, the one third-party logo in this set, for the button that
+ *  goes there. Published on a 16 viewBox, so the group scales it by 1.25
+ *  instead of rewriting its coordinates. */
 export const IconGithub = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
     <g transform="scale(1.25)">
@@ -601,19 +513,7 @@ export const IconMail = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-// --- The right-click menu's own glyphs -------------------------------------
-//
-// The seven below arrive here from ListToolbar.tsx, which drew its own private
-// copies while this file "belonged to another lane" (its own comment said so)
-// and drew most of them as <path stroke> outlines. That is the one thing this
-// file forbids, and it showed: a line-drawn chevron beside the filled trash and
-// the filled play arrow in the same menu reads as a different weight of icon,
-// which is exactly what jdp asked to have fixed ("Rechtsklick menü soll auch
-// glyphen bekommen (siehe GS)"). Redrawn as solid shapes and moved here so
-// there is one copy per idea rather than one per file: PackageActions.tsx and
-// Collector.tsx had grown their own filled twins of two of them in the
-// meantime, and three drawings of one glyph drift apart the first time one of
-// them is touched.
+// The context menu's glyphs, kept here so there is one drawing per idea.
 
 /** Force start: a lightning bolt, "now" rather than "sooner". */
 export const IconBolt = (p: SVGProps<SVGSVGElement>) => (
@@ -622,9 +522,7 @@ export const IconBolt = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-/** The fold twisty, as a solid wedge rather than a stroked V: at the 14px the
- *  menu renders glyphs at, a 1.7px stroke is thinner than every other mark in
- *  the same column and the row reads as if its icon were missing. */
+/** The fold twisty, a solid wedge: a stroked V at 14px looks like a missing icon. */
 export const IconChevronDown = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
     <path d="M10 13.4 3.6 7l1.7-1.7L10 10l4.7-4.7L16.4 7 10 13.4Z" />
@@ -637,20 +535,16 @@ export const IconChevronUp = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-/** Hold/release: a pushpin, drawn upright rather than at the usual 45 degrees.
- *  A rotated pin lands its corners between pixels at this size, the same
- *  failure IconKey's own comment above records for its old diagonal shaft. */
+/** Hold/release: a pushpin, upright because a rotated one lands between pixels
+ *  at this size. */
 export const IconPin = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
     <path d="M6 2.5h8v2h-1.8v4.5l2.8 2v1.6h-4.3v3.9L10 18l-.7-1.5v-3.9H5V11l2.8-2V4.5H6Z" />
   </svg>
 );
 
-/** Queue priority: three descending bars, the wait order seen side-on, which is
- *  all a priority is. Deliberately not an arrow - the two one-step moves beside
- *  it in the menu already own the arrows, and priority is not a step. The bars
- *  are thin FILLED rects, the way this file's header asks a line-like detail to
- *  be drawn. */
+/** Queue priority: three descending bars. Not an arrow, since the one-step
+ *  moves beside it in the menu use arrows. */
 export const IconPriority = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
     <rect x="4" y="4.7" width="12" height="1.6" rx=".8" />
@@ -659,9 +553,8 @@ export const IconPriority = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-/** The stop mark: a flag planted in the list, meaning the queue runs up to here
- *  and stops. A pennant rather than a rectangle so it is not mistaken for
- *  IconStop's square at a glance. */
+/** The stop mark: a flag where the queue stops. A pennant, so it is not
+ *  mistaken for IconStop's square. */
 export const IconStopMark = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
     <rect x="4.4" y="2.5" width="1.8" height="15" rx=".9" />
@@ -669,11 +562,8 @@ export const IconStopMark = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-/** "Remove and delete the files": IconTrash's own body with two slits carved
- *  through it (fillRule="evenodd", the technique IconWarning's "!" uses), a bin
- *  whose contents are visibly gone. Removing the rows and erasing the bytes are
- *  different acts with very different regret profiles, so they never share a
- *  glyph. */
+/** "Remove and delete the files": IconTrash with two slits carved through it.
+ *  Erasing files is a different act from removing rows, so it gets its own glyph. */
 export const IconTrashFiles = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
     <rect x="8" y="2" width="4" height="2" rx="1" />
@@ -689,30 +579,11 @@ export const IconTrashFiles = (p: SVGProps<SVGSVGElement>) => (
 );
 
 /**
- * PriorityGlyph draws one rung of the queue's priority ladder: filled triangles
- * pointing the way that rung moves a download, one per step away from default,
- * and a single flat bar for default itself.
- *
- * Lives here rather than in ListToolbar, where it was written, because the
- * download list draws the SAME rung on every row (jdp, 2026-09-07: "die
- * symbole sollen die gleichen sein wie im rechtsklickmenü") and two drawings
- * of one ladder are two drawings that drift apart.
- *
- * jdp: "im priorität menü fehlen glyphen." The gutter was left empty there on
- * purpose, because that column was carrying the tick for the priority the
- * selection already sits at, and a glyph in it would have buried the one thing
- * the submenu has to answer. Both fit once they stop sharing a column: the
- * glyph names what the row IS, on the left, and which row is IN FORCE is said
- * at the other end of the row instead - full ink plus a trailing tick, which is
- * what MenuItem.checked paints. Neither has to be given up.
- *
- * Triangles rather than arrows, and the count rather than the size, for the
- * same reason IconPriority is not an arrow: the four entries one submenu away
- * own the arrows, and those move a task one place, while this puts it on a
- * rung. Three stacked wedges read as "as far as it goes" at 14px where three
- * lengths of one arrow do not. The rung is read off the server's own value
- * (-3..3, clamped), not off the id, so a ladder that renames its steps or
- * offers fewer of them still draws.
+ * PriorityGlyph draws one rung of the priority ladder: one filled triangle per
+ * step away from default, pointing the way the rung moves a download, and a
+ * flat bar for default. The context menu and the download list both use it.
+ * Triangles rather than arrows, since arrows mean a one-place move. The rung
+ * comes from the server's value (-3..3, clamped), not from the id.
  */
 export function PriorityGlyph({ steps }: { steps: number }) {
   const n = Math.min(3, Math.abs(steps));
@@ -742,14 +613,8 @@ export function PriorityGlyph({ steps }: { steps: number }) {
   );
 }
 
-/**
- * IconGrip is the handle you take hold of to drag a row.
- *
- * Two columns of dots, the convention every list-reordering handle uses, so it
- * needs no label to be recognised as "pick this up". Drawn at 14x16 rather than
- * the icon set's usual 20x20 square: a grip is taller than it is wide, because
- * what it affords is vertical.
- */
+/** IconGrip is the drag handle of a row: two columns of dots, taller than wide
+ *  because the drag is vertical. */
 export function IconGrip(p: SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 8 12" fill="currentColor" aria-hidden focusable="false" {...p}>
@@ -760,19 +625,8 @@ export function IconGrip(p: SVGProps<SVGSVGElement>) {
   );
 }
 
-/**
- * IconShield is the bare shield: the same silhouette IconShieldCheck carves its
- * check out of, with nothing carved out of it.
- *
- * It exists for the parade (lib/toast.tsx), where a row of these sweeps a
- * bubble that closes a package of many files. At the 10px that row draws them
- * at, the carved check in IconShieldCheck closes into a grey smudge and the two
- * glyphs become the same drawing badly - so the small one is its own path
- * rather than the big one scaled down. The outline is shared BY COPY of the
- * single `d` that draws it, deliberately: an icon file whose glyphs reference
- * each other's path data is one where a nudge to the shield's shoulder silently
- * redraws every mark built on it.
- */
+/** IconShield is IconShieldCheck's silhouette without the check, for the
+ *  parade in lib/toast.tsx: at 10px the carved check would blur. */
 export const IconShield = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
     <path d="M10 2.7 4 4.8v5.7c0 2.9 2.4 5.4 6 6.4 3.6-1 6-3.5 6-6.4V4.8L10 2.7Z" />

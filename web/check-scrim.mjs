@@ -2,60 +2,49 @@
 //
 // GlimStone 1.11.0 made the scrim `--glim-scrim`, spent by one class,
 // `.glim-modal-backdrop`. Every element that floats a window carries that class
-// and paints no ground of its own. This repo reached that release with the value
-// typed instead: both of the web UI's floating windows, the command palette and
-// the Modal that sixteen call sites open, sat on a hand-written `bg-black/50`.
-// That is a strength the language does not use anywhere. It asks for .65 on a
-// dark ground and .55 on a light one, and at .50 the card in front and the page
-// behind sit close enough in value that the eye keeps reading the page, which is
-// the one thing a scrim exists to stop. The release itself was written after the
-// same drift was found in another app, where four scrims stood at two different
-// strengths with nothing in that codebase able to notice.
+// and paints no ground of its own. Both of this UI's floating windows, the
+// command palette and the Modal that sixteen call sites open, sat on a
+// hand-written `bg-black/50` instead, a strength the language uses nowhere: it
+// asks for .65 on a dark ground and .55 on a light one, and at .50 the card in
+// front and the page behind sit close enough in value that the eye keeps
+// reading the page, which is what a scrim exists to stop.
 //
-// WHY A SCRIPT AND NOT A PARAGRAPH. There was no shortage of paragraphs. The
-// token table has carried the rule since 1.11.0, and index.css now carries a
-// block above the class saying "no bg-black/50, no second number a component
-// invented for itself". A paragraph in the stylesheet is read by somebody
-// editing the stylesheet. The person who types the number is adding a dialog in
-// a component file, and they get the number the way both of this repo's scrims
-// got it, by copying the class list off the window next to it. A value that
-// arrives by copy is invisible to review as well, because the reviewer reads the
-// new file and finds it agreeing with the old one. Nothing in that path passes
-// the stylesheet, so nothing in that path meets the note.
+// A paragraph in the stylesheet is read by somebody editing the stylesheet,
+// while the person who types the number is adding a dialog in a component file
+// and gets it the way both of these scrims got it, by copying the class list
+// off the window next to it. A value that arrives by copy is invisible to
+// review too, since the reviewer reads the new file and finds it agreeing with
+// the old one.
 //
-// WHAT IT ASKS OF A LAYER. A class list that is `fixed inset-0` and lays its
-// child out (flex or grid) is floating a window, and it has to carry
-// `glim-modal-backdrop`. Any `fixed inset-0` class list at all, laying out or
-// not, is forbidden a black wash of its own, because a full viewport black over
-// the page IS the scrim however the element is arranged, including the shape
-// where the wash is one div and the card is its sibling.
+// What it asks of a layer: a class list that is `fixed inset-0` and lays its
+// child out (flex or grid) is floating a window and has to carry
+// `glim-modal-backdrop`. Any `fixed inset-0` class list, laying out or not, is
+// refused a black wash of its own, because a full viewport black over the page
+// is the scrim however the element is arranged, the shape where the wash is one
+// div and the card its sibling included.
 //
-// WHAT IT DELIBERATELY LEAVES ALONE. A `fixed inset-0` layer that holds no
-// window is asked for nothing. The click-outside catcher behind an open menu is
-// the usual one, a transparent full viewport div whose whole job is to receive
-// one click, and it is right that it paints nothing and carries no class. So is
-// a `pointer-events-none` layer, which cannot be the ground behind a window
-// because the ground behind a window is the thing you click to dismiss it. Both
-// are skipped by the flex-or-grid test rather than by a list of exceptions,
-// which is why there is no list of exceptions to keep current.
+// Left alone: a `fixed inset-0` layer that holds no window. The click-outside
+// catcher behind an open menu is the usual one, a transparent full viewport div
+// whose job is to receive one click, and it rightly paints nothing. So is a
+// `pointer-events-none` layer, which cannot be the ground behind a window,
+// since that ground is the thing you click to dismiss it. Both fall out of the
+// flex-or-grid test rather than out of a list of exceptions.
 //
-// WHAT IT DOES NOT SEE. Anything painted from JavaScript, which covers
-// `style={{ background: … }}` and a colour assembled at runtime. Anything
-// outside web/src, so dist/ and a scrim shipped inside a dependency are both
-// past it. The window itself: the card's surface, its arrival and its z-order
-// are somebody else's subject, this one is only the ground. And, exactly as in
-// check-hover-ramp, a class list split across two literals joined with `+` is
-// read as two, so a float in one half and its ground in the other slips through.
+// Not seen: anything painted from JavaScript, which covers
+// `style={{ background: … }}` and a colour assembled at runtime; anything
+// outside web/src, so dist/ and a scrim inside a dependency are past it; the
+// window itself, whose surface, arrival and z-order are another subject; and,
+// as in check-hover-ramp, a class list split across two literals joined with
+// `+`, so a float in one half and its ground in the other slips through.
 //
-// THE STYLESHEET HALF IS READ WITH COMMENTS MASKED, and that is load-bearing
-// here rather than tidiness. index.css's own commentary quotes the literal text
-// `.glim-modal-backdrop { background: var(--glim-scrim) }` while explaining
-// where the fade belongs. A check that grepped the raw file would keep reporting
-// that the rule is present after the rule itself was deleted, standing green
-// over the one failure it exists to catch. The same masking is what stops the
-// component half accusing a comment that quotes a bad class list as an example.
+// The stylesheet half is read with comments masked. index.css's own commentary
+// quotes the literal text `.glim-modal-backdrop { background: var(--glim-scrim) }`
+// while explaining where the fade belongs, and a check that grepped the raw file
+// would report the rule as present after the rule itself was deleted. The same
+// masking stops the component half accusing a comment that quotes a bad class
+// list as an example.
 //
-// Run by hand or from CI: `node web/check-scrim.mjs`.
+// Run: `node web/check-scrim.mjs`.
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -72,9 +61,8 @@ const LAYS_OUT = /(?<![\w-])(?:flex|grid)(?![\w.-])/;
 const UNCLICKABLE = /(?<![\w-])pointer-events-none(?![\w.-])/;
 const BACKDROP = 'glim-modal-backdrop';
 /**
- * A black wash written by hand. `bg-black/50` is the spelling this repo used,
- * and the arbitrary-value forms are here because the first answer to being
- * stopped is to write the same number a way the check does not read.
+ * A black wash written by hand, `bg-black/50` and the arbitrary-value spellings
+ * of the same colour.
  */
 const TYPED_GROUND =
   /(?<![\w-])bg-black(?:\/[\w.[\]]+)?|(?<![\w-])bg-\[[^\]]*(?:rgba?\(\s*0\s*,\s*0\s*,\s*0|#000|black)[^\]]*\]/;
@@ -107,7 +95,7 @@ function sources(dir) {
 const QUOTED = /'(?:[^'\\\n]|\\.)*'|"(?:[^"\\\n]|\\.)*"/g;
 const TEMPLATE = /`(?:[^`\\]|\\.)*`/g;
 
-/** Every piece of text that is ONE class list, with where it starts. */
+/** Every piece of text that is one class list, with where it starts. */
 function classLists(text) {
   const pieces = [];
   for (const found of text.matchAll(QUOTED)) pieces.push([found[0], found.index]);
@@ -164,9 +152,9 @@ if (overlays === 0) {
   process.exit(1);
 }
 
-// --- The stylesheet half: the class has to spend the token, and the token has
-// --- to be answered by every theme, or one of them falls back to another
-// --- theme's darkness and a light page opens under a blackout.
+// The stylesheet half: the class spends the token, and every theme answers it,
+// or one of them borrows another theme's darkness and a light page opens under
+// a blackout.
 const cssPath = join(src, 'index.css');
 const css = maskComments(readFileSync(cssPath, 'utf8'));
 

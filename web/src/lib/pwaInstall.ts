@@ -1,19 +1,8 @@
 import { useEffect, useState } from 'react';
 
-/**
- * The install prompt, captured once and shared by every component that might
- * offer an "Install" button — the settings page here (BrowserTools.tsx) and,
- * per build-plan.md section 8's Wave 11 note on 11C/11D, the Remote access
- * page 11C builds, which is where this install action is meant to actually
- * live once that page exists.
- *
- * `beforeinstallprompt` fires once, early, and only if nothing has called
- * `.preventDefault()` on it and then never used it does the browser fall
- * back to its own install affordance — so the event has to be caught at the
- * module level the moment the app loads, not inside whichever component
- * happens to mount later and ask for it. A second caller before this file
- * existed would just miss the event entirely.
- */
+// The install prompt, captured once at module load and shared by every
+// component that offers an "Install" button. beforeinstallprompt fires once,
+// early, so a component mounting later would miss it.
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
@@ -33,10 +22,8 @@ if (typeof window !== 'undefined') {
     deferred = e as BeforeInstallPromptEvent;
     notify();
   });
-  // Fires on Chrome/Edge once the install actually completes, including via
-  // the browser's own omnibox icon rather than this page's button — without
-  // this a button offering to install an already-installed app is stale
-  // until the next full reload.
+  // Also fires when the app was installed from the browser's own address-bar
+  // icon, so the button disappears without a reload.
   window.addEventListener('appinstalled', () => {
     installed = true;
     deferred = null;
@@ -45,12 +32,9 @@ if (typeof window !== 'undefined') {
 }
 
 /**
- * useInstallPrompt reports whether the browser is currently offering to
- * install this app, and a function to trigger that install.
- *
- * `available` is false on a browser that never fires the event (Firefox,
- * Safari) and once already installed — both are the correct state for a
- * caller to hide the button in, not an error to surface.
+ * useInstallPrompt reports whether the browser offers to install the app, and
+ * a function that triggers it. `available` is false in Firefox and Safari,
+ * which never fire the event, and once installed.
  */
 export function useInstallPrompt(): { available: boolean; promptInstall: () => Promise<boolean> } {
   const [, setTick] = useState(0);
@@ -67,9 +51,7 @@ export function useInstallPrompt(): { available: boolean; promptInstall: () => P
     promptInstall: async () => {
       if (!deferred) return false;
       const capture = deferred;
-      // Single-use: the browser discards a prompted event whether the answer
-      // was yes or no, and holding onto a stale reference would call .prompt()
-      // a second time on an event that can no longer show anything.
+      // The event can only be prompted once, whatever the answer.
       deferred = null;
       notify();
       await capture.prompt();

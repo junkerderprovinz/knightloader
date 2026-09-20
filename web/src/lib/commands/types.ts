@@ -1,15 +1,7 @@
-// The command registry core — build-plan.md's Wave-1D note locks the Command
-// shape verbatim ("Fix the command-record type … and the useCommands(surface,
-// ctx) hook. Every wave registers its commands as it builds them; if waves
-// 1–11 keep writing inline onClick, the Wave 12 customiser cannot be built at
-// all") and 12.12 repeats why: this is one of exactly two things in the whole
-// plan that are retrofit-impossible, so it is built once here and every other
-// surface's own command file (commands/downloads.ts, commands/collector.ts, …)
-// is additive from this point on, never a redesign.
-//
-// One aggregator (ALL_COMMANDS below), one hook (useCommands) that both the
-// command palette and the keyboard dispatcher read — so "what can I do right
-// now" has exactly one answer, never two lists that quietly disagree.
+// The command registry: one list of commands (ALL_COMMANDS) and one hook
+// (useCommands) that both the command palette and the keyboard dispatcher
+// read, so "what can I do right now" has a single answer. Each surface adds its
+// commands in its own file.
 
 import { useMemo, type ComponentType } from 'react';
 import { useNavigate, type NavigateFunction } from 'react-router-dom';
@@ -28,18 +20,7 @@ import { queueCommands } from './queue';
 import { settingsCommands } from './settings';
 import { languageCommands } from './language';
 
-/**
- * Which page(s)/contexts show a command. 'global' commands are visible on
- * every surface — see useCommands below, which is where that rule actually
- * lives.
- *
- * 'overview' is not one of the six build-plan.md's own Wave-1D note names as
- * the minimum, but Dashboard.tsx is exactly as real a routed page as the
- * other five and a future wave giving it its own commands should not have to
- * reopen this union to do it — cheap to add now, the same reasoning
- * build-plan.md gives for fixing this type in Wave 1 at all rather than
- * leaving it for Wave 12.
- */
+/** Where a command is offered. 'global' commands appear on every surface. */
 export type CommandSurface =
   | 'global'
   | 'overview'
@@ -50,26 +31,14 @@ export type CommandSurface =
   | 'settings';
 
 /**
- * Everything a command's enabled()/visible()/run() genuinely need, built
- * from hooks every page already has rather than invented for this file:
- * useNavigate() (react-router), useInstanceScope() (lib/instance.tsx),
- * useTasks(instance) (lib/useTasks.ts) and useListView() (lib/listview.ts —
- * the exact seam the shell's own overview strip already uses to learn a
- * page's Visible/Selected without that page prop-drilling it up). Reusing
- * that seam here rather than inventing a second one means a command's idea
- * of "the selection" can never drift from what the strip beside it is
- * already showing.
- *
- * useCommandContext() below assembles exactly this. Call it once per
- * mounting component (the keyboard dispatcher, the palette) and pass the
- * result down — each call opens its own task subscription
- * (lib/api.ts's connectWS has "no shared multiplexer yet", its own words),
- * so two independent call sites cost two sockets, the same tradeoff this
- * app already accepts at half a dozen other call sites (CaptchaModal,
- * IdleActionBanner, StatusStrip, useTasks itself).
+ * What a command's enabled(), visible() and run() get, assembled by
+ * useCommandContext from hooks the pages already use. The selection comes
+ * from lib/listview.ts, the same source the shell's overview strip reads, so
+ * the two cannot disagree. Every call opens its own task subscription, so
+ * build it once per mounting component and pass it down.
  */
 export interface CommandContext {
-  /** Which surface asked — the same value passed to useCommands(). */
+  /** Which surface asked; the value passed to useCommands(). */
   surface: CommandSurface;
   navigate: NavigateFunction;
   /** '' is this instance; see lib/instance.tsx's InstanceScope. */
@@ -82,42 +51,30 @@ export interface CommandContext {
   selection: string[];
   /** Ids currently visible on that same list, after its own search/filters. Empty where no list is. */
   visible: string[];
-  /**
-   * Replaces the selection on whichever list published a
-   * CommandPageContext (lib/commands/pageContext.ts) — the identical
-   * `setSelected` its own toolbar button calls. A no-op where no page has
-   * published one.
-   */
+  /** Replaces the selection on the page that published a CommandPageContext.
+   *  A no-op where none did. */
   setSelection: (next: Set<string>) => void;
-  /**
-   * That page's own `removal.removeNow` (ListToolbar.tsx's useRemoval),
-   * published the same way — never a raw `deleteTasks`, so a command's
-   * removal gets the same toast and cleared selection the strip's own
-   * Remove button gets. A no-op where no page has published one.
-   */
+  /** The page's own removal, so a command gets the same toast and cleared
+   *  selection as the toolbar button. A no-op where no page published one. */
   removeSelected: (ids: string[]) => void;
-  /**
-   * That page's own clean-up flow (ListToolbar.tsx's useCleanup), narrowed
-   * to what a command needs: which classes the server actually offers, and
-   * the same `preview()` the "Clean up" menu's own entries call. `classes`
-   * is null wherever no page has published one, or has not loaded them yet
-   * — either way, nothing this build calls "finished" et al. against it.
-   */
+  /** The page's clean-up flow: the classes the server offers (null until
+   *  known or when no page published one) and the same preview() the "Clean
+   *  up" menu calls. */
   cleanup: {
     classes: CleanupClass[] | null;
     preview: (cls: CleanupClass) => void;
   };
-  /** That page's own file-picker trigger (pageContext.ts's own doc comment). A no-op where no page has published one. */
+  /** The page's file-picker trigger. A no-op where no page has published one. */
   openFilePicker: () => void;
-  /** That page's own search-panel toggle (pageContext.ts's own doc comment). A no-op where no page has published one. */
+  /** The page's search-panel toggle. A no-op where no page has published one. */
   toggleSearch: () => void;
   /** The same t() the page itself renders with, for a run() that builds a toast sentence. */
   t: (key: TranslationKey, vars?: Record<string, string | number>) => string;
   /** A result banner without a command needing its own toast plumbing. */
   toast: (message: string, tone?: ToastTone) => void;
-  /** This instance's master switch (QueueBar.tsx's own useQueueControl). Null before the first fetch answers. */
+  /** This instance's master switch (QueueBar.tsx's useQueueControl). Null before the first fetch answers. */
   queue: QueueState | null;
-  /** QueueBar's own toggle — the same function its button calls, never a second `setQueue`. */
+  /** The same toggle QueueBar's button calls. */
   toggleQueue: () => void;
 }
 
@@ -126,29 +83,14 @@ export interface Command {
   id: string;
   labelKey: TranslationKey;
   icon?: ComponentType<{ className?: string }>;
-  /**
-   * Palette grouping, e.g. "Downloads" — but see this codebase's own i18n
-   * rule (lib/locales/en.ts is the compile-time source of truth; nothing
-   * hardcodes English past it). `group` is typed `string` here because the
-   * Command shape is locked verbatim from build-plan.md's Wave-1D note, not
-   * because a raw English label belongs in it — every command below sets it
-   * to a real TranslationKey string ("commands.group.navigation") rather
-   * than literal text, so the palette can render `t(cmd.group as
-   * TranslationKey)` and stay in the same i18n contract as everything else
-   * in this app. Follow that convention in every later surface file: reuse
-   * an existing commands.group.* key or add one, never a bare English word.
-   */
+  /** Palette grouping, given as a translation key such as
+   *  "commands.group.navigation", never as English text. */
   group: string;
   surfaces: CommandSurface[];
   /**
-   * e.g. "mod+k" — "mod" is Cmd on Mac, Ctrl elsewhere. See shortcuts.ts.
-   *
-   * A binding that includes "mod" fires everywhere, including while typing
-   * in a text field; one that does not is suppressed while focus is inside
-   * an input/textarea/contenteditable. See CommandDispatcher.tsx's own doc
-   * comment for the reasoning — that rule lives there, not here, since it
-   * is the dispatcher's decision to make each time it matches a keystroke,
-   * not a property of the command record itself.
+   * e.g. "mod+k", where "mod" is Cmd on Mac and Ctrl elsewhere (see
+   * shortcuts.ts). A binding with "mod" also fires while typing in a field;
+   * CommandDispatcher.tsx suppresses the others there.
    */
   defaultShortcut?: string;
   enabled: (ctx: CommandContext) => boolean;
@@ -156,16 +98,7 @@ export interface Command {
   run: (ctx: CommandContext) => void | Promise<void>;
 }
 
-/**
- * Every command this app has, across every surface.
- *
- * One array, appended to as each surface's own file lands — the same shape
- * pages/settings/registry.tsx's PAGES map already uses for exactly this
- * reason: a later wave adds a file, then one import and one spread here,
- * rather than a second registry that can drift from this one. Nothing else
- * may hold its own second command list; the palette and the keyboard
- * dispatcher both read this exclusively through useCommands() below.
- */
+// Every command in the app. A new surface adds one import and one spread here.
 const ALL_COMMANDS: Command[] = [
   ...GLOBAL_COMMANDS,
   ...queueCommands,
@@ -176,18 +109,10 @@ const ALL_COMMANDS: Command[] = [
 ];
 
 /**
- * useCommands is what both the palette and the keyboard dispatcher read: the
- * commands live right now, already filtered by visible(ctx) and sorted by
- * group then id — so two callers evaluating the same (surface, ctx) can
- * never render two different orders either.
- *
- * A 'global' command is included for every surface, which is what makes
- * mod+k for the palette itself work no matter which page is open. This
- * does NOT filter by enabled(ctx): a command that is visible but currently
- * disabled still belongs in the palette's list (greyed out, so its
- * shortcut has an answer for why it did nothing) — enabled() is the
- * dispatcher's and the palette's own call to make at the moment a command
- * is actually invoked, not a reason to hide it.
+ * useCommands returns the commands live on a surface, filtered by
+ * visible(ctx) and sorted by group then id. Global commands are included
+ * everywhere. It does not filter by enabled(ctx): a disabled command still
+ * shows in the palette, greyed out, so its shortcut has an explanation.
  */
 export function useCommands(surface: CommandSurface, ctx: CommandContext): Command[] {
   return useMemo(
@@ -199,35 +124,24 @@ export function useCommands(surface: CommandSurface, ctx: CommandContext): Comma
   );
 }
 
-/**
- * useCommandContext assembles a CommandContext from this app's existing
- * hooks — see this file's own doc comment on CommandContext for which ones,
- * and for the one-subscription-per-call-site cost of calling this more than
- * once. `surface` is not read from the route here on purpose: a component
- * mounted once at the top of the tree (the keyboard dispatcher) has to
- * derive it from the current location itself, while a component that only
- * ever renders on one page can simply pass its own surface literal — this
- * hook does not privilege either caller.
- */
 const NO_CLEANUP = { classes: null, preview: () => {} };
 
+/**
+ * useCommandContext assembles a CommandContext. The caller passes `surface`:
+ * the dispatcher derives it from the route, a single-page component passes
+ * its own.
+ */
 export function useCommandContext(surface: CommandSurface): CommandContext {
   const navigate = useNavigate();
   const { instance, base } = useInstanceScope();
   const tasksById = useTasks(instance);
   const list = useListView();
-  // The command surface's own bridge (lib/commands/pageContext.ts) — what a
-  // downloads/collector-style page publishes beyond the read-only visibility
-  // lib/listview.ts already reports: the actual setSelected/removal/cleanup
-  // its own toolbar already calls. Null wherever no such page is mounted
-  // (Settings, Accounts, or no page at all).
+  // What a list page publishes beyond its visibility: setSelected, removal
+  // and cleanup. Null where no such page is mounted.
   const page = useCommandPageContext();
   const { toast } = useToast();
   const { t } = useT();
-  // The exact hook QueueBar.tsx's own switch is built on — see its doc
-  // comment. A command context that fetched the queue state its own way
-  // would risk answering a "is the queue halted" question with a second,
-  // possibly-stale opinion from the one QueueBar is actually showing.
+  // The hook QueueBar's switch uses, so both show the same queue state.
   const { queue, toggle: toggleQueue } = useQueueControl(base, instance);
 
   return useMemo(

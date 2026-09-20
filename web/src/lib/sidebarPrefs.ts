@@ -1,15 +1,6 @@
-// Which optional items the sidebar shows is a property of the document, not
-// of the settings route: the toggles live on their own settings tabs, but the
-// sidebar renders outside SettingsProvider's tree (it wraps the whole app,
-// settings is one route within it) and cannot read those pages' draft. Same
-// shape as appearance.ts's rainbow store, for the same reason - two
-// components that never meet in the tree, agreeing on one flag.
-//
-// Two flags now (jdp, 2026-08-27 asked for the Instanzen item to hide the way
-// Konten already could), kept in one keyed record rather than as a second
-// copy of every function below: the pair is identical in every respect except
-// the word, and two hand-mirrored stores are two places for the next one to
-// be forgotten.
+// Which optional sidebar items are hidden. A module-level store like the
+// rainbow state in appearance.ts: the toggles live on settings tabs, but the
+// sidebar renders outside SettingsProvider and cannot read their draft.
 import { useSyncExternalStore } from 'react';
 
 /** The sidebar items that can be switched off. */
@@ -22,14 +13,8 @@ const hidden: Record<HidableNavItem, boolean> = {
 
 const listeners = new Set<() => void>();
 
-/**
- * setHidden stores the new value and wakes the readers. Called from two
- * places per item: once on boot with whatever the server last saved, and
- * again the instant that tab's own toggle changes it - the second call is
- * what makes the sidebar item appear/disappear live, without the user having
- * to navigate away first (jdp, 2026-08-23: "Kontentab in der sidebar wird
- * nicht live ein und ausgeblendet").
- */
+/** setHidden stores the flag and wakes the readers: at boot with the saved
+ *  value, and when the toggle changes, so the item shows or hides at once. */
 export function setHidden(item: HidableNavItem, next: boolean): void {
   if (hidden[item] === next) return;
   hidden[item] = next;

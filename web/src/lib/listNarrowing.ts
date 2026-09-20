@@ -1,54 +1,25 @@
-// Everything that is currently narrowing one list, kept in the document the
-// rest of the interface's state already lives in.
+// Everything narrowing a list (the search, the quick filters, the collector's
+// facets), kept in lib/uistate.ts beside the column layout and sort order, so
+// leaving the page and coming back keeps a list cut down to eight rows.
 //
-// The search text, the quick filters and the collector's facets were three
-// useState calls spread over two pages. Walking to Settings and back put the
-// whole list straight back, which is mildly annoying with forty links and
-// genuinely expensive with four thousand: the eight rows somebody had cut the
-// list down to were gone, and the way back was to type the query again. The
-// column layout and the sort order already survive that walk through
-// lib/uistate.ts (`list.columns.${profile}`, `list.sort.${profile}`), so this
-// is a third field in a document that already exists: no new route, no new
-// table, no migration.
+// One field for all three, so applying a saved view is one write and one
+// render, without intermediate states reaching the overview strip.
 //
-// ONE field for all three, and that is the load-bearing decision here.
-// Applying a saved view is then a single write and a single render. Three
-// fields would be three writes, and the list would render through two mixed
-// states that were never true, each of which is published to the shell's
-// overview strip (lib/listview.ts), so the header's "Visible" figure would
-// count through two numbers nobody asked about on the way to the right one.
-//
-// Everything read back out of the document goes through sanitiseNarrowing()
-// first. That is not defensive padding. The document is server-held, is shared
-// between browsers, outlives the build that wrote it, and anything that can PUT
-// /api/uistate can put anything at all in it. Two of the ways a raw value gets
-// out of hand take the whole page down or strand it. See that function's own
-// traps.
+// What comes back out of the document goes through sanitiseNarrowing(): it is
+// shared between browsers, outlives the build that wrote it, and anything can
+// PUT into it.
 import { useCallback, useMemo } from 'react';
 import { useUIState } from './uistate';
 import { SEARCH_FIELDS, type SearchCategory, type SearchQuery } from './searchQuery';
 import type { QuickFilterId } from '../components/ListToolbar';
 import type { FacetSelection } from '../components/CollectorFacets';
 
-/**
- * Which list a stored narrowing belongs to: the same profile key
- * `list.columns.${profile}` and `list.sort.${profile}` already use.
- *
- * Spelled out here rather than imported from components/columns.tsx so that a
- * module about stored state does not have to reach into the table's own
- * definitions for one string union. The two are deliberately the same words.
- */
+/** Which list a stored narrowing belongs to, the same profile key the column
+ *  and sort fields use. */
 export type ListProfileKey = 'downloads' | 'collector';
 
-/**
- * Everything that narrows a list, in a shape JSON can hold.
- *
- * Sets become arrays, because a Set survives neither JSON.stringify on the way
- * out (it serialises as `{}`) nor JSON.parse on the way back. The Sets the
- * existing filter code wants are rebuilt from these arrays by the hook below,
- * once per change, the same way useCollapsedPackages rebuilds its own
- * (components/TaskList.tsx).
- */
+/** Everything that narrows a list, as JSON can hold it: arrays, since a Set
+ *  serialises as `{}`. The hook below rebuilds the Sets once per change. */
 export interface Narrowing {
   search: SearchQuery;
   /** In the profile's own filter order, de-duplicated. See sanitiseNarrowing. */
@@ -59,7 +30,7 @@ export interface Narrowing {
 /** One saved, named view. `id` is the identity, never the name. */
 export interface SavedView {
   id: string;
-  /** What the chip says. Renamed freely, which is exactly why it is not the id. */
+  /** What the chip says; it can be renamed, so it is not the id. */
   name: string;
   state: Narrowing;
 }
@@ -71,16 +42,9 @@ const NOTHING: Narrowing = {
 };
 
 /**
- * The stable "nothing is narrowing this list" value.
- *
- * TRAP: it has to be a module-level constant. useUIState leaves its `fallback`
- * out of the effect's dependencies on purpose (lib/uistate.ts), so an inline
- * `{ search: EMPTY_SEARCH, filters: [], … }` would be a new object on every
- * render, the effect would resubscribe on every render, and the page would
- * re-render for ever. components/TaskList.tsx's NO_COLLAPSED and
- * lib/dialogmute.ts's NONE both carry the same warning. Frozen so that a caller
- * that ever tried to edit it in place fails loudly instead of poisoning every
- * list at once.
+ * The stable "nothing is narrowing this list" value. A module constant, since
+ * an inline fallback to useUIState would be a new object each render and
+ * re-render forever. Frozen, so editing it in place fails loudly.
  */
 export const NO_NARROWING: Narrowing = Object.freeze(NOTHING);
 
@@ -90,13 +54,8 @@ export const NO_VIEWS: SavedView[] = [];
 /** True when this value is one of the categories the search parser knows. */
 function asCategory(raw: unknown): SearchCategory {
   if (raw === 'any') return 'any';
-  // TRAP: lib/searchQuery.ts's fieldOf is a switch over the non-'any'
-  // categories with no default branch, so an unknown category makes it return
-  // undefined, and `holds` then calls .toLowerCase() on it once per row. That
-  // is a TypeError raised inside the filter memo, which takes the whole page
-  // down rather than one row. It could not happen while the only writer was
-  // SearchField's own <select>; the moment the value comes back out of a
-  // server-held document it can be any string at all.
+  // An unknown category would make searchQuery.ts's fieldOf return undefined
+  // and crash the filter on every row.
   return (SEARCH_FIELDS as readonly string[]).includes(raw as string) ? (raw as SearchCategory) : 'any';
 }
 
@@ -105,20 +64,14 @@ function facetValues(raw: unknown): string[] {
   if (!Array.isArray(raw)) return [];
   const out = new Set<string>();
   for (const v of raw) if (typeof v === 'string') out.add(v);
-  // Sorted so that two narrowings that mean the same thing compare equal
-  // however they were built: a facet ticked host-then-package must light the
-  // same chip as one ticked package-then-host.
+  // Sorted, so equal selections compare equal whatever order they were ticked in.
   return [...out].sort();
 }
 
 /**
  * sanitiseNarrowing reads a stored document back into something the page can
- * trust.
- *
- * `keepFacets` is false for the download list, which has no facet sidebar and
- * never calls matchesFacets: dropping them here means a document written by
- * some future build cannot leave values in that field that nothing on the page
- * can ever see or clear.
+ * trust. `keepFacets` is false for the download list, which has no facet
+ * sidebar and so could never show or clear stored facets.
  */
 export function sanitiseNarrowing(
   raw: unknown,
@@ -129,20 +82,9 @@ export function sanitiseNarrowing(
   const doc = raw as { search?: unknown; filters?: unknown; facets?: unknown };
   const search = (doc.search ?? {}) as { text?: unknown; category?: unknown };
 
-  // TRAP: an unknown quick-filter id does not narrow the list, it EMPTIES it,
-  // with no way back. matchesQuickFilters (components/ListToolbar.tsx) answers
-  // false for every row once the active set is non-empty and nothing in it
-  // matches, offeredQuickFilters only ever draws chips for the page's own
-  // filter list, and the "Show everything" reset lives inside that chip strip's
-  // `after` slot, which is not rendered when there are no chips. An id that
-  // was renamed in an upgrade, or a download-list id that leaked into the
-  // collector's document, would therefore leave an empty list, no chips and no
-  // reset, recoverable only by editing the database.
-  //
-  // Walking `allowed` rather than the stored array does four jobs in one pass:
-  // unknown ids are dropped, duplicates collapse, the result is in the
-  // profile's own chip order, and that order is stable, which is what lets
-  // sameNarrowing below compare two of these element by element.
+  // An unknown filter id would empty the list with no chip and no reset shown
+  // to undo it. Walking `allowed` drops unknown ids and duplicates and keeps
+  // the chip order stable, which sameNarrowing relies on.
   const storedFilters = Array.isArray(doc.filters) ? (doc.filters as unknown[]) : [];
   const filters = allowed.filter((id) => storedFilters.includes(id));
 
@@ -168,14 +110,10 @@ function sameList(a: readonly string[], b: readonly string[]): boolean {
 }
 
 /**
- * sameNarrowing is "these two narrow the list to the same rows", which is what
- * decides whether a saved view's chip is lit.
- *
- * The text is compared trimmed because the parser tokenises on whitespace, so a
- * trailing space is genuinely the same question. The category is compared only
- * while there is text to aim: with an empty box the picker asks nothing, and
- * un-lighting a chip because somebody nudged a dropdown that changed no row
- * would be the chip telling a small lie.
+ * sameNarrowing reports whether two narrowings select the same rows, which
+ * decides whether a saved view's chip is lit. The text is compared trimmed,
+ * since the parser splits on whitespace, and the category only when there is
+ * text for it to apply to.
  */
 export function sameNarrowing(a: Narrowing, b: Narrowing): boolean {
   const ta = a.search.text.trim();
@@ -233,25 +171,14 @@ export interface ListNarrowing {
 }
 
 /**
- * useListNarrowing is the one owner of a list's narrowing.
- *
- * The PAGE calls this, once, and passes what comes out down as props. Two
- * READERS of the same field would be fine (the store notifies every subscriber
- * on write, which is exactly why useCollapsedPackages is deliberately read
- * twice), but two writers in one commit are not: the second `set` simply wins
- * and the first change is gone.
+ * useListNarrowing owns a list's narrowing. The page calls it once and passes
+ * the result down: several readers are fine, but two writers in one commit
+ * would lose the first change.
  */
 export function useListNarrowing(profile: ListProfileKey, allowed: readonly QuickFilterId[]): ListNarrowing {
-  // TRAP: `list.narrowing.${profile}`, not `list.view.${profile}`. The saved
-  // views next door live under `list.views.${profile}`, and two field names one
-  // letter apart is a typo that reads the wrong field, finds nothing, returns
-  // the fallback and reports no error anywhere, which reaches the user as "my
-  // views are gone".
-  //
-  // Typed `unknown` on the way out on purpose: what the document holds is
-  // whatever some build or some browser last put there, and pretending it is
-  // already a Narrowing is how the traps in sanitiseNarrowing get past the
-  // compiler.
+  // Not `list.views.${profile}`, where the saved views live. Typed unknown,
+  // since the document may hold anything; sanitiseNarrowing makes it a
+  // Narrowing.
   const [stored, setStored] = useUIState<unknown>(`list.narrowing.${profile}`, NO_NARROWING);
   const keepFacets = profile === 'collector';
 
@@ -259,9 +186,7 @@ export function useListNarrowing(profile: ListProfileKey, allowed: readonly Quic
     () => sanitiseNarrowing(stored, allowed, keepFacets),
     [stored, allowed, keepFacets],
   );
-  // The same array-to-Set memo useCollapsedPackages uses: matchesQuickFilters
-  // and matchesFacets are called once per row per repaint, and rebuilding these
-  // inside the filter pass would rebuild them per row.
+  // Built once per change rather than per row in the filter pass.
   const filters = useMemo(() => new Set(narrowing.filters), [narrowing.filters]);
   const facets = useMemo(() => toFacetSelection(narrowing), [narrowing]);
 
@@ -287,8 +212,8 @@ export function useListNarrowing(profile: ListProfileKey, allowed: readonly Quic
     (f: FacetSelection) => setStored({ ...narrowing, facets: fromFacetSelection(f) }),
     [narrowing, setStored],
   );
-  // Sanitised on the way in as well as on the way out: a view saved by a build
-  // that offered a filter this one does not must not put that filter back.
+  // Sanitised on the way in too, since a saved view may name a filter this
+  // build lacks.
   const apply = useCallback(
     (n: Narrowing) => setStored(sanitiseNarrowing(n, allowed, keepFacets)),
     [allowed, keepFacets, setStored],

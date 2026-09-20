@@ -1,44 +1,27 @@
-// The server's verdict travels as a BOOLEAN; the sentence is this app's own
+// The server's verdict travels as a boolean; the sentence is this app's own
 // copy, translated (GlimStone 1.15.0).
 //
-// WHAT THIS IS. GlimStone names the test for this surface in the rule itself:
-// feed the server field an obviously non-human string, then assert positively
-// on the translated text and negatively on that string. That test is run live,
-// in a browser, against a real instance - a network intercept rewrites
-// /api/auth/passkeys so its `reason` reads a marker no human would write, and
-// the German page is checked for the German paragraph and against the marker.
-// This file is the half of it that can run without a browser, on every build,
-// so the property is held between live runs rather than only at the moment
-// somebody remembers to do one.
+// GET /api/auth/passkeys answers with `supported: false` and an English
+// `reason` beside it. That sentence is a diagnostic for somebody reading the
+// API or the log, while the paragraph on the card explains the feature to
+// somebody whose interface runs in their own language, and on a stock install
+// opened on a LAN address it is the only thing that card ever shows. Rendering
+// the server's string there puts an English paragraph in the middle of a
+// Japanese page, and no build notices, because a string is a string.
 //
-// WHY THE PROPERTY MATTERS ENOUGH TO GUARD. GET /api/auth/passkeys answers with
-// `supported: false` and, beside it, a `reason` in English. That sentence is a
-// diagnostic: it is for somebody reading the API or the log. The paragraph the
-// card shows is not a diagnostic - it is the text that explains a whole feature
-// to somebody whose interface is running in their own language, and on a stock
-// KnightLoader install (opened on a LAN IP address) it is the only thing that
-// card ever shows. Rendering the server's string there puts an English
-// paragraph in the middle of a Japanese page, and nothing in a build notices,
-// because a string is a string.
+// GlimStone names a live browser test for this: a network intercept rewrites
+// the `reason` to a marker no human would write, and the German page is checked
+// for the German paragraph and against the marker. This is the half that runs
+// without a browser, so the property holds between those runs.
 //
-// It is the mirror image of the failure the fallback rule guards: there the
-// app's own copy gets forgotten, here a diagnostic gets promoted to be the copy.
+// Three things are checked: that no source under src/ reads `reason` off the
+// passkey status, including the innocent-looking `status.reason ?? t(...)`;
+// that PasskeyStatus in lib/api.ts declares no `reason` field, so tsc refuses
+// the render before this script has to; and that the card draws its own
+// translated paragraph, since a card with no explanation at all would satisfy
+// the first two.
 //
-// WHAT IT CHECKS.
-//
-//   not read     no source under src/ reads `reason` off the passkey status.
-//                That covers the direct render, and also the innocent-looking
-//                `status.reason ?? t(...)` that renders it whenever the server
-//                happens to send one - which is every time it matters.
-//   not typed    PasskeyStatus in lib/api.ts declares no `reason` field. A type
-//                that does not carry it is a stronger guard than a rule about
-//                not reading it: tsc then refuses the render before this does.
-//   own copy     the card really does draw its own translated paragraph, so
-//                this cannot pass by the card having no explanation at all -
-//                which is the other way to satisfy "does not show the server's
-//                sentence", and much worse than the failure it prevents.
-//
-// Run by CI and by hand: `node web/check-passkey-reason.mjs`
+// Run: `node web/check-passkey-reason.mjs`
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, relative } from 'node:path';
@@ -58,21 +41,11 @@ function sources(dir = src, out = []) {
 
 const problems = [];
 
-// ---------------------------------------------------------------------------
-// not read
-// ---------------------------------------------------------------------------
-//
-// The shapes that count as reading it, and nothing wider. A bare word "reason"
-// appears in ordinary prose all over this tree, so the pattern is anchored to
-// property access on something that could be the status - a member access or a
-// destructure - rather than to the word.
-//
-// Deliberately NOT "the word reason anywhere near the word PasskeyStatus". The
-// first draft of this file had exactly that, and it reported api.ts's own
-// doc comment - the paragraph explaining why the field is not read - as a
-// violation. A check that accuses the sentence stating the rule is a check
-// somebody switches off. What the declaration may and may not contain is the
-// next section's job, where it can be read as code rather than as prose.
+// Nobody reads it: the shapes that count as reading it, and nothing wider. The
+// bare word "reason" appears in prose all over this tree, so the pattern is
+// anchored to property access on something that could be the status, a member
+// access or a destructure. What the declaration itself may contain is the next
+// section's job, where it is read as code rather than as prose.
 const READS = [
   /\bstatus\s*[?]?\.\s*reason\b/,
   /\bpasskeys?\s*[?]?\.\s*reason\b/,
@@ -93,9 +66,7 @@ for (const file of sources()) {
   }
 }
 
-// ---------------------------------------------------------------------------
-// not typed
-// ---------------------------------------------------------------------------
+// And the type does not carry it either.
 const api = readFileSync(join(src, 'lib', 'api.ts'), 'utf8');
 const decl = /export interface PasskeyStatus \{([\s\S]*?)\n\}/.exec(api);
 if (!decl) {
@@ -113,9 +84,7 @@ if (!decl) {
   }
 }
 
-// ---------------------------------------------------------------------------
-// own copy
-// ---------------------------------------------------------------------------
+// The card draws an explanation of its own.
 const card = join(src, 'pages', 'settings', 'access', 'PasskeyCard.tsx');
 let cardText = '';
 try {

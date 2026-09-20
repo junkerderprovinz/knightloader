@@ -1,17 +1,16 @@
 // What the search box understands, checked against the parser that ships.
 //
-// The rule this exists to defend is the one nobody notices breaking: an
-// unrecognised prefix, a stray colon, an operator with no number behind it and a
-// quote somebody is halfway through typing all have to stay ORDINARY TEXT. That
-// failure is silent in the worst way - the list simply comes back empty, the
-// person retypes the same query, and there is nothing to report but "search is
-// broken". No compiler has an opinion about it, and the UI has no test runner,
-// so it gets a check of its own in the shape this repository already uses for
-// exactly this problem (extension/check-relay-seal.mjs, check-settings-pages.mjs).
+// The rule it defends is the one nobody notices breaking: an unrecognised
+// prefix, a stray colon, an operator with no number behind it and a quote
+// somebody is halfway through typing all stay ordinary text. The failure is
+// silent, the list simply coming back empty while the person retypes the same
+// query, and no compiler has an opinion about it.
 //
-// It drives the REAL module rather than a copy: Node strips the types out of
-// src/lib/searchQuery.ts, which is why that file is kept free of any import that
-// survives compilation. Run by hand or from CI: `node web/check-search-query.mjs`.
+// It drives the real module rather than a copy: Node strips the types out of
+// src/lib/searchQuery.ts, which is why that file carries no import surviving
+// compilation.
+//
+// Run: `node web/check-search-query.mjs`.
 
 import { parseSearch, matchesSearch } from './src/lib/searchQuery.ts';
 
@@ -46,7 +45,7 @@ function task(fields) {
 const ago = (ms) => new Date(Date.now() - ms).toISOString();
 const DAY = 86_400_000;
 
-// --- Several terms are an AND, and a leading minus excludes -----------------
+// Several terms are an and, and a leading minus excludes.
 
 check(
   'two words are two terms',
@@ -76,7 +75,7 @@ check(
   [false, true],
 );
 
-// --- Prefixes aim one term at one field -------------------------------------
+// Prefixes aim one term at one field.
 
 check('host: aims at the host', parseSearch('host:rapidgator'), [
   { kind: 'text', needle: 'rapidgator', field: 'host', negate: false },
@@ -97,7 +96,7 @@ check(
   [true, false],
 );
 
-// --- Size and age -----------------------------------------------------------
+// Size and age.
 
 check('a bare comparison is a size', parseSearch('>500mb'), [
   { kind: 'size', op: '>', bytes: 500 * 1024 ** 2, negate: false },
@@ -132,7 +131,7 @@ check(
   [true, false, true],
 );
 
-// --- Everything unrecognised stays plain text -------------------------------
+// Everything unrecognised stays plain text.
 //
 // The half of the feature that has to keep working for people who never learn
 // that any of the above exists.
@@ -164,7 +163,7 @@ check(
   true,
 );
 
-// --- Quoting ----------------------------------------------------------------
+// Quoting.
 
 check('quotes hold a phrase together', parseSearch('"big buck"'), [
   { kind: 'text', needle: 'big buck', field: 'any', negate: false },
@@ -178,7 +177,7 @@ check(
   [{ kind: 'text', needle: 'big bu', field: 'any', negate: false }],
 );
 
-// --- The picker still scopes bare words -------------------------------------
+// The picker still scopes bare words.
 
 check('the category is where a bare word goes', parseSearch('bunny', 'host'), [
   { kind: 'text', needle: 'bunny', field: 'host', negate: false },

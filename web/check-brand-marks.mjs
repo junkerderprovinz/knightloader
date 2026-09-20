@@ -1,73 +1,27 @@
-// The two classes a branded control wears, and the mark that may not wear them.
+// Checks the two classes a branded control wears, and the marks that must not
+// wear them. `.glim-brand-btn` spends three values that only
+// `.glim-brand-<name>` supplies. Split them and nothing fails at build time:
+// `fill: var(--brand)` resolves to nothing, the mark paints black (invisible
+// on the dark theme only) and the hover fill disappears. The pair usually
+// breaks when a neighbouring button is copied.
 //
-// WHAT BREAKS WITHOUT IT. `.glim-brand-btn` SPENDS three values and
-// `.glim-brand-<name>` is the only thing that SUPPLIES them, so the pair is one
-// control written as two words. Separate them and nothing fails: tsc sees a
-// string, the build passes, the button renders, the mark is there. What happens
-// is that `fill: var(--brand)` has no value to resolve, so the declaration is
-// dropped at computed-value time, fill falls back to its initial value, and a
-// vendor's mark is painted BLACK on a #393939 button. That failure is one theme
-// deep, the same shape as a placeholder dropped in one language: on the light
-// theme a black mark looks deliberate, so whoever wrote the button sees nothing
-// wrong on the ground they happened to be looking at. The hover half goes the
-// same way, because `background-color: var(--brand-fill)` resolves to nothing
-// too, and the button LOSES its hover rather than gaining a colour.
+// Checks:
+//   pairing     `.glim-brand-btn` comes with exactly one `.glim-brand-<name>`,
+//               and the other way round.
+//   defined     every named brand exists in src/index.css and sets --brand,
+//               --brand-fill and --brand-ink.
+//   own ground  no multi-coloured mark sits inside `.glim-brand-btn`, whose
+//               fill rule reaches every svg and path and would flatten it.
 //
-// A SCRIPT RATHER THAN A NOTE, because the notes are already written and there
-// are three of them. index.css says the two classes travel together, in the
-// block that defines them. donateMarks.tsx says it again at the top of the file
-// the marks come from. Help.tsx says it a third time beside the buttons it
-// applies to. None of them is read at the moment the pair breaks, because the
-// pair breaks by COPYING A NEIGHBOURING BUTTON: duplicate the GitHub anchor for
-// a new route, change the href and the label, and the brand class either rides
-// along still naming GitHub or is deleted with the rest of the GitHub-specific
-// text. Prose that sits beside the mistake and does not stop it is not stopped
-// by being written a fourth time.
+// The unit is the element: one className attribute with the file's string
+// constants substituted, since call sites write ``${ABOUT_BTN} glim-brand-x``.
 //
-// WHAT IT CHECKS
+// Not checked: a vendor mark left unclassed (nothing in the source says a
+// drawing is a logo), brand classes built at runtime or by helpers or
+// imported constants, whether a hex is the vendor's colour and its contrast,
+// and dist/. Two brands chosen by a ternary on one element are reported.
 //
-//   pairing     every element carrying `.glim-brand-btn` carries exactly one
-//               `.glim-brand-<name>`, and every `.glim-brand-<name>` carries
-//               `.glim-brand-btn`. Both directions, because either half alone
-//               is the failure above.
-//   defined     every `.glim-brand-<name>` a call site names exists in
-//               src/index.css and sets all three of --brand, --brand-fill and
-//               --brand-ink. A block that sets two of the three is the same
-//               defect wearing a smaller hole: the resting mark is right and
-//               the hover is gone, or the other way round.
-//   own ground  no mark drawn in more than one colour sits inside a
-//               `.glim-brand-btn`. `.glim-brand-btn svg, .glim-brand-btn svg
-//               path` reaches EVERY svg and path below the button, so a coin
-//               disc put there is not tinted, it is flattened to one ink, which
-//               is redrawing somebody's logo. A mark with its own ground takes
-//               neither class and keeps its own colours.
-//
-// IT RESOLVES THE FILE'S OWN CONSTANTS, AND THAT IS LOAD-BEARING. Every call
-// site here writes ``${ABOUT_BTN} glim-brand-coffee``, with `.glim-brand-btn`
-// living inside the shared constant forty lines up, so a check that read one
-// string literal at a time (which is right for check-hover-ramp, whose question
-// is about one class list) would report all five buttons as a brand class with
-// no `.glim-brand-btn` beside it. A check that accuses every call site at once
-// is accusing itself. The unit here is therefore the ELEMENT: one className
-// attribute, with the file's string constants substituted into it.
-//
-// WHAT IT DELIBERATELY DOES NOT SEE
-//
-//   That a flat vendor mark was left UNCLASSED. Nothing in the source says a
-//   drawing is somebody's logo, so the half of the rule that would need to know
-//   "this is PayPal" cannot be decided here, and only the reverse is checked.
-//   A brand class assembled at runtime, `glim-brand-${id}`, which nothing does.
-//   A class list built by a helper call, or by a constant imported from another
-//   file: substitution goes one file deep and follows plain string constants.
-//   Whether a brand hex is the vendor's actual colour, and whether its ink
-//   clears contrast. The ratios in the comments beside them are measured by
-//   hand and stay that way.
-//   Two brand classes chosen by a ternary on one element, which is read as two
-//   and reported. No call site does that, and the fix is to put the class on
-//   the branch rather than the element.
-//   dist/. A stale build is the build's problem, not this one's.
-//
-// Run by hand or from CI: `node web/check-brand-marks.mjs`.
+// Run: `node web/check-brand-marks.mjs`.
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -81,13 +35,9 @@ const NEEDED = ['--brand', '--brand-fill', '--brand-ink'];
 const show = (path) => path.slice(src.length + 1).split('\\').join('/');
 const lineOf = (text, at) => text.slice(0, at).split('\n').length;
 
-// --- reading source the way the compiler does, not the way a regex does ------
-//
-// One scanner, used for every walk below. It is mutually recursive on purpose:
-// a template holds `${…}`, those braces hold expressions, and those expressions
-// hold more strings. Help.tsx's mail button nests a template inside a template
-// inside an attribute, and a scanner that only counted braces would come out of
-// that anchor's opening tag one level short and swallow the whole card.
+// The scanner below is mutually recursive, because templates hold `${…}`
+// expressions that hold more strings; Help.tsx nests a template inside a
+// template inside an attribute.
 
 /** Index just past the string starting at `i`. */
 function endOfString(text, i) {
@@ -98,9 +48,8 @@ function endOfString(text, i) {
     if (c === '\\') { i += 2; continue; }
     if (c === quote) return i + 1;
     if (quote === '`' && c === '$' && text[i + 1] === '{') { i = endOfBraces(text, i + 1); continue; }
-    // A raw newline cannot appear in '' or "", so an apparent one means the
-    // opening quote was not a quote at all: a lone ' inside a regex literal,
-    // say. Bail at the line end rather than eating the rest of the file.
+    // A newline cannot occur in '' or "", so the quote was not one (a lone '
+    // in a regex, say). Stop at the line end.
     if (quote !== '`' && c === '\n') return i;
     i += 1;
   }
@@ -134,13 +83,8 @@ function tagEnd(text, i) {
 }
 
 /**
- * Comments replaced by spaces, one character for one character.
- *
- * Blanking rather than deleting keeps every offset and every newline where it
- * was, so a line number taken from the blanked text is the line number in the
- * file. It has to happen before anything else: a `{/* … *\/}` note beside a
- * button is where this repo explains its colours, hexes included, and a scan
- * that read those would report the explanation as the defect.
+ * blankComments replaces comments with spaces, keeping offsets and line
+ * numbers, so hex colours mentioned in comments are not read as paint.
  */
 function blankComments(text, slashSlash = true) {
   const out = text.split('');
@@ -164,12 +108,11 @@ function blankComments(text, slashSlash = true) {
   return out.join('');
 }
 
-// --- the brand blocks in the stylesheet -------------------------------------
+// The brand blocks in the stylesheet.
 const css = blankComments(readFileSync(cssPath, 'utf8'), false);
 const defined = new Map();
 for (const block of css.matchAll(/\.glim-brand-([a-z0-9-]+)\s*\{([^}]*)\}/g)) {
-  // `--brand-coffee` must not be read as `--brand`: the lookahead insists the
-  // name ends at the colon, so only the three spent by .glim-brand-btn count.
+  // The lookahead keeps `--brand-coffee` from counting as `--brand`.
   const set = new Set(block[2].match(/--brand(?:-fill|-ink)?(?=\s*:)/g) || []);
   defined.set(block[1], { props: set, line: lineOf(css, block.index) });
 }
@@ -182,7 +125,6 @@ if (defined.size < 2) {
   process.exit(1);
 }
 
-// --- the tree ---------------------------------------------------------------
 function sources(dir) {
   const found = [];
   for (const entry of readdirSync(dir)) {
@@ -202,19 +144,10 @@ const text = new Map();
 for (const path of files) text.set(path, blankComments(readFileSync(path, 'utf8')));
 
 /**
- * What each file declares, and where each name it uses comes from.
- *
- * TWO MAPS RATHER THAN ONE INDEX BY NAME, and the second one is why this is
- * worth the lines. Written as a single tree-wide table of name to declaration
- * it looked right and was silently wrong: ColumnMenu.tsx declares a `Mark` of
- * its own, it is read before donateMarks.tsx, and every question about the
- * `Mark` every brand mark is actually drawn by was answered with a tick from
- * the other file. The check passed a mark painted in a colour of its own
- * because it had been looking at the wrong drawing the whole time.
- *
- * The declaration itself is found crudely, running to the next one that starts
- * at column zero. That part is enough for the only question asked of it, which
- * is what colours a drawing paints with, and it needs no parser.
+ * What each file declares, and where each name it uses is imported from.
+ * Resolved per file, because names repeat across files (ColumnMenu.tsx and
+ * donateMarks.tsx both declare a `Mark`). A declaration runs to the next one
+ * at column zero, which is enough to see what colours it paints.
  */
 const TOP = /^(?:export\s+)?(?:const|let|var|function|class|type|interface|enum)\s+([A-Za-z_$][\w$]*)/gm;
 const IMPORTS = /import\s+(?:type\s+)?([\s\S]*?)\s+from\s+['"]([^'"]+)['"]/g;
@@ -250,7 +183,7 @@ for (const [path, body] of text) {
   imports.set(path, from);
 }
 
-/** The declaration a name means IN THIS FILE, its own first, then its imports. */
+/** The declaration a name means in this file: its own first, then its imports. */
 function declarationOf(path, name) {
   const mine = declares.get(path);
   if (mine?.has(name)) return { path, body: mine.get(name) };
@@ -260,12 +193,9 @@ function declarationOf(path, name) {
   return null;
 }
 
-// --- does this drawing bring its own ground? --------------------------------
-//
-// `fillRule` and `stroke-width` are not paint and must not be read as some: the
-// name has to end AT the equals sign. A gradient is counted without looking at
-// its stops, because a drawing that needs two stops is by definition not one
-// colour.
+// Whether a drawing brings its own colours. The attribute name has to end at
+// the equals sign, so fillRule and stroke-width are not paint. Any gradient
+// counts as more than one colour.
 const PAINT = /\b(fill|stroke|stopColor|stop-color)\s*=\s*(?:"([^"]*)"|'([^']*)'|\{([^}]*)\})/g;
 const FLAT = /^(currentColor|none|inherit|transparent)$/i;
 
@@ -273,8 +203,7 @@ function literalPaint(body) {
   if (/<(?:linearGradient|radialGradient)\b/.test(body)) return 'a gradient';
   for (const paint of body.matchAll(PAINT)) {
     if (paint[4] !== undefined) {
-      // An expression: `fill={tone}` is the call site's business, a quoted
-      // colour inside one is a colour all the same.
+      // `fill={tone}` is up to the caller; a quoted colour inside one counts.
       if (/['"]\s*(?:#|rgb|hsl)/i.test(paint[4])) return `${paint[1]}={${paint[4].trim()}}`;
       continue;
     }
@@ -300,7 +229,6 @@ function ownGround(body, path, seen = new Set(), depth = 0) {
   return null;
 }
 
-// --- the class list of one element ------------------------------------------
 /** name -> its text, for `const NAME = 'a' + 'b';` and template forms. */
 function constants(body) {
   const found = new Map();
@@ -356,7 +284,6 @@ function childrenOf(body, tagStart) {
   return null; // unbalanced: say nothing rather than guess at an extent
 }
 
-// --- the walk ---------------------------------------------------------------
 const problems = [];
 let controls = 0;
 
@@ -411,10 +338,7 @@ for (const [path, body] of text) {
   }
 }
 
-// index.css spends real lines on brand blocks, so something wears them. Nought
-// call sites means the scanner stopped seeing them rather than that the row is
-// gone, and a check reporting "ok: 0" is the one failure it can never catch
-// about itself.
+// index.css defines brand classes, so zero wearers means the scanner went blind.
 if (controls === 0) {
   console.error(`check-brand-marks: src/index.css defines ${defined.size} brand classes and no element was found wearing one: the source scanner went blind.`);
   process.exit(1);
