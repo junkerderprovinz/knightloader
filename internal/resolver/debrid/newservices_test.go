@@ -11,11 +11,9 @@ import (
 	"time"
 )
 
-// The two services added on 2026-09-06, tested against a local server that
-// answers exactly the bodies their vendors document. That is what these tests
-// are for: not that Go can parse JSON, but that the field names, the envelope
-// and the "which value means what" decisions match the published contract,
-// since neither service can be reached from CI with a real key.
+// These tests answer with the bodies Debrid-Link and Premiumize document, so
+// field names and value meanings are checked against the published contract
+// without a real key.
 
 func serve(t *testing.T, routes map[string]string) *httptest.Server {
 	t.Helper()
@@ -48,10 +46,8 @@ func newPremiumizeAt(base string) *Premiumize {
 	return p
 }
 
-// ---- Debrid-Link ----------------------------------------------------------
-
 func TestDebridLinkHostsTakesOnlineFileHostsOnly(t *testing.T) {
-	// "Host is online when the 'status' >= 1" - debrid-link.com/api_doc/v2.
+	// "Host is online when the 'status' >= 1" (debrid-link.com/api_doc/v2).
 	srv := serve(t, map[string]string{
 		"/downloader/hosts": `{"success":true,"value":[
 			{"name":"uploaded","type":"host","status":1,"domains":["uploaded.net","www.UL.to"]},
@@ -86,10 +82,7 @@ func TestDebridLinkUnlockReadsTheLinkObject(t *testing.T) {
 	}
 }
 
-// TestDebridLinkUnlockReadsAFolderAnswer covers the one shape the documentation
-// explicitly warns about: "it can be an sequential array when you send a folder
-// that have multiple links". Decoding only the object would fail on exactly the
-// links a folder-aware hoster produces.
+// A folder link answers with an array of link objects.
 func TestDebridLinkUnlockReadsAFolderAnswer(t *testing.T) {
 	srv := serve(t, map[string]string{
 		"/downloader/add": `{"success":true,"value":[
@@ -105,9 +98,6 @@ func TestDebridLinkUnlockReadsAFolderAnswer(t *testing.T) {
 	}
 }
 
-// TestDebridLinkTranslatesItsErrorCodes: the API answers a CODE, never a
-// sentence, and an interface that prints "badToken" at somebody is telling
-// them nothing they can act on.
 func TestDebridLinkTranslatesItsErrorCodes(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -137,25 +127,19 @@ func TestDebridLinkAccountReadsPremiumLeftAndUsage(t *testing.T) {
 	if info.Tier != "premium" {
 		t.Errorf("Tier = %q, want premium - premiumLeft is 42 days", info.Tier)
 	}
-	// premiumLeft is a DURATION in seconds, not a timestamp. Reading it as one
-	// would put the expiry in 1970 and the row would say "expired" about a
-	// paid-up account.
+	// premiumLeft is a duration in seconds, not a timestamp.
 	if d := time.Until(info.ExpiresAt); d < 41*24*time.Hour || d > 43*24*time.Hour {
 		t.Errorf("ExpiresAt is %v away, want about 42 days", d)
 	}
 	if info.Traffic.UsedPercent != 25 {
 		t.Errorf("UsedPercent = %v, want 25", info.Traffic.UsedPercent)
 	}
-	// Bytes stay untouched: the service quotes no byte ceiling, and inventing
-	// one would put a figure on screen its own dashboard never shows.
+	// The service quotes no byte ceiling.
 	if info.Traffic.LimitBytes != 0 || info.Traffic.UsedBytes != 0 {
 		t.Errorf("traffic bytes = %+v, want them left at zero", info.Traffic)
 	}
 }
 
-// TestDebridLinkAccountSurvivesALimitsFailure: the plan is the answer, the
-// allowance is the extra. A limits call that fails must not lose the tier and
-// the expiry that were already read.
 func TestDebridLinkAccountSurvivesALimitsFailure(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -177,13 +161,7 @@ func TestDebridLinkAccountSurvivesALimitsFailure(t *testing.T) {
 	}
 }
 
-// ---- Premiumize -----------------------------------------------------------
-
 func TestPremiumizeHostsUsesDirectDLAndItsAliases(t *testing.T) {
-	// cache is deliberately NOT taken: it is what Premiumize can answer from
-	// its cloud, and Unlock speaks /transfer/directdl. Claiming a link this
-	// backend cannot hand over would stop the lower-priority backends from
-	// ever getting their turn at it.
 	srv := serve(t, map[string]string{
 		"/services/list": `{"status":"success","cache":["cloudonly.example"],
 			"directdl":["uploaded","rapidgator.net"],
@@ -201,8 +179,7 @@ func TestPremiumizeHostsUsesDirectDLAndItsAliases(t *testing.T) {
 	if hosts["cloudonly.example"] {
 		t.Error("a cache-only service was claimed, but directdl is what Unlock uses")
 	}
-	// "uploaded" is a service NAME, not a domain, and must not become one - a
-	// hostname with no dot in it can never match a real link.
+	// "uploaded" is a service name, not a domain.
 	if hosts["uploaded"] {
 		t.Error("the bare service name was taken as a domain")
 	}
@@ -220,16 +197,13 @@ func TestPremiumizeUnlockTakesTheFirstFileAndItsBareName(t *testing.T) {
 	if got.URL != "https://dl.example/one" || got.Size != 123456789 {
 		t.Errorf("Unlock = %+v, want the link and size from content[0]", got)
 	}
-	// path is slash-joined inside the source; a task named
-	// "Folder/Sub/video1.mkv" becomes a folder tree when it reaches the disk.
+	// A task named "Folder/Sub/video1.mkv" would become a folder tree on disk.
 	if got.Name != "video1.mkv" {
 		t.Errorf("Name = %q, want just the file name", got.Name)
 	}
 }
 
-// TestPremiumizeReadsStatusNotTheHTTPCode is the trap this API sets: "HTTP
-// status is 200 for business-logic errors". Testing the status line would
-// report every refusal as a success.
+// Premiumize answers business-logic errors with HTTP 200.
 func TestPremiumizeReadsStatusNotTheHTTPCode(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -259,16 +233,12 @@ func TestPremiumizeAccountReadsTheFairUseFraction(t *testing.T) {
 	if info.Tier != "premium" {
 		t.Errorf("Tier = %q, want premium", info.Tier)
 	}
-	// limit_used is a fraction in [0,1]; a reader that forgot to scale it would
-	// report a 42%-used account as 0% and the column would read "100 % left".
+	// limit_used is a fraction in [0,1].
 	if info.Traffic.UsedPercent != 42 {
 		t.Errorf("UsedPercent = %v, want 42", info.Traffic.UsedPercent)
 	}
 }
 
-// TestPremiumizeFreeAccountHasNoExpiry: premium_until is null for a free
-// account, and a plain int64 would read that as "expired in 1970" - a row
-// claiming an expiry date about an account that has none.
 func TestPremiumizeFreeAccountHasNoExpiry(t *testing.T) {
 	srv := serve(t, map[string]string{
 		"/account/info": `{"status":"success","premium_until":null,"limit_used":0}`,

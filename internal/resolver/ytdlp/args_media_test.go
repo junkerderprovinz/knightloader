@@ -1,20 +1,13 @@
 package ytdlp
 
-// args_media_test.go: buildArgs for the library-facing wave - embedding, the
-// music tagger, the audio-language filter and the livestream flags. The
-// original args_test.go covers the format/quality/variant half; this file is
-// beside it rather than inside it so the two waves' regressions stay legible
-// as two lists.
-
 import (
 	"path/filepath"
 	"strings"
 	"testing"
 )
 
-// argPairs returns every value that followed flag, in order - the shape
-// --parse-metadata needs, which valueAfter (args_test.go) cannot answer
-// because it is passed four times in one invocation.
+// argPairs returns every value that followed flag, in order, for flags passed
+// more than once such as --parse-metadata.
 func argPairs(args []string, flag string) []string {
 	var out []string
 	for i, a := range args {
@@ -25,10 +18,8 @@ func argPairs(args []string, flag string) []string {
 	return out
 }
 
-// outputTemplates splits the -o values into the plain one (the file being
-// downloaded) and the type-prefixed ones ("thumbnail:…"). Music mode passes
-// both, and valueAfter would answer with whichever comes first, which is not
-// the same question.
+// outputTemplates splits the -o values into the plain one and the
+// type-prefixed ones ("thumbnail:..."), which music mode adds.
 func outputTemplates(args []string) (plain string, typed []string) {
 	for _, v := range argPairs(args, "-o") {
 		if strings.Contains(v, ":") && strings.HasPrefix(v, "thumbnail:") {
@@ -40,10 +31,6 @@ func outputTemplates(args []string) (plain string, typed []string) {
 	return plain, typed
 }
 
-// TestBuildArgsEmbedIsOffAtTheZeroValue is the promise the whole wave rests
-// on (jdp: "bestehende Defaults NICHT drehen, jeder neue Schalter kommt
-// aus"): an install that never opens the new settings must spawn yt-dlp with
-// exactly the flags it always did.
 func TestBuildArgsEmbedIsOffAtTheZeroValue(t *testing.T) {
 	args := buildArgs("d", Options{})
 	for _, flag := range []string{
@@ -55,9 +42,7 @@ func TestBuildArgsEmbedIsOffAtTheZeroValue(t *testing.T) {
 			t.Errorf("buildArgs(Options{}) passed %s, want none: %v", flag, args)
 		}
 	}
-	// The progress template is the one line every download's display is
-	// parsed out of, and the live guard is the only thing allowed to change
-	// its shape - see live.go.
+	// Only the live guard may change the progress template.
 	if got, ok := valueAfter(args, "--progress-template"); !ok || got != "KLP:%(progress)j" {
 		t.Errorf("--progress-template = %q (found=%v), want the unchanged plain template", got, ok)
 	}
@@ -72,9 +57,8 @@ func TestBuildArgsEmbedFlagsOnAVideoRow(t *testing.T) {
 	}
 }
 
-// TestBuildArgsEmbedSubsAlsoFetchesThem is the trap --embed-subs sets on its
-// own: yt-dlp embeds subtitles it has, and without --write-subs it has none,
-// so the flag alone produces a video with no subtitle track and no complaint.
+// --embed-subs alone embeds nothing, since yt-dlp only fetches subtitles with
+// --write-subs.
 func TestBuildArgsEmbedSubsAlsoFetchesThem(t *testing.T) {
 	args := buildArgs("d", Options{Embed: Embed{Subs: true}, SubtitleLangs: "de,en"})
 	for _, flag := range []string{"--write-subs", "--embed-subs"} {
@@ -90,10 +74,7 @@ func TestBuildArgsEmbedSubsAlsoFetchesThem(t *testing.T) {
 	}
 }
 
-// TestBuildArgsEmbedSubsFallsBackToTheDefaultLanguage covers the same field
-// left blank: --sub-langs with no value is an invocation yt-dlp refuses
-// outright, so a video row asking to embed subtitles must name a language
-// even when nobody typed one.
+// yt-dlp refuses an empty --sub-langs.
 func TestBuildArgsEmbedSubsFallsBackToTheDefaultLanguage(t *testing.T) {
 	args := buildArgs("d", Options{Embed: Embed{Subs: true}})
 	if got, ok := valueAfter(args, "--sub-langs"); !ok || got != DefaultSubtitleLangs {
@@ -101,10 +82,7 @@ func TestBuildArgsEmbedSubsFallsBackToTheDefaultLanguage(t *testing.T) {
 	}
 }
 
-// TestBuildArgsEmbedSubsIsSkippedOnAnAudioRow: an extracted mp3 has no
-// subtitle stream, and yt-dlp answers the attempt with a warning that
-// --no-warnings then swallows - so the flag would do nothing at all except
-// make an audio download fetch a .vtt it then cannot use.
+// An extracted audio file has no subtitle stream.
 func TestBuildArgsEmbedSubsIsSkippedOnAnAudioRow(t *testing.T) {
 	args := buildArgs("d", Options{Variant: VariantAudio, Embed: Embed{Subs: true}})
 	for _, flag := range []string{"--write-subs", "--embed-subs", "--sub-langs"} {
@@ -114,24 +92,18 @@ func TestBuildArgsEmbedSubsIsSkippedOnAnAudioRow(t *testing.T) {
 	}
 }
 
-// TestBuildArgsNFOAsksForTheInfoJSON pins the dependency the NFO has on a
-// yt-dlp flag rather than on a second network call: there is no --write-nfo,
-// so the info dict has to be asked for and converted afterwards (nfo.go).
+// yt-dlp has no --write-nfo; the NFO is built from the info json.
 func TestBuildArgsNFOAsksForTheInfoJSON(t *testing.T) {
 	if args := buildArgs("d", Options{Embed: Embed{NFO: true}}); !hasArg(args, "--write-info-json") {
 		t.Errorf("Embed.NFO did not ask for --write-info-json: %v", args)
 	}
-	// The measurement needs it too, for the duration the SOURCE announced -
-	// the only place a finished download can still learn what it was
-	// promised.
+	// The measurement needs the announced duration from it.
 	if args := buildArgs("d", Options{Measure: Measure{Enabled: true}}); !hasArg(args, "--write-info-json") {
 		t.Errorf("Measure.Enabled did not ask for --write-info-json: %v", args)
 	}
 }
 
-// TestBuildArgsNoInfoJSONOnASidecarRow: an NFO beside a .srt describes
-// nothing, and the thumbnail/subtitle/description rows are --skip-download
-// jobs with no media file for either feature to act on.
+// The sidecar rows download no media file for either feature to act on.
 func TestBuildArgsNoInfoJSONOnASidecarRow(t *testing.T) {
 	for _, v := range []Variant{VariantThumbnail, VariantSubtitle, VariantDescription} {
 		args := buildArgs("d", Options{Variant: v, Embed: Embed{NFO: true}, Measure: Measure{Enabled: true}})
@@ -145,9 +117,7 @@ func TestBuildArgsMusicModeTagsAndNames(t *testing.T) {
 	dir := filepath.Join("d", "l")
 	args := buildArgs(dir, Options{Variant: VariantAudio, Music: true})
 
-	// Four mappings, one per field a music library indexes by. Without them
-	// an --embed-metadata mp3 carries the VIDEO's title and uploader, which
-	// is the twelve-singles-by-a-channel-name failure this switch exists for.
+	// One mapping per field a music library indexes by.
 	maps := argPairs(args, "--parse-metadata")
 	if len(maps) != 4 {
 		t.Fatalf("--parse-metadata passed %d times, want 4: %v", len(maps), maps)
@@ -163,8 +133,7 @@ func TestBuildArgsMusicModeTagsAndNames(t *testing.T) {
 			t.Errorf("no --parse-metadata mapping fills %s: %v", want, maps)
 		}
 	}
-	// The mappings fill fields; only --embed-metadata writes them into the
-	// file. Music mode without it renames files and tags nothing.
+	// Only --embed-metadata writes the mapped fields into the file.
 	if !hasArg(args, "--embed-metadata") {
 		t.Errorf("music mode did not pass --embed-metadata: %v", args)
 	}
@@ -175,8 +144,7 @@ func TestBuildArgsMusicModeTagsAndNames(t *testing.T) {
 		t.Errorf("-o = %q, want the music naming scheme %q", plain, want)
 	}
 
-	// One cover per album folder, which is what a library reads - as opposed
-	// to one embedded copy per track, which is what a player reads.
+	// One cover per album folder.
 	if len(typed) != 1 {
 		t.Fatalf("music mode set %d thumbnail output templates, want 1: %v", len(typed), typed)
 	}
@@ -188,10 +156,6 @@ func TestBuildArgsMusicModeTagsAndNames(t *testing.T) {
 	}
 }
 
-// TestBuildArgsMusicModeDoesNotOverruleATypedTemplate: a person who filled in
-// the output-template field can see that field, and a switch elsewhere on the
-// page silently overriding it gets reported as "the template setting does
-// nothing".
 func TestBuildArgsMusicModeDoesNotOverruleATypedTemplate(t *testing.T) {
 	dir := "d"
 	const typed = "%(uploader)s/%(title)s.%(ext)s"
@@ -200,8 +164,7 @@ func TestBuildArgsMusicModeDoesNotOverruleATypedTemplate(t *testing.T) {
 	if plain != filepath.Join(dir, typed) {
 		t.Errorf("-o = %q, want the typed template %q", plain, filepath.Join(dir, typed))
 	}
-	// And the cover follows it rather than staying in the music folders that
-	// are no longer being used.
+	// The cover follows the typed template.
 	for _, c := range covers {
 		if !strings.Contains(c, "%(uploader)s") {
 			t.Errorf("cover template = %q, want it beside the typed template's own files", c)
@@ -209,8 +172,6 @@ func TestBuildArgsMusicModeDoesNotOverruleATypedTemplate(t *testing.T) {
 	}
 }
 
-// TestBuildArgsMusicModeIsAudioOnly: the naming scheme is Artist/Album/NN, and
-// applying it to a video row would file films under an artist folder.
 func TestBuildArgsMusicModeIsAudioOnly(t *testing.T) {
 	args := buildArgs("d", Options{Variant: VariantVideo, Music: true})
 	if hasArg(args, "--parse-metadata") {
@@ -222,10 +183,8 @@ func TestBuildArgsMusicModeIsAudioOnly(t *testing.T) {
 	}
 }
 
-// TestAudioSelectorFallsBackWhenTheSourceNamesNoLanguage is the trap the
-// language filter sets: most sites report no per-track language at all, and
-// "bestaudio[language^=de]" alone matches nothing on those, which yt-dlp
-// answers with a failed task rather than an untagged download.
+// Most sites report no per-track language, and the filter alone would match
+// nothing there.
 func TestAudioSelectorFallsBackWhenTheSourceNamesNoLanguage(t *testing.T) {
 	if got := audioSelector(""); got != "bestaudio/best" {
 		t.Errorf("audioSelector(\"\") = %q, want the untouched selector", got)
@@ -237,8 +196,7 @@ func TestAudioSelectorFallsBackWhenTheSourceNamesNoLanguage(t *testing.T) {
 	if !strings.HasSuffix(got, "/bestaudio/best") {
 		t.Errorf("audioSelector(\"de\") = %q, want a fallback for a source with no language field", got)
 	}
-	// ^= and not =: the German track on a YouTube video is "de-DE" as often
-	// as "de", and an exact match misses half of them.
+	// A prefix match also takes "de-DE".
 	if strings.Contains(got, "language=de") {
 		t.Errorf("audioSelector(\"de\") = %q, want a prefix match so de-DE is included", got)
 	}
@@ -252,10 +210,7 @@ func TestBuildArgsAudioLangUsesTheSelector(t *testing.T) {
 	}
 }
 
-// TestSanitizeKeepsAudioLangInsideTheFilterGrammar: `[language^=de]` is a
-// bracket expression, and a value carrying `]` does not select a different
-// language, it makes a malformed selector yt-dlp refuses the whole invocation
-// over.
+// A bracket or comma in the value would break the whole format selector.
 func TestSanitizeKeepsAudioLangInsideTheFilterGrammar(t *testing.T) {
 	cases := map[string]string{
 		"de":            "de",
@@ -277,17 +232,12 @@ func TestBuildArgsLiveFromStart(t *testing.T) {
 	if args := buildArgs("d", Options{Live: Live{Enabled: true, FromStart: true}}); !hasArg(args, "--live-from-start") {
 		t.Errorf("Live.FromStart did not pass --live-from-start: %v", args)
 	}
-	// The switch itself is not the flag: somebody who wants the caps but
-	// wants to join at the live edge must not silently get the whole backlog
-	// of a stream that has been running since Friday.
+	// The caps alone must not pull in a stream's whole backlog.
 	if args := buildArgs("d", Options{Live: Live{Enabled: true}}); hasArg(args, "--live-from-start") {
 		t.Errorf("Live.Enabled alone passed --live-from-start: %v", args)
 	}
 }
 
-// TestBuildArgsLiveSwitchesTheProgressTemplate is the one place the live
-// guard is allowed to change a shared code path, and the reason parseProgress
-// has to read two shapes.
 func TestBuildArgsLiveSwitchesTheProgressTemplate(t *testing.T) {
 	args := buildArgs("d", Options{Live: Live{Enabled: true}})
 	got, ok := valueAfter(args, "--progress-template")

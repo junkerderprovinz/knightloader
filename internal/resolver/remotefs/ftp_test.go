@@ -15,13 +15,8 @@ import (
 	"time"
 )
 
-// A FAKE FTP SERVER, NOT A REAL CONNECTION. Everything in this file speaks
-// just enough of RFC 959 to answer the client this package actually uses -
-// the same shape internal/proxycfg/probe_test.go's own fakes take, and for
-// the same two reasons: a test that reaches a real server is a test that
-// fails when somebody else's machine is down, and a fake is the only way to
-// make the server misbehave on purpose (refuse a password, refuse a restart)
-// which is where the interesting half of this package lives.
+// The fake FTP server speaks just enough RFC 959 for the client this package
+// uses, and can be made to refuse a password or a restart on purpose.
 
 // fakeNode is one file or directory in the served tree, keyed by absolute
 // path in fakeFTP.tree.
@@ -37,14 +32,10 @@ type fakeFTP struct {
 	tree     map[string]fakeNode
 	addr     string
 	refuseRE bool // answer REST with 502, the way a server without restart support does
-	// shortBy cuts that many bytes off the end of every RETR and closes the
-	// data connection cleanly anyway - a transfer that ends early with no
-	// error at all, which is the one failure a downloader must not mistake for
-	// success.
+	// shortBy cuts that many bytes off every RETR and still closes the data
+	// connection cleanly.
 	shortBy int
-	// restarts records every offset a REST arrived with, which is how the
-	// resume test proves the client really asked to continue rather than
-	// quietly starting again.
+	// restarts records every offset a REST arrived with.
 	restarts chan int64
 }
 
@@ -105,9 +96,8 @@ func (s *fakeFTP) session(c net.Conn) {
 		}
 	}()
 
-	// data accepts the connection the client opened after EPSV, writes what the
-	// handler produced and closes it - the sequence every transfer below ends
-	// with, including the 226 the client waits for on the control connection.
+	// data accepts the connection the client opened after EPSV, writes the
+	// body, closes it and sends the closing 226.
 	data := func(write func(net.Conn)) {
 		if dataLn == nil {
 			say("425 no data connection")
@@ -144,9 +134,8 @@ func (s *fakeFTP) session(c net.Conn) {
 			loggedIn = true
 			say("230 logged in")
 		case "FEAT":
-			// 500 means "no FEAT here", which is what keeps the client on the
-			// plain LIST/PASV path rather than MLSD. Half the servers in the
-			// field answer exactly this.
+			// Without FEAT the client stays on plain LIST instead of MLSD, as
+			// with many real servers.
 			say("500 not understood")
 		case "TYPE":
 			say("200 type set")
@@ -213,9 +202,8 @@ func (s *fakeFTP) session(c net.Conn) {
 	}
 }
 
-// listing renders the children of dir in the Unix "ls -l" shape every FTP
-// client has parsed since the 1980s, which is also the one the library's
-// parseListLine expects when the server advertises no MLST.
+// listing renders the children of dir in the Unix "ls -l" shape the library
+// parses when the server advertises no MLST.
 func (s *fakeFTP) listing(dir string) string {
 	var names []string
 	for p := range s.tree {
@@ -236,8 +224,6 @@ func (s *fakeFTP) listing(dir string) string {
 	}
 	return b.String()
 }
-
-// ---- the tests -------------------------------------------------------------
 
 func ftpTree() map[string]fakeNode {
 	return map[string]fakeNode{
@@ -264,20 +250,14 @@ func TestFTPResolveNamesTheFileAndItsSize(t *testing.T) {
 	if got.Name != "film.mkv" || got.Size != 4096 {
 		t.Errorf("got %+v, want film.mkv at 4096 bytes", got)
 	}
-	// A stat that succeeded IS the availability answer - see Resolve's own
-	// comment. Without it every remote link sits grey in the collector until
-	// somebody presses Check, which makes this very call again.
 	if got.Available != "online" {
 		t.Errorf("availability = %q, want online", got.Available)
 	}
-	// The ceiling, not a preference: one control connection is one transfer,
-	// and a seedbox that caps concurrent logins refuses the second in a way
-	// that reads as a bad password.
 	if got.Connections != 1 {
 		t.Errorf("connections = %d, want 1", got.Connections)
 	}
-	// The credential must not travel on the resolved link: it is handed to the
-	// dispatcher and would be one copy of the password too many.
+	// The resolved link passes through the dispatcher and must carry no
+	// credential.
 	if strings.Contains(got.DirectURL, "secret") || strings.Contains(got.DirectURL, "alice") {
 		t.Errorf("the resolved link carries the credential: %q", got.DirectURL)
 	}
@@ -291,10 +271,7 @@ func TestFTPWrongPasswordIsReportedAsARefusedCredential(t *testing.T) {
 	if err == nil {
 		t.Fatal("a wrong password resolved successfully")
 	}
-	// The distinction the whole error vocabulary exists for: an account the
-	// server refused must not be reported the same way as a file that is gone,
-	// because one of the two sends somebody to the accounts page and the other
-	// sends them looking for a typo in a path.
+	// A refused account and a missing file need different fixes.
 	if !errors.Is(err, ErrAuth) {
 		t.Errorf("error = %v, want it to say the credential was refused", err)
 	}
@@ -312,8 +289,7 @@ func TestFTPMissingFileIsReportedAsGoneAndNotAsAFailure(t *testing.T) {
 		t.Fatalf("error = %v, want it to say the path is not there", err)
 	}
 
-	// And the batched form says the same thing in the availability column,
-	// which is the answer the collector paints a row red from.
+	// The batched check says the same.
 	got, err := r.Check(context.Background(), []string{
 		LinkOf(s.target("/pub/film.mkv")),
 		LinkOf(s.target("/pub/gone.mkv")),
@@ -338,9 +314,7 @@ func TestFTPFolderLinkBecomesOneEntryPerFile(t *testing.T) {
 	for _, l := range got {
 		names = append(names, l.Name)
 	}
-	// Recursive, deliberately: a release folder has Subs and Sample in it, and
-	// a listing that stopped at the top would drop them with nothing on screen
-	// to say so.
+	// Files in subfolders are included.
 	want := []string{"film.mkv", "notes.txt", "film.srt", "x.nfo"}
 	if len(names) != len(want) {
 		t.Fatalf("List returned %v, want the four files %v", names, want)
@@ -361,9 +335,6 @@ func TestFTPFolderLinkBecomesOneEntryPerFile(t *testing.T) {
 }
 
 func TestFTPFileLinkIsNotAFolderAndExpandsToNothing(t *testing.T) {
-	// The ordinary paste. List answering (nil, nil) rather than an error is
-	// what lets the caller stage the link as itself without telling a real
-	// failure apart from "this was never a folder".
 	s := newFakeFTP(t, "alice", "secret", ftpTree())
 	r := Resolver{Accounts: Logins{s.host(): {Username: "alice", Password: "secret"}}}
 	got, err := r.List(context.Background(), LinkOf(s.target("/pub/notes.txt")))
@@ -399,10 +370,9 @@ func TestFTPResumeContinuesAtTheOffsetInsteadOfStartingAgain(t *testing.T) {
 	}
 }
 
-func TestFTPResumeFailsLoudlyWhenTheServerRefusesToRestart(t *testing.T) {
-	// The whole safety of resuming. A server that answers REST with 502 and
-	// then serves the file from byte zero would have its bytes appended to a
-	// half-finished part file, producing a corrupt file that reports success.
+func TestFTPResumeFailsWhenTheServerRefusesToRestart(t *testing.T) {
+	// Serving from byte zero after a refused REST would corrupt the part
+	// file.
 	s := newFakeFTP(t, "alice", "secret", ftpTree())
 	s.refuseRE = true
 	fs, err := Dialer{}.Dial(context.Background(), s.target("/"), Login{Username: "alice", Password: "secret"})

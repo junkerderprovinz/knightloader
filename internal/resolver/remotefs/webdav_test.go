@@ -16,17 +16,14 @@ import (
 	"testing"
 )
 
-// fakeDAV serves the smallest thing that is honestly a WebDAV share: PROPFIND
-// at depth 0 and 1, and a GET that honours a byte range. Built on httptest
-// rather than a raw listener because WebDAV IS HTTP, which is the same reason
-// the resolver hands its downloads to the engine instead of fetching them here.
+// fakeDAV serves a minimal WebDAV share: PROPFIND at depth 0 and 1, and a GET
+// that honours a byte range.
 type fakeDAV struct {
 	tree map[string]fakeNode
 	user string
 	pass string
-	// ignoreRange makes the server answer 200 with the whole file even when a
-	// range was asked for - what a server without range support does, and the
-	// one case a resumed download must refuse rather than append.
+	// ignoreRange answers 200 with the whole file even when a range was
+	// asked for.
 	ignoreRange bool
 	srv         *httptest.Server
 }
@@ -86,10 +83,8 @@ func (d *fakeDAV) serve(w http.ResponseWriter, r *http.Request) {
 		}
 		sort.Strings(paths)
 		var b strings.Builder
-		// A deliberately unusual namespace prefix. Every server picks its own
-		// letter, so a client that matched on "D:" instead of on the DAV:
-		// namespace would work against exactly the one server it was written
-		// for - which is what this fixture is here to catch.
+		// An unusual prefix, so matching on "D:" instead of the DAV:
+		// namespace would fail.
 		b.WriteString(`<?xml version="1.0"?><lp1:multistatus xmlns:lp1="DAV:">`)
 		for _, q := range paths {
 			n := d.tree[q]
@@ -104,9 +99,7 @@ func (d *fakeDAV) serve(w http.ResponseWriter, r *http.Request) {
 				fmt.Fprintf(&b, `<lp1:resourcetype/><lp1:getcontentlength>%d</lp1:getcontentlength>`, len(n.data))
 			}
 			b.WriteString(`</lp1:prop><lp1:status>HTTP/1.1 200 OK</lp1:status></lp1:propstat>`)
-			// A second propstat the client must ignore: a property this server
-			// does not carry, reported 404 inside a response about a file that
-			// is perfectly present.
+			// An unsupported property reported 404 for a file that exists.
 			b.WriteString(`<lp1:propstat><lp1:prop><lp1:getcontenttype/></lp1:prop><lp1:status>HTTP/1.1 404 Not Found</lp1:status></lp1:propstat>`)
 			b.WriteString(`</lp1:response>`)
 		}
@@ -148,10 +141,6 @@ func davTree() map[string]fakeNode {
 	}
 }
 
-// TestWebDAVResolveHandsTheEngineAPlainHTTPLink is the decision this whole
-// package rests on: a WebDAV download is an ordinary HTTP download, so the
-// answer is a URL the engine already fetches with ranges, several connections
-// and the configured outbound route.
 func TestWebDAVResolveHandsTheEngineAPlainHTTPLink(t *testing.T) {
 	d := newFakeDAV(t, "me", "pw", davTree())
 	r := d.resolver()
@@ -163,8 +152,6 @@ func TestWebDAVResolveHandsTheEngineAPlainHTTPLink(t *testing.T) {
 	if !strings.HasPrefix(got.DirectURL, "http://") {
 		t.Errorf("DirectURL = %q, want an ordinary http link for the engine", got.DirectURL)
 	}
-	// The space has to be escaped or the engine's own request line is rejected
-	// with a 400 long before the server looks at the file.
 	if !strings.Contains(got.DirectURL, "two%20words.mkv") {
 		t.Errorf("DirectURL = %q, want the path escaped", got.DirectURL)
 	}
@@ -175,8 +162,7 @@ func TestWebDAVResolveHandsTheEngineAPlainHTTPLink(t *testing.T) {
 	if got.Headers["Authorization"] != want {
 		t.Errorf("Authorization = %q, want the stored login", got.Headers["Authorization"])
 	}
-	// No per-host ceiling: WebDAV over HTTP takes as many connections as the
-	// user configured, unlike FTP where one session is one transfer.
+	// Unlike FTP, WebDAV takes as many connections as the user configured.
 	if got.Connections != 0 {
 		t.Errorf("connections = %d, want no opinion so the user's own setting stands", got.Connections)
 	}
@@ -210,9 +196,7 @@ func TestWebDAVFolderExpandsWithoutStagingItself(t *testing.T) {
 	if len(got) != 2 {
 		t.Fatalf("List = %+v, want the two files", got)
 	}
-	// A depth-1 PROPFIND answers with the collection ITSELF alongside its
-	// children. Staging that would turn one folder link into a task for the
-	// same folder, and the collector has no way out of that loop.
+	// A depth-1 PROPFIND also answers for the collection itself.
 	for _, l := range got {
 		if strings.HasSuffix(l.URL, "/holiday") {
 			t.Errorf("the folder staged itself: %+v", l)
@@ -228,10 +212,7 @@ func TestWebDAVFolderExpandsWithoutStagingItself(t *testing.T) {
 }
 
 func TestWebDAVLinkToTheServerRootStillListsRatherThanReportingItselfMissing(t *testing.T) {
-	// "webdavs://cloud.example.com/" is an ordinary paste, and the root is a
-	// directory like any other. The href a server answers for it is the bare
-	// "/", whose base name is useless, and dropping the entry on that ground
-	// made the link report itself as gone.
+	// The root's href is a bare "/".
 	d := newFakeDAV(t, "me", "pw", davTree())
 	got, err := d.resolver().List(context.Background(), LinkOf(d.target("/")))
 	if err != nil {
@@ -260,9 +241,7 @@ func TestWebDAVRangedReadResumesAndRefusesAServerThatIgnoresRanges(t *testing.T)
 		t.Errorf("read %q, want the tail after four bytes", b)
 	}
 
-	// The half that matters. A server entitled to ignore the Range header
-	// answers 200 with the whole file, and appending that to a half-finished
-	// part file produces a corrupt file that reports success.
+	// Appending a whole-file 200 to the part file would corrupt it.
 	d.ignoreRange = true
 	if _, err := fs.Open(context.Background(), "/dav/two words.mkv", 4); err == nil {
 		t.Fatal("a server that ignored the range was accepted, which would corrupt a resumed file")
@@ -270,10 +249,7 @@ func TestWebDAVRangedReadResumesAndRefusesAServerThatIgnoresRanges(t *testing.T)
 }
 
 func TestWebDAVAnOrdinaryWebServerIsNamedAsSuchRatherThanFailingVaguely(t *testing.T) {
-	// The likeliest way to misconfigure this: an account stored for a host
-	// that serves plain files. 405 to a PROPFIND is exactly how such a server
-	// answers, and "not a WebDAV share" is the sentence that saves an
-	// afternoon of looking at the password.
+	// A plain web server answers PROPFIND with 405.
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			w.WriteHeader(http.StatusMethodNotAllowed)

@@ -9,15 +9,14 @@ import "strings"
 // process last stopped. Anything else falls back to ResumeNever, because an
 // unrecognised value must never be read as "start downloading".
 const (
-	// ResumeNever leaves everything that was in flight paused. It is the
-	// default, and the reason is worth reading before changing it: a restarted
-	// transfer starts from the beginning. No backend's handle on a running
-	// download survives this process, so what the queue does with a resumed task
-	// is fetch it afresh - and because the partial is still sitting at the
-	// destination, the collision policy applies to it, which under the default
-	// (rename) means the bytes land beside it in a second file. Doing that
-	// unattended, on a box that reboots at four in the morning, spends a metered
-	// line on bytes somebody already had and leaves the half file behind.
+	// ResumeNever leaves everything that was in flight paused, and is the
+	// default, because a restarted transfer starts from the beginning. No
+	// backend's handle on a running download survives this process, so a
+	// resumed task is fetched afresh, and since the partial is still at the
+	// destination the collision policy applies to it: under the default,
+	// rename, the bytes land beside it in a second file. Unattended, on a box
+	// that reboots at four in the morning, that spends a metered line on bytes
+	// somebody already had and leaves the half file behind.
 	ResumeNever = "never"
 	// ResumeRunning starts again what was actually running, and only if
 	// something was: a queue that was already idle or halted stays that way.
@@ -35,11 +34,10 @@ func ResumeModes() []string { return []string{ResumeNever, ResumeRunning, Resume
 
 // DefaultKeepFinishedDays is how long a finished download stays in the list.
 //
-// It is a month rather than forever, and that is a deliberate answer to a list
-// that otherwise only ever grows: the tenth thousand row is not a record, it is
-// the reason the table takes a second to sort. Nothing is lost by it - what was
-// downloaded is kept in the history table, which retention never touches, and
-// the file on disk is never in question here at all.
+// A month rather than forever, because the list otherwise only grows and the
+// ten thousandth row is what makes the table take a second to sort. Nothing is
+// lost: what was downloaded stays in the history table, which retention never
+// touches, and the file on disk is not in question here.
 const DefaultKeepFinishedDays = 30
 
 // DefaultHistoryMax is how many finished downloads the history keeps. Roughly a
@@ -59,9 +57,9 @@ func sanitizeLifecycle(n Settings) Settings {
 	default:
 		n.ResumeOnStart = ResumeNever
 	}
-	// Zero is a real answer for both of these - "keep forever" - so only a
-	// negative one is corrected. A negative retention would be a cutoff in the
-	// future, which is every finished download at once.
+	// Zero is a real answer for both of these, keep forever, so only a negative
+	// one is corrected. A negative retention would be a cutoff in the future,
+	// which is every finished download at once.
 	if n.KeepFinishedDays < 0 {
 		n.KeepFinishedDays = 0
 	}

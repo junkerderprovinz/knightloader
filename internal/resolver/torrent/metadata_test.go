@@ -46,9 +46,7 @@ func TestAnOrdinaryTorrentParses(t *testing.T) {
 	}
 }
 
-// A single-file torrent has no path list at all - the name IS the file - and
-// the same tree has to come out of it, or the selection UI has a shape it
-// cannot draw.
+// A single-file torrent has no path list; its name is the file.
 func TestASingleFileTorrentIsAOneEntryTree(t *testing.T) {
 	md, err := Parse(singleFile(t, "movie.mkv", 4<<20))
 	if err != nil {
@@ -59,10 +57,7 @@ func TestASingleFileTorrentIsAOneEntryTree(t *testing.T) {
 	}
 }
 
-// BEP 27's private flag is the entire input to the DHT/PEX decision, and this
-// is the only place in the app that can see it: gopeed reads the same flag in
-// its own bt fetcher and never exposes it, so a build that trusted the download
-// library to hand it over would find nothing there.
+// BEP 27's private flag decides DHT and PEX, and gopeed does not expose it.
 func TestThePrivateFlagIsReadAndReported(t *testing.T) {
 	b := multiFile(t, "Private.Release", []fileInfo{file(1<<20, "a.bin")}, true)
 	md, err := Parse(b)
@@ -81,10 +76,8 @@ func TestThePrivateFlagIsReadAndReported(t *testing.T) {
 	}
 }
 
-// THE ADVERSARIAL SET. Each case takes an otherwise valid torrent and breaks
-// exactly one thing, so a refusal is about that thing and nothing else. A
-// refusal is not enough on its own either: the test insists on the typed error,
-// because the intake route branches on it to pick a status code and a sentence.
+// Each case breaks one property of a valid torrent. The typed error matters
+// because the intake route picks its status code from it.
 func TestParseRefusesHostileAndMalformedTorrents(t *testing.T) {
 	cases := []struct {
 		name string
@@ -275,7 +268,6 @@ func TestParseRefusesHostileAndMalformedTorrents(t *testing.T) {
 			if !errors.Is(err, c.want) {
 				t.Fatalf("error = %v, want %v", err, c.want)
 			}
-			// A refusal nobody can read is a refusal nobody can act on.
 			if strings.TrimSpace(err.Error()) == "" {
 				t.Fatal("the refusal carries no sentence")
 			}
@@ -283,9 +275,8 @@ func TestParseRefusesHostileAndMalformedTorrents(t *testing.T) {
 	}
 }
 
-// The file list length is its own limit because the file list is its own
-// resource: a hundred thousand entries is a tree the browser has to draw and a
-// selection the store has to hold, whatever the piece geometry says.
+// A huge file list is a tree the browser draws and a selection the store
+// holds, whatever the piece geometry says.
 func TestParseRefusesAnAbsurdlyLongFileList(t *testing.T) {
 	files := make([]fileInfo, MaxFiles+1)
 	for i := range files {
@@ -311,10 +302,8 @@ func itoa(i int) string {
 	return string(b[p:])
 }
 
-// A tracker this app cannot speak to is dropped and counted, not fatal. Real
-// torrents carry dead schemes all the time and refusing the file over one would
-// refuse half the world; saying nothing at all would leave somebody chasing a
-// stalled torrent with no idea that most of its trackers were ignored.
+// Real torrents carry dead tracker schemes, so those are dropped and counted
+// rather than refused.
 func TestUnusableTrackersAreDroppedAndCounted(t *testing.T) {
 	info := metainfo.Info{Name: "x.bin", Length: 1 << 20, PieceLength: testPieceLength, Pieces: pieces(1 << 20)}
 	ib, err := bencode.Marshal(info)
@@ -352,14 +341,8 @@ func TestUnusableTrackersAreDroppedAndCounted(t *testing.T) {
 	}
 }
 
-// THE CONTAINMENT TEST, and it is written the way Wave 10's was not.
-//
-// That wave shipped a check that joined a single-segment name onto a directory
-// and confirmed the result was inside it - which it always was, by
-// construction, whatever the directory was. The test that let it through only
-// ever passed it well-formed names, so it could not have failed. This one feeds
-// Contained the paths a real .torrent can carry, and the escaping cases are the
-// point: if they pass, the check is doing nothing.
+// The escaping cases are real multi-segment paths; each also checks that a
+// naive join would land outside, so the case keeps testing something.
 func TestContainedRefusesEveryPathThatLeavesTheFolder(t *testing.T) {
 	dir := t.TempDir()
 	escaping := []string{
@@ -375,9 +358,8 @@ func TestContainedRefusesEveryPathThatLeavesTheFolder(t *testing.T) {
 			if !errors.Is(err, ErrUnsafePath) {
 				t.Fatalf("Contained(%q) = %v, want ErrUnsafePath", rel, err)
 			}
-			// And the check really had work to do: the join genuinely lands
-			// outside. If this assertion ever fails the case has stopped being
-			// adversarial and the test above it has become the tautology.
+			// The naive join must really land outside, or the case tests
+			// nothing.
 			full := filepath.Join(dir, filepath.FromSlash(rel))
 			if strings.HasPrefix(full, filepath.Clean(dir)+string(filepath.Separator)) {
 				t.Fatalf("%q resolves to %q, which is inside the folder - this case no longer tests anything", rel, full)
@@ -385,39 +367,23 @@ func TestContainedRefusesEveryPathThatLeavesTheFolder(t *testing.T) {
 		})
 	}
 
-	// Rooted paths, refused on every platform and not only on the one where
-	// filepath.IsAbs happens to agree. None of these escape through Join - Join
-	// treats them as relative - so they are here to pin the refusal, which is
-	// about a torrent stating a root at all.
+	// Rooted paths are refused on every platform, although Join would treat
+	// them as relative.
 	for _, abs := range []string{"/etc/passwd", `\Windows\System32\x`, `C:\Windows\x`, "c:/windows/x"} {
 		if err := Contained(dir, []string{abs}); !errors.Is(err, ErrUnsafePath) {
 			t.Fatalf("Contained(%q) = %v, want ErrUnsafePath", abs, err)
 		}
 	}
 
-	// A colon does not escape the folder through Join the way "../" does - the
-	// resulting path is still, textually, inside dir - which is exactly why it
-	// needs its own check rather than being folded into the escaping list
-	// above: it is refused for creating an NTFS alternate-data-stream on an
-	// existing file, not for resolving outside the folder. This is the second
-	// gate a magnet's file list actually reaches (safeComponent's own test
-	// covers the .torrent-upload path, which never calls Contained at all).
+	// A colon stays inside dir textually but writes an NTFS alternate data
+	// stream, so it is refused on its own.
 	for _, rel := range []string{"readme.txt:payload.exe", "sub:stream/a.mkv"} {
 		if err := Contained(dir, []string{rel}); !errors.Is(err, ErrUnsafePath) {
 			t.Fatalf("Contained(%q) = %v, want ErrUnsafePath", rel, err)
 		}
 	}
-	// A backslash is the identical shape of case, and cannot live in the
-	// escaping list above for the identical reason the colon cannot: its own
-	// naive-join self-check ("the join genuinely lands outside") is ITSELF
-	// platform-dependent - filepath.Join only walks ".." past a backslash on
-	// Windows, so on Linux "..\\elsewhere.mkv" textually stays inside dir,
-	// which used to be exactly the gap between "passes on the machine this
-	// was built on" and "passes where this app actually ships" (caught live
-	// by Linux CI, not by this test suite on this Windows machine). Checked
-	// here instead, the same way the colon is: refused unconditionally by
-	// Contained regardless of what filepath.Join would or would not do with
-	// it on whichever platform happens to be running.
+	// A backslash escapes only on Windows, so it cannot join the escaping list
+	// with its platform-dependent self-check; it is refused everywhere.
 	for _, rel := range []string{`..\elsewhere.mkv`, `Show\..\..\etc\passwd`} {
 		if err := Contained(dir, []string{rel}); !errors.Is(err, ErrUnsafePath) {
 			t.Fatalf("Contained(%q) = %v, want ErrUnsafePath", rel, err)

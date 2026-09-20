@@ -13,9 +13,6 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/core"
 )
 
-// TestAggregateSumsThePackage pins the fix for a link JDownloader crawled into
-// several files. Reporting only the first showed a fraction of the real size
-// and called the task finished while the rest was still downloading.
 func TestAggregateSumsThePackage(t *testing.T) {
 	links := []DownloadLink{
 		{Name: "part1.rar", BytesTotal: 100, BytesLoaded: 100, Speed: 0, Finished: true},
@@ -40,8 +37,6 @@ func TestAggregateSumsThePackage(t *testing.T) {
 	}
 }
 
-// TestAggregateFinishesOnlyWhenEveryFileIs is the other half: the task settles
-// exactly once, when nothing is left.
 func TestAggregateFinishesOnlyWhenEveryFileIs(t *testing.T) {
 	all := []DownloadLink{
 		{Name: "a.bin", BytesTotal: 10, BytesLoaded: 10, Finished: true},
@@ -61,16 +56,10 @@ func TestAggregateFinishesOnlyWhenEveryFileIs(t *testing.T) {
 	}
 }
 
-// fakeJDContainer answers just enough of the Deprecated API for
-// awaitContainerLinks to run a full submit -> settle -> harvest -> remove
-// cycle against something that is not a live JD. This fake exists to pin
-// AddCryptedV1's wiring into that shared path, not to exercise the path
-// itself — container_crawl_test.go's fake is the one that puts the wait and
-// the harvest under pressure.
-//
-// It is the plainest JD there is: the container lands in one package under the
-// name it was given, the link count never changes, and no query filter means
-// anything to it, so every query is answered with the same two links.
+// fakeJDContainer answers enough of the Deprecated API for one submit, settle,
+// harvest and remove cycle. The container lands in one package under the given
+// name and every query answers the same two links; container_crawl_test.go
+// covers harder crawls.
 type fakeJDContainer struct {
 	t        *testing.T
 	mu       sync.Mutex
@@ -123,13 +112,9 @@ func (f *fakeJDContainer) handler() http.Handler {
 	})
 }
 
-// TestAddCryptedV1SubmitsHarvestsAndCleansUp drives AddCryptedV1 end to end
-// against fakeJDContainer: the raw bytes go in as an inline dataURLs entry
-// (not a URL — this payload was never fetchable), the harvested link comes
-// back as a resolver.Result (URL, name AND size - the crawl that decrypted
-// the container already knows all three) through the same path AddContainer
-// uses, and the package is removed from JD's grabber afterwards so JD does
-// not start it on its own.
+// The payload goes in as an inline dataURLs entry, the harvested links come
+// back with their crawled name and size, and the package is removed from the
+// grabber afterwards.
 func TestAddCryptedV1SubmitsHarvestsAndCleansUp(t *testing.T) {
 	orig := pollInterval
 	pollInterval = 5 * time.Millisecond
@@ -153,16 +138,10 @@ func TestAddCryptedV1SubmitsHarvestsAndCleansUp(t *testing.T) {
 	if links[0].Size != 4096 {
 		t.Errorf("Size = %d, want the size the crawl already found", links[0].Size)
 	}
-	// The crawl's own verdict travels with the link, which is what makes a
-	// freshly opened container show online/offline immediately instead of a
-	// grey dot per row until somebody presses "Alle prüfen" (jdp, 2026-09-06:
-	// "bei dlc links funktioniert die status anzeige immer noch nicht").
 	if links[0].Available != core.AvailOnline {
 		t.Errorf("Available = %q, want the ONLINE the crawl already reported", links[0].Available)
 	}
-	// Only a STATED verdict travels. Anything else - TEMP_UNKNOWN here - is
-	// "nobody has looked", not "the host would not say", and staging it as the
-	// latter would put a permanent "uncheckable" on a link nothing has checked.
+	// TEMP_UNKNOWN means nobody has looked, not uncheckable.
 	if links[1].Available != "" {
 		t.Errorf("Available = %q for TEMP_UNKNOWN, want it left empty", links[1].Available)
 	}
@@ -180,18 +159,13 @@ func TestAddCryptedV1SubmitsHarvestsAndCleansUp(t *testing.T) {
 	}
 }
 
-// fakeJDCheck answers just enough of the Deprecated API for CheckLinks to run
-// a full stage -> settle -> read -> remove cycle, with per-URL availability it
-// was told to answer rather than a single canned reply - the shape the mapping
-// defence (keyed by URL, not position) actually needs something to defend
-// against.
+// fakeJDCheck answers enough of the Deprecated API for one CheckLinks cycle,
+// with a per-URL availability answered in map order.
 type fakeJDCheck struct {
 	t     *testing.T
 	mu    sync.Mutex
 	avail map[string]string // url -> "ONLINE"/"OFFLINE"/anything else
-	// collecting is what isCollecting answers. False here, true in the test
-	// that pins the flag being a hint rather than a gate - on a shared instance
-	// it stays true for as long as anything else is crawling.
+	// collecting is what isCollecting answers.
 	collecting bool
 	links      string // the raw links string JD received
 	pkgName    string
@@ -261,12 +235,8 @@ func (f *fakeJDCheck) handler() http.Handler {
 	})
 }
 
-// TestCheckLinksMapsAvailabilityByURL pins the two things that matter about
-// CheckLinks: it turns JD's own ONLINE/OFFLINE strings into this app's
-// Availability, and it does so by matching the URL JD echoed back rather than
-// by position - the fake deliberately hands the two links back in reverse
-// order (map iteration order in Go is randomized) so a positional bug would
-// show up as a flipped verdict, not a compile error.
+// The fake answers in random map order, so matching by position would flip
+// the verdicts.
 func TestCheckLinksMapsAvailabilityByURL(t *testing.T) {
 	orig := pollInterval
 	pollInterval = 5 * time.Millisecond
@@ -303,10 +273,6 @@ func TestCheckLinksMapsAvailabilityByURL(t *testing.T) {
 	}
 }
 
-// TestCheckLinksUncheckableForAnythingElse pins the safe default: a link JD's
-// crawl produced an entry for but stated no ONLINE/OFFLINE opinion on (a bare
-// "UNKNOWN", or empty) must not read as either verdict, and must not borrow
-// its neighbor's answer either.
 func TestCheckLinksUncheckableForAnythingElse(t *testing.T) {
 	orig := pollInterval
 	pollInterval = 5 * time.Millisecond
@@ -331,13 +297,8 @@ func TestCheckLinksUncheckableForAnythingElse(t *testing.T) {
 	}
 }
 
-// TestCheckLinksErrorsTheWholeBatchOnTimeout pins the other side of the same
-// contract: a link JD's crawl never produces an entry for at all (dropped,
-// unparseable, or simply still running) must not resolve to a per-link
-// verdict for anyone in the batch - resolver.Checker promises an error means
-// nothing was answered, not "the missing one is offline", and app.runCheck
-// relies on exactly that to file the whole group uncheckable rather than
-// deleting the ones that were actually fine.
+// A batch that never fully settles fails as a whole instead of answering
+// part of it, as resolver.Checker promises.
 func TestCheckLinksErrorsTheWholeBatchOnTimeout(t *testing.T) {
 	orig := pollInterval
 	pollInterval = 5 * time.Millisecond
@@ -345,10 +306,7 @@ func TestCheckLinksErrorsTheWholeBatchOnTimeout(t *testing.T) {
 
 	const known = "https://host.example/known"
 	const neverCrawled = "https://host.example/never-crawled"
-	// The fake only ever reports one of the two URLs the batch asked about, so
-	// CheckLinks's own settle condition (len(found) == len(urls)) can never be
-	// met - the scenario a short deadline is here to end quickly instead of
-	// hanging.
+	// Only one of the two URLs is ever reported, so the crawl never settles.
 	fake := newFakeJDCheck(t, map[string]string{known: "ONLINE"})
 	srv := httptest.NewServer(fake.handler())
 	defer srv.Close()
@@ -361,10 +319,8 @@ func TestCheckLinksErrorsTheWholeBatchOnTimeout(t *testing.T) {
 	}
 }
 
-// TestPatienceLimitsAreSeparate guards the reasoning rather than the numbers: a
-// download that takes hours must not be killed for taking hours, so the limit
-// on "did it ever start" has to be much shorter than the one on "has it
-// stopped moving".
+// The limit on "did it ever start" must be much shorter than the one on "has
+// it stopped moving".
 func TestPatienceLimitsAreSeparate(t *testing.T) {
 	if appearLimit >= stallLimit {
 		t.Errorf("appearLimit %v is not shorter than stallLimit %v; the two answer different questions",

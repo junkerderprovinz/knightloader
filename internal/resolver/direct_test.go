@@ -2,9 +2,8 @@ package resolver
 
 import "testing"
 
-// TestDirectMatch pins the file-vs-page rule. The allowlist this replaced sent
-// any unlisted extension (.md, .bin, .xyz) to the media extractor, which then
-// failed with "Unsupported URL" — found by a real download on a live instance.
+// Any extension other than a web page counts as a file, so unusual ones (.md,
+// .bin, .xyz) do not end up at the media extractor.
 func TestDirectMatch(t *testing.T) {
 	files := []string{
 		"https://example.com/archive.zip",

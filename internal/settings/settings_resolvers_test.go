@@ -7,21 +7,18 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
 )
 
-// TestDefaultsYtdlpIsTheZeroValue pins the promise settings.go's own comment
-// makes: an install that never opens the resolver options page downloads
-// exactly as it always has, because Ytdlp.Defaults() is the zero value.
+// An install that never opens the resolver options page downloads as it always
+// has, because ytdlp.Defaults() is the zero value.
 func TestDefaultsYtdlpIsTheZeroValue(t *testing.T) {
 	if got := Defaults().Ytdlp; got != (ytdlp.Options{}) {
 		t.Errorf("Defaults().Ytdlp = %+v, want the zero value", got)
 	}
 }
 
-// TestSanitizeResolversFoldsUnknownQuality is the same guard
-// TestSanitizeKeepsWhatOnlyTheUserCanFix already runs for MirrorPolicy and
-// CollisionPolicy, extended to the new sub-struct: a value only the API can
-// refuse (see routes_settings.go's validateRows) still must not be
-// discarded outright by sanitize, but an enum with no matching case folds
-// onto its safe default rather than being stored unusable.
+// The guard MirrorPolicy and CollisionPolicy already have, on the sub-struct: a
+// value only the API can refuse (routes_settings.go's validateRows) is not
+// discarded by sanitize, but an enum with no matching case folds onto its
+// default rather than being stored unusable.
 func TestSanitizeResolversFoldsUnknownQuality(t *testing.T) {
 	in := Defaults()
 	in.Ytdlp.Quality = "does-not-exist"
@@ -31,8 +28,8 @@ func TestSanitizeResolversFoldsUnknownQuality(t *testing.T) {
 	}
 }
 
-// TestYtdlpOptionsSurviveTheStoreRoundTrip is the settings form's actual
-// journey for this field: saved, reloaded from disk, still there.
+// The settings form's journey for this field: saved, reloaded from disk, still
+// there.
 func TestYtdlpOptionsSurviveTheStoreRoundTrip(t *testing.T) {
 	dir := t.TempDir()
 	st, err := Load(dir)
@@ -65,12 +62,9 @@ func TestYtdlpOptionsSurviveTheStoreRoundTrip(t *testing.T) {
 	}
 }
 
-// TestYtdlpOptionsCarryNoSecretRedactedIsAPlainCopy guards against Ytdlp
-// ever being added to Settings.Redacted without anyone noticing it needs
-// to be: unlike Reconnect and Connections, nothing in Options is a
-// credential, so a save must not silently need a merge-back for it. If a
-// secret-bearing field is ever added to Options, this test is exactly the
-// one that should start failing.
+// Unlike Reconnect and Connections, nothing in Options is a credential, so a
+// save needs no merge-back for it. A secret-bearing field added to Options
+// should fail here.
 func TestYtdlpOptionsCarryNoSecretRedactedIsAPlainCopy(t *testing.T) {
 	n := Defaults()
 	n.Ytdlp.CustomFormat = "bestvideo+bestaudio"
@@ -79,27 +73,23 @@ func TestYtdlpOptionsCarryNoSecretRedactedIsAPlainCopy(t *testing.T) {
 	}
 }
 
-// TestResolverOrderIsCleanedNotWhitelisted pins both halves of
-// cleanResolverOrder at once: what it removes (blanks, repeats, casing) and
-// what it deliberately leaves alone (an id this package has never heard of).
-//
-// The second half is the one worth a test. It is tempting to "fix" an unknown
-// id by dropping it, and doing so would silently rewrite somebody's arranged
-// order the moment they removed the key for a service they had ranked - see
-// the field's own comment in settings.go.
+// Both halves of cleanResolverOrder: what it removes (blanks, repeats, casing)
+// and what it leaves alone (an id this package has never heard of). Dropping an
+// unknown id would rewrite somebody's arranged order the moment they removed
+// the key for a service they had ranked, see ResolverOrder in settings.go.
 func TestResolverOrderIsCleanedNotWhitelisted(t *testing.T) {
 	got := sanitizeResolvers(Settings{
 		ResolverOrder: []string{" TorBox ", "jd", "torbox", "", "   ", "a-service-this-build-never-heard-of"},
 	}).ResolverOrder
 	want := []string{"torbox", "jd", "a-service-this-build-never-heard-of"}
 	if !reflect.DeepEqual(got, want) {
-		t.Errorf("ResolverOrder = %v, want %v (trimmed and lower-cased, repeat collapsed, blanks dropped, unknown id KEPT)", got, want)
+		t.Errorf("ResolverOrder = %v, want %v (trimmed and lower-cased, repeat collapsed, blanks dropped, unknown id kept)", got, want)
 	}
 }
 
-// TestEmptyResolverOrderBecomesNil is what the "Automatisch" button relies on:
-// an order that is empty however it got there reads the same on disk, so
-// "there is no hand order" is one state and not two.
+// What the "Automatisch" button relies on: an order that is empty however it
+// got there reads the same on disk, so "there is no hand order" is one state
+// and not two.
 func TestEmptyResolverOrderBecomesNil(t *testing.T) {
 	for _, in := range [][]string{{}, {"", "  "}, nil} {
 		if got := sanitizeResolvers(Settings{ResolverOrder: in}).ResolverOrder; got != nil {

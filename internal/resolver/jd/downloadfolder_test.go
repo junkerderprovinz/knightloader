@@ -12,22 +12,6 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/core"
 )
 
-// The folder tests, and they exist because of the single most expensive defect
-// this app has had.
-//
-// A headless JD nobody has told otherwise downloads into its own default, which
-// resolves against the JVM's home. Measured on the two live instances the day
-// this was written: one had "/root/Downloads", the other "/Downloads". The
-// container runs as uid 99 and can write to neither, so JD answered every
-// package with the status "Invalid download directory" - fourteen out of
-// fourteen - and downloaded nothing at all, silently, from the day the backend
-// shipped. Five rounds of "es lädt nirgends was runter" (jdp, 2026-08-27 to
-// 2026-09-01) end here.
-//
-// Three separate promises, one per test: JD is TOLD the folder, every package
-// is PINNED to the task's own folder, and a refusal is SAID OUT LOUD instead of
-// being sat out for forty-five minutes.
-
 // fakeFolderJD records what it was told about folders and can be made to answer
 // with a package status of the caller's choosing.
 type fakeFolderJD struct {
@@ -85,9 +69,6 @@ func decoded(raw string) string {
 	return strings.Join(out, " ")
 }
 
-// TestSetDownloadFolderTellsJDWhereToWrite: the one call that would have
-// prevented all of it. Without it JD keeps its own default, which in a
-// container is a path the process cannot write.
 func TestSetDownloadFolderTellsJDWhereToWrite(t *testing.T) {
 	fake := &fakeFolderJD{}
 	srv := httptest.NewServer(fake.handler())
@@ -108,12 +89,8 @@ func TestSetDownloadFolderTellsJDWhereToWrite(t *testing.T) {
 	}
 }
 
-// TestDownloadPinsThePackageToTheTasksFolder covers the half addLinks alone
-// cannot do. JD treats addLinks' destinationFolder as a PARENT and hangs the
-// package name under it (measured: "/data/download/zielA" with package
-// "KL-probeA" became "/data/download/zielA/KL-probeA"), so a file would land in
-// a folder named after an internal task id. setDownloadDirectory sets it
-// verbatim, and the poller applies it the moment the package appears.
+// addLinks' destinationFolder only names the parent of a folder named after
+// the package, so the poller pins the task's folder with setDownloadDirectory.
 func TestDownloadPinsThePackageToTheTasksFolder(t *testing.T) {
 	fake := &fakeFolderJD{status: "Downloading"}
 	srv := httptest.NewServer(fake.handler())
@@ -131,8 +108,7 @@ func TestDownloadPinsThePackageToTheTasksFolder(t *testing.T) {
 			if !strings.Contains(got, "/data/download/Meine Serie") {
 				t.Errorf("setDownloadDirectory sent %q, want the task's own folder", got)
 			}
-			// The add carries it too, so the package is never filed anywhere
-			// unwritable even for the moment before the pin lands.
+			// The add carries it too, for the moment before the pin lands.
 			_, adds, _ := fake.snapshot()
 			if len(adds) == 0 || !strings.Contains(decoded(adds[0]), "destinationFolder") {
 				t.Errorf("addLinks did not carry a destinationFolder: %v", adds)
@@ -144,14 +120,8 @@ func TestDownloadPinsThePackageToTheTasksFolder(t *testing.T) {
 	t.Fatal("the package was never pinned to a folder")
 }
 
-// TestAFatalPackageStatusIsReportedAtOnce is the difference between the bug
-// being findable and not.
-//
-// JD reports "Invalid download directory" as a PACKAGE status and nowhere else.
-// The links under it look ordinary, so the poller folded them into a perfectly
-// healthy "running at 0 bytes" and sat there holding a concurrency slot, and
-// after forty-five minutes said "no progress for 45m0s" - a sentence about the
-// symptom that names neither the cause nor anything to do about it.
+// JD reports "Invalid download directory" only as a package status while its
+// links look healthy.
 func TestAFatalPackageStatusIsReportedAtOnce(t *testing.T) {
 	fake := &fakeFolderJD{status: "Invalid download directory"}
 	srv := httptest.NewServer(fake.handler())
@@ -176,10 +146,6 @@ func TestAFatalPackageStatusIsReportedAtOnce(t *testing.T) {
 	}
 }
 
-// TestAPassingPackageStatusIsNotTreatedAsFatal: the guard must not turn an
-// ordinary waiting state into a failed download. Being wrong in this direction
-// fails transfers that would have worked, which is why the fatal list is short
-// and matched rather than inferred.
 func TestAPassingPackageStatusIsNotTreatedAsFatal(t *testing.T) {
 	for _, s := range []string{"", "Downloading", "Waiting for reconnect", "[2] Wait 5m for new IP"} {
 		if fatalPackageStatus(s) {
@@ -193,15 +159,8 @@ func TestAPassingPackageStatusIsNotTreatedAsFatal(t *testing.T) {
 	}
 }
 
-// TestCaptchaSkippedIsToldApartFromCaptchaInProgress is the distinction the
-// whole helper exists for, and getting it backwards is expensive either way.
-//
-// Measured on the live instance (2026-09-03) during a real free-mode rapidgator
-// download: JD reported "Captcha recognition (rapidgator.net)" while it was
-// working, then "Skipped - Captcha is required" when it gave up. The first must
-// be left alone - killing it would abandon a download JD was about to finish -
-// and the second must settle at once, because waiting it out replaced the one
-// useful sentence with "no progress for 45m0s" three quarters of an hour later.
+// The status strings are the ones JD reported during a free-mode rapidgator
+// download.
 func TestCaptchaSkippedIsToldApartFromCaptchaInProgress(t *testing.T) {
 	working := []string{
 		"Captcha recognition (rapidgator.net)",
@@ -223,8 +182,6 @@ func TestCaptchaSkippedIsToldApartFromCaptchaInProgress(t *testing.T) {
 			t.Errorf("captchaSkipped(%q) = false, want true - JD has given up", s)
 		}
 	}
-	// And it must not collide with the folder verdict, which is a different
-	// full stop with a different remedy.
 	if captchaSkipped("Invalid download directory") {
 		t.Error("a folder problem was read as a skipped captcha")
 	}

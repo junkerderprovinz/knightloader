@@ -100,13 +100,9 @@ func (c *Client) Ping() error {
 	return nil
 }
 
-// Version asks JD for its own build - the "jd" namespace's version() call,
-// which JDownloader itself defines as its revision number
-// (org.jdownloader.api.jd.JDAPIImpl in JD's own open source: version()
-// returns JDUtilities.getRevisionNumber()). It is a plain, monotonically
-// increasing integer, not a semantic version string - that is genuinely how
-// JD reports itself, in its own UI as well as here, so this is deliberately
-// int64 rather than a parsed "vX.Y.Z" this app would have to invent.
+// Version asks JD for its build, the revision number that JDAPIImpl.version()
+// returns. JD reports itself by that increasing integer, not by a semantic
+// version.
 func (c *Client) Version() (int64, error) {
 	data, err := c.call("/jd/version")
 	if err != nil {
@@ -119,34 +115,21 @@ func (c *Client) Version() (int64, error) {
 	return v, nil
 }
 
-// SetDownloadFolder points JD's own default download directory at path.
+// SetDownloadFolder points JD's default download directory at path.
 //
-// This is not a nicety, and the cost of not having it was five rounds of "es
-// lädt nirgends was runter" (jdp, 2026-08-27 to 2026-09-01). A headless JD
-// nobody has told otherwise downloads into its own default, which resolves
-// against the JVM's home directory: measured on the two live instances, one had
-// "/root/Downloads" and the other "/Downloads". The container runs as uid 99 and
-// can write to neither, so JD answered every single package with the status
-// "Invalid download directory" - fourteen out of fourteen when this was found -
-// and downloaded nothing, for ever, without ever reporting a failure to anyone.
-//
-// KnightLoader provisions that JD itself (internal/provision), so its download
-// folder is KnightLoader's to set. Applied at every start rather than only at
-// provisioning time, because an instance that has already been provisioned has
-// the wrong value written into its config file and would otherwise stay broken
-// through any number of updates.
+// JD's own default resolves against the JVM home ("/root/Downloads" or
+// "/Downloads"), which the container's uid 99 cannot write, so every package
+// fails with "Invalid download directory" and nothing reports it. It is set on
+// every start because instances provisioned earlier already have the wrong
+// value in their config.
 func (c *Client) SetDownloadFolder(path string) error {
 	_, err := c.call("/config/set", generalSettings, nil, "DefaultDownloadFolder", path)
 	return err
 }
 
-// SetPackageDirectory moves one or more download-list packages to dir.
-//
-// Unlike addLinks' destinationFolder, which JD treats as a PARENT and appends
-// the package name to (measured: "/data/download/zielA" with package "KL-probeA"
-// became "/data/download/zielA/KL-probeA"), this sets the folder verbatim. That
-// is what lets a JD-fetched file land exactly where every other backend puts
-// one, instead of inside a folder named after an internal task id.
+// SetPackageDirectory moves one or more download-list packages to dir. Unlike
+// addLinks' destinationFolder, to which JD appends the package name, this sets
+// the folder verbatim, so JD's files land where every other backend puts them.
 func (c *Client) SetPackageDirectory(dir string, pkgUUIDs []int64) error {
 	if dir == "" || len(pkgUUIDs) == 0 {
 		return nil
@@ -193,8 +176,8 @@ type DownloadLink struct {
 }
 
 // QueryDownloads returns the live download links for one package. Scoping the
-// query to a single package keeps the response small and, crucially, avoids
-// unrelated links whose odd filenames can make JD emit malformed JSON.
+// query keeps the response small and away from unrelated links whose odd
+// filenames can make JD emit malformed JSON.
 func (c *Client) QueryDownloads(packageUUID int64) ([]DownloadLink, error) {
 	data, err := c.call("/downloadsV2/queryLinks", map[string]any{
 		"bytesLoaded":  true,
@@ -215,12 +198,9 @@ func (c *Client) QueryDownloads(packageUUID int64) ([]DownloadLink, error) {
 	return out, nil
 }
 
-// downloadPackage is one entry in JD's download package list.
-//
-// Status is asked for because JD says things there that it says NOWHERE else:
-// a package it cannot write is reported as a package status, never as a link
-// error, so a poller reading only the links sees a healthy package sitting at
-// zero bytes. See Backend.poll's fatalPackageStatus.
+// downloadPackage is one entry in JD's download package list. Status matters
+// because JD reports an unwritable package only there, never as a link error
+// (see fatalPackageStatus).
 type downloadPackage struct {
 	UUID   int64  `json:"uuid"`
 	Name   string `json:"name"`
@@ -257,63 +237,35 @@ func (c *Client) Package(name string) (*downloadPackage, error) {
 	return nil, nil
 }
 
-// CrawledLink is one entry in JD's link grabber — the staging list a container
-// is decrypted into, which is a different list from the downloads.
+// CrawledLink is one entry in JD's link grabber, the staging list a container
+// is decrypted into, separate from the download list.
 type CrawledLink struct {
 	UUID int64  `json:"uuid"`
 	URL  string `json:"url"`
 	Name string `json:"name"`
 	Host string `json:"host"`
-	// Size is what the crawl itself already knows about the file, the same
-	// number JD's own link-grabber window shows in its Size column before
-	// anything downloads. Requested here for the same reason Name is: a
-	// container's crawl is the one moment this size is free to ask for, and
-	// awaitContainerLinks hands both back rather than making the caller wait
-	// for a second crawl, at download time, to learn what this one already
-	// knew.
+	// Size is what the crawl already knows about the file, so the caller
+	// need not wait for a second crawl at download time.
 	Size int64 `json:"bytesTotal"`
-	// PackageUUID is the grabber package this link ended up in. It is what
-	// turns the answer to "which links did my crawl produce" into "which
-	// packages are mine", and a container that opens into several packages has
-	// no other way of being followed: the package NAME cannot be relied on (see
-	// AddContainerLinks) and the job filter answers links, not packages.
+	// PackageUUID is the grabber package the link ended up in, the only way
+	// to follow a container that opens into several packages.
 	PackageUUID int64 `json:"packageUUID"`
-	// Availability is JD's own hoster-plugin verdict on this one link -
-	// "ONLINE", "OFFLINE", or absent/something else when the plugin has no
-	// opinion. Measured against a live JD (rev 48637): a real rapidgator.net
-	// link came back ONLINE and a fabricated one OFFLINE, both without any
-	// premium account configured, because a hoster plugin's job is exactly
-	// this - reading that host's own file-info signal, something a generic
-	// HTTP probe from outside can't do (see Backend.CheckLinks).
+	// Availability is the hoster plugin's verdict: "ONLINE", "OFFLINE", or
+	// anything else when the plugin has no opinion. Plugins answer it without
+	// a premium account.
 	Availability string `json:"availability"`
 }
 
 // AddContainerLinks hands JD a container and asks for the package it lands in
 // to be named packageName. It returns the crawl job's id.
 //
-// Both halves of that are anchors on the way back, and neither is trusted
-// alone. overwritePackagizerRules asks for the passed name to win over the one
-// the container carries inside it — a DLC of a film wants to arrive as the
-// film's own release name, which would leave our links indistinguishable from
-// the ones the user added through JD's own window. It does not always win: a
-// container that declares several packages of its own can open into exactly
-// those, none of them carrying the name we passed, and a lookup by name then
-// finds nothing while JD's window plainly shows the links.
-//
-// That was once blamed for a specific failure, and it was the wrong culprit:
-// the 11.4 KB Troja DLC that would not open created no package in JD's grabber
-// under ANY name. Its links were already there as KnightLoader's own abandoned
-// packages and JD's duplicate manager dropped every one of them without a word
-// (measured 2026-09-13; see Backend.sweepGrabber). The renaming case above is
-// still real and still worth an anchor, but it never was this one.
-//
-// The job id is the other anchor. It is not a better one — queryLinks takes a
-// jobUUIDs filter, and on the shipped JD (revision 48637) that filter is not a
-// filter at all: jobUUIDs:[-1] answers with the entire link grabber, identical
-// to the unfiltered query — it is an INDEPENDENT one, which is the point: see
-// Backend.awaitContainerLinks, which asks both and takes the union, and
-// Backend.jobFilterProbe, which is what keeps a filter that is ignored from
-// being read as a very large crawl.
+// Name and job id are two independent anchors for finding the result, and
+// neither is enough alone. overwritePackagizerRules makes the given name win
+// over the container's own, but a container that declares several packages
+// can still open into those. The jobUUIDs filter of queryLinks is ignored by
+// JD revision 48637 and answers with the whole grabber, so
+// Backend.awaitContainerLinks takes the union of both and
+// Backend.jobFilterProbe checks whether the filter works.
 func (c *Client) AddContainerLinks(url, packageName string) (int64, error) {
 	data, err := c.call("/linkgrabberv2/addLinks", map[string]any{
 		"links":                    url,
@@ -331,16 +283,10 @@ func (c *Client) AddContainerLinks(url, packageName string) (int64, error) {
 	return res.ID, nil
 }
 
-// AddPlainLinks stages a batch of already-known, plain (non-container) links
-// under one marker package - the same overwritePackagizerRules pinning
-// AddContainerLinks uses and for the identical reason, so a packagizer rule
-// the user has configured in JD cannot rename the package out from under the
-// marker. It returns the job id for the same reason too: plain links are not
-// a container and will not declare package names of their own, but a marker
-// that has been renamed is still a marker that finds nothing, and the job is
-// the anchor that does not depend on a name at all. autostart is always false:
-// this exists for Backend.CheckLinks, which only ever wants JD's crawl-time
-// verdict, never a download.
+// AddPlainLinks stages plain links under one marker package without starting
+// them, for Backend.CheckLinks. Like AddContainerLinks it pins the name
+// against the user's packagizer rules and returns the job id as a second
+// anchor.
 func (c *Client) AddPlainLinks(links, packageName string) (int64, error) {
 	data, err := c.call("/linkgrabberv2/addLinks", map[string]any{
 		"links":                    links,
@@ -358,24 +304,13 @@ func (c *Client) AddPlainLinks(links, packageName string) (int64, error) {
 	return res.ID, nil
 }
 
-// AddContainerData hands JD an encrypted container as inline content instead
-// of a URL to fetch, and is followed back exactly as AddContainerLinks is: a
-// fresh marker name, overwritePackagizerRules so that name has the best chance
-// of surviving the crawl, and the returned job id as the second, independent
-// anchor — see AddContainerLinks's own doc for why it takes two.
+// AddContainerData hands JD an encrypted container as inline content and is
+// followed back the same way as AddContainerLinks.
 //
-// This is Click'n'Load's addcrypted (v1): unlike a .dlc/.ccf/.rsdf a user
-// saved and later uploaded, that payload was never a file anywhere — it
-// exists only as one POST form field — so there is no URL to hand JD for it.
-// dataURLs is the Deprecated API's answer to exactly that gap (verified
-// against JDownloader's own LinkCollectorAPIImplV2#addLinks: a dataURLs entry
-// is base64-decoded to a temp file named by the declared extension and fed
-// into the identical crawl entrance a fetched URL would use). ext is that
-// declared extension, "dlc" for addcrypted v1 because that is genuinely what
-// JD's own listener does with the same field
-// (org.jdownloader.api.cnl2.ExternInterfaceImpl#addcrypted writes it to a
-// temp .dlc and hands that in) — reusing it here is the identical treatment,
-// not a second, KnightLoader-specific decryption path.
+// It serves Click'n'Load's addcrypted, whose payload exists only as a POST
+// field with no URL to hand JD. JD decodes a dataURLs entry to a temp file
+// named by ext and crawls it like a fetched URL; ext is "dlc" for addcrypted
+// because JD's own CnL listener treats the field the same way.
 func (c *Client) AddContainerData(ext string, data []byte, packageName string) (int64, error) {
 	dataURL := "data:application/" + ext + ";base64," + base64.StdEncoding.EncodeToString(data)
 	res, err := c.call("/linkgrabberv2/addLinks", map[string]any{
@@ -394,12 +329,9 @@ func (c *Client) AddContainerData(ext string, data []byte, packageName string) (
 	return out.ID, nil
 }
 
-// CrawledPackages lists what JD's link grabber is holding, ours and everyone
-// else's. The whole list rather than a lookup by name, because the caller needs
-// two things from it: the packages carrying a marker (plural - the name is a
-// request, not an identity, and JD is free to make more than one), and whether
-// the grabber holds anything at all, which is what makes the jobUUIDs probe in
-// Backend.crawlOutput able to tell a filter that works from one that is ignored.
+// CrawledPackages lists every package in JD's link grabber, not only ours:
+// callers need all packages carrying a marker, and whether the grabber holds
+// anything at all for the jobUUIDs probe.
 func (c *Client) CrawledPackages() ([]downloadPackage, error) {
 	data, err := c.call("/linkgrabberv2/queryPackages", map[string]any{"name": true})
 	if err != nil {
@@ -412,14 +344,10 @@ func (c *Client) CrawledPackages() ([]downloadPackage, error) {
 	return pkgs, nil
 }
 
-// Collecting reports whether the link grabber is still crawling ANYTHING. It is
-// a hint and never a gate: the flag is global to the instance, so on one that is
-// also serving Click'n'Load or a paste it stays true for as long as that runs,
-// and a caller that waits for it to go false waits for something that is not
-// about its own crawl at all. It is unreliable in the other direction too - an
-// incremental crawler reports "not collecting" in the gaps between its own
-// sub-crawls. What a crawl has actually finished is decided by its own link
-// count standing still; see Backend.awaitContainerLinks.
+// Collecting reports whether the link grabber is crawling anything at all. It
+// is only a hint: the flag is global to the instance and also drops between
+// sub-crawls, so a crawl counts as finished when its link count stops
+// changing (see Backend.awaitContainerLinks).
 func (c *Client) Collecting() (bool, error) {
 	data, err := c.call("/linkgrabberv2/isCollecting")
 	if err != nil {
@@ -432,10 +360,8 @@ func (c *Client) Collecting() (bool, error) {
 	return busy, nil
 }
 
-// crawledLinkFields is the set of per-link facts every grabber query here asks
-// for. One list, because a query that forgets one of them does not fail - it
-// answers with the field zeroed, which reads downstream as "the crawl did not
-// know", and that is a lie the caller cannot tell from the truth.
+// crawledLinkFields is the set of per-link facts every grabber query asks for.
+// A field left out comes back zeroed without an error.
 func crawledLinkFields() map[string]any {
 	return map[string]any{
 		"url":          true,
@@ -459,11 +385,9 @@ func (c *Client) queryCrawledLinks(q map[string]any) ([]CrawledLink, error) {
 	return out, nil
 }
 
-// CrawledLinks returns the links in the named link-grabber packages. Scoped to
-// them rather than reading the whole grabber, because anything the user put
-// there through JD's own window is theirs and must not be swept up with ours -
-// which is also why no package at all means no query and no links, never the
-// unfiltered one that would answer with the lot.
+// CrawledLinks returns the links in the given link-grabber packages. With no
+// package it returns nothing, since an unfiltered query would include links
+// the user added through JD's own window.
 func (c *Client) CrawledLinks(packageUUIDs ...int64) ([]CrawledLink, error) {
 	if len(packageUUIDs) == 0 {
 		return nil, nil
@@ -473,14 +397,9 @@ func (c *Client) CrawledLinks(packageUUIDs ...int64) ([]CrawledLink, error) {
 	return c.queryCrawledLinks(q)
 }
 
-// CrawledLinksForJob returns the links one addLinks job produced, by the id
-// that call handed back.
-//
-// This is the anchor that does not care what JD named the package. It is also
-// the one that has been seen coming back empty on a live JD while the links
-// were plainly there, so a caller has to treat an empty answer as "no news",
-// never as "the container was empty" - see Backend.awaitContainerLinks, which
-// pairs it with the marker name for exactly that reason.
+// CrawledLinksForJob returns the links one addLinks job produced. It has come
+// back empty on a live JD while the links were there, so an empty answer means
+// no news, not an empty container.
 func (c *Client) CrawledLinksForJob(jobUUID int64) ([]CrawledLink, error) {
 	if jobUUID == 0 {
 		return nil, nil
@@ -490,22 +409,11 @@ func (c *Client) CrawledLinksForJob(jobUUID int64) ([]CrawledLink, error) {
 	return c.queryCrawledLinks(q)
 }
 
-// RemoveCrawled clears our crawl out of the link grabber - the links by id and
-// the packages that held them. Called once they have been read: JD's staging
-// list is not our storage, and leaving every container we ever opened in it
-// turns the user's own grabber into a bin and leaves JD free to start the links
-// itself.
-//
-// And it POISONS the grabber, which is the consequence that was missed for a
-// long time and the expensive one. JD's duplicate manager silently drops a
-// newly crawled link that the grabber already holds, so one link left behind
-// here is one link that vanishes out of every container carrying it from then
-// on, with no package, no error and nothing in JD's own logs. See
-// Backend.sweepGrabber.
-//
-// Both lists, not either: the packages are what a container opening into
-// several of them leaves behind, and the link ids cover the case where JD told
-// us which links were ours without telling us which package they sit in.
+// RemoveCrawled clears our crawl out of the link grabber once it has been
+// read, by link id and by package. A leftover link poisons the grabber: JD's
+// duplicate manager silently drops any newly crawled link it already holds,
+// so that link would vanish from every later container (see
+// Backend.sweepGrabber).
 func (c *Client) RemoveCrawled(linkUUIDs, packageUUIDs []int64) error {
 	linkUUIDs = nonZero(linkUUIDs)
 	packageUUIDs = nonZero(packageUUIDs)
@@ -516,9 +424,7 @@ func (c *Client) RemoveCrawled(linkUUIDs, packageUUIDs []int64) error {
 	return err
 }
 
-// nonZero drops the ids JD never gave us. A zero in either list of a
-// removeLinks call is not a harmless no-op to guess about, so it does not
-// travel.
+// nonZero drops unset ids, since what removeLinks does with a zero is unknown.
 func nonZero(ids []int64) []int64 {
 	out := make([]int64, 0, len(ids))
 	for _, id := range ids {

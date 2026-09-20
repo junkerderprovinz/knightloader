@@ -10,12 +10,11 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/core"
 )
 
-// fakeJDDownloads answers the two calls the poller makes - "which package is
-// this" and "what are its links doing" - and counts how often it is asked. The
-// count IS the test: a task nobody is watching produces no questions.
+// fakeJDDownloads answers the two calls the poller makes and counts how often
+// it is asked; a task nobody watches produces no questions.
 type fakeJDDownloads struct {
 	mu      sync.Mutex
-	fragen  int
+	queries int
 	enabled []bool
 }
 
@@ -25,9 +24,8 @@ func (f *fakeJDDownloads) handler() http.Handler {
 		defer f.mu.Unlock()
 		switch r.URL.Path {
 		case "/downloadsV2/queryPackages":
-			f.fragen++
-			// The name the backend derives from the task id (pkgName): a package
-			// under any other name is one PackageUUID will not match.
+			f.queries++
+			// Named as pkgName derives them from the task ids.
 			_, _ = w.Write([]byte(`{"data":[{"uuid":7,"name":"KL-t1"},{"uuid":8,"name":"KL-t2"}]}`))
 		case "/downloadsV2/queryLinks":
 			_, _ = w.Write([]byte(`{"data":[{"uuid":100,"name":"a.bin","bytesTotal":4096,"bytesLoaded":1024,"speed":512}]}`))
@@ -43,44 +41,35 @@ func (f *fakeJDDownloads) handler() http.Handler {
 func (f *fakeJDDownloads) count() int {
 	f.mu.Lock()
 	defer f.mu.Unlock()
-	return f.fragen
+	return f.queries
 }
 
-// Resume has to start watching again, and this is a regression of my own from
-// 2026-09-01 rather than an old gap.
-//
-// Pause was changed that morning to close its poller, correctly. What it took
-// away was something another file was quietly relying on: dispatchLocked does
-// NOT hand an already-started task back to Start - it puts it in a.active and
-// calls Resume, on the assumption that whatever was watching it still is. After
-// the change a stopped-and-restarted JD task held a concurrency slot with
-// nothing left to report on it, showing "running" at zero bytes for ever. Two
-// of exactly those were sitting on the live instance when this was written.
+// The dispatcher resumes an already started task through Resume, so Resume
+// must start a poller or the task holds its slot at "running" for ever.
 func TestResumeStartsWatchingAgain(t *testing.T) {
 	fake := &fakeJDDownloads{}
 	srv := httptest.NewServer(fake.handler())
 	defer srv.Close()
 
 	var mu sync.Mutex
-	var meldungen []core.Update
+	var updates []core.Update
 	b := NewBackend(srv.URL, func(_ string, u core.Update) {
 		mu.Lock()
-		meldungen = append(meldungen, u)
+		updates = append(updates, u)
 		mu.Unlock()
 	})
 
-	// A task JD already knows, stopped: exactly the state the dispatcher's
-	// `a.started[id]` branch calls Resume on.
+	// A stopped task JD already knows, the state the dispatcher resumes.
 	b.Pause("t1")
-	vorher := fake.count()
+	before := fake.count()
 
 	b.Resume("t1")
 	defer b.Remove("t1", false)
 
-	frist := time.Now().Add(4 * time.Second)
-	for time.Now().Before(frist) {
+	deadline := time.Now().Add(4 * time.Second)
+	for time.Now().Before(deadline) {
 		mu.Lock()
-		n := len(meldungen)
+		n := len(updates)
 		mu.Unlock()
 		if n > 0 {
 			return
@@ -88,14 +77,13 @@ func TestResumeStartsWatchingAgain(t *testing.T) {
 		time.Sleep(20 * time.Millisecond)
 	}
 	mu.Lock()
-	n := len(meldungen)
+	n := len(updates)
 	mu.Unlock()
 	t.Fatalf("Resume produced %d updates and %d extra polls (was %d): nothing is watching the task, so it holds a slot for ever",
-		n, fake.count()-vorher, vorher)
+		n, fake.count()-before, before)
 }
 
-// The other half: Resume must not stack a SECOND poller on a task that is
-// already being watched, or every reported byte would be counted twice.
+// A second poller on a watched task would count every byte twice.
 func TestResumeDoesNotStackASecondPoller(t *testing.T) {
 	fake := &fakeJDDownloads{}
 	srv := httptest.NewServer(fake.handler())
@@ -105,20 +93,18 @@ func TestResumeDoesNotStackASecondPoller(t *testing.T) {
 	b.Resume("t2")
 	defer b.Remove("t2", false)
 	time.Sleep(300 * time.Millisecond)
-	einer := fake.count()
+	first := fake.count()
 
 	// A plain unpause that never went through the dispatcher.
 	b.Resume("t2")
 	time.Sleep(600 * time.Millisecond)
-	zwei := fake.count()
+	total := fake.count()
 
-	// One poller asks at a steady rate; two ask at twice that. Compared as a
-	// ratio over the same window rather than as an absolute count, so the test
-	// does not depend on the tick landing on a particular millisecond.
-	proMs := float64(einer) / 300.0
-	erwartet := proMs * 900.0
-	if float64(zwei) > erwartet*1.6 {
+	// Compared as a rate so the test does not depend on tick timing.
+	perMs := float64(first) / 300.0
+	expected := perMs * 900.0
+	if float64(total) > expected*1.6 {
 		t.Errorf("after a second Resume: %d polls in 900ms, one poller would give about %.0f - a second poller is running",
-			zwei, erwartet)
+			total, expected)
 	}
 }

@@ -1,11 +1,5 @@
 package debrid
 
-// The per-host chunk ceiling: what RealDebrid.Unlock learns from a live
-// response, and how it survives to answer HostLimit / Resolver.HostCap
-// afterwards. See HostLimiter's doc comment in debrid.go for why this is
-// learned opportunistically rather than fetched from a per-host table - none
-// exists anywhere in Real-Debrid's documented API.
-
 import (
 	"context"
 	"net/http"
@@ -14,12 +8,7 @@ import (
 	"testing"
 )
 
-// TestRealDebridUnlockLearnsTheHostChunkCap drives Unlock against a response
-// shaped like the live API (verified: "chunks" is documented as "Max Chunks
-// allowed" on /unrestrict/link, api.real-debrid.com) and checks the number
-// becomes visible through HostLimit afterwards, keyed by the ORIGINAL link's
-// host - not Real-Debrid's own CDN host the direct URL resolves to, which
-// would make every provider's cache key collide on "cdn.real-debrid.com".
+// The cap is keyed by the original link's host, not by Real-Debrid's CDN host.
 func TestRealDebridUnlockLearnsTheHostChunkCap(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		_, _ = w.Write([]byte(`{"filename":"f.bin","filesize":99,
@@ -49,10 +38,6 @@ func TestRealDebridUnlockLearnsTheHostChunkCap(t *testing.T) {
 	}
 }
 
-// TestRealDebridHostLimitKeepsTheSmallest pins the merge rule: two unlocks
-// against the same host that report different chunk ceilings must leave the
-// smaller one in force, because that is the one no request against the host
-// has ever been refused for.
 func TestRealDebridHostLimitKeepsTheSmallest(t *testing.T) {
 	chunks := 16
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -88,10 +73,7 @@ func TestRealDebridHostLimitKeepsTheSmallest(t *testing.T) {
 	}
 }
 
-// TestRealDebridHostLimitIgnoresAZeroChunks pins the other edge: a response
-// that omits "chunks" (the ordinary shape for most links, per the docs) must
-// not be read as "zero chunks allowed" - that would hand connsFor a hard stop
-// on every future download to a host Real-Debrid simply said nothing about.
+// An answer without "chunks" must not read as zero chunks allowed.
 func TestRealDebridHostLimitIgnoresAZeroChunks(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		_, _ = w.Write([]byte(`{"filename":"f.bin","filesize":1,"download":"https://cdn.real-debrid.com/d/1/f.bin"}`))
@@ -109,11 +91,6 @@ func TestRealDebridHostLimitIgnoresAZeroChunks(t *testing.T) {
 	}
 }
 
-// TestDebridResolverHostCapDelegatesToTheService pins the seam between the
-// registry-facing Resolver and whatever Service backs it: HostCap must read
-// straight through to a HostLimiter-implementing service, and answer 0 for
-// one that does not implement it at all - AllDebrid today, since neither
-// /hosts nor /user/hosts carries anything comparable in AllDebrid's own API.
 func TestDebridResolverHostCapDelegatesToTheService(t *testing.T) {
 	rd := NewRealDebrid("T")
 	res := Resolver{ServiceID: "realdebrid", Svc: rd}

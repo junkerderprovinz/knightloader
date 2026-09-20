@@ -9,13 +9,9 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/confirm"
 )
 
-// TestOldAutoStartTrueMapsToBothNewFieldsTrue is the regression this whole
-// migration exists to pin. AutoStart used to conflate confirm and start; an
-// install that had switched it on gets nothing back if only one of the two
-// new fields inherits that value - either its links stop leaving the
-// collector on their own (AutoConfirm silently false) or they start leaving
-// it but never actually run (AutoStart silently false). Both must read back
-// true.
+// The old AutoStart conflated confirm and start, so an install that had it on
+// loses something if only one of the two new fields inherits the value: either
+// its links stop leaving the collector, or they leave it and never run.
 func TestOldAutoStartTrueMapsToBothNewFieldsTrue(t *testing.T) {
 	got := loadFrom(t, `{"autoStart":true}`)
 	if !got.AutoConfirm {
@@ -26,10 +22,9 @@ func TestOldAutoStartTrueMapsToBothNewFieldsTrue(t *testing.T) {
 	}
 }
 
-// TestOldAutoStartFalseKeepsAutoConfirmOffAndAutoStartOn is the other half:
-// an install that never turned the old flag on must not suddenly gain
-// auto-confirm, and the ordinary "click start, it runs" behaviour that
-// existed with or without the old flag must survive unchanged.
+// The other half: an install that never turned the old flag on must not gain
+// auto-confirm, and "click start, it runs", which held with or without the old
+// flag, survives.
 func TestOldAutoStartFalseKeepsAutoConfirmOffAndAutoStartOn(t *testing.T) {
 	got := loadFrom(t, `{"autoStart":false}`)
 	if got.AutoConfirm {
@@ -40,10 +35,8 @@ func TestOldAutoStartFalseKeepsAutoConfirmOffAndAutoStartOn(t *testing.T) {
 	}
 }
 
-// TestAFreshInstallMatchesTheOldDefaultBehaviour is Defaults() read through
-// Load with no document at all - what every brand new install gets, and
-// what has to look exactly like an install that never touched the old
-// AutoStart flag either.
+// Defaults() read through Load with no document: what a new install gets, which
+// has to look like an install that never touched the old AutoStart flag.
 func TestAFreshInstallMatchesTheOldDefaultBehaviour(t *testing.T) {
 	got := loadFrom(t, `{}`)
 	if got.AutoConfirm {
@@ -60,31 +53,26 @@ func TestAFreshInstallMatchesTheOldDefaultBehaviour(t *testing.T) {
 	}
 }
 
-// TestANewFormatDocumentIsNotTouchedByTheMigration mirrors
-// TestTheNewKeyWinsOverTheOldBoolean's own reasoning for ArchiveDisposal: a
-// document that already carries autoConfirm - even explicitly false - has
-// been through this once, and a client still sending the legacy autoStart
-// key alongside it must not be allowed to override a deliberate choice on
-// every subsequent load.
+// The reasoning TestTheNewKeyWinsOverTheOldBoolean gives for ArchiveDisposal: a
+// document that already carries autoConfirm, even explicitly false, has been
+// through this once, and a client still sending the legacy autoStart key
+// alongside it must not override that choice on every later load.
 func TestANewFormatDocumentIsNotTouchedByTheMigration(t *testing.T) {
 	got := loadFrom(t, `{"autoStart":true,"autoConfirm":false}`)
 	if got.AutoConfirm {
 		t.Error("AutoConfirm was flipped true by a legacy key a migrated document should no longer defer to")
 	}
-	// AutoStart still reads true here - not because the migration touched
-	// it, but because it is the same JSON key going forward and the
-	// document explicitly says true; ordinary json.Unmarshal accounts for
-	// this without migrateAutoStart's help, which is exactly the point of
-	// leaving a migrated document alone.
+	// AutoStart still reads true, not because the migration touched it but
+	// because it is the same JSON key going forward and the document says
+	// true. Ordinary json.Unmarshal handles that without migrateAutoStart.
 	if !got.AutoStart {
 		t.Error("AutoStart = false, want true - the document says so directly, unmigrated")
 	}
 }
 
-// TestAutoStartMigrationIsStableAcrossASave is the round-trip: once a
-// legacy document has been read and saved back, loading it again must not
-// re-derive anything, because the file now carries autoConfirm and looks
-// exactly like the "already migrated" case above.
+// The round trip: once a legacy document has been read and saved back, loading
+// it again re-derives nothing, because the file now carries autoConfirm and
+// looks like the already-migrated case above.
 func TestAutoStartMigrationIsStableAcrossASave(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "settings.json")
@@ -128,10 +116,8 @@ func TestOnDupesOnOfflineDefaultToExclude(t *testing.T) {
 	}
 }
 
-// TestOnDupesOnOfflineNeverFoldToExcludeAndRemove is the one rule this
-// wave's whole confirm policy exists to enforce: nothing may be deleted by a
-// default the user never touched, so a settings file this build cannot make
-// sense of must never be read as permission to delete.
+// Nothing may be deleted by a default nobody touched, so a settings file this
+// build cannot make sense of must never read as permission to delete.
 func TestOnDupesOnOfflineNeverFoldToExcludeAndRemove(t *testing.T) {
 	got := loadFrom(t, `{"onDupes":"","onOffline":"not-a-real-policy"}`)
 	if got.OnDupes == string(confirm.ExcludeAndRemove) || got.OnOffline == string(confirm.ExcludeAndRemove) {
@@ -142,9 +128,8 @@ func TestOnDupesOnOfflineNeverFoldToExcludeAndRemove(t *testing.T) {
 	}
 }
 
-// TestOnDupesOnOfflineHonourADeliberateChoice is the other side of the same
-// coin: exclude-and-remove is refused only as a DEFAULT, never as an actual
-// stored value - a user who set it on purpose has to see it saved.
+// The other side: exclude-and-remove is refused only as a fallback, never as a
+// stored value, so somebody who set it on purpose sees it saved.
 func TestOnDupesOnOfflineHonourADeliberateChoice(t *testing.T) {
 	doc, err := json.Marshal(map[string]string{
 		"onDupes":   string(confirm.ExcludeAndRemove),
@@ -162,11 +147,9 @@ func TestOnDupesOnOfflineHonourADeliberateChoice(t *testing.T) {
 	}
 }
 
-// TestOnDupesOnOfflineNeverAcceptUseGlobal is the reading that would
-// otherwise be nonsensical for an instance-level default: use-global cannot
-// defer to itself, so a document (hand-edited, or written by a build that
-// let the per-batch value leak into the global field) that says so folds to
-// the package default like any other value this field cannot use.
+// An instance-level default cannot defer to itself, so a document saying
+// use-global, hand-edited or written by a build that let the per-batch value
+// leak into the global field, folds to the package default.
 func TestOnDupesOnOfflineNeverAcceptUseGlobal(t *testing.T) {
 	got := loadFrom(t, `{"onDupes":"use-global"}`)
 	if got.OnDupes != string(confirm.DefaultPolicy) {

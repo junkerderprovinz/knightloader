@@ -12,8 +12,7 @@ import (
 )
 
 // recorder collects what the backend reported and hands back the terminal
-// update, which is the only point at which a download has definitely finished
-// one way or the other.
+// update.
 type recorder struct {
 	mu   sync.Mutex
 	all  []core.Update
@@ -45,9 +44,8 @@ func (r *recorder) wait(t *testing.T) core.Update {
 	}
 }
 
-// stubEngine stands in for the embedded download engine, and records the one
-// thing worth asserting about it: that a WebDAV link was handed over rather
-// than fetched here.
+// stubEngine stands in for the embedded download engine and records what it
+// was handed.
 type stubEngine struct {
 	mu      sync.Mutex
 	gotURL  string
@@ -88,9 +86,6 @@ func TestBackendDownloadsOverFTPAndLeavesNoPartFileBehind(t *testing.T) {
 	if len(got) != 4096 || strings.Trim(string(got), "A") != "" {
 		t.Errorf("the file holds %d bytes of %q, want 4096 of A", len(got), firstRune(got))
 	}
-	// A part file left at its final name is indistinguishable from a finished
-	// download to every other program on the machine, and one left beside it
-	// would make the next attempt resume from bytes nobody asked to keep.
 	if _, err := os.Stat(filepath.Join(dir, "film.mkv"+partSuffix)); !os.IsNotExist(err) {
 		t.Error("the part file survived a finished download")
 	}
@@ -99,8 +94,7 @@ func TestBackendDownloadsOverFTPAndLeavesNoPartFileBehind(t *testing.T) {
 func TestBackendResumesFromThePartFileInsteadOfStartingAgain(t *testing.T) {
 	s := newFakeFTP(t, "alice", "secret", ftpTree())
 	dir := t.TempDir()
-	// Three bytes of "hello" already on disk, exactly as a paused download
-	// would have left them.
+	// Three bytes of "hello" left by a paused download.
 	part := filepath.Join(dir, "notes.txt"+partSuffix)
 	if err := os.WriteFile(part, []byte("hel"), 0o644); err != nil {
 		t.Fatal(err)
@@ -116,9 +110,7 @@ func TestBackendResumesFromThePartFileInsteadOfStartingAgain(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	// "hello" and not "helhello": the bytes already on disk were kept and only
-	// the remainder was fetched. Appending a restarted stream instead is the
-	// corruption the whole resume path exists to make impossible.
+	// "hello", not "helhello".
 	if string(got) != "hello" {
 		t.Errorf("the finished file holds %q, want %q", got, "hello")
 	}
@@ -133,10 +125,7 @@ func TestBackendResumesFromThePartFileInsteadOfStartingAgain(t *testing.T) {
 }
 
 func TestBackendRefusesToCallATruncatedTransferFinished(t *testing.T) {
-	// The one failure a downloader must never report as success: the stream
-	// ended early with no error at all. Renaming that to the final name puts a
-	// broken file on disk under a green row, and the truncation surfaces weeks
-	// later in whatever tries to open it.
+	// The stream ends early without an error.
 	tree := ftpTree()
 	s := newFakeFTP(t, "alice", "secret", tree)
 	s.shortBy = 100
@@ -158,10 +147,6 @@ func TestBackendRefusesToCallATruncatedTransferFinished(t *testing.T) {
 }
 
 func TestBackendHandsAWebDAVLinkToTheEngineRatherThanFetchingIt(t *testing.T) {
-	// The architectural point of the whole package: WebDAV is HTTP, and the
-	// engine already fetches HTTP with ranges, several connections, the
-	// outbound connection picker and the speed limiter. A second, worse HTTP
-	// downloader here would lose all four.
 	eng := newStubEngine()
 	b := NewBackend(Logins{}, Dialer{}, eng, t.TempDir(), func(string, core.Update) {})
 	b.Download("t1", "https://cloud.example.com/dav/film.mkv", map[string]string{"Authorization": "Basic xyz"}, 6)

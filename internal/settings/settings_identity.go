@@ -1,21 +1,17 @@
 package settings
 
-// This instance's own identity: a stable random ID that never changes once
-// minted (see InstanceID below), an optional human-chosen name that stands
-// in for os.Hostname() wherever this instance names itself to another one
-// (see internal/api/routes_pairing.go's pairingSelf), and the external
-// hostnames it is known to be reachable through - either because a request
-// actually arrived on one (internal/api/routes_remote.go remembers it the
-// moment that happens) or because someone typed it in by hand on the Access
-// tab, for the case where a domain is configured but this instance has
-// never actually been visited through it yet.
+// This instance's own identity: a stable random id that never changes once
+// minted, an optional name that stands in for os.Hostname() wherever this
+// instance names itself to another one (routes_pairing.go's pairingSelf), and
+// the external hostnames it is known to be reachable through, either because a
+// request arrived on one (routes_remote.go remembers it) or because somebody
+// typed it on the Access tab before this instance was ever visited through it.
 //
-// Deliberately settings fields, not something computed fresh every time: a
-// domain seen once has to stay listed even when every later request comes
-// in over the LAN IP instead, a name typed once should not have to be
-// retyped after every restart, and an ID has to be THE SAME id on every
-// restart or nothing that ever learned it (a relay's own group, a peer's
-// federation.Instance.RelayID) could keep addressing this instance by it.
+// Settings fields rather than something computed fresh: a domain seen once has
+// to stay listed even when every later request arrives over the LAN IP, a name
+// typed once should survive a restart, and an id has to be the same on every
+// restart or nothing that learned it, a relay's group or a peer's
+// federation.Instance.RelayID, could keep addressing this instance by it.
 
 import (
 	"crypto/rand"
@@ -23,11 +19,10 @@ import (
 	"strings"
 )
 
-// maxKnownDomains caps the remembered list so a build behind a rotating set
-// of throwaway subdomains (a dynamic-DNS churn, a proxy config left
-// half-finished) does not grow this file forever - the addresses that
-// matter are the ones actually in current use, and eight is generously more
-// than any real single-instance setup needs at once.
+// maxKnownDomains caps the remembered list so that a build behind a rotating
+// set of throwaway subdomains, dynamic-DNS churn or a half-finished proxy
+// config does not grow this file forever. The addresses that matter are the
+// ones in current use, and eight is more than a single-instance setup needs.
 const maxKnownDomains = 8
 
 func sanitizeIdentity(n Settings) Settings {
@@ -49,30 +44,22 @@ func sanitizeIdentity(n Settings) Settings {
 			break
 		}
 	}
-	// No omitempty on KnownDomains (see CaptchaSolverOrder's own comment in
-	// settings.go for why): a nil slice still has to serialise as `[]`/JSON
-	// null consistently, never be silently absent, so the frontend's own
-	// type never has to treat this field as optional.
+	// No omitempty on KnownDomains, see CrawlInclude in settings.go: the key is
+	// always present, so the frontend never has to treat it as optional.
 	n.KnownDomains = out
 	return n
 }
 
-// newInstanceID mints a fresh id the same way routes_pairing.go's own
-// pairingCodes.issue() mints a token: 160 random bits, hex-encoded. It is
-// never guessed, only ever generated - unlike InstanceName it carries no
-// meaning a person would choose, so there is nothing to validate about one
-// that already exists, only about whether one exists at all.
+// newInstanceID mints a fresh id the way routes_pairing.go's
+// pairingCodes.issue() mints a token: 160 random bits, hex-encoded. Unlike
+// InstanceName it carries no meaning anybody would choose, so there is nothing
+// to validate about an existing one, only whether one exists.
 func newInstanceID() string {
 	raw := make([]byte, 20)
 	if _, err := rand.Read(raw); err != nil {
-		// crypto/rand failing is a broken machine, not a normal error path
-		// anything here could recover from - every other id-minting call in
-		// this codebase (pairingCodes.issue, apitoken) either propagates the
-		// same error or, like this one, has no error return to propagate it
-		// through. A blank id is caught by the same code that just set it:
-		// the caller of sanitizeIdentity assigns whatever this returns, so a
-		// blank result here becomes an id sanitizeIdentity will try to mint
-		// again on the very next load.
+		// A broken machine, and there is no error return to propagate it
+		// through. The blank id lands in the field sanitizeIdentity just set,
+		// so the next load mints one again.
 		return ""
 	}
 	return hex.EncodeToString(raw)

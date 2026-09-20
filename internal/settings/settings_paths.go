@@ -53,15 +53,14 @@ func fixedPrefix(dir string) string {
 	if out := strings.Join(keep, sep); out != "" {
 		return out
 	}
-	// Everything after the root is a placeholder, so the root is what is left -
-	// but ONLY when there was a root. "<jd:packagename>/unpacked" has no fixed
-	// part at all and has to stay relative.
+	// Everything after the root is a placeholder, so the root is what is left,
+	// and only when there was one. "<jd:packagename>/unpacked" has no fixed
+	// part and stays relative.
 	//
-	// Returning the bare separator for that case made the answer depend on the
-	// platform, which is the worst kind of wrong here: filepath.IsAbs("/") is
-	// true on Linux and filepath.IsAbs(`\`) is false on Windows, so the same
-	// template was accepted by the container and refused by the desktop build.
-	// Found by a settings test that was green on Windows and red in CI.
+	// Returning the bare separator for that case makes the answer depend on the
+	// platform: filepath.IsAbs("/") is true on Linux and filepath.IsAbs(`\`) is
+	// false on Windows, so the same template is accepted by the container and
+	// refused by the desktop build.
 	if strings.HasPrefix(normalised, sep) {
 		return sep
 	}
@@ -71,48 +70,35 @@ func fixedPrefix(dir string) string {
 // FixedPrefix is fixedPrefix for callers outside this package: the deepest part
 // of a configured folder that is a real path rather than a placeholder.
 //
-// Exported rather than copied, because there are already two of these - this
-// one and internal/api's splitTemplate, whose own comment carries the warning
-// about keeping the twins in step - and a third copy is a third thing to get
-// wrong in the same way. Anything that MEASURES a configured folder needs it:
-// stat-ing "/downloads/<jd:date>" asks about a directory that never exists, and
-// the answer comes from whatever the walk up lands on, which on a fresh install
-// is the volume root reported with total confidence as the download disk.
+// Anything that measures a configured folder needs it. Stat-ing
+// "/downloads/<jd:date>" asks about a directory that never exists, and the
+// answer comes from whatever the walk up lands on, which on a fresh install is
+// the volume root reported as the download disk. Exported rather than copied,
+// since internal/api's splitTemplate is already a second one of these.
 func FixedPrefix(dir string) string { return fixedPrefix(dir) }
 
-// Validate reports why a directory cannot be used, so the API can refuse a bad
-// path instead of silently downloading somewhere else.
+// WriteProbeName is the throwaway file this package drops into a folder to find
+// out whether it can be written to, and removes again immediately.
 //
-// what names the field being checked, in the words the person typing into it
-// sees ("the download folder", "the working folder"). It is a parameter and not
-// a constant because five different fields are checked by this one function -
-// the download folder, the working folder, a category's folder, a batch's
-// folder and a single task's folder - and until this parameter existed every
-// one of them reported "the download folder must be an absolute path". So the
-// field that failed was the one field the message did not name, and the
-// working folder, added later, made that visible: somebody typing a relative
-// path into it was told to go and fix a download folder that was fine.
-//
-// Passing it in rather than hardcoding a label per call site is what makes the
-// fix stick: a sixth caller cannot compile without answering the question.
-
-// WriteProbeName is the throwaway file this package drops into a folder to
-// find out whether it can be written to, and removes again immediately.
-//
-// EXPORTED SO THAT THE SECOND PLACE THAT NEEDS ONE REUSES THIS NAME RATHER
-// THAN INVENTING A SECOND. internal/app's self-test asks the same question
-// about the download and working folders (app_selftest.go), and a probe file
-// under a different name would be a second thing every scanner in the tree has
-// to be taught to ignore - internal/watch's poller skips dotfiles, which is
-// precisely what makes THIS name safe from the folder watcher, and a new one
-// would inherit that only by accident.
-//
-// The leading dot is therefore load-bearing rather than cosmetic. So is the
-// fact that both callers remove the file straight away: it exists for one
-// syscall's worth of time, and a probe left behind in somebody's download
-// folder is litter this app has no business creating.
+// Exported so that the second place needing one reuses the name.
+// internal/app's self-test asks the same question about the download and
+// working folders (app_selftest.go), and a probe under a different name would
+// be a second thing every scanner in the tree has to be taught to ignore.
+// internal/watch's poller skips dotfiles, which is what makes this name safe
+// from the folder watcher, so the leading dot is load-bearing. Both callers
+// remove the file straight away.
 const WriteProbeName = ".knightloader-write-test"
 
+// Validate reports why a directory cannot be used, so the API can refuse a bad
+// path instead of downloading somewhere else.
+//
+// what names the field being checked in the words the person typing into it
+// sees ("the download folder", "the working folder"). It is a parameter because
+// five fields go through this one function: the download folder, the working
+// folder, a category's folder, a batch's folder and a single task's folder.
+// With a fixed label all five reported "the download folder must be an absolute
+// path", so the field that failed was the one the message did not name. Passing
+// it in means a sixth caller cannot compile without answering the question.
 func Validate(what, dir string) error {
 	if dir == "" {
 		return nil // the built-in default is always usable

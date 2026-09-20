@@ -14,74 +14,34 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 )
 
-// ResolverID is the routing id, exported because three places outside this
-// package have to agree on the literal string - the backend table
-// (app.backendFor), the directory-expansion branch (app.crawl) and the account
-// catalogue entry (internal/accounts). Every other resolver in this tree
-// coordinates that by convention and a comment; this one has a constant,
-// because a typo in any of those three silently routes remote-file links to
-// the plain HTTP engine, which then fails on a scheme it has never heard of.
+// ResolverID is the routing id shared by the app's backend table, its
+// directory expansion and the account catalogue; a mismatch would send these
+// links to the HTTP engine.
 const ResolverID = "remotefs"
 
-// prio sits above the whole debrid band (44 for Offcloud up to 49 for
-// AllDebrid) and well above resolver.Direct's 40.
-//
-// For ftp://, ftps://, sftp:// and the two webdav:// schemes the number is
-// decoration: nothing else in the tree matches those at all. It earns its keep
-// for the ONE case that does overlap, the https:// link on a host the user has
-// stored a WebDAV account for. There, a host somebody personally configured is
-// a more specific fact than a debrid provider's public host list or Direct's
-// guess from a file extension, and both of those would otherwise take the link
-// and fail on a server they have no credential for.
-//
-// Two rather than one above AllDebrid, so that a later debrid service added at
-// 50 - the next number anybody reaching for one would pick - does not silently
-// end up level with this and have the tie settled by registration order.
-//
-// Torrent's own 50 is not a comparison this has to make: a magnet: or data:
-// URI is not a URL with a host, and none of the five schemes here is either of
-// those, so no link exists that both resolvers match and their relative order
-// can never decide anything.
+// prio only matters for an https:// link on a host with a stored WebDAV
+// account, the one case other resolvers also match. The user's own server is
+// the more specific fact, so it sits above every debrid service (44 to 49) and
+// resolver.Direct (40), with room for a debrid service added at 50.
 const prio = 51
 
-// The two bounds on one directory expansion.
-//
-// The entry cap mirrors internal/crawler's own defaultMaxLinks and exists for
-// the same reason: a link that quietly becomes ten thousand tasks is a paste
-// nobody can undo. The depth cap is the more important of the two here,
-// because an FTP server that publishes a symlink pointing at its own parent
-// turns a walk into a loop, and no counter alone ends it in reasonable time.
+// The bounds on one directory expansion: an entry cap like the crawler's, and
+// a depth cap because an FTP symlink to a parent directory makes a loop.
 const (
 	maxListingEntries = 2000
 	maxListingDepth   = 8
 )
 
 // Resolver claims links on servers the user owns and answers what is behind
-// them - the name, the size, and whether it is a folder that should become
-// several tasks instead of one.
+// them: the name, the size, and whether it is a folder to expand.
 //
-// It holds no connection of its own. Every call dials, asks, and hangs up:
-// an FTP control connection kept open between a paste and a download start is
-// a connection the server times out on its own schedule, and a stale one fails
-// at exactly the moment nothing is watching.
-//
-// THE COST OF THAT, STATED PLAINLY. Staging a folder of two hundred files is
-// one List for the walk and then two hundred Resolves, one per staged link,
-// each of them a full login. Against a seedbox on the other side of an ocean
-// that is a slow paste. It is not a regression this resolver introduced -
-// app.stage resolves every link it stages, whether it came from a page crawl,
-// a container or a paste, and has since long before this package existed - but
-// a login is a heavier Resolve than an http HEAD, so the arithmetic is worse
-// here than anywhere else in the tree. Fixing it properly means a short-lived
-// connection cache keyed by server, and a cache has to hand out EXCLUSIVE
-// ownership (see ftpFS's own note: one connection is one in-flight transfer)
-// and evict on the server's own idle timeout. That is a real piece of
-// machinery, and it is deliberately not in this first version.
+// It keeps no connection: every call dials, asks and hangs up, because an idle
+// FTP control connection times out on the server's schedule. Staging a folder
+// therefore costs one login per file; a connection cache would need exclusive
+// ownership per transfer and idle eviction.
 type Resolver struct {
-	// Accounts is looked up by Match, which the dispatcher calls while holding
-	// the app's lock - so an implementation must answer from memory. The app
-	// wires a snapshot rebuilt on every account change (rewireBackends), never
-	// the encrypted store itself.
+	// Accounts is consulted by Match under the app's lock, so it must answer
+	// from memory; the app wires a snapshot rebuilt on every account change.
 	Accounts Accounts
 	Dialer   Dialer
 }
@@ -91,20 +51,11 @@ var _ resolver.Checker = Resolver{}
 
 func (Resolver) Info() resolver.Info { return resolver.Info{ID: ResolverID, Prio: prio} }
 
-// Match claims the four protocols by scheme, and https:// by ACCOUNT.
-//
-// The account gate is the whole safety of the https branch, and it is why
-// Accounts is an interface rather than a flag: a resolver that claimed https
-// on shape alone - a /remote.php/dav/ path, say - would take links away from
-// every other backend in the tree the first time a hoster used a similar URL,
-// and it would take them on a guess. "The user has stored a WebDAV login for
-// exactly this hostname" is not a guess.
-//
-// http:// is deliberately NOT claimed the same way, even for a host with an
-// account. The account is keyed to a host and says nothing about which scheme
-// that host serves WebDAV on, and a plaintext link is far more often an
-// ordinary download than a WebDAV share - so the plaintext case has to be
-// named explicitly with webdav://, which is one keystroke and no ambiguity.
+// Match claims ftp, ftps, sftp, webdav and webdavs by scheme, and https only
+// for a host with a stored account. The URL's shape alone would be a guess
+// that takes links from other backends. http:// is never claimed, since an
+// account does not say which scheme the host serves WebDAV on; webdav:// names
+// the plaintext case explicitly.
 func (r Resolver) Match(raw string) bool {
 	u, err := url.Parse(strings.TrimSpace(raw))
 	if err != nil || u.Hostname() == "" {
@@ -129,25 +80,13 @@ func (r Resolver) hasAccount(host string) bool {
 
 // Resolve confirms the file is there and says how to fetch it.
 //
-// WHAT IT HANDS BACK IS TWO DIFFERENT THINGS, on purpose:
+// For WebDAV it returns the plain http(s) URL with an Authorization header,
+// which the engine fetches. For FTP, FTPS and SFTP it returns the
+// credential-free link for Backend, which looks the login up again rather
+// than receiving it through the dispatcher.
 //
-//   - For WebDAV, the plain http(s) URL and an Authorization header. That link
-//     goes straight to the embedded engine, which already fetches it with
-//     several connections, byte ranges, the configured outbound route and the
-//     speed limiter. Re-implementing any of that here would be a second, worse
-//     HTTP downloader.
-//   - For FTP, FTPS and SFTP, the link itself, unchanged and still without a
-//     credential in it. Nothing in the engine speaks those, so Backend fetches
-//     them - and it looks the credential up again from the account store
-//     rather than being handed one here, because a Result travels through the
-//     dispatcher and a password in it would be one copy of the secret too
-//     many.
-//
-// A FOLDER IS AN ERROR HERE, and a deliberately worded one. A directory link
-// is meant to be expanded into one task per file before it ever reaches this
-// point (see List and its caller); a folder arriving anyway means it was
-// staged before expansion existed, or restored from the store, and "this is a
-// folder" is the only answer that tells somebody what to do about it.
+// A folder is an error: folder links are expanded by List before staging, so
+// one arriving here was staged some other way.
 func (r Resolver) Resolve(ctx context.Context, req resolver.Request) (resolver.Result, error) {
 	t, login, fs, err := r.open(ctx, req.URL)
 	if err != nil {
@@ -170,11 +109,7 @@ func (r Resolver) Resolve(ctx context.Context, req resolver.Request) (resolver.R
 	res := resolver.Result{
 		Name: name,
 		Size: e.Size,
-		// The stat that just succeeded IS the availability check for this
-		// link - the same "resolving and checking happened together" case
-		// resolver.Result.Available was added for. Throwing it away would
-		// leave every remote-server link grey in the collector until somebody
-		// pressed Check, which would then make the identical call.
+		// The successful stat is the availability check.
 		Available: core.AvailOnline,
 	}
 	if t.Kind == KindWebDAV {
@@ -187,40 +122,27 @@ func (r Resolver) Resolve(ctx context.Context, req resolver.Request) (resolver.R
 		return res, nil
 	}
 	res.DirectURL = LinkOf(t)
-	// One connection, and it is a ceiling rather than a preference (see
-	// app.connsFor). Both protocols really are one transfer per session: FTP's
-	// own library says a connection supports one in-flight data connection,
-	// and SFTP reads over one channel. Several would mean several LOGINS, and
-	// a seedbox that caps concurrent logins per account - most of them do -
-	// answers the second one with a refusal that looks like a bad password.
+	// One transfer per session is all FTP and SFTP offer, and more sessions
+	// would mean more logins, which seedboxes often refuse as a bad password.
 	res.Connections = 1
 	return res, nil
 }
 
-// Listing is one file a folder link expands into: a link of its own, already
-// canonical, with what the server said about it.
+// Listing is one file a folder link expands into: a canonical link of its own
+// and what the server said about it.
 type Listing struct {
 	URL  string
 	Name string
 	Size int64
 }
 
-// List expands a folder link into the files under it, so that a pasted
-// directory becomes one task per file - the same thing the torrent resolver's
-// file list does for the files inside a torrent.
+// List expands a folder link into the files under it, one task per file. It
+// returns (nil, nil) for a link that is not a folder, meaning "stage it as
+// itself".
 //
-// It returns (nil, nil) for a link that is not a folder, which is the answer
-// the caller reads as "stage this one as itself". That is deliberately not an
-// error: the common paste is a single file, and a caller that had to tell an
-// error apart from a real answer on the ordinary path would get it wrong.
-//
-// IT RECURSES, bounded by maxListingDepth and maxListingEntries. A release
-// folder on a seedbox has "Subs" and "Sample" in it, and a listing that
-// stopped at the top level would silently leave those behind - silently,
-// because there would be nothing on screen to say a folder had been skipped.
-// Two files with the same name in different subfolders become two tasks with
-// the same name, which the collision policy then keeps apart on disk exactly
-// as it does for any other two downloads that agree on a name.
+// It recurses within maxListingDepth and maxListingEntries, so subfolders like
+// "Subs" and "Sample" are not left behind. Equal names from different
+// subfolders are kept apart by the collision policy.
 func (r Resolver) List(ctx context.Context, raw string) ([]Listing, error) {
 	t, _, fs, err := r.open(ctx, raw)
 	if err != nil {
@@ -239,10 +161,7 @@ func (r Resolver) List(ctx context.Context, raw string) ([]Listing, error) {
 	if err := walk(ctx, fs, t, t.Path, 0, &out); err != nil {
 		return nil, err
 	}
-	// Sorted by path so a folder lists the same way twice running. Servers are
-	// under no obligation to order a listing, and an unstable order turns the
-	// collector's own row order into noise between two pastes of the same
-	// folder.
+	// Servers need not order a listing; sorting keeps the collector stable.
 	sort.Slice(out, func(i, j int) bool { return out[i].URL < out[j].URL })
 	return out, nil
 }
@@ -259,10 +178,8 @@ func walk(ctx context.Context, fs FS, t Target, dir string, depth int, out *[]Li
 		if len(*out) >= maxListingEntries {
 			return nil
 		}
-		// A name a server invents must never be able to leave the folder that
-		// was listed. "..", an absolute path or a separator in a name would
-		// otherwise walk this loop straight up the tree, and on the download
-		// side would name a file outside the download directory.
+		// A server-supplied name must not leave the listed folder, here or
+		// later on disk.
 		if e.Name == "" || e.Name == "." || e.Name == ".." || strings.ContainsAny(e.Name, `/\`) {
 			continue
 		}
@@ -280,28 +197,16 @@ func walk(ctx context.Context, fs FS, t Target, dir string, depth int, out *[]Li
 	return nil
 }
 
-// Check answers whether these links are still there, one connection per
-// server rather than one per link.
-//
-// This is the shape resolver.Checker was made batched for, and the one place
-// in this tree where the batching is not about a rate limit but about a
-// LOGIN: asking a seedbox about forty files by opening forty FTP sessions
-// would be turned away by its own concurrent-connection limit long before the
-// fortieth, and the refusals would read as forty dead links. Grouped by
-// server, forty files cost one login.
-//
-// Anything that is not a definite "gone" is uncheckable, never offline. A
-// refused credential, a server that is down, a folder that could not be
-// listed - none of those is evidence about the file, and calling them offline
-// would strike out a whole seedbox's worth of working links the first time it
-// rebooted.
+// Check answers whether these links are still there with one connection per
+// server, since a seedbox's connection limit would turn many parallel logins
+// into refusals. Only a definite ErrNotFound is offline; a refused login, a
+// server that is down or any other failure leaves the link uncheckable.
 func (r Resolver) Check(ctx context.Context, urls []string) ([]core.Availability, error) {
 	out := make([]core.Availability, len(urls))
 	for i := range out {
 		out[i] = core.AvailUncheckable
 	}
-	// Grouped by server AND protocol: the same host reached over ftp and over
-	// sftp is two different servers as far as a connection is concerned.
+	// One host over ftp and over sftp is two servers.
 	groups := map[string][]int{}
 	targets := map[string]Target{}
 	for i, raw := range urls {
@@ -340,8 +245,8 @@ func (r Resolver) Check(ctx context.Context, urls []string) ([]core.Availability
 	return out, nil
 }
 
-// open is the three steps every entry point above starts with: parse, find the
-// credential, connect. The caller closes the FS.
+// open parses a link, finds its credential and connects. The caller closes
+// the FS.
 func (r Resolver) open(ctx context.Context, raw string) (Target, Login, FS, error) {
 	t, err := r.target(raw)
 	if err != nil {
@@ -366,17 +271,10 @@ func (r Resolver) target(raw string) (Target, error) {
 	return Parse(raw, r.hasAccount(u.Hostname()))
 }
 
-// loginFor is where a link and a stored account meet, and the order matters:
-// the account store wins over anything the link says, because the link is a
-// string somebody pasted and the account is a decision they made.
-//
-// FTP is the one protocol with a real anonymous mode, so a public archive with
-// no account stored still works - with the username the link named, if it
-// named one, which is what "ftp://anonymous@..." means. The other two have no
-// credential-free form, so a missing account is reported as exactly that
-// rather than left to fail as an authentication error three round trips
-// later. WebDAV sits in between: a public share genuinely needs no
-// credential, so no account means "send none" rather than a refusal.
+// loginFor picks the credential for a target. A stored account wins over the
+// link. Without one, FTP uses the link's username or anonymous, WebDAV sends
+// none (a public share needs none), and SFTP reports ErrNoAccount rather than
+// failing later as an authentication error.
 func (r Resolver) loginFor(t Target) (Login, error) {
 	if r.Accounts != nil {
 		if l, ok := r.Accounts.Login(t.Host); ok {
@@ -392,14 +290,10 @@ func (r Resolver) loginFor(t Target) (Login, error) {
 	return Login{}, fmt.Errorf("remotefs: %s: %w", t.Host, ErrNoAccount)
 }
 
-// PackageName is the folder name a batch expanded out of one directory link
-// should be filed under: the directory's own name, or the host for a link that
-// named the server's root.
-//
-// It exists because the app's own guesser (derivePackage) works from the file
-// names in a batch, and a folder full of unrelated files shares no stem - so a
-// perfectly well-named release folder would land in the catch-all package
-// while its name sat unused in the very link that produced it.
+// PackageName is the package a batch expanded from one directory link is
+// filed under: the directory's name, or the host for the server's root. The
+// app's own guess works from file names, which in a folder of unrelated files
+// share no stem.
 func PackageName(raw string) string {
 	t, err := Parse(raw, true)
 	if err != nil {

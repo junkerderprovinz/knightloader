@@ -22,10 +22,8 @@ func targetWithToken() notify.Target {
 	}
 }
 
-// TestAFreshInstallHasNoEventTargetsAtAll is the upgrade-safety guarantee
-// written as a test: the field is absent from every settings.json ever written
-// before it existed, decodes to nil, and produces no goroutine, no request and
-// no key in the file.
+// The field is absent from a settings.json written before it existed, decodes
+// to nil, and produces no goroutine, no request and no key in the file.
 func TestAFreshInstallHasNoEventTargetsAtAll(t *testing.T) {
 	if Defaults().EventTargets != nil {
 		t.Fatalf("a fresh install starts with %d event target(s); nothing may send until somebody says so", len(Defaults().EventTargets))
@@ -48,10 +46,10 @@ func TestAFreshInstallHasNoEventTargetsAtAll(t *testing.T) {
 	}
 }
 
-// TestAnEventTargetSecretSurvivesTheRedactedRoundTrip is the trip every
-// settings page makes: the browser is served Redacted(), edits one unrelated
-// field, and posts the whole document back. Without the merge in setLocked the
-// first save from ANY page writes eight literal stars over the token.
+// The trip every settings page makes: the browser is served Redacted(), edits
+// one unrelated field, and posts the whole document back. Without the merge in
+// setLocked the first save from any page writes eight literal stars over the
+// token.
 func TestAnEventTargetSecretSurvivesTheRedactedRoundTrip(t *testing.T) {
 	dir := t.TempDir()
 	st, err := Load(dir)
@@ -94,13 +92,10 @@ func TestAnEventTargetSecretSurvivesTheRedactedRoundTrip(t *testing.T) {
 	}
 }
 
-// TestAnEventTargetSecretDoesNotFollowAChangedAddress is the security guard at
-// the layer that actually writes the file.
-//
 // The browser was never shown the token and the browser is what types the
 // address, so a token that followed a changed address could be aimed at a
 // machine the client controls. Advanced.tsx hands the whole list back as raw
-// editable JSON, so this is one paste rather than a theory.
+// editable JSON, so that is one paste away.
 func TestAnEventTargetSecretDoesNotFollowAChangedAddress(t *testing.T) {
 	dir := t.TempDir()
 	st, err := Load(dir)
@@ -130,8 +125,8 @@ func TestAnEventTargetSecretDoesNotFollowAChangedAddress(t *testing.T) {
 	}
 }
 
-// TestSanitizeReachesTheEventTargets proves the one line in sanitize() is
-// actually wired, rather than the field simply being stored verbatim.
+// The one line in sanitize() is wired, rather than the field being stored
+// verbatim.
 func TestSanitizeReachesTheEventTargets(t *testing.T) {
 	dir := t.TempDir()
 	st, err := Load(dir)
@@ -161,8 +156,7 @@ func TestSanitizeReachesTheEventTargets(t *testing.T) {
 	}
 }
 
-// TestTheWholeDocumentStillDecodesWithEventTargetsPresent guards the one thing
-// ApplyPatch's marshal/merge/unmarshal round trip can quietly break: a field
+// What ApplyPatch's marshal, merge and unmarshal round trip can break: a field
 // whose JSON shape does not survive being encoded and decoded again.
 func TestTheWholeDocumentStillDecodesWithEventTargetsPresent(t *testing.T) {
 	base := Defaults()

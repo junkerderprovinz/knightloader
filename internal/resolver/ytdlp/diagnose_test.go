@@ -1,16 +1,5 @@
 package ytdlp
 
-// The two halves of one finding, tested together because neither is worth
-// anything without the other: errorLine decides what a person reads off the
-// row, Diagnose decides what the app does about it, and both exist because the
-// evidence used to be destroyed before either question could be asked.
-//
-// The bot check is the case they were written for. Its line is one line of
-// about four hundred characters, and what survived the old "last 200 bytes of
-// the last line" was the wiki link at the end of it - so every reader
-// downstream, the shared classifier included, was blind to the phrase that
-// names the failure.
-
 import (
 	"strings"
 	"testing"
@@ -19,9 +8,8 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/core"
 )
 
-// The fixtures are yt-dlp's own lines, kept whole. Shortening one to make a
-// test read better would be shortening away the property the test is about,
-// which is why the length is asserted below rather than assumed.
+// The fixtures are yt-dlp's own lines, kept whole; the bot check's length is
+// part of what is tested.
 const (
 	botCheckStderr = "ERROR: [youtube] dQw4w9WgXcQ: Sign in to confirm you're not a bot. Use --cookies-from-browser or " +
 		"--cookies for the authentication. See  https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp  " +
@@ -49,11 +37,8 @@ const (
 		"on the latest version using  yt-dlp -U"
 )
 
-// TestTheBotCheckLineIsStillTooLongForTheOldTruncation guards the fixture the
-// other tests lean on. If somebody trims it to fit a terminal, every test
-// below keeps passing while the property they are about - a line whose front
-// half cannot survive a 200-byte cut from the end - has quietly gone away.
-func TestTheBotCheckLineIsStillTooLongForTheOldTruncation(t *testing.T) {
+// A trimmed fixture would let the tests below pass without testing a cut.
+func TestTheBotCheckFixtureOutrunsTheCut(t *testing.T) {
 	if len(botCheckStderr) <= errMsgRunes {
 		t.Fatalf("the bot-check fixture is %d bytes and no longer outruns the %d-character cut, so nothing below is testing a truncation at all", len(botCheckStderr), errMsgRunes)
 	}
@@ -85,20 +70,14 @@ func TestDiagnoseNamesEachCauseFromTheToolsOwnWords(t *testing.T) {
 	}
 }
 
-// TestDiagnoseReadsACopyrightBlockAsARegionBlock is the ordering the phrase
-// table is built around: YouTube's copyright block opens with "Video
-// unavailable." and only afterwards says who blocked it where. Read in the
-// other order it becomes "this is gone at the source", and the advice that
-// follows from that is "remove the link" - for a video a VPN fetches.
+// The copyright block starts with "Video unavailable." but is a region block.
 func TestDiagnoseReadsACopyrightBlockAsARegionBlock(t *testing.T) {
 	if got := Diagnose(copyrightBlockStderr); got != core.ReasonGeoBlocked {
 		t.Errorf("Diagnose(a copyright block) = %q, want %q", got, core.ReasonGeoBlocked)
 	}
 }
 
-// TestDiagnoseDoesNotCallAnAgeGateABotCheck: "Sign in to confirm" is the front
-// of both sentences. Cookies happen to clear both, but they are not the same
-// failure and must not carry the same word on the row.
+// Both messages start with "Sign in to confirm".
 func TestDiagnoseDoesNotCallAnAgeGateABotCheck(t *testing.T) {
 	const ageGate = "ERROR: [youtube] AbC123dEf45: Sign in to confirm your age. This video may be inappropriate for some users."
 	if got := Diagnose(ageGate); got == core.ReasonBotCheck {
@@ -106,9 +85,6 @@ func TestDiagnoseDoesNotCallAnAgeGateABotCheck(t *testing.T) {
 	}
 }
 
-// TestDiagnoseIgnoresTheLettersDRMInAName: "DRM" turns up in album names,
-// channel names and paths, and telling somebody an ordinary failure is
-// encrypted media means telling them there is nothing to be done.
 func TestDiagnoseIgnoresTheLettersDRMInAName(t *testing.T) {
 	const inAPath = "ERROR: unable to rename file: /downloads/DRM Free Mixtape/track01.m4a"
 	if got := Diagnose(inAPath); got == core.ReasonDRM {
@@ -116,10 +92,7 @@ func TestDiagnoseIgnoresTheLettersDRMInAName(t *testing.T) {
 	}
 }
 
-// TestDiagnoseIsSilentAboutWhatItDoesNotKnow is app_errors.go's own rule
-// applied here: an unrecognised failure gets no label, because the label
-// becomes advice and advice is acted on. The 403 below is the one that matters
-// - it must stay unknown so the shared classifier can go on calling it an
+// The 403 must stay unknown so the shared classifier can call it an
 // authentication failure.
 func TestDiagnoseIsSilentAboutWhatItDoesNotKnow(t *testing.T) {
 	for _, s := range []string{
@@ -134,9 +107,6 @@ func TestDiagnoseIsSilentAboutWhatItDoesNotKnow(t *testing.T) {
 	}
 }
 
-// TestDiagnoseReadsTheWholeBuffer: which line yt-dlp's verdict ends up on
-// depends on which post-processors happened to run afterwards, so a diagnosis
-// that looked at one line would work on a plain video and not on a merged one.
 func TestDiagnoseReadsTheWholeBuffer(t *testing.T) {
 	buf := "[download] Destination: /data/A Video.f137.mp4\n" +
 		botCheckStderr + "\n" +
@@ -146,9 +116,6 @@ func TestDiagnoseReadsTheWholeBuffer(t *testing.T) {
 	}
 }
 
-// TestErrorLineKeepsTheFrontOfTheErrorLine is the finding itself: the words
-// that name the failure stand at the START of the ERROR line, and the line
-// after it is not the one to show.
 func TestErrorLineKeepsTheFrontOfTheErrorLine(t *testing.T) {
 	buf := "[download] Destination: /data/A Video.mp4\n" +
 		botCheckStderr + "\n" +
@@ -166,14 +133,9 @@ func TestErrorLineKeepsTheFrontOfTheErrorLine(t *testing.T) {
 	}
 }
 
-// TestErrorLineNeverCutsThroughACharacter: a title or a site's own localised
-// message is where the non-ASCII in this buffer lives, and half a character
-// reaches the browser as U+FFFD.
 func TestErrorLineNeverCutsThroughACharacter(t *testing.T) {
-	// A three-byte character, deliberately: 200 bytes is a whole number of
-	// two-byte ones, so a two-byte fixture would let a byte-counting cut land
-	// on a boundary by luck and this test would pass against the very code it
-	// is about.
+	// A three-byte character, since a byte cut at 200 would land on a
+	// two-byte boundary by chance.
 	got := errorLine("ERROR: [ard] 12345: " + strings.Repeat("€", 400))
 
 	if !utf8.ValidString(got) {
@@ -187,9 +149,8 @@ func TestErrorLineNeverCutsThroughACharacter(t *testing.T) {
 	}
 }
 
-// TestErrorLineFallsBackToTheLastLine covers output that never announced
-// itself as an error at all: a tool killed by a signal, a binary that is not
-// yt-dlp. That shape gets exactly what this function always answered for it.
+// Output without an ERROR line, such as from a killed process, yields its last
+// line.
 func TestErrorLineFallsBackToTheLastLine(t *testing.T) {
 	cases := map[string]string{
 		"":                               "",

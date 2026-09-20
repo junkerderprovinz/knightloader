@@ -22,56 +22,33 @@ type Direct struct {
 	Size int64
 }
 
-// AccountInfo is one account's plan, expiry and traffic, as read by
-// AllDebrid.Account and RealDebrid.Account - the account-health ticker's
-// source (see internal/app/app_accounts.go, docs/build-plan.md 6B). It is
-// deliberately not part of the Service interface: not every provider this
-// package might grow needs to answer it, the same reasoning LinkChecker
-// below is kept separate for.
+// AccountInfo is one account's plan, expiry and traffic, read by the
+// account-health ticker. It stays off Service because not every provider can
+// answer it.
 type AccountInfo struct {
-	// Tier is the provider's own name for the plan - "premium", "free" or
-	// "trial" for both AllDebrid and Real-Debrid today. The caller decides
-	// how to default an account nothing has read yet; this type only ever
-	// carries a real answer.
+	// Tier is the provider's own name for the plan, such as "premium",
+	// "free" or "trial".
 	Tier    string
 	Traffic TrafficInfo
-	// ExpiresAt is the zero time when there is nothing to expire (no premium
-	// on the account), never a sentinel value a caller has to know about.
+	// ExpiresAt is the zero time when the account has no premium to expire.
 	ExpiresAt time.Time
 }
 
-// TrafficInfo is {used, limit, unlimited} for one account, folded by the
-// caller into app.TrafficState. Unlimited is its own field rather than a
-// sentinel in Limit - see that type's doc comment for why a caller must check
-// it before ever dividing by Limit.
+// TrafficInfo is one account's traffic, folded by the caller into
+// app.TrafficState. Check Unlimited before dividing by LimitBytes.
 type TrafficInfo struct {
 	UsedBytes  int64
 	LimitBytes int64
 	Unlimited  bool
-	// UsedPercent is how much of the allowance is spent, 0-100, for a service
-	// that meters in a fraction rather than in bytes. Read it only together
-	// with PercentKnown: 0 is a perfectly ordinary answer ("nothing used yet")
-	// and must not be confused with "the service said nothing".
-	//
-	// It exists because two of the four providers wired in today genuinely
-	// have no byte figure to give: Premiumize quotes limit_used as a fair-use
-	// fraction in [0,1], and Debrid-Link quotes an account-wide usagePercent
-	// beside per-hoster daily caps that cannot honestly be summed. Storing a
-	// made-up byte total for either would put a number on screen that their
-	// own dashboards never show.
+	// UsedPercent is how much of the allowance is spent, 0-100, for services
+	// that meter in a fraction rather than bytes (Premiumize's fair-use
+	// fraction, Debrid-Link's usagePercent). It is valid only when
+	// PercentKnown is set, since 0 is an ordinary answer.
 	UsedPercent float64
 	// PercentKnown is whether UsedPercent came from the service at all.
-	//
-	// It exists because of exactly one measurement (jdp, 2026-09-07:
-	// "Verbleibende Volumes werden immer noch nicht angezeigt"): his
-	// Debrid-Link account had used nothing that day, so usagePercent.current
-	// was 0, the reader could not tell that from "no figure at all", and the
-	// column stayed blank on an account whose allowance was completely intact.
-	// A zero that means zero needs a second field to say so.
 	PercentKnown bool
 	// ResetsAt is when the figure above rolls over, or the zero time when the
-	// service does not say. A daily allowance that is nearly spent means
-	// something quite different an hour before the reset than a day before it.
+	// service does not say.
 	ResetsAt time.Time
 }
 
@@ -85,38 +62,20 @@ type Service interface {
 	Unlock(ctx context.Context, link string) (Direct, error)
 }
 
-// LinkChecker is the part of a provider that can say whether a link is still
-// there without unlocking it. It is kept off Service on purpose: a provider that
-// cannot check must not be forced to grow a method that lies, and the whole
-// worth of the split is that "this one has no free check" is expressible.
-//
-// Free is the word that decides whether a provider implements this at all. The
-// endpoint behind it must cost the user nothing - no unlock, no traffic against
-// the account, no slot used up. Checking a link is a convenience; paying for it
-// out of somebody's premium quota without being asked is not.
+// LinkChecker is implemented by a provider that can tell whether links are
+// still online without unlocking them. A provider implements it only when the
+// check is free: no unlock, no traffic and no slot taken from the account.
 type LinkChecker interface {
 	CheckLinks(ctx context.Context, links []string) ([]core.Availability, error)
 }
 
-// HostLimiter is the optional other half of a provider that can state a
-// ceiling on how many chunks one download against a given host may safely
-// open. Kept off Service for the same reason LinkChecker is: a provider with
-// nothing to say about a host must not be forced to grow a method that
-// invents a number.
+// HostLimiter is implemented by a provider that can cap how many chunks one
+// download from a given host may open. 0 means no opinion, never unlimited
+// and never zero connections.
 //
-// 0 means "no opinion", never "unlimited" and never "zero connections" - the
-// same contract every ceiling in app.connsFor's chain already carries, and
-// the one HostCap below exists to preserve on the way there.
-//
-// Real-Debrid is the only implementation today (see RealDebrid.HostLimit),
-// and deliberately so: /hosts, /hosts/status and /hosts/domains were checked
-// against the live API and none of them carry a per-host figure at all - the
-// only place Real-Debrid ever states one is the "chunks" field on a response
-// about a specific link it has just checked or unlocked, so that is where
-// this learns it, opportunistically, host by host. AllDebrid's /hosts and
-// /user/hosts were checked the same way and carry nothing comparable - so it
-// does not implement this interface, rather than inventing a number nobody
-// asked it for.
+// Only Real-Debrid implements it: its host lists carry no per-host figure, but
+// the "chunks" field on a check or unlock answer does, so RealDebrid learns
+// the limit host by host. AllDebrid's host endpoints carry nothing comparable.
 type HostLimiter interface {
 	HostLimit(host string) int
 }
@@ -158,11 +117,7 @@ func (b *Backend) Download(taskID, link string, _ map[string]string, conns int) 
 	b.mu.Lock()
 	b.link[taskID] = link
 	b.handed[taskID] = false
-	// Kept beside the link rather than used and dropped: the unlock happens
-	// first, and Resume re-enters start from the other side, so the count has to
-	// survive the round trip through the service. A flat number written at the
-	// handover instead - which is what stood here - meant a debrid download
-	// ignored the task, the rule and the setting alike, and did it silently.
+	// Kept because Resume unlocks again and has to hand the same count on.
 	b.conns[taskID] = conns
 	b.mu.Unlock()
 	b.start(taskID, link)
@@ -243,20 +198,14 @@ func (b *Backend) Remove(taskID string, deleteFiles bool) {
 // Resolver claims links whose host the service supports.
 type Resolver struct {
 	ServiceID string
-	// Account is which of the service's stored accounts this entry routes
-	// through: "" for the default one, the account id for a second login on
-	// the same service. It says nothing about which links are claimed - both
-	// of a person's AllDebrid keys unlock the same hosts - it is what makes
-	// the two SEPARATE entries in the routing table, so account health can
-	// bench one of them and dispatch falls through to the other before it
-	// moves on to the next service. See resolver.SlotID.
+	// Account is the stored account this entry routes through, "" for the
+	// default one. It does not change which links are claimed; it gives each
+	// login its own routing slot (see resolver.SlotID).
 	Account string
 	Prio    int
 	Hosts   map[string]bool
-	// Svc is the provider the routing table was built from, kept here so a check
-	// can reach it. Nil is allowed and means the same as a provider with no free
-	// check: every link comes back uncheckable. It is nil in every test that only
-	// cares about which links this resolver claims.
+	// Svc is the provider behind this entry, used by Check and HostCap. Nil
+	// behaves like a provider without a free check.
 	Svc Service
 }
 
@@ -277,12 +226,8 @@ func (Resolver) Resolve(_ context.Context, req resolver.Request) (resolver.Resul
 }
 
 // Check asks the provider about a batch of links, or answers uncheckable for all
-// of them when this provider has no free way to ask.
-//
-// The method is present either way, which is the point: the caller reads "this
-// resolver was asked and could not say" off the verdicts, and does not have to
-// keep its own list of which services can check. Answering uncheckable is not a
-// failure - it is the fourth state doing exactly the job it was added for.
+// of them when this provider has no free way to ask, so callers need no list
+// of which services can check.
 func (r Resolver) Check(ctx context.Context, urls []string) ([]core.Availability, error) {
 	lc, ok := r.Svc.(LinkChecker)
 	if !ok {
@@ -295,10 +240,8 @@ func (r Resolver) Check(ctx context.Context, urls []string) ([]core.Availability
 	return resolver.Answers(got, len(urls)), nil
 }
 
-// HostCap satisfies resolver.HostCapper: 0 - "no opinion" - for a provider
-// that does not implement HostLimiter at all, exactly as for one that does
-// but has not learned anything about this host yet. The two cases are
-// indistinguishable on purpose, because connsFor treats them identically.
+// HostCap satisfies resolver.HostCapper. It answers 0 (no opinion) both for a
+// provider without HostLimiter and for a host nothing is known about yet.
 func (r Resolver) HostCap(host string) int {
 	hl, ok := r.Svc.(HostLimiter)
 	if !ok {

@@ -2,11 +2,10 @@ package settings
 
 import "testing"
 
-// TestUnderQuietLaysTheSecondSetOverTheFirst covers the substitution itself,
-// including the case the whole parameter exists for: the limit that applies with
-// the mode off is NOT the stored SpeedLimit while a timetable window is open, so
-// a quiet mode with no speed of its own has to hand the WINDOW's figure back and
-// not the daytime one.
+// The substitution itself, including the case the limit parameter exists for:
+// while a timetable window is open the limit with the mode off is not the
+// stored SpeedLimit, so a quiet mode with no speed of its own hands the
+// window's figure back rather than the daytime one.
 func TestUnderQuietLaysTheSecondSetOverTheFirst(t *testing.T) {
 	const (
 		daytime = 8 << 20 // what the settings page says
@@ -49,9 +48,8 @@ func TestUnderQuietLaysTheSecondSetOverTheFirst(t *testing.T) {
 			limit: window, wantSpeed: window, wantConcurrent: 6, wantPerHost: 4,
 		},
 		{
-			// The per-host figure is only pulled down, never up: a mode that
-			// RAISED it would be a quiet mode opening more connections to one
-			// host than the loud one did.
+			// The per-host figure is only pulled down, never up: raising it
+			// would open more connections to one host than the loud mode did.
 			name:  "a quiet slot count above the per-host figure leaves it where it was",
 			quiet: QuietLimits{MaxConcurrent: 10},
 			limit: daytime, wantSpeed: daytime, wantConcurrent: 10, wantPerHost: 4,
@@ -75,10 +73,10 @@ func TestUnderQuietLaysTheSecondSetOverTheFirst(t *testing.T) {
 	}
 }
 
-// TestUnderQuietLeavesTheStoredNumbersAlone: the substitution is a reading of the
-// settings and never an edit of them. If it wrote through, one pass of the
-// dispatcher with the mode on would persist the quiet numbers as the user's own,
-// and switching the mode off would hand back the figures it had just replaced.
+// The substitution reads the settings and never edits them. Writing through,
+// one pass of the dispatcher with the mode on would persist the quiet numbers
+// as the user's own, and switching the mode off would hand back the figures it
+// had just replaced.
 func TestUnderQuietLeavesTheStoredNumbersAlone(t *testing.T) {
 	s := Settings{MaxConcurrent: 6, MaxPerHost: 4, SpeedLimit: 8 << 20,
 		Quiet: QuietLimits{SpeedLimit: 512 << 10, MaxConcurrent: 1}}
@@ -88,10 +86,10 @@ func TestUnderQuietLeavesTheStoredNumbersAlone(t *testing.T) {
 	}
 }
 
-// TestSanitizeQuiet pins the bounds, and one thing that must NOT be bounded: zero
-// stays zero. A floor of 1 on the slot count would turn a cleared field into "run
-// exactly one download at a time" - a limit nobody typed and, because zero is how
-// you say "leave it alone", one they could not switch off again.
+// The bounds, and the one thing left unbounded: zero stays zero. A floor of 1
+// on the slot count would turn a cleared field into "run exactly one download
+// at a time", a limit nobody typed and, since zero is how you say "leave it
+// alone", one nobody could switch off again.
 func TestSanitizeQuiet(t *testing.T) {
 	cases := []struct {
 		name           string
@@ -116,21 +114,19 @@ func TestSanitizeQuiet(t *testing.T) {
 		})
 	}
 
-	// The quiet figure is deliberately not clamped to be smaller than the loud
-	// one. It is what the person typed on the page that defines what quiet means,
-	// and a number silently cut to something else is one that is stored, shown
-	// back, and then not honoured.
+	// The quiet figure is not clamped to be smaller than the loud one. It is
+	// what somebody typed on the page that defines what quiet means, and a
+	// number cut to something else is stored, shown back and then not honoured.
 	got := sanitizeQuiet(Settings{MaxConcurrent: 2, Quiet: QuietLimits{MaxConcurrent: 8}}).Quiet
 	if got.MaxConcurrent != 8 {
 		t.Errorf("a quiet slot count above the ordinary one = %d, want it kept at 8", got.MaxConcurrent)
 	}
 }
 
-// TestDefaultsGiveQuietModeSomethingToDo: the mode ships off, so this default
-// only ever takes effect on a deliberate press - and a button labelled "quiet
-// mode" whose first press changes nothing at all is how people learn a feature is
-// broken. The speed stays at zero because the box cannot guess how fast the line
-// is; the slot count it can.
+// The mode ships off, so this default only takes effect on a press, and a
+// button labelled "quiet mode" whose first press changes nothing is how people
+// learn a feature is broken. The speed stays at zero because the box cannot
+// guess how fast the line is; the slot count it can.
 func TestDefaultsGiveQuietModeSomethingToDo(t *testing.T) {
 	d := Defaults()
 	if d.Quiet.MaxConcurrent < 1 || d.Quiet.MaxConcurrent >= d.MaxConcurrent {

@@ -8,10 +8,9 @@ import (
 	"strings"
 )
 
-// fileLike matches a URL path that ends in a plausible file extension. The rule
-// is deliberately open — anything that looks like a file is a file — because an
-// allowlist of known extensions silently sends unlisted ones (.md, .bin, .xyz)
-// to the media extractor, which then reports "Unsupported URL".
+// fileLike matches a URL path that ends in a plausible file extension. It
+// accepts any extension because an allowlist would send unlisted ones (.md,
+// .bin) to the media extractor, which answers "Unsupported URL".
 var fileLike = regexp.MustCompile(`\.[a-z0-9]{1,8}$`)
 
 // pageExt lists the suffixes that mean "web page", not "file". These stay with
@@ -47,21 +46,15 @@ func (Direct) Resolve(_ context.Context, req Request) (Result, error) {
 			name = b
 		}
 	}
-	// No connection count, deliberately. Connections is a statement about what
-	// the host tolerates and this resolver knows nothing about the host: it
-	// recognised a file extension in a path. The dispatcher reads the field as a
-	// ceiling, so the 4 that used to stand here capped every ordinary link at 4
-	// no matter what the user had set - the global overruled by a resolver with
-	// no opinion to give. Saying nothing lets their number through.
+	// Connections is left unset: the dispatcher reads it as a host ceiling,
+	// and this resolver knows nothing about the host, so the user's setting
+	// applies.
 	return Result{Name: name, DirectURL: req.URL}, nil
 }
 
-// HTTPFallback is the last resort: it takes any http(s) link that nothing else
-// managed to fetch and simply asks the engine to download it. This is what
-// catches a plain file whose URL carries no extension — a shape the strict
-// Direct rule cannot recognise, and which a media extractor cannot handle
-// either. It sits at the bottom of the priority list, so it only ever runs
-// after every real backend has had its turn.
+// HTTPFallback takes any http(s) link that no other backend managed to fetch
+// and hands it to the engine as is. It catches plain files whose URL has no
+// extension, which Direct cannot recognise, and runs last by priority.
 type HTTPFallback struct{}
 
 func (HTTPFallback) Info() Info { return Info{ID: "http", Prio: -100} }
@@ -72,7 +65,5 @@ func (HTTPFallback) Match(raw string) bool {
 }
 
 func (HTTPFallback) Resolve(_ context.Context, req Request) (Result, error) {
-	// Silent about connections for the reason Direct is, only more so: this one
-	// claims a link precisely because nothing else recognised it.
 	return Result{DirectURL: req.URL}, nil
 }

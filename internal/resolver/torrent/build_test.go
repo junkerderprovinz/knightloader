@@ -7,13 +7,9 @@ import (
 	"github.com/anacrolix/torrent/metainfo"
 )
 
-// The tests in this package build their own .torrent files rather than
-// checking in binary fixtures, and they build them with the same library that
-// reads them back. That is the point: a hand-rolled fixture proves this parser
-// agrees with whoever wrote the fixture, while one produced by the reference
-// implementation proves it agrees with the thing that will actually open the
-// file. The adversarial cases then take a valid one and break exactly the one
-// property under test, so a refusal can only be about that property.
+// The tests build their .torrent files with the same library that reads them,
+// so they show agreement with the code that opens the file. Adversarial cases
+// break one property of a valid torrent at a time.
 
 const testPieceLength = 32 << 10
 

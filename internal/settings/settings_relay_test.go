@@ -17,8 +17,8 @@ func TestSanitizeRelayNormalisesTheURL(t *testing.T) {
 		{"a path is kept, only its trailing slash goes", "https://relay.example.com/kl/", "https://relay.example.com/kl"},
 		// A bare host is what somebody types when the field says "Adresse" and
 		// they are thinking of the domain they gave their proxy. The relay
-		// client refuses a scheme-less address outright, so without this the
-		// save succeeds and the dial never happens.
+		// client refuses a scheme-less address, so without this the save
+		// succeeds and the dial never happens.
 		{"a bare host takes https", "relay.example.com", "https://relay.example.com"},
 		{"a bare host and port too", "relay.example.com:8760", "https://relay.example.com:8760"},
 		{"an explicit scheme is never rewritten", "ws://relay.example.com", "ws://relay.example.com"},
@@ -33,9 +33,9 @@ func TestSanitizeRelayNormalisesTheURL(t *testing.T) {
 	}
 }
 
-// TestRelayURLRoundTrips proves the field survives the whole store: written
-// through Set, re-read from the file by a second Load, and normalised on the
-// way in rather than kept verbatim.
+// The field survives the whole store: written through Set, re-read from the
+// file by a second Load, and normalised on the way in rather than kept
+// verbatim.
 func TestRelayURLRoundTrips(t *testing.T) {
 	dir := t.TempDir()
 	s, err := Load(dir)
@@ -60,10 +60,8 @@ func TestRelayURLRoundTrips(t *testing.T) {
 	}
 }
 
-// TestRelayURLDefaultsToEmpty pins that a fresh install dials nothing: the
-// relay is opt-in, and a default address would be this project operating a
-// service on everyone's behalf, which is the one thing the design spec rules
-// out.
+// A fresh install dials nothing. The relay is opt-in, and a default address
+// would be this project operating a service on everyone's behalf.
 func TestRelayURLDefaultsToEmpty(t *testing.T) {
 	if got := Defaults().RelayURL; got != "" {
 		t.Errorf("Defaults().RelayURL = %q, want empty", got)

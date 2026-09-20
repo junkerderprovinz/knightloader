@@ -1,13 +1,5 @@
 package jd
 
-// Client.AddContainerData is the Deprecated API's inline-content path for a
-// container that was never a fetchable file (Click'n'Load's addcrypted v1).
-// Verified against JDownloader's own LinkCollectorAPIImplV2#addLinks: a
-// dataURLs entry is "data:application/<ext>;base64,<content>", decoded to a
-// temp file named by <ext> and fed into the same crawl entrance a URL would
-// be. This file pins the wire shape, not JD's behaviour on the other end of
-// it, which nothing in this tree can exercise without a live JD.
-
 import (
 	"encoding/base64"
 	"encoding/json"
@@ -18,25 +10,15 @@ import (
 	"testing"
 )
 
-// decodeCallParams unpacks the query string call() builds — one
-// url.QueryEscape(json.Marshal(param)) per '&'-joined part — back into a Go
-// value, so a test can assert on the request JD actually received rather than
-// re-deriving the encoding by hand. Shared with backend_test.go's fake JD.
-//
-// Errorf rather than Fatalf: backend_test.go's fake JD calls this from an
-// httptest server's own handler goroutine, and FailNow (what Fatalf calls) is
-// documented as unsafe off the test's own goroutine — it would end the
-// handler mid-response instead of the test, leaving the client to hang or see
-// a truncated body rather than the clear failure Errorf reports.
+// decodeCallParams unpacks the query string call() builds (one escaped JSON
+// value per '&'-joined part) into out. It uses Errorf because the fake JD
+// servers call it from handler goroutines, where FailNow is not allowed.
 func decodeCallParams(t *testing.T, rawQuery string, out any) {
 	t.Helper()
 	if rawQuery == "" {
 		return
 	}
-	// Part by part, not the whole query at once: a call with two parameters
-	// (removeLinks takes a link list and a package list) joins them with a bare
-	// '&', which is not JSON. Each part is separately escaped, so splitting on
-	// '&' cannot cut a value in half - an '&' inside one arrives as %26.
+	// Each part is escaped on its own, so an '&' inside a value arrives as %26.
 	parts := strings.Split(rawQuery, "&")
 	decoded := make([]string, 0, len(parts))
 	for _, p := range parts {
@@ -53,12 +35,8 @@ func decodeCallParams(t *testing.T, rawQuery string, out any) {
 	}
 }
 
-// TestAddContainerDataSendsInlineBase64 pins the exact request JD receives:
-// the namespace/method, the base64 round-trip of the raw bytes (not of some
-// re-encoding of them — JD writes this straight to a file and feeds it to its
-// own DLC-shaped crawl, so a single stray transform here is a payload JD can
-// no longer make sense of), and the marker/overwrite flags the crawl is
-// followed by afterwards.
+// JD writes the decoded bytes straight to a file, so they must round-trip
+// unchanged.
 func TestAddContainerDataSendsInlineBase64(t *testing.T) {
 	var gotPath, gotQuery string
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -113,9 +91,6 @@ func TestAddContainerDataSendsInlineBase64(t *testing.T) {
 	}
 }
 
-// TestAddContainerDataSurfacesATransportError matches AddContainerLinks's own
-// behaviour: a JD that cannot be reached must fail loudly here, not report an
-// empty id that reads as "JD opened it and found nothing".
 func TestAddContainerDataSurfacesATransportError(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)

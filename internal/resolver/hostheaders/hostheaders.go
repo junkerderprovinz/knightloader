@@ -1,62 +1,20 @@
-// Package hostheaders is the user's own request headers for one origin: a
-// cookie from a logged-in browser session, a Referer a forum insists on, the
-// Basic auth a seedbox sits behind. The engine has been able to send arbitrary
-// headers since it existed (engine.Job.Headers), but the only thing that could
-// ever fill that map was a resolver's own Result, so a link on a person's own
-// Nextcloud, on a referrer-protected forum or behind a seedbox login was
-// simply unreachable - not refused with a message, just permanently 401 or
-// 403 with nothing to configure.
+// Package hostheaders holds a user's own request headers for one origin: a
+// session cookie, a Referer a forum insists on, the Basic auth in front of a
+// seedbox.
 //
-// # The two rules everything here is built around
+// Header values are secrets. Set and Header print only header names
+// through String, GoString and MarshalJSON, so no log line or diagnostics
+// bundle can carry a value; plaintext leaves only through Set.Attach. At rest
+// the values are sealed in accounts.Store, never in settings.json, which ends
+// up in diagnostics bundles.
 //
-// A HEADER IS A SECRET AND IT NEVER LEAVES THIS PACKAGE IN PRINTABLE FORM.
-// Set, Header and Profile all carry a value somebody's session depends on, so
-// all three implement String, GoString and MarshalJSON, and all three of those
-// print the header NAMES and never a value. That is deliberate belt and
-// braces: a log line is written by whoever is debugging at the time, and a
-// redaction step that has to be remembered at every call site is a redaction
-// step that is eventually forgotten. Here the type itself cannot be printed
-// wrongly - fmt reaches Stringer for %v, %s and %+v, GoStringer for %#v, and
-// encoding/json reaches MarshalJSON for the diagnostics bundle. Plaintext
-// leaves through exactly one door, Set.Attach, which is named for the one
-// thing it is for.
-//
-// The at-rest half follows the same reasoning as internal/hosterauth and
-// internal/resolver/ytdlp's cookie jars, and reuses their store rather than
-// growing a third encryption scheme: the values are sealed by
-// internal/accounts.Store (AES-256-GCM under the per-install key in the data
-// dir) under a pseudo-service id, so they are never in settings.json - and
-// settings.json is exactly what internal/api/routes_diagnostics.go serialises
-// into the bundle a person attaches to a public bug report. Staying out of
-// that bundle is a property of WHERE this is stored, not of a redaction
-// somebody has to remember to run.
-//
-// A HEADER IS SCOPED TO ONE ORIGIN AND MAY NEVER CROSS IT. This is the whole
-// point of the package and the reason it, rather than a map on the task,
-// exists. A forum that redirects its attachment links to a third-party CDN
-// would otherwise hand that CDN the Authorization header, and an open redirect
-// on any configured host would become a credential giveaway. So:
-//
-//   - Attach returns nothing at all for a URL that is not on the profile's own
-//     origin, which covers the chain that ENDS somewhere else.
-//   - checkRedirect (redirect.go) deletes every configured header name the
-//     moment a hop leaves that origin, which covers the chain that merely
-//     PASSES THROUGH somewhere else and comes back.
-//
-// The scope is a full origin - scheme, host and port - and not a host name.
-// A downgrade from https to http on the same host is a different origin on
-// purpose: a bearer token forwarded onto a plaintext hop is a token given to
-// everyone on the path. internal/httpx.sameOrigin decides the same question
-// the same way, and for the same reason.
-//
-// Sub-domains are NOT covered by a parent's profile, which is the one place
-// this is deliberately less convenient than internal/resolver/ytdlp's cookie
-// store. That store walks up the domain because a browser's cookie jar is
-// scoped that way and yt-dlp is handed the jar wholesale; here a single
-// hostile or merely compromised sub-domain of a configured host would be
-// enough to collect the credential. A second host needs a second profile,
-// which is one more thing to configure and the only version of this that
-// cannot hand a credential to a host the user never named.
+// A header is scoped to one origin (scheme, host and port) and never crosses
+// it. Attach returns nothing for a URL on another origin, covering a redirect
+// chain that ends elsewhere, and checkRedirect strips the configured headers
+// on any hop that leaves the origin, covering a chain that passes through a
+// foreign host. An https to http downgrade counts as another origin, and
+// sub-domains are not covered by a parent's profile, since one compromised
+// sub-domain would otherwise be enough to collect the credential.
 package hostheaders
 
 import (
@@ -67,20 +25,13 @@ import (
 	"strings"
 )
 
-// Redacted is what a header value is printed as, everywhere. It mirrors
-// accounts.Redacted rather than an empty string for the reason that package
-// gives: empty has to keep meaning "clear this", so a placeholder is the only
-// way an editing form can show that something is stored without showing what.
+// Redacted is what a header value is printed as. An empty string cannot be
+// used because it means "clear this" in an editing form.
 const Redacted = "********"
 
-// Limits on one profile. None of these is tuning; each one bounds a paste.
-//
-// A header block arrives here by copy and paste out of a browser's developer
-// tools, and the thing being pasted is whatever was on the clipboard. The
-// value cap is generous because a real session cookie for a large site runs
-// into the low thousands of bytes, and the count cap is generous because a
-// browser sends a dozen headers without trying - both are set where an
-// accident stops rather than where a legitimate paste would.
+// Limits on one profile. Headers arrive by pasting from browser developer
+// tools; the limits sit well above a real session cookie or header block and
+// stop an accidental paste.
 const (
 	MaxHeaders   = 32
 	MaxNameLen   = 128
@@ -88,18 +39,12 @@ const (
 	MaxProfileID = 64
 )
 
-// Header is one header line. Value is a secret; see the package comment for
-// why this type refuses to print it.
+// Header is one header line. Value is a secret and is never printed.
 type Header struct {
 	Name  string
 	Value string
 }
 
-// String, GoString and MarshalJSON are the three doors fmt and encoding/json
-// take out of this type, and all three are closed on the value. A header whose
-// value is empty still prints the placeholder: whether a stored header happens
-// to be empty is itself something a log has no business distinguishing, and a
-// conditional here would be one more branch to get wrong.
 func (h Header) String() string   { return h.Name + ": " + Redacted }
 func (h Header) GoString() string { return "hostheaders.Header{" + h.Name + ": " + Redacted + "}" }
 
@@ -107,18 +52,12 @@ func (h Header) MarshalJSON() ([]byte, error) {
 	return json.Marshal(map[string]string{"name": h.Name, "value": Redacted})
 }
 
-// Set is one origin's header block: the origin the headers belong to and the
-// headers themselves, sorted by name and free of duplicates (see Normalize).
-//
-// A slice rather than a map, because a map's iteration order is random and
-// this type's whole job is to be printed the same way twice - a redacted line
-// that reorders itself between two log entries reads as two different states.
+// Set is one origin's header block, sorted by name and free of duplicates
+// (see Normalize). It is a slice so that it prints the same way every time.
 type Set struct {
-	// Origin is scheme://host:port, with the port always written out (see
-	// OriginOf). It is the only thing that decides whether these headers may
-	// be sent, so it is stored WITH the secret rather than beside it: a scope
-	// kept in a second place is a scope that can be edited without re-typing
-	// the credential it guards.
+	// Origin is scheme://host:port with the port always written out (see
+	// OriginOf). It is stored together with the secret so the scope cannot be
+	// edited without re-entering the credential it guards.
 	Origin  string
 	Headers []Header
 }
@@ -129,11 +68,9 @@ func (s Set) String() string {
 
 func (s Set) GoString() string { return s.String() }
 
-// MarshalJSON emits the names with placeholder values, which is what an
-// editing form needs to show a stored profile. The sealed form is NOT this
-// (see store.go's wire type): a redacting marshaller on the type that is also
-// the type being persisted would otherwise seal the placeholders and destroy
-// the credential on the first save.
+// MarshalJSON emits the names with placeholder values for an editing form.
+// The sealed form uses a separate wire type (see store.go), so saving never
+// persists the placeholders.
 func (s Set) MarshalJSON() ([]byte, error) {
 	out := struct {
 		Origin  string   `json:"origin"`
@@ -145,15 +82,11 @@ func (s Set) MarshalJSON() ([]byte, error) {
 	return json.Marshal(out)
 }
 
-// IsZero reports a set carrying nothing, which is what Store.Save reads as
-// "delete this profile" - the same convention accounts.Credential.IsZero and
-// accounts.Store.Set have always used for a cleared secret.
+// IsZero reports a set carrying nothing, which Store.Save reads as "delete
+// this profile".
 func (s Set) IsZero() bool { return s.Origin == "" && len(s.Headers) == 0 }
 
-// Names lists the header names, in the order they are stored. Names are not
-// secret - "this profile sends an Authorization and a Cookie" is exactly what
-// a settings page has to be able to say - and this is the only listing of a
-// Set that any caller outside the package gets.
+// Names lists the header names in stored order. Names are not secret.
 func (s Set) Names() []string {
 	out := make([]string, 0, len(s.Headers))
 	for _, h := range s.Headers {
@@ -162,20 +95,9 @@ func (s Set) Names() []string {
 	return out
 }
 
-// Attach is the one door plaintext leaves by, and it is a door with a lock on
-// it: a URL that is not on this set's own origin gets nothing.
-//
-// THIS IS THE ATTACH-TIME HALF OF THE CROSS-ORIGIN RULE. It covers a redirect
-// chain that ends somewhere else, because the caller resolves the chain first
-// and asks about the URL it landed on (see Preflight); the redirect-time half,
-// for a chain that merely passes through a foreign host on its way back, is
-// checkRedirect in redirect.go. Both are needed - neither one alone closes the
-// other's case.
-//
-// A nil map rather than an empty one when nothing may be sent, because that is
-// what resolver.Result.Headers means by "no headers": engine.Job hands the map
-// straight to the download library, and nil is the value it already reads as
-// "the caller has no opinion".
+// Attach returns the headers as plaintext for rawurl, or nil when rawurl is
+// not on the set's origin. It covers a redirect chain that ends elsewhere;
+// checkRedirect covers one that only passes through a foreign host.
 func (s Set) Attach(rawurl string) map[string]string {
 	if s.Origin == "" || OriginOf(rawurl) != s.Origin {
 		return nil
@@ -190,18 +112,10 @@ func (s Set) Attach(rawurl string) map[string]string {
 	return out
 }
 
-// Normalize canonicalises a set: header names are put into the capitalisation
-// net/http uses, blank entries are dropped, duplicates collapse to the last
-// one written, and the result is sorted by name.
-//
-// Sorting and de-duplicating happen at save time rather than at send time so
-// that a stored profile has exactly one shape. Two entries differing only in
-// the case of the name are the same header to every server on earth, and a
-// profile holding both would send whichever the map iteration happened to
-// reach last - a profile that authenticates on Tuesdays.
-//
-// It reports what it had to refuse rather than silently trimming, because the
-// input is a paste and a paste that half-arrived is worth saying out loud.
+// Normalize canonicalises a set: names get net/http's capitalisation, blank
+// entries are dropped, duplicates collapse to the last one written, and the
+// result is sorted by name. It returns an error for anything it has to
+// refuse instead of trimming a pasted block silently.
 func Normalize(s Set) (Set, error) {
 	origin := OriginOf(s.Origin)
 	if origin == "" {
@@ -212,9 +126,6 @@ func Normalize(s Set) (Set, error) {
 	for _, h := range s.Headers {
 		name := canonicalName(h.Name)
 		if name == "" {
-			// A nameless header cannot be sent and cannot be edited away
-			// either, the same reasoning reconnect.sanitizeHeaders applies to
-			// its own request headers.
 			continue
 		}
 		if len(name) > MaxNameLen {
@@ -225,16 +136,13 @@ func Normalize(s Set) (Set, error) {
 			continue
 		}
 		if len(value) > MaxValueLen {
-			// The length is named and the value is not, here and in every
-			// other error in this package: an error string travels into a
-			// task's Err field, from there into the log ring, and from there
-			// into the diagnostics bundle.
+			// Errors name the length, never the value: they end up in the
+			// log and the diagnostics bundle.
 			return Set{}, fmt.Errorf("hostheaders: the value of %s is %d characters, the limit is %d", name, len(value), MaxValueLen)
 		}
 		if strings.ContainsAny(value, "\r\n") {
-			// Refused rather than stripped. A newline in a header value is
-			// request splitting, and a value that was silently repaired is a
-			// value the user believes is being sent as they pasted it.
+			// Refused rather than stripped: a line break is request splitting,
+			// and a silently repaired value is not what the user pasted.
 			return Set{}, fmt.Errorf("hostheaders: the value of %s contains a line break", name)
 		}
 		if _, seen := byName[name]; !seen {
@@ -253,14 +161,9 @@ func Normalize(s Set) (Set, error) {
 	return out, nil
 }
 
-// canonicalName puts a header name into net/http's capitalisation and refuses
-// anything that is not a token.
-//
-// The refusal is what stops a pasted blob from becoming a header at all: a
-// line out of a curl command that this package failed to split correctly would
-// otherwise be saved as a header whose "name" is half a shell command, and the
-// first request built from it would fail somewhere far away from the paste box
-// it came from.
+// canonicalName puts a header name into net/http's capitalisation and returns
+// "" for anything that is not a token, so a badly split paste never becomes a
+// header.
 func canonicalName(raw string) string {
 	name := strings.TrimSpace(raw)
 	if name == "" {
@@ -271,9 +174,6 @@ func canonicalName(raw string) string {
 			return ""
 		}
 	}
-	// Same capitalisation net/http's textproto uses, so a profile that stores
-	// "x-forum-token" and a header the engine sends as "X-Forum-Token" are one
-	// entry rather than two.
 	parts := strings.Split(strings.ToLower(name), "-")
 	for i, p := range parts {
 		if p == "" {
@@ -285,13 +185,9 @@ func canonicalName(raw string) string {
 }
 
 // OriginOf reduces a URL to the origin a credential is scoped to: scheme,
-// host and port, lower-cased, with the port always spelled out.
-//
-// The port is filled in from the scheme rather than left off, so that
-// https://h and https://h:443 compare equal as plain strings and nothing has
-// to remember to call a comparison helper. Anything that is not an http or
-// https URL with a host answers "", which every caller reads as "no origin",
-// never as "any origin".
+// host and port, lower-cased, with the port always spelled out so origins
+// compare as plain strings. Anything but an http or https URL with a host
+// yields "", which means no origin.
 func OriginOf(rawurl string) string {
 	u, err := url.Parse(strings.TrimSpace(rawurl))
 	if err != nil {
@@ -316,14 +212,9 @@ func OriginOf(rawurl string) string {
 	return scheme + "://" + host + ":" + port
 }
 
-// ProfileID normalises the name a profile is stored and addressed under - by
-// a rule action, by a task, and as the account half of the key in
-// accounts.Store.
-//
-// Lower-cased and trimmed so that "Forum" typed into a rule finds the profile
-// saved as "forum"; refused when it holds anything but letters, digits and the
-// three separators, because this string is a map key that a person types in
-// two different places and has to be able to get right the second time.
+// ProfileID normalises the name a profile is stored and addressed under. It
+// is lower-cased and trimmed so "Forum" in a rule finds the profile "forum",
+// and it returns "" for anything but letters, digits, '-', '_' and '.'.
 func ProfileID(raw string) string {
 	id := strings.ToLower(strings.TrimSpace(raw))
 	if id == "" || len(id) > MaxProfileID {

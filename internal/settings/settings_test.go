@@ -7,9 +7,8 @@ import (
 	"testing"
 )
 
-// TestValidateDoesNotCreatePlaceholderFolders is the bug a live test found: the
-// download folder may be a template, and validating it by creating it put
-// directories literally named "<jd:date>" on the disk.
+// The download folder may be a template, so validating it by creating it would
+// put directories literally named "<jd:date>" on the disk.
 func TestValidateDoesNotCreatePlaceholderFolders(t *testing.T) {
 	base := t.TempDir()
 	tmpl := filepath.Join(base, "downloads", "<jd:date>", "<jd:packagename>")
@@ -48,9 +47,8 @@ func TestFixedPrefix(t *testing.T) {
 	}
 }
 
-// TestValidateRefusesARelativeFolder keeps a path nobody can locate from being
-// accepted: it would resolve against whatever the working directory happens to
-// be, which for a container is not something a user can reason about.
+// A relative path resolves against whatever the working directory happens to
+// be, which for a container is not somewhere anybody can reason about.
 func TestValidateRefusesARelativeFolder(t *testing.T) {
 	if err := Validate("the working folder", filepath.Join("relative", "downloads")); err == nil {
 		t.Error("a relative folder was accepted")
@@ -60,15 +58,12 @@ func TestValidateRefusesARelativeFolder(t *testing.T) {
 	}
 }
 
-// TestValidateNamesTheFieldThatFailed is the guard on the parameter Validate
-// grew: five fields are checked by this one function, and before it existed
-// every one of them reported "the download folder must be an absolute path".
-// A person who typed a relative path into the working folder was told to go and
-// fix a download folder that was fine.
+// Five fields go through Validate, and with a fixed label all of them reported
+// "the download folder must be an absolute path", so somebody typing a relative
+// path into the working folder was told to fix a download folder that was fine.
 //
-// Asserting the message rather than only the error is the whole point. The old
-// code returned an error here too, so a test that checked err != nil was green
-// against exactly the bug this describes.
+// The message is asserted rather than only the error: a refusal comes back
+// either way, so err != nil is green against the bug this describes.
 func TestValidateNamesTheFieldThatFailed(t *testing.T) {
 	err := Validate("the working folder", filepath.Join("relative", "work"))
 	if err == nil {
@@ -82,8 +77,7 @@ func TestValidateNamesTheFieldThatFailed(t *testing.T) {
 	}
 }
 
-// TestSanitizeKeepsLimitsUsable pins the guards that stop a saved setting from
-// making the scheduler nonsensical.
+// The guards that stop a saved setting from making the scheduler nonsensical.
 func TestSanitizeKeepsLimitsUsable(t *testing.T) {
 	got := sanitize(Settings{MaxConcurrent: 0, MaxPerHost: 99, SpeedLimit: -5, MaxRetries: -1})
 	if got.MaxConcurrent < 1 {
@@ -105,9 +99,8 @@ func TestSanitizeKeepsLimitsUsable(t *testing.T) {
 	}
 }
 
-// TestSanitizeRainbowPalette pins the rule that keeps saved colours out of the
-// stylesheet as anything but colours. Every entry lands in a CSS custom
-// property, so one that is not a plain hex triple is not a cosmetic problem.
+// Every entry lands in a CSS custom property, so one that is not a plain hex
+// triple is not a cosmetic problem.
 func TestSanitizeRainbowPalette(t *testing.T) {
 	full := []string{"#111111", "#222222", "#333333", "#444444",
 		"#555555", "#666666", "#777777", "#888888"}
@@ -116,8 +109,8 @@ func TestSanitizeRainbowPalette(t *testing.T) {
 		t.Fatalf("a complete palette was dropped: %v", got)
 	}
 
-	// All-or-nothing: seven good colours and one injection is not a palette
-	// that is 87% safe, it is a palette that must not be stored.
+	// All or nothing: seven good colours and one injection is a palette that
+	// cannot be stored.
 	bad := append([]string(nil), full...)
 	bad[3] = "red; background: url(http://evil/)"
 	if got := sanitize(Settings{RainbowPalette: bad}).RainbowPalette; got != nil {

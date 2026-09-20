@@ -31,11 +31,8 @@ type Backend struct {
 	link   map[string]string // original hoster link, for resume
 	handed map[string]bool   // true once the engine owns the transfer
 	jobID  map[string]int64  // TorBox web-download id, for cleanup on Remove
-	// conns is the connection count the dispatcher worked out for this task, kept
-	// because the prepare phase runs first and Resume re-enters start from the
-	// other side. A number invented at the handover instead - which is what stood
-	// below - is the task's own count, its rule and the global setting all
-	// discarded in one line, on the far side of an unlock nobody watches.
+	// conns is the dispatcher's connection count for each task, kept for the
+	// handover after the prepare phase and after a Resume.
 	conns map[string]int
 }
 

@@ -18,33 +18,11 @@ import (
 
 // Linksnappy speaks the Linksnappy API.
 //
-// WHERE THIS ONE'S FIELD NAMES COME FROM, stated plainly because it is not the
-// standard the other four in this package meet. Linksnappy publishes no API
-// documentation any more: linksnappy.com/api is a 404, the FAQ carries none,
-// and the Internet Archive has no copy. So this file rests on two sources
-// instead of one:
-//
-//   - MEASURED against the live service (2026-09-06, no account needed):
-//     GET /api/FILEHOSTS answers
-//     {"status":"OK","error":false,"return":{"rapidgator.net":{"Status":"1",…}}},
-//     and both /api/USERDETAILS and /api/linkgen answer the same envelope with
-//     status "ERROR" plus a sentence when nobody is logged in. The envelope and
-//     the host list are therefore certain.
-//   - READ off a working open-source client, ResolveURL's linksnappy.py
-//     (script.module.resolveurl, GPL-3.0), for the two calls that need an
-//     account: authentication is GET /api/AUTHENTICATE?username=&password= with
-//     the PLAIN password, keeping the session cookie it sets, and unlocking is
-//     GET /api/linkgen?genLinks={"link":"…"} answering {"links":[{status, error,
-//     generated, filename, filehost, …}]} - note that this one answers a bare
-//     object, not the envelope above.
-//
-// jdp asked for it on those terms (2026-09-06, after being told the risk:
-// "Jetzt einbauen, Feldnamen aus fremden Bibliotheken"). Everything below
-// decodes LOOSELY as a result: a renamed or missing key leaves a zero value and
-// produces a plain error, never a panic and never a direct link that is
-// actually an error message. If the service ever changes one of these names,
-// what happens is that unlocking fails with a sentence, which is the failure
-// mode worth having.
+// Linksnappy publishes no API documentation. The envelope and the host list
+// were measured against the live service; the account calls (AUTHENTICATE with
+// the plain password and a session cookie, linkgen answering a bare object)
+// follow ResolveURL's linksnappy.py. Everything decodes loosely, so a renamed
+// field makes unlocking fail with an error instead of producing a bad link.
 type Linksnappy struct {
 	user string
 	pass string
@@ -53,10 +31,8 @@ type Linksnappy struct {
 }
 
 func NewLinksnappy(user, pass string) *Linksnappy {
-	// Its own cookie jar, and that is the whole authentication scheme:
-	// AUTHENTICATE sets a session cookie and every later call is trusted by it.
-	// A jar shared with the other services would mean one provider's session
-	// travelling to another's host.
+	// The session cookie from AUTHENTICATE is the credential, so the jar must
+	// not be shared with other services.
 	jar, _ := cookiejar.New(nil)
 	c := httpx.New(httpx.Options{Timeout: 30 * time.Second})
 	c.Jar = jar
@@ -67,9 +43,7 @@ func (*Linksnappy) ID() string    { return "linksnappy" }
 func (*Linksnappy) Label() string { return "Linksnappy" }
 
 // lsEnvelope is the wrapper FILEHOSTS, AUTHENTICATE and USERDETAILS share.
-// Error is `false` on success and a SENTENCE on failure, which is why it is a
-// RawMessage rather than a string: decoding a bool into a string fails, and
-// that failure would swallow the successful case.
+// Error is false on success and a sentence on failure, hence the RawMessage.
 type lsEnvelope struct {
 	Status string          `json:"status"`
 	Error  json.RawMessage `json:"error"`
@@ -120,16 +94,14 @@ func (l *Linksnappy) envelope(ctx context.Context, path string, q url.Values, ou
 		return fmt.Errorf("linksnappy %s: refused without a reason", path)
 	}
 	if out != nil && len(env.Return) > 0 {
-		// A shape that does not fit is not fatal on its own: the call
-		// succeeded, and a caller that only needed to know THAT can carry on.
+		// The call succeeded, so an unexpected shape only leaves out empty.
 		_ = json.Unmarshal(env.Return, out)
 	}
 	return nil
 }
 
-// Authenticate logs in and keeps the session cookie. Exported because it is
-// also the only honest way to check this service's credential: its host list
-// needs no account at all, so a wrong password would otherwise verify happily.
+// Authenticate logs in and keeps the session cookie. It is exported to verify
+// the credential, since the host list needs no account.
 func (l *Linksnappy) Authenticate(ctx context.Context) error {
 	if l.user == "" || l.pass == "" {
 		return errors.New("linksnappy: a username and a password are required")
@@ -140,8 +112,8 @@ func (l *Linksnappy) Authenticate(ctx context.Context) error {
 	}, nil)
 }
 
-// Hosts asks /FILEHOSTS. Measured: the value is a map keyed by domain whose
-// entries carry Status as a STRING ("1" for up), not a number.
+// Hosts asks /FILEHOSTS, a map keyed by domain whose entries carry Status as a
+// string ("1" for up).
 func (l *Linksnappy) Hosts(ctx context.Context) (map[string]bool, error) {
 	var hosts map[string]struct {
 		Status string `json:"Status"`
@@ -151,9 +123,8 @@ func (l *Linksnappy) Hosts(ctx context.Context) (map[string]bool, error) {
 	}
 	set := map[string]bool{}
 	for domain, info := range hosts {
-		// Only a host the service says is up. An empty Status is taken as up:
-		// the field is what varies between their two host endpoints, and a
-		// missing one must not empty the whole routing table.
+		// An empty Status counts as up so a missing field cannot empty the
+		// routing table.
 		if info.Status == "0" {
 			continue
 		}
@@ -173,9 +144,7 @@ type lsGenerated struct {
 	Error     json.RawMessage `json:"error"`
 	Generated string          `json:"generated"`
 	Filename  string          `json:"filename"`
-	// Size arrives as a string on this endpoint in every sample seen, so it is
-	// read as a RawMessage and parsed permissively - a number would otherwise
-	// be the one shape that fails.
+	// Size has been seen as a string, so both shapes are accepted.
 	Size json.RawMessage `json:"size"`
 }
 
@@ -217,9 +186,8 @@ func (l *Linksnappy) Unlock(ctx context.Context, link string) (Direct, error) {
 	return Direct{}, errors.New("linksnappy: unreadable answer to /linkgen")
 }
 
-// Account reads /USERDETAILS. The least attested call in this file: its field
-// names come from third-party clients only, so every one of them is optional
-// and an unrecognised answer leaves the plan unknown rather than inventing one.
+// Account reads /USERDETAILS. Its field names come from third-party clients
+// only, so every one of them is optional.
 func (l *Linksnappy) Account(ctx context.Context) (AccountInfo, error) {
 	if err := l.Authenticate(ctx); err != nil {
 		return AccountInfo{}, err
@@ -237,9 +205,7 @@ func (l *Linksnappy) Account(ctx context.Context) (AccountInfo, error) {
 	if info.Tier == "" {
 		info.Tier = "premium"
 	}
-	// "lifetime" is a documented value of this field in every client that
-	// touches it, and it is not a timestamp - a numeric parse leaves the zero
-	// time, which reads as "nothing to expire", which is exactly right.
+	// "lifetime" parses to 0 and leaves ExpiresAt zero, meaning no expiry.
 	if secs := looseInt(d.Expire); secs > 0 {
 		info.ExpiresAt = time.Unix(secs, 0).UTC()
 	}
@@ -250,9 +216,8 @@ func (l *Linksnappy) Account(ctx context.Context) (AccountInfo, error) {
 	return info, nil
 }
 
-// looseInt reads a number that may have arrived as a JSON number or as a
-// string. Linksnappy sends both, on different endpoints, for the same kind of
-// value; 0 for anything else, which every caller here treats as "not stated".
+// looseInt reads a number sent as a JSON number or as a string, and returns 0
+// for anything else.
 func looseInt(raw json.RawMessage) int64 {
 	if len(raw) == 0 {
 		return 0

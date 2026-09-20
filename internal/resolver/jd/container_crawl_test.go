@@ -14,9 +14,8 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 )
 
-// grabLink is one link as JD's link grabber reports it. Spelled out here rather
-// than reusing the production CrawledLink so the fake keeps answering the same
-// wire shape even when the parsed struct changes.
+// grabLink is one link as JD's link grabber reports it, separate from
+// CrawledLink so the fake's wire shape does not follow changes to the parser.
 type grabLink struct {
 	UUID         int64  `json:"uuid"`
 	URL          string `json:"url"`
@@ -33,13 +32,11 @@ type jobFilterBehaviour int
 const (
 	// jobFilterHonoured: the filter is applied, as the API documents it.
 	jobFilterHonoured jobFilterBehaviour = iota
-	// jobFilterBlind: the filter is applied and never matches anything - the
-	// behaviour measured on a live JD, which is why the marker name has to stay
-	// a working anchor of its own.
+	// jobFilterBlind: the filter is applied and never matches anything, as
+	// seen on a live JD.
 	jobFilterBlind
-	// jobFilterIgnored: the key means nothing to this build, so the query is
-	// answered with the entire link grabber. The dangerous one: its answer
-	// looks like a crawl that produced everybody's links.
+	// jobFilterIgnored: the key is unknown, so the query answers with the
+	// whole link grabber.
 	jobFilterIgnored
 )
 
@@ -52,31 +49,19 @@ type grabPkg struct {
 	links []grabLink
 }
 
-// fakeJDGrabber is a JD whose link grabber can be told to behave the way the
-// ones in the field do, rather than the way the happy path assumed:
-//
-//   - the container opens into SEVERAL packages, none of them carrying the name
-//     that was passed to addLinks (a scene DLC names its own packages, one per
-//     mirror), so looking a package up by that name finds nothing;
-//   - isCollecting answers true for ever, because the instance has other work
-//     in its grabber (jdp's had 22 Click'n'Load submissions and 5 pastes
-//     waiting), so "the grabber has gone quiet" never happens;
-//   - the jobUUIDs filter works, or answers nothing, or is not a filter at all;
-//   - a package belonging to somebody else sits in the same grabber, so a
-//     harvest that reads the grabber unscoped is visibly wrong instead of
-//     accidentally right.
+// fakeJDGrabber is a JD whose link grabber behaves like the ones in the
+// field: a container can open into several packages that do not carry the
+// marker name, isCollecting can stay true for ever on a busy instance, the
+// jobUUIDs filter may work or not, and another user's package sits in the
+// same grabber.
 type fakeJDGrabber struct {
 	t  *testing.T
 	mu sync.Mutex
 
 	jobID      int64
 	collecting bool
-	// jobFilter is what this JD does with queryLinks's jobUUIDs filter:
-	// honour it, answer nothing at all, or ignore the key and hand back the
-	// whole grabber. All three have to be survivable; the last one is the
-	// dangerous one, because its answer looks like a very large crawl.
-	jobFilter jobFilterBehaviour
-	packages  []grabPkg
+	jobFilter  jobFilterBehaviour
+	packages   []grabPkg
 
 	marker       string // the packageName addLinks was given
 	removedLinks []int64
@@ -169,9 +154,7 @@ func (f *fakeJDGrabber) handler() http.Handler {
 				}
 				f.writeLinks(w, f.linksFor(func(p grabPkg) bool { return ids[p.uuid] }))
 			default:
-				// A real JD answers an unfiltered query with the whole grabber,
-				// stranger's links included. Counted so a harvest that forgot to
-				// scope itself fails loudly here instead of quietly stealing them.
+				// Counted so an unscoped harvest shows up in the assertions.
 				f.unscoped++
 				f.writeLinks(w, f.linksFor(func(grabPkg) bool { return true }))
 			}
@@ -218,9 +201,8 @@ func urlsOf(t *testing.T, res []resolver.Result) []string {
 	return out
 }
 
-// troyPackages is the shape of the container that never landed: one release
-// mirrored into several packages, each named after its own contents, plus a
-// package that is none of our business.
+// troyPackages is one release mirrored into several packages, each named after
+// its contents, plus a package that belongs to the user.
 func troyPackages() []grabPkg {
 	return []grabPkg{
 		{uuid: 11, name: "Troja.2004.DC.German.AC3.DL.2160p.UHD.US.BluRay.DV.HDR.x265-VECTOR", ours: true, links: []grabLink{
@@ -236,12 +218,9 @@ func troyPackages() []grabPkg {
 	}
 }
 
-// TestAddContainerHarvestsPackagesJDNamedItself is jdp's failing DLC, in a
-// test: the container opens into two packages that do not carry the marker, and
-// the grabber never once says it has stopped collecting. Every link inside the
-// container has to come back, promptly, without the stranger's package, and
-// everything the crawl produced has to be taken back out of JD's grabber so JD
-// does not start it on its own.
+// The container opens into two packages without the marker while the grabber
+// keeps collecting. Every link must come back promptly, the user's package must
+// stay untouched, and the crawl's output must be removed from the grabber.
 func TestAddContainerHarvestsPackagesJDNamedItself(t *testing.T) {
 	fastPoll(t)
 
@@ -302,11 +281,8 @@ func TestAddContainerHarvestsPackagesJDNamedItself(t *testing.T) {
 	}
 }
 
-// TestAddContainerFallsBackToTheMarkerPackage is the other half of the same
-// contract. The jobUUIDs filter is not trustworthy on every JD build - it has
-// been measured answering nothing while the grabber plainly held the links - so
-// the marker package has to stay a working second anchor, and a grabber that is
-// permanently collecting must not hold that path up either.
+// With a job filter that answers nothing, the marker package alone must find
+// the crawl.
 func TestAddContainerFallsBackToTheMarkerPackage(t *testing.T) {
 	fastPoll(t)
 
@@ -314,8 +290,7 @@ func TestAddContainerFallsBackToTheMarkerPackage(t *testing.T) {
 	srv := httptest.NewServer(f.handler())
 	defer srv.Close()
 
-	// The package JD really did name after our marker, filled in once the
-	// handover has told the fake what that marker is.
+	// The marker package appears once addLinks has named it.
 	done := make(chan struct{})
 	go func() {
 		defer close(done)
@@ -353,12 +328,8 @@ func TestAddContainerFallsBackToTheMarkerPackage(t *testing.T) {
 	}
 }
 
-// TestAddContainerRefusesAJobFilterThatIsNotOne guards the price of the job
-// anchor. A JD build that does not know the jobUUIDs key does not refuse the
-// query, it answers it with the whole link grabber - so an answer like that
-// must be recognised for what it is rather than adopted as "the links my
-// container produced". Adopting it would hand the user's own staged links back
-// as the container's contents and then delete them out of his grabber.
+// A JD that ignores the jobUUIDs key answers with the whole grabber; adopting
+// that would return the user's links as the container's and delete them.
 func TestAddContainerRefusesAJobFilterThatIsNotOne(t *testing.T) {
 	fastPoll(t)
 
@@ -412,9 +383,6 @@ func TestAddContainerRefusesAJobFilterThatIsNotOne(t *testing.T) {
 	}
 }
 
-// TestAddContainerStillReportsAContainerThatNeverOpened keeps the error that
-// matters: nothing to find anywhere is not the same as found-and-empty, and it
-// must still be reported rather than answered with an empty, successful list.
 func TestAddContainerStillReportsAContainerThatNeverOpened(t *testing.T) {
 	fastPoll(t)
 
@@ -428,9 +396,6 @@ func TestAddContainerStillReportsAContainerThatNeverOpened(t *testing.T) {
 	}
 }
 
-// TestCheckLinksSettlesWhileJDCollectsSomethingElse pins the same reasoning on
-// the check path: the batch is settled by its own link count standing still, so
-// a grabber busy with 22 other jobs cannot turn every check into a timeout.
 func TestCheckLinksSettlesWhileJDCollectsSomethingElse(t *testing.T) {
 	fastPoll(t)
 

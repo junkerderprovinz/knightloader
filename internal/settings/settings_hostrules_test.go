@@ -1,9 +1,8 @@
 package settings
 
-// The two exception tables. Every claim below is one somebody has to be able
-// to rely on before writing a single row into either: that an empty table
-// changes nothing, that a pattern matches what it looks like it matches, and
-// that one field configured leaves every other field alone.
+// The two exception tables: that an empty table changes nothing, that a pattern
+// matches what it looks like it matches, and that one field configured leaves
+// every other field alone.
 
 import (
 	"testing"
@@ -12,10 +11,8 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/rules"
 )
 
-// TestAnEmptyTableIsExactlyTheOldBehaviour is the promise the whole feature
-// rests on: an install that never opens the page must retry precisely the way
-// it did before either table existed - fifteen seconds, doubling, ten minutes,
-// MaxRetries attempts.
+// An install that never opens the page retries the way it did before either
+// table existed: fifteen seconds, doubling, ten minutes, MaxRetries attempts.
 func TestAnEmptyTableIsExactlyTheOldBehaviour(t *testing.T) {
 	s := Defaults()
 	got := s.RetryFor("limit", "rapidgator.net")
@@ -36,9 +33,8 @@ func TestAnEmptyTableIsExactlyTheOldBehaviour(t *testing.T) {
 	}
 }
 
-// TestHostPatternMatching pins what a person typing a host into the table gets.
-// The two rows that matter most are the last pair: a pattern must not match a
-// host that merely ENDS in it, and the more specific of two entries has to win
+// What somebody typing a host into the table gets. A pattern must not match a
+// host that merely ends in it, and the more specific of two entries has to win,
 // or a per-server exception could never outrank a per-site one.
 func TestHostPatternMatching(t *testing.T) {
 	table := map[string]HostRule{
@@ -70,10 +66,9 @@ func TestHostPatternMatching(t *testing.T) {
 	}
 }
 
-// TestRetryResolvesFieldByField is the reason merge is per field rather than
-// per rule: a host entry that says nothing but "wait an hour" must not also
-// wipe out the attempt count somebody set against the reason, which is exactly
-// what "the most specific whole rule wins" would do.
+// Why merge is per field rather than per rule: a host entry saying nothing but
+// "wait an hour" must not also wipe out the attempt count set against the
+// reason, which is what "the most specific whole rule wins" would do.
 func TestRetryResolvesFieldByField(t *testing.T) {
 	s := Defaults()
 	s.MaxRetries = 4
@@ -91,9 +86,9 @@ func TestRetryResolvesFieldByField(t *testing.T) {
 	if got.Tries != 2 {
 		t.Errorf("tries = %d, want the reason table's 2 - the host rule said nothing about attempts", got.Tries)
 	}
-	// A cap left unset must not silently undo the delay: the built-in ten
-	// minutes would turn a deliberate one-hour wait back into ten, which is the
-	// hammering this table exists to stop.
+	// A cap left unset must not undo the delay: the built-in ten minutes would
+	// turn a one-hour wait back into ten, which is the hammering this table
+	// exists to stop.
 	if got.Max != time.Hour {
 		t.Errorf("max = %s, want the hour the delay asks for rather than the built-in cap", got.Max)
 	}
@@ -111,9 +106,9 @@ func TestRetryResolvesFieldByField(t *testing.T) {
 	}
 }
 
-// TestNeverIsAnInstructionFromEitherLevel: "do not try this again" written
-// against a reason must survive a host rule that says nothing about it, and
-// the reverse. A fallback would let the silent level cancel the loud one.
+// "Do not try this again" written against a reason survives a host rule that
+// says nothing about it, and the reverse. A fallback would let the silent level
+// cancel the one that spoke.
 func TestNeverIsAnInstructionFromEitherLevel(t *testing.T) {
 	s := Defaults()
 	s.Retry.ByReason = map[string]RetryRule{"gone": {Never: true}}
@@ -135,9 +130,8 @@ func TestNeverIsAnInstructionFromEitherLevel(t *testing.T) {
 	}
 }
 
-// TestSanitizeBoundsBothTables. Every clamp here is a number that would
-// otherwise be shown on a page as if it were in force while something
-// downstream quietly cut it to something else.
+// Every clamp here is a number that would otherwise be shown on a page as if it
+// were in force while something downstream cut it to something else.
 func TestSanitizeBoundsBothTables(t *testing.T) {
 	n := sanitize(Settings{
 		MaxConcurrent: 4,
@@ -182,9 +176,8 @@ func TestSanitizeBoundsBothTables(t *testing.T) {
 	}
 }
 
-// TestSanitizeDoesNotEditTheCallersMap: the caller still holds the map it
-// handed in, and a document that keeps changing underneath whoever submitted
-// it is a bug found months later, by which time nobody remembers who edited it.
+// The caller still holds the map it handed in, and a document that changes
+// underneath whoever submitted it is a bug found months later.
 func TestSanitizeDoesNotEditTheCallersMap(t *testing.T) {
 	mine := map[string]HostRule{"host.example": {Chunks: 999}}
 	n := sanitize(Settings{MaxConcurrent: 4, HostRules: mine})
@@ -196,10 +189,9 @@ func TestSanitizeDoesNotEditTheCallersMap(t *testing.T) {
 	}
 }
 
-// TestStallTimeoutHasAFloor. Ten seconds of no bytes is a chunk handover, not a
-// dead connection, so a timeout that small would mark healthy downloads instead
-// of finding stopped ones. Zero stays zero, because zero is the off switch and
-// not a small number.
+// Ten seconds of no bytes is a chunk handover rather than a dead connection, so
+// a timeout that small would mark healthy downloads instead of finding stopped
+// ones. Zero stays zero, being the off switch rather than a small number.
 func TestStallTimeoutHasAFloor(t *testing.T) {
 	if got := sanitize(Settings{MaxConcurrent: 4, StallTimeout: 10}).StallTimeout; got != MinStallTimeout {
 		t.Errorf("StallTimeout = %d, want the floor %d", got, MinStallTimeout)

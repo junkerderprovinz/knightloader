@@ -1,14 +1,10 @@
 // Package settings persists user-tunable behaviour (concurrency, speed limit,
 // extraction) as JSON in the data dir and hands out consistent snapshots.
 //
-// This file holds the shape and the store: the Settings struct, the defaults, and
-// Load/Get/Set. What each group of fields is allowed to contain lives with that
-// group, in settings_queue.go, settings_paths.go, settings_appearance.go,
-// settings_intake.go and settings_network.go, each with its own sanitize hook
-// that sanitize below calls in turn. The struct is one declaration because Go
-// gives it no choice and because embedding sub-structs would flatten differently
-// in JSON and break every composite literal in the tree; the rules about it are
-// what is split, and those were the four hundred lines nobody could edit at once.
+// This file holds the shape and the store: the Settings struct, the defaults and
+// Load/Get/Set. What each group of fields may contain lives with that group, in
+// settings_queue.go, settings_paths.go, settings_appearance.go and the rest,
+// each with its own sanitize hook that sanitize below calls in turn.
 package settings
 
 import (
@@ -43,48 +39,36 @@ type Settings struct {
 	SpeedLimit    int64 `json:"speedLimit"`    // bytes/s, 0 = unlimited
 	Extract       bool  `json:"extract"`       // extract archives after download
 
-	// Quiet is the second set of the two numbers above: what the queue is
-	// allowed to do while quiet mode is on, switched in with one press or by a
-	// timetable window. See settings_quiet.go - a zero in there means "leave
-	// that one alone" and not "unlimited", which is the opposite of what zero
-	// means in SpeedLimit one line up.
+	// Quiet is the second set of the two numbers above: what the queue may do
+	// while quiet mode is on, switched in with one press or by a timetable
+	// window. A zero in there means "leave that one alone" rather than
+	// "unlimited", the opposite of what zero means in SpeedLimit one line up.
+	// See settings_quiet.go.
 	Quiet QuietLimits `json:"quiet"`
 
-	// AutoConfirm, AutoConfirmDelay and AutoStart are the three fields a
-	// single AutoStart boolean used to be, and MUST be read together - see
-	// migrateAutoStart in settings_confirm.go for the migration this split
-	// demands from every existing install.
-	//
 	// AutoConfirm moves a batch out of the collector on its own, without a
-	// click - what the old flag actually gated, under the name that
-	// conflated it with AutoStart below.
-	AutoConfirm bool `json:"autoConfirm"`
-	// AutoConfirmDelay is how long AutoConfirm waits before it fires, in
-	// seconds. Zero fires the instant a batch is staged, which is what
-	// every install had before this field existed - there was no delay to
-	// preserve, only the one it would be wrong to invent on their behalf.
-	AutoConfirmDelay int `json:"autoConfirmDelay"`
-	// AutoStart is what a confirmed batch does next: start immediately
-	// (true, the default) or sit in the queue until something explicitly
-	// releases it (false). Before this split there was no way to ask for
-	// the second half on its own - confirming a link, however it happened,
-	// always started it - so AutoStart defaults to true precisely to keep
-	// that the case for every install that never touches this setting.
-	// "Confirm without start" (AutoConfirm=true, AutoStart=false) is the
-	// state this split makes possible for the first time.
-	AutoStart bool `json:"autoStart"`
+	// click. AutoConfirmDelay is how long it waits first, in seconds; zero
+	// fires the instant a batch is staged. AutoStart is what a confirmed batch
+	// does next: start immediately (the default) or sit in the queue until
+	// something releases it.
+	//
+	// The three replace a single AutoStart boolean that conflated them, so they
+	// are read together and migrateAutoStart in settings_confirm.go maps every
+	// existing install onto them. AutoStart defaults to true because confirming
+	// a link always started it before the split.
+	AutoConfirm      bool `json:"autoConfirm"`
+	AutoConfirmDelay int  `json:"autoConfirmDelay"`
+	AutoStart        bool `json:"autoStart"`
 
 	// OnDupes and OnOffline are the confirm-time policies for a link that
 	// duplicates one already in the list, or one a check has already found
-	// gone - internal/confirm.Policy, stored as its string form the same
-	// way MirrorPolicy and CollisionPolicy are. These are the INSTANCE's
-	// own defaults; a batch may carry its own override of either (see
-	// internal/app.ConfirmTasks), read against these two when it does not.
+	// gone (internal/confirm.Policy, stored as its string form like
+	// MirrorPolicy and CollisionPolicy). A batch may carry its own override of
+	// either, see internal/app.ConfirmTasks; these are the fallback.
 	OnDupes   string `json:"onDupes"`
 	OnOffline string `json:"onOffline"`
 	// AddAtTop puts a batch leaving the collector at the front of the wait
-	// order instead of the back, so it plays next rather than after
-	// whatever was already queued.
+	// order instead of the back.
 	AddAtTop bool `json:"addAtTop"`
 
 	// DownloadDir is where finished files land. Empty means the built-in
@@ -94,67 +78,49 @@ type Settings struct {
 	SubfolderByPackage bool `json:"subfolderByPackage"`
 
 	// WorkDir is where a download's bytes are written while they are still
-	// arriving. The finished result is moved to DownloadDir once nothing is
-	// owed on it any more - after the checksum, and after the extraction when
-	// one is due.
+	// arriving. The result moves to DownloadDir once nothing is owed on it any
+	// more, after the checksum and after the extraction when one is due. Empty
+	// writes straight to the destination, which is what an install without this
+	// field does; the alternative would copy every download across a filesystem
+	// boundary for a problem the owner may not have.
 	//
-	// EMPTY MEANS WRITE STRAIGHT TO THE DESTINATION, which is what every
-	// install did before this field existed and is the only safe default. The
-	// alternative would hand somebody who merely installed an update a
-	// configuration that copies every download across a filesystem boundary,
-	// at gigabytes a time, for a problem they may not have.
+	// It keeps half files out of folders other programs watch: Unraid's mover
+	// takes a .part off the cache and copies half a film onto the array, and a
+	// library scanner indexes an unfinished mkv once and never looks again. See
+	// internal/workdir for the folder and the trip out of it.
 	//
-	// The problem it solves for the people who do have it: a .part file written
-	// straight to its destination is a half file in a folder other programs
-	// watch. Unraid's mover takes it off the cache and copies half a film onto
-	// the array, and a library scanner adds an unfinished mkv and then never
-	// looks at it again. See internal/workdir, which owns both the folder and
-	// the trip out of it, including what a cross-filesystem move does when the
-	// disk fills halfway through and what happens to leftovers after a crash.
-	//
-	// It is an absolute path and never a template - see sanitizeStaging.
+	// An absolute path, never a template. See sanitizeStaging.
 	WorkDir string `json:"workDir"`
 	// ArchivePasswords are tried in order when extracting an encrypted archive.
 	ArchivePasswords []string `json:"archivePasswords"`
 
 	// ExtractTo collects extractions in one folder instead of leaving each one
-	// beside its archive. Empty keeps the old behaviour, which is what most
-	// people expect and what every install had before the setting existed. It
-	// may be a pathvars template, expanded per task like DownloadDir.
+	// beside its archive. Empty leaves them beside the archive. It may be a
+	// pathvars template, expanded per task like DownloadDir.
 	ExtractTo string `json:"extractTo"`
 	// ExtractSubfolder puts each package in its own folder below ExtractTo. It
-	// does nothing without ExtractTo - see extract.Options.
+	// does nothing without ExtractTo, see extract.Options.
 	ExtractSubfolder bool `json:"extractSubfolder"`
-	// ExtractMoveTo is where the CONTENT of a finished extraction is moved once
-	// it has finished unpacking. Empty leaves it where it unpacked, which is
-	// what every install did before this field existed. It may be a pathvars
+	// ExtractMoveTo is where the content of a finished extraction is moved once
+	// it has unpacked. Empty leaves it where it unpacked. It may be a pathvars
 	// template, expanded per task exactly as DownloadDir and ExtractTo are.
 	//
-	// It is not a second spelling of ExtractTo, and the difference is the whole
-	// point of having both. ExtractTo is where the unpacking WRITES: the
-	// archive's own folder is created there and filled there, so the
-	// destination holds a growing, half-finished folder for as long as the
-	// extraction runs. This moves the finished files afterwards, which means
-	// nothing incomplete is ever visible at the target, and it moves the
-	// CONTENT rather than the folder - a release that unpacked as
-	// "Show.S01.COMPLETE.WEB/ep01.mkv" lands as "ep01.mkv" in the folder named
-	// here, without the release folder no library asked for.
+	// It is not a second spelling of ExtractTo. That one is where the unpacking
+	// writes, so the destination holds a growing, half-finished folder for as
+	// long as the extraction runs. This moves the finished files afterwards,
+	// and it moves the content rather than the folder: a release that unpacked
+	// as "Show.S01.COMPLETE.WEB/ep01.mkv" lands as "ep01.mkv".
 	//
-	// This is the instance-wide answer. The per-link one is a Packagizer rule
-	// (rules.Action.ExtractDir), which is read in front of this the same way
-	// Task.AutoExtract is read in front of Extract - see app.extractWanted.
+	// The per-link answer is a Packagizer rule (rules.Action.ExtractDir), read
+	// in front of this the way Task.AutoExtract is read in front of Extract.
+	// See app.extractWanted.
 	ExtractMoveTo string `json:"extractMoveTo"`
 	// ExtractCollision is what an extraction does when its destination folder is
 	// already there: rename, skip or overwrite, decided per folder.
 	ExtractCollision string `json:"extractCollision"`
 	// ArchiveDisposal is what happens to an archive that unpacked cleanly:
-	// keep, trash or delete.
-	//
-	// This key replaced the boolean `deleteArchive`, and the two do not live
-	// side by side: a settings file written by an older build is mapped on the
-	// way in by migrate() below. A JSON field that changes type is the one
-	// change that breaks the round-trip for every existing install, so the old
-	// spelling is read exactly once, at load, and never written again.
+	// keep, trash or delete. It replaced the boolean deleteArchive, which
+	// migrate() below reads once at load and never writes again.
 	ArchiveDisposal string `json:"archiveDisposal"`
 	// TrashRetentionDays is how long a trashed archive stays before the sweep
 	// takes it. Zero never sweeps.
@@ -162,98 +128,75 @@ type Settings struct {
 	// DeleteInfoFiles sweeps the .nfo/.sfv/.diz/.url that came with the same
 	// package as the archive, using the same disposal.
 	DeleteInfoFiles bool `json:"deleteInfoFiles"`
-	// MaxRetries is how often a failed download is retried automatically. It
-	// is the count a RetryRule with no Tries of its own falls back to - see
-	// Retry below.
+	// MaxRetries is how often a failed download is retried automatically. A
+	// RetryRule with no Tries of its own falls back to this count.
 	MaxRetries int `json:"maxRetries"`
-	// Retry is the backoff itself: how long the app waits before each of those
-	// attempts, per failure reason and per host, instead of one doubling
-	// sequence for every hoster on the internet. Empty - the default - is the
-	// fifteen-seconds-to-ten-minutes backoff this build has always had. See
-	// settings_hostrules.go.
+	// Retry is the backoff in front of those attempts, per failure reason and
+	// per host, instead of one doubling sequence for every hoster on the
+	// internet. Empty is the built-in fifteen-seconds-to-ten-minutes backoff.
+	// See settings_hostrules.go.
 	Retry RetryPolicy `json:"retry"`
 
-	// StallTimeout is how long a RUNNING download may move no bytes before it
-	// is marked as standing still, in seconds. Zero - the default - never
-	// marks anything, which is this build's behaviour before the mark existed.
+	// StallTimeout is how long a running download may move no bytes before it
+	// is marked as standing still, in seconds. Zero never marks anything.
 	//
-	// It exists because a dead connection is indistinguishable from a slow one
-	// on a list: the row says "running", the speed says 0 B/s, and the slot it
-	// holds is gone until somebody notices, which overnight means until
-	// morning. Nothing about the mark stops the transfer - see
-	// StallRestart for the half that acts on it.
+	// A dead connection is indistinguishable from a slow one on a list: the row
+	// says "running", the speed says 0 B/s, and the slot it holds is gone until
+	// somebody notices. The mark stops nothing on its own; StallRestart is the
+	// half that acts on it.
 	//
-	// Clamped up to MinStallTimeout when set at all: see settings_stall.go for
-	// why a timeout of a few seconds would mark healthy downloads rather than
-	// find dead ones.
+	// Clamped up to MinStallTimeout when set at all, see settings_stall.go.
 	StallTimeout int `json:"stallTimeout"`
-	// StallRestart hands a marked download back to the wait queue and starts
-	// it again from the top. Off by default, and deliberately a switch of its
-	// own rather than part of StallTimeout: the mark costs nothing and only
-	// says what is already true, while a restart THROWS AWAY the bytes the
-	// stalled attempt did fetch (app.restartStalled goes down the same path
-	// RestartTasks does, which clears the backend's partial file). Marking is
-	// information; restarting is a decision, and the two are not the same size.
+	// StallRestart hands a marked download back to the wait queue and starts it
+	// again from the top. Off by default, and a switch of its own rather than
+	// part of StallTimeout, because a restart throws away the bytes the stalled
+	// attempt did fetch: app.restartStalled goes down the same path
+	// RestartTasks does, which clears the backend's partial file.
 	StallRestart bool `json:"stallRestart"`
 	// StallMaxRestarts caps how many of those one task gets. Zero means
-	// DefaultStallRestarts rather than "unlimited" - see that constant for why
-	// an uncapped restart loop is the worse failure of the two.
+	// DefaultStallRestarts rather than unlimited.
 	StallMaxRestarts int `json:"stallMaxRestarts"`
 
 	// DiskReserve, DiskLowSpace and DiskCriticalSpace are the destination
-	// volume's three numbers, all in BYTES. See settings_diskspace.go for the
-	// defaults, the clamps and the one invariant between them; what each one
-	// MEANS is here, because that is what a reader of this struct is after.
+	// volume's three numbers, all in bytes. See settings_diskspace.go for the
+	// defaults, the clamps and the invariant between them.
 	//
-	// They exist because nothing in this build looked at free space until they
-	// did. core.ReasonDiskFull is classified from a write that has already
-	// failed, which is to say from the moment it is too late: the bytes are
-	// spent, the partial file is on the disk that had no room for it, and every
+	// Without them free space is only ever read from a write that has already
+	// failed (core.ReasonDiskFull), by which time the bytes are spent and every
 	// other transfer aimed at the same volume is still running.
 	//
-	// DiskReserve is headroom kept free BEYOND what a download still needs,
-	// checked against that download's own remaining bytes. It is the only one
-	// of the three that is on by default, and it is on because it cannot
-	// surprise anybody: it refuses exactly the downloads that provably would
-	// not have fitted, which is the case that ends in ReasonDiskFull anyway.
+	// DiskReserve is headroom kept free beyond what a download still needs,
+	// checked against that download's own remaining bytes. The only one of the
+	// three that is on by default, because it refuses exactly the downloads
+	// that provably would not have fitted.
 	DiskReserve int64 `json:"diskReserve"`
-	// DiskLowSpace is the floor under which NO new download starts, whatever
-	// its size and whether or not its size is even known. Zero is off.
-	//
-	// Off by default, unlike the reserve above, because a number of bytes is
-	// meaningless without knowing the volume: a gigabyte is nothing on a
-	// sixteen-terabyte array and a third of a memory card. Inventing one on
-	// somebody's behalf would either do nothing or stop their queue after an
-	// update they did not read, and this app does not change what an install
-	// does because a default said so.
+	// DiskLowSpace is the floor under which no new download starts, whatever
+	// its size and whether its size is known at all. Zero is off, because a
+	// number of bytes means nothing without knowing the volume: a gigabyte is
+	// nothing on a sixteen-terabyte array and a third of a memory card.
 	DiskLowSpace int64 `json:"diskLowSpace"`
-	// DiskCriticalSpace is the floor under which everything already RUNNING is
+	// DiskCriticalSpace is the floor under which everything already running is
 	// stopped and put back in the wait queue. Zero is off.
 	//
-	// It is a second threshold rather than a second reading of the first
-	// because the two acts are not the same size. Declining to start costs a
-	// download its place in the queue for a while; stopping one throws away
-	// whatever a non-resumable transfer had fetched. So the queue is allowed to
-	// keep filling a disk down to the low mark, and only a volume that is
-	// genuinely about to run out gets the transfers taken off it.
+	// A second threshold rather than a second reading of the first, because
+	// declining to start costs a download its place in the queue for a while
+	// while stopping one throws away whatever a non-resumable transfer had
+	// fetched. The queue may keep filling a disk down to the low mark; only a
+	// volume about to run out gets the transfers taken off it.
 	DiskCriticalSpace int64 `json:"diskCriticalSpace"`
 
 	// VolumeCap, VolumeCapResetDay, VolumeCapAction and VolumeCapThrottle are
-	// the allowance: how much may FINISH downloading in one period, and what
+	// the allowance: how much may finish downloading in one period, and what
 	// happens once that much has. See settings_volume.go for the defaults and
-	// the clamps, and internal/app/app_volumecap.go for the arithmetic and the
-	// enforcement.
+	// the clamps, internal/app/app_volumecap.go for the arithmetic.
 	//
-	// They are the disk guard's opposite number and were written beside it on
-	// purpose: both hold a download back before it starts rather than shaping one
-	// that is running. The difference is what they are counting. Free space is a
-	// fact about this machine that anybody can measure; a volume allowance is a
-	// number in somebody's contract that nothing on this box can see, which is
-	// why the whole of it is typed in here.
+	// They are the disk guard's opposite number. Free space is a fact about
+	// this machine that anybody can measure; a volume allowance is a number in
+	// somebody's contract that nothing on this box can see, so the whole of it
+	// is typed in here.
 	//
-	// VolumeCap is BYTES, and 0 is no cap. That is a real answer and not an
-	// unset field: the counter keeps running, the chart keeps drawing, and
-	// nothing is ever held back.
+	// VolumeCap is bytes, and 0 is no cap rather than an unset field: the
+	// counter keeps running, the chart keeps drawing, nothing is held back.
 	VolumeCap int64 `json:"volumeCap"`
 	// VolumeCapResetDay is the day of the month the counter goes back to zero,
 	// 1..31, usually the day an allowance renews. In a month shorter than the
@@ -261,54 +204,46 @@ type Settings struct {
 	// into the next one.
 	VolumeCapResetDay int `json:"volumeCapResetDay"`
 	// VolumeCapAction is what reaching the cap does: "report" (the default,
-	// which does nothing but count), "pause" (nothing NEW starts until the
-	// counter restarts) or "throttle" (everything keeps going at
-	// VolumeCapThrottle). There is deliberately no "off" - see
-	// settings_volume.go - and none of the three is read at all while VolumeCap
-	// is 0.
+	// which only counts), "pause" (nothing new starts until the counter
+	// restarts) or "throttle" (everything keeps going at VolumeCapThrottle).
+	// None of the three is read while VolumeCap is 0.
 	VolumeCapAction string `json:"volumeCapAction"`
-	// VolumeCapThrottle is bytes per second while capped, and it is meaningless
-	// unless the action is "throttle". It is a ceiling BESIDE the other limits
-	// and never instead of them: a schedule window or quiet mode asking for less
-	// still wins, because all of them meet in one place (app_budget.go).
+	// VolumeCapThrottle is bytes per second while capped, and means nothing
+	// unless the action is "throttle". It is a ceiling beside the other limits
+	// and never instead of them: a schedule window or quiet mode asking for
+	// less still wins, because all of them meet in app_budget.go.
 	VolumeCapThrottle int64 `json:"volumeCapThrottle"`
 
 	// Crawl lets a pasted page URL be opened and the files it links to be
 	// staged, instead of the page itself becoming one task.
 	Crawl bool `json:"crawl"`
 	// CrawlDepth is how many pages deep that crawl goes: 1 is the pasted page
-	// alone, 2 also follows the pages it links to, 3 follows theirs.
+	// alone, 2 also follows the pages it links to, 3 follows theirs. It
+	// defaults to 1 because a deep crawl is dozens of requests to a stranger's
+	// server, which only the person who typed the number may ask for.
 	//
-	// It defaults to 1, and that is the whole point of the field existing
-	// rather than the crawler simply going deeper. Nobody may get a
-	// three-level crawl of somebody else's forum from an update they did not
-	// read: a deep crawl is dozens of requests to a stranger's server, and the
-	// only person entitled to ask for that is the one who typed the number.
-	//
-	// Clamped to internal/crawler.MaxDepth - see sanitizeIntake.
+	// Clamped to internal/crawler.MaxDepth, see sanitizeIntake.
 	CrawlDepth int `json:"crawlDepth"`
-	// CrawlMaxPages caps how many pages one crawl FETCHES. It counts requests,
-	// not links found - see crawler.Options.MaxPages for why that is the unit.
-	// It does nothing at depth 1, where there is exactly one page.
+	// CrawlMaxPages caps how many pages one crawl fetches. It counts requests
+	// rather than links found, see crawler.Options.MaxPages. It does nothing at
+	// depth 1, where there is exactly one page.
 	CrawlMaxPages int `json:"crawlMaxPages"`
 	// CrawlSameHost keeps a deep crawl on the pasted page's own host. Host
-	// exactly, subdomains excluded, and it never restricts the FILES that come
-	// back - crawler.Options.SameHost carries the reasoning for both halves.
-	//
-	// True by default, unlike CrawlDepth's conservative 1: at depth 1 it does
-	// nothing at all, so the first person to raise the depth gets the safe
-	// answer to "and may it wander off this site" without having to know the
-	// question was asked.
+	// exactly, subdomains excluded, and it never restricts the files that come
+	// back; crawler.Options.SameHost carries the reasoning for both halves.
+	// True by default, since at depth 1 it does nothing at all and the first
+	// person to raise the depth then gets the safe answer already.
 	CrawlSameHost bool `json:"crawlSameHost"`
-	// CrawlInclude and CrawlExclude are regular expressions matched against
-	// the URLs a crawl meets. Empty lists, the default, mean no filtering.
-	// Exclude keeps the crawl away from pages as well as files; include only
-	// ever narrows what is staged - see crawler.Options for why they are not
-	// symmetric.
+	// CrawlInclude and CrawlExclude are regular expressions matched against the
+	// URLs a crawl meets. Empty lists, the default, mean no filtering. Exclude
+	// keeps the crawl away from pages as well as files; include only narrows
+	// what is staged, see crawler.Options for why they are not symmetric.
 	//
-	// No omitempty, for the reason Feeds above gives: a nil slice with
-	// omitempty is dropped from the JSON entirely and the frontend has no way
-	// to type a field that is sometimes simply absent.
+	// No omitempty: a nil slice with omitempty is dropped from the JSON
+	// entirely, and the frontend has no way to type a field that is sometimes
+	// absent. Without it a nil slice encodes as null, so the key is always
+	// there. The same holds for Feeds, Categories, MediaHooks, RainbowPalette,
+	// CaptchaSolverOrder, ResolverOrder and YtdlpPresets below.
 	CrawlInclude []string `json:"crawlInclude"`
 	CrawlExclude []string `json:"crawlExclude"`
 	// WatchDir is a folder whose dropped .txt/.crawljob files are picked up.
@@ -316,85 +251,55 @@ type Settings struct {
 	WatchDir string `json:"watchDir"`
 	// Feeds are the RSS and Atom subscriptions this instance follows: an
 	// address, how often to look at it, and optionally a title pattern, a
-	// destination folder and a priority for what it finds. An empty list is
-	// the off state, the same way an empty Schedule is, and it is what a
-	// fresh install has.
+	// destination folder and a priority for what it finds. An empty list is the
+	// off state. A feed is an intake, the sibling of WatchDir above; what one
+	// may contain is settings_feeds.go's business.
 	//
-	// This is the sibling of WatchDir above and not of a resolver setting: a
-	// feed is an intake, so a subscription describes where links come FROM
-	// rather than what happens to them afterwards. What one may contain is
-	// internal/feed's business, see settings_feeds.go.
-	//
-	// No omitempty, deliberately, matching CaptchaSolverOrder further down
-	// rather than ArchivePasswords above: a nil slice with omitempty is
-	// DROPPED from the JSON entirely, and the frontend has no way to type a
-	// field that is sometimes simply absent. Without it a nil slice encodes
-	// as JSON null, so the key is always there.
+	// No omitempty, see CrawlInclude.
 	Feeds []feed.Subscription `json:"feeds"`
-	// EventTargets are the addresses this instance reports to when one of
-	// the events internal/script publishes actually happens: a URL, a
-	// method, headers and a body template the operator wrote, per row. It
-	// is the outtake beside Feeds' intake, and what one may contain is
-	// internal/notify's business - see settings_notify.go.
+	// EventTargets are the addresses this instance reports to when one of the
+	// events internal/script publishes happens: a URL, a method, headers and a
+	// body template the operator wrote, per row. See settings_notify.go.
 	//
-	// omitempty, UNLIKE Feeds above, and the difference is deliberate: an
-	// absent key has to keep decoding to nil so that every settings.json
-	// written before this field existed reads back as "nothing sends",
-	// which is what makes the whole feature upgrade-safe by construction.
-	// The frontend types the field as `EventTargetRow[] | null | undefined`
-	// for the same reason.
+	// omitempty here, unlike Feeds: an absent key has to keep decoding to nil
+	// so that a settings.json written before this field existed reads back as
+	// "nothing sends". The frontend types it `EventTargetRow[] | null |
+	// undefined` for the same reason.
 	//
-	// EVERY HEADER VALUE IN HERE IS A SECRET - see settings_network.go's
-	// Redacted, and notify.Merge for why the carry-back on save is bound to
-	// the address and not only to the row id.
+	// Every header value in here is a secret. See Redacted in
+	// settings_network.go, and notify.Merge for why the carry-back on save is
+	// bound to the address and not only to the row id.
 	EventTargets []notify.Target `json:"eventTargets,omitempty"`
 	// VerifyChecksums checks a finished download against a checksum file that
 	// came with it, when one did.
 	VerifyChecksums bool `json:"verifyChecksums"`
 	// PreParserEnabled turns on internal/linkscan for POST /api/links: the
 	// pasted or dropped blob is scanned for links wherever they sit in it,
-	// instead of one line being taken as one link verbatim. Off falls back
-	// to that older, literal behaviour. Named and defaulted after
-	// JDownloader's own AddLinksPreParserEnabled (verified against
-	// JDownloader's own source, CFG_LINKGRABBER and LinkgrabberSettings.java:
-	// same key, same true default, same "works on the pasted text as-is"
-	// meaning for off), not a spelling picked from the plan's prose.
+	// instead of one line being taken as one link verbatim. Named and
+	// defaulted after JDownloader's AddLinksPreParserEnabled
+	// (LinkgrabberSettings.java): same key, same true default, same meaning
+	// for off.
 	PreParserEnabled bool `json:"preParserEnabled"`
 
-	// DownloadClientAPI opens the SABnzbd-shaped door Sonarr and Radarr can
-	// be pointed at - see internal/api/routes_downloadclient.go for what it
-	// speaks and why that protocol was chosen.
+	// DownloadClientAPI opens the SABnzbd-shaped door Sonarr and Radarr can be
+	// pointed at. See internal/api/routes_downloadclient.go for what it speaks.
 	//
-	// OFF by default, and this is the one field in this struct where the
-	// default is a security decision rather than a "behave as you always
-	// have" decision. Everything else here changes how downloads this
-	// instance was already asked for are handled; this one lets a program on
-	// the network CREATE downloads and DELETE finished files. A fresh install
-	// must not have that door standing open because a default said so, in
-	// exactly the way Reconnect just below is off by default because it runs
-	// a program on the router.
-	//
-	// Switching it on is still not enough on its own: the route refuses every
-	// request that does not carry a valid API token (internal/apitoken), even
-	// on an instance with no password set at all, so turning this on and
-	// forgetting to hand out a token opens nothing.
+	// Off by default because it lets a program on the network create downloads
+	// and delete finished files, the way Reconnect below is off because it runs
+	// a program on the router. Switching it on is not enough on its own: the
+	// route refuses every request without a valid API token
+	// (internal/apitoken), even on an instance with no password set.
 	DownloadClientAPI bool `json:"downloadClientApi"`
 
 	// Metrics opens GET /api/metrics, which answers the health readout as
-	// Prometheus exposition text for a monitoring system to fetch. Nothing is
-	// ever sent anywhere: the address is only ever read from.
+	// Prometheus exposition text for a monitoring system to fetch. The address
+	// is only ever read from.
 	//
-	// OFF by default, and for exactly the reason DownloadClientAPI above is: it
-	// is a door, not a preference. The route is session-guarded like everything
-	// else under /api/, so switching it on does not make it public - but it
-	// carries the target folders' paths as label values, and an address that
-	// exists is an address somebody has to think about. While this is false the
-	// route answers 404, so the door does not exist until somebody opens it.
-	//
-	// No entry in Defaults(): false IS the default, and settings.Load
-	// unmarshals over Defaults(), so every settings.json written before this
-	// key existed keeps it false on upgrade. Nothing to sanitise either - a
-	// bool has no wrong value.
+	// Off by default. The route is session-guarded like everything under /api/,
+	// but it carries the target folders' paths as label values. While this is
+	// false the route answers 404, so the address does not exist until somebody
+	// opens it. No entry in Defaults() and nothing to sanitise: false is the
+	// default, and a bool has no wrong value.
 	Metrics bool `json:"metrics"`
 
 	// Shape is how rounded the whole interface is: "round", "soft" or "square".
@@ -421,115 +326,82 @@ type Settings struct {
 	// RainbowPalette overrides the eight built-in hues. Empty means the default.
 	RainbowPalette []string `json:"rainbowPalette"`
 
-	// HideAccountsFromSidebar removes the sidebar's own "Konten" nav item,
-	// for someone who only ever reaches accounts through the identical
-	// settings tab and finds the second entry point redundant rather than
-	// convenient. The zero value (false) keeps the current, pre-existing
-	// behaviour - both the nav item and the settings tab render the same
-	// page either way, so hiding one costs nothing but a click.
+	// HideAccountsFromSidebar removes the sidebar's "Konten" nav item, for
+	// someone who only ever reaches accounts through the identical settings
+	// tab. Both render the same page, so hiding one costs nothing but a click.
 	HideAccountsFromSidebar bool `json:"hideAccountsFromSidebar"`
 
-	// HideInstancesFromSidebar does the same for the "Instanzen" nav item
-	// (jdp, 2026-08-27: "Können wir den Instanzentab wie den konten-tab ein-
-	// und ausblendbar machen?"), and for the same reason: somebody running a
-	// single instance has a nav item that lists exactly itself, forever.
-	//
-	// A separate field rather than a shared "hidden nav items" list, matching
-	// HideAccountsFromSidebar above: a set of strings in settings.json is a
-	// set somebody can put a typo in, and neither of these is the start of a
-	// family big enough to be worth that.
+	// HideInstancesFromSidebar does the same for the "Instanzen" item:
+	// somebody running a single instance has a nav item that lists exactly
+	// itself. A separate field rather than a shared list of hidden nav items,
+	// because a set of strings in settings.json is a set somebody can put a
+	// typo in, and two entries are not a family worth that.
 	HideInstancesFromSidebar bool `json:"hideInstancesFromSidebar"`
 
-	// NavLabels is how much of a navigation entry is drawn - "both",
-	// "glyph", "text" or "hover". It governs the sidebar AND the settings
-	// rail together, from one control, because they are one idea wearing
-	// two shapes and a person who wants glyphs wants glyphs.
-	//
-	// Stored with the instance rather than in the browser, alongside Shape
-	// and Accent above and for the same reason: this is what the interface
-	// LOOKS like, and the look follows the instance from one machine to the
-	// next. See settings_appearance.go for the four values and for what
-	// "hover" actually does, which is not what the word suggests.
+	// NavLabels is how much of a navigation entry is drawn: "both", "glyph",
+	// "text" or "hover". It governs the sidebar and the settings rail together,
+	// from one control. Stored with the instance rather than in the browser,
+	// alongside Shape and Accent, so the look follows the instance from one
+	// machine to the next. See settings_appearance.go for what "hover" does,
+	// which is not what the word suggests.
 	NavLabels string `json:"navLabels"`
 
 	// AutoUpdateCheck asks the desktop build to call update.Check once at
-	// startup (and the Allgemein tab to do the same on load) instead of only
-	// on an explicit click of "Check for updates" - desktop only in
-	// practice, read nowhere on the container build. Off by default: it is
-	// an outbound call to GitHub on every launch, and that is an opt-in, not
-	// something a fresh install does before being asked.
+	// startup, and the Allgemein tab to do the same on load, instead of only on
+	// a click of "Check for updates". The container build reads it nowhere. Off
+	// by default: it is an outbound call to GitHub on every launch.
 	AutoUpdateCheck bool `json:"autoUpdateCheck"`
 
 	// AutoUpdateInstall asks the desktop build to install a newer release
 	// (download, verify, swap the running binary, relaunch) the moment
-	// AutoUpdateCheck's own check finds one, instead of only offering the
-	// release page to fetch by hand. Meaningless without AutoUpdateCheck
-	// also being on - nothing reads this unless a check already found an
-	// update - and meaningless on the container build, which cannot replace
-	// itself from the inside (App.RequestUpdateInstall is nil there; the
-	// route refuses before this field is ever read). Off by default, for
-	// the same reason AutoUpdateCheck is: silently replacing your own
-	// running binary is a bigger step than an outbound version check, and
-	// opting into "check" does not imply opting into "also apply".
+	// AutoUpdateCheck finds one. It means nothing without AutoUpdateCheck, and
+	// nothing on the container build, which cannot replace itself from the
+	// inside: App.RequestUpdateInstall is nil there and the route refuses
+	// before this field is read. Off by default, since opting into a version
+	// check does not imply opting into replacing the running binary.
 	AutoUpdateInstall bool `json:"autoUpdateInstall"`
 
 	// YtdlpVersionCheck asks the Resolvers page to call GET
 	// /api/mediatools/ytdlp/latest once when it loads, instead of only when
-	// somebody presses "Ask GitHub". Off by default: it is an outbound call to
-	// api.github.com, and a machine somebody runs themselves should not call
-	// out on its own until it has been told it may - the same line
-	// AutoUpdateCheck above draws, for the same reason. It never downloads and
-	// never replaces anything.
-	//
-	// There is deliberately no companion switch that INSTALLS what it finds.
-	// AutoUpdateInstall exists for this app's own binary and was decided on its
-	// own merits; replacing the media extractor unattended silently changes
-	// what every download produces, and yt-dlp does ship regressions. Fetching
-	// a new yt-dlp happens because somebody pressed the button (jdp,
-	// 2026-09-08).
+	// somebody presses "Ask GitHub". Off by default, because it is an outbound
+	// call to api.github.com. It never downloads and never replaces anything,
+	// and there is no companion switch that installs what it finds: yt-dlp does
+	// ship regressions, and a new one silently changes what every download
+	// produces.
 	YtdlpVersionCheck bool `json:"ytdlpVersionCheck"`
 
 	// Packagizer names packages, picks folders and sets download options as
-	// links are staged. It is stored exactly as the user wrote it: rules.Compile
-	// is the validator, and a rule with a broken regular expression has to
-	// round-trip to disk so the user can find and fix it in the form instead of
-	// watching it disappear on save.
+	// links are staged. Stored exactly as the user wrote it: rules.Compile is
+	// the validator, and a rule with a broken regular expression has to
+	// round-trip to disk so it can be fixed in the form instead of disappearing
+	// on save.
 	Packagizer rules.Set `json:"packagizer"`
 	// LinkFilter decides which links are taken into the collector at all.
-	// StopAfterMatch usually wants to be on here, so a narrow accept placed above
-	// a broad reject actually protects the link; it is the user's flag and
-	// nothing here forces it.
+	// StopAfterMatch usually wants to be on here, so a narrow accept placed
+	// above a broad reject protects the link; nothing forces it.
 	LinkFilter rules.Set `json:"linkFilter"`
 
 	// MirrorPolicy is when two different URLs count as the same file.
 	MirrorPolicy string `json:"mirrorPolicy"`
 	// KeepMirrors keeps the second copy instead of dropping it: the link is
 	// staged as a sibling of the download it mirrors, parked, and labelled with
-	// the task it is a copy of.
-	//
-	// Off by default. What it buys is that the alternative link survives - a
-	// dropped mirror lives on only in an in-memory trace that the next restart
-	// clears - and the price of it being on is a parked row per mirror in a list
-	// people already complain is long. On is a choice; off is what the list looks
-	// like now. On its own it still starts nothing: the sibling sits on hold
-	// until somebody lifts it, or until MirrorFailover below does.
+	// the task it is a copy of. Off by default, because it costs a parked row
+	// per mirror in a list people already find long; what it buys is that the
+	// alternative link survives a restart, which an in-memory trace does not.
+	// On its own it starts nothing.
 	KeepMirrors bool `json:"keepMirrors"`
-	// MirrorFailover releases that parked sibling when the download it is a copy
-	// of has finished failing, and hands it the dead task's folder, package and
-	// priority. See app.handOverToMirrorLocked for when "finished failing" is,
-	// where the chain of copies ends, and why the failed row stays on the list.
+	// MirrorFailover releases that parked sibling once the download it is a
+	// copy of has finished failing, and hands it the dead task's folder,
+	// package and priority. See app.handOverToMirrorLocked for when "finished
+	// failing" is and where the chain of copies ends.
 	//
-	// Off by default, and it is a SEPARATE switch from KeepMirrors rather than
-	// part of it because the two are not the same size of decision. Keeping a
-	// mirror costs a row in a list. Switching to one starts a transfer from a
-	// hoster the user did not pick - at whatever speed that hoster gives them,
-	// possibly from an account they do not have, possibly a re-encode rather than
-	// the release they were after - and nothing in this build can ask them first.
-	// That stays a decision, and a decision is made by the person, not by the
-	// queue at three in the morning.
+	// Off by default, and a switch of its own rather than part of KeepMirrors:
+	// keeping a mirror costs a row in a list, while switching to one starts a
+	// transfer from a hoster the user did not pick, possibly a re-encode rather
+	// than the release they were after, with nothing here able to ask first.
 	//
-	// It does nothing without KeepMirrors: with mirrors dropped there is never a
-	// parked sibling to release.
+	// It does nothing without KeepMirrors: with mirrors dropped there is never
+	// a parked sibling to release.
 	MirrorFailover bool `json:"mirrorFailover"`
 
 	// CollisionPolicy is what happens when the destination file already exists.
@@ -543,74 +415,56 @@ type Settings struct {
 	// connection, which is what an install that never opened the page has.
 	Connections []proxycfg.Entry `json:"connections,omitempty"`
 
-	// Chunks is how many connections ONE download opens, when neither the task
-	// nor a rule has named a number. It is not about the list above: Connections
-	// is which way out of the machine the bytes go, this is how many sockets one
-	// file is pulled over.
-	//
-	// Zero is "no opinion", exactly as on the task and for the same reason - the
-	// dispatcher owns the fallback, and a copy of that number here is a second
-	// one to forget when the first is changed.
+	// Chunks is how many connections one download opens when neither the task
+	// nor a rule has named a number. It is not about the list above:
+	// Connections is which way out of the machine the bytes go, this is how
+	// many sockets one file is pulled over. Zero is "no opinion", as on the
+	// task, and the dispatcher owns the fallback.
 	Chunks int `json:"chunks"`
 
-	// HostRules is what one host is allowed to differ in: its own
-	// simultaneous-download ceiling, its own chunk count, its own retry
-	// backoff. Keyed by host pattern - see HostRuleFor for what matches.
+	// HostRules is what one host may differ in: its own simultaneous-download
+	// ceiling, its own chunk count, its own retry backoff. Keyed by host
+	// pattern, see HostRuleFor for what matches.
 	//
-	// It exists because MaxPerHost and Chunks are each ONE number for every
-	// hoster on the internet, and hosters do not agree: one tolerates eight
-	// connections, the next blocks from two. Tuning the global pair for the
-	// strictest host throttles every other download on the box.
-	//
-	// A host with no entry gets the global values, which is what makes an
-	// empty table a no-op: nobody's queue changes because they installed an
-	// update. Empty rather than nil on a fresh install for the reason
-	// YtdlpPresets is - see its own comment.
+	// MaxPerHost and Chunks are each one number for every hoster on the
+	// internet, and hosters do not agree: one tolerates eight connections, the
+	// next blocks from two, so tuning the global pair for the strictest host
+	// throttles every other download on the box. A host with no entry gets the
+	// global values, which makes an empty table a no-op.
 	HostRules map[string]HostRule `json:"hostRules"`
 
 	// Categories are the named drawers a link can be filed in, each carrying a
 	// folder, a priority, an unpacking switch, a speed limit and a collision
 	// rule. Referred to by Task.Category, offered when links are thrown in,
 	// filterable as a facet, settable by a Packagizer rule. See
-	// settings_categories.go for the whole shape and, in particular, for the
-	// three questions the feature IS: which of three folders wins, what a
-	// change or a delete does to downloads already filed, and why the field
-	// hangs off the task rather than off the package.
+	// settings_categories.go for which of three folders wins, what a change or
+	// a delete does to downloads already filed, and why the field hangs off the
+	// task rather than off the package.
 	//
-	// A SLICE and not a map keyed by ID, which is the one place this differs
-	// from HostRules just above. A host rule is looked up and never listed; a
-	// category is a MENU, and Go's map iteration would reshuffle that menu on
-	// every process start - a rendering fault as far as anybody reading it is
-	// concerned. The order here is the order it is offered in, and it is the
-	// user's to arrange.
+	// A slice and not a map keyed by id, which is where this differs from
+	// HostRules above: a host rule is looked up and never listed, a category is
+	// a menu, and Go's map iteration would reshuffle that menu on every process
+	// start. The order here is the order it is offered in.
 	//
-	// Empty - the default - is the whole feature switched off: nothing is
-	// filed anywhere, every task takes the global answers, and an install
-	// that never opens the page behaves exactly as it did before this key
-	// existed. No omitempty, for the reason CaptchaSolverOrder gives: a nil
-	// slice with omitempty is dropped from the JSON entirely and the frontend
-	// has no way to type a field that is sometimes simply absent.
+	// Empty, the default, is the feature switched off: nothing is filed
+	// anywhere and every task takes the global answers. No omitempty, see
+	// CrawlInclude.
 	Categories []Category `json:"categories"`
 
 	// MediaHooks are the stored addresses a category drawer calls once a
-	// package filed in it has finished AND its files have been moved into
-	// place - a media library told to rescan, in practice. See
+	// package filed in it has finished and its files have been moved into
+	// place, a media library told to rescan in practice. See
 	// settings_mediahooks.go for the shape and Category.Notify for the
 	// reference into this table.
 	//
-	// The one header VALUE such an address may carry is deliberately NOT a
-	// field on the row: this struct is what routes_diagnostics.go serialises
-	// into the bundle people attach to public bug reports, and what
-	// routes_features.go reflects over to build the Advanced key table's
-	// editable rows. The value is sealed in accounts.Store instead - see
-	// internal/mediahook's package comment.
+	// The one header value such an address may carry is not a field on the row:
+	// this struct is what routes_diagnostics.go serialises into the bundle
+	// people attach to public bug reports, and what routes_features.go reflects
+	// over for the Advanced key table. The value is sealed in accounts.Store
+	// instead, see internal/mediahook's package comment.
 	//
-	// Empty - the default - is the whole feature switched off: nothing is
-	// called, and an install that never opens the page behaves exactly as it
-	// did before this key existed. No omitempty, for the reason Categories
-	// just above gives: a nil slice with omitempty is dropped from the JSON
-	// entirely and the frontend has no way to type a field that is sometimes
-	// simply absent.
+	// Empty, the default, is the feature switched off. No omitempty, see
+	// CrawlInclude.
 	MediaHooks []mediahook.Hook `json:"mediaHooks"`
 
 	// Reconnect gets the box a new public address when a hoster's free-user limit
@@ -619,219 +473,166 @@ type Settings struct {
 	Reconnect reconnect.Config `json:"reconnect"`
 
 	// Schedule is the timetable that pauses or throttles the queue by the clock.
-	// An empty timetable changes nothing, which is what a fresh install wants.
-	//
-	// It stays a field of this struct rather than a file of its own beside
-	// settings.json - see the doc comment on PUT /api/schedule in
-	// routes_schedule.go for why that is a considered choice and not an
-	// oversight, and setFeature's "scheduler" case in routes_features.go for
-	// the read-current/write-one-field shape every writer of this field, this
-	// route included, is expected to use.
+	// An empty timetable changes nothing. It stays a field of this struct
+	// rather than a file of its own beside settings.json; see the doc comment
+	// on PUT /api/schedule in routes_schedule.go, and setFeature's "scheduler"
+	// case in routes_features.go for the read-current/write-one-field shape
+	// every writer of this field is expected to use.
 	Schedule []schedule.Entry `json:"schedule,omitempty"`
 
 	// IdleAction is what happens once the wait queue has nothing enabled left
-	// to run, start or finish, after a cancellable countdown - see
-	// internal/idleaction. Embedded here rather than in a file of its own for
-	// the same reason Schedule just above is: one small struct, one settings
-	// page, no secret in it anywhere. The zero value is Action=ActionNone, so
-	// a fresh install - and an upgrade that has never seen this key - has
-	// nothing armed.
+	// to run, start or finish, after a cancellable countdown. See
+	// internal/idleaction. The zero value is Action=ActionNone, so a fresh
+	// install and an upgrade that has never seen this key have nothing armed.
 	IdleAction idleaction.Config `json:"idleAction"`
 
 	// ResumeOnStart is what happens to the downloads that were in flight when
 	// the process last stopped: never, only what was running, or everything
 	// unfinished. See the constants for what each one costs.
 	ResumeOnStart string `json:"resumeOnStart"`
-	// ReclaimTrust is how much the "already on the disk" pass is allowed to
-	// believe about a file it did not watch arrive: only a verified checksum,
-	// or also this instance's own record of what it finished, or also bare
-	// name plus length. See internal/reclaim's own Trust doc comment for what
-	// each tier costs, and in particular for why size on its own is not the
-	// default on a build whose download library creates the destination file
-	// at its full final length before the first byte arrives.
+	// ReclaimTrust is how much the "already on the disk" pass may believe about
+	// a file it did not watch arrive: only a verified checksum, or also this
+	// instance's own record of what it finished, or also bare name plus length.
+	// See internal/reclaim's Trust doc comment for what each tier costs, and
+	// for why size on its own is not the default on a build whose download
+	// library creates the destination file at its full final length before the
+	// first byte arrives.
 	//
-	// It is a policy and NOT a switch: there is deliberately no "run this at
-	// boot" field beside it. The pass stats every unfinished task's folder and,
-	// wherever a checksum exists, reads a file that may be tens of gigabytes.
-	// On ten thousand tasks that is a disk run in front of a queue that does
-	// not exist yet, handed to somebody who installed an update rather than
-	// asked a question. Moving a box or restoring a backup is a one-off event
-	// and deserves a one-off press, not a scan on every boot for ever after;
-	// see App.Reclaim.
+	// A policy and not a switch: there is no "run this at boot" field beside
+	// it. The pass stats every unfinished task's folder and, wherever a
+	// checksum exists, reads a file that may be tens of gigabytes. Moving a box
+	// or restoring a backup is a one-off event and gets a one-off press, see
+	// App.Reclaim.
 	ReclaimTrust string `json:"reclaimTrust"`
 
-	// KeepFinishedDays is how long a finished download stays in the LIST. Zero
-	// keeps it forever.
-	//
-	// It never touches the file. Removing a row and deleting what was downloaded
-	// are two different actions in this app and always have been - conflating
-	// them is the bug that cost somebody their downloads on the ordinary "clear
-	// finished" path, and this is the same path running on a timer. What was
-	// fetched is kept in the history table, which retention does not read.
+	// KeepFinishedDays is how long a finished download stays in the list. Zero
+	// keeps it forever. It never touches the file: removing a row and deleting
+	// what was downloaded are two different actions here, and what was fetched
+	// stays in the history table, which retention does not read.
 	KeepFinishedDays int `json:"keepFinishedDays"`
 	// HistoryMax caps the download history. Zero keeps every entry, which is a
 	// table that only grows on an instance that is never restarted.
 	HistoryMax int `json:"historyMax"`
 
 	// MaintenanceIntervalDays is how often the database looks after itself
-	// without being asked. Zero - the shipped value, and the value every
-	// existing install already has - means only when somebody presses the
-	// button on the diagnostics page.
+	// without being asked. Zero, the shipped value, means only when somebody
+	// presses the button on the diagnostics page.
 	//
-	// ZERO IS THE DEFAULT BECAUSE AN UPDATE MUST NOT START DOING SOMETHING.
-	// The work behind this holds every write in the process for as long as it
-	// runs (see internal/store/maintenance.go), and a version that quietly
-	// began doing that at four in the morning because somebody installed it
-	// would be a behaviour change nobody agreed to. Switching it on also does
-	// not run anything now: the first run is a whole interval away, and the
-	// button is right there for "now".
+	// Zero is the default because the work behind this holds every write in the
+	// process for as long as it runs (internal/store/maintenance.go), and an
+	// update should not start doing that at four in the morning. Switching it
+	// on runs nothing immediately either: the first run is a whole interval
+	// away, and the button is there for now.
 	MaintenanceIntervalDays int `json:"maintenanceIntervalDays"`
 	// MaintenanceCompactOnSchedule decides whether the scheduled run also
-	// rewrites the file, or only reads it and reports.
-	//
-	// False, because compacting needs room for a full second copy of the
-	// database on the TEMPORARY volume, which on a container is not the data
-	// volume and is often not large. A read-only scheduled run can never fill
-	// a disk; this can, so it is a thing somebody switches on knowing their
-	// own box. The manual Compact button ignores this entirely - a person who
-	// presses it has decided.
+	// rewrites the file, or only reads it and reports. False, because
+	// compacting needs room for a full second copy of the database on the
+	// temporary volume, which on a container is not the data volume and is
+	// often not large. The manual Compact button ignores this field.
 	MaintenanceCompactOnSchedule bool `json:"maintenanceCompactOnSchedule"`
 
 	// LogFile is the optional copy of this process's own log output on disk:
 	// whether it is written at all, how big one file may get, and how many
-	// renamed ones stay beside it. Off on every install that upgrades into
-	// this key - Load unmarshals over Defaults, so a document written before
-	// it existed reads as "off" and the instance behaves exactly as it did.
-	// See settings_logfile.go for why there is deliberately no path field.
+	// renamed ones stay beside it. Off on every install that upgrades into this
+	// key, since Load unmarshals over Defaults. See settings_logfile.go for why
+	// there is no path field.
 	LogFile LogFile `json:"logFile"`
 
 	// CaptchaSolverOrder is which automatic captcha-solving services
-	// (internal/accounts.Catalogue ids "2captcha"/"anticaptcha") to try, and
-	// in what order, before a captcha is ever shown to a human. Membership
-	// AND order live in the one list - an id absent from it is not tried at
-	// all, exactly the same "presence in an ordered list is the switch" rule
-	// the accounts page's own resolver-priority order already uses - rather
-	// than a separate bool per service that could disagree with where the
-	// service sits in the order. Empty means what a fresh install has:
-	// nothing configured, straight to the prompt modal, whether or not a key
-	// happens to be stored - an id here with no matching credential is
-	// simply skipped when tried (see sanitizeCaptcha for why an id here
-	// never implies a stored key, and never the reverse). This is the
-	// NON-secret half; the API key itself is a credential
-	// (internal/accounts), never a settings field - see
-	// internal/accounts/catalogue.go's GroupCaptchaSolver.
+	// (internal/accounts.Catalogue ids "2captcha"/"anticaptcha") to try, and in
+	// what order, before a captcha is shown to a human. Membership and order
+	// live in the one list, the way the accounts page's resolver priority does:
+	// an id absent from it is not tried, rather than a separate bool per
+	// service that could disagree with where the service sits in the order.
+	// Empty is what a fresh install has, straight to the prompt modal.
 	//
-	// No omitempty, deliberately, matching RainbowPalette just above rather
-	// than ArchivePasswords further up: a nil slice with omitempty is
-	// DROPPED from the JSON entirely, and web/src/lib/api.ts's Settings
-	// type has no way to type a field that is sometimes simply absent. A
-	// nil slice with no omitempty encodes as JSON null instead, so the
-	// field is always present and the frontend types it `string[] | null`,
-	// the same pairing RainbowPalette already uses.
+	// An id here with no matching credential is skipped when tried, and neither
+	// half implies the other, see sanitizeCaptcha. This is the non-secret half:
+	// the API key is a credential (internal/accounts), never a settings field.
+	//
+	// No omitempty, see CrawlInclude. The frontend types it `string[] | null`.
 	CaptchaSolverOrder []string `json:"captchaSolverOrder"`
 
-	// ResolverOrder is the hand-arranged order the download services are
-	// asked in, most-preferred first, by resolver id ("torbox",
-	// "alldebrid", "jd", "ytdlp", "direct", ...). Empty - the default -
-	// means the automatic order, which is what every install has until
-	// somebody drags the Prioritätsreihenfolge card into a different one
-	// (jdp, 2026-09-07).
+	// ResolverOrder is the hand-arranged order the download services are asked
+	// in, most-preferred first, by resolver id ("torbox", "alldebrid", "jd",
+	// "ytdlp", "direct", ...). Empty, the default, means the automatic order.
 	//
-	// An entry names a SERVICE and moves every account configured for it: a
+	// An entry names a service and moves every account configured for it: a
 	// service with two stored keys is two entries in the routing table
-	// (resolver.SlotID) and one row on that card, and dispatch matches this
-	// list against the service half of a resolver id - see app.dynamicPrio.
-	// A full slot id ("alldebrid#work") written in here is honoured as
-	// written, which is somebody being deliberately more specific.
+	// (resolver.SlotID) and one row on the card, and dispatch matches this list
+	// against the service half of a resolver id, see app.dynamicPrio. A full
+	// slot id ("alldebrid#work") written in here is honoured as written.
 	//
-	// Unlike CaptchaSolverOrder above there is no id whitelist here, and
-	// deliberately so: the set of resolvers is not fixed at compile time
-	// the way the two captcha solvers are - it grows with every debrid
-	// service in the catalogue, and a service is only registered at all
-	// once a key for it is stored. A whitelist in this package would
-	// therefore have to be either a second copy of the catalogue or a
-	// dependency on the resolver registry, and both would turn "you
-	// removed the key for a service you had ordered" into a silent
-	// rewrite of the order you arranged. An id naming nothing is inert:
-	// dispatch only ever ranks resolvers that exist.
+	// Unlike CaptchaSolverOrder there is no id whitelist. The set of resolvers
+	// is not fixed at compile time: it grows with every debrid service in the
+	// catalogue, and a service is registered only once a key for it is stored.
+	// A whitelist here would be a second copy of the catalogue or a dependency
+	// on the resolver registry, and would turn "you removed the key for a
+	// service you had ordered" into a silent rewrite of that order. An id
+	// naming nothing is inert, since dispatch only ranks resolvers that exist.
 	//
-	// No omitempty for the same reason CaptchaSolverOrder has none - see
-	// its comment: the frontend needs the field to be present as null
-	// rather than absent.
+	// No omitempty, see CrawlInclude.
 	ResolverOrder []string `json:"resolverOrder"`
 
-	// Ytdlp is the yt-dlp backend's own configuration - format/quality
-	// selection, subtitles and their language, the output filename
-	// template, whether a playlist URL fetches one video or the whole list,
-	// and (all off by default) the library-facing extras: metadata, cover
-	// art, chapters and subtitles embedded into the container, a Kodi NFO
-	// beside it, music tagging for the audio row, an ffprobe pass over the
-	// finished file and the caps on a livestream recording. See
-	// internal/resolver/ytdlp's own doc comment on Options for why every
-	// field's zero value reproduces this backend's behaviour from before
-	// any of them existed - an install that never opens the settings page
-	// this backs downloads exactly as it always has.
+	// Ytdlp is the yt-dlp backend's own configuration: format and quality
+	// selection, subtitles and their language, the output filename template,
+	// whether a playlist URL fetches one video or the whole list, and the
+	// library-facing extras, all off by default (metadata, cover art, chapters
+	// and subtitles embedded into the container, a Kodi NFO beside it, music
+	// tagging for the audio row, an ffprobe pass over the finished file, the
+	// caps on a livestream recording). See the doc comment on
+	// internal/resolver/ytdlp.Options for why every field's zero value
+	// reproduces the backend's behaviour from before any of them existed.
 	//
-	// Note what is NOT here: the per-site cookies.txt that answers "Sign in
-	// to confirm you are not a bot". A jar is a live session, and this
-	// struct is marshalled into settings.json, returned by GET
-	// /api/settings and serialised whole into the diagnostics bundle
-	// somebody attaches to a public bug report - so it lives in the
-	// encrypted credential store instead, under
-	// ytdlp.CookieService, exactly as native hoster logins do
-	// (internal/hosterauth). The only field here is the switch that says
-	// whether a stored jar may be used at all.
+	// The per-site cookies.txt that answers "Sign in to confirm you are not a
+	// bot" is not here. A jar is a live session, and this struct is marshalled
+	// into settings.json, returned by GET /api/settings and serialised whole
+	// into the diagnostics bundle people attach to public bug reports, so the
+	// jar lives in the encrypted credential store under ytdlp.CookieService the
+	// way native hoster logins do (internal/hosterauth). The only field here is
+	// the switch that says whether a stored jar may be used.
 	Ytdlp ytdlp.Options `json:"ytdlp"`
 
-	// YtdlpPresets is per-host (e.g. "youtube.com") config for the
-	// "Variante" rows a yt-dlp link now stages (see ytdlp.HosterPreset's
-	// own doc comment): which of video/audio/thumbnail/subtitle/
-	// description land in the collector by default for links from that
-	// host, and the default quality/audio-format for the two variants that
-	// have one. A host with no entry here gets ytdlp.DefaultHosterPreset()
-	// - map, not omitempty, matching CaptchaSolverOrder's own reasoning
-	// just above for why a field a caller has never touched should not
-	// vanish from the JSON rather than round-trip as an empty object.
+	// YtdlpPresets is per-host (say "youtube.com") config for the "Variante"
+	// rows a yt-dlp link stages, see ytdlp.HosterPreset: which of video, audio,
+	// thumbnail, subtitle and description land in the collector by default for
+	// links from that host, and the default quality and audio format for the
+	// two variants that have one. A host with no entry gets
+	// ytdlp.DefaultHosterPreset(). Map and no omitempty, see CrawlInclude.
 	YtdlpPresets map[string]ytdlp.HosterPreset `json:"ytdlpPresets"`
 
-	// Torrent is the seed/port/DHT/PEX policy for the BitTorrent backend -
-	// see settings_torrent.go for the full shape and, especially, for what
-	// of it is and is not actually enforced by the gopeed dependency this
-	// build embeds today.
+	// Torrent is the seed, port, DHT and PEX policy for the BitTorrent backend.
+	// See settings_torrent.go for the full shape and for what of it the gopeed
+	// dependency this build embeds actually enforces.
 	Torrent Torrent `json:"torrent"`
 
 	// InstanceID, InstanceName and KnownDomains are this instance's own
-	// identity - see settings_identity.go for the sanitize hook and all
-	// three fields' own doc comments.
+	// identity. See settings_identity.go for the sanitize hook and the three
+	// fields' own doc comments.
 	InstanceID   string   `json:"instanceId"`
 	InstanceName string   `json:"instanceName"`
 	KnownDomains []string `json:"knownDomains"`
 
-	// RelayURL is the self-hosted relay this instance dials out to so that
-	// it can be reached by siblings on other networks - see
-	// settings_relay.go for the field's own doc comment, and especially for
-	// why the relay key that goes with it is a credential in
+	// RelayURL is the self-hosted relay this instance dials out to so that it
+	// can be reached by siblings on other networks. See settings_relay.go, and
+	// for why the relay key that goes with it is a credential in
 	// internal/accounts rather than a second field here.
 	RelayURL string `json:"relayUrl"`
 
 	// RelayServe makes this instance run the relay itself, on its own address
-	// under /relay/connect, for instances carrying the same relay key - see
+	// under /relay/connect, for instances carrying the same relay key. See
 	// settings_relay.go for what that does and does not buy.
 	RelayServe bool `json:"relayServe"`
 
-	// RelayMode is WHICH relay this instance uses, and it exists because
-	// "none at all" was not previously expressible.
+	// RelayMode is which relay this instance uses: RelayModeProject,
+	// RelayModeOwn or RelayModeOff.
 	//
-	// Before this, the answer was inferred from RelayURL: empty meant the
-	// project's relay, set meant your own. That inference has no room for the
-	// third answer, and the third answer is a real one - somebody whose
-	// instances all sit on the same network needs no relay and should not be
-	// dialling one (jdp, 2026-09-04, choosing it deliberately over the two
-	// alternatives: "Kein Relay, Instanzen finden sich nur im LAN").
-	//
-	// RelayModeProject, RelayModeOwn or RelayModeOff. An EMPTY value is not a
-	// fourth state: it is an install from before this field existed, and
-	// RelayModeOf below reads it exactly the way that install behaved.
+	// The answer used to be inferred from RelayURL, empty meaning the project's
+	// relay and set meaning your own, which left no room for the third one:
+	// instances that all sit on the same network need no relay and should not
+	// be dialling one. An empty value is not a fourth state but an install from
+	// before the field existed, and RelayModeOf below reads it the way that
+	// install behaved.
 	RelayMode string `json:"relayMode"`
 }
 
@@ -848,14 +649,13 @@ const (
 	RelayModeOff = "off"
 )
 
-// RelayModeOf answers which relay these settings mean, including for the
-// installs that predate the field.
+// RelayModeOf answers which relay these settings mean, including for installs
+// that predate the field.
 //
-// The migration is a read rather than a write, deliberately: nothing rewrites
-// settings.json on upgrade, so an install that never touches this page keeps
-// behaving exactly as it did, and downgrading to an older build leaves it
-// working too. The old inference was "RelayURL set means your own", and that
-// is what an empty RelayMode still means here.
+// The migration is a read rather than a write: nothing rewrites settings.json
+// on upgrade, so an install that never touches the page keeps behaving as it
+// did and downgrading to an older build still works. The old inference was
+// "RelayURL set means your own", which is what an empty RelayMode means here.
 func (s Settings) RelayModeOf() string {
 	switch s.RelayMode {
 	case RelayModeProject, RelayModeOwn, RelayModeOff:
@@ -876,106 +676,68 @@ func Defaults() Settings {
 		Extract:       true,
 		MaxRetries:    3,
 		Crawl:         true,
-		// One page deep and staying on the host it was pasted from: today's
-		// behaviour, spelled out. See CrawlDepth and CrawlSameHost on the
-		// struct for why those two defaults are not the same shape.
+		// One page deep and staying on the host it was pasted from.
 		CrawlDepth:       1,
 		CrawlMaxPages:    crawler.DefaultMaxPages,
 		CrawlSameHost:    true,
 		VerifyChecksums:  true,
 		PreParserEnabled: true,
-		// AutoConfirm and AddAtTop are usable at their zero value (false):
-		// nothing is auto-confirmed and nothing is reordered, which is what
-		// every install had before either existed. AutoStart is the one of
-		// the three that is NOT its zero value - see its own doc comment on
-		// the struct for why "confirmed implies started" has to stay the
-		// default rather than silently becoming a fourth thing every
-		// existing install's links now do differently.
+		// AutoConfirm and AddAtTop are usable at their zero value: nothing is
+		// auto-confirmed and nothing is reordered. AutoStart is the one of the
+		// three that is not, so that confirming a link still starts it.
 		AutoStart: true,
-		// Never ExcludeAndRemove - see confirm.DefaultPolicy's own comment.
+		// Never ExcludeAndRemove, see confirm.DefaultPolicy.
 		OnDupes:   string(confirm.DefaultPolicy),
 		OnOffline: string(confirm.DefaultPolicy),
 		Shape:     ShapeRound,
 		NavLabels: NavLabelsBoth,
-		// The three archive defaults all say "change nothing you did not ask
-		// for": keep the archive, unpack beside it, and write into the folder
-		// that is already there rather than starting a second one. The
-		// retention is only consulted once somebody switches disposal to trash.
+		// Keep the archive, unpack beside it, and write into the folder that is
+		// already there. The retention is only consulted once somebody switches
+		// disposal to trash.
 		ArchiveDisposal:    string(extract.DefaultDisposal),
 		ExtractCollision:   string(extract.DefaultCollision),
 		TrashRetentionDays: extract.DefaultTrashDays,
-		// Only three of the new fields have a default worth writing down. The rest
-		// are usable at their zero value: no rules, no connections and no timetable
-		// all mean "behave exactly as before", which is what a fresh install wants.
-		MirrorPolicy:    string(dedupe.DefaultPolicy),
-		CollisionPolicy: string(collide.DefaultPolicy),
-		Reconnect:       reconnect.Defaults(),
-		IdleAction:      idleaction.Defaults(),
-		// The zero value already - see Options's own doc comment - written
-		// out anyway so every sub-package's Defaults() is called from
-		// exactly one place, matching its three neighbours above.
+		MirrorPolicy:       string(dedupe.DefaultPolicy),
+		CollisionPolicy:    string(collide.DefaultPolicy),
+		Reconnect:          reconnect.Defaults(),
+		IdleAction:         idleaction.Defaults(),
+		// The zero value already, written out so every sub-package's Defaults()
+		// is called from one place.
 		Ytdlp: ytdlp.Defaults(),
-		// Empty, not nil - see this field's own doc comment on YtdlpPresets
-		// for why a host with nothing saved here still gets
-		// ytdlp.DefaultHosterPreset() rather than no variants at all; that
-		// fallback is applied by whoever looks a host up, not baked into
-		// every fresh install's own JSON.
+		// Empty rather than nil: a host with nothing saved gets
+		// ytdlp.DefaultHosterPreset() from whoever looks it up, not from a copy
+		// baked into every fresh install's JSON.
 		YtdlpPresets: map[string]ytdlp.HosterPreset{},
-		// Both empty, and both are load-bearing zeroes rather than settings
-		// left unfinished: an empty host table means every host keeps the
-		// global numbers, and an empty reason table means every failure keeps
-		// the one backoff. See HostRules and Retry on the struct.
+		// Both empty tables are load-bearing: an empty host table means every
+		// host keeps the global numbers, an empty reason table means every
+		// failure keeps the one backoff.
 		HostRules: map[string]HostRule{},
 		Retry:     RetryPolicy{ByReason: map[string]RetryRule{}},
-		// Unlike Ytdlp's, these are not the zero value - see defaultTorrent's
-		// own doc comment for where each number actually comes from.
-		Torrent: defaultTorrent(),
-		// The list is trimmed after a month and the history is not: the two
-		// together are the only combination in which "do not let the list grow
-		// forever" costs nobody the record of what they downloaded.
+		Torrent:   defaultTorrent(),
+		// The list is trimmed after a month and the history is not, so keeping
+		// the list from growing forever costs nobody the record of what they
+		// downloaded.
 		ResumeOnStart:    ResumeNever,
 		KeepFinishedDays: DefaultKeepFinishedDays,
 		HistoryMax:       DefaultHistoryMax,
-		// Both written out at their zero value on purpose, the way
-		// VolumeCapResetDay below is: the advanced table serves Defaults()
-		// unsanitised, so a factory reading of "0 / off" that appears only
-		// because nobody typed anything is indistinguishable from a field
-		// somebody forgot. Written down, it is a decision on the page. See
-		// their own comments on the struct for why the decision is off.
+		// The next five are written out at values that are partly their zero
+		// value because the Advanced key table serves Defaults() unsanitised: a
+		// factory reading of "0 / off" that appears only because nobody typed
+		// anything is indistinguishable from a field somebody forgot.
 		MaintenanceIntervalDays:      DefaultMaintenanceIntervalDays,
 		MaintenanceCompactOnSchedule: false,
-		// Off, with the two numbers written out rather than left at zero, for
-		// the same reason ReclaimTrust below is written out: the Advanced key
-		// table serves Defaults() UNSANITISED, so "0 MB, keep 0" shown as the
-		// factory setting would be a value the app never actually uses.
-		LogFile: DefaultLogFile(),
-		// Written out rather than left at the zero value so a fresh
-		// settings.json says which tier it is on, the same way the three
-		// archive defaults above are written out even where one of them
-		// matches the zero value. sanitizeReclaim reads an empty string as
-		// this anyway, which is what keeps an install from before this key
-		// existed behaving identically to a fresh one.
-		ReclaimTrust: string(reclaim.DefaultTrust),
-		// Quiet mode ships with a slot count and no speed. The speed cannot be
-		// guessed: the box has no idea how fast the line is, and any number
-		// invented here would be either no limit at all on a gigabit connection
-		// or a stall on a slow one. The slot count can be, and has to be - a
-		// button labelled "quiet mode" that does nothing at all on its first
-		// press is how people learn a feature is broken, and every install that
-		// upgrades into this key gets whatever stands here (Load unmarshals over
-		// Defaults, so a missing key keeps this value rather than the zero).
+		LogFile:                      DefaultLogFile(),
+		ReclaimTrust:                 string(reclaim.DefaultTrust),
+		// Quiet mode ships with a slot count and no speed. The box has no idea
+		// how fast the line is, so an invented number would be no limit at all
+		// on a gigabit connection or a stall on a slow one. The slot count has
+		// to be there, or the first press of the button does nothing.
 		Quiet: QuietLimits{MaxConcurrent: 1},
-		// One of the volume's three numbers is on by default and two are
-		// not - see DefaultDiskReserve for why that split is the whole of
-		// the shipping decision, and the two threshold fields on the struct
-		// for what each one does.
+		// One of the volume's three numbers is on by default, see
+		// DefaultDiskReserve.
 		DiskReserve: DefaultDiskReserve,
-		// The allowance ships switched off, with only the two answers that mean
-		// nothing on their own written out. A cap of 0 is what makes it off, so
-		// neither of these does anything until somebody types a number; they are
-		// here because the advanced table serves Defaults() unsanitised, and a
-		// reset day of 0 shown as the factory setting would be a value the app
-		// never actually uses.
+		// The allowance ships switched off: a cap of 0 is what makes it off, so
+		// neither of these does anything until somebody types a number.
 		VolumeCapResetDay: DefaultVolumeCapResetDay,
 		VolumeCapAction:   VolumeCapReport,
 	}
@@ -1005,26 +767,16 @@ func Load(dir string) (*Store, error) {
 
 // Path is the settings file this store reads and writes, verbatim.
 //
-// It exists so that the one page that reports how big settings.json has grown
-// does not have to spell "settings.json" a third time (Load above and
-// internal/backup/backup.go's settingsEntry already have one each), and so that
-// nothing outside this package has to know that the name is a constant here at
-// all. The file may well not exist: Load reads it and never writes it, so a
-// fresh install runs entirely on the built-in defaults until somebody saves a
-// settings page. A caller measuring it has to treat "not there" as an answer
-// rather than as an error - see StorageInfo.SettingsPresent.
+// The file may well not exist: Load reads it and never writes it, so a fresh
+// install runs on the built-in defaults until somebody saves a settings page. A
+// caller measuring it has to treat "not there" as an answer rather than as an
+// error, see StorageInfo.SettingsPresent.
 func (s *Store) Path() string { return s.path }
 
 // migrate maps keys an older build wrote onto the ones this build reads,
-// running each independent sub-migration against the same raw bytes in
-// turn - the same "each hook owns its own fields, and none of them has to
-// know about the others" shape sanitize below uses, and for the same
-// reason: a change that widens one key must not risk the early return
-// inside a DIFFERENT key's migration, which is exactly the bug the first
-// draft of this split had (migrateAutoStart called only from inside the
-// tail of the archive-disposal branch, so it silently never ran for any
-// document that had already dropped the ancient deleteArchive key - which
-// is to say, for every real install by now).
+// running each sub-migration against the same raw bytes in turn. They are
+// independent for the reason sanitize's hooks are: a change that widens one key
+// must not depend on an early return inside another key's migration.
 func migrate(raw []byte, n Settings) Settings {
 	n = migrateArchiveDisposal(raw, n)
 	n = migrateAutoStart(raw, n)
@@ -1034,24 +786,21 @@ func migrate(raw []byte, n Settings) Settings {
 // migrateArchiveDisposal maps the boolean deleteArchive onto the
 // ArchiveDisposal it became. It runs on the raw bytes, once, at load.
 //
-// The raw bytes are the point. A key that changed TYPE cannot be migrated
-// through the struct: leaving the old field on it to read the old value means
-// carrying a field the interface then round-trips, so the first save from a
-// client that still knows the old name writes it straight back and the two
-// disagree forever. Reading it out of the file instead means the old spelling
-// is seen exactly once and the next save writes only the new one.
+// A key that changed type cannot be migrated through the struct: leaving the
+// old field on it means carrying a field the interface then round-trips, so the
+// first save from a client that still knows the old name writes it straight
+// back and the two disagree forever. Read from the file instead, the old
+// spelling is seen once and the next save writes only the new one.
 //
-// Silence on a parse failure is deliberate: the document already unmarshalled
-// into Settings, so a shape this cannot read is a key that has been given some
-// third type by hand, and the defaults are a better answer than a guess.
+// A parse failure is silent: the document already unmarshalled into Settings,
+// so a shape this cannot read is a key given some third type by hand, and the
+// defaults beat a guess.
 func migrateArchiveDisposal(raw []byte, n Settings) Settings {
 	var old struct {
-		// deleteArchive: the boolean that became ArchiveDisposal.
 		DeleteArchive *bool `json:"deleteArchive"`
-		// Read as well, because the new key present in the file is what says
-		// this install has already been migrated. Without it a client that
-		// keeps sending the old boolean would undo the user's choice on every
-		// load.
+		// The new key being present is what says this install has already been
+		// migrated. Without reading it, a client that keeps sending the old
+		// boolean would undo the user's choice on every load.
 		ArchiveDisposal *string `json:"archiveDisposal"`
 	}
 	if err := json.Unmarshal(raw, &old); err != nil {
@@ -1063,10 +812,9 @@ func migrateArchiveDisposal(raw []byte, n Settings) Settings {
 	if old.ArchiveDisposal != nil && strings.TrimSpace(*old.ArchiveDisposal) != "" {
 		return n
 	}
-	// Only the true half maps onto a new value. False meant "keep", which is
-	// also the default, so mapping it is the same as leaving it alone - but it
-	// is written out rather than inferred, because an install that deliberately
-	// chose "do not delete" should read that way in the file.
+	// False meant "keep", which is also the default, so it is written out
+	// rather than inferred: an install that chose "do not delete" should read
+	// that way in the file.
 	n.ArchiveDisposal = string(extract.DisposalKeep)
 	if *old.DeleteArchive {
 		n.ArchiveDisposal = string(extract.DisposalDelete)
@@ -1088,29 +836,21 @@ func (s *Store) Set(n Settings) (Settings, error) {
 	return s.setLocked(n)
 }
 
-// SetPartial applies patch on top of whatever is CURRENTLY stored and
-// persists the result, exactly like Set, except the fields patch does not
-// name are read from that current copy under the same lock that then writes
-// the result back, never from a copy the caller fetched earlier. Two partial
-// saves racing each other therefore compose (a speedLimit patch and a
-// concurrent, unrelated maxConcurrent patch both survive) instead of the
-// second one's read predating the first one's write and silently reverting
-// it. That is the same class of bug `PATCH /api/settings` exists to close,
-// guarded one layer further in than the HTTP handler alone could reach: see
-// Set's own comment just above for why taking a snapshot outside this lock
-// is exactly the mistake that already had to be avoided once, for
-// Reconnect's secret merge.
+// SetPartial applies patch on top of what is currently stored and persists the
+// result, exactly like Set, except that the fields patch does not name are read
+// from the stored copy under the same lock that then writes the result back,
+// never from a copy the caller fetched earlier. Two partial saves racing each
+// other therefore compose: a speedLimit patch and an unrelated maxConcurrent
+// patch both survive, instead of the second one's read predating the first
+// one's write and reverting it.
 //
-// patch's keys are top-level only, exactly as Settings' own JSON encoding
-// has them: a key present replaces that whole field. An object field
-// replaces the whole sub-document, not a deep per-field merge, so a partial
-// Reconnect edit still carries the whole Reconnect object, the same shape
-// the Reconnect settings page already saves today, and a key absent leaves
-// the stored field untouched. There is deliberately no dotted-path syntax
-// for reaching inside a nested field here: 2I's advanced key table
-// (routes_features.go, settings_describe.go) already owns that job and its
-// own validation pass, and duplicating a second one here is how the two
-// quietly disagree about what a clamp allows.
+// patch's keys are top-level only, as Settings' own JSON encoding has them: a
+// key present replaces that whole field, an object field replaces the whole
+// sub-document rather than merging per field, and a key absent leaves the
+// stored field untouched. There is no dotted-path syntax for reaching inside a
+// nested field: the advanced key table (routes_features.go,
+// settings_describe.go) owns that job and its own validation pass, and a second
+// one here is how the two come to disagree about what a clamp allows.
 func (s *Store) SetPartial(patch map[string]json.RawMessage) (Settings, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -1122,29 +862,27 @@ func (s *Store) SetPartial(patch map[string]json.RawMessage) (Settings, error) {
 }
 
 // setLocked is Set's body, factored out so SetPartial can build its merged
-// document from s.cur and persist it inside the one critical section that
-// also read s.cur. See SetPartial's own comment for why that is the whole
-// point. Callers hold mu.
+// document from s.cur and persist it inside the one critical section that also
+// read s.cur. Callers hold mu.
 func (s *Store) setLocked(n Settings) (Settings, error) {
-	// The secrets the client was never shown are put back first, and against the
-	// value under this very lock. Reading the previous settings through Get would
-	// deadlock (mu is a plain Mutex and Get takes it), and taking a snapshot
-	// before the lock would let two concurrent saves merge against the same stale
-	// value, so the second one writes back a router password the first had
-	// already changed.
+	// The secrets the client was never shown are put back first, against the
+	// value under this very lock. Reading the previous settings through Get
+	// would deadlock, and a snapshot taken before the lock would let two
+	// concurrent saves merge against the same stale value, so the second writes
+	// back a router password the first had already changed.
 	n.Reconnect = n.Reconnect.WithSecretsFrom(s.cur.Reconnect)
 	// Bound to the address and not only to the row id: a header value the
-	// client was shown as eight stars is put back only while the row still
+	// client was shown as eight stars comes back only while the row still
 	// points at the host it was stored for, so a client that was never allowed
-	// to read the token cannot have this server post it somewhere else. It has
-	// to run BEFORE sanitize(n) below, because Merge matches on the ids the
-	// previous Sanitize handed out.
+	// to read the token cannot have this server post it somewhere else. It runs
+	// before sanitize(n) below, because Merge matches on the ids the previous
+	// Sanitize handed out.
 	n.EventTargets = notify.Merge(n.EventTargets, s.cur.EventTargets)
 	n.Connections = proxycfg.Merge(n.Connections, s.cur.Connections)
-	// The end-of-queue command line is the third thing a client is never
-	// shown (see Settings.Redacted and idleaction.CommandSpec.Redacted), so
-	// it needs the same merge back or every save from the Downloads settings
-	// page would wipe the stored command with the placeholder it was sent.
+	// The end-of-queue command line is the third thing a client is never shown
+	// (see Settings.Redacted and idleaction.CommandSpec.Redacted), so it needs
+	// the same merge back or every save from the Downloads settings page would
+	// wipe the stored command with the placeholder it was sent.
 	n.IdleAction = n.IdleAction.WithSecretsFrom(s.cur.IdleAction)
 	n = sanitize(n)
 	b, err := json.MarshalIndent(n, "", "  ")
@@ -1162,29 +900,20 @@ func (s *Store) setLocked(n Settings) (Settings, error) {
 // and decodes the result back into a Settings, without validating, sanitizing
 // or persisting anything.
 //
-// Exported, and used two ways: SetPartial calls it inside its own lock to
-// build what it is about to write, and the PATCH /api/settings handler calls
-// it OUTSIDE any lock, against a freshly Get() copy, purely to validate the
-// would-be result the same way PUT validates its whole body before ever
-// reaching the store. settings.Validate(preview.DownloadDir) and
+// It is used two ways: SetPartial calls it inside its own lock to build what it
+// is about to write, and the PATCH /api/settings handler calls it outside any
+// lock, against a freshly Get() copy, to validate the would-be result the way
+// PUT validates its whole body. settings.Validate(preview.DownloadDir) and
 // validateRows(preview) need a real Settings to inspect, and this is the one
-// path that builds one from a patch. That preview can go stale by the
-// microseconds between the read and SetPartial's own later, authoritative
-// merge under lock; sanitize (inside setLocked) is the same safety net PUT
-// already relies on for anything validateRows does not itself cover, so a
-// value that changed out from under a stale preview is clamped, never
-// corrupted.
+// path that builds one from a patch. That preview can go stale between the read
+// and SetPartial's own merge under lock, which sanitize inside setLocked
+// catches, so a value that changed underneath is clamped rather than corrupted.
 //
 // Marshal, merge as raw JSON, unmarshal, rather than a hand-written
-// field-by-field copy, because Settings already knows how to become and
-// come back from exactly this shape, and a second, hand-maintained copy of
-// "every field this struct has" is one waves 1-11 have already shown drifts
-// (settingsKinds' own doc comment in routes_features.go makes the identical
-// argument for reflecting over the struct instead of listing it by hand, in
-// the opposite direction of the same document). An unknown key in patch is
-// silently dropped by the final Unmarshal, the same as every other decode in
-// this codebase (see decodeJSON's own doc comment), not a new inconsistency
-// introduced here.
+// field-by-field copy: Settings already knows how to become and come back from
+// this shape, and a second hand-maintained list of every field it has drifts.
+// An unknown key in patch is dropped by the final Unmarshal, as in every other
+// decode here.
 func ApplyPatch(base Settings, patch map[string]json.RawMessage) (Settings, error) {
 	baseBytes, err := json.Marshal(base)
 	if err != nil {
@@ -1208,14 +937,12 @@ func ApplyPatch(base Settings, patch map[string]json.RawMessage) (Settings, erro
 	return out, nil
 }
 
-// sanitize is the one path everything written to disk goes down, and it does
-// nothing itself: each group of fields is cleaned by the file that owns it. A
-// new setting therefore lands in one domain file and one line of this list,
-// which is what lets several people add settings in the same wave without
-// meeting in the middle of a four-hundred-line function.
+// sanitize is the one path everything written to disk goes down. It does
+// nothing itself: each group of fields is cleaned by the file that owns it, so
+// a new setting lands in one domain file and one line of this list.
 //
-// The hooks are independent — no hook reads a field another one rewrites — so
-// the order below is for reading, not for correctness.
+// The hooks are independent, no hook reading a field another one rewrites, so
+// the order below is for reading rather than for correctness.
 func sanitize(n Settings) Settings {
 	n = sanitizeAppearance(n)
 	n = sanitizeQueue(n)
@@ -1237,10 +964,8 @@ func sanitize(n Settings) Settings {
 	n = sanitizeRules(n)
 	n = sanitizeLifecycle(n)
 	n = sanitizeMaintenance(n)
-	// A method on the LogFile type rather than a sanitizeLogFile(Settings)
-	// hook like its neighbours: the type compiles on its own, so the file that
-	// owns it did not have to wait on this struct field to land before
-	// internal/settings would build again. Same one line either way.
+	// A method on the LogFile type rather than a sanitizeLogFile(Settings) hook
+	// like its neighbours, because the type compiles on its own.
 	n.LogFile = n.LogFile.Sanitized()
 	n = sanitizeReclaim(n)
 	n = sanitizeIdleAction(n)

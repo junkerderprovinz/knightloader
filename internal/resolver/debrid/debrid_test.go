@@ -26,8 +26,6 @@ func (f *fakeEngine) Pause(string)        {}
 func (f *fakeEngine) Resume(string)       {}
 func (f *fakeEngine) Remove(string, bool) {}
 
-// TestAllDebrid drives the AllDebrid client against payloads shaped like the
-// live API (verified against api.alldebrid.com/v4).
 func TestAllDebrid(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/v4/hosts", func(w http.ResponseWriter, r *http.Request) {
@@ -84,8 +82,6 @@ func TestAllDebrid(t *testing.T) {
 	}
 }
 
-// TestRealDebrid drives the Real-Debrid client against payloads shaped like the
-// live REST 1.0 API (verified against api.real-debrid.com).
 func TestRealDebrid(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/hosts/domains", func(w http.ResponseWriter, r *http.Request) {
@@ -125,8 +121,8 @@ func TestRealDebrid(t *testing.T) {
 	}
 }
 
-// TestBackendHandsOffToEngine pins the shared backend: unlock, then the engine
-// gets the direct URL and the task carries the resolved name/size.
+// After the unlock the engine gets the direct URL and the task the resolved
+// name.
 func TestBackendHandsOffToEngine(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		_, _ = w.Write([]byte(`{"id":"1","filename":"f.bin","filesize":99,"download":"https://cdn.example/f.bin"}`))
@@ -142,9 +138,7 @@ func TestBackendHandsOffToEngine(t *testing.T) {
 			names <- u.Name
 		}
 	})
-	// 5 rather than a round number: the count the dispatcher worked out has to
-	// come out the far side of the unlock, and a flat one written here would
-	// match anything the backend happened to invent.
+	// An odd count, so a default invented by the backend cannot match it.
 	b.Download("t1", "https://rapidgator.net/file/z", nil, 5)
 
 	select {
@@ -152,9 +146,6 @@ func TestBackendHandsOffToEngine(t *testing.T) {
 		if h.url != "https://cdn.example/f.bin" {
 			t.Fatalf("engine got %q", h.url)
 		}
-		// The unlock is where the task's own count, its rule and the global
-		// setting all used to be dropped for a hardcoded 8, on the far side of a
-		// network call nobody watches.
 		if h.conns != 5 {
 			t.Errorf("engine opened %d connections, want the 5 the dispatcher decided on", h.conns)
 		}

@@ -14,28 +14,9 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
 )
 
-// Premiumize speaks the Premiumize.me API.
-//
-// VERIFIED, NOT GUESSED - read off Premiumize's own API reference at
-// https://www.premiumize.me/api (fetched 2026-09-06):
-//
-//   - Base URL https://www.premiumize.me/api, and the key travels as
-//     "Authorization: Bearer YOUR_API_KEY" (a query parameter and a POST field
-//     are documented as legacy alternatives; the header is the current one).
-//   - Every answer carries {"status": "success"|"error"}, and a business-logic
-//     failure is an HTTP 200 with status "error" plus "message" and "code" -
-//     so the status line is never the thing to test.
-//   - GET /account/info answers {status, customer_id, premium_until,
-//     limit_used, booster_points, space_used}. premium_until is a unix
-//     timestamp and null on a free account; limit_used is a FRACTION in [0,1]
-//     of the fair-use allowance, not a byte figure.
-//   - GET /services/list answers {status, cache[], directdl[], queue[],
-//     fairusefactor{}, aliases{}, regexpatterns{}} - directdl is the list this
-//     file routes on, because it is precisely "services supporting instant
-//     download generation", and aliases carries the alternative domains a link
-//     may actually be written with.
-//   - POST /transfer/directdl takes src and answers {status, content: [{path,
-//     size, link}]}.
+// Premiumize speaks the Premiumize.me API (https://www.premiumize.me/api) with
+// the key as Bearer token. Failures arrive as HTTP 200 with status "error",
+// so the body decides, never the status line.
 type Premiumize struct {
 	key  string
 	base string
@@ -53,9 +34,7 @@ func NewPremiumize(key string) *Premiumize {
 func (*Premiumize) ID() string    { return "premiumize" }
 func (*Premiumize) Label() string { return "Premiumize.me" }
 
-// pmStatus is the part of every answer that says whether the rest of it means
-// anything. Embedded into each response type rather than unmarshalled twice,
-// so no call site can forget to look at it.
+// pmStatus is the status part of every answer, embedded in each response type.
 type pmStatus struct {
 	Status  string `json:"status"`
 	Message string `json:"message"`
@@ -112,17 +91,9 @@ func (p *Premiumize) send(req *http.Request, path string, out any) error {
 	return nil
 }
 
-// Hosts asks /services/list.
-//
-// directdl, not cache: cache is what Premiumize can answer FROM ITS CLOUD, and
-// a link only in that list would be claimed by a resolver whose Unlock -
-// /transfer/directdl - is documented for the directdl set. Claiming a link this
-// backend then cannot hand over is worse than not claiming it, because the
-// lower-priority backends never get their turn.
-//
-// The aliases map is folded in beside the names, because that is what it is
-// for: a service listed as "uploaded" is written "ul.to" in half the links
-// people actually paste.
+// Hosts asks /services/list for the directdl set, the hosts /transfer/directdl
+// can unlock; the cache list only covers what Premiumize holds in its cloud.
+// Aliases are added so links written with an alternative domain match too.
 func (p *Premiumize) Hosts(ctx context.Context) (map[string]bool, error) {
 	var data struct {
 		pmStatus
@@ -152,13 +123,8 @@ func (p *Premiumize) Hosts(ctx context.Context) (map[string]bool, error) {
 	return set, nil
 }
 
-// Unlock asks /transfer/directdl for one link.
-//
-// content is an ARRAY because src may be a folder or an archive Premiumize can
-// expand; a hoster link is one file, so the first entry is the answer. A
-// success with an empty array is not a link and must not be reported as one -
-// the engine handed an empty URL would fail with something unrelated further
-// down.
+// Unlock asks /transfer/directdl for one link. The answer is a list because
+// src may be a folder; a hoster link is one file, so the first entry is taken.
 func (p *Premiumize) Unlock(ctx context.Context, link string) (Direct, error) {
 	var data struct {
 		pmStatus
@@ -178,8 +144,6 @@ func (p *Premiumize) Unlock(ctx context.Context, link string) (Direct, error) {
 		return Direct{}, errors.New("premiumize: no direct link returned")
 	}
 	first := data.Content[0]
-	// path is slash-joined inside the source; the file's own name is the last
-	// segment of it, which is what a task's name is meant to be.
 	name := first.Path
 	if i := strings.LastIndexByte(name, '/'); i >= 0 {
 		name = name[i+1:]
@@ -187,16 +151,9 @@ func (p *Premiumize) Unlock(ctx context.Context, link string) (Direct, error) {
 	return Direct{URL: first.Link, Name: name, Size: first.Size}, nil
 }
 
-// Account reads /account/info.
-//
-// limit_used is the fair-use fraction, which is why this fills UsedPercent and
-// leaves the byte fields alone: Premiumize publishes no byte ceiling for it
-// anywhere, and multiplying the fraction by an invented total would put a
-// figure on screen their own account page never shows.
-//
-// premium_until is null for a free account, hence the pointer: 0 and absent are
-// the same thing here, but a plain int64 would also swallow a malformed answer
-// as "expired long ago" rather than as "not stated".
+// Account reads /account/info. limit_used is a fair-use fraction without a
+// published byte ceiling, so it fills UsedPercent only. premium_until is null
+// on a free account.
 func (p *Premiumize) Account(ctx context.Context) (AccountInfo, error) {
 	var data struct {
 		pmStatus
@@ -217,9 +174,7 @@ func (p *Premiumize) Account(ctx context.Context) (AccountInfo, error) {
 			info.Tier = "premium"
 		}
 	}
-	// No "> 0" guard: limit_used is a documented field of this answer, and 0.0
-	// from it means the fair-use allowance is untouched, not that Premiumize
-	// declined to say - see TrafficInfo.PercentKnown.
+	// limit_used is always present, so 0 means the allowance is untouched.
 	info.Traffic.UsedPercent = data.LimitUsed * 100
 	info.Traffic.PercentKnown = true
 	return info, nil

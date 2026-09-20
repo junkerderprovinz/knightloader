@@ -1,18 +1,8 @@
 package ytdlp
 
-// playlist.go: what a playlist/channel URL LISTS, without touching a single
-// video in it.
-//
-// It is a second probe rather than a widening of ProbeTitle (backend.go), and
-// that split is deliberate. ProbeTitle's own doc comment states in so many
-// words why it does not pass --flat-playlist: the flag changes what the info
-// dict answers for an ORDINARY single-video URL in ways that could not be
-// confirmed from documented behaviour alone, and guessing wrong there breaks a
-// working single-video probe rather than merely leaving a playlist probe slow.
-// That reasoning has not stopped being true, so the flag lives here, in a call
-// that asks a different question and whose failure costs nothing: a listing
-// that cannot be read leaves the link staged exactly as it was before this file
-// existed.
+// Listing a playlist is a separate probe from ProbeTitle because
+// --flat-playlist changes what a single-video URL answers there. Here a
+// failure costs nothing: the link is simply staged as it is.
 
 import (
 	"bytes"
@@ -27,71 +17,41 @@ import (
 	"strings"
 )
 
-// maxPlaylistJSON caps how much listing this app will read from one probe.
-//
-// A flat entry is a few hundred bytes (an id, a URL, a title, a duration), so
-// thirty-two mebibytes is somewhere north of fifty thousand videos - far past
-// any playlist a person means to download and far short of a channel archive
-// that would be read into memory only to be thrown away by the caller's own
-// entry limit. It is a refusal, not a truncation: half a JSON document is not
-// a shorter listing, it is an unparseable one, so the probe reports that it
-// could not answer and the link is staged the way it always was.
+// maxPlaylistJSON caps how much listing one probe reads: over fifty thousand
+// flat entries, far past any playlist meant for download. A larger listing is
+// refused rather than truncated, since half a JSON document does not parse.
 const maxPlaylistJSON = 32 << 20
 
 // ErrPlaylistTooLarge is a listing over maxPlaylistJSON.
 var ErrPlaylistTooLarge = errors.New("ytdlp: this playlist listing is larger than this app will read")
 
-// PlaylistEntry is one video a listing points at - never the video itself.
-// The title is the one the listing already carried, which is the whole reason
-// a flat listing is worth having: it names every entry without a single
-// extraction.
+// PlaylistEntry is one video a listing points at, with the title the listing
+// already carries.
 type PlaylistEntry struct {
 	URL   string
 	Title string
 }
 
-// Playlist is one --flat-playlist listing: what the playlist calls itself and
-// the videos it points at, in the order the source states them.
-//
-// An ordinary single-video URL answers with an EMPTY Entries and no error -
-// "this link lists nothing" is a real answer, not a failure, and the caller
-// treats it exactly like a link that was never a playlist.
+// Playlist is one --flat-playlist listing: the playlist's title and its
+// videos in source order. A single-video URL yields no entries and no error.
 type Playlist struct {
 	Title   string
 	Entries []PlaylistEntry
-	// Dropped counts entries this app cannot address: a deleted video the
-	// listing still names, a nested playlist (a channel's own tabs), or an
-	// extractor that reports an id where a URL should be. Reported rather
-	// than hidden, because a listing of thirty that stages twenty-nine is a
-	// number the person looking at the collector should be told.
+	// Dropped counts entries that cannot be staged: deleted videos, nested
+	// playlists (a channel's tabs), or bare ids instead of URLs.
 	Dropped int
 }
 
-// ProbePlaylist asks yt-dlp what a link lists, WITHOUT extracting any of it.
+// ProbePlaylist asks yt-dlp what a link lists without extracting any entry.
+// --flat-playlist answers from the listing page alone, cheap enough for paste
+// time, and -J prints one object carrying the playlist's own title.
 //
-// --flat-playlist is what makes this cheap enough to run at paste time: yt-dlp
-// answers from the listing page alone instead of opening every entry, so a
-// fifty-video playlist is one request rather than fifty extractions (which is
-// exactly the cost resolver.go's own "no Checker here" comment refuses to pay).
-// -J (--dump-single-json) prints ONE object for the whole listing, unlike
-// ProbeTitle's -j, which prints one per entry: the difference matters here
-// because the playlist's own title - what the package these entries land in
-// gets named after - only exists on that single object.
-//
-// A URL that is not a playlist is not an error. yt-dlp reports the kind of
-// thing it found in _type, and anything that is not a playlist comes back with
-// no entries at all, which the caller reads as "stage this link the way it
-// always was". That is the one behaviour this function must never get wrong:
-// the whole feature is opt-in and every failure path has to end in today's
-// behaviour rather than in a link nobody staged.
-//
-// The caller bounds ctx - see app.ytdlpPlaylistTimeout, the same arrangement
-// ProbeTitle documents for app.ytdlpProbeTimeout.
+// A URL that is not a playlist yields no entries, which the caller stages as
+// a single link; every failure path ends in that same behaviour. The caller
+// bounds ctx (app.ytdlpPlaylistTimeout).
 func (b *Backend) ProbePlaylist(ctx context.Context, rawurl string) (Playlist, error) {
-	// A cancel of this function's own, layered under the caller's: the size
-	// refusal below has to stop yt-dlp rather than leave it writing into a
-	// pipe nobody is reading any more, which is a process wedged for as long
-	// as the parent lives.
+	// Our own cancel stops yt-dlp when the size check below gives up, so it
+	// does not block on a pipe nobody reads.
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
@@ -106,10 +66,8 @@ func (b *Backend) ProbePlaylist(ctx context.Context, rawurl string) (Playlist, e
 	if err := cmd.Start(); err != nil {
 		return Playlist{}, fmt.Errorf("ytdlp: %w", err)
 	}
-	// Read before Wait, always: Wait closes this pipe, so the other order
-	// loses whatever had not been read yet. One byte over the cap is enough
-	// to know the answer is too large, and the read stops there instead of
-	// pulling the rest of a channel archive into memory to measure it.
+	// Read before Wait, which closes the pipe. Reading one byte past the cap
+	// is enough to detect an oversized listing.
 	out, readErr := io.ReadAll(io.LimitReader(stdout, maxPlaylistJSON+1))
 	if len(out) > maxPlaylistJSON {
 		cancel()
@@ -130,9 +88,7 @@ func (b *Backend) ProbePlaylist(ctx context.Context, rawurl string) (Playlist, e
 	return parsePlaylist(out)
 }
 
-// parsePlaylist reads one -J document. Split out from the process handling
-// above for the same reason buildArgs is: every decision about what a listing
-// means is unit-testable without spawning anything.
+// parsePlaylist reads one -J document.
 func parsePlaylist(out []byte) (Playlist, error) {
 	var raw struct {
 		Type    string `json:"_type"`
@@ -147,23 +103,16 @@ func parsePlaylist(out []byte) (Playlist, error) {
 		return Playlist{}, fmt.Errorf("ytdlp: playlist listing returned unparseable data: %w", err)
 	}
 	pl := Playlist{Title: strings.TrimSpace(raw.Title)}
-	// "multi_video" alongside "playlist": yt-dlp uses it for a source whose
-	// parts are one work (a stream split into segments, a lecture in
-	// chapters). Those are as much "several downloads under one name" as a
-	// playlist is, and the caller does the same thing with both. Anything
-	// else - an ordinary video, a single storyboard - lists nothing, which is
-	// the answer, not a failure.
+	// yt-dlp uses "multi_video" for one work in several parts, which is
+	// handled like a playlist. Anything else lists nothing.
 	if raw.Type != "playlist" && raw.Type != "multi_video" {
 		return pl, nil
 	}
 	pl.Entries = make([]PlaylistEntry, 0, len(raw.Entries))
 	for _, e := range raw.Entries {
 		u := strings.TrimSpace(e.URL)
-		// A nested playlist is NOT followed. A channel URL lists its tabs, and
-		// each tab is a playlist of its own, so recursing here turns one paste
-		// into somebody's entire upload history - the exact flood the caller's
-		// own entry limit exists to prevent, arriving by a door that limit
-		// cannot see. Counted as dropped, so the caller can say so.
+		// Nested playlists are not followed: a channel lists its tabs, and
+		// recursing would stage its entire upload history.
 		if e.Type == "playlist" || e.Type == "multi_video" || !addressable(u) {
 			pl.Dropped++
 			continue
@@ -173,11 +122,8 @@ func parsePlaylist(out []byte) (Playlist, error) {
 	return pl, nil
 }
 
-// addressable reports whether an entry names something this app can actually
-// stage. Some extractors report a bare id in a flat listing rather than a URL,
-// and staging one would put a task in the collector that no backend can ever
-// claim - a row that exists only to report "no backend handles this link",
-// which is worse than an honest count of entries that were left out.
+// addressable reports whether an entry is an http(s) URL. Some extractors
+// list bare ids, which no backend could claim.
 func addressable(raw string) bool {
 	if raw == "" {
 		return false

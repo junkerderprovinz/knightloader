@@ -6,15 +6,8 @@ import (
 	"testing"
 )
 
-// Every test here drives ProbePlaylist through the same fake yt-dlp the title
-// probe's own tests use: this package's test binary, re-executed as the
-// "yt-dlp binary" (see fakeYtdlpBackend and TestMain in backend_test.go). No
-// real yt-dlp, no network, identical behaviour on every platform.
+// These tests use the fake yt-dlp from backend_test.go (fakeYtdlpBackend).
 
-// TestProbePlaylistReadsEveryEntryOfAListing is the answer the whole feature
-// rests on: one link, the videos it lists, each with the title the listing
-// already carried - which is what lets a hundred rows be named without a
-// hundred extractions.
 func TestProbePlaylistReadsEveryEntryOfAListing(t *testing.T) {
 	b := fakeYtdlpBackend(t, "flatlisting")
 	pl, err := b.ProbePlaylist(context.Background(), "https://youtube.com/playlist?list=PL1")
@@ -33,19 +26,14 @@ func TestProbePlaylistReadsEveryEntryOfAListing(t *testing.T) {
 	if pl.Entries[1].URL != "https://youtube.com/watch?v=bbb" {
 		t.Errorf("second entry = %+v, want the entries in the order the listing states them", pl.Entries[1])
 	}
-	// The nested playlist and the entry with no URL: left out, and COUNTED.
-	// A listing of four that stages two is a number the person looking at the
-	// collector has to be told, which is why this is a field and not a silent
-	// skip - see Playlist.Dropped.
+	// The nested playlist and the entry without a URL are left out and
+	// counted.
 	if pl.Dropped != 2 {
 		t.Errorf("Dropped = %d, want 2 (a nested playlist and an entry naming no link)", pl.Dropped)
 	}
 }
 
-// TestProbePlaylistOnAnOrdinaryVideoListsNothing is the case that decides
-// whether this feature is safe to leave switched on: an ordinary video URL is
-// probed by exactly the same call, and it must come back with no entries and
-// NO error, so the caller stages the link the way it always did.
+// An ordinary video yields no entries and no error, so it is staged as usual.
 func TestProbePlaylistOnAnOrdinaryVideoListsNothing(t *testing.T) {
 	b := fakeYtdlpBackend(t, "singlevideo")
 	pl, err := b.ProbePlaylist(context.Background(), "https://youtube.com/watch?v=dQw4w9WgXcQ")
@@ -57,11 +45,7 @@ func TestProbePlaylistOnAnOrdinaryVideoListsNothing(t *testing.T) {
 	}
 }
 
-// TestProbePlaylistAsksForTheListingAndNotForTheVideos pins the flag the whole
-// promise rests on. Without --flat-playlist, yt-dlp opens every entry to
-// answer, which is fifty extractions for one paste - the exact cost
-// resolver.go's own "no Checker here" comment refuses to pay, arriving by a
-// different door.
+// Without --flat-playlist, yt-dlp would extract every entry.
 func TestProbePlaylistAsksForTheListingAndNotForTheVideos(t *testing.T) {
 	b := fakeYtdlpBackend(t, "echoargs")
 	pl, err := b.ProbePlaylist(context.Background(), "https://youtube.com/playlist?list=PL1")
@@ -75,10 +59,6 @@ func TestProbePlaylistAsksForTheListingAndNotForTheVideos(t *testing.T) {
 	}
 }
 
-// TestProbePlaylistReportsAFailingInvocation covers the link that is gone or
-// private. The caller reads an error as "stage this as one link", so nothing
-// here may invent an empty listing that looks like a successful "not a
-// playlist" answer.
 func TestProbePlaylistReportsAFailingInvocation(t *testing.T) {
 	b := fakeYtdlpBackend(t, "fail")
 	if _, err := b.ProbePlaylist(context.Background(), "https://youtube.com/playlist?list=gone"); err == nil {
@@ -86,8 +66,6 @@ func TestProbePlaylistReportsAFailingInvocation(t *testing.T) {
 	}
 }
 
-// TestProbePlaylistReportsUnparseableOutput is the same line drawn for a
-// binary that answered with something that is not a listing at all.
 func TestProbePlaylistReportsUnparseableOutput(t *testing.T) {
 	b := fakeYtdlpBackend(t, "badjson")
 	if _, err := b.ProbePlaylist(context.Background(), "https://youtube.com/playlist?list=PL1"); err == nil {
@@ -95,9 +73,6 @@ func TestProbePlaylistReportsUnparseableOutput(t *testing.T) {
 	}
 }
 
-// TestParsePlaylistKeepsOnlyAddressableEntries drives the reading half
-// directly, without a process, for the shapes a real listing carries that the
-// fake above cannot all hold at once.
 func TestParsePlaylistKeepsOnlyAddressableEntries(t *testing.T) {
 	pl, err := parsePlaylist([]byte(`{"_type":"playlist","title":"Mixed","entries":[
 		{"_type":"url","url":"https://example.com/v/1","title":"Real"},
@@ -117,10 +92,6 @@ func TestParsePlaylistKeepsOnlyAddressableEntries(t *testing.T) {
 	}
 }
 
-// TestParsePlaylistReadsAMultiVideoSet covers the other kind yt-dlp reports
-// for "several videos under one name" - a stream split into parts. The caller
-// does the same thing with it as with a playlist, so this must not be read as
-// an ordinary single video.
 func TestParsePlaylistReadsAMultiVideoSet(t *testing.T) {
 	pl, err := parsePlaylist([]byte(`{"_type":"multi_video","title":"Lecture 4","entries":[
 		{"_type":"url","url":"https://example.com/part/1","title":"Part 1"},

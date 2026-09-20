@@ -36,24 +36,11 @@ func TestSanitizeKeepsEveryKnownAudioBitrate(t *testing.T) {
 	}
 }
 
-// TestAvailableAudioFormatsKeepsOnlyNativeCodecsPlusBest is [87]/[88]'s own
-// audio case (jdp, 2026-08-26: "bei der audio spur sollen nur die formate
-// angezeigt werden die wirklich von hoster angeboten werden. Youtube bietet
-// zb keine flac audio"): a source offering opus and AAC audio-only tracks
-// gets what those two codecs natively read as, plus the always-kept "best" -
-// mp3/wav/flac, none of which the source actually has, do not appear even
-// though ffmpeg could technically transcode to any of them.
-//
-// An AAC track contributes BOTH of its native readings, "m4a" (the container
-// it already sits in) and "aac" (the raw stream), because neither re-encodes
-// anything and JDownloader names that row AAC - which is the half people went
-// looking for and did not find (jdp, 2026-09-06).
+// Transcode targets the source lacks (mp3, wav, flac) are not offered. AAC
+// counts as both "m4a" and "aac".
 func TestAvailableAudioFormatsKeepsOnlyNativeCodecsPlusBest(t *testing.T) {
 	got := AvailableAudioFormats([]string{"opus", "mp4a.40.2", "opus"})
-	// AudioFormats()'s own menu order, not the order the codecs were passed
-	// in - the point of filtering against that menu rather than building a
-	// fresh list is that the result reads like the ordinary, unfiltered menu
-	// with entries missing, not a differently-ordered one.
+	// Menu order, not input order.
 	want := []string{"best", "aac", "m4a", "opus"}
 	if len(got) != len(want) {
 		t.Fatalf("AvailableAudioFormats = %v, want %v", got, want)
@@ -66,28 +53,16 @@ func TestAvailableAudioFormatsKeepsOnlyNativeCodecsPlusBest(t *testing.T) {
 	}
 }
 
-// TestAvailableAudioFormatsWithNoRecognisedCodecKeepsOnlyBest is the "no
-// data" floor: a codec audioFormatsForCodec does not recognise (ac-3, eac3...)
-// contributes nothing rather than a guess, so only "best" - which names no
-// codec of its own - survives.
 func TestAvailableAudioFormatsWithNoRecognisedCodecKeepsOnlyBest(t *testing.T) {
 	got := AvailableAudioFormats([]string{"ac-3", "eac3"})
 	if len(got) != 1 || got[0] != "best" {
 		t.Errorf("AvailableAudioFormats = %v, want [best]", got)
 	}
-	// Vorbis IS recognised now, and that is the point of the longer menu: a
-	// source that carries it can be asked for it.
 	if got := AvailableAudioFormats([]string{"vorbis"}); len(got) != 2 || got[1] != "vorbis" {
 		t.Errorf("AvailableAudioFormats(vorbis) = %v, want [best vorbis]", got)
 	}
 }
 
-// TestAvailableAudioBitratesCapsAtTheSourceOwnBestTrack is [87]/[88]'s own
-// bitrate case (jdp, 2026-08-26: "alle formate immer auf hosterangebot
-// begrenzen. auch die audioqualitäten!"): a source whose best audio track
-// reports 130kbit/s keeps every menu entry at or under that (Auto/64/96/
-// 128) and drops the higher presets (160/192/256/320), which would only
-// ever promise more than the source has to give.
 func TestAvailableAudioBitratesCapsAtTheSourceOwnBestTrack(t *testing.T) {
 	got := AvailableAudioBitrates(130)
 	want := []string{"", "64", "96", "128"}
@@ -102,8 +77,6 @@ func TestAvailableAudioBitratesCapsAtTheSourceOwnBestTrack(t *testing.T) {
 	}
 }
 
-// TestAvailableAudioBitratesUnfilteredWithNoData is the "nothing probed
-// yet" floor every AvailableX function in this package shares.
 func TestAvailableAudioBitratesUnfilteredWithNoData(t *testing.T) {
 	got := AvailableAudioBitrates(0)
 	want := AudioBitrates()
@@ -133,15 +106,8 @@ func TestSanitizeClipsPathologicalFreeText(t *testing.T) {
 	}
 }
 
-// TestSanitizeTemplateStripsTraversal pins the exact rewriting: every ".."
-// TOKEN is dropped, wherever it sits, and everything else survives
-// untouched. Dropping only the token - not the rest of the template after
-// it - is deliberate: "%(title)s/../../../etc/passwd" becoming
-// "%(title)s/etc/passwd" is still fully contained once joined onto the task
-// directory (see TestSanitizeTemplateNeverEscapesTheDirectoryItIsJoinedOnto
-// below for the actual guarantee that matters), and it keeps as much of a
-// person's real template as it safely can rather than discarding the whole
-// tail over one bad segment.
+// Only the ".." segments are dropped, which keeps the rest of the template;
+// the result stays contained once joined (see the next test).
 func TestSanitizeTemplateStripsTraversal(t *testing.T) {
 	cases := map[string]string{
 		"":                                   "",
@@ -162,13 +128,6 @@ func TestSanitizeTemplateStripsTraversal(t *testing.T) {
 	}
 }
 
-// TestSanitizeTemplateNeverEscapesTheDirectoryItIsJoinedOnto is the
-// guarantee buildArgs actually depends on, checked the way it actually
-// matters: join the sanitized result onto an absolute directory and confirm
-// the outcome is still inside it. This is what makes the "drop only the
-// token" choice above safe - a leftover "etc/passwd" is fine precisely
-// because filepath.Join can only ever relocate it under dir, never above
-// it, once every ".." is gone.
 func TestSanitizeTemplateNeverEscapesTheDirectoryItIsJoinedOnto(t *testing.T) {
 	dir := filepath.Join(string(filepath.Separator), "data", "downloads")
 	attempts := []string{
@@ -189,9 +148,6 @@ func TestSanitizeTemplateNeverEscapesTheDirectoryItIsJoinedOnto(t *testing.T) {
 }
 
 func TestDefaultsIsTheZeroValue(t *testing.T) {
-	// Spelled out as its own test because it is a promise, not an accident:
-	// see Options's own doc comment for why every field must default to
-	// "change nothing this backend did before Options existed".
 	if got := Defaults(); got != (Options{}) {
 		t.Errorf("Defaults() = %+v, want the zero value", got)
 	}

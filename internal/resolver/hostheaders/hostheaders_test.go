@@ -14,8 +14,7 @@ func TestOriginOfFillsInThePortAndRefusesEverythingElse(t *testing.T) {
 		{"HTTPS://Cloud.Example.ORG/x", "https://cloud.example.org:443"},
 		{"http://box.lan:8080/file.zip", "http://box.lan:8080"},
 		{"http://box.lan/file.zip", "http://box.lan:80"},
-		// A downgrade is a different origin on purpose: a credential forwarded
-		// onto a plaintext hop is a credential given to everyone on the path.
+		// A downgrade to http is a different origin.
 		{"http://cloud.example.org/x", "http://cloud.example.org:80"},
 		{"ftp://box.lan/file.zip", ""},
 		{"magnet:?xt=urn:btih:abc", ""},
@@ -40,8 +39,6 @@ func TestAttachSendsNothingOffItsOwnOrigin(t *testing.T) {
 	if got := set.Attach("https://cloud.example.org/remote.php/file.zip"); got["Authorization"] != secretBasic {
 		t.Errorf("Attach on the profile's own origin returned %d headers, want the stored one", len(got))
 	}
-	// Every way a URL can be somewhere else: another host, another port,
-	// another scheme.
 	for _, off := range []string{
 		"https://cdn.example.net/file.zip",
 		"https://cloud.example.org:8443/file.zip",
@@ -56,10 +53,6 @@ func TestAttachSendsNothingOffItsOwnOrigin(t *testing.T) {
 	}
 }
 
-// TestNormalizeCollapsesOneHeaderToOneEntry pins the reason normalising
-// happens at save time: two spellings of one name are one header to every
-// server, and a profile holding both would send whichever the map iteration
-// reached last.
 func TestNormalizeCollapsesOneHeaderToOneEntry(t *testing.T) {
 	set, err := Normalize(Set{
 		Origin: "https://box.lan:8080",
@@ -106,7 +99,6 @@ func TestNormalizeRefusesWhatCannotBeSent(t *testing.T) {
 	}
 }
 
-// TestNormalizeRefusesTooManyHeaders bounds a paste that went in whole.
 func TestNormalizeRefusesTooManyHeaders(t *testing.T) {
 	s := Set{Origin: "https://box.lan"}
 	for i := 0; i <= MaxHeaders; i++ {

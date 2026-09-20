@@ -6,10 +6,7 @@ import (
 	"testing"
 )
 
-// TestProbeReadsTheLanguagesTheSourceActuallyOffers is the answer to the
-// silent empty subtitle task: the free-text field defaults to "en", the
-// source here has no hand-written English track at all, and until this probe
-// carried the lists nothing anywhere could say so.
+// The source has English only as automatic captions, not as a manual track.
 func TestProbeReadsTheLanguagesTheSourceActuallyOffers(t *testing.T) {
 	b := fakeYtdlpBackend(t, "languages")
 	res, err := b.ProbeTitle(context.Background(), "https://example.invalid/v")
@@ -23,9 +20,6 @@ func TestProbeReadsTheLanguagesTheSourceActuallyOffers(t *testing.T) {
 	if !reflect.DeepEqual(tracks.Auto, []string{"de", "en", "es"}) {
 		t.Errorf("auto = %v, want [de en es] sorted", tracks.Auto)
 	}
-	// The two kinds stay apart: a hand-written translation and a
-	// speech-to-text pass are not the same product, which is why yt-dlp has
-	// two flags for them.
 	if tracks.Has("en") != true {
 		t.Errorf("Has(en) = false - English is on offer, as an automatic caption")
 	}
@@ -48,9 +42,6 @@ func TestProbeReadsTheAnnouncedDuration(t *testing.T) {
 	}
 }
 
-// TestAvailableAudioLangsPutsTheOriginalFirst: a menu that buries the
-// original track under six machine dubs makes the right choice the hardest
-// one to find.
 func TestAvailableAudioLangsPutsTheOriginalFirst(t *testing.T) {
 	b := fakeYtdlpBackend(t, "languages")
 	res, err := b.ProbeTitle(context.Background(), "https://example.invalid/v")
@@ -64,9 +55,6 @@ func TestAvailableAudioLangsPutsTheOriginalFirst(t *testing.T) {
 	}
 }
 
-// TestAvailableAudioLangsListsALanguageOnce, not once per bitrate: a language
-// shows up on every format it is offered in, and a menu repeating "en" five
-// times is not a menu.
 func TestAvailableAudioLangsListsALanguageOnce(t *testing.T) {
 	formats := []FormatEntry{
 		{Acodec: "mp4a.40.2", Language: "en", LanguagePreference: 10},
@@ -78,9 +66,6 @@ func TestAvailableAudioLangsListsALanguageOnce(t *testing.T) {
 	}
 }
 
-// TestAvailableAudioLangsIgnoresVideoOnlyAndUnnamedTracks: a video-only
-// format carries no audio to have a language, and a track the source did not
-// name cannot be asked for by name either.
 func TestAvailableAudioLangsIgnoresVideoOnlyAndUnnamedTracks(t *testing.T) {
 	formats := []FormatEntry{
 		{Acodec: "none", Vcodec: "avc1", Language: "en"},
@@ -91,9 +76,6 @@ func TestAvailableAudioLangsIgnoresVideoOnlyAndUnnamedTracks(t *testing.T) {
 	}
 }
 
-// TestAvailableAudioLangsCountsAProgressiveTrack: a source whose only German
-// audio sits inside a combined 360p stream still genuinely offers German, and
-// leaving it out of the menu says otherwise.
 func TestAvailableAudioLangsCountsAProgressiveTrack(t *testing.T) {
 	formats := []FormatEntry{{Vcodec: "avc1.42001E", Acodec: "mp4a.40.2", Language: "de", Height: 360}}
 	got := AvailableAudioLangs(formats)
@@ -102,10 +84,7 @@ func TestAvailableAudioLangsCountsAProgressiveTrack(t *testing.T) {
 	}
 }
 
-// TestAudioLangSaysNothingWhenTheSourceHasNoOpinion: every site that is not
-// YouTube ships one audio track and never had a second one to rank it
-// against, so calling those "possibly a dub" would put a warning on every
-// ordinary video in order to describe one site's feature.
+// Sites with a single audio track report no preference.
 func TestAudioLangSaysNothingWhenTheSourceHasNoOpinion(t *testing.T) {
 	got := AvailableAudioLangs([]FormatEntry{{Acodec: "mp4a.40.2", Language: "en"}})
 	if len(got) != 1 || got[0].Dubbed {
@@ -113,9 +92,7 @@ func TestAudioLangSaysNothingWhenTheSourceHasNoOpinion(t *testing.T) {
 	}
 }
 
-// TestProbeReadsIsLiveFromEitherField: newer extractors set live_status and
-// older ones only the boolean, and reading one of the two would mean the
-// guard never arms on half of them.
+// Newer extractors set live_status, older ones only is_live.
 func TestProbeReadsIsLiveFromEitherField(t *testing.T) {
 	b := fakeYtdlpBackend(t, "live")
 	res, err := b.ProbeTitle(context.Background(), "https://example.invalid/live")
@@ -127,9 +104,6 @@ func TestProbeReadsIsLiveFromEitherField(t *testing.T) {
 	}
 }
 
-// TestProbeDoesNotCallAFinishedStreamLive: a stream that has ended is an
-// ordinary recording with an ordinary length, and putting the recording caps
-// on it would stop a normal download at an arbitrary size.
 func TestProbeDoesNotCallAFinishedStreamLive(t *testing.T) {
 	b := fakeYtdlpBackend(t, "waslive")
 	res, err := b.ProbeTitle(context.Background(), "https://example.invalid/was")
@@ -144,9 +118,6 @@ func TestProbeDoesNotCallAFinishedStreamLive(t *testing.T) {
 	}
 }
 
-// TestProbeOfASourceWithNoLanguageDataStaysEmpty guards the existing helper
-// fixtures: a probe result carrying nothing must answer with nothing rather
-// than with an empty-string entry that would render as a blank menu row.
 func TestProbeOfASourceWithNoLanguageDataStaysEmpty(t *testing.T) {
 	b := fakeYtdlpBackend(t, "title")
 	res, err := b.ProbeTitle(context.Background(), "https://example.invalid/v")

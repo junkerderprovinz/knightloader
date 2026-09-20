@@ -2,14 +2,12 @@ package settings
 
 import "testing"
 
-// TestThePauseFloorNeverSitsAboveTheStartFloor is the one rule the two
-// thresholds have to obey with respect to each other, and it is not a
-// tidiness rule - it is a loop. Below the pause mark the guard stops a running
-// transfer and puts it back in the wait queue; the dispatcher then looks at
-// that queue and consults the START mark only. With the start mark lower, or
-// switched off entirely, it hands the slot straight back, and the transfer is
-// stopped and restarted once per watcher tick for as long as the volume stays
-// low - throwing away the bytes of every non-resumable one each time round.
+// The other arrangement is a loop. Below the pause mark the guard stops a
+// running transfer and puts it back in the wait queue, and the dispatcher
+// consults the start mark only, so with the start mark lower it hands the slot
+// straight back. The transfer is stopped and restarted once per watcher tick
+// for as long as the volume stays low, throwing away the bytes of every
+// non-resumable one each time round.
 func TestThePauseFloorNeverSitsAboveTheStartFloor(t *testing.T) {
 	// The shape somebody reaches for first: "stop everything below a
 	// gigabyte", with the other box left alone.
@@ -32,10 +30,9 @@ func TestThePauseFloorNeverSitsAboveTheStartFloor(t *testing.T) {
 	}
 }
 
-// TestTheDiskFiguresAreClamped keeps a typo out of a queue that would never
-// start anything again, and reads a negative figure as "off" rather than
-// refusing the whole save - every other numeric field in this package treats a
-// value it cannot use as the absence of one.
+// A typo would leave a queue that never starts anything again. A negative
+// figure reads as off rather than refusing the whole save, the way every
+// numeric field in this package treats a value it cannot use.
 func TestTheDiskFiguresAreClamped(t *testing.T) {
 	got := sanitize(Settings{DiskReserve: -1, DiskLowSpace: -1, DiskCriticalSpace: -1})
 	if got.DiskReserve != 0 || got.DiskLowSpace != 0 || got.DiskCriticalSpace != 0 {
@@ -47,12 +44,10 @@ func TestTheDiskFiguresAreClamped(t *testing.T) {
 	}
 }
 
-// TestAFreshInstallShipsTheReserveAndNeitherThreshold is the shipping decision
-// written down. The reserve can only ever refuse a download that provably
-// would not have fitted, so it costs a healthy machine nothing; a threshold is
-// an absolute byte figure whose right value depends entirely on the volume, so
-// inventing one would either do nothing or stop somebody's queue after an
-// update they did not read.
+// The reserve can only refuse a download that provably would not have fitted,
+// so it costs a healthy machine nothing. A threshold is an absolute byte figure
+// whose right value depends on the volume, so an invented one would either do
+// nothing or stop somebody's queue after an update they did not read.
 func TestAFreshInstallShipsTheReserveAndNeitherThreshold(t *testing.T) {
 	d := sanitize(Defaults())
 	if d.DiskReserve != DefaultDiskReserve {

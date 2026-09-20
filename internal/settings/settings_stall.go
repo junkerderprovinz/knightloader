@@ -23,10 +23,10 @@ const maxStallTimeout = 24 * 60 * 60
 // DefaultStallRestarts is how many automatic restarts one task gets when the
 // restart is switched on and no cap was typed.
 //
-// It is deliberately NOT unlimited. A transfer that stands still four times in
-// a row is being refused, not unlucky, and an uncapped restart loop is the
-// same hammering the retry backoff exists to prevent - only worse, because
-// every restart throws away the bytes the previous attempt did fetch.
+// Not unlimited: a transfer that stands still four times in a row is being
+// refused rather than unlucky, and an uncapped restart loop is the hammering
+// the retry backoff exists to prevent, worse because every restart throws away
+// the bytes the previous attempt fetched.
 const DefaultStallRestarts = 3
 
 // maxStallRestarts matches the ceiling sanitizeQueue puts on MaxRetries, for

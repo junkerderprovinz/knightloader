@@ -1,20 +1,11 @@
 package jd
 
-// Client.Version surfaces JD's own revision number - the "JD container's own
-// version" row asks for. The namespace and method ("jd"/"version", returning
-// JDUtilities.getRevisionNumber()) are JDownloader's own, verified against
-// org.jdownloader.api.jd.JDAPI / JDAPIImpl in JDownloader's open source, not
-// guessed at.
-
 import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
 )
 
-// TestClientVersionReadsTheRevision drives Version against the exact envelope
-// shape every other call in this file already assumes ({"data": ...}), on the
-// path the "jd" namespace's version() method answers on.
 func TestClientVersionReadsTheRevision(t *testing.T) {
 	var gotPath string
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -36,9 +27,7 @@ func TestClientVersionReadsTheRevision(t *testing.T) {
 	}
 }
 
-// TestClientVersionSurfacesATransportError pins that an unreachable JD
-// reports an error rather than a silent 0 that would read as "revision zero"
-// instead of "could not ask".
+// A failure must not read as revision zero.
 func TestClientVersionSurfacesATransportError(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)

@@ -11,13 +11,8 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/core"
 )
 
-// TestAllDebridCheckLinks drives /link/infos against a payload shaped like the
-// live v4 API (verified against docs.alldebrid.com).
-//
-// The endpoint was chosen because it is free: it reports the name and size a
-// hoster gives and hands back no download link, so there is nothing to bill. The
-// call that spends traffic is /link/unlock, and this test fails if the check
-// ever goes near it.
+// The check must use the free /link/infos and never /link/unlock, which spends
+// traffic.
 func TestAllDebridCheckLinks(t *testing.T) {
 	var unlocked int
 	mux := http.NewServeMux()
@@ -30,10 +25,7 @@ func TestAllDebridCheckLinks(t *testing.T) {
 		if got := r.PostForm["link[]"]; len(got) != 4 {
 			t.Errorf("link[] = %v, want all four links in one call", got)
 		}
-		// Answered out of order and one link short, which is the shape this
-		// decoder has to survive: nothing in AllDebrid's reply promises the order
-		// of the request, and reading it back by position puts every verdict after
-		// the first surprise on the wrong row.
+		// Out of order and one link short.
 		_, _ = w.Write([]byte(`{"status":"success","data":{"infos":[
 			{"link":"https://h.example/pass","error":{"code":"LINK_PASS_PROTECTED","message":"Link is password protected"}},
 			{"link":"https://h.example/dead","error":{"code":"LINK_DOWN","message":"This link is not available on the file hoster website"}},
@@ -58,10 +50,9 @@ func TestAllDebridCheckLinks(t *testing.T) {
 	want := []core.Availability{
 		core.AvailOnline,
 		core.AvailOffline,
-		// Password-protected is a file that demonstrably exists and that we still
-		// cannot promise anybody can have. That is the fourth state exactly.
+		// Password-protected: the file exists but may not be obtainable.
 		core.AvailUncheckable,
-		// No entry came back for it at all.
+		// No entry came back for it.
 		core.AvailUncheckable,
 	}
 	for i := range want {
@@ -74,11 +65,7 @@ func TestAllDebridCheckLinks(t *testing.T) {
 	}
 }
 
-// TestAllDebridCheckChunksTheBatch pins the split. AllDebrid documents no
-// ceiling on the size of the array, so the batch is cut at a size no answer to
-// that question can break - and a cut that drops its own tail is the failure
-// mode: the links at the end come back as "not checked" and nobody notices,
-// because that is also what an unchecked link looks like.
+// Splitting a large batch must not drop the links at its tail.
 func TestAllDebridCheckChunksTheBatch(t *testing.T) {
 	var calls int
 	seen := map[string]bool{}
@@ -118,16 +105,12 @@ func TestAllDebridCheckChunksTheBatch(t *testing.T) {
 	}
 }
 
-// TestRealDebridCheckLinks drives /unrestrict/check against the live API's
-// shapes (verified against api.real-debrid.com), including its error codes.
 func TestRealDebridCheckLinks(t *testing.T) {
 	var unrestricted int
 	mux := http.NewServeMux()
 	mux.HandleFunc("/unrestrict/link", func(http.ResponseWriter, *http.Request) { unrestricted++ })
 	mux.HandleFunc("/unrestrict/check", func(w http.ResponseWriter, r *http.Request) {
-		// The whole reason this endpoint is safe to call unasked is that it needs
-		// no account. A token on it is a request Real-Debrid could attribute to
-		// somebody, which is the one way this could ever start costing them.
+		// Without a token the check cannot be attributed to the account.
 		if got := r.Header.Get("Authorization"); got != "" {
 			t.Errorf("check sent %q; it is called anonymously on purpose", got)
 		}
@@ -140,7 +123,7 @@ func TestRealDebridCheckLinks(t *testing.T) {
 			w.WriteHeader(http.StatusServiceUnavailable)
 			_, _ = w.Write([]byte(`{"error":"file_unavailable","error_code":24}`))
 		case "https://h.example/maintenance":
-			// 503 as well, and the status alone cannot tell it from the one above.
+			// Same 503 as above; only the error code differs.
 			w.WriteHeader(http.StatusServiceUnavailable)
 			_, _ = w.Write([]byte(`{"error":"hoster_unavailable","error_code":19}`))
 		case "https://h.example/unsupported":
@@ -184,8 +167,7 @@ func TestRealDebridCheckLinks(t *testing.T) {
 	}
 }
 
-// noCheckService is a provider that can unlock and cannot check, which is the
-// case the split between Service and LinkChecker exists for.
+// noCheckService can unlock but not check.
 type noCheckService struct{}
 
 func (noCheckService) ID() string    { return "nocheck" }
@@ -195,10 +177,7 @@ func (noCheckService) Hosts(context.Context) (map[string]bool, error) {
 }
 func (noCheckService) Unlock(context.Context, string) (Direct, error) { return Direct{}, nil }
 
-// TestResolverCheckWithoutAProvider pins what a resolver answers when it has no
-// free way to ask: uncheckable for every link, and no error. Both halves matter.
-// An error would be reported as a fault; core.AvailUnknown would put the links
-// back among the ones nobody has looked at, seconds after somebody looked.
+// Without a free check, every link is uncheckable and there is no error.
 func TestResolverCheckWithoutAProvider(t *testing.T) {
 	links := []string{"https://h.example/a", "https://h.example/b"}
 	for _, r := range []Resolver{

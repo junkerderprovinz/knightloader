@@ -12,10 +12,9 @@ func TestSanitizeIdentityTrimsInstanceName(t *testing.T) {
 	}
 }
 
-// TestSanitizeIdentityMintsAnInstanceIDOnce: a fresh install has no id yet,
-// so the very first sanitize has to mint one - and every later sanitize must
-// leave it exactly alone, or nothing that ever learned it (a relay group, a
-// peer's federation.Instance.RelayID) could keep addressing this instance.
+// A fresh install has no id, so the first sanitize mints one and every later
+// one leaves it alone, or nothing that learned it, a relay group or a peer's
+// federation.Instance.RelayID, could keep addressing this instance.
 func TestSanitizeIdentityMintsAnInstanceIDOnce(t *testing.T) {
 	first := sanitizeIdentity(Settings{}).InstanceID
 	if first == "" {
@@ -26,8 +25,7 @@ func TestSanitizeIdentityMintsAnInstanceIDOnce(t *testing.T) {
 	}
 }
 
-// TestSanitizeIdentityGeneratesDistinctIDs guards against the degenerate
-// mint that would make every fresh install indistinguishable from every
+// A degenerate mint would make every fresh install indistinguishable from every
 // other one.
 func TestSanitizeIdentityGeneratesDistinctIDs(t *testing.T) {
 	a := sanitizeIdentity(Settings{}).InstanceID
@@ -37,10 +35,9 @@ func TestSanitizeIdentityGeneratesDistinctIDs(t *testing.T) {
 	}
 }
 
-// TestSanitizeIdentityTrimsInstanceID: a stored id is a settings-field value
-// like any other, so it goes through the same trim as InstanceName rather
-// than being taken on faith - the difference is only that a BLANK result
-// here gets a fresh id minted instead of staying blank.
+// A stored id is a settings-field value like any other, so it goes through the
+// same trim as InstanceName. The difference is that a blank result gets a fresh
+// id minted instead of staying blank.
 func TestSanitizeIdentityTrimsInstanceID(t *testing.T) {
 	got := sanitizeIdentity(Settings{InstanceID: "  abc123  "}).InstanceID
 	if got != "abc123" {
@@ -66,9 +63,8 @@ func TestSanitizeIdentityTrimsEachDomain(t *testing.T) {
 	}
 }
 
-// TestSanitizeIdentityCapsKnownDomains proves maxKnownDomains actually bounds
-// the list, so a build behind a rotating set of throwaway subdomains cannot
-// grow this field forever (see its own doc comment).
+// maxKnownDomains bounds the list, so a build behind a rotating set of
+// throwaway subdomains cannot grow this field forever.
 func TestSanitizeIdentityCapsKnownDomains(t *testing.T) {
 	var in []string
 	for i := 0; i < maxKnownDomains+5; i++ {

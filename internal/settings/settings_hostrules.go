@@ -1,13 +1,11 @@
 package settings
 
-// The two exception tables: what ONE host is allowed to differ in, and what
-// ONE kind of failure is allowed to differ in.
+// The two exception tables: what one host may differ in, and what one kind of
+// failure may differ in.
 //
-// Every value in here overrides a number that already exists a level above it,
-// and every zero means "no opinion, use the level above" - the same convention
-// Chunks and Task.Chunks already carry. That is what makes an empty table mean
-// "behave exactly as this build behaved before the table existed": nobody gets
-// a different queue out of an update they did not read.
+// Every value here overrides a number that exists a level above it, and every
+// zero means "no opinion, use the level above", the convention Chunks and
+// Task.Chunks carry. An empty table therefore changes nothing.
 
 import (
 	"strings"
@@ -16,37 +14,31 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/rules"
 )
 
-// The built-in backoff, which is what an install with an empty retry table
-// gets: fifteen seconds, doubling, stopping at ten minutes.
-//
-// Those two numbers were written into app.retryDelay and nowhere else until
-// this table existed. They are here now because this is the file that has to
-// resolve a zero into something, and a second copy of the pair is a second one
-// to forget when the first moves.
+// The built-in backoff an install with an empty retry table gets: fifteen
+// seconds, doubling, stopping at ten minutes. They live here because this is
+// the file that resolves a zero into something, and app.retryDelay reads them
+// rather than keeping a second copy.
 const (
 	DefaultRetryDelay = 15 * time.Second
 	DefaultRetryMax   = 10 * time.Minute
 )
 
-// maxRetryWait bounds a configured delay, in seconds. A day is far past any
-// hoster cool-down anybody has ever had to wait out, and it is here so that a
-// typed 999999999 arms a timer somebody can still see fire rather than one
-// that lands after the machine has been rebooted a hundred times.
+// maxRetryWait bounds a configured delay, in seconds. A day is past any hoster
+// cool-down, and it means a typed 999999999 arms a timer somebody can still see
+// fire rather than one that lands after a hundred reboots.
 const maxRetryWait = 24 * 60 * 60
 
 // RetryRule is one entry of the retry policy.
 //
-// It exists because a single doubling backoff cannot describe what hosters
-// actually do. Fifteen seconds doubling to ten minutes asks a host with a
-// one-hour block six times inside those ten minutes and then gives up, which
-// is strictly worse than waiting once and asking when the block is over: the
-// six attempts spend the queue's slots, they are all refused, and the one that
-// would have worked is never made.
+// A single doubling backoff cannot describe what hosters do. Fifteen seconds
+// doubling to ten minutes asks a host with a one-hour block six times inside
+// those ten minutes and then gives up: the six attempts spend the queue's
+// slots, they are all refused, and the one that would have worked is never
+// made.
 //
-// Delay and Max are SECONDS, like every other duration in this struct, because
-// this is what settings.json holds and a JSON number of nanoseconds is not
-// something anybody can read or type. Tries is attempts, counted the way
-// MaxRetries is.
+// Delay and Max are seconds, like every other duration in this struct, because
+// that is what settings.json holds and nobody types nanoseconds. Tries is
+// attempts, counted the way MaxRetries is.
 type RetryRule struct {
 	// Delay is the wait before the first retry. Zero takes the level above.
 	Delay int `json:"delay,omitempty"`
@@ -57,17 +49,15 @@ type RetryRule struct {
 	Tries int `json:"tries,omitempty"`
 	// Never settles the task without arming any retry, as its own end state:
 	// not "failed after three attempts" but "this will not be tried again".
-	// See core.Task.GaveUp for why the two have to read differently on a
-	// list - raising MaxRetries mends the first and does nothing for the
-	// second.
+	// The two read differently on a list, see core.Task.GaveUp: raising
+	// MaxRetries mends the first and does nothing for the second.
 	Never bool `json:"never,omitempty"`
 }
 
-// merge fills this rule's zeroes from the one below it in the chain and
-// returns the result. It is per FIELD rather than per rule, deliberately: a
-// host entry that says nothing but "wait an hour" must not also silence the
-// attempt count a reason entry set, which is exactly what "the most specific
-// whole rule wins" would do.
+// merge fills this rule's zeroes from the one below it in the chain and returns
+// the result. Per field rather than per rule: a host entry saying nothing but
+// "wait an hour" must not also silence the attempt count a reason entry set,
+// which is what "the most specific whole rule wins" would do.
 func (r RetryRule) merge(under RetryRule) RetryRule {
 	if r.Delay <= 0 {
 		r.Delay = under.Delay
@@ -78,9 +68,9 @@ func (r RetryRule) merge(under RetryRule) RetryRule {
 	if r.Tries <= 0 {
 		r.Tries = under.Tries
 	}
-	// Never is an OR and not a fallback: either level saying "do not try this
+	// Never is an or and not a fallback: either level saying "do not try this
 	// again" is an instruction, and a host rule with Never unset is a host
-	// nobody has said that about, not a host overruling the reason table.
+	// nobody has said that about rather than one overruling the reason table.
 	r.Never = r.Never || under.Never
 	return r
 }
@@ -88,49 +78,44 @@ func (r RetryRule) merge(under RetryRule) RetryRule {
 // RetryPolicy is the whole retry configuration: the instance-wide backoff and
 // the per-reason table.
 //
-// ByReason is keyed by core.Reason's own string form ("limit", "network",
-// "gone", ...) - the taxonomy internal/core already publishes, not a second
-// vocabulary invented here. An unknown key is inert rather than an error: the
-// taxonomy grows, and a key that names nothing simply never matches a failure.
-// It is a string key rather than a typed one because a map key in JSON is a
-// string whatever Go calls it, and because this package deliberately does not
-// import internal/core to spell one constant.
+// ByReason is keyed by core.Reason's string form ("limit", "network",
+// "gone", ...), the taxonomy internal/core publishes rather than a second
+// vocabulary. An unknown key is inert rather than an error: the taxonomy grows,
+// and a key that names nothing never matches a failure. A string key rather
+// than a typed one, because a map key in JSON is a string whatever Go calls it,
+// and because this package does not import internal/core for one constant.
 type RetryPolicy struct {
 	// Delay and Max are the instance-wide backoff, in seconds. Zero on either
 	// keeps the built-in pair above.
 	Delay int `json:"delay"`
 	Max   int `json:"max"`
-	// ByReason is the per-failure table. Empty - the default - means every
-	// failure gets the same backoff, which is what this build did before the
-	// table existed.
+	// ByReason is the per-failure table. Empty, the default, gives every
+	// failure the same backoff.
 	ByReason map[string]RetryRule `json:"byReason"`
 }
 
 // HostRule is everything one host pattern may differ in.
 //
-// ONE TABLE, not three keyed by the same host: connections, chunk count and
-// retry policy are all answers to "what does THIS hoster tolerate", and a
-// person who has just discovered that a host allows two connections and blocks
-// for an hour should write that down in one place. Three tables would be three
-// places to spell the same host, and two of them to forget.
+// One table rather than three keyed by the same host: connections, chunk count
+// and retry policy all answer what a given hoster tolerates, and somebody who
+// has just discovered that a host allows two connections and blocks for an hour
+// writes that down in one place.
 type HostRule struct {
 	// MaxPerHost is this host's own simultaneous-download ceiling. Zero takes
-	// the global MaxPerHost, which is what every host got before this table
-	// existed.
+	// the global MaxPerHost.
 	MaxPerHost int `json:"maxPerHost,omitempty"`
-	// Chunks is how many connections ONE download from this host opens. Zero
+	// Chunks is how many connections one download from this host opens. Zero
 	// takes the global Chunks, and the built-in default behind that.
 	//
-	// It is an OVERRIDE and not a ceiling, which is the one place this table
-	// differs from what a resolver reports (see app.connsFor). What a resolver
-	// says is a report about the host and may only ever lower the number; this
-	// is a person writing down what they want, so it has to be able to say
-	// "eight here" on an instance whose global is four. It still passes
-	// through every ceiling afterwards, so a resolver that knows the host
-	// permits two still wins over a hopeful eight.
+	// An override and not a ceiling, which is where this table differs from
+	// what a resolver reports (see app.connsFor). A resolver's figure is a
+	// report about the host and may only lower the number; this is a person
+	// writing down what they want, so it can say eight on an instance whose
+	// global is four. It still passes through every ceiling afterwards, so a
+	// resolver that knows the host permits two wins over a hopeful eight.
 	Chunks int `json:"chunks,omitempty"`
-	// Retry is this host's own backoff, layered over the per-reason table -
-	// see RetryRule.merge for how the two combine.
+	// Retry is this host's own backoff, layered over the per-reason table. See
+	// RetryRule.merge for how the two combine.
 	Retry RetryRule `json:"retry,omitzero"`
 }
 
@@ -139,7 +124,7 @@ type HostRule struct {
 // deals in settings.json's units.
 type RetryPlan struct {
 	// Delay is the wait before the first retry, Max where the doubling stops.
-	// Both are always set - RetryFor resolves the zeroes - so a caller never
+	// RetryFor resolves the zeroes, so both are always set and a caller never
 	// has to know the built-in pair.
 	Delay time.Duration
 	Max   time.Duration
@@ -153,10 +138,9 @@ type RetryPlan struct {
 // form, host the file host the link is on.
 //
 // The chain is host rule, then reason rule, then the instance-wide numbers,
-// then the built-in pair - resolved field by field, so an install that has
-// configured exactly one thing changes exactly that one thing. With both
-// tables empty this returns the fifteen-seconds-to-ten-minutes backoff and
-// MaxRetries, which is precisely what the hard-coded version did.
+// then the built-in pair, resolved field by field so that an install which has
+// configured one thing changes one thing. With both tables empty it returns the
+// fifteen-seconds-to-ten-minutes backoff and MaxRetries.
 func (s Settings) RetryFor(reason, host string) RetryPlan {
 	rule := s.HostRuleFor(host).Retry.
 		merge(s.Retry.ByReason[strings.TrimSpace(reason)]).
@@ -175,29 +159,27 @@ func (s Settings) RetryFor(reason, host string) RetryPlan {
 	}
 	if plan.Max < plan.Delay {
 		// A ceiling below the first wait makes that wait unreachable, so the
-		// number somebody typed as the delay would never once BE the delay.
-		// Ordinarily this is the built-in ten-minute cap meeting a hand-written
-		// one-hour delay, and the hand-written one is the one that was meant.
+		// number somebody typed as the delay would never be the delay. Usually
+		// this is the built-in ten-minute cap meeting a hand-written one-hour
+		// delay, and the hand-written one is what was meant.
 		plan.Max = plan.Delay
 	}
 	return plan
 }
 
 // HostRuleFor is the table entry that applies to host, or the zero rule when
-// the table has nothing to say about it - which is every host on an install
-// that never opened the page.
+// the table has nothing to say about it.
 //
-// A pattern matches the host itself and any subdomain of it, on a dot
-// boundary: "rapidgator.net" covers rg.rapidgator.net and does not cover
+// A pattern matches the host itself and any subdomain of it, on a dot boundary:
+// "rapidgator.net" covers rg.rapidgator.net and does not cover
 // notrapidgator.net. "*.rapidgator.net" is accepted as the same pattern spelled
-// out, so a line pasted from somewhere else does not silently match nothing.
+// out, so a line pasted from somewhere else does not match nothing.
 //
-// The most specific match wins, which is the longest pattern: an entry for
-// "dl3.example.com" beats one for "example.com" on a link from that server.
-// Two patterns of equal length that both match are settled by comparing them
-// as text, which is arbitrary but FIXED - Go's map iteration is not, and a
-// table that answered differently on alternate passes would be a queue that
-// behaves differently every time it is looked at.
+// The longest matching pattern wins: an entry for "dl3.example.com" beats one
+// for "example.com" on a link from that server. Two patterns of equal length
+// are settled by comparing them as text, which is arbitrary but fixed. Go's map
+// iteration is not, and a table answering differently on alternate passes would
+// be a queue that behaves differently every time it is looked at.
 func (s Settings) HostRuleFor(host string) HostRule {
 	host = strings.ToLower(strings.TrimSpace(host))
 	if host == "" || len(s.HostRules) == 0 {
@@ -234,9 +216,9 @@ func hostMatchesPattern(pattern, host string) bool {
 // sanitizeHostRules bounds both tables and drops the entries that could never
 // match anything.
 //
-// The map is rebuilt rather than edited in place: what the caller handed in is
-// still holding the same map, and a settings document that keeps changing
-// underneath whoever submitted it is a bug people find months later.
+// The map is rebuilt rather than edited in place: the caller still holds the
+// same map, and a settings document that changes underneath whoever submitted
+// it is a bug people find months later.
 func sanitizeHostRules(n Settings) Settings {
 	n.Retry.Delay = clampSeconds(n.Retry.Delay)
 	n.Retry.Max = clampSeconds(n.Retry.Max)
@@ -247,8 +229,8 @@ func sanitizeHostRules(n Settings) Settings {
 	out := make(map[string]HostRule, len(n.HostRules))
 	for raw, rule := range n.HostRules {
 		if normalizeHostPattern(raw) == "" {
-			// A blank pattern matches nothing at all, so keeping it would put a
-			// row on the page that can never fire and can never be explained.
+			// A blank pattern matches nothing, so keeping it would put a row on
+			// the page that can never fire.
 			continue
 		}
 		if rule.MaxPerHost < 0 {
@@ -261,10 +243,9 @@ func sanitizeHostRules(n Settings) Settings {
 			rule.Chunks = 0
 		}
 		if rule.Chunks > rules.MaxChunks {
-			// The engine will not honour more, so a bigger number here is a
-			// promise nothing downstream keeps - app.connsFor cuts it anyway,
-			// and cutting it at the point it is SAVED is what makes the page
-			// show what will actually happen.
+			// The engine will not honour more, and app.connsFor cuts it anyway.
+			// Cutting it where it is saved is what makes the page show what
+			// will happen.
 			rule.Chunks = rules.MaxChunks
 		}
 		rule.Retry = sanitizeRetryRule(rule.Retry)
@@ -274,9 +255,9 @@ func sanitizeHostRules(n Settings) Settings {
 	return n
 }
 
-// maxConcurrentCeiling is the ceiling sanitizeQueue already puts on
-// MaxConcurrent, applied to a per-host override for the same reason: this is a
-// count of live transfers, and a four-digit one is a typo rather than a wish.
+// maxConcurrentCeiling is the ceiling sanitizeQueue puts on MaxConcurrent,
+// applied to a per-host override for the same reason: this counts live
+// transfers, and a four-digit one is a typo rather than a wish.
 const maxConcurrentCeiling = 64
 
 func sanitizeRetryTable(in map[string]RetryRule) map[string]RetryRule {

@@ -1,44 +1,32 @@
 package settings
 
 // Where this instance's own relay lives. A relay is the third point two
-// instances behind different NATs can both reach: each one dials OUT to it,
-// so neither has to be reachable from the other, which is the only way two
-// desktop installs on separate networks can ever see each other (see the
-// self-hosted relay design spec for the full reasoning, and for why this
-// project ships the relay as a component people run themselves rather than
-// as a service it operates for them).
+// instances behind different NATs can both reach: each dials out to it, so
+// neither has to be reachable from the other, which is the only way two desktop
+// installs on separate networks can see each other.
 //
-// What lives here is only the relay's ADDRESS - "https://relay.example.com",
-// "ws://192.168.20.11:8760". That is public identity in exactly the sense
-// KnownDomains next door is: it names infrastructure, it does not unlock it,
-// and it is no more sensitive in settings.json than the domain this instance
-// already answers on.
+// Only the relay's address lives here, "https://relay.example.com" or
+// "ws://192.168.20.11:8760". That is public identity in the sense KnownDomains
+// next door is: it names infrastructure without unlocking it.
 //
-// The relay KEY deliberately does NOT live here. Possession of the key is
-// the entire authorization check the relay makes - there is no account and
-// no password behind it - so it is a credential, and it is stored the way
-// this app already stores credentials: sealed in internal/accounts under
-// relay.AccountService, beside the TorBox and debrid keys. Public identity
-// and a secret do not belong in the same file, let alone the same sanitize
-// path, which is why this hook has exactly one field to clean.
+// The relay key does not live here. Possession of the key is the whole
+// authorization check the relay makes, with no account and no password behind
+// it, so it is a credential and is sealed in internal/accounts under
+// relay.AccountService beside the TorBox and debrid keys. That is why this hook
+// has one field to clean.
 //
-// RelayServe is the other direction: this instance BEING the relay, on its
-// own address, for instances carrying the same key. It is worth being plain
-// about what it moves and what it does not. It removes the second binary and
-// the second address: the relay lives under /relay/connect on the address
-// this instance already answers on, behind the same reverse proxy and the
-// same certificate, and the other instances point at that. What it cannot
-// remove is the requirement that SOMETHING be reachable from both sides. A
-// relay is the third point two NATed instances both dial out to, so the one
-// hosting it has to be reachable, and switching it on inside a desktop
-// install that nothing outside can reach changes nothing about what can
-// reach it.
+// RelayServe is the other direction: this instance being the relay, on its own
+// address, for instances carrying the same key. It removes the second binary
+// and the second address, since the relay lives under /relay/connect on the
+// address this instance already answers on, behind the same reverse proxy and
+// certificate. It does not remove the requirement that something be reachable
+// from both sides, so switching it on inside a desktop install nothing outside
+// can reach changes nothing.
 //
-// It carries no address of its own. The address is this instance's, which it
-// already knows and already shows on the same page, and a second copy here
-// would be a field that goes stale the first time a domain changes. Nor is
-// it a second key: it admits exactly the key this instance already stores,
-// so "my relay" is one key rather than two that have to be kept in step.
+// It carries no address of its own, because the address is this instance's,
+// which it already knows and shows on the same page, and a second copy would go
+// stale the first time a domain changed. Nor is it a second key: it admits the
+// key this instance already stores.
 
 import "strings"
 
@@ -50,15 +38,12 @@ import "strings"
 // others simply 404.
 func sanitizeRelay(n Settings) Settings {
 	n.RelayURL = strings.TrimRight(strings.TrimSpace(n.RelayURL), "/")
-	// A bare host gets https:// put in front of it. The relay client refuses an
-	// address with no scheme outright (relay.connectURL), and a person who types
-	// the domain they gave their reverse proxy - which is what somebody reads
-	// "Adresse" as - would otherwise get a field that saved fine and a relay
-	// that never dialled, with nothing on screen connecting the two (jdp,
-	// 2026-09-06, on the placeholder: "soll da dann nicht besser stehen
-	// knightloader.mydomain.tld?"). https rather than http: a relay carries a
-	// credential, and guessing the insecure one would be guessing wrong in the
-	// direction that costs something.
+	// A bare host gets https:// put in front of it. relay.connectURL refuses an
+	// address with no scheme, so somebody typing the domain they gave their
+	// reverse proxy, which is what "Adresse" reads as, would otherwise get a
+	// field that saved fine and a relay that never dialled. https rather than
+	// http, because a relay carries a credential and the insecure guess is the
+	// one that costs something.
 	if n.RelayURL != "" && !strings.Contains(n.RelayURL, "://") {
 		n.RelayURL = "https://" + n.RelayURL
 	}
