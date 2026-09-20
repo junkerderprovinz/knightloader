@@ -9,13 +9,9 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/core"
 )
 
-// TestOneStepMovesSlideTheWholeSelection is the block move.
-//
-// Swapping each selected task with its neighbour one at a time looks like the
-// same thing and is not: two adjacent selected rows swap with each other and
-// cancel out, so a selection of three sits still while a selection of one
-// moves. Selecting more and having less happen is the kind of bug people work
-// around for months rather than report.
+// A one-step move slides the selection as a block. Swapping each selected task
+// with its neighbour instead would let two adjacent selected rows swap with each
+// other and cancel out, so a selection of three would sit still.
 func TestOneStepMovesSlideTheWholeSelection(t *testing.T) {
 	a := newOrderApp(t)
 	stage(a, "a", "b", "c", "d", "e")
@@ -33,12 +29,9 @@ func TestOneStepMovesSlideTheWholeSelection(t *testing.T) {
 	wantOrder(t, a, "c e d b a")
 }
 
-// TestAMoveNeverCrossesAPriorityBand pins the promise the one-step moves make.
-//
 // Priority outranks the manual position, so a task lifted above a
-// higher-priority one sorts straight back to where it was. Renumbering across
-// the boundary would leave the user pressing a button that does nothing every
-// few presses, with no way to tell that press from a broken one.
+// higher-priority one sorts straight back. Renumbering across the boundary
+// would leave a button that does nothing every few presses.
 func TestAMoveNeverCrossesAPriorityBand(t *testing.T) {
 	a := newOrderApp(t)
 	stage(a, "high", "n1", "n2")
@@ -61,13 +54,9 @@ func TestAMoveNeverCrossesAPriorityBand(t *testing.T) {
 	wantOrder(t, a, "high n1 n2")
 }
 
-// TestRaisingPriorityJoinsTheBandAtItsEnd pins where a promoted link lands, and
-// that promoting a band somebody has ordered by hand does not scramble it.
-//
-// Last inside a higher band is still sooner than first inside a lower one, so
-// joining at the end is what "run this sooner" actually asked for. Keeping the
-// old position instead would seat the arrival by a number that described a
-// different band entirely.
+// Last inside a higher band is still sooner than first inside a lower one, so a
+// promoted link joins at the end. Keeping its old position would seat it by a
+// number that described a different band.
 func TestRaisingPriorityJoinsTheBandAtItsEnd(t *testing.T) {
 	a := newOrderApp(t)
 	stage(a, "h1", "h2", "n1", "n2")
@@ -82,13 +71,9 @@ func TestRaisingPriorityJoinsTheBandAtItsEnd(t *testing.T) {
 	wantOrder(t, a, "h1 h2 n2 n1")
 }
 
-// TestAPasteAfterAMoveLandsAtTheBack is why the renumbered run is negative.
-//
-// A task nobody has moved carries position zero. Numbering a band from zero
-// upwards would put every link pasted after a manual reorder ahead of the ones
-// already ordered, so the queue would reshuffle itself whenever anything was
-// added — with the newest link at the front, which is the opposite of what the
-// list has promised since the first line of it.
+// A task nobody has moved carries position zero, which is why a renumbered run
+// counts down. Numbering from zero upwards would put every link pasted after a
+// manual reorder ahead of the ones already ordered.
 func TestAPasteAfterAMoveLandsAtTheBack(t *testing.T) {
 	a := newOrderApp(t)
 	stage(a, "a", "b", "c")
@@ -99,9 +84,8 @@ func TestAPasteAfterAMoveLandsAtTheBack(t *testing.T) {
 	wantOrder(t, a, "c a b fresh")
 }
 
-// TestMoveByPackageCarriesTheRowsAFilterHid is what the package form is for. A
-// list narrowed by a search can only send the ids it can see, and a package
-// that arrives at the top in pieces is worse than one that did not move.
+// A list narrowed by a search can only send the ids it can see, so the package
+// form moves the rows the filter hid along with them.
 func TestMoveByPackageCarriesTheRowsAFilterHid(t *testing.T) {
 	a := newOrderApp(t)
 	stage(a, "loose1", "part1", "loose2", "part2")
@@ -115,10 +99,8 @@ func TestMoveByPackageCarriesTheRowsAFilterHid(t *testing.T) {
 	wantOrder(t, a, "part1 part2 loose1 loose2")
 }
 
-// TestMoveRefusesADirectionItDoesNotKnow keeps a client's typo from being
-// carried out. The form this replaced read everything that was not "top" as
-// "bottom", so a misspelled direction sent a selection to the end of the queue
-// and was answered with a 204.
+// A direction the server does not know is refused rather than read as one of
+// the four, so a client's typo does not move a selection somewhere else.
 func TestMoveRefusesADirectionItDoesNotKnow(t *testing.T) {
 	a := newOrderApp(t)
 	stage(a, "a", "b", "c")
@@ -128,9 +110,8 @@ func TestMoveRefusesADirectionItDoesNotKnow(t *testing.T) {
 	wantOrder(t, a, "a b c")
 }
 
-// TestReorderBandAppliesTheDraggedOrder is the whole point of ReorderBand: a
-// drag names an arbitrary new order for one band in a single request, which is
-// exactly what a relative step cannot do without letting two drags interleave.
+// ReorderBand takes an arbitrary new order for one band in a single request,
+// which a run of relative steps cannot do without letting two drags interleave.
 func TestReorderBandAppliesTheDraggedOrder(t *testing.T) {
 	a := newOrderApp(t)
 	stage(a, "a", "b", "c", "d")
@@ -145,10 +126,9 @@ func TestReorderBandAppliesTheDraggedOrder(t *testing.T) {
 	wantOrder(t, a, "d b a c")
 }
 
-// TestReorderRefusesIdsFromTwoBands pins the same boundary MoveIn's own moves
-// keep: a drag surface only ever shows one band at a time, so ids spanning two
-// is a bug upstream, and reconciling it quietly would put one band's row
-// inside another's.
+// The boundary MoveIn keeps: a drag surface shows one band at a time, so ids
+// spanning two are a bug upstream, and reconciling them quietly would seat one
+// band's row inside another's.
 func TestReorderRefusesIdsFromTwoBands(t *testing.T) {
 	a := newOrderApp(t)
 	stage(a, "high", "n1", "n2")
@@ -162,18 +142,11 @@ func TestReorderRefusesIdsFromTwoBands(t *testing.T) {
 	wantOrder(t, a, "high n1 n2")
 }
 
-// TestReorderAppliesAPartialBandInItsOwnSlots is the fix for the reason drag
-// and drop never worked on any surface at all.
-//
-// This used to be TestReorderRefusesAPartialBand, and it was pinning a rule
-// nothing could satisfy. A band is (forced, priority) over EVERY task the app
-// holds, and no screen shows one: the app has a download tab and a collector
-// tab, which on the live instance were 14 and 24 tasks of the same single band.
-// Every drag either tab could make therefore named half a band and was refused.
-//
-// A partial list now means what a drag inside one visible list means: these
-// tasks, in this order, in the slots they already occupy. "c" is not named, so
-// "c" does not move - the two that were named simply swap around it.
+// A band is (forced, priority) over every task the app holds, and no screen
+// shows a whole one: the download tab and the collector tab each show part of
+// it. A partial list therefore means what a drag inside one visible list means,
+// these tasks in this order in the slots they already occupy, so an unnamed row
+// stays where it is and the named ones swap around it.
 func TestReorderAppliesAPartialBandInItsOwnSlots(t *testing.T) {
 	a := newOrderApp(t)
 	stage(a, "a", "b", "c", "d")
@@ -186,10 +159,9 @@ func TestReorderAppliesAPartialBandInItsOwnSlots(t *testing.T) {
 	wantOrder(t, a, "d b c a")
 }
 
-// TestReorderLeavesUnnamedTasksAlone is the promise the partial form has to
-// keep to be safe at all: two surfaces dragging in different halves of one band
-// must not scramble each other. Reordering the collector's half must leave the
-// queue's half in exactly the order the queue is running it.
+// Two surfaces dragging in different halves of one band do not scramble each
+// other: reordering the collector's half leaves the queue's half in the order
+// the queue is running it.
 func TestReorderLeavesUnnamedTasksAlone(t *testing.T) {
 	a := newOrderApp(t)
 	stage(a, "q1", "q2", "c1", "c2")
@@ -204,9 +176,8 @@ func TestReorderLeavesUnnamedTasksAlone(t *testing.T) {
 	wantOrder(t, a, "q1 q2 c2 c1")
 }
 
-// TestReorderRefusesAnUnknownId: an id nobody recognizes has nothing to
-// renumber, and applying the rest of the list around it would silently drop
-// the caller's mistake instead of reporting it.
+// An unknown id has nothing to renumber, and applying the rest of the list
+// around it would drop the caller's mistake instead of reporting it.
 func TestReorderRefusesAnUnknownId(t *testing.T) {
 	a := newOrderApp(t)
 	stage(a, "a", "b", "c")
@@ -217,20 +188,15 @@ func TestReorderRefusesAnUnknownId(t *testing.T) {
 	wantOrder(t, a, "a b c")
 }
 
-// --- helpers ---------------------------------------------------------------
-
 func newOrderApp(t *testing.T) *App {
 	t.Helper()
 	return newQueueApp(t)
 }
 
 // stage puts tasks in the wait queue in the order given, a second apart so the
-// created-at tiebreak is unambiguous.
-//
-// Every one of them is parked. The dispatcher passes a held link over and
-// leaves it exactly where it is in the queue, which is what makes this a test
-// about the order things wait in rather than one that hands five links to a
-// backend and reaches the network. Halting the queue instead is not enough: the
+// created-at tiebreak is unambiguous. They are parked, because the dispatcher
+// passes a held link over and leaves it where it is, so these tests stay about
+// the waiting order and off the network. Halting the queue is not enough: the
 // timetable owns that flag and writes it from its own goroutine.
 func stage(a *App, ids ...string) {
 	a.mu.Lock()
@@ -257,16 +223,13 @@ func wantOrder(t *testing.T, a *App, want string) {
 	}
 }
 
-// TestForcedRunsPastTheLimits is the other half of forcing, and the half that
-// was missing: sorting a task to the front only shortens its wait, and until the
-// dispatcher read the flag a forced task queued behind a full slot table exactly
-// like every other one. The field's own comment promised "past the concurrency
-// and per-host limits", and nothing kept that promise.
+// Sorting a forced task to the front only shortens its wait, so the dispatcher
+// reads the flag as well and starts it past the concurrency and per-host limits.
 func TestForcedRunsPastTheLimits(t *testing.T) {
 	a := newQueueApp(t)
 	a.mu.Lock()
-	// The limits are already spent, and by tasks on the one host the forced link
-	// also uses - so both gates are shut, not just the global one.
+	// The limits are spent by tasks on the one host the forced link also uses,
+	// so both gates are shut rather than only the global one.
 	for i := 0; i < 4; i++ {
 		id := fmt.Sprintf("busy%d", i)
 		a.tasks[id] = &core.Task{ID: id, URL: "https://host.example/busy.bin",
@@ -322,15 +285,9 @@ func TestForcedPoolIsBounded(t *testing.T) {
 	}
 }
 
-// TestRestartRoutesFromScratch is the difference between a restart that can
-// help and one that cannot.
-//
-// A restart used to keep the resolver that had just failed, which is the one
-// choice guaranteed to fail the same way. On the live instance that showed up as
-// fourteen rapidgator links frozen on "jd" - staged before a TorBox key existed,
-// and unmoved by any number of restarts, because JD has no tracked account and
-// so never counts as unroutable. The standing advice was "delete them and paste
-// them again", which is a person doing by hand what clearing one field does.
+// A restart clears the resolver, because keeping the one that just failed is
+// the single choice guaranteed to fail the same way. A link pinned to a backend
+// with no tracked account never counts as unroutable, so nothing else moves it.
 func TestRestartRoutesFromScratch(t *testing.T) {
 	a := newOrderApp(t)
 	stage(a, "a")

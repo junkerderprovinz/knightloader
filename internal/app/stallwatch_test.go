@@ -1,8 +1,7 @@
 package app
 
-// The stall watcher (app_stallwatch.go). Nothing here waits for a real
-// standstill: stallPass takes the clock as an argument precisely so a
-// twenty-minute silence can be played out in a millisecond, and so the
+// The stall watcher in app_stallwatch.go. stallPass takes the clock as an
+// argument, so a twenty-minute silence plays out in a millisecond and the
 // assertions are about the rule rather than about how long the test ran.
 
 import (
@@ -22,9 +21,9 @@ import (
 // instead of opening a socket to somebody's server.
 const stallHost = "stalled.example"
 
-// hostResolver matches every link on one host. hostcap_test.go's own
-// hostCapResolver matches a single fixed URL, which is not enough here: these
-// tests need several links on the same host to exercise a per-host limit.
+// hostResolver matches every link on one host, where hostcap_test.go's
+// hostCapResolver matches a single fixed URL. These tests need several links on
+// one host to exercise a per-host limit.
 type hostResolver struct {
 	id   string
 	host string
@@ -74,11 +73,8 @@ func runningTask(a *App, id string, loaded int64) *core.Task {
 	return task
 }
 
-// TestAStandingStillTransferIsMarkedWithWhenItStopped is the mark itself, and
-// the assertion that matters is the timestamp: the row has to count up from the
-// moment the bytes stopped, not from the moment the watcher got round to
-// noticing. Marked at the wrong end, a stall found after a night would read as
-// "five seconds" every morning.
+// The row counts up from the moment the bytes stopped rather than the moment
+// the watcher noticed, or a stall found after a night reads as five seconds.
 func TestAStandingStillTransferIsMarkedWithWhenItStopped(t *testing.T) {
 	a, _ := stallApp(t, func(s *settings.Settings) { s.StallTimeout = 120 })
 	runningTask(a, "t1", 4096)
@@ -98,14 +94,12 @@ func TestAStandingStillTransferIsMarkedWithWhenItStopped(t *testing.T) {
 		t.Fatal("a transfer that has moved no bytes for over two minutes is not marked at all")
 	}
 	if !got.Equal(base) {
-		t.Errorf("StalledSince = %s, want %s - the moment the bytes stopped, not the moment it was noticed", got, base)
+		t.Errorf("StalledSince = %s, want %s, the moment the bytes stopped", got, base)
 	}
 }
 
-// TestBytesAgainTakeTheMarkOff is what makes the mark safe to trust: it is
-// recomputed rather than remembered, so a connection that comes back on its own
-// clears itself and nobody is left reading a warning about something that is
-// over. Same property core.Waiting has.
+// The mark is recomputed rather than remembered, as core.Waiting is, so a
+// connection that comes back on its own clears its own warning.
 func TestBytesAgainTakeTheMarkOff(t *testing.T) {
 	a, _ := stallApp(t, func(s *settings.Settings) { s.StallTimeout = 60 })
 	runningTask(a, "t1", 1000)
@@ -126,15 +120,11 @@ func TestBytesAgainTakeTheMarkOff(t *testing.T) {
 	}
 }
 
-// TestACaptchaWaitIsNotAStall is the distinction the whole feature turns on. A
-// download sitting on a captcha moves no bytes for as long as it takes a human
-// to answer, and it is the healthiest row in the queue - something is expected
-// to happen and there is somebody who can make it happen.
-//
-// The second half is the part that is easy to leave out: the wait must not
-// merely be ignored, it must RESET the clock. Ignored only, the ten minutes
-// somebody spent away from the keyboard would still be sitting in the watcher's
-// record, and the row would be marked the instant they answered.
+// A download sitting on a captcha moves no bytes for as long as it takes a
+// human to answer, and it is the healthiest row in the queue. The wait also
+// resets the clock rather than merely being ignored: otherwise the ten minutes
+// spent away from the keyboard stay in the record and the row is marked the
+// instant they answer.
 func TestACaptchaWaitIsNotAStall(t *testing.T) {
 	a, _ := stallApp(t, func(s *settings.Settings) { s.StallTimeout = 60 })
 	runningTask(a, "t1", 512)
@@ -149,18 +139,16 @@ func TestACaptchaWaitIsNotAStall(t *testing.T) {
 		t.Fatalf("a link waiting for a human was marked as standing still (%s)", got)
 	}
 
-	// Answered: the challenge leaves the store, and the ten minutes it took must
+	// Answered: the challenge leaves the store, and the ten minutes it took do
 	// not count towards the timeout.
 	a.captchaStateFor().store.Sync(nil)
 	a.stallPass(base.Add(10*time.Minute + 30*time.Second))
 	if got := liveTask(a, "t1").StalledSince; !got.IsZero() {
-		t.Errorf("marked 30s after the captcha was answered (%s) - the wait was counted towards the timeout", got)
+		t.Errorf("marked 30s after the captcha was answered (%s); the wait counted towards the timeout", got)
 	}
 }
 
-// TestNothingIsMarkedWhileTheTimeoutIsOff is the promise every install that
-// never opens the settings page relies on. Zero is the off switch, not a very
-// short timeout.
+// Zero is the off switch, not a very short timeout.
 func TestNothingIsMarkedWhileTheTimeoutIsOff(t *testing.T) {
 	a, _ := stallApp(t, func(s *settings.Settings) { s.StallTimeout = 0 })
 	runningTask(a, "t1", 77)
@@ -172,9 +160,8 @@ func TestNothingIsMarkedWhileTheTimeoutIsOff(t *testing.T) {
 	}
 }
 
-// TestSwitchingTheWatcherOffTakesBackWhatItWrote. A reading left on a row after
-// the thing that writes it has been turned off is the last reading it ever
-// took, sitting there for ever with nothing left to update it.
+// A reading left on a row after the watcher is switched off would sit there
+// with nothing left to update it.
 func TestSwitchingTheWatcherOffTakesBackWhatItWrote(t *testing.T) {
 	a, _ := stallApp(t, func(s *settings.Settings) { s.StallTimeout = 60 })
 	runningTask(a, "t1", 10)
@@ -197,12 +184,9 @@ func TestSwitchingTheWatcherOffTakesBackWhatItWrote(t *testing.T) {
 	}
 }
 
-// TestAMarkComesOffATaskThatStoppedRunning covers the paths this file does not
-// own. A hand restart (RestartTasks, app_queue.go) takes a task out of the
-// running set and puts it back in the queue without knowing this mark exists,
-// and a mark nobody takes off then sits on a queued row for ever. The watcher
-// walks what it has marked for exactly this reason, rather than only what is
-// running.
+// RestartTasks takes a task out of the running set and puts it back in the
+// queue without knowing this mark exists, so the watcher walks what it has
+// marked rather than only what is running.
 func TestAMarkComesOffATaskThatStoppedRunning(t *testing.T) {
 	a, _ := stallApp(t, func(s *settings.Settings) { s.StallTimeout = 60 })
 	runningTask(a, "t1", 4096)
@@ -213,8 +197,8 @@ func TestAMarkComesOffATaskThatStoppedRunning(t *testing.T) {
 		t.Fatal("not marked, so this test proves nothing about clearing it")
 	}
 
-	// What a restart from elsewhere in the package leaves behind: out of the
-	// running set, back in the queue, mark untouched.
+	// What a restart from elsewhere leaves behind: out of the running set, back
+	// in the queue, mark untouched.
 	a.mu.Lock()
 	delete(a.active, "t1")
 	a.tasks["t1"].Status = core.StatusQueued
@@ -227,9 +211,8 @@ func TestAMarkComesOffATaskThatStoppedRunning(t *testing.T) {
 	}
 }
 
-// TestPausingAStalledTransferAnswersImmediately: the watcher would clean this
-// up within a tick anyway, but the row somebody is looking at has to be right
-// in the answer to the button they just pressed.
+// The watcher would clear the mark within a tick, but the answer to the button
+// somebody just pressed has to carry the right row already.
 func TestPausingAStalledTransferAnswersImmediately(t *testing.T) {
 	a, _ := stallApp(t, func(s *settings.Settings) { s.StallTimeout = 60 })
 	runningTask(a, "t1", 4096)
@@ -251,9 +234,8 @@ func TestPausingAStalledTransferAnswersImmediately(t *testing.T) {
 	}
 }
 
-// TestTheMarkAloneRestartsNothing separates the two halves deliberately: seeing
-// a stall costs nothing and says only what is true, while restarting throws
-// away the bytes the attempt did fetch. One must never imply the other.
+// Seeing a stall costs nothing, while restarting throws away the bytes the
+// attempt did fetch, so the mark never implies the restart.
 func TestTheMarkAloneRestartsNothing(t *testing.T) {
 	a, _ := stallApp(t, func(s *settings.Settings) { s.StallTimeout = 60 })
 	runningTask(a, "t1", 4096)
@@ -273,11 +255,9 @@ func TestTheMarkAloneRestartsNothing(t *testing.T) {
 	}
 }
 
-// TestAutomaticRestartIsCounted pins the opt-in half AND its ceiling in one
-// run, because the two are the same rule: the restart happens, it is counted on
-// the task, and once the count reaches the cap it stops happening. Without the
-// cap this is a loop against a host that is refusing, spending the queue's slot
-// and the previous attempt's bytes on every pass.
+// The opt-in restart and its ceiling are one rule: the restart happens, it is
+// counted on the task, and at the cap it stops. Without the cap this loops
+// against a refusing host, spending a queue slot and the last attempt's bytes.
 func TestAutomaticRestartIsCounted(t *testing.T) {
 	a, be := stallApp(t, func(s *settings.Settings) {
 		s.StallTimeout = 60
@@ -327,10 +307,9 @@ func TestAutomaticRestartIsCounted(t *testing.T) {
 	}
 }
 
-// TestATorrentIsMarkedButNeverRestarted. A torrent that has stopped moving has
-// found nobody to move bytes with, and the restart path deletes the partial
-// data before asking again - so an automatic restart hands the identical magnet
-// to the identical swarm, minus everything it had already fetched.
+// A torrent that has stopped moving has found nobody to move bytes with, and
+// the restart path deletes the partial data first, so restarting hands the same
+// magnet to the same swarm minus everything it had already fetched.
 func TestATorrentIsMarkedButNeverRestarted(t *testing.T) {
 	a, be := stallApp(t, func(s *settings.Settings) {
 		s.StallTimeout = 60
@@ -348,7 +327,7 @@ func TestATorrentIsMarkedButNeverRestarted(t *testing.T) {
 
 	got := liveTask(a, "t1")
 	if got.StalledSince.IsZero() {
-		t.Error("a torrent with no swarm is exactly what somebody needs to see, and it was not marked")
+		t.Error("a torrent with no swarm was not marked, which is the one thing worth seeing here")
 	}
 	if got.StallRestarts != 0 {
 		t.Errorf("a torrent was restarted %d times, dropping its partial data for nothing", got.StallRestarts)

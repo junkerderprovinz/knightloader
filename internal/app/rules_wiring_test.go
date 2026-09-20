@@ -26,12 +26,10 @@ func newRuleApp(t *testing.T, mutate func(s *settings.Settings, base string)) (*
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { a.Close() })
-	// The collector's HEAD, answered here instead of on the network. Turning
-	// crawling off below was supposed to mean "no test needs a network", and this
-	// was the hole in that promise: every staged link fired a real DNS lookup at
-	// a host.example address, and the failure landed whenever it landed. That is
-	// what made TestALateProbeDoesNotEraseTheReason fail on CI and pass here - a
-	// second writer nobody had ordered, racing the one the test was about.
+	// The collector's HEAD, answered here instead of on the network. Without it
+	// every staged link fires a real DNS lookup at a host.example address and
+	// writes its failure onto the task whenever that lands, which races whatever
+	// the test is about.
 	a.Probe = probeFunc(func(req *http.Request) (*http.Response, error) {
 		return probeAnswer(req, http.StatusOK), nil
 	})
@@ -80,15 +78,11 @@ func rejectRule(reason string) rules.Set {
 	}
 }
 
-// TestFilteredLinkIsVisibleWithItsReason is the promise the filter is built on.
-// JDownloader eats filtered links in silence: something is gone, nothing says
-// what or why, and the user reports it as a bug in the paste box. A link this
-// filter turns down has to be somewhere the user can find it, carrying the rule
-// that stopped it and the reason that rule gave.
-//
-// Somewhere, not in the collector. It is held: kept and persisted, but out of the
-// list, out of the queue and out of the counters — because a filter that is
-// working would otherwise fill the collector with the junk it just caught.
+// A link the filter turns down is somewhere the user can find it, carrying the
+// rule that stopped it and the reason that rule gave, rather than disappearing
+// the way JDownloader's filtered links do. It is held rather than collected:
+// kept and persisted, but out of the list, the queue and the counters, or a
+// working filter would fill the collector with what it just caught.
 func TestFilteredLinkIsVisibleWithItsReason(t *testing.T) {
 	cases := []struct {
 		name   string
@@ -98,8 +92,7 @@ func TestFilteredLinkIsVisibleWithItsReason(t *testing.T) {
 		{
 			name: "the rule's own words, with the rule named alongside them",
 			set:  rejectRule("sample files are not wanted here"),
-			// Both halves have to be there: the reason is what the user reads, the
-			// rule name is what they edit.
+			// The reason is what the user reads, the rule name is what they edit.
 			wantIn: []string{"sample files are not wanted here", "no samples"},
 		},
 		{
@@ -129,13 +122,13 @@ func TestFilteredLinkIsVisibleWithItsReason(t *testing.T) {
 				}
 			}
 			if len(got.MatchedRules) != 1 || got.MatchedRules[0] != "no samples" {
-				t.Errorf("matched rules = %v, want the one rule that caught it, as data and not only inside the sentence", got.MatchedRules)
+				t.Errorf("matched rules = %v, want the rule that caught it as data rather than only inside the sentence", got.MatchedRules)
 			}
 			if got.Resolver != "" {
-				t.Errorf("resolver = %q; a refused link must not be resolved at all", got.Resolver)
+				t.Errorf("resolver = %q; a refused link is not resolved", got.Resolver)
 			}
-			// The holding area is what the interface lists, so it has to be the
-			// same link and not merely a flag somewhere.
+			// The holding area is what the interface lists, so it holds the same
+			// link and not merely a flag.
 			held := a.FilteredLinks()
 			if len(held) != 1 || held[0].ID != got.ID {
 				t.Errorf("the holding area holds %d links, want the one that was refused", len(held))
@@ -144,9 +137,8 @@ func TestFilteredLinkIsVisibleWithItsReason(t *testing.T) {
 	}
 }
 
-// TestAHeldLinkCannotBeStarted is the other half of holding it. "Start
-// everything" reaches every collected task, so a link parked with a reason and
-// nothing else stopping it is a filter one button undoes.
+// "Start everything" reaches every collected task, so a link parked with a
+// reason and nothing else stopping it would be a filter one button undoes.
 func TestAHeldLinkCannotBeStarted(t *testing.T) {
 	a, _ := newRuleApp(t, func(s *settings.Settings, _ string) {
 		s.LinkFilter = rejectRule("sample files are not wanted here")
@@ -175,11 +167,9 @@ func TestAHeldLinkCannotBeStarted(t *testing.T) {
 	}
 }
 
-// TestRestoreLetsALinkPastTheRuleThatCaughtIt is the point of the holding area.
-// The commonest reason to open it is that the rule turned out to be too broad,
-// and the queue asks the filter one final time before any bytes move — so a
-// Restore that only un-parked the link would hand it straight back to the rule
-// that caught it, with the same sentence, and read as a button that does nothing.
+// The holding area is usually opened because a rule turned out to be too broad,
+// and the queue asks the filter once more before any bytes move, so a Restore
+// that only un-parked the link would hand it back to the rule that caught it.
 func TestRestoreLetsALinkPastTheRuleThatCaughtIt(t *testing.T) {
 	a, _ := newRuleApp(t, func(s *settings.Settings, _ string) {
 		s.LinkFilter = rejectRule("sample files are not wanted here")
@@ -198,15 +188,14 @@ func TestRestoreLetsALinkPastTheRuleThatCaughtIt(t *testing.T) {
 		t.Error("the restored link is still held")
 	}
 	if restored[0].SkipReason == "" {
-		t.Error("the reason was dropped; it is the record that the user overruled the filter, and the queue reads it")
+		t.Error("the reason was dropped; it records that the user overruled the filter, and the queue reads it")
 	}
 	if len(a.FilteredLinks()) != 0 {
 		t.Error("the link is still in the holding area after being restored")
 	}
 
-	// dispatchLocked settles what it refuses inside StartTasks, so if the rule
-	// were still in the way the refusal would already be on the task here. No
-	// waiting, and therefore nothing for a slow host to make flaky.
+	// dispatchLocked settles what it refuses inside StartTasks, so a rule still
+	// in the way would have written its refusal onto the task by this line.
 	a.StartTasks([]string{id})
 	a.mu.Lock()
 	live := *a.tasks[id]
@@ -216,10 +205,8 @@ func TestRestoreLetsALinkPastTheRuleThatCaughtIt(t *testing.T) {
 	}
 }
 
-// TestClearFilteredEmptiesOnlyTheHoldingArea guards the button next to Restore.
-// Clear is offered on a list of links somebody has decided they do not want, and
-// a Clear that reached past that list into the collector would delete work the
-// user is in the middle of.
+// Clear is offered on a list of links somebody has decided they do not want, so
+// reaching past that list into the collector would delete work in progress.
 func TestClearFilteredEmptiesOnlyTheHoldingArea(t *testing.T) {
 	a, _ := newRuleApp(t, func(s *settings.Settings, _ string) {
 		s.LinkFilter = rejectRule("sample files are not wanted here")
@@ -246,11 +233,9 @@ func TestClearFilteredEmptiesOnlyTheHoldingArea(t *testing.T) {
 	}
 }
 
-// TestARefusedPageIsNeverFetched is the entrance the collector's own funnel
-// does not cover. Every link reaches the list through stage, and stage asks the
-// filter first — but a pasted page is handed to the crawler before that, so a
-// rule written to keep this box away from a host would fetch from it once per
-// paste and only then refuse what came back.
+// Every link reaches the list through stage, which asks the filter first, but a
+// pasted page goes to the crawler before that. A rule written to keep this box
+// away from a host would otherwise fetch from it once per paste.
 func TestARefusedPageIsNeverFetched(t *testing.T) {
 	a, _ := newRuleApp(t, func(s *settings.Settings, _ string) {
 		s.Crawl = true
@@ -275,23 +260,18 @@ func TestARefusedPageIsNeverFetched(t *testing.T) {
 	}
 }
 
-// TestWhatTheQueueRefusesReachesTheUser is the half of the dispatch-time
-// refusal the check above cannot see. dispatchLocked settles a task under the
-// lock and takes no copy of it, so nothing was ever written to the store or sent
-// to a browser — and StartTasks, which snapshots before it dispatches, then
-// writes its own "queued, no error" copy over the top. The user is left with a
-// task that says queued forever, comes back paused after a restart, and carries
-// no reason anywhere: the same silent disappearance the staging record exists to
-// prevent, moved one button along.
+// A dispatch-time refusal has to reach the store and the browser. dispatchLocked
+// settles a task under the lock and takes no copy, and StartTasks snapshots
+// before it dispatches, so a refusal can be overwritten by a "queued, no error"
+// copy and leave a task that says queued forever and carries no reason.
 func TestWhatTheQueueRefusesReachesTheUser(t *testing.T) {
 	cases := []struct {
 		name    string
 		mutate  func(s *settings.Settings, base string)
 		prepare func(t *testing.T, base string)
-		// arm runs after the link is staged and before it is started. It is how
-		// the filter case reaches the queue at all: a rule that already existed
-		// would have held the link at the paste box, so the only way a filtered
-		// link is ever in the collector is that the rule was written after it.
+		// arm runs after the link is staged and before it is started. A rule
+		// that already existed would have held the link at the paste box, so a
+		// filtered link only reaches the collector when the rule came later.
 		arm    func(t *testing.T, a *App, base string)
 		link   string
 		wantIn string
@@ -341,8 +321,8 @@ func TestWhatTheQueueRefusesReachesTheUser(t *testing.T) {
 
 			a.StartTasks(nil) // the "start everything" button
 
-			// The store is what the list is rebuilt from, so it is the closest thing
-			// to what the user is looking at that a test can read.
+			// The list is rebuilt from the store, so it is the closest a test
+			// can read to what the user is looking at.
 			waitFor(t, "the refusal reaching the stored task", func() bool {
 				stored, err := a.Store.All()
 				if err != nil {
@@ -359,23 +339,18 @@ func TestWhatTheQueueRefusesReachesTheUser(t *testing.T) {
 	}
 }
 
-// TestALateProbeDoesNotEraseTheReason is the third writer of the error field
-// and the one that arrives last. The collector fires a HEAD at a plain file link
-// while it waits, and that answer routinely lands after the user has pressed
-// start and the dispatcher has already refused the task. Left free to write, the
-// probe replaces the refusal with "offline: ..." — or, on a link that turned out
-// to be perfectly fine, with the empty string, leaving a failed download that
-// says nothing at all about why.
+// The collector fires a HEAD at a plain file link while it waits, and the answer
+// often lands after the user pressed start and the dispatcher refused the task.
+// Free to write, the probe would replace the refusal with "offline: ...", or on
+// a link that is fine with the empty string, leaving a failure with no reason.
 func TestALateProbeDoesNotEraseTheReason(t *testing.T) {
 	a, base := newRuleApp(t, func(s *settings.Settings, _ string) {
 		s.CollisionPolicy = string(collide.Skip)
 	})
-	// The probe is held until this test lets it answer, which is the whole
-	// scenario: the HEAD is in flight while the user presses start, and it comes
-	// back after the dispatcher has already refused the task. Held rather than
-	// simulated by calling setAvailability directly - the point is that the real
-	// path cannot erase the reason, and a test that stands in for that path
-	// proves nothing about it.
+	// The probe is held until this test lets it answer, so the HEAD is in
+	// flight while the user presses start and comes back after the dispatcher
+	// has refused the task. Held rather than simulated through setAvailability,
+	// because the claim is about the real path.
 	answer := make(chan struct{})
 	a.Probe = probeFunc(func(req *http.Request) (*http.Response, error) {
 		<-answer
@@ -416,14 +391,13 @@ func TestALateProbeDoesNotEraseTheReason(t *testing.T) {
 		t.Errorf("the task reads %q, want the reason it was refused for", live.Error)
 	}
 	if live.Online != core.AvailOnline {
-		t.Errorf("availability = %q; what the probe learned about the link is still worth keeping", live.Online)
+		t.Errorf("availability = %q; what the probe learned about the link is worth keeping", live.Online)
 	}
 }
 
-// TestPackagizerNamesThePackageAndThePlaceItLands is the other half of the
-// order that matters: the Packagizer has to run before the task is staged, so
-// the folder it picks is the folder dirFor answers with. Run afterwards, its
-// folder action names a directory nothing ever writes to.
+// The Packagizer runs before the task is staged, so the folder it picks is the
+// one dirFor answers with. Run afterwards, its folder action would name a
+// directory nothing writes to.
 func TestPackagizerNamesThePackageAndThePlaceItLands(t *testing.T) {
 	var target string
 	a, _ := newRuleApp(t, func(s *settings.Settings, base string) {
@@ -447,8 +421,8 @@ func TestPackagizerNamesThePackageAndThePlaceItLands(t *testing.T) {
 		}}}
 	})
 
-	// Pasted without a package name, which is exactly when derivePackage would
-	// otherwise step in and overwrite the rule's answer.
+	// Pasted without a package name, which is when derivePackage would step in
+	// and overwrite the rule's answer.
 	created := a.AddLinks([]string{"https://films.example/one.mkv"}, "")
 	if len(created) != 1 {
 		t.Fatalf("staged %d tasks", len(created))
@@ -477,19 +451,18 @@ func TestPackagizerNamesThePackageAndThePlaceItLands(t *testing.T) {
 		t.Errorf("auto-extract = %v, want the rule's own answer", got.AutoExtract)
 	}
 	if len(got.MatchedRules) != 1 || got.MatchedRules[0] != "films go together" {
-		t.Errorf("matched rules = %v, want the audit trail for why it landed here", got.MatchedRules)
+		t.Errorf("matched rules = %v, want the record of why it landed here", got.MatchedRules)
 	}
 	// The task's own folder is taken verbatim and never joined with the package
-	// subfolder, so a rule and the global setting cannot nest duplicates.
+	// subfolder, so a rule and the global setting cannot nest folders.
 	if a.dirFor(got) != got.Dir {
 		t.Error("the rule's folder was combined with something else")
 	}
 }
 
-// TestDerivedPackageLeavesRuleNamedTasksAlone pins the conflict between the two
-// things that name a package. The rule is the more specific answer and it ran
-// first; a guess made from the batch afterwards would silently overwrite it, and
-// the user would see a rule that works look like one that does nothing.
+// Two things name a package. The rule is the more specific answer and it ran
+// first, so a guess made from the batch afterwards would overwrite it and make a
+// working rule look like one that does nothing.
 func TestDerivedPackageLeavesRuleNamedTasksAlone(t *testing.T) {
 	a, _ := newRuleApp(t, func(s *settings.Settings, _ string) {
 		s.Packagizer = rules.Set{Rules: []rules.Rule{{
@@ -518,11 +491,10 @@ func TestDerivedPackageLeavesRuleNamedTasksAlone(t *testing.T) {
 	}
 }
 
-// TestRenameActionIsNotAppliedToTheTask documents a deliberate omission rather
-// than an oversight. No backend accepts a destination file name — the engine is
-// handed a directory and names the file itself — so writing a rule's name onto
-// the task would leave the list showing one name while the disk holds another,
-// and extraction and checksum verification both build their path from that name.
+// No backend accepts a destination file name: the engine is handed a directory
+// and names the file itself. Writing a rule's name onto the task would leave the
+// list showing one name while the disk holds another, and extraction and
+// checksum verification both build their path from it.
 func TestRenameActionIsNotAppliedToTheTask(t *testing.T) {
 	a, _ := newRuleApp(t, func(s *settings.Settings, _ string) {
 		s.Packagizer = rules.Set{Rules: []rules.Rule{{
@@ -538,17 +510,15 @@ func TestRenameActionIsNotAppliedToTheTask(t *testing.T) {
 	if created[0].Name == "renamed.bin" {
 		t.Error("a rule renamed the task; the file on disk keeps the backend's name, so the two would disagree")
 	}
-	// The same rule's other action still lands, so this is the one field left
-	// out and not the rule being ignored.
+	// The same rule's other action lands, so this is one field left out rather
+	// than the rule being ignored.
 	if created[0].Package != "Renamed" {
 		t.Errorf("package = %q, want the rest of the rule applied", created[0].Package)
 	}
 }
 
-// TestDuplicateLinkIsFoldedAwayWithATrace covers the second way a link can fail
-// to become a task. Folding it is the point of the mirror set, but folding it in
-// silence is the behaviour this project refuses, so the reason is kept where the
-// interface can ask for it.
+// The second way a link can fail to become a task. Folding it away is what the
+// mirror set is for, and the reason is kept where the interface can ask for it.
 func TestDuplicateLinkIsFoldedAwayWithATrace(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
 
@@ -556,8 +526,8 @@ func TestDuplicateLinkIsFoldedAwayWithATrace(t *testing.T) {
 	if created := a.AddLinks([]string{link}, ""); len(created) != 1 {
 		t.Fatalf("first paste staged %d tasks", len(created))
 	}
-	// Pasted again in a different but equivalent spelling, which is what the
-	// mirror set normalises and a raw string comparison would miss.
+	// A different but equivalent spelling, which the mirror set normalises and a
+	// raw string comparison would miss.
 	if created := a.AddLinks([]string{"https://Host.Example:443/one.bin"}, ""); len(created) != 0 {
 		t.Fatalf("second paste staged %d tasks, want the link folded away", len(created))
 	}
@@ -582,9 +552,8 @@ func TestDuplicateLinkIsFoldedAwayWithATrace(t *testing.T) {
 	}
 }
 
-// TestRemovedTaskStopsBlockingItsOwnLink is the failure the mirror set brings
-// with it: a set that outlives the batch it was built for has to follow a
-// deletion, or a deleted download refuses its own re-add for the life of the
+// The mirror set outlives the batch it was built for, so it follows a deletion:
+// otherwise a deleted download refuses its own re-add for the life of the
 // process and the paste box appears to ignore the user.
 func TestRemovedTaskStopsBlockingItsOwnLink(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
@@ -602,11 +571,9 @@ func TestRemovedTaskStopsBlockingItsOwnLink(t *testing.T) {
 	}
 }
 
-// TestScheduleNeverClearsTheUsersOwnStop is the interaction that would otherwise
-// bite quietly. SetHalted(false) also disarms the stop mark, on the reasoning
-// that a user resuming the queue has finished with it — but a window ending at
-// 06:00 is not the user, and throwing away their "finish this, then stop" for a
-// reason nobody could connect to anything they did is the worst kind of bug.
+// SetHalted(false) disarms the stop mark, because a user resuming the queue has
+// finished with it. A window ending at 06:00 is not the user, so it leaves their
+// "finish this, then stop" alone.
 func TestScheduleNeverClearsTheUsersOwnStop(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
 	a.mu.Lock()
@@ -629,12 +596,10 @@ func TestScheduleNeverClearsTheUsersOwnStop(t *testing.T) {
 	}
 }
 
-// TestTheStopMarkSurvivesTheNextBoundary is the third halt in the app and the
-// one that is easiest to forget. It is set from a finished download rather than
-// from a click, so unless it is recorded as the user's own stop it is invisible
-// to the state the runner falls back to — and the next boundary that changes
-// anything, a nightly limit ending at 06:00, hands the queue a "not paused" it
-// never asked for and starts everything the mark was there to stop.
+// The third halt in the app is set from a finished download rather than a click,
+// so it has to be recorded as the user's own stop. Otherwise the next boundary,
+// a nightly limit ending at 06:00, hands the queue a "not paused" and starts
+// everything the mark was there to stop.
 func TestTheStopMarkSurvivesTheNextBoundary(t *testing.T) {
 	a, _ := newRuleApp(t, func(s *settings.Settings, _ string) {
 		s.VerifyChecksums, s.Extract = false, false
@@ -657,10 +622,9 @@ func TestTheStopMarkSurvivesTheNextBoundary(t *testing.T) {
 	}
 }
 
-// TestManualHaltSurvivesTheEndOfAWindow is the same conflict from the other
-// side. The timetable is evaluated against what the user set by hand, so a stop
-// made at 03:00 is already in force when a window ends and the window has
-// nothing to release.
+// The same conflict from the other side: the timetable is evaluated against
+// what the user set by hand, so a stop made at 03:00 is in force when a window
+// ends and the window has nothing to release.
 func TestManualHaltSurvivesTheEndOfAWindow(t *testing.T) {
 	a, _ := newRuleApp(t, func(s *settings.Settings, _ string) { s.SpeedLimit = 4096 })
 
@@ -680,9 +644,8 @@ func TestManualHaltSurvivesTheEndOfAWindow(t *testing.T) {
 	}
 }
 
-// TestSpeedLimitTakesEffectThroughTheSchedule proves the runner is really wired
-// rather than merely constructed: the limiter is written by the timetable, so a
-// saved settings page reaches it only by going through the runner.
+// The timetable is the only writer of the limiter, so a saved settings page
+// reaches it through the runner or not at all.
 func TestSpeedLimitTakesEffectThroughTheSchedule(t *testing.T) {
 	a, _ := newRuleApp(t, func(s *settings.Settings, _ string) { s.SpeedLimit = 1 << 20 })
 	// Set wakes the runner, which applies on its own goroutine, so the limit
@@ -690,11 +653,9 @@ func TestSpeedLimitTakesEffectThroughTheSchedule(t *testing.T) {
 	waitFor(t, "the saved speed limit reaching the limiter", func() bool { return a.Throttle.Limit() == 1<<20 })
 }
 
-// TestSavingSettingsDoesNotBuildASecondRunner is the shape a timetable leak
-// would take. The runner owns a goroutine and is the only writer of the speed
-// limit, so a save that built a new one would leave the old one alive, applying
-// the timetable the user just replaced, and the limiter would be handed two
-// answers by two goroutines for the rest of the process.
+// The runner owns a goroutine and is the only writer of the speed limit, so a
+// save that built a new one would leave the old one applying the timetable the
+// user just replaced, with two goroutines answering the limiter.
 func TestSavingSettingsDoesNotBuildASecondRunner(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
 	first := a.sched
@@ -709,13 +670,12 @@ func TestSavingSettingsDoesNotBuildASecondRunner(t *testing.T) {
 		t.Error("a settings save replaced the schedule runner; the one it replaced is still running")
 	}
 	// The surviving runner is still the one wired to the limiter, which is what
-	// makes the identity check above mean anything.
+	// the identity check above rests on.
 	waitFor(t, "the last saved limit reaching the limiter", func() bool { return a.Throttle.Limit() == 3<<20 })
 }
 
-// TestPauseWindowHaltsTheQueue runs the real Runner against a window that covers
-// this very minute, which is the only way to show that New starts it and that
-// ApplySettings hands it the new timetable.
+// The real Runner against a window covering this minute, which is what shows
+// that New starts it and ApplySettings hands it the new timetable.
 func TestPauseWindowHaltsTheQueue(t *testing.T) {
 	now := time.Now()
 	window := schedule.Entry{
@@ -725,8 +685,7 @@ func TestPauseWindowHaltsTheQueue(t *testing.T) {
 		End:    "23:59",
 		Action: schedule.ActionPause,
 	}
-	// A window ending at 23:59 does not cover the last minute of the day, and a
-	// test that fails once a day at midnight is worse than no test.
+	// A window ending at 23:59 does not cover the last minute of the day.
 	if now.Hour() == 23 && now.Minute() >= 59 {
 		t.Skip("the covering window cannot be expressed in the last minute of the day")
 	}
@@ -746,10 +705,9 @@ func TestPauseWindowHaltsTheQueue(t *testing.T) {
 	}
 }
 
-// TestExtractionRuleOutranksTheGlobalSwitch is why the task's flag is a pointer.
-// A rule that deliberately switches unpacking off has to survive a global that
-// is on, and with a plain bool "the rule said no" and "no rule had an opinion"
-// are the same value.
+// Why the task's flag is a pointer: a rule that switches unpacking off has to
+// survive a global that is on, and with a plain bool "the rule said no" and "no
+// rule had an opinion" are the same value.
 func TestExtractionRuleOutranksTheGlobalSwitch(t *testing.T) {
 	yes, no := true, false
 	cases := []struct {
@@ -773,10 +731,9 @@ func TestExtractionRuleOutranksTheGlobalSwitch(t *testing.T) {
 	}
 }
 
-// TestSkipPolicyDoesNotDownloadOverAnExistingFile is the one collision policy
-// this app can honour today, and it is honoured at the last moment before bytes
-// move rather than at staging time: the file it is about may well have appeared
-// in the folder while the link sat in the collector.
+// The collision policy is honoured at the last moment before bytes move rather
+// than at staging time, since the file it is about may appear in the folder
+// while the link sits in the collector.
 func TestSkipPolicyDoesNotDownloadOverAnExistingFile(t *testing.T) {
 	a, base := newRuleApp(t, func(s *settings.Settings, _ string) {
 		s.CollisionPolicy = string(collide.Skip)
@@ -814,14 +771,11 @@ func TestSkipPolicyDoesNotDownloadOverAnExistingFile(t *testing.T) {
 // waitFor polls a condition another goroutine satisfies: the schedule runner
 // applying a window, or the dispatcher publishing what it settled.
 //
-// The deadline is a HANG DETECTOR, not a speed assertion. It was three seconds
-// and that turned out to be an assertion about how fast the machine is: a full
-// `go test ./...` runs 46 packages at once, so three seconds of wall clock can
-// be a fraction of a second of CPU for the one goroutine being waited on, and
-// TestExpandYtdlpVariantsFamilyStillRenamesThePackageOnceNamed failed at 3.51s
-// on a loaded run while passing on every unloaded one. Waiting longer costs
-// nothing when the condition is met - the loop returns on the next 10ms tick -
-// and only spends the extra time on a failure that was going to fail anyway.
+// The deadline detects a hang rather than asserting a speed. A full
+// `go test ./...` runs dozens of packages at once, so a few seconds of wall
+// clock can be a fraction of a second of CPU for the goroutine being waited on.
+// A generous deadline costs nothing when the condition is met, since the loop
+// returns on the next tick.
 func waitFor(t *testing.T, what string, ok func() bool) {
 	t.Helper()
 	deadline := time.Now().Add(30 * time.Second)

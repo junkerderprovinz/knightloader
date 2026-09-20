@@ -1,14 +1,13 @@
 package app
 
-// Coverage for the playlist half of the yt-dlp intake: one pasted playlist
-// link becomes one task per video in it, in one package, and the playlist link
-// itself never becomes a task at all.
+// The playlist half of the yt-dlp intake: one pasted playlist link becomes one
+// task per video, in one package, and the playlist link itself never becomes a
+// task.
 //
-// Same arrangement as ytdlp_probe_test.go beside it - a fake backend, never a
-// real yt-dlp process and never a network call - because what is being tested
-// is this package's own wiring: the gate on the setting, the expansion, the
-// package, the entry limit, and the duplicate rule it deliberately does not
-// implement itself.
+// Same arrangement as ytdlp_probe_test.go beside it, a fake backend rather than
+// a real yt-dlp process, since what is tested here is this package's wiring:
+// the gate on the setting, the expansion, the package, the entry limit, and the
+// duplicate rule it leaves to stage.
 
 import (
 	"context"
@@ -23,13 +22,10 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
-// fakePlaylistBackend answers both probes: the listing (what this file is
-// about) and the per-entry title/format probe the expansion fires afterwards.
-//
-// It counts calls rather than closing a channel the way ytdlp_probe_test.go's
-// own fake does, because here BOTH probes can be asked many times in one test -
-// a hundred entries is a hundred title probes - and a close-once fake would
-// panic on the second.
+// fakePlaylistBackend answers both probes: the listing and the per-entry
+// title and format probe the expansion fires afterwards. It counts calls rather
+// than closing a channel as ytdlp_probe_test.go's fake does, because a hundred
+// entries mean a hundred title probes and a close-once fake would panic.
 type fakePlaylistBackend struct {
 	pl     ytdlp.Playlist
 	err    error
@@ -50,10 +46,9 @@ func (b *fakePlaylistBackend) ProbePlaylist(_ context.Context, url string) (ytdl
 	if b.err != nil {
 		return ytdlp.Playlist{}, b.err
 	}
-	// Only the playlist link lists anything, exactly as a real yt-dlp answers:
-	// a video URL comes back with no entries. A fake that handed the same
-	// listing back for every link would expand the entries again when a test
-	// pastes one of them on its own, which is not a thing that can happen.
+	// Only the playlist link lists anything, as a real yt-dlp answers: a video
+	// URL comes back with no entries. A fake that listed for every link would
+	// expand the entries again when a test pastes one of them on its own.
 	if url != playlistURL {
 		return ytdlp.Playlist{}, nil
 	}
@@ -65,8 +60,8 @@ func (b *fakePlaylistBackend) ProbeTitle(_ context.Context, url string) (ytdlp.P
 	b.probed = append(b.probed, url)
 	b.mu.Unlock()
 	// No title: a playlist entry already carries the name the listing gave it,
-	// and this probe exists for the formats. Answering with one would prove
-	// nothing here and would hide it if the listing's name never landed.
+	// and this probe exists for the formats. A title here would hide a listing
+	// name that never landed.
 	return ytdlp.ProbeResult{Title: "", Formats: nil}, nil
 }
 
@@ -99,15 +94,9 @@ func entries(n int) []ytdlp.PlaylistEntry {
 
 const playlistURL = "https://youtube.com/playlist?list=PLtest"
 
-// TestOnePlaylistLinkBecomesOneTaskPerVideoInOnePackage is the whole feature in
-// one assertion, and the reason it exists: a playlist link used to be one task,
-// with no usable progress, nothing to untick, and a failure on the thirtieth
-// video taking the other twenty-nine with it.
-//
-// Three things are checked together because separately none of them is the
-// claim: one task PER ENTRY, all of them in ONE package named after the
-// playlist, and no task for the playlist link itself - a leftover row for the
-// playlist would still be a single job fetching every video into one file.
+// Three claims that only mean something together: one task per entry, all of
+// them in one package named after the playlist, and no task for the playlist
+// link, which would still be a single job fetching every video into one file.
 func TestOnePlaylistLinkBecomesOneTaskPerVideoInOnePackage(t *testing.T) {
 	a, _ := playlistApp(t, ytdlp.Playlist{Title: "Greatest Hits", Entries: entries(3)})
 
@@ -121,21 +110,20 @@ func TestOnePlaylistLinkBecomesOneTaskPerVideoInOnePackage(t *testing.T) {
 			t.Errorf("entry %q landed in package %q, want the playlist's own name", task.Name, task.Package)
 		}
 		if task.URL == playlistURL {
-			t.Errorf("a task was staged for the playlist link itself (%q) - that row is the single job this replaces", task.URL)
+			t.Errorf("a task was staged for the playlist link itself (%q)", task.URL)
 		}
 		if task.Name == task.URL {
 			t.Errorf("entry %q kept its URL as its name, want the title the listing already carried", task.URL)
 		}
 		if !task.Enabled {
-			t.Errorf("entry %q was staged disabled; every row has to be independently untickable, which starts from on", task.Name)
+			t.Errorf("entry %q was staged disabled, so it cannot be unticked from on", task.Name)
 		}
 		if task.Source != playlistURL {
 			t.Errorf("entry %q has Source %q, want the listing it came from", task.Name, task.Source)
 		}
 	}
-	// And nothing anywhere in the list is the playlist link, including the
-	// variant siblings the expansion creates, which never appear in the
-	// returned slice.
+	// Nothing in the list is the playlist link, including the variant siblings
+	// the expansion creates, which never appear in the returned slice.
 	for _, row := range a.Tasks() {
 		if row.URL == playlistURL {
 			t.Fatalf("the playlist link is still in the list as %q (%s)", row.Name, row.Status)
@@ -143,10 +131,8 @@ func TestOnePlaylistLinkBecomesOneTaskPerVideoInOnePackage(t *testing.T) {
 	}
 }
 
-// TestEachPlaylistEntryIsItsOwnJob is the other half of the complaint: the
-// point of one task per video is that the videos are independent. A failure
-// written onto one row must leave the rest exactly as they were, which is only
-// true because they are separate tasks rather than one job with a list inside.
+// One task per video buys independence: a failure written onto one row leaves
+// the rest as they were, which holds only because they are separate tasks.
 func TestEachPlaylistEntryIsItsOwnJob(t *testing.T) {
 	a, _ := playlistApp(t, ytdlp.Playlist{Title: "Greatest Hits", Entries: entries(4)})
 	created := a.AddLinks([]string{playlistURL}, "")
@@ -154,8 +140,7 @@ func TestEachPlaylistEntryIsItsOwnJob(t *testing.T) {
 		t.Fatalf("staged %d tasks, want 4", len(created))
 	}
 
-	// The thirtieth video that fails, in miniature: one row errors, one row is
-	// unticked, and the other two are untouched.
+	// One row errors, one row is unticked, and the other two are untouched.
 	a.onUpdate(created[1].ID, core.Update{Status: core.StatusError, Err: "yt-dlp: Video unavailable"})
 	a.SetEnabled([]string{created[2].ID}, false)
 
@@ -166,15 +151,13 @@ func TestEachPlaylistEntryIsItsOwnJob(t *testing.T) {
 		t.Errorf("last entry = %s/enabled=%v, want it untouched by the other two", got.Status, got.Enabled)
 	}
 	if got := snapshot(t, a, created[2].ID); got.Enabled {
-		t.Error("unticking one video did not stick; there is nothing to untick if the playlist is one task")
+		t.Error("unticking one video did not stick")
 	}
 }
 
-// TestAPlaylistLinkIsOneTaskWhenTheSettingIsOff pins the switch the whole
-// feature hangs off - the SAME field the yt-dlp backend already reads for
-// --no-playlist, not a second one beside it. Off means a playlist link is the
-// single video it points at, which is what an install that never opens the
-// resolvers page gets, and yt-dlp must not even be asked for a listing.
+// The switch is the field the yt-dlp backend already reads for --no-playlist
+// rather than a second one beside it. Off means a playlist link is the single
+// video it points at, and yt-dlp is not asked for a listing at all.
 func TestAPlaylistLinkIsOneTaskWhenTheSettingIsOff(t *testing.T) {
 	a, _ := newRuleApp(t, func(s *settings.Settings, _ string) { s.Ytdlp.Playlist = false })
 	b := &fakePlaylistBackend{pl: ytdlp.Playlist{Title: "Greatest Hits", Entries: entries(3)}}
@@ -186,13 +169,12 @@ func TestAPlaylistLinkIsOneTaskWhenTheSettingIsOff(t *testing.T) {
 		t.Fatalf("created %+v, want the one task for the pasted link itself", created)
 	}
 	if n := len(b.listings()); n != 0 {
-		t.Errorf("yt-dlp was asked for a listing %d times with the setting off; that is a process spawned for a question nobody asked", n)
+		t.Errorf("yt-dlp was asked for a listing %d times with the setting off", n)
 	}
 }
 
-// TestAListingThatCannotBeReadStagesTheLinkAsItself is the property that makes
-// the setting safe to leave on: every failure path ends in the behaviour this
-// app had before the feature existed, never in a link nobody staged.
+// Every failure path ends with the pasted link staged as itself, never with a
+// link nobody staged.
 func TestAListingThatCannotBeReadStagesTheLinkAsItself(t *testing.T) {
 	a, _ := newRuleApp(t, func(s *settings.Settings, _ string) { s.Ytdlp.Playlist = true })
 	wireYtdlp(a, &fakePlaylistBackend{err: errors.New("yt-dlp: Sign in to confirm your age")})
@@ -204,10 +186,8 @@ func TestAListingThatCannotBeReadStagesTheLinkAsItself(t *testing.T) {
 	}
 }
 
-// TestAnOrdinaryVideoLinkIsUntouchedByPlaylistExpansion covers the answer every
-// single-video link gets on an install with the setting on: the listing comes
-// back empty, and the link is staged exactly as it always was - one task, its
-// five variant rows, and its own title probe.
+// With the setting on, a single-video link gets an empty listing back and is
+// staged as one task with its variant rows and its own title probe.
 func TestAnOrdinaryVideoLinkIsUntouchedByPlaylistExpansion(t *testing.T) {
 	a, _ := playlistApp(t, ytdlp.Playlist{})
 
@@ -228,11 +208,9 @@ func TestAnOrdinaryVideoLinkIsUntouchedByPlaylistExpansion(t *testing.T) {
 	}
 }
 
-// TestAPlaylistLongerThanTheLimitIsCutAndSaysSo is the honesty half of the
-// entry limit. A thousand-entry channel must not fill the collector, and a
-// paste that quietly produces fewer links than the source had is the silent
-// loss the skipped-links trace exists to prevent - so the cut is reported
-// there, with both numbers in it.
+// A thousand-entry channel does not fill the collector, and the cut is recorded
+// in the skipped-links trace with both numbers, so the paste does not quietly
+// produce fewer links than the source had.
 func TestAPlaylistLongerThanTheLimitIsCutAndSaysSo(t *testing.T) {
 	const listed = maxPlaylistEntries + 5
 	a, _ := playlistApp(t, ytdlp.Playlist{Title: "Everything", Entries: entries(listed)})
@@ -253,10 +231,9 @@ func TestAPlaylistLongerThanTheLimitIsCutAndSaysSo(t *testing.T) {
 	}
 }
 
-// TestAVideoAlreadyInTheListIsNotStagedTwice checks that the duplicate rule is
-// the app's own and not a second one written for playlists: the entries go
-// through stage(), so the mirror set folds a video that is already in the list
-// and records why, exactly as it does for a link pasted twice.
+// The entries go through stage, so the mirror set folds a video already in the
+// list and records why, as it does for a link pasted twice. There is no second
+// duplicate rule written for playlists.
 func TestAVideoAlreadyInTheListIsNotStagedTwice(t *testing.T) {
 	list := entries(3)
 	a, _ := playlistApp(t, ytdlp.Playlist{Title: "Greatest Hits", Entries: list})
@@ -281,11 +258,9 @@ func TestAVideoAlreadyInTheListIsNotStagedTwice(t *testing.T) {
 	}
 }
 
-// TestAPlaylistEntryDownloadsAsOneVideo is the trap this feature would
-// otherwise walk straight into. The setting that expands the playlist is the
-// same one the backend reads for --no-playlist, so an entry URL that still
-// carries its own "&list=" parameter would ask yt-dlp to fetch the whole
-// playlist AGAIN, once per row.
+// The setting that expands the playlist is the one the backend reads for
+// --no-playlist, so an entry URL still carrying its own "&list=" parameter
+// would ask yt-dlp to fetch the whole playlist once per row.
 func TestAPlaylistEntryDownloadsAsOneVideo(t *testing.T) {
 	a, _ := playlistApp(t, ytdlp.Playlist{Title: "Greatest Hits", Entries: entries(2)})
 	created := a.AddLinks([]string{playlistURL}, "")
@@ -294,15 +269,15 @@ func TestAPlaylistEntryDownloadsAsOneVideo(t *testing.T) {
 	}
 
 	if opts := a.ytdlpOptionsForTask(created[0].ID); opts.Playlist {
-		t.Error("a playlist entry would be downloaded with the playlist flag still on - one row per video, each fetching every video")
+		t.Error("a playlist entry would be downloaded with the playlist flag still on")
 	}
-	// And the setting still means what it says for a link somebody pasted
-	// themselves, which is the fallback when no listing could be read.
+	// The setting still holds for a link somebody pasted themselves, which is
+	// the fallback when no listing could be read.
 	pasted := putTask(t, a, core.Task{
 		URL: "https://youtube.com/watch?v=solo", Name: "Solo", Status: core.StatusCollected,
 		Enabled: true, Origin: OriginPaste, Resolver: "ytdlp",
 	})
 	if opts := a.ytdlpOptionsForTask(pasted.ID); !opts.Playlist {
-		t.Error("a pasted link lost the playlist setting; that is the only fallback left when a listing cannot be read")
+		t.Error("a pasted link lost the playlist setting, the only fallback when a listing cannot be read")
 	}
 }

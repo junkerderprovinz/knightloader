@@ -2,16 +2,13 @@
 // one coordinator. It owns task state; a download backend (the Gopeed engine or
 // headless JD) reports changes, the app persists them and broadcasts them.
 //
-// The package is split by subject rather than by layer, so that two people
-// working on unrelated parts of the download manager are not editing the same
-// file: this one holds the App itself and its lifecycle, app_links.go the way a
-// link becomes a task, app_queue.go the wait queue, app_dispatch.go the handover
-// to a backend and everything a backend reports back, app_tasks.go per-task
-// edits and persistence, app_extract.go unpacking, app_bulk.go the operations
-// that act on a whole selection, app_boot.go what a restart leaves behind and
-// the housekeeping that keeps the list bounded, app_mirror.go the second copy of
-// a file the list already has, and app_accounts.go the credentials and the
-// backend routing they decide.
+// The package is split by subject: this file holds the App and its lifecycle,
+// app_links.go the way a link becomes a task, app_queue.go the wait queue,
+// app_dispatch.go the handover to a backend and what it reports back,
+// app_tasks.go per-task edits and persistence, app_extract.go unpacking,
+// app_bulk.go operations on a selection, app_boot.go restart recovery and
+// housekeeping, app_mirror.go second copies of a file, and app_accounts.go the
+// credentials and the backend routing they decide.
 package app
 
 import (
@@ -67,29 +64,19 @@ type backend interface {
 	Remove(taskID string, deleteFiles bool)
 }
 
-// probeTimeout bounds one collector HEAD. It is short on purpose: the user is
-// waiting at the paste box, and a host that accepts the connection and then
-// stops talking must not decide how long staging takes.
+// probeTimeout bounds one collector HEAD. The user is waiting at the paste box,
+// and a host that accepts the connection and then stalls must not decide how
+// long staging takes.
 const probeTimeout = 10 * time.Second
 
-// ytdlpProbeTimeout bounds one yt-dlp title probe (see ytdlp.Backend.ProbeTitle
-// and probeYtdlpTitle in app_tasks.go, which applies this). Deliberately
-// longer than probeTimeout above rather than reusing it: a plain HEAD is one
-// TCP round trip, but yt-dlp's --print %(title)s still has to launch a real
-// process and, for a good share of the sites it handles, fetch and parse the
-// same page a full extraction would before it can answer at all - closer to
-// a slow page load than a bare HEAD. Twenty seconds is a conservative
-// judgement call for that shape of work rather than a number measured
-// against real hosts as part of this change; it is the one constant to
-// revisit first if staging a media link routinely times out its probe in
-// practice, or if it turns out to be tying up probe goroutines needlessly
-// long against sites that fail fast.
+// ytdlpProbeTimeout bounds one yt-dlp title probe (probeYtdlpTitle). It is
+// longer than probeTimeout because yt-dlp starts a process and often fetches
+// and parses the whole page before it can answer. The figure is an estimate,
+// not a measurement.
 const ytdlpProbeTimeout = 20 * time.Second
 
-// doer is the part of an HTTP client this package's probe uses. It is declared
-// here rather than in internal/httpx because the consumer owns the interface:
-// httpx hands out a *http.Client, and a test hands out whatever answers without
-// leaving the machine.
+// doer is the part of an HTTP client the probe uses, so a test can answer
+// without leaving the machine.
 type doer interface {
 	Do(*http.Request) (*http.Response, error)
 }
@@ -105,26 +92,16 @@ type App struct {
 	Auth       *auth.Guard
 	// APITokens are named, individually revocable credentials that satisfy
 	// the same session guard a password does (see api.authenticated) without
-	// sharing its one secret. See internal/apitoken's own package comment
-	// for why that has to be a second store rather than a second password.
+	// sharing its secret.
 	APITokens *apitoken.Store
-	// Scripts hosts the goja VM that runs a user's own automation snippets -
-	// see internal/script's own package doc comment for the sandbox it
-	// enforces and app_script.go for the Actions adapter. It no longer has
-	// events fired INTO it: it subscribes to Events below, like anything
-	// else that wants to know what the app just did.
+	// Scripts runs the user's automation snippets in a goja sandbox (see
+	// internal/script). It subscribes to Events like any other consumer.
 	Scripts *script.Host
-	// Events is the app's event bus: everything that publishes an app event
-	// publishes here, and every reader of those events subscribes here. This
-	// build wires exactly one subscriber (the script Host, from
-	// script.NewHost) - see internal/script/bus.go for why the second one is
-	// a Subscribe call rather than another edit to every firing site, and
-	// app_script.go for where this app publishes.
+	// Events is the app's event bus; app_script.go is where the app publishes.
 	Events *script.Bus
-	// EventTargets is the second subscriber on that bus: it turns a firing
-	// into an HTTP request to an address the operator configured. It owns
-	// one goroutine per enabled target and must be closed - see
-	// app_notify.go for the seam and internal/notify for the rest.
+	// EventTargets turns a firing into an HTTP request to a configured
+	// address. It owns one goroutine per enabled target and must be closed
+	// (see app_notify.go).
 	EventTargets *notify.Dispatcher
 	// Throttle is the shared bandwidth allowance for everything downloading
 	// through the loopback proxy.
@@ -135,126 +112,63 @@ type App struct {
 	// thing that lifts a hoster limit keyed to the one this box has.
 	Reconnector *reconnect.Reconnector
 
-	// MediaHooks calls the stored address a category drawer points at, once a
-	// package filed in that drawer has finished and its files have been moved
-	// into place. It is the bus's second subscriber, the one
-	// internal/script/bus.go named in advance ("a media library told to
-	// rescan"), and it is wired here as a Subscribe call rather than as an
-	// edit to any firing site - see app_mediahook.go, which owns everything
-	// about it except these four lines.
+	// MediaHooks calls the address a category points at once a package filed
+	// there has finished and its files are in place (see app_mediahook.go).
 	MediaHooks *mediahook.Runner
 
-	// Probe is the client the collector's HEAD requests go out on, to learn a
-	// staged link's size and whether it is still there.
-	//
-	// It is a field rather than a client built inside analyze because a probe
-	// that nothing can replace is a probe no test can control: the collector
-	// fires it from AddLinks, so any test that stages a link races a real DNS
-	// lookup, and the test that proved a late answer cannot erase a refusal was
-	// failing on CI for exactly that reason - not on what it was testing, but on
-	// which of the two writers happened to finish first.
+	// Probe is the client the collector's HEAD requests use to learn a staged
+	// link's size and whether it still exists. It is a field so tests that
+	// stage links do not race a real DNS lookup.
 	Probe doer
 
-	// DataDir is the directory New was given. Kept verbatim rather than only
-	// as the derived paths (dlDir, Store's own path, Settings' own path)
-	// because backup and restore need the directory itself, not one file in
-	// it — see internal/backup, which stages a validated restore beside
-	// whatever New already opened rather than inside it.
+	// DataDir is the directory New was given. Backup and restore need the
+	// directory itself, since internal/backup stages a restore beside it.
 	DataDir string
 
-	// RequestExit, when set by whatever embeds this App, is how the API
-	// layer's quit/restart/restore routes ask the process to actually stop.
-	// App owns no *http.Server and no signal loop of its own to act on a
-	// request like that — only the state Close already knows how to drain —
-	// so it cannot honour this itself.
+	// RequestExit is how the quit, restart and restore routes ask whatever
+	// embeds this App to stop the process; App owns no server or signal loop.
+	// Nil means not supported here, which is the case in tests and on the
+	// desktop build, whose tray has its own path to Close.
 	//
-	// Nil in every test and in any embedding that never sets it, which the
-	// routes read as "not supported here" rather than doing nothing
-	// silently: today that is the desktop build, whose window chrome and
-	// tray already have their own graceful path to a.Close() and have no
-	// need of this one.
-	//
-	// restart distinguishes only the caller's own log line and the sentence
-	// the API hands back — the shutdown sequence a true return triggers is
-	// identical either way, deliberately: see cmd/knightloader/main.go's own
-	// comment on why quit and restart cannot be told apart from outside a
-	// supervised deployment, and therefore are not told apart in here either.
-	// The return value reports whether the request was accepted; false means
-	// a shutdown is already under way and this one changes nothing.
+	// restart only changes the log line and the API's answer; the shutdown is
+	// the same, since quit and restart cannot be told apart outside a
+	// supervised deployment (see cmd/knightloader/main.go). It returns false
+	// when a shutdown is already under way.
 	RequestExit func(restart bool) bool
 
-	// RequestUpdateInstall, when set (desktop only, wired in
-	// desktop/main.go), downloads and applies a newer release, spawns it as
-	// a new process, then exits this one through the same graceful path the
-	// tray's own Quit menu item uses. Nil on the container build, where
-	// self-replacing the running binary makes no sense (see
-	// internal/update's own package doc on why the container side of
-	// "update available" only ever points at how the deployment itself
-	// updates - docker pull, Unraid CA, ...), and nil in every test, read
-	// the same "not supported here" way the API layer already reads
-	// RequestExit==nil. The actual download/verify/swap mechanics live in
-	// internal/update (deployment-agnostic, independently testable); this
-	// field is only how the API layer reaches whatever embeds this App to
-	// carry that out and then relaunch, the same "App owns no process
-	// lifecycle of its own" reasoning as RequestExit just above.
+	// RequestUpdateInstall, set on the desktop build only, downloads and
+	// applies a newer release, starts it, and exits through the tray's
+	// graceful path. A container updates through its deployment instead (see
+	// internal/update). Nil means not supported here.
 	RequestUpdateInstall func(ctx context.Context) error
 
-	// RequestSuspend, when set (desktop only, wired in desktop/main.go), asks
-	// the operating system to put THIS MACHINE to sleep - the end-of-queue
-	// "suspend" action, and nothing else calls it. Nil on the container build
-	// and nil in every test, read the same "not supported here" way the API
-	// layer already reads RequestExit==nil.
+	// RequestSuspend, set on the desktop build only, puts the machine to sleep
+	// for the end-of-queue "suspend" action. The per-OS calls live in
+	// desktop/power_*.go.
 	//
-	// App owns no power state of its own, exactly as it owns no *http.Server
-	// and no signal loop (RequestExit) and no process lifecycle
-	// (RequestUpdateInstall), so it cannot honour this itself: the actual
-	// per-OS call lives in desktop/power_windows.go, power_darwin.go and
-	// power_linux.go, and this field is only how the idle action reaches
-	// whatever embedded this App.
+	// It is separate from RequestExit because sleeping is not quitting, and a
+	// container that can exit cannot sleep its host. Which actions are offered
+	// follows from which of these fields are wired
+	// (internal/idleaction.Capabilities).
 	//
-	// It is deliberately a THIRD field rather than an overload of either of
-	// the two above. Sleeping is not quitting - the process stays, the
-	// downloads stay, and the machine comes back - and a container that can
-	// honour RequestExit would otherwise appear to be able to sleep a host it
-	// cannot even see. Whether an action is offered at all is decided by
-	// which of these fields is wired (internal/idleaction.Capabilities), never
-	// by buildinfo.Deployment, so a nil here is the whole of "this build
-	// cannot sleep this machine".
-	//
-	// The error is the operating system's own words and travels to the
-	// operator verbatim: on Linux a refusal from the policy manager reads
-	// "Interactive authentication required", which is the single string that
-	// says what to fix, and rewording it would throw that away.
+	// The error carries the operating system's words verbatim: on Linux a
+	// policy refusal reads "Interactive authentication required", which says
+	// what to fix.
 	RequestSuspend func() error
 
 	// CnLPort and CnLToggle are set by cmd/knightloader/main.go, the only
-	// embedding that starts a Click'n'Load listener today (see main.go's own
-	// comment on why desktop does not). Same shape and reasoning as
-	// RequestExit just above: App owns no net.Listener of its own to start
-	// or stop, only whatever embeds it does, so this is a callback pair
-	// rather than a field App could act on directly. Nil wherever nothing
-	// wired it (every test, the desktop build) - routes_features.go's own
-	// "cnl" switch case reads that as "not supported here", the same
-	// convention RequestExit already established.
+	// embedding that starts a Click'n'Load listener. Nil means not supported
+	// here.
 	//
-	// CnLPort reports the actual bound port when the listener is up, 0 when
-	// it is not - a real read of live state, not a guess from the
-	// environment it started with, so the module row can say exactly what
-	// is listening right now instead of what KL_CNL asked for at boot.
-	//
-	// Deliberately NOT persisted to settings.json: KL_CNL is the real,
-	// deployment-level decision (should this container even try to bind the
-	// port at all), and this toggle is a lighter, in-process pause/resume on
-	// top of it - flipping it back off after a restart if the environment
-	// still says off is the expected behaviour, not a bug to route around
-	// with a second, competing on/off flag in the settings document.
+	// CnLPort reports the port actually bound, or 0 when the listener is down.
+	// The toggle is not persisted: KL_CNL is the deployment's decision, and
+	// this is an in-process pause on top of it.
 	CnLPort   func() int
 	CnLToggle func(on bool) error
 
-	// ctx is cancelled by Close. It bounds work that outlives the call that
-	// started it: a reconnect can hold the line for the whole configured timeout,
-	// and a shutdown must not wait two minutes for a router to answer — nor fire
-	// a reboot command on its way out and drop every download still running.
+	// ctx is cancelled by Close. It bounds work that outlives its caller: a
+	// reconnect can hold the line for its whole timeout, and a shutdown must
+	// neither wait for a router nor fire a reboot command on its way out.
 	ctx    context.Context
 	cancel context.CancelFunc
 
@@ -263,62 +177,42 @@ type App struct {
 	// a nightly cap that is still in force.
 	sched *schedule.Runner
 
-	// idleAction watches the wait queue and carries out the configured
-	// end-of-queue action after its cancellable countdown - see app_idle.go
-	// and internal/idleaction. Owns one goroutine, started and stopped the
-	// same way sched just above is; the two are independent of each other.
+	// idleAction carries out the configured end-of-queue action after its
+	// cancellable countdown (see app_idle.go). It owns one goroutine.
 	idleAction *idleaction.Controller
 
-	// idleRuns is what the last end-of-queue action DID, plus the injection
-	// seam the command action runs through - see internal/app/app_idle_command.go,
-	// which owns the type and its own mutex. It is a plain value rather than
-	// a pointer because it is zero-valued ready to use: no runner assigned
-	// means idleaction.ExecRunner, and no run recorded means the settings
-	// page says so.
-	//
-	// Its lock is deliberately NOT a.mu. a.mu is held by dispatch paths that
-	// reach spawn on their way out (see closeMu just above), and this one is
-	// taken from inside a spawned goroutine.
+	// idleRuns records what the last end-of-queue action did and holds the
+	// runner the command action uses (see app_idle_command.go). Its zero value
+	// is ready to use. It has its own lock rather than a.mu because it is
+	// taken inside a spawned goroutine.
 	idleRuns idleRunLog
 
-	// wg counts the goroutines this package starts and keeps for the life of the
-	// app - the housekeeping loop, and nothing else so far. Close waits on it,
-	// which is the only reason it exists: every one of them writes to the store,
-	// and the store is closed on the way out.
-	//
-	// It is deliberately not a counter for the goroutines that carry a download.
-	// Those are abandoned, Close says so, and boot is what puts the list right
-	// afterwards.
+	// wg counts the long-lived goroutines this package starts. Close waits on
+	// it because they write to the store, which closes on the way out.
+	// Download goroutines are not counted; boot repairs what they leave.
 	wg sync.WaitGroup
 
-	// closeMu guards closing and nothing else, and is deliberately none of the
-	// four locks further down. Each of those already has a subject of its own -
-	// the task list, the watcher, the backends, the compiled rule sets - and
-	// mu in particular is held by callers that then reach spawn on the way out
-	// (dispatchLocked publishing settled tasks, unpackLocked starting the
-	// extraction worker), so registering work under mu would deadlock the
-	// moment a task settled, Close or no Close. closing is what makes "is this
-	// app still accepting work?" and "count me in" one atomic step; see track.
+	// closeMu guards closing only. mu is held by callers that reach spawn on
+	// the way out (dispatchLocked, unpackLocked), so registering work under mu
+	// would deadlock. closing makes "still accepting work?" and "count me in"
+	// one step; see track.
 	closeMu sync.Mutex
 	closing bool
 
 	jd    backend // headless-JD backend, nil unless KL_JD is set and reachable
 	ytdlp backend // yt-dlp media backend, nil unless the yt-dlp binary is present
-	// torbox is the DEFAULT TorBox account's backend, nil unless one is
-	// configured. Every TorBox account, this one included, is also in debrid
-	// below under its slot id - which is what backendFor reads first, so this
-	// field only ever answers for a task recorded as the bare "torbox".
+	// torbox is the default TorBox account's backend, nil unless configured.
+	// Every TorBox account is also in debrid under its slot id, which
+	// backendFor reads first, so this only answers for a task recorded as the
+	// bare "torbox".
 	torbox backend
-	// debrid holds one backend per configured debrid ACCOUNT, keyed by the
-	// resolver slot id it routes under: "alldebrid" for a service's default
-	// account, "alldebrid#work" for a second login on the same service (see
-	// resolver.SlotID). TorBox's accounts live here too.
+	// debrid holds one backend per configured debrid account, keyed by its
+	// resolver slot id: "alldebrid" for the default account, "alldebrid#work"
+	// for a second login (see resolver.SlotID).
 	debrid map[string]backend
-	// remotefs fetches ftp/ftps/sftp links and hands WebDAV ones on to the
-	// engine. Unlike every other backend above it is NEVER nil once
-	// rewireBackends has run: the others exist only when a credential or a
-	// binary does, while an anonymous public FTP archive needs neither - see
-	// its registration for why the resolver is registered unconditionally too.
+	// remotefs fetches ftp, ftps and sftp links and hands WebDAV ones to the
+	// engine. It is never nil after rewireBackends, since an anonymous FTP
+	// archive needs no credential or binary.
 	remotefs backend
 
 	dlDir string           // where engine + yt-dlp downloads land (extraction source)
@@ -328,32 +222,24 @@ type App struct {
 	wmu     sync.Mutex
 	watcher *watch.Watcher
 
-	// fmu guards feeds, the RSS/Atom subscriptions, which is reconciled whenever
-	// the subscription list changes. Deliberately not wmu, although the two
-	// subsystems are siblings: applyWatchFolders probes shares and applyFeeds
-	// reads the store, so sharing one lock would make a save that touches
-	// neither of them wait on whichever was slower.
+	// fmu guards feeds, the RSS/Atom subscriptions. It is separate from wmu
+	// because applyWatchFolders probes shares and applyFeeds reads the store,
+	// and neither should wait on the other.
 	fmu   sync.Mutex
 	feeds *feed.Runner
 
-	// smu guards selfServe: this instance's own fully-wired HTTP handler
-	// (auth guard and all), the same one a browser or an API token reaches.
-	// Set once by internal/api.Handler as its very last step - so any earlier
-	// reader sees "not ready yet" rather than a half-built stack - and read
-	// by the relay client's inbound proxy handler (routes_relay.go) to
-	// answer a sibling's call exactly the way this instance would answer its
-	// own UI. A relay reconnect is what needs "has this changed" rather than
-	// a plain field: applyRelay runs from Handler's own last step too, so a
-	// second app.New/api.Handler pair in the same test binary must not read
-	// back a Handler neither of them built.
+	// smu guards selfServe, this instance's fully wired HTTP handler. It is set
+	// by api.Handler as its last step, so earlier readers see "not ready", and
+	// the relay's inbound proxy (routes_relay.go) uses it to answer a sibling
+	// exactly as this instance answers its own UI.
 	smu       sync.RWMutex
 	selfServe http.Handler
 	// discovery is the multicast announce/listen service, nil unless a main
 	// package enabled it (buildinfo.DiscoveryEnabled).
 	discovery io.Closer
 
-	// bmu guards the backend fields above. It is deliberately separate from mu:
-	// re-wiring does network calls, and task state must not wait for those.
+	// bmu guards the backend fields above. It is separate from mu because
+	// re-wiring makes network calls, and task state must not wait for those.
 	bmu sync.RWMutex
 
 	// rmu guards the compiled rule sets, which are replaced wholesale whenever
@@ -377,58 +263,47 @@ type App struct {
 	// evaluated against, so a stop made at 03:00 is still in force when a window
 	// ends at 06:00 instead of being lifted by it.
 	manualHalt bool
-	// budget is the shared-out speed limit - see app_budget.go for why one
-	// limit had to become three numbers rather than three copies.
+	// budget is the speed limit shared out between the backends (see
+	// app_budget.go).
 	budget budget
-	// limitInForce is the limit the timetable last put in force, which is not
-	// always the one in settings: a window carries its own. Negative means no
-	// window has spoken yet and settings is the answer - not zero, because zero
-	// is a real value here and means "unlimited".
+	// limitInForce is the limit the timetable last put in force; a window can
+	// carry its own. Negative means no window has spoken and settings decide,
+	// since zero means unlimited.
 	limitInForce int64
-	// scheduleBaseHalt is the manualHalt scheduleBase last handed to the
-	// schedule runner. It exists only so applySchedule can tell an answer that
-	// was computed before a hard stop from one that was computed after it - see
-	// applySchedule's own comment for the race, and the test beside it.
+	// scheduleBaseHalt is the manualHalt scheduleBase last handed the schedule
+	// runner, so applySchedule can tell an answer computed before a hard stop
+	// from one computed after it.
 	scheduleBaseHalt bool
-	// quiet is the second set of limits and the switch that puts them in force.
-	// One field rather than three, for the reason iconCache below is embedded:
-	// the fields stay in the file that owns them, app_quiet.go.
+	// quiet is the second set of limits and its switch (see app_quiet.go).
 	quiet quietState
 	// dupes answers "is this link already in the list". It is not safe for
 	// concurrent use, so every call to it happens under mu.
 	dupes *dedupe.Set
-	// picker chooses which configured connection carries a download, and owns the
-	// ban list. Rebuilt on every settings save, because building it is also what
-	// settles the bans against the new list of rows - see proxycfg.NewPicker.
-	//
-	// Nil until the first build, and nil means "leave by this machine's own
-	// address", which is also what an empty list means. Read under mu.
+	// picker chooses which configured connection carries a download. It is
+	// rebuilt on every settings save, which also settles the bans against the
+	// new rows (see proxycfg.NewPicker). Nil means this machine's own address.
+	// Read under mu.
 	picker *proxycfg.Picker
 	// bans outlives every picker, so a connection refused by a host does not get
 	// a clean slate every time the user saves an unrelated setting.
 	bans *proxycfg.Bans
 	// skipped is the trace of links that never became tasks, newest last.
 	skipped []SkippedLink
-	// stopMark is the task whose completion halts the queue. It is how you say
-	// "finish this, then stop" without sitting and watching for it.
+	// stopMark is the task whose completion halts the queue: "finish this,
+	// then stop".
 	stopMark string
 	tasks    map[string]*core.Task
 	queue    []string        // task IDs waiting for a slot, FIFO with per-host skip-ahead
 	active   map[string]bool // dispatched and not yet terminal/paused
 	started  map[string]bool // ever handed to a backend (Resume vs fresh Download)
-	// unpack is the extraction worker: the jobs, the order they run in, and the
-	// one goroutine that runs them. Built on first use rather than in New, so
-	// unpacking stays a subject of app_extract.go alone - see unpackLocked.
+	// unpack is the extraction worker: the jobs, their order and the goroutine
+	// that runs them. It is built on first use (see unpackLocked).
 	unpack *unpackState
-	// The hoster-icon cache, embedded so its two fields stay in the file that
-	// owns them (app_hostericons.go) instead of being two more lines here that
-	// nothing in this file touches. Its map is built on first use, same as
-	// unpack above, so it needs nothing in New.
+	// iconCache is the hoster-icon cache (app_hostericons.go), embedded so its
+	// fields stay in that file. It is built on first use.
 	iconCache
-	// What yt-dlp and ffmpeg are on this machine, and the one operation that
-	// changes it. Embedded for the same reason iconCache above is: the fields
-	// stay in the file that owns them (app_mediatools.go), and its prober is
-	// built on first use, so it needs nothing in New either.
+	// mediaToolsState describes yt-dlp and ffmpeg on this machine
+	// (app_mediatools.go). It is built on first use.
 	mediaToolsState
 }
 
@@ -461,28 +336,16 @@ func New(dataDir string) (*App, error) {
 		started:    map[string]bool{},
 		debrid:     map[string]backend{},
 	}
-	// Every outbound client is built from internal/httpx, so the proxy, the user
-	// agent, the redirect rule and the connection pool are one policy instead of
-	// one http.Client literal per subsystem. Each subsystem still gets its own
-	// client: a router that holds its connections open must not be able to
-	// occupy the pool a crawl needs.
+	// Every outbound client comes from internal/httpx, so proxy, user agent,
+	// redirect rule and pooling are one policy. Each subsystem gets its own
+	// client so a router holding connections open cannot starve a crawl.
 	a.Crawler = crawler.HTML{Client: httpx.New(httpx.Options{})}
-	// The collector's probe gets its own client and a short ceiling: it is a
-	// HEAD against a link somebody just pasted, so a host that accepts the
-	// connection and then says nothing must not hold a staging pass open.
 	a.Probe = httpx.New(httpx.Options{Timeout: probeTimeout})
 	a.ctx, a.cancel = context.WithCancel(context.Background())
 	a.Registry.Register(resolver.Direct{})
 	a.Registry.Register(resolver.HTTPFallback{})
-	// Unconditional, like Direct and HTTPFallback above and unlike every
-	// resolver in app_accounts.go: a magnet link or an uploaded .torrent needs
-	// no account and no credential, so there is nothing to wait for a settings
-	// change to (re)register - see torrent.Resolver's own doc comment ("it
-	// carries no configuration"). Without this line Match/Resolve are correct
-	// but unreachable: Registry.For walks only what was Register'd, and a
-	// magnet pasted into the existing collector box would fail with "no
-	// backend handles this link" despite torrent.Resolver.Match already
-	// recognising it.
+	// Torrents need no account, so unlike the resolvers in app_accounts.go this
+	// one is registered unconditionally.
 	a.Registry.Register(torrent.Resolver{})
 
 	eng, err := engine.New(filepath.Join(dataDir, "downloads"), a.onUpdate)
@@ -491,31 +354,24 @@ func New(dataDir string) (*App, error) {
 		return nil, err
 	}
 	a.Engine = eng
-	// The limiter is seeded here and owned by the schedule from Start onwards.
-	// Between the two the timetable has not been consulted yet, and running
-	// unthrottled in that window would be a speed limit that does not apply until
-	// the first boundary.
+	// Seeded here so the configured limit applies before the schedule's first
+	// pass takes over.
 	a.limitInForce = -1
 	a.Throttle.Set(cfg.Get().SpeedLimit)
 
 	s := cfg.Get()
 	a.applyRuleSets(s)
-	// At boot as well as on every save. Built only on save, a restart would leave
-	// every configured connection unused until somebody happened to open the
-	// settings page and press a button - and the symptom, downloads quietly
-	// leaving by the machine's own address, looks nothing like its cause.
+	// At boot as well as on every save, or a restart would send downloads out
+	// by the machine's own address until the next save.
 	a.applyConnections(s.Connections)
 	a.applyTorrentConfig(s.Torrent)
 	a.dupes = dedupe.New(dedupe.ParsePolicy(s.MirrorPolicy))
-	// The configuration is read through a closure rather than captured, so a
-	// reconnect fired after the user edited the router password uses the password
-	// they just saved and not the one this process booted with.
+	// Read through a closure so a reconnect uses the router password as last
+	// saved.
 	rc, err := reconnect.New(reconnect.Options{
 		Config: func() reconnect.Config { return a.Settings.Get().Reconnect },
-		// Injected rather than left to the package's own fallback client, so
-		// router traffic gets the shared policy too. The redirect rule is what
-		// earns it: a LiveHeader script whose last step redirects off the router
-		// must not carry the router password to wherever it points.
+		// The shared redirect rule keeps a LiveHeader script that redirects off
+		// the router from carrying the router password along.
 		HTTP: httpx.New(httpx.Options{}),
 	})
 	if err != nil {
@@ -537,9 +393,8 @@ func New(dataDir string) (*App, error) {
 		Idle:     a.queueIdleForAction,
 		Fire:     a.fireIdleAction,
 		OnChange: func() { a.Hub.Broadcast("idleAction", a.IdleActionState()) },
-		// Zero in every build anyone runs, which leaves idleaction on its own
-		// default - see idleActionPoll (app_idle.go) for the one test that
-		// moves it and why that makes the test stop measuring the machine.
+		// Zero outside tests, which keeps idleaction's default (see
+		// idleActionPoll).
 		Poll: idleActionPoll,
 	})
 	if err != nil {
@@ -547,9 +402,9 @@ func New(dataDir string) (*App, error) {
 		return nil, err
 	}
 
-	// All engine traffic goes through a loopback proxy: it is the only place the
-	// embedded download library lets us meter bytes. If it cannot start,
-	// downloads still work — only the speed limit is lost.
+	// All engine traffic goes through a loopback proxy, the only place the
+	// download library lets bytes be metered. Without it downloads still work,
+	// just unthrottled.
 	if px, err := netproxy.Start(a.Throttle); err != nil {
 		log.Printf("speed limiter unavailable (%v); downloads run unthrottled", err)
 	} else if err := eng.UseProxy(px.Addr()); err != nil {
@@ -580,26 +435,14 @@ func New(dataDir string) (*App, error) {
 	}
 	a.APITokens = tokens
 
-	// Built before the Host, and owned here rather than by the Host, because
-	// the bus outlives what happens to be listening on it: a future
-	// notification channel subscribes to a.Events without needing the script
-	// host to exist, and a Close of the script host must not take the app's
-	// event plumbing with it.
+	// The bus belongs to the app rather than the script host, so other
+	// subscribers do not depend on the host and closing it leaves the bus
+	// alone.
 	a.Events = script.NewBus()
-	// The second subscriber the bus was built for (script/bus.go says so in
-	// its own doc comment). It subscribes rather than being fired at, which
-	// is the whole point of the bus existing: adding this consumer touched
-	// no firing site at all. The instance name is read at delivery time
-	// rather than captured, because it is a settings field somebody can
-	// rename while the app is running.
+	// The instance name is read at delivery time, since it can be renamed while
+	// running.
 	a.EventTargets = notify.New(notify.Options{InstanceName: func() string { return cfg.Get().InstanceName }})
 	a.Events.Subscribe("eventtargets", a.EventTargets.On)
-	// Actions and Hub are the whole of what internal/script needs from this
-	// package - see scriptActions' own doc comment for why that adapter
-	// exists rather than *App satisfying script.Actions on its own, and
-	// *hub.Hub already satisfies script.Broadcaster with no changes. Bus is
-	// what NewHost subscribes the Host to; nothing here ever calls into the
-	// Host to fire an event.
 	scripts, err := script.NewHost(script.Options{DataDir: dataDir, Actions: scriptActions{a}, Hub: a.Hub, Bus: a.Events})
 	if err != nil {
 		st.Close()
@@ -607,32 +450,23 @@ func New(dataDir string) (*App, error) {
 	}
 	a.Scripts = scripts
 
-	// After the bus and after the credential store, because it needs both:
-	// it subscribes to a.Events and it reads its sealed header values out
-	// of a.Accounts. Everything it does lives in app_mediahook.go.
+	// After the bus and the credential store, both of which it needs.
 	a.startMediaHooks()
 
 	a.rewireBackends()
 	a.applyWatchFolders(cfg.Get())
-	// Beside the drop folders, and the FIRST of this subsystem's two call
-	// sites: an instance that already had the log file switched on has to be
-	// writing it from the moment it starts, not from the next time somebody
-	// saves a settings page. The lines logged before this point are not lost -
-	// logring.OpenFile replays the ring into the file it opens, which is what
-	// makes a bad boot readable at all. See applyLogFile's own doc comment.
+	// At boot as well as on save, so an enabled log file is written from the
+	// start. logring.OpenFile replays the lines logged before this point.
 	a.applyLogFile(cfg.Get().LogFile)
 
-	// Reload persisted tasks. What each one comes back as is reviveOnBoot's
-	// decision, and it is not a formality: every row in the store belonged to a
-	// process that is gone, so a task the database calls "running" has nothing
-	// behind it at all.
+	// Every stored row belonged to a process that is gone, so reviveOnBoot
+	// decides what each task comes back as.
 	existing, err := st.All()
 	if err != nil {
 		return nil, err
 	}
-	// Asked before a single row is rewritten, because the first task moved out of
-	// "running" destroys the evidence: this is how the app knows whether the last
-	// process was downloading or sitting idle, and the resume policy turns on it.
+	// Checked before any row is rewritten: whether the last process was
+	// downloading decides the resume policy.
 	queueWasLive := false
 	for _, t := range existing {
 		if t.Status == core.StatusRunning {
@@ -652,126 +486,73 @@ func New(dataDir string) (*App, error) {
 			requeue = append(requeue, t.ID)
 		}
 		a.tasks[t.ID] = t
-		// Only live tasks are filed. A finished or failed download must not block
-		// its own re-add: pasting one of those again is a deliberate second
-		// attempt, which is the rule the raw URL comparison here used to enforce.
+		// Only live tasks are filed: pasting a finished or failed download again
+		// is a second attempt, not a duplicate.
 		if t.Status != core.StatusDone && t.Status != core.StatusError {
 			a.dupes.Add(linkEntry(t))
 		}
 	}
-	// Written back, not only fixed in memory. The store still says "running" for
-	// a task nobody is running, and an unpacking that was interrupted has just
-	// become a finished download - which has to reach the record and the
-	// retention sweep as one. Nothing is broadcast: no client can be connected to
-	// a server that has not been started yet.
+	// Written back so the store and the retention sweep agree. Nothing is
+	// broadcast; no client can be connected yet.
 	for i := range revived {
 		c := revived[i]
 		if err := st.Save(&c); err != nil {
 			log.Printf("could not write back the boot state of %s: %v", c.ID, err)
 		}
 	}
-	// Housekeeping runs once here as well as on its own timer, which is what
-	// makes "the list is trimmed" true at the moment somebody opens it rather
-	// than a minute later. It runs BEFORE the queue is filled and before the
-	// scheduler has had its say: removing a task dispatches, and dispatching a
-	// half-built queue against a timetable nothing has read yet is how a nightly
-	// pause window gets ignored for the first minute of every boot.
+	// Housekeeping runs once now so the list is trimmed when first opened. It
+	// runs before the queue is filled and the scheduler starts, since removing
+	// a task dispatches and could ignore a pause window.
 	a.sweep()
-	// Under the lock although nothing has been handed this App yet: the watcher
-	// started above is already running, and a dropped job file reaches the queue
-	// through it.
+	// Under the lock because the watcher started above is already running.
 	a.mu.Lock()
 	a.queue = append(a.queue, requeue...)
-	// The queue comes up STOPPED when the resume policy says nothing should
-	// start by itself, rather than coming up live over a queue nobody may run.
-	// manualHalt as well as halted, and that is not a detail: the schedule
-	// runner's first pass reads manualHalt as "what the user wants when no
-	// window applies", so a halt written only to `halted` would be lifted again
-	// a second later by a timetable that knows nothing about the boot.
+	// The queue comes up stopped when the resume policy says nothing should
+	// start by itself. manualHalt is set too, since the schedule's first pass
+	// recomputes halted from it.
 	if len(requeue) > 0 && holdOnBoot(resume, queueWasLive) {
 		a.halted = true
 		a.manualHalt = true
 	}
 	a.mu.Unlock()
-	// Started only now that the task list is whole. The runner's first pass halts
-	// or throttles the queue immediately, and doing that to a queue still being
-	// reconstructed would stop downloads nobody paused.
+	// Everything below starts only now that the task list is whole.
 	//
-	// It is also what starts whatever the resume policy just put back in the
-	// queue, and deliberately so: the first pass dispatches only when the
-	// timetable is not holding the queue, so downloads resumed by a restart
-	// cannot walk past a pause window by being early.
+	// The schedule's first pass halts or throttles at once, and it is also what
+	// dispatches the requeued tasks, so a restart cannot slip past a pause
+	// window.
 	a.sched.Start()
-	// Same reason: idleAction reads the task list through Counters, and
-	// starting it before requeue above is applied would let it see an empty
-	// queue and arm a countdown for a "nothing to do" that is only true
-	// because the boot has not finished putting the list back together yet.
+	// idleAction would otherwise see an empty queue and arm its countdown.
 	a.idleAction.Start()
-	// The subscriptions come up here and not beside applyWatchFolders above,
-	// which is the one place this intake is deliberately wired differently from
-	// its sibling. Every poller polls the moment it starts, and a.dupes is seeded
-	// from the store further up this function: an entry staged before that seeding
-	// would be checked against an empty duplicate set, so a link the list already
-	// holds would be added a second time. A drop folder can afford to be early
-	// because a file has to be dropped first; a feed hands something over on its
-	// own the moment it is switched on.
+	// Feeds come up after a.dupes is seeded, unlike drop folders: a poller
+	// hands links over the moment it starts, and an unseeded set would let a
+	// listed link in twice.
 	a.applyFeeds(cfg.Get())
-	// Beside the subscriptions for the same reason they are here rather than
-	// beside applyWatchFolders: this starts a worker per enabled target, and
-	// a target may fire on queue.idle, which the poll loop reports within
-	// two seconds of a boot that has finished putting the list back
-	// together.
+	// Targets may fire on queue.idle, which is reported within two seconds.
 	a.applyEventTargets(cfg.Get())
-	// Last, so nothing can sweep a list that is still being assembled. Close
-	// waits for this goroutine, because everything it does writes to the store.
-	//
-	// Registered through track like every other a.wg.Add in this package, even
-	// though nothing can turn it away here: New has not handed this *App to
-	// anybody yet, so there is no Close to race. One entry point with no
-	// exceptions in it is what stops the next a.wg.Add from being written the
-	// unsafe way - see track. Not a.spawn, because upkeep carries its own
-	// defer a.wg.Done() and spawn's wrapper would be a second one.
+	// upkeep and budgetLoop call a.wg.Done themselves, so they use track and a
+	// bare go rather than a.spawn. Nothing can race Close here, but every
+	// a.wg.Add goes through track.
 	if a.track() {
 		go a.upkeep()
 	}
-	// Same registration, same reasoning: carries its own defer a.wg.Done(), so
-	// it is track plus a bare go rather than a.spawn.
 	if a.track() {
 		go a.budgetLoop()
 	}
-	// Same ordering reason as sched.Start/idleAction.Start just above:
-	// a.tasks is already whole by this point, so there is no boot-time
-	// window where this could read a half-assembled queue as idle - see
-	// watchQueueIdleForScripts' own doc comment.
 	a.spawn(a.watchQueueIdleForScripts)
-	// Same ordering reason again, and it matters more here than for any of
-	// the three above: this loop's FIRST pass records which packages are
-	// already complete without firing for any of them (see
-	// watchPackagesForScripts), and a pass over a half-loaded task list
-	// would record a package as finished that is only half-read, then fire
-	// package.done for it the moment the rest of its files appear.
+	// Its first pass records which packages are already complete, so it must
+	// not see a half-loaded list.
 	a.spawn(a.watchPackagesForScripts)
-	// The speed record (app_speedhistory.go): one reading a second into a pair
-	// of in-memory rings, so a browser opening the Overview page is handed a
-	// curve that already has a shape instead of a flat line it has to spend a
-	// minute filling in. Spawned here rather than lazily on the first request
-	// for the reason the feature exists: a ring that only starts recording once
-	// somebody looks at it has nothing to show the person who just looked.
-	// Reads a.tasks under a.mu once a second and writes nothing, so it has no
-	// ordering requirement of its own beyond being after New has a task list at
-	// all - an early tick over a half-loaded list costs one sample.
+	// The speed record starts at boot so the first visitor already sees a
+	// curve (see app_speedhistory.go).
 	a.spawn(a.sampleSpeedLoop)
-	// Same "the list is whole by now" ordering as the three above. It reads
-	// a.tasks once, then spends its time in yt-dlp calls, so it is spawned
-	// rather than run here: a boot must not wait on somebody else's network.
+	// Spawned so the boot does not wait on yt-dlp calls.
 	a.spawn(a.backfillYtdlpProbes)
 	return a, nil
 }
 
 // applyRuleSets compiles both rule lists and keeps what Compile could not use.
-// Compile never fails and never returns nil, so a rule the user got wrong costs
-// them that rule and nothing else. The problems are kept rather than logged
-// because the settings form is the only place they can be acted on.
+// A broken rule costs only that rule, and its problem is kept for the settings
+// form, where it can be fixed.
 func (a *App) applyRuleSets(s settings.Settings) {
 	pkg, pkgProb := rules.Compile(s.Packagizer)
 	filt, filtProb := rules.Compile(s.LinkFilter)
@@ -781,9 +562,9 @@ func (a *App) applyRuleSets(s settings.Settings) {
 	a.rmu.Unlock()
 }
 
-// matchers hands out the two compiled rule sets as they stand right now. They
-// are replaced wholesale, so a caller that reads them once and uses them for a
-// whole link is using one consistent rule list even if the user saves mid-paste.
+// matchers returns the two compiled rule sets. They are replaced wholesale, so
+// a caller that reads them once has a consistent pair even if a save lands
+// mid-paste.
 func (a *App) matchers() (packagizer, filter *rules.Matcher) {
 	a.rmu.RLock()
 	defer a.rmu.RUnlock()
@@ -796,10 +577,8 @@ type RuleProblems struct {
 	LinkFilter []rules.Problem `json:"linkFilter"`
 }
 
-// RuleProblems reports the rules that could not be compiled. It belongs in the
-// settings response: a rule dropped for a broken regular expression that nothing
-// tells the user about is a rule they go on believing in, and for a filter that
-// means links they think are being blocked and are not.
+// RuleProblems reports the rules that could not be compiled, so the settings
+// response can show a filter rule that is silently not blocking anything.
 func (a *App) RuleProblems() RuleProblems {
 	a.rmu.RLock()
 	defer a.rmu.RUnlock()
@@ -827,36 +606,15 @@ func (a *App) taskDir(taskID string) string {
 	return a.dirFor(c)
 }
 
-// TaskFolder is taskDir for callers outside this package: the folder this
-// task's bytes land in, worked out the same way the backends work it out, so
-// nothing has to reproduce the DownloadDir/SubfolderByPackage/template rules a
-// second time and get one of them wrong.
-//
-// An empty id answers the default folder, because taskDir hands a nil task to
-// dirFor and dirFor's first line answers defaultDir() for one. That is the
-// honest reading of "where would a task with no folder of its own go", and it
-// is what the SABnzbd bridge reports as complete_dir - see
-// internal/api/routes_downloadclient.go.
+// TaskFolder is taskDir for callers outside this package, so nobody has to
+// reproduce the folder rules. An empty id answers the default folder, which
+// the SABnzbd bridge reports as complete_dir
+// (internal/api/routes_downloadclient.go).
 func (a *App) TaskFolder(id string) string { return a.taskDir(id) }
 
-// spawn runs f on its own goroutine and makes Close wait for it.
-//
-// The long-lived upkeep loop was counted on a.wg from the start; the short-lived
-// ones were not, and several of them write to the store - the availability
-// probe, the checksum pass, a watch-folder job, the settled-task publish. So
-// Close could cancel, wait for upkeep, close the store, and then one of those
-// would land: in production a write to a closed database with its error
-// discarded, and on CI a test failing with "TempDir RemoveAll cleanup:
-// directory not empty", because SQLite recreated its write-ahead log inside the
-// directory the harness was in the middle of deleting.
-//
-// A goroutine that arrives after Close has committed to shutting down does not
-// start at all. There is no useful work left for it: everything it would write
-// goes to a store that is closing, and the alternative - letting it run and
-// discarding the error - is how a shutdown grows a tail nobody can measure.
-// Which side of that line a given call falls on is track's decision, taken as
-// one atomic step - not a context check Close can overtake between the check
-// and the register.
+// spawn runs f on its own goroutine and makes Close wait for it, since many of
+// these goroutines write to the store Close is about to shut. After Close has
+// begun, f does not start at all (see track).
 func (a *App) spawn(f func()) {
 	if !a.track() {
 		return
@@ -867,32 +625,17 @@ func (a *App) spawn(f func()) {
 	}()
 }
 
-// track counts the caller in as work Close has to wait for, or reports false if
-// Close has already committed to shutting down - in which case the caller must
-// not touch a.wg at all. Every a.wg.Add(1) in this package goes through here;
-// the matching Done stays with whoever called it.
+// track counts the caller in as work Close has to wait for, or reports false
+// once Close has begun, in which case the caller must not touch a.wg. Every
+// a.wg.Add in this package goes through here; the caller keeps the Done.
 //
-// The check and the Add are one step under one lock on purpose. Written the
-// obvious way instead - `if a.ctx != nil && a.ctx.Err() != nil { return }` and
-// then a bare a.wg.Add(1), which is what spawn used to do - the two halves are
-// a check-then-act with a gap Close can land in: the caller finds the context
-// still live, Close cancels and reaches a.wg.Wait() with the counter already at
-// zero so Wait returns at once, and only then does the caller's Add(1) run.
-// sync.WaitGroup names that case as misuse in so many words ("calls with a
-// positive delta that occur when the counter is zero must happen before a
-// Wait"), and it costs one of two things: a Close that returned with work it
-// was supposed to wait for still ahead of it - the availability probe, the
-// checksum pass, a watch-folder job, the settled-task publish, every one of
-// them writing into the store this same Close is about to shut, which is the
-// exact tail spawn exists to prevent - or an outright "sync: WaitGroup misuse:
-// Add called concurrently with Wait" panic taking the process down. Holding
-// closeMu across both halves closes the gap: a caller that gets in before
-// Close's flip has its Add(1) done before Wait can be reached, and one that
-// arrives after it is turned away instead of racing for the register.
+// The check and the Add happen under one lock. A separate check would leave a
+// gap in which Close reaches Wait at zero before the Add runs, which
+// sync.WaitGroup calls misuse: Close returns with work still running, or the
+// process panics.
 //
-// Nothing is called while closeMu is held, and Close lets it go again before it
-// cancels and waits. Both of those matter, because spawn's callers reach it
-// holding locks of their own - see closeMu's own comment on the struct.
+// Nothing is called while closeMu is held, since spawn's callers hold locks of
+// their own.
 func (a *App) track() bool {
 	a.closeMu.Lock()
 	defer a.closeMu.Unlock()
@@ -903,48 +646,18 @@ func (a *App) track() bool {
 	return true
 }
 
-// Close shuts the app down, and what that costs is worth stating plainly rather
-// than leaving somebody to find out during an incident.
-//
-// IT WAITS FOR three things, in this order and for one reason each: the
-// housekeeping loop, because it removes tasks and writes to the store; the
-// intake watcher, because a job file half read is a paste that half happened;
-// and the schedule runner, whose own Close blocks on an in-flight Apply - which
-// is the promise that makes it safe to tear down everything Apply talks to next.
-//
-// IT ABANDONS every transfer still running, and there is no drain, no grace
-// period and no attempt at one. A shutdown that waits for a 40 GB download is a
-// container that never restarts, and stopping does not destroy the bytes already
-// written - only starting again from the beginning does. What it does cost is
-// the last update from each of those transfers: a backend reporting in after the
-// store is closed has its write discarded, silently, because every caller in the
-// app discards Save's error. That is not tidy, and it is precisely why boot
-// reconciles the list instead of trusting the last state written to it.
-//
-// The order below is the contract. Refuse new work and cancel first so nothing
-// new begins, then the goroutines this package owns, then the subsystems, and
-// the store last because every one of them writes to it.
-//
-// Calling it twice is harmless: the flag and cancel are both idempotent, a
-// second Wait on a drained WaitGroup returns immediately, and every subsystem
-// below either has its own closeOnce or takes a second Close without
-// complaining.
-// SetSelfServeHandler stores this instance's own fully-wired HTTP handler,
-// so the relay client's inbound proxy handler (routes_relay.go) can answer a
-// sibling's call exactly the way this instance would answer a browser's or
-// an API token's - same auth guard, same routes, no second surface to keep
-// in sync with the first. Called once, by internal/api.Handler as its very
-// last step; nil until then, which SelfServeHandler's own callers read as
-// "not ready yet" rather than nothing happening silently.
+// SetSelfServeHandler stores this instance's fully wired HTTP handler, so the
+// relay's inbound proxy (routes_relay.go) answers a sibling through the same
+// auth guard and routes as a browser. api.Handler calls it as its last step;
+// until then SelfServeHandler returns nil, read as "not ready".
 func (a *App) SetSelfServeHandler(h http.Handler) {
 	a.smu.Lock()
 	a.selfServe = h
 	a.smu.Unlock()
 }
 
-// SetDiscovery stores the network-discovery service so Close can stop it,
-// the same arrangement the relay has via SetRelay(nil) below - a shutting
-// down instance must stop announcing that it is there.
+// SetDiscovery stores the network-discovery service so Close can stop it; a
+// shutting-down instance must stop announcing itself.
 func (a *App) SetDiscovery(c io.Closer) {
 	a.smu.Lock()
 	a.discovery = c
@@ -959,26 +672,31 @@ func (a *App) SelfServeHandler() http.Handler {
 	return a.selfServe
 }
 
+// Close shuts the app down. It waits for the goroutines this package owns, the
+// intake watcher, the feed runner and the schedule runner, whose Close blocks
+// on an in-flight Apply.
+//
+// Running transfers are abandoned without a drain: waiting on a large download
+// would keep a container from restarting, and stopping keeps the bytes already
+// written. A backend reporting after the store is closed has its write
+// discarded, which is why boot reconciles the list.
+//
+// The order is the contract: refuse new work and cancel, wait for owned
+// goroutines, close the subsystems, and the store last since they all write to
+// it. Calling it twice is harmless.
 func (a *App) Close() error {
-	// Flipped first, under the same lock track takes, so that from here on no
-	// spawn can still slip a wg.Add(1) past the Wait below - see track's own
-	// comment for what that used to cost. cancel() stays after it: the flag is
-	// what refuses new work, cancel is what stops work already under way.
+	// Flipped under track's lock so no spawn can Add past the Wait below.
+	// The flag refuses new work; cancel stops work under way.
 	a.closeMu.Lock()
 	a.closing = true
 	a.closeMu.Unlock()
 	if a.cancel != nil {
 		a.cancel()
 	}
-	// Stops and closes whatever relay connection is currently open, the same
-	// as any other SetRelay(nil) call - a shutting-down instance has no
-	// business staying registered on a relay it is about to stop answering
-	// for.
+	// Leave the relay and stop announcing on the network.
 	if a.Federation != nil {
 		a.Federation.SetRelay(nil)
 	}
-	// Same reasoning one line up: stop telling the network this instance is
-	// available while it is shutting down.
 	a.smu.Lock()
 	disc := a.discovery
 	a.discovery = nil
@@ -986,8 +704,8 @@ func (a *App) Close() error {
 	if disc != nil {
 		_ = disc.Close()
 	}
-	// Before the engine and before the store, because a sweep in flight is
-	// removing tasks from both.
+	// Before the engine and the store, since a sweep in flight removes tasks
+	// from both.
 	a.wg.Wait()
 	a.wmu.Lock()
 	if a.watcher != nil {
@@ -995,49 +713,30 @@ func (a *App) Close() error {
 		a.watcher = nil
 	}
 	a.wmu.Unlock()
-	// Same promise as the watcher one line up: Close waits for a poll in flight,
-	// so no feed entry is still on its way into the link list once this returns
-	// and the store below can be closed under it. cancel() above has already
-	// aborted whatever fetch was waiting on somebody else's server, so this wait
-	// is bounded by the handover and not by a publisher's timeout.
+	// Waits for a poll in flight so no entry is still being added. cancel has
+	// already aborted any fetch, so this is bounded by the handover.
 	a.fmu.Lock()
 	if a.feeds != nil {
 		_ = a.feeds.Close()
 		a.feeds = nil
 	}
 	a.fmu.Unlock()
-	// Closed before the engine, because Close waits for an in-flight Apply to
-	// return: that is exactly the promise that lets everything Apply talks to be
-	// torn down next.
+	// Each of the following Close calls waits for work in flight (an Apply, a
+	// tick, a script, a request) before what it calls into is torn down.
 	if a.sched != nil {
 		_ = a.sched.Close()
 	}
-	// Same promise as sched just above: Close blocks on an in-flight tick, so
-	// a Fire (SetHalted) already under way finishes before anything it might
-	// touch is torn down further down this function.
 	if a.idleAction != nil {
 		_ = a.idleAction.Close()
 	}
-	// Same promise as sched/idleAction just above: Close waits for an
-	// in-flight script (Fire's worker pool, or a RunNow call) to finish
-	// before anything it might call back into (Pause/Resume/RestartTasks/
-	// the Store) is torn down further down this function - see
-	// internal/script's own package doc comment, "every goroutine this
-	// package starts is tracked".
 	if a.Scripts != nil {
 		_ = a.Scripts.Close()
 	}
-	// Same promise as the script host just above: Close cancels whatever
-	// request is in flight and waits for every target's worker to stop
-	// before the store underneath them is torn down.
 	if a.EventTargets != nil {
 		_ = a.EventTargets.Close()
 	}
-	// Same promise again: Close waits for a call in flight, so nothing is
-	// still reading the credential store or the settings store once those are
-	// torn down further down this function. It flushes nothing - a call held
-	// back because its files have not landed yet would be told to scan a
-	// folder this shutdown just stopped moving files into.
+	// Pending media hook calls are dropped rather than flushed: their files
+	// were never moved into place.
 	a.stopMediaHooks()
 	if a.proxy != nil {
 		_ = a.proxy.Close()
@@ -1048,10 +747,10 @@ func (a *App) Close() error {
 	return a.Store.Close()
 }
 
-// dirFor is the single answer to "where does this task's file go": the task's
-// own folder if set, else the configured download folder (or the built-in
-// default), optionally with a per-package subfolder. A task that already names
-// its own folder is taken at its word — combining both would nest duplicates.
+// dirFor decides where a task's file goes: the task's own folder if set, else
+// its category's folder, else the configured download folder (or the built-in
+// default), optionally with a per-package subfolder. A task's own folder is
+// used as is; appending to it would nest duplicates.
 func (a *App) dirFor(t *core.Task) string {
 	if t == nil {
 		return a.defaultDir()
@@ -1066,17 +765,12 @@ func (a *App) dirFor(t *core.Task) string {
 		Name:    t.Name,
 		Date:    t.CreatedAt,
 	}
-	// The drawer this link is filed in, between the task's own folder above and
-	// the instance's own below. That order is the whole precedence question, and
-	// it falls out of the line above rather than being invented here: a
-	// Packagizer rule already writes its folder into t.Dir, so a rule beats a
-	// category because a rule looked at THIS link while a category is a label on
-	// a whole batch. A rule that sets both keeps its folder and lets its category
-	// decide the other fields.
+	// The category sits between the task's folder and the instance's. A
+	// Packagizer rule writes its folder into t.Dir, so a rule, which looked at
+	// this link, beats a category, which labels a batch.
 	//
-	// A category folder that spells out its own levels with placeholders does
-	// not also get the per-package level appended, the same rule a templated
-	// DownloadDir follows below.
+	// A templated category folder gets no per-package level appended, like a
+	// templated DownloadDir below.
 	if raw := cfg.CategoryFor(t.Category).Dir; raw != "" {
 		if d := cfg.CategoryDir(t.Category, vars); d != "" {
 			if pathvars.HasVars(raw) {
@@ -1085,9 +779,8 @@ func (a *App) dirFor(t *core.Task) string {
 			return a.withPackageSubfolder(cfg, t, d)
 		}
 	}
-	// A configured folder may be a template. Expanding it here means the
-	// variables see the task they are being expanded for, which is the only
-	// point at which the package and hoster are known.
+	// A configured folder may be a template, expanded here where the task's
+	// package and hoster are known.
 	if pathvars.HasVars(cfg.DownloadDir) {
 		if expanded := pathvars.Expand(cfg.DownloadDir, vars); filepath.IsAbs(expanded) {
 			return expanded
@@ -1097,9 +790,7 @@ func (a *App) dirFor(t *core.Task) string {
 }
 
 // withPackageSubfolder appends the per-package level when the setting asks for
-// one. Factored out because the category folder and the instance folder are two
-// bases that both take it, and the day they disagree is the day one of them was
-// edited and the other forgotten.
+// one, for both the category folder and the instance folder.
 func (a *App) withPackageSubfolder(cfg settings.Settings, t *core.Task, dir string) string {
 	if cfg.SubfolderByPackage && strings.TrimSpace(t.Package) != "" {
 		return filepath.Join(dir, sanitizeSegment(t.Package))
@@ -1155,22 +846,10 @@ type speedLimiter interface {
 	SetSpeedLimit(bytesPerSec int64) error
 }
 
-// titleProber is implemented by a backend that can look up a link's real name
-// (and, since this round's probe upgrade, its real available formats) without
-// downloading it - the yt-dlp counterpart to the collector's own HEAD probe
-// (analyze, app_tasks.go) for a plain file link. Optional for the same reason
-// speedLimiter above is: most backends already report a real name off their
-// own progress stream once a download starts (a backend's Download reaching
-// onUpdate with Update.Name set), and forcing every one of them to grow a
-// method that would just return a zero value is the wrong trade for what
-// only one of them can actually answer ahead of time. See
-// ytdlp.Backend.ProbeTitle and probeYtdlpTitle in app_tasks.go, the two
-// halves of the one caller this exists for.
-//
-// Returns ytdlp.ProbeResult directly rather than a locally-decoupled shape:
-// app_ytdlp_variants.go already imports the ytdlp package concretely for
-// Variant/HosterPreset, so this interface staying "decoupled" bought nothing
-// real - the package already depends on ytdlp's own vocabulary elsewhere.
+// titleProber is implemented by a backend that can look up a link's name and
+// available formats without downloading it, the yt-dlp counterpart to the
+// collector's HEAD probe (analyze). It is optional because other backends learn
+// the name from their progress stream once a download starts.
 type titleProber interface {
 	ProbeTitle(ctx context.Context, url string) (ytdlp.ProbeResult, error)
 }
@@ -1178,7 +857,8 @@ type titleProber interface {
 // ApplySettings persists new settings and applies what can change at runtime:
 // raised limits dispatch waiting tasks immediately, the JD limit is pushed
 // live, and yt-dlp picks the limit up on its next spawn. The embedded engine
-// has no rate-limit API yet (Gopeed v1.9.x) — engine tasks run unthrottled.
+// has no rate-limit API (Gopeed v1.9.x), so it is metered through the
+// loopback proxy instead.
 func (a *App) ApplySettings(s settings.Settings) (settings.Settings, error) {
 	applied, err := a.Settings.Set(s)
 	if err != nil {
@@ -1189,13 +869,9 @@ func (a *App) ApplySettings(s settings.Settings) (settings.Settings, error) {
 }
 
 // PatchSettings is ApplySettings for a partial update: patch names only the
-// top-level fields it means to change, and settings.Store.SetPartial reads
-// every other field from whatever is stored right now, under the same lock
-// that then writes the merged result back. See that method's own comment
-// for why that has to be one critical section rather than a Get here
-// followed by a Set. Everything after the save runs exactly as it does for a
-// full PUT: a live-effect subsystem re-reading Settings.Get() would not be
-// able to tell the two apart, and it must not have to.
+// top-level fields to change, and settings.Store.SetPartial merges them under
+// the lock that writes the result. Everything after the save runs as for a
+// full update.
 func (a *App) PatchSettings(patch map[string]json.RawMessage) (settings.Settings, error) {
 	applied, err := a.Settings.SetPartial(patch)
 	if err != nil {
@@ -1205,38 +881,28 @@ func (a *App) PatchSettings(patch map[string]json.RawMessage) (settings.Settings
 	return applied, nil
 }
 
-// afterSettingsChange is what ApplySettings and PatchSettings share: every
-// runtime effect a saved settings document can have, applied against
-// whichever one of them just landed on disk. Kept as one function precisely
-// so the two ways of saving cannot drift into applying a different subset of
-// this list, where a field patch could reach the store but not the scheduler.
+// afterSettingsChange applies every runtime effect of a saved settings
+// document. ApplySettings and PatchSettings share it so they cannot drift
+// apart.
 func (a *App) afterSettingsChange(applied settings.Settings) {
 	a.applyRuleSets(applied)
-	// The speed limit goes through the timetable and never straight to the
-	// limiter. Writing it here as well would let a saved settings page lift a
-	// nightly cap that is still in force, until whichever boundary came next.
-	// Set recompiles and re-evaluates at once against the new base, so the runner
-	// is the one that hands the limiter its answer.
+	// The speed limit goes through the timetable, never straight to the
+	// limiter, so a save cannot lift a nightly cap still in force. Set
+	// re-evaluates at once.
 	a.sched.Set(applied.Schedule)
-	// Re-evaluated now rather than at idleAction's own next poll, so turning
-	// the action on (or off) while the queue happens to already be idle takes
-	// effect immediately instead of up to a couple of seconds later.
+	// Now rather than at the next poll, so toggling the action on an idle
+	// queue takes effect at once.
 	a.idleAction.Refresh()
 	a.applyWatchFolders(applied)
 	a.applyFeeds(applied)
 	a.applyEventTargets(applied)
-	// The second of the two call sites, and missing it would mean the switch
-	// needed a restart to take effect - the one thing a diagnostics setting
-	// must never need, because whoever is flipping it is already trying to
-	// catch something.
 	a.applyLogFile(applied.LogFile)
 	a.applyConnections(applied.Connections)
 	a.applyTorrentConfig(applied.Torrent)
 	a.mu.Lock()
 	if p := dedupe.ParsePolicy(applied.MirrorPolicy); p != a.dupes.Policy() {
-		// The policy is baked in at New, so a change needs a new set, re-seeded
-		// from the list it is meant to describe, or the first paste after the
-		// change would be checked against nothing.
+		// The policy is fixed at construction, so a change needs a new set,
+		// re-seeded from the list.
 		a.dupes = dedupe.New(p)
 		for _, t := range a.tasks {
 			if t.Status != core.StatusDone && t.Status != core.StatusError {
@@ -1261,12 +927,8 @@ func (a *App) pushJDSpeedLimit(limit int64) {
 	}
 }
 
-// ytdlpTitleProber returns the yt-dlp backend as a titleProber, and whether
-// it actually is one - the same pattern pushJDSpeedLimit above uses for its
-// own optional interface. False when no yt-dlp backend is wired at all
-// (a.ytdlp nil, no binary present at boot) exactly as much as when one is
-// wired that does not implement it; either way probeYtdlpTitle's only caller
-// has nothing to do.
+// ytdlpTitleProber returns the yt-dlp backend as a titleProber, and false when
+// no yt-dlp backend is wired or it does not implement one.
 func (a *App) ytdlpTitleProber() (titleProber, bool) {
 	a.bmu.RLock()
 	b := a.ytdlp
@@ -1275,17 +937,10 @@ func (a *App) ytdlpTitleProber() (titleProber, bool) {
 	return tp, ok
 }
 
-// applyConnections rebuilds the connection picker from the saved rows.
-//
-// Rebuilt rather than mutated, because building a picker is also what settles
-// the ban list against the new list: a row switched back on loses its refusals
-// there, and there is no second call anyone has to remember. The Bans instance
-// is kept across rebuilds so the refusals themselves survive a save that had
-// nothing to do with them.
-//
-// An empty list leaves the picker nil, which every caller reads as "leave by
-// this machine's own address" - the same answer as a list with nothing usable in
-// it, and the right one for the ordinary install that has configured no proxy.
+// applyConnections rebuilds the connection picker from the saved rows. Building
+// it also settles the bans against the new rows; the Bans instance itself is
+// kept so refusals survive unrelated saves. An empty list leaves the picker
+// nil: use this machine's own address.
 func (a *App) applyConnections(rows []proxycfg.Entry) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
@@ -1299,15 +954,10 @@ func (a *App) applyConnections(rows []proxycfg.Entry) {
 	a.picker = proxycfg.NewPicker(rows, proxycfg.Options{Bans: a.bans})
 }
 
-// applyTorrentConfig pushes the current seed-ratio/seed-duration/port policy
-// into the engine - the one live effect settings.Torrent currently has on a
-// running torrent. See Engine.SetTorrentConfig's own doc comment for exactly
-// what "reaches" means for each of the three: seed-ratio and seed-duration
-// take for every torrent added from here on, port only takes if no torrent
-// has started yet this process. Logged and swallowed rather than propagated,
-// the same non-fatal risk posture already established for engine.go's own
-// UseProxy call at boot: a failed push here is a setting not yet in effect,
-// not a reason to fail the save or the boot that called this.
+// applyTorrentConfig pushes the seed ratio, seed duration and port into the
+// engine. The seed settings apply to torrents added from now on; the port only
+// if no torrent has started in this process (see Engine.SetTorrentConfig). A
+// failure is logged rather than failing the save or the boot.
 func (a *App) applyTorrentConfig(t settings.Torrent) {
 	if err := a.Engine.SetTorrentConfig(t.Port, t.SeedRatioTarget, t.SeedDurationSeconds); err != nil {
 		log.Printf("torrent config not applied (%v); torrents seed at the engine's own defaults", err)
@@ -1320,10 +970,9 @@ func newID() string {
 	return hex.EncodeToString(b)
 }
 
-// freshID returns an ID no live task holds. A collision is astronomically
-// unlikely, but its consequence is not a glitch: the new task would silently
-// replace an existing one in the map, and the old download would be orphaned
-// with no way to reach it. Caller holds a.mu.
+// freshIDLocked returns an ID no live task holds. A collision is very unlikely,
+// but it would silently replace a task in the map and orphan its download.
+// Caller holds a.mu.
 func (a *App) freshIDLocked() string {
 	for {
 		id := newID()

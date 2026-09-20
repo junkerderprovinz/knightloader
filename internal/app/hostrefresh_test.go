@@ -1,12 +1,9 @@
 package app
 
-// The routing host-list cache, at the app-integration level: fetchDebridHosts
-// keeping the last good list on a transient failure (the fix this row is
-// about), it surviving a fresh rewireBackends call the way a real process
-// restart or a later account change would, and refreshHostListsIfDue's own
-// once-per-interval gate. internal/resolver's own hostcache_test.go pins the
-// pure mechanism; this file pins that app_accounts.go actually uses it the
-// way it is documented to.
+// The routing host-list cache as app_accounts.go uses it: the last good list
+// survives a transient failure and a fresh rewireBackends, and
+// refreshHostListsIfDue refreshes once per interval. The cache itself is
+// tested in internal/resolver (hostcache_test.go).
 
 import (
 	"context"
@@ -19,9 +16,8 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver/debrid"
 )
 
-// flakyDebridService answers Hosts() with whatever script says next, in
-// order - the shape a real timeout-then-recovery-then-timeout-again service
-// takes across several rewireBackends calls.
+// flakyDebridService answers Hosts() with the next scripted result, like a
+// service that times out and recovers across several rewireBackends calls.
 type flakyDebridService struct {
 	id     string
 	script []func() (map[string]bool, error)
@@ -62,12 +58,8 @@ type boomErr struct{}
 
 func (*boomErr) Error() string { return "boom: transient service error" }
 
-// TestFetchDebridHostsKeepsLastGoodOnFailure is THE fix row 3 exists for, at
-// the level rewireBackends actually calls: a transient Hosts() error must
-// leave the previously fetched set in place, never nil - which HostInSet
-// (internal/resolver/debrid) reads as "this service claims nothing at all".
-//
-// Construct the failure, assert the list is unchanged.
+// A transient Hosts() error keeps the previous set rather than nil, which
+// debrid.HostInSet would read as "this service claims nothing".
 func TestFetchDebridHostsKeepsLastGoodOnFailure(t *testing.T) {
 	a, err := New(t.TempDir())
 	if err != nil {
@@ -87,19 +79,13 @@ func TestFetchDebridHostsKeepsLastGoodOnFailure(t *testing.T) {
 
 	second := a.fetchDebridHosts(svc)
 	if len(second) != 2 || !second["a.example"] || !second["b.example"] {
-		t.Errorf("after a failed fetch, fetchDebridHosts = %v, want the last good set unchanged (this is the bug: a transient error must not empty it)", second)
+		t.Errorf("after a failed fetch, fetchDebridHosts = %v, want the last good set unchanged", second)
 	}
 }
 
-// TestFetchDebridHostsSurvivesAFreshCallTheWayARestartWould pins the half a
-// bare in-memory cache would miss: a BRAND NEW *resolver.HostCache is built
-// on every rewireBackends call (mirroring how debrid.NewAllDebrid/NewRealDebrid
-// are freshly constructed every time too), so "keep the last good list" has
-// to survive that reconstruction - which is what the on-disk seed
-// (hostCacheFor's Load hook) is for. This drives fetchDebridHosts twice with
-// two DIFFERENT flakyDebridService values sharing the same service id, the
-// same way two different rewireBackends calls each build a fresh
-// debrid.Service from the same stored credential.
+// Every rewireBackends builds a new cache and service, so the last good list
+// has to survive through the on-disk seed (hostCacheFor's Load hook). Two
+// separate services with the same id stand in for two rewires.
 func TestFetchDebridHostsSurvivesAFreshCallTheWayARestartWould(t *testing.T) {
 	a, err := New(t.TempDir())
 	if err != nil {
@@ -112,9 +98,7 @@ func TestFetchDebridHostsSurvivesAFreshCallTheWayARestartWould(t *testing.T) {
 		t.Fatalf("seeding fetch = %v", got)
 	}
 
-	// A second, independent Service value for the same id - a fresh instance,
-	// zero in-memory history of its own, exactly like a real rewireBackends
-	// call after an account change or a process restart.
+	// A fresh service for the same id, with no history of its own.
 	second := &flakyDebridService{id: "restart-rd", script: []func() (map[string]bool, error){fail()}}
 	got := a.fetchDebridHosts(second)
 	if !got["persisted.example"] {
@@ -122,12 +106,8 @@ func TestFetchDebridHostsSurvivesAFreshCallTheWayARestartWould(t *testing.T) {
 	}
 }
 
-// TestRefreshHostListsIfDueRespectsTheInterval pins the "not once a minute"
-// half of the timer: refreshHostListsIfDue must not re-run rewireBackends
-// again immediately after one attempt, success or failure - see
-// hostRefreshAttempted's own doc comment for why a sustained outage must
-// back off to hostRefreshInterval rather than being retried on upkeep's own
-// 1-minute tick.
+// After an attempt, successful or not, there is no new one until
+// hostRefreshInterval has passed, not on every one-minute upkeep tick.
 func TestRefreshHostListsIfDueRespectsTheInterval(t *testing.T) {
 	a, err := New(t.TempDir())
 	if err != nil {
@@ -135,9 +115,7 @@ func TestRefreshHostListsIfDueRespectsTheInterval(t *testing.T) {
 	}
 	t.Cleanup(func() { a.Close() })
 
-	// New() already called rewireBackends once, which stamped
-	// hostRefreshAttempted[a] to just now - so the very next call must be a
-	// no-op rather than an immediate second rewire.
+	// New already rewired once and stamped the attempt.
 	hostRefreshMu.Lock()
 	before := hostRefreshAttempted[a]
 	hostRefreshMu.Unlock()
@@ -155,9 +133,7 @@ func TestRefreshHostListsIfDueRespectsTheInterval(t *testing.T) {
 	}
 }
 
-// TestRefreshHostListsIfDueFiresOnceStale is the other half: once
-// hostRefreshInterval has genuinely passed, the next call must actually
-// re-run rewireBackends (observable as the attempt stamp moving forward).
+// Once the interval has passed, the next call rewires again.
 func TestRefreshHostListsIfDueFiresOnceStale(t *testing.T) {
 	a, err := New(t.TempDir())
 	if err != nil {
@@ -179,10 +155,8 @@ func TestRefreshHostListsIfDueFiresOnceStale(t *testing.T) {
 	}
 }
 
-// TestJDStatusUnconfigured pins the default: no KL_JD at all reads as
-// "not configured", never as "unreachable" - those are different facts, and
-// conflating them would tell a user their sidecar is down when they simply
-// never set one up.
+// Without KL_JD the sidecar is not configured, which is not the same as
+// unreachable.
 func TestJDStatusUnconfigured(t *testing.T) {
 	t.Setenv("KL_JD", "")
 	a, err := New(t.TempDir())
@@ -197,10 +171,7 @@ func TestJDStatusUnconfigured(t *testing.T) {
 	}
 }
 
-// TestJDStatusReachableReportsTheRevision drives JDStatus against a fake
-// sidecar answering the real /help and /jd/version shapes, and pins that the
-// revision it reports is the one the sidecar actually sent - the "surface
-// the JD container's own version" row.
+// JDStatus reports the revision a fake sidecar sends on /jd/version.
 func TestJDStatusReachableReportsTheRevision(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/jd/version" {
@@ -224,13 +195,9 @@ func TestJDStatusReachableReportsTheRevision(t *testing.T) {
 	}
 }
 
-// TestJDStatusConfiguredButUnreachable pins the third state: a KL_JD that
-// does not answer is "configured" (the user did set one up) but not
-// "reachable" - the distinction that tells a user whether to check their own
-// setup or wait for the sidecar to come back.
+// A KL_JD that does not answer is configured but not reachable.
 func TestJDStatusConfiguredButUnreachable(t *testing.T) {
-	// A closed listener: connection refused, not a slow/hanging one, so the
-	// test does not have to wait out a real timeout to see the failure.
+	// A closed listener refuses at once, so no timeout is waited out.
 	ln, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatal(err)

@@ -6,14 +6,8 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/core"
 )
 
-// TestCountersKeepDisabledLinksInTheFileCountOnly is the one rule the figures
-// under the list turn on.
-//
-// A link that is switched off is still a file the user added, so dropping it
-// from the count would make the list shorter than the list. What it is not is
-// work the queue is going to do: leaving its bytes in the total puts a number
-// in front of somebody that no amount of waiting ever works off, and an ETA
-// built on it never arrives.
+// A disabled link counts as a file but not in the bytes or the ETA, which it
+// would keep from ever arriving.
 func TestCountersKeepDisabledLinksInTheFileCountOnly(t *testing.T) {
 	a := newQueueApp(t)
 
@@ -28,14 +22,12 @@ func TestCountersKeepDisabledLinksInTheFileCountOnly(t *testing.T) {
 		Enabled: true, Size: 600})
 	put(&core.Task{ID: "off", URL: "https://host.example/c", Status: core.StatusQueued,
 		Enabled: false, Size: 9_000_000})
-	// Neither of these is owed any more, so neither is a file the list is still
-	// counting down.
+	// Settled, so no longer owed.
 	put(&core.Task{ID: "done", URL: "https://host.example/d", Status: core.StatusDone,
 		Enabled: true, Size: 500, Loaded: 500})
 	put(&core.Task{ID: "failed", URL: "https://host.example/e", Status: core.StatusError,
 		Enabled: true, Size: 700})
-	// Staged but never started: it is not in the queue at all, and counting it
-	// would move the ETA every time somebody pasted something.
+	// Staged but not in the queue.
 	put(&core.Task{ID: "staged", URL: "https://host.example/f", Status: core.StatusCollected,
 		Enabled: true, Size: 4000})
 
@@ -50,8 +42,8 @@ func TestCountersKeepDisabledLinksInTheFileCountOnly(t *testing.T) {
 	if c.Running != 1 {
 		t.Errorf("Running = %d, want 1", c.Running)
 	}
-	// 600 still to fetch on the running one, 600 on the waiting one, and not one
-	// byte of the nine megabytes that are switched off.
+	// 600 on the running one, 600 on the waiting one, nothing of the disabled
+	// one.
 	if c.Remaining != 1200 {
 		t.Errorf("Remaining = %d, want 1200: the disabled link's bytes leaked into the total", c.Remaining)
 	}
@@ -60,9 +52,8 @@ func TestCountersKeepDisabledLinksInTheFileCountOnly(t *testing.T) {
 	}
 }
 
-// TestCountersHaveNoETAWithNothingMoving keeps the honest gap in the figures. A
-// stalled queue reporting zero seconds reads as "done in a moment", which is
-// the one thing it is not.
+// With nothing moving there is no ETA; zero seconds would read as "done in a
+// moment".
 func TestCountersHaveNoETAWithNothingMoving(t *testing.T) {
 	a := newQueueApp(t)
 	a.mu.Lock()
@@ -79,9 +70,7 @@ func TestCountersHaveNoETAWithNothingMoving(t *testing.T) {
 	}
 }
 
-// TestCountersIgnoreASizeNobodyKnowsYet stops a guess entering the total. A
-// link whose size has not come back yet would otherwise contribute its whole
-// loaded count as "remaining", and the figure would fall as the file grew.
+// A download of unknown size adds nothing to the remaining bytes.
 func TestCountersIgnoreASizeNobodyKnowsYet(t *testing.T) {
 	a := newQueueApp(t)
 	a.mu.Lock()

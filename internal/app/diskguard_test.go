@@ -1,10 +1,8 @@
 package app
 
-// The disk guard, driven at the two places it acts: the dispatch pass that
-// declines to START a download, and the watcher pass that STOPS one already
-// running. Every reading comes from a fake volume, because a test that only
-// says something on a machine that happens to be nearly full is a test that
-// says nothing.
+// The disk guard at the two places it acts: the dispatch pass that declines to
+// start a download, and the watcher pass that stops a running one. Readings
+// come from a fake volume so the result does not depend on the machine.
 
 import (
 	"sync"
@@ -25,9 +23,8 @@ const (
 	diskResolver = "diskbe"
 )
 
-// fakeVolume is the free-space reading every check in this file sees. It is
-// mutable mid-test on purpose: the case the watcher exists for is a volume
-// that was comfortable when the transfer started and is not any more.
+// fakeVolume is the free-space reading every check here sees. It can change
+// mid-test, like a volume that fills while a transfer runs.
 type fakeVolume struct {
 	mu    sync.Mutex
 	free  uint64
@@ -46,9 +43,7 @@ func (v *fakeVolume) read(string) (uint64, bool) {
 	return v.free, v.known
 }
 
-// installVolume swaps the package's own reading for this one and puts the real
-// implementation back afterwards, so a test that fails does not leave every
-// later test in this package looking at an invented disk.
+// installVolume swaps in the fake reading and restores the real one afterwards.
 func installVolume(t *testing.T, free uint64, known bool) *fakeVolume {
 	t.Helper()
 	v := &fakeVolume{free: free, known: known}
@@ -59,7 +54,7 @@ func installVolume(t *testing.T, free uint64, known bool) *fakeVolume {
 }
 
 // diskApp wires one host to a fake resolver and a fake backend, so a dispatch
-// pass ends in a channel rather than on somebody's server.
+// ends in a channel.
 func diskApp(t *testing.T, mutate func(*settings.Settings)) (*App, *capBackend) {
 	t.Helper()
 	a := newQueueApp(t)
@@ -67,9 +62,8 @@ func diskApp(t *testing.T, mutate func(*settings.Settings)) (*App, *capBackend) 
 	s.MaxConcurrent, s.MaxPerHost = 4, 4
 	s.DownloadDir = t.TempDir()
 	s.Crawl = false
-	// Defaults() ships the per-file reserve switched on. Every test below says
-	// what it wants explicitly, so they all start from a guard that is fully
-	// off and only the field under test is turned back on.
+	// Defaults() turns the reserve on; each test starts fully off and turns on
+	// only what it tests.
 	s.DiskReserve, s.DiskLowSpace, s.DiskCriticalSpace = 0, 0, 0
 	mutate(&s)
 	if _, err := a.ApplySettings(s); err != nil {
@@ -83,8 +77,8 @@ func diskApp(t *testing.T, mutate func(*settings.Settings)) (*App, *capBackend) 
 	return a, be
 }
 
-// queueSized stages one queued task of a given announced size. A size of 0 is
-// the "nobody has checked this link" case, which is most of them.
+// queueSized stages one queued task of a given announced size; 0 means
+// unknown, as for most links.
 func queueSized(a *App, id string, size int64) {
 	a.mu.Lock()
 	a.tasks[id] = &core.Task{
@@ -112,10 +106,8 @@ func dispatchNow(a *App) (running map[string]bool, waiting map[string]core.Waiti
 	return running, waiting
 }
 
-// TestAVolumeUnderTheFloorStartsNothingAndSaysSo is the first threshold. The
-// reason on the row is half the test: "all slots busy" would be a true
-// sentence about the wrong problem, and it sends the reader to raise
-// MaxConcurrent, which frees not one byte.
+// Under the floor nothing starts, and the row says it is waiting for disk
+// space rather than for a slot.
 func TestAVolumeUnderTheFloorStartsNothingAndSaysSo(t *testing.T) {
 	installVolume(t, 800*mib, true)
 	a, _ := diskApp(t, func(s *settings.Settings) { s.DiskLowSpace = gib })
@@ -130,10 +122,7 @@ func TestAVolumeUnderTheFloorStartsNothingAndSaysSo(t *testing.T) {
 	}
 }
 
-// TestAnUnknownSizeStartsOnAHealthyVolume is the first half of the answer to
-// "what about a task nobody checked". Most tasks carry Size 0, and refusing
-// them would be an app that stops downloading on a machine with two terabytes
-// free because it could not prove a file fits.
+// A task of unknown size starts on a healthy volume; most tasks have no size.
 func TestAnUnknownSizeStartsOnAHealthyVolume(t *testing.T) {
 	installVolume(t, 100*gib, true)
 	a, _ := diskApp(t, func(s *settings.Settings) {
@@ -147,11 +136,8 @@ func TestAnUnknownSizeStartsOnAHealthyVolume(t *testing.T) {
 	}
 }
 
-// TestAnUnknownSizeStillWaitsUnderTheFloor is the other half, and the two
-// together are the whole policy: a task with no size is exempt from the
-// per-file arithmetic and NOT from the floor. Without this the exemption would
-// be a hole big enough to drive the entire queue through, since a task's size
-// is unknown at exactly the moment it is about to be started.
+// A task of unknown size is exempt from the per-file check but not from the
+// floor.
 func TestAnUnknownSizeStillWaitsUnderTheFloor(t *testing.T) {
 	installVolume(t, 500*mib, true)
 	a, _ := diskApp(t, func(s *settings.Settings) {
@@ -161,17 +147,15 @@ func TestAnUnknownSizeStillWaitsUnderTheFloor(t *testing.T) {
 
 	running, waiting := dispatchNow(a)
 	if running["d1"] {
-		t.Error("a task of unknown size started on a volume under the floor: the exemption from the per-file check must not exempt it from the floor as well")
+		t.Error("a task of unknown size started on a volume under the floor")
 	}
 	if waiting["d1"] != core.WaitingDisk {
 		t.Errorf("d1 waits with %q, want %q", waiting["d1"], core.WaitingDisk)
 	}
 }
 
-// TestAFileThatWillNotFitIsNotStarted is the reserve, which is the half that
-// ships switched on. A download that cannot fit ends as ReasonDiskFull with a
-// part file behind it; refusing it costs the queue nothing and leaves the
-// volume as it was.
+// The reserve, on by default: a download that cannot fit is not started, rather
+// than failing with a part file left behind.
 func TestAFileThatWillNotFitIsNotStarted(t *testing.T) {
 	installVolume(t, 10*gib, true)
 	a, _ := diskApp(t, func(s *settings.Settings) { s.DiskReserve = gib })
@@ -185,17 +169,14 @@ func TestAFileThatWillNotFitIsNotStarted(t *testing.T) {
 	if waiting["big"] != core.WaitingDisk {
 		t.Errorf("big waits with %q, want %q", waiting["big"], core.WaitingDisk)
 	}
-	// The other half of the same assertion: the check is per file, so one
-	// oversized task must not hold up a small one behind it.
+	// The check is per file, so a small task behind it still starts.
 	if !running["small"] {
 		t.Error("a 100 MiB download was refused too; the check is per file, not a blanket stop")
 	}
 }
 
-// TestOnePassDoesNotPromiseTheSameBytesTwice pins what the per-pass
-// bookkeeping is for. The reading is taken once for the whole pass, so without
-// it four twenty-gigabyte downloads on a thirty-gigabyte volume would each be
-// told, truthfully and uselessly, that thirty gigabytes were free.
+// The reading is taken once per pass, so the pass subtracts what it has
+// already promised.
 func TestOnePassDoesNotPromiseTheSameBytesTwice(t *testing.T) {
 	installVolume(t, 30*gib, true)
 	a, _ := diskApp(t, func(s *settings.Settings) { s.DiskReserve = gib })
@@ -219,11 +200,8 @@ func TestOnePassDoesNotPromiseTheSameBytesTwice(t *testing.T) {
 	}
 }
 
-// TestAVolumeThatCannotBeMeasuredBlocksNothing is the fail-open rule, and it
-// is the one that will be tempting to "tidy up" into a zero one day. A guard
-// that stops the queue whenever it is ignorant halts a perfectly healthy
-// machine on any platform internal/diskspace has no call for, and the person
-// it happens to has nothing on screen to work out why.
+// The guard fails open: a volume that cannot be measured blocks nothing, or
+// every platform without a free-space call would stop downloading.
 func TestAVolumeThatCannotBeMeasuredBlocksNothing(t *testing.T) {
 	installVolume(t, 0, false)
 	a, _ := diskApp(t, func(s *settings.Settings) {
@@ -233,15 +211,12 @@ func TestAVolumeThatCannotBeMeasuredBlocksNothing(t *testing.T) {
 
 	running, _ := dispatchNow(a)
 	if !running["d1"] {
-		t.Error("a download was refused on a platform that cannot measure free space; an unanswerable question must be no opinion, never a zero that reads as a full disk")
+		t.Error("a download was refused on a platform that cannot measure free space; no reading must mean no opinion, not a full disk")
 	}
 }
 
-// TestTheGuardStopsTransfersOnAVolumeGoneCritical is the second threshold and
-// the reason there is a watcher at all. A running download produces no event
-// that reaches the dispatcher, so a queue quietly filling the last gigabyte
-// over twenty minutes would be noticed only once the writes had already
-// failed.
+// Below the pause mark the watcher stops running transfers, which produce no
+// event the dispatcher would see.
 func TestTheGuardStopsTransfersOnAVolumeGoneCritical(t *testing.T) {
 	v := installVolume(t, 100*gib, true)
 	a, be := diskApp(t, func(s *settings.Settings) {
@@ -271,7 +246,7 @@ func TestTheGuardStopsTransfersOnAVolumeGoneCritical(t *testing.T) {
 		t.Error("a transfer kept running on a volume under the pause mark")
 	}
 	if status != core.StatusQueued {
-		t.Errorf("status = %q after the guard stopped it, want %q - a stopped transfer has to go BACK into the wait queue, or nothing ever starts it again",
+		t.Errorf("status = %q after the guard stopped it, want %q; a stopped transfer must go back into the wait queue",
 			status, core.StatusQueued)
 	}
 	if waiting != core.WaitingDisk {
@@ -279,16 +254,12 @@ func TestTheGuardStopsTransfersOnAVolumeGoneCritical(t *testing.T) {
 	}
 }
 
-// TestAStoppedTransferIsNotRestartedIntoTheSameFullVolume is the loop that
-// sanitizeDiskSpace's own invariant exists to prevent, checked from this side:
-// the guard stops a transfer below the pause mark, the dispatcher runs
-// immediately afterwards (inside StopBack), and it must not hand the slot
-// straight back. Every fifteen seconds, for as long as the disk stayed low,
-// and each round throwing away whatever a non-resumable transfer had fetched.
+// The dispatcher runs right after the guard stops a transfer (inside StopBack)
+// and must not restart it on the same full volume; sanitizeDiskSpace keeps the
+// start floor at least at the pause mark.
 func TestAStoppedTransferIsNotRestartedIntoTheSameFullVolume(t *testing.T) {
 	v := installVolume(t, 100*gib, true)
-	// The pause mark ABOVE the start floor, which is the shape that would
-	// loop. sanitize is expected to raise the start floor to match it.
+	// The pause mark above the start floor, which sanitize has to correct.
 	a, _ := diskApp(t, func(s *settings.Settings) {
 		s.DiskLowSpace, s.DiskCriticalSpace = 0, gib
 	})
@@ -304,6 +275,6 @@ func TestAStoppedTransferIsNotRestartedIntoTheSameFullVolume(t *testing.T) {
 	stillRunning := a.active["d1"]
 	a.mu.Unlock()
 	if stillRunning {
-		t.Fatal("the transfer was stopped and immediately started again: a pause mark above the start floor has to raise the start floor, or the guard fights the dispatcher once per tick")
+		t.Fatal("the transfer was stopped and immediately started again; a pause mark above the start floor must raise the start floor")
 	}
 }

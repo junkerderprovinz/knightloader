@@ -11,15 +11,9 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/script"
 )
 
-// TestScriptFiresOnTaskDone proves the actual wiring point in
-// app_dispatch.go's onUpdate: a task settling as done reaches a real,
-// enabled task.done script through the event bus, and that script's
-// task.setComment(...) call reaches the real task through scriptActions -
-// not just that internal/script can run a script in isolation, which its
-// own package tests already cover. Polled through the package's own
-// waitFor (rules_wiring_test.go): the script host's worker pool runs the
-// script on a different goroutine, so there is nothing to read
-// synchronously right after onUpdate returns.
+// A task settling as done in onUpdate reaches a task.done script through the
+// bus, and the script's setComment reaches the task through scriptActions. The
+// script runs on the host's worker pool, hence the polling.
 func TestScriptFiresOnTaskDone(t *testing.T) {
 	a, err := New(t.TempDir())
 	if err != nil {
@@ -52,13 +46,9 @@ func TestScriptFiresOnTaskDone(t *testing.T) {
 	})
 }
 
-// TestScriptDoesNotFireOnTaskFailedWithRetryPending is the app-level half of
-// script.ClassifyTaskUpdate's own doc comment: a failure that still has an
-// automatic retry pending (NextTry set) must not run a task.failed script at
-// all, only the settled failure does - proven here against the real
-// onUpdate path rather than the pure function alone, so a future change to
-// onUpdate's own ordering (NextTry set before the broadcast this wiring
-// hangs off) cannot silently break the contract ClassifyTaskUpdate assumes.
+// A failure with an automatic retry pending must not run a task.failed script.
+// This goes through onUpdate, since ClassifyTaskUpdate relies on NextTry being
+// set before the broadcast.
 func TestScriptDoesNotFireOnTaskFailedWithRetryPending(t *testing.T) {
 	a, err := New(t.TempDir())
 	if err != nil {
@@ -82,15 +72,12 @@ func TestScriptDoesNotFireOnTaskFailedWithRetryPending(t *testing.T) {
 	a.started[task.ID] = true
 	a.mu.Unlock()
 
-	// A transient failure: MaxRetries defaults > 0, so this settles with
-	// NextTry armed rather than cleared, which is exactly the state
-	// ClassifyTaskUpdate must refuse to fire on.
+	// A transient failure: MaxRetries defaults above zero, so this settles
+	// with NextTry armed.
 	a.onUpdate(task.ID, core.Update{Status: core.StatusError, Err: "connection reset"})
 
-	// There is nothing to poll FOR here (the absence of a firing), so this
-	// waits out a window generous next to the worker pool picking a
-	// job up, then asserts the comment never arrived - a real, if
-	// necessarily time-bounded, negative check.
+	// An absence cannot be polled for, so wait well past the time the worker
+	// pool needs to pick a job up.
 	time.Sleep(300 * time.Millisecond)
 	a.mu.Lock()
 	comment := task.Comment
@@ -104,11 +91,9 @@ func TestScriptDoesNotFireOnTaskFailedWithRetryPending(t *testing.T) {
 	}
 }
 
-// TestRunNowThroughApp is the manual/on-demand path end to end: build the
-// TaskView through ScriptTask (the same call routes_scripts.go's run route
-// makes), run through Scripts.RunNow, and confirm the script's
-// task.setPriority call landed on the real task via scriptActions. RunNow
-// runs synchronously, so there is nothing to poll for here.
+// The on-demand path end to end: ScriptTask builds the view as the run route
+// does, and the script's setPriority lands on the real task. RunNow is
+// synchronous.
 func TestRunNowThroughApp(t *testing.T) {
 	a, err := New(t.TempDir())
 	if err != nil {
@@ -151,12 +136,8 @@ func TestRunNowThroughApp(t *testing.T) {
 	}
 }
 
-// TestScriptActionsRetryRefusesEmptyTaskID is scriptActions' own defensive
-// line, independent of internal/script's own bindings never constructing an
-// empty-taskID closure in the first place - see Retry's own doc comment for
-// why RestartTasks(nil) treating an empty slice as "every errored task"
-// makes this the one Actions method that cannot simply forward its
-// argument.
+// RestartTasks reads an empty slice as every errored task, so Retry must not
+// forward an empty id.
 func TestScriptActionsRetryRefusesEmptyTaskID(t *testing.T) {
 	a, err := New(t.TempDir())
 	if err != nil {
@@ -180,21 +161,11 @@ func TestScriptActionsRetryRefusesEmptyTaskID(t *testing.T) {
 	}
 }
 
-// TestWatchQueueIdleForScriptsFiresOnce confirms the independent poller
-// fires TriggerQueueIdle for a queue that is idle from the start - unlike
-// idleaction.Controller's own everBusy gate, this trigger has no reason to
-// withhold that first firing (see watchQueueIdleForScripts' own doc
-// comment) - and that a script bound to it works with NO idle-pause action
-// configured at all, the exact coupling this wiring has to avoid. Observed
-// through a fake Hub connection (activityFakeConn, app_activity_test.go's
-// own type - same package, so it is reused rather than redeclared) the same
-// way that file's own tests observe a broadcast, since the script host's worker
-// pool runs on its own goroutine with nothing else this test could block on.
+// queue.idle fires for a queue idle from the start, with no idle action
+// configured. The broadcast is observed through a fake Hub connection.
 //
-// Polls with its own deadline rather than the package's shared waitFor:
-// scriptIdlePoll is 2s and this needs to survive at least one full tick plus
-// worker-pool and writer-goroutine scheduling on top, more room than
-// waitFor's fixed 3s budget reliably leaves on a loaded machine.
+// It polls with its own deadline because scriptIdlePoll is 2s, which leaves too
+// little of waitFor's 3s on a loaded machine.
 func TestWatchQueueIdleForScriptsFiresOnce(t *testing.T) {
 	a, err := New(t.TempDir())
 	if err != nil {
@@ -202,9 +173,8 @@ func TestWatchQueueIdleForScriptsFiresOnce(t *testing.T) {
 	}
 	defer a.Close()
 
-	// Confirmed unconfigured: the default idle-action is ActionNone, so
-	// idleaction.Controller's own Fire callback never runs, and this
-	// firing can only be coming from watchQueueIdleForScripts.
+	// With ActionNone the controller never fires, so any firing comes from
+	// watchQueueIdleForScripts.
 	if a.Settings.Get().IdleAction.Action != idleaction.ActionNone {
 		t.Fatal("test setup: expected no idle action configured by default")
 	}

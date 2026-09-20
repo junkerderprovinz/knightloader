@@ -1,10 +1,7 @@
 package app
 
-// The disk readout, driven against a fake volume for the reason the guard's own
-// tests are: a reading that comes from the machine underneath only says
-// something on a machine that happens to be nearly full, and says nothing at
-// all about the two answers this feature exists for - a platform that cannot
-// measure, and a folder that is not there yet.
+// The disk readout against a fake volume, so a platform that cannot measure and
+// a folder that does not exist yet can be tested anywhere.
 
 import (
 	"encoding/json"
@@ -20,16 +17,14 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
-// fakeUsage is the volume reading every row in this file gets, and it keeps the
-// folders it was asked about - which is half of what is being tested here,
-// since the folder that gets measured is not always the folder that was
-// configured.
+// fakeUsage is the volume reading every row gets. It records the folders it was
+// asked about, since the measured folder is not always the configured one.
 type fakeUsage struct {
 	space diskspace.Space
 	known bool
 
-	// before runs inside the call, before anything is recorded. Set once, from
-	// the test's own goroutine, before the first report is asked for.
+	// before runs inside the call, before anything is recorded. It is set
+	// before the first report is asked for.
 	before func(path string)
 
 	mu    sync.Mutex
@@ -65,9 +60,7 @@ func (f *fakeUsage) wasAsked(path string) bool {
 	return false
 }
 
-// installUsage swaps the package's own reading for this one and puts the real
-// implementation back afterwards, so a test that fails does not leave every
-// later test in this package looking at an invented disk.
+// installUsage swaps in the fake reading and restores the real one afterwards.
 func installUsage(t *testing.T, sp diskspace.Space, known bool) *fakeUsage {
 	t.Helper()
 	f := &fakeUsage{space: sp, known: known}
@@ -77,16 +70,14 @@ func installUsage(t *testing.T, sp diskspace.Space, known bool) *fakeUsage {
 	return f
 }
 
-// aVolume is a comfortable disk: four terabytes, a quarter of it occupied, and
-// a little of the rest held back from us so that free plus used deliberately
-// does not add up to the total.
+// aVolume is a comfortable disk: four terabytes, a quarter used, and some held
+// back so that free plus used does not add up to the total.
 func aVolume() diskspace.Space {
 	return diskspace.Space{Free: 2900 * gib, Used: 1000 * gib, Total: 4000 * gib}
 }
 
-// reportApp is an app whose settings the test writes and whose queue it fills
-// by hand. Nothing here dispatches: the readout reads the queue, it does not
-// run it.
+// reportApp is an app whose settings and queue the test fills by hand. Nothing
+// dispatches.
 func reportApp(t *testing.T, mutate func(*settings.Settings)) *App {
 	t.Helper()
 	a := newQueueApp(t)
@@ -111,8 +102,8 @@ func owe(a *App, id, dir string, status core.Status, size, loaded int64) {
 	a.mu.Unlock()
 }
 
-// rowFor is the report's row for one folder, or a failure naming what it did
-// report - a missing row is otherwise indistinguishable from a wrong one.
+// rowFor is the report's row for one folder, or a failure naming the rows it
+// did report.
 func rowFor(t *testing.T, rep DiskReport, dir string) VolumeReport {
 	t.Helper()
 	want := filepath.Clean(dir)
@@ -127,12 +118,8 @@ func rowFor(t *testing.T, rep DiskReport, dir string) VolumeReport {
 	return VolumeReport{}
 }
 
-// TestAPlatformThatCannotMeasureSaysSoAndNotThatNothingIsLeft is the fail-open
-// rule in a readout's own currency. internal/diskspace answers "I do not know"
-// on any kernel it has no call for, and the row for such a platform must carry
-// that as its own answer: three zeroes and Known false. A row that reported the
-// zeroes as figures would draw an empty bar on a full disk, and the person
-// looking at it has no way to tell that from a volume with nothing left.
+// A platform that cannot measure reports Known false with no figures, which the
+// page must not draw as an empty volume.
 func TestAPlatformThatCannotMeasureSaysSoAndNotThatNothingIsLeft(t *testing.T) {
 	installUsage(t, diskspace.Space{}, false)
 	dl := t.TempDir()
@@ -140,7 +127,7 @@ func TestAPlatformThatCannotMeasureSaysSoAndNotThatNothingIsLeft(t *testing.T) {
 
 	v := rowFor(t, a.DiskReport(), dl)
 	if v.Known {
-		t.Error("the row says the platform answered, on a build where it did not: an unanswerable question has to stay unanswered, never become a zero")
+		t.Error("the row says the platform answered, on a build where it did not")
 	}
 	if v.Free != 0 || v.Used != 0 || v.Total != 0 {
 		t.Errorf("the row carries figures (%d free, %d used, %d total) from a platform that cannot measure", v.Free, v.Used, v.Total)
@@ -150,11 +137,9 @@ func TestAPlatformThatCannotMeasureSaysSoAndNotThatNothingIsLeft(t *testing.T) {
 	}
 }
 
-// TestAFolderThatDoesNotExistYetIsMeasuredAboveItAndSaysWhere is the case a
-// download folder is in nine times out of ten, and the one that can hand a
-// reader a confident wrong number: the walk up is silent, so a folder whose
-// mount did not come up is measured at the volume root and reported under the
-// name of the folder that is missing. Both paths have to travel.
+// A missing folder is measured at the nearest existing parent, and the row
+// carries both paths, since a mount that did not come up would otherwise be
+// reported at the volume root under its own name.
 func TestAFolderThatDoesNotExistYetIsMeasuredAboveItAndSaysWhere(t *testing.T) {
 	f := installUsage(t, aVolume(), true)
 	base := t.TempDir()
@@ -172,13 +157,11 @@ func TestAFolderThatDoesNotExistYetIsMeasuredAboveItAndSaysWhere(t *testing.T) {
 		t.Errorf("the volume was never asked about %q; it was asked about %v", base, f.asked)
 	}
 	if !v.Known || v.Total != aVolume().Total {
-		t.Error("the figures were dropped for a folder that does not exist yet, which is the folder the question is normally about")
+		t.Error("the figures were dropped for a folder that does not exist yet")
 	}
 }
 
-// TestAFolderThatIsThereSaysSo is the other half of the pair, and it is what
-// stops "not created yet" being drawn on every row: a folder that exists is
-// measured at itself and nowhere else.
+// An existing folder is measured at itself.
 func TestAFolderThatIsThereSaysSo(t *testing.T) {
 	installUsage(t, aVolume(), true)
 	dl := t.TempDir()
@@ -193,12 +176,7 @@ func TestAFolderThatIsThereSaysSo(t *testing.T) {
 	}
 }
 
-// TestTwoFoldersKeepTheirOwnDemand is the whole reason the figure is per folder
-// rather than one instance-wide total. The queue counters under the list
-// already say what the box owes altogether; what nobody can see is which of two
-// destinations is the one that will not fit, and a report that added them
-// together would put the same overcommitted-looking number on a folder with
-// four terabytes free.
+// Demand is per folder, so the report shows which destination will not fit.
 func TestTwoFoldersKeepTheirOwnDemand(t *testing.T) {
 	installUsage(t, aVolume(), true)
 	dl, other := t.TempDir(), t.TempDir()
@@ -219,13 +197,10 @@ func TestTwoFoldersKeepTheirOwnDemand(t *testing.T) {
 	}
 }
 
-// TestARunningDownloadIsStillOwedItsRemainingBytes pins the half of the
-// arithmetic that the interface's own wording promises. A transfer that has
-// started has usually had its room taken out of the volume already - the engine
-// creates the file at its full length before the first byte arrives - so these
-// bytes are counted here AND are already missing from the free figure. That is
-// why the two stand side by side and are never subtracted from one another, and
-// why what is counted is what is still to fetch rather than the announced size.
+// A running download is owed what it still has to fetch, not its announced
+// size. The engine preallocates, so these bytes may already be missing from the
+// free figure, which is why the two are shown side by side and never
+// subtracted.
 func TestARunningDownloadIsStillOwedItsRemainingBytes(t *testing.T) {
 	installUsage(t, aVolume(), true)
 	dl := t.TempDir()
@@ -241,11 +216,8 @@ func TestARunningDownloadIsStillOwedItsRemainingBytes(t *testing.T) {
 	}
 }
 
-// TestAnUncheckedLinkCountsAsADownloadAndNotAsBytes is the floor the wording on
-// the interface promises, seen from both sides. Most of a fresh queue has no
-// size at all, so those links add nothing to the byte figure - but a row
-// reading "0 B, 0 downloads" in front of two hundred files that are about to be
-// written is the one thing it must not say.
+// A link of unknown size adds no bytes but still counts as a download, or a
+// fresh queue would read "0 downloads".
 func TestAnUncheckedLinkCountsAsADownloadAndNotAsBytes(t *testing.T) {
 	installUsage(t, aVolume(), true)
 	dl := t.TempDir()
@@ -254,17 +226,14 @@ func TestAnUncheckedLinkCountsAsADownloadAndNotAsBytes(t *testing.T) {
 
 	v := rowFor(t, a.DiskReport(), dl)
 	if v.Queued != 0 {
-		t.Errorf("owed %d bytes for a link whose size nobody knows, want 0: a guess here is a promise the queue cannot keep", v.Queued)
+		t.Errorf("owed %d bytes for a link whose size nobody knows, want 0", v.Queued)
 	}
 	if v.Tasks != 1 {
-		t.Errorf("%d downloads owe it, want 1: the link is still going to be written, and a row that hides it hides the whole queue on a fresh install", v.Tasks)
+		t.Errorf("%d downloads owe it, want 1; the link will still be written", v.Tasks)
 	}
 }
 
-// TestADownloadThatIsSwitchedOffIsNotOwedAnything keeps this figure and the
-// counters under the list in step. A disabled link is not going to be written
-// anywhere, and counting it would put bytes in front of somebody that no amount
-// of waiting ever works off.
+// A disabled link is owed nothing, matching the counters under the list.
 func TestADownloadThatIsSwitchedOffIsNotOwedAnything(t *testing.T) {
 	installUsage(t, aVolume(), true)
 	dl := t.TempDir()
@@ -279,10 +248,7 @@ func TestADownloadThatIsSwitchedOffIsNotOwedAnything(t *testing.T) {
 	}
 }
 
-// TestAFinishedDownloadIsNotOwedAnything is the same rule for the other three
-// statuses Counters excludes: nothing is owed on a download that is done or has
-// failed, and a link still in the collector has not been added to the queue at
-// all.
+// Done, failed and collected tasks are owed nothing, as in Counters.
 func TestAFinishedDownloadIsNotOwedAnything(t *testing.T) {
 	installUsage(t, aVolume(), true)
 	dl := t.TempDir()
@@ -296,11 +262,8 @@ func TestAFinishedDownloadIsNotOwedAnything(t *testing.T) {
 	}
 }
 
-// TestAPerPackageSubfolderIsCountedAgainstTheFolderItIsIn is the grouping
-// decision written down. With the per-package level switched on, every package
-// resolves to a directory of its own, and a row each would be thirty rows and
-// thirty syscalls describing one disk thirty times - none of which exists yet,
-// so all thirty would be measured at the same parent anyway.
+// Per-package subfolders count against the folder they are in, rather than a
+// row and a syscall each for the same disk.
 func TestAPerPackageSubfolderIsCountedAgainstTheFolderItIsIn(t *testing.T) {
 	f := installUsage(t, aVolume(), true)
 	dl := t.TempDir()
@@ -329,11 +292,8 @@ func TestAPerPackageSubfolderIsCountedAgainstTheFolderItIsIn(t *testing.T) {
 	}
 }
 
-// TestAConfiguredTemplateIsMeasuredAtItsFixedHead is the trap a folder template
-// sets. "/downloads/<jd:date>/<jd:packagename>" is never a directory, so
-// measuring it as written walks up past the download folder and reports
-// whatever it lands on - on a fresh container, the image's own filesystem. The
-// cut is settings' own rule, exported rather than copied for the third time.
+// A template like "/downloads/<jd:date>/<jd:packagename>" is measured at its
+// fixed head, or the walk up would land on the container's own filesystem.
 func TestAConfiguredTemplateIsMeasuredAtItsFixedHead(t *testing.T) {
 	f := installUsage(t, aVolume(), true)
 	base := t.TempDir()
@@ -354,12 +314,8 @@ func TestAConfiguredTemplateIsMeasuredAtItsFixedHead(t *testing.T) {
 	}
 }
 
-// TestMeasuringCreatesNothingAndWritesNothing is the one rule in this file with
-// a consequence outside the report. settings.Validate is the obvious-looking way
-// to find out whether a folder is usable, and it MkdirAll's the path and drops a
-// probe file in it - so wiring it in here would mean that opening a dashboard
-// creates every configured folder on disk and litters each one, on a page
-// nobody thinks of as a write.
+// Measuring creates and writes nothing; settings.Validate would create each
+// folder and leave a probe file in it.
 func TestMeasuringCreatesNothingAndWritesNothing(t *testing.T) {
 	installUsage(t, aVolume(), true)
 	base := t.TempDir()
@@ -388,11 +344,8 @@ func TestMeasuringCreatesNothingAndWritesNothing(t *testing.T) {
 	}
 }
 
-// TestTheWorkingFolderIsReported is the second folder the shipped interface
-// asks about by name. It is a folder downloads land in - bytes are written
-// there first and moved when they are finished - so a readout that only knew
-// about the download folder would be silent about the volume that actually
-// fills up on an install that has one.
+// The working folder is reported too, since that is where bytes are written
+// first.
 func TestTheWorkingFolderIsReported(t *testing.T) {
 	installUsage(t, aVolume(), true)
 	base := t.TempDir()
@@ -407,11 +360,8 @@ func TestTheWorkingFolderIsReported(t *testing.T) {
 	}
 }
 
-// TestTheReadingIsSharedRatherThanTakenPerCaller is what keeps a route every
-// open browser tab polls from being a stat per folder per tab. The figures move
-// at disk speed and the guard that acts on them looks every fifteen seconds, so
-// a second reading taken within the same few seconds costs syscalls and tells
-// nobody anything new.
+// Callers share one recent reading, so polling tabs do not each stat every
+// folder.
 func TestTheReadingIsSharedRatherThanTakenPerCaller(t *testing.T) {
 	f := installUsage(t, aVolume(), true)
 	dl := t.TempDir()
@@ -427,26 +377,20 @@ func TestTheReadingIsSharedRatherThanTakenPerCaller(t *testing.T) {
 		t.Errorf("%d readings were taken for two calls in the same second, want %d", f.count(), took)
 	}
 	if !second.SampledAt.Equal(first.SampledAt) {
-		t.Error("the second call carries a fresher timestamp than the reading it was actually handed, which is the one thing a stale figure must not do")
+		t.Error("the second call carries a fresher timestamp than the reading it was handed")
 	}
 }
 
-// TestNothingIsMeasuredWhileTheAppLockIsHeld is the rule that keeps one tired
-// mount from stopping the whole app. A stat on an unresponsive network mount
-// blocks for as long as that mount takes to time out; the dispatcher already
-// pays that once per pass with a.mu in its hand, and a route every open tab
-// polls may not join in - every download, every settings save and every list
-// queues behind that lock.
+// No volume is measured while a.mu is held: a stat on a dead network mount
+// blocks until its timeout, and everything else queues behind that lock.
 func TestNothingIsMeasuredWhileTheAppLockIsHeld(t *testing.T) {
 	dl := t.TempDir()
 	a := reportApp(t, func(s *settings.Settings) { s.DownloadDir = dl })
 	f := installUsage(t, aVolume(), true)
 	var held bool
 	f.before = func(string) {
-		// Retried rather than asked once: another goroutine of a running app
-		// holds a.mu for microseconds at a time, and a single failed attempt
-		// would report that as this call holding it. The bug being guarded
-		// against holds the lock for the whole walk, so it never lets go.
+		// Retried, since other goroutines hold a.mu briefly; holding it for the
+		// whole walk never lets go.
 		for i := 0; i < 200; i++ {
 			if a.mu.TryLock() {
 				a.mu.Unlock()
@@ -459,15 +403,12 @@ func TestNothingIsMeasuredWhileTheAppLockIsHeld(t *testing.T) {
 
 	a.DiskReport()
 	if held {
-		t.Error("a volume was measured while a.mu was held; the lock is for building the demand map and has to be released before any syscall")
+		t.Error("a volume was measured while a.mu was held; the lock must be released before any syscall")
 	}
 }
 
-// TestAReportThatHasMeasuredNothingIsAnEmptyListAndNotNull covers the reading a
-// caller is handed before anything has been measured - the first ask, while
-// somebody else's walk is still out. A nil slice encodes as JSON null, and the
-// page that walks over it throws rather than drawing an empty list. The
-// neighbouring StopCost initialises its own slice for exactly this reason.
+// Before anything has been measured, the volumes encode as [] rather than
+// null.
 func TestAReportThatHasMeasuredNothingIsAnEmptyListAndNotNull(t *testing.T) {
 	a := reportApp(t, func(*settings.Settings) {})
 	b, err := json.Marshal(a.diskReportStateFor().report)

@@ -11,9 +11,8 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
-// fakeCrawler stands in for the HTML crawler so the wiring can be tested
-// without a network round trip. It records what it was asked to look at, which
-// is how the "did not crawl" cases below are proved rather than assumed.
+// fakeCrawler stands in for the HTML crawler and records what it was asked to
+// look at.
 type fakeCrawler struct {
 	seen  []string
 	yield []crawler.Result
@@ -26,8 +25,7 @@ func (f *fakeCrawler) Crawl(_ context.Context, u string) ([]crawler.Result, erro
 	return f.yield, nil
 }
 
-// TestAddLinksCrawlsAPage is the whole point of the crawl seam: one pasted page
-// becomes the files it points at, not one unusable task for the page.
+// A pasted page becomes the files it points at.
 func TestAddLinksCrawlsAPage(t *testing.T) {
 	a := newCrawlApp(t, true)
 	fc := &fakeCrawler{yield: []crawler.Result{
@@ -53,8 +51,7 @@ func TestAddLinksCrawlsAPage(t *testing.T) {
 	}
 }
 
-// TestCrawlSkipsRealFileLinks stops the crawler from firing a request at every
-// plain download link, which would double the traffic and slow every paste.
+// A plain file link is not crawled, which would double every paste's traffic.
 func TestCrawlSkipsRealFileLinks(t *testing.T) {
 	a := newCrawlApp(t, true)
 	fc := &fakeCrawler{yield: []crawler.Result{{URL: "https://host.example/nope.bin"}}}
@@ -69,8 +66,7 @@ func TestCrawlSkipsRealFileLinks(t *testing.T) {
 	}
 }
 
-// TestCrawlOffStagesThePage keeps the setting meaningful: with crawling off the
-// old behaviour has to come back exactly.
+// With crawling off, the page itself is staged.
 func TestCrawlOffStagesThePage(t *testing.T) {
 	a := newCrawlApp(t, false)
 	fc := &fakeCrawler{yield: []crawler.Result{{URL: "https://host.example/one.bin"}}}
@@ -85,8 +81,7 @@ func TestCrawlOffStagesThePage(t *testing.T) {
 	}
 }
 
-// TestCrawlDoesNotDuplicate covers the case where a page links to something the
-// same paste also named directly.
+// A page linking the same file twice stages it once.
 func TestCrawlDoesNotDuplicate(t *testing.T) {
 	a := newCrawlApp(t, true)
 	a.Crawler = &fakeCrawler{yield: []crawler.Result{
@@ -100,8 +95,7 @@ func TestCrawlDoesNotDuplicate(t *testing.T) {
 	}
 }
 
-// TestPageThatYieldsNothingIsStillStaged is the "never drop a link" rule
-// applied to the crawler: a page with no files must not vanish.
+// A page with no files is staged itself rather than dropped.
 func TestPageThatYieldsNothingIsStillStaged(t *testing.T) {
 	a := newCrawlApp(t, true)
 	a.Crawler = &fakeCrawler{}
@@ -112,8 +106,7 @@ func TestPageThatYieldsNothingIsStillStaged(t *testing.T) {
 	}
 }
 
-// TestCrawlAgainstARealPage exercises the shipped HTML crawler through the app,
-// so the two are known to fit together and not merely to compile.
+// The shipped HTML crawler, through the app.
 func TestCrawlAgainstARealPage(t *testing.T) {
 	var base string
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -154,17 +147,14 @@ func newCrawlApp(t *testing.T, crawl bool) *App {
 	return a
 }
 
-// TestCrawlRunsForYtdlpRoutedLinks is the bug a live test found. yt-dlp claims
-// every http link that is not a known hoster, so it is the resolver for any
-// page URL. Gating the crawler on the last-resort backend alone meant it never
-// ran on any install that has yt-dlp, which is every container.
+// yt-dlp claims every http link that is not a known hoster, so a page routed to
+// it must still be crawled.
 func TestCrawlRunsForYtdlpRoutedLinks(t *testing.T) {
 	a := newCrawlApp(t, true)
 	fc := &fakeCrawler{yield: []crawler.Result{{URL: "https://host.example/found.bin"}}}
 	a.Crawler = fc
 
-	// An extensionless page URL: whichever of yt-dlp or the HTTP fallback is
-	// registered here, the crawler has to get a look at it.
+	// An extensionless page URL, routed to yt-dlp or the HTTP fallback.
 	const page = "https://host.example/gallery/2026"
 	created := a.AddLinks([]string{page}, "")
 	if len(fc.seen) != 1 {
@@ -175,9 +165,8 @@ func TestCrawlRunsForYtdlpRoutedLinks(t *testing.T) {
 	}
 }
 
-// TestCrawlLeavesHosterLinksAlone keeps the widened gate from opening a debrid
-// or JD page: those belong to a hoster, and fetching the page ourselves would
-// only collect its furniture.
+// A link a real backend claims is not crawled; fetching a hoster page would
+// only collect its navigation.
 func TestCrawlLeavesHosterLinksAlone(t *testing.T) {
 	a := newCrawlApp(t, true)
 	fc := &fakeCrawler{yield: []crawler.Result{{URL: "https://host.example/junk.bin"}}}
@@ -190,11 +179,8 @@ func TestCrawlLeavesHosterLinksAlone(t *testing.T) {
 	}
 }
 
-// TestRemovedTaskIsNotResurrected covers the race a live cleanup made me look
-// at: the availability probe for a staged link runs on its own goroutine and
-// finishes after the user may already have removed the task. If it wrote the
-// row back, the task would reappear on the next restart with no way to explain
-// where it came from.
+// An availability probe finishing after the task was removed must not write it
+// back, or it would reappear on the next restart.
 func TestRemovedTaskIsNotResurrected(t *testing.T) {
 	a := newCrawlApp(t, false)
 

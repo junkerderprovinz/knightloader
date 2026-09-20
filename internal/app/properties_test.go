@@ -26,10 +26,9 @@ func newQuietApp(t *testing.T) (*App, string) {
 	})
 }
 
-// optionsFromJSON decodes a request the way the route does, so a test states the wire
-// shape the panel actually sends rather than a struct literal that can express
-// things JSON cannot - the difference between "absent" and "empty" being the
-// whole subject below.
+// optionsFromJSON decodes a request the way the route does, so a test states
+// the wire shape the panel sends. A struct literal cannot tell an absent field
+// from an empty one, which is the subject below.
 func optionsFromJSON(t *testing.T, body string) TaskOptions {
 	t.Helper()
 	var o TaskOptions
@@ -39,14 +38,10 @@ func optionsFromJSON(t *testing.T, body string) TaskOptions {
 	return o
 }
 
-// TestUntouchedFieldsSurviveAnEditToTheSelection is the rule the whole panel is
-// built around, and the one whose absence destroys data quietly.
-//
-// The panel edits every selected row at once, so a box that is empty because the
-// rows disagree looks exactly like a box somebody emptied on purpose. Sent
-// either way, the first reading wipes a comment, a folder and a password off
-// forty downloads in one click, and nothing on screen would connect the loss to
-// the field that was never touched.
+// The panel edits every selected row at once, so a box left empty because the
+// rows disagree looks like a box somebody emptied on purpose. Sending it either
+// way would wipe a comment, a folder and a password off a whole selection in one
+// click.
 func TestUntouchedFieldsSurviveAnEditToTheSelection(t *testing.T) {
 	a, base := newQuietApp(t)
 	for _, id := range []string{"1", "2", "3"} {
@@ -87,9 +82,8 @@ func TestUntouchedFieldsSurviveAnEditToTheSelection(t *testing.T) {
 		}
 	}
 
-	// An empty string that IS in the request is a deliberate clearing, and it has
-	// to work - otherwise a comment is a one-way door and the rule above would
-	// only be half a rule.
+	// An empty string that is in the request clears the field, or a comment
+	// would be a one-way door.
 	if err := a.SetTaskOptions(ids, optionsFromJSON(t, `{"comment":""}`)); err != nil {
 		t.Fatal(err)
 	}
@@ -100,8 +94,8 @@ func TestUntouchedFieldsSurviveAnEditToTheSelection(t *testing.T) {
 	}
 }
 
-// TestRenameFollowsTheStatus is the rule per status, and each branch is a
-// different way for the list and the folder to end up disagreeing.
+// A rename per status. Each branch is a way for the list and the folder to end
+// up disagreeing.
 func TestRenameFollowsTheStatus(t *testing.T) {
 	t.Run("a finished download moves on disk", func(t *testing.T) {
 		a, base := newQuietApp(t)
@@ -202,10 +196,9 @@ func TestRenameFollowsTheStatus(t *testing.T) {
 	})
 }
 
-// TestRenameIsRefusedOverASelection keeps one name off forty files. A name is an
-// identity, not a property: given to a whole selection it would point every
-// download at one destination, and renameFinishedLocked would carry out the
-// first and refuse the rest one at a time.
+// A name is an identity rather than a property: given to a whole selection it
+// would point every download at one destination, and renameFinishedLocked would
+// carry out the first and refuse the rest.
 func TestRenameIsRefusedOverASelection(t *testing.T) {
 	a, base := newQuietApp(t)
 	finishedTask(t, a, base, "1", "one.bin")
@@ -228,20 +221,17 @@ func TestRenameIsRefusedOverASelection(t *testing.T) {
 		}
 	}
 
-	// Renaming to nothing is the other request that cannot mean anything. It is
-	// refused rather than read as "clear the name", which would leave a row with
-	// no way to describe itself.
+	// Renaming to nothing is refused rather than read as "clear the name", which
+	// would leave a row with no way to describe itself.
 	blank := "   "
 	if err := a.SetTaskOptions([]string{"1"}, TaskOptions{Name: &blank}); err == nil {
 		t.Error("a download was renamed to nothing")
 	}
 }
 
-// TestRenameIsCutToOneSegment is the path-escape guard, and the point of the
-// test is as much WHERE the cut comes from as what it does: it is the rule
-// engine's own, so a name typed into the panel and a name written by a
-// Packagizer rename cannot drift into two different ideas of what a file name
-// is. The one that drifts is the one that lets "../../etc/x" through.
+// The path-escape guard, and where the cut comes from matters as much as what
+// it does: it is the rule engine's own, so a name typed into the panel and a
+// name written by a Packagizer rename cannot drift apart.
 func TestRenameIsCutToOneSegment(t *testing.T) {
 	for _, in := range []string{"../../escape.bin", "sub/file.bin", `sub\file.bin`, "..."} {
 		t.Run(in, func(t *testing.T) {

@@ -9,15 +9,8 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
-// TestStopAllHaltsBeforeItFreesASlot is the ordering the hard stop lives or
-// dies by.
-//
-// Pause frees a slot and dispatches on its way out. Against a queue that has
-// not been halted yet, the stop therefore refills every slot it empties: the
-// list settles with exactly as many downloads running as it started with, only
-// different ones, and the button that says "stop everything" reads as broken
-// rather than as buggy. Writing the halt first is a one-line difference and
-// this is the only thing that pins it.
+// The halt is written before any slot is freed; otherwise each stop would
+// dispatch the next waiting task and as many downloads would keep running.
 func TestStopAllHaltsBeforeItFreesASlot(t *testing.T) {
 	a := newStopApp(t, 2)
 
@@ -52,12 +45,8 @@ func TestStopAllHaltsBeforeItFreesASlot(t *testing.T) {
 	if active != 0 {
 		t.Errorf("%d downloads are still active after the hard stop", active)
 	}
-	// The stopped transfers join the ones that were already waiting - they were
-	// stopped, not removed - so the queue holds both sets. What must NOT have
-	// happened is a REFILL, and `active == 0` above is what says so: had the halt
-	// been written after the pauses instead of before them, each freed slot would
-	// have been handed to the next waiting task and the list would have settled
-	// with the same number running, only different ones.
+	// Stopped transfers wait with the ones already queued; active == 0 above
+	// shows no slot was refilled.
 	if queued != len(waiting)+len(running) {
 		t.Errorf("%d tasks left waiting, want %d: every stopped transfer waits with the ones already queued",
 			queued, len(waiting)+len(running))
@@ -66,27 +55,18 @@ func TestStopAllHaltsBeforeItFreesASlot(t *testing.T) {
 		t.Error("the queue is not halted, so the next finished download starts another one")
 	}
 	if !manual {
-		// Without this the timetable's own base still says "running", and the next
-		// window boundary hands the runner a state that starts the queue again for
-		// a reason nothing on screen could explain.
+		// Otherwise the next window boundary would start the queue again.
 		t.Error("the hard stop was not recorded as the manual halt")
 	}
 }
 
-// TestStopAllSurvivesCompletionsArrivingUnderneath is the race, driven hard
-// enough to fail.
-//
-// Backends report into onUpdate from their own goroutines, and a finished
-// download deletes its id from a.active. A stop that ranges that map while they
-// do is a data race — and one Go turns into a fatal "concurrent map iteration
-// and map write" that takes the whole test binary with it, which is what makes
-// this catchable without the race detector. The other obvious spelling, ranging
-// the map with a.mu held, deadlocks on the first entry because Pause takes the
-// same lock; that shows up here as a test that never returns.
+// Completions write a.active from backend goroutines while StopAll runs.
+// Ranging the map without the lock is a fatal concurrent map write, detectable
+// without the race detector; ranging it under a.mu deadlocks, since stopping
+// takes the lock too.
 func TestStopAllSurvivesCompletionsArrivingUnderneath(t *testing.T) {
-	// Large enough that walking the map takes long enough for a writer to land
-	// inside it. With a handful of entries the broken spelling passes by luck,
-	// which is the same as not testing it.
+	// Enough entries that the walk takes long enough for a writer to land
+	// inside it.
 	const inFlight = 1500
 	a := newStopApp(t, inFlight)
 
@@ -104,11 +84,8 @@ func TestStopAllSurvivesCompletionsArrivingUnderneath(t *testing.T) {
 		a.mu.Unlock()
 	}
 
-	// A completion's whole effect on the scheduling map, on the goroutine a
-	// backend reports from: take a.mu, drop the id. It is hammered directly
-	// rather than sent through onUpdate because onUpdate writes to the store,
-	// and a collision that depends on a disk write landing in the right
-	// microsecond is one this test would miss nine runs in ten.
+	// A completion's effect on the map, hammered directly: onUpdate also writes
+	// the store, which would make the collision too rare.
 	stop := make(chan struct{})
 	var writer sync.WaitGroup
 	writer.Add(1)
@@ -131,11 +108,8 @@ func TestStopAllSurvivesCompletionsArrivingUnderneath(t *testing.T) {
 	close(stop)
 	writer.Wait()
 
-	// And then the real thing, to prove the two genuinely interleave: a handful
-	// of downloads finishing through onUpdate while a second stop walks the list.
-	// Deliberately a handful — every one of these writes the store, and a
-	// thousand of them would turn this into a disk benchmark that happens to
-	// contain a test.
+	// Then real completions through onUpdate while a second stop runs. Only a
+	// few, since each one writes the store.
 	real := ids[:40]
 	a.mu.Lock()
 	for _, id := range real {
@@ -165,21 +139,14 @@ func TestStopAllSurvivesCompletionsArrivingUnderneath(t *testing.T) {
 	if !halted {
 		t.Error("the queue came out of a hard stop unhalted")
 	}
-	// Nothing may be left holding a slot: the completions freed theirs and the
-	// stop freed the rest, and a slot still held by a task nobody is downloading
-	// is a slot the queue never gets back.
+	// No slot may stay held; the queue would never get it back.
 	if active != 0 {
 		t.Errorf("%d downloads still hold a slot after the stop", active)
 	}
 }
 
-// TestStopCostOnlyClaimsWhatIsActuallyLost is the warning being true.
-//
-// Three answers, not two: a transfer that resumes cleanly costs nothing, one
-// that cannot costs its bytes, and one nobody has asked about is counted apart.
-// Folding the third into the second is how "you will lose 4.2 GB" gets shown
-// for a download that would have picked up exactly where it left off, and a
-// dialog that has lied once is a dialog people click straight through.
+// A resumable transfer costs nothing, an unresumable one its bytes, and one
+// nobody has asked about is counted apart rather than as a loss.
 func TestStopCostOnlyClaimsWhatIsActuallyLost(t *testing.T) {
 	a := newStopApp(t, 8)
 	yes, no := true, false
@@ -197,7 +164,7 @@ func TestStopCostOnlyClaimsWhatIsActuallyLost(t *testing.T) {
 	add("lost1", 1_500, &no)
 	add("lost2", 2_500, &no)
 	add("nobodyAsked", 900, nil)
-	// Queued, not running: it has nothing in flight to lose.
+	// Queued, so nothing in flight to lose.
 	a.mu.Lock()
 	a.tasks["waiting"] = &core.Task{ID: "waiting", URL: "https://host.example/w", Status: core.StatusQueued, Enabled: true}
 	a.mu.Unlock()
@@ -233,35 +200,15 @@ func newStopApp(t *testing.T, concurrent int) *App {
 	return a
 }
 
-// TestScheduleCannotUndoAHardStop pins the gap the hard stop kept falling
-// through, deterministically rather than one run in twenty.
-//
-// The schedule runner reads its base under the lock, DROPS the lock, evaluates
-// the timetable, and only then applies the answer. Everything that changes the
-// halt in that window is about to be overwritten by a reading taken before it
-// happened - and StopAll lands there: the runner writes back the `false` it
-// read a moment earlier and dispatchLocked hands a waiting task the slot the
-// hard stop just emptied.
-//
-// The interleaving is written out by hand here instead of being raced for. The
-// bug was found as a flake (about 5% of runs of the test above, on this commit
-// and on the one before it), and a test that reproduces it by chance would go
-// on being a flake in the other direction.
+// The schedule runner reads its base, releases the lock and applies later; a
+// StopAll landing in between must not be undone by the stale answer. The
+// interleaving is written out by hand rather than raced for.
 func TestScheduleCannotUndoAHardStop(t *testing.T) {
 	a := newStopApp(t, 2)
 
-	// The App's own schedule runner is stopped first, and that is the whole
-	// difference between a deterministic test and a coin toss.
-	//
-	// The correction below keys off the base reading the runner last took, and
-	// in production exactly one goroutine ever takes it: the runner reads and
-	// applies in sequence on its own loop. A test that calls scheduleBase and
-	// applySchedule by hand while that loop is also alive has TWO readers, and
-	// the runner's own first pass can land between them and overwrite the stale
-	// marker with a fresh one. Locally the runner had always finished before the
-	// test body started; on a loaded CI runner it had not, and this test failed
-	// there while passing here - which is the same class of mistake it was
-	// written to catch.
+	// The App's own runner is stopped first: the correction keys off the base
+	// the runner last read, and a live runner would be a second reader whose
+	// first pass could land between the two calls below.
 	if err := a.sched.Close(); err != nil {
 		t.Fatal(err)
 	}
@@ -296,7 +243,7 @@ func TestScheduleCannotUndoAHardStop(t *testing.T) {
 		t.Error("the schedule cleared a halt the user had just asked for by hand")
 	}
 	if active != 0 {
-		t.Errorf("%d downloads are running again after the hard stop - the freed slot was refilled", active)
+		t.Errorf("%d downloads are running again after the hard stop; the freed slot was refilled", active)
 	}
 	if queued != 2 {
 		t.Errorf("%d tasks waiting, want 2: the stopped transfer and the one already queued", queued)

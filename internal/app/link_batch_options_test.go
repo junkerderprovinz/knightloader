@@ -1,10 +1,9 @@
 package app
 
-// Pins the add-links form's own precedence decision (build-plan.md §4
-// conflict 5, §8's Wave 8 amendment): a Packagizer rule wins over the form's
-// priority, unpacking switch and comment by default, Overrule inverts that,
-// and the destination always wins regardless, because a hand-picked folder is
-// not a property the form and a rule are contending over.
+// Precedence between the add-links form and the Packagizer: a rule wins over
+// the form's priority, unpacking switch and comment by default, Overrule
+// inverts that, and the form's destination always wins, because a hand-picked
+// folder is not a property the two are contending over.
 
 import (
 	"path/filepath"
@@ -15,10 +14,9 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
-// filmsRule is the one rule every test below matches against: everything from
-// films.example gets its own package, folder, comment, priority and
-// auto-extract - the same fixture rules_wiring_test.go uses, so a form-vs-rule
-// test and a rule-only test are provably looking at the same rule.
+// filmsRule gives everything from films.example its own package, folder,
+// comment, priority and auto-extract. It is the fixture rules_wiring_test.go
+// uses, so both files look at the same rule.
 func filmsRule(base string) (rules.Set, string, int, bool) {
 	dir := filepath.Join(base, "Films")
 	prio, yes := 1, true
@@ -36,8 +34,8 @@ func filmsRule(base string) (rules.Set, string, int, bool) {
 	}}}, dir, prio, yes
 }
 
-// TestFormOptionsApplyWithNoRuleInvolved is the plain case: nothing about the
-// Packagizer, so every field the form supplied lands on the task unchanged.
+// With no rule involved, every field the form supplied lands on the task
+// unchanged.
 func TestFormOptionsApplyWithNoRuleInvolved(t *testing.T) {
 	a, base := newRuleApp(t, func(s *settings.Settings, base string) {})
 
@@ -81,11 +79,9 @@ func TestFormOptionsApplyWithNoRuleInvolved(t *testing.T) {
 	}
 }
 
-// TestPackagizerWinsOverFormByDefault is the default this wave had to decide:
-// form values apply at stage time and the Packagizer runs after them, so a
-// rule wins unless the form says otherwise - EXCEPT the destination, which the
-// form always wins because a hand-picked folder was never something a rule
-// and the form were contending over.
+// Form values apply at stage time and the Packagizer runs after them, so a rule
+// wins unless the form says otherwise. The destination is the exception: a
+// hand-picked folder stands either way.
 func TestPackagizerWinsOverFormByDefault(t *testing.T) {
 	var ruleDir string
 	a, base := newRuleApp(t, func(s *settings.Settings, base string) {
@@ -101,7 +97,7 @@ func TestPackagizerWinsOverFormByDefault(t *testing.T) {
 		Comment:     "from the form",
 		Priority:    &formPrio,
 		AutoExtract: &formOff,
-		// Overrule deliberately left off.
+		// Overrule left off.
 	})
 	if err != nil {
 		t.Fatalf("AddLinksWithOptions: %v", err)
@@ -135,9 +131,8 @@ func TestPackagizerWinsOverFormByDefault(t *testing.T) {
 	}
 }
 
-// TestOverruleMakesTheFormWin is the checkbox's whole reason to exist: the
-// same rule, the same form values, Overrule on this time - and now the form's
-// priority, comment and auto-extract stand instead of the rule's.
+// The same rule and the same form values with Overrule on: the form's priority,
+// comment and auto-extract stand instead of the rule's.
 func TestOverruleMakesTheFormWin(t *testing.T) {
 	a, _ := newRuleApp(t, func(s *settings.Settings, base string) {
 		rule, _, _, _ := filmsRule(base)
@@ -175,11 +170,9 @@ func TestOverruleMakesTheFormWin(t *testing.T) {
 	}
 }
 
-// TestFormOptionsReachCrawledLinks pins the other half of why these values
-// live on intake rather than being applied once after addLinksFrom returns: a
-// pasted page that crawls into several files must hand every one of them the
-// batch's own priority and comment, not just the page URL that never becomes
-// a task.
+// The batch's values live on intake rather than being applied to what
+// addLinksFrom returns, so a pasted page that crawls into several files hands
+// every one of them the batch's priority and comment.
 func TestFormOptionsReachCrawledLinks(t *testing.T) {
 	a, _ := newRuleApp(t, func(s *settings.Settings, base string) { s.Crawl = true })
 	a.Crawler = &fakeCrawler{yield: []crawler.Result{
@@ -208,10 +201,9 @@ func TestFormOptionsReachCrawledLinks(t *testing.T) {
 	}
 }
 
-// TestInvalidDestinationRefusesTheWholeBatch is the atomic-refusal choice: a
-// destination that cannot be used stops the whole batch before anything is
-// staged, rather than staging every link to the default folder and reporting
-// the mistake only in a log nobody watching the form will read.
+// A destination that cannot be used stops the whole batch before anything is
+// staged, rather than sending every link to the default folder and reporting
+// the mistake in a log alone.
 func TestInvalidDestinationRefusesTheWholeBatch(t *testing.T) {
 	a, _ := newRuleApp(t, func(s *settings.Settings, base string) {})
 
@@ -226,10 +218,8 @@ func TestInvalidDestinationRefusesTheWholeBatch(t *testing.T) {
 	}
 }
 
-// TestArchivePasswordIsRememberedForLaterArchives mirrors what
-// AddLinksWithPasswords already does for a Click'n'Load submission: a
-// password the form supplies is folded into the global list too, so an
-// unrelated later archive from the same source can still be opened.
+// As with a Click'n'Load submission, a password the form supplies is folded
+// into the global list, so a later archive from the same source can be opened.
 func TestArchivePasswordIsRememberedForLaterArchives(t *testing.T) {
 	a, _ := newRuleApp(t, func(s *settings.Settings, base string) {})
 
@@ -250,10 +240,8 @@ func TestArchivePasswordIsRememberedForLaterArchives(t *testing.T) {
 	}
 }
 
-// TestZeroValueOptionsBehaveLikeAPlainPaste guards the route's own
-// simplification: it always calls AddLinksWithOptions once body.Passwords is
-// empty, which is only safe if an all-zero LinkBatchOptions changes nothing
-// about the ordinary paste path.
+// The route calls AddLinksWithOptions for every paste, which is only safe if an
+// all-zero LinkBatchOptions changes nothing about the ordinary path.
 func TestZeroValueOptionsBehaveLikeAPlainPaste(t *testing.T) {
 	a, _ := newRuleApp(t, func(s *settings.Settings, base string) {})
 

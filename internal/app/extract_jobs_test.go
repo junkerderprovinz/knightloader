@@ -30,14 +30,8 @@ func jobFor(a *App, taskID string) (ExtractJob, bool) {
 	return ExtractJob{}, false
 }
 
-// TestStartExtractionUnpacksOnDemand is the entry point the automatic path never
-// had. Unpacking used to happen only as the tail of a finishing download, so an
-// archive that was never unpacked - because the switch was off, or because the
-// attempt failed - could only be unpacked by downloading it again.
-//
-// The switch is deliberately not consulted: pressing "unpack this" IS the answer
-// to that question, and an entry that quietly does nothing because a rule turned
-// unpacking off a fortnight ago is worse than no entry.
+// An archive can be unpacked on demand. The auto-extract switch is not
+// consulted, since pressing "unpack" is the answer to that question.
 func TestStartExtractionUnpacksOnDemand(t *testing.T) {
 	a, base := newRuleApp(t, func(s *settings.Settings, _ string) {
 		s.Extract, s.VerifyChecksums = false, false
@@ -66,10 +60,8 @@ func TestStartExtractionUnpacksOnDemand(t *testing.T) {
 	}
 }
 
-// TestStartExtractionRetriesAFailedExtraction is the other half of the reason
-// this exists. A failure leaves its sentence on the row; a later attempt that
-// works has to take that sentence away again, or the list goes on reporting a
-// problem that has been fixed.
+// A later successful attempt clears the error an earlier failure left on the
+// row.
 func TestStartExtractionRetriesAFailedExtraction(t *testing.T) {
 	a, base := newRuleApp(t, func(s *settings.Settings, _ string) {
 		s.Extract, s.VerifyChecksums = false, false
@@ -91,8 +83,7 @@ func TestStartExtractionRetriesAFailedExtraction(t *testing.T) {
 		t.Fatalf("the task reads %q, want the extraction's own reason", live.Error)
 	}
 
-	// The file is replaced the way a user replaces a password: the archive that
-	// could not be opened can now be opened.
+	// Replace the archive with one that opens.
 	writeZip(t, arc, "inside.txt", "unpacked")
 	if err := a.StartExtraction([]string{task.ID}); err != nil {
 		t.Fatal(err)
@@ -106,9 +97,8 @@ func TestStartExtractionRetriesAFailedExtraction(t *testing.T) {
 	}
 }
 
-// TestStartExtractionSaysWhatItRefused. "Not an archive" and "one part of a set
-// that is still downloading" need opposite responses from the user, so they must
-// not arrive as the same silence.
+// The refusal names each file and why: not an archive, or a part still
+// downloading.
 func TestStartExtractionSaysWhatItRefused(t *testing.T) {
 	a, _ := newRuleApp(t, func(s *settings.Settings, _ string) { s.Extract = false })
 	stageDone(t, a, "1", "film.mkv")
@@ -130,17 +120,14 @@ func TestStartExtractionSaysWhatItRefused(t *testing.T) {
 	}
 }
 
-// TestAbortingAQueuedJobHandsTheTaskBack. A job waiting its turn has written
-// nothing, so calling it off is only a matter of the row: one that stayed on
-// "extracting" for an extraction that will never run is a download nobody can
-// tell is finished.
+// Aborting a queued job returns the task to done instead of leaving it on
+// "extracting".
 func TestAbortingAQueuedJobHandsTheTaskBack(t *testing.T) {
 	a, base := newRuleApp(t, func(s *settings.Settings, _ string) { s.Extract = false })
 	writeZip(t, filepath.Join(base, "release.zip"), "inside.txt", "unpacked")
 	task := stageDone(t, a, "1", "release.zip")
 
-	// Queued with the worker already marked busy, so nothing picks the job up
-	// and the queued branch is the one under test rather than a race with it.
+	// The worker is marked busy so the job stays queued.
 	a.mu.Lock()
 	a.unpackLocked().busy = true
 	job := a.enqueueExtractLocked(task, filepath.Join(base, "release.zip"))
@@ -169,10 +156,7 @@ func TestAbortingAQueuedJobHandsTheTaskBack(t *testing.T) {
 	}
 }
 
-// TestASplitDownloadIsJoined is the split-file row seen from the list: five
-// numbered parts are one file, and nothing can be joined until the last one
-// lands. The format layer has no reader for these, so without this they sit in
-// the folder as five pieces and the download looks finished.
+// Numbered split parts are joined into one file once the last part lands.
 func TestASplitDownloadIsJoined(t *testing.T) {
 	a, base := newRuleApp(t, func(s *settings.Settings, _ string) { s.Extract, s.VerifyChecksums = true, false })
 	parts := []string{"once upon ", "a time ", "in the west"}
@@ -186,7 +170,7 @@ func TestASplitDownloadIsJoined(t *testing.T) {
 	stageDone(t, a, "2", "notes.txt.002")
 	last := stageDone(t, a, "3", "notes.txt.003")
 
-	// Nothing is due while a part is missing, however finished the others look.
+	// Nothing is due while a part is missing.
 	a.mu.Lock()
 	last.Status = core.StatusRunning
 	due, _ := a.extractionDueLocked(first, a.Settings.Get())
@@ -208,9 +192,8 @@ func TestASplitDownloadIsJoined(t *testing.T) {
 	})
 }
 
-// TestASpannedZipIsNumberedWithItsZipLast is the trap in numbering the parts of
-// a set off the file names. A spanned rar begins at ".rar" and a spanned zip
-// ENDS at ".zip", so a plain sort labels the last part of one of them "part 1".
+// A spanned zip ends with its .zip file, unlike a spanned rar, so a plain name
+// sort would number the last part first.
 func TestASpannedZipIsNumberedWithItsZipLast(t *testing.T) {
 	a, _ := newRuleApp(t, func(s *settings.Settings, _ string) { s.Extract = false })
 	last := stageDone(t, a, "1", "film.zip")

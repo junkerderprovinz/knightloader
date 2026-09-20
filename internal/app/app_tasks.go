@@ -37,16 +37,9 @@ func (a *App) Tasks() []*core.Task {
 	out := make([]*core.Task, 0, len(a.tasks))
 	for _, t := range a.tasks {
 		c := *t
-		// A task that has never been dispatched has no mode yet, and the answer
-		// is wanted BEFORE it runs: "is this going out free or premium" is
-		// precisely the question somebody asks while a link is still waiting.
-		//
-		// Derived on the copy, not written back, because the inputs move under
-		// it: the hoster list arrives from the JD sidecar a few seconds after
-		// boot and is refreshed every thirty. Storing a first, ignorant answer
-		// would freeze "no idea" onto every task the reconciler had not reached
-		// yet. Once a task is actually dispatched, modeForLocked writes the
-		// value for real - see app_dispatch.go.
+		// An undispatched task has no mode yet, but "free or premium" is asked
+		// while it waits. It is derived on the copy only, since the JD hoster
+		// list arrives after boot and changes; dispatch writes the real value.
 		if c.Mode == core.ModeUnknown {
 			c.Mode = a.modeForLocked(&c, c.Resolver)
 		}
@@ -56,22 +49,9 @@ func (a *App) Tasks() []*core.Task {
 	return out
 }
 
-// SetPackage moves tasks into a package (an empty name ungroups them).
-//
-// A "Variante" family (expandYtdlpVariants, app_ytdlp_variants.go) moves
-// together even when only one of its own ids was named here: every sibling
-// shares the primary's own URL exactly and deliberately - nothing else
-// legitimately does, since put()'s own dedupe check refuses a second task
-// sharing a URL under every other circumstance (see insertVariantSibling's
-// own doc comment) - so any OTHER task found sharing that URL can only be
-// a fellow row of the same family, never a coincidence. Found the hard
-// way: nameBucket's own call to this function runs AFTER
-// expandYtdlpVariants already propagated whatever the package was BEFORE
-// nameBucket's derivation ran, so without this the batch-naming pass (and
-// catchAll's own call just below it) renamed the primary alone and left
-// the four siblings permanently stuck on the pre-naming guess - a case
-// setTaskName's own sibling propagation could not paper over, since it
-// only fires once, on that ONE task's own first probe answer.
+// SetPackage moves tasks into a package (an empty name ungroups them). A
+// variant family moves together even when only one of its ids is named; see
+// setPackageLocked.
 func (a *App) SetPackage(ids []string, pkg string) {
 	pkg = strings.TrimSpace(pkg)
 	a.mu.Lock()
@@ -90,14 +70,10 @@ func (a *App) SetPackage(ids []string, pkg string) {
 	}
 }
 
-// setAvailability records what a check learned about a link. It is separate
-// from Update because availability is a property of the link, not of a download
-// attempt: a staged link can be known-dead before anything is started.
-//
-// The caller passes the typed reason rather than leaving it to be read back out
-// of msg. Every caller here already knows the answer as a value — a status code,
-// an error, or nothing at all — and re-deriving it from a sentence this code
-// formatted itself is the round trip the typed reason exists to remove.
+// setAvailability records what a check learned about a link. Availability
+// belongs to the link, not to a download attempt, so a staged link can be known
+// dead before anything starts. The caller passes the typed reason it already
+// has rather than it being parsed back out of msg.
 func (a *App) setAvailability(id string, avail core.Availability, msg string, reason core.Reason) {
 	a.mu.Lock()
 	t := a.tasks[id]
@@ -106,12 +82,8 @@ func (a *App) setAvailability(id string, avail core.Availability, msg string, re
 		return
 	}
 	t.Online = avail
-	// The probe answers a question about the link; the error field on a settled
-	// task answers a different one, about what happened to it. A HEAD started
-	// while the link sat in the collector routinely lands after the dispatcher has
-	// already refused the task — for a filter rule, or a destination that was
-	// taken — and letting it write here replaces that reason with "offline: ...",
-	// or, on a link that turned out to be fine, with nothing at all.
+	// A late probe must not overwrite why a settled task failed, such as a
+	// filter rule or a taken destination.
 	if t.Status != core.StatusError {
 		t.Error = msg
 		t.Reason = reason
@@ -122,21 +94,12 @@ func (a *App) setAvailability(id string, avail core.Availability, msg string, re
 	a.Hub.Broadcast("task", &c)
 }
 
-// setTaskName records a name a probe found for a task that is still showing
-// its own URL as a placeholder - see stage's own comment (app_links.go) on
-// why every resolver that does not yet know a link's real name answers with
-// the URL itself rather than leaving Name blank, and filename() (also
-// app_links.go) which reads that exact convention back out.
+// setTaskName records a name a probe found for a task still showing its URL as
+// a placeholder (the convention stage and filename in app_links.go share).
 //
-// Same locked-read-modify-broadcast shape as setAvailability just above, and
-// it guards against the same class of late answer: the task can be gone, or
-// can already show a real name, by the time a backgrounded probe returns.
-// The guard is Name == URL rather than a status check, because a task can
-// leave StatusCollected (Start, then a real download begins) before a slow
-// probe answers - at which point the backend's own progress stream
-// (ytdlp/backend.go's "[download] Destination:" line, mirrored through
-// onUpdate) has very likely already supplied the real name, and a probe
-// fired before the download even started must not overwrite that.
+// The guard is Name == URL rather than a status check: the task may be gone,
+// or a download may have started and its progress stream supplied the real
+// name, by the time a slow probe returns.
 func (a *App) setTaskName(id, name string) {
 	a.mu.Lock()
 	t := a.tasks[id]
@@ -144,32 +107,12 @@ func (a *App) setTaskName(id, name string) {
 		a.mu.Unlock()
 		return
 	}
-	// A package that still says exactly what the URL's own path guessed at
-	// staging time (fileStem/derivePackage's last resort, app_links.go) is
-	// worth re-deriving now that a real name has arrived - jdp, 2026-08-25:
-	// "bei einem Youtubelink heißt der Ordner nur watch. der soll den namen
-	// anzeigen" (every YouTube watch page's path is /watch, so every bare-
-	// pasted video landed in the identically-misnamed folder), confirmed
-	// still broken after a first, narrower attempt at this same fix: "der
-	// ordner heißt immer noch watch". That attempt only re-derived a
-	// package while this task was its ONLY member - which sounds safe, but
-	// every bare YouTube link guesses the exact same "watch" stem, so
-	// pasting two or more together (an entirely ordinary thing to do) put
-	// them all in the SAME shared package from the very first one, and
-	// "only member" was never true for any of them again. The actual line
-	// that needs protecting is not "shared with anyone", it is "shared
-	// with a sibling that already has a REAL name" - that is what marks a
-	// package as a deliberate, resolved batch (a real crawl hands out real
-	// names immediately; nothing here waits on an async probe the way a
-	// bare paste does). Renaming still only ever touches THIS task's own
-	// Package field, never a sibling's - so a package of N still-
-	// unresolved coincidental collisions peels apart one link at a time as
-	// each one's own probe answers, exactly like N solo packages would
-	// have, while a real batch (any sibling already named for real) is
-	// left standing untouched.
-	// The returned copies are discarded on purpose: this function's own
-	// sibling loop below walks the same family and broadcasts every row of it
-	// anyway, so taking them here would send each sibling twice.
+	// A package that is still the URL path's guess (every YouTube watch page
+	// guesses "watch") is re-derived from the real name, unless a package
+	// member that is not a variant sibling already has a real name, which marks
+	// a resolved batch. Unrelated links sharing a guessed package split apart
+	// one by one as their probes answer. The returned copies are not needed:
+	// the sibling loop below broadcasts the whole family.
 	newPackage := t.Package
 	if reguessPackageLocked(a.tasks, t, name) != nil {
 		newPackage = t.Package
@@ -177,15 +120,8 @@ func (a *App) setTaskName(id, name string) {
 	t.Name = name
 	c := *t
 
-	// Variant siblings (the audio/thumbnail/subtitle/description rows
-	// expandYtdlpVariants, app_ytdlp_variants.go, created alongside this
-	// one) share this task's own URL exactly - nothing else legitimately
-	// does, since that sharing is deliberate rather than the coincidental
-	// package-stem collision noSiblingHasARealNameYet is guarding against
-	// above. They move with the primary here: same resolved Name, and the
-	// same Package whenever it just changed, so the whole family stays
-	// grouped in one folder instead of the video row alone jumping to the
-	// real title while its siblings are left behind under the old guess.
+	// Variant siblings share this task's exact URL, and nothing else does. They
+	// take the same name and package so the family stays in one folder.
 	var siblings []core.Task
 	for _, other := range a.tasks {
 		if other == t || other.URL != t.URL {
@@ -206,22 +142,14 @@ func (a *App) setTaskName(id, name string) {
 	}
 }
 
-// reguessPackageLocked replaces a package that is still nothing but the URL
-// path's own guess with one built from the real name that has now arrived, and
-// reports whether it did.
+// reguessPackageLocked replaces a package that is still the URL path's guess
+// with one built from the real name, and returns the tasks it changed.
 //
-// The condition is the one setTaskName reasons about at length just above -
-// lifted out rather than copied, because it is applied from a SECOND place
-// (regressGuessedPackages, app_links.go) and two copies of a rule this subtle
-// would drift apart on the first change to either.
+// regressGuessedPackages (app_links.go) calls it too: nameBucket writes its
+// package after taking a snapshot, so a probe answering in between finds no
+// package to replace, and the write then files the named link under the guess.
 //
-// That second caller exists because the answer arrives from two directions and
-// neither can be relied on to come first: nameBucket decides a package from a
-// snapshot and writes it afterwards, so a probe answering in that gap sets the
-// real name while the package is still unset - this finds nothing to replace,
-// and the write then files a correctly-titled link under the guess anyway.
-//
-// Callers must already hold a.mu.
+// Caller holds a.mu.
 func reguessPackageLocked(tasks map[string]*core.Task, t *core.Task, name string) []core.Task {
 	if !packageIsStillAGuess(t) || !noSiblingHasARealNameYet(tasks, t) {
 		return nil
@@ -229,23 +157,14 @@ func reguessPackageLocked(tasks map[string]*core.Task, t *core.Task, name string
 	return setPackageLocked(tasks, t, sanitizeSegment(name), nil, nil)
 }
 
-// packageIsStillAGuess reports whether t's package is something this app made
-// up rather than something anybody chose, and may therefore be replaced by a
-// real name that has just arrived.
+// packageIsStillAGuess reports whether t's package was made up by the app
+// rather than chosen, and may be replaced by a real name:
 //
-// Two shapes qualify, and the second is new (jdp, 2026-09-06: "wenn ich ein
-// youtube link im sammler hinzufüge heißt der ordner wieder watch"):
+//   - the URL-path guess itself;
+//   - no package at all, which is how nameBucket leaves a link still waiting
+//     on a yt-dlp title probe (see awaitingMediaProbe, app_links.go).
 //
-//   - The URL-path guess itself, the case this function was extracted for.
-//   - No package at all, which is what a link waiting on a yt-dlp title probe
-//     now looks like: nameBucket deliberately leaves such a link out of the
-//     naming pass rather than filing it under a path segment (see
-//     awaitingMediaProbe, app_links.go), so the folder called "watch" never
-//     appears in the first place. Without this branch that link would simply
-//     stay ungrouped forever, which trades one wrong answer for a different one.
-//
-// ManualPackage is the line neither branch crosses: an empty package a PERSON
-// chose is a deliberate "leave this ungrouped", not a gap to fill in.
+// A package set by hand (ManualPackage), even an empty one, is never replaced.
 func packageIsStillAGuess(t *core.Task) bool {
 	if t.ManualPackage {
 		return false
@@ -257,26 +176,15 @@ func packageIsStillAGuess(t *core.Task) bool {
 	return guess != "" && t.Package == guess
 }
 
-// setPackageLocked files t in pkg, and with it every task sharing t's EXACT
-// URL - t's own variant siblings (expandYtdlpVariants). Every task it touched
-// is appended to out and returned, so the caller can save and broadcast them.
-// seen, when non-nil, keeps a task out of that list twice; pass nil when the
-// caller only ever asks about one family.
+// setPackageLocked files t in pkg, and with it every task sharing t's exact URL
+// (its variant siblings). Every task it touched is appended to out and
+// returned for the caller to save and broadcast; seen, when non-nil, keeps a
+// task from being listed twice.
 //
-// A variant family sharing one package is not a nicety: it is what makes the
-// five rows of one video one thing on screen and one folder on disk. Until
-// now only setTaskName enforced it, and setTaskName is simply the one writer
-// that happens to SEE the whole family - the siblings are created inside
-// stage() after the bucket was already assembled, so they appear in nobody's
-// id list, and neither SetPackage nor regressGuessedPackages ever reached
-// them. When a title probe answered before the package had been decided, the
-// video row ended up correctly filed under the video's name and its four
-// siblings in no package at all, about one paste in seven.
-//
-// Enforcing it here rather than at the one caller that showed the symptom is
-// deliberate: the rule is a property of the family, so every write has to keep
-// it, including the ordinary one where a person picks a package for a row by
-// hand. Callers must already hold a.mu.
+// The five rows of one video must share one package to be one folder on disk.
+// The siblings are created after a bucket is assembled, so they are in nobody's
+// id list, and the rule has to hold for every write, including a package
+// picked by hand. Caller holds a.mu.
 func setPackageLocked(tasks map[string]*core.Task, t *core.Task, pkg string, out []core.Task, seen map[string]bool) []core.Task {
 	add := func(x *core.Task) {
 		x.Package = pkg
@@ -298,19 +206,11 @@ func setPackageLocked(tasks map[string]*core.Task, t *core.Task, pkg string, out
 	return out
 }
 
-// packageURLGuess returns what fileStem's own URL-path fallback
-// (app_links.go) would have produced for t's package at staging time - or
-// "" when the URL will not parse, or the guess itself would have been too
-// short for derivePackage to have used in the first place (its own
-// len(stem) >= 3 rule, mirrored here so this reports exactly what that
-// function would have). Computed purely from t.URL, independent of
-// whatever t.Package currently is - the caller (setTaskName) is the one
-// that decides what a match against the CURRENT value means, including
-// "nothing has run yet" (t.Package == ""), which nameBucket's own
-// batch-naming pass (app_links.go) can still be waiting to fill in when a
-// fast enough probe gets here first. t.Name is deliberately not read - the
-// caller already knows it equalled t.URL a moment ago, which is exactly
-// the condition under which fileStem takes this same path.Base fallback.
+// packageURLGuess returns the package fileStem's URL-path fallback
+// (app_links.go) would have produced for t at staging time, or "" when the URL
+// does not parse or the stem is shorter than derivePackage's three-character
+// minimum. It reads only t.URL: the caller knows t.Name equalled the URL, the
+// condition under which fileStem falls back to the path.
 func packageURLGuess(t *core.Task) string {
 	u, err := url.Parse(t.URL)
 	if err != nil {
@@ -323,36 +223,18 @@ func packageURLGuess(t *core.Task) string {
 	return sanitizeSegment(stem)
 }
 
-// noSiblingHasARealNameYet is what actually distinguishes a package worth
-// splitting one member out of from a deliberate, already-resolved batch:
-// every OTHER task sharing t's package must still be showing its own URL as
-// a placeholder Name (t's own Name is not checked here - the caller already
-// knows it just resolved). A real crawled batch hands out real names to
-// every member immediately at staging time, never leaving them at the
-// placeholder for a later probe to fill in, so finding even one already-
-// named sibling is enough to leave the whole package alone. Callers must
-// already hold a.mu.
+// noSiblingHasARealNameYet tells a package worth splitting a member out of from
+// a resolved batch: every other task in t's package must still show its URL as
+// its name. A crawled batch gets real names at staging, so one named member is
+// enough to leave the package alone. Caller holds a.mu.
 func noSiblingHasARealNameYet(tasks map[string]*core.Task, t *core.Task) bool {
 	for _, other := range tasks {
 		if other == t || other.Package != t.Package {
 			continue
 		}
-		// A row sharing t's EXACT URL is one of t's own variant siblings
-		// (expandYtdlpVariants), not an unrelated member of a resolved batch.
-		// That sharing is deliberate - nothing else legitimately produces two
-		// tasks with one URL - and setTaskName's own propagation loop already
-		// treats such a row as family rather than as a stranger.
-		//
-		// Not skipping them was a real, ~15%-of-the-time bug, and the ordering
-		// that reached it is the one nameBucket's own call site describes: a
-		// probe answering between snapshotTasks and SetPackage renames the
-		// whole family (setTaskName propagates the name to every sibling) while
-		// the package is still unset, so nothing is re-guessed there; SetPackage
-		// then writes "watch" onto all five; and regressGuessedPackages, which
-		// exists precisely to repair that, asked each row whether a sibling
-		// already had a real name - and by then every one of them did. All five
-		// vetoed each other and the family stayed in a folder called "watch",
-		// which is the exact complaint this whole feature exists to fix.
+		// A row with t's exact URL is a variant sibling, not a member of a
+		// resolved batch. Once a probe has named the whole family, counting
+		// siblings would have every row veto every other's rename.
 		if other.URL == t.URL {
 			continue
 		}
@@ -363,21 +245,16 @@ func noSiblingHasARealNameYet(tasks map[string]*core.Task, t *core.Task) bool {
 	return true
 }
 
-// checkTimeout bounds one round of service checks. Generous compared with the
-// staging HEAD, because a debrid provider asked about a hundred links is doing a
-// hundred lookups of its own, and cutting that off mid-answer files links as
-// uncheckable that the service was about to answer for.
+// checkTimeout bounds one round of service checks. It is generous because a
+// debrid provider asked about a hundred links does a hundred lookups itself.
 const checkTimeout = 60 * time.Second
 
 // RecheckTasks re-runs resolution and the availability check for collected
-// tasks, so a link that was dead an hour ago can be tried again without
-// re-pasting it. An empty id list rechecks everything in the collector.
+// tasks. An empty id list rechecks everything in the collector.
 //
-// Links go out grouped by the backend that claims them, and a backend is asked
-// once for its whole group. That is the reason resolver.Checker takes a slice:
-// every service that answers this question meters by the account or by the
-// address, and fifty separate questions about fifty links is how a key earns a
-// "slow down" for the household.
+// Each backend is asked once for its whole group of links, which is why
+// resolver.Checker takes a slice: these services rate-limit by account or
+// address.
 func (a *App) RecheckTasks(ids []string) {
 	want := map[string]bool{}
 	for _, id := range ids {
@@ -388,10 +265,8 @@ func (a *App) RecheckTasks(ids []string) {
 	a.mu.Lock()
 	var targets []core.Task
 	for id, t := range a.tasks {
-		// A link the filter is holding is not probed. "Recheck the collector"
-		// reaches every collected task, and a rule written to keep this box away
-		// from a host would otherwise have it call that host once per recheck —
-		// the same leak the staging-time pass exists to close, one button along.
+		// A link the filter holds is not probed, or a rule meant to keep this
+		// box away from a host would call it on every recheck.
 		if t.Status == core.StatusCollected && !t.Skipped && (all || want[id]) {
 			targets = append(targets, *t)
 		}
@@ -400,12 +275,8 @@ func (a *App) RecheckTasks(ids []string) {
 	if len(targets) == 0 {
 		return
 	}
-	// One "linkcheck" burst for the whole call, retired one target at a time
-	// as each settles below - see the three endActivity calls in this loop
-	// and the one inside settleCheck, which between them cover every path a
-	// target can leave by exactly once. Two overlapping calls (two browsers
-	// both pressing "recheck all") add into the same shared counters rather
-	// than each owning their own - see beginActivity's own doc comment.
+	// One linkcheck burst for the call, retired one target at a time: the
+	// endActivity calls below and in settleCheck cover every exit exactly once.
 	a.beginActivity(ActivityLinkCheck, len(targets))
 
 	// Grouped by resolver id rather than by the resolver value, because a
@@ -414,11 +285,9 @@ func (a *App) RecheckTasks(ids []string) {
 	var order []string
 	for i := range targets {
 		t := targets[i]
-		// The same ranked question staging asks, and for the same reason: line
-		// 434 below writes this answer back onto the live task. With the frozen
-		// registry order here, a Recheck would quietly move a correctly routed
-		// task BACK to "direct", undoing the boost jd.PriorityFor gave its host
-		// - and a Recheck is the one thing somebody does when a link misbehaves.
+		// The same ranked lookup staging uses, since the answer is written back
+		// onto the task below; plain registry order would move a task back to
+		// "direct" and undo jd.PriorityFor's boost.
 		res := a.stagingResolverFor(t.URL)
 		if res == nil {
 			a.setAvailability(t.ID, core.AvailOffline, "no backend handles this link", core.ReasonUnsupported)
@@ -427,9 +296,8 @@ func (a *App) RecheckTasks(ids []string) {
 		}
 		result, err := res.Resolve(context.Background(), resolver.Request{URL: t.URL})
 		if err != nil {
-			// Uncheckable and not offline: resolving is this side of the wire, so a
-			// failure here means the link was never put to the host at all. Filing
-			// that as "the file is gone" is the same lie the HEAD probe used to tell.
+			// Uncheckable, not offline: resolving happens on this side, so the host
+			// was never asked.
 			a.setAvailability(t.ID, core.AvailUncheckable, err.Error(), classify(failure{err: err}))
 			a.endActivity(ActivityLinkCheck, 1)
 			continue
@@ -437,27 +305,17 @@ func (a *App) RecheckTasks(ids []string) {
 		a.mu.Lock()
 		if live := a.tasks[t.ID]; live != nil {
 			live.Resolver = res.Info().ID
-			// result.Name != t.URL, not just != "": every resolver but "direct"
-			// answers Resolve() with Name set to the URL itself as its "nothing
-			// learned yet" placeholder (documented on stage()'s own matching
-			// guard, app_links.go), and that string is never empty - so without
-			// this half of the check, a routine Recheck (or the automatic one
-			// RestoreFiltered fires) silently threw away any real name a task
-			// had already picked up (the async yt-dlp title probe, a JD poll
-			// update) and put the bare URL back, every time. jdp 2026-08-25:
-			// "Die ganzen links im linksammler zeigen noch immer nicht ihre
-			// namen richtig an, darauf habe ich dich jetzt schon mehrfach
-			// angesprochen" - this klobber, parallel to the one round 35b fixed
-			// in stage() but never mirrored here, is why a name that WAS
-			// correct could still end up wrong on screen.
+			// Most resolvers answer with the URL as a placeholder name (see the
+			// matching guard in stage), which must not replace a real name the task
+			// already picked up.
 			if result.Name != "" && result.Name != t.URL {
 				live.Name = result.Name
 			}
 		}
 		a.mu.Unlock()
 		if res.Info().ID == "direct" {
-			// Our own HEAD, straight at the host: no account to spend, nothing to
-			// batch, and it brings back the size as well.
+			// Our own HEAD: no account to spend, nothing to batch, and it brings
+			// back the size.
 			a.analyze(t.ID, result.DirectURL)
 			a.endActivity(ActivityLinkCheck, 1)
 			continue
@@ -469,14 +327,10 @@ func (a *App) RecheckTasks(ids []string) {
 			batches[id], order = b, append(order, id)
 		}
 		b.ids = append(b.ids, t.ID)
-		// The resolved target, not the pasted URL: a resolver is entitled to have
-		// rewritten it, and the service must be asked about the link that would
-		// actually be fetched.
+		// The resolved target, which is what would actually be fetched.
 		b.urls = append(b.urls, result.DirectURL)
 	}
-	// The batched path retires the rest, one endActivity per link, inside
-	// settleCheck - runCheck has exactly one caller, this loop, so that is
-	// always precisely the targets that reached the batching branch above.
+	// settleCheck retires the batched targets, one endActivity per link.
 	for _, id := range order {
 		a.runCheck(batches[id])
 	}
@@ -494,10 +348,7 @@ type checkBatch struct {
 func (a *App) runCheck(b *checkBatch) {
 	ck, ok := b.res.(resolver.Checker)
 	if !ok {
-		// A backend with no way to ask is not a backend whose links are unknown.
-		// "Unknown" is what the list says about a link nobody has looked at, and
-		// leaving a JD or yt-dlp link there after the user pressed Check is the
-		// gap the fourth state was added to close.
+		// Uncheckable rather than unknown: unknown means nobody has looked yet.
 		a.settleCheck(b, nil)
 		return
 	}
@@ -505,9 +356,8 @@ func (a *App) runCheck(b *checkBatch) {
 	defer cancel()
 	got, err := ck.Check(ctx, b.urls)
 	if err != nil {
-		// The whole group is uncheckable and the log carries the why. A refused key
-		// must never read as "these fifty files are gone" - that is the one wrong
-		// answer here somebody acts on, by deleting them.
+		// Uncheckable, never offline: a refused key must not make fifty live
+		// links look deletable.
 		log.Printf("%s could not check %d links: %v", b.res.Info().ID, len(b.urls), err)
 		a.settleCheck(b, nil)
 		return
@@ -525,17 +375,13 @@ func (a *App) settleCheck(b *checkBatch, got []core.Availability) {
 		}
 		switch avail {
 		case core.AvailOffline:
-			// Named, the way the HEAD path names the status it saw. A hoster's own
-			// verdict and a HEAD off this box are different weights of evidence, and
-			// the person deciding whether to delete the link should be able to see
-			// which one this was without reading the code.
+			// Names the service, so a hoster's verdict can be told from our own
+			// HEAD.
 			a.setAvailability(id, core.AvailOffline, "offline ("+b.res.Info().ID+")", core.ReasonGone)
 		case core.AvailOnline:
 			a.setAvailability(id, core.AvailOnline, "", core.ReasonUnknown)
 		default:
-			// No sentence. Uncheckable is not a failure, and a red line of prose
-			// under a link that is probably fine is how somebody is talked into
-			// removing it. The row says "host would not say" and stops there.
+			// No error text: uncheckable is not a failure.
 			a.setAvailability(id, core.AvailUncheckable, "", core.ReasonUnknown)
 		}
 		a.endActivity(ActivityLinkCheck, 1)
@@ -549,35 +395,23 @@ func (a *App) analyze(id, rawurl string) {
 	if err != nil {
 		return
 	}
-	// a.Probe rather than a client built here: this is the one outbound call
-	// that fires on a link the user has only just pasted, so it wants the shared
-	// policy (proxy, user agent, and the redirect rule that stops a credential
-	// following a hop off the host it was meant for) and it wants to be
-	// replaceable, because every test that stages a link would otherwise be
-	// racing a real DNS lookup.
+	// a.Probe carries the shared client policy and can be replaced in tests.
 	resp, err := a.Probe.Do(req)
 	if err != nil {
-		// A transport error is not a verdict about the file. The host was never
-		// reached, so nothing was said about the link - and this branch used to
-		// write "offline", which turns one flaky minute, one DNS hiccup, one
-		// captive portal into a list of dead links the user then deletes.
+		// A transport error says nothing about the file: the host was never
+		// reached.
 		a.setAvailability(id, core.AvailUncheckable, "", classify(failure{err: err}))
 		return
 	}
 	resp.Body.Close()
-	// The status goes to the classifier as the number it is. This is the one probe
-	// that holds a real response, and handing over the sentence instead would mean
-	// parsing back out of "offline (HTTP 404)" what is sitting right here in a
-	// field.
 	switch availabilityFor(resp.StatusCode) {
 	case core.AvailOffline:
 		a.setAvailability(id, core.AvailOffline,
 			"offline (HTTP "+strconv.Itoa(resp.StatusCode)+")", classify(failure{status: resp.StatusCode}))
 		return
 	case core.AvailUncheckable:
-		// Silent, like the batch path: the typed reason is on the task for the
-		// availability cell to show, and prose in the error column would put a
-		// refusal to answer in the same red as a download that failed.
+		// No error text, as in the batch path; the typed reason is enough for
+		// the availability cell.
 		a.setAvailability(id, core.AvailUncheckable, "", classify(failure{status: resp.StatusCode}))
 		return
 	}
@@ -587,22 +421,11 @@ func (a *App) analyze(id, rawurl string) {
 	}
 }
 
-// probeYtdlpTitle asks the yt-dlp backend for a collected task's real title
-// AND its real available formats, without downloading anything, and applies
-// both - the yt-dlp counterpart to analyze's HEAD probe just above for a
-// plain file link, fired from the same stage() call site (app_links.go) and
-// gated on the resolver id the same way analyze's own call is.
-//
-// Silent and non-fatal on failure or timeout, exactly like analyze's own
-// probe leaves availability unset rather than guessing: yt-dlp's own
-// progress stream still supplies the real name once a download actually
-// starts (backend.go's "[download] Destination:" line, mirrored through
-// onUpdate), so a probe that never answers costs the user nothing beyond the
-// placeholder standing a little longer in the collector, ungraded and
-// unchecked. A probe that DID answer is itself the availability check a
-// yt-dlp-routed link never otherwise gets before download - see
-// applyProbeFormats's own doc comment for why success alone is read as
-// "online" and failure is deliberately NOT read as "offline".
+// probeYtdlpTitle asks the yt-dlp backend for a collected task's title and
+// available formats without downloading anything, the yt-dlp counterpart to
+// analyze. A failed probe is silent: the download's progress stream supplies
+// the name later. A probe that answers also marks the link online (see
+// applyProbeFormats).
 func (a *App) probeYtdlpTitle(id, rawurl string) {
 	tp, ok := a.ytdlpTitleProber()
 	if !ok {
@@ -625,19 +448,12 @@ func (a *App) probeYtdlpTitle(id, rawurl string) {
 }
 
 // fileUnprobedMedia gives a media link a package after its title probe came
-// back with nothing.
+// back with nothing. The naming passes skip such a link while its probe runs
+// (awaitingMediaProbe, app_links.go), so without this it would stay ungrouped.
+// It applies the guess those passes would have: the URL path's last segment.
 //
-// It exists because the naming passes now SKIP such a link while its probe
-// runs (awaitingMediaProbe, app_links.go), so a probe that never answers would
-// otherwise leave it ungrouped for good - trading the fifteen seconds in a
-// folder called "watch" that jdp reported for a permanent nothing, which is
-// the worse of the two. The guess it applies is exactly the one those passes
-// would have applied: the URL path's own last segment.
-//
-// A link that has since been named, filed or moved by hand is left alone. All
-// three are checked, not just the package: a probe can lose the race to a
-// crawl, to a Packagizer rule, or to a person who typed a folder name while it
-// was still running.
+// A link that has meanwhile been named, filed or given a package by hand is
+// left alone.
 func (a *App) fileUnprobedMedia(id string) {
 	a.mu.Lock()
 	t := a.tasks[id]
@@ -655,14 +471,8 @@ func (a *App) fileUnprobedMedia(id string) {
 }
 
 // availabilityFor reads a HEAD's status code as a statement about the link.
-//
-// Only 404 and 410 are the host saying the file is not there. Everything else
-// above 399 is the host declining to answer the question that was asked, and
-// every one of them used to be filed as offline: a 403 is usually a hoster that
-// will not be probed, a 405 is one that does not implement HEAD at all, a 429 is
-// one that has heard enough for now, a 503 is one having a bad afternoon. Four
-// perfectly live links, marked dead, on a list with a "remove offline" button on
-// it.
+// Only 404 and 410 say the file is gone. Other errors (403, 405, 429, 503) are
+// the host declining to answer, and the links are usually live.
 func availabilityFor(status int) core.Availability {
 	switch {
 	case status == http.StatusNotFound || status == http.StatusGone:
@@ -683,15 +493,10 @@ func (a *App) publishTasks(tasks []core.Task) {
 	}
 }
 
-// TriBool is a bool a request may also send as null. Inside an options struct a
-// *bool cannot express that: absent and null both decode to nil, and here the
-// two have to mean different things. Absent is "leave this alone", null is
-// "back to inheriting the global", true and false are the override itself.
-//
-// The three values exist because the alternative is a data loss nobody would
-// connect to the release that caused it. Auto-extract is nullable in the store,
-// so every task already in it inherits the global switch; a plain bool would
-// decode "no opinion" as false and quietly stop unpacking for the whole list.
+// TriBool is a bool a request may also send as null. A *bool decodes absent
+// and null alike, but here absent means "leave this alone", null means "inherit
+// the global", and true or false is the override. A plain bool would turn
+// "inherit" into false and stop unpacking for every task.
 type TriBool struct {
 	// Set is whether the field was present in the request at all.
 	Set bool
@@ -713,8 +518,7 @@ func (t *TriBool) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// MarshalJSON keeps the round trip honest for anything that echoes an options
-// struct back: an override nobody set is null, never false.
+// MarshalJSON writes an override nobody set as null, never false.
 func (t TriBool) MarshalJSON() ([]byte, error) { return json.Marshal(t.Value) }
 
 // TaskOptions are the per-task overrides the UI can set. A nil field means
@@ -722,81 +526,52 @@ func (t TriBool) MarshalJSON() ([]byte, error) { return json.Marshal(t.Value) }
 type TaskOptions struct {
 	Dir      *string `json:"dir,omitempty"`
 	Password *string `json:"password,omitempty"`
-	// DownloadPassword is the password a hoster's own page asks for before it
-	// hands over the file. It is NOT Password above, which is the archive
-	// password extraction tries first - two secrets asked by two different
-	// parties, and one field for both is how the wrong one gets typed into the
-	// wrong prompt. See core.Task.DownloadPassword's own comment.
+	// DownloadPassword is the password a hoster's page asks for before handing
+	// over the file, separate from Password, the archive password extraction
+	// tries first.
 	DownloadPassword *string `json:"downloadPassword,omitempty"`
-	// Name is a rename asked for by a person - the properties panel's name box.
-	// It is cut to one path segment and then applied according to what the task
-	// is doing right now (see renameLocked), which is the whole of the difference
-	// from Filename below: that one is the raw override, written as given and
-	// acted on only once the bytes have stopped moving. A request carrying both
-	// is not refused; Name is applied second and wins.
+	// Name is a rename from the properties panel. It is cut to one path segment
+	// and applied according to what the task is doing (see renameLocked), unlike
+	// Filename, which is written as given and acted on once the bytes stop. With
+	// both, Name wins.
 	//
-	// It is refused over a selection of more than one, because a name is an
-	// identity and not a property. Forty rows given one name is forty downloads
-	// pointed at one destination, of which renameFinishedLocked would carry out
-	// the first and refuse the other thirty-nine one at a time.
+	// It is refused for more than one task, since one name for many rows would
+	// point them all at one destination.
 	Name *string `json:"name,omitempty"`
-	// Comment is the note on the row. Nothing in the app acts on it, which is why
-	// it is editable here at all: it is the one field whose only reader is the
-	// person who comes back to this list next month.
+	// Comment is the note on the row; nothing in the app acts on it.
 	Comment *string `json:"comment,omitempty"`
-	// Priority is the absolute value, not a step. The panel shows the five the
-	// queue accepts and writes the one that was chosen; the two arrows in the
-	// toolbar are the relative reading of the same field.
+	// Priority is the absolute value, not a step.
 	Priority *int `json:"priority,omitempty"`
-	// Filename is the name the finished file is put under, and it is deliberately
-	// not Name: the backend downloads under the name it chose and the file is
-	// renamed once the bytes have stopped moving. The engine keys its .part file
-	// on its own name, so a file renamed mid-flight cannot be resumed after a
-	// restart. An empty string takes the override off again.
+	// Filename is the name the finished file is put under. The backend
+	// downloads under its own name and the file is renamed once the bytes stop,
+	// since the engine keys its .part file on its own name. An empty string
+	// removes the override.
 	Filename *string `json:"filename,omitempty"`
-	// Chunks is how many connections this download opens. Zero hands the decision
-	// back to the resolver's answer and the built-in default.
+	// Chunks is how many connections this download opens. Zero defers to the
+	// resolver's answer and the built-in default.
 	Chunks *int `json:"chunks,omitempty"`
-	// AutoExtract is the per-task unpacking switch, read at extraction time
-	// rather than at download time — turning it on for something that finished an
-	// hour ago unpacks it now.
+	// AutoExtract is the per-task unpacking switch, read at extraction time, so
+	// turning it on for a finished download unpacks it now.
 	AutoExtract TriBool `json:"autoExtract"`
-	// VariantQuality is the "Variante" column's own edit (Variante.tsx): the
-	// resolution preset for a video row, or the audio format for an audio
-	// row - the sub-value half of core.Task.Variant's own encoding
-	// (variantEncode/variantDecode, app_ytdlp_variants.go). The row's own
-	// kind (video/audio/thumbnail/subtitle/description) is never edited
-	// here - it is fixed at the moment expandYtdlpVariants created the row.
-	// An empty string is a real answer ("no opinion", the same as leaving a
-	// task's own Quality on Options.QualityBest), not "leave alone" - a nil
-	// pointer is how a request already says that.
+	// VariantQuality is the sub-value of a variant row (see variantEncode): the
+	// resolution preset for video, the format for audio. The row's kind is never
+	// edited. An empty string means "no opinion"; nil means leave alone.
 	VariantQuality *string `json:"variantQuality,omitempty"`
-	// AudioBitrate is the audio row's own second, independent picker -
-	// VariantQuality above already carries the row's FORMAT (mp3/m4a/...),
-	// and a bitrate is a second axis on top of it, not a replacement for
-	// it, so it gets its own field rather than a second colon packed into
-	// the same encoded string. An empty string is a real answer ("no
-	// opinion, ffmpeg's own default"), not "leave alone" - same convention
-	// as VariantQuality.
+	// AudioBitrate is the audio row's bitrate, a second axis beside the format
+	// in VariantQuality. An empty string means ffmpeg's default; nil means
+	// leave alone.
 	AudioBitrate *string `json:"audioBitrate,omitempty"`
 }
 
-// SetTaskOptions applies per-task overrides. Changing the folder of a running
-// task only affects a later restart — the bytes already on disk stay where they
-// are — but a rename and the unpacking switch are acted on immediately for
-// anything that has already finished, because a per-task setting that does
-// nothing to the task you are looking at is a setting the user re-saves and
-// never sees work.
+// SetTaskOptions applies per-task overrides. A folder change on a running task
+// only affects a later restart, but a rename and the unpacking switch act at
+// once on a finished download.
 //
-// A nil field is left alone, and that is the whole contract the properties panel
-// rests on: it edits a selection, so a box the user never touched must not carry
-// its own emptiness onto forty rows. The panel sends what was changed and
-// nothing else - see renameLocked for the one field whose answer depends on the
-// task rather than on the request.
+// A nil field is left alone: the properties panel edits a selection and sends
+// only what changed.
 func (a *App) SetTaskOptions(ids []string, o TaskOptions) error {
-	// Everything is checked before a single task is touched. Refusing halfway
-	// through would leave a selection with the first eight rows edited, the rest
-	// as they were, and an error message that says nothing about which is which.
+	// Everything is validated before any task is touched, so a refusal never
+	// leaves a selection half edited.
 	if o.Dir != nil && *o.Dir != "" {
 		if err := settings.Validate("the folder for this download", *o.Dir); err != nil {
 			return err
@@ -817,10 +592,8 @@ func (a *App) SetTaskOptions(ids []string, o TaskOptions) error {
 		if strings.TrimSpace(*o.Name) == "" {
 			return errors.New("a download cannot be renamed to nothing")
 		}
-		// Cut rather than refused, and cut by the rule engine's own function: a
-		// name is one path segment here for exactly the reason it is one in a
-		// Packagizer rename, and a second cut written next to this one is a second
-		// answer to "is this a name" that will eventually differ from the first.
+		// Cut rather than refused, by the same function a Packagizer rename
+		// uses.
 		renameTo = rules.FileSegment(*o.Name)
 	}
 	if o.Chunks != nil && (*o.Chunks < 0 || *o.Chunks > rules.MaxChunks) {
@@ -867,28 +640,23 @@ func (a *App) SetTaskOptions(ids []string, o TaskOptions) error {
 			}
 		}
 		if o.Name != nil {
-			// Kept rather than returned on the spot: the reason belongs on the row as
-			// well as in the reply, and leaving the lock here would skip the save and
-			// the broadcast that put it there.
+			// Returned after the save and broadcast, since the reason belongs on
+			// the row too.
 			renameErr = a.renameLocked(t, renameTo)
 		}
 		if o.AutoExtract.Set {
-			// Written across the whole volume set rather than onto this part alone.
-			// The first volume is the one that gets opened, so an override sitting
-			// only on part02 is an unpacking switch that silently does nothing.
+			// Across the whole volume set: the first volume is the one opened, so
+			// an override on part02 alone would do nothing.
 			for _, part := range a.volumeSetLocked(t) {
-				// A copy per task, never the request's own pointer: one pointer shared
-				// by five rows is five rows that change together the next time anything
-				// writes through it.
+				// A copy per task, so the rows do not share one pointer.
 				part.AutoExtract = copyBool(o.AutoExtract.Value)
 				touched[part.ID] = part
 			}
 		}
 		touched[t.ID] = t
 	}
-	// Extraction is decided only after every override in the request has landed,
-	// so switching a whole multi-volume selection on in one call reads the set as
-	// the user left it and not as it stood halfway through the loop.
+	// Extraction is decided after every override has landed, so a multi-volume
+	// selection is read as the user left it.
 	if o.AutoExtract.Set {
 		cfg := a.Settings.Get()
 		for _, id := range ids {
@@ -905,38 +673,30 @@ func (a *App) SetTaskOptions(ids []string, o TaskOptions) error {
 	}
 	a.mu.Unlock()
 	a.saveAndBroadcast(copies)
-	// SetPriority rather than a second assignment here, and last because it takes
-	// the lock itself. The queue's range, its re-sort and the dispatch that acts on
-	// the new order all live in that one call; a properties panel that wrote
-	// t.Priority directly would be a second copy of all three, and the copy that
-	// forgets to dispatch is the one where a raised task sits still.
+	// Through SetPriority, which clamps, re-sorts and dispatches; last because it
+	// takes the lock itself.
 	if o.Priority != nil {
 		a.SetPriority(ids, *o.Priority)
 	}
 	return renameErr
 }
 
-// renameLocked applies a rename a person asked for, and what it does depends
-// entirely on what the task is doing at that moment. The rule per status:
+// renameLocked applies a rename asked for by hand, according to the task's
+// status:
 //
-//	done                the file is closed, so it moves on disk and the row
-//	                    follows it. A row renamed on its own would promise a name
-//	                    the folder does not have, and extraction and checksum
-//	                    verification both build their path from that name.
-//	running, extracting the backend holds the file open under the name it chose
-//	                    itself. The new name is only recorded; the settle path
-//	                    carries it out. Writing to that handle now is how a
-//	                    transfer stops finding its own .part file after a restart.
-//	everything else     nothing final has been written yet, so the row takes the
-//	                    name at once. The backend reports the name it really used
-//	                    when the download starts, which puts the two apart again
-//	                    and leaves the override something to do at the end.
+//	done                the file moves on disk and the row follows, since
+//	                    extraction and checksums build their path from the name.
+//	running, extracting the backend holds the file open under its own name, so
+//	                    the name is only recorded and the settle path applies
+//	                    it; renaming now would orphan the .part file.
+//	everything else     the row takes the name at once. The backend reports the
+//	                    name it used when the download starts, and the override
+//	                    is applied at the end.
 //
 // Caller holds a.mu.
 func (a *App) renameLocked(t *core.Task, want string) error {
-	// The override is set in every case, because it is the only thing that reaches
-	// the file: no backend accepts a destination file name, so a rename is always
-	// something done to the finished download rather than asked of the transfer.
+	// The override is always set: no backend accepts a destination file name,
+	// so a rename is applied to the finished download.
 	t.Filename = want
 	switch t.Status {
 	case core.StatusDone:
@@ -948,10 +708,8 @@ func (a *App) renameLocked(t *core.Task, want string) error {
 		if t.Name == want {
 			return nil
 		}
-		// renameFinishedLocked records a refusal on the task rather than returning
-		// it, because its other caller is the settle path, where there is nobody
-		// left to answer. Here somebody is waiting on a reply, and a rename that
-		// quietly did not happen is the silence this panel exists to break.
+		// renameFinishedLocked records a refusal on the task for the settle
+		// path; here a caller is waiting for the answer.
 		if t.Error != before && t.Error != "" {
 			return errors.New(t.Error)
 		}
@@ -974,24 +732,19 @@ func copyBool(v *bool) *bool {
 	return &c
 }
 
-// usableFilename reports whether a name is one path segment and nothing else. A
-// name carrying a separator is not a name, it is a way out of the folder the
-// download was meant to land in.
+// usableFilename reports whether a name is a single path segment, so it cannot
+// escape the download folder.
 func usableFilename(name string) bool {
 	return name != "" && name != "." && name != ".." && !strings.ContainsAny(name, `/\`)
 }
 
 // renameFinishedLocked puts a finished download under the name a Packagizer
-// rule or the user asked for, which is the only way a rename action reaches the
-// disk. It runs once the bytes have stopped moving and never before, because
-// the engine keys its .part file on the name it chose itself and a file renamed
-// mid-flight cannot be resumed after a restart.
+// rule or the user asked for. It only runs once the bytes have stopped, since
+// the engine keys its .part file on its own name.
 //
-// A rename that cannot be carried out leaves the file alone and says so on the
-// task. Keeping the old name in silence is the failure worth guarding against:
-// the list would show the name the rule promised while the disk holds another,
-// and extraction and checksum verification both build their path by joining the
-// folder with that name. Caller holds a.mu.
+// A rename that cannot be done leaves the file alone and records why on the
+// task, so the list never shows a name the disk does not have. Caller holds
+// a.mu.
 func (a *App) renameFinishedLocked(t *core.Task) {
 	want := strings.TrimSpace(t.Filename)
 	// A task whose name is still its URL has not been resolved, so there is no
@@ -1004,18 +757,15 @@ func (a *App) renameFinishedLocked(t *core.Task) {
 		return
 	}
 	if len(a.volumeSetLocked(t)) > 1 {
-		// Renaming one part out of a multi-volume set is how an archive becomes
-		// impossible to open: extract.SetKey groups the parts by their names, and a
-		// rule with a fixed name would hand every part the same one and overwrite
-		// the whole set down to a single file.
+		// extract.SetKey groups volumes by name, and a fixed rule name would
+		// give every part the same one and overwrite the set.
 		t.Error = "not renamed: " + t.Name + " is one part of a multi-volume archive"
 		return
 	}
 	dir := a.dirFor(t)
 	to := filepath.Join(dir, want)
-	// Checked rather than left to Rename, which on most platforms replaces the
-	// destination without a word. The file already sitting there belongs to
-	// somebody, and a rule is not a reason to destroy it.
+	// Checked first, since Rename replaces an existing destination on most
+	// platforms.
 	if _, err := os.Stat(to); err == nil {
 		t.Error = "not renamed: " + to + " already exists"
 		return
@@ -1036,14 +786,12 @@ func (a *App) saveAndBroadcast(copies []core.Task) {
 	}
 }
 
-// Remove drops a task from the list. deleteFiles additionally erases what was
-// downloaded — never the default: tidying the list must not destroy finished
-// files, which is also how JDownloader behaves.
+// Remove drops a task from the list. deleteFiles also erases what was
+// downloaded; it is never the default, as in JDownloader.
 func (a *App) Remove(id string, deleteFiles bool) {
 	a.mu.Lock()
 	t := a.tasks[id]
-	// Unfiled before the task goes, or a deleted download keeps blocking its own
-	// re-add for the life of the process.
+	// Unfiled first, or the removed link would keep blocking its own re-add.
 	a.forgetLinkLocked(t)
 	delete(a.tasks, id)
 	delete(a.active, id)
@@ -1058,16 +806,12 @@ func (a *App) Remove(id string, deleteFiles bool) {
 	a.Hub.Broadcast("removed", map[string]string{"id": id})
 }
 
-// put stages a task: the one moment a link becomes real, entering the task map,
-// the store and every connected browser at once.
+// put stages a task: it enters the task map, the store and every connected
+// browser.
 //
-// The mirror check happens here rather than at the call site because the
-// decision and the insert have to be one critical section. Two pastes of the
-// same file that both finished resolving would otherwise both be told the link
-// is new, which is the one case a check before the lock cannot catch.
-//
-// It reports the entry that refused the link, so the caller can say which
-// download it was folded into instead of dropping it in silence.
+// The mirror check and the insert are one critical section, so two pastes of
+// the same file cannot both be told the link is new. It returns the entry that
+// refused the link, so the caller can say which download it was folded into.
 func (a *App) put(t *core.Task) (dedupe.Match, bool) {
 	a.mu.Lock()
 	if m := a.dupes.Check(linkEntry(t)); m.Seen() {
@@ -1083,26 +827,21 @@ func (a *App) put(t *core.Task) (dedupe.Match, bool) {
 	a.mu.Unlock()
 	_ = a.Store.Save(&c)
 	a.Hub.Broadcast("task", &c)
-	// The one place a link enters the list, which is why link.added is fired
-	// from here and not from the four staging paths above it: a fifth
-	// entrance added later inherits the event by construction instead of by
-	// somebody remembering. Off the lock and after the broadcast, so a
-	// subscriber cannot hold a.mu and cannot beat the browser to the news.
+	// Fired here, where every link enters, so new staging paths get the event
+	// too; outside the lock and after the broadcast.
 	a.fireLinkAdded(c)
 	return dedupe.Match{}, true
 }
 
-// linkEntry is how a task is described to the mirror set. The name is passed as
-// it stands: an unresolved task's name is still its URL, and the set recognises
-// that as "not known yet" rather than comparing two links on it.
+// linkEntry describes a task to the mirror set. An unresolved task's name is
+// still its URL, which the set reads as "not known yet".
 func linkEntry(t *core.Task) dedupe.Entry {
 	return dedupe.Entry{ID: t.ID, URL: t.URL, Name: t.Name, Size: t.Size}
 }
 
-// forgetLinkLocked takes a task's link back out of the mirror set, but only
-// while the set still points at that task. A settled download the user re-added
-// has been replaced in the set by its successor, and removing it by URL alone
-// would unblock a third copy of a link that is live right now. Caller holds mu.
+// forgetLinkLocked takes a task's link out of the mirror set, but only while
+// the set still points at that task; a re-added link's successor must keep
+// blocking copies. Caller holds a.mu.
 func (a *App) forgetLinkLocked(t *core.Task) {
 	if t == nil || a.dupes == nil {
 		return
@@ -1112,10 +851,9 @@ func (a *App) forgetLinkLocked(t *core.Task) {
 	}
 }
 
-// verifyTask checks a finished file against a checksum, when one is available:
-// a hash in the file name, or a sums file that was downloaded alongside it. A
-// download nobody can verify is left unmarked rather than shown as passing,
-// because a green tick that means "not checked" is worse than no tick.
+// verifyTask checks a finished file against a checksum when one is available:
+// a hash in the file name, or a sums file downloaded alongside it. A download
+// that cannot be verified is left unmarked rather than shown as passing.
 func (a *App) verifyTask(id, path string) {
 	name := filepath.Base(path)
 	dir := filepath.Dir(path)
@@ -1132,11 +870,8 @@ func (a *App) verifyTask(id, path string) {
 	ok, err := checksum.Verify(path, sum)
 	verdict := "ok"
 	if err != nil {
-		// The download named at the end, so that the per-download log card can
-		// find this line. It is one of the two the operator most wants there
-		// and it did not carry an id until now, although verifyTask has had one
-		// in scope since it was written - see taskTag for why it goes at the
-		// end rather than at the front.
+		// Tagged with the task id so the per-download log card finds it (see
+		// taskTag).
 		log.Printf("checksum %s: %v%s", name, err, taskTag(id))
 		return
 	}
@@ -1156,9 +891,8 @@ func (a *App) verifyTask(id, path string) {
 	a.mu.Unlock()
 	_ = a.Store.Save(&c)
 	a.Hub.Broadcast("task", &c)
-	// Only the mismatch. A file with no checksum to check never reaches this
-	// far (the early returns above), and one whose hash could not be read is
-	// unverified rather than wrong - see script.TriggerChecksumFailed.
+	// Only a mismatch fires; an unreadable hash is unverified, not wrong (see
+	// script.TriggerChecksumFailed).
 	if !ok {
 		a.fireChecksumFailed(c)
 	}
@@ -1191,9 +925,8 @@ func (a *App) sumFromSiblingFile(dir, name string) (checksum.Sum, bool) {
 		sums, err := parse(f)
 		f.Close()
 		if err != nil {
-			// Both parsers are strict: one malformed line yields nothing. Left
-			// silent, that is indistinguishable from "no checksum file here",
-			// and every download in the batch would quietly show as unverified.
+			// Both parsers reject the whole file over one bad line, which would
+			// otherwise look like no checksum file at all.
 			log.Printf("checksum file %s is unusable: %v", e.Name(), err)
 			continue
 		}

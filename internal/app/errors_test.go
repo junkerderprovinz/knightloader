@@ -11,10 +11,9 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/core"
 )
 
-// TestClassify pins one real failure to each reason. Every input here is a
-// value or a sentence this build can actually produce — Gopeed's wording, JD's,
-// yt-dlp's, Go's own transport errors — so a backend that changes its phrasing
-// breaks this test rather than quietly settling every failure as unknown.
+// Each input is a value or sentence this build really produces (Gopeed, JD,
+// yt-dlp, Go's transport errors), so a backend that changes its wording breaks
+// this test instead of silently classifying everything as unknown.
 func TestClassify(t *testing.T) {
 	cases := []struct {
 		name string
@@ -52,10 +51,8 @@ func TestClassify(t *testing.T) {
 
 		{"called off from this side", failure{err: context.Canceled}, core.ReasonCancelled},
 
-		// The rule the whole classifier rests on. A hoster sentence nothing in the
-		// table matches must stay unknown: the interface shows the sentence and
-		// says nothing more, which is right, where a guess would send somebody to
-		// fix a problem they do not have.
+		// A sentence nothing matches stays unknown; a guess would send somebody
+		// to fix the wrong problem.
 		{"an error nothing recognises", failure{text: "rapidgator: error code 7731"}, core.ReasonUnknown},
 		{"a status with no specific meaning", failure{status: 418}, core.ReasonUnknown},
 		{"no error at all", failure{}, core.ReasonUnknown},
@@ -69,10 +66,8 @@ func TestClassify(t *testing.T) {
 	}
 }
 
-// TestClassifyWindowsDiskFull covers the errno Windows really returns for a full
-// disk. Go's Windows syscall package defines ENOSPC as a synthetic value no call
-// ever produces, so the number is the only thing to match on — and it is matched
-// on Windows only, because 112 is EHOSTDOWN elsewhere.
+// Go's Windows ENOSPC is a synthetic value no call returns, so errno 112 is
+// matched instead, on Windows only, since elsewhere it is EHOSTDOWN.
 func TestClassifyWindowsDiskFull(t *testing.T) {
 	err := fmt.Errorf("write x.part: %w", syscall.Errno(112))
 	got := classify(failure{err: err})
@@ -87,10 +82,7 @@ func TestClassifyWindowsDiskFull(t *testing.T) {
 	}
 }
 
-// TestClassifyPrefersTheErrorValue makes sure the typed error outranks the
-// words. A Windows box reports its errors in the language it was installed in,
-// so a classifier that read the sentence first would answer differently on a
-// German machine for the same failure.
+// The typed error outranks the words, which Windows localises.
 func TestClassifyPrefersTheErrorValue(t *testing.T) {
 	// A cancelled context whose sentence also contains a phrase from the table.
 	err := fmt.Errorf("connection reset: %w", context.Canceled)
@@ -99,9 +91,7 @@ func TestClassifyPrefersTheErrorValue(t *testing.T) {
 	}
 }
 
-// TestClassifyCallerStatusWins guards the seam the availability probe uses: it
-// holds a real response, and the number in its hand must not be second-guessed
-// from the sentence it formatted around it.
+// A status the caller passes wins over the sentence around it.
 func TestClassifyCallerStatusWins(t *testing.T) {
 	if got := classify(failure{text: "offline", status: 404}); got != core.ReasonGone {
 		t.Errorf("classify = %q, want %q", got, core.ReasonGone)
@@ -114,9 +104,7 @@ func TestStatusIn(t *testing.T) {
 		"http request fail, code:404":                404,
 		"connection 0 failed: retries=3, status=503": 503,
 		"offline (HTTP 429)":                         429,
-		// A link in the sentence is not a status. This is the false positive worth
-		// guarding: an error that quotes the URL it failed on would otherwise be
-		// classified by whatever digits happen to sit in the path.
+		// Digits in a quoted URL are not a status.
 		"could not fetch https://host.example/a/file.zip": 0,
 		"rapidgator: error code 7731":                     0,
 		"":                                                0,
@@ -128,9 +116,7 @@ func TestStatusIn(t *testing.T) {
 	}
 }
 
-// TestFailedTaskCarriesReason is the wiring test: a backend reports a failure as
-// a sentence, and the task that settles from it has to carry the typed cause as
-// well as the words.
+// A task failing with a sentence carries the typed reason too.
 func TestFailedTaskCarriesReason(t *testing.T) {
 	a, err := New(t.TempDir())
 	if err != nil {
@@ -153,8 +139,7 @@ func TestFailedTaskCarriesReason(t *testing.T) {
 		t.Errorf("reason = %q, want %q", reason, core.ReasonGone)
 	}
 
-	// And a restart takes the reason away with the sentence: a task that is
-	// running again must not still be advising about the failure before it.
+	// A restart clears the reason with the sentence.
 	a.RestartTasks([]string{task.ID})
 	a.mu.Lock()
 	reason = task.Reason
@@ -164,9 +149,7 @@ func TestFailedTaskCarriesReason(t *testing.T) {
 	}
 }
 
-// TestDiskFullIsNotRetried is the point of telling a full disk apart from a
-// write error at all. Retrying frees no space, and five more attempts bury the
-// one failure the user could have fixed.
+// A full disk is not retried: retrying frees no space.
 func TestDiskFullIsNotRetried(t *testing.T) {
 	a, err := New(t.TempDir())
 	if err != nil {
@@ -200,8 +183,7 @@ func TestDiskFullIsNotRetried(t *testing.T) {
 	}
 }
 
-// TestUnknownFailureStillRetries is the other half of it: only a full disk is
-// exempt, and an ordinary failure must keep its backoff.
+// An ordinary failure keeps its backoff.
 func TestUnknownFailureStillRetries(t *testing.T) {
 	a, err := New(t.TempDir())
 	if err != nil {
@@ -229,9 +211,7 @@ func TestUnknownFailureStillRetries(t *testing.T) {
 	}
 }
 
-// TestAddressMayHelp pins the veto the reason gives the reconnect. It must
-// answer yes for anything unclassified, or the taxonomy would silently switch
-// off a reconnect that fires today.
+// The reason can veto a reconnect, but anything unclassified still allows one.
 func TestAddressMayHelp(t *testing.T) {
 	cannotHelp := []core.Reason{
 		core.ReasonGone, core.ReasonAuth, core.ReasonDiskFull,
@@ -252,8 +232,7 @@ func TestAddressMayHelp(t *testing.T) {
 	}
 }
 
-// TestExhaustedChainIsUnsupported: when every backend that matched a link has
-// handed it on, "no backend handles this" is not a guess, it is the record.
+// When every matching backend has handed a link on, it is unsupported.
 func TestExhaustedChainIsUnsupported(t *testing.T) {
 	a, err := New(t.TempDir())
 	if err != nil {

@@ -9,9 +9,8 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/watch"
 )
 
-// If this fails, a crawljob's intent is parsed and then thrown away on the way
-// to the task: the file said where to put it, how urgently and in how many
-// pieces, and the list shows a plain download with none of it.
+// A crawljob says where to put the download, how urgently and in how many
+// pieces, and all of that has to survive the way to the task.
 func TestADroppedJobsIntentReachesTheTasks(t *testing.T) {
 	a := newCrawlApp(t, false)
 	dest := t.TempDir()
@@ -59,14 +58,14 @@ func TestADroppedJobsIntentReachesTheTasks(t *testing.T) {
 		t.Error("Enabled = false for a job that never asked for the links to be parked")
 	}
 	// The second password is no use to this task and every use to the next
-	// archive from the same source.
+	// archive from the same source, so it is kept.
 	if pw := a.Settings.Get().ArchivePasswords; len(pw) == 0 {
 		t.Error("the passwords the file carried were not kept for later archives")
 	}
 }
 
-// If this fails, enabled=FALSE in a dropped file is ignored and links somebody
-// staged deliberately parked start downloading unattended.
+// enabled=false in a dropped file parks the links, or a batch staged to wait
+// starts downloading unattended.
 func TestADisabledDroppedJobIsParked(t *testing.T) {
 	a := newCrawlApp(t, false)
 	a.stageWatchJob(watch.Job{
@@ -84,8 +83,8 @@ func TestADisabledDroppedJobIsParked(t *testing.T) {
 	}
 }
 
-// If this fails, a dropped file naming one output file renames every task it
-// created, and twenty downloads are pointed at one destination.
+// A dropped file naming one output file would otherwise rename every task it
+// created and point the whole batch at one destination.
 func TestAFileNameIsOnlyTakenFromASingleLinkJob(t *testing.T) {
 	a := newCrawlApp(t, false)
 	a.stageWatchJob(watch.Job{
@@ -99,8 +98,7 @@ func TestAFileNameIsOnlyTakenFromASingleLinkJob(t *testing.T) {
 	}
 }
 
-// If this fails, only one drop folder is ever polled, which is the whole of what
-// a second one was configured for.
+// Both the configured folder and the one from the environment are polled.
 func TestEveryConfiguredDropFolderIsWatched(t *testing.T) {
 	a := newCrawlApp(t, false)
 	one, two := t.TempDir(), t.TempDir()
@@ -119,24 +117,24 @@ func TestEveryConfiguredDropFolderIsWatched(t *testing.T) {
 		t.Fatalf("watching %v, want only the folder the settings name", dirs)
 	}
 
-	// And clearing the setting stops the watcher outright, which is what the
-	// module switch on the features page turns into.
+	// Clearing the setting stops the watcher outright, which is what the module
+	// switch on the features page turns into.
 	a.applyWatchFolders(settings.Settings{})
 	if dirs := watchedDirs(a); len(dirs) != 0 {
 		t.Fatalf("watching %v after the folder was cleared, want nothing", dirs)
 	}
 }
 
-// If this fails, the same directory reached the watcher twice and one dropped
-// file would be staged twice.
+// The same directory reaching the watcher twice would stage one dropped file
+// twice.
 func TestOneDirectoryNamedTwiceIsListedOnce(t *testing.T) {
 	dir := t.TempDir()
 	t.Setenv(envWatchDirs, dir+string(filepath.Separator))
 
 	folders := watchFolders(settings.Settings{WatchDir: dir})
 	if len(folders) != 2 {
-		// The reader keeps both spellings on purpose: telling them apart is the
-		// watcher's job, and it does it on the resolved path.
+		// The reader keeps both spellings: telling them apart is the watcher's
+		// job, and it does it on the resolved path.
 		t.Fatalf("watchFolders = %v, want both spellings handed on", folders)
 	}
 	a := newCrawlApp(t, false)

@@ -25,15 +25,7 @@ func putTask(t *testing.T, a *App, task core.Task) *core.Task {
 	return &c
 }
 
-// TestDisabledAndHeldLinksAreNotDispatched is what the Enabled checkbox and the
-// hold action actually promise. Both are stored, both are shown, and both are
-// reachable in bulk — so a dispatcher that does not consult them is a control
-// that appears to work, persists across restarts, and downloads the link anyway.
-// "Start all" is the case that matters: it takes every collected link, including
-// the ones somebody deliberately switched off.
-//
-// The two are checked together because they fail together: they are the only
-// fields between a queued task and the network that mean "not this one".
+// "Start everything" must not dispatch a disabled or held link.
 func TestDisabledAndHeldLinksAreNotDispatched(t *testing.T) {
 	a := newQueueApp(t)
 
@@ -41,8 +33,7 @@ func TestDisabledAndHeldLinksAreNotDispatched(t *testing.T) {
 		Status: core.StatusCollected, Enabled: false})
 	held := putTask(t, a, core.Task{URL: "https://host.example/held.bin", Name: "held.bin",
 		Status: core.StatusCollected, Enabled: true, Hold: true})
-	// The control. Without it the test would still pass if the dispatcher simply
-	// stopped starting anything at all.
+	// The control, so the test fails if the dispatcher starts nothing at all.
 	on := putTask(t, a, core.Task{URL: "https://host.example/on.bin", Name: "on.bin",
 		Status: core.StatusCollected, Enabled: true})
 
@@ -64,43 +55,31 @@ func TestDisabledAndHeldLinksAreNotDispatched(t *testing.T) {
 			t.Errorf("%s was dispatched by \"start everything\"", c.why)
 		}
 	}
-	// A held link waits IN the queue: the hold is not a refusal, and the link
-	// has to go on its own the moment it is released.
+	// A held link waits in the queue, so it goes as soon as it is released.
 	if !queued[held.ID] {
 		t.Error("a link on hold lost its place in the queue instead of waiting there")
 	}
-	// A link switched off never joins the queue at all, which is a deliberate
-	// change from "queued but never dispatched" (jdp, 2026-09-06: "wenn ich im
-	// sammlertab ein link auf inaktiv setzte und dann auf alle starten klicke
-	// verschiebt es ihn trotzdem in den downloadtab"). The old behaviour was
-	// invisible in a way the switch could not survive: the row left the
-	// collector, appeared in the download list, and sat there forever with
-	// nothing on it saying why - which reads as a queue that is stuck, not as a
-	// link somebody switched off.
+	// A disabled link stays in the collector; in the download list it would
+	// look like a stuck queue.
 	if queued[off.ID] {
 		t.Error("a link switched off was moved into the download queue")
 	}
 	if a.tasks[off.ID].Status != core.StatusCollected {
 		t.Errorf("a link switched off left the collector: status %q", a.tasks[off.ID].Status)
 	}
-	// The enabled link was acted on: either it is running, or it was settled with
-	// a reason (there is no network in a test). Either way it left the queue,
-	// which the two above did not.
+	// The enabled link left the queue, running or settled with a reason (there
+	// is no network in a test).
 	if queued[on.ID] {
 		t.Error("an enabled link was left sitting in the queue; the dispatcher skipped everything")
 	}
 }
 
-// TestForcedLinksSortToTheFront pins the one thing the context menu entry
-// promises in all 42 locales ("Force to the front"). Forced is stored and shown,
-// so a queue order that ignores it is a menu entry that appears to work and
-// changes nothing — and the link stays exactly where it was, behind whatever the
-// user was trying to get past.
+// A forced link sorts to the front of the queue.
 func TestForcedLinksSortToTheFront(t *testing.T) {
 	a := newQueueApp(t)
 
-	// Deliberately the worst case for the forced link: it is the newest, it has
-	// the lowest priority, and it is last in the queue. Only Forced can lift it.
+	// The worst case for the forced link: newest, lowest priority and last in
+	// the queue, so only Forced can lift it.
 	old := putTask(t, a, core.Task{ID: "old", Priority: 2, Position: 0,
 		CreatedAt: time.Now().Add(-time.Hour), Enabled: true})
 	mid := putTask(t, a, core.Task{ID: "mid", Priority: 1, Position: 1,
@@ -117,24 +96,21 @@ func TestForcedLinksSortToTheFront(t *testing.T) {
 	if got[0] != forced.ID {
 		t.Errorf("queue order is %v; the forced link is not at the front", got)
 	}
-	// The rest keeps the order it had, or "force one link" would quietly reshuffle
-	// everything the user arranged around it.
+	// The rest keep their order.
 	if got[1] != old.ID || got[2] != mid.ID {
 		t.Errorf("queue order is %v; forcing one link disturbed the others", got)
 	}
 }
 
-// TestCleanupClassesSelectWhatTheySay is the confirmation dialog's contract.
-// Every one of these entries removes rows in bulk, and a class that selects one
-// row more than the user pictured is a class that deletes something they wanted.
+// Each cleanup class selects exactly the rows it names, since it removes them
+// in bulk.
 func TestCleanupClassesSelectWhatTheySay(t *testing.T) {
 	a := newQueueApp(t)
 
 	done := putTask(t, a, core.Task{URL: "https://host.example/done.bin", Name: "done.bin", Status: core.StatusDone, Enabled: true})
 	gone := putTask(t, a, core.Task{URL: "https://host.example/gone.bin", Name: "gone.bin", Status: core.StatusCollected, Online: core.AvailOffline, Enabled: true})
 	off := putTask(t, a, core.Task{URL: "https://host.example/off.bin", Name: "off.bin", Status: core.StatusCollected})
-	// Uncheckable is deliberately not offline: one hoster refusing a probe must
-	// never be the reason a package disappears.
+	// Uncheckable is not offline, so a hoster refusing a probe removes nothing.
 	shy := putTask(t, a, core.Task{URL: "https://host.example/shy.bin", Name: "shy.bin", Status: core.StatusCollected, Online: core.AvailUncheckable, Enabled: true})
 
 	cases := []struct {
@@ -164,10 +140,8 @@ func TestCleanupClassesSelectWhatTheySay(t *testing.T) {
 	}
 }
 
-// TestCleanupDuplicatesKeepsTheBestCopy is the class that can lose work. A
-// finished or failed download deliberately stops blocking its own re-add, so a
-// second row for the same file is normal — and the copy that is halfway
-// downloaded must be the one that survives, not whichever was added last.
+// A settled download no longer blocks its own re-add, so duplicates are normal;
+// the copy with bytes on disk survives, not whichever was added last.
 func TestCleanupDuplicatesKeepsTheBestCopy(t *testing.T) {
 	a := newQueueApp(t)
 
@@ -196,10 +170,8 @@ func TestCleanupDuplicatesKeepsTheBestCopy(t *testing.T) {
 	}
 }
 
-// TestCleanupIncompleteArchivesTakesTheWholeSet is what makes the class worth
-// having. One dead volume means the other nine will never open, and leaving them
-// is how a download folder fills with archives nobody can extract — but a set
-// that is merely still downloading must be left alone.
+// One dead volume means the rest of the set will never open, so the whole set
+// is selected; a set still downloading is left alone.
 func TestCleanupIncompleteArchivesTakesTheWholeSet(t *testing.T) {
 	a := newQueueApp(t)
 
@@ -225,10 +197,7 @@ func TestCleanupIncompleteArchivesTakesTheWholeSet(t *testing.T) {
 	}
 }
 
-// TestBulkRemoveUnfilesTheLink is the trap in doing this without going through
-// Remove: a task taken out of the map but left in the mirror set goes on
-// refusing its own link for the life of the process, and re-pasting it does
-// nothing at all with no message anywhere.
+// A removed task leaves the mirror set too, so its link can be pasted again.
 func TestBulkRemoveUnfilesTheLink(t *testing.T) {
 	a := newQueueApp(t)
 
@@ -245,9 +214,7 @@ func TestBulkRemoveUnfilesTheLink(t *testing.T) {
 	}
 }
 
-// TestHoldIsNotPaused pins the ruling that keeps "resume everything" honest: a
-// parked link is parked because somebody parked it, and the one button that
-// starts everything must not undo that.
+// A hold is not a pause, so "resume everything" does not start held links.
 func TestHoldIsNotPaused(t *testing.T) {
 	a := newQueueApp(t)
 

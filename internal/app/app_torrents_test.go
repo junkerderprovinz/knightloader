@@ -1,9 +1,7 @@
 package app
 
-// AddTorrent's own tests build their .torrent fixtures the same way
-// internal/resolver/torrent's own tests do (hand-rolled with the reference
-// library, read back with the reference library) rather than importing that
-// package's unexported helpers, which a different package cannot reach.
+// The .torrent fixtures are built with the reference library, as
+// internal/resolver/torrent's tests do, since its helpers are unexported.
 
 import (
 	"strings"
@@ -17,10 +15,6 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/testenv"
 )
 
-// newTorrentTestApp mirrors every other file in this package's own test setup
-// (queue_test.go's newQueueApp, accounts_test.go's newAccountsTestApp, and so
-// on) - there is no single shared helper across this package's test files,
-// each one builds its own App the same three lines.
 func newTorrentTestApp(t *testing.T) *App {
 	t.Helper()
 	a, err := New(t.TempDir())
@@ -38,9 +32,8 @@ func testPieces(total int64) []byte {
 	return make([]byte, n*20)
 }
 
-// testTorrentURI builds a valid multi-file .torrent and returns it already
-// re-expressed as the data: URI staging carries a torrent as - the same shape
-// torrent.ParseUpload hands a caller.
+// testTorrentURI builds a valid multi-file .torrent and returns it as the data:
+// URI staging carries, the shape torrent.ParseUpload returns.
 func testTorrentURI(t *testing.T, folder string, files []metainfo.FileInfo) string {
 	t.Helper()
 	var total int64
@@ -60,10 +53,7 @@ func testTorrentURI(t *testing.T, folder string, files []metainfo.FileInfo) stri
 	return torrent.EncodeBytes(b)
 }
 
-// TestAddTorrentStagesTheRequestedSelection is the core promise: what the
-// caller marked Selected is what lands on the task, and Size is the selected
-// subset's own total, not the whole torrent's - see torrentSize's own comment
-// for why that second part matters as much as the first.
+// The selection lands on the task, and Size is the selected subset's total.
 func TestAddTorrentStagesTheRequestedSelection(t *testing.T) {
 	a := newTorrentTestApp(t)
 	uri := testTorrentURI(t, "Pack", []metainfo.FileInfo{
@@ -103,17 +93,13 @@ func TestAddTorrentStagesTheRequestedSelection(t *testing.T) {
 	if task.TorrentFiles[1].Selected {
 		t.Error("two.srt came back selected; the caller asked to exclude it")
 	}
-	// The base64 of the whole .torrent must never end up in a bucket that gets
-	// read back out as a column value - see torrentHost's own comment.
+	// The encoded .torrent must never become the Host value.
 	if task.Host == uri || len(task.Host) > 64 {
 		t.Errorf("host = %d bytes, want a short bucket rather than the uri itself", len(task.Host))
 	}
 }
 
-// TestAddTorrentWithNoSelectionKeepsEveryFileAndTheWholeSize is the "never
-// shown a tree" case (a single-file torrent, or a caller that passes through
-// whatever Parse defaulted): every file stays selected, so the size is the
-// whole torrent's own total.
+// With every file selected, the size is the whole torrent's.
 func TestAddTorrentWithNoSelectionKeepsEveryFileAndTheWholeSize(t *testing.T) {
 	a := newTorrentTestApp(t)
 	uri := testTorrentURI(t, "Solo", []metainfo.FileInfo{{Length: 4096, Path: []string{"solo.bin"}}})
@@ -128,10 +114,7 @@ func TestAddTorrentWithNoSelectionKeepsEveryFileAndTheWholeSize(t *testing.T) {
 	}
 }
 
-// TestAddTorrentFoldsAnExactDuplicateAway is the same rule every other intake
-// path already gives an identical URL: never kept, whatever KeepMirrors says
-// (default false here, so the second call must not even fall into the sibling
-// branch) - see keepsAsSibling's own comment, "a duplicate is never kept".
+// An identical URL is never kept, whatever KeepMirrors says.
 func TestAddTorrentFoldsAnExactDuplicateAway(t *testing.T) {
 	a := newTorrentTestApp(t)
 	uri := testTorrentURI(t, "Dup", []metainfo.FileInfo{{Length: 10, Path: []string{"f.bin"}}})
@@ -150,10 +133,8 @@ func TestAddTorrentFoldsAnExactDuplicateAway(t *testing.T) {
 	}
 }
 
-// TestAddTorrentNeverLeavesAPackageBlank mirrors what a plain pasted link
-// already gets from addLinksFrom (nameBucket, then the catch-all): a torrent
-// staged with no package name must not sit ownerless forever, the same reason
-// unpackagedIDs exists at all.
+// A torrent staged without a package gets one from nameBucket or the catch-all,
+// like a pasted link.
 func TestAddTorrentNeverLeavesAPackageBlank(t *testing.T) {
 	a := newTorrentTestApp(t)
 	uri := testTorrentURI(t, "Named", []metainfo.FileInfo{{Length: 10, Path: []string{"f.bin"}}})
@@ -168,12 +149,8 @@ func TestAddTorrentNeverLeavesAPackageBlank(t *testing.T) {
 	}
 }
 
-// TestTorrentSizeUsesTheSelectionNotTheWholeTorrent is torrentSize on its own,
-// isolating the exact lesson internal/engine/torrent.go's torrentMeta already
-// learned live: a resolve that reports the whole torrent's bytes regardless of
-// selection produces a number nobody believes once the real one shows up.
 func TestTorrentSizeUsesTheSelectionNotTheWholeTorrent(t *testing.T) {
-	md := torrent.Metadata{TotalSize: 129 << 20} // the whole-torrent figure, deliberately wrong for this case
+	md := torrent.Metadata{TotalSize: 129 << 20} // the whole-torrent figure
 	files := []core.TorrentFile{
 		{Path: "movie.mkv", Size: 128 << 20, Selected: false},
 		{Path: "subs.srt", Size: 1500, Selected: true},
@@ -181,22 +158,15 @@ func TestTorrentSizeUsesTheSelectionNotTheWholeTorrent(t *testing.T) {
 	if got := torrentSize(md, files); got != 1500 {
 		t.Errorf("torrentSize = %d, want 1500 (the one selected file)", got)
 	}
-	// No files known yet (a freshly pasted magnet) falls back to the whole
-	// figure Describe reported, honestly "not yet known" rather than 0.
+	// With no file list yet (a fresh magnet) it falls back to Describe's
+	// figure.
 	if got := torrentSize(md, nil); got != md.TotalSize {
 		t.Errorf("torrentSize with no file list = %d, want %d", got, md.TotalSize)
 	}
 }
 
-// TestTorrentHostIsNeverTheEncodedFile is torrentHost on its own: an uploaded
-// .torrent's uri is the base64 of the whole file, and hostOf's ordinary
-// fallback (the raw string, whenever url.Parse finds no hostname) would put
-// that multi-megabyte string in Task.Host and from there into every JSON
-// response the task ever appears in - and a magnet's own query string is the
-// same wrong answer at a smaller size, not a different problem: it is still
-// what a naming template's <jd:hoster> resolves to and what the frontend's
-// Host column shows, neither of which wants a magnet URI in it. Both kinds
-// get their own short, fixed bucket rather than hostOf's raw-string answer.
+// hostOf's raw-string fallback would put the encoded file or the magnet query
+// into Task.Host, the Host column and the <jd:hoster> path variable.
 func TestTorrentHostIsNeverTheEncodedFile(t *testing.T) {
 	uri := testTorrentURI(t, "H", []metainfo.FileInfo{{Length: 10, Path: []string{"f.bin"}}})
 	if got := torrentHost(uri); got != "torrent-upload" {
@@ -211,13 +181,7 @@ func TestTorrentHostIsNeverTheEncodedFile(t *testing.T) {
 	}
 }
 
-// TestPastedMagnetGetsTheShortHostBucket is TestTorrentHostIsNeverTheEncodedFile
-// proven through the path a real user paste actually takes: app_links.go's
-// stage, via AddLinksFrom, not a direct call to torrentHost itself. A correct
-// torrentHost wired to the wrong call site would leave this failing while the
-// unit test above passed - which is exactly what was true here before this
-// wave (stage built its Host from the bare hostOf(u), never torrentHost at
-// all).
+// A pasted magnet goes through stage, which must use torrentHost too.
 func TestPastedMagnetGetsTheShortHostBucket(t *testing.T) {
 	a := newTorrentTestApp(t)
 	magnet := "magnet:?xt=urn:btih:0123456789abcdef0123456789abcdef01234567"
@@ -230,37 +194,14 @@ func TestPastedMagnetGetsTheShortHostBucket(t *testing.T) {
 	}
 }
 
-// TestStartTasksThreadsTheSelectionIntoTheEngineJob is the dispatch-side half
-// of the file-tree promise: app_dispatch.go's own Job literal has to carry
-// core.SelectedTorrentIndices(t.TorrentFiles), or a selection made in the
-// collector never reaches the engine at all and every torrent downloads in
-// full regardless of what was unticked - the exact outcome decision 6 of
-// docs/torrent-support.md exists to prevent.
+// A started torrent task reaches the engine's torrent branch, which is where
+// the selection is passed on (see docs/torrent-support.md). The indices
+// themselves are private to the engine; its own tests cover them. A short
+// metadata timeout makes the branch fail fast with resolveTorrent's sentence.
 //
-// This cannot assert the exact indices the download library received without
-// reaching into the engine's own internals, which are private by design (see
-// internal/engine's own tests for that level of proof, against a real
-// magnet). What it CAN and does assert is that a torrent task staged through
-// AddTorrent - the only place TorrentFiles is populated today - actually
-// reaches the engine's own torrent branch when started, rather than being
-// silently mishandled: a short metadata timeout makes that branch fail fast
-// and by name (resolveTorrent's own sentence), which is the observable proof
-// that StartTasks -> the dispatch loop -> Engine.Start -> startTorrent ->
-// resolveTorrent is the intact chain this test exercises end to end.
-//
-// Reaching the engine's torrent branch is the same thing as booting gopeed's
-// shared torrent.Client for this process (see Engine.SetTorrentConfig's own
-// comment on initClient), and that client binds a wildcard peer listener -
-// verified here, 0.0.0.0 and [::] on the same port, alongside the app's
-// ordinary loopback proxy. Correct for the real app, pointless for a unit test,
-// and on Windows it is a firewall prompt every single run: go test builds a
-// fresh binary at a fresh temp path each time, so no allow-rule can ever stick
-// to it.
-//
-// -short alone did not stop that, because a plain `go test ./...` sets no such
-// flag, which is the command everyone actually runs. So this joins the other
-// wide listeners behind testenv.RequireWideListener and runs in CI, where the
-// dialog cannot exist. Nothing about what the test asserts changes.
+// The torrent client binds a wildcard peer listener, which on Windows raises a
+// firewall prompt for every fresh test binary, so this runs behind
+// testenv.RequireWideListener.
 func TestStartTasksThreadsTheSelectionIntoTheEngineJob(t *testing.T) {
 	testenv.RequireWideListener(t)
 	if testing.Short() {
@@ -269,10 +210,8 @@ func TestStartTasksThreadsTheSelectionIntoTheEngineJob(t *testing.T) {
 	a := newTorrentTestApp(t)
 	a.Engine.SetMetadataTimeout(200 * time.Millisecond)
 
-	// A magnet, not an upload: a magnet's Resolve returns instantly (no bytes
-	// to parse) and its swarm wait is exactly what SetMetadataTimeout bounds,
-	// which is what keeps this test fast and deterministic rather than
-	// depending on how quickly an embedded info dict resolves.
+	// A magnet resolves instantly and its swarm wait is what
+	// SetMetadataTimeout bounds.
 	magnet := "magnet:?xt=urn:btih:0123456789abcdef0123456789abcdef01234567"
 	created := a.AddLinksFrom([]string{magnet}, "DispatchTest", OriginPaste)
 	if len(created) != 1 {
@@ -280,10 +219,8 @@ func TestStartTasksThreadsTheSelectionIntoTheEngineJob(t *testing.T) {
 	}
 	id := created[0].ID
 
-	// TorrentFiles set directly on the live task, under the same lock the
-	// production writer uses (app_links.go's own convention, binding on tests
-	// too) - AddLinksFrom's own magnet path never populates it (the swarm has
-	// not answered yet), so this stands in for the moment it eventually would.
+	// The magnet path never fills TorrentFiles before the swarm answers, so it
+	// is set here under the lock the production writer uses.
 	a.mu.Lock()
 	a.tasks[id].TorrentFiles = []core.TorrentFile{
 		{Path: "one.mkv", Size: 900, Selected: true},
@@ -310,12 +247,9 @@ func TestStartTasksThreadsTheSelectionIntoTheEngineJob(t *testing.T) {
 		t.Fatal("task vanished from the list after StartTasks")
 	}
 	if last.Status != core.StatusError {
-		t.Fatalf("status = %q after 5s, want error (the short metadata timeout should have settled this) - task: %+v", last.Status, last)
+		t.Fatalf("status = %q after 5s, want error (the short metadata timeout should have settled this); task: %+v", last.Status, last)
 	}
-	// resolveTorrent's own sentence, not a generic dispatch failure - proof
-	// this specific task reached the engine's torrent branch rather than, say,
-	// silently being treated as an ordinary HTTP job (which a magnet URL would
-	// fail differently and much faster).
+	// resolveTorrent's sentence rather than an HTTP failure.
 	if !strings.Contains(last.Error, "torrent") {
 		t.Errorf("error = %q, want the resolveTorrent metadata-timeout sentence naming the torrent", last.Error)
 	}

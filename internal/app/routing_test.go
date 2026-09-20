@@ -9,9 +9,8 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
 )
 
-// TestRouting pins the M3b routing decision: files -> engine (direct), supported
-// hosters -> TorBox, everything else -> yt-dlp, with JD as the backup when no
-// TorBox key is present.
+// Files go to the engine, supported hosters to TorBox, everything else to
+// yt-dlp, with JD as the backup when no TorBox key is present.
 func TestRouting(t *testing.T) {
 	hosts := map[string]bool{"rapidgator.net": true}
 

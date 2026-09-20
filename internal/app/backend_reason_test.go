@@ -1,12 +1,10 @@
 package app
 
-// core.Update.Reason: a backend that read the whole of its own tool's output
-// beating a regex over the one truncated sentence that reached this package,
-// and the two policies that then read the verdict.
-//
-// The failures behind it are yt-dlp's (internal/resolver/ytdlp/diagnose.go),
-// but nothing here reaches into that package: what is under test is the
-// contract, which is open to any backend that can tell its own failures apart.
+// core.Update.Reason: a backend that read its tool's full output knows the
+// cause better than a regex over the truncated sentence that reaches this
+// package. These tests cover that contract and the policies reading it; the
+// causes come from yt-dlp (internal/resolver/ytdlp/diagnose.go), but any
+// backend may set one.
 
 import (
 	"testing"
@@ -15,16 +13,14 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
-// botCheckErr is the sentence a bot check arrives with, and the URL in it is
-// the point. classify() pulls an HTTP status out of any text it is handed,
-// before it looks at a single phrase, so this sentence classifies as a service
-// outage - which is why the verdict cannot be left to it.
+// botCheckErr is a bot check's error sentence. classify reads the "503" in its
+// URL as a service outage before looking at any phrase, which is why the
+// backend's verdict has to win.
 const botCheckErr = "yt-dlp: ERROR: [youtube] dQw4w9WgXcQ: Sign in to confirm you're not a bot. " +
 	"See  https://example.invalid/wiki/FAQ#status/503  for how to manually pass cookies."
 
-// TestABackendsOwnVerdictBeatsTheClassifier is the whole contract in one
-// assertion, and it opens by proving the branch it is about: without the first
-// check this test would keep passing if the classifier happened to agree.
+// The first check proves the classifier disagrees, or the test could pass
+// without the verdict winning.
 func TestABackendsOwnVerdictBeatsTheClassifier(t *testing.T) {
 	if got := classify(failure{text: botCheckErr}); got == core.ReasonBotCheck {
 		t.Fatalf("the classifier already answers %q for this sentence, so nothing below can show a verdict winning over it", got)
@@ -35,13 +31,11 @@ func TestABackendsOwnVerdictBeatsTheClassifier(t *testing.T) {
 	a.onUpdate("bot1", core.Update{Status: core.StatusError, Err: botCheckErr, Reason: core.ReasonBotCheck})
 
 	if got := liveTask(a, "bot1").Reason; got != core.ReasonBotCheck {
-		t.Errorf("Reason = %q, want %q - the backend's own verdict was thrown away and the sentence re-read", got, core.ReasonBotCheck)
+		t.Errorf("Reason = %q, want %q; the backend's own verdict was thrown away and the sentence re-read", got, core.ReasonBotCheck)
 	}
 }
 
-// TestAnUpdateWithNoVerdictStillGoesThroughTheClassifier is the other half of
-// "empty means no opinion": every backend but one sets nothing here, and their
-// failures must be named exactly as they always were.
+// An empty Reason means no opinion, and the sentence is classified as before.
 func TestAnUpdateWithNoVerdictStillGoesThroughTheClassifier(t *testing.T) {
 	a := retryApp(t, func(*settings.Settings) {})
 	runningOn(a, "plain1", plainHost, simpleResolverID)
@@ -49,14 +43,12 @@ func TestAnUpdateWithNoVerdictStillGoesThroughTheClassifier(t *testing.T) {
 	a.onUpdate("plain1", core.Update{Status: core.StatusError, Err: "rapidgator: HTTP 429 too many requests"})
 
 	if got := liveTask(a, "plain1").Reason; got != core.ReasonLimit {
-		t.Errorf("Reason = %q, want %q - an update carrying no verdict stopped being classified", got, core.ReasonLimit)
+		t.Errorf("Reason = %q, want %q; an update carrying no verdict stopped being classified", got, core.ReasonLimit)
 	}
 }
 
-// TestTheBackendNamedCausesSettleAsGivenUp is the retry policy. A bot check is
-// the sharp one: every further request from an address a site has already
-// flagged is more evidence for the flag, so an armed retry here is not merely
-// wasted, it works against the person who is waiting for the download.
+// These causes are not retried. Retrying a bot check makes it worse: every
+// request from a flagged address confirms the flag.
 func TestTheBackendNamedCausesSettleAsGivenUp(t *testing.T) {
 	for _, reason := range []core.Reason{
 		core.ReasonBotCheck, core.ReasonMembersOnly, core.ReasonGeoBlocked,
@@ -70,7 +62,7 @@ func TestTheBackendNamedCausesSettleAsGivenUp(t *testing.T) {
 
 			got := liveTask(a, "t1")
 			if got.Reason != reason {
-				t.Fatalf("Reason = %q, want %q - this test cannot reach the branch it is about", got.Reason, reason)
+				t.Fatalf("Reason = %q, want %q; this test cannot reach the branch it is about", got.Reason, reason)
 			}
 			if !got.GaveUp {
 				t.Error("settled as an ordinary failure, so the retry count on the Advanced page can buy more attempts against it")
@@ -85,9 +77,8 @@ func TestTheBackendNamedCausesSettleAsGivenUp(t *testing.T) {
 	}
 }
 
-// TestTheBackendNamedCausesNeverRebootTheRouter is the reconnect veto. The bot
-// check is the one somebody will want to argue about, since its flag really is
-// on the address - see addressMayHelp for why the answer is still no.
+// None of these causes triggers a reconnect, not even the bot check, whose flag
+// is on the address (see addressMayHelp).
 func TestTheBackendNamedCausesNeverRebootTheRouter(t *testing.T) {
 	for _, reason := range []core.Reason{
 		core.ReasonBotCheck, core.ReasonMembersOnly, core.ReasonGeoBlocked,
@@ -99,11 +90,8 @@ func TestTheBackendNamedCausesNeverRebootTheRouter(t *testing.T) {
 	}
 }
 
-// TestAMirrorIsStillWorthTryingForTheBackendNamedCauses pins the deliberate
-// asymmetry beside the two vetoes above: a mirror is a different SITE, and not
-// one of these five is a fact about the file. Written as a test because it is
-// the sort of decision that otherwise gets "tidied up" into consistency with
-// its neighbours.
+// Unlike retries and reconnects, a mirror is still tried: it is a different
+// site, and none of these causes is a fact about the file.
 func TestAMirrorIsStillWorthTryingForTheBackendNamedCauses(t *testing.T) {
 	for _, reason := range []core.Reason{
 		core.ReasonBotCheck, core.ReasonMembersOnly, core.ReasonGeoBlocked,

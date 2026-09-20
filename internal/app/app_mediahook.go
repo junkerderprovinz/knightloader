@@ -1,33 +1,13 @@
 package app
 
-// The second subscriber the event bus was built for, and the two questions only
-// this package can answer for it.
+// Media library hooks subscribe to the event bus rather than being called from
+// every site that fires. Delivery is synchronous on the publisher's goroutine,
+// so the subscriber only walks the task map and enqueues; the HTTP call happens
+// later on mediahook.Runner's own goroutine.
 //
-// internal/script/bus.go named this feature by name as the next consumer - "a
-// media library told to rescan" - and said in the same breath that adding it
-// must be a Subscribe call rather than an edit to every site that fires. This
-// file is that Subscribe call. Nothing in internal/mediahook knows what a task,
-// a package or a category is; nothing in internal/app knows what an HTTP call
-// is. What crosses the line is a hook id and a package name.
-//
-// THE SUBSCRIBER MUST RETURN PROMPTLY, and Subscribe says so in capitals:
-// delivery is synchronous on the publisher's own goroutine, which for
-// package.done is watchPackagesForScripts' ticker. So the subscriber below does
-// one walk of the task map and hands the result to a bounded channel. The
-// network call happens in mediahook.Runner's own loop, minutes later, on its own
-// goroutine.
-//
-// # The two questions
-//
-// WHICH ADDRESSES DOES THIS PACKAGE CALL. script.PackageView carries a name and
-// five counts and nothing else - no folder, no category, no rule - so the answer
-// cannot come out of the Firing and has to come back to a.tasks. That is not an
-// oversight in PackageView: it is the "pkg" global in the script sandbox and its
-// doc comment enumerates its whole surface, so adding a field there to save this
-// walk would change a published API for every script anybody has written.
-//
-// HAVE THE FILES ACTUALLY LANDED. See packageFilesLanded, which is the whole
-// reason this feature is not four lines.
+// script.PackageView carries no folder or category, so the addresses to call
+// are looked up in a.tasks. Adding fields to PackageView would change the "pkg"
+// global that user scripts already rely on.
 
 import (
 	"context"
@@ -63,31 +43,23 @@ func (a *App) startMediaHooks() {
 	})
 }
 
-// stopMediaHooks is Close's half. Nil-guarded because an App assembled by hand in
-// a test may never have run startMediaHooks.
+// stopMediaHooks is Close's half. An App assembled by hand in a test may never
+// have run startMediaHooks.
 func (a *App) stopMediaHooks() {
 	if a.MediaHooks != nil {
 		_ = a.MediaHooks.Close()
 	}
 }
 
-// MediaHookStore is the sealed store the header values live in.
-//
-// A FRESH WRAPPER EVERY TIME, and that is safe here where it would not be for
-// header profiles. hostheaders.Store keeps an origin index that only a write
-// through the same instance invalidates, so a second one there would seal a
-// profile the live resolver never sees; mediahook.Store holds nothing but the
-// *accounts.Store pointer and has nothing to go stale. What must NOT happen is a
-// second accounts.Store over the same accounts.json - each would hold its own
-// snapshot of the whole file and the second to write would erase the first - and
-// that is exactly what handing a.Accounts on avoids.
+// MediaHookStore is the sealed store the header values live in. A fresh wrapper
+// per call is safe because mediahook.Store holds only the shared
+// *accounts.Store; a second accounts.Store over the same file would overwrite
+// the first one's writes.
 func (a *App) MediaHookStore() *mediahook.Store { return mediahook.NewStore(a.Accounts) }
 
-// TestMediaHook calls one address on purpose and reports what came back. It is
-// the Test button's whole implementation, and it goes out through the runner's
-// own client and the same Call a real firing makes - a test that followed
-// redirects, used another client or skipped the header would prove nothing about
-// the thing it is testing.
+// TestMediaHook calls one address on demand and reports what came back. It goes
+// through the runner's own client and the same Call a real firing makes, so the
+// test proves something about the real request.
 //
 // A runner that was never started (an App assembled in a test) still answers,
 // with a client of its own, so the route has one code path.
@@ -110,34 +82,19 @@ func (a *App) LastMediaHookCall(id string) (mediahook.Result, bool) {
 }
 
 // hookIDsForPackage is every address the files of one package point at, distinct
-// and sorted.
-//
-// A SET, because a package whose links belong in different drawers is normal and
-// settings_categories.go argues for it at length: the sample beside the film, the
-// subtitle beside the episode. Two drawers with two different addresses is
-// therefore two calls, one each, and a first-task-wins implementation would pick
-// the sample's drawer about half the time and read as random.
-//
-// Sorted for the same reason watchPackagesForScripts sorts what it fires: map
-// order is random, and two addresses called in a different order on every run is
-// the kind of nondeterminism that makes an intermittent report impossible to
-// reproduce.
+// and sorted. A package can span several categories (the sample beside the
+// film), and each category's address gets one call. Sorting keeps the call order
+// stable across runs.
 func (a *App) hookIDsForPackage(name string) []string {
 	name = strings.TrimSpace(name)
 	if name == "" {
-		// No package is not a package. scriptPackageTallies already skips these,
-		// so this is unreachable through the bus and is here for the direct
-		// callers a test can be: an empty name would otherwise match every task
-		// whose Package is empty and call an address once per unpackaged
-		// download.
+		// An empty name would match every unpackaged task.
 		return nil
 	}
 	cfg := a.Settings.Get()
 	if len(cfg.MediaHooks) == 0 {
-		// The whole feature switched off, which is every install until somebody
-		// stores an address. Answered before the lock is taken: this runs on the
-		// package sweep's goroutine, twice a second's worth of other work behind
-		// it.
+		// Checked before taking a.mu, since this runs on the package sweep's
+		// goroutine on every install.
 		return nil
 	}
 	seen := map[string]bool{}
@@ -159,44 +116,20 @@ func (a *App) hookIDsForPackage(name string) []string {
 	return out
 }
 
-// packageFilesLanded answers whether this package's finished files have left the
-// working folder for the folder they actually belong in.
+// packageFilesLanded reports whether this package's finished files have left the
+// working folder for their destination.
 //
-// THIS IS THE ONE THAT MAKES THE FEATURE WORK AT ALL, and it is not obvious from
-// anywhere else in the tree. app_dispatch.go sets a task's status to Done under
-// a.mu and THEN spawns the checksum and the delivery; app_deliver.go's
-// deliverDownload is what moves the finished file out of the working folder, and
-// for a 40 GB film across a filesystem boundary that is minutes. packageTaskPending
-// answers "not pending" the instant the status is Done, so package.done fires on
-// the sweep's next 2-second tick with the file still in the working folder. A
-// media server told to scan at that moment finds nothing and never looks again -
-// and it bites exactly the installs that configured a working folder BECAUSE a
-// scanner was picking up half-written files.
+// A task turns Done before deliverDownload moves the file, and for a large file
+// across filesystems that move takes minutes. package.done fires on the next
+// sweep tick, so a media server told to scan at that moment would find nothing.
+// The event keeps its published meaning for scripts; this caller waits instead.
 //
-// It is asked here rather than solved by making package.done itself wait, and
-// that is a deliberate choice between two correct answers. Making the sweep wait
-// would change what package.done MEANS for every script anybody has already
-// written against it - a published trigger with its own documented definition of
-// "nothing left to wait for" - to fix a problem only this feature has. So the
-// event keeps its meaning and the caller that cares does the waiting.
-//
-// THE TEST IS THE MOVER'S OWN PREDICATE, not a flag set beside it. deliverDownload
-// moves filepath.Join(workDirFor(t), t.Name) and does nothing at all when the
-// destination and the working folder are the same, when the task is not one this
-// app can deliver, or when the file is not there. So "is that file still there"
-// is the same question the mover asks, answered from the same three pieces - and
-// unlike a flag it cannot be left set by a path that returns early, which is
-// exactly how a "still delivering" marker would silently stop every call on the
-// box for good.
-//
-// The Lstat happens OFF a.mu. It is a filesystem call, the lock it would
-// otherwise hold is the one every download's progress update needs, and the paths
-// it needs are decided under the lock in one pass.
+// The check mirrors deliverDownload's own conditions and looks for the file in
+// the working folder, so no marker can be left set by an early return. The Lstat
+// runs outside a.mu, which every progress update needs.
 func (a *App) packageFilesLanded(name string) bool {
 	if a.workRoot() == "" {
-		// Nothing is ever moved on this install: the bytes were written straight
-		// into the folder they belong in, so there was never anything to wait
-		// for. This is the majority of installs and it costs one string read.
+		// No working folder, so nothing is ever moved.
 		return true
 	}
 	name = strings.TrimSpace(name)
@@ -209,8 +142,7 @@ func (a *App) packageFilesLanded(name string) bool {
 		if strings.TrimSpace(t.Package) != name || t.Status != core.StatusDone {
 			continue
 		}
-		// The same three refusals deliverDownload makes, in the same order. A
-		// task it will not move is a task with nothing to wait for.
+		// The same refusals deliverDownload makes, in the same order.
 		if !deliverable(t) || t.Name == "" || t.Name == t.URL {
 			continue
 		}

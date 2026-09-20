@@ -7,18 +7,10 @@ import (
 	jdresolver "github.com/junkerderprovinz/knightloader/internal/resolver/jd"
 )
 
-// The download mode: whether a transfer goes out on an account or anonymously.
-//
-// It exists because the answer was invisible (jdp, 2026-09-02: "Wenn man links
-// runterladen möchte für die kein premium account hinterlegt ist muss das
-// angezeigt werden un der link im free modus heruntergeladen werden. wie in
-// JD"). A hoster link with no account behind it looked exactly like one with an
-// account behind it, right up until it was slow, queued behind a countdown, or
-// asking for a captcha.
+// The download mode: whether a hoster link goes out on an account or in free
+// mode.
 
-// TestModeIsUnknownForAnOrdinaryFile: the common case answers nothing at all.
-// A file on a plain web server is neither free nor premium, and a label there
-// would put a word on screen that answers a question nobody asked.
+// A file on a plain web server is neither free nor premium.
 func TestModeIsUnknownForAnOrdinaryFile(t *testing.T) {
 	a := newOrderApp(t)
 	task := &core.Task{ID: "x", URL: "https://example.com/holiday.zip"}
@@ -28,12 +20,11 @@ func TestModeIsUnknownForAnOrdinaryFile(t *testing.T) {
 	a.mu.Unlock()
 
 	if got != core.ModeUnknown {
-		t.Errorf("mode for a plain file = %q, want %q - only a hoster link gets a label", got, core.ModeUnknown)
+		t.Errorf("mode for a plain file = %q, want %q; only a hoster link gets a label", got, core.ModeUnknown)
 	}
 }
 
-// TestModeIsPremiumThroughADebridService: a debrid resolver IS the account, so
-// anything routed to one is premium by construction.
+// A debrid resolver is the account, so anything routed to one is premium.
 func TestModeIsPremiumThroughADebridService(t *testing.T) {
 	a := newOrderApp(t)
 	task := &core.Task{ID: "x", URL: "https://rapidgator.net/file/abc"}
@@ -47,9 +38,7 @@ func TestModeIsPremiumThroughADebridService(t *testing.T) {
 	}
 }
 
-// TestModeTellsFreeFromPremiumOnTheSameHost is the distinction the whole field
-// exists for: the SAME url, the SAME resolver, and the only difference is
-// whether a login has been confirmed on the sidecar.
+// The same URL and resolver differ only in whether JD has confirmed a login.
 func TestModeTellsFreeFromPremiumOnTheSameHost(t *testing.T) {
 	a := newOrderApp(t)
 	task := &core.Task{ID: "x", URL: "https://rapidgator.net/file/abc"}
@@ -77,9 +66,7 @@ func TestModeTellsFreeFromPremiumOnTheSameHost(t *testing.T) {
 	}
 }
 
-// TestModeSaysNothingForAHostJDDoesNotKnow: the label must not spread to every
-// link merely because JD is the catch-all. "Free mode" is a claim about a
-// hoster, and claiming it for an unknown host would be a guess on screen.
+// JD is the catch-all, but "free mode" is only claimed for hosts it knows.
 func TestModeSaysNothingForAHostJDDoesNotKnow(t *testing.T) {
 	a := newOrderApp(t)
 	task := &core.Task{ID: "x", URL: "https://some-random-site.example/dl/9"}

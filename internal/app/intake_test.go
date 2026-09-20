@@ -10,10 +10,9 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/watch"
 )
 
-// pagedCrawler answers a different link list per page, which is what the
-// package-bucket tests need: one crawler that returns the same thing for every
-// URL cannot tell "each page got its own package" from "everything got the first
-// page's package".
+// pagedCrawler answers a different link list per page. A crawler that returns
+// the same thing for every URL cannot tell one package per page from one
+// package for everything.
 type pagedCrawler struct {
 	pages map[string][]crawler.Result
 }
@@ -24,14 +23,8 @@ func (p pagedCrawler) Crawl(_ context.Context, u string) ([]crawler.Result, erro
 	return p.pages[u], nil
 }
 
-// TestEveryEntranceRecordsWhereALinkCameFrom is the whole of source tracking.
-//
-// The column existed for a whole wave with nothing writing to it, which is worse
-// than not having it: "why is this here" reads as answerable and comes back
-// blank on every row. There are five ways into this app and every one of them
-// has to say which it is — including the plain AddLinks, because that is the
-// call a sixth entrance written in a later wave will reach for by default, and a
-// default of "" is how the column goes quiet again.
+// Every way into the app names itself on the tasks it stages, the plain
+// AddLinks included, since that is the call a new entrance reaches for first.
 func TestEveryEntranceRecordsWhereALinkCameFrom(t *testing.T) {
 	t.Run("the paste box", func(t *testing.T) {
 		a := newCrawlApp(t, false)
@@ -56,11 +49,9 @@ func TestEveryEntranceRecordsWhereALinkCameFrom(t *testing.T) {
 
 	t.Run("Click'n'Load", func(t *testing.T) {
 		a := newCrawlApp(t, false)
-		// Through AddLinksCnL, which is the method the listener's Adder interface
-		// names, rather than through the one underneath it. The entrance is now a
-		// parameter down there so a bridge can name it, and a test that passed
-		// OriginCnL in by hand would prove only that the parameter is honoured —
-		// not that the listener still supplies it.
+		// Through AddLinksCnL, the method the listener's Adder interface names.
+		// Passing OriginCnL by hand to the call underneath would prove only that
+		// the parameter is honoured, not that the listener supplies it.
 		a.AddLinksCnL([]string{"https://host.example/one.bin"}, "", nil)
 		mustOrigin(t, a.Tasks(), OriginCnL)
 	})
@@ -101,10 +92,8 @@ func mustOrigin(t *testing.T, created []*core.Task, want core.Origin) {
 	}
 }
 
-// TestEachCrawledPageGetsItsOwnPackage is the bug that made package buckets
-// worth building. Naming ran once over everything one call staged, so pasting
-// two galleries at once named both after whichever happened to be first — and
-// the second page's files sat under a title that was never about them.
+// Naming runs per crawled page, so pasting two galleries in one call does not
+// file the second page's files under the first page's title.
 func TestEachCrawledPageGetsItsOwnPackage(t *testing.T) {
 	a := newCrawlApp(t, true)
 	a.Crawler = pagedCrawler{pages: map[string][]crawler.Result{
@@ -140,10 +129,8 @@ func TestEachCrawledPageGetsItsOwnPackage(t *testing.T) {
 	}
 }
 
-// TestNamelessLinksLandInTheCatchAll pins the other half of the bucket rule.
-// A batch nothing can be derived from used to keep the empty package, and an
-// empty package is not a group: it is the flat list of unrelated links this app
-// set out to replace.
+// A batch no name can be derived from lands in the catch-all rather than in an
+// empty package, which would be no grouping at all.
 func TestNamelessLinksLandInTheCatchAll(t *testing.T) {
 	a := newCrawlApp(t, false)
 	// Two different hosts and no shared stem, so every derivation gives up:
@@ -162,9 +149,8 @@ func TestNamelessLinksLandInTheCatchAll(t *testing.T) {
 	}
 }
 
-// TestTheCatchAllDoesNotOverwriteAName guards the order of the two passes. The
-// catch-all runs last and over everything, so a name a rule, a page title or the
-// user supplied has to be the thing that stops it.
+// The catch-all pass runs last and over everything, so a name from a rule, a
+// page title or the user has to stop it.
 func TestTheCatchAllDoesNotOverwriteAName(t *testing.T) {
 	a := newCrawlApp(t, false)
 	created := a.AddLinks([]string{"https://host.example/alpha.bin"}, "Chosen By Hand")
@@ -176,10 +162,9 @@ func TestTheCatchAllDoesNotOverwriteAName(t *testing.T) {
 	}
 }
 
-// packageOf reads a task's package back out of the live list. The tasks AddLinks
-// returns are the ones it built, and naming happens through SetPackage after
-// they were handed back — so a test that trusts the returned struct is testing
-// the wrong copy.
+// packageOf reads a task's package out of the live list. Naming happens through
+// SetPackage after AddLinks has handed its structs back, so those copies are
+// the wrong ones to read.
 func packageOf(t *testing.T, a *App, id string) string {
 	t.Helper()
 	a.mu.Lock()

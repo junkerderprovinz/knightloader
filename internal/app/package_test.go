@@ -6,9 +6,8 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/core"
 )
 
-// TestDerivePackage pins the guess a batch gets when the user did not name one.
-// A wrong guess is worse than none: it scatters one release across two groups,
-// or names a group after a fragment of a filename.
+// The guess a batch gets when the user did not name one. A wrong guess scatters
+// one release across two groups or names a group after part of a filename.
 func TestDerivePackage(t *testing.T) {
 	cases := []struct {
 		name  string
@@ -74,9 +73,8 @@ func TestDerivePackage(t *testing.T) {
 			want:  "",
 		},
 		{
-			// The page name beats the host, which is the whole reason the crawler
-			// carries it: "files.example.com" groups everything ever fetched from
-			// that host into one package.
+			// The page name beats the host, or "files.example.com" would group
+			// everything ever fetched from that host into one package.
 			name: "a crawled page's own name beats the host it sits on",
 			tasks: []*core.Task{
 				{URL: "https://files.example.com/a", Name: "invoice.pdf"},
@@ -114,14 +112,13 @@ func TestDerivePackage(t *testing.T) {
 	}
 }
 
-// TestCommonStemNeverCutsMidWord is the property that keeps the guess sane: a
-// shared prefix is only used up to a separator, never through one.
+// A shared prefix is only used up to a separator, never through one.
 func TestCommonStemNeverCutsMidWord(t *testing.T) {
 	got := commonStem([]string{"Movie.S01E01", "Movie.S01E02"})
 	if got != "Movie" {
 		t.Errorf("commonStem = %q, want %q", got, "Movie")
 	}
-	// A single name is its own stem and must not be trimmed at all.
+	// A single name is its own stem and is not trimmed.
 	if got := commonStem([]string{"Solo.Release.2026"}); got != "Solo.Release.2026" {
 		t.Errorf("single name became %q", got)
 	}

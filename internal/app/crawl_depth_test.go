@@ -1,10 +1,8 @@
 package app
 
-// The wiring between the crawl settings block, the crawler's own walk options,
-// and the stop button on the status strip. What a walk DOES with those options
-// is internal/crawler's business and is pinned there (walk_test.go); what is
-// tested here is that the numbers a person typed are the numbers that run, and
-// that the run can be called off.
+// The crawl settings reach the crawler's walk options, and the status strip's
+// stop button can call a crawl off. What a walk does with the options is tested
+// in internal/crawler (walk_test.go).
 
 import (
 	"context"
@@ -16,15 +14,15 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
-// deepFakeCrawler records the options it was handed. It satisfies
-// crawler.DeepCrawler, unlike fakeCrawler (crawl_test.go) which satisfies only
-// crawler.Crawler - the pair is what proves the fallback below is real.
+// deepFakeCrawler records the options it was handed. It is a
+// crawler.DeepCrawler, unlike fakeCrawler (crawl_test.go), which is only a
+// crawler.Crawler.
 type deepFakeCrawler struct {
 	mu   sync.Mutex
 	opt  crawler.Options
 	seen int
-	// block, when set, holds Crawl until the context is cancelled. It is how a
-	// test gets to look at a crawl that is still running.
+	// block holds Crawl until the context is cancelled, so a test can observe
+	// a running crawl.
 	block bool
 	yield []crawler.Result
 }
@@ -76,10 +74,7 @@ func crawlSettingsApp(t *testing.T, cfg settings.Settings) *App {
 	return a
 }
 
-// TestCrawlPassesTheSettingsBlockThrough is the seam between the settings page
-// and the walk. Every one of these is a control somebody set for a reason, and
-// a field dropped on the way here is a setting that saves, reloads, reads back
-// correctly and does nothing at all.
+// Every crawl setting reaches the walk.
 func TestCrawlPassesTheSettingsBlockThrough(t *testing.T) {
 	a := crawlSettingsApp(t, settings.Settings{
 		CrawlDepth:    3,
@@ -105,10 +100,7 @@ func TestCrawlPassesTheSettingsBlockThrough(t *testing.T) {
 	}
 }
 
-// TestCrawlDefaultsToOnePageAndNoFilters is the promise made to every existing
-// install: an update must not turn a paste into a three-level crawl of somebody
-// else's forum. A fresh instance that never opens the settings block gets
-// exactly the crawl it always got.
+// The defaults crawl one page without filters.
 func TestCrawlDefaultsToOnePageAndNoFilters(t *testing.T) {
 	a := crawlSettingsApp(t, settings.Defaults())
 	dc := &deepFakeCrawler{yield: []crawler.Result{{URL: "https://host.example/one.bin"}}}
@@ -125,11 +117,8 @@ func TestCrawlDefaultsToOnePageAndNoFilters(t *testing.T) {
 	}
 }
 
-// TestCrawlFallsBackToThePlainInterface pins that the options are OFFERED, not
-// required. A site-specific crawler knows its own site and has no depth to be
-// told about, and every stand-in a test has written implements the three
-// methods of crawler.Crawler and nothing else - if the deep path were mandatory
-// they would all stop being crawlers at all.
+// A crawler that only implements crawler.Crawler, such as a site-specific one,
+// still works; the walk options are optional.
 func TestCrawlFallsBackToThePlainInterface(t *testing.T) {
 	a := crawlSettingsApp(t, settings.Settings{CrawlDepth: 3})
 	plain := &fakeCrawler{yield: []crawler.Result{{URL: "https://host.example/one.bin", Name: "one.bin"}}}
@@ -144,10 +133,8 @@ func TestCrawlFallsBackToThePlainInterface(t *testing.T) {
 	}
 }
 
-// TestAbortActivityStopsARunningCrawl is the stop button end to end: a crawl
-// that is going nowhere is called off through the same activity stream it is
-// published on, and the paste finishes instead of holding the request open
-// until the deadline.
+// The stop button calls a crawl off through the activity stream, and the paste
+// returns instead of waiting for the deadline.
 func TestAbortActivityStopsARunningCrawl(t *testing.T) {
 	a := crawlSettingsApp(t, settings.Settings{CrawlDepth: 3})
 	dc := &deepFakeCrawler{block: true}
@@ -159,9 +146,8 @@ func TestAbortActivityStopsARunningCrawl(t *testing.T) {
 		a.AddLinks([]string{"https://host.example/thread"}, "")
 	}()
 
-	// Wait for the run to be visible AS cancellable, which is the state the
-	// strip draws a button from: a test that only waited for Active>0 would
-	// pass with the handle never registered at all.
+	// Wait until the run is cancellable, which is what the strip draws the
+	// button from.
 	waitForCancellableCrawl(t, a, 1)
 
 	if n := a.AbortActivity(ActivityCrawl); n != 1 {
@@ -173,8 +159,7 @@ func TestAbortActivityStopsARunningCrawl(t *testing.T) {
 		t.Fatal("the paste never returned; the abort did not reach the crawl")
 	}
 
-	// And the handle is gone again, so the strip stops offering a button for
-	// work that is over.
+	// The handle is gone again.
 	for _, s := range a.ActivitySnapshot() {
 		if s.Kind == ActivityCrawl && s.Cancellable != 0 {
 			t.Errorf("crawl still reports %d cancellable runs after the abort", s.Cancellable)
@@ -182,9 +167,7 @@ func TestAbortActivityStopsARunningCrawl(t *testing.T) {
 	}
 }
 
-// TestAbortActivityWithNothingRunningIsZeroNotAnError pins the ordinary race
-// for a control that only exists while work is in flight: the run can finish
-// between the strip drawing the button and somebody pressing it.
+// The run may finish before the button is pressed, which is not an error.
 func TestAbortActivityWithNothingRunningIsZeroNotAnError(t *testing.T) {
 	a := crawlSettingsApp(t, settings.Defaults())
 	if n := a.AbortActivity(ActivityCrawl); n != 0 {
@@ -192,9 +175,8 @@ func TestAbortActivityWithNothingRunningIsZeroNotAnError(t *testing.T) {
 	}
 }
 
-// TestKnownActivityKind pins the guard the abort route stands on. A free-text
-// kind would make a typo look exactly like "nothing was running", which is a
-// client bug that goes on being pressed forever.
+// The abort route only accepts known kinds, so a typo is not mistaken for
+// "nothing was running".
 func TestKnownActivityKind(t *testing.T) {
 	for _, s := range []string{"crawl", "CRAWL", " linkcheck ", "captcha", "autoconfirm", "container"} {
 		if _, ok := KnownActivityKind(s); !ok {
@@ -212,8 +194,7 @@ func TestKnownActivityKind(t *testing.T) {
 }
 
 // waitForCancellableCrawl blocks until at least n crawl runs report a stop
-// handle. Polled rather than read once: AddLinks runs on its own goroutine
-// here, so reading the snapshot immediately would be racing it.
+// handle. AddLinks runs on its own goroutine here, hence the polling.
 func waitForCancellableCrawl(t *testing.T, a *App, n int) {
 	t.Helper()
 	deadline := time.Now().Add(5 * time.Second)

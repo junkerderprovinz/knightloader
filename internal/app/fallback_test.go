@@ -6,10 +6,8 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/core"
 )
 
-// TestFallbackOnlyOnUnsupported is the guard that keeps the chain honest: a
-// backend that failed to download must NOT hand the link to the next one,
-// because a hoster page fetched as a plain file is a garbage download. Only an
-// explicit "this is not mine" advances the chain.
+// Only an explicit "unsupported" hands a link to the next backend. A failed
+// download stays put, since a hoster page fetched as a plain file is garbage.
 func TestFallbackOnlyOnUnsupported(t *testing.T) {
 	a, err := New(t.TempDir())
 	if err != nil {
@@ -48,8 +46,7 @@ func TestFallbackOnlyOnUnsupported(t *testing.T) {
 	a.mu.Lock()
 	res = task.Resolver
 	a.mu.Unlock()
-	// Which backend it lands on depends on what is installed (yt-dlp may or may
-	// not be present here); what must hold is that it moved on.
+	// The next backend depends on what is installed; it only has to move on.
 	if res == "ytdlp" {
 		t.Error("an unsupported link stayed on the backend that rejected it")
 	}
@@ -58,8 +55,7 @@ func TestFallbackOnlyOnUnsupported(t *testing.T) {
 	}
 }
 
-// TestChainTerminates makes sure the last backend in the chain settles instead
-// of looping.
+// The last backend in the chain settles the task instead of looping.
 func TestChainTerminates(t *testing.T) {
 	a, err := New(t.TempDir())
 	if err != nil {

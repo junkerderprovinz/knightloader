@@ -13,13 +13,8 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
-// TestAStatusCodeIsNotAVerdict is the table the collector used to get wrong in
-// one direction only: everything that was not a 2xx was "offline".
-//
-// Two codes mean the file is not there. The rest are the host declining to
-// answer - it will not be probed, it does not implement HEAD, it has heard
-// enough for now, it is having a bad afternoon - and a list with a "remove
-// offline links" button on it must not confuse the two.
+// Only 404 and 410 mean the file is gone; other errors are the host declining
+// to answer, which the "remove offline links" button must not confuse with it.
 func TestAStatusCodeIsNotAVerdict(t *testing.T) {
 	cases := map[int]core.Availability{
 		200: core.AvailOnline,
@@ -42,11 +37,8 @@ func TestAStatusCodeIsNotAVerdict(t *testing.T) {
 	}
 }
 
-// TestAFlakyMinuteDoesNotKillALiveLink is the failure this whole distinction was
-// added for. The probe cannot reach the host - a name that will not resolve, a
-// connection reset, a box that is offline itself - and the old code wrote
-// "offline" onto the link, which is the one word that gets a perfectly good
-// download deleted.
+// A probe that cannot reach the host (DNS failure, reset, no network) learns
+// nothing about the link and must not mark it offline.
 func TestAFlakyMinuteDoesNotKillALiveLink(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
 	a.Probe = probeFunc(func(*http.Request) (*http.Response, error) {
@@ -66,17 +58,13 @@ func TestAFlakyMinuteDoesNotKillALiveLink(t *testing.T) {
 	if live.Reason != core.ReasonNetwork {
 		t.Errorf("reason = %q, want network", live.Reason)
 	}
-	// No sentence, deliberately: the error column is for a download that failed,
-	// and red prose under a link that is probably fine is how somebody is talked
-	// into removing it.
+	// No error text: the error column is for downloads that failed.
 	if live.Error != "" {
 		t.Errorf("error = %q, want nothing at all on a link that was never asked about", live.Error)
 	}
 }
 
-// TestAMissingFileIsStillOffline is the other half. Widening the taxonomy must
-// not cost the verdict that was always right, or the "remove offline links"
-// button stops finding anything.
+// A 404 still reads as offline.
 func TestAMissingFileIsStillOffline(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
 	a.Probe = probeFunc(func(req *http.Request) (*http.Response, error) {
@@ -101,11 +89,8 @@ func TestAMissingFileIsStillOffline(t *testing.T) {
 	}
 }
 
-// TestABackendIsAskedOnceForTheWholeBatch is why resolver.Checker takes a slice.
-// Every service that answers this question meters by the account or by the
-// address, so a collector full of links must arrive as one question. A loop that
-// asks per link works perfectly in a test with three of them and gets a real key
-// rate-limited on the first day somebody pastes fifty.
+// Services rate-limit by account or address, so a backend is asked once for
+// all its links; that is why resolver.Checker takes a slice.
 func TestABackendIsAskedOnceForTheWholeBatch(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
 	svc := &batchResolver{verdicts: map[string]core.Availability{
@@ -136,14 +121,13 @@ func TestABackendIsAskedOnceForTheWholeBatch(t *testing.T) {
 			t.Errorf("%s = %q, want %q", url, live.Online, want)
 		}
 	}
-	// The two states that are not "online" say different things about what to do
-	// next, and only one of them is a reason to delete anything.
+	// Offline and uncheckable call for different actions.
 	dead := snapshot(t, a, ids["https://batch.example/dead.bin"])
 	if dead.Reason != core.ReasonGone {
 		t.Errorf("a link the service called dead reads reason %q, want gone", dead.Reason)
 	}
-	// Which backend said so, because a hoster's verdict and a HEAD off this box
-	// are not the same evidence and only one of them is worth deleting a link on.
+	// The verdict names the backend, which is different evidence from our own
+	// HEAD.
 	if !strings.Contains(dead.Error, "batchtest") {
 		t.Errorf("error = %q, want the backend that gave the verdict named", dead.Error)
 	}
@@ -152,18 +136,15 @@ func TestABackendIsAskedOnceForTheWholeBatch(t *testing.T) {
 	}
 }
 
-// TestABackendThatCannotCheckSaysSo is the state that was missing. A JD, TorBox
-// or yt-dlp link used to come back from a recheck at core.AvailUnknown, which is
-// what the list says about a link nobody has looked at - so pressing Check on
-// one of them changed nothing on screen and looked broken.
+// A backend without a checker reports uncheckable after a recheck, not
+// unknown, which would look as if Check did nothing.
 func TestABackendThatCannotCheckSaysSo(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
 	a.Registry.Register(plainResolver{})
 	task := putTask(t, a, core.Task{
 		URL: "https://plain.example/movie.bin", Name: "movie.bin",
 		Status: core.StatusCollected, Enabled: true,
-		// A stale verdict from an earlier run, which a recheck must replace rather
-		// than leave standing next to a fresh one.
+		// A stale verdict the recheck must replace.
 		Online: core.AvailOffline, Error: "offline (HTTP 404)", Reason: core.ReasonGone,
 	})
 
@@ -178,16 +159,8 @@ func TestABackendThatCannotCheckSaysSo(t *testing.T) {
 	}
 }
 
-// TestRecheckDoesNotThrowAwayARealName is the klobber round 35b fixed in
-// stage() but never mirrored here (found 2026-08-25, in response to "die
-// ganzen links im linksammler zeigen noch immer nicht ihre namen richtig
-// an... schon mehrfach angesprochen"): plainResolver.Resolve, like every
-// real non-direct resolver (jd/ytdlp/torbox/debrid), answers with
-// Name == the URL itself as its "nothing new learned" placeholder. Without
-// the `result.Name != t.URL` half of RecheckTasks' own guard, that
-// non-empty-but-meaningless string overwrote a task's already-correct name
-// on every recheck - including the automatic one RestoreFiltered fires -
-// silently turning a resolved title back into a bare URL.
+// Non-direct resolvers answer with the URL as a placeholder name, which must
+// not replace a real name on a recheck.
 func TestRecheckDoesNotThrowAwayARealName(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
 	a.Registry.Register(plainResolver{})
@@ -203,10 +176,8 @@ func TestRecheckDoesNotThrowAwayARealName(t *testing.T) {
 	}
 }
 
-// TestARefusedKeyIsNotAPileOfDeadLinks is the worst thing a batched check can
-// do. One expired credential answers for every link that backend claims, and if
-// that answer is "offline" the user is looking at a collector telling them to
-// delete the lot.
+// A refused key must leave the batch uncheckable, not mark every link
+// offline.
 func TestARefusedKeyIsNotAPileOfDeadLinks(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
 	svc := &batchResolver{err: errors.New("alldebrid: the auth apikey is invalid (AUTH_BAD_APIKEY)")}
@@ -227,10 +198,8 @@ func TestARefusedKeyIsNotAPileOfDeadLinks(t *testing.T) {
 	}
 }
 
-// TestAShortAnswerDoesNotSlideOntoTheWrongLink is the failure that would be
-// invisible: a service that answers for two of three links, read back by
-// position, marks the third link with the second one's verdict. Every row after
-// the gap is then a confident statement about a different file.
+// A short answer read back by position must not put one link's verdict on
+// another.
 func TestAShortAnswerDoesNotSlideOntoTheWrongLink(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
 	svc := &batchResolver{short: 1, verdicts: map[string]core.Availability{
@@ -261,8 +230,8 @@ func TestAShortAnswerDoesNotSlideOntoTheWrongLink(t *testing.T) {
 	}
 }
 
-// snapshot copies a task out from under the lock, because the app keeps writing
-// to the live one.
+// snapshot copies a task under the lock, since the app keeps writing to the
+// live one.
 func snapshot(t *testing.T, a *App, id string) core.Task {
 	t.Helper()
 	a.mu.Lock()
@@ -278,8 +247,8 @@ func snapshot(t *testing.T, a *App, id string) core.Task {
 type batchResolver struct {
 	verdicts map[string]core.Availability
 	err      error
-	// short drops that many verdicts off the end, standing in for a service that
-	// skipped a link it did not recognise.
+	// short drops that many verdicts off the end, like a service that skipped
+	// a link it did not recognise.
 	short int
 
 	mu      sync.Mutex
@@ -308,8 +277,8 @@ func (r *batchResolver) Check(_ context.Context, urls []string) ([]core.Availabi
 	return out[:max(0, len(out)-r.short)], nil
 }
 
-// plainResolver claims links and has no way to ask about them, which is every
-// backend that fetches by starting.
+// plainResolver claims links but cannot check them, like every backend that
+// only learns by starting a download.
 type plainResolver struct{}
 
 func (plainResolver) Info() resolver.Info { return resolver.Info{ID: "plaintest", Prio: 90} }

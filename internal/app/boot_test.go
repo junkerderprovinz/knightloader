@@ -10,10 +10,8 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
-// bootFixture is a data directory with tasks already in the store and settings
-// already saved: the state a process that died leaves behind. Every test here
-// then boots a real App against it, because a simulated boot proves nothing
-// about the one path that matters.
+// bootFixture is a data directory with tasks in the store and settings saved,
+// as a process that died leaves it. The tests boot a real App against it.
 type bootFixture struct {
 	dataDir string
 	dlDir   string
@@ -51,8 +49,7 @@ func newBootFixture(t *testing.T, mutate func(s *settings.Settings), tasks ...co
 	return f
 }
 
-// boot opens the directory again, which is the whole point of every test in
-// this file.
+// boot opens the directory again.
 func (f bootFixture) boot(t *testing.T) *App {
 	t.Helper()
 	a, err := New(f.dataDir)
@@ -63,7 +60,7 @@ func (f bootFixture) boot(t *testing.T) *App {
 	return a
 }
 
-// task reads one task out of a booted app.
+// taskOf reads one task out of a booted app.
 func taskOf(t *testing.T, a *App, id string) core.Task {
 	t.Helper()
 	a.mu.Lock()
@@ -82,11 +79,8 @@ func writeFile(t *testing.T, dir, name string, size int) {
 	}
 }
 
-// TestABootedTaskSaysSomethingTrue is the whole of row one. A row the database
-// calls "running" belongs to a process that no longer exists: there is no
-// transfer behind it, nothing will ever report on it, and a list that shows it
-// as running offers a pause button that does nothing to a download that is not
-// happening.
+// A stored "running" task belongs to a process that is gone, so it must not
+// come back as running.
 func TestABootedTaskSaysSomethingTrue(t *testing.T) {
 	dl := t.TempDir()
 	f := newBootFixture(t, nil, core.Task{
@@ -98,9 +92,7 @@ func TestABootedTaskSaysSomethingTrue(t *testing.T) {
 
 	a := f.boot(t)
 	got := taskOf(t, a, "was-running")
-	// Waiting, in a queue that is stopped - not scattered out of the queue.
-	// Both say "nothing is running"; only one of them can be undone by pressing
-	// play, and the other is why that button did nothing after every restart.
+	// Queued behind a stopped queue, so pressing play resumes it.
 	if got.Status != core.StatusQueued {
 		t.Errorf("status = %q, want queued: it waits, and the queue behind it is stopped", got.Status)
 	}
@@ -121,10 +113,7 @@ func TestABootedTaskSaysSomethingTrue(t *testing.T) {
 	}
 }
 
-// TestProgressWithoutBytesIsNotClaimed is the other half of it. Keeping the byte
-// count is only honest while the bytes are there; a bar at 50 % of a file
-// somebody deleted under the app is a claim the user only disproves by pressing
-// resume and watching it start from nothing.
+// The byte count is kept only while the partial file is still on disk.
 func TestProgressWithoutBytesIsNotClaimed(t *testing.T) {
 	dl := t.TempDir()
 	f := newBootFixture(t, nil, core.Task{
@@ -142,10 +131,8 @@ func TestProgressWithoutBytesIsNotClaimed(t *testing.T) {
 	}
 }
 
-// TestTheDefaultStartsNothing pins the cautious default, and the reason for it:
-// no backend's handle on a running download survives this process, so a resume
-// is a fresh fetch of a file that was half there. On a box that reboots at four
-// in the morning that has to be something somebody asked for.
+// By default nothing starts after a restart: no backend's handle survives the
+// process, so resuming is a fresh fetch, which somebody has to ask for.
 func TestTheDefaultStartsNothing(t *testing.T) {
 	f := newBootFixture(t, nil, core.Task{
 		ID: "r", URL: "https://host.example/a.bin", Name: "a.bin",
@@ -159,11 +146,8 @@ func TestTheDefaultStartsNothing(t *testing.T) {
 	a.mu.Lock()
 	active, halted := len(a.active), a.halted
 	a.mu.Unlock()
-	// "Starts nothing" is about what RUNS, and that is what is asserted. The
-	// task being back in the queue is not a start: the queue it is in is
-	// stopped, and it takes a press to change that. Asserting an EMPTY queue
-	// asserted the mechanism rather than the promise, and the mechanism it
-	// happened to pin was the one that made the play button useless.
+	// What runs is asserted, not the queue: a task queued behind a stopped
+	// queue has not started.
 	if active != 0 {
 		t.Errorf("%d downloads started under a policy that says never", active)
 	}
@@ -172,8 +156,7 @@ func TestTheDefaultStartsNothing(t *testing.T) {
 	}
 }
 
-// TestResumeRunningPutsTheQueueBack is the option most people mean by "carry on
-// where you left off".
+// ResumeRunning is "carry on where you left off".
 func TestResumeRunningPutsTheQueueBack(t *testing.T) {
 	f := newBootFixture(t,
 		func(s *settings.Settings) { s.ResumeOnStart = settings.ResumeRunning },
@@ -191,16 +174,14 @@ func TestResumeRunningPutsTheQueueBack(t *testing.T) {
 			t.Errorf("%s = %q, want queued: the queue was live when the process stopped", id, got.Status)
 		}
 	}
-	// A task somebody paused by hand is the one thing a restart must not undo.
+	// A task paused by hand stays paused.
 	if got := taskOf(t, a, "was-paused"); got.Status != core.StatusPaused {
 		t.Errorf("was-paused = %q, want it left alone", got.Status)
 	}
 }
 
-// TestResumeRunningStaysPutWhenNothingWas is the "only if" in the option's name.
-// An instance that was sitting idle - everything paused, or the queue halted -
-// has nothing to carry on with, and starting its waiting links on boot would be
-// the ALWAYS policy wearing the other one's label.
+// ResumeRunning resumes only if something was running; starting the waiting
+// links of an idle instance would be ResumeAll.
 func TestResumeRunningStaysPutWhenNothingWas(t *testing.T) {
 	f := newBootFixture(t,
 		func(s *settings.Settings) { s.ResumeOnStart = settings.ResumeRunning },
@@ -216,15 +197,14 @@ func TestResumeRunningStaysPutWhenNothingWas(t *testing.T) {
 	halted, running := a.halted, len(a.active)
 	a.mu.Unlock()
 	if !halted {
-		t.Error("the queue came up live, which is the ALWAYS policy wearing this one's label")
+		t.Error("the queue came up live, as if the policy were ResumeAll")
 	}
 	if running != 0 {
-		t.Errorf("%d tasks dispatched, want 0 - nothing was running when the process stopped", running)
+		t.Errorf("%d tasks dispatched, want 0; nothing was running when the process stopped", running)
 	}
 }
 
-// TestResumeAllTakesTheWaitingOnesToo covers the third option, on the same list
-// that the "only if running" test leaves alone.
+// ResumeAll takes the waiting links too.
 func TestResumeAllTakesTheWaitingOnesToo(t *testing.T) {
 	f := newBootFixture(t,
 		func(s *settings.Settings) { s.ResumeOnStart = settings.ResumeAll },
@@ -238,11 +218,8 @@ func TestResumeAllTakesTheWaitingOnesToo(t *testing.T) {
 	}
 }
 
-// TestAnInterruptedExtractionIsAFinishedDownload keeps the pre-existing boot
-// rule and adds the half that was missing: the state has to reach the STORE. The
-// download itself finished, so it belongs in the record and in the reach of
-// retention, and a task left at "extracting" in the database is invisible to
-// both for as long as the instance lives.
+// An interrupted extraction comes back as a finished download, written to the
+// store so the history and retention see it.
 func TestAnInterruptedExtractionIsAFinishedDownload(t *testing.T) {
 	f := newBootFixture(t, nil, core.Task{
 		ID: "unpacking", URL: "https://host.example/set.rar", Name: "set.rar",
@@ -265,16 +242,9 @@ func TestAnInterruptedExtractionIsAFinishedDownload(t *testing.T) {
 	}
 }
 
-// TestADeadlineDoesNotOutliveTheProcessCountingToIt. NextTry is persisted and
-// the time.AfterFunc that was going to honour it is not, so after every container
-// update each failed row came back carrying a moment nothing would ever act on:
-// the "retrying automatically" mark, which is exactly what stops people acting on
-// a row, standing over a retry that is not coming. A countdown on that row would
-// have counted to zero and sat there.
-//
-// The spent count is asserted with it, because clearing that as well would be
-// the easy over-correction: the backoff ladder continues from it when somebody
-// presses restart, and those attempts really were made.
+// NextTry is persisted but the timer behind it is not, so a restart clears it
+// rather than promising a retry that will not come. The spent count stays,
+// since the backoff continues from it on a manual restart.
 func TestADeadlineDoesNotOutliveTheProcessCountingToIt(t *testing.T) {
 	f := newBootFixture(t, nil, core.Task{
 		ID: "failed", URL: "https://host.example/f.bin", Name: "f.bin",
@@ -294,9 +264,7 @@ func TestADeadlineDoesNotOutliveTheProcessCountingToIt(t *testing.T) {
 		t.Errorf("retries = %d, want the two spent attempts kept: the ladder continues from them", got.Retries)
 	}
 
-	// And it reached the STORE, not only the list. The next boot reads the row,
-	// so a fix that lives in this process's memory is the same bug one restart
-	// further on.
+	// Cleared in the store too, which the next boot reads.
 	rows, err := a.Store.All()
 	if err != nil {
 		t.Fatal(err)
@@ -315,11 +283,7 @@ func TestADeadlineDoesNotOutliveTheProcessCountingToIt(t *testing.T) {
 	}
 }
 
-// TestRetentionTrimsTheListAndNothingElse is the row this whole feature has to
-// get right. Removing a row and deleting what was downloaded are two different
-// actions - conflating them destroyed finished downloads on the ordinary "clear
-// finished" path once already - and this is that same path running unattended on
-// a timer.
+// Retention removes rows from the list and never the downloaded files.
 func TestRetentionTrimsTheListAndNothingElse(t *testing.T) {
 	dl := t.TempDir()
 	old := time.Now().Add(-72 * time.Hour)
@@ -363,8 +327,7 @@ func TestRetentionTrimsTheListAndNothingElse(t *testing.T) {
 	}
 }
 
-// TestRetentionCanBeSwitchedOff keeps zero meaning "keep for ever". It is the
-// one value where a misreading empties somebody's whole list.
+// A retention of zero means keep forever.
 func TestRetentionCanBeSwitchedOff(t *testing.T) {
 	old := time.Now().Add(-10000 * time.Hour)
 	f := newBootFixture(t,
@@ -382,10 +345,8 @@ func TestRetentionCanBeSwitchedOff(t *testing.T) {
 	}
 }
 
-// TestTheAppCatchesUpWithItsOwnFinishTimes covers the gap the store's stamp
-// leaves behind. The stamp lands on the copy that is saved and broadcast, never
-// on the task the list is built from, so a snapshot read through the API would
-// show an empty column for a download that finished a moment ago.
+// The store stamps FinishedAt on the saved copy, not on the live task, so the
+// sweep copies it back.
 func TestTheAppCatchesUpWithItsOwnFinishTimes(t *testing.T) {
 	f := newBootFixture(t, nil)
 	a := f.boot(t)
@@ -394,7 +355,7 @@ func TestTheAppCatchesUpWithItsOwnFinishTimes(t *testing.T) {
 		ID: "settling", URL: "https://host.example/f.bin", Name: "f.bin",
 		Status: core.StatusDone, Enabled: true,
 	})
-	// Exactly what a settle does: hand the store a copy and keep the live task.
+	// As a settle does: save a copy, keep the live task.
 	c := *live
 	if err := a.Store.Save(&c); err != nil {
 		t.Fatal(err)
@@ -413,8 +374,7 @@ func TestTheAppCatchesUpWithItsOwnFinishTimes(t *testing.T) {
 		t.Errorf("the app holds %v, the row says %v", got.FinishedAt, c.FinishedAt)
 	}
 
-	// And the reverse: a task put back in the queue must stop claiming one, or
-	// retention would eventually sweep out a download that is running.
+	// A re-queued task loses it, or retention would remove a running download.
 	a.mu.Lock()
 	a.tasks["settling"].Status = core.StatusQueued
 	a.mu.Unlock()
@@ -424,12 +384,8 @@ func TestTheAppCatchesUpWithItsOwnFinishTimes(t *testing.T) {
 	}
 }
 
-// TestAQueueStoppedByTheBootSaysSoOnEveryRow is the live gap this test exists
-// for. On jdp's own instance 59 queued rows read "waiting" and not one carried
-// a reason, on a queue that was halted - which is precisely the state the
-// reason was added to explain. The dispatch tests all built their queue by
-// adding links to a running app, so the boot path, where the halt and the queue
-// arrive together, was never asserted.
+// A queue stopped at boot marks every waiting row with the halt as its reason.
+// At boot the halt and the queue arrive together, unlike in a running app.
 func TestAQueueStoppedByTheBootSaysSoOnEveryRow(t *testing.T) {
 	f := newBootFixture(t, nil,
 		core.Task{ID: "a", URL: "https://host.example/a.bin", Name: "a.bin", Status: core.StatusQueued, Enabled: true},
@@ -444,10 +400,8 @@ func TestAQueueStoppedByTheBootSaysSoOnEveryRow(t *testing.T) {
 		t.Fatalf("boot left halted=%v with %d queued; this test needs a stopped queue holding both rows", halted, queued)
 	}
 
-	// Polled rather than read once: the reason is written by the schedule
-	// runner's first pass, which Start fires on its own goroutine. Reading
-	// straight after boot passes on an idle machine and fails under load, which
-	// is a test measuring the scheduler's head start and not the behaviour.
+	// Polled: the schedule runner's first pass writes the reason on its own
+	// goroutine.
 	ok := pollUntil(t, 5*time.Second, func() bool {
 		return taskOf(t, a, "a").Waiting == core.WaitingHalted &&
 			taskOf(t, a, "b").Waiting == core.WaitingHalted

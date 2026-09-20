@@ -1,10 +1,9 @@
 package app
 
 // The retry policy: the curve itself, the values that feed it, and the end
-// state that is not "failed". The complaint this answers is specific - a hoster
-// with a one-hour block was asked six times inside ten minutes and then given
-// up on, which is strictly worse than waiting once and asking when the block is
-// over.
+// state that is not "failed". A hoster with a one-hour block asked six times
+// inside ten minutes and then given up on is worse off than one asked once when
+// the block is over.
 
 import (
 	"testing"
@@ -58,11 +57,9 @@ func runningOn(a *App, id, host, resolverID string) {
 	a.mu.Unlock()
 }
 
-// TestTheDefaultCurveIsBitForBitTheOldOne. retryDelay took no arguments before
-// this wave and held 15s and 10min itself; handed the built-in pair it has to
-// produce exactly the sequence it always did, or every install that configures
-// nothing gets a different queue out of an update.
-func TestTheDefaultCurveIsBitForBitTheOldOne(t *testing.T) {
+// Handed the built-in base and ceiling, retryDelay produces the sequence an
+// install that configures nothing relies on.
+func TestTheDefaultCurveMatchesTheBuiltInPair(t *testing.T) {
 	want := []time.Duration{
 		15 * time.Second,
 		30 * time.Second,
@@ -80,9 +77,8 @@ func TestTheDefaultCurveIsBitForBitTheOldOne(t *testing.T) {
 	}
 }
 
-// TestAnHourMeansAnHour is the complaint itself, at the level the arithmetic
-// happens. A configured hour must not be quietly cut back to the ten-minute
-// ceiling that was written for a fifteen-second base.
+// A configured hour is not cut back to the ten-minute ceiling, which belongs to
+// the fifteen-second base.
 func TestAnHourMeansAnHour(t *testing.T) {
 	s := settings.Defaults()
 	s.HostRules = map[string]settings.HostRule{
@@ -96,9 +92,8 @@ func TestAnHourMeansAnHour(t *testing.T) {
 	}
 }
 
-// TestAConfiguredHostDelayReachesTheFailedTask is the wiring: settings can hold
-// whatever they like, and until onUpdate reads them the whole table is a page
-// that does nothing.
+// The wiring: until onUpdate reads the host table, it is a settings page that
+// does nothing.
 func TestAConfiguredHostDelayReachesTheFailedTask(t *testing.T) {
 	a := retryApp(t, func(s *settings.Settings) {
 		s.HostRules = map[string]settings.HostRule{
@@ -117,18 +112,17 @@ func TestAConfiguredHostDelayReachesTheFailedTask(t *testing.T) {
 		t.Errorf("Retries = %d, want the attempt counted", slow.Retries)
 	}
 	if d := slow.NextTry.Sub(before); d < 59*time.Minute || d > 61*time.Minute {
-		t.Errorf("next attempt in %s, want about an hour - the host's own rule was not read", d)
+		t.Errorf("next attempt in %s, want about an hour; the host's own rule was not read", d)
 	}
 	plain := liveTask(a, "plain1")
 	if d := plain.NextTry.Sub(before); d > time.Minute {
-		t.Errorf("a host with no entry waits %s, want the built-in 15s - one host's rule reached every host", d)
+		t.Errorf("a host with no entry waits %s, want the built-in 15s; one host's rule reached every host", d)
 	}
 }
 
-// TestNeverIsItsOwnEndState is point 2's third half. "Failed after three
-// attempts" is mended by allowing more of them; "will not be tried again" is
-// not, and a list that shows the two identically sends the next person to raise
-// a number that changes nothing.
+// "Failed after three attempts" is mended by allowing more of them, "will not
+// be tried again" is not, so a list that shows the two alike sends the reader to
+// raise a number that changes nothing.
 func TestNeverIsItsOwnEndState(t *testing.T) {
 	a := retryApp(t, func(s *settings.Settings) {
 		s.HostRules = map[string]settings.HostRule{
@@ -156,9 +150,8 @@ func TestNeverIsItsOwnEndState(t *testing.T) {
 	}
 }
 
-// TestRunningOutOfAttemptsIsNotGivingUp is the other side of that distinction,
-// and it is the one that makes GaveUp worth having at all: if every settled
-// failure carried it, the flag would say nothing.
+// The other side of that distinction: if every settled failure carried GaveUp,
+// the flag would say nothing.
 func TestRunningOutOfAttemptsIsNotGivingUp(t *testing.T) {
 	a := retryApp(t, func(s *settings.Settings) { s.MaxRetries = 0 })
 	runningOn(a, "plain1", plainHost, simpleResolverID)
@@ -174,9 +167,8 @@ func TestRunningOutOfAttemptsIsNotGivingUp(t *testing.T) {
 	}
 }
 
-// TestACaptchaSettlesAsGivenUp: nothing about the next ten minutes answers a
-// captcha, so the app already refused to retry it - it just had no way to say
-// so. This is that refusal becoming visible rather than a new decision.
+// Nothing about waiting ten minutes answers a captcha, so the refusal to retry
+// is recorded on the task where the row can show it.
 func TestACaptchaSettlesAsGivenUp(t *testing.T) {
 	a := retryApp(t, func(*settings.Settings) {})
 	runningOn(a, "plain1", plainHost, simpleResolverID)
@@ -185,24 +177,18 @@ func TestACaptchaSettlesAsGivenUp(t *testing.T) {
 
 	got := liveTask(a, "plain1")
 	if got.Reason != core.ReasonCaptcha {
-		t.Fatalf("reason = %q, want %q - this test cannot reach the branch it is about", got.Reason, core.ReasonCaptcha)
+		t.Fatalf("reason = %q, want %q; this test cannot reach the branch it is about", got.Reason, core.ReasonCaptcha)
 	}
 	if !got.GaveUp {
 		t.Error("a captcha failure settled as an ordinary retryable failure")
 	}
 }
 
-// TestTheCeilingLeavesTheServer. Retries has been on the wire since the field
-// existed and the number it counts towards never has, so a list can say "retry
-// 2" and nothing else. It cannot work the rest out either: the ceiling is a host
-// rule merged over the per-reason table merged over MaxRetries, and the obvious
-// shortcut - read settings.maxRetries in the browser - prints the global number
-// over a row the host table gave a different one, and on a page showing a peer
-// instance's queue it prints the wrong box's number entirely.
-//
-// The host rule here says seven against a global three precisely so that a
-// MaxTries of 3 fails this test: it is what a client-side shortcut would have
-// produced.
+// The ceiling is a host rule merged over the per-reason table merged over
+// MaxRetries, so only the server can resolve it: reading settings.maxRetries in
+// the browser prints the global number over a row the host table gave a
+// different one, and the wrong box's number on a peer instance's queue. The
+// host rule here says seven against a global three, so a MaxTries of 3 fails.
 func TestTheCeilingLeavesTheServer(t *testing.T) {
 	a := retryApp(t, func(s *settings.Settings) {
 		s.MaxRetries = 3
@@ -218,7 +204,7 @@ func TestTheCeilingLeavesTheServer(t *testing.T) {
 
 	slow := liveTask(a, "slow1")
 	if slow.Retries != 1 {
-		t.Fatalf("Retries = %d, want the attempt counted - this test cannot reach the branch it is about", slow.Retries)
+		t.Fatalf("Retries = %d, want the attempt counted; this test cannot reach the branch it is about", slow.Retries)
 	}
 	if slow.MaxTries != 7 {
 		t.Errorf("MaxTries = %d, want the host rule's 7: the resolved ceiling never left the dispatcher", slow.MaxTries)
@@ -228,18 +214,13 @@ func TestTheCeilingLeavesTheServer(t *testing.T) {
 	}
 }
 
-// TestTheLastFailureSaysWhatItRanOutOf covers the branch that most needs the
-// number and is the easiest one to forget, because it arms no retry: a row that
-// has spent its budget is the row somebody is about to raise "Automatic retries"
-// for, and "no retries left" is only worth reading beside the count it ran out
-// of.
+// The branch that arms no retry still records the ceiling, because "no retries
+// left" is only worth reading beside the count it ran out of.
 //
-// The task arrives already at its ceiling with nothing recorded on it, which is
-// not a contrivance: the spent count is persisted and the ceiling deliberately
-// is not, so after any restart the very next failure is an exhausted one with no
-// number on it yet. Driving two failures through instead proved nothing at all -
-// the first one takes the counting branch and leaves the ceiling behind, so the
-// assertion passed with this branch deleted.
+// The task arrives at its ceiling with nothing recorded on it, which is the
+// ordinary state after a restart: the spent count is persisted and the ceiling
+// is not. Driving two failures through instead would pass with this branch
+// deleted, since the first takes the counting branch.
 func TestTheLastFailureSaysWhatItRanOutOf(t *testing.T) {
 	a := retryApp(t, func(s *settings.Settings) { s.MaxRetries = 2 })
 	runningOn(a, "plain1", plainHost, simpleResolverID)
@@ -264,10 +245,9 @@ func TestTheLastFailureSaysWhatItRanOutOf(t *testing.T) {
 	}
 }
 
-// TestAFinishedDownloadKeepsNoCeiling is the clear that goes with the counter.
 // Retries is reset when a download finishes so a later restart does not begin
-// one attempt short of its own budget; a ceiling left behind on its own is a
-// denominator over nothing, describing a failure that is over.
+// one attempt short of its budget, and the ceiling goes with it rather than
+// standing as a denominator over a failure that is over.
 func TestAFinishedDownloadKeepsNoCeiling(t *testing.T) {
 	a := retryApp(t, func(*settings.Settings) {})
 	runningOn(a, "plain1", plainHost, simpleResolverID)
@@ -283,25 +263,22 @@ func TestAFinishedDownloadKeepsNoCeiling(t *testing.T) {
 		t.Errorf("MaxTries = %d on a finished download, want it cleared with Retries", got.MaxTries)
 	}
 	if got.Retries != 0 {
-		t.Errorf("Retries = %d, want the spent attempts cleared - the pre-existing half of this reset", got.Retries)
+		t.Errorf("Retries = %d, want the spent attempts cleared", got.Retries)
 	}
 }
 
-// TestAnAbandonedRetryTimerIsNotThisTasksRetry. Every armed retry leaves a
-// time.AfterFunc behind that nothing can cancel, and the check it woke up to
-// make used to be "is SOME retry pending". Cut a wait short - the restart button
-// already does exactly that - let the task run and fail again onto a longer
-// wait, and the abandoned first timer still fires at its own mark and restarts
-// the download in the middle of the wait the row is showing. It spends an
-// attempt out of turn, and a visible countdown is what turns that from invisible
-// into a contradiction on screen.
+// Every armed retry leaves a time.AfterFunc behind that nothing can cancel, so
+// the timer checks its own deadline against the task's. Cutting a wait short,
+// which the restart button does, then failing again onto a longer wait would
+// otherwise let the first timer restart the download in the middle of the wait
+// the row is showing, spending an attempt out of turn.
 //
-// The second half is the point of the first: a guard that never fires would pass
-// the stale case and switch the automatic retries off altogether.
+// The second half matters as much: a guard that never fires would pass the
+// stale case and switch the automatic retries off altogether.
 func TestAnAbandonedRetryTimerIsNotThisTasksRetry(t *testing.T) {
 	a := retryApp(t, func(*settings.Settings) {})
 	abandoned := time.Now().Add(-5 * time.Minute) // what the old timer was armed for
-	current := time.Now().Add(10 * time.Minute)   // what the row is counting down to now
+	current := time.Now().Add(10 * time.Minute)   // what the row is counting down to
 	a.mu.Lock()
 	a.tasks["p1"] = &core.Task{
 		ID: "p1", URL: "https://" + plainHost + "/p1.bin", Name: "p1.bin",
@@ -324,15 +301,13 @@ func TestAnAbandonedRetryTimerIsNotThisTasksRetry(t *testing.T) {
 
 	a.retryAfter("p1", 0, current)
 	if !pollUntil(t, 5*time.Second, started) {
-		t.Error("the retry that IS pending never ran, so the guard has switched automatic retries off")
+		t.Error("the pending retry never ran, so the guard has switched automatic retries off")
 	}
 }
 
-// TestGivingUpIsTakenBackWhenTheTaskIsQueuedAgain. The flag is raised where a
-// failure settles and cleared by any dispatch pass that meets the task in the
-// wait queue - which is the one point every path back to "we are trying this"
-// goes through, RestartTasks in app_queue.go included. Without that, a hand
-// restart would run a task that still claimed it would never be tried again.
+// The flag is raised where a failure settles and cleared by any dispatch pass
+// that meets the task in the wait queue, the one point every path back into the
+// queue goes through, RestartTasks included.
 func TestGivingUpIsTakenBackWhenTheTaskIsQueuedAgain(t *testing.T) {
 	a := retryApp(t, func(*settings.Settings) {})
 	a.mu.Lock()

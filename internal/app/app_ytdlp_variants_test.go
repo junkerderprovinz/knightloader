@@ -1,11 +1,5 @@
 package app
 
-// Coverage for the "Variante" row family a yt-dlp-routed link stages with
-// (app_ytdlp_variants.go): expandYtdlpVariants turning one staged task into
-// five, HosterPresetFor/SetHosterPreset's own persistence, and
-// SetTaskOptions's VariantQuality re-encoding a row's own sub-value without
-// touching its kind.
-
 import (
 	"context"
 	"sync"
@@ -16,19 +10,9 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
-// tasksSharingURL is a family's own membership test: every row
-// expandYtdlpVariants created for one staged link shares that link's exact
-// URL (see insertVariantSibling's own doc comment on why that sharing is
-// deliberate rather than the ordinary "same link pasted twice" case put()
-// refuses).
-//
-// It returns COPIES, not the live pointers. Handing out pointers and releasing
-// the lock let a caller read one row's Package before the title probe landed
-// and the next row's after, so a family that was consistent at every instant
-// looked torn - "sibling package = %q, want every row in the same package %q"
-// with the two halves of the same rename on either side of the comma. It was
-// also a plain data race: the probe goroutine writes those fields under a.mu
-// while the reader held nothing.
+// tasksSharingURL returns copies of every row of a family, which all share the
+// link's exact URL. Copies taken under a.mu, since the probe goroutine writes
+// these fields and live pointers would let a reader see half a rename.
 func tasksSharingURL(a *App, url string) []core.Task {
 	a.mu.Lock()
 	defer a.mu.Unlock()
@@ -41,11 +25,8 @@ func tasksSharingURL(a *App, url string) []core.Task {
 	return out
 }
 
-// TestExpandYtdlpVariantsCreatesAllFiveRowsWithDefaultPreset is [79]'s own
-// locked design (jdp, 2026-08-25's AskUserQuestion answer: "Alle 5 immer
-// als Zeile"): a bare YouTube paste, with no preset saved for the host yet,
-// ends up as five sibling tasks sharing one URL and package, every one of
-// them enabled (ytdlp.DefaultHosterPreset's own Variants() default).
+// With no preset saved, a bare paste becomes five enabled rows sharing one URL
+// and package.
 func TestExpandYtdlpVariantsCreatesAllFiveRowsWithDefaultPreset(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
 	fake, _ := newFakeYtdlp()
@@ -84,12 +65,7 @@ func TestExpandYtdlpVariantsCreatesAllFiveRowsWithDefaultPreset(t *testing.T) {
 	}
 }
 
-// TestExpandYtdlpVariantsRespectsASavedHosterPreset is the gear badge's own
-// write path, read back at staging time: a preset that leaves the
-// thumbnail and description rows out of Variants() (the "which variants
-// this host starts with enabled" list) stages those two rows disabled -
-// still present as their own rows (jdp: "Alle 5 immer als Zeile" was never
-// conditional on the preset), just not enabled by default.
+// Variants a saved preset leaves out are still staged as rows, but disabled.
 func TestExpandYtdlpVariantsRespectsASavedHosterPreset(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
 	fake, _ := newFakeYtdlp()
@@ -137,16 +113,13 @@ func TestExpandYtdlpVariantsRespectsASavedHosterPreset(t *testing.T) {
 			}
 		case ytdlp.VariantThumbnail, ytdlp.VariantDescription:
 			if x.Enabled {
-				t.Errorf("%q row enabled, want it disabled - the saved preset leaves it out of Variants()", kind)
+				t.Errorf("%q row enabled, want it disabled; the saved preset leaves it out of Variants()", kind)
 			}
 		}
 	}
 }
 
-// TestHosterPresetForReturnsTheDefaultWhenNothingWasSaved is the gear
-// badge's own read path before anybody has ever opened it for a host: it
-// must not 404 or panic, it answers with exactly what a bare paste would
-// already stage.
+// An unconfigured host answers with what a bare paste would stage.
 func TestHosterPresetForReturnsTheDefaultWhenNothingWasSaved(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
 	got := a.HosterPresetFor("neverconfigured.example")
@@ -156,11 +129,7 @@ func TestHosterPresetForReturnsTheDefaultWhenNothingWasSaved(t *testing.T) {
 	}
 }
 
-// TestSetHosterPresetPersistsAcrossHosts is the multi-host shape
-// SetHosterPreset's own map-rebuild has to get right: saving one host's
-// preset must not disturb another host's already-saved one, the exact bug
-// class a loop-variable/map-key mistake in sanitizeResolvers was found and
-// fixed for elsewhere this same round (settings_resolvers.go).
+// Saving one host's preset must not disturb another host's.
 func TestSetHosterPresetPersistsAcrossHosts(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
 
@@ -185,11 +154,8 @@ func TestSetHosterPresetPersistsAcrossHosts(t *testing.T) {
 	}
 }
 
-// TestSetTaskOptionsVariantQualityKeepsTheRowsOwnKind is the Variante
-// column's own write path (columns.tsx's VarianteCell): editing a row's
-// quality/format picker must re-encode only the sub-value, never the row's
-// own fixed kind - a video row stays a video row no matter what quality is
-// picked for it.
+// Picking a quality re-encodes only the sub-value; a video row stays a video
+// row.
 func TestSetTaskOptionsVariantQualityKeepsTheRowsOwnKind(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
 	const url = "https://youtube.com/watch?v=quality0001"
@@ -213,19 +179,9 @@ func TestSetTaskOptionsVariantQualityKeepsTheRowsOwnKind(t *testing.T) {
 	}
 }
 
-// wireYtdlp/fakeYtdlpBackend used above are ytdlp_probe_test.go's own
-// fixtures, reused here rather than duplicated.
-
-// TestExpandYtdlpVariantsFamilyStillRenamesThePackageOnceNamed is the
-// intersection [79] and [35b]'s own fix never got tested together: a real
-// AddLinks paste creates the primary PLUS four siblings before the title
-// probe ever answers (stage()'s own synchronous expandYtdlpVariants call,
-// app_links.go), so by the time setTaskName's own guard asks
-// noSiblingHasARealNameYet, every one of those four siblings is already a
-// "sibling sharing this package" - if that guard were not sibling-URL-aware
-// the same way setTaskName's OWN propagation loop already is, a link's
-// entire five-row family would stay named "watch" forever, the very bug
-// this test exists to catch before a live deploy does.
+// The four siblings exist before the title probe answers, so the rename guard
+// in setTaskName must treat same-URL rows as family, or all five stay in the
+// package "watch".
 func TestExpandYtdlpVariantsFamilyStillRenamesThePackageOnceNamed(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
 	fake, _ := newFakeYtdlp()
@@ -252,9 +208,8 @@ func TestExpandYtdlpVariantsFamilyStillRenamesThePackageOnceNamed(t *testing.T) 
 	})
 }
 
-// familyOf is the two lines every test below opens with: stage one yt-dlp link
-// whose title probe is still outstanding, and hand back the five rows it
-// became.
+// familyOf stages one yt-dlp link whose title probe is still outstanding and
+// returns the five rows it became.
 func familyOf(t *testing.T, url, title string) (*App, []core.Task) {
 	t.Helper()
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
@@ -271,7 +226,6 @@ func familyOf(t *testing.T, url, title string) (*App, []core.Task) {
 	return a, tasksSharingURL(a, url)
 }
 
-// rowOf picks one named row out of a family.
 func rowOf(t *testing.T, family []core.Task, want ytdlp.Variant) string {
 	t.Helper()
 	for _, x := range family {
@@ -283,12 +237,8 @@ func rowOf(t *testing.T, family []core.Task, want ytdlp.Variant) string {
 	return ""
 }
 
-// TestSetPackageMovesTheWholeVariantFamily locks the invariant the rest of
-// this area is built on: the five rows of one video are ONE thing, so they
-// share one package, and picking a package for any one of them files all five.
-//
-// The row picked here is deliberately not the primary. A family that only
-// holds together when the video row leads is not holding together.
+// The five rows of one video share one package, so moving any one of them
+// moves all five. The row moved here is not the primary.
 func TestSetPackageMovesTheWholeVariantFamily(t *testing.T) {
 	const url = "https://www.youtube.com/watch?v=jNQXAC9IVRw"
 	a, family := familyOf(t, url, "Me at the zoo")
@@ -302,24 +252,11 @@ func TestSetPackageMovesTheWholeVariantFamily(t *testing.T) {
 	}
 }
 
-// TestAFamilyLeavesTheURLGuessWhenOnlyThePrimaryIsInTheIdList is the losing
-// ordering's own end state, set up by hand rather than raced for.
-//
-// TestExpandYtdlpVariantsFamilyStillRenamesThePackageOnceNamed reaches this
-// same defect through a real paste, but only when the probe happens to answer
-// inside one particular gap - about one run in seven, which is a fine way to
-// DISCOVER a bug and a poor way to guard against its return. This states the
-// state directly: every row of the family already carries the real name (that
-// is what setTaskName's own propagation loop does when it runs while the
-// package is still unset), all five are filed under the URL path's guess, and
-// the id list nameBucket hands on holds the primary alone, because the four
-// siblings were created inside stage() after the bucket was assembled and are
-// in no list anywhere.
-//
-// It failed twice over before the fix: noSiblingHasARealNameYet counted the
-// family's own rows as strangers with real names, so all five vetoed each
-// other's rename; and even once the primary was let through, the package was
-// written to that one row, leaving its four siblings behind.
+// The state a real paste reaches only when the probe lands in a narrow gap, set
+// up by hand: every row already carries the real name, all five sit in the
+// guessed package, and only the primary is in the id list, since the siblings
+// were created after the bucket was assembled. The family's own rows must not
+// veto each other's rename, and the new package must reach all five.
 func TestAFamilyLeavesTheURLGuessWhenOnlyThePrimaryIsInTheIdList(t *testing.T) {
 	const url = "https://www.youtube.com/watch?v=jNQXAC9IVRw"
 	a, family := familyOf(t, url, "Me at the zoo")
@@ -343,11 +280,9 @@ func TestAFamilyLeavesTheURLGuessWhenOnlyThePrimaryIsInTheIdList(t *testing.T) {
 	}
 }
 
-// TestACoincidentalPackageCollisionIsStillLeftAlone is the other half of the
-// same guard, and the reason it cannot simply be deleted: two bare YouTube
-// links pasted together both guess the package "watch" without being related
-// at all, and one of them resolving its title must not drag the other one's
-// row along. Only rows sharing an EXACT URL are family.
+// Two unrelated YouTube links both guess the package "watch", and one resolving
+// its title must not drag the other along. Only rows sharing an exact URL are
+// family.
 func TestACoincidentalPackageCollisionIsStillLeftAlone(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
 	release := make(chan struct{})
@@ -365,10 +300,8 @@ func TestACoincidentalPackageCollisionIsStillLeftAlone(t *testing.T) {
 		return len(tasksSharingURL(a, mine)) == 5 && len(tasksSharingURL(a, theirs)) == 5
 	})
 
-	// Both families land in the same guessed package, which is the whole
-	// point: every bare YouTube watch page guesses "watch". The other link's
-	// rows already carry a real name, so they are a resolved batch this one
-	// must not touch.
+	// Every bare watch page guesses "watch". The other link's rows already
+	// carry a real name, so they are a resolved batch this one must not touch.
 	var primary string
 	a.mu.Lock()
 	for _, x := range a.tasks {
@@ -388,7 +321,7 @@ func TestACoincidentalPackageCollisionIsStillLeftAlone(t *testing.T) {
 
 	for _, x := range tasksSharingURL(a, mine) {
 		if x.Package != "watch" {
-			t.Errorf("row %q moved to %q, want the whole batch left in %q - an unrelated link already resolved into it", x.Variant, x.Package, "watch")
+			t.Errorf("row %q moved to %q, want the whole batch left in %q; an unrelated link already resolved into it", x.Variant, x.Package, "watch")
 		}
 	}
 	for _, x := range tasksSharingURL(a, theirs) {
@@ -398,11 +331,9 @@ func TestACoincidentalPackageCollisionIsStillLeftAlone(t *testing.T) {
 	}
 }
 
-// putYtdlpFamily builds a five-row "Variante" family directly (putTask, no
-// AddLinks/probe involved) sharing one URL, one per subs entries plus
-// thumbnail/subtitle (which take no sub-value) - the shape
-// expandYtdlpVariants itself would have produced, minus the async probe
-// applyProbeFormats's own tests want to call by hand instead.
+// putYtdlpFamily builds a five-row family directly, the shape
+// expandYtdlpVariants produces, without the async probe so tests can call
+// applyProbeFormats by hand. subs gives each kind its sub-value.
 func putYtdlpFamily(t *testing.T, a *App, url string, subs map[ytdlp.Variant]string) map[ytdlp.Variant]*core.Task {
 	t.Helper()
 	family := map[ytdlp.Variant]*core.Task{}
@@ -415,10 +346,9 @@ func putYtdlpFamily(t *testing.T, a *App, url string, subs map[ytdlp.Variant]str
 	return family
 }
 
-// A realistic mixed format list, the same shape backend_test.go's own
-// "formats" TestMain case uses: two video-only tracks (144p/1080p), one
-// audio-only track, one combined progressive track. Declared once so every
-// test below reasons about the identical source.
+// testProbeFormats is a realistic mixed format list, as in backend_test.go: two
+// video-only tracks (144p, 1080p), one audio-only track and one combined
+// progressive track.
 var testProbeFormats = []ytdlp.FormatEntry{
 	{FormatID: "160", Ext: "mp4", Vcodec: "avc1.4d400b", Acodec: "none", Height: 144, Filesize: 195278},
 	{FormatID: "137", Ext: "mp4", Vcodec: "avc1.640028", Acodec: "none", Height: 1080, FilesizeApprox: 52428800},
@@ -426,11 +356,8 @@ var testProbeFormats = []ytdlp.FormatEntry{
 	{FormatID: "18", Ext: "mp4", Vcodec: "avc1.42001E", Acodec: "mp4a.40.2", Height: 360, Filesize: 8388608},
 }
 
-// TestApplyProbeFormatsMarksTheWholeFamilyOnline is [83b]'s own fix (jdp,
-// 2026-08-25: "der [status-punkt] zeigt immer noch keine farbe an"): a
-// probe that came back AT ALL is itself the availability check a yt-dlp
-// link never otherwise gets before download, and since every row in the
-// family is the same source, all five get the same verdict.
+// A probe that answered proves the source is there, and all five rows share
+// that source.
 func TestApplyProbeFormatsMarksTheWholeFamilyOnline(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
 	const url = "https://youtube.com/watch?v=online0001"
@@ -445,9 +372,7 @@ func TestApplyProbeFormatsMarksTheWholeFamilyOnline(t *testing.T) {
 	}
 }
 
-// TestApplyProbeFormatsSetsDescriptionExt is [87]'s zero-cost, always
-// correct case: yt-dlp hardcodes .description for this output regardless
-// of the source, so it needs no format-list lookup at all.
+// yt-dlp always writes .description, whatever the source.
 func TestApplyProbeFormatsSetsDescriptionExt(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
 	const url = "https://youtube.com/watch?v=ext0001"
@@ -461,11 +386,8 @@ func TestApplyProbeFormatsSetsDescriptionExt(t *testing.T) {
 	}
 }
 
-// TestApplyProbeFormatsSetsFixedAudioFormatExtNotSize is [87]/[89]'s own
-// split for a fixed --audio-format target: the extension is certain
-// (ffmpeg's own conversion target), the size is not (transcoding changes
-// the byte count unpredictably from the source track's own) - so only Ext
-// may be set, Size must stay at its own zero/unknown value.
+// With a fixed --audio-format the extension is certain but the transcoded size
+// is not, so Size stays unknown.
 func TestApplyProbeFormatsSetsFixedAudioFormatExtNotSize(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
 	const url = "https://youtube.com/watch?v=ext0002"
@@ -482,19 +404,12 @@ func TestApplyProbeFormatsSetsFixedAudioFormatExtNotSize(t *testing.T) {
 	}
 }
 
-// TestApplyProbeFormatsSetsBestAudioExtAndSize is the "best" audio row's own
-// case: -x with no --audio-format is a straight extract, not a transcode,
-// so BOTH the container and the size are real facts read straight off the
-// matched source track's own reported values, not guesses (jdp, 2026-08-26:
-// "dateiendungen werden immer noch nicht angezeigt" - an earlier version of
-// this function left Ext unset here on the theory that "the container
-// varies by source", which is true across different sources but not true
-// of the ONE specific matched format this row already resolved to: its own
-// Ext field already says what container it is in).
+// "best" audio is a straight extract, so the matched track's extension and size
+// are what lands on disk.
 func TestApplyProbeFormatsSetsBestAudioExtAndSize(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
 	const url = "https://youtube.com/watch?v=size0001"
-	family := putYtdlpFamily(t, a, url, nil) // VariantAudio's own sub defaults to "" (best)
+	family := putYtdlpFamily(t, a, url, nil) // the audio sub-value "" means best
 
 	a.applyProbeFormats(url, testProbeFormats)
 
@@ -507,17 +422,9 @@ func TestApplyProbeFormatsSetsBestAudioExtAndSize(t *testing.T) {
 	}
 }
 
-// TestApplyProbeFormatsSetsAvailableAudioFormats is [87]/[88]'s own
-// extension to the audio row (jdp, 2026-08-26: "bei der audio spur sollen
-// nur die formate angezeigt werden die wirklich von hoster angeboten
-// werden. Youtube bietet zb keine flac audio"): testProbeFormats' own
-// audio-only entry is mp4a.40.2 (AAC), which maps to BOTH native readings of
-// that stream - "m4a", the container it already sits in, and "aac", the raw
-// stream, neither of which re-encodes anything (jdp, 2026-09-06: "bei youtube
-// links gibt es zb das audioformat aac nicht im dropdown als auswahl obwohl es
-// JD anbietet"). "best" is always kept alongside them, and the transcode
-// targets nothing in the source actually offers (mp3/opus/wav/flac/vorbis/alac)
-// still do not appear.
+// The audio menu offers only what the source carries. An AAC track (mp4a.40.2)
+// maps to both native readings, "m4a" and "aac", neither of which re-encodes;
+// "best" is always kept, and transcode targets such as flac do not appear.
 func TestApplyProbeFormatsSetsAvailableAudioFormats(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
 	const url = "https://youtube.com/watch?v=formats0001"
@@ -539,10 +446,8 @@ func TestApplyProbeFormatsSetsAvailableAudioFormats(t *testing.T) {
 	}
 }
 
-// TestApplyProbeFormatsSetsAvailableAudioBitrates is [87]/[88]'s own
-// bitrate case (jdp, 2026-08-26: "auch die audioqualitäten! bei allen
-// hostern!"): testProbeFormats' own audio-only entry reports abr=129, so
-// the bitrate menu keeps Auto/64/96/128 and drops 160 and above.
+// The audio track reports abr=129, so the bitrate menu keeps Auto, 64, 96 and
+// 128 and drops 160 and above.
 func TestApplyProbeFormatsSetsAvailableAudioBitrates(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
 	const url = "https://youtube.com/watch?v=bitrates0001"
@@ -564,11 +469,8 @@ func TestApplyProbeFormatsSetsAvailableAudioBitrates(t *testing.T) {
 	}
 }
 
-// TestApplyProbeFormatsSetsVideoExtOnlyWhenAMergeWouldHappen is [87]'s own
-// video case: testProbeFormats has both a real video-only track and a real
-// audio-only track, so formatSelector's own bestvideo+bestaudio selector
-// will merge them - buildArgs' own forced --merge-output-format mkv
-// (backend.go) then makes mkv a fact this function can state.
+// A video-only and an audio-only track will be merged, and buildArgs forces
+// --merge-output-format mkv for that.
 func TestApplyProbeFormatsSetsVideoExtOnlyWhenAMergeWouldHappen(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
 	const url = "https://youtube.com/watch?v=merge0001"
@@ -578,17 +480,12 @@ func TestApplyProbeFormatsSetsVideoExtOnlyWhenAMergeWouldHappen(t *testing.T) {
 
 	live := snapshot(t, a, family[ytdlp.VariantVideo].ID)
 	if live.Ext != "mkv" {
-		t.Errorf("video row Ext = %q, want %q - the source has both a video-only and an audio-only track to merge", live.Ext, "mkv")
+		t.Errorf("video row Ext = %q, want %q; the source has both a video-only and an audio-only track to merge", live.Ext, "mkv")
 	}
 }
 
-// TestApplyProbeFormatsLeavesVideoExtUnsetWithNoMergeToPromise is the
-// opposite end of the same rule: a source with no real video-only/audio-only
-// pair (the exact shape a very old upload's format list can have) takes
-// formatSelector's own muxed-fallback path instead, where
-// --merge-output-format has no effect at all - claiming mkv there would be
-// wrong, not merely unhelpful, so Ext stays unset the same way it already
-// does for AvailableQualities collapsing to best/custom alone.
+// Without a video-only and audio-only pair, as with some very old uploads, the
+// pre-muxed fallback is used and --merge-output-format has no effect.
 func TestApplyProbeFormatsLeavesVideoExtUnsetWithNoMergeToPromise(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
 	const url = "https://youtube.com/watch?v=nomerge0001"
@@ -601,14 +498,11 @@ func TestApplyProbeFormatsLeavesVideoExtUnsetWithNoMergeToPromise(t *testing.T) 
 
 	live := snapshot(t, a, family[ytdlp.VariantVideo].ID)
 	if live.Ext != "" {
-		t.Errorf("video row Ext = %q, want it left unset - no video-only/audio-only pair exists to merge", live.Ext)
+		t.Errorf("video row Ext = %q, want it left unset; no video-only/audio-only pair exists to merge", live.Ext)
 	}
 }
 
-// TestApplyProbeFormatsSetsThumbnailAndSubtitleExt is [87]'s own remaining
-// two cases: both are forced conversions (--convert-thumbnails jpg,
-// --sub-format srt, backend.go), so Ext is a fixed fact independent of
-// anything in the probed formats list.
+// Both are forced conversions (--convert-thumbnails jpg, --sub-format srt).
 func TestApplyProbeFormatsSetsThumbnailAndSubtitleExt(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
 	const url = "https://youtube.com/watch?v=fixedext0001"
@@ -624,11 +518,8 @@ func TestApplyProbeFormatsSetsThumbnailAndSubtitleExt(t *testing.T) {
 	}
 }
 
-// TestApplyProbeFormatsConstrainsVideoAvailableQualities is [88]'s own fix
-// (jdp, 2026-08-25: "man soll nur die varianten auswählen können die
-// wirklich verfügbar sind"): testProbeFormats' own tallest real video track
-// is 1080p, so nothing above that should be offered - 2160p/1440p drop out,
-// 1080p and everything under it (plus best/custom, always kept) survive.
+// The tallest track is 1080p, so 2160p and 1440p are not offered; best and
+// custom always are.
 func TestApplyProbeFormatsConstrainsVideoAvailableQualities(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
 	const url = "https://youtube.com/watch?v=avail0001"
@@ -648,15 +539,12 @@ func TestApplyProbeFormatsConstrainsVideoAvailableQualities(t *testing.T) {
 	}
 	for _, unwanted := range []string{"2160p", "1440p"} {
 		if got[unwanted] {
-			t.Errorf("AvailableQualities = %v, want %q excluded - the source has no track above 1080p", live.AvailableQualities, unwanted)
+			t.Errorf("AvailableQualities = %v, want %q excluded; the source has no track above 1080p", live.AvailableQualities, unwanted)
 		}
 	}
 }
 
-// TestApplyProbeFormatsSetsVideoSizeAtItsOwnQualityCap is [89]'s own video
-// case: the estimate must match THIS row's own currently-picked quality,
-// not the source's tallest track - a 360p-capped row gets the 360p track's
-// own size (8388608), not the 1080p track's.
+// The size estimate follows the row's picked quality, not the tallest track.
 func TestApplyProbeFormatsSetsVideoSizeAtItsOwnQualityCap(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
 	const url = "https://youtube.com/watch?v=size0002"
@@ -671,13 +559,8 @@ func TestApplyProbeFormatsSetsVideoSizeAtItsOwnQualityCap(t *testing.T) {
 }
 
 // countingYtdlpBackend answers ProbeTitle with a fixed format list and records
-// every URL it was asked about.
-//
-// fakeYtdlpBackend (ytdlp_probe_test.go) closes a channel on every call, which
-// makes a SECOND call a panic - the right shape for "the probe ran", the wrong
-// one for a function whose whole contract is which rows it does and does not
-// ask about. The slice lives behind a pointer so the value receivers every
-// backend method uses still share one record.
+// every URL it was asked about. fakeYtdlpBackend panics on a second call. The
+// slice sits behind a pointer so the value receivers share one record.
 type countingYtdlpBackend struct {
 	formats []ytdlp.FormatEntry
 	mu      *sync.Mutex
@@ -696,23 +579,16 @@ func (c countingYtdlpBackend) ProbeTitle(_ context.Context, url string) (ytdlp.P
 	return ytdlp.ProbeResult{Title: "Some Title", Formats: c.formats}, nil
 }
 
-// TestBackfillNarrowsTheMenusOfRowsStagedBeforeTheProbeExisted is the live
-// complaint (jdp, 2026-09-05: "z.b. flac wir gar nicht von Youtube
-// angeboten"). Measured on the running instance the same day: five YouTube
-// rows from August, every one of them with no AvailableAudioFormats at all -
-// and empty means "no opinion", so the picker fell back to the full static
-// menu, flac included. The narrowing was already right; there was nothing to
-// narrow with, and nothing ever went back to fetch it.
+// Rows staged without probe data have empty menus, which the picker reads as
+// the full static menu, flac included. The backfill fetches what they lack.
 func TestBackfillNarrowsTheMenusOfRowsStagedBeforeTheProbeExisted(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
 	const url = "https://youtube.com/watch?v=backfill01"
 	family := putYtdlpFamily(t, a, url, nil)
 
-	// The state the live rows were actually in, asserted rather than assumed:
-	// without it this test would still pass against a build that fills the
-	// menus at staging time and never needs a backfill at all.
+	// Asserted so the test cannot pass against rows that already had menus.
 	if before := snapshot(t, a, family[ytdlp.VariantAudio].ID); len(before.AvailableAudioFormats) != 0 {
-		t.Fatalf("the audio row starts with %v, want nothing - this test is about rows that have no menu yet", before.AvailableAudioFormats)
+		t.Fatalf("the audio row starts with %v, want nothing; this test is about rows that have no menu yet", before.AvailableAudioFormats)
 	}
 
 	var asked []string
@@ -725,7 +601,7 @@ func TestBackfillNarrowsTheMenusOfRowsStagedBeforeTheProbeExisted(t *testing.T) 
 	}
 	for _, f := range audio.AvailableAudioFormats {
 		if f == "flac" {
-			t.Errorf("AvailableAudioFormats = %v, want flac excluded - the fixture's only audio track is mp4a", audio.AvailableAudioFormats)
+			t.Errorf("AvailableAudioFormats = %v, want flac excluded; the fixture's only audio track is mp4a", audio.AvailableAudioFormats)
 		}
 	}
 	if len(audio.AvailableAudioBitrates) == 0 {
@@ -735,16 +611,14 @@ func TestBackfillNarrowsTheMenusOfRowsStagedBeforeTheProbeExisted(t *testing.T) 
 		t.Error("the video row has no quality menu after the backfill")
 	}
 
-	// One probe for five rows: applyProbeFormats already writes to every row
-	// sharing the URL, so a probe per row would be four yt-dlp processes spent
-	// on an answer the first one already gave.
+	// One probe for five rows, since applyProbeFormats updates every row
+	// sharing the URL.
 	if len(asked) != 1 || asked[0] != url {
 		t.Errorf("the backfill asked about %v, want exactly one probe for %q", asked, url)
 	}
 }
 
-// TestBackfillLeavesRowsThatAlreadyHaveAMenuAlone is the other half: this runs
-// at every boot, so a collector full of already-probed rows must cost nothing.
+// The backfill runs at every boot, so already-probed rows must cost nothing.
 func TestBackfillLeavesRowsThatAlreadyHaveAMenuAlone(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
 	const url = "https://youtube.com/watch?v=backfill02"
@@ -756,22 +630,18 @@ func TestBackfillLeavesRowsThatAlreadyHaveAMenuAlone(t *testing.T) {
 	a.backfillYtdlpProbes()
 
 	if len(asked) != 0 {
-		t.Errorf("the backfill probed %v, want nothing - those rows already carry their menus", asked)
+		t.Errorf("the backfill probed %v, want nothing; those rows already carry their menus", asked)
 	}
 }
 
-// TestTheFourFixedExtensionsNeedNoProbe covers the half of jdp's "die
-// Dateiendung immer anzeigen" that never depended on the network: a thumbnail
-// is always jpg, a subtitle always srt, a description a text file, and an
-// audio row told "opus" by its preset already knows what it will be. Those
-// four used to be written only by applyProbeFormats, so a source that could
-// not be reached left all five rows with no extension at all.
+// Thumbnail, subtitle, description and a fixed-format audio row know their
+// extension without a probe, so an unreachable source still shows them.
 func TestTheFourFixedExtensionsNeedNoProbe(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
 	const url = "https://youtube.com/watch?v=fixedext01"
 	family := putYtdlpFamily(t, a, url, map[ytdlp.Variant]string{ytdlp.VariantAudio: "opus"})
 
-	// No backend wired at all: this is the box with no yt-dlp binary.
+	// No backend wired: a box without yt-dlp.
 	a.backfillYtdlpProbes()
 
 	for v, want := range map[ytdlp.Variant]string{
@@ -784,16 +654,14 @@ func TestTheFourFixedExtensionsNeedNoProbe(t *testing.T) {
 			t.Errorf("%s row Ext = %q, want %q", v, got, want)
 		}
 	}
-	// The video row is the one that genuinely cannot know: mkv only when a
-	// real merge will happen, which is a fact about the source.
+	// The video row cannot know: mkv depends on whether the source needs a
+	// merge.
 	if got := snapshot(t, a, family[ytdlp.VariantVideo].ID).Ext; got != "" {
 		t.Errorf("video row Ext = %q, want it left blank until a probe answers", got)
 	}
 }
 
-// TestAResolvedExtensionSurvivesTheFixedTable is the guard on the line above:
-// a "best" audio row whose probe already resolved m4a must not be reset to
-// anything a static table thinks it knows.
+// A "best" audio row the probe resolved to m4a keeps it.
 func TestAResolvedExtensionSurvivesTheFixedTable(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
 	const url = "https://youtube.com/watch?v=fixedext02"
@@ -802,7 +670,7 @@ func TestAResolvedExtensionSurvivesTheFixedTable(t *testing.T) {
 
 	before := snapshot(t, a, family[ytdlp.VariantAudio].ID).Ext
 	if before != "m4a" {
-		t.Fatalf("the probe left Ext = %q, want m4a - the fixture's only audio track is mp4a", before)
+		t.Fatalf("the probe left Ext = %q, want m4a; the fixture's only audio track is mp4a", before)
 	}
 	a.applyFixedVariantExts()
 	if after := snapshot(t, a, family[ytdlp.VariantAudio].ID).Ext; after != before {

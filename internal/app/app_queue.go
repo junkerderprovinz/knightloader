@@ -16,63 +16,42 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/schedule"
 )
 
-// StartResult is what a start actually did. It exists because "nothing
-// happened" had three different causes here and the route answered 204 to all
-// of them: the queue was halted, every named task was held back by a link
-// filter, or the ids matched nothing. A control that reports none of that is
-// indistinguishable from a control that is not wired up - which is exactly what
-// it was reported as, repeatedly.
+// StartResult is what a start actually did, so the interface can say why
+// nothing moved: the queue was halted, the named tasks were held by a filter
+// or disabled, or the ids matched nothing.
 type StartResult struct {
 	// Started is how many tasks left the collector for the queue.
 	Started int `json:"started"`
-	// Skipped is how many named tasks a link-filter rule is holding back. They
-	// are not started and never silently: only Restore takes a link out of that
-	// holding area, and somebody who pressed start on one deserves to be told
-	// that rather than watching the row not move.
+	// Skipped is how many named tasks a link-filter rule is holding back. Only
+	// Restore releases them.
 	Skipped int `json:"skipped"`
 	// Disabled is how many were passed over because their own switch is off.
-	//
-	// Its own field rather than more Skipped, because the two have different
-	// cures: a held link needs Restore, a disabled one needs its switch back on.
-	// Counted at all because it used to be counted nowhere - a link switched off
-	// in the collector went into the download list anyway on "start everything"
-	// (jdp, 2026-09-06: "wenn ich im sammlertab ein link auf inaktiv setzte und
-	// dann auf alle starten klicke verschiebt es ihn trotzdem in den
-	// downloadtab"), which made the switch decoration.
+	// It is separate from Skipped because the cure differs: turn the switch
+	// back on rather than Restore.
 	Disabled int `json:"disabled"`
-	// Released reports that this start took the queue off a halt the user had
-	// set by hand, so the interface can show the master switch flipping without
-	// waiting for its next poll.
+	// Released reports that this start lifted a halt the user had set by hand,
+	// so the interface can flip the master switch without waiting for a poll.
 	Released bool `json:"released"`
-	// Blocked reports the opposite: a schedule window is pausing the queue, the
-	// tasks are queued, and nothing will move until that window ends. Deliberately
-	// not merged with Released into one tri-state - they are two different
-	// sentences, and the interface says one or the other, never a code.
+	// Blocked reports that a schedule window is pausing the queue: the tasks
+	// are queued and wait for the window to end. It is a separate flag because
+	// the interface says a different sentence for it.
 	Blocked bool `json:"blocked"`
 }
 
 // StartTasks moves collected tasks into the download queue and dispatches them.
 // An empty id list starts every collected task.
 //
-// This is AUTOMATION's way in - auto-confirm, a watch folder, a forced
-// selection - and it never touches the master switch. StartTasksByHand is the
-// one that does, and the split is the whole point rather than a convenience:
-// releasing a halt because somebody pressed play is right, and releasing it
-// because a link happened to arrive from the browser extension would mean a
-// stopped queue starts itself the moment anybody clicks a download link.
+// This is the entrance for automation (auto-confirm, a watch folder, a forced
+// selection), and it never touches the master switch; otherwise a link arriving
+// from the browser extension would restart a stopped queue.
+// StartTasksByHand is the one that releases a halt.
 func (a *App) StartTasks(ids []string) StartResult {
 	return a.startTasks(ids, false)
 }
 
-// StartTasksByHand is StartTasks for a start somebody actually pressed: it also
-// releases a halt they set by hand.
-//
-// Without it, play after stop was a no-op that said nothing - the tasks went to
-// "queued", the dispatcher returned at its first line because the queue was
-// halted, and nothing moved (jdp, four rounds of "es lädt nicht herunter"). A
-// person who presses start on a queue they stopped earlier is asking for the
-// thing they stopped; a schedule window is a different matter and is never
-// overridden here, only reported.
+// StartTasksByHand is StartTasks for a start somebody pressed: it also releases
+// a halt they set by hand, since pressing start on a queue they stopped asks
+// for exactly that. A schedule window is never overridden, only reported.
 func (a *App) StartTasksByHand(ids []string) StartResult {
 	return a.startTasks(ids, true)
 }
@@ -83,40 +62,28 @@ func (a *App) startTasks(ids []string, byHand bool) StartResult {
 		want[id] = true
 	}
 	all := len(ids) == 0
-	// Settings has its own lock, independent of a.mu either way - read
-	// before taking a.mu purely so the critical section below stays about
-	// a.tasks and nothing else.
+	// Settings has its own lock; reading it first keeps the critical section
+	// about a.tasks.
 	cfg := a.Settings.Get()
 	addAtTop := cfg.AddAtTop
-	// What the timetable says with the manual switch left out of it. That is the
-	// one question the release below turns on: is the halt this start is about to
-	// hit the user's own, or a window they configured?
+	// The timetable's answer without the manual switch, which tells a halt the
+	// user set from a configured window.
 	scheduledPause := schedule.Compile(cfg.Schedule).At(time.Now(), schedule.State{Limit: cfg.SpeedLimit}).Paused
 	var out StartResult
 	a.mu.Lock()
 	var toStart []*core.Task
 	for id, t := range a.tasks {
-		// Skipped is the holding area, and it is why the flag is on the task
-		// rather than a note kept somewhere else: "start everything" reaches every
-		// collected link, and a filtered one has to be out of that reach without
-		// being out of the record. Restore is the only way it starts.
 		if t.Status != core.StatusCollected || !(all || want[id]) {
 			continue
 		}
 		if t.Skipped {
-			// Counted, not started. "Start everything" reaching a filtered link
-			// would defeat the filter, but a start aimed AT one by id used to
-			// return 204 and leave the row exactly as it was, with the reason
-			// sitting on the task where nothing had asked for it. Counting it
-			// here is what lets the answer say so.
+			// Held by the filter: counted so the answer can say so, never
+			// started. Only Restore releases it.
 			out.Skipped++
 			continue
 		}
-		// The user's own switch, and it holds here exactly as it holds in the
-		// dispatcher. It is checked for a start BY ID too, not only for "start
-		// everything": a switch that a direct start overrides is a switch that
-		// means "unless you ask twice", which is not what anybody reads it as.
-		// Turning the link back on is the one way to start it.
+		// The user's own switch holds for a start by id as well as for "start
+		// everything".
 		if !t.Enabled {
 			out.Disabled++
 			continue
@@ -127,50 +94,33 @@ func (a *App) startTasks(ids []string, byHand bool) StartResult {
 	for _, t := range toStart {
 		t.Status = core.StatusQueued
 		t.Error = ""
-		// The typed reason goes with the sentence, everywhere and always. Left
-		// standing it outlives what produced it, and the interface would advise
-		// about a dead link while the task is running again.
+		// The reason goes with the error sentence, or the interface would
+		// advise about a dead link while the task runs again.
 		t.Reason = core.ReasonUnknown
 		t.Speed = 0
 		a.queue = append(a.queue, t.ID)
 	}
 	out.Started = len(toStart)
-	// Starting something releases a halt the user set by hand.
-	//
-	// Without this, start is a no-op that says nothing. The tasks become
-	// "queued", dispatchLocked returns at its first line because a.halted is
-	// set, and nothing moves - and pressing stop afterwards does nothing either,
-	// because the queue is already halted. It takes no exotic state to reach:
-	// press stop once, then press play on a package. That is jdp's "wenn ich in
-	// der app starte, startet es nicht in der container instanz" and his "es
-	// lädt nicht herunter", and it is the same shape of defect as the one in
-	// Pause - a state the user COMMANDED that the app declined to record.
-	//
-	// Only the manual halt, never a scheduled one. A pause window is a standing
-	// instruction with a visible reason and an end, and overriding it here would
-	// mean overriding it again every night. That case leaves through Blocked
-	// instead, so the interface can give the reason rather than replacing one
-	// silence with another.
+	// A start by hand releases a halt the user set by hand; otherwise the tasks
+	// would sit queued behind a.halted with nothing said. A schedule window is
+	// never overridden, since it would have to be overridden again every night;
+	// that case is reported through Blocked.
 	if len(toStart) > 0 && a.halted {
 		if byHand && a.manualHalt && !scheduledPause {
 			a.manualHalt = false
 			a.halted = false
-			// Same reasoning as SetHalted's own release: the mark has served its
-			// purpose, and left armed it would halt the queue again at the next
-			// finished download for a reason nobody could connect to a click.
+			// As in SetHalted: a stop mark left armed would halt the queue
+			// again at the next finished download.
 			a.stopMark = ""
 			out.Released = true
 		} else {
 			out.Blocked = true
 		}
 	}
-	// AddAtTop: a batch leaving the collector plays next rather than joining
-	// the back of its band. renumberLocked is the same mechanism MoveIn and
-	// SetPriorityIn already use for exactly this move, so a newly confirmed
-	// batch and a manual "move to top" land in the identical order - and,
-	// like SetPriorityIn's own "arrived" set, the ids below are exactly the
-	// ones that just changed status, never the caller's raw id list, so a
-	// stale or unknown id in ids can never renumber a band it never joined.
+	// AddAtTop: a batch leaving the collector plays next, using the same
+	// renumbering as a manual "move to top". Only the tasks that just changed
+	// status are moved, never the raw ids, so an unknown id cannot renumber a
+	// band.
 	var moved []core.Task
 	if addAtTop && len(toStart) > 0 {
 		atTop := make(map[string]bool, len(toStart))
@@ -180,20 +130,16 @@ func (a *App) startTasks(ids []string, byHand bool) StartResult {
 		moved = a.renumberLocked(atTop, MoveTop)
 	}
 	a.dispatchLocked()
-	// Snapshotted after dispatching, never before. Dispatch settles the tasks it
-	// refuses — a filtered link, a taken destination — and a copy taken above
-	// would carry "queued" with the error cleared, which is exactly what would
-	// then be written over the refusal in the store and on screen.
+	// Copied after dispatching: dispatch settles the tasks it refuses (a
+	// filtered link, a taken destination), and an earlier copy would write
+	// "queued" over the refusal.
 	named := make(map[string]bool, len(toStart))
 	copies := make([]core.Task, 0, len(toStart)+len(moved))
 	for _, t := range toStart {
 		named[t.ID] = true
 		copies = append(copies, *t)
 	}
-	// The incumbents AddAtTop pushed down: their position changed too, and a
-	// browser that never hears about it draws the old order until something
-	// else happens to redraw the row - the same reason SetPriorityIn folds
-	// its own "moved" set in below its own dispatch call.
+	// The tasks AddAtTop pushed down changed position too.
 	for _, c := range moved {
 		if !named[c.ID] {
 			copies = append(copies, c)
@@ -205,44 +151,26 @@ func (a *App) startTasks(ids []string, byHand bool) StartResult {
 		_ = a.Store.Save(&c)
 		a.Hub.Broadcast("task", &c)
 	}
-	// The master switch moved, so everything watching it hears about it - a
-	// second browser, the extension, the phone (jdp, 2026-09-01: "diese buttons
-	// müssen quasi alle miteinander verknüpft sein über alle plattformen hinweg,
-	// so das es auf allen plattformen live umschaltet"). Broadcast outside the
-	// lock like every other queue event, and only when it actually changed:
-	// a "queue" frame on every start would redraw the switch on every surface
-	// several times a minute for nothing.
+	// The master switch moved, so every surface watching it (other browsers,
+	// the extension, the phone) is told. Only on a change, to avoid redrawing
+	// it on every start.
 	if out.Released {
 		a.Hub.Broadcast("queue", a.Queue())
 	}
 	return out
 }
 
-// RestartTasks re-runs finished or errored tasks from scratch: their backend
-// state is cleared, THEIR RESOLVER IS CLEARED, and they re-enter the download
-// queue to be routed again from nothing. Empty ids = every errored task.
+// RestartTasks re-runs finished or errored tasks from scratch: backend state
+// and resolver are cleared, and they re-enter the queue to be routed again.
+// Empty ids means every errored task.
 func (a *App) RestartTasks(ids []string) { a.RestartTasksIn(ids, nil) }
 
-// RestartTasksIn is RestartTasks narrowed to the causes worth retrying again.
+// RestartTasksIn is RestartTasks narrowed to failures with the given reasons, so
+// dead links, spent allowances and a full disk need not be retried together.
 //
-// A night of failures is never one problem. Forty errored rows are dead links,
-// a hoster allowance that is spent and a disk that filled up, all mixed
-// together, and the one "retry everything" button treats them as if they were
-// the same thing: it throws twenty-one dead links at the host to prove they are
-// still dead, spends an allowance that is already spent, and buries the seven
-// somebody could actually have fixed under the noise of the other thirty-three.
-// core.Reason is what tells them apart, and the app has been recording it on
-// every failure all along - it was simply never something a caller could aim at.
-//
-// An empty reason list means every cause, which is what RestartTasks has always
-// meant. core.ReasonUnknown ("") is a legitimate entry rather than a gap in the
-// list: "nothing classified this" is itself a group somebody can point at, and
-// dropping the empty string here would make that group the one the button
-// cannot reach.
-//
-// Given both, ids and reasons INTERSECT: the named rows that also failed for one
-// of those causes. A union would let picking a cause widen a selection somebody
-// had just narrowed by hand, which is the opposite of what the chip is for.
+// An empty reason list means every cause. core.ReasonUnknown ("") is a valid
+// entry: unclassified failures are a group of their own. With both ids and
+// reasons, the two intersect, so picking a cause never widens a selection.
 func (a *App) RestartTasksIn(ids []string, reasons []core.Reason) {
 	want := map[string]bool{}
 	for _, id := range ids {
@@ -272,29 +200,11 @@ func (a *App) RestartTasksIn(ids []string, reasons []core.Reason) {
 			t.Reason = core.ReasonUnknown
 			t.Loaded = 0
 			t.Speed = 0
-			// THE ROUTING IS DECIDED AGAIN TOO, and that is what "from scratch"
-			// has to mean to be worth pressing.
-			//
-			// It used to keep whichever backend had just failed, which is the one
-			// choice guaranteed to fail the same way: a task frozen on "jd" went
-			// back to a JDownloader with no account for that hoster however many
-			// times it was restarted. Meanwhile everything that could have changed
-			// in between - a key entered, an account added, a debrid service coming
-			// back off its cool-down - is exactly a change to the ROUTING, and was
-			// the only thing a restart could not pick up.
-			//
-			// Measured on the live instance (jdp, 2026-09-01/02): fourteen
-			// rapidgator links added before a TorBox key existed carried
-			// `resolver: "jd"` from the moment they were staged, and no restart ever
-			// moved them, because accountRoutableLocked("jd") answers true - JD has
-			// no tracked account to be unroutable. The standing advice was "delete
-			// them and paste them again", which is a person doing by hand what this
-			// one line does.
-			//
-			// Nothing is lost by clearing it: an empty resolver sends the next
-			// dispatch through resolverForTaskLocked's own search, which is where
-			// the resolver came from in the first place, and no surface lets
-			// anybody pin one by hand.
+			// Routing is decided again as well. What may have changed since the
+			// failure (a key entered, an account added, a debrid service back
+			// from its cool-down) is a routing change, and keeping the failed
+			// backend would fail the same way. An empty resolver goes through
+			// resolverForTaskLocked's search, and nothing lets a user pin one.
 			t.Resolver = ""
 			t.Mode = core.ModeUnknown
 			delete(a.active, id)
@@ -313,15 +223,14 @@ func (a *App) RestartTasksIn(ids []string, reasons []core.Reason) {
 	for _, r := range targets {
 		if t := a.tasks[r.id]; t != nil {
 			a.queue = append(a.queue, r.id)
-			// Filed again: settling took it out of the mirror set, and a task that
-			// is live once more has to block a second copy of its own link.
+			// Settling took it out of the mirror set; live again, it must block
+			// a second copy of its link.
 			a.dupes.Add(linkEntry(t))
 			live = append(live, t)
 		}
 	}
 	a.dispatchLocked()
-	// After dispatching, for the same reason as in StartTasks: a copy taken
-	// before it would write "queued, no error" over a task dispatch just refused.
+	// Copied after dispatching, as in startTasks.
 	copies := make([]core.Task, 0, len(live))
 	for _, t := range live {
 		copies = append(copies, *t)
@@ -334,69 +243,40 @@ func (a *App) RestartTasksIn(ids []string, reasons []core.Reason) {
 	}
 }
 
-// --- Taking a removal back --------------------------------------------------
-
-// UndoWindow is how long a removed selection can still be brought back.
-//
-// Thirty seconds is the distance between "those were the wrong rows" and "I have
-// moved on": long enough to read the message, look at the list and press the
-// button, short enough that nothing anybody has called deleted is quietly still
-// sitting here when they next look. The number is reported to the client
-// alongside the token rather than restated in the browser, because a message
-// that outlives the bin behind it is a button that answers "nothing to undo" for
-// no reason the person pressing it can see.
+// UndoWindow is how long a removed selection can still be brought back. It is
+// reported to the client with the token, so the message never outlives the bin.
 const UndoWindow = 30 * time.Second
 
-// binned is one removed task plus the one fact about it that does not live on
-// the task: whether it was still waiting for a slot. Status cannot answer that
-// once the task is out of a.tasks - queued and paused are both "not running" -
-// and a queued row put back without its place in a.queue is a download that
-// waits for ever.
+// binned is one removed task plus whether it was still waiting for a slot,
+// which Status cannot say once the task is gone; a queued row restored without
+// its place in a.queue would wait forever.
 type binned struct {
 	task   core.Task
 	queued bool
 }
 
-// bin is one removal kept whole. Half an undo would be worse than none: a
-// selection that comes back missing three rows looks exactly like a selection
-// somebody removed on purpose.
+// bin is one removal, kept whole: after a partial undo the missing rows would
+// look as if they had been removed on purpose.
 type bin struct {
 	app   *App
 	tasks []binned
 }
 
 // bins holds the removals that can still be taken back, keyed by the token the
-// client was handed.
-//
-// Package-level rather than a field on App because nothing else in this package
-// reads it and nothing outside this file may: an entry is written by
-// RemoveTasksUndoable, read once by UndoRemove, and dropped by whichever of the
-// clock and the shutdown reaches it first. It is empty at rest, so it holds a
-// task copy - and the App those copies belong to - for at most UndoWindow past
-// the removal that filled it.
+// client was handed. An entry is written by RemoveTasksUndoable, read once by
+// UndoRemove, and dropped by the clock or at shutdown, whichever comes first.
 var bins sync.Map // token -> *bin
 
-// RemoveTasksUndoable is RemoveTasks for a removal somebody pressed a button
-// for: it takes the same rows off the list and keeps a copy for UndoWindow, so
-// the press can be taken back.
+// RemoveTasksUndoable is RemoveTasks for a removal pressed by hand: it removes
+// the same rows and keeps a copy for UndoWindow.
 //
-// THE FILES ARE WHY deleteFiles GETS NO TOKEN. A removal that left the downloads
-// alone is completely reversible: the bytes are still on disk under the same
-// name, and a restored row points at the same file it did a second earlier. A
-// removal that erased them is not, and an undo that could only bring the row
-// back would be a button lying about what it restores - somebody presses it,
-// sees the download reappear, and finds out what it did not restore when the
-// transfer starts over from zero. So the erasing form removes exactly as it
-// always did and answers with no token, and the interface offers nothing.
+// With deleteFiles there is no token. The bytes are gone, and an undo that only
+// brought the row back would restart the transfer from zero.
 //
-// The bin is deliberately process-local and is never written to the store. A
-// crash, a container update or a restart is not an undo, and a download somebody
-// deleted last week coming back from the dead after a `docker pull` is the worst
-// possible way to discover that this feature exists. It expires on its own clock
-// and again on shutdown, whichever comes first.
+// The bin lives in memory only. A restart is not an undo, and a deletion coming
+// back after an update would be a nasty surprise.
 func (a *App) RemoveTasksUndoable(ids []string, deleteFiles bool) (removed []string, token string) {
-	// Snapshotted BEFORE the removal, because Remove is what takes the task out
-	// of a.tasks: read afterwards there is nothing left to copy.
+	// Copied before the removal takes the tasks out of a.tasks.
 	a.mu.Lock()
 	inQueue := make(map[string]bool, len(a.queue))
 	for _, id := range a.queue {
@@ -414,10 +294,8 @@ func (a *App) RemoveTasksUndoable(ids []string, deleteFiles bool) (removed []str
 	if deleteFiles || len(removed) == 0 {
 		return removed, ""
 	}
-	// Only what the removal really took. The two lists agree on any ordinary
-	// call, and where they do not - a second caller removing the same row in
-	// between - the removal is the one that happened, so it is the one the bin
-	// has to describe.
+	// Only what the removal really took, in case another caller removed a row
+	// in between.
 	b := &bin{app: a, tasks: make([]binned, 0, len(removed))}
 	for _, id := range removed {
 		if e, ok := kept[id]; ok {
@@ -429,16 +307,9 @@ func (a *App) RemoveTasksUndoable(ids []string, deleteFiles bool) (removed []str
 	}
 	token = newID()
 	bins.Store(token, b)
-	// The bin's own clock and its own shutdown, in one goroutine that always
-	// ends within UndoWindow.
-	//
-	// Deliberately NOT a.spawn: that counts work Close has to wait for, and this
-	// goroutine writes nothing, touches nothing Close tears down, and only lets
-	// go of copies - while a bin whose spawn was refused because Close had
-	// already committed would be the one copy of a removed download that never
-	// expires at all. Waiting on a.ctx beside the timer is what makes "expires
-	// on shutdown" true without a hook in Close: cancel lands, the select falls
-	// through, and the copies are gone before the store is closed under them.
+	// Not a.spawn: this goroutine writes nothing Close waits for, and a spawn
+	// refused during shutdown would leave the bin to never expire. Waiting on
+	// a.ctx drops the bin at shutdown too.
 	go func() {
 		timer := time.NewTimer(UndoWindow)
 		defer timer.Stop()
@@ -452,18 +323,13 @@ func (a *App) RemoveTasksUndoable(ids []string, deleteFiles bool) (removed []str
 }
 
 // UndoRemove puts back what one removal took and reports which rows came back.
-//
-// An unknown or expired token restores nothing and is not an error: the bin
-// emptying on its own clock is the normal end of a token's life, and a button
-// pressed a second too late has to say "there is nothing to undo", not "this
-// broke".
+// An unknown or expired token restores nothing and is not an error; expiring is
+// a token's normal end.
 func (a *App) UndoRemove(token string) []string {
 	v, ok := bins.Load(token)
 	b, _ := v.(*bin)
-	// The token belongs to the instance that issued it. One browser sits in
-	// front of several instances (see routes_federation.go's proxy), and
-	// restoring a peer's rows into this list would invent downloads nobody
-	// removed here - so a token from elsewhere is simply not found.
+	// A browser may sit in front of several instances (routes_federation.go),
+	// so a token issued by another instance is not found here.
 	if !ok || b == nil || b.app != a {
 		return nil
 	}
@@ -473,37 +339,26 @@ func (a *App) UndoRemove(token string) []string {
 	var live []*core.Task
 	for i := range b.tasks {
 		e := b.tasks[i]
-		// Never two rows for one id. A restore that ran twice, or an id that has
-		// somehow been handed out again, must not replace a live download with a
-		// copy of a dead one.
+		// Never two rows for one id: a live download must not be replaced by
+		// a copy of a removed one.
 		if a.tasks[e.task.ID] != nil {
 			continue
 		}
 		t := e.task
 		enqueue := e.queued
 		if t.Status == core.StatusRunning || t.Status == core.StatusExtracting {
-			// Nothing is driving these any more. Remove told the backend to
-			// forget the task, and a backend cannot be told to remember one
-			// again, so "waiting to be fetched" is the honest state to come back
-			// in - a row showing a speed nobody is producing is the exact defect
-			// reviveOnBoot exists to prevent after a restart.
+			// The backend was told to forget the task, so it comes back as
+			// waiting, as reviveOnBoot does after a restart.
 			t.Status = core.StatusQueued
 			enqueue = true
 		}
-		// THE BYTE COUNT IS KEPT, and that is reviveOnBoot's rule rather than a
-		// second opinion about it: a stored Loaded is a claim about a FILE, so it
-		// stands exactly as long as the file does. This bin only ever holds a
-		// removal that left the downloads alone, so the partial is still on disk
-		// under the same name at the moment this runs - and zeroing a number
-		// that is true, because of what will happen next, is the dishonesty that
-		// comment names in so many words. The speed is the opposite case: it was
-		// a claim about a transfer, and there is no transfer.
+		// Loaded is kept, as in reviveOnBoot: it describes a file, and a removal
+		// that kept the files left the partial on disk. Speed described a
+		// transfer, and there is none.
 		t.Speed = 0
 		a.tasks[t.ID] = &t
-		// Filed again, but never over a link that is live now. The removal
-		// unfiled this URL, so anything pasted since owns the record; overwriting
-		// it would point the mirror set at the restored row and let a third copy
-		// of a download that is running right now past the check.
+		// Filed again, but never over a link pasted since the removal, or the
+		// mirror set would let a third copy past.
 		if m := a.dupes.Check(dedupe.Entry{URL: t.URL}); m.Verdict != dedupe.Duplicate {
 			a.dupes.Add(linkEntry(&t))
 		}
@@ -512,14 +367,11 @@ func (a *App) UndoRemove(token string) []string {
 		}
 		live = append(live, &t)
 	}
-	// Back into the order it was in, not onto the end of the queue: priority and
-	// position travelled with the task copy, and appending without this would
-	// leave a restored row behind everything it used to be ahead of.
+	// Priority and position came back with the copies, so restore the order
+	// rather than leaving restored rows at the end.
 	a.sortQueueLocked()
 	a.dispatchLocked()
-	// After dispatching, for the same reason as in StartTasks and RestartTasks:
-	// a copy taken before it would write "queued, no error" over a task dispatch
-	// has just refused.
+	// Copied after dispatching, as in startTasks.
 	copies := make([]core.Task, 0, len(live))
 	for _, t := range live {
 		copies = append(copies, *t)
@@ -535,32 +387,16 @@ func (a *App) UndoRemove(token string) []string {
 	return back
 }
 
-// --- Who an action is about -----------------------------------------------
-
-// Selection names the tasks one queue action is about.
-//
-// Every verb below takes one, because every one of them is offered over forty
-// rows as readily as over a single one. A route that can only take one id turns
-// a selection into forty requests, forty store writes and forty broadcasts,
-// which is slow enough to look broken and can fail halfway.
+// Selection names the tasks one queue action is about, so a verb over many
+// rows is one request rather than one per row.
 type Selection struct {
-	// Ids are the tasks named outright, which is what a selection on screen is.
+	// Ids are the tasks named outright.
 	Ids []string `json:"ids,omitempty"`
-	// Package is a whole package by name.
-	//
-	// It is a pointer because the empty string is a legitimate package name — it
-	// is the ungrouped one — and a plain string cannot tell that apart from "not
-	// by package at all". It is worth having beside Ids: the ids a list can send
-	// are the rows that survived its filter, and "send this package to the top"
-	// has to carry the rows the filter hid with it, or the package arrives there
-	// in pieces.
+	// Package is a whole package by name, including rows a list filter hides.
+	// It is a pointer because "" is a real package (the ungrouped one).
 	Package *string `json:"package,omitempty"`
-	// All widens the selection to every task the verb can touch.
-	//
-	// It has to be asked for. An empty request is a client that meant to name
-	// something and did not, and quietly reading that as "all of them" is the
-	// worst possible way to report the mistake — the queue rebuilds itself and
-	// nothing says why.
+	// All widens the selection to every task the verb can touch. It must be
+	// asked for; an empty request is not read as "all".
 	All bool `json:"all,omitempty"`
 }
 
@@ -596,8 +432,7 @@ func (a *App) pickLocked(sel Selection, keep func(*core.Task) bool) []*core.Task
 	return out
 }
 
-// idsOf is the answer every selection verb gives back: what was actually
-// touched, so that nothing has to re-read the whole list to find out which.
+// idsOf is what every selection verb returns: the ids it actually touched.
 func idsOf(in []*core.Task) []string {
 	out := make([]string, 0, len(in))
 	for _, t := range in {
@@ -606,10 +441,8 @@ func idsOf(in []*core.Task) []string {
 	return out
 }
 
-// movable is a task that still has somewhere to go in the wait order. A
-// finished or failed download has no place left in it, and letting a one-step
-// move step over one would spend a press of the button on nothing the user can
-// see.
+// movable reports whether a task still has a place in the wait order. A
+// one-step move must not spend itself on a finished or failed download.
 func movable(t *core.Task) bool {
 	return t.Status != core.StatusDone && t.Status != core.StatusError
 }
@@ -622,12 +455,8 @@ func (a *App) sortQueueLocked() {
 		if x == nil || y == nil {
 			return y == nil && x != nil
 		}
-		// Forced outranks priority, because it is not a priority: it is the answer
-		// to "everything else can wait, fetch this one", and a forced link sitting
-		// behind a high-priority package would be the one thing it was asked not to
-		// do. It only reorders the queue — a forced link still waits for a slot,
-		// since starting past MaxConcurrent is a separate decision with per-host and
-		// per-account caps behind it.
+		// Forced outranks priority: it means "fetch this one first". It only
+		// reorders; a forced link still waits for a slot.
 		if x.Forced != y.Forced {
 			return x.Forced
 		}
@@ -641,16 +470,9 @@ func (a *App) sortQueueLocked() {
 	})
 }
 
-// --- Priority ---------------------------------------------------------------
-
-// The seven priorities, JDownloader's own set, so that the muscle memory of
-// everybody arriving from it carries over.
-//
-// Priority is a pure interface enum. The only thing it does is order the wait
-// queue: no backend reads it, it buys no bandwidth, it lifts no host limit, and
-// a task at the highest priority still waits for a free slot exactly as one at
-// the lowest does. Saying that out loud is the point — a control that looked
-// like it made a download faster would be pressed for that, and it does not.
+// The seven priorities, JDownloader's set. Priority only orders the wait queue:
+// no backend reads it, it buys no bandwidth, and the highest priority still
+// waits for a free slot.
 const (
 	PriorityLowest  = -3
 	PriorityLower   = -2
@@ -662,19 +484,14 @@ const (
 )
 
 // PriorityChoice is one entry of the enum as the interface offers it: the value
-// that goes on the task, and a stable id the browser translates.
-//
-// There is deliberately no label. The server does not know which of the shipped
-// locales a given browser is showing, and two clients of one instance routinely
-// differ — a translated sentence sent from here is the wrong language for one
-// of them.
+// that goes on the task, and a stable id the browser translates. There is no
+// label, since clients of one instance can use different languages.
 type PriorityChoice struct {
 	ID    string `json:"id"`
 	Value int    `json:"value"`
 }
 
-// Priorities is the list the menu is built from, highest first, so that an
-// entry which exists is always a value the queue implements.
+// Priorities is the list the menu is built from, highest first.
 func Priorities() []PriorityChoice {
 	return []PriorityChoice{
 		{ID: "highest", Value: PriorityHighest},
@@ -687,11 +504,9 @@ func Priorities() []PriorityChoice {
 	}
 }
 
-// clampPriority keeps a value inside the enum rather than refusing it: the
-// queue can order any integer, so a client one version ahead is not worth a
-// 400. The bound itself lives in internal/rules because a Packagizer rule
-// writes this same field, and two bounds that disagree mean a rule can hand a
-// task a priority the interface has no control able to undo.
+// clampPriority keeps a value inside the enum rather than refusing it, since
+// the queue can order any integer. The bound lives in internal/rules because a
+// Packagizer rule writes the same field.
 func clampPriority(p int) int {
 	if p < rules.PriorityMin {
 		return rules.PriorityMin
@@ -708,19 +523,15 @@ func (a *App) SetPriority(ids []string, priority int) {
 	a.SetPriorityIn(Selection{Ids: ids}, priority)
 }
 
-// SetPriorityIn puts a selection at one of the seven priorities. It takes
-// effect immediately for everything not already downloading; a transfer in
-// flight is never interrupted to honour an ordering decision, because the bytes
-// it has already fetched are worth more than the order.
+// SetPriorityIn puts a selection at one of the seven priorities. It applies at
+// once to everything not yet downloading; a running transfer is never
+// interrupted for an ordering decision.
 func (a *App) SetPriorityIn(sel Selection, priority int) []string {
 	priority = clampPriority(priority)
 	a.mu.Lock()
 	chosen := a.pickLocked(sel, nil)
-	// Which of them actually change band. A task carries its manual position
-	// with it, and that position was a statement about the band it is leaving:
-	// left as it stands, a link somebody sent to the bottom of "normal" arrives
-	// at the TOP of "highest", ahead of links that were there all along, for a
-	// reason nobody looking at the list could reconstruct.
+	// The tasks that change band. Their manual position described the old
+	// band and must not carry over.
 	arrived := map[string]bool{}
 	for _, t := range chosen {
 		if t.Priority != priority && movable(t) {
@@ -728,10 +539,8 @@ func (a *App) SetPriorityIn(sel Selection, priority int) []string {
 		}
 		t.Priority = priority
 	}
-	// They join at the end of the band, keeping the order they had among
-	// themselves. Last inside a higher band is still sooner than first inside a
-	// lower one, which is what was asked for, and promoting a band somebody has
-	// already ordered by hand must not scramble it.
+	// They join the end of the new band in their existing order, leaving a
+	// hand-ordered band intact.
 	moved := a.renumberLocked(arrived, MoveBottom)
 	copies := make([]core.Task, 0, len(chosen)+len(moved))
 	named := make(map[string]bool, len(chosen))
@@ -739,9 +548,7 @@ func (a *App) SetPriorityIn(sel Selection, priority int) []string {
 		named[t.ID] = true
 		copies = append(copies, *t) // after the renumbering, so the position is current
 	}
-	// The incumbents the arrivals pushed down: they changed too, and a browser
-	// that never hears about it draws the old order until something else
-	// happens to redraw the row.
+	// The tasks the arrivals pushed down changed position too.
 	for _, c := range moved {
 		if !named[c.ID] {
 			copies = append(copies, c)
@@ -753,13 +560,9 @@ func (a *App) SetPriorityIn(sel Selection, priority int) []string {
 	return idsOf(chosen)
 }
 
-// --- The manual order -------------------------------------------------------
-
-// The four relative ways a selection changes place in the wait order. They are
-// the whole vocabulary for a single step on purpose: anything finer is a
-// drag-and-drop reorder, which has to arrive as one ordered list in one
-// request — two browsers interleaving move-up and move-down produce an order
-// neither of them asked for. That is ReorderBand, further down.
+// The four relative moves in the wait order. Anything finer is a drag-and-drop
+// reorder, which arrives as one ordered list (ReorderBand) so two browsers
+// cannot interleave steps.
 const (
 	MoveTop    = "top"
 	MoveUp     = "up"
@@ -774,31 +577,19 @@ func (a *App) MoveTasks(ids []string, where string) {
 
 // MoveIn changes where a selection sits in the wait order.
 //
-// The move stays inside the selection's own priority band, and that is a
-// promise rather than a limitation. Priority outranks the manual position in
-// the comparator, so a task lifted above a higher-priority one sorts straight
-// back to where it was: the button would do nothing at all every few presses,
-// which is far worse than a button that says what it can reach. Crossing a
-// whole band is what the priority control is for.
+// The move stays inside the selection's priority band: priority outranks
+// position in the comparator, so crossing a band is the priority control's job.
 //
-// Positions are renumbered densely inside each band the move touches, which is
-// what makes a single step expressible at all: the old scheme wrote min-1 and
-// max+1, so it could say "before everything" and "after everything" and had no
-// way to say "one place".
-//
-// The dense run is negative, ending at -1. A task nobody has moved carries
-// position zero, so numbering the band from zero upwards would put every link
-// pasted after a move ahead of the ones already ordered — a queue that reshuffles
-// itself when you paste. Ending below zero leaves the untouched tasks where they
-// belong: at the back, in the order they arrived. It is also why the numbers
-// cannot drift: every renumbering lands in the same bounded run.
+// Positions are renumbered densely within each touched band, which is what
+// makes a single step possible. The run is negative and ends at -1: unmoved
+// tasks carry position zero, so links pasted later stay behind the ordered
+// ones in arrival order, and the numbers cannot drift.
 func (a *App) MoveIn(sel Selection, where string) []string {
 	switch where {
 	case MoveTop, MoveUp, MoveDown, MoveBottom:
 	default:
-		// Refused rather than defaulted. The old form read everything that was not
-		// "top" as "bottom", so a typo in a client sent a selection to the end of
-		// the queue and was answered with a 204.
+		// Refused rather than defaulted, so a client typo does not move
+		// anything.
 		return nil
 	}
 	a.mu.Lock()
@@ -819,11 +610,8 @@ func (a *App) MoveIn(sel Selection, where string) []string {
 }
 
 // renumberLocked applies one rearrangement to every band that holds a wanted
-// task and hands back the tasks whose place actually changed, ready to publish.
-//
-// It is shared by the manual moves and by a priority change, because the two
-// are the same operation seen from either side: something arrives in a band and
-// the band has to come out with one unambiguous order. Caller holds a.mu.
+// task and returns the tasks whose place changed, ready to publish. Manual
+// moves and priority changes share it. Caller holds a.mu.
 func (a *App) renumberLocked(want map[string]bool, where string) []core.Task {
 	if len(want) == 0 {
 		return nil
@@ -838,20 +626,10 @@ func (a *App) renumberLocked(want map[string]bool, where string) []core.Task {
 	return copies
 }
 
-// renumberBand writes dense positions for one band, in the slice's current
-// order, and hands back the tasks whose position actually changed.
-//
-// Shared by renumberLocked and ReorderBand, because both end at the same
-// place — a band settled into a definite order, needing a definite position
-// per task — and only differ in how that order was decided: a relative step
-// rearranges the band first and hands it here unchanged in length, an
-// explicit drag order already arrives as the exact band, ready to number.
-//
-// The dense run is negative, ending at -1, for the reason given above MoveIn:
-// a task nobody has touched carries position zero, so a run starting at zero
-// would put every task numbered here ahead of the ones sitting untouched at
-// the back — including one pasted in after this call returns. Caller holds
-// a.mu.
+// renumberBand writes dense positions for one band in the slice's current
+// order and returns the tasks whose position changed. renumberLocked and
+// ReorderBand share it. The run ends at -1 for the reason given at MoveIn.
+// Caller holds a.mu.
 func renumberBand(band []*core.Task) []core.Task {
 	var copies []core.Task
 	for i, t := range band {
@@ -866,10 +644,9 @@ func renumberBand(band []*core.Task) []core.Task {
 }
 
 // bandsLocked groups the movable tasks into the runs the manual position
-// actually orders: one band per forced/priority pair, each already in wait
-// order. Two tasks in different bands are separated by something that outranks
-// position, so shuffling positions between them changes nothing on screen and
-// nothing in the dispatcher. Caller holds a.mu.
+// orders: one band per forced and priority pair, each in wait order. Between
+// bands something outranks position, so positions only matter within one.
+// Caller holds a.mu.
 func (a *App) bandsLocked() [][]*core.Task {
 	type key struct {
 		forced   bool
@@ -899,11 +676,9 @@ func (a *App) bandsLocked() [][]*core.Task {
 // reorder rearranges one band in place and reports whether the band held any of
 // the wanted tasks.
 //
-// A one-step move is a block move: a selected run slides past the one
-// unselected task beside it, all of it together. Swapping each selected task
-// with its neighbour instead would have two adjacent selected rows swap with
-// each other and cancel out, so a selection of three would sit still while a
-// selection of one moved.
+// A one-step move is a block move: a selected run slides past the unselected
+// task beside it. Swapping each selected task with its neighbour would make
+// adjacent selected rows swap with each other and cancel out.
 func reorder(band []*core.Task, want map[string]bool, where string) bool {
 	hit := false
 	for _, t := range band {
@@ -926,8 +701,7 @@ func reorder(band []*core.Task, want map[string]bool, where string) bool {
 				rest = append(rest, t)
 			}
 		}
-		// Each half keeps the order it had: a selection sent to the top arrives in
-		// the order the user is looking at, not reversed or shuffled.
+		// Each half keeps its order, so a selection arrives as it was shown.
 		if where == MoveTop {
 			copy(band, append(picked, rest...))
 		} else {
@@ -949,47 +723,19 @@ func reorder(band []*core.Task, want map[string]bool, where string) bool {
 	return true
 }
 
-// --- Drag-and-drop: the fifth way, deliberately apart from the other four ---
-
-// ReorderBand puts one whole priority band in the exact order a drag arrived
-// with, rather than a relative step.
+// ReorderBand applies the exact order a drag arrived with to tasks in one
+// priority band, as one list in one pass under the lock, so two browsers'
+// drags cannot interleave.
 //
-// It is the reorder the comment above MoveTop et al. says a one-step
-// vocabulary cannot express, and it exists for exactly the case that comment
-// names: an arbitrary drag cannot be replayed as a sequence of up/down/top/
-// bottom without two browsers' drags being able to interleave into an order
-// neither of them asked for. So it does not try — a drag arrives here as one
-// complete ordered list, every id currently in the band, and is applied in a
-// single pass under the lock, the same as a click already is.
+// ids may be a subset of the band: those tasks take that order within the
+// slots they already occupy, and every other task stays put. A band spans the
+// collector and the download list, while each screen shows only part of it,
+// so a drag inside one list names only some of the band.
 //
-// ids may be a SUBSET of the band, and that is the whole of a fix measured
-// against a live instance rather than reasoned about (jdp, 2026-09-01: "das drag
-// and drop funktioniert überhaupt nicht. fixe es endlich!").
-//
-// It used to demand the band's entire membership, and the reasoning for that was
-// sound in the abstract and wrong in practice. A band is (forced, priority) over
-// EVERY task the app holds - measured on the live instance: 38 tasks, one single
-// band, 24 of them staged in the collector and 14 in the queue. No screen shows
-// a band. The app shows the download tab or the collector tab, each of which is
-// half of one, so every drag either surface could make was refused for naming
-// only half the ids. Nothing in the interface could have known that, and the
-// error never reached anybody: the collector's list was not even wired to send
-// one.
-//
-// So a subset now means "put THESE tasks in THIS order, in the slots they
-// already occupy, and leave every other task in the band exactly where it is".
-// That is unambiguous, it is what a drag inside one visible list means, and it
-// composes: two clients dragging in different halves of a band do not scramble
-// each other's half.
-//
-// Still refused, with a reason: an id that does not exist, one listed twice, one
-// that is not movable at all, and a set that spans more than one band. Those are
-// not partial information, they are contradictions.
+// Refused with a reason: an unknown id, one listed twice, one that is not
+// movable, and ids from more than one band.
 func (a *App) ReorderBand(ids []string) ([]string, error) {
-	// The route layer already refuses an empty list before this is ever
-	// reached (requireIDs, routes_queue.go) - guarded again here too, since
-	// this is an exported method any future caller could reach directly, and
-	// tasks[0] below would panic on an empty slice rather than fail cleanly.
+	// The route refuses an empty list too, but tasks[0] below needs this.
 	if len(ids) == 0 {
 		return nil, errors.New("this needs at least one task id")
 	}
@@ -1014,8 +760,7 @@ func (a *App) ReorderBand(ids []string) ([]string, error) {
 		tasks = append(tasks, t)
 	}
 
-	// Same band as each other: the pairing bandsLocked groups by, checked here
-	// against the first task rather than reaching for bandsLocked twice.
+	// All in one band: the pairing bandsLocked groups by.
 	first := tasks[0]
 	for _, t := range tasks[1:] {
 		if t.Priority != first.Priority || t.Forced != first.Forced {
@@ -1024,8 +769,6 @@ func (a *App) ReorderBand(ids []string) ([]string, error) {
 		}
 	}
 
-	// Same band as bandsLocked itself would draw it, so a missing or extra id
-	// is caught even though every id given so far checked out on its own.
 	var band []*core.Task
 	for _, b := range a.bandsLocked() {
 		if b[0].Forced == first.Forced && b[0].Priority == first.Priority {
@@ -1033,14 +776,8 @@ func (a *App) ReorderBand(ids []string) ([]string, error) {
 			break
 		}
 	}
-	// The caller's order, dropped into the slots those same tasks already hold.
-	//
-	// Walking the band once and consuming the caller's list at each slot it owns
-	// is what makes a partial list mean something exact: the tasks nobody
-	// mentioned never move, and the ones that were mentioned end up among
-	// themselves in the order given. Handed the whole band, this is the identity
-	// it always was, so the complete-list case is unchanged rather than
-	// re-implemented.
+	// The caller's order, placed into the slots those tasks already hold:
+	// unnamed tasks never move.
 	ordered := make([]*core.Task, 0, len(band))
 	next := 0
 	for _, t := range band {
@@ -1052,10 +789,8 @@ func (a *App) ReorderBand(ids []string) ([]string, error) {
 		ordered = append(ordered, t)
 	}
 	if next != len(tasks) {
-		// Unreachable by construction - every id checked out against a.tasks and
-		// against this band's own membership above - but a renumber that silently
-		// dropped a task would write positions for a band that is missing one, so
-		// it fails rather than trusts.
+		// Should not happen after the checks above, but renumbering a band that
+		// lost a task would corrupt its positions.
 		a.mu.Unlock()
 		return nil, fmt.Errorf("only %d of %d ids belong to this band", next, len(tasks))
 	}
@@ -1074,14 +809,9 @@ type QueueState struct {
 	// Running is how many downloads are actually in flight, which is what makes
 	// "halted" legible: halted with three running means three still finishing.
 	Running int `json:"running"`
-	// Quiet is whether the second set of limits is in force (app_quiet.go).
-	//
-	// What is IN FORCE, not the switch that was last pressed - the same choice
-	// Halted above makes, and it matters for the same reason: a timetable window
-	// turns this mode on too, and an interface that drew the button from the
-	// switch alone would show it unlit through the whole nightly window it is
-	// describing. Which of the two put it on is answerable from
-	// ScheduleState.State.Quiet, which is the timetable's own answer.
+	// Quiet is whether the second set of limits is in force (app_quiet.go),
+	// whether by the switch or a timetable window. ScheduleState.State.Quiet
+	// says whether the timetable did it.
 	Quiet bool `json:"quiet"`
 }
 
@@ -1097,26 +827,18 @@ func (a *App) Queue() QueueState {
 // away work the user did not ask to lose.
 func (a *App) SetHalted(halted bool) {
 	a.mu.Lock()
-	// Recorded as the manual switch as well as the effective one. The schedule
-	// evaluates against the manual flag, so a stop made by hand survives the end
-	// of a window instead of being lifted by it — and the runner is deliberately
-	// not woken, so a manual release inside a pause window holds until the next
-	// boundary rather than being reversed a millisecond later.
+	// Recorded as the manual switch too, which the schedule evaluates against,
+	// so a stop by hand survives the end of a window. The runner is not woken,
+	// so a release inside a pause window holds until the next boundary.
 	a.manualHalt = halted
 	a.halted = halted
 	if !halted {
-		// Resuming clears the stop mark: it has served its purpose, and leaving
-		// it armed would halt the queue again at the next finished download for
-		// a reason nobody would connect to a click made minutes ago.
+		// A stop mark left armed would halt the queue again at the next
+		// finished download.
 		a.stopMark = ""
 	}
-	// Dispatched either way, and the "either way" is the point. Halting used to
-	// skip this, on the reading that a stopped queue has nothing to dispatch -
-	// true until dispatchLocked was given something to do while halted, namely
-	// write "the queue is stopped" onto every waiting row. Skipped here, the
-	// stop button set the switch and left two hundred rows saying "waiting" with
-	// no reason, which is the one question the reason exists to answer.
-	// dispatchLocked reads a.halted itself and starts nothing behind a stop.
+	// Dispatched even when halting, so every waiting row is told why it waits.
+	// dispatchLocked starts nothing while halted.
 	a.dispatchLocked()
 	a.mu.Unlock()
 	a.Hub.Broadcast("queue", a.Queue())
@@ -1133,31 +855,17 @@ func (a *App) SetStopMark(id string) {
 	a.Hub.Broadcast("queue", a.Queue())
 }
 
-// --- The hard stop ------------------------------------------------------------
-
-// StopAll is the other stop, and it is a different button from the master
-// switch on purpose. SetHalted stops the dispatcher and lets the transfers in
-// flight run to the end; this one stops them where they are.
+// StopAll is the hard stop. SetHalted lets running transfers finish; this
+// stops them where they are. The order of the steps matters:
 //
-// The order of the three steps below is the whole implementation, and getting
-// it wrong is not a subtle bug:
+//   - the halt is written first, under the lock the snapshot is taken under,
+//     or each stopped task's freed slot would be refilled at once;
+//   - the ids are copied out, since StopBack takes a.mu and completion events
+//     write a.active from backend goroutines;
+//   - the backends are told last, outside the lock, since stopping a JD or
+//     debrid task goes over the network.
 //
-//   - the halt is written FIRST, under the same lock the snapshot is taken
-//     under. Pause frees a slot and dispatches, so against a queue that is not
-//     yet halted this loop refills every slot it empties: the list settles with
-//     as many downloads running as it started with, only different ones, and
-//     "stop everything" looks like it did nothing;
-//   - the ids are copied out rather than ranged over. Pause takes a.mu itself,
-//     so ranging a.active here would deadlock on the first entry — and letting
-//     go of the lock to range it instead is a data race, because completion
-//     events write that same map from the backends' own goroutines while this
-//     runs;
-//   - the backends are told last, outside the lock, because Pause reaches the
-//     network for a JD or a debrid task and the whole app must not wait behind
-//     a box that is not answering.
-//
-// It answers with what it stopped, so the interface can say so without
-// re-reading the list.
+// It returns the ids it stopped.
 func (a *App) StopAll() []string {
 	a.mu.Lock()
 	a.manualHalt = true
@@ -1167,13 +875,11 @@ func (a *App) StopAll() []string {
 		ids = append(ids, id)
 	}
 	a.mu.Unlock()
-	// Sorted only so the answer is stable; map order would make two identical
-	// stops report their work in two different orders.
+	// Sorted so the answer is stable.
 	sort.Strings(ids)
 	for _, id := range ids {
-		// StopBack, not Pause: the transfer stops, and the task goes back into
-		// the wait queue rather than out of it. Pausing them out was what made
-		// the play button do nothing afterwards - see StopBack's own comment.
+		// StopBack rather than Pause, so the task returns to the wait queue and
+		// play resumes it.
 		a.StopBack(id)
 	}
 	a.Hub.Broadcast("queue", a.Queue())
@@ -1184,32 +890,23 @@ func (a *App) StopAll() []string {
 type StopCost struct {
 	// Running is how many transfers would be stopped.
 	Running int `json:"running"`
-	// Losing names the transfers that cannot be picked up where they stopped, so
-	// the dialog can point at the rows rather than quoting a number nobody can
-	// place.
+	// Losing names the transfers that cannot resume where they stopped, so the
+	// dialog can point at the rows.
 	Losing []string `json:"losing"`
-	// Bytes is what those transfers have already written and would have to fetch
-	// again. It is what has been loaded, never the announced size: a 40 GB
-	// download that has written nothing loses nothing.
+	// Bytes is what those transfers have already written and would fetch again:
+	// loaded bytes, not the announced size.
 	Bytes int64 `json:"bytes"`
-	// Unknown is how many transfers nobody has asked the resume question about.
-	// It is counted apart and never folded into Losing, because "we do not know"
-	// is a different sentence from "you will lose 4.2 GB", and telling the second
-	// when the first is true is exactly how people learn to click straight
-	// through the dialog.
+	// Unknown is how many transfers have not been asked whether they resume.
+	// They are kept out of Losing so the dialog never overstates the loss.
 	Unknown int `json:"unknown"`
-	// UnknownBytes is what those have written — worth showing as a maybe, worth
-	// never showing as a loss.
+	// UnknownBytes is what those have written: a possible loss, not a certain
+	// one.
 	UnknownBytes int64 `json:"unknownBytes"`
 }
 
-// StopCost reports what a hard stop right now would throw away.
-//
-// The three answers to "does this resume" are three answers here. A transfer
-// that resumes cleanly costs nothing and is not counted at all; one that cannot
-// is counted in Bytes; one nobody has asked is counted apart. The warning is
-// the entire reason the hard stop is a separate button, and a warning that
-// overstates itself once is a warning nobody reads again.
+// StopCost reports what a hard stop right now would throw away. A transfer
+// that resumes costs nothing, one that cannot counts in Bytes, and one nobody
+// has asked counts apart.
 func (a *App) StopCost() StopCost {
 	a.mu.Lock()
 	defer a.mu.Unlock()
@@ -1233,23 +930,14 @@ func (a *App) StopCost() StopCost {
 	return cost
 }
 
-// --- Starting now, and switching off --------------------------------------
-
 // ForceDownload starts a selection now: it goes to the front of the wait order,
-// past every priority, and past the two flags that would otherwise hold it —
-// a link switched off or parked cannot be "started now" and left off.
+// past every priority, and its disabled and hold flags are cleared. Forced is
+// not an eighth priority; a forced link must never wait behind a high-priority
+// package.
 //
-// Forced is deliberately not an eighth priority. It is the answer to
-// "everything else can wait, fetch this one", and a forced link queued behind a
-// high-priority package would be the one thing it was asked not to do.
-//
-// Two things it does not do, both because doing them quietly would be worse
-// than not doing them. It does not lift the master switch: a stopped queue is a
-// decision about the whole box, and a per-link button is not where that gets
-// undone — the interface says so instead of starting nothing in silence. And it
-// does not open a second door into the queue for a staged link: those go
-// through StartTasks first, which is the one place the collector's own rules
-// are applied.
+// It does not lift the master switch, which is a decision about the whole box;
+// the interface says so instead. Staged links go through StartTasks, where the
+// collector's rules apply.
 func (a *App) ForceDownload(sel Selection) []string {
 	a.mu.Lock()
 	chosen := a.pickLocked(sel, movable)
@@ -1263,9 +951,8 @@ func (a *App) ForceDownload(sel Selection) []string {
 	a.mu.Unlock()
 
 	if len(staged) > 0 {
-		// Never with an empty list: to StartTasks that means "start everything in
-		// the collector", which is emphatically not what forcing three links asks
-		// for.
+		// Never with an empty list, which StartTasks reads as everything in the
+		// collector.
 		a.StartTasks(staged)
 	}
 
@@ -1280,10 +967,9 @@ func (a *App) ForceDownload(sel Selection) []string {
 		t.Enabled = true
 		t.Hold = false
 		if t.Status == core.StatusPaused {
-			// A paused transfer is put back in the queue rather than resumed
-			// directly: the dispatcher is the only thing that knows whether this
-			// backend has seen the task before, and a Resume sent to one that has
-			// not starts nothing.
+			// Requeued rather than resumed: only the dispatcher knows whether the
+			// backend has seen the task, and a Resume to one that has not starts
+			// nothing.
 			t.Status = core.StatusQueued
 			t.Speed = 0
 			a.dequeueLocked(id)
@@ -1298,65 +984,42 @@ func (a *App) ForceDownload(sel Selection) []string {
 }
 
 // SetEnabledIn is the bulk switch for disabled links: a selection, a whole
-// package, or every link that is currently off.
-//
-// Only the links the switch would actually move are touched. "Switch everything
-// back on" over a thousand-row list must not write and broadcast a thousand
-// tasks that were already on — the store write is the cheap half; a thousand
-// rows repainting in every open browser is the half people notice.
+// package, or every link that is currently off. Only links the switch would
+// change are touched, so a large list is not rewritten and rebroadcast.
 func (a *App) SetEnabledIn(sel Selection, enabled bool) []string {
 	a.mu.Lock()
 	ids := idsOf(a.pickLocked(sel, func(t *core.Task) bool { return t.Enabled != enabled }))
 	a.mu.Unlock()
-	// Through SetEnabled rather than around it: that is the one place the flag is
-	// written and the dispatcher is driven afterwards, and a second path that
-	// skipped the dispatch would make switching a link on look like it did
-	// nothing until something unrelated happened to touch the queue.
+	// SetEnabled writes the flag and then dispatches.
 	return a.SetEnabled(ids, enabled)
 }
-
-// --- The arithmetic under the list -----------------------------------------
 
 // QueueCounters is what the list says about itself: how much work is left, how
 // fast it is going and when it would be finished.
 type QueueCounters struct {
-	// Files is every file still owed, disabled links included. A link switched
-	// off is still a file the user added; it is just not going to move, and
-	// dropping it from the count would make the list shorter than the list.
+	// Files is every file still owed, disabled links included.
 	Files int `json:"files"`
 	// Disabled is how many of those are switched off, so the interface can
-	// explain why the file count and the byte total do not describe each other.
+	// explain why the file count and byte total differ.
 	Disabled int `json:"disabled"`
 	Running  int `json:"running"`
-	// Remaining is the bytes still to fetch, and disabled links are left out of
-	// it: they are not going to be fetched, so counting them would put a number
-	// in front of the user that no amount of waiting ever works off.
-	//
-	// A file whose size is not known yet contributes nothing rather than a guess.
+	// Remaining is the bytes still to fetch, excluding disabled links, which
+	// will not be fetched. A file of unknown size contributes nothing.
 	Remaining int64 `json:"remaining"`
-	// Speed is what the same set is moving at. It leaves out a link that was
-	// switched off while it was still running — a rare window, but one where
-	// counting the speed and not the bytes would put the two halves of the ETA
-	// out of step and quietly shorten it.
+	// Speed is what the same set is moving at, so a link disabled while
+	// running does not shorten the ETA.
 	Speed int64 `json:"speed"`
-	// ETA is seconds, and nil rather than zero when there is no answer — nothing
-	// is moving, or nothing is left. Zero would render as "done in a moment",
-	// which is the one thing a stalled queue must not say.
+	// ETA is seconds, and nil when nothing is moving or nothing is left; zero
+	// would read as "done in a moment".
 	ETA *int64 `json:"eta"`
 }
 
 // Counters computes the figures under the list.
 //
-// Three exclusions, and each is a different reason. A finished or failed
-// download is out of all of them: it is not owed any more. A link still in the
-// collector is out too — it has not been added to the queue at all, and an ETA
-// that counted links nobody has started would move whenever somebody pasted
-// something. A disabled link stays in the file count and leaves the byte total
-// and the ETA, which is the whole point of the switch.
-//
-// Held links are deliberately not excluded. A hold is a pause the user means to
-// lift, so the bytes are still owed; dropping them would make the figure jump
-// every time somebody parks a row for a minute.
+// Finished and failed downloads are excluded, as are links still in the
+// collector, which would make the ETA move on every paste. A disabled link
+// counts as a file but not in the bytes or the ETA. Held links count fully,
+// since a hold is a pause the user means to lift.
 func (a *App) Counters() QueueCounters {
 	a.mu.Lock()
 	defer a.mu.Unlock()
@@ -1397,113 +1060,64 @@ func (a *App) dequeueLocked(id string) {
 }
 
 // scheduleBase is what the queue does when no window applies: the halt the user
-// set by hand and the speed limit they configured. It is read fresh on every
-// pass of the runner, so a stop made during a pause window is still in force
-// when that window ends rather than being lifted along with it.
+// set by hand and the configured speed limit. It is read on every pass, so a
+// stop made during a pause window survives the window's end.
 func (a *App) scheduleBase() schedule.State {
 	a.mu.Lock()
 	paused := a.manualHalt
-	// Remembered so applySchedule can tell a stale answer from a fresh one -
-	// see its own comment for the race this closes.
+	// Remembered so applySchedule can spot a stale answer.
 	a.scheduleBaseHalt = paused
-	// The turtle is a base exactly as the halt is, and for the same reason: a
-	// mode switched on by hand has to survive the end of a window that never
-	// mentioned it. Its marker is remembered for the same race - see
-	// applySchedule.
+	// Quiet mode is a base like the halt, remembered for the same reason.
 	quiet := a.quiet.manual
 	a.quiet.baseSeen = quiet
 	a.mu.Unlock()
 	return schedule.State{Paused: paused, Limit: a.Settings.Get().SpeedLimit, Quiet: quiet}
 }
 
-// applySchedule puts the state the timetable arrived at into effect. It runs on
-// the runner's own goroutine and only when the answer changed, so it does the
-// cheap work and hands the slow work off.
+// applySchedule puts the timetable's answer into effect. It runs on the
+// runner's goroutine and only when the answer changed, so the slow work is
+// handed off.
 //
-// It writes the halt flag and never the stop mark. The mark is the user's own
-// "finish this, then stop", and clearing it at the end of a nightly window would
-// throw away an instruction nobody could connect to anything they did.
+// It writes the halt flag and never the stop mark, the user's own "finish this,
+// then stop", which a window ending must not throw away.
 func (a *App) applySchedule(st schedule.State) {
-	// Read outside a.mu (Settings has its own lock) because the limit decision
-	// below needs the quiet figures, and taking one lock inside the other for a
-	// snapshot that never changes under us would be a lock ordering nobody else
-	// in this file has to respect.
+	// Settings has its own lock; read it before taking a.mu.
 	cfg := a.Settings.Get()
 	a.mu.Lock()
-	// The runner reads the base under the lock, DROPS it, evaluates the
-	// timetable, and only then calls this - so anything that changes the halt in
-	// that gap is about to be overwritten by an answer computed before it
-	// happened. StopAll lands there: it sets manualHalt and halted, the runner
-	// writes back the false it read a moment earlier, and dispatchLocked below
-	// hands a waiting task the slot the hard stop just emptied. The button reads
-	// as broken, which is precisely what
-	// TestStopAllHaltsBeforeItFreesASlot exists to prevent - and that test had
-	// been failing about one run in twenty since long before anyone looked.
-	//
-	// Only the case where the timetable did NOT change the base's answer is
-	// corrected. A window that genuinely says "pause" or "run" still wins, which
-	// is the whole point of a timetable and is what scheduleBase's own doc means
-	// by "what the queue does when no window applies".
+	// The runner reads the base, releases the lock and evaluates before calling
+	// this, so a change in that gap (StopAll setting the halt) would be
+	// overwritten by a stale answer and its freed slot handed out
+	// (TestStopAllHaltsBeforeItFreesASlot). Only an answer the timetable left
+	// equal to the base is corrected; a window that says pause or run still
+	// wins.
 	paused := st.Paused
 	if paused == a.scheduleBaseHalt && a.manualHalt != a.scheduleBaseHalt {
 		paused = a.manualHalt
 	}
 	a.halted = paused
-	// The same correction, on the same shape of flag, against the same race: the
-	// runner read the quiet base, dropped the lock, and a press could have landed
-	// in the gap. Only the case where the timetable did NOT change the base's own
-	// answer is corrected, so a window that genuinely says "quiet" still wins -
-	// see the precedence note in app_quiet.go for why that is the way round.
+	// The same correction for a quiet press landing in the gap (see
+	// app_quiet.go for why a window wins).
 	quiet := st.Quiet
 	if quiet == a.quiet.baseSeen && a.quiet.manual != a.quiet.baseSeen {
 		quiet = a.quiet.manual
 	}
 	a.quiet.inForce = quiet
-	// Written HERE, in the same critical section as the flag it depends on and
-	// ahead of the dispatch below, rather than in the second lock/unlock further
-	// down where it used to sit. That was harmless while this was st.Limit
-	// verbatim. It is not harmless now: how loud the box is is ONE decision in
-	// two halves, the slot count and the speed, and cfgInForceLocked
-	// (app_quiet.go) answers the dispatcher's half from the flag just set above.
-	// A dispatch taken between the two runs against half a quiet mode.
-	//
-	// speedInForce rather than st.Limit is the whole wiring of the speed half.
-	// a.limitInForce is the number applyBudget shares out between the three
-	// meters, so a quiet mode that wrote its limit anywhere else would be undone
-	// at the next window boundary, silently, by this very line.
+	// Set in the same critical section as the flag and before the dispatch:
+	// quiet mode is one decision about slots (cfgInForceLocked) and speed, and
+	// a dispatch between the two would see half of it. a.limitInForce is what
+	// applyBudget shares out, so the quiet limit has to be written here.
 	limit := speedInForce(cfg, st.Limit, quiet)
 	a.limitInForce = limit
-	// Unconditional for the same reason SetHalted's is: a pause window is one of
-	// the two ways a row ends up waiting with nothing to show for it, and this is
-	// the pass that would have told it. It was the boot case that surfaced it -
-	// the halt and the queue arrive together there, and this runner's first pass
-	// is the only thing that dispatches afterwards, so a queue held at start-up
-	// said nothing at all.
+	// Always dispatched, so rows held by a pause window are told why, including
+	// at boot, where this is the first dispatch.
 	a.dispatchLocked()
 	a.mu.Unlock()
-	// Not the raw limit onto the engine's throttle: the number belongs to all
-	// three meters together, and applyBudget shares it out (app_budget.go). The
-	// limit in force is recorded above, before this call, because applyBudget
-	// reads it - a nightly 2 MB/s window read from settings instead would be
-	// shared out at the daytime figure.
+	// applyBudget shares the limit in force between the three meters
+	// (app_budget.go), which is why it was recorded above first.
 	a.applyBudget()
-	// JD lives on its own box and is told over the network, so it is pushed off
-	// this goroutine: a slow or unreachable JD must not delay the next boundary.
-	// a.spawn, not a bare go - this reads a.jd under a.bmu.RLock
-	// (pushJDSpeedLimit's own comment), and an untracked goroutine that outlives
-	// its test is exactly what raced a later test's direct `a.jd = stub` against
-	// it in CI (internal/app/addcrypted_cnl_test.go, Wave 8's own gate - the
-	// same shape of bug Wave 6's commit 813cf29 already fixed once, here in a
-	// call site that predates that fix and was never revisited). a.spawn keeps
-	// applySchedule itself non-blocking either way; the only change is that
-	// Close() now genuinely waits for this call before a test's next
-	// t.Cleanup-driven teardown can start the next one.
-	//
-	// The limit IN FORCE, not st.Limit. JD meters in its own process and would
-	// otherwise be the one backend that ignored quiet mode until the next budget
-	// tick three seconds later, which is exactly long enough for somebody who
-	// pressed the turtle because the line was saturated to watch it stay
-	// saturated.
+	// JD is told over the network, so off this goroutine; a.spawn so Close
+	// waits for it, since it reads a.jd. The limit in force, so JD honours quiet
+	// mode without waiting for the next budget tick.
 	a.spawn(func() { a.pushJDSpeedLimit(limit) })
 	a.Hub.Broadcast("queue", a.Queue())
 }
@@ -1512,16 +1126,14 @@ func (a *App) applySchedule(st schedule.State) {
 type ScheduleState struct {
 	Entries []schedule.Entry `json:"entries"`
 	State   schedule.State   `json:"state"`
-	// Next is nil when the answer never changes again, which is what an empty
-	// timetable has. A UI can then say "throttled until 06:00" instead of showing
-	// a table the user has to read themselves.
+	// Next is when the answer changes, so a UI can say "throttled until
+	// 06:00"; nil when it never changes, as with an empty timetable.
 	Next *time.Time `json:"next"`
 }
 
 // ScheduleState reports the timetable and the state it currently implies. The
-// schedule is recompiled for the read rather than borrowed from the runner: it
-// is a handful of rows, and a getter on the runner would be state two goroutines
-// could disagree about.
+// few rows are recompiled for the read rather than shared with the runner's
+// goroutine.
 func (a *App) ScheduleState() ScheduleState {
 	entries := a.Settings.Get().Schedule
 	s := schedule.Compile(entries)

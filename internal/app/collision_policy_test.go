@@ -13,9 +13,8 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
-// elsewhereResolver stands for every backend that fetches somewhere this process
-// cannot reach into: headless JD, TorBox, yt-dlp. What they have in common is
-// that they name the file themselves.
+// elsewhereResolver stands for backends that fetch outside this process (JD,
+// TorBox, yt-dlp) and name the file themselves.
 type elsewhereResolver struct{}
 
 func (elsewhereResolver) Info() resolver.Info { return resolver.Info{ID: "elsewhere", Prio: 90} }
@@ -26,8 +25,8 @@ func (elsewhereResolver) Resolve(_ context.Context, req resolver.Request) (resol
 	return resolver.Result{DirectURL: req.URL, Name: req.URL}, nil
 }
 
-// delegated wires a task's resolver to a backend that runs out of reach, and
-// hands back the folder its downloads are supposed to land in.
+// delegated wires a task's resolver to such a backend and returns the folder
+// its downloads should land in.
 func delegated(t *testing.T, policy collide.Policy) (*App, *stubBackend, string) {
 	t.Helper()
 	dir := t.TempDir()
@@ -62,10 +61,8 @@ func dispatchOne(a *App, id, url string) *core.Task {
 	return task
 }
 
-// The policy reaches the file only on the engine path, and the app has to be
-// able to say so. If this fails, the interface shows a destination control on a
-// row it cannot govern: the user sets "rename", watches the file get overwritten
-// anyway, and stops believing the setting on the rows where it does work.
+// Only the engine can be told a file name, and the app says so, so the
+// interface offers the setting only where it works.
 func TestOnlyTheEngineIsHeldToTheCollisionPolicy(t *testing.T) {
 	a, _, _ := delegated(t, collide.Rename)
 
@@ -77,11 +74,8 @@ func TestOnlyTheEngineIsHeldToTheCollisionPolicy(t *testing.T) {
 	}
 }
 
-// A delegated backend is handed a task and nothing else. If this fails, the
-// dispatcher has reserved a name on behalf of a downloader that will never use
-// it: an empty "clash (2).bin" is left in the folder for good, the real download
-// lands beside it under whatever name the other process chose, and the next
-// attempt at the same link renames itself out of the way of our own litter.
+// No name is reserved for a delegated backend, which would never use it and
+// leave an empty placeholder file behind.
 func TestADelegatedBackendIsNeverHandedAReservedName(t *testing.T) {
 	a, stub, dir := delegated(t, collide.Rename)
 
@@ -102,11 +96,8 @@ func TestADelegatedBackendIsNeverHandedAReservedName(t *testing.T) {
 	}
 }
 
-// Skip is the other half of the same rule, and it is the reason the rule is not
-// simply "delegated backends get no policy at all". Skip is a refusal to start,
-// decided before the handover, so it asks nothing of whoever would have fetched
-// the bytes. If this fails, choosing skip quietly downloads over finished files
-// for every link that does not go through the embedded engine.
+// Skip still applies to a delegated task: it refuses to start before the
+// handover and needs nothing from the backend.
 func TestSkipStillSettlesADelegatedTask(t *testing.T) {
 	a, stub, dir := delegated(t, collide.Skip)
 

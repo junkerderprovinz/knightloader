@@ -6,15 +6,8 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver/hostheaders"
 )
 
-// TestHostHeaderProfilesAreRegistered guards the single line that arms the
-// header profiles.
-//
-// Registry.All walks only what Register has seen, so without that line Match
-// and Resolve are never called and every link goes to Direct exactly as before.
-// The package would be complete, tested and unreachable - the same shape as the
-// yt-dlp cookie jars that had nowhere to be handed over, and as the waiting
-// reason that never reached a stopped queue. Three times in one day is enough
-// to write the guard rather than the comment.
+// The header-profile resolver is registered; unregistered, it would never be
+// asked and every link would go to Direct.
 func TestHostHeaderProfilesAreRegistered(t *testing.T) {
 	a, err := New(t.TempDir())
 	if err != nil {

@@ -1,11 +1,9 @@
 package app
 
-// Pinning one task to one backend. Two things are being pinned down here and
-// they pull in opposite directions, which is why both need a test: the pin has
-// to beat the dispatcher's own ranking, and it must NOT beat account health.
-// A pin that could be overruled by the ranking is not a pin; a pin that gets
-// past a benched account is a way of turning the health mechanism off one row
-// at a time.
+// Pinning one task to one backend. The two rules pull in opposite directions:
+// the pin beats the dispatcher's ranking, and it does not beat account health.
+// A pin the ranking can overrule is not a pin, and a pin that gets past a
+// benched account turns the health mechanism off one row at a time.
 
 import (
 	"context"
@@ -21,10 +19,10 @@ import (
 
 const pinHost = "pinned.example"
 
-// pinResolver matches one host at a priority the test chooses. hostResolver
-// (stallwatch_test.go) is fixed at 90, and this file needs two backends
-// claiming the SAME link at different ranks - otherwise "the pin was honoured"
-// and "the ranking happened to agree" look identical.
+// pinResolver matches one host at a priority the test chooses. hostResolver in
+// stallwatch_test.go is fixed at 90, and this file needs two backends claiming
+// the same link at different ranks, or a honoured pin and a ranking that
+// happens to agree look identical.
 type pinResolver struct {
 	id   string
 	host string
@@ -39,8 +37,8 @@ func (pinResolver) Resolve(_ context.Context, req resolver.Request) (resolver.Re
 	return resolver.Result{DirectURL: req.URL, Name: req.URL}, nil
 }
 
-// pinBackend records WHICH task it was handed, which is the whole question in
-// this file - capBackend records the connection count instead.
+// pinBackend records which task it was handed, where capBackend records the
+// connection count.
 type pinBackend struct{ got chan string }
 
 func (b *pinBackend) Download(taskID, _ string, _ map[string]string, _ int) { b.got <- taskID }
@@ -59,11 +57,11 @@ func pinApp(t *testing.T) (*App, map[string]*pinBackend) {
 	s.MaxConcurrent, s.MaxPerHost = 4, 4
 	s.DownloadDir = t.TempDir()
 	s.Crawl = false
-	// The volume guard is switched fully off here, so nothing in this file
-	// depends on how much room the machine running it happens to have.
+	// The volume guard is off, so nothing here depends on how much room the
+	// machine running it has.
 	s.DiskReserve, s.DiskLowSpace, s.DiskCriticalSpace = 0, 0, 0
-	// And no automatic retry, so a task this file settles as failed stays
-	// settled instead of arming a timer that outlives the test.
+	// No automatic retry, so a task settled as failed stays settled instead of
+	// arming a timer that outlives the test.
 	s.MaxRetries = 0
 	if _, err := a.ApplySettings(s); err != nil {
 		t.Fatal(err)
@@ -106,14 +104,10 @@ func wantHandled(t *testing.T, be *pinBackend, id string) {
 	}
 }
 
-// wantNothingHandled is the half that makes every test in this file mean
-// something: proving the OTHER backend was not quietly used instead.
-//
-// It waits before looking, and that wait is the assertion rather than
-// politeness. dispatchLocked hands a task over as `go be.Download(...)`, so
-// reading the channel the instant the pass returns tests only that a goroutine
-// has not been scheduled yet - which is true of a diversion that is about to
-// happen exactly as it is of one that never will.
+// wantNothingHandled proves the other backend was not used instead. The wait is
+// the assertion: dispatchLocked hands a task over as `go be.Download(...)`, so
+// reading the channel the instant the pass returns would only show that a
+// goroutine has not been scheduled yet.
 func wantNothingHandled(t *testing.T, be *pinBackend, why string) {
 	t.Helper()
 	select {
@@ -123,9 +117,8 @@ func wantNothingHandled(t *testing.T, be *pinBackend, why string) {
 	}
 }
 
-// TestAnUnpinnedTaskFollowsTheRanking is the control. Without it every
-// assertion below could be explained by the ranking already agreeing with the
-// pin, and the whole file would prove nothing.
+// The control: without it every assertion below could be explained by the
+// ranking already agreeing with the pin.
 func TestAnUnpinnedTaskFollowsTheRanking(t *testing.T) {
 	a, bes := pinApp(t)
 	queuePinned(a, "p1", "")
@@ -138,9 +131,8 @@ func TestAnUnpinnedTaskFollowsTheRanking(t *testing.T) {
 	wantNothingHandled(t, bes["torbox"], "the lower-ranked backend took an unpinned task")
 }
 
-// TestAPinnedTaskGoesToTheBackendItNames is the feature: today a link stuck on
-// one backend can only be deleted, or fixed by switching the whole instance
-// over and pasting it again.
+// A pinned task goes to the backend it names, so a link that only one service
+// can fetch does not have to be pasted again with the instance switched over.
 func TestAPinnedTaskGoesToTheBackendItNames(t *testing.T) {
 	a, bes := pinApp(t)
 	queuePinned(a, "p1", "torbox")
@@ -160,11 +152,9 @@ func TestAPinnedTaskGoesToTheBackendItNames(t *testing.T) {
 	}
 }
 
-// TestAPinnedBackendWithABenchedAccountFailsWhereItCanBeSeen is the limit on
-// the whole feature, and the reason it does not amount to an off switch for
-// account health. The wrong outcome here is not "it failed" - it is the app
-// quietly fetching the link through the healthy backend next to it, which
-// would make the pin decorative.
+// The limit that keeps the pin from being an off switch for account health. The
+// wrong outcome is not the failure but the app fetching the link through the
+// healthy backend beside it, which would make the pin decorative.
 func TestAPinnedBackendWithABenchedAccountFailsWhereItCanBeSeen(t *testing.T) {
 	a, bes := pinApp(t)
 	a.acctHealthTracker().ReportFailure("alldebrid", "", accounts.HealthInvalid, "test", 0)
@@ -180,7 +170,7 @@ func TestAPinnedBackendWithABenchedAccountFailsWhereItCanBeSeen(t *testing.T) {
 	wantNothingHandled(t, bes["torbox"], "a task pinned to a benched backend was diverted to a healthy one")
 	wantNothingHandled(t, bes["alldebrid"], "a task was handed to a backend whose account is not usable")
 	if status != core.StatusError {
-		t.Errorf("status = %q, want %q - a pinned task with nowhere to go has to fail visibly, not wait in silence", status, core.StatusError)
+		t.Errorf("status = %q, want %q; a pinned task with nowhere to go fails visibly", status, core.StatusError)
 	}
 	if reason != core.ReasonAuth {
 		t.Errorf("reason = %q, want %q", reason, core.ReasonAuth)
@@ -190,10 +180,8 @@ func TestAPinnedBackendWithABenchedAccountFailsWhereItCanBeSeen(t *testing.T) {
 	}
 }
 
-// TestAPinNamingABackendThatCannotTakeTheLinkSaysSo is the other failure, and
-// it is a different sentence because it is a different fix: nothing about
-// waiting mends a pin pointed at a backend that does not handle this kind of
-// link.
+// The other failure gets its own sentence because it needs a different fix:
+// waiting never mends a pin pointed at a backend that does not take this link.
 func TestAPinNamingABackendThatCannotTakeTheLinkSaysSo(t *testing.T) {
 	a, _ := pinApp(t)
 	a.Registry.Register(pinResolver{id: "ytdlp", host: "elsewhere.example", prio: 70})
@@ -213,10 +201,8 @@ func TestAPinNamingABackendThatCannotTakeTheLinkSaysSo(t *testing.T) {
 	}
 }
 
-// TestAPinnedTaskNeverWalksTheFallbackChain closes the other door. Honouring
-// the pin at dispatch and forgetting it in the fallback would move the task to
-// another backend the first time the pinned one said "not mine" - the silent
-// diversion the pin exists to make impossible, arriving one event later.
+// Honouring the pin at dispatch and forgetting it in the fallback would move
+// the task to another backend the first time the pinned one said "not mine".
 func TestAPinnedTaskNeverWalksTheFallbackChain(t *testing.T) {
 	a, bes := pinApp(t)
 	queuePinned(a, "p1", "alldebrid")
@@ -241,15 +227,13 @@ func TestAPinnedTaskNeverWalksTheFallbackChain(t *testing.T) {
 	}
 }
 
-// TestAPinMayNameTheServiceAndReachOneOfItsAccounts pins the vocabulary. A
-// person who writes "alldebrid" means their AllDebrid subscription, not one
-// particular key of it - the same rule settings.ResolverOrder is matched by.
-// Without it a pin would break the moment a second key was added and the slot
-// ids stopped being bare service names.
+// Somebody who writes "alldebrid" means their AllDebrid subscription, not one
+// key of it, which is how settings.ResolverOrder is matched too. Otherwise a pin
+// would break as soon as a second key turned the slot ids into service#account.
 func TestAPinMayNameTheServiceAndReachOneOfItsAccounts(t *testing.T) {
 	a, bes := pinApp(t)
-	// Only the NAMED account of the service is registered, so a pin that
-	// insisted on an exact id match would find nothing at all.
+	// Only the named account of the service is registered, so a pin that
+	// insisted on an exact id match would find nothing.
 	a.Registry.Unregister("alldebrid")
 	a.Registry.Register(pinResolver{id: "alldebrid#work", host: pinHost, prio: 90})
 	queuePinned(a, "p1", "alldebrid")
@@ -262,10 +246,8 @@ func TestAPinMayNameTheServiceAndReachOneOfItsAccounts(t *testing.T) {
 	wantNothingHandled(t, bes["torbox"], "a service-wide pin fell through to another service")
 }
 
-// TestPinResolverRefusesABackendThisInstanceDoesNotHave keeps a typo out of
-// the queue. Written into a task unchecked, it becomes a row that fails on the
-// next dispatch pass for a reason nothing on screen connects to the dropdown
-// somebody just used.
+// A typo written into a task unchecked becomes a row that fails on the next
+// dispatch pass for a reason nothing on screen connects to the dropdown.
 func TestPinResolverRefusesABackendThisInstanceDoesNotHave(t *testing.T) {
 	a, _ := pinApp(t)
 	queuePinned(a, "p1", "")
@@ -280,8 +262,8 @@ func TestPinResolverRefusesABackendThisInstanceDoesNotHave(t *testing.T) {
 		t.Errorf("ResolverPin = %q after a refused request, want it untouched", got)
 	}
 
-	// And the accepted case still lands, so the check above is a filter rather
-	// than a wall.
+	// The accepted case still lands, so the check above is a filter and not a
+	// wall.
 	if err := a.PinResolver([]string{"p1"}, "torbox"); err != nil {
 		t.Fatalf("PinResolver(torbox) = %v, want it accepted", err)
 	}

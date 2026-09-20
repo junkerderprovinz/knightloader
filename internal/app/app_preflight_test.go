@@ -11,10 +11,8 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/startupcheck"
 )
 
-// probeGlob is how a test finds a probe file the check should not have left.
-// It has to stay in step with startupcheck's own probePrefix, which is
-// unexported there because nothing outside that package has any business
-// building the name - this is the one place that has to recognise it.
+// probeGlob matches a probe file the check should not have left. It has to stay
+// in step with startupcheck's unexported probePrefix.
 const probeGlob = ".knightloader-startup-*"
 
 // leftovers is every probe file lying in a directory.
@@ -27,10 +25,8 @@ func leftovers(t *testing.T, dir string) []string {
 	return found
 }
 
-// newPreflightApp is an app whose download folder is a real, empty directory of
-// its own, so "did the check write anything in there" is a question with a clean
-// answer. The data directory is separate, because the two are the same folder on
-// a default install and that would make every leftover ambiguous.
+// newPreflightApp is an app whose download folder is an empty directory apart
+// from the data directory, so a leftover probe file is unambiguous.
 func newPreflightApp(t *testing.T) (*App, string) {
 	t.Helper()
 	a, err := New(t.TempDir())
@@ -54,10 +50,8 @@ func newPreflightApp(t *testing.T) (*App, string) {
 	return a, downloads
 }
 
-// waitForReport polls until the boot pass has finished. Polled rather than
-// waited on with a.Close(), which is the obvious move and the wrong one: Close
-// cancels a.ctx before it waits, so every row would come back as a timeout and
-// the test would be examining a shutdown rather than a start.
+// waitForReport polls until the boot pass has finished. a.Close would cancel
+// a.ctx first and turn every row into a timeout.
 func waitForReport(t *testing.T, a *App) *startupcheck.Report {
 	t.Helper()
 	deadline := time.Now().Add(60 * time.Second)
@@ -71,11 +65,8 @@ func waitForReport(t *testing.T, a *App) *startupcheck.Report {
 	return nil
 }
 
-// TestStartupReportIsNilUntilSomethingStartsOne.
-//
-// Nil is the honest answer for "nothing ever looked", and it is a different
-// claim from "everything passed". app.New must not start one: it is called by
-// several hundred tests, and this is what proves none of them pays for it.
+// Nil means nothing looked, which differs from everything passing, and app.New
+// must not start a check since hundreds of tests call it.
 func TestStartupReportIsNilUntilSomethingStartsOne(t *testing.T) {
 	a, err := New(t.TempDir())
 	if err != nil {
@@ -88,9 +79,7 @@ func TestStartupReportIsNilUntilSomethingStartsOne(t *testing.T) {
 	}
 }
 
-// TestMarkStartupCheckOffIsNotAnEmptyPass. "Switched off" and "ran and found
-// nothing" look identical as an empty check list, and only one of them is a
-// clean bill of health.
+// An empty check list alone cannot tell "switched off" from "found nothing".
 func TestMarkStartupCheckOffIsNotAnEmptyPass(t *testing.T) {
 	a, err := New(t.TempDir())
 	if err != nil {
@@ -111,9 +100,7 @@ func TestMarkStartupCheckOffIsNotAnEmptyPass(t *testing.T) {
 	}
 }
 
-// TestBootPassLooksAtEverythingAndWritesNothing is the owner's decision as the
-// whole seam sees it: every configured folder gets a row, and not one of them
-// gets a file.
+// Every configured folder gets a row at boot, and none of them gets a file.
 func TestBootPassLooksAtEverythingAndWritesNothing(t *testing.T) {
 	a, downloads := newPreflightApp(t)
 
@@ -150,13 +137,8 @@ func TestBootPassLooksAtEverythingAndWritesNothing(t *testing.T) {
 	}
 }
 
-// TestPressingCheckAgainWritesAndKeepsTheBootReading covers both halves of the
-// button.
-//
-// It writes, which is the whole reason it is a button and not something the boot
-// does. And it does NOT replace the stored boot reading: if it did, the evidence
-// of what was true when the instance started would be destroyed the first time
-// anybody pressed it, which is exactly when a support thread needs it.
+// The button runs the write test and keeps the stored boot reading, which is
+// what a support thread needs.
 func TestPressingCheckAgainWritesAndKeepsTheBootReading(t *testing.T) {
 	a, downloads := newPreflightApp(t)
 
@@ -192,13 +174,9 @@ func TestPressingCheckAgainWritesAndKeepsTheBootReading(t *testing.T) {
 	}
 }
 
-// TestStartupFoldersCutsTemplatesBackToARealPath is trap six.
-//
-// A category folder is routinely "/mnt/user/media/<jd:packagename>". Probed as
-// written it stats a directory that never exists and reports "missing" on every
-// boot for every install that uses the packagizer - a permanent false alarm that
-// teaches people to ignore the report. settings.FixedPrefix exists for exactly
-// this and its own doc comment says so.
+// A category folder like "/mnt/user/media/<jd:packagename>" never exists as
+// written, so it is checked at its fixed prefix instead of reporting a missing
+// folder on every boot.
 func TestStartupFoldersCutsTemplatesBackToARealPath(t *testing.T) {
 	a, downloads := newPreflightApp(t)
 
@@ -208,8 +186,8 @@ func TestStartupFoldersCutsTemplatesBackToARealPath(t *testing.T) {
 	cfg.WorkDir = filepath.Join(base, "work")
 	cfg.Categories = []settings.Category{
 		{ID: "serien", Name: "Serien", Dir: filepath.Join(serien, "<jd:packagename>")},
-		// The same folder as WorkDir, which is a perfectly ordinary thing to
-		// configure: one folder, one row, and the first role that named it wins.
+		// The same folder as WorkDir: one row, and the first role that named it
+		// wins.
 		{ID: "arbeit", Name: "Arbeit", Dir: filepath.Join(base, "work")},
 	}
 	if _, err := a.Settings.Set(cfg); err != nil {
@@ -242,14 +220,9 @@ func TestStartupFoldersCutsTemplatesBackToARealPath(t *testing.T) {
 	}
 }
 
-// TestMaskReportKeepsTheDataDirectoryOutOfTheBundle.
-//
-// The diagnostics bundle is a file people attach to PUBLIC bug reports and it
-// has always refused to carry the data directory - a desktop one is
-// C:\Users\<a person's real name>\AppData\... . The default download folder sits
-// INSIDE it (app.go's dlDir), so without this an install that never configured
-// one would ship that name in a folder row. api's TestDiagnosticsShipsNoPaths
-// pins the same rule from the other end.
+// The diagnostics bundle goes into public bug reports, and a desktop data
+// directory contains the user's name. The default download folder sits inside
+// it. api's TestDiagnosticsShipsNoPaths pins the same rule from the other end.
 func TestMaskReportKeepsTheDataDirectoryOutOfTheBundle(t *testing.T) {
 	data := filepath.Join("C:", "Users", "somebody", "AppData", "KnightLoader")
 	rep := startupcheck.Report{Checks: []startupcheck.Check{
@@ -282,10 +255,8 @@ func TestMaskReportKeepsTheDataDirectoryOutOfTheBundle(t *testing.T) {
 	}
 }
 
-// TestMaskReportCatchesBothSpellings. Go's own error strings carry the
-// separator the platform uses; anything that has been through filepath.ToSlash
-// carries the other. A redaction that catches one of the two works until the day
-// it does not.
+// Go's error strings use the platform separator, while anything passed through
+// filepath.ToSlash uses the other one.
 func TestMaskReportCatchesBothSpellings(t *testing.T) {
 	data := filepath.Join("C:", "kl", "data")
 	slashed := filepath.ToSlash(data)
@@ -300,10 +271,8 @@ func TestMaskReportCatchesBothSpellings(t *testing.T) {
 	}
 }
 
-// TestJavaIsSkippedNotFailedWhereItIsNotNeeded. A red "Java missing" row on a
-// box that deliberately points at a JD sidecar is a false alarm about a choice
-// somebody made, and one false alarm is enough for an operator to stop reading
-// the report.
+// A box that points at a JD sidecar needs no Java, so a missing one is not a
+// failure there.
 func TestJavaIsSkippedNotFailedWhereItIsNotNeeded(t *testing.T) {
 	cases := []struct {
 		name    string
@@ -313,10 +282,8 @@ func TestJavaIsSkippedNotFailedWhereItIsNotNeeded(t *testing.T) {
 		{name: "nothing set, so this instance starts its own", env: map[string]string{"KL_JD": "", "KL_PROVISION_JD": ""}},
 		{name: "KL_JD points somewhere else", env: map[string]string{"KL_JD": "http://jd.lan:3128", "KL_PROVISION_JD": ""}, skipped: true},
 		{name: "provisioning switched off", env: map[string]string{"KL_JD": "", "KL_PROVISION_JD": "0"}, skipped: true},
-		// main.go reads this with envInt, which falls back to the default on
-		// anything that does not parse - so "1" is on and a typo is off. The two
-		// readings have to agree or the report describes a different instance
-		// from the one that is running.
+		// main.go reads this with envInt: "1" is on and anything unparsable is
+		// off, and the report has to read it the same way.
 		{name: "provisioning explicitly on", env: map[string]string{"KL_JD": "", "KL_PROVISION_JD": "1"}},
 	}
 	for _, tc := range cases {
@@ -332,10 +299,8 @@ func TestJavaIsSkippedNotFailedWhereItIsNotNeeded(t *testing.T) {
 	}
 }
 
-// TestStartupToolsAsksEachBinaryTheWayItAnswers. java wants two dashes and
-// ffmpeg wants one; getting it the wrong way round reports "found, version
-// unknown" for every healthy install, or a usage error for a perfectly good
-// ffmpeg.
+// java takes two dashes and ffmpeg one; the wrong spelling reports an unknown
+// version or a usage error for a healthy binary.
 func TestStartupToolsAsksEachBinaryTheWayItAnswers(t *testing.T) {
 	t.Setenv("KL_YTDLP", "")
 	a, err := New(t.TempDir())
@@ -364,9 +329,8 @@ func TestStartupToolsAsksEachBinaryTheWayItAnswers(t *testing.T) {
 	}
 }
 
-// TestStartupToolsHonoursKLYTDLP. The container image sets it to an absolute
-// path, so a check that only ever looked for "yt-dlp" on PATH would be reporting
-// on a different binary from the one the app actually runs.
+// The container image sets KL_YTDLP to an absolute path, so the check must look
+// at that binary rather than yt-dlp on PATH.
 func TestStartupToolsHonoursKLYTDLP(t *testing.T) {
 	t.Setenv("KL_YTDLP", filepath.Join("opt", "bin", "yt-dlp-custom"))
 	a, err := New(t.TempDir())

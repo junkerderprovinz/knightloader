@@ -7,10 +7,8 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/core"
 )
 
-// A stop the app COMMANDED has to be recorded by the app. This is the
-// regression jdp reported as "der status zeigt weiterhin läuft an": the
-// running branch of Pause wrote no status and trusted the backend to report
-// one, and the engine does not.
+// A stop the app commanded is recorded by the app: the engine does not report a
+// status of its own for it.
 func TestPauseWritesStatusForARunningTask(t *testing.T) {
 	a := newCaptchaTestApp(t)
 	task := putTask(t, a, core.Task{

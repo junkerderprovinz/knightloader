@@ -13,10 +13,9 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
-// The body every test in this file uses, and the hash of a DIFFERENT body of
-// exactly the same length. Same length is the point: on this build a
-// half-finished engine download is already at its full final size, so length
-// cannot tell the two apart and only the hash can.
+// The body every test in this file uses, and a different body of exactly the
+// same length. A half-finished engine download is already at its full final
+// size, so length cannot tell the two apart and only the hash can.
 const (
 	realBody  = "the real film!!!"
 	otherBody = "................"
@@ -45,15 +44,9 @@ func findingFor(t *testing.T, rep ReclaimReport, id string) reclaim.Finding {
 	return reclaim.Finding{}
 }
 
-// TestAFileThisInstanceAlreadyFetchedIsNotFetchedAgain is the whole feature in
-// one test, and it is the situation it was built for: the list was emptied,
-// the links went back in, and the finished file is still sitting in the
-// download folder. Nothing on this side ever watched it arrive, so before this
-// pass existed the box spent the whole file again over somebody's line.
-//
-// The witness is this instance's own history, which is the one record that
-// survives the list being cleared - that is the entire reason the table
-// exists.
+// The situation the pass is for: the list was emptied, the links went back in,
+// and the finished file is still in the download folder. The witness is this
+// instance's own history, the one record that survives the list being cleared.
 func TestAFileThisInstanceAlreadyFetchedIsNotFetchedAgain(t *testing.T) {
 	dl := t.TempDir()
 	size := int64(len(realBody))
@@ -68,8 +61,8 @@ func TestAFileThisInstanceAlreadyFetchedIsNotFetchedAgain(t *testing.T) {
 	writeBody(t, dl, "movie.mkv", realBody)
 
 	a := f.boot(t)
-	// The emptied list: the row goes, the history keeps the record, the file is
-	// never touched. That is what RemoveTasks with deleteFiles false promises.
+	// The emptied list: RemoveTasks without deleteFiles takes the row, keeps the
+	// history record and leaves the file.
 	a.RemoveTasks([]string{"fetched-before"}, false)
 
 	rep, err := a.Reclaim()
@@ -90,9 +83,8 @@ func TestAFileThisInstanceAlreadyFetchedIsNotFetchedAgain(t *testing.T) {
 	if rep.Settled != 1 {
 		t.Errorf("report says %d settled, want 1", rep.Settled)
 	}
-	// Out of the wait queue, or the dispatcher would hand a finished task to a
-	// backend on its next pass: its loop reads the flags on a queued task and
-	// never its status.
+	// Out of the wait queue, or the next dispatch would hand a finished task to
+	// a backend: its loop reads the flags on a queued task, not its status.
 	a.mu.Lock()
 	var stillQueued bool
 	for _, id := range a.queue {
@@ -104,22 +96,15 @@ func TestAFileThisInstanceAlreadyFetchedIsNotFetchedAgain(t *testing.T) {
 	if stillQueued {
 		t.Error("a task settled as finished is still in the wait queue, so the next dispatch would download it")
 	}
-	// The file is what this is all about.
 	if b, err := os.ReadFile(filepath.Join(dl, "movie.mkv")); err != nil || string(b) != realBody {
 		t.Errorf("the file was changed by a pass that only reads: %q, %v", b, err)
 	}
 }
 
-// TestARightSizedFileWithTheWrongBytesIsStillDownloaded is the rule that keeps
-// the whole pass honest, at the level where it costs something: a checksum
-// exists, it disagrees, and the answer is to fetch the file again. Better one
-// transfer nobody needed than a row that reads "done" over a file that will
-// not open.
-//
-// The task is left exactly where it was and the stale file is left exactly
-// where it is: the collision policy already owns what happens to a file in the
-// way, and it owns it at the moment the transfer starts rather than minutes
-// earlier from over here.
+// A checksum that disagrees means the file is fetched again: one transfer
+// nobody needed beats a row reading "done" over a file that will not open. Both
+// the task and the stale file are left alone, because the collision policy owns
+// what happens to a file in the way, at the moment the transfer starts.
 func TestARightSizedFileWithTheWrongBytesIsStillDownloaded(t *testing.T) {
 	dl := t.TempDir()
 	size := int64(len(realBody))
@@ -148,14 +133,13 @@ func TestARightSizedFileWithTheWrongBytesIsStillDownloaded(t *testing.T) {
 		t.Errorf("loaded = %d, want 0: those bytes are not this download's", got.Loaded)
 	}
 	if got.Checksum != "" {
-		t.Errorf("checksum = %q, want it empty: that column says what verifying THIS task's own download found, and it has not downloaded anything", got.Checksum)
+		t.Errorf("checksum = %q, want it empty: the column reports this task's own download, and it has not downloaded anything", got.Checksum)
 	}
 	if rep.Settled != 0 {
 		t.Errorf("report says %d settled, want 0", rep.Settled)
 	}
-	// Neither the file nor the queue was touched. A pass that reads the disk
-	// must not delete what it disagrees with, and must not start downloads
-	// because somebody pressed "look at the disk".
+	// A pass that reads the disk does not delete what it disagrees with and
+	// starts no downloads.
 	if b, err := os.ReadFile(filepath.Join(dl, "movie.mkv")); err != nil || string(b) != otherBody {
 		t.Errorf("the file in the way was removed or rewritten: %q, %v", b, err)
 	}
@@ -167,10 +151,8 @@ func TestARightSizedFileWithTheWrongBytesIsStillDownloaded(t *testing.T) {
 	}
 }
 
-// TestTheStrictTierNeedsAChecksumAndNotARecord proves the setting reaches the
-// decision. An instance switched to the strict tier has said that only a
-// verified hash may stop a download happening, and a record of having fetched
-// the same name and length before is exactly what it has declined to accept.
+// Under the strict tier only a verified hash stops a download, so a record of
+// having fetched the same name and length before does not count.
 func TestTheStrictTierNeedsAChecksumAndNotARecord(t *testing.T) {
 	dl := t.TempDir()
 	size := int64(len(realBody))
@@ -201,10 +183,9 @@ func TestTheStrictTierNeedsAChecksumAndNotARecord(t *testing.T) {
 	}
 }
 
-// TestTheCollectorIsReportedAndNotDecidedFor. The collector is where a person
-// decides what to download. Telling them eleven of these forty links are
-// already in their folder is useful; walking one of them out of the collector
-// as "finished" is the app confirming a batch on their behalf.
+// The collector is where a person decides what to download. Reporting that a
+// staged link is already in the folder helps; walking it out of the collector as
+// "finished" would confirm a batch on their behalf.
 func TestTheCollectorIsReportedAndNotDecidedFor(t *testing.T) {
 	dl := t.TempDir()
 	size := int64(len(realBody))
@@ -231,11 +212,9 @@ func TestTheCollectorIsReportedAndNotDecidedFor(t *testing.T) {
 	}
 }
 
-// TestAnOrphanPartFileIsReportedAndKept covers the half-finished .klpart with
-// no task behind it. It is thirty gigabytes somebody either wants back or
-// wants gone and nothing here can tell which, so it is counted, named and left
-// alone. The part file of a task that IS in the list is not an orphan, which
-// is the half a naive sweep of the folder would get wrong.
+// A half-finished part file with no task behind it is counted, named and left
+// alone, since nothing here can tell whether it is wanted back or wanted gone.
+// The part file of a task still in the list is not an orphan.
 func TestAnOrphanPartFileIsReportedAndKept(t *testing.T) {
 	dl := t.TempDir()
 	f := newBootFixture(t, nil,
@@ -262,20 +241,16 @@ func TestAnOrphanPartFileIsReportedAndKept(t *testing.T) {
 			t.Errorf("%s was deleted by a pass that only reports: %v", name, err)
 		}
 	}
-	// And the live task's own part file is measured rather than ignored: a row
-	// that says 0 of 1000 bytes when four are on the disk is a row that lies
-	// about how much a restart would cost.
+	// The live task's own part file is measured, or the row would say 0 of 1000
+	// bytes with four already on the disk.
 	if got := taskOf(t, a, "live"); got.Loaded != 4 {
 		t.Errorf("loaded = %d, want the 4 bytes in the part file", got.Loaded)
 	}
 }
 
-// TestATorrentIsNeverSettledFromWhatIsInItsFolder. A torrent client lays out
-// the whole file set at full length before it fetches a piece, so a folder
-// full of right-sized files is what a torrent that has downloaded NOTHING
-// looks like. The only thing that can answer for one is the download library's
-// own piece pass, which is what starting the torrent against its folder
-// already runs.
+// A torrent client lays out the whole file set at full length before it fetches
+// a piece, so a folder of right-sized files is also what a torrent with nothing
+// downloaded looks like. Only the library's own piece pass can answer for one.
 func TestATorrentIsNeverSettledFromWhatIsInItsFolder(t *testing.T) {
 	dl := t.TempDir()
 	size := int64(len(realBody))
@@ -300,9 +275,8 @@ func TestATorrentIsNeverSettledFromWhatIsInItsFolder(t *testing.T) {
 	}
 }
 
-// TestAReclaimedDownloadReachesTheStoreAndTheHistory. Settling a task in
-// memory alone would be undone by the next restart, and the record of what
-// this instance holds would be missing a download it is showing as finished.
+// Settling a task in memory alone would be undone by the next restart, and the
+// record of what this instance holds would miss a download shown as finished.
 func TestAReclaimedDownloadReachesTheStoreAndTheHistory(t *testing.T) {
 	dl := t.TempDir()
 	size := int64(len(realBody))
@@ -338,8 +312,7 @@ func TestAReclaimedDownloadReachesTheStoreAndTheHistory(t *testing.T) {
 		t.Fatal("the reclaimed download is not in the history, so nothing records that this instance holds it")
 	}
 
-	// And it comes back finished, which is the half that a write only to the
-	// task map would lose.
+	// And it comes back finished, which a write only to the task map would lose.
 	again := f.boot(t)
 	if got := taskOf(t, again, "already-here"); got.Status != core.StatusDone {
 		t.Errorf("after a restart status = %q, want done", got.Status)

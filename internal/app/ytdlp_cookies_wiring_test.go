@@ -11,15 +11,9 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
 )
 
-// TestYtdlpBackendIsHandedTheCookieJars guards the one line that makes the
-// cookie feature reachable.
-//
-// CookieStore is complete and tested on its own, and Backend.Cookies is nil
-// until rewireBackends hands it over. A nil hook means "no opinion", so
-// dropping that line would leave every download behaving exactly as before
-// while the settings page cheerfully accepted jars that nothing ever read -
-// a feature that is present, tested, and dead. Only the wiring can be asserted
-// here, and only the wiring is.
+// CookieStore is tested on its own, and Backend.Cookies stays nil until
+// rewireBackends hands it over. A nil hook means no opinion, so without that
+// line the settings page would accept jars nothing ever reads.
 func TestYtdlpBackendIsHandedTheCookieJars(t *testing.T) {
 	dir := t.TempDir()
 	// A stub that answers --version, because rewireBackends only builds the
@@ -35,7 +29,7 @@ func TestYtdlpBackendIsHandedTheCookieJars(t *testing.T) {
 		t.Fatal(err)
 	}
 	if exec.Command(bin, "--version").Run() != nil {
-		t.Skip("the stub is not executable here, and this test is about wiring, not about shells")
+		t.Skip("the stub is not executable here")
 	}
 	t.Setenv("KL_YTDLP", bin)
 
@@ -49,10 +43,10 @@ func TestYtdlpBackendIsHandedTheCookieJars(t *testing.T) {
 	yb, _ := a.ytdlp.(*ytdlp.Backend)
 	a.mu.Unlock()
 	if yb == nil {
-		t.Fatal("no yt-dlp backend was built although the stub answers --version; this test cannot see the wiring it exists for")
+		t.Fatal("no yt-dlp backend was built although the stub answers --version")
 	}
 	if yb.Cookies == nil {
-		t.Fatal("Backend.Cookies is nil, so every stored cookie jar is unreachable and the setting is decoration")
+		t.Fatal("Backend.Cookies is nil, so every stored cookie jar is unreachable")
 	}
 
 	const jar = "# Netscape HTTP Cookie File\n.example.test\tTRUE\t/\tFALSE\t0\tsid\tsecret\n"

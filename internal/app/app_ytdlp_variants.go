@@ -9,20 +9,13 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
 )
 
-// app_ytdlp_variants.go: the "Variante" rows a yt-dlp-routed link stages
-// (jdp, 2026-08-25, after a first, narrower attempt at this same request
-// only added a bundle of on/off flags to one task: "ich glaub du hast
-// nicht verstanden was ich mein... wenn ich in JD ein Youtub-link einfüge
-// listet es video, audio, bild, untertitel, text auf... genau so soll es
-// auch in KL sein"). One pasted link becomes up to five sibling tasks -
-// video, audio, thumbnail, subtitle, description - sharing the same URL
-// and package, each its own row with its own Enabled switch and (for
-// video/audio) its own quality choice.
+// Variant rows: one pasted yt-dlp link becomes up to five sibling tasks
+// (video, audio, thumbnail, subtitle, description) sharing the URL and
+// package, each with its own Enabled switch and, for video and audio, its own
+// quality.
 
-// variantEncode/variantDecode are core.Task.Variant's own compact
-// encoding: "<kind>" or "<kind>:<quality-or-format>" - one plain string
-// rather than a second persisted column, matching that field's own doc
-// comment ("a yt-dlp format, a quality") and needing no store migration.
+// variantEncode and variantDecode are core.Task.Variant's encoding: "<kind>"
+// or "<kind>:<quality-or-format>", one string so no store migration is needed.
 func variantEncode(kind ytdlp.Variant, sub string) string {
 	if sub == "" {
 		return string(kind)
@@ -35,11 +28,9 @@ func variantDecode(v string) (kind ytdlp.Variant, sub string) {
 	return ytdlp.Variant(k), s
 }
 
-// ytdlpOptionsForTask is ytdlp.Backend.Options's own per-task closure body
-// (wired in rewireBackends, app_accounts.go): the instance-wide defaults
-// (subtitle language, playlist, output template - nothing a task's own
-// Variant overrides), with Variant/Quality/AudioFormat replaced by what
-// THIS task's own core.Task.Variant says.
+// ytdlpOptionsForTask is the per-task options closure wired in rewireBackends:
+// the instance-wide defaults with Variant, Quality and AudioFormat taken from
+// the task's own Variant.
 func (a *App) ytdlpOptionsForTask(taskID string) ytdlp.Options {
 	base := a.Settings.Get().Ytdlp
 	a.mu.Lock()
@@ -48,17 +39,9 @@ func (a *App) ytdlpOptionsForTask(taskID string) ytdlp.Options {
 	if t == nil {
 		return base
 	}
-	// A link a listing pointed at is ONE item, whatever the instance-wide
-	// playlist setting says - and the setting must not be allowed to make it
-	// anything else. A playlist entry (stagePlaylistEntries,
-	// app_ytdlp_playlist.go) and a crawled page link both arrive with the page
-	// they came from on Source and OriginCrawl on Origin, and for both the
-	// list has already been expanded: this row IS one of its members. Leaving
-	// --no-playlist off here would ask yt-dlp to expand a list out of an entry
-	// that came from one - and a YouTube entry URL that still carries its own
-	// "&list=" parameter would then download the whole playlist again, once
-	// per row, which is a hundred copies of the same fifty videos rather than
-	// the fifty the person asked for.
+	// A playlist entry or crawled link is one item from a list that has already
+	// been expanded. Without --no-playlist, an entry URL that still carries
+	// "&list=" would download the whole playlist again for every row.
 	if t.Origin == OriginCrawl {
 		base.Playlist = false
 	}
@@ -83,8 +66,8 @@ func (a *App) ytdlpOptionsForTask(taskID string) ytdlp.Options {
 	return base
 }
 
-// HosterPresetFor is the preset a host's own links stage with - what was
-// saved for it, or ytdlp.DefaultHosterPreset() when nothing was.
+// HosterPresetFor is the preset a host's links stage with: the saved one, or
+// ytdlp.DefaultHosterPreset.
 func (a *App) HosterPresetFor(host string) ytdlp.HosterPreset {
 	host = strings.ToLower(strings.TrimSpace(host))
 	if host == "" {
@@ -96,23 +79,12 @@ func (a *App) HosterPresetFor(host string) ytdlp.HosterPreset {
 	return ytdlp.DefaultHosterPreset()
 }
 
-// SetHosterPreset saves host's own preset (the "Variante" gear badge's own
-// write path - PackageGroup's header, TaskList.tsx). host is lower-cased
-// and "www."-stripped the same way hostOf/torrentHost already normalise
-// every task's own Host field, so a preset saved from one row always
-// matches every future link from the same site regardless of which
-// subdomain the pasted URL happened to carry.
+// SetHosterPreset saves a host's preset. host is lower-cased and stripped of
+// "www." as task hosts are, so a preset matches every link from the site.
 //
-// Goes through PatchSettings, not a Get-merge-ApplySettings round trip:
-// SetPartial reads every OTHER top-level field under the same lock that
-// writes the merged result, so a settings save racing this one on some
-// unrelated field (Quality on the Resolvers page, say) can never be
-// clobbered by a stale full snapshot - see PatchSettings's own doc
-// comment. YtdlpPresets itself is still read-then-written here, a narrow
-// window PatchSettings does not close on its own, but two people editing
-// two different hosts' presets at the same literal instant is a
-// vanishingly unlikely collision next to the whole-document race this
-// avoids.
+// It goes through PatchSettings so a concurrent save of another field is not
+// clobbered. The presets map itself is still read then written, which only
+// matters if two hosts' presets are saved at the same instant.
 func (a *App) SetHosterPreset(host string, p ytdlp.HosterPreset) error {
 	host = strings.ToLower(strings.TrimSpace(strings.TrimPrefix(host, "www.")))
 	if host == "" {
@@ -132,13 +104,10 @@ func (a *App) SetHosterPreset(host string, p ytdlp.HosterPreset) error {
 	return err
 }
 
-// expandYtdlpVariants turns the one task stage() already created (video's
-// own row from here on) into a full family: video plus, per the staging
-// host's own preset, the other four variants - each present as its own
-// row regardless of the preset (jdp: "Alle 5 immer als Zeile"), enabled or
-// not per what that preset says. Called once, synchronously, right after
-// staging succeeds - from the same call site stage() already spawns the
-// async title probe from, see that call site's own comment (app_links.go).
+// expandYtdlpVariants turns the task stage created into a full family: it
+// becomes the video row, and the other four variants are added as rows
+// regardless of the preset, enabled as the host's preset says. It runs once,
+// right after staging.
 func (a *App) expandYtdlpVariants(primary *core.Task) {
 	preset := a.HosterPresetFor(primary.Host)
 
@@ -156,7 +125,7 @@ func (a *App) expandYtdlpVariants(primary *core.Task) {
 
 	for _, v := range ytdlp.Variants() {
 		if v == ytdlp.VariantVideo {
-			continue // already the primary task itself, handled above
+			continue // the primary itself
 		}
 		sub := ""
 		if v == ytdlp.VariantAudio {
@@ -164,15 +133,9 @@ func (a *App) expandYtdlpVariants(primary *core.Task) {
 		}
 		a.insertVariantSibling(&core.Task{
 			URL: pc.URL,
-			// pc.Name, not pc.URL: for a bare pasted link the two are the same
-			// string anyway (stage's own placeholder), and for a link that
-			// already HAS a real name at expansion time they are not. A
-			// playlist entry is the second kind - the listing named it before
-			// it was ever staged (stagePlaylistEntries, app_ytdlp_playlist.go)
-			// - and its siblings would otherwise keep the URL as their name for
-			// good, because the one thing that renames them, setTaskName's own
-			// propagation loop, returns immediately for a primary that already
-			// has a name.
+			// pc.Name rather than the URL: a playlist entry is already named by
+			// the listing, and setTaskName does not rename siblings of a primary
+			// that already has a name.
 			Name:      pc.Name,
 			Package:   pc.Package,
 			Status:    core.StatusCollected,
@@ -188,20 +151,11 @@ func (a *App) expandYtdlpVariants(primary *core.Task) {
 	}
 }
 
-// fixedVariantExt is the extension a variant row already knows about itself
-// the moment it is created, without asking the source anything (jdp,
-// 2026-09-05: "Bei allen links in der dateiliste soll es die Dateiendung
-// immer anzeigen").
-//
-// Three of the five kinds land in a format buildArgs pins outright
-// (--convert-thumbnails jpg, --sub-format srt, and a description that IS a
-// text file), and an audio row with an explicit format was told its own
-// extension by the preset that created it. Only "best" audio and video depend
-// on what the source actually has, and those two wait for the probe.
-//
-// Set here rather than left to applyProbeFormats alone, which is where all
-// five used to be decided: a probe that never answers left a row with no
-// extension at all, for four cases whose answer was never in doubt.
+// fixedVariantExt is the extension a variant row knows without asking the
+// source. buildArgs pins thumbnails to jpg and subtitles to srt, a description
+// is a text file, and audio with an explicit format has that extension. Best
+// audio and video depend on the source and wait for the probe. Setting these at
+// creation means a probe that never answers still leaves an extension.
 func fixedVariantExt(v ytdlp.Variant, sub string) string {
 	switch v {
 	case ytdlp.VariantThumbnail:
@@ -218,12 +172,9 @@ func fixedVariantExt(v ytdlp.Variant, sub string) string {
 	return ""
 }
 
-// insertVariantSibling is put's own shape (fresh ID, insert, save,
-// broadcast) without put's dedupe check - a.dupes keys on URL among other
-// things, and every task in this family deliberately shares the primary's
-// URL, which put() would read as "the same link pasted twice" and refuse.
-// These are not a duplicate paste; they are several different jobs against
-// the one URL, so the ordinary dedupe rule does not apply to them.
+// insertVariantSibling does what put does without the dedupe check: every row
+// in the family shares the primary's URL, which put would refuse as a second
+// paste of the same link.
 func (a *App) insertVariantSibling(t *core.Task) {
 	a.mu.Lock()
 	t.ID = a.freshIDLocked()
@@ -234,53 +185,22 @@ func (a *App) insertVariantSibling(t *core.Task) {
 	a.Hub.Broadcast("task", &c)
 }
 
-// applyProbeFormats is what a completed probe's own format list (
-// ytdlp.ProbeResult.Formats) lets the family answer for certain, plus the
-// availability signal a probe that came back AT ALL already proves (jdp,
-// 2026-08-25: "der [status-punkt] zeigt immer noch keine farbe an" - a
-// freshly staged link's Online field starts unset/grey until something
-// checks it, and unlike a plain HTTP link (analyze's own HEAD probe, called
-// automatically at staging - app_links.go), nothing did that for a yt-dlp
-// link before now; the title/format probe this function rides along with
-// already IS that check, for free, so there is no reason to leave the
-// family gray until somebody presses "recheck" by hand). A probe that
-// failed never reaches this function at all (probeYtdlpTitle returns
-// before calling it) - failure is deliberately NOT read as "offline": too
-// many failure causes (a timeout, an age gate, a transient site hiccup)
-// are not the host actually saying the file is gone, and this package's
-// own analyze()/RecheckTasks already draw that same line.
+// applyProbeFormats applies a completed probe's format list to every row of
+// the family, and marks them online, since a probe that answered at all proves
+// the source is there. A failed probe never gets here and is not read as
+// offline: a timeout or an age gate is not the host saying the file is gone.
 //
-// Per variant kind, matching buildArgs's own per-variant extension table
-// (backend.go) exactly - honestly answerable ahead of time or not. Every
-// kind now gets an Ext (jdp, 2026-08-26: "dateiendungen werden immer noch
-// nicht angezeigt" - the video/thumbnail/subtitle rows answered nothing at
-// all before this pass, because their own real container genuinely used to
-// depend on the source; buildArgs now forces a fixed target for each
-// (--merge-output-format mkv, --convert-thumbnails jpg, --sub-format srt),
-// which turns "depends on the source" into a fact this function can state
-// instead of a guess it has to avoid making):
-//   - description: Ext is always "description" - no probe maths needed.
-//   - audio, a FIXED format (mp3/m4a/opus/wav/flac): Ext is that format
-//     itself (deterministic - ffmpeg's own --audio-format target) - but
-//     not Size, since transcoding changes the byte count unpredictably
-//     from the source track's own. AvailableAudioFormats always narrows to
-//     what the source's own audio-only tracks actually carry, regardless
-//     of which format is currently picked.
-//   - audio, "best" (-x with no --audio-format - a straight extract, not a
-//     transcode): both Ext and Size come from the best-matching source
-//     audio-only track's own reported values - a real fact, not a guess,
-//     since nothing re-encodes it and the container it lands in IS
-//     whatever that specific format's own extension already says.
-//   - video: AvailableQualities from every real video-track height found
-//     (ytdlp.AvailableQualities), Size from the best-matching video-only
-//     track at or under this row's own currently-picked quality cap, and
-//     Ext="mkv" ONLY when the source actually offers a real video-only +
-//     audio-only pair to merge (buildArgs' own forced merge format has no
-//     effect on the muxed-fallback path a source without one takes
-//     instead - see that branch's own comment).
-//   - thumbnail: Ext="jpg" always (the forced conversion never fails to
-//     produce one once any thumbnail exists at all).
-//   - subtitle: Ext="srt" always, same reasoning.
+// Per kind, matching buildArgs (backend.go):
+//   - description: Ext is always "description".
+//   - audio with a fixed format: Ext is that format; Size is left alone since
+//     transcoding changes it. AvailableAudioFormats narrows to what the
+//     source's audio-only tracks carry.
+//   - audio "best": a straight extract, so Ext and Size come from the best
+//     audio-only track.
+//   - video: AvailableQualities from the track heights, Size from the best
+//     track under the picked cap, and Ext "mkv" only when a video-only and
+//     audio-only pair will be merged.
+//   - thumbnail and subtitle: jpg and srt, from the forced conversions.
 func (a *App) applyProbeFormats(rawurl string, formats []ytdlp.FormatEntry) {
 	var maxVideoHeight int
 	var maxAudioAbr float64
@@ -353,10 +273,8 @@ func (a *App) applyProbeFormats(rawurl string, formats []ytdlp.FormatEntry) {
 					changed = true
 				}
 			} else if hasBestAudio {
-				// -x with no --audio-format copies the source track without
-				// re-encoding it, so the container it lands in genuinely IS
-				// the matched format's own reported extension - not a guess,
-				// the same value yt-dlp itself will write.
+				// -x without --audio-format copies the track as is, so the
+				// format's own extension is what yt-dlp writes.
 				if bestAudio.Ext != "" && t.Ext != bestAudio.Ext {
 					t.Ext = bestAudio.Ext
 					changed = true
@@ -371,14 +289,9 @@ func (a *App) applyProbeFormats(rawurl string, formats []ytdlp.FormatEntry) {
 				t.AvailableQualities = availableQualities
 				changed = true
 			}
-			// mkv only when a real merge will actually happen - buildArgs'
-			// own --merge-output-format mkv (backend.go) has no effect on
-			// the muxed-fallback path a source with no true video-only/
-			// audio-only pair takes instead (formatSelector's own selector
-			// falls back to a single pre-muxed stream, unchanged by that
-			// flag), so claiming mkv there would be wrong rather than merely
-			// unhelpful - see this case's own AvailableQualities collapsing
-			// to best/custom alone for the same source-shape signal.
+			// --merge-output-format mkv only applies to a real merge; a source
+			// without a video-only and audio-only pair falls back to one
+			// pre-muxed stream.
 			if hasVideoOnly && hasBestAudio && t.Ext != "mkv" {
 				t.Ext = "mkv"
 				changed = true
@@ -396,16 +309,13 @@ func (a *App) applyProbeFormats(rawurl string, formats []ytdlp.FormatEntry) {
 				}
 			}
 		case ytdlp.VariantThumbnail:
-			// --convert-thumbnails jpg (backend.go) makes this a fact rather
-			// than a guess: whatever format the source's own thumbnail
-			// arrives in, ffmpeg converts it before it lands on disk.
+			// --convert-thumbnails jpg (backend.go).
 			if t.Ext != "jpg" {
 				t.Ext = "jpg"
 				changed = true
 			}
 		case ytdlp.VariantSubtitle:
-			// --sub-format srt (backend.go), same reasoning as the
-			// thumbnail case just above.
+			// --sub-format srt (backend.go).
 			if t.Ext != "srt" {
 				t.Ext = "srt"
 				changed = true
@@ -422,34 +332,18 @@ func (a *App) applyProbeFormats(rawurl string, formats []ytdlp.FormatEntry) {
 	}
 }
 
-// backfillYtdlpProbes probes the variant rows already sitting in the collector
-// whose menus have nothing to narrow them.
+// backfillYtdlpProbes probes collector rows whose quality or format menus have
+// nothing to narrow them, because they were staged before probing existed or
+// their probe never answered. Empty means no opinion, so the picker would offer
+// the full static menu (flac for a source that has no lossless track).
 //
-// Every one of the five rows a yt-dlp link expands into is created at stage
-// time, and the probe that fills AvailableQualities/AvailableAudioFormats/
-// AvailableAudioBitrates (and the real Ext) is fired at that same moment. A row
-// staged before that probe existed, or one whose probe never answered, keeps
-// those fields empty forever - and empty means "no opinion", so the picker
-// falls back to the full static menu. Measured on the live instance
-// (2026-09-05): five YouTube rows from August, all five with no probe data, so
-// the audio row offered flac for a source that has never had a lossless track
-// (jdp: "z.b. flac wir gar nicht von Youtube angeboten"). The narrowing was
-// built and correct; there was simply nothing to narrow WITH.
-//
-// Deliberately not gated on the row's current resolver. Those same five rows
-// now read resolver "torbox", because routing is re-decided per attempt while
-// the variant family is fixed at stage time - but the question this answers is
-// "what does the SOURCE offer", and yt-dlp is what can answer it whichever
-// backend ends up doing the fetching.
-//
-// One probe per distinct URL, because applyProbeFormats already updates every
-// URL-sharing sibling, and one at a time: this is a spawn of yt-dlp per link
-// against somebody's collector, and a boot that starts forty of them at once
-// is a boot that looks like a hang.
+// It does not check the row's current resolver: routing is decided per attempt,
+// but the question is what the source offers, which only yt-dlp can answer.
+// It probes one distinct URL at a time, since applyProbeFormats updates every
+// sibling and forty yt-dlp processes at boot would look like a hang.
 func (a *App) backfillYtdlpProbes() {
-	// The four extensions that never needed a probe, first and without a
-	// network call, so a box with no yt-dlp binary at all still stops showing
-	// four of the five rows with no extension.
+	// The fixed extensions first and without a network call, so a box without
+	// yt-dlp still shows them.
 	a.applyFixedVariantExts()
 	tp, ok := a.ytdlpTitleProber()
 	if !ok {
@@ -473,8 +367,8 @@ func (a *App) backfillYtdlpProbes() {
 				continue
 			}
 		default:
-			// A row with no variant is not a yt-dlp family member, and the
-			// three fixed-extension kinds have nothing to probe for.
+			// Not a family member, or a fixed-extension kind with nothing to
+			// probe for.
 			continue
 		}
 		seen[t.URL] = true
@@ -492,22 +386,16 @@ func (a *App) backfillYtdlpProbes() {
 		res, err := tp.ProbeTitle(ctx, u)
 		cancel()
 		if err != nil {
-			// Same silence as the stage-time probe: a source that cannot be
-			// reached right now leaves the menu as wide as it was, which is
-			// exactly the state this function found it in.
+			// Unreachable now; the menu stays as wide as it was.
 			continue
 		}
 		a.applyProbeFormats(u, res.Formats)
 	}
 }
 
-// applyFixedVariantExts gives every existing variant row the extension
-// fixedVariantExt already knows for its kind. Rows created from now on get it
-// at expansion time; this is for the ones already sitting in a collector.
-//
-// Only fills a blank. A row whose extension a probe has since resolved (an
-// audio row that came back "m4a" for a "best" preset) knows better than a
-// table does, and this must never overwrite that.
+// applyFixedVariantExts gives existing variant rows the extension
+// fixedVariantExt knows for their kind. It only fills blanks, since a probed
+// extension (an audio row resolved to m4a) is more accurate than the table.
 func (a *App) applyFixedVariantExts() {
 	a.mu.Lock()
 	var touched []core.Task
@@ -530,9 +418,8 @@ func (a *App) applyFixedVariantExts() {
 	}
 }
 
-// formatSize is a FormatEntry's own best available byte count - exact when
-// the host reports one, yt-dlp's own estimate otherwise, 0 when neither is
-// known.
+// formatSize is a format's best known byte count: exact when the host reports
+// one, yt-dlp's estimate otherwise, 0 when neither is known.
 func formatSize(f ytdlp.FormatEntry) int64 {
 	if f.Filesize > 0 {
 		return f.Filesize
@@ -540,13 +427,9 @@ func formatSize(f ytdlp.FormatEntry) int64 {
 	return f.FilesizeApprox
 }
 
-// bestVideoAtOrUnder is the largest (best-quality) video-only track at or
-// under capHeight - the same "closest to the cap from below" choice
-// formatSelector's own "<=?H" selector makes for a real download, mirrored
-// here so the Size estimate matches what buildArgs would actually pick.
-// capHeight <= 0 (this row's own Variant is "best", or nothing was probed)
-// picks the single tallest track available, matching "best"'s own
-// no-cap meaning.
+// bestVideoAtOrUnder is the tallest video track at or under capHeight, the
+// choice formatSelector's "<=?H" makes, so the size estimate matches the real
+// download. capHeight <= 0 means no cap.
 func bestVideoAtOrUnder(formats []ytdlp.FormatEntry, capHeight int) *ytdlp.FormatEntry {
 	var best *ytdlp.FormatEntry
 	for i, f := range formats {

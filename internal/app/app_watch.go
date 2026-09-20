@@ -1,21 +1,8 @@
 package app
 
-// The drop folders and what a file dropped into one asked for.
-//
-// This is the one intake nobody is sitting in front of. A file lands on a share
-// and the links are staged minutes later, so every question the collector would
-// normally put to a person has to be answered from the file itself. That is what
-// shapes the two halves below: applyWatchFolders keeps the set of watched
-// folders matching the configuration without ever tearing down a folder that did
-// not change, and stageWatchJob carries out as much of one job's stated intent
-// as this app has a switch for.
-//
-// This replaced the single-folder path that used to live in app.go
-// (applyWatcher/onWatchJob) - built to replace it since this file's own
-// introduction, wired in only later (Wave 8's own gate, once its adversarial
-// review found the old path's bare `go func(){...}()` still live and its
-// stale AutoStart read shipping alongside a genuine Wave 8 regression in the
-// same function).
+// Drop folders and the jobs dropped into them. Nobody is at the collector for
+// this intake, so every question it would ask has to be answered from the file
+// itself.
 
 import (
 	"log"
@@ -28,30 +15,23 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/watch"
 )
 
-// envWatchDirs names drop folders beyond the one the settings hold, separated
-// the way the platform separates a path list.
+// envWatchDirs names drop folders beyond the one in the settings, separated as
+// the platform separates a path list.
 //
-// It is an environment variable and not a second setting because the settings
-// form replaces the whole configuration object on save: a list stored beside
-// WatchDir that no page renders would come back empty from the first save
-// anybody made, and a watch folder that disappears when you change the speed
-// limit is a bug nobody would connect to the two. An operator who mounted three
-// shares into the container names all three here, and nothing in the interface
-// can reach the value to lose it.
+// It is an environment variable rather than a setting because the settings
+// form replaces the whole object on save, so a list no page renders would be
+// wiped by the first unrelated save.
 const envWatchDirs = "KL_WATCH_DIRS"
 
-// watchFolders is the set of drop folders the configuration asks for. It is the
-// one place the sources are combined, so the day the settings grow a list of
-// their own this is the only reader that has to learn about it.
+// watchFolders is the set of drop folders the configuration asks for, combined
+// from the settings and the environment in one place.
 func watchFolders(s settings.Settings) []watch.Folder {
 	var out []watch.Folder
 	seen := make(map[string]bool)
 	add := func(dir string) {
 		dir = strings.TrimSpace(dir)
-		// A textual match only, to keep the same folder from being logged twice
-		// when the environment repeats what the settings already say. Two
-		// spellings of one directory are the watcher's problem, and it resolves
-		// them properly.
+		// A textual match only, so a repeated entry is not logged twice. The
+		// watcher resolves two spellings of one directory itself.
 		if dir == "" || seen[dir] {
 			return
 		}
@@ -66,16 +46,10 @@ func watchFolders(s settings.Settings) []watch.Folder {
 }
 
 // applyWatchFolders makes the running watcher match the configuration. It runs
-// on every settings change, so turning a folder on does not need a restart.
+// on every settings change, so turning a folder on needs no restart.
 //
-// It takes the whole settings rather than a folder list because where the
-// folders come from is watchFolders' business and not the caller's.
-//
-// The live watcher is reconciled rather than rebuilt. Rebuilding was what the
-// single-folder version did, and with more than one folder it is actively
-// wrong: saving an unrelated setting would stop and restart every poller, throw
-// away what each of them knew about the files being copied into its folder, and
-// re-probe shares the save had nothing to do with.
+// The watcher is reconciled rather than rebuilt, so an unrelated save does not
+// restart every poller and lose what each knew about files still being copied.
 func (a *App) applyWatchFolders(s settings.Settings) {
 	folders := watchFolders(s)
 	a.wmu.Lock()
@@ -104,9 +78,8 @@ func (a *App) applyWatchFolders(s settings.Settings) {
 	}
 	dirs := a.watcher.Dirs()
 	if len(dirs) == 0 {
-		// Every configured folder failed. The watcher is closed rather than kept,
-		// so that fixing the permission and saving again builds a fresh one
-		// instead of reviving whatever this one was left holding.
+		// Every folder failed. Closing it means the next save builds a fresh
+		// watcher.
 		_ = a.watcher.Close()
 		a.watcher = nil
 		log.Print("no drop folder could be watched; intake is off")
@@ -115,20 +88,15 @@ func (a *App) applyWatchFolders(s settings.Settings) {
 	log.Printf("watching %s for dropped links", strings.Join(dirs, ", "))
 }
 
-// onWatchIntake receives one job from a drop folder. It runs on that folder's
-// polling goroutine, so the work goes onto a goroutine of its own: a poll that
-// waits for the collector to resolve twenty links is a poll that is not looking
-// at the folder, and the next file to land sits there until it returns.
+// onWatchIntake receives one job on the folder's polling goroutine and hands it
+// off, so the poll is not blocked while the links resolve.
 func (a *App) onWatchIntake(j watch.Job) {
 	a.spawn(func() { a.stageWatchJob(j) })
 }
 
-// stageWatchJob carries out one dropped job.
-//
-// The order is the whole of it: the links are staged, then everything the file
-// said about them is written on, and only then is anything started. Starting
-// first would race the folder override onto a download that had already chosen
-// where to put its bytes.
+// stageWatchJob carries out one dropped job: stage the links, write on what the
+// file asked for, and only then start anything, so a folder override cannot
+// arrive after a download has chosen where to write.
 func (a *App) stageWatchJob(j watch.Job) {
 	created := a.AddLinksWithPasswords(j.URLs, j.Package, j.Passwords, OriginWatch)
 	if len(created) == 0 {
@@ -141,32 +109,17 @@ func (a *App) stageWatchJob(j watch.Job) {
 	a.applyWatchJobOptions(ids, j)
 
 	if j.Disabled {
-		// The file asked for these to be parked: added, kept, and passed over by
-		// everything that starts downloads. Checked before the confirm switch
-		// below, so a disabled job never reaches ConfirmTasks/StartTasks at all -
-		// nothing here needs undoing on the way out, only skipping on the way in.
+		// Parked: added and kept, and never passed to ConfirmTasks or
+		// StartTasks.
 		a.SetEnabled(ids, false)
 		return
 	}
 	if j.Forced {
 		a.SetForced(ids, true)
 	}
-	// Unlike AddLinksFrom's own entrance, this one runs through
-	// AddLinksWithPasswords -> the unexported addLinksFrom, which has no
-	// auto-confirm check of its own - so, unlike that sibling entrance, there
-	// is nothing elsewhere in this call chain that already applied the global
-	// AutoConfirm setting. A prior version of this comment claimed otherwise
-	// ("already started them if it was on") without that being true of this
-	// specific path; trust the code, not the old comment, which is exactly
-	// the mistake Wave 8's own adversarial review caught one call site over.
-	//
-	// Forced bypasses onDupes/onOffline entirely rather than going through
-	// ConfirmTasks: a file explicitly forcing a link is a stronger, more
-	// specific signal than the batch-level confirm policy and must not be
-	// silently held back by it - the same reasoning Wave 4's own forced-download
-	// pool already applies to the concurrency limit. Otherwise, either the
-	// global setting or the job's own override wanting auto-confirm is enough
-	// to run the batch through the same policy engine a manual confirm would.
+	// addLinksFrom applies no AutoConfirm of its own, so it is checked here.
+	// A forced link bypasses the confirm policy, since the file asked for it
+	// explicitly.
 	switch {
 	case j.Forced:
 		a.StartTasks(ids)
@@ -175,13 +128,9 @@ func (a *App) stageWatchJob(j watch.Job) {
 	}
 }
 
-// applyWatchJobOptions writes what the job said onto the tasks it created.
-//
-// The file wins over the Packagizer, deliberately: a rule is a standing
-// instruction and the dropped file is somebody saying what they want for these
-// links, now. That is also why the values are written after staging rather than
-// merged into it - the rules run as a link is staged, and anything applied here
-// lands on top of what they decided.
+// applyWatchJobOptions writes what the job said onto the tasks it created. It
+// runs after staging so the file's values override the Packagizer: the file is
+// a request for these links, a rule a standing default.
 func (a *App) applyWatchJobOptions(ids []string, j watch.Job) {
 	var (
 		opts TaskOptions
@@ -200,9 +149,7 @@ func (a *App) applyWatchJobOptions(ids []string, j watch.Job) {
 		opts.Chunks, set = &chunks, true
 	}
 	if j.Priority != nil {
-		// Copied rather than passed on: the Job's pointer belongs to the parsed
-		// file, and handing it to a setter that may keep it is how two tasks end
-		// up sharing one priority.
+		// Copied so no task shares the parsed job's pointer.
 		priority := *j.Priority
 		opts.Priority, set = &priority, true
 	}
@@ -216,14 +163,10 @@ func (a *App) applyWatchJobOptions(ids []string, j watch.Job) {
 		}
 	}
 
-	// The file name goes in a call of its own, because SetTaskOptions refuses the
-	// whole request when one field in it is bad: a crawljob carrying a name with a
-	// slash in it would otherwise cost the destination folder and the priority as
-	// well, and nobody is watching to notice.
-	//
-	// It is applied only to a job carrying a single link. A name is one file's
-	// identity, and writing it onto twenty tasks points twenty downloads at one
-	// destination.
+	// SetTaskOptions rejects the whole request over one bad field, so a bad file
+	// name gets its own call and cannot cost the folder and priority. It only
+	// applies to a single-link job; one name on twenty tasks would point them all
+	// at one file.
 	if j.Filename != "" && len(ids) == 1 {
 		filename := j.Filename
 		if err := a.SetTaskOptions(ids, TaskOptions{Filename: &filename}); err != nil {
