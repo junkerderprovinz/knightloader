@@ -19,7 +19,7 @@ makes the picker's contents depend on history rather than on state.
 Two consequences that every entry below has to satisfy:
 
 - **The way out is the way in, or plainer.** Whatever the egg turned on, an
-  ordinary interaction turns off — a second gesture, a different value in the
+  ordinary interaction turns off: a second gesture, a different value in the
   same field, closing the screen. Nothing needs a reset button, because nothing
   is stored that would need resetting.
 - **A chosen value persists; the fact that it was FOUND does not.** Those two
@@ -45,7 +45,7 @@ of three states the element is in; everything visible is `.kl-egg` in
 
 It is the counterpart to BombVault's own, which shatters its logo into 36 pieces
 with a fire cloud. That fits a bomb; a sword's gesture is drawing and striking,
-and it keeps the same rhythm — tension while held, discharge on release.
+and it keeps the same rhythm: tension while held, discharge on release.
 
 **A short press is still a click and still navigates home.** The browser fires
 `click` after `pointerup` either way, so the hook suppresses only the click that
@@ -66,16 +66,17 @@ that opens under annoyance is a bug report waiting to be filed.
 the numbers are one token block, `:root[data-motion="storm"]`, in
 `web/src/index.css`.
 
-This one is GlimStone's, adopted here rather than invented here — the language
-carries it as the case that establishes the rule at the top of this file. Three
+This one is GlimStone's, adopted here rather than invented here, and the
+language carries it as the case that establishes the rule at the top of this
+file. Three
 details are easy to get wrong and are all load-bearing:
 
 - The option is offered while it is **chosen**, because a picker that hid the
   value it is currently showing would be lying about the interface. Otherwise it
   is offered only for as long as the settings screen stays open.
 - A persisted `storm` is **still accepted at boot**, even though no picker
-  offers it — otherwise the gesture would produce a setting that silently
-  forgets itself on the next reload. Validating a stored value and populating a
+  offers it, because otherwise the gesture would produce a setting that
+  silently forgets itself on the next reload. Validating a stored value and populating a
   picker are two different questions.
 - It sits **inside** the `prefers-reduced-motion: no-preference` gate, not
   beside it, so a hidden "more animation" switch can never talk a browser out of

@@ -43,7 +43,7 @@ export const is: Dict = {
   'packages.deleteConfirmButton': 'Fjarlægja',
 
   'addDownload.title': 'Bæta við tenglum',
-  'addDownload.titlePeer': 'Bæta við tenglum – {name}',
+  'addDownload.titlePeer': 'Bæta við tenglum - {name}',
   'addDownload.hint': 'Einn tengill á línu, alveg eins og í innlímingarreitnum í vefviðmótinu.',
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Límdu að minnsta kosti einn tengil.',

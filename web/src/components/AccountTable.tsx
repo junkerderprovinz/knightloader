@@ -50,7 +50,7 @@ export interface AccountRow {
  */
 function TierCell({ tier }: { tier?: string }) {
   const { t } = useT();
-  if (!tier || tier === 'unknown') return <span className="text-carbon-textMuted">—</span>;
+  if (!tier || tier === 'unknown') return <span className="text-carbon-textMuted">-</span>;
   if (tier === 'premium') return <span className="text-carbon-text">{t('accounts.tier.premium')}</span>;
   if (tier === 'free') return <span className="text-carbon-textMuted">{t('accounts.tier.free')}</span>;
   return <span className="text-carbon-text">{tier.charAt(0).toUpperCase() + tier.slice(1)}</span>;
@@ -63,7 +63,7 @@ function TierCell({ tier }: { tier?: string }) {
  */
 function TrafficCell({ traffic }: { traffic?: AccountTraffic }) {
   const { t } = useT();
-  if (!traffic) return <span className="text-carbon-textMuted">—</span>;
+  if (!traffic) return <span className="text-carbon-textMuted">-</span>;
 
   if (traffic.unlimited) {
     // No bar without a limit. Some services, such as TorBox, still report the
@@ -112,7 +112,7 @@ function TrafficCell({ traffic }: { traffic?: AccountTraffic }) {
   // No quota reported, so no bar; an empty track would claim a limit of zero.
   return (
     <span className="text-carbon-textMuted" title={t('accounts.trafficUnknown')}>
-      —
+      -
     </span>
   );
 }
@@ -162,7 +162,7 @@ export function AccountTable({ rows, label }: { rows: AccountRow[]; label: strin
               <td className="px-2 py-3">
                 <TierCell tier={row.tier} />
               </td>
-              <td className="glim-num px-2 py-3 text-carbon-textSub">{fmtDate(row.expiry) || '—'}</td>
+              <td className="glim-num px-2 py-3 text-carbon-textSub">{fmtDate(row.expiry) || '-'}</td>
               <td className="px-2 py-3 text-carbon-textSub">
                 <TrafficCell traffic={row.traffic} />
               </td>

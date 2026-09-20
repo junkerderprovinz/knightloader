@@ -43,7 +43,7 @@ export const pl: Dict = {
   'packages.deleteConfirmButton': 'Usuń',
 
   'addDownload.title': 'Dodaj linki',
-  'addDownload.titlePeer': 'Dodaj linki – {name}',
+  'addDownload.titlePeer': 'Dodaj linki - {name}',
   'addDownload.hint': 'Jeden link w wierszu, tak jak w polu wklejania interfejsu webowego.',
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Wklej co najmniej jeden link.',

@@ -43,7 +43,7 @@ export const ms: Dict = {
   'packages.deleteConfirmButton': 'Buang',
 
   'addDownload.title': 'Tambah pautan',
-  'addDownload.titlePeer': 'Tambah pautan – {name}',
+  'addDownload.titlePeer': 'Tambah pautan - {name}',
   'addDownload.hint': 'Satu pautan setiap baris, sama seperti kotak tampal pada antara muka web.',
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Tampal sekurang-kurangnya satu pautan.',

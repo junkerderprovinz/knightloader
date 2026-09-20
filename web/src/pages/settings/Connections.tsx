@@ -293,7 +293,7 @@ function ConnectionRow({
             {kindLabel(cx, row.type)}
           </span>
           <span dir="ltr" className="min-w-0 flex-1 truncate text-sm text-carbon-text">
-            {endpointOf(row) || <span className="text-carbon-textMuted">—</span>}
+            {endpointOf(row) || <span className="text-carbon-textMuted">-</span>}
           </span>
           <span dir="ltr" className="hidden min-w-0 truncate text-xs text-carbon-textMuted sm:block sm:max-w-[14rem]">
             {filterSummary(cx, row.filter)}

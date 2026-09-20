@@ -43,7 +43,7 @@ export const eu: Dict = {
   'packages.deleteConfirmButton': 'Kendu',
 
   'addDownload.title': 'Gehitu estekak',
-  'addDownload.titlePeer': 'Gehitu estekak – {name}',
+  'addDownload.titlePeer': 'Gehitu estekak - {name}',
   'addDownload.hint': 'Esteka bat lerroko, web-interfazeko itsasteko koadroan bezala.',
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Itsatsi esteka bat gutxienez.',

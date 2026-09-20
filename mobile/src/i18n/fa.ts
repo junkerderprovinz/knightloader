@@ -43,7 +43,7 @@ export const fa: Dict = {
   'packages.deleteConfirmButton': 'حذف',
 
   'addDownload.title': 'افزودن لینک‌ها',
-  'addDownload.titlePeer': 'افزودن لینک‌ها – {name}',
+  'addDownload.titlePeer': 'افزودن لینک‌ها - {name}',
   'addDownload.hint': 'هر خط یک لینک، درست مانند کادر جای‌گذاری در رابط وب.',
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'حداقل یک لینک جای‌گذاری کنید.',

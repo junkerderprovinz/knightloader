@@ -14,12 +14,12 @@ machine at a fixed loopback port; the tools here answer a link with no button
 anywhere. Since the extension learned to intercept CnL submissions itself
 (`extension/src/cnl-main.js`), the two meet: the extension catches the button
 a website offers and routes it through the relay, so it reaches an instance
-that is not on that machine at all — which the loopback port cannot do.
+that is not on that machine at all, which the loopback port cannot do.
 
 ## Why the bookmarklet and the share target open a window
 
 `internal/api/api.go`'s `sameOrigin` middleware refuses any request that
-carries an Origin header not matching this instance's own host — deliberately,
+carries an Origin header not matching this instance's own host,
 so that no other page can drive a signed-in browser's session against the
 API. There is no bearer token a bookmarklet could hold instead of a session
 cookie. So neither of them calls `/api/links` from where it runs: each opens a
@@ -31,19 +31,19 @@ password-locked) applies exactly as if you had typed the address in yourself.
 This is also why neither needs a copy of the instance's password: they only
 ever need to know *where* the instance is, never a credential of their own.
 
-The extension used to work the same way, and stopped — opening a window needs
-an ADDRESS, and the extension no longer knows any.
+The extension used to work the same way, and stopped: opening a window needs
+an address, and the extension no longer knows any.
 
 ## Bookmarklet
 
-Settings > Browser & App shows a link built from `window.location.origin` —
+Settings > Browser & App shows a link built from `window.location.origin`,
 whatever address you are looking at the settings page on. Drag it to your
 bookmarks bar. Clicking it on any page opens `/quickadd` with that page's URL
 and title, plus whatever text you had selected (useful for a page listing
 several links in prose, none of them individually a "download button").
 
 Generated client-side (`web/src/lib/browserTools.ts`'s `buildBookmarklet`),
-never server-rendered with a fixed address baked in at build time — a
+never server-rendered with a fixed address baked in at build time. A
 self-hosted app has no fixed address to bake in, and whichever address you
 used to reach the settings page is, by construction, one that already works
 for you.
@@ -66,7 +66,7 @@ anyone can build it from a checkout and compare.
 
 The options page asks for the same twelve words the instances themselves are
 paired with (`docs/connecting.md`, `internal/seedphrase`) and for nothing
-else — no name, no address, no password. `extension/src/phrase.js` is a
+else: no name, no address, no password. `extension/src/phrase.js` is a
 WebCrypto port of the Go derivation, so the browser derives the identical two
 keys: one that joins the relay group, one that encrypts the frames.
 
@@ -75,7 +75,7 @@ The group roster is read live at the moment a window opens, which is why the
 popup has a loading state: an instance that is switched off is not offered,
 and one that came online a minute ago is, with nobody telling this browser
 anything. Sends go out as `POST /api/links` **through the relay**, admitted
-because membership in the group is the credential — the `sameOrigin` guard is
+because membership in the group is the credential. The `sameOrigin` guard is
 not worked around, it simply is not on that path.
 
 Four context-menu entries (page, link, image, selection), a toolbar popup, and
@@ -102,14 +102,14 @@ Click'n'Load button reaches the port: `fetch`, `XHR`, `HTMLFormElement.submit`
 and a capture-phase `submit` listener, `navigator.sendBeacon`, `window.open`
 (and, inside same-origin windows it opens, the fetch, XHR and form hooks), the `src` setter of
 iframe, image and script elements, and a capture-phase click on plain links. It
-decodes the payload with `cnl.js` — AES-128-CBC,
-key equals IV, both padding conventions found in the wild — and hands the links
+decodes the payload with `cnl.js` (AES-128-CBC,
+key equals IV, both padding conventions found in the wild) and hands the links
 to the service worker, which relays them to the chosen instance with
 `origin: 'cnl'`. The page is answered `success\r\n`, exactly as a local
 JDownloader would answer it. Detection works because `cnl-main.js` sets
 `window.jdownloader` at `document_start`, before the site's `jdcheck.js` looks.
 
-It is **on from the first second** — it is what most people install this for —
+It is **on from the first second**, which is what most people install this for,
 and the switch on the options page really removes it:
 `chrome.scripting.unregisterContentScripts` takes both scripts away, verifiable
 with `chrome.scripting.getRegisteredContentScripts()`, which is more than a
@@ -122,8 +122,8 @@ This is the answer to the case a loopback port cannot serve: KnightLoader on a
 server, a browser on a laptop, and a CnL button on a website that only knows how
 to talk to `127.0.0.1:9666`.
 
-**Selection Rules** — pre-defining which instance a given file type goes to, the
-way MyJDownloader's extension can — is still not built. Choosing per send and
+**Selection Rules** (pre-defining which instance a given file type goes to, the
+way MyJDownloader's extension can) is still not built. Choosing per send and
 setting a default are; a rule engine on top of that is real but niche, and
 nothing about this shape blocks it later.
 
@@ -131,7 +131,7 @@ nothing about this shape blocks it later.
 
 `web/public/manifest.webmanifest` declares `share_target` pointing at
 `/quickadd` with a plain `GET` (`url`/`text`/`title` become query
-parameters) — the same shape the bookmarklet already uses,
+parameters), the same shape the bookmarklet already uses,
 so there is exactly one page that knows how to turn a shared blob into a
 staged link. `web/public/sw.js` is a deliberately empty pass-through service
 worker; it exists only because most browsers gate the install prompt behind
@@ -143,7 +143,7 @@ optimisation).
 Installing is what turns the share target on: an uninstalled tab has no
 Share-menu entry to offer. `web/src/lib/pwaInstall.ts` exports
 `useInstallPrompt()`, a small shared hook around the browser's
-`beforeinstallprompt` event — Settings > Browser & App uses it for its own
+`beforeinstallprompt` event. Settings > Browser & App uses it for its own
 "Install" button. That tab is now the only caller: the app card moved there
 from the Zugang tab, so the two install buttons that used to sit on separate
 pages are one, and the event is captured once because there is only one place
@@ -152,7 +152,7 @@ left that wants it.
 ## What this deliberately does not do
 
 No account, and no attempt to speak MyJDownloader's own vocabulary or
-protocol — the same ruling `/api/help` states for the API generally applies
+protocol. The same ruling `/api/help` states for the API generally applies
 here. Sends reach the instances in your group through the project's relay
 (`relay.halleluja.design`), which forwards sealed messages it cannot read, and
 there is nothing to sign into.

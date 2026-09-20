@@ -43,7 +43,7 @@ export const hi: Dict = {
   'packages.deleteConfirmButton': 'हटाएँ',
 
   'addDownload.title': 'लिंक जोड़ें',
-  'addDownload.titlePeer': 'लिंक जोड़ें – {name}',
+  'addDownload.titlePeer': 'लिंक जोड़ें - {name}',
   'addDownload.hint': 'प्रति पंक्ति एक लिंक, ठीक वैसे ही जैसे वेब यूज़र इंटरफ़ेस के पेस्ट बॉक्स में।',
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'कम से कम एक लिंक पेस्ट करें।',

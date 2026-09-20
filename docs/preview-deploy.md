@@ -68,11 +68,11 @@ curl -s http://<host>:8749/api/health
 ```
 
 Every container on this box gets its own `br0.20` IP rather than a host port
-mapping — this is the standing convention for every self-hosted service here,
+mapping. That is the standing convention for every self-hosted service here,
 not something specific to KnightLoader. `<instance-ip>` is this instance's
 fixed IP; a second instance used for testing the phrase group and federation runs the same
 way at `<second-instance-ip>` (same image, its own `/mnt/user/appdata/knightloader2`
-and `/mnt/user/downloads/knightloader2` volumes, no `-p` either — each
+and `/mnt/user/downloads/knightloader2` volumes, no `-p` either, because each
 instance is reachable on its own IP at the container's own port 8749).
 
 ## Where things live
@@ -94,7 +94,7 @@ Everything from the README applies. Two notes specific to the container:
 - `KL_TORBOX` / `KL_ALLDEBRID` / `KL_REALDEBRID` are optional: keys entered on
   the Accounts page are stored encrypted in the data volume and survive
   restarts, so the environment does not need them. A key saved there takes
-  effect immediately — the backends are re-wired in place, without a restart.
+  effect immediately: the backends are re-wired in place, without a restart.
 
 ## Data that outlives a redeploy
 
@@ -138,7 +138,7 @@ bundle filenames carry **no content hash** (`app.js`, `de.js`, not
 `app.a1b2c3.js`), because the binary redeploys by replacing the whole embedded
 build and a hash would only move the problem to `index.html`. To make that safe
 the server answers every asset with an **ETag and `Cache-Control: no-cache`**,
-which is not "do not cache" but "revalidate before use" — exactly right for a
+which is not "do not cache" but "revalidate before use", exactly right for a
 file at a fixed address.
 
 A proxy's asset-caching feature then overwrites that header. Measured on Nginx

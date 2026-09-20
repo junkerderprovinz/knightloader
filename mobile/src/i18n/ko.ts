@@ -43,7 +43,7 @@ export const ko: Dict = {
   'packages.deleteConfirmButton': '삭제',
 
   'addDownload.title': '링크 추가',
-  'addDownload.titlePeer': '링크 추가 – {name}',
+  'addDownload.titlePeer': '링크 추가 - {name}',
   'addDownload.hint': '웹 UI의 붙여넣기 상자와 마찬가지로 한 줄에 하나씩 링크를 입력하세요.',
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': '링크를 하나 이상 붙여넣으세요.',

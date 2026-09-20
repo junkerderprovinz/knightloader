@@ -43,7 +43,7 @@ export const it: Dict = {
   'packages.deleteConfirmButton': 'Rimuovi',
 
   'addDownload.title': 'Aggiungi link',
-  'addDownload.titlePeer': 'Aggiungi link – {name}',
+  'addDownload.titlePeer': 'Aggiungi link - {name}',
   'addDownload.hint': 'Un link per riga, come nel campo di incolla dell’interfaccia web.',
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Incolla almeno un link.',

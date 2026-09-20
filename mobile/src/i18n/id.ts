@@ -43,7 +43,7 @@ export const id: Dict = {
   'packages.deleteConfirmButton': 'Hapus',
 
   'addDownload.title': 'Tambahkan tautan',
-  'addDownload.titlePeer': 'Tambahkan tautan – {name}',
+  'addDownload.titlePeer': 'Tambahkan tautan - {name}',
   'addDownload.hint': 'Satu tautan per baris, sama seperti kotak tempel pada antarmuka web.',
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Tempelkan setidaknya satu tautan.',

@@ -43,7 +43,7 @@ export const cs: Dict = {
   'packages.deleteConfirmButton': 'Odebrat',
 
   'addDownload.title': 'Přidat odkazy',
-  'addDownload.titlePeer': 'Přidat odkazy – {name}',
+  'addDownload.titlePeer': 'Přidat odkazy - {name}',
   'addDownload.hint': 'Jeden odkaz na řádek, stejně jako v poli pro vložení ve webovém rozhraní.',
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Vložte alespoň jeden odkaz.',

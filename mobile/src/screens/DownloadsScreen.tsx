@@ -170,7 +170,7 @@ export default function DownloadsScreen({
             <View style={[styles.queueCard, { backgroundColor: c.surface, borderRadius: radii.card }]}>
               <View style={styles.queueBar}>
                 <Text style={[styles.queueLabel, { color: c.textMuted }]}>
-                  {queue ? (queue.halted ? t('downloads.queueHalted') : t('downloads.queueRunning')) : '—'}
+                  {queue ? (queue.halted ? t('downloads.queueHalted') : t('downloads.queueRunning')) : '-'}
                   {queue && queue.running > 0 ? ` · ${t('downloads.queueActive', { n: queue.running })}` : ''}
                   {speed > 0 ? ` · ${fmtBytes(speed)}/s` : ''}
                 </Text>

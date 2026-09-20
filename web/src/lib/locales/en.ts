@@ -9,9 +9,8 @@ export const en = {
   'settings.accounts.setupTitle': 'Sidebar',
   'settings.accounts.showInSidebar': 'Show in the sidebar too',
   'settings.accounts.showInSidebarHint': 'This tab and the sidebar’s own Accounts destination show the same page - turn this off if having both feels redundant rather than convenient.',
-  // The same three, for the Instances tab (jdp, 2026-08-27: "Können wir den
-  // Instanzentab wie den konten-tab ein- und ausblendbar machen?"). Its own
-  // keys rather than a shared pair, because the hint names the destination.
+  // The same three, for the Instances tab. Its own keys rather than a shared
+  // pair, because the hint names the destination.
   'settings.nav.instances': 'Instances',
   'settings.instances.setupTitle': 'Sidebar',
   'settings.instances.showInSidebar': 'Show in the sidebar too',
@@ -57,8 +56,8 @@ export const en = {
   // Not one of the server's values. It names the failure chip that collects the
   // rows nothing classified, plus any cause a newer instance sent that this
   // build has no word for - see ErrorCauses.tsx. The row itself still shows no
-  // label for those, deliberately (reasonKey in columns.tsx); a chip has to say
-  // something, and "unclassified" is the one honest thing to say.
+  // label for those (reasonKey in columns.tsx); a chip has to say something,
+  // and "unclassified" is the one honest thing to say.
   'task.reason.unknown': 'Unclassified',
 
   'overview.title': 'Overview',
@@ -76,7 +75,7 @@ export const en = {
   'common.loadFailed': 'Could not load this. Is the server reachable?',
   'common.retry': 'Try again',
 
-  // FirstTouchHint's own copy (components/FirstTouchHint.tsx) — one honest
+  // FirstTouchHint's own copy (components/FirstTouchHint.tsx): one honest
   // sentence or two about what a page actually does, shown once per surface
   // and never again once dismissed (see that file's own doc comment). Keyed
   // by page, not by component, because a hint is a fact about the page it
@@ -368,10 +367,10 @@ export const en = {
   'search.url': 'Link',
   'search.clear': 'Clear the search',
   'search.hint': 'Pick one field to search, or “Everything” to search all of them at once.',
-  // The second half of the search bubble. The tokens themselves are NOT
-  // translated in any catalogue - the parser accepts one set of prefixes, and a
-  // hint that named a localised one nobody could type would be worse than no
-  // hint. German is the exception, and only because lib/searchQuery.ts really
+  // The second half of the search bubble. The tokens themselves stay
+  // untranslated in every catalogue: the parser accepts one set of prefixes,
+  // and a hint that named a localised one nobody could type would be worse
+  // than no hint. German is the exception, and only because lib/searchQuery.ts really
   // does accept `paket:` and `aelter:` as aliases; see FIELD_PREFIX there.
   // The last sentence is the load-bearing one: it is the promise that a colon or
   // an angle bracket in a file name cannot break anybody's search.
@@ -426,9 +425,9 @@ export const en = {
   // "undo adding" must be able to give one.
   'remove.undo': 'Undo',
   'remove.undone': '{n} download(s) back in the list.',
-  // The window closed. Deliberately not phrased as an error: the half minute
-  // running out is the ordinary end of the offer, and calling it a failure would
-  // send somebody looking for a broken button.
+  // The window closed. Not phrased as an error: the half minute running out
+  // is the ordinary end of the offer, and calling it a failure would send
+  // somebody looking for a broken button.
   'remove.undoTooLate': 'Too late: those rows are gone for good.',
 
   'menu.label': 'Actions for the selected downloads',
@@ -479,7 +478,7 @@ export const en = {
 
   // The one-shot clipboard button: hidden by itself wherever
   // navigator.clipboard is undefined (an ordinary http:// LAN address is not
-  // a secure context), so its own label is all it ever needs — there is no
+  // a secure context), so its own label is all it ever needs. There is no
   // paired "why is this missing" bubble to write, because where it cannot
   // work it is not there to ask about. Its own outcome reuses
   // collector.toastStaged/toastNone and list.failed rather than adding a
@@ -1667,16 +1666,16 @@ export const en = {
   'settings.access.intakePortsHint': 'Other ways this instance can be reached directly, outside the normal login - each with its own reachability shown here.',
 
   // Sending KnightLoader a link from outside the app - the bookmarklet, the
-  // MV3 browser extension and the PWA install step (pages/settings/
-  // BrowserTools.tsx, Wave 11D). settings.nav.browsertools is this page's
-  // rail label.
+  // MV3 browser extension and the PWA install step
+  // (pages/settings/BrowserTools.tsx). settings.nav.browsertools is this
+  // page's rail label.
   'settings.nav.browsertools': 'Browser & App',
   'settings.browsertools.bookmarkletStep1': 'Drag the button below onto your browser’s bookmarks bar - it saves like any other bookmark, nothing installs.',
   'settings.browsertools.bookmarkletStep2': 'On any page, click it (select some text first if you only want that). A small KnightLoader tab opens with that page’s link, or the selected text, already filled in - review it and add it as a download from there.',
   'settings.browsertools.installLabel': 'How to install',
-  // The app card, moved here from the Access tab with its own keys (jdp,
-  // 2026-08-27). Deliberately not left under settings.access.remote.*: a key
-  // named after the page a card used to be on is one nobody dares delete.
+  // The app card lives on this tab with its own keys rather than under
+  // settings.access.remote.*: a key named after the page a card used to be on
+  // is one nobody dares delete.
   'settings.browsertools.appTitle': 'App',
   'settings.browsertools.appBody': 'The KnightLoader app for your phone. Android can also install the APK directly; on iPhone and iPad the App Store is the only way, which is why there is no download beside it.',
   'settings.browsertools.storeAndroid': 'Google Play',
@@ -1700,8 +1699,8 @@ export const en = {
   'settings.browsertools.copied': 'Copied.',
   'settings.browsertools.extensionTitle': 'Browser extension',
 
-  // /quickadd (pages/QuickAdd.tsx, Wave 11D) - the one page the bookmarklet,
-  // the browser extension and the PWA share target all land on.
+  // /quickadd (pages/QuickAdd.tsx) - the one page the bookmarklet, the browser
+  // extension and the PWA share target all land on.
   'quickadd.title': 'Add to KnightLoader',
   'quickadd.manualLabel': 'Link (or paste several, one per line)',
   'quickadd.manualPlaceholder': 'https://example.com/file.zip',
@@ -1721,11 +1720,9 @@ export const en = {
   'quickadd.undoFailed': 'Could not undo this - it is still there. ({error})',
   'quickadd.close': 'Close window',
 
-  // Quit/restart/backup/restore - build-plan.md's Wave 10 (10D) shipped the
-  // whole backend with no page pointing at it at all; found by that wave's
-  // own adversarial review. Merged into the General tab's own SystemCards
-  // (pages/settings/Look.tsx) 2026-08-24 rather than kept on a dedicated
-  // "System" tab of its own.
+  // Quit/restart/backup/restore. These sit in the General tab's own
+  // SystemCards (pages/settings/Look.tsx) rather than on a "System" tab of
+  // their own.
   'settings.system.lifecycleTitle': 'Quit & restart',
   'settings.system.quit': 'Quit',
   'settings.system.restart': 'Restart',

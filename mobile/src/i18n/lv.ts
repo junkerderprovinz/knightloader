@@ -43,7 +43,7 @@ export const lv: Dict = {
   'packages.deleteConfirmButton': 'Noņemt',
 
   'addDownload.title': 'Pievienot saites',
-  'addDownload.titlePeer': 'Pievienot saites – {name}',
+  'addDownload.titlePeer': 'Pievienot saites - {name}',
   'addDownload.hint': 'Viena saite katrā rindā, tāpat kā ielīmēšanas laukā tīmekļa saskarnē.',
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Ielīmējiet vismaz vienu saiti.',

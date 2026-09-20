@@ -43,7 +43,7 @@ export const et: Dict = {
   'packages.deleteConfirmButton': 'Eemalda',
 
   'addDownload.title': 'Lisa lingid',
-  'addDownload.titlePeer': 'Lisa lingid – {name}',
+  'addDownload.titlePeer': 'Lisa lingid - {name}',
   'addDownload.hint': 'Üks link rea kohta, samamoodi nagu veebiliidese kleepimisväljal.',
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Kleepige vähemalt üks link.',

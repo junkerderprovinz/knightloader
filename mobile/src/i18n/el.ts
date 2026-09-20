@@ -43,7 +43,7 @@ export const el: Dict = {
   'packages.deleteConfirmButton': 'Αφαίρεση',
 
   'addDownload.title': 'Προσθήκη συνδέσμων',
-  'addDownload.titlePeer': 'Προσθήκη συνδέσμων – {name}',
+  'addDownload.titlePeer': 'Προσθήκη συνδέσμων - {name}',
   'addDownload.hint': 'Ένας σύνδεσμος ανά γραμμή, όπως στο πλαίσιο επικόλλησης της διεπαφής web.',
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Επικολλήστε τουλάχιστον έναν σύνδεσμο.',

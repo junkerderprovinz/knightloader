@@ -44,7 +44,7 @@ If it has earned a place on your server or computer, toss a coin to your knight:
 
 <div align="center">
 
-> # ⚠️ Under development — please do not install this yet
+> # ⚠️ Under development: please do not install this yet
 >
 > **KnightLoader is not ready for anyone to run.** This repository is public so
 > the work can be followed and the browser extension can go through store
@@ -125,16 +125,16 @@ encrypted on your own box.
 | | |
 |---|---|
 | **Collector** | Links are analysed and staged before anything downloads: name, size, availability, which backend will take them. Nothing is ever dropped in silence, and a link that no backend handles is still shown, with the reason on it. |
-| **Rules** | A Packagizer and a link filter, one engine used twice: match on filename, URL, hoster, source, type or size, then set the package, folder, filename, priority or comment — or refuse the link, with the rule's name attached. A test box shows what a rule would do before it does it. |
-| **Download list** | A real table: choose your columns, resize and reorder them, sort by any of them, fold packages away. The layout is remembered per instance, and sorting is a view — the queue keeps its own order. |
+| **Rules** | A Packagizer and a link filter, one engine used twice: match on filename, URL, hoster, source, type or size, then set the package, folder, filename, priority or comment, or refuse the link, with the rule's name attached. A test box shows what a rule would do before it does it. |
+| **Download list** | A real table: choose your columns, resize and reorder them, sort by any of them, fold packages away. The layout is remembered per instance, and sorting is a view: the queue keeps its own order. |
 | **Crawling** | Paste a page and it becomes the files it links to, not one unusable task. |
-| **Containers** | `.txt` link lists are read here. `.dlc`, `.ccf` and `.rsdf` are handed to the JDownloader backend, which holds the key that opens them — their contents then come back through the ordinary path, so the filter and the Packagizer apply to them like anything else. |
+| **Containers** | `.txt` link lists are read here. `.dlc`, `.ccf` and `.rsdf` are handed to the JDownloader backend, which holds the key that opens them. Their contents then come back through the ordinary path, so the filter and the Packagizer apply to them like anything else. |
 | **Queue** | Global and per-host concurrency, priorities, manual order, a stop mark, automatic retries with a growing delay, and a timetable that pauses or throttles by the clock. |
 | **Speed limit** | A total for everything, applied while downloads run rather than only to the next one. |
 | **Duplicates** | The same URL twice is refused; the same file under two URLs is recognised as a mirror, under a policy you pick rather than a guess. Refused links are held with their reason, not deleted. |
 | **Extraction** | zip, rar (incl. multi-volume), 7z, tar, gz, bz2, xz, zst. A multi-part set waits for every part. Encrypted zip (WinZip AES and the legacy ZipCrypto), rar and 7z take passwords, tried from a list in order. Pure Go, with no external unrar or 7z binary in the image. |
 | **Integrity** | A finished file is checked against an `.sfv`/`.md5`/`.sha*` that came with it, or a CRC in its own name. Nothing is marked as passing that was not checked. |
-| **Collisions** | What happens when the file already exists is your choice — overwrite, skip or number it — and the name is reserved atomically, so two downloads finishing together cannot pick the same one. |
+| **Collisions** | What happens when the file already exists is your choice (overwrite, skip or number it), and the name is reserved atomically, so two downloads finishing together cannot pick the same one. |
 | **Connections** | Several outbound routes with order, credentials and a per-host filter, handed out round-robin up to a cap each. Passwords are stored, never served back. |
 | **Reconnect** | Get a new address when a hoster's limit is keyed to the one you have: run a command, replay a recorded HTTP exchange, ask the gateway over UPnP (which needs no router details at all), or run a script through a named interpreter. A recorded LiveHeader script imports as it is. An unchanged address counts as a failure, not a success. |
 | **Torrents** | Magnet links and uploaded `.torrent` files are a resolver like any other, so they land in the same collector, the same queue and the same folder rules. No account and nothing to configure. |
@@ -234,7 +234,7 @@ cd desktop && wails build
 The bundle lands in `desktop/build/bin`. Windows and macOS need only their
 usual toolchains. Linux needs GTK and WebKit: `libgtk-3-dev` and
 `libwebkit2gtk-4.1-dev` to build, `libwebkit2gtk-4.1-0` to run. Build it with
-`wails build -tags webkit2_41` — without the tag Wails looks for webkit2gtk
+`wails build -tags webkit2_41`. Without the tag Wails looks for webkit2gtk
 **4.0**, which Ubuntu 24.04 and its relatives no longer package, and the error
 names a missing package rather than a dropped version.
 </details>
@@ -271,25 +271,25 @@ issues its key, is `internal/accounts/catalogue.go`.
 
 Pasting works, and so does dropping text onto the collector. Beyond that:
 
-- **[Click'n'Load](docs/clicknload.md)** — a site's own CnL button hands its links
+- **[Click'n'Load](docs/clicknload.md)**: a site's own CnL button hands its links
   straight over. Every site addresses `127.0.0.1`, and a container's loopback is
   not the browser's, so when KnightLoader runs on a NAS there are two ways to
   bridge that gap: the [browser extension](extension/README.md), which catches
   the submission in the page itself and routes it through the relay to whichever
   instance you pick, or the same binary run as a bridge on your desktop
   (`knightloader -bridge http://nas:8749`) for a browser with no extension in it.
-- **Watched folder** — drop a `.txt` or a JDownloader `.crawljob` onto a share and
+- **Watched folder**: drop a `.txt` or a JDownloader `.crawljob` onto a share and
   the box picks it up, with its package name, destination and archive password.
   Point Settings at the folder to switch it on.
-- **A page** — paste one, and the files it links to are staged instead.
-- **A container file** — upload a `.txt`, `.dlc`, `.ccf` or `.rsdf`. A link list is
-  read on the spot. The encrypted formats cannot be opened by anyone offline —
-  their key is issued to registered clients — so they are handed to the
+- **A page**: paste one, and the files it links to are staged instead.
+- **A container file**: upload a `.txt`, `.dlc`, `.ccf` or `.rsdf`. A link list is
+  read on the spot. The encrypted formats cannot be opened by anyone offline,
+  because their key is issued to registered clients. They are handed to the
   JDownloader backend, which has one. That backend is provisioned on first run
   by default (`KL_PROVISION_JD`), so this normally works with nothing set. With
   no backend at all, a container is recognised and refused with that as the
   reason rather than a vague failure.
-- **Your own server** — see below.
+- **Your own server**: see below.
 
 <br>
 
@@ -331,7 +331,7 @@ the same encrypted store as the account credentials, and you can paste a cookie
 block or a whole `curl` line in and have the headers pulled out of it.
 
 Two rules make this safe to use, and both are enforced rather than promised. A
-stored header **never appears anywhere it could be read back** — not in a log,
+stored header **never appears anywhere it could be read back**: not in a log,
 not in an error message, not in a diagnostic bundle, and not in
 `settings.json`, where a Packagizer rule only ever names the profile it wants.
 And a header **never follows a redirect off its own site**: a forum that hands
@@ -350,13 +350,13 @@ The download folder may be a plain path or a template:
 Available: `<jd:packagename>`, `<jd:hoster>`, `<jd:filename>`, `<jd:date>`,
 `<jd:year>`, `<jd:month>`, `<jd:day>` and `<jd:simpledate:FORMAT>` with the
 usual `yyyy MM dd HH mm ss SSS` pattern letters. A task can also carry its own
-folder, which always wins — and a Packagizer rule can set one per link, which is
+folder, which always wins, and a Packagizer rule can set one per link, which is
 how one paste lands in several places.
 
 Two variables differ from JDownloader on purpose, and the variables menu says so
 next to each: `<jd:source:N>` here is the **Nth path segment of the source URL**,
 which is what a rule with no regular expression in it can use. JDownloader's
-meaning — capture group N — is `<jd:match:FIELD:N>`, which reads a group from any
+meaning, capture group N, is `<jd:match:FIELD:N>`, which reads a group from any
 field the rule matched on, not only the source. A rule naming a group on a field
 it has no `matches` condition for is refused when you save it, rather than
 quietly producing the wrong folder.

@@ -43,7 +43,7 @@ export const lt: Dict = {
   'packages.deleteConfirmButton': 'Šalinti',
 
   'addDownload.title': 'Pridėti nuorodas',
-  'addDownload.titlePeer': 'Pridėti nuorodas – {name}',
+  'addDownload.titlePeer': 'Pridėti nuorodas - {name}',
   'addDownload.hint': 'Po vieną nuorodą eilutėje, kaip ir įklijavimo lauke žiniatinklio sąsajoje.',
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Įklijuokite bent vieną nuorodą.',

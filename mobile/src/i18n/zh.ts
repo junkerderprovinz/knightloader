@@ -43,7 +43,7 @@ export const zh: Dict = {
   'packages.deleteConfirmButton': '删除',
 
   'addDownload.title': '添加链接',
-  'addDownload.titlePeer': '添加链接 – {name}',
+  'addDownload.titlePeer': '添加链接 - {name}',
   'addDownload.hint': '每行一个链接，与网页界面的粘贴框格式相同。',
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': '请至少粘贴一个链接。',

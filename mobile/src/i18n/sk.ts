@@ -43,7 +43,7 @@ export const sk: Dict = {
   'packages.deleteConfirmButton': 'Odstrániť',
 
   'addDownload.title': 'Pridať odkazy',
-  'addDownload.titlePeer': 'Pridať odkazy – {name}',
+  'addDownload.titlePeer': 'Pridať odkazy - {name}',
   'addDownload.hint': 'Jeden odkaz na riadok, rovnako ako v poli na vloženie vo webovom rozhraní.',
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Vložte aspoň jeden odkaz.',

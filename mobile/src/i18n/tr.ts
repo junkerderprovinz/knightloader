@@ -43,7 +43,7 @@ export const tr: Dict = {
   'packages.deleteConfirmButton': 'Kaldır',
 
   'addDownload.title': 'Bağlantı ekle',
-  'addDownload.titlePeer': 'Bağlantı ekle – {name}',
+  'addDownload.titlePeer': 'Bağlantı ekle - {name}',
   'addDownload.hint': 'Web arayüzündeki yapıştırma kutusuyla aynı şekilde, satır başına bir bağlantı.',
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'En az bir bağlantı yapıştırın.',

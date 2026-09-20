@@ -43,7 +43,7 @@ export const da: Dict = {
   'packages.deleteConfirmButton': 'Fjern',
 
   'addDownload.title': 'Tilføj links',
-  'addDownload.titlePeer': 'Tilføj links – {name}',
+  'addDownload.titlePeer': 'Tilføj links - {name}',
   'addDownload.hint': 'Ét link pr. linje, ligesom indsætningsfeltet i webgrænsefladen.',
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Indsæt mindst ét link.',
