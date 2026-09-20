@@ -1,18 +1,16 @@
 // What "matches" means, checked against the ranker that ships.
 //
-// Two surfaces read lib/rank.ts now - the command palette and the settings
-// search - so a change to it changes both at once, and neither has a test
-// runner behind it. The rule most worth defending is the quiet one: FOLDING.
-// Lowercasing alone, which is all this scorer did while it lived inside
-// CommandPalette.tsx, makes every accented language a set of dead ends, and the
-// failure looks exactly like "there is nothing called that": in a German UI
-// "grosse" never finds "Größe" and "uber" never finds "Überwachung". Nobody
-// reports an empty result list as a bug in string normalisation.
+// The command palette and the settings search both read lib/rank.ts, and
+// neither has a test runner behind it. The rule most worth defending is the
+// quiet one: folding. Lowercasing alone makes every accented language a set of
+// dead ends, and the failure reads as "there is nothing called that": in a
+// German UI "grosse" never finds "Größe" and "uber" never finds "Überwachung".
 //
-// It drives the REAL module rather than a copy: Node strips the types out of
-// src/lib/rank.ts, which is why that file is kept free of any import at all -
-// the same arrangement check-search-query.mjs already uses for
-// src/lib/searchQuery.ts. Run by hand or from CI: `node web/check-rank.mjs`.
+// It drives the real module rather than a copy: Node strips the types out of
+// src/lib/rank.ts, which is why that file carries no import at all, the same
+// arrangement check-search-query.mjs uses for src/lib/searchQuery.ts.
+//
+// Run: `node web/check-rank.mjs`.
 
 import { fold, score, scoreFolded, scoreProse } from './src/lib/rank.ts';
 
@@ -24,10 +22,10 @@ function check(what, got, want) {
   if (a !== b) problems.push(`${what}\n      got  ${a}\n      want ${b}`);
 }
 
-/** Does this label match this query at all - the only question most call sites ask. */
+/** Whether this label matches this query at all, which is what most callers ask. */
 const hits = (label, query) => score(label, query) >= 0;
 
-// --- Folding, in the languages this catalogue actually ships -----------------
+// Folding, in the languages this catalogue ships.
 
 check('an umlaut folds to its base letter', fold('Größe'), 'grosse');
 check('ß and ẞ both become ss', fold('STRAßE ẞ'), 'strasse ss');
@@ -35,15 +33,12 @@ check('a French accent folds', fold('Qualité'), 'qualite');
 check('a Czech caron folds', fold('Přenos'), 'prenos');
 check('plain ASCII is only lowercased', fold('Download Folder'), 'download folder');
 check('a script with no marks to strip is left alone', fold('Загрузки'), 'загрузки');
-// Greek is not a special case, it is the rule working outside Latin: the tonos
-// is a combining mark like any other, so somebody typing without it still finds
-// the word - which is exactly how Greek is typed in a hurry.
+// The tonos is a combining mark like any other, so somebody typing without it,
+// which is how Greek is typed in a hurry, still finds the word.
 check('a Greek tonos folds like any other mark', fold('Λήψεις'), 'ληψεις');
 check('ληψεις finds Λήψεις', hits('Λήψεις', 'ληψεις'), true);
 
-// The letters NFD has nothing to say about. Every one of these was wrong before
-// check-rank.mjs existed - the fold had ß and stopped there, so six of the
-// shipped languages folded to themselves while German and French looked fine.
+// The letters NFD has nothing to say about, so each needs its own mapping.
 check('a Turkish dotless i becomes i', fold('Bağlantı'), 'baglanti');
 check('a Polish stroked l becomes l', fold('Połączenie'), 'polaczenie');
 check('a Danish slashed o becomes o', fold('Størrelse'), 'storrelse');
@@ -51,7 +46,7 @@ check('an Icelandic thorn and eth fold', fold('Þjöðvegur'), 'thjodvegur');
 check('a Croatian stroked d becomes d', fold('Đaci'), 'daci');
 check('a ligature becomes both its letters', fold('Æblegrød œuf'), 'aeblegrod oeuf');
 
-// --- The point of folding: typing it the easy way still finds it -------------
+// Typing it the easy way still finds it.
 
 check('grosse finds Größe', hits('Größe', 'grosse'), true);
 check('größe finds Größe', hits('Größe', 'größe'), true);
@@ -59,14 +54,14 @@ check('uber finds Überwachung', hits('Überwachung', 'uber'), true);
 check('qualite finds Qualité', hits('Qualité', 'qualite'), true);
 check('baglanti finds Bağlantı', hits('Bağlantı', 'baglanti'), true);
 check('polaczenie finds Połączenie', hits('Połączenie', 'polaczenie'), true);
-// And the fold does NOT invent matches across languages: German "Qualität"
-// folds to "qualitat", which the French spelling is not a subsequence of.
+// The fold invents no matches across languages: German "Qualität" folds to
+// "qualitat", which the French spelling is not a subsequence of.
 check('qualite does not find Qualität', hits('Qualität', 'qualite'), false);
-// Folded on BOTH sides, always. Folding only the query would make the accented
-// spelling of a word unable to find itself, which is worse than not folding.
+// Folded on both sides. Folding only the query would leave the accented
+// spelling of a word unable to find itself.
 check('the accented spelling still finds itself', hits('Größe', 'Größe'), true);
 
-// --- Ranking: lower is better, -1 is no match -------------------------------
+// Ranking: lower is better, -1 is no match.
 
 check('no query matches everything at rank 0', score('anything', ''), 0);
 check('a query with no relation does not match', score('Downloads', 'zzq'), -1);
@@ -89,27 +84,22 @@ check(
 check('a subsequence still counts', score('Command palette', 'cmdp'), 1000);
 check('an out-of-order subsequence does not', score('Command palette', 'pdmc'), -1);
 
-// --- scoreFolded is the same function minus the normalising ------------------
-//
-// The settings search folds its ~700 strings once and keeps them, rather than
-// re-normalising all of them on every keystroke. That only holds if the two
-// agree on everything else.
+// scoreFolded is the same function without the normalising. The settings
+// search folds its strings once and keeps them instead of re-normalising all
+// of them on every keystroke, which only holds while the two agree.
 
 check(
   'scoreFolded on folded input equals score on raw input',
   scoreFolded(fold('Größe'), fold('GRÖSSE')),
   score('Größe', 'GRÖSSE'),
 );
-check('scoreFolded does NOT fold for you', scoreFolded('Größe', 'grosse'), -1);
+check('scoreFolded does not fold for you', scoreFolded('Größe', 'grosse'), -1);
 
-// --- Prose is matched by substring only, and this is the reason --------------
-//
-// A real hint out of the settings catalogue. Before scoreProse existed, the
-// settings search ran scoreFolded over sentences like this one, and the top five
-// results for "speed" were five cards whose explanations happened to contain the
-// word - ranked above the row actually called "Speed limit" - while "zzzz"
-// matched a paragraph about archive extraction. Every letter of any short query
-// appears somewhere in a long enough sentence, in order. Measured, not feared.
+// Prose is matched by substring only, against a real hint out of the settings
+// catalogue. Every letter of a short query appears somewhere in a long enough
+// sentence, in order, so subsequence matching ranks cards whose explanation
+// happens to contain the word above the row that is named for it, and matches
+// nonsense as readily.
 
 const HINT = fold(
   'Archives are extracted automatically: zip (including encrypted), rar with multi-volume sets, ' +

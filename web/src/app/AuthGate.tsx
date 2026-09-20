@@ -32,29 +32,20 @@ export function AuthGate({ children }: { children: ReactNode }) {
 }
 
 /**
- * The sign-in screen, which is now two steps rather than one on an instance
- * with a second factor armed, plus the passkey door beside them.
- *
- * WHY THE CODE FIELD IS A SECOND STEP AND NOT A THIRD BOX ON THE FIRST. The
- * screen cannot know whether a code is wanted until the password has been
- * accepted - the server deliberately says nothing about an instance's defences
- * to somebody who has not got past the first one yet. So the password goes up
- * alone, and the answer decides whether there is a second question. Showing an
- * empty code box to everybody would ask most people for something they do not
- * have.
+ * The sign-in screen, with a passkey button where one can work. The code is a
+ * second step because the server only says whether a second factor is armed
+ * once the password has been accepted.
  */
 function SignIn({ onSignedIn }: { onSignedIn: (a: AuthState) => void }) {
   const { t } = useT();
   const [password, setPassword] = useState('');
   const [code, setCode] = useState('');
-  // 'password' or 'code': which question is on screen. Driven by the server's
-  // answer, never guessed here.
+  // Which question is on screen, decided by the server's answer.
   const [step, setStep] = useState<'password' | 'code'>('password');
   const [error, setError] = useState<'' | 'password' | 'code' | 'passkey'>('');
   const [busy, setBusy] = useState(false);
-  // Whether a passkey could answer on THIS address: a key is bound to the
-  // domain it was created for, so a button offered where none can answer is a
-  // button that opens a browser prompt and fails.
+  // A passkey is bound to its domain, so the button only appears where a key
+  // registered for this address exists.
   const [passkeyHere, setPasskeyHere] = useState(false);
 
   useEffect(() => {
@@ -74,9 +65,7 @@ function SignIn({ onSignedIn }: { onSignedIn: (a: AuthState) => void }) {
         onSignedIn(res);
         return;
       }
-      // Asked for a code, or told the one just sent was wrong. Both keep the
-      // password: retyping it to fix a mistyped digit would be a punishment for
-      // the wrong mistake.
+      // A code is wanted, or the last one was wrong; the password is kept.
       setStep('code');
       setCode('');
       if (res.codeRejected) setError('code');
@@ -156,11 +145,8 @@ function SignIn({ onSignedIn }: { onSignedIn: (a: AuthState) => void }) {
             </div>
           </form>
 
-          {/* The passkey door. Offered only where a registered key can actually
-              answer on the address in the bar - never as a button that raises a
-              prompt the browser will refuse. It sits under the password rather
-              than above it because the password is the way in that always
-              works; this is the other one. */}
+          {/* Below the password, which always works; shown only where a key
+              can answer on this address. */}
           {passkeyHere && step === 'password' && (
             <div className="flex flex-col gap-3 border-t border-carbon-border/40 pt-4">
               <div>

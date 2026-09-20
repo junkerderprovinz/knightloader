@@ -1,82 +1,28 @@
-// Every theme token stands in all three theme blocks, and every colour class has a key.
+// Checks that every theme token stands in all three theme blocks of
+// src/index.css, and that every colour class has an @theme key.
 //
-// WHAT GOES WRONG WITHOUT IT. src/index.css carries the palette three times over:
-// the dark ramp on `:root, [data-theme="dark"]`, the system light ramp inside
-// `@media (prefers-color-scheme: light)`, and the explicit light ramp on
-// `[data-theme="light"]`. A token added to one of them and not to the other two is
-// invisible to the person who added it, because somebody works in ONE colour mode
-// and sees the one block they touched. The other two modes then fall back to
-// whatever the cascade happens to leave on the element, which here is the dark
-// value sitting on :root, so a light-mode reader gets a dark grey chip on a white
-// card and nothing in the build has an opinion about it. The file's own comments
-// say this out loud twice, once beside --status-warn-bg-strong and once beside the
-// brand marks ("an explicit light choice has to reach them too"), and a rule that
-// has to be restated beside individual tokens is a rule that has already been got
-// wrong.
+// The palette is written three times: the dark ramp on `:root,
+// [data-theme="dark"]`, the system light ramp in `@media
+// (prefers-color-scheme: light)`, and `[data-theme="light"]`. A token missing
+// from a light block falls back to the dark value on :root, which nobody
+// working in dark mode sees.
 //
-// THE SECOND HALF IS THE ONE THAT ALREADY COST SOMETHING. Tailwind v4 emits a
-// utility only for a key that stands in the @theme block, so
-// `hover:bg-carbon-hoverRaised` written against a missing --color-carbon-hoverRaised
-// produces no class at all. Nothing notices: not tsc, which sees a string, not the
-// build, which holds no list of intended classes, and not the page, because a class
-// that produces nothing looks exactly like a class that was never added.
-// CryptoDonateDialog's selected-chain chip carried exactly that and had no hover for
-// months, and the same shape came back a second time with --color-statusWarnBgStrong.
+// Tailwind v4 emits a utility only for a key in @theme, so a class such as
+// `hover:bg-carbon-hoverRaised` without --color-carbon-hoverRaised produces
+// nothing, silently.
 //
-// WHY PROSE DID NOT REACH IT. Both halves are already written down in index.css, in
-// comments sitting directly above the two tokens that were added to repair the two
-// misses. Both notes are therefore the RECORD of a mistake rather than the thing
-// that stopped it: a rule stated where the fix landed is read by the person who
-// landed it and by nobody afterwards. web/check-hover-ramp.mjs exists in this repo
-// for the same reason, one layer up.
+// One exemption: a token may stand in a single block when it is derived (it
+// reads a var() of a token themed in all three blocks) and a comment
+// introduces it, as --accent-ink does. One comment covers the declarations
+// under it up to the next blank line.
 //
-// THE ONE EXEMPTION, and it is narrow on purpose. A token may stand in a single
-// block when its value is DERIVED, meaning it reads a var() of another token that
-// itself stands in all three blocks, and when a comment introduces it. Derivation
-// is the half with teeth. --accent-ink is
-// `color-mix(in srgb, var(--accent) var(--ink-mix), black)`, and because both
-// --accent and --ink-mix are themed, that one declaration is already correct in
-// every mode; a light twin would be a copy of a formula, which is the shape drift
-// takes. The comment is the second gate, and it is a gate rather than the whole
-// test because this file is mostly comments: a check that exempted any token with a
-// comment near it would exempt nearly every token here and guard nothing. A derived
-// token with nothing written above it is still reported, since a derived value
-// nobody explained is indistinguishable from one somebody forgot to mirror.
+// Not checked: whether values are right or readable; class lists split across
+// literals or built at runtime (quoted phrases in comments are read too);
+// colour utilities outside UTIL, and arbitrary values such as
+// `bg-[var(--x)]`; unused @theme keys. If a block's selector is reworded the
+// script stops with an error rather than passing.
 //
-// WHAT IT DELIBERATELY DOES NOT SEE.
-//
-// It checks that a token is PRESENT in all three blocks, never that its value is
-// right. A light block that copies a dark hex straight across passes here, and so
-// does an unreadable pairing; contrast is a different check and a different file.
-//
-// It reads class lists out of string literals, so a list split across two literals
-// and joined, or assembled at runtime from a lookup table, is read as pieces or not
-// at all. check-hover-ramp.mjs records the same limit for the same reason. The
-// flip side is that a quoted phrase inside a comment is read as a class list too,
-// which is harmless as long as comments quote sentences rather than dead class
-// names.
-//
-// It knows the colour utilities listed in UTIL below and no others, and it ignores
-// arbitrary values such as `bg-[var(--carbon-surface2)]`, which reach the token
-// directly and need no @theme key at all.
-//
-// It does not report an @theme key that nothing uses. A dead key costs a line of
-// CSS and misleads nobody, and flagging them would be the noise that teaches people
-// to skip this check.
-//
-// The comment gate asks whether a comment is there, never whether it says anything
-// about the exemption, and one comment covers the run of declarations under it up to
-// the next blank line, because that is how these blocks are already grouped. So a
-// derived token appended to an already-commented run inherits that cover. What it
-// inherits is only the SECOND gate: derivation is still checked on its own, so the
-// worst such a token can be is correct and unexplained.
-//
-// The three blocks are found by their selector text, and if a selector is reworded
-// this script STOPS with an error instead of passing. That is the point: a guard
-// that quietly finds nothing left to guard is worse than no guard, because the
-// green line it prints is a claim it is no longer making.
-//
-// Run by hand or from CI: `node web/check-theme-tokens.mjs`.
+// Run: `node web/check-theme-tokens.mjs`.
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -87,12 +33,7 @@ const cssPath = join(src, 'index.css');
 const css = readFileSync(cssPath, 'utf8');
 const cssLines = css.split('\n');
 
-/**
- * The same text with every comment blanked to spaces. Lengths and newlines are
- * kept, so an offset into this string is the same offset into the original and
- * line numbers stay honest, while a brace or a colon inside a comment can no
- * longer be mistaken for code.
- */
+// The CSS with comments blanked to spaces, keeping offsets and line numbers.
 const masked = css.replace(/\/\*[\s\S]*?\*\//g, (c) => c.replace(/[^\n]/g, ' '));
 
 const lineAt = (at) => css.slice(0, at).split('\n').length;
@@ -103,9 +44,7 @@ const fail = (message) => {
   process.exit(1);
 };
 
-/* ---------------------------------------------------------------------------
-   Half one: the three theme blocks carry the same tokens.
-   --------------------------------------------------------------------------- */
+// The three theme blocks carry the same tokens.
 
 /** Each block, named as the report should name it, and found by its selector. */
 const BLOCKS = [
@@ -125,13 +64,9 @@ function closes(from) {
 }
 
 /**
- * True when a comment introduces this declaration.
- *
- * It walks back over the declarations directly above it and stops at the first
- * line that is neither, because one comment routinely introduces a RUN of
- * tokens: --accent-ink's own explanation sits above --ink-mix and covers the
- * pair. A blank line ends the run, which is how this file already separates one
- * group from the next.
+ * introduced reports whether a comment introduces this declaration, walking
+ * back over the declarations above it, since one comment covers a run up to a
+ * blank line.
  */
 function introduced(at) {
   for (let i = lineAt(at) - 2; i >= 0; i--) {
@@ -164,9 +99,7 @@ for (const block of BLOCKS) {
   for (const decl of body.matchAll(DECL)) {
     const at = from + decl.index;
     if (!tokens.has(decl[1])) tokens.set(decl[1], new Map());
-    // The matched text, which came from the comment-masked copy, so a token
-    // NAMED in an inline comment inside a value cannot be mistaken for a token
-    // the value actually reads.
+    // From the masked copy, so a token named in an inline comment is not read.
     tokens.get(decl[1]).set(block.name, { at, value: decl[0] });
   }
 }
@@ -207,9 +140,7 @@ for (const [token, seen] of tokens) {
   );
 }
 
-/* ---------------------------------------------------------------------------
-   Half two: every colour class used has a key in @theme.
-   --------------------------------------------------------------------------- */
+// Every colour class used has a key in @theme.
 
 const theme = masked.match(/@theme\s*\{/);
 if (!theme) fail('no @theme block in src/index.css.');
@@ -217,12 +148,8 @@ const themeBody = masked.slice(theme.index + theme[0].length, closes(theme.index
 const keys = new Set([...themeBody.matchAll(/--color-([A-Za-z0-9-]+)\s*:/g)].map((m) => m[1]));
 if (keys.size < 10) fail(`only ${keys.size} --color-* keys in @theme, which is too few to be the palette.`);
 
-/**
- * The colour utilities, and the three stems this app's palette uses. Wider than
- * the five the rule is usually quoted as (bg/text/border/fill/stroke), because
- * divide-carbon-border and ring-carbon-border are live in this app today and a
- * missing key kills them in exactly the same silence.
- */
+/** The colour utilities (divide and ring are in use too) and the three stems
+ *  of this app's palette. */
 const UTIL =
   /^(?:bg|text|fill|stroke|shadow|caret|accent|decoration|placeholder|from|via|to|outline|ring|ring-offset|border|border-[trblxyse]|divide|divide-[xy])-((?:carbon-|accent|status)[A-Za-z0-9]*)$/;
 
@@ -240,32 +167,21 @@ const files = [...sources(src), join(here, 'index.html')];
 if (files.length < 20) fail(`only ${files.length} source files found, wrong directory?`);
 
 /**
- * Plain quoted strings, and the static halves of template strings.
- *
- * THE TWO QUOTES ARE NOT TREATED ALIKE, and that asymmetry is the difference
- * between seeing this app's classes and missing them. A JS string literal of
- * either quote ends at the end of its line, but a JSX attribute is not a JS
- * string: `className="…"` wraps over as many lines as it needs, and
- * LogViewerCard's own hover:bg-carbon-hoverRaised sits on the second line of
- * one. Written line-bound, this check reported two of that class's three call
- * sites and printed a green line about the third. Single quotes stay
- * line-bound on purpose, because an apostrophe in an English comment would
- * otherwise open a "string" that runs to the next apostrophe several lines
- * down and drag everything between them into the scan.
+ * Quoted strings and the static parts of template strings. Double quotes may
+ * span lines, since a JSX `className="…"` wraps; single quotes stay on one
+ * line, so an apostrophe in a comment does not open a string.
  */
 const QUOTED = /'(?:[^'\\\n]|\\.)*'|"(?:[^"\\]|\\.)*"/g;
 const TEMPLATE = /`(?:[^`\\]|\\.)*`/g;
 
-/** Every piece of text that is ONE class list, with where it starts. */
+/** Every piece of text that is one class list, with where it starts. */
 function classLists(text) {
   const pieces = [];
   for (const found of text.matchAll(QUOTED)) pieces.push([found[0], found.index]);
   for (const found of text.matchAll(TEMPLATE)) {
-    // A template's `${…}` holds its own quoted strings, and QUOTED above has
-    // already taken those one by one. What is left is the static text around
-    // them, which is a class list of its own. The hole's own length is counted
-    // back in, or every line number after the first interpolation is reported
-    // short by the width of the expression.
+    // QUOTED already took the strings inside `${…}`; the static text around
+    // them is a class list of its own. Offsets keep the holes' lengths so line
+    // numbers stay right.
     const body = found[0];
     let at = 0;
     for (const hole of body.matchAll(/\$\{[\s\S]*?\}/g)) {
@@ -279,8 +195,7 @@ function classLists(text) {
 
 /** A written class stripped back to the utility Tailwind has to emit. */
 function utility(word) {
-  // Variants first: `hover:`, `dark:`, `data-[state=on]:` and friends all end at
-  // the last colon, and what follows is the utility itself.
+  // Variants such as `hover:` or `data-[state=on]:` end at the last colon.
   const bare = word.slice(word.lastIndexOf(':') + 1).replace(/^[!-]+/, '');
   if (bare.includes('[')) return null; // an arbitrary value reaches the token directly
   return bare.replace(/\/[\w.[\]%]+$/, ''); // the /opacity modifier is not part of the key
@@ -297,10 +212,7 @@ for (const path of files) {
       if (!hit) continue;
       seenClasses.add(bare);
       if (keys.has(hit[1])) continue;
-      // The line of the CLASS, not of the quote that opened the list: a
-      // className attribute runs over four lines here often enough that the
-      // difference is the difference between a report somebody can act on and
-      // one they have to go hunting in.
+      // The class's own line, not the line where its list opened.
       const line = text.slice(0, at + word.index).split('\n').length;
       problems.push(
         `${path.slice(here.length + 1).replace(/\\/g, '/')}:${line} ` +
@@ -310,9 +222,7 @@ for (const path of files) {
   }
 }
 
-// A double-quoted list written inside a template is taken twice, once by each
-// pattern. Deduped rather than made mutually exclusive, because the same class
-// reported twice at the same line is noise and the overlap is harmless.
+// A double-quoted list inside a template is read by both patterns.
 const unique = [...new Set(problems)].sort();
 problems.length = 0;
 problems.push(...unique);

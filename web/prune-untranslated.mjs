@@ -1,31 +1,29 @@
-// Nimmt aus untranslated.json heraus, was inzwischen wirklich uebersetzt ist.
+// Takes out of untranslated.json what has meanwhile been translated.
 //
-// Die Schuldenliste ist eine Behauptung ("diese Werte tragen noch den englischen
-// Text"), und check-untranslated.mjs prueft sie gegen die Kataloge. Nach einer
-// Uebersetzungswelle stimmt sie nicht mehr, und die Wache sagt das laut: sie
-// nennt jeden Schluessel, der uebersetzt wurde und noch drinsteht. Das ist
-// Absicht und der Grund, warum diese Datei nicht von selbst mitwaechst - eine
-// Liste, die sich stillschweigend selbst korrigiert, koennte nie melden, dass
-// jemand etwas uebersetzt und vergessen hat.
+// The debt list is a claim, that these values still carry the English text, and
+// check-untranslated.mjs holds it against the catalogues. After a translation
+// wave it is out of date and the check names every key that was translated and
+// is still listed. That is the point of not growing this file by itself: a list
+// that corrected itself quietly could never report that somebody translated
+// something and forgot to say so.
 //
-// Also raeumt dieses Skript sie auf, absichtlich und sichtbar, und sagt was es
-// entfernt hat. Ein Eintrag bleibt genau dann stehen, wenn sein Wert Zeichen
-// fuer Zeichen der englische ist.
+// So the clearing out happens here, visibly, and the script says what it
+// removed. An entry stays exactly when its value is character for character the
+// English one.
 //
-// ACHTUNG: ein Wert, der in dieser Sprache legitim gleich lautet (DRM, Matrix,
-// ein blankes "Import"), bleibt damit als Schuld stehen, obwohl er fertig ist.
-// Das ist die richtige Richtung zu irren: eine Schuld zu viel faellt beim
-// naechsten Durchgang auf, eine Schuld zu wenig nie.
+// A value that is legitimately the same in that language (DRM, Matrix, a bare
+// "Import") therefore stays listed as owed although it is finished. That is the
+// right direction to be wrong in: one debt too many turns up on the next pass,
+// one too few never does.
 //
-// Dieser Durchgang ist inzwischen gelaufen, und deshalb hat die Datei eine
-// zweite Liste: "identical" fuer die 627 Werte, die je ein Lauf in der Sprache
-// selbst angesehen und bewusst stehengelassen hat. Der Pruner raeumt beide auf,
-// nach derselben Regel, denn beide behaupten dasselbe ueber den Katalog. Nur die
-// Bedeutung des Fundes ist verschieden: aus "locales" faellt etwas, WEIL es
-// uebersetzt wurde, aus "identical", weil jemand ein Urteil umgestossen hat.
+// The file carries a second list, "identical", for the values somebody looked
+// at in the language itself and left English. Both are cleared by the same
+// rule, since both claim the same thing about the catalogue. Only the meaning
+// of a find differs: out of "locales" something falls because it was
+// translated, out of "identical" because somebody overruled a judgement.
 //
-// Lauf: node web/prune-untranslated.mjs          (schreibt)
-//       node web/prune-untranslated.mjs --dry    (sagt nur, was wegfiele)
+// Run: node web/prune-untranslated.mjs          (writes)
+//      node web/prune-untranslated.mjs --dry    (says what would go)
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -68,7 +66,7 @@ function entries(file) {
 const en = entries('en.ts');
 const ledger = JSON.parse(readFileSync(LEDGER, 'utf8'));
 
-/** Behaelt je Sprache nur die Schluessel, deren Wert noch der englische ist. */
+/** Keeps, per language, only the keys whose value is still the English one. */
 function sweep(list) {
   const next = {};
   let kept = 0;
@@ -87,8 +85,8 @@ const owed = sweep(ledger.locales);
 const same = sweep(ledger.identical);
 
 if (!dry) {
-  // Nur die zwei Listen ersetzen. Das uebrige Objekt (beide Notizen) bleibt wie
-  // es ist, damit von Hand geschriebene Begruendungen einen Lauf ueberleben.
+  // Only the two lists are replaced. The rest of the object, both notes
+  // included, stays as it is, so reasons written by hand survive a run.
   ledger.locales = owed.next;
   if (ledger.identical) ledger.identical = same.next;
   writeFileSync(LEDGER, JSON.stringify(ledger, null, 2) + '\n', 'utf8');
@@ -101,9 +99,9 @@ console.log(
       ? 'nothing is owed any more'
       : `${owed.kept} still owed across ${locales} catalogue${locales === 1 ? '' : 's'}`),
 );
-// Getrennt gemeldet, weil ein Fund hier etwas anderes heisst: jemand hat einem
-// geprueften "bleibt englisch" widersprochen, und das gehoert gesehen, nicht in
-// derselben Zahl versteckt.
+// Reported separately, because a find here means something else: somebody
+// contradicted a reviewed "stays English", and that belongs in view rather than
+// hidden inside the same number.
 if (same.dropped) {
   console.log(
     `${dry ? 'would also drop' : 'also dropped'} ${same.dropped} reviewed entr${same.dropped === 1 ? 'y' : 'ies'} ` +

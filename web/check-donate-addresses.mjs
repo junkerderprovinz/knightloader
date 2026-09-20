@@ -1,24 +1,20 @@
 // The donation addresses, checked as far as each format allows.
 //
-// This is the one list in the app where a typo costs a stranger real money and
-// nobody ever finds out: the person it happens to is not a user, they are
-// somebody who tried to give something away and got nothing back. There is no
-// error state, no retry and no support ticket, because they never write.
+// A typo in this list costs a stranger real money and nobody finds out: there
+// is no error state, no retry and no support ticket, because the person it
+// happens to never writes.
 //
-// Two of the five formats carry a real checksum, so those are verified rather
-// than eyeballed; the rest are pinned by length and alphabet.
+// Two of the five formats carry a real checksum, so those are verified; the
+// rest are pinned by length and alphabet. The check that matters most is about
+// the shape of the list rather than any single address: every network a donor
+// can pick has to point at the wallet that lives on that chain. Grouped by
+// coin, "Tether" over the networks "BNB, Tron, Solana, Ethereum" above a single
+// 0x address that exists on EVM chains only sends a donor who picks Tron into
+// nothing. donate.ts carries a hand-written table of which wallet each chain
+// resolves to, and this file holds the list to it; derived from the list it
+// guards, such a check would agree with any mistake in it.
 //
-// The check that matters most is the last kind, and it is about the SHAPE of
-// the list rather than any single address: every network a donor can pick must
-// point at the wallet that actually lives on that chain. The list was first
-// written grouped by coin, naming "Tether" with the networks "BNB, Tron,
-// Solana, Ethereum" above a single 0x… address that exists on EVM chains only.
-// A donor picking Tron would have sent USDT into nothing. donate.ts carries a
-// table written out by hand saying which wallet each chain must resolve to,
-// and this file holds the list to it — derived from the list it guards, such a
-// check would agree with any mistake in it.
-//
-// Run by hand or from CI: `node web/check-donate-addresses.mjs`.
+// Run: `node web/check-donate-addresses.mjs`.
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 
@@ -81,8 +77,8 @@ function bech32Polymod(values) {
   return chk;
 }
 
-/** BIP-173/350: the checksum an address carries about itself. A single wrong
- *  character fails this, which is the whole point of the format. */
+/** BIP-173/350: the checksum an address carries about itself, which a single
+ *  wrong character fails. */
 function bech32Ok(addr) {
   const lower = addr.toLowerCase();
   if (addr !== lower && addr !== addr.toUpperCase()) return false;
@@ -156,7 +152,9 @@ if (!/^0x[0-9a-fA-F]{64}$/.test(wallets.SUI)) note('the Sui address is not 32 by
 for (const id of ['solana', 'bitcoin', 'xrpl', 'sui']) {
   if (table[id] === wallets.EVM) note(`${id} must not share the EVM wallet`);
 }
-if (src.toLowerCase().includes('tron') && !src.toLowerCase().includes('picking tron')) note('the list mentions Tron, and there is no Tron address in it');
+// Comments stripped: the note saying why Tron is absent is not the list.
+const list = src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^[^\n'"`]*\/\/.*$/gm, '');
+if (list.toLowerCase().includes('tron')) note('the list mentions Tron, and there is no Tron address in it');
 
 if (!fail) console.log(`OK  ${coins.length} coins over ${Object.keys(table).length} chains, ${Object.keys(wallets).length} wallets check out`);
 process.exit(fail);

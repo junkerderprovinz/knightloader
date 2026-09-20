@@ -1,47 +1,32 @@
 // The two controls that start an enrolment say the same word and wear different
 // glyphs.
 //
-// GlimStone 2.1.0, and the report behind it was about these two cards: the
-// second factor said *Enable* and the passkey card said *Add passkey*. Neither
-// is wrong. Together they are, because a reader meeting them in one tab has to
-// work out whether the different wording means a different thing. It does not -
-// both open a guided sequence that ends with a capability armed - so both say
-// the app's own word for starting a setup.
+// GlimStone 2.1.0. The second factor said "Enable" and the passkey card said
+// "Add passkey". Neither is wrong on its own, but a reader meeting both in one
+// tab has to work out whether the different wording means a different thing. It
+// does not, since both open a guided sequence that ends with a capability
+// armed, so both say the app's own word for starting a setup. Two verbs for one
+// act are invisible to everything else here: each label is a good string in 42
+// languages, and no type, build or screenshot compares them.
 //
-// WHAT BREAKS WITHOUT IT:
+// The word is a lookup of what the app already says rather than a fresh
+// translation, so the catalogues are compared value for value; a language that
+// grew a second, freshly invented word for one act passes any check that only
+// counts keys. Each control carries a glyph, because once two buttons in one
+// tab read the same it is the only thing left telling them apart, and the glyph
+// comes from the capability (a shield for the second factor, a plus for a key
+// joining a list) rather than from the shared verb, which is why the two marks
+// differ from each other.
 //
-//   same word   Two verbs for one act. It costs a reader a decision on the one
-//               surface where being unsure is most expensive, and it is
-//               invisible to everything else in this repo: each label is a
-//               perfectly good string in 42 languages, and no type, no build and
-//               no screenshot compares them to each other.
+// The table below is written out by hand and every card in the folder has to
+// stand in it, the same shape check-donate-addresses.mjs uses: a list derived
+// from the thing it guards agrees with any mistake in it.
 //
-//   a lookup    ...and the word is a LOOKUP of what the app already says, never
-//               a fresh translation. That is why this check compares the
-//               catalogues VALUE for VALUE rather than checking that somebody
-//               translated the new key: a language that got a second, freshly
-//               invented word for one act is exactly the failure, and it passes
-//               any check that only counts keys.
+// Not seen: whether the glyph is the right one for the capability, which is a
+// judgement made by looking at the card. It sees only that there is one and
+// that the two are not the same drawing.
 //
-//   a glyph     A control named this way MUST carry one, because once two
-//               buttons in one tab read the same the glyph is the only thing
-//               left telling them apart. It is picked from the meaning of the
-//               CAPABILITY - a shield for the second factor, a plus for a key
-//               joining a list - never from the shared verb, which is why the
-//               two marks also have to differ from each other.
-//
-//   the table   A third enrolment card added without a line here is a third
-//               button free to grow a third verb. So the table is written out by
-//               hand and every card in the folder has to be in it - the same
-//               shape check-donate-addresses.mjs uses, and for the same reason:
-//               a list derived from the thing it guards agrees with any mistake
-//               in it.
-//
-// WHAT IT DOES NOT SEE. Whether the glyph is the RIGHT one for the capability -
-// that is a judgement, and it is made by looking at the card. It sees only that
-// there is one and that the two are not the same drawing.
-//
-// Run by CI and by hand, from web/: `node check-enrolment-buttons.mjs`
+// Run from web/: `node check-enrolment-buttons.mjs`
 import { readFileSync, readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -55,11 +40,9 @@ const fail = (why) => problems.push(why);
 /**
  * The cards that enrol something, and the key each one's entry control reads.
  *
- * THE KEYS STAY PUT WHEN THE WORDING MOVES. A key is what a glyph and a search
- * index hang off; the visible text is not. So the second factor's control still
- * reads `auth.twoFactor.enable` although it no longer says "Enable" - renaming
- * the key to match a label is how a stable handle becomes another thing that
- * moves.
+ * A key is what a glyph and a search index hang off, so it stays put when the
+ * wording moves: the second factor's control reads `auth.twoFactor.enable`
+ * whatever its label says.
  */
 const ENROLMENTS = [
   {
@@ -74,7 +57,7 @@ const ENROLMENTS = [
   },
 ];
 
-// --- the table covers the folder -------------------------------------------
+// The table covers the folder.
 
 const dir = 'src/pages/settings/access';
 for (const name of readdirSync(join(here, dir))) {
@@ -88,7 +71,7 @@ for (const name of readdirSync(join(here, dir))) {
   }
 }
 
-// --- each entry control: one glyph, and the opening tag that carries it -----
+// Each entry control carries one glyph.
 
 /** The opening tag starting at `<Button` at `at`, quotes and braces counted. */
 function openingTag(src, at) {
@@ -152,7 +135,7 @@ for (const [key, g] of glyphs) {
   } else seen.set(g.glyph, `${key} in ${g.file}`);
 }
 
-// --- the word: one act, one word, in every language ------------------------
+// One act, one word, in every language.
 
 const locDir = 'src/lib/locales';
 /** The literal value of one key in one catalogue, quotes handled. */
@@ -178,7 +161,7 @@ for (const file of readdirSync(join(here, locDir))) {
     fail(
       `${locDir}/${file}: one act, ${distinct.length} words - ` +
         values.map((v) => `${v.key} is "${v.value}"`).join(', ') +
-        `. Every control that starts an enrolment says the same thing, and that thing is a LOOKUP of ` +
+        `. Every control that starts an enrolment says the same thing, and that thing is a lookup of ` +
         `what this language already calls starting a setup (GlimStone 2.1.0)`,
     );
   }

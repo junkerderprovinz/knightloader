@@ -1,25 +1,13 @@
-// The search box as a question with several parts, instead of one substring.
+// The search box's query language. A query is a list of terms that must all
+// hold: a leading minus excludes, a prefix aims a term at one field, and a
+// comparison asks about size or age, as in "host:x >1gb -sample".
 //
-// One substring can only ever narrow a list in one direction, and past a few
-// hundred rows that stops being enough: the evening's downloads are four
-// releases from three hosts in two packages, and the row somebody wants is
-// "the big ones from that host, except the samples". Typed as one substring
-// that is three separate searches, run by hand, none of which can be combined.
+// Anything else is plain text. An unknown prefix, an operator without a number
+// or a colon inside a name ("C:\media") is searched for literally rather than
+// reported as an error, so names keep finding their rows.
 //
-// So a query is now a list of terms that all have to hold. A leading minus
-// excludes, a prefix aims one term at one field, and a comparison asks about
-// the size or the age. EVERYTHING ELSE STAYS PLAIN TEXT, which is the rule the
-// rest of this file is arranged around: a file called "S02E04 - 1080p.mkv" or a
-// path like "C:\media" must go on finding the row it always found, so an
-// unrecognised prefix, an operator with no number behind it and a colon in the
-// middle of a name are all searched for literally rather than reported as a
-// syntax error. A search box that can be got wrong is a search box people stop
-// trusting.
-//
-// No import that survives compilation: this module is pure so that
-// web/check-search-query.mjs can drive the real parser rather than a copy of it
-// (Node strips the type-only import below, which is the whole reason it is
-// type-only).
+// The only import is type-only, so check-search-query.mjs can run this module
+// in Node.
 import type { Task } from './api';
 
 export type SearchCategory = 'any' | 'name' | 'host' | 'package' | 'comment' | 'url';
@@ -34,25 +22,15 @@ export interface SearchQuery {
 
 export const EMPTY_SEARCH: SearchQuery = { text: '', category: 'any' };
 
-// Parsing a URL is not free and the answer never changes for one link, while
-// the Host column and this filter both ask for it on every row of every
-// repaint. The cap is there so a session that has seen a hundred thousand links
-// does not keep them all.
+// The Host column and this filter parse every row's URL on every repaint, so
+// the result is cached, with a cap.
 const hostCache = new Map<string, string>();
 
 /**
- * hostOf is the file host, which is not the resolver: through a debrid service
- * every row would otherwise claim the same origin.
- *
- * Task.host is what the server says, and when it is filled it wins. Until then
- * the pasted URL's own hostname stands in - the same rule the server side
- * follows, so the answer does not change when the field lands.
- *
- * It lives HERE rather than in components/columns.tsx, which is where it grew
- * up and which now imports it: the Host column and the `host:` search term are
- * the same question, and two copies of it - the search field had one of its own
- * for exactly as long as it had a Host category - is how a row gets filed under
- * one host and found under another.
+ * hostOf is the file host, which differs from the resolver behind a debrid
+ * service. Task.host wins when the server has set it; until then the URL's
+ * hostname stands in, as on the server. The Host column uses it too, so a row
+ * is found under the host it shows.
  */
 export function hostOf(t: Task): string {
   if (t.host) return t.host;
@@ -70,13 +48,8 @@ export function hostOf(t: Task): string {
   return h;
 }
 
-/**
- * fieldOf is what one category reads off a task.
- *
- * `name` falls back to the URL because that is what an unresolved link renders
- * as its name: a search that skipped it would claim no row matches while the
- * matching text is on screen.
- */
+/** fieldOf is what one category reads off a task. `name` falls back to the
+ *  URL, which is what an unresolved link shows as its name. */
 export function fieldOf(t: Task, c: Exclude<SearchCategory, 'any'>): string {
   switch (c) {
     case 'name':
@@ -101,16 +74,8 @@ export type SearchTerm =
   | { kind: 'size'; op: Comparison; bytes: number; negate: boolean }
   | { kind: 'age'; olderThan: boolean; ms: number; negate: boolean };
 
-/**
- * The prefixes that aim a term at one field.
- *
- * The German spellings sit beside the English ones on purpose. This instance is
- * read in German as often as in English, its own list header says "Paket", and
- * somebody who has just read that header types `paket:`; silently searching for
- * the literal text "paket:serie" would be correct by the rules above and useless
- * in practice. They are aliases, never a second syntax - one parser, one set of
- * terms, and a query typed either way means exactly the same thing.
- */
+/** The prefixes that aim a term at one field. German spellings are aliases,
+ *  since a German list header says "Paket" and people type what they read. */
 const FIELD_PREFIX: Record<string, Exclude<SearchCategory, 'any'>> = {
   name: 'name',
   host: 'host',
@@ -129,14 +94,8 @@ const NEWER_PREFIX = new Set(['newer', 'neuer']);
 /** `size:>500mb`, the long form of the bare `>500mb`. */
 const SIZE_PREFIX = new Set(['size', 'groesse', 'größe']);
 
-/**
- * Binary multipliers, matching lib/format.ts's fmtBytes.
- *
- * The Size column prints KiB/MiB/GiB, so a decimal reading here would make
- * `>500mb` hide rows the list itself calls 512 MiB - a filter that disagrees
- * with the column beside it is read as a bug in the filter, and rightly. `mib`
- * and `gib` are accepted as the same thing for anybody who spells it out.
- */
+/** Binary multipliers, as the Size column prints them, so `>500mb` agrees
+ *  with a row showing 512 MiB. */
 const SIZE_UNITS: Record<string, number> = {
   '': 1,
   b: 1,
@@ -154,12 +113,8 @@ const SIZE_UNITS: Record<string, number> = {
   tib: 1024 ** 4,
 };
 
-/**
- * Age units in milliseconds. `t` is the German "Tage" beside the English `d`,
- * and `m` is minutes rather than months: an age asked in months is a question
- * about a list nobody keeps, while "added in the last 30 minutes" is the reason
- * anybody reaches for this at all.
- */
+/** Age units in milliseconds. `t` is German "Tage"; `m` is minutes, not
+ *  months. */
 const AGE_UNITS: Record<string, number> = {
   s: 1000,
   m: 60_000,
@@ -170,15 +125,9 @@ const AGE_UNITS: Record<string, number> = {
 };
 
 /**
- * tokenize splits a query into words, with double quotes holding one together.
- *
- * Quoting is what makes a name with a space in it searchable at all. Without it
- * `Big Buck Bunny` is three separate words that must all appear somewhere in a
- * row, which also matches a row where they appear in three different fields in
- * any order - close enough to look like it works and wrong exactly when it
- * matters. An unclosed quote runs to the end of the input rather than being
- * refused: the query is being typed, and the character after the opening quote
- * must already narrow the list.
+ * tokenize splits a query into words, with double quotes holding a phrase
+ * together. An unclosed quote runs to the end, since the query is still being
+ * typed.
  */
 export function tokenize(text: string): string[] {
   const out: string[] = [];
@@ -210,8 +159,7 @@ function parseSize(s: string): { op: Comparison; bytes: number } | null {
   const m = COMPARISON.exec(s.trim());
   if (!m) return null;
   const unit = m[3].toLowerCase();
-  // An unknown unit is not a size question. `>3x` is somebody's file name, and
-  // guessing bytes for it would silently empty the list.
+  // An unknown unit is not a size question; `>3x` may be part of a name.
   if (!(unit in SIZE_UNITS)) return null;
   const n = Number(m[2].replace(',', '.'));
   if (!Number.isFinite(n)) return null;
@@ -224,8 +172,6 @@ const DURATION = /^(\d+(?:[.,]\d+)?)\s*([a-zA-Z]*)$/;
 function parseAge(s: string): number | null {
   const m = DURATION.exec(s.trim());
   if (!m) return null;
-  // Days by default, because that is the unit of the question this answers:
-  // "what has been sitting here since the weekend".
   const unit = (m[2] || 'd').toLowerCase();
   if (!(unit in AGE_UNITS)) return null;
   const n = Number(m[1].replace(',', '.'));
@@ -234,9 +180,8 @@ function parseAge(s: string): number | null {
 
 /** typedTerm reads `<prefix>:<value>`, or null when the prefix means nothing here. */
 function typedTerm(key: string, value: string, negate: boolean): SearchTerm | null {
-  // `host:` on its own is not a question, so it stays the literal text somebody
-  // has typed so far. It also keeps a half-typed prefix from emptying the list
-  // between one keystroke and the next.
+  // A bare `host:` stays literal text, so a half-typed prefix does not empty
+  // the list.
   if (!value.trim()) return null;
   const field = FIELD_PREFIX[key];
   if (field) return { kind: 'text', needle: value.trim().toLowerCase(), field, negate };
@@ -253,20 +198,15 @@ function typedTerm(key: string, value: string, negate: boolean): SearchTerm | nu
 
 /**
  * parseSearch turns the typed text into the conditions a row has to satisfy.
- *
- * Exported so that web/check-search-query.mjs can assert on the terms
- * themselves: a check that only ever asks "does this row match" cannot tell a
- * query that was understood from one that fell through to plain text and
- * happened to match anyway.
+ * Exported so check-search-query.mjs can tell an understood term from one that
+ * fell through to plain text.
  */
 export function parseSearch(text: string, category: SearchCategory = 'any'): SearchTerm[] {
   const out: SearchTerm[] = [];
   for (const token of tokenize(text)) {
     let negate = false;
     let body = token;
-    // Only a LEADING minus, and never a token that is nothing but one: a minus
-    // inside a word belongs to the word ("S02E04-1080p"), and a lone one is
-    // somebody halfway through typing.
+    // Only a leading minus negates, and a lone "-" is still being typed.
     if (body.length > 1 && body.startsWith('-')) {
       negate = true;
       body = body.slice(1);
@@ -313,15 +253,11 @@ function holds(t: Task, term: SearchTerm, now: number): boolean {
       return SEARCH_FIELDS.some((f) => fieldOf(t, f).toLowerCase().includes(term.needle));
     }
     case 'size':
-      // A link nobody has measured yet answers NO to every size question rather
-      // than pretending to be zero bytes. Read the other way, `<1gb` would sweep
-      // up every freshly pasted link in the list and call them small.
+      // An unmeasured link answers no, or `<1gb` would match every fresh paste.
       return t.size > 0 && compare(t.size, term.op, term.bytes);
     case 'age': {
       const added = Date.parse(t.createdAt);
-      // Same rule as the size above, for the same reason: a timestamp this
-      // browser cannot read is not an age, so it answers no rather than being
-      // treated as 1970 and matching every "older than" ever typed.
+      // An unreadable timestamp answers no rather than counting as 1970.
       if (Number.isNaN(added)) return false;
       const age = now - added;
       return term.olderThan ? age > term.ms : age < term.ms;
@@ -329,14 +265,8 @@ function holds(t: Task, term: SearchTerm, now: number): boolean {
   }
 }
 
-/**
- * The last parse, kept.
- *
- * matchesSearch is called once per ROW - the pages hand it to Array.filter over
- * the whole list - so parsing inside it would re-parse the identical query a
- * thousand times for every keystroke. One entry is the right size: a filter pass
- * asks the same question of every row, and the next keystroke replaces it.
- */
+// The last parse. matchesSearch runs once per row, so a one-entry cache
+// parses each query once per filter pass.
 let lastParse: { text: string; category: SearchCategory; terms: SearchTerm[] } | null = null;
 
 /** compileSearch is parseSearch with that one-entry cache in front of it. */
@@ -352,7 +282,6 @@ export function matchesSearch(t: Task, q: SearchQuery): boolean {
   const terms = compileSearch(q);
   if (terms.length === 0) return true;
   const now = Date.now();
-  // Every term, and a negated one has to be false. An empty query matched
-  // everything before this file existed and still does.
+  // Every term must hold, and a negated one must not.
   return terms.every((term) => holds(t, term, now) !== term.negate);
 }

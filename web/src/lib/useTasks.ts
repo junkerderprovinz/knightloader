@@ -15,15 +15,9 @@ export function useTasks(instance: string): Record<string, Task> {
       const iv = setInterval(load, 2000);
       return () => clearInterval(iv);
     }
-    // No initial fetchTasks() here: the WebSocket's own "snapshot" message
-    // below is the first data this branch ever gets. A GET fired alongside
-    // it raced its own later delta events - whichever response landed last
-    // won regardless of which was actually newer, so a slow GET could
-    // silently revert tasks the socket had already updated.
-    // 'snapshot' is not in kinds below and still arrives every time: the
-    // server sends it with Hub.SendTo, not Broadcast, which bypasses a
-    // connection's own subscription filter entirely (internal/hub/hub.go).
-    // 'task'/'removed' are the only Broadcast kinds this hook ever reads.
+    // No initial GET: the socket's snapshot is the first data, and a slower
+    // GET could overwrite newer updates. The snapshot is a direct send and
+    // arrives without being in kinds.
     return connectWS(
       (type, data) => {
         if (type === 'snapshot') setTasks(Object.fromEntries((data ?? []).map((t: Task) => [t.id, t])));

@@ -1,23 +1,19 @@
 // The two numbers a list column carries, checked against what its cell was
-// MEASURED to need.
+// measured to need.
 //
-// WHAT GOES WRONG WITHOUT IT. A column width is the one kind of number in this
-// tree that nobody can verify by reading it. It looks like taste, it is written
-// as taste, and it is argued back and forth in comments - so each round of
-// "this column is too wide" / "this column is too narrow" moves it by whatever
-// the last person guessed, and the comment above it keeps the reasoning of the
-// round before. That is exactly what happened to the Variante column: it went
-// 132 -> 236 in the same commit that ALSO made its cell stop shrinking
-// (shrink-0) and start wrapping (flex-wrap), and the comment left behind said
-// 236 was needed because at 132 the pickers "were shaved to a single letter
-// each". Measured afterwards on the running instance at 132: nothing is shaved,
-// nothing is clipped, the second picker moves to a second line. The number
-// outlived its own reason by a whole feature, and no test could see it.
+// A column width is the one kind of number here that nobody can verify by
+// reading it. It looks like taste and is argued back and forth in comments, so
+// each round of "too wide" or "too narrow" moves it by whatever the last person
+// guessed while the comment above it keeps the reasoning of the round before.
+// The Variante column went from 132 to 236 in the commit that also stopped its
+// cell shrinking and let it wrap, and the comment left behind claimed 236 was
+// needed because at 132 the pickers were shaved to a single letter each. At 132
+// nothing is shaved and nothing is clipped; the second picker moves to a second
+// line.
 //
-// WHAT IT PINS, and where the numbers come from. Every figure below was read
-// off the live collector (own instance, seeded yt-dlp variant rows, Chromium at
-// 1600x950) in all 42 shipped locales, measuring the cell's content on ONE line
-// plus the cell's own 16px of padding:
+// Every figure below was read off the live collector (seeded yt-dlp variant
+// rows, Chromium at 1600x950) in all 42 shipped locales, measuring the cell's
+// content on one line plus the cell's own 16px of padding:
 //
 //   video row       max 142.9  (lt: "Vaizdo įrašas" + the 1080p picker)
 //   audio row       max 215.9  (bg) - label + format picker + bitrate picker
@@ -32,9 +28,9 @@
 //
 // The rules that follow from them, and nothing beyond them:
 //
-//   1. variant.minWidth >= 124. The floor is about the WIDEST SINGLE CONTROL,
-//      not about the whole row: wrapping saves a narrow column, clipping does
-//      not, and a picker is clipped rather than shrunk.
+//   1. variant.minWidth >= 124. The floor is the widest single control rather
+//      than the whole row: wrapping saves a narrow column, clipping does not,
+//      and a picker is clipped rather than shrunk.
 //   2. 143 <= variant.width <= 222. The lower bound is the video row, which
 //      every yt-dlp package has exactly one of; below it the commonest picker
 //      row wraps by default. The upper bound is the widest cell this column can
@@ -42,13 +38,13 @@
 //      content that does not exist.
 //   3. In each list, the name column's default is the widest default of that
 //      list's visible columns. It carries the file name, which is what the row
-//      is FOR, and it is the one column that cannot be read from anywhere else.
+//      is for, and it is the one column that cannot be read anywhere else.
 //
-// It reads the source rather than the running app on purpose: the measurement
-// is the expensive half and it is recorded above; what rots is the number in
-// columns.tsx drifting away from it.
+// It reads the source rather than the running app: the measurement is the
+// expensive half and stands above, while what rots is the number in columns.tsx
+// drifting away from it.
 //
-// Run by hand or from CI: `node web/check-column-widths.mjs`.
+// Run: `node web/check-column-widths.mjs`.
 
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -58,12 +54,10 @@ const here = dirname(fileURLToPath(import.meta.url));
 const file = join(here, 'src', 'components', 'columns.tsx');
 
 /**
- * Comments blanked to spaces, indices kept. Two reasons, and both of them bit
- * the first draft of this file: the comments in columns.tsx are long enough to
- * contain every pattern searched for below (`width: 236` is quoted in one of
- * them), and they contain unmatched brackets, which is fatal to the brace
- * counting that finds the column entries. Strings are left alone so that
- * `'https://...'` is not read as the start of a line comment.
+ * Comments blanked to spaces, indices kept, for two reasons: the comments in
+ * columns.tsx quote the patterns searched for below, and they hold unmatched
+ * brackets, which would break the brace counting that finds the column entries.
+ * Strings are left alone so `'https://...'` is not read as a line comment.
  */
 function blankComments(src) {
   let out = '';
@@ -135,7 +129,7 @@ function number(expr, consts, where) {
 function entries(src, startMarker) {
   const at = src.indexOf(startMarker);
   if (at < 0) return null;
-  // The marker ENDS on the array's own bracket. Searching for the next '['
+  // The marker ends on the array's own bracket. Searching for the next '['
   // instead finds the one in `ColumnDef[]` and closes again immediately.
   let i = at + startMarker.length - 1;
   let depth = 0;
@@ -186,7 +180,7 @@ for (const block of blocks) {
   });
 }
 
-/** What this list actually draws before anybody has touched the layout. */
+/** What this list draws before anybody has touched the layout. */
 function visibleIn(list) {
   const chunk = text.slice(text.indexOf('export const DEFAULT_HIDDEN'));
   const arr = chunk.match(new RegExp(`\\b${list}:\\s*\\[([^\\]]*)\\]`))?.[1] ?? '';
@@ -198,7 +192,7 @@ function visibleIn(list) {
 
 const defaultWidth = (c, list) => c.perList[list] ?? c.width;
 
-// --- 1 and 2: the Variante column against its own measured cell -------------
+// The variant column against its own measured cell.
 
 const variant = columns.get('variant');
 if (!variant) {
@@ -227,7 +221,7 @@ if (!variant) {
   }
 }
 
-// --- 3: the name column is the widest column in each list -------------------
+// The name column is the widest column in each list.
 
 for (const list of ['downloads', 'collector']) {
   const visible = visibleIn(list);

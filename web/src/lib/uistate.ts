@@ -1,49 +1,33 @@
-// Where the interface keeps what it has to remember between reloads: column
-// widths and order, which packages are folded shut, which settings page was open
-// last.
+// What the interface remembers between reloads: column widths and order,
+// folded packages, the settings page open last. One JSON object per bucket,
+// written through to GET/PUT /api/uistate.
 //
-// One opaque JSON object per bucket, held here and written through to
-// GET/PUT /api/uistate. The rules the rest of this file exists to keep:
-//
-//   - the local copy is the truth. The server is asked once, at the start; after
-//     that nothing ever reads back over what the user is doing. A layout that
-//     reverts while somebody is dragging a column edge is worse than one that
-//     does not persist at all.
-//   - a failed write must not lose the value. Column widths are cheap to lose
-//     once and infuriating to lose repeatedly, so a rejected PUT keeps the local
-//     copy, keeps the whole document pending and retries — it never rolls back
-//     and never gives up quietly.
-//   - writes are debounced and coalesced. Dragging a column edge fires a value
-//     per animation frame; one request per frame would put a database write on
-//     the download disk sixty times a second.
+// The local copy is the truth: the server is read once at the start and never
+// overrides what the user is doing. A failed write keeps the value and
+// retries rather than rolling back. Writes are debounced, because dragging a
+// column edge produces a value per frame.
 
 import { useCallback, useEffect, useState } from 'react';
 
 /** The stored document: whatever the interface put in it, by field name. */
 export type UIState = Record<string, unknown>;
 
-/**
- * The shared bucket. Two browsers using it is deliberate — a single-user
- * instance wants its layout to follow it from one machine to the next — and a
- * client that wants its own passes a key of its own.
- */
+/** The shared bucket, so the layout follows the single user between browsers.
+ *  A client that wants its own passes another key. */
 export const DEFAULT_BUCKET = 'default';
 
-// Long enough to swallow a drag, short enough that closing the tab straight
-// after a change usually still catches it (and pagehide catches the rest).
+// Long enough to swallow a drag; pagehide catches a tab closed in the meantime.
 const FLUSH_DELAY_MS = 600;
 
 const RETRY_BASE_MS = 2_000;
 const RETRY_MAX_MS = 30_000;
 
-// Mirrors store.MaxUIStateBytes. Checked here as well as there so a document that
-// can never be accepted stops being retried forever, and says so once.
+// Mirrors store.MaxUIStateBytes, so a document that can never be accepted is
+// not retried forever.
 const MAX_BYTES = 256 << 10;
 
-// keepalive requests are capped at 64 KiB by the fetch specification, so a large
-// document falls back to an ordinary request on the way out — which the browser
-// may well cancel. Nothing better exists: the route is a PUT, and sendBeacon
-// only posts.
+// The fetch spec caps keepalive bodies at 64 KiB. A larger document goes out as
+// an ordinary request the browser may cancel; sendBeacon cannot PUT.
 const KEEPALIVE_MAX_BYTES = 64 << 10;
 
 interface Bucket {
@@ -88,11 +72,7 @@ function notify(b: Bucket): void {
 
 /**
  * readUIState fetches the bucket once and hands every later caller the same
- * promise. A dozen components asking for their own field on mount is the normal
- * case, and a dozen requests for one document is not.
- *
- * Anything already written locally survives the load: a column dragged before
- * the response came back must not be undone by it.
+ * promise. Fields written locally before the response arrives are kept.
  */
 export function readUIState(key: string = DEFAULT_BUCKET): Promise<UIState> {
   const b = bucketFor(key);
@@ -119,20 +99,15 @@ export function peekUIState<T>(field: string, fallback: T, key: string = DEFAULT
 
 /**
  * writeUIState records a field and schedules the document to be written. It
- * returns nothing and cannot fail: the value is kept locally either way, and the
- * request is this module's problem rather than the caller's.
+ * cannot fail: the value is kept locally, and retries are handled here.
  */
 export function writeUIState(field: string, value: unknown, key: string = DEFAULT_BUCKET): void {
   const b = bucketFor(key);
   if (value === undefined) delete b.local[field];
   else b.local[field] = value;
   b.written.add(field);
-  // A change after a refusal is worth trying again — it may well be the change
-  // that brings the document back under the cap. The retry backoff is
-  // deliberately not reset: a server that is down stays down, and going back to
-  // one request per keystroke would turn an outage into a flood. Nothing is at
-  // risk in the meantime, because the value is already held here and the tab
-  // closing flushes past the backoff.
+  // This change may bring the document back under the cap, so try again. The
+  // backoff is kept, so an outage does not turn into a request per keystroke.
   b.refused = false;
   notify(b);
   schedule(b, key, FLUSH_DELAY_MS);
@@ -148,9 +123,8 @@ function schedule(b: Bucket, key: string, delay: number): void {
 }
 
 async function flush(b: Bucket, key: string, keepalive = false): Promise<void> {
-  // One request at a time. A second one would race the first and could land the
-  // older document last, which is exactly the lost-layout this module exists to
-  // prevent; the flag set here makes the finishing request re-send instead.
+  // One request at a time, or an older document could land last. A change
+  // made meanwhile leaves pending set, and the finishing request re-sends.
   if (b.inFlight || b.refused || !b.pending) return;
   const body = JSON.stringify(b.local);
   if (body.length > MAX_BYTES) {
@@ -174,9 +148,7 @@ async function flush(b: Bucket, key: string, keepalive = false): Promise<void> {
     if (!r.ok) throw new Error(await r.text());
     b.attempt = 0;
   } catch {
-    // The local copy is untouched on purpose. The document is re-sent whole on
-    // the next attempt, so a write that happened meanwhile rides along and
-    // nothing has to be replayed in order.
+    // The whole document is re-sent next time, including later writes.
     b.attempt++;
     b.pending = true;
   } finally {
@@ -197,11 +169,9 @@ export function flushUIState(key: string = DEFAULT_BUCKET): Promise<void> {
   return flush(b, key);
 }
 
-// The tab going away is the one moment a debounce costs the user their change,
-// and it is also the moment the last change was made — closing the tab right
-// after resizing a column is the normal way to do it. pagehide fires where
-// unload is unreliable, and visibilitychange catches the mobile case where a tab
-// is discarded without either.
+// Closing the tab right after a change is common, so outstanding writes are
+// flushed on pagehide, and on visibilitychange for mobile tabs that are
+// discarded without one.
 if (typeof document !== 'undefined') {
   const flushAll = () => {
     for (const [key, b] of buckets) {
@@ -219,11 +189,9 @@ if (typeof document !== 'undefined') {
 }
 
 /**
- * useUIState is one remembered field, with the same shape as useState.
- *
- * The fallback is what the field is worth until the load answers and whenever it
- * has never been written, so a first-run interface renders its built-in layout
- * rather than an empty one that fills in a moment later.
+ * useUIState is one remembered field, with the same shape as useState. The
+ * fallback applies until the load answers and whenever the field was never
+ * written.
  */
 export function useUIState<T>(
   field: string,
@@ -240,9 +208,8 @@ export function useUIState<T>(
     return () => {
       b.subscribers.delete(sync);
     };
-    // fallback is deliberately left out of the dependencies: callers pass an
-    // inline default ({} or []), which is a new reference on every render, and
-    // subscribing again each time would re-run the effect forever.
+    // fallback is left out: callers pass inline defaults, a new reference on
+    // every render, which would re-run the effect forever.
   }, [field, key]);
 
   const set = useCallback(

@@ -1,59 +1,24 @@
-// The settings search index and the settings pages have to name the same
-// strings.
+// Checks that the settings search index (src/pages/settings/searchIndex.ts)
+// and the settings pages name the same strings, so a new row is never missing
+// from the search.
 //
-// web/src/pages/settings/searchIndex.ts is a DECLARED index: 24 pages, their
-// cards, and the caption plus (i) text of every row on them, written down as
-// translation keys. Declared rather than derived, and the reasons are the four
-// this script's own FILE_PAGES table exists to survive:
+// The index is written by hand because it cannot be derived: pages reach the
+// catalogue through t, tx, cx and rx; a page's keys may live in other files
+// (RuleEditor.tsx, the eight Downloads files); Look.tsx draws two rail
+// entries; and a key prefix does not name its page.
 //
-//   - a settings page reaches the catalogue through four helper names, not one
-//     (t, tx, cx, rx). A scanner that only knew `t(` would miss six of the
-//     twenty-four pages outright and they would still LOOK indexed, because
-//     their page name goes on matching.
-//   - a page's keys are not necessarily in that page's file. settings.rules.*
-//     mostly lives in components/RuleEditor.tsx, and the Downloads page is
-//     eight files.
-//   - one file draws two rail entries. Look.tsx renders both /settings/look and
-//     /settings/appearance, split by `{appearance && (` / `{general && (`
-//     guards.
-//   - a key prefix does not name its page. The Downloads page carries
-//     settings.downloads.*, settings.stall.*, settings.crawl.*,
-//     settings.feeds.* and 64 bare settings.<one segment> keys, and the same
-//     prefix also holds toasts and refusals that are not rows at all.
+// Checks, at page scope:
+//   coverage  every .tsx under src/pages/settings is in FILE_PAGES or in
+//             NOT_PAGE_SOURCES with a reason.
+//   forward   every label, hint and SectionTitle key a page draws is in the
+//             index under that page, or in EXCLUDED with a reason.
+//   reverse   every indexed key exists in en.ts and still appears in one of
+//             its page's sources.
+//   expiry    an EXCLUDED entry waiting on a key fails once that key is in en.ts.
+// Which card a row belongs to is left to whoever edits the index.
 //
-// So the index is written by hand and this is what keeps it honest. Without it
-// the drift is invisible in the worst way: a row added to a page is simply
-// never found by the search, and a missing search result looks exactly like a
-// word nobody typed.
-//
-// WHAT IT CHECKS, and the forward/reverse pair deliberately at PAGE scope
-// rather than card scope:
-//
-//   coverage  every .tsx under src/pages/settings is either mapped to a page in
-//             FILE_PAGES or written off in NOT_PAGE_SOURCES with a reason. A new
-//             settings file nobody mapped would draw cards and rows this script
-//             never looks at, which is the same silence one folder further out.
-//   forward   every label/hint/SectionTitle key the settings sources hand to the
-//             catalogue appears somewhere under one of that file's pages in the
-//             index, or on EXCLUDED with a reason.
-//   reverse   every key in the index exists in en.ts (see `in en` below - two
-//             keys already crash the page without it) AND still appears
-//             literally in one of that page's own sources, so a renamed or
-//             deleted key fails here instead of becoming a result that jumps to
-//             a row that is not there any more.
-//   expiry    an EXCLUDED entry that names a key it is WAITING ON stops being
-//             allowed the moment that key reaches en.ts. An exclusion that
-//             outlives its own reason is a gap again, just a documented one.
-//
-// WHICH card a row belongs to stays an editorial decision, made by reading the
-// page. Pinning that mechanically would mean a brace-matching JSX parser, and
-// it would be wrong anyway for the pages whose cards come from another file.
-// Page scope is the part that can drift silently; card placement is the part
-// somebody notices the first time they use the search.
-//
-// Run by CI and by hand: `node web/check-settings-search.mjs`.
-// `node web/check-settings-search.mjs --dump` prints what it found, per page,
-// per card, which is how the index was filled in the first place.
+// Run: `node web/check-settings-search.mjs`; `--dump` prints what each page
+// draws, per card.
 
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -63,121 +28,66 @@ const here = dirname(fileURLToPath(import.meta.url));
 const src = (rel) => readFileSync(join(here, rel), 'utf8');
 
 /**
- * Which file draws which page, written down rather than guessed.
+ * Which file draws which page. A file may serve two pages (Look.tsx, or
+ * Help.tsx whose About card the General tab draws), and its keys count for
+ * either. `titleTags` names wrapper components whose `title` prop becomes a
+ * SectionTitle (Help.tsx's Topic, Modules.tsx's Group).
  *
- * `pages` is a list because two of these genuinely serve two rail entries
- * (Look.tsx) or are rendered from a second page (Help.tsx exports the About
- * card, which the General tab draws at its foot). A key found in such a file
- * satisfies the forward check under EITHER of its pages - the guard that
- * decides which one is a JSX conditional, and a regex that claimed to read it
- * would be a guess wearing a check's clothes.
- *
- * `titleTags` names the wrapper components in that file whose `title` prop
- * becomes a SectionTitle further down (Help.tsx's Topic, Modules.tsx's Group).
- * Without it those two pages would parse to zero card titles and this script
- * would never notice a topic being added or renamed.
+ * An entry ending in `/` is a directory, so a card added to it is scanned
+ * without editing this table.
  */
 const FILE_PAGES = [
   { file: 'src/pages/settings/Modules.tsx', pages: ['modules'], titleTags: ['Group'] },
   { file: 'src/pages/settings/DownloadsSettings.tsx', pages: ['downloads'] },
-  // A DIRECTORY, not eight filenames. Listing the files by hand would itself be
-  // a drift vector of exactly the kind this script exists to close: the ninth
-  // card someone adds beside them would simply not be scanned, and its rows
-  // would go unindexed with nothing to say so.
   { file: 'src/pages/settings/downloads/', pages: ['downloads'] },
   { file: 'src/pages/settings/Archives.tsx', pages: ['archives'] },
   // One component, two rail entries, split by `{appearance && (` / `{general && (`.
   { file: 'src/pages/settings/Look.tsx', pages: ['look', 'appearance'] },
-  // The cards that have moved out of that file into their own, all of them on
-  // the General tab so far. A directory for the same reason downloads/ is one.
   { file: 'src/pages/settings/look/', pages: ['look'] },
   // The Help page's topics, plus the About card the General tab draws at its foot.
   { file: 'src/pages/settings/Help.tsx', pages: ['help', 'look'], titleTags: ['Topic'] },
   { file: 'src/pages/settings/Accounts.tsx', pages: ['accounts'] },
   { file: 'src/pages/settings/Instances.tsx', pages: ['instances'] },
   { file: 'src/pages/settings/Access.tsx', pages: ['access'] },
-  // A DIRECTORY, for the same reason downloads/ and look/ are: the second
-  // factor and the passkeys moved into cards of their own beside the password,
-  // and the third one somebody adds there must be scanned without anybody
-  // remembering to come back here.
   { file: 'src/pages/settings/access/', pages: ['access'] },
   { file: 'src/pages/settings/Advanced.tsx', pages: ['advanced'] },
   { file: 'src/pages/settings/Rules.tsx', pages: ['rules'] },
-  // 141 settings.rules.* keys, most of them here rather than in Rules.tsx.
+  // Most settings.rules.* keys live here rather than in Rules.tsx.
   { file: 'src/components/RuleEditor.tsx', pages: ['rules'] },
   { file: 'src/pages/settings/Categories.tsx', pages: ['categories'] },
   { file: 'src/pages/settings/Connections.tsx', pages: ['connections'] },
   { file: 'src/pages/settings/Reconnect.tsx', pages: ['reconnect'] },
   { file: 'src/pages/settings/Resolvers.tsx', pages: ['resolvers'] },
-  // A directory for the same reason downloads/ and look/ are: the cookie jars
-  // card moved out of Resolvers.tsx into one of its own, and the next card to
-  // follow it must be scanned without anybody remembering to come back here.
   { file: 'src/pages/settings/resolvers/', pages: ['resolvers'] },
   { file: 'src/pages/settings/Torrents.tsx', pages: ['torrents'] },
   { file: 'src/pages/settings/Captcha.tsx', pages: ['captcha'] },
   { file: 'src/pages/settings/Schedule.tsx', pages: ['schedule'] },
-  // The health page is one card per file by construction (which is what makes
-  // "at most one SectionTitle per Card" structural there rather than
-  // remembered), so the shell and the folder are both mapped - the folder as a
-  // DIRECTORY, for the same reason downloads/ and diagnostics/ are one.
   { file: 'src/pages/settings/Health.tsx', pages: ['health'] },
   { file: 'src/pages/settings/health/', pages: ['health'] },
   { file: 'src/pages/settings/Diagnostics.tsx', pages: ['diagnostics'] },
-  // A directory for the same reason downloads/, look/, resolvers/ and
-  // shortcuts/ are: the database-maintenance card moved out into one of its
-  // own, and the next card to follow it must be scanned without anybody
-  // remembering to come back here.
   { file: 'src/pages/settings/diagnostics/', pages: ['diagnostics'] },
   { file: 'src/pages/settings/BrowserTools.tsx', pages: ['browsertools'] },
   { file: 'src/pages/settings/Scripts.tsx', pages: ['scripts'] },
   { file: 'src/pages/settings/EventTargets.tsx', pages: ['eventtargets'] },
-  // A DIRECTORY, for the same reason downloads/, look/, resolvers/,
-  // diagnostics/ and shortcuts/ are: the row editor, the events picker, the
-  // status block and the test panel are four files today, and the fifth card
-  // somebody adds beside them must be scanned without anybody remembering to
-  // come back here.
   { file: 'src/pages/settings/eventtargets/', pages: ['eventtargets'] },
   { file: 'src/pages/settings/Shortcuts.tsx', pages: ['shortcuts'] },
   { file: 'src/pages/settings/shortcuts/', pages: ['shortcuts'] },
 ];
 
 /**
- * Keys the sources hand to the catalogue that are deliberately NOT in the
- * index, each with the reason written down - so "not indexed" is a decision
- * somebody made rather than a gap nobody noticed.
+ * Keys the pages draw that are left out of the index on purpose, each with its
+ * reason.
  */
 const EXCLUDED = new Map([
-  // ---- absent from en.ts, which is worse than not being indexed ----
-  // lib/i18n.tsx resolves `dict[key] ?? en[key]` with no final fallback, so
-  // this one returns undefined despite its `string` type, and it is drawn as a
-  // real card title today. Add it to en.ts (and therefore to all 42 locales,
-  // which the Type check step enforces) and move it into the index - the
-  // Schedule status banner is unfindable until somebody does.
-  //
-  // An entry may name a key it is WAITING ON. The moment that key reaches en.ts
-  // the exclusion fails, saying so - because at that point the reason for it is
-  // gone, and an exclusion that outlives its reason is the silence this whole
-  // script exists to prevent.
-  //
-  // The Diagnostics system card used to sit here beside it, together with the
-  // six readings inside it. settings.diagnostics.systemTitle reached en.ts with
-  // this wave, so both exclusions expired exactly as designed and came out: the
-  // card is indexed by its own title now. Its two remaining strays,
-  // settings.diagnostics.speedSamples and .speedSamplesHint, went nowhere -
-  // they exist in all 42 locales and NO source draws them, so putting them in
-  // the index would fail the reverse check instead. Dropping them from here was
-  // the whole fix.
+  // Missing from en.ts, so it resolves to undefined (lib/i18n.tsx has no final
+  // fallback). An entry with `waitingOn` fails once that key reaches en.ts,
+  // so the exclusion cannot outlive its reason.
   [
     'settings.schedule.statusTitle',
     { waitingOn: 'settings.schedule.statusTitle', reason: 'NOT IN en.ts, so it resolves to undefined. Drawn as the Schedule status banner title' },
   ],
-  // The notifications card was excluded here while it was being built, with its
-  // own keys named as the condition. They landed in the same wave, this check
-  // said so on the next run, and the exclusion came out: the card is indexed
-  // like every other one. That is the whole point of a `waitingOn` rather than
-  // a comment - a promise nobody has to remember to keep.
 
-  // ---- not a row, and not a card either ----
+  // Not a row, and not a card either.
   [
     'common.loading',
     'the whole-page LoadingCard four settings pages show while their own fetch is in flight. Page furniture, on no card at all',
@@ -196,7 +106,7 @@ const EXCLUDED = new Map([
     'the accessible name of the QR code image inside the second factor enrolment. It reaches the catalogue through QRCode\'s `label` prop, which is an alt text rather than a caption - the card it belongs to is indexed by its own title, and it only exists while somebody is halfway through an enrolment',
   ],
 
-  // ---- a second search box, over a different question ----
+  // A second search box, over a different question.
   [
     'settings.advanced.search',
     'the raw-key search box on the Advanced page. It searches dotted paths and JSON values over the settings document, which is a different question from this one, and offering it as a row would suggest the two boxes do the same thing',
@@ -205,14 +115,9 @@ const EXCLUDED = new Map([
   ['settings.advanced.filterChanged', "part of the raw-key table's own machinery, above"],
 ]);
 
-// ---------------------------------------------------------------------------
-// Reading a JSX attribute without pretending to be a parser.
-//
-// `hint={`${t('a')} ${t('b')}`}` is a real call site (DownloadsSettings.tsx),
-// and so is a label whose value spans four lines. A regex that stopped at the
-// first `}` would read half of either. So: find the attribute, walk forward
-// counting braces, and pull every catalogue call out of the balanced span.
-// ---------------------------------------------------------------------------
+// Attribute values can nest braces (hint={`${t('a')} ${t('b')}`}) or span
+// lines, so each value is read to its balanced closing brace and every
+// catalogue call inside it is collected.
 
 /** Every `t('x')` / `tx('x')` / `cx('x')` / `rx('x')` key inside a span of source. */
 function keysIn(span) {
@@ -233,11 +138,8 @@ function balanced(text, openBrace) {
 }
 
 /**
- * Every `<attr>={...}` value in a file, as {at, keys}.
- *
- * The leading `(?<![\w-])` is load-bearing: without it `aria-label={t('x')}`
- * matches `label=` and a button's accessible name lands in the index as a row
- * caption that no row has.
+ * Every `<attr>={...}` value in a file, as {at, keys}. The `(?<![\w-])` keeps
+ * `aria-label=` from matching `label=`.
  */
 function attrSpans(text, attr) {
   const out = [];
@@ -251,12 +153,9 @@ function attrSpans(text, attr) {
 }
 
 /**
- * The component this attribute is written on - the nearest `<Capitalised` above
- * it. Reported by --dump only, and only as a hint to whoever fills the index:
- * `label` on a `Field` is a row you can jump to, `label` on a `LabelBadge` or a
- * `LoadingCard` is not, and nothing but reading the call site tells them apart.
- * The check itself never uses this, because a heuristic that walks backwards
- * through JSX is exactly the kind of almost-parser this file refuses to be.
+ * The component this attribute is written on, the nearest `<Capitalised`
+ * above it. Only --dump shows it, as a hint: `label` on a Field is a row,
+ * `label` on a LoadingCard is not. The check itself does not rely on it.
  */
 function owningTag(text, at) {
   const before = text.slice(Math.max(0, at - 2000), at);
@@ -310,10 +209,9 @@ function scanFile(entry) {
   }
   rows.sort((a, b) => a.at - b.at);
 
-  // A row belongs to the last card title above it. Rows above the first title
-  // in the file belong to no card yet - a modal, a shared sub-component - and
-  // are reported under an empty card so they are placed by hand rather than
-  // filed under whichever card happened to be first.
+  // A row belongs to the last card title above it. Rows before the first title
+  // (a modal, a shared sub-component) go under an empty card to be placed by
+  // hand.
   const cards = [{ title: null, rows: [] }];
   let ti = 0;
   for (const row of rows) {
@@ -330,13 +228,8 @@ function scanFile(entry) {
   return { file: entry.file, pages: entry.pages, titles, cards };
 }
 
-/**
- * Files under src/pages/settings that are not a page's markup, each with the
- * reason it is not in FILE_PAGES. Anything else there has to be mapped, or the
- * check below fails: a new settings file nobody added to the table would draw
- * cards and rows that this script never looks at, which is precisely the silence
- * it exists to break.
- */
+/** Files under src/pages/settings that are not a page's markup, with the
+ *  reason. Every other file there must be in FILE_PAGES. */
 const NOT_PAGE_SOURCES = new Map([
   ['registry.tsx', 'the id-to-component map. check-settings-pages.mjs is what reads it'],
   ['context.tsx', 'the draft/feature provider - no catalogue text of its own'],
@@ -399,13 +292,8 @@ if (process.argv.includes('--dump')) {
   process.exit(0);
 }
 
-// ---------------------------------------------------------------------------
-// The index, read as text. Importing it would mean compiling TypeScript in a
-// check that has to stay a plain `node` invocation - the same reason
-// check-settings-pages.mjs reads its two lists with a regex. searchIndex.ts is
-// written to be readable this way: type-only imports, one flat object literal,
-// every value a quoted key.
-// ---------------------------------------------------------------------------
+// The index is read as text so the check runs with plain `node`. searchIndex.ts
+// keeps to that shape: type-only imports, one object literal, quoted keys.
 
 /** page id -> Set of every key declared anywhere under it. */
 function indexedKeys() {
@@ -439,9 +327,7 @@ function englishKeys() {
 const index = indexedKeys();
 const en = englishKeys();
 
-// A fixture that reads nothing is a check that passes for the wrong reason -
-// the same guard check-settings-pages.mjs makes, for the same failure: a
-// parser that has quietly stopped matching reports a clean run.
+// A parser that has stopped matching would report a clean run.
 const titleCount = scans.reduce((n, s) => n + s.titles.length, 0);
 const rowCount = new Set(scans.flatMap((s) => s.cards.flatMap((c) => c.rows.map((r) => r.key)))).size;
 if (titleCount < 40) throw new Error(`only ${titleCount} card titles parsed out of the settings sources - the parser is wrong, not the code`);
@@ -451,8 +337,6 @@ if (index.size < 15) throw new Error(`only ${index.size} pages parsed out of sea
 
 const problems = [];
 
-// An exclusion that names a key it is waiting on is a note to whoever lands that
-// key, and it has to stop being silent the moment they do.
 for (const [key, note] of EXCLUDED) {
   if (typeof note === 'object' && note.waitingOn && en.has(note.waitingOn)) {
     problems.push(
@@ -487,10 +371,8 @@ for (const s of scans) {
 }
 for (const [page, keys] of index) {
   for (const key of keys) {
-    // T2, and it is not hypothetical: lib/i18n.tsx resolves `dict[key] ?? en[key]`
-    // with no final fallback, so a key absent from en returns undefined despite
-    // the `string` type and the first .toLowerCase() in the matcher blanks the
-    // whole settings page.
+    // A key missing from en.ts resolves to undefined, and the matcher's
+    // .toLowerCase() then blanks the settings page.
     if (!en.has(key)) {
       problems.push(`${key} is in the search index under ${page} but not in en.ts - it resolves to undefined and blanks the page`);
       continue;

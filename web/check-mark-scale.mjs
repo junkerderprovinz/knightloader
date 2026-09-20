@@ -1,62 +1,39 @@
 // The app's own mark is never drawn larger than the rail draws it.
 //
-// WHAT BREAKS WITHOUT IT. KnightLoader's shield appears in four places, and one
-// of them is the brand: the mark at the top of the sidebar, beside the app's
-// name, which is what the rail is for. The other three are a mark on a card, a
-// mark in a row, a mark in a store tile - repeats of an identity that has
-// already been established one column to the left. A repeat that out-sizes the
-// original is not emphasis, it is a second, louder brand mark on the same
-// screen, and the eye goes to it instead of to the reading the card exists to
-// show.
+// KnightLoader's shield appears in four places, and one of them is the brand:
+// the mark at the top of the sidebar, beside the app's name. The other three,
+// on a card, in a row and in a store tile, repeat an identity already
+// established one column to the left. A repeat that out-sizes the original is a
+// second, louder brand mark on the same screen, and the eye goes to it instead
+// of to the reading the card exists to show.
 //
-// It goes wrong in one direction only, and always by request. "Make the logo on
-// the instance cards bigger" is a reasonable thing to ask and was asked twice
-// (jdp, 2026-08-27, twice: "Das logo in den instanzencard bitte grösser"). Each
-// step is small, each is granted, and nobody re-opens Sidebar.tsx to see what
-// the number is being measured against - so the third step sailed past the rail
-// without anything registering that a line had been crossed. It ended at 144px
-// against the rail's 112px: the largest drawing of the app's identity anywhere
-// in the app was on a card in a grid, 29% larger than the brand mark itself
-// (jdp: "das logo ist ein kleines bischen zu gross").
+// It goes wrong in one direction only, and by request: a card's mark grows a
+// step at a time, each step small and each granted, and nobody reopens
+// Sidebar.tsx to see what the number is measured against. It ended at 144px
+// against the rail's 112px, the largest drawing of the app's identity anywhere
+// in the app sitting on a card in a grid.
 //
-// A SCRIPT RATHER THAN A NOTE, and this one has the receipt. The note WAS
-// written, in the file, one line above the class it describes: "It grows to
-// 7rem where the card allows it." 7rem is `h-28`, the rail's own size, and it
-// is what that element carried when the sentence was written. The commit that
-// bumped it to `h-36` changed the class and left the sentence standing, so the
-// file went on claiming the correct number while rendering a different one.
-// A comment cannot check itself against the code beneath it.
+// A comment cannot check itself against the code beneath it: the sentence "it
+// grows to 7rem where the card allows it" went on standing one line above a
+// class that had meanwhile become `h-36`.
 //
-// WHAT IT CHECKS. Every element that draws the app's own mark - an `<img>`
-// whose `src` is the binding a file imported from `assets/logo.svg`, or the
-// inline `.kl-egg` span that the same file is parsed into - declares its height
-// in Tailwind's `h-<n>` units. The largest one in the SIDEBAR is the ceiling,
-// and no element anywhere else may exceed it. Equal is fine: the card's mark
-// matching the rail's is the coherent relationship, not a violation of it.
+// Every element that draws the mark, an `<img>` whose `src` is the binding a
+// file imported from `assets/logo.svg` or the inline `.kl-egg` span the same
+// file is parsed into, declares its height in Tailwind's `h-<n>` units. The
+// largest one in the sidebar is the ceiling and nothing elsewhere exceeds it.
+// Equal is fine: a card's mark matching the rail's is coherent.
 //
-// The ceiling is DERIVED and never typed in. A number written here would be a
-// third copy of the rail's size, free to drift from the rail the same way the
-// comment above drifted from its class. Change the rail and the ceiling moves
-// with it, which is the coupling that makes this worth a file.
+// The ceiling is derived rather than typed in, so changing the rail moves it.
 //
-// WHAT IT DELIBERATELY DOES NOT SEE.
+// Not seen: a mark sized by its container (`h-full`, `h-auto`, `h-screen`),
+// where the slot decides and its size cannot be read from the class list, so
+// those are counted and reported rather than judged; width, since every one of
+// these is `w-auto` or square; `max-h-*`, a clamp rather than a size; whether
+// the rail's own size is right, it being the reference; and a mark drawn by a
+// component in another file or from a class list assembled by a helper, which
+// none of the four call sites does.
 //
-//   A mark sized by its container (`h-full`, `h-auto`, `h-screen`). That is a
-//   different mechanism - the slot decides, not the mark - and the slot's own
-//   size is not readable from the class list. Counted and reported, never
-//   judged.
-//   Width. Every one of these is `w-auto` or square, so height is the whole
-//   size, and a mark that set width instead would be a shape change rather than
-//   a scale change.
-//   `max-h-*`, which is a clamp and not a size: the height is still what the
-//   element asks for wherever the clamp does not bite.
-//   Whether the rail's own size is right. It is the reference, which is exactly
-//   why nothing here has an opinion about it.
-//   A mark drawn by a component in another file, or a class list assembled by a
-//   helper. Both would need the class list to travel, and none of the four call
-//   sites does that.
-//
-// Run by hand or from CI: `node web/check-mark-scale.mjs`.
+// Run: `node web/check-mark-scale.mjs`.
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -217,7 +194,7 @@ const ceiling = Math.max(...rail);
 
 const problems = [];
 for (const d of drawings) {
-  if (d.file.endsWith('Sidebar.tsx')) continue; // the rail IS the reference
+  if (d.file.endsWith('Sidebar.tsx')) continue; // the rail is the reference
   for (const px of d.px) {
     if (px <= ceiling) continue;
     problems.push(`${d.where} -> h-${px / 4} is ${px}px, past the rail's own ${ceiling}px`);

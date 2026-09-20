@@ -1,20 +1,12 @@
-// The Collector page's bulk/page-level actions, given a second entry point
-// beside the toolbar buttons they already have. Every `run` below calls the
-// exact same function Collector.tsx's own onClick already calls
-// (startSelected/startAll/checkAll), or the same setSelected/
-// removal.removeNow the page hands to lib/listview.ts's useReportListView
-// (setSelection/removeSelected on CommandContext — see
-// lib/commands/downloads.ts's own doc comment, which registers the same
-// pair the same way).
+// The Collector page's page-level actions as commands. Each run() calls the
+// same function as the page's own buttons, or what the page publishes
+// through pageContext.ts.
 import { recheckTasks, startTasks, type Task } from '../api';
 import { IconCheck, IconFolder, IconPlay, IconSearch, IconTrash } from '../icons';
 import type { Command, CommandContext } from './types';
 
-// ctx.tasks is every task on the instance, unfiltered (CommandContext's own
-// doc comment) — the same source Collector.tsx narrows with this exact
-// filter before it ever renders a row (its own `collected` useMemo). A
-// command reading ctx.tasks directly would count active downloads as
-// "staged" too, so every collector command re-applies the same filter.
+// ctx.tasks holds every task, so this applies the same filter the Collector
+// page renders with.
 function staged(ctx: CommandContext): Task[] {
   return ctx.tasks.filter((x) => x.status === 'collected' && !x.skipped);
 }
@@ -29,9 +21,7 @@ export const collectorCommands: Command[] = [
     defaultShortcut: 'mod+shift+o',
     enabled: () => true,
     visible: () => true,
-    // The exact same trigger AddLinksForm's own folder-icon badge calls
-    // (Collector.tsx's fileDrop ref, published through pageContext.ts as
-    // openFilePicker) - one file picker, two ways to open it.
+    // The same file picker AddLinksForm's folder badge opens.
     run: (ctx) => ctx.openFilePicker(),
   },
   {
@@ -43,8 +33,6 @@ export const collectorCommands: Command[] = [
     defaultShortcut: 'mod+shift+enter',
     enabled: (ctx) => ctx.selection.length > 0,
     visible: (ctx) => ctx.selection.length > 0,
-    // The same two calls Collector.tsx's own startSelected() makes: start the
-    // selected links, then say how many.
     run: (ctx) => {
       startTasks(ctx.selection);
       ctx.toast(ctx.t('collector.toastStarted', { n: ctx.selection.length }), 'info');
@@ -59,8 +47,7 @@ export const collectorCommands: Command[] = [
     defaultShortcut: 'mod+shift+a',
     enabled: (ctx) => staged(ctx).length > 0,
     visible: (ctx) => staged(ctx).length > 0,
-    // Collector.tsx's own startAll(): an empty id list means every staged
-    // link on this route.
+    // An empty id list starts every staged link.
     run: (ctx) => {
       startTasks([]);
       ctx.toast(ctx.t('collector.toastStarted', { n: staged(ctx).length }), 'info');
@@ -75,8 +62,7 @@ export const collectorCommands: Command[] = [
     defaultShortcut: 'mod+shift+u',
     enabled: (ctx) => staged(ctx).length > 0,
     visible: (ctx) => staged(ctx).length > 0,
-    // The bar's own "Check all" button (Collector.tsx): an empty id list
-    // means every staged link, same as startAll above.
+    // An empty id list checks every staged link.
     run: (ctx) => {
       recheckTasks([]);
       ctx.toast(ctx.t('task.recheck'), 'info');
@@ -101,9 +87,7 @@ export const collectorCommands: Command[] = [
     surfaces: ['collector'],
     enabled: (ctx) => ctx.selection.length > 0,
     visible: (ctx) => ctx.selection.length > 0,
-    // SelectionStrip's own "Remove" button, same as downloads.removeSelected
-    // — no defaultShortcut here either, for the same reason: Del is already
-    // bound to this exact call by useRemoval.
+    // No shortcut: useRemoval already binds Del to the same call.
     run: (ctx) => ctx.removeSelected(ctx.selection),
   },
 ];

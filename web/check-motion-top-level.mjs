@@ -1,64 +1,51 @@
 // The top motion level is `wild`, no rule names it, and a value saved under the
 // retired name still resolves.
 //
-// GlimStone 2.0.0 is a MAJOR release for one reason: the top level of the motion
-// axis is called `wild`, and it used to be called `full`. That string is not
-// wording. It goes into the `data-motion` attribute on <html>, stylesheet
-// selectors match on it, and localStorage holds it, so an app that keeps the old
-// spelling is not making a local choice - it is speaking a different wire format
-// from the language it claims to adopt, and from its own phone app.
-//
-// WHAT BREAKS WITHOUT IT, one failure per check, and none of them is visible in
-// a build, a type check or a screenshot:
+// The top level of GlimStone 2.0.0's motion axis is called `wild`, where the
+// language once said `full`. That string is not wording: it goes into the
+// `data-motion` attribute on <html>, stylesheet selectors match on it and
+// localStorage holds it, so an app keeping the old spelling speaks a different
+// wire format from the language it adopts and from its own phone app. None of
+// the failures below is visible in a build, a type check or a screenshot:
 //
 //   names     The four levels are `off`, `subtle`, `wild`, `storm`. An app that
 //             spells the third one `full` gets the tokens it wrote itself and
-//             none of the ones it copies, and the day it copies a component rule
-//             from reference/tokens.css that rule matches nothing. The language
-//             did this to ITSELF for six editions, which is why the bullet
-//             exists.
+//             none of the ones it copies, and a component rule taken from
+//             reference/tokens.css matches nothing.
 //
-//   attribute Nothing anywhere may still say `data-motion="full"` - not a
-//             selector, and not a comment either. A comment naming an attribute
-//             value the app no longer writes is worse than no comment: it is a
-//             claim about the DOM that the next reader has no reason to doubt.
+//   attribute Nothing says `data-motion="full"` any more, in a selector or in a
+//             comment. A comment naming an attribute value the app does not
+//             write is a claim about the DOM the next reader has no reason to
+//             doubt.
 //
-//   selector  A rule must name the QUIET levels, never the lively one.
-//             `[data-motion="wild"] .thing` excludes `storm`, which is MORE
-//             motion and wants the livelier treatment rather than none of it -
-//             so the one level that asked for more animation is the one that
-//             loses it, and only for the elements somebody wrote a special rule
-//             for. `:root:not([data-motion="subtle"]):not([data-motion="off"])`
-//             says the same thing and keeps saying it when a fifth level is
-//             added above. The storm's own TOKEN block is the single exception
-//             and is recognised by shape: a `:root[data-motion="storm"]` whose
-//             body is nothing but custom properties is the level's numbers, not
-//             a component rule.
+//   selector  A rule names the quiet levels rather than the lively one.
+//             `[data-motion="wild"] .thing` excludes `storm`, which asks for
+//             more motion and would lose the livelier treatment for exactly the
+//             elements somebody wrote a special rule for.
+//             `:root:not([data-motion="subtle"]):not([data-motion="off"])` says
+//             the same thing and keeps saying it when a fifth level is added
+//             above. The storm's own token block is the one exception and is
+//             recognised by shape: a `:root[data-motion="storm"]` whose body is
+//             nothing but custom properties holds the level's numbers rather
+//             than a component rule.
 //
-//   label     Every catalogue carries `settings.motion.wild`, and none of them
-//             still carries `settings.motion.full`. The key is what the picker
-//             builds its label from (`settings.motion.${m}` in Look.tsx), so a
-//             catalogue that kept the old key renders the raw key string in that
-//             language and nothing in a type check notices, because the lookup
-//             is a template.
+//   label     Every catalogue carries `settings.motion.wild` and none carries
+//             `settings.motion.full`. The picker builds its label from the key
+//             (`settings.motion.${m}` in Look.tsx), so a catalogue that kept
+//             the old one renders the raw key string in that language and the
+//             type check sees nothing, the lookup being a template.
 //
-//   stored    THE HALF THAT IS NOT A RENAME. A `full` is sitting in the
-//             localStorage of every instance somebody has already used, and it
-//             has to keep resolving to the top level. This one is measured
-//             rather than read: the module is imported and asked.
+//   stored    A `full` sits in the localStorage of every instance somebody has
+//             used, and it has to keep resolving to the top level, so the module
+//             is imported and asked. Leaving it to the fallback works only while
+//             DEFAULT_MOTION happens to be that same level: change the default,
+//             which is a settings decision rather than a compatibility one, and
+//             every instance that ever touched the setting loses it.
 //
-//             Why it cannot be left to the fallback, which happens to land on
-//             the same level today: the fallback is DEFAULT_MOTION, and the only
-//             reason that is currently right is that the default and the renamed
-//             level are the same one. Change the default - which is a settings
-//             decision, not a compatibility one - and every instance that had
-//             ever touched this setting silently loses it. An alias that says
-//             what it is costs three lines and does not depend on a coincidence.
+// Not seen: whether the level looks livelier than the one below it, which is
+// check-motion-tokens.mjs's shape check and, past that, a screen.
 //
-// WHAT IT DOES NOT SEE. Whether the level LOOKS livelier than the one below it;
-// that is check-motion-tokens.mjs's shape check and, past that, a screen.
-//
-// Run by CI and by hand, from web/: `node check-motion-top-level.mjs`
+// Run from web/: `node check-motion-top-level.mjs`
 import { readFileSync, readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -74,7 +61,7 @@ const LEVELS = ['off', 'subtle', 'wild', 'storm'];
 const TOP = 'wild';
 const RETIRED = 'full';
 
-// --- names: the axis' own module -------------------------------------------
+// The axis' own module names the four levels.
 
 const appRel = 'src/lib/appearance.ts';
 const appRaw = read(appRel);
@@ -105,13 +92,12 @@ if (picker && !picker.includes(TOP)) {
 const def = app.match(/DEFAULT_MOTION\s*:\s*Motion\s*=\s*'([^']+)'/);
 if (!def) fail(`${appRel}: no DEFAULT_MOTION`);
 else if (def[1] !== TOP) {
-  fail(`${appRel}: DEFAULT_MOTION is '${def[1]}' - the default is the top VISIBLE level, '${TOP}'`);
+  fail(`${appRel}: DEFAULT_MOTION is '${def[1]}' - the default is the top visible level, '${TOP}'`);
 }
 
-// --- attribute: the retired spelling is gone from the source tree -----------
-//
-// Code AND comments. The one place the old string is allowed to appear is the
-// migration that accepts it, and it is recognised by the constant that names it.
+// The retired spelling is gone from the source tree, in code and in comments.
+// The one place it may still appear is the migration that accepts it, which is
+// recognised by the constant naming it.
 
 const walk = (dir) => {
   const out = [];
@@ -136,11 +122,10 @@ for (const file of walk(join(here, 'src'))) {
   }
 }
 
-// The stylesheet gets a stricter reading than the rest of the tree: a QUOTED
-// `full` in a CSS file can only ever be a level name, so the sentence that lists
-// the levels a few lines above the tokens is caught too. In the .ts tree the
-// same pattern would fire on the migration that has to name the old spelling,
-// which is why the rule is narrowed to the one file where it cannot.
+// The stylesheet gets a stricter reading than the rest of the tree: a quoted
+// `full` in a CSS file can only be a level name, so the sentence listing the
+// levels above the tokens is caught too. In the .ts tree the same pattern would
+// fire on the migration that has to name the old spelling.
 const cssRel = 'src/index.css';
 const cssRaw = read(cssRel);
 for (const m of cssRaw.matchAll(new RegExp(`["']${RETIRED}["']`, 'g'))) {
@@ -151,9 +136,9 @@ for (const m of cssRaw.matchAll(new RegExp(`["']${RETIRED}["']`, 'g'))) {
   );
 }
 
-// --- selector: a rule names the quiet levels, never the lively one ----------
-// Comments blanked, offsets kept byte for byte, so a line number is the real one
-// AND the paragraphs DESCRIBING the axis are not read as selectors.
+// A rule names the quiet levels, never the lively one. Comments blanked,
+// offsets kept byte for byte, so line numbers stay right and the paragraphs
+// describing the axis are not read as selectors.
 const css = cssRaw.replace(/\/\*[\s\S]*?\*\//g, (c) => c.replace(/[^\n]/g, ' '));
 const lineAt = (i) => css.slice(0, i).split('\n').length;
 
@@ -179,8 +164,8 @@ for (const lively of [TOP, 'storm']) {
   for (const m of css.matchAll(re)) {
     const { text, open } = selectorAt(m.index);
     // The storm's own token block: `:root[data-motion='storm']` and nothing
-    // else in the selector, holding custom properties and nothing else. That is
-    // the level's NUMBERS, which is the one thing that has to name it.
+    // else in the selector, holding custom properties and nothing else. Those
+    // are the level's numbers, the one thing that has to name it.
     const bare = /^:root\[data-motion\s*=\s*["']storm["']\]$/.test(text);
     const body = css.slice(...block(open));
     const onlyTokens = body.replace(/--[\w-]+\s*:[^;]*;/g, '').trim() === '';
@@ -193,7 +178,7 @@ for (const lively of [TOP, 'storm']) {
   }
 }
 
-// --- label: the catalogues carry the new key and not the old one -----------
+// The catalogues carry the new key and not the old one.
 
 const locDir = join(here, 'src/lib/locales');
 for (const file of readdirSync(locDir)) {
@@ -210,10 +195,9 @@ for (const file of readdirSync(locDir)) {
   }
 }
 
-// --- stored: a saved `full` still resolves to the top level -----------------
-//
-// Measured, not read. The module is imported with the two globals it touches
-// stubbed, and asked what it makes of the value real instances are holding.
+// A saved `full` still resolves to the top level, measured rather than read:
+// the module is imported with the two globals it touches stubbed, and asked
+// what it makes of the value real instances are holding.
 
 globalThis.document = {
   documentElement: { dataset: {}, style: { setProperty() {}, removeProperty() {} } },
@@ -251,7 +235,7 @@ if (mod.readCachedMotionIntensity() !== mod.DEFAULT_MOTION) {
 }
 if (mod.MOTION_STORED.includes(RETIRED)) {
   fail(
-    `${appRel}: MOTION_STORED contains '${RETIRED}'. That list is what a LIVE value may legally be; ` +
+    `${appRel}: MOTION_STORED contains '${RETIRED}'. That list is what a live value may legally be; ` +
       `the retired spelling is translated on the way in, never admitted to the set`,
   );
 }

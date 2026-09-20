@@ -1,62 +1,48 @@
 // The hidden fourth motion level stays hidden, stays switchable off, and stays
 // inside the accessibility gate.
 //
-// GlimStone 1.17.0 adds `storm`: a fourth intensity nobody is offered, reached
-// by setting motion to the top level and tapping that same option five more
-// times. The numbers are the cheap half. The rule it exists to establish is the
-// expensive one, and it is what this script guards:
-//
-//   AN EASTER EGG THAT CHANGES BEHAVIOUR MUST BE SWITCHABLE BACK OFF, AND MUST
-//   NOT QUIETLY BECOME A PERMANENT ENTRY IN A SETTINGS LIST.
-//
-// WHAT BREAKS WITHOUT IT, one failure per check, and every one of them is
-// invisible in a build, a type check and a screenshot alike:
+// GlimStone 1.17.0 adds `storm`, a fourth intensity nobody is offered, reached
+// by setting motion to the top level and tapping that option five more times.
+// The rule behind it is that an easter egg which changes behaviour can be
+// switched back off and does not become a permanent entry in a settings list.
+// Each failure below is invisible in a build, a type check and a screenshot:
 //
 //   gate      A "more animation" switch outside @media (prefers-reduced-motion:
-//             no-preference) is the one way this level could genuinely do harm:
-//             a machine whose owner asked the operating system for less motion
-//             would start evaluating a data-motion selector again and get MORE
-//             movement than the three visible levels can produce. The other
-//             three are safe because of where the block sits, not because of a
-//             check in front of them, so the fourth has to sit in the same
-//             place. A storm block written one brace further out still works
-//             perfectly for everybody who never set the OS preference, which is
-//             everybody who tests it.
+//             no-preference) is the one way this level could do harm: a machine
+//             whose owner asked the system for less motion would evaluate a
+//             data-motion selector again and get more movement than the three
+//             visible levels can produce. The other three are safe because of
+//             where the block sits, so the fourth sits in the same place. A
+//             storm block one brace further out works perfectly for everybody
+//             who never set the preference, which is everybody who tests it.
 //
-//   tokens    A level is a different NUMBER, never a different animation. A
+//   tokens    A level is a different number, never a different animation. A
 //             storm block that invents a token nothing else defines is a forked
-//             animation wearing an intensity's clothes; one that forgets the
-//             five the language names for this level is a "storm" that arrives
-//             as a slightly longer wild and gets reported as "the egg does
-//             nothing".
+//             animation in an intensity's clothes; one that forgets the five
+//             the language names for this level arrives as a slightly longer
+//             wild and gets reported as an egg that does nothing.
 //
-//   picker    The list a picker renders must not contain storm. This is the
-//             defect the whole rule came from: the first build stored a "found
-//             it" flag and one gesture put a fourth option in the settings for
-//             ever after, which turns a secret into a setting somebody has to
-//             explain to themselves months later with no memory of how it got
-//             there.
+//   picker    The list a picker renders does not contain storm. A stored "found
+//             it" flag would let one gesture put a fourth option in the settings
+//             for ever, turning a secret into a setting somebody has to explain
+//             to themselves later with no memory of how it got there.
 //
-//   stored    ...while a STORED storm is still accepted at boot, or the gesture
-//             produces a setting that silently forgets itself on the next
-//             reload. Validating a stored value and populating a picker are two
-//             different questions and this is the axis where treating them as
-//             one shows up, so the two lists have to be two lists.
+//   stored    A stored storm is still accepted at boot, or the gesture produces
+//             a setting that forgets itself on the next reload. Validating a
+//             stored value and populating a picker are two questions, so the two
+//             lists are two lists.
 //
 //   memory    The "found it" fact lives in the settings screen's own state and
-//             NEVER in storage. It is the same mistake as the picker one, one
-//             layer down: persist it and the option comes back on the next
-//             load, which is exactly the permanent entry the rule forbids.
-//             Grep-shaped on purpose - any storage write whose key or value
-//             mentions the hidden level is the failure, wherever it is written.
+//             not in storage, for the reason the picker line gives. The check is
+//             grep-shaped: a storage write whose key or value mentions the
+//             hidden level is the failure, wherever it is written.
 //
-// WHAT IT DOES NOT SEE. It reads three files and judges shape, never value: a
-// storm block whose numbers are SMALLER than wild's passes here and is caught
-// by looking at the screen. It cannot tell whether the gesture itself works -
-// that is a live measurement, and the tap counter is deliberately in one
-// function (stormTap in lib/appearance.ts) so it can be read at a glance.
+// Not seen: values. A storm block whose numbers are smaller than wild's passes
+// here and is caught by looking at the screen. Nor whether the gesture works,
+// which is a live measurement; the tap counter sits in one function (stormTap
+// in lib/appearance.ts) so it can be read at a glance.
 //
-// Run by CI and by hand, from web/: `node check-hidden-motion-level.mjs`
+// Run from web/: `node check-hidden-motion-level.mjs`
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -67,11 +53,11 @@ const read = (rel) => readFileSync(join(here, rel), 'utf8');
 const problems = [];
 const fail = (why) => problems.push(why);
 
-// --- the CSS half -----------------------------------------------------------
+// The CSS half.
 
 const cssRel = 'src/index.css';
-// Comments blanked, offsets kept byte for byte, so a line number is the real
-// one AND the paragraphs that DESCRIBE the level are not read as code.
+// Comments blanked, offsets kept byte for byte, so line numbers stay right and
+// a paragraph describing the level is not read as code.
 const css = read(cssRel).replace(/\/\*[\s\S]*?\*\//g, (c) => c.replace(/[^\n]/g, ' '));
 const lineAt = (i) => css.slice(0, i).split('\n').length;
 
@@ -97,7 +83,7 @@ if (!storms.length) {
 for (const m of storms) {
   if (m.index < gs || m.index > ge) {
     fail(
-      `${cssRel}:${lineAt(m.index)} a storm selector sits OUTSIDE @media (prefers-reduced-motion: no-preference) ` +
+      `${cssRel}:${lineAt(m.index)} a storm selector sits outside @media (prefers-reduced-motion: no-preference) ` +
         `(the gate runs ${lineAt(gs)}-${lineAt(ge)}): a machine asking the OS for less motion would evaluate it`,
     );
   }
@@ -129,7 +115,7 @@ if (storms.length && storms[0].index >= gs && storms[0].index <= ge) {
   }
 }
 
-// --- the TypeScript half ----------------------------------------------------
+// The TypeScript half.
 
 const appRel = 'src/lib/appearance.ts';
 const app = read(appRel).replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
@@ -151,7 +137,7 @@ else if (!stored.includes('storm')) {
   fail(`${appRel}: MOTION_STORED does not accept 'storm', so a found level forgets itself on the next reload`);
 }
 
-// The boot reader has to validate against the STORED list, not the picker's.
+// The boot reader validates against the stored list, not the picker's.
 const reader = app.match(/export function readCachedMotionIntensity\s*\([\s\S]*?\n\}/);
 if (!reader) fail(`${appRel}: readCachedMotionIntensity is gone - nothing reads the stored intensity at boot any more`);
 else if (!/MOTION_STORED/.test(reader[0])) {
@@ -162,7 +148,7 @@ if (!/export function stormTap\s*\(/.test(app)) {
   fail(`${appRel}: no stormTap() - the gesture is the whole mechanism and it belongs in one function`);
 }
 
-// --- the "found it" flag never reaches storage ------------------------------
+// The "found it" flag never reaches storage.
 
 const walk = (dir) => {
   const out = [];
@@ -175,12 +161,8 @@ const walk = (dir) => {
 };
 
 for (const file of walk(join(here, 'src'))) {
-  // Comments blanked, offsets kept byte for byte, so a line number is the real
-  // one AND a paragraph EXPLAINING what is not persisted is not read as a
-  // persistence. Written the naive way this check failed on its own doctrine:
-  // the comment above stormFound in Look.tsx says the words "localStorage" and
-  // "storm" in one sentence, which is the correct file describing the correct
-  // behaviour, reported as the defect.
+  // Comments blanked, offsets kept byte for byte, so line numbers stay right
+  // and a paragraph saying what is not persisted is not read as a write.
   const text = readFileSync(file, 'utf8')
     .replace(/\/\*[\s\S]*?\*\//g, (c) => c.replace(/[^\n]/g, ' '))
     .replace(/^([^\n'"`]*?)\/\/.*$/gm, (_, head) => head);
@@ -189,7 +171,7 @@ for (const file of walk(join(here, 'src'))) {
     if (!/storm|stormFound|motionFound/i.test(line)) return;
     problems.push(
       `${relative(here, file).replace(/\\/g, '/')}:${i + 1} a storage write mentions the hidden level: ` +
-        `"${line.trim().slice(0, 90)}" - the CHOSEN value persists like any other, the "found it" fact never does`,
+        `"${line.trim().slice(0, 90)}" - the chosen value persists like any other, the "found it" fact never does`,
     );
   });
 }

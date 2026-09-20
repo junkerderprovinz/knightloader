@@ -1,34 +1,14 @@
-// How much of a navigation entry is drawn.
-//
-// One setting, two sets of tabs: the sidebar and the settings rail (jdp,
-// 2026-08-27: "Man soll per horizontalem Selektor wählen können ob bei den
-// Tabs (Settings und Sidebar) nur glyph, nur text oder text und glyph
-// angezeigt werden soll oder glyph und text nur bei mouseover"). Somebody who
-// wants glyphs wants glyphs; two switches for that would be two switches to
-// keep in step.
-//
-// Same store shape as sidebarPrefs.ts, and here for the same reason spelled
-// out there: the sidebar renders OUTSIDE the settings route's provider tree,
-// so the control that changes this and the two components that obey it never
-// meet in the React tree at all. A module-level value plus
-// useSyncExternalStore is what lets the rail restyle itself while the pointer
-// is still on the selector, rather than on the next navigation.
+// How much of a navigation entry is drawn, one setting for both the sidebar
+// and the settings rail. A module-level store like sidebarPrefs.ts, because
+// the sidebar renders outside the settings provider tree and has to restyle
+// the moment the selector changes.
 import { useSyncExternalStore } from 'react';
 
 /**
- * The four ways to draw a nav entry.
- *
- * `hover` is not the collapsing rail the word suggests, and the difference is
- * the whole point of it (jdp's own description, chosen over the three
- * alternatives offered): NOTHING resizes. The tile and the sidebar row keep
- * exactly the size they have under `both`. At rest the glyph sits centred in
- * that space; on hover it moves aside - up in a settings tile, left in a
- * sidebar row - and the label appears in the room it leaves. A rail that grows
- * or overlays on hover moves the page around under the pointer; this one
- * cannot, because its geometry never changes.
- *
- * `glyph` is the only mode that does change a width: with no label ever shown,
- * the rail has nothing to be wide for.
+ * The four ways to draw a nav entry. `hover` keeps the `both` geometry: the
+ * glyph sits centred at rest and moves aside on hover to make room for the
+ * label, so nothing resizes under the pointer. Only `glyph` changes a width,
+ * since no label is ever shown.
  */
 export type NavLabelMode = 'both' | 'glyph' | 'text' | 'hover';
 
@@ -39,12 +19,8 @@ let mode: NavLabelMode = DEFAULT_NAV_LABELS;
 
 const listeners = new Set<() => void>();
 
-/**
- * setNavLabels stores the new value and wakes the readers. Called from two
- * places, exactly like sidebarPrefs' own setter: once on boot with whatever
- * the server last saved, and again the instant the Aussehen tab's selector
- * changes it.
- */
+/** setNavLabels stores the mode and wakes the readers: at boot with the saved
+ *  value, and when the selector changes. */
 export function setNavLabels(next: NavLabelMode): void {
   if (mode === next) return;
   mode = next;
@@ -62,14 +38,8 @@ export function useNavLabels(): NavLabelMode {
   return useSyncExternalStore(subscribe, read, read);
 }
 
-/**
- * asNavLabelMode narrows whatever the server sent.
- *
- * The server sanitises this field on every write (settings_appearance.go), so
- * a bad value should be impossible - but "should be impossible" arriving from
- * a network read is exactly the value that ends up in a className, and an
- * unrecognised mode here would draw a rail with neither glyph nor label in it.
- */
+/** asNavLabelMode narrows a value from the server. An unknown mode would draw
+ *  a rail with neither glyph nor label, so it falls back to the default. */
 export function asNavLabelMode(v: unknown): NavLabelMode {
   return v === 'glyph' || v === 'text' || v === 'hover' || v === 'both' ? v : DEFAULT_NAV_LABELS;
 }

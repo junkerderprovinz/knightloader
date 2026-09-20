@@ -1,50 +1,27 @@
 @import 'tailwindcss';
 
-/* dist/ is COMMITTED here (the Go binary embeds it, and CI checks the commit
-   matches a fresh build), and Tailwind v4 auto-detects its sources from the
-   project root minus whatever .gitignore excludes - so without this line it
-   scans its own previous output. That makes the build read what the last
-   build wrote: a run that adds a new utility emits a bundle whose class names
-   are then found by the NEXT run, so two consecutive builds of unchanged
-   sources produce different CSS. It surfaced as a red CI on the commit that
-   introduced text-accentInk - "web/dist does not match the sources" against a
-   dist that had just been built from exactly those sources. */
+/* dist/ is committed and CI checks it against a fresh build. Without this,
+   Tailwind scans its own previous output and two builds of the same sources
+   differ. */
 @source not "../dist";
-/* AND NOT THE GUARDS, for the same reason one line up and it bit the same way.
-   web/check-*.mjs are the scripts that HOLD the rules about these classes, so
-   they are full of class names as search patterns: check-scrim looks for
-   bg-black and glim-modal-backdrop, check-theme-tokens for every bg- and text-
-   prefix there is. Tailwind scans the project and cannot tell a pattern being
-   searched FOR from a class being used, so adding six guards made the next
-   build emit utilities that exist nowhere in the app - and CI said "web/dist
-   does not match the sources" about a dist built from exactly those sources.
-   A guard that changes the stylesheet it guards is the tail wagging the dog. */
+/* The check scripts search for class names as patterns, and Tailwind would
+   emit those utilities too. */
 @source not "../check-*.mjs";
 
 @custom-variant dark (&:is([data-theme="dark"] *));
 
-/* ===========================================================================
-   GlimStone — the shared design language
-   ---------------------------------------------------------------------------
-   This is KnightLoader's own implementation of GlimStone, not the spec.
-   Full rules, palette rationale and reference files:
+/* KnightLoader's implementation of GlimStone, the shared design language:
    https://github.com/junkerderprovinz/glimstone
 
-   A layered, low-noise system: IBM Carbon's neutral ground, one raised
-   surface level, generous radii, soft elevation, and heraldic gold used
-   sparingly.
+   The token names are the same contract BombVault uses (--carbon-*, --accent,
+   --status-*), so a sibling app adopts this look by swapping values.
 
-   The token NAMES are deliberately the same contract BombVault already uses
-   (--carbon-*, --accent, --status-*), so a sibling app adopts this look by
-   swapping this file's values — no component rewrite required.
-
-   Clean-by-rule (what keeps it calm):
+   The rules that keep it calm:
      · one raised surface level; never a card inside a card
-     · one hero per page — everything else is quiet
+     · one hero per page, everything else quiet
      · gold marks activity only: active nav, primary action, progress, brand
-     · four state hues total (gold / green / red / neutral), never more
-     · hierarchy comes from type size and colour step, not from borders
-   =========================================================================== */
+     · four state hues (gold, green, red, neutral), never more
+     · hierarchy comes from type size and colour step, not from borders */
 
 @theme {
   --color-carbon-background: var(--carbon-bg);
@@ -57,22 +34,15 @@
   --color-carbon-textMuted: var(--carbon-text-muted);
   --color-carbon-border: var(--carbon-border);
   --color-carbon-hover: var(--carbon-hover);
-  /* bg-carbon-hoverRaised: hover for anything ALREADY filled with surface3 -
-     the neutral button, a raised segment, a chosen chip (GlimStone 1.8.0's
-     token, rule 21). It has to be named here or it does not exist: Tailwind v4
-     only emits a utility for a key that stands in @theme, and a class that
-     produces nothing looks exactly like a class that was never added.
-     CryptoDonateDialog's selected-chain chip carried hover:bg-carbon-hoverRaised
-     with no such key, so that chip had no hover at all. */
+  /* Hover for anything already filled with surface3. Tailwind only emits a
+     utility for a key named in @theme; a missing key fails silently. */
   --color-carbon-hoverRaised: var(--carbon-hover-raised);
 
   --color-accent: var(--accent);
   --color-accentContrast: var(--accent-contrast);
   --color-accentSoft: var(--accent-soft);
-  /* text-accentInk: the accent where the colour is READ rather than filled
-     (GlimStone 1.5.0). Which one a place wants needs no thought: on a
-     `background` it is accent, on `color`/`fill`/`stroke` against the page it
-     is accentInk. */
+  /* The accent where the colour is read rather than filled: accent on a
+     background, accentInk for color, fill and stroke against the page. */
   --color-accentInk: var(--accent-ink);
 
   --color-statusOk: var(--status-ok-text);
@@ -85,23 +55,10 @@
 
   --color-statusWarn: var(--status-warn-text);
   --color-statusWarnBg: var(--status-warn-bg);
-  /* bg-statusWarnBgStrong: the OPAQUE warn wash (GlimStone 1.8.0), for a chip
-     that has to hold its own against whatever it sits on. --status-warn-bg
-     directly above is translucent, which is right on a card and wrong on a row
-     that already carries a fill: the row's colour comes straight through it, so
-     the same chip reads as a different colour on a selected row, a hovered row
-     and an idle one. Named here for the same reason --color-carbon-hoverRaised
-     is: Tailwind v4 emits a utility only for a key that stands in @theme, and a
-     class that produces nothing looks exactly like a class that was never
-     added. */
+  /* The opaque warn wash, for a chip on a row that already has a fill; the
+     translucent one would take on the row's colour. */
   --color-statusWarnBgStrong: var(--status-warn-bg-strong);
-  /* bg-statusWarnBgSoft: the QUIET end of the same family (GlimStone 1.15.0),
-     for a paragraph that explains rather than warns - the box that says why a
-     passkey cannot be registered on this address. The base tone above is right
-     for a chip and too loud behind three lines of prose. Named here for the
-     same reason its two siblings are: a class Tailwind emits nothing for looks
-     exactly like a class nobody added, which is how the box it was written for
-     shipped in the reference app with a radius, a border and no fill at all. */
+  /* The quiet warn wash, for a paragraph that explains rather than warns. */
   --color-statusWarnBgSoft: var(--status-warn-bg-soft);
   --color-statusWarnSolid: var(--status-warn-solid);
 
@@ -117,22 +74,17 @@
   --radius-control: 0.625rem;
   --radius-pill: 9999px;
 
-  /* The type scale: a fixed reference table, not an engine - nobody sets
-     their own type scale. --text-caption covers three treatments of the same
-     size (plain caption, .glim-eyebrow's uppercase label, the info bubble's
-     text) - the treatment carries the distinction, not the size. A page's one
-     hero figure and any brand-wordmark instance are deliberately NOT part of
-     this scale. Ported from upstream GlimStone. */
+  /* A fixed type scale. --text-caption covers the plain caption, the eyebrow
+     label and the info bubble; the treatment carries the difference. A page's
+     hero figure and the brand wordmark sit outside it. */
   --text-heading: 1.25rem;  /* 20px */
   --text-body: 0.875rem;    /* 14px */
   --text-dense: 0.75rem;    /* 12px */
   --text-caption: 0.6875rem; /* 11px */
 }
 
-/* Shape is one knob for the whole app. Every rounded corner in the UI reads one
-   of these three tokens and nothing hard-codes a radius, so switching the shape
-   changes cards, buttons, tabs, inputs, pills, badges and toggles together.
-   A single exception would be the thing that looks broken. */
+/* Every rounded corner reads one of these three tokens, so the shape setting
+   changes cards, buttons, inputs, pills and toggles together. */
 :root[data-shape="soft"] {
   --radius-card: 0.5rem;
   --radius-control: 0.3125rem;
@@ -145,62 +97,20 @@
   --radius-pill: 0;
 }
 
-/* THE TWO BUTTON HEIGHTS, and there will not be a third (GlimStone 1.8.0,
-   rule 19).
+/* Two button heights (GlimStone rule 19). --btn-h matches a text field (a 20px
+   line box plus 12px padding), so a button in a row of fields lines up with
+   them. --btn-h-key is for the button a surface exists for: the one that
+   creates what the page lists, or one that is hard to undo. A key control in a
+   field row is centred against its neighbours.
 
-   --btn-h is what an ordinary text field measures (a 20px line box plus 12px of
-   padding), so a button standing in a row of fields matches it instead of
-   standing proud of it. That number came out of a report — "viel zu klobig ...
-   so hoch wie die texteingabefelder" — and it governs almost everything.
+   components/ui.tsx and components/QueueBar.tsx still measure 36px, 32px and
+   48px themselves; these tokens are where they should move to.
 
-   --btn-h-key is the one step up, for the button a surface exists FOR: the
-   control that CREATES the thing the page lists, or one whose press is hard to
-   undo. Two heights, because two reads as a deliberate difference and three
-   reads as a ladder somebody has to pick a rung from, at which point every
-   button becomes an argument. The step is half a rem for a measured reason:
-   four pixels between neighbours gets reported as a bug, eight does not.
-
-   RAISING --btn-h is never the way to get a bigger button — that puts every
-   control in the app out of line with every field beside it to solve a problem
-   two controls have. And a key control standing in a field row has to be
-   CENTRED against its neighbours, not top-aligned, or it reads as exactly the
-   misalignment the single height exists to prevent.
-
-   The numbers live here and nowhere else, so the component files carry no
-   measurement of their own: a caller takes the ordinary height as
-   `h-[var(--btn-h)]` and the key height as the .glim-btn-key class below.
-   Not yet read by this app's own Button/IconBadge (components/ui.tsx) or by the
-   transport row (components/QueueBar.tsx), which still measure 36px, 32px and
-   48px between them — three heights, which is the ladder rule 19 is about.
-   Stated rather than left to be discovered: the tokens are the target, and
-   whichever pass moves those components reads them from here.
-   The glyph inside a key control steps with the box (1.25rem -> 1.375rem in
-   GlimStone's own reference); that half belongs to the component that draws the
-   glyph, not to this file.
-
-   AND THE FOUR WIDTH STAGES, which are the other axis of the same control and
-   were missing here entirely (GlimStone rule: "the width does not move between
-   modes, and that is the load-bearing property"). A button keeps the same width
-   whether the label mode shows text and glyph, text alone, or a lone glyph, so
-   switching mode never reflows the page, which means the width cannot come
-   from what is currently RENDERED (a lone glyph is narrow), it comes from the
-   LABEL, which is present in every mode even when it is only the accessible
-   name. Four stages rather than a measurement: measuring real text happens
-   after layout, which is untestable and jitters, while a stage is a pure
-   function of the label and known before first paint, and it gives a row of
-   buttons an aligned edge that individually-measured widths never do.
-
-   The four numbers are GlimStone's own (reference/tokens.css), not derived
-   here, for the same reason --status-warn-bg-strong's value is copied rather
-   than mixed: a house number that gets re-guessed per app is how one product
-   ends up with two of it. They are a FLOOR (min-width), never a fixed width, so
-   a translation that runs longer still fits instead of clipping.
-   Which stage a label falls into is a pure function of that label, and that
-   function belongs to the component that owns the label (GlimStone's
-   reference/controls.ts: labelWidth/widthStage/groupStage), not to a
-   stylesheet; a caller spends the stage it computed as
-   `min-w-[var(--btn-w-sm)]`, the same way it takes the ordinary height as
-   `h-[var(--btn-h)]`. */
+   The four width stages are minimum widths chosen from the label, so a button
+   keeps its width whichever label mode is active and a translation that runs
+   longer still fits. The values are GlimStone's own (reference/tokens.css); the
+   component that owns the label picks the stage and applies it as
+   `min-w-[var(--btn-w-sm)]`. */
 :root {
   --btn-h: 2rem;
   --btn-h-key: 2.5rem;
@@ -211,17 +121,9 @@
   --btn-w-lg: 15rem;
 }
 
-/* The key control's height as a class, named as GlimStone names it so the
-   gesture is recognisable across the house rather than reinvented per app.
-   Height only: padding, radius and font come from the button that wears it, and
-   a glyph-only key control is SQUARE at the same number — there is no separate
-   class for that, it is `w-[var(--btn-h-key)]` beside this one.
-
-   Bare, not in @layer components: this rule is meant to beat a Tailwind `h-*`
-   utility on the same element, and an unlayered rule does (see .glim-card's own
-   note further down for the time that property of this file was a bug rather
-   than the point). A button wearing this class is 2.5rem tall whatever height
-   utility it was carrying before. */
+/* The key control's height as a class. A glyph-only key control is square:
+   add `w-[var(--btn-h-key)]`. Unlayered, so it beats an `h-*` utility on the
+   same element. */
 .glim-btn-key {
   height: var(--btn-h-key);
 }
@@ -230,85 +132,50 @@
 [data-theme="dark"] {
   color-scheme: dark;
 
-  /* Ground and surfaces — IBM Carbon's neutral greys, the same values
-     BombVault, Krusader and the JDownloader themes already use. They were a warm
-     near-black here, which read as brown next to any of the siblings and made
-     GlimStone the odd one out of a family that had already agreed on a palette.
-     A design language shared across apps has to share its ground first. */
+  /* IBM Carbon's neutral greys, shared with BombVault, Krusader and the
+     JDownloader themes. */
   --carbon-bg:         #161616;
   --carbon-sidebar:    #262626;
   --carbon-surface:    #262626;
   --carbon-surface2:   #393939;
   --carbon-surface3:   #525252;
   --carbon-hover:      #353535;
-  /* One step FURTHER from the surface, which is lighter here and darker in the
-     light theme — the hover for an element that already carries surface3
-     (GlimStone rule 21). `--carbon-hover` is #353535 and sits BELOW surface2's
-     #393939, so a filled control hovered with it goes darker at the one moment
-     somebody is looking straight at it; this is the token that exists so it
-     does not have to. */
+  /* Hover for an element already carrying surface3. --carbon-hover sits below
+     surface2, so it would darken a filled control on hover. */
   --carbon-hover-raised: #6f6f6f;
   --carbon-border:     #393939;
 
-  /* THE ABOUT CARD'S BRAND MARKS at rest, and these are NOT the published brand
-     colours (GlimStone 1.9.0/1.10.0). A brand colour is designed against white
-     or against its own fill, so on a neutral button ground each one dies on one
-     side of the theme switch: measured on these two grounds, Buy Me a Coffee's
-     #FFDD00 reads 1.14:1 and Bitcoin's #F7931A 1.5:1 on the light theme's
-     #d1d1d1, while PayPal's navy and GitHub's near-black fail the same way on
-     the dark theme's #525252 — against the 3:1 a graphic needs. So the warm
-     brands are deepened for the light theme and the dark ones lightened for the
-     dark one, which is the job --accent-ink already does for the accent. The
-     TRUE colour is spent on hover as the button's own fill; see
-     .glim-brand-btn further down.
-
-     Values taken from GlimStone's own reference/tokens.css rather than derived
-     here — the whole reason the language grew these tokens is that the rule was
-     written down and the numbers were not, so one adopting app built its own
-     set and the next shipped every mark in the button's ink. */
+  /* Brand marks at rest on the about card, adjusted per theme to reach the 3:1
+     a graphic needs on a neutral button (published brand colours fail it on
+     one theme or the other). The true colour is the hover fill; see
+     .glim-brand-btn. Values from GlimStone's reference/tokens.css. */
   --brand-coffee:  #ffdd00;
   --brand-bitcoin: #f7931a;
   --brand-paypal:  #4fb5f0;
   --brand-github:  #ffffff;
 
-  /* Text ramp — four steps, the last still legible at 11px. */
+  /* Four steps, the last still legible at 11px. */
   --carbon-text:       #f4f4f4;
   --carbon-text-sub:   #c6c6c6;
   --carbon-text-muted: #8d8d8d;
   --sidebar-text:      #e0e0e0;
 
-  /* Activity, and nothing else. The default is the sibling apps' own accent so
-     a fresh install of any of them looks like the same product; it is a setting,
-     and the picker is one page away. */
+  /* Activity, and nothing else. The default matches the sibling apps. */
   --accent:            #FCC419;
   --accent-contrast:   #161616;
   --accent-soft:       rgba(252, 196, 25, 0.14);
-  /* The accent used AS INK — accent-coloured text, a line-drawn glyph on the
-     page's own ground — rather than a fill with computed ink on top
-     (GlimStone 1.5.0). On a dark ground both jobs want the same colour; the
-     light theme is where they part.
-
-     The theme sets only --ink-mix, and every --accent-ink in this file is the
-     same one-line mix over it. That is what keeps the rainbow blocks below
-     from each needing a light-theme twin: --ink-mix is inherited from <html>,
-     so one declaration is correct in both themes. 100% of a colour mixed with
-     black is that colour exactly. */
+  /* The accent used as ink on the page's own ground. The theme only sets
+     --ink-mix, inherited from <html>, so every --accent-ink in this file is
+     the same mix and the rainbow blocks need no light-theme twin. */
   --ink-mix:           100%;
   --accent-ink:        color-mix(in srgb, var(--accent) var(--ink-mix), black);
-  /* The theme's own accent, kept reachable from inside a rainbowed subtree.
-     `.glim-hue` redefines --accent to a row's own position colour, which is
-     exactly right for everything that belongs to that row - and exactly wrong
-     for a mark that means "this is the one you picked": every selected row
-     would be a different colour, and under a neutral palette they would all be
-     grey (measured on the live instance, where a selected row's mark came out
-     rgb(141,141,141)). A custom property is substituted where it is DECLARED,
-     so this resolves against :root's accent once and is inherited as that
-     literal colour, whatever a descendant does to --accent afterwards. */
+  /* The theme's accent, reachable inside a rainbowed subtree where .glim-hue
+     redefines --accent per row. A selection mark uses it so every selected row
+     shows the same colour. Custom properties resolve where they are declared,
+     so this stays :root's accent. */
   --accent-fixed:      var(--accent);
 
-  /* Four state hues, Carbon's dark support tones — the same greens and reds the
-     siblings use, so "finished" is one colour across the whole family.
-     Paused reuses neutral on purpose. */
+  /* Carbon's support tones, shared with the siblings. Paused reuses neutral. */
   --status-info-text:    #FCC419;
   --status-info-bg:      rgba(252, 196, 25, 0.13);
   --status-info-solid:   #FCC419;
@@ -323,16 +190,8 @@
 
   --status-warn-text:    #f1c21b;
   --status-warn-bg:      rgba(241, 194, 27, 0.12);
-  /* The opaque twin of the line above, for a warn chip sitting on a row that
-     already has a fill of its own (GlimStone 1.8.0). Value taken from
-     GlimStone's reference/tokens.css rather than mixed here: the translucent
-     one over a hovered row and the translucent one over an idle row are two
-     different colours, and eyeballing a replacement is how the family ends up
-     with three warn yellows. */
+  /* The opaque twin of the line above, value from GlimStone's reference tokens. */
   --status-warn-bg-strong: #3a2f1c;
-  /* The quiet step (GlimStone 1.15.0), value taken from its reference tokens
-     for the same reason the strong one above is: three warn yellows is what
-     eyeballing a fourth produces. */
   --status-warn-bg-soft: rgba(241, 194, 27, 0.06);
   --status-warn-solid:   #f1c21b;
 
@@ -340,31 +199,18 @@
   --status-neutral-bg:   rgba(255, 255, 255, 0.05);
   --status-neutral-solid: #8d8d8d;
 
-  /* One elevation, one hairline. Neutral black now, not a warm one: a brown
-     shadow under a grey card is visible and reads as a colour cast. */
+  /* One elevation, one hairline. */
   --elevation: 0 1px 2px rgba(0, 0, 0, .40), 0 18px 40px -24px rgba(0, 0, 0, .85);
-  /* The ground behind a floating window (GlimStone 1.11.0). ONE value, so
-     making it darker is one edit rather than a hunt through every component
-     that floats one — it was `bg-black/60` typed into each of them, and the
-     app that release was found in had four scrims at two different strengths,
-     the odd one at .50 with nothing able to notice. .65 on a dark ground
-     rather than .60: at .60 the card in front and the page behind sit close
-     enough in value that the eye keeps reading the page, which is the one
-     thing a scrim exists to stop. */
+  /* The ground behind every floating window, in one place. .65 rather than .60
+     so the eye stops reading the page behind. */
   --glim-scrim: rgba(0, 0, 0, .65);
   --hairline: inset 0 1px 0 rgba(255, 255, 255, .045);
   --focus-ring: rgba(252, 196, 25, .55);
 
 }
 
-/* System default (rule: theme defaults to system, not a hard-coded dark) —
-   applies the light ramp when the OS prefers light AND no explicit
-   data-theme override is set. Without this block, KnightLoader is
-   unconditionally dark regardless of the OS, which is exactly the "opens
-   dark on a light-mode OS nobody asked for" mistake GlimStone warns against.
-   Values are intentionally identical to [data-theme="light"] below - same
-   tier structure as the explicit override, just gated on the media query
-   instead of the attribute. Ported from upstream GlimStone. */
+/* The theme follows the system unless data-theme says otherwise. These values
+   are the same as the [data-theme="light"] block below. */
 @media (prefers-color-scheme: light) {
   :root:not([data-theme="dark"]) {
     color-scheme: light;
@@ -375,14 +221,11 @@
     --carbon-surface2:   #e8e8e8;
     --carbon-surface3:   #d1d1d1;
     --carbon-hover:      #e0e0e0;
-    /* One step further from the surface, which on a light ramp means darker.
-       See the dark block above for why this token exists at all. */
+    /* One step further from the surface, which on a light ramp means darker. */
     --carbon-hover-raised: #c6c6c6;
     --carbon-border:     #d1d1d1;
 
-    /* The light theme's brand answers: the warm marks deepened so they clear
-       3:1 on #d1d1d1, the dark ones left dark because they already do. The
-       measurements are in the dark block above. */
+    /* The warm marks deepened to clear 3:1 on #d1d1d1; the dark ones already do. */
     --brand-coffee:  #8a6d00;
     --brand-bitcoin: #a85d00;
     --brand-paypal:  #003087;
@@ -393,9 +236,7 @@
     --carbon-text-muted: #6f6f6f;
     --sidebar-text:      #393939;
 
-    /* The accent is the accent in both themes; only the INK is darkened
-       (GlimStone 1.5.0). See the [data-theme="light"] mirror below for the
-       full reasoning - the two blocks carry identical values on purpose. */
+    /* Only the ink is darkened; see the [data-theme="light"] block. */
     --accent:            #FCC419;
     --accent-contrast:   #161616;
     --accent-soft:       rgba(252, 196, 25, 0.14);
@@ -415,9 +256,8 @@
 
     --status-warn-text:    #8E6A00;
     --status-warn-bg:      rgba(142, 106, 0, 0.10);
-    /* The light answer, and it is a pale WASH rather than the dark theme's
-       deep one: an opaque chip is painted on the ramp it stands on, so it
-       inverts with the theme the way every other surface here does. */
+    /* A pale wash here, since an opaque chip inverts with the theme like every
+       other surface. */
     --status-warn-bg-strong: #fcf4d6;
     --status-warn-bg-soft: rgba(142, 106, 0, 0.05);
     --status-warn-solid:   #b28600;
@@ -427,8 +267,7 @@
     --status-neutral-solid: #8d8d8d;
 
     --elevation: 0 1px 2px rgba(0, 0, 0, .06), 0 16px 36px -26px rgba(0, 0, 0, .35);
-    /* .55 rather than the dark theme's .65: a light page reaches the same
-       separation between the card in front and the page behind with less. */
+    /* A light page separates the card from the page with less. */
     --glim-scrim: rgba(0, 0, 0, .55);
     --hairline: inset 0 0 0 1px rgba(0, 0, 0, .05);
     --focus-ring: rgba(142, 106, 0, .5);
@@ -436,11 +275,8 @@
   }
 }
 
-/* :root[data-theme="dark"] wins over the media query in both directions
-   (rule already covered by the ":root, [data-theme=dark]" selector above),
-   so an explicit dark override stays dark even under a light-preferring OS.
-   [data-theme="light"] below is the mirror: explicit light even under a
-   dark-preferring OS. */
+/* An explicit light choice, under any system preference. The explicit dark
+   choice is covered by the ":root, [data-theme=dark]" block above. */
 [data-theme="light"] {
   color-scheme: light;
 
@@ -454,9 +290,6 @@
   --carbon-hover-raised: #c6c6c6;
   --carbon-border:     #d1d1d1;
 
-  /* The same brand answers as the media block above: an explicit light choice
-     has to reach them too, or a mark deepened for a light-preferring OS goes
-     back to being unreadable the moment somebody picks light by hand. */
   --brand-coffee:  #8a6d00;
   --brand-bitcoin: #a85d00;
   --brand-paypal:  #003087;
@@ -467,20 +300,10 @@
   --carbon-text-muted: #6f6f6f;
   --sidebar-text:      #393939;
 
-  /* The accent is the accent in BOTH themes (GlimStone 1.5.0). It marks
-     activity, and a filled badge in Sunflower with computed near-black ink on
-     top reads perfectly well on a white page. What does not work on white is
-     that same yellow used as TEXT at 11px - and darkening the one token to fix
-     that painted every filled thing olive-brown instead (jdp, 2026-08-30: "Die
-     gelbe akzentfarbe ist im hellen modus ganz dunkel"). One token, two jobs.
-     The fill keeps the colour; the ink gets its own token, derived so it
-     follows a colour somebody picked as well as the default.
-
-     55% toward black, measured against white - the palest ground here:
-     Sunflower lands at 4.95:1 and every accent preset clears 4.5:1. It also
-     computes to #8B6C0E, within a shade of the #8E6A00 the single token used
-     to be, which is the check that this generalises the old rule rather than
-     replacing it. */
+  /* The accent fill keeps its colour in both themes; only its use as ink gets
+     darker, because yellow text at 11px is unreadable on white. 55% toward
+     black gives Sunflower 4.95:1 on white, and every accent preset clears
+     4.5:1. */
   --accent:            #FCC419;
   --accent-contrast:   #161616;
   --accent-soft:       rgba(252, 196, 25, 0.14);
@@ -500,8 +323,6 @@
 
   --status-warn-text:    #8E6A00;
   --status-warn-bg:      rgba(142, 106, 0, 0.10);
-  /* Same value as the media block above: an explicit light choice has to reach
-     it too, or a chip picked by hand goes back to letting the row through. */
   --status-warn-bg-strong: #fcf4d6;
   --status-warn-bg-soft: rgba(142, 106, 0, 0.05);
   --status-warn-solid:   #b28600;
@@ -526,10 +347,7 @@ body {
   letter-spacing: -0.008em;
 }
 
-/* The base letter-spacing above is a Latin-kerning assumption and reads as
-   crowding on CJK, which is set in full-width cells that don't kern the same
-   way - scoped back to normal for it. Directly relevant here: KnightLoader
-   ships 42 languages, several of them CJK. Ported from upstream GlimStone. */
+/* The tighter letter-spacing is tuned for Latin and crowds CJK text. */
 :lang(ja), :lang(zh), :lang(ko) {
   letter-spacing: normal;
 }
@@ -539,21 +357,9 @@ body {
 }
 
 /* The one raised surface. Never nest it. `position: relative` anchors
-   SectionTitle's notch badge (ui.tsx), which sits absolutely positioned
-   half over the card's own top edge - harmless for every card that has
-   no notch child.
-
-   In `@layer components`, not bare: this file's plain CSS sits OUTSIDE any
-   Tailwind layer, and an unlayered rule beats every layered one - including
-   Tailwind's own `.absolute` utility (`@layer utilities`) - regardless of
-   source order or specificity. LanguagePicker's dropdown carries both
-   `glim-card` (for the surface look) and `absolute` (to float over the
-   page); bare, this rule's `position: relative` silently won that fight,
-   so the dropdown rendered in flow and grew its parent Card instead of
-   overlaying it (jdp: "Die Sprach card wird immer noch vergrößert sobald
-   man das dropdown aufklappt"). Layered here, Tailwind's later `utilities`
-   layer wins for any element carrying both classes, the way Tailwind v4
-   itself expects custom component classes to be authored. */
+   SectionTitle's notch badge. Layered, so Tailwind's utilities (such as
+   `absolute` on the language picker's dropdown) win over it; an unlayered rule
+   would beat them all. */
 @layer components {
   .glim-card {
     position: relative;
@@ -569,23 +375,16 @@ body {
   border-radius: var(--radius-control);
 }
 
-/* A form control dropped inside a well shares its background colour by
-   default (TextInput/select both paint --carbon-surface2, same as the well
-   itself) - with no border anywhere in this design language, that leaves the
-   field with zero visible boundary until it happens to be focused. Bumped one
-   step further on the surface ramp so an "add new" form (Schedule, Rules,
-   Connections, Scripts) reads as fields sitting in a tray, not as a flat
-   colour with an invisible edit surface (jdp: "wenn man einen Zeitplan
-   hinzufügen will sieht man die Eingabefelder kaum"). */
+/* Fields share the well's colour by default and have no border, so inside a
+   well they move one step up the ramp to stay visible. */
 .glim-well input,
 .glim-well select,
 .glim-well textarea {
   background-color: var(--carbon-surface3);
 }
 
-/* Eyebrow label: small, uppercase, quiet — above hero figures, and as the tag
-   that names a category beside something louder (the typed reason on a failed
-   row). It stays muted wherever it goes: it labels, it never announces. */
+/* Eyebrow label: small, uppercase, quiet. Above hero figures, and as the tag
+   that names a category beside something louder. */
 .glim-eyebrow {
   font-size: var(--text-caption);
   letter-spacing: 0.14em;
@@ -599,11 +398,8 @@ body {
   font-feature-settings: "tnum" 1, "zero" 1;
 }
 
-/* :root sets color-scheme: dark, so Chromium paints the number input's own
-   increment/decrement control as one native dark-widget image - background
-   overrides on ::-webkit-inner-spin-button cannot touch it, since the widget
-   isn't a styleable box plus glyphs. NumberInput (components/ui.tsx) hides
-   it outright and draws its own two chevrons instead. */
+/* Chromium draws the spin buttons as one native widget that ignores styling,
+   so NumberInput hides them and draws its own. */
 .glim-num-hide-spin::-webkit-inner-spin-button,
 .glim-num-hide-spin::-webkit-outer-spin-button {
   -webkit-appearance: none;
@@ -613,23 +409,11 @@ body {
   -moz-appearance: textfield;
 }
 
-/* A select that reads as a control. `appearance: none` is what lets the box
-   take our own tokens instead of the platform's widget chrome - and it takes
-   the platform's own arrow with it, so the arrow has to come back from here.
-
-   The mark is the same solid, round-cornered triangle the number field's own
-   steppers use (GlimStone 1.6.0), drawn as a data URI rather than an extra
-   element: a wrapper around a <select> needs pointer-events juggling to stay
-   clickable, for something that is only paint.
-
-   Written as a class rather than a Tailwind arbitrary value: the same declara-
-   tion as an inline `bg-[url('data:…')]` was silently dropped, because the URI
-   carries spaces and quotes that the class parser will not keep intact - and a
-   class that produces nothing looks exactly like a class that was never added.
-
-   The padding that keeps the text off the arrow belongs to the caller
-   (`pe-6`), which is a logical property; the arrow's own side is set here for
-   both directions, since background-position has no logical form. */
+/* A select with our own tokens. `appearance: none` removes the platform arrow,
+   so the same triangle the number steppers use is drawn back as a data URI. A
+   class rather than a Tailwind arbitrary value, because the URI's spaces and
+   quotes do not survive the class parser. The caller adds `pe-6`;
+   background-position has no logical form, so RTL is handled here. */
 .glim-select {
   background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M5 4.3 L1.4 1.4 L8.6 1.4 Z' fill='%23a8a8a8' stroke='%23a8a8a8' stroke-width='1.4' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
@@ -640,21 +424,14 @@ body {
   background-position: left 0.5rem center;
 }
 
-/* The info bubble. Rendered at body level (see InfoBubble in components/ui.tsx)
-   so no scroll container, card or table can clip it. It is translated back by
-   half its own width, which centres it under the icon without anyone having to
-   measure the text first. */
+/* The info bubble, rendered at body level so nothing can clip it, and centred
+   under the icon by translating it back half its own width. */
 .glim-bubble {
   position: fixed;
   z-index: 60;
   transform: translateX(-50%);
-  /* A position: fixed box with only `left` set otherwise sizes itself via
-     CSS shrink-to-fit (available width = containing-block width minus
-     `left`), which can silently shrink or grow the bubble AFTER its size
-     was already measured to compute that same `left` — invalidating the
-     measurement. Ported from upstream GlimStone (1.2.0): missing here the
-     same way it was missing from BombVault's own shipped CSS despite being
-     documented. */
+  /* Otherwise a fixed box with only `left` shrinks to fit the space after
+     `left`, changing its width after it was measured to compute `left`. */
   width: max-content;
   max-width: 280px;
   pointer-events: none;
@@ -672,102 +449,49 @@ body {
   white-space: normal;
 }
 
-/* ---------------------------------------------------------------------------
-   Rainbow — the accent in its plural form.
+/* Rainbow: the accent in its plural form.
 
-   An element that owns a palette position sets --item-hue on itself (see
-   hueVars in lib/appearance.ts) and carries .glim-hue. These rules then
-   redefine --accent for that subtree, which is all it takes: every component
-   already paints activity with var(--accent), so nothing below has to know the
-   mode exists. When rainbow is off, [data-rainbow] is absent, no rule matches,
-   and the single accent applies exactly as before.
+   An element that owns a palette position sets --item-hue (see hueVars in
+   lib/appearance.ts) and carries .glim-hue; these rules redefine --accent for
+   its subtree. With rainbow off, [data-rainbow] is absent and nothing matches.
 
-   WHAT MAY OWN A POSITION. Anything that is one member of a SET whose members
-   are all equal: a nav item, a list row, a tab, a filter chip, a segment of a
-   segmented control, a badge that belongs to one of those. Anything that is
-   the only one of its kind on the page keeps the single accent — the primary
-   submit button is one action, not a set, and the speed curve is one figure.
-   The four state hues are never rainbowed either: green still means finished.
-
-   The class and the inline properties always travel together; `hueStyle(i)` in
-   components/ui.tsx hands out both, so no caller has to remember.
-   --------------------------------------------------------------------------- */
+   Only members of a set of equals own a position: nav items, list rows, tabs,
+   filter chips, segments, and badges belonging to them. A one-off element such
+   as the primary submit button or the speed curve keeps the single accent, and
+   the state hues are never rainbowed. hueStyle(i) in components/ui.tsx hands out
+   the class and the properties together. */
 [data-rainbow] .glim-hue {
   --accent: var(--item-hue);
   --accent-contrast: var(--item-hue-ink);
   --accent-soft: var(--item-hue-soft);
-  /* The focus ring is part of the position, not part of the theme: it is drawn
-     directly around the element that owns the colour, so a gold ring on a teal
-     tab is the single accent leaking back in at the one moment it is most
-     visible. Reactive mode deliberately does not reset this — the ring is only
-     ever painted while the element has focus, and focus already brings the hue
-     back through the :focus-within rule below. */
+  /* The focus ring is drawn around the element that owns the colour, so it
+     takes the position's hue too. */
   --focus-ring: var(--item-hue-ring);
-  /* And the same three under the names Tailwind generated from @theme.
-     This is not belt and braces, it is the whole mechanism.
-     `--color-accent: var(--accent)` is DECLARED on :root, so the var() is
-     substituted there and what inherits downward is the literal gold — an
-     element redefining --accent for itself never reaches it. Every direct
-     var(--accent) did take the hue (the progress fill, the speed curve, the
-     nav glyphs), which is why the mode looked as though it worked, while
-     everything painted with the utilities — bg-accent on the active nav item,
-     on the chosen segment, on the selected tab — stayed stubbornly gold. The
-     one thing the palette exists to colour was the one thing it never
-     reached. Anything added to the @theme block that a position should own
+  /* The Tailwind names as well: --color-accent is declared on :root, so the
+     inherited value is already the resolved gold and a redefined --accent
+     never reaches bg-accent and friends. Any @theme key a position should own
      has to be repeated here. */
   --color-accent: var(--item-hue);
   --color-accentContrast: var(--item-hue-ink);
   --color-accentSoft: var(--item-hue-soft);
-  /* --accent-ink has the SAME problem for a second reason: a custom property
-     whose value contains var() is substituted where it is DECLARED, so the
-     one on :root already computed itself against :root's own accent. Without
-     these two lines a hued card would take its position on every fill and
-     keep the single accent on every piece of accent-coloured text - the
-     rainbow half applied, which is exactly what the position-on-the-container
-     rule exists to end. One line per token and no light-theme twin, because
-     --ink-mix is inherited from <html> and already says which theme this is. */
+  /* --accent-ink resolved against :root's accent for the same reason. */
   --accent-ink: color-mix(in srgb, var(--item-hue) var(--ink-mix), black);
   --color-accentInk: color-mix(in srgb, var(--item-hue) var(--ink-mix), black);
 }
 
-/* Opt-in: the element's glyph takes the hue too. Scoped to a second class
-   because a download row owns a colour but its action icons must stay quiet.
-   The active item is excluded: it is FILLED with the hue, so an icon painted
-   the same colour would vanish into its own background.
+/* Opt-in: the element's glyph takes the hue too, so a nav or tab bar reads as a
+   set at rest. A second class because a download row owns a colour but its
+   action icons stay quiet. The active item is excluded, since it is filled
+   with the hue and the icon would vanish.
 
-   This is what makes a nav or a tab bar read as a SET at rest rather than as
-   one coloured item and six grey ones: the icons carry the palette even while
-   only one of them is selected. A row of chips with no icons has nothing to
-   colour here on purpose — eight tinted labels beside eight tinted counts is a
-   colour chart, not a filter.
-
-   NO MODE GATE ON THIS DECLARATION, and that is the mechanism rather than an
-   oversight (GlimStone, "The tab-strip colour rule"): it reads whatever
-   --accent already resolves to on the element, which is the flat accent in
-   Normal mode and the element's own position under a rainbow, so one rule is
-   correct in all of them. It used to sit inside a [data-rainbow] block, and
-   lib/appearance.ts's applyRainbow() REMOVES that attribute when the rainbow is
-   off, so with rainbow off every idle rail glyph and every idle tile icon fell
-   back to its plain muted ink, which is the one thing the rule's own follow-up
-   correction names ("Die Icons der Haupttabs in der Sidebar und die der Tabs in
-   den Settings sollen immer farbig sein, wenn der reaktive Modus ausgeschaltet
-   ist"). Same trap the section warns about, with the mode attribute in the
-   place of :hover. Reactive mode is the ONE mode that rests, and it gets its own
-   explicit rest/hover pair below at higher specificity. */
+   No mode gate: it reads whatever --accent resolves to, the flat accent in
+   Normal mode and the position under a rainbow (GlimStone, "The tab-strip
+   colour rule"). Reactive mode is the one that rests, with its own pair below. */
 .glim-hue-icon:not(.glim-active) svg {
   color: var(--accent-ink);
 }
-/* The rule above stays unconditional in every mode by design — Reactive is
-   the one exception, and it gets its own explicit rest/hover pair layered on
-   top rather than a mode gate on the base rule (GlimStone: "The tab-strip
-   colour rule" — idle is colourless only in Reactive mode; in Normal and
-   Rainbow mode idle already carries colour, always, no hover required).
-   Mirrors [data-rainbow='reactive'] .glim-hue's own rest/hover split below —
-   that block's --accent swap alone doesn't keep an icon's separate
-   idle-vs-selected exclusion (:not(.glim-active)) straight on its own.
-   First implemented in BombVault's Settings tab strip and sidebar nav; both
-   consumers here (Tabs.tsx, Sidebar.tsx) share this one rule, no per-caller
-   CSS needed. */
+/* In Reactive mode idle icons are colourless until hovered or focused. Tabs.tsx
+   and Sidebar.tsx both rely on this pair. */
 [data-rainbow='reactive'] .glim-hue-icon:not(.glim-active) svg {
   color: var(--carbon-text-muted);
 }
@@ -776,77 +500,32 @@ body {
   color: var(--accent-ink);
 }
 
-/* Opt-in: the row is WASHED with its hue rather than ruled with a line at its
-   edge. A list row would otherwise only show its colour through the progress
-   fill, which turns green the moment it finishes (the state rule) — so on a
-   list of completed downloads the palette would be invisible. The wash is an
-   inset shadow, not a background, so the row's own hover tint still reads
-   through it at 16% alpha.
-
-   THE WASH IS NOW A HOVER, IN EVERY RAINBOW MODE, and that is jdp's call on
-   seeing it on his own list: "die link zeilen sollen im regenbogen modus nicht
-   farbig eingefärbt sein. nur bei mouse over sollen sie farbig werden". He runs
-   `rainbow: true, rainbowReactive: false` (read off his instance), so what he was
-   looking at was this rule painting every row at rest.
-
-   The reasoning above still holds for what the wash IS - it is still the only
-   way a finished row shows its hue, and it is still an inset shadow so the
-   hover tint reads through. What changed is WHEN, and the argument for "always"
-   does not survive a list of forty rows: a palette spread over every row at
-   once stops being a way to tell rows apart and becomes the background. Under
-   the pointer it does the job it was built for.
-
-   What stays coloured at rest is state rather than palette: the running row and
-   the selected row, below. Those two say something, and hiding them until the
-   pointer arrives would hide the thing somebody is looking for. */
+/* Opt-in: a list row shows its hue as a wash on hover, in every rainbow mode.
+   Otherwise a finished row would show its colour nowhere, since the progress
+   fill turns green. At rest forty washed rows would become the background.
+   An inset shadow rather than a background, so the row's own hover tint reads
+   through. The running and the selected row stay coloured at rest, below. */
 [data-rainbow] .glim-tint {
   box-shadow: none;
 }
 [data-rainbow] .glim-tint:hover {
   box-shadow: inset 0 0 0 999px var(--item-hue-wash);
 }
-/* The active/selected member of the set gets the stronger soft tint instead of
-   the plain wash — `[data-rainbow]` (bare attribute) matches both `on` and
-   `reactive`, so this single rule covers both. Ported from upstream GlimStone
-   (bug found via TrickWork): without this rule, `.glim-tint`'s own box-shadow
-   always won the cascade against KnightLoader's own `.glim-active`-style rule
-   (attribute+class beats a single class) even though `.glim-hue` above it had
-   already resolved `--accent-soft` to the right colour — the active row's
-   highlight silently collapsed to the same flat wash as every idle row. Higher
-   specificity than the plain .glim-tint rule above by design, so it wins
-   regardless of source order. */
+/* The active member gets the stronger soft tint. It needs this specificity to
+   beat the plain wash above. */
 [data-rainbow] .glim-tint.glim-active {
   box-shadow: inset 0 0 0 999px var(--item-hue-soft);
 }
-/* No `[data-rainbow='reactive']` twins here any more, and their absence is the
-   point rather than an omission: the rule above now says for BOTH modes what
-   these three used to say for one. Reactive and full still differ everywhere
-   else - tiles, rail glyphs, section badges - just not on a list row, where
-   "colour on hover" turned out to be the only reading that works at forty rows.
-   Leaving the twins in would have been three rules restating their parent, and
-   the next person to change the parent would have had to find them. */
 
-/* .glim-row / .glim-row-selected: the mark on a list row somebody picked.
-
-   It is a class and not a utility because of the rule right above it. The
-   rainbow wash is an inset box-shadow, and an inset shadow paints ABOVE the
-   element's own background-color — so a `bg-accent/20` utility on a washed row
-   was underneath the wash, and "wenn eine zeile ausgewählt ist erkennt man das
-   nicht" came back a second time (jdp, 2026-09-06, about the download list).
-   Putting the mark in the same property, at a specificity that beats the plain
-   wash, is what makes it survive; the accent edge is the half that reads even
-   in a colour-blind palette and at any wash strength. */
+/* The mark on a selected list row. A class rather than a `bg-accent/20`
+   utility, because the rainbow wash is an inset shadow painted above the
+   background; the mark has to live in the same property at a higher
+   specificity. The accent edge reads in any palette. */
 .glim-row-selected,
-/* The hover utility on the same row carries a pseudo-class and would otherwise
-   out-specify this, so a selected row lost its mark under the pointer - the one
-   moment somebody is looking straight at it. */
+/* Listed with :hover so the row's hover utility cannot take the mark away. */
 .glim-row-selected:hover {
   background-color: color-mix(in oklab, var(--accent-fixed) 22%, transparent);
 }
-/* One selector, not two: the bare `[data-rainbow]` already matches `on` and
-   `reactive` alike, so the second line was restating its own neighbour. It went
-   with the reactive twins further up, for the same reason - a rule nobody
-   notices is a rule the next change forgets to carry. */
 [data-rainbow] .glim-tint.glim-row-selected {
   box-shadow: inset 0 0 0 999px color-mix(in oklab, var(--accent-fixed) 22%, transparent);
 }
@@ -860,33 +539,17 @@ body {
   pointer-events: none;
 }
 
-/* The list row the keyboard is standing on, and the strip that holds its place
-   while that row is scrolled out of the DOM (components/listKeyboard.ts).
-
-   The only thing changed here is WHICH SIDE of the row's own edge the ring is
-   drawn on. The global rule further down puts every focus ring 2px OUTSIDE its
-   element, which is right nearly everywhere and wrong for a full-width row: the
-   rows sit inside the card's own `overflow-hidden rounded-b` and inside the
-   table's `overflow-x-auto`, so a ring drawn outside the row is cut off at the
-   left and right edges on every row, and at the top and bottom on the first and
-   last drawn ones. A person walking the list with the arrow keys would be
-   looking for a mark that is only ever half there. Negative offset draws it
-   inside the row's own box, where nothing can clip it - and it still reads
-   against the selected row's accent fill and against the rainbow wash, which is
-   an inset shadow underneath it rather than an outline competing with it. */
+/* The keyboard-focused list row (components/listKeyboard.ts). The rows sit in
+   clipping containers, so the ring is drawn inside the row instead of 2px
+   outside it. */
 [role='treeitem']:focus-visible,
 [role='tree']:focus-visible {
   outline-offset: -2px;
 }
 
-/* .glim-tint-hover: the same rest-quiet/hover-reveals behaviour as reactive
-   mode above, but as a per-element choice, independent of the user's own
-   on/reactive setting — a row of equal-weight action buttons (not a
-   persistent selection) reads as noisy fully washed at rest even under `on`.
-   The reveal itself reads the stronger --item-hue-badge tier, not the
-   list-row --item-hue-wash — a hover reveal is a deliberate, momentary,
-   one-at-a-time state, closer to a badge's own "clearly coloured" bar than a
-   list's "don't overwhelm a whole column of these" one. */
+/* Quiet at rest, washed on hover, whatever the rainbow mode: for a row of
+   equal-weight action buttons. The hover uses the stronger badge tier, since
+   only one is lit at a time. */
 [data-rainbow] .glim-tint-hover {
   box-shadow: none;
 }
@@ -895,61 +558,31 @@ body {
   box-shadow: inset 0 0 0 999px var(--item-hue-badge);
 }
 
-/* .glim-tint-badge: the same wash mechanism as .glim-tint, but at the
-   stronger --item-hue-badge tier — for a compact circular badge that needs
-   colour AT REST because it has no checked/active state of its own to fall
-   back on. NOT for a real toggle badge: those carry only .glim-hue,
-   unconditionally, and stay uncoloured until checked. Reach for this class on
-   a badge that genuinely has no active state to read --accent through — a
-   badge is small and isolated with nothing beside it to reinforce the colour
-   by repetition, so .glim-tint's own 16% (calibrated for a dense list) would
-   read as barely-tinted grey at badge size. */
-/* .glim-badge-quiet: a badge sitting ON A LIST ROW shows no tile until you
-   reach for it.
-   The rule above still stands everywhere else - jdp asked for square coloured
-   badges with a glyph rather than bare icons, and that is what a toolbar, a
-   card header and a settings row get. A dense list is the one place it turns
-   against itself: six of these on every row, times forty rows, and the filled
-   tiles read as a wall of grey boxes rather than as the row's own actions
-   (jdp: "der löschen button auf den links hat einen dunklen hintergrund", "die
-   icons auf den links im linksammler haben auch den dunklen hintergrund").
-   This is not a new invention, and that is the argument for it: the reactive
-   rainbow already behaves exactly this way, transparent at rest and filled on
-   hover, a few lines down. This makes that behaviour the rule on rows, whatever
-   the colour setting is - so what somebody sees on a row does not depend on
-   which rainbow mode they happen to run. */
-/* .glim-nav-row: der Glyph einer Navigationszeile ist 20px, und diese Zahl
-   gehoert dem Haus (GlimStone 1.8.0). Eine Stufe ueber den 16px, die ein Glyph
-   neben Fliesstext nimmt, weil eine Schienenzeile ein groesseres Ziel mit mehr
-   Luft ist und im Nur-Glyph-Modus das Symbol DIE Zeile ist.
-   Warum das eine Regel wurde: es stand nirgends geschrieben, und genau so
-   endeten zwei Anwendungen desselben Hauses bei 20px und bei 14px. KnightLoader
-   war ein dritter Fall - seine Schienenglyphen nahmen den Vorgabewert des
-   Symbolsatzes, 22px, also noch eine vierte Zahl. Gemeldet wird so etwas immer
-   gleich: jemand stellt zwei nebeneinander.
-   Dieselbe Klasse gehoert auf die waagerechte Kachelleiste (components/Tabs.tsx),
-   damit eine Einstellungskachel und eine Schienenzeile nie dasselbe Symbol in
-   zwei Groessen zeigen. Die Zahl steht hier; wer sie bekommt, entscheidet allein
-   die Klasse am Element - dieser Kommentar behauptet nicht, dass sie schon
-   ueberall haengt.
-   flex: none, weil eine Schienenzeile eine Flexzeile ist und der Glyph neben
-   einer langen Beschriftung das erste ist, was ein Flexcontainer zusammenquetscht. */
+/* A navigation row's glyph is 20px, one step above the 16px beside body text,
+   because in glyph-only mode the symbol is the row (GlimStone 1.8.0). The tile
+   strip in components/Tabs.tsx uses the same class so both show one size.
+   flex: none keeps a long label from squeezing the glyph. */
 .glim-nav-row > svg {
   width: 1.25rem;
   height: 1.25rem;
   flex: none;
 }
 
+/* A badge on a list row shows no tile until it is reached for: six filled
+   tiles on each of forty rows read as a wall of grey boxes. Toolbars, card
+   headers and settings rows keep the filled tile. */
 .glim-badge-quiet { background-color: transparent; }
 .glim-badge-quiet:hover,
 .glim-badge-quiet:focus-visible { background-color: var(--carbon-surface3); }
 
+/* The wash at the stronger badge tier, for a small badge that needs colour at
+   rest and has no active state of its own. A toggle badge carries only
+   .glim-hue and stays uncoloured until checked. */
 [data-rainbow] .glim-tint-badge {
   box-shadow: inset 0 0 0 999px var(--item-hue-badge);
 }
-/* Under a rainbow the hue is the fill, so it follows the same rule: away at
-   rest, back when reached for. Without this the wash would keep painting the
-   tile the quiet rule just took away. */
+/* Under a rainbow the hue is the fill of a quiet badge, so it also waits for
+   hover. */
 [data-rainbow] .glim-badge-quiet.glim-tint-badge { box-shadow: none; }
 [data-rainbow] .glim-badge-quiet.glim-tint-badge:hover,
 [data-rainbow] .glim-badge-quiet.glim-tint-badge:focus-visible {
@@ -964,8 +597,7 @@ body {
 }
 
 /* Reactive: the palette rests. Everything is quiet until it is hovered or is
-   the active item, which is the reading that still obeys "colour marks
-   activity" when a whole list would otherwise light up at once. */
+   the active item, so colour still marks activity. */
 [data-rainbow='reactive'] .glim-hue {
   --accent: var(--carbon-text-muted);
   --accent-contrast: var(--carbon-bg);
@@ -985,37 +617,16 @@ body {
   --color-accent: var(--item-hue);
   --color-accentContrast: var(--item-hue-ink);
   --color-accentSoft: var(--item-hue-soft);
-  /* Restated, and it has to be: the resting reactive rule above muted the ink
-     as well, and it matches at the same specificity as the plain
-     [data-rainbow] .glim-hue block while coming later in the file. Without
-     these two lines the fill would come back on hover and the accent-coloured
-     text inside it would stay grey. */
+  /* The resting rule muted the ink too and comes later at the same
+     specificity, so the ink has to be restated. */
   --accent-ink: color-mix(in srgb, var(--item-hue) var(--ink-mix), black);
   --color-accentInk: color-mix(in srgb, var(--item-hue) var(--ink-mix), black);
 }
 
-/* SectionTitle's own notch badge (ui.tsx), in reactive mode.
- *
- * The card owns the palette position now (GlimStone 1.4.0), so in NORMAL
- * rainbow mode the badge simply inherits it along with everything else the
- * card holds - no rule needed. Reactive mode is the one case that still wants
- * its own pair, because the badge must stay quiet at rest and light up when
- * its card is touched: it is a small pill sitting HALF OVER the card's top
- * edge, so the plain `.glim-hue:hover` target is a sliver nobody can aim at,
- * and jdp asked for the wider target outright ("Die cardabschnittbadges
- * sollen im reaktiven modus immer farbig sein sobald man in deren card ist.
- * system weit! Alle checken!").
- *
- * Addressed as `.glim-card.glim-hue .glim-section-badge` rather than by a
- * class on the badge itself: that selector is true exactly when there is an
- * inherited position to use, so the six cards in this app that carry no
- * position keep the plain accent instead of resolving --accent to nothing.
- *
- * This pair used to be one rule that only ADDED the hover colour, because the
- * badge muted itself through its own `.glim-hue`. With the position on the
- * card, the resting mute has to be stated here too - otherwise reactive mode
- * would leave every badge fully coloured at rest, which is the one thing the
- * mode exists not to do. */
+/* SectionTitle's notch badge in reactive mode. The card owns the palette
+ * position, so the badge rests muted and lights up whenever its card is
+ * hovered or focused; the badge alone is too thin a target. Selecting through
+ * `.glim-card.glim-hue` leaves cards without a position on the plain accent. */
 [data-rainbow='reactive'] .glim-card.glim-hue .glim-section-badge {
   --accent: var(--carbon-text-muted);
   --accent-contrast: var(--carbon-bg);
@@ -1034,65 +645,23 @@ body {
   --color-accentSoft: var(--item-hue-soft);
 }
 
-/* THE NOTCH'S ROOM BELONGS TO THE CARD THAT HAS A NOTCH, NEVER TO THE COLUMN.
- *
- * A scrolling column clips at its own top edge, and the badge above is drawn
- * HALF OUTSIDE its card's top edge, so a card sitting flush against that edge
- * loses the upper half of its badge. Measured at 1400x900: card top 16, badge
- * 5 to 27, column clipping at 16 - the overhang is 12px and nothing else.
- *
- * The obvious fix is 12px of padding on the column, and it is wrong: it also
- * pushes down every page whose first card carries no badge (Dashboard's hero,
- * the instance tiles, the collector's toolbar), and those are exactly the
- * pages that then miss the line they were asked to sit on ("in allen tabs und
- * fenstern sollen die obersten und untersten cards/fenster mit der sidebar
- * abschliessen"). So the room is given to the card that needs it, and a page
- * with nothing to protect starts on the sidebar's line.
- *
- * "First" cannot be `:first-child` here, and that was measured too: most pages
- * open with PageHeader, which renders a bare `sr-only` header (ui.tsx). It is
- * positioned absolutely, paints nothing and occupies no line - but it IS the
- * first child, so `:first-child` skipped exactly the pages that needed this
- * most. On /accounts that put the badge at y=5 against a column clipping at 16,
- * which is the sliced notch all over again. What the rule actually means is
- * "nothing PAINTED stands before it", and `:not(:not(.sr-only) ~ *)` says that
- * directly: no preceding sibling other than a screen-reader-only one.
- *
- * Two depths, because a page either wraps its cards in a root element or is a
- * card itself. Nothing deeper can match, so a card nested inside another card
- * keeps the house gap untouched. */
+/* The notch badge overhangs its card's top edge by 12px, and a scrolling
+ * column clips there. The room goes to the first card that has a badge rather
+ * than to the column, so pages without one still start on the sidebar's line.
+ * "First" means no painted sibling before it: PageHeader renders an sr-only
+ * header first, which `:first-child` would count. Two depths, because a page
+ * either wraps its cards or is a card itself. */
 .glim-column-top > .glim-card:has(.glim-section-badge):not(:not(.sr-only) ~ *),
 .glim-column-top > * > .glim-card:has(.glim-section-badge):not(:not(.sr-only) ~ *) {
   margin-top: 0.75rem;
 }
 
-/* Long-press-to-wiggle reorder (Tabs.tsx, opt-in `reorderable`) - ported from
-   CannonadeCommand's own nav rail, the same reason `.glim-tab-wiggle` and
-   `.glim-tab-dragging` are named to match its CSS class shape rather than
-   invented fresh: one recognisable gesture across the whole house, not a
-   second one that happens to do the same thing. A held tab wiggles along
-   with every OTHER tab in the strip (not the held one - see .glim-tab-dragging
-   below), so the strip itself communicates "these are all rearrangeable now"
-   the same way an iOS/Android home screen does.
-
-   A DEGREE OR LESS, and the number is 0.7deg because that is what the phone
-   already turns (mobile/src/components/DragList.tsx's own outputRange). The
-   amplitude used to be 1.6deg, over the cap the language names outright, and
-   over it in the one place where two surfaces of THIS product show the same
-   gesture side by side - which is how such a thing gets reported: somebody
-   holds the two next to each other. One gesture, one number.
-
-   The angles are one token times a fraction, so the asymmetric shape (a
-   slightly shorter swing one way) survives a change of amplitude instead of
-   having to be re-tuned four times. The half-pixel lift is not part of the
-   rotation rule and stays literal.
-
-   WHERE THE ANIMATION ITSELF LIVES: in the motion engine's no-preference gate
-   further down, with every other animation in this file, reading
-   --motion-wiggle-dur. It was a literal .32s sitting outside every gate, so the
-   ONE infinite animation in the app was the one thing the Motion setting could
-   not reach - a reader who set Motion to off kept a strip wiggling forever,
-   which is the exact failure the engine's own rule names first. */
+/* Long-press-to-wiggle reorder (Tabs.tsx, `reorderable`), named after
+   CannonadeCommand's nav rail so the gesture is the same across the house.
+   Every tab but the held one wiggles. 0.7deg matches the phone
+   (mobile/src/components/DragList.tsx). The angles are fractions of one token
+   so the asymmetric swing survives a change of amplitude. The animation itself
+   is in the motion engine's gate below, so the Motion setting reaches it. */
 @keyframes glim-tab-wiggle {
   0%   { transform: rotate(calc(-1 * var(--motion-wiggle-deg))) translateY(0); }
   25%  { transform: rotate(calc(.875 * var(--motion-wiggle-deg))) translateY(-0.5px); }
@@ -1100,18 +669,8 @@ body {
   75%  { transform: rotate(var(--motion-wiggle-deg)) translateY(0.5px); }
   100% { transform: rotate(calc(-1 * var(--motion-wiggle-deg))) translateY(0); }
 }
-/* The tab actually under the pointer. It is faded rather than wiggling with the
-   rest, so the one thing moving under a real finger/cursor doesn't ALSO fight
-   that motion with its own independent animation - and it LIFTS: a small scale,
-   a shadow, and drawn above its neighbours, which is the house form of "this is
-   the one you are holding" (the phone's own DragList sets the same three, with
-   elevation beside z-index for Android). Only the fade was here before, and a
-   row that merely goes pale reads as disabled rather than picked up.
-
-   The paint is unconditional on purpose: a lift is a STATE, not motion, so it
-   still has to read for somebody whose OS asks for less movement - nothing here
-   moves over time. Stopping the wiggle on this one tab is the motion half, and
-   it sits in the gate with the wiggle it has to beat. */
+/* The held tab: faded, lifted and drawn above its neighbours, as the phone's
+   DragList does. Unconditional, because a lift is a state, not motion. */
 .glim-tab-dragging {
   opacity: .45;
   transform: scale(1.03);
@@ -1120,11 +679,9 @@ body {
   z-index: 1;
 }
 @media (prefers-reduced-motion: reduce) {
-  /* The mode indicator without the motion: the strip still has to say "these
-     are rearrangeable now", and with the wiggle gone nothing else on screen
-     does. Same declarations as the data-motion="off" rule in the gate below -
-     two copies of one substitute, the arrangement .glim-live already uses,
-     because a rule cannot be shared across two different media queries. */
+  /* Without the wiggle the strip still has to say it is rearrangeable. The
+     data-motion="off" rule in the gate below repeats this, since a rule
+     cannot be shared across two media queries. */
   .glim-tab-wiggle {
     animation: none;
     outline: 2px dashed var(--accent);
@@ -1152,41 +709,20 @@ body {
   background-clip: content-box;
 }
 
-/* ===========================================================================
-   The motion engine
-   ---------------------------------------------------------------------------
-   Ported from upstream GlimStone (docs/design-language.md, "The motion
-   engine" + "Round 2 — seven more animations"). The keyframes and utilities
-   below answer one of: is this new, arriving, ongoing, confirmed, changing
-   shape, changing colour, or refused? Nothing else in the system animates.
+/* The motion engine (GlimStone, "The motion engine"). Every animation answers
+   one question: is this new, arriving, ongoing, confirmed, changing shape,
+   changing colour, or refused? Nothing else animates.
 
-   MOTION INTENSITY (data-motion="off"|"subtle"|"wild" on <html>, plus the
-   hidden "storm" further down — applyMotion() in lib/appearance.ts, default
-   "wild") is the user-owned
-   axis layered on top: duration/distance/amplitude custom properties,
-   redefined per [data-motion], consumed by the SAME keyframes at every
-   intensity — the identical "one token set, no exception list" shape the
-   shape engine's own radius tokens use above. THE SETTING REACHES EVERY
-   TRANSITION TOO, not only the keyframes: --motion-control-dur is the duration
-   every colour, shadow and opacity transition in the app runs at — the
-   shape-morph rule below owns the `transition` shorthand on every element and
-   spends it there — because a control that keeps easing after somebody turned
-   motion off is motion they asked not to have. These tokens resolve ONLY
-   inside the @media (prefers-reduced-motion: no-preference) block below, per
-   GlimStone: the OS-level (reduce) block further down keeps its own
-   hard-coded fallback values completely untouched and unconditional, so a
-   browser reporting OS-level reduced motion never even reaches a data-motion
-   selector for these properties — "off" without OS-level reduced motion gets
-   the SAME numbers the (reduce) block already uses for the same element, by
-   design, not a second, separately-tuned recipe.
-   =========================================================================== */
+   The intensity (data-motion="off"|"subtle"|"wild" on <html>, plus the hidden
+   "storm"; see applyMotion() in lib/appearance.ts) only changes the duration,
+   distance and amplitude tokens; the keyframes are the same at every level.
+   --motion-control-dur reaches every transition as well, through the
+   shape-morph rule below. The tokens resolve only inside the no-preference
+   gate, so an OS request for reduced motion never meets a data-motion selector.
+   "off" uses the same substitutes as the reduced-motion block. */
 
-/* Direction is a layout fact, not a motion preference, so this lives outside
-   the motion gate — a distance of 0 at "off" multiplies out to 0 regardless
-   of the sign. The one consumer so far is the directional panel slide below;
-   this app's existing .glim-toast-in does NOT itself read this token (it
-   never flipped under RTL before this pass, and adopting --dir-sign here
-   doesn't retroactively change that — a future pass, not this one). */
+/* Direction is layout, not motion, so it sits outside the gate. Used by the
+   panel slide and the toast. */
 :root {
   --dir-sign: 1;
 }
@@ -1194,15 +730,10 @@ body {
   --dir-sign: -1;
 }
 
-/* Drawn-checkmark's safe default lives HERE, outside every gate, and that
-   ordering is load-bearing (GlimStone, "Round 2"): the unconditional base is
-   "fully drawn, no animation," so a browser — or a future edit — that never
-   reaches the animated override further down still shows a checkmark, not a
-   permanently invisible dashed line. The consumer's own <path> carries
-   pathLength="1", which is what makes a plain 1 → 0 dashoffset always draw
-   the whole glyph regardless of real path geometry. Stroke colour is left to
-   the consumer (currentColor off a state token, never a rainbow hue — a
-   success/fail glyph is rule 4's territory, not a list-position identity). */
+/* The checkmark's safe default is outside every gate: fully drawn, so a path
+   that never reaches the animation below still shows. The <path> carries
+   pathLength="1" so a dashoffset of 1 to 0 draws the whole glyph. Its colour
+   comes from a state token, never a rainbow hue. */
 .glim-checkmark {
   fill: none;
   stroke-dasharray: 1;
@@ -1213,15 +744,8 @@ body {
   0%   { left: -35%; }
   100% { left: 100%; }
 }
-/* Travel AND scale, both as tokens, and the curve with them (GlimStone 1.10.0).
-   Every duration used to be a token and every distance a literal, so the top two
-   intensities ran the same six-pixel slide at two speeds - a difference somebody
-   has to be TOLD about rather than one they can see. The top one now travels
-   three times as far, scales in, and rides a curve that overshoots and settles.
-
-   The language's own rule survives intact, and that is the part to check: the
-   SAME keyframe at all three intensities, never a forked animation. What changes
-   is the number the keyframe reads and the curve it reads it through. */
+/* Travel, scale and curve are tokens, so the intensities differ visibly while
+   sharing one keyframe. */
 @keyframes glim-page-in {
   from { opacity: 0; transform: translateY(var(--motion-page-travel)) scale(var(--motion-page-scale)); }
   to   { opacity: 1; transform: none; }
@@ -1230,22 +754,8 @@ body {
   from { opacity: 0; }
   to   { opacity: 1; }
 }
-/* The toast travels with everything else now. It had been left behind at one
-   distance for all three intensities, under a comment claiming it moved further
-   at the top one - a rule with nothing behind it, which is exactly the failure
-   1.10.0 is otherwise about.
-   AND IT FLIPS NOW, which it did not before: the note further down in this file
-   recorded that this keyframe alone never mirrored under [dir="rtl"], so a toast
-   slid in from the same physical side in Arabic, Hebrew and Persian as in
-   German.
-
-   A DELIBERATE DEVIATION FROM THE REFERENCE, and the better half of the trade:
-   GlimStone writes an RTL twin of every distance out by hand, because a keyframe
-   cannot be flipped by a class sweep. This file already has --dir-sign for
-   exactly that, and glim-panel-in-forward already spends it - so one value times
-   the sign replaces two values that have to be kept in step. Two numbers for one
-   distance is the shape of drift, and the language's own 1.11.0 entry is about
-   removing a value that lived in more than one place. */
+/* Multiplied by --dir-sign so it mirrors under RTL. GlimStone writes an RTL
+   twin of each distance instead; one value times the sign cannot drift. */
 @keyframes glim-toast-in {
   from { opacity: 0; transform: translateX(calc(var(--dir-sign) * var(--glim-toast-slide))); }
   to   { opacity: 1; transform: none; }
@@ -1254,17 +764,10 @@ body {
   0%, 100% { opacity: 1; }
   50%      { opacity: var(--motion-pulse-min-opacity); }
 }
-/* A control refusing an action — optimistically shown, then reverted because
-   a real backend precondition failed — shakes instead of just silently
-   snapping back. Decaying so the eye reads it as "pushed back," not a
-   glitch. Apply .glim-shake to the control itself at the moment it reverts.
-   Ported from upstream GlimStone (the motion engine's fifth keyframe, first
-   implemented in BombVault) — reach for it anywhere an optimistic update
-   needs undoing, not just switches: a rejected toggle, a form field failing
-   validation, a drag snapping back. Replaying on a repeated identical
-   failure needs a fresh DOM node, not a re-toggled class — key the shaking
-   element on an incrementing per-instance failure counter, the same way
-   lib/toast.tsx's push() mints a fresh id per call. */
+/* A refused action: a control that was shown optimistically and reverted
+   shakes rather than silently snapping back. Decaying, so it reads as "pushed
+   back". To replay it on a repeated failure, key the element on a failure
+   counter; a re-toggled class does not restart the animation. */
 @keyframes glim-shake {
   0%, 100% { transform: translateX(0); }
   20%      { transform: translateX(calc(var(--motion-shake-scale) * -4px)); }
@@ -1272,66 +775,37 @@ body {
   60%      { transform: translateX(calc(var(--motion-shake-scale) * -2px)); }
   80%      { transform: translateX(calc(var(--motion-shake-scale) * 2px)); }
 }
-/* The same "still arrives legibly, minus the motion" substitution every
-   other entrance gets under reduced motion. */
+/* The reduced-motion substitute: still visible, without the movement. */
 @keyframes glim-shake-reduced {
   0%, 100% { opacity: 1; }
   50%      { opacity: .5; }
 }
 
-/* Round 2 — seven more animations (GlimStone, "The motion engine"). Two of
-   the seven (staggered-list fade-in, skeleton-to-content crossfade) reuse
-   glim-page-in/glim-fade-in above rather than duplicating an identical shape
-   under a new name — only their own duration token and delay recipe differ,
-   so they have no keyframes of their own below. Shape-morph and colour-wipe
-   are plain `transition`s, not keyframes, and live with the utility classes
-   further down since that's the only place they mean anything. */
+/* The staggered list and the skeleton crossfade reuse glim-page-in and
+   glim-fade-in; shape-morph and colour-wipe are transitions and live with the
+   utility classes further down. */
 @keyframes glim-confirm-pulse {
   0%   { box-shadow: 0 0 0 0 var(--accent-soft); transform: scale(1); }
   50%  { box-shadow: 0 0 0 calc(var(--motion-confirm-glow-mult) * 6px) var(--accent-soft);
          transform: scale(calc(1 + var(--motion-confirm-scale-mult) * 0.05)); }
   100% { box-shadow: 0 0 0 0 var(--accent-soft); transform: scale(1); }
 }
-/* "Here it is" - the row or card the settings search just jumped to.
-   .glim-locate below is the consumer; these are its two keyframes.
-
-   An OUTLINE and not a box-shadow, which is the one place this parts company
-   with glim-confirm-pulse directly above. That animation is the right shape for
-   this and was the obvious thing to reuse, and it cannot be: it animates
-   box-shadow, and everything this has to mark already owns one. .glim-card is
-   `box-shadow: var(--elevation), var(--hairline)`, so a card landing would lose
-   its own edge for the length of the animation and come back - which reads as a
-   rendering fault, not as a highlight. An outline composites on top of whatever
-   shadow the element already has, follows its border-radius, and takes no space
-   in layout, so it can be put on any element in the tree without asking what
-   that element is.
-
-   Colour, not width, is what moves. outline-width is animatable but it is the
-   one part of an outline that some engines snap rather than interpolate, and a
-   ring that flickers into place is worse than one that fades.
-
-   --accent, not --accent-soft: a 2px ring at 14% alpha is not a signal. Reading
-   --accent means a row inside a hued card rings in that card's own rainbow
-   position for free, exactly as the confirm-pulse gets from --accent-soft. */
+/* "Here it is": the row or card the settings search jumped to (.glim-locate).
+   An outline rather than a box-shadow, because cards already own their shadow;
+   an outline sits on top and follows the radius. The colour animates rather
+   than the width, which some engines snap. */
 @keyframes glim-locate-ring {
   0%, 100% { outline-color: transparent; }
   15%, 60% { outline-color: var(--accent); }
 }
-/* The substitute for a reader who asked for no motion, either way round (the OS
-   preference, or the app's own Motion picker set to off): the same "still
-   arrives legibly, minus the motion" swap .glim-shake makes. The ring is simply
-   held and then let go, with nothing pulsing. A zero-duration animation would
-   leave a row scrolled to and never pointed at, which is the whole message
-   gone. */
+/* Without motion the ring is held and then released, so the located row is
+   still pointed at. */
 @keyframes glim-locate-reduced {
   0%, 70% { outline-color: var(--accent); }
   100%    { outline-color: transparent; }
 }
-/* The ring's resting state, and the one part of this that sits outside every
-   motion gate: both keyframes above animate outline-color, so the outline has to
-   already exist for either of them to have anything to work on - under
-   data-motion="off" and under OS reduced motion just as much as at wild. It is
-   transparent, so an element can wear this class and show nothing at all. */
+/* Outside every gate, since both keyframes need an outline to exist. It is
+   transparent, so the class alone shows nothing. */
 .glim-locate {
   outline: 2px solid transparent;
   outline-offset: 3px;
@@ -1349,64 +823,29 @@ body {
   to   { opacity: 1; transform: none; }
 }
 
-/* A FLOATING WINDOW ARRIVES, it does not appear (GlimStone 1.8.0, "the confirm
-   surface"): the scrim fades up and the card rises a short distance and
-   settles. Both run through this engine, and under reduced motion both collapse
-   to the same short fade, so somebody who asked for less movement still sees
-   that something new is on screen.
-
-   The last wave left this out on the reading that the card's motion predates
-   1.11.0 and only the scrim's COLOUR was that release's subject. The scrim's
-   fade is not the card's motion, though — in GlimStone's reference it sits in
-   the same block as `.glim-modal-backdrop { background: var(--glim-scrim) }` —
-   and leaving it out drove the app into a contradiction it did not have
-   before: CommandPalette's card faded in while its own ground snapped to .65
-   in the same frame, and Modal's card did nothing at all. Two floating windows
-   in one app arriving two different ways is the drift this whole pass is about,
-   so both halves are defined here.
-
-   WHICH HALF IS LIVE TODAY: the ground. Both windows already carry
-   .glim-modal-backdrop, so the scrim fades from the moment this file ships. The
-   card half waits on one class, .glim-modal-card, on the card element in
-   components/ui.tsx and components/CommandPalette.tsx — and when it is added it
-   REPLACES CommandPalette's existing .glim-fade rather than joining it, or that
-   one window runs two entrances at two durations and the drift is back with an
-   extra step.
-
-   ONE DELIBERATE DIFFERENCE FROM THE REFERENCE, and it is this file's own rule
-   winning over a copied one: GlimStone forks at "subtle", swapping the card
-   from glim-modal-in to glim-fade-in. Forking is what 1.10.0 came to stop —
-   the same keyframe at every intensity, reading tokens that change. At
-   "subtle" the travel shrinks and the scale goes to 1, which IS a fade, minus
-   a second animation somebody has to keep in step with this one. */
+/* A floating window arrives (GlimStone 1.8.0): the scrim fades up and the card
+   rises a little and settles. Under reduced motion both become a short fade.
+   The scrim half is live through .glim-modal-backdrop; the card half needs
+   .glim-modal-card on the card in components/ui.tsx and
+   components/CommandPalette.tsx, where it would replace .glim-fade. Unlike
+   GlimStone, "subtle" does not switch to a fade keyframe: its tokens make this
+   one a fade. */
 @keyframes glim-modal-in {
   from { opacity: 0; transform: translateY(var(--motion-modal-travel)) scale(var(--motion-modal-scale)); }
   to   { opacity: 1; transform: none; }
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  /* The top visible level's defaults — data-motion="wild", and also what the
-     app renders before the setting has ever been touched (DEFAULT_MOTION in
-     lib/appearance.ts is 'wild'). One token per timing/distance/amplitude
-     value the keyframes above and the utilities below actually read.
-
-     THE SELECTOR IS A BARE :root AND THAT IS THE RULE, not a shortcut. A
-     stylesheet names the QUIET levels and never the lively one: written
-     :root[data-motion="wild"], this block would stop covering `storm`, which
-     is MORE motion and wants the livelier numbers rather than none of them,
-     and the quiet blocks below would have nothing left to override. Bare
-     :root covers wild, storm and the attribute being absent, and goes on
-     covering whatever is added above them (GlimStone 2.0.0). */
+  /* The top visible level, data-motion="wild", which is also the default.
+     A bare :root, so it covers "storm" and a missing attribute too, with the
+     quieter levels below overriding it (GlimStone 2.0.0). */
   :root {
     --motion-page-dur: 280ms;
-    /* Travels three times as far as the middle intensity and scales in, so the
-       top step earns the lively name it carries instead of being the quiet one
-       played faster. */
+    /* Three times the travel of "subtle", with a scale, so the levels differ
+       in more than speed. */
     --motion-page-travel: 18px;
     --motion-page-scale: .96;
-    /* Overshoots and settles. The control point past 1 is what makes it spring
-       rather than ease, the same shape a React Native spring gives the phone,
-       so the two surfaces move alike rather than merely both moving. */
+    /* Overshoots and settles like the spring the phone app uses. */
     --motion-curve: cubic-bezier(.34, 1.56, .64, 1);
     --motion-page-slide-scale: 1;
     --motion-toast-dur: 220ms;
@@ -1417,22 +856,12 @@ body {
     --motion-shake-scale: 1;
     --motion-pulse-dur: 2s;
     --motion-pulse-min-opacity: .45;
-    /* THE STORM LEVEL'S TWO PULSE NUMBERS, PARKED HERE SO THEY EXIST ONCE.
-       They are read twice: by :root[data-motion="storm"] below, which is the
-       level, and by .kl-storm-curve further down, which is the 1337 egg
-       switching ONE element onto that level without touching the user's own
-       setting. Written out in both places instead, they would be two numbers
-       for one thing - the shape of drift --dir-sign is already in this file to
-       avoid, and the day somebody retunes the storm pulse the egg would quietly
-       stop being the storm. They sit in the bare :root rather than in the storm
-       block because the egg has to read them at every intensity, and they carry
-       the --egg- prefix rather than --motion- because they are constants and
-       not a rung of the ladder: check-motion-tokens.mjs would otherwise, quite
-       correctly, demand a per-intensity value for each. */
+    /* The storm pulse, defined once because both the storm level and
+       .kl-storm-curve (the 1337 egg) read it at any intensity. The --egg-
+       prefix keeps check-motion-tokens.mjs from asking for a value per level. */
     --egg-storm-pulse-dur: 1.4s;
     --egg-storm-pulse-min: .25;
-    /* The reorder wiggle, the app's second infinite animation. The angle is the
-       cap the language names, met at the number the phone already turns. */
+    /* The reorder wiggle, at the same angle the phone uses. */
     --motion-wiggle-dur: .32s;
     --motion-wiggle-deg: 0.7deg;
     --motion-shape-dur: 260ms;
@@ -1446,30 +875,21 @@ body {
     --motion-content-dur: 220ms;
     --motion-panel-dur: 220ms;
     --motion-panel-dist: 18px;
-    /* The floating window's arrival: the card's own rise, and the scrim's
-       fade under it. Two numbers because they are two elements, and the scrim
-       is deliberately the shorter of the pair — the ground has to be there
-       before the card lands on it, not after. */
+    /* The scrim is shorter than the card, so the ground is there before the
+       card lands. */
     --motion-modal-dur: 260ms;
     --motion-modal-travel: 10px;
     --motion-modal-scale: .98;
     --motion-scrim-dur: 200ms;
-    /* Every TRANSITION in the app reads this one number, so the setting
-       reaches them and not just the keyframes above. 150ms is Tailwind's own
-       default, which is what the `duration-150` on all those buttons and rows
-       asked for — and, as the shape-morph rule below records, was not
-       getting. */
+    /* Every transition in the app reads this. 150ms is Tailwind's default. */
     --motion-control-dur: 150ms;
   }
 
-  /* data-motion="subtle" — smaller numbers, the SAME keyframes throughout.
-     :root[data-motion="subtle"] mirrors :root[data-shape="soft"] above, so
-     the override wins on specificity alone rather than on being later in
-     the file. */
+  /* data-motion="subtle": smaller numbers, the same keyframes. The attribute
+     selector wins on specificity, as :root[data-shape="soft"] does. */
   :root[data-motion="subtle"] {
     --motion-page-dur: 160ms;
-    /* Smaller travel, no scale, and a curve that only eases. Somebody who asked
-       for less movement asked for less movement, not for a faster bounce. */
+    /* Less travel, no scale, and a curve that only eases. */
     --motion-page-travel: 6px;
     --motion-page-scale: 1;
     --motion-curve: cubic-bezier(.2, .6, .2, 1);
@@ -1481,9 +901,8 @@ body {
     --motion-shake-dur: 220ms;
     --motion-shake-scale: .5;
     --motion-pulse-min-opacity: .7;
-    /* Half the swing, and the PERIOD is left alone on purpose - the same
-       arrangement --motion-pulse-dur already has one line up: an ambient loop
-       is not calmed by running it faster, only by moving less. */
+    /* Half the swing at the same period: an ambient loop is calmed by moving
+       less, not by running faster. */
     --motion-wiggle-deg: 0.35deg;
     --motion-shape-dur: 140ms;
     --motion-confirm-dur: 260ms;
@@ -1496,8 +915,7 @@ body {
     --motion-content-dur: 120ms;
     --motion-panel-dur: 130ms;
     --motion-panel-dist: 10px;
-    /* Smaller rise, no scale: at this intensity the card's arrival IS a fade,
-       reached by the numbers rather than by a second keyframe. */
+    /* A small rise without scale, which is a fade. */
     --motion-modal-dur: 150ms;
     --motion-modal-travel: 5px;
     --motion-modal-scale: 1;
@@ -1505,42 +923,22 @@ body {
     --motion-control-dur: 80ms;
   }
 
-  /* THE HIDDEN FOURTH, data-motion="storm" (GlimStone 1.17.0), and it is a
-     real level rather than a joke.
+  /* The hidden fourth level, data-motion="storm" (GlimStone 1.17.0): the same
+     keyframes with a spring that swings further and settles later. Not in the
+     picker; stormTap() in lib/appearance.ts reveals it and it can be switched
+     back off.
 
-     Same keyframes, same elements, same tokens: a spring that swings further
-     and takes longer to come to rest. That is what makes a fourth intensity
-     cost one block and nothing else - the language's own rule, that a level is
-     a different NUMBER and never a different animation, paying for itself.
+     Travel, scale and curve are GlimStone's storm values. The durations are
+     this app's ladder times GlimStone's storm/wild ratio, because the wild
+     durations here are shorter than the reference's.
 
-     It is not in the picker. lib/appearance.ts's stormTap() is the gesture that
-     reveals it (set motion to the top level, then tap that same option five
-     more times) and carries the rule it exists to establish: an easter egg that
-     changes BEHAVIOUR has to be one somebody can switch back off, and must not
-     quietly become a permanent entry in a settings list.
-
-     THE NUMBERS. Travel, scale and curve are GlimStone's own storm values
-     unchanged (34px, .9, cubic-bezier(.22, 1.94, .45, 1)), because this app's
-     top level already matches the reference's wild exactly on all three. The
-     DURATIONS are this app's own ladder multiplied by the reference's own
-     storm/wild ratio rather than copied as absolutes: the reference's wild page
-     entrance is 420ms and this one is 280ms (a deliberate difference, see the
-     :root block above), so copying 760ms literally would make the fourth level
-     2.7x the third here and 1.8x there. A hidden level is the last place to
-     ship a number nobody can trace.
-
-     It sits INSIDE this gate with the other three, not beside them, and that is
-     the one thing about it that is a safety property rather than a taste: a
-     machine whose owner asked the operating system for less motion never
-     evaluates a data-motion selector at all, so the secret cannot be used to
-     talk a browser out of an accessibility signal. web/check-hidden-motion-
-     level.mjs fails if this block ever moves out. */
+     It stays inside this gate, so an OS request for reduced motion always
+     wins; check-hidden-motion-level.mjs fails if it moves out. */
   :root[data-motion="storm"] {
     --motion-page-dur: 510ms;
     --motion-page-travel: 34px;
     --motion-page-scale: .9;
-    /* Further past 1 than the top visible level's curve, and slower to settle:
-       the overshoot is the whole point of the level. */
+    /* Further past 1 and slower to settle than the wild curve. */
     --motion-curve: cubic-bezier(.22, 1.94, .45, 1);
     --motion-page-slide-scale: 1.9;
     --motion-toast-dur: 310ms;
@@ -1549,9 +947,7 @@ body {
     --motion-fade-dur: 160ms;
     --motion-shake-dur: 520ms;
     --motion-shake-scale: 1.8;
-    /* The one period that goes DOWN: an ambient loop gets livelier by running
-       faster, which is the same reasoning that leaves it alone at "subtle" -
-       there, moving less is the only way to calm it. */
+    /* The one period that shortens: a livelier ambient loop runs faster. */
     --motion-pulse-dur: var(--egg-storm-pulse-dur);
     --motion-pulse-min-opacity: var(--egg-storm-pulse-min);
     --motion-wiggle-deg: 1.3deg;
@@ -1570,32 +966,18 @@ body {
     --motion-modal-travel: 19px;
     --motion-modal-scale: .95;
     --motion-scrim-dur: 360ms;
-    /* --motion-control-dur is deliberately NOT here, and the reference leaves
-       it out of its own storm block for the same reason: a hover tint that
-       takes a quarter of a second is not a livelier interface, it is a slow
-       one. The level is about things that ARRIVE, not about the ones that
-       answer the pointer. */
+    /* --motion-control-dur is left at the wild value: a slow hover tint makes
+       the interface slower, not livelier. */
   }
 
-  /* data-motion="off" without OS-level reduced motion — "the manual
-     equivalent of what OS-level reduced motion already does," per
-     GlimStone, not a second, separately-tuned recipe: glim-page-in and
-     glim-toast-in's own durations below are the exact numbers the (reduce)
-     block further down already uses for the same two elements, just reached
-     by the slide scale going to 0 instead of forking to a different
-     keyframe. glim-shake, glim-live/glim-pulse and glim-tab-wiggle are the
-     documented exceptions: an invisible shake, a zero-duration infinite pulse
-     or a zero-degree wiggle communicates nothing, so each swaps to a real
-     substitute below instead of reading a token at all; their own tokens are
-     therefore not redefined here. */
+  /* data-motion="off" without an OS request: the same result as reduced
+     motion. Page and toast still fade over the reduced-motion durations, with
+     no distance. The shake, the pulse and the wiggle get real substitutes
+     below, since an invisible version of them says nothing. */
   :root[data-motion="off"] {
     --motion-page-dur: 180ms;
-    /* No travel, no scale, no curve. The DURATIONS stay non-zero here on
-       purpose, unlike GlimStone's own "off" block: this file's note above says
-       why, and it is KnightLoader's documented choice rather than a slip - the
-       element still fades in over the same time the reduced-motion block uses,
-       it simply does not move while doing it. Zeroing the distance is what
-       reaches that, instead of forking to a second keyframe. */
+    /* The durations stay non-zero, unlike GlimStone's "off": the element still
+       fades in, it just does not move. */
     --motion-page-travel: 0px;
     --motion-page-scale: 1;
     --motion-curve: linear;
@@ -1615,156 +997,78 @@ body {
     --motion-content-dur: 0ms;
     --motion-panel-dur: 0ms;
     --motion-panel-dist: 0px;
-    /* The window still ARRIVES at "off" — the same documented choice
-       glim-page-in and glim-toast-in make a few lines up: the distance goes to
-       zero, the duration does not, so the card fades over the time the (reduce)
-       block uses for the same element without moving while it does. A window
-       that pops in with no transition at all is the hard cut this rule exists
-       to prevent, and it is the one thing a scrim cannot compensate for. */
+    /* A window still fades in rather than popping up. */
     --motion-modal-dur: 160ms;
     --motion-modal-travel: 0px;
     --motion-modal-scale: 1;
     --motion-scrim-dur: 160ms;
-    /* Nothing eases at "off": the house transition set further down reads this
-       token, so every colour, shadow and opacity change in the app lands at
-       once. The universal !important rule beside it is the belt for the
-       transitions this file did not write. */
+    /* Every colour, shadow and opacity change lands at once. */
     --motion-control-dur: 0s;
   }
 
   .glim-page-enter { animation: glim-page-in var(--motion-page-dur) var(--motion-curve) both; }
   .glim-toast { animation: glim-toast-in var(--motion-toast-dur) var(--motion-curve) both; }
   .glim-live { animation: glim-pulse var(--motion-pulse-dur) ease-in-out infinite; }
-  /* Short on purpose: a bubble that fades in slowly reads as lag, because the
-     pointer is already there waiting for it. */
+  /* Short, since the pointer is already waiting for the bubble. */
   .glim-fade { animation: glim-fade-in var(--motion-fade-dur) ease both; }
   .glim-shake { animation: glim-shake var(--motion-shake-dur) ease-in-out; }
-  /* The floating window, both halves, wherever one is floated from. The
-     backdrop rule is live for both windows today; the card rule waits for
-     .glim-modal-card on the card (see the keyframe's own note above).
-     The curve is the flat ease-out the panel slide and the stagger already use
-     here, NOT --motion-curve: that one overshoots and settles, which is right
-     for a page taking its place and wrong for a window, where the same
-     overshoot reads as a bounce right under the reader's eye. */
+  /* The floating window. A flat ease-out rather than --motion-curve, whose
+     overshoot reads as a bounce on a window. */
   .glim-modal-backdrop { animation: glim-fade-in var(--motion-scrim-dur) ease both; }
   .glim-modal-card { animation: glim-modal-in var(--motion-modal-dur) cubic-bezier(.2, .6, .2, 1) both; }
-  /* The reorder wiggle (its keyframe, and the reason for the amplitude, are up
-     with the drag classes near the top of this file). It belongs HERE and not
-     beside its own class for the reason this whole section exists: it is an
-     animation, so the setting has to reach it, and it is the app's one infinite
-     animation, which the engine's own rule names as the first thing that must
-     not be left outside. */
+  /* The reorder wiggle lives in the gate so the Motion setting reaches the
+     app's one infinite animation. */
   .glim-tab-wiggle {
     animation: glim-tab-wiggle var(--motion-wiggle-dur) ease-in-out infinite;
     transform-origin: 50% 50%;
   }
-  /* The held tab does not wiggle with the rest, and this is the half of
-     .glim-tab-dragging that has to sit AFTER the rule it beats: both selectors
-     are one class, so the winner is whichever comes later in the file, and the
-     wiggle moved down here. The class's own paint (the fade and the lift) stays
-     outside every gate, where a state belongs. */
+  /* The held tab stops wiggling. It has to come after the wiggle rule, since
+     both are one class. */
   .glim-tab-dragging {
     animation: none;
   }
 
 
-  /* glim-pulse's own "off" state: a zero-duration infinite animation is
-     meaningless, so "off" reuses the SAME static-dot fallback the (reduce)
-     block further down already gives .glim-live, rather than reading a
-     token — GlimStone's own documented exception. Kept inside this gate,
-     as data-motion is required to be; the (reduce) media block's own copy
-     is what actually covers OS-level reduced motion. */
+  /* The pulse at "off": a static dot, as under reduced motion. */
   :root[data-motion="off"] .glim-live {
     animation: none;
     opacity: 1;
   }
-  /* glim-shake's own "off" state: the same reasoning BombVault's own port
-     documents — an invisible shake carries no "rejected" signal — so it
-     swaps to the opacity-pulse substitute already used under OS-level
-     reduced motion (glim-shake-reduced below) instead of a zero-amplitude
-     glim-shake. */
+  /* The shake at "off": the opacity substitute, since an invisible shake says
+     nothing. */
   :root[data-motion="off"] .glim-shake {
     animation: glim-shake-reduced 300ms ease-in-out;
   }
-  /* .glim-locate's own "off" state, and the same documented exception
-     .glim-shake and .glim-live already make: --motion-confirm-dur goes to 0
-     here, so the ring would appear and vanish inside the same frame - a search
-     that scrolls to a row and never points at it has done the hard half and
-     skipped the useful one. */
+  /* The locate ring at "off": held and released, since a zero duration would
+     never show it. */
   :root[data-motion="off"] .glim-locate {
     animation: glim-locate-reduced 900ms ease-out;
   }
-  /* glim-tab-wiggle's own "off" state, and the same documented exception as the
-     three above: a wiggle with no angle left is an invisible mode indicator, and
-     the mode it indicates ("this strip is rearrangeable now") is the only thing
-     on screen saying so. It takes the substitute the (reduce) block near the top
-     of the file already gives it - one static dashed ring, no movement - rather
-     than a zero-degree rotation nobody can see. */
+  /* The wiggle at "off": a static dashed ring, the same substitute the
+     reduced-motion block uses. */
   :root[data-motion="off"] .glim-tab-wiggle {
     animation: none;
     outline: 2px dashed var(--accent);
     outline-offset: 2px;
   }
 
-  /* THE TRANSITION HALF OF THE ENGINE (GlimStone 1.8.0). Everything above this
-     point is a keyframe, and a keyframe is not where most of this app's motion
-     lives: `transition duration-150` on a button, a badge, a row or a tile is,
-     and a setting that governs the animations and not those governs the smaller
-     half. --motion-control-dur, defined per intensity above, is what ties them
-     to it — and the shape-morph rule below is what makes them exist at all, for
-     a reason worth reading before touching either.
-
-     GlimStone reaches the same place with a second rule naming Tailwind's own
-     `.transition*` utilities. That rule would be dead code HERE, and finding
-     out why is what the paragraph under shape-morph below is about: this app
-     already has a rule that owns the `transition` shorthand on every element,
-     so the token is spent there instead. Every transition in the app reads it,
-     and there is no list of utility classes to keep in step.
-
-     The "off" rule stays anyway, universal and !important: it is the only thing
-     that reaches a transition this file did not write — CodeMirror's own
-     injected stylesheet in the log viewer, or anything a future dependency
-     brings with it. Note it kills DURATIONS, not transitions: a property still
-     lands on its new value, it lands immediately. */
+  /* Most of the app's motion is transitions, not keyframes. They read
+     --motion-control-dur through the shape-morph rule below. This universal
+     rule reaches the transitions this file did not write, such as CodeMirror's
+     stylesheet in the log viewer. It removes durations, not transitions. */
   :root[data-motion="off"] * {
     transition-duration: 0s !important;
   }
 
-  /* Shape-morph, and THE APP'S ONE TRANSITION SET with it.
-     ---------------------------------------------------------------------
-     Transitions every --radius-card/-control/-pill-driven corner instead of
-     snapping when the Shape picker changes. Scoped to AFTER mount via
-     .glim-shape-armed — lib/appearance.ts's applyShape() arms it two animation
-     frames after its first call — rather than relying on a transition being a
-     no-op on a freshly painted element's own first frame (true, but not the
-     point being guarded against: the mechanism's correctness shouldn't depend
-     on that timing coincidence).
+  /* Shape-morph, and the app's one transition set. Corners ease when the
+     shape setting changes; .glim-shape-armed is added by applyShape() two
+     frames after its first call, so nothing morphs on first paint.
 
-     WHY THE LIST IS LONGER THAN THE NAME. This rule matches every element in
-     the document (applyShape puts .glim-shape-armed on <html>), `transition` is
-     a shorthand, and an unlayered rule beats every layered one — so with
-     `transition: border-radius` alone it did not merely add a corner morph, it
-     REPLACED the transition of every element carrying a Tailwind transition
-     utility. Measured, not deduced: a button written
-     `bg-carbon-surface2 transition-colors duration-150 hover:bg-carbon-surface3`
-     reported transitionProperty `border-radius` and duration .26s, so all 43
-     transition-colors, 22 transition-opacity and 15 transition-shadow call
-     sites in this app were snapping with nothing able to notice. That is the
-     collision GlimStone documents under colour-wipe, one rule further down,
-     found on a second pair.
-
-     Two ways out, and this is the one that keeps both halves: the winning rule
-     carries the whole set. Scoping this rule down to the rounded classes
-     instead would not have helped, because the elements that collide — buttons,
-     badges, chips — are precisely the ones that are both rounded AND
-     colour-transitioned.
-
-     The corner keeps its own duration; everything else reads the engine's
-     control duration, which is how the motion setting reaches transitions at
-     all. `transform` is deliberately NOT in the list: it is what drag, wiggle
-     and the easter egg move with, and a house-wide 150ms ease on transform
-     would fight animations that own it. The three transition-transform call
-     sites keep snapping, as they already did. */
+     This rule matches every element and is unlayered, so its `transition`
+     shorthand replaces those of Tailwind's transition utilities. It therefore
+     carries the whole set, with the control duration, so hover colours still
+     ease. `transform` is left out because drag, wiggle and the easter egg own
+     it. */
   .glim-shape-armed,
   .glim-shape-armed * {
     transition:
@@ -1778,34 +1082,10 @@ body {
       opacity var(--motion-control-dur) ease;
   }
 
-  /* Colour-wipe: flipping rainbow on/off/reactive (lib/appearance.ts's
-     applyRainbow(), on a genuine mode change only) wipes every hued
-     element's colour over one fixed window instead of each snapping
-     independently. THE TRAP (GlimStone, "Round 2" — caught live, not just
-     read about): almost every element this needs to reach is ALSO
-     shape-reactive, `transition` is a shorthand, and two same-specificity
-     rules setting it don't merge — the higher-specificity one wins outright
-     and the loser's entire property list silently vanishes. Against the
-     plain single-class .glim-shape-armed rule above, a plain single-class
-     .glim-wipe rule here would lose that fight on every hued button/badge,
-     and the colour flip would snap instead of wipe. Fixed the documented
-     way: deliberately doubling this rule's own class in its selector
-     (.glim-wipe.glim-wipe — not a typo) so it outranks shape-morph's rule
-     regardless of source order. Worth a live
-     getComputedStyle().transitionProperty check on a genuinely
-     double-matched element if a future transition-based axis is ever added
-     here — two rules both reaching for the bare `transition` shorthand on
-     overlapping elements are one accidental specificity tie away from one
-     silently eating the other's entire property list.
-
-     THAT CHECK HAS NOW BEEN RUN, and the third pair it turned up is written up
-     over the shape-morph rule above: this rule was safe, and the utility
-     classes in the .tsx files were not. The advice above is therefore not
-     hypothetical — it found something the moment somebody did it.
-
-     The list stays the six colour properties, opacity included in neither this
-     rule nor GlimStone's: a rainbow flip changes colours, and for the half
-     second it runs, an element mid-fade holds its opacity instead. */
+  /* Colour-wipe: a real rainbow mode change (applyRainbow()) fades every hued
+     colour over one window instead of snapping. The doubled class outranks the
+     shape-morph rule above, which would otherwise win the `transition`
+     shorthand on the same elements. Opacity is left out. */
   .glim-wipe.glim-wipe,
   .glim-wipe.glim-wipe * {
     transition:
@@ -1817,91 +1097,42 @@ body {
       stroke var(--motion-wipe-dur) ease;
   }
 
-  /* Confirmation-pulse: glim-shake's gentler sibling for the opposite
-     outcome — a field or toggle that just auto-saved successfully. Reads
-     --accent-soft directly, so an element that also owns a rainbow position
-     (.glim-hue) pulses in its own hue for free, no rainbow-awareness needed
-     in this rule. Layers on top of whatever toast already reports success;
-     never a replacement for it. DEFINED HERE, NOT YET WIRED to a consumer —
-     see lib/appearance.ts's own note on which of the seven Round-2
-     animations this pass wires up. A future consumer needs the same
-     fresh-DOM-node replay discipline glim-shake already uses: a per-field
-     success counter, keyed the same way lib/toast.tsx's push() mints a
-     fresh id per call. */
+  /* Confirmation pulse: the gentle opposite of glim-shake, for a field that
+     just saved. It reads --accent-soft, so a hued element pulses in its own
+     hue. Not used yet; a consumer replays it by keying the element on a
+     success counter. */
   .glim-confirm {
     animation: glim-confirm-pulse var(--motion-confirm-dur) ease-out;
   }
 
-  /* "Here it is" - the row or card the settings search just jumped to, marked
-     once it has been scrolled into the middle of the column. Keyframes and the
-     reason they are their own rather than glim-confirm-pulse's are above.
-
-     Borrows glim-confirm's duration token and doubles it, on purpose: a save
-     confirmation answers something the reader just did and is already looking
-     at, while this has to be FOUND on a screen they have not seen yet.
-
-     The transparent base outline is what the keyframes animate the colour of,
-     and it is why this class can sit on an element for its whole life without
-     showing anything. outline-offset holds the ring clear of the row's own
-     controls so it reads as around them rather than on them.
-
-     Replaying it on a second jump to the same row needs
-     classList.remove / void offsetWidth / classList.add - see jump.ts's mark().
-     .glim-confirm directly above is still waiting for a consumer of its own;
-     this is deliberately not it, because "this just saved" and "this is what you
-     were looking for" are two messages, and two messages sharing one class name
-     is how a rule gets changed for one of them and silently changed for the
-     other. */
+  /* The located row or card, marked once scrolled into view. Twice the
+     confirm duration, because this has to be found on a screen the reader has
+     not seen yet. jump.ts's mark() replays it. */
   .glim-locate {
     animation: glim-locate-ring calc(var(--motion-confirm-dur) * 2) ease-out;
   }
 
-  /* Staggered list fade-in: same-type rows fade/slide in with a small
-     per-row delay instead of all appearing at once. Reuses glim-page-in
-     above rather than a fourth near-identical entrance keyframe — only the
-     delay recipe below is new. A future consumer sets --stagger-index (the
-     SAME per-row position index the colour engine already threads through
-     for rainbow — a second counter would drift from the first) as an inline
-     custom property; min() does the capping in one declaration so even a
-     long list finishes its own stagger within --motion-stagger-cap.
-     DEFINED HERE, NOT YET WIRED to a consumer. */
+  /* Staggered list fade-in, delayed by --stagger-index (the same index the
+     rainbow uses) and capped so a long list finishes in time. Not used yet. */
   .glim-stagger {
     animation: glim-page-in var(--motion-page-dur) cubic-bezier(.2, .6, .2, 1) both;
     animation-delay: min(calc(var(--stagger-index, 0) * var(--motion-stagger-step)), var(--motion-stagger-cap));
   }
 
-  /* Drawn-checkmark's animated override — the unconditional "fully drawn"
-     base rule lives at the top of this section, outside every gate; this is
-     what actually draws it in when motion is allowed. `both` fill mode
-     applies the "from" keyframe's undrawn state immediately, so no separate
-     static stroke-dashoffset needs restating here. DEFINED HERE, NOT YET
-     WIRED to a consumer. */
+  /* Draws the checkmark in. `both` applies the undrawn start immediately. Not
+     used yet. */
   .glim-checkmark {
     animation: glim-checkmark-draw var(--motion-checkmark-dur) ease-out both;
   }
 
-  /* Skeleton-to-content crossfade: the simplest of the seven — an
-     entrance-only fade on the freshly mounted real-content node, reusing
-     glim-fade-in above at its own (longer) duration rather than the
-     bubble/tooltip's fast one. Plays once per real mount, the same
-     "a persistent class on a freshly-created node only plays its entrance
-     once" mechanism glim-page-in/glim-toast-in already rely on. DEFINED
-     HERE, NOT YET WIRED to a consumer. */
+  /* Skeleton-to-content crossfade, once per mount. Not used yet. */
   .glim-content-in {
     animation: glim-fade-in var(--motion-content-dur) ease both;
   }
 
-  /* Directional panel slide: the new panel slides in from the trailing edge
-     moving to a LATER section, from the leading edge moving to an EARLIER
-     one. --dir-sign (defined near the top of this file, outside the motion
-     gate) keeps "later" meaning "trailing edge" rather than "always
-     rightward" once the page mirrors under [dir="rtl"]. A future consumer's
-     own click handler picks -forward vs -back (it has both the old and new
-     position in the same synchronous event, the one place that's still
-     true). DEFINED HERE, NOT YET WIRED to a consumer — and this app's
-     existing .glim-toast-in above does NOT itself flip under [dir="rtl"]
-     today, so adopting --dir-sign here doesn't retroactively fix that; a
-     future pass, not this one. */
+  /* Directional panel slide: from the trailing edge towards a later section,
+     from the leading edge towards an earlier one, mirrored under RTL. Not used
+     yet. */
   .glim-panel-in-forward {
     animation: glim-panel-in-forward var(--motion-panel-dur) cubic-bezier(.2, .6, .2, 1) both;
   }
@@ -1909,61 +1140,22 @@ body {
     animation: glim-panel-in-back var(--motion-panel-dur) cubic-bezier(.2, .6, .2, 1) both;
   }
 
-  /* =========================================================================
-     FOUR MOMENTS THAT DID NOT MOVE, and the three eggs whose motion lives on
-     this axis. Everything below is INSIDE this gate on purpose - it is the
-     same safety property the storm block a few hundred lines up carries: a
-     machine whose owner asked the operating system for less motion never
-     evaluates a data-motion selector at all, and an easter egg is the last
-     place to make an exception to that.
+  /* Four moments that did not move, and the easter eggs whose motion lives on
+     this axis, all inside the gate like the storm level. Their keyframes sit
+     with the eggs' section at the end of this file. */
 
-     The keyframes these play sit outside every gate, with the egg's own
-     section at the end of this file: a keyframe with nothing playing it does
-     nothing, and the gate is about who plays.
-     ========================================================================= */
-
-  /* THE SIDEBAR COUNT ROLLS INSTEAD OF SWAPPING. The badge in the rail is the
-     one number in this app somebody watches without reading it, and it changed
-     by replacing one glyph with another in a single frame - so a queue going
-     from 9 to 10 and a queue going from 9 to 1 looked identical. The new value
-     arrives from above, which is the direction a counter turns.
-
-     It rides --motion-content-dur, which every other "this content is new"
-     fade already reads, so at "off" the duration is 0 and the number simply
-     is what it is. Nothing is switched off here and nothing needs a substitute:
-     a count that lands instantly is the correct "off", not a missing message. */
+  /* The sidebar count rolls in from above instead of swapping in one frame, so
+     9 to 10 and 9 to 1 look different. At "off" the duration is 0 and the
+     number simply lands. */
   .kl-count {
     animation: kl-count-roll var(--motion-content-dur) var(--motion-curve) both;
   }
 
-  /* THE FRONT EDGE OF THE PROGRESS BAR IS ALIVE WHILE THE DOWNLOAD IS. The
-     determinate fill was a flat block that grew, so a download moving at
-     40 KiB/s and a download that had stalled at the same percentage drew
-     exactly the same picture. The edge breathes on the app's own ambient loop -
-     glim-pulse, the same keyframe the live dot on the speed curve uses - so
-     "this is moving" is said the same way in both places rather than in two.
-
-     A SECOND CLASS, AND IT IS THE WHOLE POINT OF THE RULE. .kl-bar-edge is the
-     mark itself and is drawn on any fill with room for it (the plain rule at
-     the foot of this file); .kl-bar-edge-live is the claim that something is
-     happening, and only the caller knows that. Carried by the one class, the
-     animation ran on every drawn row - measured on a list of 101, all 43 edges
-     in the window pulsing, forty of them finished files at 100% and one of them
-     a row somebody had paused on purpose. The mark is a state and the loop is
-     news, and news that is always on is not news.
-
-     It also settles the arithmetic. This page ran ONE infinite animation before
-     the edge existed - the dot on the speed curve - and one per drawn row after
-     it. Now it runs one per row that is genuinely moving bytes, which on a
-     queue is the concurrency setting and not the length of the list.
-
-     Its period is --motion-pulse-dur, and the two exemptions that token already
-     carries apply unchanged: "subtle" leaves the PERIOD alone (an ambient loop
-     is calmed by moving less, not by running faster - the amplitude does come
-     down, through --motion-pulse-min-opacity) and "off" gets a real stop rather
-     than a zero-length infinite animation, which is what the substitute below
-     is. The edge stays PAINTED at "off": it is a state, and the bar's leading
-     edge is still where the fill ends. */
+  /* The progress bar's front edge breathes while bytes are moving, on the same
+     glim-pulse as the live dot on the speed curve. .kl-bar-edge is the mark;
+     .kl-bar-edge-live is the caller saying the download is moving, so finished
+     and paused rows stay still and only the running rows animate. At "off" the
+     edge stays painted, since it still shows where the fill ends. */
   .kl-bar-edge-live {
     animation: glim-pulse var(--motion-pulse-dur) ease-in-out infinite;
   }
@@ -1972,17 +1164,8 @@ body {
     opacity: 1;
   }
 
-  /* THE TIP OF THE SPEED CURVE THROWS A RING. The tip already carried the
-     .glim-live dot, so it was not the dead corner it was reported as - what it
-     had was a dot changing opacity in place, which reads as a highlight rather
-     than as a reading arriving. The halo is the same beat made visible: one
-     ring per pulse, leaving the dot, on the SAME period, so the two are one
-     gesture and not two clocks.
-
-     PURE DECORATION, SO "off" REMOVES IT ENTIRELY rather than freezing it. That
-     is the difference between this and .glim-live one rule up: the dot has to
-     stay because it marks where "now" is on the curve, and the ring marks
-     nothing the dot does not. */
+  /* The tip of the speed curve throws one ring per pulse, on the dot's period.
+     Pure decoration, so "off" removes it; the dot stays because it marks now. */
   .kl-tip-halo {
     animation: kl-tip-halo var(--motion-pulse-dur) linear infinite;
   }
@@ -1991,42 +1174,20 @@ body {
     opacity: 0;
   }
 
-  /* THE SPEED CURVE ON THE STORM CURVE (easter egg: 1337).
-     With the speed limit standing at exactly 1337 KiB/s, this one element runs
-     on the hidden fourth motion level. It is the same act as choosing a level,
-     scoped to one curve: the two numbers come from the storm block's own
-     constants rather than from copies, so retuning the level retunes the egg.
-
-     It does NOT touch data-motion on <html>, which belongs to the user's own
-     setting and has to keep saying what they chose. And it cannot outrun "off"
-     or reduced motion, which is the half worth being sure about: the substitute
-     rules above and the (reduce) block below switch .glim-live and .kl-tip-halo
-     off by NAME, and a token this rule hands them changes nothing about a rule
-     that says `animation: none`. */
+  /* Easter egg: with the speed limit at exactly 1337 KiB/s, the speed curve
+     runs on the storm level's pulse. It leaves data-motion alone, and the
+     "off" and reduced-motion rules still stop .glim-live and .kl-tip-halo by
+     name. */
   .kl-storm-curve {
     --motion-pulse-dur: var(--egg-storm-pulse-dur);
     --motion-pulse-min-opacity: var(--egg-storm-pulse-min);
   }
 
-  /* THE SLEEPING KNIGHT (easter egg). An empty state that has stood untouched
-     long enough closes down: two slow blinks, then the mark settles and dims.
-     Anything arriving unmounts the empty state, so the way out is the ordinary
-     one - there is nothing to switch off and nothing to store.
-
-     THE DELAY IS THE WHOLE MECHANISM AND IT COSTS NOTHING. No timer, no
-     interval, no React state: one animation-delay, scheduled by the compositor
-     and thrown away with the element. `both` holds the FROM keyframe during the
-     delay, and the FROM keyframe is exactly what the mark looks like with no
-     rule at all, so an empty state that is replaced after two seconds has been
-     charged for nothing.
-
-     Six times --motion-content-dur, not a number of its own: two blinks and a
-     settle do not fit in one content fade, and a literal here would be the one
-     duration in this file the setting could not reach.
-
-     At "off" it is switched off outright rather than run at zero, and that is
-     the rule for decoration: a mark that jumps to a dimmed state with no
-     movement is not a quieter joke, it is a mark that looks broken. */
+  /* Easter egg: an empty state left alone long enough blinks twice and dozes
+     off. Anything arriving unmounts it. The delay needs no timer, and `both`
+     holds the first keyframe, which is the mark's normal look, while waiting.
+     Six content fades long so the setting reaches it. Switched off at "off",
+     where a sudden dim would look broken. */
   .kl-doze {
     animation: kl-doze calc(var(--motion-content-dur) * 6) ease-in-out var(--kl-doze-wait, 24s) both;
   }
@@ -2034,26 +1195,15 @@ body {
     animation: none;
   }
 
-  /* THE PARADE (easter egg). A package of many files closing in one go sends a
-     row of small shields across the bubble before the checkmark is drawn.
-
-     It rides the toast's own tokens and invents no second clock: the sweep is
-     four content fades long, the shields are spaced by --motion-stagger-step
-     and capped by --motion-stagger-cap exactly as .glim-stagger's own rows are,
-     and the checkmark is the app's .glim-checkmark held back by the length of
-     the sweep. At "off" all three numbers are 0, so the bubble draws its
-     checkmark at once and the parade has already finished - nothing to switch
-     off, because the level did it.
-
-     --dir-sign carries the direction, so the shields ride out of the bubble's
-     trailing edge in an Arabic or Hebrew locale rather than always rightwards. */
+  /* Easter egg: a package of many files finishing at once sends a row of
+     small shields across the toast before the checkmark is drawn. It uses the
+     stagger tokens, so at "off" everything is 0 and the checkmark appears at
+     once. --dir-sign carries the direction under RTL. */
   .kl-parade {
     animation: kl-parade calc(var(--motion-content-dur) * 4) ease-in-out both;
     animation-delay: min(calc(var(--stagger-index, 0) * var(--motion-stagger-step)), var(--motion-stagger-cap));
   }
-  /* Longhand AFTER .glim-checkmark's shorthand a few rules up, which is what
-     lets it add a delay without restating the animation: the shorthand resets
-     animation-delay, so the order of these two rules is load-bearing. */
+  /* Must come after .glim-checkmark, whose shorthand resets animation-delay. */
   .kl-parade-check {
     animation-delay: calc(var(--motion-content-dur) * 4);
   }
@@ -2062,73 +1212,28 @@ body {
   .glim-page-enter { animation: glim-fade-in 180ms ease both; }
   .glim-toast { animation: glim-fade-in 160ms ease both; }
   .glim-shake { animation: glim-shake-reduced 300ms ease-in-out; }
-  /* Both halves of the floating window collapse to the SAME short fade, which
-     is what the rule asks for in as many words: the card stops rising, the
-     ground still comes up under it, and the window is still visibly new rather
-     than simply there. Hard-coded like every other value in this block — no
-     data-motion token is reachable from here by design (see the section
-     header). */
+  /* Both halves of the floating window become the same short fade, so the
+     window still visibly arrives. No motion token reaches this block. */
   .glim-modal-backdrop { animation: glim-fade-in 160ms ease both; }
   .glim-modal-card { animation: glim-fade-in 160ms ease both; }
-  /* Shares one rule's worth of declarations with data-motion="off" above rather
-     than inventing a second copy, the same arrangement .glim-live settled on. */
   .glim-locate { animation: glim-locate-reduced 900ms ease-out; }
-  /* Previously missing here despite being GlimStone's own documented
-     requirement ("An infinite animation gets a true stop under reduced
-     motion, not a slower version") — .glim-live simply had no matching
-     animation property under this query before, which happened to look
-     right (a static dot) without actually forcing the opacity, and without
-     giving data-motion="off" (above) an existing rule to share. Added now
-     so both genuinely share one rule's worth of declarations rather than
-     data-motion="off" inventing a second, separately-maintained copy. */
+  /* An infinite animation gets a true stop under reduced motion, not a slower
+     version. */
   .glim-live { animation: none; opacity: 1; }
-  /* The two ambient loops added with the four new moments, given the same true
-     stop .glim-live gets one line up rather than a slower version of themselves.
-     They share a rule's worth of declarations with their data-motion="off"
-     counterparts above for the reason that pair already records: a rule cannot
-     be shared across two media queries, so the choice is one copy here or two
-     separately-maintained recipes.
-
-     The bar's edge keeps its paint and the curve's halo does not, which is the
-     same split the pair above makes: the edge says where the fill ends, which
-     is a fact about the bar; the halo says nothing the dot beneath it does not
-     already say.
-
-     Named by the MARK's class and not by .kl-bar-edge-live, deliberately: the
-     live class only ever appears alongside this one, and the mark is what has
-     to keep its opacity whether or not the caller said anything was moving.
-     There is no cascade fight to lose either way - the animation itself lives
-     inside the no-preference gate, which this query is the other side of. */
+  /* The bar's edge keeps its paint, since it marks where the fill ends; the
+     halo adds nothing the dot does not say. */
   .kl-bar-edge { animation: none; opacity: 1; }
   .kl-tip-halo { animation: none; opacity: 0; }
-  /* The parade's shields, and this one is a bug fix rather than a symmetry.
-     Every other rule in this block replaces a movement; this one replaces a
-     movement that was the ONLY thing keeping five marks off the bubble's own
-     text. Unlike data-motion="off", where the sweep still runs and simply runs
-     at zero - so it ends where it always ends, off the trailing edge and
-     invisible - this query never reaches the animation at all, and a row with
-     no animation on it is five shields sitting at full opacity across the
-     message. Measured, not reasoned about.
-
-     So under reduced motion the row is not shown, and the checkmark is drawn
-     immediately: .glim-checkmark's unconditional base at the top of this file
-     is "fully drawn, no animation", and the delay that holds it back for the
-     sweep lives inside the no-preference gate with the sweep itself. The
-     bubble says the same thing with no procession in front of it. */
+  /* Without the animation the shields would sit over the toast's text, so the
+     row is hidden and the checkmark is drawn at once. */
   .kl-parade { animation: none; opacity: 0; }
 }
 
-/* ---------------------------------------------------------------------------
-   The colour picker (lib/colorPicker.ts), copied from the shared reference
-   (glimstone/reference/tokens.css) so both halves stay one control. It
-   replaces the native <input type="color"> the Look page used to hide behind
-   a swatch: a native picker hands its surface to the OS, which on Windows is
-   a separate top-level window, and nothing automated can prove it opened.
-   TWO divergences from the reference, both deliberate and both written down
-   where they happen: no hairline around the saturation square (surfaces here
-   are separated by shade, never by a drawn line), and the hex field's focus
-   fill — see .glim-picker-hex:focus at the end of this section.
-   --------------------------------------------------------------------------- */
+/* The colour picker (lib/colorPicker.ts), copied from GlimStone's
+   reference/tokens.css. It replaces the native colour input, whose surface on
+   Windows is a separate OS window. Two differences from the reference: no
+   hairline around the saturation square, and the hex field's focus fill (see
+   .glim-picker-hex:focus). */
 .glim-picker {
   width: 100%;
   min-width: 0;
@@ -2169,11 +1274,8 @@ body {
   pointer-events: none;
 }
 
-/* The floating popover openColorPickerPopover() renders the picker into -
-   a fixed-position panel, own elevated surface (same recipe as .glim-card:
-   one raised level, one hairline, one shadow), sized to the picker's own
-   natural width rather than stretching to whatever's beneath it. Column
-   flex: the picker itself, then the hex field below it. */
+/* The popover openColorPickerPopover() renders into: a fixed panel with the
+   card's surface, sized to the picker. */
 .glim-picker-popover {
   position: fixed;
   z-index: 2147483647;
@@ -2189,10 +1291,8 @@ body {
   width: 13.75rem;
 }
 
-/* The hex field beside the picker (CannonadeCommand's own cc-set-hexin) -
-   a plain borderless filled field (rule 14), monospace so every hex digit
-   lines up, uppercase-styled via letter-spacing/text-transform rather than
-   forcing the stored value's own case. */
+/* The hex field: borderless and filled (rule 14), monospace so the digits
+   line up, shown uppercase without changing the stored value. */
 .glim-picker-hex {
   appearance: none;
   width: 100%;
@@ -2207,100 +1307,35 @@ body {
   letter-spacing: 0.02em;
   text-transform: uppercase;
 }
-/* THE ONE PLACE THIS FILE PARTS COMPANY WITH GlimStone's OWN tokens.css, and
-   the decision is written here rather than carried silently: the reference
-   raises this field to --carbon-hover on focus, and this file raises it to
-   --carbon-surface3.
-
-   The field rests on --carbon-surface2. Measured on all three colour modes:
-   dark #393939 -> #353535 is a step DOWN the ramp, so the field dims at the one
-   moment somebody is looking straight at it; light and system #e8e8e8 ->
-   #e0e0e0 does move away from the ground, but by one shade, which is the same
-   near-nothing. --carbon-surface3 is the answer in both directions at once —
-   #525252 on dark, #d1d1d1 on light — and it is the step rule 21 already
-   names for anything filled with surface2, so this is the house ramp applied,
-   not a value invented for one field.
-
-   Why not simply follow the reference: web/check-hover-ramp.mjs exists in this
-   repo BECAUSE the ramp stood as prose in GlimStone's token table and was still
-   got wrong thirteen times across three apps, once here. "It says so in
-   GlimStone's own tokens.css" is therefore an argument against copying it, not
-   for. The reference should be corrected upstream; until it is, the two files
-   disagree on purpose and this paragraph is the record of it.
-
-   `outline: none` stays, and stays legal: the fill IS the focus mark on a
-   filled form field (rule 14), and rule 14 is the one exemption to the global
-   focus ring. Outside a form field a ring is never traded for a brightness or
-   a fill. */
+/* GlimStone's reference uses --carbon-hover here, which is darker than
+   surface2 on the dark theme and barely different on light. surface3 is the
+   step rule 21 names for a surface2 fill (check-hover-ramp.mjs). On a filled
+   field the fill is the focus mark (rule 14), so the outline can go. */
 .glim-picker-hex:focus {
   outline: none;
   background-color: var(--carbon-surface3);
 }
 
-/* ---------------------------------------------------------------------------
-   The scrim behind a floating window (GlimStone 1.11.0)
-   ---------------------------------------------------------------------------
-   THE SCRIM IS A TOKEN, and it is one because it was a literal. Every element
-   that floats a window carries this class and nothing paints its own ground:
-   no bg-black/50, no second number a component invented for itself. The
-   strength lives in --glim-scrim in each theme block, so "make it darker" is
-   one edit instead of a search through every component that opens something.
-
-   An outlier with a strength of its own is precisely the case 1.11.0 went
-   looking for in another app and found four times over, at two different
-   values, with nothing in the codebase able to notice.
-   --------------------------------------------------------------------------- */
+/* The scrim behind every floating window. Its strength is --glim-scrim in each
+   theme block, so no component paints its own ground. The arrival animation
+   is in the motion engine above; .glim-modal-card has no paint of its own. */
 .glim-modal-backdrop {
   background: var(--glim-scrim);
 }
 
-/* The window's ARRIVAL is the other half of the same rule, and it is not here:
-   both .glim-modal-backdrop's fade and .glim-modal-card's rise are animations,
-   so they live in the motion engine above with every other animation and the
-   tokens they read — searching this file for "modal" finds both.
-   .glim-modal-card carries no paint of its own either: the card's surface,
-   radius and shadow come from .glim-card as they always did. */
+/* A button carrying a brand's mark (GlimStone 1.9.0). At rest the mark uses
+   the theme-adjusted colour (--brand); on hover the true colour becomes the
+   fill (--brand-fill) and label and mark switch to its measured ink
+   (--brand-ink). Use `.glim-brand-btn` with one `.glim-brand-<name>`, which
+   supplies the values.
 
-/* ---------------------------------------------------------------------------
-   A button carrying somebody else's mark (GlimStone 1.9.0 / 1.10.0)
-   ---------------------------------------------------------------------------
-   Three values per brand, and the split between them is the whole point. The
-   ADJUSTED colour rides at rest (--brand, a theme token, because a published
-   brand colour dies on one of the two grounds); the TRUE colour is spent on
-   HOVER as the button's own fill (--brand-fill), which is the ground that
-   colour was actually drawn for; and the label and the mark both flip to that
-   colour's measured ink (--brand-ink), because a fixed ink on a fill somebody
-   else chose is a contrast nobody can predict.
-
-   The hexes live here and the call site names a brand by class, so no page file
-   holds a colour. The two classes travel together — `.glim-brand-btn` plus one
-   `.glim-brand-<name>`: the first spends the three values and the second is
-   what supplies them, so a button carrying only the first has no --brand to
-   read and paints its mark in the initial fill.
-
-   `svg path` as well as `svg` is not belt-and-braces, it is the half that works
-   for some marks: a fill set on the <svg> only reaches paths that declare none
-   of their own, and a glyph writing fill="currentColor" on the PATH beats an
-   inherited value from its parent. Every mark here is a single-colour drawing,
-   so painting both levels is safe. The selector reaches the button's own <svg>
-   rather than a .glim-btn-glyph wrapper, because this app's About buttons are
-   plain anchors with the mark as a direct child.
-
-   A mark that brings its OWN GROUND takes none of these classes: a coin disc is
-   a filled circle in the brand's colour with a white symbol on it, so what
-   decides whether it can be read sits inside the mark and is the same on either
-   theme. Flattening it to one ink would be redrawing the logo.
-   --------------------------------------------------------------------------- */
+   Both `svg` and `svg path` are painted because a path with its own
+   fill="currentColor" ignores an inherited fill. A mark that brings its own
+   ground, such as a coin disc, takes none of these classes. */
 .glim-brand-btn svg,
 .glim-brand-btn svg path {
   fill: var(--brand);
-  /* Reads the engine's control duration rather than a number of its own: this
-     was the one literal transition left in the file, and a transition the
-     motion setting cannot reach is the same defect as a keyframe it cannot
-     reach. The fallback is the number it used to be, and it is doing real work
-     — --motion-control-dur resolves only inside the no-preference gate, and
-     this rule sits outside every gate, so a browser reporting OS-level reduced
-     motion lands on 120ms here exactly as before. */
+  /* The fallback applies outside the motion gate, under OS reduced motion. */
   transition: fill var(--motion-control-dur, 120ms);
 }
 .glim-brand-btn:hover:not(:disabled) {
@@ -2336,68 +1371,31 @@ body {
   --brand-ink: #ffffff; /* 18.3:1 */
 }
 
-/* The house's own button: the route that reaches this app's AUTHORS rather than
-   a third party. It is the one button in that row that follows the colour
-   engine, so all three values are engine tokens — --accent-ink is the token for
-   accent-coloured GRAPHICS on an ordinary surface, which is the same job
-   --brand-* does for the four brands, and the hover pair is the ordinary accent
-   pairing. This one changes with the user's accent and with rainbow mode; a
-   vendor's mark may not. */
+/* The button that reaches this app's authors. Unlike a vendor's mark it
+   follows the user's accent and the rainbow, so all three values are engine
+   tokens. */
 .glim-brand-house {
   --brand: var(--accent-ink);
   --brand-fill: var(--accent);
   --brand-ink: var(--accent-contrast);
 }
 
-/* =========================================================================
-   EASTER EGG: DRAW AND STRIKE
-   -------------------------------------------------------------------------
-   Press and hold the wordmark in the sidebar and the blade draws upward out
-   of the rail, a highlight running along its edge; let go and it swings down
-   with a light trail while a shockwave runs through the entries below (jdp,
-   2026-09-07: "Können wir für das logo ein easter-egg animnation einbauen wie
-   für BV?", then choosing "Ziehen und Schlagen" from six proposals).
+/* Easter egg: draw and strike. Holding the sidebar wordmark draws the blade up
+   out of the rail with a glint along its edge; letting go swings it down while
+   a shockwave runs through the entries below. The sword's counterpart to
+   BombVault's shattering bomb.
 
-   BombVault's own egg is destruction - hold, wobble, shatter into 36 pieces
-   with a fire cloud - which fits a bomb. The counterpart for a sword is the
-   sword's own gesture, and it keeps the same rhythm: tension while held,
-   discharge on release.
-
-   Everything below is keyed off data-motion the same way every other
-   animation in this file is, so "off" leaves a single glint and no movement
-   at all.
-
-   AND IT SITS IN THE SAME no-preference GATE the rest of the engine does, which
-   it did not before. The sentence here used to claim a viewer whose OS asks for
-   reduced motion never reaches these rules; that was simply untrue - the rules
-   stood at top level, the (reduce) block never named them, and the fallbacks in
-   var(--egg-draw, 11%) and var(--egg-quake, 3px) meant such a viewer got the
-   full draw, a 34-degree strike, the quake and the shockwave through the rail.
-   A written reason that is factually wrong covers nothing, and it is worse than
-   no reason, because the next reader stops looking.
-
-   The keyframes themselves stay outside the gate: a keyframe with nothing
-   playing it does nothing, and the gate is about who plays. Layout (the box,
-   the overflow, the pivot) stays outside for the same reason - it is not
-   motion, and the mark still has to be drawn correctly for a reader who asked
-   for less of it.
-   ========================================================================= */
+   The playing rules sit in the no-preference gate, so reduced motion and
+   "off" get the glint alone. The keyframes and the layout (box, overflow,
+   pivot) stay outside, since they do not move anything by themselves. */
 @keyframes kl-egg-draw {
   from { transform: translateY(0) rotate(0deg); }
   to   { transform: translateY(calc(-1 * var(--egg-draw, 11%))) rotate(-7deg); }
 }
 
-/* THE BLOW, and the timing function is inside the keyframes on purpose.
-   One curve across the whole animation is what made this sway instead of
-   strike (jdp: "das schwert soll mit gewalt nach unten schmettern und alles
-   zum zittern bringen, nicht nur zum schwanken"): a single ease spreads the
-   travel evenly, so the blade drifted down. A strike is not evenly spread. It
-   accelerates into the ground, stops dead, and rebounds.
-
-   So each segment carries its own curve: the descent gets one that piles the
-   distance at the end, and everything after the impact rides an ease-out that
-   drains. The blade also goes PAST its resting angle and comes back, which is
-   what a thing that hit something does. */
+/* The blow. Each segment carries its own timing function: the descent
+   accelerates into the ground, stops dead, overshoots the resting angle and
+   rebounds. One curve for the whole animation made it sway instead of strike. */
 @keyframes kl-egg-strike {
   0%   { transform: translateY(calc(-1 * var(--egg-draw, 11%))) rotate(-7deg);
          animation-timing-function: cubic-bezier(.7, 0, .9, .3); }
@@ -2413,14 +1411,9 @@ body {
   100% { transform: translateY(0) rotate(0deg); }
 }
 
-/* THE GROUND SHAKING, on the whole mark, shield included.
-   This reverses a rule that used to stand a few lines below, and the reversal
-   is jdp's: the shield was held still because the DRAW used to wobble the whole
-   logo, which read as a shaking image rather than as a sword being pulled. That
-   still holds while the blade is being raised. An IMPACT is the opposite case -
-   if the shield does not move when something slams into it, nothing was hit.
-   Two axes and a little rotation, because a shake on one axis reads as a slide.
-   It decays rather than stopping, so it ends instead of being cut off. */
+/* The impact shakes the whole mark, shield included. Two axes and a little
+   rotation, because a shake on one axis reads as a slide, decaying so it ends
+   rather than stops. */
 @keyframes kl-egg-quake {
   0%   { transform: translate(0, 0) rotate(0deg); }
   12%  { transform: translate(calc(-1 * var(--egg-quake, 3px)), var(--egg-quake, 3px)) rotate(-1.4deg); }
@@ -2432,21 +1425,16 @@ body {
   100% { transform: translate(0, 0) rotate(0deg); }
 }
 
-/* The light running up the steel while the blade is drawn. A brightness pulse
-   on the sword itself rather than a bright rectangle laid over the mark: the
-   overlay version could not know where the blade was, so it lit the shield and
-   the background with it. This one is shaped like the thing it is lighting,
-   for free, because it IS the thing. */
+/* The light running up the steel: a brightness pulse on the sword itself, so
+   it lights only the blade. */
 @keyframes kl-egg-sheen {
   0%   { filter: brightness(1); }
   30%  { filter: brightness(1.45) saturate(.85); }
   100% { filter: brightness(1); }
 }
 
-/* The shudder that runs down the rail after the blow lands. It was one push to
-   the side and back, which reads as a nudge; a blow that shook the mark has to
-   shake what stands under it too, so this is the same decaying shape as the
-   quake above, one entry after the next. */
+/* The shudder running down the rail after the blow, the same decaying shape as
+   the quake, one entry after the next. */
 @keyframes kl-egg-wave {
   0%   { transform: translate(0, 0); }
   15%  { transform: translate(var(--egg-shove, 7px), calc(.4 * var(--egg-shove, 7px))); }
@@ -2457,39 +1445,20 @@ body {
 }
 
 .kl-egg { position: relative; display: inline-flex; }
-/* The inline mark fills the box the sidebar gave the old <img>, so the two
-   display widths keep the sizes they had.
-   OVERFLOW VISIBLE, and that is a bug fix rather than tidiness: an <svg> clips
-   to its own viewBox by default, so raising the sword took its point outside
-   the box and the tip was simply cut off at the top (jdp: "oben wird
-   abgeschnitten"). Nothing in the layout changes - the element still occupies
-   the same space - the blade is just allowed to be drawn outside it. */
+/* An <svg> clips to its viewBox, which would cut off the raised blade's point. */
 .kl-egg, .kl-egg > svg { overflow: visible; }
 .kl-egg > svg { height: 100%; width: auto; display: block; }
 
-/* THE POINT OF THE WHOLE REWRITE: the animation targets #kl-sword, not the
-   mark. Moving the <img> wobbled the shield along with the blade, which reads
-   as a shaking logo rather than as a sword being drawn (jdp, 2026-09-07: "da
-   wackelt einfach das ganze logo. kannst du es nicht zerlegen, so dass sich
-   nur das schwert bewegt?"). The two layers are named in logo.svg itself, so
-   the split survives a re-export of the artwork as long as the grouping does.
-
-   transform-box: fill-box makes the percentages below refer to the sword's own
-   bounding box instead of the whole SVG viewport, which is what lets one
-   origin work at both sidebar sizes. The pivot sits at 37% of the sword's
-   height: that is just under the crossguard, where a hand actually holds it.
-   Rotating about the centre swings the pommel and the point in opposite
-   directions, which looks like a propeller, not a strike. */
+/* Only the sword moves; the layers are named in logo.svg. transform-box makes
+   the percentages refer to the sword's own box, and 37% of its height is just
+   under the crossguard, where a hand holds it. */
 #kl-sword {
   transform-box: fill-box;
   transform-origin: 50% 37%;
 }
 
-/* The shield does not move WHILE THE BLADE IS RAISED, and that is the whole
-   reason this was rewritten: moving the <img> wobbled the shield along with the
-   sword and read as a shaking logo. It does move when something hits it, and
-   that motion comes from .kl-egg below, one level up, so the shield is carried
-   rather than animated - the split between the two layers survives. */
+/* The shield stays still while the blade is raised; the impact moves it
+   through .kl-egg one level up. */
 #kl-shield { transform: none; }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -2498,25 +1467,21 @@ body {
       kl-egg-draw var(--egg-draw-dur, 520ms) cubic-bezier(.2, .7, .3, 1) forwards,
       kl-egg-sheen var(--egg-sheen-dur, 900ms) ease-out forwards;
   }
-  /* Shorter than it was, because the old 620ms is what a sway takes. The curve
-     is `linear` here and NOT a mistake: every segment carries its own timing
-     inside the keyframes above, and a curve stated here would be applied on top
-     of each of them and flatten exactly the acceleration this is about. */
+  /* linear, because every keyframe segment carries its own timing and a curve
+     here would flatten the acceleration. */
   .kl-egg[data-egg='strike'] #kl-sword {
     animation: kl-egg-strike var(--egg-strike-dur, 540ms) linear forwards;
   }
 
-  /* The mark shakes when the blade lands, not when the swing begins. The delay
-     is the fraction of the strike at which the 16% keyframe sits, so the two are
-     tied to the same duration and stay in step if it is ever retuned. */
+  /* The mark shakes when the blade lands: the delay is the strike's 16%
+     keyframe, tied to the same duration. */
   .kl-egg[data-egg='strike'] {
     animation: kl-egg-quake var(--egg-quake-dur, 420ms) ease-out calc(var(--egg-strike-dur, 540ms) * .16) both;
   }
 
   .kl-egg-struck { animation: kl-egg-wave var(--egg-wave-dur, 380ms) ease-out; }
 
-  /* Subtle keeps the gesture and halves the travel; off keeps only the change of
-     light, which is the one part that moves nothing. */
+  /* Subtle halves the travel; off keeps only the change of light. */
   [data-motion='subtle'] .kl-egg {
     --egg-draw: 5%;
     --egg-shove: 3px;
@@ -2534,59 +1499,28 @@ body {
   [data-motion='off'] .kl-egg-struck { animation: none; }
 }
 
-/* OS-level reduced motion gets exactly what data-motion="off" gets, declared
-   once more because a rule cannot be shared across two media queries: the glint
-   and nothing else. The egg is still THERE - holding the wordmark still answers
-   with a change of light, so the reader who found it has found something - it
-   simply does not draw, strike, quake or shove. Everything else in the block
-   above is absent from here rather than switched off, which is the whole point
-   of the gate: a browser reporting reduced motion never meets a data-motion
-   selector for these properties at all. */
+/* Reduced motion gets what "off" gets: the glint and nothing else. */
 @media (prefers-reduced-motion: reduce) {
   .kl-egg[data-egg='draw'] #kl-sword {
     animation: kl-egg-sheen var(--egg-sheen-dur, 900ms) ease-out forwards;
   }
 }
 
-/* ===========================================================================
-   Four more eggs, and four moments that stood still
-   ---------------------------------------------------------------------------
-   The keyframes and the LAYOUT for everything the block inside the motion gate
-   plays. Split the same way .kl-egg above is split, and for the same two
-   reasons: a keyframe with nothing playing it does nothing, so it costs nothing
-   to leave outside the gate, and a box, a pivot or an overflow rule is not
-   motion - the mark still has to be drawn correctly for a reader who asked for
-   less of it.
+/* Keyframes and layout for the eggs and moments played inside the motion gate
+   above. docs/easter-eggs.md lists them and how to turn each one off again;
+   none of them stores anything. */
 
-   docs/easter-eggs.md is the list, including the interaction that turns each
-   one off again. The rule all of them follow: an egg that changes behaviour has
-   to be switchable back off and must not quietly become a permanent entry in a
-   settings list. Nothing below writes anything anywhere.
-   =========================================================================== */
-
-/* The sidebar count, arriving from above. Small travel on purpose: the badge is
-   a 11px number in a 20px corner, and anything further reads as the badge
-   falling off the glyph rather than as the number turning over. */
+/* The sidebar count arriving from above. Small travel, since anything further
+   reads as the badge falling off its glyph. */
 @keyframes kl-count-roll {
   from { opacity: 0; transform: translateY(-45%); }
   to   { opacity: 1; transform: none; }
 }
 
-/* The ring leaving the tip of the speed curve. transform rather than the SVG
-   `r` attribute, which CSS can animate in current browsers and could not in the
-   ones this app still runs on; transform-box below is what makes the scale
-   happen about the circle's own centre instead of the viewBox origin.
-
-   IT STARTS AT THE DOT'S OWN SIZE, so the ring is born at the dot's edge rather
-   than inside it: the two circles share a radius in the markup, and scale 1 is
-   therefore exactly "on the dot".
-
-   LINEAR, AND THAT IS MEASURED. On an ease-out - which is the obvious curve for
-   an expanding ring, and what this had - the opacity is eased with everything
-   else, so the ring was down to 0.23 of its own 0.55 within the first twentieth
-   of the cycle and invisible for the rest of it: a ping nobody could see, twice
-   a second. Straight lines on both properties keep it readable for half its
-   life, which is what a beat has to be to read as a beat. */
+/* The ring leaving the speed curve's tip. A transform rather than the SVG `r`
+   attribute, which older browsers cannot animate. It starts at the dot's own
+   size, so it is born at the dot's edge, and runs linear so the ring stays
+   visible for half its life instead of fading at once. */
 @keyframes kl-tip-halo {
   from { transform: scale(1); opacity: .6; }
   to   { transform: scale(3.2); opacity: 0; }
@@ -2596,14 +1530,8 @@ body {
   transform-origin: 50% 50%;
 }
 
-/* The doze. Two blinks and a settle, in one keyframe rather than three chained
-   animations: the eye reads "it is nodding off" from the second blink being
-   slower than the first, and a chain would need three delays kept in step with
-   one duration.
-
-   IT ENDS DIMMED AND SLIGHTLY SHORTER, NOT CLOSED. A mark squashed flat is not
-   a sleeping mark, it is a missing one, and the empty state's glyph is the only
-   thing in that box carrying any weight at all. */
+/* The doze: two blinks, the second slower, then a settle. It ends dimmed and
+   slightly shorter rather than closed, since a flattened mark looks missing. */
 @keyframes kl-doze {
   0%   { transform: scaleY(1);   opacity: 1; }
   42%  { transform: scaleY(.08); opacity: .75; }
@@ -2611,27 +1539,21 @@ body {
   78%  { transform: scaleY(.08); opacity: .7; }
   100% { transform: scaleY(.92) translateY(1px); opacity: .5; }
 }
-/* inline-flex and a bottom origin: an icon that shrinks about its centre slides
-   up while it closes, which reads as the mark leaving rather than resting. */
+/* A bottom origin, so the icon rests rather than sliding up as it closes. */
 .kl-doze {
   display: inline-flex;
   transform-origin: 50% 100%;
 }
 
-/* The parade, riding out of the bubble's trailing edge. --dir-sign is the same
-   token the directional panel slide spends, so the shields march the way the
-   reader's own language runs. */
+/* The parade, marching the way the reader's language runs. */
 @keyframes kl-parade {
   0%   { opacity: 0; transform: translateX(calc(var(--dir-sign) * -160%)); }
   18%  { opacity: 1; }
   82%  { opacity: 1; }
   100% { opacity: 0; transform: translateX(calc(var(--dir-sign) * 160%)); }
 }
-/* The row lies OVER the bubble's text and takes no pointer events: the bubble
-   still says what finished while the shields pass, and the dismiss button under
-   them stays pressable for the whole sweep. A bubble that cannot be dismissed
-   while its own joke is running would be the egg eating a control, which is the
-   blade's own rule one section up. */
+/* The row lies over the toast and takes no pointer events, so the dismiss
+   button stays usable during the sweep. */
 .kl-parade-row {
   position: absolute;
   inset: 0;
@@ -2644,35 +1566,15 @@ body {
   color: var(--accent-ink);
 }
 
-/* The progress bar's leading edge.
-   ---------------------------------------------------------------------------
-   Inside the fill, at its trailing end, so `inset-inline-end` puts it on the
-   correct side under [dir="rtl"] without a second rule.
+/* The progress bar's leading edge, inside the fill at its end, so
+   `inset-inline-end` handles RTL.
 
-   A WHITE HIGHLIGHT AND NOT A TOKEN, which is the one deliberate exception in
-   this rule. It is painted ON the fill and never on the page's ground: the fill
-   is --accent or --status-ok-solid, both saturated mid-tones that are the same
-   colour in every theme, so what this needs is "brighter than whatever is under
-   it" rather than a colour of its own. A theme token here would be the wrong
-   question answered precisely - --accent-contrast is near-black ink for text
-   sitting on gold, and a near-black cap on the front of a gold bar reads as a
-   notch cut out of it rather than as an edge.
+   White rather than a token: it sits on the fill, which is a saturated
+   mid-tone in every theme, and only needs to be brighter than it.
 
-   THE FILL IS THE EDGE'S OWN MEASURING STICK, which is what the container below
-   is for and the only reason this element has one. ProgressBar knows a
-   PERCENTAGE and nothing else; how many pixels that comes to is known here and
-   nowhere else, and it is a different number on a table cell, on the Overview
-   card and on a disk tile. So the guard cannot live in the component: measured
-   at 1% of a 110px rail, the fill was 1.09px while this mark was 3px, so it
-   covered the whole of the fill AND began 1.91px to the left of it - a download
-   that had just started drew a white stub where its first coloured pixel should
-   have been, with a 6px white glow around it. A mark that is wider than the
-   thing it marks is not an edge.
-
-   9px, three times the mark's own width, so the fill keeps two thirds of itself
-   when the edge appears. Below that there is no edge to show and the bar is
-   simply the accent, which is the truthful picture of a download that has
-   barely begun. */
+   The fill is a size container because only CSS knows how many pixels the
+   percentage comes to. Below 9px, three times the mark's width, the edge
+   would cover the fill, so it is hidden. */
 .kl-bar-fill {
   container: kl-bar / inline-size;
 }

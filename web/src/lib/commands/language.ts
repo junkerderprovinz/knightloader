@@ -1,18 +1,8 @@
 import { langPickerOpen, setLangPickerOpen } from '../langPickerOpen';
 import type { Command } from './types';
 
-/**
- * Opens/closes the sidebar's language dropdown (components/LanguagePicker.tsx).
- * Its `open` flag now lives in lib/langPickerOpen.ts precisely so a global
- * command can reach it (see that file's own doc comment) - `run` below calls
- * the same setLangPickerOpen() the picker's own click-outside and Escape
- * handling already call, never a second copy of "close the menu".
- *
- * langPickerOpen() is read directly (not through CommandContext, which has
- * no field for it) because it is a plain module-level getter, not a hook -
- * calling it from `visible` is exactly what a synchronous, non-hook getter
- * is for.
- */
+/** Opens and closes the sidebar's language dropdown through the module-level
+ *  flag in lib/langPickerOpen.ts, which the picker itself also uses. */
 export const languageCommands: Command[] = [
   {
     id: 'shell.openLanguagePicker',

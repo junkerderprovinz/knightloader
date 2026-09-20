@@ -3,20 +3,11 @@ import qrcode from 'qrcode-generator';
 import type { QRMatrix } from './api';
 
 /**
- * A string as the same module grid the server hands over for a pairing code,
- * so components/QRCode.tsx draws both the same way.
- *
- * Encoding normally stays on the server here, and that rule is not being
- * abandoned: it exists because the pairing QR encodes an address list the same
- * response already carries, and an encoder on each side is two places that can
- * disagree about what was encoded. Neither half of that applies to a donation
- * address. It is a constant in this bundle, it never changes at runtime, and
- * there is no response to be out of step with - asking a server to encode a
- * string the page already has would be a round trip that can fail, in a window
- * that otherwise works with the network unplugged.
- *
- * Type 0 asks for the smallest version that fits and level M is the usual
- * trade for a screen, where a code is not going to be smudged or folded.
+ * qrMatrix encodes a string as the module grid the server sends for pairing
+ * codes, so components/QRCode.tsx draws both. Pairing codes are encoded on the
+ * server beside the addresses they carry; this is for constants such as the
+ * donation addresses, which need no round trip. Type 0 picks the smallest
+ * version; level M suits a screen.
  */
 export function qrMatrix(value: string): QRMatrix {
   const qr = qrcode(0, 'M');

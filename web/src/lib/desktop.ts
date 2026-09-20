@@ -1,16 +1,9 @@
-// The frontend's only door onto package 20's two OS-native actions
-// (reveal-in-folder, open-natively) and the only place that asks "am I
-// running inside the desktop app at all".
+// The desktop app's two OS-native actions, reveal-in-folder and
+// open-natively, and the check whether the page runs inside the desktop app.
 //
-// Wails binds Go methods onto window.go.<package>.<Type>.<Method> at runtime
-// - there is nothing to import, because the desktop build injects the object
-// itself into the page before any script of ours runs. The container/browser
-// build never does that: desktop/files.go's DesktopFiles type is only ever
-// bound from desktop/main.go, which is a separate Go module the server never
-// imports. So window.go.main.DesktopFiles is simply undefined in a browser,
-// and isDesktop() below is a plain, synchronous check for that - not a
-// server round trip, and not a build-time flag that could disagree with what
-// is actually running.
+// Wails injects the Go bindings as window.go.<package>.<Type>.<Method> before
+// the page's scripts run. Only desktop/main.go binds DesktopFiles, so in a
+// browser the object is undefined and isDesktop() is a plain check for it.
 interface DesktopFilesBinding {
   RevealInFolder(taskId: string): Promise<void>;
   OpenNatively(taskId: string): Promise<void>;
@@ -26,11 +19,8 @@ export function isDesktop(): boolean {
   return binding() !== null;
 }
 
-/**
- * revealInFolder and openNatively reject with the server's own reason
- * (SafeTaskFile's refusal, or the OS call's own error) rather than failing
- * silently - a caller shows that message, it does not swallow it.
- */
+/** revealInFolder and openNatively reject with the Go side's reason, which
+ *  the caller shows. */
 export async function revealInFolder(taskId: string): Promise<void> {
   const b = binding();
   if (!b) throw new Error('reveal-in-folder is only available in the desktop app');

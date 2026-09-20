@@ -12,9 +12,8 @@ interface LanguageDef {
   rtl?: boolean;
 }
 
-// The catalogue mirrors BombVault's, so the two apps offer the same choice.
-// Only entries with a shipped dictionary are offered — a language in the menu
-// always means a translated app, never an English fallback in disguise.
+// The catalogue mirrors BombVault's. Only languages with a shipped dictionary
+// are offered, so choosing one always gives a translated app.
 const CATALOGUE: LanguageDef[] = [
   { code: 'en', label: 'English', flag: 'gb' },
   { code: 'de', label: 'Deutsch', flag: 'de' },
@@ -51,8 +50,7 @@ const CATALOGUE: LanguageDef[] = [
   { code: 'lv', label: 'Latviešu', flag: 'lv' },
   { code: 'et', label: 'Eesti', flag: 'ee' },
   { code: 'is', label: 'Íslenska', flag: 'is' },
-  // The three languages of Spain get their own regional flags rather than three
-  // identical Spanish ones, which would make the menu unreadable at a glance.
+  // Regional flags, so the three languages of Spain are told apart at a glance.
   { code: 'ca', label: 'Català', flag: 'es-ct' },
   { code: 'gl', label: 'Galego', flag: 'es-ga' },
   { code: 'eu', label: 'Euskara', flag: 'es-pv' },

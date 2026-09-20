@@ -13,27 +13,15 @@ export function fmtBytes(n: number): string {
 }
 
 /**
- * An allowance in gigabytes, always, whatever its size (jdp, 2026-09-07:
- * "kann man das Volumen nicht in GB angeben? bei allen").
- *
- * Two departures from fmtBytes above, both on purpose:
- *
- *  - The unit never changes. An account's allowance is a figure you compare
- *    against another account's and against what the vendor's own page
- *    advertises, and a column that says "980 MB" on one row and "1.2 TB" on the
- *    next makes that comparison a mental arithmetic exercise.
- *  - Decimal gigabytes, not gibibytes. Every debrid vendor advertises its
- *    allowance in decimal ("400 GB"), so a binary reading would print 372 GB
- *    for the plan the customer bought as 400.
+ * fmtGB prints an allowance in decimal gigabytes whatever its size. One unit
+ * keeps accounts comparable, and decimal matches what debrid vendors
+ * advertise ("400 GB", not 372 GiB).
  */
 export function fmtGB(n: number): string {
   if (!n || n < 0) return '0 GB';
   const gb = n / 1e9;
   if (gb >= 1000) return `${Math.round(gb).toLocaleString()} GB`;
-  // A real but tiny figure is worth saying as "less than", not as "0.0 GB":
-  // measured live on the preview instance, a TorBox account that had moved a
-  // few megabytes read "0.0 GB geladen", which looks like a broken column
-  // rather than like a small number.
+  // "0.0 GB" for a few megabytes looks like a broken column.
   if (gb > 0 && gb < 0.1) return '< 0,1 GB';
   return `${gb.toFixed(gb < 10 ? 1 : 0)} GB`;
 }
@@ -51,23 +39,10 @@ export function fmtEta(loaded: number, size: number, speed: number): string {
 }
 
 /**
- * How long something has been running, in fmtEta's own shape and with fmtEta's
- * own untranslated units.
- *
- * NOT TRANSLATED, and that is a deliberate match rather than an oversight.
- * `4d 6h` reads the same way in every one of the 42 locales the app ships, the
- * task list already prints `6h 12m` beside every running download in all of
- * them, and an uptime that said "Tage" while the row above it said "d" would be
- * two conventions for one idea on one screen. Whatever draws it renders it
- * dir="ltr", the same as every other number cell in settings.
- *
- * The units step rather than accumulate: days and hours, or hours and minutes,
- * or minutes alone. A container that has been up for three weeks does not need
- * its minutes, and printing them turns a figure somebody glances at into one
- * they have to read.
- *
- * Seconds appear only below a minute, because that is the one case where
- * rounding to `0m` would say the process is not running.
+ * fmtUptime prints a duration in fmtEta's untranslated units, such as `4d 6h`,
+ * matching the task list; render it dir="ltr". Only the two largest units are
+ * shown. Seconds appear below a minute, where `0m` would look like not
+ * running.
  */
 export function fmtUptime(seconds: number): string {
   const secs = Math.max(0, Math.floor(seconds));
@@ -92,10 +67,8 @@ export type RateUnit = (typeof RATE_UNITS)[number]['label'];
 
 /**
  * splitRate turns a stored bytes-per-second limit into the number and unit a
- * person would have typed. The unit is chosen so the number stays readable —
- * "1.5 MiB/s" rather than "1536 KiB/s" — but it never climbs so far that the
- * number turns into a fraction: 900 KiB/s stays in KiB/s instead of becoming
- * 0.88 MiB/s, which reads as a rounding error rather than as a setting.
+ * person would have typed: "1.5 MiB/s" rather than "1536 KiB/s", but 900 KiB/s
+ * rather than 0.88 MiB/s.
  */
 export function splitRate(bytesPerSecond: number): { value: number; unit: RateUnit } {
   const n = Math.max(0, Math.round(bytesPerSecond));
@@ -113,12 +86,8 @@ export function joinRate(value: number, unit: RateUnit): number {
   return Math.max(0, Math.round(value * u.factor));
 }
 
-/**
- * fmtRateValue prints the number beside the unit. Trailing zeros are dropped
- * so an exact limit shows as "2" and not "2.00", and the value is capped at two
- * decimals because a third would be under a kilobyte and nobody is steering
- * their line that finely.
- */
+/** fmtRateValue prints the number beside the unit, with at most two decimals
+ *  and no trailing zeros. */
 export function fmtRateValue(value: number): string {
   if (!Number.isFinite(value) || value <= 0) return '';
   return String(Math.round(value * 100) / 100);
@@ -129,22 +98,16 @@ export function pct(loaded: number, size: number, done: boolean): number {
   return done ? 100 : 0;
 }
 
-// Go's encoding/json does not drop a zero time.Time — omitempty has no effect on
-// a struct — so an unfinished task arrives carrying year one rather than no
-// field at all. Comparing the year is enough and costs nothing; parsing the
-// literal string would break the moment the server changed its precision.
+// omitempty does not drop a zero time.Time, so an unfinished task carries year
+// one. Comparing the year survives a change in the server's precision.
 const GO_ZERO_YEAR = 1;
 
-// One formatter per locale, kept. Intl.DateTimeFormat is expensive to construct
-// and a finished-at column builds one per row per repaint without this, which on
-// a few hundred rows is the difference between a list that scrolls and one that
-// stutters.
+// Cached per locale: building an Intl.DateTimeFormat per row per repaint makes
+// long lists stutter.
 const dateFormats = new Map<string, Intl.DateTimeFormat>();
 
-// The language picker stamps <html lang> at boot and on every change, so reading
-// it follows the user's choice without this module importing the i18n provider —
-// which would pull the whole dictionary loader into a file that formats numbers.
-// Empty falls through to undefined, which is the runtime's own default.
+// <html lang> follows the language picker, which spares this module the i18n
+// provider. Empty means the runtime's default.
 function uiLocale(): string {
   return document.documentElement.lang || '';
 }
@@ -152,8 +115,7 @@ function uiLocale(): string {
 function dateFormat(locale: string): Intl.DateTimeFormat {
   let f = dateFormats.get(locale);
   if (!f) {
-    // Short date and short time together: two downloads that finished this
-    // afternoon are the common case, and a date alone cannot tell them apart.
+    // With the time, since two downloads from one afternoon are common.
     f = new Intl.DateTimeFormat(locale || undefined, { dateStyle: 'short', timeStyle: 'short' });
     dateFormats.set(locale, f);
   }
@@ -161,12 +123,9 @@ function dateFormat(locale: string): Intl.DateTimeFormat {
 }
 
 /**
- * fmtDate prints a timestamp in the reader's own locale, short form.
- *
- * Empty for anything that is not a moment in time — absent, unparseable, or Go's
- * zero timestamp. A finished-at cell for a download that has not finished is
- * blank; printing "1.1.1" or "Invalid Date" there would be a value, and a value
- * is something people try to explain.
+ * fmtDate prints a timestamp in the reader's locale, short form. Absent,
+ * unparseable and Go zero timestamps print as empty rather than as
+ * "Invalid Date" or year one.
  */
 export function fmtDate(iso: string | undefined, locale = uiLocale()): string {
   if (!iso) return '';
@@ -175,18 +134,12 @@ export function fmtDate(iso: string | undefined, locale = uiLocale()): string {
   return dateFormat(locale).format(d);
 }
 
-// Its own cache beside dateFormats above, for the same reason that one exists:
-// constructing an Intl.DateTimeFormat per row per repaint is what turns a list
-// that scrolls into one that stutters.
 const clockFormats = new Map<string, Intl.DateTimeFormat>();
 
 function clockFormat(locale: string): Intl.DateTimeFormat {
   let f = clockFormats.get(locale);
   if (!f) {
-    // Seconds included. Two events a moment apart is the ordinary case in a
-    // notification log - a burst of finished downloads, a retry and its
-    // failure - and a column that prints the same "14:32" against both of them
-    // has stopped saying anything about their order.
+    // With seconds, so events a moment apart still show their order.
     f = new Intl.DateTimeFormat(locale || undefined, { timeStyle: 'medium' });
     clockFormats.set(locale, f);
   }
@@ -194,18 +147,9 @@ function clockFormat(locale: string): Intl.DateTimeFormat {
 }
 
 /**
- * fmtClock prints a time of day, in the reader's own locale.
- *
- * Deliberately not fmtDate: the session event log starts when the page is
- * loaded and cannot outlive the tab, so every row in it happened today, and
- * fmtDate's own `dateStyle: 'short'` would stamp the same date on all three
- * hundred of them.
- *
- * It takes epoch milliseconds rather than an ISO string because its caller
- * holds Date.now(), not a server timestamp - there is no server in this path at
- * all. Empty for anything that is not a moment, on the same reasoning fmtDate
- * gives: a printed "Invalid Date" is a value, and a value is something people
- * try to explain.
+ * fmtClock prints a time of day from epoch milliseconds, for the session
+ * event log, whose rows all fall within the tab's lifetime and need no date.
+ * Empty for anything that is not a moment.
  */
 export function fmtClock(ms: number, locale = uiLocale()): string {
   if (!Number.isFinite(ms) || ms <= 0) return '';

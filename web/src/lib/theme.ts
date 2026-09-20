@@ -1,16 +1,12 @@
-// Theme — dark / light via data-theme on <html> + localStorage.
+// The dark or light theme, set as data-theme on <html> and kept in localStorage.
 
 type Theme = 'dark' | 'light';
 
 const STORAGE_KEY = 'kl-theme';
 const DEFAULT: Theme = 'dark';
 
-// Whoever changes the theme (Sidebar's own button, or the new global
-// theme.toggle command in lib/commands/global.ts, invoked from a keyboard
-// shortcut with no button anywhere near it) has to reach everyone else
-// showing it, or the sidebar's sun/moon icon goes stale the moment the
-// command fires from the keyboard instead of a click on that exact button.
-// Same shape as lib/listview.ts's own publish/subscribe pair.
+// The sidebar button and the theme.toggle command both change the theme, so
+// every display of it subscribes here.
 const listeners = new Set<(theme: Theme) => void>();
 
 export function getTheme(): Theme {
