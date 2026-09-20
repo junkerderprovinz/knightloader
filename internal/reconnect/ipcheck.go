@@ -8,34 +8,21 @@ import (
 )
 
 // ErrNotPublic means the check response held an address that cannot be this
-// box's address on the internet.
-//
-// It is its own sentinel rather than a flavour of ErrNoAddress because the two
-// send the user to different places: ErrNoAddress means the page has no address
-// on it at all, so the check URL is wrong, while this one means the page did
-// answer with an address and it came from the wrong side of the router. A
-// router's own status page and a captive portal both do exactly that.
-//
-// Treating one as the public address is worse than it first looks. The LAN
-// address usually holds still, so every run reports "the address did not
-// change" and the reconnect is blamed for a router that did as it was told -
-// and when it does move, because the reboot handed the box a different DHCP
-// lease, the run reports a success for a public address that never went
-// anywhere. Both readings are wrong, and neither is visible from the outside.
+// box's address on the internet, as a router status page or a captive portal
+// would. Unlike ErrNoAddress it points at the wrong side of the router rather
+// than a wrong check URL. Taking a LAN address as the public one would report
+// "unchanged" on every run, or a false success when a reboot moves the DHCP
+// lease.
 var ErrNotPublic = errors.New("reconnect: the check response holds a non-public address")
 
-// cgnat is RFC 6598's shared address space, the range a carrier hands out when
-// the customer is behind the ISP's own NAT. netip has no predicate for it and it
-// is not RFC 1918, so it would otherwise pass for a public address - on the one
-// kind of line where a reconnect can never change anything, because the address
-// that moves belongs to the carrier.
+// cgnat is RFC 6598's shared address space, used behind a carrier's NAT. netip
+// has no predicate for it and it is not RFC 1918, and on such a line a
+// reconnect cannot change the address that matters.
 var cgnat = netip.MustParsePrefix("100.64.0.0/10")
 
-// PublicIP reads this box's public address out of a check response.
-//
-// It is FindIP plus the one question FindIP cannot answer: whether what was
-// found could be a public address at all. The caller adds the check URL to the
-// error - this function has never seen it.
+// PublicIP reads this box's public address out of a check response: FindIP
+// plus the check that the address could be public. The caller adds the check
+// URL to the error.
 func PublicIP(s string) (netip.Addr, error) {
 	addr, ok := FindIP(s)
 	if !ok {
@@ -47,15 +34,9 @@ func PublicIP(s string) (netip.Addr, error) {
 	return addr, nil
 }
 
-// nonPublicReason names the range addr falls in, or "" when it could be a public
-// address.
-//
-// It returns the name rather than a bool because "192.168.1.1 is a private
-// address" tells somebody their check URL is pointed at something on their own
-// network, while "not a public address" sends them to look at the router. The
-// order matters where the ranges overlap in netip's predicates: fc00::/7 is what
-// IsPrivate means for IPv6, so unique-local has to be named before RFC 1918 or
-// an IPv6 address would be reported under the name of an IPv4 rule.
+// nonPublicReason names the range addr falls in, or "" when it could be a
+// public address, so the message says which network the check URL reached.
+// Unique-local comes before RFC 1918 because IsPrivate covers fc00::/7 too.
 func nonPublicReason(addr netip.Addr) string {
 	switch {
 	case !addr.IsValid():
@@ -78,19 +59,14 @@ func nonPublicReason(addr netip.Addr) string {
 	return ""
 }
 
-// maxLiteral is the longest an address can be written out: an IPv4-mapped IPv6
-// literal ("::ffff:255.255.255.255") plus room to spare for a ":port" suffix.
-// Runs longer than this are skipped, which keeps a page full of hex from being
-// handed to the parser one window at a time.
+// maxLiteral is the longest an address can be written out
+// ("::ffff:255.255.255.255") plus room for a ":port" suffix. Longer runs are
+// skipped rather than handed to the parser.
 const maxLiteral = 46
 
-// FindIP returns the first IP address literal in s.
-//
-// The whole package rests on this answer, so it errs towards finding nothing
-// rather than finding the wrong thing: a wrong address read out of an IP-check
-// page is indistinguishable from a successful reconnect, and that is the one
-// outcome this package exists to prevent. It reads plain text, HTML and JSON
-// bodies alike because IP-check endpoints disagree about which they serve.
+// FindIP returns the first IP address literal in s. It errs towards finding
+// nothing, since a wrong address read from an IP-check page looks like a
+// successful reconnect. It reads plain text, HTML and JSON alike.
 func FindIP(s string) (netip.Addr, bool) {
 	for i := 0; i < len(s); {
 		if !isAddrByte(s[i]) {
@@ -112,8 +88,8 @@ func FindIP(s string) (netip.Addr, bool) {
 }
 
 // isAddrByte reports whether a byte can be part of an address literal. Letters
-// outside a-f are excluded, which is what keeps the "b" and "d" of "<body>" from
-// joining the digits around them into one candidate.
+// outside a-f are excluded, so the "b" and "d" of "<body>" do not join the
+// digits around them.
 func isAddrByte(c byte) bool {
 	switch {
 	case c >= '0' && c <= '9':
@@ -126,23 +102,18 @@ func isAddrByte(c byte) bool {
 	return false
 }
 
-// parseLiteral reads one candidate run.
-//
-// It tries the run whole, then as host:port, then without trailing full stops -
-// and nothing else. In particular it never gives back digits until something
-// parses: that would read a build number like "1.2.3.4444" as the address
-// 1.2.3.4, and comparing against a made-up address is how a reconnect that did
-// nothing gets reported as a success.
+// parseLiteral reads one candidate run: whole, as host:port, or without
+// trailing full stops. It never drops digits until something parses, which
+// would read a build number like "1.2.3.4444" as 1.2.3.4.
 func parseLiteral(run string) (netip.Addr, bool) {
 	if addr, err := netip.ParseAddr(run); err == nil {
 		return addr.Unmap(), true
 	}
-	// Router status pages routinely print the WAN address with a port.
+	// Router status pages often print the WAN address with a port.
 	if ap, err := netip.ParseAddrPort(run); err == nil {
 		return ap.Addr().Unmap(), true
 	}
-	// A trailing full stop is sentence punctuation. No valid literal ends in
-	// one, so trimming them can never destroy a real address.
+	// No valid literal ends in a full stop, so one there is punctuation.
 	if trimmed := strings.TrimRight(run, "."); trimmed != run {
 		if addr, err := netip.ParseAddr(trimmed); err == nil {
 			return addr.Unmap(), true
@@ -151,14 +122,9 @@ func parseLiteral(run string) (netip.Addr, bool) {
 	return netip.Addr{}, false
 }
 
-// dropPartialTail removes the last, possibly incomplete literal from a body that
-// was cut off at the read limit.
-//
-// The bug it prevents: a cut in the middle of "203.0.113.99" leaves
-// "203.0.113.9", which parses perfectly and is a different address than the one
-// on the page. Reading that as the "before" value means every later check
-// differs from it, and the reconnect reports success without the address having
-// moved at all.
+// dropPartialTail removes the last, possibly incomplete literal from a body cut
+// off at the read limit. A cut inside "203.0.113.99" leaves "203.0.113.9",
+// which parses and would make every later check look like a change.
 func dropPartialTail(b []byte) []byte {
 	for i := len(b) - 1; i >= 0; i-- {
 		if !isAddrByte(b[i]) {

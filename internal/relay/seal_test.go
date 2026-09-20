@@ -8,8 +8,6 @@ import (
 	"testing"
 )
 
-// TestSealedCallRoundTrips is the baseline: what goes in comes out, byte for
-// byte, including the two fields most worth not leaking.
 func TestSealedCallRoundTrips(t *testing.T) {
 	key := DeriveFrameKey([]byte("a secret"))
 	want := ProxyCall{
@@ -34,9 +32,8 @@ func TestSealedCallRoundTrips(t *testing.T) {
 	}
 }
 
-// TestSealedFrameHidesItsContents is the actual claim the connection card
-// makes, asserted rather than assumed: none of what a relay operator would
-// most want appears anywhere in the bytes that cross their machine.
+// TestSealedFrameHidesItsContents checks the claim the connection card makes:
+// nothing a relay operator would want appears in the bytes crossing the relay.
 func TestSealedFrameHidesItsContents(t *testing.T) {
 	key := DeriveFrameKey([]byte("a secret"))
 	sealed, err := SealCall(key, "r1", "bravo", ProxyCall{
@@ -62,21 +59,17 @@ func TestSealedFrameHidesItsContents(t *testing.T) {
 	}
 }
 
-// TestRelayKeyDoesNotYieldTheFrameKey is the separation the whole design
-// rests on. A relay is HANDED DeriveKey's output in every hello frame; if the
-// frame key could be computed from it, sealing would be theatre.
+// TestRelayKeyDoesNotYieldTheFrameKey: the relay receives DeriveKey's output
+// in every hello, so the frame key must not be computable from it.
 func TestRelayKeyDoesNotYieldTheFrameKey(t *testing.T) {
 	secret := []byte("a secret")
 	relayKey := DeriveKey(secret)
 	frameKey := DeriveFrameKey(secret)
 
-	// The obvious wrong implementation: the same hash without a separate
-	// domain would make these two the same bytes.
+	// The same hash without a separate domain would give the same bytes.
 	if hex.EncodeToString(frameKey) == relayKey {
-		t.Fatal("the frame key and the relay key are the same value - the relay would hold both")
+		t.Fatal("the frame key and the relay key are the same value, so the relay would hold both")
 	}
-	// And the second obvious one: deriving the frame key FROM the relay key
-	// rather than from the secret.
 	if bytes.Equal(frameKey, FrameKeyFromRelayKey(relayKey)) {
 		t.Fatal("the frame key is derivable from the relay key the relay is already given")
 	}
@@ -85,10 +78,9 @@ func TestRelayKeyDoesNotYieldTheFrameKey(t *testing.T) {
 	}
 }
 
-// TestSealIsBoundToItsRouting: a relay routes on RequestID and Target, which
-// therefore travel in the clear. Binding them into the AEAD is what stops a
-// relay from delivering a sealed call to an instance it was not addressed to
-// and having it open there.
+// TestSealIsBoundToItsRouting: RequestID and Target travel in the clear, and
+// binding them into the AEAD stops a relay from delivering a sealed call to
+// another instance and having it open there.
 func TestSealIsBoundToItsRouting(t *testing.T) {
 	key := DeriveFrameKey([]byte("a secret"))
 	sealed, err := SealCall(key, "r1", "bravo", ProxyCall{Method: "GET", Path: "/api/tasks"})
@@ -103,10 +95,9 @@ func TestSealIsBoundToItsRouting(t *testing.T) {
 	}
 }
 
-// TestSealedResultIsNotAcceptedAsACall: the two directions use different
-// labels in their additional data, so a captured answer cannot be replayed as
-// a question - which would otherwise let a relay turn a peer's own reply into
-// a request addressed back at it.
+// TestSealedResultIsNotAcceptedAsACall: the directions use different labels in
+// their additional data, so a relay cannot replay a peer's reply as a request
+// addressed back at it.
 func TestSealedResultIsNotAcceptedAsACall(t *testing.T) {
 	key := DeriveFrameKey([]byte("a secret"))
 	sealed, err := SealResult(key, "r1", ProxyResult{Status: 200, Body: []byte("ok")})
@@ -118,9 +109,8 @@ func TestSealedResultIsNotAcceptedAsACall(t *testing.T) {
 	}
 }
 
-// TestWrongKeyAndTamperingFail: a peer on the same relay key that does not
-// hold the group's secret, and a relay that edits a frame in flight, must
-// both produce nothing openable rather than something plausible.
+// TestWrongKeyAndTamperingFail: a peer without the group's secret and a relay
+// that edits a frame in flight both produce nothing that opens.
 func TestWrongKeyAndTamperingFail(t *testing.T) {
 	key := DeriveFrameKey([]byte("a secret"))
 	other := DeriveFrameKey([]byte("a different secret"))
@@ -145,13 +135,12 @@ func TestWrongKeyAndTamperingFail(t *testing.T) {
 		t.Error("a frame too short to hold a nonce still opened")
 	}
 	if _, err := OpenCall(key, "r1", "bravo", nil); err == nil {
-		t.Error("an absent frame opened - an unsealed call must never look like a valid one")
+		t.Error("an absent frame opened; an unsealed call must never look like a valid one")
 	}
 }
 
-// TestNonceIsNotReused: two seals of identical plaintext under identical key
-// and routing must differ. A repeated nonce under AES-GCM is not a weakness,
-// it is a break - the keystream repeats and the authentication key falls out.
+// TestNonceIsNotReused: a repeated nonce under AES-GCM repeats the keystream
+// and leaks the authentication key.
 func TestNonceIsNotReused(t *testing.T) {
 	key := DeriveFrameKey([]byte("a secret"))
 	call := ProxyCall{Method: "GET", Path: "/api/tasks"}
@@ -169,21 +158,11 @@ func TestNonceIsNotReused(t *testing.T) {
 	}
 }
 
-// TestOpensAFrameSealedByTheMobilePort is the test that catches the failure
-// nothing else here can: the phone carries its own TypeScript implementation
-// of this format (mobile/src/api/relayFrame.ts), and every other test in this
-// package checks Go against Go.
-//
-// The frame below was produced by that TypeScript code and pasted in - not
-// generated by this package - so it fails if either side changes the framing,
-// the additional-data layout, the domain string, or the JSON field names.
-// Which is exactly the change that would otherwise ship as "the phone
-// connects to the group and every instance ignores it".
-//
-// Its nonce is a fixed run of 0x03 rather than a random one, because a vector
-// has to be reproducible. Nothing in production seals with a fixed nonce; see
-// seal() and relayFrame.ts's own seal, which both take one from a real random
-// source.
+// TestOpensAFrameSealedByTheMobilePort checks this package against the phone's
+// TypeScript implementation (mobile/src/api/relayFrame.ts). The frame was
+// sealed by that code, so the test fails if either side changes the framing,
+// the additional data, the domain string or the JSON field names. Its nonce
+// is a fixed run of 0x03 so the vector is reproducible.
 func TestOpensAFrameSealedByTheMobilePort(t *testing.T) {
 	key := DeriveFrameKey([]byte("cross-implementation vector"))
 	sealed, err := base64.StdEncoding.DecodeString(
@@ -200,26 +179,15 @@ func TestOpensAFrameSealedByTheMobilePort(t *testing.T) {
 		t.Errorf("opened %+v, want the GET /api/tasks the phone sealed", call)
 	}
 
-	// The binding has to hold across implementations too, or the phone would
-	// be producing frames a relay could redirect.
 	if _, err := OpenCall(key, "req-2", "charlie", sealed); err == nil {
 		t.Error("a mobile-sealed call opened under a target it was not addressed to")
 	}
 }
 
-// TestFrameKeyVectors pins the derivation to fixed bytes.
-//
-// This is the one test in the file that would catch the worst possible
-// change: the mobile app carries its own TypeScript port of this derivation
-// (mobile/src/relay/), and the two have to agree byte for byte or a phone
-// joins the group and can talk to nobody. A refactor that "harmlessly"
-// reordered the domain and the secret would keep every other test here
-// passing while silently splitting the two implementations apart.
-//
-// The two values below were NOT copied out of a failing run of this test,
-// which would make it assert only that the code still does what it does.
-// They are the plain SHA-256 of the domain string concatenated with the
-// secret, confirmed against sha256sum:
+// TestFrameKeyVectors pins the derivation to fixed bytes, since the mobile
+// app's TypeScript port (mobile/src/relay/) has to agree byte for byte. The
+// values are the SHA-256 of the domain string followed by the secret,
+// computed independently with sha256sum:
 //
 //	printf 'knightloader/relay/frame-key/v1' | sha256sum
 //	printf 'knightloader/relay/frame-key/v1knightloader' | sha256sum

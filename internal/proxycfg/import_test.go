@@ -6,8 +6,8 @@ import (
 	"testing"
 )
 
-// TestParseLineReadsTheFormsListsAreWrittenIn covers the shapes that arrive from
-// a real supplier, not just the one in the documentation.
+// TestParseLineReadsTheFormsListsAreWrittenIn covers the shapes real suppliers
+// send, not only the documented one.
 func TestParseLineReadsTheFormsListsAreWrittenIn(t *testing.T) {
 	cases := []struct {
 		name string
@@ -52,8 +52,7 @@ func TestParseLineReadsTheFormsListsAreWrittenIn(t *testing.T) {
 			want: Entry{Kind: KindHTTP, Host: "proxy.lan", Port: 8080, Enabled: true},
 		},
 		{
-			// The h only ever meant "the proxy resolves the name", which is what
-			// every socks5 entry here does anyway.
+			// Every socks5 entry lets the proxy resolve the name anyway.
 			name: "socks5h is the same proxy",
 			line: "socks5h://proxy.lan:1080",
 			want: Entry{Kind: KindSOCKS5, Host: "proxy.lan", Port: 1080, Enabled: true},
@@ -77,10 +76,8 @@ func TestParseLineReadsTheFormsListsAreWrittenIn(t *testing.T) {
 	}
 }
 
-// TestParseLineRefusesWithSomethingToActOn is the point of the whole file. Every
-// refusal has to name what is wrong; the ones with a mechanical fix have to
-// write the corrected line out, because "invalid proxy" sends somebody back to
-// the supplier's website to read a format they already followed.
+// TestParseLineRefusesWithSomethingToActOn: every refusal names what is wrong,
+// and those with a mechanical fix write out the corrected line.
 func TestParseLineRefusesWithSomethingToActOn(t *testing.T) {
 	cases := []struct {
 		name     string
@@ -88,8 +85,7 @@ func TestParseLineRefusesWithSomethingToActOn(t *testing.T) {
 		contains []string
 	}{
 		{
-			// Guessing http here would send SOCKS traffic to an HTTP proxy, and
-			// the failure would surface on the hoster rather than on the proxy.
+			// Guessing http could send SOCKS traffic to an HTTP proxy.
 			name:     "no scheme is not assumed to be http",
 			line:     "proxy.lan:8080",
 			contains: []string{"no connection type", "socks5://"},
@@ -110,8 +106,7 @@ func TestParseLineRefusesWithSomethingToActOn(t *testing.T) {
 			contains: []string{`"ftp"`, "socks4a"},
 		},
 		{
-			// A password SOCKS4 can never send would otherwise be dropped by clean
-			// and believed in forever.
+			// clean would otherwise drop the password silently.
 			name:     "socks4 with a password says the protocol has no field for it",
 			line:     "socks4://alice:secret@proxy.lan:1080",
 			contains: []string{"no password field", "socks4://alice@proxy.lan:1080"},
@@ -152,8 +147,7 @@ func TestParseLineRefusesWithSomethingToActOn(t *testing.T) {
 			contains: []string{"no user name before the @"},
 		},
 		{
-			// An import names proxies. A row that is deliberately not one is
-			// something the user adds by hand, with the page explaining it.
+			// A direct row is added by hand, not imported.
 			name:     "direct is not something a list can contain",
 			line:     "direct://nas.local:0",
 			contains: []string{"direct", "by hand"},
@@ -174,9 +168,8 @@ func TestParseLineRefusesWithSomethingToActOn(t *testing.T) {
 	}
 }
 
-// TestParseListPointsAtTheRightLine is what the whole Rejection type is for. An
-// off-by-one here points the user at a line that is fine and leaves the broken
-// one looking accepted.
+// TestParseListPointsAtTheRightLine: an off-by-one would point at a line that
+// is fine.
 func TestParseListPointsAtTheRightLine(t *testing.T) {
 	text := strings.Join([]string{
 		"# the ones from the first order",
@@ -187,7 +180,7 @@ func TestParseListPointsAtTheRightLine(t *testing.T) {
 		"   ",
 		"// leftover note",
 		"socks4://alice:secret@proxy.lan:1080",
-	}, "\r\n") // written on Windows, because half of these lists are
+	}, "\r\n") // many lists are written on Windows
 
 	got := ParseList(text, nil)
 	if len(got.Entries) != 2 {
@@ -204,13 +197,11 @@ func TestParseListPointsAtTheRightLine(t *testing.T) {
 	}
 }
 
-// TestParseListNeverEchoesTheLine pins the reason Rejection has no text field. A
-// rejected line is exactly where a password is still in plain view, and this
-// answer goes into logs and screenshots.
+// TestParseListNeverEchoesTheLine: a rejected line may hold a password in the
+// clear, and rejections end up in logs and screenshots.
 func TestParseListNeverEchoesTheLine(t *testing.T) {
 	const secret = "hunter2-schwarzpulver"
-	// Refused for the port, so the password never gets as far as being parsed
-	// out of the line into a field of its own.
+	// Refused for the port, before the password is parsed out.
 	got := ParseList("http://alice:"+secret+"@proxy.lan:notaport", nil)
 	if len(got.Rejected) != 1 {
 		t.Fatalf("refused %d lines, want 1", len(got.Rejected))
@@ -220,10 +211,8 @@ func TestParseListNeverEchoesTheLine(t *testing.T) {
 	}
 }
 
-// TestParseListRefusesDuplicatesRatherThanDoublingAShare. A connection listed
-// twice is not harmless: the picker walks the list in order, so it takes two
-// turns for every one the others get, and that reads as the round-robin being
-// broken rather than as the list being wrong.
+// TestParseListRefusesDuplicatesRatherThanDoublingAShare: a connection listed
+// twice would take two turns in the rotation for every one the others get.
 func TestParseListRefusesDuplicatesRatherThanDoublingAShare(t *testing.T) {
 	existing := Sanitize([]Entry{{Kind: KindHTTP, Host: "proxy.lan", Port: 8080, Enabled: true}})
 
@@ -240,8 +229,7 @@ func TestParseListRefusesDuplicatesRatherThanDoublingAShare(t *testing.T) {
 	if len(got.Rejected) != 2 {
 		t.Fatalf("refused %d lines, want 2: %+v", len(got.Rejected), got.Rejected)
 	}
-	// The two duplicates need different words: one is fixed by deleting the
-	// line, the other by looking at a list the user cannot see from here.
+	// A duplicate of a stored row and one of an earlier line read differently.
 	if !strings.Contains(got.Rejected[0].Reason, "already in the list") {
 		t.Errorf("line 1 should say it is already configured: %q", got.Rejected[0].Reason)
 	}
@@ -250,10 +238,8 @@ func TestParseListRefusesDuplicatesRatherThanDoublingAShare(t *testing.T) {
 	}
 }
 
-// TestParseListSurvivesSanitize is the contract between the two: a line this
-// accepted must not be dropped on the way to disk. Sanitize drops silently, so
-// an entry that fell out here would be a proxy the user watched being imported
-// and then never saw again.
+// TestParseListSurvivesSanitize: an accepted line must not be silently dropped
+// by Sanitize on the way to disk.
 func TestParseListSurvivesSanitize(t *testing.T) {
 	got := ParseList(strings.Join([]string{
 		"http://proxy.lan:8080",
@@ -269,9 +255,8 @@ func TestParseListSurvivesSanitize(t *testing.T) {
 	}
 }
 
-// TestParseListIsAlwaysCountable: both halves present and never nil, so the
-// client counts them without a null check and an empty paste is an empty result
-// rather than a rendering fault.
+// TestParseListIsAlwaysCountable: both slices are non-nil even for an empty
+// paste.
 func TestParseListIsAlwaysCountable(t *testing.T) {
 	got := ParseList("", nil)
 	if got.Entries == nil || got.Rejected == nil {

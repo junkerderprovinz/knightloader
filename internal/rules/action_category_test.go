@@ -1,22 +1,15 @@
 package rules
 
-// The category action: filing a link in one of settings' named drawers.
-//
-// What this file may check is bounded by what the package can see. Whether the
-// drawer EXISTS is settings.ValidateCategories' question - settings imports
-// this package, so this one cannot import settings - and the tests for that
-// live beside it. Here: that the id survives a match unchanged, that it behaves
-// like every other action field when several rules have an opinion, and that
-// the two values which could never name a drawer are refused at compile time
-// rather than failing silently on every link.
+// Whether a category exists is checked by settings.ValidateCategories and
+// tested there. Here: the id survives a match unchanged, behaves like every
+// other action field across several rules, and the values that could never
+// name a category are refused at compile time.
 
 import (
 	"strings"
 	"testing"
 )
 
-// TestARuleFilesALinkInADrawer is the feature at its simplest, and the one
-// claim everything else rests on: what the rule wrote is what the caller reads.
 func TestARuleFilesALinkInADrawer(t *testing.T) {
 	m, probs := Compile(Set{Rules: []Rule{{
 		Name:       "Serien",
@@ -34,17 +27,9 @@ func TestARuleFilesALinkInADrawer(t *testing.T) {
 	}
 }
 
-// TestTheIDIsNotExpanded is the check with teeth. Every other string on an
-// Action is a template, so <jd:hoster> in a category is the natural thing to
-// try - and it would hand the link's own host the choice of which drawer it
-// lands in, which is to say its download folder, its priority and its collision
-// rule. The far end of the connection does not get a vote on where its bytes
-// are written.
-//
-// Refused at compile time rather than left to expand, because an id assembled
-// at match time cannot be checked against the table by anything: it does not
-// exist until a link arrives, and a link whose expansion names no drawer is
-// simply not filed anywhere, with no error to see.
+// TestTheIDIsNotExpanded: a template would let the link's host pick its own
+// category, and an id assembled at match time could not be checked against
+// the table.
 func TestTheIDIsNotExpanded(t *testing.T) {
 	_, probs := Compile(Set{Rules: []Rule{{
 		Name:   "vom hoster",
@@ -58,10 +43,9 @@ func TestTheIDIsNotExpanded(t *testing.T) {
 	}
 }
 
-// TestADrawerNothingCouldNameIsRefused covers the two remaining shapes that can
-// never match a stored id no matter what the table holds: one too long to
-// address one, and one made entirely of punctuation, which normalises to
-// nothing on the settings side.
+// TestADrawerNothingCouldNameIsRefused covers an id too long to address a
+// category and one of pure punctuation, which normalises to nothing on the
+// settings side.
 func TestADrawerNothingCouldNameIsRefused(t *testing.T) {
 	for _, c := range []struct{ name, id string }{
 		{"too long", strings.Repeat("a", MaxCategoryRef+1)},
@@ -76,10 +60,8 @@ func TestADrawerNothingCouldNameIsRefused(t *testing.T) {
 	}
 }
 
-// TestAnEmptyCategoryIsNotAProblem is the ordinary case: almost every rule ever
-// written says nothing about a drawer, and a rule with a problem is DROPPED
-// WHOLE by Compile - so a false alarm here would stop applying the folder and
-// the package name that rule also sets.
+// TestAnEmptyCategoryIsNotAProblem: Compile drops a rule with any problem, so a
+// false alarm here would also drop the rule's folder and package name.
 func TestAnEmptyCategoryIsNotAProblem(t *testing.T) {
 	m, probs := Compile(Set{Rules: []Rule{{
 		Name:   "nur ein ordner",
@@ -93,11 +75,8 @@ func TestAnEmptyCategoryIsNotAProblem(t *testing.T) {
 	}
 }
 
-// TestTheLastRuleToNameADrawerWins is the per-field "later rule wins" the whole
-// Packagizer works by, checked on this field specifically. The second half is
-// the one that would break quietly: an empty category is "this rule has no
-// opinion", never "clear it", so a rule setting only the folder must leave an
-// earlier rule's drawer standing.
+// TestTheLastRuleToNameADrawerWins: a later rule wins, and a rule setting only
+// the folder leaves an earlier rule's category standing.
 func TestTheLastRuleToNameADrawerWins(t *testing.T) {
 	m, probs := Compile(Set{Rules: []Rule{
 		{Name: "alles", Action: Action{Category: "misc"}},
@@ -116,12 +95,9 @@ func TestTheLastRuleToNameADrawerWins(t *testing.T) {
 	}
 }
 
-// TestACategoryIsNotTheFiletypeCategory is the word collision written down as a
-// test, because this is the one mistake somebody reading only half of it will
-// make. rules.Category is a group of extensions that expands into a filetype
-// condition; Action.Category is a drawer of defaults a task is filed in. They
-// share a word, they are not related, and neither could be renamed without
-// breaking a stored rule set or the grammar the editor is built from.
+// TestACategoryIsNotTheFiletypeCategory: rules.Category is a group of
+// extensions that expands into a filetype condition, Action.Category files a
+// task under a category of defaults, and one rule can use both.
 func TestACategoryIsNotTheFiletypeCategory(t *testing.T) {
 	pattern, ok := CategoryPattern("video")
 	if !ok {
@@ -139,17 +115,9 @@ func TestACategoryIsNotTheFiletypeCategory(t *testing.T) {
 	if e.Category != "filme" {
 		t.Errorf("category = %q, want the drawer %q", e.Category, "filme")
 	}
-	// And the condition still recognises itself as the filetype shorthand, so
-	// the editor reopens the rule showing the chip rather than the extensions.
+	// The condition still reads as the filetype shorthand, so the editor
+	// reopens the rule with its chip.
 	if got := CategoryOf(pattern); got != "video" {
 		t.Errorf("CategoryOf = %q, want the filetype category %q", got, "video")
 	}
 }
-
-// The guard that used to stand here pinned the grammar's DELIBERATE silence
-// about this action, so that describing it would be an act somebody had to
-// take on purpose. It has been taken: the line it wrote out is in Describe now,
-// and the reason it gave for holding it back, that the editor renders an
-// unknown kind as a working accept/reject switch, is checked against the
-// editor's own source instead of being described in a comment. See
-// grammar_category_test.go.

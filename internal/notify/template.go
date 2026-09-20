@@ -2,35 +2,32 @@ package notify
 
 // What a %%placeholder%% is, where it may be written, and what it becomes.
 //
-// The expander is NOT reconnect's expandVars, and reusing that one unchanged is
-// the single most expensive mistake available in this file. It does no escaping
-// at all, deliberately and correctly, because a router login form wants the
-// password put in verbatim. Here the same value lands in three places with
-// three different escaping rules, and the one that bites is JSON:
+// This expander is not reconnect's expandVars, which escapes nothing because a
+// router login form wants the password put in verbatim. Here the same value
+// lands in three places with three escaping rules, and the one that bites is
+// JSON:
 //
 //	{"message":"%%task.name%%"}   +   Der "Direktor" 1080p.mkv
 //
 // produces a document that is not JSON, and Matrix or Gotify then answers 400
-// about the document rather than about the file - so the operator reads
-// "M_NOT_JSON" at three in the morning and goes looking at their homeserver.
-// The slot therefore comes from the target's OWN Content-Type header, and every
-// value is escaped for it.
+// about the document rather than about the file, so the operator reads
+// "M_NOT_JSON" and goes looking at their homeserver. The slot therefore comes
+// from the target's own Content-Type header and every value is escaped for it.
 //
-// TWO RULES THAT LOOK ALIKE AND ARE NOT:
+// Two rules that look alike and are not:
 //
-//   - an UNKNOWN name is left standing exactly as it was typed. That is
-//     reconnect's rule (config.go's expandVars) and it is right for the same
-//     reason: %%task.nmae%% that expands to nothing produces a message that is
-//     subtly wrong and looks perfectly fine, while one that arrives with the
-//     typo in it is fixed in ten seconds.
-//   - a KNOWN name whose payload this trigger does not carry becomes EMPTY.
-//     Firing's own doc comment (script/bus.go) is the authority on which payload
-//     belongs to which trigger, and a target bound to reconnect.done must not
-//     send the literal text "%%task.name%%" to somebody's phone.
+//   - an unknown name is left standing as it was typed, reconnect's rule and
+//     right for the same reason: %%task.nmae%% expanding to nothing produces a
+//     message that is subtly wrong and looks fine, while one that arrives with
+//     the typo in it is fixed in ten seconds.
+//   - a known name whose payload this trigger does not carry becomes empty.
+//     script.Firing says which payload belongs to which trigger, and a target
+//     bound to reconnect.done should not send the literal text
+//     "%%task.name%%" to somebody's phone.
 //
-// The table below is the only place either rule is applied, and Placeholders()
-// serves that same table to the picker - so the list the operator chooses from
-// cannot drift from the list this build actually fills in.
+// The table below is the only place either rule is applied, and Placeholders
+// serves that same table to the picker, so the list the operator chooses from
+// cannot drift from the list this build fills in.
 
 import (
 	"encoding/json"
@@ -43,30 +40,29 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/script"
 )
 
-// marker wraps a placeholder name. JDownloader's own spelling, which reconnect
-// already speaks, so an operator who has written a reconnect script here knows
-// this syntax before they read a word about it.
+// marker wraps a placeholder name, in JDownloader's spelling, which reconnect
+// already speaks, so an operator who has written a reconnect script knows this
+// syntax before they read a word about it.
 const marker = "%%"
 
-// Slot is WHERE a value is being put, which decides how it is escaped.
+// Slot is where a value is being put, which decides how it is escaped.
 //
-// SlotBodyPlain is the zero value on purpose: it escapes nothing, so a Slot
-// somebody forgets to pass produces the value verbatim rather than a value
-// mangled by whichever rule happened to be first.
+// SlotBodyPlain is the zero value and escapes nothing, so a Slot somebody
+// forgets to pass produces the value verbatim rather than one mangled by
+// whichever rule happened to come first.
 type Slot int
 
 const (
-	// SlotBodyPlain is a body with no structure to break: ntfy's own plain-text
-	// message body is the common case, and a quote or a newline in a file name
-	// means nothing to it.
+	// SlotBodyPlain is a body with no structure to break, such as ntfy's
+	// plain-text message, where a quote or a newline in a file name means
+	// nothing.
 	SlotBodyPlain Slot = iota
-	// SlotURL is anywhere in the address. Query-escaped, because that is what a
-	// value interpolated into a URL is - a value, not a piece of the URL's own
-	// syntax. A file name with a "&" in it would otherwise start a second query
-	// parameter.
+	// SlotURL is anywhere in the address, query-escaped, because that is what a
+	// value interpolated into a URL is. A file name with a "&" in it would
+	// otherwise start a second query parameter.
 	SlotURL
-	// SlotHeader is a header value. Control characters are STRIPPED rather than
-	// escaped, because there is no escape: net/http refuses an invalid header
+	// SlotHeader is a header value. Control characters are stripped rather than
+	// escaped, since there is no escape: net/http refuses an invalid header
 	// field value at write time, so a task name with a newline in it would fail
 	// the whole request with a message naming nothing the operator recognises.
 	SlotHeader
@@ -78,18 +74,17 @@ const (
 
 // Placeholder is one name the picker may offer, as the route serves it.
 type Placeholder struct {
-	// Name is written WITHOUT the %% wrapper, so the page composes the wrapper
-	// once rather than every entry carrying two copies of the same four
-	// characters.
+	// Name is written without the %% wrapper, so the page composes it once
+	// rather than every entry carrying two copies of the same four characters.
 	Name string `json:"name"`
 	// Scope is which payload it comes out of: "always", "task", "package",
-	// "extract", "reconnect", "account" or "captcha". It is what lets the picker
-	// group the list instead of showing forty flat rows.
+	// "extract", "reconnect", "account" or "captcha". The picker groups the
+	// list by it instead of showing forty flat rows.
 	Scope string `json:"scope"`
-	// Triggers is which events carry this name. EMPTY MEANS EVERY TRIGGER, which
-	// is only true of the "always" scope. It is what the page uses to say "none
-	// of the events you ticked carries this, so it will always be empty" - the
-	// one warning that turns a silent empty message into a fixable mistake.
+	// Triggers is which events carry this name. An empty list means every
+	// trigger, which is true only of the "always" scope. The page uses it to
+	// warn that none of the ticked events carries a placeholder, which turns a
+	// silently empty message into a fixable mistake.
 	Triggers []script.Trigger `json:"triggers,omitempty"`
 }
 
@@ -113,15 +108,11 @@ type entry struct {
 	value func(f script.Firing, instanceName string) string
 }
 
-// taskTriggers is every trigger that CAN carry a task.
-//
-// "Can", not "does": Firing's doc comment lists task.done, task.failed,
-// link.added, checksum.failed and manual as always carrying one, and says the
-// app also sets it alongside Extract and Captcha where it could name the
-// download. So a target bound only to extract.done may or may not get a task
-// name depending on whether the extraction knew which download it came from,
-// and the honest thing for the picker to say is "this event can carry it"
-// rather than either half-truth.
+// taskTriggers is every trigger that can carry a task, which is not the same as
+// every trigger that does. task.done, task.failed, link.added, checksum.failed
+// and manual always carry one; extract.done and captcha.pending carry one when
+// the app could name the download. The picker says "can carry it" rather than
+// picking one of the two half-truths.
 var taskTriggers = []script.Trigger{
 	script.TriggerTaskDone, script.TriggerTaskFailed, script.TriggerLinkAdded,
 	script.TriggerChecksumFailed, script.TriggerOnDemand,
@@ -135,14 +126,13 @@ var table = buildTable()
 func buildTable() []entry {
 	out := []entry{
 		{Placeholder{Name: "event", Scope: ScopeAlways}, func(f script.Firing, _ string) string { return string(f.Trigger) }},
-		// RFC3339 rather than a formatted local time: this string is read by
-		// somebody else's server as often as by a person, and a machine-readable
-		// stamp can always be reformatted where it lands. The reverse is not
-		// true.
+		// RFC3339 rather than a formatted local time: this is read by somebody
+		// else's server as often as by a person, and a machine-readable stamp
+		// can be reformatted where it lands.
 		{Placeholder{Name: "time", Scope: ScopeAlways}, func(f script.Firing, _ string) string { return f.At.Format(time.RFC3339) }},
-		// The INSTANCE name, never the target's own. The far end already knows
-		// which of its topics it is; what it cannot know is which of somebody's
-		// three boxes just spoke.
+		// The instance name, never the target's own. The far end knows which of
+		// its topics it is; what it cannot know is which of somebody's three
+		// boxes just spoke.
 		{Placeholder{Name: "instance", Scope: ScopeAlways}, func(_ script.Firing, name string) string { return name }},
 		{Placeholder{Name: "queue.files", Scope: ScopeAlways}, func(f script.Firing, _ string) string { return itoa(f.Queue.Files) }},
 		{Placeholder{Name: "queue.disabled", Scope: ScopeAlways}, func(f script.Firing, _ string) string { return itoa(f.Queue.Disabled) }},
@@ -211,11 +201,10 @@ func buildTable() []entry {
 	return out
 }
 
-// The six constructors below exist so that "this payload is nil on this
-// trigger" is written once per payload rather than once per field. Forty-odd
-// nil checks copied by hand is forty-odd chances to write one of them the wrong
-// way round, and the wrong way round here is a nil dereference on a goroutine
-// that is delivering somebody's notification.
+// The six constructors below write the nil payload check once per payload
+// rather than once per field, since forty of them copied by hand is forty
+// chances to get one the wrong way round, and the wrong way round here is a nil
+// dereference on the goroutine delivering somebody's notification.
 func taskEntry(name string, get func(script.TaskView) string) entry {
 	return entry{
 		Placeholder{Name: name, Scope: ScopeTask, Triggers: taskTriggers},
@@ -291,9 +280,9 @@ func captchaEntry(name string, get func(script.CaptchaView) string) entry {
 func itoa(v int) string     { return strconv.Itoa(v) }
 func itoa64(v int64) string { return strconv.FormatInt(v, 10) }
 
-// btoa is "true"/"false" and not "yes"/"no": these values are as likely to be
-// read by a JSON body as by a person, and `{"ok":%%extract.ok%%}` has to produce
-// a document rather than a sentence.
+// btoa writes "true" and "false" rather than "yes" and "no", because these
+// values land in a JSON body as often as in a sentence and
+// `{"ok":%%extract.ok%%}` has to stay a document.
 func btoa(v bool) string {
 	if v {
 		return "true"
@@ -301,9 +290,9 @@ func btoa(v bool) string {
 	return "false"
 }
 
-// byName is the lookup Expand uses, built once. Its KEYS are what "known"
-// means: a name in here expands (to empty, if this firing has no payload for
-// it), a name not in here is left standing.
+// byName is the lookup Expand uses, built once. Its keys are what "known"
+// means: a name in here expands, to empty if this firing has no payload for it,
+// and a name not in here is left standing.
 var byName = func() map[string]entry {
 	m := make(map[string]entry, len(table))
 	for _, e := range table {
@@ -314,10 +303,10 @@ var byName = func() map[string]entry {
 
 // Placeholders is the picker's list, served by GET /api/eventtargets/placeholders.
 //
-// It is the same table the expander reads, which is the whole point: a picker
-// built from a hand-copied list offers names the server never fills in and
-// omits ones it does - the identical argument script.AllTriggers makes for the
-// trigger vocabulary. A fresh slice on every call, so a caller may sort it.
+// It reads the same table the expander does, so the picker cannot offer names
+// the server never fills in or omit ones it does, the argument
+// script.AllTriggers makes for the trigger vocabulary. A fresh slice on every
+// call, so a caller may sort it.
 func Placeholders() []Placeholder {
 	out := make([]Placeholder, 0, len(table))
 	for _, e := range table {
@@ -329,11 +318,10 @@ func Placeholders() []Placeholder {
 // BodySlot decides how a body's placeholders are escaped, from the target's own
 // Content-Type header.
 //
-// From the header the operator wrote rather than from a separate "format"
-// field, because those two can disagree and the header is the one the far end
-// believes. A row that declares application/json and is escaped as plain text
-// is the exact failure this function exists to prevent; a row that declares
-// nothing gets plain text, which is what ntfy's own message body is.
+// From the header the operator wrote rather than a separate "format" field,
+// because those two can disagree and the header is the one the far end
+// believes. A row that declares nothing gets plain text, which is what ntfy's
+// message body is.
 func BodySlot(headers map[string]string) Slot {
 	ct := ""
 	for name, value := range headers {
@@ -372,10 +360,9 @@ func Expand(s string, slot Slot, f script.Firing, instanceName string) string {
 		}
 		name, after, closed := strings.Cut(rest, marker)
 		if !closed {
-			// An unclosed %% is not a placeholder. Validate refuses a row that
-			// has one, so reaching this is a hand-edited settings.json - and the
-			// broken template is left visible rather than swallowed, exactly as
-			// reconnect's expander leaves it.
+			// An unclosed %% is not a placeholder. Validate refuses a row with
+			// one, so reaching this means a hand-edited settings.json, and the
+			// broken template is left visible as reconnect's expander leaves it.
 			b.WriteString(s)
 			return b.String()
 		}
@@ -383,8 +370,8 @@ func Expand(s string, slot Slot, f script.Firing, instanceName string) string {
 		if e, ok := byName[strings.ToLower(strings.TrimSpace(name))]; ok {
 			b.WriteString(escape(e.value(f, instanceName), slot))
 		} else {
-			// The typo, kept. See the file comment: a name that expands to
-			// nothing produces a message that is quietly wrong.
+			// The typo is kept, since a name that expands to nothing produces a
+			// message that is quietly wrong.
 			b.WriteString(marker)
 			b.WriteString(name)
 			b.WriteString(marker)
@@ -411,11 +398,10 @@ func escape(v string, slot Slot) string {
 
 // stripControl removes what net/http will not put on the wire.
 //
-// Removed rather than replaced with a space: a task name with a newline in it
-// is a name with a newline in it, and the fix is to not send the newline, not
-// to invent a character the file name never had. Everything from 0x20 up
-// (0x7f aside) is a legal header field value byte, including the whole of
-// UTF-8's high range, so a German file name goes through untouched.
+// Removed rather than replaced with a space, so nothing is invented that the
+// file name never had. Everything from 0x20 up apart from 0x7f is a legal
+// header field value byte, UTF-8's high range included, so a German file name
+// goes through untouched.
 func stripControl(v string) string {
 	if strings.IndexFunc(v, isControl) < 0 {
 		return v
@@ -430,14 +416,11 @@ func stripControl(v string) string {
 
 func isControl(r rune) bool { return r < 0x20 || r == 0x7f }
 
-// jsonInner is v escaped for the INSIDE of a JSON string, without the quotes.
+// jsonInner is v escaped for the inside of a JSON string, without the quotes.
 //
-// encoding/json rather than a hand-written replacer, because the hand-written
-// one is always missing something: the tab, the U+2028 line separator that
-// breaks a JavaScript parser reading the body back, the lone surrogate that a
-// strict decoder refuses. Marshal of a string cannot fail, so the error is
-// dropped rather than checked into a value there is nothing sensible to do
-// with.
+// encoding/json rather than a hand-written replacer, which is always missing
+// something: the tab, the U+2028 line separator that breaks a JavaScript parser
+// reading the body back, the lone surrogate a strict decoder refuses.
 func jsonInner(v string) string {
 	b, err := json.Marshal(v)
 	if err != nil || len(b) < 2 {
@@ -449,11 +432,10 @@ func jsonInner(v string) string {
 // ExpandHeaders is every header value expanded for the header slot, with the
 // names left exactly as typed.
 //
-// The NAME is never expanded. A templated header name is a way to build a
-// header called "X-%%task.status%%" whose spelling changes per message, which
-// nothing wants and which no far end can be configured against; leaving it
-// alone also means the name in the row is the name on the wire, which is what
-// makes Merge's "same header name" rule mean anything.
+// The name is never expanded. A header called "X-%%task.status%%" would change
+// its spelling per message, which no far end can be configured against, and
+// leaving it alone keeps the name in the row the name on the wire, which is
+// what makes Merge's "same header name" rule mean anything.
 func ExpandHeaders(h map[string]string, f script.Firing, instanceName string) map[string]string {
 	if len(h) == 0 {
 		return nil
@@ -467,16 +449,16 @@ func ExpandHeaders(h map[string]string, f script.Firing, instanceName string) ma
 
 // SampleFiring is the made-up event the test button sends.
 //
-// It fills EVERY payload, which no real firing ever does, and that is
-// deliberate: the point of the test is to see what the template produces, and a
-// sample carrying only a task would silently render half of somebody's Matrix
-// body as empty and teach them their placeholders were wrong. The names are
-// obviously invented so that a message which reaches a real chat room reads as
-// a test rather than as a download nobody remembers starting.
+// It fills every payload, which no real firing does, because the test is there
+// to show what the template produces and a sample carrying only a task would
+// render half of somebody's Matrix body as empty and teach them their
+// placeholders were wrong. The names are obviously invented, so a message that
+// reaches a real chat room reads as a test rather than as a download nobody
+// remembers starting.
 //
-// The task name carries a double quote on purpose. It is the character that
-// breaks a JSON body (trap 6), so a test against a Matrix or Gotify row
-// exercises the escaping rather than only the connection.
+// The task name carries a double quote, the character that breaks a JSON body,
+// so a test against a Matrix or Gotify row exercises the escaping and not only
+// the connection.
 func SampleFiring(now time.Time) script.Firing {
 	return script.Firing{
 		Trigger: script.TriggerTaskDone,
@@ -500,17 +482,17 @@ func SampleFiring(now time.Time) script.Firing {
 	}
 }
 
-// ExpandURL is the address with its placeholders filled in. Split out because
-// both http.Send and any caller that wants to show what WOULD be sent need the
-// identical string, and two call sites building it separately is how the test
-// panel ends up describing a request the sender never made.
+// ExpandURL is the address with its placeholders filled in. Send and any caller
+// that wants to show what would be sent need the identical string, and two call
+// sites building it separately is how the test panel ends up describing a
+// request the sender never made.
 func ExpandURL(t Target, f script.Firing, instanceName string) string {
 	return Expand(strings.TrimSpace(t.URL), SlotURL, f, instanceName)
 }
 
 // ExpandBody is the body with its placeholders filled in, escaped for whatever
-// the row's own Content-Type says it is. Empty for a GET: net/http would send
-// one, and a body on a GET is a request most servers and every proxy in between
+// the row's Content-Type says it is. Empty for a GET, since net/http would send
+// one and a body on a GET is a request most servers and every proxy in between
 // treat differently from the one the operator thinks they wrote.
 func ExpandBody(t Target, f script.Firing, instanceName string) string {
 	if normalizeMethod(t.Method) == http.MethodGet {

@@ -1,17 +1,9 @@
 package rules
 
-// What the editor is told about the category action, and the one guard that
-// keeps the telling honest.
-//
-// The grammar is a promise made to a browser this package cannot see, so a
-// wrong answer here is not a failing call, it is a control that renders and
-// edits the wrong field. That is not hypothetical for this particular action:
-// the renderer switches on Kind and falls through to the accept/reject control
-// for a kind it does not know, so the day "category" was added to Describe was
-// the day a switch labelled "Category" could have started writing
-// Action.Reject on the Packagizer tab. Both halves of that are checked below,
-// the second one against the renderer's own source, because the note in
-// grammar.go that used to carry the warning is a note and notes are read once.
+// The editor renders a control per action Kind and falls through to the
+// accept/reject control for a kind it does not know, so a wrong grammar entry
+// renders a control that edits Action.Reject. These tests check the grammar
+// and, against the renderer's source, that every kind has a branch.
 
 import (
 	"encoding/json"
@@ -21,22 +13,18 @@ import (
 	"testing"
 )
 
-// ruleEditor is the renderer the grammar is describing itself to. Reading it
-// from a Go test is the same move routes_test.go's registration guard makes:
-// the two halves live in different languages and nothing else in the build
-// compares them, so either they are compared here or they are not compared.
+// ruleEditor is the renderer the grammar describes itself to. Nothing else in
+// the build compares the Go and TypeScript halves, as with routes_test.go's
+// registration guard.
 var ruleEditor = filepath.Join("..", "..", "web", "src", "components", "RuleEditor.tsx")
 
-// fallThroughKind is the one Kind that is allowed to have no branch of its
-// own, because it IS the last branch. Written down rather than derived: if the
-// fall-through ever becomes some other action, this line has to change with it,
-// and until it does the test says so out loud instead of quietly checking
-// nothing.
+// fallThroughKind is the one Kind with no branch of its own, because it is the
+// last branch.
 const fallThroughKind = "reject"
 
-// TestTheGrammarOffersTheCategoryAction pins the four things the browser reads
-// off this entry. The id is the one worth the most: it is the JSON key the form
-// posts, so a typo there is a control that edits nothing and reports success.
+// TestTheGrammarOffersTheCategoryAction pins what the browser reads off this
+// entry. The id is the JSON key the form posts, so a typo there would edit
+// nothing and report success.
 func TestTheGrammarOffersTheCategoryAction(t *testing.T) {
 	var got ActionGrammar
 	for _, a := range Describe().Actions {
@@ -56,9 +44,8 @@ func TestTheGrammarOffersTheCategoryAction(t *testing.T) {
 	if got.Max == nil || *got.Max != MaxCategoryRef {
 		t.Errorf("max = %v, want the %d categoryProblem refuses above", got.Max, MaxCategoryRef)
 	}
-	// The id addresses Action.Category and not some neighbouring field. Marshal
-	// rather than read the tag, because marshalling is what the browser will be
-	// handed.
+	// Marshalled rather than read off the tag, since that is what the browser
+	// gets.
 	b, err := json.Marshal(Action{Category: "serien"})
 	if err != nil {
 		t.Fatal(err)
@@ -68,15 +55,9 @@ func TestTheGrammarOffersTheCategoryAction(t *testing.T) {
 	}
 }
 
-// TestTheCategoryActionIsNotATemplate is the refusal the whole action rests on,
-// checked here from the grammar's side rather than the engine's.
-//
-// Kind "template" would be the obvious entry to write, every other packagizer
-// string being one, and it would be the wrong one twice over: the link's own
-// host would get to spell its own drawer, and an id that does not exist until a
-// link arrives is an id settings.ValidateCategories can never weigh, so the one
-// check standing between a rule and a drawer that is not there would stop
-// applying to exactly the rules that need it.
+// TestTheCategoryActionIsNotATemplate: a template would let the link's host
+// pick its own category and put the id out of reach of
+// settings.ValidateCategories.
 func TestTheCategoryActionIsNotATemplate(t *testing.T) {
 	for _, a := range Describe().Actions {
 		if a.ID == "category" && a.Kind == "template" {
@@ -88,18 +69,11 @@ func TestTheCategoryActionIsNotATemplate(t *testing.T) {
 	}
 }
 
-// TestEveryActionKindHasAControl is the interlock, and it exists because this
-// grammar's failure mode is silent on both sides. A Kind the renderer does not
-// know does not throw and does not render blank: it renders the LAST branch, a
-// working accept/reject switch wired to Action.Reject, under whichever label
-// the new action carries. Somebody switches "Category" to "reject" and the
-// link is dropped.
-//
-// So the pairing is checked rather than remembered. Every kind Describe hands
-// out has to be one the editor's own ActionGrammar union admits to, and every
-// one except the fall-through has to be compared against somewhere in that
-// file. Both spellings of the comparison are accepted so this fails when a
-// branch is missing and not when somebody moves the chain into a switch.
+// TestEveryActionKindHasAControl: a Kind the renderer does not know renders as
+// a working accept/reject switch under the new action's label. Every kind
+// Describe hands out must be in the editor's ActionGrammar union, and every
+// one except the fall-through must have a branch, written as an if-chain or a
+// switch.
 func TestEveryActionKindHasAControl(t *testing.T) {
 	src, err := os.ReadFile(ruleEditor)
 	if err != nil {
@@ -133,11 +107,9 @@ func TestEveryActionKindHasAControl(t *testing.T) {
 	}
 }
 
-// kindUnion is the declared list of kinds on ActionGrammar, which is the
-// editor's own statement of what it can render. It is worth reading separately
-// from the branches: TypeScript refuses a comparison against a literal the
-// union does not hold, so a branch without an entry here does not compile and
-// an entry here without a branch is the fall-through.
+// kindUnion is the declared list of kinds on ActionGrammar. TypeScript refuses
+// a branch on a literal the union lacks, so an entry here without a branch is
+// the fall-through.
 func kindUnion(text string) (string, bool) {
 	_, after, ok := strings.Cut(text, "interface ActionGrammar {")
 	if !ok {
@@ -155,10 +127,8 @@ func kindUnion(text string) (string, bool) {
 	return "", false
 }
 
-// rendersKind reports whether the editor branches on this kind anywhere. Both
-// the if-chain the file uses today and a switch are accepted, and both quote
-// styles, because the shape of the chain is the renderer's business and only
-// the presence of the branch is this package's.
+// rendersKind reports whether the editor branches on this kind anywhere, as an
+// if-chain or a switch, in either quote style.
 func rendersKind(text, kind string) bool {
 	for _, form := range []string{
 		"kind === '" + kind + "'",

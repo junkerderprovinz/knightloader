@@ -48,9 +48,9 @@ func TestPasskeyRoundTrip(t *testing.T) {
 	}
 }
 
-// TestTheSameAuthenticatorCannotRegisterTwice. Two rows answering for one key
-// would leave the sign-counter check comparing against whichever was found
-// first, which is the check quietly stopping rather than failing.
+// Two rows answering for one credential would leave the sign-counter check
+// comparing against whichever was found first, so it would stop working
+// without failing.
 func TestTheSameAuthenticatorCannotRegisterTwice(t *testing.T) {
 	s := open(t)
 	if _, err := s.AddPasskey(aKey("my phone", "kl.example.com", 0x10)); err != nil {
@@ -80,9 +80,9 @@ func TestAPasskeyNeedsAnIDAndAPublicKey(t *testing.T) {
 	}
 }
 
-// TestPasskeysForRPSeesOnlyItsOwnAddress. A browser will not offer a key whose
-// relying-party id does not match the page, so a login ceremony that listed the
-// others would raise a prompt that cannot succeed.
+// A browser will not offer a key whose relying-party id does not match the
+// page, so a login ceremony listing the others would raise a prompt that
+// cannot succeed.
 func TestPasskeysForRPSeesOnlyItsOwnAddress(t *testing.T) {
 	s := open(t)
 	if _, err := s.AddPasskey(aKey("through the proxy", "kl.example.com", 0x10)); err != nil {
@@ -98,9 +98,8 @@ func TestPasskeysForRPSeesOnlyItsOwnAddress(t *testing.T) {
 	if len(here) != 1 || here[0].Name != "through the proxy" {
 		t.Fatalf("PasskeysForRP returned %d rows: %+v", len(here), here)
 	}
-	// And the full list still has both, because a key registered elsewhere is
-	// MARKED rather than hidden - hiding one would make a key somebody
-	// deliberately created look lost.
+	// The full list keeps both: a key registered under another address is
+	// marked rather than hidden, or it would look lost.
 	all, err := s.ListPasskeys()
 	if err != nil {
 		t.Fatal(err)
@@ -155,9 +154,8 @@ func TestTouchPasskeyRecordsTheCounter(t *testing.T) {
 	}
 }
 
-// TestAnAuthenticatorWithNoAAGUIDStillRegisters. Some security keys report
-// none, which is a normal case rather than an error - and a nil slice reaches
-// SQLite as NULL, which the column refuses.
+// Some security keys report no AAGUID. A nil slice reaches SQLite as NULL,
+// which the column refuses.
 func TestAnAuthenticatorWithNoAAGUIDStillRegisters(t *testing.T) {
 	s := open(t)
 	p := aKey("a plain security key", "kl.example.com", 0x30)

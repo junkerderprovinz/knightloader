@@ -28,26 +28,21 @@ const (
 	VarUsername = "username"
 	VarPassword = "password"
 
-	// VarRouter is the router's own address on the LAN, which is a different
-	// thing from VarIP and the two must never be conflated: VarIP is the public
-	// address the box had before the run, and pointing a login request at that
-	// instead of at the gateway sends the router password out to the internet.
-	// JDownloader spells this one %%%routerip%%%.
+	// VarRouter is the router's LAN address. It must not be confused with
+	// VarIP, the public address before the run: a login request sent there
+	// would carry the router password out to the internet. JDownloader spells
+	// it %%%routerip%%%.
 	VarRouter = "router"
 )
 
 // RedactedPassword is what Redacted puts in place of the router password, and
-// the value WithSecretsFrom reads as "the user did not retype it". It is a
-// visible placeholder rather than an empty string because an empty string has to
-// keep meaning "clear the password" - otherwise a stored password can never be
-// removed through the settings form.
+// the value WithSecretsFrom reads as "not retyped". An empty string still
+// means "clear the password".
 const RedactedPassword = "********"
 
-// The failures a caller is expected to tell apart. ErrNotConfigured means the
-// user has not finished setting reconnect up, ErrUnchanged means the router did
-// as it was told and the address stayed put anyway, and ErrNoAddress means the
-// check URL answered with something that holds no address at all - three
-// different things to fix, so they must not arrive as one opaque error.
+// The failures a caller is expected to tell apart: reconnect is not fully set
+// up, the router obeyed and the address stayed the same, or the check URL
+// answered without an address.
 var (
 	ErrNotConfigured = errors.New("reconnect: not configured")
 	ErrUnchanged     = errors.New("reconnect: the address did not change")
@@ -73,10 +68,9 @@ type Config struct {
 	Username string `json:"username,omitempty"`
 	Password string `json:"password,omitempty"`
 
-	// Router is the router's address on the LAN, substituted wherever the
-	// %%router%% variable appears. It is stored without a scheme so a template
-	// can put it anywhere in a URL; Sanitize strips one if the user pasted the
-	// address straight out of the browser's address bar.
+	// Router is the router's LAN address, substituted for %%router%%. It is
+	// stored without a scheme so a template can put it anywhere in a URL;
+	// Sanitize strips one pasted from the browser's address bar.
 	Router string `json:"router,omitempty"`
 
 	// Command and Args are the external program for MethodCommand.
@@ -87,36 +81,30 @@ type Config struct {
 	Requests []Request `json:"requests,omitempty"`
 
 	// Interpreter, InterpreterArgs and Script are MethodScript. The script is
-	// written to a private temporary file and the interpreter is handed its
-	// path, which is why there is no field here for a shell command line: a
-	// reconnect that builds one would have to quote the router password into it.
+	// written to a private temporary file whose path goes to the interpreter,
+	// so no shell command line ever has the router password quoted into it.
 	Interpreter     string   `json:"interpreter,omitempty"`
 	InterpreterArgs []string `json:"interpreterArgs,omitempty"`
 	Script          string   `json:"script,omitempty"`
 
 	// UPnPLocation pins the gateway's device description URL and skips SSDP
-	// discovery. It is optional and normally empty: the point of MethodUPnP is
-	// that it works without the user knowing anything about their router. It
-	// exists for the network where the multicast search is filtered but the
-	// gateway is perfectly reachable, which discovery alone can never fix.
+	// discovery, for networks that filter the multicast search. It is normally
+	// empty.
 	UPnPLocation string `json:"upnpLocation,omitempty"`
 
 	// CheckURL is fetched to learn the current public address. It has no
-	// default: a self-hosted download manager should not start reporting its
-	// address to a third-party service the user never chose.
+	// default, so the address is never reported to a service the user did not
+	// choose.
 	CheckURL string `json:"checkUrl,omitempty"`
 
-	// The wait is stored in seconds rather than as a time.Duration, which JSON
-	// would render as an eleven-digit nanosecond count that nobody can read or
-	// hand-edit in settings.json.
+	// Seconds rather than time.Duration, which JSON would write as nanoseconds.
 	IntervalSeconds int `json:"intervalSeconds"`
 	TimeoutSeconds  int `json:"timeoutSeconds"`
 }
 
-// The bounds Sanitize enforces. The interval floor exists because a poll loop
-// with no floor turns an IP-check service into a target; the timeout ceiling
-// exists because a reconnect that is still waiting a quarter of an hour later
-// has failed, whatever the user typed.
+// The bounds Sanitize enforces. The interval floor keeps the poll loop from
+// hammering an IP-check service; a reconnect still waiting after a quarter of
+// an hour has failed.
 const (
 	defaultIntervalSeconds = 5
 	minIntervalSeconds     = 1
@@ -128,8 +116,7 @@ const (
 )
 
 // Defaults returns the configuration a fresh install starts with: switched off,
-// with sensible timing already filled in so the settings form has numbers to
-// show rather than two zeroes.
+// with the timing filled in for the settings form.
 func Defaults() Config {
 	return Config{
 		Method:          MethodNone,
@@ -148,9 +135,9 @@ func (c Config) Timeout() time.Duration {
 	return time.Duration(c.TimeoutSeconds) * time.Second
 }
 
-// Sanitize normalises a configuration that came from a settings file or an API
-// request. It never rejects: everything it cannot make sense of becomes the safe
-// value, and the things that must be spelled out are Validate's job to report.
+// Sanitize normalises a configuration from a settings file or an API request.
+// It never rejects: anything it cannot make sense of becomes the safe value,
+// and Validate reports what is missing.
 func Sanitize(c Config) Config {
 	switch strings.ToLower(strings.TrimSpace(c.Method)) {
 	case MethodCommand, "external", "batch":
@@ -162,24 +149,20 @@ func Sanitize(c Config) Config {
 	case MethodScript, "interpreter":
 		c.Method = MethodScript
 	default:
-		// A method we cannot identify becomes "off" rather than falling through
-		// to whichever branch happens to be first: guessing would fire commands
-		// at a router the user never pointed us at.
+		// An unknown method is off; guessing could fire commands at a router
+		// the user never configured.
 		c.Method = MethodNone
 	}
 
 	c.Username = strings.TrimSpace(c.Username)
-	// The password is deliberately not trimmed. Spaces are legal in a password,
-	// and quietly removing them produces a login that fails with a message from
-	// the router that never mentions the reason.
+	// The password is not trimmed, since spaces are legal in it.
 	c.Command = strings.TrimSpace(c.Command)
 	c.CheckURL = strings.TrimSpace(c.CheckURL)
 	c.Interpreter = strings.TrimSpace(c.Interpreter)
 	c.UPnPLocation = strings.TrimSpace(c.UPnPLocation)
 	c.Router = sanitizeRouter(c.Router)
-	// The script body is deliberately not trimmed of anything but surrounding
-	// blank space: an interpreter that cares about indentation would be handed a
-	// different program than the one the user wrote and saved.
+	// Only surrounding blank space is trimmed, so indentation inside the
+	// script survives.
 	c.Script = strings.TrimSpace(c.Script)
 
 	if len(c.Requests) > 0 {
@@ -198,8 +181,7 @@ func Sanitize(c Config) Config {
 
 	c.IntervalSeconds = clamp(c.IntervalSeconds, defaultIntervalSeconds, minIntervalSeconds, maxIntervalSeconds)
 	c.TimeoutSeconds = clamp(c.TimeoutSeconds, defaultTimeoutSeconds, minTimeoutSeconds, maxTimeoutSeconds)
-	// A timeout below the interval would end the run before a single check ran,
-	// which looks exactly like a router that ignored us.
+	// A timeout below the interval would end the run before the first check.
 	c.TimeoutSeconds = max(c.TimeoutSeconds, c.IntervalSeconds)
 	return c
 }
@@ -218,15 +200,10 @@ func clamp(v, fallback, lo, hi int) int {
 	return v
 }
 
-// sanitizeRouter reduces whatever the user pasted into the router field to a
-// bare host, optionally with a port.
-//
-// The failure it prevents is a doubled scheme. Templates write the variable as
-// "http://%%router%%/login.cgi", and somebody who copies the address out of the
-// browser's address bar pastes "http://192.168.1.1/" - which expands to
-// "http://http://192.168.1.1//login.cgi". That is not a URL, so the request
-// fails before it is sent, and the message names a parse error rather than the
-// field with the extra scheme in it.
+// sanitizeRouter reduces whatever was pasted into the router field to a bare
+// host, optionally with a port. Templates write "http://%%router%%/login.cgi",
+// and a pasted "http://192.168.1.1/" would otherwise expand to
+// "http://http://192.168.1.1//login.cgi".
 func sanitizeRouter(s string) string {
 	s = strings.TrimSpace(s)
 	if s == "" {
@@ -245,9 +222,8 @@ func sanitizeRouter(s string) string {
 	return strings.TrimSpace(s)
 }
 
-// sanitizeHeaders drops entries whose name is blank. A nameless header cannot be
-// sent, and http.Header.Set with an empty key produces a header line the router
-// answers to with a parse error rather than a login.
+// sanitizeHeaders drops entries whose name is blank, which would produce a
+// header line the router answers with a parse error.
 func sanitizeHeaders(h map[string]string) map[string]string {
 	if len(h) == 0 {
 		return nil
@@ -277,17 +253,14 @@ func (c Config) Validate() error {
 			return &ConfigProblem{Code: ProblemNoRequests}
 		}
 		for i, q := range c.Requests {
-			// An entry with no URL is refused rather than skipped. Skipping it
-			// would leave a script that logs in and never reboots, and that
-			// failure shows up as "the address never changes" days later.
+			// Skipping an entry with no URL could leave a script that logs in
+			// and never reboots.
 			if strings.TrimSpace(q.URL) == "" {
 				return &ConfigProblem{Code: ProblemRequestNoURL, N: i + 1}
 			}
 		}
 	case MethodUPnP:
-		// Nothing is required. That is the whole reason this method exists: the
-		// gateway is found by asking the network, so a user who knows none of
-		// their router's details can still reconnect.
+		// Nothing is required: the gateway is found by asking the network.
 	case MethodScript:
 		if strings.TrimSpace(c.Interpreter) == "" {
 			return &ConfigProblem{Code: ProblemNoInterpreter}
@@ -298,38 +271,24 @@ func (c Config) Validate() error {
 	case MethodNone, "":
 		return &ConfigProblem{Code: ProblemOff}
 	default:
-		// Sanitize folds a method it does not recognise into MethodNone, so a
-		// caller validating raw form input is the last place the word the user
-		// actually typed still exists. Answering "reconnect is switched off" to
-		// somebody who typed "ssdp" sends them to the on/off toggle, which is
-		// already on, and the real problem - a word three fields away that
-		// nothing has normalised yet - never gets looked at.
+		// Only unsanitized input gets here. Naming the unknown word is more
+		// useful than "switched off", which would point at the toggle.
 		return &ConfigProblem{Code: ProblemUnknownMethod, Method: c.Method}
 	}
 	if strings.TrimSpace(c.CheckURL) == "" {
-		// Without a check there is no way to tell a reconnect from a no-op, and
-		// this package refuses to report a success it cannot prove.
+		// Without a check a reconnect cannot be told from a no-op.
 		return &ConfigProblem{Code: ProblemNoCheckURL}
 	}
 	if c.Router == "" && c.usesRouterVar() {
-		// An unset variable expands to nothing, so an imported script whose
-		// login URL is "http://%%router%%/login.cgi" would post the router
-		// password to "http:///login.cgi". Refusing here names the empty field;
-		// letting it run names a URL parse error three layers down.
+		// An empty router would post the password to "http:///login.cgi" and
+		// fail with a URL parse error instead of naming the empty field.
 		return &ConfigProblem{Code: ProblemNoRouter, Var: VarRouter}
 	}
 	return nil
 }
 
-// The reasons a configuration cannot run, as values.
-//
-// They exist because the sentence is not translatable and the interface is. A
-// German user reading "the command method has no program to run" is reading the
-// one English string left in the product, and the alternative - translating on
-// the server - would need the browser's language on a settings request and give
-// the log a sentence in whatever the last reader happened to prefer. So the code
-// crosses the wire and the interface picks the words, which is the same call
-// this package's neighbours made for task failures.
+// The reasons a configuration cannot run, as codes the interface translates;
+// the server does not know the browser's language.
 const (
 	ProblemOff           = "off"
 	ProblemNoCommand     = "noCommand"
@@ -342,20 +301,15 @@ const (
 	ProblemNoRouter      = "noRouter"
 )
 
-// ConfigProblem is why a configuration cannot run: a code, and the one detail
-// that code needs.
-//
-// It is an error as well as a value, and the sentence it produces is the same
-// one this package produced before - so logs, tests and any caller that only
-// ever printed it are unaffected, and errors.Is(err, ErrNotConfigured) still
-// answers true.
+// ConfigProblem is why a configuration cannot run: a code and the one detail
+// it needs. As an error it reads as an English sentence and matches
+// ErrNotConfigured.
 type ConfigProblem struct {
 	Code string
 	// N is the 1-based position of the offending request, for ProblemRequestNoURL.
 	N int
-	// Method is the word the user actually typed, for ProblemUnknownMethod. It
-	// is the only field here that carries user input, and it reaches a log and a
-	// page - so it is quoted with %q rather than interpolated bare.
+	// Method is the word the user typed, for ProblemUnknownMethod. Being user
+	// input, it is quoted with %q.
 	Method string
 	// Var is the variable name that has no value, for ProblemNoRouter.
 	Var string
@@ -384,9 +338,7 @@ func (p *ConfigProblem) detail() string {
 	case ProblemNoRouter:
 		return fmt.Sprintf("the script uses %%%%%s%%%% but no router address is set", p.Var)
 	default:
-		// ProblemOff and anything a later change forgets to describe. Falling
-		// back to the switched-off wording for an unknown code would be a lie
-		// with a plausible face, so an unrecognised code says so.
+		// An unknown code must not read as "switched off".
 		if p.Code == ProblemOff {
 			return "reconnect is switched off"
 		}
@@ -394,9 +346,8 @@ func (p *ConfigProblem) detail() string {
 	}
 }
 
-// Unwrap keeps errors.Is(err, ErrNotConfigured) working, which is how every
-// caller outside this package tells "not finished setting up" from "the router
-// refused".
+// Unwrap keeps errors.Is(err, ErrNotConfigured) working, which is how callers
+// tell "not finished setting up" from "the router refused".
 func (p *ConfigProblem) Unwrap() error { return ErrNotConfigured }
 
 // usesRouterVar reports whether anything this method would run references the
@@ -429,9 +380,8 @@ func (c Config) usesRouterVar() bool {
 	return false
 }
 
-// containsVar reports whether s references the named variable, matching the
-// same case-insensitively as expandVars does - a check that only found
-// "%%router%%" would let "%%Router%%" through and refuse nothing.
+// containsVar reports whether s references the named variable,
+// case-insensitively like expandVars.
 func containsVar(s, name string) bool {
 	return strings.Contains(strings.ToLower(s), "%%"+name+"%%")
 }
@@ -447,10 +397,9 @@ func (c Config) Redacted() Config {
 	return c
 }
 
-// WithSecretsFrom puts back the password that Redacted removed. A settings form
-// that was shown a redacted config sends the placeholder back untouched, and
-// without this the save would wipe the stored password on every visit to the
-// page. An empty password is left empty, which is how it is cleared on purpose.
+// WithSecretsFrom puts back the password that Redacted removed, since a
+// settings form sends the placeholder back untouched. An empty password stays
+// empty, which is how it is cleared.
 func (c Config) WithSecretsFrom(prev Config) Config {
 	if c.Password == RedactedPassword {
 		c.Password = prev.Password
@@ -458,9 +407,8 @@ func (c Config) WithSecretsFrom(prev Config) Config {
 	return c
 }
 
-// String describes a configuration without its password, so a caller that logs
-// the settings struct - or leaves a %v in a line written while debugging -
-// cannot put the router password into a log file.
+// String describes a configuration without its password, so logging the
+// settings struct with %v cannot leak it.
 func (c Config) String() string {
 	switch c.Method {
 	case MethodCommand:
@@ -470,19 +418,17 @@ func (c Config) String() string {
 	case MethodUPnP:
 		return fmt.Sprintf("reconnect{upnp, check %s}", c.CheckURL)
 	case MethodScript:
-		// The script's length, never its text. A reconnect script is the one
-		// place a user is likely to hard-code a router password that this
-		// package's own redaction knows nothing about, because it never passed
-		// through the password field.
+		// The script's length, never its text: users hard-code passwords in
+		// scripts that redaction knows nothing about.
 		return fmt.Sprintf("reconnect{script %q, %d bytes, check %s}", c.Interpreter, len(c.Script), c.CheckURL)
 	default:
 		return "reconnect{off}"
 	}
 }
 
-// vars are the substitutions for one run. The address is the one the box had
-// before the method ran, because that is what a router script needs to identify
-// the session it is about to drop.
+// vars are the substitutions for one run. The address is the one from before
+// the method ran, which a router script needs to identify the session it
+// drops.
 func (c Config) vars(ip netip.Addr) map[string]string {
 	addr := ""
 	if ip.IsValid() {
@@ -497,14 +443,9 @@ func (c Config) vars(ip netip.Addr) map[string]string {
 }
 
 // expandVars replaces every %%name%% in s from vars, matching names without
-// regard to case. An unknown name is left verbatim for the same reason
-// pathvars.Expand leaves an unknown <jd:...> in place: a typo that survives into
-// the failing URL can be seen and fixed, while one that expands to nothing
-// produces a request that is subtly wrong and looks perfectly fine.
-//
-// This deliberately does not call pathvars.Expand. That expander speaks a
-// different syntax and sanitises every value into a single path segment, which
-// would turn the colons and slashes of a router URL into dashes.
+// regard to case. An unknown name is left verbatim so a typo stays visible in
+// the failing URL. pathvars.Expand is not used because it sanitises values
+// into a single path segment, which would mangle a router URL.
 func expandVars(s string, vars map[string]string) string {
 	const marker = "%%"
 	if !strings.Contains(s, marker) {
@@ -538,23 +479,18 @@ func expandVars(s string, vars map[string]string) string {
 }
 
 // redact strips the router password out of an error before anyone can log it.
-//
-// It is one choke point on purpose. The password is substituted into program
-// arguments, into URLs and into request bodies, so it reaches an error string
-// through the command's own output, through the URL that *url.Error prints back
-// and through anything a transport chooses to quote - and patching those three
-// sites separately is how the fourth one gets missed.
+// The password reaches errors through command output, the URL a *url.Error
+// prints and whatever a transport quotes, so every method's errors pass
+// through this one place.
 func (c Config) redact(err error) error {
 	if err == nil || c.Password == "" {
 		return err
 	}
 	msg := err.Error()
 	out := msg
-	// The plain text and all three URL encodings, because they disagree with
-	// each other: a space is "+" in a query and "%20" in a path, and the
-	// userinfo section escapes "@" where a path leaves it alone. Looking only
-	// for the plain text walks straight past a password that reached the error
-	// through "http://user:pass@router/".
+	// The plain text and all three URL encodings, which differ: a space is "+"
+	// in a query and "%20" in a path, and userinfo escapes "@" where a path
+	// does not.
 	secrets := []string{
 		c.Password,
 		url.QueryEscape(c.Password),
@@ -579,14 +515,7 @@ type redactedError struct {
 
 func (e *redactedError) Error() string { return e.msg }
 
-// Is answers sentinel comparisons from the original chain.
-//
-// There is deliberately no Unwrap and no As here, which is the whole reason this
-// type is not a plain fmt.Errorf wrapper. Both of them hand the caller the
-// original error itself, and that error's message - or, for a *url.Error, its
-// URL field - still spells the router password out in full. A redaction that
-// one errors.Unwrap steps around is not a redaction; it is a redaction that
-// holds right up until the first person who wants more detail in a log line.
-// Is gives callers the only thing they actually ask an error from this package,
-// which sentinel it is, without ever letting go of the cleaned string.
+// Is answers sentinel comparisons from the original chain. There is no Unwrap
+// or As, because either would hand out the original error, whose message or
+// *url.Error URL still contains the password.
 func (e *redactedError) Is(target error) bool { return errors.Is(e.err, target) }

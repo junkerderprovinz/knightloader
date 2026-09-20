@@ -1,22 +1,14 @@
 package relay
 
-// Backoff for failed handshakes, needed once this relay is operated
-// publicly rather than by the person whose instances use it.
+// Backoff for failed handshakes on a publicly operated relay. The group key,
+// with 128 bits of entropy, is what keeps strangers out; this limits clients
+// that fail the handshake over and over, each attempt costing a TCP
+// connection, a TLS negotiation and a goroutine for up to helloTimeout, and
+// burying real failures in the journal.
 //
-// This is explicitly NOT what keeps strangers out of a group. The key does
-// that, and at 128 bits of entropy (see internal/seedphrase) guessing one
-// is not a threat any rate limit needs to help with. What this stops is the
-// other thing an open endpoint attracts: a client that fails the handshake
-// over and over, each attempt costing a TCP connection, a TLS negotiation
-// and a goroutine held for the length of helloTimeout. Left unbounded, that
-// is a way to spend the relay's resources for free - and it buries the
-// journal so deeply that a real failure becomes invisible in it.
-//
-// Keyed on the remote address, taken from the connection itself and never
-// from a forwarded-for header. The relay is dialled directly (its DNS
-// records are deliberately unproxied - see the deployment spec), so the
-// socket's own peer IS the client; trusting a header here would instead let
-// a caller pick its own bucket and walk straight past the limit.
+// It is keyed on the socket's remote address, never a forwarded-for header.
+// The relay is dialled directly, so the peer is the client, and trusting a
+// header would let a caller pick its own bucket.
 
 import (
 	"net"
@@ -26,37 +18,29 @@ import (
 )
 
 const (
-	// failWindow is how long a failure stays on an address's record. Long
-	// enough that a scripted attempt cannot simply pace itself under the
-	// threshold, short enough that somebody who fixed a typo half an hour
-	// ago is not still paying for it.
+	// failWindow is how long a failure stays on an address's record: long
+	// enough that a script cannot pace itself under the threshold, short
+	// enough that a fixed typo stops counting.
 	failWindow = 10 * time.Minute
 
-	// failsBeforeBlock is how many failures inside failWindow it takes to
-	// start refusing. Set well above what a person fumbling a paste can
-	// produce: a mistyped phrase fails once, they correct it and it works.
-	// Ten in ten minutes is not a person.
+	// failsBeforeBlock is how many failures inside failWindow start a block.
+	// A person mistyping a phrase fails once or twice, not ten times.
 	failsBeforeBlock = 10
 
 	// baseBlock is the first refusal window. It doubles with each further
-	// failure during a block or within failWindow of its end - the second case
-	// is the one a single caller hits, since a blocked address is refused before
-	// its handshake can fail again. Deliberately short at the start - an
-	// address that trips this once may be a person on a bad script, and a
-	// minute costs them nothing while a persistent caller reaches maxBlock
-	// after six blocks.
+	// failure during a block or within failWindow of its end, which is the
+	// case a single caller hits, since a blocked address is refused before its
+	// handshake can fail again. A persistent caller reaches maxBlock after six
+	// blocks.
 	//
-	// maxBlock is 50 minutes rather than an hour so a record still runs out
-	// within the 61 minutes the privacy policy states: maxBlock + failWindow,
-	// plus sweepEvery for the sweep to find it.
+	// maxBlock is 50 minutes so a record runs out within the 61 minutes the
+	// privacy policy states: maxBlock + failWindow, plus sweepEvery.
 	baseBlock = 1 * time.Minute
 	maxBlock  = 50 * time.Minute
 
-	// maxTrackedAddrs bounds the limiter's own memory, so the mechanism
-	// meant to stop resource exhaustion cannot become the thing causing it.
-	// When full, the oldest record is dropped: an attacker can push an
-	// address out only by making enough OTHER addresses fail recently, and
-	// a real deployment never approaches this.
+	// maxTrackedAddrs bounds the limiter's own memory. When full, the least
+	// recently active record is dropped, so pushing an address out takes
+	// enough other addresses failing recently.
 	maxTrackedAddrs = 4096
 )
 
@@ -67,11 +51,8 @@ type attempts struct {
 	blockFor     time.Duration
 }
 
-// limiter tracks failed handshakes per remote address.
-//
-// now is injectable so the tests can drive the clock instead of sleeping
-// through a real backoff - a test that waits out a one-minute block is a
-// test nobody runs.
+// limiter tracks failed handshakes per remote address. now is a field so tests
+// can drive the clock instead of sleeping through a backoff.
 type limiter struct {
 	mu        sync.Mutex
 	addrs     map[string]*attempts
@@ -80,17 +61,16 @@ type limiter struct {
 }
 
 // sweepEvery is how often the request path may walk the whole map to drop
-// records that have run out. Once a minute keeps the walk off the hot path of
-// a flood while still bounding how long an address outlives its record.
+// expired records, which keeps the walk off the hot path of a flood.
 const sweepEvery = time.Minute
 
 func newLimiter() *limiter {
 	return &limiter{addrs: map[string]*attempts{}, now: time.Now}
 }
 
-// blocked reports whether addr is currently being refused, and is called
-// before the connection is even upgraded - a refused address should cost
-// the relay a rejected HTTP request, not a live WebSocket.
+// blocked reports whether addr is being refused. It is checked before the
+// upgrade, so a refused address costs a rejected HTTP request, not a
+// WebSocket.
 func (l *limiter) blocked(addr string) bool {
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -100,22 +80,12 @@ func (l *limiter) blocked(addr string) bool {
 	return a != nil && now.Before(a.blockedUntil)
 }
 
-// sweep drops every record whose failures have aged out and whose block, if
-// it had one, is over.
-//
-// Without it a record lived until that same address completed a handshake,
-// the map filled up, or the process restarted - so a scanner that failed once
-// stayed in memory for the life of the relay, while the privacy policy said an
-// hour. With it, a record runs out failWindow after the address was last
-// active - its last failed attempt or the end of its block, whichever is later.
-// A block never ends more than maxBlock after the failure that set it, so the
-// record runs out no later than maxBlock + failWindow (60 minutes) after the
-// last failed attempt and is deleted by the next sweep, within 61 minutes. The
-// privacy policy states that figure, and ratelimit_test.go holds it.
-//
-// Called from the request path at most once per sweepEvery, and on a timer by
-// the public relay (cmd/knightloader-relay), so a relay that goes quiet
-// forgets as well.
+// sweep drops every record whose failures have aged out and whose block is
+// over. A record runs out failWindow after the address was last active, so no
+// later than maxBlock + failWindow (60 minutes) after its last failure, and
+// the next sweep deletes it within 61 minutes: the figure the privacy policy
+// states and ratelimit_test.go checks. The public relay also calls it on a
+// timer, so a relay that goes quiet forgets as well.
 func (l *limiter) sweep() {
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -138,7 +108,7 @@ func (l *limiter) sweepLocked(now time.Time) {
 	}
 }
 
-// tracked is how many addresses have a record right now. For the tests.
+// tracked is how many addresses have a record.
 func (l *limiter) tracked() int {
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -159,12 +129,10 @@ func (l *limiter) fail(addr string) {
 		a = &attempts{}
 		l.addrs[addr] = a
 	}
-	// A gap longer than the window means the previous failures have aged
-	// out; start the count again rather than letting an address accumulate
-	// one failure a day into a block. The gap is counted from the end of a
-	// block, not from the failure that set it: a 16-minute block outlasts
-	// failWindow, and counting from the failure reset the backoff for every
-	// caller that simply waited the block out.
+	// Failures older than the window no longer count. The gap is measured
+	// from the end of a block, since a long block outlasts failWindow and
+	// measuring from the failure would reset the backoff for any caller that
+	// waited the block out.
 	if !a.last.IsZero() && now.Sub(lastActive(a)) > failWindow {
 		a.fails = 0
 		a.blockFor = 0
@@ -186,10 +154,9 @@ func (l *limiter) fail(addr string) {
 	a.blockedUntil = now.Add(a.blockFor)
 }
 
-// succeed clears an address's record. A handshake that worked is proof the
-// caller is a real client, so the failures that came before it - a
-// half-typed phrase, an instance reconnecting during a key change - must
-// not follow them around.
+// succeed clears an address's record: a working handshake shows a real client,
+// and its earlier failures (a half-typed phrase, a reconnect during a key
+// change) should not count against it.
 func (l *limiter) succeed(addr string) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -205,9 +172,8 @@ func lastActive(a *attempts) time.Time {
 	return a.last
 }
 
-// evictIfFullLocked drops the least recently active record to make room, so a
-// full map gives up an address whose block is still running last.
-// Called with the lock held.
+// evictIfFullLocked drops the least recently active record to make room, so an
+// address whose block is still running goes last.
 func (l *limiter) evictIfFullLocked() {
 	if len(l.addrs) < maxTrackedAddrs {
 		return
@@ -222,16 +188,12 @@ func (l *limiter) evictIfFullLocked() {
 	delete(l.addrs, oldestKey)
 }
 
-// clientAddr is the bucket a request counts against: the peer's IP without
-// its port, since a caller gets a fresh source port per connection and
-// bucketing on the pair would make the limiter count every attempt as a
-// first one.
+// clientAddr is the bucket a request counts against: the peer's IP without its
+// port, since every connection gets a fresh source port.
 func clientAddr(r *http.Request) string {
 	host, _, err := net.SplitHostPort(r.RemoteAddr)
 	if err != nil {
-		// Not host:port - use it whole rather than dropping the request on
-		// the floor. Being unable to parse an address is not a reason to
-		// stop limiting it.
+		// An unparseable address is still limited, as a whole.
 		return r.RemoteAddr
 	}
 	return host

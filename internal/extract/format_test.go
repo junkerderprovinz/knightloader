@@ -13,12 +13,10 @@ import (
 )
 
 // The three archives below are carried as base64 rather than as files under
-// testdata, for two reasons. A repository is no place for opaque binaries, and
-// more importantly they have to come from somebody else's implementation: an
-// encrypted zip this package also wrote would only prove that it agrees with
-// itself, and the whole risk in a hand-written AES layer is agreeing with
-// yourself about the wrong thing. aesZip and zipCryptoZip were produced by
-// 7-Zip 24 (-tzip -mem=AES256 and -mem=ZipCrypto), rar5Archive by WinRAR
+// testdata. They come from somebody else's implementation, because an encrypted
+// zip this package also wrote would only prove it agrees with itself, and that
+// is the risk in a hand-written AES layer. aesZip and zipCryptoZip were produced
+// by 7-Zip 24 (-tzip -mem=AES256 and -mem=ZipCrypto), rar5Archive by WinRAR
 // (-ma5 -m0). All three are a few dozen bytes.
 const (
 	// aesZip holds note.txt, deflated, WinZip AES-256, password "keep". Its
@@ -46,9 +44,9 @@ const (
 const fixturePassword = "keep"
 
 // fixtureNote is what note.txt holds in both encrypted fixtures. It is long
-// enough that 7-Zip deflated it, which is the point: the real compression
-// method then lives in the 0x9901 extra field and a reader that trusts
-// method 99 has something visibly wrong to write out.
+// enough that 7-Zip deflated it, so the real compression method lives in the
+// 0x9901 extra field and a reader that trusts method 99 has something visibly
+// wrong to write out.
 var fixtureNote = strings.Repeat("the raven himself is hoarse\n", 12)
 
 // writeFixture decodes one of the base64 archives above into dir under name,
@@ -88,9 +86,8 @@ func filesUnder(t *testing.T, dir string) int {
 	return n
 }
 
-// TestDetectReadsTheBytesNotTheName pins the probe itself. Everything downstream
-// trusts its verdict over the file name, so a signature drifting here would
-// quietly route whole formats to the wrong reader.
+// Everything downstream trusts the probe's verdict over the file name, so a
+// signature drifting here would route whole formats to the wrong reader.
 func TestDetectReadsTheBytesNotTheName(t *testing.T) {
 	pad := func(head []byte, n int) []byte {
 		out := make([]byte, n)
@@ -129,9 +126,8 @@ func TestDetectReadsTheBytesNotTheName(t *testing.T) {
 	}
 }
 
-// TestProbeBeatsSuffixForRenamedRar is the case the probe exists for: a rar
-// handed over with a .zip name, which the old name-only dispatch opened with the
-// zip reader and reported as a broken download.
+// The case the probe exists for: a rar handed over with a .zip name, which a
+// name-only dispatch opens with the zip reader and calls a broken download.
 func TestProbeBeatsSuffixForRenamedRar(t *testing.T) {
 	dir := t.TempDir()
 	arc := writeFixture(t, dir, "film.zip", rar5Archive)
@@ -149,8 +145,8 @@ func TestProbeBeatsSuffixForRenamedRar(t *testing.T) {
 	}
 }
 
-// TestProbeBeatsSuffixForRenamedZip is the same trade in the other direction,
-// and it also proves the probe did not simply start ignoring the zip reader.
+// The same trade in the other direction, which also shows the zip reader is
+// still reached.
 func TestProbeBeatsSuffixForRenamedZip(t *testing.T) {
 	dir := t.TempDir()
 	arc := filepath.Join(dir, "film.rar")
@@ -192,9 +188,7 @@ var encryptedFixtures = []struct {
 	{"zipcrypto", zipCryptoZip},
 }
 
-// TestEncryptedZipOpensWithAPasswordFromTheList is the row itself: before this,
-// a password-protected zip failed as though it were corrupt and neither the
-// per-task password nor the global list ever reached it.
+// A password-protected zip opens from the list rather than failing as corrupt.
 func TestEncryptedZipOpensWithAPasswordFromTheList(t *testing.T) {
 	for _, fx := range encryptedFixtures {
 		t.Run(fx.name, func(t *testing.T) {
@@ -221,9 +215,8 @@ func TestEncryptedZipOpensWithAPasswordFromTheList(t *testing.T) {
 	}
 }
 
-// TestEncryptedZipWithoutPasswordAsksForOne pins that the archive is reported as
-// "needs a password" and not as damaged. The distinction is the whole reason
-// ErrPasswordRequired exists: one of the two states is recoverable by the user.
+// The archive is reported as needing a password rather than as damaged, which
+// is the difference ErrPasswordRequired exists for: one state is recoverable.
 func TestEncryptedZipWithoutPasswordAsksForOne(t *testing.T) {
 	for _, fx := range encryptedFixtures {
 		t.Run(fx.name, func(t *testing.T) {
@@ -237,9 +230,9 @@ func TestEncryptedZipWithoutPasswordAsksForOne(t *testing.T) {
 	}
 }
 
-// TestWrongPasswordWritesNothing pins the pre-flight. Finding out entry by entry
-// would leave a directory of half-written files behind every wrong password in
-// the list, and the next attempt would be walking over its own debris.
+// Finding out entry by entry would leave a directory of half-written files
+// behind every wrong password in the list, and the next attempt would walk over
+// its own debris.
 func TestWrongPasswordWritesNothing(t *testing.T) {
 	for _, fx := range encryptedFixtures {
 		t.Run(fx.name, func(t *testing.T) {
@@ -293,12 +286,10 @@ func writeRawZip(t *testing.T, path string, h *zip.FileHeader, body []byte) {
 	}
 }
 
-// TestWinZipAESIsNeverWrittenAsCiphertext is the edge case that is worse than a
-// failure. Compression method 99 is not a method, it is a pointer to the 0x9901
-// extra field, and a reader that shrugs at an unknown method and stores the
-// bytes produces a file full of AES ciphertext with a green tick beside it.
-// Every shape below is one this reader must refuse outright, and the assertion
-// that matters is not the error but the empty directory: nothing may be written.
+// Compression method 99 is a pointer to the 0x9901 extra field rather than a
+// method, so a reader that shrugs at an unknown method and stores the bytes
+// produces a file of AES ciphertext with a green tick beside it. Every shape
+// below is refused, and the assertion that matters is the empty directory.
 func TestWinZipAESIsNeverWrittenAsCiphertext(t *testing.T) {
 	// Long enough that a refusal cannot be mistaken for "too short to bother".
 	body := []byte("CIPHERTEXT-MARKER-that-must-never-reach-the-disk")
@@ -379,10 +370,9 @@ func TestWinZipAESIsNeverWrittenAsCiphertext(t *testing.T) {
 	}
 }
 
-// TestParseAESExtraReadsTheHeader pins the one field the fixtures cannot cover.
-// Both were written by 7-Zip and are therefore AE-2, which zeroes the CRC on
-// purpose; the ae2 flag is what stops that zero from being checked against real
-// data and reported as corruption on every single AE-2 archive in existence.
+// The one field the fixtures cannot cover: both were written by 7-Zip and are
+// AE-2, which zeroes the CRC, and the ae2 flag is what stops that zero from
+// being checked against real data and reported as corruption.
 func TestParseAESExtraReadsTheHeader(t *testing.T) {
 	ae1 := parseAESExtra(winZipAESExtra(1, 3, zip.Deflate))
 	if ae1 == nil || ae1.ae2 || ae1.strength != 3 || ae1.method != zip.Deflate {
@@ -404,9 +394,8 @@ func TestParseAESExtraReadsTheHeader(t *testing.T) {
 	}
 }
 
-// TestRetiredFormatsAreRefusedByName pins that each dead format says which one
-// it is and why. A generic "unsupported archive" sends the user looking for a
-// broken download instead of for another tool.
+// Each retired format says which one it is and why. A generic "unsupported
+// archive" sends the user looking for a broken download instead of another tool.
 func TestRetiredFormatsAreRefusedByName(t *testing.T) {
 	cases := []struct {
 		file string
@@ -435,9 +424,8 @@ func TestRetiredFormatsAreRefusedByName(t *testing.T) {
 	}
 }
 
-// TestRetiredFormatRecognisedByMagic covers both halves at once: the probe wins
-// over the name, and what it found is refused by name rather than fed to the
-// zip reader that the extension asked for.
+// Both halves at once: the probe wins over the name, and what it found is
+// refused by name rather than fed to the zip reader the extension asked for.
 func TestRetiredFormatRecognisedByMagic(t *testing.T) {
 	dir := t.TempDir()
 	arc := filepath.Join(dir, "movie.zip")
@@ -456,11 +444,10 @@ func TestRetiredFormatRecognisedByMagic(t *testing.T) {
 	}
 }
 
-// TestPayloadNameWhenTheProbeOverrulesTheName covers the one thing the probe
-// broke and had to put back: the payload of a single-stream archive is named
-// after the archive minus its compression suffix, and when the name carries the
-// wrong suffix entirely there is no suffix to subtract. Writing the payload
-// under the archive's own name would truncate the archive mid-read.
+// The payload of a single-stream archive is named after the archive minus its
+// compression suffix, and where the name carries the wrong suffix there is none
+// to subtract. Writing the payload under the archive's own name would truncate
+// the archive mid-read.
 func TestPayloadNameWhenTheProbeOverrulesTheName(t *testing.T) {
 	dir := t.TempDir()
 	arc := filepath.Join(dir, "blob.zip")

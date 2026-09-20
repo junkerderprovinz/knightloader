@@ -1,14 +1,10 @@
 package store
 
-// The volume totals, driven against a database with known rows in it and a
-// known zone around it.
+// The volume totals, driven against a database with known rows in it.
 //
-// The zone is not decoration. Every query in volume.go buckets with
-// 'localtime', and a test that ran in whatever zone the machine happens to be
-// in would say nothing at all on a CI box set to UTC - which is exactly the
-// machine on which "just drop the localtime bit" would look like a tidy-up.
-// time.Local is set for the length of the test instead, so the assertion has
-// teeth everywhere.
+// Every query in volume.go buckets with 'localtime', so a test running in
+// whatever zone the machine happens to be in would say nothing on a CI box set
+// to UTC. time.Local is pinned for the length of each test instead.
 
 import (
 	"path/filepath"
@@ -65,25 +61,14 @@ func bucketOf(t *testing.T, got []VolumeBucket, key string) VolumeBucket {
 	return VolumeBucket{}
 }
 
-// TestVolumeBucketsCutTheDayOnTheServersOwnCalendar is the guard on the one
-// word that makes the curve mean anything: 'localtime'. A day here is a day on
-// the server's own clock, because the monthly cap is enforced against that day,
-// and a chart bucketing in UTC would disagree with the number holding somebody's
-// queue back.
+// A day is a day on the server's own clock, because the monthly cap is
+// enforced against that day and a chart bucketing in UTC would disagree with
+// the number holding somebody's queue back.
 //
-// THE INSTANTS ARE BUILT FROM THE LOCAL CALENDAR, and that is the fix rather
-// than the setup. The first version of this test hardcoded two UTC instants and
-// asserted they fall on two different local days, which is only true in some
-// zones: it wanted an offset of about +09, passed on this machine for an
-// unrelated reason (SQLite's 'localtime' and Go's time.Local do not resolve
-// identically on Windows), and failed on CI, where both are UTC and the two
-// instants are simply the same day. A test whose answer depends on where the
-// machine is standing proves nothing about the code.
-//
-// Local midday on two consecutive local days is the portable form: whatever the
-// offset, and even if SQLite and Go disagree about it by an hour or two, noon
-// cannot fall over a midnight. What is left is exactly the claim - two instants
-// on two different local days come back as two buckets, keyed by those days.
+// The instants are built from the local calendar rather than hardcoded in UTC.
+// Local midday on two consecutive days falls on two different local days
+// whatever the offset, even where SQLite's 'localtime' and Go's time.Local
+// resolve an hour or two apart.
 func TestVolumeBucketsCutTheDayOnTheServersOwnCalendar(t *testing.T) {
 	s := volumeStore(t)
 	first := time.Date(2026, 3, 14, 12, 0, 0, 0, time.Local)
@@ -111,9 +96,8 @@ func TestVolumeBucketsCutTheDayOnTheServersOwnCalendar(t *testing.T) {
 	}
 }
 
-// TestVolumeMonthsAreOneBucketPerCalendarMonth is the same query at the other
-// unit, and it also pins that the two splits and the total are one pass over
-// one range rather than three that can disagree.
+// The same query at the month unit, which also pins that the two splits and
+// the total come from one pass over one range.
 func TestVolumeMonthsAreOneBucketPerCalendarMonth(t *testing.T) {
 	s := volumeStore(t)
 	feb := time.Date(2026, 2, 10, 12, 0, 0, 0, time.Local)
@@ -144,10 +128,8 @@ func TestVolumeMonthsAreOneBucketPerCalendarMonth(t *testing.T) {
 	}
 }
 
-// TestUnsizedDownloadsCountAsZeroAndAreCounted is the honesty of the total. A
-// livestream or a host that would not say leaves size 0 in the row, so the
-// bytes are silently short; the only defence is a number that says how short
-// they might be, and a chart that never gets it cannot draw the caveat.
+// A livestream or a host that would not say leaves size 0 in the row, so the
+// total is short and only the unsized count says how short.
 func TestUnsizedDownloadsCountAsZeroAndAreCounted(t *testing.T) {
 	s := volumeStore(t)
 	day := time.Date(2026, 3, 14, 12, 0, 0, 0, time.Local)
@@ -167,15 +149,13 @@ func TestUnsizedDownloadsCountAsZeroAndAreCounted(t *testing.T) {
 		t.Errorf("count = %d, want all three downloads", b.Count)
 	}
 	if b.Unsized != 2 {
-		t.Errorf("unsized = %d, want 2; without it the total is short and says nothing about it", b.Unsized)
+		t.Errorf("unsized = %d, want 2", b.Unsized)
 	}
 }
 
-// TestARowWithNoHostIsInTheTotalAndInNoBand pins what a split does with the
-// oldest rows an upgrade carried in, which have no host recorded at all.
-// Filing them under an invented name would put a hoster in the legend that
-// this instance has never met; leaving them out of the total would make the
-// chart disagree with the counter.
+// Rows carried in by an upgrade have no host recorded. Filing them under an
+// invented name would put a hoster in the legend that this instance never met;
+// leaving them out of the total would make the chart disagree with the counter.
 func TestARowWithNoHostIsInTheTotalAndInNoBand(t *testing.T) {
 	s := volumeStore(t)
 	day := time.Date(2026, 3, 14, 12, 0, 0, 0, time.Local)
@@ -191,16 +171,15 @@ func TestARowWithNoHostIsInTheTotalAndInNoBand(t *testing.T) {
 		t.Errorf("bytes = %d, want both downloads in the total", b.Bytes)
 	}
 	if len(b.ByHost) != 1 || b.ByHost["host.example"] != 700 {
-		t.Errorf("by host = %v, want the one host that was recorded and no band for the blank", b.ByHost)
+		t.Errorf("by host = %v, want only the host that was recorded", b.ByHost)
 	}
 	if _, ok := b.ByHost[""]; ok {
-		t.Error("a band with no name is in the split; a legend cannot draw it and nobody can read it")
+		t.Error("a band with no name is in the split")
 	}
 }
 
-// TestAnEmptyBucketCarriesMapsRatherThanNulls is the shape a gap in the curve
-// has to have. A nil map is JSON null, and a client that has to guard every
-// bucket for it will forget on one of the two curves.
+// A nil map crosses the wire as JSON null, which every client drawing a gap in
+// the curve would have to guard for.
 func TestAnEmptyBucketCarriesMapsRatherThanNulls(t *testing.T) {
 	b := NewVolumeBucket("2026-03-14")
 	if b.ByHost == nil || b.ByResolver == nil {
@@ -208,9 +187,8 @@ func TestAnEmptyBucketCarriesMapsRatherThanNulls(t *testing.T) {
 	}
 }
 
-// TestVolumeSinceIsHalfOpen is the property a period boundary rests on: two
-// adjacent periods must never both claim the same download, and neither may
-// drop one.
+// Two adjacent periods must never both claim the same download, and neither
+// may drop one.
 func TestVolumeSinceIsHalfOpen(t *testing.T) {
 	s := volumeStore(t)
 	from := time.Date(2026, 3, 1, 0, 0, 0, 0, time.Local)
@@ -224,17 +202,15 @@ func TestVolumeSinceIsHalfOpen(t *testing.T) {
 		t.Fatal(err)
 	}
 	if bytes != 333 {
-		t.Errorf("bytes = %d, want 333: the row exactly at the start belongs to this period and the one exactly at the end to the next", bytes)
+		t.Errorf("bytes = %d, want 333: the row at the start belongs to this period, the one at the end to the next", bytes)
 	}
 	if count != 2 || unsized != 0 {
 		t.Errorf("count = %d, unsized = %d, want 2 and 0", count, unsized)
 	}
 }
 
-// TestVolumeSinceOverAnEmptyHistoryIsZeroAndNotAnError keeps a fresh install
-// out of the error path: SUM over no rows is NULL, and a scan that did not
-// expect it would make the counter unreadable on the one instance that has
-// nothing to hide.
+// SUM over no rows is NULL, so a fresh install has to read zero rather than an
+// error.
 func TestVolumeSinceOverAnEmptyHistoryIsZeroAndNotAnError(t *testing.T) {
 	s := volumeStore(t)
 	bytes, count, _, err := s.VolumeSince(time.Now().Add(-time.Hour), time.Now())
@@ -246,10 +222,9 @@ func TestVolumeSinceOverAnEmptyHistoryIsZeroAndNotAnError(t *testing.T) {
 	}
 }
 
-// TestARefetchMovesItsBytesRatherThanAddingThem writes down what the history's
-// one-row-per-task rule does to a curve, so that nobody reads a shrinking month
-// as a bug. It is also the reason the running counter re-queries instead of
-// only ever adding: a second fetch of the same link adds nothing to the total.
+// The history keeps one row per task, so a second fetch of the same link moves
+// its bytes into the newer month instead of adding them. A month can therefore
+// shrink, and the running counter re-queries rather than only adding.
 func TestARefetchMovesItsBytesRatherThanAddingThem(t *testing.T) {
 	s := volumeStore(t)
 	march := time.Date(2026, 3, 14, 12, 0, 0, 0, time.Local)
@@ -262,16 +237,15 @@ func TestARefetchMovesItsBytesRatherThanAddingThem(t *testing.T) {
 		t.Fatal(err)
 	}
 	if len(got) != 1 || got[0].Key != "2026-04" {
-		t.Fatalf("buckets = %+v, want the bytes to have MOVED to April rather than being counted twice", got)
+		t.Fatalf("buckets = %+v, want the bytes moved to April rather than counted twice", got)
 	}
 	if got[0].Bytes != 900 {
 		t.Errorf("April = %d bytes, want the one download's 900", got[0].Bytes)
 	}
 }
 
-// TestOldestFinishedSaysWhereTheRecordRunsOut is what lets a chart tell "you
-// downloaded nothing then" apart from "that is no longer recorded". The two
-// look identical on a curve of zeroes.
+// A chart has to tell "nothing was downloaded then" from "that is no longer
+// recorded"; on a curve of zeroes the two look the same.
 func TestOldestFinishedSaysWhereTheRecordRunsOut(t *testing.T) {
 	s := volumeStore(t)
 	if _, known, err := s.OldestFinished(); err != nil || known {
@@ -290,9 +264,8 @@ func TestOldestFinishedSaysWhereTheRecordRunsOut(t *testing.T) {
 	}
 }
 
-// TestHistoryFullReportsTheCeilingAndNotTheAbsenceOfOne separates the two
-// answers a client draws differently: a history at its limit is missing its
-// oldest months, and a history with no limit at all is not.
+// A history at its limit is missing its oldest months; a history with no limit
+// is not, and a client draws the two differently.
 func TestHistoryFullReportsTheCeilingAndNotTheAbsenceOfOne(t *testing.T) {
 	s := volumeStore(t)
 	day := time.Date(2026, 3, 14, 12, 0, 0, 0, time.Local)
@@ -300,7 +273,7 @@ func TestHistoryFullReportsTheCeilingAndNotTheAbsenceOfOne(t *testing.T) {
 		finished(t, s, string(rune('a'+i)), "host.example", "direct", 10, day.Add(time.Duration(i)*time.Hour))
 	}
 	if full, err := s.HistoryFull(0); err != nil || full {
-		t.Errorf("HistoryFull(0) = %v (err %v), want false: zero is keep everything, so nothing has been cut", full, err)
+		t.Errorf("HistoryFull(0) = %v (err %v), want false: zero keeps everything", full, err)
 	}
 	if full, err := s.HistoryFull(10); err != nil || full {
 		t.Errorf("HistoryFull(10) = %v (err %v) with three rows, want false", full, err)
@@ -310,11 +283,11 @@ func TestHistoryFullReportsTheCeilingAndNotTheAbsenceOfOne(t *testing.T) {
 	}
 }
 
-// TestAnUnknownUnitIsRefused keeps a typo from drawing a plausible curve of a
-// different question's answer.
+// An unknown unit is refused rather than defaulted, so a typo cannot draw a
+// plausible curve that answers a different question.
 func TestAnUnknownUnitIsRefused(t *testing.T) {
 	s := volumeStore(t)
 	if _, err := s.VolumeBuckets(time.Now().Add(-time.Hour), "week"); err == nil {
-		t.Error("a unit nothing supports was accepted; a curve drawn from it would look right and mean nothing")
+		t.Error("a unit nothing supports was accepted")
 	}
 }

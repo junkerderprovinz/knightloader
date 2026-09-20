@@ -49,9 +49,9 @@ const reportEvery = 250 * time.Millisecond
 // recordedFiles caps how many written paths one job remembers. The record is
 // what lets an abort take back exactly this job's work; past the cap the
 // clean-up falls back to the directories the job created, which is what holds a
-// large extraction anyway. The one case the list is indispensable for - a single
-// compressed stream whose payload lands BESIDE the archive, in a folder full of
-// other people's files - is one file long.
+// large extraction anyway. The case the list is indispensable for, a single
+// compressed stream whose payload lands beside the archive in a folder full of
+// other people's files, is one file long.
 const recordedFiles = 4096
 
 // slot is the one extraction this package runs at a time.
@@ -62,10 +62,10 @@ const recordedFiles = 4096
 // while it is still queued behind another must come back as cancelled, not sit
 // on a lock until the archive in front of it has finished.
 //
-// It is not the user-visible queue - that belongs to the caller, which is what
+// It is not the user-visible queue, which belongs to the caller and is what
 // puts a waiting extraction in the list with a name and a stop button. This is
-// only the guarantee the tap needs, and it holds however many callers there are.
-// Two archives unpacking against the same disk make each other slower anyway.
+// only the guarantee the tap needs, and it holds however many callers there
+// are. Two archives unpacking against the same disk make each other slower.
 var slot = make(chan struct{}, 1)
 
 // Progress is a snapshot of a job in flight, in the terms the list shows it in.
@@ -143,12 +143,11 @@ func copyWatched(f *os.File, r io.Reader) (int64, error) {
 // Run unpacks the archive at req.Path, follows the archives inside what it
 // unpacked, and reports what it did.
 //
-// A job that does not finish - a failure, or a caller cancelling the context -
-// takes its own work back off the disk before it returns. That is the whole
-// reason this exists as a job rather than a call: a half-written extraction
-// folder is indistinguishable from a finished one. Nothing on disk says which,
-// the person looking at it calls the download good, and the next deep pass walks
-// into it.
+// A job that does not finish, whether through a failure or a cancelled context,
+// takes its own work back off the disk before it returns. That is why this is a
+// job rather than a call: a half-written extraction folder is indistinguishable
+// from a finished one, so the person looking at it calls the download good and
+// the next deep pass walks into it.
 func Run(ctx context.Context, req Request) (*Outcome, error) {
 	if ctx == nil {
 		ctx = context.Background()
@@ -187,9 +186,9 @@ type step struct {
 }
 
 // sink is one job's view of the bytes going past: the counters the list shows,
-// the context that stops them, and the record of what was written - which is
-// what lets an abort take back this job's work and leave alone what was in the
-// folder before it started.
+// the context that stops them, and the record of what was written, which lets
+// an abort take back this job's work and leave what was in the folder before it
+// started.
 type sink struct {
 	ctx    context.Context
 	report func(Progress)
@@ -251,11 +250,11 @@ func (s *sink) run(ctx context.Context, req Request) (*Outcome, error) {
 		if cur.depth > 0 {
 			o.Dest, o.Subfolder = "", false
 		}
-		// The two halves of Options.Extract, taken apart for one reason: the
-		// destination has to be known BEFORE anything is written. MkdirAll cannot
-		// say afterwards whether it made the folder or found it, and an abort
-		// that removes a folder the user already had is a worse failure than the
-		// half-written one this is here to prevent.
+		// The two halves of Options.Extract, taken apart so the destination is
+		// known before anything is written. MkdirAll cannot say afterwards
+		// whether it made the folder or found it, and an abort that removes a
+		// folder the user already had is worse than the half-written one this
+		// prevents.
 		dest, err := o.destination(cur.path)
 		if err != nil {
 			// A destination already there under the skip policy is a decision the
@@ -302,12 +301,11 @@ func (s *sink) run(ctx context.Context, req Request) (*Outcome, error) {
 // produced is what an archive left behind that is worth opening in turn.
 //
 // A container archive gets a folder of its own and everything under it is fair
-// game. A single compressed stream does not: gunzip leaves its payload BESIDE
+// game. A single compressed stream does not: gunzip leaves its payload beside
 // the archive, so res.Dir is the download folder, and walking that would pull
-// every unrelated archive sitting next to it into this job - a job the user
-// started on one file that quietly unpacks the whole folder. For that case the
-// only new file is the one this job just wrote, which is what the written record
-// is for.
+// every unrelated archive next to it into a job the user started on one file.
+// For that case the only new file is the one this job just wrote, which is what
+// the written record is for.
 func (s *sink) produced(res *Result, archive string, mark int) []string {
 	if filepath.Clean(res.Dir) != filepath.Clean(filepath.Dir(archive)) {
 		return candidatesIn(res.Dir)
@@ -429,9 +427,9 @@ func (s *sink) recorded() int {
 	return len(s.written)
 }
 
-// recordedFrom is the files written since mark, and nothing when the record has
-// already overflowed - a job of that size is unpacking into a folder of its own,
-// where the tree walk answers the same question properly.
+// recordedFrom is the files written since mark, and nothing once the record has
+// overflowed: a job of that size unpacks into a folder of its own, where the
+// tree walk answers the same question properly.
 func (s *sink) recordedFrom(mark int) []string {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -507,10 +505,10 @@ func (s *sink) emit(force bool) {
 	s.report(p)
 }
 
-// undo removes what this job wrote, and only what this job wrote: the folders
-// it created, and the individual files it put into folders that were already
-// there. A folder that existed before the job started is never removed whole -
-// the payload of a single compressed stream lands next to the archive, which for
+// undo removes what this job wrote and nothing else: the folders it created,
+// and the individual files it put into folders that were already there. A
+// folder that existed before the job started is never removed whole, because
+// the payload of a single compressed stream lands next to the archive, which in
 // a download folder means next to everything else the user owns.
 func (s *sink) undo() {
 	s.mu.Lock()
@@ -536,9 +534,9 @@ var splitPart = regexp.MustCompile(`^(.+)\.(\d{3,4})$`)
 // splitFields cuts a part name into the file it belongs to and its number, with
 // the digits kept as written so the rest of the set can be spelled the same way.
 //
-// A split 7z is deliberately not one of these: "set.7z.001" is read by the
-// sevenzip reader, volumes and all, and gluing the parts together first would
-// produce a file that reader cannot open.
+// A split 7z is not one of these: "set.7z.001" is read by the sevenzip reader,
+// volumes and all, and gluing the parts together first would produce a file
+// that reader cannot open.
 func splitFields(name string) (stem, digits string, ok bool) {
 	m := splitPart.FindStringSubmatch(filepath.Base(name))
 	if m == nil {

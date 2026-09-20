@@ -32,30 +32,11 @@ func serve(t *testing.T, handler func(net.Conn)) Entry {
 				defer func() { _ = c.Close() }()
 				_ = c.SetDeadline(time.Now().Add(5 * time.Second))
 				handler(c)
-				// Do not slam the door on the reply that was just written.
-				//
-				// A handler's last act is a Write, and the deferred Close used to
-				// follow it immediately. Closing a TCP socket with bytes still in
-				// the send buffer can send an RST instead of a FIN, and then the
-				// probe reads nothing and reports "it hung up" rather than the
-				// reply code it was handed - which is a fault in this fixture, not
-				// in the code under test: a real proxy leaves the connection open.
-				//
-				// It surfaced as roughly one failure in eighty runs of
-				// TestProbeSOCKS5ReportsWhyTheProxyWouldNotForward, and never when
-				// that test was run on its own, which is the shape that makes a
-				// flake look like noise.
-				//
-				// Reading until the client hangs up first puts the close on the
-				// right side of the exchange.
-				//
-				// Its OWN short deadline, not the 5s one above: several probes
-				// finish without closing (they have what they came for and let
-				// the connection go out of scope), so draining under the handler
-				// deadline made every one of those tests wait the full five
-				// seconds - measured, the package went from 11s to 310s. A
-				// quarter of a second is far longer than the loopback round trip
-				// this is waiting on and short enough to cost nothing.
+				// Closing right after the handler's last Write can send an RST
+				// instead of a FIN, and the probe would read nothing. Draining
+				// until the client hangs up closes on the right side. The short
+				// deadline is its own because some probes never close, and
+				// waiting out the 5s one made the package crawl.
 				_ = c.SetReadDeadline(time.Now().Add(250 * time.Millisecond))
 				_, _ = io.Copy(io.Discard, c)
 			}()
@@ -87,11 +68,8 @@ func probe(t *testing.T, e Entry, target string) Report {
 	return Probe(ctx, e, target)
 }
 
-// --- an HTTP proxy that wants Basic credentials -----------------------------
-
-// httpProxy answers a CONNECT. want is the credential it accepts; empty means it
-// asks for none. The credential it was offered is reported on the channel, which
-// is how the api test proves the stored password was the one sent.
+// httpProxy answers a CONNECT. want is the credential it accepts; empty means
+// it asks for none. The credential it was offered is sent on seen.
 func httpProxy(t *testing.T, want string, seen chan<- string) Entry {
 	return serve(t, func(c net.Conn) {
 		br := bufio.NewReader(c)
@@ -133,8 +111,7 @@ func TestProbeHTTPChecksTheCredentialsAndNotJustThePort(t *testing.T) {
 		if !got.OK || got.Stage != StageDial {
 			t.Fatalf("got %+v, want a dial-stage success", got)
 		}
-		// The whole reason the stage is reported: a green tick that does not admit
-		// it never looked at the password is the failure this replaces.
+		// The report admits it never checked the password.
 		if !strings.Contains(got.Detail, "Name a host") {
 			t.Errorf("the report does not say what it left untested: %q", got.Detail)
 		}
@@ -170,9 +147,8 @@ func TestProbeHTTPChecksTheCredentialsAndNotJustThePort(t *testing.T) {
 }
 
 func TestProbeReportsAnAnswerThatIsNotHTTPAtAll(t *testing.T) {
-	// A TLS proxy addressed as a plain one: the first thing back is a binary
-	// alert, and "invalid response" would send somebody looking at the network
-	// rather than at the type dropdown.
+	// A TLS proxy addressed as a plain one answers with a binary alert; the
+	// report should point at the type, not the network.
 	e := serve(t, func(c net.Conn) {
 		_, _ = bufio.NewReader(c).ReadString('\n')
 		_, _ = c.Write([]byte{0x15, 0x03, 0x01, 0x00, 0x02}) // a TLS alert record
@@ -184,8 +160,6 @@ func TestProbeReportsAnAnswerThatIsNotHTTPAtAll(t *testing.T) {
 		t.Errorf("got %+v, want the type mix-up named", got)
 	}
 }
-
-// --- SOCKS5 -----------------------------------------------------------------
 
 // socks5Proxy speaks the greeting, optionally RFC 1929, and one request.
 func socks5Proxy(t *testing.T, wantUser, wantPass string, grant bool) Entry {
@@ -230,8 +204,7 @@ func socks5Proxy(t *testing.T, wantUser, wantPass string, grant bool) Entry {
 		} else {
 			_, _ = c.Write([]byte{5, methodNone})
 		}
-		// The request, when one comes. Only the verdict is written back; the
-		// probe reads four bytes and hangs up.
+		// The request, if one comes; the probe reads only the verdict.
 		req := make([]byte, 4)
 		if _, err := io.ReadFull(c, req); err != nil {
 			return
@@ -245,8 +218,8 @@ func socks5Proxy(t *testing.T, wantUser, wantPass string, grant bool) Entry {
 }
 
 func TestProbeSOCKS5ChecksThePasswordWithNoTargetAtAll(t *testing.T) {
-	// The point of doing this properly: SOCKS5 authenticates before anything is
-	// named, so the credentials can be checked without involving a third party.
+	// SOCKS5 authenticates before a target is named, so no third party is
+	// needed.
 	e := socks5Proxy(t, "alice", "secret", true)
 	e.Kind, e.Username, e.Password = KindSOCKS5, "alice", "secret"
 
@@ -263,9 +236,7 @@ func TestProbeSOCKS5ChecksThePasswordWithNoTargetAtAll(t *testing.T) {
 }
 
 func TestProbeSOCKS5DoesNotClaimToHaveCheckedAPasswordNobodyAskedFor(t *testing.T) {
-	// A proxy that wants no authentication has not looked at this row's password,
-	// so reporting success as "the credentials are fine" would be a green tick
-	// for a value that has never been tested.
+	// A proxy that wants no authentication never looked at the password.
 	e := socks5Proxy(t, "", "", true)
 	e.Kind, e.Username, e.Password = KindSOCKS5, "alice", "secret"
 	got := probe(t, e, "")
@@ -290,8 +261,8 @@ func TestProbeSOCKS5ReportsWhyTheProxyWouldNotForward(t *testing.T) {
 }
 
 func TestProbeSOCKS5NamesTheVersionMixUp(t *testing.T) {
-	// A SOCKS4 proxy with the row set to socks5. The first byte back is not 5,
-	// and that is a dropdown mistake rather than a network fault.
+	// A SOCKS4 proxy with the row set to socks5 answers with a first byte
+	// other than 5.
 	e := serve(t, func(c net.Conn) {
 		_, _ = io.ReadFull(c, make([]byte, 3))
 		_, _ = c.Write([]byte{0, 0x5a})
@@ -303,11 +274,9 @@ func TestProbeSOCKS5NamesTheVersionMixUp(t *testing.T) {
 	}
 }
 
-// --- SOCKS4 -----------------------------------------------------------------
-
 func TestProbeSOCKS4SaysWhatADialAloneProves(t *testing.T) {
-	// Nothing is exchanged in this protocol before a request, so a probe with no
-	// target genuinely cannot say more than "something answered".
+	// SOCKS4 exchanges nothing before a request, so without a target a probe
+	// can only say something answered.
 	e := serve(t, func(net.Conn) { time.Sleep(50 * time.Millisecond) })
 	e.Kind = KindSOCKS4
 	got := probe(t, e, "")
@@ -345,9 +314,7 @@ func TestProbeSOCKS4ASendsTheNameForTheProxyToResolve(t *testing.T) {
 	}
 	select {
 	case sent := <-got:
-		// The whole difference between the two kinds: socks4a hands the name over
-		// instead of resolving it on this machine, which is the point for anybody
-		// proxying to reach names their own DNS cannot see.
+		// socks4a hands the name to the proxy instead of resolving it here.
 		if sent != "nowhere.invalid|alice" {
 			t.Errorf("the proxy was sent %q, want the unresolved name and the user id", sent)
 		}
@@ -365,8 +332,6 @@ func TestProbeSOCKS4PointsAtSOCKS4AWhenTheNameWillNotResolveHere(t *testing.T) {
 	}
 }
 
-// --- the rows that are not proxies ------------------------------------------
-
 func TestProbeRefusesRowsThatNameNoEndpoint(t *testing.T) {
 	cases := []struct {
 		name   string
@@ -375,8 +340,6 @@ func TestProbeRefusesRowsThatNameNoEndpoint(t *testing.T) {
 		want   string
 	}{
 		{
-			// none and direct are the pair the whole page has to keep apart, and
-			// the refusal is where the difference is easiest to state.
 			name:  "none is inert",
 			entry: Entry{Kind: KindNone, Enabled: true},
 			want:  "names no connection",
@@ -387,8 +350,7 @@ func TestProbeRefusesRowsThatNameNoEndpoint(t *testing.T) {
 			want:  "has no endpoint of its own to test",
 		},
 		{
-			// Verbatim from Validate, because Sanitize would drop this row on the
-			// next save and a probe is the last chance to say so.
+			// Validate's words, since Sanitize would drop this row on save.
 			name:  "an invalid row is refused in the validator's words",
 			entry: Entry{Kind: KindHTTP, Host: "proxy.lan", Enabled: true},
 			want:  "1-65535",
@@ -408,8 +370,8 @@ func TestProbeRefusesRowsThatNameNoEndpoint(t *testing.T) {
 }
 
 func TestProbeDirectAnswersTheOnlyQuestionADirectRowCanBeAsked(t *testing.T) {
-	// A direct row exists to exclude a host from a whole-app proxy, so the useful
-	// test is whether that host is reachable with no proxy in the way.
+	// The useful test for a direct row is whether the host is reachable
+	// without a proxy.
 	e := serve(t, func(net.Conn) {})
 	got := probe(t, Entry{Kind: KindDirect, Enabled: true}, net.JoinHostPort(e.Host, strconv.Itoa(e.Port)))
 	if !got.OK || !strings.Contains(got.Detail, "no proxy in the way") {
@@ -427,10 +389,8 @@ func TestProbeReportsAnUnreachableProxyInWordsRatherThanInGoErrorText(t *testing
 	if !strings.Contains(got.Detail, "nothing is listening on that port") {
 		t.Errorf("the report does not name the actual failure: %q", got.Detail)
 	}
-	// Two things at once. "dial tcp 127.0.0.1:1: connectex: …" is three clauses
-	// of transport plumbing around the one word that matters — and on Windows
-	// that text is in the operating system's language, so letting it through puts
-	// German in the middle of an English page.
+	// Raw OS error text is hard to read and, on Windows, in the system's
+	// language.
 	for _, leak := range []string{"dial tcp", "connectex", "connect:"} {
 		if strings.Contains(got.Detail, leak) {
 			t.Errorf("the report is raw operating-system error text: %q", got.Detail)
@@ -439,8 +399,8 @@ func TestProbeReportsAnUnreachableProxyInWordsRatherThanInGoErrorText(t *testing
 }
 
 func TestProbeHonoursACancelledRequest(t *testing.T) {
-	// A proxy that accepts and then says nothing. The browser going away has to
-	// end this, or every abandoned test leaves a goroutine holding a socket.
+	// A proxy that accepts and then says nothing; the cancelled context has to
+	// end the probe.
 	e := serve(t, func(net.Conn) { time.Sleep(30 * time.Second) })
 	e.Kind, e.Username, e.Password = KindSOCKS5, "alice", "secret"
 

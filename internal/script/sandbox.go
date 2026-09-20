@@ -10,31 +10,18 @@ import (
 	"github.com/dop251/goja"
 )
 
-// Actions is the narrow set of app operations a script may call, always
-// resolved to a taskID Go already fixed before the script ran a single line
-// - see the package doc comment's task.pause()/etc. entry for why nothing
-// in this package's JS surface can hand a script the ability to choose that
-// ID itself. This interface only exists so *app.App can satisfy it
-// structurally without internal/app importing this package or being told
-// its method set has to change - see the package doc's "wiring this in"
-// section.
+// Actions is the set of app operations a script may call, always with a
+// taskID fixed in Go before the script runs. *app.App satisfies it without
+// importing this package.
 //
-// Every implementation MUST be non-blocking, or effectively so (an
-// in-memory, lock-guarded update - no network call, no disk write on the
-// hot path, no waiting on another goroutine). Runtime.Interrupt cannot
-// preempt time spent inside a native Go call once a script has entered one
-// (see Runtime.Interrupt's own doc comment, and the package doc's "bounded
-// twice" section) - a blocking Actions method is a hole in the timeout this
-// whole package exists to enforce, not a slow path a caller can wait out.
+// Every implementation must return promptly (an in-memory, lock-guarded
+// update, no network, disk or waiting on another goroutine), because
+// Runtime.Interrupt cannot preempt a script inside a Go call; a blocking
+// method would defeat the timeout.
 //
-// Retry MUST treat an empty taskID as a request to retry NOTHING, never as
-// "every task" - see internal/app's RestartTasks(ids []string), which
-// treats an empty slice as "every errored task" (build-plan.md section 9
-// package 7 documents the exact hazard). This package's own bindings never
-// construct a closure over an empty taskID (see newRuntime), so this
-// requirement is a second, independent line of defence for whatever other
-// caller Actions gains later - implementations should still enforce it
-// rather than lean on this package alone doing so.
+// Retry must treat an empty taskID as retrying nothing. RestartTasks in
+// internal/app reads an empty list as every errored task, and although this
+// package never binds an empty taskID, implementations should enforce it too.
 type Actions interface {
 	// Pause pauses the given task. A no-op if it is not running or waiting.
 	Pause(taskID string)
@@ -43,47 +30,35 @@ type Actions interface {
 	// Retry re-queues one failed task from scratch. See the empty-taskID
 	// requirement above.
 	Retry(taskID string) error
-	// SetPriority sets one task's queue priority. Implementations own
-	// clamping to whatever range the app allows (internal/rules.PriorityMin/
-	// Max today) - this package passes the script's number through
-	// unvalidated, the same way a hand-typed value from the HTTP API
-	// already does, so there is exactly one clamp to keep in sync rather
-	// than two.
+	// SetPriority sets one task's queue priority. The implementation clamps
+	// it, as it does for a value from the HTTP API, so there is one clamp.
 	SetPriority(taskID string, priority int)
 	// SetComment overwrites the note on one task's row.
 	SetComment(taskID string, text string)
 }
 
-// Broadcaster is the one write path this package has to a connected human -
-// notify() - and the channel it reports a completed run on. *hub.Hub
-// already satisfies this with no changes; the interface exists so this
-// package does not need to import internal/hub to declare what it needs
-// from it (see the package doc's "wiring this in" section).
+// Broadcaster carries notify() messages and run summaries to connected
+// browsers. *hub.Hub satisfies it without this package importing it.
 type Broadcaster interface {
 	Broadcast(typ string, data any)
 }
 
-// Output capture bounds for one execution's log()/console.* calls - see the
-// package doc comment's console.log entry. Generous enough for ordinary
-// debugging, small enough that a script calling console.log in a tight loop
-// cannot grow Result.Output into a real memory concern before the timeout
-// catches the loop itself.
+// Output capture bounds for one execution's log and console calls, so a
+// console.log in a tight loop cannot grow Result.Output much before the
+// timeout ends the loop.
 const (
 	maxLogLines = 200
 	maxLogBytes = 16 * 1024
 	maxLineLen  = 2000
 )
 
-// maxCallStackFrames bounds goja's OWN interpreter call stack
-// (Runtime.SetMaxCallStackSize), which defaults to math.MaxInt32 - see the
-// package doc comment's "bounded twice" section for what this does and does
-// not close. A few hundred frames is already deep for hand-written
-// automation glue; it is not a tuning knob anyone is expected to hit.
+// maxCallStackFrames bounds goja's interpreter call stack, which otherwise
+// defaults to math.MaxInt32.
 const maxCallStackFrames = 512
 
-// execCtx is the Go side of one execution's sandbox: everything newRuntime
-// needs to build the globals for it, plus the buffer log()/console.* write
-// into. Built fresh per execution by runOne (host.go), never reused.
+// execCtx is the Go side of one execution's sandbox: what newRuntime needs to
+// build the globals, plus the buffer log and console write into. runOne builds
+// a fresh one per execution.
 type execCtx struct {
 	actions Actions
 	notify  func(message string) bool
@@ -91,25 +66,18 @@ type execCtx struct {
 	trigger Trigger
 	firedAt time.Time
 
-	// taskID is "" and firing.Task is nil together, always - see newRuntime,
-	// which is the one place that decides whether the "task" global exists
-	// at all. Never set taskID without a task, or a task without a non-empty
-	// taskID: the empty-taskID hazard Actions' own doc comment describes is
-	// exactly what keeping these two in lockstep prevents.
+	// taskID is empty exactly when firing.Task is nil, so no closure is ever
+	// bound to an empty taskID (see Actions).
 	taskID string
-	// firing is the whole event this execution is about, payloads included -
-	// see Firing (bus.go) for which payload each trigger carries. Held whole
-	// rather than unpacked into a field per event, so a trigger added to
-	// Firing needs one entry in newRuntime and nothing at all here.
+	// firing is the whole event this execution is about, payloads included.
 	firing Firing
 
 	output   []string
 	outBytes int
 }
 
-// appendLog records one already-joined line, silently dropping anything
-// past maxLogLines/maxLogBytes - see the constants' own comment for why
-// this is a real bound and not a formality.
+// appendLog records one already-joined line, dropping anything past
+// maxLogLines or maxLogBytes.
 func (e *execCtx) appendLog(line string) {
 	if len(e.output) >= maxLogLines || e.outBytes >= maxLogBytes {
 		return
@@ -121,17 +89,13 @@ func (e *execCtx) appendLog(line string) {
 	e.outBytes += len(line)
 }
 
-// newRuntime builds one fresh, single-use goja.Runtime and wires in exactly
-// the globals the package doc comment enumerates - nothing else. Called
-// once per execution (see execute) and discarded after; a goja.Runtime is
-// explicitly not goroutine-safe and this package never shares one across
-// two calls, so there is no pooling to reason about.
+// newRuntime builds one fresh, single-use goja.Runtime with exactly the
+// globals the package documentation lists. A Runtime is not goroutine-safe
+// and is never shared.
 func newRuntime(e *execCtx) (*goja.Runtime, error) {
 	rt := goja.New()
-	// TagFieldNameMapper mirrors the json tags already on TaskView/QueueView
-	// into idiomatic lowerCamelCase JS property names, matching every other
-	// wire shape in this codebase rather than exposing Go's own
-	// capitalised field names.
+	// JS property names follow the json tags, lowerCamelCase like every other
+	// wire shape here.
 	rt.SetFieldNameMapper(goja.TagFieldNameMapper("json", true))
 	rt.SetMaxCallStackSize(maxCallStackFrames)
 
@@ -184,19 +148,10 @@ func newRuntime(e *execCtx) (*goja.Runtime, error) {
 		}
 	}
 
-	// One global per event payload, bound only when this firing carries it.
-	// A payload the trigger does not carry stays undefined rather than being
-	// bound as an empty object, the same rule "task" has always followed:
-	// a script can ask `typeof pkg` and get a truthful answer, where a
-	// zero-valued object would have it act on a package of no files.
-	//
-	// NOT NAMED "package". goja compiles every script in strict mode
-	// (rebuildIndex and RunNow both pass strict=true to goja.Compile), where
-	// `package` is a FutureReservedWord and merely REFERENCING it is a
-	// SyntaxError - so a global by that name would be one no script could
-	// read, and every script bound to package.done would fail to compile
-	// with an error pointing at the user's own first line. "pkg" costs three
-	// characters and works.
+	// One global per event payload, bound only when this firing carries it,
+	// so `typeof pkg` tells a script whether it has one. The package global
+	// is "pkg" because scripts compile in strict mode, where `package` is a
+	// reserved word no script could reference.
 	for name, payload := range map[string]any{
 		"pkg":        packageGlobal(e.firing.Package),
 		"extraction": extractGlobal(e.firing.Extract),
@@ -216,8 +171,7 @@ func newRuntime(e *execCtx) (*goja.Runtime, error) {
 }
 
 // packageGlobal is the "pkg" global for TriggerPackageDone, or nil when this
-// firing carries no package. See PackageView's own doc comment for why these
-// are counts and not a verdict.
+// firing carries no package.
 func packageGlobal(v *PackageView) any {
 	if v == nil {
 		return nil
@@ -282,9 +236,7 @@ func accountGlobal(v *AccountView) any {
 	}
 }
 
-// captchaGlobal is the "captcha" global for TriggerCaptchaPending. It is
-// everything CaptchaView carries and nothing else - see that type's own doc
-// comment for why the challenge material itself is not here.
+// captchaGlobal is the "captcha" global for TriggerCaptchaPending.
 func captchaGlobal(v *CaptchaView) any {
 	if v == nil {
 		return nil
@@ -299,11 +251,8 @@ func captchaGlobal(v *CaptchaView) any {
 	}
 }
 
-// taskGlobal builds the map[string]any bound as the "task" global: the
-// read-only fields from e.task, plus five closures each bound to e.taskID -
-// see the package doc comment's task.pause() entry and Actions' own doc
-// comment for why that binding, not an ID-taking function, is the whole of
-// the safety property.
+// taskGlobal builds the "task" global: the read-only task fields plus five
+// closures bound to e.taskID, so no script can name another task.
 func taskGlobal(rt *goja.Runtime, e *execCtx) map[string]any {
 	t := e.firing.Task
 	taskID := e.taskID
@@ -344,12 +293,8 @@ func taskGlobal(rt *goja.Runtime, e *execCtx) map[string]any {
 			if len(call.Arguments) == 0 {
 				panic(rt.NewTypeError("setPriority(n) needs a number"))
 			}
-			// ToInteger follows ECMAScript's own ToInteger conversion: NaN
-			// becomes 0 and out-of-range values saturate, so a script
-			// passing a non-numeric or absurd argument cannot panic this
-			// binding - it can only ask for a priority the Actions
-			// implementation's own clamp (see Actions' doc comment) will
-			// reduce to something sane.
+			// ToInteger turns NaN into 0 and saturates out-of-range values;
+			// the Actions implementation clamps the rest.
 			actions.SetPriority(taskID, int(call.Argument(0).ToInteger()))
 			return goja.Undefined()
 		},
@@ -363,31 +308,22 @@ func taskGlobal(rt *goja.Runtime, e *execCtx) map[string]any {
 	}
 }
 
-// runOutcome is execute's result: what the script printed, whether it
-// failed, and whether a failure was specifically a timeout - kept as one
-// struct rather than three-plus return values so a caller cannot transpose
-// them.
+// runOutcome is execute's result: what the script printed, whether it failed,
+// and whether the failure was a timeout.
 type runOutcome struct {
 	output   []string
 	err      error
 	timedOut bool
 }
 
-// execute runs one already-compiled program to completion or until timeout,
-// whichever comes first, against the sandbox globals e describes. It is the
-// one place both bounding mechanisms the package doc comment's "bounded
-// twice" section describes meet: Interrupt via ctx, and recover() as the
-// backstop under it.
+// execute runs one compiled program against the sandbox globals e describes,
+// until it finishes or the timeout interrupts it, with recover as a backstop.
 func execute(ctx context.Context, prog *goja.Program, timeout time.Duration, e *execCtx) (outcome runOutcome) {
 	defer func() {
 		if r := recover(); r != nil {
-			// Backstop for anything goja's own panic(Value) handling does
-			// not turn into a clean, already-returned *goja.Exception - a
-			// bug in this file's own bindings, or a goja internal path
-			// this package has not exercised. See the package doc
-			// comment's "bounded twice" section: this must never propagate,
-			// because an unrecovered panic on any goroutine kills the
-			// whole process, not just this one script.
+			// Anything goja does not turn into a *goja.Exception, such as a
+			// bug in the bindings. An unrecovered panic would kill the whole
+			// process.
 			outcome = runOutcome{output: e.output, err: fmt.Errorf("script: internal error: %v", r)}
 		}
 	}()
@@ -400,14 +336,8 @@ func execute(ctx context.Context, prog *goja.Program, timeout time.Duration, e *
 	runCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
-	// stopWatch bounds this goroutine's own lifetime to this function's:
-	// it is closed on every return path (the defer immediately below,
-	// which runs before the recover() defer above unwinds further) and it
-	// touches nothing but the Runtime built two lines up and these two
-	// local channels - not App-owned state, not Host-owned state - so it is
-	// not the bare-goroutine hazard a.spawn's own doc comment warns
-	// against; there is nothing here for a future Close to wait on that
-	// this function does not already wait on itself by returning.
+	// stopWatch ends the watcher goroutine on every return path. It touches
+	// only this Runtime, so it needs no tracking by Close.
 	stopWatch := make(chan struct{})
 	defer close(stopWatch)
 	go func() {
@@ -420,13 +350,8 @@ func execute(ctx context.Context, prog *goja.Program, timeout time.Duration, e *
 
 	_, runErr := rt.RunProgram(prog)
 	if runErr != nil {
-		// errors.Is walks *goja.InterruptedError's own Unwrap (confirmed in
-		// goja's runtime.go: it returns e.iface.(error) when the value
-		// passed to Interrupt was one) straight through to the exact
-		// sentinel context.WithTimeout produces, so this is true only when
-		// RunProgram failed BECAUSE the clock ran out - never for an
-		// ordinary thrown JS exception, which is a *goja.Exception and does
-		// not unwrap to this at all.
+		// *goja.InterruptedError unwraps to the error passed to Interrupt, so
+		// this holds only for a timeout, never for a thrown JS exception.
 		timedOut := errors.Is(runErr, context.DeadlineExceeded)
 		return runOutcome{output: e.output, err: fmt.Errorf("script: %w", runErr), timedOut: timedOut}
 	}

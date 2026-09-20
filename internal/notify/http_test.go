@@ -14,9 +14,8 @@ import (
 
 const secretToken = "Bearer s3cr3t-token-value"
 
-// deadAddress is an address nothing is listening on: a test server that has
-// already been shut down. It is how a real transport failure is produced
-// without waiting for a routing black hole.
+// deadAddress is a test server that has already been shut down, which produces
+// a real transport failure without waiting for a routing black hole.
 func deadAddress(t *testing.T) string {
 	t.Helper()
 	srv := httptest.NewServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {}))
@@ -50,11 +49,11 @@ func TestSendReportsWhatWasSentWithTheSecretsMaskedAgain(t *testing.T) {
 		t.Fatalf("the far end saw %s %q with auth %q", gotMethod, gotBody, gotAuth)
 	}
 	if att.Sent.Headers["Authorization"] != RedactedValue {
-		t.Errorf("the reported request carries the real token (%q); this struct is serialised straight to a browser "+
-			"that was never shown it", att.Sent.Headers["Authorization"])
+		t.Errorf("the reported request carries the real token (%q), and it goes straight to a browser",
+			att.Sent.Headers["Authorization"])
 	}
 	if att.Sent.Body != "film.mkv finished" {
-		t.Errorf("the reported body is %q, want the expanded one so a refusal can be read rather than guessed at", att.Sent.Body)
+		t.Errorf("the reported body is %q, want the expanded one", att.Sent.Body)
 	}
 }
 
@@ -73,11 +72,10 @@ func TestSendKeepsTheTokenOutOfTheErrorString(t *testing.T) {
 		t.Errorf("the header token is in the error: %s", att.Err)
 	}
 	if !att.Retryable {
-		t.Error("a transport failure was marked not retryable; nothing about the request has been shown to be wrong")
+		t.Error("a transport failure was marked not retryable")
 	}
 	if att.Code != ProblemRefused {
-		t.Errorf("a closed port was classified as %q (%s), want %q - and note that the message is LOCALISED, "+
-			"so this cannot be decided by looking for the words \"connection refused\" in it", att.Code, att.Err, ProblemRefused)
+		t.Errorf("a closed port was classified as %q (%s), want %q", att.Code, att.Err, ProblemRefused)
 	}
 }
 
@@ -109,7 +107,7 @@ func TestSendCapsTheAnswerAndSaysThatItDid(t *testing.T) {
 		t.Errorf("kept %d bytes, want the cap of %d", len(att.Body), MaxResponseBody)
 	}
 	if !att.Truncated {
-		t.Error("the answer was cut and the panel was not told, so it would show a sentence stopping mid-word with no explanation")
+		t.Error("the answer was cut and the panel was not told")
 	}
 }
 
@@ -137,13 +135,10 @@ func TestClassifyStatusSplitsTheFourHundreds(t *testing.T) {
 	}{
 		{200, "", false},
 		{204, "", false},
-		// A 3xx used to be filed with the successes, and harmlessly so: the client
-		// followed redirects, so one could never reach classifyStatus at all. It
-		// can now (clientFor hands the 3xx back rather than carrying a custom
-		// header to another origin), and "no problem" on something OK() calls a
-		// failure would be a failure with nothing on screen to explain it.
-		// Not retried: the same address answers the same way next time, and the
-		// thing to do is type the address it points at.
+		// clientFor hands a 3xx back rather than carrying a custom header to
+		// another origin, so it reaches classifyStatus and has to be named.
+		// Not retried: the same address answers the same way next time, and
+		// the thing to do is type the address it points at.
 		{301, ProblemRedirect, false},
 		{302, ProblemRedirect, false},
 		{308, ProblemRedirect, false},
@@ -160,19 +155,16 @@ func TestClassifyStatusSplitsTheFourHundreds(t *testing.T) {
 			t.Errorf("classifyStatus(%d) = %q, want %q", tc.status, got, tc.code)
 		}
 		if got := retryableStatus(tc.status); got != tc.retry {
-			t.Errorf("retryableStatus(%d) = %v, want %v; a refusal repeated is one mistake turned into three requests "+
-				"against somebody's public instance", tc.status, got, tc.retry)
+			t.Errorf("retryableStatus(%d) = %v, want %v", tc.status, got, tc.retry)
 		}
 	}
 }
 
 func TestClassifyErrorNamesWhatItCan(t *testing.T) {
-	// A host nobody can resolve. .invalid is reserved by RFC 2606 precisely so
-	// that this cannot accidentally reach a real server.
+	// .invalid is reserved by RFC 2606, so this cannot reach a real server.
 	att := Send(context.Background(), Target{URL: "https://this-host-does-not-exist.invalid/x", TimeoutSeconds: 5}, firingWithTask("x"), "")
 	if att.Code != ProblemDNS {
-		t.Errorf("an unresolvable host was classified as %q (%s), want %q - a container has its own resolver and that is the commonest cause",
-			att.Code, att.Err, ProblemDNS)
+		t.Errorf("an unresolvable host was classified as %q (%s), want %q", att.Code, att.Err, ProblemDNS)
 	}
 }
 
@@ -213,23 +205,14 @@ func TestSendUsesTheTriggersOwnPayload(t *testing.T) {
 }
 
 // A custom header is a secret this package cannot recognise, and a redirect is
-// where it would be handed away.
+// where it would be handed away. httpx strips Authorization,
+// Proxy-Authorization, Cookie and Cookie2 on a hop to another origin and cannot
+// strip more, so X-Gotify-Key, X-Api-Key and ntfy's token header would ride
+// along to whoever owns the hop.
 //
-// target.go says it in as many words: "Headers is where a token goes. EVERY
-// VALUE HERE IS A SECRET." httpx strips Authorization, Proxy-Authorization,
-// Cookie and Cookie2 on a hop to another origin and cannot strip more, because
-// it has no way to know that a header it was handed is a credential. So
-// X-Gotify-Key, X-Api-Key and ntfy's own token header would ride along to
-// whoever owns the hop, and httpx follows ten of them by default.
-//
-// internal/mediahook reached this exact conclusion for the same reason and
-// closed it with MaxRedirects: -1, naming X-Emby-Token, X-Plex-Token and
-// X-Api-Key in its own comment. This is the sibling half of that decision.
-//
-// The far end is another ORIGIN and not another path: two httptest servers on
-// 127.0.0.1 differ only by port, which is exactly the case httpx.sameOrigin was
-// written for ("to Go, 127.0.0.1:9090 and 127.0.0.1:7070 are the same place,
-// which on a self-hosted box is two unrelated applications").
+// The far end here is another origin rather than another path: the two httptest
+// servers on 127.0.0.1 differ only by port, which is the case httpx.sameOrigin
+// was written for.
 func TestSendDoesNotCarryACustomHeaderAcrossARedirect(t *testing.T) {
 	const key = "X-Gotify-Key"
 	const value = "gotify-secret-value"
@@ -256,17 +239,14 @@ func TestSendDoesNotCarryACustomHeaderAcrossARedirect(t *testing.T) {
 	att := Send(context.Background(), target, firingWithTask("film.mkv"), "box")
 
 	if reached {
-		t.Errorf("the redirect was followed to another origin; that hop was never the address the operator "+
-			"typed, and it saw %q in %s", leaked, key)
+		t.Errorf("the redirect was followed to another origin, which saw %q in %s", leaked, key)
 	}
 	if leaked == value {
-		t.Errorf("%s reached a host the operator never named: httpx can only strip the four headers it knows, "+
-			"and this is not one of them", key)
+		t.Errorf("%s reached a host the operator never named", key)
 	}
-	// The 3xx has to reach the caller as itself, so the test button can say
-	// "this address redirects, type the one it points at" rather than reporting
-	// whatever the far end happened to answer.
+	// The 3xx reaches the caller as itself, so the test button can say the
+	// address redirects instead of reporting whatever the far end answered.
 	if att.Status < 300 || att.Status >= 400 {
-		t.Errorf("the attempt reports status %d, want the 3xx handed back so it can be explained", att.Status)
+		t.Errorf("the attempt reports status %d, want the 3xx handed back", att.Status)
 	}
 }

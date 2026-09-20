@@ -6,10 +6,8 @@ import (
 	"testing"
 )
 
-// TestFindIP is the table that matters most in this package: everything downstream
-// trusts this answer, and a wrong address here is reported to the user as a
-// successful reconnect. The negative cases are therefore the point of the test,
-// not an afterthought.
+// TestFindIP: a wrong address here is reported as a successful reconnect, so
+// the negative cases matter most.
 func TestFindIP(t *testing.T) {
 	tests := []struct {
 		name string
@@ -29,10 +27,8 @@ func TestFindIP(t *testing.T) {
 		{"ipv6 loopback", "::1", "::1"},
 		{"ipv6 trailing colons", "1::", "1::"},
 
-		// An IPv4-mapped literal has to come back as the plain address. A check
-		// page that alternates between the two spellings would otherwise look
-		// like an address that keeps changing, and every reconnect would be
-		// reported as a success.
+		// Otherwise a page alternating between the two spellings would look like
+		// a changing address.
 		{"ipv4 mapped is unmapped", "::ffff:203.0.113.9", "203.0.113.9"},
 
 		{"empty body", "", ""},
@@ -64,8 +60,6 @@ func TestFindIP(t *testing.T) {
 	}
 }
 
-// TestFindIPSkipsOverlongRuns pins the cheap guard against a body that is one
-// enormous run of address-shaped bytes.
 func TestFindIPSkipsOverlongRuns(t *testing.T) {
 	blob := strings.Repeat("abcdef0123456789:.", 64)
 	if _, ok := FindIP(blob); ok {
@@ -76,19 +70,16 @@ func TestFindIPSkipsOverlongRuns(t *testing.T) {
 	}
 }
 
-// TestPublicIP is the range table. Every row here is an address a check
-// response really can carry - a router status page printing the LAN side, a box
-// behind carrier-grade NAT, a captive portal answering with its own gateway -
-// and every one of them would otherwise be compared against the next reading as
-// if it were the public address.
+// TestPublicIP is the range table: addresses a check response can really carry,
+// such as a router status page's LAN side, carrier-grade NAT or a captive
+// portal's gateway.
 func TestPublicIP(t *testing.T) {
 	tests := []struct {
 		name string
 		body string
 		want string // "" means the address must be refused
-		// names is a word the refusal has to contain, so a reason that says
-		// "not public" and nothing else fails here. The user has to be able to
-		// tell a LAN address apart from a carrier one from the message alone.
+		// names is a word the refusal has to contain, so the message tells a
+		// LAN address from a carrier one.
 		names string
 	}{
 		{name: "public v4", body: "203.0.113.9", want: "203.0.113.9"},
@@ -110,22 +101,16 @@ func TestPublicIP(t *testing.T) {
 		{name: "cgnat top", body: "100.127.255.255", names: "carrier-grade"},
 		{name: "unspecified v4", body: "0.0.0.0", names: "unspecified"},
 		{name: "unspecified v6", body: "::", names: "unspecified"},
-		// The SSDP group, which is the multicast address most likely to be sitting
-		// in a page this package fetches. 224.0.0.0/24 is deliberately not used
-		// here: it is link-local as well as multicast, and it is named for the
-		// half a user can do something about.
+		// The SSDP group. 224.0.0.0/24 would be named link-local, which it
+		// also is.
 		{name: "multicast", body: "239.255.255.250", names: "multicast"},
 
-		// The edges of the two ranges that are carved out of otherwise public
-		// space. Getting either boundary wrong refuses a perfectly good address
-		// and leaves the reconnect unusable on that line.
+		// The edges of the two ranges carved out of public space.
 		{name: "just below cgnat", body: "100.63.255.255", want: "100.63.255.255"},
 		{name: "just above cgnat", body: "100.128.0.0", want: "100.128.0.0"},
 		{name: "just below 172.16/12", body: "172.15.0.1", want: "172.15.0.1"},
 		{name: "just above 172.16/12", body: "172.32.0.1", want: "172.32.0.1"},
 
-		// A router web page that prints the LAN address first is the case this
-		// whole check exists for.
 		{name: "router page echoing the lan side", body: "<td>WAN IP</td><td>192.168.0.10</td>", names: "private"},
 	}
 	for _, tc := range tests {
@@ -141,8 +126,7 @@ func TestPublicIP(t *testing.T) {
 				if !strings.Contains(err.Error(), tc.names) {
 					t.Errorf("PublicIP(%q) said %q, which never says %q", tc.body, err, tc.names)
 				}
-				// The address itself belongs in the message: "a private address"
-				// with no address in it is a sentence nobody can act on.
+				// The message names the address itself.
 				if addr, ok := FindIP(tc.body); ok && !strings.Contains(err.Error(), addr.String()) {
 					t.Errorf("PublicIP(%q) said %q, which never names %s", tc.body, err, addr)
 				}
@@ -158,11 +142,8 @@ func TestPublicIP(t *testing.T) {
 	}
 }
 
-// TestPublicIPKeepsFindIPsVerdictOnNothing pins the other half of the contract:
-// a body with no address in it is still ErrNoAddress, not a range refusal. They
-// are two different repairs - a wrong URL against a URL that answers with the
-// wrong side of the router - and one error for both sends half the people who
-// hit it to the wrong field.
+// TestPublicIPKeepsFindIPsVerdictOnNothing: a body without an address is
+// ErrNoAddress, a wrong URL, not a range refusal.
 func TestPublicIPKeepsFindIPsVerdictOnNothing(t *testing.T) {
 	for _, body := range []string{"", "Access denied. Please log in.", "build 1.2.3.4444"} {
 		_, err := PublicIP(body)
@@ -172,11 +153,8 @@ func TestPublicIPKeepsFindIPsVerdictOnNothing(t *testing.T) {
 	}
 }
 
-// TestPublicIPDoesNotScanPastARefusal fixes the tempting shortcut in place: when
-// the first address on the page is a LAN one, the answer is a refusal naming it,
-// never the next address further down. Reading on is guessing which of two
-// addresses the page meant, and a guess here is indistinguishable from a
-// successful reconnect for as long as it happens to be right.
+// TestPublicIPDoesNotScanPastARefusal: when the first address is a LAN one the
+// answer is a refusal, not a guess at the next address on the page.
 func TestPublicIPDoesNotScanPastARefusal(t *testing.T) {
 	const body = "LAN 192.168.1.1 · WAN 203.0.113.9"
 	got, err := PublicIP(body)
@@ -188,9 +166,8 @@ func TestPublicIPDoesNotScanPastARefusal(t *testing.T) {
 	}
 }
 
-// TestDropPartialTail is the truncation guard. Cutting "203.0.113.99" mid-way
-// leaves a perfectly valid, entirely wrong address, so the last run of a
-// truncated body is thrown away rather than parsed.
+// TestDropPartialTail: cutting "203.0.113.99" leaves a valid but wrong address,
+// so the last run of a truncated body is thrown away.
 func TestDropPartialTail(t *testing.T) {
 	tests := []struct {
 		name string

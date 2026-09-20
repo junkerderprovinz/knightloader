@@ -39,10 +39,9 @@ func TestHeaderProfileIsAppliedLikeEveryOtherAction(t *testing.T) {
 	}
 }
 
-// TestALaterRuleWinsTheProfileAndAnEmptyOneLeavesItAlone. Same convention as
-// every other field: an empty string is "this rule has no opinion", never
-// "clear it", so a rule that only sets a folder must not strip the credential
-// an earlier rule attached.
+// TestALaterRuleWinsTheProfileAndAnEmptyOneLeavesItAlone: as with every other
+// field, a rule that only sets a folder keeps the profile an earlier rule
+// attached.
 func TestALaterRuleWinsTheProfileAndAnEmptyOneLeavesItAlone(t *testing.T) {
 	m, problems := Compile(Set{Rules: []Rule{
 		{Name: "everything gets the forum profile", Action: Action{Headers: "forum"}},
@@ -65,12 +64,8 @@ func TestALaterRuleWinsTheProfileAndAnEmptyOneLeavesItAlone(t *testing.T) {
 	}
 }
 
-// TestAProfileNameIsNotATemplate is the security assertion on this side.
-//
-// Expanding it would let the link's own host decide which credential gets
-// attached to it - a page that names itself "forum" would collect the forum
-// profile - and that is the one decision this feature must never hand to the
-// far end.
+// TestAProfileNameIsNotATemplate: expanding it would let the link's own host
+// decide which credential gets attached to it.
 func TestAProfileNameIsNotATemplate(t *testing.T) {
 	m, problems := Compile(Set{Rules: []Rule{{
 		Name:   "would be a placeholder if this were a template",
@@ -86,19 +81,16 @@ func TestAProfileNameIsNotATemplate(t *testing.T) {
 	if e.Headers != "profile-for-hoster" {
 		t.Errorf("Headers = %q, want the name through verbatim", e.Headers)
 	}
-	// And a name that LOOKS like a template is refused outright rather than
-	// carried through with the angle brackets in it, which would produce a
-	// lookup that can never hit.
+	// A name that looks like a template is refused, since a lookup with the
+	// angle brackets in it could never hit.
 	_, probs := Compile(Set{Rules: []Rule{{Action: Action{Headers: "<jd:hoster>"}}}})
 	if len(probs) == 0 {
 		t.Error("a profile name holding a placeholder was accepted")
 	}
 }
 
-// TestTheRuleEditorAndTheProfileStoreAgreeOnWhatANameIs. The user types this
-// string in two places - the rule and the profile list - and the two have to
-// match exactly. A rule that compiles cleanly and can never address a profile
-// looks exactly like the feature not working.
+// TestTheRuleEditorAndTheProfileStoreAgreeOnWhatANameIs: the name is typed in
+// the rule and in the profile list, and both sides must accept the same set.
 func TestTheRuleEditorAndTheProfileStoreAgreeOnWhatANameIs(t *testing.T) {
 	cases := []string{
 		"forum", "Forum", "my-box_2.0", "  padded  ",
@@ -118,9 +110,6 @@ func TestTheRuleEditorAndTheProfileStoreAgreeOnWhatANameIs(t *testing.T) {
 	}
 }
 
-// TestABrokenProfileNameCostsTheRuleAndNothingElse. Compile drops a rule with
-// any problem at all rather than applying part of it, which is what makes a
-// typo cost one rule instead of a whole list.
 func TestABrokenProfileNameCostsTheRuleAndNothingElse(t *testing.T) {
 	m, problems := Compile(Set{Rules: []Rule{
 		{Name: "broken", Action: Action{Headers: "not a name", DownloadDir: "/dl/wrong"}},
@@ -137,24 +126,16 @@ func TestABrokenProfileNameCostsTheRuleAndNothingElse(t *testing.T) {
 	}
 }
 
-// TestTheGrammarDoesNotYetOfferTheProfileAction pins a deliberate absence, and
-// the pin is the point: the editor's action renderer switches on Kind and
-// falls through to the accept/reject control for a kind it does not know, so
-// describing this action before that renderer has a "profile" branch would put
-// a working switch on the Packagizer tab that edits Action.Reject.
-//
-// The day somebody adds the branch, this test is what tells them the grammar
-// line is the other half of the job. See grammar.go, where the line is written
-// out.
+// TestTheGrammarDoesNotYetOfferTheProfileAction: the editor falls through to
+// the reject control for an unknown kind, so the headers action must stay out
+// of the grammar until RuleEditor.tsx has a "profile" branch (see grammar.go).
 func TestTheGrammarDoesNotYetOfferTheProfileAction(t *testing.T) {
 	for _, a := range Describe().Actions {
 		if a.ID == "headers" {
 			t.Fatalf("the grammar describes the headers action as kind %q; the editor has to learn that kind first", a.Kind)
 		}
 	}
-	// The JSON id is still pinned, because that is what the form will address
-	// once it does offer the control - and a typo there is a control that
-	// quietly does nothing.
+	// The JSON key is pinned, since it is what the form will address.
 	b, err := json.Marshal(Action{Headers: "forum"})
 	if err != nil {
 		t.Fatal(err)

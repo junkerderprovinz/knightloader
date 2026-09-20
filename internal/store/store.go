@@ -13,17 +13,9 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-// Store is the one handle on the database. path is kept because the file
-// itself, and not only the rows in it, is something the app has to be able to
-// answer questions about: how big it has grown, whether a maintenance pass
-// gave any of that back, and - the one that matters at three in the morning -
-// where to copy it to by hand when an integrity check has just said it is
-// damaged. See Path.
-//
-// Kept rather than re-derived, because the alternative is a THIRD literal
-// spelling of "knightloader.db" in the tree (internal/app/app.go's New and
-// internal/backup/backup.go's dbEntry already have one each), and a filename
-// spelled in three places is a filename that will one day be spelled two ways.
+// Store is the one handle on the database. path is kept for callers that need
+// to talk about the file itself (see Path), rather than spelling the file name
+// a third time besides internal/app and internal/backup.
 type Store struct {
 	db   *sql.DB
 	path string
@@ -31,9 +23,9 @@ type Store struct {
 
 // migrations run in order, exactly once each. The database records how far it
 // has come in PRAGMA user_version, so an existing install keeps its tasks when
-// a new column arrives. Never edit a shipped entry â€” append a new one.
+// a new column arrives. Never edit a shipped entry; append a new one.
 var migrations = []string{
-	// 1 â€” the original table.
+	// 1: the original table.
 	`CREATE TABLE IF NOT EXISTS tasks (
 	   id         TEXT PRIMARY KEY,
 	   url        TEXT,
@@ -47,8 +39,8 @@ var migrations = []string{
 	   error      TEXT,
 	   created_at INTEGER
 	 )`,
-	// 2 â€” destination folder, archive password, availability, retry bookkeeping
-	//     and queue ordering.
+	// 2: destination folder, archive password, availability, retry bookkeeping
+	// and queue ordering.
 	`ALTER TABLE tasks ADD COLUMN dir TEXT NOT NULL DEFAULT ''`,
 	`ALTER TABLE tasks ADD COLUMN password TEXT NOT NULL DEFAULT ''`,
 	`ALTER TABLE tasks ADD COLUMN online TEXT NOT NULL DEFAULT ''`,
@@ -56,33 +48,21 @@ var migrations = []string{
 	`ALTER TABLE tasks ADD COLUMN next_try INTEGER NOT NULL DEFAULT 0`,
 	`ALTER TABLE tasks ADD COLUMN priority INTEGER NOT NULL DEFAULT 0`,
 	`ALTER TABLE tasks ADD COLUMN position INTEGER NOT NULL DEFAULT 0`,
-	// 3 â€” the verdict of a checksum verification.
+	// 3: the verdict of a checksum verification.
 	`ALTER TABLE tasks ADD COLUMN checksum TEXT NOT NULL DEFAULT ''`,
-	// 4 â€” what a Packagizer rule decided about this task. Without these the rule
-	//     applies once, at paste time, and is gone at the next restart: the
-	//     archive a rule told the app not to unpack is unpacked, and a connection
-	//     count set for one hoster falls back to the default. auto_extract is the
-	//     one nullable column in the table, because "no rule had an opinion" is
-	//     not the same answer as "a rule said no".
+	// 4: what a Packagizer rule decided, so it survives a restart. auto_extract
+	// is nullable because "no rule had an opinion" differs from "a rule said
+	// no".
 	`ALTER TABLE tasks ADD COLUMN comment TEXT NOT NULL DEFAULT ''`,
 	`ALTER TABLE tasks ADD COLUMN chunks INTEGER NOT NULL DEFAULT 0`,
 	`ALTER TABLE tasks ADD COLUMN auto_extract INTEGER`,
 	`ALTER TABLE tasks ADD COLUMN matched_rules TEXT NOT NULL DEFAULT ''`,
-	// 5 â€” every remaining column core.Task will need, added in one go rather than
-	//     one per feature. This list is append-only and strictly ordered, so a
-	//     dozen packages each appending their own ALTER TABLE would conflict in
-	//     this one slice and have to be merged in sequence; done here it costs one
-	//     migration and takes this file off the critical path.
+	// 5: the remaining core.Task columns in one migration.
 	//
-	//     enabled is the one that has to be read carefully. It is `DEFAULT 1`, not
-	//     the 0 every other flag here gets, because ALTER TABLE writes the default
-	//     into every row that already exists: with a 0 the first boot after the
-	//     upgrade would disable every task in the store, and a queue that silently
-	//     refuses to run is indistinguishable from a broken build.
-	//
-	//     resumable is nullable for the same reason auto_extract is: "nobody has
-	//     asked yet" is a real answer, and read back as false it would warn about
-	//     losing bytes that would in fact resume.
+	// enabled defaults to 1 because ALTER TABLE writes the default into every
+	// existing row, and 0 would disable every stored task on upgrade.
+	// resumable is nullable like auto_extract: "not asked yet" read back as
+	// false would warn about losing bytes that would in fact resume.
 	`ALTER TABLE tasks ADD COLUMN finished_at INTEGER NOT NULL DEFAULT 0`,
 	`ALTER TABLE tasks ADD COLUMN enabled INTEGER NOT NULL DEFAULT 1`,
 	`ALTER TABLE tasks ADD COLUMN skipped INTEGER NOT NULL DEFAULT 0`,
@@ -103,18 +83,16 @@ var migrations = []string{
 	`ALTER TABLE tasks ADD COLUMN origin TEXT NOT NULL DEFAULT ''`,
 	`ALTER TABLE tasks ADD COLUMN changed_at INTEGER NOT NULL DEFAULT 0`,
 	`ALTER TABLE tasks ADD COLUMN archive_part INTEGER NOT NULL DEFAULT 0`,
-	// 6 â€” whatever the interface needs to remember per client: column widths, which
-	//     packages are folded shut, the last settings page. An opaque blob per key,
-	//     never a settings field per column, so a new column in the list is not a
-	//     schema change and one browser's layout is not another's.
+	// 6: per-client interface state (column widths, folded packages, the last
+	// settings page), an opaque blob per key so a new column in the list is not
+	// a schema change.
 	`CREATE TABLE IF NOT EXISTS uistate (
 	   key        TEXT PRIMARY KEY,
 	   value      TEXT NOT NULL,
 	   changed_at INTEGER NOT NULL DEFAULT 0
 	 )`,
-	// 7 â€” the download history: what this instance has fetched, kept where the
-	//     task list being trimmed cannot reach it. See history.go for why it is a
-	//     table of its own and why the destination folder is not in it.
+	// 7: the download history, out of reach of the task list being trimmed
+	// (see history.go).
 	`CREATE TABLE IF NOT EXISTS history (
 	   id          TEXT PRIMARY KEY,
 	   url         TEXT NOT NULL,
@@ -126,69 +104,40 @@ var migrations = []string{
 	   created_at  INTEGER NOT NULL DEFAULT 0,
 	   finished_at INTEGER NOT NULL DEFAULT 0
 	 )`,
-	// 8 â€” a finish time for the downloads that were already done when this
-	//     column got a writer. Nothing recorded when they finished, so the
-	//     upgrade is the only honest answer available, and it is the answer
-	//     retention needs: without it every task finished by an older build has a
-	//     zero stamp, is invisible to every cutoff, and stays in the list for
-	//     ever â€” which is the accumulation retention exists to end.
+	// 8: a finish time for downloads that were done before anything recorded
+	// one. The upgrade time is the only answer available, and without a stamp
+	// retention would never remove them.
 	`UPDATE tasks SET finished_at = CAST(strftime('%s','now') AS INTEGER) * 1000
 	  WHERE status = 'done' AND finished_at = 0`,
-	// 9 â€” and those same downloads carried into the history in one pass, so the
-	//     record does not begin at whatever moment this version was installed.
-	//     After 8, because it reads the stamp that migration writes.
+	// 9: those downloads copied into the history, so it does not start at the
+	// upgrade. After 8, because it reads the stamp 8 writes.
 	`INSERT OR IGNORE INTO history (id,url,name,package,host,resolver,size,created_at,finished_at)
 	   SELECT id,url,name,package,host,resolver,size,created_at,finished_at
 	   FROM tasks WHERE status = 'done'`,
-	// 10 â€” the order the history is always read in, and the one the trim cuts
-	//     along. Descending, because every read of this table is "newest first".
+	// 10: the history is always read newest first and trimmed along this order.
 	`CREATE INDEX IF NOT EXISTS history_finished_at ON history(finished_at DESC)`,
-	// 11 â€” what retention sweeps on. The sweep runs on a timer for the life of
-	//     the process, and without this it is a scan of every task in the list
-	//     each time, to find the handful that have aged out.
+	// 11: retention sweeps on a timer and would otherwise scan every task.
 	`CREATE INDEX IF NOT EXISTS tasks_finished_at ON tasks(finished_at)`,
-	// 12 - the multi-file torrent selection: which files inside a resolved
-	//     torrent to fetch. JSON, same treatment as matched_rules above and for
-	//     the same reason (a variable-length list, one column). Unlike the
-	//     swarm numbers a torrent task also carries (peers, seeds, ratio,
-	//     uploaded, seeding - see core.TorrentStats), this one IS persisted: it
-	//     is a decision the user made by unticking a box, not a reading of the
-	//     world that goes stale, and a restart that forgot it would start
-	//     fetching the files the user just excluded.
+	// 12: the files selected inside a multi-file torrent, as JSON. Unlike the
+	// swarm numbers (core.TorrentStats) this is the user's decision and must
+	// survive a restart.
 	`ALTER TABLE tasks ADD COLUMN torrent_files TEXT NOT NULL DEFAULT ''`,
-	// 13 - which torrent a task is, not what its swarm is doing right now: the
-	//     info hash and tracker list a Describe call already resolved at stage
-	//     time (see core.Task.InfoHash's own comment for why these two, alone
-	//     among the torrent fields, are worth persisting). trackers is JSON,
-	//     the same treatment as matched_rules and torrent_files above and for
-	//     the same reason - a variable-length list, one column. info_hash is a
-	//     single hex string and needs none of that.
+	// 13: which torrent a task is: the info hash and the tracker list (JSON)
+	// resolved at stage time (see core.Task.InfoHash).
 	`ALTER TABLE tasks ADD COLUMN info_hash TEXT NOT NULL DEFAULT ''`,
 	`ALTER TABLE tasks ADD COLUMN trackers TEXT NOT NULL DEFAULT ''`,
-	//   - mode: whether a transfer goes out on an account or anonymously. A
-	//     DISPLAY fact, so it is stored rather than re-derived on load: the
-	//     hoster lists it depends on arrive from the JD sidecar a few seconds
-	//     after boot, and a task whose row said nothing for those seconds would
-	//     read as "no answer" rather than "not asked yet".
+	// Whether a transfer uses an account or goes anonymously. Stored rather
+	// than re-derived because the hoster lists it depends on arrive from the
+	// JDownloader sidecar a few seconds after boot.
 	`ALTER TABLE tasks ADD COLUMN mode TEXT NOT NULL DEFAULT ''`,
-	// The drawer a link is filed in, and the folder its extraction's content is
-	// moved to. Both are DECISIONS somebody made about this task, not readings
-	// taken from a running transfer, so unlike Speed or StalledSince they have to
-	// survive a restart: a category that evaporated overnight would send the next
-	// morning's downloads to the wrong folder without anything on screen changing.
+	// The category a link is filed under and the folder its extracted content
+	// moves to. Both are decisions about the task and must survive a restart.
 	`ALTER TABLE tasks ADD COLUMN category TEXT NOT NULL DEFAULT ''`,
 	`ALTER TABLE tasks ADD COLUMN extract_dir TEXT NOT NULL DEFAULT ''`,
-	// The registered passkeys: one row per WebAuthn credential the operator has
-	// enrolled. See passkeys.go for what each column is for, and in particular
-	// why rp_id is one of them - a credential is bound to the address it was
-	// created for, so the same instance reached two ways holds two sets.
-	//
-	// In the DATABASE rather than in auth.json beside the password, and the line
-	// is about secrecy rather than about subject. auth.json is 0600 and holds
-	// what must never be read back: the password hash, the session key, the
-	// authenticator secret. Nothing here is a secret at all - a public key and a
-	// handle - so it belongs where rows with names, timestamps and a UNIQUE
-	// index belong, and where a backup already carries it.
+	// The registered WebAuthn passkeys (see passkeys.go). They live here
+	// rather than in auth.json because nothing in them is secret: auth.json
+	// holds the password hash and keys, these are public keys and handles that
+	// belong with the rest of the backed-up rows.
 	`CREATE TABLE IF NOT EXISTS passkeys (
 	   id            TEXT PRIMARY KEY,
 	   name          TEXT NOT NULL DEFAULT '',
@@ -202,10 +151,8 @@ var migrations = []string{
 	   created_at    INTEGER NOT NULL DEFAULT 0,
 	   last_used_at  INTEGER NOT NULL DEFAULT 0
 	 )`,
-	// One authenticator, one row. Without this a key registered twice leaves two
-	// rows answering for it, and the sign-counter check - the only thing that
-	// notices a cloned authenticator - compares against whichever the query
-	// happened to find first.
+	// One row per authenticator, or the sign-counter check that detects a
+	// cloned key would compare against whichever duplicate it found first.
 	`CREATE UNIQUE INDEX IF NOT EXISTS passkeys_credential_id ON passkeys(credential_id)`,
 }
 
@@ -214,13 +161,9 @@ func Open(path string) (*Store, error) {
 	if err != nil {
 		return nil, err
 	}
-	// One connection, because a second one is what this database cannot survive.
-	// SQLite takes a file-wide lock to write, a second connection writing at the
-	// same moment is refused with SQLITE_BUSY at once, and every caller in the app
-	// discards the error from Save â€” so of two updates that land together one is
-	// simply lost, and the task comes back after a restart in a state that was
-	// true for a fraction of a second. With a single connection the pool queues
-	// the writers instead of letting them collide.
+	// One connection: SQLite locks the whole file to write, a second writer
+	// gets SQLITE_BUSY at once, and callers ignore Save's error, so one of two
+	// concurrent updates would be lost. A single connection queues them.
 	db.SetMaxOpenConns(1)
 	if err := migrate(db); err != nil {
 		db.Close()
@@ -229,36 +172,20 @@ func Open(path string) (*Store, error) {
 	return &Store{db: db, path: path}, nil
 }
 
-// Path is the file this store was opened on, verbatim as Open was given it.
-//
-// It is NOT for building a second connection to the same database - see Open's
-// own comment on why a second connection is the one thing this package cannot
-// survive. It is for the two callers that have to talk about the file rather
-// than the rows: the size readout (maintenance.go), and the message that tells
-// somebody which file to put somewhere safe when the integrity check has just
-// failed.
+// Path is the file this store was opened on, as given to Open. It is for
+// talking about the file (its size, or which file to rescue after a failed
+// integrity check), never for opening a second connection (see Open).
 func (s *Store) Path() string { return s.path }
 
-// Ping asks the database one trivial question and reports whether it answered.
+// Ping asks the database a trivial question and reports whether it answered.
 //
-// WHY NOT sql.DB.PingContext, which is the obvious call. database/sql's own
-// Ping only proves that a connection can be obtained, and this package opens
-// with SetMaxOpenConns(1) on a file that is already open - so it can succeed
-// against a database whose FILE has been unmounted, deleted or turned
-// read-only underneath the process, which is precisely the failure a health
-// readout exists to catch. `SELECT 1` goes through the same statement path
-// every Save and All uses, so what it reports is what those would get.
+// sql.DB.PingContext only proves a connection can be obtained, which succeeds
+// even when the file has been unmounted, deleted or made read-only. SELECT 1
+// takes the same path as every Save and All.
 //
-// WHY IT TAKES A CONTEXT AND MUST BE GIVEN A DEADLINE. The single connection
-// is shared with every other reader and writer, and Vacuum holds it for the
-// whole of a rewrite (see maintenance.go). A caller with no deadline would sit
-// behind a compaction of a six-gigabyte database and turn a status page into a
-// ten-minute hang; with one, a busy database reports as unanswered-for-now,
-// which is the honest reading and the one that keeps the page moving.
-//
-// It deliberately reads nothing real. A count over the task table would be a
-// figure that grows with somebody's queue, on a call whose whole point is to
-// cost the same on every install.
+// Callers must pass a deadline: the single connection is shared, and Vacuum
+// holds it for a whole rewrite, so without one a status page could hang for
+// minutes. The query reads nothing real, so it costs the same on every install.
 func (s *Store) Ping(ctx context.Context) error {
 	var one int
 	if err := s.db.QueryRowContext(ctx, `SELECT 1`).Scan(&one); err != nil {
@@ -286,20 +213,10 @@ func migrate(db *sql.DB) error {
 
 func (s *Store) Close() error { return s.db.Close() }
 
-// BackupTo writes a consistent, standalone copy of the whole database to
-// path, using SQLite's own VACUUM INTO rather than a raw file copy.
-//
-// This package always opens with SetMaxOpenConns(1) (see Open's own
-// comment), so the query this issues queues behind — and is queued behind
-// by — every Save, Delete and All the rest of the app makes at the same
-// moment, through the one connection they all share. What lands at path is
-// therefore either fully before or fully after any one of them, never a
-// read of pages a concurrent write was in the middle of, which a raw
-// os.Open+io.Copy of the live file on disk could not promise.
-//
-// path must not already exist — VACUUM INTO refuses to overwrite one that
-// does, which is a feature here: the caller is expected to pass a fresh
-// temporary path per call, never the live database's own.
+// BackupTo writes a consistent, standalone copy of the database to path with
+// VACUUM INTO. Through the single shared connection it runs wholly before or
+// after any concurrent write, which a raw file copy could not promise. path
+// must not exist yet; VACUUM INTO refuses to overwrite.
 func (s *Store) BackupTo(path string) error {
 	_, err := s.db.Exec(`VACUUM INTO ?`, path)
 	if err != nil {
@@ -316,10 +233,8 @@ const columns = `id,url,name,package,resolver,size,loaded,speed,status,error,cre
 	reason,origin,changed_at,archive_part,torrent_files,info_hash,trackers,mode,
 	category,extract_dir`
 
-// placeholders is one ? per column, built from the list itself. Written out by
-// hand it is a row of forty-three question marks that has to be recounted every
-// time a column is added, and a miscount is an error at runtime rather than at
-// compile time.
+// placeholders is one ? per column, derived from the list so adding a column
+// cannot miscount.
 var placeholders = strings.TrimSuffix(strings.Repeat("?,", strings.Count(columns, ",")+1), ",")
 
 func (s *Store) Save(t *core.Task) error {
@@ -327,13 +242,11 @@ func (s *Store) Save(t *core.Task) error {
 	if !t.NextTry.IsZero() {
 		nextTry = t.NextTry.UnixMilli()
 	}
-	// The finish time is settled before the row is written rather than taken as
-	// given, because this is the one place every task change passes through and
-	// therefore the only one that cannot be forgotten by a new settle path. It
-	// writes to t, which is a copy in every caller in this app - see stampFinish.
+	// Every task change passes through here, so no settle path can forget the
+	// finish time. It writes to t, which callers pass as a copy (see
+	// stampFinish).
 	s.stampFinish(t)
-	// Zero rather than the epoch, so "never finished" and "finished at
-	// 1970-01-01" stay apart on the way back in.
+	// Zero rather than the epoch, so "never finished" stays distinct.
 	var finishedAt, changedAt int64
 	if !t.FinishedAt.IsZero() {
 		finishedAt = t.FinishedAt.UnixMilli()
@@ -341,19 +254,18 @@ func (s *Store) Save(t *core.Task) error {
 	if !t.ChangedAt.IsZero() {
 		changedAt = t.ChangedAt.UnixMilli()
 	}
-	// nil for the same reason auto_extract is nil: nobody having asked whether
-	// this transfer resumes is not the same answer as "it does not".
+	// nil when nobody has asked whether this transfer resumes.
 	var resumable any
 	if t.Resumable != nil {
 		resumable = *t.Resumable
 	}
-	// nil rather than 0 or 1, because the column has to be able to say that no
-	// rule had an opinion at all: read back as false, a task nothing was decided
-	// about would stop obeying the global unpacking switch.
+	// nil when no rule had an opinion, so the task still follows the global
+	// unpacking switch.
 	var autoExtract any
 	if t.AutoExtract != nil {
 		autoExtract = *t.AutoExtract
 	}
+	// Variable-length lists are stored as JSON in one column.
 	matched := ""
 	if len(t.MatchedRules) > 0 {
 		b, err := json.Marshal(t.MatchedRules)
@@ -362,8 +274,6 @@ func (s *Store) Save(t *core.Task) error {
 		}
 		matched = string(b)
 	}
-	// Same treatment as matched_rules just above, and for the same reason: a
-	// variable-length list has nowhere else to go in a fixed-column row.
 	torrentFiles := ""
 	if len(t.TorrentFiles) > 0 {
 		b, err := json.Marshal(t.TorrentFiles)
@@ -372,9 +282,6 @@ func (s *Store) Save(t *core.Task) error {
 		}
 		torrentFiles = string(b)
 	}
-	// Same treatment as matched_rules and torrent_files above, and for the
-	// same reason: a variable-length list has nowhere else to go in a
-	// fixed-column row. info_hash is a plain string and needs none of this.
 	trackers := ""
 	if len(t.Trackers) > 0 {
 		b, err := json.Marshal(t.Trackers)
@@ -399,16 +306,14 @@ func (s *Store) Save(t *core.Task) error {
 	if err != nil {
 		return err
 	}
-	// The history is written from the same save, so a finished download is in
-	// the record before anything is allowed to trim it out of the list. It is a
-	// no-op for a task in any other state.
+	// The history is written in the same save, so a finished download is
+	// recorded before anything can trim it from the list. A no-op otherwise.
 	return s.recordFinished(t)
 }
 
-// Delete takes a task out of the LIST. It does not touch the history: a row
-// there is the record that this instance fetched something, and clearing the
-// list is not a statement about what was downloaded. That is the whole reason
-// the history is not a view over this table.
+// Delete takes a task out of the list. The history keeps its row: clearing the
+// list says nothing about what was downloaded, which is why the history is not
+// a view over this table.
 func (s *Store) Delete(id string) error {
 	_, err := s.db.Exec(`DELETE FROM tasks WHERE id=?`, id)
 	return err
@@ -462,9 +367,8 @@ func (s *Store) All() ([]*core.Task, error) {
 			t.Resumable = &v
 		}
 		if matched != "" {
-			// A row written by a build that stored something else here is not worth
-			// failing the whole reload over: the task itself is intact, and the list
-			// of rule names is only there to explain where it landed.
+			// A malformed list is not worth failing the reload over; it only
+			// explains where the task landed.
 			_ = json.Unmarshal([]byte(matched), &t.MatchedRules)
 		}
 		if torrentFiles != "" {

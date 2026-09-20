@@ -1,10 +1,8 @@
 package captcha
 
-// AntiCaptchaSolver against a real httptest.Server - pinning the wire shapes
-// this file's own package comment documents as verified. Shared-helper
-// coverage (decodeSolverImage, encodeClickAnswer, solverAnswerFor) lives in
-// solver_2captcha_test.go beside the code it tests; this file only covers
-// what is genuinely different about Anti-Captcha's own wire shape.
+// AntiCaptchaSolver against an httptest.Server, covering what differs from
+// 2Captcha's wire shape. The shared helpers are tested in
+// solver_2captcha_test.go, beside where they are defined.
 
 import (
 	"context"
@@ -41,15 +39,12 @@ func TestAntiCaptchaSolverSolvesImage(t *testing.T) {
 		t.Fatalf("Solve: %v", err)
 	}
 	if got != "deditur" {
-		t.Errorf("Solve() = %q, want the solved text (url must be ignored)", got)
+		t.Errorf("Solve() = %q, want the solved text with the url ignored", got)
 	}
 }
 
-// TestAntiCaptchaSolverSolvesClickSetsPointsMode pins that a KindClick task
-// is ImageToCoordinatesTask with mode "points" set explicitly - see this
-// package's own doc comment on why the documented default is not relied on -
-// and that the verified [x1,y1,x2,y2]-shaped rows reduce to their first two
-// numbers as (x, y).
+// A KindClick task is an ImageToCoordinatesTask with mode "points" sent
+// explicitly, and a coordinate row reduces to its first two numbers.
 func TestAntiCaptchaSolverSolvesClickSetsPointsMode(t *testing.T) {
 	withFastPolling(t)
 	var gotReq antiCaptchaCreateReq
@@ -73,7 +68,7 @@ func TestAntiCaptchaSolverSolvesClickSetsPointsMode(t *testing.T) {
 		t.Errorf("Solve() = %s, want the single-point ClickedPoint JSON", got)
 	}
 	if gotReq.Task.Type != "ImageToCoordinatesTask" || gotReq.Task.Mode != "points" || gotReq.Task.Comment != "click the apple" {
-		t.Errorf("createTask request task = %+v, want type ImageToCoordinatesTask, mode points, comment threaded through", gotReq.Task)
+		t.Errorf("createTask task = %+v, want ImageToCoordinatesTask in points mode with the comment", gotReq.Task)
 	}
 }
 
@@ -103,7 +98,7 @@ func TestAntiCaptchaSolverGetTaskResultError(t *testing.T) {
 	s := NewAntiCaptchaSolver("key")
 	s.base = srv.URL
 	if _, err := s.Solve(context.Background(), KindImage, "aGVsbG8=", ""); err == nil {
-		t.Error("Solve() with an unsolvable result = nil error, want one naming the provider's own reason")
+		t.Error("Solve() with an unsolvable result = nil error, want one")
 	}
 }
 

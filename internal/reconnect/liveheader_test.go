@@ -8,9 +8,8 @@ import (
 )
 
 // TestImportScript is the table for what a JDownloader reconnect script turns
-// into. Every refusal in it is a request that would otherwise have been imported
-// approximately, and an approximately imported script does not fail at import
-// time - it fails at three in the morning as "the address did not change".
+// into. Every refusal is a request that would otherwise have been imported
+// approximately and failed only later as "the address did not change".
 func TestImportScript(t *testing.T) {
 	tests := []struct {
 		name   string
@@ -46,9 +45,7 @@ func TestImportScript(t *testing.T) {
 			},
 		},
 		{
-			// An absolute target keeps its Host header: router firmware that
-			// virtual-hosts the administration page is recorded exactly this way,
-			// and folding the two together is a login that never lands.
+			// Firmware that virtual-hosts its admin page is recorded this way.
 			name: "an absolute URL keeps a differing Host header",
 			script: "[[[HSRC]]]\n" +
 				"GET http://192.168.1.1/reboot HTTP/1.1\n" +
@@ -166,9 +163,8 @@ func TestImportScript(t *testing.T) {
 			wantLine:    1,
 		},
 		{
-			// JD's own files carry metadata above the blocks. Skipping an
-			// unrecognised line silently would just as happily skip the request
-			// that does the reboot.
+			// JDownloader's files carry metadata above the blocks, and a
+			// silently skipped line could as well be the reboot request.
 			name: "a line outside any block",
 			script: "Router: Fritz!Box\n" +
 				"[[[HSRC]]]\nGET /x HTTP/1.1\nHost: h\n[[[/HSRC]]]\n",
@@ -192,9 +188,8 @@ func TestImportScript(t *testing.T) {
 			wantLine:    2,
 		},
 		{
-			// The header is base64 and the variable is filled in later, so the
-			// router would be handed the encoded placeholder and answer with a
-			// login failure that blames perfectly good credentials.
+			// The header is base64-encoded before the variable is filled in, so
+			// the router would get the encoded placeholder.
 			name: "curl basic auth with a variable in it",
 			script: "[[[CURL]]]\n" +
 				"curl -u %%%username%%%:%%%password%%% http://192.168.1.1/reboot\n" +
@@ -310,12 +305,9 @@ func assertRequests(t *testing.T, got, want []Request) {
 	}
 }
 
-// TestImportNeverMapsRouterIPOntoThePublicAddress is the one mapping that must
-// not be got wrong, and it is easy to get wrong: JD calls the gateway
-// %%%routerip%%% and this package calls the pre-reconnect public address %%ip%%,
-// so a translation table that folded the two together would send a request
-// carrying the router password out to the public internet instead of to the
-// router on the LAN.
+// TestImportNeverMapsRouterIPOntoThePublicAddress: JDownloader's
+// %%%routerip%%% is the gateway and %%ip%% here is the public address, so
+// folding them together would send the router password to the internet.
 func TestImportNeverMapsRouterIPOntoThePublicAddress(t *testing.T) {
 	imp, err := ImportScript("[[[HSRC]]]\nGET /reboot HTTP/1.1\nHost: %%%routerip%%%\n[[[/HSRC]]]\n")
 	if err != nil {
@@ -329,8 +321,8 @@ func TestImportNeverMapsRouterIPOntoThePublicAddress(t *testing.T) {
 		t.Fatal("%%%routerip%%% was mapped onto the public address variable")
 	}
 
-	// And the run has to follow the mapping: a configuration whose router is
-	// 192.168.1.1 and whose public address is 203.0.113.9 must reach the former.
+	// The run follows the mapping: the request reaches the router, not the
+	// public address.
 	client := &stubClient{checks: []step{{body: "203.0.113.9"}, {body: "198.51.100.7"}}}
 	cfg := Config{
 		Method:          MethodHTTP,
@@ -349,9 +341,8 @@ func TestImportNeverMapsRouterIPOntoThePublicAddress(t *testing.T) {
 	}
 }
 
-// TestImportReportsTheVariablesItNeeds: a form that asks for a username and a
-// password a script never references is a form people abandon, and one that does
-// not ask for the router address produces a request to "http:///login".
+// TestImportReportsTheVariablesItNeeds: the form asks only for the fields the
+// script references, and always for the router address when it is used.
 func TestImportReportsTheVariablesItNeeds(t *testing.T) {
 	tests := []struct {
 		name   string
@@ -388,10 +379,8 @@ func TestImportReportsTheVariablesItNeeds(t *testing.T) {
 	}
 }
 
-// TestImportedScriptNeedsARouterAddress pins the other half of that decision:
-// the variable exists, so the configuration has to be refused while the field
-// behind it is empty. An unset variable expands to nothing, and
-// "http:///login.cgi" fails with a URL parse error that names no field at all.
+// TestImportedScriptNeedsARouterAddress: an empty router would expand to
+// "http:///login.cgi", so validation names the empty field instead.
 func TestImportedScriptNeedsARouterAddress(t *testing.T) {
 	imp, err := ImportScript("[[[HSRC]]]\nGET /reboot HTTP/1.1\nHost: %%%routerip%%%\n[[[/HSRC]]]\n")
 	if err != nil {
@@ -411,8 +400,8 @@ func TestImportedScriptNeedsARouterAddress(t *testing.T) {
 	}
 }
 
-// TestImportShowsWhatMappedAlongsideWhatDidNot: the editor needs both halves, so
-// a refused script can still show which of its four blocks was the problem.
+// TestImportShowsWhatMappedAlongsideWhatDidNot: a refused script still shows
+// which of its blocks was the problem.
 func TestImportShowsWhatMappedAlongsideWhatDidNot(t *testing.T) {
 	imp, err := ImportScript(
 		"[[[HSRC]]]\nGET /login HTTP/1.1\nHost: 192.168.1.1\n[[[/HSRC]]]\n" +
@@ -431,9 +420,8 @@ func TestImportShowsWhatMappedAlongsideWhatDidNot(t *testing.T) {
 	}
 }
 
-// TestSplitCommand covers the quoting rules on their own. The tokens become a
-// URL, a body and header values and are never handed to a shell, so a semicolon
-// inside a quoted argument has to survive as data.
+// TestSplitCommand covers the quoting rules. The tokens never reach a shell, so
+// a semicolon inside a quoted argument stays data.
 func TestSplitCommand(t *testing.T) {
 	tests := []struct {
 		name string

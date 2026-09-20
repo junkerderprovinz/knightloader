@@ -5,8 +5,8 @@ import (
 	"testing"
 )
 
-// TestBanIsPerHostNotPerConnection is the shape of the whole feature: one hoster
-// refusing a proxy must not take that proxy away from every other hoster.
+// TestBanIsPerHostNotPerConnection: one hoster refusing a proxy does not take
+// it away from every other hoster.
 func TestBanIsPerHostNotPerConnection(t *testing.T) {
 	b := NewBans()
 	b.Ban("a", "rapidgator.net")
@@ -21,9 +21,8 @@ func TestBanIsPerHostNotPerConnection(t *testing.T) {
 	}
 }
 
-// TestBanFoldsTheHostTheSameWayFiltersDo. A ban recorded from a URL and a ban
-// asked about by host name have to be the same ban, or the list silently holds
-// entries nothing ever matches.
+// TestBanFoldsTheHostTheSameWayFiltersDo: a ban recorded from a URL and one
+// asked about by host name are the same ban.
 func TestBanFoldsTheHostTheSameWayFiltersDo(t *testing.T) {
 	b := NewBans()
 	b.Ban("a", "  DL2.Example.ORG:443 ")
@@ -35,9 +34,8 @@ func TestBanFoldsTheHostTheSameWayFiltersDo(t *testing.T) {
 	}
 }
 
-// TestTheGatewayIsNeverBanned. The direct gateway is the answer of last resort;
-// banning it leaves a host with nowhere at all to go, which stalls the queue
-// rather than protecting anything.
+// TestTheGatewayIsNeverBanned: banning the direct gateway would leave a host
+// nowhere to go and stall the queue.
 func TestTheGatewayIsNeverBanned(t *testing.T) {
 	b := NewBans()
 	b.Ban(DirectID, "example.org")
@@ -68,11 +66,8 @@ func TestClearForgetsOneConnectionOnly(t *testing.T) {
 	}
 }
 
-// TestSwitchingARowBackOnClearsItsBans is the false->true edge of the Use
-// switch, and it is the reason observe exists. A connection somebody switched
-// off and on again has been given a fresh start; coming back still refused by
-// yesterday's hosts is an inheritance that is invisible on the page, because the
-// row reads as on and downloads still avoid it.
+// TestSwitchingARowBackOnClearsItsBans: switching a row off and on again gives
+// it a fresh start.
 func TestSwitchingARowBackOnClearsItsBans(t *testing.T) {
 	on := Entry{ID: "a", Kind: KindHTTP, Host: "proxy.lan", Port: 8080, Enabled: true}
 	off := on
@@ -94,10 +89,8 @@ func TestSwitchingARowBackOnClearsItsBans(t *testing.T) {
 	}
 }
 
-// TestSavingTheSameListTwiceKeepsTheBans. Every settings save rebuilds the
-// picker, so an edit anywhere on the page runs observe over every row. If a
-// save that changed nothing about a row cleared its bans, the ban list would
-// last exactly until the next time somebody touched the accent colour.
+// TestSavingTheSameListTwiceKeepsTheBans: every settings save rebuilds the
+// picker, so an unchanged row must keep its bans.
 func TestSavingTheSameListTwiceKeepsTheBans(t *testing.T) {
 	row := Entry{ID: "a", Kind: KindHTTP, Host: "proxy.lan", Port: 8080, Enabled: true}
 	bans := NewBans()
@@ -111,7 +104,7 @@ func TestSavingTheSameListTwiceKeepsTheBans(t *testing.T) {
 	}
 }
 
-// TestEditingARowToADifferentProxyClearsItsBans. The refusals belonged to the
+// TestEditingARowToADifferentProxyClearsItsBans: the refusals belonged to the
 // machine the row used to name, not to the row.
 func TestEditingARowToADifferentProxyClearsItsBans(t *testing.T) {
 	row := Entry{ID: "a", Kind: KindHTTP, Host: "old.lan", Port: 8080, Enabled: true}
@@ -127,11 +120,8 @@ func TestEditingARowToADifferentProxyClearsItsBans(t *testing.T) {
 	}
 }
 
-// TestARecycledIDIsNotBornBanned is the trap this whole mechanism is most likely
-// to be caught by. identify hands out the lowest free decimal id, so deleting a
-// row and adding one gives the newcomer the id the deleted row had - and without
-// observe dropping the bans of a row that left the list, the new connection
-// starts life refused by hosts it has never spoken to.
+// TestARecycledIDIsNotBornBanned: identify reuses the lowest free id, so a new
+// row can get a deleted row's id and must not inherit its bans.
 func TestARecycledIDIsNotBornBanned(t *testing.T) {
 	first := Entry{Kind: KindHTTP, Host: "first.lan", Port: 8080, Enabled: true}
 	bans := NewBans()
@@ -149,9 +139,6 @@ func TestARecycledIDIsNotBornBanned(t *testing.T) {
 	}
 }
 
-// TestNilBansIsAnEmptyBanList. The picker is older than the ban list, and a
-// caller that has not been taught about one must behave as it always did rather
-// than panic for not knowing.
 func TestNilBansIsAnEmptyBanList(t *testing.T) {
 	var b *Bans
 	b.Ban("a", "example.org")

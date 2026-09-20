@@ -5,11 +5,6 @@ import (
 	"time"
 )
 
-// TestAllTriggers_MatchesValid pins AllTriggers and Valid to each other:
-// whatever AllTriggers lists must be exactly the set Valid accepts, or a
-// picker built from one and validated against the other drifts silently -
-// see AllTriggers' own doc comment for why that is the failure this test
-// exists to catch early.
 func TestAllTriggers_MatchesValid(t *testing.T) {
 	all := AllTriggers()
 	seen := make(map[Trigger]bool, len(all))
@@ -57,15 +52,9 @@ func TestClassifyTaskUpdate(t *testing.T) {
 	}
 }
 
-// TestClassifyTaskUpdate_RetryExhaustionEdge pins the exact edge
-// internal/app/app_dispatch.go's onUpdate relies on: NextTry is zeroed the
-// instant a task is left settled (retries exhausted, or a disk-full
-// failure that never retries at all), and that zero value is the only
-// signal this package has to tell "final" apart from "will try again
-// shortly". A task on its very last retry, one tick before NextTry would
-// have been set, still counts as pending - this test exists so a future
-// change to the zero-value convention on either side breaks loudly here
-// rather than showing up as a script firing once per backoff attempt.
+// TestClassifyTaskUpdate_RetryExhaustionEdge: a zero NextTry is the only
+// signal that a failure is final (retries exhausted, or a disk-full failure
+// that never retries), and onUpdate in internal/app relies on it.
 func TestClassifyTaskUpdate_RetryExhaustionEdge(t *testing.T) {
 	exhausted := TaskView{Status: statusError, Retries: 5, NextTry: time.Time{}}
 	if got, ok := ClassifyTaskUpdate(exhausted); !ok || got != TriggerTaskFailed {

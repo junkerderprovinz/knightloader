@@ -1,28 +1,16 @@
 package captcha
 
-// Store is the in-memory map of currently active challenges - "active"
-// meaning the last List() call answered with them. It is 7A's file inside a
-// package 7F otherwise owns this wave (build-plan.md section 3's Wave 7
-// table, section 8's amendment), the same "small store a reconciler owns"
-// shape internal/hosterauth/reconcile.go's own states map already is: a pure
-// Sync step that decides what changed, kept apart from anything that talks
-// to a network or a browser.
+// The in-memory map of the challenges the last List call answered with: a pure
+// Sync step that decides what changed, kept apart from anything that talks to a
+// network or a browser.
 //
-// Deliberately NOT persisted, and that is not a gap - see NewStore. A
-// restart loses whatever was in flight exactly as a JD restart already does
-// (jdsource.go's own Source.List answers "everything pending" fresh from JD
-// every time, never from a local memory of what used to be pending), so
-// there is nothing honest to write to disk: a challenge this store forgot
-// about is reacquired from JD itself on the very next poll, or it is
-// genuinely gone.
+// Nothing here is persisted. Source.List answers "everything pending" fresh
+// from JD on every call, so a challenge this store forgot is picked up again on
+// the next poll or is genuinely gone.
 //
-// core.Task gained no new field for any of this. A task's Reason already
-// carries core.ReasonCaptcha (internal/core/task.go), already the
-// classification app_errors.go gives this exact condition. The one fact
-// neither of those can answer - which challenge, if any, task T is waiting
-// on right now - is this Store's whole job, via byTask below; see
-// internal/app/app_captcha.go for how the App wires a poll loop and the hub
-// around it.
+// A task's Reason already carries core.ReasonCaptcha. Which challenge a given
+// task is waiting on is what byTask below answers; internal/app/app_captcha.go
+// wires the poll loop and the hub around it.
 
 import (
 	"reflect"
@@ -45,27 +33,18 @@ func NewStore() *Store {
 	return &Store{active: map[string]Challenge{}, byTask: map[string]string{}}
 }
 
-// Sync reconciles a fresh List() result against what Store held before, and
-// returns exactly what changed:
+// Sync reconciles a fresh List result against what the Store held before and
+// reports what changed:
 //
-//   - added is a challenge this Store has never seen (a new id).
-//   - changed is one already known whose visible fields moved - a later
-//     ExpiresAt most often, since JD recomputes it fresh on every list() call
-//     from its own live countdown (see jdsource.go's own doc comment on
-//     Challenge.ExpiresAt); that is expected motion, not a bug, and callers
-//     that only care about it as a live countdown are free to ignore this
-//     slice entirely.
-//   - removed is every challenge that WAS active and is not in current any
-//     more, carrying its LAST-KNOWN snapshot rather than only its id - a
-//     caller deciding what a disappearance means (solved, timed out,
-//     aborted elsewhere) needs to know which task and host it was, and this
-//     is the only place that snapshot still exists once JD has stopped
-//     mentioning it.
+//   - added is a challenge under an id this Store has not seen.
+//   - changed is a known one whose visible fields moved, most often a later
+//     ExpiresAt, which JD recomputes on every list call.
+//   - removed is every challenge that was active and is gone, carrying its
+//     last known snapshot: a caller deciding what a disappearance means needs
+//     the task and host, and this is the last place that snapshot exists.
 //
-// Store's own state is fully replaced by current before returning, so two
-// calls never have to run back to back to converge, and a challenge removed
-// out of band (see Remove) simply does not reappear here - it is already
-// absent from what Sync is diffing against.
+// The Store's state is replaced by current before returning, so one call
+// converges.
 func (s *Store) Sync(current []Challenge) (added, changed, removed []Challenge) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -94,15 +73,11 @@ func (s *Store) Sync(current []Challenge) (added, changed, removed []Challenge) 
 }
 
 // sameChallenge reports whether two snapshots of the same id carry the same
-// externally visible facts, treating an ExpiresAt move under one second as
-// noise rather than a real change.
+// visible facts, treating an ExpiresAt move under one second as noise.
 //
-// The tolerance is load-bearing, not cosmetic: ExpiresAt is recomputed fresh
-// on every JD list() call from its own live countdown (jdsource.go), so
-// without it two polls a couple of milliseconds apart would both read as
-// "changed" from clock jitter alone, and Sync's changed slice - the signal a
-// caller uses to decide whether to re-broadcast - would fire on every single
-// tick regardless of whether anything a person can see actually moved.
+// JD recomputes ExpiresAt from its live countdown on every list call, so
+// without the tolerance two polls milliseconds apart would read as changed from
+// jitter alone and a caller would re-broadcast on every tick.
 func sameChallenge(a, b Challenge) bool {
 	return a.Host == b.Host && a.TaskID == b.TaskID && a.Kind == b.Kind &&
 		a.Prompt == b.Prompt &&
@@ -111,16 +86,11 @@ func sameChallenge(a, b Challenge) bool {
 }
 
 // expiresAtClose reports whether two ExpiresAt readings are close enough to
-// count as the same deadline rather than a real move.
+// count as the same deadline.
 //
-// A Truncate(time.Second)-then-Equal comparison looks like the obvious way
-// to write this and is subtly wrong: two instants 400ms apart that straddle
-// a wall-clock second boundary (…28.900 and …29.300) truncate to two
-// DIFFERENT seconds, so the bucket edge itself becomes a source of the exact
-// false "changed" report the tolerance exists to absorb - caught by
-// TestStoreSyncIgnoresSubSecondExpiresAtJitter, which failed against that
-// version. Comparing the actual gap between the two instants has no such
-// edge.
+// It compares the gap rather than truncating both to whole seconds: two
+// instants 400ms apart can straddle a second boundary and truncate to different
+// seconds, which is the false "changed" report the tolerance exists to absorb.
 func expiresAtClose(a, b time.Time) bool {
 	if a.IsZero() != b.IsZero() {
 		return false
@@ -132,13 +102,10 @@ func expiresAtClose(a, b time.Time) bool {
 	return d < time.Second
 }
 
-// Remove drops one challenge out of band, ahead of the next Sync - the
-// caller who just learned the outcome directly (a POST .../answer or
-// .../abort that got its own definitive answer from JD) rather than by
-// noticing an absence on the next poll. It reports whether id was present,
-// and is a no-op otherwise: a challenge already gone is the state Remove
-// exists to reach, the same idempotent-on-gone rule Source.Abort's own doc
-// comment states for the same reason.
+// Remove drops one challenge ahead of the next Sync, for a caller that learned
+// the outcome directly rather than by noticing an absence on the next poll. It
+// reports whether id was present and is a no-op otherwise, the same
+// idempotent-on-gone rule Source.Abort follows.
 func (s *Store) Remove(id string) (Challenge, bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -161,11 +128,9 @@ func (s *Store) Get(id string) (Challenge, bool) {
 	return c, ok
 }
 
-// ByTask returns the challenge taskID is currently waiting on, if any - the
-// lookup internal/app/app_captcha.go's dispatchLocked seam and onUpdate
-// wiring need to tell a captcha-waiting task apart from a merely queued one,
-// without core.Task carrying a pointer back to a challenge it does not own
-// the lifecycle of.
+// ByTask returns the challenge taskID is waiting on, if any. It lets the app
+// tell a captcha-waiting task from a merely queued one without core.Task
+// carrying a pointer to a challenge whose lifecycle it does not own.
 func (s *Store) ByTask(taskID string) (Challenge, bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -177,15 +142,12 @@ func (s *Store) ByTask(taskID string) (Challenge, bool) {
 	return c, ok
 }
 
-// List returns every currently active challenge, nearest expiry first.
+// List returns every active challenge, nearest expiry first.
 //
-// A zero ExpiresAt - "the Source could not say", per Challenge's own doc
-// comment - sorts LAST, not first: an unknown deadline is not the most
-// urgent challenge to show, it is the least informative one, and a consumer
-// that shows one challenge at a time (the prompt modal) wants the one most
-// likely to lapse first in front of the one most likely to sit quietly.
-// Ties (including two zero deadlines) break on id, so the order is stable
-// from one call to the next when nothing has actually changed.
+// A zero ExpiresAt, meaning the Source could not say, sorts last: a consumer
+// showing one challenge at a time wants the one most likely to lapse in front
+// of the one it knows nothing about. Ties break on id, so the order is stable
+// while nothing changes.
 func (s *Store) List() []Challenge {
 	s.mu.Lock()
 	out := make([]Challenge, 0, len(s.active))

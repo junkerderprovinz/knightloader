@@ -11,8 +11,8 @@ func catchAll(id, host string) Entry {
 	return Entry{ID: id, Kind: KindHTTP, Host: host, Port: 8080, Enabled: true}
 }
 
-// TestPickRoundRobinsInListOrder pins the spreading the list exists for: three
-// equal connections must take turns, not pile onto the first one that fits.
+// TestPickRoundRobinsInListOrder: equal connections take turns instead of
+// piling onto the first that fits.
 func TestPickRoundRobinsInListOrder(t *testing.T) {
 	p := NewPicker([]Entry{
 		catchAll("a", "a.lan"),
@@ -31,9 +31,8 @@ func TestPickRoundRobinsInListOrder(t *testing.T) {
 	}
 }
 
-// TestPickWalksTheUsersOrderNotTheInputOrder makes sure the picker follows the
-// list the user is looking at. A list posted back from a drag-and-drop UI
-// arrives in whatever sequence the DOM had; only the order index is the answer.
+// TestPickWalksTheUsersOrderNotTheInputOrder: a list posted from a
+// drag-and-drop UI arrives in DOM order, and only the order index counts.
 func TestPickWalksTheUsersOrderNotTheInputOrder(t *testing.T) {
 	in := []Entry{
 		{ID: "third", Kind: KindHTTP, Host: "c.lan", Port: 8080, Order: 2, Enabled: true},
@@ -49,9 +48,8 @@ func TestPickWalksTheUsersOrderNotTheInputOrder(t *testing.T) {
 	}
 }
 
-// TestPickNeverExceedsALimit is the guarantee a caller cannot check for itself.
-// Handing one connection out beyond its limit is exactly the ban the user set
-// the limit to avoid.
+// TestPickNeverExceedsALimit: exceeding a connection's limit risks the very
+// ban the user set it to avoid.
 func TestPickNeverExceedsALimit(t *testing.T) {
 	p := NewPicker([]Entry{
 		func() Entry { e := catchAll("a", "a.lan"); e.MaxDownloads = 1; return e }(),
@@ -78,8 +76,8 @@ func TestPickNeverExceedsALimit(t *testing.T) {
 	if total != 5 {
 		t.Errorf("handed out %d connections in total, want 5", total)
 	}
-	// Everything is busy, so the answer is "wait", not "go direct": going direct
-	// would route around the proxies the user configured.
+	// Everything is busy, so the answer is wait, not direct, which would bypass
+	// the configured proxies.
 	e, ok := p.Pick("example.org", inUse)
 	if ok {
 		t.Fatalf("Pick with everything busy = %v,%v, want no connection", e, ok)
@@ -90,8 +88,7 @@ func TestPickNeverExceedsALimit(t *testing.T) {
 }
 
 // TestPickPrefersAFilteredEntryOverTheCatchAll is the NAS exclusion from the
-// package comment. Without the preference the whole-app proxy would keep taking
-// its turn on nas.local and half the LAN transfers would leave the house.
+// package documentation.
 func TestPickPrefersAFilteredEntryOverTheCatchAll(t *testing.T) {
 	p := NewPicker([]Entry{
 		catchAll("proxy", "proxy.lan"),
@@ -103,8 +100,7 @@ func TestPickPrefersAFilteredEntryOverTheCatchAll(t *testing.T) {
 		if !ok || got.ID != "nas" {
 			t.Fatalf("pick %d for the NAS = %q,%v, want the direct entry", i, got.ID, ok)
 		}
-		// A direct entry means no proxy at all, which is what the caller has to
-		// see for the exclusion to do anything.
+		// A direct entry means no proxy URL at all.
 		if u := got.URL(); u != nil {
 			t.Fatalf("the direct entry produced a proxy URL %v", u)
 		}
@@ -118,9 +114,8 @@ func TestPickPrefersAFilteredEntryOverTheCatchAll(t *testing.T) {
 	}
 }
 
-// TestPickIgnoresAFilterThatDoesNotMatch pins the other half of the filter: an
-// entry restricted to one hoster must never be handed out for another, even when
-// it is the only enabled entry left.
+// TestPickIgnoresAFilterThatDoesNotMatch: an entry restricted to one hoster is
+// never handed out for another, even as the only enabled entry.
 func TestPickIgnoresAFilterThatDoesNotMatch(t *testing.T) {
 	p := NewPicker([]Entry{
 		{ID: "only-example", Kind: KindHTTP, Host: "proxy.lan", Port: 8080, Filter: []string{"example.org"}, Enabled: true},
@@ -134,10 +129,8 @@ func TestPickIgnoresAFilterThatDoesNotMatch(t *testing.T) {
 	}
 }
 
-// TestPickFallsBackToDirectWhenNothingClaimsTheHost is the failure that would
-// hurt most: a list that claims nothing must let downloads run. A mistyped
-// filter freezing the entire queue is far worse than a download going out
-// unproxied, and the caller cannot tell the two apart on its own.
+// TestPickFallsBackToDirectWhenNothingClaimsTheHost: a list that claims
+// nothing lets downloads run rather than freezing the queue.
 func TestPickFallsBackToDirectWhenNothingClaimsTheHost(t *testing.T) {
 	cases := []struct {
 		name string
@@ -169,9 +162,8 @@ func TestPickFallsBackToDirectWhenNothingClaimsTheHost(t *testing.T) {
 	}
 }
 
-// TestPickWaitsRatherThanLeakWhenTheClaimingEntryIsBusy separates the two
-// negative answers. A host that a proxy claims must wait for that proxy; falling
-// back to direct here is the leak the whole feature exists to prevent.
+// TestPickWaitsRatherThanLeakWhenTheClaimingEntryIsBusy: a host a proxy claims
+// waits for that proxy instead of going direct.
 func TestPickWaitsRatherThanLeakWhenTheClaimingEntryIsBusy(t *testing.T) {
 	p := NewPicker([]Entry{
 		{ID: "ex", Kind: KindHTTP, Host: "proxy.lan", Port: 8080, Filter: []string{"example.org"}, MaxDownloads: 1, Enabled: true},
@@ -182,20 +174,18 @@ func TestPickWaitsRatherThanLeakWhenTheClaimingEntryIsBusy(t *testing.T) {
 	if got, ok := p.Pick("dl2.example.org", inUse); ok {
 		t.Fatalf("Pick = %+v,%v, want no connection while the claiming proxy is full", got, ok)
 	}
-	// The catch-all is idle, but it does not claim this host and must not be
-	// used for it.
+	// The idle catch-all does not claim this host.
 	if got, ok := p.Pick("dl2.example.org", inUse); ok && got.ID == "other" {
 		t.Fatalf("Pick fell through to the catch-all proxy for a claimed host")
 	}
-	// A host nobody claims still runs, so one busy filtered entry does not stall
-	// everything else.
+	// A host nobody claims still runs.
 	if got, ok := p.Pick("elsewhere.net", inUse); !ok || got.ID != "other" {
 		t.Fatalf("Pick for an unclaimed host = %q,%v, want the catch-all", got.ID, ok)
 	}
 }
 
-// TestPickSkipsSwitchedOffAndInertRows checks the two user-facing switches:
-// neither may ever be handed out, and neither may block the entries behind it.
+// TestPickSkipsSwitchedOffAndInertRows: neither is handed out, and neither
+// blocks the entries behind it.
 func TestPickSkipsSwitchedOffAndInertRows(t *testing.T) {
 	p := NewPicker([]Entry{
 		{ID: "off", Kind: KindHTTP, Host: "a.lan", Port: 8080, Order: 0},
@@ -210,9 +200,8 @@ func TestPickSkipsSwitchedOffAndInertRows(t *testing.T) {
 	}
 }
 
-// TestNewPickerSanitizesItsInput means a caller that forgot cannot round-robin
-// onto a proxy with no endpoint, and that Entries is a copy: a caller editing
-// what it got back must not silently re-point a live picker.
+// TestNewPickerSanitizesItsInput: a proxy without an endpoint is dropped, and
+// Entries returns a copy the caller cannot use to change the live picker.
 func TestNewPickerSanitizesItsInput(t *testing.T) {
 	p := NewPicker([]Entry{
 		{ID: "broken", Kind: KindHTTP, Port: 8080, Enabled: true},
@@ -232,13 +221,9 @@ func TestNewPickerSanitizesItsInput(t *testing.T) {
 	}
 }
 
-// TestEntriesAndPickCopyTheFilterToo is the half of the copy that a struct copy
-// does not cover. Host is a string and copies itself; Filter is a slice, so a
-// caller that edits the list it was handed - an API handler redacting a row, a
-// UI writing a rename back - would otherwise reach straight into the running
-// picker, from another goroutine and with no write the picker can see. The entry
-// then stops claiming the host it was written for and the next download for that
-// hoster goes out over the connection the filter existed to avoid.
+// TestEntriesAndPickCopyTheFilterToo: Filter is a slice, so a struct copy
+// alone would let a caller editing its entry change the running picker's
+// filter.
 func TestEntriesAndPickCopyTheFilterToo(t *testing.T) {
 	entries := []Entry{{ID: "nas", Kind: KindDirect, Filter: []string{"nas.local"}, Enabled: true}}
 
@@ -263,16 +248,14 @@ func TestEntriesAndPickCopyTheFilterToo(t *testing.T) {
 			t.Fatalf("Pick for the NAS = %q,%v, want the direct entry", again.ID, ok)
 		}
 	})
-	// The list the picker was built from is the caller's and must come back
-	// unharmed too, or the second picker built from it walks something else.
+	// The caller's own list is left unchanged too.
 	if entries[0].Filter[0] != "nas.local" {
 		t.Fatalf("NewPicker edited its caller's filter: %v", entries[0].Filter)
 	}
 }
 
 // TestLimitPrefersTheEntryThenTheOption pins the precedence and the fallbacks,
-// including an Options zero value, which is what a caller that has no opinion
-// passes.
+// including the Options zero value.
 func TestLimitPrefersTheEntryThenTheOption(t *testing.T) {
 	cases := []struct {
 		name string
@@ -285,9 +268,7 @@ func TestLimitPrefersTheEntryThenTheOption(t *testing.T) {
 		{"zero option means the package default", Options{}, Entry{}, DefaultMaxDownloads},
 		{"a negative option means the package default", Options{DefaultMaxDownloads: -1}, Entry{}, DefaultMaxDownloads},
 		{"an absurd option is capped", Options{DefaultMaxDownloads: 5000}, Entry{}, maxDownloadsCap},
-		// Limit is exported and will be called with an entry that came off a
-		// request rather than out of Sanitize, and a limit above anything the app
-		// will ever run at once is not a limit.
+		// Limit may be called with an entry that never went through Sanitize.
 		{"an absurd entry limit is capped too", Options{}, Entry{MaxDownloads: 1 << 30}, maxDownloadsCap},
 	}
 	for _, c := range cases {
@@ -299,15 +280,10 @@ func TestLimitPrefersTheEntryThenTheOption(t *testing.T) {
 	}
 }
 
-// TestPickNeverGoesOverALimitUnderConcurrency is the guarantee under the
-// conditions app.go runs in: several dispatchers picking against one shared
-// count, downloads finishing and giving their slot back. It is also the worked
-// example of the contract on the Picker type, because Pick cannot reserve
-// anything in a map it does not own: the caller's lock is what makes the pick
-// and the increment one step. Drop that lock and two goroutines read the same
-// count and both take the last slot on a connection, which is the ban the user
-// set the limit to avoid; the shared map would also be written from two
-// goroutines at once, which the runtime kills the process for.
+// TestPickNeverGoesOverALimitUnderConcurrency runs several dispatchers against
+// one shared count, as app.go does. It is also the worked example of the
+// Picker contract: the caller's lock makes the pick and the increment one
+// step, without which two goroutines could both take a connection's last slot.
 func TestPickNeverGoesOverALimitUnderConcurrency(t *testing.T) {
 	limits := map[string]int{"a": 1, "b": 2, "c": 3}
 	p := NewPicker([]Entry{
@@ -351,7 +327,7 @@ func TestPickNeverGoesOverALimitUnderConcurrency(t *testing.T) {
 		if peak[id] > limit {
 			t.Errorf("entry %q was handed out to %d downloads at once, limit %d", id, peak[id], limit)
 		}
-		// Without this the test could pass by never handing anything out at all.
+		// Otherwise the test would pass by never handing anything out.
 		if peak[id] == 0 {
 			t.Errorf("entry %q was never used, so the limit was never tested", id)
 		}
@@ -365,9 +341,8 @@ func TestPickNeverGoesOverALimitUnderConcurrency(t *testing.T) {
 	}
 }
 
-// TestPickNeverReturnsAnEntryAtItsLimit is the same guarantee stated as the pure
-// function it is, so it holds whatever the caller's locking looks like: given a
-// count, an entry already at that count is not offered.
+// TestPickNeverReturnsAnEntryAtItsLimit states the same guarantee as a pure
+// function of the counts, independent of the caller's locking.
 func TestPickNeverReturnsAnEntryAtItsLimit(t *testing.T) {
 	cases := []struct {
 		name  string
@@ -398,9 +373,6 @@ func TestPickNeverReturnsAnEntryAtItsLimit(t *testing.T) {
 			if !ok || got.ID != c.want {
 				t.Fatalf("Pick = %q,%v, want %q", got.ID, ok, c.want)
 			}
-			// A refused pick must not have moved the caller's counts: the picker
-			// is the only thing that could have, and app.go's map is the truth
-			// about what is running.
 			if n := c.inUse[got.ID]; n >= p.Limit(got) {
 				t.Fatalf("Pick returned %q which is already at %d of %d", got.ID, n, p.Limit(got))
 			}
@@ -408,9 +380,8 @@ func TestPickNeverReturnsAnEntryAtItsLimit(t *testing.T) {
 	}
 }
 
-// TestPickSkipsABannedEntry. A refusal is the same answer to the caller as a
-// limit - not this connection, not now - so a banned entry is walked past and
-// the next one in the rotation takes the download.
+// TestPickSkipsABannedEntry: like a full entry, a banned one is walked past
+// and the next in the rotation takes the download.
 func TestPickSkipsABannedEntry(t *testing.T) {
 	bans := NewBans()
 	p := NewPicker([]Entry{catchAll("a", "a.lan"), catchAll("b", "b.lan")}, Options{Bans: bans})
@@ -421,18 +392,14 @@ func TestPickSkipsABannedEntry(t *testing.T) {
 			t.Fatalf("pick %d = %q,%v, want the connection the host has not refused", i, got.ID, ok)
 		}
 	}
-	// The ban is about one hoster and must not have cost the connection its place
-	// in the rotation everywhere else.
+	// The ban concerns one hoster only.
 	if got, ok := p.Pick("elsewhere.net", nil); !ok || got.ID != "a" {
 		t.Fatalf("Pick for another host = %q,%v, want the banned-elsewhere connection", got.ID, ok)
 	}
 }
 
-// TestPickWaitsRatherThanLeakWhenEveryClaimingEntryIsBanned is the ban list's
-// version of the leak this package exists to prevent. A host filtered onto one
-// proxy, and that proxy refused, must not fall through to a plain download: the
-// traffic the filter was written to route would go out over the very connection
-// the user was hiding.
+// TestPickWaitsRatherThanLeakWhenEveryClaimingEntryIsBanned: a host filtered
+// onto a proxy that it refused must not fall through to a plain download.
 func TestPickWaitsRatherThanLeakWhenEveryClaimingEntryIsBanned(t *testing.T) {
 	bans := NewBans()
 	p := NewPicker([]Entry{
@@ -451,9 +418,8 @@ func TestPickWaitsRatherThanLeakWhenEveryClaimingEntryIsBanned(t *testing.T) {
 	}
 }
 
-// TestPickForHonoursTheNamedConnection is per-download routing seen from the
-// picker: a task that names a connection gets that connection, not its turn in
-// the rotation.
+// TestPickForHonoursTheNamedConnection: a task that names a connection gets
+// it, not its turn in the rotation.
 func TestPickForHonoursTheNamedConnection(t *testing.T) {
 	p := NewPicker([]Entry{catchAll("a", "a.lan"), catchAll("b", "b.lan")}, Options{})
 	for i := 0; i < 3; i++ {
@@ -462,16 +428,14 @@ func TestPickForHonoursTheNamedConnection(t *testing.T) {
 			t.Fatalf("pick %d = %q,%v, want the named connection every time", i, got.ID, ok)
 		}
 	}
-	// And the rotation was not advanced by any of it, so an unrouted download
-	// still starts where the list starts.
+	// The rotation did not advance.
 	if got, ok := p.PickFor("", "example.org", nil); !ok || got.ID != "a" {
 		t.Fatalf("the unrouted pick = %q,%v, want the head of the rotation", got.ID, ok)
 	}
 }
 
-// TestPickForTheDirectGateway. "No proxy" is a choice in the list, so naming it
-// is honoured outright: no filter, no limit and no ban stand between a download
-// and the machine's own connection.
+// TestPickForTheDirectGateway: no filter, limit or ban applies to a download
+// that names the direct gateway.
 func TestPickForTheDirectGateway(t *testing.T) {
 	bans := NewBans()
 	p := NewPicker([]Entry{
@@ -488,9 +452,8 @@ func TestPickForTheDirectGateway(t *testing.T) {
 	}
 }
 
-// TestPickForWaitsWhenTheNamedConnectionCannotTakeIt. The user named this
-// connection; swapping in another one because this one is busy or refused is
-// routing the download around the choice that was made for it.
+// TestPickForWaitsWhenTheNamedConnectionCannotTakeIt: a busy or refused named
+// connection is never swapped for another.
 func TestPickForWaitsWhenTheNamedConnectionCannotTakeIt(t *testing.T) {
 	bans := NewBans()
 	p := NewPicker([]Entry{catchAll("a", "a.lan"), catchAll("b", "b.lan")}, Options{
@@ -506,9 +469,8 @@ func TestPickForWaitsWhenTheNamedConnectionCannotTakeIt(t *testing.T) {
 	}
 }
 
-// TestPickForFallsBackToTheRotationWhenTheChoiceIsGone. A preference is not a
-// lock: a task pointing at a row somebody deleted, or switched off for the
-// evening, must not be stranded for ever by it.
+// TestPickForFallsBackToTheRotationWhenTheChoiceIsGone: a task pointing at a
+// deleted or switched-off row is not stranded.
 func TestPickForFallsBackToTheRotationWhenTheChoiceIsGone(t *testing.T) {
 	off := catchAll("off", "off.lan")
 	off.Enabled = false
@@ -519,8 +481,7 @@ func TestPickForFallsBackToTheRotationWhenTheChoiceIsGone(t *testing.T) {
 			t.Fatalf("PickFor(%q) = %q,%v, want the rotation's own answer", id, got.ID, ok)
 		}
 	}
-	// The filters the rotation honours are still honoured, so the fallback is not
-	// a way past an exclusion the user wrote.
+	// The fallback still honours host filters.
 	q := NewPicker([]Entry{
 		{ID: "nas", Kind: KindDirect, Filter: []string{"nas.local"}, Enabled: true},
 		catchAll("proxy", "proxy.lan"),
@@ -530,9 +491,8 @@ func TestPickForFallsBackToTheRotationWhenTheChoiceIsGone(t *testing.T) {
 	}
 }
 
-// TestARowCannotClaimTheGatewaysID. A row holding "direct" would shadow the
-// gateway everywhere a connection is named by id, and a task pinned to direct
-// would start going out over whatever that row points at.
+// TestARowCannotClaimTheGatewaysID: a row holding "direct" would take over
+// tasks pinned to the gateway.
 func TestARowCannotClaimTheGatewaysID(t *testing.T) {
 	p := NewPicker([]Entry{
 		{ID: DirectID, Kind: KindHTTP, Host: "impostor.lan", Port: 8080, Enabled: true},

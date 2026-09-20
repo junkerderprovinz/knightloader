@@ -9,9 +9,8 @@ import (
 	"github.com/dop251/goja"
 )
 
-// recorder is a Bus subscriber that keeps what it was handed. Its own mutex
-// because Publish delivers on the publisher's goroutine, which in these
-// tests is not always the one asserting.
+// recorder is a Bus subscriber that keeps what it was handed. It has its own
+// mutex because the publishing goroutine is not always the asserting one.
 type recorder struct {
 	mu   sync.Mutex
 	got  []Firing
@@ -34,11 +33,6 @@ func (r *recorder) snapshot() []Firing {
 	return append([]Firing(nil), r.got...)
 }
 
-// TestBus_DeliversToEverySubscriberInSubscriptionOrder is the property the
-// whole file exists for: one publish reaches every reader. If it only
-// reached the first, "add a consumer" would silently mean "replace the
-// existing one", and the script host would stop firing the day a
-// notification channel subscribed.
 func TestBus_DeliversToEverySubscriberInSubscriptionOrder(t *testing.T) {
 	b := NewBus()
 	var order []string
@@ -59,24 +53,20 @@ func TestBus_DeliversToEverySubscriberInSubscriptionOrder(t *testing.T) {
 		}
 	}
 	if len(order) != 2 || order[0] != "first" || order[1] != "second" {
-		t.Errorf("delivery order = %v, want [first second] - subscribers run in the order they subscribed", order)
+		t.Errorf("delivery order = %v, want [first second]; subscribers run in the order they subscribed", order)
 	}
 }
 
-// TestBus_ContainsAPanickingSubscriber pins the recover() in deliver. The
-// publisher is a download's own goroutine: an unrecovered panic there does
-// not fail an event, it kills the process and every other download in it.
-// The second subscriber still getting its firing is the other half - one
-// broken consumer must not silently unsubscribe the rest.
+// TestBus_ContainsAPanickingSubscriber: a panic on the publishing download
+// goroutine would kill the process, and the other subscribers still get the
+// firing.
 func TestBus_ContainsAPanickingSubscriber(t *testing.T) {
 	b := NewBus()
 	healthy := &recorder{name: "healthy"}
 	b.Subscribe("thrower", func(Firing) { panic("subscriber blew up") })
 	b.Subscribe("healthy", healthy.take)
 
-	// Panicking out of Publish would take this goroutine, and the test
-	// binary, down with it - so reaching the line after it at all is half of
-	// what is being asserted here.
+	// A panic escaping Publish would take the test binary down.
 	b.Publish(Firing{Trigger: TriggerLinkAdded, Task: &TaskView{ID: "t1"}})
 
 	if got := healthy.snapshot(); len(got) != 1 {
@@ -84,10 +74,8 @@ func TestBus_ContainsAPanickingSubscriber(t *testing.T) {
 	}
 }
 
-// TestBus_StampsAtWhenTheFiringCarriesNone keeps trigger.firedAt honest for
-// a publisher that did not set At itself. Zero would reach a script as
-// 0001-01-01, which reads as a bug in the app rather than a field nobody
-// filled in.
+// TestBus_StampsAtWhenTheFiringCarriesNone: otherwise trigger.firedAt would
+// read 0001-01-01.
 func TestBus_StampsAtWhenTheFiringCarriesNone(t *testing.T) {
 	b := NewBus()
 	r := &recorder{name: "r"}
@@ -106,9 +94,8 @@ func TestBus_StampsAtWhenTheFiringCarriesNone(t *testing.T) {
 	}
 }
 
-// TestHost_SubscribesToTheBusItWasGiven is the wiring internal/app depends
-// on: it publishes to a Bus it owns and never touches the Host, so a Host
-// that did not subscribe itself is a Host no event in the app ever reaches.
+// TestHost_SubscribesToTheBusItWasGiven: internal/app publishes to its own Bus
+// and never calls the Host directly.
 func TestHost_SubscribesToTheBusItWasGiven(t *testing.T) {
 	bus := NewBus()
 	hub := newFakeHub()
@@ -138,16 +125,9 @@ func TestHost_SubscribesToTheBusItWasGiven(t *testing.T) {
 	}
 }
 
-// TestSandbox_PackageGlobalCannotBeCalledPackage is why the global is "pkg".
-// Every script compiles in strict mode (rebuildIndex and RunNow both pass
-// strict=true), where `package` is a FutureReservedWord that a script cannot
-// even MENTION - so a global by that name would have been one no script
-// bound to package.done could read, and every such script would have failed
-// to compile with the error pointing at the user's own first line.
-//
-// Pinned as a test rather than left as a claim in a comment: the day
-// somebody "tidies" the name back to `package` because it reads better, this
-// is what tells them why it was not.
+// TestSandbox_PackageGlobalCannotBeCalledPackage: scripts compile in strict
+// mode, where `package` is a reserved word no script can reference, which is
+// why the global is "pkg".
 func TestSandbox_PackageGlobalCannotBeCalledPackage(t *testing.T) {
 	if _, err := goja.Compile("t", "notify(package.name);", true); err == nil {
 		t.Fatal("`package` compiled in strict mode; the reason the global is named pkg no longer holds and the naming can be revisited")
@@ -159,11 +139,8 @@ func TestSandbox_PackageGlobalCannotBeCalledPackage(t *testing.T) {
 	}
 }
 
-// TestSandbox_PayloadGlobalsAreAbsentUnlessTheTriggerCarriesThem is the same
-// rule "task" has always followed, extended to the five new payloads: a
-// global left undefined can be tested for, where one bound to a zero-valued
-// object has a script acting on a package of no files or an account with no
-// name and no way to tell.
+// TestSandbox_PayloadGlobalsAreAbsentUnlessTheTriggerCarriesThem: an undefined
+// global can be tested for, unlike one bound to a zero-valued object.
 func TestSandbox_PayloadGlobalsAreAbsentUnlessTheTriggerCarriesThem(t *testing.T) {
 	hub := newFakeHub()
 	h := newTestHost(t, newFakeActions(), hub)
@@ -183,10 +160,8 @@ func TestSandbox_PayloadGlobalsAreAbsentUnlessTheTriggerCarriesThem(t *testing.T
 	}
 }
 
-// TestSandbox_NewPayloadsReachTheirGlobals walks the four remaining payloads
-// in one pass. One case per event rather than one test per event, because
-// what is being checked is identical each time: the Firing field the app
-// fills in is the object the script reads, under the name the docs promise.
+// TestSandbox_NewPayloadsReachTheirGlobals: each Firing payload is the object
+// the script reads, under its documented name.
 func TestSandbox_NewPayloadsReachTheirGlobals(t *testing.T) {
 	cases := []struct {
 		name   string
@@ -245,11 +220,8 @@ func TestSandbox_NewPayloadsReachTheirGlobals(t *testing.T) {
 	}
 }
 
-// TestSandbox_FiredAtIsTheEventsOwnInstant proves runOne reads the Firing's
-// At rather than calling time.Now() when a worker finally picks the job up.
-// The two differ by however long the fire queue was, and a script asked to
-// report "the download finished at" must not report when a worker got round
-// to it.
+// TestSandbox_FiredAtIsTheEventsOwnInstant: runOne reports the Firing's At,
+// not when a worker picked the job up.
 func TestSandbox_FiredAtIsTheEventsOwnInstant(t *testing.T) {
 	hub := newFakeHub()
 	h := newTestHost(t, newFakeActions(), hub)
@@ -269,25 +241,20 @@ func TestSandbox_FiredAtIsTheEventsOwnInstant(t *testing.T) {
 	}
 }
 
-// TestAllTriggersAreValidAndUnique closes the loop between the two lists a
-// Trigger has to be in. Valid() is what Store validation refuses a save on
-// and what rebuildIndex trusts; AllTriggers is what the editor's picker is
-// built from. A trigger in one and not the other is either a picker entry
-// that cannot be saved or a saveable trigger nobody can pick, and both fail
-// on the user's screen rather than here.
+// TestAllTriggersAreValidAndUnique keeps Valid, which saving checks, and
+// AllTriggers, which the editor's picker shows, in agreement.
 func TestAllTriggersAreValidAndUnique(t *testing.T) {
 	seen := map[Trigger]bool{}
 	for _, tr := range AllTriggers() {
 		if !tr.Valid() {
-			t.Errorf("AllTriggers offers %q, which Valid() rejects - a script bound to it could never be saved", tr)
+			t.Errorf("AllTriggers offers %q, which Valid() rejects; a script bound to it could never be saved", tr)
 		}
 		if seen[tr] {
 			t.Errorf("AllTriggers lists %q twice", tr)
 		}
 		seen[tr] = true
 	}
-	// The four the first build shipped, spelled out: a rename here silently
-	// unbinds every script already saved against the old string.
+	// Renaming one of these would unbind every script saved against it.
 	for _, tr := range []Trigger{TriggerTaskDone, TriggerTaskFailed, TriggerQueueIdle, TriggerOnDemand} {
 		if !seen[tr] {
 			t.Errorf("%q is no longer offered; scripts already bound to it stop firing", tr)

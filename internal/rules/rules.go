@@ -1,27 +1,20 @@
-// Package rules is KnightLoader's rule engine. It is one engine used twice:
-// as the Packagizer, which rewrites a link's package, folder, name and download
-// options before it is queued, and as the LinkGrabber filter, which decides
-// whether a link is taken at all. The two differ only in what a matching rule
-// does, so they share the types and the matching code.
+// Package rules is KnightLoader's rule engine. It serves as the Packagizer,
+// which rewrites a link's package, folder, name and download options before it
+// is queued, and as the LinkGrabber filter, which decides whether a link is
+// taken at all. The two differ only in what a matching rule does.
 //
-// A Set is compiled once and the resulting Matcher is then asked about every
-// candidate link. Compiling once is what keeps the per-link cost bounded — a
-// paste can be several thousand links — and it is also the only moment at which
-// a rule the user got wrong can still be reported to them. Compile therefore
-// never fails: it returns a working Matcher plus everything it could not use,
-// so a broken rule costs the user that rule and nothing else.
-//
-// The filter half exists because JDownloader's eats links in silence: something
-// is filtered, nothing says what or why, and the link is simply not there. Check
-// never returns a bare "no" — a rejection always names the rule that made it and
+// A Set is compiled once and the resulting Matcher is asked about every
+// candidate link, which keeps the per-link cost bounded on a paste of
+// thousands. Compile never fails: it returns a working Matcher plus the rules
+// it could not use, so a broken rule costs the user that rule only. Check
+// never returns a bare "no"; a rejection names the rule that made it and
 // carries a reason.
 //
 // # Variables
 //
 // Every string an action sets is a template. It goes through internal/pathvars
 // first, which resolves <jd:packagename>, <jd:hoster>, <jd:filename> and the
-// date placeholders, and then through this package, which resolves the ones the
-// Packagizer adds on top:
+// date placeholders, and then through this package, which adds:
 //
 //	<jd:orgfilename>            the link's file name as it arrived
 //	<jd:orgfilenamewithoutext>  the same, with the extension cut off
@@ -30,36 +23,19 @@
 //	<jd:match:FIELD:N>          capture group N of this rule's "matches" pattern on FIELD
 //	<jd:append>                 empty the first time a value is produced, "_2", "_3" ... after
 //
-// Unknown or out-of-range placeholders are left in the text rather than blanked,
-// which is what internal/pathvars does and for the same reason: a typo that is
-// visible in the folder name can be fixed, and one that quietly collapsed to
-// nothing cannot be found at all.
+// Unknown or out-of-range placeholders are left in the text, as in
+// internal/pathvars, so a typo stays visible in the folder name.
 //
-// # <jd:source:N> does not mean what JDownloader means by it
+// In a JDownloader template <jd:source:1> is capture group 1 of the source
+// URL's pattern; here it is the first path segment, which is what stored rules
+// already use and works in a rule without a pattern. JDownloader's meaning is
+// spelled <jd:match:FIELD:N>, and Compile refuses one that names a field the
+// rule has no "matches" condition on, so a template copied from JDownloader
+// fails when it is saved rather than in a folder name.
 //
-// In a JDownloader Packagizer template, <jd:source:1> is capture group 1 of the
-// regular expression the rule tests the source URL with. Here it is the first
-// path segment of that URL, and it has been that since the package was written.
-// The two agree often enough to be dangerous and disagree silently: a template
-// copied out of a JD config builds a different folder, with no error and nothing
-// to notice until the files are already somewhere else.
-//
-// The path-segment meaning is kept, because it is what is already stored in
-// people's rules and because it is the only one of the two that works in a rule
-// with no regular expression in it at all. JD's meaning is spelled
-// <jd:match:FIELD:N>, which says out loud which pattern it reads — JD's version
-// can only ever mean the source, and ours reads a capture group from any field
-// the rule matched with. Compile refuses a rule whose <jd:match:...> names a
-// field the rule has no "matches" condition on, so the JD habit of reaching for a
-// group that is not there fails loudly at the moment the rule is saved rather
-// than quietly in a folder name.
-//
-// Every variable resolves against the link as it arrived, so rules do not chain
-// onto each other's output: <jd:filename> in the fourth rule is still the name
-// the hoster gave, not whatever the second rule renamed it to. That is why
-// <jd:filename> and <jd:orgfilename> are the same value here. It costs a little
-// expressiveness and buys the property that matters in a list a user edits by
-// hand — what a rule does can be read off that rule alone.
+// Every variable resolves against the link as it arrived, so rules do not
+// chain onto each other's output and <jd:filename> equals <jd:orgfilename>.
+// What a rule does can be read off that rule alone.
 package rules
 
 import (
@@ -88,9 +64,8 @@ const (
 )
 
 // Op is how a condition compares. Every operator except OpMatches folds case,
-// because a user typing "sample" into a web form does not mean to let
-// "Sample.mkv" through. OpMatches is left alone: the pattern carries its own
-// flags and forcing (?i) onto it would overrule what the user wrote.
+// since "sample" typed into a form is meant to catch "Sample.mkv"; a pattern
+// carries its own flags.
 type Op string
 
 const (
@@ -104,36 +79,30 @@ const (
 
 // Condition is one test against a candidate link. Value carries the text for
 // the string operators and the byte count for OpEquals/OpEqualsNot on a file
-// size; Min and Max carry the range for OpBetween. Sizes are always plain
-// bytes — turning "700 MB" into a number is the interface's job, and a parser
-// hidden down here would disagree with it sooner or later.
+// size; Min and Max carry the range for OpBetween. Sizes are plain bytes;
+// parsing "700 MB" is the interface's job.
 type Condition struct {
 	Field Field  `json:"field"`
 	Op    Op     `json:"op"`
 	Value string `json:"value,omitempty"`
 	Min   int64  `json:"min,omitempty"`
-	// Max of zero means "no upper bound". A half-filled range is the normal
-	// shape of "at least 500 MB", and reading the empty box as zero would give
-	// the user a rule that can never match anything.
+	// Max of zero means no upper bound, which is how "at least 500 MB" is
+	// written.
 	Max int64 `json:"max,omitempty"`
 }
 
-// Action is what a matching rule does. The Packagizer flavour uses the fields
-// above Reject, the filter flavour uses Reject and Reason; a Set is free to use
-// either, and each flavour ignores the other's fields.
+// Action is what a matching rule does. The Packagizer uses the fields above
+// Reject, the filter uses Reject and Reason, and each ignores the other's.
 //
-// Every string field is a template and is expanded through internal/pathvars
-// plus the Packagizer-only variables listed in the package documentation. An empty
-// string means "leave this alone", never "clear it": a later rule that sets
-// only the folder must not wipe the package name an earlier one chose. The
-// three optional values are pointers for the same reason — priority 0, zero
-// chunks and auto-extract off are all real settings, so "unset" needs to be
-// something other than the zero value.
+// Every string field except Headers and Category is a template (see the
+// package documentation). An empty string means "leave this alone", never
+// "clear it", so a later rule that sets only the folder keeps an earlier
+// package name. The optional values are pointers because priority 0, zero
+// chunks and auto-extract off are all real settings.
 //
-// DownloadDir and ExtractDir are the only fields allowed to spell out path
-// levels, because naming a folder is what they are for. Filename is cut back to
-// a single segment once it has been expanded, because a file name containing a
-// separator is not a name, it is a way out of the folder the caller picked.
+// Only DownloadDir and ExtractDir may name path levels. Filename is cut back
+// to a single segment after expansion, since a separator in a file name is a
+// way out of the folder the caller picked.
 type Action struct {
 	PackageName string `json:"packageName,omitempty"`
 	DownloadDir string `json:"downloadDir,omitempty"`
@@ -143,92 +112,43 @@ type Action struct {
 	AutoExtract *bool  `json:"autoExtract,omitempty"`
 	Chunks      *int   `json:"chunks,omitempty"`
 
-	// ExtractDir is where the CONTENT of this link's finished extraction is
-	// moved once the unpacking is over. Empty means "no rule had an opinion",
-	// like every other string here, and the instance-wide setting then decides
-	// (settings.ExtractMoveTo).
-	//
-	// It is the third folder a rule can name and it is not a spelling of either
-	// of the other two. DownloadDir is where the archive is fetched to.
-	// ExtractTo, which is a setting rather than a rule, is where the unpacking
-	// WRITES - so the folder named there holds a growing, half-finished release
-	// for as long as the extraction runs, which for a folder a media server
-	// watches is exactly the problem a rule like this is being written to solve.
-	// This one names where the finished files are PUT, afterwards, by a move.
-	//
-	// It moves the content and not the folder around it: a release that
-	// unpacked as "Show.S01.COMPLETE.WEB/ep01.mkv" arrives as "ep01.mkv" in the
-	// folder this names. That is the whole reason somebody writes the rule -
-	// "everything matching Show.S01 goes in Serien/Show/Staffel 1" means the
-	// episodes go there, not a folder full of scene tags with the episodes
-	// inside it.
-	//
-	// It is a template like the rest, so the folder may be spelled out of the
-	// package name or the date, and it is the one action field besides
-	// DownloadDir allowed to name path levels - a file name may not, because a
-	// name with a separator in it is a way out of the folder somebody picked,
-	// while a folder that spells its own levels is the entire point of a folder
-	// template.
+	// ExtractDir is where the content of this link's finished extraction is
+	// moved afterwards; empty leaves it to settings.ExtractMoveTo. It differs
+	// from DownloadDir, where the archive is fetched to, and from the
+	// ExtractTo setting, where unpacking writes while it runs: a folder a
+	// media server watches should only ever see finished files. The content
+	// moves without its top folder, so "Show.S01.COMPLETE.WEB/ep01.mkv"
+	// arrives as "ep01.mkv" in the folder named here.
 	ExtractDir string `json:"extractDir,omitempty"`
 
-	// Headers NAMES a stored header profile (internal/resolver/hostheaders)
-	// and never holds a header itself. That is the point of the field, not an
-	// implementation detail: a rule set lives in settings.json, and
-	// settings.json is what internal/api/routes_diagnostics.go serialises into
-	// the bundle a person attaches to a public bug report. A session cookie
-	// written here would be in every one of those forever. The values are
-	// sealed in the encrypted account store; this string is a key, and a key
-	// is not a secret.
-	//
-	// It is deliberately NOT one of the templates() below and is never
-	// expanded. A profile name assembled at match time out of <jd:hoster>
-	// would let a link's own host decide which credential gets attached to it,
-	// which is the one decision this feature must never hand to the far end.
-	//
-	// An empty string means "no rule had an opinion", the same as every other
-	// action field: the resolver then falls back to whatever profile is stored
-	// for the link's own origin, and a link on an unconfigured origin gets no
-	// headers at all.
+	// Headers names a stored header profile (internal/resolver/hostheaders)
+	// and never holds a header itself: rule sets live in settings.json, which
+	// the diagnostics bundle includes, and the values are sealed in the
+	// encrypted account store. It is not a template, because a name built from
+	// <jd:hoster> would let a link's own host pick which credential is
+	// attached. Empty falls back to the profile stored for the link's origin.
 	Headers string `json:"headers,omitempty"`
 
-	// Category files the link in one of the named drawers settings.Categories
-	// holds, by its stable id. It is the third way into a category, beside the
-	// add-links form and the list itself.
-	//
-	// IT IS NOT rules.Category, the file-type shorthand this package has
-	// carried since it was written, and the collision of the word is the one
-	// thing to be careful of in this file. That one is a group of extensions
-	// that expands into an ordinary `filetype matches` condition; this is a
-	// bundle of DEFAULTS a task is filed under. Neither could be renamed
-	// without breaking a stored rule set or the grammar the editor is built
-	// from, so they share a word and are told apart by where they appear: a
-	// Category value is a condition, a Category action is a drawer. See
-	// categories.go and settings_categories.go respectively.
-	//
-	// Empty means "no rule had an opinion", like every other action field. What
-	// the id may look like, and why it is deliberately not a template, is in
-	// action_category.go.
+	// Category files the link under one of settings.Categories by its stable
+	// id. It is unrelated to rules.Category, the file-type shorthand that
+	// expands into a filetype condition; both names are fixed by stored rule
+	// sets and the editor grammar. See action_category.go for the id format
+	// and why it is not a template.
 	Category string `json:"category,omitempty"`
 
-	// Reject drops the link instead of taking it. Reason is shown to the user
-	// alongside the rule's name; when it is empty Check writes one, because a
-	// rejection nobody can explain is the behaviour this package exists to
-	// avoid.
+	// Reject drops the link instead of taking it. Reason is shown alongside
+	// the rule's name; when it is empty Check writes one.
 	Reject bool   `json:"reject,omitempty"`
 	Reason string `json:"reason,omitempty"`
 }
 
-// Rule is one entry in a Set. All of its conditions must hold for it to match,
-// so an "either/or" is written as two rules; that keeps the rule list something
-// a person can read top to bottom without tracking precedence.
+// Rule is one entry in a Set. All of its conditions must hold for it to
+// match, so an "either/or" is written as two rules and the list reads top to
+// bottom without precedence. A rule with no conditions matches every link,
+// which is how a catch-all folder or a final blanket reject is written.
 //
-// A rule with no conditions matches every link. That is deliberate: it is how a
-// catch-all default folder or a blanket reject at the end of a filter is
-// written.
-//
-// The flag is Disabled rather than Enabled so the zero value is a live rule.
-// A client that posts a rule without the field means to add a rule, and the
-// other way round it would arrive switched off with nothing to explain why.
+// The flag is Disabled rather than Enabled so a rule posted without the field
+// is live.
 type Rule struct {
 	Name       string      `json:"name,omitempty"`
 	Disabled   bool        `json:"disabled,omitempty"`
@@ -239,31 +159,21 @@ type Rule struct {
 // Set is one ordered rule list, persisted as part of the settings.
 type Set struct {
 	Rules []Rule `json:"rules,omitempty"`
-	// Disabled is the master switch for the whole list, so somebody can find out
-	// whether a rule set is the reason for what they are seeing without deleting
-	// it or switching off nine rules one at a time.
-	//
-	// It is spelled Disabled and not Enabled for the same reason Rule.Disabled is:
-	// the zero value has to be a live set. An Enabled field arrives false in every
-	// stored settings file written before it existed, which would switch both the
-	// Packagizer and the link filter off on the first boot after the upgrade — and
-	// the symptom reads as a matching bug, not as a settings bug, so it is looked
-	// for in the wrong place.
+	// Disabled switches the whole list off without deleting it. It is not
+	// Enabled because settings files written before the field existed would
+	// then switch the Packagizer and the filter off on upgrade.
 	Disabled bool `json:"disabled,omitempty"`
 	// StopAfterMatch ends evaluation at the first rule that matches. The
 	// Packagizer wants it off, so every matching rule contributes and a later
 	// rule wins per field; a filter usually wants it on, so an accept placed
-	// above a broad reject actually protects the link.
+	// above a broad reject protects the link.
 	StopAfterMatch bool `json:"stopAfterMatch,omitempty"`
 }
 
 // Candidate is the link a rule set is asked about. Hoster and Filetype are
-// derived from URL and Filename when left empty, so the ordinary caller fills
-// in what it has and nothing more.
-//
-// Added is what the date variables format. It is an argument rather than a
-// clock read inside the package, so a rule set's output is a pure function of
-// its input and a test never has to wait for a second to pass.
+// derived from URL and Filename when left empty. Added is what the date
+// variables format; it is passed in so the output is a pure function of the
+// input.
 type Candidate struct {
 	Filename string
 	URL      string
@@ -286,10 +196,9 @@ func (c Candidate) filled() Candidate {
 	return c
 }
 
-// hostOf mirrors the helper of the same name in internal/app: a rule written
-// against "example.org" has to match the same links the download folder's
-// <jd:hoster> lands in, and two different ideas of what the hoster is would
-// scatter one site's downloads across two folders.
+// hostOf mirrors the helper of the same name in internal/app, so a rule
+// written against "example.org" matches the links <jd:hoster> files under that
+// name.
 func hostOf(raw string) string {
 	u, err := url.Parse(raw)
 	if err != nil || u.Hostname() == "" {
@@ -299,8 +208,8 @@ func hostOf(raw string) string {
 }
 
 // Effect is what the Packagizer decided for one link. Empty strings and nil
-// pointers mean "no rule had an opinion", so the caller applies only what is
-// set and leaves the rest of the task as it was.
+// pointers mean no rule had an opinion, so the caller applies only what is
+// set.
 type Effect struct {
 	Package     string `json:"package,omitempty"`
 	Dir         string `json:"dir,omitempty"`
@@ -309,25 +218,20 @@ type Effect struct {
 	Priority    *int   `json:"priority,omitempty"`
 	AutoExtract *bool  `json:"autoExtract,omitempty"`
 	Chunks      *int   `json:"chunks,omitempty"`
-	// ExtractDir is where the finished extraction's content is moved. See
-	// Action.ExtractDir for what it is and for why it is a third folder rather
-	// than a second spelling of one of the other two.
+	// ExtractDir is where the finished extraction's content is moved; see
+	// Action.ExtractDir.
 	ExtractDir string `json:"extractDir,omitempty"`
-	// Headers is the stored header profile a rule attached, by name. See
-	// Action.Headers for why a name and never the headers.
+	// Headers is the stored header profile a rule attached, by name.
 	Headers string `json:"headers,omitempty"`
-	// Category is the drawer a rule filed the link in, by id. See
-	// Action.Category, and note that it is not the file-type Category this
-	// package also has a type called.
+	// Category is the category id a rule filed the link under.
 	Category string `json:"category,omitempty"`
-	// Matched names the rules that fired, in the order they fired, so the
-	// interface can answer "why did this land here" without re-running anything.
+	// Matched names the rules that fired, in order, so the interface can say
+	// why a link landed where it did.
 	Matched []string `json:"matched,omitempty"`
 }
 
 // Verdict is what the filter decided. Rule is set whenever a rule decided the
-// outcome, including an explicit accept, so a link that survived a filter can
-// say what let it through as well as what would have stopped it.
+// outcome, including an explicit accept.
 type Verdict struct {
 	Rejected bool   `json:"rejected"`
 	Rule     string `json:"rule,omitempty"`
@@ -339,46 +243,30 @@ type Problem struct {
 	Index   int    `json:"index"` // position in Set.Rules, zero-based
 	Rule    string `json:"rule"`  // the rule's name, or its position when unnamed
 	Message string `json:"message"`
-	// Condition is which condition the problem is about, counting from 1, and 0
-	// when it is about the action or the rule as a whole.
-	//
-	// The number is already in Message, and the editor needs it as data: put a
-	// message under the rule and the user still has to find which of six rows has
-	// the unparsable pattern in it. The alternative is a client that parses
-	// "condition 3 (filename): ..." back out of a sentence, which breaks the first
-	// time the wording changes or the interface is translated.
+	// Condition is which condition the problem is about, counting from 1, and
+	// 0 when it is about the action or the rule as a whole. The editor uses it
+	// to mark the row instead of parsing it out of Message.
 	Condition int `json:"condition,omitempty"`
 }
 
 func (p Problem) Error() string { return fmt.Sprintf("%s: %s", p.Rule, p.Message) }
 
 // Bounds a rule may not exceed. Priority spans the seven values the interface
-// offers (app.Priorities, JDownloader's set) and is the one bound both sides
-// clamp to: narrower here, a rule could not reach the highest and lowest at all
-// while the menu still showed them; wider, a rule could hand a task a priority
-// no control in the interface is able to undo.
-// MaxChunks is a guard rail rather than tuning: connections beyond a handful
-// buy nothing on a hoster that rate-limits per file and are a reliable way to
-// get an account flagged.
+// offers (app.Priorities), so a rule can reach every one and cannot set one
+// the interface could not undo. MaxChunks is a guard rail: more connections
+// buy nothing on a hoster that rate-limits per file and get accounts flagged.
 const (
 	PriorityMin = -3
 	PriorityMax = 3
 	MaxChunks   = 16
 )
 
-// maxPattern caps the source length of a user's regular expression.
-//
-// Go's regexp is RE2, so no pattern can backtrack catastrophically the way a
-// PCRE or Java one can — matching is linear in the subject either way. What a
-// very long pattern still buys is a very large compiled program: the match cost
-// grows with the pattern as well as with the link, and this runs once per
-// condition per link on a paste of several thousand. 512 bytes is far more than
-// any release-name or hoster pattern needs, and small enough that a blob of
-// text pasted into the wrong box cannot become the engine's inner loop.
+// maxPattern caps the source length of a user's regular expression. RE2
+// cannot backtrack catastrophically, but a long pattern compiles to a large
+// program that runs once per condition per link.
 const maxPattern = 512
 
-// cond is a compiled Condition. The comparison value is lower-cased here, once,
-// rather than on every link.
+// cond is a compiled Condition. The comparison value is lower-cased once here.
 type cond struct {
 	field  Field
 	op     Op
@@ -392,62 +280,46 @@ type cond struct {
 
 // compiled is a Rule that survived validation.
 type compiled struct {
-	// index is the rule's position in the Set it came from. Compile drops rules,
-	// so a compiled rule's position in the Matcher is not its position in the list
-	// the user is looking at, and a dry run that pointed at the wrong row would be
-	// worse than one that pointed at nothing.
+	// index is the rule's position in the Set it came from, which differs from
+	// its position in the Matcher once Compile has dropped rules.
 	index int
 	name  string
 	conds []cond
 	act   Action
-	// wantsGroups is set when any of this rule's templates reads a capture group.
-	// Collecting submatches costs an allocation per regular-expression condition
-	// where MatchString costs none, and this runs once per condition per link on a
-	// paste of several thousand — so the rules that do not ask do not pay.
+	// wantsGroups is set when any of this rule's templates reads a capture
+	// group. Collecting submatches allocates where MatchString does not, so
+	// only rules that need them pay.
 	wantsGroups bool
 }
 
 // groups holds the submatches of a matching rule's regular-expression
 // conditions, keyed by the field each pattern ran against. It backs
-// <jd:match:FIELD:N> and nothing else.
+// <jd:match:FIELD:N>.
 type groups map[Field][]string
 
-// Matcher is a compiled Set. It is safe for concurrent use, which matters
-// because links are staged from several goroutines and there is exactly one
-// Matcher per rule set.
+// Matcher is a compiled Set. It is safe for concurrent use, since links are
+// staged from several goroutines.
 type Matcher struct {
 	stopAfterMatch bool
 	rules          []compiled
 
-	// seen backs <jd:append>. It is the only state a Matcher carries between
-	// calls, which is unavoidable: a de-duplicating counter has to remember what
-	// it already handed out.
+	// seen backs <jd:append>, the only state a Matcher keeps between calls.
 	mu   sync.Mutex
 	seen map[string]int
 }
 
-// maxAppendKeys caps that memory. A long-running server sees an unbounded
-// number of distinct names, and a map that grew with every one of them would be
-// a slow leak with no ceiling. Past the cap a name new to the counter simply
-// gets no suffix, which is the same thing that happens to the first link
-// carrying any name.
+// maxAppendKeys caps the <jd:append> memory on a long-running server. Past
+// the cap a new name gets no suffix, as the first link with any name does.
 const maxAppendKeys = 4096
 
-// Compile validates a rule set once and returns a Matcher plus every rule it
-// had to leave out. It never returns nil: a caller that ignores the problems
-// still gets a defined Matcher — one that does nothing — instead of a nil
-// dereference on the first link.
+// Compile validates a rule set and returns a Matcher plus every rule it had to
+// leave out. The Matcher is never nil. A rule with any problem is dropped
+// whole, because a rule missing a condition matches links the user never
+// meant, and in a filter that loses links on a typo.
 //
-// A rule with any problem at all is dropped whole rather than partly applied. A
-// rule missing one of its conditions is not a stricter rule, it is a rule that
-// does something the user never asked for, and for a filter that means links
-// disappearing on a typo.
-// A set switched off compiles to that same empty Matcher and reports nothing,
-// exactly as a switched-off rule does. Off means off: leaving the problems
-// standing would keep a page badge lit about rules that are not being applied,
-// and there would then be no way to silence a rule set short of deleting it. The
-// editor gets its problems from Preview, which validates the set as written
-// whether or not it is switched on, so a set can still be fixed while it is off.
+// A disabled set compiles to an empty Matcher and reports nothing, so a page
+// badge does not stay lit for rules that are not applied. The editor gets its
+// problems from Preview, which validates the set either way.
 func Compile(s Set) (*Matcher, []Problem) {
 	m := &Matcher{stopAfterMatch: s.StopAfterMatch}
 	if s.Disabled {
@@ -469,15 +341,12 @@ func Compile(s Set) (*Matcher, []Problem) {
 }
 
 // compileRule turns one rule into its compiled form and lists everything wrong
-// with it. A rule with any problem at all is dropped whole by the caller rather
-// than partly applied: a rule missing one of its conditions is not a stricter
-// rule, it is a rule that does something the user never asked for, and for a
-// filter that means links disappearing on a typo.
+// with it.
 func compileRule(r Rule, index int) (compiled, []Problem) {
 	name := ruleName(r, index)
 	var problems []Problem
-	// at is which condition the next report is about, counting from 1; 0 while
-	// the action is being checked, which is the state it is left in deliberately.
+	// at is which condition the next report is about, counting from 1, and 0
+	// while the action is checked.
 	at := 0
 	report := func(format string, args ...any) {
 		problems = append(problems, Problem{
@@ -501,11 +370,8 @@ func compileRule(r Rule, index int) (compiled, []Problem) {
 	return c, problems
 }
 
-// snapshot copies the action's pointer values, so a compiled rule stops
-// referring to the Set it was built from. Compile is the one moment the caller
-// hands its data over; while the pointers stayed shared, a settings struct
-// edited in place would silently re-aim rules that are already packaging links,
-// with nothing in the rule list on screen to show for it.
+// snapshot copies the action's pointer values, so editing the settings struct
+// in place cannot change a rule that is already compiled.
 func snapshot(a Action) Action {
 	if a.Priority != nil {
 		v := *a.Priority
@@ -522,9 +388,8 @@ func snapshot(a Action) Action {
 	return a
 }
 
-// ruleName is what a problem, an Effect and a rejection call the rule. An
-// unnamed rule still has to be findable, and its position is the only handle
-// the user has on it.
+// ruleName is what a problem, an Effect and a rejection call the rule: its
+// name, or its position when it has none.
 func ruleName(r Rule, index int) string {
 	if n := strings.TrimSpace(r.Name); n != "" {
 		return n
@@ -537,30 +402,20 @@ func ruleName(r Rule, index int) string {
 func (m *Matcher) Empty() bool { return len(m.rules) == 0 }
 
 // Apply runs the Packagizer flavour. Every matching rule contributes in order
-// and a later rule wins per field, unless the set asked to stop at the first
-// match.
+// and a later rule wins per field, unless the set stops at the first match.
 //
-// Only the template that survived the whole list is expanded, and it is expanded
-// after the loop rather than inside it. Expanding as we go would spend the work
-// on values a later rule immediately overwrites, and — the reason this is a
-// correctness question rather than a performance one — <jd:append> would count
-// every one of those discarded values. Two rules both writing an <jd:append>
-// package name would hand the very first link "_2", a de-duplication of nothing,
-// and the suffix would then say how many rules touched the field rather than how
-// often that name has been seen.
+// Only the winning template per field is expanded, after the loop. Expanding
+// inside it would make <jd:append> count values a later rule overwrites, so
+// two rules writing the same field would hand the first link "_2".
 func (m *Matcher) Apply(c Candidate) Effect {
 	c = c.filled()
 	var e Effect
-	// The winning template per field, still unexpanded, together with the
-	// submatches of the rule that set it: <jd:match:...> in rule seven reads
-	// rule seven's own pattern, so the groups travel with the template rather
-	// than being collected globally.
+	// Each winning template keeps the capture groups of the rule that set it,
+	// since <jd:match:...> reads that rule's own pattern.
 	var pkg, dir, name, comment, unpackDir tpl
 	m.walk(c, func(r compiled, g groups) bool {
 		e.Matched = append(e.Matched, r.name)
 		a := r.act
-		// An empty string is "this rule has no opinion", never "clear it", so a
-		// rule setting only the folder leaves an earlier package name standing.
 		if a.PackageName != "" {
 			pkg = tpl{a.PackageName, g}
 		}
@@ -576,20 +431,15 @@ func (m *Matcher) Apply(c Candidate) Effect {
 		if a.Comment != "" {
 			comment = tpl{a.Comment, g}
 		}
-		// Copied straight rather than through expand: the profile name is not
-		// a template, deliberately - see Action.Headers.
+		// Headers and Category are not templates; see Action.
 		if a.Headers != "" {
 			e.Headers = a.Headers
 		}
-		// The drawer id is not a template either, and for a sharper reason -
-		// see action_category.go.
 		if a.Category != "" {
 			e.Category = a.Category
 		}
-		// The values are copied rather than the pointers. Handing the rule's own
-		// pointer to the caller would let anything that writes through the Effect
-		// rewrite the compiled rule, and every later link would then be packaged
-		// by a rule the user never edited.
+		// Values are copied so a caller writing through the Effect cannot
+		// change the compiled rule.
 		if a.Priority != nil {
 			v := *a.Priority
 			e.Priority = &v
@@ -608,24 +458,19 @@ func (m *Matcher) Apply(c Candidate) Effect {
 		e.Package = m.expand(pkg.text, string(FieldPackage), c, pkg.groups)
 	}
 	if dir.text != "" {
-		// The folder is not checked for being absolute or writable here. That
-		// check is filesystem work, and filepath.IsAbs answers differently on
-		// Windows and Linux, so a rule written on one would be rejected by the
-		// other. The caller validates the folder it is about to use.
+		// Whether the folder is absolute or writable is left to the caller:
+		// filepath.IsAbs answers differently on Windows and Linux, and a rule
+		// written on one would be rejected on the other.
 		e.Dir = m.expand(dir.text, "dir", c, dir.groups)
 	}
 	if unpackDir.text != "" {
-		// Keyed apart from the download folder above, so <jd:append> counts the
-		// two independently: a rule that sends the archive to one folder and its
-		// contents to another means one of each, not the second one numbered
-		// because the first already used the name.
+		// Keyed apart from the download folder, so <jd:append> counts the two
+		// independently.
 		e.ExtractDir = m.expand(unpackDir.text, "extractdir", c, unpackDir.groups)
 	}
 	if name.text != "" {
-		// Cut to one segment after expanding, not before: the append counter
-		// holds its place with a byte sanitising would eat. A rule renaming a
-		// file to "../../x" is how a download lands outside the folder every
-		// other part of this package works to keep it in.
+		// Cut to one segment after expanding, so "../../x" cannot move the
+		// download out of its folder and the append counter is not disturbed.
 		e.Filename = segment(m.expand(name.text, string(FieldFilename), c, name.groups), "file")
 	}
 	if comment.text != "" {
@@ -634,20 +479,16 @@ func (m *Matcher) Apply(c Candidate) Effect {
 	return e
 }
 
-// tpl is a template that has won its field, carried together with the capture
-// groups of the rule it came from.
+// tpl is a template that has won its field, with the capture groups of the
+// rule it came from.
 type tpl struct {
 	text   string
 	groups groups
 }
 
-// walk visits every rule that matches, in the order they are written, and stops
-// when visit returns false or when the set stops at the first match.
-//
-// Apply, Check and Preview all evaluate through this one function. A dry run
-// that walked the list its own way could report an order that staging never
-// takes — and a test box that disagrees with the engine is worse than no test
-// box, because it is believed.
+// walk visits every rule that matches, in order, and stops when visit returns
+// false or the set stops at the first match. Apply, Check and Preview all go
+// through it, so a dry run cannot report an order staging never takes.
 func (m *Matcher) walk(c Candidate, visit func(r compiled, g groups) bool) {
 	for _, r := range m.rules {
 		ok, g := r.evaluate(c)
@@ -660,11 +501,11 @@ func (m *Matcher) walk(c Candidate, visit func(r compiled, g groups) bool) {
 	}
 }
 
-// Check runs the filter flavour. The first matching rule decides: a reject ends
-// it, and an explicit accept ends it too when the set stops at the first match,
-// which is how a narrow "keep this" placed above a broad "drop that" survives.
-// A link no rule matched is accepted, so an empty or broken filter takes
-// everything rather than nothing.
+// Check runs the filter flavour. The first matching rule decides: a reject
+// ends it, and an explicit accept ends it too when the set stops at the first
+// match, which is how a narrow "keep this" above a broad "drop that" works. A
+// link no rule matched is accepted, so an empty or broken filter takes
+// everything.
 func (m *Matcher) Check(c Candidate) Verdict {
 	c = c.filled()
 	var v Verdict
@@ -681,9 +522,7 @@ func (m *Matcher) Check(c Candidate) Verdict {
 	return v
 }
 
-// reason is never empty. A rule that rejects without saying why still has a
-// name, and "some rule dropped it" is exactly the answer this package refuses
-// to give.
+// reason is never empty: a rule without a reason still has a name.
 func (m *Matcher) reason(r compiled, c Candidate, g groups) string {
 	if r.act.Reason != "" {
 		if out := strings.TrimSpace(m.expand(r.act.Reason, "reason", c, g)); out != "" {
@@ -694,21 +533,17 @@ func (m *Matcher) reason(r compiled, c Candidate, g groups) string {
 }
 
 // ResetAppend clears the <jd:append> counter, so a caller that treats each
-// paste as a fresh batch can start its numbering over instead of continuing
-// from wherever the last batch left off.
+// paste as a fresh batch can start its numbering over.
 func (m *Matcher) ResetAppend() {
 	m.mu.Lock()
 	m.seen = nil
 	m.mu.Unlock()
 }
 
-// evaluate reports whether every condition holds, and hands back the capture
-// groups a rule that reads them needs. A rule with no conditions matches, which
-// is what makes a catch-all rule expressible.
-//
-// Where two "matches" conditions test the same field, the first one wins the
-// group table. The rule is read top to bottom on screen, so the first pattern is
-// the one somebody counting brackets is looking at.
+// evaluate reports whether every condition holds and returns the capture
+// groups a rule that reads them needs. Where two "matches" conditions test the
+// same field, the first one's groups are used, since the rule reads top to
+// bottom.
 func (r compiled) evaluate(c Candidate) (bool, groups) {
 	var g groups
 	for _, cd := range r.conds {
@@ -749,10 +584,6 @@ func (cd cond) match(c Candidate) bool {
 	case OpEqualsNot:
 		return strings.ToLower(s) != cd.value
 	}
-	// Unreachable: Compile drops every rule holding an operator not listed
-	// above. Not matching is still the right answer if it ever is reached — for
-	// a filter it means the link is kept, and a kept link can be removed by
-	// hand while a dropped one is simply gone.
 	return false
 }
 
@@ -806,17 +637,14 @@ func compileCondition(c Condition) (cond, error) {
 	if c.Op == OpBetween {
 		return cond{}, fmt.Errorf("is-between compares numbers, so it only works on %s", FieldFilesize)
 	}
-	// An empty value is a form the user did not finish, not a test. Left alone
-	// it would make "contains" match every link on earth, and in a filter that
-	// is a rule that rejects the entire paste.
+	// An empty value would make "contains" match every link, and a filter rule
+	// reject the entire paste.
 	if strings.TrimSpace(c.Value) == "" {
 		return cond{}, fmt.Errorf("%s has no value; an empty test would match every link", c.Op)
 	}
 	if c.Op == OpMatches {
-		// The length is checked before the compile, not after: the point is to
-		// never hand regexp a pattern of unknown size in the first place. The
-		// pattern is used untrimmed, because trailing whitespace can be part of
-		// what the user meant to match.
+		// The length is checked before compiling. The pattern is used
+		// untrimmed, since trailing whitespace can be part of the match.
 		if len(c.Value) > maxPattern {
 			return cond{}, fmt.Errorf("the pattern is %d characters, the limit is %d", len(c.Value), maxPattern)
 		}
@@ -828,9 +656,8 @@ func compileCondition(c Condition) (cond, error) {
 		return out, nil
 	}
 	value := strings.TrimSpace(c.Value)
-	// A file type typed as ".mkv" is the same wish as "mkv". Without this the
-	// rule silently never fires, and the user has no way to see the dot is the
-	// reason.
+	// ".mkv" means the same as "mkv"; otherwise the rule would silently never
+	// fire.
 	if c.Field == FieldFiletype {
 		value = strings.TrimPrefix(value, ".")
 	}
@@ -845,12 +672,8 @@ func compileSize(c Condition, out cond) (cond, error) {
 		if c.Min < 0 || c.Max < 0 {
 			return cond{}, errors.New("is-between: a negative size can never match")
 		}
-		// Both boxes left empty is the numeric spelling of the unfinished form
-		// the string operators already refuse: the range it describes is "any
-		// size at all", so the condition holds for every link and a filter rule
-		// built on it rejects the entire paste. A real range fills at least one
-		// box — "up to 100 MB" sets Max, "at least 500 MB" sets Min, and "exactly
-		// nothing" is what equals 0 is for.
+		// Both bounds empty means any size, which would match every link. A
+		// real range sets at least one; "exactly nothing" is equals 0.
 		if c.Min == 0 && c.Max == 0 {
 			return cond{}, errors.New("is-between has no bounds; an empty range would match every link")
 		}
@@ -867,14 +690,12 @@ func compileSize(c Condition, out cond) (cond, error) {
 		out.num = n
 		return out, nil
 	}
-	// The text operators are refused rather than run on the digits: "filesize
-	// contains 100" would match 1000, 2100 and 100000, which is never what
-	// anybody meant by it.
+	// "filesize contains 100" would match 1000, 2100 and 100000.
 	return cond{}, fmt.Errorf("%s cannot compare a file size; use is-between, equals or equals-not", c.Op)
 }
 
-// templates lists an action's template fields with the word each one is called
-// by in a message, so a problem can name the box the user has to go and fix.
+// templates lists an action's template fields with the label a message uses
+// for each, so a problem names the box to fix.
 func (a Action) templates() []struct{ Label, Text string } {
 	return []struct{ Label, Text string }{
 		{"package name", a.PackageName},
@@ -887,7 +708,7 @@ func (a Action) templates() []struct{ Label, Text string } {
 }
 
 // readsGroups reports whether any of an action's templates asks for a capture
-// group, which is what decides whether matching pays for submatches.
+// group.
 func readsGroups(a Action) bool {
 	for _, f := range a.templates() {
 		if matchTag.MatchString(f.Text) {
@@ -897,16 +718,14 @@ func readsGroups(a Action) bool {
 	return false
 }
 
-// actionProblems lists everything wrong with an action, including the ways it
-// disagrees with the conditions of the rule it belongs to.
+// actionProblems lists everything wrong with an action, including where it
+// disagrees with the conditions of its rule.
 func actionProblems(a Action, conds []cond) []string {
 	msgs := matchTagProblems(a, conds)
 	if a.Priority != nil && (*a.Priority < PriorityMin || *a.Priority > PriorityMax) {
 		msgs = append(msgs, fmt.Sprintf("priority %d is outside %d..%d", *a.Priority, PriorityMin, PriorityMax))
 	}
-	// Zero chunks is not "the default", it is a download with no connection at
-	// all; the caller has no way to tell that apart from a deliberate setting
-	// once the pointer is non-nil.
+	// Zero chunks would be a download with no connection, not the default.
 	if a.Chunks != nil && (*a.Chunks < 1 || *a.Chunks > MaxChunks) {
 		msgs = append(msgs, fmt.Sprintf("chunk count %d is outside 1..%d", *a.Chunks, MaxChunks))
 	}
@@ -924,15 +743,10 @@ func actionProblems(a Action, conds []cond) []string {
 	return msgs
 }
 
-// matchTagProblems refuses a <jd:match:FIELD:N> that can never resolve.
-//
-// This is the one placeholder whose failure is invisible: an out-of-range date
-// format or a misspelled variable stays in the text where somebody can see it,
-// but a capture group is reached for by people copying JDownloader templates,
-// where <jd:source:1> means a group and here it does not. Left to run, the tag
-// survives into the folder name and every download in the set lands under a
-// literal "<jd:match:source:1>". Refusing the rule at save time puts the message
-// next to the box that is wrong.
+// matchTagProblems refuses a <jd:match:FIELD:N> that can never resolve. Unlike
+// other unresolved placeholders it would not be spotted: people copy it from
+// JDownloader templates, and every download would land under a literal
+// "<jd:match:source:1>" folder.
 func matchTagProblems(a Action, conds []cond) []string {
 	var msgs []string
 	for _, f := range a.templates() {
@@ -940,7 +754,7 @@ func matchTagProblems(a Action, conds []cond) []string {
 			field := Field(strings.ToLower(m[1]))
 			n, err := strconv.Atoi(m[2])
 			if err != nil {
-				continue // the pattern only matches digits; unreachable
+				continue // the pattern only matches digits
 			}
 			re := patternFor(conds, field)
 			switch {
@@ -958,9 +772,8 @@ func matchTagProblems(a Action, conds []cond) []string {
 	return msgs
 }
 
-// patternFor is the regular expression a rule tests one field with, or nil when
-// it tests it some other way or not at all. The first one wins, exactly as
-// evaluate resolves it.
+// patternFor is the regular expression a rule tests one field with, or nil.
+// The first one wins, as in evaluate.
 func patternFor(conds []cond, f Field) *regexp.Regexp {
 	for _, cd := range conds {
 		if cd.field == f && cd.op == OpMatches {
@@ -971,9 +784,8 @@ func patternFor(conds []cond, f Field) *regexp.Regexp {
 }
 
 // unterminated reports a template that opens a placeholder it never closes.
-// It is caught at compile time because pathvars deliberately leaves such a
-// template untouched, which puts the raw tag into a folder or file name where
-// nobody sees it until the download has already landed under it.
+// pathvars leaves such a template untouched, which would put the raw tag into
+// a folder or file name.
 func unterminated(s string) bool {
 	low := strings.ToLower(s)
 	for {

@@ -11,14 +11,13 @@ import (
 )
 
 // beforeTheWideningMigration is how many migrations had shipped before the
-// column batch this file is about. Everything up to here is what an installed
-// copy of the previous build actually has in its database.
+// column batch this file covers, so the database it builds is what an
+// installed copy of the previous build holds.
 const beforeTheWideningMigration = 13
 
-// openAtOldSchema builds a database exactly as the previous build left it:
-// the migrations that had shipped, the version stamp they set, and one task in
-// the table. Reopening it through Open is then the real upgrade path, not a
-// simulation of one.
+// openAtOldSchema builds a database as the previous build left it: the
+// migrations that had shipped and the version stamp they set. Reopening it
+// through Open is then the real upgrade path rather than a simulation.
 func openAtOldSchema(t *testing.T, path string) {
 	t.Helper()
 	db, err := sql.Open("sqlite", path)
@@ -36,12 +35,9 @@ func openAtOldSchema(t *testing.T, path string) {
 	}
 }
 
-// TestUpgradeLeavesExistingTasksEnabled is the one failure in this migration
-// that would take a whole queue down without a single error message. Enabled
-// defaults to true, and a column added with a bool's zero value would write 0
-// into every row that already exists: on the first boot after the upgrade every
-// stored task is disabled, nothing starts, and there is nothing on screen to
-// connect that to an update.
+// Enabled defaults to true, so a column added with a bool's zero value would
+// write 0 into every existing row and leave the whole queue stopped after an
+// upgrade, with nothing on screen to explain it.
 func TestUpgradeLeavesExistingTasksEnabled(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "tasks.db")
 	openAtOldSchema(t, path)
@@ -50,9 +46,9 @@ func TestUpgradeLeavesExistingTasksEnabled(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	// Every column the old schema had, because that is what the old build wrote:
-	// the original CREATE TABLE declares no defaults, so a partial insert here
-	// would leave NULLs no released build could ever have produced.
+	// Every column the old schema had. The original CREATE TABLE declares no
+	// defaults, so a partial insert would leave NULLs no released build could
+	// have produced.
 	if _, err := db.Exec(
 		`INSERT INTO tasks (id,url,name,package,resolver,size,loaded,speed,status,error,created_at,
 		   dir,password,online,retries,next_try,priority,position,checksum,
@@ -78,14 +74,12 @@ func TestUpgradeLeavesExistingTasksEnabled(t *testing.T) {
 		t.Fatalf("reloaded %d tasks, want the one that was already there", len(all))
 	}
 	if !all[0].Enabled {
-		t.Fatal("a task stored by the previous build came back disabled; every queue in existence would stop dead on upgrade")
+		t.Fatal("a task stored by the previous build came back disabled")
 	}
 }
 
-// TestWidenedFieldsSurviveARestart covers the rest of the batch. A column that
-// is written but never read back is worse than no column: the feature works
-// until the process restarts and then quietly stops, which is the shape of bug
-// that gets reported as "it forgets my settings".
+// A column that is written but never read back leaves a feature working until
+// the process restarts and then silently stopping.
 func TestWidenedFieldsSurviveARestart(t *testing.T) {
 	yes := true
 	finished := time.Now().Add(-time.Hour).Round(time.Millisecond)
@@ -93,10 +87,8 @@ func TestWidenedFieldsSurviveARestart(t *testing.T) {
 	want := core.Task{
 		ID: "wide", URL: "https://host.example/part01.rar", Name: "part01.rar",
 		CreatedAt: time.Now(),
-		// Done, because the finish time below is only allowed to exist on a task
-		// that is: the store settles that invariant on the way in (stampFinish),
-		// so a fixture claiming a finish time in any other state is asserting
-		// something no row is permitted to say.
+		// Done, because stampFinish only lets a finished task carry a finish
+		// time, so a fixture in any other state could not hold one.
 		Status:           core.StatusDone,
 		FinishedAt:       finished,
 		Enabled:          true,
@@ -179,10 +171,9 @@ func TestWidenedFieldsSurviveARestart(t *testing.T) {
 	}
 }
 
-// TestResumableKeepsItsThirdAnswer is the tri-state auto_extract already relies
-// on, applied to the field a warning is built from: "nobody has asked whether
-// this resumes" must not come back as "it does not", or the interface warns
-// about losing bytes that would in fact be picked up where they stopped.
+// Resumable is tri-state like auto_extract: "nobody has asked whether this
+// resumes" must not come back as "it does not", or the interface warns about
+// losing bytes that would be picked up where they stopped.
 func TestResumableKeepsItsThirdAnswer(t *testing.T) {
 	dir := t.TempDir()
 	s, err := Open(filepath.Join(dir, "tasks.db"))

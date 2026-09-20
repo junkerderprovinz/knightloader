@@ -11,8 +11,8 @@ import (
 	"github.com/coder/websocket"
 )
 
-// fakeConn is a connection whose Write can be held open on demand, which is
-// how these tests model an instance on a bad link without a real socket.
+// fakeConn is a connection whose Write can be held open on demand, to model an
+// instance on a bad link without a real socket.
 type fakeConn struct {
 	writes chan []byte
 	block  chan struct{} // if non-nil, Write waits for it to be closed
@@ -57,8 +57,7 @@ func next(t *testing.T, f *fakeConn, msg string) Envelope {
 	}
 }
 
-// nothing asserts a connection stays quiet, which is the only way to state
-// "these two never saw each other".
+// nothing asserts that a connection stays quiet.
 func nothing(t *testing.T, f *fakeConn, msg string) {
 	t.Helper()
 	select {
@@ -98,9 +97,8 @@ func send(t *testing.T, s *Server, c Conn, typ string, data any) {
 	s.Route(c, frame)
 }
 
-// TestJoinIntroducesBothWays is the "log in once, see everything" promise: a
-// late joiner has to learn about the instances that were already up, not only
-// about the ones that connect after it.
+// TestJoinIntroducesBothWays: a late joiner learns about the instances that
+// were already up, not only the ones that connect after it.
 func TestJoinIntroducesBothWays(t *testing.T) {
 	s := New()
 	a := join(t, s, "key-1", "alpha")
@@ -115,9 +113,7 @@ func TestJoinIntroducesBothWays(t *testing.T) {
 	nothing(t, b, "the joiner received its own arrival announce back")
 }
 
-// TestKeysNeverSeeEachOther pins the only isolation boundary this relay has.
-// If it broke, one person's instances would appear on another person's
-// Instances page.
+// TestKeysNeverSeeEachOther pins the relay's only isolation boundary.
 func TestKeysNeverSeeEachOther(t *testing.T) {
 	s := New()
 	mine := join(t, s, "key-mine", "alpha")
@@ -139,9 +135,9 @@ func TestKeysNeverSeeEachOther(t *testing.T) {
 	}
 }
 
-// TestLeaveTellsSiblingsTheInstanceWentOffline: the Instances page shows live
-// status from these frames instead of guessing from a poll, so a disconnect
-// that broadcast nothing would leave a dead instance looking online forever.
+// TestLeaveTellsSiblingsTheInstanceWentOffline: the Instances page takes live
+// status from these frames, so a silent disconnect would leave a dead
+// instance looking online.
 func TestLeaveTellsSiblingsTheInstanceWentOffline(t *testing.T) {
 	s := New()
 	a := join(t, s, "key-1", "alpha")
@@ -164,14 +160,9 @@ func TestLeaveTellsSiblingsTheInstanceWentOffline(t *testing.T) {
 	}
 }
 
-// TestProxyRoundTripRoutesByRequestID covers the forwarding path in both
-// directions, including that the frame reaches the target byte for byte - the
-// relay must not re-encode a payload it cannot look inside.
-//
-// The sealed blobs here are deliberately not real ciphertext. Whether they
-// open is the client's business (client_test.go covers that end to end); what
-// this test asserts is that the relay carries whatever it is handed, opaque
-// and unaltered, which is exactly the property the encryption rests on.
+// TestProxyRoundTripRoutesByRequestID covers forwarding in both directions and
+// that the relay carries the sealed bytes unaltered. They are not real
+// ciphertext; opening is the client's job and client_test.go covers it.
 func TestProxyRoundTripRoutesByRequestID(t *testing.T) {
 	s := New()
 	a := join(t, s, "key-1", "alpha")
@@ -207,9 +198,6 @@ func TestProxyRoundTripRoutesByRequestID(t *testing.T) {
 	nothing(t, b, "the response was echoed back to the responder")
 }
 
-// TestUnroutableRequestAnswersImmediately: every one of these would otherwise
-// make the caller wait out its own timeout to learn something the relay knew
-// at once.
 func TestUnroutableRequestAnswersImmediately(t *testing.T) {
 	cases := []struct {
 		name   string
@@ -232,9 +220,7 @@ func TestUnroutableRequestAnswersImmediately(t *testing.T) {
 			if env.Type != TypeProxyResponse || env.Into(&resp) != nil {
 				t.Fatalf("got a %q frame, want a proxy-response", env.Type)
 			}
-			// Error and nothing else: a relay holds no frame key, so the
-			// only thing it can ever author is this field. A sealed blob on
-			// a relay-authored refusal would mean the relay could seal.
+			// The relay holds no frame key, so a refusal carries only Error.
 			if resp.RequestID != "r1" || resp.Error == "" || len(resp.Sealed) != 0 {
 				t.Errorf("got %+v, want an unsealed refusal carrying an error", resp)
 			}
@@ -242,10 +228,8 @@ func TestUnroutableRequestAnswersImmediately(t *testing.T) {
 	}
 }
 
-// TestFullQueueDropsOnlyThatConnection is the back-pressure decision: an
-// instance that cannot drain is disconnected, and everyone else on the key
-// keeps being routed. Without it the queue would only move a stall from the
-// router into memory growth.
+// TestFullQueueDropsOnlyThatConnection: an instance that cannot drain is
+// disconnected, and everyone else on the key keeps being routed.
 func TestFullQueueDropsOnlyThatConnection(t *testing.T) {
 	s := New()
 	stuck := newFakeConn()
@@ -254,12 +238,9 @@ func TestFullQueueDropsOnlyThatConnection(t *testing.T) {
 	healthy := join(t, s, "key-1", "healthy")
 	next(t, healthy, "no sibling announce")
 
-	// One frame ends up in flight inside Write and queueDepth more fit in its
-	// queue, so anything past that has nowhere to go. A handful of senders -
-	// comfortably under maxClientsPerKey - each push as many in-flight
-	// proxy-requests at "stuck" as maxPendingPerSender allows; together that
-	// is well past queueDepth without needing anywhere near
-	// maxClientsPerKey distinct connections to get there.
+	// One frame sits in Write and queueDepth more fit in the queue. Since each
+	// sender may only have maxPendingPerSender requests in flight, a handful
+	// of senders together push past that.
 	need := queueDepth + 5
 	for i := 0; need > 0; i++ {
 		sender := join(t, s, "key-1", fmt.Sprintf("sender-%d", i))
@@ -299,7 +280,6 @@ func TestFullQueueDropsOnlyThatConnection(t *testing.T) {
 		t.Fatal("the dropped connection was never closed")
 	}
 
-	// The healthy sibling is still being routed to, which is the whole point.
 	late := join(t, s, "key-1", "late")
 	if got := announceOf(t, next(t, late, "the relay stopped routing after a drop"), "sibling announce"); got.InstanceID == "" {
 		t.Error("the late joiner was introduced to nobody")
@@ -307,9 +287,8 @@ func TestFullQueueDropsOnlyThatConnection(t *testing.T) {
 }
 
 // TestReconnectReplacesTheDeadSocket: an instance whose socket died without a
-// close frame reconnects while the relay still holds the corpse. If the old
-// entry survived, proxy-requests would be routed to a connection nobody is
-// reading.
+// close frame reconnects while the relay still holds the dead socket, and
+// requests must go to the new one.
 func TestReconnectReplacesTheDeadSocket(t *testing.T) {
 	s := New()
 	sib := join(t, s, "key-1", "watcher")
@@ -319,7 +298,7 @@ func TestReconnectReplacesTheDeadSocket(t *testing.T) {
 
 	second := join(t, s, "key-1", "alpha")
 	next(t, sib, "the reconnect was never announced")
-	// No presence(offline) for a replaced socket: the instance is still here.
+	// No offline presence for a replaced socket: the instance is still here.
 	env := next(t, second, "the reconnected socket was introduced to nobody")
 	if got := announceOf(t, env, "sibling announce"); got.InstanceID != "watcher" {
 		t.Errorf("reconnected socket was told about %q, want watcher", got.InstanceID)
@@ -336,8 +315,8 @@ func TestReconnectReplacesTheDeadSocket(t *testing.T) {
 	nothing(t, first, "the request was routed to the replaced socket")
 }
 
-// TestGarbageFramesAreIgnored: a client one version ahead sends frame types
-// this build has never heard of, and that must not take its connection down.
+// TestGarbageFramesAreIgnored: a newer client may send frame types this build
+// does not know, and that must not take its connection down.
 func TestGarbageFramesAreIgnored(t *testing.T) {
 	s := New()
 	a := join(t, s, "key-1", "alpha")
@@ -362,19 +341,15 @@ func TestGarbageFramesAreIgnored(t *testing.T) {
 	nothing(t, a, "a garbage frame produced an answer")
 	nothing(t, b, "a garbage frame was forwarded to a sibling")
 
-	// The connection still works afterwards, which is what "ignored" means.
 	send(t, s, a, TypeProxyRequest, ProxyRequest{RequestID: "r2", Target: "bravo"})
 	if got := next(t, b, "the connection stopped working after a garbage frame"); got.Type != TypeProxyRequest {
 		t.Errorf("got a %q frame, want the proxy-request", got.Type)
 	}
 }
 
-// TestResponseFromWrongConnectionIsIgnored: routeResponse only delivers an
-// answer to the connection a request was actually routed to. Without this,
-// any connection that learns or guesses a live request ID - a same-key
-// sibling that was never asked, or one on an entirely different key, since a
-// request ID alone carries no key of its own - could hand the requester a
-// forged answer.
+// TestResponseFromWrongConnectionIsIgnored: only the connection a request was
+// routed to can answer it, not a sibling that was never asked or a connection
+// on another key that learned the request ID.
 func TestResponseFromWrongConnectionIsIgnored(t *testing.T) {
 	s := New()
 	a := join(t, s, "key-1", "alpha")
@@ -406,12 +381,9 @@ func TestResponseFromWrongConnectionIsIgnored(t *testing.T) {
 	}
 }
 
-// TestTooManyInFlightRequestsAreRefused: without this, a connection sending
-// proxy-requests faster than its target answers them can pile frames into
-// that target's own queue until enqueue's overflow policy evicts the
-// TARGET - punishing whichever side is being flooded, not the side flooding
-// it. The cap has to bite the sender before any excess frame ever reaches
-// the target's own queue, which is what this proves.
+// TestTooManyInFlightRequestsAreRefused: the cap refuses the sender before an
+// excess frame reaches the target's queue, where overflow would evict the
+// target instead of the flooder.
 func TestTooManyInFlightRequestsAreRefused(t *testing.T) {
 	s := New()
 	a := join(t, s, "key-1", "alpha")
@@ -438,10 +410,6 @@ func TestTooManyInFlightRequestsAreRefused(t *testing.T) {
 	}
 }
 
-// TestKeyGroupSizeIsCapped: a relay is meant to connect one person's own
-// instances, not an unbounded crowd on a guessed or leaked key - this proves
-// Join actually refuses a connection past maxClientsPerKey rather than only
-// documenting that it should.
 func TestKeyGroupSizeIsCapped(t *testing.T) {
 	s := New()
 	for i := 0; i < maxClientsPerKey; i++ {
@@ -457,10 +425,9 @@ func TestKeyGroupSizeIsCapped(t *testing.T) {
 	}
 }
 
-// TestTargetDisconnectFailsThePendingRequestFast: if the connection that
-// would have answered leaves mid-request, its requester learns that
-// immediately instead of waiting out pendingTTL for an answer that can now
-// never arrive.
+// TestTargetDisconnectFailsThePendingRequestFast: if the target leaves
+// mid-request, the requester learns it at once instead of waiting out
+// pendingTTL.
 func TestTargetDisconnectFailsThePendingRequestFast(t *testing.T) {
 	s := New()
 	a := join(t, s, "key-1", "alpha")
@@ -489,10 +456,8 @@ func TestTargetDisconnectFailsThePendingRequestFast(t *testing.T) {
 	}
 }
 
-// TestReconnectFailsThePendingRequestFast: when a target reconnects (Join
-// replacing its stale connection) before answering a request that was routed
-// to the old socket, that answer can now never arrive there either - the
-// requester is told immediately rather than left to time out.
+// TestReconnectFailsThePendingRequestFast: a request routed to a socket that
+// Join then replaced can never be answered, so the requester is told at once.
 func TestReconnectFailsThePendingRequestFast(t *testing.T) {
 	s := New()
 	a := join(t, s, "key-1", "alpha")
@@ -513,11 +478,9 @@ func TestReconnectFailsThePendingRequestFast(t *testing.T) {
 	}
 }
 
-// TestEnvelopeShapeIsStable pins the JSON other implementations (the mobile
-// companion app, a future client package) are written against. A field
-// renamed by accident compiles fine and breaks every peer at once, so the
-// wire bytes themselves are asserted here rather than only round-tripped
-// through this package's own types.
+// TestEnvelopeShapeIsStable pins the wire bytes the mobile app and the
+// extension are written against. A renamed field compiles fine and still
+// round-trips through this package's own types.
 func TestEnvelopeShapeIsStable(t *testing.T) {
 	cases := []struct {
 		name string

@@ -1,31 +1,21 @@
 package rules
 
-// What the editor is allowed to offer, described by the engine that enforces it.
+// What the rule editor may offer, described by the engine that enforces it:
+// fields, the operators each takes, actions and placeholders. A second copy in
+// the interface would drift, and an operator the form offers that Compile
+// refuses becomes a rule that never fires.
 //
-// A rule editor has to know which fields exist, which operators each one takes,
-// which actions do something, and which placeholders resolve. Every one of those
-// is a fact about this package. Written out a second time in the interface they
-// drift the moment a field is added here, and the drift is invisible in both
-// directions: an operator the form offers that Compile refuses becomes a rule
-// that silently never fires, and a field added here with no entry in the form is
-// a feature nobody can reach.
-//
-// Only ids and shapes are described. Not one word of what a human reads is in
-// here, because the server does not know which of the 38 locales a given browser
-// is showing, and two clients of one instance can differ. The interface keys its
-// own strings off these ids, and an id it has no string for falls back to the id
-// itself rather than to a blank row.
+// Only ids and shapes are described, no text a person reads; the interface
+// keys its own translated strings off these ids and falls back to the id.
 
-// Grammar is the whole of it.
+// Grammar is the whole description.
 type Grammar struct {
 	Fields    []FieldGrammar  `json:"fields"`
 	Operators []OpGrammar     `json:"operators"`
 	Actions   []ActionGrammar `json:"actions"`
 	Variables []Variable      `json:"variables"`
 	// Categories are the file-type shorthands the editor offers on a filetype
-	// condition. They expand into ordinary conditions and are described here for
-	// the same reason everything else in this file is: the pattern a category
-	// stands for has to be the one the engine will actually run.
+	// condition, with the exact pattern the engine will run.
 	Categories []Category `json:"categories"`
 	Limits     Limits     `json:"limits"`
 }
@@ -36,13 +26,10 @@ type FieldGrammar struct {
 	// Ops is exactly the set compileCondition accepts for this field, in the
 	// order the form should list them.
 	Ops []Op `json:"ops"`
-	// Numeric marks the field whose values are byte counts rather than text, so
-	// the form knows to offer a size box instead of a text box. Turning "700 MB"
-	// into a number is the interface's job: a parser down here would disagree
-	// with the one up there sooner or later.
+	// Numeric marks a field whose values are byte counts, so the form offers a
+	// size box and does the unit parsing itself.
 	Numeric bool `json:"numeric,omitempty"`
-	// Groups marks a field a capture group can be read from, which is every field
-	// the "matches" operator applies to.
+	// Groups marks a field a capture group can be read from.
 	Groups bool `json:"groups,omitempty"`
 }
 
@@ -53,48 +40,42 @@ type OpGrammar struct {
 	Value bool `json:"value,omitempty"`
 	// Range is set when it needs Min and Max instead. Both are never set at once.
 	Range bool `json:"range,omitempty"`
-	// Regex marks the operator whose value is a pattern, so the form can offer a
-	// pattern box and say what a bad one costs.
+	// Regex marks the operator whose value is a pattern.
 	Regex bool `json:"regex,omitempty"`
 }
 
 // ActionGrammar is one thing a matching rule can do.
 type ActionGrammar struct {
-	// ID is the JSON field name on Action, so the form addresses the same key the
-	// engine reads and a typo is a compile error over here rather than a control
-	// that quietly does nothing.
+	// ID is the JSON field name on Action, so the form addresses the key the
+	// engine reads.
 	ID string `json:"id"`
-	// Kind is how it is edited: template, int, bool, category or reject.
-	//
-	// It is the one field here the interface can get wrong without anybody
-	// seeing it, because the renderer switches on this string and has nowhere
-	// to fall but the last branch. See the note at the foot of Describe.
+	// Kind is how it is edited: template, int, bool, category or reject. The
+	// editor falls through to the reject control for a kind it does not know,
+	// so a new kind needs a branch in web/src/components/RuleEditor.tsx
+	// (TestEveryActionKindHasAControl checks this).
 	Kind string `json:"kind"`
-	// Flavour is which of the two engines honours it: "packagizer", "filter", or
-	// empty for both.
+	// Flavour is which engine honours it: "packagizer", "filter", or empty for
+	// both.
 	Flavour string `json:"flavour,omitempty"`
-	// Min and Max bound an int action, so the form clamps to the same numbers
-	// actionProblems refuses outside of. Max carries the same duty for a
-	// "category": there it is the longest id that could still address a stored
-	// drawer, so the form and the engine hold one copy of the number rather
-	// than two that drift.
+	// Min and Max bound an int action to the numbers actionProblems accepts.
+	// For a category, Max is the longest id that can address a stored one.
 	Min *int `json:"min,omitempty"`
 	Max *int `json:"max,omitempty"`
 }
 
 // Variable is one placeholder a template field can carry.
 type Variable struct {
-	// Tag is inserted verbatim, with N and FIELD left standing as the parts the
-	// user replaces.
+	// Tag is inserted verbatim, with N and FIELD left as the parts the user
+	// replaces.
 	Tag string `json:"tag"`
 	// ID keys the description the interface shows beside it.
 	ID string `json:"id"`
-	// Params names the placeholders inside Tag, so the form can prompt for them
-	// instead of leaving the user to notice a literal N in their folder name.
+	// Params names the placeholders inside Tag, so the form can prompt for
+	// them.
 	Params []string `json:"params,omitempty"`
 }
 
-// Limits are the numbers a form should stop the user at, taken from the same
+// Limits are the numbers a form should stop the user at, from the same
 // constants that refuse a rule.
 type Limits struct {
 	PriorityMin int `json:"priorityMin"`
@@ -106,14 +87,13 @@ type Limits struct {
 // textOps is what compileCondition accepts on everything except a file size.
 var textOps = []Op{OpContains, OpContainsNot, OpEquals, OpEqualsNot, OpMatches}
 
-// sizeOps is what it accepts on a file size: the text operators are refused
-// there, because "filesize contains 100" would match 1000, 2100 and 100000.
+// sizeOps is what it accepts on a file size.
 var sizeOps = []Op{OpBetween, OpEquals, OpEqualsNot}
 
 func intPtr(v int) *int { return &v }
 
-// Describe is the grammar as it stands. It is built rather than stored so that
-// adding a field or an operator above shows up here by the same edit.
+// Describe is the grammar as it stands, built from the same constants the
+// engine uses.
 func Describe() Grammar {
 	g := Grammar{
 		Operators: []OpGrammar{
@@ -127,30 +107,12 @@ func Describe() Grammar {
 		Actions: []ActionGrammar{
 			{ID: "packageName", Kind: "template", Flavour: "packagizer"},
 			{ID: "downloadDir", Kind: "template", Flavour: "packagizer"},
-			// The drawer, beside the folder because they answer one question and
-			// a rule that sets both is a rule whose drawer will not decide where
-			// the file lands: dirFor takes the task's own folder first, and the
-			// category is only consulted when nothing else named one. The other
-			// things a drawer carries, the priority, the unpacking switch and the
-			// collision rule, still apply. Somebody who picks both should be able
-			// to see both.
-			//
-			// A PICK and never a template, which is the whole reason it can be
-			// offered at all. Every other packagizer string here is expanded, so
-			// <jd:hoster> in this box is the natural thing to try, and it would
-			// hand the far end of the connection its own download folder,
-			// priority and collision rule. It would also put the id out of reach
-			// of the one check that stands between a rule and a drawer that is
-			// not there: settings.ValidateCategories refuses the save, and it
-			// cannot weigh a value that does not exist until a link arrives.
-			// categoryProblem (action_category.go) refuses the placeholder at
-			// compile time so that check keeps its grip.
-			//
-			// Kind is "category" and the picker behind it is settings.Categories,
-			// NOT Grammar.Categories below. Those are the file-type shorthands a
-			// CONDITION offers and they share nothing but the word, so an editor
-			// that reaches for the list already in this same document builds a
-			// menu of "video", "audio" and "archive" that can never name a drawer.
+			// Listed beside the folder because a rule that sets both lands in
+			// the folder: the category's own folder only applies when nothing
+			// else names one, while its priority, unpacking and collision rule
+			// still do. It is a pick from settings.Categories, not from
+			// Grammar.Categories, which are file-type shorthands, and never a
+			// template (see categoryProblem).
 			{ID: "category", Kind: "category", Flavour: "packagizer", Max: intPtr(MaxCategoryRef)},
 			{ID: "comment", Kind: "template", Flavour: "packagizer"},
 			{ID: "priority", Kind: "int", Flavour: "packagizer",
@@ -169,41 +131,16 @@ func Describe() Grammar {
 			MaxPattern:  maxPattern,
 		},
 	}
-	// "category" above is the first Kind added since the renderer's fall-through
-	// was written down, and the entry is only half of that action. The other
-	// half is a branch in web/src/components/RuleEditor.tsx, and without it the
-	// Packagizer tab carries an accept/reject switch labelled "Category" that
-	// writes Action.Reject: the failure described below, in the tense it was
-	// still hypothetical in. TestEveryActionKindHasAControl refuses to let the
-	// two halves separate, because what used to hold them together was a note,
-	// and a note is read once.
-	//
-	// "headers" is deliberately absent from Actions too, and for a sharper
-	// reason than Filename's. Action.Headers exists, Apply fills it in and
-	// Compile checks it, but the editor's action renderer switches on Kind and
-	// FALLS THROUGH to the reject control for a kind it does not know
-	// (web/src/components/RuleEditor.tsx) - so describing it as
-	// {ID: "headers", Kind: "profile"} today would not put a missing control on
-	// the Packagizer tab, it would put a working accept/reject switch there,
-	// wired to Action.Reject. A control that quietly edits the wrong field is
-	// worse than no control at all, which is the whole reason this file exists.
-	//
-	// The line to add, once the renderer has a "profile" branch that offers the
-	// stored profile list, is:
+	// "headers" is left out of Actions until RuleEditor.tsx has a "profile"
+	// branch offering the stored profiles; until then the editor would fall
+	// through to a reject switch wired to Action.Reject. The entry to add is
 	//
 	//	{ID: "headers", Kind: "profile", Flavour: "packagizer", Max: intPtr(MaxHeaderProfile)},
 	//
-	// "profile" and not "template" on purpose: the value is a key into the
-	// encrypted store, and a name assembled at match time out of <jd:hoster>
-	// would let the link decide which credential gets attached to it.
-	//
-	// "filename" is deliberately absent from Actions. Action.Filename exists and
-	// Apply fills it in, but nothing downstream can honour it (the engine is
-	// handed a folder and names the file itself), so a rename offered in the form
-	// would be a control that changes the list and not the disk. It stays in the
-	// engine because the wave that widens the download call will want it, and the
-	// dry run still reports it so an imported JDownloader set that renames is
-	// visible rather than silently ignored.
+	// "filename" is left out because nothing downstream honours it yet: the
+	// download engine is handed a folder and names the file itself. Apply
+	// still fills it and the dry run reports it, so an imported JDownloader
+	// set that renames is visible.
 	for _, f := range []Field{
 		FieldFilename, FieldURL, FieldHoster, FieldSource, FieldFiletype, FieldPackage,
 	} {
@@ -213,13 +150,10 @@ func Describe() Grammar {
 	return g
 }
 
-// variables is every placeholder a template resolves, in the order a menu should
-// list them: the link's own values first, then the derived ones, then the two
-// that need a parameter, then the counter.
-//
-// The date family is listed by its common shapes rather than as one
-// <jd:simpledate:...> entry. The pattern language is Java's, which is not
-// something to make somebody guess at from a tag name.
+// variables is every placeholder a template resolves, in menu order: the
+// link's own values, the derived ones, the two with a parameter, then the
+// counter. The date family is listed by its common shapes, since the
+// simpledate pattern language is Java's.
 func variables() []Variable {
 	return []Variable{
 		{Tag: "<jd:packagename>", ID: "packagename"},

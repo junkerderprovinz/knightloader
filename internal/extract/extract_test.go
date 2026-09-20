@@ -191,9 +191,7 @@ func writeCompressed(t *testing.T, path string, compress func(*testing.T, io.Wri
 	}
 }
 
-// TestExtractCompressedTar pins that each codec's tar spelling is decompressed
-// and then walked as a tar. If it failed, a whole archive family would have
-// silently stopped unpacking, or would have landed as one unusable blob.
+// Each codec's tar spelling is decompressed and then walked as a tar.
 func TestExtractCompressedTar(t *testing.T) {
 	for _, c := range codecs {
 		t.Run(c.name, func(t *testing.T) {
@@ -219,10 +217,10 @@ func TestExtractCompressedTar(t *testing.T) {
 	}
 }
 
-// TestExtractCompressedSingleFile pins that a compressed payload which is not a
-// tar lands as one file named after the archive minus its compression suffix.
-// The payload is deliberately larger than a tar header block, so the probe has
-// to reject it on the header checksum rather than on "too short to be a tar".
+// A compressed payload that is not a tar lands as one file named after the
+// archive minus its compression suffix. The payload is larger than a tar header
+// block, so the probe rejects it on the header checksum rather than on its
+// length.
 func TestExtractCompressedSingleFile(t *testing.T) {
 	payload := bytes.Repeat([]byte("plain payload "), 200)
 	for _, c := range codecs {
@@ -241,9 +239,8 @@ func TestExtractCompressedSingleFile(t *testing.T) {
 			if len(res.Volumes) != 1 || res.Volumes[0] != arc {
 				t.Fatalf("Volumes = %v, want [%s]", res.Volumes, arc)
 			}
-			// Beside the archive, not inside a folder named after the file it
-			// produces: that folder would read as a mistake and would collide
-			// with a sibling of the same name.
+			// Beside the archive rather than inside a folder named after the
+			// file it produces, which would collide with a sibling of that name.
 			b, err := os.ReadFile(filepath.Join(dir, "notes.txt"))
 			if err != nil {
 				t.Fatal(err)
@@ -255,10 +252,8 @@ func TestExtractCompressedSingleFile(t *testing.T) {
 	}
 }
 
-// TestExtractTgzWithoutTarFallsBackToSingleFile is one half of the
-// content-beats-name rule: a ".tgz" that holds a single gzipped file and no tar
-// still has to extract. If it failed we would be trusting the extension and
-// handing the user a tar parse error for a perfectly good download.
+// One half of the content-beats-name rule: a ".tgz" holding a single gzipped
+// file and no tar still extracts, rather than answering with a tar parse error.
 func TestExtractTgzWithoutTarFallsBackToSingleFile(t *testing.T) {
 	dir := t.TempDir()
 	arc := filepath.Join(dir, "blob.tgz")
@@ -277,9 +272,8 @@ func TestExtractTgzWithoutTarFallsBackToSingleFile(t *testing.T) {
 	}
 }
 
-// TestExtractGzWithTarIsUnpacked is the other half: a plain ".gz" that does
-// hold a tar gets walked. If it failed the user would get one opaque file named
-// after the archive instead of the release they downloaded.
+// The other half: a plain ".gz" that does hold a tar gets walked, rather than
+// landing as one opaque file named after the archive.
 func TestExtractGzWithTarIsUnpacked(t *testing.T) {
 	dir := t.TempDir()
 	arc := filepath.Join(dir, "release.gz")
@@ -298,8 +292,7 @@ func TestExtractGzWithTarIsUnpacked(t *testing.T) {
 	}
 }
 
-// TestExtractTar covers a bare .tar, the one shape with no compression layer in
-// front of the tar walker.
+// A bare .tar, the one shape with no compression layer in front of the walker.
 func TestExtractTar(t *testing.T) {
 	dir := t.TempDir()
 	arc := filepath.Join(dir, "plain.tar")
@@ -323,10 +316,8 @@ func TestExtractTar(t *testing.T) {
 	}
 }
 
-// TestExtractTarSlipRejected pins zip-slip safety on the tar path. Tar stores
-// entry names verbatim, so "../escape.txt" reaches safePath untouched; if this
-// stopped erroring, any downloaded tar could overwrite files outside its own
-// extraction directory.
+// Tar stores entry names verbatim, so "../escape.txt" reaches safePath
+// untouched and a downloaded tar could otherwise write outside its own folder.
 func TestExtractTarSlipRejected(t *testing.T) {
 	dir := t.TempDir()
 	arc := filepath.Join(dir, "evil.tar")
@@ -342,9 +333,8 @@ func TestExtractTarSlipRejected(t *testing.T) {
 	}
 }
 
-// TestDestDirStripsArchiveSuffix pins the mapping from archive name to
-// extraction directory. Getting it wrong is quiet and ugly: "data.tar.gz" would
-// unpack into a folder called "data.tar".
+// The mapping from archive name to extraction directory, where getting it wrong
+// unpacks "data.tar.gz" into a folder called "data.tar".
 func TestDestDirStripsArchiveSuffix(t *testing.T) {
 	cases := []struct{ in, want string }{
 		{"data.tar.gz", "data"},
@@ -369,10 +359,9 @@ func TestDestDirStripsArchiveSuffix(t *testing.T) {
 	}
 }
 
-// TestSingleStreamDoesNotCollideWithASibling covers the shape that made the old
-// destination wrong: a "dump.sql.gz" downloaded next to an existing "dump.sql".
-// Creating a directory of that name failed outright, so a routine download was
-// reported as a broken archive.
+// A "dump.sql.gz" downloaded next to an existing "dump.sql": creating a
+// directory of that name would fail and report a routine download as a broken
+// archive.
 func TestSingleStreamDoesNotCollideWithASibling(t *testing.T) {
 	dir := t.TempDir()
 	sibling := filepath.Join(dir, "dump.sql")

@@ -19,7 +19,7 @@ func TestSanitizeAssignsIDsAndKeepsTheOnesAlreadyHandedOut(t *testing.T) {
 		t.Fatalf("Sanitize kept %d rows, want 3", len(out))
 	}
 	if out[1].ID != "7" {
-		t.Errorf("the row that already had id 7 came back as %q; an id the API handed to a client has to survive an edit elsewhere in the list", out[1].ID)
+		t.Errorf("the row that already had id 7 came back as %q", out[1].ID)
 	}
 	if out[0].ID == "" || out[2].ID == "" || out[0].ID == out[2].ID {
 		t.Errorf("ids %q and %q, want two distinct non-empty ids", out[0].ID, out[2].ID)
@@ -39,7 +39,7 @@ func TestSanitizeDropsOnlyTheUntouchedRow(t *testing.T) {
 		t.Fatalf("Sanitize kept %d rows, want the blank one gone and the other two kept: %+v", len(out), out)
 	}
 	if out[1].URL != "not a url" {
-		t.Errorf("the unparseable address was rewritten to %q; a row that vanishes on save is a row the operator goes on believing in", out[1].URL)
+		t.Errorf("the unparseable address was rewritten to %q, want it left for Validate", out[1].URL)
 	}
 }
 
@@ -65,7 +65,7 @@ func TestSanitizeClampsAndKeepsTheNoOpinionZero(t *testing.T) {
 		{Name: "c", URL: "https://x.example/", Attempts: -4, TimeoutSeconds: -1},
 	})
 	if out[0].Attempts != 0 || out[0].TimeoutSeconds != 0 {
-		t.Errorf("a row with no opinion came back as %d/%d, want the zeroes kept: a spinner that rewrites itself to 3 is one nobody can read",
+		t.Errorf("a row with no opinion came back as %d/%d, want the zeroes kept",
 			out[0].Attempts, out[0].TimeoutSeconds)
 	}
 	if out[0].ResolvedAttempts() != DefaultAttempts {
@@ -114,16 +114,15 @@ func TestValidateNamesWhatIsWrong(t *testing.T) {
 			t.Errorf("%s: Validate said %q, want %q", tc.name, p.Code, tc.want)
 		}
 		if !errors.Is(p, ErrBadTarget) {
-			t.Errorf("%s: the problem does not unwrap to ErrBadTarget, so validateRows' own fmt.Errorf wrapper loses it", tc.name)
+			t.Errorf("%s: the problem does not unwrap to ErrBadTarget, so validateRows' wrapper loses it", tc.name)
 		}
 	}
 }
 
 func TestValidateAcceptsAnAddressWithPlaceholdersInIt(t *testing.T) {
-	// "%%" is not a valid percent-escape, so url.Parse refuses this outright.
-	// Validating the raw template rather than the stripped one would therefore
-	// refuse every address that uses a placeholder at all, and report it as a
-	// malformed address.
+	// "%%" is not a valid percent-escape, so url.Parse refuses this. Validating
+	// the raw template rather than the stripped one would refuse every address
+	// that uses a placeholder and call it malformed.
 	for _, addr := range []string{
 		"https://ntfy.example/topic?message=%%task.name%%",
 		"https://%%instance%%.example/hook",
@@ -150,11 +149,11 @@ func TestValidateAcceptsAWholeRow(t *testing.T) {
 }
 
 func TestValidateDoesNotComplainAboutAnUnknownPlaceholderName(t *testing.T) {
-	// A typo has to survive as far as the message, where it can be seen. Refused
-	// here it would be indistinguishable from a name a NEWER build knows, and
-	// this build would be refusing to save a row a later one fills in correctly.
+	// A typo has to survive as far as the message, where it can be seen.
+	// Refused here it would be indistinguishable from a name a later build
+	// knows, and this one would refuse to save a row that build fills in.
 	if p := Validate(Target{URL: "https://x.example/", Body: "%%task.nmae%%"}); p != nil {
-		t.Fatalf("Validate refused an unknown placeholder name (%v); only an UNCLOSED one is a broken row", p)
+		t.Fatalf("Validate refused an unknown placeholder name: %v", p)
 	}
 }
 
@@ -165,10 +164,10 @@ func TestRedactedReplacesEveryHeaderValueAndCopiesTheMap(t *testing.T) {
 		t.Errorf("Authorization came back as %q, want the placeholder", out.Headers["Authorization"])
 	}
 	if out.Headers["X-Empty"] != "" {
-		t.Errorf("an empty value became %q; there is no secret to hide there and stars would invent one", out.Headers["X-Empty"])
+		t.Errorf("an empty value became %q, want it left empty", out.Headers["X-Empty"])
 	}
 	if src.Headers["Authorization"] != "Bearer real-token" {
-		t.Error("Redacted edited the caller's own map, which would blank the settings the dispatcher is sending with")
+		t.Error("Redacted edited the caller's map, which would blank the live settings")
 	}
 }
 
@@ -184,21 +183,19 @@ func TestMergeCarriesASecretBackOnlyToTheSameAddress(t *testing.T) {
 		Headers: map[string]string{"Authorization": RedactedValue, "X-Title": RedactedValue},
 	}}, prev)
 	if same[0].Headers["Authorization"] != "Bearer real-token" {
-		t.Errorf("an untouched row lost its token (%q); every save from any settings page would clear it",
+		t.Errorf("an untouched row lost its token (%q), so every settings save would clear it",
 			same[0].Headers["Authorization"])
 	}
 
-	// THE GUARD. The browser never saw the token and is the thing that types the
-	// address, so a token that followed a changed address could be aimed at a
-	// machine the client controls - proxycfg.Merge writes the same rule down for
-	// proxy passwords.
+	// The browser never saw the token and is what types the address, so a token
+	// that followed a changed address could be aimed at a machine the client
+	// controls. proxycfg.Merge states the same rule for proxy passwords.
 	moved := Merge([]Target{{
 		ID: "1", URL: "https://attacker.example/collect",
 		Headers: map[string]string{"Authorization": RedactedValue},
 	}}, prev)
 	if got := moved[0].Headers["Authorization"]; got != "" {
-		t.Errorf("the stored token was carried onto a CHANGED address as %q; it must be dropped, "+
-			"or a client that was never allowed to read it can have this server post it wherever it likes", got)
+		t.Errorf("the stored token was carried onto a changed address as %q, want it dropped", got)
 	}
 
 	// A renamed header is a different place to put a token.
@@ -223,7 +220,7 @@ func TestMergeCarriesASecretBackOnlyToTheSameAddress(t *testing.T) {
 func TestMergeNeverLeavesTheLiteralPlaceholderOnTheWire(t *testing.T) {
 	// Eight literal stars sent as a bearer token is a 401 the operator cannot
 	// tell from a wrong token. An empty value is visibly a header waiting to be
-	// filled in, and Send skips it rather than writing a bare header line.
+	// filled in, and Send skips it.
 	out := Merge([]Target{{ID: "1", URL: "https://new.example/", Headers: map[string]string{"Authorization": RedactedValue}}}, nil)
 	if got := out[0].Headers["Authorization"]; strings.Contains(got, "*") {
 		t.Errorf("the header value came back as %q, want it empty", got)
@@ -238,13 +235,13 @@ func TestMergeLetsAnOperatorClearAndRetypeAValue(t *testing.T) {
 	}
 	cleared := Merge([]Target{{ID: "1", URL: "https://x.example/", Headers: map[string]string{"Authorization": ""}}}, prev)
 	if cleared[0].Headers["Authorization"] != "" {
-		t.Errorf("an emptied value came back as %q; empty has to keep meaning \"clear it\"", cleared[0].Headers["Authorization"])
+		t.Errorf("an emptied value came back as %q, want empty to keep meaning \"clear it\"", cleared[0].Headers["Authorization"])
 	}
 }
 
 func TestHostIsTheHostAndNeverTheQuery(t *testing.T) {
-	// ntfy and Gotify both take the credential in the query, and this string is
-	// what every browser polling the status route is shown.
+	// ntfy and Gotify both take the credential in the query, and this string
+	// goes to every browser polling the status route.
 	got := Target{URL: "https://ntfy.example:8443/topic?token=SUPERSECRET"}.Host()
 	if got != "ntfy.example:8443" {
 		t.Fatalf("Host() is %q, want the host alone", got)

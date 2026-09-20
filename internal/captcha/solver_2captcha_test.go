@@ -1,12 +1,8 @@
 package captcha
 
-// Shared-helper tests (decodeSolverImage, encodeClickAnswer, solverAnswerFor,
-// solverSleep) live here beside where those functions are defined, and
-// TwoCaptchaSolver's own HTTP-level tests follow the TestJDClientXxx style
-// jdclient_test.go already established for this package: a real
-// httptest.Server pinning the wire shapes this file's own package comment
-// documents as verified, so a future edit that "simplifies" a field name
-// fails loudly here instead of only against a real account.
+// The shared helpers (decodeSolverImage, encodeClickAnswer, solverAnswerFor)
+// beside where they are defined, and TwoCaptchaSolver against an
+// httptest.Server pinning 2Captcha's request and response shapes.
 
 import (
 	"context"
@@ -17,9 +13,8 @@ import (
 	"time"
 )
 
-// withFastPolling shortens solverPollInterval/solverMaxWait for the life of
-// one test, restoring both on cleanup - see their own var doc comment for
-// why they are var rather than const.
+// withFastPolling shortens solverPollInterval and solverMaxWait for the life of
+// one test.
 func withFastPolling(t *testing.T) {
 	t.Helper()
 	prevInterval, prevWait := solverPollInterval, solverMaxWait
@@ -59,8 +54,7 @@ func TestDecodeSolverImageRejectsEmptyAndGarbage(t *testing.T) {
 	}
 }
 
-// TestEncodeClickAnswerSingleVsMulti pins the two JD-verified shapes - see
-// encodeClickAnswer's own doc comment for the JDownloader source citations.
+// The two shapes JD parses a click answer as.
 func TestEncodeClickAnswerSingleVsMulti(t *testing.T) {
 	one, err := encodeClickAnswer([]solverPoint{{X: 12, Y: 34}})
 	if err != nil {
@@ -75,11 +69,11 @@ func TestEncodeClickAnswerSingleVsMulti(t *testing.T) {
 		t.Fatalf("encodeClickAnswer(two points): %v", err)
 	}
 	if many != `{"x":[1,3],"y":[2,4]}` {
-		t.Errorf("encodeClickAnswer(two points) = %s, want the MultiClickedPoint shape (parallel arrays)", many)
+		t.Errorf("encodeClickAnswer(two points) = %s, want the MultiClickedPoint shape", many)
 	}
 
 	if _, err := encodeClickAnswer(nil); err == nil {
-		t.Error("encodeClickAnswer(nil) = nil error, want one - there is no answer to submit")
+		t.Error("encodeClickAnswer(nil) = nil error, want one")
 	}
 }
 
@@ -88,13 +82,12 @@ func TestSolverAnswerForUnsupportedKind(t *testing.T) {
 		t.Errorf("solverAnswerFor(KindWidget) error = %v, want ErrUnsupportedKind", err)
 	}
 	if _, err := solverAnswerFor(KindImage, "", nil); err == nil {
-		t.Error("solverAnswerFor(KindImage, \"\") = nil error, want one - an empty answer is not a solve")
+		t.Error("solverAnswerFor(KindImage, \"\") = nil error, want one")
 	}
 }
 
-// twoCaptchaFakeServer wires up createTask/getTaskResult against fixed
-// bodies, returning "processing" resultsBeforeReady times before "ready" -
-// exercising the poll loop, not just the happy path's first response.
+// twoCaptchaFakeServer answers createTask and getTaskResult from fixed bodies,
+// reporting "processing" resultsBeforeReady times so the poll loop runs.
 func twoCaptchaFakeServer(t *testing.T, resultsBeforeReady int, readyBody string) (*httptest.Server, *[]string) {
 	t.Helper()
 	var paths []string
@@ -187,7 +180,7 @@ func TestTwoCaptchaSolverUnsupportedKindNeverCallsTheNetwork(t *testing.T) {
 		t.Errorf("Solve(KindWidget) error = %v, want ErrUnsupportedKind", err)
 	}
 	if called {
-		t.Error("Solve(KindWidget) reached the network; it must refuse before ever dialing out")
+		t.Error("Solve(KindWidget) reached the network instead of refusing first")
 	}
 }
 
@@ -198,8 +191,7 @@ func TestTwoCaptchaSolverNoKeyConfigured(t *testing.T) {
 	}
 }
 
-// TestTwoCaptchaSolverSendsBodyAndComment pins the exact request shape
-// against api-docs/normal-captcha's documented fields.
+// The createTask request carries the fields ImageToTextTask documents.
 func TestTwoCaptchaSolverSendsBodyAndComment(t *testing.T) {
 	withFastPolling(t)
 	var gotReq twoCaptchaCreateReq
@@ -220,6 +212,6 @@ func TestTwoCaptchaSolverSendsBodyAndComment(t *testing.T) {
 	}
 	if gotReq.ClientKey != "the-key" || gotReq.Task.Type != "ImageToTextTask" ||
 		gotReq.Task.Body != "aGVsbG8=" || gotReq.Task.Comment != "enter red text" {
-		t.Errorf("createTask request = %+v, want clientKey/type/body/comment set from Solve's arguments", gotReq)
+		t.Errorf("createTask request = %+v, want the fields set from Solve's arguments", gotReq)
 	}
 }

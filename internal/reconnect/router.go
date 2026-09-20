@@ -15,44 +15,31 @@ import (
 )
 
 // ErrGatewayUnavailable means the default gateway could not be read, so the
-// settings form has nothing to offer and must ask.
-//
-// It is a distinct error from "there is no gateway" on purpose: on a platform
-// whose routing table this package cannot read, the answer is "ask the user",
-// while on Linux with no default route the answer is "this box has no way out
-// and the reconnect is not the problem".
+// settings form has to ask. The wrapped message says whether the platform
+// cannot be read or the machine has no default route at all.
 var ErrGatewayUnavailable = errors.New("reconnect: the default gateway cannot be read here")
 
 // RouterAddress is a default gateway and the interface it is reached through.
-//
-// The interface name is carried because it is the only cheap way to see the
-// answer is wrong. In a container on a bridge network the default gateway is the
-// bridge, not the router, and "172.17.0.1 via eth0" says that at a glance where
-// a bare address would be typed straight into the router field and then quietly
-// fail to log in.
+// The interface shows at a glance when the answer is wrong: in a container on
+// a bridge network the gateway is the bridge, and "172.17.0.1 via eth0" says
+// so.
 type RouterAddress struct {
 	Address   netip.Addr `json:"address"`
 	Interface string     `json:"interface,omitempty"`
 }
 
-// procNetRoute is Linux's IPv4 routing table. It is a constant rather than an
-// argument because the parser, which is the part with decisions in it, takes an
-// io.Reader and is tested on its own.
+// procNetRoute is Linux's IPv4 routing table. The parser takes an io.Reader
+// and is tested on its own.
 const procNetRoute = "/proc/net/route"
 
 // DefaultGateway reports the box's IPv4 default gateway, so the reconnect form
-// can offer an address instead of asking somebody to go and find one.
+// can offer an address.
 //
-// It answers only on Linux, and says so plainly everywhere else rather than
-// falling back to 192.168.1.1. A guessed gateway is worse than no answer: the
-// form would arrive pre-filled with a plausible address, the user would accept
-// it, and the first reconnect would post their router password to whatever
-// happens to live at that address on their network.
-//
-// IPv6 default routes are not read. A router administration page is reached over
-// IPv4 in every case this has to serve, and a v6 gateway that is a link-local
-// address with a zone would be offered to the user as something they cannot type
-// into a browser either.
+// It answers only on Linux and never guesses 192.168.1.1 elsewhere: a
+// plausible pre-filled address would get the router password posted to
+// whatever lives there. IPv6 routes are not read, since router admin pages are
+// reached over IPv4 and a link-local v6 gateway with a zone cannot be typed
+// into a browser.
 func DefaultGateway() (RouterAddress, error) {
 	if runtime.GOOS != "linux" {
 		return RouterAddress{}, fmt.Errorf("%w: %s has no routing table this package can read", ErrGatewayUnavailable, runtime.GOOS)
@@ -65,20 +52,16 @@ func DefaultGateway() (RouterAddress, error) {
 	return parseProcNetRoute(f)
 }
 
-// maxRouteLines caps how much of the routing table is read. A machine with a
-// full BGP table in the kernel would otherwise have every one of its routes
-// parsed to answer a question about one of them.
+// maxRouteLines caps how much of the routing table is read, for machines with
+// a full BGP table in the kernel.
 const maxRouteLines = 4096
 
 // parseProcNetRoute picks the default route with the lowest metric out of
-// Linux's /proc/net/route.
-//
-// The format is a header line and then whitespace-separated columns:
+// Linux's /proc/net/route: a header line and then whitespace-separated columns
 //
 //	Iface Destination Gateway Flags RefCnt Use Metric Mask MTU Window IRTT
 //
-// with the addresses written as little-endian hexadecimal - "0101A8C0" is
-// 192.168.1.1, not 1.1.168.192.
+// with the addresses in little-endian hexadecimal ("0101A8C0" is 192.168.1.1).
 func parseProcNetRoute(r io.Reader) (RouterAddress, error) {
 	const (
 		colIface = iota
@@ -104,13 +87,11 @@ func parseProcNetRoute(r io.Reader) (RouterAddress, error) {
 	for line := 0; sc.Scan() && line < maxRouteLines; line++ {
 		f := strings.Fields(sc.Text())
 		if len(f) < columns {
-			// The header line and any trailing blank line land here, which is
-			// why an unparsable row is skipped rather than failing the read.
+			// The header line and trailing blank lines.
 			continue
 		}
-		// Only the route to 0.0.0.0/anything is a default route. Matching on the
-		// gateway column alone would pick up the first on-link route with a
-		// next hop and offer a neighbour's address as the router.
+		// Only a route to 0.0.0.0 is a default route; any route with a next hop
+		// has a gateway column.
 		if f[colDest] != "00000000" {
 			continue
 		}
@@ -126,10 +107,8 @@ func parseProcNetRoute(r io.Reader) (RouterAddress, error) {
 		if err != nil {
 			continue
 		}
-		// Lowest metric wins, which is the same route the kernel would use. A
-		// box on wifi and ethernet at once has two default routes, and offering
-		// the gateway of the one that is not carrying traffic sends the login
-		// request out of the wrong interface.
+		// Lowest metric wins, as in the kernel, for a box on wifi and ethernet
+		// at once.
 		if !found || metric < bestMetric {
 			best = RouterAddress{Address: addr, Interface: f[colIface]}
 			bestMetric = metric
@@ -145,13 +124,9 @@ func parseProcNetRoute(r io.Reader) (RouterAddress, error) {
 	return best, nil
 }
 
-// parseHexAddr reads one little-endian hexadecimal address column.
-//
-// It refuses the addresses that can never be a usable router: the unspecified
-// address, which is what an on-link route writes in the gateway column, and
-// loopback, multicast and the unassigned 0.0.0.0/8 range, none of which anyone
-// can log in to. Handing one of those back would put an address in the form that
-// looks like an answer and is not one.
+// parseHexAddr reads one little-endian hexadecimal address column. It refuses
+// addresses that can never be a router: unspecified (an on-link route),
+// loopback, multicast and 0.0.0.0/8.
 func parseHexAddr(s string) (netip.Addr, bool) {
 	if len(s) != 8 {
 		return netip.Addr{}, false

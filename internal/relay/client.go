@@ -1,21 +1,14 @@
 package relay
 
 // The instance side of the relay: one outbound WebSocket an instance keeps
-// open to a relay it can reach, so two instances behind NAT reach each other
-// without either of them accepting an inbound connection.
+// open to a relay, so two instances behind NAT reach each other without
+// either accepting an inbound connection.
 //
-// This type deliberately knows nothing about the app it runs inside. It is
-// used unchanged by the container build (which already runs an event loop)
-// and by the desktop build (which has no network listener at all and cannot
-// be paired any other way), so it depends on protocol.go and the standard
-// library and nothing else - an import of internal/app here would put the
-// desktop build back where it started.
-//
-// Unlike Server, there is no bounded queue and no writer goroutine. Those
-// exist there because one stalled connection must not delay the fan-out to
-// every other connection on the same key; a client has exactly one peer, so a
-// slow write can only ever delay the caller who asked for it, and
-// coder/websocket serializes concurrent writes itself.
+// The client depends on protocol.go and the standard library only, because
+// the desktop build, which has no listener and can only be paired this way,
+// uses it as well as the container build. Unlike Server it has no queue or
+// writer goroutine: it has one peer, so a slow write only delays its own
+// caller, and coder/websocket serializes concurrent writes itself.
 
 import (
 	"context"
@@ -34,122 +27,87 @@ import (
 	"github.com/coder/websocket"
 )
 
-// connectPath is the relay endpoint every client dials. It is appended when
-// the configured address names no path of its own, so a person can type the
-// bare "https://relay.example.com" they gave their reverse proxy and still
-// land on the right route.
+// connectPath is appended when the configured address has no path, so the
+// bare "https://relay.example.com" given to a reverse proxy still works.
 const connectPath = "/relay/connect"
 
-// proxyTimeout bounds one call to a sibling over the relay, matching
-// federation's own peerTimeout for the direct-HTTP transport: the same call
-// to the same peer's same REST route must not have two different patiences
-// depending on which transport carried it.
+// proxyTimeout bounds one call to a sibling over the relay. It matches
+// federation's peerTimeout, so a call has the same patience over either
+// transport.
 const proxyTimeout = 15 * time.Second
 
-// dialTimeout bounds one connection attempt. A relay that is switched off
-// refuses instantly; this is for one that accepts TCP and then never finishes
-// the upgrade, which would otherwise hold the reconnect loop forever.
+// dialTimeout bounds one connection attempt, for a relay that accepts TCP and
+// never finishes the upgrade.
 const dialTimeout = 15 * time.Second
 
-// minBackoff and maxBackoff bound how fast the reconnect loop retries. A
-// relay outage must cost nothing but "no relay-visible siblings right now",
-// so the loop keeps trying forever rather than giving up - but at a minute
-// apart once it is clear nobody is answering, not once a second.
+// minBackoff and maxBackoff bound the reconnect loop. It retries forever, but
+// a minute apart once nobody is answering.
 const (
 	minBackoff = time.Second
 	maxBackoff = time.Minute
 )
 
-// stableSession is how long a connection has to have lasted before the
-// backoff resets to minBackoff. Resetting on every successful dial would let
-// a relay that accepts the socket and then hangs up - a rejected key, a
-// reverse proxy misrouting the upgrade - be dialled once a second forever,
-// which is the exact case the backoff exists for.
+// stableSession is how long a connection has to last before the backoff
+// resets. Resetting on every successful dial would redial once a second a
+// relay that accepts the socket and then hangs up, such as one rejecting the
+// key.
 const stableSession = 30 * time.Second
 
-// pingInterval keeps the connection alive through whatever sits between the
-// instance and the relay. A relay is normally reached through a reverse proxy
-// (Nginx Proxy Manager, in this project's own deployment) that closes an idle
-// upstream connection after a minute or so, and this socket is idle by nature:
-// it carries nothing at all between one announce and the next proxy call.
+// pingInterval keeps the connection alive through reverse proxies that close
+// an idle upstream after a minute or so; this socket is idle between calls.
 const pingInterval = 30 * time.Second
 
 // pingTimeout is how long a pong may take before the connection counts as
-// dead. It is what turns a silently broken link - a NAT table that dropped the
-// mapping, a relay that vanished without a close frame - into a reconnect
-// instead of a socket that looks open and delivers nothing.
+// dead, which turns a silently broken link into a reconnect.
 const pingTimeout = 10 * time.Second
 
-// ProxyHandler answers one call a sibling made to this instance's own REST
-// API. It is what makes the relay two-way: without it an instance could call
-// its siblings but never be called, which is half a transport.
-//
-// It returns the status and body to send back, the same pair
-// federation.Manager.Proxy hands its own callers, so the app side can adapt
-// its existing HTTP handler without inventing a second result shape.
-//
-// It takes a ProxyCall, not a ProxyRequest: by the time a handler runs, the
-// frame has been opened and the routing fields it was addressed with have
-// done their job. A handler that cannot see the wire frame cannot
-// accidentally trust a field the relay was free to write.
+// ProxyHandler answers one call a sibling made to this instance's REST API,
+// returning the status and body to send back. It receives the opened
+// ProxyCall rather than the wire frame, so it cannot trust a routing field the
+// relay was free to write.
 type ProxyHandler func(ctx context.Context, call ProxyCall) (status int, body []byte)
 
-// ClientOptions configures a Client. URL, Key and Self.InstanceID are
-// required; the rest is optional.
+// ClientOptions configures a Client. URL, Key, FrameKey and Self.InstanceID
+// are required.
 type ClientOptions struct {
-	// URL is the relay's address, with or without the connect path and with
-	// either an http(s) or a ws(s) scheme - a person configuring this has the
-	// address they gave their reverse proxy, not a WebSocket URL.
+	// URL is the relay's address, with or without the connect path, with an
+	// http(s) or ws(s) scheme.
 	URL string
-	// Key is the relay key: the only credential this protocol has, and the
-	// only thing that decides which instances see each other.
+	// Key is the relay key, the only credential the protocol has.
 	Key string
 	// FrameKey is the 32-byte key every proxy frame is sealed under. It must
-	// be the same on every instance in the group and must NOT be derivable
-	// from Key, or the relay could compute it from the hello frame it is
-	// already given - see key.go's DeriveFrameKey and FrameKeyFromRelayKey
-	// for the two ways it is produced and what each one is worth.
+	// be the same on every instance in the group and must not be derivable
+	// from Key, which the relay receives (see DeriveFrameKey).
 	FrameKey []byte
-	// Self is what siblings will see on their Instances page.
+	// Self is what siblings see on their Instances page.
 	Self Announce
-	// Serve answers calls siblings make to this instance. A nil Serve answers
-	// every inbound call with 501 rather than leaving the caller to time out:
-	// a client that cannot serve is a fact its siblings should learn at once.
+	// Serve answers calls siblings make to this instance. With a nil Serve
+	// every inbound call gets 501 instead of timing out.
 	Serve ProxyHandler
-	// OnChange fires whenever anything the Instances page shows about the
-	// relay changes: a sibling arriving or leaving, and the connection itself
-	// coming up or going down - an outage is a change to that page even
-	// though no single sibling did anything. It lets a UI be pushed an update
-	// instead of polling for one. It runs on the client's own goroutine and
-	// must not block; nil to ignore the event entirely.
+	// OnChange fires when a sibling arrives or leaves and when the connection
+	// comes up or goes down. It runs on the client's goroutine and must not
+	// block.
 	OnChange func()
 }
 
 // Client is one instance's connection to a relay: it announces itself, tracks
-// which siblings are currently visible, answers calls they make, and makes
-// calls to them.
+// the visible siblings, answers their calls and makes calls to them.
 //
-// Every method is safe to call whether or not the relay is reachable. A
-// Client that cannot connect reports no siblings and fails proxy calls
-// immediately; it never blocks the caller waiting for a relay to come back,
-// because an unreachable relay must not touch anything else the instance
-// does.
+// Every method works whether or not the relay is reachable. A disconnected
+// Client reports no siblings and fails proxy calls at once; it never blocks a
+// caller waiting for the relay.
 type Client struct {
 	url string
 	key string
-	// frameKey seals and opens every proxy frame this client sends or
-	// receives. Distinct from key, and that separation is the point: key is
-	// handed to the relay in the hello frame, this one never leaves the
-	// process. See key.go's DeriveFrameKey.
+	// frameKey seals and opens every proxy frame. Unlike key it never leaves
+	// the process.
 	frameKey []byte
 	self     Announce
 	serve    ProxyHandler
 	onChange func()
 
-	// minBackoff and maxBackoff shadow the package constants so tests can
-	// exercise a real reconnect without waiting out a real backoff. They are
-	// not part of the option struct: a retry cadence is this package's
-	// judgement, not something a caller has any basis to tune.
+	// minBackoff and maxBackoff default to the package constants; tests
+	// shorten them.
 	minBackoff time.Duration
 	maxBackoff time.Duration
 
@@ -166,10 +124,9 @@ type Client struct {
 }
 
 // NewClient validates the configuration and returns a Client that is not yet
-// connected. A bad address, a missing key or a missing instance ID is an error
-// here rather than a connection that quietly never works: all three are
-// permanent misconfigurations, and the settings page that produced them is
-// the only place they can be fixed.
+// connected. A bad address, key, instance id or frame key is an error here,
+// since each is a permanent misconfiguration that would otherwise show up as
+// a connection that never works or calls that all fail.
 func NewClient(opts ClientOptions) (*Client, error) {
 	connect, err := connectURL(opts.URL)
 	if err != nil {
@@ -181,11 +138,6 @@ func NewClient(opts ClientOptions) (*Client, error) {
 	if opts.Self.InstanceID == "" {
 		return nil, errors.New("relay: no instance id to announce")
 	}
-	// A wrong-length frame key is refused here rather than at the first proxy
-	// call. Both are permanent misconfigurations of the same kind as the two
-	// above, and this one would otherwise present as "the relay connects, the
-	// siblings appear, and every call to them fails" - the most expensive
-	// possible place to discover it.
 	if len(opts.FrameKey) != 32 {
 		return nil, fmt.Errorf("relay: frame key is %d bytes, want 32", len(opts.FrameKey))
 	}
@@ -205,13 +157,10 @@ func NewClient(opts ClientOptions) (*Client, error) {
 	}, nil
 }
 
-// Start connects in the background and keeps reconnecting for as long as the
-// Client lives. It returns immediately and never reports a dial failure:
-// there is nothing a caller could do with one that the reconnect loop is not
-// already doing. Calling it twice is a no-op, and calling it after Close does
-// nothing at all - the same shape schedule.Runner.Start already uses, and for
-// the same reason: a boot that fails between NewClient and Start still runs
-// the deferred Close.
+// Start connects in the background and keeps reconnecting until Close. It
+// returns at once and never reports a dial failure, since the loop already
+// retries. A second call does nothing, and so does a call after Close, so a
+// boot that fails between NewClient and Start can still run a deferred Close.
 func (c *Client) Start() {
 	c.startOnce.Do(func() {
 		c.mu.Lock()
@@ -226,8 +175,8 @@ func (c *Client) Start() {
 	})
 }
 
-// Close ends the connection and the reconnect loop, and waits for the loop to
-// finish so a caller can tear down whatever Serve talks to without racing it.
+// Close ends the connection and the reconnect loop and waits for the loop to
+// finish, so the caller can tear down whatever Serve talks to.
 func (c *Client) Close() error {
 	c.closeOnce.Do(func() { close(c.stop) })
 	c.mu.Lock()
@@ -242,24 +191,17 @@ func (c *Client) Close() error {
 	return nil
 }
 
-// Connected reports whether the relay connection is up right now. It is the
-// one honest answer to "is relay pairing working", which no list of siblings
-// can give: an empty list means either "the relay is down" or "you are the
-// only instance connected", and those are different things to tell a user.
+// Connected reports whether the relay connection is up. An empty sibling list
+// cannot tell "the relay is down" from "no other instance is connected".
 func (c *Client) Connected() bool {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	return c.conn != nil
 }
 
-// Siblings returns the instances currently visible through the relay, sorted
-// by instance ID. It is empty whenever the relay is unreachable, which is the
-// whole failure mode: no relay means no relay-visible peers, never an error
-// anybody has to handle.
-//
-// Sorted by ID rather than name because the ID is the only field the relay
-// guarantees is unique on a key - two instances that both defaulted their name
-// to the same hostname must still come out in a stable order.
+// Siblings returns the instances visible through the relay, sorted by instance
+// ID, which unlike the name is unique on a key. It is empty while the relay is
+// unreachable.
 func (c *Client) Siblings() []Announce {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -272,14 +214,12 @@ func (c *Client) Siblings() []Announce {
 }
 
 // Proxy calls one sibling's REST API through the relay and waits for its
-// answer, the same (method, path, body) -> (body, status, error) shape
-// federation.Manager.Proxy already speaks over direct HTTP.
+// answer, in the shape federation.Manager.Proxy uses over direct HTTP.
 //
-// An error means the call did not reach the sibling and produce an answer:
-// the relay is not connected, the sibling is not, or nobody replied in time.
-// A reply the sibling actually produced is returned as its own body and status
-// however bad that status is, exactly as the HTTP transport does, so a caller
-// can tell "your other instance said no" from "your other instance is gone".
+// An error means no answer came from the sibling: the relay or the sibling is
+// not connected, or nobody replied in time. A reply the sibling produced is
+// returned with its status however bad, so a caller can tell "your other
+// instance said no" from "your other instance is gone".
 func (c *Client) Proxy(ctx context.Context, target, method, path string, body []byte, authorization string) ([]byte, int, error) {
 	id, err := requestID()
 	if err != nil {
@@ -319,33 +259,23 @@ func (c *Client) Proxy(ctx context.Context, target, method, path string, body []
 	case <-ctx.Done():
 		return nil, http.StatusGatewayTimeout, fmt.Errorf("relay: %s did not answer: %w", target, ctx.Err())
 	case resp := <-answer:
-		// Error is set only when the relay answered instead of the target -
-		// "nobody is connected as that instance", or the connection died
-		// under this call. Both are failures of the transport, not answers
-		// from the peer, so they come back as errors.
-		//
-		// Read before Sealed, and it must stay that way: the relay writes
-		// Error in the clear because it holds no key, so this is the one
-		// field on a response a hostile relay can author. Answering the
-		// error first, and never treating an unsealed response as a result,
-		// is what keeps that limited to denial of service - see
-		// ProxyResponse.Error's own comment.
+		// Error is the one field a hostile relay can write, so it is checked
+		// before Sealed and an unsealed response is never taken as a result.
+		// That limits a relay to denial of service.
 		if resp.Error != "" {
 			return nil, http.StatusBadGateway, errors.New("relay: " + resp.Error)
 		}
 		result, err := OpenResult(c.frameKey, id, resp.Sealed)
 		if err != nil {
-			// The peer is on this key but its frames do not open under this
-			// secret, or something rewrote them in flight. Not a transport
-			// failure and not an answer, so it is neither reported as the
-			// peer being gone nor allowed to look like a reply.
+			// The peer holds a different secret, or the frame was rewritten
+			// in flight. Neither is a reply.
 			return nil, http.StatusBadGateway, fmt.Errorf("relay: %s answered unreadably: %w", target, err)
 		}
 		return result.Body, result.Status, nil
 	}
 }
 
-// run is the reconnect loop: one session at a time, forever, until Close.
+// run is the reconnect loop: one session at a time until Close.
 func (c *Client) run() {
 	defer close(c.done)
 	wait := c.minBackoff
@@ -369,7 +299,7 @@ func (c *Client) run() {
 	}
 }
 
-// sleep waits out one backoff, reporting false if Close happened first.
+// sleep waits out one backoff and reports false if Close came first.
 func (c *Client) sleep(d time.Duration) bool {
 	t := time.NewTimer(d)
 	defer t.Stop()
@@ -381,16 +311,12 @@ func (c *Client) sleep(d time.Duration) bool {
 	}
 }
 
-// session runs one connection from dial to death. It returns when the socket
-// is gone, whatever killed it - a failed dial, a rejected key, a dead link or
-// Close - because every one of those means the same thing to the loop above:
-// try again later.
+// session runs one connection from dial to death. Whatever ends it (a failed
+// dial, a rejected key, a dead link or Close), the loop tries again later.
 func (c *Client) session() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	// Close has to end a session that is currently blocked in Read, and Read
-	// only unblocks on its context. This goroutine ends with the session
-	// either way, so it cannot outlive the connection it is cancelling for.
+	// Read only unblocks on its context, so Close has to cancel it.
 	go func() {
 		select {
 		case <-c.stop:
@@ -408,18 +334,11 @@ func (c *Client) session() {
 	conn.SetReadLimit(readLimit)
 	defer func() { _ = conn.CloseNow() }()
 
-	// The hello carries both the key and this instance's announce, so the
-	// relay can introduce it to its siblings without ever re-broadcasting the
-	// key - see Hello's own doc comment. It goes out before the connection is
-	// published below, so nothing can try to proxy over a socket the relay
-	// has not yet accepted.
-	//
-	// c.self is the in-memory announce, with the name and deployment filled
-	// in; sealAnnounce is what decides which of it the relay is allowed to
-	// see, and this is the only place an announce leaves this process. A
-	// seal that fails is a broken frame key, which NewClient already refuses,
-	// so it can only mean the cipher itself failed - not something to paper
-	// over by falling back to the plaintext frame this change exists to stop.
+	// The hello goes out before the connection is published, so nothing
+	// proxies over a socket the relay has not accepted. This is the only place
+	// an announce leaves the process, and it is always sealed: NewClient has
+	// already checked the frame key, so a failure here is the cipher itself and
+	// never a reason to fall back to plaintext.
 	self, err := sealAnnounce(c.frameKey, c.self)
 	if err != nil {
 		log.Printf("relay: this instance's announce could not be sealed, not connecting: %v", err)
@@ -445,9 +364,9 @@ func (c *Client) session() {
 	}
 }
 
-// keepalive proves the link is still there, and tears the session down when it
-// is not. Ping waits for the pong, which the read loop in session is what
-// actually receives - so this only ever runs alongside a live reader.
+// keepalive pings the relay and closes the socket when a ping fails, which
+// ends the read loop and the session. Ping needs the reader in session to
+// receive the pong.
 func (c *Client) keepalive(ctx context.Context, conn *websocket.Conn) {
 	t := time.NewTicker(pingInterval)
 	defer t.Stop()
@@ -460,8 +379,6 @@ func (c *Client) keepalive(ctx context.Context, conn *websocket.Conn) {
 			err := conn.Ping(pingCtx)
 			cancel()
 			if err != nil {
-				// Closing here is what ends the read loop, which ends the
-				// session and hands the reconnect loop its turn.
 				_ = conn.CloseNow()
 				return
 			}
@@ -469,12 +386,9 @@ func (c *Client) keepalive(ctx context.Context, conn *websocket.Conn) {
 	}
 }
 
-// handle dispatches one frame the relay sent down.
-//
-// An unparseable or unknown frame is ignored rather than dropping the
-// connection, the same tolerance Server.Route already shows: a relay newer
-// than this build speaking a frame type it does not know must not cost the
-// instance its relay peers.
+// handle dispatches one frame the relay sent. Unparseable or unknown frames are
+// ignored, as in Server.Route, so a newer relay does not cost this instance
+// its peers.
 func (c *Client) handle(ctx context.Context, conn *websocket.Conn, frame []byte) {
 	env, err := Decode(frame)
 	if err != nil {
@@ -486,20 +400,14 @@ func (c *Client) handle(ctx context.Context, conn *websocket.Conn, frame []byte)
 		if env.Into(&a) != nil || a.InstanceID == "" {
 			return
 		}
-		// Opened here, at the boundary, so everything above Siblings() reads
-		// an announce with its fields filled and never has to know one of
-		// them arrived sealed. openAnnounce cannot fail - see its comment for
-		// the three cases and why an unopenable one is still listed.
 		c.mu.Lock()
 		c.siblings[a.InstanceID] = openAnnounce(c.frameKey, a)
 		c.mu.Unlock()
 		c.changed()
 	case TypePresence:
 		var p Presence
-		// Only an offline report means anything: an arrival is an Announce,
-		// which carries the name and deployment a bare presence flag could
-		// not, so an Online=true frame would tell this client to list a
-		// sibling it cannot name.
+		// Arrivals come as an Announce with the sibling's name, so only an
+		// offline report is acted on.
 		if env.Into(&p) != nil || p.InstanceID == "" || p.Online {
 			return
 		}
@@ -518,20 +426,16 @@ func (c *Client) handle(ctx context.Context, conn *websocket.Conn, frame []byte)
 		if env.Into(&req) != nil || req.RequestID == "" {
 			return
 		}
-		// Its own goroutine: answering means running a real API call, and the
-		// read loop has to stay free to receive the next frame - including the
-		// answer to a call this instance is itself waiting on.
+		// Answering runs a real API call, and the read loop has to stay free
+		// for the next frame, possibly the answer to a call of our own.
 		go c.answer(ctx, conn, req)
 	}
 }
 
-// answer runs one inbound call and sends the result back.
-//
-// A frame that will not open is dropped without a reply, deliberately. It
-// means the sender is on this relay key but does not hold this group's
-// secret, or something rewrote the frame in flight - neither is a peer owed
-// an answer, and an error reply would only confirm to whoever sent it that
-// their key was accepted while their secret was not.
+// answer runs one inbound call and sends the result back. A frame that does
+// not open is dropped without a reply: its sender is on this relay key without
+// this group's secret, or the frame was rewritten, and an error reply would
+// only confirm that the key was accepted.
 func (c *Client) answer(ctx context.Context, conn *websocket.Conn, req ProxyRequest) {
 	call, err := OpenCall(c.frameKey, req.RequestID, c.self.InstanceID, req.Sealed)
 	if err != nil {
@@ -555,8 +459,7 @@ func (c *Client) answer(ctx context.Context, conn *websocket.Conn, req ProxyRequ
 }
 
 // deliver hands a response to the Proxy call waiting on it. A response nobody
-// is waiting for is dropped: the caller already gave up, or the relay answered
-// a request this client never made.
+// waits for is dropped.
 func (c *Client) deliver(resp ProxyResponse) {
 	c.mu.Lock()
 	answer := c.pending[resp.RequestID]
@@ -575,11 +478,9 @@ func (c *Client) connected(conn *websocket.Conn) {
 	c.changed()
 }
 
-// disconnected forgets everything that was only true while the connection was
-// up: the sibling list, because a relay peer exists exactly as long as the
-// relay says so, and every call still in flight, which is failed at once
-// rather than left to time out - the caller can be told "the relay connection
-// dropped" now, and would learn nothing more by waiting.
+// disconnected clears the sibling list, since a relay peer exists only while
+// the relay says so, and fails every call in flight at once instead of letting
+// it time out.
 func (c *Client) disconnected() {
 	c.mu.Lock()
 	c.conn = nil
@@ -591,9 +492,6 @@ func (c *Client) disconnected() {
 	}
 	c.mu.Unlock()
 	for _, answer := range waiting {
-		// Error only, no sealed blob: Proxy reads Error first and never
-		// reaches OpenResult, and this is a local failure with no frame
-		// behind it to seal in the first place.
 		answer <- ProxyResponse{
 			Error: "the relay connection dropped before the answer arrived",
 		}
@@ -601,9 +499,8 @@ func (c *Client) disconnected() {
 	c.changed()
 }
 
-// changed notifies the caller that the sibling list is different now. Called
-// without the lock held, since the callback is somebody else's code and may
-// well call back into Siblings.
+// changed calls OnChange. It runs without the lock held, since the callback
+// may call back into Siblings.
 func (c *Client) changed() {
 	if c.onChange != nil {
 		c.onChange()
@@ -611,18 +508,16 @@ func (c *Client) changed() {
 }
 
 // writeFrameTo writes one frame under the caller's deadline, capped by
-// writeTimeout so no single write can outlast the ping that would have
-// declared the link dead.
+// writeTimeout.
 func writeFrameTo(ctx context.Context, conn *websocket.Conn, frame []byte) error {
 	ctx, cancel := context.WithTimeout(ctx, writeTimeout)
 	defer cancel()
 	return conn.Write(ctx, websocket.MessageText, frame)
 }
 
-// requestID is the token a response is matched back by. Random rather than a
-// counter: a reconnect restarts this client's own numbering, and a late answer
-// to a pre-reconnect request would then be delivered to whoever inherited that
-// number.
+// requestID is the token a response is matched back by. It is random rather
+// than a counter, which would restart on reconnect and deliver a late answer
+// to whoever inherited the number.
 func requestID() (string, error) {
 	raw := make([]byte, 16)
 	if _, err := rand.Read(raw); err != nil {
@@ -631,10 +526,8 @@ func requestID() (string, error) {
 	return hex.EncodeToString(raw), nil
 }
 
-// connectURL turns whatever address a person configured into the WebSocket URL
-// to dial. Both scheme families are accepted because both are things people
-// legitimately have written down: the https:// address they gave their reverse
-// proxy, and the wss:// URL a WebSocket client would normally be handed.
+// connectURL turns a configured address into the WebSocket URL to dial. It
+// accepts both the https:// address given to a reverse proxy and a wss:// URL.
 func connectURL(raw string) (string, error) {
 	u, err := url.Parse(strings.TrimSpace(raw))
 	if err != nil || u.Host == "" {
@@ -649,8 +542,8 @@ func connectURL(raw string) (string, error) {
 	default:
 		return "", fmt.Errorf("relay: %q must be an http(s) or ws(s) address", raw)
 	}
-	// A path that was typed stays: a relay behind a reverse proxy can be
-	// mounted anywhere, and only the caller knows where.
+	// A typed path stays, since a relay behind a reverse proxy can be mounted
+	// anywhere.
 	if u.Path == "" || u.Path == "/" {
 		u.Path = connectPath
 	}

@@ -1,32 +1,22 @@
 // Package proxycfg models JDownloader's Connection Manager: a user-ordered list
 // of outbound connections that downloads are spread across. It owns the list,
-// the rules for what a usable entry looks like, and a picker that hands the next
-// connection to whoever is about to start a download.
+// the rules for a usable entry, and a picker that hands out the next
+// connection for a download.
 //
-// Nothing here carries a download. The one function that opens a socket at all
-// is Probe in probe.go, which exists so the connection page can answer "does
-// this proxy work" with something better than a saved row and a shrug; it speaks
-// just enough of each protocol to find out and then hangs up.
+// Nothing here carries a download. Only Probe (probe.go) opens a socket, to
+// tell the connection page whether a proxy works.
 //
-// "none" and "direct" are not the same thing, and confusing them makes the whole
-// feature behave backwards:
+// "none" and "direct" are different:
 //
-//	none   - the entry is inert. It is a row in the user's list that names no
-//	         connection at all, so the picker never returns it. As far as
-//	         downloads are concerned a none entry and a deleted entry are the
-//	         same; the row survives only so a save does not silently delete
-//	         something the user is still editing.
-//	direct - the entry is a real choice: go out over the machine's own
-//	         connection, deliberately bypassing every proxy. This is how a user
-//	         excludes their NAS from a whole-app proxy. A direct entry whose host
-//	         filter is "nas.local" claims that host, and the proxy no longer gets
-//	         a say in it.
+//	none:   an inert row that names no connection; the picker never returns
+//	        it. It is kept so a save does not delete a row still being edited.
+//	direct: a real choice to go out over the machine's own connection,
+//	        bypassing every proxy. A direct entry filtered to "nas.local"
+//	        keeps that host off a whole-app proxy.
 //
-// That last sentence is the general rule: an entry whose filter matches the
-// target host is preferred over an entry with no filter at all. Without the
-// preference a catch-all proxy would keep taking its turn on a host the user
-// explicitly pointed somewhere else, which is precisely the exclusion the direct
-// entry was added to express.
+// In general an entry whose filter matches the target host is preferred over
+// an entry with no filter, or a catch-all proxy would still take its turn on
+// a host the user routed elsewhere.
 package proxycfg
 
 import (
@@ -40,14 +30,13 @@ import (
 	"strings"
 )
 
-// Kind is the transport an entry uses. It is a string and not an integer
-// because it is persisted in settings.json, where somebody eventually reads it
-// by hand.
+// Kind is the transport an entry uses. It is a string because settings.json is
+// read by hand.
 type Kind string
 
 const (
 	KindNone    Kind = "none"   // inert row: never picked
-	KindDirect  Kind = "direct" // deliberately unproxied
+	KindDirect  Kind = "direct" // unproxied
 	KindHTTP    Kind = "http"
 	KindHTTPS   Kind = "https"
 	KindSOCKS4  Kind = "socks4"
@@ -55,98 +44,70 @@ const (
 	KindSOCKS5  Kind = "socks5"
 )
 
-// maxDownloadsCap mirrors the cap settings puts on global concurrency. A
-// per-connection limit larger than anything the app will ever run at once is not
-// a limit, it is a number that reads like one.
+// maxDownloadsCap mirrors the cap settings puts on global concurrency; a
+// larger per-connection limit could never take effect.
 const maxDownloadsCap = 64
 
-// DirectID is the identity of the direct gateway: the machine's own connection,
-// offered in the same list as the configured rows so that "no proxy" is a choice
-// somebody makes rather than the absence of one.
+// DirectID is the identity of the direct gateway: the machine's own
+// connection, offered in the same list as the configured rows. Tasks and
+// columns name connections by id, and an empty id could not tell "not routed
+// yet" from "chosen to go out unproxied".
 //
-// It has to be an id and not an empty string, because a task names the
-// connection that carries it by id and a column shows it by id. With no
-// identity, "nothing was decided yet" and "decided: go out unproxied" are the
-// same value, and the list cannot tell a link nobody has routed from one
-// deliberately kept off every proxy.
-//
-// A word rather than a number, because identify hands rows the lowest free
-// DECIMAL id and therefore can never mint this one - and it seeds the reserved
-// set with it besides, so a client that posts a row claiming "direct" is
-// renumbered instead of shadowing the gateway.
+// identify only hands out decimal ids and reserves this one, so a posted row
+// claiming "direct" is renumbered instead of shadowing the gateway.
 const DirectID = "direct"
 
 // Entry is one outbound connection in the user's list.
 type Entry struct {
-	// ID keys the in-flight counter Pick consults and is what an edited row is
-	// matched against on save. Sanitize fills in a missing or duplicated one, so
-	// no caller has to invent it.
+	// ID keys the in-flight counter Pick consults and matches an edited row on
+	// save. Sanitize fills in a missing or duplicated one.
 	ID   string `json:"id"`
 	Kind Kind   `json:"type"`
 	Host string `json:"host,omitempty"`
 	Port int    `json:"port,omitempty"`
 
-	// Username and Password are the proxy's own credentials, not a hoster
-	// account. The password is persisted in the clear, the way the rest of
-	// settings.json is, and must go through Redacted before it leaves the
-	// process.
-	//
-	// String keeps it out of every verb that consults a Stringer, %v and %q
-	// included, so an entry logged by accident does not spill it. The two verbs
-	// that walk the struct by reflection instead - %#v, and anything built on
-	// reflect - still show it, so those stay out of log lines.
+	// Username and Password are the proxy's own credentials. The password is
+	// stored in the clear like the rest of settings.json and must go through
+	// Redacted before it leaves the process. String omits it, so %v and %q are
+	// safe; %#v and other reflection still show it.
 	Username string `json:"username,omitempty"`
 	Password string `json:"password,omitempty"`
 
-	// HasPassword says that a password is stored for this entry without saying
-	// what it is. It exists because a redacted entry and an entry with no
-	// password at all are otherwise the same bytes on the wire, and a form that
-	// cannot tell them apart shows an empty password box for a working proxy —
-	// so the user concludes the password was lost and types it again, which is
-	// exactly the retyping the redact-and-merge machinery exists to avoid.
-	//
-	// It is derived, never stored: clean clears it on the way in, Redacted sets
-	// it on the way out, and omitempty keeps it out of settings.json entirely. A
-	// client cannot set it, which matters because a true one arriving from a
-	// client would be a claim about the server's own state.
+	// HasPassword says a password is stored without revealing it, so the form
+	// can tell a redacted entry from one with no password and the user does
+	// not retype it. It is derived: clean clears it on the way in, Redacted
+	// sets it on the way out, and a client cannot set it.
 	HasPassword bool `json:"hasPassword,omitempty"`
 
-	// Enabled is the user's on/off switch. It is deliberately separate from
-	// KindNone: switching a proxy off for an evening must not throw its host and
-	// credentials away.
+	// Enabled is the user's on/off switch, separate from KindNone so switching
+	// a proxy off keeps its host and credentials.
 	Enabled bool `json:"enabled"`
 	// Order is the position in the list, which is the order Pick walks.
 	Order int `json:"order"`
-	// Filter restricts the entry to the hosters it names. Empty means the entry
-	// is a catch-all, which is weaker than a filter that matches: see the
-	// package comment.
+	// Filter restricts the entry to the hosts it names. Empty makes it a
+	// catch-all, which ranks below a matching filter.
 	Filter []string `json:"filter,omitempty"`
 	// MaxDownloads caps how many downloads may share this entry at once. Zero
 	// means the picker's default.
 	MaxDownloads int `json:"maxDownloads,omitempty"`
 }
 
-// Direct is the direct gateway: an ordinary, unproxied download. It is both the
-// answer when no configured entry claims a host and a connection a task may name
-// outright, which is why it carries DirectID rather than a blank one.
-//
-// It is deliberately not a member of the list the picker walks. A gateway seated
-// in the rotation would be an unfiltered catch-all in every configuration, so
-// every list would quietly send a share of its downloads out unproxied - which
-// is the one thing a list of proxies exists to stop.
+// Direct is the direct gateway: an ordinary, unproxied download. It is the
+// answer when no entry claims a host and a connection a task may name
+// outright. It is not in the picker's rotation, where it would act as an
+// unfiltered catch-all and send a share of every list's downloads out
+// unproxied.
 func Direct() Entry {
 	return Entry{ID: DirectID, Kind: KindDirect, Enabled: true}
 }
 
-// isGateway separates the built-in direct gateway from a direct row the user
-// configured. Both have KindDirect and both bypass every proxy; only the row has
-// a filter, a place in the rotation and a limit of its own.
+// isGateway tells the built-in direct gateway from a direct row the user
+// configured, which has a filter, a place in the rotation and its own limit.
 func (e Entry) isGateway() bool { return e.ID == DirectID }
 
-// kindOf folds whatever is in the file into a known Kind. The empty string
-// becomes none, because a row the user added and never filled in is inert rather
-// than invalid, and dropping it would delete it out from under them on the very
-// next save.
+// kindOf folds whatever is in the file into a known Kind. An empty kind is
+// none: a row added and never filled in is inert, and dropping it would
+// delete it on the next save.
 func kindOf(k Kind) (Kind, bool) {
 	switch out := Kind(strings.ToLower(strings.TrimSpace(string(k)))); out {
 	case "":
@@ -158,17 +119,14 @@ func kindOf(k Kind) (Kind, bool) {
 	}
 }
 
-// usable reports whether the picker may ever return e. Sanitize has already
-// guaranteed the kind is one we know, so this is only the two switches the user
-// controls.
+// usable reports whether the picker may ever return e.
 func (e Entry) usable() bool {
 	return e.Enabled && e.Kind != KindNone
 }
 
 // scheme is the URL scheme for e, or "" for the kinds that are not a proxy.
-// socks5 is spelled without the trailing h because that is the spelling every
-// version of net/http and x/net/proxy accepts; both hand the host name to the
-// proxy and let it resolve, which is the behaviour the socks5h spelling names.
+// "socks5" rather than "socks5h" because every version of net/http and
+// x/net/proxy accepts it, and both let the proxy resolve the host anyway.
 func (e Entry) scheme() string {
 	switch e.Kind {
 	case KindHTTP, KindHTTPS, KindSOCKS4, KindSOCKS4A, KindSOCKS5:
@@ -177,30 +135,22 @@ func (e Entry) scheme() string {
 	return ""
 }
 
-// URL builds the proxy URL for e, ready for http.Transport.Proxy (via
-// http.ProxyURL) and for a SOCKS dialer built with x/net/proxy.FromURL.
-//
-// It returns nil for none and direct, which is exactly what Transport.Proxy
-// wants back when a request must go out unproxied. Host and port are used as
-// they are: only an entry that passed Validate has both, and the picker never
-// hands out one that did not.
-//
-// Log the Entry, never this URL - url.URL.String prints the password in full.
+// URL builds the proxy URL for e, for http.ProxyURL or x/net/proxy.FromURL.
+// It returns nil for none and direct, which is what Transport.Proxy expects
+// for an unproxied request. Log the Entry, never this URL: url.URL.String
+// prints the password.
 func (e Entry) URL() *url.URL {
 	scheme := e.scheme()
 	if scheme == "" {
 		return nil
 	}
-	// JoinHostPort brackets an IPv6 literal; without it url.URL would read the
-	// address's own colons as a port separator and the proxy would come out as a
-	// different machine entirely.
+	// JoinHostPort brackets an IPv6 literal, whose colons url.URL would
+	// otherwise read as a port.
 	u := &url.URL{Scheme: scheme, Host: net.JoinHostPort(e.Host, strconv.Itoa(e.Port))}
 	switch {
 	case e.Username == "":
 	case e.Kind == KindSOCKS4 || e.Kind == KindSOCKS4A:
-		// SOCKS4 carries a user id and has no password field at all, so a
-		// password here could never be sent. Leaving it out keeps it from being
-		// written into a URL that somebody logs.
+		// SOCKS4 has no password field, so the password stays out of the URL.
 		u.User = url.User(e.Username)
 	case e.Password == "":
 		u.User = url.User(e.Username)
@@ -210,30 +160,20 @@ func (e Entry) URL() *url.URL {
 	return u
 }
 
-// NeedsOwnDialer reports whether the caller has to carry the connection itself.
-// net/http understands http, https and socks5 proxy URLs and drives them from
-// Transport.Proxy; it has never understood socks4, and neither does
-// x/net/proxy, so an entry of that kind needs a dialer the caller supplies.
-// Handing its URL to Transport.Proxy would fail every request instead.
+// NeedsOwnDialer reports whether the caller has to carry the connection
+// itself. Neither net/http nor x/net/proxy speaks SOCKS4, so such an entry
+// needs a dialer the caller supplies.
 func (e Entry) NeedsOwnDialer() bool {
 	return e.Kind == KindSOCKS4 || e.Kind == KindSOCKS4A
 }
 
-// Matches reports whether e's host filter covers host. An entry with no filter
-// matches everything.
+// Matches reports whether e's host filter covers host. An entry with no
+// filter matches everything.
 //
-// A pattern without a wildcard covers the domain and everything under it, so
-// "example.org" is enough for "dl2.example.org" and nobody has to guess a
-// hoster's CDN names. A pattern with a wildcard goes through path.Match; host
-// names contain no slashes, so that function's one special case never applies
-// here.
-//
-// Both sides are folded here rather than only in Sanitize. This method is
-// exported and most callers hold an entry that came straight out of settings.json
-// or off an API request, and a filter typed as "Example.ORG " that silently
-// matched nothing would be indistinguishable from a filter that was never saved.
-// The lists are a handful of patterns and a pick happens once per download, so
-// folding per call costs nothing worth a second code path.
+// A plain pattern covers the domain and everything under it, so "example.org"
+// matches "dl2.example.org" without guessing CDN names. A wildcard pattern
+// goes through path.Match. Both sides are folded here because callers often
+// hold an entry that has not been through Sanitize.
 func (e Entry) Matches(host string) bool {
 	if len(e.Filter) == 0 {
 		return true
@@ -259,21 +199,15 @@ func matchPattern(pattern, host string) bool {
 	}
 	if hasWildcard(pattern) {
 		ok, err := path.Match(pattern, host)
-		// Validate refuses a pattern this cannot parse, so reaching here means an
-		// entry that never went through it. It still matches nothing rather than
-		// everything: a filter the user mistyped must not silently widen to the
-		// whole internet and send every download through one proxy.
+		// Validate refuses unparseable patterns; one that slipped past matches
+		// nothing rather than everything.
 		return err == nil && ok
 	}
 	return host == pattern || strings.HasSuffix(host, "."+pattern)
 }
 
-// clone returns e with a copy of its filter. Entry is a value everywhere else,
-// but the filter is a slice, so handing the same backing array to a caller and
-// to a live Picker means a caller that edits what it was given re-points the
-// picker's own filter - from another goroutine, and without any write the
-// picker can see. The entry then stops claiming the host it was written for and
-// the download quietly leaves over the connection the filter existed to avoid.
+// clone returns e with its own copy of the filter, so a caller editing what
+// it was given cannot change a live Picker's filter from another goroutine.
 func (e Entry) clone() Entry {
 	if len(e.Filter) > 0 {
 		e.Filter = append([]string(nil), e.Filter...)
@@ -281,21 +215,18 @@ func (e Entry) clone() Entry {
 	return e
 }
 
-// normalizeHost folds a host into the single form filters are compared in.
-// Callers hand us whatever they have - app.go passes a bare host name, but an
-// "example.org:443" from anywhere else would otherwise match no filter at all
-// and route that download around the proxy the user picked for it.
+// normalizeHost folds a host into the form filters are compared in. A caller
+// passing "example.org:443" would otherwise match no filter and bypass the
+// proxy chosen for it.
 func normalizeHost(h string) string {
 	h = strings.ToLower(strings.TrimSpace(h))
-	// SplitHostPort only succeeds on a real host:port pair; a bare IPv6 literal
-	// has too many colons for it and is left alone.
+	// SplitHostPort fails on a bare IPv6 literal, which is left alone.
 	if host, _, err := net.SplitHostPort(h); err == nil {
 		h = host
 	}
 	if strings.HasPrefix(h, "[") && strings.HasSuffix(h, "]") {
-		// Unwrap a bracketed address only when it really is one, so a filter
-		// pattern that happens to open with a character class is not mangled
-		// into something that matches other hosts.
+		// Only a real bracketed address is unwrapped, not a pattern that
+		// starts with a character class.
 		if inner := h[1 : len(h)-1]; net.ParseIP(inner) != nil {
 			h = inner
 		}
@@ -304,14 +235,10 @@ func normalizeHost(h string) string {
 	return strings.TrimSuffix(h, ".")
 }
 
-// String describes the entry for a log line or an error message. The password is
-// not masked here, it is never assembled into the string at all: this type ends
-// up behind %v in more places than anyone tracks, and a mask that depends on
-// every call site remembering to ask for Redacted first is not a guarantee.
+// String describes the entry for a log line or an error message. The password
+// is never part of it, since entries end up behind %v in many places.
 func (e Entry) String() string {
-	// The folded kind, because an entry is logged just as often before Sanitize
-	// has run as after, and a log line reading " HTTP ://proxy.lan:8080" sends
-	// whoever is reading it looking for a bug that is not there.
+	// The folded kind, since entries are logged before Sanitize too.
 	k, _ := kindOf(e.Kind)
 	switch k {
 	case KindNone, KindDirect:
@@ -328,14 +255,10 @@ func (e Entry) String() string {
 	return b.String()
 }
 
-// Redacted returns a copy of e with the password removed: for a log line, for an
-// error and above all for the API, because a settings page that ships every
-// proxy password to every client is a leak nobody notices until it is in a
-// screenshot.
-//
-// The password is dropped, not masked, so a client that posts the list straight
-// back would clear it. Merge is what puts it back, and HasPassword is how the
-// client knows there is something to put back.
+// Redacted returns a copy of e with the password removed, for logs, errors and
+// above all the API. The password is dropped rather than masked; Merge puts it
+// back when the list is posted again, and HasPassword tells the client there
+// is one.
 func (e Entry) Redacted() Entry {
 	e.HasPassword = e.Password != ""
 	e.Password = ""
@@ -343,21 +266,20 @@ func (e Entry) Redacted() Entry {
 }
 
 // Validate reports why an entry cannot be used. Sanitize drops whatever this
-// rejects, so the API should call it first and refuse the save with the reason:
-// a row that vanishes on save is the same class of bug as a download folder that
-// silently reverts, except the user blames the proxy for it weeks later.
+// rejects, so the API should call it first and refuse the save with the
+// reason instead of letting the row vanish.
 func Validate(e Entry) error {
 	k, ok := kindOf(e.Kind)
 	if !ok {
 		return fmt.Errorf("proxycfg: %q is not a connection type", string(e.Kind))
 	}
-	// The filter is checked for every kind, because it is the only field a direct
-	// entry has and the whole reason that kind exists.
+	// The filter is checked for every kind; it is the only field a direct
+	// entry has.
 	if err := checkFilter(e.Filter); err != nil {
 		return err
 	}
 	if k == KindNone || k == KindDirect {
-		return nil // neither names an endpoint, so there is nothing else to check
+		return nil // neither names an endpoint
 	}
 	host := normalizeHost(e.Host)
 	if host == "" {
@@ -372,10 +294,9 @@ func Validate(e Entry) error {
 	return nil
 }
 
-// checkHost refuses anything that would not survive being put into a URL. The
-// case it is really about is a pasted "http://proxy.lan:8080/" in the host
-// field: url.URL would carry the scheme and the path along, and the proxy that
-// came out would point somewhere the user never typed.
+// checkHost refuses anything that would not survive being put into a URL,
+// such as a pasted "http://proxy.lan:8080/", whose scheme and path would
+// otherwise point the proxy somewhere else.
 func checkHost(host string) error {
 	if len(host) > 255 {
 		return errors.New("proxycfg: host is too long")
@@ -383,38 +304,30 @@ func checkHost(host string) error {
 	if strings.ContainsAny(host, " \t\r\n/\\@?#%") {
 		return fmt.Errorf("proxycfg: %q is not a host name or address", host)
 	}
-	// A colon that survived normalisation is either a second port or an IPv6
-	// literal, and only the literal is a host.
+	// A colon left after normalisation is a host only in an IPv6 literal.
 	if strings.Contains(host, ":") && net.ParseIP(host) == nil {
 		return fmt.Errorf("proxycfg: %q is not a host name or address", host)
 	}
 	return nil
 }
 
-// checkFilter refuses a pattern that could never match anything, because a
-// filter that silently matches nothing is worse than no filter at all: the entry
-// stops claiming the host the user pointed it at, the picker finds nothing that
-// claims that host and answers with a plain download, and the traffic the filter
-// was written to route goes out unproxied with nothing anywhere to say so.
+// checkFilter refuses a pattern that could never match. Such a filter would
+// stop the entry claiming its host, and the traffic would go out unproxied
+// without a word.
 //
-// Two shapes turn up in practice. A mistyped wildcard ("[oops") is not a pattern
-// path.Match can parse at all. A whole URL pasted into the filter box
-// ("http://example.org") is worse, because normalizeHost reads its "http:" as a
-// host and a port and folds it to the pattern "http", which is a perfectly valid
-// pattern that matches no hoster on earth. That is why this works on what the
-// user typed rather than on the folded form: by then the evidence is gone.
+// It works on what the user typed, not the folded form: normalizeHost folds a
+// pasted "http://example.org" into the valid but useless pattern "http".
 func checkFilter(patterns []string) error {
 	for _, raw := range patterns {
 		p := strings.ToLower(strings.TrimSpace(raw))
 		if p == "" {
-			continue // cleanFilter drops blanks; an empty row is not an opinion
+			continue // cleanFilter drops blanks
 		}
 		if len(p) > 255 {
 			return fmt.Errorf("proxycfg: host filter %q is too long", raw)
 		}
-		// A wildcard filter may legitimately contain * ? [ ], so checkHost's rules
-		// cannot simply be reused; everything listed here is a character no host
-		// name and no glob over one ever holds.
+		// Characters no host name or glob over one ever holds; checkHost's
+		// rules do not fit, since globs use * ? [ ].
 		if strings.ContainsAny(p, " \t\r\n/\\@#%") {
 			return fmt.Errorf("proxycfg: host filter %q is not a host name or pattern", raw)
 		}
@@ -424,9 +337,8 @@ func checkFilter(patterns []string) error {
 			}
 			continue
 		}
-		// A port is folded away rather than refused, so only what is left after
-		// that has to be a host: same reasoning as checkHost, a surviving colon is
-		// a host only when the whole thing is an IPv6 literal.
+		// A port is folded away; a colon left after that must be an IPv6
+		// literal.
 		if h := normalizeHost(p); strings.Contains(h, ":") && net.ParseIP(h) == nil {
 			return fmt.Errorf("proxycfg: host filter %q is not a host name or pattern", raw)
 		}
@@ -434,25 +346,17 @@ func checkFilter(patterns []string) error {
 	return nil
 }
 
-// Sanitize returns the entries that can actually be used, in list order, with
-// the fields that cannot mean anything for their kind cleared, and with every
-// entry carrying an ID and a compact order index.
+// Sanitize returns the usable entries in list order, with fields meaningless
+// for their kind cleared and every entry given an ID and a compact order
+// index. It is idempotent.
 //
-// Unusable entries are dropped whole rather than repaired. A proxy row with no
-// host or no port is not "a proxy missing a detail": kept and enabled it would
-// either fail every download routed through it or, worse, be read as no proxy at
-// all and send that traffic out over the connection the user was hiding.
-//
-// It is idempotent, so a caller that is unsure whether a list has been through
-// it can simply call it again.
+// Unusable entries are dropped, not repaired: an enabled proxy row without a
+// host or port would fail every download or be read as no proxy at all.
 func Sanitize(in []Entry) []Entry {
 	out := make([]Entry, 0, len(in))
 	for _, e := range in {
-		// Judged before it is folded, and on exactly what the API judges, so the
-		// two can never disagree about a row. The order matters: folding a filter
-		// turns a pasted "http://example.org" into the innocent-looking pattern
-		// "http", so a check that ran afterwards would keep the very row the API
-		// had just refused.
+		// Judged before folding, exactly as the API judges it, since folding
+		// turns a pasted URL filter into a harmless-looking pattern.
 		if Validate(e) != nil {
 			continue
 		}
@@ -461,8 +365,7 @@ func Sanitize(in []Entry) []Entry {
 	if len(out) == 0 {
 		return nil
 	}
-	// Stable, so two entries the user left on the same order index keep the
-	// sequence they were written in instead of swapping about between saves.
+	// Stable, so entries sharing an order index keep their written sequence.
 	sort.SliceStable(out, func(i, j int) bool { return out[i].Order < out[j].Order })
 	identify(out)
 	return out
@@ -475,9 +378,8 @@ func clean(e Entry) Entry {
 		e.Kind = k
 	}
 	e.ID = strings.TrimSpace(e.ID)
-	// Cleared unconditionally, because it is a statement about what the server
-	// holds and this is the path a client's own bytes come down. Redacted sets it
-	// again on the way out, from the password that is actually there.
+	// A client cannot claim a stored password; Redacted sets this on the way
+	// out.
 	e.HasPassword = false
 	e.Host = normalizeHost(e.Host)
 	e.Username = strings.TrimSpace(e.Username)
@@ -490,29 +392,23 @@ func clean(e Entry) Entry {
 	}
 	switch e.Kind {
 	case KindNone, KindDirect:
-		// Neither kind connects to anywhere, so an endpoint left behind from
-		// when the row was a proxy is not configuration, it is a trap for
-		// whoever reads the file next. The filter stays: on a direct entry it is
-		// the entire point.
+		// Neither connects anywhere, so a leftover endpoint is cleared. The
+		// filter stays; on a direct entry it is the point.
 		e.Host, e.Port, e.Username, e.Password = "", 0, "", ""
 	case KindSOCKS4, KindSOCKS4A:
-		// SOCKS4 has a user id field and no password field, so keeping one would
-		// persist a secret that can never be sent anywhere.
+		// SOCKS4 has no password field, so the password could never be sent.
 		e.Password = ""
 	}
-	// A password with no user name to send it as cannot be used by any of these
-	// protocols. The password itself is never trimmed: leading and trailing
-	// spaces are legal in one, and eating them would lock the user out of a
-	// proxy that works everywhere else.
+	// No protocol here sends a password without a user name. The password is
+	// never trimmed, since spaces are legal in it.
 	if e.Username == "" {
 		e.Password = ""
 	}
 	return e
 }
 
-// cleanFilter drops blanks and duplicates and folds every pattern into the form
-// Matches compares against, so a filter typed as "Example.ORG " is not a filter
-// that quietly never matches anything.
+// cleanFilter drops blanks and duplicates and folds every pattern into the
+// form Matches compares against.
 func cleanFilter(in []string) []string {
 	var out []string
 	seen := make(map[string]bool, len(in))
@@ -529,19 +425,14 @@ func cleanFilter(in []string) []string {
 
 // identify gives every entry an ID and renumbers the order.
 //
-// The first entry to claim an ID keeps it, so an ID the API already handed to a
-// client survives an edit anywhere else in the list; anything blank or claimed
-// twice takes the lowest free number. Renumbering the order matters because a UI
-// that reorders by drag and drop writes the whole list back and does not always
-// renumber it: left alone, two entries sharing an order index would be walked in
-// whatever sequence the sort happened to leave them in, not the one the user is
-// looking at.
+// The first entry to claim an ID keeps it, so IDs already handed to a client
+// survive; blank or duplicate IDs get the lowest free number. The order is
+// renumbered because a drag-and-drop UI writes the list back without always
+// renumbering it.
 func identify(out []Entry) {
 	taken := make(map[string]bool, len(out)+1)
-	// The gateway's id is spoken for before any row can claim it. A row that
-	// arrives holding it is renumbered rather than refused: it would otherwise
-	// shadow the direct gateway everywhere a connection is named by id, and a task
-	// pinned to "direct" would start going out over whatever that row points at.
+	// Reserved, so a row cannot shadow the direct gateway and take over tasks
+	// pinned to it.
 	taken[DirectID] = true
 	keep := make([]bool, len(out))
 	for i := range out {
@@ -563,21 +454,13 @@ func identify(out []Entry) {
 	}
 }
 
-// Merge carries the passwords of prev into next for the entries that came back
-// without one.
+// Merge carries the passwords of prev into the entries of next that came back
+// without one, since Redacted strips them before the list reaches the client.
 //
-// Redacted strips the password before the list leaves the process, so a settings
-// page that reads the list, flips one checkbox and posts it back would otherwise
-// clear every proxy password on the way through.
-//
-// A password is carried over only while the row still describes the same
-// connection with the same credentials: same kind, same host, same port, same
-// user name. Anything else and it is dropped, for two reasons. A changed user
-// name plainly means different credentials, so clearing the user name is also
-// how a password is cleared. And the client posting this back is the one the
-// password was withheld from: if a changed host kept it, that client could aim a
-// secret it was never allowed to read at a machine it controls and have the app
-// send it there on the next download.
+// A password is carried over only while kind, host, port and user name are
+// unchanged. Clearing the user name is how a password is cleared, and a
+// client that never saw the password must not be able to point it at a host
+// it controls.
 //
 // Call it before Sanitize: it matches on the IDs the previous Sanitize handed
 // out.
@@ -604,10 +487,9 @@ func Merge(next, prev []Entry) []Entry {
 	return out
 }
 
-// sameConnection reports whether two versions of a row still point at the same
-// place with the same credentials. Both sides are folded first because prev has
-// been through Sanitize and next has not: a user name the client sent back with
-// its spaces intact is the same user name.
+// sameConnection reports whether two versions of a row point at the same place
+// with the same credentials. Both are folded, since next has not been through
+// Sanitize yet.
 func sameConnection(a, b Entry) bool {
 	ak, _ := kindOf(a.Kind)
 	bk, _ := kindOf(b.Kind)

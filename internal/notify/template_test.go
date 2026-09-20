@@ -9,9 +9,9 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/script"
 )
 
-// awkwardName is the file name this whole escaping design exists for: a quote
-// breaks a JSON body, a newline fails a header outright, and an ampersand
-// starts a query parameter nobody wrote.
+// awkwardName is the file name the escaping exists for: a quote breaks a JSON
+// body, a newline fails a header outright, and an ampersand starts a query
+// parameter nobody wrote.
 const awkwardName = "Der \"Direktor\"\n1080p & more.mkv"
 
 func firingWithTask(name string) script.Firing {
@@ -24,15 +24,14 @@ func firingWithTask(name string) script.Firing {
 }
 
 func TestExpandKeepsAnUnknownNameAndEmptiesAKnownOne(t *testing.T) {
-	// A reconnect firing carries no task, so %%task.name%% is KNOWN and absent.
+	// A reconnect firing carries no task, so %%task.name%% is known and absent.
 	f := script.Firing{Trigger: script.TriggerReconnectDone, At: time.Now(), Reconnect: &script.ReconnectView{OK: true}}
 
 	if got := Expand("[%%task.name%%]", SlotBodyPlain, f, ""); got != "[]" {
-		t.Errorf("a known placeholder this trigger does not carry expanded to %q, want empty; "+
-			"otherwise a reconnect target sends the literal text %%%%task.name%%%% to somebody's phone", got)
+		t.Errorf("a known placeholder this trigger does not carry expanded to %q, want empty", got)
 	}
 	if got := Expand("[%%task.nmae%%]", SlotBodyPlain, f, ""); got != "[%%task.nmae%%]" {
-		t.Errorf("a typo expanded to %q, want it left standing so it can be seen and fixed", got)
+		t.Errorf("a typo expanded to %q, want it left standing", got)
 	}
 }
 
@@ -48,7 +47,7 @@ func TestExpandMatchesNamesLooselyTheWayReconnectDoes(t *testing.T) {
 func TestExpandEscapesForTheSlotItIsGoingInto(t *testing.T) {
 	f := firingWithTask(awkwardName)
 
-	// JSON: the document has to survive, which is trap 6 in one line.
+	// JSON: the document has to survive a quote in the file name.
 	body := Expand(`{"message":"%%task.name%%"}`, SlotBodyJSON, f, "")
 	var decoded struct {
 		Message string `json:"message"`
@@ -60,8 +59,8 @@ func TestExpandEscapesForTheSlotItIsGoingInto(t *testing.T) {
 		t.Errorf("the decoded message is %q, want the file name back unchanged", decoded.Message)
 	}
 
-	// Header: net/http refuses a value with a newline in it at write time, so
-	// the message would never go and the error would name nothing recognisable.
+	// Header: net/http refuses a value with a newline at write time, so the
+	// message would never go and the error would name nothing recognisable.
 	header := Expand("%%task.name%%", SlotHeader, f, "")
 	if strings.ContainsAny(header, "\r\n") {
 		t.Errorf("the header value still carries a line break: %q", header)
@@ -83,9 +82,8 @@ func TestExpandEscapesForTheSlotItIsGoingInto(t *testing.T) {
 }
 
 func TestExpandLeavesTheOperatorsOwnPunctuationAlone(t *testing.T) {
-	// Only the VALUE is escaped. The braces and quotes around it are the
-	// document the operator wrote by hand, and escaping those would break the
-	// only part of the body they are responsible for.
+	// Only the value is escaped. The braces and quotes around it are the
+	// document the operator wrote by hand.
 	f := firingWithTask("plain.mkv")
 	got := Expand(`{"message":"%%task.name%%","priority":5}`, SlotBodyJSON, f, "")
 	if got != `{"message":"plain.mkv","priority":5}` {
@@ -113,7 +111,7 @@ func TestBodySlotComesFromTheRowsOwnContentType(t *testing.T) {
 func TestExpandBodyIsEmptyForAGet(t *testing.T) {
 	f := firingWithTask("x.mkv")
 	if got := ExpandBody(Target{Method: MethodGET, Body: "%%task.name%%"}, f, ""); got != "" {
-		t.Errorf("a GET carried a body (%q); most servers and every proxy in between treat that differently", got)
+		t.Errorf("a GET carried a body: %q", got)
 	}
 }
 
@@ -121,8 +119,7 @@ func TestExpandHeadersLeavesTheNameAlone(t *testing.T) {
 	f := firingWithTask("x.mkv")
 	out := ExpandHeaders(map[string]string{"X-%%task.name%%": "%%task.name%%"}, f, "")
 	if _, ok := out["X-%%task.name%%"]; !ok {
-		t.Errorf("the header NAME was expanded; the name in the row has to be the name on the wire, "+
-			"or Merge's \"same header name\" rule means nothing: %v", out)
+		t.Errorf("the header name was expanded, so Merge's \"same header name\" rule means nothing: %v", out)
 	}
 }
 
@@ -132,10 +129,8 @@ func TestPlaceholdersAndTheExpanderCannotDrift(t *testing.T) {
 		if p.Name == "" || p.Scope == "" {
 			t.Errorf("placeholder %+v has no name or no scope", p)
 		}
-		// Every name the picker offers has to be one the expander fills in. The
-		// sample firing carries every payload, so anything still expanding to
-		// its own literal is a name in the table with no value function behind
-		// it.
+		// The sample firing carries every payload, so a name still expanding to
+		// its own literal is one in the table with no value function behind it.
 		in := marker + p.Name + marker
 		if got := Expand(in, SlotBodyPlain, f, "box"); got == in {
 			t.Errorf("%s is offered by Placeholders() but the expander left it standing", in)
@@ -144,9 +139,8 @@ func TestPlaceholdersAndTheExpanderCannotDrift(t *testing.T) {
 }
 
 func TestSampleFiringExercisesTheEscaping(t *testing.T) {
-	// The sample's task name carries a double quote on purpose: a test button
-	// that only proved the connection would leave the JSON escaping untested,
-	// and the escaping is what actually breaks at three in the morning.
+	// The sample's task name carries a double quote, so a test button proves
+	// the JSON escaping and not only the connection.
 	f := SampleFiring(time.Now())
 	if !strings.Contains(f.Task.Name, `"`) {
 		t.Fatalf("the sample task name is %q and has no quote in it", f.Task.Name)

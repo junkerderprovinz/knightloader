@@ -1,29 +1,20 @@
 package proxycfg
 
-// Finding out whether a connection actually works.
+// Finding out whether a connection works. A TCP dial only proves the port is
+// open; a wrong password or a proxy that will not forward to the wanted host
+// both pass it. So each protocol is spoken as far as it goes without a third
+// party:
 //
-// The temptation is to write this as a TCP dial and call it a test. A dial only
-// proves something is listening on that port, and the two failures people
-// actually hit — a typo in the password, and a proxy that refuses to forward to
-// the host you want — both sail straight through it. A green tick that means
-// "the port is open" is worse than no button, because the user then stops
-// suspecting the proxy.
+//	http, https:  a CONNECT, which carries the credentials, so a wrong
+//	              password comes back as the proxy's own 407.
+//	socks5:       the greeting and, with credentials, the RFC 1929 exchange,
+//	              both before any target is named.
+//	socks4, 4a:   nothing is exchanged before a request, so without a target
+//	              there is only the dial, and the report says so.
 //
-// So each protocol is spoken as far as it can be taken without a third party:
-//
-//	http, https  a CONNECT, which is what carries the credentials, so a wrong
-//	             password comes back as the proxy's own 407.
-//	socks5       the greeting and, when there are credentials, the RFC 1929
-//	             user/password exchange — both happen before any target is named,
-//	             so the password can be checked with nothing else involved.
-//	socks4, 4a   nothing happens before a request in this protocol, so without a
-//	             target there is only the dial, and the report says exactly that
-//	             rather than implying more.
-//
-// The target is optional and the report always says which of the two questions
-// it answered. Naming one is a deliberate act by the user: this is a downloader,
-// and a test button that quietly reached out to some fixed third-party address
-// to prove connectivity would be the app phoning home on its own initiative.
+// The target is optional and the report says which question it answered. It
+// is never a fixed third-party address, so a test button does not make the
+// app phone home.
 
 import (
 	"bufio"
@@ -40,59 +31,48 @@ import (
 	"time"
 )
 
-// Stage is how far the probe got. It is reported for a success as well as for a
-// failure, because "reached" and "authenticated" and "forwarded" are three
-// different amounts of good news and the interface has to be able to say which.
+// Stage is how far the probe got, reported on success too, since reached,
+// authenticated and forwarded are different amounts of good news.
 type Stage string
 
 const (
-	// StageRefused: nothing was attempted. The entry cannot be probed at all —
-	// it is invalid, or it is a kind that names no endpoint.
+	// StageRefused: nothing was attempted, because the entry is invalid or
+	// names no endpoint.
 	StageRefused Stage = "refused"
 	// StageDial: the endpoint was reached.
 	StageDial Stage = "dial"
-	// StageAuth: the proxy accepted (or refused) the credentials.
+	// StageAuth: the proxy accepted or refused the credentials.
 	StageAuth Stage = "auth"
 	// StageConnect: the proxy was asked to forward to the target and answered.
 	StageConnect Stage = "connect"
 )
 
-// Report is the answer to one probe. Detail is always set, and always a
-// sentence: it is what the page shows, and a bare boolean with no words is the
-// failure mode this whole file exists to avoid.
+// Report is the answer to one probe. Detail is always a sentence the page can
+// show.
 type Report struct {
 	OK     bool   `json:"ok"`
 	Stage  Stage  `json:"stage"`
 	Detail string `json:"detail"`
-	// Millis is how long the exchange took, for the case where everything
-	// succeeds and the answer the user needs is "yes, but it takes four seconds".
+	// Millis is how long the exchange took, for a proxy that works but slowly.
 	Millis int64 `json:"millis"`
 }
 
-// defaultTargetPort is the port a target named without one is tried on. 443,
-// because a proxy that forwards anything at all forwards HTTPS, and a proxy
-// configured to allow only port 80 is a proxy no hoster download will survive.
+// defaultTargetPort is used for a target named without a port. A proxy that
+// forwards anything forwards HTTPS, and hoster downloads need it.
 const defaultTargetPort = "443"
 
-// probeTimeout bounds one exchange when the caller's context carries no
-// deadline. Long enough for a proxy on another continent to answer twice, short
-// enough that a dead one does not hold a browser request open until it gives up.
+// probeTimeout bounds one exchange when the caller's context has no deadline:
+// long enough for a distant proxy, short enough not to hold a browser request.
 const probeTimeout = 12 * time.Second
 
 // Probe reaches the connection e describes and reports how far it got.
 //
-// target is optional and is a host, or a host:port. Empty means "just tell me
-// the proxy is there"; naming one also tests that the proxy is willing to
-// forward to it, which is the question behind "why does this one hoster fail".
-//
-// It never returns an error: every way this can go wrong is an answer the user
-// asked for, and a caller that had to render both an error and a report would
-// have two ways to say the same thing.
+// target is optional, a host or host:port. Naming one also tests that the
+// proxy will forward to it. Probe returns no error: every failure is part of
+// the answer the user asked for.
 func Probe(ctx context.Context, e Entry, target string) Report {
 	if err := Validate(e); err != nil {
-		// Verbatim, and before anything is dialled. Sanitize would drop this row
-		// on the next save, so saying so now is the difference between fixing a
-		// typo and watching a row vanish.
+		// Said now, since Sanitize would drop this row on the next save.
 		return Report{Stage: StageRefused, Detail: err.Error()}
 	}
 	target = strings.TrimSpace(target)
@@ -111,10 +91,8 @@ func Probe(ctx context.Context, e Entry, target string) Report {
 	return probeProxy(ctx, e, target)
 }
 
-// probeDirect answers the only question a direct row can be asked: can this box
-// reach that host at all, with no proxy in the way. It is the same question the
-// user is implicitly making a claim about when they exclude their NAS from a
-// whole-app proxy, and getting a no here means the exclusion is not the problem.
+// probeDirect answers the one question a direct row can be asked: can this box
+// reach the host without a proxy.
 func probeDirect(ctx context.Context, target string) Report {
 	ctx, cancel, start := begin(ctx)
 	defer cancel()
@@ -138,9 +116,8 @@ func probeProxy(ctx context.Context, e Entry, target string) Report {
 		return fail(StageDial, start, "%s could not be reached: %s", endpoint, netReason(err))
 	}
 	defer func() { _ = c.Close() }()
-	// One deadline over the whole exchange rather than one per read: a proxy that
-	// answers a byte at a time would otherwise keep the connection alive forever
-	// without ever finishing anything.
+	// One deadline over the whole exchange, so a proxy answering a byte at a
+	// time cannot keep it open forever.
 	if dl, ok := ctx.Deadline(); ok {
 		_ = c.SetDeadline(dl)
 	}
@@ -148,7 +125,7 @@ func probeProxy(ctx context.Context, e Entry, target string) Report {
 	switch e.Kind {
 	case KindHTTP, KindHTTPS:
 		if target == "" {
-			return done(StageDial, start, "%s answers. Name a host to test the credentials too — "+
+			return done(StageDial, start, "%s answers. Name a host to test the credentials too; "+
 				"an HTTP proxy only asks for them when it is given something to forward", endpoint)
 		}
 		return httpConnect(c, e, target, start)
@@ -164,24 +141,21 @@ func probeProxy(ctx context.Context, e Entry, target string) Report {
 	return Report{Stage: StageRefused, Detail: fmt.Sprintf("%q is not a connection type this can probe", string(e.Kind))}
 }
 
-// dialProxy opens the hop to the proxy. An https entry means that hop is itself
-// TLS — the proxy speaks HTTP, encrypted, which is a different thing from an
-// http proxy that will forward an HTTPS request, and mixing the two up is why
-// somebody's working proxy is refused with a garbled first byte.
+// dialProxy opens the hop to the proxy. For an https entry that hop is itself
+// TLS, which differs from an http proxy forwarding an HTTPS request.
 func dialProxy(ctx context.Context, e Entry, endpoint string) (net.Conn, error) {
 	d := &net.Dialer{}
 	if e.Kind == KindHTTPS {
-		// ServerName is left to be derived from the address, so an entry whose
-		// host is an IP literal does not present an invalid SNI name.
+		// ServerName is derived from the address, so an IP literal does not
+		// send an invalid SNI name.
 		return (&tls.Dialer{NetDialer: d, Config: &tls.Config{MinVersion: tls.VersionTLS12}}).
 			DialContext(ctx, "tcp", endpoint)
 	}
 	return d.DialContext(ctx, "tcp", endpoint)
 }
 
-// httpConnect asks the proxy to tunnel to target. This is the exchange the
-// credentials ride on, so it is also the only way to find out whether they are
-// right.
+// httpConnect asks the proxy to tunnel to target. The credentials ride on this
+// request, so it is the only way to check them.
 func httpConnect(c net.Conn, e Entry, target string, start time.Time) Report {
 	addr := withDefaultPort(target)
 	var req strings.Builder
@@ -195,10 +169,8 @@ func httpConnect(c net.Conn, e Entry, target string, start time.Time) Report {
 		return fail(StageConnect, start, "the proxy closed the connection before the request was sent: %s", netReason(err))
 	}
 
-	// A short answer with no newline is still an answer, and the one that matters:
-	// a TLS server handed a plaintext CONNECT replies with a five-byte alert and
-	// hangs up, so treating "read failed" as "said nothing" would throw away the
-	// only evidence of what is actually wrong.
+	// A short answer without a newline still counts: a TLS server given a
+	// plaintext CONNECT replies with a five-byte alert and hangs up.
 	line, err := bufio.NewReader(c).ReadString('\n')
 	if err != nil && strings.TrimSpace(line) == "" {
 		return fail(StageConnect, start, "the proxy answered nothing: %s", netReason(err))
@@ -220,7 +192,7 @@ func httpConnect(c net.Conn, e Entry, target string, start time.Time) Report {
 		return fail(StageConnect, start, "the proxy is reachable and the credentials passed, "+
 			"but it will not forward to %s (403)", addr)
 	case code == 0:
-		return fail(StageConnect, start, "the answer was not HTTP at all (%q) — an https proxy addressed as http "+
+		return fail(StageConnect, start, "the answer was not HTTP at all (%q); an https proxy addressed as http "+
 			"looks like this", clip(line))
 	default:
 		return fail(StageConnect, start, "the proxy answered %q", clip(line))
@@ -230,9 +202,8 @@ func httpConnect(c net.Conn, e Entry, target string, start time.Time) Report {
 // socks5 runs the greeting, the user/password exchange when there is one, and
 // the request when a target was named.
 func socks5(c net.Conn, e Entry, target string, start time.Time) Report {
-	// Offering "no authentication" alongside user/password, in that order of
-	// preference, so a proxy that wants neither still answers instead of hanging
-	// up on a client that would only authenticate.
+	// "No authentication" is offered alongside user/password, so a proxy that
+	// wants neither still answers.
 	methods := []byte{methodNone}
 	if e.Username != "" {
 		methods = []byte{methodUserPass, methodNone}
@@ -245,17 +216,14 @@ func socks5(c net.Conn, e Entry, target string, start time.Time) Report {
 		return fail(StageAuth, start, "the proxy did not answer the SOCKS5 greeting: %s", netReason(err))
 	}
 	if greeting[0] != 5 {
-		return fail(StageAuth, start, "the proxy answered with SOCKS version %d, not 5 — "+
+		return fail(StageAuth, start, "the proxy answered with SOCKS version %d, not 5; "+
 			"a SOCKS4 proxy set to socks5 looks like this", greeting[0])
 	}
 
 	authed := false
 	switch greeting[1] {
 	case methodNone:
-		// Not an error, and authed stays false on purpose: a proxy that asks for
-		// nothing has not checked the credentials sitting in this row, so
-		// reporting this as "the credentials are fine" would be a green tick for
-		// a password nobody has ever looked at.
+		// authed stays false: the proxy never checked the row's credentials.
 	case methodUserPass:
 		if e.Username == "" {
 			return fail(StageAuth, start, "the proxy wants a user name and password and this row has none")
@@ -292,8 +260,8 @@ const (
 	methodNoneAcceptable = 0xff
 )
 
-// socks5Auth is RFC 1929. It reports the failing case rather than the succeeding
-// one, so the caller reads as a straight line.
+// socks5Auth is RFC 1929. It reports whether it failed, with the report for
+// the failure.
 func socks5Auth(c net.Conn, e Entry, start time.Time) (Report, bool) {
 	if len(e.Username) > 255 || len(e.Password) > 255 {
 		return fail(StageAuth, start, "SOCKS5 allows 255 bytes each for the user name and the password, "+
@@ -341,9 +309,8 @@ func socks5Connect(c net.Conn, target string, start time.Time) Report {
 	if _, err := c.Write(req); err != nil {
 		return fail(StageConnect, start, "the proxy closed the connection during the request: %s", netReason(err))
 	}
-	// Four bytes is the whole verdict; the bound address after it is only of
-	// interest to a connection that is about to be used, and this one is about to
-	// be hung up on.
+	// The first four bytes hold the verdict; the bound address after them only
+	// matters to a connection that will be used.
 	reply := make([]byte, 4)
 	if _, err := io.ReadFull(c, reply); err != nil {
 		return fail(StageConnect, start, "the proxy did not answer the request: %s", netReason(err))
@@ -376,14 +343,9 @@ func socks5Reply(code byte) string {
 	return fmt.Sprintf("reply code %d", code)
 }
 
-// socks4 sends the one message this protocol has.
-//
-// The version difference is the whole reason both kinds exist: socks4 carries a
-// four-byte IPv4 address, so the NAME has to be resolved here, by this machine —
-// which is precisely what somebody using a proxy to reach a host their own DNS
-// cannot see does not want. socks4a sends the name instead and lets the proxy
-// resolve it. Saying so in the failure is the difference between switching to
-// socks4a and giving up on the proxy.
+// socks4 sends the protocol's one message. SOCKS4 carries an IPv4 address, so
+// the name is resolved on this machine; SOCKS4a sends the name for the proxy
+// to resolve, and the failure message points that out.
 func socks4(ctx context.Context, c net.Conn, e Entry, target string, start time.Time) Report {
 	host, port, err := splitTarget(target)
 	if err != nil {
@@ -433,10 +395,9 @@ func socks4(ctx context.Context, c net.Conn, e Entry, target string, start time.
 	return fail(StageConnect, start, "the proxy answered with an unknown status 0x%02x", reply[1])
 }
 
-// splitTarget reads the host the user typed. A bare host is the common case and
-// gets the default port; anything else has to be host:port, because guessing at
-// a second colon is how "example.org:8080:whoops" becomes a probe of a host
-// nobody named.
+// splitTarget reads the host the user typed. A bare host gets the default
+// port; anything else must be host:port, so "example.org:8080:whoops" is
+// refused rather than guessed at.
 func splitTarget(target string) (string, int, error) {
 	addr := withDefaultPort(target)
 	host, rawPort, err := net.SplitHostPort(addr)
@@ -450,9 +411,8 @@ func splitTarget(target string) (string, int, error) {
 	return host, port, nil
 }
 
-// withDefaultPort appends the default port to a bare host. A bracketed IPv6
-// literal is a host, not a host:port, which is why the count is not enough on
-// its own.
+// withDefaultPort appends the default port to a bare host, including a
+// bracketed or bare IPv6 literal.
 func withDefaultPort(target string) string {
 	if strings.HasPrefix(target, "[") && strings.HasSuffix(target, "]") {
 		return target + ":" + defaultTargetPort
@@ -467,8 +427,7 @@ func withDefaultPort(target string) string {
 }
 
 // begin bounds the exchange and starts the clock. The caller's deadline wins
-// when it has one, so a browser that gave up is not left with a goroutine still
-// waiting on a proxy.
+// when it has one, so a browser that gave up does not leave a probe running.
 func begin(ctx context.Context) (context.Context, context.CancelFunc, time.Time) {
 	if _, ok := ctx.Deadline(); !ok {
 		c, cancel := context.WithTimeout(ctx, probeTimeout)
@@ -490,10 +449,8 @@ func since(start time.Time) int64 {
 	return time.Since(start).Milliseconds()
 }
 
-// netReason turns a dial or read error into something worth reading. Go's own
-// text is accurate and unreadable — "dial tcp 10.0.0.5:1080: connectex: No
-// connection could be made because the target machine actively refused it" is
-// three clauses of transport plumbing wrapped around the one word that matters.
+// netReason turns a dial or read error into a short reason. Go's own text
+// wraps the one relevant word in several clauses of transport detail.
 func netReason(err error) string {
 	switch {
 	case errors.Is(err, context.DeadlineExceeded):
@@ -503,10 +460,8 @@ func netReason(err error) string {
 	case errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF):
 		return "it hung up"
 	}
-	// Matched on the error number rather than on the text, because Windows
-	// returns the message in the operating system's language: left to the
-	// fallback below, a German box puts "Es konnte keine Verbindung hergestellt
-	// werden" in the middle of an English sentence.
+	// Matched on the error number, because Windows returns the message in
+	// the system language and would put German into an English sentence.
 	switch {
 	case isErrno(err, syscall.ECONNREFUSED, wsaeConnRefused):
 		return "nothing is listening on that port"
@@ -532,15 +487,10 @@ func netReason(err error) string {
 	return err.Error()
 }
 
-// The Winsock numbers for the four socket failures worth naming.
-//
-// They are written out because the platform constants cannot be relied on
-// alone: Go's Windows syscall package defines the POSIX names as synthetic
-// APPLICATION_ERROR values that no socket ever returns — syscall.ECONNREFUSED is
-// 536870934 there, while a refused connection reports 10061 — so
-// errors.Is(err, syscall.ECONNREFUSED) is false for precisely the error it
-// names. On every other platform the constant is the right one, so isErrno tries
-// both and neither platform needs a build tag.
+// The Winsock numbers for the four socket failures worth naming. Go's Windows
+// syscall package defines the POSIX names as synthetic values no socket
+// returns (syscall.ECONNREFUSED is 536870934 there, a refused connection
+// reports 10061), so isErrno checks both and needs no build tag.
 const (
 	wsaeNetUnreach  syscall.Errno = 10051
 	wsaeConnReset   syscall.Errno = 10054
@@ -556,9 +506,9 @@ func isErrno(err error, posix, winsock syscall.Errno) bool {
 	return errors.As(err, &got) && got == winsock
 }
 
-// statusCode reads the number out of an HTTP status line, or 0 when the line was
-// not one — which is itself the answer in the case that matters, an https proxy
-// addressed as http answering with a TLS alert.
+// statusCode reads the number out of an HTTP status line, or 0 when the line
+// is not one, as with an https proxy answering a plain request with a TLS
+// alert.
 func statusCode(line string) int {
 	fields := strings.Fields(line)
 	if len(fields) < 2 || !strings.HasPrefix(fields[0], "HTTP/") {
@@ -571,8 +521,8 @@ func statusCode(line string) int {
 	return n
 }
 
-// clip keeps a proxy's own words in the report without letting a misconfigured
-// one paste a kilobyte of HTML into the page.
+// clip keeps a proxy's own words in the report without pasting a kilobyte of
+// HTML into the page.
 func clip(s string) string {
 	const max = 120
 	s = strings.Map(func(r rune) rune {

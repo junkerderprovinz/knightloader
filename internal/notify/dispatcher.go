@@ -2,33 +2,23 @@ package notify
 
 // The bus subscriber, the queue behind it and the worker that empties it.
 //
-// THE ONE CONTRACT THAT SHAPES EVERYTHING HERE: script.Bus.Publish delivers
-// synchronously, on the publisher's own goroutine, and the publishers are a
-// download's update path (app_dispatch.go's onUpdate), the collector's put,
-// verifyTask, settleExtraction and two 2 s poll loops. bus.go states it in
-// capitals for exactly this subscriber. So On MUST return promptly: an
+// script.Bus.Publish delivers synchronously, on the publisher's goroutine, and
+// the publishers are a download's update path, the collector's put, verifyTask,
+// settleExtraction and two poll loops. So On has to return promptly: an
 // http.Post written straight into it stalls the download that published for up
-// to the target's timeout, and with three targets subscribed to task.done, for
-// three times that.
+// to the target's timeout, and for three times that with three targets
+// subscribed to task.done. On filters by trigger, drops the firing into a
+// bounded channel and returns, the shape script.Host.fire uses.
 //
-// On therefore filters by trigger, drops the firing into a bounded channel and
-// returns - the same shape script.Host.fire uses, including the drop-with-a-log
-// on a full queue. dispatcher_test.go's TestOnDoesNotBlockThePublisher is what
-// keeps it that way; it is written to go red the moment somebody "simplifies"
-// this into a direct Send.
+// One goroutine per target rather than a shared pool, for two reasons: a target
+// whose server takes ten seconds must not delay another target's message, and
+// one target's messages have to stay in the order they happened, which workers
+// pulling from one queue cannot promise. The cost is a goroutine per enabled
+// target, which for a hand-configured feature is a handful.
 //
-// ONE GOROUTINE PER TARGET, not a shared pool. Two independent reasons: a
-// target whose server takes ten seconds must not delay a different target's
-// message, and one target's own messages must stay in the order they happened,
-// which a pool of workers pulling from one queue cannot promise. The cost is a
-// goroutine per enabled target, which for a feature configured by hand is a
-// handful.
-//
-// NOTHING IS SPOOLED TO DISK. A message that could not be delivered inside its
-// attempts, or that has been queued longer than maxMessageAge, is abandoned.
-// Everything here reports a moment that has already passed, and delivering "a
-// package finished" an hour later - after a restart, from a file - is worse
-// than not delivering it: the operator watched it finish and has moved on.
+// Nothing is spooled to disk. A message that could not be delivered inside its
+// attempts, or that has been queued longer than maxMessageAge, is abandoned:
+// the operator watched the package finish and has moved on.
 
 import (
 	"context"
@@ -42,70 +32,64 @@ import (
 )
 
 const (
-	// queueDepth is per target, not shared. link.added fires once per link
-	// (script.go), so one paste of a two hundred link container is two hundred
-	// messages, and this is the number that decides whether the two hundred and
-	// first is dropped or is allowed to make the process buffer for a target
-	// that is not keeping up. Dropping is the right answer and the drop is
-	// counted, so the settings page can say the target is too slow for the
-	// events that were ticked instead of the operator wondering.
+	// queueDepth is per target. link.added fires once per link, so one paste of
+	// a two hundred link container is two hundred messages, and this decides
+	// whether a target that is not keeping up starts making the process buffer.
+	// Drops are counted, so the settings page can say the target is too slow
+	// for the events that were ticked.
 	queueDepth = 256
 
 	// maxMessageAge is how stale a queued message may be when its turn comes.
-	// Past this it is abandoned rather than delivered: a burst that took five
-	// minutes to work through is a target that is not keeping up, and the news
-	// at the back of that queue is no longer news.
+	// Past this it is abandoned: a burst that took five minutes to work through
+	// is a target that is not keeping up, and the news at the back of that
+	// queue is no longer news.
 	maxMessageAge = 5 * time.Minute
 )
 
 // backoffSteps is the wait between attempts, indexed by the attempt that just
 // failed. Short, then long: the failures worth repeating clear in seconds (a
 // push server restarting, one dropped packet), and anything still failing after
-// forty seconds is a thing to go and fix rather than to keep poking.
+// forty seconds is something to go and fix.
 var backoffSteps = []time.Duration{2 * time.Second, 8 * time.Second, 30 * time.Second}
 
 // Health is what one target has been doing since this process started.
 //
-// IN MEMORY AND NOT ON DISK, the same call feed.Health makes and with the same
-// consequence: a zero LastAttempt means "nothing since this process started",
-// never "never". A target that has been delivering for a year reads as silent
-// for the seconds after a restart, and drawing that as a fault would be a false
-// alarm on every boot - which is why the page has its own sentence for it.
+// It is in memory, the same call feed.Health makes, so a zero LastAttempt means
+// "nothing since this process started" rather than "never". A target that has
+// been delivering for a year reads as silent for the seconds after a restart,
+// which the page has its own sentence for.
 type Health struct {
 	TargetID string `json:"targetId"`
-	// LastAttempt is when a request was last MADE, whether it worked or not.
+	// LastAttempt is when a request was last made, whether it worked or not.
 	LastAttempt time.Time `json:"lastAttempt,omitzero"`
-	// LastOK is when one last arrived. Separate from LastAttempt because the
-	// gap between them is the whole story: both recent is a working target,
-	// LastAttempt recent and LastOK old is a target that has been failing since
-	// then.
+	// LastOK is when one last arrived. The gap between the two is the story:
+	// both recent is a working target, LastAttempt recent and LastOK old is a
+	// target that has been failing since then.
 	LastOK time.Time `json:"lastOk,omitzero"`
 	// LastStatus is the status of the last attempt, 0 when nothing answered.
 	LastStatus int `json:"lastStatus"`
 	// LastError is the transport failure, redacted, empty when the far end
-	// answered at all. A refusal is not an error here: it is in LastStatus and
-	// LastCode.
+	// answered at all. A refusal is in LastStatus and LastCode instead.
 	LastError string `json:"lastError,omitempty"`
 	// LastCode is a Problem code, so the page can say what to try in the
 	// reader's own language.
 	LastCode string `json:"lastCode,omitempty"`
-	// Attempts is how many requests this target has made, retries included. It
-	// sits beside Sent so that "12 attempts, 4 delivered" reads as the retry
-	// story it is.
+	// Attempts is how many requests this target has made, retries included, so
+	// that "12 attempts, 4 delivered" reads as the retry story it is.
 	Attempts int `json:"attempts"`
 	// Sent is how many messages arrived.
 	Sent int `json:"sent"`
-	// Dropped is how many never left the queue because it was full. It is the
-	// number that says a target is too slow for the events it is subscribed to.
+	// Dropped is how many never left the queue because it was full, the number
+	// that says a target is too slow for the events it is subscribed to.
 	Dropped int `json:"dropped"`
 }
 
 // Options is what a Dispatcher needs from the app it runs inside.
 type Options struct {
-	// InstanceName is read at DELIVERY time rather than captured once, because
-	// it is a settings field somebody can rename while the app is running, and a
-	// name captured at construction would go on being sent for as long as the
-	// process lived. Nil is allowed and expands %%instance%% to empty.
+	// InstanceName is read at delivery time rather than captured once, since
+	// somebody can rename the instance while the app runs and a captured name
+	// would go on being sent for the life of the process. Nil expands
+	// %%instance%% to empty.
 	InstanceName func() string
 }
 
@@ -113,12 +97,11 @@ type Options struct {
 type Dispatcher struct {
 	instanceName func() string
 
-	// ctx/cancel/wg/closeMu/closing are lifted from script.Host's own
-	// spawn/track/Close, whose doc comments explain at length why the closing
-	// flag and the wg.Add have to happen under ONE lock: written as a context
-	// check followed by a bare Add, Close can land in the gap, reach wg.Wait()
-	// with the counter at zero, and either return while a delivery is still
-	// running or panic outright with "WaitGroup misuse".
+	// The closing flag and the wg.Add happen under one lock, as in
+	// script.Host's spawn and Close. Written as a context check followed by a
+	// bare Add, Close can land in the gap, reach wg.Wait with the counter at
+	// zero, and either return while a delivery is running or panic with
+	// "WaitGroup misuse".
 	ctx     context.Context
 	cancel  context.CancelFunc
 	closeMu sync.Mutex
@@ -152,16 +135,15 @@ type worker struct {
 	queue  chan job
 	ctx    context.Context
 	cancel context.CancelFunc
-	// cfg is replaced wholesale on every settings save rather than edited, so a
-	// delivery mid-flight is reading one consistent Target and never a
-	// half-applied one - the same "replaced wholesale, never edited in place"
-	// rule script.Host.rebuildIndex states for its trigger index.
+	// cfg is replaced wholesale on a settings save rather than edited, so a
+	// delivery mid-flight reads one consistent Target and never a half-applied
+	// one, as script.Host.rebuildIndex does for its trigger index.
 	cfg atomic.Pointer[Target]
 }
 
-// job is one queued message: what happened, and when it happened. The time is
-// carried rather than read at delivery so maxMessageAge measures the age of the
-// NEWS, not of the attempt.
+// job is one queued message: what happened, and when. The time is carried
+// rather than read at delivery, so maxMessageAge measures the age of the news
+// rather than of the attempt.
 type job struct {
 	f  script.Firing
 	at time.Time
@@ -170,15 +152,14 @@ type job struct {
 // Set makes the running workers match the configuration. It runs on every
 // settings save, so adding a target needs no restart.
 //
-// The live set is RECONCILED rather than rebuilt, for the reason applyFeeds
-// gives about its pollers: a worker carries a queue and a health row, and
-// rebuilding on every save would mean saving the speed limit throws away
-// whatever was queued and blanks the table the operator is looking at.
+// The live set is reconciled rather than rebuilt, as applyFeeds does with its
+// pollers: a worker carries a queue and a health row, so rebuilding on every
+// save would mean saving the speed limit throws away whatever was queued and
+// blanks the table the operator is looking at.
 //
 // A target that is switched off, has no address or has no event ticked gets no
-// worker at all. All three are the off state and none of them can ever produce
-// a message, so a goroutine for one would be a goroutine that exists to select
-// on a channel nothing writes to.
+// worker. None of the three can produce a message, so the goroutine would only
+// select on a channel nothing writes to.
 func (d *Dispatcher) Set(targets []Target) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
@@ -204,11 +185,9 @@ func (d *Dispatcher) Set(targets []Target) {
 		}
 		w.cancel()
 		delete(d.workers, id)
-		// The health row goes with the worker. A row for a target nobody is
-		// sending to is a row that reports on a past this build cannot explain
-		// - "4 delivered" beside a switch that is off reads as a live target -
-		// and it is the same call feedState makes when it drops the record of a
-		// subscription that is no longer configured.
+		// The health row goes with the worker: "4 delivered" beside a switch
+		// that is off reads as a live target. feedState drops the record of an
+		// unconfigured subscription for the same reason.
 		d.forget(id)
 	}
 }
@@ -231,9 +210,8 @@ func (d *Dispatcher) start(t Target) *worker {
 }
 
 // track counts the caller in as work Close has to wait for, or reports false
-// once Close has committed. Copied from script.Host.track, whose own doc
-// comment is the long version of why the check and the Add are one step under
-// one lock.
+// once Close has committed. The check and the Add are one step under one lock;
+// script.Host.track explains why.
 func (d *Dispatcher) track() bool {
 	d.closeMu.Lock()
 	defer d.closeMu.Unlock()
@@ -247,8 +225,8 @@ func (d *Dispatcher) track() bool {
 // On is the bus subscription. Wire it with
 // bus.Subscribe("eventtargets", d.On).
 //
-// It filters, queues and returns. Nothing else may ever go in here - see this
-// file's own opening note for whose goroutine it is running on.
+// It filters, queues and returns. Nothing slower belongs here, since it runs on
+// the publisher's goroutine.
 func (d *Dispatcher) On(f script.Firing) {
 	d.mu.Lock()
 	var want []*worker
@@ -267,19 +245,18 @@ func (d *Dispatcher) On(f script.Firing) {
 		select {
 		case w.queue <- job{f: f, at: at}:
 		default:
-			// Dropped rather than waited on, which is the whole point: waiting
-			// here is waiting on the download that published. Counted so the
-			// settings page can say so, and logged once per drop because a
-			// target that is being outrun is a real configuration problem.
+			// Dropped rather than waited on, because waiting here is waiting
+			// on the download that published. Counted so the settings page can
+			// say so, and logged, since a target being outrun is a real
+			// configuration problem.
 			d.dropped(w.id)
 			log.Printf("notify: target %s is not keeping up, dropping this %s", w.id, f.Trigger)
 		}
 	}
 }
 
-// Health is one row per target that currently has a worker, in no particular
-// order - the caller joins it onto the configured list, which is what decides
-// the order the operator sees.
+// Health is one row per target that has a worker, in no particular order. The
+// caller joins it onto the configured list, which decides the order on screen.
 func (d *Dispatcher) Health() []Health {
 	d.healthMu.Lock()
 	defer d.healthMu.Unlock()
@@ -363,11 +340,10 @@ func (w *worker) run() {
 
 // deliver sends one message, retrying as far as the row allows.
 //
-// The configuration is read ONCE, at the top, and the whole delivery uses that
-// copy. A save that lands between two attempts therefore takes effect on the
-// next MESSAGE rather than on the next attempt, which is the readable
-// behaviour: a retry that went to a different address than the try before it
-// would make the health row impossible to interpret.
+// The configuration is read once at the top and the whole delivery uses that
+// copy, so a save landing between two attempts takes effect on the next message
+// rather than the next attempt. A retry that went to a different address than
+// the try before it would make the health row impossible to read.
 func (w *worker) deliver(j job) {
 	t := *w.cfg.Load()
 	attempts := t.ResolvedAttempts()

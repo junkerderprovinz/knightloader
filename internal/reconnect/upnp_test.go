@@ -10,11 +10,9 @@ import (
 )
 
 // The UPnP method takes its instructions from a device that answered an
-// unauthenticated multicast search, which means every host it names is a claim
-// made by something on the LAN rather than a fact. These tests are about the
-// three places such a claim can arrive - the SSDP LOCATION, the description's
-// URLBase, and an absolute controlURL - because a guard on one of the three
-// reads as a guard on all of them right up until it is not.
+// unauthenticated multicast search, so every host it names is a claim. These
+// tests cover the three places a host can arrive: the SSDP LOCATION, the
+// description's URLBase and an absolute controlURL.
 
 // descDoer answers a description fetch without a socket, and remembers what it
 // was asked for.
@@ -35,7 +33,6 @@ func (d *descDoer) Do(req *http.Request) (*http.Response, error) {
 
 // description writes a device description with the WAN service nested where a
 // real gateway puts it: InternetGatewayDevice > WANDevice > WANConnectionDevice.
-// A flat one would pass a test that the real parser fails.
 func description(urlBase, controlURL string) string {
 	var base string
 	if urlBase != "" {
@@ -53,12 +50,9 @@ func description(urlBase, controlURL string) string {
 		`</device></deviceList></device></deviceList></device></root>`
 }
 
-// TestWANServicesKeepsTheControlURLOnTheHostThatAnswered is the important one.
-// The LOCATION is checked against the sender of the datagram, but the document
-// it points at can name a host twice more, and both were once taken at face
-// value. A device that answers the search from its own address could then hand
-// back a description that sends the SOAP call somewhere else entirely - an
-// address it picked, reached from inside the network, by us.
+// TestWANServicesKeepsTheControlURLOnTheHostThatAnswered: the description can
+// name a host in URLBase and in an absolute controlURL, and neither may send
+// the SOAP call to a host other than the one that answered the search.
 func TestWANServicesKeepsTheControlURLOnTheHostThatAnswered(t *testing.T) {
 	const gateway = "http://192.168.1.1:5000/desc.xml"
 
@@ -72,8 +66,8 @@ func TestWANServicesKeepsTheControlURLOnTheHostThatAnswered(t *testing.T) {
 		controlURL: "/ctl/IPConn",
 		want:       "http://192.168.1.1:5000/ctl/IPConn",
 	}, {
-		// The real reason URLBase exists, and it has to keep working: plenty of
-		// firmware serves the description on one port and control on another.
+		// Firmware often serves the description on one port and control on
+		// another.
 		name:       "URLBase may move the port",
 		urlBase:    "http://192.168.1.1:49000/",
 		controlURL: "ctl/IPConn",
@@ -82,9 +76,7 @@ func TestWANServicesKeepsTheControlURLOnTheHostThatAnswered(t *testing.T) {
 		name:       "URLBase may not move the host",
 		urlBase:    "http://192.168.10.10/",
 		controlURL: "/ctl/IPConn",
-		// Dropped, not refused: the location still resolves the relative URL,
-		// so odd firmware keeps working and a redirect attempt simply does not
-		// take effect.
+		// The URLBase is ignored and the location resolves the relative URL.
 		want: "http://192.168.1.1:5000/ctl/IPConn",
 	}, {
 		name:       "an absolute control URL may not move the host either",
@@ -95,10 +87,8 @@ func TestWANServicesKeepsTheControlURLOnTheHostThatAnswered(t *testing.T) {
 		controlURL: "http://192.168.1.1:49000/ctl/IPConn",
 		want:       "http://192.168.1.1:49000/ctl/IPConn",
 	}, {
-		// Both fields hostile at once, which is what an attacker would actually
-		// write: the base moves the host and the control URL looks relative, so
-		// a guard that only inspected the controlURL string would see nothing
-		// wrong with it.
+		// The base moves the host while the control URL looks relative, so a
+		// guard on the controlURL string alone would miss it.
 		name:       "a hostile URLBase with an innocent-looking control URL",
 		urlBase:    "http://169.254.169.254/",
 		controlURL: "latest/meta-data/",
@@ -113,9 +103,9 @@ func TestWANServicesKeepsTheControlURLOnTheHostThatAnswered(t *testing.T) {
 				t.Fatalf("New: %v", err)
 			}
 
-			svcs, err := r.wanServices(context.Background(), Gateway{Location: gateway})
+			svcs, err := WANServices(context.Background(), r.http, Gateway{Location: gateway})
 			if err != nil {
-				t.Fatalf("wanServices: %v", err)
+				t.Fatalf("WANServices: %v", err)
 			}
 
 			if tc.want == "" {
@@ -134,25 +124,22 @@ func TestWANServicesKeepsTheControlURLOnTheHostThatAnswered(t *testing.T) {
 	}
 }
 
-// TestWANServicesReadsTheDescriptionFromTheLocation guards the plumbing the
-// test above depends on: if the fetch went somewhere else, every case would
-// pass for the wrong reason.
+// TestWANServicesReadsTheDescriptionFromTheLocation: if the fetch went
+// elsewhere, the test above would pass for the wrong reason.
 func TestWANServicesReadsTheDescriptionFromTheLocation(t *testing.T) {
 	doer := &descDoer{body: description("", "/ctl")}
 	r, err := New(Options{Config: func() Config { return Config{} }, HTTP: doer})
 	if err != nil {
 		t.Fatalf("New: %v", err)
 	}
-	if _, err := r.wanServices(context.Background(), Gateway{Location: "http://192.168.1.1:5000/desc.xml"}); err != nil {
-		t.Fatalf("wanServices: %v", err)
+	if _, err := WANServices(context.Background(), r.http, Gateway{Location: "http://192.168.1.1:5000/desc.xml"}); err != nil {
+		t.Fatalf("WANServices: %v", err)
 	}
 	if len(doer.got) != 1 || doer.got[0] != "http://192.168.1.1:5000/desc.xml" {
 		t.Errorf("fetched %v, want just the location", doer.got)
 	}
 }
 
-// TestWANServicesRefusesANonHTTPLocation: a LOCATION is a URL a device chose,
-// and file:// or gopher:// is not something to go and open.
 func TestWANServicesRefusesANonHTTPLocation(t *testing.T) {
 	for _, loc := range []string{"file:///etc/passwd", "ftp://192.168.1.1/desc.xml", "gopher://192.168.1.1/"} {
 		doer := &descDoer{body: description("", "/ctl")}
@@ -160,7 +147,7 @@ func TestWANServicesRefusesANonHTTPLocation(t *testing.T) {
 		if err != nil {
 			t.Fatalf("New: %v", err)
 		}
-		if _, err := r.wanServices(context.Background(), Gateway{Location: loc}); err == nil {
+		if _, err := WANServices(context.Background(), r.http, Gateway{Location: loc}); err == nil {
 			t.Errorf("%s was accepted as a description URL", loc)
 		}
 		if len(doer.got) != 0 {
@@ -169,7 +156,6 @@ func TestWANServicesRefusesANonHTTPLocation(t *testing.T) {
 	}
 }
 
-// TestParseSSDPResponse covers the first of the three places a host arrives.
 func TestParseSSDPResponse(t *testing.T) {
 	from := &net.UDPAddr{IP: net.ParseIP("192.168.1.1"), Port: 1900}
 
@@ -184,9 +170,6 @@ func TestParseSSDPResponse(t *testing.T) {
 		wantOK:  true,
 		wantLoc: "http://192.168.1.1:5000/desc.xml",
 	}, {
-		// Devices announce themselves on this socket unprompted. An advertisement
-		// is not an answer to our search, and reading it as one would make the
-		// result depend on what happened to be shouting at the moment.
 		name:    "a NOTIFY advertisement is not an answer",
 		payload: "NOTIFY * HTTP/1.1\r\nLOCATION: http://192.168.1.1:5000/desc.xml\r\nNTS: ssdp:alive\r\n\r\n",
 		wantOK:  false,
@@ -199,15 +182,11 @@ func TestParseSSDPResponse(t *testing.T) {
 		payload: "HTTP/1.1 200 OK\r\nLOCATION: file:///etc/passwd\r\n\r\n",
 		wantOK:  false,
 	}, {
-		// The whole point of the check: anything on the LAN may answer, so an
-		// answer that names somebody else's address is refused.
 		name:    "a LOCATION announcing another device's address",
 		payload: "HTTP/1.1 200 OK\r\nLOCATION: http://192.168.10.10/desc.xml\r\n\r\n",
 		wantOK:  false,
 	}, {
-		// A datagram that stops after the last header, with no blank line to
-		// close the block. Real devices send these and the headers are still
-		// exactly what was sent.
+		// Real devices send datagrams without the closing blank line.
 		name:    "an unterminated header block",
 		payload: "HTTP/1.1 200 OK\r\nLOCATION: http://192.168.1.1:5000/desc.xml",
 		wantOK:  true,

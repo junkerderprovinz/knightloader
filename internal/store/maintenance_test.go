@@ -13,22 +13,13 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/core"
 )
 
-// fillAndEmpty builds a database with enough rows in it to leave a real free
-// list behind when most of them are deleted again, and hands back the store
-// with the deletions already done.
-//
-// It goes in through Save and Delete rather than through raw SQL, because the
-// shape of the free list is the whole subject of these tests: rows written by
-// the app's own writer, deleted by the app's own deleter, are the pages a
-// compaction actually finds on somebody's install. A hand-built table would be
-// a different file with a different fragmentation.
+// fillAndEmpty saves enough rows to leave a real free list behind and then
+// deletes most of them. It uses Save and Delete rather than raw SQL so the
+// fragmentation is what a compaction finds on a real install.
 func fillAndEmpty(t *testing.T, s *Store, rows int) {
 	t.Helper()
-	// Padding, so that each row is worth a fraction of a page rather than a
-	// few dozen bytes: with tiny rows the whole set fits in a handful of pages
-	// and deleting them frees nothing measurable, and the test would be reading
-	// rounding noise. The comment column is an ordinary column the Packagizer
-	// writes into, so nothing here is a shape the app cannot produce.
+	// Padding makes each row a fraction of a page, so deleting frees a
+	// measurable amount. The comment column is one the Packagizer writes.
 	padding := strings.Repeat("x", 2048)
 	for i := 0; i < rows; i++ {
 		if err := s.Save(&core.Task{
@@ -44,8 +35,7 @@ func fillAndEmpty(t *testing.T, s *Store, rows int) {
 			t.Fatalf("saving row %d: %v", i, err)
 		}
 	}
-	// All but a handful, so the table still exists and still has content: a
-	// compaction of an empty table is not the case anybody runs this for.
+	// All but a handful, so the table still has content.
 	for i := 0; i < rows-8; i++ {
 		if err := s.Delete(fmt.Sprintf("task-%05d", i)); err != nil {
 			t.Fatalf("deleting row %d: %v", i, err)
@@ -53,26 +43,14 @@ func fillAndEmpty(t *testing.T, s *Store, rows int) {
 	}
 }
 
-// TestVacuumShrinksTheFileAndKeepsTheSchemaVersion is the one test in this file
-// that is not optional, and the schema half is the reason.
-//
-// PRAGMA user_version is how migrate() knows which migrations have already run.
-// Migration 2 is `ALTER TABLE tasks ADD COLUMN dir ...`, and ALTER TABLE ADD
-// COLUMN is not idempotent: run a second time it fails with "duplicate column
-// name", migrate returns that, Open returns it, app.New returns it, and
-// cmd/knightloader/main.go calls log.Fatalf. A container with a restart policy
-// then loops for ever on a database that is completely intact. VACUUM is
-// documented to preserve user_version - but this feature is the first thing in
-// the tree to point one at the live file, and the cost of the documentation
-// being wrong (or of a driver update changing it) is the exact failure this
-// whole feature was asked for to prevent. So it is asserted, and the second
-// Open below is asserted with it: the version being right on paper and the
-// database actually reopening are two different claims.
+// TestVacuumShrinksTheFileAndKeepsTheSchemaVersion: migrate relies on PRAGMA
+// user_version, and migration 2's ALTER TABLE ADD COLUMN fails when run twice,
+// so a VACUUM that lost the version would make the app refuse to start on an
+// intact database. SQLite documents that VACUUM keeps it; this asserts it, and
+// that the file reopens.
 func TestVacuumShrinksTheFileAndKeepsTheSchemaVersion(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "knightloader.db")
-	// Through the real upgrade path, the way migration_test.go's own tests do
-	// it: a database built at the previous schema and then opened, so what is
-	// vacuumed is a migrated file rather than a freshly created one.
+	// A database migrated forward from an older schema, as on a real install.
 	openAtOldSchema(t, path)
 	s, err := Open(path)
 	if err != nil {
@@ -86,7 +64,7 @@ func TestVacuumShrinksTheFileAndKeepsTheSchemaVersion(t *testing.T) {
 		t.Fatal(err)
 	}
 	if before.FreePages == 0 {
-		t.Fatalf("deleting 392 of 400 rows left no free pages at all (%+v) - this test cannot see what it is measuring", before)
+		t.Fatalf("deleting 392 of 400 rows left no free pages at all (%+v); this test cannot see what it is measuring", before)
 	}
 	if before.ReclaimableBytes != before.FreePages*before.PageSize {
 		t.Errorf("reclaimable = %d, want freePages(%d) * pageSize(%d)", before.ReclaimableBytes, before.FreePages, before.PageSize)
@@ -109,7 +87,7 @@ func TestVacuumShrinksTheFileAndKeepsTheSchemaVersion(t *testing.T) {
 		t.Fatal(err)
 	}
 	if after.FileBytes >= before.FileBytes {
-		t.Errorf("the file is %d bytes after compacting and was %d before - nothing was given back", after.FileBytes, before.FileBytes)
+		t.Errorf("the file is %d bytes after compacting and was %d before; nothing was given back", after.FileBytes, before.FileBytes)
 	}
 	if after.FreePages != 0 {
 		t.Errorf("%d free pages survived the compaction, want none", after.FreePages)
@@ -125,8 +103,7 @@ func TestVacuumShrinksTheFileAndKeepsTheSchemaVersion(t *testing.T) {
 			"on an intact database", versionBefore, versionAfter)
 	}
 
-	// The rows that were not deleted are still readable, because a compaction
-	// that gave back space and lost content would pass every assertion above.
+	// The remaining rows are still readable.
 	left, err := s.All()
 	if err != nil {
 		t.Fatalf("reading the tasks back after a compaction: %v", err)
@@ -135,14 +112,13 @@ func TestVacuumShrinksTheFileAndKeepsTheSchemaVersion(t *testing.T) {
 		t.Errorf("%d tasks survived the compaction, want the 8 that were not deleted", len(left))
 	}
 
-	// And the claim the version check is standing in for, made directly: this
-	// file still opens.
+	// The file still opens.
 	if err := s.Close(); err != nil {
 		t.Fatal(err)
 	}
 	again, err := Open(path)
 	if err != nil {
-		t.Fatalf("reopening a compacted database failed: %v - this is the boot loop the version assertion above exists to prevent", err)
+		t.Fatalf("reopening a compacted database failed: %v", err)
 	}
 	defer again.Close()
 	all, err := again.All()
@@ -154,11 +130,8 @@ func TestVacuumShrinksTheFileAndKeepsTheSchemaVersion(t *testing.T) {
 	}
 }
 
-// TestSizesCountsTheJournalBesideTheFile covers the half of the size readout
-// that is not SQLite's own accounting: a journal open beside the database is
-// disk this instance is occupying right now, and a figure that ignored it would
-// disagree with what the operator's own `du` says at exactly the moment they go
-// looking.
+// TestSizesCountsTheJournalBesideTheFile: a journal beside the database takes
+// disk too, and the readout should agree with du.
 func TestSizesCountsTheJournalBesideTheFile(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "knightloader.db")
 	s, err := Open(path)
@@ -178,10 +151,8 @@ func TestSizesCountsTheJournalBesideTheFile(t *testing.T) {
 		t.Errorf("logical = %d, want pageSize(%d) * pageCount(%d)", plain.LogicalBytes, plain.PageSize, plain.PageCount)
 	}
 
-	// A journal SQLite is not holding open at this instant, written by hand.
-	// The file name is the one SQLite itself uses, which is the whole point:
-	// the measurement has to find whatever is beside the database, not only
-	// what this process happens to have created.
+	// A journal written by hand under SQLite's own name, which the
+	// measurement must find even though this process did not create it.
 	const journalBytes = 4096
 	if err := os.WriteFile(path+"-journal", make([]byte, journalBytes), 0o600); err != nil {
 		t.Fatal(err)
@@ -194,21 +165,18 @@ func TestSizesCountsTheJournalBesideTheFile(t *testing.T) {
 		t.Errorf("with a %d byte journal beside it the database measured %d, want %d",
 			journalBytes, withJournal.FileBytes, plain.FileBytes+journalBytes)
 	}
-	// FileSize is the entry point every caller that must answer during a
-	// compaction uses, and it has to agree with the full measurement.
+	// FileSize, used during a compaction, agrees with the full measurement.
 	only, err := s.FileSize()
 	if err != nil {
 		t.Fatal(err)
 	}
 	if only != withJournal.FileBytes {
-		t.Errorf("FileSize = %d but Sizes said %d - two ways of measuring one file that disagree", only, withJournal.FileBytes)
+		t.Errorf("FileSize = %d but Sizes said %d", only, withJournal.FileBytes)
 	}
 }
 
-// TestIntegrityCheckIsSilentOnAHealthyDatabase pins the shape every caller
-// depends on: no problems means an EMPTY slice, never a one-element slice
-// holding the word "ok". A caller that had to know that string is a caller that
-// will one day compare it against a build that spells it differently.
+// TestIntegrityCheckIsSilentOnAHealthyDatabase: no problems is an empty slice,
+// never one holding "ok".
 func TestIntegrityCheckIsSilentOnAHealthyDatabase(t *testing.T) {
 	s, err := Open(filepath.Join(t.TempDir(), "knightloader.db"))
 	if err != nil {
@@ -229,25 +197,10 @@ func TestIntegrityCheckIsSilentOnAHealthyDatabase(t *testing.T) {
 	}
 }
 
-// TestIntegrityCheckReportsEveryProblem is the reason this does not use
-// QueryRow the way internal/backup's own validateDatabase does. That one is
-// deciding whether to accept an upload and a single "not ok" settles it; this
-// one is the answer somebody reads at three in the morning while deciding
-// whether their database is worth saving, and "which pages are damaged" is the
-// entire content of it.
-//
-// It is also what found the thing nobody would have guessed: this driver
-// returns ONE row holding every finding, newline-separated, rather than the row
-// per finding the pragma is documented to produce. Written the obvious way, the
-// list would have had a single element ninety lines long, the cap would have
-// meant nothing, and the page would have told the user about "1 problem". The
-// assertion below is on the count for exactly that reason - it is the number
-// that goes in front of somebody.
-//
-// The damage is done to the file on disk with the store closed, which is the
-// only honest way to produce it: a corrupt database is not a state the app can
-// be driven into from the outside, and every real one got that way through a
-// disk, a filesystem or a kill in the wrong second.
+// TestIntegrityCheckReportsEveryProblem: every finding is reported, one per
+// entry. The driver returns all findings in one newline-separated row, so the
+// count shown to the user depends on the flattening. The file is damaged on
+// disk with the store closed, since the app cannot be driven into corruption.
 func TestIntegrityCheckReportsEveryProblem(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "knightloader.db")
 	s, err := Open(path)
@@ -271,11 +224,8 @@ func TestIntegrityCheckReportsEveryProblem(t *testing.T) {
 	if len(raw) < pageSize*6 {
 		t.Fatalf("the database is only %d bytes, too small to damage a page in the middle of", len(raw))
 	}
-	// Page 1 is left alone deliberately: it carries the header, and a database
-	// whose header is gone does not open at all, which is a different failure
-	// from the one this test is about. Everything from page 3 to the end is
-	// overwritten, so the damage spans many pages and the check has many
-	// separate things to say about it.
+	// Page 1 holds the header, without which the file would not open at all.
+	// Everything from page 3 on is overwritten, so there are many findings.
 	for i := pageSize * 2; i < len(raw); i++ {
 		raw[i] = 0xA5
 	}
@@ -291,15 +241,12 @@ func TestIntegrityCheckReportsEveryProblem(t *testing.T) {
 
 	problems, err := damaged.IntegrityCheck(context.Background(), 0)
 	if err != nil {
-		// SQLite can also refuse the pragma outright on badly enough damaged
-		// content. That is a real answer for the layer above (it surfaces as
-		// the run's Error rather than as its Problems) but it is not what this
-		// test is about, and passing quietly on it would be a test that cannot
-		// fail.
+		// SQLite can refuse the pragma on badly damaged content, but passing
+		// on that would make this test unable to fail.
 		t.Fatalf("the integrity check could not run at all on the damaged file: %v", err)
 	}
 	if len(problems) < 2 {
-		t.Fatalf("a database with every page after the second overwritten reported %d problem(s): %v - "+
+		t.Fatalf("a database with every page after the second overwritten reported %d problem(s): %v; "+
 			"one entry is what a caller gets that reads the first row only, or that reads every row and "+
 			"forgets that this driver packs them all into one", len(problems), problems)
 	}
@@ -308,13 +255,10 @@ func TestIntegrityCheckReportsEveryProblem(t *testing.T) {
 			t.Errorf(`"ok" appeared in the problem list: %v`, problems)
 		}
 		if strings.Contains(p, "\n") {
-			t.Errorf("a problem entry still has a newline in it (%q) - the page renders these as a list, "+
-				"and one entry holding many findings is a wall of text with a count of 1 above it", p)
+			t.Errorf("a problem entry still has a newline in it (%q); the page renders these as a list", p)
 		}
 	}
 
-	// And the cap is honoured, because the list goes into a JSON document and
-	// a page that renders ten thousand lines is not a report.
 	capped, err := damaged.IntegrityCheck(context.Background(), 3)
 	if err != nil {
 		t.Fatal(err)
@@ -324,11 +268,9 @@ func TestIntegrityCheckReportsEveryProblem(t *testing.T) {
 	}
 }
 
-// TestTagSurvivesACompactionAndAReopen is what the maintenance record's own
-// invalidation rests on. The stamp lives in the database's header, so it has to
-// come through the one operation that rewrites every page, and it has to still
-// be there in the next process - otherwise the record would either forget its
-// verdict on every compaction or forget it on every restart.
+// TestTagSurvivesACompactionAndAReopen: the stamp must survive the rewrite of
+// every page and a restart, or the maintenance record would forget its
+// verdict.
 func TestTagSurvivesACompactionAndAReopen(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "knightloader.db")
 	s, err := Open(path)

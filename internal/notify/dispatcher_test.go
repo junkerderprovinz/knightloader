@@ -10,13 +10,9 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/script"
 )
 
-// fastBackoff shortens the retry waits for the length of one test. The steps
-// are a package var rather than a constant precisely so this is possible;
-// without it every retry test would cost two real seconds, and a test suite
-// that costs seconds is a test suite somebody stops running.
-//
-// Tests in this package do not call t.Parallel, so the swap is safe. Anything
-// added here that does would have to take a different route.
+// fastBackoff shortens the retry waits for the length of one test, which is why
+// the steps are a package var. Tests in this package do not call t.Parallel, so
+// the swap is safe; one that did would need a different route.
 func fastBackoff(t *testing.T) {
 	t.Helper()
 	was := backoffSteps
@@ -49,16 +45,13 @@ func taskDone(name string) script.Firing {
 	return script.Firing{Trigger: script.TriggerTaskDone, At: time.Now(), Task: &script.TaskView{ID: "t", Name: name}}
 }
 
-// TestOnDoesNotBlockThePublisher is the load-bearing test of this package.
+// script.Bus.Publish delivers synchronously on the publisher's goroutine, and
+// the publishers are a download's update path and two poll loops, so a
+// subscriber that sent the request itself would stall the download that
+// published for as long as the far end takes to answer.
 //
-// script.Bus.Publish delivers synchronously on the publisher's own goroutine,
-// and the publishers are a download's update path and two poll loops. A
-// subscriber that sends the request itself stalls the download that published
-// for as long as the far end takes to answer.
-//
-// It is written so that it cannot pass for the wrong reason: the far end
-// signals that the request really arrived, so a filter that quietly dropped
-// everything would fail on the wait at the bottom rather than sail through the
+// The far end signals that the request arrived, so a filter that dropped
+// everything fails the wait at the bottom rather than sailing through the
 // timing assertion above it.
 func TestOnDoesNotBlockThePublisher(t *testing.T) {
 	reached := make(chan struct{}, 1)
@@ -93,18 +86,18 @@ func TestOnDoesNotBlockThePublisher(t *testing.T) {
 	// The server holds the request open for as long as this test allows, so
 	// anything near a second here is a Send that happened inline.
 	if took > 250*time.Millisecond {
-		t.Fatalf("Publish took %s; the subscriber is sending on the publisher's goroutine, which stalls the download that published", took)
+		t.Fatalf("Publish took %s, so the subscriber is sending on the publisher's goroutine", took)
 	}
 	select {
 	case <-reached:
 	case <-time.After(5 * time.Second):
-		t.Fatal("the message never reached the far end, so the timing above proved nothing")
+		t.Fatal("the message never reached the far end, so the timing above proves nothing")
 	}
 }
 
-// TestAFullQueueDropsAndCounts covers link.added, which fires once per link: one
-// paste of a two hundred link container is two hundred messages, and what the
-// queue cannot hold has to be dropped and counted rather than buffered.
+// link.added fires once per link, so one paste of a two hundred link container
+// is two hundred messages, and what the queue cannot hold is dropped and
+// counted rather than buffered.
 func TestAFullQueueDropsAndCounts(t *testing.T) {
 	release := make(chan struct{})
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -127,8 +120,8 @@ func TestAFullQueueDropsAndCounts(t *testing.T) {
 		d.On(script.Firing{Trigger: script.TriggerLinkAdded, At: time.Now()})
 	}
 	if got := healthOf(d, "1").Dropped; got == 0 {
-		t.Fatalf("%d messages went into a queue %d deep against a target that answers nothing, and none was dropped; "+
-			"they are being buffered instead, which is memory spent on news that is stale by the time it lands", queueDepth+64, queueDepth)
+		t.Fatalf("%d messages went into a queue %d deep against a target that answers nothing "+
+			"and none was dropped, so they are being buffered", queueDepth+64, queueDepth)
 	}
 }
 
@@ -159,9 +152,9 @@ func TestOnlyTheTickedEventsReachATarget(t *testing.T) {
 }
 
 func TestATargetWithNothingTickedSendsNothing(t *testing.T) {
-	// Empty means NEVER, not "everything". A target that fired on all eleven
-	// events the moment it was switched on would send two hundred messages the
-	// first time somebody pasted a container.
+	// An empty trigger list means no events rather than all of them: a target
+	// subscribed to everything the moment it was switched on would send
+	// hundreds of messages the first time somebody pasted a container.
 	d := New(Options{})
 	defer d.Close()
 	d.Set([]Target{{ID: "1", Enabled: true, URL: "https://x.invalid/"}})
@@ -210,11 +203,10 @@ func TestAServerErrorIsRetriedAndARefusalIsNot(t *testing.T) {
 	// happened.
 	time.Sleep(100 * time.Millisecond)
 	if got := refusalHits.Load(); got != 1 {
-		t.Errorf("a 401 was tried %d times; a wrong token is identical on the second attempt, "+
-			"and repeating it turns one mistake into three requests against somebody's instance", got)
+		t.Errorf("a 401 was tried %d times, want once", got)
 	}
 	if h := healthOf(d, "2"); h.LastCode != ProblemAuth || h.LastStatus != http.StatusUnauthorized {
-		t.Errorf("the health row says code %q status %d, want %q/401 so the page can say what to try", h.LastCode, h.LastStatus, ProblemAuth)
+		t.Errorf("the health row says code %q status %d, want %q and 401", h.LastCode, h.LastStatus, ProblemAuth)
 	}
 }
 
@@ -244,7 +236,7 @@ func TestHealthSeparatesTheLastTryFromTheLastArrival(t *testing.T) {
 
 	h := healthOf(d, "1")
 	if !h.LastOK.Equal(arrived) {
-		t.Errorf("the last arrival moved on a failed attempt; the gap between the two is the whole story a status row tells")
+		t.Errorf("the last arrival moved on a failed attempt")
 	}
 	if !h.LastAttempt.After(h.LastOK) {
 		t.Errorf("the last attempt (%s) is not after the last arrival (%s)", h.LastAttempt, h.LastOK)
@@ -276,7 +268,7 @@ func TestSwitchingATargetOffStopsItAndForgetsItsRow(t *testing.T) {
 		t.Fatalf("%d worker(s) still running for a target that is switched off", n)
 	}
 	if h := healthOf(d, "1"); h.Sent != 0 {
-		t.Errorf("the health row survived the switch (%+v); \"4 delivered\" beside a switch that is off reads as a live target", h)
+		t.Errorf("the health row survived the switch: %+v", h)
 	}
 }
 
@@ -291,8 +283,8 @@ func TestSetKeepsTheRowAndTheQueueAcrossAnUnrelatedSave(t *testing.T) {
 	d.On(taskDone("one"))
 	waitFor(t, "the message to arrive", func() bool { return healthOf(d, "1").Sent == 1 })
 
-	// The shape of "somebody saved the speed limit": the same row comes back
-	// unchanged. Rebuilding here would blank the table the operator is reading.
+	// What saving an unrelated setting looks like: the same row comes back.
+	// Rebuilding here would blank the table the operator is reading.
 	renamed := row
 	renamed.Name = "phone"
 	d.Set([]Target{renamed})
@@ -325,7 +317,7 @@ func TestCloseWaitsForADeliveryAlreadyUnderWay(t *testing.T) {
 	select {
 	case <-done:
 	case <-time.After(10 * time.Second):
-		t.Fatal("Close did not return; the request in flight is not being cancelled with the dispatcher")
+		t.Fatal("Close did not return, so the request in flight is not cancelled with the dispatcher")
 	}
 	// Idempotent, the same promise script.Host.Close makes.
 	if err := d.Close(); err != nil {

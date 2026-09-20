@@ -16,19 +16,14 @@ import (
 	"github.com/dop251/goja"
 )
 
-// scriptsFile is its own JSON file beside settings.json, connections.json
-// and instances.json - never a field inside settings.Settings. That struct
-// is served whole on every GET and replaced whole on every PUT (see
-// build-plan.md's own convention note on this exact hazard, and
-// internal/rules' rule set store built for the identical reason): a browser
-// that loaded the settings page before somebody saved a script would post
-// its stale copy back and silently delete the one just added.
+// scriptsFile is its own JSON file rather than a field of settings.Settings,
+// which is replaced whole on every PUT: a settings page loaded before a
+// script was saved would otherwise post its stale copy back and delete it.
 const scriptsFile = "scripts.json"
 
-// store is the on-disk half of a Host - the exact shape
-// internal/federation.Manager already uses (Load(dir), a name/id-keyed map
-// guarded by one mutex, flush the whole list on every write), copied
-// deliberately rather than reinvented.
+// store is the on-disk half of a Host, shaped like
+// internal/federation.Manager: an id-keyed map under one mutex, with the
+// whole list written on every change.
 type store struct {
 	path string
 
@@ -36,9 +31,7 @@ type store struct {
 	byID map[string]Script
 }
 
-// openStore reads scriptsFile from dir. A missing file is an empty store,
-// not an error - the ordinary case for every install before the first
-// script is ever saved.
+// openStore reads scriptsFile from dir. A missing file is an empty store.
 func openStore(dataDir string) (*store, error) {
 	st := &store{path: filepath.Join(dataDir, scriptsFile), byID: map[string]Script{}}
 	b, err := os.ReadFile(st.path)
@@ -58,8 +51,7 @@ func openStore(dataDir string) (*store, error) {
 	return st, nil
 }
 
-// list returns every stored script, sorted by name for a stable, readable
-// order - the same ordering federation.Manager.List and accounts use.
+// list returns every stored script, sorted by name.
 func (st *store) list() []Script {
 	st.mu.Lock()
 	defer st.mu.Unlock()
@@ -79,14 +71,10 @@ func (st *store) get(id string) (Script, bool) {
 	return s, ok
 }
 
-// save validates and persists s, assigning a fresh ID when s.ID is empty
-// (a new script) and preserving the original CreatedAt when it is not (an
-// edit). It refuses - and writes nothing - when s does not pass validate,
-// which includes a real goja.Compile: a script that cannot parse is
-// refused at save time rather than accepted and silently skipped every
-// time it would otherwise fire (see Host.rebuildIndex, which would
-// otherwise be the only place the mistake ever surfaced, and only in a
-// log line nobody watching the editor would see).
+// save validates and persists s, assigning a fresh ID to a new script and
+// keeping CreatedAt on an edit. A script that does not compile is refused
+// here, where the editor shows the error, rather than skipped with a log line
+// every time it would fire.
 func (st *store) save(s Script) (Script, error) {
 	if err := validate(&s); err != nil {
 		return Script{}, err
@@ -101,10 +89,8 @@ func (st *store) save(s Script) (Script, error) {
 	case ok:
 		s.CreatedAt = existing.CreatedAt
 	default:
-		// A non-empty ID this store has never seen: treat it as a fresh
-		// row under the caller's chosen ID rather than refusing it, the
-		// same tolerance federation.Manager.Add shows for a name it has
-		// not seen before.
+		// An unknown non-empty ID becomes a new row under that ID, as in
+		// federation.Manager.Add.
 		s.CreatedAt = now
 	}
 	s.UpdatedAt = now
@@ -115,10 +101,8 @@ func (st *store) save(s Script) (Script, error) {
 	return s, nil
 }
 
-// delete removes a script by id. Refuses an unknown id rather than treating
-// it as an already-satisfied no-op, so a caller's stale ID (a second
-// browser tab, a double click) is told rather than left to wonder whether
-// anything happened.
+// delete removes a script by id. An unknown id is an error, so a stale ID
+// from a second tab or a double click is reported.
 func (st *store) delete(id string) error {
 	st.mu.Lock()
 	defer st.mu.Unlock()
@@ -142,10 +126,8 @@ func (st *store) flushLocked() error {
 	return os.WriteFile(st.path, b, 0o600)
 }
 
-// validate normalises and checks one script before it is ever persisted or
-// compiled a second time. Bounds are documented on the constants
-// themselves (script.go); the goja.Compile call here is what makes "this
-// script is saved" and "this script parses" the same fact, always.
+// validate normalises and checks one script before it is persisted, including
+// compiling it, so every saved script parses.
 func validate(s *Script) error {
 	s.Name = strings.TrimSpace(s.Name)
 	if s.Name == "" {
@@ -163,11 +145,9 @@ func validate(s *Script) error {
 	if len(s.Code) > MaxCodeBytes {
 		return fmt.Errorf("script: source longer than %d bytes", MaxCodeBytes)
 	}
-	// strict mode: an undeclared assignment inside a script must raise a
-	// ReferenceError rather than quietly create a global that could later
-	// collide with a name this package adds - see the package doc
-	// comment's sandbox enumeration for why the set of globals is meant to
-	// be exact and closed.
+	// Strict mode, so an undeclared assignment raises a ReferenceError
+	// instead of creating a global that could collide with one this package
+	// adds.
 	if _, err := goja.Compile(s.ID, s.Code, true); err != nil {
 		return fmt.Errorf("script: does not compile: %w", err)
 	}
