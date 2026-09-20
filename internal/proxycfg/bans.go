@@ -1,41 +1,32 @@
 package proxycfg
 
 // The ban list: which connections a host has refused, so the picker stops
-// offering them for that host.
-//
-// It is deliberately in memory only. A ban is a statement about how a hoster is
-// behaving now, not a setting, and one written to disk would outlive the reason
-// for it - a proxy blocked during an evening's rate limit would still be refused
-// for that hoster weeks later, with nothing on any page to explain why downloads
-// were queuing up behind a connection that works.
+// offering them for that host. It lives in memory only, because a ban reflects
+// how a hoster behaves now; saved to disk it would outlast its reason and keep
+// a working proxy refused with nothing on any page to explain why.
 
 import (
 	"sort"
 	"sync"
 )
 
-// Bans records the connection/host pairs that have been refused.
-//
-// Every method tolerates a nil receiver, so a Picker built without one behaves
-// exactly like a Picker whose list is empty. That matters because the ban list
-// is an addition to a feature that already worked: a caller that has not been
-// taught about it yet must not have to be, and must not crash for not being.
+// Bans records the connection/host pairs that have been refused. Every method
+// tolerates a nil receiver, so a Picker without one behaves as if the list
+// were empty.
 type Bans struct {
 	mu sync.Mutex
 	// hosts maps a connection id to the hosts that have refused it.
 	hosts map[string]map[string]struct{}
-	// seen is what the list said about each row the last time a picker was built
-	// over it, and is the whole of the edge detection - see observe.
+	// seen is each row's state when a picker was last built, for observe.
 	seen map[string]rowState
 }
 
-// rowState is the little about a row that decides whether its bans still apply.
+// rowState is what decides whether a row's bans still apply.
 type rowState struct {
 	enabled bool
-	// endpoint is where the row pointed, so that a row edited to a different
-	// proxy does not inherit the refusals of the one it used to be. Entry.String
-	// is exactly the right amount of it: kind, user and address, never the
-	// password.
+	// endpoint is where the row pointed, so a row edited to another proxy does
+	// not inherit the old one's refusals. Entry.String gives kind, user and
+	// address without the password.
 	endpoint string
 }
 
@@ -45,12 +36,8 @@ func NewBans() *Bans {
 }
 
 // Ban records that host refused the connection with this id. It is idempotent.
-//
-// The direct gateway is never banned, and neither is a blank id. Banning the
-// gateway would leave a host with no connection at all once its proxies were
-// refused too, and the queue would stall on downloads that had nowhere left to
-// go - the failure Pick's fallback to direct exists to prevent, arrived at from
-// the other side.
+// The direct gateway and a blank id are never banned, so a host whose proxies
+// were all refused still has a way out.
 func (b *Bans) Ban(id, host string) {
 	if b == nil || id == "" || id == DirectID {
 		return
@@ -81,10 +68,8 @@ func (b *Bans) Banned(id, host string) bool {
 	return yes
 }
 
-// Hosts is the sorted list of hosts that have refused this connection, so a page
-// can show what a row is currently being kept away from. Sorted rather than in
-// insertion order: this is read to be looked at, and a list that reshuffles
-// between two views of the same state reads as changing when it has not.
+// Hosts is the sorted list of hosts that have refused this connection, for a
+// page to show. Sorted so two views of the same state look the same.
 func (b *Bans) Hosts(id string) []string {
 	if b == nil {
 		return nil
@@ -102,8 +87,8 @@ func (b *Bans) Hosts(id string) []string {
 	return out
 }
 
-// Clear forgets everything held against one connection, which is what "try this
-// proxy again" means.
+// Clear forgets everything held against one connection, which is what "try
+// this proxy again" means.
 func (b *Bans) Clear(id string) {
 	if b == nil {
 		return
@@ -124,30 +109,18 @@ func (b *Bans) ClearAll() {
 }
 
 // observe takes in the sanitized list a picker was just built over and clears
-// the bans that the list itself has just invalidated.
-//
-// It is called from NewPicker and nowhere else, and that is not laziness. A
-// picker is rebuilt exactly when the connection list is saved, so the
-// construction is the edit - there is no second moment to hook, and a caller
-// asked to remember to call this after every save is a caller who will forget
-// once and leave a row switched back on that is still silently refused.
+// the bans the list itself invalidated. NewPicker calls it, because a picker
+// is rebuilt exactly when the list is saved, so no caller has to remember.
 //
 // Three things clear a row's bans:
 //
-//	off -> on   The Use switch going false->true is the user saying "try this
-//	            again". Re-enabling a connection that came back still carrying
-//	            yesterday's refusals is an inheritance nobody asked for, and it
-//	            is invisible: the row is on, and downloads still avoid it.
-//	edited      The row now points at a different proxy. The refusals belonged
-//	            to the machine it used to name, not to the row.
-//	deleted     Its bans go with it. This one is not tidiness. identify hands out
-//	            the LOWEST FREE decimal id, so deleting row "2" and adding a new
-//	            one makes the newcomer "2" as well - and without this it would be
-//	            born already banned from the hosts that refused its predecessor.
+//	off to on:  switching a row back on means "try this again".
+//	edited:     the row points at a different proxy now.
+//	deleted:    identify reuses the lowest free id, so a new row would
+//	            otherwise inherit its predecessor's bans.
 //
-// A row seen for the first time is recorded, never treated as an edge: at boot
-// every row would otherwise look like one, and clearing an empty ban list to
-// celebrate is only misleading in the log somebody eventually adds here.
+// A row seen for the first time is only recorded, or every row would count as
+// changed at boot.
 func (b *Bans) observe(entries []Entry) {
 	if b == nil {
 		return

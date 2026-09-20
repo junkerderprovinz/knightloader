@@ -11,9 +11,8 @@ import (
 	"testing"
 )
 
-// TestSanitizeNormalisesMethod covers the aliases a JD user would type and, more
-// importantly, pins that an unrecognised method lands on "off" rather than on
-// whichever branch happens to be first in the switch.
+// TestSanitizeNormalisesMethod covers the aliases a JDownloader user would
+// type, and that an unrecognised method lands on "off".
 func TestSanitizeNormalisesMethod(t *testing.T) {
 	tests := []struct {
 		in   string
@@ -39,8 +38,8 @@ func TestSanitizeNormalisesMethod(t *testing.T) {
 	}
 }
 
-// TestSanitizeClampsTiming proves the poll loop can never be configured into a
-// shape that either hammers the check service or ends before it has looked once.
+// TestSanitizeClampsTiming: the poll loop can neither hammer the check service
+// nor end before it has looked once.
 func TestSanitizeClampsTiming(t *testing.T) {
 	tests := []struct {
 		name                     string
@@ -71,9 +70,6 @@ func TestSanitizeClampsTiming(t *testing.T) {
 	}
 }
 
-// TestSanitizeLeavesThePasswordAlone is the failure the comment in Sanitize
-// names: a password whose spaces were trimmed away logs in nowhere, and the
-// router never says why.
 func TestSanitizeLeavesThePasswordAlone(t *testing.T) {
 	got := Sanitize(Config{Username: "  admin\t", Password: "  spaces matter  "})
 	if got.Username != "admin" {
@@ -84,8 +80,6 @@ func TestSanitizeLeavesThePasswordAlone(t *testing.T) {
 	}
 }
 
-// TestSanitizeFillsRequestDefaults checks the per-request tidying, including the
-// nameless header that would otherwise be written to the wire.
 func TestSanitizeFillsRequestDefaults(t *testing.T) {
 	got := Sanitize(Config{
 		Method: MethodHTTP,
@@ -114,9 +108,8 @@ func TestSanitizeFillsRequestDefaults(t *testing.T) {
 	}
 }
 
-// TestValidate walks every way a configuration can be incomplete. Each one must
-// come back as ErrNotConfigured so the caller can tell "the user has not
-// finished setting this up" from "the router refused".
+// TestValidate walks every way a configuration can be incomplete; each wraps
+// ErrNotConfigured.
 func TestValidate(t *testing.T) {
 	ok := Config{Method: MethodCommand, Command: "/usr/bin/reconnect", CheckURL: "http://check"}
 	tests := []struct {
@@ -135,11 +128,8 @@ func TestValidate(t *testing.T) {
 			CheckURL: "http://check",
 		}, true},
 		{"no check url", Config{Method: MethodCommand, Command: "/bin/true"}, true},
-		// "igd" is a word Sanitize understands and folds into MethodUPnP. Raw, it
-		// has not been through Sanitize yet, and Validate is not Sanitize: it
-		// refuses what it does not recognise rather than guessing. Picking a
-		// synonym rather than nonsense is deliberate, because the near-miss is
-		// what actually reaches here from unsanitised form input.
+		// Sanitize folds "igd" into MethodUPnP, but Validate does not guess at
+		// unsanitised input.
 		{"unsanitised synonym", Config{Method: "igd", CheckURL: "http://check"}, true},
 	}
 	for _, tc := range tests {
@@ -155,11 +145,8 @@ func TestValidate(t *testing.T) {
 	}
 }
 
-// TestValidateNamesAnUnknownMethod: Sanitize turns a method it cannot place into
-// "off", so by the time anything runs, the word the user typed is gone. A caller
-// that validates the raw form input still has it, and must say it - "reconnect is
-// switched off" sends somebody who mistyped "liveheader" to the on/off toggle
-// they already turned on.
+// TestValidateNamesAnUnknownMethod: on raw form input the typed word is still
+// there, and naming it beats "switched off", which points at the toggle.
 func TestValidateNamesAnUnknownMethod(t *testing.T) {
 	err := Config{Method: "liveheda", CheckURL: "http://check"}.Validate()
 	if err == nil {
@@ -169,16 +156,14 @@ func TestValidateNamesAnUnknownMethod(t *testing.T) {
 		t.Errorf("Validate() = %q, which never mentions what the user typed", err)
 	}
 
-	// The genuinely switched-off case must keep saying so, not accuse the user of
-	// a typo they did not make.
 	off := Config{Method: MethodNone, CheckURL: "http://check"}.Validate()
 	if off == nil || !strings.Contains(off.Error(), "switched off") {
 		t.Errorf("Validate() on a switched-off config = %v", off)
 	}
 }
 
-// TestExpandVars pins the substitution rules, above all that an unknown or
-// half-written placeholder survives into the output where somebody can see it.
+// TestExpandVars pins the substitution rules, including that an unknown or
+// half-written placeholder stays visible in the output.
 func TestExpandVars(t *testing.T) {
 	vars := Config{Username: "admin", Password: "s3cret"}.vars(netip.MustParseAddr("203.0.113.9"))
 	tests := []struct {
@@ -206,8 +191,8 @@ func TestExpandVars(t *testing.T) {
 	}
 }
 
-// TestExpandVarsWithoutAddress covers the placeholder before anything is known:
-// it must not write the zero netip.Addr's "invalid IP" text into a URL.
+// TestExpandVarsWithoutAddress: the zero netip.Addr's "invalid IP" text must
+// not end up in a URL.
 func TestExpandVarsWithoutAddress(t *testing.T) {
 	got := expandVars("http://router/?from=%%ip%%", Config{}.vars(netip.Addr{}))
 	if got != "http://router/?from=" {
@@ -215,9 +200,8 @@ func TestExpandVarsWithoutAddress(t *testing.T) {
 	}
 }
 
-// TestRedactedRoundTrip is the settings-form loop: show a redacted config, take
-// it back, and the stored password must survive - while an intentional clear
-// must still get through.
+// TestRedactedRoundTrip is the settings-form loop: an untouched placeholder
+// keeps the stored password, and a deliberate clear still gets through.
 func TestRedactedRoundTrip(t *testing.T) {
 	stored := Config{Method: MethodCommand, Password: "hunter2"}
 
@@ -250,8 +234,8 @@ func TestRedactedRoundTrip(t *testing.T) {
 	}
 }
 
-// TestStringHidesThePassword guards the accident this method exists for: a %v on
-// the settings struct in some log line, now or years from now.
+// TestStringHidesThePassword: a %v on the settings struct in a log line must
+// not print the password.
 func TestStringHidesThePassword(t *testing.T) {
 	cfgs := []Config{
 		{Method: MethodCommand, Command: "/usr/bin/reconnect", Args: []string{"--pass", "hunter2"}, Password: "hunter2", CheckURL: "http://check"},
@@ -267,12 +251,9 @@ func TestStringHidesThePassword(t *testing.T) {
 	}
 }
 
-// TestRedactedErrorHasNoWayBackToTheSecret is the hole a redaction of this shape
-// normally has. Wrapping the original so errors.Is keeps working also leaves it
-// reachable through errors.Unwrap and errors.As, and the original still spells
-// the password out - so a caller that wants more detail in a log line, or a
-// %+v somewhere up the stack that walks the chain, gets the plain text back. The
-// sentinel has to survive without the message surviving with it.
+// TestRedactedErrorHasNoWayBackToTheSecret: errors.Is keeps working, but
+// errors.Unwrap and errors.As must not hand back the original, which still
+// holds the password.
 func TestRedactedErrorHasNoWayBackToTheSecret(t *testing.T) {
 	const pw = "hunter2"
 	cfg := Config{Password: pw}
@@ -283,7 +264,6 @@ func TestRedactedErrorHasNoWayBackToTheSecret(t *testing.T) {
 		t.Fatalf("redact left the password in %q", err)
 	}
 
-	// Every route out of the error, not just the one that is easy to remember.
 	if got := errors.Unwrap(err); got != nil {
 		t.Errorf("errors.Unwrap handed back %q, which still holds the password", got)
 	}
@@ -297,7 +277,6 @@ func TestRedactedErrorHasNoWayBackToTheSecret(t *testing.T) {
 		}
 	}
 
-	// ...while the one thing a caller actually asks of the error still works.
 	if !errors.Is(err, context.Canceled) {
 		t.Error("errors.Is no longer recognises the sentinel behind a redacted error")
 	}
@@ -306,9 +285,8 @@ func TestRedactedErrorHasNoWayBackToTheSecret(t *testing.T) {
 	}
 }
 
-// TestRedactErrorLeavesOtherErrorsAlone makes sure the choke point is a filter
-// and not a rewriter: an error with nothing to hide comes back identical, so
-// errors.Is keeps working on it.
+// TestRedactErrorLeavesOtherErrorsAlone: an error with nothing to hide comes
+// back identical.
 func TestRedactErrorLeavesOtherErrorsAlone(t *testing.T) {
 	cfg := Config{Password: "hunter2"}
 	if got := cfg.redact(nil); got != nil {

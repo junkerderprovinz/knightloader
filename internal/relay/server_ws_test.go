@@ -63,12 +63,10 @@ func readFrame(t *testing.T, c *websocket.Conn, want string) Envelope {
 	return env
 }
 
-// TestEndToEndOverRealWebSockets runs the whole thing over an actual
-// handshake and actual frames: two clients, the real coder/websocket
-// implementation on both ends, and the relay's own http.Handler. The registry
-// tests above drive Join/Route directly and so cannot catch a wire-format
-// mistake - a frame the server writes but no real client can parse, or a
-// handshake the library rejects - which is exactly what this covers.
+// TestEndToEndOverRealWebSockets runs two real coder/websocket clients against
+// the relay's http.Handler. The registry tests drive Join and Route directly
+// and cannot catch a frame no real client can parse or a handshake the
+// library rejects.
 func TestEndToEndOverRealWebSockets(t *testing.T) {
 	srv := httptest.NewServer(New())
 	t.Cleanup(srv.Close)
@@ -93,11 +91,8 @@ func TestEndToEndOverRealWebSockets(t *testing.T) {
 		t.Errorf("alpha was told about %+v, want bravo", arrival)
 	}
 
-	// alpha calls bravo's REST API through the relay. Both payloads are
-	// really sealed here, unlike the in-process routing tests in
-	// server_test.go: this is the one test that runs the whole thing over a
-	// real socket, so it is the one worth proving the round trip survives
-	// base64 in the JSON envelope and comes back out as the same call.
+	// Unlike server_test.go, both payloads are really sealed, so the round
+	// trip through base64 in the JSON envelope is covered.
 	call := ProxyCall{
 		Method: "POST", Path: "/api/links",
 		Body: []byte(`{"url":"https://example.invalid/file.bin"}`),
@@ -137,8 +132,8 @@ func TestEndToEndOverRealWebSockets(t *testing.T) {
 		t.Errorf("alpha opened %+v, want bravo's own answer", res)
 	}
 
-	// A real socket closing is what the Instances page's live status hangs
-	// on, so it is exercised here and not only through Leave.
+	// The Instances page's live status depends on a real socket closing, not
+	// only on Leave.
 	_ = bravo.CloseNow()
 	var gone Presence
 	if err := readFrame(t, alpha, TypePresence).Into(&gone); err != nil {
@@ -149,9 +144,6 @@ func TestEndToEndOverRealWebSockets(t *testing.T) {
 	}
 }
 
-// TestConnectionWithoutAKeyIsRejected: the hello frame is the only credential
-// this relay has, so a connection that never presents one must not end up in
-// anybody's group.
 func TestConnectionWithoutAKeyIsRejected(t *testing.T) {
 	relaySrv := New()
 	srv := httptest.NewServer(relaySrv)
@@ -175,10 +167,6 @@ func TestConnectionWithoutAKeyIsRejected(t *testing.T) {
 	}
 }
 
-// TestConnectionWithATooShortKeyIsRejected: minKeyLength is a floor against
-// the laziest keys, and a floor that only exists in the doc comment is no
-// floor at all - this proves readHello actually enforces it over a real
-// handshake, not only that a non-empty key is required.
 func TestConnectionWithATooShortKeyIsRejected(t *testing.T) {
 	relaySrv := New()
 	srv := httptest.NewServer(relaySrv)

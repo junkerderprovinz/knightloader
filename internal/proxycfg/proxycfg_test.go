@@ -13,10 +13,8 @@ func proxy() Entry {
 	return Entry{ID: "p", Kind: KindHTTP, Host: "proxy.lan", Port: 8080, Enabled: true}
 }
 
-// TestSanitizeDropsUnusableEntries pins the rule the package comment makes: a
-// half-configured proxy is dropped, not kept. A kept one would be enabled with
-// no endpoint, and the traffic the user was hiding would go out over the plain
-// connection with nothing to say so.
+// TestSanitizeDropsUnusableEntries: a half-configured proxy is dropped, not
+// kept enabled without an endpoint.
 func TestSanitizeDropsUnusableEntries(t *testing.T) {
 	cases := []struct {
 		name string
@@ -36,16 +34,13 @@ func TestSanitizeDropsUnusableEntries(t *testing.T) {
 		{"a whole URL pasted into the host field", Entry{Kind: KindHTTP, Host: "http://proxy.lan:8080/", Port: 8080, Enabled: true}, false},
 		{"host with a space", Entry{Kind: KindHTTP, Host: "proxy lan", Port: 8080, Enabled: true}, false},
 		{"host with credentials in it", Entry{Kind: KindHTTP, Host: "u@proxy.lan", Port: 8080, Enabled: true}, false},
-		// A filter that can never match is refused rather than kept, because a
-		// kept one turns the entry into a row that claims nothing: the picker
-		// finds no owner for the host and answers with a plain download, which is
-		// the leak the filter was typed in to prevent.
+		// A filter that can never match would let the host go out unproxied.
 		{"a filter path.Match cannot parse", Entry{Kind: KindHTTP, Host: "proxy.lan", Port: 8080, Filter: []string{"[oops"}, Enabled: true}, false},
 		{"a whole URL pasted into the filter", Entry{Kind: KindDirect, Filter: []string{"http://example.org"}, Enabled: true}, false},
 		{"a filter with a space", Entry{Kind: KindDirect, Filter: []string{"example org"}, Enabled: true}, false},
 		{"one good filter and one broken one", Entry{Kind: KindHTTP, Host: "proxy.lan", Port: 8080, Filter: []string{"example.org", "[oops"}, Enabled: true}, false},
 		{"a wildcard filter is fine", Entry{Kind: KindHTTP, Host: "proxy.lan", Port: 8080, Filter: []string{"*.example.org"}, Enabled: true}, true},
-		// A disabled row is configuration the user still wants, not rubbish.
+		// A disabled row is still wanted configuration.
 		{"disabled but complete", Entry{Kind: KindHTTP, Host: "proxy.lan", Port: 8080}, true},
 	}
 	for _, c := range cases {
@@ -54,8 +49,8 @@ func TestSanitizeDropsUnusableEntries(t *testing.T) {
 			if kept := len(got) == 1; kept != c.keep {
 				t.Fatalf("Sanitize(%v) kept %d entries, want kept=%v", c.in, len(got), c.keep)
 			}
-			// Validate has to agree, or the API would accept a save whose row
-			// Sanitize then throws away without a word.
+			// Validate has to agree, or the API would accept a row Sanitize
+			// then drops.
 			if err := Validate(c.in); (err == nil) != c.keep {
 				t.Fatalf("Validate(%v) = %v, want error=%v", c.in, err, !c.keep)
 			}
@@ -63,8 +58,8 @@ func TestSanitizeDropsUnusableEntries(t *testing.T) {
 	}
 }
 
-// TestSanitizeReadsAnEmptyTypeAsInert covers the row a UI creates before the
-// user has chosen anything. Rejecting it would delete it on the next save.
+// TestSanitizeReadsAnEmptyTypeAsInert covers the row a UI creates before
+// anything is chosen, which must survive the next save.
 func TestSanitizeReadsAnEmptyTypeAsInert(t *testing.T) {
 	got := Sanitize([]Entry{{Enabled: true}})
 	if len(got) != 1 || got[0].Kind != KindNone {
@@ -72,10 +67,8 @@ func TestSanitizeReadsAnEmptyTypeAsInert(t *testing.T) {
 	}
 }
 
-// TestSanitizeClearsWhatCannotBeSent checks the fields that are meaningless for
-// their kind. Each one left in place would persist a secret or an endpoint that
-// no code path can ever use, which is how a settings file grows things that look
-// like configuration and are not.
+// TestSanitizeClearsWhatCannotBeSent: fields meaningless for their kind would
+// persist secrets or endpoints nothing can use.
 func TestSanitizeClearsWhatCannotBeSent(t *testing.T) {
 	cases := []struct {
 		name  string
@@ -166,9 +159,8 @@ func TestSanitizeClearsWhatCannotBeSent(t *testing.T) {
 	}
 }
 
-// TestSanitizeIsIdempotent matters because NewPicker sanitizes again behind the
-// caller. If a second pass changed anything, the list the user sees and the list
-// the picker walks would drift apart.
+// TestSanitizeIsIdempotent: NewPicker sanitizes again, and a second pass must
+// not change the list the user sees.
 func TestSanitizeIsIdempotent(t *testing.T) {
 	in := []Entry{
 		{Kind: "HTTP ", Host: " Proxy.LAN. ", Port: 8080, Username: " u ", Password: "s", Order: 9, Enabled: true},
@@ -186,9 +178,8 @@ func TestSanitizeIsIdempotent(t *testing.T) {
 	}
 }
 
-// TestSanitizeAssignsStableIDsAndCompactOrder pins both halves of identify: an
-// ID the API already handed out survives, and the order becomes the sequence the
-// user is actually looking at rather than whatever the sort left behind.
+// TestSanitizeAssignsStableIDsAndCompactOrder: an ID already handed out
+// survives, and the order is renumbered to the sequence the user sees.
 func TestSanitizeAssignsStableIDsAndCompactOrder(t *testing.T) {
 	in := []Entry{
 		{Kind: KindHTTP, Host: "a.lan", Port: 1, Order: 5, Enabled: true},
@@ -214,9 +205,8 @@ func TestSanitizeAssignsStableIDsAndCompactOrder(t *testing.T) {
 	}
 }
 
-// TestURLCarriesCredentials is the builder's contract: the scheme http.Transport
-// and x/net/proxy expect, an IPv6 host that stays one host, and credentials in
-// the userinfo where a dialer looks for them.
+// TestURLCarriesCredentials: the scheme http.Transport and x/net/proxy expect,
+// a bracketed IPv6 host, and credentials in the userinfo.
 func TestURLCarriesCredentials(t *testing.T) {
 	cases := []struct {
 		name string
@@ -227,8 +217,7 @@ func TestURLCarriesCredentials(t *testing.T) {
 		{"https with a user only", Entry{Kind: KindHTTPS, Host: "proxy.lan", Port: 8443, Username: "u"}, "https://u@proxy.lan:8443"},
 		{"http with user and password", Entry{Kind: KindHTTP, Host: "proxy.lan", Port: 8080, Username: "u", Password: "s"}, "http://u:s@proxy.lan:8080"},
 		{"socks5", Entry{Kind: KindSOCKS5, Host: "10.0.0.5", Port: 1080, Username: "u", Password: "s"}, "socks5://u:s@10.0.0.5:1080"},
-		// SOCKS4 has a user id and no password field, so a password must not be
-		// written into a URL that would only ever carry it as far as a log file.
+		// SOCKS4 has no password field, so the password stays out of the URL.
 		{"socks4 drops the password", Entry{Kind: KindSOCKS4, Host: "10.0.0.5", Port: 1080, Username: "u", Password: "s"}, "socks4://u@10.0.0.5:1080"},
 		{"socks4a", Entry{Kind: KindSOCKS4A, Host: "10.0.0.5", Port: 1080}, "socks4a://10.0.0.5:1080"},
 		{"ipv6 is bracketed", Entry{Kind: KindHTTP, Host: "2001:db8::1", Port: 8080}, "http://[2001:db8::1]:8080"},
@@ -248,17 +237,15 @@ func TestURLCarriesCredentials(t *testing.T) {
 			}
 		})
 	}
-	// A dialer reads the password off the userinfo, so it has to survive the
-	// round trip through url.URL rather than merely appear in the string.
+	// A dialer reads the password off the userinfo, so it must survive
+	// url.URL intact.
 	u := Entry{Kind: KindSOCKS5, Host: "10.0.0.5", Port: 1080, Username: "u", Password: "s3:cr@t"}.URL()
 	if pw, ok := u.User.Password(); !ok || pw != "s3:cr@t" {
 		t.Errorf("URL().User.Password() = %q,%v, want the password back verbatim", pw, ok)
 	}
 }
 
-// TestNeedsOwnDialer pins the one fact a caller cannot guess: net/http drives
-// socks5 by itself but has never understood socks4, so those entries need a
-// dialer the caller supplies instead of Transport.Proxy.
+// TestNeedsOwnDialer: net/http drives socks5 itself but not socks4.
 func TestNeedsOwnDialer(t *testing.T) {
 	cases := map[Kind]bool{
 		KindHTTP:    false,
@@ -276,9 +263,8 @@ func TestNeedsOwnDialer(t *testing.T) {
 	}
 }
 
-// TestPasswordNeverLeavesTheEntry is the proof the password stays put. String
-// never assembles it, so no %v anywhere in the app can spill it, and Redacted
-// removes it from anything on its way to a client.
+// TestPasswordNeverLeavesTheEntry: String never includes the password, and
+// Redacted removes it before anything reaches a client.
 func TestPasswordNeverLeavesTheEntry(t *testing.T) {
 	const secret = "hunter2-schwarzpulver"
 	e := Entry{ID: "1", Kind: KindHTTPS, Host: "proxy.lan", Port: 8443, Username: "u", Password: secret, Enabled: true}
@@ -305,8 +291,7 @@ func TestPasswordNeverLeavesTheEntry(t *testing.T) {
 	if pw := e.Redacted().Password; pw != "" {
 		t.Errorf("Redacted().Password = %q, want empty", pw)
 	}
-	// The API marshals the redacted entry, which is the path that would put the
-	// password in a browser's network tab.
+	// The API marshals the redacted entry.
 	b, err := json.Marshal(e.Redacted())
 	if err != nil {
 		t.Fatalf("Marshal: %v", err)
@@ -314,13 +299,11 @@ func TestPasswordNeverLeavesTheEntry(t *testing.T) {
 	if bytes.Contains(b, []byte(secret)) {
 		t.Errorf("redacted JSON leaked the password: %s", b)
 	}
-	// Redacting must not cost the identity of the row, or the client cannot
-	// match it back to what it sent.
+	// The client matches rows by their identifying fields.
 	if e.Redacted().ID != e.ID || e.Redacted().Host != e.Host {
 		t.Errorf("Redacted() lost identifying fields: %+v", e.Redacted())
 	}
-	// Persisting is the one place the password does belong, otherwise a restart
-	// silently loses it.
+	// Persisting keeps the password, or a restart would lose it.
 	stored, err := json.Marshal(e)
 	if err != nil {
 		t.Fatalf("Marshal: %v", err)
@@ -330,9 +313,8 @@ func TestPasswordNeverLeavesTheEntry(t *testing.T) {
 	}
 }
 
-// TestMatchesHostFilter pins the filter language, including the two rules a user
-// will rely on without reading anything: a bare domain covers its subdomains,
-// and a target that arrives with a port still matches.
+// TestMatchesHostFilter pins the filter language, including that a bare
+// domain covers its subdomains and a target with a port still matches.
 func TestMatchesHostFilter(t *testing.T) {
 	cases := []struct {
 		name   string
@@ -366,11 +348,8 @@ func TestMatchesHostFilter(t *testing.T) {
 			if m := got[0].Matches(c.host); m != c.want {
 				t.Errorf("Matches(%q) with filter %v = %v, want %v", c.host, got[0].Filter, m, c.want)
 			}
-			// The same answer off an entry that never went through Sanitize.
-			// Matches is exported and app.go holds entries straight off a request
-			// and out of settings.json; a filter that only works once it has been
-			// folded is a filter that silently matches nothing wherever anybody
-			// forgets, and the download leaves over the wrong connection.
+			// The same answer from an entry that never went through Sanitize,
+			// as callers often hold.
 			if m := raw.Matches(c.host); m != c.want {
 				t.Errorf("unsanitized Matches(%q) with filter %v = %v, want %v", c.host, c.filter, m, c.want)
 			}
@@ -378,11 +357,8 @@ func TestMatchesHostFilter(t *testing.T) {
 	}
 }
 
-// TestFilterThatCanNeverMatchIsRefusedNotKept is the silent-swallow case: a
-// filter the user mistyped must come back as an error, not be persisted as
-// configuration that quietly does nothing. Keeping it would leave an entry that
-// claims no host at all, so the picker would find no owner for the hoster the
-// user pointed at it and answer with a plain unproxied download.
+// TestFilterThatCanNeverMatchIsRefusedNotKept: a mistyped filter is an error,
+// not a saved entry that claims no host and lets downloads go unproxied.
 func TestFilterThatCanNeverMatchIsRefusedNotKept(t *testing.T) {
 	cases := []struct {
 		name    string
@@ -394,8 +370,8 @@ func TestFilterThatCanNeverMatchIsRefusedNotKept(t *testing.T) {
 		{"single character wildcard", "dl?.example.org", true},
 		{"character class", "dl[12].example.org", true},
 		{"ipv6 literal", "2001:db8::1", true},
-		// The bracketed form is what a user copies out of a URL bar. It has to
-		// survive, because the brackets otherwise read as a character class.
+		// Copied from a URL bar; the brackets must not read as a character
+		// class.
 		{"bracketed ipv6 literal", "[2001:db8::1]", true},
 		{"unterminated class", "[oops", false},
 		{"pasted url", "http://example.org", false},
@@ -415,26 +391,21 @@ func TestFilterThatCanNeverMatchIsRefusedNotKept(t *testing.T) {
 			if kept := len(Sanitize([]Entry{e})); (kept == 1) != c.ok {
 				t.Fatalf("Sanitize kept %d entries for filter %q, want ok=%v", kept, c.pattern, c.ok)
 			}
-			// The API repeats this back to the user, who has to be able to tell
-			// which of several rows it is about, and it has to be the pattern as
-			// typed rather than the folded form nobody entered.
+			// The error names the pattern as typed, not its folded form.
 			if err != nil && !strings.Contains(err.Error(), fmt.Sprintf("%q", c.pattern)) {
 				t.Errorf("error does not name the pattern: %v", err)
 			}
 		})
 	}
-	// Defence in depth for an entry built in code and never validated: a pattern
-	// that cannot be parsed matches nothing rather than everything, because
-	// widening it would push the whole queue through one connection.
+	// An unvalidated, unparseable pattern matches nothing rather than
+	// everything.
 	if matchPattern("[oops", "example.org") {
 		t.Errorf("an unparseable pattern widened to match everything")
 	}
 }
 
-// TestMergeRestoresPasswordsTheClientNeverSaw covers the round trip that would
-// otherwise wipe every proxy password: the API sends Redacted entries, the
-// settings page posts them back unchanged, and without Merge the save clears
-// them all.
+// TestMergeRestoresPasswordsTheClientNeverSaw: the settings page posts back the
+// redacted entries it was sent, which must not clear the stored passwords.
 func TestMergeRestoresPasswordsTheClientNeverSaw(t *testing.T) {
 	prev := Sanitize([]Entry{{ID: "p", Kind: KindHTTP, Host: "proxy.lan", Port: 8080, Username: "u", Password: "s", Enabled: true}})
 	sent := prev[0].Redacted()
@@ -469,10 +440,8 @@ func TestMergeRestoresPasswordsTheClientNeverSaw(t *testing.T) {
 			t.Errorf("password = %q, want empty", got[0].Password)
 		}
 	})
-	// The client posting this list back is the one the password was withheld
-	// from. If it could move the row somewhere else and keep the secret, it could
-	// point a password it was never allowed to read at a machine it controls and
-	// have the app hand it over on the next download.
+	// The client never saw the password and must not be able to point it at a
+	// machine it controls.
 	t.Run("a moved row does not take the password with it", func(t *testing.T) {
 		cases := []struct {
 			name string

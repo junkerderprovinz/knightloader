@@ -17,16 +17,11 @@ import (
 	"time"
 )
 
-// The two ways the UPnP method fails, kept apart because they send the user to
-// different places.
-//
-// ErrNoGateway means nothing answered the search: the router has UPnP switched
-// off, or the search never left the machine - which is the normal case in a
-// container on a bridge network, where multicast does not cross to the LAN.
-// ErrUPnPRefused means a gateway did answer and then would not do it, which is a
-// setting on the router ("allow UPnP control" / "allow user to reconfigure").
-// Reporting both as one error sends half the people who hit it to the wrong
-// screen, and there is no way for them to tell from the outside which half.
+// The two ways the UPnP method fails, which need different fixes.
+// ErrNoGateway means nothing answered the search: UPnP is off on the router,
+// or multicast never left the machine, as in a container on a bridge network.
+// ErrUPnPRefused means a gateway answered and then refused, which is a router
+// setting ("allow UPnP control").
 var (
 	ErrNoGateway   = errors.New("reconnect: no UPnP gateway answered")
 	ErrUPnPRefused = errors.New("reconnect: the UPnP gateway refused to reconnect")
@@ -37,55 +32,48 @@ type Gateway struct {
 	// Location is the device description URL from the LOCATION header.
 	Location string `json:"location"`
 	// Server is the SERVER header verbatim, so an error can name the firmware
-	// that refused rather than only the address it refused from.
+	// that refused.
 	Server string `json:"server,omitempty"`
 }
 
-// Discoverer finds UPnP gateways on the local network. It is an injected
-// function so that no test in this package ever opens a socket: the default
-// sends multicast, which a test machine may not even be allowed to do.
-//
-// It must return within timeout. A search that waits for a reply that is never
-// coming is the difference between a reconnect that fails in three seconds and a
-// download queue that is stopped until somebody notices.
+// Discoverer finds UPnP gateways on the local network. Tests replace it so no
+// test sends multicast. It must return within timeout, or a failing reconnect
+// stalls the download queue.
 type Discoverer func(ctx context.Context, timeout time.Duration) ([]Gateway, error)
 
 // The SSDP wire constants, from the UPnP Device Architecture.
 const (
 	ssdpAddr = "239.255.255.250:1900"
 
-	// ssdpTimeout is how long the search listens. The specification has devices
-	// answer within their advertised MX window, so waiting much longer only adds
-	// dead time to a failing reconnect.
+	// ssdpTimeout is how long the search listens. Devices answer within their
+	// MX window, so waiting longer only delays a failing reconnect.
 	ssdpTimeout = 3 * time.Second
 
-	// ssdpMX is the delay window handed to the devices, in seconds. It is
-	// smaller than ssdpTimeout so a device that waits the whole window still
-	// gets its answer back before the search stops listening.
+	// ssdpMX is the delay window handed to the devices, in seconds, shorter
+	// than ssdpTimeout so a device that waits the whole window is still heard.
 	ssdpMX = 2
 
-	// maxSSDPDatagram is the read buffer. An SSDP answer is a handful of header
-	// lines; anything longer is not one.
+	// maxSSDPDatagram is the read buffer. An SSDP answer is a handful of
+	// header lines.
 	maxSSDPDatagram = 4 << 10
 
-	// maxGateways stops the search early on a network where hundreds of devices
-	// answer. Only a gateway is useful and they are always among the first.
+	// maxGateways stops the search early on a network where hundreds of
+	// devices answer; gateways are always among the first.
 	maxGateways = 8
 )
 
-// ssdpSearchTargets are the search targets tried, in order of how specific they
-// are. The service targets are included because some firmware answers a search
-// for the service it implements and ignores a search for the device type.
+// ssdpSearchTargets are tried from most to least specific. The service
+// targets are there because some firmware ignores a search for the device
+// type.
 var ssdpSearchTargets = []string{
 	"urn:schemas-upnp-org:device:InternetGatewayDevice:1",
 	"urn:schemas-upnp-org:service:WANIPConnection:1",
 	"urn:schemas-upnp-org:service:WANPPPConnection:1",
 }
 
-// The service types that can drop a WAN connection, matched by prefix so that
-// version 2 of either is picked up without another constant here. Routers expose
-// the PPP flavour for a dial-up style WAN (PPPoE) and the IP flavour for
-// everything else, and a fair number expose both with only one of them live.
+// The service types that can drop a WAN connection, matched by prefix so later
+// versions are picked up. PPP is for a PPPoE WAN and IP for everything else;
+// many routers expose both with only one live.
 const (
 	wanIPPrefix  = "urn:schemas-upnp-org:service:WANIPConnection:"
 	wanPPPPrefix = "urn:schemas-upnp-org:service:WANPPPConnection:"
@@ -97,26 +85,19 @@ const (
 	actionRequestConnection = "RequestConnection"
 )
 
-// upnpSettleDelay is the pause between dropping the connection and asking for a
-// new one. Firmware that is handed both back to back frequently answers the
-// second with "connection in use" and then never dials, because the first one is
-// still being torn down.
+// upnpSettleDelay is the pause between dropping the connection and asking for
+// a new one. Firmware given both back to back often answers the second with
+// "connection in use" and never dials.
 const upnpSettleDelay = 2 * time.Second
 
-// maxDescriptionBody caps the device description read. A description is a few
-// kilobytes of XML; a device that answers the search and then streams is not
-// going to be reconnected by reading all of it.
+// maxDescriptionBody caps the device description read; a description is a few
+// kilobytes of XML.
 const maxDescriptionBody = 256 << 10
 
 // maxSOAPBody caps a SOAP answer, which is read only to name the fault in it.
 const maxSOAPBody = 64 << 10
 
 // upnp asks the gateway to drop and re-establish the WAN connection.
-//
-// This is the method that works for a user who knows nothing about their router,
-// which is exactly why it has to be honest about how it failed: everything else
-// in this package fails because of something the user typed, and this one fails
-// because of something on a device they have never opened the settings of.
 func (r *Reconnector) upnp(ctx context.Context, cfg Config) error {
 	gateways, err := r.gateways(ctx, cfg)
 	if err != nil {
@@ -126,13 +107,11 @@ func (r *Reconnector) upnp(ctx context.Context, cfg Config) error {
 		return fmt.Errorf("%w: the SSDP search found nothing in %s", ErrNoGateway, ssdpTimeout)
 	}
 
-	// Every reason is collected and reported together. A box with two gateways
-	// on it - a modem and a router, or one real device answering twice under two
-	// service types - would otherwise report whichever happened to be tried last
-	// and hide the one that was nearly right.
+	// Every reason is reported, so with two gateways (a modem and a router)
+	// the one that nearly worked is not hidden behind the last one tried.
 	var refusals []string
 	for _, g := range gateways {
-		services, err := r.wanServices(ctx, g)
+		services, err := WANServices(ctx, r.http, g)
 		if err != nil {
 			refusals = append(refusals, fmt.Sprintf("%s: %v", g.Location, err))
 			continue
@@ -152,14 +131,11 @@ func (r *Reconnector) upnp(ctx context.Context, cfg Config) error {
 	return fmt.Errorf("%w: %s", ErrUPnPRefused, strings.Join(refusals, "; "))
 }
 
-// gateways is the list of devices to try, either the one the user pinned or
-// whatever answers the search.
+// gateways is the list of devices to try: the one the user pinned, or whatever
+// answers the search.
 func (r *Reconnector) gateways(ctx context.Context, cfg Config) ([]Gateway, error) {
 	if cfg.UPnPLocation != "" {
-		// A pinned location skips discovery entirely, so a network that filters
-		// multicast is not a dead end. It is not merged with the discovered set:
-		// pinning means "use this one", and quietly trying others as well would
-		// make the field look like it had no effect.
+		// A pinned location skips discovery and is used alone.
 		return []Gateway{{Location: cfg.UPnPLocation}}, nil
 	}
 	found, err := r.discover(ctx, ssdpTimeout)
@@ -169,45 +145,30 @@ func (r *Reconnector) gateways(ctx context.Context, cfg Config) ([]Gateway, erro
 	return found, nil
 }
 
-// Service is one control endpoint, already resolved to an absolute URL and
-// pinned to the host that answered the original SSDP search - see the
-// security note in WANServices for why that pin has to travel with the
-// endpoint rather than be redone by whoever calls it.
-//
-// Exported, with exported fields: internal/portmap sends its own SOAP action
-// (AddPortMapping) against the same kind of endpoint this package already
-// finds for ForceTermination and RequestConnection, and it must not
-// re-implement the discovery that finds it - a second, unreviewed SSDP and
-// device-description parser is exactly the kind of duplicate this type
-// exists to prevent.
+// Service is one control endpoint, resolved to an absolute URL on the host
+// that answered the SSDP search (see WANServices). internal/portmap sends its
+// own SOAP actions to it instead of repeating the discovery.
 type Service struct {
 	ServiceType string
 	ControlURL  string
 }
 
-// upnpDisconnect runs the two actions against one service.
-//
-// ForceTermination is the one that does the work and RequestConnection is what
-// brings the line back up. The order matters and so does what is done with each
-// failure: a router that took the termination has already dropped the line, so a
-// refused RequestConnection is not a failed reconnect - most firmware redials on
-// its own and answers the second action with "already connecting". Failing the
-// run there would report a reconnect that did happen as one that did not, and
-// the caller would go on holding downloads back.
+// upnpDisconnect runs the two actions against one service. ForceTermination
+// drops the line and RequestConnection brings it back. Once the termination
+// succeeded, a refused RequestConnection is ignored: most firmware redials on
+// its own and answers "already connecting".
 func (r *Reconnector) upnpDisconnect(ctx context.Context, svc Service) error {
 	termErr := r.soap(ctx, svc, actionForceTermination)
 	if termErr == nil {
-		// The wait is not politeness; see upnpSettleDelay.
 		if err := r.sleep(ctx, upnpSettleDelay); err != nil {
 			return err
 		}
 		_ = r.soap(ctx, svc, actionRequestConnection)
 		return nil
 	}
-	// ForceTermination is an optional action and some firmware simply does not
-	// implement it, so RequestConnection is tried on its own: on a connection
-	// that is already up it is a no-op, but on one the router dropped for its
-	// own reasons it is the thing that dials.
+	// ForceTermination is optional and some firmware lacks it. On its own,
+	// RequestConnection is a no-op on a live connection and dials a dropped
+	// one.
 	reqErr := r.soap(ctx, svc, actionRequestConnection)
 	if reqErr == nil {
 		return nil
@@ -216,9 +177,8 @@ func (r *Reconnector) upnpDisconnect(ctx context.Context, svc Service) error {
 }
 
 // deviceDescription is as much of the UPnP device description as this package
-// reads. Everything else in it is ignored on purpose: the icons, the presentation
-// URL and the model numbers are all attacker-supplied strings from a device on
-// the LAN, and nothing here should be able to reach a log or a page.
+// reads. Everything else is untrusted text from a device on the LAN and is
+// ignored.
 type deviceDescription struct {
 	XMLName xml.Name        `xml:"root"`
 	URLBase string          `xml:"URLBase"`
@@ -236,37 +196,16 @@ type describedSvc struct {
 	ControlURL  string `xml:"controlURL"`
 }
 
-// wanServices reads a gateway's description and returns every WAN connection
-// service in it, with control URLs resolved against the description's own
-// location. It is this method's own thin wrapper around WANServices, kept so
-// every call site in this file that already has a Reconnector in hand stays a
-// method call; see WANServices for the implementation, and for why it exists
-// as a package-level function taking a Doer instead of only as this method.
-func (r *Reconnector) wanServices(ctx context.Context, g Gateway) ([]Service, error) {
-	return WANServices(ctx, r.http, g)
-}
-
 // WANServices reads a gateway's device description over doer and returns
 // every WAN connection service in it, with control URLs resolved against the
-// description's own location.
-//
-// Exported and taking a Doer directly - rather than only living as the
-// Reconnector method above - so a caller that needs the same WAN control
-// endpoint for an action this package does not implement can reuse this
-// discovery instead of writing a second SSDP-and-device-description parser.
-// internal/portmap's AddPortMapping is that caller: port mapping needs
-// exactly the endpoint ForceTermination and RequestConnection already use,
-// and the SSRF pinning below is the reason it must come from here rather
-// than from a fresh implementation that has not been through the same
-// adversarial review this one has (see upnp_test.go's
-// TestWANServicesKeepsTheControlURLOnTheHostThatAnswered).
+// description's location. internal/portmap uses it for AddPortMapping, so the
+// host pinning below is not repeated elsewhere.
 func WANServices(ctx context.Context, doer Doer, g Gateway) ([]Service, error) {
 	base, err := url.Parse(g.Location)
 	if err != nil {
 		return nil, fmt.Errorf("its description URL is unusable: %v", err)
 	}
 	if base.Scheme != "http" && base.Scheme != "https" {
-		// A LOCATION with any other scheme is not something to go and fetch.
 		return nil, fmt.Errorf("its description URL is not HTTP: %s", base.Scheme)
 	}
 
@@ -278,53 +217,37 @@ func WANServices(ctx context.Context, doer Doer, g Gateway) ([]Service, error) {
 	if err := xml.Unmarshal(body, &desc); err != nil {
 		return nil, fmt.Errorf("its description is not readable XML: %v", err)
 	}
-	// The host that answered the search is the only one this gateway may send us
-	// to. Everything below this line comes out of a document written by a device
-	// on the LAN, and two fields in it name a host: URLBase here, and an absolute
-	// controlURL in collectWANServices. Without the pin, any box that answers a
-	// multicast search can hand back a description that points the SOAP call at
-	// an address it chose - so the reconnect becomes a request made on that
-	// device's behalf, from inside the network, against a host it could not
-	// reach itself. The LOCATION is already checked against the sender in
-	// parseSSDPResponse; this is the same guard carried through to the second
-	// and third places a host can appear, which is where it was missing.
-	//
-	// A different port or path is allowed on purpose, because that is the real
-	// case: firmware does serve its description on one port and its control
-	// endpoint on another. Only the host is fixed.
+	// Only the host that answered the search may be named. The description is
+	// written by a device on the LAN, and URLBase or an absolute controlURL
+	// could otherwise aim the SOAP call at any host it chose, from inside the
+	// network. parseSSDPResponse applies the same check to LOCATION. A
+	// different port or path is allowed, since firmware often serves control
+	// on another port.
 	host := base.Hostname()
 
-	// URLBase, when present, wins over the location for resolving relative
-	// control URLs. Firmware that serves its description from one port and its
-	// control endpoint on another says so this way, and ignoring it produces a
-	// control URL that answers 404 on every action.
+	// URLBase, when present, wins for resolving relative control URLs; that is
+	// how firmware says control lives on another port.
 	if desc.URLBase != "" {
 		if u, err := url.Parse(strings.TrimSpace(desc.URLBase)); err == nil && u.Host != "" && strings.EqualFold(u.Hostname(), host) {
 			base = u
 		}
-		// A URLBase naming another host is dropped rather than refused: the
-		// location still resolves every relative control URL, so a device whose
-		// firmware writes something odd here keeps working, and one that is
-		// trying to redirect us simply does not get to.
+		// A URLBase naming another host is ignored rather than refused, so odd
+		// firmware keeps working and a redirect attempt has no effect.
 	}
 
 	var out []Service
-	// Two passes so a WANIPConnection is always tried before a WANPPPConnection
-	// on a device that lists both: the PPP service on such a device is usually
-	// the vestigial one, and calling ForceTermination on a service with no
-	// connection behind it wastes the settle delay before the real one is tried.
+	// WANIPConnection first: on a device listing both, the PPP service is
+	// usually vestigial and would waste the settle delay.
 	for _, prefix := range []string{wanIPPrefix, wanPPPPrefix} {
 		collectWANServices(desc.Device, prefix, base, host, &out)
 	}
 	return out, nil
 }
 
-// collectWANServices walks the nested device tree. The WAN services live three
-// levels down (InternetGatewayDevice > WANDevice > WANConnectionDevice), and a
-// flat scan of the top-level service list finds nothing at all.
-// The host is passed alongside the base because a controlURL is allowed to be
-// absolute, and an absolute one replaces the base's host entirely rather than
-// resolving against it. See the pin in WANServices for why that matters.
+// collectWANServices walks the nested device tree; the WAN services sit three
+// levels down (InternetGatewayDevice > WANDevice > WANConnectionDevice). host
+// is passed separately because an absolute controlURL replaces the base's host
+// instead of resolving against it.
 func collectWANServices(d describedDevice, prefix string, base *url.URL, host string, out *[]Service) {
 	for _, s := range d.Services {
 		t := strings.TrimSpace(s.ServiceType)
@@ -349,10 +272,8 @@ func collectWANServices(d describedDevice, prefix string, base *url.URL, host st
 	}
 }
 
-// soapEnvelope is the request body. The action names are this package's own
-// constants and the service type is escaped, because it came off the network:
-// a device that reports its service type as `"/><script>` would otherwise be
-// writing the XML we send back to it.
+// soapEnvelope is the request body. The service type is escaped before it goes
+// in, because it came off the network.
 const soapEnvelope = `<?xml version="1.0" encoding="utf-8"?>` +
 	`<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"` +
 	` s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">` +
@@ -373,9 +294,8 @@ func (r *Reconnector) soap(ctx context.Context, svc Service, action string) erro
 		return err
 	}
 	req.Header.Set("Content-Type", `text/xml; charset="utf-8"`)
-	// The quotes around the SOAPAction value are required by the specification,
-	// and a good deal of router firmware rejects the header without them with a
-	// bare 500 that names nothing.
+	// The specification requires the quotes, and much firmware answers a bare
+	// 500 without them.
 	req.Header.Set("SOAPAction", `"`+svc.ServiceType+"#"+action+`"`)
 
 	resp, err := r.http.Do(req)
@@ -392,19 +312,16 @@ func (r *Reconnector) soap(ctx context.Context, svc Service, action string) erro
 	}
 	if readErr == nil {
 		if code, desc := soapFault(answer); code != 0 {
-			// The device's own error code and text, because "500" from a router
-			// covers "you are not allowed to do that", "there is no connection"
-			// and "I do not know that action", and the fix differs for each.
+			// A router's 500 covers "not allowed", "no connection" and "unknown
+			// action", so the device's own code and text are reported.
 			return fmt.Errorf("%s: UPnP error %d %s", action, code, desc)
 		}
 	}
 	return fmt.Errorf("%s: unexpected status %s", action, statusText(resp))
 }
 
-// soapFault pulls the UPnP error out of a fault body. Namespace prefixes are not
-// matched on: encoding/xml compares the local name when the tag names no
-// namespace, and firmware disagrees about whether the prefix is s, SOAP-ENV or
-// nothing at all.
+// soapFault pulls the UPnP error out of a fault body. Tags name no namespace,
+// so encoding/xml matches the local name whatever prefix the firmware uses.
 func soapFault(b []byte) (int, string) {
 	var env struct {
 		XMLName     xml.Name `xml:"Envelope"`
@@ -422,19 +339,13 @@ func soapFault(b []byte) (int, string) {
 	return env.Code, desc
 }
 
-// SOAPFault is soapFault, exported so a caller sending its own SOAP action
-// against a Service this package discovered - internal/portmap's
-// AddPortMapping and its GetSpecificPortMappingEntry read-back - can report
-// the router's own error code and text instead of a bare HTTP status, the
-// same quality of error this package gives its own two actions.
+// SOAPFault returns the UPnP error code and text in a SOAP fault body, for
+// callers such as internal/portmap that send their own actions to a Service.
 func SOAPFault(b []byte) (code int, desc string) {
 	return soapFault(b)
 }
 
-// fetch reads a bounded body over doer. It is a package-level function
-// rather than a method on Reconnector so WANServices can be called with any
-// Doer, not only from a Reconnector that already has one - see that
-// function's own doc comment for why that matters.
+// fetch reads a bounded body over doer.
 func fetch(ctx context.Context, doer Doer, target string, limit int64) ([]byte, error) {
 	ctx, cancel := context.WithTimeout(ctx, requestTimeout)
 	defer cancel()
@@ -460,12 +371,8 @@ func fetch(ctx context.Context, doer Doer, target string, limit int64) ([]byte, 
 	return b, nil
 }
 
-// SSDPSearch is ssdpSearch, exported so a caller that needs the same gateway
-// search for an action this package does not implement - internal/portmap's
-// AddPortMapping, specifically - can reuse it as its own default Discoverer
-// instead of a second SSDP implementation. It is the identical function
-// New uses as the package's own default; there is only one SSDP search in
-// this codebase and this is it.
+// SSDPSearch is the SSDP gateway search this package uses by default, for
+// callers such as internal/portmap.
 func SSDPSearch(ctx context.Context, timeout time.Duration) ([]Gateway, error) {
 	return ssdpSearch(ctx, timeout)
 }
@@ -480,18 +387,16 @@ func ssdpSearch(ctx context.Context, timeout time.Duration) ([]Gateway, error) {
 	if err != nil {
 		return nil, err
 	}
-	// An unbound local port rather than 1900: binding the SSDP port would fail
-	// outright on a host already running a UPnP daemon, and a search does not
-	// need it - the answers come back to whatever port they were sent from.
+	// An ephemeral port, since port 1900 is taken on a host running a UPnP
+	// daemon and answers come back to the sending port anyway.
 	conn, err := net.ListenPacket("udp4", ":0")
 	if err != nil {
 		return nil, err
 	}
 	defer conn.Close()
 
-	// A cancelled context has to end the read, and there is no way to hand a
-	// context to ReadFrom. Setting a deadline in the past wakes it immediately,
-	// and deadlines are safe to set from another goroutine.
+	// ReadFrom takes no context, so cancellation sets a deadline in the past,
+	// which is safe from another goroutine.
 	stopped := make(chan struct{})
 	defer close(stopped)
 	go func() {
@@ -514,9 +419,7 @@ func ssdpSearch(ctx context.Context, timeout time.Duration) ([]Gateway, error) {
 		}
 	}
 	if !sent {
-		// Every send failing is a machine with no route for multicast at all,
-		// which is a different thing from a network where nobody answered, and
-		// waiting three seconds to say so helps nobody.
+		// No route for multicast at all, which differs from nobody answering.
 		return nil, errors.New("the SSDP search could not be sent")
 	}
 
@@ -545,25 +448,19 @@ func ssdpSearch(ctx context.Context, timeout time.Duration) ([]Gateway, error) {
 	return found, nil
 }
 
-// parseSSDPResponse reads one datagram.
-//
-// The LOCATION is checked against the address the datagram came from whenever it
-// is written as a literal. Anything on the LAN can answer a search, and a
-// LOCATION pointing somewhere else turns this reconnect into a request made on
-// that device's behalf to an address it chose - with the client's credentials
-// and from inside the network. Devices name themselves by address in practice,
-// so the check costs nothing real.
+// parseSSDPResponse reads one datagram. A LOCATION written as an address
+// literal must match the datagram's sender: anything on the LAN can answer,
+// and a LOCATION pointing elsewhere would make us send requests to an address
+// the device chose. Gateways name themselves by address in practice.
 func parseSSDPResponse(b []byte, from net.Addr) (Gateway, bool) {
 	tp := textproto.NewReader(bufio.NewReader(bytes.NewReader(b)))
 	status, err := tp.ReadLine()
 	if err != nil || !strings.HasPrefix(strings.ToUpper(status), "HTTP/") {
-		// NOTIFY advertisements land on this socket too and start with the
-		// method, not a status line. They are not answers to our search.
+		// NOTIFY advertisements arrive on this socket too and are not answers.
 		return Gateway{}, false
 	}
-	// The error is ignored: a datagram is not required to end with the blank
-	// line that terminates a header block, and the headers that were read are
-	// still exactly what the device sent.
+	// A datagram need not end with the blank line that terminates a header
+	// block, so the error is ignored and the headers read are used.
 	h, _ := tp.ReadMIMEHeader()
 	loc := strings.TrimSpace(h.Get("Location"))
 	if loc == "" {
@@ -583,9 +480,8 @@ func parseSSDPResponse(b []byte, from net.Addr) (Gateway, bool) {
 func sameHost(addr netip.Addr, from net.Addr) bool {
 	ua, ok := from.(*net.UDPAddr)
 	if !ok {
-		// An address of some other kind cannot be compared, and refusing every
-		// answer on a platform whose net package surprises us would break the
-		// method outright. The comparison is a hardening step, not the contract.
+		// Another address type cannot be compared; the check is hardening, so
+		// it must not break the method on an unexpected platform.
 		return true
 	}
 	src, ok := netip.AddrFromSlice(ua.IP)

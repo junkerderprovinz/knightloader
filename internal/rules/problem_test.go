@@ -2,9 +2,8 @@ package rules
 
 import "testing"
 
-// TestProblemNamesTheCondition is what lets the editor draw the message on the
-// row that caused it. Without the number, a rule with six conditions reports
-// "condition 3 (filename): ..." under the rule and leaves the user counting.
+// TestProblemNamesTheCondition: the editor draws the message on the row that
+// caused it.
 func TestProblemNamesTheCondition(t *testing.T) {
 	_, problems := Compile(Set{Rules: []Rule{{
 		Name: "mixed",

@@ -10,9 +10,8 @@ import (
 	"time"
 )
 
-// fakeActions records every call it receives, guarded by a mutex since
-// Host runs scripts on its own worker goroutines while a test asserts from
-// the main one.
+// fakeActions records every call it receives. It is locked because scripts
+// run on worker goroutines while the test asserts from its own.
 type fakeActions struct {
 	mu         sync.Mutex
 	paused     []string
@@ -71,9 +70,8 @@ func (f *fakeActions) pausedIDs() []string {
 	return append([]string(nil), f.paused...)
 }
 
-// fakeHub records every broadcast "script" event and offers a channel a
-// test can select on, so tests wait for the actual event rather than
-// sleeping and hoping a worker got there first.
+// fakeHub records every broadcast "script" event and offers a channel, so
+// tests wait for the event instead of sleeping.
 type fakeHub struct {
 	mu     sync.Mutex
 	events []Event
@@ -101,10 +99,8 @@ func (f *fakeHub) Broadcast(typ string, data any) {
 	}
 }
 
-// waitEvent blocks for the next event matching pred, or fails the test
-// after a generous but bounded wait - this suite never relies on a script
-// actually taking close to MaxTimeout, so a few seconds is already a huge
-// margin over the slowest legitimate case.
+// waitEvent blocks for the next event matching pred, or fails the test after
+// a few seconds, far more than any script here takes.
 func waitEvent(t *testing.T, hub *fakeHub, pred func(Event) bool) Event {
 	t.Helper()
 	deadline := time.After(5 * time.Second)
@@ -248,12 +244,8 @@ func TestHost_TaskActionsScopedToFiringTask(t *testing.T) {
 	}
 }
 
-// TestHost_ScriptCannotNameAnotherTask is the concrete check behind the
-// package doc comment's central safety claim: there is no function in the
-// JS surface that takes a task ID as an argument, so a script cannot even
-// try to act on a task other than the one it was fired for. If a future
-// change ever added such a function, this test would start failing the
-// moment a script actually called it with a foreign ID.
+// TestHost_ScriptCannotNameAnotherTask: no function in the JS surface takes a
+// task ID, so a script cannot act on a task other than its own.
 func TestHost_ScriptCannotNameAnotherTask(t *testing.T) {
 	actions, hub := newFakeActions(), newFakeHub()
 	h := newTestHost(t, actions, hub)
@@ -272,7 +264,7 @@ func TestHost_ScriptCannotNameAnotherTask(t *testing.T) {
 	h.Bus().Publish(Firing{Trigger: TriggerTaskDone, Task: &TaskView{ID: "own-task"}})
 	ev := waitEvent(t, hub, func(e Event) bool { return e.Kind == "notify" })
 	if ev.Message != "contained" {
-		t.Fatalf("notify message = %q, want %q - a global ID-taking action function is reachable", ev.Message, "contained")
+		t.Fatalf("notify message = %q, want %q; a global ID-taking action function is reachable", ev.Message, "contained")
 	}
 	if got := actions.pausedIDs(); len(got) != 0 {
 		t.Fatalf("Pause was called with %v, want no calls at all", got)
@@ -351,13 +343,8 @@ func TestHost_ThrownExceptionReportsErrorNotTimeout(t *testing.T) {
 	}
 }
 
-// TestHost_PanicInActionsIsRecovered is the concrete check behind the
-// package doc comment's "bounded twice" section: a raw Go panic (not
-// panic(goja.Value)) from inside an Actions implementation - a real bug, or
-// a not-yet-Value-wrapped error - must be caught by execute's own
-// recover() and turned into a failed Result, never allowed to escape the
-// worker goroutine and take the whole test binary (and in production, the
-// whole app) down with it.
+// TestHost_PanicInActionsIsRecovered: a plain Go panic from an Actions
+// implementation becomes a failed Result instead of killing the process.
 func TestHost_PanicInActionsIsRecovered(t *testing.T) {
 	actions := newFakeActions()
 	actions.retryPanic = "boom: not a goja.Value"
@@ -430,11 +417,8 @@ func TestHost_RunNowRespectsCallerCancellation(t *testing.T) {
 	}
 }
 
-// TestHost_CloseInterruptsRunningScript proves Close's cancellation reaches
-// an in-flight script directly, rather than Close only ever waiting out
-// whatever timeout the script itself was given - here the script's own
-// budget is the full MaxTimeout, and Close must still return in a small
-// fraction of it.
+// TestHost_CloseInterruptsRunningScript: Close interrupts an in-flight script
+// instead of waiting out its MaxTimeout budget.
 func TestHost_CloseInterruptsRunningScript(t *testing.T) {
 	actions, hub := newFakeActions(), newFakeHub()
 	h, err := NewHost(Options{DataDir: t.TempDir(), Actions: actions, Hub: hub})
@@ -460,14 +444,9 @@ func TestHost_CloseInterruptsRunningScript(t *testing.T) {
 	}
 }
 
-// TestHost_CloseWaitsForAndInterruptsARunNowScript is the RunNow half of
-// TestHost_CloseInterruptsRunningScript above: a script started through
-// RunNow (an HTTP handler's "test run" path, not the worker pool) used to
-// run entirely untracked - Close() returned immediately while it kept
-// going, free to call h.actions and h.hub.Broadcast against a host that had
-// already torn down. Proves both halves of the fix: Close does not return
-// before the RunNow call itself has returned, and it does so quickly
-// rather than waiting out the script's own MaxTimeout budget.
+// TestHost_CloseWaitsForAndInterruptsARunNowScript: Close waits for a script
+// started through RunNow and interrupts it rather than waiting out its
+// MaxTimeout budget.
 func TestHost_CloseWaitsForAndInterruptsARunNowScript(t *testing.T) {
 	actions, hub := newFakeActions(), newFakeHub()
 	h, err := NewHost(Options{DataDir: t.TempDir(), Actions: actions, Hub: hub})
@@ -485,9 +464,7 @@ func TestHost_CloseWaitsForAndInterruptsARunNowScript(t *testing.T) {
 	runReturned := make(chan struct{})
 	go func() {
 		defer close(runReturned)
-		// context.Background(), deliberately: nothing on the caller's own
-		// side ever cancels this - only Close (via the merged host ctx)
-		// may.
+		// Only Close, through the merged host context, can stop this run.
 		_, _ = h.RunNow(context.Background(), s.ID, nil, QueueView{})
 	}()
 	waitEvent(t, hub, func(e Event) bool { return e.Kind == "notify" && e.Message == "started" })
@@ -500,18 +477,9 @@ func TestHost_CloseWaitsForAndInterruptsARunNowScript(t *testing.T) {
 	if elapsed > 3*time.Second {
 		t.Fatalf("Close took %v to interrupt a RunNow script whose own timeout was %v", elapsed, MaxTimeout)
 	}
-	// Waited for, not sampled. Close's guarantee is delivered by RunNow's
-	// deferred h.wg.Done(), which runs one stack frame BEFORE the calling
-	// goroutine above gets to its own `defer close(runReturned)` - so there
-	// is always a scheduling window in which Close has correctly returned
-	// and this channel is not closed yet. A `default:` branch read that
-	// window as a failure and made this test flaky (github.com/
-	// junkerderprovinz/knightloader CI run 32383148157, failing here in
-	// 0.00s while the same package had passed earlier in the same run).
-	// The bound stays well under the script's own MaxTimeout budget, so the
-	// regression this test exists for - a RunNow that Close never waited on,
-	// running on for its full 30s - still fails it rather than being waited
-	// out.
+	// Waited for rather than sampled: RunNow's wg.Done runs a frame before
+	// the goroutine's close(runReturned), so Close can correctly return just
+	// before the channel closes. The bound is still far below MaxTimeout.
 	select {
 	case <-runReturned:
 	case <-time.After(2 * time.Second):
@@ -519,55 +487,25 @@ func TestHost_CloseWaitsForAndInterruptsARunNowScript(t *testing.T) {
 	}
 }
 
-// closeWatchHub is the detector both races below hang off: it counts any
-// broadcast that arrives after Close has already returned. Nothing but a
-// running script ever reaches Broadcast (runOne's result event and the
-// sandbox's notify()), so a single count here means one thing - a script was
-// still executing against a host the app had finished tearing down.
-//
-// The check is sound in one direction only, which is the direction that
-// matters: a count is always a real violation (the Store of `closed`
-// happened before this Load of it saw true, so Close really had returned),
-// while a violating broadcast that lands a hair before the Store is simply
-// missed. False negatives cost detection rate; there are no false positives.
+// closeWatchHub counts broadcasts that arrive after Close has returned. Only a
+// running script broadcasts, so any count means a script ran against a
+// torn-down host. A broadcast just before closed is set may be missed, but a
+// count is never a false positive.
 type closeWatchHub struct {
 	closed     atomic.Bool
 	afterClose atomic.Int64
 }
 
-// Broadcast ignores both arguments on purpose: what is being asserted is
-// that a broadcast happened at all after Close returned, not what it said.
 func (h *closeWatchHub) Broadcast(_ string, _ any) {
 	if h.closed.Load() {
 		h.afterClose.Add(1)
 	}
 }
 
-// TestHost_RunNowRacingCloseNeverOutlivesIt hammers the one window that used
-// to be open between RunNow's shutdown check and its h.wg.Add(1): with those
-// two apart, a Close landing in the gap could cancel, find the WaitGroup
-// counter at zero, return - and only then would the RunNow register and go
-// on to run a whole script against a torn-down host. Both of that bug's
-// outcomes fail this test: the untracked run trips the hub's counter, and
-// the WaitGroup's own "Add called concurrently with Wait" panic takes the
-// binary down.
-//
-// Probabilistic on purpose, and worth saying plainly rather than dressing up:
-// the window is two adjacent statements wide, so no amount of test-side
-// scheduling makes hitting it a certainty - the same honest limit the sibling
-// investigation behind TestHost_CloseWaitsForAndInterruptsARunNowScript ran
-// into with this class of race. What the rounds buy is repeated exposure
-// under -race; what the invariant buys is that any hit at all is a hard,
-// non-flaky failure rather than a judgement call.
-//
-// That it detects the real thing was established rather than assumed: with a
-// throwaway 2ms sleep dropped between the old code's check and its Add - the
-// window widened, nothing else changed - this failed on the first round, both
-// on the count below and with -race naming h.wg itself ("Add called
-// concurrently with Wait" is annotated in sync as a data race for exactly
-// this). With the same 2ms sleep moved inside track's lock on the fixed code,
-// it passes: the width of the window stopped mattering once the check and the
-// register became one step.
+// TestHost_RunNowRacingCloseNeverOutlivesIt: a RunNow that registered after
+// Close had passed Wait would run a script against a torn-down host, which
+// trips the hub's counter, or panic the WaitGroup. The race is probabilistic,
+// so the rounds give repeated exposure under -race; any hit fails outright.
 func TestHost_RunNowRacingCloseNeverOutlivesIt(t *testing.T) {
 	dir := t.TempDir()
 	setup, err := NewHost(Options{DataDir: dir, Actions: newFakeActions(), Hub: &closeWatchHub{}})
@@ -619,13 +557,9 @@ func TestHost_RunNowRacingCloseNeverOutlivesIt(t *testing.T) {
 				}
 			}()
 		}
-		// Close deliberately lands in the middle of a running stream rather
-		// than at a shared starting gun: a single RunNow raced from a
-		// standstill loses almost every time (it has a store lookup and a
-		// goja.Compile in front of its shutdown check, while Close has
-		// nothing in front of its cancel), so that shape exercised the
-		// window it is meant to test roughly once in three hundred tries.
-		// Steady traffic puts several calls astride the flip every round.
+		// Close lands in a steady stream of calls: a single RunNow raced from
+		// a standstill almost always loses, since it compiles before its
+		// shutdown check.
 		<-warm
 		_ = h.Close()
 		hub.closed.Store(true)
@@ -633,39 +567,28 @@ func TestHost_RunNowRacingCloseNeverOutlivesIt(t *testing.T) {
 		wg.Wait()
 
 		if n := hub.afterClose.Load(); n != 0 {
-			t.Fatalf("round %d: %d broadcast(s) arrived after Close() returned - a RunNow registered past the shutdown and ran untracked", i, n)
+			t.Fatalf("round %d: %d broadcast(s) arrived after Close() returned; a RunNow registered past the shutdown and ran untracked", i, n)
 		}
 		if e := oddErr.Load(); e != nil {
 			t.Fatalf("round %d: RunNow racing Close returned an unexpected error: %v", i, e)
 		}
 	}
-	// Not an assertion: which side of the flip a given call lands on is the
-	// scheduler's business, and pinning a ratio here would only buy a flaky
-	// test. Logged because a run that is all one way means the window never
-	// actually got exercised, which is worth seeing with -v before trusting a
-	// green result too far.
+	// Logged, not asserted: the split is up to the scheduler, but a run that
+	// is all one way never exercised the window.
 	t.Logf("%d rounds: %d RunNow calls accepted and waited for, %d refused as shutting down",
 		rounds, atomic.LoadInt64(&accepted), atomic.LoadInt64(&refused))
 }
 
 // TestHost_SpawnRacingCloseNeverMisusesTheWaitGroup is the spawn half of the
-// race above. spawn only ever runs from NewHost today, so its stray
-// goroutine would be a worker that finds the context already cancelled and
-// returns at once - harmless in itself. The WaitGroup misuse is not: an
-// Add(1) that lands on a zero counter while Close is inside Wait panics the
-// whole process, and that consequence does not care whether the goroutine
-// had useful work to do. spawn being a general helper any future caller can
-// reach is the second reason it is fixed rather than argued away.
-//
-// A tight loop of spawns against Close is a far better probe than RunNow's
-// single call per round: spawn's check-and-register is two statements with
-// no compile step in front of them, so this hits the window far more often.
+// race above: an Add(1) on a zero counter while Close is in Wait panics the
+// process, whatever the goroutine would have done. With no compile step in
+// front, a tight loop of spawns hits the window often.
 func TestHost_SpawnRacingCloseNeverMisusesTheWaitGroup(t *testing.T) {
 	const (
 		rounds        = 200
 		spawners      = 4
 		spawnsEach    = 25
-		afterCloseMsg = "round %d: %d goroutine(s) started after Close() returned - spawn registered past the shutdown"
+		afterCloseMsg = "round %d: %d goroutine(s) started after Close() returned; spawn registered past the shutdown"
 	)
 	for i := 0; i < rounds; i++ {
 		h, err := NewHost(Options{DataDir: t.TempDir(), Actions: newFakeActions(), Hub: newFakeHub()})
@@ -706,11 +629,8 @@ func TestHost_SpawnRacingCloseNeverMisusesTheWaitGroup(t *testing.T) {
 		barrier.Wait()
 		close(start)
 		wg.Wait()
-		// A second Close, purely to drain: on a build where spawn could
-		// still register past the first one, this waits for that stray
-		// goroutine so the check below actually sees it instead of the test
-		// finishing first. On a correct build there is nothing left to wait
-		// for and this returns at once.
+		// A second Close waits for any goroutine that slipped past the first,
+		// so the check below sees it.
 		if err := h.Close(); err != nil {
 			t.Fatalf("round %d: second Close: %v", i, err)
 		}
@@ -721,10 +641,8 @@ func TestHost_SpawnRacingCloseNeverMisusesTheWaitGroup(t *testing.T) {
 }
 
 // TestHost_FireNeverBlocksCaller publishes far more firings than the queue
-// can hold, into a trigger backed by a script that never returns on its own
-// - the worst case for a publisher that blocked. Publish must still return
-// quickly every single time, the same guarantee Hub.Broadcast documents for
-// itself and the contract Bus.Subscribe states for every subscriber.
+// holds, to a script that never returns on its own, and Publish must still
+// return quickly every time.
 func TestHost_FireNeverBlocksCaller(t *testing.T) {
 	actions, hub := newFakeActions(), newFakeHub()
 	h := newTestHost(t, actions, hub)
@@ -785,10 +703,8 @@ func TestHost_RebuildIndexSkipsScriptsThatDoNotCompile(t *testing.T) {
 	actions, hub := newFakeActions(), newFakeHub()
 	h := newTestHost(t, actions, hub)
 
-	// A save() call can never leave a broken row behind (validate always
-	// compiles first) - the only way one reaches rebuildIndex is a store
-	// mutated outside this package's own API, which is exactly what this
-	// reaches into st.byID directly to simulate.
+	// save always compiles first, so a broken row can only come from outside,
+	// such as a hand-edited file; writing st.byID directly simulates that.
 	h.st.mu.Lock()
 	h.st.byID["broken"] = Script{ID: "broken", Name: "broken", Trigger: TriggerTaskDone, Enabled: true, Code: "function( {"}
 	h.st.mu.Unlock()
@@ -801,7 +717,7 @@ func TestHost_RebuildIndexSkipsScriptsThatDoNotCompile(t *testing.T) {
 	h.Bus().Publish(Firing{Trigger: TriggerTaskDone, Task: &TaskView{ID: "t1"}})
 	ev := waitEvent(t, hub, func(e Event) bool { return e.Kind == "notify" })
 	if ev.Message != "good" {
-		t.Fatalf("notify message = %q, want %q - a broken sibling script must not take the trigger down", ev.Message, "good")
+		t.Fatalf("notify message = %q, want %q; a broken sibling script must not take the trigger down", ev.Message, "good")
 	}
 }
 
@@ -848,7 +764,7 @@ func TestHost_LogOutputIsCapped(t *testing.T) {
 		t.Fatalf("RunNow: %v", err)
 	}
 	if !res.OK {
-		t.Fatalf("result = %+v, want OK - logging past the cap must not fail the script", res)
+		t.Fatalf("result = %+v, want OK; logging past the cap must not fail the script", res)
 	}
 	if len(res.Output) != maxLogLines {
 		t.Fatalf("Output has %d lines, want exactly maxLogLines=%d", len(res.Output), maxLogLines)
@@ -858,11 +774,9 @@ func TestHost_LogOutputIsCapped(t *testing.T) {
 	}
 }
 
-// TestHost_MissingArgumentIsACatchableTypeError proves rt.NewTypeError
-// produces an ordinary catchable JS exception - a script that guards its
-// own call keeps running, and an uncaught one settles the run as a failure
-// rather than a Go-level crash, exactly like any other thrown error (see
-// TestHost_ThrownExceptionReportsErrorNotTimeout).
+// TestHost_MissingArgumentIsACatchableTypeError: rt.NewTypeError is an
+// ordinary JS exception that a script can catch, and an uncaught one fails the
+// run like any other throw.
 func TestHost_MissingArgumentIsACatchableTypeError(t *testing.T) {
 	h := newTestHost(t, newFakeActions(), newFakeHub())
 

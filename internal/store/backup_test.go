@@ -8,9 +8,8 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/core"
 )
 
-// TestBackupToIsARestorableSnapshot is the property the whole feature rests
-// on: what VACUUM INTO writes has to be a database internal/backup and a
-// restore can open on its own, not merely a file that exists.
+// TestBackupToIsARestorableSnapshot: what VACUUM INTO writes must open as a
+// store on its own.
 func TestBackupToIsARestorableSnapshot(t *testing.T) {
 	s := open(t)
 	want := []*core.Task{
@@ -41,9 +40,7 @@ func TestBackupToIsARestorableSnapshot(t *testing.T) {
 		t.Fatalf("snapshot has %d tasks, want %d", len(got), len(want))
 	}
 
-	// The live store must be untouched by taking a backup of it — a
-	// snapshot is a read, and the caller goes on saving to the original
-	// path afterwards.
+	// Taking a snapshot leaves the live store untouched.
 	live, err := s.All()
 	if err != nil {
 		t.Fatal(err)
@@ -53,10 +50,8 @@ func TestBackupToIsARestorableSnapshot(t *testing.T) {
 	}
 }
 
-// TestBackupToRefusesAnExistingPath pins VACUUM INTO's own behaviour, which
-// callers rely on: BackupTo is always given a fresh temporary path, and a
-// silent overwrite here would be a silent overwrite of whatever a previous,
-// abandoned backup attempt left behind.
+// TestBackupToRefusesAnExistingPath pins VACUUM INTO's refusal to overwrite,
+// which callers rely on.
 func TestBackupToRefusesAnExistingPath(t *testing.T) {
 	s := open(t)
 	dst := filepath.Join(t.TempDir(), "backup.db")
@@ -68,12 +63,9 @@ func TestBackupToRefusesAnExistingPath(t *testing.T) {
 	}
 }
 
-// TestBackupToConcurrentWithSaves is the actual point of using VACUUM INTO
-// instead of a raw file copy: the single shared connection (SetMaxOpenConns
-// in Open) serialises the snapshot against every writer, so it never
-// observes a torn write. It cannot prove the absence of a race, only that
-// the snapshot it took is always internally consistent — which a corrupt or
-// unopenable result here would immediately disprove.
+// TestBackupToConcurrentWithSaves: the single connection serialises the
+// snapshot against writers, so every snapshot taken during saves opens and
+// reads cleanly.
 func TestBackupToConcurrentWithSaves(t *testing.T) {
 	s := open(t)
 	stop := make(chan struct{})

@@ -68,10 +68,8 @@ func exists(path string) bool {
 	return err == nil
 }
 
-// TestSplitFileIsJoinedAndThenOpened is the whole of the split-file row: the
-// parts are one file, and if that file turns out to be an archive the job goes
-// on and unpacks it. A user who downloaded five ".001" parts wants the film,
-// not five pieces of one.
+// The parts are one file, and where that file is an archive the job goes on and
+// unpacks it: somebody who downloaded five ".001" parts wants the film.
 func TestSplitFileIsJoinedAndThenOpened(t *testing.T) {
 	dir := t.TempDir()
 	whole := zipBytes(t, entry{"inside.txt", []byte("payload")})
@@ -108,9 +106,8 @@ func TestSplitFileIsJoinedAndThenOpened(t *testing.T) {
 	}
 }
 
-// TestASplitSetWithAHoleIsRefused. Writing out the first half of a film as if it
-// were the film is worse than saying nothing came of it: the file plays for
-// twenty minutes and stops, and nothing on disk says why.
+// Writing out the first half of a film as if it were the film is worse than
+// refusing: it plays for twenty minutes and stops, and nothing on disk says why.
 func TestASplitSetWithAHoleIsRefused(t *testing.T) {
 	dir := t.TempDir()
 	write(t, filepath.Join(dir, "film.mkv.001"), []byte("first"))
@@ -124,8 +121,7 @@ func TestASplitSetWithAHoleIsRefused(t *testing.T) {
 	}
 }
 
-// TestDeepExtraction follows an archive into the archive inside it, which is how
-// most of what people download is actually packed.
+// An archive inside an archive, which is how most releases are packed.
 func TestDeepExtraction(t *testing.T) {
 	dir := t.TempDir()
 	inner := zipBytes(t, entry{"deep.txt", []byte("bottom")})
@@ -166,10 +162,8 @@ func TestDepthStopsTheDescent(t *testing.T) {
 	}
 }
 
-// TestACancelledJobTakesBackTheFolderItMade is the reason an extraction is a job
-// at all. A half-written extraction folder is indistinguishable from a finished
-// one, so a job that is called off has to leave nothing behind that the next
-// deep pass would walk into.
+// A half-written extraction folder is indistinguishable from a finished one, so
+// a job that is called off leaves nothing the next deep pass would walk into.
 func TestACancelledJobTakesBackTheFolderItMade(t *testing.T) {
 	dir := t.TempDir()
 	inner := zipBytes(t, entry{"deep.txt", []byte("bottom")})
@@ -201,9 +195,8 @@ func TestACancelledJobTakesBackTheFolderItMade(t *testing.T) {
 	}
 }
 
-// TestCleanUpLeavesWhatWasAlreadyThere is the other half of that promise. A
-// folder the job did not create is not the job's to remove, and for a single
-// compressed stream the folder in question is the download folder.
+// A folder the job did not create is not the job's to remove, and for a single
+// compressed stream that folder is the download folder.
 func TestCleanUpLeavesWhatWasAlreadyThere(t *testing.T) {
 	dir := t.TempDir()
 	inner := zipBytes(t, entry{"deep.txt", []byte("bottom")})
@@ -234,8 +227,8 @@ func TestCleanUpLeavesWhatWasAlreadyThere(t *testing.T) {
 	}
 }
 
-// TestProgressCountsEveryDepth. A job that reports only the outermost archive
-// shows a bar that stops moving for the half of the work that happens inside it.
+// A job that reported only the outermost archive would show a bar that stops
+// moving for the half of the work that happens inside it.
 func TestProgressCountsEveryDepth(t *testing.T) {
 	dir := t.TempDir()
 	inner := zipBytes(t, entry{"deep.txt", bytes.Repeat([]byte("x"), 4096)})
@@ -264,10 +257,9 @@ func TestProgressCountsEveryDepth(t *testing.T) {
 	}
 }
 
-// TestTwoJobsDoNotReadEachOther. The byte tap is a single binding, so without
-// the slot two jobs at once would each be told the other's progress and either
-// could cancel the other's copy. Both still finish; what must not happen is one
-// of them hearing about the other's archive.
+// The byte tap is a single binding, so without the slot two jobs at once would
+// each be told the other's progress and either could cancel the other's copy.
+// Both still finish; neither hears about the other's archive.
 func TestTwoJobsDoNotReadEachOther(t *testing.T) {
 	dir := t.TempDir()
 	names := []string{"one", "two"}
@@ -315,9 +307,9 @@ func TestTwoJobsDoNotReadEachOther(t *testing.T) {
 	}
 }
 
-// TestASingleStreamDoesNotDragInItsNeighbours. A gzipped file unpacks BESIDE the
-// archive, so the "output folder" of that job is the whole download folder.
-// Walking it for nested archives would quietly unpack everything else in there.
+// A gzipped file unpacks beside the archive, so that job's output folder is the
+// whole download folder and walking it for nested archives would unpack
+// everything else in there.
 func TestASingleStreamDoesNotDragInItsNeighbours(t *testing.T) {
 	dir := t.TempDir()
 	write(t, filepath.Join(dir, "neighbour.zip"), zipBytes(t, entry{"theirs.txt", []byte("theirs")}))
@@ -340,9 +332,8 @@ func TestASingleStreamDoesNotDragInItsNeighbours(t *testing.T) {
 	}
 }
 
-// TestVolumeRankFollowsTheReaderAndNotTheAlphabet is the trap a list numbering
-// its parts off a plain sort walks into: a spanned rar STARTS at ".rar" and a
-// spanned zip ENDS at ".zip".
+// A list numbering its parts off a plain sort gets both families wrong: a
+// spanned rar starts at ".rar" and a spanned zip ends at ".zip".
 func TestVolumeRankFollowsTheReaderAndNotTheAlphabet(t *testing.T) {
 	ordered := [][]string{
 		{"film.part01.rar", "film.part02.rar", "film.part10.rar"},

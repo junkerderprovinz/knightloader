@@ -29,8 +29,8 @@ import (
 	"github.com/ulikunitz/xz"
 )
 
-// nonFirstVolume matches volumes of a multi-part set that must NOT start an
-// extraction themselves (the first volume pulls them in automatically).
+// nonFirstVolume matches volumes of a multi-part set that do not start an
+// extraction themselves; the first volume pulls them in.
 var nonFirstVolume = regexp.MustCompile(`(?i)(\.part(0*[2-9]|0*[1-9]\d+)\.rar|\.r\d\d|\.[7z]\S*\.\d*[2-9]\d*$|\.z\d\d)$`)
 
 // firstVolume matches names that start an archive set (or are a whole archive).
@@ -192,10 +192,9 @@ func destDir(path string) string {
 	base = strings.TrimSuffix(base, ".part01")
 	out := filepath.Join(filepath.Dir(path), base)
 	if out == filepath.Clean(path) {
-		// Nothing came off the name, so "the folder next to the archive" is the
-		// archive, and MkdirAll would fail on the file itself. Only reachable
-		// since the magic probe started opening files whose name promises
-		// nothing at all.
+		// Nothing came off the name, so the folder next to the archive is the
+		// archive itself and MkdirAll would fail on it. It happens for a file
+		// whose name promises nothing and whose magic bytes decided the format.
 		out += "-extracted"
 	}
 	return out
@@ -462,11 +461,11 @@ const tarProbeSize = 64 << 10
 
 // looksLikeTar reports whether head begins with a header archive/tar accepts.
 //
-// The file name deliberately does not get a vote. Double extensions in the wild
-// are unreliable in both directions: ".tgz" and ".tar.gz" are handed out for
-// single gzipped files that hold no tar at all, and plain ".gz" downloads
-// routinely do hold one. A tar header carries a checksum over its own bytes, so
-// reading one is a far stronger signal than anything the name claims.
+// The file name gets no vote. Double extensions in the wild are unreliable in
+// both directions: ".tgz" and ".tar.gz" are handed out for single gzipped files
+// that hold no tar, and plain ".gz" downloads routinely do hold one. A tar
+// header carries a checksum over its own bytes, which is a far stronger signal
+// than the name.
 func looksLikeTar(head []byte) bool {
 	if len(head) < 512 {
 		return false

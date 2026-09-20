@@ -1,9 +1,7 @@
 package captcha
 
-// jdClient against a real httptest.Server - pinning the wire shapes this
-// file's own package comment documents as verified live, so a future edit
-// that "simplifies" the query encoding or stops checking JD's error envelope
-// fails loudly here instead of only in production against a real sidecar.
+// jdClient against an httptest.Server, pinning the wire shapes jdsource.go
+// describes: the query encoding and JD's error envelope.
 
 import (
 	"context"
@@ -14,10 +12,8 @@ import (
 	"testing"
 )
 
-// params decodes the bare, unnamed, JSON-per-segment query string call()
-// builds (see jdClient.call's own doc comment) back into plain strings, in
-// the order they were sent, so a test can assert on them positionally
-// without caring about JSON's exact whitespace.
+// params decodes the unnamed, JSON-per-segment query string call builds back
+// into plain strings, in the order they were sent.
 func params(t *testing.T, rawQuery string) []string {
 	t.Helper()
 	if rawQuery == "" {
@@ -57,7 +53,7 @@ func TestJDClientListParsesTheEnvelope(t *testing.T) {
 	got := jobs[0]
 	if got.ID != 1 || got.Hoster != "rapidgator.net" || got.Link != 555 ||
 		got.ChallengeType != "BasicCaptchaChallenge" || got.Remaining != 60000 {
-		t.Errorf("list()[0] = %+v, want the fields from the live-verified envelope", got)
+		t.Errorf("list()[0] = %+v, want the fields from the envelope", got)
 	}
 }
 
@@ -77,10 +73,7 @@ func TestJDClientListEmptyIsNotAnError(t *testing.T) {
 	}
 }
 
-// TestJDClientImageSendsOneParam pins captcha/get's no-format shape: one
-// bare id, and a plain JSON string back - see this package's jdsource.go
-// comment on why that is JSON on a modern JD, not the raw bytes the
-// deprecated example describes.
+// captcha/get without a format takes one bare id and answers a JSON string.
 func TestJDClientImageSendsOneParam(t *testing.T) {
 	var gotPath string
 	var gotParams []string
@@ -97,20 +90,18 @@ func TestJDClientImageSendsOneParam(t *testing.T) {
 		t.Fatalf("image: %v", err)
 	}
 	if got != "image/png;base64,AAAA" {
-		t.Errorf("image() = %q, want the bare data string unmarshalled from the envelope", got)
+		t.Errorf("image() = %q, want the data string from the envelope", got)
 	}
 	if gotPath != "/captcha/get" {
 		t.Errorf("path = %q, want /captcha/get", gotPath)
 	}
 	if len(gotParams) != 1 || gotParams[0] != "42" {
-		t.Errorf("params = %v, want exactly [42] - no format means the image fallback, not rawtoken", gotParams)
+		t.Errorf("params = %v, want [42] with no format parameter", gotParams)
 	}
 }
 
-// TestJDClientWidgetTokenSendsRawTokenFormat is the load-bearing one: without
-// the second "rawtoken" parameter, a live JD answers a widget challenge's
-// get() with an image fallback instead of sitekey data - see jdsource.go's
-// package comment.
+// Without the second "rawtoken" parameter JD answers a widget challenge's get
+// with an image fallback rather than sitekey data.
 func TestJDClientWidgetTokenSendsRawTokenFormat(t *testing.T) {
 	var gotParams []string
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -128,14 +119,12 @@ func TestJDClientWidgetTokenSendsRawTokenFormat(t *testing.T) {
 		t.Fatalf("params = %v, want [7 \"rawtoken\"]", gotParams)
 	}
 	if tok.SiteKey != "6Lc-key" || tok.SiteURL != "https://hoster.example/dl" {
-		t.Errorf("widgetToken() = %+v, want the sitekey/siteUrl decoded", tok)
+		t.Errorf("widgetToken() = %+v, want siteKey and siteUrl decoded", tok)
 	}
 }
 
-// TestJDClientSolveSendsRawTokenFormatAndSucceeds pins that solve always
-// asks for rawtoken - safe for every challenge family per jdsource.go's
-// package comment - and that JD's own returned boolean is what comes back,
-// not an assumption of true.
+// solve always asks for rawtoken and passes JD's own boolean back rather than
+// assuming true.
 func TestJDClientSolveSendsRawTokenFormatAndSucceeds(t *testing.T) {
 	var gotPath string
 	var gotParams []string
@@ -162,9 +151,8 @@ func TestJDClientSolveSendsRawTokenFormatAndSucceeds(t *testing.T) {
 	}
 }
 
-// TestJDClientSolveDetectsNotAvailable replays the exact error envelope a
-// live sidecar answered with for a gone/expired id (see jdsource.go's
-// package comment) and pins that isNotAvailable recognises it.
+// The error envelope JD answers with for an expired id, and isNotAvailable
+// recognising it.
 func TestJDClientSolveDetectsNotAvailable(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
@@ -178,14 +166,12 @@ func TestJDClientSolveDetectsNotAvailable(t *testing.T) {
 		t.Fatal("solve against a gone id returned no error")
 	}
 	if !isNotAvailable(err) {
-		t.Errorf("isNotAvailable(%v) = false, want true for JD's own NOT_AVAILABLE envelope", err)
+		t.Errorf("isNotAvailable(%v) = false for JD's own envelope", err)
 	}
 }
 
-// TestJDClientSkipSendsTheScopeValue pins skip's real shape - id plus a
-// SkipRequest name, not the abort/blockType route the deprecated example
-// documents (see jdsource.go's package comment: that route does not exist on
-// a modern JD).
+// skip takes an id and a SkipRequest name, not the abort route with a
+// blockType that the deprecated example documents.
 func TestJDClientSkipSendsTheScopeValue(t *testing.T) {
 	var gotPath string
 	var gotParams []string
@@ -208,9 +194,8 @@ func TestJDClientSkipSendsTheScopeValue(t *testing.T) {
 	}
 }
 
-// TestJDClientCallSurfacesAnUnparsableErrorBody covers the transport-error
-// path a bare 500 with no JSON body takes - jdAPIError still has to produce
-// a usable error string instead of hiding behind a JSON decode failure.
+// A bare 500 with no JSON body still has to produce a usable error string
+// rather than a JSON decode failure.
 func TestJDClientCallSurfacesAnUnparsableErrorBody(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -224,7 +209,7 @@ func TestJDClientCallSurfacesAnUnparsableErrorBody(t *testing.T) {
 		t.Fatal("list against a failing server returned no error")
 	}
 	if isNotAvailable(err) {
-		t.Error("isNotAvailable(err) = true, want false - this was never JD's NOT_AVAILABLE shape")
+		t.Error("isNotAvailable(err) = true for a plain HTTP 500")
 	}
 	if !strings.Contains(err.Error(), "500") {
 		t.Errorf("error = %v, want it to name the HTTP status", err)

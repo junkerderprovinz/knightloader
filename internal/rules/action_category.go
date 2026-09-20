@@ -1,27 +1,12 @@
 package rules
 
-// action_category.go: the one thing this package checks about Action.Category.
-//
-// The drawer itself lives in internal/settings (settings.Category), and this
-// package deliberately does not import it - it could not, settings imports
-// this one. So the table cannot be consulted here, and "does this category
-// exist" is answered where both halves are in scope, by
-// settings.ValidateCategories, which refuses the save and names the rule.
-//
-// That split is the same one headers.go already makes, arrived at from the
-// opposite direction and worth reading beside it. A missing HEADER profile is
-// left alone here AND there, because a rule naming a profile somebody has not
-// pasted a credential for yet is a rule mid-construction, and Compile drops a
-// rule with any problem at all - so refusing it would also stop applying the
-// folder and the package name that same rule sets. A missing CATEGORY is
-// refused, but at save time and by the settings package: nothing about it is
-// half-finished, the whole table is in the same document being saved, and a
-// rule filing links in a drawer that does not exist does nothing on every link
-// it matches, for ever, with no error anywhere.
-//
-// What is checked here is the SHAPE, and the shape is settings.CategoryID's:
-// this file's job is to refuse the values that could never name a drawer no
-// matter what the table holds.
+// Whether an Action.Category names an existing category is checked by
+// settings.ValidateCategories at save time, since settings imports this
+// package and not the other way round. A missing category is refused there,
+// unlike a missing header profile (headers.go): the whole category table is
+// in the document being saved, and a rule filing links under an unknown id
+// would silently do nothing. This file only refuses values that could never
+// name a category, following settings.CategoryID.
 
 import (
 	"fmt"
@@ -30,14 +15,11 @@ import (
 )
 
 // MaxCategoryRef bounds the id a rule may name. It matches
-// settings.MaxCategoryID; a longer string cannot address a stored category, so
-// accepting it here would produce a rule that compiles cleanly and can never do
-// anything.
+// settings.MaxCategoryID, so a longer string could never address a category.
 const MaxCategoryRef = 64
 
 // categoryProblem reports why a category id cannot be used, or "" when it can.
-// An empty id is not a problem: it is the ordinary "this rule has no opinion
-// about which drawer".
+// An empty id means the rule has no opinion.
 func categoryProblem(raw string) string {
 	id := strings.TrimSpace(raw)
 	if id == "" {
@@ -46,24 +28,14 @@ func categoryProblem(raw string) string {
 	if len(id) > MaxCategoryRef {
 		return fmt.Sprintf("the category id is %d characters, the limit is %d", len(id), MaxCategoryRef)
 	}
-	// A TEMPLATE IS REFUSED, and this is the check worth having. Every other
-	// string on an Action is expanded, so <jd:hoster> in a category id is the
-	// natural thing to try - and it would hand the link's own host the choice
-	// of which drawer it lands in, which is to say its download folder, its
-	// priority and its collision rule. The far end of the connection does not
-	// get a vote on where its bytes are written.
-	//
-	// It would also be a silent no-op nearly every time: an expanded id has to
-	// match a stored category exactly, settings.ValidateCategories cannot check
-	// a value that does not exist until match time, and a link whose expansion
-	// names nothing simply is not filed anywhere, with no error to see.
+	// A template would let a link's own host pick its category, and with it
+	// the download folder, priority and collision rule. An expanded id also
+	// cannot be validated at save time, so a miss would fail silently.
 	if strings.Contains(strings.ToLower(id), openTag) {
 		return fmt.Sprintf(
 			"the category %q holds a %s... placeholder; a drawer is picked by name, not assembled from the link", id, openTag)
 	}
-	// A value made entirely of punctuation normalises to nothing, so it can
-	// never match a stored id. Refused here rather than left to fail silently
-	// at match time, which is where every unmatched id fails.
+	// Pure punctuation normalises to nothing and can never match a stored id.
 	if !strings.ContainsFunc(id, func(r rune) bool { return unicode.IsLetter(r) || unicode.IsDigit(r) }) {
 		return fmt.Sprintf("the category %q holds no letter or digit, so it can never name one", id)
 	}

@@ -10,23 +10,17 @@ import (
 	"time"
 )
 
-// testBackoff is the reconnect cadence the tests run at. Real minBackoff is a
-// second, which would turn every reconnect assertion into a stopwatch; the
-// loop's behaviour is identical either way, only the wait is not.
+// testBackoff is the reconnect cadence the tests run at, instead of the real
+// one-second minimum.
 const testBackoff = 20 * time.Millisecond
 
-// testFrameKey is the one frame key every client and every hand-rolled peer
-// in this file shares, standing in for "these two instances entered the same
-// connection phrase". Derived through the real DeriveFrameKey rather than
-// written out as 32 bytes, so a change to that derivation cannot leave the
-// tests passing against a key the product no longer produces.
+// testFrameKey is the frame key shared by every client and hand-rolled peer in
+// these tests, as if they had entered the same connection phrase. It goes
+// through the real DeriveFrameKey so the tests follow any change to it.
 var testFrameKey = DeriveFrameKey([]byte("relay package tests"))
 
-// sealFor and openFrom are what a hand-rolled peer in these tests has to do
-// now that proxy payloads travel sealed. They exist as helpers rather than
-// inline calls because every peer below needs both, and a test that got the
-// additional-data argument subtly wrong would fail with "could not open"
-// rather than pointing at itself.
+// sealFor, sealResultFor, openFrom and openResultFrom seal and open payloads
+// for the hand-rolled peers, keeping the additional data in one place.
 func sealFor(t *testing.T, requestID, target string, call ProxyCall) []byte {
 	t.Helper()
 	sealed, err := SealCall(testFrameKey, requestID, target, call)
@@ -64,9 +58,8 @@ func openResultFrom(t *testing.T, requestID string, sealed []byte) ProxyResult {
 }
 
 // tracking remembers every connection it accepted so they can all be killed at
-// once. http.Server.Close cannot do it: a WebSocket connection is hijacked out
-// of the server's own bookkeeping the moment it is upgraded, so closing the
-// server would leave exactly the connections these tests need to break.
+// once. http.Server.Close cannot do it, because an upgraded WebSocket is
+// hijacked out of the server's bookkeeping.
 type tracking struct {
 	net.Listener
 	mu    sync.Mutex
@@ -94,11 +87,9 @@ func (l *tracking) closeAll() {
 
 // relayOn serves a real relay on addr ("127.0.0.1:0" for a fresh port) and
 // returns the address it landed on plus a stop that drops the listener and
-// every live connection - the relay process dying, not shutting down politely.
-// Stopping and then calling relayOn again with the same address is what a
-// restarted relay looks like to a client that was connected to the first one:
-// the case the reconnect test exists for, and one an httptest.Server cannot
-// produce, since it never gives its port back.
+// every live connection, as if the relay process died. Calling relayOn again
+// on the same address then looks like a restarted relay, which an
+// httptest.Server cannot do because it never gives its port back.
 func relayOn(t *testing.T, addr string) (string, func()) {
 	t.Helper()
 	raw, err := net.Listen("tcp", addr)
@@ -119,10 +110,9 @@ func relayOn(t *testing.T, addr string) (string, func()) {
 	return raw.Addr().String(), stop
 }
 
-// startClient builds a Client against addr, wires it to the fast test backoff
-// and starts it. It is given the http:// form of the address on purpose, so
-// every test also exercises the scheme and path rewriting a person's typed-in
-// relay address goes through.
+// startClient builds a Client against addr with the fast test backoff and
+// starts it. It passes the http:// form of the address so every test also
+// exercises the scheme and path rewriting.
 func startClient(t *testing.T, addr, key, id string, serve ProxyHandler) *Client {
 	t.Helper()
 	c, err := NewClient(ClientOptions{
@@ -141,10 +131,9 @@ func startClient(t *testing.T, addr, key, id string, serve ProxyHandler) *Client
 	return c
 }
 
-// waitFor polls until cond holds, failing the test if it never does. Polling
-// rather than a synchronisation point because the thing being waited on is a
-// frame crossing a real socket into a background goroutine, which the test has
-// no handle on by design.
+// waitFor polls until cond holds, failing the test if it never does. The
+// frames being waited on cross a real socket into a background goroutine the
+// test has no handle on.
 func waitFor(t *testing.T, what string, cond func() bool) {
 	t.Helper()
 	deadline := time.Now().Add(wsTimeout)
@@ -157,9 +146,6 @@ func waitFor(t *testing.T, what string, cond func() bool) {
 	t.Fatalf("timed out waiting for %s", what)
 }
 
-// TestClientAnnouncesItselfAndTracksSiblings is the whole discovery half: the
-// client tells the relay who it is, learns who else is there, and forgets them
-// again when they go.
 func TestClientAnnouncesItselfAndTracksSiblings(t *testing.T) {
 	addr, _ := relayOn(t, "127.0.0.1:0")
 	alpha := startClient(t, addr, "shared-relay-test-key-0123456789ab", "alpha", nil)
@@ -167,13 +153,8 @@ func TestClientAnnouncesItselfAndTracksSiblings(t *testing.T) {
 
 	bravo := dialInstance(t, "ws://"+addr+connectPath, "shared-relay-test-key-0123456789ab", "bravo")
 
-	// bravo hears about alpha, which is only possible if the client's own
-	// hello carried its announce.
-	//
-	// bravo is a raw socket rather than a Client, so what it reads here is
-	// the WIRE form - exactly what a relay operator sees. The name and the
-	// deployment must not be in it, and the id must be, because the relay
-	// routes on that one and on nothing else.
+	// bravo is a raw socket, so it reads the wire form a relay operator sees:
+	// the id in the clear, the name and deployment only sealed.
 	var seen Announce
 	if err := readFrame(t, bravo, TypeAnnounce).Into(&seen); err != nil {
 		t.Fatalf("announce: %v", err)
@@ -184,8 +165,6 @@ func TestClientAnnouncesItselfAndTracksSiblings(t *testing.T) {
 	if seen.Name != "" || seen.Deployment != "" {
 		t.Errorf("the wire announce still carries identity in the clear: %+v", seen)
 	}
-	// And it is not merely absent: it is present, sealed, and opens with the
-	// key the relay does not hold into exactly what was announced.
 	id, err := OpenIdentity(testFrameKey, seen.InstanceID, seen.Sealed)
 	if err != nil {
 		t.Fatalf("the sealed identity did not open: %v", err)
@@ -203,8 +182,6 @@ func TestClientAnnouncesItselfAndTracksSiblings(t *testing.T) {
 	waitFor(t, "alpha to see bravo go", func() bool { return len(alpha.Siblings()) == 0 })
 }
 
-// TestClientProxiesToASibling: a call goes out addressed to a sibling and the
-// answer comes back to the caller that made it, matched by request ID.
 func TestClientProxiesToASibling(t *testing.T) {
 	addr, _ := relayOn(t, "127.0.0.1:0")
 	alpha := startClient(t, addr, "shared-relay-test-key-0123456789ab", "alpha", nil)
@@ -251,9 +228,6 @@ func TestClientProxiesToASibling(t *testing.T) {
 	}
 }
 
-// TestClientAnswersASiblingsCall covers the inbound direction, which is what
-// makes this a transport rather than a one-way remote control: a client is
-// something siblings call, not only something that calls.
 func TestClientAnswersASiblingsCall(t *testing.T) {
 	tests := []struct {
 		name       string
@@ -270,8 +244,6 @@ func TestClientAnswersASiblingsCall(t *testing.T) {
 			wantBody:   "GET /api/tasks",
 		},
 		{
-			// A client with nothing to serve says so at once rather than
-			// leaving the caller to sit out its own timeout.
 			name:       "no handler configured",
 			serve:      nil,
 			wantStatus: http.StatusNotImplemented,
@@ -305,10 +277,8 @@ func TestClientAnswersASiblingsCall(t *testing.T) {
 	}
 }
 
-// TestProxyFailsFastRatherThanWaiting: every way a call can fail to reach a
-// peer has to be reported now, not at the end of proxyTimeout - the Instances
-// page's answer to "that instance is offline" is one a caller must not wait
-// fifteen seconds for.
+// TestProxyFailsFastRatherThanWaiting: a call that cannot reach its peer fails
+// at once, not at the end of proxyTimeout.
 func TestProxyFailsFastRatherThanWaiting(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -323,9 +293,8 @@ func TestProxyFailsFastRatherThanWaiting(t *testing.T) {
 			wantErr: "not connected",
 		},
 		{
-			// The relay itself answers this one, so the error text is the
-			// relay's own - proving the client surfaces it rather than
-			// reporting a bare status.
+			// The relay answers this one, and the client has to pass its
+			// text on.
 			name:    "nobody is connected as the target",
 			connect: true,
 			target:  "nobody",
@@ -335,9 +304,7 @@ func TestProxyFailsFastRatherThanWaiting(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			addr, stop := relayOn(t, "127.0.0.1:0")
-			// Stopped before the client exists, so there is no window in
-			// which it briefly connects and the assertion below tests
-			// nothing.
+			// Stopped before the client exists, so it cannot briefly connect.
 			if !tc.connect {
 				stop()
 			}
@@ -361,9 +328,8 @@ func TestProxyFailsFastRatherThanWaiting(t *testing.T) {
 	}
 }
 
-// TestReconnectsAfterTheRelayDrops is the resilience the whole design hangs
-// on: a relay outage costs the instance its relay peers and nothing else, and
-// the peers come back on their own once the relay does.
+// TestReconnectsAfterTheRelayDrops: an outage costs the instance its relay
+// peers, and they come back on their own once the relay does.
 func TestReconnectsAfterTheRelayDrops(t *testing.T) {
 	addr, stop := relayOn(t, "127.0.0.1:0")
 	alpha := startClient(t, addr, "shared-relay-test-key-0123456789ab", "alpha", nil)
@@ -376,9 +342,8 @@ func TestReconnectsAfterTheRelayDrops(t *testing.T) {
 	})
 	_ = bravo.CloseNow()
 
-	// A different relay process on the same address, exactly as a restarted
-	// container looks: no shared state, so everything the client sees now it
-	// re-established by itself.
+	// A fresh relay on the same address shares no state with the old one, so
+	// everything the client sees now it re-established itself.
 	relayOn(t, addr)
 	waitFor(t, "alpha to reconnect", alpha.Connected)
 
@@ -396,9 +361,6 @@ func TestReconnectsAfterTheRelayDrops(t *testing.T) {
 	})
 }
 
-// TestCallInFlightFailsWhenTheConnectionDies: a request the relay accepted and
-// nobody answered must not hold its caller until proxyTimeout once the socket
-// carrying the answer is gone.
 func TestCallInFlightFailsWhenTheConnectionDies(t *testing.T) {
 	addr, stop := relayOn(t, "127.0.0.1:0")
 	alpha := startClient(t, addr, "shared-relay-test-key-0123456789ab", "alpha", nil)
@@ -411,7 +373,7 @@ func TestCallInFlightFailsWhenTheConnectionDies(t *testing.T) {
 		_, _, err := alpha.Proxy(context.Background(), "bravo", http.MethodGet, "/api/tasks", nil, "")
 		failed <- err
 	}()
-	// bravo receives the call and deliberately never answers it.
+	// bravo receives the call and never answers it.
 	readFrame(t, bravo, TypeProxyRequest)
 	stop()
 
@@ -420,15 +382,9 @@ func TestCallInFlightFailsWhenTheConnectionDies(t *testing.T) {
 		if err == nil {
 			t.Fatal("the call succeeded, want it to fail with the connection")
 		}
-		// Two legitimate paths race here, and either is a correct answer:
-		// alpha's own connection can notice it died first ("...dropped"), or
-		// the relay can notice bravo left first and answer alpha with a
-		// synthetic failure before alpha's own socket has even reported
-		// anything wrong (server.go's own failPending, added once a target
-		// disconnecting mid-request started failing the call fast instead of
-		// leaving the caller to time out) - which one wins is inherent to
-		// killing the whole relay process out from under both connections at
-		// once, not something either side controls.
+		// Two paths race and either is correct: alpha notices its own
+		// connection died ("dropped"), or the relay notices bravo left first
+		// and fails the call through failPending.
 		if !strings.Contains(err.Error(), "dropped") && !strings.Contains(err.Error(), "disconnected before it replied") {
 			t.Errorf("got %v, want it to say the connection dropped or that the target disconnected first", err)
 		}
@@ -437,9 +393,6 @@ func TestCallInFlightFailsWhenTheConnectionDies(t *testing.T) {
 	}
 }
 
-// TestConnectURL: a person configures the address they gave their reverse
-// proxy, not a WebSocket URL, so every reasonable spelling of the same relay
-// has to reach the same endpoint.
 func TestConnectURL(t *testing.T) {
 	tests := []struct {
 		name string
@@ -475,9 +428,6 @@ func TestConnectURL(t *testing.T) {
 	}
 }
 
-// TestNewClientRejectsMisconfiguration: all four of these are permanent, and
-// the settings page that produced them is the only place they can be fixed, so
-// none of them may turn into a connection that quietly never works.
 func TestNewClientRejectsMisconfiguration(t *testing.T) {
 	valid := ClientOptions{
 		URL:      "https://relay.example.com",
@@ -492,8 +442,6 @@ func TestNewClientRejectsMisconfiguration(t *testing.T) {
 		{"no address", func(o *ClientOptions) { o.URL = "" }},
 		{"no key", func(o *ClientOptions) { o.Key = "   " }},
 		{"no instance id", func(o *ClientOptions) { o.Self.InstanceID = "" }},
-		// The expensive one to discover late: the relay connects, the
-		// siblings appear, and every single call to them fails.
 		{"no frame key", func(o *ClientOptions) { o.FrameKey = nil }},
 		{"a frame key of the wrong length", func(o *ClientOptions) { o.FrameKey = []byte("too short") }},
 	}

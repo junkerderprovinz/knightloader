@@ -8,9 +8,8 @@ import (
 	"testing"
 )
 
-// routeHeader is the header line the kernel writes. It is included in every
-// fixture because a parser that only works on a file with the header stripped is
-// a parser that works on no real machine.
+// routeHeader is the header line the kernel writes, included in every fixture
+// as on a real machine.
 const routeHeader = "Iface\tDestination\tGateway \tFlags\tRefCnt\tUse\tMetric\tMask\t\tMTU\tWindow\tIRTT\n"
 
 // route builds one row. The addresses are written the way /proc/net/route writes
@@ -20,10 +19,8 @@ func route(iface, dest, gateway, flags string, metric int) string {
 		strconv.Itoa(metric) + "\t00000000\t0\t0\t0\n"
 }
 
-// TestParseProcNetRoute pins every reason a row is passed over. The rejections
-// are the point: an address offered to the user as "your router" that is not one
-// gets typed into the form, and the first reconnect posts the router password to
-// whatever answers at that address.
+// TestParseProcNetRoute pins every reason a row is passed over; a wrong router
+// address would receive the router password.
 func TestParseProcNetRoute(t *testing.T) {
 	tests := []struct {
 		name      string
@@ -38,9 +35,7 @@ func TestParseProcNetRoute(t *testing.T) {
 			wantIface: "eth0",
 		},
 		{
-			// A box on wifi and ethernet at once has two. Offering the gateway of
-			// the link that is not carrying traffic sends the login out of the
-			// wrong interface, where it either times out or reaches a stranger.
+			// A box on wifi and ethernet at once has two.
 			name: "lowest metric wins",
 			table: routeHeader +
 				route("wlan0", "00000000", "0102A8C0", "0003", 600) +
@@ -57,17 +52,15 @@ func TestParseProcNetRoute(t *testing.T) {
 			wantIface: "wlan0",
 		},
 		{
-			// The on-link route to the local subnet has no next hop. Matching on
-			// the gateway column alone would offer the first neighbour instead.
+			// The on-link route to the local subnet has no next hop.
 			name: "an on-link route is not a default route",
 			table: routeHeader +
 				route("eth0", "0001A8C0", "00000000", "0001", 0),
 			want: "",
 		},
 		{
-			// A host route through a gateway is a route to one machine, not the
-			// way out. Reading it as the default is how a VPN peer's address ends
-			// up in the router field.
+			// A host route through a gateway, such as to a VPN peer, is not the
+			// way out.
 			name: "a non-default destination is skipped even with a gateway",
 			table: routeHeader +
 				route("tun0", "0A0A0A0A", "0101A8C0", "0003", 0),
@@ -114,9 +107,8 @@ func TestParseProcNetRoute(t *testing.T) {
 			want:  "",
 		},
 		{
-			// The container case, which is the one that will be reported as a
-			// bug: the answer is the bridge, not the router. It is still given
-			// back, with the interface name that says so.
+			// In a container the answer is the bridge, not the router; it is
+			// still returned, with the interface that shows it.
 			name:      "a docker bridge is reported with its interface",
 			table:     routeHeader + route("eth0", "00000000", "010011AC", "0003", 0),
 			want:      "172.17.0.1",
@@ -149,9 +141,8 @@ func TestParseProcNetRoute(t *testing.T) {
 	}
 }
 
-// TestParseHexAddrByteOrder is separate because getting it backwards produces an
-// address that parses, prints and looks entirely reasonable - 1.1.168.192 - and
-// is not the router.
+// TestParseHexAddrByteOrder: the wrong byte order still produces a plausible
+// address, 1.1.168.192.
 func TestParseHexAddrByteOrder(t *testing.T) {
 	tests := []struct {
 		hex  string
@@ -160,10 +151,6 @@ func TestParseHexAddrByteOrder(t *testing.T) {
 		{"0101A8C0", "192.168.1.1"},
 		{"FE01A8C0", "192.168.1.254"},
 		{"010011AC", "172.17.0.1"},
-
-		// The same eight characters read the other way round are a different
-		// address that parses and prints perfectly, which is why the byte order
-		// gets a case of its own rather than being left to the rows above.
 		{"00000001", "1.0.0.0"},
 
 		{"0100007F", ""},   // loopback
@@ -197,15 +184,13 @@ func TestParseHexAddrByteOrder(t *testing.T) {
 	}
 }
 
-// TestDefaultGatewayNeverGuesses is the whole contract of this file on a
-// platform whose routing table cannot be read. A form pre-filled with a
-// plausible 192.168.1.1 gets accepted, and the first reconnect sends the router
-// password to whatever happens to live there.
+// TestDefaultGatewayNeverGuesses: where the routing table cannot be read, no
+// plausible 192.168.1.1 is offered in its place.
 func TestDefaultGatewayNeverGuesses(t *testing.T) {
 	got, err := DefaultGateway()
 	if runtime.GOOS == "linux" {
-		// On Linux either answer is legitimate - a build machine may genuinely
-		// have no default route - so only the shape is pinned.
+		// A build machine may have no default route, so only the shape is
+		// pinned.
 		if err != nil && !errors.Is(err, ErrGatewayUnavailable) {
 			t.Fatalf("DefaultGateway: %v, want ErrGatewayUnavailable or an address", err)
 		}
@@ -225,7 +210,7 @@ func TestDefaultGatewayNeverGuesses(t *testing.T) {
 	}
 	for _, guess := range []string{"192.168.", "10.0.0.", "172.16."} {
 		if strings.Contains(err.Error(), guess) {
-			t.Errorf("the error suggests %s, which is a guess dressed up as an answer", guess)
+			t.Errorf("the error suggests %s, which is a guess", guess)
 		}
 	}
 }

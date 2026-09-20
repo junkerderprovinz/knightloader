@@ -17,8 +17,7 @@ func TestStoreSyncAddedChangedRemoved(t *testing.T) {
 		t.Fatalf("first sync: added=%d changed=%d removed=%d, want 2/0/0", len(added), len(changed), len(removed))
 	}
 
-	// Second sync: id 1 unchanged, id 2 gets a later ExpiresAt (changed), id 3
-	// is new, id 2's sibling is gone... wait id 2 stays, nothing removed yet.
+	// Second sync: id 1 unchanged, id 2 gets a later ExpiresAt, id 3 is new.
 	exp := time.Now().Add(5 * time.Minute)
 	added, changed, removed = s.Sync([]Challenge{
 		{ID: "1", Host: "a.example", TaskID: "t1", Kind: KindImage},
@@ -48,8 +47,8 @@ func TestStoreSyncAddedChangedRemoved(t *testing.T) {
 	gotIDs := map[string]bool{}
 	for _, c := range removed {
 		gotIDs[c.ID] = true
-		// The removed snapshot must carry what it was, not a zero value - the
-		// whole reason Sync returns the Challenge and not only the id.
+		// The removed snapshot carries the fields it had, which is why Sync
+		// returns a Challenge rather than an id.
 		if c.Host == "" || c.TaskID == "" {
 			t.Errorf("removed challenge %q lost its own fields: %+v", c.ID, c)
 		}
@@ -59,12 +58,9 @@ func TestStoreSyncAddedChangedRemoved(t *testing.T) {
 	}
 }
 
-// TestStoreSyncIgnoresSubSecondExpiresAtJitter is the reason sameChallenge
-// truncates to the second: JD recomputes ExpiresAt fresh on every list()
-// call (jdsource.go), so without rounding, two polls milliseconds apart
-// would read as "changed" purely from clock noise and a caller that
-// broadcasts on "changed" would spam an update nobody asked for on every
-// ordinary tick.
+// JD recomputes ExpiresAt on every list call, so without sameChallenge's
+// tolerance two polls milliseconds apart would read as changed from clock noise
+// and a caller would broadcast on every tick.
 func TestStoreSyncIgnoresSubSecondExpiresAtJitter(t *testing.T) {
 	s := NewStore()
 	base := time.Now()
@@ -81,7 +77,7 @@ func TestStoreSyncIgnoresSubSecondExpiresAtJitter(t *testing.T) {
 	}
 }
 
-func TestStoreRemoveIsIdempotentAndKeepsSyncHonest(t *testing.T) {
+func TestStoreRemoveIsIdempotentAndSyncDoesNotRepeatIt(t *testing.T) {
 	s := NewStore()
 	s.Sync([]Challenge{{ID: "1", Host: "a.example", TaskID: "t1"}})
 
@@ -93,9 +89,8 @@ func TestStoreRemoveIsIdempotentAndKeepsSyncHonest(t *testing.T) {
 		t.Fatalf("Remove(1) a second time reported ok=true; removing an already-gone id must be quiet")
 	}
 
-	// A Sync after an out-of-band Remove must not report the same id as
-	// removed a second time - it is already absent from what Sync diffs
-	// against, which is the whole point of removing it early.
+	// A Sync after a Remove does not report the id as removed again: it is
+	// already absent from what Sync diffs against.
 	_, _, removed := s.Sync(nil)
 	if len(removed) != 0 {
 		t.Fatalf("Sync after Remove reported %+v as removed a second time", removed)

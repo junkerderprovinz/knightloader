@@ -13,10 +13,7 @@ import (
 var ErrImport = errors.New("reconnect: the script could not be imported")
 
 // Problem is one line an import could not map, in words meant for the user.
-//
-// The line number is data rather than only part of the sentence, because the
-// editor has to be able to put the marker on the right row: a message under a
-// forty-line script still leaves somebody counting lines by hand.
+// The line number is a field so the editor can mark the row.
 type Problem struct {
 	Line int    `json:"line"` // one-based, counting the script's own lines
 	Text string `json:"text"` // the line verbatim, trimmed
@@ -25,33 +22,23 @@ type Problem struct {
 
 func (p Problem) Error() string { return fmt.Sprintf("line %d: %s", p.Line, p.Why) }
 
-// Import is what one script turned into.
-//
-// Requests is filled in as far as the import got, so an editor can show what did
-// map next to what did not. It is for showing, not for saving: a non-nil error
-// from ImportScript means the script must not be stored. Half a router script is
-// a login with no reboot, or a reboot with no login, and either one is a
-// reconnect that hangs at three in the morning and reports "the address did not
-// change" while the router sits there waiting for the rest of the conversation.
+// Import is what one script turned into. Requests holds as much as mapped, so
+// the editor can show it next to the problems, but a non-nil error from
+// ImportScript means the script must not be stored: half a router script is a
+// login without a reboot or the other way round.
 type Import struct {
 	Requests []Request `json:"requests"`
 	Problems []Problem `json:"problems,omitempty"`
 
 	// Variables are the names the script used, after translation, so the form
-	// can say which of the username, password and router fields it now needs.
-	// A script that references none of them needs no credentials at all, and
-	// asking for them anyway is how a working import gets abandoned.
+	// asks only for the username, password and router fields it needs.
 	Variables []string `json:"variables,omitempty"`
 }
 
 // jdVariables translates JDownloader's variable names into this package's.
-//
-// JD writes three percent signs, this package writes two, and the names differ
-// in the one place it matters: JD's %%%routerip%%% is the gateway on the LAN
-// while this package's %%ip%% is the public address the box had before the run.
-// Mapping routerip onto ip would point a login request carrying the router
-// password at the public internet, so the two are kept apart here and a router
-// address becomes its own variable and its own field.
+// JDownloader's %%%routerip%%% is the gateway on the LAN, while %%ip%% here is
+// the public address; mapping one onto the other would send the router
+// password to the internet, so the router gets its own variable.
 var jdVariables = map[string]string{
 	"routerip": VarRouter,
 	"router":   VarRouter,
@@ -63,9 +50,9 @@ var jdVariables = map[string]string{
 	"pass":     VarPassword,
 }
 
-// The block markers. JD wraps a LiveHeader recording in HSRC and a curl
-// recording in CURL, and writes both in upper case; the comparison is
-// case-insensitive anyway because hand-edited scripts are not consistent.
+// The block markers. JDownloader wraps a LiveHeader recording in HSRC and a
+// curl recording in CURL; they are compared case-insensitively because scripts
+// are hand-edited.
 const (
 	markerHSRCOpen  = "[[[HSRC]]]"
 	markerHSRCClose = "[[[/HSRC]]]"
@@ -74,22 +61,17 @@ const (
 )
 
 // maxScriptLines and maxScriptRequests bound an import. A router script is a
-// login and a reboot; a file with thousands of requests in it is not one, and
-// replaying it would hammer the router rather than reconnect it.
+// login and a reboot, and replaying thousands of requests would hammer the
+// router.
 const (
 	maxScriptLines    = 2000
 	maxScriptRequests = 64
 )
 
-// ImportScript reads a JDownloader LiveHeader or curl reconnect script into this
-// package's HTTP request method.
-//
-// Thousands of these exist, one per router model, and a user who has one in hand
-// should not have to retype it. What they must not get is a script that was
-// imported approximately: every line that cannot be mapped is reported with its
-// number and the reason, and the error is non-nil whenever there is one of them.
-// Guessing at an unrecognised line is the failure this refuses to produce,
-// because the guess only shows up as a reconnect that silently does nothing.
+// ImportScript reads a JDownloader LiveHeader or curl reconnect script into
+// this package's HTTP request method. Every line that cannot be mapped is
+// reported with its number and reason and makes the error non-nil; guessing
+// would only show up as a reconnect that silently does nothing.
 func ImportScript(text string) (Import, error) {
 	var imp Import
 	vars := make(map[string]bool)
@@ -120,8 +102,7 @@ func ImportScript(text string) (Import, error) {
 			body, end, ok := blockLines(lines, i+1, closer)
 			if !ok {
 				problem(i+1, raw, "the block is never closed with "+closer)
-				// Parsing on from here would read the rest of the file as one
-				// enormous request. Stopping is the honest answer.
+				// Parsing on would read the rest of the file as one request.
 				imp.Variables = sortedVars(vars)
 				return imp, importError(imp)
 			}
@@ -134,10 +115,8 @@ func ImportScript(text string) (Import, error) {
 		case upper == markerHSRCClose, upper == markerCURLClose:
 			problem(i+1, raw, "a closing marker with no block open before it")
 		default:
-			// Everything else outside a block is refused rather than skipped.
-			// JD's own scripts carry metadata lines up here, and a header this
-			// parser silently ignored could just as easily have been the request
-			// that does the reboot.
+			// Anything else outside a block is refused rather than skipped; a
+			// line silently ignored could have been the reboot request.
 			problem(i+1, raw, "outside a "+markerHSRCOpen+" block")
 		}
 		if len(imp.Requests) > maxScriptRequests {
@@ -146,9 +125,7 @@ func ImportScript(text string) (Import, error) {
 	}
 
 	if len(imp.Requests) == 0 && len(imp.Problems) == 0 {
-		// A file with nothing in it is not a successful import of nothing: the
-		// user pasted the wrong thing, and saying so beats a form that clears
-		// itself and looks like it worked.
+		// An empty file means the wrong thing was pasted.
 		return imp, fmt.Errorf("%w: it contains no requests", ErrImport)
 	}
 	imp.Variables = sortedVars(vars)
@@ -183,9 +160,8 @@ func blockLines(lines []string, from int, closer string) ([]string, int, bool) {
 	return nil, 0, false
 }
 
-// parseBlock turns one block into a request. firstLine is the script line number
-// of body[0], so every problem can name the line in the file the user is looking
-// at rather than an offset into a block.
+// parseBlock turns one block into a request. firstLine is the script line
+// number of body[0], so problems name lines in the file.
 func parseBlock(body []string, firstLine int, curl bool, vars map[string]bool) (Request, []Problem) {
 	if curl {
 		return parseCurlBlock(body, firstLine, vars)
@@ -209,12 +185,9 @@ func parseHSRCBlock(body []string, firstLine int, vars map[string]bool) (Request
 		target   string
 		inBody   bool
 		bodyText []string
-		// Set once the line that should have carried the request has been
-		// refused. Everything after it in this block follows from that one
-		// fault: with no method recorded, the next line is read as the request
-		// line too, and the block ends without one. Reporting all three turns a
-		// single bad line into a list the reader has to work out for themselves,
-		// so the first message stands and the consequences stay quiet.
+		// reqLineRefused is set once the request line has been refused, so the
+		// follow-on faults (the next line read as a request line, a block with
+		// no request) are not reported as well.
 		reqLineRefused bool
 	)
 	problem := func(n int, raw, why string) {
@@ -226,8 +199,7 @@ func parseHSRCBlock(body []string, firstLine int, vars map[string]bool) (Request
 		text, err := translateVars(raw, vars)
 		if err != nil {
 			problem(line, raw, err.Error())
-			// An unmappable variable in the request line is exactly that fault:
-			// the line is dropped, so no method is ever recorded.
+			// An unmappable variable in the request line drops the line.
 			if !inBody && req.Method == "" {
 				reqLineRefused = true
 			}
@@ -240,10 +212,8 @@ func parseHSRCBlock(body []string, firstLine int, vars map[string]bool) (Request
 			continue
 		}
 		if trimmed == "" {
-			// The blank line ends the headers only once a request line has been
-			// seen. Recordings routinely have a blank line above the request,
-			// and treating that one as the separator would put the whole request
-			// into the body of an empty one.
+			// A blank line ends the headers only after a request line;
+			// recordings often have one above the request.
 			if req.Method != "" {
 				inBody = true
 			}
@@ -270,8 +240,7 @@ func parseHSRCBlock(body []string, firstLine int, vars map[string]bool) (Request
 	}
 
 	if req.Method == "" {
-		// Only when nothing was said about the request line yet — otherwise this
-		// repeats a fault that has already been named, one line further up.
+		// Unless the request line was already reported.
 		if !reqLineRefused {
 			problem(firstLine, "", "the block has no request line in it")
 		}
@@ -286,10 +255,9 @@ func parseHSRCBlock(body []string, firstLine int, vars map[string]bool) (Request
 	req.URL = full
 	req.Body = strings.TrimRight(strings.Join(bodyText, "\n"), "\n")
 	if usedHost {
-		// The Host header is dropped only where it became the URL's host.
-		// Leaving it would say the same thing twice, and this package honours
-		// the header over the URL, so a later edit to one of them would change
-		// where the request goes without changing what the form shows.
+		// The Host header became the URL's host. Keeping it too would let a
+		// later edit to the header, which wins over the URL, redirect the
+		// request without the form showing it.
 		delete(headers, hostHeaderName(headers))
 	}
 	if len(headers) > 0 {
@@ -299,8 +267,7 @@ func parseHSRCBlock(body []string, firstLine int, vars map[string]bool) (Request
 }
 
 // parseRequestLine splits "GET /reboot.cgi HTTP/1.1" into its parts. The
-// protocol version is dropped: this package speaks whatever net/http negotiates,
-// and honouring a recorded "HTTP/1.0" would be a promise it cannot keep.
+// protocol version is dropped, since net/http negotiates its own.
 func parseRequestLine(s string) (method, target string, ok bool) {
 	fields := strings.Fields(s)
 	if len(fields) < 2 {
@@ -313,10 +280,8 @@ func parseRequestLine(s string) (method, target string, ok bool) {
 	return method, fields[1], true
 }
 
-// knownMethod is a fixed list rather than a "looks like a word" test, because
-// the first line of a block is also where a stray header or a curl command would
-// land, and reading "Content-Type:" as a method named CONTENT-TYPE: produces a
-// request the router answers with nothing at all.
+// knownMethod is a fixed list so a stray header on a block's first line is not
+// read as a method named "CONTENT-TYPE:".
 func knownMethod(m string) bool {
 	switch m {
 	case http.MethodGet, http.MethodPost, http.MethodHead, http.MethodPut,
@@ -327,19 +292,13 @@ func knownMethod(m string) bool {
 }
 
 // absoluteURL turns a recorded target into something that can be requested.
-//
 // LiveHeader records the request line as the router saw it, so the target is
-// usually a path and the address lives in the Host header. Building the URL
-// without it would produce "/login.cgi", which is not a URL and fails at the
-// request rather than at the import - days later, in the middle of the night.
-// usedHost is true when the Host header was folded into the URL, which is the
-// only case where dropping it from the header map is right.
+// usually a path and the address is in the Host header. usedHost reports that
+// the Host header was folded into the URL.
 func absoluteURL(target string, headers map[string]string) (url string, usedHost bool, err error) {
 	if strings.HasPrefix(strings.ToLower(target), "http://") || strings.HasPrefix(strings.ToLower(target), "https://") {
-		// An absolute target keeps its Host header. Router firmware that
-		// virtual-hosts its administration page is recorded as an address in the
-		// URL and a name in the header, and folding the two together sends the
-		// name the firmware answers to nowhere.
+		// An absolute target keeps its Host header, which firmware that
+		// virtual-hosts its admin page needs.
 		return target, false, nil
 	}
 	if !strings.HasPrefix(target, "/") {
@@ -365,11 +324,10 @@ func hostHeaderName(headers map[string]string) string {
 	return ""
 }
 
-// parseCurlBlock reads a curl command line. Only the flags that change what is
-// sent are understood; a flag that only changes how curl behaves locally
-// (--insecure, --silent, --location) is accepted and dropped, and anything else
-// is refused by name rather than ignored, because a dropped --data is a login
-// that posts nothing and reports success.
+// parseCurlBlock reads a curl command line. Flags that change what is sent are
+// understood, flags that only change curl's local behaviour are dropped, and
+// anything else is refused by name, since a dropped --data would be a login
+// that posts nothing.
 func parseCurlBlock(body []string, firstLine int, vars map[string]bool) (Request, []Problem) {
 	var (
 		req      Request
@@ -380,8 +338,8 @@ func parseCurlBlock(body []string, firstLine int, vars map[string]bool) (Request
 		problems = append(problems, Problem{Line: n, Text: strings.TrimSpace(raw), Why: why})
 	}
 
-	// A curl command may be split over several lines with a trailing backslash,
-	// which is how anybody who copied one out of a terminal will have it.
+	// A command copied from a terminal is often split with trailing
+	// backslashes.
 	joined, line := joinContinuations(body, firstLine)
 	if strings.TrimSpace(joined) == "" {
 		problem(firstLine, "", "the block has no curl command in it")
@@ -404,9 +362,7 @@ func parseCurlBlock(body []string, firstLine int, vars map[string]bool) (Request
 	}
 
 	target := ""
-	// The index lives outside the loop because the flags consume the token after
-	// them, and a loop variable advanced from inside a closure is a thing every
-	// later reader has to stop and verify.
+	// next advances i past a flag's argument.
 	i := 1
 	for i < len(tokens) {
 		tok := tokens[i]
@@ -446,9 +402,7 @@ func parseCurlBlock(body []string, firstLine int, vars map[string]bool) (Request
 				continue
 			}
 			if strings.HasPrefix(v, "@") {
-				// curl reads the body out of a file here. That file is on the
-				// machine the script was recorded on, so importing the flag
-				// would produce a request whose body is the literal "@post.txt".
+				// The file is on the machine the script was recorded on.
 				problem(line, v, "reading the request body from a file is not supported")
 				continue
 			}
@@ -463,11 +417,9 @@ func parseCurlBlock(body []string, firstLine int, vars map[string]bool) (Request
 				continue
 			}
 			if strings.Contains(v, "%%") {
-				// The header is base64, and the encoding happens here while the
-				// variable is expanded at run time - so the router would be sent
-				// the encoded string "%%username%%:%%password%%" and answer with
-				// a login failure that names the credentials. Refusing is the
-				// only honest option: there is no encoded-variable to emit.
+				// The header is base64-encoded here, before variables are
+				// expanded at run time, so the router would receive the
+				// encoded placeholder.
 				problem(line, v, "curl's "+tok+" flag cannot carry a variable, because the header it becomes is encoded before the variable is filled in; write the credentials into the request body or an Authorization header instead")
 				continue
 			}
@@ -501,9 +453,6 @@ func parseCurlBlock(body []string, firstLine int, vars map[string]bool) (Request
 			}
 			headers["Cookie"] = v
 		case curlIgnorable[tok]:
-			// Accepted and dropped: these change curl's own behaviour, not the
-			// request on the wire, and refusing them would reject scripts that
-			// are perfectly importable.
 		case strings.HasPrefix(tok, "-"):
 			problem(line, tok, "the curl flag "+tok+" is not understood, so the request would not be the one that was recorded")
 		default:
@@ -555,9 +504,8 @@ var curlIgnorable = map[string]bool{
 }
 
 // basicAuth builds the header curl's -u flag produces. The credentials are
-// encoded, not hashed, and that is worth saying out loud: an imported script
-// with a password baked into it stores that password in the request list, where
-// this package's password field and its redaction cannot reach it.
+// only encoded, and they end up in the request list, out of reach of the
+// password field's redaction.
 func basicAuth(userpass string) string {
 	return "Basic " + base64.StdEncoding.EncodeToString([]byte(userpass))
 }
@@ -585,12 +533,9 @@ func joinContinuations(body []string, firstLine int) (string, int) {
 }
 
 // splitCommand splits a command line into arguments the way a shell would,
-// honouring single and double quotes and a backslash escape.
-//
-// This is the reverse of what the script method refuses to do. Reading quotes
-// here is safe because the result is a list that is never handed to a shell: the
-// tokens become a URL, a body and header values in this package's own request
-// list, so a backtick or a semicolon inside one is data and stays data.
+// honouring single and double quotes and a backslash escape. The tokens become
+// request fields and never reach a shell, so a backtick or semicolon stays
+// data.
 func splitCommand(s string) ([]string, error) {
 	var (
 		out   []string
@@ -630,9 +575,7 @@ func splitCommand(s string) ([]string, error) {
 		}
 	}
 	if quote != 0 {
-		// An unterminated quote means the rest of the command was read as one
-		// argument, which is never what was meant and would silently swallow the
-		// URL into a header value.
+		// The rest of the command would be one argument, swallowing the URL.
 		return nil, errors.New("the command has an unclosed quote in it")
 	}
 	flush()
@@ -640,11 +583,8 @@ func splitCommand(s string) ([]string, error) {
 }
 
 // translateVars rewrites JDownloader's %%%name%%% into this package's %%name%%.
-//
-// An unknown name is a refusal, not a pass-through. Every one of them would
-// expand to nothing at run time and leave a request that is subtly wrong -
-// a login posting an empty password reads to the router as a bad password, and
-// the reconnect fails with a message about credentials that are perfectly fine.
+// An unknown name is refused: it would expand to nothing at run time, and an
+// empty password reads to the router as a wrong one.
 func translateVars(s string, seen map[string]bool) (string, error) {
 	const marker = "%%%"
 	if !strings.Contains(s, marker) {
@@ -675,8 +615,7 @@ func translateVars(s string, seen map[string]bool) (string, error) {
 	}
 }
 
-// sortedVars returns the variables a script used, in a fixed order so the form
-// always asks for them the same way round.
+// sortedVars returns the variables a script used, in a fixed order.
 func sortedVars(seen map[string]bool) []string {
 	order := []string{VarRouter, VarUsername, VarPassword, VarIP}
 	var out []string

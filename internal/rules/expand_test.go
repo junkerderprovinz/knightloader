@@ -8,12 +8,9 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/pathvars"
 )
 
-// TestSanitisingAgreesWithPathvars is the invariant the duplicated helper in
-// expand.go claims. Both packages cut values that end up in the same download
-// paths, so the day they disagree is the day one package name produces two
-// folders and half a release lands in each. Comparing against pathvars itself
-// rather than against a pinned string is what makes the test notice a change on
-// either side.
+// TestSanitisingAgreesWithPathvars: both packages cut values that end up in
+// the same download paths, and a disagreement would split one package into two
+// folders. Comparing against pathvars itself catches a change on either side.
 func TestSanitisingAgreesWithPathvars(t *testing.T) {
 	names := []string{
 		"plain name",
@@ -23,8 +20,8 @@ func TestSanitisingAgreesWithPathvars(t *testing.T) {
 		"trailing dots...",
 		"\x01\x02control chars",
 		strings.Repeat("a", 200),
-		// 200 bytes of two-byte runes, so the cut lands mid-rune. Agreeing on
-		// the mangled result still beats disagreeing on a tidy one.
+		// 200 bytes of two-byte runes, so the cut lands mid-rune; both sides
+		// still have to agree.
 		strings.Repeat("ä", 100),
 	}
 	for _, n := range names {
@@ -35,9 +32,8 @@ func TestSanitisingAgreesWithPathvars(t *testing.T) {
 	}
 }
 
-// TestExpandVariables pins the whole placeholder set a rule can use, including
-// the ones internal/pathvars owns: this package hands the template to pathvars
-// first, so a broken handover would lose those and nothing else would say so.
+// TestExpandVariables pins every placeholder a rule can use, including the ones
+// internal/pathvars resolves, so a broken handover to pathvars shows up.
 func TestExpandVariables(t *testing.T) {
 	c := testCandidate().filled()
 	cases := []struct {
@@ -60,13 +56,11 @@ func TestExpandVariables(t *testing.T) {
 		// The tag may be capitalised, exactly as pathvars allows.
 		{"<JD:OrgFileType>", "mkv"},
 		{"<Jd:Source:2>", "season-1"},
-		// Both sets in one template, which is the shape a real folder takes.
+		// Both sets in one template.
 		{"/dl/<jd:hoster>/<jd:source:2>/<jd:packagename>", "/dl/example.org/season-1/The Show"},
 		{"<jd:orgfilenamewithoutext>.<jd:orgfiletype>", "The.Show.S01E02.1080p.mkv"},
-		// Nothing to do at all.
 		{"/dl/plain", "/dl/plain"},
-		// An unknown placeholder is left where the user can see it, rather than
-		// collapsing to nothing and leaving a folder called "//" behind.
+		// An unknown placeholder stays visible.
 		{"/dl/<jd:nosuchthing>", "/dl/<jd:nosuchthing>"},
 	}
 	m := &Matcher{}
@@ -77,8 +71,8 @@ func TestExpandVariables(t *testing.T) {
 	}
 }
 
-// TestExpandSourceOutOfRange keeps a template the user got wrong visible. A
-// blank would silently move every download of a whole site one folder up.
+// TestExpandSourceOutOfRange: a blank would silently move every download of a
+// site one folder up, so the tag stays.
 func TestExpandSourceOutOfRange(t *testing.T) {
 	c := testCandidate().filled()
 	m := &Matcher{}
@@ -87,8 +81,7 @@ func TestExpandSourceOutOfRange(t *testing.T) {
 			t.Errorf("expand(%q) = %q, want the tag left in place", template, got)
 		}
 	}
-	// A link that was never crawled has no source at all, and every segment of
-	// it is out of range for the same reason.
+	// A link that was never crawled has no source at all.
 	noSource := testCandidate()
 	noSource.Source = ""
 	if got := m.expand("<jd:source:1>", "test", noSource.filled(), nil); got != "<jd:source:1>" {
@@ -106,12 +99,10 @@ func TestSourceSegment(t *testing.T) {
 		{"https://tracker.example.net/tv/season-1/index.html", "3", "index.html", true},
 		// Repeated and trailing slashes are not segments of their own.
 		{"https://tracker.example.net//tv///s01/", "2", "s01", true},
-		// A host with no path has no segments; splitting the raw string would
-		// otherwise hand back "https:" as the first one.
+		// A host with no path has no segments, not "https:".
 		{"https://tracker.example.net", "1", "", false},
 		{"https://tracker.example.net/", "1", "", false},
-		// Percent escapes are decoded, because the segment ends up in a folder
-		// name a person reads.
+		// Percent escapes are decoded for the folder name.
 		{"https://tracker.example.net/tv/season%201/x", "2", "season 1", true},
 		{"", "1", "", false},
 		{"https://tracker.example.net/tv", "x", "", false},
@@ -124,9 +115,8 @@ func TestSourceSegment(t *testing.T) {
 	}
 }
 
-// TestExpandCannotAddPathLevels is the security-shaped one. A hoster that
-// serves a file called "../../etc/passwd" must not be able to walk out of the
-// folder the template spelled out.
+// TestExpandCannotAddPathLevels: a hoster serving "../../etc/passwd" must not
+// walk out of the folder the template spelled out.
 func TestExpandCannotAddPathLevels(t *testing.T) {
 	c := Candidate{Filename: `../../etc/passwd`, Package: `..\..\windows`, Source: "https://x.test/a/../b"}
 	m := &Matcher{}
@@ -136,7 +126,7 @@ func TestExpandCannotAddPathLevels(t *testing.T) {
 		"/dl/<jd:packagename>",
 		"/dl/<jd:filename>",
 		// The second segment of that source is "..", which sanitises away
-		// entirely and has to become a word rather than nothing.
+		// and becomes a word.
 		"/dl/<jd:source:2>",
 	} {
 		got := m.expand(template, "test", c.filled(), nil)
@@ -146,9 +136,8 @@ func TestExpandCannotAddPathLevels(t *testing.T) {
 	}
 }
 
-// TestExpandValueIsNotRescanned proves the order of the two passes: pathvars
-// runs first, so a value it substitutes can never be read back as one of the
-// placeholders this package resolves.
+// TestExpandValueIsNotRescanned: pathvars runs first, so a value it
+// substitutes is never read back as a placeholder.
 func TestExpandValueIsNotRescanned(t *testing.T) {
 	c := Candidate{Package: "<jd:orgfilename>", Filename: "secret.mkv"}
 	m := &Matcher{}
@@ -168,9 +157,8 @@ func TestOrgFileTypeHasNoFallbackWord(t *testing.T) {
 	}
 }
 
-// TestOrgFileNameFallsBackToAWord covers the other side: a link with no name at
-// all still contributes a named segment rather than an empty one, because an
-// empty segment is how a template ends up producing "/downloads//".
+// TestOrgFileNameFallsBackToAWord: a link with no name still contributes a
+// named segment, not an empty one that would produce "/downloads//".
 func TestOrgFileNameFallsBackToAWord(t *testing.T) {
 	m := &Matcher{}
 	got := m.expand("/dl/<jd:orgfilename>", "test", Candidate{}.filled(), nil)
@@ -179,8 +167,8 @@ func TestOrgFileNameFallsBackToAWord(t *testing.T) {
 	}
 }
 
-// TestAppendDeduplicates walks the counter through the sequence it exists for:
-// the first link keeps the plain name, every repeat gets numbered.
+// TestAppendDeduplicates: the first link keeps the plain name and every repeat
+// is numbered.
 func TestAppendDeduplicates(t *testing.T) {
 	m := &Matcher{}
 	c := testCandidate().filled()
@@ -190,8 +178,7 @@ func TestAppendDeduplicates(t *testing.T) {
 			t.Errorf("call %d = %q, want %q", i+1, got, w)
 		}
 	}
-	// A different target field is a different namespace: a package and a file
-	// name that read the same are not a collision with each other.
+	// Each target field counts on its own.
 	if got := m.expand("<jd:packagename><jd:append>", "filename", c, nil); got != "The Show" {
 		t.Errorf("first call on a second field = %q, want an unnumbered name", got)
 	}
@@ -207,9 +194,8 @@ func TestAppendDeduplicates(t *testing.T) {
 	}
 }
 
-// TestAppendIgnoresAPlantedMarker: the counter holds its place with a NUL, so a
-// NUL arriving in the template itself would take a second suffix and produce
-// "name_2_2".
+// TestAppendIgnoresAPlantedMarker: a NUL in the template itself would
+// otherwise take a second suffix and produce "name_2_2".
 func TestAppendIgnoresAPlantedMarker(t *testing.T) {
 	m := &Matcher{}
 	c := Candidate{}
@@ -221,10 +207,8 @@ func TestAppendIgnoresAPlantedMarker(t *testing.T) {
 	}
 }
 
-// TestAppendCounterStopsGrowing pins the ceiling on the only state a Matcher
-// keeps. Past the cap a name the counter has not seen gets no suffix, which is
-// what the first link carrying any name gets anyway; names already counted keep
-// counting.
+// TestAppendCounterStopsGrowing: past the cap a new name gets no suffix, and
+// names already counted keep counting.
 func TestAppendCounterStopsGrowing(t *testing.T) {
 	m := &Matcher{}
 	const template = "<jd:packagename><jd:append>"
@@ -245,13 +229,9 @@ func TestAppendCounterStopsGrowing(t *testing.T) {
 	}
 }
 
-// TestAppendCountsOncePerLink is the reason Apply expands after the loop rather
-// than inside it. Two rules writing an <jd:append> package name is an ordinary
-// Packagizer list - a broad rule and a narrower one below it - and while every
-// matching rule expanded its own template, each link burned one counter per rule.
-// The very first link came out as "X_2", a de-duplication of nothing, and the
-// suffix counted how many rules had touched the field instead of how often that
-// name had been seen.
+// TestAppendCountsOncePerLink: with a broad and a narrow rule both writing an
+// <jd:append> package name, the counter still advances once per link, not
+// once per matching rule.
 func TestAppendCountsOncePerLink(t *testing.T) {
 	m, problems := Compile(Set{Rules: []Rule{
 		{Name: "broad", Action: Action{PackageName: "X<jd:append>"}},
@@ -267,9 +247,8 @@ func TestAppendCountsOncePerLink(t *testing.T) {
 	}
 }
 
-// TestApplyDoesNotExpandOverwrittenTemplates is the other half of that: a
-// template a later rule replaces must not be expanded at all, or a discarded
-// value still takes a counter and still pays for the substitution.
+// TestApplyDoesNotExpandOverwrittenTemplates: a template a later rule replaces
+// is never expanded, so it takes no counter.
 func TestApplyDoesNotExpandOverwrittenTemplates(t *testing.T) {
 	m, problems := Compile(Set{Rules: []Rule{
 		{Name: "broad", Action: Action{PackageName: "discarded<jd:append>"}},
@@ -281,16 +260,14 @@ func TestApplyDoesNotExpandOverwrittenTemplates(t *testing.T) {
 	if got := m.Apply(Candidate{}).Package; got != "kept" {
 		t.Fatalf("Package = %q, want the later rule's value", got)
 	}
-	// The overwritten template never ran, so its name is still unused: a rule
-	// that starts producing it now gets the unnumbered form.
+	// The overwritten template never ran, so its name is still unused.
 	if got := m.expand("discarded<jd:append>", string(FieldPackage), Candidate{}, nil); got != "discarded" {
 		t.Errorf("the discarded template consumed a counter: %q", got)
 	}
 }
 
-// TestApplyExpandsEveryStringAction ties the expander to the actions, so a
-// field that forgets to run through it is caught here rather than by a user
-// staring at a folder literally called "<jd:packagename>".
+// TestApplyExpandsEveryStringAction catches a string action that skips the
+// expander.
 func TestApplyExpandsEveryStringAction(t *testing.T) {
 	m, problems := Compile(Set{Rules: []Rule{{
 		Name: "tv",
@@ -316,8 +293,6 @@ func TestApplyExpandsEveryStringAction(t *testing.T) {
 	}
 }
 
-// TestCheckExpandsTheReason keeps the rejection message as useful as the rest:
-// naming the link that was dropped is the point of showing it at all.
 func TestCheckExpandsTheReason(t *testing.T) {
 	m, problems := Compile(Set{Rules: []Rule{{
 		Name:   "too big",

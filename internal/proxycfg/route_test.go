@@ -6,10 +6,8 @@ import (
 	"testing"
 )
 
-// TestRouteRefusesSocks4 is the one refusal in this file that is not tidiness.
-// Everything that consumes a proxy URL in this build ends in http.ProxyURL,
-// which has never spoken socks4; handing it one fails every request afterwards,
-// and the failure looks like the hoster rather than like the configuration.
+// TestRouteRefusesSocks4: every proxy URL consumer ends in http.ProxyURL,
+// which does not speak SOCKS4 and would fail every request later.
 func TestRouteRefusesSocks4(t *testing.T) {
 	for _, k := range []Kind{KindSOCKS4, KindSOCKS4A} {
 		e := Entry{ID: "a", Kind: k, Host: "proxy.lan", Port: 1080, Enabled: true}
@@ -26,9 +24,8 @@ func TestRouteRefusesSocks4(t *testing.T) {
 	}
 }
 
-// TestRouteForTheDirectGateway. The gateway is a real choice and has to produce
-// a real route - one that names no proxy, which is how a backend is told to go
-// out over the machine's own connection.
+// TestRouteForTheDirectGateway: the gateway produces a route that names no
+// proxy.
 func TestRouteForTheDirectGateway(t *testing.T) {
 	got, err := Direct().Route()
 	if err != nil {
@@ -42,8 +39,6 @@ func TestRouteForTheDirectGateway(t *testing.T) {
 	}
 }
 
-// TestRouteCarriesTheCredentials, because a proxy that needs a password and is
-// handed none refuses with a 407 that reads as an auth failure at the hoster.
 func TestRouteCarriesTheCredentials(t *testing.T) {
 	e := Entry{ID: "7", Kind: KindSOCKS5, Host: "proxy.lan", Port: 1080, Username: "alice", Password: "s3cret", Enabled: true}
 	got, err := e.Route()
@@ -56,8 +51,6 @@ func TestRouteCarriesTheCredentials(t *testing.T) {
 	}
 }
 
-// TestRouteBracketsAnIPv6Literal. Left unbracketed, the address's own colons
-// read as a port separator and the proxy comes out as a different machine.
 func TestRouteBracketsAnIPv6Literal(t *testing.T) {
 	e := Entry{ID: "1", Kind: KindHTTP, Host: "2001:db8::1", Port: 8080, Enabled: true}
 	got, err := e.Route()
@@ -69,9 +62,8 @@ func TestRouteBracketsAnIPv6Literal(t *testing.T) {
 	}
 }
 
-// TestRouteRefusesWhatCannotBeUsed. An inert row is not a connection, and a row
-// with no host would be handed over as ":0" - which no proxy answers and every
-// failure afterwards blames on the download.
+// TestRouteRefusesWhatCannotBeUsed: an inert row is no connection, and a row
+// without a host would be handed over as ":0".
 func TestRouteRefusesWhatCannotBeUsed(t *testing.T) {
 	cases := []struct {
 		name string
@@ -91,8 +83,6 @@ func TestRouteRefusesWhatCannotBeUsed(t *testing.T) {
 	}
 }
 
-// TestRouteStringKeepsThePasswordOut. This value ends up behind %v in more
-// places than anyone tracks, which is the same reason Entry.String leaves it out.
 func TestRouteStringKeepsThePasswordOut(t *testing.T) {
 	e := Entry{ID: "1", Kind: KindHTTP, Host: "proxy.lan", Port: 8080, Username: "alice", Password: "s3cret", Enabled: true}
 	r, err := e.Route()

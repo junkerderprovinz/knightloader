@@ -26,10 +26,9 @@ func testCandidate() Candidate {
 	}
 }
 
-// TestCompileRejectsUnusableRules is the whole reason Compile exists as a
-// separate step. Every case here is a rule a web form can produce, and every
-// one of them would otherwise either crash on the first link, match nothing
-// with no explanation, or - worst of all in a filter - match everything.
+// TestCompileRejectsUnusableRules: every case is a rule a web form can produce
+// that would otherwise crash, match nothing without explanation, or match
+// everything.
 func TestCompileRejectsUnusableRules(t *testing.T) {
 	long := strings.Repeat("a", maxPattern+1)
 	cases := []struct {
@@ -48,14 +47,11 @@ func TestCompileRejectsUnusableRules(t *testing.T) {
 		{"regex on size", Rule{Conditions: []Condition{{Field: FieldFilesize, Op: OpMatches, Value: "^1"}}}, "cannot compare a file size"},
 		{"size is not a number", Rule{Conditions: []Condition{{Field: FieldFilesize, Op: OpEquals, Value: "700 MB"}}}, "not a size in bytes"},
 		{"negative bound", Rule{Conditions: []Condition{{Field: FieldFilesize, Op: OpBetween, Min: -1, Max: 10}}}, "negative size"},
-		// The numeric spelling of the unfinished form: a size condition with both
-		// boxes empty holds for every link, so a filter built on it takes out the
-		// whole paste. The string operators have always refused this shape.
+		// Both boxes empty would hold for every link.
 		{"range with no bounds", Rule{Conditions: []Condition{{Field: FieldFilesize, Op: OpBetween}}}, "no bounds"},
 		{"bounds swapped", Rule{Conditions: []Condition{{Field: FieldFilesize, Op: OpBetween, Min: 100, Max: 10}}}, "above the upper bound"},
-		// Spelled from the constants, so widening the enum moves the message and
-		// the expectation together. Written out by hand, this pair went red the
-		// day the interface gained JDownloader's full seven priorities.
+		// Spelled from the constants, so changing the range moves the message
+		// and the expectation together.
 		{"priority too high", Rule{Action: Action{Priority: ptr(PriorityMax + 7)}}, fmt.Sprintf("outside %d..%d", PriorityMin, PriorityMax)},
 		{"priority too low", Rule{Action: Action{Priority: ptr(PriorityMin - 7)}}, fmt.Sprintf("outside %d..%d", PriorityMin, PriorityMax)},
 		{"no chunks", Rule{Action: Action{Chunks: ptr(0)}}, "outside 1..16"},
@@ -72,8 +68,7 @@ func TestCompileRejectsUnusableRules(t *testing.T) {
 			if !strings.Contains(problems[0].Message, c.want) {
 				t.Errorf("message = %q, want it to contain %q", problems[0].Message, c.want)
 			}
-			// The rule is dropped whole. A half-applied rule does something the
-			// user never wrote down.
+			// The rule is dropped whole, never half-applied.
 			if !m.Empty() {
 				t.Errorf("the broken rule was kept in the matcher")
 			}
@@ -81,8 +76,8 @@ func TestCompileRejectsUnusableRules(t *testing.T) {
 	}
 }
 
-// TestCompileAcceptsTheEdgesOfEveryBound pins the values that are legal, so a
-// tightened check cannot start refusing rules that were fine yesterday.
+// TestCompileAcceptsTheEdgesOfEveryBound pins the legal edge values, so a
+// tightened check cannot start refusing stored rules.
 func TestCompileAcceptsTheEdgesOfEveryBound(t *testing.T) {
 	cases := []struct {
 		name string
@@ -112,10 +107,8 @@ func TestCompileAcceptsTheEdgesOfEveryBound(t *testing.T) {
 	}
 }
 
-// TestBrokenRuleNeverEatsLinks is the failure the whole package is built
-// around. A filter rule whose regex does not compile must not turn into a rule
-// that rejects nothing quietly, and above all must not take the rest of the
-// filter down with it.
+// TestBrokenRuleNeverEatsLinks: a filter rule whose regex does not compile is
+// reported, and the rest of the filter keeps working.
 func TestBrokenRuleNeverEatsLinks(t *testing.T) {
 	m, problems := Compile(Set{
 		StopAfterMatch: true,
@@ -127,12 +120,11 @@ func TestBrokenRuleNeverEatsLinks(t *testing.T) {
 	if len(problems) != 1 || problems[0].Rule != "broken" {
 		t.Fatalf("problems = %v, want exactly the broken rule reported", problems)
 	}
-	// The link the broken rule was aimed at survives: a kept link can still be
-	// deleted by hand, a silently dropped one cannot be recovered at all.
+	// The link the broken rule was aimed at survives; a kept link can still be
+	// deleted by hand.
 	if v := m.Check(testCandidate()); v.Rejected {
 		t.Errorf("a link was rejected by a rule that failed to compile: %+v", v)
 	}
-	// The healthy rule below it still works.
 	c := testCandidate()
 	c.Filename = "The.Show.S01E02-sample.mkv"
 	v := m.Check(c)
@@ -141,9 +133,8 @@ func TestBrokenRuleNeverEatsLinks(t *testing.T) {
 	}
 }
 
-// TestCompileNeverReturnsNil covers the caller that ignores the problems: it
-// must still get a matcher it can call, not a nil pointer that panics on the
-// first link of the first paste.
+// TestCompileNeverReturnsNil: a caller that ignores the problems still gets a
+// matcher it can call.
 func TestCompileNeverReturnsNil(t *testing.T) {
 	for _, s := range []Set{
 		{},
@@ -166,10 +157,8 @@ func TestCompileNeverReturnsNil(t *testing.T) {
 	}
 }
 
-// TestZeroValueRuleIsEnabled pins the flag's polarity through the JSON, which
-// is how rules actually arrive. A client that omits the field means to add a
-// working rule; the opposite spelling would store it switched off with nothing
-// on screen to explain why it never fires.
+// TestZeroValueRuleIsEnabled pins the flag's polarity through the JSON rules
+// arrive as: a rule posted without the field is live.
 func TestZeroValueRuleIsEnabled(t *testing.T) {
 	var s Set
 	if err := json.Unmarshal([]byte(`{"rules":[{"name":"keep","action":{"packageName":"x"}}]}`), &s); err != nil {
@@ -182,8 +171,7 @@ func TestZeroValueRuleIsEnabled(t *testing.T) {
 	if m.Empty() {
 		t.Fatalf("a rule posted without \"disabled\" was compiled as disabled")
 	}
-	// The round trip must not start writing the default back out, or every
-	// stored rule grows a field the user never set.
+	// The round trip does not write the default back out.
 	b, err := json.Marshal(s)
 	if err != nil {
 		t.Fatalf("Marshal: %v", err)
@@ -195,8 +183,7 @@ func TestZeroValueRuleIsEnabled(t *testing.T) {
 
 func TestDisabledRuleIsSkipped(t *testing.T) {
 	m, problems := Compile(Set{Rules: []Rule{
-		// Disabled and broken: a rule that is switched off is not the user's
-		// problem right now, so it must not fill the interface with errors.
+		// Disabled and broken: a switched-off rule reports no errors.
 		{Name: "off", Disabled: true, Conditions: []Condition{{Field: FieldFilename, Op: OpMatches, Value: "("}}, Action: Action{Reject: true}},
 	}})
 	if len(problems) != 0 {
@@ -215,8 +202,6 @@ func TestConditionMatching(t *testing.T) {
 		want bool
 	}{
 		{"filename contains", Condition{Field: FieldFilename, Op: OpContains, Value: "S01E02"}, true},
-		// The case fold is the point: a user typing lower case into a form does
-		// not mean to let the capitalised spelling through.
 		{"filename contains folds case", Condition{Field: FieldFilename, Op: OpContains, Value: "s01e02"}, true},
 		{"filename contains misses", Condition{Field: FieldFilename, Op: OpContains, Value: "S02"}, false},
 		{"filename contains-not", Condition{Field: FieldFilename, Op: OpContainsNot, Value: "sample"}, true},
@@ -227,8 +212,7 @@ func TestConditionMatching(t *testing.T) {
 
 		{"url contains", Condition{Field: FieldURL, Op: OpContains, Value: "/files/"}, true},
 
-		// The hoster is derived from the URL, and "www." is stripped, the same
-		// way internal/app does it.
+		// The hoster is derived from the URL without "www.", as in internal/app.
 		{"hoster equals without www", Condition{Field: FieldHoster, Op: OpEquals, Value: "example.org"}, true},
 		{"hoster equals with www", Condition{Field: FieldHoster, Op: OpEquals, Value: "www.example.org"}, false},
 
@@ -253,11 +237,9 @@ func TestConditionMatching(t *testing.T) {
 		{"size equals", Condition{Field: FieldFilesize, Op: OpEquals, Value: "1400000000"}, true},
 		{"size equals-not", Condition{Field: FieldFilesize, Op: OpEqualsNot, Value: "0"}, true},
 
-		// The user's flags win on a regex, so a bare pattern stays case
-		// sensitive and (?i) is honoured.
+		// A bare pattern stays case sensitive and (?i) is honoured.
 		{"regex is case sensitive", Condition{Field: FieldFilename, Op: OpMatches, Value: `the\.show`}, false},
 		{"regex honours the flag", Condition{Field: FieldFilename, Op: OpMatches, Value: `(?i)the\.show`}, true},
-		// Unanchored, so the anchors the user writes are the only ones there.
 		{"regex is unanchored", Condition{Field: FieldFilename, Op: OpMatches, Value: `S01E\d\d`}, true},
 		{"regex anchored by the user", Condition{Field: FieldFilename, Op: OpMatches, Value: `^S01E\d\d$`}, false},
 		{"regex end anchor", Condition{Field: FieldFilename, Op: OpMatches, Value: `\.mkv$`}, true},
@@ -289,8 +271,8 @@ func TestRuleConditionsAreAnded(t *testing.T) {
 	}
 }
 
-// TestRuleWithoutConditionsMatchesEverything pins the deliberate catch-all,
-// which is how a default folder or a closing blanket reject is written.
+// TestRuleWithoutConditionsMatchesEverything pins the catch-all, which is how a
+// default folder or a closing blanket reject is written.
 func TestRuleWithoutConditionsMatchesEverything(t *testing.T) {
 	m, problems := Compile(Set{Rules: []Rule{{Name: "catch all", Action: Action{PackageName: "misc"}}}})
 	if len(problems) != 0 {
@@ -303,9 +285,8 @@ func TestRuleWithoutConditionsMatchesEverything(t *testing.T) {
 	}
 }
 
-// TestApplyLaterRuleWinsPerField is the Packagizer's ordering rule: every
-// matching rule contributes, and a rule that says nothing about a field must
-// not clear what an earlier one put there.
+// TestApplyLaterRuleWinsPerField: every matching rule contributes, and a rule
+// that says nothing about a field keeps what an earlier one put there.
 func TestApplyLaterRuleWinsPerField(t *testing.T) {
 	m, problems := Compile(Set{Rules: []Rule{
 		{Name: "first", Action: Action{PackageName: "first pkg", DownloadDir: "/dl/first", Priority: ptr(1)}},
@@ -351,10 +332,8 @@ func TestApplyStopAfterMatch(t *testing.T) {
 	}
 }
 
-// TestApplyDoesNotAliasRuleValues catches the copy that is easy to leave out:
-// handing the rule's own pointer to the caller would let anything writing
-// through the Effect rewrite the compiled rule, and every later link would then
-// be packaged by a rule nobody edited.
+// TestApplyDoesNotAliasRuleValues: writing through the Effect must not change
+// the compiled rule for later links.
 func TestApplyDoesNotAliasRuleValues(t *testing.T) {
 	prio, chunks, extract := 2, 8, true
 	m, problems := Compile(Set{Rules: []Rule{
@@ -378,9 +357,8 @@ func TestApplyDoesNotAliasRuleValues(t *testing.T) {
 	}
 }
 
-// TestCheckAlwaysExplainsARejection is the promise the package makes. However
-// sparse the rule is, a rejected link comes back with something the user can
-// act on.
+// TestCheckAlwaysExplainsARejection: however sparse the rule, a rejected link
+// comes back with a rule name and a reason.
 func TestCheckAlwaysExplainsARejection(t *testing.T) {
 	cases := []struct {
 		name       string
@@ -401,8 +379,7 @@ func TestCheckAlwaysExplainsARejection(t *testing.T) {
 			wantReason: `blocked by filter rule "no samples"`,
 		},
 		{
-			// An unnamed rule is still findable by its position, which is the
-			// only handle the user has on it.
+			// An unnamed rule is named by its position.
 			name:       "no name given",
 			rule:       Rule{Action: Action{Reject: true}},
 			wantRule:   "rule 1",
@@ -435,9 +412,8 @@ func TestCheckAlwaysExplainsARejection(t *testing.T) {
 	}
 }
 
-// TestCheckOrdering pins what the stop flag buys a filter: with it on, an
-// accept placed above a broad reject actually protects the link; with it off,
-// the reject still wins.
+// TestCheckOrdering: with the stop flag on, an accept above a broad reject
+// protects the link; with it off, the reject wins.
 func TestCheckOrdering(t *testing.T) {
 	rules := []Rule{
 		{Name: "keep mkv", Conditions: []Condition{{Field: FieldFiletype, Op: OpEquals, Value: "mkv"}}},
@@ -480,8 +456,6 @@ func TestCheckAcceptsWhatNoRuleMatched(t *testing.T) {
 	}
 }
 
-// TestProblemNamesTheRule keeps the error text usable: a message with no rule
-// and no position in it is not something anyone can act on.
 func TestProblemNamesTheRule(t *testing.T) {
 	_, problems := Compile(Set{Rules: []Rule{
 		{Name: "ok"},
@@ -499,9 +473,8 @@ func TestProblemNamesTheRule(t *testing.T) {
 	}
 }
 
-// TestCandidateDerivesWhatTheCallerOmits means app.go can hand over the two
-// fields it actually has and still write rules against the hoster and the
-// extension.
+// TestCandidateDerivesWhatTheCallerOmits: a caller with only a URL and a name
+// can still be matched on hoster and extension.
 func TestCandidateDerivesWhatTheCallerOmits(t *testing.T) {
 	cases := []struct {
 		name             string
@@ -511,8 +484,7 @@ func TestCandidateDerivesWhatTheCallerOmits(t *testing.T) {
 		{"from url and name", Candidate{URL: "https://WWW.Example.ORG/a/b.mkv", Filename: "b.mkv"}, "example.org", "mkv"},
 		{"explicit values win", Candidate{URL: "https://example.org/a", Filename: "b.mkv", Hoster: "cdn.example.org", Filetype: "iso"}, "cdn.example.org", "iso"},
 		{"no extension", Candidate{URL: "https://example.org/a", Filename: "README"}, "example.org", ""},
-		// A magnet link has no host at all; the raw string is the only honest
-		// answer and must not come back empty.
+		// A magnet link has no host, so the raw string is used.
 		{"magnet keeps the raw link", Candidate{URL: "magnet:?xt=urn:btih:abc"}, "magnet:?xt=urn:btih:abc", ""},
 	}
 	for _, c := range cases {
@@ -528,12 +500,9 @@ func TestCandidateDerivesWhatTheCallerOmits(t *testing.T) {
 	}
 }
 
-// TestPatternIsCompiledOnce pins the promise Compile exists to keep. A paste is
-// several thousand links and every one of them is run past every condition, so a
-// regexp rebuilt inside the match loop is the difference between a paste that
-// lands and one that hangs the server. Allocation count is the only handle on it
-// from outside: regexp.Compile allocates dozens of objects, matching an already
-// compiled pattern allocates none.
+// TestPatternIsCompiledOnce: a regexp rebuilt per link would hang the server on
+// a large paste. Allocations show it from outside, since regexp.Compile
+// allocates dozens of objects and matching a compiled pattern none.
 func TestPatternIsCompiledOnce(t *testing.T) {
 	m, problems := Compile(Set{Rules: []Rule{{
 		Name:       "big pattern",
@@ -543,8 +512,7 @@ func TestPatternIsCompiledOnce(t *testing.T) {
 	if len(problems) != 0 {
 		t.Fatalf("Compile: %v", problems)
 	}
-	// A candidate that does not match, so the measurement is the matching work
-	// alone and not the rejection message built afterwards.
+	// A candidate that does not match, so no rejection message is built.
 	c := Candidate{Filename: "unrelated.file.txt", Hoster: "example.org", Filetype: "txt"}
 	if v := m.Check(c); v.Rejected {
 		t.Fatalf("the probe candidate matched: %+v", v)
@@ -554,10 +522,9 @@ func TestPatternIsCompiledOnce(t *testing.T) {
 	}
 }
 
-// TestCompiledRuleDoesNotFollowTheCallersSet: Compile is the moment the caller
-// hands its data over. The optional action values arrive as pointers, and while
-// the matcher kept them, editing the stored settings in place would re-aim rules
-// that are already packaging links with nothing on screen to show for it.
+// TestCompiledRuleDoesNotFollowTheCallersSet: the optional action values arrive
+// as pointers, and editing the settings in place must not change a compiled
+// rule.
 func TestCompiledRuleDoesNotFollowTheCallersSet(t *testing.T) {
 	prio, chunks, extract := 2, 8, true
 	m, problems := Compile(Set{Rules: []Rule{
@@ -575,11 +542,9 @@ func TestCompiledRuleDoesNotFollowTheCallersSet(t *testing.T) {
 	}
 }
 
-// TestMatcherIsSafeForConcurrentUse backs the claim in Matcher's documentation.
-// Links are staged from several goroutines against the one matcher a rule set
-// compiles to, and the append counter is shared state behind all of them. The
-// runtime throws on a concurrent map write whether or not the race detector is
-// on, so this catches a dropped lock even in a build without cgo.
+// TestMatcherIsSafeForConcurrentUse exercises the shared append counter from
+// several goroutines. The runtime throws on a concurrent map write even
+// without the race detector, so this catches a dropped lock without cgo.
 func TestMatcherIsSafeForConcurrentUse(t *testing.T) {
 	m, problems := Compile(Set{Rules: []Rule{
 		{Name: "pack", Conditions: []Condition{{Field: FieldFiletype, Op: OpEquals, Value: "mkv"}}, Action: Action{PackageName: "<jd:hoster><jd:append>"}},
@@ -611,10 +576,8 @@ func TestMatcherIsSafeForConcurrentUse(t *testing.T) {
 	wg.Wait()
 }
 
-// TestApplyFilenameIsOneSegment: the folder is the only field allowed to spell
-// out levels. A rename that carries a separator is not a name, it is a way out
-// of the folder the caller picked, and the caller has no reason to expect one
-// back from a field called Filename.
+// TestApplyFilenameIsOneSegment: a rename carrying a separator would lead out
+// of the folder the caller picked.
 func TestApplyFilenameIsOneSegment(t *testing.T) {
 	m, problems := Compile(Set{Rules: []Rule{
 		{Name: "rename", Action: Action{Filename: `../../etc/<jd:orgfilename>`}},
@@ -649,12 +612,8 @@ func TestUnterminatedPlaceholder(t *testing.T) {
 	}
 }
 
-// TestARuleCanNameWhereTheUnpackedFilesGo is the Packagizer's third folder, and
-// the test exists to hold the three apart. DownloadDir is where the archive is
-// fetched to, ExtractTo (a setting, not a rule) is where the unpacking writes,
-// and this is where the finished content is put afterwards. A rule that set the
-// wrong one of the three would look identical in the form and land the files
-// two folders away.
+// TestARuleCanNameWhereTheUnpackedFilesGo keeps ExtractDir apart from
+// DownloadDir, where the archive is fetched to.
 func TestARuleCanNameWhereTheUnpackedFilesGo(t *testing.T) {
 	m, problems := Compile(Set{Rules: []Rule{{
 		Name: "series",
@@ -678,11 +637,8 @@ func TestARuleCanNameWhereTheUnpackedFilesGo(t *testing.T) {
 	}
 }
 
-// TestTheUnpackFolderIsValidatedLikeEveryOtherTemplate. A capture group that is
-// not there survives into the folder name and every release in the set lands
-// under a literal "<jd:match:hoster:1>" - which is the exact failure
-// matchTagProblems exists to catch, and a field left out of templates() is a
-// field it silently stops catching it for.
+// TestTheUnpackFolderIsValidatedLikeEveryOtherTemplate: a field left out of
+// templates() would let a missing capture group through into the folder name.
 func TestTheUnpackFolderIsValidatedLikeEveryOtherTemplate(t *testing.T) {
 	_, problems := Compile(Set{Rules: []Rule{{
 		Name:   "broken",
@@ -704,9 +660,6 @@ func TestTheUnpackFolderIsValidatedLikeEveryOtherTemplate(t *testing.T) {
 	}
 }
 
-// TestAnEmptyUnpackFolderLeavesAnEarlierOneStanding. Every string on an action
-// means "no opinion" when empty and never "clear it", or a later rule that only
-// sets the priority would wipe the folder an earlier rule chose.
 func TestAnEmptyUnpackFolderLeavesAnEarlierOneStanding(t *testing.T) {
 	prio := 2
 	m, problems := Compile(Set{Rules: []Rule{

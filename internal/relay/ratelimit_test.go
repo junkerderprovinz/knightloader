@@ -2,6 +2,7 @@ package relay
 
 import (
 	"net/http"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -16,8 +17,7 @@ func testLimiter() (*limiter, func(time.Duration)) {
 	return l, func(d time.Duration) { now = now.Add(d) }
 }
 
-// The limit must never fire on the shape a real person produces: a mistyped
-// phrase, corrected, and on with the day.
+// A person who mistypes a phrase and corrects it is never blocked.
 func TestLimiterLetsOccasionalFailuresThrough(t *testing.T) {
 	l, _ := testLimiter()
 	for i := 0; i < failsBeforeBlock-1; i++ {
@@ -38,8 +38,6 @@ func TestLimiterBlocksAfterThreshold(t *testing.T) {
 	}
 }
 
-// One address failing must not cost anybody else anything - the limiter is
-// meant to be surgical, not a switch that takes the relay off the air.
 func TestLimiterIsPerAddress(t *testing.T) {
 	l, _ := testLimiter()
 	for i := 0; i < failsBeforeBlock*3; i++ {
@@ -67,8 +65,8 @@ func TestLimiterBlockExpires(t *testing.T) {
 	}
 }
 
-// Each further failure while already over the threshold has to cost more
-// than the last, or a caller simply waits out a fixed penalty forever.
+// Each further failure over the threshold costs more than the last, or a
+// caller could wait out a fixed penalty forever.
 func TestLimiterBackoffGrows(t *testing.T) {
 	l, advance := testLimiter()
 	for i := 0; i < failsBeforeBlock; i++ {
@@ -96,9 +94,8 @@ func TestLimiterBackoffIsCapped(t *testing.T) {
 	}
 }
 
-// A handshake that worked proves the caller is real, so what came before it
-// must not follow them around - otherwise an instance that reconnects a few
-// times during a key change ends up locked out afterwards.
+// Otherwise an instance that reconnects a few times during a key change ends
+// up locked out afterwards.
 func TestLimiterSuccessClearsTheRecord(t *testing.T) {
 	l, _ := testLimiter()
 	for i := 0; i < failsBeforeBlock-1; i++ {
@@ -114,8 +111,7 @@ func TestLimiterSuccessClearsTheRecord(t *testing.T) {
 	}
 }
 
-// Failures spread far enough apart are not an attack, and must not
-// accumulate into a block one-per-day.
+// Failures spread far apart do not accumulate into a block.
 func TestLimiterFailuresAgeOut(t *testing.T) {
 	l, advance := testLimiter()
 	for i := 0; i < failsBeforeBlock*2; i++ {
@@ -127,11 +123,10 @@ func TestLimiterFailuresAgeOut(t *testing.T) {
 	}
 }
 
-// The limiter must not become the resource exhaustion it exists to prevent.
 func TestLimiterBoundsItsOwnMemory(t *testing.T) {
 	l, advance := testLimiter()
 	for i := 0; i < maxTrackedAddrs+500; i++ {
-		l.fail(strings.Repeat("a", 3) + string(rune('0'+i%10)) + "." + string(rune('a'+i%26)) + itoa(i))
+		l.fail(strings.Repeat("a", 3) + string(rune('0'+i%10)) + "." + string(rune('a'+i%26)) + strconv.Itoa(i))
 		advance(time.Millisecond)
 	}
 	if got := len(l.addrs); got > maxTrackedAddrs {
@@ -139,21 +134,8 @@ func TestLimiterBoundsItsOwnMemory(t *testing.T) {
 	}
 }
 
-func itoa(i int) string {
-	if i == 0 {
-		return "0"
-	}
-	var b []byte
-	for i > 0 {
-		b = append([]byte{byte('0' + i%10)}, b...)
-		i /= 10
-	}
-	return string(b)
-}
-
-// Buckets are per IP, not per connection: a caller gets a fresh source port
-// every time, so counting the pair would make every attempt look like a
-// first one and the limiter would never fire at all.
+// Buckets are per IP, not per connection: every connection gets a fresh
+// source port, so counting the pair would never block anyone.
 func TestClientAddrDropsThePort(t *testing.T) {
 	for _, c := range []struct{ in, want string }{
 		{"198.51.100.7:54321", "198.51.100.7"},
@@ -168,10 +150,8 @@ func TestClientAddrDropsThePort(t *testing.T) {
 	}
 }
 
-// An address that fails once and never comes back - the usual scanner - is
-// forgotten once its failure has aged out, not kept until the process ends.
-// The privacy policy promises that bound, so it is tested here rather than
-// read off the constants.
+// An address that fails once and never comes back, the usual scanner, is
+// forgotten once its failure has aged out. The privacy policy promises this.
 func TestLimiterForgetsAnAddressThatNeverReturns(t *testing.T) {
 	l, advance := testLimiter()
 	l.fail("198.51.100.7")
@@ -182,8 +162,6 @@ func TestLimiterForgetsAnAddressThatNeverReturns(t *testing.T) {
 	}
 }
 
-// A record is not dropped while its address is still being refused: sweeping
-// it early would lift the block.
 func TestLimiterKeepsABlockedAddressUntilTheBlockEnds(t *testing.T) {
 	l, advance := testLimiter()
 	for i := 0; i < failsBeforeBlock+16; i++ {
@@ -196,14 +174,14 @@ func TestLimiterKeepsABlockedAddressUntilTheBlockEnds(t *testing.T) {
 	}
 }
 
-// policyRetention is the figure extension/PRIVACY.md and the store data
-// declaration give for how long a failed address is kept. Changing a constant
-// above without changing those texts has to fail here.
+// policyRetention is how long extension/PRIVACY.md and the store data
+// declaration say a failed address is kept. Changing the limiter's constants
+// without changing those texts has to fail here.
 const policyRetention = 61 * time.Minute
 
-// Whatever the history, a record has run out policyRetention - sweepEvery after
-// the address's last failed attempt, so the next sweep (at most sweepEvery
-// later) deletes it within the published figure.
+// Whatever the history, a record has run out policyRetention minus sweepEvery
+// after the last failure, so the next sweep deletes it within the published
+// figure.
 func TestLimiterRetentionIsBoundedAfterTheLastFailure(t *testing.T) {
 	for _, fails := range []int{1, failsBeforeBlock - 1, failsBeforeBlock, failsBeforeBlock + 3, failsBeforeBlock + 40} {
 		l, advance := testLimiter()
@@ -218,12 +196,10 @@ func TestLimiterRetentionIsBoundedAfterTheLastFailure(t *testing.T) {
 	}
 }
 
-// A single caller never fails while it is blocked: ServeHTTP answers 429 before
-// the handshake, so fail() only runs once a block is over. The backoff still
-// has to keep growing on that path, or a patient caller cycles through the
-// short blocks forever. The relay's sweep timer can also fire between the end
-// of a block and the next try, so it runs on every step here and must not wipe
-// the record either.
+// A single caller never fails while blocked, because ServeHTTP answers 429
+// before the handshake, so fail only runs once a block is over. The backoff
+// still has to grow on that path, and the sweep, run on every step here, must
+// not wipe the record in between.
 func TestLimiterBackoffGrowsForACallerThatWaitsOutEachBlock(t *testing.T) {
 	for _, every := range []time.Duration{time.Second, 37 * time.Second} {
 		l, advance := testLimiter()

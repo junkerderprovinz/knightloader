@@ -1,10 +1,8 @@
 package captcha
 
-// JDSource against a fake jdCaptchaAPI - never a real one, matching
-// internal/hosterauth/reconcile_test.go's own fakeJD pattern: the fake
-// records what it was asked and answers exactly what the test seeds it with,
-// so a test asserts on JDSource's own decisions rather than on a real
-// sidecar's mood that day.
+// JDSource against a fake jdCaptchaAPI that records what it was asked and
+// answers what the test seeded, so the assertions are about JDSource's
+// decisions rather than a live sidecar.
 
 import (
 	"context"
@@ -79,10 +77,9 @@ func (f *fakeJDCaptcha) skip(_ context.Context, id int64, scope jdSkipRequest) e
 	return nil
 }
 
-// notAvailable builds the exact error jdClient.call produces for JD's own
-// {"type":"NOT_AVAILABLE"} envelope (see jdclient_test.go's
-// TestJDClientSolveDetectsNotAvailable, which pins the real one on the
-// wire) - what a fake hands back to exercise the same path without a server.
+// notAvailable builds the error jdClient.call produces for JD's
+// {"type":"NOT_AVAILABLE"} envelope, so a fake can exercise that path without a
+// server. jdclient_test.go pins the real one against a wire response.
 func notAvailable(path string) error {
 	return &jdAPIError{path: path, status: 404, typ: "NOT_AVAILABLE"}
 }
@@ -95,16 +92,14 @@ func newTestSource(t *testing.T, fake jdCaptchaAPI) *JDSource {
 func newTestSourceWithResolver(t *testing.T, fake jdCaptchaAPI, resolveTask func(int64) (string, bool)) *JDSource {
 	t.Helper()
 	return &JDSource{
-		jdBase:      func() string { return "http://127.0.0.1:0" }, // never dialled: newClient is overridden below
+		jdBase:      func() string { return "http://127.0.0.1:0" }, // never dialled, newClient is overridden
 		newClient:   func(string) jdCaptchaAPI { return fake },
 		resolveTask: resolveTask,
 	}
 }
 
-// ---- List: the normal round-trip -----------------------------------------
-
-// TestJDSourceListRoundTrip is the normal path: one image challenge, fully
-// populated, task id resolved from JD's own link id.
+// One image challenge, fully populated, with the task id resolved from JD's
+// link id.
 func TestJDSourceListRoundTrip(t *testing.T) {
 	fake := &fakeJDCaptcha{
 		jobs: []jdCaptchaJob{{
@@ -142,7 +137,7 @@ func TestJDSourceListRoundTrip(t *testing.T) {
 		t.Errorf("Host = %q, want %q", ch.Host, "rapidgator.net")
 	}
 	if ch.TaskID != "task-42" {
-		t.Errorf("TaskID = %q, want %q - resolveTask(555) should have fired", ch.TaskID, "task-42")
+		t.Errorf("TaskID = %q, want %q from resolveTask(555)", ch.TaskID, "task-42")
 	}
 	if ch.Kind != KindImage {
 		t.Errorf("Kind = %q, want %q", ch.Kind, KindImage)
@@ -163,8 +158,7 @@ func TestJDSourceListRoundTrip(t *testing.T) {
 	}
 }
 
-// TestJDSourceListEmptyIsNotAnError pins Source.List's own contract: nothing
-// pending is a nil error and an empty (not nil-vs-empty-ambiguous) slice.
+// Nothing pending is an empty slice and a nil error.
 func TestJDSourceListEmptyIsNotAnError(t *testing.T) {
 	src := newTestSource(t, &fakeJDCaptcha{})
 	got, err := src.List(context.Background())
@@ -176,10 +170,8 @@ func TestJDSourceListEmptyIsNotAnError(t *testing.T) {
 	}
 }
 
-// TestJDSourceListClassifiesEveryVerifiedChallengeFamily is classify's own
-// table, exercised through List so a mistake in either direction (a real
-// family classified as unsupported, or an unverified name given a kind it
-// was never confirmed to have) shows up the same way a consumer would see it.
+// classify's table exercised through List, so a family classified wrongly in
+// either direction shows up the way a consumer would see it.
 func TestJDSourceListClassifiesEveryVerifiedChallengeFamily(t *testing.T) {
 	cases := []struct {
 		challengeType string
@@ -214,9 +206,7 @@ func TestJDSourceListClassifiesEveryVerifiedChallengeFamily(t *testing.T) {
 	}
 }
 
-// TestJDSourceListPreservesUnsupportedVendorName is build-plan.md section 9
-// package 16's own requirement, pinned directly: a challenge this app cannot
-// render must still say which one it is, not just "unsupported".
+// A challenge this app cannot render still says which one it is.
 func TestJDSourceListPreservesUnsupportedVendorName(t *testing.T) {
 	fake := &fakeJDCaptcha{
 		jobs: []jdCaptchaJob{{
@@ -239,15 +229,13 @@ func TestJDSourceListPreservesUnsupportedVendorName(t *testing.T) {
 		t.Fatalf("Payload = %T, want *UnsupportedPayload", got[0].Payload)
 	}
 	if p.Vendor != "AccountLoginOAuthChallenge" {
-		t.Errorf("Vendor = %q, want the real JD challenge class name, not a generic label", p.Vendor)
+		t.Errorf("Vendor = %q, want the JD challenge class name", p.Vendor)
 	}
 }
 
-// TestJDSourceListWidgetPayload pins that a widget challenge's payload
-// actually carries the sitekey data JDSource.build fetched with the
-// rawtoken format, not the image fallback the default call would have
-// returned - see jdsource.go's widgetToken and this file's own fake, which
-// only ever returns rawtoken-shaped data from widgetToken, never from image.
+// A widget challenge's payload carries the sitekey data build fetched with the
+// rawtoken format, not the image fallback the default call returns. The fake
+// only ever answers rawtoken-shaped data from widgetToken.
 func TestJDSourceListWidgetPayload(t *testing.T) {
 	fake := &fakeJDCaptcha{
 		jobs: []jdCaptchaJob{{ID: 3, Hoster: "host.example", ChallengeType: "RecaptchaV2Challenge", Type: "RecaptchaV2Challenge"}},
@@ -270,10 +258,8 @@ func TestJDSourceListWidgetPayload(t *testing.T) {
 	}
 }
 
-// TestJDSourceListNoTimeoutLeavesExpiresAtZero pins that a non-positive
-// Remaining (JD's own "no timeout configured") is left as the zero time
-// rather than turned into a fabricated deadline - see jdCaptchaJob's doc
-// comment.
+// A non-positive Remaining, JD's "no timeout configured", leaves ExpiresAt at
+// the zero time rather than an invented deadline.
 func TestJDSourceListNoTimeoutLeavesExpiresAtZero(t *testing.T) {
 	fake := &fakeJDCaptcha{
 		jobs:   []jdCaptchaJob{{ID: 1, ChallengeType: "BasicCaptchaChallenge", Remaining: -1}},
@@ -288,11 +274,8 @@ func TestJDSourceListNoTimeoutLeavesExpiresAtZero(t *testing.T) {
 	}
 }
 
-// TestJDSourceListFailsWholeCallRatherThanDroppingAChallenge pins the
-// documented choice in JDSource.List: a challenge whose payload fetch fails
-// must not simply be missing from an otherwise-200-looking result, because a
-// relay that silently drops a challenge is worse than one that visibly
-// fails and gets retried next poll tick (build-plan.md section 9 package 16).
+// A challenge whose payload fetch fails would otherwise be missing from a
+// result that looks complete, so the whole call fails and the next poll retries.
 func TestJDSourceListFailsWholeCallRatherThanDroppingAChallenge(t *testing.T) {
 	fake := &fakeJDCaptcha{
 		jobs: []jdCaptchaJob{
@@ -308,9 +291,8 @@ func TestJDSourceListFailsWholeCallRatherThanDroppingAChallenge(t *testing.T) {
 	}
 }
 
-// TestJDSourceListWithoutResolverLeavesTaskIDEmpty pins NewJDSource's
-// documented contract: a nil resolveTask is valid, and every Challenge it
-// produces has an empty TaskID rather than a guessed one.
+// A nil resolveTask is valid, and every Challenge then has an empty TaskID
+// rather than a guessed one.
 func TestJDSourceListWithoutResolverLeavesTaskIDEmpty(t *testing.T) {
 	fake := &fakeJDCaptcha{
 		jobs:   []jdCaptchaJob{{ID: 1, Link: 555, ChallengeType: "BasicCaptchaChallenge"}},
@@ -325,15 +307,12 @@ func TestJDSourceListWithoutResolverLeavesTaskIDEmpty(t *testing.T) {
 	}
 }
 
-// ---- Answer: stillValid is the direct signal, not a guess -----------------
-
-// TestJDSourceAnswerStillValidFalseWhenGone is one of this package's three
-// required tests: solve reporting stillValid=false for an id JD says is gone.
+// An id JD reports as gone comes back as stillValid=false, not as an error.
 func TestJDSourceAnswerStillValidFalseWhenGone(t *testing.T) {
 	fake := &fakeJDCaptcha{solveErr: map[int64]error{7: notAvailable("/captcha/solve")}}
 	stillValid, err := newTestSource(t, fake).Answer(context.Background(), "7", "too-late")
 	if err != nil {
-		t.Fatalf("Answer: %v, want nil error - a gone id is not an application failure", err)
+		t.Fatalf("Answer: %v, want a nil error for a gone id", err)
 	}
 	if stillValid {
 		t.Error("stillValid = true, want false for an id JD reports as gone")
@@ -354,9 +333,8 @@ func TestJDSourceAnswerStillValidTrueOnSuccess(t *testing.T) {
 	}
 }
 
-// TestJDSourceAnswerPropagatesRealErrors pins that a failure other than
-// "gone" is a real error, not folded into stillValid=false - a caller must be
-// able to tell "this expired" apart from "the network broke".
+// A failure other than "gone" stays an error, so a caller can tell an expired
+// challenge from a broken connection.
 func TestJDSourceAnswerPropagatesRealErrors(t *testing.T) {
 	fake := &fakeJDCaptcha{solveErr: map[int64]error{7: errors.New("jd: connection reset")}}
 	_, err := newTestSource(t, fake).Answer(context.Background(), "7", "abcd")
@@ -364,7 +342,7 @@ func TestJDSourceAnswerPropagatesRealErrors(t *testing.T) {
 		t.Fatal("Answer with a real transport failure returned no error")
 	}
 	if isNotAvailable(err) {
-		t.Error("isNotAvailable(err) = true, want false - this was never JD's NOT_AVAILABLE envelope")
+		t.Error("isNotAvailable(err) = true for an error that was not JD's envelope")
 	}
 }
 
@@ -374,8 +352,6 @@ func TestJDSourceAnswerRejectsANonJDID(t *testing.T) {
 		t.Fatal("Answer with a non-numeric id returned no error")
 	}
 }
-
-// ---- Abort: gone-already is success, not an error -------------------------
 
 func TestJDSourceAbortSendsTheMappedScope(t *testing.T) {
 	fake := &fakeJDCaptcha{}
@@ -400,9 +376,8 @@ func TestJDSourceAbortSendsTheMappedScope(t *testing.T) {
 	}
 }
 
-// TestJDSourceAbortIsIdempotentOnGone pins Source.Abort's documented
-// contract: a challenge that is already gone must not surface as an error -
-// the end state Abort exists to reach already holds.
+// A challenge that is already gone is the state Abort exists to reach, so it is
+// not an error.
 func TestJDSourceAbortIsIdempotentOnGone(t *testing.T) {
 	fake := &fakeJDCaptcha{skipErr: map[int64]error{7: notAvailable("/captcha/skip")}}
 	err := newTestSource(t, fake).Abort(context.Background(), "7", AbortSkipOnce)
@@ -418,8 +393,6 @@ func TestJDSourceAbortPropagatesRealErrors(t *testing.T) {
 		t.Fatal("Abort with a real transport failure returned no error")
 	}
 }
-
-// ---- Not configured: quiet, not a special case callers must detect first -
 
 func TestJDSourceMethodsReportNotConfigured(t *testing.T) {
 	src := &JDSource{

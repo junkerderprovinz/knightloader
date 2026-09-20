@@ -4,18 +4,17 @@ package extract
 // encrypted zip entry has to prove before any of its bytes reach the disk. The
 // seam ends at an io.ReadCloser over correct plaintext. Job scheduling,
 // progress, retries and cleaning up after a failed run belong to the worker
-// layer above it and are deliberately absent here.
+// layer above it.
 //
 // Encrypted zip is implemented rather than imported. The two forks that offer
-// it (alexmullins/zip, last touched 2018; yeka/zip, last touched 2023, neither
-// ever tagged a release) are hard copies of a pre-Go-1.20 archive/zip, so
-// adopting one means running a frozen central-directory parser on untrusted
-// input and losing every stdlib fix since - including CVE-2024-24789, where two
-// implementations read different entries out of the same file. They also lose
-// the prepended-data handling Go 1.21 added, which is what lets a
-// self-extracting zip open at all. What is actually needed is small: the WinZip
-// AE spec and PKWARE's original cipher on top of the stdlib reader, which keeps
-// getting fixed.
+// it (alexmullins/zip and yeka/zip, neither tagged a release) are hard copies
+// of a pre-Go-1.20 archive/zip, so adopting one means running a frozen
+// central-directory parser on untrusted input and losing every stdlib fix
+// since, CVE-2024-24789 among them, where two implementations read different
+// entries out of the same file. They also lose the prepended-data handling Go
+// 1.21 added, which is what lets a self-extracting zip open. What is needed is
+// small: the WinZip AE spec and PKWARE's original cipher on top of the stdlib
+// reader.
 
 import (
 	"archive/zip"
@@ -443,10 +442,10 @@ func openAESEntry(f *zip.File, info *aesInfo, password string) (io.ReadCloser, e
 		return nil, err
 	}
 	plain := cipher.StreamReader{S: newWinZipCTR(block), R: io.LimitReader(body, lay.dataLen)}
-	// AE-2 zeroes the CRC field deliberately, so there is nothing to compare
-	// against; the authentication above is what it traded the CRC for. On AE-1
-	// the CRC is real, and a mismatch after a passing HMAC means the archive
-	// disagrees with itself rather than that the password was wrong.
+	// AE-2 zeroes the CRC field, having traded it for the authentication above,
+	// so there is nothing to compare against. On AE-1 the CRC is real, and a
+	// mismatch after a passing HMAC means the archive disagrees with itself
+	// rather than that the password was wrong.
 	fail := fmt.Errorf("extract: %s: decrypted contents fail their CRC32 even though the archive's own authentication "+
 		"passed, so the archive is internally inconsistent", f.Name)
 	return decompressed(f, info.method, plain, !info.ae2, fail)
@@ -493,10 +492,10 @@ func (c *winZipCTR) XORKeyStream(dst, src []byte) {
 }
 
 // zipCrypto is PKWARE's original stream cipher, the one every tool still calls
-// ZipCrypto. It is broken - a known-plaintext attack recovers the keys from a
-// dozen known bytes - but it is what "legacy encryption" in WinRAR and 7-Zip
-// still produces and what most encrypted zips in circulation use, so reading it
-// is not optional. Nothing here ever writes one.
+// ZipCrypto. A known-plaintext attack recovers the keys from a dozen known
+// bytes, but it is what "legacy encryption" in WinRAR and 7-Zip produces and
+// what most encrypted zips in circulation use, so reading it is not optional.
+// Nothing here ever writes one.
 type zipCrypto struct{ k0, k1, k2 uint32 }
 
 func newZipCrypto(password string) zipCrypto {
@@ -564,9 +563,9 @@ func zipCryptoCheck(f *zip.File) byte {
 }
 
 // zipCryptoUnlock consumes the 12-byte header and reports whether the password
-// reproduced the check byte. One byte is a weak test - one wrong password in
-// 256 passes it - which is why the CRC of the decompressed contents is checked
-// as well, and why the pre-flight tries several entries.
+// reproduced the check byte. One byte is a weak test, since one wrong password
+// in 256 passes it, which is why the CRC of the decompressed contents is
+// checked as well and why the pre-flight tries several entries.
 func zipCryptoUnlock(f *zip.File, password string) (io.Reader, error) {
 	if password == "" {
 		return nil, ErrPasswordRequired
@@ -667,8 +666,8 @@ const passwordProbeEntries = 8
 //
 // An archive whose entries carry different passwords fails here even though a
 // per-entry reader could unpack part of it. That shape is vanishingly rare, and
-// the alternative - finding out entry by entry - is what leaves a directory of
-// half-written files behind every wrong password in the list.
+// finding out entry by entry is what leaves a directory of half-written files
+// behind every wrong password in the list.
 func verifyZipPassword(zr *zip.Reader, password string) error {
 	type candidate struct {
 		f    *zip.File

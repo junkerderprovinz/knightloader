@@ -12,44 +12,34 @@ import (
 
 const openTag = "<jd:"
 
-// packagizerVar matches the placeholders internal/pathvars does not know about.
-// Scanning with a pattern rather than a hand-written parser is deliberate: the
-// only tags handled here are the ones listed, and everything else stays exactly
-// as pathvars left it. The tag is matched case-insensitively for the same
-// reason pathvars matches it that way — a template may have been hand-edited or
-// carried over from a JDownloader config with different capitalisation.
-//
-// The longer alternative is listed before the shorter one it starts with, so
-// the pattern reads the way it behaves.
+// packagizerVar matches the placeholders internal/pathvars does not know about;
+// everything else stays as pathvars left it. It is case-insensitive like
+// pathvars, since templates are hand-edited or copied from JDownloader. The
+// longer alternative comes before the shorter one it starts with.
 var packagizerVar = regexp.MustCompile(`(?i)<jd:(orgfilenamewithoutext|orgfilename|orgfiletype|append|source:[0-9]{1,3}|match:[a-z]+:[0-9]{1,2})>`)
 
-// matchTag is the capture-group placeholder on its own, with the field and the
-// group number captured, so Compile can check a rule's action against its
-// conditions before the rule is ever run. It has to accept exactly what
-// packagizerVar accepts, or a tag would validate here and not resolve there.
+// matchTag is the capture-group placeholder with the field and group number
+// captured, so Compile can check an action against its conditions. It has to
+// accept exactly what packagizerVar accepts.
 var matchTag = regexp.MustCompile(`(?i)<jd:match:([a-z]+):([0-9]{1,2})>`)
 
-// appendMark holds the place of <jd:append> until the rest of the value is
-// known: whether a counter is needed depends on the finished string, so the
-// suffix cannot be decided while it is still being built. A NUL is used because
-// it cannot survive sanitizeSegment, so no expanded value can ever contain one.
+// appendMark holds the place of <jd:append> until the finished value is known,
+// since the suffix depends on it. A NUL cannot survive sanitizeSegment, so no
+// expanded value contains one otherwise.
 const appendMark = "\x00"
 
-// expand resolves one template. target names the field being written and is
-// only used to key the <jd:append> counter, so a package and a file name that
-// happen to produce the same text do not count as a collision with each other.
+// expand resolves one template. target names the field being written and keys
+// the <jd:append> counter, so a package and a file name with the same text do
+// not count against each other.
 func (m *Matcher) expand(template, target string, c Candidate, g groups) string {
 	if !strings.Contains(template, "<") {
 		return template
 	}
-	// A NUL arriving in the template itself would look like a second append
-	// slot and take a counter that belongs to nothing.
+	// A NUL in the template itself would look like a second append slot.
 	template = strings.ReplaceAll(template, appendMark, "")
 
-	// pathvars runs first. It leaves the placeholders it does not know
-	// untouched, which is exactly the handover this needs — and doing it in
-	// this order means a value pathvars substitutes can never be re-read as a
-	// placeholder by the pass below.
+	// pathvars runs first and leaves unknown placeholders alone, and a value it
+	// substitutes is never re-read as a placeholder by the pass below.
 	out := pathvars.Expand(template, pathvars.Vars{
 		Package: c.Package,
 		Host:    c.Hoster,
@@ -78,10 +68,8 @@ func packagizerValue(raw string, c Candidate, g groups) string {
 	case "orgfilenamewithoutext":
 		return segment(strings.TrimSuffix(c.Filename, path.Ext(c.Filename)), "file")
 	case "orgfiletype":
-		// The only placeholder with no fallback word. A file without an
-		// extension is perfectly normal, and a template like
-		// "<jd:orgfilenamewithoutext>.<jd:orgfiletype>" turning into
-		// "movie.type" would be a lie about what the file is.
+		// No fallback word: a file without an extension is normal, and
+		// "movie.type" would misstate what the file is.
 		return sanitizeSegment(c.Filetype)
 	}
 	if n, ok := strings.CutPrefix(key, "source:"); ok {
@@ -91,10 +79,8 @@ func packagizerValue(raw string, c Candidate, g groups) string {
 	}
 	if rest, ok := strings.CutPrefix(key, "match:"); ok {
 		if v, ok := matchGroup(g, rest); ok {
-			// sanitizeSegment and not segment: a capture group that matched an
-			// empty string is an ordinary thing for an optional group to do, and
-			// standing a fallback word in its place would put "match" into a folder
-			// name the pattern deliberately left blank.
+			// No fallback word: an optional group that matched nothing should
+			// stay empty.
 			return sanitizeSegment(v)
 		}
 	}
@@ -102,17 +88,14 @@ func packagizerValue(raw string, c Candidate, g groups) string {
 }
 
 // matchGroup resolves the field and number out of "match:FIELD:N". The second
-// result is false when the rule produced no groups for that field or the number
-// is past the end, which leaves the tag visible in the text — the same treatment
-// every other unresolvable placeholder gets, and a case Compile has usually
-// refused the rule for already.
+// result is false when the rule produced no groups for that field or the
+// number is past the end, which leaves the tag visible in the text.
 func matchGroup(g groups, rest string) (string, bool) {
 	field, num, ok := strings.Cut(rest, ":")
 	if !ok {
 		return "", false
 	}
-	// Group 0 is the whole match, which is what the pattern as a whole found and
-	// is worth having: it saves wrapping an entire expression in brackets.
+	// Group 0 is the whole match.
 	n, err := strconv.Atoi(num)
 	if err != nil || n < 0 {
 		return "", false
@@ -133,8 +116,8 @@ func sourceSegment(source, index string) (string, bool) {
 	if err != nil || n < 1 {
 		return "", false
 	}
-	// Only a parse that found a host tells us where the path starts. Splitting
-	// an unparsed URL on "/" would hand back "https:" as the first segment.
+	// Without a parsed host, splitting on "/" would return "https:" as the
+	// first segment.
 	p := source
 	if u, err := url.Parse(source); err == nil && u.Host != "" {
 		p = u.Path
@@ -170,27 +153,17 @@ func (m *Matcher) nextAppend(key string) string {
 	return "_" + strconv.Itoa(n+1)
 }
 
-// maxSegment mirrors the cap in internal/pathvars, as does sanitizeSegment
-// below. Both are duplicated rather than shared because pathvars keeps them
-// unexported, and they have to agree: the values below end up in the same
-// download paths as the ones pathvars expands, so a name has to be cut at the
-// same byte either way or one template produces two folders for one package.
-//
-// The sanitising is not cosmetic. A file name of "../../etc/passwd" fed into a
-// folder template would otherwise add path levels the template never spelled
-// out, and the whole point of a one-segment guarantee is that a template can
-// only ever create the folders it names itself.
+// maxSegment and sanitizeSegment mirror their unexported counterparts in
+// internal/pathvars. They have to agree, because both expand into the same
+// download paths and a name cut at a different byte would split one package
+// into two folders. Sanitising keeps a value like "../../etc/passwd" from
+// adding path levels the template never spelled out.
 const maxSegment = 120
 
-// FileSegment cuts a value down to the one path segment a file name is allowed
-// to be - the very cut Apply gives Action.Filename, exported so a rename typed
-// into the interface and a rename written by a rule cannot disagree about what
-// a name is.
-//
-// Two cuts drift, and the one that drifts is the one that lets "../../etc/x"
-// through. A value that sanitises away entirely comes back as "file" rather than
-// empty, for the same reason it does inside a template: a rename has to end in a
-// name, and the caller can see this one and correct it.
+// FileSegment cuts a value down to the one path segment a file name may be,
+// the same cut Apply gives Action.Filename, so a rename typed into the
+// interface and one written by a rule agree. A value that sanitises away
+// entirely becomes "file".
 func FileSegment(value string) string { return segment(value, "file") }
 
 // segment is sanitizeSegment with a fallback word, so a placeholder whose value

@@ -1,27 +1,17 @@
 // Package relay routes messages between KnightLoader instances that present
-// the same relay key, so two instances behind NAT - neither of which can
-// accept an inbound connection - can still reach each other by both dialling
-// out to one place they can both reach.
+// the same relay key, so two instances behind NAT can reach each other by both
+// dialling out to one place.
 //
-// Possession of the key is the entire authorization model: the relay has no
-// account list, no registration step and no database to check a key against.
-// It groups whatever connections present the same string and knows nothing
-// else about them. State is purely in memory, so a restart costs nothing but
-// the current connection list, which rebuilds itself as instances reconnect.
+// Possession of the key is the whole authorization model: the relay has no
+// account list and no database, it only groups connections that present the
+// same string. State lives in memory and rebuilds itself as instances
+// reconnect after a restart.
 //
-// Every connection owns a bounded queue and a writer goroutine, the same
-// shape internal/hub uses for the same reason: one instance on a bad link
-// must not add its write timeout to every message the others are waiting for.
-// Hub itself is not reused here because it holds one flat set of clients,
-// while the whole job of this package is keeping key-grouped sets apart.
-//
-// Because "possession of the key" is the only credential, everything in this
-// file that bounds a number (a queue depth, a connection count, an in-flight
-// request count, a minimum key length) exists so that a connection which
-// merely knows *some* key - guessed, leaked, or its own invented one, since
-// nothing here validates a key against anything - cannot cost the relay, or
-// a sibling sharing that key, more than a fixed, small amount. None of these
-// are a complete defense against a determined attacker; they are a floor.
+// Every connection owns a bounded queue and a writer goroutine, as in
+// internal/hub, so one instance on a bad link cannot delay the others. Since
+// any invented key gets in, every limit in this file (queue depth, connection
+// counts, in-flight requests, key length) caps what one connection can cost
+// the relay or its siblings. They are a floor, not a complete defence.
 package relay
 
 import (
@@ -35,75 +25,51 @@ import (
 )
 
 // queueDepth is how many frames may sit unwritten for one connection. Relay
-// traffic is request/response rather than a progress stream, so this is far
-// more slack than a healthy instance ever uses - it is sized for a burst of
-// answers arriving while one connection briefly stalls, not for steady load.
+// traffic is request/response, so this only has to absorb a burst of answers
+// while one connection briefly stalls.
 const queueDepth = 64
 
-// writeTimeout bounds one frame write. It can only ever delay the connection
-// it belongs to, because each connection is written by its own goroutine.
+// writeTimeout bounds one frame write. It only ever delays its own
+// connection, because each connection has its own writer.
 const writeTimeout = 5 * time.Second
 
-// helloTimeout bounds how long a connection may stay open without having
-// said who it is. Without it, anything that opens a socket and then goes
-// quiet would hold a goroutine and a queue forever.
+// helloTimeout bounds how long a connection may stay open without having said
+// who it is, so a socket that goes quiet cannot hold a goroutine forever.
 const helloTimeout = 10 * time.Second
 
-// readLimit caps one inbound frame. The default 32 KiB is too small for the
-// REST payloads this carries (a task list from a busy instance), and file
-// bytes never travel this channel at all, so a few megabytes is generous
-// without letting one client pin unbounded memory.
+// readLimit caps one inbound frame. The default 32 KiB is too small for a task
+// list from a busy instance; a few megabytes still keeps one client from
+// pinning unbounded memory.
 const readLimit = 8 << 20
 
-// pendingTTL bounds how long the relay remembers who asked a question that
-// was never answered. The requester has its own timeout; this only keeps the
-// routing table from growing for the lifetime of the process when a target
-// accepts a request and then dies without replying.
+// pendingTTL bounds how long the relay remembers an unanswered request, so a
+// target that accepts a request and dies does not grow the table forever. The
+// requester has its own timeout.
 const pendingTTL = 2 * time.Minute
 
-// minKeyLength is the shortest relay key the relay accepts. This is still
-// not entropy enforcement - the relay cannot tell "thirty-two random
-// characters" from "thirty-two predictable ones" - it only rules out the
-// laziest keys at zero cost to a caller using a real one, the same way a
-// minimum password length rules out nothing sophisticated but still removes
-// the worst of the distribution.
-//
-// Raised from 16 to 32 for public operation. KnightLoader's own key is the
-// hex of a SHA-256 derived from the 128-bit seed-phrase secret (see
-// internal/relay's DeriveKey), so it is 64 characters and clears this
-// comfortably; 32 is the floor a hand-made key for a self-hosted relay must
-// still meet. Nothing has shipped yet, so there is no shorter key in the
-// wild to keep working.
+// minKeyLength is the shortest relay key accepted. It cannot enforce entropy,
+// only rule out the laziest keys. KnightLoader's own key is 64 hex characters
+// (DeriveKey); 32 is the floor for a hand-made key on a self-hosted relay.
 const minKeyLength = 32
 
-// maxPendingPerSender caps how many of one connection's own proxy-requests
-// may be unanswered at once, per relay key. Without this, a connection that
-// simply sends requests faster than its target answers them can pile frames
-// into that target's own send queue until enqueue's overflow policy evicts
-// the TARGET - punishing the side being flooded, not the side flooding it.
-// Refusing the sender once it is already waiting on this many answers stops
-// that pile-up before a single frame reaches the target's queue because of
-// it, while a normal instance issuing a page's worth of concurrent calls
-// never comes close.
+// maxPendingPerSender caps how many of one connection's proxy-requests may be
+// unanswered at once. Without it a sender could fill its target's queue until
+// enqueue evicts the target, punishing the side being flooded. A normal
+// instance issuing a page's worth of concurrent calls never comes close.
 const maxPendingPerSender = 32
 
-// maxClientsPerKey bounds one key's own group size. A relay is meant to
-// connect one person's own instances - a handful, generously a few dozen -
-// so this is sized to never bother a real deployment while still capping how
-// much registration state one guessed or leaked key can cause the relay to
-// hold.
+// maxClientsPerKey bounds one key's group. A relay connects one person's
+// instances, a handful or a few dozen, so this only caps how much state a
+// guessed or leaked key can make the relay hold.
 const maxClientsPerKey = 64
 
-// maxTotalClients bounds every key combined, so an attacker cannot get
-// around the per-key cap by inventing many different keys - each new,
-// never-seen key costs the relay a fresh empty group otherwise, and nothing
-// about this protocol requires a real deployment to ever approach this
-// number.
+// maxTotalClients bounds every key combined, so inventing many keys does not
+// get around the per-key cap.
 const maxTotalClients = 2048
 
-// Conn is the part of *websocket.Conn the registry actually uses. It is an
-// interface so the registry can be tested without real sockets; the dynamic
-// type has to be comparable, since connections are used as map keys.
+// Conn is the part of *websocket.Conn the registry uses. It is an interface so
+// the registry can be tested without real sockets; the dynamic type has to be
+// comparable, since connections are map keys.
 type Conn interface {
 	Write(ctx context.Context, typ websocket.MessageType, p []byte) error
 	CloseNow() error
@@ -115,70 +81,52 @@ type client struct {
 	key      string
 	announce Announce
 	send     chan []byte
-	// quit is closed exactly once, by stop, to end the writer goroutine. The
-	// send channel is deliberately never closed: frames are pushed into it
-	// without holding the server lock, so closing it would race a live send.
+	// quit is closed once, by stop, to end the writer goroutine. send is never
+	// closed: frames are pushed into it without the server lock, so closing it
+	// would race a live send.
 	quit chan struct{}
 	once sync.Once
 }
 
-// stop ends the writer goroutine, which also closes the socket. It is
-// idempotent because a failed write, a dropped queue and a Leave can all
-// reach it for the same client.
+// stop ends the writer goroutine, which also closes the socket. A failed
+// write, a dropped queue and a Leave can all reach it for the same client.
 func (cl *client) stop() { cl.once.Do(func() { close(cl.quit) }) }
 
-// pending is one proxy-request in flight: who asked, who it was routed to,
-// and when the relay stops caring. target is what routeResponse verifies an
-// incoming answer's sender against - without it, any connection that learns
-// or guesses a live request ID could hand the requester a forged answer.
+// pending is one proxy-request in flight. routeResponse checks an answer's
+// sender against target, so a connection that guesses a live request ID
+// cannot forge an answer.
 type pending struct {
 	from    Conn
 	target  Conn
 	expires time.Time
 }
 
-// pendingFailure is one request whose target left before answering it -
-// through Leave or through Join replacing a stale connection - along with
-// who is still waiting on it, so the caller can be told the truth
-// immediately instead of learning it by timing out.
+// pendingFailure is a request whose target left before answering, with the
+// connection still waiting on it, so the caller can be told at once instead of
+// timing out.
 type pendingFailure struct {
 	requestID string
 	from      Conn
 }
 
-// Server is the whole relay: the key-grouped connection registry plus the
-// WebSocket endpoint that fills it.
-//
-// pending is itself grouped by key, not one flat map: a request can only
-// ever be routed between two connections that share a key in the first
-// place, so scoping it the same way keeps one key's own traffic - however
-// much of it - from costing every other key a bigger table to search and
-// sweep under the same lock.
+// Server is the relay: the key-grouped connection registry plus the WebSocket
+// endpoint that fills it. pending is grouped by key because a request only
+// ever runs between two connections on the same key, so one busy key does not
+// make every other key's lookups and sweeps slower.
 type Server struct {
 	mu      sync.Mutex
 	clients map[Conn]*client
 	keys    map[string]map[Conn]*client
 	pending map[string]map[string]pending // relay key -> request id -> pending
 
-	// Admit decides whether a key may connect at all, and is consulted before
-	// anything is registered. nil admits every key, which is what the
-	// standalone relay wants: it is a rendezvous point that nobody's downloads
-	// pass through, and grouping strangers by key already keeps them apart.
-	//
-	// A KnightLoader serving a relay from inside itself needs the opposite
-	// default. There the relay rides on an address somebody published so their
-	// own instances could find each other, and admitting every key would make
-	// their server a rendezvous for whoever finds it. So that caller sets this,
-	// and only its own key gets in.
-	//
-	// It is a function rather than a stored key because the answer changes
-	// while the process runs: the switch can be turned off and the key
-	// replaced, and a relay that had to be rebuilt for either would keep
-	// serving the old answer to whoever was already connected.
+	// Admit decides whether a key may connect at all. nil admits every key,
+	// which suits the standalone relay. An instance serving a relay from
+	// inside itself sets it so only its own key gets in, rather than becoming
+	// a rendezvous for anyone who finds the address. It is a function because
+	// the switch and the key can change while the process runs.
 	Admit func(key string) bool
 
-	// limiter backs off addresses that keep failing the handshake. See
-	// ratelimit.go for what it is and is not for.
+	// limiter backs off addresses that keep failing the handshake.
 	limiter *limiter
 }
 
@@ -192,10 +140,9 @@ func New() *Server {
 	}
 }
 
-// admits reports whether key may connect. Reading the field under no lock is
-// deliberate and safe in the one shape it is used in: it is set once, before
-// the server is ever mounted, to a closure that reads live configuration
-// itself.
+// admits reports whether key may connect. Admit is read without the lock
+// because it is set once before the server is mounted, to a closure that
+// reads live configuration itself.
 func (s *Server) admits(key string) bool {
 	return s.Admit == nil || s.Admit(key)
 }
@@ -208,26 +155,19 @@ func (s *Server) Len() int {
 }
 
 // Join registers a connection under its relay key and introduces it to the
-// group both ways: every sibling learns the newcomer exists, and the newcomer
-// learns about every sibling that was already there. A late joiner that only
-// received future announcements would be blind to the instances it most wants
-// to see - the ones that have been up all along.
+// group both ways: siblings learn about the newcomer, and the newcomer learns
+// about every sibling already there.
 //
-// A second connection announcing an instance ID that is already on this key
-// replaces the first rather than joining beside it. That is not a defensive
-// guard against something impossible: an instance whose socket dies without a
-// close frame reconnects while the relay still holds the dead one, and a
-// proxy-request routed to that corpse would be answered by nobody. The
-// replaced connection is dropped silently, without a presence(offline), since
-// the announce that follows says the instance is here on a new socket - but
-// any request that was still waiting on the OLD connection to answer is
-// failed fast (see failPending), because that answer can now never arrive no
-// matter how long its own requester waits for it.
+// A connection announcing an instance ID already on this key replaces the old
+// one. An instance whose socket died without a close frame reconnects while
+// the relay still holds the dead socket, and requests routed there would never
+// be answered. The replaced connection gets no offline presence, since the
+// announce says the instance is back, but requests still waiting on it are
+// failed at once (see failPending).
 //
-// Reports whether the connection was actually admitted - false means the
-// caller must close it, either because maxTotalClients/maxClientsPerKey was
-// already reached (and this is not a reconnect that would free a slot first)
-// or because the same connection somehow joined twice.
+// Join reports whether the connection was admitted; on false the caller closes
+// it. That happens when the connection limits are reached and this is not a
+// reconnect, or when the same connection joins twice.
 func (s *Server) Join(key string, c Conn, a Announce) bool {
 	cl := &client{
 		conn:     c,
@@ -273,7 +213,7 @@ func (s *Server) Join(key string, c Conn, a Announce) bool {
 	if replaced != nil {
 		replaced.stop()
 	}
-	s.failPending(failures, "the instance that would have answered this reconnected before it replied - retry")
+	s.failPending(failures, "the instance that would have answered this reconnected before it replied; retry")
 	go s.writeLoop(cl)
 
 	for _, sib := range siblings {
@@ -287,10 +227,9 @@ func (s *Server) Join(key string, c Conn, a Announce) bool {
 }
 
 // Leave unregisters a connection, stops its writer (which closes the socket),
-// tells its siblings it went offline, and fails fast any request that was
-// still waiting on it to answer (see failPending). It is safe for a
-// connection that was never joined and safe to call twice, so callers can put
-// it in a defer without bookkeeping.
+// tells its siblings it went offline and fails any request still waiting on
+// it. It is safe for a connection that never joined and safe to call twice, so
+// callers can defer it.
 func (s *Server) Leave(c Conn) {
 	s.mu.Lock()
 	cl, failures := s.removeLocked(c)
@@ -312,15 +251,11 @@ func (s *Server) Leave(c Conn) {
 	}
 }
 
-// Route handles one frame a client sent up its socket.
-//
-// Only the two proxy frames mean anything inbound: announce and presence are
-// things the relay tells clients, never the other way round, and hello is
-// consumed once before the read loop starts. An unparseable or unrecognised
-// frame is ignored rather than closing the connection - the read loop's job
-// is to notice a dead socket, not to police a client that is otherwise
-// working, and a newer client speaking a frame type this build predates must
-// not be disconnected for it.
+// Route handles one frame a client sent up its socket. Only the proxy frames
+// mean anything inbound; hello is consumed before the read loop starts.
+// Anything unparseable or unknown is ignored rather than closing the
+// connection, so a newer client using a frame type this build lacks stays
+// connected.
 func (s *Server) Route(c Conn, frame []byte) {
 	env, err := Decode(frame)
 	if err != nil {
@@ -342,18 +277,11 @@ func (s *Server) Route(c Conn, frame []byte) {
 	}
 }
 
-// routeRequest forwards a call to the sibling it names, verbatim: the relay
-// reads the routing fields off a copy and never re-marshals the frame, so a
-// body it does not understand cannot be mangled on the way through.
-//
-// A target nobody is connected as gets an immediate error response instead of
-// silence - the caller would otherwise sit out its own timeout to learn a
-// fact the relay knew the moment it looked, and "your other instance is
-// offline" is exactly what the Instances page wants to say. A sender already
-// holding maxPendingPerSender unanswered requests to this key gets an
-// immediate refusal too, before the frame ever reaches the target's own
-// queue - see maxPendingPerSender's own comment for why that has to happen
-// here rather than at enqueue time.
+// routeRequest forwards a call verbatim to the sibling it names; the frame is
+// never re-marshalled, so a body the relay does not understand arrives intact.
+// An unknown target, or a sender already at maxPendingPerSender, gets an
+// immediate error response instead of a timeout, and the refused frame never
+// reaches the target's queue.
 func (s *Server) routeRequest(c Conn, req ProxyRequest, frame []byte) {
 	s.mu.Lock()
 	cl := s.clients[c]
@@ -375,11 +303,8 @@ func (s *Server) routeRequest(c Conn, req ProxyRequest, frame []byte) {
 	}
 	sweepPendingLocked(keyPending)
 
-	// Both refusals carry Error and no sealed blob, which is all a relay can
-	// write: proxy payloads are sealed under a key derived from the group's
-	// own secret (see key.go), and the relay holds no part of it. That is the
-	// intended shape, not a limitation worked around - a relay that could
-	// author an answer would be a relay worth not trusting.
+	// A refusal carries Error and no sealed blob: the relay holds no part of
+	// the frame key, so it cannot author an answer.
 	var refusal *ProxyResponse
 	switch {
 	case target == nil:
@@ -404,18 +329,11 @@ func (s *Server) routeRequest(c Conn, req ProxyRequest, frame []byte) {
 	s.enqueue(target, frame)
 }
 
-// routeResponse sends an answer back to whoever asked, by request ID - the
-// relay keeps that mapping itself rather than trusting the responder to
-// address the reply. c is the connection this frame actually arrived on, and
-// it must be the same connection routeRequest recorded as the target for
-// this request ID, or the frame is silently dropped: without that check, any
-// connection that learns or guesses a live request ID - including one on an
-// entirely different key, since a request ID alone carries no key of its own
-// - could hand the original requester a forged answer. Request IDs are
-// generated client-side as 128 bits of crypto-random hex (see
-// internal/relay/client.go), which makes guessing one infeasible in
-// practice; this check is what makes it impossible in principle, for a
-// connection that is not the requester and not the target either.
+// routeResponse sends an answer back to whoever asked, using the relay's own
+// record of the request rather than trusting the responder. The frame is
+// dropped unless it arrived on the connection the request was routed to, so a
+// connection that learns a live request ID, even on another key, cannot forge
+// the answer.
 func (s *Server) routeResponse(c Conn, requestID string, frame []byte) {
 	s.mu.Lock()
 	cl := s.clients[c]
@@ -438,13 +356,10 @@ func (s *Server) routeResponse(c Conn, requestID string, frame []byte) {
 	s.enqueue(from, frame)
 }
 
-// removeLocked unregisters a connection and returns its client entry (or nil
-// if it was never registered) plus every request this connection's departure
-// just orphaned: entries where it was the requester are simply forgotten (its
-// own socket is gone, nobody is waiting to receive the answer any more);
-// entries where it was the TARGET are returned so the caller can fail them
-// fast once the lock is released, instead of leaving their own requester to
-// learn the same fact by timing out. Caller holds mu.
+// removeLocked unregisters a connection and returns its client entry, or nil,
+// plus the requests its departure orphaned. Requests it sent are forgotten;
+// requests it was the target of are returned so the caller can fail them once
+// the lock is released. The caller holds mu.
 func (s *Server) removeLocked(c Conn) (*client, []pendingFailure) {
 	cl := s.clients[c]
 	if cl == nil {
@@ -453,8 +368,8 @@ func (s *Server) removeLocked(c Conn) (*client, []pendingFailure) {
 	delete(s.clients, c)
 	group := s.keys[cl.key]
 	delete(group, c)
-	// An emptied group is deleted, not kept: a relay that has been up for
-	// months would otherwise hold one empty map per key it has ever seen.
+	// Otherwise a long-running relay keeps an empty map for every key it has
+	// ever seen.
 	if len(group) == 0 {
 		delete(s.keys, cl.key)
 	}
@@ -475,12 +390,9 @@ func (s *Server) removeLocked(c Conn) (*client, []pendingFailure) {
 	return cl, failures
 }
 
-// failPending answers every request removeLocked found orphaned with a
-// synthetic error response, addressed to whichever connection actually asked
-// it - reusing the exact response shape routeRequest's own "no instance
-// connected" answer already uses for a target that was never there to begin
-// with. Called after the lock that produced failures has already been
-// released, since enqueue takes it again.
+// failPending answers each orphaned request with an error response to the
+// connection that asked. It runs after the lock is released, since enqueue
+// takes it again.
 func (s *Server) failPending(failures []pendingFailure, reason string) {
 	for _, f := range failures {
 		s.mu.Lock()
@@ -496,11 +408,8 @@ func (s *Server) failPending(failures []pendingFailure, reason string) {
 	}
 }
 
-// sweepPendingLocked drops one key's own requests that nobody ever answered.
-// Caller holds mu. Scoped to a single key's map (see Server's own doc
-// comment) rather than the old process-wide table, so the cost of sweeping
-// is bounded by how much traffic THIS key has generated, never by every
-// other key sharing the same relay.
+// sweepPendingLocked drops one key's requests that were never answered. The
+// caller holds mu.
 func sweepPendingLocked(keyPending map[string]pending) {
 	now := time.Now()
 	for id, p := range keyPending {
@@ -510,8 +419,8 @@ func sweepPendingLocked(keyPending map[string]pending) {
 	}
 }
 
-// inFlightFromLocked counts how many of one key's pending requests were sent
-// by from - what maxPendingPerSender is checked against. Caller holds mu.
+// inFlightFromLocked counts one key's pending requests sent by from. The
+// caller holds mu.
 func inFlightFromLocked(keyPending map[string]pending, from Conn) int {
 	n := 0
 	for _, p := range keyPending {
@@ -522,19 +431,11 @@ func inFlightFromLocked(keyPending map[string]pending, from Conn) int {
 	return n
 }
 
-// enqueue hands one frame to a connection, or drops that connection if it
-// cannot keep up. A full queue means this instance is not draining as fast as
-// its siblings produce - dropping it heals itself, because a client
-// reconnects and re-announces, whereas a relay stalled behind one bad link
-// stops routing for everybody on that key.
-//
-// This is safe to keep as an eviction rather than a silent frame-drop only
-// because routeRequest's own maxPendingPerSender check already keeps a
-// malicious sender from ever forcing enough proxy-request frames into a
-// healthy target's queue to trigger it - what reaches here for ordinary
-// announce/presence/response traffic is bounded by how many siblings and how
-// many genuinely in-flight requests a key actually has, not by how fast one
-// connection chooses to send.
+// enqueue hands one frame to a connection, or drops the connection if its
+// queue is full. A dropped client reconnects and re-announces, whereas a relay
+// stalled behind one bad link stops routing for the whole key. Eviction is
+// safe because maxPendingPerSender keeps a sender from flooding a healthy
+// target's queue; the rest of the traffic is bounded by the group size.
 func (s *Server) enqueue(cl *client, frame []byte) {
 	select {
 	case cl.send <- frame:
@@ -543,17 +444,15 @@ func (s *Server) enqueue(cl *client, frame []byte) {
 	}
 }
 
-// writeLoop is the only goroutine that writes to a connection, which is what
-// keeps a slow link off the routing path.
+// writeLoop is the only goroutine that writes to a connection, which keeps a
+// slow link off the routing path.
 func (s *Server) writeLoop(cl *client) {
-	// The writer owns the socket: whatever ends the loop closes it too, so a
-	// dropped client is torn down without the router ever waiting on a close
-	// handshake.
+	// The writer owns the socket, so a dropped client is torn down without the
+	// router waiting on a close handshake.
 	defer func() { _ = cl.conn.CloseNow() }()
 	for {
-		// A stopped client must not keep draining a queue somebody filled
-		// just before the drop. The two-case select below would pick a ready
-		// send about half the time, so quit gets checked on its own first.
+		// A stopped client must not keep draining its queue, and the select
+		// below would pick a ready send about half the time.
 		select {
 		case <-cl.quit:
 			return
@@ -567,8 +466,6 @@ func (s *Server) writeLoop(cl *client) {
 			err := cl.conn.Write(ctx, websocket.MessageText, frame)
 			cancel()
 			if err != nil {
-				// The socket is gone or wedged past the timeout; unregister
-				// so later frames stop queueing for a client nobody drains.
 				s.Leave(cl.conn)
 				return
 			}
@@ -576,24 +473,18 @@ func (s *Server) writeLoop(cl *client) {
 	}
 }
 
-// frameOf marshals one outbound frame. Every payload the relay itself sends
-// is a struct of strings, ints and byte slices from protocol.go, none of
-// which encoding/json can fail on, so there is no error here for a caller to
-// act on - unlike the inbound direction, where the bytes come from a client
-// and every parse is checked.
+// frameOf marshals one outbound frame. Every payload the relay sends is a
+// protocol.go struct that encoding/json cannot fail on.
 func frameOf(typ string, data any) []byte {
 	b, _ := Encode(typ, data)
 	return b
 }
 
-// ServeHTTP is the relay endpoint itself: one long-lived WebSocket per
-// instance, dialled outbound by both sides.
+// ServeHTTP is the relay endpoint: one long-lived WebSocket per instance.
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// Refused before the upgrade, on purpose: an address that has been
-	// failing repeatedly should cost this relay one cheap HTTP response,
-	// not a live WebSocket plus a goroutine parked for helloTimeout. 429
-	// rather than 403 because the caller is being asked to slow down, not
-	// told it will never be let in.
+	// Refused before the upgrade, so a failing address costs one HTTP response
+	// rather than a WebSocket and a goroutine. 429 because the caller should
+	// slow down, not give up.
 	addr := clientAddr(r)
 	if s.limiter.blocked(addr) {
 		http.Error(w, "too many failed handshakes from this address", http.StatusTooManyRequests)
@@ -601,13 +492,9 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	c, err := websocket.Accept(w, r, &websocket.AcceptOptions{
-		// No origin check, unlike internal/api's own socket. There it stops
-		// another website driving a logged-in instance through the visitor's
-		// browser; here there is no UI, no session and no cookie to ride -
-		// the key in the first frame is the only credential, and a page
-		// without it gets nothing. Every legitimate client is cross-origin
-		// by construction, so an origin check would only lock out clients
-		// while stopping nothing.
+		// No origin check, unlike internal/api's socket: there is no session or
+		// cookie to ride, the key in the first frame is the only credential,
+		// and every legitimate client is cross-origin.
 		OriginPatterns: []string{"*"},
 	})
 	if err != nil {
@@ -621,28 +508,20 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		c.Close(websocket.StatusPolicyViolation, "the first frame must be a hello with a relay key of at least 32 characters and an instance id")
 		return
 	}
-	// Checked before Join, so a key this relay does not serve costs one
-	// goroutine for the length of a handshake and never appears in the
-	// registry. The close reason says the key was refused rather than that the
-	// relay is picky about which ones: an instance whose own key stopped
-	// matching needs to know that is what happened.
+	// Checked before Join, so an unserved key never enters the registry. The
+	// close reason tells an instance whose key stopped matching what happened.
 	if !s.admits(hello.Key) {
 		s.limiter.fail(addr)
 		c.Close(websocket.StatusPolicyViolation, "this relay does not serve that relay key")
 		return
 	}
-	// Past every check that can reject a caller, so this connection came
-	// from a real client - clear whatever failures preceded it (a mistyped
-	// phrase, a reconnect during a key change) rather than letting them
-	// follow a legitimate address around.
 	s.limiter.succeed(addr)
 	if !s.Join(hello.Key, c, hello.Announce) {
 		c.Close(websocket.StatusPolicyViolation, "too many instances are already connected with this relay key")
 		return
 	}
-	// Leave stops the writer, which closes the socket - so this is the whole
-	// teardown, and a client that vanishes mid-request is indistinguishable
-	// from one that closed cleanly, as it should be.
+	// Leave stops the writer, which closes the socket, so this is the whole
+	// teardown.
 	defer s.Leave(c)
 	for {
 		_, frame, err := c.Read(r.Context())
@@ -653,9 +532,9 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// readHello consumes the one frame that authenticates a connection. It is
-// read before the connection joins anything, on its own deadline, so an
-// unauthenticated socket costs one goroutine for helloTimeout at most.
+// readHello consumes the frame that authenticates a connection, on its own
+// deadline, so an unauthenticated socket costs one goroutine for helloTimeout
+// at most.
 func readHello(ctx context.Context, c *websocket.Conn) (Hello, error) {
 	ctx, cancel := context.WithTimeout(ctx, helloTimeout)
 	defer cancel()

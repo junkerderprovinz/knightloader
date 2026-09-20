@@ -5,10 +5,8 @@ import (
 	"testing"
 )
 
-// TestEveryCategoryCompilesAsARule is the property that makes a category sugar
-// rather than a second mechanism: what the picker writes has to be a condition
-// the engine already accepts, or the chip produces a rule that is refused the
-// moment it is saved.
+// TestEveryCategoryCompilesAsARule: what the picker writes has to be a
+// condition the engine already accepts.
 func TestEveryCategoryCompilesAsARule(t *testing.T) {
 	for _, cat := range Categories() {
 		set := Set{Rules: []Rule{{
@@ -28,9 +26,8 @@ func TestEveryCategoryCompilesAsARule(t *testing.T) {
 	}
 }
 
-// TestCategoryMatchesItsOwnExtensionsAndNothingAdjacent covers the anchors. The
-// filetype field holds the extension alone, so an unanchored "ts" would quietly
-// pull in every .mts as well and the category would match more than it says.
+// TestCategoryMatchesItsOwnExtensionsAndNothingAdjacent covers the anchors: an
+// unanchored "ts" would also match every .mts.
 func TestCategoryMatchesItsOwnExtensionsAndNothingAdjacent(t *testing.T) {
 	pattern, ok := CategoryPattern("video")
 	if !ok {
@@ -62,9 +59,8 @@ func TestCategoryMatchesItsOwnExtensionsAndNothingAdjacent(t *testing.T) {
 	}
 }
 
-// TestCategoryOfRecognisesWhatCategoryPatternWrote is what lets the editor
-// reopen a rule showing the chip it was made with — and, once somebody edits the
-// pattern, stop showing a chip that no longer says what the rule does.
+// TestCategoryOfRecognisesWhatCategoryPatternWrote: the editor reopens a rule
+// with its chip, and shows the raw pattern once it has been edited.
 func TestCategoryOfRecognisesWhatCategoryPatternWrote(t *testing.T) {
 	for _, cat := range Categories() {
 		if got := CategoryOf(cat.Pattern); got != cat.ID {

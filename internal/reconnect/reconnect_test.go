@@ -30,8 +30,7 @@ type sentRequest struct {
 	body    string
 }
 
-// stubClient answers through the Doer interface instead of a socket, so no test
-// in this package opens a connection or depends on a machine's network. Requests
+// stubClient answers through the Doer interface instead of a socket. Requests
 // to the check URL walk the checks script, whose last entry repeats forever;
 // everything else is a router request and is recorded.
 type stubClient struct {
@@ -48,8 +47,7 @@ func (c *stubClient) Do(req *http.Request) (*http.Response, error) {
 	if req.Body != nil {
 		b, _ := io.ReadAll(req.Body)
 		body = string(b)
-		// Put it back so a scripted reply can read it too, the way a real
-		// transport hands the same bytes to whatever inspects the request.
+		// Put back so a scripted reply can read it too.
 		req.Body = io.NopCloser(strings.NewReader(body))
 	}
 	if req.URL.String() == checkURL {
@@ -107,9 +105,8 @@ func response(code int, body string) *http.Response {
 	}
 }
 
-// fakeClock advances only when the code under test waits, so a poll loop with a
-// two-minute budget runs to its deadline instantly and the test still exercises
-// the real number of checks.
+// fakeClock advances only when the code under test waits, so a poll loop runs
+// to its deadline instantly with the real number of checks.
 type fakeClock struct {
 	mu    sync.Mutex
 	t     time.Time
@@ -206,17 +203,14 @@ func commandConfig() Config {
 	}
 }
 
-// TestNewRequiresConfig: a Reconnector with no source of configuration would
-// report "not configured" for the rest of the process's life, which is a wiring
-// mistake wearing the costume of a user who never filled the form in.
 func TestNewRequiresConfig(t *testing.T) {
 	if _, err := New(Options{}); err == nil {
 		t.Fatal("New accepted Options without a Config function")
 	}
 }
 
-// TestSwitchedOffTouchesNothing proves the "none" method is genuinely off: no
-// request goes out, not even the address check.
+// TestSwitchedOffTouchesNothing: with "none" no request goes out, not even the
+// address check.
 func TestSwitchedOffTouchesNothing(t *testing.T) {
 	client := &stubClient{checks: []step{{body: "203.0.113.9"}}}
 	runner := &runRecorder{}
@@ -234,9 +228,8 @@ func TestSwitchedOffTouchesNothing(t *testing.T) {
 	}
 }
 
-// TestCommandMethodExpandsVariables covers the whole happy path of the command
-// method, including that the address handed to the script is the one the box had
-// before the reconnect - that is the session a router script has to identify.
+// TestCommandMethodExpandsVariables covers the command method's happy path,
+// including that the script gets the address from before the reconnect.
 func TestCommandMethodExpandsVariables(t *testing.T) {
 	client := &stubClient{checks: []step{{body: "203.0.113.9"}, {body: "198.51.100.7\n"}}}
 	runner := &runRecorder{}
@@ -267,9 +260,9 @@ func TestCommandMethodExpandsVariables(t *testing.T) {
 	}
 }
 
-// TestHTTPMethodReplaysRequestsInOrder pins the shape of the requests a recorded
-// router script produces, including the two details that are easy to get wrong:
-// Host has to land on the request field, and a form post needs a content type.
+// TestHTTPMethodReplaysRequestsInOrder pins the requests a recorded router
+// script produces, including Host on the request field and the form content
+// type.
 func TestHTTPMethodReplaysRequestsInOrder(t *testing.T) {
 	cfg := Config{
 		Method:   MethodHTTP,
@@ -327,9 +320,8 @@ func TestHTTPMethodReplaysRequestsInOrder(t *testing.T) {
 	}
 }
 
-// TestNonSuccessStatusFails: a router that answers a login with 401 has not
-// reconnected anything, and the status has to be in the error or nobody can tell
-// a wrong password from a wrong URL.
+// TestNonSuccessStatusFails: the status goes into the error, so a wrong
+// password can be told from a wrong URL.
 func TestNonSuccessStatusFails(t *testing.T) {
 	cfg := Config{
 		Method:          MethodHTTP,
@@ -355,17 +347,14 @@ func TestNonSuccessStatusFails(t *testing.T) {
 	if !strings.Contains(err.Error(), "request 1") {
 		t.Errorf("error %q does not name the failing step", err)
 	}
-	// A failed script must not be followed by the wait: the address is not going
-	// to change on its own, and the caller should hear about it now.
+	// A failed script is reported at once, without the wait.
 	if naps := clock.naps(); len(naps) != 0 {
 		t.Errorf("the poll loop ran anyway: %v", naps)
 	}
 }
 
-// TestUnchangedAddressIsAFailure is the rule the whole package exists for. The
-// method ran and reported success; the address did not move; the caller must be
-// told this failed, or it retries the download from the address that got it
-// limited in the first place.
+// TestUnchangedAddressIsAFailure: the method succeeded but the address did not
+// move, so the run failed.
 func TestUnchangedAddressIsAFailure(t *testing.T) {
 	cfg := commandConfig()
 	cfg.TimeoutSeconds = 20
@@ -395,10 +384,8 @@ func TestUnchangedAddressIsAFailure(t *testing.T) {
 	}
 }
 
-// TestMappedAddressIsNotAChange: a check page that switches between
-// "::ffff:203.0.113.9" and "203.0.113.9" is showing one address in two
-// spellings. Reading that as a change would report a success for every single
-// reconnect, whatever the router did.
+// TestMappedAddressIsNotAChange: "::ffff:203.0.113.9" and "203.0.113.9" are one
+// address in two spellings.
 func TestMappedAddressIsNotAChange(t *testing.T) {
 	cfg := commandConfig()
 	cfg.TimeoutSeconds = 10
@@ -410,9 +397,8 @@ func TestMappedAddressIsNotAChange(t *testing.T) {
 	}
 }
 
-// TestFailingChecksWhileRebootingAreTolerated: the router is down because we
-// told it to go down, so the box has no route out for a while. Only the deadline
-// ends the wait, never a single failed look.
+// TestFailingChecksWhileRebootingAreTolerated: while the router reboots the box
+// has no route out, and only the deadline ends the wait.
 func TestFailingChecksWhileRebootingAreTolerated(t *testing.T) {
 	cfg := commandConfig()
 	client := &stubClient{checks: []step{
@@ -435,10 +421,8 @@ func TestFailingChecksWhileRebootingAreTolerated(t *testing.T) {
 	}
 }
 
-// TestBaselineFailuresAbortBeforeTheMethodRuns covers the three ways the first
-// look can fail. All of them have to stop the run: without a "before" address
-// there is nothing to compare against, so a reconnect done here could only ever
-// be reported as a success nobody can prove.
+// TestBaselineFailuresAbortBeforeTheMethodRuns: without a "before" address
+// there is nothing to compare against, so the method must not run.
 func TestBaselineFailuresAbortBeforeTheMethodRuns(t *testing.T) {
 	oversized := strings.Repeat("x", maxCheckBody-11) + "203.0.113.99"
 
@@ -450,19 +434,14 @@ func TestBaselineFailuresAbortBeforeTheMethodRuns(t *testing.T) {
 		{"transport failure", step{err: errors.New("no such host")}, nil},
 		{"http error", step{code: http.StatusServiceUnavailable, body: "later"}, nil},
 		{"page holds no address", step{body: "<html>please enable javascript</html>"}, ErrNoAddress},
-		// A check URL pointed at something inside the network answers with an
-		// address from the wrong side of the router. Refusing it here is the
-		// whole point: taken as the baseline, a LAN address holds still, so
-		// every run afterwards reports that the address did not change and the
-		// reconnect is blamed for a router that did as it was told.
+		// A LAN address as the baseline would hold still and make every run
+		// report "unchanged".
 		{"the router's own status page", step{body: "IP: 192.168.1.1"}, ErrNotPublic},
-		// Carrier-grade NAT is the cruel one. It parses, it is not RFC 1918, and
-		// it is the single line on which a reconnect can never change anything -
-		// the address that moves belongs to the carrier, not to this box.
+		// It parses and is not RFC 1918, but the address that moves belongs to
+		// the carrier.
 		{"a carrier-grade NAT address", step{body: "100.64.12.9"}, ErrNotPublic},
-		// The truncation guard: cutting "203.0.113.99" at the read limit leaves
-		// the valid, wrong address 203.0.113.9, and a baseline that is wrong
-		// makes every later check look like a change.
+		// Cutting "203.0.113.99" at the read limit leaves the valid, wrong
+		// address 203.0.113.9.
 		{"body cut at the read limit", step{body: oversized}, ErrNoAddress},
 	}
 	for _, tc := range tests {
@@ -485,9 +464,8 @@ func TestBaselineFailuresAbortBeforeTheMethodRuns(t *testing.T) {
 	}
 }
 
-// TestConfigIsSanitisedOnEveryRun: a settings file edited by hand can carry a
-// zero interval or a method spelled the JDownloader way, and neither may reach
-// the poll loop.
+// TestConfigIsSanitisedOnEveryRun: a hand-edited settings file can carry a zero
+// interval or a method spelled the JDownloader way.
 func TestConfigIsSanitisedOnEveryRun(t *testing.T) {
 	cfg := Config{
 		Method:   "LiveHeader",
@@ -510,8 +488,8 @@ func TestConfigIsSanitisedOnEveryRun(t *testing.T) {
 	}
 }
 
-// TestCancellationEndsTheWait: a shutdown must not have to sit out a poll
-// interval, and the error has to stay recognisable as a cancellation.
+// TestCancellationEndsTheWait: a shutdown does not sit out a poll interval,
+// and the error stays recognisable as a cancellation.
 func TestCancellationEndsTheWait(t *testing.T) {
 	client := &stubClient{checks: []step{{body: "203.0.113.9"}}}
 	runner := &runRecorder{}
@@ -528,12 +506,8 @@ func TestCancellationEndsTheWait(t *testing.T) {
 	}
 }
 
-// TestCancellationDoesNotRebootTheRouter is the half of cancellation that costs
-// something to get wrong. A Runner is under no obligation to honour a context -
-// the injected one here does not, and neither does a shell script that has
-// already been handed the reboot URL - so a cancelled run that still calls the
-// method drops every download that was in flight, on the way out of a shutdown
-// that was supposed to leave them alone.
+// TestCancellationDoesNotRebootTheRouter: a Runner may ignore its context, as
+// the one here does, so a cancelled run must not call the method at all.
 func TestCancellationDoesNotRebootTheRouter(t *testing.T) {
 	client := &stubClient{checks: []step{{body: "203.0.113.9"}, {body: "198.51.100.7"}}}
 	runner := &runRecorder{}
@@ -549,15 +523,13 @@ func TestCancellationDoesNotRebootTheRouter(t *testing.T) {
 	}
 }
 
-// TestPanicDoesNotWedgeTheReconnector: the method is other people's code - an
-// injected Runner, an injected Doer - and a panic in it must cost one run, not
-// the process. Releasing the in-flight slot anywhere but a defer leaves Busy
-// stuck at true and every later Do blocked on a channel nobody will close.
+// TestPanicDoesNotWedgeTheReconnector: a panic in injected code costs one run,
+// and the in-flight slot is released for the next.
 func TestPanicDoesNotWedgeTheReconnector(t *testing.T) {
 	// Two baselines, because the panicking run reads one before it dies.
 	client := &stubClient{checks: []step{{body: "203.0.113.9"}, {body: "203.0.113.9"}, {body: "198.51.100.7"}}}
-	// Only the first run blows up, so the second one can prove the Reconnector is
-	// still usable rather than merely unblocked.
+	// Only the first run panics, so the second shows the Reconnector still
+	// works.
 	runner := &runRecorder{}
 	first := true
 	blowUpOnce := func(ctx context.Context, name string, args ...string) error {
@@ -607,18 +579,16 @@ func TestPanicDoesNotWedgeTheReconnector(t *testing.T) {
 	}
 }
 
-// TestPanicIsNotReportedAsSuccess is the same failure seen from the waiting
-// caller's side. A run that unwound left the zero Result and a nil error in the
-// slot, and (no address, no error) reads as "the reconnect worked" - the exact
-// lie this package exists to refuse.
+// TestPanicIsNotReportedAsSuccess: a waiting caller must not read the zero
+// Result and nil error of a panicked run as success.
 func TestPanicIsNotReportedAsSuccess(t *testing.T) {
 	client := &stubClient{checks: []step{{body: "203.0.113.9"}, {body: "198.51.100.7"}}}
 	entered := make(chan struct{})
 	release := make(chan struct{})
 	panicking := func(context.Context, string, ...string) error {
 		close(entered)
-		// Parked until the follower below has had time to attach, so the
-		// follower cannot win the race and start a run of its own.
+		// Parked until the follower has attached, so it cannot start a run of
+		// its own.
 		<-release
 		panic("the runner blew up")
 	}
@@ -640,10 +610,8 @@ func TestPanicIsNotReportedAsSuccess(t *testing.T) {
 	}
 }
 
-// TestNilResponseFails: Doer exists so something other than *http.Client can sit
-// behind it, and something else is allowed to be buggy. Neither an answer nor an
-// error must fail the run rather than dereference nil, because a panic here is
-// held inside the in-flight slot and takes the whole subsystem with it.
+// TestNilResponseFails: a Doer returning neither an answer nor an error fails
+// the run instead of dereferencing nil.
 func TestNilResponseFails(t *testing.T) {
 	tests := []struct {
 		name string
@@ -684,15 +652,14 @@ func TestNilResponseFails(t *testing.T) {
 	}
 }
 
-// nilDoer answers every request with neither a response nor an error, which is
-// the one thing *http.Client promises never to do.
+// nilDoer answers every request with neither a response nor an error, which
+// *http.Client never does.
 type nilDoer struct{}
 
 func (nilDoer) Do(*http.Request) (*http.Response, error) { return nil, nil }
 
-// TestSecondCallerWaitsForTheFirst: two reconnects at once would fight over the
-// same router, and each would see the other's address change and claim a success
-// for work it did not do. The second caller gets the first one's verdict.
+// TestSecondCallerWaitsForTheFirst: the second caller gets the first one's
+// verdict instead of starting a competing run.
 func TestSecondCallerWaitsForTheFirst(t *testing.T) {
 	client := &stubClient{checks: []step{{body: "203.0.113.9"}, {body: "198.51.100.7"}}}
 	release := make(chan struct{})
@@ -713,9 +680,9 @@ func TestSecondCallerWaitsForTheFirst(t *testing.T) {
 		leaderRes, leaderErr = rc.Do(context.Background())
 	}()
 
-	// The run is provably in flight once the runner has been entered, so the
-	// call below can only attach to it. The leader is let go on a timer because
-	// this goroutine is about to block inside that attachment.
+	// Once the runner is entered the run is in flight, so the call below can
+	// only attach to it. The leader is released on a timer because this
+	// goroutine is about to block.
 	<-entered
 	if !rc.Busy() {
 		t.Error("Busy() is false during a run")
@@ -742,10 +709,8 @@ func TestSecondCallerWaitsForTheFirst(t *testing.T) {
 	}
 }
 
-// TestPasswordNeverReachesTheError is the promise the package doc makes. The
-// password is substituted into program arguments, into URLs and into bodies, so
-// it can arrive in an error through several routes at once - each row here is a
-// route that really does carry it.
+// TestPasswordNeverReachesTheError: each row is a real route by which the
+// password reaches an error.
 func TestPasswordNeverReachesTheError(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -767,8 +732,7 @@ func TestPasswordNeverReachesTheError(t *testing.T) {
 			},
 		},
 		{
-			// The URL cannot be parsed, and url.Error prints the raw URL it
-			// choked on - password and all - before a single byte goes out.
+			// url.Error prints the raw URL it could not parse, password and all.
 			name:     "unparsable url with credentials",
 			password: "spaced out",
 			cfg: func(pw string) Config {
@@ -784,9 +748,8 @@ func TestPasswordNeverReachesTheError(t *testing.T) {
 			},
 		},
 		{
-			// Here the URL parses, so what reaches the error is the userinfo
-			// encoding of the password, which matches neither the plain text nor
-			// the query or path escaping of it.
+			// The error carries the userinfo encoding of the password, which
+			// differs from the plain text and the query and path escapes.
 			name:     "transport error quoting the request url",
 			password: "Fri;tz!Box@2026",
 			cfg: func(pw string) Config {
@@ -850,8 +813,8 @@ func TestPasswordNeverReachesTheError(t *testing.T) {
 	}
 }
 
-// TestRunnerFailureSkipsTheWait: a command that failed has not reconnected
-// anything, so the caller hears about it now instead of after the full budget.
+// TestRunnerFailureSkipsTheWait: a failed command is reported at once, not
+// after the full budget.
 func TestRunnerFailureSkipsTheWait(t *testing.T) {
 	client := &stubClient{checks: []step{{body: "203.0.113.9"}, {body: "198.51.100.7"}}}
 	runner := &runRecorder{err: errors.New("exit status 127")}

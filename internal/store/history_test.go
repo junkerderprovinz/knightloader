@@ -10,14 +10,13 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/core"
 )
 
-// beforeTheHistoryTable is how many migrations had shipped before the history
-// arrived. Everything up to here is what an installed copy of the previous
-// build has in its database, which is what the upgrade has to run forward.
+// beforeTheHistoryTable is how many migrations precede the history table: the
+// schema an older install has, which the upgrade must run forward.
 const beforeTheHistoryTable = 34
 
-// openAtPreHistorySchema builds a database exactly as the build before the
-// history table left it: its migrations, its version stamp, and nothing else.
-// Reopening it through Open is then the real upgrade path.
+// openAtPreHistorySchema builds a database at the schema before the history
+// table, migrations and version stamp only, so reopening it through Open is
+// the real upgrade path.
 func openAtPreHistorySchema(t *testing.T, path string) *sql.DB {
 	t.Helper()
 	if beforeTheHistoryTable >= len(migrations) {
@@ -39,8 +38,7 @@ func openAtPreHistorySchema(t *testing.T, path string) *sql.DB {
 	return db
 }
 
-// insertOldTask writes a row the way the previous build wrote one: through the
-// column list of the day, with no finish time, because nothing set one.
+// insertOldTask writes a row with the older column list and no finish time.
 func insertOldTask(t *testing.T, db *sql.DB, id, name, status string) {
 	t.Helper()
 	_, err := db.Exec(
@@ -61,14 +59,9 @@ func insertOldTask(t *testing.T, db *sql.DB, id, name, status string) {
 	}
 }
 
-// TestUpgradeCarriesFinishedDownloadsIntoTheHistory runs the previous build's
-// database forward.
-//
-// The two backfills are the whole of the risk. Without the finish stamp, every
-// download an older build completed has a zero there, is invisible to every
-// retention cutoff and stays in the list for ever - which is the accumulation
-// the setting exists to end. Without the history rows, the record of everything
-// this instance ever fetched begins at the moment somebody happened to upgrade.
+// TestUpgradeCarriesFinishedDownloadsIntoTheHistory: without the finish stamp
+// backfill, old downloads would never age out; without the history backfill,
+// the record would start at the upgrade.
 func TestUpgradeCarriesFinishedDownloadsIntoTheHistory(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "tasks.db")
 	db := openAtPreHistorySchema(t, path)
@@ -115,12 +108,8 @@ func TestUpgradeCarriesFinishedDownloadsIntoTheHistory(t *testing.T) {
 	}
 }
 
-// TestFinishTimeIsTakenOnceAndKept is the invariant retention rests on. A
-// finished download is saved several more times - a checksum verdict, an
-// unpacking result, a rename - and each of those is the same finish arriving
-// late, not a new one. A stamp that moved would make "older than 30 days" mean
-// "untouched for 30 days", and a file that is verified once a week would never
-// age out at all.
+// TestFinishTimeIsTakenOnceAndKept: later saves of a finished download are not
+// new finishes, or "older than 30 days" would mean "untouched for 30 days".
 func TestFinishTimeIsTakenOnceAndKept(t *testing.T) {
 	s, err := Open(filepath.Join(t.TempDir(), "tasks.db"))
 	if err != nil {
@@ -138,8 +127,8 @@ func TestFinishTimeIsTakenOnceAndKept(t *testing.T) {
 		t.Fatal("saving a finished download recorded no finish time at all")
 	}
 
-	// The copy every caller hands the store is a fresh one, carrying the zero the
-	// task in memory still has. That is the case the read-back exists for.
+	// Callers pass a fresh copy with a zero FinishedAt, which the read-back
+	// handles.
 	again := core.Task{ID: "one", URL: "https://host.example/f.bin", Name: "f.bin",
 		Status: core.StatusDone, Checksum: "ok", CreatedAt: task.CreatedAt}
 	time.Sleep(2 * time.Millisecond)
@@ -159,10 +148,8 @@ func TestFinishTimeIsTakenOnceAndKept(t *testing.T) {
 	}
 }
 
-// TestRestartClearsTheFinishTime is the other half of the same invariant. A task
-// put back in the queue by hand is running again, and a row that still claimed a
-// finish time would be swept out from under the user by the very next retention
-// pass.
+// TestRestartClearsTheFinishTime: a re-queued task must not be reachable by
+// the next retention pass.
 func TestRestartClearsTheFinishTime(t *testing.T) {
 	s, err := Open(filepath.Join(t.TempDir(), "tasks.db"))
 	if err != nil {
@@ -191,8 +178,6 @@ func TestRestartClearsTheFinishTime(t *testing.T) {
 	}
 }
 
-// TestHistoryOutlivesTheTask is the reason the table exists at all: the list is
-// trimmed, and what this instance fetched has to survive the trimming.
 func TestHistoryOutlivesTheTask(t *testing.T) {
 	s, err := Open(filepath.Join(t.TempDir(), "tasks.db"))
 	if err != nil {
@@ -230,9 +215,8 @@ func TestHistoryOutlivesTheTask(t *testing.T) {
 	}
 }
 
-// TestHistoryRecordsOneRowPerDownload guards the shape of the record. A finished
-// task is saved again every time anything about it changes, and one row per save
-// would make the history unreadable in exactly the direction people scroll it.
+// TestHistoryRecordsOneRowPerDownload: a finished task is saved again on every
+// change, but stays one history row.
 func TestHistoryRecordsOneRowPerDownload(t *testing.T) {
 	s, err := Open(filepath.Join(t.TempDir(), "tasks.db"))
 	if err != nil {
@@ -257,10 +241,8 @@ func TestHistoryRecordsOneRowPerDownload(t *testing.T) {
 	}
 }
 
-// TestUnfinishedDownloadsStayOutOfTheHistory keeps the table's meaning crisp:
-// every row in it is something this instance actually fetched. A staged link and
-// a failed attempt are not, and a "history" that contains them cannot be used to
-// answer the one question it is for.
+// TestUnfinishedDownloadsStayOutOfTheHistory: every row is something this
+// instance actually fetched.
 func TestUnfinishedDownloadsStayOutOfTheHistory(t *testing.T) {
 	s, err := Open(filepath.Join(t.TempDir(), "tasks.db"))
 	if err != nil {
@@ -285,9 +267,6 @@ func TestUnfinishedDownloadsStayOutOfTheHistory(t *testing.T) {
 	}
 }
 
-// TestTrimHistoryKeepsTheNewest checks the cap does what it says and cuts from
-// the right end. A trim that kept the oldest entries would leave a history that
-// stops answering questions about last week.
 func TestTrimHistoryKeepsTheNewest(t *testing.T) {
 	s, err := Open(filepath.Join(t.TempDir(), "tasks.db"))
 	if err != nil {
@@ -324,7 +303,7 @@ func TestTrimHistoryKeepsTheNewest(t *testing.T) {
 		t.Errorf("kept %s..%s, want the four newest (t09..t06)", hist[0].TaskID, hist[3].TaskID)
 	}
 
-	// Zero is "keep everything" and must never be read as "keep nothing".
+	// Zero keeps everything.
 	if dropped, err := s.TrimHistory(0); err != nil || dropped != 0 {
 		t.Errorf("TrimHistory(0) dropped %d (err %v), want it to leave the history alone", dropped, err)
 	}
