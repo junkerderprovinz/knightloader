@@ -6,26 +6,12 @@ import { useT } from '../lib/i18n';
 import { Button } from './ui';
 import { IconClipboard } from '../lib/icons';
 
-// Read once at module scope, not per render: the answer cannot change
-// without a page reload, and re-reading it on every render would be
-// pointless work for a value that is really a build-time fact about this
-// deployment (secure context or not).
 const CLIPBOARD_READABLE = typeof navigator !== 'undefined' && !!navigator.clipboard?.readText;
 
 /**
- * The one-shot "paste from clipboard" button JD's own Add Links dialog
- * offers beside its paste box.
- *
- * Feature-detected and hidden entirely rather than merely disabled: this
- * app's ordinary deployment is a bare http://192.168.x.x address, not a
- * secure context, where navigator.clipboard is undefined outright - a
- * disabled button sitting there forever would explain a browser
- * restriction nobody asked about, on a page that already takes an ordinary
- * Ctrl+V and a drop (see GlobalIntake, which reads event.clipboardData and
- * needs no permission at all). Only this explicit, one-shot button ever
- * touches the permission-gated Clipboard API - a document-level listener
- * silently reading the clipboard on its own would be a very different, and
- * much more alarming, feature.
+ * PasteFromClipboardButton stages the clipboard's links in one click. It is
+ * hidden outside a secure context, where navigator.clipboard does not exist;
+ * Ctrl+V and drop still work there through GlobalIntake.
  */
 export function PasteFromClipboardButton({
   pkg = '',
@@ -54,9 +40,7 @@ export function PasteFromClipboardButton({
         created.length ? 'ok' : 'fail',
       );
     } catch (e) {
-      // The common case here is not a network error but the permission
-      // prompt itself being dismissed - message(e) carries whichever the
-      // browser actually gave, rather than this guessing which one it was.
+      // Usually a dismissed permission prompt rather than a network error.
       toast(t('list.failed', { error: message(e) }), 'fail');
     } finally {
       setBusy(false);

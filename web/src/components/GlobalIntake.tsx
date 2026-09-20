@@ -7,29 +7,12 @@ import { useToast } from '../lib/toast';
 import { useT } from '../lib/i18n';
 
 /**
- * Makes the whole window - not one textarea - a target for a link, and for
- * the .txt/.dlc/.ccf/.rsdf files the collector's own FileDrop zone already
- * takes. Paste works the document over the same way, one Ctrl+V anywhere
- * that is not already a field of its own.
+ * GlobalIntake makes the whole window a paste and drop target for links and
+ * container files. It stays out of editable fields and of drops a closer
+ * handler already took.
  *
- * Mounted once, beside CaptchaModal, for the same reason that one is: a
- * listener scoped to a single page's component tree only ever hears an
- * event that lands on that one page, and both the collector and the
- * download list are places a link or a container file lands (build-plan.md
- * section 8's Wave 8 note, 8B).
- *
- * Both listeners back off the moment isEditableTarget is true, and drop
- * additionally backs off once anything closer to the cursor has already
- * called preventDefault - TaskList's own column-header reorder and
- * Collector's own paste box both do, and checking e.defaultPrevented here
- * is the same pattern Collector's own context-menu handler already uses to
- * stay out of a more specific handler's way. Paste reads
- * event.clipboardData, never navigator.clipboard: the former needs no
- * permission and works on the bare http://192.168.x.x address this app
- * ordinarily runs behind, which is not a secure context and where
- * navigator.clipboard is undefined outright - see PasteFromClipboardButton
- * for the one control that explicitly does need it, and hides itself where
- * it cannot.
+ * Paste reads event.clipboardData, which needs no permission and works on a
+ * plain-http address where navigator.clipboard does not exist.
  */
 export function GlobalIntake() {
   const { toast } = useToast();
@@ -76,9 +59,7 @@ export function GlobalIntake() {
 
     function onDragOver(e: DragEvent) {
       if (isEditableTarget(e.target)) return;
-      // Required for the drop below to ever fire with custom handling at
-      // all - the browser's own default for an unhandled dragover is to
-      // refuse the drop outright.
+      // Without this the browser refuses the drop.
       e.preventDefault();
     }
 
@@ -106,15 +87,8 @@ export function GlobalIntake() {
     };
   }, [t, toast]);
 
-  // The clipboard watch rides along here rather than in a component of its own
-  // for exactly the reason the listeners above are here: this is the one place
-  // in the tree that is mounted once and stays mounted, and a poller that
-  // unmounted with the collector page would stop the moment somebody looked at
-  // the download list.
-  //
-  // Off unless switched on, and the switch is only offered where it can
-  // actually run - see clipboardWatch.ts on secure contexts and on why a
-  // refused permission ends the watch instead of re-asking forever.
+  // The clipboard watch lives here because this component stays mounted across
+  // pages. A refused permission ends the watch instead of asking again.
   useEffect(() => {
     if (!watch) return;
     return startClipboardWatch((o) => {
@@ -123,9 +97,7 @@ export function GlobalIntake() {
           toast(t('collector.toastStaged', { n: o.n }), 'ok');
           break;
         case 'none':
-          // Silent on purpose: the ordinary cause is copying a link that is
-          // already in the collector, and a toast for that would fire every
-          // time somebody re-copies something.
+          // Usually a re-copied link already in the collector.
           break;
         case 'denied':
           setWatch(false);

@@ -1,22 +1,8 @@
-// The native hoster login: KL's own host list, username/password form and
-// per-row sync status against the headless-JD sidecar - see
-// internal/hosterauth's doc comment for the full design. This is
-// KnightLoader's own Carbon UI end to end; nothing here ever shows JD's own
-// web interface, an iframe of it, or redirects to it. Saving a login writes
-// the credential into JD's own account config through JD's Remote API, and
-// JD's existing, already-working hoster plugin performs the actual login -
-// the same "JD's UI never shown, everything through JD's API" rule
-// internal/resolver/jd/client.go already follows for every other JD call.
-//
-// The table itself is AccountTable, shared with the debrid card (jdp,
-// 2026-09-07: "bei beiden Cards (Debrid, hoster) sollen die spalten gleich
-// sein"). What this file still owns is the two things that are genuinely
-// different here: the status badge, whose states are about JD accepting a
-// login rather than about a service answering, and the pick-a-host dialogue.
-//
-// Mounted from web/src/pages/Accounts.tsx's HosterLoginsSlot - see that
-// file's comment on the slot for why this is one import and one render call
-// there, not a rewrite of the page around it.
+// Hoster logins for the headless JD sidecar (see internal/hosterauth). Saving
+// writes the credential into JD's account config through its Remote API, and
+// JD's hoster plugin performs the login; JD's own UI is never shown. The table
+// is AccountTable, shared with the debrid card; this file adds the JD status
+// badge and the host picker.
 import { useCallback, useEffect, useState } from 'react';
 import {
   type HosterHost,
@@ -34,17 +20,10 @@ import { AccountTable } from './AccountTable';
 import { IconAccounts, IconClose, IconPlus, IconSearch, IconTrash } from '../lib/icons';
 import { HosterIcon } from './HosterIcon';
 
-// Faster than ACCOUNTS.HEALTH_POLL_MS (30s): a login this reconciler just
-// added moves through queued -> active/rejected in seconds to a couple of
-// minutes while JD's own account checker runs, not the hours an expiry or a
-// traffic figure takes to change - a poll as slow as that one would leave a
-// freshly saved row looking stuck long after JD has already answered.
+// Faster than the 30s account health poll, since a new login moves from queued
+// to active or rejected within seconds to minutes.
 const POLL_MS = 8000;
 
-/** What the dialogue is doing: adding a login for a host still to be picked,
- *  or editing the one that exists for a host already chosen. The password box
- *  starts on the redaction placeholder in the second case, which the server
- *  reads as "not retyped" and leaves the stored secret alone. */
 type Dialog = { mode: 'new' } | { mode: 'edit'; login: HosterLogin };
 
 export function HosterLoginSection() {
@@ -53,17 +32,14 @@ export function HosterLoginSection() {
   const [logins, setLogins] = useState<HosterLogin[] | null>(null);
   const [hosts, setHosts] = useState<HosterHost[]>([]);
   const [dialog, setDialog] = useState<Dialog | null>(null);
-  // The host waiting on an answer before its login goes. Null at rest, and the
-  // only path to removeHosterLogin - see doRemove below.
+  // The login awaiting removal confirmation.
   const [confirming, setConfirming] = useState<HosterLogin | null>(null);
 
   const load = useCallback(async () => {
     try {
       setLogins(await fetchHosterLogins());
     } catch {
-      // A missed poll leaves the previous rows on screen rather than blanking
-      // a working list - the same choice the debrid table above makes by only
-      // flipping loadError on the very first load.
+      // A missed poll keeps the previous rows.
     }
   }, []);
 
@@ -80,10 +56,7 @@ export function HosterLoginSection() {
   }, []);
 
   async function onToggle(row: HosterLogin, enabled: boolean) {
-    // Optimistic, the same way the debrid table's own switch is: the toggle is
-    // the row's only feedback, and a spinner over one reads as broken rather
-    // than as busy. The reconcile behind it takes a moment - JD has to accept
-    // or drop the account - and the poll above corrects the row when it lands.
+    // Optimistic; the reload corrects the row once JD has reconciled.
     setLogins((cur) => cur?.map((x) => (x.host === row.host ? { ...x, enabled } : x)) ?? cur);
     try {
       await setHosterLoginEnabled(row.host, enabled);
@@ -93,11 +66,7 @@ export function HosterLoginSection() {
     await load();
   }
 
-  // Asked, not done. The password behind this row lives in the encrypted store
-  // and in JD's own account config, and nothing on this page can read it back -
-  // so the press that drops it is not reversible from anywhere in the app.
-  // GlimStone 1.12.0: name the stake in a window and let the question do the
-  // warning, rather than a colour.
+  // Confirmed first, since the stored password cannot be read back.
   async function doRemove(host: string) {
     setConfirming(null);
     try {
@@ -124,9 +93,7 @@ export function HosterLoginSection() {
             status: <HosterLoginStatusBadge login={row} />,
             tier: row.tier,
             expiry: row.expiry,
-            // Bytes or nothing: JD reports trafficLeft and trafficMax and no
-            // percentage at all, so a row whose hoster states no quota shows a
-            // dash rather than a bar with an invented full.
+            // JD reports bytes left and max; without a max the row shows a dash.
             traffic: { used: Math.max(0, (row.trafficMax ?? 0) - (row.trafficLeft ?? 0)), limit: row.trafficMax ?? 0 },
             onToggle: (v) => void onToggle(row, v),
             onEdit: () => setDialog({ mode: 'edit', login: row }),
@@ -135,11 +102,6 @@ export function HosterLoginSection() {
         />
       )}
 
-      {/* accounts.newAccount, the same key the debrid card's own button reads
-          (jdp, 2026-09-07: "beie hinzufügen buttons sollen Konto hinzufügen
-          heißen"). One key rather than two with identical text: two keys that
-          have to agree across 42 catalogues are two keys that will one day
-          disagree in one of them. */}
       {hasRows ? (
         <Button
           kind="secondary"
@@ -179,13 +141,7 @@ export function HosterLoginSection() {
           onClose={() => setConfirming(null)}
           footer={
             <>
-              {/* The same footer the debrid card's own confirmation carries,
-                  and deliberately identical to it: cancel then the commit, the
-                  commit LAST because it is the answer that goes ahead
-                  (GlimStone 1.14.0), ordered by JSX alone so the pair mirrors
-                  in an RTL language. Both wear a mark - a footer is all glyphs
-                  or none - and neither wears a status colour, because the
-                  sentence above is what warns. */}
+              {/* Matches the debrid card's confirmation footer. */}
               <span className="flex-1" />
               <Button kind="ghost" icon={<IconClose width={16} height={16} />} onClick={() => setConfirming(null)}>
                 {t('common.cancel')}
@@ -211,8 +167,7 @@ function HosterLoginStatusBadge({ login }: { login: HosterLogin }) {
   const { t } = useT();
   switch (login.status) {
     case 'off':
-      // Its own reading, not a greyed-out "queued": a switched-off login is
-      // not waiting for anything. JD does not have it at all.
+      // Not "queued": JD does not have a switched-off login at all.
       return (
         <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-carbon-textMuted">
           <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-carbon-textMuted" />
@@ -235,11 +190,8 @@ function HosterLoginStatusBadge({ login }: { login: HosterLogin }) {
         </span>
       );
     default:
-      // 'queued' covers two real states this badge deliberately does not
-      // split further on screen - "JD hasn't confirmed it yet" and "JD has
-      // it but hasn't validated it yet" - both mean the same thing to a
-      // user looking at a row: nothing to do, check back shortly. The
-      // detail text (from hosterauth.LoginState.Detail) still says which one.
+      // 'queued' covers both "not yet confirmed" and "not yet validated" by JD;
+      // the detail text says which.
       return (
         <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-statusNeutral">
           <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusNeutralSolid" />
@@ -250,9 +202,7 @@ function HosterLoginStatusBadge({ login }: { login: HosterLogin }) {
   }
 }
 
-/** The placeholder the server reads as "the caller did not retype this"
- *  (accounts.Redacted). Sent back unchanged, the stored password survives an
- *  edit that only changed the username. */
+// accounts.Redacted: sent back unchanged, it keeps the stored password.
 const REDACTED = '********';
 
 function HosterLoginDialog({
@@ -348,21 +298,11 @@ function HosterLoginDialog({
                 onClick={() => setPicked(h)}
                 className="flex items-center gap-3 rounded-[var(--radius-control)] px-3 py-2 text-start hover:bg-carbon-hover"
               >
-                {/* The icon here as well as in the list of configured logins
-                    (jdp, 2026-09-05: "die logos der hoster werden nicht
-                    angezeigt" - this picker is where he was looking). The
-                    catalogue is hundreds of hosts long, so it costs what it
-                    looks like it costs: HosterIcon's <img> is lazy, so only
-                    the rows a person has actually scrolled to are ever
-                    fetched, and the server keeps each one after the first. */}
+                {/* Lazy, so only rows scrolled into view fetch their icon. */}
                 <HosterIcon host={h.id} />
                 <span className="text-sm text-carbon-text">{h.label}</span>
-                {/* Multihosters live in this list because JD is the only way to
-                    use them at all - KnightLoader has no backend of its own for
-                    them, so the Debrid card cannot hold them and removing them
-                    here would make them unreachable. Saying what they are is the
-                    honest middle: the list stays complete and stops looking like
-                    it has debrid services scattered through it by accident. */}
+                {/* Multihosters are only usable through JD, so they stay here,
+                    labelled as such. */}
                 {h.multihoster && (
                   <span className="glim-eyebrow ms-auto shrink-0">{t('accounts.hoster.multihoster')}</span>
                 )}
@@ -372,9 +312,7 @@ function HosterLoginDialog({
         </div>
       ) : (
         <div className="flex flex-col gap-4">
-          {/* Only while adding: an edit is about THIS host's credentials, and
-              a "choose a different service" link there would turn a correction
-              into a second, differently-named login. */}
+          {/* Only while adding; an edit stays on its host. */}
           {!editing && (
             <button
               type="button"
@@ -392,11 +330,8 @@ function HosterLoginDialog({
             <TextInput type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} />
           </Field>
 
-          {/* Stated plainly, in the body of the dialogue, not filed behind the
-              (i) bubble InfoBubble is for: this is a genuine widening of
-              custody - the password is about to be sent to and stored by the
-              JD sidecar - and it has to be seen before the click that does
-              it, not one hover away from being missed. */}
+          {/* In the body rather than an (i): the password is about to be handed
+              to the JD sidecar, and that must be seen before saving. */}
           <p className="rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2 text-xs text-carbon-textSub">
             {t('accounts.hoster.custodyNotice')}
           </p>

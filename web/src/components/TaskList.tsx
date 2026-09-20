@@ -113,16 +113,15 @@ import {
 export interface Selection {
   ids: Set<string>;
   toggle: (id: string) => void;
-  /** Replaces the whole selection outright - the write path a plain click
-   *  and a Shift-range both need (TaskListCard's own selectUnit), which a
-   *  per-id toggle cannot express without the caller reconstructing the
-   *  diff itself. */
+  /** Replaces the whole selection, which is the write path a plain click and a
+   *  Shift-range both need (TaskListCard's selectUnit) and which a per-id
+   *  toggle cannot express without the caller working out the diff itself. */
   set: (ids: Set<string>) => void;
 }
 
-// A stable empty default: useUIState leaves the fallback out of its dependencies
-// on purpose, and handing it a fresh [] on every render would make every
-// subscriber think the value changed.
+// A stable empty default: useUIState leaves the fallback out of its
+// dependencies, so a fresh [] on every render would make every subscriber think
+// the value changed.
 const NO_COLLAPSED: string[] = [];
 
 // Every row is the same grid, and the track list reaches it through one custom
@@ -130,45 +129,37 @@ const NO_COLLAPSED: string[] = [];
 // a single element instead of re-rendering several hundred rows per pointer move.
 const ROW_GRID: CSSProperties = { gridTemplateColumns: 'var(--kl-cols)' };
 
-// What a row's drag style is when no drag is in flight: nothing at all.
+// A row's drag style when no drag is in flight: nothing at all.
 //
-// EMPTY rather than `{ transform: 'none', transition: 'none' }`, because React
-// clears an inline style property by seeing it DISAPPEAR from the style object;
-// spelling out 'none' would leave both properties on the element for the rest of
-// the session and quietly override whatever the stylesheet has to say about
-// them. Shared constants so that neither the empty style nor the empty map is
-// rebuilt for every row on every render of a list several hundred rows long.
+// Empty rather than `{ transform: 'none', transition: 'none' }`, because React
+// clears an inline style property by seeing it disappear from the style object,
+// and spelling out 'none' would leave both properties on the element for the
+// rest of the session, overriding whatever the stylesheet says about them.
+// Shared constants, so neither the style nor the map is rebuilt per row.
 const NO_SLIDE: CSSProperties = {};
 const NO_OFFSETS = new Map<string, number>();
 
 /**
- * A selected row's own painted ground, as one opaque colour.
- *
- * The same colour `.glim-row-selected` paints (index.css: the accent at 22% over
- * whatever the row lies on, which here is the card's --carbon-surface), written
- * as a mix rather than as an alpha layer so the row's action strip can REPEAT it
- * instead of stacking a second 22% on top of it. Inline on the row, because a
- * selected row keeps this fill under the pointer as well and an inline value is
- * the only one that beats the hover variant beside it.
+ * A selected row's painted ground, as one opaque colour: what
+ * `.glim-row-selected` paints (index.css), written as a mix rather than as an
+ * alpha layer so the row's action strip can repeat it instead of stacking a
+ * second 22% on top. Inline on the row, because a selected row keeps this fill
+ * under the pointer too and only an inline value beats the hover variant.
  */
 const SELECTED_GROUND = 'color-mix(in srgb, var(--accent-fixed) 22%, var(--carbon-surface))';
 
 /**
- * The rainbow wash a link row is painting right now, as the class that repeats
- * it on that row's action strip.
- *
- * The wash is an inset box-shadow on the ROW (index.css's .glim-tint rules), and
- * an inset shadow paints under its element's own children - so a strip with a
- * ground of its own covers it and reads as a grey tile punched into a coloured
- * row. Measured in Rainbow mode, dark theme: the row is rgb(79,70,42) and the
- * strip was rgb(57,57,57).
+ * The rainbow wash a link row is painting, as the class that repeats it on that
+ * row's action strip. The wash is an inset box-shadow on the row (index.css's
+ * .glim-tint rules), and an inset shadow paints under its element's children,
+ * so a strip with a ground of its own covers it and reads as a grey tile
+ * punched into a coloured row.
  *
  * Chosen here rather than written as four stacked CSS variants, because a row
  * that is both running and selected would then come down to the order Tailwind
- * happened to generate the two rules in. One row, one class, no ties.
- *
- * The literals are spelled out in full: Tailwind reads the source text, so a
- * class assembled from pieces at runtime is a class that never gets generated.
+ * generated the two rules in. The literals are spelled out in full, since
+ * Tailwind reads the source text and never generates a class assembled at
+ * runtime.
  */
 function rowWash(selected: boolean, active: boolean): string {
   // A selected row's tint replaces its hue wash in every rainbow mode, at rest
@@ -178,33 +169,23 @@ function rowWash(selected: boolean, active: boolean): string {
   }
   // A running row carries the stronger soft tint, in both modes, without hover.
   if (active) return '[[data-rainbow]_&]:shadow-[inset_0_0_0_999px_var(--item-hue-soft)]';
-  // And the plain case: on hover, in BOTH modes. It used to split them - at rest
-  // under Rainbow, on hover under Reactive - and index.css no longer does, on
-  // jdp's call ("die link zeilen sollen im regenbogen modus nicht farbig
-  // eingefärbt sein. nur bei mouse over sollen sie farbig werden"). One rule for
-  // both is now the honest mirror of the row, and the split version would have
-  // painted this strip at rest in Rainbow mode while the row beneath it stayed
-  // plain. Invisible today, because the strip only fades in on the same hover -
-  // which is exactly the kind of agreement that quietly stops being true.
+  // The plain case: on hover, in both modes, mirroring index.css. Splitting
+  // them by mode would paint this strip at rest in Rainbow while the row
+  // beneath it stayed plain.
   return '[[data-rainbow]_&]:group-hover:shadow-[inset_0_0_0_999px_var(--item-hue-wash)]';
 }
 
 /**
- * useCollapsedPackages is the folded set, and the only thing that knows where it
- * is kept.
- *
- * The list card holds it and so does the page, because the right-click menu
- * folds packages too and the menu belongs to the page. Both read the same field
- * of the same store, which notifies every subscriber on write — so the twisty
- * and the menu entry can never disagree about what is open.
+ * useCollapsedPackages is the folded set, and the only thing that knows where
+ * it is kept. The list card holds it and so does the page, because the
+ * right-click menu folds packages too and the menu belongs to the page. Both
+ * read the same field of the same store, which notifies every subscriber on
+ * write, so the twisty and the menu entry cannot disagree about what is open.
  *
  * Folded packages are keyed by name, which is the only identity the wire model
  * carries: core.Task has a package name and no package id. SetPackage rewrites
  * the name, so a rename or a Packagizer re-package makes a folded package come
- * back expanded. That is the mild failure of the two — the harmful one would be
- * pruning names that are not on screen, which would unfold every package the
- * search is currently hiding — but it needs a stable package id on the task to
- * fix properly, and that is the model owner's lane, not this file's.
+ * back expanded. Fixing that needs a stable package id on the task.
  */
 export function useCollapsedPackages(profile: ListProfile = 'downloads') {
   const [stored, setStored] = useUIState<string[]>(`list.collapsed.${profile}`, NO_COLLAPSED);
@@ -242,13 +223,11 @@ export function useCollapsedPackages(profile: ListProfile = 'downloads') {
 }
 
 /**
- * The tree control, as a filled triangle rather than a chevron.
- *
- * Swing's JTree draws exactly this, which is what a package row looks like in
- * JDownloader, and it is the one mark on the row that says "there is something
- * inside this". It points along the reading direction when shut and downward
- * when open, so in an Arabic or Hebrew interface it points the way that
- * interface reads.
+ * The tree control, as a filled triangle rather than a chevron: Swing's JTree
+ * draws exactly this, which is what a package row looks like in JDownloader,
+ * and it is the one mark on the row that says there is something inside. It
+ * points along the reading direction when shut and downward when open, so in an
+ * Arabic or Hebrew interface it points the way that interface reads.
  */
 function Twisty({ open }: { open: boolean }) {
   const rtl = typeof document !== 'undefined' && document.documentElement.dir === 'rtl';
@@ -286,27 +265,23 @@ function TaskRow({
   ctx: CellContext;
   columns: ColumnDef[];
   selection?: Selection;
-  /** Position in the rendered list — the rainbow palette position. */
+  /** Position in the rendered list, which is the rainbow palette position. */
   index: number;
-  /** Press, sweep-select and move-by-drag — see TaskListCard, the one place it
-   *  is built, and the one place that knows what a press means. */
+  /** Press, sweep-select and move-by-drag; see TaskListCard, the one place it
+   *  is built and the one place that knows what a press means. */
   dnd: RowDnD;
-  /** Opens the properties panel for whatever a single click just selected
-   *  (jdp, 2026-08-26: "wenn man einmal auf einen link oder einen ordner
-   *  klickt kommt sofort die eigenschaften card. die soll erst erscheinen
-   *  bei doppelklick" - a plain click used to open it immediately as a
-   *  side effect of selecting anything at all, which made a quick
-   *  multi-select impossible without the panel flashing open and shut on
-   *  every intermediate click). The double-click's own leading press has
-   *  already marked this row by the time this fires - no modifier keys to
-   *  read here, only "show it now". */
+  /** Opens the properties panel for what a double-click selected. A plain
+   *  click opening it made a quick multi-select impossible, with the panel
+   *  flashing open and shut on every intermediate click. The double-click's
+   *  leading press has already marked this row by the time this fires, so
+   *  there are no modifier keys to read here. */
   onOpenProperties?: () => void;
   /** True for the one row that owns the list's tab stop. Everything focusable
    *  inside a row reads it too, or Tab would still walk four hundred badges. */
   current: boolean;
   onKeyDown: (e: KeyboardEvent<HTMLElement>) => void;
   /** The tree's own sibling-set numbers, off the model and never off the
-   *  window - see ListRow. */
+   *  window; see ListRow. */
   level: number;
   posinset: number;
   setsize: number;
@@ -318,15 +293,14 @@ function TaskRow({
   const dragging = dnd.moving(unit);
 
   // In rainbow mode the row owns a colour, and everything inside it that paints
-  // activity — the progress fill above all — reads it through --accent without
+  // activity, the progress fill above all, reads it through --accent without
   // knowing the mode exists. A running row counts as active, so the reactive
-  // reading still shows colour where work is actually happening.
+  // reading still shows colour where work is happening.
   //
   // The colour comes from the row's position, not from a hash of its id. A hash
-  // is stable when rows above finish, which sounds better until three rows land
-  // in the same bucket and two neighbours share a colour — which is the one
-  // thing the mode exists to prevent. By position, eight adjacent rows always
-  // differ.
+  // survives rows above finishing, which sounds better until three rows land in
+  // the same bucket and two neighbours share a colour, which is the one thing
+  // the mode exists to prevent. By position, eight adjacent rows always differ.
   return (
     <div
       // What a right-click landed on. Without it the menu can only ever act on
@@ -334,8 +308,8 @@ function TaskRow({
       // download gets deleted.
       data-task-id={task.id}
       // What the window measures. Separate from data-task-id above because a
-      // folder header carries the same pair and has no task id to be found by -
-      // see useRowWindow's own measureRows.
+      // folder header carries the same pair and has no task id to be found by;
+      // see useRowWindow's measureRows.
       data-row-key={rowKey({ kind: 'task', id: task.id })}
       data-row-kind="task"
       role="treeitem"
@@ -346,18 +320,16 @@ function TaskRow({
       aria-posinset={posinset}
       aria-setsize={setsize}
       onKeyDown={onKeyDown}
-      // The live drag preview moves this row by SLIDING it (a transform), not by
-      // rendering it somewhere else in the list - see TaskListCard's own
-      // previewOffsets. While a drag is in flight this carries a translateY and a
-      // transform transition; with no drag the two properties are simply absent
-      // again and the row sits where the document flow puts it.
+      // The live drag preview slides this row with a transform rather than
+      // rendering it somewhere else in the list; see TaskListCard's
+      // previewOffsets. With no drag in flight the two properties are absent
+      // and the row sits where the document flow puts it.
       //
-      // --row-ground is the row's own painted ground, and the action strip at the
-      // trailing edge wears it - see SELECTED_GROUND and the strip itself. Set
-      // here as an inline property for a selected row on purpose: a selected row
-      // keeps its accent fill under the pointer too (.glim-row-selected:hover
-      // beats the hover utility), and only an inline value beats the hover
-      // variant that would otherwise swap the ground out from under the strip.
+      // --row-ground is the row's painted ground, which the action strip at the
+      // trailing edge wears; see SELECTED_GROUND and the strip itself. Inline
+      // for a selected row, because such a row keeps its accent fill under the
+      // pointer too and only an inline value beats the hover variant that would
+      // otherwise swap the ground out from under the strip.
       style={
         {
           ...hueVars(rainbowAt(index)),
@@ -366,56 +338,33 @@ function TaskRow({
           ...dnd.slide(unit),
         } as CSSProperties
       }
-      // ONE PRESS, AND THE ROW DOES NOT KNOW WHAT IT MEANS. Selecting, sweeping
+      // One press, and the row does not know what it means. Selecting, sweeping
       // a selection over several rows and moving the selection are all the same
-      // pointerdown, told apart by what the pointer does next - see
-      // TaskListCard's own gesture section, which owns every bit of that.
+      // pointerdown, told apart by what the pointer does next; see
+      // TaskListCard's gesture section, which owns every bit of that.
       //
-      // There is no `draggable` here any more, and its absence is the whole
-      // point rather than a tidy-up: a native HTML5 drag takes the pointer over
-      // as soon as it starts, so a press that might still turn out to be a
+      // No `draggable` attribute: a native HTML5 drag takes the pointer over as
+      // soon as it starts, so a press that might still turn out to be a
       // selection sweep cannot be one while the row is draggable.
       onPointerDown={(e) => dnd.press(e, unit)}
-      // Still a double-click and not a second press-and-hold: the properties
-      // panel is opened by a gesture that cannot be confused with a move,
-      // because a double-click never travels the five pixels that start one.
+      // A double-click and not a second press-and-hold: it cannot be confused
+      // with a move, because it never travels the five pixels that start one.
       onDoubleClick={(e) => {
         if (e.target instanceof Element && e.target.closest(CONTROL)) return;
         onOpenProperties?.();
       }}
-      // select-none, unconditionally, and it matters MORE now than it did under
-      // the native drag: a press-and-drag that starts over the row's own text
-      // (the name or URL column - the columns a hand naturally lands on) draws
-      // a blue text selection across half the table while the row sweep is
-      // running underneath it. The gesture itself still works, because pointer
-      // events do not care what the browser thinks it is selecting, but what
-      // you see is two selections at once. The package header beside this row
-      // has this for the same reason.
-      // bg-accent/20, not the softer bg-accentSoft token this used at first
-      // (jdp, 2026-08-26: "wenn eine zeile ausgewählt ist erkennt man das
-      // nicht" - accentSoft is 14% alpha, chosen for a hover/drag hint that
-      // is meant to stay quiet, and a selected row wants the opposite: a
-      // mark somebody actually notices). A real background-color layered
-      // over glim-tint's own inset box-shadow rainbow wash rather than
-      // fighting it for the same CSS property, so both show at once.
-      // THE ROW PAINTS --row-ground AND SO DOES ITS ACTION STRIP: one expression,
-      // one place, because this is the third round on the same fault. The strip
-      // used to name a surface token of its own, and a token is a guess about
-      // what the row is painting - this row hovers to `--carbon-hover` at half
-      // alpha over the card, which is not `--carbon-surface2` and not
-      // `--carbon-surface` either. Measured on the running instance, dark theme:
-      // the hovered row is rgb(45,45,45) and the strip that was meant to match it
-      // was rgb(57,57,57); in the light theme the row is rgb(239,239,239) and the
-      // strip rgb(232,232,232) - a plate that is too light in one theme and too
-      // dark in the other, which is exactly what was reported ("der löschen
-      // button hat immer noch den dunklen Hintergrund bzw. rand"). A variable
-      // cannot be off by a step: whatever this row paints, the strip paints.
+      // select-none, unconditionally: a press-and-drag that starts over the
+      // row's own text draws a blue text selection across half the table while
+      // the row sweep runs underneath it. The package header carries it too.
       //
-      // The hover mix is the same colour the `bg-carbon-hover/50` utility used to
-      // composite to, written as an opaque mix instead of an alpha layer so that
-      // the strip can repeat it rather than stack a second layer of it.
-      // has-[:focus-visible] is the keyboard's own hover: the strip opens on the
-      // row a badge inside it is focused on, and the ground has to arrive with it.
+      // The row paints --row-ground and so does its action strip, in one
+      // expression, because a surface token in the strip is a guess about what
+      // the row is painting: this row hovers to --carbon-hover at half alpha
+      // over the card, which is neither --carbon-surface2 nor --carbon-surface.
+      // The hover mix is what `bg-carbon-hover/50` composites to, written
+      // opaque so the strip repeats it rather than stacking a second layer.
+      // has-[:focus-visible] is the keyboard's hover, and the ground has to
+      // arrive with it.
       className={`glim-hue glim-tint select-none ${task.status === 'running' ? 'glim-active' : ''} ${dragging ? 'opacity-50' : ''} ${
         selection?.ids.has(task.id) ? 'glim-row-selected' : ''
       } group relative grid items-center px-3 py-2 transition-colors
@@ -430,30 +379,26 @@ function TaskRow({
             key={col.id}
             dir={col.ltr ? 'ltr' : undefined}
             // The name cell is the tree column, so a link inside a package is
-            // indented under it — the second half of what makes the header above
-            // read as a container rather than as another row in bold. Written as
-            // its own padding pair rather than as `px-2 ps-6`, because two
-            // utilities setting the same edge leave the result to stylesheet
-            // order.
+            // indented under it, which is the second half of what makes the
+            // header above read as a container rather than as another row in
+            // bold. Written as its own padding pair rather than as `px-2 ps-6`,
+            // because two utilities setting the same edge leave the result to
+            // stylesheet order.
             //
-            // TREE_INDENT, not a guess: it is the exact width of the package
-            // row's leading furniture (see columns.tsx), so a link's name starts
-            // where its package's name starts. At `ps-9` it started 24px BEFORE
-            // it — measured on the live instance — which reads as the link being
-            // the outer level and the package the inner one, i.e. the tree
-            // upside down.
+            // TREE_INDENT is the exact width of the package row's leading
+            // furniture (see columns.tsx), so a link's name starts where its
+            // package's name starts. A smaller value starts it before the
+            // package's, which reads as the tree upside down.
             style={col.id === 'name' ? { paddingInlineStart: `${TREE_INDENT}px` } : undefined}
-            // text-xs is the scale's dense row, which is what a table cell
-            // takes. It was 12.5px, a step the four-row table does not have.
+            // text-xs is the scale's dense row, which is what a table cell takes.
             className={`min-w-0 truncate text-xs text-carbon-textSub ${
               col.id === 'name' ? 'pe-2' : 'px-2'
             } ${col.align === 'end' ? 'text-end' : col.align === 'center' ? 'text-center' : 'text-start'} ${col.numeric ? 'glim-num' : ''}`}
           >
             {/* A column that renders plain text carries that text in the house
-                bubble, so a name too long for its width is still readable
-                without widening the column first. The house bubble, never a
-                native `title=` and the operating system's own balloon beside
-                it - see columns.tsx's `Tip`. */}
+                bubble, so a name too long for its width is readable without
+                widening the column first. Never a native `title` and the
+                operating system's balloon beside it; see columns.tsx's Tip. */}
             {typeof node === 'string' ? (
               <Tip tip={node} className="block truncate">
                 {node}
@@ -465,65 +410,34 @@ function TaskRow({
         );
       })}
 
-      {/* The whole strip floats over the row's trailing edge on hover now, and
-          owns no grid track at all (jdp, 2026-09-06: "im downloadtab ist rechts
-          eine spalte die leer ist" - a fixed 152px gutter, empty on nearly every
-          row, was exactly that column). It carries the row's own ground so the
-          cells it covers do not read through it, and the context menu on the
-          same row offers every one of these verbs for anybody not using a
-          pointer.
-          THE GROUND IS THE ROW'S OWN --row-ground, and getting there took three
-          rounds. It carried --carbon-surface with an elevation shadow first, then
-          --carbon-surface2 on the reasoning that the row hovers to surface2. The
-          row does not: it hovers to --carbon-hover at half alpha over the card.
-          Measured, dark theme: row rgb(45,45,45) against a strip of rgb(57,57,57);
-          light theme: row rgb(239,239,239) against rgb(232,232,232). Both rounds
-          were the same mistake - a second opinion about what the row is painting
-          - and the report came back both times ("der löschen button hat immer
-          noch den dunklen Hintergrund bzw. rand"). There is no opinion left here:
-          the row publishes what it paints and the strip reads it.
-          No ground of its own means no shadow either: a shadow is what makes a
-          surface float, and this one is not floating, it is the row.
-          The rainbow wash is the other half of what the row paints, and an inset
-          shadow does not reach a child, so the strip repeats the one its row has
-          (index.css's own .glim-tint rules). Which one that is depends on the row
-          and not on the mode alone, so it is chosen here rather than layered in
-          CSS, where an active-and-selected row would come down to stylesheet
-          order. In Reactive mode the wash is a hover reveal, so the strip's copy
-          is too - except on a selected or running row, which carries its tint in
-          that mode at rest.
-          IconBadge, not a plain ghost icon (jdp, on the same pattern in
-          Rules.tsx: "die icons ... sind nicht im Glimstone. das sollen
-          farbige quadratischen badges mit icon sein") - this is the
-          highest-traffic row in the app, so it gets the fix first. */}
-      {/* Hued as of jdp, 2026-08-25: "alle quadratischen icons in die
-          farbmodie bzw die farbengine aufnehmen. auch die überhalb des
-          hauptfensters" - a Kurswechsel from this section's own earlier
-          reasoning (the row already owns one rainbow position via
-          glim-hue/glim-tint above, and colouring several DIFFERENT-job
-          badges with small repeating indices would read as a second,
-          competing colour layer rather than this row's own colour). Kept
-          per SLOT rather than per row-position, so every row's own
-          play/pause/resume badge is always the same hue and Folder is
-          always the next one after it, the same "the position is the
-          identity" rule Look.tsx's own colour swatches and every other
-          badge SET in this app already follow - not a hash of the task id,
-          which would repaint a badge a different colour every time its own
-          row moved. Trash itself takes a hue too now (jdp, 2026-08-25:
-          "der löschen badge soll nie anders eingfärbt sein... der soll
-          ganz normal eingefärbt sein") - a second Kurswechsel, reversing
-          this file's own earlier "destructive action keeps its own
-          semantic red" choice: the badge that stood out in solid red next
-          to its now-hued, at-rest-neutral siblings was read as the actual
-          inconsistency, not the fix. */}
+      {/* The strip floats over the row's trailing edge on hover and owns no
+          grid track, where a fixed gutter was an empty column on nearly every
+          row. It carries the row's own ground so the cells it covers do not
+          read through it, and the context menu on the same row offers every one
+          of these verbs for anybody not using a pointer.
+          The ground is the row's own --row-ground: a surface token here is a
+          second opinion about what the row is painting, and the row hovers to
+          --carbon-hover at half alpha over the card, which no surface token
+          matches in both themes. No ground of its own means no shadow either, a
+          shadow being what makes a surface float, and this one is the row.
+          An inset shadow does not reach a child, so the strip repeats the
+          rainbow wash its row has (index.css's .glim-tint rules). Which one
+          that is depends on the row and not on the mode alone, so it is chosen
+          in rowWash rather than layered in CSS, where an active-and-selected
+          row would come down to stylesheet order.
+          The badges are hued per slot rather than per row position, so a row's
+          play badge is always the same hue and Folder is always the next one,
+          the same "position is the identity" rule every other badge set in this
+          app follows. A hash of the task id would repaint a badge a different
+          colour every time its row moved. Trash takes a hue as well: a badge in
+          solid red beside neutral siblings reads as the inconsistency. */}
       <div
-        // :has() and not :focus-within, which matches the element ITSELF: with
-        // focus-within the strip popped open on the focused row and covered its
-        // own size, speed and status cells, so a keyboard user walking the list
-        // had them permanently hidden behind it on whichever row they stood on.
-        // :has() never matches the element itself, so the strip still appears
-        // when a badge inside it takes focus and stays out of the way when the
-        // row does.
+        // :has() and not :focus-within, which also matches the element itself:
+        // with focus-within the strip opens on the focused row and covers its
+        // size, speed and status cells, so a keyboard user walking the list has
+        // them hidden on whichever row they stand on. :has() never matches the
+        // element itself, so the strip appears when a badge inside it takes
+        // focus and stays out of the way when the row does.
         className={`absolute inset-y-px end-2 z-10 flex items-center gap-1 rounded-[var(--radius-control)]
           bg-[var(--row-ground)] px-1 opacity-0 transition-opacity
           group-hover:opacity-100 [&:has(:focus-visible)]:opacity-100 ${rowWash(
@@ -566,8 +480,6 @@ function TaskRow({
             onClick={() => resume(task.id, base)}
           />
         )}
-        {/* No second opacity layer inside the strip any more: the whole strip
-            already appears on hover, so this was a fade inside a fade. */}
         <div className="flex items-center gap-1">
           {collected && (
             <IconBadge
@@ -580,19 +492,12 @@ function TaskRow({
               onClick={() => recheckTasks([task.id], base)}
             />
           )}
-          {/* No folder badge here any more (jdp, 2026-09-05). The dialog it
-              opened is still one right-click away on every row, and the row's
-              own hover strip is the wrong place for a setting: the other
-              badges here DO something to this link, while that one only opened
-              a form about it. The dialog itself is unchanged and still reached
-              from the row menu (taskMenuGroups' own onOptions). */}
           {/* Before Restart and never instead of it. This one appears only
-              while a wait is actually running, and it spends the retry that was
-              already scheduled rather than granting a new one. Restart beside it
-              stays the plain "run this again" for a row that is finished or done
-              waiting. No guard needed at the call site: RetrySkipBadge draws
-              nothing unless a retry is genuinely pending, which is narrower than
-              `settled` and keeps the badge off every finished download. */}
+              while a wait is running, and it spends the retry that was already
+              scheduled rather than granting a new one; Restart beside it is the
+              plain "run this again" for a row that is finished or done waiting.
+              No guard at the call site: RetrySkipBadge draws nothing unless a
+              retry is pending, which is narrower than `settled`. */}
           <RetrySkipBadge task={task} base={base} focusable={current} />
           {settled && (
             <IconBadge
@@ -622,7 +527,7 @@ function TaskRow({
 }
 
 /**
- * The package header's name cell — the folder, the tree control, the name and
+ * The package header's name cell: the folder, the tree control, the name and
  * the file count, which together are what makes a package look like a package
  * rather than like a row somebody made bold.
  *
@@ -641,9 +546,9 @@ function PackageName({
   items: Task[];
   collapsed: boolean;
   onToggle: () => void;
-  /** Whether this row currently owns the list's tab stop - see TaskRow's own
-   *  `current`. The twisty is a real button and would otherwise be its own
-   *  tab stop on every drawn package. */
+  /** Whether this row owns the list's tab stop; see TaskRow's `current`. The
+   *  twisty is a real button and would otherwise be its own tab stop on every
+   *  drawn package. */
   focusable: boolean;
 }) {
   const { t } = useT();
@@ -651,8 +556,8 @@ function PackageName({
   const done = items.filter((x) => x.status === 'done').length;
   const label = t(collapsed ? 'task.expand' : 'task.collapse');
   // The twisty draws a glyph and nothing else, so it needs a tooltip
-  // unconditionally - and it takes the house bubble, never the OS balloon the
-  // native attribute draws (see columns.tsx's `Tip`).
+  // unconditionally, and it takes the house bubble rather than the OS balloon
+  // the native attribute draws (see columns.tsx's Tip).
   const tip = useTooltip<HTMLButtonElement>(label);
   const { role: _role, tabIndex: _tabIndex, ...hover } = tip.triggerProps;
 
@@ -661,12 +566,11 @@ function PackageName({
   }`;
 
   return (
-    // @container, because what follows the name is whole or gone — never
+    // @container, because what follows the name is whole or gone, never
     // shredded. `truncate` is the right tool for a value that still means
-    // something cut short, and the wrong one for a two-word label: at a narrow
-    // name column "2 Dateien" rendered as "2 D…", which is not information, it
-    // is damage. Sized against this row rather than the viewport, since the name
-    // column is dragged and hidden independently of the window.
+    // something cut short and the wrong one for a two-word label, where "2
+    // files" becomes "2 f…". Sized against this row rather than the viewport,
+    // since the name column is dragged and hidden independently of the window.
     <div className="@container flex min-w-0 items-center gap-1.5">
       <button
         type="button"
@@ -689,34 +593,27 @@ function PackageName({
         height={FOLDER_GLYPH}
         className="shrink-0 text-carbon-textMuted"
       />
-      {/* The package wears the mark when every link in it agrees, the same
-          rule the Enabled column's own aggregate follows ("a package is on
-          when every link in it is"). Without this the mark exists only on
-          expanded rows, and a collapsed package - which is how a list of six
-          packages is normally read - would hide the very thing it is there to
-          announce. Rows that disagree show nothing here and keep their own
-          marks inside. */}
+      {/* The package wears the mark when every link in it agrees, the same rule
+          the Enabled column's aggregate follows. Without it the mark exists
+          only on expanded rows, so a collapsed package would hide the thing it
+          is there to announce. Rows that disagree show nothing here and keep
+          their own marks inside. */}
       <PriorityTag value={sharedPriority(items)} names={priorityNames} t={t} />
-      {/* The name wins the room. Everything after it is shrinkable and the name
-          is not, below its own floor: with the counts pinned instead, a package
-          called "Season One" in a 200px column rendered as "S · 3 files", which
-          is the one word on the row nobody can do without. */}
-      {/* text-sm is the scale's body row; it was 13.5px, which is not one of
-          its four steps. */}
+      {/* The name wins the room: everything after it shrinks and the name does
+          not, below its own floor. With the counts pinned instead, a package
+          called "Season One" in a narrow column renders as "S · 3 files", and
+          the name is the one thing on the row nobody can do without. */}
       <Tip
         tip={`${name || t('task.ungrouped')} - ${count}`}
         className="min-w-[5rem] flex-1 truncate text-sm font-semibold text-carbon-text"
       >
         {name || t('task.ungrouped')}
       </Tip>
-      {/* The count hangs in the name's own bubble as well, so a column too
-          narrow to show it has not hidden anything that cannot be got at. Its
-          own online ratio used to print here too ("5/5 online") - removed (jdp,
-          2026-08-26: "wenn der statuspunkt grün ist sind ja alle online" -
-          the package's own aggregate dot in the Status column, colours
-          it exactly that already; printing the same fact a second time in
-          words was the one column where a package read differently from
-          its own status cell). */}
+      {/* The count hangs in the name's bubble as well, so a column too narrow
+          to show it has hidden nothing that cannot be got at. No online ratio
+          beside it: the package's aggregate dot in the Status column already
+          says that, and saying it twice is how a package reads differently
+          from its own status cell. */}
       <span className="glim-num hidden shrink-0 whitespace-nowrap text-[11px] text-carbon-textSub @[13rem]:inline">
         {count}
       </span>
@@ -725,15 +622,12 @@ function PackageName({
 }
 
 /**
- * The gear badge a yt-dlp-routed package's header carries (jdp, 2026-08-25:
- * "auf dem link-ordner soll ein zahnrad-badge sein der mich zu den
- * voreinstellungen des Hosters führt") - it opens that link's own host's
- * "Variante" preset: which of the five rows (video/audio/thumbnail/
- * subtitle/description) a NEW link from this host starts with enabled, and
- * the default quality/audio format those rows start on. Not per-package -
- * per-HOST (GET/POST /api/ytdlp/preset), the same as every other link from
- * the same site, so a package with more than one host shows the badge for
- * whichever host its own "Variante" rows actually share.
+ * The gear badge a yt-dlp-routed package's header carries. It opens that host's
+ * variant preset: which of the five rows a new link from this host starts with
+ * enabled, and the default quality and audio format those rows start on. Per
+ * host rather than per package (GET and POST /api/ytdlp/preset), so a package
+ * with more than one host shows the badge for whichever host its variant rows
+ * share.
  */
 function HosterPresetButton({ host, base, focusable }: { host: string; base: string; focusable: boolean }) {
   const { t } = useT();
@@ -755,23 +649,18 @@ function HosterPresetButton({ host, base, focusable }: { host: string; base: str
   );
 }
 
-// The two failures here are two different kinds and are reported two different
-// ways, which is the judgment GlimStone's failure-feedback section asks for:
-// does a fresh click of the SAME button replace this exact message?
+// The two failures here are reported two different ways, by the test
+// GlimStone's failure-feedback section asks: does a fresh click of the same
+// button replace this message?
 //
-//   the SAVE failed  - yes. A clicked control that could not do what it was
-//                      asked reports through the two channels every action
-//                      uses: the sentence goes to a toast, and the button that
-//                      was pressed shakes. It used to leave the raw server
-//                      string sitting in the footer until the next click
-//                      overwrote it, which is the one shape that section rules
-//                      out by name - it never clears itself, so an hour-old
-//                      failure looks exactly as current as a fresh one.
-//   the LOAD failed  - no. Nothing was clicked and there is no control to
-//                      shake; the dialog simply has nothing to show, and that
-//                      is a standing fact about its contents, not a refused
-//                      action. It stays where the contents would have been, in
-//                      the house's own ErrorCard.
+//   a failed save  yes. The sentence goes to a toast and the button that was
+//                  pressed shakes. Left standing in the footer instead, it
+//                  never clears itself and an hour-old failure looks as
+//                  current as a fresh one.
+//   a failed load  no. Nothing was clicked and there is no control to shake:
+//                  the dialog has nothing to show, which is a standing fact
+//                  about its contents rather than a refused action, so it
+//                  stays where the contents would have been, in an ErrorCard.
 function HosterPresetDialog({ host, base, onClose }: { host: string; base: string; onClose: () => void }) {
   const { t } = useT();
   const { toast } = useToast();
@@ -780,9 +669,9 @@ function HosterPresetDialog({ host, base, onClose }: { host: string; base: strin
   const [audioFormats, setAudioFormats] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [loadError, setLoadError] = useState('');
-  // Counted, and read as the Save button's `key`: an animation already at rest
+  // Counted and read as the Save button's `key`: an animation already at rest
   // does not replay because a class left and came back in one frame, so a
-  // second identical refusal needs a fresh DOM node to shake.
+  // second identical refusal needs a fresh DOM node to shake against.
   const [shake, setShake] = useState(0);
 
   useEffect(() => {
@@ -905,12 +794,11 @@ const CONTROL = 'button, a, input, select, textarea, [role="switch"], [role="che
 // changes when you click a chevron.
 //
 // It draws the header and nothing else. Its links are siblings of it in the
-// table rather than children (see ListRow and TaskListCard's own `rows`): the
-// table is one flat run of rows, because only a flat run can be windowed, and
-// windowing is what keeps a list of several thousand links usable at all -
-// measured, see useRowWindow. The tree is still a tree; it is drawn by the
-// indent on the name cell rather than by the nesting of the elements, which is
-// where it was already drawn from (see TREE_INDENT).
+// table rather than children (see ListRow and TaskListCard's `rows`): the table
+// is one flat run of rows, because only a flat run can be windowed, and
+// windowing is what keeps a list of several thousand links usable. The tree is
+// still a tree, drawn by the indent on the name cell rather than by the nesting
+// of the elements (see TREE_INDENT).
 function PackageRow({
   name,
   items,
@@ -937,19 +825,17 @@ function PackageRow({
   selection?: Selection;
   collapsed: boolean;
   onToggleCollapsed: () => void;
-  /** The rule between one package and the next. It used to be `divide-y` on
-   *  the container of the <section> elements, which is not available to a
-   *  flat run of rows: a divider between every pair of ROWS would draw a line
-   *  under every link. So the seam is a property of the header that opens a
-   *  package, and the very first row of the table has none. */
+  /** The rule between one package and the next. `divide-y` is not available to
+   *  a flat run of rows, where a divider between every pair would draw a line
+   *  under every link, so the seam is a property of the header that opens a
+   *  package and the first row of the table has none. */
   divider: boolean;
-  /** See TaskRow's own identical prop: one press, and this row does not know
-   *  what it means. */
+  /** See TaskRow's identical prop: one press, and this row does not know what
+   *  it means. */
   dnd: RowDnD;
-  /** TaskRow's own onOpenProperties, for a double-click on the package
-   *  header itself. */
+  /** TaskRow's onOpenProperties, for a double-click on the package header. */
   onOpenProperties?: () => void;
-  /** See TaskRow's own identical prop. */
+  /** See TaskRow's identical prop. */
   current: boolean;
   onKeyDown: (e: KeyboardEvent<HTMLElement>) => void;
   level: number;
@@ -964,8 +850,8 @@ function PackageRow({
   return (
     <div
       // The name is the only identity a package has on the wire, and it is
-      // legitimately empty for the ungrouped one — so the attribute is present
-      // and empty rather than absent, and the page tells the two apart.
+      // legitimately empty for the ungrouped one, so the attribute is present
+      // and empty rather than absent and the page tells the two apart.
       data-package-row={name}
       // See TaskRow's own pair: what useRowWindow measures this row by.
       data-row-key={rowKey({ kind: 'package', name })}
@@ -978,77 +864,48 @@ function PackageRow({
       aria-posinset={posinset}
       aria-setsize={setsize}
       onKeyDown={onKeyDown}
-      // Slid out of the way by a drag in flight exactly like a link row - see
-      // TaskRow's own identical style above, and previewOffsets for the
-      // arithmetic. This is the half jdp was missing (2026-09-03: "die ordner
-      // über die man drüber hoovert müssen live verrutschen"): a folder header
-      // is a row like any other here, so the folders a drag passes step aside
-      // while the pointer is still down.
-      // --row-ground: see TaskRow's own identical pair. A folder header rests on
-      // the quiet surface rather than on nothing, so its own resting ground is a
+      // Slid out of the way by a drag in flight exactly like a link row; see
+      // TaskRow's identical style above and previewOffsets for the arithmetic.
+      // A folder header is a row like any other here, so the folders a drag
+      // passes step aside while the pointer is still down.
+      //
+      // --row-ground: see TaskRow's identical pair. A folder header rests on
+      // the quiet surface rather than on nothing, so its resting ground is a
       // real colour here and not `transparent`.
       style={{
         ...ROW_GRID,
         ...(allSelected ? { '--row-ground': SELECTED_GROUND } : null),
         ...dnd.slide(unit),
       }}
-      // See TaskRow's own identical pair. A press on a folder header selects
-      // the whole folder - the twisty button beside the name is CONTROL's own
-      // match, so it keeps folding and unfolding on its own click.
+      // See TaskRow's identical pair. A press on a folder header selects the
+      // whole folder; the twisty button beside the name matches CONTROL, so it
+      // keeps folding and unfolding on its own click.
       onPointerDown={(e) => dnd.press(e, unit)}
       onDoubleClick={(e) => {
         if (e.target instanceof Element && e.target.closest(CONTROL)) return;
         onOpenProperties?.();
       }}
-      // A colour step, not a rule: the header sits on the quiet surface and
-      // the links inside it sit on the card, which is the whole of the weight
+      // A colour step, not a rule: the header sits on the quiet surface and the
+      // links inside it sit on the card, which is the whole of the weight
       // difference between a container and its contents. The selected state
-      // REPLACES the quiet ground rather than sitting alongside it, and it is
-      // now one property doing it: this row paints --row-ground and nothing
-      // else, so a selected header cannot lose a race between two background
-      // utilities the way it once did (the quiet one won in Tailwind's
-      // generated stylesheet order and a selected package was invisible).
-      // `group` IST DER SCHALTER FUER DEN STREIFEN AM ZEILENENDE, und sein
-      // Fehlen hat den Loeschknopf dieser Zeile gebaut und unsichtbar gemacht:
-      // der Streifen steht auf opacity-0 und kommt ueber group-hover, und ohne
-      // diese Klasse gibt es keinen Vorfahren, auf den sich das beziehen kann.
-      // Die Linkzeile hatte sie von Anfang an, diese nie, weil sie bis dahin
-      // nichts zu zeigen hatte.
-      // The quiet surface and the hover step are both read off --row-ground now,
-      // so the strip at the trailing edge wears exactly what this row paints -
-      // see TaskRow's own note for the three rounds that took. The resting mix is
-      // the colour `bg-carbon-surface2/80` composited to over the card, written
-      // opaque so the strip can repeat it rather than stack a second 80% on it:
-      // the strip on THIS row is drawn at rest as well (the collector's gear),
-      // which is the state a hover-only ground would have got wrong.
+      // replaces the quiet ground through the one --row-ground property, so a
+      // selected header cannot lose a race between two background utilities in
+      // Tailwind's stylesheet order. `group` is the switch for the strip at the
+      // row's end, which stands at opacity-0 and comes in on group-hover.
       //
-      // THE HOVER GOES UP THE RAMP, WHICH IS RULE 21 AND NOT A TASTE. This row
-      // used to hover to --carbon-surface2 - the same tone its resting mix is
-      // made of, at 100% instead of 80%, which is 4/255 in the dark theme.
-      // Measured on a running instance: rgb(53,53,53) -> rgb(57,57,57), ΔL* 1.8,
-      // against the link row beneath it moving 3.8 plain and 12.3 in Rainbow.
-      // That is the "kaum" in jdp's report ("können wir das hoover highlighten
-      // der ordner gleich machen wie der links? Bei den ordnern sieht man es
-      // kaum"). A row RESTING on the surface2 tier belongs on surface3, the same
-      // step this repo's own secondary button takes; the link row rests on
-      // nothing and so is the one allowed to take --carbon-hover.
+      // The resting mix is what `bg-carbon-surface2/80` composites to over the
+      // card, written opaque so the strip at the trailing edge can repeat it
+      // rather than stack a second 80%. That strip is drawn at rest here, for
+      // the collector's gear, which a hover-only ground would get wrong.
       //
-      // WRITTEN AT THE SAME 80% AS THE RESTING GROUND, and that is the half that
-      // was measured rather than reasoned. Flat `var(--carbon-surface3)` is the
-      // literal reading of rule 21 and it costs this row two of its own parts:
-      // the Aktiv switch's ON track and the hoster badge are both FILLED with
-      // --carbon-surface3 (components/columns.tsx, components/HosterIcon.tsx), so
-      // a row painted surface3 swallows them whole - measured ΔL* 0.00 between
-      // row and track in BOTH themes, i.e. the switch loses its shape at the one
-      // moment somebody is pointing at it. Moving the same 80% plane one step
-      // instead keeps the row's construction ("the surface2 tier composited over
-      // the card") and keeps a step under everything standing on it: measured
-      // rgb(53,53,53) -> rgb(73,73,73) dark and rgb(237) -> rgb(218) light, a
-      // hover of ΔL* 8.9 / 6.8 - never below the link row's own step (3.8 / 5.2)
-      // - with ΔL* 3.9 / 3.2 left between the row and the switch on it.
-      // web/check-hover-ramp.mjs now reads this custom-property form too; before
-      // this round it only knew the `bg-carbon-*` spelling and could not see the
-      // one place that got it wrong.
+      // The hover goes up the ramp (rule 21), and both the flat tones fail it.
+      // --carbon-surface2 is the tone the resting mix is made of and moves
+      // ΔL* 1.8 against the link row's 3.8, which is not a hover anybody sees.
+      // Flat --carbon-surface3 is what the Aktiv switch's on track and the
+      // hoster badge are filled with, so a row painted with it swallows them
+      // whole. Moving the same 80% plane one step keeps a step under everything
+      // standing on the row. web/check-hover-ramp.mjs reads this
+      // custom-property form as well as the `bg-carbon-*` spelling.
       className={`group relative grid cursor-pointer select-none items-center ${
         allSelected ? 'glim-row-selected' : ''
       } ${divider ? 'border-t border-carbon-border/60' : ''} px-3 py-2.5 transition-colors
@@ -1079,22 +936,16 @@ function PackageRow({
         </div>
       ))}
 
-      {/* The gear badge for a package whose own "Variante" rows share a host
-          (variantKindOf is '' for anything not yt-dlp-routed), floating over
-          the trailing edge like a link row's own strip rather than owning a
-          track: there is no actions track any more.
+      {/* The strip at the end of a folder row, floating over the trailing edge
+          like a link row's own rather than owning a track. It appears on hover,
+          so both kinds of row behave alike; the gear is the exception and
+          stands there without one, because it shows a setting rather than
+          offering an action.
 
-          Collector only (jdp, 2026-09-07: "im downloadtab soll dieser
-          einstellungsbutten nicht erscheinen. das soll nur im sammlertab
-          sein"). What it opens is which variants to keep and at what quality,
-          and that is a decision about a link BEFORE it is fetched: once the
-          rows are in the queue the choice has already been made, and offering
-          it there is offering to change something that is on its way. */}
-      {/* Der Streifen am Ende der Ordnerzeile, jetzt fuer zwei Dinge statt fuer
-          eines. Er erscheint beim Zeigen auf die Zeile, genau wie der Streifen
-          einer Linkzeile, damit beide Zeilenarten sich gleich verhalten - das
-          Zahnrad bleibt die Ausnahme und steht auch ohne Zeigen da, weil es
-          eine Einstellung anzeigt und nicht nur eine Handlung anbietet. */}
+          The gear is for a package whose variant rows share a host
+          (variantKindOf is '' for anything not yt-dlp-routed) and collector
+          only: what it opens is which variants to keep and at what quality,
+          which is a decision about a link before it is fetched. */}
       {(ytdlpHost && ctx.profile === 'collector') || ctx.onRemovePackage ? (
         <div
           className={`absolute inset-y-px end-2 z-10 flex items-center gap-1 rounded-[var(--radius-control)]
@@ -1104,10 +955,10 @@ function PackageRow({
           {ytdlpHost && ctx.profile === 'collector' && (
             <HosterPresetButton host={ytdlpHost} base={base} focusable={current} />
           )}
-          {/* Loescht NICHT selbst: es stellt dieselbe Frage, die eine
-              Mehrfachauswahl stellt, mit Zaehlung, Dateiwahl und Rueckgaengig.
-              Eine eigene Loeschstrecke hier waere eine zweite Stelle, an der
-              sich dieselbe Frage spaeter auseinanderentwickeln kann. */}
+          {/* Does not delete itself: it asks the same question a multiple
+              selection asks, with its count, its file choice and its undo. A
+              removal path of its own here would be a second place for that
+              question to drift. */}
           {ctx.onRemovePackage && (
             <IconBadge
               quiet
@@ -1130,11 +981,11 @@ interface RowDnD {
   /** Whether this row is one of the rows a move in flight is carrying. A move
    *  carries the whole selection, so this is a set and not one key. */
   moving: (unit: RowDragKey) => boolean;
-  /** The press. Everything it can turn into - a click, a selection sweep, a
-   *  move - is decided by TaskListCard; see its own gesture section. */
+  /** The press. Everything it can turn into, a click, a selection sweep or a
+   *  move, is decided by TaskListCard; see its gesture section. */
   press: (e: PointerEvent<HTMLElement>, unit: RowDragKey) => void;
   /** How far this row has to slide to show where the move in flight would put
-   *  it, as the inline style that does it - an empty object when no move is
+   *  it, as the inline style that does it, or an empty object when no move is
    *  running. Every link row and every folder header spreads this into its own
    *  style; see TaskListCard's previewOffsets for where the numbers come from. */
   slide: (unit: RowDragKey) => CSSProperties;
@@ -1145,12 +996,11 @@ type SelectMods = { ctrlKey: boolean; metaKey: boolean; shiftKey: boolean };
 const PLAIN: SelectMods = { ctrlKey: false, metaKey: false, shiftKey: false };
 
 /**
- * A press that has not finished being one thing or another yet.
- *
- * `mode` is settled at the press itself and never changes afterwards, which is
- * the whole of what makes the gesture learnable: what a press will do is
- * decided by what was under it, not by how far it later travels. What the
- * distance decides is only WHETHER it happens at all (see pastThreshold).
+ * A press that has not finished being one thing or another yet. `mode` is
+ * settled at the press itself and never changes afterwards, which is what makes
+ * the gesture learnable: what a press will do is decided by what was under it,
+ * not by how far it later travels. The distance only decides whether it happens
+ * at all (see pastThreshold).
  */
 interface Gesture {
   /** 'select' sweeps a range, 'move' carries the selection. */
@@ -1158,11 +1008,11 @@ interface Gesture {
   /** The row the press landed on. */
   unit: RowDragKey;
   /** Its place in the on-screen order, which is where the sweep measures its
-   *  own direction from. NOT the same thing as the range anchor: a Shift-press
-   *  lands somewhere the anchor is not. */
+   *  own direction from. Not the same as the range anchor: a Shift-press lands
+   *  somewhere the anchor is not. */
   fromIndex: number;
   pointerId: number;
-  /** Where the press was, in client coordinates - the threshold measures from
+  /** Where the press was, in client coordinates. The threshold measures from
    *  here, never from the previous move. */
   fromX: number;
   fromY: number;
@@ -1170,7 +1020,7 @@ interface Gesture {
    *  the pointer is at a moment when the pointer is not moving. */
   atX: number;
   atY: number;
-  /** The keys held at the PRESS. A modifier taken away mid-sweep does not
+  /** The keys held at the press. A modifier taken away mid-sweep does not
    *  change what the sweep is doing, the same way letting go of Shift halfway
    *  through a Shift-click does not undo it. */
   mods: SelectMods;
@@ -1201,13 +1051,12 @@ function unitOfRow(el: HTMLElement): RowDragKey | null {
 // How close to the edge of the scrolling box the pointer has to come before the
 // list starts moving under it, and how fast it moves at the very edge.
 //
-// THE EDGE SCROLL IS NOT A FLOURISH: the native HTML5 drag this gesture
-// replaced got it from the browser for free, and a list that cannot be dragged
-// past the bottom of the window is a list where a folder can only ever be moved
-// as far as one screen. 56px is a little over a row and a half, so the band is
-// reachable without being somewhere the pointer sits by accident; 18px a frame
-// is roughly a screenful every two seconds at the very edge, and it eases in
-// across the band so that entering it does not lurch.
+// The native HTML5 drag this gesture replaced got the edge scroll from the
+// browser, and without it a folder can only be moved as far as one screen. 56px
+// is a little over a row and a half, so the band is reachable without being
+// somewhere the pointer sits by accident; 18px a frame is roughly a screenful
+// every two seconds at the edge, eased in across the band so entering it does
+// not lurch.
 const EDGE_BAND_PX = 56;
 const EDGE_SPEED_PX = 18;
 
@@ -1221,13 +1070,11 @@ function scrollerOf(el: HTMLElement | null): HTMLElement | null {
 }
 
 /**
- * The 8px grab strip on a column's trailing edge.
- *
- * Its own component only so it can hold a hook: it carries the house bubble
- * rather than a native `title=` (ONE CONTROL, ONE TOOLTIP MECHANISM - see
- * columns.tsx's `Tip`), and a hook cannot live inside the header's own
- * `map()`. The handle is invisible furniture with no text of its own, which is
- * the case GlimStone says needs a tooltip unconditionally.
+ * The 8px grab strip on a column's trailing edge. Its own component only so it
+ * can hold a hook: it carries the house bubble rather than a native `title`
+ * (see columns.tsx's Tip), and a hook cannot live inside the header's `map()`.
+ * The handle is invisible furniture with no text of its own, which is the case
+ * GlimStone says needs a tooltip unconditionally.
  */
 function ResizeHandle({
   hint,
@@ -1259,11 +1106,11 @@ function ResizeHandle({
         onDoubleClick={onReset}
         className="absolute inset-y-0 end-0 z-10 w-2 cursor-col-resize touch-none"
       >
-        {/* The visible line, drawn inside the 8px grab area rather than
-            as a border on the cell: a border would sit at the edge of the
-            COLUMN, and the thing to aim at is the handle. Transparent
-            until the header is hovered, the accent once it is, and always
-            ignoring the pointer so it never eats the drag it advertises. */}
+        {/* The visible line, drawn inside the 8px grab area rather than as a
+            border on the cell: a border would sit at the edge of the column,
+            and the thing to aim at is the handle. Transparent until the header
+            is hovered, and always ignoring the pointer so it never eats the
+            drag it advertises. */}
         <span
           aria-hidden
           className="pointer-events-none absolute inset-y-1 end-[3px] w-px bg-transparent
@@ -1322,12 +1169,9 @@ function Header({
         e.preventDefault();
         onMenu({ x: e.clientX, y: e.clientY });
       }}
-      // group/header: hovering anywhere on the header lights up EVERY column
-      // boundary at once (jdp, 2026-09-07: "beim mouseover auf die kopfleiste
-      // sollen die spalten grenzen aufleuchten damit man sie besser sieht und
-      // nicht suchen muss"). Per-handle hover would not do: the handle is 8px
-      // wide and invisible, so you cannot hover what you are still looking for.
-      // The whole row is the target, and the answer is every line at once.
+      // group/header: hovering anywhere on the header lights up every column
+      // boundary at once. Per-handle hover would not do, because the handle is
+      // 8px wide and invisible and nobody can hover what they are looking for.
       className="group/header relative grid items-center border-b border-carbon-border/60 px-3 py-1 select-none"
     >
       {layout.visible.map((col) => {
@@ -1357,9 +1201,8 @@ function Header({
                   col.align === 'end' ? 'justify-end' : col.align === 'center' ? 'justify-center' : 'justify-start'
                 } ${sorted ? 'text-carbon-text' : 'text-carbon-textMuted hover:text-carbon-textSub'}`}
             >
-              {/* One list can call a column something else - see
-                  CellContext's own `profile` doc comment for why that is one
-                  column and not two. */}
+              {/* One list can call a column something else; see CellContext's
+                  `profile` for why that is one column and not two. */}
               <span className="truncate">{t(col.labelByProfile?.[profile] ?? col.labelKey)}</span>
               {sorted === 'asc' && <IconArrowUp width={11} height={11} className="shrink-0" />}
               {sorted === 'desc' && <IconArrowDown width={11} height={11} className="shrink-0" />}
@@ -1376,38 +1219,23 @@ function Header({
         );
       })}
 
-      {/* No bubble in this row any more. It explained the whole header at once
-          - right-click for the column menu, click a label to sort - and it
-          moved to the card's own title badge (jdp, 2026-09-06: "die können wir
-          ja in den cardtitelbadge machen"), where TaskListCard renders it. The
-          header row now holds nothing but the column labels and their resize
-          handles, which is what a header row is.
-
-          Its history, kept because it is a record of two earlier corrections:
-          it was one bubble for the whole row rather than one per column, and it
-          was moved from a leading gutter to the trailing edge (jdp,
-          2026-08-26) so the table could shift left into the space the checkbox
-          column used to own. The gutter it lived in is gone either way, since
-          the last column now runs to the right edge (jdp, 2026-09-06: "im
-          downloadtab ist rechts eine spalte die leer ist"). */}
+      {/* The bubble explaining the header, right-click for the column menu and
+          click a label to sort, sits on the card's title badge, where
+          TaskListCard renders it. This row holds nothing but the column labels
+          and their resize handles. */}
     </div>
   );
 }
 
-// --- The properties panel --------------------------------------------------
-
-/** Which box was edited. Nothing else is sent - see TaskProperties. */
+/** Which box was edited. Nothing else is sent; see TaskProperties. */
 type PropField = 'name' | 'dir' | 'comment' | 'priority' | 'autoExtract';
 
 /**
  * The priorities, from the server, low to high so the strip reads as a scale
- * rather than as a list somebody happened to order that way.
- *
- * This used to be five hardcoded steps with a key set of their own, while the
- * right-click menu offered the server's seven. One app, two answers to "how
- * many priorities are there", and the panel's five could not even express the
- * outer two the queue sorts by. The server's list is the list; priorityChoices()
- * fetches it once per session and both callers read the same copy.
+ * rather than as a list somebody happened to order that way. The server's list
+ * is the list, so the panel and the right-click menu cannot give two answers to
+ * how many priorities there are; priorityChoices() fetches it once per session
+ * and both callers read the same copy.
  */
 function usePriorities(): { id: string; label: TranslationKey }[] {
   const [choices, setChoices] = useState<PriorityChoice[]>([]);
@@ -1439,7 +1267,7 @@ const extractId = (t: Task): string =>
 
 /**
  * agree reads one field off the whole selection and answers with the value they
- * share - or null when they do not, which is a third answer and not an empty
+ * share, or null when they do not, which is a third answer rather than an empty
  * one.
  */
 function agree<T>(tasks: Task[], pick: (t: Task) => T): T | null {
@@ -1449,25 +1277,21 @@ function agree<T>(tasks: Task[], pick: (t: Task) => T): T | null {
 }
 
 /**
- * TaskProperties edits what is selected - one row or forty, the same panel and
- * the same request.
+ * TaskProperties edits what is selected, one row or forty, through the same
+ * panel and the same request.
  *
- * The rule everything here follows: a field is sent ONLY if it was edited. Not
- * "if it differs from what was loaded", and above all not "if it is non-empty".
- * A selection whose rows disagree opens with an empty box, and an empty box that
- * gets sent writes nothing over forty comments, forty folders and forty
- * passwords in one click - a loss nobody would connect to the field they never
- * touched. So the boxes carry a placeholder rather than a value, and `touched`
- * is set by the change handler rather than derived by comparison, which is what
- * keeps "they disagree" and "I cleared this on purpose" apart. Both look like an
- * empty string on the wire; only one of them is in the request at all.
+ * A field is sent only if it was edited: not if it differs from what was
+ * loaded, and not if it is non-empty. A selection whose rows disagree opens
+ * with an empty box, and sending that would write nothing over forty comments,
+ * folders and passwords in one click. So the boxes carry a placeholder rather
+ * than a value, and `touched` is set by the change handler rather than derived
+ * by comparison, which keeps "they disagree" and "I cleared this on purpose"
+ * apart; both look like an empty string on the wire.
  *
- * `ids` is the whole selection and `tasks` is the part of it this list can see.
- * They are not the same thing - a quick filter can hide a selected row - and the
- * split is deliberate: what is WRITTEN is the whole selection, what is SHOWN is
- * read off the rows that are on screen. A hidden row can only ever make the
- * panel show a value as agreed when it is not, and since nothing is written
- * unless it was edited, that costs a placeholder and never a value.
+ * `ids` is the whole selection and `tasks` the part of it this list can see,
+ * since a quick filter can hide a selected row. A hidden row can only make the
+ * panel show a value as agreed when it is not, which costs a placeholder and
+ * never a value.
  */
 export function TaskProperties({
   ids,
@@ -1478,10 +1302,10 @@ export function TaskProperties({
   ids: string[];
   tasks: Task[];
   base: string;
-  /** Set only where the KEYBOARD opened this panel. It renders below the list
+  /** Set only where the keyboard opened this panel. It renders below the list
    *  card, which on a five-thousand-row list is thousands of pixels down the
-   *  page: Enter would otherwise open a panel nobody can see. A double-click
-   *  never sets it - a mouse user's focus is theirs. */
+   *  page, so Enter would otherwise open a panel nobody can see. A double-click
+   *  never sets it: a mouse user's focus is theirs. */
   autoFocus?: boolean;
 }) {
   const { t } = useT();
@@ -1490,7 +1314,7 @@ export function TaskProperties({
 
   // Read once, at mount. The panel is remounted whenever the selection changes
   // (see the key in TaskListCard), so this is the only moment these values are
-  // the ones the user is looking at - reading them again on every render would
+  // the ones the user is looking at; reading them again on every render would
   // pull a half-typed box back to what the server last broadcast.
   const [start] = useState(() => ({
     name: tasks.length === 1 ? tasks[0].name : '',
@@ -1508,9 +1332,9 @@ export function TaskProperties({
   const [touched, setTouched] = useState<Set<PropField>>(() => new Set());
   const [busy, setBusy] = useState(false);
   // The Save button's own failure counter, read as its `key`. A refused save
-  // reports through the two channels every action here uses - the server's
-  // sentence in a toast, the pressed control shaking - and never as a sentence
-  // left standing in the row beside the button, which nothing ever clears.
+  // reports through the two channels every action here uses, the server's
+  // sentence in a toast and the pressed control shaking, never as a sentence
+  // left standing beside the button, which nothing ever clears.
   const [shake, setShake] = useState(0);
 
   const panelRef = useRef<HTMLElement>(null);
@@ -1550,10 +1374,10 @@ export function TaskProperties({
     const r = await setTaskOptions(ids, opts, base);
     setBusy(false);
     if (!r.ok) {
-      // These routes refuse with a sentence, and the sentence is the whole point
-      // of refusing: a rename that could not happen has a reason, and hiding it
-      // behind "save failed" leaves the row promising a name the folder does not
-      // have. It goes to the toast, which is where a failure is read.
+      // These routes refuse with a sentence, and the sentence is why refusing
+      // is useful: a rename that could not happen has a reason, and hiding it
+      // behind "save failed" leaves the row promising a name the folder does
+      // not have. It goes to the toast, which is where a failure is read.
       toast((await r.text()).trim() || t('list.optionsFailed'), 'fail');
       setShake((n) => n + 1);
       return;
@@ -1585,8 +1409,8 @@ export function TaskProperties({
 
         {/* Only over a single row, and left out rather than greyed out over
             several: a name is an identity, not a property. Forty rows given one
-            name is forty downloads pointed at one destination, and the server
-            refuses it for the same reason. */}
+            name are forty downloads pointed at one destination, which the
+            server refuses for the same reason. */}
         {ids.length === 1 && (
           <Field label={t('props.name')} hint={t('props.nameHint')}>
             <TextInput
@@ -1597,15 +1421,12 @@ export function TaskProperties({
           </Field>
         )}
 
-        {/* One row, not two stacked full-width fields (jdp, 2026-08-25:
-            "Ordner und Kommentar in eine Zeile") - the same
-            grid-cols-2 pattern the priority/auto-extract row below already
-            uses. Comment is a single-row TextArea now, not rows={2}: it
-            shares TextInput's own inputClass (px-3/py-2/text-sm) so a
-            rows={1} textarea lands at the same height as Folder's TextInput
-            beside it (jdp: "Kommentarfeld gleich hoch wie das eingabefeld
-            des Ordners") - still resize-y, so a longer comment can still be
-            grown by hand rather than always reserving the space for one. */}
+        {/* One row, not two stacked full-width fields: the same grid-cols-2
+            pattern the priority and auto-extract row below uses. Comment is a
+            single-row TextArea sharing TextInput's inputClass, so it lands at
+            the same height as the folder field beside it, and it stays resize-y
+            so a longer comment can be grown by hand rather than reserving the
+            space for one. */}
         <div className="grid gap-4 sm:grid-cols-2">
           <Field
             label={t('task.folder')}
@@ -1634,26 +1455,14 @@ export function TaskProperties({
             click to the first thing inside it, which here would pick a priority
             every time somebody read the caption.
 
-            Priority and auto-extract read as one decision (jdp: "Priorität und
-            Archive entpacken: beide sollen horizontale Selektoren sein und in
-            eine Zeile kommen") — the well variant (Tabs.tsx), the same tight
-            segmented-control treatment the Look page's own shape and theme
-            pickers already use for exactly this complaint, in place of the
-            loose default chip row; side by side on one grid row instead of
-            each stacked full-width, matching DownloadsSettings.tsx's own
-            two-fields-per-row pattern.
+            Priority and auto-extract read as one decision, so they share a grid
+            row in the well variant (Tabs.tsx), the tight segmented-control
+            treatment the Look page's shape and theme pickers use.
 
-            IT WRAPS, IT NEVER SCROLLS. The strip used to sit in an
-            `overflow-x-auto` box here, on the reasoning that the well pins
-            every segment to a flat 200px and priority's own seven of them run
-            wider than this grid column. Both halves of that are out of date:
-            the small scale drops the pinning (Tabs.tsx's wellWidth: the `sm`
-            track measures its own labels), and the track itself wraps
-            (Tabs.tsx: "Wraps, never scrolls", added for THIS selector - jdp,
-            2026-08-25: "die buttons so breit machen dass kein horizontaler
-            scrollbar notwendig ist"). A wrapper outside the component put the
-            horizontal scrollbar back one level up, which is the gesture the
-            language rules out; without it the strip grows in height instead. */}
+            The strip wraps and never scrolls: the `sm` track measures its own
+            labels rather than pinning every segment, and Tabs itself wraps. An
+            `overflow-x-auto` wrapper around it would put the horizontal
+            scrollbar the language rules out back one level up. */}
         <div className="grid gap-4 sm:grid-cols-2">
           <FieldGroup
             label={t('props.priority')}
@@ -1725,17 +1534,14 @@ export function TaskListCard({
    * off on the list where it is useless switches it off where it is the point.
    */
   profile?: ListProfile;
-  /** This card's own title-badge (jdp, 2026-08-25: the list itself was the
-   *  one card left without one) - pre-translated by the caller, the same
-   *  way every other shared component here takes its label text rather
-   *  than a translation key, since Collector.tsx and Downloads.tsx each
-   *  want a name distinct from their own page heading, not this file
-   *  guessing which page it is from `profile`. */
+  /** This card's title badge, pre-translated by the caller the way every other
+   *  shared component here takes its label text: Collector.tsx and
+   *  Downloads.tsx each want a name distinct from their own page heading,
+   *  rather than this file guessing which page it is from `profile`. */
   title: string;
-  /** This card's own rainbow position, independent of whatever hues the
-   *  caller's own hero row or badge row already used - see Collector.tsx's
-   *  and Downloads.tsx's own call sites for why each picks a different
-   *  number. */
+  /** This card's rainbow position, independent of the hues the caller's hero
+   *  row or badge row already used; see Collector.tsx and Downloads.tsx for
+   *  why each picks a different number. */
   hue?: number;
   /**
    * "Scroll to this row, once." A row key plus a nonce ("task:abc#7"), never a
@@ -1744,7 +1550,7 @@ export function TaskListCard({
    * second time. See lib/reveal.ts.
    */
   revealKey?: string;
-  /** Siehe CellContext.onRemovePackage - die Seite stellt die Frage, nicht die Zeile. */
+  /** See CellContext.onRemovePackage: the page asks the question, not the row. */
   onRemovePackage?: (ids: string[]) => void;
 }) {
   const { t } = useT();
@@ -1760,22 +1566,17 @@ export function TaskListCard({
   const [storedSort, setSort] = useUIState<SortState | null>(`list.sort.${profile}`, null);
   const { collapsed, collapse, expand, toggle } = useCollapsedPackages(profile);
   const [menuAt, setMenuAt] = useState<{ x: number; y: number } | null>(null);
-  // The properties panel's own visibility (jdp, 2026-08-26: "wenn man
-  // einmal auf einen link oder einen ordner klickt kommt sofort die
-  // eigenschaften card. die soll erst erscheinen bei doppelklick") -
-  // decoupled from selection itself now: selecting something (single
-  // click, Ctrl-click, Shift-range) no longer opens the panel as a side
-  // effect, only a double-click does (TaskRow/PackageGroup's own
-  // onOpenProperties). Reset to closed on every NEW selection - selecting
-  // something else while the panel is open closes it again, so it always
-  // takes a fresh double-click to reopen it for whatever is selected now,
-  // the same way it takes a fresh one to open it the first time.
+  // The properties panel's visibility, kept apart from the selection: a single
+  // click, a Ctrl-click and a Shift-range select without opening the panel, and
+  // only a double-click opens it (see onOpenProperties). Reset to closed on
+  // every new selection, so it always takes a fresh double-click to reopen for
+  // whatever is selected now.
   const [propertiesOpen, setPropertiesOpen] = useState(false);
   // Whether the panel about to appear should take the focus. True only on the
   // Enter path: on a five-thousand-row list the panel renders thousands of
   // pixels below the row that opened it, so "Enter opens the properties" is
-  // otherwise true and completely invisible to whoever pressed it. Never on the
-  // double-click path - a mouse user has not asked for their focus to be moved.
+  // otherwise true and invisible. Never on the double-click path, where a mouse
+  // user has not asked for their focus to be moved.
   const [propertiesAutoFocus, setPropertiesAutoFocus] = useState(false);
 
   const tableRef = useRef<HTMLDivElement>(null);
@@ -1799,18 +1600,17 @@ export function TaskListCard({
   const sort = storedSort && !layout.hidden.has(storedSort.id) ? storedSort : null;
   const view = useMemo(() => applySort(groups, sort), [groups, sort]);
 
-  // The table, flattened: every folder header, and - only while that folder is
-  // open - its own links, in the order they are drawn. Everything downstream
-  // reads this rather than walking the packages again for itself, so the window,
-  // the Shift-range and the rows on screen cannot describe three different
-  // lists. See ListRow.
+  // The table, flattened: every folder header and, while that folder is open,
+  // its own links, in the order they are drawn. Everything downstream reads
+  // this rather than walking the packages again, so the window, the Shift-range
+  // and the rows on screen cannot describe three different lists. See ListRow.
   const rows = useMemo<ListRow[]>(() => {
     const out: ListRow[] = [];
     let hue = 0;
     // The sibling-set numbers a screen reader reads out, counted here where the
     // grouping is still in hand: a folder is one of the folders, a link is one
-    // of ITS OWN folder's links. Counted off the window instead they would say
-    // "3 of 40" on a list of five thousand, which is a worse answer than none.
+    // of its own folder's links. Counted off the window instead they would say
+    // "3 of 40" on a list of five thousand, which is worse than no answer.
     const packages = view.length;
     let pkgAt = 0;
     for (const [name, items] of view) {
@@ -1843,22 +1643,14 @@ export function TaskListCard({
     return out;
   }, [view, collapsed]);
 
-  // --- Click-to-select (jdp, 2026-08-26: "in der linkliste soll man
-  // links und ordner mit einem klick markieren können, nicht den ordner
-  // aufklappen. die checkbox spalte können wir wegmachen. mehrere links
-  // oder ordner soll man mit klick und strg oder umschalttaste auswählen
-  // können. wie in windows") -------------------------------------------
+  // selectableOrder is the flat, on-screen order a Shift-click's range walks:
+  // `rows` above with each entry's own ids attached. A collapsed package
+  // contributes only itself, so Shift-clicking across one selects the whole
+  // folded package as a single step.
   //
-  // selectableOrder is the flat, on-screen order a Shift-click's range walks,
-  // which is `rows` above with each entry's own ids attached. A collapsed
-  // package contributes only itself; Shift-clicking across one selects the whole
-  // folded package as a single step, the same as if its rows had never been
-  // individually visible to click between.
-  //
-  // Every row the list HOLDS, never only the ones the window has drawn: a range
+  // Every row the list holds, never only the ones the window has drawn: a range
   // that stopped at the edge of the viewport would select a different set
-  // depending on how far somebody had scrolled, which is not a rule anybody
-  // could learn.
+  // depending on how far somebody had scrolled.
   const selectableOrder = useMemo(
     () =>
       rows.map((r) =>
@@ -1869,20 +1661,17 @@ export function TaskListCard({
     [rows],
   );
 
-  // The last unit clicked plain or with Ctrl/Cmd - what a Shift-click
-  // measures its range from. An index into selectableOrder rather than a
-  // remembered key, so a Shift-click still works after the list itself has
-  // re-sorted or re-filtered, as long as the anchor unit is still on screen
-  // somewhere. Deliberately NOT moved by a Shift-click itself (see
-  // selectUnit below) - the same behaviour Explorer's own shift-click has:
-  // clicking further away with Shift still held extends or shrinks the
-  // SAME range rather than starting a new one from wherever the last
-  // Shift-click landed.
+  // The last unit clicked plain or with Ctrl or Cmd, which is what a
+  // Shift-click measures its range from. An index into selectableOrder rather
+  // than a remembered key, so a Shift-click still works after the list has
+  // re-sorted or re-filtered. A Shift-click does not move it (see selectUnit),
+  // the same as in Explorer: clicking further away with Shift held extends or
+  // shrinks the same range rather than starting a new one.
   const selectAnchor = useRef<number | null>(null);
 
   /** Every id between two places in the on-screen order, both ends included.
    *  Shared by the Shift-range and the press-and-sweep, which have to agree
-   *  about what a range IS or the mouse contradicts itself. */
+   *  about what a range is or the mouse contradicts itself. */
   function rangeIds(a: number, b: number): Set<string> {
     const lo = Math.min(a, b);
     const hi = Math.max(a, b);
@@ -1897,7 +1686,7 @@ export function TaskListCard({
     if (index < 0) return;
     if (e.shiftKey && selectAnchor.current !== null) {
       selection.set(rangeIds(selectAnchor.current, index));
-      return; // The anchor itself does not move - see its own comment above.
+      return; // The anchor itself does not move; see selectAnchor above.
     }
     if (e.ctrlKey || e.metaKey) {
       const next = new Set(selection.ids);
@@ -1911,132 +1700,75 @@ export function TaskListCard({
     selectAnchor.current = index;
   }
 
-  // The rows the properties panel shows values from. The ids it WRITES come
-  // straight off the selection, which is a larger set whenever a quick filter is
-  // hiding one of them - see TaskProperties for why the two are allowed to
-  // differ.
+  // The rows the properties panel shows values from. The ids it writes come
+  // straight off the selection, which is a larger set whenever a quick filter
+  // is hiding one of them; see TaskProperties for why the two may differ.
   const chosenIds = selection?.ids;
   const chosen = useMemo(
     () => (chosenIds ? view.flatMap(([, items]) => items).filter((x) => chosenIds.has(x.id)) : []),
     [view, chosenIds],
   );
-  // Every new selection (selectUnit always hands `set()` a fresh Set, so
-  // this fires on a plain click, a Ctrl-click and a Shift-range alike, not
-  // only on a change in WHICH ids are in it) closes the panel again -
-  // propertiesOpen's own doc comment above has the full reasoning.
+  // Every new selection closes the panel again. selectUnit always hands `set()`
+  // a fresh Set, so this fires on a plain click, a Ctrl-click and a Shift-range
+  // alike rather than only on a change in which ids are in it.
   useEffect(() => setPropertiesOpen(false), [chosenIds]);
 
-  // --- One press, three meanings ---------------------------------------
+  // One press, three meanings, which is JDownloader's gesture, and Swing's
+  // before it:
   //
-  // THE GESTURE IS JDOWNLOADER'S, and it is jdp's own description of it (jdp,
-  // 2026-09-14: "ich möchte das drag and drop von links und ordnern wie in JD.
-  // wennman ein ordner anklickt und geklickt hält und nach unten zieht, markiert
-  // man die links und ordner. wenn man einmal draufklickt markiert man, dann ein
-  // zweiter klick den man hält und man kann per drag and drop verschieben"):
+  //   press on an unmarked row, then drag  sweep a selection over the rows the
+  //                                        pointer passes,
+  //   press and let go                     mark that one row,
+  //   press on a marked row, then drag     move the whole marking.
   //
-  //   press on an UNMARKED row, then drag  -> sweep a selection over the rows
-  //                                           the pointer passes,
-  //   press and let go                     -> mark that one row,
-  //   press on a MARKED row, then drag     -> move THE WHOLE MARKING.
+  // It could not stay on HTML5 drag, which takes the pointer over the instant
+  // it starts: dragstart arrives before the pointer has travelled far enough to
+  // tell a sweep from a move. On pointer events the strip can capture the
+  // pointer instead, so a row sliding out from under a still one cannot swallow
+  // the drop, and the hit test reads the pointer's own Y (see aimAt). What that
+  // costs is paid back below: the browser's edge scrolling during a drag (see
+  // EDGE_BAND_PX), and a press that must not be swallowed by a text selection
+  // or by the native drag of an <img> inside a row.
   //
-  // It is not an invention of jdp's either: it is what Swing hands every table
-  // that switches drag on, and JDownloader's download table is one
-  // (DownloadsTable calls setDragEnabled and setTransferHandler; verified in the
-  // shipped bytecode of the JDownloader running on the server, rather than from
-  // memory). BasicTableUI's own canStartDrag() is one line - "is the pressed
-  // cell already selected" - and everything else a press could mean falls
-  // through to changeSelection(row, col, false, true), which extends the range
-  // from the anchor. So the rule jdp described from a chair is literally the
-  // rule the toolkit implements, down to the anchored range.
+  // Touch is left to the browser, where a finger dragged down a list means
+  // scroll; the phone has its own long-press drag (mobile's DragList). A stylus
+  // counts as a mouse here.
   //
-  // WHY THIS COULD NOT STAY ON HTML5 DRAG. A native drag takes the pointer over
-  // the instant it starts, and there is no way to hold it back until the app has
-  // decided whether the press was a sweep or a move - dragstart arrives before
-  // the pointer has travelled anywhere it could be judged by. So `draggable` is
-  // gone from the rows and this runs on pointer events. What that buys, beyond
-  // the gesture:
-  //
-  //   - POINTER CAPTURE. Every move and the release come to the strip whatever
-  //     is painted under the pointer, which is what the stationary sheet over
-  //     the rows used to fake. A row sliding out from under a still pointer can
-  //     no longer swallow the drop, so the sheet is gone with it.
-  //   - The hit test can read the pointer's own Y and nothing else, which it
-  //     already wanted to (see aimAt).
-  //
-  // What it costs, and what is paid back below:
-  //
-  //   - the browser's own edge scrolling during a drag (see EDGE_BAND_PX),
-  //   - a press that must not be swallowed by a text selection (select-none on
-  //     the rows) or by the native drag of an <img> inside one (the strip's own
-  //     onDragStart).
-  //
-  // TOUCH IS DELIBERATELY LEFT TO THE BROWSER. A finger pressed on a list and
-  // dragged down means "scroll" everywhere else on this page and on every other
-  // page; taking that over would cost the only way to move down a long list to
-  // buy a gesture that has a keyboard and a context menu as alternatives. The
-  // phone has its own list with its own long-press drag (mobile's DragList), so
-  // nothing is lost that was ever here. A stylus (pointerType 'pen') is a mouse
-  // for this purpose and does get the gesture.
-  //
-  // Only MOVED in queue-order view — a client-side sort is documented above
-  // (applySort's own doc comment) as a VIEW and never the queue itself, and
-  // band-mates a size or status sort has scattered across the table would rarely
-  // even land next to each other to drag between. The sortedView banner right
-  // above the table offers the way back, and a move attempted there is refused
-  // OUT LOUD rather than being quietly impossible. SELECTING is never refused:
-  // the marking has nothing to do with the order the rows are drawn in.
+  // Moving is only offered in queue-order view, since a client-side sort is a
+  // view and never the queue itself (see applySort). A move attempted under a
+  // sort is refused out loud rather than being quietly impossible, and
+  // selecting is never refused.
   const dndEnabled = !sort;
   // The rows a move in flight is carrying, in drawn order, or null when nothing
   // is being moved. Several units, because a move carries the whole marking.
   const [rowDrag, setRowDrag] = useState<RowDragKey[] | null>(null);
-  // The row currently aimed at mid-move, and which half of it — updated on every
-  // pointer move, not just the eventual drop. This is what lets the OTHER rows
-  // actually move out of the way live instead of only snapping into their new
-  // order once the mouse is released (jdp, 2026-08-25: "die elemente sollen live
-  // verrutschen wenn ich zb ein link über einen anderen ziehe").
+  // The row currently aimed at mid-move and which half of it, updated on every
+  // pointer move rather than only at the drop. That is what lets the other rows
+  // step aside live instead of snapping into their new order once the mouse is
+  // released.
   const [dragOver, setDragOver] = useState<{ target: RowDragKey; after: boolean } | null>(null);
   const gesture = useRef<Gesture | null>(null);
   const edgeScroll = useRef<{ frame: number; box: HTMLElement | null }>({ frame: 0, box: null });
 
-  // A frozen snapshot of every row's own position, taken once at the moment a
-  // MOVE starts — see snapshotSlots() below for why this exists at all: without
-  // it, "which row, which half" came from whichever DOM element the browser
-  // delivered the event to, and that element itself moves the moment the live
-  // preview slides it, feeding its own output back in as its next input (jdp,
-  // 2026-08-25: "jetzt springen die einzelnen elemente... die ganze zeit hin und
-  // her"). A snapshot the preview never touches breaks that loop.
+  // A frozen snapshot of every row's position, taken once when a move starts.
+  // Without it, "which row, which half" comes from whichever DOM element the
+  // browser delivered the event to, and that element moves the moment the
+  // preview slides it, feeding its own output back in as its next input.
   //
-  // It is the ONE geometry the whole move runs on: the list keeps rendering its
-  // resting order for as long as the pointer is down and every row is slid to
-  // its previewed place by a transform (previewOffsets below), so the document
-  // flow the snapshot measured is still the true one at every moment of the
-  // move. The hit test and what the eye sees cannot drift apart, because the
-  // second of them is computed FROM the first.
+  // It is the one geometry the whole move runs on: the list keeps rendering its
+  // resting order while the pointer is down and every row is slid to its
+  // previewed place by a transform (previewOffsets below), so the flow the
+  // snapshot measured stays the true one throughout.
   //
-  // IN THE STRIP'S OWN COORDINATES, not the viewport's, and that changed with
-  // the edge scroll: the snapshot has to survive the list scrolling under the
-  // pointer, and a box measured against the window stops describing the row the
-  // moment anything scrolls. The strip scrolls with its rows, so a top measured
-  // from the strip's own top stays true; the pointer is converted into the same
-  // frame on every read. stackOffsets works on differences and never cared which
-  // origin it was handed.
+  // In the strip's own coordinates rather than the viewport's, so it survives
+  // the list scrolling under the pointer, and in DOM order, because
+  // previewOffsets stacks rows back up in that order and needs the gap between
+  // each pair.
   //
-  // In DOM order, and that matters: previewOffsets stacks rows back up in this
-  // order and needs the gap between each pair, not only their own boxes.
-  //
-  // On a long list this is the WINDOW's rows and not the whole table, because
-  // that is what the DOM holds (see useRowWindow) - and it is also exactly the
-  // right set. Every row a move can aim at is a row somebody can see, so a hit
-  // test over the window answers the same question the full table would; and a
-  // row nobody can see has nothing to show by stepping aside. previewOffsets
-  // below is written against that: it previews the rows it measured, rather than
-  // insisting the two lists have the same length. The one place that shows is a
-  // move that edge-scrolls a WINDOWED list far enough to draw rows the snapshot
-  // never measured: the preview then bails out whole, exactly as it does for a
-  // poll that adds a row, and the drop still lands where the last honest aim
-  // pointed. That is the same graceful stop as before and strictly better than
-  // the native drag, which scrolled against a viewport snapshot and went wrong
-  // on any scroll at all.
+  // On a long list these are the window's rows (see useRowWindow), which is the
+  // right set: every row a move can aim at is one somebody can see. A move that
+  // edge-scrolls far enough to draw rows the snapshot never measured makes the
+  // preview bail out whole, and the drop still lands where the last aim pointed.
   const rowSlotsRef = useRef<RowSlot[]>([]);
 
   function snapshotSlots(): void {
@@ -2062,35 +1794,26 @@ export function TaskListCard({
     return root ? clientY - root.getBoundingClientRect().top : clientY;
   }
 
-  // Every task actually on screen, flattened out of the package groups in
-  // display order — the same tasks `chosen` reads off `view` above, not the
-  // raw `groups` prop, so a drag position always matches what is drawn.
+  // Every task on screen, flattened out of the package groups in display order:
+  // the same tasks `chosen` reads off `view` above rather than the raw `groups`
+  // prop, so a drag position always matches what is drawn.
   const flatTasks = useMemo(() => view.flatMap(([, items]) => items), [view]);
   const taskById = useMemo(() => new Map(flatTasks.map((x) => [x.id, x] as const)), [flatTasks]);
 
-  // A "band" mirrors the reorder endpoint's own grouping: same priority AND
-  // same forced. Each band's own ids, in the order they are drawn right now,
-  // is what POST /api/tasks/reorder is sent. That list is deliberately only
-  // the part of the band this screen actually shows and can actually move
-  // (see `movable` below): a band spans every task the app holds, across the
-  // collector tab and the downloads tab and the settled rows alike, and no
-  // single list has ever been able to name all of it.
+  // A band mirrors the reorder endpoint's own grouping: same priority and same
+  // forced flag. Each band's ids, in the order they are drawn, is what POST
+  // /api/tasks/reorder is sent, and that list is only the part of the band this
+  // screen shows and can move (see `movable` below). A band spans every task
+  // the app holds, across both tabs and the settled rows alike, and no single
+  // list can name all of it.
   const bandOf = (x: Task): string => `${x.priority}:${x.forced ? 1 : 0}`;
 
-  // Which rows the wait queue can actually be told to move, and the reason
-  // folder drags looked completely dead (jdp, 2026-09-01: "das drag and drop
-  // funktioniert überhaupt nicht. fixe es endlich!" and, for this list
-  // specifically, "Ich kann ordner nicht per drag and drop verschieben").
-  //
-  // A finished or failed task is not in the wait queue at all, so naming one
-  // in a reorder refuses the WHOLE request (App.ReorderBand, app_queue.go:
-  // "task %s is not in the wait queue") - and this list is meant to show
-  // both. Every band built below therefore carries only the rows the server
-  // will accept. That is not a workaround for the endpoint: it now takes a
-  // SUBSET of a band and reads it as "these tasks, in this order, in the
-  // slots they already hold", which is exactly what a drag inside one
-  // visible list means. Mobile learned the same thing first, see
-  // mobile/src/components/PackageList.tsx's `sortierbar`.
+  // Which rows the wait queue can be told to move. A finished or failed task is
+  // not in the wait queue, so naming one in a reorder refuses the whole request
+  // (App.ReorderBand, app_queue.go: "task %s is not in the wait queue"), and
+  // this list shows both. Every band built below therefore carries only the
+  // rows the server will accept, which the endpoint reads as "these tasks, in
+  // this order, in the slots they already hold".
   const movable = (x: Task): boolean => x.status !== 'done' && x.status !== 'error';
 
   const bandOrder = useMemo(() => {
@@ -2108,14 +1831,11 @@ export function TaskListCard({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [flatTasks]);
 
-  // A package's own band, or null when its links disagree — a mixed package
-  // has no one band to move it into, so a drop against it is refused rather
-  // than guessing which of its tasks the drag should follow.
-  //
-  // Judged over the movable links only, so a folder holding one finished file
-  // beside three queued ones is still a folder you can drag; before, that one
-  // settled row was enough to make the whole folder immovable for no reason
-  // the person dragging it could see.
+  // A package's own band, or null when its links disagree: a mixed package has
+  // no one band to move it into, so a drop against it is refused rather than
+  // guessing which of its tasks the drag should follow. Judged over the movable
+  // links only, so a folder holding one finished file beside three queued ones
+  // can still be dragged.
   function packageBand(name: string): string | null {
     const items = (view.find(([n]) => n === name)?.[1] ?? []).filter(movable);
     if (items.length === 0) return null;
@@ -2139,10 +1859,9 @@ export function TaskListCard({
     return (view.find(([n]) => n === u.name)?.[1] ?? []).filter(movable).map((x) => x.id);
   }
 
-  // Every drawn row with the movable ids it stands for - what selectedBlock
-  // walks to work out what a move carries. A folder contributes its own movable
-  // links, which is what lets a folder holding one finished file still travel
-  // as a folder.
+  // Every drawn row with the movable ids it stands for, which is what
+  // selectedBlock walks to work out what a move carries. A folder contributes
+  // its own movable links, so one holding a finished file still travels whole.
   const blockRows = useMemo<BlockRow[]>(
     () =>
       rows.map((r) =>
@@ -2155,7 +1874,7 @@ export function TaskListCard({
     [rows],
   );
 
-  /** Every id a unit stands for, movable or not - what the MARKING covers, as
+  /** Every id a unit stands for, movable or not: what the marking covers, as
    *  against unitIds, which is what the queue can be told to move. A folder
    *  header paints as selected only when all of its links are, finished ones
    *  included, so the press has to ask the same question the paint does. */
@@ -2171,14 +1890,11 @@ export function TaskListCard({
   }
 
   /**
-   * What a move started on `pressed` carries.
-   *
-   * THE WHOLE MARKING, not the row the hand grabbed (jdp: "und zwar die ganze
-   * Markierung"). With no selection model at all, or with a marking the pressed
-   * row has somehow fallen out of between the press and the first move (a poll
-   * can remove a task mid-gesture), it falls back to the one row - a move that
-   * carries nothing would be the gesture doing nothing, which is the exact
-   * failure this whole file has been chasing.
+   * What a move started on `pressed` carries: the whole marking, not the row
+   * the hand grabbed. With no selection model, or with a marking the pressed
+   * row has fallen out of between the press and the first move (a poll can
+   * remove a task mid-gesture), it falls back to the one row, since a move that
+   * carries nothing is the gesture doing nothing.
    */
   function blockFor(pressed: RowDragKey): RowDragKey[] {
     const marked = selection?.ids;
@@ -2191,31 +1907,22 @@ export function TaskListCard({
    * The drop: `block` lands against `target`'s given half, whatever bands and
    * folders that crosses.
    *
-   * ONE FUNCTION FOR WHAT USED TO BE FOUR (reorderedBand, crossBandOrder,
-   * dropAcrossBands, dropRow), and the reason is the gesture: a marking is
-   * allowed to hold rows from two priority bands and from three folders at once,
-   * so "same band" and "different band" stopped being two cases and became one
-   * question asked per row. The splice below is band-blind - it takes the TARGET
-   * band's order, drops whatever the block holds out of it, and puts the block
-   * back at the anchor - which is exactly right for both, because a row already
-   * in that band is filtered out and re-inserted and a row from elsewhere is
-   * simply inserted.
+   * A marking may hold rows from two priority bands and from three folders at
+   * once, so the splice below is band-blind: it takes the target band's order,
+   * drops whatever the block holds out of it and puts the block back at the
+   * anchor. A row already in that band is filtered out and re-inserted, a row
+   * from elsewhere is inserted.
    *
-   * WHAT A MIXED MARKING DOES, and why. The list is ordered by priority before
-   * anything else (the server's own bands), so rows of two priorities cannot
-   * come to rest next to each other while keeping their priorities: either the
-   * drop is refused or the priority changes. Refusing would mean a marking made
-   * with one Shift-click across a band boundary can never be moved, and nothing
-   * on screen would explain why - which is what "das drag and drop funktioniert
-   * überhaupt nicht" has meant every previous time. So the rows take the
-   * priority of the row they were dropped on, exactly as a single row already
-   * did before this gesture existed, and the toast says so: a priority quietly
-   * changing under a drag would be worse than the drag doing nothing, and only
-   * the rows that actually changed are counted.
+   * The list is ordered by priority before anything else (the server's bands),
+   * so rows of two priorities cannot come to rest next to each other and keep
+   * them: either the drop is refused or the priority changes. Refusing would
+   * mean a marking made with one Shift-click across a band boundary can never
+   * be moved, with nothing on screen to explain why, so the rows take the
+   * priority they were dropped on and the toast says so.
    *
-   * Loose links join the folder they were dropped into, the way they do in
-   * JDownloader - but a link that is travelling as part of its OWN folder does
-   * not, because that folder is moving whole and its links are going with it.
+   * Loose links join the folder they were dropped into, as in JDownloader. A
+   * link travelling as part of its own folder does not, that folder moving
+   * whole with its links.
    */
   function dropBlock(block: readonly RowDragKey[], target: RowDragKey, after: boolean): void {
     const band = unitBand(target);
@@ -2231,10 +1938,9 @@ export function TaskListCard({
     // A Set and not `movedIds.includes`: a marking can be thousands of rows on a
     // list of thousands, and that pair walked one against the other.
     const order = before.filter((id) => !moving.has(id));
-    // Anchored on the target's own edge — its first id when the block lands
-    // before it, its last when after — so a folder (several ids at once) keeps
-    // its own internal order and lands as one contiguous run, exactly where a
-    // single link would have landed alone.
+    // Anchored on the target's own edge, its first id when the block lands
+    // before it and its last when after, so a folder of several ids keeps its
+    // internal order and lands as one contiguous run where a single link would.
     const anchor = after ? targetIds[targetIds.length - 1] : targetIds[0];
     const at = order.indexOf(anchor);
     if (at < 0) return;
@@ -2255,17 +1961,15 @@ export function TaskListCard({
       (id) => !travellingWithTheirFolder.has(id) && (taskById.get(id)?.package ?? '') !== home,
     );
 
-    // A DROP THAT LANDS WHERE IT STARTED IS NOT A CHANGE and must not write
-    // anything. The refusals above are all about the drop being impossible; this
-    // one is about it being pointless, and it needs its own test because the
-    // splice can put every id back exactly where it was: drag a row onto the
-    // upper half of the row directly below it, or onto the lower half of the one
-    // directly above, and the result is the list it started from. That is the
-    // SHORTEST movement the gesture can make, not an exotic edge case, and it
-    // used to cost a POST and a write to the stored order. Compared by result
-    // rather than by index, so it also catches a whole marking landing back on
-    // its own footprint. Only when nothing else was going to happen either: a
-    // re-band or a change of folder is a real move even at the same index.
+    // A drop that lands where it started is not a change and writes nothing.
+    // The refusals above are about the drop being impossible; this one is about
+    // it being pointless, and it needs its own test because the splice can put
+    // every id back where it was: a row dropped on the upper half of the row
+    // below it, or the lower half of the one above, gives the list it started
+    // from, which is the shortest movement the gesture can make. Compared by
+    // result rather than by index, so it catches a whole marking landing on its
+    // own footprint too. Only when nothing else was going to happen: a re-band
+    // or a change of folder is a real move even at the same index.
     if (
       reband.length === 0 &&
       rehome.length === 0 &&
@@ -2301,51 +2005,34 @@ export function TaskListCard({
     })();
   }
 
-  // --- The press ---------------------------------------------------------
+  // What each press means, decided here together, because deciding these one at
+  // a time is how a gesture ends up with three ideas of what "marked" means:
   //
-  // WHAT EACH PRESS MEANS, and the four questions this had to answer before a
-  // line of it was written. They are decided here, together, because deciding
-  // them one at a time is how a gesture ends up with three different ideas of
-  // what "marked" means:
+  //  1. Shift extends the range from the anchor and Ctrl adds or removes one
+  //     unit, and neither ever starts a move. That departs from Swing, whose
+  //     modifier map reads Shift as "move": a Shift-press on a row that happens
+  //     to be marked would otherwise mean "extend" or "carry" depending on
+  //     something the person cannot see. Held down through a drag both keep
+  //     their meaning.
   //
-  //  1. SHIFT AND CTRL KEEP EVERYTHING THEY HAD. Shift extends the range from
-  //     the anchor, Ctrl adds or removes one unit; neither ever starts a move.
-  //     That last part is a deliberate departure from Swing, which would let
-  //     Shift start one (its modifier map reads Shift as "move"): here Shift is
-  //     the range key and nothing else, because a Shift-press on a row that
-  //     happens to already be marked would otherwise mean "extend" or "carry"
-  //     depending on something the person cannot see. A coin toss is not a
-  //     gesture. Held down through a drag, both keep their meaning: Shift-drag
-  //     extends the range live, Ctrl-drag ADDS the swept range to whatever was
-  //     marked before the press.
+  //  2. A marking that spans two priority bands still moves, and everything in
+  //     it takes the priority of the row it was dropped on. See dropBlock.
   //
-  //  2. A MARKING THAT SPANS TWO PRIORITY BANDS STILL MOVES, and everything in
-  //     it takes the priority of the row it was dropped on. See dropBlock for
-  //     the whole argument; the short version is that the alternative is a
-  //     marking that cannot be moved for a reason nothing on screen explains.
+  //  3. A marked folder takes its links: pressing a folder header marks every
+  //     link in it, and selectedBlock emits the folder rather than its links
+  //     one by one, so it lands as one run with its order intact.
   //
-  //  3. A MARKED FOLDER TAKES ITS LINKS, always. There is no second question
-  //     there: pressing a folder header marks every link in it (selectUnit), so
-  //     a marked folder IS a folder whose links are marked, and selectedBlock
-  //     emits the folder rather than its links one by one so that it lands as
-  //     one run with its own order intact.
+  //  4. What drops the marking: a plain press on an unmarked row, a plain press
+  //     on a marked row once it is released without travelling, a sweep, and
+  //     Escape during a sweep. What does not: a poll or websocket tick, folding
+  //     a folder, a right-click, a refused move, a press on the empty space
+  //     below the rows, and the press on a marked row, which leaves the marking
+  //     alone until it knows whether a move is coming.
   //
-  //  4. WHAT DROPS THE MARKING: a plain press on an unmarked row (it becomes the
-  //     marking), a plain press on a marked row once it is RELEASED without
-  //     travelling (it collapses to that one row), a sweep (it becomes the
-  //     range), and Escape during a sweep (it goes back to what it was before
-  //     the press). What does NOT: a poll or websocket tick, folding a folder,
-  //     a right-click, a refused move, and - the one that makes the whole
-  //     gesture possible - the PRESS on a marked row, which must leave the
-  //     marking alone until it knows whether a move is coming. Pressing the
-  //     empty space below the rows does not clear it either; that space belongs
-  //     to the list's own context menu.
-  //
-  // The deferred collapse in (4) is Swing's too: BasicTableUI holds the
-  // selection change back to mouseReleased whenever the press could have been a
-  // drag, which is exactly why "click once to mark, then click and hold to
-  // move" works there. Doing it at the press instead would destroy the marking
-  // the second press is trying to pick up.
+  // That deferred collapse is Swing's too: BasicTableUI holds the selection
+  // change back to mouseReleased whenever the press could have been a drag,
+  // which is what makes "click once to mark, then click and hold to move" work.
+  // Doing it at the press destroys the marking the second press picks up.
   function pressRow(e: PointerEvent<HTMLElement>, unit: RowDragKey): void {
     // Left button only, and one pointer at a time. A right-click belongs to the
     // context menu, which reads the row it landed on for itself.
@@ -2368,9 +2055,9 @@ export function TaskListCard({
     // The cursor follows the pointer, so a later Tab into the list resumes from
     // the row the mouse last touched.
     keys.setCurrent(rowKey(unit));
-    // A sweep marks its first row straight away - the press is already the first
-    // step of the range, and a row that lights up under the finger is how the
-    // gesture says it has begun. A move marks nothing yet; that is (4) above.
+    // A sweep marks its first row straight away: the press is already the first
+    // step of the range, and a row lighting up under the finger is how the
+    // gesture says it has begun. A move marks nothing yet, which is (4) above.
     if (mode === 'select') selectFromUnit(unit, mods);
 
     gesture.current = {
@@ -2397,40 +2084,36 @@ export function TaskListCard({
    *  the gesture is refused outright, in which case it is already over. */
   function beginGesture(g: Gesture, strip: HTMLElement): boolean {
     if (g.mode === 'move') {
-      // A SORTED VIEW SAYS SO INSTEAD OF DOING NOTHING. Rows used to simply not
-      // be draggable there, which from a chair is the same picture as a broken
-      // list: you pick a folder up, nothing follows the pointer, and nothing
-      // explains why. The banner above the table says the view is sorted; it has
-      // never said that the order cannot be changed while it is.
+      // A sorted view says so instead of doing nothing. Rows that are simply
+      // not draggable there look like a broken list: a folder is picked up,
+      // nothing follows the pointer and nothing explains why. The banner above
+      // the table says the view is sorted, not that the order cannot change.
       if (!dndEnabled) {
         toast(t('list.dragNeedsQueueOrder'), 'info');
         gesture.current = null;
         return false;
       }
       const block = blockFor(g.unit);
-      // The second silent dead end, and it was there long before this gesture: a
-      // row in NO band cannot be reordered at all, so the drag started, nothing
-      // previewed, the drop did nothing and the list looked broken. A finished or
-      // failed download has left the wait queue. Asked of the whole block now
-      // rather than of the pressed row, because a marking that holds one settled
-      // row and four queued ones is a perfectly good move.
+      // A row in no band cannot be reordered, so without this the drag starts,
+      // nothing previews, the drop does nothing and the list looks broken. A
+      // finished or failed download has left the wait queue. Asked of the whole
+      // block rather than of the pressed row, because a marking holding one
+      // settled row and four queued ones is a good move.
       if (block.every((u) => unitIds(u).length === 0)) {
         toast(t('list.dragNotInQueue'), 'info');
         gesture.current = null;
         return false;
       }
-      // Taken at this exact moment, before any preview has run for this move —
-      // the one point at which the rendered order is guaranteed to still match
-      // the server's own bandOrder.
+      // Taken before any preview has run for this move, which is the one point
+      // at which the rendered order still matches the server's own bandOrder.
       snapshotSlots();
       g.block = block;
       setRowDrag(block);
     }
     g.live = true;
     // From here the strip owns the pointer: every move and the release arrive
-    // here whatever is painted underneath, which is what a list whose rows slide
-    // out from under a still pointer needs and what the old stationary sheet
-    // over the rows was faking.
+    // here whatever is painted underneath, which is what a list whose rows
+    // slide out from under a still pointer needs.
     try {
       strip.setPointerCapture(g.pointerId);
     } catch {
@@ -2448,17 +2131,16 @@ export function TaskListCard({
   }
 
   /**
-   * Which row a point is on, live.
+   * Which row a point is on, live. elementFromPoint and not the frozen
+   * snapshot, and the two are not interchangeable: nothing slides during a
+   * sweep, so the element under the pointer is the row the eye sees, and
+   * reading it live keeps the sweep true while the list scrolls under it. A
+   * move is the opposite case and uses the snapshot (see aimBlock).
    *
-   * elementFromPoint and not the frozen snapshot, and the two are not
-   * interchangeable: nothing slides during a SWEEP, so the element under the
-   * pointer is the row the eye sees, and reading it live is what keeps the sweep
-   * honest while the list scrolls under it. A move is the opposite case and uses
-   * the snapshot for exactly the opposite reason (see aimBlock).
-   *
-   * Off the rows - past either end of the list, or beside it in the margin - the
-   * nearest row by Y, so sweeping downward past the last row keeps selecting to
-   * the end instead of stopping at whatever the pointer last happened to cross.
+   * Off the rows, past either end of the list or beside it in the margin, it
+   * answers the nearest row by Y, so sweeping downward past the last row keeps
+   * selecting to the end instead of stopping at whatever the pointer crossed
+   * last.
    */
   function unitUnder(x: number, y: number): RowDragKey | null {
     const strip = stripRef.current;
@@ -2483,40 +2165,23 @@ export function TaskListCard({
    * The sweep: mark everything between where the press landed and where the
    * pointer is now.
    *
-   * A RANGE FROM THE ANCHOR, not a trail of everywhere the pointer has been.
-   * Sweeping down to row nine and back up to row three marks three to five, not
-   * three to nine - which is Swing's own changeSelection(row, col, false, true)
-   * and the only version of this that can be UNDONE by moving the mouse back.
-   * It is also the same range a Shift-click makes, off the same anchor and
-   * through the same rangeIds, so the two gestures cannot come to disagree.
+   * A range from the anchor, not a trail of everywhere the pointer has been, so
+   * sweeping down to row nine and back up to row three marks three to five and
+   * can be undone by moving the mouse back. It is the range a Shift-click makes
+   * as well, off the same anchor and through the same rangeIds.
    *
-   * Only when the row under the pointer has actually changed. A selection write
-   * re-renders every drawn row, and on a long list that is measured in hundreds
-   * of milliseconds (see listRows.ts) - once per row crossed is the cost of the
-   * gesture, once per pointer move would be the gesture being unusable.
+   * Only when the row under the pointer has changed: a selection write
+   * re-renders every drawn row, which on a long list costs hundreds of
+   * milliseconds (see listRows.ts).
    *
-   * NEVER AGAINST THE DIRECTION THE HAND WENT, and that guard exists because of
-   * something measured rather than imagined. Both pages that host this list grow
-   * a toolbar row the moment anything is marked (Collector.tsx and Downloads.tsx
-   * both render their selection strip behind `selected.size > 0`), so the very
-   * press that marks the first row pushes the whole table DOWN - measured on the
-   * collector at 1400x1100: the row strip's top goes from 485 to 525, a clean
-   * 40px, which is more than one row. The pointer has not moved, but the row
-   * beneath it has, and the next reading answers with the row ABOVE the one that
-   * was pressed. Sweeping five pixels DOWNWARD then marked the folder above,
-   * header and all.
-   *
-   * The rule that fixes it says something true on its own: a range that reaches
-   * back past the row the hand pressed, in the direction the hand did not go, is
-   * never what was meant. Below the press point the sweep can only reach down
-   * from the pressed row, above it only up, and crossing back the other way is
-   * allowed the moment the hand actually crosses - which is what keeps sweeping
-   * down and then back up past the start working. Measured from the PRESSED ROW
-   * and not from the range anchor, because a Shift-press lands somewhere the
-   * anchor is not, and clamping a Shift-drag against the anchor would collapse
-   * the range the moment the hand moved back toward it. With no layout jump
-   * under it the clamp never fires at all: the row under the pointer is always
-   * on the side the pointer travelled to.
+   * Never against the direction the hand went. Both pages that host this list
+   * grow a toolbar row the moment anything is marked, so the press that marks
+   * the first row pushes the whole table down by more than one row height: the
+   * pointer has not moved but the row beneath it has, and sweeping five pixels
+   * downward would mark the folder above. Measured from the pressed row and not
+   * from the range anchor, because a Shift-press lands somewhere the anchor is
+   * not and clamping against the anchor would collapse the range as soon as the
+   * hand moved back toward it.
    */
   function sweepTo(x: number, y: number): void {
     const g = gesture.current;
@@ -2540,29 +2205,27 @@ export function TaskListCard({
   }
 
   /**
-   * The move's own hit test, run against the frozen snapshot and the pointer's
-   * own Y - never against the element the browser delivered the event to.
-   *
-   * Once the preview starts sliding rows, the element under the pointer is
-   * itself a consequence of the LAST answer this gave: under a stationary
-   * pointer sitting on the boundary between two rows that is a closed loop, and
-   * the symptom is rows endlessly swapping back and forth rather than settling.
-   * Reading against a snapshot the preview never touches means "which row, which
-   * half" is a pure function of the pointer's own position.
+   * The move's hit test, run against the frozen snapshot and the pointer's own
+   * Y rather than against the element the browser delivered the event to. Once
+   * the preview starts sliding rows, that element is itself a consequence of
+   * the last answer this gave, which under a stationary pointer on the boundary
+   * between two rows is a closed loop, with rows swapping back and forth
+   * instead of settling. Against a snapshot the preview never touches, "which
+   * row, which half" is a pure function of the pointer's position.
    */
   function aimBlock(clientY: number): void {
     const g = gesture.current;
     if (!g || g.block.length === 0) return;
     const aim = aimAt(rowSlotsRef.current, stripY(clientY), g.block, {
-      // A link row stands for the folder it is in, which is what makes the whole
-      // of an open folder a landing place for another folder instead of only its
-      // 44px header - see aimAt. It is also how aimAt knows that a link of a
-      // folder that is itself travelling is in flight too.
+      // A link row stands for the folder it is in, which makes the whole of an
+      // open folder a landing place for another folder rather than only its
+      // header (see aimAt). It is also how aimAt knows that a link of a folder
+      // that is itself travelling is in flight too.
       packageOf: (id) => taskById.get(id)?.package ?? '',
-      // A row in ANOTHER band is a legal target (dropBlock re-bands what lands
-      // there), so it is offered as one. What is skipped is a unit in no band at
-      // all: a finished or failed download the queue cannot be told to move, and
-      // a folder whose links do not agree on one band.
+      // A row in another band is a legal target, since dropBlock re-bands what
+      // lands there. What is skipped is a unit in no band at all: a finished or
+      // failed download the queue cannot move, and a folder whose links do not
+      // agree on one band.
       canTarget: (unit) => unitBand(unit) !== null,
     });
     if (!aim) return;
@@ -2570,13 +2233,12 @@ export function TaskListCard({
     setDragOver((prev) => (prev && prev.after === aim.after && sameUnit(prev.target, aim.target) ? prev : aim));
   }
 
-  // applyGesture through a ref, because the frame loop below re-schedules ITSELF
-  // and would otherwise keep answering out of the render it was started in: a
-  // websocket tick during a long drag rebuilds selectableOrder and the view, and
-  // a scroll step reading last minute's copy of them would sweep against a list
-  // that no longer exists. Every other path into applyGesture comes from an
-  // event handler, which React rebuilds per render and which is therefore always
-  // current.
+  // applyGesture through a ref, because the frame loop below re-schedules
+  // itself and would otherwise keep answering out of the render it started in:
+  // a websocket tick during a long drag rebuilds selectableOrder and the view,
+  // and a scroll step reading the old copy would sweep against a list that no
+  // longer exists. Every other path into applyGesture comes from an event
+  // handler, which React rebuilds per render.
   const applyRef = useRef(applyGesture);
   applyRef.current = applyGesture;
 
@@ -2596,8 +2258,8 @@ export function TaskListCard({
       if (box) box.scrollTop += dy;
       else window.scrollBy(0, dy);
       // The content moved under a pointer that did not, so the answer has to be
-      // taken again - otherwise the list scrolls past the place it is pointing
-      // at and the preview stands still through the whole scroll.
+      // taken again, or the list scrolls past the place it is pointing at and
+      // the preview stands still through the whole scroll.
       applyRef.current(g);
     }
     edgeScroll.current.frame = requestAnimationFrame(stepEdgeScroll);
@@ -2633,8 +2295,8 @@ export function TaskListCard({
     if (!g) return;
     if (!g.live) {
       // A press that never travelled. On a marked row that is the deferred
-      // collapse - see (4) in the section head; on an unmarked one the press
-      // itself already did the marking and there is nothing left to do.
+      // collapse, see (4) above; on an unmarked one the press already did the
+      // marking and there is nothing left to do.
       if (g.mode === 'move') selectFromUnit(g.unit, PLAIN);
       return;
     }
@@ -2651,13 +2313,12 @@ export function TaskListCard({
     if (gesture.current) finishGesture(false);
   }
 
-  // Escape lets go of a gesture in flight, which is the one thing a person
-  // holding a mouse button down has no other way to do: there is no "put it back
-  // and forget it" in a press that is already halfway across the list.
+  // Escape lets go of a gesture in flight, which a person holding a mouse
+  // button down has no other way to do.
   //
   // Through a ref, because the listener is installed once and the function it
   // calls is rebuilt on every render along with everything it reads. The same
-  // ref is what tears a gesture down if the list unmounts mid-press.
+  // ref tears a gesture down if the list unmounts mid-press.
   const abortRef = useRef(abortGesture);
   abortRef.current = abortGesture;
   useEffect(() => {
@@ -2673,52 +2334,25 @@ export function TaskListCard({
 
   // The arrangement the drag in flight is promising: the same groups the table
   // is showing, in the order they would be in if the pointer were released now.
+  // It is a description and not what gets rendered, and previewOffsets below
+  // turns it into one translateY per row. Rendering it would reorder the real
+  // rows, leaving a FLIP measurement as the only way to animate them, which
+  // reads a mid-animation box as a row's resting place and makes the folders
+  // snap instead of step aside.
   //
-  // NOT what gets rendered. It used to be, and that is the gap jdp was looking
-  // at (2026-09-03: "#784 funktioniert nicht gut. die ordner über die man
-  // drüber hoovert müssen live verrutschen"). Rendering this reordered the real
-  // rows, which meant the only way to make the move look like a move was to
-  // measure every row after the fact and animate it back (a FLIP effect, now
-  // gone) - and that measurement is taken WHILE the previous slide is still
-  // running, so from the second folder onwards it read a mid-animation box as
-  // the row's resting place, computed a nonsense distance from it, and the
-  // folders being hovered over snapped or twitched instead of stepping aside.
+  // Built the way the real list is, one flat run of tasks handed to
+  // groupByPackage, so the preview cannot promise an arrangement the committed
+  // order would not produce. Re-sorting each group's tasks in place moves links
+  // and can never move a folder, since a package's ids stay contiguous.
   //
-  // So this is now a description, and previewOffsets below turns it into one
-  // translateY per row. The list itself never reorders while the pointer is
-  // down; it slides.
-  //
-  // This used to re-sort each group's own tasks in place, which moved LINKS
-  // and could never move a FOLDER: the list of groups itself kept its order,
-  // and since a package's ids stay contiguous, dragging a folder rearranged
-  // nothing at all on screen ("Ich kann ordner nicht per drag and drop
-  // verschieben", jdp). The preview is now built the way the real list is -
-  // one flat run of tasks handed to groupByPackage - so a folder that moved
-  // past another folder genuinely comes out in the new place. That is the
-  // point of reusing groupByPackage rather than re-deriving a group order
-  // here: the preview cannot promise an arrangement the committed order
-  // would not produce, because both come out of the same function.
-  //
-  // ONE SPLICE, AND IT IS THE DROP'S OWN (rowDrag.ts's previewOrder): the block
-  // is lifted out where it is and put back against the target's edge. It used
-  // to be a second, band-shaped arrangement instead - the dragged BAND's slots
-  // refilled in a new order, every other row left alone - and that is why a
-  // drag across two priorities showed nothing at all while the pointer was
-  // down: the old preview asked which band the target was in and gave up when
-  // it was a different one, so the list stood still for the whole gesture.
-  // Measured on a list of six folders at two priorities: every cross-priority
-  // folder drag moved exactly nothing until the mouse was released. A splice
-  // that never asks which band the target is in cannot have that hole - and it
-  // is what lets a marking spanning two bands preview honestly now that
-  // dropBlock will actually carry one.
-  //
-  // The block is several units, so the ids come out of all of them, in the order
-  // the list draws them: what the preview shows gathering at the drop point is
-  // exactly what dropBlock splices there.
+  // One splice, and it is the drop's own (rowDrag.ts's previewOrder): the block
+  // is lifted out where it is and put back against the target's edge. A
+  // band-shaped arrangement gives up when the target is in another band, so a
+  // drag across two priorities shows nothing while the pointer is down.
   const liveView = useMemo(() => {
     if (!rowDrag || !dragOver) return view;
     const flat = view.flatMap(([, items]) => items);
-    // The MOVABLE ids of each unit, which is what the drop moves too: a
+    // The movable ids of each unit, which is what the drop moves too: a
     // finished link inside a folder is not in the wait queue, so it is not part
     // of the block that travels and the preview must not pretend it is.
     const next = previewOrder(
@@ -2734,9 +2368,9 @@ export function TaskListCard({
       const t = byId.get(id);
       if (t) shuffled.push(t);
     }
-    // One task per id or the two lists describe different things and there is
-    // nothing honest to preview - a mismatch would drop a row out of the
-    // preview, which React would then render as a row that vanished mid-drag.
+    // One task per id, or the two lists describe different things: a mismatch
+    // would drop a row out of the preview, which React renders as a row that
+    // vanished mid-drag.
     if (shuffled.length !== flat.length) return view;
     return groupByPackage(shuffled);
     // unitIds and unitBand read view and taskById, and taskById is derived from
@@ -2750,30 +2384,20 @@ export function TaskListCard({
    * the arrangement liveView above describes: row key -> pixels, and empty when
    * there is nothing to preview.
    *
-   * This is the whole animation, and it is the mobile list's own answer rather
-   * than a second invention: DragList keeps its rows exactly where they are and
-   * gives the ones the drag has passed a translate offset (`versatz`), which is
-   * what makes them "sich sofort verschieben wenn man drüberhovert" (jdp,
-   * 2026-08-31, about that list). The web list can do the same thing with more
-   * precision, because rows here are not one uniform height: a folder header, a
-   * folded folder and a link are three different boxes, so the offsets are
-   * computed from the real measured ones instead of from a single row height.
+   * This is the whole animation, and it is the mobile list's answer: DragList
+   * keeps its rows where they are and gives the ones the drag has passed a
+   * translate offset. Rows here are not one uniform height, so the offsets come
+   * from the measured boxes rather than from a single row height.
    *
-   * `wanted` is the previewed arrangement flattened to the rows that are
-   * actually ON SCREEN - a folded folder contributes its header and none of its
-   * links, and on a windowed list a row the window never drew contributes
-   * nothing either, because it has no box to move. The stacking itself is
-   * rowDrag.ts's stackOffsets, where it can be run on plain numbers.
+   * `wanted` is the previewed arrangement flattened to the rows on screen: a
+   * folded folder contributes its header and none of its links, and a row the
+   * window never drew contributes nothing, having no box to move. The stacking
+   * is rowDrag.ts's stackOffsets, where it runs on plain numbers.
    *
    * Bails out whole rather than in part. A poll that adds or removes a task
    * mid-drag leaves the snapshot describing a list that no longer exists, and
-   * half-correct offsets would leave rows lying on top of each other; no
-   * preview at all is the honest state, and the drop itself still commits
-   * against dragOver, which never depended on this. That check is a count of
-   * the rows the snapshot MEASURED against the rows the preview can place, so
-   * it means the same thing on a windowed list as on a whole one: a task the
-   * window drew and the preview cannot account for, or the other way round, is
-   * still a snapshot that has gone stale.
+   * half-correct offsets would leave rows lying on top of each other, while the
+   * drop still commits against dragOver, which never depended on this.
    */
   function previewOffsets(): Map<string, number> {
     if (!rowDrag || !dragOver) return NO_OFFSETS;
@@ -2809,26 +2433,14 @@ export function TaskListCard({
   const dnd: RowDnD = {
     moving: (unit) => movingRows.has(rowKey(unit)),
     press: pressRow,
-    // Every row in the table gets one of these, including the ones that are not
-    // moving: the transition has to already be on a row before its offset
-    // changes, or the first step aside it makes is a jump. A row with nothing to
-    // do simply carries translateY(0).
+    // Every row gets one of these, including the ones that are not moving: the
+    // transition has to be on a row before its offset changes, or its first
+    // step aside is a jump. The whole style disappears when the move ends,
+    // which puts the list back in one frame with no animation, since what lands
+    // after a drop is the server's own order.
     //
-    // The whole style DISAPPEARS the moment the move ends, which is what puts
-    // the list back in one frame with no animation - deliberately, and for the
-    // same reason as before: what lands after a drop is the server's own order,
-    // and sliding into it would read as the app moving something on its own
-    // rather than as the answer to what was just dropped.
-    //
-    // 180ms is the same slide the old FLIP effect used, kept because jdp had
-    // already judged that speed ("das zur seite rutschen soll sehr smooth sein",
-    // 2026-08-25); only the machinery underneath it is different.
-    //
-    // No will-change here on purpose. It is the usual reflex next to a transform
-    // and it would be wrong at this scale: this runs on every row of a list that
-    // can be several hundred long, and a promise of "this will move" on all of
-    // them at once buys layers for rows that never move. A transform transition
-    // is composited while it runs without being told in advance.
+    // No will-change: it would buy layers for several hundred rows that never
+    // move, and a transform transition is composited without being told.
     slide: (unit) => {
       const dy = rowOffsets.get(rowKey(unit));
       if (dy === undefined) return NO_SLIDE;
@@ -2871,8 +2483,8 @@ export function TaskListCard({
     d.width = Math.max(min, Math.round(d.startWidth + (e.clientX - d.startX) * rtl));
     if (phase === 'move') {
       // Painted straight onto the table, off React's render path: re-rendering
-      // several hundred rows per pointermove is what makes a column drag stutter,
-      // and every row wants the same widths anyway.
+      // several hundred rows per pointermove is what makes a column drag
+      // stutter, and every row wants the same widths anyway.
       tableRef.current?.style.setProperty(
         '--kl-cols',
         gridTemplate(layout.visible, (x) => (x === d.id ? d.width : layout.widthOf(x))),
@@ -2894,7 +2506,7 @@ export function TaskListCard({
   // it (see VIRTUALIZE_ABOVE).
   const win = useRowWindow(rows, stripRef);
 
-  // The list from the keyboard - see listKeyboard.ts for why a WINDOWED list
+  // The list from the keyboard; see listKeyboard.ts for why a windowed list
   // needs a file of its own for it. selectUnit goes in whole rather than being
   // reimplemented: Shift with an arrow has to extend from the same anchor a
   // Shift-click uses, or the two gestures disagree about what is selected.
@@ -2915,18 +2527,15 @@ export function TaskListCard({
 
   // Scroll a named row into view, exactly once per request.
   //
-  // TRAP, and it decides how this is written: `win` is a fresh object on every
-  // scroll (useRowWindow's own listener sets viewport state per animation
-  // frame). An effect that DEPENDED on it would scroll, which moves the
-  // viewport, which makes a new `win`, which scrolls again - an unbreakable
-  // loop on any list with a running download. So `win` is read through a ref
-  // and is not a dependency at all, and a second ref holds the last revealKey
-  // actually handled.
+  // `win` is a fresh object on every scroll (useRowWindow sets viewport state
+  // per animation frame), so an effect depending on it would scroll, move the
+  // viewport, make a new `win` and scroll again, which never ends on a list
+  // with a running download. It is read through a ref and is not a dependency,
+  // and a second ref holds the last revealKey handled.
   //
-  // That second ref is set only once the row has been FOUND. A revealKey can
-  // arrive one commit before the task does (the page may have just dropped a
-  // peer scope, and useTasks refills from a fresh socket snapshot), and marking
-  // it handled on the way past would swallow the request for good.
+  // That second ref is set only once the row has been found. A revealKey can
+  // arrive one commit before the task does, and marking it handled on the way
+  // past would swallow the request for good.
   const winRef = useRef(win);
   winRef.current = win;
   const revealed = useRef<string | undefined>(undefined);
@@ -2954,9 +2563,9 @@ export function TaskListCard({
     }
 
     // The row is outside the drawn window, so there is no element to scroll to
-    // at all - the two spacers carry no data attributes on purpose. A 1px
-    // marker at the row's own offset stands in for it, and the scroll it causes
-    // is what moves the window over the real row.
+    // and the two spacers carry no data attributes. A 1px marker at the row's
+    // own offset stands in for it, and the scroll it causes moves the window
+    // over the real row.
     const mark = document.createElement('div');
     mark.style.position = 'absolute';
     mark.style.top = `${winRef.current.topOf(index)}px`;
@@ -2966,11 +2575,10 @@ export function TaskListCard({
     mark.scrollIntoView({ block: 'center', inline: 'nearest' });
     mark.remove();
 
-    // Then again, precisely. The first pass landed on ROW_ESTIMATE for every
-    // row nobody has ever drawn - measureRows only ever measures what is in the
-    // window - and on a five-thousand-row list that is hundreds of pixels out.
-    // Two frames: one for the render the scroll caused, one for the measuring
-    // pass that follows it.
+    // Then again, precisely. The first pass lands on ROW_ESTIMATE for every row
+    // nobody has drawn, since measureRows only measures what is in the window,
+    // and on a five-thousand-row list that is hundreds of pixels out. Two
+    // frames: one for the render the scroll caused, one for the measuring pass.
     let second = 0;
     const first = requestAnimationFrame(() => {
       second = requestAnimationFrame(() => find()?.scrollIntoView({ block: 'center', inline: 'nearest' }));
@@ -2986,77 +2594,45 @@ export function TaskListCard({
     // card of its own under the list, because a card inside a card is the one
     // elevation rule this language does not bend.
     //
-    // flex-1 on both, not h-full: harmless where a caller (Downloads.tsx)
-    // renders this in normal document flow - a flex item with no flex
-    // container ancestor of its own just falls back to its natural content
-    // size, so nothing changes there. Meaningful where a caller wraps this
-    // in its own flex column (Collector.tsx's own overflow-y-auto wrapper,
-    // jdp 2026-08-24: "Das hauptlinkfenster soll immer ... bis ganz nach
-    // unten im fenster gehen. egal wie viele links drinn sind") - flex-1
-    // rather than a percentage height on purpose: h-full measured correctly
-    // on paper here but did not actually resolve in the browser, a known
-    // quirk where a percentage height does not reliably propagate through a
-    // block box whose own height came from flex-grow plus overflow-auto
-    // (confirmed live rather than assumed). flex-grow has none of that
-    // ambiguity, so this is the one place in this component that composes
-    // with whatever a caller does about height.
+    // flex-1 on both, not h-full: harmless where a caller renders this in
+    // normal document flow, since a flex item with no flex container ancestor
+    // falls back to its natural content size, and meaningful where a caller
+    // wraps it in its own flex column. A percentage height does not reliably
+    // propagate through a block box whose height came from flex-grow plus
+    // overflow-auto, while flex-grow has none of that ambiguity, so this is the
+    // one place in this component that composes with a caller's height.
     <div className="flex flex-1 flex-col gap-6">
-      {/* No overflow-hidden on this outer box (jdp, 2026-08-25: "cardtitelbadge
-          des linkhauptfenster und downloadhauptfenster sind nur halb sichtbar
-          und abgeschnitten") - the SAME bug and the SAME fix as
-          AddLinksForm.tsx's own card (see its doc comment): SectionTitle's own
-          pill sits `absolute -top-[11px]`, half over this card's own top edge
-          by design, and overflow-hidden on the element that hosts its
-          `position: relative` clipped exactly that half off. Unlike
-          AddLinksForm.tsx, this card DOES have flush-edged content below the
-          title (the table can run edge-to-edge under overflow-x-auto, and the
-          rows are not their own rounded shape) - so the clip still needs to
-          exist, just scoped to a wrapper that starts BELOW the title instead
-          of on the card's own positioning box. rounded-b (not rounded-t) to
-          match: the title sits far enough below the card's own top corners
-          already (the badge's negative offset only reaches into the pt-4
-          above it, never past the card's own top edge), and the h-10 spacer
-          after the rows already keeps the last row's own square corners clear
-          of the card's rounded bottom corners - but a table that is
-          user-scrolled all the way down, or a card too short to show that
-          full spacer, still deserves the same rounded-bottom guarantee an
-          unclipped square row would otherwise be able to break. */}
-      {/* A hand-rolled card rather than <Card>, so the palette position is set
-          here by hand - and on the card, not on its title, so everything the
-          card holds follows it. */}
-      {/* `hue` is optional here, and a card without one must NOT take the
-          class: `.glim-hue` with no --item-hue resolves --accent to nothing
-          and the badge inside disappears. */}
+      {/* No overflow-hidden on this outer box: SectionTitle's pill sits half
+          over the card's top edge by design, and overflow-hidden on the
+          element hosting its `position: relative` clips that half off. This
+          card does have flush-edged content below the title, since the table
+          runs edge-to-edge under overflow-x-auto, so the clip still exists,
+          scoped to a wrapper that starts below the title. rounded-b and not
+          rounded-t to match: the badge's negative offset only reaches into the
+          pt-4 above it, and a table scrolled all the way down still needs the
+          rounded bottom an unclipped square row could break.
+
+          A hand-rolled card rather than <Card>, so the palette position is set
+          on the card and everything it holds follows it. `hue` is optional, and
+          a card without one must not take the class: `.glim-hue` with no
+          --item-hue resolves --accent to nothing and the badge disappears. */}
       <div
         className={`glim-card ${hue !== undefined ? 'glim-hue ' : ''}flex-1`}
         style={hue !== undefined ? (hueVars(rainbowAt(hue)) as CSSProperties) : undefined}
       >
         <div className="flex items-center gap-2 px-4 pt-4">
-          {/* The bubble on this badge is the HEADER's, not the list's own
-              "what this is" text. That one is gone (jdp, 2026-09-06: "die i
-              infobubble im kartentitel entfernen. auch in der linklisten
-              card") and its prop with it, so it cannot come back by accident.
-              What sits here instead is the one explanation the table still
-              needs and could not otherwise be found: right-click the header
-              for the column menu, click a label to sort (jdp, same day, on
-              where that one should live: "die können wir ja in den
-              cardtitelbadge machen"). */}
-          {/* ONE bubble here, not two. A second one used to sit beside the badge
-              spelling out that the list works from the keyboard - Tab in, arrows
-              between rows, space to pick, Enter for the properties. It was
-              removed on jdp's word, in the download window and in the collector,
-              which share this component: an explanation of the keys is not what
-              somebody opening a download list is looking for, and every keystroke
-              it named is already listed under Settings, Shortcuts, which is where
-              a person goes to look them up. Two bubbles side by side also make
-              the reader decide which one holds their answer before they can read
-              either. */}
+          {/* The bubble on this badge holds the one explanation the table needs
+              and nothing else could carry: right-click the header for the
+              column menu, click a label to sort. One bubble and not two, since
+              the keys are listed under Settings, Shortcuts, and two bubbles
+              side by side make the reader decide which one holds their answer
+              before they can read either. */}
           <SectionTitle hint={t('columns.headerHint')}>{title}</SectionTitle>
         </div>
         <div className="overflow-hidden rounded-b-[var(--radius-card)]">
-          {/* Sorting is a view of the queue and not the queue. Saying so where the
-              order is visibly different is the whole of it — a list that quietly
-              shows one order while running another is read as a bug in the queue. */}
+          {/* Sorting is a view of the queue and not the queue, and saying so
+              where the order is visibly different is the whole of it: a list
+              that shows one order while running another reads as a bug. */}
           {sort && (
             <div className="flex items-center gap-1 px-4 py-2 text-[11px] text-carbon-textMuted">
               <span>{t('list.sortedView')}</span>
@@ -3068,12 +2644,11 @@ export function TaskListCard({
             </div>
           )}
 
-          {/* min-w-min, not min-w-max: max-content pins the table at the sum of its
-              own columns, which overrides the flexible name track entirely and makes
-              the list open scrolled off its right edge in any window narrower than
-              that sum. With min-content the name column gives way down to its own
-              minimum first, and only then does the table start scrolling — which is
-              the point at which scrolling is actually the right answer. */}
+          {/* min-w-min, not min-w-max: max-content pins the table at the sum of
+              its columns, overriding the flexible name track and opening the
+              list scrolled off its right edge in any narrower window. With
+              min-content the name column gives way to its own minimum first,
+              and only then does the table scroll. */}
           <div className="overflow-x-auto">
             <div ref={tableRef} className="min-w-min" style={{ ['--kl-cols' as string]: template } as CSSProperties}>
               <Header
@@ -3089,41 +2664,37 @@ export function TaskListCard({
                 onMenu={setMenuAt}
               />
 
-              {/* `rows`, which is built from `view` and not from liveView, and
-                  that is the point: the rows stay in the order the server last
-                  gave for the whole of a drag, and each one is SLID to where the
-                  drag would put it (previewOffsets above, applied by dnd.slide).
-                  Reordering them here instead is what the preview used to do,
-                  and it left the move with nothing to animate but an
-                  after-the-fact measurement. It also kept the rainbow hues
-                  walking a moving list, so colours shuffled under the pointer as
-                  a side effect of a reorder nobody had committed yet - the
-                  `index` each row carries counts the resting order.
+              {/* `rows` is built from `view` and not from liveView: the rows
+                  stay in the order the server last gave for the whole of a
+                  drag, and each one is slid to where the drag would put it
+                  (previewOffsets above, applied by dnd.slide). Reordering them
+                  here leaves the move with nothing to animate but an
+                  after-the-fact measurement, and walks the rainbow hues over a
+                  moving list, so colours shuffle under the pointer as a side
+                  effect of a reorder nobody has committed. The `index` each row
+                  carries counts the resting order.
 
                   The two boxes around the slice are the rest of the list, as
                   height and nothing else (see useRowWindow). They carry no data
-                  attributes on purpose: the drag snapshot, the right-click and
-                  the selection all look rows up by those, and a spacer is not a
-                  row that any of them may find. */}
-              {/* role="tree" and not "treegrid": nothing here navigates to a
-                  cell - left and right are close and open - so cell roles would
-                  describe an interaction this list does not have, and a treegrid
-                  would force roles onto the header row, onto the h-10 tail
-                  spacer below and onto the absolutely-positioned action strip
-                  that owns no grid track at all. If per-cell navigation is ever
-                  added, this comment is where to say so.
+                  attributes: the drag snapshot, the right-click and the
+                  selection all look rows up by those, and a spacer is not a row
+                  any of them may find.
+
+                  role="tree" and not "treegrid": nothing here navigates to a
+                  cell, left and right close and open, so cell roles would
+                  describe an interaction this list does not have, and a
+                  treegrid would force roles onto the header row, onto the tail
+                  spacer and onto the action strip that owns no grid track.
 
                   `relative` is for the two probes, the keyboard's and the event
-                  list's. A jump to a row the window has not drawn has nothing to
-                  focus, so a one-pixel box is placed at that row's own offset
-                  and scrolled into view; the commit after the scroll finds the
+                  list's. A jump to a row the window has not drawn has nothing
+                  to focus, so a one-pixel box is placed at that row's offset and
+                  scrolled into view, and the commit after the scroll finds the
                   real row (listKeyboard.ts, and the revealKey effect above).
-                  Neither probe carries data attributes, for exactly the reason
-                  the two spacers do not: measureRows averages every
-                  [data-row-key] it finds into the height estimate, and a 1px row
-                  in that average drags the scrollbar for the whole list toward
-                  zero. Both row roots are already `relative`, so nothing else
-                  re-anchors. */}
+                  Neither probe carries data attributes, for the reason the
+                  spacers do not: measureRows averages every [data-row-key] it
+                  finds into the height estimate, and a 1px row in that average
+                  drags the whole list's scrollbar toward zero. */}
               <div
                 ref={stripRef}
                 className="relative"
@@ -3132,31 +2703,15 @@ export function TaskListCard({
                 aria-label={title}
                 tabIndex={keys.stripTabIndex}
                 onFocus={keys.onStripFocus}
-                // THE WHOLE GESTURE HANGS HERE, not on the rows: a press bubbles
-                // up from whichever row it landed on, and from the moment it
-                // becomes a gesture this element holds the pointer capture, so
-                // every move and the release arrive here whatever is painted
-                // underneath. The answer always comes from the pointer's own
-                // position and never from the element the event arrived on.
-                //
-                // THIS IS WHERE THE STATIONARY SHEET USED TO BE, and it is worth
-                // saying what it was for, because the fault it covered is real
-                // and pointer capture is the only reason it is gone. Under the
-                // native HTML5 drag every row was displaced by a transform, the
-                // browser hit-tests a transformed element where it is PAINTED,
-                // and it only reconsiders what a drag is over when the POINTER
-                // moves. So the preview slid a row out from under a stationary
-                // pointer and a release with no last twitch of the mouse arrived
-                // on an element that had never been sent a dragover: Chromium
-                // then fired dragend with NO DROP AT ALL and the gesture was
-                // swallowed in silence. Measured on a list of six folders: every
-                // folder released without moving the mouse again was lost that
-                // way, and the identical drag with one pixel of movement before
-                // the release landed. A full-size invisible sheet over the rows
-                // was what stopped the target changing under a still pointer. A
-                // captured pointer cannot have the fault at all - what is painted
-                // under it is not part of the question any more - so the sheet
-                // came out with the drag it was propping up.
+                // The whole gesture hangs here and not on the rows: a press
+                // bubbles up from whichever row it landed on, and from the
+                // moment it becomes a gesture this element holds the pointer
+                // capture, so every move and the release arrive here whatever
+                // is painted underneath. Under a native HTML5 drag the browser
+                // hit-tests a transformed element where it is painted and only
+                // reconsiders when the pointer moves, so a release with no last
+                // twitch arrives on an element that was never sent a dragover
+                // and Chromium answers with dragend and no drop at all.
                 onPointerMove={moveGesture}
                 onPointerUp={(e) => {
                   if (gesture.current?.pointerId === e.pointerId) finishGesture(true);
@@ -3232,11 +2787,11 @@ export function TaskListCard({
                 {win.padBottom > 0 && <div aria-hidden style={{ height: win.padBottom }} />}
               </div>
 
-              {/* The empty space under the rows, and it earns its keep twice: a
-                  table that ends flush against the edge of its card reads as cut
-                  off, and a right-click needs somewhere to land that is not a row.
-                  That is where the list's own menu lives — select all, fold the lot,
-                  clean up — the same place a desktop list keeps it. */}
+              {/* The empty space under the rows earns its keep twice: a table
+                  that ends flush against the edge of its card reads as cut off,
+                  and a right-click needs somewhere to land that is not a row.
+                  That is where the list's own menu lives, the same place a
+                  desktop list keeps it. */}
               <div className="h-10" />
             </div>
           </div>
@@ -3260,10 +2815,8 @@ export function TaskListCard({
       {/* Keyed on the selection, so picking different rows re-reads the boxes
           instead of carrying one selection's half-typed comment onto another.
           Nothing to edit means no panel: an empty properties panel is a card of
-          disabled controls, which is a page that reads as broken. propertiesOpen
-          gates it on top of that (jdp, 2026-08-26 - see that state's own doc
-          comment): selecting something is no longer enough on its own, a
-          double-click is what actually opens it. */}
+          disabled controls, which reads as broken. propertiesOpen gates it on
+          top of that, so a double-click is what opens it. */}
       {propertiesOpen && chosenIds && chosen.length > 0 && (
         <TaskProperties
           key={[...chosenIds].join(',')}
@@ -3274,21 +2827,20 @@ export function TaskListCard({
         />
       )}
       {/* The read-only detail, below the properties card and below the strip.
-          BELOW is load-bearing: useRowWindow measures stripRef after every
+          Below is load-bearing: useRowWindow measures stripRef after every
           commit, so a card above it that grows when an error string arrives, or
           a <video> that reserves space when it loads metadata, repaints the
           whole windowed slice each time it does.
 
           One row only. A folder header double-click selects a whole package,
-          which TaskProperties is built for and this is not: there is no honest
-          single answer for "the error", "the next attempt" or "the file" across
-          eleven links. chosenIds and chosen are deliberately different sets -
-          chosenIds is the whole selection, chosen only the rows this view can
-          see - so a quick filter hiding the selected row must not put a one-row
-          panel up for a different row.
+          which TaskProperties is built for and this is not: there is no single
+          answer for "the error", "the next attempt" or "the file" across eleven
+          links. chosenIds is the whole selection and chosen only the rows this
+          view can see, so a quick filter hiding the selected row must not put a
+          one-row panel up for a different row.
 
           No key, unlike TaskProperties above: that one snapshots its boxes at
-          mount, this one re-renders live off the task object the WebSocket
+          mount, this one re-renders live off the task object the websocket
           replaces on every tick, and a key derived from anything that moves
           would tear the player down once a second. */}
       {propertiesOpen && chosenIds?.size === 1 && chosen.length === 1 && (

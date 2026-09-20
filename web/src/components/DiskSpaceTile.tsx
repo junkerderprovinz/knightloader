@@ -5,29 +5,13 @@ import { fits, fmtSpace, folderName, roleLabel, spaceHint, useDiskSpace } from '
 import { ProgressBar } from './ProgressBar';
 import { Card, InfoBubble, SectionTitle, useTooltip } from './ui';
 
-/**
- * How much room is left where the downloads are going, one row per FOLDER.
- *
- * Per folder and not per disk, and that is not a shortcut: nothing in this
- * build can tell whether two folders sit on the same volume - the platform
- * calls behind this report hand back no volume identity at all - so the
- * perfectly ordinary install with the download folder and the working folder
- * on one disk shows the same gigabytes twice. Hence no total across the rows,
- * no donut of the whole machine, and the warning written into the title's own
- * bubble rather than left for the reader to work out afterwards.
- *
- * Three figures, never derived from each other. Free excludes the slice a
- * filesystem keeps back for root and honours a per-user quota, so free plus
- * used is routinely LESS than the volume's size; a bar built to make them add
- * up would paint that reserve as somebody's files.
- */
+// Disk space is reported per folder, not per disk: the platform calls give no
+// volume identity, so two folders on one disk show the same space twice and
+// the rows are never totalled. Free, used and total are never derived from
+// each other, since free excludes the root reserve and honours quotas.
 
-// A chip is drawn here rather than with LabelBadge because these sit inside a
-// row of text, not in a header: the shared badge is a 32px control-height
-// object and three of them would set the height of every row in the list.
-// The neutral ground is surface3 and not surface2 for the reason ProgressBar's
-// own track already is - a well IS surface2, so a chip painted in it would
-// have no edge at all.
+// Smaller than LabelBadge, which is control height and would set the row's.
+// surface3, because the well behind it is surface2.
 function Chip({ label, hint, tone }: { label: string; hint?: string; tone: 'neutral' | 'warn' | 'fail' }) {
   const ground =
     tone === 'fail'
@@ -47,14 +31,8 @@ function Chip({ label, hint, tone }: { label: string; hint?: string; tone: 'neut
 }
 
 /**
- * The two floors, marked on the track where they fall.
- *
- * Both are FREE-byte floors, so each one lands at the point the fill would have
- * to reach for that much room to be gone. Drawn only above zero: both ship at
- * 0, and 0 there is the server holding no opinion at all rather than a limit
- * that happens to sit at the left edge - a line drawn for it would be this card
- * inventing a rule nobody set. Nothing is drawn or labelled in its place
- * either, for the same reason.
+ * Marks draws the low-space and stop floors where the fill would reach them.
+ * A floor of 0 means unset and draws nothing.
  */
 function Marks({ v, cfg }: { v: DiskVolume; cfg: Settings | null }) {
   const { t } = useT();
@@ -75,22 +53,12 @@ function Marks({ v, cfg }: { v: DiskVolume; cfg: Settings | null }) {
   );
 }
 
-/**
- * One floor, and its own bubble.
- *
- * Split out of Marks because the tooltip is a hook and Marks draws a list. The
- * bubble is the house one rather than a native title=: a 2px bar carries its
- * whole meaning in where it sits, so it owes an explanation, and the OS balloon
- * answers it in the OS font at the pointer instead of at the mark, outside
- * every rule the rest of the app's bubbles keep.
- */
+// A component of its own because useTooltip is a hook.
 function Mark({ at, label, colour }: { at: number; label: string; colour: string }) {
   const tip = useTooltip<HTMLSpanElement>(label);
   return (
     <>
-      {/* insetInlineStart, not left: the fill underneath grows from the
-          inline start too, so in a right-to-left language both move together
-          instead of the mark drifting to the wrong end of its own bar. */}
+      {/* insetInlineStart, so the mark follows the fill in RTL languages. */}
       <span
         {...tip.triggerProps}
         role="img"
@@ -104,35 +72,21 @@ function Mark({ at, label, colour }: { at: number; label: string; colour: string
 }
 
 /**
- * One folder.
- *
- * Exported because the Downloads settings card shows this same row for the
- * download folder beside the three floors it is compared against, and a second
- * renderer there would be the same numbers with a second set of rules about
- * when to hide them.
- *
- * `hint` is for a caller that has no card title to hang the general
- * explanation on. The tile below does have one, so it passes nothing rather
- * than repeating the same paragraph once per row.
+ * DiskVolumeRow shows one folder's space, here and on the Downloads settings
+ * card. `hint` is for a caller without a card title to carry the explanation.
  */
 export function DiskVolumeRow({ v, cfg, hint }: { v: DiskVolume; cfg: Settings | null; hint?: string }) {
   const { t } = useT();
   const room = fits(v);
   const usedPct = v.total > 0 ? Math.min(100, Math.round((v.used / v.total) * 100)) : 0;
-  // The house bubble on both of the row's own truncated-or-unlabelled readings,
-  // where a native title= used to draw the operating system's balloon beside
-  // the app's own. The full path earns one because the visible text is cut down
-  // to the last segment and this is the only place the rest of it still exists;
-  // the size figure earns one because "of 500 GB" is the one number in the row
-  // with no word of its own in front of it.
+  // The row shows only the last path segment, and the size has no label.
   const pathTip = useTooltip<HTMLSpanElement>(v.dir);
   const sizeTip = useTooltip<HTMLSpanElement>(t('disk.size'));
 
   return (
     <div className="flex flex-col gap-2 px-5 py-3">
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
-        {/* dir="auto": a path can be written in a right-to-left script, which
-            the shell bar's peer name already allows for. */}
+        {/* dir="auto": a path can be in a right-to-left script. */}
         <span {...pathTip.triggerProps} dir="auto" className="min-w-0 truncate text-[14px] text-carbon-text">
           {folderName(v.dir)}
         </span>
@@ -143,19 +97,12 @@ export function DiskVolumeRow({ v, cfg, hint }: { v: DiskVolume; cfg: Settings |
         </span>
         <span className="flex-1" />
 
-        {/* The folder is not there yet, which is ordinary: whoever writes the
-            first file into it creates it. */}
+        {/* Ordinary: the first write creates the folder. */}
         {!v.exists && <Chip tone="neutral" label={t('disk.missing')} />}
 
-        {/* WHENEVER THE MEASURED FOLDER IS NOT THE ONE ASKED ABOUT, THE PATH IS
-            SHOWN - not hinted at, shown. The report climbs to the nearest
-            existing folder above, which for a folder nobody has written into
-            yet is harmless and on the right disk; but if a mount did not come
-            up, the climb reaches the volume root and the figures then describe
-            a completely different disk with total confidence. That is the one
-            way this row can be a confident wrong number, so the difference gets
-            its own chip in warning ink and the sentence that says what it can
-            mean. */}
+        {/* The report climbs to the nearest existing parent. If a mount did not
+            come up, that is the volume root of a different disk, so the
+            measured path is always shown. */}
         {v.measured !== v.dir && (
           <Chip
             tone={v.exists ? 'warn' : 'neutral'}
@@ -164,17 +111,12 @@ export function DiskVolumeRow({ v, cfg, hint }: { v: DiskVolume; cfg: Settings |
           />
         )}
 
-        {/* On `false` alone. `fits` answers null where nothing could be
-            measured, and a warning drawn for that would be a claim about a
-            volume nobody read. */}
+        {/* `fits` answers null when nothing could be measured. */}
         {room === false && <Chip tone="fail" label={t('disk.tight')} hint={t('disk.tightHint')} />}
       </div>
 
       {v.known ? (
         <>
-          {/* No bar without a size to draw it against. A track filled to 0%
-              would read as an empty disk, which is the opposite of "there is
-              no figure here". */}
           {v.total > 0 && (
             <div className="relative">
               <ProgressBar percent={usedPct} active />
@@ -185,9 +127,6 @@ export function DiskVolumeRow({ v, cfg, hint }: { v: DiskVolume; cfg: Settings |
             <span className="flex items-baseline gap-1.5">
               <span>{t('disk.free')}</span>
               <span className="glim-num text-carbon-text">{fmtSpace(v.free)}</span>
-              {/* strip.of, the word the queue header already pairs two byte
-                  figures with. A second "of" would be one sentence translated
-                  twice in forty-two files. */}
               <span>{t('strip.of')}</span>
               <span {...sizeTip.triggerProps} className="glim-num text-carbon-textSub">
                 {fmtSpace(v.total)}
@@ -198,17 +137,8 @@ export function DiskVolumeRow({ v, cfg, hint }: { v: DiskVolume; cfg: Settings |
               <span>{t('disk.used')}</span>
               <span className="glim-num text-carbon-textSub">{fmtSpace(v.used)}</span>
             </span>
-            {/* Beside the free figure and never taken off it: a download that
-                is already running had its room claimed on the disk when it
-                started, so those bytes are missing from `free` already. The
-                bubble is where that gets said, along with the fact that a
-                download whose size nobody stated counts as nothing here, which
-                makes this a floor rather than a promise.
-
-                Shown at zero as well. An idle folder reading "0 B" is an
-                answer; a figure that vanishes when there is nothing owed is a
-                row that reflows every time the queue empties, and Counters.tsx
-                keeps its zeros visible for exactly that reason. */}
+            {/* Not subtracted from free: a running download already claimed its
+                room. Shown at zero too, so the row does not reflow. */}
             <span className="flex items-baseline gap-1.5">
               <span>{t('disk.queued')}</span>
               <span className="glim-num text-carbon-text">{fmtSpace(v.queued)}</span>
@@ -218,12 +148,7 @@ export function DiskVolumeRow({ v, cfg, hint }: { v: DiskVolume; cfg: Settings |
           </div>
         </>
       ) : (
-        // NO BAR AND NO FIGURES. This platform has no call to ask with, so
-        // free, used and total are zeros that mean nothing - and a bar filled
-        // to 0% would be this row inventing an empty disk. What is worth saying
-        // is that nothing is being held back here at all, which is a different
-        // situation from a disk that is genuinely full and needs a different
-        // reaction, so it gets said in words.
+        // The platform cannot measure, so the zeros mean nothing and no bar is drawn.
         <span className="flex items-center text-[11px] text-carbon-textMuted">
           {t('disk.unknown')}
           <InfoBubble tip={t('disk.unknownHint')} />
@@ -234,16 +159,8 @@ export function DiskVolumeRow({ v, cfg, hint }: { v: DiskVolume; cfg: Settings |
 }
 
 /**
- * The Overview card.
- *
- * `settings` is handed down rather than fetched: the page already has the
- * document, and the two floors marked on each track have to be the ones the
- * rest of that page is reading.
- *
- * Nothing at all until a report has arrived, and nothing if it has no folders
- * to describe - the same way StatusStrip draws nothing while nothing is
- * happening. A card standing empty on the busiest page in the app is furniture
- * somebody has to read past on the way to the figures that mean something.
+ * DiskSpaceTile is the Overview card, drawn once a report with folders has
+ * arrived. The page passes `settings` so the floors match what it shows.
  */
 export function DiskSpaceTile({ settings, hue }: { settings: Settings | null; hue?: number }) {
   const { t } = useT();
@@ -252,31 +169,17 @@ export function DiskSpaceTile({ settings, hue }: { settings: Settings | null; hu
   if (volumes.length === 0) return null;
 
   return (
-    // Card and not a bare div: SectionTitle's badge is absolutely positioned
-    // against the nearest positioned ancestor, and only .glim-card is one. The
-    // two cards above this on the page carry the same note, having been the
-    // place the bug was found twice.
-    //
-    // `hue` is passed straight through to the Card and read nowhere else here:
-    // the position belongs on the CONTAINER, and .glim-hue rebinds --accent for
-    // the whole subtree, so one number colours this card's title notch, every
-    // folder's fill bar and the link at the foot at once. The Overview page is
-    // an equal-weight set of cards, and a page that leaves one of them out is
-    // a page that is half in the mode.
+    // A Card, because SectionTitle's badge positions against .glim-card. The
+    // hue on it recolours the whole subtree.
     <Card hue={hue} className="flex flex-col gap-3">
       <SectionTitle hint={spaceHint(t, report)}>{t('disk.title')}</SectionTitle>
       <div className="glim-well divide-y divide-carbon-border/60 p-0">
         {volumes.map((v, i) => (
-          // The path alone is not a key: one folder can be on the list under
-          // two roles, and the server's order is what the rows are read in.
+          // One folder can appear under two roles.
           <DiskVolumeRow key={`${v.role}|${v.dir}|${i}`} v={v} cfg={settings} />
         ))}
       </div>
-      {/* The server left folders out, and says so rather than presenting a
-          short list as the whole list. Only the tail of destinations sitting
-          outside every configured folder can be cut, and only the ones owed
-          least - so this is never the reason a folder somebody configured is
-          missing, which is the thing a reader would otherwise suspect. */}
+      {/* The server cuts only unconfigured destinations owed the least. */}
       {report?.truncated && (
         <span className="flex items-center text-[11px] text-carbon-textMuted">
           {t('disk.truncated')}
@@ -284,8 +187,6 @@ export function DiskSpaceTile({ settings, hue }: { settings: Settings | null; hu
         </span>
       )}
 
-      {/* The way to the numbers that actually hold a download back. Quiet, at
-          the end: this card reports, it does not configure. */}
       <Link
         to="/settings/downloads"
         className="self-start text-[11px] text-carbon-textMuted underline-offset-2 hover:text-carbon-text hover:underline"

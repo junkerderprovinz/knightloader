@@ -1,21 +1,6 @@
-// The collector's facet sidebar: narrow the staged links by host, file type or
-// package, the way JD's own LinkGrabber sidebar does (docs/jd-feature-census.md,
-// section 6 — "Ansichten (Sidebar)" / "Hoster" / "Dateitypen", all three missing
-// there today).
-//
-// Deliberately NOT a fourth, availability facet: Online / Offline / Uncheckable
-// / Not checked is already a facet, just a horizontal one — ListToolbar's own
-// COLLECTOR_FILTERS chips (components/ListToolbar.tsx) — and a second, vertical
-// copy of the same four values here would be exactly the "third, inconsistent
-// summary component" this wave was told to build instead of. Host, file type
-// and package have no such chip anywhere, which is the whole reason they are
-// the three groups below.
-//
-// Everything is computed client-side from the tasks already on screen —
-// core.Task carries host and package as real fields, and a file type is one
-// regex away from the name already rendered in the list — so there is no new
-// server route here and nothing in this file can drift from what the tasks
-// stream actually holds.
+// The collector's facet sidebar narrows staged links by host, file type or
+// package, computed from the tasks on screen. Availability is not a facet here
+// because ListToolbar's filter chips already cover it.
 import { useCallback, useMemo } from 'react';
 import type { Task } from '../lib/api';
 import { useT, type TranslationKey } from '../lib/i18n';
@@ -23,12 +8,8 @@ import { Button, Card, SectionTitle } from './ui';
 import { Tip, hostOf } from './columns';
 import { IconCheck } from '../lib/icons';
 
-// New UI text for this wave, kept out of en.ts on purpose: the locale files are
-// one writer's lane and it runs after 8A–8D/8G land (build-plan.md section 8's
-// Wave 8 amendment). Same arrangement as pages/settings/Captcha.tsx and
-// pages/settings/Connections.tsx — t() is asked first, so the day these keys
-// land for real in en.ts (and in all the other locales) this table stops being
-// consulted and can be deleted without touching anything else here.
+// English fallbacks for keys not yet in en.ts. t() is asked first, so the table
+// can go once the catalogues carry them.
 const PENDING = {
   'collector.facets.title': 'Filters',
   'collector.facets.hint': 'Narrow the staged list by where a link points, what kind of file it is, or which package it landed in.',
@@ -49,8 +30,7 @@ function useCx() {
   const { t } = useT();
   return useCallback(
     (key: PendingKey, vars?: Record<string, string | number>) => {
-      // The cast is the whole point: these keys are not in the union yet. It is
-      // narrow — only keys in PENDING can be passed — and it goes with the table.
+      // These keys are not in the union yet; only PENDING keys get through.
       const translated = t(key as unknown as TranslationKey) as string | undefined;
       let s: string = translated ?? PENDING[key];
       if (vars) for (const [k, v] of Object.entries(vars)) s = s.replaceAll(`{${k}}`, String(v));
@@ -76,10 +56,7 @@ export function facetActiveCount(sel: FacetSelection): number {
 
 /**
  * matchesFacets is a union within one dimension and an intersection across
- * them: checking two hosts means "either of these", checking a host AND a file
- * type means "both" — the same rule ListToolbar's matchesQuickFilters already
- * uses within its one dimension, extended the only way that makes sense once
- * there is more than one.
+ * them: two hosts mean either, a host and a file type mean both.
  */
 export function matchesFacets(t: Task, sel: FacetSelection): boolean {
   if (sel.host.size > 0 && !sel.host.has(hostOf(t))) return false;
@@ -101,12 +78,7 @@ const EXT_CATEGORY: Record<string, FileCategory> = {
   doc: 'document', docx: 'document', txt: 'document',
 };
 
-// Multi-volume archives name their tail parts .r00…/.r99, .001…/.999 or
-// .z01…/.z99 rather than repeating a real extension, so the lookup above would
-// file every part after the first one as "other" — the one case where a
-// "checkbox list of the file types present" (docs/jd-feature-census.md's own
-// words for this facet) would be actively misleading for exactly the kind of
-// link a JDownloader refugee pastes in bulk.
+// Tail parts of multi-volume archives (.r00, .001, .z01) that the table misses.
 const ARCHIVE_TAIL = /^(r\d{2,3}|z\d{2}|\d{3})$/;
 
 function extOf(t: Task): string {
@@ -137,13 +109,8 @@ interface FacetOption {
 }
 
 /**
- * buildFacet turns the staged tasks into one dimension's checkbox list.
- *
- * An active value that no longer matches any task is kept, at a count of 0,
- * rather than dropped — the same rule ListToolbar's own quick filters use
- * (components/ListToolbar.tsx, the `offered` memo in ListToolbar): a checked
- * box that disappears from the panel the moment its count hits zero is a
- * checked box nobody can ever reach again to uncheck.
+ * buildFacet turns the staged tasks into one dimension's options. An active
+ * value with no tasks left stays at a count of 0, or nobody could uncheck it.
  */
 function buildFacet(
   tasks: Task[],
@@ -161,13 +128,8 @@ function buildFacet(
   return [...m.values()].sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
 }
 
-/**
- * The row itself is the control — a real checkbox nested inside it would be
- * two interactive elements answering for one click. The mark is drawn to match
- * columns.tsx's exported Checkbox exactly (the selection mark everywhere else
- * in GlimStone), as a plain span rather than that component, because here it is
- * not a second focus stop of its own.
- */
+// The row is the control; the mark copies columns.tsx's Checkbox as a plain
+// span so it is not a second focus stop.
 function FacetRow({
   checked,
   label,
@@ -185,8 +147,6 @@ function FacetRow({
       role="checkbox"
       aria-checked={checked}
       onClick={onToggle}
-      // text-xs is the scale's dense row, which is what a list row takes. It
-      // was 12.5px, a step the four-row table (20/14/12/11) does not have.
       className="flex w-full items-center gap-2 rounded-[var(--radius-control)] px-1.5 py-1 text-start text-xs
         text-carbon-textSub transition-colors hover:bg-carbon-hover"
     >
@@ -198,10 +158,6 @@ function FacetRow({
       >
         <IconCheck width={12} height={12} />
       </span>
-      {/* A host or a package name is cut to the panel's width, so the whole of
-          it belongs one hover away - in the house bubble, never as a native
-          `title=` and the operating system's own balloon beside the app's own
-          (see columns.tsx's `Tip`). */}
       <Tip tip={label} className="min-w-0 flex-1 truncate">
         {label}
       </Tip>
@@ -225,9 +181,7 @@ function FacetGroup({
   return (
     <div className="flex flex-col gap-1">
       <h3 className="glim-eyebrow px-1.5">{title}</h3>
-      {/* Scrolls rather than growing the panel without bound — a paste of two
-          hundred links from eighty hosts must not turn the sidebar into the
-          page's own scrollbar. */}
+      {/* Scrolls, so a paste from eighty hosts does not stretch the sidebar. */}
       <div className="flex max-h-48 flex-col gap-0.5 overflow-y-auto">
         {options.map((o) => (
           <FacetRow key={o.value} checked={active.has(o.value)} label={o.label} count={o.count} onToggle={() => onToggle(o.value)} />
@@ -245,12 +199,8 @@ function toggled<T>(set: ReadonlySet<T>, value: T): Set<T> {
 }
 
 /**
- * CollectorFacetSidebar is the panel itself.
- *
- * `tasks` is the collected set before search, quick filters or these very
- * facets narrow it — the same basis ListToolbar counts its own chips against —
- * so unchecking a box always widens what is on screen, and a count next to a
- * box never shrinks just because another box in the same panel is checked.
+ * CollectorFacetSidebar is the facet panel. `tasks` is the collected set before
+ * any narrowing, so a count never shrinks because another box is checked.
  */
 export function CollectorFacetSidebar({
   tasks,

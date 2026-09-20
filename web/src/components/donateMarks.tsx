@@ -1,38 +1,16 @@
-// ---------------------------------------------------------------------------
-// The marks the donation card and the crypto window wear ([3554]).
-//
-// BRAND MARKS, and that is why they live here rather than in glyphs.tsx: the
-// house rule is that a brand is passed explicitly at the one call site that
-// means it and is NEVER reachable by pattern. A glyphFor rule keyed on "coffee"
-// would put another company's cup on anything mentioning coffee, and a rule on
-// "crypto" would put the Bitcoin symbol on settings that have nothing to do
-// with it. See gen_glyphs.py's IconGithub entry for the full reasoning.
-//
-// They also travel with lib/donate.ts rather than with the action glyphs,
-// because that is what they belong to: the day the donation routes change,
-// these change with them, and nothing else in the app reads this file.
+// Brand marks for the donation card and the crypto window. They live apart
+// from glyphs.tsx because a brand is passed explicitly at its call site and is
+// never picked by a glyphFor pattern.
 //
 // Attribution, required by the licences:
-//   Simple Icons (https://simpleicons.org) - CC0 1.0 Universal: Bitcoin,
+//   Simple Icons (https://simpleicons.org), CC0 1.0 Universal: Bitcoin,
 //   Ethereum, Tether, Solana, Binance, XRP, Sui, Buy Me a Coffee, PayPal.
-//   cryptocurrency-icons (https://github.com/spothq/cryptocurrency-icons) -
+//   cryptocurrency-icons (https://github.com/spothq/cryptocurrency-icons),
 //   MIT: USD Coin and XRP. Copyright (c) 2018 Christopher Downer.
 //
-// A BRAND MARK IS NOT PAINTED IN THE APP'S OWN INK, and the note that used to
-// stand here said the opposite. GlimStone 1.9.0/1.10.0 turned that round: a
-// published brand colour dies on one of the two grounds - Bitcoin's orange on
-// the light theme, GitHub's near-black on the dark one - so the mark rides a
-// per-theme ADJUSTED value at rest and spends its TRUE colour on HOVER, as the
-// button's own fill, with the label and the mark flipping to that fill's ink.
-// The values are the language's (`--brand-*`, one set per theme) and the call
-// site names a brand by class (`.glim-brand-btn` with `.glim-brand-<name>`),
-// so no file here holds a hex and no mark is painted by pattern.
-//
-// `currentColor` below is what a mark takes where no brand class names it: on
-// a coin tile the colour engine fills, the mark takes THAT fill's contrast
-// ink. The accent is the user's to pick and rainbow mode hands every tile its
-// own, so a fixed brand colour there is a contrast nobody can predict.
-// ---------------------------------------------------------------------------
+// Marks paint in currentColor. The brand colours come from `--brand-*` tokens
+// through `.glim-brand-<name>` classes at the call site, and a coin tile gives
+// the mark its fill's contrast ink.
 import type { ReactNode } from "react";
 
 function Mark({ box, d, size = 16 }: { box: string; d: string; size?: number }) {
@@ -82,20 +60,13 @@ const PATHS: Record<string, { box: string; d: string }> = {
     d: "M17.636 10.009a7.16 7.16 0 0 1 1.565 4.474 7.2 7.2 0 0 1-1.608 4.53l-.087.106-.023-.135a7 7 0 0 0-.07-.349c-.502-2.21-2.142-4.106-4.84-5.642-1.823-1.034-2.866-2.278-3.14-3.693-.177-.915-.046-1.834.209-2.62.254-.787.631-1.446.953-1.843l1.05-1.284a.46.46 0 0 1 .713 0l5.28 6.456zm1.66-1.283L12.26.123a.336.336 0 0 0-.52 0L4.704 8.726l-.023.029a9.33 9.33 0 0 0-2.07 5.872C2.612 19.803 6.816 24 12 24s9.388-4.197 9.388-9.373a9.32 9.32 0 0 0-2.07-5.871zM6.389 9.981l.63-.77.018.142q.023.17.055.34c.408 2.136 1.862 3.917 4.294 5.297 2.114 1.203 3.345 2.586 3.7 4.103a5.3 5.3 0 0 1 .109 1.801l-.004.034-.03.014A7.2 7.2 0 0 1 12 21.67c-3.976 0-7.2-3.218-7.2-7.188 0-1.705.594-3.27 1.587-4.503z",
   },
   xrp: {
-    // The current XRP mark, not Ripple's old wave lines: those are the
-    // COMPANY's former logo and read as a set of brackets at 22px, which
-    // is exactly how it was reported ("das logo von XRP passt nicht").
+    // The current XRP mark; Ripple's former wave logo reads as brackets at 22px.
     box: "0 0 32 32",
     d: "M16 32C7.163 32 0 24.837 0 16S7.163 0 16 0s16 7.163 16 16-7.163 16-16 16zm7.07-24l-4.574 4.523a3.556 3.556 0 01-4.996 0L8.93 8H6.035l6.02 5.957a5.621 5.621 0 007.89 0L25.961 8h-2.89zM8.895 24.563L13.504 20a3.556 3.556 0 014.996 0l4.605 4.563H26l-6.055-5.993a5.621 5.621 0 00-7.89 0L6 24.562h2.895z",
   },
 };
 
-/**
- * PayPal's own mark, for the button that opens a PayPal.Me page.
- *
- * The same rule as every brand here: passed explicitly at the one call site
- * that means it, never reachable by pattern.
- */
+/** IconPayPal is PayPal's mark, for the button that opens a PayPal.Me page. */
 export function IconPayPal({ size = 16 }: { size?: number }): ReactNode {
   return (
     <Mark
@@ -106,29 +77,19 @@ export function IconPayPal({ size = 16 }: { size?: number }): ReactNode {
   );
 }
 
-/** Whether a coin id has a mark here. The test beside lib/donate.ts holds
- *  every offered coin to having one, so no tile ships as a bare ticker. */
+/** hasCoinMark reports whether a coin id has a mark. */
 export function hasCoinMark(coin: string): boolean {
   return coin in PATHS;
 }
 
-/** A coin's own mark, by the id lib/donate.ts gives it. */
+/** CoinMark draws a coin's mark by its lib/donate.ts id, or nothing. */
 export function CoinMark({ coin, size = 16 }: { coin: string; size?: number }): ReactNode {
   const mark = PATHS[coin];
-  // Undefined rather than a placeholder: a tile still carries its ticker, and
-  // a symbol that means nothing is worse than none. The test beside donate.ts
-  // holds every offered coin to having one, so this is a backstop, not a plan.
   if (!mark) return null;
   return <Mark box={mark.box} d={mark.d} size={size} />;
 }
 
-/**
- * Buy Me a Coffee's own mark, for the button that opens their page.
- *
- * The same rule as the GitHub mark on the repository button: a brand is
- * recognised faster than a word is read, and it belongs only on the control
- * that actually goes there.
- */
+/** IconBuyMeACoffee is Buy Me a Coffee's mark, for the button to their page. */
 export function IconBuyMeACoffee({ size = 16 }: { size?: number }): ReactNode {
   return (
     <Mark
@@ -139,41 +100,18 @@ export function IconBuyMeACoffee({ size = 16 }: { size?: number }): ReactNode {
   );
 }
 
-/**
- * Bitcoin's mark, on the button that opens the crypto window.
- *
- * jdp asked for it by name (2026-09-10). It is the one symbol that reads as
- * "crypto" to somebody who has never held any - the way a floppy disk still
- * reads as "save" - and that is worth more here than the accuracy of naming
- * one chain out of five. What keeps the naming honest is the window itself:
- * the first thing in it is a grid of every coin on offer, each with its own
- * mark, so nobody gets as far as an address believing Bitcoin is the only
- * option. This replaced a neutral wallet drawing, which was correct and said
- * nothing.
- */
-/**
- * The letterform alone, with the disc cut away.
- *
- * The same drawing as the tile's, not a second one traced by hand: the coin
- * mark is one path, a disc with the symbol wound against it, so dropping the
- * first subpath leaves the letter filling and its two counters open. The
- * leading move is absolute because the original's was relative to the disc
- * that is now gone, and the box is the house crop, square and tight to the
- * measured ink so `xMidYMid meet` scales it to the button's 16px.
- *
- * WHY THE DISC LOST ITS PLACE HERE, having held it deliberately: it survives
- * the brand class, since the symbol is knocked out of a single path rather
- * than painted on top, and it still reads as an orange dot at this size. What
- * the eye is given is the shape of the ground instead of the shape of the
- * letter, which is the opposite of what a row of five marks is for. The disc
- * keeps the coin tiles in the donation window, where it is large and nothing
- * repaints it.
- */
+// The Bitcoin letterform without its disc: the coin path minus its first
+// subpath, with the leading move made absolute. At 16px the disc would read as
+// an orange dot rather than a letter.
 const BTC_LETTER = PATHS.btc.d.slice(PATHS.btc.d.indexOf("m-6.35-4.613")).replace(
   "m-6.35-4.613",
   "M17.288 10.291"
 );
 
+/**
+ * IconBitcoin marks the button that opens the crypto window, since Bitcoin's
+ * symbol reads as "crypto"; the window then lists every coin.
+ */
 export function IconBitcoin({ size = 16 }: { size?: number }): ReactNode {
   return <Mark box="3.961 4.178 15.2 15.2" d={BTC_LETTER} size={size} />;
 }

@@ -1,21 +1,8 @@
-// The collector's file intake for everything that isn't a plain pasted link
-// (AddLinksForm already owns that): a .torrent file, or a link-container file
-// (.txt/.dlc/.ccf/.rsdf). Reached two ways - AddLinksForm's own folder-icon
-// badge opens the picker below through this component's ref, and (jdp,
-// 2026-08-24) the same paste box's own drop target hands dropped FILES here
-// too, so this component keeps no drop target of its own - see
-// FileDropHandle's own doc comment.
-//
-// Replaces the two former one-row bars (ContainerDrop, TorrentUpload) - same
-// underlying requests (parseTorrentUpload/stageTorrent, uploadContainer), one
-// intake path instead of two, so a person does not have to guess which of two
-// near-identical surfaces a given file belongs on. A file is tried as a
-// torrent first (server sniffs the bencoded bytes, not the extension) and
-// falls back to the container endpoint on failure. What the file picker's
-// `accept` offers is the union of both formats - a convenience for the
-// picker, never a gate, matching ContainerDrop/TorrentUpload's own
-// established reasoning: the server decides by content, so a misnamed file
-// chosen anyway is sent as it is.
+// The collector's file intake for .torrent and link-container files
+// (.txt/.dlc/.ccf/.rsdf), reached through AddLinksForm's picker button and
+// paste box. A file is tried as a torrent first, which the server sniffs by
+// content, and falls back to the container endpoint. The picker's `accept` is
+// a convenience, not a gate.
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { parseTorrentUpload, stageTorrent, uploadContainer, type Task, type TorrentTree } from '../lib/api';
 import { fmtBytes } from '../lib/format';
@@ -26,11 +13,7 @@ import { Tip } from './columns';
 import { ProgressBar } from './ProgressBar';
 import { IconCheck } from '../lib/icons';
 
-/** seconds → "12s" / "3m 5s" / "1h 2m", the same compact shape fmtEta
- *  (lib/format.ts) already prints, just from a plain elapsed count instead
- *  of a loaded/size/speed computation - the two are not the same question,
- *  so this stays its own tiny helper rather than forcing an ETA function to
- *  answer something it was never about. */
+// fmtElapsed prints seconds in fmtEta's compact shape: "12s", "3m 5s", "1h 2m".
 function fmtElapsed(totalSeconds: number): string {
   const s = Math.max(0, Math.floor(totalSeconds));
   if (s < 60) return `${s}s`;
@@ -41,58 +24,13 @@ function fmtElapsed(totalSeconds: number): string {
 }
 
 /**
- * ContainerHandedProgress replaces a bare wait sentence with the same
- * indeterminate-bar language every other "something is happening, no
- * percentage available yet" moment in this app already speaks (ProgressBar
- * itself, queued/extracting rows) - jdp, 2026-08-25, on the plain text this
- * used to be: "Können wir statt dem Text ein progressbar wie in BV anzeigen
- * lassen?" (BombVault's own OffsiteIndicator does the identical thing for
- * its own "waiting on an external process, roughly bounded" case - an
- * indeterminate sweep plus a live elapsed-duration caption, since neither
- * app can honestly claim a completion percentage for a handover that
- * either finishes or expires, never partially progresses).
+ * ContainerHandedProgress shows an indeterminate bar and elapsed time while an
+ * encrypted container waits on the JD sidecar. It ends when a container link
+ * lands in the collector, or when the relay's TTL runs out.
  *
- * Two follow-ups from the first pass at this (jdp, 2026-08-26): the
- * explanatory sentence itself is gone now, not merely joined by the bar -
- * only the file name stays, since a stack of these next to each other still
- * needs SOME way to tell which file is which, but the "ist verschlüsselt...
- * erscheint hier sobald..." explanation was the wordy part nobody wanted
- * repeated. And the bar stops on a timeout rather than running forever.
- *
- * The timeout was never the right end, though, and jdp said so again on
- * 2026-09-06: "der ladebalken im linksammler läuft unbegrenzt weiter und
- * verschwindet nicht, selbst wenn die links in der linkliste gelandet sind".
- * The relay TTL is minutes; the links usually arrive in seconds. A bar that
- * keeps sweeping over a list that already holds the answer is not "still
- * waiting", it is wrong.
- *
- * The signal it waits on now is `landedAt`: when a link whose intake path was
- * a CONTAINER (core.Task.Origin == "container", app_links.go's own
- * OriginContainer) last arrived in the collector. That is exactly what this
- * bar is waiting for and nothing else - a pasted link, a Click'n'Load push or
- * a watch-folder pickup all carry their own origin and none of them ends this
- * bar. The timeout stays as the floor under it, for the handover that never
- * resolves at all.
- *
- * It is still not per-container: the backend's own handover answers once with
- * expiresIn and no id to correlate against, so two container files dropped in
- * the same second end both bars when the first one's links land. Ending a
- * two-second-old bar a moment early is a much smaller wrong than running a
- * finished one for ten minutes.
- *
- * NO PADDING OF ITS OWN. Every row this component draws lands inside
- * AddLinksForm's footer slot, which already insets them by px-4 - and this file
- * added a second px-4 on top, so the bar started 32px from the card's edge
- * while the button row above it started at 16px (jdp, 2026-09-07: "der
- * ladebalken fängt nicht bündig mit dem darüberliegenden button an und hört zu
- * weit rechts auf"). One inset, owned by the slot, is what makes the two line
- * up.
- *
- * startedAt is stamped client-side the moment the handover response
- * arrived (sendOne below) - the backend's own handover has no notion of a
- * "started at" timestamp of its own to read back (routes_containers.go's
- * relayTTL is a flat duration, not a deadline), so this is the best
- * available anchor for "how long has this actually been waiting".
+ * The handover has no id to correlate against, so two containers dropped
+ * together end on the first one's links. The rows sit in AddLinksForm's footer
+ * slot, which supplies the padding.
  */
 function ContainerHandedProgress({
   file,
@@ -103,10 +41,9 @@ function ContainerHandedProgress({
 }: {
   file: string;
   expiresIn: number;
+  /** Stamped when the handover response arrived; the server keeps no start. */
   startedAt: number;
-  /** When a link from a container last landed in the collector, in epoch
-   *  milliseconds, or 0 when none ever has - see this component's own doc
-   *  comment for why that is the signal this waits on. */
+  /** When a container link last landed in the collector, in epoch ms, or 0. */
   landedAt: number;
   onExpire: () => void;
 }) {
@@ -122,16 +59,8 @@ function ContainerHandedProgress({
   }, [landed, elapsed, expiresIn, onExpire]);
   return (
     <div className="flex flex-col gap-1.5">
-      {/* Name and elapsed time on one line, the bar on its own below it and
-          full width (jdp, 2026-09-06: "der balken fängt nicht rechts bündig
-          an"). The bar used to share a row with the duration, so it stopped
-          short of the card's own edge by exactly the width of "24s" - which
-          reads as a bar that does not reach the end rather than as a bar with
-          a label beside it. */}
+      {/* The bar gets its own full-width line. */}
       <div className="flex items-baseline gap-2">
-        {/* The whole name in the house bubble, never a native `title=` and the
-            operating system's own balloon beside the app's own - see
-            columns.tsx's `Tip`. */}
         <Tip dir="ltr" tip={file} className="min-w-0 flex-1 truncate text-xs text-carbon-textSub">
           {file}
         </Tip>
@@ -142,16 +71,8 @@ function ContainerHandedProgress({
   );
 }
 
-/** What Collector.tsx reaches through the ref for: opening the file picker
- *  from AddLinksForm's own button row (jdp: "Dropzone mit Dateiwählen
- *  button neben dem Zum-Sammler-Button") instead of FileDrop's own, since
- *  the two share one destination and one moment somebody is done choosing
- *  what to add. handleFiles is the same reason, extended to drag-and-drop
- *  (jdp, 2026-08-24: "können wir diesen text und card nicht entfernen" —
- *  AddLinksForm's own paste box now accepts a file drop directly and hands
- *  the files here instead of this component keeping a second, visible drop
- *  target of its own; see this file's own top-of-file comment for why the
- *  visible row is gone but the handling underneath it is not). */
+/** What Collector.tsx reaches through the ref, for AddLinksForm's picker
+ *  button and paste box drops. */
 export interface FileDropHandle {
   openPicker: () => void;
   handleFiles: (files: File[]) => void;
@@ -159,12 +80,10 @@ export interface FileDropHandle {
 
 const FILE_ACCEPT = '.torrent,.txt,.dlc,.ccf,.rsdf';
 
-// Mirrors container.MaxBytes in internal/container - only the container path
-// has a size ceiling; a torrent's own bencoded metadata is small by nature.
+// Mirrors container.MaxBytes in internal/container.
 const MAX_CONTAINER_BYTES = 8 << 20;
 
-/** One file's answer, kept structured so the sentence is built at render time
- *  and follows a language change instead of freezing at upload time. */
+// Structured, so the sentence follows a language change after the upload.
 type Outcome =
   | { file: string; kind: 'container-staged'; links: number; created: number; pkg: string }
   | { file: string; kind: 'container-handed'; expiresIn: number; startedAt: number }
@@ -188,9 +107,7 @@ function Result({ o, landedAt, onExpire }: { o: Outcome; landedAt: number; onExp
       </p>
     );
   }
-  // Nothing is staged yet in this case, and saying "0 links added" is what makes
-  // people upload the same file four times. The links arrive over the websocket
-  // when the backend has fetched the handover.
+  // Nothing is staged yet; the links arrive over the websocket later.
   if (o.kind === 'container-handed') {
     return (
       <ContainerHandedProgress
@@ -202,8 +119,7 @@ function Result({ o, landedAt, onExpire }: { o: Outcome; landedAt: number; onExp
       />
     );
   }
-  // The container held links and none of them became a task: every one was
-  // already in the list. Not a fault, and not silence either.
+  // Every link was already in the list.
   if (o.created === 0) {
     return <p className="text-xs text-carbon-textSub">{t('container.allKnown', { file: o.file, n: o.links })}</p>;
   }
@@ -216,21 +132,16 @@ function Result({ o, landedAt, onExpire }: { o: Outcome; landedAt: number; onExp
   );
 }
 
-// Pending is the torrent file-tree review step: a parsed .torrent with more
-// than one file inside it, waiting for a person to check/uncheck files
-// before staging continues - see docs/torrent-support.md's UI section. A
-// container upload has no equivalent review step (it stages every link it
-// finds outright), so this is torrent-only. selected is indexed the same as
-// tree.files.
+// Pending is a multi-file torrent awaiting file selection before staging;
+// selected is indexed like tree.files.
 interface Pending {
   file: string;
   tree: TorrentTree;
   selected: boolean[];
 }
 
-/** TorrentFileRow is one line of the tree: the whole row is the control, not
- *  a checkbox nested inside one - same reasoning CollectorFacets.tsx's own
- *  FacetRow already applies right next to this page. */
+// TorrentFileRow is one line of the tree; the row itself is the control, as in
+// CollectorFacets.tsx's FacetRow.
 function TorrentFileRow({
   path,
   size,
@@ -258,7 +169,6 @@ function TorrentFileRow({
       >
         <IconCheck width={12} height={12} />
       </span>
-      {/* Paths read left-to-right even in a right-to-left interface. */}
       <Tip dir="ltr" tip={path} className="min-w-0 flex-1 truncate text-start">
         {path}
       </Tip>
@@ -294,14 +204,7 @@ function TorrentTreeCard({
   }
 
   return (
-    // A WELL, NOT A CARD. This box is rendered from FileDrop, which the
-    // collector page hands to AddLinksForm as its `footer` - and AddLinksForm
-    // draws that footer INSIDE its own `.glim-card`. A card here was therefore
-    // a card in a card: the same surface colour and a second drop shadow
-    // floating inside the first, which GlimStone forbids outright ("never nest
-    // a card inside a card - group content with spacing and a section title").
-    // The well is the house's own answer for the nested case, the same swap
-    // EmptyState/LoadingCard/ErrorCard already make behind their `nested` prop.
+    // A well, since this renders inside AddLinksForm's card.
     <div className="glim-well flex flex-col gap-3 p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
@@ -328,16 +231,7 @@ function TorrentTreeCard({
         </button>
       </div>
 
-      {/* Hairlines between the rows, no fill of its own. A ZERO-DELTA
-          ENCLOSURE IS NOT AN ENCLOSURE: this list painted --carbon-surface2
-          inside the card, which was a real step off it - inside the well above,
-          which IS surface2, the identical token computes to the identical
-          colour and the tray disappears with every class name still reading
-          correctly. Separating the rows instead is what the house already does
-          for a list inside a well (Dashboard's own recent lists,
-          DiskSpaceTile), and it leaves the rows unfilled, so their hover stays
-          --carbon-hover - the right rung of rule 21's ramp for something
-          carrying no fill. */}
+      {/* Hairlines rather than a fill, which would vanish on the surface2 well. */}
       <div className="max-h-64 divide-y divide-carbon-border/60 overflow-y-auto rounded-[var(--radius-control)]">
         {pending.tree.files.map((f, i) => (
           <TorrentFileRow key={f.path} path={f.path} size={f.size} checked={pending.selected[i]} onToggle={() => toggle(i)} />
@@ -357,15 +251,8 @@ function TorrentTreeCard({
 }
 
 /**
- * FileDrop is the collector's file intake: what used to be ContainerDrop and
- * TorrentUpload, then a merged visible drop row of its own, now a purely
- * reactive component with no visible surface of its own most of the time
- * (jdp, 2026-08-24: "können wir diesen text und card nicht entfernen" — the
- * hint text and its row are gone; AddLinksForm's own paste box is the one
- * drop target now, for both text and files, and reaches the handling below
- * through the ref rather than this component keeping a second target
- * beside it). It still renders something the moment there is something to
- * show: the torrent file-tree review card, or a batch's outcome lines.
+ * FileDrop handles files handed over through its ref and renders only the
+ * torrent review card and a batch's outcome lines.
  */
 export const FileDrop = forwardRef<FileDropHandle, { pkg?: string; landedAt?: number }>(function FileDrop(
   { pkg = '', landedAt = 0 },
@@ -378,10 +265,8 @@ export const FileDrop = forwardRef<FileDropHandle, { pkg?: string; landedAt?: nu
   const [pending, setPending] = useState<Pending | null>(null);
 
   useImperativeHandle(ref, () => ({
-    // Guarded here, not by the caller: sendFiles refuses the same way while
-    // busy or under tree review, so a picker opened past that point would
-    // stage a second batch that only shows up once the button is pressed
-    // again - the guard belongs next to the state it protects.
+    // Same guard as sendFiles, so the picker does not open when its files
+    // would be refused.
     openPicker: () => {
       if (!busy && !pending) input.current?.click();
     },
@@ -390,8 +275,7 @@ export const FileDrop = forwardRef<FileDropHandle, { pkg?: string; landedAt?: nu
 
   async function commitTorrent(file: string, tree: TorrentTree, selected: boolean[]): Promise<Outcome> {
     try {
-      // undefined (every file kept) rather than the full path list when
-      // nothing was unticked, matching stageTorrent's own documented default.
+      // undefined keeps every file, stageTorrent's default.
       const selectedPaths = selected.every(Boolean) ? undefined : tree.files.filter((_, i) => selected[i]).map((f) => f.path);
       const task = await stageTorrent(tree.uri, pkg, selectedPaths);
       return task ? { file, kind: 'torrent-staged', task } : { file, kind: 'torrent-duplicate' };
@@ -409,22 +293,18 @@ export const FileDrop = forwardRef<FileDropHandle, { pkg?: string; landedAt?: nu
     setPending(null);
   }
 
-  /** Tries one file as a torrent first, falls back to the container endpoint.
-   *  Returns the finished Outcome, or 'pending' when a multi-file torrent
-   *  needs a tree review before it can be staged (sets `pending` itself). */
+  // sendOne tries a file as a torrent, then as a container. It returns
+  // 'pending' after opening the review for a multi-file torrent.
   async function sendOne(f: File): Promise<Outcome | 'pending'> {
     try {
       const tree = await parseTorrentUpload(f);
       if (tree.files.length <= 1) {
-        // Nothing to choose - a tree with one row in it is the single-file
-        // staging card by another name.
         return await commitTorrent(f.name, tree, tree.files.map(() => true));
       }
       setPending({ file: f.name, tree, selected: tree.files.map((x) => x.selected) });
       return 'pending';
     } catch {
-      // Not a torrent (or genuinely not parseable as one) - try it as a
-      // container instead of failing outright.
+      // Not a torrent; try it as a container.
     }
     if (f.size > MAX_CONTAINER_BYTES) {
       return { file: f.name, kind: 'failed', reason: t('container.tooBig', { max: fmtBytes(MAX_CONTAINER_BYTES) }) };
@@ -434,9 +314,7 @@ export const FileDrop = forwardRef<FileDropHandle, { pkg?: string; landedAt?: nu
       if (r.handedTo === 'jd') {
         return { file: f.name, kind: 'container-handed', expiresIn: r.expiresIn, startedAt: Date.now() };
       }
-      // The package is read off what was actually created rather than off the
-      // package field, because a Packagizer rule may have overridden it;
-      // several packages means there is no single one to name.
+      // Read from the created tasks, since a Packagizer rule may have renamed it.
       const landed = new Set(r.created.map((c) => c.package).filter(Boolean));
       return {
         file: f.name,
@@ -451,10 +329,7 @@ export const FileDrop = forwardRef<FileDropHandle, { pkg?: string; landedAt?: nu
   }
 
   async function sendFiles(files: File[]) {
-    // A second batch is refused while one is in flight, or while a torrent
-    // tree is under review, rather than queued - the results block reports
-    // one batch, and interleaving would leave a "12 links staged" line
-    // standing next to a file it did not come from.
+    // Refused rather than queued, since the results report one batch.
     if (!files.length || busy || pending) return;
     setBusy(true);
     setResults([]);
@@ -462,9 +337,7 @@ export const FileDrop = forwardRef<FileDropHandle, { pkg?: string; landedAt?: nu
     let stopped = false;
     for (const f of files) {
       if (stopped) {
-        // A tree review is now open - a second file dropped alongside the
-        // first is named rather than silently dropped or silently queued
-        // behind a review nobody has finished yet.
+        // A review is open, so the remaining files are reported as refused.
         out.push({ file: f.name, kind: 'failed', reason: t('torrent.onlyOne') });
         setResults([...out]);
         continue;
@@ -475,7 +348,7 @@ export const FileDrop = forwardRef<FileDropHandle, { pkg?: string; landedAt?: nu
         continue;
       }
       out.push(r);
-      setResults([...out]); // each file reports as it lands, not after the last one
+      setResults([...out]);
     }
     setBusy(false);
   }
@@ -490,9 +363,7 @@ export const FileDrop = forwardRef<FileDropHandle, { pkg?: string; landedAt?: nu
         accept={FILE_ACCEPT}
         onChange={(e) => {
           void sendFiles([...(e.target.files ?? [])]);
-          // Cleared so picking the same file again still fires a change
-          // event - otherwise a re-upload after fixing the JD backend
-          // silently does nothing.
+          // Cleared so picking the same file again fires a change event.
           e.target.value = '';
         }}
       />

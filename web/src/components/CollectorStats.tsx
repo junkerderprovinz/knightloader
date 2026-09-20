@@ -1,29 +1,7 @@
-// The collector's own totals: what is currently staged, not what the queue
-// owes. Wave 4's OverviewStrip (components/Counters.tsx) already answers a
-// different question — bytes fetched against bytes owed, scoped to what still
-// needs to run — and it already rides in the shell bar on every page
-// (app/Layout.tsx's ShellBar mounts QuickSettings.tsx's ShellStrip, which
-// renders it); a second "totals" strip asking the same question here would
-// just be two headers disagreeing about what a collector even measures. This
-// one is the strip the census actually found missing
-// (docs/jd-feature-census.md, section 6, "Überblick (Downloadübersicht
-// anzeigen)"): packages, links, bytes, hosts, and what a check said about each
-// — scoped by the same Total/Visible/Selected switch the shell strip offers,
-// because "how much of this did I actually narrow down" is the same question
-// on both pages even though the totals underneath it are not.
-//
-// Every figure stays at supporting-detail weight (body 14px value, caption
-// 11px label), never Downloads.tsx's page-hero 20px: the paste box above this
-// strip is the Collector page's one hero (docs/design-language.md rule 2, "one
-// hero per page"), and nothing below it may compete with that for weight.
-//
-// Body, not the 15px this copied from Counters.tsx. The type scale is a fixed
-// four-row table - 20 heading / 14 body / 12 dense / 11 caption - and a fifth
-// size found in an audit is the bug to fix, not a fifth row to add. The two
-// places in this app where 15px IS right say why they are (Sidebar.tsx's nav
-// rows, matching BombVault's own rail verbatim on jdp's word); a figure in a
-// side card has no such reason, and "quieter than the hero" is a claim body
-// size already satisfies.
+// The collector's totals for what is staged: packages, links, bytes, hosts and
+// check results, scoped like the shell strip to total, visible or selected.
+// Counters.tsx answers the different question of what the queue owes. Figures
+// stay at body size, below the paste box that heads the page.
 import { useCallback, useMemo, useState } from 'react';
 import type { Task } from '../lib/api';
 import { useT, type TranslationKey } from '../lib/i18n';
@@ -32,9 +10,7 @@ import { hostOf } from './columns';
 import { Tabs } from './Tabs';
 import { Card, SectionTitle } from './ui';
 
-// Same PENDING-table arrangement as CollectorFacets.tsx (see that file's own
-// comment for the precedent) — locale files are one writer's lane, 8F, and it
-// runs after 8A–8D/8G land.
+// English fallbacks for keys not yet in the catalogues, as in CollectorFacets.tsx.
 const PENDING = {
   'collector.stats.label': 'Collector totals',
   'collector.stats.packages': 'Packages',
@@ -72,20 +48,9 @@ interface Figures {
 }
 
 /**
- * weigh adds up one set of staged links.
- *
- * Bytes count every row with a known size, unconditionally — unlike the shell
- * strip's own weigh (Counters.tsx), nothing here is excluded for being
- * disabled or already running: every row on this page is staged and
- * unstarted, so there is no "owed" subset to single out the way the queue-wide
- * strip does, and excluding disabled links here would just make the total
- * quietly disagree with what the list above it is showing.
- *
- * online/offline/uncheckable/unchecked mirror Task.online exactly, the same
- * four states ListToolbar's own COLLECTOR_FILTERS chips already expose right
- * below this strip — not the three JD's census still describes, because this
- * app tells "never checked" and "checked, host would not say" apart on
- * purpose (docs/build-plan.md section 9, package 12).
+ * weigh adds up one set of staged links. Unlike Counters.tsx it counts every
+ * row with a known size, since nothing here is disabled or running yet. The
+ * four check states mirror Task.online and the collector's filter chips.
  */
 function weigh(rows: Task[]): Figures {
   const packages = new Set<string>();
@@ -116,20 +81,9 @@ function Item({ label, value, tone = 'text-carbon-text' }: { label: string; valu
 }
 
 /**
- * CollectorStats is the card of figures beside the collector's own paste box
- * (jdp, 2026-08-24: "rechts von der Dropzone soll eine card mit den ganzen
- * zahlen sein") - a vertical stack rather than the horizontal strip this used
- * to be, since a narrow side card has no width to wrap a row of eight figures
- * into and still read cleanly.
- *
- * `all`, `visible` and `selected` are the same three arrays the page already
- * holds for its own list — the collected set, the post-search-and-facets set,
- * and the current selection resolved to tasks — handed straight in rather than
- * read back off lib/listview.ts the way the shell strip does. That store is a
- * round trip this component does not need: the page rendering this card is
- * the very page that just computed all three, in the same render, and reading
- * them back through a store it also happens to publish to would only add a
- * tick of lag between a keystroke in the search box and this card noticing it.
+ * CollectorStats is the card of figures beside the collector's paste box. The
+ * page passes the three arrays it already computed rather than this reading
+ * them back from lib/listview.ts a render later.
  */
 export function CollectorStats({ all, visible, selected }: { all: Task[]; visible: Task[]; selected: Task[] }) {
   const { t } = useT();
@@ -140,11 +94,7 @@ export function CollectorStats({ all, visible, selected }: { all: Task[]; visibl
   const f = useMemo(() => weigh(scoped), [scoped]);
 
   return (
-    // h-full + flex-1 on the Card itself, not just this wrapper: the top
-    // row's own items-stretch (Collector.tsx) only stretches this wrapper's
-    // box, never the visible Card inside it - see AddLinksForm.tsx's own
-    // doc comment on the identical fix, needed for the same reason (jdp,
-    // 2026-08-24: "alle drei card sollen immer gleich hoch sein").
+    // h-full on the Card too: the row's items-stretch only reaches the wrapper.
     <div role="group" aria-label={cx('collector.stats.label')} className="h-full">
       <Card hue={1} className="flex h-full w-fit min-w-[13rem] flex-col gap-3">
         <SectionTitle>{cx('collector.stats.label')}</SectionTitle>

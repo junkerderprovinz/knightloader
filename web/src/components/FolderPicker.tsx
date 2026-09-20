@@ -1,20 +1,8 @@
-// The folder chooser: one dialog for every field in the app that holds a path.
-//
-// There are five of those - the download folder, the extraction destination,
-// the watch folder, the add-links destination and the per-task override - and
-// they all want the same three things: see what is on the server, walk into it,
-// or type a path that does not exist yet. Built per page it would be built five
-// times, and the rule below would be got wrong in at least one of them.
-//
-// THE RULE, and it is the whole reason this is not a plain file picker: a
-// download folder may be a pathvars TEMPLATE, e.g.
-// "/downloads/<jd:date>/<jd:hoster>". Only the part before the first placeholder
-// is a real directory. Browsing may replace that part and NOTHING else - a
-// chooser that wrote back the folder it landed on would silently delete the
-// user's naming scheme, and they would not find out until six months of
-// downloads had landed in one flat directory. The server does the splitting
-// (GET /api/folders answers with `path` and `tail`), this file only has to put
-// the two halves back together and never lose the second one.
+// The folder chooser shared by every path field. A download folder may be a
+// template such as "/downloads/<jd:date>/<jd:hoster>", and browsing may only
+// replace the real directory before the first placeholder. The server splits
+// the path into `path` and `tail`; this file puts them back together without
+// ever dropping the tail.
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useT } from '../lib/i18n';
@@ -22,19 +10,14 @@ import { IconArrowUp, IconFolder } from '../lib/icons';
 import { Button, InfoBubble, Modal, TextInput } from './ui';
 import { Tabs } from './Tabs';
 
-/** One directory offered for the next click, as the server names it. */
 interface FolderEntry {
   name: string;
   path: string;
 }
 
 /**
- * One place in the filesystem, as GET /api/folders describes it.
- *
- * `path` and `listed` differ when the folder is not there yet: `path` is what
- * was asked for, `listed` is the deepest folder above it that really exists and
- * the one `entries` describes. That is what lets the dialog say "this is new"
- * instead of showing an empty list and no explanation.
+ * Listing is GET /api/folders' answer. For a folder that does not exist yet,
+ * `listed` is the deepest existing parent, the one `entries` describes.
  */
 interface Listing {
   path: string;
@@ -49,25 +32,17 @@ interface Listing {
 
 async function fetchFolders(path: string): Promise<Listing> {
   const r = await fetch(`/api/folders?path=${encodeURIComponent(path)}`);
-  // The server's own sentence, not a generic failure: "this instance may not
-  // list /etc" and "there is no folder above /mnt/tank" are instructions, and a
-  // dialog that swallows them leaves nothing on screen to act on.
+  // The server's sentence says what is refused and why.
   if (!r.ok) throw new Error((await r.text()).trim() || String(r.status));
   return (await r.json()) as Listing;
 }
 
-/** Trailing separators, so a path can be concatenated with a tail that has one. */
 const TRAILING_SEP = /[\\/]+$/;
 
 /**
- * joinTail puts a chosen folder back together with the template tail it arrived
- * with. This one function is the feature.
- *
- * The trailing separator comes off first because the tail carries its own
- * leading one - that is what makes a root ("/") plus "/<jd:date>" come out as
- * "/<jd:date>" and not "//<jd:date>". A path the user typed placeholders into
- * themselves is already a template and is taken as it stands: appending the tail
- * again would double the scheme they just wrote.
+ * joinTail appends the template tail to a chosen folder. The tail brings its
+ * own leading separator, and a path that already contains placeholders is
+ * taken as it stands.
  */
 export function joinTail(path: string, tail: string): string {
   if (!tail || path.includes('<')) return path;
@@ -77,12 +52,9 @@ export function joinTail(path: string, tail: string): string {
 const sameFolder = (a: string, b: string) => a.replace(TRAILING_SEP, '') === b.replace(TRAILING_SEP, '');
 
 /**
- * under reports whether a path sits at or below a root.
- *
- * Not startsWith: "/mnt/archive" starts with "/mnt/a" and is not inside it, so a
- * plain prefix test would light up the wrong root the moment two of them share
- * an opening. The next character has to be a separator - either one, because the
- * server speaks whichever the host it runs on uses.
+ * under reports whether a path sits at or below a root. A prefix match alone
+ * would put "/mnt/archive" under "/mnt/a", so the next character must be a
+ * separator of either kind.
  */
 function under(root: string, p: string): boolean {
   if (p === root) return true;
@@ -93,14 +65,9 @@ function under(root: string, p: string): boolean {
 }
 
 /**
- * PathInput is a folder field: the path itself, and the button that opens the
- * chooser beside it.
- *
- * The text box comes FIRST, and the order is load-bearing. These sit inside a
- * `Field`, which is a `<label>`, and a label hands a click on its caption to the
- * first labelable thing inside it - a `<button>` counts. With the button first,
- * clicking the word "Download folder" would open a dialog instead of putting the
- * cursor in the box.
+ * PathInput is a path field with a browse button. The text box comes first
+ * because the surrounding Field is a <label>, which forwards a caption click to
+ * its first labelable child.
  */
 export function PathInput({
   value,
@@ -119,9 +86,7 @@ export function PathInput({
 
   return (
     <span className="flex items-center gap-2">
-      {/* dir="ltr" on a path is not cosmetic: in an RTL locale a path with a
-          trailing slash renders with the slash on the wrong end, which is a path
-          nobody can check by reading it. */}
+      {/* In an RTL locale a trailing slash would render on the wrong end. */}
       <TextInput
         dir="ltr"
         value={value}
@@ -138,12 +103,8 @@ export function PathInput({
         aria-label={t('folders.browse')}
         onClick={() => setOpen(true)}
       />
-      {/* Into <body>, like the info bubble and for a sharper reason than
-          clipping: this field lives inside a `Field`, which is a `<label>`, and
-          a label forwards a click on anything non-interactive inside it to the
-          control it names. Left here, every click on the dialog's backdrop or on
-          its own background is also a click on the field behind it: focus jumps
-          out of the dialog, and the backdrop closes it on the way. */}
+      {/* Portalled out of the <label>, which would forward every click inside
+          the dialog to the field behind it. */}
       {open &&
         createPortal(
           <FolderPicker
@@ -162,11 +123,9 @@ export function PathInput({
 }
 
 /**
- * FolderPicker is the dialog itself, for the callers that already have their own
- * field and only want the browsing.
- *
- * `value` is the field's current contents, template and all. `onPick` receives
- * the chosen folder with that template's tail already back on the end.
+ * FolderPicker is the browsing dialog on its own. `value` is the field's
+ * contents, template included, and `onPick` receives the chosen folder with
+ * the template tail put back.
  */
 export function FolderPicker({
   value,
@@ -180,19 +139,14 @@ export function FolderPicker({
   title?: string;
 }) {
   const { t } = useT();
-  // What the box says, and what has been listed. They are separate because the
-  // box is the answer - "use this folder" takes whatever is typed in it, whether
-  // or not anyone ever pressed Enter - while the listing is only what is on
-  // screen to help.
+  // The box is the answer, typed or browsed; the listing only helps.
   const [text, setText] = useState('');
   const [query, setQuery] = useState(value);
   const [data, setData] = useState<Listing | null>(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
-  // The tail is taken from the FIRST answer and never again. Every later request
-  // asks for a plain folder, which has no placeholders in it, so the server
-  // rightly reports no tail - and overwriting it with that empty answer is
-  // exactly how the user's naming scheme would get dropped on the first click.
+  // Taken from the first answer only: later requests name plain folders, for
+  // which the server reports an empty tail.
   const [tail, setTail] = useState('');
   const seeded = useRef(false);
 
@@ -211,9 +165,7 @@ export function FolderPicker({
         }
       })
       .catch((e: unknown) => {
-        // The last good listing stays on screen. A refusal that emptied the
-        // dialog would leave no folder to click back to, and the way out of a
-        // path you may not read is the list you came in through.
+        // The last good listing stays, so there is a way back.
         if (live) setError(e instanceof Error ? e.message : String(e));
       })
       .finally(() => {
@@ -224,12 +176,10 @@ export function FolderPicker({
     };
   }, [query]);
 
-  // Typing browses too, once it stops. The box is the fastest way to reach a
-  // folder twelve levels down, and a path that lists nothing has to say so while
-  // it is being typed rather than after the dialog is dismissed.
+  // Typing browses too, once it pauses.
   useEffect(() => {
     if (!seeded.current) return;
-    if (data && sameFolder(text, data.path)) return; // already looking at it
+    if (data && sameFolder(text, data.path)) return;
     const id = setTimeout(() => setQuery(text), 300);
     return () => clearTimeout(id);
   }, [text, data]);
@@ -239,9 +189,7 @@ export function FolderPicker({
     setQuery(path);
   }
 
-  // The deepest root the typed path sits under, so the strip marks where you
-  // are. Longest match, because a narrowed boundary may nest one root inside
-  // another and the closer one is the one that describes the position.
+  // The longest matching root, since roots can nest.
   const activeRoot =
     data?.roots.filter((r) => under(r, text)).sort((a, b) => b.length - a.length)[0] ?? null;
 
@@ -300,28 +248,19 @@ export function FolderPicker({
         </p>
       )}
 
-      {/* Only when the boundary has more than one root. One tab saying "/" is a
-          strip that chooses nothing. */}
       {data && data.roots.length > 1 && (
         <Tabs
           label={t('folders.roots')}
           size="sm"
           items={data.roots.map((r) => ({ id: r, label: r }))}
           active={activeRoot}
-          // Arrow keys move without selecting here: every selection lists a
-          // whole filesystem root, and walking the strip would fire one request
-          // per keystroke.
+          // Each selection lists a whole root, so arrow keys only move focus.
           activateOnFocus={false}
           onSelect={navigate}
         />
       )}
 
-      {/* A well, not a card. The dialog is already the one raised surface, and a
-          card inside it would be the second.
-
-          The height is bounded at both ends on purpose: a dialog that grows and
-          shrinks with every folder you step into moves its own buttons out from
-          under the pointer. */}
+      {/* Bounded height, so the buttons stay put while browsing. */}
       <div dir="ltr" className="glim-well max-h-64 min-h-32 overflow-y-auto py-1">
         {!data && busy && (
           <p className="px-3 py-6 text-center text-xs text-carbon-textMuted">{t('common.loading')}</p>
@@ -343,9 +282,6 @@ export function FolderPicker({
         )}
       </div>
 
-      {/* Three things the list cannot say for itself, in the order they matter:
-          why the server refused, that the folder is about to be created, and
-          that there were more folders than were sent. */}
       {error && <p className="text-xs text-statusFail">{error}</p>}
       {fresh && <p className="text-xs text-statusWarn">{t('folders.new')}</p>}
       {data?.truncated && (

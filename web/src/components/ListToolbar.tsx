@@ -1,10 +1,6 @@
-// The furniture around a download list: what narrows it, what acts on a
-// selection, and the clean-up entries that work out a selection themselves.
-//
-// Both lists mount the same pieces. The collector had no search field at all and
-// the download list had a blind substring match over two fields, which is the
-// same feature built twice and badly; here it is built once and the pages pass
-// in which quick filters make sense for the rows they hold.
+// The controls around a download list: filters, selection actions and clean-up
+// entries. Both lists mount the same pieces and pass in the quick filters that
+// suit their rows.
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { PriorityGlyph } from '../lib/icons';
 import {
@@ -80,18 +76,9 @@ import {
   IconTrashFiles,
 } from '../lib/icons';
 
-
-// --- The queue's own state ------------------------------------------------
-
-
 /**
- * useQueueVerbs holds the two things the queue entries need that neither the
- * list nor the menu already has: the priorities this server implements, and
- * which of these downloads is marked "finish this one, then stop".
- *
- * Both are fetched when the page mounts, never when the menu opens. A
- * right-click that waits for a request before it can draw its entries is a menu
- * whose bottom half appears after you have read past it.
+ * useQueueVerbs fetches, on mount rather than when the menu opens, the
+ * server's priority choices and which task carries the stop mark.
  */
 export function useQueueVerbs(base: string) {
   const [choices, setChoices] = useState<PriorityChoice[]>([]);
@@ -104,7 +91,7 @@ export function useQueueVerbs(base: string) {
         if (live) setChoices(p);
       },
       () => {
-        /* the priority entry stays out of the menu; nothing else is affected */
+        // The priority entry is left out of the menu.
       },
     );
     void fetchQueue(base).then(
@@ -112,7 +99,7 @@ export function useQueueVerbs(base: string) {
         if (live) setQueue(q);
       },
       () => {
-        /* an unreachable peer is already reported by the list itself */
+        // The list already reports an unreachable peer.
       },
     );
     return () => {
@@ -120,9 +107,7 @@ export function useQueueVerbs(base: string) {
     };
   }, [base]);
 
-  // The mark is one task, so arming a second one disarms the first — which is
-  // why this replaces rather than adds, and why the answer is kept: it is the
-  // only way the menu knows which row is currently marked.
+  // Only one task carries the mark, so the answer replaces the old state.
   const mark = useCallback(
     async (id: string) => {
       setQueue(await armStopMark({ stopMark: id }, base));
@@ -139,8 +124,6 @@ export function useQueueVerbs(base: string) {
 }
 
 export type QueueVerbs = ReturnType<typeof useQueueVerbs>;
-
-// --- Quick filters --------------------------------------------------------
 
 export type QuickFilterId =
   | 'running'
@@ -163,8 +146,7 @@ export interface QuickFilter {
 }
 
 export const QUICK_FILTERS: QuickFilter[] = [
-  // Extracting is part of running: the download is not over, and a row that
-  // vanished from "running" while it unpacks reads as a finished download.
+  // Extracting counts as running, since the download is not over yet.
   { id: 'running', label: 'filter.running', match: (t) => t.status === 'running' || t.status === 'extracting' },
   { id: 'queued', label: 'filter.queued', match: (t) => t.status === 'queued' },
   { id: 'paused', label: 'filter.paused', match: (t) => t.status === 'paused' },
@@ -172,40 +154,22 @@ export const QUICK_FILTERS: QuickFilter[] = [
   { id: 'failed', label: 'filter.failed', match: (t) => t.status === 'error' },
   { id: 'online', label: 'filter.online', match: (t) => t.online === 'online' },
   { id: 'offline', label: 'filter.offline', match: (t) => t.online === 'offline' },
-  // Deliberately its own filter and not folded into "offline": the host was
-  // asked and would not say, which is the state people need to find in order to
-  // check those links again rather than delete them.
+  // Separate from "offline": the host would not say, so these are worth
+  // checking again rather than deleting.
   { id: 'uncheckable', label: 'filter.uncheckable', match: (t) => t.online === 'uncheckable' },
   { id: 'unchecked', label: 'filter.unchecked', match: (t) => !t.online },
   { id: 'disabled', label: 'filter.disabled', match: (t) => !t.enabled },
   { id: 'held', label: 'filter.held', match: (t) => !!t.hold },
-  // Its own filter rather than a shade of "running", because a stalled row IS
-  // running as far as every other part of the app is concerned: it holds a slot
-  // and reports a status. Finding those is the whole point - a queue that looks
-  // busy at 0 B/s is the case somebody opens this list to explain.
-  //
-  // happened(), not `!!`. `stalledSince` is a Go time.Time, and `omitempty` does
-  // nothing to a struct, so a download that has never stalled arrives carrying
-  // "0001-01-01T00:00:00Z" - a non-empty string, and therefore truthy. This
-  // filter matched EVERY task in the list for exactly that reason: a chip
-  // reading "Standing still 34" beside "Waiting 34" over a queue that was
-  // stopped and had never moved a byte (jdp, screenshot of the selection row).
-  // It is not only a wrong count: the chip is offered at all only when its
-  // count is above zero (offeredQuickFilters), so this phantom put a permanent
-  // extra chip in both list toolbars and pressing it changed nothing.
+  // A stalled row still counts as running everywhere else, so it gets its own
+  // filter. happened() rather than `!!`, because a never-stalled task carries
+  // Go's zero time, which is a truthy string.
   { id: 'stalled', label: 'filter.stalled', match: (t) => happened(t.stalledSince) },
 ];
 
 /**
- * offeredQuickFilters is ListToolbar's own filter-chip logic, exported so a
- * page that renders these chips somewhere OTHER than ListToolbar's own row
- * (Collector.tsx's badge row, jdp 2026-08-25: "können wir die nicht in der
- * zeile der quadratischen icons platzieren") can reuse the exact same
- * counting/visibility rule without a second, drifting copy of it. A filter
- * with nothing to match is left off the menu - eight always-visible chips
- * reading zero are eight things to read past on the way to the two that
- * mean something - but one that is switched ON stays even at zero, or
- * turning a filter on could make its own chip disappear out from under it.
+ * offeredQuickFilters counts each filter's matches and offers only those with
+ * any, keeping an active filter at zero so its chip does not vanish. Exported
+ * for pages that render the chips elsewhere.
  */
 export function offeredQuickFilters(
   filterIds: QuickFilterId[],
@@ -242,16 +206,13 @@ export const COLLECTOR_FILTERS: QuickFilterId[] = [
 ];
 
 /**
- * matchesQuickFilters is a union, not an intersection: two filters on means
- * "show me both kinds". Intersecting them would make every second click empty
- * the list, since nothing is queued and finished at once.
+ * matchesQuickFilters is a union: two filters on show both kinds, since the
+ * states exclude each other.
  */
 export function matchesQuickFilters(t: Task, active: Set<QuickFilterId>): boolean {
   if (active.size === 0) return true;
   return QUICK_FILTERS.some((f) => active.has(f.id) && f.match(t));
 }
-
-// --- Weighing a selection before it is destroyed --------------------------
 
 interface Weight {
   count: number;
@@ -260,11 +221,8 @@ interface Weight {
 }
 
 /**
- * weigh counts what a removal would actually erase.
- *
- * Bytes on disk, not the announced size: a queued 40 GB download has written
- * nothing, and warning about 40 GB that do not exist is how people learn to
- * click straight through the dialog.
+ * weigh counts what a removal would erase, in bytes already on disk rather
+ * than announced sizes.
  */
 function weigh(all: Task[], ids: string[]): Weight {
   const want = new Set(ids);
@@ -279,15 +237,9 @@ function weigh(all: Task[], ids: string[]): Weight {
 }
 
 /**
- * ConfirmRemove states what is about to go and how much of it, before anything
- * goes. The two exits do different things: taking rows off a list is reversible
- * by pasting the links again, erasing the files is not. What tells them apart is
- * the label and the counts they are read under - never a colour on the button,
- * and since this window's footer became uniform, never a glyph on one of them
- * either. That is what GlimStone 1.12.0 means by the QUESTION being the
- * warning: an irreversible action opens a window naming the stakes in words and
- * counts, and somebody who has read "this also erases 12 files, 4.1 GB on disk"
- * has already been told.
+ * ConfirmRemove states what a removal takes and how much, before anything
+ * goes. Removing rows can be undone by pasting again, erasing files cannot;
+ * the labels and counts tell them apart, not a colour (GlimStone 1.12.0).
  */
 function ConfirmRemove({
   title,
@@ -310,16 +262,9 @@ function ConfirmRemove({
   /** Which "do not show this again" switch this dialog carries, if any. */
   mute?: DialogId;
   /**
-   * How many of the rows about to go are not on screen, and the press that
-   * narrows the removal to the ones that are.
-   *
-   * OPTIONAL, AND ONLY THE HAND-PICKED PATH MAY PASS IT. The clean-up flow
-   * renders this same dialog for a class whose ids came from the server's own
-   * preview and are almost never on screen: "12 of them not visible" there
-   * tells somebody off for a selection they never made, and the button would
-   * quietly turn "remove every finished download" into "remove the finished
-   * downloads that happen to be on screen", which is not the class the title
-   * above it names.
+   * How many rows about to go are off screen, and the press that narrows the
+   * removal to the visible ones. Only for a hand-picked selection: a clean-up
+   * class comes from the server's preview and must not be narrowed.
    */
   reach?: { hidden: number; onReduce: () => void };
   onCancel: () => void;
@@ -335,28 +280,8 @@ function ConfirmRemove({
       mute={mute}
       footer={
         <>
-          {/* All three travel together at the END of the row, in the order of
-              how far each one goes: step back, then off the list, then off the
-              disk. The cancel button used to be pinned to the far start with
-              the two commits alone at the end, and that was this file's own
-              invention - GlimStone's ConfirmDialog
-              (reference/react/ConfirmDialog.tsx) sets `justify-end` on its
-              footer and stands cancel and commit side by side in it. A pair
-              split across the whole width reads as two lone controls rather
-              than as one question with two answers, and the shape then differs
-              from every other window in the app for no reason a reader can see.
-              The order inside the group is unchanged and is the part 1.14.0
-              actually legislates.
-              NO GLYPH ON ANY OF THEM, and that is a decision, not an omission.
-              "Remove and delete the files" carried IconTrashFiles while its two
-              neighbours carried nothing, which is the mixed footer GlimStone
-              1.8.0's confirmGlyph exists to prevent - every button in a footer
-              wears a mark or none does. Marking only the harshest of the three
-              also re-introduces, in a glyph, exactly what 1.12.0 took away in
-              red: neither commit is recommended here, and the counts above
-              decide which one somebody wants. This app has no glyph resolver
-              over label keys, so the other twenty-four window footers carry no
-              marks at all; none is the answer that agrees with them. */}
+          {/* Grouped at the end in order of how far each goes. No glyphs, since
+              a footer marks all its buttons or none. */}
           <span className="flex-1" />
           <Button kind="ghost" onClick={onCancel}>
             {t('common.cancel')}
@@ -374,9 +299,7 @@ function ConfirmRemove({
     >
       <div className="flex flex-col gap-2 text-sm text-carbon-textSub">
         {what && <p>{what}</p>}
-        {/* Above the count rather than under it: it is the sentence that changes
-            what the count MEANS, and a warning under the number it qualifies is
-            a warning read second. */}
+        {/* Above the count it qualifies. */}
         {reach && (
           <SelectionReach mode="removal" total={weight.count} hidden={reach.hidden} onReduce={reach.onReduce} />
         )}
@@ -394,20 +317,11 @@ function ConfirmRemove({
   );
 }
 
-// --- The per-task overrides -----------------------------------------------
-
 /**
- * TaskOptionsDialog edits the three things a link can be told on its own: where
- * its file goes, the password its archive needs, and how many connections it is
- * pulled over.
- *
- * It takes a selection rather than a task, because the row's own folder button
- * and the context menu's two entries are the same dialog on one row and on
- * forty. That also fixes the rule that matters here: a field is sent ONLY if it
- * was changed. Sending all three every time would let a selection whose members
- * disagree open with empty boxes and wipe every override in it on save - and for
- * the connection count that is not a blank field but a 0, which the server reads
- * as a deliberate "hand it back to the rules".
+ * TaskOptionsDialog edits a selection's folder, archive password and
+ * connection count. Only changed fields are sent, so a selection whose values
+ * disagree opens empty without wiping them on save; a chunk count of 0 would
+ * mean "back to the rules".
  */
 export function TaskOptionsDialog({
   tasks,
@@ -422,16 +336,12 @@ export function TaskOptionsDialog({
   onClose: () => void;
 }) {
   const { t } = useT();
-  // One agreed value, or nothing. An empty box that is left alone changes
-  // nothing, so "they disagree" and "it is unset" behave identically here.
+  // The shared value, or empty when the selection disagrees.
   const agreed = (pick: (x: Task) => string) => {
     const first = tasks.length > 0 ? pick(tasks[0]) : '';
     return tasks.every((x) => pick(x) === first) ? first : '';
   };
-  // The same rule for the count, where "nothing" is 0. That is not a fallback
-  // standing in for a real value: 0 is what the field means anyway, so a
-  // selection that disagrees opens on "no override" and only changes the rows
-  // if somebody types a number.
+  // For the count, disagreement opens on 0, "no override".
   const agreedNum = (pick: (x: Task) => number) => {
     const first = tasks.length > 0 ? pick(tasks[0]) : 0;
     return tasks.every((x) => pick(x) === first) ? first : 0;
@@ -476,11 +386,7 @@ export function TaskOptionsDialog({
       onClose={onClose}
       footer={
         <>
-          {/* What the server said, then the spacer, then Save. The two used to
-              stand the other way round, which put the one control of this
-              window mid-row with a sentence to its right; GlimStone 1.14.0
-              wants it at the END of its row. `min-w-0` so a long refusal
-              shrinks rather than shoving the button out of the card. */}
+          {/* The forward button ends the row, so the error goes first. */}
           {error && <span className="min-w-0 text-statusFail text-sm">{error}</span>}
           <span className="flex-1" />
           <Button onClick={apply}>{t('settings.save')}</Button>
@@ -503,9 +409,7 @@ export function TaskOptionsDialog({
           onChange={(e) => setPassword(e.target.value)}
         />
       </Field>
-      {/* max is the engine's bound, the same one the rule editor and the
-          settings page offer. Three spinners that stop at three different
-          numbers would be three different accounts of what the app can do. */}
+      {/* The engine's bound, as in the rule editor and settings. */}
       <Field label={t('task.chunks')} hint={t('task.chunksHint')}>
         <NumberInput value={chunks} min={0} max={16} onValue={setChunks} />
       </Field>
@@ -513,26 +417,12 @@ export function TaskOptionsDialog({
   );
 }
 
-// --- Removing a selection -------------------------------------------------
-
 /**
- * useRemoval is the one place a selection is taken off a list, and the one place
- * Del and Shift+Del are bound.
- *
- * Removing rows the user picked themselves happens immediately: they named the
- * rows, and the files are untouched. Erasing the files always asks first, and
- * names the file count and the bytes while asking. A clean-up class is the other
- * way round again — see runClass below — because there the app picked the rows.
- *
- * "They named the rows" is the part that used to be less true than it sounds.
- * The selection survives a filter, so the ids being sent can include rows that
- * are not on screen at the moment the button is pressed: pick eleven, type a
- * search, press Del, and forty go. The remedy is the press back rather than a
- * fourth confirmation dialog — the server keeps the rows for half a minute and
- * hands back a token (app.RemoveTasksUndoable), and the message that says how
- * many went carries the button that fetches them. The count in that message is
- * itself the warning: "40 removed" after selecting eleven is the sentence
- * nobody can miss.
+ * useRemoval takes a selection off a list and binds Del and Shift+Del.
+ * Removing rows happens at once, with an undo in the toast, since the server
+ * keeps them for a while (app.RemoveTasksUndoable); erasing files always asks
+ * first with the file count and bytes. The toast's count also reveals rows
+ * removed while hidden by a filter.
  */
 export function useRemoval({
   all,
@@ -546,10 +436,8 @@ export function useRemoval({
   selected: Set<string>;
   base: string;
   /**
-   * The ids the list is DRAWING, from lib/selectionReach.ts. Optional, because
-   * a caller that has no list on screen has no honest answer to give - and a
-   * missing set means the counts and the extra sentence below simply do not
-   * appear, never that nothing is hidden.
+   * The ids the list is drawing (lib/selectionReach.ts). Without it the hidden
+   * counts are simply not shown.
    */
   drawn?: ReadonlySet<string>;
   onDone: () => void;
@@ -559,11 +447,8 @@ export function useRemoval({
   const dialogs = useDialogMute();
   const [ask, setAsk] = useState<string[] | null>(null);
 
-  // Its own callback so the message that offers it can stay a one-liner, and so
-  // that "too late" is reported as the plain fact it is rather than as a
-  // failure: an expired token answers 200 with nothing restored (see
-  // api.undoDelete), and the only thing that throws here is a request that never
-  // arrived.
+  // An expired token answers 200 with nothing restored, which is "too late"
+  // rather than a failure.
   const undoRemoval = useCallback(
     async (token: string) => {
       try {
@@ -580,24 +465,13 @@ export function useRemoval({
   const removeNow = useCallback(
     async (ids: string[], withFiles = false) => {
       if (ids.length === 0) return;
-      // Counted BEFORE the request, off the ids actually being sent: by the time
-      // the answer comes back the rows are gone from the list and every one of
-      // them would count as not drawn.
+      // Counted before the request, while the rows are still drawn.
       const unseen = drawn ? ids.filter((id) => !drawn.has(id)).length : 0;
       try {
         const r: BulkResult = await deleteTasks(ids, withFiles, base);
-        // The button rides on the token, never on "we removed something": a
-        // removal that erased the files gets no token, and offering an undo
-        // there would promise a restore that cannot include the bytes. The
-        // bubble is held open for exactly as long as the server holds the rows,
-        // which is why undoMs comes back with it instead of being a number in
-        // here that drifts from the one over there.
+        // No token when files were erased, so no undo; the toast stays open as
+        // long as the server keeps the rows (undoMs).
         const token = r.undo;
-        // The only warning that reaches somebody who ticked "do not show this
-        // again" on the dialog: their Shift+Del goes straight through, and a
-        // removal that erased the files gets no undo token at all. It arrives
-        // after the fact, which is not good enough on its own, but it is the
-        // sentence that says what to go looking for in the download folder.
         toast(
           unseen > 0
             ? t('remove.doneHidden', { n: r.count }).replace('{hidden}', String(unseen))
@@ -614,9 +488,7 @@ export function useRemoval({
     [base, drawn, onDone, t, toast, undoRemoval],
   );
 
-  // Silenced, this goes straight through to the delete WITH its files - which
-  // is what the dialog was asking permission for, and what somebody who ticked
-  // "do not show this again" was answering in advance. See lib/dialogmute.ts.
+  // With the dialog muted, this deletes with files at once, as the mute agreed.
   const askWithFiles = useCallback(
     (ids: string[]) => {
       if (ids.length === 0) return;
@@ -629,8 +501,7 @@ export function useRemoval({
     [dialogs, removeNow],
   );
 
-  // Del is only the download list's key while nothing is being typed into.
-  // Without the guard, editing a search query deletes downloads.
+  // Ignored while typing, or editing a search would delete downloads.
   useEffect(() => {
     if (selected.size === 0) return;
     const onKey = (e: KeyboardEvent) => {
@@ -655,12 +526,8 @@ export function useRemoval({
       reach={
         drawn && {
           hidden: ask.filter((id) => !drawn.has(id)).length,
-          // The dialog's own id list only, and never the page's selection: the
-          // context menu
-          // passes a package's ids or a single row's here, and pushing a
-          // reduced list back through setSelected would deselect rows for a
-          // removal that is then cancelled. onDone clears the selection on
-          // confirm anyway.
+          // Narrows the dialog's own ids, not the page selection, so a
+          // cancelled removal leaves the selection intact.
           onReduce: () => setAsk(ask.filter((id) => drawn.has(id))),
         }
       }
@@ -677,12 +544,8 @@ export function useRemoval({
 
 export type Removal = ReturnType<typeof useRemoval>;
 
-// --- The clean-up classes, shared by the bar and the menu ------------------
-
-// The clean-up entries come from the server, once per session. Building the menu
-// from the client's own list would offer whatever this build was compiled with,
-// and an entry the server does not implement is a button that answers 400 when
-// it is pressed.
+// The clean-up classes come from the server once per session, so the menu
+// never offers a class the server lacks.
 let optionsOnce: Promise<ApiOptions> | null = null;
 
 function cleanupClasses(): Promise<CleanupClass[]> {
@@ -690,7 +553,8 @@ function cleanupClasses(): Promise<CleanupClass[]> {
   return optionsOnce.then(
     (o) => o.cleanupClasses ?? [],
     (e) => {
-      optionsOnce = null; // a failed load must not poison the next attempt
+      // A failed load is retried next time.
+      optionsOnce = null;
       throw e;
     },
   );
@@ -712,28 +576,14 @@ const CLEANUP_WHAT: Partial<Record<string, TranslationKey>> = {
   incompleteArchives: 'cleanup.what.incompleteArchives',
 };
 
-/**
- * A finished download's files are the reason it was downloaded. The class that
- * tidies them off the list is the one people run daily, and one absent-minded
- * click on the wrong button would erase a finished library — so this entry does
- * not offer the destructive exit at all, rather than offering it and asking
- * nicely.
- */
+// Classes that never offer to erase files. Clearing finished downloads is a
+// daily action, and one wrong click would erase a finished library.
 const KEEPS_FILES = new Set<string>(['finished']);
 
 /**
- * useCleanup is the clean-up flow, once: fetch the classes the server actually
- * implements, preview what one would take, then confirm.
- *
- * The bar under the list and the right-click menu each run their own instance
- * of this hook, and Downloads.tsx now holds a third — one for its own command
- * surface's "clear finished" entry (lib/commands/downloads.ts), published
- * through lib/commands/pageContext.ts so a command's run() can call this same
- * preview() and the confirm dialog it raises is this same dialog. A third
- * instance is the existing pattern, not a new one: every caller keeps its own
- * `classes`/`confirm` state, and a shared one would be how the menu ends up
- * offering a class the server does not have, or removing without previewing
- * first.
+ * useCleanup fetches the server's clean-up classes, previews what one would
+ * take, then confirms. Each caller (the bar, the menu, the downloads command)
+ * keeps its own instance.
  */
 export function useCleanup(all: Task[]) {
   const { t } = useT();
@@ -748,9 +598,7 @@ export function useCleanup(all: Task[]) {
     return list;
   }, []);
 
-  // Declared before preview() because preview() can call it directly when the
-  // confirmation has been silenced, and a useCallback dependency list cannot
-  // name a const that is declared further down.
+  // Declared before preview(), which calls it when the dialog is muted.
   const run = useCallback(
     async (cls: CleanupClass, withFiles: boolean): Promise<void> => {
       setConfirm(null);
@@ -764,9 +612,7 @@ export function useCleanup(all: Task[]) {
     [t, toast],
   );
 
-  // The preview and the confirmation are one gesture: the class picks the rows,
-  // so the count is the only thing that can tell the user what they are about to
-  // agree to. Nothing is removed by opening this.
+  // The class picks the rows, so the preview's count is what gets confirmed.
   const preview = useCallback(
     async (cls: CleanupClass): Promise<void> => {
       try {
@@ -775,8 +621,7 @@ export function useCleanup(all: Task[]) {
           toast(t('cleanup.nothing', { what: classLabel(cls, t) }), 'info');
           return;
         }
-        // Silenced, the preview becomes the run - without files, which is the
-        // conservative half of the dialog's own two answers. See dialogmute.ts.
+        // Muted, it runs without files, the conservative answer.
         if (dialogs.isMuted('cleanup')) {
           void run(cls, false);
           return;
@@ -805,20 +650,9 @@ export function useCleanup(all: Task[]) {
   return { classes, load, preview, dialog };
 }
 
-/**
- * Named the same way Removal is (this file, above): the return shape a
- * caller outside this file needs to spell out, first needed by
- * lib/commands/pageContext.ts so a page can publish its own useCleanup()
- * instance to the command registry without that file re-deriving the shape
- * via `ReturnType<typeof useCleanup>` itself.
- */
 export type CleanupState = ReturnType<typeof useCleanup>;
 
-/** cleanupItems turns the classes the server offers into menu entries. Exported
- *  for Collector.tsx's own badge-triggered cleanup menu (jdp, 2026-08-24:
- *  "Aufräumen ... als badge"), which needs the same entries ListActionBar's
- *  own text-button trigger already builds from this, just behind a different
- *  visual trigger - never a second, separately-maintained item list. */
+/** cleanupItems turns the server's clean-up classes into menu entries. */
 export function cleanupItems(
   classes: CleanupClass[],
   t: (key: TranslationKey) => string,
@@ -832,28 +666,18 @@ export function cleanupItems(
   }));
 }
 
-// --- The menu a list offers -----------------------------------------------
-
 /**
- * What a right-click landed on. The three readings a download list has:
- *
- *   selection  a link row, or the More button — act on what is selected
- *   package    a package header — the same verbs, over the whole package, plus
- *              the fold
- *   list       empty space — nothing is selected and the entries are the ones
- *              that belong to the list itself
+ * MenuTarget is what a right-click landed on: a link row or the More button
+ * (the selection), a package header (the same verbs over the package, plus the
+ * fold), or empty space (entries for the list itself).
  */
 export type MenuTarget =
   | { kind: 'selection' }
   | { kind: 'package'; name: string }
   | { kind: 'list' };
 
-/**
- * The menu's accessible name, one per reading. A screen reader announces this
- * before the entries, so it is the only chance to say what the menu is about to
- * act on — and "the selected downloads" is a lie on a package header nobody
- * selected.
- */
+// The menu's accessible name per target, so a package menu does not claim to
+// act on "the selected downloads".
 const MENU_LABEL: Record<MenuTarget['kind'], TranslationKey> = {
   selection: 'menu.label',
   package: 'menu.packageLabel',
@@ -870,29 +694,16 @@ export interface ListContext {
   onSelectAll: () => void;
   onSelectNone: () => void;
   /**
-   * Whether clean-up would act on the instance being shown. It is never
-   * forwarded to a peer, so on somebody else's list the entries are left out
-   * rather than quietly acting on the wrong machine.
+   * Whether the list is the local instance. Clean-up is not forwarded to peers,
+   * so on a peer's list those entries are left out.
    */
   local: boolean;
 }
 
 /**
- * taskMenuGroups builds the verbs for a selection — the same ones whether the
- * selection is one link, a package, or forty rows picked by hand.
- *
- * An entry that cannot act on any of the selected rows is left out instead of
- * shown greyed: a menu of nine dead verbs is a menu nobody reads to the end of.
- */
-/**
- * WHO MAY BE MOVED. Mirrors movable() in internal/app/app_queue.go, which is a
- * pure exclusion list: everything except a download that has finished or finally
- * failed, because those two have no place left in the wait order for a step to
- * move them through.
- *
- * Measured per status in internal/app/queue_reach_test.go and held level with
- * the Go by check-queue-reach.mjs, which reads both files and compares the two
- * sets in both directions.
+ * MOVE_STATES mirrors movable() in internal/app/app_queue.go: every status but
+ * done and error, which have no place left in the wait order.
+ * check-queue-reach.mjs keeps the two in step.
  */
 export const MOVE_STATES: readonly TaskStatus[] = [
   'collected',
@@ -903,25 +714,10 @@ export const MOVE_STATES: readonly TaskStatus[] = [
 ];
 
 /**
- * WHO MAY BE GIVEN A PRIORITY — a DIFFERENT question, which is the whole reason
- * these are two lists and not one.
- *
- * The server answers it for every state there is: SetPriorityIn resolves its
- * selection with a nil keep, so nothing is filtered out before the write. On a
- * finished or failed download the value orders nothing while it sits there, and
- * it is still not a dead control: RestartTasksIn clears the status, the error,
- * the byte count and the routing and deliberately leaves Priority alone, so the
- * value is in force the moment the row goes back into the queue. "Set these to
- * highest, then restart them" is an ordinary thing to want, and it was measured
- * before it was offered (TestPriorityOnAFinishedTaskSurvivesItsRestart).
- *
- * THE REGRESSION THESE TWO LISTS EXIST FOR: one predicate used to gate both
- * verbs, and it named queued/paused/collected only. A selection of RUNNING
- * downloads therefore got an empty queue group — no move, no priority — and
- * since the page draws its "Reihenfolge" badge only when that group has
- * entries, and the right-click menu had carried the same gate all along, the
- * four move verbs and the seven priorities became reachable from nowhere at
- * all. The server had been taking both for running downloads the entire time.
+ * PRIORITY_STATES is every status, since SetPriorityIn filters none. On a done
+ * or failed task the priority takes effect after a restart, which keeps it
+ * (TestPriorityOnAFinishedTaskSurvivesItsRestart). A separate list from
+ * MOVE_STATES because the server answers the two questions differently.
  */
 export const PRIORITY_STATES: readonly TaskStatus[] = [
   'collected',
@@ -934,36 +730,17 @@ export const PRIORITY_STATES: readonly TaskStatus[] = [
 ];
 
 /**
- * WHO MAY CARRY THE STOP MARK, the third question in the same menu.
- *
- * The mark fires when a task reaches 'done' (app_dispatch.go), so it is offered
- * on a download that still has that transition ahead of it. An already finished
- * or failed one would arm a mark nothing can ever trip. 'extracting' is left out
- * for the same reason: its download is over and its own completion is not the
- * dispatcher's done-transition.
+ * STOP_MARK_STATES are the statuses that still have the done transition ahead,
+ * which is when the mark fires (app_dispatch.go). An extracting task's download
+ * is already over.
  */
 export const STOP_MARK_STATES: readonly TaskStatus[] = ['collected', 'queued', 'running', 'paused'];
 
 /**
- * Everything a selection's place in the wait order can be told, as ONE menu
- * group: move it, give it a priority, mark it as the last one before a stop.
- *
- * EXPORTED BECAUSE IT HAS TWO CALLERS AND MUST NOT HAVE TWO COPIES. The
- * right-click menu below is one; Downloads.tsx's own "Queue order" badge is the
- * other, and that badge exists because the six page-level badges it replaced
- * were where this went wrong the first time. Four of them were `moveTasks` and
- * `setPriority` called straight from the page, and the priority pair was not a
- * step at all: `setPriority(ids, 1)` writes the ABSOLUTE value 1 of the
- * server's seven (-3..3, app_queue.go), so "raise priority" pressed twice left
- * a task exactly where the first press put it, and pressed on a task already at
- * highest it silently DEMOTED it. That defect was fixed here, in the menu, and
- * survived on the page for as long as the page built its own entries. One
- * builder is what stops it coming back: the badge and the right-click menu now
- * offer the same verbs, under the same names, through the same calls.
- *
- * `queue` is useQueueVerbs()'s answer — the priorities this server implements
- * and where the stop mark sits — so a caller needs that hook, which is why it
- * is exported too.
+ * queueMenuGroup builds the wait-order entries for a selection: move, priority
+ * and the stop mark. The context menu and Downloads.tsx's "Queue order" badge
+ * share it so they offer the same verbs through the same calls. `queue` comes
+ * from useQueueVerbs.
  */
 export function queueMenuGroup({
   chosen,
@@ -985,15 +762,9 @@ export function queueMenuGroup({
   };
   const some = (p: (x: Task) => boolean) => chosen.some(p);
 
-  // Two gates, not one, because the server has two answers - see MOVE_STATES
-  // and PRIORITY_STATES above. A single predicate covering both is what took
-  // the whole queue group away from a selection of running downloads.
+  // Separate gates for moving and priority; see MOVE_STATES and PRIORITY_STATES.
   const queueGroup: MenuGroup = { id: 'queue', items: [] };
   if (some((x) => MOVE_STATES.includes(x.status))) {
-    // Four steps, one route. The old pair of entries here called setPriority
-    // with a fixed 1 and -1, which is not a step at all: pressing "raise" twice
-    // left a task exactly where the first press put it, and pressing it on a
-    // task the Packagizer had already set to highest silently demoted it.
     const step = (where: QueueMove) => guard(() => queueMove({ ids }, where, base));
     queueGroup.items.push({
       id: 'move',
@@ -1013,20 +784,8 @@ export function queueMenuGroup({
     });
   }
 
-  // Behind one word, the way JDownloader keeps it: seven more entries in a menu
-  // that already has a dozen would bury everything under them. The tick marks
-  // the value the whole selection is already at — a selection that disagrees
-  // gets no tick rather than the first row's answer. `checked` rather than a
-  // tick in the icon slot, so every rung can carry its own glyph as well; see
-  // PriorityGlyph for why both are needed at once.
-  //
-  // Its OWN gate, and it used to be nested inside the move's. Nesting it made
-  // the narrower of the two answers decide both, which is how a selection the
-  // server writes priorities for all day was offered none.
-  //
-  // `queue.choices` is the other half of the gate and a different kind of
-  // question: it is this SERVER's list of rungs, fetched once, so a build
-  // talking to an instance that implements none offers none.
+  // A submenu, as in JDownloader. The check marks the value the whole selection
+  // shares, if any. The rungs are the server's own choices.
   if (queue.choices.length > 0 && some((x) => PRIORITY_STATES.includes(x.status))) {
     const agreed = chosen.every((x) => x.priority === chosen[0].priority)
       ? chosen[0].priority
@@ -1050,10 +809,7 @@ export function queueMenuGroup({
     });
   }
 
-  // The stop mark is one task, so it is offered on one row and never on forty:
-  // an entry that silently picked the first of a selection would arm a mark on
-  // a download nobody pointed at. There is exactly one mark in the app and this
-  // toggles it — arming a second would only move it.
+  // There is one stop mark, so it is offered for a single row only and toggles.
   if (chosen.length === 1 && STOP_MARK_STATES.includes(chosen[0].status)) {
     const only = chosen[0];
     const armed = queue.stopMark === only.id;
@@ -1068,6 +824,10 @@ export function queueMenuGroup({
   return queueGroup;
 }
 
+/**
+ * taskMenuGroups builds the verbs for a selection of any size. An entry that
+ * applies to none of the selected rows is left out rather than greyed.
+ */
 function taskMenuGroups({
   chosen,
   ids,
@@ -1101,29 +861,9 @@ function taskMenuGroups({
       icon: <IconPlay width={14} height={14} />,
       onSelect: () => void startTasks(ids, base),
     });
-  // Start and force are a pair and now sit as one, because read apart they look
-  // like two clocks. jdp: "was ist der unterschied zwischen starten und jetzt
-  // starten? Soll es nicht besser die Option Auswahl starten und Alle starten
-  // geben?"
-  //
-  // They are not two clocks, they are a verb and an override. Start admits
-  // links that are only staged into the queue, and it is the one entry here
-  // that can lift a halt somebody set by hand. Forcing admits nothing: it takes
-  // a selection the queue has ALREADY accepted and puts it in front of
-  // everything else waiting, switching it on and un-parking it on the way, and
-  // it refuses outright while the queue is stopped, because a per-link button
-  // is not where a decision about the whole box gets undone. So the override is
-  // named after the order it overrides rather than after the clock, and it is
-  // put next to the start it overrides instead of three groups down among the
-  // on/off flags, where the contrast was impossible to see.
-  //
-  // His two proposed labels are not free: "Auswahl starten" and "Alle starten"
-  // are already collector.startSelected / collector.startAll, which answer how
-  // MUCH of the collector goes in, not where in the order it lands.
-  //
-  // Forcing is offered even on links that are already forced, because pressing
-  // it again is how you claim the front a second time after somebody else's
-  // links have been pushed ahead.
+  // Start admits staged links and can lift a manual halt. Forcing puts links
+  // already in the queue ahead of everything else, and is refused while the
+  // queue is stopped. It stays offered on forced links, to reclaim the front.
   if (some((x) => x.status !== 'done'))
     transport.items.push({
       id: 'force',
@@ -1140,9 +880,7 @@ function taskMenuGroups({
       icon: <IconBolt />,
       onSelect: guard(() => setForced(ids, false, base)),
     });
-  // Stopping is per task on the wire — there is no bulk pause route — so this
-  // pauses exactly the ones that are running rather than asking the server to
-  // work out which those were.
+  // No bulk pause route, so each running task is paused on its own.
   if (some((x) => x.status === 'running' || x.status === 'extracting'))
     transport.items.push({
       id: 'pause',
@@ -1161,34 +899,16 @@ function taskMenuGroups({
         for (const x of chosen) if (x.status === 'paused') void resume(x.id, base);
       },
     });
-  // Skipping the wait, above the restart it is one word away from, because the
-  // two are not the same promise and the difference is the whole point of the
-  // pair. Restart is "run this again". This is "run the retry that is ALREADY
-  // scheduled, now instead of at the end of its backoff" - and it spends that
-  // retry rather than granting a new one, since app.RestartTasksIn leaves both
-  // Retries and NextTry alone. On a row waiting ten minutes that distinction is
-  // the difference between the entry people want and the entry they press
-  // because it is the only one that mentions retrying at all.
-  //
-  // Acts on the waiting rows only, never on `ids`. Every other entry here can
-  // afford to send the whole selection because the server ignores the rows the
-  // verb does not apply to; this one cannot, because restart applies to
-  // finished downloads perfectly well and would start them all over.
+  // Runs the already scheduled retry now, spending it rather than granting a
+  // new one. Sent for the waiting rows only, since restart would also start
+  // finished downloads over.
   const waitingIds = chosen.filter(retryPending).map((x) => x.id);
   if (waitingIds.length > 0)
     transport.items.push({
       id: 'retryNow',
       label: t('task.retry.skip'),
-      // The same bolt as forceStart above, and for the same idea: past the
-      // wait, now. Told apart from it by the group it is in and by never
-      // appearing on a row that is not waiting.
       icon: <IconBolt />,
-      // A count and not the explanation, which reads as the obvious thing to
-      // put here: `detail` is shrink-0 in ContextMenu, so a sentence in it
-      // pushes the label to nothing and runs out past the card's own maximum
-      // width. It says how many of the selected rows are actually waiting,
-      // which is the one thing the label cannot - and it is left off when that
-      // is all of them, since a number nobody can act on is noise.
+      // How many selected rows are waiting, when not all of them are.
       detail: waitingIds.length < chosen.length ? String(waitingIds.length) : undefined,
       onSelect: () => void restartTasks(waitingIds, base),
     });
@@ -1238,9 +958,7 @@ function taskMenuGroups({
       onSelect: guard(() => setHold(ids, false, base)),
     });
 
-  // Where the files go and what unlocks the archive: the two overrides a link
-  // carries of its own. Both open the one dialog, with the cursor in the box
-  // the entry names.
+  // Both open TaskOptionsDialog, focused on the named box.
   const options: MenuGroup = {
     id: 'options',
     items: [
@@ -1259,10 +977,7 @@ function taskMenuGroups({
     ],
   };
 
-  // Neither entry is painted as a fault. The glyph, the label and the group
-  // they sit in at the foot of the menu say what they do, and an app that
-  // colours every delete red teaches people to read past the colour by the
-  // third menu they open.
+  // Not coloured as faults; the glyph, label and position say enough.
   const gone: MenuGroup = {
     id: 'remove',
     items: [
@@ -1286,22 +1001,15 @@ function taskMenuGroups({
   return [transport, queueGroup, state, options, gone];
 }
 
-/**
- * targetTaskId finds the row a right-click landed on.
- *
- * It reads `data-task-id`, which the row component sets. Falling back to the
- * current selection when nothing is under the pointer is deliberate: the More
- * button raises the same menu.
- */
+/** targetTaskId reads the `data-task-id` of the row a right-click landed on. */
 export function targetTaskId(e: { target: EventTarget | null }): string | null {
   const el = e.target instanceof Element ? e.target.closest('[data-task-id]') : null;
   return el?.getAttribute('data-task-id') ?? null;
 }
 
 /**
- * targetPackage finds the package header a right-click landed on, and answers
- * with its name — which is legitimately the empty string for the ungrouped
- * package, so "not on a header at all" has to be null rather than falsy.
+ * targetPackage returns the name of the package header a right-click landed
+ * on, or null. The ungrouped package's name is the empty string.
  */
 export function targetPackage(e: { target: EventTarget | null }): string | null {
   const el = e.target instanceof Element ? e.target.closest('[data-package-row]') : null;
@@ -1312,11 +1020,9 @@ export function targetPackage(e: { target: EventTarget | null }): string | null 
 /**
  * ListMenu is the page's one menu: the same groups whether it was opened by
  * right-click on a link, on a package header, on empty space, or from the
- * selection strip's More button.
- *
- * It is mounted even while nothing is open, because the dialogs it raises must
- * outlive the menu itself — the menu closes before an entry runs, which is what
- * stops a dialog opening underneath it.
+ * selection strip's More button. It stays mounted while nothing is open so the
+ * dialogs it raises outlive it; the menu closes before an entry runs, and a
+ * dialog would otherwise open underneath it.
  */
 export function ListMenu({
   anchor,
@@ -1410,21 +1116,16 @@ export function ListMenu({
           id: 'selectNone',
           label: t('select.none'),
           detail: String(selected.size),
-          // The cross that clears a thing, the same one every dismissable
-          // surface in the app uses, against the tick that sets one directly
-          // above it. Not a second tick with a slash through it: the two rows
-          // are opposites and must be told apart at a glance, not read.
+          // A cross, not a struck-through tick: the row above sets the
+          // selection and the two have to be told apart at a glance.
           icon: <IconClose />,
           onSelect: list.onSelectNone,
         });
       groups.push({ id: 'select', items: whole });
     }
 
-    // Whole-list folding belongs to the empty space, not beside a package's own
-    // fold: the two are one word apart in the reading, and a menu that has to be
-    // read twice to tell "this one" from "all of them" is a menu that needs its
-    // own explanation. The count stays in the detail column — the label says
-    // which set, the number says how big it is.
+    // Whole-list folding sits on the empty space, not beside a package's own
+    // fold, so "this one" and "all of them" are never one word apart.
     if (list.packages.length > 1 && target.kind === 'list') {
       const fold: MenuItem[] = [];
       if (open.length > 0)
@@ -1450,12 +1151,10 @@ export function ListMenu({
   if (chosen.length > 0) {
     groups.push(
       // Moving the selection into a package a person names themselves, first
-      // in the list of things to do with a selection because it is what
-      // JDownloader's own right-click opens with (jdp, 2026-09-06: "in der
-      // linkliste kann ich links nicht markieren und in ein Paket verschieben,
-      // welches ich frei bennnenn kann. wie in JD"). The capability already
-      // existed - a folder glyph in the selection row above the list - and
-      // nobody found it there, which is the same as it not existing.
+      // in the list of things to do with a selection because that is what
+      // JDownloader's own right-click opens with. The folder glyph in the
+      // selection row above the list offers the same thing and nobody finds it
+      // there.
       {
         id: 'organise',
         items: [
@@ -1531,10 +1230,6 @@ export function ListMenu({
     </>
   );
 }
-
-
-// --- The bar under the list -----------------------------------------------
-
 
 /**
  * classLabel names a clean-up class. A class this build has no label for is

@@ -1,22 +1,10 @@
-// The add-links form (build-plan.md §8A): the paste box every page already
-// had, plus a per-batch destination, priority, unpacking switch, comment and
-// the two passwords - a hoster's own and an archive's, two different secrets
-// asked by two different parties (see lib/api.ts's TaskOptionsPatch for why
-// they are never one field) - and a persisted history of recently used
-// destinations.
+// The add-links form: the paste box plus per-batch destination, priority,
+// unpacking, comment, the archive and hoster passwords (two different
+// secrets, see TaskOptionsPatch) and a history of recent destinations.
 //
-// Extracted out of Collector.tsx rather than left inline, because the
-// Collector page also grows a facet sidebar and a stats strip in this same
-// wave: one file, two unrelated reasons to edit it, is exactly the collision
-// the lane system exists to avoid. Collector.tsx keeps owning `pkg` (it is
-// also handed to the container-drop zone) and the toast wording; everything
-// else about the form lives here.
-//
-// THE PRECEDENCE DECISION (§4 conflict 5, §8's Wave 8 amendment): a matching
-// Packagizer rule wins over the priority, unpacking switch and comment below
-// UNLESS "Overrule" is on - the destination always wins regardless, because a
-// folder picked by hand here is not a property the form and a rule are
-// contending over. See app.LinkBatchOptions's own comment for the mechanism.
+// A matching Packagizer rule wins over priority, unpacking and comment unless
+// "Overrule" is on; a destination picked here always wins (see
+// app.LinkBatchOptions).
 import { useEffect, useState, type CSSProperties } from 'react';
 import { hueVars, rainbowAt } from '../lib/appearance';
 import {
@@ -35,20 +23,13 @@ import { Tabs } from './Tabs';
 import { Button, Card, Field, FieldGroup, IconBadge, SectionTitle, TextArea, TextInput, ToggleRow } from './ui';
 import { IconCollector, IconFolder, IconPlus, IconSettings } from '../lib/icons';
 
-// JD keeps 25; matched rather than picking a new number, because the point of
-// this list is "the folder I used last week", and there is no reason this
-// app's users would want to remember fewer of them than JD's do.
+// The same number JD keeps.
 const DESTINATION_HISTORY_MAX = 25;
 const DESTINATION_HISTORY_KEY = 'addLinks.recentDestinations';
 const OPTIONS_OPEN_KEY = 'addLinks.optionsOpen';
 const OVERRULE_KEY = 'addLinks.overrule';
 
-/**
- * usePriorityTabs is TaskList.tsx's usePriorities, kept as its own small copy
- * rather than imported: the two components sit in different lanes this wave,
- * and fifteen lines duplicated is cheaper than a shared export that makes
- * this file a second writer on TaskList.tsx's own.
- */
+// usePriorityTabs mirrors TaskList.tsx's usePriorities.
 function usePriorityTabs(): { id: string; label: string }[] {
   const { t } = useT();
   const [choices, setChoices] = useState<PriorityChoice[]>([]);
@@ -59,7 +40,7 @@ function usePriorityTabs(): { id: string; label: string }[] {
         if (live) setChoices(p);
       },
       () => {
-        /* the strip stays empty rather than offering a guess */
+        // The strip stays empty rather than guessing.
       },
     );
     return () => {
@@ -87,25 +68,14 @@ export function AddLinksForm({
 }: {
   pkg: string;
   onPkgChange: (v: string) => void;
-  /** created is exactly what the server staged; submittedCount is how many
-   *  distinct URL-shaped lines the box held, for the "N already known" toast. */
+  /** `created` is what the server staged; `submittedCount` is how many distinct
+   *  URL lines the box held, for the "already known" toast. */
   onStaged: (created: Task[], submittedCount: number) => void;
-  /** Opens FileDrop's own file picker (jdp: "Dropzone mit Dateiwählen button
-   *  neben dem Zum-Sammler-Button") - this form owns none of that logic, it
-   *  only renders the trigger beside its own "Add to collector" button. */
+  /** Opens FileDrop's file picker. */
   onChooseFile: () => void;
-  /** Hands a dropped FILE list to FileDrop's own handling (jdp, 2026-08-24:
-   *  "können wir diesen text und card nicht entfernen" - FileDrop no longer
-   *  keeps a visible drop target of its own, so this box's own drop target
-   *  is now the one place both text AND files can land). */
+  /** Hands dropped files to FileDrop, since this box is the only drop target. */
   onFilesDropped: (files: File[]) => void;
-  /** FileDrop's own visible output (a torrent's file-tree review, or a
-   *  batch's outcome lines - see that component's own doc comment),
-   *  rendered inside THIS card rather than as a sibling block below it
-   *  (jdp, 2026-08-26: "der Fortschrittsbalken soll im Linksammlerfenster
-   *  angezeigt werden" - the drop target that produced the outcome and the
-   *  outcome itself now share one card, instead of the feedback surfacing
-   *  further down the page). */
+  /** FileDrop's output, rendered inside this card beside the drop target. */
   footer?: React.ReactNode;
 }) {
   const { t } = useT();
@@ -115,10 +85,7 @@ export function AddLinksForm({
   const [links, setLinks] = useState('');
   const [dragOver, setDragOver] = useState(false);
   const [busy, setBusy] = useState(false);
-  // Bumped on every failed add, and read as the add badge's own key: the
-  // badge is remounted, which is what lets .glim-shake replay on a second
-  // identical failure. A class that leaves and returns in the same frame does
-  // not restart an animation that has already finished.
+  // The add badge's key, bumped on failure so .glim-shake replays on a repeat.
   const [shake, setShake] = useState(0);
 
   const [optionsOpen, setOptionsOpen] = useUIState(OPTIONS_OPEN_KEY, false);
@@ -154,22 +121,14 @@ export function AddLinksForm({
         overrule: overrule || undefined,
       });
       setLinks('');
-      // A comment and a password are specific to what was just pasted, and a
-      // password left sitting typed into a box is the wrong default; the
-      // destination, priority, unpacking switch and Overrule survive because
-      // several batches for the same project in one sitting is the common
-      // case and re-picking them every time is the annoying one.
+      // Comment and passwords belong to this batch; destination, priority,
+      // unpacking and Overrule carry over to the next one.
       setComment('');
       setPassword('');
       setDownloadPassword('');
       if (dir.trim()) setRecent(pushRecent(recent, dir.trim()));
       onStaged(created, submittedCount);
     } catch (e) {
-      // Toast plus a shake of the badge that was pressed, never a sentence
-      // left standing on the page. The sentence this replaces was worse than
-      // merely permanent: it lived inside the Options panel, so a failed add
-      // with that panel shut reported nothing at all, and with it open it sat
-      // there looking current long after the attempt it described.
       toast(t('list.failed', { error: e instanceof Error ? e.message : String(e) }), 'fail', 'action-failed');
       setShake((n) => n + 1);
     } finally {
@@ -180,11 +139,7 @@ export function AddLinksForm({
   function onDrop(e: React.DragEvent) {
     e.preventDefault();
     setDragOver(false);
-    // Files first: a torrent/container file dropped here goes to FileDrop's
-    // own handling (jdp: "können wir diesen text und card nicht entfernen" -
-    // this box is now the one drop target for both). Text falls through to
-    // the plain-link path below; the whole-window drop zone (build-plan.md
-    // §8B) is a separate, broader listener elsewhere.
+    // Files go to FileDrop; text is appended to the box.
     const files = [...e.dataTransfer.files];
     if (files.length) {
       onFilesDropped(files);
@@ -196,35 +151,12 @@ export function AddLinksForm({
 
   return (
     <div className="flex h-full flex-col gap-3">
-      {/* flex-1 here, not just on the row wrapper in Collector.tsx: a flex
-          row's own `items-stretch` only stretches its direct children's
-          BOX, not whatever content sits inside them - without this, the
-          taller of the three top-row cards (jdp, 2026-08-24: "alle drei
-          card sollen immer gleich hoch sein") left the other two visibly
-          shorter, with invisible empty space below them instead of a
-          taller card. flex-1 on the visible card itself, in an h-full
-          flex-col parent, is what actually grows the card. */}
-      {/* No overflow-hidden on this outer box (jdp, 2026-08-24: "der
-          cardtitelbadge der linksammmler card ist nicht ganz sichtbar") -
-          SectionTitle's own pill sits `absolute -top-[11px]`, half over
-          this card's own top edge by design (its doc comment in ui.tsx),
-          and overflow-hidden here clipped exactly that half off. Nothing
-          below actually needs corner-clipping: the title row has its own
-          px-4 pt-3 inset, the dropzone sits in an m-3 margin, and the
-          button row has its own px-4 pb-4 inset - none of them are flush
-          against this card's own rounded edge the way a clip would exist
-          to protect against. */}
-      {/* A hand-rolled card rather than <Card>, so the palette position is set
-          here by hand - same contract either way: the class and the properties
-          travel together, or `.glim-hue` resolves --accent to nothing. */}
+      {/* flex-1 on the card itself so the row's cards match in height; the
+          parent's items-stretch only reaches this wrapper. No overflow-hidden,
+          which would clip SectionTitle's pill over the top edge. .glim-hue
+          needs the hueVars style beside it. */}
       <div className="glim-card glim-hue flex flex-1 flex-col p-0" style={hueVars(rainbowAt(0)) as CSSProperties}>
         <div className="px-4 pt-3">
-          {/* No hint bubble (jdp, 2026-09-06: "die i infobubble im kartentitel
-              entfernen. auch in der linklisten card"). It explained what the
-              collector is, which the paste box below it explains better by
-              being a paste box - and a permanent (i) on the title of the card
-              somebody uses every single time is a thing to look past rather
-              than a thing to read. */}
           <SectionTitle>{t('collector.addTitle')}</SectionTitle>
         </div>
         <div
@@ -258,33 +190,10 @@ export function AddLinksForm({
             </div>
           )}
         </div>
-        {/* THE ROW WRAPS, AND THE TRAILING GROUP WRAPS AS ONE. Every badge here
-            is shrink-0 and the labels are on by default (DEFAULT_NAV_LABELS is
-            'both'), so this run is wider than the card on any ordinary window:
-            measured on a running instance at 1500px it needs 837px inside a
-            550px card, and with `flex` alone the last two badges - Datei wählen
-            and the add button itself - were laid out past the card's right edge,
-            at x=1125 against a card ending at x=838, where the NEXT card paints
-            over them. The collector's own add button was invisible and
-            unclickable at every width below roughly 1900px, in the default label
-            mode. It needed 822px before this round renamed the button, so the
-            rename neither caused it nor is excused by it.
-            The spacer that used to sit in the middle of this row is what makes
-            wrapping alone wrong: `flex-1` eats the whole remainder of the first
-            line, so the moment anything wraps, EVERYTHING after the spacer drops
-            to a line of its own - measured, that put the add button alone on a
-            second line at 1920px, where the old row still fitted. The trailing
-            actions are one group instead, pushed over by `ms-auto`: they stay at
-            the end of the first line while there is room, and move down together
-            when there is not. */}
+        {/* With labels on, this row is wider than the card, so it wraps, and the
+            trailing actions wrap as one group pushed over by ms-auto. A flex-1
+            spacer would drop everything after it to a line of its own. */}
         <div className="flex flex-wrap items-center gap-3 px-4 pb-4">
-          {/* Square glyph badges, not text buttons (jdp, 2026-08-24: "Optionen
-              soll ein quadratisches badge mit zahnrad sein, ordner hinzufügen
-              ein quadratisches badge mit ordner symbol und zum sammler
-              hinzufügen ein quadratisches badge mit plus"). "Paket (optional)"
-              moved into the Optionen panel below instead of sitting here
-              always-visible - it is exactly the kind of per-batch detail the
-              rest of that panel already groups. */}
           <IconBadge
             labelled
             icon={<IconSettings width={16} height={16} />}
@@ -294,23 +203,12 @@ export function AddLinksForm({
             aria-expanded={optionsOpen}
             onClick={() => setOptionsOpen(!optionsOpen)}
           />
-          {/* The two automatic intakes, beside the manual ones (jdp,
-              2026-09-07: "Da könnten wir auch zwei schaltflächen für die
-              beiden optionen im Linksammler einfügen"). They sit on the left
-              of the spacer with Optionen rather than on the right with the
-              add/choose actions, because they switch a MODE rather than doing
-              something to what is in the box. */}
+          {/* Modes, so they sit with Options rather than with the actions. */}
           <LinkIntakeButtons />
-          {/* ms-auto, not a `flex-1` spacer: see the note above this row. It
-              wraps inside itself as well, because on a narrow card these three
-              alone are wider than the card is (measured at 1366px: 437px of
-              buttons in a 416px card), and a group that cannot break is a group
-              that hangs over the edge again. */}
+          {/* Wraps inside itself too, since on a narrow card these three alone
+              are wider than the card. */}
           <div className="ms-auto flex flex-wrap items-center justify-end gap-3">
             <PasteFromClipboardButton pkg={pkg} />
-            {/* Opens FileDrop's picker (jdp: "Dropzone mit Dateiwählen button
-                neben dem Zum-Sammler-Button") - the file-intake trigger sits
-                beside the link-intake one instead of in its own row below. */}
             <IconBadge
               labelled
               icon={<IconFolder width={16} height={16} />}
@@ -320,8 +218,6 @@ export function AddLinksForm({
               onClick={onChooseFile}
             />
             <IconBadge
-              // Remounted on every failed add, so the shake plays again on a
-              // second identical failure rather than only on the first.
               key={shake}
               labelled
               icon={<IconPlus width={16} height={16} />}
@@ -355,9 +251,6 @@ export function AddLinksForm({
           </Field>
           {recent.length > 0 && (
             <div className="flex flex-col gap-1.5">
-              {/* No size class: .glim-eyebrow IS the 11px caption step, and a
-                  text-xs on top of it quietly made this one eyebrow a 12px
-                  step the scale does not have. */}
               <span className="glim-eyebrow text-carbon-textSub">
                 {t('collector.destinationRecent')}
               </span>

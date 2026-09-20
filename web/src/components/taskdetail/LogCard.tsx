@@ -5,34 +5,19 @@ import { useT } from '../../lib/i18n';
 import { Card, EmptyState, SectionTitle } from '../ui';
 
 /**
- * What this instance has said in its own log about THIS download.
+ * LogCard shows the instance's log lines about one download. It is usually
+ * empty, since few log call sites name their download, and the card says so.
  *
- * IT IS USUALLY EMPTY, AND THE CARD SAYS SO OUT LOUD. Seven of the app's log
- * call sites record which download they are about; the other hundred and forty
- * odd do not, so a download can run into real trouble without a single line
- * appearing here. A card that showed an empty list with no explanation is a
- * card people report as broken, and they would be half right: the emptiness is
- * a fact about the logging and not about the download.
- *
- * THE LOG IS NOT FETCHED FOR A PEER'S DOWNLOAD, and that is a decision rather
- * than a gap. The route this reads sits under /api/diagnostics, which neither
- * the relay nor the federation proxy forwards - deliberately, because a log
- * line can carry a feed URL with an indexer's key in its query string, and the
- * two forwarding allowlists were reasoned about the task LIST, which carries
- * nothing of the sort. So a task running on another box gets the sentence
- * saying where its log actually is, rather than a spinner that never resolves
- * or an empty card that reads as "nothing happened".
- *
- * IT ASKS ONCE PER DOWNLOAD AND NOT ON EVERY TICK. useTasks replaces the whole
- * task object on every broadcast and a running download broadcasts constantly,
- * so the effect depends on the id and the base and on nothing that moves - the
- * same trap the panel's own file probe documents one file over.
+ * A peer's download gets no fetch: /api/diagnostics is not forwarded by the
+ * relay or the federation proxy, because a log line can carry a feed URL with
+ * an indexer key.
  */
 export function LogCard({ task, base, hue }: { task: Task; base: string; hue?: number }) {
   const { t } = useT();
   const local = isLocalBase(base);
   const [lines, setLines] = useState<LogLine[] | null>(null);
 
+  // Keyed on the id, not the task: useTasks replaces the object on every broadcast.
   useEffect(() => {
     if (!local) {
       setLines(null);
@@ -44,10 +29,7 @@ export function LogCard({ task, base, hue }: { task: Task; base: string; hue?: n
         if (live) setLines(log.lines);
       },
       () => {
-        // A request that could not be made says nothing, which is the same
-        // state as one that has not been made yet. Guessing "no lines" here
-        // would put the honest empty sentence in front of somebody whose log
-        // was simply not reachable.
+        // Unreachable is not the same as empty.
         if (live) setLines(null);
       },
     );
@@ -63,18 +45,11 @@ export function LogCard({ task, base, hue }: { task: Task; base: string; hue?: n
       {!local ? (
         <span className="text-sm text-carbon-textMuted">{t('detail.log.remote')}</span>
       ) : lines === null ? (
-        // Nothing to draw yet, and nothing to apologise for either: the panel
-        // opens on a double-click and this answers out of memory, so the state
-        // lasts a frame.
         <span className="text-sm text-carbon-textMuted">{t('common.loading')}</span>
       ) : lines.length === 0 ? (
-        // Kept as a real card even when it is empty, exactly as the rules card
-        // above it is. `nested`, because this sits inside a Card already.
         <EmptyState nested title={t('detail.log.empty')} hint={t('detail.log.emptyHint')} />
       ) : (
-        // ltr regardless of interface direction, the convention every other
-        // path, URL and code cell in this app uses: log lines mix paths, hosts
-        // and stack traces, none of which reads correctly mirrored.
+        // Log lines mix paths, hosts and stack traces, none of which reads mirrored.
         <pre
           dir="ltr"
           className="max-h-64 overflow-auto whitespace-pre-wrap break-all rounded-[var(--radius-control)]

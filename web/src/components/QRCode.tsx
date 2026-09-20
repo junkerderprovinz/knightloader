@@ -2,28 +2,9 @@ import type { ReactElement } from 'react';
 import type { QRMatrix } from '../lib/api';
 
 /**
- * QRCode renders a server-computed module grid (api.QRMatrix,
- * routes_remote.go's renderQR) as inline SVG.
- *
- * Always plain black modules on a plain white ground, in every colour mode -
- * deliberately the one place in this app that does not follow
- * always-integrate-new-elements-into-color-modes. A scanner reads contrast
- * between "dark" and "light" modules, and this app's own dark-mode surface
- * tokens or accent colour can drop that contrast low enough to fail an
- * ordinary phone camera in a normal room. What the code decodes to comes
- * first; the white frame below is part of making that true, not a themed
- * choice.
- *
- * The quiet zone (the blank margin the QR spec requires around the modules
- * for a scanner to find the code at all) is added here rather than by the
- * server: it is a rendering concern, the same reason padding lives in CSS
- * and not in a JSON payload, and this component is the one place that
- * already knows the module size in pixels.
- *
- * Encoding itself is not done here, or anywhere in this codebase by hand -
- * see routes_remote.go's own comment on why that stays server-side, on a
- * small, well-established Go library, rather than a hand-rolled or
- * hand-vendored encoder on either side.
+ * QRCode renders the server-computed module grid from routes_remote.go as
+ * inline SVG. It stays black on white in every colour mode, because themed
+ * colours can drop the contrast below what a phone camera reads.
  */
 export function QRCode({
   matrix,
@@ -31,16 +12,13 @@ export function QRCode({
   size = 176,
 }: {
   matrix: QRMatrix;
-  /** The accessible name for the image - what scanning it leads to, in
-   *  words, since nothing here reads pixels back into meaning. */
+  /** The accessible name: what scanning the code leads to. */
   label: string;
   size?: number;
 }) {
+  // The quiet zone the QR spec requires around the modules.
   const quiet = 4;
   const total = matrix.size + quiet * 2;
-  // ReactElement, not the global JSX namespace: React 19 stopped declaring
-  // that namespace globally, so `JSX.Element` no longer resolves without
-  // pulling it off React itself.
   const modules: ReactElement[] = [];
   for (let y = 0; y < matrix.size; y++) {
     const row = matrix.bits[y] ?? '';
