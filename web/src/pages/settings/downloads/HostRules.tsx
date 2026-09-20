@@ -14,56 +14,24 @@ import { useT } from '../../../lib/i18n';
 import type { HostRule, RetryRule } from '../../../lib/api';
 import { useDraft } from '../context';
 
-/**
- * The per-host exceptions to the counts on the card above: how much one hoster
- * may have open, how many sockets one of its downloads gets, and how patiently
- * a failure from it is retried.
- *
- * Three things about this card are decisions rather than layout.
- *
- * IT IS A MAP, NOT A LIST. settings.hostRules is keyed by the host pattern, so
- * a row has no id of its own and the name IS the identity. Everything awkward
- * below follows from that: a half-typed name may not be written (typing
- * "rapidgator.net" into the draft key by key would leave r, ra, rap… behind as
- * real rows), a row with no name at all may not be written (sanitizeHostRules,
- * internal/settings/settings_hostrules.go, drops a blank pattern on save
- * without a word, so the row would disappear and nothing would say why), and a
- * rename is delete-then-set with the value carried across, because a map has no
- * rename.
- *
- * ZERO IS "NO OPINION" ON EVERY NUMBER HERE, never "off" and never
- * "unlimited". Each field falls through to the level below it, field by field,
- * so a row that sets only the wait leaves the attempt count to whatever the
- * levels below say. That is why every label carries its own "(0 = …)" and why
- * the summary column leaves a zero blank instead of printing it.
- *
- * THE CEILINGS ARE THE SERVER'S, not numbers picked here: 64 simultaneous
- * downloads (maxConcurrentCeiling), 16 connections (rules.MaxChunks), 20
- * attempts (maxRetryTries) and one day of waiting (maxRetryWait). The server
- * silently cuts anything above them while saving, so a spinner that went higher
- * would be a control that lies about what saving it did.
- */
+// Per-host exceptions to the global counts: how many downloads one hoster may
+// have open, how many connections each gets, and how a failure is retried.
+//
+// settings.hostRules is a map keyed by the host pattern, so a row is written
+// only on blur and only with a name (sanitizeHostRules drops a blank one), and
+// a rename is delete-then-set. Zero means "no opinion" on every number and
+// falls through to the level below.
 
-/** Simultaneous downloads from one host - maxConcurrentCeiling. */
-const MAX_PER_HOST = 64;
-/** Connections one download opens - rules.MaxChunks; the engine opens no more. */
-const MAX_CHUNKS = 16;
-/** Attempts - maxRetryTries, the same ceiling the global count has. */
-const MAX_TRIES = 20;
-/** One day, in seconds - maxRetryWait, applied by clampSeconds to both waits. */
-const MAX_WAIT = 86400;
+// The server's ceilings; it cuts anything above them on save.
+const MAX_PER_HOST = 64; // maxConcurrentCeiling
+const MAX_CHUNKS = 16; // rules.MaxChunks
+const MAX_TRIES = 20; // maxRetryTries
+const MAX_WAIT = 86400; // maxRetryWait, one day in seconds
 
 /**
- * normalizeHostPattern, in TypeScript: case, the stray whitespace of a pasted
- * line, a leading "*." and the dots of a fully qualified name all fold into one
- * spelling.
- *
- * It has to agree with the Go side exactly, because two raw keys that normalise
- * the same both survive the save and only ONE of them is ever consulted
- * (HostRuleFor picks the longest match and settles ties by raw key order). The
- * other sits on the page looking configured and answering nothing, which is the
- * kind of row nobody can explain a month later - so the editor refuses the
- * second one instead of storing it.
+ * normalizeHost mirrors the Go normalizeHostPattern. Two keys that normalise
+ * the same would both be stored with only one ever consulted, so the editor
+ * refuses the second.
  */
 function normalizeHost(raw: string): string {
   const trimmed = raw.trim().toLowerCase();
@@ -71,13 +39,7 @@ function normalizeHost(raw: string): string {
   return bare.replace(/^\.+/, '').replace(/\.+$/, '');
 }
 
-/**
- * Whole, non-negative, and never above the server's own ceiling.
- *
- * Cut here as well as on the server on purpose: the save cuts it silently, and
- * a box that keeps showing 900 after a save that stored 64 is a page telling
- * the user something that is not true about their own install.
- */
+/** clampInt cuts like the server does, so the box shows what the save stores. */
 function clampInt(v: number, max: number): number {
   if (!Number.isFinite(v)) return 0;
   return Math.min(Math.max(0, Math.round(v)), max);
@@ -86,11 +48,7 @@ function clampInt(v: number, max: number): number {
 /** What committing a typed host did, so the row can say why nothing happened. */
 type Verdict = 'ok' | 'blank' | 'duplicate';
 
-/**
- * A row that has been added but has no host yet, and therefore no map key to
- * live under. It stays in component state until it earns one; writing it to the
- * draft early is the exact mistake that makes a row vanish on save.
- */
+/** A new row without a host, kept in component state until it has a map key. */
 interface PendingRow {
   id: string;
   host: string;
@@ -100,28 +58,17 @@ interface PendingRow {
 let pendingCounter = 0;
 const freshId = () => `p${(pendingCounter++).toString(36)}`;
 
-/**
- * Row identity for React and for "which row is open".
- *
- * A stored row is identified by its map key and a new one by its client-side
- * id, and the two namespaces are kept apart by a prefix rather than trusted to
- * differ: a host pattern is whatever somebody types, so an id that merely looks
- * unlikely to collide is an id that collides once.
- */
+// Row ids for stored and new rows, kept apart by prefix since a host can be
+// anything somebody types.
 const storedId = (key: string) => `k:${key}`;
 
 export function HostRulesCard({ hue }: { hue: number }) {
   const { t } = useT();
   const { cfg, patch } = useDraft();
 
-  // null and {} both arrive on the wire and mean the same thing: the Go field
-  // has no omitempty, so an install whose settings.json predates the key sends
-  // null while Defaults() writes {}.
+  // An older settings.json sends null.
   const rules = cfg.hostRules ?? {};
-  // Sorted by raw key, which is also how the server settles two patterns of
-  // equal length, so the order on the page and the order it resolves ties in
-  // are the same order. Insertion order would put a renamed row last and make
-  // it look as if it had moved.
+  // Sorted by raw key, the order in which the server settles ties.
   const keys = Object.keys(rules).sort();
 
   const [openRow, setOpenRow] = useState('');
@@ -129,24 +76,17 @@ export function HostRulesCard({ hue }: { hue: number }) {
 
   const write = (next: Record<string, HostRule>) => patch({ hostRules: next });
 
-  /**
-   * Put `rule` under the typed host, taking it out from under `fromKey` if it
-   * had one. Refuses rather than writing when the name would be thrown away or
-   * would shadow a row that already exists.
-   */
+  // Moves `rule` under the typed host, refusing a blank name or one that would
+  // shadow an existing row.
   const commit = (fromKey: string, typed: string, rule: HostRule): Verdict => {
     const next = normalizeHost(typed);
     if (next === '') return 'blank';
-    // Leaving the field without having changed anything must not write: an
-    // identical patch still marks the whole draft dirty, and a Save bar that
-    // lights up because somebody looked at a row is a Save bar nobody trusts.
+    // An identical patch would still mark the draft dirty.
     if (next === fromKey) return 'ok';
     if (next !== normalizeHost(fromKey) && keys.some((k) => k !== fromKey && normalizeHost(k) === next)) {
       return 'duplicate';
     }
     const map = { ...rules };
-    // delete-then-set, because a map has no rename - and the value goes across
-    // with it, so renaming a host does not quietly reset its numbers.
     delete map[fromKey];
     map[next] = rule;
     write(map);
@@ -154,10 +94,7 @@ export function HostRulesCard({ hue }: { hue: number }) {
   };
 
   const add = () => {
-    // A row with no host yet cannot be stored, so a second press of Add would
-    // only stack a second one that also cannot be stored - two nameless rows
-    // that look identical and both disappear on save. The one already waiting
-    // is opened instead.
+    // A nameless row already waiting is opened instead of adding another.
     const waiting = pending.find((r) => normalizeHost(r.host) === '');
     if (waiting) {
       setOpenRow(waiting.id);
@@ -184,9 +121,7 @@ export function HostRulesCard({ hue }: { hue: number }) {
       </SectionTitle>
 
       {rowCount === 0 ? (
-        // Inside the card rather than instead of it: the Add button above is the
-        // only way out of this state, and swapping the card for an EmptyState
-        // would take it off the page.
+        // Inside the card rather than an EmptyState, which would hide Add.
         <p className="py-6 text-center text-sm text-carbon-textSub">
           {t('settings.hostRules.empty')}
           <span className="mt-1 block text-[11px] text-carbon-textMuted">{t('settings.hostRules.emptyHint')}</span>
@@ -227,8 +162,7 @@ export function HostRulesCard({ hue }: { hue: number }) {
               open={openRow === row.id}
               onToggle={() => setOpenRow(openRow === row.id ? '' : row.id)}
               onCommit={(typed) => {
-                // Kept even when it cannot be stored yet, so collapsing a row
-                // whose host is still half typed does not throw the text away.
+                // Kept so collapsing a half-typed row keeps the text.
                 setPending((p) => p.map((r) => (r.id === row.id ? { ...r, host: typed } : r)));
                 const verdict = commit('', typed, row.rule);
                 if (verdict === 'ok') {
@@ -248,11 +182,9 @@ export function HostRulesCard({ hue }: { hue: number }) {
 }
 
 /**
- * One host, collapsed to its name and its numbers, expanded to the six fields.
- *
- * The typed host lives HERE and reaches the draft only on blur. Per keystroke
- * it would be a new map key per keystroke, and the draft would end up holding
- * every prefix of the name as a row of its own.
+ * HostRuleRow shows one host, collapsed to its name and numbers, expanded to the
+ * six fields. The typed host reaches the draft only on blur, or every prefix
+ * would become a map key.
  */
 function HostRuleRow({
   host,
@@ -285,23 +217,14 @@ function HostRuleRow({
   const ceiling = retry.max ?? 0;
   const setRetry = (fields: Partial<RetryRule>) => onChange({ ...rule, retry: { ...retry, ...fields } });
 
-  // What the ceiling will really be, on the rows where it disagrees with the
-  // wait. RetryFor (settings_hostrules.go) raises plan.Max to plan.Delay while
-  // it resolves one failure and never writes that back, so this is NOT a
-  // save-time clamp: the stored 60 stays 60 and behaves as 3600 for good. Both
-  // numbers have to be set for the raise to be certain - a 0 falls through to a
-  // level this page cannot see, and guessing what it will find there would be
-  // inventing a number. Left out while "never" is on, where no wait is ever
-  // used at all.
+  // RetryFor raises a ceiling below the first wait to that wait at run time
+  // without storing it. Shown only when both numbers are set here.
   const raisedTo = !never && delay > 0 && ceiling > 0 && ceiling < delay ? delay : undefined;
 
   const commit = () => {
     const verdict = onCommit(text);
     setDuplicate(verdict === 'duplicate');
-    // A name the server would throw away is not written at all. For a stored
-    // row the box goes back to the name it still has, rather than leaving
-    // something on screen that a save would silently delete; a new row simply
-    // stays where it is, unsaved, until it has a host.
+    // A stored row cleared to blank gets its name back; a new row waits.
     if (verdict === 'blank' && host !== '') setText(host);
   };
 
@@ -315,8 +238,6 @@ function HostRuleRow({
           className="flex min-w-0 items-center gap-3 text-left"
         >
           <span className="glim-num w-5 shrink-0 text-xs text-carbon-textMuted">{index + 1}</span>
-          {/* dir=ltr: a host name is never read right to left, whatever the
-              interface language is. */}
           <span dir="ltr" className="min-w-0 flex-1 truncate text-sm text-carbon-text">
             {host || <span className="text-carbon-textMuted">{t('settings.hostRules.pattern')}</span>}
           </span>
@@ -325,35 +246,20 @@ function HostRuleRow({
               {t('settings.hostRules.never')}
             </span>
           )}
-          {/* What this row actually overrides, in the order the editor asks for
-              it, each number behind the glyph of the field it came from. The
-              glyphs and not a word apiece: three headings would need three more
-              strings for a strip that is read at a glance and explained in full
-              one click away, and a native `title` tooltip is not this app's way
-              of explaining anything (every hover explanation is a GlimStone
-              bubble). A zero prints as nothing at all - it is the row saying
-              nothing about that number, and a column of noughts would read as
-              "this hoster gets none", the one thing 0 never means here. */}
+          {/* The overrides behind their fields' glyphs. A zero prints nothing,
+              since it means "no opinion", not "none". */}
           <Summary value={rule.maxPerHost} icon={<IconDownloads width={12} height={12} />} />
           <Summary value={rule.chunks} icon={<IconBolt width={12} height={12} />} />
           <Summary value={never ? 0 : retry.tries} icon={<IconRetry width={12} height={12} />} />
         </button>
-        {/* The one row action, on hover and on keyboard focus, so a long table
-            reads as content rather than as a wall of buttons. */}
         <div className="flex items-center gap-1.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
           <IconBadge
-            // 16 in a 32px badge: a glyph alone in a square is half its box
-            // (GlimStone rule 13), not the smaller drawing a glyph beside text
-            // would be. 14 filled 44% of the tile and made the row read as
-            // uneven against every badge that already had this right.
+            // A lone glyph takes half its 32px badge.
             icon={<IconTrash width={16} height={16} />}
             hue={index}
             title={t('settings.hostRules.remove')}
             aria-label={t('settings.hostRules.remove')}
-            // Keeping focus in the host box means no blur, and therefore no
-            // commit, in front of this click. Without it a new row whose host
-            // was just typed would be written to the draft on the way out and
-            // this press would then delete a row that no longer exists.
+            // No blur, so no commit happens in front of the removal.
             onMouseDown={(e) => e.preventDefault()}
             onClick={onRemove}
           />
@@ -381,10 +287,8 @@ function HostRuleRow({
               }}
             />
           </Field>
-          {/* The state of this row, not an explanation of the field - the
-              explanation is behind the (i) on the label. Refused rather than
-              stored, because two keys that normalise the same both survive the
-              save and only one of them is ever consulted. */}
+          {/* Refused, since two keys that normalise the same would both be
+              stored and only one consulted. */}
           {duplicate && <p className="text-xs text-statusWarn">{t('settings.hostRules.duplicate')}</p>}
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -396,9 +300,7 @@ function HostRuleRow({
                 onValue={(v) => onChange({ ...rule, maxPerHost: clampInt(v, MAX_PER_HOST) })}
               />
             </Field>
-            {/* An override and not a ceiling: this may be HIGHER than the global
-                count, unlike a limit a resolver reports about the host, which
-                can only lower it. */}
+            {/* An override, so it may exceed the global count. */}
             <Field label={t('settings.hostRules.chunks')} hint={t('settings.hostRules.chunksHint')}>
               <NumberInput
                 value={rule.chunks ?? 0}
@@ -417,23 +319,9 @@ function HostRuleRow({
             hint={t('settings.hostRules.neverHint')}
           />
 
-          {/* ABSENT while "never" is on, never dimmed (GlimStone 1.10.0).
-              RetryFor reads none of these three once "never" wins, so all three
-              hang off the switch directly above them - and a dimmed control is
-              something somebody can see, read and reach for that answers
-              nothing, with the reason sitting one row up where nobody looks
-              once they have decided this row is the interesting one. The switch
-              stays; what depends on it goes.
-
-              This replaced an `opacity-40` on the grid, and that carried a
-              second fault the rule names separately (1.9.0): opacity applies to
-              a whole subtree and a child cannot be less transparent than its
-              parent, so the three (i) bubbles - the one place that could have
-              said why the fields were dim - rendered at 40% along with them.
-
-              "never" off here does not clear a "never" a level below has
-              already set: the flag merges with OR, so this switch can only ever
-              turn one on. */}
+          {/* Absent while "never" is on, since RetryFor then reads none of
+              them. The flag merges with OR, so switching it off here cannot
+              clear a "never" set a level below. */}
           {!never && (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <RetryNumber
@@ -443,11 +331,7 @@ function HostRuleRow({
                 max={MAX_WAIT}
                 onValue={(v) => setRetry({ delay: v })}
               />
-              {/* A ceiling below the first wait is not cut at save time and not
-                  rewritten here either - the field keeps the number somebody
-                  meant to type. What it gets instead is the number that will
-                  actually be in force, so the row does not quietly disagree with
-                  itself; the (i) says why in words. */}
+              {/* The typed ceiling stays; the number in force is shown beside it. */}
               <RetryNumber
                 label={t('settings.hostRules.retryMax')}
                 hint={t('settings.hostRules.retryMaxHint')}
@@ -472,19 +356,9 @@ function HostRuleRow({
 }
 
 /**
- * One of the three retry numbers.
- *
- * It used to take an `off` flag that dimmed and disabled it while "never" was
- * on. The caller drops the three of them out of the tree instead (GlimStone
- * 1.10.0), so there is no off state left to carry - and a prop that decides
- * nothing is worse than no prop, because it reads like a lever (1.13.0). It was
- * deleted rather than left accepted-and-ignored for exactly that reason.
- *
- * `raisedTo` is the seconds this field will really be worth when the stored
- * number is not the one that gets used. It is shown as the bare figure in the
- * warning colour rather than as a sentence: the sentence is already in the (i)
- * beside the label, in every language, and a second one written here could only
- * be written in English.
+ * RetryNumber is one of the three retry numbers. `raisedTo` is the value in
+ * force when it differs from the stored one, shown as a bare figure since the
+ * (i) explains it.
  */
 function RetryNumber({
   label,
@@ -516,9 +390,7 @@ function RetryNumber({
   );
 }
 
-/** One number from the collapsed row, behind the glyph of the field it came
- *  from. The chip keeps its width while it is empty, so the numbers stay in
- *  their columns down a long table instead of sliding about row by row. */
+/** Summary keeps its width when empty, so the numbers stay in their columns. */
 function Summary({ value, icon }: { value?: number; icon: ReactNode }) {
   return (
     <span className="hidden w-12 shrink-0 items-center justify-end gap-1 text-xs text-carbon-textMuted sm:flex">

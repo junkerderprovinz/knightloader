@@ -6,23 +6,10 @@ import { Button, Card, Field, TextArea } from '../components/ui';
 import { IconDownloads } from '../lib/icons';
 
 /**
- * The one page a bookmarklet click, an extension action, and a PWA share all
- * land on — see lib/browserTools.ts's own doc comment for why all three open
- * this address rather than calling the API some other way. Deliberately
- * outside <Layout> (see app/router.tsx): the bookmarklet opens this in a
- * small window sized for exactly this content, and a sidebar squeezed into
- * 420px is worse than no sidebar.
- *
- * AuthGate (app/AuthGate.tsx) still wraps it like every other route, so a
- * password-locked instance shows the normal sign-in first — on the SAME
- * URL, because AuthGate only decides what to render, never navigates, so
- * the query string is exactly as intact after signing in as before it.
- *
- * Every string here lives in lib/locales like any other page. It used to
- * carry its own PENDING fallback table, from the wave that added this page
- * before the locale files caught up - long since redundant, since all but two
- * of its entries had already been superseded by the real catalogue and the
- * fallback only ever shadowed a translation that existed.
+ * QuickAdd is the page a bookmarklet, the extension and a PWA share all open
+ * (lib/browserTools.ts). It sits outside <Layout> because the bookmarklet opens
+ * it in a small window. AuthGate never navigates, so the query string survives
+ * signing in.
  */
 
 type Phase = { kind: 'form' } | { kind: 'busy' } | { kind: 'done'; created: Task[] } | { kind: 'error'; message: string } | { kind: 'undone' };
@@ -33,32 +20,14 @@ export function QuickAdd() {
   const url = params.get('url') ?? '';
   const text = params.get('text') ?? '';
   const title = params.get('title') ?? '';
-  // Issue #27: which instance this link is FOR. Empty means this one, which
-  // is every existing caller - the bookmarklet, the share target, and an
-  // extension entry that has an address of its own.
-  //
-  // It exists for the peers that have no address at all: a desktop build, or
-  // anything reachable only through a relay. Those cannot be opened in a tab,
-  // so the extension cannot send them anything directly - but THIS instance
-  // is already federated with them, over whichever transport works, and
-  // /api/instances/{name}/links is a route it already forwards
-  // (routes_federation.go's own allowlist). Routing through the one instance
-  // the browser CAN reach is what makes those peers reachable, and it needs
-  // no relay client, no second copy of the relay key, and no persistent
-  // socket in a service worker that the browser is free to kill.
+  // The peer the link is for, empty for this instance. It reaches peers the
+  // browser cannot open, such as a desktop build or a relay-only instance,
+  // through this one's federation (routes_federation.go).
   const to = params.get('to') ?? '';
   const apiBase = to ? `/api/instances/${encodeURIComponent(to)}` : '/api';
-  // A share can carry both a url and prose that mentions one; joined rather
-  // than picking one, because linkscan on the server (internal/linkscan,
-  // reused by POST /api/links) already extracts every URL out of a blob and
-  // silently keeps only what looks like a link either way. Joined with a
-  // BLANK line, not a single newline: linkscan's own hard-wrap rejoin
-  // (logicalLines/continuesURL) glues a line ending in a URL to whatever
-  // follows it when that next line starts lowercase - real, reproduced with
-  // the actual Android share-sheet shape (both url and text set), which
-  // turned "https://example.com/file.zip" + "some text" into a single
-  // corrupted "https://example.com/file.zipsome" link. A blank line between
-  // them is what continuesURL's own empty-string guard refuses to bridge.
+  // A share can carry a url and text; linkscan extracts the links from both.
+  // A blank line keeps its hard-wrap rejoin (continuesURL) from gluing the url
+  // to a following line that starts lowercase.
   const shared = [url, text].filter(Boolean).join('\n\n');
 
   const [phase, setPhase] = useState<Phase>({ kind: shared ? 'busy' : 'form' });
@@ -78,22 +47,15 @@ export function QuickAdd() {
     [title, t, apiBase],
   );
 
-  // Auto-submits once, on the params the page was opened with — the whole
-  // point of a bookmarklet is one click total, not a click to open this page
-  // and a second one to confirm what it already knows.
+  // Submits once on open, so a bookmarklet takes one click.
   useEffect(() => {
     if (shared) void stage(shared);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function undo(created: Task[]) {
-    // Checked, not fired and forgotten. `remove` is a bare fetch, which
-    // resolves happily on a 502 - so the old version reported "Removed." for a
-    // delete that did not happen. That was survivable while every undo was a
-    // same-process call; with `?to=` it crosses to another instance, where a
-    // peer that went offline between the add and the undo is an ordinary
-    // Tuesday, and the link stays queued on a machine the user believes they
-    // just cleared.
+    // `remove` resolves on a 502 too, and with `?to=` the peer may have gone
+    // offline, so every result is checked.
     try {
       const results = await Promise.all(created.map((t) => remove(t.id, apiBase)));
       const failed = results.filter((r) => !r.ok);
@@ -112,15 +74,10 @@ export function QuickAdd() {
       <div className="flex w-full max-w-sm flex-col gap-4">
         <div className="flex items-center gap-2">
           <IconDownloads width={20} height={20} className="text-accentInk" />
-          {/* The heading step of the type scale, not a 15px in between it and
-              body: this line is this window's page title, and 15px was a
-              fourth caption-sized step nobody had decided on. */}
           <span className="text-xl font-semibold text-carbon-text">{t('quickadd.title')}</span>
         </div>
 
-        {/* Named, always, when this is not the instance being looked at: a
-            link quietly landing on a different machine is the one thing this
-            page must never do. */}
+        {/* A link bound for another machine always names it. */}
         {to !== '' && <p className="-mt-2 text-xs text-carbon-textMuted">{t('quickadd.toPeer', { name: to })}</p>}
 
         <Card className="flex flex-col gap-4">

@@ -25,50 +25,19 @@ import { IconClock, IconCode, IconMoon, IconPause, IconPower } from '../../../li
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import { useDraft } from '../context';
 
-/**
- * What happens once the wait queue has nothing left to do, and how long the
- * cancellable countdown runs first.
- *
- * IT LEFT DownloadsSettings.tsx for the reason the other eight cards did: this
- * one grew from two controls to a menu, three command fields, a preflight, a
- * run button and a report, and a page that answers twelve questions in one
- * component is a file nobody can edit two things in at once.
- *
- * THE MENU IS THE SERVER'S. GET /api/idle-action/actions answers
- * idleaction.Offered(capabilities) - which actions this BUILD can actually
- * carry out, decided by which function fields are wired on the App and never
- * by which binary is running. So the container offers quit and not sleep, the
- * desktop offers sleep and not quit, and neither offers an entry that would do
- * nothing when it fired. Anything this build has no label for still renders as
- * its own id rather than as a blank tab, the same fallback IdleActionBanner
- * makes.
- *
- * THE STORED COMMAND IS NEVER RENDERED BACK. The server sends "********" in
- * place of it (idleaction.CommandSpec.Redacted) because Settings.Redacted also
- * feeds the diagnostics bundle, which is a file people attach to public bug
- * reports. The box therefore shows EMPTY with a placeholder saying so, while
- * the draft keeps the mask - which is what the save merges back into the real
- * value. That is the identical arrangement Reconnect.tsx uses for the router
- * password, including why: painting the mask into the field teaches people
- * their command is eight characters long, and clearing the draft on load would
- * wipe the stored command on the next save of any other setting on this page.
- * "What would actually run" is answered by the Check button instead, which
- * resolves the stored spec live and prints the real path and argument vector.
- */
+// The idle action: what happens once the wait queue has nothing left, and how
+// long the cancellable countdown runs first. The menu comes from the server,
+// which offers only the actions this build can carry out.
+//
+// The stored command comes back masked, because the same redaction feeds the
+// diagnostics bundle. The box stays empty while the draft keeps the mask, which
+// the save merges back into the real value, as Reconnect.tsx does for the
+// router password. The Check button prints what would really run.
 
-/**
- * What the server sends instead of a stored command line. A protocol value
- * shared with idleaction.RedactedCommand, not a string somebody may prettify -
- * the same constant Reconnect.tsx and Advanced.tsx already keep for the same
- * reason.
- */
+/** The mask for a stored command; a protocol value shared with idleaction.RedactedCommand. */
 const REDACTED = '********';
 
-/**
- * The menu labels. internal/idleaction.Actions() is the source of truth for
- * WHICH ids exist; this is only what each one reads as, and an id with no
- * entry here falls back to itself.
- */
+/** Menu labels; an id without one falls back to itself. */
 const ACTION_KEYS: Record<string, TranslationKey> = {
   none: 'settings.downloads.idleActionNone',
   pause: 'settings.downloads.idleActionPause',
@@ -77,17 +46,12 @@ const ACTION_KEYS: Record<string, TranslationKey> = {
   suspend: 'settings.downloads.idleActionSuspend',
 };
 
-/**
- * The sentence that explains the SELECTED action, shown in the (i) beside the
- * menu rather than as a paragraph under it. One bubble that changes with the
- * choice, instead of four blocks of text that are wrong three at a time.
- */
+/** The (i) beside the menu explains the selected action. */
 const ACTION_HINTS: Record<string, TranslationKey> = {
   quit: 'settings.downloads.idleQuitHint',
   suspend: 'settings.downloads.idleSuspendHint',
 };
 
-/** Every glyph is one this app already draws for the same idea. */
 const ACTION_ICONS: Record<string, ReactNode> = {
   pause: <IconPause width={16} height={16} />,
   quit: <IconPower width={16} height={16} />,
@@ -95,19 +59,13 @@ const ACTION_ICONS: Record<string, ReactNode> = {
   suspend: <IconMoon width={16} height={16} />,
 };
 
-/** The server's own bounds (internal/idleaction), shown rather than enforced
- *  quietly, so nobody meets them by typing 3 and finding 60 after the save. */
+/** The bounds of internal/idleaction, shown so a save does not change the number. */
 const DELAY = { lo: 5, hi: 86400 };
 const TIMEOUT = { lo: 5, hi: 3600 };
 
 export function IdleActionCard({ hue }: { hue: number }) {
   const { t } = useT();
-  // dirty gates the two buttons below. Both routes ask the server about what
-  // is STORED - a preflight of the saved command, a run of the saved command -
-  // so pressing either one with an unsaved edit on screen would answer a
-  // question about a different command than the one being looked at, which is
-  // the worst possible answer for a control whose whole job is telling you
-  // what will really happen.
+  // dirty gates the check and run buttons, which act on the stored command.
   const { cfg, patch, dirty } = useDraft();
 
   const [actions, setActions] = useState<string[]>([]);
@@ -136,10 +94,7 @@ export function IdleActionCard({ hue }: { hue: number }) {
         /* the deployment sentence is simply not shown */
       },
     );
-    // The last run, once. This card is a form and IdleActionBanner is the live
-    // surface: it already holds the "idleAction" subscription and repaints on
-    // every arm, cancel and run, so a second socket subscription here would
-    // buy a repaint of a page somebody is editing rather than watching.
+    // The last run, once; IdleActionBanner holds the live subscription.
     void fetchIdleAction().then(
       (s) => {
         if (live) setLastRun(s.lastRun ?? null);
@@ -157,17 +112,10 @@ export function IdleActionCard({ hue }: { hue: number }) {
   const action = cfg.idleAction.action;
   const storedProgram = command.program === REDACTED;
   const storedArgs = (command.args ?? []).length > 0 && (command.args ?? []).every((a) => a === REDACTED);
-  // What to CALL the program in a sentence about it. The draft holds the mask
-  // whenever something is stored, and "******** does not exist on this
-  // instance" is a sentence about nothing - so a message about a hidden
-  // command names it as such, and the Check button is what prints the real
-  // path when somebody wants it. A run record carries its own unmasked
-  // program and is preferred wherever there is one.
+  // A masked command is called "the stored command" in messages.
   const probeName = storedProgram ? t('settings.downloads.idleCommandStoredShort') : command.program;
 
-  // EVERY write spreads. lib/api.ts spells out why: a nested object field is
-  // replaced WHOLE when it is named, so a patch that rebuilt idleAction from
-  // two fields would wipe the stored command off disk with no error anywhere.
+  // Every write spreads, because a named nested field replaces the whole object.
   const setCommand = (fields: Partial<typeof command>) =>
     patch({ idleAction: { ...cfg.idleAction, command: { ...command, ...fields } } });
 
@@ -202,10 +150,8 @@ export function IdleActionCard({ hue }: { hue: number }) {
     try {
       setLastRun(await runIdleCommand());
     } catch {
-      // The route refuses with 409 while the configured action is not the
-      // command one, which is a state this button is not offered in - so a
-      // failure here is a request that never arrived, and the report line
-      // says exactly that rather than inventing a problem code.
+      // The button only shows when the route accepts it, so this is a request
+      // that never arrived.
       setLastRun({ action: 'command', at: new Date().toISOString(), ok: false });
     } finally {
       setRunning(false);
@@ -223,10 +169,6 @@ export function IdleActionCard({ hue }: { hue: number }) {
         label={t('settings.downloads.idleAction')}
         hint={actionHint ? `${t('settings.downloads.idleActionHint')} ${t(actionHint)}` : t('settings.downloads.idleActionHint')}
       >
-        {/* The well track wraps rather than scrolling (Tabs.tsx), which is what
-            keeps five entries with sentences for labels readable on a phone:
-            they stack into rows instead of hiding behind a horizontal
-            scrollbar. */}
         <Tabs
           variant="well"
           label={t('settings.downloads.idleAction')}
@@ -272,10 +214,7 @@ export function IdleActionCard({ hue }: { hue: number }) {
               dir="ltr"
               value={storedArgs ? '' : (command.args ?? []).join('\n')}
               placeholder={storedArgs ? t('settings.downloads.idleCommandStored') : 'suspend'}
-              // Only non-empty lines survive, matching CommandSpec.Sanitize:
-              // a blank argument becomes an empty argv entry, which some
-              // programs read as an empty positional and others as an error,
-              // and neither is what a stray newline meant.
+              // Blank lines are dropped, as CommandSpec.Sanitize does.
               onChange={(e) => setCommand({ args: e.target.value.split('\n').filter((a) => a.trim() !== '') })}
             />
           </Field>
@@ -306,11 +245,8 @@ export function IdleActionCard({ hue }: { hue: number }) {
                 >
                   {checking ? t('settings.downloads.idleCommandChecking') : t('settings.downloads.idleCommandCheck')}
                 </Button>
-                {/* Offered only while the command action is the configured
-                    one, because that is the only state the server accepts it
-                    in: POST /api/idle-action/run answers 409 otherwise, and a
-                    button that suspends the machine because THAT is what
-                    happened to be configured is not a test. */}
+                {/* Only for the command action; the run route answers 409
+                    otherwise. */}
                 <Button
                   kind="secondary"
                   className="w-fit"
@@ -374,14 +310,7 @@ export function IdleActionCard({ hue }: { hue: number }) {
           onClose={() => setConfirming(false)}
           footer={
             <>
-              {/* The spacer first, because Modal's footer is a plain flex row
-                  with no justification of its own: without it the pair sits at
-                  the START of a max-w-md window, and the position that is
-                  supposed to mean "this one goes ahead" (GlimStone 1.14.0) has
-                  empty space to its right instead. Cancel then Run, ordered by
-                  the JSX and never by flex-row-reverse or an order-* utility,
-                  so the pair mirrors with the page under right-to-left
-                  languages - "right" means end, not the right of the glass. */}
+              {/* The spacer puts Run at the end of Modal's plain flex footer. */}
               <span className="flex-1" />
               <Button kind="ghost" onClick={() => setConfirming(false)}>
                 {t('common.cancel')}
@@ -399,12 +328,7 @@ export function IdleActionCard({ hue }: { hue: number }) {
   );
 }
 
-/**
- * The instant a run happened, in the reader's own locale. toLocaleString and
- * not a hand-rolled format: the server sends an absolute instant precisely so
- * that every client renders it in its own zone, the same reason
- * IdleActionBanner counts down from an absolute FireAt.
- */
+/** when formats a run's instant in the reader's locale and zone. */
 function when(iso: string): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return '';

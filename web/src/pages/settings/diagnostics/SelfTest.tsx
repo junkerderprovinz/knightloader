@@ -14,48 +14,20 @@ import { Button, Card, SectionTitle } from '../../../components/ui';
 import { IconRetry } from '../../../lib/icons';
 import { CHECK_NAMES, CheckRow, SubRow, adviceKeyFor, useLine } from './rows';
 
-/**
- * The instance's own seven checks: the JDownloader sidecar, yt-dlp and its age,
- * the target folders, the debrid logins, the relay, the clock and the torrent
- * port.
- *
- * WHY IT POLLS AND IS NOT PUSHED. internal/hub would make broadcasting these
- * trivial, and doing so would be exactly wrong: the WebSocket is one of the
- * things being tested on the card below this one. A result delivered over it
- * disappears in precisely the case the operator most needs it. So POST answers
- * 202 with a run id and the list of planned checks, this draws all seven rows
- * as waiting, and then asks again every second until finishedAt appears. The
- * interval exists only while something is running - a page that polls a
- * finished sweep for ever is a laptop that gets warm on a settings tab nobody
- * is looking at.
- *
- * NOTHING HERE IS PART OF THE SETTINGS DRAFT. Like the two cards above it,
- * there is nothing to save: only something to read, and one button that asks.
- *
- * THE CLOCK ROW IS FINISHED IN THE BROWSER. The server can report its own time
- * and its own zone; it cannot know how far the reader's clock is from it, and
- * the naive comparison would read half of a slow round trip as drift. So the
- * request echo is fetched with both local timestamps noted and lib/selftest.ts
- * does the arithmetic - see clockSkewMs.
- */
+// The instance's own checks: the JDownloader sidecar, yt-dlp, the target
+// folders, the debrid logins, the relay, the clock and the torrent port.
+//
+// The results are polled rather than pushed, because the WebSocket is one of
+// the things under test. The browser finishes the clock row itself, timing the
+// request echo so a slow round trip does not read as drift (clockSkewMs).
 
-/** How often a running sweep is asked about. */
 const POLL_MS = 1000;
 
-/**
- * The params that are BYTES on the wire and words on the screen.
- *
- * The server sends decimal byte counts and never formatted sizes, deliberately:
- * a server that wrote "4,2 GB" would have decided the reader's language and
- * their decimal separator on their behalf, and it has no idea which of the
- * forty-two is loaded.
- */
+// Params the server sends as raw byte counts or RFC3339 stamps, formatted here
+// in the reader's locale.
 const BYTE_PARAMS = ['free', 'mark'];
-
-/** The params that are RFC3339 timestamps on the wire. */
 const TIME_PARAMS = ['time'];
 
-/** One result's params, ready to be substituted into its sentence. */
 function shown(res: SelfTestResult): Record<string, string> {
   const out: Record<string, string> = { ...(res.params ?? {}) };
   for (const k of BYTE_PARAMS) {
@@ -68,13 +40,9 @@ function shown(res: SelfTestResult): Record<string, string> {
 }
 
 /**
- * clockRow folds the browser's own half into the server's clock result.
- *
- * The wording never says "your clock is wrong", and that is deliberate rather
- * than diplomatic: neither clock is authoritative here and this app has no way
- * to tell which of the two has drifted. The row states that the two are N
- * apart; the bubble says which to check first, and why (a container takes its
- * time from its host, so the host is where the answer usually is).
+ * clockRow folds the browser's half into the server's clock result. It says
+ * how far apart the clocks are, not which one is wrong, since neither is
+ * authoritative.
  */
 function clockRow(res: SelfTestResult, skewMs: number | null): SelfTestResult {
   if (skewMs === null) return res;
@@ -82,9 +50,7 @@ function clockRow(res: SelfTestResult, skewMs: number | null): SelfTestResult {
   if (verdict === 'pass') return res;
   return {
     ...res,
-    // The worse of the two: a UTC zone with a timetable does not stop being
-    // worth mentioning because the clocks also disagree, but the disagreement
-    // is the more urgent of the two and is what the sentence now says.
+    // The worse status wins; the sentence reports the drift as the more urgent.
     status: verdict === 'fail' ? 'fail' : res.status === 'fail' ? 'fail' : 'warn',
     code: 'clock.skew',
     params: { ...(res.params ?? {}), skew: fmtSkew(skewMs) },
@@ -103,18 +69,9 @@ export function SelfTestCard({ hue }: { hue: number }) {
     void fetchSelfTest().then(setRun, () => undefined);
   }, []);
 
-  // The last sweep, on mount. An instance that has never been swept answers a
-  // run with an empty id, which is what "not run yet" is made of - the route
-  // deliberately does not 404 there, so this needs no special case.
+  // An instance that was never swept answers a run with an empty id.
   useEffect(refresh, [refresh]);
 
-  // happened(), not `!run.finishedAt`. selftest.Run tags that field `omitzero`
-  // today, so the truthiness test happens to be right - and a tag three
-  // directories away is not something this line can vouch for. Every other
-  // time.Time in this app is tagged `omitempty`, which does NOTHING to a
-  // struct, so those arrive as "0001-01-01T00:00:00Z" and read as true. One
-  // predicate for all of them costs nothing here and cannot be broken by a Go
-  // edit that never opens this file (web/check-go-timestamps.mjs holds it).
   const running = run !== null && run.id !== '' && !happened(run.finishedAt);
   useEffect(() => {
     if (!running) return;
@@ -127,11 +84,8 @@ export function SelfTestCard({ hue }: { hue: number }) {
     setStarting(true);
     try {
       setRun(await startSelfTest());
-      // Timed, and started only once the sweep is under way so the two calls
-      // do not queue behind each other on a single-connection proxy. A failure
-      // here leaves the clock row exactly as the server reported it rather
-      // than failing the whole sweep: the other six checks are still worth
-      // having, and the drift is the one thing the browser adds.
+      // Started once the sweep runs, so the two calls do not queue on a
+      // single-connection proxy. A failure leaves the server's clock row as is.
       const sentAt = Date.now();
       try {
         const view = await fetchRequestView();
@@ -203,9 +157,6 @@ export function SelfTestCard({ hue }: { hue: number }) {
         </div>
       )}
 
-      {/* `run !== null` still carries its own weight: happened() answers a
-          question about the timestamp, not about the run, so it cannot narrow
-          the row the way the optional chain it replaces did. */}
       {run !== null && happened(run.finishedAt) && (
         <span className="text-[11px] text-carbon-textMuted">
           {t('settings.selftest.lastRun', { when: fmtDate(run.finishedAt) })}
@@ -216,16 +167,7 @@ export function SelfTestCard({ hue }: { hue: number }) {
   );
 }
 
-/**
- * A folder row's own name, from the role the disk readout already labels its
- * volumes with.
- *
- * Reused rather than given keys of its own: disk.role.downloads and
- * disk.role.work are already in all forty-two locales and already name exactly
- * these two folders on the Overview page's disk card. Two new keys saying the
- * same words would be two more things to translate and one more place for the
- * same folder to be called something else.
- */
+/** roleName names a folder row with the disk card's disk.role.* keys. */
 function roleName(t: (k: TranslationKey) => string, role: string | undefined): string | undefined {
   if (role === 'downloads') return t('disk.role.downloads');
   if (role === 'work') return t('disk.role.work');

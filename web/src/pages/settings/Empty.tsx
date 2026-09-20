@@ -3,17 +3,9 @@ import { useFeatures } from './context';
 import { label, useTx } from './tx';
 
 /**
- * A sub-page that is registered and has no controls yet.
- *
- * Registered rather than absent on purpose: a later wave then fills a page that
- * already exists, at an address people may already have bookmarked, instead of
- * inventing one and re-deciding its name and its place in the rail. An absent
- * page also has no way to explain itself — and for Captcha the explanation is
- * the whole content, because nothing in this build produces a challenge at all.
- *
- * Which is why the text comes out of the module registry. The page does not
- * write its own excuse: if the reason changes because the subsystem landed, the
- * server changes and this page follows.
+ * EmptyPage stands in for a registered sub-page that has no controls yet. The
+ * reason comes from the server's module registry, so the page follows when the
+ * subsystem ships.
  */
 export function EmptyPage({ id }: { id: string }) {
   const { tx } = useTx();

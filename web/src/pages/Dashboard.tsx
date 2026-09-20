@@ -20,13 +20,7 @@ export function Dashboard() {
   const { t } = useT();
   const tasks = useTasks('');
   const { data: instances } = useResource<Instance[]>(fetchInstances);
-  // The configured name (settings/access.tsx's own IdentityCard), so this
-  // instance shows up on its own list the same way a peer does - not the
-  // generic "this instance" placeholder, which reads like every other
-  // KnightLoader is also called that (jdp: "unter instanz soll diese
-  // instanz mit dem eingestellten namen erscheinen nicht mit 'diese
-  // instanz'"). Falls back to the placeholder for the common case of never
-  // having named it.
+  // Carries the configured instance name and the speed limit.
   const { data: settings } = useResource<Settings>(fetchSettings);
   const navigate = useNavigate();
 
@@ -43,8 +37,7 @@ export function Dashboard() {
       else if (x.status === 'queued') queued++;
       else if (x.status === 'done') done++;
       else if (x.status === 'error') error++;
-      // Not what the link filter is holding: those are counted nowhere, because
-      // they are in no list and nothing is going to happen to them.
+      // Links the filter holds back are in no list and not counted.
       else if (x.status === 'collected' && !x.skipped) collected++;
       if (x.status === 'running') speed += x.speed;
     }
@@ -62,19 +55,10 @@ export function Dashboard() {
 
   return (
     <div className="flex flex-col gap-10">
-      {/* Subtitle removed (jdp, 2026-08-24: "text entfernen: Alles auf
-          einen Blick.") - the title alone already says what this page is. */}
       <PageHeader title={t('overview.title')} />
 
-      {/* The one hero of the whole app: this page owns the big figure and the
-          curve; every other page opens quietly.
-
-          A hand-rolled card rather than <Card>, so its palette position is set
-          here by hand, exactly the way AddLinksForm.tsx's own head card does
-          it - same contract either way: the class and the properties travel
-          together, or `.glim-hue` resolves --accent to nothing. The position
-          sits on the CONTAINER, so the eyebrow, the counters and the curve
-          inside it all read this card's colour instead of the single accent. */}
+      {/* A hand-rolled card, so the hue class and properties are set here
+          together, or `.glim-hue` resolves --accent to nothing. */}
       <div
         className="glim-card glim-hue grid grid-cols-1 items-center gap-4 overflow-hidden p-5 sm:grid-cols-[auto_minmax(0,1fr)] sm:gap-8"
         style={hueVars(rainbowAt(0)) as CSSProperties}
@@ -88,20 +72,12 @@ export function Dashboard() {
             <Counters counts={counts} />
           </div>
         </div>
-        {/* The limit rides along on the settings document this page already
-            reads for the instance name above - no second request, and nothing
-            fetched for the sake of an easter egg (the 1337 one; see
-            docs/easter-eggs.md and SpeedGraph's own `limit` prop). 0 until the
-            fetch lands, which is "unlimited" and is the honest first paint. */}
+        {/* The limit feeds the 1337 easter egg (docs/easter-eggs.md). */}
         <SpeedGraph value={counts.speed} height={96} limit={settings?.speedLimit ?? 0} />
       </div>
 
       <div className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-        {/* Card, not a bare div (jdp, 2026-08-24, same bug found and fixed on
-            Accounts.tsx: SectionTitle's badge is `absolute -top-[11px]` and
-            requires its ancestor to be `.glim-card` - a plain flex wrapper
-            with no visible box left the badge anchored to nothing, floating
-            above the real (nested) card instead of notching over it). */}
+        {/* SectionTitle's badge is positioned against a `.glim-card`. */}
         <Card hue={1} className="flex flex-col gap-3">
           <SectionTitle>{t('overview.recent')}</SectionTitle>
           {recent.length === 0 ? (
@@ -113,14 +89,6 @@ export function Dashboard() {
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-sm text-carbon-text">{x.name || x.url}</div>
                     <div className="mt-1.5 max-w-xs">
-                      {/* `moving` and `indeterminate` read the same status for
-                          the same reason (see ProgressCell in columns.tsx):
-                          this card shows the last few downloads whatever state
-                          they settled in, so most of these rows are finished
-                          ones and a finished row must not claim to be working.
-                          A row that IS running gets the same breathing front
-                          edge it has in the list - the card and the list say
-                          "this is moving" the one way. */}
                       <ProgressBar
                         percent={pct(x.loaded, x.size, x.status === 'done')}
                         active={x.status !== 'error'}
@@ -138,10 +106,6 @@ export function Dashboard() {
           )}
         </Card>
 
-        {/* Instances here are a quiet summary, not a stack of raised cards —
-            the full dashboard lives on the Instances page. Card, not a bare
-            div, for the same SectionTitle-anchor reason as the recent-
-            downloads card above. */}
         <Card hue={2} className="flex flex-col gap-3">
           <SectionTitle>{t('overview.instances')}</SectionTitle>
           <div className="glim-well divide-y divide-carbon-border/60 p-0">
@@ -157,17 +121,12 @@ export function Dashboard() {
           </div>
         </Card>
 
-        {/* Full width under the two summaries and at supporting weight: this
-            page's one hero is the live speed curve at the top, and a record you
-            go and read is not a second one. */}
         <div className="lg:col-span-2">
           <VolumeCard hue={3} />
         </div>
       </div>
 
-      {/* Full width and under the two columns, because a row per target folder
-          is a table and not a tile: it grows with the number of folders and
-          would push the column beside it out of shape. */}
+      {/* Full width, since it grows by one row per target folder. */}
       <DiskSpaceTile settings={settings} />
     </div>
   );

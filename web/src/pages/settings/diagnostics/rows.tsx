@@ -4,28 +4,10 @@ import { useT, type TranslationKey } from '../../../lib/i18n';
 import { InfoBubble } from '../../../components/ui';
 import { IconCheck, IconClock, IconClose, IconHelp, IconWarning } from '../../../lib/icons';
 
-/**
- * One self-test row, drawn the same way whether the server answered it or the
- * browser did.
- *
- * WHY ONE COMPONENT FOR BOTH CARDS. The seven instance checks come back from
- * GET /api/selftest and the four proxy checks are worked out in the browser
- * (lib/selftest.ts), but they arrive in the same shape - a status and a stable
- * code - and they are the same thing to a reader: a name, a verdict, and an (i)
- * with what to do about it. Two components would be two treatments of one idea,
- * and the second one would drift.
- *
- * THE ADVICE IS IN THE BUBBLE AND NOWHERE ELSE. That is the house rule, and it
- * is also simply right here: the advice is three sentences about nginx
- * directives or container environment variables, and nobody wants them on
- * screen when the row says "Fine". The verdict itself stays one line.
- *
- * NO KEY IN THIS FILE IS A `label` OR A `hint` PROP, deliberately. Those two
- * attribute names are what check-settings-search.mjs scans for, and a row here
- * is a readout rather than a control - it has no caption in the DOM for the
- * settings search to jump to. The searchable handles for these two cards are
- * their titles and the check NAMES, which searchIndex.ts carries under `also`.
- */
+// Self-test rows, drawn the same way whether the server or the browser
+// answered them, with the advice behind an (i). No prop here is called `label`
+// or `hint`, because check-settings-search.mjs treats those as searchable
+// captions; the check names are in searchIndex.ts under `also`.
 
 /** The seven instance checks, by the id the server sends. */
 export const CHECK_NAMES: Record<string, TranslationKey> = {
@@ -56,14 +38,8 @@ const STATUS_WORDS: Record<SelfTestStatus, TranslationKey> = {
 };
 
 /**
- * Which verdicts carry advice, and which advice.
- *
- * Written out rather than derived by sticking "Advice" on the end of the code,
- * for two reasons that both bite. A key built by concatenation cannot be
- * checked by anything - a typo resolves to undefined and the bubble renders the
- * word "undefined" - and two different verdicts legitimately share one piece of
- * advice: an ageing yt-dlp and an old one need exactly the same thing done
- * about them, and writing that sentence twice is two sentences to keep in step.
+ * The advice per verdict, written out so the keys are type-checked and two
+ * verdicts can share one sentence.
  */
 const ADVICE: Record<string, TranslationKey> = {
   'jd.missing': 'settings.selftest.jd.missingAdvice',
@@ -86,15 +62,7 @@ const ADVICE: Record<string, TranslationKey> = {
   'proxy.ws.failed': 'settings.selftest.proxy.ws.failedAdvice',
 };
 
-/**
- * A refused login's advice, chosen by the CACHED health state the server sent
- * along with the row.
- *
- * The four next steps are genuinely different and only one of them is "get a
- * new key", so a single sentence for all of them would be wrong three times out
- * of four. The state is a pure cache read on the server - see
- * selfTestAccountsRO - so this costs nothing and guesses nothing.
- */
+/** A refused login's advice, by the cached health state sent with the row. */
 const ACCOUNT_ADVICE: Record<string, TranslationKey> = {
   invalid: 'settings.selftest.accounts.advice.invalid',
   expired: 'settings.selftest.accounts.advice.expired',
@@ -103,16 +71,9 @@ const ACCOUNT_ADVICE: Record<string, TranslationKey> = {
 };
 
 /**
- * useLine resolves a code into the sentence for it, with the substitutions the
- * server sent.
- *
- * IT SUBSTITUTES ITSELF RATHER THAN HANDING THE VARS TO `t`, and that is not a
- * preference. i18n.tsx's `t` does `dict[key] ?? en[key]` with no final fallback
- * and then calls `.replaceAll` on the result, so a key the catalogue does not
- * have throws a TypeError and blanks the whole page. Codes cross the wire from
- * a server that may be a version ahead of this bundle, so an unknown one is a
- * thing that can actually happen - and when it does, showing the raw code is a
- * bad row, while blanking the settings page is a broken app.
+ * useLine resolves a code into its sentence with the server's substitutions.
+ * It substitutes itself because `t` throws on a key the catalogue lacks, and a
+ * newer server can send one.
  */
 export function useLine() {
   const { t } = useT();
@@ -137,14 +98,8 @@ export function adviceKeyFor(res: SelfTestResult): TranslationKey | undefined {
 }
 
 /**
- * The glyph. Five states and five treatments, because five is what the
- * vocabulary has: "nothing is configured here" and "it is configured and this
- * build cannot find out" are different answers and must not look the same.
- *
- * Every glyph is one already in lib/icons.tsx except the skipped one, which is
- * a ring drawn in CSS - an empty circle is what "there was nothing to check"
- * looks like, and none of the existing icons says that without also saying
- * something else.
+ * StatusGlyph draws one glyph per state. Skipped is a CSS ring, since no shared
+ * icon says "nothing to check".
  */
 function StatusGlyph({ status }: { status: SelfTestStatus | 'pending' }) {
   const size = { width: 16, height: 16 };
@@ -165,13 +120,8 @@ function StatusGlyph({ status }: { status: SelfTestStatus | 'pending' }) {
 }
 
 /**
- * CheckRow is one line of the report.
- *
- * `detail` is the OTHER side's own words - a Go error, a provider's refusal, a
- * router's fault string - and gets the same monospace, always-ltr treatment
- * every path, URL and log line in settings/ already gets: those strings mix
- * hostnames, paths and stack traces, none of which read correctly mirrored in
- * an interface running right to left.
+ * CheckRow is one line of the report. `detail` is the other side's own message
+ * and is shown in monospace, left to right.
  */
 export function CheckRow({
   name,
@@ -219,11 +169,7 @@ export function CheckRow({
   );
 }
 
-/**
- * SubRow is one of a check's own rows: one debrid account, one folder. One
- * level of nesting and no more - a tree would need a tree renderer, and the
- * parent already carries the summary.
- */
+/** SubRow is one of a check's own rows, such as one account or one folder. */
 export function SubRow({
   name,
   status,
@@ -231,9 +177,7 @@ export function SubRow({
   advice,
   detail,
 }: {
-  /** Optional: a folder row is named ("Working folder"), an account row is not
-   *  - its own sentence starts with the account's label, and a second name
-   *  above it would print the same word twice. */
+  /** Set for folder rows; an account row's sentence already starts with its label. */
   name?: string;
   status: SelfTestStatus;
   sentence: string;

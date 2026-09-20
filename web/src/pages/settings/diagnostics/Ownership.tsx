@@ -5,31 +5,11 @@ import { useResource } from '../../../lib/useResource';
 import { Card, SectionTitle } from '../../../components/ui';
 
 /**
- * Who this instance writes files as, on the page somebody is already on when
- * they are trying to work out why something is wrong.
- *
- * IT IS A READOUT AND IT PROMISES NOTHING. This image declares USER knight, so
- * the process starts as uid 1000 and cannot become another uid; PUID, PGID and
- * UMASK are read by nothing at any layer. So the card says what the identity IS
- * and, where one of those variables is set, says plainly that nothing read it.
- * The one thing it must never do is imply that setting PUID would change the
- * number above it, which would send somebody to recreate a container for no
- * effect and then disbelieve the rest of the page.
- *
- * WHY THE VARIABLES APPEAR AT ALL. Because the alternative is worse: an
- * operator who typed PUID=99 into the template and is looking at files owned by
- * 1000 has no way, from inside the app, to tell "the image ignores it" from "I
- * typed it wrong" from "something else overrode it". Showing what was asked for
- * beside what is in force answers all three at once, and it is the single most
- * useful line this feature produces.
- *
- * The GET behind it writes nothing at all, so this card may hold it on mount -
- * unlike the folder check on the Downloads page, which measures by writing and
- * is therefore behind a button and a save.
- *
- * The strings are not in en.ts yet, for the reason this page's own PENDING map
- * already gives: locale files are one writer's lane per wave, and the lookup
- * below asks the real catalogue first.
+ * The card shows the uid, gid and umask this instance writes files as. The
+ * image runs as a fixed user and reads no PUID, PGID or UMASK, so any of them
+ * that is set is echoed beside the identity in force, marked as ignored.
+ * PENDING holds the English strings until the catalogue has them; the lookup
+ * asks the catalogue first.
  */
 const PENDING = {
   'settings.owner.identityTitle': 'Who this instance writes as',
@@ -68,17 +48,13 @@ export function OwnershipCard({ hue }: { hue: number }) {
   const cx = useCx();
   const { data, failed } = useResource<FileOwnerIdentity>(fetchFileOwner);
 
-  // No LoadingCard and no ErrorCard: this is one card among several on a page
-  // that has already loaded, and a failed side request must not replace the
-  // diagnostics somebody came here to read. It simply draws nothing.
+  // A failed side request draws nothing rather than covering the page.
   if (failed || !data) return null;
 
   const who = `${data.uid}:${data.gid}`;
   const named = (id: number, name: string) => (name ? `${id} (${name})` : String(id));
 
-  // A variable that is set and read by nothing. Listed by NAME rather than as
-  // one lumped sentence, because an operator who set two of them needs to see
-  // both of their own values back.
+  // Each variable that is set and ignored, by name, so every value is echoed back.
   const ignored: Array<[string, string]> = [];
   if (!data.envRead) {
     if (data.env.puid) ignored.push(['PUID', data.env.puid]);
@@ -91,9 +67,7 @@ export function OwnershipCard({ hue }: { hue: number }) {
       <SectionTitle hint={cx('settings.owner.identityHint')}>{cx('settings.owner.identityTitle')}</SectionTitle>
 
       {!data.known ? (
-        // The third answer, and it is not a zero: a Windows desktop build has no
-        // unix owners at all, and printing "0:0" there would say root owns the
-        // downloads - a confident answer to a question that cannot be asked.
+        // Windows has no unix owners, and "0:0" would read as root.
         <span className="text-sm text-carbon-textSub">{cx('settings.owner.noOwners')}</span>
       ) : (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
@@ -125,8 +99,6 @@ export function OwnershipCard({ hue }: { hue: number }) {
   );
 }
 
-/** The same two-line reading the system card above it draws, kept local so this
- *  card can be dropped in or moved without dragging a helper across files. */
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col gap-1">

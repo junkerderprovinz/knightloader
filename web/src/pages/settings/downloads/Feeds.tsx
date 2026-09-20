@@ -27,72 +27,22 @@ import {
 import { happened } from '../../../lib/countdown';
 import { useDraft, useFeatures } from '../context';
 
-/**
- * The RSS and Atom subscriptions this instance follows: one row per feed, each
- * fetched on its own timer, each new entry handed to the collector exactly like
- * a pasted link.
- *
- * Five things about this card are decisions rather than layout.
- *
- * THE ADDRESS IS THE IDENTITY, so a stored row's address box is read only. The
- * poller and the record of which entries have already been added are both keyed
- * on the address alone, so editing it in place does not correct a subscription:
- * it retires one and starts another that has forgotten everything the first one
- * knew. There is no server route to hand that memory over, and none to clear it
- * either, so a box that took the edit on a blur would be a one-keystroke way to
- * either re-read a feed from scratch or, worse, leave a record behind that
- * nothing ever sweeps. Pointing at a different address is therefore the two
- * deliberate steps it really is: remove the row, add a subscription. Rows that
- * predate this card can still be rewritten wholesale through the raw list row on
- * the Advanced page, which is the escape hatch for everything this card will not
- * express.
- *
- * THE HEALTH IS THE SERVER'S, NOT A GUESS. When a subscription was last
- * fetched, whether that fetch failed and how much it remembers come from
- * GET /api/feeds, which is a table the poller keeps in memory beside itself and
- * deliberately not part of the settings document: it is diagnostic, it is
- * blanked by a restart, and it has no business in a file that is read back and
- * diffed. The one thing that follows from that, and the one thing easy to draw
- * wrongly: an absent lastPolledAt means "nothing to report YET", not "never
- * checked". The subscription's own memory of what it has added survives a
- * restart while this table does not, so a feed followed for months reads as
- * unchecked for the few seconds after the server comes back, and drawing that
- * as a problem would be a false alarm on every boot.
- *
- * THE TEST ONLY READS, and says so where it is pressed. It fetches the address
- * once, reports the feed's name and its first entries, and stages nothing and
- * remembers nothing. That is what makes it usable on an address nobody has
- * saved, which is most of its value: a title filter is a regular expression
- * typed blind against titles nobody has seen, and this is the only way to see
- * them.
- *
- * THE AUTOSAVE TRAP is the reason a half-typed address never reaches the draft.
- * The settings shell saves 600 ms after any draft change and the server refuses
- * the WHOLE settings PATCH when one feed row will not validate, naming the row
- * number. Typing "https" into a new row would therefore fire a save, be refused,
- * and take every unrelated edit made on every other settings page down with it.
- * A new row is held in local state until its address is one the server will
- * accept, and the title filter is committed only once it compiles here first.
- *
- * ZERO IS "NO OPINION" ON THE INTERVAL, never "off" and never "as fast as
- * possible". It resolves to the server's own quarter of an hour, and it is kept
- * and shown as 0 rather than quietly rewritten to 15, because a field that
- * writes back a number nobody typed is a field nobody can read. A non-zero value
- * outside 1..10080 is CLAMPED by the server without a word, so it is clamped
- * here too: the alternative is a box that keeps showing 20000 after a save that
- * stored a week.
- *
- * PRIORITY HAS AN EIGHTH ITEM, and it is not the ladder's own "Default". Absent
- * and 0 are different values on the wire (the Go side holds a *int): 0 is a real
- * priority the subscription asks for, absent is the subscription saying nothing.
- * The neutral item removes the key from the row entirely.
- */
+// Feeds lists the RSS and Atom subscriptions this instance follows, each
+// fetched on its own timer, with new entries handed to the collector like a
+// pasted link.
+//
+// The address is the identity: the poller and the record of added entries are
+// keyed on it, so a stored row's address is read only and changing it means
+// removing the row and adding another. The health comes from GET /api/feeds,
+// kept in memory, so after a restart a feed reads as not checked yet. The test
+// only reads. A new row stays out of the draft until its address is valid, and
+// the title filter is committed only once it compiles, because the server
+// refuses the whole settings document over one bad row. An interval of 0 means
+// the server's quarter of an hour, and an absent priority differs from 0.
 
-/** feed.DefaultIntervalMinutes: what a stored 0 resolves to when the poller runs. */
+/** feed.DefaultIntervalMinutes, what a stored 0 resolves to. */
 const DEFAULT_INTERVAL_MINUTES = 15;
-/** feed.Sanitize pulls any NON-ZERO interval into this range. A minute is the
- *  floor because every fetch is a request to somebody else's server, and the
- *  week is a ceiling because the value becomes a timer duration. */
+/** The range feed.Sanitize pulls a non-zero interval into. */
 const MIN_INTERVAL_MINUTES = 1;
 const MAX_INTERVAL_MINUTES = 10080;
 
@@ -100,15 +50,9 @@ const MAX_INTERVAL_MINUTES = 10080;
 const NO_PRIORITY = 'unset';
 
 /**
- * Whether the server will take this address, checked with the same three
- * questions feed.Validate asks: is it readable, is the scheme http or https,
- * does it name a host.
- *
- * A local copy of a server-side rule is normally a liability, but this one earns
- * itself: the refusal it stands in for does not refuse this row, it refuses the
- * entire settings document, including whatever somebody was editing two pages
- * away. JavaScript's URL parser is not Go's, so this is deliberately the loose
- * half of the check and the server stays the authority.
+ * usableAddress asks feed.Validate's three questions: does it parse, is the
+ * scheme http or https, does it name a host. It is the loose half of the check,
+ * kept here because a refusal would reject the whole settings document.
  */
 function usableAddress(raw: string): boolean {
   try {
@@ -120,13 +64,9 @@ function usableAddress(raw: string): boolean {
 }
 
 /**
- * Whether a title filter is obviously broken.
- *
- * JavaScript's RegExp is not Go's RE2: it accepts patterns Go refuses
- * (backreferences, lookahead) and refuses none that Go accepts. So this only
- * ever catches the unclosed bracket, and a pattern that passes here can still be
- * refused at save. That is the right way round: it never blocks something the
- * server would have taken.
+ * compiles catches a title filter JavaScript cannot parse. RE2 refuses more
+ * than RegExp, so a pattern that passes may still be refused at save, but
+ * nothing the server accepts is blocked here.
  */
 function compiles(pattern: string): boolean {
   try {
@@ -137,11 +77,7 @@ function compiles(pattern: string): boolean {
   }
 }
 
-/**
- * The interval as the server would store it. 0 is passed through untouched
- * because it is a value and not a blank, everything else lands inside the range
- * feed.Sanitize would silently pull it into anyway.
- */
+/** clampInterval keeps 0 and cuts anything else into the range feed.Sanitize uses. */
 function clampInterval(v: number): number {
   if (!Number.isFinite(v)) return 0;
   const whole = Math.round(v);
@@ -150,11 +86,8 @@ function clampInterval(v: number): number {
 }
 
 /**
- * A row with one of the three optional keys GONE, rather than present and empty.
- *
- * Absent and empty are the same thing for the folder and the filter, but not for
- * the priority, where absent is "say nothing" and 0 is a priority. One helper for
- * all three so the priority case cannot be the one that gets it wrong.
+ * without removes one optional key from a row. Absent and empty mean the same
+ * for the folder and the filter, but not for the priority, where 0 is a value.
  */
 function without(row: FeedSubscription, key: 'titleFilter' | 'dir' | 'priority'): FeedSubscription {
   const next = { ...row };
@@ -166,11 +99,8 @@ function without(row: FeedSubscription, key: 'titleFilter' | 'dir' | 'priority')
 type Verdict = 'ok' | 'blank' | 'invalid' | 'duplicate';
 
 /**
- * A row that has been added but has no usable address yet, and therefore nothing
- * the draft can be keyed on. It stays here until it earns one: a row whose
- * address is blank is DELETED by feed.Sanitize, which is exactly what an
- * untouched Add button produces, so putting it in the draft early would autosave
- * it, get it deleted, and make it vanish under the cursor.
+ * PendingRow is a new row without a usable address. It stays out of the draft,
+ * where feed.Sanitize would delete it on the next autosave.
  */
 interface PendingRow {
   id: string;
@@ -180,25 +110,13 @@ interface PendingRow {
 let pendingCounter = 0;
 const freshId = () => `p${(pendingCounter++).toString(36)}`;
 
-/**
- * Row identity for React and for "which row is open".
- *
- * A stored row is identified by its address and a new one by its client-side id,
- * and the two namespaces are kept apart by a prefix rather than trusted to
- * differ: an address is whatever somebody types. Never the array index, or focus
- * jumps between rows when the applied document comes back with a duplicate
- * collapsed out of it.
- */
+// Row ids: a stored row by its address, a new one by a client id, kept apart
+// by prefix since an address can be anything somebody types.
 const storedId = (url: string) => `u:${url}`;
 
 /**
- * The seven queue priorities as the server offers them, highest first, behind
- * the eighth item that means the subscription names none.
- *
- * Built from /api/queue/priorities rather than from a ladder written out here,
- * so this strip cannot disagree with the one on the add-links form about how
- * many priorities the app has. The strip stays out entirely while the ladder has
- * not arrived: a row of guessed steps is worse than a row of none.
+ * usePriorityTabs builds the priority strip from /api/queue/priorities behind a
+ * "not set" item, and stays empty until the ladder arrives.
  */
 function usePriorityTabs(): { id: string; label: string }[] {
   const { t } = useT();
@@ -219,11 +137,7 @@ function usePriorityTabs(): { id: string; label: string }[] {
   }, []);
   if (choices.length === 0) return [];
   return [
-    // Its own word rather than the rule editor's "Unchanged": that one is right
-    // for a rule, which edits a link that already has a priority, and wrong
-    // here, where a brand-new subscription has nothing to leave unchanged. The
-    // field's own hint already tells people to "leave it on Not set", so this
-    // is the label that sentence was written against.
+    // Its own word, which the field's hint refers to.
     { id: NO_PRIORITY, label: t('settings.feeds.priorityNone') },
     ...choices
       .slice()
@@ -237,34 +151,20 @@ export function FeedsCard({ hue }: { hue: number }) {
   const { cfg, patch } = useDraft();
   const { features } = useFeatures();
 
-  // null and never an empty array on the wire: feed.Sanitize answers nil for an
-  // empty list, which is the state a fresh install is in.
+  // feed.Sanitize answers nil for an empty list.
   const rows = cfg.feeds ?? [];
   const priorities = usePriorityTabs();
 
-  // Switched off on the Modules page, which CLEARED settings.feeds and stored the
-  // rows server-side, so anything typed here now would be typed into a list the
-  // server is not reading. Tested on parked as well as enabled, never on enabled
-  // alone: an empty list on a fresh install also reads as off, and locking for
-  // that reason would leave nowhere to type the first address.
+  // The Modules page parks the rows and clears the list. Checked with `parked`,
+  // because an empty list on a fresh install also reads as off.
   const feedsModule = features.modules.find((m) => m.id === 'feeds');
   const parked = feedsModule !== undefined && !feedsModule.enabled && feedsModule.parked;
 
   const [openRow, setOpenRow] = useState('');
   const [pending, setPending] = useState<PendingRow[]>([]);
 
-  /**
-   * The health table, keyed by address exactly as the server keys it.
-   *
-   * Fetched once on mount and NOT polled. It is a diagnostic read, the numbers
-   * in it change on the subscription's own timer (a quarter of an hour by
-   * default), and a card that re-fetched every few seconds would be asking a
-   * question whose answer cannot have changed, forever, on a settings page
-   * somebody has left open in a background tab.
-   *
-   * A failure leaves the map empty rather than showing anything: every row then
-   * reads as "nothing to report yet", which is exactly what is true.
-   */
+  // Fetched once, keyed by address: it changes on each feed's own timer. A
+  // failure leaves it empty, which reads as "nothing to report yet".
   const [health, setHealth] = useState<Record<string, FeedStatus>>({});
   useEffect(() => {
     let alive = true;
@@ -276,7 +176,7 @@ export function FeedsCard({ hue }: { hue: number }) {
         setHealth(byURL);
       },
       () => {
-        /* No status is drawn, which is the honest state when nothing answered. */
+        /* No status is drawn when nothing answered. */
       },
     );
     return () => {
@@ -284,22 +184,19 @@ export function FeedsCard({ hue }: { hue: number }) {
     };
   }, []);
 
-  // Never patch({ feeds: undefined }), which the diff in the settings shell would
-  // send as a changed key with no value. An emptied list goes out as [] and comes
-  // back as null, which is the same thing said the server's way.
+  // An emptied list goes out as [], never undefined, which the shell's diff
+  // would send as a key without a value.
   const write = (next: FeedSubscription[]) => patch({ feeds: next });
 
   /**
-   * Move a pending row into the draft under the address that was typed. Refuses
-   * rather than writing whenever the server would refuse the whole document or
-   * quietly merge the row away.
+   * Moves a pending row into the draft under the typed address, refusing
+   * anything the server would reject or merge away.
    */
   const commit = (typed: string, row: FeedSubscription): Verdict => {
     const url = typed.trim();
     if (url === '') return 'blank';
     if (!usableAddress(url)) return 'invalid';
-    // Two rows naming one address are collapsed into the first when the document
-    // is saved, so the second one would look configured and poll nothing.
+    // A second row for one address would be merged away on save.
     if (rows.some((r) => r.url.trim() === url)) return 'duplicate';
     write([...rows, { ...row, url }]);
     return 'ok';
@@ -319,11 +216,7 @@ export function FeedsCard({ hue }: { hue: number }) {
         hint={t('settings.feeds.titleHint')}
         right={
           <div className="flex items-center gap-2">
-            {/* The module's state, and while it is off this badge is the whole
-                of what the card says: the Add button beside it is gone rather
-                than greyed. This badge is REPORTING - it answers its own
-                question - which is the one thing GlimStone 1.10.0 keeps on
-                screen while a mode is off. */}
+            {/* While the module is off the badge replaces the Add button. */}
             {parked && <LabelBadge label={t('settings.modules.off')} />}
             {!parked && (
               <Button icon={<IconPlus width={16} height={16} />} onClick={add}>
@@ -336,26 +229,10 @@ export function FeedsCard({ hue }: { hue: number }) {
         {t('settings.feeds.title')}
       </SectionTitle>
 
-      {/* THE CARD STAYS, WHAT HANGS OFF THE MODULE DOES NOT (GlimStone 1.10.0).
-          The old shape wrapped everything below in `pointer-events-none
-          opacity-40` and argued that a card which vanishes teaches nobody the
-          feature exists. Half of that is right and survives: the card, its
-          title, its (i) and the Off badge above are still here, and they are
-          what says the feature exists. The other half is the shape 1.10.0
-          rejects - a list and an Add button somebody can see, read and reach
-          for that answer nothing, with the reason on a different page
-          entirely. Parking CLEARED settings.feeds server-side, so what the
-          dimming actually covered was the empty-state sentence; that sentence
-          explains what a subscription IS rather than inviting one to be added,
-          so it reads correctly with the module off and stays at full
-          strength. */}
+      {/* Parking clears the list on the server, so while the module is off
+          only the empty-state sentence remains. */}
       {rowCount === 0 ? (
-        // Inside the card rather than instead of it: while the module is
-        // running, the Add button above is the only way out of this state, and
-        // swapping the card for an EmptyState would take it off the page. With
-        // the module parked there is no Add button and this sentence is the
-        // whole body - which it can be, because it says what a subscription is
-        // rather than telling anybody to press something.
+        // Inside the card rather than an EmptyState, which would hide Add.
         <p className="py-6 text-center text-sm text-carbon-textSub">
           {t('settings.feeds.empty')}
           <span className="mt-1 block text-[11px] text-carbon-textMuted">{t('settings.feeds.emptyHint')}</span>
@@ -389,17 +266,14 @@ export function FeedsCard({ hue }: { hue: number }) {
               open={openRow === p.id}
               onToggle={() => setOpenRow(openRow === p.id ? '' : p.id)}
               onCommitUrl={(typed) => {
-                // Kept even when it cannot be stored yet, so collapsing a row
-                // whose address is still half typed does not throw it away.
+                // Kept so collapsing a half-typed row keeps the text.
                 setPending((list) =>
                   list.map((r) => (r.id === p.id ? { ...r, row: { ...r.row, url: typed } } : r)),
                 );
                 const verdict = commit(typed, p.row);
                 if (verdict === 'ok') {
                   setPending((list) => list.filter((r) => r.id !== p.id));
-                  // The row is keyed by its address once it is stored, so it
-                  // remounts here; without this the editor would close on the
-                  // person who just finished typing into it.
+                  // The stored row is keyed by its address, so it remounts; keep it open.
                   setOpenRow(storedId(typed.trim()));
                 }
                 return verdict;
@@ -415,12 +289,9 @@ export function FeedsCard({ hue }: { hue: number }) {
 }
 
 /**
- * One subscription, collapsed to its address and what it overrides, expanded to
- * the five fields.
- *
- * The address of a STORED row is read only, and that is the point rather than an
- * omission: see this file's own opening note. A new row's address lives here and
- * reaches the draft only when it is one the server will take.
+ * FeedRow shows one subscription, collapsed to its address and overrides,
+ * expanded to the five fields. A new row's address reaches the draft only once
+ * it is valid.
  */
 function FeedRow({
   row,
@@ -438,12 +309,11 @@ function FeedRow({
   row: FeedSubscription;
   index: number;
   last: boolean;
-  /** Already in the draft, and therefore already a subscription with a memory. */
+  /** Already in the draft, so the subscription has a memory. */
   stored: boolean;
   open: boolean;
   priorities: { id: string; label: string }[];
   onToggle: () => void;
-  /** This row's health, when the server has anything to say about it yet. */
   status?: FeedStatus;
   onCommitUrl: (typed: string) => Verdict;
   onChange: (next: FeedSubscription) => void;
@@ -453,16 +323,12 @@ function FeedRow({
   const [text, setText] = useState(row.url);
   const [verdict, setVerdict] = useState<Verdict>('blank');
 
-  // The filter is typed here and committed on the way out, for the same reason
-  // the address is: a pattern that will not compile is REFUSED by the server and
-  // takes the whole settings document with it, so "(" on its way to "(a|b)" must
-  // never be what a 600 ms autosave finds in the draft.
+  // Committed on blur, like the address, since a pattern that does not compile
+  // makes the server refuse the whole document.
   const [filter, setFilter] = useState(row.titleFilter ?? '');
   const [filterBad, setFilterBad] = useState(false);
 
-  // The save answer replaces the draft, so a filter the server trimmed comes back
-  // spelled differently from what was typed. Follow it rather than holding the
-  // old text on screen: what came back is what this subscription now does.
+  // The save answer replaces the draft and may trim the filter, so follow it.
   useEffect(() => {
     setFilter(row.titleFilter ?? '');
     setFilterBad(false);
@@ -472,8 +338,7 @@ function FeedRow({
 
   const commitFilter = () => {
     const next = filter.trim();
-    // An identical patch still marks the whole draft dirty, and a Save bar that
-    // lights up because somebody looked at a field is a Save bar nobody trusts.
+    // An identical patch would still mark the draft dirty.
     if (next === (row.titleFilter ?? '')) {
       setFilterBad(false);
       return;
@@ -491,22 +356,13 @@ function FeedRow({
     onChange({ ...row, titleFilter: next });
   };
 
-  // What the poller will actually do, which for a stored 0 is the server's own
-  // quarter of an hour. Shown quieter than a number somebody typed, because it is
-  // the default answering and not a value this row holds - the field itself still
-  // reads 0, and this column would be lying if it made the two look alike.
+  // A stored 0 runs at the server's quarter of an hour, shown quieter than a
+  // typed number.
   const derived = row.intervalMinutes === 0;
   const effective = derived ? DEFAULT_INTERVAL_MINUTES : row.intervalMinutes;
 
-  // The house bubble on both of the collapsed row's own explanations, never a
-  // native `title=`. One control, one tooltip mechanism: the operating system's
-  // balloon draws in the OS font, at the pointer instead of at the trigger, and
-  // is untouched by every rule the house bubble follows, so a row carrying one
-  // beside a row carrying the other reads as a rendering fault. role and
-  // tabIndex come back off again because both spans sit INSIDE the row's own
-  // expand button, and a second tab stop with a "note" role there would put a
-  // control inside a control - the same removal ui.tsx's Button makes at its
-  // own copy of this line.
+  // The house tooltip rather than a native title. Both spans sit inside the
+  // row's expand button, so they take no role and no tab stop of their own.
   const urlTip = useTooltip<HTMLSpanElement>(row.url);
   const { role: _urlRole, tabIndex: _urlTabIndex, ...urlTipProps } = urlTip.triggerProps;
   const intervalTip = useTooltip<HTMLSpanElement>(t('settings.feeds.interval'));
@@ -522,14 +378,11 @@ function FeedRow({
           className="flex min-w-0 items-center gap-3 text-left"
         >
           <span className="glim-num w-5 shrink-0 text-xs text-carbon-textMuted">{index + 1}</span>
-          {/* dir=ltr and truncated with the whole address as the tooltip: an
-              address is never read right to left whatever the interface language
-              is, and a feed URL is routinely longer than the row. */}
+          {/* Truncated, with the whole address in the tooltip. */}
           <span dir="ltr" {...urlTipProps} className="min-w-0 flex-1 truncate text-sm text-carbon-text">
             {row.url || <span className="text-carbon-textMuted">{t('settings.feeds.url')}</span>}
           </span>
-          {/* What this row overrides, named by the field it comes from. Nothing
-              here reports on the feed itself: there is no route that could. */}
+          {/* What this row overrides, by field. */}
           {row.titleFilter && <Marker icon={<IconFilter width={14} height={14} />} title={t('settings.feeds.filter')} />}
           {row.dir && <Marker icon={<IconFolder width={14} height={14} />} title={t('settings.feeds.dir')} />}
           {row.priority !== undefined && (
@@ -546,22 +399,14 @@ function FeedRow({
         </button>
         {urlTip.node}
         {intervalTip.node}
-        {/* The one row action, on hover and on keyboard focus, so a long list
-            reads as content rather than as a wall of buttons. */}
         <div className="flex items-center gap-1.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
           <IconBadge
-            // 16 in a 32px badge: a glyph alone in a square is half its box
-            // (GlimStone rule 13), not the smaller drawing a glyph beside text
-            // would be. 14 filled 44% of the tile and made the row read as
-            // uneven against every badge that already had this right.
+            // A lone glyph takes half its 32px badge.
             icon={<IconTrash width={16} height={16} />}
             hue={index}
             title={t('settings.feeds.remove')}
             aria-label={t('settings.feeds.remove')}
-            // Keeping focus in the address box means no blur, and therefore no
-            // commit, in front of this click. Without it a new row whose address
-            // was just typed would be written to the draft on the way out and
-            // this press would then remove a row that no longer exists.
+            // No blur, so no commit happens in front of the removal.
             onMouseDown={(e) => e.preventDefault()}
             onClick={onRemove}
           />
@@ -572,21 +417,14 @@ function FeedRow({
         <div className="glim-well mb-3 flex flex-col gap-4 p-4">
           <Field label={t('settings.feeds.url')} hint={t('settings.feeds.urlHint')}>
             {stored ? (
-              // Read only rather than absent, so the address can still be read
-              // and copied out of the row it belongs to. It is not editable
-              // because editing it does not correct this subscription, it
-              // replaces it with one that has forgotten everything the first one
-              // added: remove and add is the same operation said out loud.
+              // Read only rather than absent, so the address can still be copied.
               <TextInput
                 dir="ltr"
                 readOnly
                 spellCheck={false}
                 value={row.url}
-                // Dimmed with opacity rather than a quieter ink colour: two
-                // text-colour utilities on one element are resolved by their
-                // order in the compiled stylesheet and not by the order they
-                // were written in, so the quieter one is not reliably the one
-                // that wins.
+                // Opacity rather than a quieter ink, since two text colours on
+                // one element resolve by stylesheet order.
                 className="cursor-default opacity-70"
               />
             ) : (
@@ -595,12 +433,7 @@ function FeedRow({
                 spellCheck={false}
                 value={text}
                 placeholder="https://example.org/feed.xml"
-                // aria-invalid and no commit, rather than a corrected value: the
-                // typing is kept, and the collapsed row above still shows what is
-                // really stored, which is the honest difference between the two.
-                // The halo is the same shape the focus ring uses, and loses to it
-                // while the box is focused, which is where a correction is being
-                // made anyway.
+                // Marked, not corrected; the focus ring covers the halo while typing.
                 aria-invalid={verdict === 'invalid' || verdict === 'duplicate'}
                 className={
                   verdict === 'invalid' || verdict === 'duplicate'
@@ -621,17 +454,11 @@ function FeedRow({
               />
             )}
           </Field>
-          {/* The state of this row, not an explanation of the field - the
-              explanation is behind the (i) on the label. */}
           {verdict === 'duplicate' && <p className="text-xs text-statusWarn">{t('settings.feeds.duplicate')}</p>}
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {/* 0 is a value here and not a blank: it means this row has no
-                opinion about the pace and takes the server's quarter of an hour.
-                min is therefore 0 and not 1, and the number is stored as typed;
-                anything else non-zero is cut into 1..10080 exactly as
-                feed.Sanitize would cut it, so the field does not change under
-                the user once the save comes back. */}
+            {/* 0 takes the server's quarter of an hour; other values are cut
+                into 1..10080 as feed.Sanitize does. */}
             <Field label={t('settings.feeds.interval')} hint={t('settings.feeds.intervalHint')}>
               <NumberInput
                 value={row.intervalMinutes}
@@ -646,11 +473,8 @@ function FeedRow({
                 dir="ltr"
                 spellCheck={false}
                 value={filter}
-                // Marked and not committed, never corrected: a filter that is
-                // thrown away for the user is a subscription quietly collecting
-                // the whole feed. The one thing that does not survive collapsing
-                // the row is a pattern that will not compile, which is precisely
-                // the one thing that must never reach the draft.
+                // Marked and not committed, so a broken pattern never reaches
+                // the draft.
                 aria-invalid={filterBad}
                 className={filterBad ? 'shadow-[0_0_0_2px_var(--status-warn-text)]' : ''}
                 onChange={(e) => {
@@ -668,13 +492,9 @@ function FeedRow({
             </Field>
           </div>
 
-          {/* PathInput and not a plain box: this folder may be a pathvars
-              template, and browsing has to replace the fixed part in front of the
-              first placeholder and nothing else. Its own title, so the chooser's
-              heading does not read as the main download folder. Nothing about
-              this path is checked while saving - it is checked when an entry
-              actually arrives, and a folder that fails there takes the priority
-              below down with it, because the two are written in one call. */}
+          {/* PathInput, since the folder may be a template. It is checked only
+              when an entry arrives, and a failure there drops the priority too,
+              since both are written in one call. */}
           <Field label={t('settings.feeds.dir')} hint={t('settings.feeds.dirHint')}>
             <PathInput
               value={row.dir ?? ''}
@@ -683,17 +503,14 @@ function FeedRow({
             />
           </Field>
 
-          {/* A FieldGroup and not a Field: a Field is a <label>, and a label
-              hands a click on its caption to the first control inside it, which
-              here would silently set the highest priority. */}
+          {/* FieldGroup, because a Field's label would pass a click on the
+              caption to the first tab. */}
           {priorities.length > 0 && (
             <FieldGroup label={t('settings.feeds.priority')} hint={t('settings.feeds.priorityHint')}>
               <Tabs
                 size="sm"
                 label={t('settings.feeds.priority')}
-                // Absent and 0 are different values, so the neutral item is
-                // matched on undefined and never on the number: a subscription
-                // that asks for 0 is asking for a real priority.
+                  // Matched on undefined, since 0 is a real priority.
                 active={row.priority === undefined ? NO_PRIORITY : String(row.priority)}
                 onSelect={(id) =>
                   onChange(id === NO_PRIORITY ? without(row, 'priority') : { ...row, priority: Number(id) })
@@ -712,29 +529,12 @@ function FeedRow({
 }
 
 /**
- * What the server knows about this subscription right now.
- *
- * Only ever drawn for a STORED row: a pending one has no address the poller has
- * ever seen, so every line here would read as a fault on a subscription that
- * does not exist yet.
- *
- * The absent-status case is the one that matters and it is deliberately quiet.
- * A subscription with no lastPolledAt has not been looked at SINCE THE SERVER
- * STARTED, which is a different statement from "never", because this table is
- * in memory and the subscription's own record of what it has added is not. So
- * seeded and remembered are withheld in that state rather than drawn as false
- * and zero: printing "has not seeded, remembers nothing" a second after a
- * restart would be a false alarm on a feed somebody has followed for a year.
+ * FeedHealth shows what the server knows about a stored subscription. The
+ * table lives in memory, so no lastPolledAt means not looked at since the
+ * server started, and the counters are withheld rather than shown as zero.
  */
 function FeedHealth({ status }: { status?: FeedStatus }) {
   const { t } = useT();
-  // happened(), and not `status?.lastPolledAt !== undefined`. The field is only
-  // ever genuinely absent because feedRow tags it `omitzero` in
-  // internal/api/routes_feeds.go, which is a fact this line cannot see; tagged
-  // the usual `omitempty` a zero time would arrive as "0001-01-01T00:00:00Z",
-  // which is not undefined either, and this row would print a poll that never
-  // ran. Same predicate for every timestamp in the app, held by
-  // web/check-go-timestamps.mjs.
   const known = status !== undefined && happened(status.lastPolledAt);
 
   return (
@@ -750,10 +550,8 @@ function FeedHealth({ status }: { status?: FeedStatus }) {
         <span className="text-carbon-textMuted">
           {known ? `${t('settings.feeds.lastPolled')}: ${fmtWhen(status.lastPolledAt)}` : t('settings.feeds.lastPolledNever')}
         </span>
-        {/* The reason a row is not being polled and the reason its last look
-            failed are two different sentences, and the server tells them apart
-            by `polling`. One string for both would report a refused row as a
-            transient network problem it will get over. */}
+        {/* A row the server refuses to poll and a failed last look get
+            different sentences, told apart by `polling`. */}
         {status?.error && (
           <span className="text-statusWarn">
             {status.polling ? t('settings.feeds.pollFailed') : t('settings.feeds.notPolledReason')}: {status.error}
@@ -774,10 +572,10 @@ function FeedHealth({ status }: { status?: FeedStatus }) {
   );
 }
 
-/** An RFC3339 stamp in the reader's own locale, or the raw string when the
- *  server sends something this browser will not parse. Never a relative
- *  "3 minutes ago": this value is refreshed once, on mount, so a relative time
- *  would go on ageing on screen while the number behind it stood still. */
+/**
+ * fmtWhen formats an RFC3339 stamp in the reader's locale, or returns it raw
+ * when it does not parse. It is absolute because the value is fetched once.
+ */
 function fmtWhen(iso?: string): string {
   if (!iso) return '';
   const d = new Date(iso);
@@ -785,24 +583,10 @@ function fmtWhen(iso?: string): string {
 }
 
 /**
- * Fetch this feed once and show what is in it.
- *
- * It exists for the title filter. A filter is a regular expression matched
- * against titles the person writing it has never seen, and every other way of
- * finding out what a feed carries costs a saved subscription and a wait.
- *
- * THREE THINGS IT MUST NOT DO, and each is a promise the route already keeps:
- * it stages nothing, it remembers nothing, and it works on an address that has
- * not been saved. The last one is most of the value, so it is deliberately not
- * gated on the row being stored.
- *
- * Two shapes of failure, drawn differently on purpose. A row that is itself
- * wrong (an address that is not http or https, a pattern Go will not compile)
- * throws with the server's own sentence, which names the field. A feed that
- * simply could not be read comes back as a normal result with `error` set. The
- * first is something to fix here; the second is something about somebody else's
- * server, and showing them the same way would send people looking in the wrong
- * place.
+ * FeedProbe fetches the feed once and shows its entries, so a title filter can
+ * be written against real titles. It stages and remembers nothing and works on
+ * an unsaved row. A broken row throws with the server's sentence; a feed that
+ * could not be read comes back as a result with `error` set.
  */
 function FeedProbe({ url, filter }: { url: string; filter: string }) {
   const { t } = useT();
@@ -860,10 +644,6 @@ function FeedProbe({ url, filter }: { url: string; filter: string }) {
                       {result.entries.map((e) => (
                         <li key={e.link || e.title} className="flex items-baseline gap-2">
                           <span
-                            // 11px, the caption step. The type scale has four
-                            // rungs - 20/14/12/11 - and a 10px caption is the
-                            // fourth size the language's own table says to fix
-                            // rather than to add a row for.
                             className={`shrink-0 text-[11px] uppercase tracking-wider ${
                               e.matches ? 'text-carbon-textSub' : 'text-carbon-textMuted'
                             }`}
@@ -885,9 +665,7 @@ function FeedProbe({ url, filter }: { url: string; filter: string }) {
                 )}
               </>
             )}
-            {/* Said at the result and not only in the bubble above: somebody
-                who has just pressed a button on a stranger's address wants to
-                read here, not hover there, that nothing was taken. */}
+            {/* Said at the result too: nothing was taken from the feed. */}
             <p className="text-carbon-textMuted">{t('settings.feeds.testSafe')}</p>
           </div>
         )}
@@ -896,15 +674,10 @@ function FeedProbe({ url, filter }: { url: string; filter: string }) {
   );
 }
 
-/** One mark in the collapsed row, named by the field it stands for. Present only
- *  when that field is set, so a row of marks says what this subscription
- *  overrides and never how the feed itself is doing. */
+/** Marker is one mark in the collapsed row, shown only when its field is set. */
 function Marker({ icon, title }: { icon: ReactNode; title: string }) {
-  // The house bubble, never a native `title=`: one control, one tooltip
-  // mechanism, and the OS balloon obeys none of the rules this one does. role
-  // and tabIndex are dropped because this mark sits INSIDE the row's own
-  // expand button - a second tab stop there would be a control inside a
-  // control - and role would overwrite the img role that carries its name.
+  // The house tooltip. The mark sits inside the expand button, so it drops the
+  // tab stop, and its role would overwrite the img role that carries its name.
   const tip = useTooltip<HTMLSpanElement>(title);
   const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
   return (

@@ -12,39 +12,12 @@ import {
 } from '../../../lib/api';
 import { useDraft } from '../context';
 
-/**
- * The two programs a media download actually runs, and the one operation that
- * changes which yt-dlp that is.
- *
- * WHY THIS CARD IS FIRST ON THE PAGE. Somebody who lands on the Resolvers page
- * is usually here because a link that worked last month stopped working, and an
- * out of date yt-dlp is by a wide margin the most common cause of that. The
- * quality strip below is a preference; this is the fact. Reading the version
- * before scrolling past nine cards of options is the whole point of the
- * position.
- *
- * WHY A FETCH BUTTON EXISTS AT ALL, given that both programs come from the
- * container image. Because the image is rebuilt on KnightLoader's schedule and
- * yt-dlp ships on its own, which is measured in days when a big site changes
- * something. The gap between "yt-dlp fixed it" and "the image that carries it
- * was rebuilt" is exactly the window this closes.
- *
- * WHY THERE IS NO "INSTALL IT AUTOMATICALLY" SWITCH, and there deliberately
- * never will be one here (jdp, 2026-09-08). Replacing the extractor unattended
- * silently changes what every download produces, and yt-dlp does ship
- * regressions. The version CHECK has a switch, off by default; the fetch is a
- * button somebody presses.
- *
- * THE ONE SENTENCE THIS CARD EXISTS TO BE ABLE TO SAY. A copy fetched into the
- * data directory never moves again, while the image's own yt-dlp moves forward
- * with every rebuild. So the operator who fetched once, eighteen months ago, to
- * fix a broken extractor is now running something OLDER than the container
- * ships, having "fixed" it. Status.shadowed is what makes that visible, and the
- * warning built from it is the difference between this feature helping in the
- * long run and quietly making things worse.
- */
+// The media tools card shows the yt-dlp and ffmpeg a media download runs, and
+// fetches a newer yt-dlp than the image carries when a site breaks between
+// image builds. The fetch is always a button press, since yt-dlp ships
+// regressions. A fetched copy never moves again, so the card warns when it has
+// fallen behind the image's own (Status.shadowed).
 
-/** The source word for a yt-dlp row, in the catalogue rather than inline. */
 const SOURCE_KEYS: Record<string, TranslationKey> = {
   managed: 'settings.resolvers.toolsFrom.managed',
   env: 'settings.resolvers.toolsFrom.env',
@@ -53,19 +26,9 @@ const SOURCE_KEYS: Record<string, TranslationKey> = {
 };
 
 /**
- * Orders two yt-dlp versions the way the Go side does (internal/mediatools's
- * CompareVersions), and for the same reason it is not a string comparison:
- * yt-dlp versions are dates, "2026.08.11.1" is a same-day rerelease of
- * "2026.08.11", and a lexical compare puts "2026.9.1" before "2026.08.11".
- *
- * Null when the two cannot be ordered at all - a source build's "2026.08.11.dev0",
- * an empty string, anything that is not a run of numbers. A comparison that
- * could not be made must never be drawn as an answer, which is why this returns
- * null rather than 0.
- *
- * Only used for the "your fetched copy is older than the system's" warning. The
- * check against GitHub is ordered by the server, which is the side that knows
- * what it asked.
+ * compareVersions orders two yt-dlp date versions numerically, like
+ * mediatools.CompareVersions. It returns null when either is not a run of
+ * numbers, so an unordered pair is never shown as equal.
  */
 function compareVersions(a: string, b: string): number | null {
   const parse = (v: string): number[] | null => {
@@ -94,10 +57,7 @@ export function MediaToolsCard({ hue }: { hue: number }) {
   const [checking, setChecking] = useState(false);
   const [fetching, setFetching] = useState(false);
   const [reverting, setReverting] = useState(false);
-  // Three separate outcome lines rather than one, because they answer three
-  // different questions and the last one asked is the one worth showing: a
-  // fetch that failed must not be wiped by a later successful check, and a
-  // successful fetch must not sit above a stale "a newer one is published".
+  // Separate outcomes, so a later check does not wipe a failed fetch.
   const [fetched, setFetched] = useState('');
   const [failed, setFailed] = useState('');
   const [reverted, setReverted] = useState('');
@@ -106,9 +66,7 @@ export function MediaToolsCard({ hue }: { hue: number }) {
     try {
       setTools(await fetchMediaTools());
     } catch {
-      /* The card draws nothing rather than claiming anything: this route never
-         calls out, so a failure here means the server is unreachable, and the
-         page around it will already be saying so. */
+      /* A failure here means the server is unreachable, which the page shows. */
     }
   }, []);
 
@@ -124,19 +82,14 @@ export function MediaToolsCard({ hue }: { hue: number }) {
     try {
       setLatest(await fetchYtdlpLatest());
     } catch (e) {
-      // The route answers 200 even when GitHub refused, carrying GitHub's own
-      // sentence - so reaching here means the request itself failed, and there
-      // is no better wording available than the one the browser gave.
+      // A GitHub refusal still answers 200, so this is the request failing.
       setLatest({ checked: false, compare: 'unknown', detail: String(e).replace(/^(Error|ApiError):\s*/, '') });
     } finally {
       setChecking(false);
     }
   }, []);
 
-  // The opt-in half, fired once when the stored switch first resolves - never
-  // on every render, and never before it has resolved, which would make an
-  // outbound call on a page whose owner had switched it off. Same shape as the
-  // update card's own auto-check on the Look page.
+  // Checks once the stored switch has resolved, never before.
   useEffect(() => {
     if (cfg.ytdlpVersionCheck) void onCheck();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- fires when the
@@ -151,16 +104,11 @@ export function MediaToolsCard({ hue }: { hue: number }) {
     try {
       const done = await updateYtdlp();
       setFetched(done.version);
-      // The version on the card has to be the one now running, and only the
-      // status route knows that - the install rewired the resolver behind it.
       await load();
-      // The check result is now about a release that IS installed, so the line
-      // built from it would keep saying "a newer one is published".
+      // The check result describes the release this just installed.
       setLatest(null);
     } catch (e) {
-      // The server's own sentence, which names the asset it tried, the
-      // program's own failure and what to do about it. A key of ours here
-      // would be a vaguer copy of a message that was written to be specific.
+      // The server's sentence names the asset and the failure.
       setFailed(String(e).replace(/^(Error|ApiError):\s*/, ''));
     } finally {
       setFetching(false);
@@ -188,12 +136,10 @@ export function MediaToolsCard({ hue }: { hue: number }) {
   const managed = tools?.managed;
   const shadowed = tools?.shadowed;
   const managedRunning = ytdlp?.source === 'managed';
-  // A record with no working copy behind it: quarantined by a virus scanner,
-  // deleted by hand, left over from a data directory copied between machines.
-  // Something else is running instead and the card has to say which.
+  // A fetched copy on record that is not what runs, for example deleted by a
+  // virus scanner.
   const managedBroken = Boolean(managed) && !managedRunning;
-  // The slow failure: the fetched copy has fallen behind the one the machine
-  // already had. Only claimed when the two versions can actually be ordered.
+  // The fetched copy has fallen behind the image's own.
   const managedIsOlder =
     managedRunning &&
     Boolean(shadowed?.version) &&
@@ -206,9 +152,6 @@ export function MediaToolsCard({ hue }: { hue: number }) {
     <Card hue={hue} className="flex flex-col gap-5">
       <SectionTitle hint={t('settings.resolvers.toolsHint')}>{t('settings.resolvers.toolsTitle')}</SectionTitle>
 
-      {/* The glim-well wrapper with a plain list inside, as the accounts table
-          and the cookie jars list do it - never a nested Card, and never a Card
-          per row. */}
       <div className="glim-well p-0">
         <ul className="flex flex-col">
           <ToolRow name="yt-dlp" tool={ytdlp} missingHint={t('settings.resolvers.toolsYtdlpMissingHint')} showSource />
@@ -247,23 +190,11 @@ export function MediaToolsCard({ hue }: { hue: number }) {
         hint={t('settings.resolvers.toolsAutoCheckHint')}
       />
 
-      {/* FieldGroup, not Field: this caption sits over three buttons, and a
-          <label> wrapping a button forwards its own clicks to the first
-          control inside it - the same reason the preset host row below uses
-          one. */}
+      {/* FieldGroup, because a label would pass clicks to the first button. */}
       <FieldGroup label={t('settings.resolvers.toolsActions')} hint={t('settings.resolvers.toolsActionsHint')}>
-        {/* Revert first, Fetch last, the question in between: the button that
-            takes the installed copy FORWARD sits at the end of the row and the
-            one that puts it back at the start. It is the role that decides the
-            place, not how often the button is pressed - Revert is the rarest of
-            the three and still opens the row. All three can be on screen at
-            once (a fetched copy to go back from, and a check that found a tag),
-            so this is a real row and not three alternatives. Ordered by the JSX
-            itself and never by flex-row-reverse or an order-* utility, so the
-            row mirrors with the page under the right-to-left languages this app
-            ships. */}
+        {/* Revert, check, fetch: the forward action sits last. The JSX order
+            sets it, so the row mirrors in right-to-left languages. */}
         <div className="flex flex-wrap items-center gap-3">
-          {/* Only while there is something to go back from. */}
           {managed && (
             <Button kind="ghost" disabled={busy} onClick={() => void onRevert()}>
               {reverting ? t('settings.resolvers.toolsReverting') : t('settings.resolvers.toolsRevert')}
@@ -274,10 +205,8 @@ export function MediaToolsCard({ hue }: { hue: number }) {
             {checking ? t('settings.resolvers.toolsChecking') : t('settings.resolvers.toolsCheck')}
           </Button>
 
-          {/* Only after a check has come back with a tag. Nobody gets to fetch
-              a version they were never shown, and "fetch" with no idea what is
-              about to arrive is how somebody replaces a working extractor by
-              accident. */}
+          {/* Only after a check found a tag, so nobody fetches a version they
+              were not shown. */}
           {latest?.checked && latest.tag && (
             <Button kind="primary" disabled={busy} onClick={() => void onFetch()}>
               {fetching ? t('settings.resolvers.toolsFetching') : t('settings.resolvers.toolsFetch')}
@@ -285,9 +214,7 @@ export function MediaToolsCard({ hue }: { hue: number }) {
           )}
         </div>
 
-        {/* One outcome line, and the order is the order in which the answers
-            were given: what the fetch did beats what the check found, because
-            the fetch happened afterwards. */}
+        {/* The fetch came after the check, so its outcome wins. */}
         {failed && <p className="mt-2 text-sm text-statusFail">{t('settings.resolvers.toolsFetchFailed', { error: failed })}</p>}
         {!failed && fetched && (
           <p className="mt-2 text-sm text-statusOk">{t('settings.resolvers.toolsFetched', { version: fetched })}</p>
@@ -306,10 +233,8 @@ export function MediaToolsCard({ hue }: { hue: number }) {
 }
 
 /**
- * One program, one line: what it is, what version it reports, where it came
- * from, and where it is. The info bubble appears only when the program is
- * missing, because that is the only state where an explanation changes what
- * somebody does next.
+ * ToolRow shows one program's version, source and path, with an (i) only when
+ * it is missing.
  */
 function ToolRow({
   name,
@@ -332,8 +257,6 @@ function ToolRow({
         last ? '' : 'border-b border-carbon-border/60'
       }`}
     >
-      {/* ltr regardless of interface direction, the same convention every
-          other program name, path and code cell in settings/ already uses. */}
       <span className="font-mono text-sm text-carbon-text" dir="ltr">
         {name}
       </span>
@@ -354,7 +277,6 @@ function ToolRow({
   );
 }
 
-/** The sentence a finished check produces, one per answer the server can give. */
 function checkLine(t: ReturnType<typeof useT>['t'], latest: YtdlpLatest, current: string): string {
   if (!latest.checked) return t('settings.resolvers.toolsCheckFailed', { error: latest.detail ?? '' });
   const tag = latest.tag ?? '';
@@ -366,9 +288,7 @@ function checkLine(t: ReturnType<typeof useT>['t'], latest: YtdlpLatest, current
     case 'older':
       return t('settings.resolvers.toolsOlder', { current, latest: tag });
     default:
-      // "unknown", and also the case where nothing is installed to compare
-      // against. Saying nothing about which is newer is the whole reason this
-      // state exists rather than being folded into "you are current".
+      // Also when nothing is installed; no claim about which is newer.
       return t('settings.resolvers.toolsUnknown', { latest: tag, current });
   }
 }

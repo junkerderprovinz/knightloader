@@ -53,16 +53,7 @@ import {
   IconWarning,
 } from '../lib/icons';
 
-// The "remove and delete files" glyph this file used to draw for itself is now
-// lib/icons.tsx's IconTrashFiles, imported above: the drawing was already the
-// right one (solid fill), it just could not be shared while ListToolbar.tsx
-// held a third, stroke-based copy of the same idea. One drawing now, so the
-// badge here and the menu entry there cannot drift apart.
-
-/** COLLECTOR_FILTERS minus the two now rendered as their own square badges
- *  in the action row instead (see the "Nicht prüfbar" / "Ungeprüft"
- *  IconBadges below) — the strip this feeds keeps Online/Offline/Deaktiviert/
- *  Gehalten, the four that stayed text chips. */
+/** COLLECTOR_FILTERS without the two drawn as square badges in the action row. */
 const COLLECTOR_BADGE_FILTERS: QuickFilterId[] = COLLECTOR_FILTERS.filter(
   (id) => id !== 'uncheckable' && id !== 'unchecked',
 );
@@ -72,27 +63,14 @@ export function Collector() {
   const fx = useFx();
   const tasks = useTasks('');
   const { toast } = useToast();
-  // pkg stays lifted here rather than moving into AddLinksForm: the
-  // container-drop zone below wants the same package name a link pasted at
-  // the same time would get, and it is not part of the form's own lane.
+  // Kept here, since the container drop zone gives dropped links the same
+  // package name as pasted ones.
   const [pkg, setPkg] = useState('');
-  // Reaches into FileDrop from AddLinksForm's own button row (jdp: "Dropzone
-  // mit Dateiwählen button neben dem Zum-Sammler-Button") - see
-  // FileDropHandle's own doc comment for why the button moved rather than
-  // the whole drop target, and now also for the drop-target's own file
-  // handling (jdp, 2026-08-24: "können wir diesen text und card nicht
-  // entfernen" - the paste box's own drop target hands files here too).
+  // Lets AddLinksForm's buttons and paste box hand files to FileDrop.
   const fileDrop = useRef<FileDropHandle>(null);
-  // When a link that arrived through a CONTAINER file last landed, in epoch
-  // milliseconds. It is the signal that ends the "handed to JDownloader" bar
-  // FileDrop shows (jdp, 2026-09-06: "der ladebalken im linksammler läuft
-  // unbegrenzt weiter und verschwindet nicht, selbst wenn die links in der
-  // linkliste gelandet sind") - see ContainerHandedProgress's own doc comment
-  // for why the origin is what makes this precise rather than "any new task".
-  //
-  // Derived here rather than subscribed to inside FileDrop: this page already
-  // holds the whole task list, and a second websocket subscription for one
-  // number would be a second stream to keep in step with the first.
+  // When a link from a container file last landed, in epoch milliseconds; it
+  // ends FileDrop's "handed to JDownloader" bar. Derived from the task list this
+  // page already holds rather than a second subscription.
   const lastContainerAt = useMemo(() => {
     let newest = 0;
     for (const x of Object.values(tasks)) {
@@ -102,56 +80,31 @@ export function Collector() {
     }
     return newest;
   }, [tasks]);
-  // The search text, the quick filters and the facet sidebar's own ticks are
-  // STORED, not page state: all three used to be useState calls here, so
-  // walking to the download list and back put every staged link on screen
-  // again. They now live in the same interface-state document that already
-  // remembers this list's columns and its sort order. See lib/listNarrowing.ts
-  // for the one-field-for-all-three reasoning and for the sanitising every read
-  // out of that document goes through.
-  //
-  // COLLECTOR_FILTERS, not COLLECTOR_BADGE_FILTERS: "Nicht prüfbar" and
-  // "Ungeprüft" are drawn as their own square badges below rather than as chips
-  // in the strip, but they toggle the same set, and handing the store the
-  // shorter list would make it drop those two on the way back in.
+  // The search text, quick filters and facet ticks are stored in the
+  // interface-state document, so they survive leaving the page
+  // (lib/listNarrowing.ts). The full COLLECTOR_FILTERS, since the two badge
+  // filters toggle the same set.
   const narrowing = useListNarrowing('collector', COLLECTOR_FILTERS);
   const { search, filters } = narrowing;
-  // The search field's own open/closed state (jdp, 2026-08-24: "das
-  // suchfeld soll auch als quadratischer badge neben die andren vier
-  // badges. bei klick soll das suchfeld ausklappen") - the field itself
-  // stays mounted only while this is true, as a small popover anchored
-  // under searchRef below rather than growing inline (jdp, 2026-08-25:
-  // "die suche soll einfach nach unten aufklappen und über allem
-  // hoovern").
+  // The search opens as a popover under its badge.
   const [searchOpen, setSearchOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
-  // The scrolling box the list sits in. Applying a saved view can cut five
-  // thousand rows to twelve, and the box keeps whatever scroll position it had:
-  // without this the answer to a chip click is a blank panel under a list that
-  // has already redrawn.
+  // The list's own scroll box, reset when a saved view cuts the list short.
   const listScroll = useRef<HTMLDivElement>(null);
-  // The facet groups the collector's own sidebar exposes (host, file type,
-  // package) — see components/CollectorFacets.tsx for why availability is not a
-  // fourth one: it is already the quick filters above.
+  // Host, file type and package (components/CollectorFacets.tsx).
   const facets = narrowing.facets;
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const menu = useContextMenu();
-  // The cleanup menu's own anchor, separate from `menu` above: this is the
-  // badge row's own dropdown (jdp, 2026-08-24: "Aufräumen ... als badge"),
-  // not the row/package/list context menu ListMenu below already owns.
+  // The clean-up badge's own dropdown, apart from the context menu.
   const cleanupMenu = useContextMenu();
   const [target, setTarget] = useState<MenuTarget>({ kind: 'selection' });
   const folds = useCollapsedPackages('collector');
 
-  // Everything this instance holds, not only what is staged: a removal weighs
-  // the bytes already on disk, and those belong to rows this page never shows.
+  // Everything this instance holds, since a removal weighs bytes of rows this
+  // page never shows.
   const all = useMemo(() => Object.values(tasks), [tasks]);
-  // position, not createdAt: position is the field drag-to-reorder (and the
-  // menu's own top/up/down/bottom) actually writes (App.ReorderBand,
-  // renumberBand), and applySort below is a no-op in the default queue-order
-  // view (sort === null, exactly when dnd is enabled) - createdAt here meant
-  // every reorder kept broadcasting a real, saved position change that never
-  // once became visible, because nothing downstream ever read it back.
+  // Sorted by position, which drag-to-reorder writes; applySort does nothing in
+  // the default queue order.
   const collected = useMemo(
     () =>
       all
@@ -159,9 +112,7 @@ export function Collector() {
         .sort((a, b) => a.position - b.position),
     [all],
   );
-  // The holding area, kept out of the list above on purpose: a link the filter
-  // refused is still recorded and still restorable, but a filter that is working
-  // must not make this page look like a collector full of junk.
+  // Links the filter held stay recorded and restorable, apart from the list.
   const held = useMemo(
     () => all.filter((x) => x.skipped).sort((a, b) => (a.createdAt < b.createdAt ? -1 : 1)),
     [all],
@@ -172,41 +123,23 @@ export function Collector() {
   );
   const groups = useMemo(() => groupByPackage(filtered), [filtered]);
 
-  // "Nicht prüfbar" / "Ungeprüft" moved out of ListToolbar's own text-chip
-  // filter strip and into this row of square badges (jdp, 2026-08-25: "die
-  // 'nicht prüfbar' und 'ungeprüft' buttons sollen auch in die zeile der
-  // ganzen quadratischen badges"), toggling the SAME `filters` set the strip
-  // itself reads — COLLECTOR_BADGE_FILTERS below is what stays in the strip.
+  // "Uncheckable" and "unchecked" are square badges toggling the same filter set.
   const uncheckableCount = useMemo(() => collected.filter((x) => x.online === 'uncheckable').length, [collected]);
   const uncheckedCount = useMemo(() => collected.filter((x) => !x.online).length, [collected]);
-  // The rest of the strip (Online/Offline/Deaktiviert/Gehalten), merged
-  // into the badge row below (jdp, 2026-08-25: "können wir die nicht in
-  // der zeile der quadratischen icons platzieren"). offeredQuickFilters is
-  // ListToolbar's own logic, reused rather than copied so the two inline
-  // renderings of "which chip, which count" can never drift apart.
+  // The other chips share the badge row, counted by ListToolbar's own logic.
   const offeredFilters = useMemo(
     () => offeredQuickFilters(COLLECTOR_BADGE_FILTERS, collected, filters),
     [collected, filters],
   );
-  // filtered.length !== collected.length rather than ListToolbar's own
-  // "active.size > 0 || search text" reading: this page also narrows by
-  // the sidebar's own facets (host/type/package), which that simpler
-  // reading knows nothing about - a facet-only narrowing would otherwise
-  // show every row without ever explaining why fewer are visible.
+  // Compared by count, since the sidebar facets narrow the list too.
   const narrowed = filtered.length !== collected.length;
-  // "Something is still set", which is not the same question as "fewer rows are
-  // showing". A filter that happens to match every staged link hides nothing and
-  // is still switched on, and now that it survives a reload it has to be
-  // reportable and undoable on its own, so the dot and the reset badge read
-  // this, while the "N von M angezeigt" line above keeps reading the counts.
+  // Whether anything is set, even a filter that hides nothing; the dot and the
+  // reset badge read this.
   const anyNarrowing = narrowing.active;
 
   /**
-   * Applying a saved view, with the list's own scroll box put back to the top.
-   *
-   * SavedViewChips pulls its own row into view for the pages whose list scrolls
-   * with the document; here the rows scroll inside a box of their own, which
-   * that gesture cannot reach.
+   * applyView applies a saved view and puts the list's own scroll box back to
+   * the top, which SavedViewChips cannot reach.
    */
   const applyView = useCallback(
     (next: Narrowing) => {
@@ -216,8 +149,7 @@ export function Collector() {
     [narrowing.apply],
   );
 
-  // Closes the search popover on an outside click or Escape - the same
-  // pattern LanguagePicker.tsx's own dropdown already uses.
+  // Closes the search popover on an outside click or Escape.
   useEffect(() => {
     if (!searchOpen) return;
     const onClick = (e: MouseEvent) => {
@@ -243,11 +175,8 @@ export function Collector() {
 
   const clearSelection = useCallback(() => setSelected(new Set()), []);
 
-  // What the list is actually DRAWING, narrower than the narrowed list by every
-  // folded package. See lib/selectionReach.ts. Built from `groups` and never
-  // from `all`: this page holds its skipped and held rows out of `collected`
-  // entirely, and they would otherwise start counting as selected-but-hidden on
-  // a list that never offered them.
+  // The rows actually drawn (lib/selectionReach.ts), built from `groups`, since
+  // skipped and held rows are never offered here.
   const drawn = useDrawnRows(groups, folds.collapsed);
   const reach = useMemo(() => selectionReach(selected, drawn), [selected, drawn]);
   const reduceToShown = useCallback(() => {
@@ -260,30 +189,20 @@ export function Collector() {
   }, [selected, reach, toast, t]);
 
   const removal = useRemoval({ all, selected, base: '/api', drawn, onDone: clearSelection });
-  // This page's own useCleanup() instance, driven by the badge row below
-  // instead of ListActionBar's old text-button trigger. Downloads.tsx renders
-  // its own copy of that same badge row rather than the component this page
-  // stopped using, so the two strips are one strip drawn twice: a control
-  // that differs between them is a defect to fix on whichever page is behind,
-  // never a look this file gets to keep to itself. Loaded proactively, the same
-  // reason ListMenu loads its own copy on mount rather than waiting for a
-  // click: a command visible in a palette that has to wait on a request
-  // before it can say whether "clear finished" applies is a command that
-  // answers late.
+  // The clean-up instance behind the badge row, loaded at once so "clear
+  // finished" knows whether it applies. Downloads.tsx draws the same row; the
+  // two must hold the same controls.
   const cleanup = useCleanup(all);
   useEffect(() => {
     void cleanup.load().catch(() => {
-      /* the badge's own menu already reports this when opened; a command does not nag twice */
+      /* The badge's menu reports this when opened; a command does not report twice. */
     });
   }, [cleanup.load]);
 
-  // The shell's strip cannot see this page's search box or its quick filters, so
-  // it is told which rows survived them — see lib/listview.ts.
+  // The shell's strip is told which rows survived the search (lib/listview.ts).
   useReportListView(filtered, selected);
-  // The command surface's own bridge (lib/commands/pageContext.ts): the exact
-  // setSelected/removal/cleanup this page already holds, so
-  // lib/commands/collector.ts's selectAll/removeSelected/chooseFile call
-  // the identical functions the toolbar's own buttons call.
+  // The commands in lib/commands/collector.ts call the same functions as the
+  // toolbar (lib/commands/pageContext.ts).
   usePublishCommandPageContext(
     useMemo(
       () => ({
@@ -295,14 +214,9 @@ export function Collector() {
       [removal, cleanup],
     ),
   );
-  // Resolved once here rather than inside CollectorStats: `collected`, not
-  // `all`, because the stats strip is about what is staged, the same scope
-  // every other figure on this page already uses.
+  // Staged rows only, the scope of every figure on this page.
   const selectedTasks = useMemo(() => collected.filter((x) => selected.has(x.id)), [collected, selected]);
-  // Wave 11B: the LinkGrabber half of the census's "both table context
-  // menus" - a staged link is not downloaded yet, but a script that only
-  // ever ran once a file already existed would miss exactly the "inspect and
-  // adjust before it starts" use case Packagizer-style automation is for.
+  // Scripts can act on staged links before they start (ScriptActions.tsx).
   const scriptGroups = useScriptMenu({ chosen: selectedTasks, base: '/api' });
 
   const selection: Selection = {
@@ -317,18 +231,14 @@ export function Collector() {
     set: setSelected,
   };
 
-  // Handed to AddLinksForm as onStaged: the form owns the request and its own
-  // fields, this page keeps owning what the result is worth telling the user.
-  // submittedCount is how many URL-shaped lines the box held, which the form
-  // is in the only position to count since the text itself lives there now.
+  // AddLinksForm's onStaged: the form owns the request, this page the report.
+  // submittedCount is the number of URL-shaped lines the box held.
   function handleStaged(created: Task[], submittedCount: number) {
     if (!created.length) {
       toast(t('collector.toastNone'), 'fail');
       return;
     }
-    // A link the filter held is a task, so it comes back in `created` — but it
-    // was not staged, and counting it as staged is the sentence that sends
-    // somebody looking for it in a list it is deliberately not in.
+    // A held link comes back in `created` but was not staged.
     const heldNow = created.filter((x) => x.skipped).length;
     const staged = created.length - heldNow;
     const skipped = Math.max(0, submittedCount - created.length);
@@ -350,21 +260,16 @@ export function Collector() {
   }
 
   /**
-   * One toast, telling the truth about what the start did.
-   *
-   * It used to announce "n started" from the number of rows selected, before
-   * the request had answered - so a start that moved nothing still said it had
-   * moved everything. The route now reports what it did, and the three ways it
-   * can come to nothing each get their own sentence: a schedule holding the
-   * queue, a link filter holding the links, or nothing matching at all.
+   * runStart reports what the start did, from the route's answer: a schedule
+   * holding the queue, a filter holding the links, disabled links or nothing
+   * matching each get their own sentence.
    */
   const runStart = async (ids: string[]) => {
     try {
       const r = await startTasks(ids);
       if (r.blocked) return toast(t('collector.toastStartBlocked'), 'fail');
       if (r.started === 0 && r.skipped > 0) return toast(t('collector.toastStartSkipped', { n: r.skipped }), 'fail');
-      // A link switched off is not started, and now says so instead of
-      // quietly moving to the download list anyway (jdp, 2026-09-06).
+      // A disabled link is not started, and the toast says so.
       if (r.started === 0 && (r.disabled ?? 0) > 0)
         return toast(t('collector.toastStartDisabled', { n: r.disabled ?? 0 }), 'fail');
       if (r.started === 0) return;
@@ -390,13 +295,10 @@ export function Collector() {
     }
   }
 
-  // The same three readings as the download list: a link, a package header, or
-  // the empty space around them.
+  // A link, a package header or empty space, as in the download list.
   function onContextMenu(e: React.MouseEvent): void {
-    // The column header opens its own menu on right-click; when it has, this one
-    // stays out of the way instead of stacking a second menu on top. The native
-    // event is the live one — the synthetic event's flag was captured before any
-    // handler ran.
+    // The column header may have claimed this right-click. Read off the native
+    // event, since React fixes the synthetic defaultPrevented when it builds it.
     if (e.nativeEvent.defaultPrevented) return;
     const id = targetTaskId(e);
     const pkg = id === null ? targetPackage(e) : null;
@@ -426,31 +328,18 @@ export function Collector() {
   };
 
   const allChosen = filtered.length > 0 && filtered.every((x) => selected.has(x.id));
-  // The selection-mode half of the action row below needs these twice each
-  // (the remove badge and, when it applies, the remove-with-files badge) -
-  // the same ids/onDisk SelectionStrip used to derive for itself.
   const selectedIds = selectedTasks.map((x) => x.id);
   const selectedOnDisk = selectedTasks.some((x) => x.loaded > 0);
 
   return (
-    // flex-1, not h-full: app/Layout.tsx's own page wrapper is a flex
-    // column now specifically so a page can grow into it this way - see
-    // that file's own doc comment on why flex-grow, not a percentage
-    // height, is what reliably fills it.
+    // flex-1 rather than h-full, since app/Layout.tsx's wrapper is a flex column.
     <div className="flex min-h-0 flex-1 flex-col gap-6">
       <div className="shrink-0">
         <PageHeader title={t('collector.title')} />
       </div>
 
-      {/* Three equal-height columns (jdp, 2026-08-24: "erst soll die
-          linksammler-card kommen, rechts daneben die statistik-card, und
-          rechts davon die filter card. alle drei card sollen immer gleich
-          hoch sein. wenn eine wächst sollen die anderen mitwachsen") - a
-          plain flex row leaves align-items at its default `stretch`, which is
-          exactly "all three grow together": no explicit height math, no
-          `items-start` override fighting it. AddLinksForm is the one hero
-          (flex-1), the other two size to their own content but still match
-          whichever of the three is tallest. */}
+      {/* Three columns of equal height through the row's default stretch;
+          AddLinksForm takes the free width. */}
       <div className="flex min-w-0 shrink-0 flex-col gap-4 lg:flex-row">
         <div className="min-w-0 flex-1">
           <AddLinksForm
@@ -459,13 +348,8 @@ export function Collector() {
             onStaged={handleStaged}
             onChooseFile={() => fileDrop.current?.openPicker()}
             onFilesDropped={(files) => fileDrop.current?.handleFiles(files)}
-            // FileDrop's own visible output now lives inside this same card
-            // (jdp, 2026-08-26: "der Fortschrittsbalken soll im
-            // Linksammlerfenster angezeigt werden") - it still needs to stay
-            // mounted unconditionally for its own ref API regardless of
-            // where its OUTPUT renders (AddLinksForm's folder-icon badge
-            // opens the picker through it), which is why the component
-            // itself is instantiated once, here, rather than twice.
+            // Mounted once, here: the folder-icon badge above opens the picker
+            // through this ref, wherever the progress itself renders.
             footer={<FileDrop ref={fileDrop} pkg={pkg} landedAt={lastContainerAt} />}
           />
         </div>
@@ -475,100 +359,20 @@ export function Collector() {
         )}
       </div>
 
-      {/* The quick-filter toolbar, the one action-badge row (search, the
-          selection actions and the four page-level actions all merged into
-          it now - see that row's own doc comment) and the list itself, all
-          wrapped in ONE inner flex-col with a tighter gap-3 (jdp,
-          2026-08-24, second round: "zwischen suchfeld und hauptfenster ist
-          immer noch ein großer anbstand" - hiding the empty selection
-          strip's own wrapper already removed one PHANTOM gap that round, but
-          the outer page's gap-6 still put a full 24px seam before AND after
-          the badge row on top of the row's own height, reading as one big
-          gap even with nothing phantom left in it). This "list-management
-          cluster" reads as one connected unit, gap-3 between its own parts;
-          the hero row above keeps the page's normal gap-6 - it is a
-          genuinely separate section, this one is not.
-
-          The rest of the intake trace (a held link, the skipped-links
-          notice) still sits here rather than in the hero card - FileDrop's
-          own visible output moved into the Linksammler card itself
-          (jdp, 2026-08-26, see AddLinksForm's own `footer` prop), but a
-          held/skipped link is not something FileDrop produced, so it stays
-          exactly where it was. Both are normally rendered as literally
-          nothing (no held link, no skip in this session), which is why
-          they cost gap-3 rather than gap-6 here - see this cluster's own
-          reasoning above. SkippedLinks floats as its own fixed card
-          regardless of where it is mounted (see its own doc comment) -
-          it does not depend on living in any particular position in the
-          tree, only on living somewhere. */}
+      {/* The list cluster keeps a tighter gap than the page: held and skipped
+          links, the action row and the list. SkippedLinks floats as its own
+          fixed card wherever it is mounted. */}
       <div className="flex min-h-0 flex-1 flex-col gap-3">
-        {/* No wrapper div of their own any more (jdp, 2026-08-26: "Alle
-            quadratischen badges weiter runter, näher an die card" - the
-            common case, neither a held nor a skipped link in this
-            session, had both components returning null while their OWN
-            now-empty wrapper still counted as a real flex child, costing
-            this cluster's own gap-3 on both sides of nothing. Rendered as
-            direct children of this flex-col instead - a null child
-            contributes no element at all, so the gap simply does not
-            apply when there is nothing to show, and collapses to the
-            identical gap-3 between them when there is.) */}
+        {/* Direct children, so a null one adds no gap. */}
         <FilteredLinks held={held} />
         <SkippedLinks />
 
-        {/* Search, the quick-filter strip, the selection actions and the
-            four page-level actions all share ONE row now (bug #35
-            continued, jdp 2026-08-24: "suchfeld badge soll das erste badge
-            von links sein und wenn man drauf klickt nach links aufklappen,
-            nicht die suchleiste in eine neue zeile packen"; same round, a
-            second item: "wenn ich ein Linkpaket auswähle kommen oben
-            buttons wie zb Auswahlaufheben ... die sind nicht als badges
-            erkennbar und die sollen in der gleichen zeile wie die
-            quadratischen badges erscheinen, nicht in einer neuen Zeile").
-            Reversed 2026-08-25 (jdp: "die suche bitte auch wieder rechts zu
-            den anderen dazumachen. es soll aber der linkeste badge sein und
-            das suchfeld nach links aufklappen") - search is now the FIRST
-            badge of the right-hugging cluster instead of its own
-            left-aligned element. Reversed again the SAME day (jdp: "die
-            suche soll einfach nach unten aufklappen und über allem
-            hoovern"): the field no longer trades places with the leading
-            spacer to grow INLINE (which pushed every badge after it
-            sideways and widened the whole row) - it is now a small
-            absolutely-positioned popover anchored under the search badge
-            itself (position: relative on that one badge's own wrapper,
-            the field position: absolute below it, same click-outside +
-            Escape close LanguagePicker.tsx's own dropdown already uses),
-            so opening it never moves anything else in this row at all.
-            Selection replaces the fixed set of badges after search with
-            its own, on the same "one connected row" logic. Reuses the
-            exact same allChosen/cleanup/checkAll/startAll logic
-            ListActionBar used to run for this page, and the exact same
-            removeNow/askWithFiles/onMore wiring SelectionStrip used to run -
-            only the trigger's shape changed, not what it does. Downloads.tsx
-            now writes out the same strip in the same order, so the markup is
-            duplicated but the RESULT is not allowed to be: every slot below
-            has to hold the same control its twin over there holds, and the
-            way to check that is to diff the two rows, not to read this one.
-
-            The quick-filter strip (Online/Offline/Deaktiviert/Gehalten
-            chips, the "Alles anzeigen" clear button, the "N von M
-            angezeigt" readout) moved into this same row too (jdp,
-            2026-08-25: "können wir die nicht in der zeile der quadratischen
-            icons platzieren damit wie den abstand zwischen der 'neue Links'
-            und der 'Sammlung' card verringern können?") - it used to be
-            ListToolbar's own separate `shrink-0` row above this one,
-            costing a full extra flex gap even when nothing in it had
-            anything to show. offeredQuickFilters is ListToolbar's own
-            counting/visibility logic, exported so this inline copy of its
-            markup never drifts from what ListToolbar itself still renders
-            for Downloads.tsx. flex-wrap here (this row alone, not the
-            layout above it) is new: a variable number of filter chips can
-            now share the row with the action badges, and wrapping is safer
-            than a horizontal scrollbar for a row this narrow a window can
-            make. */}
+        {/* One row for saved views, filters, search, the selection's actions
+            and the page actions, wrapping when narrow. Downloads.tsx draws the
+            same row, and the two must hold the same control in every slot. The
+            search opens as a popover under its badge, so nothing else moves. */}
         <div className="flex flex-wrap shrink-0 items-center gap-2" role="group" aria-label={t('list.actions')}>
-          {/* Left of the spacer, which nothing else on this row uses: the saved
-              views cost no new row above the list, which is what the two long
-              comments further up this file are about. */}
+          {/* Left of the spacer, which nothing else here uses. */}
           <SavedViewChips
             profile="collector"
             allowed={COLLECTOR_FILTERS}
@@ -577,31 +381,9 @@ export function Collector() {
           />
           <span className="flex-1" />
 
-          {/* Filters, not actions — visible regardless of selection, the
-              same reasoning the search badge beside them already follows,
-              rather than living only in one of the two clusters below that
-              swap out with a selection. Left of the search badge (jdp,
-              2026-08-26: "die sollen links vom suchbadge sein nicht mitten
-              drin") - the search badge is the row's own fixed anchor point
-              (its popover opens from it every time), so a variable number
-              of filter chips sits on the side that does not push it around
-              as chips appear and disappear.
-
-              DRAWN ONLY WHEN THERE IS SOMETHING TO FIND, which is the rule
-              their four siblings in the strip beside them have always
-              followed (offeredQuickFilters, ListToolbar.tsx: "a filter with
-              nothing to match is left off ... but one that is switched ON
-              stays even at zero, or turning a filter on could make its own
-              chip disappear out from under it"). These two were the
-              exception, greyed rather than absent, and the exception cost the
-              row two permanently drawn labelled badges - 219 points in
-              German, 281 in Hungarian, measured at 1366 - that on a checked
-              collection can do nothing at all. Greying was never the milder
-              choice: a disabled control still has to be read past, and this
-              row is the one place in the app where that is paid for in
-              wrapped lines. Nothing is reachable one day and gone the next:
-              the badge returns the moment a link lands that it would match,
-              which is exactly when it starts being able to do something. */}
+          {/* Filters, visible whatever the selection, left of the search badge
+              so a changing number of chips does not move it. Like the other
+              chips they show only when they can match something or are on. */}
           {(uncheckableCount > 0 || filters.has('uncheckable')) && (
             <IconBadge
               labelled
@@ -633,11 +415,7 @@ export function Collector() {
               active={filters}
               onSelect={(id) => narrowing.toggleFilter(id as QuickFilterId)}
               items={offeredFilters.map(({ f, n }) => ({ id: f.id, label: t(f.label), badge: n }))}
-              // The identical badge Downloads.tsx puts in this identical slot
-              // of this identical strip. It used to be a text ghost button
-              // here: one slot, one job, two different controls, which is the
-              // drift only somebody switching tabs ever sees. The badge is the
-              // side that stayed, because this row holds nothing but badges.
+              // The same badge Downloads.tsx has in this slot.
               after={
                 filters.size > 0 && (
                   <IconBadge
@@ -658,16 +436,8 @@ export function Collector() {
             </span>
           )}
 
-          {/* The selection count, next to the filter chips rather than on
-              the far side of every action badge (jdp, 2026-08-26,
-              screenshot: "die badges 'ausgewählt', 'online',
-              'ausgeschaltet' etc bitte links von allen quadratischen
-              badges anzeigen") - every informational readout now sits
-              together before the first actual action trigger, search
-              included. The clear-selection badge stays paired with the
-              count it clears rather than moving into the action cluster
-              below - it acts on this text, not on the selection's own
-              contents the way start/remove do. */}
+          {/* The selection count beside the filter chips, with the badge that
+              clears it. */}
           {selected.size > 0 && (
             <>
               <SelectionReach
@@ -691,33 +461,17 @@ export function Collector() {
             <IconBadge
               labelled
               hue={0}
-              // The same badge on Downloads.tsx has carried this since it was
-              // written: both open the same popover, so both say so the same
-              // way. Without it this one was the only open popover trigger in
-              // the app whose badge stayed idle while its panel was showing.
+              // Lit while its popover is open, as on Downloads.tsx.
               active={searchOpen}
               icon={<IconSearch width={16} height={16} />}
-              // `search.toggle`, the key the download list's own badge uses.
-              // This said `collector.searchToggle` and that key no longer
-              // exists in any of the 42 catalogues - it was renamed to this one
-              // and the call site was not moved with it, so `t()` fell through
-              // to an undefined English entry and the badge rendered with NO
-              // title at all: no printed words under Beschriftung "text", and
-              // `aria-label={undefined}`, which left the only glyph-only
-              // control in this row with no accessible name whatsoever. Two
-              // badges that open the same popover on two pages now read the
-              // same key, which is also why the rename cannot repeat itself.
+              // The key the download list's badge uses.
               title={t('search.toggle')}
               aria-label={t('search.toggle')}
               aria-expanded={searchOpen}
               onClick={() => setSearchOpen((v) => !v)}
             />
-            {/* The same accent dot the download list has carried for a while,
-                and now genuinely load-bearing here: with the narrowing stored,
-                this page can come back from a browser restart showing 3 of 240
-                links, and the panel that would explain it is shut. The dot is
-                the one sign that something is still narrowing the list without
-                reopening the panel to look. */}
+            {/* Shows that something still narrows the list while the panel is
+                closed, such as after a restart. */}
             {anyNarrowing && !searchOpen && (
               <span
                 aria-hidden
@@ -726,10 +480,7 @@ export function Collector() {
             )}
             {searchOpen && (
               <div
-                // w-96 (jdp, 2026-08-26: "suchfeld soll breiter sein"), up
-                // from w-72 - end-0 keeps it hugging the badge's own trailing
-                // edge regardless of width, so widening it only ever grows
-                // the field towards the row's own leading side.
+                // end-0 keeps it on the badge's trailing edge at any width.
                 className="absolute end-0 top-full z-20 mt-2 w-96 rounded-[var(--radius-control)]
                   bg-carbon-surface p-2 shadow-[var(--elevation)]"
               >
@@ -738,14 +489,8 @@ export function Collector() {
             )}
           </div>
 
-          {/* The one control that undoes all of it at once: the search, the
-              quick filters and the sidebar's ticks together. The sidebar has a
-              "Clear" of its own and the chip strip has "Show everything", and
-              both keep doing exactly what they did, each clearing its own
-              dimension. This is the reset for a list that came back narrowed
-              from last time, and it is also the only one that still works when
-              the collector is empty, since the sidebar is not drawn at all
-              then. */}
+          {/* Clears search, quick filters and facet ticks at once; it also works
+              while the collector is empty and the sidebar is not drawn. */}
           {anyNarrowing && (
             <>
               <IconBadge
@@ -768,11 +513,7 @@ export function Collector() {
                 base="/api"
                 onDone={() => toast(t('task.applied'), 'ok')}
               />
-              {/* Secondary, not primary: the page's one accent button is
-                  "Add to collector" in the hero, and a second would make
-                  neither read as the thing to do next - unchanged from
-                  before, just a square badge instead of a labelled button
-                  now. */}
+              {/* Secondary: the page's one accent button is "Add to collector". */}
               <IconBadge
                 labelled
                 hue={2}
@@ -781,10 +522,6 @@ export function Collector() {
                 aria-label={t('collector.startSelected')}
                 onClick={startSelected}
               />
-              {/* The "Mehr" trigger is gone (jdp, 2026-08-26: "der badge
-                  'mehr' entfernen") - it opened the identical menu a
-                  right-click on the selection already does, so removing it
-                  loses no capability, only a redundant second way in. */}
               <IconBadge
                 labelled
                 hue={4}
@@ -804,10 +541,6 @@ export function Collector() {
                   onClick={() => removal.askWithFiles(selectedIds)}
                 />
               )}
-              {/* The (i) keyboard-shortcut bubble is gone too (jdp,
-                  2026-08-26: "i infobubble entfernen") - the badges it was
-                  explaining are still self-explanatory via their own
-                  hover tooltips. */}
             </>
           ) : (
             <>
@@ -836,9 +569,8 @@ export function Collector() {
                 aria-label={t('collector.checkAll')}
                 disabled={collected.length === 0}
                 onClick={() => {
-                  // An empty id list means every staged link on this route —
-                  // deliberately unlike the bulk routes, where empty is
-                  // refused outright rather than read as "all".
+                  // An empty id list means every staged link on this route,
+                  // unlike the bulk routes, which refuse it.
                   recheckTasks([]);
                   toast(t('task.recheck'), 'info');
                 }}
@@ -856,14 +588,8 @@ export function Collector() {
           )}
         </div>
 
-        {/* jdp, 2026-08-24: "Das hauptlinkfenster soll immer die ganze
-            fensterbreite einnehmen und immer bis ganz nach unten im fenster
-            gehen. egal wie viele links drinn sind." - min-h-0 + flex-1 here
-            makes the list the one scrolling region: everything above it in
-            THIS inner cluster keeps its natural height (shrink-0), this
-            section absorbs whatever space is left and never less than
-            that, and the row list inside scrolls on its own rather than
-            growing the whole page. */}
+        {/* The one scrolling region: everything above keeps its height and the
+            list takes the rest. */}
         <div className="flex min-h-0 flex-1 flex-col" onContextMenu={onContextMenu}>
         {collected.length === 0 ? (
           <div className="glim-card flex flex-1 items-center justify-center p-12 text-center text-sm text-carbon-textMuted">
@@ -874,38 +600,16 @@ export function Collector() {
             {t('downloads.noMatch')}
           </div>
         ) : (
-          // flex flex-col here, not just min-h-0/flex-1: a percentage height
-          // on TaskListCard's own root (h-full) does not reliably resolve
-          // through a plain block box whose OWN height came from flex-grow
-          // plus overflow-auto - a genuine browser quirk (confirmed live:
-          // the wrapper measured a real 738px, the h-full child inside it
-          // still fell back to its own content height). Making this wrapper
-          // a flex container too, and TaskListCard's own root a flex-grow
-          // child (flex-1, not h-full) below, sidesteps it entirely - flex
-          // distributes space in one pass, with none of percentage-height's
-          // resolve-through-an-overflow-box ambiguity.
-          // pt-3, down from pt-4 (jdp, 2026-08-26, [81]: "immer noch zu weit
-          // weg" - the gap was still too big after the first pass at this
-          // same complaint). A first attempt at THIS pass removed this
-          // padding entirely, on the theory that TaskListCard's own internal
-          // `px-4 pt-4` (right before its SectionTitle) already covered the
-          // badge's own `-top-[11px]` offset on its own - live-measured
-          // straight after and proven wrong: the badge sat at 494 against
-          // this wrapper's own clip boundary at 505, an 11px overshoot
-          // identical to the ORIGINAL bug report, meaning the card's own
-          // padding does not protect against THIS wrapper's own
-          // overflow-y-auto at all. pt-3 is not a fresh guess - it is the
-          // exact value the original fix already measured a 1px margin at,
-          // tighter than pt-4's 5px and still positive. Verified live rather
-          // than assumed, again, after this correction: badge fully clear
-          // of the boundary at pt-3, gap visibly tighter than pt-4 was.
+          // A flex column, since h-full on TaskListCard does not resolve through
+          // a flex-grown overflow box. pt-3 keeps the card's title badge inside
+          // this box's clip edge.
           <div ref={listScroll} className="flex min-h-0 flex-1 flex-col overflow-y-auto pt-3">
             <TaskListCard
               groups={groups}
               base="/api"
               selection={selection}
               profile="collector"
-              // Siehe Downloads.tsx: eine Loeschfrage fuer die ganze Seite.
+              // As in Downloads.tsx: one removal question for the whole page.
               onRemovePackage={removal.askWithFiles}
               title={t('collector.listTitle')}
               hue={3}

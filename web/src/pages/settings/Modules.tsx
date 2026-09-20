@@ -8,15 +8,9 @@ import type { Feature } from './features';
 import { label, useTx } from './tx';
 
 /**
- * The modules page: an inventory of what this build contains, with a switch
- * only where switching it does something.
- *
- * Deliberately calm. Rule 3 of the design language reserves the accent for
- * activity, and "enabled" is the resting state of nearly every row here — a
- * column of gold switches would say six things are happening when the answer is
- * that nothing in particular is. Wave 1 had to un-gold exactly such a column on
- * the task list. So the switches are neutral, the three verdicts are separated
- * by section rather than by hue, and no row on this page is ever the accent.
+ * Modules lists what this build contains, with a switch only where switching
+ * does something. The verdicts are separated by section rather than by hue,
+ * since the accent means activity and nearly every row is simply enabled.
  */
 export function Modules() {
   const { tx } = useTx();
@@ -24,8 +18,7 @@ export function Modules() {
 
   const shipped = features.modules.filter((m) => m.verdict === 'shipped');
   const desktop = features.modules.filter((m) => m.verdict === 'desktop');
-  // Anything the server invents later lands here rather than disappearing: an
-  // unrecognised verdict is still a subsystem the user should be told about.
+  // An unknown verdict from a newer server lands here instead of vanishing.
   const absent = features.modules.filter((m) => m.verdict !== 'shipped' && m.verdict !== 'desktop');
 
   return (
@@ -58,10 +51,8 @@ function Row({ m, hue }: { m: Feature; hue: number }) {
   const [busy, setBusy] = useState(false);
 
   const switchable = m.verdict === 'shipped' && m.switch !== 'none';
-  // A parked switch with nothing parked has nothing to restore, so it is offered
-  // disabled with the reason rather than as a control that answers 400. The
-  // reason names the page the value is set on, which is the only thing that gets
-  // anybody out of this state.
+  // A parked switch with nothing parked would answer 400, so it is disabled
+  // with a reason that names the page where the value is set.
   const nothingToRestore = m.switch === 'parked' && !m.enabled && !m.parked;
   const blockedReason = nothingToRestore
     ? tx('settings.modules.configureFirst', { page: label(tx, 'settings.nav.', m.page) })
@@ -73,9 +64,7 @@ function Row({ m, hue }: { m: Feature; hue: number }) {
     try {
       await toggle(m.id, next);
     } catch (e) {
-      // The server refuses a switch it cannot honour and says why. Showing that
-      // sentence is the point: a switch that silently snaps back is the failure
-      // mode this whole registry exists to avoid.
+      // The server refuses a switch it cannot honour and says why.
       toast(tx('settings.modules.switchFailed', { reason: String(e).replace(/^Error:\s*/, '') }), 'fail');
     } finally {
       setBusy(false);
@@ -91,26 +80,17 @@ function Row({ m, hue }: { m: Feature; hue: number }) {
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="flex items-center text-sm text-carbon-text">
           {label(tx, 'settings.module.', m.id)}
-          {/* The reason lives behind the (i), not under the row. Eighteen rows
-              each carrying two lines of grey prose is the wall rule 8 forbids,
-              and the state word beside it already carries the verdict. */}
           {(blockedReason ?? m.reason) && <InfoBubble tip={blockedReason ?? m.reason ?? ''} />}
         </span>
         {m.detail && (
-          // Truncated, not wrapped: a watch folder is a long absolute path, and
-          // letting it wrap pushes the switch down a line and makes eighteen rows
-          // of different heights out of a list meant to be scanned.
+          // Truncated so a long path does not push the switch down a line.
           <span className="truncate text-[11px] text-carbon-textMuted" dir="ltr" title={m.detail}>
             {m.detail}
           </span>
         )}
       </div>
 
-      {/* Where the module is actually configured. On hover, per the design
-          language's rule about long lists: eighteen rows each carrying a
-          permanent grey link is a column of furniture, and the switch beside it
-          is what the row is for. Focus reveals it too, so it stays reachable by
-          keyboard. */}
+      {/* The link to the module's page shows on hover and on focus. */}
       {m.page && m.page !== 'modules' && (
         <Link
           to={`/settings/${m.page}`}
@@ -136,12 +116,8 @@ function Row({ m, hue }: { m: Feature; hue: number }) {
 }
 
 /**
- * The state of a row that has no switch, as one neutral word.
- *
- * Neutral for all of them on purpose. The four state hues mean running,
- * settled, fault and waiting; "this build does not contain a captcha solver" is
- * none of those, and painting it red would make a deliberate scope decision look
- * like something is broken.
+ * StateChip names the state of a row without a switch in one neutral word. A
+ * missing subsystem is a scope decision, not a fault, so it gets no status hue.
  */
 function StateChip({ m }: { m: Feature }) {
   const { tx } = useTx();
@@ -156,8 +132,6 @@ function StateChip({ m }: { m: Feature }) {
       <span className="rounded-[var(--radius-pill)] bg-carbon-surface2 px-2 py-1 text-[11px] font-medium text-carbon-textSub">
         {text}
       </span>
-      {/* Same "reason lives behind the (i)" pattern as Row's own label above -
-          identical job (explain why this row has no switch), a few lines away. */}
       {m.verdict === 'shipped' && <InfoBubble tip={tx('settings.modules.noSwitch')} />}
     </span>
   );

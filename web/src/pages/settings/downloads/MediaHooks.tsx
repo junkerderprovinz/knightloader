@@ -25,52 +25,15 @@ import {
   type MediaHookResult,
 } from '../../../lib/api';
 
-/**
- * The address KnightLoader calls once a package has finished and its files have
- * been moved into place: a media library told to rescan, in practice.
- *
- * Five things about this card are decisions rather than layout.
- *
- * THE VALUE NEVER COMES BACK, and the editing form is therefore the dangerous
- * part. The listing route answers whether a header value is stored and never
- * what it is, so a form that opened a stored address, drew an empty box and sent
- * back what it was given would DELETE the token it was opened to edit - empty
- * means "clear this" here as it does for every other secret in this app. This
- * card makes that impossible by construction rather than by remembering: opening
- * a stored address fills the value box with REDACTED_HEADER, which the server
- * reads as "keep what is stored", and the only way to get an empty value into it
- * is to clear it by hand. There is no code path that produces an empty value the
- * user did not type. Same trap, same fix, same reasoning as HeaderProfiles.tsx.
- *
- * IT DOES NOT RIDE THE SETTINGS DRAFT. The row and its sealed value are two
- * halves of one thing a person edits in one form, and only one of the two can
- * live in settings.json. So this card saves itself through its own route, like
- * the account cards, and the Save bar at the bottom of the page knows nothing
- * about it. That also keeps the two halves from landing seconds apart, which is
- * what a debounced draft save would have done.
- *
- * THE NAME IS THE KEY AND CANNOT CHANGE. A drawer under Categories points at
- * this address BY that name, so renaming it here would leave every drawer
- * pointing at an address that no longer answers, silently - the identical rule
- * the header profiles' own id follows, and the reason the box is read-only once
- * the address is stored.
- *
- * WHERE THE CALL GOES IS DRAWN, NOT BURIED. The host is printed under the
- * address, and an address that is not on a private range says out loud that the
- * call, and the header with it, leaves this machine. `private` is answered
- * without a DNS lookup, so a host NAME reads as "not private" - erring towards
- * saying it out loud, because the sentence that is withheld wrongly is the one
- * nobody can see.
- *
- * THE LAST CALL IS IN MEMORY ONLY. It is the answer to "did that work", it
- * counts test calls, and a restart clears it without changing anything about the
- * address itself. The hint says so, because a blank line there otherwise reads
- * as an address that has stopped working.
- */
+// Media hooks are the addresses called once a package's files are in place,
+// usually a media library told to rescan. The header value is sealed and never
+// comes back, so a stored hook opens with REDACTED_HEADER, which the server
+// reads as "keep", as in HeaderProfiles.tsx. A hook saves through its own route
+// with its sealed value in one request, outside the settings draft. Categories
+// refer to a hook by id, so the id is read only once stored. The host is shown
+// under the address, with a note when it is not on a private range.
 
-/** The failure codes internal/mediahook can report, each with the sentence that
- *  says what to try next. A code this build has no key for falls back to the
- *  unknown sentence with the raw error, so a newer server never draws a blank. */
+/** The internal/mediahook failure codes; an unknown one shows the raw error. */
 const PROBLEM_KEYS: Record<string, TranslationKey> = {
   dns: 'settings.mediahook.problem.dns',
   refused: 'settings.mediahook.problem.refused',
@@ -85,10 +48,8 @@ const PROBLEM_KEYS: Record<string, TranslationKey> = {
   unknown: 'settings.mediahook.problem.unknown',
 };
 
-/** The row being edited, stored or brand new. */
 interface Draft {
-  /** Empty for an address that does not exist yet, which is what makes the name
-   *  box editable exactly once. */
+  /** Empty for a new hook, the only state in which the id can be edited. */
   original: string;
   id: string;
   name: string;
@@ -96,8 +57,7 @@ interface Draft {
   method: string;
   headerName: string;
   headerValue: string;
-  /** True while the value box still holds the placeholder rather than something
-   *  somebody typed. It is what the caption and its hint switch on. */
+  /** True while the value box still holds the placeholder. */
   stored: boolean;
   waitSeconds: number;
 }
@@ -110,8 +70,7 @@ function draftFor(h: MediaHook): Draft {
     url: h.url,
     method: h.method,
     headerName: h.headerName ?? '',
-    // REDACTED_HEADER and never '': this single line is the whole of the
-    // promise in the doc comment above.
+    // Never '' for a stored value, which would clear it.
     headerValue: h.hasValue ? REDACTED_HEADER : '',
     stored: h.hasValue,
     waitSeconds: h.waitSeconds,
@@ -138,12 +97,7 @@ export function MediaHooksCard({ hue }: { hue: number }) {
   const [busy, setBusy] = useState(false);
   const [testing, setTesting] = useState('');
   const [error, setError] = useState('');
-  /** The address whose removal is being confirmed, or null. A real window and
-   *  never window.confirm: a native dialog cannot be styled, speaks the
-   *  browser's language rather than the one picked in this app's own picker,
-   *  and blocks the whole tab while it stands. The refusal three lines below
-   *  already goes to the trouble of answering in the reader's language, and a
-   *  native box straight after it would throw that away again. */
+  // The hook whose removal is being confirmed.
   const [confirming, setConfirming] = useState<MediaHook | null>(null);
 
   useEffect(() => {
@@ -153,13 +107,10 @@ export function MediaHooksCard({ hue }: { hue: number }) {
         if (alive) setHooks(list);
       },
       () => {
-        /* An empty table rather than a claim that nothing is stored: the Add
-           button still works and a save answers with the real listing. */
+        /* Add still works, and a save answers with the real listing. */
       },
     );
-    // The menu comes from the server for the same reason every other fixed
-    // choice on these pages does: a verb this build cannot send must never be
-    // offered as a segment that does nothing when pressed.
+    // The server offers only the methods this build can send.
     void fetchOptions().then(
       (o) => {
         if (alive) setMethods(o.mediaHookMethods ?? []);
@@ -182,8 +133,7 @@ export function MediaHooksCard({ hue }: { hue: number }) {
       else setHooks(await fetchMediaHooks());
       setDraft(null);
     } catch (e) {
-      // The server's own sentence. It already names the field and says what to
-      // send, and a key of ours here would be a vaguer second copy of it.
+      // The server's sentence names the field and what to send.
       setError(String(e).replace(/^(Error|ApiError):\s*/, ''));
     } finally {
       setBusy(false);
@@ -204,8 +154,7 @@ export function MediaHooksCard({ hue }: { hue: number }) {
         url: draft.url.trim(),
         method: draft.method,
         headerName: draft.headerName.trim(),
-        // The placeholder IS the "keep it" instruction, so it goes back
-        // untouched. An empty box is the user having cleared it on purpose.
+        // The placeholder means "keep"; an empty box was cleared by hand.
         headerValue: draft.headerValue,
         waitSeconds: draft.waitSeconds,
       }),
@@ -223,8 +172,7 @@ export function MediaHooksCard({ hue }: { hue: number }) {
       .finally(() => setTesting(''));
   };
 
-  /** What the last call did, in one line. Null is not a failure: it is a server
-   *  that has not been restarted long enough to have called anything. */
+  // The last call is kept in memory, so null means none since the restart.
   const lastLine = (last: MediaHookResult | null): string => {
     if (!last) return t('settings.mediahook.lastCallNever');
     const ms = last.durationMs;
@@ -234,10 +182,7 @@ export function MediaHooksCard({ hue }: { hue: number }) {
     return `${t('settings.mediahook.lastCallFailed', { ms })} ${t(key, params)}`;
   };
 
-  /** The host a typed address will actually be called on, or '' while it is not
-   *  an address yet. Parsed rather than shown as typed, because what catches a
-   *  mistake here is seeing the host on its own: a missing port and a path
-   *  written where the host should be both disappear into a long line. */
+  // The parsed host on its own shows a missing port or a misplaced path.
   const hostOf = (url: string): string => {
     try {
       return new URL(url.trim()).host;
@@ -246,7 +191,6 @@ export function MediaHooksCard({ hue }: { hue: number }) {
     }
   };
 
-  /** Which packages that call was for, or that somebody pressed the button. */
   const lastFor = (last: MediaHookResult | null): string => {
     if (!last) return '';
     if (last.test) return t('settings.mediahook.lastCallTest');
@@ -269,8 +213,7 @@ export function MediaHooksCard({ hue }: { hue: number }) {
       </SectionTitle>
 
       {hooks.length === 0 && !draft ? (
-        // Inside the card, not instead of it: Add is the way out of this state
-        // and an EmptyState would take the button off the page with it.
+        // Inside the card rather than an EmptyState, which would hide Add.
         <p className="py-6 text-center text-sm text-carbon-textSub">
           {t('settings.mediahook.empty')}
           <span className="mt-1 block text-[11px] text-carbon-textMuted">{t('settings.mediahook.emptyHint')}</span>
@@ -309,10 +252,7 @@ export function MediaHooksCard({ hue }: { hue: number }) {
                   {testing === h.id ? t('settings.mediahook.testRunning') : t('settings.mediahook.test')}
                 </Button>
                 <IconBadge
-                  // 16 in a 32px badge: a glyph alone in a square is half its
-                  // box (GlimStone rule 13), not the smaller drawing a glyph
-                  // beside text would be. 14 filled 44% of the tile and made the
-                  // row read as uneven against the Test button next to it.
+                  // A lone glyph takes half its 32px badge.
                   icon={<IconTrash width={16} height={16} />}
                   hue={i}
                   title={t('settings.mediahook.delete')}
@@ -320,18 +260,12 @@ export function MediaHooksCard({ hue }: { hue: number }) {
                   disabled={busy}
                   className="opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
                   onClick={() => {
-                    // Answered here rather than by the server's 409, although
-                    // both refuse it. The listing already carries the drawers,
-                    // so the sentence can be in the reader's own language and
-                    // can name what to do about it, which the server's English
-                    // one cannot.
+                    // Refused here too, so the reason is translated.
                     if (h.usedBy.length > 0) {
                       setError(t('settings.mediahook.deleteInUse', { name: h.name || h.id, n: h.usedBy.length }));
                       return;
                     }
-                    // Confirmed, because it takes the sealed header value with
-                    // it and there is nothing on this page to put it back from:
-                    // the value was never here to begin with.
+                    // Confirmed, since the sealed value cannot be put back.
                     setConfirming(h);
                   }}
                 />
@@ -340,9 +274,6 @@ export function MediaHooksCard({ hue }: { hue: number }) {
                 {lastLine(h.last)}
                 {lastFor(h.last) !== '' && <span className="ms-1">{lastFor(h.last)}</span>}
               </p>
-              {/* Only where it is true, and only as a fact: an address on the
-                  open internet is a perfectly reasonable thing to want, and this
-                  says what it means rather than warning somebody off it. */}
               {!h.private && (
                 <p className="text-[11px] text-statusWarn">{t('settings.mediahook.goesToForeign')}</p>
               )}
@@ -360,22 +291,13 @@ export function MediaHooksCard({ hue }: { hue: number }) {
                 spellCheck={false}
                 value={draft.id}
                 placeholder="jellyfin"
-                // Read only once stored: a drawer under Categories points at
-                // this address by this name, so renaming it here would leave
-                // every drawer pointing at nothing, silently.
+                // Read only once stored, since categories refer to it.
                 readOnly={draft.original !== ''}
                 className={draft.original !== '' ? 'cursor-default opacity-70' : ''}
                 onChange={(e) => setDraft({ ...draft, id: e.target.value })}
               />
             </Field>
-            {/* Zero is a real answer and not an unset field, and what it means
-                rides the field's own (i) rather than a grey line under it.
-                Every explanation is a bubble - a sentence printed on the page
-                is read once and then costs that space forever - and the bubble
-                is allowed to be CONDITIONAL, which is exactly what a sentence
-                about a state that comes and goes needs. One control keeps one
-                bubble: a second (i) beside the first would be two triggers for
-                one field. */}
+            {/* The (i) explains what 0 means while it is set. */}
             <Field
               label={t('settings.mediahook.wait')}
               hint={
@@ -404,9 +326,6 @@ export function MediaHooksCard({ hue }: { hue: number }) {
             />
           </Field>
 
-          {/* The host on its own, under the address, before anything is saved.
-              It is the line that catches a port left off and a path typed where
-              the host belongs, both of which vanish into a long address. */}
           {hostOf(draft.url) !== '' && (
             <p className="-mt-2 text-[11px] text-carbon-textMuted">
               {t('settings.mediahook.goesTo', { host: hostOf(draft.url) })}
@@ -415,11 +334,7 @@ export function MediaHooksCard({ hue }: { hue: number }) {
 
           {methods.length > 0 && (
             <FieldGroup label={t('settings.mediahook.method')} hint={t('settings.mediahook.methodHint')}>
-              {/* No overflow-x-auto around it. The strip WRAPS, it never
-                  scrolls - a horizontally scrolling selector hides options
-                  behind a gesture nobody makes on a desktop, and a scroller one
-                  level outside the component puts that gesture back after the
-                  strip has already taken it away. It grows in height instead. */}
+              {/* The strip wraps, so no scroller goes around it. */}
               <Tabs
                 variant="well"
                 size="sm"
@@ -450,18 +365,12 @@ export function MediaHooksCard({ hue }: { hue: number }) {
                 dir="ltr"
                 spellCheck={false}
                 value={draft.headerValue}
-                // The moment somebody types, the box stops being "kept" and
-                // becomes a real value. Without this the placeholder would go
-                // back as a literal token the first time anybody corrected a
-                // typo in it.
+                // Typing turns the kept value into a real one.
                 onChange={(e) => setDraft({ ...draft, headerValue: e.target.value, stored: false })}
               />
             </Field>
           </div>
 
-          {/* Only for an address that is already stored: there is nothing to
-              report about one nobody has saved yet, and a caption over an empty
-              line would read as a call that produced nothing. */}
           {draft.original !== '' && (
             <FieldGroup label={t('settings.mediahook.lastCall')} hint={t('settings.mediahook.lastCallHint')}>
               <p className="text-xs text-carbon-textSub">
@@ -470,18 +379,8 @@ export function MediaHooksCard({ hue }: { hue: number }) {
             </FieldGroup>
           )}
 
-          {/* Cancel first, Save last, and the pair really is at the END of the
-              row (GlimStone 1.14.0). The order alone was never the whole rule:
-              in a left-aligned row the advancing button sits in the middle of
-              the well with empty space to its right, which is the position that
-              is supposed to MEAN "this one goes ahead". The spacer is the first
-              child, and the server's refusal goes in front of the pair rather
-              than after it, so nothing stands to the right of Save.
-
-              Ordered by the JSX itself and never by flex-row-reverse or an
-              order-* utility, so the pair mirrors with the page under the
-              right-to-left languages this app ships - "right" means end, not
-              the right of the glass. */}
+          {/* The spacer and the error come first so Save ends the row. The JSX
+              order sets it, so the row mirrors in right-to-left languages. */}
           <div className="flex items-center gap-3">
             <span className="flex-1" />
             {error && <p className="text-xs text-statusWarn">{error}</p>}
@@ -497,13 +396,6 @@ export function MediaHooksCard({ hue }: { hue: number }) {
 
       {!draft && error && <p className="text-xs text-statusWarn">{error}</p>}
 
-      {/* The stakes in words, in a real window (GlimStone rule 15): the count of
-          drawers is already answered before this opens, so what is left to say
-          is that the sealed header value goes with the address and cannot be
-          put back from here. Cancel and the commit button look alike and
-          neither is red - what warns is the sentence above them, and a colour
-          cannot say more than that. The pair travels together at the end of the
-          row, ordered by the JSX so it mirrors under right-to-left. */}
       {confirming && (
         <Modal
           title={t('settings.mediahook.delete')}
@@ -539,21 +431,11 @@ export function MediaHooksCard({ hue }: { hue: number }) {
   );
 }
 
-/**
- * The host a stored address is called on, with the whole address on its bubble.
- *
- * Its own component only because the bubble is a hook, and a hook cannot be
- * called from inside the list's map. The house bubble and never a native
- * `title=`: one control, one tooltip mechanism, and the operating system's own
- * balloon draws in the OS font, at the pointer instead of at the trigger, and
- * is untouched by every rule this one follows.
- */
+/** HostLine is its own component because the tooltip is a hook. */
 function HostLine({ host, url }: { host: string; url: string }) {
   const tip = useTooltip<HTMLSpanElement>(url);
-  // role and tabIndex come off for the reason ui.tsx's Button gives at its own
-  // copy of this line: this span sits INSIDE the row's edit button, and a
-  // second tab stop with a "note" role there would be a control inside a
-  // control.
+  // The span sits inside the row's edit button, so it takes no role and no
+  // tab stop of its own.
   const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
   return (
     <>

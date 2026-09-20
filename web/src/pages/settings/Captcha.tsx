@@ -14,58 +14,15 @@ import { IconArrowDown, IconArrowUp, IconExternalLink } from '../../lib/icons';
 import { useDraft } from './context';
 import { NeutralSwitch } from './controls';
 
-/**
- * The captcha settings page: solver order (an ordinary setting living in the
- * shared settings draft) and each solver's own API key (a credential,
- * stored through the same generic /api/accounts endpoints Wave 6's Accounts
- * page already uses - see internal/accounts/catalogue.go's
- * GroupCaptchaSolver doc comment for why these two services get their own
- * section here rather than a third section on that page: Accounts.tsx only
- * ever renders a 'debrid' group generically and a 'hoster' group through an
- * entirely separate, non-catalogue component, so a service in neither would
- * render nowhere there).
- *
- * ORDER IS THE ONLY SWITCH. An id present in the draft's
- * captchaSolverOrder is tried, in that position, before a captcha ever
- * reaches a human through 7A's prompt modal; an id absent from it is never
- * tried automatically. There is deliberately no separate enabled flag next
- * to it - one that could disagree with the id's own presence in the list is
- * a state this page would then have to reconcile on every render, for no
- * fact a single ordered list cannot already carry alone.
- *
- * TWO SAVE MECHANISMS ON ONE PAGE, ON PURPOSE. Toggling or reordering a row
- * only ever calls patch() - deferred, part of the shared draft, applied on
- * the settings shell's own Save - exactly like every other settings field.
- * Setting or clearing a key calls the accounts API directly and takes effect
- * immediately, with no Save button of its own - exactly like Accounts.tsx's
- * own CredentialDialog. That split is not an inconsistency to fix: a secret
- * cannot ride the settings draft at all (settings.Settings is served
- * unredacted by GET /api/settings, see this repo's own established rule that
- * a credential gets its own store), so the two facts on this page were never
- * going to share one save button.
- *
- * A KEY IS NEVER SHOWN BACK. Account.configured is all this page - or any
- * page - ever learns about a stored solver key; saving one is write-only,
- * exactly like every other credential in this app (see Accounts.tsx's own
- * CredentialDialog for the identical rule).
- *
- * NO LIVE VERIFY ON SAVE. Wave 6's accounts page checks a credential against
- * its service before persisting (VerifyCredential/checkCredential,
- * app_accounts.go) - that switch does not have a case for "2captcha" or
- * "anticaptcha" yet, and adding one is a different file's lane this wave.
- * Saving here is unverified, the same as Accounts.tsx's own "save anyway"
- * path, which is an accepted outcome there, not a fallback bolted on here to
- * paper over a missing feature.
- */
+// The captcha page orders the solvers and stores each solver's API key. The
+// order lives in the settings draft: an id in captchaSolverOrder is tried in
+// that position, an absent one never. Keys go through /api/accounts at once
+// and are write-only, because a credential cannot ride the settings document.
+// They are saved without a live check.
 
 /**
- * The strings this page needs, keyed by where they are going.
- *
- * Same arrangement as Connections.tsx (Wave 2's 2E): the locale files are
- * one writer's lane per wave (7E, phase 3 of this one), and the lookup asks
- * the real catalogue first, so the day these keys land in en.ts this table
- * stops being consulted and can be deleted without touching anything else
- * here.
+ * PENDING holds the English strings until the catalogue has them; the lookup
+ * asks the catalogue first.
  */
 const PENDING = {
   'settings.captcha.title': 'Captcha',
@@ -143,10 +100,8 @@ export function Captcha() {
 
   const order = cfg.captchaSolverOrder ?? [];
   const solvers = catalogue.filter((s) => s.group === 'captchaSolver');
-  // Enabled solvers first, in the user's chosen order; anything this page
-  // knows about that is not yet enabled trails at the end, in catalogue
-  // order - so a row never disappears the moment it is switched off, it
-  // just moves to the bottom.
+  // Enabled solvers in the chosen order, then the others in catalogue order,
+  // so switching one off moves it to the bottom.
   const rows = [
     ...order.map((id) => solvers.find((s) => s.id === id)).filter((s): s is CatalogueService => Boolean(s)),
     ...solvers.filter((s) => !order.includes(s.id)),
@@ -175,10 +130,6 @@ export function Captcha() {
 
   return (
     <div className="flex flex-col gap-10">
-      {/* No subtitle (jdp, 2026-09-07: "Folgende Infotexte können weg"). The
-          card below is a numbered, drag-sortable list of solvers - a sentence
-          above it explaining that they are tried in order says what the list
-          already shows by being a list. */}
       <PageHeader title={cx('settings.captcha.title')} />
 
       <Card hue={0} className="flex flex-col gap-1">
@@ -226,8 +177,7 @@ function SolverRow({
   onSaved,
 }: {
   svc: CatalogueService;
-  /** This row's position in the full solver list - same 0-based sequence
-   *  every other hue-carrying set in the app uses. */
+  /** Position in the full solver list, for the hue. */
   hue: number;
   enabled: boolean;
   /** Index within the enabled/order list, -1 when not enabled. */
@@ -272,12 +222,8 @@ function SolverRow({
           {configured ? cx('settings.captcha.set') : cx('settings.captcha.notSet')}
         </span>
 
-        {/* `labelled` on every badge here, and 16px of glyph in the 32px tile.
-            A row action stands in the Beschriftung setting exactly like a
-            toolbar action: the square is what the setting resolves to in glyph
-            mode, not a control that opts out of it. The row survives the words
-            because the name column beside it is `min-w-0` and truncates - it is
-            a card row, not a table column with a width to defend. */}
+        {/* `labelled` on every badge, so the actions follow the Beschriftung
+            setting like toolbar actions; the name column truncates instead. */}
         <div className="flex shrink-0 items-center gap-0.5">
           {enabled && (
             <>

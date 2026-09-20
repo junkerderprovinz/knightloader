@@ -6,30 +6,10 @@ import { useFeatures } from '../context';
 import { Reading } from './Reading';
 
 /**
- * The one control on this page: whether a monitoring system may fetch the same
- * reading as plain text.
- *
- * IT SHIPS OFF, and that is the owner's decision rather than a default that
- * drifted. The item this page came from asked for a second OPEN endpoint and
- * did not get one: the route sits behind the same authentication as everything
- * else, and this switch is what makes it exist at all. Somebody who wants it
- * scraped turns it on and knows why they did.
- *
- * A ToggleRow and never a checkbox, and the explanation is behind the row's own
- * (i) rather than printed under it - a settings page whose every row carries
- * two lines of grey prose is a page nobody reads twice.
- *
- * THE SWITCH GOES THROUGH THE MODULE REGISTRY, not through the settings draft,
- * for the reason the registry exists: `enabled` is derived from live state on
- * every request, so the row here and the row on the Modules page cannot
- * disagree. Going through the draft would mean a switch that reads "on" as soon
- * as it is clicked and a door that only opens at the next save.
- *
- * The card is drawn even when the server has no metrics module at all - an
- * older build, or one where the row was dropped. The address and the
- * explanation are still worth reading, and a switch is simply not offered for
- * something whose state nothing can report. Same shape as the Click'n'Load row
- * on the General tab.
+ * ScrapeCard switches the plain-text metrics route, which is off by default and
+ * sits behind the usual authentication. The switch goes through the module
+ * registry rather than the draft, so it cannot disagree with the Modules page,
+ * and it is left out when the server has no metrics module.
  */
 export function ScrapeCard({ hue }: { hue: number }) {
   const { t } = useT();
@@ -41,13 +21,8 @@ export function ScrapeCard({ hue }: { hue: number }) {
   const metrics = features.modules.find((m) => m.id === 'metrics');
   const on = metrics?.enabled ?? false;
 
-  // The absolute address, because this is meant to be pasted into somebody
-  // else's configuration file on another machine. A bare "/api/metrics" is
-  // exactly the string that gets pasted into a Prometheus target and then does
-  // not work. window.location.origin is the address the reader actually reached
-  // this instance on, which is the one a collector on their network can use -
-  // and it is deliberately not built from anything the server sent, because the
-  // server does not know which of its names or ports somebody came in through.
+  // Absolute, because it gets pasted into a collector on another machine, and
+  // taken from the origin the reader used since the server cannot know it.
   const address = `${window.location.origin}/api/metrics`;
 
   async function onSwitch(next: boolean) {
@@ -55,9 +30,7 @@ export function ScrapeCard({ hue }: { hue: number }) {
     try {
       await toggle('metrics', next);
     } catch (e) {
-      // The server refuses a switch that cannot do anything, and the refusal
-      // names the reason. Swallowing it would leave a control that looks like
-      // it worked, which is the failure the whole registry exists to prevent.
+      // The server refuses a switch that cannot do anything and names the reason.
       toast(t('settings.modules.switchFailed', { reason: String(e).replace(/^Error:\s*/, '') }), 'fail');
     } finally {
       setBusy(false);
@@ -81,10 +54,7 @@ export function ScrapeCard({ hue }: { hue: number }) {
 
       <div className="flex flex-wrap items-end justify-between gap-3">
         <Reading label={t('settings.health.scrapeUrl')} value={address} />
-        {/* Guarded, because navigator.clipboard is absent on a plain-HTTP LAN
-            address - which is the ordinary way this app is reached. A button
-            that threw on every press would be worse than no button; the address
-            beside it can always be selected by hand. */}
+        {/* navigator.clipboard is missing on a plain-HTTP LAN address. */}
         {'clipboard' in navigator && (
           <Button
             kind="ghost"
@@ -100,11 +70,7 @@ export function ScrapeCard({ hue }: { hue: number }) {
         )}
       </div>
 
-      {/* Said beside the address rather than left to be discovered: while the
-          switch is off that address answers 404, exactly like an endpoint this
-          build does not have. Somebody who pastes it into a collector first and
-          reads the switch second would otherwise spend the evening on their
-          network. */}
+      {/* While the switch is off the address answers 404. */}
       {!on && <span className="text-[11px] text-carbon-textMuted">{t('settings.health.scrapeOffHint')}</span>}
     </Card>
   );

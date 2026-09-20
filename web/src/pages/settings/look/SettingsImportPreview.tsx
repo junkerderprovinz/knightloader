@@ -6,29 +6,11 @@ import type { SettingsExportDoc } from '../../../lib/api';
 import { TRANSFER_GROUPS, describe, type TransferGroup, type TransferRow } from '../../../lib/settingsTransfer';
 
 /**
- * "What should be taken over?" - the whole feature, really.
- *
- * Nothing is written before this dialog has been seen and confirmed, and that is
- * the promise the card above it makes. So every reason a row might be a bad idea
- * has to be visible HERE, on the row, rather than in a paragraph above the list
- * that nobody reads:
- *
- *   - a list replaces the whole list on this box, row for row. "Merge" is per
- *     top-level key and not per row (settings.Store.SetPartial's own comment
- *     says so), which is usually what somebody moving boxes wants and is not
- *     what the word sounds like.
- *   - a folder that is not here yet gets CREATED on save, including inside a
- *     container with no matching volume mounted, and every download then lands
- *     in the container's own writable layer.
- *   - a row that arrives without its password saves, enables and then fails
- *     silently hours later.
- *   - a key this build does not have cannot be taken over at all, and would
- *     otherwise be dropped by encoding/json without a word.
- *
- * The identity rows are drawn DISABLED rather than hidden. A control that
- * vanishes teaches nobody, which is ToggleRow's own reasoning for having a
- * disabled state at all, and "why did my instance id not come across" is exactly
- * the question somebody asks a week later.
+ * SettingsImportPreview asks which keys to take over before anything is
+ * written, and marks on each row why it might be a bad idea: a list replaces
+ * the whole list, a missing folder gets created on save, a row may arrive
+ * without its password, and an unknown key cannot be taken over. Identity rows
+ * are shown disabled so it is clear they do not travel.
  */
 export function SettingsImportPreview({
   doc,
@@ -41,22 +23,18 @@ export function SettingsImportPreview({
   doc: SettingsExportDoc;
   rows: TransferRow[];
   busy: boolean;
-  /** The refusal, already turned into a sentence in the reader's language by
-   *  the caller - this dialog does no error mapping of its own. */
+  /** The refusal, already translated by the caller. */
   error: string;
   onApply: (keys: string[]) => void;
   onClose: () => void;
 }) {
   const { t } = useT();
 
-  /** A row can only be taken over when this build has the key and the key is
-   *  allowed to travel. Everything else is drawn and switched off. */
+  // Only keys this build knows and that may travel can be taken over.
   const selectable = useMemo(() => rows.filter((r) => !r.identity && !r.unknown), [rows]);
 
-  // Pre-selected: what actually differs, minus the folders. A folder that is not
-  // here is the one row where ticking it by default would create a directory
-  // nobody asked for - settings.Validate makes the folder it claims to be
-  // checking, so the mistake is not recoverable by pressing Cancel afterwards.
+  // Pre-selects what differs except folders, since settings.Validate creates a
+  // folder that does not exist.
   const [picked, setPicked] = useState<Set<string>>(
     () => new Set(selectable.filter((r) => !r.same && !r.path).map((r) => r.key)),
   );
@@ -129,9 +107,7 @@ export function SettingsImportPreview({
         )}
         {error && <span className="text-xs text-statusFail">{error}</span>}
 
-        {/* Its own scroller. Eighty-seven rows do not fit a viewport, and a
-            dialog whose footer has scrolled off the bottom of the screen is one
-            with no way left to press Cancel. */}
+        {/* Its own scroller keeps the footer's Cancel on screen. */}
         <div className="flex max-h-[52vh] min-w-0 flex-col gap-4 overflow-y-auto pr-1">
           {[...grouped].map(([group, groupRows]) => (
             <div key={group} className="flex min-w-0 flex-col gap-2">
@@ -157,14 +133,7 @@ export function SettingsImportPreview({
   );
 }
 
-/**
- * The group headings, keyed by group.
- *
- * A plain span and deliberately not a SectionTitle: at most one SectionTitle
- * belongs to a Card, its badge is positioned against a card's own top edge, and
- * nine of them stacked inside a scrolling dialog would each try to sit on a card
- * boundary that is not there.
- */
+/** Group headings, drawn as plain spans since a SectionTitle needs its own card. */
 const GROUP_LABEL = {
   queue: 'settings.transfer.group.queue',
   folders: 'settings.transfer.group.folders',
@@ -194,34 +163,14 @@ function Row({
 }) {
   const { t } = useT();
   const blocked = row.identity || row.unknown;
-  /**
-   * THE DIMMING GOES ON THE PARTS, NEVER ON THE ROW (GlimStone 1.9.0).
-   *
-   * It used to sit on the flex container holding all of this, and that is the
-   * trap the rule names: `opacity` composites a whole subtree and a child can
-   * never be less transparent than its parent, so the one (i) that says WHY an
-   * identity row cannot travel rendered at 60% along with the row it was
-   * explaining. The one element that has to stay readable while everything
-   * around it recedes became the one element nobody could read - and it bites
-   * here of all places, because that bubble only exists on the rows that are
-   * dimmed.
-   *
-   * So the class hangs off the key, the markers and the two value lines, and
-   * the (i) between them stays at full strength. The switch needs nothing: it
-   * is `disabled` in exactly this state and already carries its own
-   * `disabled:opacity-40`.
-   */
+  // Dimmed part by part, because opacity on the row would also dim the (i)
+  // that explains it.
   const dim = blocked ? 'opacity-60' : '';
   return (
     <div className="flex min-w-0 items-start gap-2.5">
       <NeutralSwitch on={on && !blocked} onChange={onChange} name={row.key} disabled={blocked || busy} hue={hue} />
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        {/* The RAW key, and that is a deliberate trade rather than an oversight.
-            Labelling all ~87 top-level keys would be 87 strings in 42 languages,
-            which is a translation project and not a row of a dialog.
-            Advanced.tsx already sets the precedent and says why: a key path is
-            an identifier. The group heading above and the two values below are
-            what make the row readable. */}
+        {/* The raw key, as on the Advanced page: it is an identifier. */}
         <span className="flex flex-wrap items-center gap-1.5 text-xs text-carbon-text">
           <span className={`font-mono ${dim}`}>{row.key}</span>
           {row.identity && (
@@ -236,9 +185,7 @@ function Row({
           {row.secretless && <Badge warn dim={dim}>{t('settings.transfer.noPassword')}</Badge>}
           {isNewFolder && <Badge warn dim={dim}>{t('settings.transfer.newFolder')}</Badge>}
         </span>
-        {/* Both sides, always, even when one of them is empty: "here now:
-            nothing" is an answer, and leaving the line out would make an empty
-            value indistinguishable from a row that failed to render. */}
+        {/* Both sides, even when one is empty. */}
         <span className={`min-w-0 break-all text-[11px] text-carbon-textMuted ${dim}`}>
           {t('settings.transfer.colStored')}: {describe(row.stored)}
         </span>
@@ -250,18 +197,10 @@ function Row({
   );
 }
 
-/** A short marker beside the key. Its own small span rather than one of the
- *  status badges in ui.tsx: those carry a task's state with them, and a row here
- *  is not in a state, it is being described. */
+/** Badge is a short marker beside the key, not a status badge. */
 function Badge({ children, warn = false, dim = '' }: { children: ReactNode; warn?: boolean; dim?: string }) {
   return (
     <span
-      // 11px, the caption step. The type scale has four rungs - 20/14/12/11 -
-      // and a 10px caption is the fourth size the language's own table says to
-      // fix rather than to add a row for.
-      //
-      // `dim` is passed in rather than inherited from the row, because a row
-      // that dims itself dims the (i) standing beside these markers with it.
       className={`rounded-[var(--radius-pill)] px-1.5 py-px text-[11px] leading-[14px] ${
         warn ? 'bg-statusWarnBg text-statusWarn' : 'bg-carbon-surface3 text-carbon-textMuted'
       } ${dim}`}
@@ -272,27 +211,14 @@ function Badge({ children, warn = false, dim = '' }: { children: ReactNode; warn
 }
 
 /**
- * Which of the folder-valued rows names a directory that is not on this machine.
- *
- * Asked of the server, once per differing folder, rather than guessed: the
- * browser has no idea what is mounted inside the container, and the whole reason
- * this warning exists is that settings.Validate does NOT fail on a missing
- * folder. It creates it, in whatever layer the path lands in, and on a container
- * with no matching bind mount that layer disappears on the next `docker rm`.
- *
- * GET /api/folders is the folder chooser's own route and already answers exactly
- * this question (`exists`), so nothing new had to be built and this cannot
- * disagree with what the chooser shows. A probe that fails for any OTHER reason
- * - no permission, a path this instance refuses to list - answers "no warning"
- * rather than a warning nobody can act on: being told a folder is new when the
- * real problem is a permission sends somebody to fix the wrong thing.
+ * useNewFolders asks the folder chooser's route which folder rows name a
+ * directory missing on this machine, since settings.Validate would create it
+ * wherever the path lands. A probe that fails for another reason gives no
+ * warning.
  */
 function useNewFolders(rows: TransferRow[]): Set<string> {
   const [missing, setMissing] = useState<Set<string>>(new Set());
-  // Serialised, so the effect depends on the CONTENT of the list rather than on
-  // the array identity that every re-render rebuilds. JSON rather than a
-  // separator character, because a folder name may contain any character
-  // somebody would have picked as one.
+  // Serialised so the effect follows the content, not the array identity.
   const probe = JSON.stringify(rows.filter((r) => r.path).map((r) => [r.key, String(r.incoming)]));
 
   useEffect(() => {

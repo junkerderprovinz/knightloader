@@ -26,80 +26,24 @@ import { useT, type TranslationKey } from '../../lib/i18n';
 import { useDraft } from './context';
 
 /**
- * The category table: named drawers, each one a folder plus four defaults, that
- * a download can be filed into by name instead of by answering the same five
- * questions for every batch.
+ * Categories edits the named drawers, each a folder plus defaults, that a
+ * Packagizer rule files a download into. The folder, unpacking, collision rule
+ * and queue position are live; the speed limit has no caller yet, since
+ * internal/throttle is one limiter for the whole app, and its hint says so.
  *
- * Four things here are decisions rather than layout.
- *
- * THE SPEED LIMIT IS THE ONE FIELD THAT STILL CHANGES NOTHING, and its hint
- * says so. The folder, the unpacking switch, the collision rule and the queue
- * position are all live: dirFor calls CategoryDir, extractWanted calls
- * ExtractFor, the dispatcher and the last move both call CollisionFor, and
- * packagize calls PriorityFor once, where the task is made.
- *
- * SpeedLimitFor still has no caller and cannot get one by wiring: internal/
- * throttle is ONE limiter for the whole app, split between the engine, JD and
- * yt-dlp by measured demand, and engine.Job has no rate field at all. Honouring
- * a per-drawer limit means a bandwidth scheduler, not a line. The field goes on
- * round-tripping so nobody's settings.json changes shape later.
- *
- * That sentence has to come OUT of its hint in the same commit that makes it
- * false, in en.ts, de.ts and the other 40 locale files, or the page starts
- * lying in the other direction. Three of these four sentences were removed that
- * way when their resolvers were wired; this is the one that is still true.
- *
- * A PACKAGIZER RULE IS WHAT FILES A TASK INTO A DRAWER, and it is still the
- * only writer of Task.Category. The rule editor can now set it: the grammar
- * describes a `category` action and ActionField renders a picker for it. Both
- * halves had to land together, because ActionField falls through to the
- * accept/reject control for a Kind it does not know, so the grammar line alone
- * would have put a reject switch on the Packagizer tab wired to Action.Reject.
- * A Go test reads this file and refuses to let the grammar entry ship without
- * that branch.
- *
- * What is still missing is a way to file a link by hand: no intake route
- * accepts a category, so there is no picker at add-links time and no facet in
- * the list.
- *
- * THE SERVER OWNS THE KEY. CategoryID derives an id from the name once, on save,
- * and never re-derives it, which is what makes renaming a category free. This
- * page therefore never writes a derived id into the draft; it only PREVIEWS one,
- * in the placeholder of the empty key box, so that what will be stored is
- * visible before saving. Changing an existing key is not a rename: it orphans
- * every download already filed under the old one.
- *
- * THE SAVE IS ALL-OR-NOTHING. ValidateCategories refuses the WHOLE settings
- * document, not the offending row - a repeated key, a row with neither key nor
- * name, an out-of-range priority, a negative speed limit, an unknown collision
- * word. The controls below are shaped so that only the first two are reachable
- * at all: the two strips offer exactly what the server accepts, and the
- * duplicate key is drawn on both rows before the save bar is pressed.
- *
- * ONE INTERLOCK IS MISSING ON PURPOSE, and the next wave owns it.
- * ValidateCategories also refuses the document when a Packagizer rule files
- * links into a category that is not in the table, and this page cannot say so:
- * the string catalogue has no line for "these rules file into this drawer" or
- * for "removing this row will have the save refused", and the locale files were
- * closed while this page was written. Nothing reachable can produce such a rule
- * yet either - RuleAction carries no category and the grammar has no category
- * action - so the only way to that refusal today is a hand-edited settings.json
- * or an imported rule set. The two strings, and the check that draws them,
- * belong in the same commit as the rule action itself.
+ * The server derives a key from the name once, on save, so renaming is free;
+ * this page only previews that key and never writes it. ValidateCategories
+ * refuses the whole settings document over one bad row, so the controls offer
+ * only what the server accepts and a duplicate key is marked before saving.
  */
 
 /**
- * Mirrors settings.CategoryID (internal/settings/settings_categories.go), which
- * is the ONLY place that decides what a key looks like.
- *
- * It is here to show and to warn, never to write: the preview goes in the empty
- * key box's placeholder and the fold is what the duplicate check compares. A
- * copy that wrote its answer into the draft would freeze a spelling the server
- * did not choose, and would go on freezing it after the Go rule changed.
+ * Mirrors settings.CategoryID to preview a key and find duplicates; the server
+ * alone decides the stored key.
  */
 const LETTER_OR_DIGIT = /[\p{L}\p{N}]/u;
 
-/** trimTo(id, 64): the Go side cuts on a rune boundary, so this counts bytes. */
+/** The Go side cuts on a rune boundary at 64 bytes, so this counts bytes. */
 const CATEGORY_ID_MAX_BYTES = 64;
 
 function cutToBytes(s: string, max: number): string {
@@ -118,9 +62,8 @@ function cutToBytes(s: string, max: number): string {
 
 function categoryID(raw: string): string {
   let out = '';
-  // A run of anything that is not a letter or a digit becomes ONE dash, and only
-  // once something has already been kept - which is how a leading dash never
-  // appears and a trailing one is never emitted in the first place.
+  // A run of non-alphanumerics becomes one dash, and only after something was
+  // kept, so no leading or trailing dash appears.
   let pending = false;
   for (const ch of raw.trim().toLowerCase()) {
     if (LETTER_OR_DIGIT.test(ch)) {
@@ -131,26 +74,17 @@ function categoryID(raw: string): string {
       pending = true;
     }
   }
-  // The cut can land on a dash, so trim once more afterwards, as the Go side does.
+  // The cut can land on a dash, so trim again, as the Go side does.
   return cutToBytes(out, CATEGORY_ID_MAX_BYTES).replace(/-+$/, '');
 }
 
 /**
- * The key this row will be stored under: its own if it has one, otherwise the
- * one the name will produce on save.
- *
- * A typed key is folded too. The server stores what CategoryID returns, so
- * "Serien" and "serien" are one drawer and not two - and two rows that fold
- * together are REFUSED at save rather than merged, which is why this is checked
- * before the save bar rather than reported by it.
+ * keyOf is the key a row will be stored under, folded like CategoryID, so
+ * "Serien" and "serien" count as one drawer. The server refuses such a pair.
  */
 const keyOf = (c: Category): string => (c.id.trim() !== '' ? categoryID(c.id) : categoryID(c.name ?? ''));
 
-// A server value is looked up rather than switched on, and a policy with no
-// string of its own falls back to its raw id: a word a later build adds shows up
-// in the strip under its own name instead of as a blank segment. The three ids
-// are the archive page's ids and the same three words, so they share its strings
-// - one idea, one string.
+// Labels shared with the archive page; an id without one shows raw.
 const COLLISION_LABEL: Partial<Record<string, TranslationKey>> = {
   overwrite: 'settings.archives.collision.overwrite',
   rename: 'settings.archives.collision.rename',
@@ -158,37 +92,22 @@ const COLLISION_LABEL: Partial<Record<string, TranslationKey>> = {
 };
 
 /**
- * The segment that writes "no opinion".
- *
- * The leading space is the point: this id has to be one no server-sent id can
- * ever equal, and neither a collision policy nor a priority step can carry a
- * space. A plain "inherit" would be a word the server is free to start sending
- * one day, and the two would then be one segment meaning two things - which is
- * the very distinction this control exists to keep. It is a control value only:
- * what absent SENDS is an absent field, or the empty string for the collision
- * rule, and neither ever leaves this file wearing this id.
+ * The segment id for "no opinion". The leading space keeps it apart from any
+ * id the server may send; it never leaves this file.
  */
 const INHERIT = ' inherit';
 
-// React keys for the rows.
-//
-// Not `id`: a fresh row's id is empty BY DESIGN, so two new rows would share the
-// key "" and React would treat one as the other. Not the array index either:
-// removing row 2 hands row 3's values to the element that was row 2, and a text
-// box under the cursor would keep focus while its contents changed underneath.
+// React keys for the rows: a new row's id is empty and array indexes shift on
+// removal.
 let uidSeq = 0;
 const nextUid = () => `cat-${(uidSeq += 1)}`;
 
-/** A new row. The id is empty on purpose - see the file's own note. */
+/** A new row; the server derives its id on save. */
 const emptyCategory = (): Category => ({ id: '' });
 
 /**
- * The priority ladder, as tab items, highest first.
- *
- * From priorityChoices() - the shared, memoised fetch - and never a list written
- * out here: a ladder typed into a page is how the app once offered five steps
- * against the server's seven. The strip stays empty until it answers rather than
- * offering a guess, and the row summary then falls back to the bare number.
+ * usePriorityTabs builds the priority ladder from priorityChoices(), highest
+ * first, and stays empty until the server answers.
  */
 function usePriorityTabs(): { id: string; label: string }[] {
   const { t } = useT();
@@ -214,30 +133,9 @@ function usePriorityTabs(): { id: string; label: string }[] {
 }
 
 /**
- * The menus and the ceiling come from GET /api/options.
- *
- * maxCategories is served for the same reason collisionPolicies is: a 64 typed
- * into this file is a second copy of settings.MaxCategories, and the copy is the
- * one that goes stale in silence. It matters because the sanitiser keeps the
- * first N rows IN ORDER and drops the rest without a word - so an Add button
- * that stayed enabled past the limit would let somebody write rows that vanish
- * on save.
- */
-/**
- * The stored addresses a drawer can call once a package filed in it has
- * finished.
- *
- * FETCHED HERE AND NOT READ OFF THE DRAFT, although settings.mediaHooks carries
- * the same rows. The card that stores them (Downloads page) writes through its
- * own route rather than through the shared draft, because half of what it saves
- * is a sealed credential - so the draft this shell loaded at mount does not know
- * about an address stored a minute ago, and a picker built from it would leave
- * somebody unable to select the address they had just created until they
- * reloaded the page.
- *
- * An empty list is not an error: it is the state every install is in until
- * somebody stores one, and the row below says so in words rather than offering
- * an empty menu.
+ * useMediaHooks fetches the stored media hooks rather than reading the draft,
+ * since they save through their own route and one stored a minute ago would be
+ * missing from the draft.
  */
 function useMediaHooks(): MediaHook[] {
   const [hooks, setHooks] = useState<MediaHook[]>([]);
@@ -248,7 +146,7 @@ function useMediaHooks(): MediaHook[] {
         if (live) setHooks(list);
       },
       () => {
-        /* No picker rather than a guessed one - see the note above. */
+        /* No picker rather than a guessed one. */
       },
     );
     return () => {
@@ -258,6 +156,10 @@ function useMediaHooks(): MediaHook[] {
   return hooks;
 }
 
+/**
+ * useCategoryOptions loads the menus and maxCategories from GET /api/options.
+ * The sanitiser drops rows past that ceiling on save, so Add stops there.
+ */
 function useCategoryOptions(): ApiOptions | null {
   const [options, setOptions] = useState<ApiOptions | null>(null);
   useEffect(() => {
@@ -265,7 +167,7 @@ function useCategoryOptions(): ApiOptions | null {
     fetchOptions().then(
       (o) => live && setOptions(o),
       () => {
-        /* nothing here is guessed: see the two call sites below */
+        /* Nothing is guessed; see the two call sites below. */
       },
     );
     return () => {
@@ -283,29 +185,20 @@ export function Categories() {
   const hooks = useMediaHooks();
 
   const [openRow, setOpenRow] = useState(-1);
-  // A row nobody has named yet lives HERE and not in the shared draft. See
-  // writePending below for why, and HostRules.tsx for the same arrangement made
-  // for the same reason on the page next door.
+  // A row without a name waits here rather than in the draft (see writePending).
   const [pending, setPending] = useState<Category | null>(null);
 
-  // Through a fallback: the server always sends the key (no omitempty, on
-  // purpose), but an older one predates the field entirely and this page must
-  // draw an empty table rather than throw and take the whole settings shell
-  // down with it.
+  // An older server does not send the field.
   const cats = cfg.categories ?? [];
 
   const [uids, setUids] = useState<string[]>(() => cats.map(() => nextUid()));
-  // The draft can change length without this page doing it: the save bar reloads
-  // the document and the advanced key table can replace it wholesale. Adjusted
-  // during render rather than in an effect, so the keys and the rows are never
-  // out of step in a painted frame.
+  // The draft can change length elsewhere, so the keys are adjusted during
+  // render to stay in step with the rows.
   if (uids.length !== cats.length) {
     setUids(cats.map((_, i) => uids[i] ?? nextUid()));
   }
 
-  // The whole page writes through this one call. Never mutate a row and never
-  // rebuild cfg: the draft is a subset of a document the server owns, and one
-  // save carries this page's edits together with every other page's.
+  // Every write goes through here and spreads cfg.
   const write = (next: Category[], nextUids: string[]) => {
     patch({ categories: next });
     setUids(nextUids);
@@ -321,18 +214,13 @@ export function Categories() {
     [next[index], next[to]] = [next[to], next[index]];
     [ids[index], ids[to]] = [ids[to], ids[index]];
     write(next, ids);
-    // The open editor follows the row it belongs to. Left alone, it would go on
-    // writing into whatever row now sits at that index - the order is not
-    // cosmetic here, it is the order a picker offers and the order the sanitiser
-    // keeps a duplicate from.
+    // The open editor follows its row; the order is what pickers offer.
     if (openRow === index) setOpenRow(to);
     else if (openRow === to) setOpenRow(index);
   };
 
   const removeAt = (index: number) => {
-    // Safe for downloads already filed here: the dead key is deliberately KEPT
-    // on the task, those downloads behave like untagged ones, and they come back
-    // the day a category with that key exists again.
+    // Tasks keep the dead key and behave as untagged until it exists again.
     write(
       cats.filter((_, i) => i !== index),
       uids.filter((_, i) => i !== index),
@@ -341,8 +229,7 @@ export function Categories() {
   };
 
   const add = () => {
-    // A second press while one unnamed row is still waiting would stack a
-    // second one that also cannot be stored. Open the one already there.
+    // A nameless row already waiting is opened instead of adding another.
     if (pending) {
       setOpenRow(cats.length);
       return;
@@ -352,18 +239,9 @@ export function Categories() {
   };
 
   /**
-   * The waiting row's own writer, and the moment it stops waiting.
-   *
-   * A category with neither an id nor a name is refused by the server for the
-   * whole document ("nothing could ever be filed in it"), and this shell saves
-   * 600ms after every edit. So a brand-new empty row written straight into the
-   * shared draft turns a press of Add into a red refusal about a row nobody has
-   * finished typing - and it takes every OTHER page's pending edit down with
-   * it, because one document is saved for all of them.
-   *
-   * It joins the real list at exactly the moment it gains an identity, which is
-   * the same moment the server would accept it. Promoting on that condition and
-   * not on blur is deliberate: blur is a gesture somebody can skip.
+   * writePending edits the waiting row and moves it into the draft once it has
+   * an id or a name. The server refuses the whole document over a row with
+   * neither, and the autosave would fire while it is typed.
    */
   const writePending = (next: Category) => {
     if (keyOf(next) === '') {
@@ -375,9 +253,7 @@ export function Categories() {
     setOpenRow(cats.length);
   };
 
-  // Both sides folded the way CategoryID folds them, and BOTH rows marked: the
-  // server refuses the whole document over a repeat rather than merging the two,
-  // so the answer has to be on screen before the save bar is pressed.
+  // Both rows of a repeated key are marked, since the save would be refused.
   const duplicates = new Set<number>();
   const firstSeen = new Map<string, number>();
   cats.forEach((c, i) => {
@@ -391,9 +267,7 @@ export function Categories() {
     }
   });
 
-  // Unknown until the options answer, and an unknown ceiling must not block the
-  // one button that gets anybody out of the empty state. An older server that
-  // does not serve the number is the same case.
+  // An unknown ceiling must not block Add.
   const max = options?.maxCategories ?? 0;
   const full = max > 0 && cats.length >= max;
 
@@ -411,15 +285,11 @@ export function Categories() {
           {t('settings.categories.listTitle')}
         </SectionTitle>
 
-        {/* A fact about the table, in the shape Connections.tsx's StateLine
-            uses. Not an explanation - those live behind the (i) on the title -
-            and drawn only at the ceiling, where the disabled button on its own
-            would read as a fault. */}
+        {/* Shown at the ceiling, where the disabled Add would read as a fault. */}
         {full && <p className="text-xs text-carbon-textMuted">{t('settings.categories.full', { max })}</p>}
 
         {cats.length === 0 && !pending ? (
-          // Inside the card, not instead of it: Add is the way out of this state,
-          // and swapping the card for an EmptyState would take it off the page.
+          // Inside the card rather than an EmptyState, which would hide Add.
           <p className="py-6 text-center text-sm text-carbon-textSub">
             {t('settings.categories.empty')}
             <span className="mt-1 block text-[11px] text-carbon-textMuted">
@@ -445,9 +315,7 @@ export function Categories() {
                 onRemove={() => removeAt(i)}
               />
             ))}
-            {/* Always last, and deliberately not movable: it has no place in
-                the order until it has a name, and the order is what a picker
-                offers. */}
+            {/* Last and not movable until it has a name. */}
             {pending && (
               <CategoryRow
                 key="pending"
@@ -476,12 +344,8 @@ export function Categories() {
 }
 
 /**
- * What this drawer actually sets, in one line under its name, so a table of
- * twenty can be read without opening each one.
- *
- * Only what has an opinion appears. A field left empty is not "off", it is the
- * category declining to answer, and printing "Priority: none" for it would say
- * the opposite of what the row does.
+ * summarise lists what a drawer sets, in one line under its name. Fields
+ * without an opinion are left out.
  */
 function summarise(
   t: (key: TranslationKey, vars?: Record<string, string | number>) => string,
@@ -498,8 +362,7 @@ function summarise(
   if (cat.extract !== undefined) {
     parts.push(`${t('props.autoExtract')}: ${cat.extract ? t('props.on') : t('props.off')}`);
   }
-  // fmtSpeed answers '' at 0, which is exactly the "no opinion" case this line
-  // must stay silent about.
+  // fmtSpeed returns '' at 0, the "no opinion" case.
   if (cat.speedLimit) parts.push(fmtSpeed(cat.speedLimit));
   const collision = cat.collision?.trim();
   if (collision) {
@@ -543,12 +406,8 @@ function CategoryRow({
   const title = name || cat.id.trim() || derived;
 
   /**
-   * An absent value is not the same value as a zero or a false one, which is
-   * the whole reason the Go fields are pointers: 0 is the MIDDLE priority and
-   * false is a drawer that deliberately keeps archives packed. So "no opinion"
-   * deletes the key rather than writing undefined into it - the two serialise
-   * the same, but only one of them is still absent to anything that reads the
-   * object before it is sent.
+   * "No opinion" deletes the key, since 0 is the middle priority and false a
+   * deliberate choice; the Go fields are pointers.
    */
   const setPriority = (p: number | undefined) => {
     const next = { ...cat };
@@ -581,10 +440,7 @@ function CategoryRow({
           <span className="glim-num w-5 shrink-0 text-xs text-carbon-textMuted">{index + 1}</span>
           <span className="min-w-0 flex-1">
             <span className="block truncate text-sm text-carbon-text">
-              {/* A row that has neither a name nor a key yet stands under the
-                  name of the thing it is missing, drawn in the muted ink a
-                  placeholder is drawn in. It is the row somebody has just added
-                  and is already editing, not a row in a bad state. */}
+              {/* A new row stands under the muted name placeholder. */}
               {title || <span className="text-carbon-textMuted">{t('settings.categories.name')}</span>}
             </span>
             <span className="block truncate text-[11px] text-carbon-textMuted">
@@ -592,12 +448,8 @@ function CategoryRow({
             </span>
           </span>
         </button>
-        {/* `labelled` on all three, and 16px of glyph in the 32px tile: a row
-            action stands in the Beschriftung setting like everything else, and
-            the square is what that setting resolves to in glyph mode rather
-            than a control that ignores it. The words fit because the name and
-            summary beside them are `min-w-0` and truncate - this is a card row,
-            not a table column with a width to defend. */}
+        {/* `labelled`, so the actions follow the Beschriftung setting; the name
+            and summary truncate instead. */}
         <div className="flex items-center gap-1.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
           <IconBadge
             labelled
@@ -628,10 +480,7 @@ function CategoryRow({
         </div>
       </div>
 
-      {/* Drawn on the row whether or not it is open, because a save refused over
-          a repeated key is refused for the WHOLE document, including edits made
-          on other pages in the same draft - so it has to be findable in a list of
-          twenty without opening each one. */}
+      {/* Shown on a closed row too, since a repeated key blocks the whole save. */}
       {duplicate && !open && (
         <p className="pb-2.5 ps-8 text-xs text-statusWarn">{t('settings.categories.duplicate')}</p>
       )}
@@ -644,11 +493,7 @@ function CategoryRow({
             <Field label={t('settings.categories.name')} hint={t('settings.categories.nameHint')}>
               <TextInput value={cat.name ?? ''} onChange={(e) => onChange({ ...cat, name: e.target.value })} />
             </Field>
-            {/* The placeholder is the preview: an empty box on a new row is
-                CORRECT, and this is where what will be stored becomes visible
-                without this page ever writing it into the draft. dir="ltr" for
-                the same reason a path is: a key is read left to right whatever
-                the interface language does. */}
+            {/* The placeholder previews the derived key. */}
             <Field label={t('settings.categories.id')} hint={t('settings.categories.idHint')}>
               <TextInput
                 dir="ltr"
@@ -660,11 +505,8 @@ function CategoryRow({
             </Field>
           </div>
 
-          {/* The shared chooser and not a bare box: it browses the SERVER, which
-              is the only machine that knows what is mounted where, and picking a
-              folder replaces only the fixed part so a <jd:...> tail survives.
-              `title` because the dialog would otherwise be headed "Download
-              folder", which is the one folder this field is NOT. */}
+          {/* The shared chooser browses the server and keeps a <jd:...> tail.
+              `title`, or the dialog would read "Download folder". */}
           <Field
             label={t('settings.categories.dir')}
             hint={`${t('settings.categories.dirHint')} ${t('settings.pathVars')}`}
@@ -676,23 +518,12 @@ function CategoryRow({
             />
           </Field>
 
-          {/* FieldGroup and not Field for both strips: a Field is a <label>, and
-              a label hands a click on its caption to the first control inside it
-              - so reading the word "Priority" would set a priority. */}
+          {/* FieldGroup, because a Field's label would pass a click on the
+              caption to the first tab. */}
           <div className="grid gap-4 sm:grid-cols-2">
             <FieldGroup label={t('props.priority')} hint={t('settings.categories.priorityHint')}>
-              {/* No `overflow-x-auto` wrapper round any of the three strips on
-                  this row any more. The strip itself already wraps, and a hull
-                  that restores a horizontal scrollbar the moment the track is
-                  wider than the card puts back the exact gesture the language
-                  rules out - one level outside the component, where it looks
-                  like layout rather than like the thing it is. It grows in
-                  height now, which is what wrapping means. */}
-              {/* Eight segments and not seven: the ladder the server serves,
-                  plus the one that means no opinion. The range is the queue's
-                  own -3..3 and the strip offers nothing outside it, because
-                  ValidateCategories REFUSES an out-of-range priority before
-                  the clamp is ever reached. */}
+              {/* The server's ladder plus "no opinion"; ValidateCategories
+                  refuses anything outside -3..3. */}
               <Tabs
                 variant="well"
                 size="sm"
@@ -701,13 +532,7 @@ function CategoryRow({
                 active={cat.priority === undefined ? INHERIT : String(cat.priority)}
                 onSelect={(id) => setPriority(id === INHERIT ? undefined : Number(id))}
                 items={[
-                  // Its OWN word and not props.inherit, which the two strips
-                  // below still use: this field's hint argues at length about
-                  // the difference between "no opinion" and "default", naming
-                  // both in quotes, and a segment reading "Inherit" made the
-                  // explanation point at a word that was not on the screen.
-                  // Extract and collision carry no such sentence, so "Inherit"
-                  // still matches what their own hints say.
+                  // Its own word, which the field's hint quotes.
                   { id: INHERIT, label: t('settings.categories.priorityNone') },
                   ...priorities,
                 ]}
@@ -715,9 +540,8 @@ function CategoryRow({
             </FieldGroup>
 
             <FieldGroup label={t('props.autoExtract')} hint={t('settings.categories.extractHint')}>
-              {/* Three segments and never a toggle: a two-state switch cannot
-                  tell "no opinion" from "deliberately packed", and the second
-                  one has to survive a global setting that says unpack. */}
+              {/* Three segments, since a switch cannot tell "no opinion" from
+                  "keep packed". */}
               <Tabs
                 variant="well"
                 size="sm"
@@ -735,10 +559,7 @@ function CategoryRow({
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            {/* Bytes per second in the document, KiB on screen, the same
-                arithmetic the instance-wide limit uses. No upper bound, because
-                the Go side has none; 0 is not "off" here, it is this category
-                declining to answer, and the label says so. */}
+            {/* Bytes per second stored, KiB shown; 0 means no opinion. */}
             <Field label={t('settings.categories.speedLimit')} hint={t('settings.categories.speedLimitHint')}>
               <NumberInput
                 value={Math.round((cat.speedLimit ?? 0) / 1024)}
@@ -748,12 +569,8 @@ function CategoryRow({
               />
             </Field>
 
-            {/* Built from the list the server sends, never from one written out
-                here: it already withholds "ask me" (nobody would be there to
-                answer, and the download would sit in the queue for ever), and
-                normalizeCategoryCollision folds a word it does not know to
-                empty rather than to a policy - so a strip built from that list
-                can never trip the refusal. */}
+            {/* The server's list, which withholds "ask me", since nobody would
+                be there to answer. */}
             {collisions.length > 0 && (
               <FieldGroup label={t('settings.categories.collision')} hint={t('settings.categories.collisionHint')}>
                 <Tabs
@@ -775,20 +592,11 @@ function CategoryRow({
             )}
           </div>
 
-          {/* The one field on this row that reaches outside the download
-              folder: which stored address is called once a package filed here
-              has finished AND its files have been moved into place. It is a
-              REFERENCE by id, like everything else on a drawer, so an address
-              edited on the Downloads page reaches every drawer pointing at it.
-
-              A <select> and not a tab strip: the list is as long as somebody's
-              media servers, it is the only control on this row whose entries
-              come from another page, and a strip of five would wrap. */}
+          {/* The media hook called once a package filed here is in place, by
+              id. A select, since the list comes from another page. */}
           <FieldGroup label={t('settings.categories.notify')} hint={t('settings.categories.notifyHint')}>
             {hooks.length === 0 && !cat.notify ? (
-              // A fact and a way out, not an empty menu. An empty <select>
-              // would look like a control that is broken rather than one with
-              // nothing to offer yet.
+              // A sentence instead of an empty select.
               <p className="text-xs text-carbon-textSub">{t('settings.categories.notifyEmpty')}</p>
             ) : (
               <NotifySelect
@@ -799,9 +607,7 @@ function CategoryRow({
                 noneLabel={t('settings.categories.notifyNone')}
                 onChange={(next) => {
                   const patched = { ...cat };
-                  // Absent and never '': an empty string is a real value the
-                  // server would have to weigh, and ValidateMediaHooks would
-                  // refuse a drawer for calling an address named "".
+                  // Absent rather than '', which ValidateMediaHooks would refuse.
                   if (next === '') delete patched.notify;
                   else patched.notify = next;
                   onChange(patched);
@@ -816,37 +622,21 @@ function CategoryRow({
 }
 
 /**
- * wheelSteps is the wheel clause on a native <select>: a CLOSED select steps
- * one option per notch and fires a real `change`, without the platform's own
- * list opening at all. The platform only wires the wheel up once that list is
- * already open, which costs a click on a value somebody reaches for
- * constantly - and a drawer's address is such a value.
- *
- * Clamped at both ends instead of wrapping: one notch too many must not land a
- * value from the other end of the list.
- *
- * A ref callback with its own cleanup (React 19) and `{ passive: false }`,
- * never onWheel: React registers onWheel passive at its root, so preventDefault
- * inside such a handler does nothing but log a warning, and the page would
- * scroll away under the pointer while the value changed.
- *
- * Word for word the same listener as in components/SearchField.tsx,
- * components/QueueBar.tsx and components/RuleEditor.tsx. This app's home for it
- * would be lib/selectScroll.ts, which does not exist yet.
+ * wheelSteps lets a closed <select> step one option per wheel notch, clamped
+ * at both ends, and fires a real `change`. It attaches a non-passive listener
+ * because React's onWheel is passive. The same listener lives in SearchField,
+ * QueueBar and RuleEditor.
  */
 function wheelSteps(el: HTMLSelectElement | null) {
   if (!el) return;
   const onWheel = (e: WheelEvent) => {
-    // A horizontal wheel says nothing about this control, and a trackpad
-    // reports fractional deltas - so read the sign of deltaY and nothing else.
+    // Only the sign of deltaY counts; trackpads report fractions.
     if (el.disabled || el.options.length < 2 || e.deltaY === 0) return;
-    // This handler IS the scroll while the pointer sits on the control.
     e.preventDefault();
     const next = Math.min(el.options.length - 1, Math.max(0, el.selectedIndex + (e.deltaY > 0 ? 1 : -1)));
     if (next === el.selectedIndex) return;
     el.selectedIndex = next;
-    // A real change event rather than a state write, so the onChange already on
-    // the element picks this up exactly as it would a click on an <option>.
+    // A real change event, so the element's onChange handles it like a click.
     el.dispatchEvent(new Event('change', { bubbles: true }));
   };
   el.addEventListener('wheel', onWheel, { passive: false });
@@ -854,16 +644,9 @@ function wheelSteps(el: HTMLSelectElement | null) {
 }
 
 /**
- * The drawer's own address picker.
- *
- * The one thing it has to get right is an id THIS TABLE NO LONGER HOLDS: a
- * drawer written before an address was deleted, or a settings.json carried over
- * from another instance. A <select> whose value is not among its options renders
- * the FIRST option, so leaving that id out would show the drawer as calling some
- * other address and then rewrite it to that address the next time anything on
- * the form changed, without anybody touching this box. The same trap
- * RuleEditor's category picker documents, solved the same way: the dead id is
- * offered, marked as deleted.
+ * NotifySelect lists a hook id missing from `hooks` as a deleted entry, since a
+ * select whose value it does not carry shows the first one and stores it on the
+ * next change.
  */
 function NotifySelect({
   value,
@@ -887,9 +670,7 @@ function NotifySelect({
       : known;
   return (
     <select
-      // aria-label and not a wrapping <label>: FieldGroup is a plain div for
-      // exactly this reason, and naming the control twice would announce the
-      // caption twice.
+      // aria-label, since FieldGroup is a plain div and already shows the caption.
       aria-label={label}
       value={value}
       dir="ltr"

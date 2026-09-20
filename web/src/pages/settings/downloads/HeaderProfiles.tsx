@@ -11,49 +11,18 @@ import {
   type HeaderProfileLine,
 } from '../../../lib/api';
 
-/**
- * A person's own request headers for one site: the cookie from a signed-in
- * browser session, the Referer a forum insists on, the Basic auth a seedbox
- * sits behind.
- *
- * Four things about this card are decisions rather than layout.
- *
- * THE VALUES NEVER COME BACK. A profile is sealed in the credential store, and
- * the listing route answers its origin and the header NAMES it holds, nothing
- * else. That is deliberate and it is why this feature could not be reached from
- * anywhere for weeks: sealing it was the easy half.
- *
- * WHICH MAKES THE EDITING FORM THE DANGEROUS PART, and the reason for the
- * shape below. An empty value means "clear this header", here as it does for
- * every other secret in this app. So a form that opened a stored profile, drew
- * empty boxes for its headers and sent back what it was given would DELETE the
- * headers it was opened to edit. This card makes that impossible by
- * construction rather than by remembering: opening a stored profile fills every
- * line with REDACTED_HEADER, which the server reads as "keep what is stored",
- * and the only way to get an empty value into a line is to clear it by hand.
- * There is no code path that produces an empty value the user did not type.
- *
- * IT DOES NOT RIDE THE SETTINGS DRAFT. Profiles live behind their own routes
- * and never touch settings.json, precisely so a header value cannot land in the
- * diagnostics bundle. So this card fetches on mount and writes immediately,
- * like the account cards, and the shared Save bar knows nothing about it.
- *
- * THE ORIGIN IS THE MATCH AND THE ID IS THE NAME. Two different strings doing
- * two different jobs: a download is matched by its origin, and a Packagizer
- * rule addresses the profile by its id. An origin is scheme, host and port
- * together, so http and https are two sites, a different port is a third, and a
- * sub-domain is not covered by its parent. The hint says all of that, because
- * the alternative is somebody storing a working cookie under an origin nothing
- * ever matches and concluding the feature is broken.
- */
+// Header profiles hold a person's own request headers for one site, such as a
+// session cookie, a Referer or Basic auth. The values are sealed and never come
+// back, so a stored profile opens with REDACTED_HEADER in every line, which the
+// server reads as "keep", while an empty value clears the header. Profiles have
+// their own routes, outside settings.json and the draft. A download matches a
+// profile by origin (scheme, host and port); a Packagizer rule names it by id.
 
-/** One line in the editor. `stored` marks a value that came from the server as
- *  a placeholder, so the form can tell "kept" apart from "typed". */
+/** An editor line; `stored` marks a placeholder from the server, kept rather than typed. */
 interface Line extends HeaderProfileLine {
   stored: boolean;
 }
 
-/** The row currently being edited, stored or brand new. */
 interface Draft {
   /** Empty for a profile that does not exist yet. */
   original: string;
@@ -67,8 +36,7 @@ function draftFor(p: HeaderProfile): Draft {
     original: p.id,
     id: p.id,
     origin: p.origin,
-    // REDACTED_HEADER and never '': this single line is the whole of the
-    // promise in the doc comment above.
+    // Never '', which would clear the stored header.
     lines: p.headers.map((name) => ({ name, value: REDACTED_HEADER, stored: true })),
   };
 }
@@ -79,10 +47,7 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
   const [draft, setDraft] = useState<Draft | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  /** The profile whose removal is being confirmed, or null. A real window and
-   *  never window.confirm: a native dialog cannot be styled, speaks the
-   *  browser's language rather than the one picked in this app's own picker,
-   *  and blocks the whole tab for as long as it stands. */
+  // The profile whose removal is being confirmed.
   const [confirming, setConfirming] = useState<HeaderProfile | null>(null);
 
   useEffect(() => {
@@ -92,8 +57,7 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
         if (alive) setProfiles(list);
       },
       () => {
-        /* An empty table rather than a claim that nothing is stored: the Add
-           button still works and a save answers with the real listing. */
+        /* Add still works, and a save answers with the real listing. */
       },
     );
     return () => {
@@ -110,8 +74,7 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
       else setProfiles(await fetchHeaderProfiles());
       setDraft(null);
     } catch (e) {
-      // The server's own sentence. It already names the field and says what to
-      // send, and a key of ours here would be a vaguer second copy of it.
+      // The server's sentence names the field and what to send.
       setError(String(e).replace(/^(Error|ApiError):\s*/, ''));
     } finally {
       setBusy(false);
@@ -128,10 +91,8 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
     void run(() =>
       saveHeaderProfile(
         draft.origin.trim(),
-        // The `stored` flag is dropped on the way out: the server only ever
-        // sees a name and a value, and the placeholder IS the "keep it"
-        // instruction. A line whose name was emptied is left out entirely
-        // rather than sent as a nameless header.
+        // The placeholder itself tells the server to keep a value; a line
+        // without a name is left out.
         draft.lines.filter((l) => l.name.trim() !== '').map(({ name, value }) => ({ name: name.trim(), value })),
         draft.id.trim(),
       ),
@@ -157,8 +118,7 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
       </SectionTitle>
 
       {profiles.length === 0 && !draft ? (
-        // Inside the card, not instead of it: Add is the way out of this state
-        // and an EmptyState would take the button off the page with it.
+        // Inside the card rather than an EmptyState, which would hide Add.
         <p className="py-6 text-center text-sm text-carbon-textSub">
           {t('settings.headerProfiles.empty')}
           <span className="mt-1 block text-[11px] text-carbon-textMuted">
@@ -189,10 +149,7 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
                 </span>
               </button>
               <IconBadge
-                // 16 in a 32px badge: a glyph alone in a square is half its box
-                // (GlimStone rule 13), not the smaller drawing a glyph beside
-                // text would be. 14 filled 44% of the tile and made the row read
-                // as uneven against every badge that already had this right.
+                // A lone glyph takes half its 32px badge.
                 icon={<IconTrash width={16} height={16} />}
                 hue={i}
                 title={t('settings.headerProfiles.delete')}
@@ -200,9 +157,7 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
                 disabled={busy}
                 className="opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
                 onClick={() => {
-                  // Confirmed, because it removes a signed-in session from this
-                  // machine and there is nothing to undo it with: the value was
-                  // never on this page to put back.
+                  // Confirmed, since the value cannot be put back.
                   setConfirming(p);
                 }}
               />
@@ -220,9 +175,7 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
                 spellCheck={false}
                 value={draft.id}
                 placeholder={t('settings.headerProfiles.namePlaceholder')}
-                // Read only once stored: the id is how a Packagizer rule
-                // addresses this profile, so renaming it here would leave every
-                // rule pointing at a profile that no longer answers, silently.
+                // Read only once stored, since Packagizer rules refer to the id.
                 readOnly={draft.original !== ''}
                 className={draft.original !== '' ? 'cursor-default opacity-70' : ''}
                 onChange={(e) => setDraft({ ...draft, id: e.target.value })}
@@ -258,16 +211,11 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
                     dir="ltr"
                     spellCheck={false}
                     value={line.value}
-                    // The moment somebody types, the line stops being "kept" and
-                    // becomes a real value. Without this the placeholder would
-                    // go back as a literal header value the first time anybody
-                    // corrected a typo in it.
+                    // Typing turns a kept line into a real value.
                     onChange={(e) => patchLine(i, { value: e.target.value, stored: false })}
                   />
                 </Field>
                 <IconBadge
-                  // Half the box, like every other square badge - see the one
-                  // on the list row above.
                   icon={<IconTrash width={16} height={16} />}
                   hue={i}
                   title={t('settings.headerProfiles.removeHeader')}
@@ -278,10 +226,6 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
             ))}
             <Button
               className="w-fit"
-              // 16, the size every other button glyph in this app carries and
-              // the one the Add button at the top of this very card already
-              // used - one symbol at two sizes on one screen is the complaint
-              // GlimStone's own sizing rules were written against.
               icon={<IconPlus width={16} height={16} />}
               onClick={() => setDraft({ ...draft, lines: [...draft.lines, { name: '', value: '', stored: false }] })}
             >
@@ -289,18 +233,8 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
             </Button>
           </div>
 
-          {/* Cancel first, Save last, and the pair really is at the END of the
-              row (GlimStone 1.14.0). The order alone was never the whole rule:
-              in a left-aligned row the advancing button sits in the middle of
-              the well with empty space to its right, which is the position that
-              is supposed to MEAN "this one goes ahead". The spacer is the first
-              child, and the failure message goes in front of the pair rather
-              than after it, so nothing stands to the right of Save.
-
-              Ordered by the JSX itself and never by flex-row-reverse or an
-              order-* utility, so the pair mirrors with the page under the
-              right-to-left languages this app ships - "right" means end, not
-              the right of the glass. */}
+          {/* The spacer and the error come first so Save ends the row. The JSX
+              order sets it, so the row mirrors in right-to-left languages. */}
           <div className="flex items-center gap-3">
             <span className="flex-1" />
             {error && <p className="text-xs text-statusWarn">{error}</p>}
@@ -317,12 +251,6 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
         </div>
       )}
 
-      {/* The stakes in words, in a real window (GlimStone rule 15): which
-          profile, which origin, and that the headers it holds are gone. Cancel
-          and the commit button look alike and neither is red - what warns is
-          the sentence above them, and a colour cannot say more than that. The
-          pair travels together at the end of the row, ordered by the JSX so it
-          mirrors under right-to-left. */}
       {confirming && (
         <Modal
           title={t('settings.headerProfiles.delete')}
@@ -358,21 +286,11 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
   );
 }
 
-/**
- * The origin a profile matches, with the whole string on its bubble.
- *
- * Its own component only because the bubble is a hook, and a hook cannot be
- * called from inside the list's map. The house bubble and never a native
- * `title=`: one control, one tooltip mechanism, and the operating system's own
- * balloon draws in the OS font, at the pointer instead of at the trigger, and
- * is untouched by every rule this one follows.
- */
+/** OriginLine is its own component because the tooltip is a hook. */
 function OriginLine({ origin }: { origin: string }) {
   const tip = useTooltip<HTMLSpanElement>(origin);
-  // role and tabIndex come off for the reason ui.tsx's Button gives at its own
-  // copy of this line: this span sits INSIDE the row's edit button, and a
-  // second tab stop with a "note" role there would be a control inside a
-  // control.
+  // The span sits inside the row's edit button, so it takes no role and no
+  // tab stop of its own.
   const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
   return (
     <>

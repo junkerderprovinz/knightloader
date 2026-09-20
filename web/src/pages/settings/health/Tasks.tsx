@@ -4,29 +4,10 @@ import { breakdownLabel } from '../../../lib/useHealthReport';
 import type { HealthReport } from '../../../lib/api';
 
 /**
- * The download list as it stands, split by why things are not moving.
- *
- * THREE FIGURES AND TWO BREAKDOWNS, and the breakdowns are the point. "16
- * waiting" is a number somebody already has on the Downloads page; "12 of them
- * waiting for disk space" is the answer to why, and it is the one thing no
- * other surface in the app puts in one place.
- *
- * THE LABELS COME FROM THE CATALOGUE THE TASK LIST ALREADY USES. The server
- * sends core.Waiting and core.Reason ids, which every row in the download list
- * is already labelled from (task.waiting.*, task.reason.*, present in all 42
- * locales) - so this card needed no new per-reason strings at all, and a
- * reason renamed in one place is renamed in both. Looked up through
- * breakdownLabel rather than switched on, so an id a newer server has learnt
- * shows as itself rather than as a blank.
- *
- * ONE SectionTitle, and the two sub-headings below are deliberately not
- * SectionTitles: a second one in the same Card lands on top of the first (the
- * badge is absolutely positioned against the card, see ui.tsx) and paints it
- * out entirely.
- *
- * NO DISK CARD HERE. Room on the target folders already has a finished card on
- * the Downloads page, and two cards answering "how much room is left" is two
- * answers that can disagree - so this points at the one that exists.
+ * TasksCard counts the download list and breaks the waiting and failed tasks
+ * down by reason, labelled with the task list's own task.waiting.* and
+ * task.reason.* keys. The sub-headings are not SectionTitles because a second
+ * one in the same Card paints over the first.
  */
 export function TasksCard({ hue, report }: { hue: number; report: HealthReport }) {
   const { t } = useT();
@@ -60,15 +41,7 @@ export function TasksCard({ hue, report }: { hue: number; report: HealthReport }
   );
 }
 
-/**
- * One of the three headline figures.
- *
- * Its own component rather than Reading next door only because these three are
- * drawn larger - they are the numbers somebody glances at. `data-glim-label` is
- * carried for the same reason Reading carries it: these three captions are in
- * the settings search index, and a result that resolves to a caption with no
- * property to find lands on the card instead of on the row.
- */
+/** Count is a larger Reading; data-glim-label lets the settings search land on it. */
 function Count({ label, n }: { label: string; n: number }) {
   return (
     <div className="flex flex-col gap-1">
@@ -83,14 +56,8 @@ function Count({ label, n }: { label: string; n: number }) {
 }
 
 /**
- * One breakdown map as a list, largest first.
- *
- * Sorted here rather than trusted from the wire: the server writes it as a JSON
- * object and object key order is not something to build a reading order on. Ties
- * fall back to the id so that two renders of an unchanged queue do not shuffle.
- *
- * An empty map gets a sentence rather than an empty box, because "nothing is
- * being held back" is a real answer and a blank space is not.
+ * Breakdown lists one map largest first. Ties sort by id so an unchanged queue
+ * keeps its order, since JSON object key order means nothing.
  */
 function Breakdown({
   heading,

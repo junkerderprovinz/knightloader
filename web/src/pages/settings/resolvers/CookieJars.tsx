@@ -7,41 +7,11 @@ import { fetchYtdlpCookieHosts, removeYtdlpCookieJar } from '../../../lib/api';
 import { useDraft } from '../context';
 
 /**
- * The stored cookies.txt files, one per site, and the switch that arms them.
- *
- * THREE PROPERTIES THIS CARD EXISTS TO KEEP, and each of them decided something
- * about the shape:
- *
- * A JAR IS NEVER SHOWN AGAIN. It is a live sign-in session, so it travels one
- * way only, into this server. That is why there is no "edit" that fills a box
- * back in, and why the list is host names and a marker word. Replacing a jar
- * means pasting the new file over it, which reads as a limitation and is the
- * feature: a page that could show a cookies.txt would be a page that hands one
- * to anybody who reaches this instance.
- *
- * THE SERVER OWNS THE KEY. It lower-cases the host, strips a leading "www." and
- * reduces a whole pasted address to its host, exactly the way every lookup keys
- * them, so what comes back can differ from what was typed. The list is
- * therefore always the server's answer and never the request: a jar typed as
- * "www.youtube.com" and drawn as typed would look stored under a name that is
- * never consulted.
- *
- * REMOVING IS NOT FREE. The server answers 404 for a host with nothing stored,
- * and that refusal is shown rather than swallowed. A green tick on a typo would
- * leave somebody believing a session is gone from this machine while it is
- * still sealed under the name they meant to type.
- *
- * THE PASTING ITSELF IS NOT IN HERE. It is CookieJarDialog, the same window a
- * failed download opens from its own "store cookies for this site" button. One
- * form, opened from the two places somebody arrives at this problem from -
- * rather than a settings form and a dialog form that agree today and drift the
- * first time either learns something. This card passes armSwitch={false},
- * because the switch for that very setting is on this card already and two
- * controls for one setting on one screen is how a page disagrees with itself.
- *
- * Everything under the switch dims while it is off. A jar stored for a feature
- * that is switched off does nothing at all, and that is a thing somebody would
- * do once and then spend an evening on.
+ * CookieJarsCard lists the stored cookies.txt files, one per site, beside the
+ * switch that lets yt-dlp use them. A jar is a live session and is never shown
+ * again, so the list holds only the host names the server keyed them under.
+ * Pasting happens in CookieJarDialog, shared with the failed-download button,
+ * with armSwitch={false} because the switch is on this card.
  */
 export function CookieJarsCard({ hue }: { hue: number }) {
   const { t } = useT();
@@ -60,8 +30,7 @@ export function CookieJarsCard({ hue }: { hue: number }) {
         if (alive) setHosts(list);
       },
       () => {
-        /* An empty table rather than a claim that nothing is stored: adding
-           still works, and a save answers with the real list. */
+        /* Adding still works, and a save answers with the real list. */
       },
     );
     return () => {
@@ -75,8 +44,7 @@ export function CookieJarsCard({ hue }: { hue: number }) {
     try {
       setHosts(await work());
     } catch (e) {
-      // The server's own sentence, which names the host and says what happened.
-      // A key of ours here would be a second, vaguer copy of it.
+      // The server's sentence names the host, including the 404 for a typo.
       setError(String(e).replace(/^(Error|ApiError):\s*/, ''));
     } finally {
       setBusy(false);
@@ -87,12 +55,8 @@ export function CookieJarsCard({ hue }: { hue: number }) {
     <Card hue={hue} className="flex flex-col gap-5">
       <SectionTitle>{t('settings.resolvers.cookiesTitle')}</SectionTitle>
 
-      {/* The one control on this card that rides the shared Save bar: it is a
-          settings field like every other one on this page. The jars themselves
-          are not - they live behind their own routes and never touch the
-          settings document, precisely so a sign-in session cannot end up in
-          something that is read back, diffed and echoed into a diagnostics
-          bundle. */}
+      {/* The switch is a settings field; the jars have their own routes so a
+          session never enters the settings document. */}
       <ToggleRow
         checked={enabled}
         onChange={(v) => patch({ ytdlp: { ...cfg.ytdlp, cookies: v } })}
@@ -100,28 +64,10 @@ export function CookieJarsCard({ hue }: { hue: number }) {
         hint={t('settings.resolvers.cookiesHint')}
       />
 
-      {/* THE JARS ARE NOT A SUB-SWITCH, AND THIS IS THE CASE GLIMSTONE 1.16.0
-          MAKES THE EXCEPTION FOR. All of this used to sit under a
-          `pointer-events-none opacity-40` wrapper while the switch above was
-          off, on the reading that everything under a mode goes when the mode
-          does. The question that decides it is whether the control still does
-          anything, and here the answer is on the server: a jar lives in the
-          accounts store, /api/ytdlp/cookies reads and writes it whatever this
-          switch says, and switching yt-dlp's use of cookies off does not delete
-          one. So a stored session stays stored, and the trash badge beside it
-          still removes it for real.
-
-          That is the worst possible control to lock away. Somebody who has just
-          decided a stored sign-in should not be on this machine any more turns
-          the feature off first - and the old wrapper made that the exact
-          gesture that took the delete out of reach, by mouse at least, since
-          `pointer-events-none` is invisible to the keyboard. Nothing here is
-          dimmed either: what says the feature is off is the switch one row up,
-          which is the row somebody has just used. */}
+      {/* The jars stay usable while the switch is off: they are stored
+          whatever it says, and removing one must stay possible. */}
       <div className="flex flex-col gap-4">
         <FieldGroup label={t('settings.resolvers.cookieJars')} hint={t('settings.resolvers.cookieJarsHint')}>
-          {/* The glim-well wrapper with a plain list inside, as the accounts
-              table does it - never a nested Card, and never a Card per row. */}
           <div className="glim-well p-0">
             {hosts.length === 0 ? (
               <p className="px-4 py-3 text-sm text-carbon-textMuted">{t('settings.resolvers.cookieEmpty')}</p>
@@ -138,22 +84,11 @@ export function CookieJarsCard({ hue }: { hue: number }) {
                       {h}
                     </span>
                     <span className="glim-eyebrow">{t('settings.resolvers.cookieStored')}</span>
-                    {/* Revealed on hover or on keyboard focus, the same
-                        treatment the host-rules and preset tables give the
-                        deletion of a per-host row, so a long list reads as
-                        content rather than as a column of buttons. The badge
-                        itself is the plain one its siblings wear: nothing that
-                        deletes is painted in a status colour, because what
-                        warns is the question, not the button. */}
                     <IconBadge
                       className="ms-auto opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
                       icon={<IconTrash width={16} height={16} />}
                       title={`${t('settings.resolvers.cookieRemove')} · ${h}`}
                       aria-label={`${t('settings.resolvers.cookieRemove')} · ${h}`}
-                      // `busy` only: a jar is stored whether yt-dlp is told to
-                      // read one or not, so removing it is an action that still
-                      // acts while the switch above is off. See the block
-                      // comment above the list.
                       disabled={busy}
                       onClick={() => void run(() => removeYtdlpCookieJar(h))}
                     />
@@ -168,9 +103,6 @@ export function CookieJarsCard({ hue }: { hue: number }) {
           <Button
             kind="secondary"
             icon={<IconPlus width={16} height={16} />}
-            // Same reasoning as the trash badge above: storing a jar is a real
-            // write to a real store, and preparing one before switching the
-            // feature on is an ordinary way round.
             disabled={busy}
             onClick={() => {
               setError('');
@@ -183,11 +115,6 @@ export function CookieJarsCard({ hue }: { hue: number }) {
         </div>
       </div>
 
-      {/* Outside the block above, where it has always been: an overlay nested
-          inside a wrapper that was once `pointer-events-none` was a window
-          nobody could type into. The wrapper is gone; the window stays out
-          here, because a floating thing belongs at the card's own level rather
-          than inside one of its rows. */}
       {adding && (
         <CookieJarDialog
           armSwitch={false}

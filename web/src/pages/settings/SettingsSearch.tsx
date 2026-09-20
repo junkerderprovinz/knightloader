@@ -1,22 +1,8 @@
-// One box over all of Settings.
-//
-// It searches the section names, the card titles, the caption beside every
-// control and the text behind every (i) - and then it JUMPS. It never filters
-// the page: hiding non-matching cards would scramble the hue sequence every page
-// hands its cards by position (DownloadsSettings passes hue 0..10, and its own
-// comment says a jumbled badge sequence reads as a bug), and it would contradict
-// the rail, which still says the page is whole.
-//
-// It also does not search settings VALUES. That box already exists, on the
-// Advanced page, over the raw dotted paths and the JSON under them - a different
-// question with a different answer, and worth knowing about: a query that finds
-// nothing here quite often finds something there.
-//
-// Three tiers of result: a section, a card, a row. A row shows its caption
-// first and the card it is on underneath, plus a small marker when the query
-// matched only the explanation - without it, a hit on a caption with none of the
-// typed letters in it reads as a bug rather than as a match on the sentence
-// behind the (i).
+// One search box over all of Settings. It searches page names, card titles,
+// captions and the text behind every (i), and jumps to the result instead of
+// filtering the page, which would scramble the card hues and contradict the
+// rail. Values are searched on the Advanced page instead. A row result marks
+// when only its explanation matched.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useT, type TranslationKey } from '../../lib/i18n';
@@ -26,13 +12,8 @@ import { fold, scoreFolded, scoreProse } from '../../lib/rank';
 import { useToast } from '../../lib/toast';
 import { useUIState } from '../../lib/uistate';
 import { InfoBubble } from '../../components/ui';
-// A cycle on purpose, and a safe one: Settings.tsx mounts this component and
-// this component reads its page ordering. `orderPages` is a function
-// DECLARATION, so its binding is hoisted and initialised before either module
-// body runs, and it is only ever called at render time - long after both are
-// evaluated. The alternative was a second copy of it here, which is the one
-// thing the ordering must not have: it answers "what happens to a page the
-// stored drag order has never heard of", and two answers to that drift.
+// A safe import cycle: orderPages is a hoisted function declaration called
+// only at render time, and a second copy would drift.
 import { orderPages } from '../Settings';
 import type { FeaturePage } from './features';
 import {
@@ -49,69 +30,45 @@ import { hasContent } from './registry';
 import { useRevealOnScrollUp } from './revealOnScrollUp';
 import { label as pageLabel } from './tx';
 
-/** How long to wait after the last keystroke before matching. The same 150ms,
- *  for the same reason, that Advanced.tsx's own filter already uses: without it
- *  the box stutters on exactly the keys somebody is trying to search with. */
+/** The debounce Advanced.tsx's filter uses too, so typing does not stutter. */
 const DEBOUNCE_MS = 150;
 
-/** How many results are drawn. The true total is still announced, so a query
- *  that matches ninety things says so rather than looking like it matched forty. */
+/** How many results are drawn; the full count is still announced. */
 const RENDER_CAP = 40;
 
 /**
- * Result tiers. Only a TIEBREAK, and the smallest term in the rank below - it
- * separates a section from a card from a row when the two matched equally well,
- * and nothing more.
- *
- * It was the first term for a while, and that was wrong in a way only the real
- * catalogue shows: the top five results for "speed" were five cards whose
- * EXPLANATIONS happened to contain the word, ranked above the row actually
- * called "Speed limit". Whether the query matched a name or a sentence matters
- * far more than which of the three kinds of thing carries that name.
+ * The result tiers only break ties, so a row called "Speed limit" is not
+ * outranked by cards whose explanations mention speed.
  */
 const TIER = { page: 0, card: 1, row: 2 } as const;
 
 /**
- * Added to a match found in explanation text, so that EVERY name match sorts
- * above EVERY prose match. Comfortably above the largest thing the rest of the
- * rank can add (a subsequence hit scores 1000, multiplied by 100 below).
+ * Added to a match in explanation text so every name match sorts above every
+ * prose match; larger than anything else the rank can add.
  */
 const PROSE_PENALTY = 1_000_000;
 
 interface Item {
-  /** Stable within one build of the index; used as the React key and the
-   *  aria-activedescendant target. */
+  /** Stable within one build of the index; the React key and the aria-activedescendant target. */
   id: string;
   tier: keyof typeof TIER;
   page: string;
   /** The card's SectionTitle key, for everything but a section result. */
   title?: TranslationKey;
-  /** The row's caption key. Absent for a card result AND for a card's `also`
-   *  text, which has no caption of its own to land on. */
+  /** The row's caption key; absent for a card result and for `also` text. */
   label?: TranslationKey;
-  /** Line one of the result. */
   name: string;
-  /** The card's own name, for line two of a row result. */
+  /** The card's name, for line two of a row result. */
   cardName?: string;
-  /** The displayed name, folded. Matched by name AND by abbreviation. */
+  /** The displayed name, folded; matched by name and by abbreviation. */
   foldedName: string;
-  /**
-   * Everything explanatory this entry carries, folded and run together: the (i)
-   * text, and for a card its `body` prose as well. Matched by SUBSTRING only -
-   * see scoreProse, and see what happens without that rule.
-   */
+  /** The (i) text and a card's `body` prose, folded; matched by substring only. */
   foldedProse: string;
 }
 
 /**
- * Resolve a key to text, defensively.
- *
- * lib/i18n.tsx's `t` is `dict[key] ?? en[key]` with no final fallback, so a key
- * that never landed in en.ts returns undefined despite its `string` type - and
- * the first .toLowerCase() in the matcher below would throw and blank the whole
- * settings page. The check script refuses to let such a key into the index, and
- * this is the belt to that pair of braces: an unknown key contributes nothing to
- * the search instead of taking the page down with it.
+ * text resolves a key, returning '' for one missing from the catalogue, where
+ * `t` returns undefined and the matcher would throw.
  */
 function text(t: (k: TranslationKey) => string, key: TranslationKey | undefined): string {
   if (!key) return '';
@@ -119,22 +76,14 @@ function text(t: (k: TranslationKey) => string, key: TranslationKey | undefined)
 }
 
 /**
- * Every searchable string in the index, resolved and folded once.
- *
- * DEPENDS ON `t`, and that is the single most important line in this file. `t`
- * is a useCallback over [dict], and `dict` starts as English and is REPLACED
- * when the chosen language's chunk finishes loading. Built with [] instead, this
- * index would be English on all 41 non-English languages, permanently, and it
- * would be invisible in English testing - which would destroy the one thing this
- * feature gets for free.
+ * buildItems resolves and folds every searchable string in the index. Callers
+ * rebuild it when `t` changes, because `t` switches from English to the chosen
+ * language once that chunk loads.
  */
 function buildItems(t: (k: TranslationKey) => string, pages: FeaturePage[]): Item[] {
   const items: Item[] = [];
   for (const p of pages) {
-    // Only what the server sent AND what this build actually draws. A result for
-    // a page with no component lands on the registered-but-empty placeholder,
-    // which is the exact failure registry.tsx records the connection manager
-    // suffering once.
+    // Only pages the server sent and this build draws.
     if (!hasContent(p.id)) continue;
     const pageName = pageLabel(t, 'settings.nav.', p.id);
     items.push({
@@ -149,9 +98,7 @@ function buildItems(t: (k: TranslationKey) => string, pages: FeaturePage[]): Ite
     for (const card of SETTINGS_INDEX[p.id] ?? []) {
       const cardName = text(t, card.title);
       if (!cardName) continue;
-      // A card's own hint and its `body` prose are one haystack: both are
-      // explanation, both land on the same card, and two entries for them would
-      // be the same result twice.
+      // A card's hint and body are one haystack, so they give one result.
       const cardProse = [card.hint, ...(card.body ?? [])].map((k) => text(t, k)).join(' ');
       items.push({
         id: `card:${p.id}:${card.title}`,
@@ -179,11 +126,8 @@ function buildItems(t: (k: TranslationKey) => string, pages: FeaturePage[]): Ite
         });
       }
 
-      // `also` is a NAME the card carries that is not a row - a status badge, a
-      // caption drawn without a Caption, a select named only by its aria-label.
-      // Offered as a row-shaped result with no `label`, so picking it lands on
-      // the card: there is nothing with a caption to scroll to, and saying
-      // otherwise would be the search lying about the reader's own page.
+      // `also` names get a row-shaped result without a `label`, which lands on
+      // the card.
       for (const key of card.also ?? []) {
         const alsoName = text(t, key);
         if (!alsoName) continue;
@@ -216,26 +160,19 @@ export function SettingsSearch({ pages }: { pages: FeaturePage[] }) {
   const { toast } = useToast();
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Both live HERE and are never lifted into SettingsPage. Up there, every
-  // keystroke would re-render the rail's 22-item Tabs and the whole mounted
-  // sub-page - and the mounted sub-page is Access.tsx (60 KB) or Look.tsx
-  // (62 KB).
+  // Kept here rather than in SettingsPage, where every keystroke would re-render
+  // the rail and the mounted sub-page.
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
 
-  // Festgehalten, solange die Leiste benutzt wird: offen, Text im Feld, oder der
-  // Fokus darin. Ohne das koennte ein einzelner Rad-Tick sie unter der Hand
-  // wegnehmen, die gerade darin tippt.
+  // Pinned while in use (open, text in the box, or focus inside), so a single
+  // wheel tick cannot take it away from somebody typing.
   const pinned =
     open || query !== '' || (typeof document !== 'undefined' && document.activeElement === inputRef.current);
-  // Der Ort ist der Ruecksetzer: eine andere Einstellungsseite ist eine andere
-  // Frage, und die alte Leiste beantwortete die vorige (jdp: "wenn man den tab
-  // wechselt soll sie wieder weg sein").
+  // Changing page resets the bar.
   const { pathname } = useLocation();
-  // Steht HIER oben und nicht kurz vor dem return, weil der Palettenbefehl
-  // weiter unten 'show' braucht: ein Haken, der nach seinem Verbraucher
-  // deklariert wird, ist keiner.
+  // Declared up here because the palette command below needs `show`.
   const { revealed, barRef, hide, show } = useRevealOnScrollUp(pathname, pinned);
 
   const [settled, setSettled] = useState('');
@@ -244,10 +181,8 @@ export function SettingsSearch({ pages }: { pages: FeaturePage[] }) {
     return () => window.clearTimeout(id);
   }, [query]);
 
-  // The rail's own drag order, so the groups below read top to bottom in the
-  // order the tiles beside them do. Expect the first paint to use the server's
-  // order: useUIState hands out its fallback until the stored document arrives,
-  // the same timing Settings.tsx already defends against for the remembered page.
+  // The rail's drag order; the first paint may still use the server's order
+  // until the stored document arrives.
   const [order] = useUIState<string[]>('settingsTabOrder', []);
   const ordered = useMemo(() => orderPages(pages, order), [pages, order]);
 
@@ -258,11 +193,8 @@ export function SettingsSearch({ pages }: { pages: FeaturePage[] }) {
     if (!q) return [];
     const out: Hit[] = [];
     for (const item of items) {
-      // The name first, with abbreviation matching, because it is short and
-      // because "cmdp" finding "Command palette" is worth having. Then the
-      // explanation, by substring ONLY: every letter of any query appears
-      // somewhere in a 400-character paragraph, in order, so subsequence
-      // matching over prose returns the whole catalogue - measured, not feared.
+      // Names match by abbreviation as well; prose by substring only, since
+      // every query is a subsequence of a long paragraph.
       let s = scoreFolded(item.foldedName, q);
       let inHint = false;
       if (s < 0 && item.foldedProse) {
@@ -270,9 +202,7 @@ export function SettingsSearch({ pages }: { pages: FeaturePage[] }) {
         inHint = s >= 0;
       }
       if (s < 0) continue;
-      // Name before prose, then how good the match is, then what kind of thing
-      // it is. In that order: a row literally called "Speed limit" has to come
-      // before eight cards whose explanations mention speed.
+      // Name before prose, then match quality, then tier.
       out.push({ item, rank: (inHint ? PROSE_PENALTY : 0) + s * 100 + TIER[item.tier], inHint });
     }
     out.sort((a, b) => a.rank - b.rank);
@@ -280,16 +210,8 @@ export function SettingsSearch({ pages }: { pages: FeaturePage[] }) {
   }, [items, settled]);
 
   /**
-   * Grouped by page and headed by the page name, the same shape the command
-   * palette already groups its own results in.
-   *
-   * Group order is the group's BEST hit first, and the rail's own drag order
-   * only as the tiebreak. Rail order alone would have been simpler and is wrong
-   * in one specific way that matters: the first row of the first group is what
-   * Enter picks, so a search whose best answer lives on a page somebody dragged
-   * to the bottom of their rail would open the wrong thing on the very keystroke
-   * people use most. Between two pages that matched equally well, the rail's
-   * order is exactly the right answer, which is what it is used for.
+   * Grouped by page, best hit first, with the rail order breaking ties, so
+   * Enter picks the best answer even on a page dragged to the bottom.
    */
   const groups = useMemo(() => {
     const rail = new Map(ordered.map((p, i) => [p.id, i]));
@@ -304,14 +226,7 @@ export function SettingsSearch({ pages }: { pages: FeaturePage[] }) {
     );
   }, [hits, ordered]);
 
-  /**
-   * The rendered rows, flat and in RENDER order.
-   *
-   * Not `hits.slice()`, which is in rank order: the arrow keys and Enter index
-   * into this, and an index into a differently-ordered list would move the
-   * highlight down the screen in a sequence that has nothing to do with where
-   * the rows are.
-   */
+  // The rendered rows in render order, which the arrow keys and Enter index.
   const shown = useMemo(() => groups.flatMap(([, list]) => list), [groups]);
 
   useEffect(() => {
@@ -321,21 +236,15 @@ export function SettingsSearch({ pages }: { pages: FeaturePage[] }) {
   const listId = 'settings-search-list';
   const activeId = shown[active] ? `settings-search-opt-${shown[active].item.id}` : undefined;
 
-  // Keep the highlighted row on screen. Forty results in a 60vh popover means the
-  // arrow keys walk it off the bottom within a few presses, and a selection you
-  // cannot see is a selection Enter will surprise you with. `block: 'nearest'`
-  // moves the list by the least it can, exactly as the command palette does.
+  // Keeps the highlighted row on screen, moving the list as little as possible.
   const itemRefs = useRef(new Map<string, HTMLButtonElement>());
   useEffect(() => {
     const hit = shown[active];
     if (hit) itemRefs.current.get(hit.item.id)?.scrollIntoView({ block: 'nearest' });
   }, [active, shown]);
 
-  // The "Search all settings" command, arriving from the palette. It has no way
-  // to reach this input, so it leaves a timestamp in jump.ts and this takes it.
-  // Runs on MOUNT as well as on change, because the command navigates here and
-  // asks in the same breath: by the time this field exists, the asking is
-  // already in the past.
+  // The palette's "Search all settings" leaves a timestamp in jump.ts. Read on
+  // mount too, since the command asks before this field exists.
   const focusAskedAt = useSearchFocusAskedAt();
   useEffect(() => {
     if (focusAskedAt === 0) return;
@@ -344,18 +253,13 @@ export function SettingsSearch({ pages }: { pages: FeaturePage[] }) {
       return;
     }
     clearSearchFocus();
-    // Erst holen, dann fokussieren. Die Leiste ist normalerweise gar nicht im
-    // Dokument, also gaebe es ohne diese Zeile nichts zu fokussieren und der
-    // Befehl taete stillschweigend nichts. Das requestAnimationFrame wartet
-    // ohnehin einen Rahmen ab, und in dem ist sie gezeichnet.
+    // Reveal the bar first, or there is nothing to focus.
     show();
     const raf = requestAnimationFrame(() => inputRef.current?.focus());
     return () => cancelAnimationFrame(raf);
   }, [focusAskedAt, show]);
 
-  // The other half of the jump: the result was picked and the page was told to
-  // navigate; now find the thing and mark it. Keyed on the nonce, so asking for
-  // the same row twice really does look twice.
+  // The other half of the jump, keyed on the nonce so asking twice looks twice.
   const jump = usePendingJump();
   const jumpNonce = jump?.nonce ?? 0;
   useEffect(() => {
@@ -369,9 +273,7 @@ export function SettingsSearch({ pages }: { pages: FeaturePage[] }) {
       title,
       label: text(t, jump.label) || undefined,
       onDone: (outcome) => {
-        // Landed on the card but the row was not drawn. Say only that, and never
-        // why: the card may simply not have finished loading, and a guess at the
-        // cause ("the switch above it is off") is a guess the jumper cannot make.
+        // Landed on the card without the row; the reason cannot be known here.
         if (outcome === 'card' && jump.label) {
           toast(t('settings.search.rowHidden', { card: title }), 'info');
         }
@@ -379,8 +281,7 @@ export function SettingsSearch({ pages }: { pages: FeaturePage[] }) {
       },
     });
     return cancel;
-    // Deliberately keyed on the nonce rather than on `jump`: a fresh object with
-    // the same contents is the same request, and a new nonce is a new one.
+    // Keyed on the nonce: an equal object is the same request.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jumpNonce]);
 
@@ -391,9 +292,8 @@ export function SettingsSearch({ pages }: { pages: FeaturePage[] }) {
       if (item.tier !== 'page' && item.title) {
         requestJump({ page: item.page, title: item.title, label: item.label });
       } else {
-        // A section result asks for no jump - and has to retire whatever jump is
-        // still hunting, or the previous request's retry loop goes on looking and
-        // marks something on the page this one just navigated to.
+        // A section result retires any jump still looking, or it would mark
+        // something on the new page.
         clearJump();
       }
       navigate(`/settings/${item.page}`);
@@ -403,10 +303,7 @@ export function SettingsSearch({ pages }: { pages: FeaturePage[] }) {
 
   function onKeyDown(e: React.KeyboardEvent) {
     if (e.key === 'Escape') {
-      // Two jobs, one key, in this order. And stopPropagation, because the
-      // command palette closes on the same key and a settings search whose
-      // Escape leaks upward is one keypress away from closing something nobody
-      // meant to close - the same guard SearchField.tsx already puts on its own.
+      // stopPropagation, because the command palette also closes on Escape.
       e.stopPropagation();
       if (open) {
         e.preventDefault();
@@ -415,9 +312,7 @@ export function SettingsSearch({ pages }: { pages: FeaturePage[] }) {
         e.preventDefault();
         setQuery('');
       } else {
-        // Dritter Druck auf Escape, wenn Liste und Feld schon leer sind: die
-        // Leiste geht weg. Sie wurde geholt, also muss sie sich auch wieder
-        // wegschicken lassen, ohne dass jemand dafuer scrollen muss.
+        // A third Escape with list and box empty hides the bar.
         e.preventDefault();
         hide();
       }
@@ -435,8 +330,7 @@ export function SettingsSearch({ pages }: { pages: FeaturePage[] }) {
         pick(hit);
       }
     } else if (e.key === 'Tab') {
-      // Tabbing out of the box means "I am done with it" - the same rule the
-      // command palette and the context menu already follow for this key.
+      // Tabbing out means done, as in the command palette.
       setOpen(false);
     }
   }
@@ -444,35 +338,17 @@ export function SettingsSearch({ pages }: { pages: FeaturePage[] }) {
   const showList = open && settled.trim() !== '';
   let rowIndex = -1;
 
-  // Nicht gerufen, also nicht da. Kein Platzhalter, keine Hoehe null, kein
-  // durchsichtiger Streifen: die Leiste ist schlicht nicht im Dokument, und
-  // damit auch nicht in der Tab-Reihenfolge und nicht fuer einen Screenreader.
-  // Das ist der Unterschied zwischen "unsichtbar" und "nicht da", und jdp hat
-  // dreimal das zweite gemeint.
+  // Not rendered at all until summoned, so it is out of the tab order and
+  // hidden from screen readers.
   if (!revealed) return null;
 
   return (
-    // IT IS NOT THERE UNTIL SOMEBODY SCROLLS UP FOR IT, and that is the third
-    // answer to one complaint. Sticky-and-sliding floated over the content the
-    // whole time it was up; in the flow it was still visible whenever the column
-    // sat at its top. jdp, plainly: "die suchleiste soll nicht sichtbar sein!!!
-    // erst wenn man nach oben scrollt. wenn man den tab wechselt soll sie wieder
-    // weg sein."
-    //
-    // So the component returns null until an upward gesture asks for it, and
-    // then it sits in the flow ABOVE the first card rather than over anything.
-    // Changing settings page takes it away again. See revealOnScrollUp.ts for
-    // why a wheel listener is needed beside the scroll one, and for the scroll
-    // compensation that stops the cards jumping when it arrives.
-    //
-    // NOT in PageHeader. That renders above the rail-plus-column flex, so a field
-    // there would push the rail down and stop it running the full window height -
-    // the one thing this page's whole layout exists to do.
+    // Sits in the flow above the first card (see revealOnScrollUp.ts), not in
+    // PageHeader, where it would push the rail down.
     <div
       ref={barRef}
       onBlur={(e) => {
-        // Closes when focus genuinely leaves the box and its list, not when it
-        // moves between the two.
+        // Closes only when focus leaves both the box and its list.
         if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setOpen(false);
       }}
     >
@@ -518,19 +394,10 @@ export function SettingsSearch({ pages }: { pages: FeaturePage[] }) {
             <IconClose width={13} height={13} />
           </button>
         )}
-        {/* The explanation lives behind the (i), never as a line of grey prose
-            under the box - the same rule every settings row on every page below
-            already follows. */}
         <InfoBubble tip={t('settings.search.hint')} className="me-1" />
       </div>
 
-      {/* A child of the bar and sized to it, never a portal, and that survived
-          the bar losing its sticky: absolutely positioned INSIDE the thing it
-          belongs to, it travels with it for free. InfoBubble portals because it
-          is anchored to something that scrolls independently of it; this list is
-          not, so there is nothing to re-measure. The bar only ever sits at the
-          top of the column, so the list opens downward into the column rather
-          than into its overflow edge. */}
+      {/* A child of the bar rather than a portal, so it moves with it. */}
       {showList && (
         <div className="relative">
           <div
@@ -543,10 +410,8 @@ export function SettingsSearch({ pages }: { pages: FeaturePage[] }) {
               <p className="px-4 py-6 text-center text-xs text-carbon-textMuted">{t('settings.search.noMatch')}</p>
             )}
             {groups.map(([page, list]) => (
-              // A real group, not a bare div: these options are not direct
-              // children of the listbox, and without the role a screen reader
-              // reads forty options with no idea that the eyebrow above them says
-              // which section each belongs to.
+              // A real group, so a screen reader hears which section each
+              // option belongs to.
               <div key={page} role="group" aria-label={pageLabel(t, 'settings.nav.', page)} className="py-1">
                 <div className="glim-eyebrow px-4 pb-1">{pageLabel(t, 'settings.nav.', page)}</div>
                 {list.map((hit) => {
@@ -566,8 +431,7 @@ export function SettingsSearch({ pages }: { pages: FeaturePage[] }) {
                         else itemRefs.current.delete(item.id);
                       }}
                       onMouseEnter={() => setActive(i)}
-                      // onMouseDown, not onClick: the blur handler above closes
-                      // the list, and a click fires after blur.
+                      // onMouseDown, since the blur handler closes the list before a click.
                       onMouseDown={(e) => {
                         e.preventDefault();
                         pick(hit);
@@ -578,13 +442,8 @@ export function SettingsSearch({ pages }: { pages: FeaturePage[] }) {
                         }`}
                     >
                       <span className="w-full truncate">{item.name}</span>
-                      {/* The page is already the group's own heading above, so
-                          line two says only what that heading does not: which
-                          card, and whether the match was in the explanation
-                          rather than in the name. Two spans with a gap, never one
-                          string with a separator glyph in it - a hand-written
-                          "›" is a character nobody translated, and it points the
-                          wrong way once the page mirrors under [dir="rtl"]. */}
+                      {/* The card and the prose marker as two spans, with no
+                          separator glyph to translate or mirror. */}
                       <span className="flex w-full min-w-0 gap-2 text-[11px] text-carbon-textMuted">
                         {item.tier === 'page' ? (
                           <span className="truncate">{t('settings.search.section')}</span>
@@ -602,10 +461,8 @@ export function SettingsSearch({ pages }: { pages: FeaturePage[] }) {
         </div>
       )}
 
-      {/* The true total, for a reader who cannot see the list. Two count keys
-          rather than one plural: the catalogue does {var} replacement and nothing
-          else, and en.ts already solves the same problem the same way for
-          task.file / task.files. */}
+      {/* The full count for screen readers; two keys because the catalogue
+          has no plurals. */}
       <span aria-live="polite" className="sr-only">
         {showList ? (hits.length === 1 ? t('settings.search.countOne') : t('settings.search.count', { n: hits.length })) : ''}
       </span>

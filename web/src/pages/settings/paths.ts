@@ -1,9 +1,7 @@
 // Reading and writing a settings document by dotted key path, for the advanced
-// table. Nothing here knows what any particular setting means — that is the
-// point: waves 3 to 11 each add fields, and a table that enumerated them would
-// be out of date before the wave after it landed.
+// table. Nothing here knows what a setting means, so new fields need no change.
 
-/** What kind of editor a value gets, decided from the value rather than a schema. */
+/** The kind of editor a value gets. */
 export type ValueKind = 'boolean' | 'number' | 'text' | 'list' | 'object';
 
 export interface Row {
@@ -26,14 +24,9 @@ function isPlainObject(v: unknown): v is Record<string, unknown> {
 }
 
 /**
- * rowsFor is the table's row set: every key the settings STRUCT has, valued
- * from the document the server sent.
- *
- * Driven by the schema and not by the document, because `omitempty` means the
- * document is missing exactly the keys that are empty — which is the set
- * somebody comes to this page to fill in. A document key with no schema entry is
- * kept as well, so a field added on the server before this build knew about it
- * still appears.
+ * rowsFor returns every key of the settings struct, valued from the document.
+ * It follows the schema because omitempty drops the empty keys from the
+ * document, and it keeps document keys the schema lacks.
  */
 export function rowsFor(
   doc: Record<string, unknown>,
@@ -61,24 +54,15 @@ function asKind(s: string): ValueKind {
     case 'object':
       return s;
     default:
-      // An unrecognised kind from a newer server renders as a text box rather
-      // than as a missing row: the value is still visible and still editable.
+      // An unknown kind from a newer server still gets an editable text box.
       return 'text';
   }
 }
 
 /**
- * flatten walks the document into one row per editable value.
- *
- * It recurses into plain objects and stops at arrays. An array of rule objects
- * or proxy entries has a page of its own with a proper editor, and exploding it
- * into `packagizer.rules.3.conditions.1.op` would produce a hundred rows nobody
- * can safely edit one at a time — the ordering alone is load-bearing. So a list
- * is one row, edited as JSON, and the row says where the real editor is.
- *
- * `skip` drops branches that are not settings at all: the rule-compile problems
- * ride along in the same response and are output, not configuration, and
- * offering a reset for them would be a control with nothing behind it.
+ * flatten walks the document into one row per editable value. It recurses into
+ * plain objects and stops at arrays, which stay one JSON row since their order
+ * matters. `skip` drops branches that are output rather than settings.
  */
 export function flatten(doc: Record<string, unknown>, skip: readonly string[] = []): Row[] {
   const out: Row[] = [];
@@ -108,12 +92,8 @@ export function getPath(doc: Record<string, unknown>, path: string): unknown {
 }
 
 /**
- * setPath returns a copy of the document with one path replaced.
- *
- * A copy along the whole path, not a mutation: the draft is React state, and
- * writing into it in place means a re-render that shows the old value and a save
- * that sends the new one. Missing intermediate objects are created, so a key
- * that a fresh install has not written yet can still be set.
+ * setPath returns a copy of the document with one path replaced, creating
+ * missing objects on the way. It copies because the draft is React state.
  */
 export function setPath(
   doc: Record<string, unknown>,
@@ -132,13 +112,8 @@ export function setPath(
 }
 
 /**
- * same compares two values the way the table needs to: structurally, and
- * treating an absent value as equal to an empty one.
- *
- * The second half matters because Go's `omitempty` drops an empty list on the
- * way out, so a stored `[]` and a never-set field arrive identically — and
- * without this every such row would render as "changed" on a fresh install, and
- * "only what differs from the default" would list the entire document.
+ * same compares two values structurally and treats an absent value as equal to
+ * an empty one, because omitempty drops empty lists on the way out.
  */
 export function same(a: unknown, b: unknown): boolean {
   if (isEmptyish(a) && isEmptyish(b)) return true;

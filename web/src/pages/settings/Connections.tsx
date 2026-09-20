@@ -17,34 +17,15 @@ import { useDraft } from './context';
 import { NeutralSwitch } from './controls';
 
 /**
- * The connection manager: the ordered list of outbound connections downloads are
- * spread across, which JDownloader calls the Verbindungsverwaltung.
- *
- * Three things about this page are decisions rather than layout.
- *
- * The list is part of the SETTINGS DRAFT, not a resource of its own. It is a
- * field of the settings document, PUT /api/settings already validates every row
- * and merges back the passwords the client was never shown, and a second write
- * path would be a second place to forget that merge — where forgetting it means
- * every proxy password cleared on the next save, noticed days later when a
- * download fails.
- *
- * A PASSWORD IS NEVER ASKED FOR TWICE. The server drops it before the list
- * leaves the process, so what this page holds is an empty string plus
- * `hasPassword`; posting the empty string back is what tells the server to keep
- * what it has. That is also why the password box is not simply blank: a blank
- * box on a working proxy reads as data loss, and the user retypes the very
- * secret this arrangement exists to avoid moving around.
- *
- * NO ACCENT ANYWHERE. Nearly every row in a connection list is switched on, and
- * a column filled with gold would claim seven things are happening — the accent
- * means activity. Same ruling as the module list and Wave 1's Enabled column.
- * The one primary button on the page is Add.
+ * Connections manages the ordered list of outbound connections downloads are
+ * spread across. The list lives in the settings draft, because PUT
+ * /api/settings validates the rows and merges back the passwords the client
+ * never sees; an empty password with `hasPassword` means "keep the stored one".
+ * No row wears the accent, since nearly every row is switched on.
  */
 
-// The seven types the server accepts, in the order /api/options lists them. They
-// are protocol identifiers rather than words, so only the two that are English
-// are translated.
+// The types the server accepts, in /api/options order. They are protocol
+// identifiers, so only the two English words are translated.
 const KINDS = ['none', 'direct', 'http', 'https', 'socks4', 'socks4a', 'socks5'] as const;
 type Kind = (typeof KINDS)[number];
 
@@ -56,10 +37,7 @@ interface Connection {
   port?: number;
   username?: string;
   password?: string;
-  /**
-   * Whether the SERVER holds a password for this row. Derived there and never
-   * stored; the page may read it and must never invent it.
-   */
+  /** Whether the server holds a password for this row; derived there, never set here. */
   hasPassword?: boolean;
   enabled: boolean;
   order: number;
@@ -86,13 +64,8 @@ interface ImportResult {
 }
 
 /**
- * The strings this page needs, keyed by where they are going.
- *
- * Same arrangement as tx.ts, and for the same reason: the locale files are one
- * writer's lane per wave, and English literals scattered through a component are
- * a hunt when the translation wave arrives. The lookup asks the real catalogue
- * first, so the day these keys land in en.ts this table stops being consulted
- * and can be deleted without touching anything else here.
+ * PENDING holds the English strings until the catalogue has them; the lookup
+ * asks the catalogue first.
  */
 const PENDING = {
   'settings.connections.add': 'Add connection',
@@ -163,8 +136,7 @@ function useCx() {
   const { t } = useT();
   return useCallback(
     (key: PendingKey, vars?: Record<string, string | number>) => {
-      // The cast is the whole point: these keys are not in the union yet. It is
-      // narrow — only keys in PENDING can be passed — and it goes with the table.
+      // These keys are not in the union yet; only PENDING keys can be passed.
       const translated = t(key as unknown as TranslationKey) as string | undefined;
       let s: string = translated ?? PENDING[key];
       if (vars) for (const [k, v] of Object.entries(vars)) s = s.replaceAll(`{${k}}`, String(v));
@@ -174,23 +146,13 @@ function useCx() {
   );
 }
 
-/**
- * The settings type in lib/api.ts does not name `connections` yet, and the draft
- * carries it regardless — see the note on SettingsDraft.cfg. These two casts are
- * the whole of that gap, and both disappear the moment the field is declared
- * there.
- */
+/** lib/api.ts's Settings does not declare `connections`, hence the casts. */
 function readConnections(cfg: unknown): Connection[] {
   return (cfg as { connections?: Connection[] }).connections ?? [];
 }
 
-/** A client-side id for a row that has never been saved.
- *
- *  Not left blank: the server fills a blank one in, but two new rows would both
- *  be blank until then, and React would key them identically — the second row's
- *  keystrokes would land in the first. Sanitize keeps any id that is unique, so
- *  this one simply becomes the stored id.
- */
+// A client-side id for a new row, so two unsaved rows never share a React key.
+// Sanitize keeps any unique id.
 let newRowCounter = 0;
 const freshID = () => `n${Date.now().toString(36)}${newRowCounter++}`;
 
@@ -202,9 +164,7 @@ export function Connections() {
   const [openRow, setOpenRow] = useState<string>('');
   const [importing, setImporting] = useState(false);
 
-  // Written back with the position renumbered from the array, because the order
-  // field is what the server sorts on: leaving it stale after a move would show
-  // one sequence here and walk another at download time.
+  // Positions are renumbered on every write, since the server sorts by them.
   const write = useCallback(
     (next: Connection[]) => {
       const ordered = next.map((c, i) => ({ ...c, order: i }));
@@ -249,9 +209,7 @@ export function Connections() {
         </SectionTitle>
 
         {rows.length === 0 ? (
-          // Inside the card rather than instead of it: the add and import
-          // buttons above are the way out of this state, and swapping the card
-          // for an EmptyState would take them off the page.
+          // Inside the card rather than an EmptyState, which would hide Add.
           <p className="py-6 text-center text-sm text-carbon-textSub">
             {cx('settings.connections.empty')}
             <span className="mt-1 block text-[11px] text-carbon-textMuted">
@@ -281,10 +239,7 @@ export function Connections() {
         <ImportDialog
           onClose={() => setImporting(false)}
           onAdd={(entries) => {
-            // The parser has no ids to hand out — it does not know this draft —
-            // so every imported row arrives with an empty one. Left as they came,
-            // forty rows would share a React key, and editing or deleting any of
-            // them would hit all forty.
+            // The parser has no ids to hand out, so every imported row gets one.
             write([...rows, ...entries.map((e) => ({ ...e, id: freshID() }))]);
             setImporting(false);
           }}
@@ -294,8 +249,7 @@ export function Connections() {
   );
 }
 
-/** Hairline separators between rows; no boxes, and no vertical mark on the open
- *  one — the open row is distinguished by the well its editor sits in. */
+/** ConnectionRow draws hairlines between rows; the open row's editor sits in a well. */
 function ConnectionRow({
   row,
   index,
@@ -338,8 +292,6 @@ function ConnectionRow({
           <span className="w-16 shrink-0 text-[11px] font-medium uppercase tracking-wide text-carbon-textSub">
             {kindLabel(cx, row.type)}
           </span>
-          {/* dir=ltr: a host:port is never read right to left, whatever the
-              interface language is. */}
           <span dir="ltr" className="min-w-0 flex-1 truncate text-sm text-carbon-text">
             {endpointOf(row) || <span className="text-carbon-textMuted">—</span>}
           </span>
@@ -350,14 +302,8 @@ function ConnectionRow({
             {row.maxDownloads ? row.maxDownloads : cx('settings.connections.capDefault')}
           </span>
         </button>
-        {/* Secondary actions on hover, and on keyboard focus, so a long list
-            reads as content rather than as a wall of buttons.
-            `labelled` on all three, and 16px of glyph in the 32px tile: a row
-            action stands in the Beschriftung setting like everything else, and
-            the square is what that setting resolves to in glyph mode rather
-            than a control that ignores it. The words fit because the summary
-            beside them is `min-w-0` and truncates - this is a card row, not a
-            table column with a width to defend. */}
+        {/* Row actions show on hover and focus. `labelled` makes them follow the
+            Beschriftung setting; the summary truncates instead. */}
         <div className="flex items-center gap-1.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
           <IconBadge
             labelled
@@ -438,9 +384,7 @@ function Editor({ row, onChange }: { row: Connection; onChange: (fields: Partial
         )}
       </div>
 
-      {/* The state of this row, not an explanation of the feature — the
-          explanation is behind the (i) on Type. Only the two kinds whose whole
-          meaning is what they do NOT do carry a line. */}
+      {/* A state line only for the two kinds defined by what they do not do. */}
       {row.type === 'none' && <StateLine tone="muted">{cx('settings.connections.stateNone')}</StateLine>}
       {row.type === 'direct' && <StateLine tone="muted">{cx('settings.connections.stateDirect')}</StateLine>}
       {row.type === 'direct' && (row.filter ?? []).length === 0 && (
@@ -465,10 +409,7 @@ function Editor({ row, onChange }: { row: Connection; onChange: (fields: Partial
                 dir="ltr"
                 autoComplete="new-password"
                 value={row.password ?? ''}
-                // The placeholder is what tells a stored password apart from no
-                // password at all. Without it the box looks the same either way,
-                // and a user looking at a working proxy concludes the password
-                // was lost and types it in again.
+                // Tells a stored password apart from none.
                 placeholder={row.hasPassword ? cx('settings.connections.passwordStored') : ''}
                 onChange={(e) => onChange({ password: e.target.value })}
               />
@@ -486,8 +427,7 @@ function Editor({ row, onChange }: { row: Connection; onChange: (fields: Partial
             spellCheck={false}
             value={(row.filter ?? []).join('\n')}
             placeholder="example.org"
-            // Split on save rather than per keystroke would lose a half-typed
-            // line; splitting here keeps the field and the value the same thing.
+            // Split per keystroke, so the field and the value stay the same text.
             onChange={(e) =>
               onChange({ filter: e.target.value.split('\n').map((s) => s.trim()).filter(Boolean) })
             }
@@ -507,13 +447,8 @@ function Editor({ row, onChange }: { row: Connection; onChange: (fields: Partial
 }
 
 /**
- * The Test button and what it found.
- *
- * The row is posted exactly as it is being edited, password and all — which for
- * a saved row is an empty password, and the server puts the stored one back
- * through the same merge a save goes through. So testing never asks anyone to
- * retype anything, and a test answers about precisely the connection a save
- * would write.
+ * TestPanel posts the row exactly as edited; the server merges a stored
+ * password back as a save would, so the test covers what a save would write.
  */
 function TestPanel({ row }: { row: Connection }) {
   const cx = useCx();
@@ -533,8 +468,7 @@ function TestPanel({ row }: { row: Connection }) {
       if (!r.ok) throw new Error((await r.text()).trim() || String(r.status));
       setReport((await r.json()) as Report);
     } catch (e) {
-      // A transport failure is not a verdict about the proxy, so it is reported
-      // as a refusal to run rather than as the proxy being unreachable.
+      // A transport failure is reported as a refusal to run, not as a verdict.
       setReport({
         ok: false,
         stage: 'refused',
@@ -580,16 +514,11 @@ function ImportDialog({ onClose, onAdd }: { onClose: () => void; onAdd: (entries
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<ImportResult | null>(null);
-  // The reading button's own failure counter. Keyed onto that button, so a
-  // second identical refusal builds a fresh DOM node and shakes again instead
-  // of playing once ever; its partner in the footer is only ever rendered in
-  // the other state, so there is no second button here to shake by mistake.
+  // Keyed onto the reading button so a repeated refusal shakes again.
   const [shake, setShake] = useState(0);
 
-  // The server reports a refused line by NUMBER and never sends the line back —
-  // a rejected line is exactly where a password is still in plain text, and that
-  // answer ends up in logs and screenshots. The text is right here, so the line
-  // is put back together on this side.
+  // The server reports a refused line by number only, since the line may hold
+  // a plain-text password; the text is rebuilt here.
   const lines = text.replace(/\r\n/g, '\n').split('\n');
 
   async function read() {
@@ -603,10 +532,6 @@ function ImportDialog({ onClose, onAdd }: { onClose: () => void; onAdd: (entries
       if (!r.ok) throw new Error((await r.text()).trim() || String(r.status));
       setResult((await r.json()) as ImportResult);
     } catch (e) {
-      // Toast plus a shake of the button that was pressed, and no sentence
-      // left standing in the window: a page-resident copy never clears itself,
-      // so a refusal from earlier in the session reads exactly as current as
-      // the one that just happened.
       toast(cx('settings.connections.importFailed', { error: String(e).replace(/^Error:\s*/, '') }), 'fail');
       setShake((n) => n + 1);
     } finally {
@@ -626,11 +551,7 @@ function ImportDialog({ onClose, onAdd }: { onClose: () => void; onAdd: (entries
           <Button kind="ghost" onClick={onClose}>
             {cx('settings.connections.cancel')}
           </Button>
-          {/* Retreating button first, advancing one at the end of the row, and
-              the spacer above is what puts it there rather than merely to the
-              right of its partner. The two below are ONE button in two states,
-              not a pair: only ever one of them is rendered, so nothing here
-              stands after the advancing button. */}
+          {/* The spacer puts the advancing button at the end of the row. */}
           {result ? (
             <Button disabled={ready === 0} onClick={() => onAdd(result.entries)}>
               {cx('settings.connections.importAdd', { n: ready })}
@@ -655,8 +576,7 @@ function ImportDialog({ onClose, onAdd }: { onClose: () => void; onAdd: (entries
           spellCheck={false}
           value={text}
           placeholder={cx('settings.connections.importPlaceholder')}
-          // Any edit invalidates the last reading, so the Add button can never
-          // add rows parsed from text that is no longer on screen.
+          // Any edit invalidates the last reading, so Add never uses stale rows.
           onChange={(e) => {
             setText(e.target.value);
             setResult(null);
@@ -679,18 +599,14 @@ function ImportDialog({ onClose, onAdd }: { onClose: () => void; onAdd: (entries
             <p className="text-xs text-carbon-textMuted">{cx('settings.connections.importNothing')}</p>
           )}
           {result.rejected.length > 0 && (
-            // Every refusal, with the line it belongs to. This is the whole
-            // reason the parser names them instead of dropping them: a list that
-            // silently loses nine of forty is unattributable.
+            // Every refused line, named, so nothing is lost silently.
             <ul className="glim-well flex max-h-56 flex-col gap-2 overflow-y-auto p-3">
               {result.rejected.map((r) => (
                 <li key={r.line} className="text-xs">
                   <span className="glim-num text-carbon-textMuted">
                     {cx('settings.connections.importLine', { n: r.line })}
                   </span>
-                  {/* An explicit space, not only the margin: the margin is
-                      visual, and without this a screen reader reads the number
-                      and the line as one word. */}
+                  {/* A real space, so a screen reader does not run number and line together. */}
                   {' '}
                   <span dir="ltr" className="ms-2 break-all text-carbon-textSub">
                     {lines[r.line - 1]}
@@ -706,8 +622,7 @@ function ImportDialog({ onClose, onAdd }: { onClose: () => void; onAdd: (entries
   );
 }
 
-/** A fact about the row being edited, in one of the state hues. Not an
- *  explanation: those live behind the (i) beside the label. */
+/** StateLine is a fact about the row in a state hue; explanations sit behind the (i). */
 function StateLine({ tone, children }: { tone: 'muted' | 'warn'; children: ReactNode }) {
   return (
     <p className={`text-xs ${tone === 'warn' ? 'text-statusWarn' : 'text-carbon-textMuted'}`}>{children}</p>
@@ -715,45 +630,28 @@ function StateLine({ tone, children }: { tone: 'muted' | 'warn'; children: React
 }
 
 /**
- * wheelSteps is the wheel clause on a native <select>: a CLOSED select steps
- * one option per notch and fires a real `change`, without the platform's own
- * list opening at all. The platform only wires the wheel up once that list is
- * already open, which costs a click on a value somebody reaches for
- * constantly - and a connection's kind is such a value.
- *
- * Clamped at both ends instead of wrapping: one notch too many must not land a
- * value from the other end of the list.
- *
- * A ref callback with its own cleanup (React 19) and `{ passive: false }`,
- * never onWheel: React registers onWheel passive at its root, so preventDefault
- * inside such a handler does nothing but log a warning, and the page would
- * scroll away under the pointer while the value changed.
- *
- * Word for word the same listener as in components/SearchField.tsx,
- * components/QueueBar.tsx and components/RuleEditor.tsx. This app's home for it
- * would be lib/selectScroll.ts, which does not exist yet.
+ * wheelSteps lets a closed <select> step one option per wheel notch, clamped
+ * at both ends, and fires a real `change`. It attaches a non-passive listener
+ * because React's onWheel is passive. The same listener lives in SearchField,
+ * QueueBar and RuleEditor.
  */
 function wheelSteps(el: HTMLSelectElement | null) {
   if (!el) return;
   const onWheel = (e: WheelEvent) => {
-    // A horizontal wheel says nothing about this control, and a trackpad
-    // reports fractional deltas - so read the sign of deltaY and nothing else.
+    // Only the sign of deltaY counts; trackpads report fractions.
     if (el.disabled || el.options.length < 2 || e.deltaY === 0) return;
-    // This handler IS the scroll while the pointer sits on the control.
     e.preventDefault();
     const next = Math.min(el.options.length - 1, Math.max(0, el.selectedIndex + (e.deltaY > 0 ? 1 : -1)));
     if (next === el.selectedIndex) return;
     el.selectedIndex = next;
-    // A real change event rather than a state write, so the onChange already on
-    // the element picks this up exactly as it would a click on an <option>.
+    // A real change event, so the element's onChange handles it like a click.
     el.dispatchEvent(new Event('change', { bubbles: true }));
   };
   el.addEventListener('wheel', onWheel, { passive: false });
   return () => el.removeEventListener('wheel', onWheel);
 }
 
-/** The one control the design language has no primitive for. Styled to match
- *  TextInput exactly, so a form row does not read as two different systems. */
+/** Select is styled to match TextInput, since the design language has no select. */
 function Select({
   value,
   onChange,
@@ -785,8 +683,7 @@ function kindLabel(cx: (k: PendingKey) => string, kind: Kind): string {
 function endpointOf(row: Connection): string {
   if (row.type === 'none' || row.type === 'direct') return '';
   if (!row.host) return '';
-  // Bracketed, because an IPv6 literal read against a port is a different
-  // machine entirely — the same reason the Go side joins it this way.
+  // Bracketed, as the Go side does, so an IPv6 literal is not read with the port.
   const host = row.host.includes(':') ? `[${row.host}]` : row.host;
   return row.port ? `${host}:${row.port}` : host;
 }

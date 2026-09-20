@@ -56,17 +56,9 @@ import { TwoFactorCard } from './access/TwoFactorCard';
 import { label, useTx } from './tx';
 
 /**
- * The Access page: the password lock (unchanged from before this wave), the
- * intake ports table (unchanged), and what build-plan.md section 8's Wave
- * 11 amendment on 11C adds - named API tokens and the Remote access story
- * (reachable addresses, a QR code, the PWA install BrowserTools.tsx also
- * offers, and the loud exposure warning).
- *
- * The strings the two new sections need are not in en.ts yet - locale files
- * are one writer's lane per wave (11G, phase 3 of this one), the same
- * arrangement Help.tsx, Diagnostics.tsx and BrowserTools.tsx already use, so
- * the lookup below asks the real catalogue first and falls back to English
- * here.
+ * PENDING holds the English strings of the Access page (password lock, intake
+ * ports, API tokens and remote access) until the catalogue has them; the
+ * lookup asks the catalogue first.
  */
 const PENDING = {
   'settings.access.tokens.title': 'API tokens',
@@ -91,14 +83,6 @@ const PENDING = {
   'settings.access.tokens.howToUse': 'Send it as a header: Authorization: Bearer <token>',
   'settings.access.tokens.createFailed': 'Could not create the token: {error}',
 
-  // Nothing from settings.access.remote.* survives here now. The install and
-  // store keys moved to settings.browsertools.* with their card; the
-  // exposed-instance sentence is gone entirely (jdp, 2026-08-27: "Den text
-  // hier entfernen") - the password card says "kein Passwort gesetzt" beside
-  // the button that fixes it, in the warning hue when this instance is
-  // actually reachable, and a paragraph restating that added length rather
-  // than information. The `exposed` flag still drives that colour.
-
   'settings.access.identity.title': "This instance's identity",
   'settings.access.identity.nameLabel': 'Name',
   'settings.access.identity.namePlaceholder': 'e.g. Home server',
@@ -107,27 +91,6 @@ const PENDING = {
   'settings.access.identity.domainsLabel': 'Known domains',
   'settings.access.identity.domainsHint':
     'Remembered automatically the first time a request actually arrives on one, so it stays listed here even when later requests come in over the LAN IP instead. Add one by hand for a domain that is already configured but has not been visited through yet - one full address per line, e.g. https://kl.example.com.',
-
-  // The whole install/store family moved to BrowserTools.tsx with the card
-  // it belonged to (jdp, 2026-08-27) and is spelled settings.browsertools.*
-  // there - real, translated keys in every locale file, not PENDING ones.
-
-  // One sentence for "can another KnightLoader reach this one", because which
-  // road it takes is this card's business and not the reader's. The four cases
-  // are written out rather than assembled from clauses: a sentence stitched
-  // together at runtime reads like one in every language it was written in.
-
-  // body/urlPlaceholder/urlHint/bothSidesHint/keyHint are real,
-  // fully-translated locale keys now, rewritten (jdp, 2026-08-26: "Das ist
-  // alles viel zu kompliziert! die infotexte sind verwirrend... Wo muss man
-  // die relayadresse in der anderen instanz eingeben? ... Muss die
-  // Relayadresse keine domain sein?") to state the two things a first-time
-  // relay user actually needs and never found stated outright: the SAME
-  // address+key goes into this same spot on every instance you connect,
-  // and a domain is not required. Not listed here for the same shadowing
-  // reason as the install keys above - see that comment. The card's shape
-  // (one merged pairing+relay card, folded relay section) stays unchanged;
-  // the problem measured out to be the copy, not the layout.
 
   'settings.access.intakePortsHint':
     'Other ways this instance can be reached directly, outside the normal login - each with its own reachability shown here.',
@@ -148,90 +111,41 @@ export function Access() {
   const { tx } = useTx();
   const cx = useCx();
   /**
-   * Bumped whenever the relay cards change which relay is in force, so the
-   * connect card above them re-reads /api/connect and its badge follows.
-   *
-   * The same defect fixed one level down a day earlier, found again here:
-   * every component that shows the relay was fetching for itself, so a switch
-   * in one card left a badge in another still naming the relay that had just
-   * been switched off. A counter rather than a shared object, because the
-   * connect card already owns everything else it displays and needs only to
-   * be told WHEN to look again.
+   * Bumped when the relay cards change the relay in force, so the connect card
+   * re-reads /api/connect and its badge follows.
    */
   const [relayVersion, setRelayVersion] = useState(0);
   /**
-   * The same counter one subject along: bumped whenever anything changes the
-   * lock, so the password card, the second-factor card and the passkey card
-   * agree about it.
-   *
-   * They genuinely have to. Setting the first password is what makes the other
-   * two possible at all, removing it takes the second factor with it, and
-   * arming or disarming the factor changes a line the password card does not
-   * draw. Three components each fetching /api/auth for themselves is how one
-   * card goes on saying "no password set" next to two that know better - the
-   * defect the relay counter above was added for, in a different row of cards.
+   * Bumped when anything changes the lock, so the password, second-factor and
+   * passkey cards agree: the password enables the other two and removing it
+   * takes the second factor with it.
    */
   const [authVersion, setAuthVersion] = useState(0);
 
   return (
     <div className="flex flex-col gap-10">
-      {/* Identity first, password second (jdp, 2026-08-26) - and pulled out of
-          the old RemoteAccessSection rather than left nested inside it: that
-          section returned null until its own fetch resolved and skipped this
-          card entirely on a desktop build. A name is a plain settings field
-          with no such dependency - it belongs at the top regardless of
-          deployment, not hidden behind a fetch that has nothing to do with
-          it. */}
+      {/* Identity first: a plain settings field that depends on no fetch. */}
       <IdentityCard cx={cx} />
       <PasswordCard cx={cx} onAuthChanged={() => setAuthVersion((n) => n + 1)} />
 
-      {/* The two second doors, below the password and above everything about
-          reaching this instance from elsewhere: they are about the same lock
-          the card above them sets.
-          TWO CARDS AND NOT ONE, which is the whole test GlimStone 1.15.0 asks
-          for - not "are these related" (they obviously are, both answer "how do
-          I get in") but "can somebody want this and not that". They can: one
-          makes the password harder to abuse, the other replaces typing it. */}
+      {/* The second factor and passkeys, two cards because somebody can want
+          one without the other. */}
       <SecondWaysIn version={authVersion} onChanged={() => setAuthVersion((n) => n + 1)} />
 
-      {/* Only the exposed-warning banner now (jdp, 2026-08-26: "Die
-          netzwerkzugriffcard entfernen wir. die ist völlig witzlos. auf der
-          desktop version funktioniert das eh nicht") - NetworkAccessCard
-          (this instance's own LAN address + QR) is gone, and with it the
-          whole reason this used to be deployment-gated: nothing left in
-          here depends on fetchRemoteAccess()'s deployment field at all. */}
-      {/* The app card moved to the Browser & App tab (jdp, 2026-08-27) -
-          getting KnightLoader onto a phone is the same question as getting
-          it into a browser, and both now answer in one place. */}
       <RemoteAccessCard cx={cx} relayVersion={relayVersion} />
-      {/* Two cards rather than one, and this is the one place on the page
-          where jdp's own "es soll nur eine geben" does not apply - he asked
-          for the split himself (2026-09-03) after asking what the relay can
-          see. The reason it holds up: the card above is about the twelve
-          words, which everybody uses; these two are about WHICH relay carries
-          them, which is a separate question most people never open. */}
+      {/* The card above is about the twelve words; these are about which relay
+          carries them. */}
       <RelaySection onRelayChanged={() => setRelayVersion((n) => n + 1)} />
       <TokensSection cx={cx} />
-
-      {/* "Ports und Listener" is gone with the module that was the only thing
-          in it: Click'n'Load moved to the General tab's Linkeingang card
-          (jdp, 2026-09-07: "den Toggle nicht in einen anderen Tab
-          verschieben?"). Nothing else on this page is a module row, so the
-          card and the whole toggle path that fed it went with it rather than
-          staying as an empty frame waiting for a listener nobody has
-          proposed. */}
     </div>
   );
 }
 
-// PasswordCard owns the password lock. It saves on its own button rather than
-// with the rest of the settings: a password is not a preference you change by
-// accident while adjusting the speed limit, and it does not go through
-// PUT /api/settings at all.
+// PasswordCard owns the password lock. It saves on its own button and not
+// through PUT /api/settings.
 function PasswordCard({
   cx,
-  /** Told after the password is set, changed or removed, so the two cards
-   *  below re-read the lock rather than each keeping their own idea of it. */
+  /** Called after the password changes, so the other cards re-read the lock. */
   onAuthChanged,
 }: {
   cx: (k: PendingKey) => string;
@@ -243,12 +157,10 @@ function PasswordCard({
   const [current, setCurrent] = useState('');
   const [next, setNext] = useState('');
   const [done, setDone] = useState(false);
-  // The apply button's own failure counter, keyed onto that button so a second
-  // identical refusal builds a fresh DOM node and shakes again.
+  // Keyed onto the apply button so a repeated refusal shakes again.
   const [shake, setShake] = useState(0);
-  // Whether this instance can actually be reached from off this machine -
-  // the one fact that turns "no password is set" from a preference into a
-  // problem. See routes_remote.go's own doc comment on Exposed.
+  // Whether this instance is reachable from elsewhere, which turns "no password"
+  // into a problem (routes_remote.go's Exposed).
   const [exposed, setExposed] = useState(false);
 
   useEffect(() => {
@@ -269,12 +181,7 @@ function PasswordCard({
       setTimeout(() => setDone(false), 1800);
       onAuthChanged();
     } catch (e) {
-      // The reason goes to the toast and the button shakes. It used to stand
-      // beside the button as a sentence that never cleared itself, so a
-      // refusal from earlier in the session read exactly as current as one
-      // from a second ago - and it sat next to a success mark that clears
-      // after 1.8 seconds, so the two outcomes of one click had two different
-      // lifetimes on screen.
+      // The reason goes to the toast and the button shakes.
       toast(String(e).replace(/^Error:\s*/, ''), 'fail');
       setShake((n) => n + 1);
     }
@@ -284,13 +191,7 @@ function PasswordCard({
 
   return (
       <Card hue={0} className="flex flex-col gap-5">
-        {/* Status stays a visible, at-a-glance line rather than moving fully
-            into the bubble (jdp, 2026-08-26: "in eine i infobubble und
-            schöner beschreiben") - whether this instance is protected is
-            worth seeing without hovering anything. Only the WHY (what a
-            password actually guards against) moves into the title's own
-            hint bubble, with nicer wording than the old lockOff sentence it
-            replaces. */}
+        {/* The status stays visible; why a password matters is in the title's hint. */}
         <SectionTitle hint={t('settings.lockHint')}>
           {t('auth.password')}
         </SectionTitle>
@@ -325,26 +226,13 @@ function PasswordCard({
           >
             {next === '' && locked ? t('settings.removePassword') : t('settings.setPassword')}
           </Button>
-          {/* Beside the button that changes it, not as a line of its own above
-              the fields (jdp, 2026-08-27: "Der Hinweis 'kein Passwort gesetzt'
-              soll rechts vom Button passwort setzten stehen"). The state and
-              the control that changes it read as one thing that way, and the
-              card loses a full-width sentence that said what four words say.
-              Warning hue only when this instance is actually reachable from
-              elsewhere - unprotected on a machine nothing can reach is a
-              preference, not a problem. */}
+          {/* Beside the button that changes it, in the warning hue only when
+              this instance is reachable from elsewhere. */}
           <span
             className={`text-sm ${locked ? 'text-statusOk' : exposed ? 'text-statusWarn' : 'text-carbon-textSub'}`}
           >
             {locked ? t('settings.lockOn') : t('settings.lockOff')}
           </span>
-          {/* The sign-out button that used to sit here is gone (jdp,
-              2026-09-07: "der abmelden button in der passwort card kann weg").
-              It arrived on 2026-08-26 because the sidebar's own entry was easy
-              to miss; it is not missed any more, and a second copy of one
-              action on the page that sets the password made the card read as
-              two features. The sidebar keeps it, moved above Settings so it
-              sits where a sign-out usually does. */}
           {done && <span className="text-statusOk text-sm">{t('settings.passwordSaved')}</span>}
         </div>
       </Card>
@@ -352,18 +240,9 @@ function PasswordCard({
 }
 
 /**
- * The two cards a login with a password can grow, and the one read of
- * /api/auth they share.
- *
- * ONE FETCH FOR TWO CARDS, deliberately. Both need the same three facts - is
- * there a password, is a second factor armed, how much of the recovery sheet is
- * left - and each fetching for itself is how one card ends up a state behind
- * the other after a change either of them made. The counter from the page above
- * is what re-runs it.
- *
- * Nothing is rendered until the first answer arrives. A card that guessed "no
- * password" for the length of a fetch would offer to set up a second factor and
- * then refuse when somebody pressed it.
+ * SecondWaysIn reads /api/auth once for the second-factor and passkey cards, so
+ * they cannot disagree, and renders nothing until it answers, since a guessed
+ * "no password" would offer a setup the server refuses.
  */
 function SecondWaysIn({ version, onChanged }: { version: number; onChanged: () => void }) {
   const [auth, setAuth] = useState<AuthState | null>(null);
@@ -389,21 +268,10 @@ function SecondWaysIn({ version, onChanged }: { version: number; onChanged: () =
   );
 }
 
-// IdentityCard: an optional friendly name and the domains this instance is
-// known to be reachable through, both read/written through the normal
-// settings draft (useDraft) and the shared Save bar, same as any other field
-// on this page - not a live-preview control like Look.tsx's, so there is no
-// reason to save it any differently.
-//
-// KnownDomains is shown here for the SAME reason a bare LAN IP still shows in
-// NetworkAccessCard's own addresses list below: this is a normal settings
-// field, editable independently of whatever request happened to load this
-// page. The list itself is otherwise populated automatically
-// (routes_remote.go's own rememberDomain, the moment a request actually
-// arrives on a domain) - this textarea only matters for a domain that is
-// already configured but has not been visited through yet, so pairingSelf and
-// the QR code below have something to prefer before that first visit
-// happens.
+// IdentityCard holds an optional name and the domains this instance is known
+// by, both ordinary settings fields. Domains are recorded automatically when a
+// request arrives on one (routes_remote.go's rememberDomain); the box covers a
+// domain that has not been visited yet.
 function IdentityCard({ cx }: { cx: (k: PendingKey) => string }) {
   const { cfg, patch } = useDraft();
 
@@ -430,28 +298,11 @@ function IdentityCard({ cx }: { cx: (k: PendingKey) => string }) {
   );
 }
 
-// ---- Connecting instances (the phrase) --------------------------------------
+// RemoteAccessCard connects this instance with the other KnightLoaders you run
+// through twelve words: both ends derive one key from them and meet on a relay
+// neither has to be reachable from (internal/seedphrase, internal/relay). It
+// opens with a numbered how-to.
 
-/**
- * RemoteAccessCard is the one place to connect this instance with the other
- * KnightLoaders you run. ONE card, and one way into it - which took three
- * redesigns to arrive at (jdp, 2026-08-25: "das muss einfach ein Punkt sein
- * nicht mehr" merged pairing and relay; 2026-08-27, on finding a separate
- * "Von überall erreichbar" card beside this one: "Wieso gibt es jetzt...
- * zwei card? Es soll nur eine geben?" merged that in; then pairing and
- * Tailscale were removed outright rather than folded away, because a fold
- * is still a thing to wonder about).
- *
- * What is left is twelve words. They carry a secret, both ends derive the
- * same key from it and meet on a relay neither has to be reachable from -
- * see internal/seedphrase and internal/relay. No account, no login, no
- * third-party site, no address to copy.
- *
- * The card opens with a numbered how-to rather than with its buttons. Twelve
- * words is an odd enough thing to be handed that "what am I looking at"
- * comes before "what do I press", the same reason BrowserTools.tsx explains
- * dragging before it shows the bookmarklet link.
- */
 /** How often the card re-reads whether the relay link is up. */
 const CONN_POLL_MS = 4000;
 
@@ -460,22 +311,16 @@ function RemoteAccessCard({
   relayVersion,
 }: {
   cx: (k: PendingKey, vars?: Record<string, string | number>) => string;
-  /** Changes when the relay cards below switch relays - see Access. */
+  /** Changes when the relay cards switch relays. */
   relayVersion: number;
 }) {
   const { t } = useT();
 
-  // --- Connection phrase ---
-  //
-  // "Stored" and "connected" stay two separate fields on ConnectInfo, and
-  // are reported separately below: a phrase with an unreachable relay is
-  // configured but not working, and one word for both is exactly what made
-  // the card this replaced unable to say which had gone wrong.
+  // "Stored" and "connected" are separate facts: a phrase with an unreachable
+  // relay is set up but not working.
   const [conn, setConn] = useState<ConnectInfo | null>(null);
   const [phrase, setPhrase] = useState('');
-  // Kept beside the phrase rather than derived from it: the matrix is the
-  // server's, and re-encoding it here would be a second implementation of
-  // the same code to keep in step with the pairing one.
+  // The server's matrix, so the code is not encoded twice.
   const [phraseQr, setPhraseQr] = useState<QRMatrix | null>(null);
   const [phraseBusy, setPhraseBusy] = useState(false);
   const [phraseErr, setPhraseErr] = useState('');
@@ -486,14 +331,8 @@ function RemoteAccessCard({
   const [revealOpen, setRevealOpen] = useState(false);
 
   const loadConn = () => fetchConnect().then(setConn).catch(() => {});
-  // Polled, not fetched once (jdp, 2026-09-06: "wenn man den tab neu lädt zeigt
-  // es verbunden an. es schaltet also nicht live um"). Switching a relay on
-  // starts a dial that takes a moment, so the one read this used to do landed
-  // while the socket was still opening and then never asked again - the card
-  // said "getrennt" about a relay that had been connected for minutes, and
-  // reloading the page was the only way to find out. CONN_POLL_MS is short
-  // because this is a settings page somebody is looking straight at, and the
-  // route answers from cached state.
+  // Polled, since a relay switched on connects a moment later; the route
+  // answers from cached state.
   useEffect(() => {
     void loadConn();
     const timer = window.setInterval(loadConn, CONN_POLL_MS);
@@ -524,9 +363,8 @@ function RemoteAccessCard({
       setJoinInput('');
       setJoinOpen(false);
     } catch (e) {
-      // A rejected phrase comes back as a reason plus its specifics, never
-      // as a sentence: the server cannot know which language to write in.
-      // Everything else here is already a message.
+      // A rejected phrase comes back as a reason code, since the server cannot
+      // know the reader's language.
       if (e instanceof PhraseRejected) {
         setPhraseErr(
           e.reason === 'unknown_word'
@@ -564,8 +402,7 @@ function RemoteAccessCard({
     setPhraseBusy(true);
     try {
       await leaveConnect();
-      // Cleared here rather than left for the reload: a phrase still on
-      // screen after "leave" reads as though nothing happened.
+      // Cleared at once, or the phrase would linger after leaving.
       setPhrase('');
       setPhraseQr(null);
       await loadConn();
@@ -576,60 +413,22 @@ function RemoteAccessCard({
     }
   }
 
-  // Held until the connection state has answered: an empty card for a
-  // feature that has not reported yet flickers into place a moment later,
-  // which reads as a bug. A loading guard, not a capability check.
+  // Held until the connection state answers, rather than flickering in.
   if (!conn) return null;
 
   return (
     <Card hue={1} className="flex flex-col gap-4">
-      {/* Two labelled bubbles in the title's own right slot, stacked (jdp,
-          2026-08-27: "Der button Soll heißen 'Wie funktioniert das?' und
-          rechts oben in der card sein. darunter soll noch ein button sein als
-          statusanzeige"). The long "what actually happens" paragraph used to
-          sit at the bottom of the how-to, where it was four lines of prose
-          under three numbered steps - true, and read by nobody who was not
-          already curious. Behind a bubble it is available to exactly the
-          person who wants it.
-
-          The second one is the connection state, which was a dot and a
-          sentence in the body. As a bubble-carrying pill it says the state in
-          one word and keeps the explanation one hover away. */}
-      {/* Absolutely positioned, level with the notch, so the title row
-          contributes NO height at all (jdp, twice: "zwischen cardtitelbadge
-          und anleitung ist sehr viel leerraum"). Measured, because the first
-          two attempts only shaved a few pixels off: card padding 20 + title
-          row 16 + card gap 16 = 52px to the first line of text, of which the
-          notch only covers the top 11. Side-by-side and negative margins got
-          that to 41. Taking the row out of the flow entirely - the same trick
-          SectionTitle's own title uses - leaves the text starting at the
-          card's own padding, about 9px under the notch.
-
-          The lead paragraph carries pr-72 so it cannot run under the badges
-          on a narrow card; the numbered list below sits low enough not to
-          need it.
-
-          top-4, not -top-2 (jdp, 2026-08-30: "die beiden buttons Wie
-          funktioniert das? und verbunden sitzen auf dem card rand und sind
-          halbtransparent. die sollen in die card"). At -top-2 they straddled
-          the card's own top edge, half on the card and half on the page
-          behind it, which is what read as half-transparent: a surface2 badge
-          has nothing to be a step above when half of it is standing on the
-          page ground. Inside the padding box they sit on the card, level with
-          the first line of the lead paragraph, in the room pr-72 was already
-          reserving for them - so this costs the card no height, which is the
-          reason the row was taken out of the flow in the first place. */}
+      {/* The how-it-works bubble and the connection state sit in the title row,
+          positioned absolutely inside the padding so the row adds no height;
+          the lead paragraph's pr-72 keeps text from running under them. */}
       <div className="absolute right-5 top-4 z-10 flex items-center gap-2">
         <LabelBadge
           label={t('settings.access.phrase.howButton')}
           tip={paragraphs(t('settings.access.phrase.howWhat'))}
           hue={2}
         />
-        {/* Four sentences, not one (jdp, 2026-09-06). "Getrennt" means two
-            completely different things - no relay configured at all, or a
-            relay configured and unreachable - and the single sentence this
-            carried described the first while being shown for both, so a
-            broken link read as a deliberate setup. */}
+        {/* Four sentences, since "disconnected" can mean no relay configured
+            or a configured relay out of reach. */}
         <LabelBadge
           label={
             conn.connected
@@ -647,16 +446,8 @@ function RemoteAccessCard({
           }
           tone={conn.connected ? 'ok' : 'fail'}
         />
-        {/* Which relay carries the words, as an ANSWER and not a control.
-            jdp asked whether this should be a switch instead (2026-09-04) and
-            chose the badge: with the two switches now living in the relay
-            cards below, a third control here would be a third place to change
-            one setting, and three places that can disagree. One place to
-            change it, several places to see it.
-
-            Its address is the tip rather than the label, because "Projekt-
-            Relay" is what somebody needs at a glance and "wss://..." is what
-            they need once, while checking. */}
+        {/* Which relay carries the words, as a reading; the switches live in the
+            relay cards below. The address is in the tip. */}
         <LabelBadge
           label={
             conn.relayMode === 'off'
@@ -678,40 +469,24 @@ function RemoteAccessCard({
         {t('settings.access.cardTitle')}
       </SectionTitle>
 
-      {/* What this actually is, before any button. Twelve words is an odd
-          enough thing to be handed that "what am I looking at" comes before
-          "what do I press" - the same reason the bookmarklet card explains
-          dragging before it shows the link. A numbered list rather than a
-          paragraph (jdp: "Bitte aufzählungen immer untereinander"), and it
-          stays visible after setup: somebody adding a fourth instance in six
-          months needs step 2, and hiding it once step 1 is done is exactly
-          when it stops being findable. */}
+      {/* A numbered how-to before any button, still shown after setup for the
+          next instance. */}
       <div className="flex flex-col gap-2">
         <p className="pr-72 text-sm text-carbon-textSub">{t('settings.access.phrase.howLead')}</p>
         <ol className="list-decimal space-y-1.5 pl-4 text-sm text-carbon-textSub">
-          {/* The button names are interpolated from the button's OWN key
-              rather than written into the sentence: a step that quotes a
-              label is a step that can disagree with the label, and across 42
-              languages that drift is invisible until somebody hunts for a
-              button that is called something else on their screen. */}
+          {/* Button names are interpolated from the buttons' own keys, so the
+              steps cannot drift from the labels. */}
           <li>{t('settings.access.phrase.howStep1', { button: t('settings.access.phrase.activate') })}</li>
           <li>{t('settings.access.phrase.howStep2', { button: t('settings.access.phrase.joinButton') })}</li>
           <li>{t('settings.access.phrase.howStep3')}</li>
         </ol>
       </div>
 
-      {/* Nothing set up yet: two ways in, and they are the two ends of the
-          same act - start a group, or join one somebody already started. */}
+      {/* Not set up: start a group or join one. */}
       {conn && !conn.active && (
         <div className="flex flex-col gap-3">
-          {/* The warning sits BESIDE the buttons now (jdp, 2026-08-27: "Der
-              Passwort-hinweistext rechts neben den ... badge"), not as a
-              filled alert block above them. jdp's earlier call still holds -
-              warn loudly, do not block - and the sentence still carries the
-              part that is not obvious: this phrase reaches every instance in
-              the group, so an unprotected instance puts the others at risk
-              too, not only itself. What changed is that a full-width red
-              slab for one sentence outweighed the two controls it was about. */}
+          {/* The warning beside the buttons: an unprotected instance puts the
+              whole group at risk, since the phrase reaches every member. */}
           <div className="flex flex-wrap items-center gap-3">
             <Button hue={1} disabled={phraseBusy} onClick={() => void onActivate()}>
               {t('settings.access.phrase.activate')}
@@ -750,13 +525,8 @@ function RemoteAccessCard({
         </div>
       )}
 
-      {/* Set up: offer the phrase and allow leaving. Whether it is actually
-          WORKING moved to the status pill in the title (jdp, 2026-08-27) -
-          "stored" and "connected" stay two separate facts, because a phrase
-          with an unreachable relay is configured but not working, and one
-          word for both is what made the old relay card unable to say which
-          had gone wrong. This block is now the "stored" half; the pill is the
-          "connected" half, and it is visible whether or not a phrase exists. */}
+      {/* Set up: show the phrase or leave. Whether it is connected is the pill
+          in the title. */}
       {conn?.active && (
         <div className="flex flex-col gap-3">
           {phrase ? (
@@ -764,16 +534,8 @@ function RemoteAccessCard({
               <span className="text-xs font-semibold text-carbon-textSub">
                 {t('settings.access.phrase.yourPhrase')}
               </span>
-              {/* The QR on the left, the words to its right (jdp, 2026-09-07:
-                  "sol der QR code linksbündig unter 'Deine Verbindungsphrase'
-                  angezeigt werden. das feld mit der Phrase soll rechts des QR
-                  Codes sein und der text der phrase soll viel größer sein").
-                  It used to be words on top and a CENTRED code underneath, so
-                  the two halves of one thing sat on different axes and the
-                  code was the only centred element on the page.
-
-                  The code is absent rather than broken when the server could
-                  not encode one, and the row then collapses to just the words. */}
+              {/* The QR code on the left and the words beside it; without a
+                  code the row is just the words. */}
               <div className="flex flex-col items-start gap-3 sm:flex-row">
                 {phraseQr && (
                   <div className="flex shrink-0 flex-col items-start gap-1.5">
@@ -782,10 +544,8 @@ function RemoteAccessCard({
                   </div>
                 )}
                 <div className="flex min-w-0 flex-1 items-start gap-1.5">
-                  {/* text-base rather than text-xs, and a deliberate exception
-                      to this page's own scale: these twelve words are read OUT
-                      LOUD or typed on a phone, which is the one case where the
-                      size of the type is the feature. */}
+                  {/* Larger than the page's scale, since the words are read
+                      aloud or typed on a phone. */}
                   <code
                     className="glim-num min-w-0 flex-1 rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2.5
                       text-base leading-relaxed text-carbon-text"
@@ -793,28 +553,10 @@ function RemoteAccessCard({
                   >
                     {phrase}
                   </code>
-                  {/* What to do with the twelve words hangs off them as a
-                      bubble rather than standing under them as a grey line.
-                      The sentence was read once, by the one person who set the
-                      group up, and then took that strip of the card for the
-                      rest of the product's life. */}
                   <InfoBubble tip={t('settings.access.phrase.pasteHint')} />
                 </div>
               </div>
-              {/* A way back (jdp, 2026-08-27: "Wenn man die Phrase einblendet,
-                  kann man sie nicht wieder ausblenden"). Revealing was a
-                  one-way door: the only way to get the words off the screen
-                  was to reload the page. That matters more than a tidiness
-                  fix, because what is on screen is the key to the whole
-                  group - somebody who showed it to read it out should be able
-                  to put it away before the next person walks past, and having
-                  to reload to do that is the kind of friction that ends with
-                  people just leaving it up. */}
-              {/* Copy sits beside Hide as a button of its own (jdp,
-                  2026-09-07: "Der button zum kopieren der Phrase soll als
-                  button neben dem 'Phrase ausbelnden' button sein"). It was an
-                  icon badge glued to the right edge of the words, where it read
-                  as part of the field rather than as something to press. */}
+              {/* Hide puts the key to the group away again; Copy sits beside it. */}
               <div className="flex flex-wrap gap-2">
                 <Button hue={4} onClick={() => { setPhrase(''); setPhraseQr(null); }}>
                   {t('settings.access.phrase.hide')}
@@ -835,15 +577,7 @@ function RemoteAccessCard({
             </div>
           ) : revealOpen ? (
             <div className="flex flex-col gap-2">
-              {/* WHY a password is being asked for here belongs on the (i) of
-                  the control asking for it, not as a grey line above it: a
-                  sentence printed over a control is read once, on the day it
-                  was written, and then costs that strip of the card for the
-                  rest of the product's life. The box had no caption of its own
-                  either, so there was nothing for the bubble to sit beside -
-                  caption plus (i) is the same shape the own-relay card two
-                  sections down already uses for its address and its container
-                  command. */}
+              {/* Why a password is asked for sits on the caption's (i). */}
               <span className="flex items-center gap-1.5 text-xs font-semibold text-carbon-textSub">
                 {t('auth.password')}
                 <InfoBubble tip={t('settings.access.phrase.revealWhy')} />
@@ -864,24 +598,9 @@ function RemoteAccessCard({
               </div>
             </div>
           ) : (
-            // Same row shape as the not-yet-configured case above: two
-            // filled, hued controls and the warning beside them. "Gruppe
-            // verlassen" was a ghost button, invisible until hovered (jdp,
-            // 2026-08-27: "beide sollen auch im nicht ausgewähtlen zustand
-            // als badge erkennbar sein und in der farbengine sein") - a
-            // destructive action that only appears on hover is the one that
-            // most needs to be visible before the pointer arrives.
-            //
-            // It leads the row because it is the control that steps BACK:
-            // leaving undoes the setup this card is showing, while showing
-            // the phrase again is what somebody adding a fourth instance
-            // came here to press, so that one sits at the end of the row.
-            //
-            // Warn, do not block, on the reveal itself: showing the phrase on
-            // an unprotected instance hands over the whole GROUP, not just
-            // this machine. Not worth refusing over - an instance nothing can
-            // reach has no problem here, and this page cannot prove which
-            // case it is looking at.
+            // Leave steps back, so it leads the row; showing the phrase comes
+            // last. Revealing it on an unprotected instance warns but does not
+            // block, since this page cannot tell whether anything can reach it.
             <div className="flex flex-wrap items-center gap-3">
               <Button hue={5} disabled={phraseBusy} onClick={() => void onLeave()}>
                 {t('settings.access.phrase.leave')}
@@ -890,9 +609,7 @@ function RemoteAccessCard({
                 hue={1}
                 onClick={() => {
                   setPhraseErr('');
-                  // With no password there is nothing to re-enter, so this
-                  // goes straight to the answer instead of showing an empty
-                  // field somebody has to press past.
+                  // Without a password there is nothing to re-enter.
                   if (conn.passwordSet) setRevealOpen(true);
                   else void onReveal();
                 }}
@@ -910,39 +627,15 @@ function RemoteAccessCard({
       )}
 
       {phraseErr && <p className="text-sm text-statusFail">{phraseErr}</p>}
-
     </Card>
   );
 }
 
-// ---- Which relay carries the words ------------------------------------------
-
 /**
- * RelaySection is the pair of relay cards, side by side, and it owns
- * everything both of them read and write.
- *
- * WHY ONE COMPONENT FOR TWO CARDS. They are two halves of ONE choice, and the
- * first cut got that wrong twice over. Written as two independent cards each
- * fetching for itself, saving an address in one left the other's badge reading
- * "the project's" until the page was reloaded - a settings page disagreeing
- * with a setting somebody had just made in it. And the two switches are
- * mutually exclusive (jdp, 2026-09-04: "wenn man das eigene Relay aktiviert
- * soll das Provider relay deaktiviert werden. und umgekehrt"), which is not
- * something two components can enforce between them without one of them
- * lying for a frame.
- *
- * THREE STATES, NOT TWO. Both switches off is deliberate and is its own
- * answer: no relay at all. jdp chose it over "the last switch cannot be turned
- * off" and over "off falls back to the project's relay", and he was right on
- * both counts - a switch that refuses to go off reads as broken, and one that
- * turns something else on does visibly not what it says.
- *
- * WHAT THIS PAGE IS AND IS NOT ABOUT, because it is easy to read it as more
- * than it is: instances on the SAME network find each other with none of this,
- * over UDP multicast (internal/discovery), with no phrase and no relay. The
- * whole relay story is only the other case - instances on different networks -
- * so switching it off costs a home setup nothing at all. The card texts say
- * exactly that, and they say it in that order.
+ * RelaySection holds the project relay card and the own relay card and
+ * everything both read and write. The two switches are mutually exclusive and
+ * both may be off, which means no relay at all. Instances on the same network
+ * find each other over UDP multicast (internal/discovery) without any relay.
  */
 function RelaySection({ onRelayChanged }: { onRelayChanged: () => void }) {
   const { t } = useT();
@@ -951,18 +644,13 @@ function RelaySection({ onRelayChanged }: { onRelayChanged: () => void }) {
   const [busy, setBusy] = useState(false);
   const { toast } = useToast();
 
-  // Deliberately reloads BOTH: /api/connect answers "which relay is this
-  // instance actually dialling", /api/relay/config answers "what is stored".
-  // They are different questions with different failure modes, and after a
-  // save only the pair is trustworthy.
+  // Reloads both: /api/connect says which relay is dialled, /api/relay/config
+  // what is stored.
   const reload = () => {
     fetchConnect().then(setConn).catch(() => {});
     fetchRelayConfig().then(setCfg).catch(() => {});
   };
-  // Polled for the same reason the card above it is: the relay address these
-  // cards show is what the client is DIALLING, and a dial that succeeds a
-  // second after the switch was flipped has to reach the screen without a
-  // reload.
+  // Polled, so a dial that succeeds after the switch reaches the screen.
   useEffect(() => {
     reload();
     const timer = window.setInterval(reload, CONN_POLL_MS);
@@ -971,17 +659,9 @@ function RelaySection({ onRelayChanged }: { onRelayChanged: () => void }) {
   }, []);
 
   /**
-   * One save for both cards, because the mode is one field and two switches
-   * are two views of it. Passing the mode explicitly - rather than letting
-   * each switch toggle its own boolean - is what makes "exactly one of these,
-   * or neither" true by construction instead of by two handlers agreeing.
-   *
-   * It ANSWERS whether the save went through, and that is what lets each of
-   * the four controls calling it shake its own self on refusal. One shared
-   * counter would shake whichever control happened to hold it, including the
-   * one nobody pressed; one save that reports its outcome lets each caller
-   * keep its own. The reason itself goes into the toast, never into a sentence
-   * left standing under the card - a page-resident copy never clears itself.
+   * saveMode saves the relay mode for both cards, so "one of these, or
+   * neither" holds by construction. It reports success, so each caller can
+   * shake itself on refusal; the reason goes to the toast.
    */
   async function saveMode(mode: RelayMode, relayUrl?: string, serve?: boolean): Promise<boolean> {
     setBusy(true);
@@ -989,8 +669,7 @@ function RelaySection({ onRelayChanged }: { onRelayChanged: () => void }) {
       const c = await saveRelayConfig(relayUrl ?? cfg?.relayUrl ?? '', undefined, serve, mode);
       setCfg(c);
       reload();
-      // The connect card above draws its own badge from /api/connect, which
-      // this save has just changed the answer to.
+      // The connect card's badge depends on this.
       onRelayChanged();
       toast(t2(mode));
       return true;
@@ -1002,9 +681,7 @@ function RelaySection({ onRelayChanged }: { onRelayChanged: () => void }) {
     }
   }
 
-  // The confirmation names the state the switch just reached, not "saved".
-  // "Gespeichert" after switching a relay off tells you a write happened and
-  // nothing about what is now true.
+  // The confirmation names the new state rather than saying "saved".
   const t2 = (mode: RelayMode) =>
     mode === 'off'
       ? t('settings.access.relay.savedOff')
@@ -1034,21 +711,10 @@ function RelaySection({ onRelayChanged }: { onRelayChanged: () => void }) {
 }
 
 /**
- * ProjectRelayCard: the relay this project runs, and - without softening it -
- * what its operator can see.
- *
- * It exists because of a question jdp asked on 2026-09-03, having read the
- * About text he had just chosen: "nichts verlässt deine eigenen Mauern... KL
- * kommuniziert aber über ein Relay. Ist das kein Bruch des Versprechens?" It
- * was. The frames are sealed - the path, the body, the task list, the mobile
- * app's bearer token, and since that day the instance NAME as well, which used
- * to fall back to os.Hostname() and introduced a person to the relay operator
- * by name on every connection (see relay.Identity).
- *
- * What no amount of sealing removes is the outside of an envelope. That is
- * what the bubble states, in the same words the privacy document uses, because
- * a promise a person cannot check is worth less than a plain description they
- * can.
+ * ProjectRelayCard offers the project's relay and says plainly what its
+ * operator can see. Frames are sealed, including the instance name
+ * (relay.Identity); the outside of the envelope is not, and the bubble
+ * describes it in the privacy document's words.
  */
 function ProjectRelayCard({
   cfg,
@@ -1059,8 +725,7 @@ function ProjectRelayCard({
   cfg: RelayConfig;
   conn: ConnectInfo;
   busy: boolean;
-  /** Answers whether the save went through, so a refusal can shake the switch
-   *  that asked for it rather than settling back in silence. */
+  /** Reports whether the save went through, so a refusal shakes the switch. */
   onPick: (on: boolean) => Promise<boolean>;
 }) {
   const { t } = useT();
@@ -1069,17 +734,7 @@ function ProjectRelayCard({
 
   return (
     <Card hue={2} className="flex flex-col gap-4">
-      {/* The badge rides in the title row's own right-hand slot (jdp,
-          2026-09-07: "mich stört das der Was sieht es button den card inhalt
-          nach unten verschiebt"). It used to be absolutely positioned at the
-          card's top-right corner, which put it exactly where the switch below
-          sits - so the content underneath had to be pushed down by pt-7 to get
-          out of its way, and that push was the thing on screen. In the title
-          row it occupies space that already exists and moves nothing.
-
-          The own-relay card beside it loses its matching pt-7 for the same
-          reason: it only ever carried that padding to stay level with this one,
-          and there is nothing left to be level with. */}
+      {/* The badge sits in the title row's slot, so it pushes no content down. */}
       <SectionTitle
         hint={t('settings.access.relay.body')}
         right={
@@ -1103,16 +758,10 @@ function ProjectRelayCard({
         />
       </div>
 
-      {/* A sentence that FOLLOWS controls takes one extra step of space above
-          it. It leads the block underneath, and under the card's even gap it
-          sat exactly as close to the switch above as to what it introduces. The
-          step goes above the sentence and never below the controls. */}
+      {/* The extra space ties the sentence to the block below it. */}
       <p className="mt-2 text-sm text-carbon-textSub">{t('settings.access.relay.leadProject')}</p>
 
-      {/* The address, and only while this card is the one in force. Showing it
-          under a switch that is off would be a card describing a connection
-          that is not happening. conn.relayUrl is what the client really dials,
-          not what a field on this page hoped it would. */}
+      {/* The address the client really dials, only while this relay is in use. */}
       {active && (
         <div className="mt-auto flex flex-col gap-1">
           <span className="text-xs font-semibold text-carbon-textSub">{t('settings.access.relay.address')}</span>
@@ -1124,33 +773,15 @@ function ProjectRelayCard({
           </code>
         </div>
       )}
-
-      {/* The "no relay at all" note used to be a paragraph here as well as the
-          tip on the badge above (jdp, 2026-09-06: "oder sollen wir nicht
-          einfach den text nehmen der in der Projekt-card erscheint? Und den
-          dafür dort entfernen?"). One place says it now, and it is the badge
-          that names the state. */}
     </Card>
   );
 }
 
 /**
- * OwnRelayCard: a relay you run, in the two shapes that actually exist.
- *
- *  1. THIS INSTANCE serves it, on the address it already answers on, behind
- *     the reverse proxy and certificate it already has. One switch, no second
- *     container, nothing to list anywhere. jdp asked for a press-a-button
- *     container install "wie beim widget in BV, dann müssen wir das relay
- *     nicht extra auf CA listen" - this reaches that goal without the
- *     container, and so without the docker socket or SSH credentials such a
- *     button would need, and without pointing at the wrong machine.
- *  2. An address somewhere else - another KnightLoader with that switch on,
- *     or the container on a small VPS, for the case no machine of yours is
- *     reachable from outside.
- *
- * The warning at the bottom is the one thing people get wrong: the address is
- * stored PER INSTANCE and is not carried by the phrase, so setting it on one
- * and forgetting the others leaves a group that quietly cannot see itself.
+ * OwnRelayCard offers a relay you run: served by this instance on the address
+ * it already answers on, or at an address elsewhere, such as the container on
+ * a small VPS. The address is stored per instance and not carried by the
+ * phrase, so every instance needs it; the warning says so.
  */
 function OwnRelayCard({
   cfg,
@@ -1161,19 +792,17 @@ function OwnRelayCard({
 }: {
   cfg: RelayConfig;
   busy: boolean;
-  /** All three answer whether the save went through - see ProjectRelayCard. */
+  /** Each reports whether the save went through. */
   onPick: (on: boolean) => Promise<boolean>;
   onSaveAddress: (url: string) => Promise<boolean>;
   onServe: (v: boolean) => Promise<boolean>;
 }) {
   const { t } = useT();
-  // Seeded from the stored value and then owned by the field, so typing is not
-  // fought by a poll landing mid-edit.
+  // Seeded once and then owned by the field, so a poll cannot fight typing.
   const [addr, setAddr] = useState(cfg.relayUrl);
   const [copied, setCopied] = useState(false);
   const active = cfg.mode === 'own';
-  // ONE COUNTER PER CONTROL, never one shared across the three: a failure of
-  // the control that was NOT touched would otherwise shake the wrong one.
+  // One counter per control, so a refusal shakes the one that was touched.
   const [useShake, setUseShake] = useState(0);
   const [serveShake, setServeShake] = useState(0);
   const [addrShake, setAddrShake] = useState(0);
@@ -1192,15 +821,10 @@ function OwnRelayCard({
         />
       </div>
 
-      {/* Same step as the card above, same reason: a sentence that FOLLOWS
-          controls is separated from them, so it pairs with the block it
-          introduces rather than with the switch it happens to sit under. */}
+      {/* The extra space ties the sentence to the block below it. */}
       <p className="mt-2 text-sm text-carbon-textSub">{t('settings.access.ownRelay.lead')}</p>
 
-      {/* Everything below is the configuration OF that choice, so it appears
-          only once the choice is made. A form for a mode that is switched off
-          is a form whose Save button does something the card does not admit
-          to. */}
+      {/* The configuration appears only once this relay is chosen. */}
       {active && (
         <>
           <div className="flex flex-col gap-2 rounded-[var(--radius-control)] bg-carbon-surface2 p-3">
@@ -1247,9 +871,8 @@ function OwnRelayCard({
             <p className="text-[11px] leading-relaxed text-statusWarn">{t('settings.access.ownRelay.everyInstance')}</p>
           </div>
 
-          {/* Copyable rather than clickable: the machine that needs a relay is
-              by definition not the machine that can host one for it, so an
-              install button here would start the container on the wrong box. */}
+          {/* A command to copy rather than an install button, since the machine
+              needing a relay cannot host one for itself. */}
           <div className="mt-auto flex flex-col gap-2">
             <span className="flex items-center gap-1.5 text-xs font-semibold text-carbon-textSub">
               {t('settings.access.ownRelay.containerLabel')}
@@ -1262,11 +885,7 @@ function OwnRelayCard({
               >
                 {RELAY_RUN_COMMAND}
               </code>
-              {/* `labelled`, and 16px of glyph in the 32px tile - the size
-                  every square badge in this app shares. A copy action beside a
-                  command stands in the Beschriftung setting like any other
-                  action; the command beside it is `min-w-0` and scrolls, so the
-                  word costs it nothing. */}
+              {/* `labelled`, so the action follows the Beschriftung setting. */}
               <IconBadge
                 labelled
                 hue={1}
@@ -1289,22 +908,15 @@ function OwnRelayCard({
 }
 
 /**
- * The one command that starts a relay, kept beside the card that offers it.
- *
- * No volume and no environment beyond the port: the relay holds nothing across
- * a restart except the list of who is currently connected, which is why
- * Dockerfile.relay declares no VOLUME either. Anyone reading this should be
- * able to see at a glance that there is nothing here to back up.
+ * The command that starts a relay. The relay keeps nothing across a restart,
+ * which is why neither this nor Dockerfile.relay declares a volume.
  */
 const RELAY_RUN_COMMAND =
   'docker run -d --name knightloader-relay -p 8760:8760 --restart unless-stopped ghcr.io/junkerderprovinz/knightloader-relay:latest';
 
 /**
- * Turns blank-line-separated text into real paragraphs for a bubble.
- *
- * HTML collapses the newlines a translator wrote, so a three-paragraph
- * explanation would otherwise arrive as one wall of text - and the phrase
- * card's bubble holds the longest piece of prose in the app.
+ * paragraphs turns blank-line-separated text into paragraphs, since HTML
+ * collapses the newlines a translator wrote.
  */
 function paragraphs(text: string): ReactNode {
   const parts = text.split('\n\n').filter((p) => p.trim() !== '');
@@ -1318,16 +930,13 @@ function paragraphs(text: string): ReactNode {
   );
 }
 
-// ---- API tokens -------------------------------------------------------------
-
 function TokensSection({ cx }: { cx: (k: PendingKey) => string }) {
   const { toast } = useToast();
   const [tokens, setTokens] = useState<ApiToken[]>([]);
   const [showCreate, setShowCreate] = useState(false);
   const [name, setName] = useState('');
   const [creating, setCreating] = useState(false);
-  // The create button's own failure counter - keyed onto that button, so a
-  // second identical refusal shakes again rather than playing once ever.
+  // Keyed onto the create button so a repeated refusal shakes again.
   const [createShake, setCreateShake] = useState(0);
   const [created, setCreated] = useState<NewApiToken | null>(null);
   const [copied, setCopied] = useState(false);
@@ -1346,10 +955,7 @@ function TokensSection({ cx }: { cx: (k: PendingKey) => string }) {
       setName('');
       await load();
     } catch (e) {
-      // Toast plus a shake of the button pressed. The window stays open with
-      // the typed name still in it, and the sentence that used to sit under
-      // the field is gone: it never cleared itself, so a refusal from earlier
-      // read exactly as current as the one that just happened.
+      // The window stays open with the typed name; the reason goes to the toast.
       toast(cx('settings.access.tokens.createFailed').replace('{error}', String(e).replace(/^Error:\s*/, '')), 'fail');
       setCreateShake((n) => n + 1);
     } finally {
@@ -1385,10 +991,7 @@ function TokensSection({ cx }: { cx: (k: PendingKey) => string }) {
           <div className="flex flex-col divide-y divide-carbon-border/40">
             {tokens.map((tok) => (
               <div key={tok.id} className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
-                {/* The row's own square badge rather than a bare glyph (jdp,
-                    2026-08-27), at the one size every square badge in this
-                    app shares. Inert - it marks the row, it is not a control -
-                    which is what IconTile is for. */}
+                {/* An inert tile marking the row, not a control. */}
                 <IconTile icon={<IconKey width={16} height={16} />} hue={5} />
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm text-carbon-text">{tok.name}</div>
@@ -1399,10 +1002,7 @@ function TokensSection({ cx }: { cx: (k: PendingKey) => string }) {
                     {tok.lastUsed ? fmtDate(tok.lastUsed) : cx('settings.access.tokens.neverUsed')}
                   </div>
                 </div>
-                {/* `labelled`, and the same 16px mark the IconTile opposite it
-                    carries: a row action stands in the Beschriftung setting
-                    like everything else, and the name and dates beside it are
-                    `min-w-0` and truncate. */}
+                {/* `labelled`, so the action follows the Beschriftung setting. */}
                 <IconBadge
                   labelled
                   hue={5}
@@ -1417,11 +1017,7 @@ function TokensSection({ cx }: { cx: (k: PendingKey) => string }) {
             ))}
           </div>
         )}
-        {/* Back to a normal button on the left (jdp, 2026-08-27: "Der token
-            erstellen button wieder zurück auf normal. also ganz links
-            platzeiren"). It had been shrunk into the title row's right slot;
-            below the list and left-aligned it reads as "add another one to
-            what you just looked at" rather than as a header utility. */}
+        {/* Below the list and left-aligned, as "add another". */}
         <div>
           <Button
             kind="secondary"
@@ -1491,10 +1087,7 @@ function TokensSection({ cx }: { cx: (k: PendingKey) => string }) {
                   {created.secret}
                 </code>
               </div>
-              {/* `labelled`, and 16px of glyph in the 32px tile. The secret is
-                  the one thing on this screen worth copying, so its action is
-                  the last one that should sit outside the Beschriftung
-                  setting. */}
+              {/* `labelled`, so the action follows the Beschriftung setting. */}
               <IconBadge
                 labelled
                 hue={5}

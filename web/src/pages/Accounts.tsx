@@ -1,14 +1,7 @@
-// The account entity, page and all: one row per configured (service, account)
-// pair, never one per catalogue entry - see internal/accounts/catalogue.go and
-// internal/app/app_accounts.go, the sources this page reads from rather than
-// deciding on its own.
-//
-// Two sections, by direct instruction: Debrid on top (the convenient path -
-// one key covers many hosters), Hoster logins below (individual per-hoster
-// accounts). Which section a service belongs to comes from the catalogue's
-// own Group field, never a hardcoded id list here - the same reason
-// AccountsTable is one component the two sections both call, filtered by
-// group at the call site instead of by an if/else on ids baked into it.
+// The accounts page: one row per configured service and account, as read from
+// internal/accounts/catalogue.go and internal/app/app_accounts.go. Debrid
+// accounts come first and hoster logins below; the section follows the
+// catalogue's Group field, and both use the same AccountsTable.
 import {
   useCallback,
   useEffect,
@@ -57,12 +50,6 @@ import {
 } from '../components/ui';
 import { AccountTable } from '../components/AccountTable';
 import { HosterLoginSection } from '../components/HosterLoginSection';
-// Four names left this list when the row actions moved into AccountTable's own
-// menu: IconBadge, IconEdit, IconSettings and IconTrash were still imported
-// with no call site left to use them. `noUnusedLocals` is off in tsconfig.json,
-// so nothing reported them, and an import that resolves is indistinguishable
-// from one that is used when somebody greps for a glyph. Same reasoning as
-// GlimStone 1.13.0 applied to imports: delete what decides nothing.
 import {
   IconAccounts,
   IconClose,
@@ -75,10 +62,8 @@ import {
 } from '../lib/icons';
 import { HosterIcon } from '../components/HosterIcon';
 
-// Passive poll for whatever the account-health refresher (agent 6B) writes in
-// the background - this page never runs that check itself, only reads its
-// result. Slow on purpose: expiry and traffic figures move in hours, not
-// seconds, and a tighter interval would only hammer the same stored answer.
+// Reads what the background account-health refresher stored; expiry and
+// traffic change in hours.
 const HEALTH_POLL_MS = 30000;
 
 type DialogState = { mode: 'new' } | { mode: 'edit'; service: string; account: string };
@@ -90,8 +75,7 @@ export function Accounts() {
   const [catalogue, setCatalogue] = useState<CatalogueService[]>([]);
   const [loadError, setLoadError] = useState(false);
   const [dialog, setDialog] = useState<DialogState | null>(null);
-  // The row waiting on an answer before its credential goes. Null at rest, and
-  // the ONLY path to removeAccountCredential - see doRemove below.
+  // The row awaiting confirmation; the only path to removeAccountCredential.
   const [confirming, setConfirming] = useState<Account | null>(null);
   const [refreshing, setRefreshing] = useState<ReadonlySet<string>>(new Set());
 
@@ -129,8 +113,7 @@ export function Accounts() {
   }
 
   async function onToggle(a: Account, enabled: boolean) {
-    // Optimistic: the switch is the row's only feedback, and a spinner over a
-    // toggle reads as broken rather than as busy.
+  // Optimistic: a spinner over a toggle reads as broken.
     setAccounts((cur) => cur?.map((x) => (x.id === a.id ? { ...x, enabled } : x)) ?? cur);
     try {
       await setAccountEnabled(a.service, a.account, enabled);
@@ -140,11 +123,7 @@ export function Accounts() {
     }
   }
 
-  // Asked, not done. What goes here is a key out of the encrypted store, and
-  // there is nothing on this page or behind it to put it back from - the value
-  // was never readable here to begin with. GlimStone 1.12.0: an action that
-  // cannot be reversed opens a window naming what is at stake in words, and the
-  // question is what warns, not a colour.
+  // Confirmed first, since the key cannot be put back.
   async function doRemove(a: Account) {
     setConfirming(null);
     try {
@@ -169,11 +148,8 @@ export function Accounts() {
   }
 
   const byId = new Map(catalogue.map((s) => [s.id, s]));
-  // Hoster accounts never come from the catalogue - see HosterLoginSection
-  // below, which owns internal/hosterauth's own host-keyed list. A catalogue
-  // entry is a fixed, known service (TorBox and its like); a hoster login is
-  // any of the ones JD already knows, picked ad hoc, so it was never going to
-  // fit the same "one row per catalogue id" shape debrid accounts use.
+  // Hoster logins come from internal/hosterauth (HosterLoginSection), not the
+  // catalogue, since any host JDownloader knows can have one.
   const debridIds = new Set(catalogue.filter((s) => s.group === 'debrid').map((s) => s.id));
   const debridRows = accounts.filter((a) => debridIds.has(a.service));
 
@@ -231,9 +207,8 @@ export function Accounts() {
         <HosterLoginSection />
       </Card>
 
-      {/* The signature, not the array: RoutingSection only has to look again
-          when the SET of configured services changes, and the poll above hands
-          it a fresh array every few seconds. */}
+      {/* The signature, so RoutingSection looks again only when the set of
+          services changes, not on every poll. */}
       <RoutingSection
         catalogue={catalogue}
         signature={(accounts ?? []).map((a) => a.service).sort().join(',')}
@@ -256,17 +231,8 @@ export function Accounts() {
           onClose={() => setConfirming(null)}
           footer={
             <>
-              {/* Cancel and the commit stand together at the end of the row,
-                  the commit LAST because it is the answer that goes ahead
-                  (GlimStone 1.14.0) - by JSX order alone, so the pair mirrors
-                  with the rest of the page in an RTL language. No
-                  flex-row-reverse and no order-*, which would pin the two to
-                  their visual positions and survive the mirror.
-                  Both carry a mark, because a footer is all glyphs or none -
-                  the lopsided shape GlimStone 1.8.0's confirmGlyph exists to
-                  prevent. Neither is recommended by its colour: the sentence
-                  above says what is at stake, and a red button would only say
-                  it again, worse. */}
+              {/* The spacer puts the pair at the end, the commit last; JSX order,
+                  so it mirrors in right-to-left languages. */}
               <span className="flex-1" />
               <Button kind="ghost" icon={<IconClose width={16} height={16} />} onClick={() => setConfirming(null)}>
                 {t('common.cancel')}
@@ -278,8 +244,7 @@ export function Accounts() {
           }
         >
           <p className="text-sm text-carbon-text">
-            {/* The account id goes into the name when there is one: two rows of
-                the same service would otherwise ask the identical question. */}
+            {/* The account id tells two rows of one service apart. */}
             {t('accounts.removeConfirm', {
               name: confirming.account ? `${labelOf(confirming)} · ${confirming.account}` : labelOf(confirming),
             })}
@@ -289,8 +254,6 @@ export function Accounts() {
     </div>
   );
 }
-
-// ---- the table -------------------------------------------------------------
 
 interface TableActions {
   catalogue: Map<string, CatalogueService>;
@@ -310,9 +273,7 @@ function AccountsTable({ rows, catalogue, refreshing, onRefresh, onToggle, onRem
         const svc = catalogue.get(a.service);
         return {
           key: a.id,
-          // The service's own icon, taken from the site its "where do I get a
-          // key" link already points at - the one host string the catalogue
-          // carries for a debrid service.
+          // The service's icon, from the host of its "where do I get a key" link.
           iconHost: svc?.whereUrl ?? '',
           label: svc?.label ?? a.service,
           enabled: a.enabled,
@@ -322,10 +283,7 @@ function AccountsTable({ rows, catalogue, refreshing, onRefresh, onToggle, onRem
           traffic: a.traffic,
           onToggle: (v) => onToggle(a, v),
           onEdit: () => onEdit(a),
-          // A credential the container supplies cannot be cleared from here -
-          // there is nothing in the encrypted store to remove, and an action
-          // that looks like it deletes the account but leaves it right back on
-          // the next reload is worse than no action.
+          // A credential from the container's environment cannot be removed here.
           onRemove: a.fromEnv ? undefined : () => onRemove(a),
           menu: [
             {
@@ -341,9 +299,7 @@ function AccountsTable({ rows, catalogue, refreshing, onRefresh, onToggle, onRem
                   id: 'renew',
                   label: a.expiry ? t('accounts.renew') : t('accounts.buyPremium'),
                   icon: <IconExternalLink width={16} height={16} />,
-                  // Only ever actionable once there is something to renew - a
-                  // link with nowhere useful to send someone must not pretend
-                  // to be live.
+                  // Only with an expiry and somewhere to renew.
                   disabled: !a.expiry || !svc?.whereUrl,
                   onSelect: () => {
                     if (svc?.whereUrl) window.open(svc.whereUrl, '_blank', 'noopener,noreferrer');
@@ -363,13 +319,8 @@ function AccountStatus({ account, busy }: { account: Account; busy: boolean }) {
   if (busy) {
     return (
       <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-carbon-textMuted">
-        {/* The house's own "this is happening now" mark, not a spinning glyph.
-            Tailwind's animate-spin is infinite and reads none of the motion
-            tokens, so it kept turning for somebody who had set movement to
-            "off" and for anybody whose system asks for reduced motion - the
-            one category a continuous animation has to answer to. .glim-live
-            already has both stops written for it, and it puts this row's
-            fourth state in the same dot the other three use. */}
+        {/* The house's live dot rather than animate-spin, so it follows the
+            motion level and reduced motion. */}
         <span
           aria-hidden
           className="glim-live h-1.5 w-1.5 shrink-0 rounded-[var(--radius-pill)] bg-accent"
@@ -378,9 +329,7 @@ function AccountStatus({ account, busy }: { account: Account; busy: boolean }) {
       </span>
     );
   }
-  // Nothing has ever checked this row yet - not the same as a check that came
-  // back negative, so it gets its own neutral reading rather than borrowing
-  // "failed".
+  // Never checked yet differs from a failed check.
   if (!account.detail) {
     return (
       <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-statusNeutral">
@@ -405,8 +354,6 @@ function AccountStatus({ account, busy }: { account: Account; busy: boolean }) {
     </span>
   );
 }
-
-// ---- new/edit credential dialog --------------------------------------------
 
 function CredentialDialog({
   mode,
@@ -442,12 +389,8 @@ function CredentialDialog({
 
   const fromEnv = editingRow?.fromEnv ?? false;
   const hasDefault = (id: string) => accounts.some((a) => a.service === id && a.account === '');
-  // Debrid only. The catalogue also carries the captcha solvers (see
-  // accounts.Group's own doc comment), and this page renders exactly one table
-  // of debrid rows - so offering 2Captcha here let somebody save a key that
-  // then appeared nowhere on the page they saved it from. Those two are
-  // configured on the Captcha settings page, beside the switches they belong
-  // to.
+  // Debrid only; the captcha solvers in the catalogue are set on the Captcha
+  // page.
   const filtered = catalogue.filter(
     (s) => s.group === 'debrid' && s.label.toLowerCase().includes(query.trim().toLowerCase()),
   );
@@ -472,10 +415,7 @@ function CredentialDialog({
         const result = await verifyAccountCredential(picked.id, account, credential());
         setVerifying(false);
         setVerifyResult(result);
-        // Verified failures stop here: "save anyway" is a second, deliberate
-        // click, never a fallback this function takes on its own - an offline
-        // service must not block the save, but it must not be silently
-        // skipped past either.
+        // A failed check stops here; "save anyway" takes a second click.
         if (!result.ok) {
           setSaving(false);
           return;
@@ -569,12 +509,7 @@ function CredentialDialog({
                 </Field>
               )}
 
-              {/* PasswordInput, not a bare type="password" field: a secret
-                  carries its own reveal eye inside the field at the trailing
-                  edge, and these two are the real secrets this dialog asks
-                  for. A key somebody pastes out of a hoster's site is exactly
-                  the value that has to be readable back once, and there was
-                  no way to read it at all. */}
+              {/* PasswordInput, so a pasted key can be revealed and read back. */}
               {picked.kind === 'apiKey' ? (
                 <Field label={t('accounts.keyLabel', { service: picked.label })} hint={t('accounts.keyHint')}>
                   <PasswordInput
@@ -665,9 +600,7 @@ function ServicePicker({
             className="flex items-center gap-3 rounded-[var(--radius-control)] px-3 py-2 text-start hover:bg-carbon-hover"
           >
             <span className="min-w-0 flex-1">
-              {/* The service's own icon here too, so the picker and the table
-                  it fills read as the same list (jdp, 2026-09-06: "Die
-                  debridaccount haben kein logo in der liste"). */}
+              {/* The service's icon, as in the table. */}
               <span className="flex items-center gap-2 text-sm text-carbon-text">
                 <HosterIcon host={s.whereUrl} />
                 {s.label}
@@ -681,33 +614,18 @@ function ServicePicker({
   );
 }
 
-// ---- routing: priority order + the JD sidecar's own status ----------------
-//
-// Neither of these is an account, which is why it is a section of its own
-// rather than a row in AccountsTable: the priority order is a fact about the
-// REGISTRY (internal/resolver), not about any one credential, and the JD
-// sidecar is configured by a URL (KL_JD) with no catalogue entry at all - it
-// cannot become an AccountsTable row without a credential the container
-// never gives it.
+// Routing: the resolver priority order and the JD sidecar's status. Neither is
+// an account: the order belongs to the registry (internal/resolver), and the
+// sidecar is configured by KL_JD without a credential.
 
-/** RESOLVER_LABEL_KEYS names the locale key for a resolver whose label is a
- *  genuinely descriptive phrase, worth translating - "direct" and "http" are
- *  what KL calls its own built-in fetch paths, not a product name. Typed by
- *  TranslationKey rather than plain string so a lookup through it stays a key
- *  t() actually accepts, not a widened string tsc can no longer check. */
+/** Locale keys for resolvers whose label is a descriptive phrase. */
 const RESOLVER_LABEL_KEYS: Partial<Record<string, TranslationKey>> = {
   direct: 'accounts.routing.resolver.direct',
   http: 'accounts.routing.resolver.http',
-  // Was missing, and the ladder printed the bare id "torrent" for it - the
-  // one row in the list that read like a bug rather than a service.
   torrent: 'accounts.routing.resolver.torrent',
 };
 
-/** RESOLVER_PROPER_NAMES is the other half: a resolver whose label is a
- *  project/product name - yt-dlp, JDownloader - the same reason
- *  torbox/alldebrid/realdebrid read their label off the catalogue instead of
- *  a locale key. Deliberately not run through t(): a proper noun does not
- *  change across the 38 locales this app ships, only the word around it does. */
+/** Resolvers named after a product, which stay untranslated. */
 const RESOLVER_PROPER_NAMES: Record<string, string> = {
   ytdlp: 'yt-dlp',
   jd: 'JDownloader',
@@ -719,12 +637,8 @@ function RoutingSection({ catalogue, signature }: { catalogue: CatalogueService[
   const [jd, setJd] = useState<JDStatus | null>(null);
   const [logins, setLogins] = useState<HosterLogin[]>([]);
 
-  // Re-read whenever the configured services change, not only on mount (jdp,
-  // 2026-09-07: "Neu hinzugefügte accounts mussen dort sofort erscheinen").
-  // Saving a debrid key registers a new resolver on the server straight away,
-  // but this card had fetched its ladder once and never again, so the new
-  // service was missing from it until the page was reloaded - which looks
-  // exactly like a key that did not take.
+  // Re-read whenever the configured services change, since saving a debrid key
+  // registers a resolver at once.
   useEffect(() => {
     let live = true;
     void fetchResolverPriority().then((p) => live && setPriority(p));
@@ -746,20 +660,6 @@ function RoutingSection({ catalogue, signature }: { catalogue: CatalogueService[
   };
 
   return (
-    // No outer "Weiterleitung" title any more - jdp, 2026-08-23: "badge ist
-    // immer noch da, jetzt nur weiter unten unter dem
-    // Prioritätsreihenfolge-badge. bitte entfernen." The two cards below
-    // each already carry their own clear title, so the umbrella label over
-    // both was redundant and, sitting this close above the grid, crowded
-    // the Prioritätsreihenfolge card's own badge instead of reading as a
-    // section header. That removed title used to own hue 2, which left this
-    // page's SectionTitle sequence at 0 (debrid), 1 (hoster), 3, 4 - a gap
-    // that read as an arbitrary, non-sequential rainbow once the debrid/
-    // hoster cards above got their own real .glim-card box and all four
-    // badges became visible together as one set for the first time (jdp,
-    // 2026-08-24: "jetzt sind die card falsch eingefärbt"). Renumbered to 2
-    // and 3 below so the whole page runs 0-1-2-3 with no skip, matching
-    // every other multi-card settings page (Look.tsx, Access.tsx).
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
       <Card hue={2} className="flex flex-col gap-3">
         <SectionTitle hint={t('accounts.routing.priorityHint')}>{t('accounts.routing.priorityTitle')}</SectionTitle>
@@ -794,24 +694,8 @@ function RoutingSection({ catalogue, signature }: { catalogue: CatalogueService[
 }
 
 /**
- * The ladder's drag grip.
- *
- * NO BUBBLE ON HOVER, at jdp's word on seeing it over this very ladder ("der
- * verschiebeninfotext weg, also die infoblase die bei mouseover erscheint",
- * with a screenshot of the resolver order reading "Debrid-Link verschieben").
- * A grip is one of the few glyphs that says what it does by looking like what
- * it does, and a balloon that repeats it follows the pointer down the whole
- * ladder, one per row, while somebody is trying to see the ORDER.
- *
- * The argument that used to stand here - "an icon-only control still needs the
- * tooltip unconditionally, there is no other way to learn what the grip does" -
- * is the reason the label did not simply go with the bubble. It is right about
- * the name and wrong about the balloon: the name is what a screen reader reads,
- * and it stays, as `aria-label`. What is dropped is the drawing of it.
- *
- * It also used to carry a plain `title=` before that, which drew the operating
- * system's own balloon; that must not come back as the way to "keep" the
- * tooltip. `aria-label` names the control without painting anything.
+ * LadderGrip is the ladder's drag grip. It carries an aria-label but no
+ * tooltip, which would follow the pointer down every row.
  */
 function LadderGrip({
   label,
@@ -841,24 +725,10 @@ function LadderGrip({
 }
 
 /**
- * The priority ladder, hand-arrangeable (jdp, 2026-09-07: "Die
- * Prioritätsreihenfolge soll per drag and drop anordenbar sein").
- *
- * Two ways to move a row, on purpose. Drag is the one that was asked for and
- * the one that feels right for a short list; the two arrow badges beside each
- * row are the same move without a pointer, which is what makes this reachable
- * from a keyboard and on a touch screen, where an HTML5 drag does not fire at
- * all. They are not a fallback bolted on - they run the identical `move`.
- *
- * Every drop saves immediately and redraws from the SERVER's answer rather
- * than from the local array: what is stored is what the downloader will walk,
- * and a list that kept showing the arrangement the drop produced would hide a
- * rejected or de-duplicated entry.
- *
- * "Automatisch" clears the stored order rather than writing the current one
- * out. Those are genuinely different: an empty order follows the ladder as it
- * changes (a new debrid key, a login going premium), a written-out copy of
- * today's order freezes it.
+ * PriorityLadder orders the resolvers by drag or, with the grip focused, by
+ * arrow keys. Every drop saves at once and redraws from the server's answer.
+ * "Automatisch" clears the stored order, so it follows the ladder as it
+ * changes instead of freezing today's.
  */
 function PriorityLadder({
   rows,
@@ -874,7 +744,7 @@ function PriorityLadder({
   const { t } = useT();
   const { toast } = useToast();
   const [busy, setBusy] = useState(false);
-  /** The arrangement being shown WHILE a drag is in flight; null at rest. */
+  /** The arrangement shown while a drag is in flight; null at rest. */
   const [live, setLive] = useState<string[] | null>(null);
   const [dragId, setDragId] = useState<string | null>(null);
   const list = useRef<HTMLOListElement>(null);
@@ -895,7 +765,7 @@ function PriorityLadder({
     }
   }
 
-  /** Moves `id` to position `to`, clamped. Returns the new order, or null. */
+  /** moved moves `id` to position `to`, clamped, and returns the new order or null. */
   function moved(id: string, to: number): string[] | null {
     const ids = [...order];
     const from = ids.indexOf(id);
@@ -917,25 +787,9 @@ function PriorityLadder({
               dragId === r.id ? 'bg-carbon-surface2' : ''
             }`}
           >
-            {/* The grip, and nothing but the grip, starts a drag (jdp,
-                2026-09-07: "bitte die Pfeilbuttons weg. dort soll ein griff
-                sein den man angreifen kann und verschieben kann"). A whole row
-                that is draggable cannot also be selected or read comfortably,
-                and there is no second gesture left for anything else the row
-                may want later.
-
-                Pointer events, not HTML5 drag-and-drop. HTML5 drag gives no
-                position between dragstart and drop, so the list could only
-                jump at the end - which is exactly what he saw ("drag and drop
-                verschiebt nicht live"). Pointer events report every move, so
-                the list can be re-rendered in the arrangement the pointer is
-                currently describing, and they work under a finger as well as
-                under a mouse.
-
-                It is a real <button> so the ladder stays operable without a
-                pointer at all: focus it and the arrow keys move the row. That
-                replaces the two arrow badges this row used to carry, which are
-                gone at his request. */}
+            {/* Only the grip starts a drag. Pointer events rather than HTML5
+                drag, so the list follows every move and works under a finger;
+                a real button, so the arrow keys move the row. */}
             <LadderGrip
               label={t('accounts.routing.dragHandle', { name: labelFor(r.id) })}
               disabled={busy}
@@ -948,10 +802,8 @@ function PriorityLadder({
               onPointerDown={(e) => {
                 if (busy || e.button !== 0) return;
                 e.preventDefault();
-                // Frozen before the first move: once rows start swapping, the
-                // live geometry describes the preview rather than the list the
-                // pointer is being dragged across, and reading it would make
-                // the row's own position an input to where it goes next.
+                // The row geometry is read before the first move, since the live
+                // layout soon shows the preview.
                 const items = [...(list.current?.children ?? [])] as HTMLElement[];
                 if (items.length < 2) return;
                 const first = items[0].getBoundingClientRect();
@@ -960,20 +812,10 @@ function PriorityLadder({
                 const height = second.top - first.top;
                 if (height <= 0) return;
 
-                // Listeners on the DOCUMENT, and deliberately no
-                // setPointerCapture. Tabs.tsx learned both the hard way and
-                // says so in its own comment: capturing the press target and
-                // then moving past its bounds produced a spurious
-                // pointercancel in Chromium. The grip is 14px wide, so the
-                // pointer leaves it on the first millimetre of the gesture -
-                // handlers bound to the button itself simply stop hearing
-                // anything, which is exactly how the first cut of this failed
-                // (measured live: nothing moved at all).
-                //
-                // The working arrangement lives here rather than in React
-                // state for the same reason: the drag has to read and write it
-                // between renders, and a re-render mid-gesture would otherwise
-                // hand the next move a stale copy.
+                // Listeners on the document without setPointerCapture, which
+                // raised a spurious pointercancel in Chromium (see Tabs.tsx).
+                // The arrangement lives here, not in state, so no re-render
+                // hands a move a stale copy.
                 let arrangement = order;
                 setDragId(r.id);
                 setLive(order);
@@ -994,8 +836,7 @@ function PriorityLadder({
                   document.removeEventListener('pointerup', done);
                   document.removeEventListener('pointercancel', cancel);
                   setDragId(null);
-                  // Only a real change is worth a request. A grip pressed and
-                  // released without moving is a click, not a reorder.
+                  // A press without movement is a click, not a reorder.
                   if (arrangement.join() !== rows.map((x) => x.id).join()) void store(arrangement);
                   else setLive(null);
                 };
@@ -1014,12 +855,8 @@ function PriorityLadder({
             <span className="glim-num w-4 shrink-0 text-carbon-textMuted">{i + 1}</span>
             <span className="flex min-w-0 flex-col">
               <span className="truncate text-carbon-text">{labelFor(r.id)}</span>
-              {/* A hoster login is not a rung of its own - it makes JDownloader
-                  better at one host rather than opening a new road - so it can
-                  never appear in this list as a row. It was still missing from
-                  the page as far as anybody reading it could tell (jdp,
-                  2026-09-07: "jetzt fehlt zb. ddownload"), so the row that
-                  actually uses those logins names them. */}
+              {/* Hoster logins are not rungs of their own; the JDownloader row
+                  names them. */}
               {r.id === 'jd' && logins.length > 0 && (
                 <span className="truncate text-[11px] text-carbon-textMuted">
                   {logins.map((l) => l.host).join(', ')}

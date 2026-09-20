@@ -5,36 +5,14 @@ import { fetchOptions } from '../../../lib/api';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import { useDraft } from '../context';
 
-/**
- * What happens to a batch on its way OUT of the collector: how long it is left
- * lying there, what is done with a link that is already in the list, and where
- * the confirmed batch lands in the queue.
- *
- * All three had no control anywhere and were reachable only through the
- * advanced key table. They belong together because they are one moment - the
- * one where staged links become real downloads - and none of them says anything
- * useful next to the download folder.
- *
- * The card takes its palette position as a prop because the page decides the
- * order of its cards, and a badge sequence that jumps reads as a bug.
- */
+// The collector card: what happens to a batch on its way out of the collector.
+// How long it waits, what happens to a link already in the list, and where the
+// confirmed batch lands in the queue.
 
 /**
- * The confirm policies the server offers as an instance default: include,
- * exclude, exclude-and-remove and ask. Their labels are looked up here and an
- * id with no string of its own falls back to the id, which is the same
- * fallback the idle-action and collision strips make.
- *
- * Only the four ids THIS build knows get a translated label. An id a newer
- * server adds still renders as itself, which is worse than a word and far
- * better than a blank tab: it is a value somebody can recognise, search for
- * and report.
- *
- * Note the one key whose spelling does not match its id: the server says
- * 'exclude-and-remove' and the catalogue key is '.excludeAndRemove', because
- * the rest of the catalogue is camel case and one hyphenated key would be the
- * odd one out. That is exactly why this map exists instead of the key being
- * built by string concatenation from the id.
+ * Labels for the confirm policies. A map rather than a built key because
+ * 'exclude-and-remove' is '.excludeAndRemove' in the catalogue; an id without a
+ * label shows as itself.
  */
 const CONFIRM_LABEL: Partial<Record<string, TranslationKey>> = {
   include: 'settings.downloads.confirm.include',
@@ -47,9 +25,8 @@ export function CollectorCard({ hue }: { hue: number }) {
   const { t } = useT();
   const { cfg, patch } = useDraft();
 
-  // The ids come from GET /api/options and never from a list in this file.
-  // confirm.UseGlobal is withheld by the server, because a global default
-  // cannot defer to itself, and a strip written out here would offer it.
+  // The ids come from GET /api/options, which withholds confirm.UseGlobal
+  // because a global default cannot defer to itself.
   const [policies, setPolicies] = useState<string[]>([]);
   useEffect(() => {
     let live = true;
@@ -71,50 +48,22 @@ export function CollectorCard({ hue }: { hue: number }) {
     return key ? t(key) : id;
   };
 
-  // The countdown's master switch is `autoConfirm`, and it lives in the
-  // Linkeingang card on the General page - one field, one control, so there is
-  // deliberately no second toggle for it here. While it is off nothing ever
-  // reads this number, so the field is dimmed and locked rather than offering a
-  // countdown that cannot run. Its own hint already names the switch and the
-  // page it is on, which is why the lock does not swallow pointer events: the
-  // (i) is the only place that says where to go.
+  // The countdown's switch is `autoConfirm` in the Linkeingang card on the
+  // General page.
   const autoConfirming = cfg.autoConfirm;
 
-  // Read through a fallback. The draft is typed as a subset of a document the
-  // server owns, so a field an older server does not send arrives undefined and
-  // would take the settings shell down on the first read.
+  // An older server may not send the field.
   const delay = cfg.autoConfirmDelay ?? 0;
 
-  // An absent or empty value is not a fifth state and must not be drawn as one:
-  // sanitizeConfirm runs whatever is in the document through confirm.Parse
-  // (internal/settings/settings_confirm.go), which folds everything it does not
-  // recognise - the empty string and confirm.UseGlobal included - onto exclude,
-  // which is also the shipped default. That fold exists so a corrupt file can
-  // never turn the default into the one answer that deletes, and reading the
-  // empty value as "nothing chosen" here would leave the strip claiming no
-  // answer while the server has already given one.
+  // confirm.Parse folds an empty or unknown value onto exclude, the default.
   const dupes = cfg.onDupes || 'exclude';
 
   return (
     <Card hue={hue} className="flex flex-col gap-5">
       <SectionTitle>{t('settings.downloads.collectorTitle')}</SectionTitle>
 
-      {/* THE BOX GOES WHILE NOTHING READS IT, THE ROW STAYS AS A READING
-          (GlimStone 1.16.0). It used to be a dimmed, locked spinner, and the
-          question the rule asks settles the box: no countdown runs while
-          "Start added links immediately" is off, so the number has no state
-          behind it and an editable-looking field that answers nothing is a
-          decision nobody can make.
-
-          What the old note got RIGHT is the other half, and it is why this row
-          does not simply vanish the way the stall and crawl fields do: the
-          switch deciding it is not one row up, it is on another page. A control
-          hanging off a switch beside it can go without trace, because the
-          reason is right there; this one would take the only pointer to where
-          the decision was made with it. So what is left is a READING - a
-          FieldGroup rather than a Field, since a <label> with no control in it
-          names nothing - and a reading is the case 1.10.0's own exception keeps
-          on screen: it answers its own question instead of refusing. */}
+      {/* While no countdown runs the box gives way to a reading, which keeps
+          the pointer to the switch on the other page. */}
       {autoConfirming ? (
         <Field
           label={t('settings.downloads.autoConfirmDelay')}
@@ -125,13 +74,8 @@ export function CollectorCard({ hue }: { hue: number }) {
             min={0}
             max={86400}
             step={1}
-            // The ceiling is the server's own - sanitizeConfirm cuts anything
-            // above a day back to a day and a negative number to 0
-            // (internal/settings/settings_confirm.go) - so clamping here keeps
-            // the box from showing a number the save is going to quietly turn
-            // into another one. 0 is not an off switch: it confirms the instant
-            // a batch is staged, which is what every install did before this
-            // field existed.
+            // The bounds of sanitizeConfirm. 0 confirms the moment a batch is
+            // staged; it is not off.
             onValue={(v) => patch({ autoConfirmDelay: Math.max(0, Math.min(86400, Math.round(v) || 0)) })}
           />
         </Field>
@@ -144,10 +88,8 @@ export function CollectorCard({ hue }: { hue: number }) {
         </FieldGroup>
       )}
 
-      {/* FieldGroup and not Field: a Field is a `<label>` and hands a click on
-          its caption to the first control inside it, so a Field around a tab
-          strip means clicking the words "Links you already have" silently sets
-          the policy to the first tab. See ui.tsx. */}
+      {/* FieldGroup, because a Field's label would pass a click on the
+          caption to the first tab. */}
       {policies.length > 0 && (
         <FieldGroup layout="row" label={t('settings.downloads.onDupes')} hint={t('settings.downloads.onDupesHint')}>
           <Tabs
@@ -160,11 +102,7 @@ export function CollectorCard({ hue }: { hue: number }) {
         </FieldGroup>
       )}
 
-      {/* ToggleRow and never a checkbox. No interlock of its own: it applies
-          however the batch was confirmed - by hand, by the countdown above or
-          out of the watch folder - because the queue applies it once, in
-          app.startTasks, and every route into starting a collected batch goes
-          through there. */}
+      {/* app.startTasks applies it however the batch was confirmed. */}
       <ToggleRow
         checked={cfg.addAtTop ?? false}
         onChange={(addAtTop) => patch({ addAtTop })}

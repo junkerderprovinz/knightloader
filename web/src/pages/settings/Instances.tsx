@@ -1,18 +1,6 @@
-// The settings tab and the sidebar's own "Instanzen" destination point at the
-// exact same page - this file only adds the one thing the sidebar entry point
-// cannot offer a preference about itself: whether it exists at all (jdp,
-// 2026-08-27: "Können wir den Instanzentab wie den konten-tab ein- und
-// ausblendbar machen?"). Everything below the toggle card is pages/
-// Instances.tsx, unmodified and unwrapped, not a second implementation that
-// could drift from the first.
-//
-// Deliberately a copy of Accounts.tsx, gap-10 on the wrapper included - see
-// that file for why the gap has to be here: the sr-only PageHeader <Instances/>
-// opens with is positioned absolutely, so it is not a flex item, takes no row
-// and earns no gap. Both tabs were written on the belief that it did, and both
-// showed the same fault: the toggle card glued to the first card of the page
-// below it (jdp: "in der instanzen und konten tab in den einstellungen ist die
-// oberste card verklebt mit dem darunter").
+// The settings tab shows the same page as the sidebar's Instanzen entry, with
+// one card on top that hides that entry. The wrapper spaces its children itself
+// because the page's sr-only header is positioned absolutely and takes no row.
 import { Instances } from '../Instances';
 import { Card, SectionTitle, ToggleRow } from '../../components/ui';
 import { useT } from '../../lib/i18n';
@@ -33,8 +21,7 @@ export function InstancesTab() {
           checked={!cfg.hideInstancesFromSidebar}
           onChange={(v) => {
             patch({ hideInstancesFromSidebar: !v });
-            // Optimistic, ahead of the 600ms autosave - the sidebar reflects
-            // the switch the moment it is flipped, not once the write lands.
+            // The sidebar follows at once instead of after the autosave.
             setHidden('instances', !v);
           }}
         />
