@@ -1,54 +1,24 @@
 package app
 
-// One button that asks this instance every question it can answer about
-// itself: the JDownloader sidecar, yt-dlp and how old it is, the target
-// folders, the debrid logins, the relay, the clock and the torrent port.
+// The self-test: one sweep over the JDownloader sidecar, yt-dlp, the target
+// folders, the debrid logins, the relay, the clock and the torrent port, with a
+// sentence per finding that says what to do next. Each of these was already
+// answered by some route; this puts them on one page.
 //
-// EVERY ONE OF THESE WAS ALREADY REACHABLE AND NONE OF THEM WERE IN ONE PLACE.
-// JDStatus answers three routes down (routes_resolvers.go), DiskReport another
-// (routes_diskspace.go), the relay's live socket a third (routes_relay.go),
-// and the account credentials a fourth - so an operator whose downloads have
-// stopped had four pages to visit and no reason to think any of them was the
-// one. What this file adds is not a new measurement, it is the sweep: one
-// press, one list, and a sentence per finding that names what to do next.
+// It never touches what it measures:
 //
-// WHAT IT DELIBERATELY DOES NOT DO, said here so nobody adds it later thinking
-// it was an oversight:
+//   - no UPnP mapping (routes_portmap.go writes a rule into the router);
+//   - no reconnect, which would drop the WAN link under the other checks;
+//   - no MkdirAll, which is why settings.Validate is not used here;
+//   - no machine the operator did not configure, so there is no external "is my
+//     torrent port open" probe (see internal/proxycfg/probe.go);
+//   - no report to the account-health tracker (see selfTestAccountsRO).
 //
-//   - It never presses the UPnP button. internal/api/routes_portmap.go is a
-//     POST because AddPortMapping writes a rule into somebody's router, and a
-//     diagnostic that silently reconfigures network equipment is not a
-//     diagnostic.
-//   - It never runs a reconnect. That drops the WAN link, which would take
-//     every other check in the same sweep down with it.
-//   - It never MkdirAll's a folder. settings.Validate does, which is exactly
-//     why it is not used here - see app_diskreport.go's own note on the same
-//     temptation: a readout that creates directories turns opening a page into
-//     a change on disk.
-//   - It never contacts a machine the operator did not configure. The one set
-//     of outbound calls it makes are the debrid logins, and those go to the
-//     providers whose keys the operator entered themselves. In particular
-//     there is no external "is my torrent port open" probe: that question can
-//     only be answered by a third party, this repo has twice ruled it will not
-//     reach one on its own initiative (internal/proxycfg/probe.go,
-//     internal/reconnect/config.go), and the check says so in plain words
-//     rather than pretending the question does not exist.
-//   - It never reports anything to the account-health tracker. See
-//     selfTestAccountsRO, which is where the sharpest edge in this whole
-//     feature lives.
+// It is single-flight because the account check logs into up to seven
+// providers, and repeated presses would earn rate limits that look like dead
+// keys. A second start joins the sweep in flight.
 //
-// SINGLE-FLIGHT, AND THAT IS NOT TIDINESS. Seven checks, one of which logs
-// into up to seven providers. Two browser tabs and an impatient operator is
-// dozens of provider calls a minute, and core.ReasonLimit is a real answer
-// these APIs give - one that would then be indistinguishable from a key that
-// has actually stopped working. A second start while a sweep is in flight
-// joins that sweep and gets its id back.
-//
-// THE STATE IS PACKAGE LEVEL AND KEYED BY *App, the same arrangement
-// diskReportState (app_diskreport.go), maintenance state (app_dbmaint.go),
-// activityReg and hosterAuth already document: app.go's struct is not this
-// file's to grow, and production runs exactly one App for the life of the
-// process.
+// The state is package-level and keyed by *App, like diskReportState.
 
 import (
 	"context"
@@ -69,44 +39,26 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
-// The ceilings. Each is per CHECK rather than for the sweep, because the sweep
-// runs its checks in parallel and one slow provider must not decide how long
-// the folder readout takes to appear.
+// The limits are per check, since the checks run in parallel and one slow
+// provider must not hold up the rest.
 const (
-	// ytdlpVersionTimeout bounds `yt-dlp --version`. Ten seconds is generous
-	// for a process that prints one line and exits - the number is here for
-	// the pathological case, a binary on a network mount that has gone away,
-	// where the alternative is a sweep that never finishes.
+	// ytdlpVersionTimeout covers a binary on a network mount that has gone away.
 	ytdlpVersionTimeout = 10 * time.Second
-	// accountCheckTimeout bounds one provider login. The same fifteen seconds
-	// VerifyCredential and TestAccount already use, deliberately: three
-	// different callers asking a provider the same question should not
-	// disagree about how long it is allowed to take.
+	// accountCheckTimeout matches VerifyCredential and TestAccount.
 	accountCheckTimeout = 15 * time.Second
-	// accountCheckConcurrency is how many providers are asked at once.
-	//
-	// Four, and both directions of that were considered. Serial would put six
-	// configured accounts on a slow line at ninety seconds, which is long
-	// enough that an operator concludes the button is broken and presses it
-	// again. Unbounded would fire every login at once from one address, which
-	// is what a rate limiter is for and would produce exactly the answer this
-	// check must never produce by its own doing: a temporary refusal that
-	// reads like a dead key.
+	// accountCheckConcurrency keeps a sweep over many accounts short without
+	// firing every login at once from one address and tripping rate limits.
 	accountCheckConcurrency = 4
 )
 
 // selfTestState is one App's current or last sweep.
 type selfTestState struct {
 	mu sync.Mutex
-	// run is the sweep. Its zero value - an empty ID - is what "nothing has
-	// ever been run here" looks like, and the page draws that as its own
-	// sentence rather than as an empty result list.
+	// run is the sweep. An empty ID means nothing has run here yet.
 	run selftest.Run
-	// running is true from the moment a sweep is admitted until the moment it
-	// finishes, and it is what makes this single-flight. Deliberately not
-	// derived from run.FinishedAt.IsZero(): a sweep that has just been
-	// admitted and has not yet set StartedAt would read as finished for the
-	// width of that gap, which is precisely the gap two tabs land in.
+	// running is true from admission until the sweep finishes. It is not
+	// derived from run.FinishedAt, which is still zero in the gap before a new
+	// sweep sets StartedAt.
 	running bool
 }
 
@@ -120,10 +72,7 @@ func (a *App) selfTestStateFor() *selfTestState {
 	defer selfTestMu.Unlock()
 	st, ok := selfTestReg[a]
 	if !ok {
-		// Results initialised to an empty slice rather than left nil, for the
-		// reason DiskReport's own Volumes field carries: a nil slice encodes
-		// as JSON null and the page that walks it throws instead of drawing
-		// nothing.
+		// Empty slices rather than nil so they encode as [] and not null.
 		st = &selfTestState{run: selftest.Run{Planned: []string{}, Results: []selftest.Result{}}}
 		selfTestReg[a] = st
 	}
@@ -132,12 +81,9 @@ func (a *App) selfTestStateFor() *selfTestState {
 
 // SelfTestStart begins one sweep, or joins the one already in flight.
 //
-// started is false when no NEW sweep was begun - either one was already
-// running, in which case the Run returned describes that one and its id is
-// the id the caller should poll, or the app is shutting down, in which case
-// the Run comes back already finished. Both are answered as 202 by the route:
-// from the caller's side "your sweep is under way" and "somebody else's sweep
-// is under way and you are welcome to watch it" are the same thing to do next.
+// started is false when no new sweep began: either one was running and the
+// returned Run describes it, or the app is shutting down and the Run is already
+// finished. The route answers 202 either way.
 func (a *App) SelfTestStart() (selftest.Run, bool) {
 	st := a.selfTestStateFor()
 
@@ -157,11 +103,8 @@ func (a *App) SelfTestStart() (selftest.Run, bool) {
 	run := st.snapshotLocked()
 	st.mu.Unlock()
 
-	// Through track() rather than a bare `go`, so Close cancels this sweep and
-	// then waits for it. Without that, a sweep in the middle of a fifteen
-	// second provider call outlives the App it is reading, and the store it
-	// would touch on the way out is already shut - the exact tail track()'s own
-	// doc comment exists to prevent.
+	// track so Close cancels the sweep and waits for it instead of letting a
+	// provider call outlive the store.
 	if !a.track() {
 		st.mu.Lock()
 		st.running = false
@@ -178,12 +121,8 @@ func (a *App) SelfTestStart() (selftest.Run, bool) {
 }
 
 // SelfTestLatest is the current sweep, or the last one, or the zero Run when
-// nothing has ever been swept here.
-//
-// The zero Run rather than a (Run, bool) pair or a 404, because the route this
-// feeds is polled once a second by a page that has to render something on its
-// very first load: an empty id is a perfectly readable "not run yet", and a
-// 404 would make the browser's own json() decoder throw on the ordinary case.
+// nothing has run here. The page polls it from its first load, and an empty id
+// reads as "not run yet".
 func (a *App) SelfTestLatest() selftest.Run {
 	st := a.selfTestStateFor()
 	st.mu.Lock()
@@ -191,8 +130,8 @@ func (a *App) SelfTestLatest() selftest.Run {
 	return st.snapshotLocked()
 }
 
-// snapshotLocked copies the run so that nothing outside this file can hold a
-// slice the sweep is still appending to. Caller holds st.mu.
+// snapshotLocked copies the run so nothing outside holds a slice the sweep is
+// still appending to. Caller holds st.mu.
 func (st *selfTestState) snapshotLocked() selftest.Run {
 	out := st.run
 	out.Planned = append([]string(nil), st.run.Planned...)
@@ -206,13 +145,8 @@ func (st *selfTestState) snapshotLocked() selftest.Run {
 	return out
 }
 
-// add files one landed result, keeping the list in selftest.Order.
-//
-// Sorted on the way in rather than on the way out, and by an insertion rather
-// than a sort call, because the list is seven long and the alternative is a
-// JSON document whose row order changes between two polls one second apart -
-// which a page that keys on it would redraw for no reason, and which makes two
-// captured answers impossible to diff.
+// add files one result, keeping the list in selftest.Order so the row order
+// does not change between two polls.
 func (st *selfTestState) add(res selftest.Result) {
 	rank := func(id string) int {
 		for i, want := range selftest.Order {
@@ -243,33 +177,18 @@ func (st *selfTestState) finish() {
 	st.running = false
 }
 
-// runSelfTest is the sweep itself. Only SelfTestStart calls it, and only ever
-// one at a time per App.
+// runSelfTest is the sweep itself, one at a time per App.
 //
-// The seven run CONCURRENTLY, which is the whole reason the result list is
-// delivered by polling rather than in the POST's own response: the folder
-// readout and the clock land in milliseconds, yt-dlp takes as long as a
-// process launch, and the account sweep can take fifteen seconds. Run in
-// sequence the operator would watch a blank card for half a minute; run in
-// parallel the list fills in front of them, which is also the only thing that
-// makes an individual check's slowness visible as such.
-//
-// ONE SETTINGS SNAPSHOT for the whole sweep. Six of the seven read the
-// configuration, and a save landing in the middle would otherwise have half
-// the report describing the old document and half the new one - a report that
-// cannot be reasoned about is worse than one taken a second earlier.
+// The checks run concurrently and results are polled, so the fast rows appear
+// while the account check is still waiting on providers. All checks share one
+// settings snapshot so a save mid-sweep cannot split the report.
 func (a *App) runSelfTest(st *selfTestState) {
-	// Deferred, so a panic in the coordination below cannot leave `running`
-	// stuck true and the button disabled for the life of the process. (A panic
-	// inside one of the checks takes the process with it, as any panic in a
-	// goroutine does; this covers the part that is recoverable at all.)
+	// Deferred so running cannot stay stuck true.
 	defer st.finish()
 
 	ctx := a.ctx
 	if ctx == nil {
-		// Only reachable from a hand-built App in a test that never called
-		// New. Background rather than a nil dereference: a sweep with no
-		// cancellation is worse than one with, and far better than a crash.
+		// A hand-built App in a test that never called New.
 		ctx = context.Background()
 	}
 	cfg := a.Settings.Get()
@@ -294,18 +213,11 @@ func (a *App) runSelfTest(st *selfTestState) {
 	wg.Wait()
 }
 
-// ---- the seven checks ------------------------------------------------------
-
 // selfTestJD reports the headless JDownloader sidecar.
 //
-// It reads KL_PROVISION_JD as well as KL_JD, and that second variable is the
-// whole difference between a useful row and a nagging one. This build starts
-// its own headless JD while booting and fills KL_JD in itself
-// (cmd/knightloader/main.go); an operator who set KL_PROVISION_JD=0 has said
-// they do not want one, so an empty address is their decision rather than a
-// failure - skipped, not a warning. An empty address WITHOUT that opt-out
-// means the provisioning attempt failed, which is worth saying out loud
-// because the only trace it otherwise leaves is a line in the log.
+// This build provisions its own JD and fills in KL_JD itself. With
+// KL_PROVISION_JD=0 an empty address is the operator's choice and the row is
+// skipped; without it, an empty address means provisioning failed.
 func (a *App) selfTestJD(context.Context, settings.Settings) selftest.Result {
 	r := selftest.Result{ID: selftest.CheckJD, At: time.Now()}
 	st := a.JDStatus()
@@ -323,10 +235,8 @@ func (a *App) selfTestJD(context.Context, settings.Settings) selftest.Result {
 		r.Detail = st.Detail
 		return r
 	case st.Version == 0:
-		// It answered /help and would not give a revision. Not a failure -
-		// every container link this instance hands it will still be opened -
-		// but worth a line, because a JD that answers half its own API is
-		// usually a JD somebody put a proxy in front of.
+		// It answered /help but gave no revision. Links still open, but a JD
+		// that answers half its API usually has a proxy in front of it.
 		r.Status, r.Code = selftest.StatusWarn, "jd.noVersion"
 		r.Detail = st.Detail
 		return r
@@ -337,21 +247,13 @@ func (a *App) selfTestJD(context.Context, settings.Settings) selftest.Result {
 	}
 }
 
-// ytdlpVersionOutput runs `yt-dlp --version` and hands back what it printed.
-//
-// Behind a package variable for the reason app_diskreport.go's diskUsage is:
-// a reading nothing can replace is a reading no test can control, and the four
-// answers that matter here - no binary at all, a date, a nightly, and a string
-// that is not a date - cannot all be produced by whatever yt-dlp the machine
-// running the tests happens to have. Written by tests only.
+// ytdlpVersionOutput runs `yt-dlp --version` and returns what it printed. It is
+// a variable so tests can produce every answer without depending on the local
+// yt-dlp.
 var ytdlpVersionOutput = func(ctx context.Context, bin string) (string, error) {
 	out, err := exec.CommandContext(ctx, bin, "--version").Output()
 	if err != nil {
-		// A binary that failed AND printed to stderr has said something worth
-		// carrying - "python: can't open file", a missing shared library - and
-		// exec's own error is only ever "exit status 1" or "executable file
-		// not found". Both, in that order, so the reader sees the diagnosis
-		// before the exit code.
+		// exec's error is only an exit status; stderr carries the diagnosis.
 		var ee *exec.ExitError
 		if errors.As(err, &ee) && len(ee.Stderr) > 0 {
 			return "", errors.New(strings.TrimSpace(string(ee.Stderr)) + ": " + err.Error())
@@ -362,11 +264,8 @@ var ytdlpVersionOutput = func(ctx context.Context, bin string) (string, error) {
 }
 
 // selfTestYtdlp reports which yt-dlp this is and how far behind it has fallen.
-//
-// The binary is resolved exactly as rewireBackends resolves it
-// (app_accounts.go: KL_YTDLP, else "yt-dlp" on PATH), because a self-test that
-// looked at a different binary from the one the downloads use would be a
-// perfect green row on a broken install.
+// The binary is resolved as rewireBackends resolves it (KL_YTDLP, else yt-dlp on
+// PATH), so the check looks at the one downloads use.
 func (a *App) selfTestYtdlp(ctx context.Context, _ settings.Settings) selftest.Result {
 	r := selftest.Result{ID: selftest.CheckYtdlp, At: time.Now()}
 	bin := strings.TrimSpace(os.Getenv("KL_YTDLP"))
@@ -388,10 +287,7 @@ func (a *App) selfTestYtdlp(ctx context.Context, _ settings.Settings) selftest.R
 	}
 	released, ok := selftest.ParseVersion(out)
 	if !ok {
-		// A yt-dlp whose age cannot be judged is a different answer from an
-		// old one and from a missing one, and it is StatusUnknown for exactly
-		// the reason that word exists: it is configured, it runs, and this
-		// build cannot find out the one thing being asked.
+		// It runs, but its age cannot be judged.
 		r.Status, r.Code = selftest.StatusUnknown, "ytdlp.undated"
 		r.Params = map[string]string{"version": shown}
 		return r
@@ -409,23 +305,13 @@ func (a *App) selfTestYtdlp(ctx context.Context, _ settings.Settings) selftest.R
 	return r
 }
 
-// selfTestFolders reports the download folder and the working folder: whether
-// they are there, whether this process can write into them, and how much room
-// is left.
+// selfTestFolders reports the download and working folders: whether they exist,
+// whether this process can write into them, and how much room is left.
 //
-// THE FIGURES COME FROM DiskReport AND NOTHING ELSE. That call is already
-// cached and single-flighted, it already does the walk that says which folder
-// the numbers actually describe, and it already knows that "this platform
-// cannot be asked" is a third answer. A second measurement here would be a
-// second opinion that can disagree with the one the disk guard acts on, which
-// is the one thing a diagnostic must never produce.
-//
-// THE WRITE PROBE IS THE ONE THING THIS FILE ADDS, and it is fenced. Only the
-// download and working folders, never a category folder; only where the folder
-// already exists, so nothing is created; and the probe file is
-// settings.WriteProbeName, the same name settings.Validate already uses, so no
-// scanner in the tree has to learn to ignore a second one (internal/watch's
-// poller skips dotfiles, which is what makes the existing name safe).
+// The figures come from DiskReport so they cannot disagree with what the disk
+// guard acts on. The write probe is the only addition: download and working
+// folders only, only where they already exist, using settings.WriteProbeName,
+// a dotfile the watch-folder poller already skips.
 func (a *App) selfTestFolders(_ context.Context, cfg settings.Settings) selftest.Result {
 	r := selftest.Result{ID: selftest.CheckFolders, At: time.Now()}
 	rep := a.DiskReport()
@@ -441,17 +327,11 @@ func (a *App) selfTestFolders(_ context.Context, cfg settings.Settings) selftest
 	r.Status = selftest.Worst(statuses...)
 	switch {
 	case len(r.Rows) == 0:
-		// Not reachable on any install that has a download folder, which is
-		// every install - but a role list that grows or a configuration that
-		// resolves to nothing relative must not produce a row saying "fine"
+		// Every install has a download folder, but a row must never say "fine"
 		// about nothing measured.
 		r.Code = "folders.none"
 	case r.Status == selftest.StatusPass:
-		// "Every folder checked", not "both": an install with no working folder
-		// configured has exactly one row here, and the summary saying "both"
-		// over a single row is the kind of small wrongness that makes a reader
-		// stop trusting the rest of the page. Found on a live run rather than
-		// reasoned about, which is why the sentence is worded the way it is.
+		// "Every folder", since an install without a working folder has one row.
 		r.Code = "folders.allOk"
 	default:
 		r.Code = "folders.someBad"
@@ -459,24 +339,19 @@ func (a *App) selfTestFolders(_ context.Context, cfg settings.Settings) selftest
 	return r
 }
 
-// folderRow is one folder's verdict. mark is settings.DiskLowSpace - the floor
-// below which the dispatcher stops starting anything - or 0 when none is set.
+// folderRow is one folder's verdict. mark is settings.DiskLowSpace, the floor
+// below which the dispatcher starts nothing, or 0 when none is set.
 func folderRow(v VolumeReport, mark int64) selftest.Result {
 	row := selftest.Result{ID: v.Dir, At: time.Now()}
 	params := map[string]string{"dir": v.Dir, "role": v.Role, "measured": v.Measured}
 	if v.Known {
-		// Bytes as a decimal string, formatted by the browser's own fmtBytes.
-		// A server that wrote "4,2 GB" would have decided the reader's
-		// language and their decimal separator on their behalf.
+		// Raw bytes; the browser formats them in the reader's locale.
 		params["free"] = strconv.FormatUint(v.Free, 10)
 	}
 	row.Params = params
 
-	// The probe first, because "this process cannot write here" outranks
-	// everything else the row could say: a folder with three terabytes free
-	// that this uid may not write into is a queue that fails every task.
-	// Skipped when the folder is not there yet - creating it to find out is
-	// exactly what this file refuses to do.
+	// Not being able to write outranks everything else the row could say. A
+	// folder that does not exist yet is not created to find out.
 	if v.Exists {
 		if err := probeWritable(v.Dir); err != nil {
 			row.Status, row.Code = selftest.StatusFail, "folders.notWritable"
@@ -488,12 +363,9 @@ func folderRow(v VolumeReport, mark int64) selftest.Result {
 
 	switch {
 	case !v.Exists:
-		// The normal case for a folder nothing has written into yet, AND the
-		// dangerous one: a mount that did not come up walks all the way to the
-		// volume root, and the figures then describe the container's own
-		// filesystem under the name of somebody's NAS share. Both paths travel
-		// in the params so the reader can see which they are looking at -
-		// app_diskreport.go's own comment makes the same argument.
+		// Normal before the first download, but also what a mount that did not
+		// come up looks like: the figures then describe the volume root. Both
+		// paths are in the params so the reader can tell.
 		row.Status, row.Code = selftest.StatusWarn, "folders.missing"
 	case !v.Known:
 		row.Status, row.Code = selftest.StatusUnknown, "folders.unknown"
@@ -501,11 +373,8 @@ func folderRow(v VolumeReport, mark int64) selftest.Result {
 		row.Status, row.Code = selftest.StatusWarn, "folders.low"
 		params["mark"] = strconv.FormatInt(mark, 10)
 	case mark <= 0:
-		// Stated rather than warned about. The absolute thresholds ship off,
-		// so warning here would put an amber row on every fresh install - and
-		// it would not even be true that nothing holds the queue back, because
-		// DiskReserve is on by default and refuses a download that does not
-		// fit as it is. The sentence says exactly that much and no more.
+		// The floor ships off, and DiskReserve still refuses a download that
+		// does not fit, so this is stated rather than warned about.
 		row.Status, row.Code = selftest.StatusPass, "folders.noMark"
 	default:
 		row.Status, row.Code = selftest.StatusPass, "folders.ok"
@@ -514,11 +383,8 @@ func folderRow(v VolumeReport, mark int64) selftest.Result {
 	return row
 }
 
-// probeWritable writes and removes settings.WriteProbeName in dir.
-//
-// Deliberately NOT settings.Validate, which does the same thing plus an
-// os.MkdirAll - see this file's own header and app_diskreport.go:24-30. The
-// caller guarantees dir already exists.
+// probeWritable writes and removes settings.WriteProbeName in dir, which must
+// already exist. settings.Validate would also create the folder.
 func probeWritable(dir string) error {
 	probe := filepath.Join(dir, settings.WriteProbeName)
 	if err := os.WriteFile(probe, []byte("ok"), 0o644); err != nil {
@@ -528,18 +394,8 @@ func probeWritable(dir string) error {
 }
 
 // processOwner names the account this process runs as, for the permission
-// advice.
-//
-// READ AT RUNTIME AND NEVER HARDCODED, and that is not caution for its own
-// sake: this tree contains two different claims about it - Dockerfile:27-28
-// creates and runs as uid 1000, while internal/resolver/jd/client.go's doc
-// comment says the container runs as uid 99 - so an advice string built from
-// whichever one the author happened to read would be wrong on at least one
-// deployment, and would be wrong for anybody overriding PUID on Unraid too.
-//
-// Windows has no uid and os.Getuid answers -1 there, which is a number that
-// means nothing to the person reading it. The account name is what that
-// platform can actually be asked about, so that is what it says instead.
+// advice. It is read at runtime because the uid differs between deployments
+// (PUID on Unraid). Windows has no uid, so the account name is used there.
 func processOwner() string {
 	if uid := os.Getuid(); uid >= 0 {
 		return strconv.Itoa(uid)
@@ -550,49 +406,27 @@ func processOwner() string {
 	return "?"
 }
 
-// selfTestCheckCredential is checkCredential behind a package variable, so the
-// account sweep can be driven to fail in a test without a network and without
-// a real provider key. Written by tests only - see selfTestAccountsRO, whose
-// guarantee is the reason this indirection is worth having at all.
+// selfTestCheckCredential lets tests make the account sweep fail without a
+// network or a real key.
 var selfTestCheckCredential = checkCredential
 
 // selfTestAccountsRO asks every configured debrid login whether it still
-// works, AND REPORTS NOTHING IT LEARNS TO THE ACCOUNT-HEALTH TRACKER.
+// works, and reports nothing it learns to the account-health tracker.
 //
-// THIS IS THE SHARPEST EDGE IN THE WHOLE FEATURE, so it is written out in
-// full. The obvious implementation is to loop over the accounts and call the
-// existing TestAccount (app_accounts.go), whose own doc comment says it "never
-// persists anything - it is a read". That comment is wrong. Its body calls
-// reportAccountFailure, which runs the failure through accounts.ClassifyReason;
-// a network error classifies as core.ReasonNetwork, which becomes
-// HealthTempDisabled, which benches the account for benchDelay(1) - fifteen
-// minutes, doubling per episode up to six hours. A benched account is not
-// Usable() and dispatch skips it.
+// TestAccount cannot be used here: it passes failures to reportAccountFailure,
+// and a network error there benches the account for fifteen minutes or more.
+// Pressing the self-test on a flapping line would take every debrid account out
+// of routing. checkCredential is the network call underneath both, and
+// app_selftest_test.go asserts account_health.json is unchanged after a sweep
+// in which every login fails.
 //
-// So an operator whose line is flapping at three in the morning presses
-// "Selbsttest" and the diagnostic tool takes every debrid account they own out
-// of the routing table for the next quarter of an hour. A tool somebody
-// reaches for BECAUSE something is already wrong must not be able to make it
-// worse; a diagnostic that changes what it measures is not a diagnostic.
-//
-// Hence checkCredential directly - the shared network call underneath both
-// VerifyCredential and TestAccount - and neither reportAccountFailure nor
-// reportAccountSuccess anywhere in this function. app_selftest_test.go asserts
-// account_health.json is byte-identical after a sweep in which every login
-// fails; that test is the thing standing between this feature and a queue that
-// stops because somebody pressed a button.
-//
-// The CACHED health state does ride along, on a failing row, as a params
-// entry. That is a pure local read (the tracker's own Get), it costs nothing,
-// and it is what lets the interface tell "the provider says this key is wrong"
-// apart from "something timed out" without this function guessing.
+// A failing row carries the cached health state, read only, so the page can
+// tell a revoked key from a timeout.
 func (a *App) selfTestAccountsRO(ctx context.Context, _ settings.Settings) selftest.Result {
 	r := selftest.Result{ID: selftest.CheckAccounts, At: time.Now()}
 
-	// Membership from the catalogue's own Group rather than a list of service
-	// ids repeated here, so a debrid service added later is swept without
-	// anybody remembering this file - the same discipline
-	// accountForResolverLocked (app_health.go) holds itself to.
+	// Membership comes from the catalogue's Group, so a new debrid service is
+	// swept without touching this file.
 	type target struct {
 		service string
 		account string
@@ -653,7 +487,7 @@ func (a *App) selfTestAccountsRO(ctx context.Context, _ settings.Settings) selft
 	return r
 }
 
-// selfTestOneAccount is one login, asked once. It writes nothing anywhere.
+// selfTestOneAccount checks one login once and writes nothing.
 func (a *App) selfTestOneAccount(ctx context.Context, service, account, label string) selftest.Result {
 	row := selftest.Result{ID: metaKey(service, account), At: time.Now()}
 	row.Params = map[string]string{"label": label, "service": service}
@@ -665,10 +499,7 @@ func (a *App) selfTestOneAccount(ctx context.Context, service, account, label st
 	}
 	cred := a.credentialFor(svc, account)
 	if cred.IsZero() {
-		// Configured a moment ago when the target list was built, gone by the
-		// time this ran: a credential cleared from another tab mid-sweep.
-		// Skipped rather than failed - nothing is broken, there is simply
-		// nothing there any more.
+		// Cleared from another tab since the target list was built.
 		row.Status, row.Code = selftest.StatusSkipped, "accounts.rowGone"
 		return row
 	}
@@ -679,19 +510,17 @@ func (a *App) selfTestOneAccount(ctx context.Context, service, account, label st
 	if err != nil {
 		row.Status, row.Code = selftest.StatusFail, "accounts.rowFailed"
 		row.Detail = err.Error()
-		// The cached verdict, read and never written. It is what turns "this
-		// login was refused" into advice: a key the provider has revoked, a
-		// subscription that lapsed and a rate limit need three different next
-		// steps, and the interface picks between them on this value.
+		// The cached verdict, read and never written, picks the advice: a
+		// revoked key, a lapsed subscription and a rate limit need different
+		// next steps.
 		if state := a.acctHealthTracker().Get(service, account).State; state != "" {
 			row.Params["health"] = string(state)
 		}
 		return row
 	}
 	if !ok {
-		// checkCredential's contract is (false, 0, err) on every refusal, so
-		// this is unreachable today. Kept because "false with no error" is the
-		// one combination that would otherwise render as a pass.
+		// checkCredential returns an error with every refusal, but false with
+		// no error must not render as a pass.
 		row.Status, row.Code = selftest.StatusFail, "accounts.rowFailed"
 		return row
 	}
@@ -700,26 +529,14 @@ func (a *App) selfTestOneAccount(ctx context.Context, service, account, label st
 	return row
 }
 
-// selfTestRelay reports the relay connection AND DIALS NOTHING.
+// selfTestRelay reports the relay connection without dialling anything. It
+// reads the socket the relay client already maintains; a second connection
+// could pass while the real client is stuck.
 //
-// a.Federation.RelayConnected() is the live socket the relay client is already
-// maintaining and already retrying on its own. Opening a second connection to
-// test it would be wrong twice over: it would report a green row on an
-// instance whose real client is stuck, and it would hit the project relay once
-// per press of the button from every install that has one.
-//
-// WHICH RELAY IS ACTUALLY DIALLED is resolved here rather than read off the
-// mode, because the two are not the same question and getting that wrong makes
-// this row lie about a fresh install. settings.RelayModeOf resolves an
-// untouched install to "project", while nothing is dialled at all until a
-// connection secret is stored - so a naive "mode is project, therefore a relay
-// is configured, therefore not being connected is a fault" would put a red row
-// on every install that has never used remote access.
-//
-// This mirrors internal/api's relayTarget deliberately rather than calling it:
-// that function lives in package api, which imports this one, so calling it
-// would be an import cycle. The mirroring is the price, and it is why both
-// sides name each other.
+// The dialled relay is resolved here rather than read off the mode: an
+// untouched install resolves to "project" but dials nothing until a connection
+// secret is stored. This mirrors internal/api's relayTarget, which cannot be
+// called from here without an import cycle.
 func (a *App) selfTestRelay(_ context.Context, cfg settings.Settings) selftest.Result {
 	r := selftest.Result{ID: selftest.CheckRelay, At: time.Now()}
 
@@ -732,8 +549,8 @@ func (a *App) selfTestRelay(_ context.Context, cfg settings.Settings) selftest.R
 	if mode == settings.RelayModeOwn {
 		override = strings.TrimRight(strings.TrimSpace(cfg.RelayURL), "/")
 		if override == "" {
-			// "My own relay" with no address is not the project relay, and
-			// relayTarget makes exactly this call for exactly this reason.
+			// "My own relay" without an address is not the project relay, as
+			// in relayTarget.
 			r.Status, r.Code = selftest.StatusSkipped, "relay.ownNoAddress"
 			return r
 		}
@@ -743,9 +560,8 @@ func (a *App) selfTestRelay(_ context.Context, cfg settings.Settings) selftest.R
 	if secretHex, err := a.Accounts.Get(relay.SeedAccountService); err == nil && secretHex != "" {
 		secret, decErr := hex.DecodeString(secretHex)
 		if decErr != nil || len(secret) != seedphrase.SecretLen {
-			// Sealed but unusable. Loud, because the instance sits there
-			// looking configured while reaching nothing, and re-entering the
-			// phrase is not a fix anybody guesses from silence.
+			// Stored but unusable: the instance looks configured and reaches
+			// nothing.
 			r.Status, r.Code = selftest.StatusFail, "relay.badSecret"
 			return r
 		}
@@ -754,10 +570,8 @@ func (a *App) selfTestRelay(_ context.Context, cfg settings.Settings) selftest.R
 			address = override
 		}
 	} else if override != "" {
-		// The hand-entered key path, which only ever reaches a relay whose
-		// address the operator gave: in project mode relayTarget returns an
-		// empty URL for it and applyRelay clears the client, so a stored key
-		// with no address of its own dials nothing.
+		// A hand-entered key only reaches a relay whose address the operator
+		// gave; in project mode relayTarget returns no URL for it.
 		if manual, mErr := a.Accounts.Get(relay.AccountService); mErr == nil && manual != "" {
 			address = override
 		}
@@ -772,32 +586,19 @@ func (a *App) selfTestRelay(_ context.Context, cfg settings.Settings) selftest.R
 		r.Status, r.Code = selftest.StatusPass, "relay.connected"
 		return r
 	}
-	// Warn and not fail. The relay client retries on its own for ever, so a
-	// relay that is merely down right now resolves itself; what the operator
-	// needs is to be told the connection is not up, not to be told their
-	// configuration is broken when it may well be fine.
+	// A warning, since the client keeps retrying and a relay that is down now
+	// may recover without the configuration being wrong.
 	r.Status, r.Code = selftest.StatusWarn, "relay.notConnected"
 	return r
 }
 
-// selfTestClock reports the zone this process runs in, and the clock it is
-// reading.
+// selfTestClock reports the zone this process runs in and its clock.
 //
-// THE ZONE IS THE FINDING. internal/schedule works in time.Local, the
-// Dockerfile installs tzdata and sets no TZ, and TZ appears in this project
-// only as documentation - so a container started without it runs every
-// timetable in UTC and nothing has ever said so. Somebody with a nightly
-// window at 22:00 has been starting it at 22:00 UTC, possibly for a year.
-//
-// AND IT IS ONLY RAISED WHEN A TIMETABLE EXISTS. A UTC clock with no schedule
-// is not a problem, it is a container. Raising it anyway would put an amber row
-// on the majority of installs for something that changes nothing about them,
-// which is how a diagnostic page teaches people to ignore it.
-//
-// The difference between this machine's clock and the reader's is NOT computed
-// here and cannot be: it needs the browser's own clock and the round trip
-// discounted, so the browser computes it (web/src/lib/selftest.ts) and may
-// raise this row further on what it finds.
+// internal/schedule works in time.Local and the image sets no TZ, so a
+// container started without one runs every timetable in UTC. That is only
+// raised when a timetable exists; a UTC clock alone changes nothing. The skew
+// against the reader's clock needs the browser's own clock, so
+// web/src/lib/selftest.ts computes it.
 func (a *App) selfTestClock(_ context.Context, cfg settings.Settings) selftest.Result {
 	r := selftest.Result{ID: selftest.CheckClock, At: time.Now()}
 	z := selftest.ZoneReport()
@@ -808,10 +609,7 @@ func (a *App) selfTestClock(_ context.Context, cfg settings.Settings) selftest.R
 	}
 	switch {
 	case z.TZ != "" && !z.TZResolved:
-		// The one that is invisible from every other angle: TZ names a zone,
-		// the database does not have it, and Go fell back to UTC without a
-		// word. Everything in the process then runs in UTC while the
-		// configuration insists otherwise.
+		// TZ names a zone the database lacks, and Go fell back to UTC silently.
 		r.Status, r.Code = selftest.StatusWarn, "clock.noZoneDB"
 	case z.UTC && len(cfg.Schedule) > 0:
 		r.Status, r.Code = selftest.StatusWarn, "clock.utc"
@@ -821,23 +619,12 @@ func (a *App) selfTestClock(_ context.Context, cfg settings.Settings) selftest.R
 	return r
 }
 
-// selfTestTorrentPort reports the torrent listen port, and is honest about the
-// three separate things it cannot tell you.
+// selfTestTorrentPort reports the torrent listen port as unknown, and says why.
 //
-// FIRST, WITH Port 0 THIS BUILD CANNOT NAME THE PORT AT ALL. Zero means gopeed
-// picks one; internal/engine only ever WRITES bt.ListenPort and there is no
-// read-back of what anacrolix actually bound, so there is no number to report.
-//
-// SECOND, A CONFIGURED PORT IS NOT NECESSARILY THE LIVE ONE. gopeed's bt client
-// is a lazy singleton built on the first torrent of the process, so a port
-// saved after that point is stored correctly and will not be in force until a
-// restart - settings_torrent.go's own Port doc says so at length.
-//
-// THIRD, AND THIS IS THE OWNER'S DECISION RATHER THAN A LIMITATION: whether the
-// port is reachable from outside cannot be answered from inside the network,
-// only by a third party, and this app contacts none the operator did not pick.
-// So the row reports StatusUnknown and says which question it is declining -
-// which is a better answer than a green row about a port nobody can reach.
+// With port 0 gopeed picks one and there is no read-back of what was bound. A
+// configured port may not be live either: gopeed's bt client is built on the
+// first torrent, so a later change waits for a restart. Whether the port is
+// reachable from outside needs a third party, which this app does not contact.
 func (a *App) selfTestTorrentPort(_ context.Context, cfg settings.Settings) selftest.Result {
 	r := selftest.Result{ID: selftest.CheckTorrentPort, At: time.Now(), Status: selftest.StatusUnknown}
 	if cfg.Torrent.Port == 0 {

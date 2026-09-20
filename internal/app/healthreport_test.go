@@ -1,9 +1,8 @@
 package app
 
-// The subsystem report. What is tested here is the part that has no route in
-// front of it: which rows exist, how a row's state is decided, how nine rows
-// become one summary, and that the expensive half is shared while the cheap
-// half is not.
+// The subsystem report: which rows exist, how a row's state is decided, how
+// the rows become one summary, and that the expensive probe is shared while the
+// cheap counts are not.
 
 import (
 	"strings"
@@ -15,13 +14,9 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
-// newHealthApp is an app on a throwaway directory with no sidecar in the
-// environment.
-//
-// KL_JD is cleared deliberately rather than left alone. Two of the nine rows
-// read it, and a developer machine with a real JD running would otherwise make
-// this file pass or fail depending on whether that container happens to be up -
-// which is the definition of a test that reports something other than the code.
+// newHealthApp is an app on a throwaway directory with no sidecar. KL_JD is
+// cleared, since two rows read it and a developer's running JD would change the
+// result.
 func newHealthApp(t *testing.T) *App {
 	t.Helper()
 	t.Setenv("KL_JD", "")
@@ -33,11 +28,9 @@ func newHealthApp(t *testing.T) *App {
 	return a
 }
 
-// TestEveryPartIsReportedEveryTimeAndInOrder is the guard for the failure the
-// fixed order exists to prevent: a row that only appears when it has something
-// to say is a row nobody can find when they go looking for it, and a series
-// that stops being written keeps its last value in a monitoring system for the
-// whole staleness window after the fault clears.
+// Every row appears every time in a fixed order: a row that only shows up with
+// something to say cannot be found, and a series that stops being written keeps
+// its last value in monitoring.
 func TestEveryPartIsReportedEveryTimeAndInOrder(t *testing.T) {
 	a := newHealthApp(t)
 	rep := a.HealthReport()
@@ -48,7 +41,7 @@ func TestEveryPartIsReportedEveryTimeAndInOrder(t *testing.T) {
 	seen := map[string]bool{}
 	for i, row := range rep.Subsystems {
 		if row.ID != subsystemOrder[i] {
-			t.Errorf("row %d is %q, want %q - the order is fixed so a reader finds the same row in the same place",
+			t.Errorf("row %d is %q, want %q; the order is fixed",
 				i, row.ID, subsystemOrder[i])
 		}
 		if seen[row.ID] {
@@ -60,9 +53,7 @@ func TestEveryPartIsReportedEveryTimeAndInOrder(t *testing.T) {
 		}
 	}
 
-	// A fresh instance has no relay, no sidecar and no accounts, and none of
-	// that is a fault. If this ever fails the instance is being reported as
-	// impaired for being freshly installed.
+	// No relay, sidecar or accounts on a fresh instance is not a fault.
 	if rep.Status == StateFailed {
 		t.Errorf("a fresh instance reports itself as failed: %+v", rep.Subsystems)
 	}
@@ -73,15 +64,12 @@ func TestEveryPartIsReportedEveryTimeAndInOrder(t *testing.T) {
 		t.Error("a breakdown map came back nil; both are promised as objects")
 	}
 	if rep.StartedAt.IsZero() || rep.UptimeSeconds < 0 {
-		t.Errorf("startedAt %v / uptime %ds - the process start is a fact this always knows", rep.StartedAt, rep.UptimeSeconds)
+		t.Errorf("startedAt %v / uptime %ds; the process start is always known", rep.StartedAt, rep.UptimeSeconds)
 	}
 }
 
-// TestUnusedAndUnknownNeverWorsenTheSummary is the rule that makes the summary
-// worth reading at all. Without it a fresh install - no relay, no JD, no
-// yt-dlp, a kernel that cannot measure a disk - reports itself as impaired
-// forever, and a status light that is never green is a status light nobody
-// looks at.
+// Unused and unknown rows never worsen the summary, or a fresh install would
+// never be green.
 func TestUnusedAndUnknownNeverWorsenTheSummary(t *testing.T) {
 	rows := func(states ...SubsystemState) []Subsystem {
 		out := make([]Subsystem, 0, len(states))
@@ -109,13 +97,8 @@ func TestUnusedAndUnknownNeverWorsenTheSummary(t *testing.T) {
 	}
 }
 
-// TestTheDiskRowReadsTheThreeAnswersRatherThanTwo covers the one place in this
-// file where a zero means nothing at all.
-//
-// A volume this platform cannot measure carries Free/Used/Total of 0 that mean
-// NOTHING (VolumeReport.Known says so at length), and reading those as "no
-// space left" would report a full disk that does not exist - on the exact
-// platform where every disk guard in the app is already holding nothing back.
+// An unmeasurable volume carries zeroes that mean nothing (see
+// VolumeReport.Known) and must not read as a full disk.
 func TestTheDiskRowReadsTheThreeAnswersRatherThanTwo(t *testing.T) {
 	const gib = 1 << 30
 	cfg := settings.Settings{DiskLowSpace: 10 * gib, DiskCriticalSpace: 2 * gib}
@@ -136,8 +119,7 @@ func TestTheDiskRowReadsTheThreeAnswersRatherThanTwo(t *testing.T) {
 		{
 			name: "an unmeasurable volume is not a full one",
 			rep: DiskReport{Volumes: []VolumeReport{
-				// Zeroes everywhere and Known false: the shape that would read
-				// as "0 bytes free" to anything that skipped the flag.
+				// Zeroes and Known false.
 				{Dir: "/downloads", Measured: "/downloads", Exists: true, Known: false},
 				{Dir: "/work", Measured: "/work", Exists: true, Known: true, Free: 500 * gib, Total: 1000 * gib},
 			}},
@@ -193,8 +175,8 @@ func TestTheDiskRowReadsTheThreeAnswersRatherThanTwo(t *testing.T) {
 		}
 	}
 
-	// The floors are off by default (0 is the off state everywhere on that
-	// settings card), and an unset floor must never make a volume look short.
+	// The floors are off by default (0), and an unset floor never makes a
+	// volume look short.
 	off := diskSubsystem(DiskReport{Volumes: []VolumeReport{
 		{Dir: "/downloads", Measured: "/downloads", Exists: true, Known: true, Free: 0, Total: 1000 * gib},
 	}}, settings.Settings{})
@@ -203,13 +185,9 @@ func TestTheDiskRowReadsTheThreeAnswersRatherThanTwo(t *testing.T) {
 	}
 }
 
-// TestTheTaskWalkCountsOneListOnce is the guard on the breakdown maps.
-//
-// Three things at once, because they are one walk and a bug in it shows up as
-// any of the three: every row lands in exactly one status bucket, a reason
-// nothing is waiting on is absent rather than zero, and an unclassified failure
-// is filed under a word instead of under the empty string core.Reason really
-// carries.
+// Every task lands in one status bucket, a reason nothing waits on is absent
+// rather than zero, and an unclassified failure is filed under "unknown" rather
+// than the empty string.
 func TestTheTaskWalkCountsOneListOnce(t *testing.T) {
 	a := newHealthApp(t)
 	a.mu.Lock()
@@ -220,11 +198,10 @@ func TestTheTaskWalkCountsOneListOnce(t *testing.T) {
 		"wait-slot2": {
 			ID: "wait-slot2", Status: core.StatusQueued, Enabled: true, Waiting: core.WaitingSlot,
 		},
-		// Queued with nothing holding it back: it is simply next.
+		// Queued with nothing holding it back.
 		"wait-none": {ID: "wait-none", Status: core.StatusQueued, Enabled: true},
-		// Queued and switched off. It counts in BOTH waiting and disabled on
-		// purpose - the buckets have to add up to the list somebody is looking
-		// at, and a row does not stop being queued because its toggle is off.
+		// Queued and disabled: it counts as both waiting and disabled, since it
+		// is still queued.
 		"off":        {ID: "off", Status: core.StatusQueued, Enabled: false, Waiting: core.WaitingDisabled},
 		"paused":     {ID: "paused", Status: core.StatusPaused, Enabled: true},
 		"extracting": {ID: "extracting", Status: core.StatusExtracting, Enabled: true},
@@ -257,7 +234,7 @@ func TestTheTaskWalkCountsOneListOnce(t *testing.T) {
 		t.Errorf("waitingBy = %v, want slot 2, disk 1, disabled 1", c.WaitingBy)
 	}
 	if _, ok := c.WaitingBy[""]; ok {
-		t.Errorf("waitingBy carries an empty label: %v - a task nothing is holding back must not invent a reason", c.WaitingBy)
+		t.Errorf("waitingBy carries an empty label: %v", c.WaitingBy)
 	}
 	if len(c.WaitingBy) != 3 {
 		t.Errorf("waitingBy = %v, want exactly the three reasons that have something behind them", c.WaitingBy)
@@ -266,19 +243,13 @@ func TestTheTaskWalkCountsOneListOnce(t *testing.T) {
 		t.Errorf("failedBy = %v, want gone 1 and unknown 1", c.FailedBy)
 	}
 	if _, ok := c.FailedBy[""]; ok {
-		t.Errorf("failedBy carries an empty label: %v - core.ReasonUnknown is the empty string and must be named on the way out", c.FailedBy)
+		t.Errorf("failedBy carries an empty label: %v; core.ReasonUnknown must be named", c.FailedBy)
 	}
 }
 
-// TestTheProbeIsSharedWhileTheCountsAreNot is the shape the whole file is built
-// around, and it is the difference between a status page and an outage.
-//
-// App.JDStatus pings and then asks for a version against a fifteen-second
-// client, so a sidecar that has gone away costs up to thirty seconds - and that
-// is exactly the state this feature reports on. A scrape every fifteen seconds
-// against an uncached probe stacks a goroutine per scrape until the monitoring
-// declares the app down for a reason that is the monitoring. So the probe is
-// shared. The task counts are not, because they are a map walk.
+// The probe is shared, since a dead sidecar makes JDStatus take up to thirty
+// seconds and uncached scrapes would pile up. The task counts are a map walk
+// and are taken on every call.
 func TestTheProbeIsSharedWhileTheCountsAreNot(t *testing.T) {
 	a := newHealthApp(t)
 
@@ -297,16 +268,9 @@ func TestTheProbeIsSharedWhileTheCountsAreNot(t *testing.T) {
 			first.Tasks.Running, second.Tasks.Running)
 	}
 
-	// And the shared half really does go stale on its own rather than being
-	// pinned forever: aged past the TTL, the next call takes a new reading.
-	//
-	// Checked against the AGED MARKER and not as "the third reading is later
-	// than the first", which is what this said until the clock got a vote.
-	// Windows' monotonic clock moves in half-millisecond steps, and a second
-	// probe with no sidecar to wait for and a disk report still inside its own
-	// five-second cache finishes well inside one of those - so both readings
-	// come back byte-identical and After() answers false about a probe that
-	// really was retaken. A marker a minute in the past cannot tie.
+	// Aged past the TTL, the next call takes a new reading. Compared against
+	// the aged marker rather than the first reading, since Windows' coarse
+	// clock can make two quick readings identical.
 	st := a.sysHealthStateFor()
 	aged := time.Now().Add(-2 * sysHealthTTL)
 	st.mu.Lock()
@@ -321,33 +285,18 @@ func TestTheProbeIsSharedWhileTheCountsAreNot(t *testing.T) {
 	}
 }
 
-// TestManyReadersAtOnceIsTheOrdinaryCase is written for the race detector
-// rather than for its assertions.
-//
-// It is not a stress test looking for a rare interleaving: several readers at
-// once IS the ordinary case here. Every open browser tab polls this every ten
-// seconds and a collector scrapes it on its own clock, all while the dispatcher
-// is adding and finishing downloads. Three things in this file are shared
-// across those callers - the probe cache, the seen/since pair behind
-// Subsystem.Since, and the task map itself - and the second one is the one a
-// reviewer would most easily assume is per-call.
+// Concurrent readers are the ordinary case (every open tab polls, a collector
+// scrapes), so this runs under the race detector. The probe cache, the
+// seen/since pair behind Subsystem.Since and the task map are all shared.
 func TestManyReadersAtOnceIsTheOrdinaryCase(t *testing.T) {
 	a := newHealthApp(t)
 
-	// The writers run FOR AS LONG AS the readers do rather than for a fixed
-	// number of turns, and that is the whole difference between this test and
-	// one that reports nothing. A writer counting to sixty finishes in
-	// microseconds while a reader's first pass is doing a database ping and a
-	// disk walk, so a fixed count would be over before the first report is
-	// assembled: every later reader would then find the states already
-	// recorded, take no write path at all, and the detector would have nothing
-	// to look at. Proved by removing the lock in stampSince and watching this
-	// fail.
+	// The writers run as long as the readers do; a fixed count would finish
+	// before the first report and leave the write paths unexercised.
 	done := make(chan struct{})
 	var writers sync.WaitGroup
 	writers.Add(2)
-	// A report taken while the list is being changed is the normal one, not the
-	// odd one.
+	// The task list changes during reports.
 	go func() {
 		defer writers.Done()
 		for i := 0; ; i++ {
@@ -362,11 +311,7 @@ func TestManyReadersAtOnceIsTheOrdinaryCase(t *testing.T) {
 			a.mu.Unlock()
 		}
 	}()
-	// The master switch, flipped under them. The queue row is the only one that
-	// can change state without a second machine, and a state CHANGE is what
-	// makes a reader WRITE to the shared seen/since pair instead of only
-	// reading it. Somebody pressing stop and start while three tabs are polling
-	// is exactly this.
+	// The master switch flips, so readers write the shared seen/since pair.
 	go func() {
 		defer writers.Done()
 		for i := 0; ; i++ {
@@ -376,8 +321,7 @@ func TestManyReadersAtOnceIsTheOrdinaryCase(t *testing.T) {
 			default:
 			}
 			a.SetHalted(i%2 == 0)
-			// The probe expired as well, which is what the cache falling due
-			// under several readers at once looks like.
+			// The probe cache expires under several readers too.
 			st := a.sysHealthStateFor()
 			st.mu.Lock()
 			st.at = time.Time{}
@@ -404,13 +348,8 @@ func TestManyReadersAtOnceIsTheOrdinaryCase(t *testing.T) {
 	writers.Wait()
 }
 
-// TestSinceIsAbsentUntilSomethingActuallyChanges keeps "JD has been down for
-// two hours" from silently becoming "JD was down when we last looked".
-//
-// The first reading gets no timestamp at all, and that is the honest answer:
-// this process knows what the state is and cannot know when it started, so
-// stamping "now" would tell somebody a sidecar failed the moment they opened
-// the page.
+// The first reading has no Since: the process knows the state but not when it
+// began, and "now" would claim a failure started when the page was opened.
 func TestSinceIsAbsentUntilSomethingActuallyChanges(t *testing.T) {
 	a := newHealthApp(t)
 
@@ -419,16 +358,14 @@ func TestSinceIsAbsentUntilSomethingActuallyChanges(t *testing.T) {
 			t.Errorf("%s carries since=%v on the very first reading; nothing had changed yet", row.ID, row.Since)
 		}
 	}
-	// A second reading of an unchanged instance still stamps nothing: the queue
-	// row is assembled fresh every call and must not look like it just changed.
+	// An unchanged second reading stamps nothing either.
 	for _, row := range a.HealthReport().Subsystems {
 		if !row.Since.IsZero() {
 			t.Errorf("%s carries since=%v though its state never moved", row.ID, row.Since)
 		}
 	}
 
-	// Now move one row for real. Halting the queue is the one state change this
-	// test can make without a second machine.
+	// Halting the queue changes one row.
 	a.SetHalted(true)
 	var queue Subsystem
 	for _, row := range a.HealthReport().Subsystems {
@@ -440,16 +377,12 @@ func TestSinceIsAbsentUntilSomethingActuallyChanges(t *testing.T) {
 		t.Fatalf("the queue row reads %q with the queue halted, want %q", queue.State, StateDegraded)
 	}
 	if queue.Since.IsZero() {
-		t.Error("the queue changed state and carries no since; there is nothing to say how long it has been stopped")
+		t.Error("the queue changed state and carries no since")
 	}
 }
 
-// TestAHaltedQueueIsNeverAFailure is one line of policy worth pinning, because
-// it is the one somebody will "fix" while adding a rule.
-//
-// A stopped queue is a choice somebody made or a timetable window they wrote.
-// Reporting it as a failure pages an operator for a working pause, and on a box
-// whose nightly window stops downloads it would page them every night.
+// A halted queue is a choice or a timetable window, never a failure that would
+// page an operator every night.
 func TestAHaltedQueueIsNeverAFailure(t *testing.T) {
 	for _, q := range []QueueState{
 		{Halted: true},
@@ -465,10 +398,7 @@ func TestAHaltedQueueIsNeverAFailure(t *testing.T) {
 	}
 }
 
-// TestTheSidecarRowsSayNotInUseRatherThanBroken. Two of the nine rows read
-// KL_JD, and an instance that never had a sidecar must not be told that one is
-// down: "unused" is what makes the summary green on a perfectly ordinary
-// install, and it is the row an operator has to be able to skip past.
+// Without KL_JD the sidecar rows read unused, not down.
 func TestTheSidecarRowsSayNotInUseRatherThanBroken(t *testing.T) {
 	a := newHealthApp(t)
 	for _, row := range a.HealthReport().Subsystems {
@@ -484,18 +414,16 @@ func TestTheSidecarRowsSayNotInUseRatherThanBroken(t *testing.T) {
 	}
 }
 
-// TestTheStoreRowAnswersFromTheDatabaseItself. The row exists to catch a data
-// directory that has gone away underneath a running process, so it has to be a
-// real query rather than "is the handle non-nil".
+// The store row runs a real query, so it catches a data directory that went
+// away under a running process.
 func TestTheStoreRowAnswersFromTheDatabaseItself(t *testing.T) {
 	a := newHealthApp(t)
 	if got := a.storeSubsystem(); got.State != StateOK {
 		t.Fatalf("an open store reads %q (%s), want %q", got.State, got.Detail, StateOK)
 	}
 
-	// Closed under it, which is what an unmounted data volume looks like from
-	// in here. The report has to say so in the far end's own words and offer
-	// the one thing anybody can do about it.
+	// Closed underneath, like an unmounted data volume. The row carries the
+	// database's own error and the remedy.
 	if err := a.Store.Close(); err != nil {
 		t.Fatal(err)
 	}
@@ -507,6 +435,6 @@ func TestTheStoreRowAnswersFromTheDatabaseItself(t *testing.T) {
 		t.Errorf("remedy = %q, want %q", got.Remedy, remedyStoreFailed)
 	}
 	if strings.TrimSpace(got.Detail) == "" {
-		t.Error("the failure carries no detail; the database's own sentence is the only clue there is")
+		t.Error("the failure carries no detail")
 	}
 }

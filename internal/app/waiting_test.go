@@ -9,13 +9,9 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
-// TestWaitingSaysWhichLimitIsHoldingATask is the distinction the whole feature
-// exists for: "all slots busy" and "this host's limit" look identical on a row
-// that only says "waiting", and they are fixed by two different settings.
-//
-// The fixture uses two hosts on purpose. With one, the two limits are
-// indistinguishable, and a test that cannot tell them apart would pass whichever
-// reason the code happened to write.
+// "All slots busy" and "this host's limit" look identical on a row that only
+// says "waiting", and they are fixed by two different settings. The fixture uses
+// two hosts, or the two limits would be indistinguishable here as well.
 func TestWaitingSaysWhichLimitIsHoldingATask(t *testing.T) {
 	a := newStopApp(t, 2)
 	if _, err := a.ApplySettings(settings.Settings{
@@ -30,10 +26,11 @@ func TestWaitingSaysWhichLimitIsHoldingATask(t *testing.T) {
 	a.tasks["a1"] = &core.Task{ID: "a1", URL: "https://a.example/1", Status: core.StatusRunning, Enabled: true}
 	a.active["a1"] = true
 	a.started["a1"] = true
-	// A second link on the same host: held by the HOST limit, not the global one.
+	// A second link on the same host, held by the host limit rather than the
+	// global one.
 	a.tasks["a2"] = &core.Task{ID: "a2", URL: "https://a.example/2", Status: core.StatusQueued, Enabled: true}
-	// One switched off, and one parked by hand: two reasons that have nothing to
-	// do with any limit and must not be reported as one.
+	// One switched off and one parked by hand: two reasons that are not limits
+	// and are not reported as one.
 	a.tasks["off"] = &core.Task{ID: "off", URL: "https://b.example/1", Status: core.StatusQueued}
 	a.tasks["held"] = &core.Task{ID: "held", URL: "https://b.example/2", Status: core.StatusQueued, Enabled: true, Hold: true}
 	a.queue = append(a.queue, "a2", "off", "held")
@@ -57,10 +54,9 @@ func TestWaitingSaysWhichLimitIsHoldingATask(t *testing.T) {
 	}
 }
 
-// TestWaitingClearsItselfWhenTheLimitIsRaised pins the property that makes this
-// value safe to trust: it is recomputed from scratch, so nobody has to remember
-// to erase it. A reason that had to be cleared by whoever fixed the cause would
-// be a stale label on a healthy row within a day.
+// The value is recomputed from scratch, so nobody has to remember to erase it.
+// A reason cleared by whoever fixed the cause would be a stale label on a
+// healthy row within a day.
 func TestWaitingClearsItselfWhenTheLimitIsRaised(t *testing.T) {
 	a := newStopApp(t, 1)
 	if _, err := a.ApplySettings(settings.Settings{
@@ -80,7 +76,7 @@ func TestWaitingClearsItselfWhenTheLimitIsRaised(t *testing.T) {
 	a.mu.Unlock()
 
 	if held != core.WaitingSlot {
-		t.Fatalf("w1 waits with %q, want %q - the global limit is the one that is full", held, core.WaitingSlot)
+		t.Fatalf("w1 waits with %q, want %q; the global limit is the one that is full", held, core.WaitingSlot)
 	}
 
 	// The transfer in flight finishes, so the slot it held comes free.
@@ -91,13 +87,12 @@ func TestWaitingClearsItselfWhenTheLimitIsRaised(t *testing.T) {
 	a.mu.Unlock()
 
 	if after != core.WaitingNone {
-		t.Errorf("w1 still waits with %q after a slot came free - the reason is not recomputed, it is remembered", after)
+		t.Errorf("w1 still waits with %q after a slot came free; the reason is remembered rather than recomputed", after)
 	}
 }
 
-// TestWaitingSaysTheQueueIsStopped covers the blanket case. Every queued row
-// carries it at once, and that is the point: a list where nothing moves should
-// say so on the rows, not only in the head card somebody may have scrolled past.
+// The blanket case: a list where nothing moves says so on every queued row, not
+// only in the head card somebody may have scrolled past.
 func TestWaitingSaysTheQueueIsStopped(t *testing.T) {
 	a := newStopApp(t, 4)
 

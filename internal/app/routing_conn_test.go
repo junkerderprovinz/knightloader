@@ -8,11 +8,9 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
-// TestConfiguredConnectionCarriesTheDownload is the wiring proxycfg was built
-// for and did not have: NewPicker had no caller anywhere in the tree, so a user
-// could add a connection, filter it, order it and switch it on, and every
-// download still left by the machine's own address. The column meant to show
-// which connection carried a task was blank for the same reason.
+// The wiring between proxycfg and dispatch: without a caller for NewPicker, a
+// connection can be added, filtered, ordered and switched on while every
+// download still leaves by the machine's own address.
 func TestConfiguredConnectionCarriesTheDownload(t *testing.T) {
 	a := newQueueApp(t)
 	if _, err := a.ApplySettings(settings.Settings{
@@ -37,8 +35,7 @@ func TestConfiguredConnectionCarriesTheDownload(t *testing.T) {
 	}
 }
 
-// TestNoConnectionsMeansTheMachineItself: the ordinary install has configured
-// no proxy, and it must not be handed a half-built route for one.
+// An install with no proxy configured is not handed a half-built route for one.
 func TestNoConnectionsMeansTheMachineItself(t *testing.T) {
 	a := newQueueApp(t)
 	task := &core.Task{ID: "x", URL: "https://host.example/f.bin", Enabled: true}
@@ -51,8 +48,7 @@ func TestNoConnectionsMeansTheMachineItself(t *testing.T) {
 	}
 }
 
-// TestTheTaskOwnChoiceWins: picking a connection on one download is the point of
-// per-download routing, so the round-robin must not overrule it.
+// A connection picked on one download is not overruled by the round-robin.
 func TestTheTaskOwnChoiceWins(t *testing.T) {
 	a := newQueueApp(t)
 	if _, err := a.ApplySettings(settings.Settings{

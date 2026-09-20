@@ -13,9 +13,8 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/workdir"
 )
 
-// stagedIn makes the working folder and puts a file in it, which is what the
-// download engine would have done: with a working folder configured, nothing is
-// ever written at the destination until something moves it there.
+// stagedIn makes the working folder and puts a file in it, as the engine does
+// when a working folder is configured.
 func stagedIn(t *testing.T, dir, name, body string) string {
 	t.Helper()
 	if err := os.MkdirAll(dir, 0o755); err != nil {
@@ -28,21 +27,9 @@ func stagedIn(t *testing.T, dir, name, body string) string {
 	return path
 }
 
-// gone waits for a path to disappear, rather than asking once.
-//
-// IT HAS TO WAIT, and CI is where that showed. Removing the emptied working
-// folder is the LAST thing delivery does, after the move that the waitFor above
-// each call site is watching for - so on a loaded runner the test arrived
-// between the two and read a folder that was about to go:
-//
-//	deliver_test.go:196: /tmp/.../003-0fc7b5b4 is still there after everything
-//	in it was delivered
-//
-// Five local runs passed straight afterwards, which is what an assertion racing
-// a background step looks like from here. Waiting costs nothing where the
-// caller is synchronous (the plain delivery test calls deliverDownload itself
-// and the folder is already gone on the first look), and it does not soften the
-// claim: a folder that is never removed still fails, thirty seconds later.
+// gone waits for a path to disappear. Removing the emptied working folder is
+// the last step of delivery, after the move the callers wait for, so a single
+// look can race it on a loaded machine.
 func gone(t *testing.T, path string) bool {
 	t.Helper()
 	deadline := time.Now().Add(30 * time.Second)
@@ -57,9 +44,7 @@ func gone(t *testing.T, path string) bool {
 	}
 }
 
-// TestAFinishedDownloadLeavesTheWorkingFolder is the plain half of the feature:
-// the bytes are written where nothing is watching, and the finished file is put
-// in place by a rename.
+// The finished file moves from the working folder to its destination.
 func TestAFinishedDownloadLeavesTheWorkingFolder(t *testing.T) {
 	work := t.TempDir()
 	a, base := newRuleApp(t, func(s *settings.Settings, _ string) {
@@ -83,12 +68,9 @@ func TestAFinishedDownloadLeavesTheWorkingFolder(t *testing.T) {
 	}
 }
 
-// TestABackendIsToldNothingItDoesNotNeedToKnow. engine.Job reads a WorkDir that
-// is set as "the folder I am writing into is not the folder this file belongs
-// in", and answers it by not applying the collision policy - which belongs at
-// the destination. Handing it a WorkDir that merely repeats Dir says the same
-// thing untruthfully, and every download on an install with no working folder
-// silently loses its rename, its skip and its overwrite.
+// engine.Job skips the collision policy when WorkDir is set, so WorkDir must be
+// empty without a working folder, or every download would lose its collision
+// handling.
 func TestABackendIsToldNothingItDoesNotNeedToKnow(t *testing.T) {
 	work := t.TempDir()
 	staged, base := newRuleApp(t, func(s *settings.Settings, _ string) {
@@ -115,11 +97,8 @@ func TestABackendIsToldNothingItDoesNotNeedToKnow(t *testing.T) {
 	}
 }
 
-// TestADownloadThatStillOwesAnUnpackingStaysPut is the ordering the whole file
-// is built around, and it is the one that cannot be recovered from: an archive
-// moved to its destination the moment it finished is an archive whose four
-// sibling volumes are in another folder, and internal/extract finds those by
-// listing the folder the first one is in.
+// An archive still to be unpacked stays put: internal/extract finds the other
+// volumes by listing the first one's folder.
 func TestADownloadThatStillOwesAnUnpackingStaysPut(t *testing.T) {
 	work := t.TempDir()
 	a, base := newRuleApp(t, func(s *settings.Settings, _ string) {
@@ -143,10 +122,8 @@ func TestADownloadThatStillOwesAnUnpackingStaysPut(t *testing.T) {
 	}
 }
 
-// TestEveryPartOfOneSetSharesOneWorkingFolder. The working folder is keyed by
-// the DESTINATION and never by the task, and this is why: a folder per download
-// would give each of five volumes a private folder of its own, and every
-// multi-volume archive in the app would quietly stop being a set.
+// The working folder is keyed by destination, not by task, so the volumes of
+// one set share it.
 func TestEveryPartOfOneSetSharesOneWorkingFolder(t *testing.T) {
 	work := t.TempDir()
 	a, base := newRuleApp(t, func(s *settings.Settings, _ string) {
@@ -172,11 +149,8 @@ func TestEveryPartOfOneSetSharesOneWorkingFolder(t *testing.T) {
 	}
 }
 
-// TestAnArchiveIsUnpackedInTheWorkingFolderAndDeliveredAfterwards is the whole
-// journey: the archive is fetched somewhere nobody watches, it is unpacked
-// there, and only the finished folder appears at the destination - which is the
-// difference between a library scanner finding a release and finding half of
-// one.
+// An archive is unpacked in the working folder and only the finished folder
+// appears at the destination, so a library scanner never sees half a release.
 func TestAnArchiveIsUnpackedInTheWorkingFolderAndDeliveredAfterwards(t *testing.T) {
 	work := t.TempDir()
 	a, base := newRuleApp(t, func(s *settings.Settings, _ string) {
@@ -209,9 +183,7 @@ func TestAnArchiveIsUnpackedInTheWorkingFolderAndDeliveredAfterwards(t *testing.
 	if j.Error != "" {
 		t.Errorf("the job reads %q", j.Error)
 	}
-	// The disposal is "keep" by default, so the archive itself is somebody's
-	// file too - and leaving it in a working folder nothing else ever looks at
-	// is the same as losing it.
+	// The archive is kept by default, so it is delivered too.
 	waitFor(t, "the kept archive following its own release out", func() bool {
 		_, err := os.Stat(filepath.Join(base, "release.zip"))
 		return err == nil
@@ -221,11 +193,8 @@ func TestAnArchiveIsUnpackedInTheWorkingFolderAndDeliveredAfterwards(t *testing.
 	}
 }
 
-// TestThePackageSubfolderSurvivesTheMoveBackOut is the trap in mirroring one
-// folder with another. The folder a release is moved to has to be the one it
-// would have unpacked into, per-package level and all; aimed at the collect
-// folder instead, "Serien/The Show/release" arrives as "Serien/release" - a
-// level lost, silently, and only for the installs that use a working folder.
+// The release moves to the folder it would have been unpacked into, including
+// the per-package level.
 func TestThePackageSubfolderSurvivesTheMoveBackOut(t *testing.T) {
 	work, unpacked := t.TempDir(), t.TempDir()
 	a, base := newRuleApp(t, func(s *settings.Settings, _ string) {
@@ -257,10 +226,8 @@ func TestThePackageSubfolderSurvivesTheMoveBackOut(t *testing.T) {
 	}
 }
 
-// TestTheUnpackedContentGoesWhereTheSettingSays is the other half: not "unpack
-// into this folder" but "put the unpacked files here". The release folder full
-// of scene tags is the level nobody wanted, so the entries are moved in and it
-// is not.
+// ExtractMoveTo receives the unpacked entries themselves, without the release
+// folder around them.
 func TestTheUnpackedContentGoesWhereTheSettingSays(t *testing.T) {
 	target := t.TempDir()
 	a, base := newRuleApp(t, func(s *settings.Settings, _ string) {
@@ -298,10 +265,8 @@ func TestTheUnpackedContentGoesWhereTheSettingSays(t *testing.T) {
 	}
 }
 
-// TestASkippedDeliveryIsSaidOutLoud. A skip is a decision the user made rather
-// than a failure, and it is still the answer to "where are my files": reporting
-// only the folder the others went to would leave the ones that stayed behind
-// unaccounted for on the one row that is about them.
+// A skipped delivery is reported on the job, so the files left behind are
+// accounted for.
 func TestASkippedDeliveryIsSaidOutLoud(t *testing.T) {
 	target := t.TempDir()
 	a, base := newRuleApp(t, func(s *settings.Settings, _ string) {
@@ -335,9 +300,7 @@ func TestASkippedDeliveryIsSaidOutLoud(t *testing.T) {
 	}
 }
 
-// TestNothingMovesWithoutBeingAskedTo is the default, and it is the one this
-// pair of settings lives or dies by: an update nobody read must not start
-// copying downloads across a filesystem boundary.
+// By default nothing is moved.
 func TestNothingMovesWithoutBeingAskedTo(t *testing.T) {
 	a, base := newRuleApp(t, func(s *settings.Settings, _ string) {
 		s.Extract, s.VerifyChecksums = false, false

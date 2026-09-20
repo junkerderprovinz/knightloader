@@ -31,9 +31,8 @@ func mirrorPair(t *testing.T, a *App) (first, second []*core.Task) {
 	return first, a.AddLinks([]string{"https://two.example/film.rar"}, "Release")
 }
 
-// TestAMirrorIsStillDroppedByDefault pins the behaviour every existing install
-// has. Two copies of one file is two downloads of one file, and the list is long
-// enough already; keeping the second one is a choice somebody makes.
+// Two copies of one file are two downloads of one file, so keeping the second
+// is a choice the user has to make.
 func TestAMirrorIsStillDroppedByDefault(t *testing.T) {
 	a := mirrorApp(t, false)
 	_, second := mirrorPair(t, a)
@@ -45,9 +44,8 @@ func TestAMirrorIsStillDroppedByDefault(t *testing.T) {
 	}
 }
 
-// TestAKeptMirrorNamesWhatItIsACopyOf is the field's reason to exist. Until
-// this, Task.MirrorOf was persisted, read back and rendered, and nothing in the
-// tree ever wrote it - a column promising an answer it could not have.
+// Task.MirrorOf is persisted, read back and rendered, so a kept sibling has to
+// carry the id of the task it is a copy of.
 func TestAKeptMirrorNamesWhatItIsACopyOf(t *testing.T) {
 	a := mirrorApp(t, true)
 	first, second := mirrorPair(t, a)
@@ -72,9 +70,8 @@ func TestAKeptMirrorNamesWhatItIsACopyOf(t *testing.T) {
 	}
 }
 
-// TestAKeptMirrorIsNotDispatched is what Hold is doing there. A sibling that the
-// queue picks up is not a spare copy, it is the same file downloaded twice -
-// which is the behaviour the whole mirror set exists to prevent.
+// Hold is what keeps a sibling a spare copy. A sibling the queue picks up is
+// the same file downloaded twice.
 func TestAKeptMirrorIsNotDispatched(t *testing.T) {
 	a := mirrorApp(t, true)
 	_, second := mirrorPair(t, a)
@@ -90,9 +87,8 @@ func TestAKeptMirrorIsNotDispatched(t *testing.T) {
 	}
 }
 
-// TestTheSameLinkTwiceIsStillARefusal is the line the setting does not move. The
-// same URL a second time is a fact rather than a guess about two files, and
-// staging it as a "sibling" would put two rows in the list pointing at the same
+// The setting does not move this line: the same URL twice is a fact rather than
+// a guess about two files, and a sibling would be two rows pointing at the same
 // bytes on the same hoster.
 func TestTheSameLinkTwiceIsStillARefusal(t *testing.T) {
 	a := mirrorApp(t, true)
@@ -108,10 +104,8 @@ func TestTheSameLinkTwiceIsStillARefusal(t *testing.T) {
 	}
 }
 
-// TestAThirdCopyIsMeasuredAgainstTheSiblingToo is why putSibling files the link
-// in the mirror set. Left out, the set would still only know the original, and
-// re-pasting the sibling's own URL would stage a second sibling of the same
-// download every time.
+// putSibling files the link in the mirror set as well, or re-pasting the
+// sibling's own URL would stage another sibling of the same download.
 func TestAThirdCopyIsMeasuredAgainstTheSiblingToo(t *testing.T) {
 	a := mirrorApp(t, true)
 	if _, second := mirrorPair(t, a); len(second) != 1 {
@@ -123,9 +117,8 @@ func TestAThirdCopyIsMeasuredAgainstTheSiblingToo(t *testing.T) {
 	}
 }
 
-// TestAKeptMirrorSurvivesARestart is the difference the setting actually buys.
-// A dropped mirror lives on only in an in-memory trace that the next restart
-// clears; a sibling is a task, and a task is in the store.
+// A dropped mirror lives on only in an in-memory trace the next restart clears,
+// while a sibling is a task and a task is in the store.
 func TestAKeptMirrorSurvivesARestart(t *testing.T) {
 	a := mirrorApp(t, true)
 	first, second := mirrorPair(t, a)
@@ -150,15 +143,10 @@ func TestAKeptMirrorSurvivesARestart(t *testing.T) {
 	t.Fatal("the sibling is not in the store at all")
 }
 
-// failoverApp is mirrorApp with the handover switched on as well, and with the
-// queue stopped.
-//
-// The stop is what keeps these tests off the network: a released sibling is
-// queued, and an unhalted dispatcher would hand two.example straight to a
-// backend, so every assertion below would be racing a real DNS lookup and the
-// failure it eventually reports - which would come back through onUpdate and
-// release the NEXT copy while the test was reading the previous one. Halted, the
-// handover is observed exactly where it leaves the task.
+// failoverApp is mirrorApp with the handover switched on and the queue stopped.
+// The stop keeps these tests off the network: a released sibling is queued, and
+// a live dispatcher would hand two.example to a backend, whose eventual failure
+// would come back through onUpdate and release the next copy mid-assertion.
 func failoverApp(t *testing.T, over bool) *App {
 	t.Helper()
 	a, _ := newRuleApp(t, func(s *settings.Settings, base string) {
@@ -191,10 +179,9 @@ func killTask(t *testing.T, a *App, id string, spent bool, err string) {
 	a.onUpdate(id, core.Update{Status: core.StatusError, Err: err})
 }
 
-// releasedMirror is the one copy the handover has let go, or nil. Queued AND
-// off hold, both: "start everything" leaves a parked sibling queued with the
-// hold still on it, so the status alone would report a release that never
-// happened.
+// releasedMirror is the one copy the handover has let go, or nil. It has to be
+// queued and off hold: "start everything" leaves a parked sibling queued with
+// the hold on, so the status alone would report a release that never happened.
 func releasedMirror(t *testing.T, a *App) *core.Task {
 	t.Helper()
 	a.mu.Lock()
@@ -211,10 +198,8 @@ func releasedMirror(t *testing.T, a *App) *core.Task {
 	return out
 }
 
-// TestTheParkedMirrorStaysParkedByDefault is the switch's default, and it is the
-// one behaviour the rest of this feature must not be able to change by accident:
-// an install that never opened the settings page keeps its spare copy on hold
-// and downloads nothing from a hoster nobody chose.
+// With the switch at its default an install keeps its spare copy on hold and
+// downloads nothing from a hoster nobody chose.
 func TestTheParkedMirrorStaysParkedByDefault(t *testing.T) {
 	a := failoverApp(t, false)
 	first, second := mirrorPair(t, a)
@@ -230,10 +215,9 @@ func TestTheParkedMirrorStaysParkedByDefault(t *testing.T) {
 	}
 }
 
-// TestTheMirrorTakesOverWhenTheBackoffIsSpent is the feature. The source has
-// used every attempt it was given, so the spare copy stops being a spare: it is
-// released, and it takes over the three things that were about the file rather
-// than about the link.
+// Once the source has used every attempt it was given, the spare copy is
+// released and takes over the three fields that are about the file rather than
+// about the link.
 func TestTheMirrorTakesOverWhenTheBackoffIsSpent(t *testing.T) {
 	a := failoverApp(t, true)
 	first, second := mirrorPair(t, a)
@@ -301,13 +285,11 @@ func TestTheMirrorTakesOverWhenTheBackoffIsSpent(t *testing.T) {
 	t.Error("the released copy never reached the store")
 }
 
-// TestAStartedQueueStillHasACopyToHandOver is the shape most installs are
-// actually in when a download dies. "Start everything" reaches a held sibling
-// and moves it to StatusQueued - startTasks never looks at Hold, the dispatcher
-// does - so a handover that only recognised a collected task would find nothing
-// for anybody who has pressed start with a full collector. The copy also has to
-// end up in the queue ONCE: it is already in there, and a second entry is a
-// second Start for one file the moment a slot frees.
+// "Start everything" reaches a held sibling and moves it to StatusQueued, since
+// startTasks never looks at Hold and the dispatcher does. A handover that only
+// recognised a collected task would find nothing after a start. The copy also
+// has to end up in the queue once, because a second entry is a second Start for
+// the same file the moment a slot frees.
 func TestAStartedQueueStillHasACopyToHandOver(t *testing.T) {
 	a := failoverApp(t, true)
 	first, second := mirrorPair(t, a)
@@ -345,10 +327,8 @@ func TestAStartedQueueStillHasACopyToHandOver(t *testing.T) {
 	}
 }
 
-// TestTheFailedSourceStaysOnTheList is the half of the handover that is about
-// the person, not the file. The dead link keeps its row, its sentence and its
-// reason; a list that tidies it away tells somebody a story in which nothing
-// went wrong, and they never learn that the hoster they use is dead.
+// The dead link keeps its row, its sentence and its reason. A list that tidies
+// it away never tells anybody that the hoster they use is dead.
 func TestTheFailedSourceStaysOnTheList(t *testing.T) {
 	a := failoverApp(t, true)
 	first, _ := mirrorPair(t, a)
@@ -370,15 +350,14 @@ func TestTheFailedSourceStaysOnTheList(t *testing.T) {
 	}
 }
 
-// TestADeadLinkDoesNotWaitOutItsBackoff is the second trigger. Every remaining
-// attempt would ask the same host about the same missing file, so the copy takes
-// their place - and the attempt the backoff had just counted goes with them,
-// because a row promising a retry it will never make is a row people wait on.
+// The second trigger. Every remaining attempt would ask the same host about the
+// same missing file, so the copy takes their place, and the attempt the backoff
+// had just counted goes with them rather than promising a retry that never runs.
 func TestADeadLinkDoesNotWaitOutItsBackoff(t *testing.T) {
 	a := failoverApp(t, true)
 	first, _ := mirrorPair(t, a)
-	// Not spent: this link has its whole budget left, and the point is that a 404
-	// makes spending it pointless.
+	// Not spent: the link has its whole budget left, and a 404 makes spending it
+	// pointless.
 	killTask(t, a, first[0].ID, false, "jd /downloads: HTTP 404")
 
 	if releasedMirror(t, a) == nil {
@@ -398,10 +377,9 @@ func TestADeadLinkDoesNotWaitOutItsBackoff(t *testing.T) {
 	}
 }
 
-// TestTheChainEndsWhenTheCopiesRunOut answers "what if the mirror dies too".
 // Every hop consumes one parked copy, so three pasted links allow two handovers
-// and then the last failure simply stands - it cannot hand back to a link that
-// already failed, and it cannot find a fourth copy that was never pasted.
+// and then the last failure stands: there is no link left that has not failed
+// and no fourth copy to find.
 func TestTheChainEndsWhenTheCopiesRunOut(t *testing.T) {
 	a := failoverApp(t, true)
 	first, second := mirrorPair(t, a)
@@ -439,9 +417,8 @@ func TestTheChainEndsWhenTheCopiesRunOut(t *testing.T) {
 	}
 }
 
-// TestAFullDiskDoesNotChangeHoster is the veto. The second hoster writes to the
-// same disk, so the handover would spend a copy to reach the identical wall and
-// bury the one failure somebody could actually have fixed.
+// The second hoster writes to the same disk, so a handover would spend a copy
+// to reach the same wall and bury the one failure that could have been fixed.
 func TestAFullDiskDoesNotChangeHoster(t *testing.T) {
 	for _, tc := range []struct{ name, err string }{
 		{"a full disk", "write /data/film.rar.part: no space left on device"},
@@ -458,9 +435,8 @@ func TestAFullDiskDoesNotChangeHoster(t *testing.T) {
 	}
 }
 
-// TestMirrorCanHelp pins the veto list the way TestAddressMayHelp pins the
-// reconnect's. Anything unclassified has to answer yes: a taxonomy that grows a
-// name next year must not quietly switch the handover off for it.
+// The veto list, as TestAddressMayHelp does for the reconnect. Anything
+// unclassified answers yes, so a new reason does not switch the handover off.
 func TestMirrorCanHelp(t *testing.T) {
 	for _, r := range []core.Reason{core.ReasonDiskFull, core.ReasonCancelled} {
 		if mirrorCanHelp(r) {

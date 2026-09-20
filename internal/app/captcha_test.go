@@ -1,15 +1,8 @@
 package app
 
-// Tests for this file's own captcha wiring (app_captcha.go) and for
-// dispatchLocked's captcha-waiting check (app_dispatch.go). None of these
-// touch a real JD sidecar - KL_JD is unset in this process, so
-// captcha.JDSource.List/Answer/Abort answer captcha.ErrJDNotConfigured
-// immediately, without a network call (see JDSource.client). What is worth
-// testing here does not need JD at all: it is what this file does with a
-// challenge already in its own Store, which every test below seeds directly
-// - a same-package test can reach captchaStateFor and its unexported store
-// exactly the way the poll loop itself does, so nothing here needs a fake
-// captcha.Source.
+// Captcha wiring (app_captcha.go) and dispatchLocked's captcha check. KL_JD is
+// unset, so captcha.JDSource answers ErrJDNotConfigured without a network call;
+// the tests seed challenges straight into the store instead of faking a Source.
 
 import (
 	"context"
@@ -38,10 +31,8 @@ func newCaptchaTestApp(t *testing.T) *App {
 	return a
 }
 
-// TestDispatchLockedHoldsCaptchaWaitingTask is build-plan.md section 8's Wave
-// 7 note, pinned: a task the captcha store says is waiting must not be
-// re-dispatched, and must not settle as a hard failure either - it just
-// stays exactly where it was, the same as Hold.
+// A task waiting on a captcha stays in the queue like a held one: not
+// dispatched and not failed.
 func TestDispatchLockedHoldsCaptchaWaitingTask(t *testing.T) {
 	a := newCaptchaTestApp(t)
 
@@ -50,8 +41,6 @@ func TestDispatchLockedHoldsCaptchaWaitingTask(t *testing.T) {
 	a.queue = append(a.queue, "t1")
 	a.mu.Unlock()
 
-	// Seed the store directly, bypassing Source entirely - see this file's
-	// own package comment.
 	a.captchaStateFor().store.Sync([]captcha.Challenge{
 		{ID: "c1", Host: "host.example", TaskID: "t1", Kind: captcha.KindImage},
 	})
@@ -74,9 +63,7 @@ func TestDispatchLockedHoldsCaptchaWaitingTask(t *testing.T) {
 	}
 }
 
-// TestDispatchLockedDispatchesOnceTheCaptchaIsGone is the other half: once
-// Store no longer knows about a challenge for a task, dispatchLocked must
-// treat it like any other queued task again - the hold is not permanent.
+// Without a challenge in the store, a queued task dispatches normally.
 func TestDispatchLockedDispatchesOnceTheCaptchaIsGone(t *testing.T) {
 	a := newCaptchaTestApp(t)
 
@@ -85,8 +72,6 @@ func TestDispatchLockedDispatchesOnceTheCaptchaIsGone(t *testing.T) {
 	a.queue = append(a.queue, "t1")
 	a.mu.Unlock()
 
-	// Never seeded into the store at all - the ordinary case for a plain
-	// queued task with nothing captcha-related about it.
 	a.mu.Lock()
 	a.dispatchLocked()
 	dispatched := a.active["t1"]
@@ -97,11 +82,7 @@ func TestDispatchLockedDispatchesOnceTheCaptchaIsGone(t *testing.T) {
 	}
 }
 
-// TestMarkCaptchaTasksStampsReasonOnce checks the one-way stamp: a brand-new
-// challenge sets core.ReasonCaptcha, and a second call for a task already
-// marked (Sync's "changed" case, which never reaches markCaptchaTasks - see
-// pollCaptchasOnce - but the guard inside markCaptchaTasks is what would
-// also protect a caller that did) does not re-touch it.
+// A new challenge stamps core.ReasonCaptcha on its task.
 func TestMarkCaptchaTasksStampsReasonOnce(t *testing.T) {
 	a := newCaptchaTestApp(t)
 	a.mu.Lock()
@@ -117,16 +98,12 @@ func TestMarkCaptchaTasksStampsReasonOnce(t *testing.T) {
 		t.Fatalf("Reason = %q after markCaptchaTasks, want %q", reason, core.ReasonCaptcha)
 	}
 
-	// A task with no TaskID resolved (the honest "could not say" case) has
-	// nothing to mark and must not panic on a missing map entry.
+	// A challenge without a TaskID has nothing to mark and must not panic.
 	a.markCaptchaTasks([]captcha.Challenge{{ID: "c2", Host: "other.example", TaskID: ""}})
 }
 
-// TestSettleCaptchaClearsReasonOnlyWhenStillCaptcha is settleCaptcha's own
-// promise: a task still carrying core.ReasonCaptcha gets it cleared, but a
-// task whose Reason has since moved on to something else (a real failure
-// that arrived in the meantime) is left alone - see settleCaptcha's own doc
-// comment for why clobbering the newer fact would be wrong.
+// Settling clears ReasonCaptcha but leaves a newer reason, such as a real
+// failure, alone.
 func TestSettleCaptchaClearsReasonOnlyWhenStillCaptcha(t *testing.T) {
 	a := newCaptchaTestApp(t)
 	a.mu.Lock()
@@ -150,16 +127,12 @@ func TestSettleCaptchaClearsReasonOnlyWhenStillCaptcha(t *testing.T) {
 	}
 }
 
-// TestSettleCaptchaIsSafeWithNoMatchingTask covers a challenge whose task was
-// removed from the list entirely (deleted by the user) while its captcha was
-// still pending - settleCaptcha must not panic on the missing map entry.
+// A challenge whose task was deleted meanwhile must not panic.
 func TestSettleCaptchaIsSafeWithNoMatchingTask(t *testing.T) {
 	a := newCaptchaTestApp(t)
 	a.settleCaptcha(captcha.Challenge{ID: "c1", Host: "h", TaskID: "gone"}, "resolved")
 }
 
-// TestCaptchaWaitingLockedReflectsTheStore is captchaWaitingLocked's own
-// contract, isolated from dispatchLocked's larger loop.
 func TestCaptchaWaitingLockedReflectsTheStore(t *testing.T) {
 	a := newCaptchaTestApp(t)
 	a.mu.Lock()
@@ -186,11 +159,8 @@ func TestCaptchaWaitingLockedReflectsTheStore(t *testing.T) {
 	}
 }
 
-// TestPollCaptchasOnceKeepsLastGoodListOnError is pollCaptchasOnce's own
-// promise against a transient Source failure: KL_JD is unset in this test
-// process, so Source.List answers captcha.ErrJDNotConfigured on every call,
-// and a poll pass hitting that must leave whatever Store already held
-// exactly as it was - never read as "everything just resolved".
+// A failing Source (here ErrJDNotConfigured) keeps the last good list rather
+// than reading as "everything resolved".
 func TestPollCaptchasOnceKeepsLastGoodListOnError(t *testing.T) {
 	a := newCaptchaTestApp(t)
 	st := a.captchaStateFor()
@@ -202,11 +172,8 @@ func TestPollCaptchasOnceKeepsLastGoodListOnError(t *testing.T) {
 	}
 }
 
-// TestCaptchaChallengesStartsThePollerWithoutBlocking is CaptchaChallenges'
-// own contract: a cache read that never itself makes the live call - see the
-// function's own doc comment. It must return promptly even though it also
-// starts the (otherwise KL_JD-unconfigured, so harmless) poll loop as a side
-// effect.
+// CaptchaChallenges reads the cache and returns at once, although it also
+// starts the poll loop.
 func TestCaptchaChallengesStartsThePollerWithoutBlocking(t *testing.T) {
 	a := newCaptchaTestApp(t)
 	if got := a.CaptchaChallenges(); len(got) != 0 {
@@ -214,11 +181,8 @@ func TestCaptchaChallengesStartsThePollerWithoutBlocking(t *testing.T) {
 	}
 }
 
-// TestAnswerAndAbortCaptchaReportJDNotConfigured is the honest answer this
-// process can give without a real sidecar: both surface
-// captcha.ErrJDNotConfigured rather than hanging or panicking, which is what
-// routes_captcha.go and routes_captcha_skip.go's own error handling depends
-// on (errors.Is(err, captcha.ErrJDNotConfigured) -> 503).
+// Without a sidecar both return an error rather than hanging; the routes map
+// ErrJDNotConfigured to 503.
 func TestAnswerAndAbortCaptchaReportJDNotConfigured(t *testing.T) {
 	a := newCaptchaTestApp(t)
 
@@ -230,18 +194,14 @@ func TestAnswerAndAbortCaptchaReportJDNotConfigured(t *testing.T) {
 	}
 }
 
-// fakeSolver is captcha.Solver's own test double - the seam solveCaptchaWith
-// exists for (see its own doc comment), so these tests never build a real
-// TwoCaptchaSolver/AntiCaptchaSolver or reach a real solving API.
+// fakeSolver is a captcha.Solver for solveCaptchaWith, so no real solving API
+// is reached.
 type fakeSolver struct {
 	calls int
 	text  string
 	err   error
-	// waitForDone, when set, blocks Solve until ctx is done and returns
-	// ctx.Err() - a real HTTP client's own behaviour against an
-	// already-cancelled or already-expired context, and the only realistic
-	// way a fake can exercise solveCaptchaWith's own
-	// "ctx.Err() != nil -> stop trying" branch.
+	// waitForDone blocks Solve until ctx is done and returns ctx.Err(), as a
+	// real HTTP client does with an expired context.
 	waitForDone bool
 }
 
@@ -258,9 +218,7 @@ func imageChallenge(id string) captcha.Challenge {
 	return captcha.Challenge{ID: id, Host: "h", Kind: captcha.KindImage, Payload: &captcha.ImagePayload{DataURL: "data:image/png;base64,Zm9v"}}
 }
 
-// TestSolveCaptchaWithStopsAtFirstSuccess is solveCaptchaWith's central
-// promise: the first solver to succeed wins, and nothing later in the order
-// is ever tried - the literal meaning of "solver order".
+// The first solver to succeed wins and later ones are not tried.
 func TestSolveCaptchaWithStopsAtFirstSuccess(t *testing.T) {
 	a := newCaptchaTestApp(t)
 	first := &fakeSolver{text: "ABCD"}
@@ -272,13 +230,11 @@ func TestSolveCaptchaWithStopsAtFirstSuccess(t *testing.T) {
 		t.Errorf("first solver called %d times, want exactly 1", first.calls)
 	}
 	if second.calls != 0 {
-		t.Errorf("second solver called %d times, want 0 - the first already succeeded", second.calls)
+		t.Errorf("second solver called %d times, want 0; the first already succeeded", second.calls)
 	}
 }
 
-// TestSolveCaptchaWithFallsThroughOnFailure is the other half: a solver that
-// fails (a real transport error, a service declining the image) must not
-// stop the attempt - the next configured solver still gets its own try.
+// A failing solver passes the challenge on to the next one.
 func TestSolveCaptchaWithFallsThroughOnFailure(t *testing.T) {
 	a := newCaptchaTestApp(t)
 	failing := &fakeSolver{err: errors.New("captcha unsolvable")}
@@ -290,15 +246,12 @@ func TestSolveCaptchaWithFallsThroughOnFailure(t *testing.T) {
 		t.Errorf("failing solver called %d times, want exactly 1", failing.calls)
 	}
 	if succeeding.calls != 1 {
-		t.Errorf("succeeding solver called %d times, want exactly 1 - it should have been tried after the first failed", succeeding.calls)
+		t.Errorf("succeeding solver called %d times, want exactly 1 after the first failed", succeeding.calls)
 	}
 }
 
-// TestSolveCaptchaWithSkipsNonImagePayload covers the two ways a challenge
-// can carry nothing a solver can act on: a KindWidget/KindUnsupported
-// payload type, and an ImagePayload with no actual image data. Neither may
-// reach a solver at all - see solveCaptchaWith's own doc comment on why
-// KindWidget is out of scope for both clients.
+// Widget and unsupported challenges, and images without data, never reach a
+// solver.
 func TestSolveCaptchaWithSkipsNonImagePayload(t *testing.T) {
 	a := newCaptchaTestApp(t)
 	cases := []captcha.Challenge{
@@ -316,19 +269,13 @@ func TestSolveCaptchaWithSkipsNonImagePayload(t *testing.T) {
 	}
 }
 
-// TestSolveCaptchaWithNoSolversIsANoop is the ordinary "nobody configured an
-// automatic solver" install - must not panic on a nil/empty slice.
+// No configured solver is the ordinary case and must not panic.
 func TestSolveCaptchaWithNoSolversIsANoop(t *testing.T) {
 	a := newCaptchaTestApp(t)
 	a.solveCaptchaWith(nil, imageChallenge("c1"))
 }
 
-// TestSolveCaptchaWithStopsOnExpiredChallenge is the ctx-deadline half: a
-// challenge whose own ExpiresAt has already passed must not let a stuck or
-// slow first solver block a second one from being tried forever - the
-// derived context is already Done before Solve is ever called, so the first
-// solver's own ctx-respecting behaviour (see fakeSolver.waitForDone) is what
-// solveCaptchaWith's own "ctx.Err() != nil -> stop" branch reacts to.
+// Once a challenge has expired, no further solver is tried.
 func TestSolveCaptchaWithStopsOnExpiredChallenge(t *testing.T) {
 	a := newCaptchaTestApp(t)
 	first := &fakeSolver{waitForDone: true}
@@ -343,13 +290,12 @@ func TestSolveCaptchaWithStopsOnExpiredChallenge(t *testing.T) {
 		t.Errorf("first solver called %d times, want exactly 1", first.calls)
 	}
 	if second.calls != 0 {
-		t.Errorf("second solver called %d times, want 0 - the challenge's own window was already closed", second.calls)
+		t.Errorf("second solver called %d times, want 0; the challenge had already expired", second.calls)
 	}
 }
 
-// TestCaptchaSolversReadsOrderAndCredentials is captchaSolvers' own contract:
-// an id with no stored credential is skipped, order is preserved, and an
-// empty order short-circuits before ever consulting accounts.Lookup.
+// Solvers without a stored credential are skipped and the configured order is
+// kept.
 func TestCaptchaSolversReadsOrderAndCredentials(t *testing.T) {
 	a := newCaptchaTestApp(t)
 
@@ -385,8 +331,7 @@ func TestCaptchaSolversReadsOrderAndCredentials(t *testing.T) {
 	if len(got) != 2 {
 		t.Fatalf("captchaSolvers with both configured = %d solvers, want 2", len(got))
 	}
-	// Order preserved from CaptchaSolverOrder (anticaptcha, 2captcha), not
-	// catalogue order (2captcha, anticaptcha) - see catalogue.go.
+	// CaptchaSolverOrder's order, not the catalogue's.
 	if _, ok := got[0].(*captcha.AntiCaptchaSolver); !ok {
 		t.Fatalf("captchaSolvers()[0] = %T, want *captcha.AntiCaptchaSolver (the configured order's first entry)", got[0])
 	}

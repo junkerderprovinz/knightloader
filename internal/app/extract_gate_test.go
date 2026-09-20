@@ -8,8 +8,8 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
-// TestSetKeyGroupsVolumes pins which files belong to one archive. Getting this
-// wrong either extracts a half-downloaded set or never extracts at all.
+// Getting the set wrong either extracts a half-downloaded set or never
+// extracts at all.
 func TestSetKeyGroupsVolumes(t *testing.T) {
 	same := [][]string{
 		{"film.part01.rar", "film.part02.rar", "film.part10.rar"},
@@ -45,8 +45,7 @@ func TestSetKeyGroupsVolumes(t *testing.T) {
 	}
 }
 
-// TestExtractWaitsForAllVolumes is the behaviour that matters: unpacking a
-// multi-part archive must not start while a part is still downloading.
+// A multi-part archive is not unpacked while a part is still downloading.
 func TestExtractWaitsForAllVolumes(t *testing.T) {
 	a, err := New(t.TempDir())
 	if err != nil {
@@ -69,7 +68,7 @@ func TestExtractWaitsForAllVolumes(t *testing.T) {
 		t.Fatalf("started extraction while %q was still downloading", p2.Name)
 	}
 
-	// Once the last part lands, the FIRST volume is what gets opened.
+	// Once the last part lands, the first volume is opened.
 	a.mu.Lock()
 	p2.Status = core.StatusDone
 	target, path := a.extractCandidateLocked(p2)
@@ -85,8 +84,7 @@ func TestExtractWaitsForAllVolumes(t *testing.T) {
 	}
 }
 
-// TestSingleArchiveExtractsImmediately keeps the common case unaffected by the
-// volume gate.
+// A single archive is unpacked at once; a plain file never is.
 func TestSingleArchiveExtractsImmediately(t *testing.T) {
 	a, err := New(t.TempDir())
 	if err != nil {

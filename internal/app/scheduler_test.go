@@ -40,8 +40,8 @@ func expectNone(t *testing.T, ch chan string) {
 	}
 }
 
-// TestCollectorStaging pins the JD-style flow: AddLinks stages tasks (collected,
-// not dispatched); only StartTasks moves them into the download pipeline.
+// AddLinks stages tasks as collected without dispatching them; only StartTasks
+// moves them into the download pipeline.
 func TestCollectorStaging(t *testing.T) {
 	a, err := New(t.TempDir())
 	if err != nil {
@@ -76,8 +76,8 @@ func TestCollectorStaging(t *testing.T) {
 	expectNone(t, stub.got) // the other stays collected until started
 }
 
-// TestDedupOnAdd pins the collector's duplicate guard: the same URL is only
-// staged once, whether repeated within one paste or across two.
+// The collector's duplicate guard: the same URL is staged once, whether
+// repeated within one paste or across two.
 func TestDedupOnAdd(t *testing.T) {
 	a, err := New(t.TempDir())
 	if err != nil {
@@ -103,7 +103,7 @@ func TestDedupOnAdd(t *testing.T) {
 		t.Fatalf("total tasks = %d, want 3", got)
 	}
 
-	// A settled task must not block a deliberate second attempt at the same URL.
+	// A settled task does not block a second attempt at the same URL.
 	a.onUpdate(first[0].ID, core.Update{Status: core.StatusError, Err: "boom"})
 	again := a.AddLinks([]string{"https://h.example/a"}, "p")
 	if len(again) != 1 {
@@ -111,8 +111,7 @@ func TestDedupOnAdd(t *testing.T) {
 	}
 }
 
-// TestRestartFailed pins retry: an errored task re-enters the pipeline when
-// restarted.
+// An errored task re-enters the pipeline when it is restarted.
 func TestRestartFailed(t *testing.T) {
 	a, err := New(t.TempDir())
 	if err != nil {
@@ -141,8 +140,8 @@ func TestRestartFailed(t *testing.T) {
 	}
 }
 
-// TestScheduler pins the M4 dispatch rules: global and per-host slots, FIFO
-// with per-host skip-ahead, slot release on completion, queue-aware pause.
+// The dispatch rules: global and per-host slots, FIFO with per-host skip-ahead,
+// slot release on completion, queue-aware pause.
 func TestScheduler(t *testing.T) {
 	a, err := New(t.TempDir())
 	if err != nil {

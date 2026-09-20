@@ -7,9 +7,8 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
-// TestHaltedQueueStartsNothing is the master switch doing its one job. Without
-// it, "stop everything" means clicking pause on every row and hoping nothing
-// new starts while you work down the list.
+// The master switch: while it is set nothing new starts, and resuming lets the
+// waiting tasks go.
 func TestHaltedQueueStartsNothing(t *testing.T) {
 	a := newQueueApp(t)
 
@@ -48,8 +47,8 @@ func TestHaltedQueueStartsNothing(t *testing.T) {
 	}
 }
 
-// TestHaltDoesNotAbandonRunningWork pins the distinction that makes the switch
-// safe to press: halting stops what has not started, and leaves what has.
+// Halting stops what has not started and leaves what has, which is what makes
+// the switch safe to press.
 func TestHaltedLeavesRunningTasksAlone(t *testing.T) {
 	a := newQueueApp(t)
 
@@ -73,9 +72,8 @@ func TestHaltedLeavesRunningTasksAlone(t *testing.T) {
 	}
 }
 
-// TestStopMarkHaltsAfterThatTask is the "finish this, then stop" control. If it
-// failed, the only way to stop after a specific download is to sit and watch
-// for it.
+// The "finish this, then stop" control: only the marked download triggers it,
+// and it disarms once it has fired.
 func TestStopMarkHaltsAfterThatTask(t *testing.T) {
 	a := newQueueApp(t)
 
@@ -109,8 +107,8 @@ func TestStopMarkHaltsAfterThatTask(t *testing.T) {
 	}
 }
 
-// TestResumingClearsTheStopMark stops a mark from lying in wait: re-armed
-// silently, it would halt the queue again for a click made minutes earlier.
+// A mark left armed across a resume would halt the queue again for a click made
+// minutes earlier.
 func TestResumingClearsTheStopMark(t *testing.T) {
 	a := newQueueApp(t)
 	task := &core.Task{ID: "m1", URL: "https://host.example/x.bin", Status: core.StatusRunning}

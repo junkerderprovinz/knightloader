@@ -1,11 +1,9 @@
 package app
 
-// AddContainerCnL is Click'n'Load v1 ("addcrypted")'s entrance: the CnL
-// listener hands over the raw "crypted" field, and only a backend that
-// implements cryptedV1Adder (the shipped JD) can make anything of it. These
-// tests pin the wiring — refusal with no backend, the bytes and package name
-// the backend actually receives, and that a harvested link lands back in the
-// list tagged OriginCnL, same as any other Click'n'Load submission.
+// AddContainerCnL is the entrance for Click'n'Load v1 ("addcrypted"): only a
+// backend implementing cryptedV1Adder (JD) can decode the "crypted" field.
+// These tests cover the refusal without a backend, what the backend receives,
+// and that harvested links are staged as OriginCnL.
 
 import (
 	"errors"
@@ -16,8 +14,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
 )
 
-// stubCryptedV1Backend is a backend implementing addcrypted v1 support on top
-// of the base download contract every backend needs.
+// stubCryptedV1Backend is a backend with addcrypted v1 support.
 type stubCryptedV1Backend struct {
 	gotData []byte
 	gotPkg  string
@@ -35,10 +32,8 @@ func (s *stubCryptedV1Backend) AddCryptedV1(data []byte, packageName string, _ t
 	return s.links, s.err
 }
 
-// TestAddContainerCnLWithoutBackendRefuses is the same refusal
-// HandContainerToJD gives an uploaded .dlc when no JD is configured: an
-// instance with no JD backend must say so plainly rather than claim success
-// for a submission that goes nowhere.
+// Without a JD backend the submission is refused, as HandContainerToJD refuses
+// an uploaded .dlc.
 func TestAddContainerCnLWithoutBackendRefuses(t *testing.T) {
 	a := newCrawlApp(t, false)
 	if a.CryptedV1BackendConfigured() {
@@ -50,10 +45,7 @@ func TestAddContainerCnLWithoutBackendRefuses(t *testing.T) {
 	}
 }
 
-// TestAddContainerCnLRefusesEmptyContent guards against a site (or a bug
-// upstream of this call) submitting nothing: a "crypted" field is meaningless
-// empty, and going through to the backend anyway would report a confusing
-// failure JD invents rather than the honest one this app already knows.
+// An empty "crypted" field is refused here rather than passed to JD.
 func TestAddContainerCnLRefusesEmptyContent(t *testing.T) {
 	a := newCrawlApp(t, false)
 	a.bmu.Lock()
@@ -64,24 +56,13 @@ func TestAddContainerCnLRefusesEmptyContent(t *testing.T) {
 	}
 }
 
-// TestAddContainerCnLStagesHarvestedLinksAsCnLOrigin drives the success path:
-// the backend receives exactly the bytes and package name the submission
-// carried, and what it hands back is staged through the ordinary intake path
-// (AddResolvedLinksFrom) tagged OriginCnL — the same entrance a plain
-// /flash/add or /flash/addcrypted2 submission uses, because from the
-// collector's point of view all three are "Click'n'Load", not three
-// different sources.
+// The backend receives the submitted bytes and package name, and what it hands
+// back is staged through AddResolvedLinksFrom as OriginCnL, like any other
+// Click'n'Load submission.
 //
-// The harvested link's name and size are asserted here too, and the URL is
-// deliberately extensionless so resolver.Direct (which would derive its own
-// name from the path) does not claim it - jd.Resolver is registered and does
-// instead, and jd's own Resolve answers with the URL as a placeholder Name
-// and no Size (see its own doc comment). Without stage()'s guard against that
-// placeholder overwriting a real hint, this test catches exactly the bug a
-// DLC's crawled name and size were disappearing to: the harvest already knew
-// both, and the ordinary intake path was throwing them away only to wait for
-// JD to crawl the same link a second time, at download time, to learn them
-// again.
+// The URL has no extension so jd.Resolver claims it rather than
+// resolver.Direct. jd answers with the URL as a placeholder name and no size,
+// which must not replace the name and size the harvest already knew.
 func TestAddContainerCnLStagesHarvestedLinksAsCnLOrigin(t *testing.T) {
 	a := newCrawlApp(t, false)
 	a.Registry.Register(jd.Resolver{})
@@ -129,11 +110,8 @@ func TestAddContainerCnLStagesHarvestedLinksAsCnLOrigin(t *testing.T) {
 	}
 }
 
-// TestAddContainerCnLRecordsABackendFailure pins the other branch: a backend
-// that fails (JD could not make sense of the payload) must not vanish
-// silently — it belongs in the same skipped trace an uploaded container's
-// failure already uses, or the user is left staring at an unchanged list with
-// nothing to explain it.
+// A backend failure is recorded in the skipped trace, as for an uploaded
+// container, rather than leaving the list unchanged without a word.
 func TestAddContainerCnLRecordsABackendFailure(t *testing.T) {
 	a := newCrawlApp(t, false)
 	a.bmu.Lock()
@@ -150,6 +128,6 @@ func TestAddContainerCnLRecordsABackendFailure(t *testing.T) {
 		t.Error("skipped reason is empty")
 	}
 	if len(a.Tasks()) != 0 {
-		t.Errorf("tasks = %d, want 0 — a backend failure must not stage anything", len(a.Tasks()))
+		t.Errorf("tasks = %d, want 0; a backend failure must not stage anything", len(a.Tasks()))
 	}
 }

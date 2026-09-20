@@ -8,12 +8,9 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/schedule"
 )
 
-// The stop button, all the way down. Pause already wrote "paused"
-// (pause_status_test.go) - and a polling backend wrote "running" straight back
-// over it a fraction of a second later, which is why the button still looked
-// dead on a live instance three fixes in. Measured there: POST /api/queue/stop
-// answers `running: 0, halted: true` and the rows say "running" again before
-// the answer is on screen.
+// Pause writes "paused" (pause_status_test.go), and a polling backend would
+// write "running" back over it a fraction of a second later, so the queue
+// answers `running: 0, halted: true` while the rows say running again.
 func TestABackendPollCannotResurrectAPausedTask(t *testing.T) {
 	a := newCaptchaTestApp(t)
 	task := putTask(t, a, core.Task{
@@ -28,8 +25,8 @@ func TestABackendPollCannotResurrectAPausedTask(t *testing.T) {
 
 	a.Pause(id)
 
-	// Exactly what JD's poller sends on its next 750 ms tick: the link is still
-	// in JD's own download list, so it reports it as running.
+	// What JD's poller sends on its next tick: the link is still in JD's own
+	// download list, so it reports it as running.
 	a.onUpdate(id, core.Update{Status: core.StatusRunning, Speed: 4 << 20, Loaded: 1024})
 
 	a.mu.Lock()
@@ -42,22 +39,16 @@ func TestABackendPollCannotResurrectAPausedTask(t *testing.T) {
 	if speed != 0 {
 		t.Errorf("speed on a paused task = %d, want 0", speed)
 	}
-	// The bytes already written are a fact and survive; only the claim about
-	// what is happening right now is refused.
+	// The bytes already written survive; only the claim about what is happening
+	// now is refused.
 	if loaded != 1024 {
 		t.Errorf("loaded = %d, want the reported 1024 to be kept", loaded)
 	}
 }
 
-// Stop, then play. The whole of jdp's "Die Start und Stopp buttons funktionieren
-// einfach nirgends! Es lädt auch nirgends was runter", measured on his own
-// instance before the fix: play answers `halted: false`, and four seconds later
-// it is still 19 paused, 0 running, 0 B/s.
-//
-// The hard stop had two effects - pause everything in flight, halt the queue -
-// and releasing the halt undid only the second. The paused tasks were outside
-// the queue, so the dispatcher had nothing left to hand out and no button
-// anywhere would ever have given them back.
+// Stop, then play. The hard stop pauses everything in flight and halts the
+// queue, so it also has to leave the tasks in the queue: paused outside it, the
+// dispatcher has nothing to hand out and no button gives them back.
 func TestReleasingTheHaltStartsWhatTheHardStopStopped(t *testing.T) {
 	a := newCaptchaTestApp(t)
 	task := putTask(t, a, core.Task{
@@ -65,13 +56,10 @@ func TestReleasingTheHaltStartsWhatTheHardStopStopped(t *testing.T) {
 		Status: core.StatusRunning, Enabled: true,
 	})
 	id := task.ID
-	// A RUNNING task is deliberately not put in a.queue here, because a running
-	// task is never in it: dispatchLocked keeps only what it could not hand out
-	// and writes that back as the whole queue. The first version of this test
-	// seeded the queue by hand, which made it pass against a fix that did
-	// nothing on the live instance - the status changed and the dispatcher
-	// still never saw the task again. A test that sets up a state the program
-	// cannot reach proves the program does something it does not do.
+	// A running task is not put in a.queue, because a running task is never in
+	// it: dispatchLocked keeps only what it could not hand out and writes that
+	// back as the whole queue. Seeding the queue here would build a state the
+	// program cannot reach.
 	a.mu.Lock()
 	a.active[id] = true
 	a.mu.Unlock()
@@ -88,17 +76,16 @@ func TestReleasingTheHaltStartsWhatTheHardStopStopped(t *testing.T) {
 	a.mu.Unlock()
 
 	if status != core.StatusQueued {
-		t.Errorf("status after the hard stop = %q, want %q - it stopped, and it is waiting", status, core.StatusQueued)
+		t.Errorf("status after the hard stop = %q, want %q; it stopped and is waiting", status, core.StatusQueued)
 	}
 	if !inQueue {
 		t.Fatal("the task left the wait queue, so releasing the halt can never bring it back")
 	}
 }
 
-// A task somebody paused BY HAND is a different instruction, and the master
-// switch has no business undoing it. Without this the fix above would trade one
-// complaint for its opposite: press pause on one row, stop and start the queue,
-// and the row you paused is downloading again.
+// A task somebody paused by hand is a separate instruction, so the master
+// switch leaves it alone: otherwise stopping and starting the queue would put
+// that row back into download.
 func TestAPerTaskPauseSurvivesTheMasterSwitch(t *testing.T) {
 	a := newCaptchaTestApp(t)
 	task := putTask(t, a, core.Task{
@@ -124,16 +111,15 @@ func TestAPerTaskPauseSurvivesTheMasterSwitch(t *testing.T) {
 	a.mu.Unlock()
 
 	if status != core.StatusPaused {
-		t.Errorf("status = %q, want %q - a hand pause outlives the master switch", status, core.StatusPaused)
+		t.Errorf("status = %q, want %q; a hand pause outlives the master switch", status, core.StatusPaused)
 	}
 	if inQueue {
 		t.Error("a hand-paused task is back in the wait queue")
 	}
 }
 
-// The exemption is the other half of the rule, and it has to hold or a download
-// that genuinely finishes in the moment between the pause and the backend
-// hearing about it would be stuck at "paused" for ever.
+// The exemption to that refusal: a download that finishes between the pause and
+// the backend hearing about it would otherwise stay at "paused" for ever.
 func TestATerminalUpdateStillLandsOnAPausedTask(t *testing.T) {
 	a := newCaptchaTestApp(t)
 	for _, tc := range []struct {
@@ -166,10 +152,9 @@ func TestATerminalUpdateStillLandsOnAPausedTask(t *testing.T) {
 	}
 }
 
-// Play after stop. StartTasks moved the tasks to "queued" and called a
-// dispatcher that returns at its first line while the queue is halted, so
-// nothing ran and nothing said why - jdp, four rounds: "es lädt nicht
-// herunter".
+// Play after stop. The dispatcher returns at its first line while the queue is
+// halted, so a start by hand has to lift the halt or nothing runs and nothing
+// says why.
 func TestStartReleasesAHaltSetByHand(t *testing.T) {
 	a := newCaptchaTestApp(t)
 	task := putTask(t, a, core.Task{
@@ -195,9 +180,8 @@ func TestStartReleasesAHaltSetByHand(t *testing.T) {
 	}
 }
 
-// A task a link-filter rule is holding back is not started - that much is the
-// filter working. It used to be reported with a 204 and no body, which is the
-// same answer a successful start gave.
+// A task a link-filter rule holds back is not started, and the answer says so
+// rather than reading like a successful start.
 func TestStartReportsAFilteredTaskInsteadOfSwallowingIt(t *testing.T) {
 	a := newCaptchaTestApp(t)
 	task := putTask(t, a, core.Task{
@@ -209,22 +193,17 @@ func TestStartReportsAFilteredTaskInsteadOfSwallowingIt(t *testing.T) {
 	res := a.StartTasksByHand([]string{task.ID})
 
 	if res.Started != 0 {
-		t.Errorf("Started = %d, want 0 - the filter still holds", res.Started)
+		t.Errorf("Started = %d, want 0; the filter still holds", res.Started)
 	}
 	if res.Skipped != 1 {
 		t.Fatalf("Skipped = %d, want 1 so the answer can say why nothing moved", res.Skipped)
 	}
 }
 
-// Automation does NOT lift a halt, and this is the reason the by-hand variant
-// exists at all rather than StartTasks simply releasing.
-//
-// StartTasks is what auto-confirm, a watch folder and a forced selection call.
-// If it released, then stopping the queue would be undone by the next link the
-// browser extension sent - somebody stops their downloads, clicks a link on a
-// page an hour later, and the whole queue starts again with nothing on screen
-// connecting the two. That is a worse bug than the one being fixed, and it
-// would have shipped inside the fix.
+// Automation does not lift a halt, which is why the by-hand variant exists.
+// StartTasks is what auto-confirm, a watch folder and a forced selection call,
+// so a release here would let the next link from the browser extension start a
+// queue somebody stopped an hour earlier.
 func TestAnAutomaticStartLeavesTheHaltAlone(t *testing.T) {
 	a := newCaptchaTestApp(t)
 	task := putTask(t, a, core.Task{
@@ -249,9 +228,8 @@ func TestAnAutomaticStartLeavesTheHaltAlone(t *testing.T) {
 	}
 }
 
-// A schedule window is not the user's own switch and is never overridden - the
-// tasks queue and wait, and the answer says so rather than leaving the same
-// silence behind a different cause.
+// A schedule window is not the user's own switch and is never overridden: the
+// tasks queue and wait, and the answer says so.
 func TestAScheduledPauseIsReportedNotOverridden(t *testing.T) {
 	a := newCaptchaTestApp(t)
 	task := putTask(t, a, core.Task{
@@ -259,8 +237,8 @@ func TestAScheduledPauseIsReportedNotOverridden(t *testing.T) {
 		Status: core.StatusCollected, Enabled: true,
 	})
 
-	// A window covering every minute of every day, so the test never depends on
-	// what time it runs at.
+	// A window covering every minute of every day, so the test does not depend
+	// on what time it runs at.
 	cfg := a.Settings.Get()
 	cfg.Schedule = []schedule.Entry{{
 		Days:   []time.Weekday{0, 1, 2, 3, 4, 5, 6},
@@ -291,9 +269,8 @@ func TestAScheduledPauseIsReportedNotOverridden(t *testing.T) {
 	}
 }
 
-// Starting nothing must not flip the master switch. Somebody who stops the
-// queue and then presses start on an empty collector has said nothing about
-// wanting it running again.
+// Starting nothing does not flip the master switch: pressing start on an empty
+// collector says nothing about wanting the queue running again.
 func TestStartWithNothingToStartLeavesTheHaltAlone(t *testing.T) {
 	a := newCaptchaTestApp(t)
 	a.SetHalted(true)

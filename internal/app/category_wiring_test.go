@@ -1,16 +1,8 @@
 package app
 
-// The three category overrides this batch made live, each guarded where it
-// would otherwise fall out in silence. The folder was wired and tested a wave
-// ago (batch3_wiring_test.go); unpacking and the collision rule round-tripped
-// through the API, resolved correctly in internal/settings, and reached nothing
-// at all - a drawer that says "unpack these, overwrite what is in the way" and
-// does neither.
-//
-// Every test here states the INSTANCE's answer as the opposite of the drawer's,
-// so a result it observes cannot have come from the global setting. A test that
-// agrees with the fallback passes just as well against no wiring, which is how
-// nine lines shipped inert here three weeks ago.
+// Category overrides for unpacking and file collisions reach the code that acts
+// on them. Each test sets the instance-wide value opposite to the category's,
+// so a result cannot come from the global fallback.
 
 import (
 	"os"
@@ -23,11 +15,8 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
-// TestADrawerDecidesWhetherAnArchiveIsUnpacked guards extractWanted's middle
-// rung. Both halves are needed and neither is redundant: one drawer turns
-// unpacking on where the instance says off, the other turns it off where the
-// instance says on, and only the pair proves that a category's nil Extract is
-// still "no opinion" rather than a third state somebody folded onto false.
+// A category can turn unpacking on where the instance says off, and off where
+// it says on.
 func TestADrawerDecidesWhetherAnArchiveIsUnpacked(t *testing.T) {
 	yes, no := true, false
 
@@ -45,7 +34,7 @@ func TestADrawerDecidesWhetherAnArchiveIsUnpacked(t *testing.T) {
 		a.mu.Unlock()
 
 		if target == nil {
-			t.Fatal("an archive filed in a drawer that unpacks was left alone; the drawer is being asked nothing and the instance-wide switch decided")
+			t.Fatal("an archive filed in a category that unpacks was left alone; the instance-wide switch decided")
 		}
 		waitFor(t, "the archive unpacking because its drawer says so", func() bool {
 			_, err := os.Stat(filepath.Join(base, "release", "inside.txt"))
@@ -67,7 +56,7 @@ func TestADrawerDecidesWhetherAnArchiveIsUnpacked(t *testing.T) {
 		a.mu.Unlock()
 
 		if target != nil {
-			t.Fatal("a drawer where the archive IS the delivery was unpacked anyway; a false in a category has to survive a global that says true")
+			t.Fatal("an archive in a category that does not unpack was unpacked anyway; the category's false must beat the global true")
 		}
 		if _, err := os.Stat(filepath.Join(base, "album")); err == nil {
 			t.Error("the album was unpacked beside itself")
@@ -75,13 +64,9 @@ func TestADrawerDecidesWhetherAnArchiveIsUnpacked(t *testing.T) {
 	})
 }
 
-// TestADrawersCollisionRuleSettlesTheDownload guards the dispatcher's read.
-// Skip is the only policy decided before the handover, so it is the only one
-// this side can observe without a backend that honours a name - which makes it
-// the one that has to be tested here, not the convenient one.
-//
-// The instance is set to overwrite, so a task that starts anyway is the wiring
-// missing rather than the policy being applied somewhere else.
+// The dispatcher applies a category's collision rule. Skip is the policy
+// decided before the handover, so it is observable without a backend that
+// honours a name.
 func TestADrawersCollisionRuleSettlesTheDownload(t *testing.T) {
 	dir := t.TempDir()
 	a := newQueueApp(t)
@@ -108,18 +93,17 @@ func TestADrawersCollisionRuleSettlesTheDownload(t *testing.T) {
 	status, msg := filed.Status, filed.Error
 	a.mu.Unlock()
 	if status != core.StatusError {
-		t.Fatalf("a download filed in a drawer that skips reads %q, want it settled rather than started", status)
+		t.Fatalf("a download filed in a category that skips reads %q, want it settled rather than started", status)
 	}
 	if !strings.Contains(msg, filepath.Join(dir, "clash.bin")) {
 		t.Fatalf("the reason %q does not name the file that is in the way", msg)
 	}
 
-	// The other side of the same read: a task in no drawer is still governed by
-	// the instance, which says overwrite, so it goes. Without this the test
-	// would also pass against a build that skips everything.
+	// A task in no category follows the instance, which says overwrite, so it
+	// starts.
 	queueOne(a, "in-no-drawer", "")
 	if started := collect(t, stub.got, 1); !started["in-no-drawer"] {
-		t.Fatalf("the untagged download was turned down as well; the drawer's rule leaked onto the instance")
+		t.Fatalf("the untagged download was turned down as well; the category's rule leaked onto the instance")
 	}
 }
 
@@ -139,13 +123,8 @@ func queueOne(a *App, id, category string) *core.Task {
 	return task
 }
 
-// TestADrawersCollisionRuleReachesTheLastMove guards moveOptions, which is the
-// second door onto the same setting: the dispatcher's answer decides whether a
-// download starts, and this one decides what happens to the file at the end of
-// the journey, minutes later and on a different goroutine.
-//
-// The instance says overwrite, so the file that was already there surviving is
-// the drawer's doing and nothing else's.
+// moveOptions applies the category's collision rule to the final move after
+// unpacking, too.
 func TestADrawersCollisionRuleReachesTheLastMove(t *testing.T) {
 	target := t.TempDir()
 	a, base := newRuleApp(t, func(s *settings.Settings, _ string) {
@@ -172,7 +151,7 @@ func TestADrawersCollisionRuleReachesTheLastMove(t *testing.T) {
 	})
 
 	if b, err := os.ReadFile(filepath.Join(target, "ep01.mkv")); err != nil || string(b) != "mine" {
-		t.Fatalf("the episode that was already there reads %q (%v), want it untouched: the drawer says skip and the move overwrote it", b, err)
+		t.Fatalf("the episode that was already there reads %q (%v), want it untouched: the category says skip and the move overwrote it", b, err)
 	}
 	j, _ := jobFor(a, task.ID)
 	if j.Moved != 0 || j.Error == "" {

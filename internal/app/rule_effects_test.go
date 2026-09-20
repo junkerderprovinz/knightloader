@@ -13,9 +13,8 @@ import (
 )
 
 // finishedTask puts a task in the list as though its download had just landed,
-// with the bytes really on disk. Everything below is about what happens to a
-// file that exists, so a test that only builds the row would pass while the
-// disk stayed untouched.
+// with the bytes on disk. The tests below are about what happens to a file that
+// exists, so a row on its own would let them pass over an untouched folder.
 func finishedTask(t *testing.T, a *App, dir, id, name string) *core.Task {
 	t.Helper()
 	if err := os.WriteFile(filepath.Join(dir, name), []byte("payload of "+name), 0o644); err != nil {
@@ -34,15 +33,10 @@ func finishedTask(t *testing.T, a *App, dir, id, name string) *core.Task {
 	return task
 }
 
-// editTask changes a live task under the SAME lock the app holds, which is the
-// only safe way for a test to touch one.
-//
-// finishedTask hands back the very pointer it put into a.tasks, and writing
-// through it afterwards is a data race against everything that reads the list
-// on its own goroutine - the idle-action controller, the schedule runner, a
-// broadcast. CI caught exactly that: a test setting `task.Status` raced
-// App.Counters(), which reads Status under a.mu from the idle controller's
-// tick. The product's locking was right; the test was reaching past it.
+// editTask changes a live task under the lock the app holds. finishedTask hands
+// back the pointer it put into a.tasks, and writing through it afterwards races
+// everything that reads the list on its own goroutine: the idle-action
+// controller, the schedule runner, a broadcast.
 func editTask(a *App, id string, edit func(*core.Task)) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
@@ -61,11 +55,9 @@ func liveTask(a *App, id string) core.Task {
 	return core.Task{}
 }
 
-// TestFinishedDownloadIsRenamedOnDisk is the whole point of the rename action.
 // A name written onto the row alone leaves the list showing one thing and the
 // folder holding another, and extraction and checksum verification both build
-// their path from that name — so the rule would not merely fail to rename, it
-// would break the two steps that come after it.
+// their path from that name.
 func TestFinishedDownloadIsRenamedOnDisk(t *testing.T) {
 	a, base := newRuleApp(t, func(s *settings.Settings, _ string) {
 		s.Extract, s.VerifyChecksums = false, false
@@ -91,10 +83,8 @@ func TestFinishedDownloadIsRenamedOnDisk(t *testing.T) {
 	}
 }
 
-// TestRenamingAFinishedTaskByHandMovesTheFileNow is the same action arriving
-// from the other direction. A rename typed onto something that finished an hour
-// ago has to move the file, not wait for a download that will never happen
-// again.
+// A rename typed onto something that finished an hour ago moves the file at
+// once rather than waiting for a download that will not happen again.
 func TestRenamingAFinishedTaskByHandMovesTheFileNow(t *testing.T) {
 	a, base := newRuleApp(t, func(s *settings.Settings, _ string) {
 		s.Extract, s.VerifyChecksums = false, false
@@ -114,10 +104,8 @@ func TestRenamingAFinishedTaskByHandMovesTheFileNow(t *testing.T) {
 	}
 }
 
-// TestRenameRefusesRatherThanOverwriting covers the two ways a rename can be
-// the wrong thing to do. Both leave the file where it is and say so on the
-// task: a rename that quietly did not happen is worse than one that failed,
-// because the row then promises a name the folder does not have.
+// The two ways a rename can be the wrong thing to do. Both leave the file where
+// it is and say so on the task, or the row promises a name the folder lacks.
 func TestRenameRefusesRatherThanOverwriting(t *testing.T) {
 	t.Run("the target name is already taken", func(t *testing.T) {
 		a, base := newRuleApp(t, func(s *settings.Settings, _ string) {
@@ -152,7 +140,7 @@ func TestRenameRefusesRatherThanOverwriting(t *testing.T) {
 		finishedTask(t, a, base, "1", "film.part01.rar")
 		second := finishedTask(t, a, base, "2", "film.part02.rar")
 		second.Status = core.StatusRunning
-		// Exactly what a rule with a fixed name does to every part of a set: five
+		// What a rule with a fixed name does to every part of a set: five
 		// downloads, one destination, four of them overwritten.
 		second.Filename = "movie.rar"
 
@@ -171,12 +159,9 @@ func TestRenameRefusesRatherThanOverwriting(t *testing.T) {
 	})
 }
 
-// TestExtractionSwitchIsReadFromTheVolumeThatGetsOpened is the multi-volume
-// trap. extractCandidateLocked hands back the FIRST volume of a set, never the
-// part that happened to finish last, so an override read off the finishing part
-// would make one archive extract or not depending on which of its parts the
-// hoster served quickest — the same rule, the same set, a different answer on
-// every run.
+// extractCandidateLocked opens the first volume of a set, never the part that
+// finished last, so an override read off the finishing part would give one
+// archive a different answer on every run.
 func TestExtractionSwitchIsReadFromTheVolumeThatGetsOpened(t *testing.T) {
 	yes, no := true, false
 	cases := []struct {
@@ -217,11 +202,8 @@ func TestExtractionSwitchIsReadFromTheVolumeThatGetsOpened(t *testing.T) {
 	}
 }
 
-// TestExtractionSwitchedOnAfterTheDownloadFinished is why the switch is read at
-// extraction time and not at download time. Read when the bytes stopped moving,
-// turning unpacking on later would be a control that does nothing to anything
-// already in the list, and the only way to use it would be to download the
-// archive again.
+// The switch is read at extraction time rather than when the bytes stopped
+// moving, so turning unpacking on later still reaches what is in the list.
 func TestExtractionSwitchedOnAfterTheDownloadFinished(t *testing.T) {
 	a, base := newRuleApp(t, func(s *settings.Settings, _ string) {
 		s.Extract, s.VerifyChecksums = false, false
@@ -254,10 +236,9 @@ func TestExtractionSwitchedOnAfterTheDownloadFinished(t *testing.T) {
 	})
 }
 
-// TestExtractionOverrideReachesEveryPartOfTheSet is the hand-edit half of the
-// multi-volume trap. The user clicks the part they can see and asks for it to be
-// unpacked; the first volume is what actually gets opened, so an override
-// written onto that one part alone is a switch that silently does nothing.
+// The hand-edit half of the same trap: the user clicks the part they can see,
+// while the first volume is what gets opened, so an override written onto that
+// one part alone would do nothing.
 func TestExtractionOverrideReachesEveryPartOfTheSet(t *testing.T) {
 	a, base := newRuleApp(t, func(s *settings.Settings, _ string) {
 		s.Extract, s.VerifyChecksums = false, false
@@ -266,8 +247,8 @@ func TestExtractionOverrideReachesEveryPartOfTheSet(t *testing.T) {
 	finishedTask(t, a, base, "2", "film.part02.rar")
 
 	on := true
-	// Asked of the second part, which is the one a user is most likely to have
-	// selected: it is the row that just turned green.
+	// Asked of the second part, the row that just turned green and the one a
+	// user is most likely to have selected.
 	if err := a.SetTaskOptions([]string{"2"}, TaskOptions{AutoExtract: TriBool{Set: true, Value: &on}}); err != nil {
 		t.Fatal(err)
 	}
@@ -276,15 +257,15 @@ func TestExtractionOverrideReachesEveryPartOfTheSet(t *testing.T) {
 	if first.AutoExtract == nil || !*first.AutoExtract {
 		t.Fatalf("the first volume's switch = %v; the set is opened through it", first.AutoExtract)
 	}
-	// The two parts hold two values, not one shared pointer: written through, one
-	// row's edit would otherwise change every part of the set.
+	// The two parts hold two values rather than one shared pointer, or one row's
+	// edit would change every part of the set.
 	second := liveTask(a, "2")
 	if second.AutoExtract == first.AutoExtract {
 		t.Error("both parts share one pointer; editing either would change both")
 	}
 
-	// The truncated .rar cannot be opened, and that is what makes this legible:
-	// the failure is recorded on the volume the extractor was pointed at.
+	// The truncated .rar cannot be opened, so the failure lands on the volume
+	// the extractor was pointed at.
 	waitFor(t, "the extractor being pointed at the first volume", func() bool {
 		return strings.HasPrefix(liveTask(a, "1").Error, "extract:")
 	})
@@ -293,15 +274,9 @@ func TestExtractionOverrideReachesEveryPartOfTheSet(t *testing.T) {
 	}
 }
 
-// The chunk-count table used to live here, and it read the resolver's answer as
-// a value rather than as a ceiling. It is now in chunks_test.go, whole: two
-// tables for one formula is how the four readings got four answers in the first
-// place.
-
-// TestUnusableOptionsAreRefusedBeforeAnythingIsTouched keeps a bad value from
-// editing half a selection. Refused halfway through, the first rows would carry
-// the new folder, the rest would not, and the error message says nothing about
-// where the line fell.
+// A bad value is refused before anything is edited. Refused halfway through,
+// the first rows would carry the new folder and the rest would not, with nothing
+// saying where the line fell.
 func TestUnusableOptionsAreRefusedBeforeAnythingIsTouched(t *testing.T) {
 	escape := "../../elsewhere.bin"
 	separator := "sub/file.bin"
@@ -337,10 +312,9 @@ func TestUnusableOptionsAreRefusedBeforeAnythingIsTouched(t *testing.T) {
 	}
 }
 
-// TestAutoExtractOverrideSurvivesAnUnrelatedEdit is the tri-state, tested where
-// it can actually bite. The store column is nullable, so every task already in
-// it inherits the global switch; decode that as a plain bool and a request that
-// only changes the folder writes "do not unpack" onto everything it touches.
+// The store column is nullable, so a task without an override inherits the
+// global switch. Decoded as a plain bool, a request that only changes the folder
+// would write "do not unpack" onto everything it touches.
 func TestAutoExtractOverrideSurvivesAnUnrelatedEdit(t *testing.T) {
 	decode := func(t *testing.T, body string) TaskOptions {
 		t.Helper()
@@ -377,8 +351,7 @@ func TestAutoExtractOverrideSurvivesAnUnrelatedEdit(t *testing.T) {
 		})
 	}
 
-	// And the consequence on a real task: a folder change must leave an override
-	// somebody set earlier exactly as it was.
+	// And on a real task: a folder change leaves an existing override alone.
 	a, base := newRuleApp(t, func(*settings.Settings, string) {})
 	task := finishedTask(t, a, base, "1", "original.bin")
 	task.AutoExtract = boolPtr(true)
@@ -390,8 +363,7 @@ func TestAutoExtractOverrideSurvivesAnUnrelatedEdit(t *testing.T) {
 		t.Errorf("the override reads %v after an unrelated edit, want it untouched", live.AutoExtract)
 	}
 
-	// Null is the way back to inheriting, and it has to be reachable or an
-	// override is a one-way door.
+	// Null is the way back to inheriting, or an override is a one-way door.
 	if err := a.SetTaskOptions([]string{"1"}, decode(t, `{"autoExtract":null}`)); err != nil {
 		t.Fatal(err)
 	}

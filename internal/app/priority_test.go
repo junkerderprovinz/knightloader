@@ -1,11 +1,10 @@
 package app
 
-// Host priority order, at the point it actually decides routing:
-// resolverForTaskLocked / nextResolverLocked consulting jd.PriorityFor
-// through dynamicPrio/rankedChain (app_dispatch.go), rather than trusting
-// the registry's frozen Info().Prio alone. jd's own resolver_test.go already
-// pins PriorityFor in isolation; this file pins that dispatch actually reads
-// it - the wiring 6D's own doc comment on jd.PriorityFor named as missing.
+// Host priority order where it decides routing: resolverForTaskLocked and
+// nextResolverLocked consulting jd.PriorityFor through dynamicPrio and
+// rankedChain in app_dispatch.go, rather than the registry's frozen
+// Info().Prio. jd's resolver_test.go pins PriorityFor in isolation; this file
+// pins that dispatch reads it.
 
 import (
 	"testing"
@@ -15,11 +14,9 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
 )
 
-// TestResolverForTaskPrefersDirectUntilJDIsPromoted is the DEFAULT half: with
-// no native login active for a host, resolverForTaskLocked must still pick
-// Direct (Prio 40) over JD (basePrio 10) exactly as the frozen registry order
-// already would - the dynamic re-rank changes nothing for a host that never
-// activated one.
+// With no native login active for a host, the re-rank changes nothing:
+// resolverForTaskLocked picks Direct (Prio 40) over JD (basePrio 10) as the
+// frozen registry order would.
 func TestResolverForTaskPrefersDirectUntilJDIsPromoted(t *testing.T) {
 	a := newQueueApp(t)
 	a.Registry.Register(jd.Resolver{})
@@ -35,11 +32,9 @@ func TestResolverForTaskPrefersDirectUntilJDIsPromoted(t *testing.T) {
 	}
 }
 
-// TestResolverForTaskPromotesJDForAnActiveHostedLogin is the row this file
-// exists for: once internal/hosterauth's reconciler (stood in for here by a
-// direct jd.SetHostActive call, the same seam it uses) confirms a native
-// login for this exact host, JD must be asked BEFORE Direct - a plain
-// filename match must not keep sending a premium-backed link out anonymously.
+// Once a native login is confirmed for this host (through jd.SetHostActive, the
+// seam internal/hosterauth's reconciler uses), JD is asked before Direct, so a
+// filename match does not send a premium-backed link out anonymously.
 func TestResolverForTaskPromotesJDForAnActiveHostedLogin(t *testing.T) {
 	a := newQueueApp(t)
 	a.Registry.Register(jd.Resolver{})
@@ -72,14 +67,12 @@ func TestResolverForTaskPromotesJDForAnActiveHostedLogin(t *testing.T) {
 	other := "https://priority-app-test-unaffected.example/movie.mkv"
 	got = a.resolverForTaskLocked(&core.Task{URL: other})
 	if got == nil || got.Info().ID != "direct" {
-		t.Errorf("an unrelated host's resolverForTaskLocked = %+v, want direct - activating one host must not promote JD everywhere", got)
+		t.Errorf("an unrelated host's resolverForTaskLocked = %+v, want direct; activating one host must not promote JD everywhere", got)
 	}
 }
 
-// TestNextResolverFallsBackThroughTheSameRankedOrder pins the fallback half:
-// a task that started on a dynamically-promoted JD (u.Unsupported) must fall
-// back to whatever actually came next in THAT order - Direct - not to
-// whatever the frozen registry order would have said next.
+// A task that started on a promoted JD falls back to what came next in that
+// order, Direct, rather than to what the frozen registry order says.
 func TestNextResolverFallsBackThroughTheSameRankedOrder(t *testing.T) {
 	a := newQueueApp(t)
 	a.Registry.Register(jd.Resolver{})
@@ -90,17 +83,14 @@ func TestNextResolverFallsBackThroughTheSameRankedOrder(t *testing.T) {
 
 	task := &core.Task{URL: url, Resolver: "jd"}
 	if next := a.nextResolverLocked(task); next != "direct" {
-		t.Errorf("nextResolverLocked after jd = %q, want %q (the next entry in the SAME promoted order jd was picked from)", next, "direct")
+		t.Errorf("nextResolverLocked after jd = %q, want %q (the next entry in the promoted order jd was picked from)", next, "direct")
 	}
 }
 
-// TestHandArrangedOrderOutranksTheAutomaticOne pins the half added on
-// 2026-09-07: settings.ResolverOrder is not a hint the automatic ranking may
-// overrule, it is the answer. The fixture picks the hardest case on purpose -
-// a host with a CONFIRMED-ACTIVE native JD login, which is the one thing that
-// outranks Direct automatically - and puts JD last by hand. If the hand order
-// were merely folded in beside the automatic numbers, JD's activeLoginPrio
-// would still win here and this would fail.
+// settings.ResolverOrder is the answer, not a hint the automatic ranking may
+// overrule. The fixture takes the hardest case, a host with a confirmed-active
+// native JD login, and puts JD last by hand: folded in beside the automatic
+// numbers, JD's activeLoginPrio would still win.
 func TestHandArrangedOrderOutranksTheAutomaticOne(t *testing.T) {
 	a := newQueueApp(t)
 	a.Registry.Register(jd.Resolver{})
@@ -109,8 +99,8 @@ func TestHandArrangedOrderOutranksTheAutomaticOne(t *testing.T) {
 	t.Cleanup(func() { jd.SetHostActive(host, false) })
 	jd.SetHostActive(host, true)
 
-	// Without an order, this host goes to JD - the state the next assertion
-	// is a change FROM, checked rather than assumed.
+	// Without an order this host goes to JD, which is the state the assertion
+	// below is a change from.
 	if got := a.resolverForTaskLocked(&core.Task{URL: url}); got == nil || got.Info().ID != "jd" {
 		t.Fatalf("fixture broken: an active native login should route to jd, got %+v", got)
 	}
@@ -123,16 +113,15 @@ func TestHandArrangedOrderOutranksTheAutomaticOne(t *testing.T) {
 
 	got := a.resolverForTaskLocked(&core.Task{URL: url})
 	if got == nil || got.Info().ID != "direct" {
-		t.Fatalf("resolverForTaskLocked = %+v, want direct - a hand-arranged order has to beat even an active native login", got)
+		t.Fatalf("resolverForTaskLocked = %+v, want direct; a hand-arranged order beats even an active native login", got)
 	}
 	if next := a.nextResolverLocked(&core.Task{URL: url, Resolver: "direct"}); next != "jd" {
-		t.Errorf("nextResolverLocked after direct = %q, want %q - the fallback walks the SAME hand-arranged order", next, "jd")
+		t.Errorf("nextResolverLocked after direct = %q, want %q; the fallback walks the hand-arranged order too", next, "jd")
 	}
 }
 
-// TestEmptyHandOrderRestoresTheAutomaticOne is the reset the "Automatisch"
-// button sends: an empty order is not "put everything last", it is "there is
-// no hand order", and the automatic ranking must come back untouched.
+// The reset the "Automatisch" button sends: an empty order means there is no
+// hand order, not that everything goes last, so the automatic ranking returns.
 func TestEmptyHandOrderRestoresTheAutomaticOne(t *testing.T) {
 	a := newQueueApp(t)
 	a.Registry.Register(jd.Resolver{})
@@ -156,15 +145,13 @@ func TestEmptyHandOrderRestoresTheAutomaticOne(t *testing.T) {
 		t.Fatal(err)
 	}
 	if got := a.resolverForTaskLocked(&core.Task{URL: url}); got == nil || got.Info().ID != "jd" {
-		t.Fatalf("resolverForTaskLocked = %+v, want jd - clearing the order has to bring the automatic ranking back", got)
+		t.Fatalf("resolverForTaskLocked = %+v, want jd; clearing the order brings the automatic ranking back", got)
 	}
 }
 
-// TestResolverPriorityReportsWhatDispatchWalks pins the card's own read path
-// against the routing it claims to describe. The two used to be different
-// functions answering different questions: /api/resolvers/priority read the
-// registry's frozen order while dispatch read the re-ranked one, so the
-// Prioritätsreihenfolge card could show a ladder the downloader did not use.
+// The Prioritätsreihenfolge card reads /api/resolvers/priority, so that route
+// has to answer from the same re-ranked order dispatch walks rather than from
+// the registry's frozen one.
 func TestResolverPriorityReportsWhatDispatchWalks(t *testing.T) {
 	a := newQueueApp(t)
 	a.Registry.Register(jd.Resolver{})
@@ -180,7 +167,7 @@ func TestResolverPriorityReportsWhatDispatchWalks(t *testing.T) {
 		t.Fatalf("ResolverPriority returned %d entries, want at least the two registered here", len(got))
 	}
 	if got[0].ID != "jd" || got[1].ID != "direct" {
-		t.Fatalf("ResolverPriority = %q, %q, want jd then direct - the card has to show the hand-arranged order, not the registry's own",
+		t.Fatalf("ResolverPriority = %q, %q, want jd then direct; the card shows the hand-arranged order, not the registry's",
 			got[0].ID, got[1].ID)
 	}
 

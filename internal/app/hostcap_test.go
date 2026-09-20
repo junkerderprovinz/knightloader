@@ -1,13 +1,8 @@
 package app
 
-// The per-host connection ceiling, at the dispatch level: proving hostCapFor
-// actually reaches connsFor's ceilings list from a real dispatchLocked pass,
-// and that it behaves as ONE MORE CEILING joining the existing clamp chain -
-// it can only lower the connection count, never raise it past whatever the
-// task, the rule or the global setting already decided - rather than a
-// second, competing limit of its own. connsFor's own table test
-// (chunks_test.go) already pins the generic multi-ceiling arithmetic; this
-// file pins that THIS source of a ceiling is actually wired into it.
+// The per-host connection cap reaches connsFor from a real dispatch pass, as
+// one more ceiling that can lower the count but never raise it. The arithmetic
+// itself is tested in chunks_test.go.
 
 import (
 	"context"
@@ -19,8 +14,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
-// capBackend is a backend fake that captures how many connections it was
-// actually asked to open - the one number this whole file is about.
+// capBackend records how many connections it was asked to open.
 type capBackend struct{ got chan int }
 
 func (b *capBackend) Download(_, _ string, _ map[string]string, conns int) { b.got <- conns }
@@ -28,9 +22,8 @@ func (b *capBackend) Pause(string)                                         {}
 func (b *capBackend) Resume(string)                                        {}
 func (b *capBackend) Remove(string, bool)                                  {}
 
-// hostCapResolver matches one fixed host and answers cap for
-// resolver.HostCapper - a minimal stand-in for debrid.Resolver.HostCap
-// without needing a real Real-Debrid round trip to prove the wiring.
+// hostCapResolver matches one fixed host and answers cap as a
+// resolver.HostCapper, standing in for debrid.Resolver.HostCap.
 type hostCapResolver struct {
 	id   string
 	host string
@@ -49,11 +42,8 @@ func (hostCapResolver) Resolve(_ context.Context, req resolver.Request) (resolve
 	return resolver.Result{DirectURL: req.URL, Name: req.URL}, nil
 }
 
-// capApp wires a hostCapResolver + capBackend pair, staged the same direct
-// way collision_policy_test.go's dispatchOne does: a task written straight
-// into a.tasks/a.queue and dispatched under a.mu, which is what lets this
-// test drive dispatchLocked without a network-facing crawler or a real
-// debrid account.
+// capApp wires a hostCapResolver and a capBackend. Tasks are written straight
+// into the queue and dispatched under a.mu, as in collision_policy_test.go.
 func capApp(t *testing.T, globalChunks, cap int) (*App, *capBackend, string) {
 	t.Helper()
 	a := newQueueApp(t)
@@ -83,10 +73,7 @@ func dispatchCapTask(a *App, url string) {
 	a.mu.Unlock()
 }
 
-// TestHostCapLowersTheConnectionCount is the ceiling half: a host cap smaller
-// than the global setting must win, exactly as result.Connections already
-// does (connsFor's own doc comment: "the per-host ... caps are the same kind
-// of fact and arrive the same way, as one more ceiling").
+// A host cap below the global setting wins.
 func TestHostCapLowersTheConnectionCount(t *testing.T) {
 	a, be, host := capApp(t, 12, 3)
 	dispatchCapTask(a, "https://"+host+"/f.bin")
@@ -100,12 +87,7 @@ func TestHostCapLowersTheConnectionCount(t *testing.T) {
 	}
 }
 
-// TestHostCapNeverRaisesTheConnectionCount is the JOINS-THE-CLAMP half: a
-// host cap LARGER than what the task/global setting already decided must not
-// raise the count - if it did, this would be a second competing limit
-// instead of one more ceiling in the same chain, and connsFor's own "a
-// ceiling can only lower the count" contract would be broken from the one
-// call site meant to prove it.
+// A host cap above the setting does not raise the count.
 func TestHostCapNeverRaisesTheConnectionCount(t *testing.T) {
 	a, be, host := capApp(t, 2, 99)
 	dispatchCapTask(a, "https://"+host+"/f.bin")
@@ -119,10 +101,7 @@ func TestHostCapNeverRaisesTheConnectionCount(t *testing.T) {
 	}
 }
 
-// TestHostCapZeroIsNoOpinion pins the other edge every ceiling in connsFor's
-// chain shares: 0 must read as "nothing to say about this host", not as "no
-// connections" - the same contract a resolver with Connections unset already
-// carries.
+// A host cap of 0 means no opinion, not no connections.
 func TestHostCapZeroIsNoOpinion(t *testing.T) {
 	a, be, host := capApp(t, 5, 0)
 	dispatchCapTask(a, "https://"+host+"/f.bin")
@@ -136,10 +115,7 @@ func TestHostCapZeroIsNoOpinion(t *testing.T) {
 	}
 }
 
-// TestHostCapForIgnoresAResolverWithNoOpinion pins hostCapFor itself: a
-// resolver that does not implement resolver.HostCapper at all - every
-// resolver in this tree except debrid.Resolver over a HostLimiter-backed
-// service - must answer 0, never a guess.
+// A resolver that is not a resolver.HostCapper answers 0.
 func TestHostCapForIgnoresAResolverWithNoOpinion(t *testing.T) {
 	if got := hostCapFor(elsewhereResolver{}, "anyhost.example"); got != 0 {
 		t.Errorf("hostCapFor(elsewhereResolver{}, ...) = %d, want 0 (it does not implement resolver.HostCapper at all)", got)

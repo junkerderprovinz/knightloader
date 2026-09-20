@@ -1,9 +1,8 @@
 package app
 
-// The seam between a finished package and the address a drawer points at. Three
-// separate claims live here, and each of them is a way the feature is useless if
-// it is wrong: the right ADDRESSES are picked for a package, the call waits until
-// the files have actually LANDED, and the bus subscription is wired at all.
+// The seam between a finished package and the address a drawer points at: the
+// right addresses are picked for a package, the call waits until the files have
+// landed, and the bus subscription is wired.
 
 import (
 	"net/http"
@@ -48,12 +47,9 @@ func twoDrawers(s *settings.Settings, jellyURL, plexURL string) {
 	}
 }
 
-// TestAPackageInTwoDrawersCallsBothAddressesOnce is the claim
-// settings_categories.go makes at length and this feature has to honour: a
-// package whose links belong in different drawers is NORMAL - the sample beside
-// the film, the subtitle beside the episode - so the answer is a set, and a
-// first-task-wins implementation would pick the sample's drawer about half the
-// time and read as random.
+// A package whose links belong in different drawers is ordinary (the sample
+// beside the film, the subtitle beside the episode), so the answer is a set
+// rather than the first task's drawer.
 func TestAPackageInTwoDrawersCallsBothAddressesOnce(t *testing.T) {
 	a, _ := newRuleApp(t, func(s *settings.Settings, _ string) {
 		twoDrawers(s, "http://jelly.invalid/", "http://plex.invalid/")
@@ -65,9 +61,8 @@ func TestAPackageInTwoDrawersCallsBothAddressesOnce(t *testing.T) {
 	stageFiled(t, a, "4", "album.zip", "Das.Album", "musik")
 
 	got := a.hookIDsForPackage("Die.Serie.S01")
-	// Sorted, because map order is random and two addresses called in a
-	// different order on every run is the kind of nondeterminism that makes an
-	// intermittent report impossible to reproduce.
+	// Sorted, because map order is random and a different call order on every
+	// run makes an intermittent report impossible to reproduce.
 	if want := []string{"jellyfin", "plex"}; !reflect.DeepEqual(got, want) {
 		t.Errorf("hookIDsForPackage = %v, want %v", got, want)
 	}
@@ -85,9 +80,8 @@ func TestAPackageInTwoDrawersCallsBothAddressesOnce(t *testing.T) {
 	}
 }
 
-// TestNoStoredAddressMeansNoWork is the state every install is in until somebody
-// stores an address, and it is asserted because it is also the fast path: the
-// walk of a.tasks is skipped entirely, on the package sweep's own goroutine.
+// Until an address is stored, the walk of a.tasks on the package sweep's
+// goroutine is skipped.
 func TestNoStoredAddressMeansNoWork(t *testing.T) {
 	a, _ := newRuleApp(t, func(s *settings.Settings, _ string) {
 		s.Categories = []settings.Category{{ID: "serien", Notify: "jellyfin"}}
@@ -98,15 +92,11 @@ func TestNoStoredAddressMeansNoWork(t *testing.T) {
 	}
 }
 
-// TestTheCallWaitsUntilTheFileHasLeftTheWorkingFolder is the trap this whole
-// feature turns on, asserted against the mover itself rather than against a
-// flag beside it.
-//
-// app_dispatch.go sets a task's status to Done under a.mu and THEN spawns the
-// checksum and the move; deliverDownload is what takes the finished file out of
-// the working folder, which for a 40 GB film across a filesystem boundary is
-// minutes. package.done fires on the sweep's next tick regardless, so a media
-// server told to scan then finds nothing and never looks again.
+// app_dispatch.go marks a task Done under a.mu and spawns the checksum and the
+// move afterwards, and deliverDownload can take minutes for a large file across
+// a filesystem boundary. package.done fires on the sweep's next tick anyway, so
+// a media server told to scan too early finds nothing and never looks again.
+// Asserted against the mover rather than against a flag beside it.
 func TestTheCallWaitsUntilTheFileHasLeftTheWorkingFolder(t *testing.T) {
 	work := t.TempDir()
 	a, base := newRuleApp(t, func(s *settings.Settings, _ string) {
@@ -131,10 +121,8 @@ func TestTheCallWaitsUntilTheFileHasLeftTheWorkingFolder(t *testing.T) {
 	}
 }
 
-// TestAnInstallWithNoWorkingFolderNeverWaits. The bytes were written straight
-// into the folder they belong in, so there was never anything to wait for - and
-// this is the majority of installs, on the path that runs once per tick per
-// waiting call.
+// With no working folder the bytes are written straight into the folder they
+// belong in, so there is nothing to wait for.
 func TestAnInstallWithNoWorkingFolderNeverWaits(t *testing.T) {
 	a, base := newRuleApp(t, func(s *settings.Settings, _ string) { s.WorkDir = "" })
 	stagedIn(t, base, "film.mkv", "the whole film")
@@ -144,9 +132,8 @@ func TestAnInstallWithNoWorkingFolderNeverWaits(t *testing.T) {
 	}
 }
 
-// TestAFileThisAppWillNotMoveIsNotWaitedFor keeps this predicate tied to the
-// mover's own. deliverDownload does nothing for a task it cannot deliver, so a
-// call held for one would be held until the grace ran out, every time.
+// deliverDownload does nothing for a task it cannot deliver, so a call held for
+// one would wait out the grace period every time.
 func TestAFileThisAppWillNotMoveIsNotWaitedFor(t *testing.T) {
 	work := t.TempDir()
 	a, base := newRuleApp(t, func(s *settings.Settings, _ string) { s.WorkDir = work })
@@ -155,8 +142,8 @@ func TestAFileThisAppWillNotMoveIsNotWaitedFor(t *testing.T) {
 	task := stageFiled(t, a, "1", "season.mkv", "Die.Serie", "serien")
 	a.mu.Lock()
 	// A torrent writes a folder named after the torrent while the task is named
-	// after the first file, so deliverable() refuses it and nothing is ever
-	// moved - see app_deliver.go.
+	// after the first file, so deliverable in app_deliver.go refuses it and
+	// nothing is moved.
 	task.InfoHash = "abc"
 	a.mu.Unlock()
 
@@ -165,14 +152,9 @@ func TestAFileThisAppWillNotMoveIsNotWaitedFor(t *testing.T) {
 	}
 }
 
-// TestAFinishedPackageReachesTheAddress is the wiring test: it publishes the real
-// event on the real bus and waits for a real HTTP call.
-//
-// It is deliberately end to end rather than a check that Subscribe was called.
-// The three things that can be wrong here - the trigger not matching, the payload
-// being nil, the runner never started - all leave a subscription in place and no
-// call ever made, which is exactly what "complete, tested and unreachable" looked
-// like the last three times this codebase found it.
+// End to end over the real bus rather than a check that Subscribe was called: a
+// trigger that does not match, a nil payload and a runner that never started all
+// leave a subscription in place and no call made.
 func TestAFinishedPackageReachesTheAddress(t *testing.T) {
 	var hits atomic.Int32
 	var token atomic.Value
@@ -211,10 +193,8 @@ func TestAFinishedPackageReachesTheAddress(t *testing.T) {
 	}
 }
 
-// TestAnEventThatIsNotAFinishedPackageCallsNothing. Every trigger on the bus
-// reaches every subscriber, so the one that acts on package.done has to ignore
-// the other ten - a call fired on task.done would be one per FILE, which is the
-// exact thing package.done exists to avoid.
+// Every trigger on the bus reaches every subscriber, so the one acting on
+// package.done ignores the rest: firing on task.done would call once per file.
 func TestAnEventThatIsNotAFinishedPackageCallsNothing(t *testing.T) {
 	var hits atomic.Int32
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -231,8 +211,7 @@ func TestAnEventThatIsNotAFinishedPackageCallsNothing(t *testing.T) {
 
 	tv := scriptTaskView(*a.tasks["1"])
 	a.publishEvent(script.Firing{Trigger: script.TriggerTaskDone, Task: &tv})
-	// A package.done with no payload at all, which is what a firing built wrong
-	// would look like.
+	// A package.done with no payload, as a firing built wrong would arrive.
 	a.publishEvent(script.Firing{Trigger: script.TriggerPackageDone})
 
 	time.Sleep(300 * time.Millisecond)

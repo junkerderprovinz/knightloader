@@ -8,9 +8,8 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
-// TestDirFor pins where a file lands: the task's own folder wins, then the
-// configured folder, optionally with a per-package subfolder — and the two
-// never combine into a nested duplicate.
+// The task's own folder wins, then the configured folder, optionally with a
+// per-package subfolder; the two never nest.
 func TestDirFor(t *testing.T) {
 	a, err := New(t.TempDir())
 	if err != nil {

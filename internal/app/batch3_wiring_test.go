@@ -8,16 +8,9 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/store"
 )
 
-// The three wiring lines this batch could not set itself, each guarded where it
-// would otherwise fall out silently. Three features were delivered whole and
-// inert today at file boundaries (the cookie jars, the waiting reason, the
-// header profiles), which is enough repetition to stop writing comments about
-// it and start writing tests.
+// Wiring across file boundaries that would otherwise break without a sound.
 
-// TestACategoryDecidesTheFolder guards the ladder in dirFor. Without the
-// category branch the setting round-trips, the API accepts it, and every
-// download lands in the instance-wide folder anyway - a drawer that sorts
-// nothing.
+// A category's folder applies in dirFor.
 func TestACategoryDecidesTheFolder(t *testing.T) {
 	a := newAccountsTestApp(t)
 
@@ -34,8 +27,7 @@ func TestACategoryDecidesTheFolder(t *testing.T) {
 		t.Fatalf("dirFor = %q for a task in the Serien drawer, want the drawer's own folder %q", got, want)
 	}
 
-	// A folder on the task still wins: a rule looked at this link, a category
-	// is a label on a batch.
+	// The task's own folder still wins.
 	own := t.TempDir()
 	task.Dir = own
 	if got := a.dirFor(task); got != own {
@@ -43,11 +35,8 @@ func TestACategoryDecidesTheFolder(t *testing.T) {
 	}
 }
 
-// TestTheCategoryAndExtractFolderSurviveARestart guards the two store columns.
-// Both are decisions somebody made, not readings from a running transfer, so
-// unlike Speed they have to come back - a category that evaporates overnight
-// sends the next morning's downloads somewhere else with nothing on screen
-// changing.
+// Category and extract folder are settings, not transfer readings, so the
+// store must keep them.
 func TestTheCategoryAndExtractFolderSurviveARestart(t *testing.T) {
 	dir := t.TempDir()
 	st, err := store.Open(dir + "/kl.db")
@@ -81,25 +70,17 @@ func TestTheCategoryAndExtractFolderSurviveARestart(t *testing.T) {
 	}
 }
 
-// TestQuietModeReachesTheSlotCount guards the one line in dispatchLocked.
-// Without it quiet mode moves the speed and leaves the slots alone, which is
-// half a turtle button and the half nobody notices is missing.
-//
-// It goes THROUGH the dispatcher rather than calling cfgInForceLocked directly.
-// The first version of this test did the latter, and it stayed green with the
-// wiring removed - a test that cannot reach the gap reports nothing. What it
-// reads is the waiting reason: a task turned down for want of a slot says so,
-// which is exactly the observation the dispatcher makes with the config it
-// actually used.
+// Quiet mode limits the slot count as well as the speed. The test goes through
+// the dispatcher and reads the waiting reason, since calling cfgInForceLocked
+// directly would pass even if dispatchLocked ignored it.
 func TestQuietModeReachesTheSlotCount(t *testing.T) {
 	a, err := New(t.TempDir())
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { a.Close() })
-	// Both halves matter: eight slots normally, one under quiet. A zero in the
-	// quiet limits means "no opinion" and would leave the eight standing, which
-	// is what made the first attempt at this test pass against nothing.
+	// Eight slots normally, one under quiet; a zero quiet limit would mean no
+	// opinion.
 	if _, err := a.ApplySettings(settings.Settings{
 		MaxConcurrent: 8, MaxPerHost: 8, DownloadDir: t.TempDir(),
 		Quiet: settings.QuietLimits{MaxConcurrent: 1},

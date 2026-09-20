@@ -1,13 +1,11 @@
 package app
 
-// The volume allowance, driven at the three places it acts: the period
-// arithmetic that decides which downloads count, the dispatch pass that
-// declines to START one, and the read of the speed limit that slows the rest of
-// the period down.
+// The volume allowance at the three places it acts: the period arithmetic that
+// decides which downloads count, the dispatch pass that declines to start one,
+// and the read of the speed limit that slows the rest of the period down.
 //
-// Every figure comes out of a history this file writes itself. A test that
-// waited for real downloads would only ever say something on a machine that had
-// already spent an allowance, which is to say never.
+// Every figure comes out of a history this file writes itself, since a test
+// waiting for real downloads would need a machine with a spent allowance.
 
 import (
 	"encoding/json"
@@ -74,12 +72,9 @@ func queueVol(a *App, id string, size int64) {
 	a.mu.Unlock()
 }
 
-// TestAResetDayNeverRollsIntoTheNextMonth is the arithmetic trap this whole
-// file's periods rest on. time.Date(2026, February, 31, ...) is not an error and
-// it is not the 28th: it is 3 March, silently normalised. A reset day of 31 that
-// went through it would start February's period in March, so the period would
-// overlap the next one and the counter would be summing a window that has not
-// begun.
+// time.Date with February 31 is neither an error nor the 28th: it normalises to
+// 3 March. A reset day of 31 passed through it would open February's period in
+// March, overlapping the next one and summing a window that has not begun.
 func TestAResetDayNeverRollsIntoTheNextMonth(t *testing.T) {
 	day := func(y int, m time.Month, d int) time.Time {
 		return time.Date(y, m, d, 0, 0, 0, 0, time.Local)
@@ -114,9 +109,8 @@ func TestAResetDayNeverRollsIntoTheNextMonth(t *testing.T) {
 			if !end.Equal(c.wantEnd) {
 				t.Errorf("period ends %v, want %v", end, c.wantEnd)
 			}
-			// The property underneath both numbers, and the one a counter is
-			// wrong without: the window has to contain the moment it was
-			// worked out for.
+			// The property underneath both numbers: the window contains the
+			// moment it was worked out for.
 			if c.now.Before(start) || !c.now.Before(end) {
 				t.Errorf("%v is not inside [%v, %v)", c.now, start, end)
 			}
@@ -137,8 +131,8 @@ func TestThePeriodRunsFromTheChosenDayAndRollsTheYear(t *testing.T) {
 	if got := capPeriodStart(before, 20); !got.Equal(day(2026, time.May, 20)) {
 		t.Errorf("a minute before the reset the period started %v, want %v", got, day(2026, time.May, 20))
 	}
-	// And the boundary itself opens the new one, which is what makes the window
-	// half-open at both ends of the same instant.
+	// The boundary itself opens the new one, so the window is half-open at both
+	// ends of the same instant.
 	if got := capPeriodStart(day(2026, time.June, 20), 20); !got.Equal(day(2026, time.June, 20)) {
 		t.Errorf("on the reset day the period started %v, want the day itself", got)
 	}
@@ -147,11 +141,9 @@ func TestThePeriodRunsFromTheChosenDayAndRollsTheYear(t *testing.T) {
 	}
 }
 
-// TestTheResetDayIsClampedHereAsWellAsInTheSettings is the second half of a
-// guard that is only useful twice. The settings store cleans what is SAVED, and
-// this arithmetic is also handed documents nobody saved: a test's literal, a
-// settings.json edited by hand, an install that upgraded into the key with a
-// zero in it.
+// The settings store clamps what it saves, and this arithmetic is also handed
+// documents nobody saved: a test's literal, a settings.json edited by hand, an
+// install that upgraded into the key with a zero in it.
 func TestTheResetDayIsClampedHereAsWellAsInTheSettings(t *testing.T) {
 	now := time.Date(2026, time.March, 15, 12, 0, 0, 0, time.Local)
 	if got, want := capPeriodStart(now, 0), capPeriodStart(now, settings.DefaultVolumeCapResetDay); !got.Equal(want) {
@@ -162,10 +154,9 @@ func TestTheResetDayIsClampedHereAsWellAsInTheSettings(t *testing.T) {
 	}
 }
 
-// TestACapThatIsReachedHoldsTheQueueAndSaysWhy is the pause action, and the
-// reason on the row is half of it: "all slots busy" would be a true sentence
-// about the wrong problem, and it sends the reader to raise MaxConcurrent,
-// which downloads not one byte less.
+// The pause action, with the reason on the row: "all slots busy" would be a
+// true sentence about the wrong problem and would send the reader to raise
+// MaxConcurrent, which downloads not one byte less.
 func TestACapThatIsReachedHoldsTheQueueAndSaysWhy(t *testing.T) {
 	a, _ := volumeApp(t, func(s *settings.Settings) {
 		s.VolumeCap = 1000
@@ -186,9 +177,8 @@ func TestACapThatIsReachedHoldsTheQueueAndSaysWhy(t *testing.T) {
 	}
 }
 
-// TestReportingOnlyCountsAndHoldsNothing is the default, and it is the default
-// for the reason the two disk thresholds ship at zero: nobody's queue changes
-// because they installed an update.
+// The default, for the reason the two disk thresholds ship at zero: nobody's
+// queue changes because they installed an update.
 func TestReportingOnlyCountsAndHoldsNothing(t *testing.T) {
 	a, _ := volumeApp(t, func(s *settings.Settings) {
 		s.VolumeCap = 1000
@@ -202,14 +192,13 @@ func TestReportingOnlyCountsAndHoldsNothing(t *testing.T) {
 
 	running, _ := dispatchNow(a)
 	if !running["next"] {
-		t.Error("the queue was held back although the cap was only set to report; the counter is the whole feature at that setting")
+		t.Error("the queue was held back although the cap was only set to report")
 	}
 }
 
-// TestNoCapIsNoOpinionEvenWithAnActionSet pins the off state. There is
-// deliberately no "off" action, so a cap of 0 is the only thing that says
-// "never hold anything back" - and an action left over from a month when there
-// was a cap must not act on its own.
+// There is no "off" action, so a cap of 0 is what says "never hold anything
+// back", and an action left over from a month that had a cap does not act on
+// its own.
 func TestNoCapIsNoOpinionEvenWithAnActionSet(t *testing.T) {
 	a, _ := volumeApp(t, func(s *settings.Settings) {
 		s.VolumeCap = 0
@@ -223,24 +212,21 @@ func TestNoCapIsNoOpinionEvenWithAnActionSet(t *testing.T) {
 
 	running, _ := dispatchNow(a)
 	if !running["next"] {
-		t.Error("the queue was held back with no cap set at all; 0 is a real answer and it means no cap, never 'off means stop'")
+		t.Error("the queue was held back with no cap set; 0 means no cap")
 	}
 }
 
-// TestAFinishIsCountedBeforeTheNextTaskStarts is the whole reason the settle
-// path counts at all.
-//
-// The order of events on a finish is: the counter is told, the dispatcher hands
-// out the freed slot, and only then does the store write the history row. A
-// counter that waited for its next query would still read zero at the one
-// moment it is asked, and the batch that download paid for would start.
+// Why the settle path counts at all. On a finish the counter is told, the
+// dispatcher hands out the freed slot, and only then does the store write the
+// history row, so a counter waiting for its next query would read zero at the
+// one moment it is asked.
 func TestAFinishIsCountedBeforeTheNextTaskStarts(t *testing.T) {
 	a, _ := volumeApp(t, func(s *settings.Settings) {
 		s.VolumeCap = 1000
 		s.VolumeCapAction = settings.VolumeCapPause
 	})
-	// One pass over an empty history, so the counter has an opinion and it is
-	// "nothing has been downloaded this period".
+	// One pass over an empty history, so the counter's answer is that nothing
+	// has been downloaded this period.
 	if u := a.volumeCapPass(); u.Used != 0 || u.Reached {
 		t.Fatalf("a fresh history reads as %+v, want nothing used", u)
 	}
@@ -262,17 +248,15 @@ func TestAFinishIsCountedBeforeTheNextTaskStarts(t *testing.T) {
 	waiting := a.tasks["next"].Waiting
 	a.mu.Unlock()
 	if started {
-		t.Error("the next download started in the very pass the finish freed the slot in: the cap was reached and the counter had not been told yet")
+		t.Error("the next download started in the pass that freed the slot, with the cap reached and the counter not yet told")
 	}
 	if waiting != core.WaitingVolume {
 		t.Errorf("next waits with %q, want %q", waiting, core.WaitingVolume)
 	}
 }
 
-// TestTheSameFinishIsNotCountedTwice keeps the fast path honest against a
-// backend that reports a terminal status more than once. The history's own rule
-// is one row per task, so a second report adds nothing there and must add
-// nothing here either.
+// A backend may report a terminal status more than once. The history keeps one
+// row per task, so a second report adds nothing there and nothing here.
 func TestTheSameFinishIsNotCountedTwice(t *testing.T) {
 	a, _ := volumeApp(t, func(s *settings.Settings) { s.VolumeCap = 10_000 })
 	a.volumeCapPass()
@@ -289,9 +273,8 @@ func TestTheSameFinishIsNotCountedTwice(t *testing.T) {
 	}
 }
 
-// TestTheThrottleTakesTheSmallerLimit is the throttle action, folded into the
-// one read of the limit in force rather than written anywhere. Zero on either
-// side is "no limit here", so the other one wins outright.
+// The throttle action is folded into the read of the limit in force rather than
+// written anywhere. Zero on either side means no limit there, so the other wins.
 func TestTheThrottleTakesTheSmallerLimit(t *testing.T) {
 	a, _ := volumeApp(t, func(s *settings.Settings) {
 		s.VolumeCap = 1000
@@ -305,16 +288,15 @@ func TestTheThrottleTakesTheSmallerLimit(t *testing.T) {
 		t.Errorf("with no other limit the capped speed is %d, want the 500000 that was configured", got)
 	}
 	if got := a.volumeCapLimit(100_000); got != 100_000 {
-		t.Errorf("a window asking for 100000 came out as %d; a limit BESIDE the others never raises one of them", got)
+		t.Errorf("a window asking for 100000 came out as %d; a limit beside the others never raises one", got)
 	}
 	if got := a.volumeCapLimit(900_000); got != 500_000 {
 		t.Errorf("a window asking for 900000 came out as %d, want the cap's slower 500000", got)
 	}
 }
 
-// TestTheThrottleDoesNothingUntilTheCapIsReached is the other half: an
-// allowance that has not been spent must not slow anything down, or the setting
-// is a speed limit wearing a cap's name.
+// An allowance that has not been spent slows nothing down, or the setting would
+// be a speed limit wearing a cap's name.
 func TestTheThrottleDoesNothingUntilTheCapIsReached(t *testing.T) {
 	a, _ := volumeApp(t, func(s *settings.Settings) {
 		s.VolumeCap = 10_000
@@ -325,17 +307,15 @@ func TestTheThrottleDoesNothingUntilTheCapIsReached(t *testing.T) {
 	a.volumeCapPass()
 
 	if got := a.volumeCapLimit(0); got != 0 {
-		t.Errorf("limit = %d well under the cap, want 0: nothing is capped yet and 0 is unlimited", got)
+		t.Errorf("limit = %d well under the cap, want the unlimited 0", got)
 	}
 	if got := a.volumeCapLimit(900_000); got != 900_000 {
 		t.Errorf("limit = %d well under the cap, want the 900000 that was already in force", got)
 	}
 }
 
-// TestThePauseActionDoesNotAlsoThrottle keeps the two acting values apart. They
-// are alternatives on one Tabs, and an install that chose to hold the queue
-// back would otherwise silently also be running at a speed it never set - which
-// with the field left at 0 is not even a speed.
+// The two acting values are alternatives, so an install that chose to hold the
+// queue back does not also run at a speed it never set.
 func TestThePauseActionDoesNotAlsoThrottle(t *testing.T) {
 	a, _ := volumeApp(t, func(s *settings.Settings) {
 		s.VolumeCap = 1000
@@ -350,14 +330,12 @@ func TestThePauseActionDoesNotAlsoThrottle(t *testing.T) {
 	}
 }
 
-// TestTheCappedSpeedReachesTheEngine is the WIRING, which the three tests above
-// say nothing about: they call the fold directly, and a fold nothing calls is a
-// throttle that never throttles. This one goes the whole way, from a spent
-// allowance to the number the engine's own limiter is actually set to.
+// The wiring the three tests above say nothing about: they call the fold
+// directly, and a fold nothing calls is a throttle that never throttles. This
+// goes from a spent allowance to the number the engine's limiter is set to.
 //
-// Nothing is downloading, so the share-out hands each meter the whole limit -
-// see shareOut's own rule 2 - which is what makes the engine's limiter readable
-// as the figure that was decided.
+// Nothing is downloading, so the share-out hands each meter the whole limit,
+// which makes the engine's limiter readable as the figure that was decided.
 func TestTheCappedSpeedReachesTheEngine(t *testing.T) {
 	a, _ := volumeApp(t, func(s *settings.Settings) {
 		s.SpeedLimit = 0
@@ -374,12 +352,9 @@ func TestTheCappedSpeedReachesTheEngine(t *testing.T) {
 	}
 }
 
-// TestClearingTheHistoryClearsTheCounter writes down the decision rather than
-// repairing it. The counter is a reading of the download history and of nothing
-// else, so the button that empties the history empties it too. The alternative -
-// a private total kept beside the table - would be the one figure in the app
-// that cannot be checked against anything, and it would survive a restore from
-// backup disagreeing with the record.
+// The counter is a reading of the download history and of nothing else, so the
+// button that empties the history empties it too. A private total kept beside
+// the table could not be checked against anything.
 func TestClearingTheHistoryClearsTheCounter(t *testing.T) {
 	a, _ := volumeApp(t, func(s *settings.Settings) {
 		s.VolumeCap = 1000
@@ -398,10 +373,9 @@ func TestClearingTheHistoryClearsTheCounter(t *testing.T) {
 	}
 }
 
-// TestTheCounterIsPushedWhenItChanges is what makes the chip in the status bar a
-// step function rather than a poll. The bar is hidden on every page but the
-// downloads list and hidden rather than unmounted, so anything it polled would
-// go on polling for a widget nobody can see.
+// The chip in the status bar is pushed rather than polled. The bar is hidden on
+// every page but the downloads list, and hidden rather than unmounted, so a poll
+// would go on running for a widget nobody can see.
 func TestTheCounterIsPushedWhenItChanges(t *testing.T) {
 	a, _ := volumeApp(t, func(s *settings.Settings) {
 		s.VolumeCap = 1000
@@ -412,19 +386,10 @@ func TestTheCounterIsPushedWhenItChanges(t *testing.T) {
 	fetched(t, a, "spent", 700)
 	a.volumeCapPass()
 
-	// Looking for the RIGHT message rather than judging the first one.
-	//
-	// This used to fail on the first "volume" frame it saw, which made it a race
-	// it lost on a slower machine: a counter push can already be in the queue
-	// from before this test's own settings and history landed, and it says
-	// "0 of 0" perfectly correctly. CI caught it under -race, where everything
-	// is slow enough for that earlier frame to still be sitting there; here it
-	// passed, because the buffer had drained first. A test that reads whichever
-	// frame happens to be first is not testing the push, it is testing the
-	// scheduler.
-	//
-	// The last frame seen is kept only so the failure at the end can say what
-	// did arrive instead of "nothing matched".
+	// The matching frame rather than the first one: a counter push from before
+	// this test's settings and history landed is already in the queue and says
+	// "0 of 0" correctly, so judging the first frame would test the scheduler.
+	// The last frame seen is kept so the failure can say what did arrive.
 	deadline := time.Now().Add(5 * time.Second)
 	var last string
 	for time.Now().Before(deadline) {
@@ -447,5 +412,5 @@ func TestTheCounterIsPushedWhenItChanges(t *testing.T) {
 		t.Errorf("the counter was pushed, but never with the figures this test set: last was %s, want 700 of 1000", last)
 		return
 	}
-	t.Error("no volume message reached a connected client, so the counter only ever moves when something asks for it")
+	t.Error("no volume message reached a connected client, so the counter only moves when something asks for it")
 }
