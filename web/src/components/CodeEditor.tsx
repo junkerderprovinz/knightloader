@@ -1,17 +1,6 @@
-// A CodeMirror 6 surface for the script editor (census row "Script Editor:
-// %s1" - syntax highlighting, and this wave's share of that row; Auto Format
-// and Test Compile are not built here, see Scripts.tsx's own doc comment on
-// scope). Vendored via npm and bundled by Vite into web/dist like everything
-// else this app ships - the census's own note on this row ("must be
-// vendored... so no CDN") is satisfied by construction, not by anything
-// special done here: web/embed.go embeds the whole dist/ tree.
-//
-// Isolated in its own file rather than inlined into Scripts.tsx because
-// CodeMirror manages its own DOM under the container it is given - it is not
-// a React tree - so the boundary between "React owns this" and "CodeMirror
-// owns this" has to be exactly one ref wide, and mixing that into a page
-// that also owns list state, drafts and network calls is how the two start
-// fighting over the same nodes.
+// A CodeMirror 6 editor for scripts, bundled into web/dist like everything
+// else. CodeMirror owns the DOM under its container, so it gets a file of its
+// own with a single ref as the boundary.
 import { useEffect, useRef } from 'react';
 import { EditorView, basicSetup } from 'codemirror';
 import { Compartment, EditorState } from '@codemirror/state';
@@ -20,22 +9,9 @@ import { HighlightStyle, syntaxHighlighting } from '@codemirror/language';
 import { tags } from '@lezer/highlight';
 
 /**
- * Token colours as CSS custom-property references, not hex values - the
- * whole reason this works in both themes with no dark/light branching here.
- * CodeMirror's HighlightStyle generates an ordinary stylesheet under the
- * hood, and `var(--carbon-text)` is exactly as valid a CSS colour as
- * `#f4f4f4` there; it just keeps resolving against whichever theme is
- * currently in force, the same way every Tailwind utility in the rest of the
- * app does.
- *
- * Deliberately NOT using --accent for keywords. index.css's own doc comment
- * is explicit that gold marks activity only - the active nav item, the
- * primary button, progress - and a script full of `const`/`function`/`if`
- * would turn a whole code block gold, which is the same mistake Rules.tsx's
- * own comment warns about for a column of switches ("a column of gold would
- * claim nine things are happening"). Keywords are told apart by WEIGHT
- * instead, matching index.css's "hierarchy comes from type size and colour
- * step, not from borders" rule applied to type weight instead of size.
+ * Token colours are CSS variables, so the editor follows the theme without
+ * branching. Keywords get weight rather than --accent, which marks activity
+ * only.
  */
 const highlightStyle = HighlightStyle.define([
   { tag: [tags.keyword, tags.controlKeyword, tags.operatorKeyword, tags.definitionKeyword, tags.moduleKeyword], fontWeight: '600' },
@@ -48,13 +24,8 @@ const highlightStyle = HighlightStyle.define([
   { tag: [tags.regexp], color: 'var(--status-warn-text)' },
 ]);
 
-/**
- * The chrome (background, gutters, selection, cursor, active line, focus
- * ring): everything that is not a token colour. Same tokens the rest of the
- * app's form controls read - TextInput's `bg-carbon-surface2` and its
- * `focus:shadow-[0_0_0_2px_var(--focus-ring)]` - so the editor reads as one
- * more control in the same family rather than an embedded foreign widget.
- */
+// The editor chrome uses the same tokens as TextInput, so it reads as one of
+// the app's own controls.
 const chrome = EditorView.theme({
   '&': {
     backgroundColor: 'var(--carbon-surface2)',
@@ -110,11 +81,8 @@ export function CodeEditor({
 }) {
   const hostRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
-  // Read inside the update listener without making the effect below depend on
-  // it - re-running the whole mount/unmount over a changing callback identity
-  // would tear down and rebuild the editor (losing undo history, cursor
-  // position, scroll) on every keystroke of a parent that does not memoise
-  // its handler.
+  // A ref, so a new callback identity does not rebuild the editor and lose its
+  // undo history, cursor and scroll.
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
 
@@ -132,11 +100,7 @@ export function CodeEditor({
           chrome,
           EditorView.lineWrapping,
           readOnlyCompartment.of(EditorState.readOnly.of(readOnly)),
-          // CodeMirror's own .cm-content already carries role="textbox" and
-          // aria-multiline="true" - this only adds the name, never a second
-          // role. A wrapper div with its own role="textbox" around that
-          // element would nest two textbox roles inside one another, which
-          // is the actual accessibility bug, not a defence against one.
+          // .cm-content already has role="textbox"; this adds only the name.
           EditorView.contentAttributes.of(ariaLabel ? { 'aria-label': ariaLabel } : {}),
           EditorView.updateListener.of((update) => {
             if (update.docChanged) onChangeRef.current(update.state.doc.toString());
@@ -151,22 +115,12 @@ export function CodeEditor({
       view.destroy();
       viewRef.current = null;
     };
-    // Deliberately empty: `value` seeds the editor once, on mount. Every
-    // later change to `value` is reconciled by the effect below, which can
-    // tell an external reset (open a different script) apart from the
-    // editor's own keystroke (see that effect's own comment) - a `value`
-    // dependency here would instead tear the whole view down and rebuild it
-    // on every keystroke, in a fight with the code above that exists
-    // specifically to avoid that.
+    // `value` only seeds the editor; the effect below reconciles later changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Reconciles an external change to `value` - switching which script is open,
-  // or a Discard - into the live document. Compared against the view's own
-  // current text first, or this fires right back after the update listener
-  // above reports the very keystroke that produced this `value` in the first
-  // place, moving the cursor to the end of the document on every character
-  // typed.
+  // Applies an external change such as opening another script. The comparison
+  // skips the echo of the editor's own keystroke, which would move the cursor.
   useEffect(() => {
     const view = viewRef.current;
     if (!view) return;
@@ -181,12 +135,7 @@ export function CodeEditor({
     view.dispatch({ effects: readOnlyCompartment.reconfigure(EditorState.readOnly.of(readOnly)) });
   }, [readOnly]);
 
-  // No role or aria-* here: the name and the textbox role both live on
-  // CodeMirror's own .cm-content, set via EditorView.contentAttributes above
-  // - see that extension's comment for why duplicating either here would be
-  // the bug, not the fix. dir="ltr" is the one thing this wrapper is
-  // responsible for: code is left-to-right regardless of interface language,
-  // the same rule TextInput call sites apply to a URL or a file path.
+  // No role here, since .cm-content carries it. Code stays left-to-right.
   return (
     <div
       ref={hostRef}

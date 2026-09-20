@@ -6,32 +6,14 @@ import { useToast } from '../lib/toast';
 import { Button, InfoBubble } from './ui';
 import { IconClose, IconTrash } from '../lib/icons';
 
-// keyOf identifies one entry. The pair is unique in practice: `at` is a Go
-// timestamp with nanosecond precision, so two entries share it only if the same
-// URL was folded twice inside the same nanosecond.
+// `at` has nanosecond precision, so the pair is unique in practice.
 const keyOf = (s: SkippedLink) => `${s.at}|${s.url}`;
 
 /**
- * SkippedLinks is the trace of links that were refused with a reason.
- *
- * It exists because the alternative is the failure this project set out not to
- * repeat: a pasted duplicate is folded into the copy already staged, and from
- * the outside the link simply vanishes. That looks exactly like a broken paste
- * box, and it gets reported as one. The strip says how many, why, and which.
- *
- * Quiet by design — one line plus the newest entry — because the common case is
- * one duplicate in a paste of forty and it must not compete with the list.
- *
- * Floats as its own card (jdp, 2026-08-25, screenshot of the old full-width
- * banner: "können wir die meldung in eine toastmeldung umwandeln?") rather
- * than a fixed-height ToastBubble text line - "Anzeigen"/expand and "Löschen"
- * are real controls this notification needs and a plain toast has no room
- * for, and the whole point of building this instead of a toast in the first
- * place was that a skip must stay reachable rather than vanish after a few
- * seconds. A different corner (top-right) than the toast stack (bottom-
- * right, lib/toast.tsx) on purpose: the two are independent, unsynchronised
- * stacks, and sharing one corner would mean either could end up on top of
- * the other rather than beside it.
+ * SkippedLinks lists links that were refused with a reason, such as a pasted
+ * duplicate folded into one already staged, so they do not simply vanish. It
+ * is a floating card rather than a toast because it has controls and must not
+ * time out.
  */
 export function SkippedLinks() {
   const { t } = useT();
@@ -43,18 +25,12 @@ export function SkippedLinks() {
   useEffect(() => {
     let alive = true;
 
-    // A second socket rather than a poll: the server broadcasts the moment it
-    // folds a link, and a link that only appears here after a reload is a link
-    // the user has already given up looking for. connectWS is the only
-    // subscription this app has — a shared multiplexer belongs in lib/, which
-    // another agent owns.
+    // A socket of its own, since a skip that shows only after a reload is too late.
     const close = connectWS(
       (type, data) => {
         if (type !== 'skipped') return;
         setItems((prev) => [...prev, data as SkippedLink]);
-        // A new refusal un-dismisses the strip. Dismissing means "I have read
-        // these", not "never tell me again", and staying hidden would put the app
-        // straight back to swallowing links silently.
+        // Dismissing means "read", not "never again".
         setDismissed(false);
       },
       ['skipped'],
@@ -64,16 +40,13 @@ export function SkippedLinks() {
       .then((history) => {
         if (!alive) return;
         setItems((live) => {
-          // The socket is open before the snapshot is taken, so an entry can
-          // arrive down both paths. Dropping the duplicate is cheaper than
-          // ordering the two requests against each other.
+          // The socket opens before the snapshot, so an entry can arrive twice.
           const seen = new Set(history.map(keyOf));
           return [...history, ...live.filter((s) => !seen.has(keyOf(s)))];
         });
       })
       .catch(() => {
-        // The trace is not worth an error card: it is a footnote to a list that
-        // renders fine without it, and the live events still fill it in.
+        // Not worth an error card; live events still fill the list.
       });
 
     return () => {
@@ -83,10 +56,7 @@ export function SkippedLinks() {
   }, []);
 
   async function onClear() {
-    // The trace lives on the server, so the local copy is emptied only once the
-    // server has actually forgotten it. Clearing optimistically would make the
-    // entries reappear on the next reload, which reads as the app resurrecting
-    // links the user just dismissed.
+    // Not optimistic: entries the server kept would reappear on reload.
     const done = await clearSkipped()
       .then((r) => r.ok)
       .catch(() => false);
@@ -100,26 +70,12 @@ export function SkippedLinks() {
 
   if (!items.length || dismissed) return null;
 
-  // Newest first: the entry that explains what just happened to the paste the
-  // user is still looking at is the last one the server appended.
   const newest = [...items].reverse();
   const shown = showAll ? newest : newest.slice(0, 1);
 
   return (
-    // Bottom right, where every other notice in this app already appears
-    // (jdp, 2026-09-07: "alle solcher popupfenster sollen recht unten im
-    // fenster erscheinen und sich besser vom hintergund abheben"). It sat top
-    // right, which is the one corner nothing else uses, so two notices about
-    // the same paste could appear at opposite ends of the window.
-    //
-    // bottom-20 rather than bottom-5: the toast stack owns bottom-5, and this
-    // panel is the taller of the two. Stacked above it they read as one column
-    // of messages instead of two overlapping ones.
+    // Bottom right with the other notices, above the toast stack at bottom-5.
     <div className="fixed bottom-20 right-5 z-40 w-[min(92vw,26rem)]">
-      {/* Lifted off the page rather than blending into it: surface2 with a ring
-          and the strongest elevation, instead of the flat surface it had. A
-          notice that has to be noticed cannot be the same colour as the card
-          behind it. */}
       <div
         className="glim-toast overflow-hidden rounded-[var(--radius-control)] bg-carbon-surface2
           shadow-[var(--elevation)] ring-1 ring-carbon-border"
@@ -130,11 +86,7 @@ export function SkippedLinks() {
             <InfoBubble tip={t('skipped.info')} />
           </span>
           <span className="flex-1" />
-          {/* All three are real buttons now, and they LOOK it (jdp,
-              2026-09-07: "löschen, aneigen und x button sollen alle buttons
-              sein"). They were `ghost`, which is the kind with no fill at all,
-              so on a filled panel they read as three pieces of text that
-              happened to be clickable. */}
+          {/* Filled buttons, since ghost buttons read as text on a filled panel. */}
           {items.length > 1 && (
             <Button kind="secondary" className="px-2.5 text-xs" onClick={() => setShowAll((v) => !v)}>
               {showAll ? t('common.hide') : t('common.show')}
@@ -162,8 +114,6 @@ export function SkippedLinks() {
               <span className="max-w-[45%] shrink-0 truncate text-carbon-textSub" title={s.reason}>
                 {s.reason}
               </span>
-              {/* dir=ltr: a URL is not prose and must not be reordered when the
-                  interface language is right-to-left. */}
               <span dir="ltr" className="min-w-0 flex-1 truncate text-carbon-textMuted" title={s.url}>
                 {s.url}
               </span>

@@ -5,21 +5,9 @@ import { useT } from '../../lib/i18n';
 import { useToast } from '../../lib/toast';
 
 /**
- * Fact is the one labelled-value row every card in this panel draws.
- *
- * One definition, because five cards drawing the same shape by hand is five
- * chances for the label to sit beside the value in one card and above it in
- * another. The structure is columns.tsx's own TooltipField, on purpose: the
- * row tooltip and this panel answer the same questions about the same task,
- * and a reader who has hovered a row should recognise the panel instantly.
- * What is added here is the (i) and the copy badge, which a tooltip cannot
- * carry because a tooltip closes the moment the pointer leaves it.
- *
- * AN EMPTY VALUE RENDERS NOTHING AT ALL, and that is the rule that keeps the
- * cards honest. Most of these fields are absent on most tasks: a collected
- * link has no finish time, a direct HTTP download has no source page, a task
- * nothing has routed yet has no connection. Rows of dashes read as a panel
- * that failed to load; an absent field simply costs no line.
+ * Fact is the labelled-value row every card in the detail panel draws, shaped
+ * like columns.tsx's TooltipField. An empty value renders nothing, because most
+ * fields are absent on most tasks and rows of dashes read as a failed load.
  */
 export function Fact({
   label,
@@ -30,35 +18,22 @@ export function Fact({
   copy,
 }: {
   label: string;
-  /** The explanation, behind the (i). Never printed under the value: a panel
-   *  whose every row carries two lines of grey prose is a panel nobody reads
-   *  twice, and the sentence is still one hover away. */
+  /** Shown behind the (i), never printed under the value. */
   hint?: string;
-  /** The plain text form of the value. Empty, absent, or the empty string
-   *  means there is nothing to draw and the whole row disappears. */
   value?: string;
-  /** Structured content instead of plain text: a badge, a row of chips, the
-   *  backend badge. Takes precedence over `value` when both are given. */
+  /** Structured content such as a badge; takes precedence over `value`. */
   children?: ReactNode;
-  /**
-   * Marks the value as left-to-right regardless of the interface language.
-   * A URL, a host name and a file path are LTR strings in every language, and
-   * in Arabic, Hebrew or Persian an unmarked one is reordered around its
-   * punctuation until it is no longer the address anybody typed.
-   */
+  /** Keeps a URL, host or path left-to-right in an RTL interface language. */
   ltr?: boolean;
-  /** Offers a copy badge beside the value. Only meaningful with `value`, since
-   *  what a chip row would copy is anybody's guess. */
+  /** Offers a copy badge beside the value; only meaningful with `value`. */
   copy?: boolean;
 }) {
   const { t } = useT();
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
 
-  // The flash is two seconds and then gone. Cleared through the effect rather
-  // than from inside the click handler so a row unmounted mid-flash, which is
-  // the ordinary case here because the panel closes on the next click
-  // somewhere else, does not leave a timer holding a dead setState.
+  // Cleared through the effect so a row unmounted mid-flash, which is common
+  // because the panel closes on the next outside click, leaves no timer behind.
   useEffect(() => {
     if (!copied) return;
     const timer = window.setTimeout(() => setCopied(false), 2000);
@@ -85,10 +60,8 @@ export function Fact({
               font-medium text-carbon-textSub transition duration-150 hover:brightness-110
               motion-safe:active:scale-[.98]"
             onClick={() => {
-              // copyToClipboard, never navigator.clipboard directly: this app's
-              // commonest deployment is a plain-http LAN address, where the
-              // modern API does not exist at all and only the execCommand path
-              // in lib/clipboard.ts actually copies anything.
+              // navigator.clipboard does not exist on a plain-http LAN address,
+              // where only lib/clipboard.ts's execCommand fallback copies.
               void copyToClipboard(text).then((ok) => {
                 if (ok) setCopied(true);
                 else toast(t('detail.copyFailed'), 'fail');

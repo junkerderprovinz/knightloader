@@ -1,16 +1,5 @@
-// Unpacking, on screen: the jobs that are running or lately finished, and the
-// two verbs that act on them.
-//
-// An extraction used to be a word the download wore for a while. That hid two
-// things people need: how far it has got - a forty-gigabyte set takes longer to
-// unpack than it took to fetch - and the fact that it can fail on its own, after
-// the download succeeded. Here it is an object with its own progress, its own
-// reason for stopping, and its own stop button.
-//
-// The menu entries are a GROUP handed to the existing context menu, never a
-// second menu system: the shell already knows where to sit, when to close and
-// how to be walked with the keyboard, and a second one would learn all three
-// again and get one of them wrong.
+// Extraction jobs on screen, with their own progress, failure and stop button,
+// plus the context menu group that starts and stops them.
 import { useCallback, useEffect, useState } from 'react';
 import {
   type ExtractJob,
@@ -29,17 +18,11 @@ import { ProgressBar } from './ProgressBar';
 import { type MenuGroup } from './ContextMenu';
 import { IconArchive, IconClose, IconPlay, IconStop } from '../lib/icons';
 
-/** live is a job that is still going to do something. */
 const live = (j: ExtractJob) => j.status === 'queued' || j.status === 'running';
 
 /**
- * useExtractJobs streams the unpacking jobs for an instance.
- *
- * The same shape as useTasks and for the same reason: this instance is pushed
- * over the WebSocket, a named peer is polled. A job carries no total - nothing
- * knows how many bytes an archive will become until it has become them - so what
- * arrives is a counter and not a percentage, and the bar below says so by being
- * indeterminate rather than by inventing a denominator.
+ * useExtractJobs streams an instance's extraction jobs, pushed over the
+ * WebSocket locally and polled from a peer, like useTasks.
  */
 export function useExtractJobs(instance: string): ExtractJob[] {
   const [jobs, setJobs] = useState<ExtractJob[]>([]);
@@ -71,13 +54,9 @@ export function useExtractJobs(instance: string): ExtractJob[] {
 }
 
 /**
- * useArchiveMenu is the archive group for the list's context menu.
- *
- * "Unpack now" is offered on any finished download rather than only on ones the
- * app recognises as archives, and the refusal comes back as a sentence naming
- * the file. Hiding it would mean deciding here what counts as an archive - a
- * second copy of a judgement the server makes from the magic bytes, which will
- * disagree with it the first time somebody renames a .rar to .bin.
+ * useArchiveMenu is the archive group for the list's context menu. "Unpack
+ * now" is offered on any finished download, since only the server can tell an
+ * archive by its magic bytes.
  */
 export function useArchiveMenu({
   chosen,
@@ -95,9 +74,6 @@ export function useArchiveMenu({
   const running = jobs.filter((j) => live(j) && chosen.some((x) => x.id === j.taskId));
   if (finished.length === 0 && running.length === 0) return [];
 
-  // Start and stop as a transport pair, the same two glyphs the list's own
-  // menu uses one group above for a download: unpacking is a job that runs and
-  // can be called off, and it is the same act to a reader either way.
   const items = [];
   if (finished.length > 0) {
     items.push({
@@ -128,9 +104,7 @@ export function useArchiveMenu({
     });
   }
 
-  // One word in the menu with the verbs behind it, the way the queue and the
-  // clean-up entries already do it. Two more entries in a menu that has a dozen
-  // is where the ones that act on the selection start getting lost.
+  // A submenu, like the queue and clean-up entries, to keep the top level short.
   return [
     {
       id: 'archive',
@@ -147,13 +121,8 @@ export function useArchiveMenu({
 }
 
 /**
- * ArchiveJobs shows the unpacking that is happening now, and the ones that
- * stopped without finishing.
- *
- * A job that finished cleanly is deliberately not listed: it has nothing left to
- * say, the files are in the folder, and a card that grows a row for every archive
- * ever opened is a log nobody asked for. What stays is what somebody still has to
- * do something about.
+ * ArchiveJobs lists running and failed extractions. A job that finished
+ * cleanly needs nothing more and is left out.
  */
 export function ArchiveJobs({ jobs, base }: { jobs: ExtractJob[]; base: string }) {
   const { t } = useT();
@@ -180,8 +149,7 @@ export function ArchiveJobs({ jobs, base }: { jobs: ExtractJob[]; base: string }
               <span className="min-w-0 flex-1 truncate text-[12px] text-carbon-text" dir="ltr">
                 {j.name}
               </span>
-              {/* The file open right now, which at depth is one found inside the
-                  output rather than the one the job is named after. */}
+              {/* The archive open now, which can be one nested in the output. */}
               {j.archive && j.archive !== j.name && (
                 <span className="glim-num shrink-0 text-[11px] text-carbon-textMuted" dir="ltr">
                   {j.archive}
@@ -198,6 +166,7 @@ export function ArchiveJobs({ jobs, base }: { jobs: ExtractJob[]; base: string }
                 onClick={() => stop(j.id)}
               />
             </div>
+            {/* Indeterminate: nobody knows an archive's unpacked size in advance. */}
             <ProgressBar percent={0} active={j.status === 'running'} indeterminate />
             <div className="flex items-baseline gap-2 text-[11px]">
               <span className="text-carbon-textMuted">
@@ -208,8 +177,7 @@ export function ArchiveJobs({ jobs, base }: { jobs: ExtractJob[]; base: string }
                   {t('archive.volumes', { volumes: j.volumes })}
                 </span>
               )}
-              {/* The one failure with an obvious next step, so it is said as the
-                  step and not as the error: type a password in and press start. */}
+              {/* Phrased as the next step rather than as the error. */}
               {j.password && <span className="text-statusFail">{t('archive.needsPassword')}</span>}
               {j.error && !j.password && <span className="text-statusFail">{j.error}</span>}
             </div>

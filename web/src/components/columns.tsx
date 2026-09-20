@@ -1,7 +1,7 @@
 // The column registry for the download list, plus the pure functions that turn a
 // stored layout back into a live one.
 //
-// A column is four things at once — a header, a cell, a sort order and an id in
+// A column is four things at once: a header, a cell, a sort order and an id in
 // somebody's saved layout. Describing all four in one entry is what stops a
 // column sorting by one value and printing another, which is the failure people
 // report as "the sort is broken" and nobody can reproduce.
@@ -28,7 +28,6 @@ import { ResolverBadge, StatusPill } from './StatusPill';
 import { RetryNote, retryPending } from './RetryCountdown';
 import { useTooltip } from './ui';
 
-
 export type ColumnId =
   | 'enabled'
   | 'name'
@@ -51,19 +50,17 @@ export type ColumnId =
 
 /**
  * Which list a layout belongs to. The collector shows staged links and the
- * downloads list shows transfers, so they do not want the same columns — and a
- * single shared layout would mean hiding "speed" on the collector hides it on
- * the list where it is the point.
+ * downloads list shows transfers, so they do not want the same columns, and one
+ * shared layout would mean hiding "speed" on the collector hides it on the list
+ * where it is the point.
  */
 export type ListProfile = 'downloads' | 'collector';
 
 export type Translate = (key: TranslationKey, vars?: Record<string, string | number>) => string;
 
-// --- The tree column -------------------------------------------------------
-//
 // The name column is the tree column, and these four numbers are the package
-// row's leading furniture. They live here, beside the column that has to leave
-// room for them, because the indent and the column's own minimum width are one
+// row's leading furniture. They live beside the column that has to leave room
+// for them, because the indent and the column's own minimum width are one
 // decision: a floor that does not include the indent is a floor for a name that
 // is no longer there.
 
@@ -77,27 +74,18 @@ const TREE_GAP = 6;
 export const FOLDER_GLYPH = 16;
 
 /**
- * How far a link's name is indented inside its package, in pixels.
- *
- * Not a taste number: it is exactly the width of the furniture in front of a
- * package's NAME, so a link's name starts where its package's name starts and
- * the twisty and the folder hang to the left of both — the shape of every tree
- * anyone arriving from JDownloader has used.
- *
- * It was 36px, and 36 is less than 60: measured on the live instance, a link's
- * name began 24px BEFORE its own package's name. That reads as the link being
- * the outer level and the package the inner one — the tree upside down — and no
- * test can see it, because nothing about it is wrong except where it is.
+ * How far a link's name is indented inside its package, in pixels. It is
+ * exactly the width of the furniture in front of a package's name, so a link's
+ * name starts where its package's name starts and the twisty and the folder
+ * hang to the left of both, which is the shape of every tree anyone arriving
+ * from JDownloader has used.
  */
 export const TREE_INDENT = CELL_PAD + TWISTY_BOX + TREE_GAP + FOLDER_GLYPH + TREE_GAP;
 
 /**
- * What is left for the name itself once the indent is paid.
- *
- * The name column's minimum is this PLUS the indent, so widening the indent
- * cannot quietly narrow the text: the tree got 24px deeper and the floor moved
- * 24px with it, which is why a name reads exactly as well after that change as
- * before it. 120px is about sixteen characters — the point at which a file name
+ * What is left for the name itself once the indent is paid. The name column's
+ * minimum is this plus the indent, so widening the indent cannot quietly narrow
+ * the text. 120px is about sixteen characters, the point at which a file name
  * still tells you which file it is.
  */
 const NAME_TEXT_FLOOR = 120;
@@ -107,33 +95,22 @@ export interface CellContext {
   /** The instance this list is showing, for the cells that can act on a row. */
   base: string;
   /**
-   * Which of the two lists is drawing this cell.
-   *
-   * One column can honestly mean two different things in two lists, and the
-   * status column is exactly that case (jdp, 2026-09-06: "Wir machen es wi in
-   * JD. Im Linksammlertab soll die spalte Verfügbarkeit heißen ... Im
-   * downloadtab soll die statusspalte den zustand mit symbol und text
-   * anzeigen"). A staged link has no transfer state worth a word - every row
-   * says "collected" - while a running one has nothing to say about
-   * availability. Splitting them into two registry entries would mean two ids,
-   * two stored widths and a layout that forgets itself when a list changes
-   * which of them it uses.
+   * Which of the two lists is drawing this cell. One column can mean two
+   * different things in two lists, and the status column is that case: a staged
+   * link has no transfer state worth a word, while a running one has nothing to
+   * say about availability. Two registry entries would mean two ids, two stored
+   * widths and a layout that forgets itself when a list changes which it uses.
    */
   profile: ListProfile;
   /**
-   * Die Loeschfrage fuer ein ganzes Paket, gestellt von der Seite und nicht von
-   * der Zeile.
+   * The removal question for a whole package, asked by the page rather than by
+   * the row. The button does not delete: it hands the package's ids to the same
+   * question a multiple selection asks, with its count, its file choice and its
+   * undo. A second removal path would be a second place for that question to
+   * drift.
    *
-   * Die Ordnerzeile hatte keinen Loeschknopf, obwohl das Kontextmenue auf ihr
-   * denselben Weg schon anbot (jdp: "der loeschen button ... soll auch auf dem
-   * ordner erscheinen"). Der Knopf loescht deshalb NICHT selbst: er reicht die
-   * Kennungen des Pakets an genau die Frage weiter, die eine Mehrfachauswahl
-   * auch stellt, samt Zaehlung, Dateiwahl und Rueckgaengig. Eine zweite,
-   * eigene Loeschstrecke waere eine zweite Stelle, an der sich diese Frage
-   * spaeter auseinanderentwickeln kann.
-   *
-   * Optional, weil nicht jede Liste eine Werkzeugleiste mit dieser Frage hat.
-   * Ohne sie erscheint der Knopf gar nicht, statt ins Leere zu greifen.
+   * Optional, because not every list has a toolbar that asks it. Without one
+   * the button does not appear at all.
    */
   onRemovePackage?: (ids: string[]) => void;
 }
@@ -146,35 +123,23 @@ export interface ColumnDef {
   /**
    * The lists this column exists in at all. Absent means both.
    *
-   * Stronger than DEFAULT_HIDDEN on purpose, and the difference is the point:
-   * hidden is a preference somebody can undo from the header menu, this is the
-   * column not being part of that list. Used for `enabled`, which jdp asked to
-   * have removed from the download list (2026-09-06: "Aktiv toggle in der
-   * downloadliste entfernen") - it is the collector's own "take this link along
-   * when I press start", and once a link IS in the queue the switch that means
-   * something is pause, not this one. Leaving it merely hidden would leave a
-   * menu entry that switches on a control with no honest meaning where it sits.
+   * Stronger than DEFAULT_HIDDEN: hidden is a preference somebody can undo from
+   * the header menu, this is the column not being part of that list. Used for
+   * `enabled`, which is the collector's "take this link along when I press
+   * start"; once a link is in the queue the switch that means something is
+   * pause. Merely hiding it would leave a menu entry that switches on a control
+   * with no honest meaning where it sits.
    */
   onlyIn?: ListProfile[];
   /** Default width in CSS pixels; what the user drags overrides it. */
   width: number;
   /**
    * The default width where one list can afford a different one, the same
-   * per-list shape `labelByProfile` above already takes for the header.
-   *
-   * Not a nicety: the two lists have measurably different amounts of room, and
-   * a single number has to be the smaller of the two. At a 1600px window
-   * (measured on the live instance) the collector's default set comes to 1240px
-   * of tracks in 1264px of room and its LAST column carries the surplus - the
-   * Variante column rendered 420px wide there and 740px at 1920, against a cell
-   * that never needs more than 222. The downloads set has no such slack: it
-   * already scrolls inside its own card below about 1500px, so every pixel
-   * added to a column there is a pixel of sideways scrolling. One number for
-   * both lists would either leave the collector's name column starved or make
-   * the downloads table scroll further, and both of those are real.
-   *
-   * Widths a user drags are stored per list already (`list.columns.<profile>`),
-   * so this is only the starting point following the same split.
+   * per-list shape `labelByProfile` takes for the header. The collector's
+   * default set leaves slack that its last column absorbs, while the downloads
+   * set already scrolls inside its own card, where every pixel added is a pixel
+   * of sideways scrolling. Widths a user drags are stored per list
+   * (`list.columns.<profile>`), so this is only the starting point.
    */
   widthByProfile?: Partial<Record<ListProfile, number>>;
   minWidth: number;
@@ -192,26 +157,16 @@ export interface ColumnDef {
   aggregate?: (items: Task[], ctx: CellContext) => ReactNode;
 }
 
-// --- Shared cell furniture -------------------------------------------------
-
 /**
- * Tip is a piece of on-screen text that carries the HOUSE bubble instead of the
- * operating system's own.
- *
- * ONE CONTROL, ONE TOOLTIP MECHANISM: ui.tsx pulled `title` out of Button and
- * IconBadge for exactly this reason and says so there; these are the same call
- * sites on RAW elements, which that sweep never reached. A native `title=`
- * draws the OS balloon - OS font, at the pointer instead of at the trigger, on
- * the OS's own timing, and untouched by every rule of GlimStone's tooltip
- * section - right beside the house bubble the control next to it opens, and the
- * difference reads as a rendering fault. The plain-DOM answer upstream is one
- * wireTooltips() call at boot that upgrades a stray `title` to `data-tip`; this
- * build is React and its engine is useTooltip, which has no delegated upgrader,
- * so a `title` left on an element is simply the second mechanism.
+ * Tip is a piece of on-screen text that carries the house bubble instead of the
+ * operating system's own. ui.tsx pulled `title` out of Button and IconBadge for
+ * the same reason; these are the same call sites on raw elements. A native
+ * `title` draws the OS balloon, in the OS font, at the pointer and on the OS's
+ * timing, right beside the house bubble the control next to it opens.
  *
  * It lives in this module for the same reason `hostOf` is re-exported from it:
  * this is where the list, the collector's facets and the collector's own cards
- * already take their shared furniture from.
+ * take their shared furniture from.
  */
 export function Tip({
   tip,
@@ -226,23 +181,22 @@ export function Tip({
   /** A path or a URL, which reads left-to-right in a right-to-left interface. */
   dir?: 'ltr';
   /**
-   * The accessible name, for the call sites whose children are a GLYPH and
-   * nothing else. Truncated text needs none - the whole string is already in
-   * the DOM - but a drawing has no text to be read, and `title` used to be
-   * what supplied it. Set together with `role="img"`, or a screen reader
-   * announces a name on an element it has no reason to stop at.
+   * The accessible name, for the call sites whose children are a glyph and
+   * nothing else. Truncated text needs none, since the whole string is in the
+   * DOM, but a drawing has no text to be read. Set together with `role="img"`,
+   * or a screen reader announces a name on an element it has no reason to stop
+   * at.
    */
   label?: string;
-  /** Absent where the element IS the drawing - the availability dot's fill. */
+  /** Absent where the element is the drawing, such as the availability dot. */
   children?: ReactNode;
 }) {
   const t = useTooltip<HTMLSpanElement>(tip);
-  // role/tabIndex dropped for the reason ui.tsx's Button states at its own copy
-  // of this line: these sit in rows and cells that already carry their own
+  // role/tabIndex dropped: these sit in rows and cells that carry their own
   // focus model (listKeyboard's roving tabindex), and a tab stop per truncated
-  // string would put a dozen of them in every row. Nothing is lost with them -
-  // the full string is in the DOM either way, so a screen reader reads it
-  // whole; the bubble exists for the eye, which is what CSS truncation cuts.
+  // string would put a dozen of them in every row. The full string is in the
+  // DOM either way, so a screen reader reads it whole; the bubble exists for
+  // the eye, which is what CSS truncation cuts.
   const { role: _role, tabIndex: _tabIndex, ...hover } = t.triggerProps;
   return (
     <>
@@ -264,9 +218,9 @@ export function Checkbox({
   onChange: () => void;
   label?: string;
 }) {
-  // The house bubble, never the OS balloon - see Tip above. A glyph-only
-  // control needs a tooltip unconditionally (there is no other way to know
-  // what it does), so this one is the mechanism, not the attribute.
+  // The house bubble, never the OS balloon; see Tip above. A glyph-only control
+  // needs a tooltip unconditionally, since there is no other way to know what
+  // it does.
   const tip = useTooltip<HTMLButtonElement>(label);
   const { role: _role, tabIndex: _tabIndex, ...hover } = tip.triggerProps;
   return (
@@ -291,9 +245,9 @@ export function Checkbox({
 }
 
 /**
- * The per-link on/off switch — deliberately a switch and not a checkbox, because
- * the checkbox one cell to its left means "selected" and the two would otherwise
- * be the same mark twice in the same row.
+ * The per-link on/off switch, a switch and not a checkbox because the checkbox
+ * one cell to its left means "selected" and the two would otherwise be the same
+ * mark twice in the same row.
  *
  * It shows what the server last said, never what was just clicked: the value
  * comes back over the websocket a moment later, and a control that reports
@@ -312,13 +266,12 @@ export function EnabledSwitch({
   const { t } = useT();
   const { toast } = useToast();
   const [busy, setBusy] = useState(false);
-  // Both halves of GlimStone's failure feedback: the toast below carries the
-  // sentence, and this counter makes the switch itself SAY that it refused.
+  // Both halves of GlimStone's failure feedback: the toast carries the
+  // sentence, and this counter makes the switch itself say that it refused.
   // Counted rather than flagged, and read as a `key`, because an animation
-  // already at rest does not restart just because its class left and came back
-  // in the same frame - a second identical rejection needs a fresh DOM node to
-  // play against, the same discipline lib/toast.tsx's push() follows when it
-  // mints a new id for an identical repeated message.
+  // already at rest does not restart when its class leaves and comes back in
+  // the same frame; a second identical rejection needs a fresh DOM node to play
+  // against, the same way lib/toast.tsx mints a new id for a repeated message.
   const [shake, setShake] = useState(0);
   const label = t(on ? 'task.disable' : 'task.enable');
   const tip = useTooltip<HTMLButtonElement>(label);
@@ -339,18 +292,16 @@ export function EnabledSwitch({
     }
   }
 
-  // The switch is deliberately NOT the accent when it is on. Every row is
-  // enabled by default, so an accent-filled pill per row spends the one colour
-  // that means "something is happening here" on the most ordinary fact on the
-  // page — a column of gold next to a single gold progress bar, and the bar
-  // stops reading as the thing that matters.
+  // The switch is not the accent when it is on. Every row is enabled by
+  // default, so an accent-filled pill per row spends the one colour that means
+  // "something is happening here" on the most ordinary fact on the page, and a
+  // column of gold beside a single gold progress bar stops the bar reading as
+  // the thing that matters.
   //
-  // And off is not the fault colour either. A link somebody switched off is a
+  // Off is not the fault colour either: a link somebody switched off is a
   // decision, not a failure, and a status colour on a control people press all
-  // day is a colour they stop reading, the same argument that took red off
-  // every delete in this app. Both halves are carbon tones; what tells them
-  // apart is the knob's side and the step between the two grounds, which is the
-  // signal a switch has always carried.
+  // day is a colour they stop reading. Both halves are carbon tones, and what
+  // tells them apart is the knob's side and the step between the two grounds.
   return (
     <>
       <button
@@ -383,13 +334,14 @@ export function EnabledSwitch({
 // What each typed failure is called on screen.
 //
 // Only the reasons this build knows are in here. The server's reason is an open
-// string on purpose — a newer backend can settle a task with a value this
-// interface has never heard of — and an unrecognised one gets no label rather
-// than the raw token: the whole worth of the label is that it is a word somebody
-// can act on, and "reason: hoster_soft_limit" is not one.
-// Exported so the failure chips (ErrorCauses.tsx) name a cause with the exact
-// word the row beside them already uses. A second copy of this table is how a
-// chip ends up saying "Hoster limit" over rows labelled something else.
+// string, so a newer backend can settle a task with a value this interface has
+// never heard of, and an unrecognised one gets no label rather than the raw
+// token: the worth of a label is that it is a word somebody can act on, and
+// "reason: hoster_soft_limit" is not one.
+//
+// Exported so the failure chips (ErrorCauses.tsx) name a cause with the word
+// the row beside them uses. A second copy is how a chip ends up saying "Hoster
+// limit" over rows labelled something else.
 export const reasonKey: Record<string, TranslationKey> = {
   gone: 'task.reason.gone',
   auth: 'task.reason.auth',
@@ -412,56 +364,38 @@ export const reasonKey: Record<string, TranslationKey> = {
 
 // The availability chip, one entry per verdict the server can send.
 //
-// '' is deliberately absent, and that absence is the whole point of the fourth
-// state: a link nobody has checked says nothing at all, and 'uncheckable' is a
-// link that WAS checked and whose host would not answer. Drawing them the same
-// way is what left a Real-Debrid or JD link looking untouched forever.
+// '' is absent, and that absence is what the fourth state is for: a link nobody
+// has checked says nothing at all, where 'uncheckable' is a link that was
+// checked and whose host would not answer. Drawing them the same way left a
+// Real-Debrid or JD link looking untouched forever.
 //
 // 'uncheckable' is the quiet shade, never the fail colour and never the accent.
-// It is not activity and it is not a dead link, and painting it red is the same
-// mistake in the interface that filing a transport error as offline is in the
-// probe: it is how somebody is talked into deleting a link that is fine.
+// It is not activity and it is not a dead link, and painting it red is how
+// somebody is talked into deleting a link that is fine.
 const availChip: Record<Exclude<Availability, ''>, { key: TranslationKey; tone: string }> = {
   online: { key: 'task.online', tone: 'text-statusOk' },
   offline: { key: 'task.offline', tone: 'text-statusFail' },
   uncheckable: { key: 'task.uncheckable', tone: 'text-carbon-textMuted' },
 };
 
-// The same verdict as availChip, as a dot rather than a word — for NameCell
-// below, which shows it beside the name itself rather than only in the
-// Status column (jdp, 2026-08-25: "Der status der links soll auch per
-// eingefärbtem icon angezeigt werden (als online oder offline)"). The same
-// solid-dot tokens StatusPill's own status dot already uses, not the softer
-// text-status* wash availChip reads: a 6px dot needs the fully saturated
-// colour to read at all, where a word has its own text weight to carry it.
+// The same verdict as availChip, as a dot rather than a word, for the name cell
+// that shows it beside the name itself rather than only in the Status column.
+// The solid-dot tokens StatusPill's own status dot uses, not the softer
+// text-status* wash availChip reads: a 6px dot needs the fully saturated colour
+// to read at all, where a word has its own text weight to carry it.
 const availDot: Record<Exclude<Availability, ''>, string> = {
   online: 'bg-statusOkSolid',
   offline: 'bg-statusFailSolid',
   uncheckable: 'bg-statusNeutralSolid',
 };
 
-// --- The row tooltip --------------------------------------------------------
-//
-// The eight strings this tooltip needs used to sit here too, in a PENDING table
-// with an English fallback behind a cx() that asked t() first, because the
-// locale files were a later lane's to write. That lane has landed: all eight
-// are in en.ts and in the 41 other catalogues, so t() has been answering every
-// one of them and the table underneath was never read again. A fallback nobody
-// consults is a second source of truth that can only drift, and a lever that
-// decides nothing reads as a lever (GlimStone 1.13.0) - so it is deleted rather
-// than hollowed out, and the tooltip calls t() like the rest of this file. The
-// same arrangement still stands in several other components; each of those is
-// its own file's to clear.
-
 /**
- * The row tooltip's own date formatting, spelled out in full rather than
- * fmtDate's short column form (lib/format.ts): the column is short because
- * it has to fit a cell, the tooltip has the room a cell never does, and
- * repeating the column's own short form in its tooltip would tell a reader
- * nothing the column had not already said. No formatter cache like fmtDate
- * keeps, deliberately: that cache exists because a finished-at COLUMN builds
- * one per row on every repaint of a few hundred rows, where this runs once,
- * when a hover actually opens a tooltip - which is not that.
+ * The row tooltip's own date formatting, spelled out in full rather than in
+ * fmtDate's short column form (lib/format.ts): the column is short because it
+ * has to fit a cell, and repeating that short form in its tooltip would say
+ * nothing the column had not. No formatter cache like fmtDate keeps, since that
+ * cache exists for a column building one per row on every repaint, where this
+ * runs once, when a hover opens a tooltip.
  */
 function fmtDateFull(iso: string | undefined): string {
   if (!iso) return '';
@@ -474,37 +408,18 @@ function fmtDateFull(iso: string | undefined): string {
 }
 
 /**
- * Which connection is carrying this download.
+ * Which connection is carrying this download. It answers what a task is on and
+ * not what it was asked for: the server writes the id when it hands the
+ * download to a backend, so a task pointed at a proxy that was busy shows the
+ * connection that took it, where an echo of the request would agree with the
+ * settings page and disagree with the traffic.
  *
- * The column answers what a task IS ON, not what it was asked for. The server
- * writes the id when it hands the download to a backend, so a task pointed at a
- * proxy that was busy or switched off shows the connection that actually took
- * it, which is the only version of this column worth having. One that echoed the
- * request would agree with the settings page and disagree with the traffic.
- *
- * That is also why an unrouted task shows NOTHING rather than "Direct". An empty
- * id is "nobody has decided yet"; the direct gateway is a decision, with an id of
- * its own, and a collector full of rows announcing a decision that has not been
- * made is worse than a column of blanks. The blanks fill in as tasks start.
- *
- * Quiet type, never the accent: which way the bytes came in is metadata about a
- * finished fact, the same weight as the backend badge beside it. It is also the
- * reason there is no icon here. A glyph per row in a column that is blank for
- * most of them is decoration where the eye is scanning for names.
- *
- * The word for the gateway is the connection page's own key rather than a new
- * one. There is exactly one right word for it, and a second key would be that
- * word maintained twice across forty-two locales, drifting in some of them.
- *
- * Shared by the column cell and the row tooltip below, so a task's connection
- * resolves to the same words in both rather than two computations that could
- * drift apart. Null for an unrouted task - "nobody has decided yet" has no
- * text to show wherever it is asked from.
+ * An unrouted task therefore shows nothing rather than "Direct". An empty id is
+ * "nobody has decided yet", while the direct gateway is a decision with an id
+ * of its own, and the blanks fill in as tasks start. Shared by the column cell,
+ * the row tooltip and the task detail panel, so a connection resolves to the
+ * same words in all three.
  */
-// Exported since the task detail panel resolves a connection to the same
-// words this column and the row tooltip already use. One lookup, one
-// vocabulary: a second copy in the panel would drift the first time a
-// connection kind is renamed.
 export function useConnectionLabel(task: Task, t: Translate, base: string): { text: string; hint: string } | null {
   const rows = useConnections(base);
   const id = task.connection ?? '';
@@ -513,9 +428,9 @@ export function useConnectionLabel(task: Task, t: Translate, base: string): { te
   const row = rows.get(id);
   const direct = t('settings.connections.kind.direct');
   // Three ways to have no endpoint to print, and they are not the same thing.
-  // The gateway and a direct ROW both mean "out over this machine", so both read
-  // as the word; an id with no row at all is a connection that was deleted, or a
-  // list that has not arrived yet, and it keeps the raw id because that can be
+  // The gateway and a direct row both mean "out over this machine", so both
+  // read as the word; an id with no row at all is a connection that was deleted
+  // or a list that has not arrived yet, and it keeps the raw id, which can be
   // matched against the settings page by hand where a blank cell cannot.
   const endpoint = row ? endpointOf(row) : '';
   const text = endpoint || (id === DIRECT_ID || row ? direct : id);
@@ -526,7 +441,9 @@ export function useConnectionLabel(task: Task, t: Translate, base: string): { te
   return { text, hint };
 }
 
-/** One labelled fact in the row tooltip - a category on its own line, the value on the next so a long one wraps instead of forcing a ragged right edge beside a short label. */
+/** One labelled fact in the row tooltip: the category on its own line and the
+ *  value on the next, so a long value wraps instead of forcing a ragged right
+ *  edge beside a short label. */
 function TooltipField({ label, children, ltr }: { label: string; children: ReactNode; ltr?: boolean }) {
   return (
     <div className="min-w-0">
@@ -539,42 +456,37 @@ function TooltipField({ label, children, ltr }: { label: string; children: React
 }
 
 /**
- * RowTooltipContent is "everything about this row" in one hover rather than
- * several separate cell tooltips, because six of this table's columns ship
- * hidden by default (see DEFAULT_HIDDEN below) purely for width - the table
- * does not fit with all of them on, not because host, backend, connection,
- * added, finished and comment stop mattering on the rows where a column is
- * off. This is the one place to read them without opening the column menu
- * and giving up width elsewhere for a column that stays blank on most rows
- * anyway. Nothing here is fetched: every field already arrived on the task
- * with the row - see useTooltip in components/ui.tsx for the hover mechanics.
+ * RowTooltipContent is everything about one row in a single hover rather than
+ * several cell tooltips. Six of this table's columns ship hidden by default
+ * (see DEFAULT_HIDDEN) purely for width, so this is the one place to read them
+ * without opening the column menu and giving up width elsewhere for a column
+ * that stays blank on most rows. Nothing here is fetched: every field arrived
+ * with the task. See useTooltip in components/ui.tsx for the hover mechanics.
  */
 function RowTooltipContent({ task, t, base }: { task: Task; t: Translate; base: string }) {
   const connection = useConnectionLabel(task, t, base);
-  // Same signal the Peers/Seeds/Ratio columns and ResolverBadge already key
-  // off - the torrent resolver's own Info().ID (internal/resolver/torrent).
+  // The same signal the Peers/Seeds/Ratio columns and ResolverBadge key off:
+  // the torrent resolver's own Info().ID (internal/resolver/torrent).
   const isTorrent = task.resolver === 'torrent';
   const name = task.name || task.url;
-  // Only worth its own line when it says something the name above did not -
-  // a task with no name already shows the URL as its name.
+  // Only worth its own line when it says something the name above did not; a
+  // task with no name already shows the URL as its name.
   const showUrl = !!task.name && task.name !== task.url;
   const host = hostOf(task);
   const added = fmtDateFull(task.createdAt);
   const finished = fmtDateFull(task.finishedAt);
   const changed = fmtDateFull(task.changedAt);
-  // Only shown while a retry is actually pending, and fmtDateFull is what
-  // decides that rather than the field: a settled error does NOT arrive with an
-  // empty nextTry, it arrives with Go's zero time, and the formatter answers ''
-  // for that (format.ts's own reasoning - "printing 1.1.1 there would be a
-  // value, and a value is something people try to explain"). Testing this
-  // string is therefore right where testing task.nextTry would not be.
+  // fmtDateFull decides whether a retry is pending, not the field: a settled
+  // error arrives with Go's zero time rather than an empty nextTry, and the
+  // formatter answers '' for that. Testing this string is right where testing
+  // task.nextTry would not be.
   const retryAt = task.status === 'error' ? fmtDateFull(task.nextTry) : '';
 
   return (
     <div className="flex flex-col gap-2">
-      {/* text-xs, the scale's 12px dense row, and not a half-pixel step of its
-          own: the type scale is a fixed four-row table (20/14/12/11), and a
-          fifth size found in an audit is the bug to fix, not a row to add. */}
+      {/* text-xs, the scale's 12px dense row: the type scale is a fixed
+          four-row table (20/14/12/11), and a fifth size is a bug to fix rather
+          than a row to add. */}
       <div dir="ltr" className="break-words text-xs font-semibold text-carbon-text">
         {name}
       </div>
@@ -592,15 +504,12 @@ function RowTooltipContent({ task, t, base }: { task: Task; t: Translate; base: 
         <TooltipField label={t('columns.resolver')}>
           <ResolverBadge resolver={task.resolver} mode={task.mode} />
         </TooltipField>
-        {/* Peers/Seeds/Ratio also have their own columns (hidden by default,
-            like six other low-traffic ones already are - see DEFAULT_HIDDEN
-            below), so this is here for the same reason connection/added/
-            finished/comment/source are: readable without opening the column
-            menu and giving up width elsewhere for a column blank on every
-            non-torrent row. Uploaded and "still seeding" go no further than
-            here - the spec (docs/torrent-support.md) asks for "full peer/seed
-            detail" in the tooltip specifically, a fuller picture than the
-            three columns alone give. */}
+        {/* Peers, seeds and ratio have their own columns, hidden by default
+            like the other low-traffic ones, so they are here for the same
+            reason connection, added, finished, comment and source are.
+            Uploaded and "still seeding" go no further than this bubble:
+            docs/torrent-support.md asks for full peer and seed detail here,
+            which is more than the three columns give. */}
         {isTorrent && (
           <TooltipField label={t('task.tooltip.swarm')} ltr>
             {t('task.tooltip.swarmDetail', {
@@ -660,13 +569,9 @@ function RowTooltipContent({ task, t, base }: { task: Task; t: Translate; base: 
 }
 
 /**
- * The priority ladder, once per session, shared by every row on screen.
- *
- * Module-scoped promise and a hook over it, the same arrangement the variant
- * cell's own menus use two hundred lines down: forty rows must not be forty
- * requests for one short list, and priorityChoices() is already memoised for
- * exactly this - see its own doc comment on what happened the last time a
- * second consumer built a ladder of its own instead.
+ * The priority ladder, once per session, shared by every row on screen. Forty
+ * rows must not be forty requests for one short list, and priorityChoices() is
+ * memoised for this.
  */
 export function usePriorityNames(): Map<number, string> {
   const [names, setNames] = useState<Map<number, string>>(new Map());
@@ -677,7 +582,7 @@ export function usePriorityNames(): Map<number, string> {
         if (live) setNames(new Map(choices.map((c) => [c.value, c.id])));
       },
       () => {
-        /* no ladder, no name - the badge falls back to the raw number */
+        /* no ladder, no name: the badge falls back to the raw number */
       },
     );
     return () => {
@@ -688,24 +593,9 @@ export function usePriorityNames(): Map<number, string> {
 }
 
 /**
- * PriorityTag is the mark on a link whose priority somebody changed (jdp,
- * 2026-09-05: "Wenn man die Priorität erhöht muss das in der linkliste bzw im
- * downloadtab angezeigt werden. auf den links selbst").
- *
- * There was nothing at all before this: the queue sorts by priority, four
- * toolbar badges set it, and the row it was set on looked exactly like the row
- * beside it. A column would have been the ordinary answer and the wrong one
- * here - it would be hidden by default like the other low-traffic ones, so the
- * feature would still be invisible until somebody went looking for a column
- * they had no reason to suspect existed.
- *
- * Nothing is drawn at the default. A tag on every row is furniture, and the
- * whole point is that this row is not like the others.
- */
-/**
  * sharedPriority is the priority a whole package carries, or 0 when its links
- * do not agree. Same shape as the Enabled column's own aggregate: a package
- * says something about itself only when every row in it says the same thing.
+ * do not agree. Same shape as the Enabled column's aggregate: a package says
+ * something about itself only when every row in it says the same thing.
  */
 export function sharedPriority(items: Task[]): number {
   if (items.length === 0) return 0;
@@ -713,29 +603,30 @@ export function sharedPriority(items: Task[]): number {
   return items.every((x) => x.priority === first) ? first : 0;
 }
 
+/**
+ * PriorityTag marks a link whose priority somebody changed. Nothing is drawn at
+ * the default, because a tag on every row is furniture and the point is that
+ * this row is not like the others. A column would have been hidden by default
+ * like the other low-traffic ones, leaving the feature invisible.
+ */
 export function PriorityTag({ value, names, t }: { value: number; names: Map<number, string>; t: Translate }) {
   if (!value) return null;
   const id = names.get(value);
   const label = id ? t(`priority.${id}` as TranslationKey) : String(value);
   // A value outside the enum still gets a mark rather than vanishing: the queue
-  // orders any integer (clampPriority's own reasoning), so a row set by a rule
-  // or by a newer client must not silently look like an ordinary one.
+  // orders any integer (see clampPriority), so a row set by a rule or by a
+  // newer client must not look like an ordinary one.
   return (
-    // The glyph alone (jdp, 2026-09-06: "das prioritätenicon in der liste soll
-    // nur das icon sein, kein text, kein bagdehintergrund"). The name is not
-    // lost - it is the tooltip and the accessible name.
-    // The same drawing the right-click menu uses (jdp, 2026-09-07: "die symbole
-    // sollen die gleichen sein wie im rechtsklickmenü"). It used to be a
-    // Unicode chevron here and an SVG there, so one control named a rung with
-    // wedges and the row beside it named the same rung with a different mark.
-    // Up is the accent and down is muted rather than both being one colour: a
-    // raised link is the one somebody wants to spot in a long list.
+    // The glyph alone, with the name as the tooltip and the accessible name,
+    // and the same drawing the right-click menu uses, so one control does not
+    // name a rung with wedges while the row beside it uses a different mark. Up
+    // is the accent and down is muted: a raised link is the one somebody wants
+    // to spot in a long list.
     //
-    // --accent-ink, not --accent: the rule takes no thought - a colour on a
-    // `background` is --accent, a colour on `color`/`fill`/`stroke` against the
-    // page is --accent-ink. This glyph is drawn in the text colour on the
-    // card's own ground, and the flat accent there is Sunflower on white in the
-    // light theme, which is the exact case the derived ink token exists for.
+    // --accent-ink, not --accent: a colour on a `background` is --accent, a
+    // colour on `color`, `fill` or `stroke` against the page is --accent-ink.
+    // This glyph is drawn in the text colour on the card's own ground, where
+    // the flat accent is Sunflower on white in the light theme.
     <Tip
       tip={label}
       label={label}
@@ -750,38 +641,23 @@ function NameCell({ task, t, base }: { task: Task; t: Translate; base: string })
   // A pending automatic retry is not the same as a dead task, and saying so
   // stops people restarting something that is already about to restart.
   //
-  // retryPending and not a reading of its own. This was written
-  // `task.status === 'error' && !!task.nextTry`, which is the Go zero-time trap
-  // RetryCountdown's deadlineOf documents and countdown.ts's happened() exists
-  // for: NextTry is a time.Time, omitempty does nothing to a struct, so a task
-  // that is waiting for nothing arrives carrying "0001-01-01T00:00:00Z" and a
-  // non-empty string is true. Measured on a live list, five failed rows with no
-  // retry due between them, all five wearing the glyph and its
-  // "Wird automatisch wiederholt".
-  //
-  // Asking the shared predicate rather than fixing the `!!` in place is the
-  // other half. RetryCountdown says in as many words that the four readers of a
-  // failed row agree by all calling retryStateOf; this was a fifth reader that
-  // did not, and a corrected copy here would still have claimed a pending retry
-  // on a row that gave up, or on one whose deadline is long past. The status
-  // cell beside it says which of the four states the row is actually in, so
-  // nothing is lost by this glyph being honest about the one it names.
+  // The shared predicate rather than a reading of its own: NextTry is a
+  // time.Time, so a task waiting for nothing arrives carrying
+  // "0001-01-01T00:00:00Z" and a `!!task.nextTry` is true. Every reader of a
+  // failed row agrees by calling retryStateOf, and a corrected copy here would
+  // still claim a pending retry on a row that gave up.
   const retrying = retryPending(task);
   const reason = task.reason ? reasonKey[task.reason] : undefined;
   const advice = adviceFor(task.reason);
   const [whyOpen, setWhyOpen] = useState(false);
-  // The row's own rich tooltip lives on this cell rather than a plain
-  // `title`: it is the one cell that truncates first (see TREE_INDENT
-  // above), and the one hover that can afford to say more than the string
-  // already on screen - host, backend, connection, added/finished down to
-  // the second, whichever of DEFAULT_HIDDEN's six columns happen to be off
-  // right now. A native `title` is deliberately NOT also set on this element
-  // - the two would be hovering the exact same box, and the browser's own
-  // delayed tooltip would eventually stack on top of this one.
+  // The row's rich tooltip lives on this cell: it is the one that truncates
+  // first (see TREE_INDENT) and the one hover that can afford to say more than
+  // the string on screen. No native `title` beside it, or the browser's own
+  // delayed tooltip would stack on top of this one over the same box.
   const tip = useTooltip<HTMLDivElement>(<RowTooltipContent task={task} t={t} base={base} />);
   // The "open the advice" button's own bubble. Its visible text is the failure
-  // reason, so the tooltip says something the trigger does not - what pressing
-  // it does - which is the one case a labelled control still earns one.
+  // reason, so the tooltip says what pressing it does, which is the one case a
+  // labelled control still earns one.
   const openTip = useTooltip<HTMLButtonElement>(t('failure.open'));
   const { role: _openRole, tabIndex: _openTabIndex, ...openHover } = openTip.triggerProps;
   const priorityNames = usePriorityNames();
@@ -789,16 +665,14 @@ function NameCell({ task, t, base }: { task: Task; t: Translate; base: string })
     <div className="min-w-0">
       <div className="flex min-w-0 items-center gap-1.5">
         <PriorityTag value={task.priority} names={priorityNames} t={t} />
-        {/* text-sm is the scale's body row. It was 13.5px, which is not a step
-            the four-row table has - a half-pixel value only looks like a
-            decision because it was repeated. */}
+        {/* text-sm is the scale's body row; a half-pixel value is not a step
+            the four-row table has. */}
         <div dir="ltr" {...tip.triggerProps} className="min-w-0 truncate text-start text-sm text-carbon-text">
-          {/* task.ext is a display-only best-effort hint (core.Task.Ext's
-              own doc comment), never appended to task.name itself - Name
-              stays the resolved-vs-placeholder sentinel every rename/probe
-              guard in the backend already keys on. Only shown once a real
-              name has resolved: a bare URL placeholder gets no extension
-              tacked onto it. */}
+          {/* task.ext is a display-only hint (see core.Task.Ext), never
+              appended to task.name itself: Name stays the resolved-versus-
+              placeholder sentinel the backend's rename and probe guards key
+              on. Only shown once a real name has resolved, so a bare URL
+              placeholder gets no extension tacked onto it. */}
           {task.name && task.name !== task.url && task.ext ? `${task.name}.${task.ext}` : task.name || task.url}
         </div>
       </div>
@@ -808,23 +682,22 @@ function NameCell({ task, t, base }: { task: Task; t: Translate; base: string })
       )}
       {task.error && (
         <div className="mt-0.5 flex items-center gap-1.5 text-[11px]">
-          {/* The typed cause leads the line, as a tag rather than a second
-              sentence: a column reading DISK FULL four times is a fact about
-              this box, where four hoster sentences that each mean it are four
-              things to read. It is the quiet eyebrow type and never the accent —
-              a settled failure is not activity — and it carries no box of its
-              own, because the shade step is the separation.
+          {/* The typed cause leads the line as a tag rather than a second
+              sentence: a column reading "disk full" four times is one fact
+              about this box, where four hoster sentences that each mean it are
+              four things to read. Quiet eyebrow type and never the accent,
+              since a settled failure is not activity, and no box of its own,
+              because the shade step is the separation.
 
-              It is capped rather than left to size itself. This line has already
-              lost one fight to an element that would not shrink (see below), and
-              a tag free to run the width of the cell would squeeze the sentence
-              to nothing in a narrow column. At 45% the sentence always keeps the
-              larger half, and the tag truncates with its own tooltip. */}
+              Capped at 45% rather than left to size itself: a tag free to run
+              the width of the cell would squeeze the sentence to nothing in a
+              narrow column. The sentence keeps the larger half, and the tag
+              truncates with its own tooltip. */}
           {reason &&
             (advice ? (
-              // No stopPropagation: TaskList's CONTROL selector already begins
-              // with `button`, so the row's own click-to-select, its
-              // double-click-to-open and its dragstart all skip this for free.
+              // No stopPropagation: TaskList's control selector begins with
+              // `button`, so the row's click-to-select, its double-click and
+              // its dragstart all skip this.
               <>
                 <button
                   type="button"
@@ -841,28 +714,22 @@ function NameCell({ task, t, base }: { task: Task; t: Translate; base: string })
                 {t(reason)}
               </Tip>
             ))}
-          {/* The sentence wins the room, and `flex-1 min-w-0` is what gives it
-              to it. The pending-retry note used to sit here as `shrink-0` prose,
-              and prose that cannot shrink beside text that can is a race the
-              text always loses: measured on the live instance at 1440, the
-              German note wanted 142px of a 116px line, so the error span was
-              squeezed to ZERO and the note itself was still cut off mid-word by
-              the cell's own overflow. The row then said nothing about why it
-              had failed — on the one row on the page somebody has to act on. */}
           {/* `min-w-0` and no `flex-1`: it sizes to its text and is the only
               thing on the line that may shrink, so it takes the whole shortfall
               and the glyph stays beside the sentence it belongs to instead of
-              being pushed to the far edge of a wide column. */}
-          {/* The tool's own line stays in the bubble, so it is one hover away
-              and never lost - the plain-language sentence is a translation of
-              the failure, not a replacement for the evidence. */}
+              being pushed to the far edge of a wide column. Prose that cannot
+              shrink beside text that can is a race the text loses, and a row
+              that then says nothing about why it failed is the one row on the
+              page somebody has to act on. The tool's own line stays in the
+              bubble: the plain-language sentence translates the failure, it
+              does not replace the evidence. */}
           <Tip tip={task.error} className="min-w-0 truncate text-statusFail">
             {advice ? t(advice.line) : task.error}
           </Tip>
-          {/* So the note is a glyph now: fixed width, never competing, and it
-              still carries the whole sentence for the pointer and the screen
-              reader. It is deliberately not the accent — a retry that has not
-              happened yet is waiting, not activity. */}
+          {/* The retry note is a glyph: fixed width, never competing, and still
+              carrying the whole sentence for the pointer and the screen reader.
+              Not the accent, because a retry that has not happened yet is
+              waiting rather than activity. */}
           {retrying && (
             <Tip tip={t('task.retryPending')} label={t('task.retryPending')} className="shrink-0 text-carbon-textMuted">
               <IconRetry width={11} height={11} />
@@ -912,37 +779,30 @@ function ProgressCell({
   );
 }
 
-// AvailDot is StatusCell's own dot, pulled out so PackageStatusCell below -
-// the status column's PACKAGE row, jdp 2026-08-25's own follow-up ("auf dem
-// ordner wird in der spalte immer noch gesammelt angezeigt") - can paint the
-// exact same shape over a whole package's aggregate verdict instead of one
-// task's.
+// AvailDot is StatusCell's own dot, pulled out so the status column's package
+// row can paint the same shape over a whole package's aggregate verdict.
 function AvailDot({ avail, title, mixed }: { avail: Availability | undefined; title?: string; mixed?: boolean }) {
   return (
-    // A dot with no text of its own: it needs the bubble unconditionally, and
-    // the name with it - see Tip. The house bubble, never the OS balloon.
+    // A dot with no text of its own needs the bubble and the name
+    // unconditionally; see Tip.
     <Tip
       tip={title}
       label={title}
       className={`inline-block h-2 w-2 shrink-0 rounded-[var(--radius-pill)] ${
-        // Mixed is the package's own third answer and it outranks the verdict
-        // below (jdp, 2026-09-06: "der punkt auf dem container kann gelb sein
-        // wenn manche links online sind und manche offline"). A folder with one
-        // dead link among nine good ones is neither green nor red, and painting
-        // it either way hides the one row somebody has to act on.
+        // Mixed is the package's third answer and outranks the verdict below. A
+        // folder with one dead link among nine good ones is neither green nor
+        // red, and painting it either way hides the row somebody has to act on.
         mixed ? 'bg-statusWarnSolid' : avail ? availDot[avail] : 'bg-carbon-textMuted/40'
       }`}
     />
   );
 }
 
-// packageAvailStatus folds every item's own verdict into the one worth
-// showing on their shared package row: any dead link outranks everything
-// else (the same "bad news wins" rule packageStatus's own error check
-// already follows), all-online is the other unambiguous case, uncheckable
-// is worth a glance even mixed with plain unchecked, and undefined (the
-// neutral dot) is what a package nobody has checked yet - or one that
-// mixes online and offline links with nothing worse - shows.
+// packageAvailStatus folds every item's verdict into the one worth showing on
+// their shared package row: any dead link outranks everything else, the same
+// way packageStatus's error check does, all-online is the other unambiguous
+// case, uncheckable is worth a glance even mixed with plain unchecked, and
+// undefined is the neutral dot a package nobody has checked yet shows.
 function packageAvailStatus(items: Task[]): Availability | undefined {
   if (items.some((x) => x.online === 'offline')) return 'offline';
   if (items.length > 0 && items.every((x) => x.online === 'online')) return 'online';
@@ -956,12 +816,9 @@ function packageAvailMixed(items: Task[]): boolean {
 }
 
 /**
- * AvailCell is the collector's own column: is this link there or not.
- *
- * Just the dot, and only ever the availability verdict (jdp, 2026-09-06: "Im
- * Linksammlertab soll die spalte Verfügbarkeit heißen und anzeigen ob ein link
- * online oder oflfine ist. nur punkt"). Every staged row carries the identical
- * task.status, so a state word there would read "gesammelt" on all of them.
+ * AvailCell is the collector's own column: is this link there or not. Just the
+ * dot, and only the availability verdict. Every staged row carries the same
+ * task.status, so a state word there would read "collected" on all of them.
  */
 function AvailCell({ task, t }: { task: Task; t: Translate }) {
   const why = task.reason ? reasonKey[task.reason] : undefined;
@@ -970,12 +827,10 @@ function AvailCell({ task, t }: { task: Task; t: Translate }) {
 }
 
 /**
- * waitingKey names each reason a queued task is not running.
- *
- * Typed as TranslationKey rather than plain string for the same reason
- * reasonKey above is: a lookup through it stays something t() accepts, so a
- * renamed key is a compile error and not a row that silently prints its own
- * key. An unknown value falls back at the call site rather than here, because a
+ * waitingKey names each reason a queued task is not running. Typed as
+ * TranslationKey for the same reason reasonKey is: a lookup through it stays
+ * something t() accepts, so a renamed key is a compile error rather than a row
+ * printing its own key. An unknown value falls back at the call site, because a
  * newer server may send a reason this build has never heard of.
  */
 const waitingKey: Partial<Record<NonNullable<Task['waiting']>, TranslationKey>> = {
@@ -987,17 +842,9 @@ const waitingKey: Partial<Record<NonNullable<Task['waiting']>, TranslationKey>> 
   captcha: 'task.waiting.captcha',
   account: 'task.waiting.account',
   halted: 'task.waiting.halted',
-  // The disk guard's own reason. It was the only one of the nine with no entry
-  // here, so a queue held back by the free-space floors read as "all slots
-  // busy" - the wrong explanation, and the one a person would act on by raising
-  // the concurrency limit. It only became reachable when the three thresholds
-  // got controls, which is exactly when the wrong word would have been the
-  // first thing anybody saw.
+  // A reason with no entry here reads as "all slots busy", which sends somebody
+  // to raise the concurrency limit against a queue that is not short of slots.
   disk: 'task.waiting.disk',
-  // The volume allowance for this period being used up. Same lesson as the
-  // disk reason directly above: a reason with no entry here reads as "all
-  // slots busy", which sends somebody to raise the concurrency limit against a
-  // queue that is not short of slots at all.
   volumeCap: 'task.waiting.volumeCap',
 };
 
@@ -1007,47 +854,40 @@ function StatusCell({ task, t }: { task: Task; t: Translate }) {
   // is for; whether the host was rate-limiting us or simply down is the next
   // question, and it belongs one hover away, not in the width of the cell.
   const why = task.reason ? reasonKey[task.reason] : undefined;
-  // A staged row can still turn up in the download list's own history views,
-  // and there the availability dot is the only honest reading - the transfer
-  // has not begun, so it has no state of its own yet.
+  // A staged row can still turn up in the download list's history views, where
+  // the availability dot is the only honest reading: the transfer has not begun
+  // and the row has no state of its own yet.
   if (task.status === 'collected') {
     const avail = task.online;
     return <AvailDot avail={avail} title={why ? t(why) : avail ? t(availChip[avail].key) : undefined} />;
   }
   return (
-    // max-w-full is what makes the truncate below actually truncate. Without it
-    // this inline-flex takes its content's width - measured live at 175px inside
-    // a 148px column - and the CELL does the clipping instead, which cuts mid-word
-    // with no ellipsis and no way to read the rest ("Warteschlange g").
+    // max-w-full is what makes the truncate below truncate. Without it this
+    // inline-flex takes its content's width and the cell does the clipping
+    // instead, which cuts mid-word with no ellipsis and no way to read the rest.
     <span className="inline-flex min-w-0 max-w-full items-center gap-2">
       <StatusPill status={task.status} />
-      {/* What the backend is actually doing, when "running" is not the whole
-          truth (jdp, 2026-09-03: "es zeigt wieder nur 'lädt' an ... bei free
-          downloads müsste doch eine captcha abfrage kommen"). He was right that
-          a captcha was happening: measured on the live instance, JD reported
-          "Captcha recognition (rapidgator.net)" on the package while this column
-          said "running" with no bytes, because nothing carried the backend's own
-          word out of it.
-          Beside the status rather than in the metadata line: it is the answer to
-          "why is nothing moving", and that is the question somebody asks while
-          looking at the status. Muted and truncating, because it is a sentence
-          from somebody else's program and may be long. */}
+      {/* What the backend is doing, when "running" is not the whole truth: JD
+          can report "Captcha recognition (rapidgator.net)" on a package while
+          this column says running with no bytes moving. Beside the status
+          rather than in the metadata line, because it answers "why is nothing
+          moving", which is the question somebody asks while looking at the
+          status. Muted and truncating, since it is a sentence from somebody
+          else's program and may be long. */}
       {task.note && (
         <Tip tip={task.note} className="min-w-0 truncate text-[11px] text-carbon-textMuted">
           {task.note}
         </Tip>
       )}
-      {/* Why a queued row is not running (jdp's list, "Grund fürs Warten in der
-          Zeile"). The dispatcher has always known - the slot count is full, this
-          host is at its own ceiling, the account behind the only backend that
-          claims the link is benched - and it threw the answer away, so ten
-          queued rows all said "Wartet" and telling four completely different
-          situations apart meant reasoning about the settings page.
+      {/* Why a queued row is not running: the slot count is full, this host is
+          at its ceiling, the account behind the only backend that claims the
+          link is benched. Without it ten queued rows all say "waiting" and
+          telling four different situations apart means reasoning about the
+          settings page.
 
-          Only when there is no note: a backend's own sentence about what it is
-          doing right now is more specific than our reason for not having started
-          it, and two greys competing on one line is how a cell stops being
-          readable. */}
+          Only when there is no note: a backend's sentence about what it is
+          doing right now is more specific than our reason for not having
+          started it, and two greys on one line stop the cell being readable. */}
       {!task.note && task.waiting && (
         // A bubble for the same reason task.note has one: this column is narrow
         // by default and several of these reasons are longer in German than the
@@ -1086,9 +926,6 @@ function StatusCell({ task, t }: { task: Task; t: Translate }) {
   );
 }
 
-// The column's own read of useConnectionLabel above - text truncated to the
-// cell, hint carried in the house bubble since this box, unlike the name
-// column, is not already sitting under the row's own rich tooltip.
 /** The host column: its logo, then its name. Blank rows draw neither. */
 function HostCell({ host }: { host: string }) {
   if (!host) return null;
@@ -1100,6 +937,9 @@ function HostCell({ host }: { host: string }) {
   );
 }
 
+// The column's read of useConnectionLabel: text truncated to the cell, hint in
+// the house bubble, since this box is not sitting under the row's own tooltip
+// the way the name column is.
 function ConnectionCell({ task, t, base }: { task: Task; t: Translate; base: string }) {
   const label = useConnectionLabel(task, t, base);
   if (!label) return null;
@@ -1110,16 +950,12 @@ function ConnectionCell({ task, t, base }: { task: Task; t: Translate; base: str
   );
 }
 
-// --- Values a column needs that the task does not carry directly -----------
-
 const label = (t: Task): string => t.name || t.url;
 
-// hostOf moved to lib/searchQuery.ts, cache and all, and is re-exported from
-// here because this is the module the collector's facets and stats already
-// import it from. It went because the search field kept a SECOND copy of the
-// same rule for as long as it has had a "Host" category to search: the column
-// and the `host:` term are one question, and two answers to it is how a row is
-// filed under one host and found under another.
+// hostOf lives in lib/searchQuery.ts, cache and all, and is re-exported here
+// because this is the module the collector's facets and stats import it from.
+// The column and the `host:` search term are one question, and two answers to
+// it is how a row is filed under one host and found under another.
 export { hostOf } from '../lib/searchQuery';
 
 // Sorting by status alphabetically tells nobody anything; sorting by where a
@@ -1135,7 +971,7 @@ const STATUS_RANK: Record<Task['status'], number> = {
 };
 
 /**
- * packageStatus is the one word a package header can honestly show.
+ * packageStatus is the one word a package header can truthfully show.
  *
  * A failure anywhere wins, whatever else the package is doing: nine finished
  * files and one dead link is not a finished package, and a header that says
@@ -1164,36 +1000,29 @@ const cmpText = (a: string, b: string): number => a.localeCompare(b);
 
 const sum = (items: Task[], pick: (t: Task) => number): number => items.reduce((s, x) => s + pick(x), 0);
 
-/** Same signal as RowTooltipContent's own isTorrent - internal/resolver/torrent's Info().ID. */
+/** Same signal as RowTooltipContent's isTorrent: internal/resolver/torrent's Info().ID. */
 const isTorrentTask = (t: Task): boolean => t.resolver === 'torrent';
 
 /**
- * fmtRatio prints uploaded-over-downloaded to two places, never scientific
- * notation and never blank for a real zero - a fresh torrent that has not
- * uploaded a byte yet genuinely is "0.00", the same "zero is a true statement
- * for a torrent" rule core.TorrentStats' own doc comment states for peers and
+ * fmtRatio prints uploaded over downloaded to two places, never scientific
+ * notation and never blank for a real zero: a fresh torrent that has not
+ * uploaded a byte is "0.00", the same way core.TorrentStats treats peers and
  * seeds.
  */
 function fmtRatio(r: number | undefined): string {
   return (r ?? 0).toFixed(2);
 }
 
-// --- The "Variante" column --------------------------------------------------
+// core.Task.Variant, decoded the way variantEncode and variantDecode
+// (app_ytdlp_variants.go) encode it: "<kind>" or "<kind>:<sub>". kind is one of
+// the five rows expandYtdlpVariants creates for a yt-dlp-routed link, fixed
+// when the row was created and never edited here. sub is a quality preset on a
+// video row or an audio format on an audio row, the only two kinds this
+// column's picker edits.
 //
-// core.Task.Variant, decoded the same way variantEncode/variantDecode
-// (app_ytdlp_variants.go) encode it: "<kind>" or "<kind>:<sub>". kind is one
-// of the five rows expandYtdlpVariants always creates for a yt-dlp-routed
-// link - video/audio/thumbnail/subtitle/description - fixed the moment that
-// row was created, never edited here. sub is a quality preset on a video
-// row or an audio format on an audio row, the only two kinds this column's
-// own picker edits (jdp, 2026-08-25's locked answer: "Video (Auflösung...),
-// Audio (Format/Bitrate...)" - a thumbnail/subtitle/description row gets no
-// picker, just its own kind label).
-//
-// This column is not only a nicety: setTaskName (app_tasks.go) propagates
-// one resolved title to every URL-sharing sibling, so all five of a link's
-// own rows show the exact same Name. This is the one column where they read
-// differently from each other at all.
+// setTaskName (app_tasks.go) propagates one resolved title to every
+// URL-sharing sibling, so all five of a link's rows show the same Name. This is
+// the one column where they read differently from each other.
 export function variantKindOf(task: Task): string {
   const v = task.variant ?? '';
   const i = v.indexOf(':');
@@ -1215,58 +1044,42 @@ export const VARIANT_KIND_LABEL_KEY: Record<string, TranslationKey> = {
 };
 
 /**
- * One shared fetch backs every row's own picker, not one per row: the menu
- * is the same handful of ids for the whole table, and forty rows each
- * calling fetchOptions() on mount would be forty identical requests for the
- * same short list. Module-scoped rather than threaded through CellContext,
- * so this column stays self-contained the way peers/seeds/ratio's own
- * isTorrentTask does, instead of widening what every OTHER cell's context
- * has to carry for a menu only this one column reads.
+ * One shared fetch backs every row's picker rather than one per row: the menu
+ * is the same handful of ids for the whole table, and forty rows calling
+ * fetchOptions() on mount would be forty identical requests. Module-scoped
+ * rather than threaded through CellContext, so this column stays
+ * self-contained instead of widening what every other cell's context carries
+ * for a menu only this column reads.
  */
-// The settings tree's own select treatment (RuleEditor.tsx's `Select`),
-// re-declared here rather than imported from it - a row-level cell has no
-// business importing from a settings page component - instead of the bare
-// bg-carbon-surface3/60 box this cell used at first (jdp, 2026-08-26: "Die
-// varianen dropdownlisten sind nicht im GlimStone Style").
-// Readable as a control, not as a word that happens to be clickable (jdp,
-// 2026-09-05: "die varianten dropdown buttons viel zu klein und kaum
-// sichtbar"). Three things were wrong and each of them alone was enough: the
-// ground was surface2 on rows that are themselves surface2, so the box had no
-// edge; 11px is the caption size, below everything else on the row; and there
-// was no chevron, which is the one mark that says "this opens".
+// The settings tree's select treatment (RuleEditor.tsx's `Select`), re-declared
+// here rather than imported, since a row-level cell has no business importing
+// from a settings page component. It has to read as a control and not as a word
+// that happens to be clickable: a surface2 ground on rows that are themselves
+// surface2 gives the box no edge, and without a chevron nothing says "this
+// opens". The chevron is an element of its own (IconChevronDown, in
+// VariantPicker) rather than a background image, because this is no longer a
+// <select>.
 //
-// The chevron is an element of its own (IconChevronDown, in VariantPicker
-// below) and not paint in a background image, because this stopped being a
-// <select> at all - see VariantPicker's own note for why it had to.
-//
-// hover:bg-carbon-hoverRaised, never hover:bg-carbon-hover: this box is FILLED
-// with surface3, and --carbon-hover is the hover for an element carrying no
-// fill of its own. It sits BELOW surface3 on every ramp - 29 units below it on
-// the dark one - so the class this line used to carry dimmed the control at the
-// one moment somebody was looking straight at it (GlimStone rule 21). The
-// replacement is defined in all three colour blocks of index.css and steps in
-// opposite directions in them, lighter on dark (#6f6f6f) and darker on light
-// (#c6c6c6); the rainbow and shape modes do not touch it, this element carries
-// no .glim-hue. ONE template literal rather than three concatenated strings on
-// purpose: check-hover-ramp.mjs reads one class list per literal and names that
-// as its own KNOWN LIMIT, so with the fill in the first string and the hover in
-// the second, the guard written for this exact rule could not see this line.
+// hover:bg-carbon-hoverRaised, never hover:bg-carbon-hover: this box is filled
+// with surface3, and --carbon-hover is the hover for an element with no fill of
+// its own, which sits below surface3 on every ramp and would dim the control at
+// the moment somebody is looking straight at it (GlimStone rule 21). One
+// template literal rather than concatenated strings, because
+// check-hover-ramp.mjs reads one class list per literal.
 const VARIANTE_SELECT_CLASS = `shrink-0 inline-flex items-center gap-1 cursor-pointer rounded-[var(--radius-control)]
   bg-carbon-surface3 py-1 ps-2 pe-1.5 text-xs text-carbon-text outline-none transition-shadow
   hover:bg-carbon-hoverRaised focus-visible:shadow-[0_0_0_2px_var(--focus-ring)] disabled:opacity-40`;
 
 /**
- * VariantPicker is the "Variante" cell's own dropdown - a button and a
- * ContextMenu, never a native <select>.
+ * VariantPicker is the variant cell's dropdown: a button and a ContextMenu,
+ * never a native <select>.
  *
- * A <select> paints its OPEN list with the operating system's widget, which on
- * Windows is a white panel with an orange focus frame that belongs to no theme
- * this app has (jdp, 2026-09-06: "wenn ich bei youtube die varianten dropwdown
- * öffne bekommen sie so orange begrenzungen. die dropdownlisten sind nicht im
- * GSS"). `appearance: none` reaches the closed box only; the popup is the
- * browser's and cannot be styled at all. ContextMenu is the app's own menu
- * surface, already keyboard-navigable, already dismissed the same way every
- * other menu here is, and it draws a checked mark for the value in force.
+ * A <select> paints its open list with the operating system's widget, which on
+ * Windows is a white panel with an orange focus frame belonging to no theme
+ * this app has. `appearance: none` reaches the closed box only; the popup is
+ * the browser's and cannot be styled. ContextMenu is the app's own menu
+ * surface, keyboard-navigable, dismissed the way every other menu here is, and
+ * it draws a checked mark for the value in force.
  */
 function VariantPicker({
   value,
@@ -1286,59 +1099,46 @@ function VariantPicker({
   render: (option: string) => string;
   onPick: (value: string) => void;
   /**
-   * The caller's own failure counter. Every bump shakes this trigger once:
-   * the value was shown optimistically, the server refused it, and a control
-   * that just snaps back says nothing (GlimStone, the motion engine). Keyed on
-   * the number rather than toggled as a class, so a second identical refusal
-   * gets a fresh DOM node and visibly shakes again.
+   * The caller's failure counter. Every bump shakes this trigger once: the
+   * value was shown optimistically, the server refused it, and a control that
+   * only snaps back says nothing. Keyed on the number rather than toggled as a
+   * class, so a second identical refusal gets a fresh DOM node and shakes again.
    */
   shake?: number;
 }) {
   const menu = useContextMenu();
   const trigger = useRef<HTMLButtonElement>(null);
-  // The house bubble rather than the OS balloon - see Tip. The trigger shows
-  // the chosen value; the tooltip says what the picker chooses, which is not
-  // the same sentence.
+  // The house bubble rather than the OS balloon; see Tip. The trigger shows the
+  // chosen value, the tooltip says what the picker chooses.
   const tip = useTooltip<HTMLButtonElement>(label);
   // The wheel listener below needs this element too, and one element takes one
-  // ref: both are filled from the same callback rather than one of them quietly
-  // losing to the other.
+  // ref, so both are filled from the same callback.
   const { role: _tipRole, tabIndex: _tipTabIndex, ref: tipRef, ...tipHover } = tip.triggerProps;
 
   /**
-   * The wheel steps the value here, exactly as it does on the app's remaining
-   * native <select>s (QueueBar, RuleEditor, SearchField). That is the whole of
-   * rule 14's wheel clause: the wheel belongs to the PICKER, not to the element
-   * the platform happens to draw, so replacing a <select> with our own menu -
-   * which is what the note above this component describes - must not take the
-   * behaviour away with it.
+   * The wheel steps the value here as it does on the app's remaining native
+   * <select>s: rule 14 gives the wheel to the picker, not to the element the
+   * platform happens to draw. Clamped at both ends rather than wrapping, and a
+   * value that is not in the list at all, such as the audio row's "auto"
+   * bitrate, steps to the first option.
    *
-   * Clamped at both ends rather than wrapping: one notch too many must not hand
-   * this download a quality from the other end of the list. A value that is not
-   * in the list at all (the audio row's "auto" bitrate) steps to the first
-   * option, because there is no neighbour to step to from outside the list.
+   * A real listener with `{ passive: false }` and not onWheel, which React
+   * registers passive at its root: without preventDefault the list scrolls away
+   * under the pointer while the value changes.
    *
-   * A real listener with `{ passive: false }` and not onWheel: React registers
-   * onWheel passive at its root, so preventDefault there does nothing but log a
-   * warning, and the list would scroll away under the pointer while the value
-   * changed.
-   *
-   * Worth knowing before this is changed: this picker sits on a LIST ROW, so
-   * while the pointer rests on it the wheel edits a download instead of
-   * scrolling the list, and each notch is a request (setTaskOptions). That is
-   * the rule as written, and jdp asked for it in exactly those terms
-   * ("Dropdownlisten soll man ueberall auch per scrollen umschalten koennen").
-   * If it ever reads as the list refusing to scroll, the answer is a condition
-   * on the gesture, not a quiet exemption for this one picker.
+   * This picker sits on a list row, so while the pointer rests on it the wheel
+   * edits a download instead of scrolling the list, and each notch is a request
+   * (setTaskOptions). If that ever reads as the list refusing to scroll, the
+   * answer is a condition on the gesture, not an exemption for this picker.
    */
   useEffect(() => {
     const el = trigger.current;
     if (!el) return;
     const onWheel = (e: WheelEvent) => {
       // A horizontal wheel says nothing about this control, and a trackpad
-      // reports fractional deltas - so read the sign of deltaY and nothing else.
+      // reports fractional deltas, so only the sign of deltaY is read.
       if (disabled || options.length < 2 || e.deltaY === 0) return;
-      // This handler IS the scroll while the pointer sits on the control.
+      // This handler is the scroll while the pointer sits on the control.
       e.preventDefault();
       const at = options.indexOf(value);
       if (at < 0) {
@@ -1351,11 +1151,9 @@ function VariantPicker({
     };
     el.addEventListener('wheel', onWheel, { passive: false });
     return () => el.removeEventListener('wheel', onWheel);
-    // `shake` is in here because the shake mechanism REPLACES this element: it
-    // keys the button on the counter, so a refusal unmounts the node this
-    // listener is attached to and mounts a fresh one. Without the dependency
-    // the effect would not run again, and the wheel would go on stepping a
-    // button that is no longer in the document - the control would simply stop
+    // `shake` is a dependency because the shake mechanism replaces this
+    // element: it keys the button on the counter, so a refusal unmounts the
+    // node this listener is attached to. Without it the control would stop
     // answering the wheel after the first refused change.
   }, [disabled, options, value, onPick, shake]);
 
@@ -1440,7 +1238,7 @@ function useYtdlpMenus() {
 function VarianteCell({ task, ctx }: { task: Task; ctx: CellContext }) {
   const { toast } = useToast();
   const [busy, setBusy] = useState(false);
-  // One counter EACH, never one shared between the two pickers: they have their
+  // One counter each, never one shared between the two pickers: they have their
   // own handlers and their own endpoints, and a shared nonce would shake the
   // picker nobody touched.
   const [shakeQuality, setShakeQuality] = useState(0);
@@ -1451,19 +1249,12 @@ function VarianteCell({ task, ctx }: { task: Task; ctx: CellContext }) {
   if (!kind) return null;
   const sub = variantSubOf(task);
   const label = ctx.t(VARIANT_KIND_LABEL_KEY[kind] ?? VARIANT_KIND_LABEL_KEY.video);
-  // A video row's own probe (task.availableQualities, core.Task's own doc
-  // comment) narrows the menu to what this specific source genuinely
-  // offers (jdp, 2026-08-25: "man soll nur die varianten auswählen können
-  // die wirklich verfügbar sind") - falling back to the full static menu
-  // whenever nothing has probed yet, exactly like every other "empty means
-  // no opinion" field this feature already follows. Audio format now
-  // narrows the same way (jdp, 2026-08-26, reversing this cell's own
-  // earlier reasoning that -x --audio-format works for any target
-  // regardless of source codec: "bei der audio spur sollen nur die formate
-  // angezeigt werden die wirklich von hoster angeboten werden" - a source
-  // never really WAS lossless just because ffmpeg can technically wrap its
-  // lossy audio in a lossless container, and offering that choice invited
-  // exactly that misunderstanding).
+  // A video row's own probe (task.availableQualities) narrows the menu to what
+  // this source offers, falling back to the full static menu while nothing has
+  // probed yet, the way every other "empty means no opinion" field here does.
+  // Audio format narrows the same way: a source is not lossless just because
+  // ffmpeg can wrap its lossy audio in a lossless container, and offering that
+  // choice invites the misunderstanding.
   const options =
     kind === 'video'
       ? task.availableQualities?.length
@@ -1474,9 +1265,7 @@ function VarianteCell({ task, ctx }: { task: Task; ctx: CellContext }) {
           ? task.availableAudioFormats
           : menus.audioFormats
         : null;
-  // Same narrowing as the format select above, applied to the bitrate
-  // picker (jdp, 2026-08-26: "alle formate immer auf hosterangebot
-  // begrenzen. auch die audioqualitäten! bei allen hostern!").
+  // The same narrowing as the format select above, applied to the bitrates.
   const bitrateOptions = task.availableAudioBitrates?.length ? task.availableAudioBitrates : menus.audioBitrates;
 
   async function change(value: string) {
@@ -1523,10 +1312,9 @@ function VarianteCell({ task, ctx }: { task: Task; ctx: CellContext }) {
           shake={shakeQuality}
         />
       )}
-      {/* The audio row's own second, independent picker - a bitrate on top
-          of the format above, not a mode of it (jdp, 2026-08-26: "soll die
-          Audioqualität also die kbit/s auswählbar sein"). Shown only on the
-          audio row, alongside its format select rather than replacing it. */}
+      {/* The audio row's second, independent picker: a bitrate on top of the
+          format above, not a mode of it, and shown alongside the format select
+          rather than replacing it. */}
       {kind === 'audio' && bitrateOptions.length > 0 && (
         <VariantPicker
           value={task.audioBitrate || ''}
@@ -1542,13 +1330,11 @@ function VarianteCell({ task, ctx }: { task: Task; ctx: CellContext }) {
   );
 }
 
-// --- The registry ----------------------------------------------------------
-
 export const COLUMNS: ColumnDef[] = [
   {
     id: 'enabled',
     labelKey: 'columns.enabled',
-    // Collector only - see ColumnDef.onlyIn for why this is not a default-hidden.
+    // Collector only; see ColumnDef.onlyIn for why this is not default-hidden.
     onlyIn: ['collector'],
     width: 56,
     minWidth: 48,
@@ -1565,30 +1351,15 @@ export const COLUMNS: ColumnDef[] = [
   {
     id: 'name',
     labelKey: 'columns.name',
-    // 340 leaves 272px for the name itself once the tree indent and the cell's
-    // trailing padding are paid, and 272px is not enough for the names this app
-    // is pointed at (jdp, 2026-09-14: "Die namensspalte ist sehr schmal").
-    // Measured on the live instance, in the collector, at text-sm: a scene
-    // release - "Some.Very.Long.Scene.Release.Name.2026.German.DL.1080p.
-    // BluRay.x264-GROUPNAME.mkv" - wants 557px and showed 272, and every one of
-    // the five rows of a yt-dlp package was cut as well (392 to 462px wanted).
+    // 340 leaves 272px for the name once the tree indent and the cell's
+    // trailing padding are paid, which a long scene release or any of the five
+    // rows of a yt-dlp package outruns.
     //
-    // The collector's 460 is not a taste number either: it is what there is to
-    // take. That list's last column carries all the surplus (see gridTemplate),
-    // so at 1600px the Variante column was rendering 420px wide for a cell that
-    // needs at most 222 - the name's extra 120px comes straight out of that
-    // blank and the table still fits exactly as before (tracks 1240px at 1600
-    // before and after; the Variante column went 420 -> 300 there, 740 -> 620
-    // at 1920). The narrow end costs 44px: with the Variante column's own
-    // default coming down from 236 to 160 in the same pass, the collector's
-    // minimum goes 1056 -> 1100, measured as 180px of sideways scrolling at a
-    // 1280px window instead of 136, and 60 instead of 16 at 1400.
-    //
-    // Downloads keeps 340 because it has nothing to take it from: measured at
-    // 1400px it already overruns its card by 86px, and the same 120px there
-    // would be 120px more of that. That list's own surplus sits in the progress
-    // column at wide windows only (284px at 1600, 604px at 1920), which is the
-    // same last-column stretch and a separate decision from this one.
+    // The collector gets 460 because it has the room: that list's last column
+    // carries all the surplus (see gridTemplate), so the extra 120px comes out
+    // of a blank stretch and the table fits exactly as before. Downloads keeps
+    // 340 because it has nothing to take it from, already overrunning its card
+    // below about 1500px.
     width: 340,
     widthByProfile: { collector: 460 },
     minWidth: TREE_INDENT + NAME_TEXT_FLOOR,
@@ -1674,8 +1445,8 @@ export const COLUMNS: ColumnDef[] = [
   {
     id: 'status',
     labelKey: 'columns.status',
-    // Two lists, two honest meanings for one stored column - see CellContext's
-    // own `profile` doc comment.
+    // Two lists, two honest meanings for one stored column; see CellContext's
+    // own `profile`.
     labelByProfile: { collector: 'columns.availability' },
     width: 148,
     minWidth: 90,
@@ -1684,10 +1455,9 @@ export const COLUMNS: ColumnDef[] = [
     compare: (a, b) => STATUS_RANK[a.status] - STATUS_RANK[b.status],
     render: (task, ctx) =>
       ctx.profile === 'collector' ? <AvailCell task={task} t={ctx.t} /> : <StatusCell task={task} t={ctx.t} />,
-    // A package that shows nothing in the status column is a package that looks
-    // like a spacer. It gets the same pill as a link, over the whole package -
-    // or, in the collector, the same availability dot its own rows show, with
-    // the mixed case as its own colour.
+    // A package that shows nothing in the status column looks like a spacer. It
+    // gets the same pill as a link, over the whole package, or in the collector
+    // the same availability dot its rows show, with mixed as its own colour.
     aggregate: (items, ctx) =>
       ctx.profile === 'collector' || packageStatus(items) === 'collected' ? (
         <AvailDot avail={packageAvailStatus(items)} mixed={packageAvailMixed(items)} />
@@ -1707,11 +1477,9 @@ export const COLUMNS: ColumnDef[] = [
     ltr: true,
     hideable: true,
     compare: (a, b) => cmpText(hostOf(a), hostOf(b)),
-    // The host's own logo beside its name (jdp, 2026-09-06: "in der hoster
-    // spalte soll auch das logo des hosters zu sehen sein"), the same lazy,
-    // self-cached icon the account picker draws - the instance fetches it once
-    // and serves it from disk, so a list of five hundred rows over twenty hosts
-    // is twenty requests, not five hundred.
+    // The host's logo beside its name, the same lazy, self-cached icon the
+    // account picker draws: the instance fetches it once and serves it from
+    // disk, so five hundred rows over twenty hosts are twenty requests.
     render: (task) => <HostCell host={hostOf(task)} />,
     // Only when the whole package came from one host. "3 hosts" in a column of
     // host names is a different kind of value in the same column.
@@ -1764,7 +1532,7 @@ export const COLUMNS: ColumnDef[] = [
     numeric: true,
     hideable: true,
     // Unfinished tasks carry Go's zero timestamp, which sorts before every real
-    // one — so ascending puts "not finished" first, which is where it belongs.
+    // one, so ascending puts "not finished" first, where it belongs.
     compare: (a, b) => cmpText(a.finishedAt ?? '', b.finishedAt ?? ''),
     render: (task) => fmtDate(task.finishedAt),
   },
@@ -1795,43 +1563,24 @@ export const COLUMNS: ColumnDef[] = [
   {
     id: 'variant',
     labelKey: 'columns.variant',
-    // Sized for the row every yt-dlp package HAS, not for the one row in five
-    // that carries the most (jdp, 2026-09-14: "mach die so breit wie sie nur
-    // sein muss"). Measured on the live instance in all 42 locales, cell
-    // content on one line plus the cell's own 16px of padding:
+    // Sized for the row every yt-dlp package has, not for the one row in five
+    // that carries the most. Measured in all 42 locales, four of the five kinds
+    // fit in 90px and only the audio row, with its second picker, wants 216.
+    // 160 carries the video row in every language and lets the audio row wrap,
+    // which it can since the pickers are shrink-0 and the cell flex-wrap.
     //
-    //   video       143 (lt)   audio       216 (bg), 222 worst case
-    //   thumbnail    90 (he)   subtitle     77 (da)   description 81 (eu)
-    //
-    // Four of the five kinds fit in 90px; only the audio row, with its second
-    // picker, wants 216. 160 carries the video row - the one kind that shares a
-    // package with every other - in every language, and lets the audio row wrap
-    // when the column is actually that narrow.
-    //
-    // Wrapping is what happens now, and it is why this number could come down
-    // from 236. The comment that stood here said 236 was needed because at 132
-    // the two pickers were "shaved to a single letter each" ("opus" as "c"),
-    // reported by jdp on 2026-09-05. That was true of the build before the fix
-    // and not of the one after it: the same commit gave the pickers shrink-0
-    // and the cell flex-wrap. Driven to 132 on the live instance now, both
-    // pickers render at full size (55px and 95px, nothing clipped) with the
-    // bitrate one on a second line, and the row grows 40px -> 70px. So the
-    // number was buying "the audio row stays on one line", not "the controls
-    // stay readable", and it was charging every other row for it.
-    //
-    // minWidth is about the widest SINGLE control, because a picker cannot
-    // shrink (shrink-0) and the cell clips rather than squeezes it: the widest
-    // one measured is Finnish "Automaattinen" at 107px, 123px with the padding.
-    // 132 stands.
+    // minWidth is about the widest single control, because a picker cannot
+    // shrink and the cell clips rather than squeezes it: the widest measured is
+    // Finnish "Automaattinen" at 107px, 123px with the padding.
     width: 160,
     minWidth: 132,
     align: 'start',
     hideable: true,
     compare: (a, b) => cmpText(variantKindOf(a), variantKindOf(b)),
     render: (task, ctx) => <VarianteCell task={task} ctx={ctx} />,
-    // No aggregate: a package almost always mixes kinds (its own video,
-    // audio, thumbnail... rows all share one package), so there is no
-    // single variant a package header could honestly show.
+    // No aggregate: a package almost always mixes kinds, its video, audio and
+    // thumbnail rows all sharing one package, so there is no single variant a
+    // package header could show for all of them.
   },
   {
     id: 'source',
@@ -1844,23 +1593,11 @@ export const COLUMNS: ColumnDef[] = [
     compare: (a, b) => cmpText(a.source ?? '', b.source ?? ''),
     render: (task) => task.source ?? '',
   },
-  // Peers/Seeds/Ratio - build-plan.md's 11.5E. Blank on every non-torrent row
-  // rather than "0": zero peers is a true, useful reading for a torrent and
-  // meaningless noise for an HTTP download, the same distinction
-  // core.TorrentStats' own doc comment draws. Hidden by default below
-  // (DEFAULT_HIDDEN), the same treatment six other low-traffic columns
-  // already get, and readable regardless via the row tooltip above.
-  //
-  // These three labelKeys used to be cast through `as unknown as
-  // TranslationKey`, because the catalogue had no entry for them yet and
-  // TaskList.tsx and ColumnMenu.tsx call t(col.labelKey) with no fallback of
-  // their own - so until the translate phase landed, the header cell and the
-  // column-menu row rendered empty. It landed: 'columns.peers', 'columns.seeds'
-  // and 'columns.ratio' are in en.ts and in the 41 other catalogues, so the
-  // keys are members of TranslationKey like every other label in this table and
-  // the casts are gone with the gap they described. A cast that no longer
-  // narrows anything is a lever that decides nothing, and it also hides the
-  // very typo it used to be needed for.
+  // Peers, seeds and ratio are blank on every non-torrent row rather than "0":
+  // zero peers is a true reading for a torrent and meaningless noise for an
+  // HTTP download, the same distinction core.TorrentStats draws. Hidden by
+  // default below, like six other low-traffic columns, and readable regardless
+  // through the row tooltip.
   {
     id: 'peers',
     labelKey: 'columns.peers',
@@ -1901,9 +1638,9 @@ export const COLUMNS: ColumnDef[] = [
     hideable: true,
     compare: (a, b) => (a.ratio ?? 0) - (b.ratio ?? 0),
     render: (task) => (isTorrentTask(task) ? fmtRatio(task.ratio) : ''),
-    // No aggregate, matching added/finished/comment/source just above: a
-    // package's ratio is not a sum or a mean of its members' ratios in any
-    // sense somebody reading the header would recognise as "the" ratio.
+    // No aggregate, matching added, finished, comment and source above: a
+    // package's ratio is neither the sum nor the mean of its members' ratios in
+    // any sense somebody reading the header would recognise.
   },
 ];
 
@@ -1914,12 +1651,10 @@ export const DEFAULT_ORDER: ColumnId[] = COLUMNS.map((c) => c.id);
 
 /**
  * Where the progress column sits, which is not the same answer in both lists.
- *
- * In the download list it is the last column (jdp, 2026-09-06: "in der
- * downloadliste soll der fortschrittsspalte ganz rechts sein"), so the bar has
- * the trailing edge of the row to itself and every fixed-width value column
- * lines up before it. In the collector nothing has started, so the column ships
- * hidden there and its position never comes up.
+ * In the download list it is last, so the bar has the trailing edge of the row
+ * to itself and every fixed-width value column lines up before it. In the
+ * collector nothing has started, so the column ships hidden and its position
+ * never comes up.
  */
 function defaultOrderFor(profile: ListProfile): ColumnId[] {
   const own = DEFAULT_ORDER.filter((id) => belongsTo(id, profile));
@@ -1927,78 +1662,42 @@ function defaultOrderFor(profile: ListProfile): ColumnId[] {
   return [...own.filter((id) => id !== 'progress'), 'progress'];
 }
 
-/** Whether a column exists in this list at all - see ColumnDef.onlyIn. */
+/** Whether a column exists in this list at all; see ColumnDef.onlyIn. */
 export function belongsTo(id: ColumnId, profile: ListProfile): boolean {
   const only = COLUMN_BY_ID.get(id)?.onlyIn;
   return !only || only.includes(profile);
 }
 
 /**
- * The shape of a stored layout, bumped when a shipped DEFAULT changes in a way
- * an existing layout would otherwise swallow.
- *
- * mergeOrder deliberately keeps whatever order somebody arranged, and that is
- * right for a column somebody dragged - but it also means a new default order
- * reaches nobody who has ever touched this table. A version stamp is the one
- * way to say "this particular change is not a preference of theirs to keep":
- * the order is re-seated once, and the widths and the hidden set, which ARE
- * their preferences, survive it untouched.
+ * The shape of a stored layout, bumped when a shipped default changes in a way
+ * an existing layout would otherwise swallow. mergeOrder keeps whatever order
+ * somebody arranged, which also means a new default order reaches nobody who
+ * has ever touched this table. The stamp says that one change is not a
+ * preference to keep: the order is re-seated once, while the widths and the
+ * hidden set survive untouched.
  */
 export const LAYOUT_VERSION = 2;
 
 /**
  * What each list starts with switched off. The collector holds links nobody has
- * started, so a speed and a finished-at column there are three empty cells per
- * row pretending to be information.
+ * started, so a speed and a finished-at column there are empty cells per row
+ * pretending to be information.
  *
- * BOTH sets are also cut towards what FITS, and that is the test each one has to
- * pass on its own. Measured on the live instance at a 1400px window: every
- * column on by default came to 1812px against 1112px of room, so the downloads
- * table opened 700px scrolled off its own right edge and the last two columns
- * were only reachable by dragging sideways. A default that does not fit reads as
- * a broken layout, not as a rich one — the rest are one click away in the header
- * menu, which is the point of having the menu.
+ * Both sets are also cut towards what fits: with every column on, the downloads
+ * table opens several hundred pixels scrolled off its own right edge, and a
+ * default that does not fit reads as a broken layout rather than a rich one.
+ * The rest are one click away in the header menu. Downloads is cut as far as it
+ * can and still overruns its card, but every column left on it carries a value
+ * on every row, so the shortfall is a widths decision.
  *
- * Downloads is cut as far as it can honestly go and still does NOT fit: measured
- * again at 1440, its eight columns want 1188px against 1152px of room, so the
- * name column sits at its 180px floor and the table scrolls 36px inside its own
- * card (196px at 1280). Every column left on it carries a value on every row —
- * size, progress, speed, eta, status, host are the download table JDownloader
- * shows and the muscle memory expects — so the remaining shortfall is a widths
- * decision, not a which-columns one, and it is deliberately not being made here
- * by whoever last touched this file. The page itself never scrolls sideways;
- * only the table does, which is what the overflow container is for.
- *
- * The collector was cut by relevance only and never measured, and it failed the
- * same test the moment anybody looked: at 1280 its default set came to 1234px
- * against 982px of room. The whole 252px shortfall was `source`, 260px wide and
- * empty on every row of a list whose links were pasted — while the name column,
- * the one thing on the row that says WHICH file this is, sat pinned at its
- * 180px floor with fifteen characters of a file name showing. Hiding source
- * gives that 260px back to the name and the table fits, which is also what the
- * downloads set already decided about the same column.
- *
- * `connection` ships hidden in both, and the arithmetic above is only half the
- * reason. The other half is that it is empty for everybody: an instance with no
- * connections configured, which is every instance until somebody adds one,
- * routes nothing, so the column is 160px of blank on every row, and 160px is
- * taken from the name column that is already pinned at its floor. It is one
- * click away for the people who have a list of proxies and want to see which of
- * them is carrying what, which is exactly who the column is for.
+ * `connection` ships hidden in both because it is empty until somebody
+ * configures a connection, and peers, seeds and ratio because they are blank on
+ * every row that is not a torrent.
  */
-// Peers/seeds/ratio join both lists' hidden set, on top of everything the two
-// long comments above already argued for: they are blank on every row that is
-// not a torrent, which today is every row on every instance that has never
-// added a magnet link or a .torrent file, and a column of blanks earns its
-// keep even less than `connection` (which at least resolves once one proxy is
-// configured) does before this feature has been used even once.
 export const DEFAULT_HIDDEN: Record<ListProfile, ColumnId[]> = {
-  // 'variant' stays visible here (unlike its own downloads-list default just
-  // below): it is only blank once a link is already routed and past
-  // choosing a quality, where a resolver+status pair already says what
-  // downloads mostly wants to know. The collector is exactly where a
-  // yt-dlp-routed link's five rows appear and want a quality picked, so
-  // hiding it there by default would hide the "Variante" feature itself.
+  // 'variant' stays visible here, unlike in the downloads list: it is blank
+  // only once a link is routed and past choosing a quality, and the collector
+  // is where a yt-dlp-routed link's five rows appear and want one picked.
   downloads: [
     'comment',
     'source',
@@ -2027,26 +1726,24 @@ export const DEFAULT_HIDDEN: Record<ListProfile, ColumnId[]> = {
   ],
 };
 
-// --- The stored layout, and surviving an update ----------------------------
-
 /**
  * What goes into the UI state store. Ids, never indices: an update that adds or
  * removes a column would otherwise shift every width onto the wrong column.
  *
- * `order` lists every column the stored layout knew about, hidden ones included
- * — that membership is what tells a later build which columns are new to this
- * layout and which the user deliberately switched off.
+ * `order` lists every column the stored layout knew about, hidden ones
+ * included. That membership is what tells a later build which columns are new
+ * to this layout and which the user switched off.
  */
 export interface ColumnLayout {
   order: ColumnId[];
   hidden: ColumnId[];
   widths: Partial<Record<ColumnId, number>>;
-  /** Absent on every layout written before the stamp existed - see LAYOUT_VERSION. */
+  /** Absent on every layout written before the stamp existed; see LAYOUT_VERSION. */
   v?: number;
 }
 
 export interface ResolvedLayout {
-  /** Every column this build has, in the user's order — hidden ones included. */
+  /** Every column this build has, in the user's order, hidden ones included. */
   order: ColumnDef[];
   /** The ones actually drawn, in order. */
   visible: ColumnDef[];
@@ -2059,21 +1756,18 @@ export interface ResolvedLayout {
 const isKnown = (id: string): id is ColumnId => COLUMN_BY_ID.has(id as ColumnId);
 
 /**
- * mergeOrder is the whole point of storing ids.
- *
- * A stored layout has to survive an update in both directions. A column this
- * build no longer has is dropped rather than left in the order as a hole; a
- * column this build added is not in the stored list at all, and is seated where
- * the built-in order puts it relative to the columns that are — so an update
- * that adds one column does not throw away a layout somebody spent an evening
- * arranging, and does not append the new column at the far right where nobody
+ * mergeOrder is what storing ids buys: a stored layout survives an update in
+ * both directions. A column this build no longer has is dropped rather than
+ * left as a hole, and one this build added is seated where the built-in order
+ * puts it relative to the columns that are stored, so an update neither throws
+ * away an arrangement nor appends the new column at the far right where nobody
  * scrolls to find it.
  */
 function mergeOrder(profile: ListProfile, stored: ColumnId[] | undefined): ColumnId[] {
   const base = defaultOrderFor(profile);
   // A column this list does not have is dropped from a stored layout the same
-  // way a column this BUILD no longer has is - an existing layout written
-  // before `enabled` became collector-only would otherwise keep drawing it.
+  // way a column this build no longer has is: a layout written before
+  // `enabled` became collector-only would otherwise keep drawing it.
   const kept = (stored ?? []).filter(isKnown).filter((id) => belongsTo(id, profile));
   // Nothing recognisable stored: either a first run or a layout from a build
   // that shares no column with this one. Either way the defaults are the answer.
@@ -2151,47 +1845,29 @@ export function moveColumn(order: ColumnId[], id: ColumnId, target: ColumnId, af
   return without;
 }
 
-
 /**
- * gridTemplate builds the track list every row shares.
+ * gridTemplate builds the track list every row shares, handed to them through
+ * one custom property, so a column drag repaints the table by touching a single
+ * element instead of re-rendering several hundred rows per pointer move.
  *
- * It is handed to the rows through one custom property rather than to each row
- * separately, so a column drag repaints the table by touching a single element
- * instead of re-rendering several hundred rows per pointer move.
- */
-/**
- * The track list. Every column is exactly the width somebody dragged it to,
- * and the LAST one stretches into whatever room is left over.
- *
- * It used to be the name column that stretched, and that cost two things at
- * once (jdp, 2026-09-06). Dragging the name did nothing at all - its stored
- * width became the numerator of a one-track `fr`, which is the same layout at
- * any value - so "man kann nicht alle anpassen" was literally true of the one
- * column people most want wider. And every other drag came out of the name,
- * because the flexible track is what absorbs a change: "die verschieben sich
- * gegenseitig".
- *
- * Giving the surplus to the last column instead fixes both and answers a third
- * complaint with the same move: nothing sits between the final column and the
- * right edge any more ("die spalte Hoster die jetzt rechts ist geht nicht ganz
- * nach rechts"). Its own width is the floor of that stretch, so dragging it
- * still means something once the table is wide enough to scroll.
+ * Every column is the width somebody dragged it to and the last one stretches
+ * into what is left over. With the name column stretching instead, dragging it
+ * did nothing (its stored width became the numerator of a one-track `fr`) and
+ * every other drag came out of it. The last column's own width is the floor of
+ * its stretch, so dragging it still means something.
  */
 export function gridTemplate(visible: ColumnDef[], widthOf: (id: ColumnId) => number): string {
   // Exactly one track per rendered cell, and no spare. The rows are a grid with
-  // no explicit row count, so one track too few silently wraps the last cell
-  // onto a second grid line — which does not look like a layout bug, it looks
-  // like the rows are simply tall, and every row grew from 38px to 74px before
-  // anybody counted the tracks. The row's action badges are no longer a track
-  // of their own: they float over the row's trailing edge on hover instead.
+  // no explicit row count, so one track too few wraps the last cell onto a
+  // second grid line, which reads as the rows simply being tall rather than as
+  // a layout fault. The row's action badges are not a track of their own: they
+  // float over the row's trailing edge on hover.
   return visible
     .map((c, i) =>
       i === visible.length - 1 ? `minmax(${widthOf(c.id)}px, 1fr)` : `${widthOf(c.id)}px`,
     )
     .join(' ');
 }
-
-// --- Sorting, which is a view and nothing more -----------------------------
 
 export interface SortState {
   id: ColumnId;
@@ -2214,9 +1890,9 @@ export function comparatorFor(sort: SortState | null): ((a: Task, b: Task) => nu
 
 /**
  * applySort orders the rows inside each package and then the packages against
- * each other, comparing each package by the row that sorts first in it — so
- * "biggest first" puts the package holding the biggest file at the top and does
- * not silently mean "the package whose name happens to sort first".
+ * each other, comparing each package by the row that sorts first in it, so
+ * "biggest first" puts the package holding the biggest file at the top rather
+ * than the package whose name happens to sort first.
  *
  * Nothing here touches the queue. Array sort is stable, so rows that compare
  * equal stay in the order they came in, which is the order they will run in.

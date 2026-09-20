@@ -1,39 +1,21 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useT, type TranslationKey } from '../lib/i18n';
-// The DRAWER type, imported rather than redeclared, and aliased because this
-// file already has a Category of its own further down: those are the file-type
-// shorthands a CONDITION offers ("video", "audio", "archive"). The two share a
-// word and nothing else, and a picker built from the wrong one renders
-// plausibly and can never name a drawer.
+// A Categories-page drawer, aliased because this file's own Category is the
+// file-type shorthand a condition offers.
 import type { Category as Drawer } from '../lib/api';
 import { en } from '../lib/locales/en';
 import { IconPlus, IconTrash } from '../lib/icons';
 import { Button, IconBadge, InfoBubble, TextInput } from './ui';
 import { Tabs } from './Tabs';
 
-/**
- * One rule, opened for editing. The Packagizer and the link filter are ONE
- * engine used twice, so they get one editor with two modes rather than two
- * editors that drift apart — and the mode only decides which actions are
- * offered, because everything above the actions is identical in both.
- *
- * TWO SECTIONS, NOT THREE. JDownloader's Packagizer dialog has a third,
- * "then do (post-extraction)", holding Move and Rename. Our extraction runs once
- * in place and there is no post-extract step to hang them on, so a third section
- * here would be a promise nothing keeps: controls that save cleanly, show up in
- * an export, and never once run.
- *
- * The form is built from GET /api/rules/grammar rather than from a list written
- * out here a second time. A field, an operator or a bound that exists in only
- * one of the two places is invisible in both directions — an operator the form
- * offers that Compile refuses becomes a rule that silently never fires, and a
- * field added to the engine with no entry here is a feature nobody can reach.
- */
+// The rule editor, shared by the Packagizer and the link filter, which are one
+// engine; the flavour only decides which actions are offered. There is no
+// post-extraction section as in JDownloader, because extraction here has no
+// later step to hang Move and Rename on. The form is built from
+// GET /api/rules/grammar, so fields and operators exist in one place only.
 
-// ---------------------------------------------------------------------------
-// The wire types. These mirror internal/rules exactly; the grammar is what makes
-// the form, so nothing here enumerates fields or operators.
+// Wire types mirroring internal/rules.
 
 export type Flavour = 'packagizer' | 'filter';
 
@@ -54,13 +36,8 @@ export interface RuleAction {
   autoExtract?: boolean;
   chunks?: number;
   /**
-   * The drawer from the Categories page this rule files a link into, by id.
-   *
-   * An id and never a copy of the drawer's settings: renaming a category,
-   * editing its folder or retagging a task all reach every download that has
-   * not started yet, which is the whole reason settings.Category is a
-   * reference. Absent means this rule has no opinion, never "the default
-   * drawer" and never "clear it".
+   * The Categories-page drawer to file the link into, by id, so later edits to
+   * the drawer still apply. Absent means no opinion, not "clear it".
    */
   category?: string;
   reject?: boolean;
@@ -104,12 +81,9 @@ export interface OpGrammar {
 
 export interface ActionGrammar {
   id: keyof RuleAction;
-  // 'category' is a PICK and deliberately not a template, unlike every other
-  // string an action carries. A template here would let the link's own host
-  // choose its folder, priority and collision rule, and it would put the id out
-  // of reach of settings.ValidateCategories, which cannot weigh a value that
-  // does not exist until a link arrives. The Go side refuses a "<jd:" in this
-  // field at compile time to keep that check meaningful.
+  // 'category' is a pick, not a template: a template would let the link choose
+  // its drawer and escape settings.ValidateCategories. The server refuses
+  // "<jd:" in that field.
   kind: 'template' | 'int' | 'bool' | 'category' | 'reject';
   flavour?: string;
   min?: number;
@@ -133,8 +107,7 @@ export interface Grammar {
   operators: OpGrammar[];
   actions: ActionGrammar[];
   variables: Variable[];
-  // The file-type shorthands a CONDITION offers, and NOT the drawers from the
-  // Categories page. They share a word and nothing else.
+  // File-type shorthands for conditions, not Categories-page drawers.
   categories: Category[];
   limits: { priorityMin: number; priorityMax: number; maxChunks: number; maxPattern: number };
 }
@@ -173,21 +146,8 @@ export interface Report {
   disabled?: boolean;
 }
 
-// ---------------------------------------------------------------------------
-// Strings.
-//
-// Same arrangement as Connections.tsx, and for the same reason: the locale files
-// are one writer's lane per wave, and English literals scattered through a
-// component are a hunt when the translation wave arrives. The lookup asks the
-// real catalogue first.
-//
-// That day has come — all 140 keys are in en.ts and in all 41 other locales, so
-// `t` answers first for every one of them and nothing below is ever read. The
-// table is kept only because deleting it means retyping RuleKey and useRx, which
-// is a separate edit from this one. It is dead weight, not a second source of
-// truth: `named` above deliberately asks the catalogue, not this table, so a key
-// the translators add without copying it back here still renders translated.
-
+// English fallbacks behind the catalogue, which already has every key. RuleKey
+// is derived from this table.
 export const RULE_STRINGS = {
   // The page around the editor.
   'settings.rules.setupTitle': 'Rule set',
@@ -304,17 +264,9 @@ export const RULE_STRINGS = {
   'settings.rules.action.priority': 'Priority',
   'settings.rules.action.autoExtract': 'Extract automatically',
   'settings.rules.action.chunks': 'Connections',
-  // Answered when a rule chip in the task detail panel links here by a name no
-  // rule carries any more. Here for the same reason as the four below it:
-  // RuleKey is `keyof typeof RULE_STRINGS`, so a key this table does not carry
-  // cannot be passed to rx() at all.
+  // For a task detail rule chip whose rule was renamed or deleted.
   'settings.rules.notFound':
     'No rule here is called "{name}". It was renamed or deleted since the link that names it was added.',
-  // Four entries for the drawer picker. They are dead weight the moment they
-  // land, exactly like every line around them: the catalogue answers first and
-  // all four are already in en.ts and in the 41 other locales. They are here
-  // because RuleKey is `keyof typeof RULE_STRINGS`, so a key this table does
-  // not carry cannot be passed to rx() at all.
   'settings.rules.action.category': 'Category',
   'settings.rules.action.categoryHint':
     'Files matching links in one of the drawers from the Categories page, which brings its own folder, queue position, unpacking switch and collision rule with it.',
@@ -338,9 +290,8 @@ export const RULE_STRINGS = {
   'settings.rules.category.disc': 'Disc images',
   'settings.rules.category.program': 'Programs and packages',
 
-  // Variables. The two source-shaped ones carry the whole of the naming
-  // decision, because the menu is where somebody copying a JDownloader template
-  // will actually be standing.
+  // Variables. The source and match entries explain how they differ from
+  // JDownloader's <jd:source:N>.
   'settings.rules.var.packagename': 'The package the link arrived in',
   'settings.rules.var.hoster': 'The hoster, without www.',
   'settings.rules.var.filename': 'The file name as it arrived',
@@ -394,13 +345,12 @@ export const RULE_STRINGS = {
 
 export type RuleKey = keyof typeof RULE_STRINGS;
 
-/** `t` for the keys the catalogue does not have yet. See tx.ts for the whole of the arrangement. */
+/** useRx returns `t` for RuleKey, falling back to RULE_STRINGS. */
 export function useRx() {
   const { t } = useT();
   return useCallback(
     (key: RuleKey, vars?: Record<string, string | number>) => {
-      // The cast is the whole point: these keys are not in the union yet. It is
-      // narrow — only keys in RULE_STRINGS can be passed — and it goes with the table.
+      // Only RULE_STRINGS keys get through this cast.
       const translated = t(key as unknown as TranslationKey) as string | undefined;
       let s: string = translated ?? RULE_STRINGS[key];
       if (vars) for (const [k, v] of Object.entries(vars)) s = s.replaceAll(`{${k}}`, String(v));
@@ -412,17 +362,8 @@ export function useRx() {
 
 export type Rx = ReturnType<typeof useRx>;
 
-/**
- * An id with no string of its own falls back to the id itself rather than to a
- * blank control. The grammar is the server's, and a field or an operator added
- * there in a later wave has to show up unlabelled instead of as an empty row
- * that reads as a rendering fault.
- *
- * The membership test is against the catalogue, not against the local table
- * below: the table is a fallback that the catalogue now answers ahead of, so a
- * key the translators have added but nobody has copied back down here would
- * otherwise render as a raw id while its translation sat one lookup away.
- */
+// named falls back to the raw id for a grammar entry the catalogue does not
+// know, since the grammar comes from the server.
 function named(rx: Rx, prefix: string, id: string): string {
   const key = (prefix + id) as RuleKey;
   return key in en ? rx(key) : id;
@@ -434,11 +375,7 @@ export const actionLabel = (rx: Rx, id: string) => named(rx, 'settings.rules.act
 export const categoryLabel = (rx: Rx, id: string) => named(rx, 'settings.rules.category.', id);
 export const variableLabel = (rx: Rx, id: string) => named(rx, 'settings.rules.var.', id);
 
-// ---------------------------------------------------------------------------
-// Sizes. The engine takes plain bytes and says so: "turning 700 MB into a number
-// is the interface's job, and a parser hidden down there would disagree with
-// this one sooner or later." This is that parser.
-
+// The engine takes plain bytes, so sizes like "700 MB" are parsed here.
 const SIZE_UNITS: Record<string, number> = {
   '': 1,
   b: 1,
@@ -457,13 +394,9 @@ const SIZE_UNITS: Record<string, number> = {
 };
 
 /**
- * parseSize reads "700 MB", "1.5GiB", "1,5 gb" or a bare byte count. It answers
- * null for anything it does not understand, which the caller shows as a refusal
- * — silently reading an unparsable size as 0 would turn "at least 700 MB" into a
- * rule that matches every file there is.
- *
- * MB and MiB are both 1024-based, matching fmtBytes, so a size typed here and a
- * size printed in the task list mean the same thing.
+ * parseSize reads "700 MB", "1.5GiB", "1,5 gb" or a bare byte count, all
+ * 1024-based like fmtBytes. It returns null for anything else, since reading
+ * garbage as 0 would make "at least 700 MB" match every file.
  */
 export function parseSize(text: string): number | null {
   const s = text.trim().toLowerCase().replace(',', '.');
@@ -475,7 +408,7 @@ export function parseSize(text: string): number | null {
   return Math.round(Number(m[1]) * factor);
 }
 
-/** formatSize is what goes back into the box, so a stored byte count is legible. */
+/** formatSize renders a stored byte count for the size box. */
 export function formatSize(n: number | undefined): string {
   if (!n) return '';
   const units: [string, number][] = [
@@ -488,9 +421,6 @@ export function formatSize(n: number | undefined): string {
   }
   return String(n);
 }
-
-// ---------------------------------------------------------------------------
-// The variables menu.
 
 const MARGIN = 8;
 
@@ -510,9 +440,7 @@ function VariablesMenu({
   const ref = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState({ top: at.y, left: at.x });
 
-  // Measured after mount: the menu is tall, and opened from a field near the
-  // bottom of a long page it would otherwise run off the fold with the two
-  // entries that matter most out of reach.
+  // Clamped after mount, since the tall menu can open near the bottom of a page.
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
@@ -569,8 +497,7 @@ function VariablesMenu({
           </span>
         </button>
       ))}
-      {/* The naming decision, stated where somebody pasting a JD template is
-          standing rather than in a document they will not open. */}
+      {/* How <jd:source:N> differs from JDownloader's, where a JD template gets pasted. */}
       <div className="mt-1 border-t border-carbon-border/60 px-2 pb-1 pt-2 text-[11px] leading-snug text-carbon-textSub">
         {rx('settings.rules.sourceDivergence')}
       </div>
@@ -593,18 +520,14 @@ function TemplateInput({
   value: string;
   onChange: (next: string) => void;
   placeholder?: string;
-  /** The accessible name. The visible label is a span rather than a <label>,
-   *  because the row also holds the variables button and wrapping both in one
-   *  label would make clicking the button focus the input instead of opening
-   *  the menu. */
+  /** The accessible name. There is no <label>, which would send a click on the
+   *  variables button to the input. */
   label: string;
 }) {
   const input = useRef<HTMLInputElement>(null);
   const [menuAt, setMenuAt] = useState<{ x: number; y: number } | null>(null);
 
-  // Inserted at the caret, not appended. Somebody who has typed a folder and
-  // clicked back into the middle of it means to put the variable there, and an
-  // append would quietly build a path they did not write.
+  // Inserted at the caret, not appended.
   function insert(tag: string) {
     const el = input.current;
     const at = el?.selectionStart ?? value.length;
@@ -632,10 +555,7 @@ function TemplateInput({
           placeholder:text-carbon-textMuted outline-none transition-shadow
           focus:shadow-[0_0_0_2px_var(--focus-ring)]"
       />
-      {/* Not the shared Button: this one has to be shorter than a form control
-          to sit beside one without stretching the row, and overriding the
-          shared padding with an important modifier is a habit that leaves two
-          button sizes fighting across the app. */}
+      {/* Not the shared Button, which is taller than a form control. */}
       <button
         type="button"
         onClick={(e) => {
@@ -661,41 +581,22 @@ function TemplateInput({
 }
 
 /**
- * wheelSteps is rule 14's wheel clause on a native <select>: a CLOSED select
- * steps one option per notch and fires a real `change`, without the platform's
- * own list opening at all. The platform only wires the wheel up once that list
- * is already open, which costs a click on a value somebody reaches for
- * constantly - and the wheel belongs to the PICKER, not to the element the
- * platform happens to draw, so it has to be here rather than left to the widget.
- *
- * Clamped at both ends instead of wrapping: one notch too many must not land a
- * value from the other end of the list, which on the field picker below would
- * silently point a condition at something else entirely.
- *
- * A ref callback with its own cleanup (React 19) and `{ passive: false }`,
- * never onWheel: React registers onWheel passive at its root, so preventDefault
- * inside such a handler does nothing but log a warning, and the page would
- * scroll away under the pointer while the value changed.
- *
- * The same eight lines sit in components/QueueBar.tsx and
- * components/SearchField.tsx, the app's two other native selects. GlimStone
- * ships one copy as reference/selectScroll.ts and this app's home for it would
- * be lib/selectScroll.ts, which does not exist yet; three copies of a listener
- * is the honest price of not inventing that file from inside one component.
+ * wheelSteps lets the wheel step a closed <select> one option per notch,
+ * clamped at both ends so a condition never jumps to a far field (design rule
+ * 14). It is a native listener with `passive: false`, because React registers
+ * onWheel passive and preventDefault would not stop the page scrolling.
+ * QueueBar.tsx and SearchField.tsx carry the same listener.
  */
 function wheelSteps(el: HTMLSelectElement | null) {
   if (!el) return;
   const onWheel = (e: WheelEvent) => {
-    // A horizontal wheel says nothing about this control, and a trackpad
-    // reports fractional deltas - so read the sign of deltaY and nothing else.
+    // Only the sign of deltaY counts; trackpads report fractions.
     if (el.disabled || el.options.length < 2 || e.deltaY === 0) return;
-    // This handler IS the scroll while the pointer sits on the control.
     e.preventDefault();
     const next = Math.min(el.options.length - 1, Math.max(0, el.selectedIndex + (e.deltaY > 0 ? 1 : -1)));
     if (next === el.selectedIndex) return;
     el.selectedIndex = next;
-    // A real change event rather than a state write, so the onChange already on
-    // the element picks this up exactly as it would a click on an <option>.
+    // A real change event, so the element's onChange handles it like a click.
     el.dispatchEvent(new Event('change', { bubbles: true }));
   };
   el.addEventListener('wheel', onWheel, { passive: false });
@@ -703,15 +604,8 @@ function wheelSteps(el: HTMLSelectElement | null) {
 }
 
 /**
- * A plain dropdown in the shape the rest of the settings tree uses.
- *
- * Still a native <select>, which rule 18 ("a native control gets replaced, not
- * persuaded") says it should not be: its open list is drawn by the platform and
- * `appearance: none` never reaches that list. That is debt this file carries
- * rather than a choice it defends - the replacement is one shared listbox for
- * every picker in the app, not a private one in the rule editor. The wheel is
- * wired here so the behaviour does not have to be invented again on the day the
- * last <select> goes.
+ * Select is a native dropdown in the settings style. It stays native against
+ * design rule 18 until the app has one shared listbox for every picker.
  */
 function Select<T extends string>({
   value,
@@ -744,7 +638,7 @@ function Select<T extends string>({
   );
 }
 
-/** A size box that refuses what it cannot read instead of quietly meaning zero. */
+/** SizeInput is a size box that flags what it cannot parse instead of reading zero. */
 function SizeInput({
   rx,
   value,
@@ -758,8 +652,7 @@ function SizeInput({
   placeholder?: string;
   label: string;
 }) {
-  // Held as text while it is being typed: re-formatting on every keystroke would
-  // fight the caret, and "7" on the way to "700 MB" is not a mistake.
+  // Text while typing, so reformatting does not fight the caret.
   const [text, setText] = useState(() => formatSize(value));
   const [touched, setTouched] = useState(false);
   const parsed = parseSize(text);
@@ -788,9 +681,7 @@ function SizeInput({
   );
 }
 
-// ---------------------------------------------------------------------------
-// The editor itself.
-
+/** RuleEditor edits one rule's name, conditions and actions. */
 export function RuleEditor({
   rule,
   flavour,
@@ -805,12 +696,8 @@ export function RuleEditor({
   /** This rule's own problems, from the dry run. */
   problems: Problem[];
   /**
-   * The drawers the category action may pick from, read from the settings DRAFT
-   * and not from a fresh fetch. A drawer somebody just added on the Categories
-   * page and has not saved yet is part of the same document PUT /api/settings
-   * will validate, so the picker and the refusal have to be looking at one
-   * table or the page refuses a rule naming a category that is right there on
-   * the screen.
+   * The drawers to pick from, taken from the unsaved settings draft that
+   * PUT /api/settings will validate, so an unsaved drawer is accepted.
    */
   categories: Drawer[];
   onChange: (next: Rule) => void;
@@ -848,14 +735,8 @@ export function RuleEditor({
         />
       </label>
 
-      {/* Section one of two. The caption is the eyebrow treatment, not bare
-          semibold text: GlimStone's caption row is ONE size wearing three
-          treatments, and the uppercase letter-spaced one is what names a group
-          without announcing itself as a page heading. The filled notch badge
-          (SectionTitle) is the other answer and the wrong one here - it is
-          absolutely positioned against the nearest positioned ancestor and
-          straddles that box's top EDGE, and this editor opens inline inside a
-          rule row's own well, which has neither. */}
+      {/* Eyebrow captions rather than SectionTitle, whose badge needs a card
+          edge that this inline editor does not have. */}
       <section className="flex flex-col gap-2.5">
         <h3 className="glim-eyebrow flex items-center">
           {rx('settings.rules.sectionIf')}
@@ -873,9 +754,7 @@ export function RuleEditor({
             grammar={grammar}
             condition={c}
             index={i}
-            // Problem.condition counts from 1, so the row that caused a message
-            // is highlighted instead of the user counting rows against a
-            // sentence that names a number.
+            // Problem.condition counts from 1.
             problems={problems.filter((p) => p.condition === i + 1)}
             onChange={(next) => setCondition(i, next)}
             onRemove={() => onChange({ ...rule, conditions: conditions.filter((_, j) => j !== i) })}
@@ -889,9 +768,7 @@ export function RuleEditor({
         </div>
       </section>
 
-      {/* Section two of two. There is no third; see the note at the top. */}
       <section className="flex flex-col gap-3">
-        {/* The eyebrow treatment, for the reason section one states. */}
         <h3 className="glim-eyebrow flex items-center">
           {rx('settings.rules.sectionThen')}
           <InfoBubble
@@ -917,8 +794,7 @@ export function RuleEditor({
         </div>
       </section>
 
-      {/* Whatever was not about a single condition: a bad priority, a
-          <jd:match:...> naming a field this rule has no pattern on. */}
+      {/* Problems not tied to a condition, such as a bad priority. */}
       {problems.filter((p) => !p.condition).length > 0 && (
         <ul className="flex flex-col gap-1">
           {problems
@@ -946,8 +822,7 @@ function ConditionRow({
   rx: Rx;
   grammar: Grammar;
   condition: Condition;
-  /** This condition's position among its rule's own conditions - the same
-   *  0-based sequence every other repeated row-action badge in the app uses. */
+  /** The condition's 0-based position, which sets the badge hue. */
   index: number;
   problems: Problem[];
   onChange: (next: Condition) => void;
@@ -957,9 +832,8 @@ function ConditionRow({
   const op = grammar.operators.find((o) => o.id === condition.op);
   const broken = problems.length > 0;
 
-  // Changing the field can strand the operator: "contains" is not offered on a
-  // file size. Falling back to the field's first operator keeps the condition
-  // valid rather than saving one Compile will refuse.
+  // A new field may not offer the current operator, so it falls back to the
+  // field's first one rather than saving a condition Compile refuses.
   function pickField(id: string) {
     const next = grammar.fields.find((f) => f.id === id);
     if (!next) return;
@@ -1005,10 +879,7 @@ function ConditionRow({
                 label={rx('settings.rules.max')}
                 value={condition.max}
                 onChange={(n) => onChange({ ...condition, max: n })}
-                // An empty upper box is the normal shape of "at least 700 MB",
-                // and the engine reads a zero maximum as no upper bound. Saying
-                // so is the difference between that and a rule that can never
-                // match anything.
+                // The engine reads an empty maximum as no upper bound.
                 placeholder={rx('settings.rules.noUpperBound')}
               />
             </div>
@@ -1055,17 +926,8 @@ function ConditionRow({
           )}
         </div>
 
-        {/* `labelled`, like every other control on the page: rule 13 puts a
-            small single-purpose row action INSIDE the labelling engine rather
-            than beside it, because from outside a documented exemption and a
-            control that ignores the app-wide setting look exactly the same. The
-            words are already here as `title`, so this costs no new key - and the
-            row above wraps, so the badge growing into a labelled button in text
-            mode has somewhere to go. 16px in a 32px square, which is half the
-            box and the proportion the house uses everywhere else; this one sat
-            at 15, the only 15 in the tree. IconBadge sizes its own glyph now,
-            so the number here agrees with the component rather than instructing
-            it - which is why it is written down rather than dropped. */}
+        {/* `labelled` so the label setting applies (rule 13); the row wraps if
+            the badge grows a label. */}
         <IconBadge
           icon={<IconTrash width={16} height={16} />}
           hue={index}
@@ -1076,10 +938,7 @@ function ConditionRow({
         />
       </div>
 
-      {/* On the offending condition, not in a list at the bottom of the page
-          that nobody connects to anything. An unparsable pattern read as "this
-          matched nothing" is the single most confusing failure a rule engine
-          has, and the engine already reports it properly. */}
+      {/* Shown on the offending condition itself. */}
       {problems.map((p, i) => (
         <p key={i} className="text-[11px] text-statusFail">
           {p.message}
@@ -1095,7 +954,7 @@ function ConditionRow({
   );
 }
 
-/** One action, rendered the way the grammar says it is edited. */
+/** ActionField renders one action in the control its grammar kind calls for. */
 function ActionField({
   rx,
   grammar,
@@ -1158,10 +1017,7 @@ function ActionField({
           aria-label={label}
           min={action.min}
           max={action.max}
-          // An empty box is "unchanged" and 0 is a real setting, which is why
-          // the value is optional in the first place. Reading the empty box as
-          // zero would hand every matching link a priority of normal and a
-          // chunk count of none.
+          // Empty means unchanged; 0 is a real value.
           value={current === undefined ? '' : String(current)}
           placeholder={rx('settings.rules.emptyMeansUnchanged')}
           onChange={(e) => {
@@ -1197,12 +1053,9 @@ function ActionField({
   if (action.kind === 'category') {
     const current = value.category ?? '';
     const known = categories.map((c) => ({ value: c.id, label: c.name || c.id }));
-    // A rule written before a drawer was deleted, or imported from another
-    // instance, can name a category this table no longer holds. A <select>
-    // whose value is not among its options renders the FIRST option, so
-    // leaving it out would show the rule as filing into some other drawer and
-    // then rewrite it to that drawer the next time anything on the form
-    // changed, without anybody touching this box.
+    // A deleted or imported drawer id stays as an option, because a <select>
+    // with an unknown value shows its first option and would silently rewrite
+    // the rule to it.
     const options =
       current && !categories.some((c) => c.id === current)
         ? [{ value: current, label: rx('settings.rules.action.categoryMissing', { id: current }) }, ...known]
@@ -1215,10 +1068,7 @@ function ActionField({
         ) : (
           <Select
             value={current}
-            // An empty pick is "this rule has no opinion", so it is sent as
-            // undefined and never as "". An empty string would be a real value
-            // the server would have to weigh, and settings.ValidateCategories
-            // would then refuse a rule for naming a drawer called "".
+            // Undefined rather than "", which ValidateCategories would refuse.
             onChange={(next) => onChange({ category: next === '' ? undefined : next })}
             options={[{ value: '', label: rx('settings.rules.unchanged') }, ...options]}
             label={label}
@@ -1228,9 +1078,8 @@ function ActionField({
     );
   }
 
-  // kind === 'reject': the filter's whole decision, and the one place a
-  // two-state control is not a switch. An accept is a deliberate choice that
-  // protects a link, not the absence of a rejection.
+  // kind === 'reject': segments rather than a switch, since accepting is a
+  // deliberate choice rather than the absence of a rejection.
   return (
     <div className="flex flex-col gap-1.5">
       {head}
@@ -1248,30 +1097,9 @@ function ActionField({
 }
 
 /**
- * The segmented control: the chosen one is FILLED with the accent, everywhere.
- *
- * ONE HORIZONTAL SELECTOR, and this is not a second one. Tabs, filter bars,
- * segmented controls and the corner picker are the same thing - a row one item
- * is chosen from - and GlimStone builds them as ONE component, never as a
- * hand-rolled set of buttons per picker, because the second implementation
- * drifts from the first the moment either changes. This one had already
- * drifted, measurably: 0.25rem track padding and gaps against the well's own
- * 0.2rem, no roving tabindex, no arrow keys, no Home/End, no RTL handling, no
- * `.glim-hue` and therefore no rainbow position, and no equal segment width.
- * Worst of it was the resting fill: `segOff` gave every UNCHOSEN segment its
- * own badge inside a track, which the language rules out by name ("inside a
- * selector, only the chosen segment is a badge") - and `segOff` is
- * `bg-carbon-surface2`, the track's own colour, so the enclosure it sat in had
- * a delta of zero and was not an enclosure at all.
- *
- * It stays a named export with its old signature because its call sites read
- * better as `Segments` (a two- or three-way value on a form row) than as a raw
- * `Tabs`; everything it draws now comes from the one component.
- *
- * `w-fit` is the call-site half of the well's own sizing that Tabs.tsx
- * documents at its segment class - the track hugs its segments rather than
- * stretching to a form column - and it is written once here instead of at each
- * of this component's own call sites.
+ * Segments is a small segmented choice on a form row, drawn by Tabs' well
+ * variant so every horizontal selector is one component. `w-fit` keeps the
+ * track hugging its segments.
  */
 export function Segments<T extends string>({
   value,
@@ -1298,16 +1126,15 @@ export function Segments<T extends string>({
 }
 
 /**
- * A one-line reading of a rule for the collapsed row. Built from the same labels
- * the editor uses, so the summary cannot describe the rule differently from the
- * form that made it.
+ * ruleSummary is a one-line reading of a rule for the collapsed row, built from
+ * the editor's own labels.
  */
 export function ruleSummary(rx: Rx, rule: Rule, flavour: Flavour): string {
   const conds = (rule.conditions ?? []).map((c) => {
     const op = opLabel(rx, c.op);
     if (c.op === 'is-between') {
       const max = c.max ? formatSize(c.max) : rx('settings.rules.noUpperBound');
-      return `${fieldLabel(rx, c.field)} ${op} ${formatSize(c.min) || '0'} – ${max}`;
+      return `${fieldLabel(rx, c.field)} ${op} ${formatSize(c.min) || '0'} - ${max}`;
     }
     return `${fieldLabel(rx, c.field)} ${op} ${c.value ?? ''}`.trim();
   });
@@ -1337,14 +1164,12 @@ export function ruleSummary(rx: Rx, rule: Rule, flavour: Flavour): string {
   return acts.length ? `${left} → ${acts.join(' · ')}` : left;
 }
 
-/** A new, empty rule for the flavour being edited. */
+/** emptyRule returns a new rule for the flavour being edited. */
 export function emptyRule(flavour: Flavour): Rule {
   return {
     name: '',
     conditions: [],
-    // A fresh filter rule rejects. A rule that does nothing at all is not a
-    // useful starting point, and an accept-by-default rule at the bottom of a
-    // filter would quietly override the rejects above it.
+    // A new filter rule rejects; an accepting one would do nothing useful.
     action: flavour === 'filter' ? { reject: true } : {},
   };
 }

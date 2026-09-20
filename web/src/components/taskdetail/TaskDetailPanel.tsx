@@ -10,66 +10,25 @@ import { RulesCard } from './RulesCard';
 import { TimesCard } from './TimesCard';
 
 /**
- * Everything the app knows about ONE link, read-only, under the list.
+ * TaskDetailPanel shows everything known about one task, read-only, below the
+ * list. The caller passes a single row only, since fields like the error have
+ * no single answer across a package.
  *
- * It opens on the same double-click that already opens the properties card and
- * sits below it, because the two answer opposite questions: the properties
- * card is what can still be changed about a selection, and this is what is
- * already true about one row. Neither replaces the other, and neither replaces
- * the right-click options dialog.
- *
- * ONE ROW ONLY, and the caller enforces it. Double-clicking a package header
- * selects every link in the package, which the properties card is built for
- * and this is not: there is no honest single answer for "the error", "the next
- * attempt" or "the file" across eleven links, and a panel that showed the
- * first one's would be quietly wrong rather than visibly empty.
- *
- * SIX CARDS AND NOT ONE, because a Card carries at most one SectionTitle and
- * because the settings pages already establish one card per file for exactly
- * this shape. Three of them draw nothing when they have nothing: a link in the
- * collector has no failure and no file, and six cards of blank rows read as a
- * page that broke. The log card is the exception that stays: "nothing was
- * logged about this download" is an answer, and one that needs its own sentence
- * because most of this app's log lines name no download at all.
- *
- * NO KEY ON THIS COMPONENT, deliberately, and the opposite of the properties
- * card's own keying. That one snapshots its boxes at mount and so has to be
- * torn down when the selection changes; this one has to re-render live off the
- * task object the WebSocket replaces on every tick, so that the retry count,
- * the error sentence and the timestamps are current. A key derived from
- * anything that moves would tear the <video> down once a second.
- *
- * IT MUST BE RENDERED BELOW THE TABLE. useRowWindow's layout effect measures
- * the row strip after every commit and recomputes the visible slice whenever
- * it has moved by a pixel; anything above the strip that grows when an error
- * string arrives, or reserves space when a video loads its metadata, repaints
- * the whole windowed list each time it does. Below it, none of that happens.
- * It must never go inside a row: measureRows caches heights per row key, and a
- * row whose height depends on a media element that loads asynchronously
- * poisons that cache and all the scroll arithmetic built on it.
+ * It has no key, so live task updates re-render it in place instead of tearing
+ * down a playing <video>. It has to stay below the table: useRowWindow re-slices
+ * whenever the row strip moves, and a panel above it would move the strip each
+ * time a card grows.
  */
 export function TaskDetailPanel({ task, base, hue }: { task: Task; base: string; hue?: number }) {
   const { t } = useT();
   const head = useTaskFileHead(task, base);
-  // The cards run on from whatever position the list card above them holds, so
-  // that the rainbow reads as one sequence down the page rather than restarting
-  // under the table. Undefined stays undefined: `.glim-hue` without the
-  // variables resolves the accent to nothing.
+  // The hue sequence carries on from the list card above.
   const at = (n: number) => (hue === undefined ? undefined : hue + n);
 
   return (
-    // The right-click belongs to the browser in here. The page above this puts
-    // a context menu on the whole list area and calls preventDefault on every
-    // reading of it, so without this line right-clicking the address to copy
-    // the link opens the download list's own menu instead. This panel is
-    // nothing but text people will want to right-click, which makes it the one
-    // place that line must not be forgotten.
-    //
-    // A <section> with a name is already role="region". Focus is deliberately
-    // NOT moved here when it opens: the panel is opened by a double-click on a
-    // row, and pulling focus down would scroll the page off the row somebody
-    // just clicked, which on a windowed list repaints the slice as well. It
-    // comes after the table in the document, so Tab reaches it in order.
+    // Stops the list area's context menu so the browser's own menu can copy
+    // text. Focus is not moved here on open, which would scroll away from the
+    // row that was just double-clicked.
     <section
       aria-label={t('detail.label')}
       onContextMenu={(e) => e.stopPropagation()}
@@ -80,37 +39,18 @@ export function TaskDetailPanel({ task, base, hue }: { task: Task; base: string;
       <FailureCard task={task} hue={at(2)} />
       <RulesCard task={task} hue={at(3)} />
       <PlayerCard task={task} base={base} head={head} hue={at(4)} />
-      {/* Last, because it is the only card here that asks the server a question
-          of its own and the only one that is usually empty: the app records
-          which download a line is about at seven of its log call sites and not
-          at the rest, so this answers "what did it say" honestly rather than
-          completely, and says which of the two it is doing. */}
       <LogCard task={task} base={base} hue={at(5)} />
     </section>
   );
 }
 
 /**
- * What GET /api/tasks/{id}/file would answer, asked once with HEAD.
+ * useTaskFileHead asks GET /api/tasks/{id}/file once with HEAD, shared by the
+ * link and player cards. It skips peers, whose proxy reads up to 32 MB of the
+ * reply, and links with no file yet.
  *
- * It lives in the shell rather than in the player because two cards want the
- * same answer: the link card prints the bytes on disk and the player gates on
- * whether there is a file at all. Two probes would be two requests for one
- * fact, each costing the server a pair of symlink resolutions and a stat
- * inside SafeTaskFile.
- *
- * TRAP, and it is the one that turns a panel into a load test: useTasks
- * replaces the whole task object on every 'task' broadcast, and a running
- * download broadcasts constantly. An effect that depended on `task` would
- * therefore fire several times a second for as long as the panel is open. The
- * dependencies are the id, the base, and one boolean that flips at most once
- * over a task's life, and nothing else.
- *
- * Not asked at all unless it is worth asking. A peer instance answers this
- * route through the federation proxy, which reads up to 32 MB of the reply
- * into memory before handing it back, so probing one is expensive and its
- * answer is a lie either way; and a link with no resolved name has nothing on
- * disk to ask about.
+ * The effect depends on the id rather than the task, because useTasks replaces
+ * the task object on every broadcast.
  */
 function useTaskFileHead(task: Task, base: string): TaskFileHead | null {
   const [head, setHead] = useState<TaskFileHead | null>(null);
@@ -127,10 +67,6 @@ function useTaskFileHead(task: Task, base: string): TaskFileHead | null {
         if (live) setHead(h);
       },
       () => {
-        // A probe that could not be made says nothing, which is exactly the
-        // same state as one that has not been made yet: no size on the link
-        // card, no player offered. Guessing "yes" here would put a play
-        // button in front of a file nobody has confirmed is there.
         if (live) setHead(null);
       },
     );

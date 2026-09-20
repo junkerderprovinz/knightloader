@@ -18,39 +18,16 @@ import { useT } from '../lib/i18n';
 import { captchaIsNew, forgetCaptcha, seedCaptchasSeen } from '../lib/notify';
 import { useToast } from '../lib/toast';
 
-// A hoster (or an account's own login gate) asking a human something before a
-// download can continue - the prompt side of internal/captcha, mounted once
-// (see Layout.tsx) so it is reachable from every route, the same always-
-// visible pattern ToastProvider's own overlay already uses in this app.
+// The captcha prompt for internal/captcha, mounted once in Layout.tsx. The
+// countdown pauses while the answer field has focus. A 'widget' challenge runs
+// in an iframe of routes_captcha_widget.go's page, which posts its answer back;
+// this file never runs a vendor script.
 //
-// Two JD affordances the plan explicitly forbids, per build-plan.md section
-// 8's Wave 7 note: no Buy-Premium button (no affiliate arrangement exists in
-// this app) and no cancel-countdown-on-mouse-move (a NAS instance's viewer is
-// not sitting at the machine) - replaced below with the countdown pausing
-// while the answer field has keyboard focus.
-//
-// 'widget' is rendered from routes_captcha_widget.go's own page (7C's route,
-// this wave) inside an <iframe>; this file only builds that URL from data it
-// already holds and relays the page's postMessage answer back through
-// answerCaptcha - it never runs a vendor's script itself. 'click' has no
-// separate click-region data on the wire (ClickPayload is the identical type
-// to ImagePayload - see internal/captcha/challenge.go's own doc comment), so
-// the points a person clicks are collected here and encoded as JSON matching
-// JD's own ClickedPoint / MultiClickedPoint shape - verified against JD's
-// source (org.jdownloader.captcha.v2.challenge.clickcaptcha.ClickedPoint:
-// {x:int,y:int}; .multiclickcaptcha.MultiClickedPoint: {x:int[],y:int[]}) -
-// but WHICH of the two a given challenge is is not disclosed by Kind
-// (jdKindByClass maps both ClickCaptchaChallenge and
-// MultiClickCaptchaChallenge to the same KindClick), so this sends the
-// single-point shape for exactly one clicked point and the array shape for
-// more than one: the natural way a person answers each respectively (a
-// single-click challenge visually asks for one thing; a multi-click one asks
-// to mark several), not a verified disambiguator.
+// A 'click' answer uses JD's shapes: ClickedPoint {x:int,y:int} for one point
+// and MultiClickedPoint {x:int[],y:int[]} for several. Kind does not say which
+// JD expects, so the number of clicked points decides.
 
-// GO_ZERO_YEAR mirrors format.ts's own constant: Go's encoding/json does not
-// drop a zero time.Time on omitempty, so ExpiresAt arrives as
-// "0001-01-01T00:00:00Z" rather than an absent field when the source could
-// not say - never a real deadline, and never "already expired".
+// Go's encoding/json writes a zero time.Time as year 1 rather than omitting it.
 const GO_ZERO_YEAR = 1;
 
 function expiryMs(iso: string | undefined): number | null {
@@ -66,11 +43,8 @@ function fmtCountdown(totalSeconds: number): string {
   return `${m}:${String(s).padStart(2, '0')}`;
 }
 
-// pickCurrent mirrors internal/captcha.Store.List's own ordering (nearest
-// expiry first, an unknown deadline last, ties on id) so which challenge
-// this modal shows first agrees with what GET /api/captcha would have
-// returned, whether this browser got here from that fetch or from a live
-// "captcha" event.
+// pickCurrent orders like internal/captcha.Store.List: nearest expiry first,
+// unknown deadlines last, ties on id.
 function pickCurrent(challenges: Record<string, CaptchaChallenge>): CaptchaChallenge | undefined {
   const list = Object.values(challenges);
   list.sort((a, b) => {
@@ -86,9 +60,7 @@ function pickCurrent(challenges: Record<string, CaptchaChallenge>): CaptchaChall
 }
 
 interface ClickPoint {
-  // Fractions (0..1) of the rendered image at click time, not raw pixels -
-  // resize-safe for the marker overlay, converted to the image's own
-  // natural pixel space only at submission time (see submitText).
+  // Fractions of the rendered image, converted to natural pixels on submit.
   xFrac: number;
   yFrac: number;
 }
@@ -112,30 +84,17 @@ export function CaptchaModal() {
   const current = useMemo(() => pickCurrent(challenges), [challenges]);
   const moreWaiting = Math.max(0, Object.keys(challenges).length - (current ? 1 : 0));
 
-  // Initial snapshot, then live over the hub - the same load()-then-
-  // connectWS shape useTasks (lib/useTasks.ts) already uses. "snapshot" is
-  // fired on every (re)connect, task-related, but it doubles here as the one
-  // signal this file has that the socket just came back after a drop - a
-  // captcha "removed"/"changed" broadcast missed during that gap would
-  // otherwise leave this modal showing a challenge that already resolved,
-  // with nothing to notice.
+  // "snapshot" arrives on every reconnect without a subscription (Hub.SendTo),
+  // and refetching then drops challenges resolved while the socket was down.
   useEffect(() => {
     let live = true;
     const applyList = (list: CaptchaChallenge[]) => {
-      // Seeded before anything is applied, and seeded on the reconnect refetch
-      // too: a challenge that was already waiting when this page opened must not
-      // announce itself as an arrival, and neither must the whole pending list a
-      // restarted server replays on every reconnect. Marking is unconditional
-      // rather than gated on `live` - the set lives at module scope precisely so
-      // that a mount coming and going (React.StrictMode does exactly that in
-      // development) cannot lose the baseline.
+      // Pending challenges are not arrivals. Seeded regardless of `live`, since
+      // the set is module-scoped and must survive a StrictMode remount.
       seedCaptchasSeen(list.map((c) => c.id));
       if (live) setChallenges(Object.fromEntries(list.map((c) => [c.id, c])));
     };
     fetchCaptchas().then(applyList);
-    // 'snapshot' is not in kinds below and still arrives every time - see
-    // lib/useTasks.ts's identical note on why (Hub.SendTo bypasses a
-    // connection's own subscription filter).
     const close = connectWS(
       (type, data) => {
         if (type === 'snapshot') {
@@ -143,21 +102,11 @@ export function CaptchaModal() {
         } else if (type === 'captcha') {
           const c = data as CaptchaChallenge;
           setChallenges((p) => ({ ...p, [c.id]: c }));
-          // The arrival itself, finally given a voice - the kind existed with
-          // no call site behind it, and the notification matrix
-          // (lib/notify.ts) offers a row for it. No second socket for this:
-          // this subscription is already here.
-          //
-          // captchaIsNew, never the bare event: app_captcha.go broadcasts
-          // "captcha" for merely CHANGED challenges as well as new ones, on a
-          // two-second poll, so trusting the event would notify in a loop for
-          // as long as the challenge stands. It answers true exactly once per
-          // challenge id and never before the pending list has been read once.
+          // The server also broadcasts changed challenges every two seconds,
+          // so only a new id notifies.
           if (captchaIsNew(c.id)) toast(t('captcha.waiting', { host: c.host || '?' }), 'info', 'captcha-needs-answer');
         } else if (type === 'captchaResolved') {
           const r = data as CaptchaResolution;
-          // Pruned here so the dedupe set tracks what is actually pending
-          // rather than growing for the life of the tab.
           forgetCaptcha(r.id);
           setChallenges((p) => {
             if (!(r.id in p)) return p;
@@ -165,19 +114,11 @@ export function CaptchaModal() {
             delete n[r.id];
             return n;
           });
-          // Only the ambient reasons: "solved"/"expired"/"aborted" are always
-          // the direct result of a POST this browser (or the one that pressed
-          // Continue/Cancel) just made and already has synchronous feedback
-          // for - see handleContinue/handleSkip. Toasting those here too would
-          // say the same thing twice. "timedOut"/"resolved" are the two this
-          // file has no other way to learn about: nobody in this tab did
-          // anything, and a modal that just silently vanishes reads as "did I
-          // lose the download?" rather than as the captcha having lapsed.
+          // Solved, expired and aborted follow a click that already gave
+          // feedback; only a timeout or a resolution elsewhere needs a word.
           if (r.reason === 'timedOut') {
-            // Styled as 'info', not 'fail' - nothing broke - but still a
-            // critical kind: the download it was blocking is now stuck with
-            // nobody having answered for it, which is exactly the outcome
-            // quiet mode's CRITICAL table exists to never swallow.
+            // 'info' styling, but a critical kind that quiet mode never hides:
+            // the download is now stuck.
             toast(t('captcha.timedOut', { host: r.host }), 'info', 'captcha-failed');
           } else if (r.reason === 'resolved') {
             toast(t('captcha.resolvedElsewhere', { host: r.host }), 'info', 'captcha-resolved');
@@ -193,9 +134,7 @@ export function CaptchaModal() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Fresh local state whenever the displayed challenge changes - a stale
-  // typed answer or clicked point must never survive onto a different
-  // challenge's image.
+  // A typed answer or clicked point must not carry over to another challenge.
   useEffect(() => {
     setAnswer('');
     setPoints([]);
@@ -206,21 +145,15 @@ export function CaptchaModal() {
     setWidgetKey((k) => k + 1);
   }, [current?.id]);
 
-  // The countdown's own clock - only runs while something with a real
-  // deadline is on screen, one shared interval rather than a timer per
-  // field.
+  // Ticks only while a real deadline is on screen.
   useEffect(() => {
     if (!current || expiryMs(current.expiresAt) === null) return;
     const id = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(id);
   }, [current?.id, current?.expiresAt]);
 
-  // The widget page's own answer path back (routes_captcha_widget.go's doc
-  // comment, "THE ANSWER PATH BACK"): a window.postMessage from the iframe,
-  // checked against this page's own origin before anything in it is
-  // trusted - the frame-ancestors CSP on that page only stops a foreign
-  // page from embedding it, not this same-origin page from mishandling what
-  // it receives.
+  // The widget answers by postMessage, trusted only from this origin: the
+  // page's frame-ancestors CSP does not protect what this side receives.
   useEffect(() => {
     if (!current || current.kind !== 'widget') return;
     const id = current.id;
@@ -272,11 +205,7 @@ export function CaptchaModal() {
     try {
       const { stillValid } = await answerCaptcha(current!.id, submitText());
       if (!stillValid) toast(t('captcha.tooLate'), 'fail', 'captcha-failed');
-      // The resolved challenge leaves `challenges` through the
-      // "captchaResolved" broadcast this call also triggers server-side
-      // (app_captcha.go's settleCaptcha), not by this handler patching state
-      // itself - the same "wait for the hub, never patch locally" rule
-      // every other mutation in this app already follows (lib/useTasks.ts).
+      // The challenge leaves through the "captchaResolved" broadcast.
     } catch {
       toast(t('captcha.networkError'), 'fail', 'captcha-failed');
     } finally {
@@ -317,12 +246,7 @@ export function CaptchaModal() {
     <Modal title={title} onClose={() => handleSkip('skip-once')}
       footer={
         <>
-          {/* The clock first, then the spacer, then the three controls. The
-              remaining time is a reading, and it was sitting to the RIGHT of
-              the button that answers the challenge - so the control somebody
-              came for was not at the end of its row, which is what GlimStone
-              1.14.0 asks for ("right is where the hand already is"). Being
-              right of its partner is not enough on its own. */}
+          {/* The forward button ends the row, so the clock goes first. */}
           {displayRemaining !== null && (
             <span className="inline-flex shrink-0 items-center gap-1 text-[11px] text-carbon-textMuted">
               <IconClock width={12} height={12} />
@@ -333,9 +257,7 @@ export function CaptchaModal() {
           <Button kind="secondary" onClick={() => handleSkip('skip-once')} disabled={busy}>
             {t('captcha.cancel')}
           </Button>
-          {/* Refresh sits between the two: it neither answers the challenge nor
-              walks away from it, it asks the source for a fresh one, so it
-              belongs on neither end of the row. */}
+          {/* Refresh neither answers nor cancels, so it sits between them. */}
           <Button kind="ghost" onClick={handleRefresh} disabled={busy}>
             {t('captcha.refresh')}
           </Button>

@@ -1,16 +1,7 @@
-// The quick controls, and the shell-bar widget that carries them.
-//
-// The two live in one file because they cannot be separated at runtime: the
-// speed meter and the gear open the same panel, so they share one piece of open
-// state, and the widget reads one task stream that both the figures and the
-// meter are computed from. Split apart, either the two openers drift out of step
-// or the shell opens a second websocket to say the same number twice.
-//
-// What is deliberately NOT here: any figure called "open connections". A backend
-// reports a status, a size, a byte count and a speed (core.Update) and never how
-// many sockets it holds, so a live connection count would have to be invented.
-// The chunk spinner below is the configured number one download opens, it is
-// labelled as chunks, and its bubble says exactly that.
+// The quick-settings panel and the shell-bar widget that opens it, which share
+// one piece of open state. There is no live connection count, because backends
+// do not report their sockets; the chunk spinner is the configured number per
+// download.
 import { useCallback, useEffect, useState } from 'react';
 import { type Controls, type ControlsPatch, fetchControls, saveControls } from '../lib/controls';
 import { useT } from '../lib/i18n';
@@ -24,13 +15,8 @@ import { VolumeMeter } from './VolumeMeter';
 import { IconMenu } from '../lib/icons';
 
 /**
- * One spinner that saves when it is LEFT, never as it is typed.
- *
- * This is the whole reason it is a component rather than a bare NumberInput.
- * Every write here ends in App.ApplySettings, which ends in dispatchLocked — so
- * a save per keystroke re-runs the scheduler for "1", then "12", then "128",
- * three passes over the queue to reach a number the user was in the middle of
- * writing. Blur and Enter are the two ways a person says they are finished.
+ * Spin is a number field that saves on blur or Enter, not per keystroke,
+ * because every save re-runs the scheduler.
  */
 function Spin({
   label,
@@ -48,15 +34,11 @@ function Spin({
   onCommit: (n: number) => void | Promise<void>;
 }) {
   const [draft, setDraft] = useState(value);
-  // Held while the box has focus AND until a save has been answered. The second
-  // half matters as much as the first: released at blur, the field would snap
-  // back to the stored number for as long as the request takes and then jump to
-  // the new one, so every edit would flicker through its own previous value.
+  // Held while focused and until the save answers, or the field would flicker
+  // back to the old value during the request.
   const [held, setHeld] = useState(false);
 
-  // Otherwise the stored value wins whenever it changes underneath — the server
-  // clamps what it was sent and answers with the truth, and a save that failed
-  // has to leave the field showing what is actually configured.
+  // Otherwise the stored value wins, since the server clamps and a save can fail.
   useEffect(() => {
     if (!held) setDraft(value);
   }, [value, held]);
@@ -84,17 +66,8 @@ function Spin({
 }
 
 /**
- * QuickSettings is the panel: the three counts that decide how much is open at
- * once, the master switch, and whether the speed limit is in force.
- *
- * It is the app's one overlay treatment rather than a popover of its own. A
- * second anchored panel would be a second thing to position, dismiss and make
- * keyboard-safe, and GlimStone's rule about sameness is a rule about how many of
- * these exist, not about how they look.
- *
- * Everything is read when it opens and nothing is polled. The panel is on screen
- * for seconds, and a widget that subscribes to the settings for the length of a
- * glance is a subscription to maintain for no gain.
+ * QuickSettings is a modal with the per-instance concurrency counts, read once
+ * when it opens. Play, pause and the speed limit live in QueueBar.
  */
 export function QuickSettings({ onClose }: { onClose: () => void }) {
   const { t } = useT();
@@ -108,8 +81,6 @@ export function QuickSettings({ onClose }: { onClose: () => void }) {
         if (live) setCfg(c);
       },
       (e) => {
-        // Guarded like the success path: a panel somebody closed while the
-        // request was out must not throw a toast at the page they went to.
         if (live) toast(t('list.failed', { error: message(e) }), 'fail');
       },
     );
@@ -121,9 +92,7 @@ export function QuickSettings({ onClose }: { onClose: () => void }) {
   const patch = useCallback(
     async (p: ControlsPatch) => {
       try {
-        // Adopted, not assumed: the server clamps the concurrency numbers on the
-        // way to disk, so the field settles on what was stored rather than on
-        // what was asked for.
+        // The server clamps, so the answer is adopted.
         setCfg(await saveControls(p));
       } catch (e) {
         toast(t('list.failed', { error: message(e) }), 'fail');
@@ -134,31 +103,10 @@ export function QuickSettings({ onClose }: { onClose: () => void }) {
 
   return (
     <Modal title={t('quick.title')} onClose={onClose}>
-      {/* The master switch and the speed limit both moved out of this panel
-          (jdp: "für was brauchen wir den Button Warteschlange stoppen? das
-          Tempolimit kann da raus, das gibt es ja schon, ist redundant") -
-          QueueBar's own Play/Pause/Stop and its own limit field are the
-          same controls this panel used to duplicate. What is left here is
-          genuinely NOT available anywhere else: per-instance concurrency. */}
       {cfg && (
-        // One under the other (jdp, 2026-09-06: "Das Hmabugermenü sollen die
-        // einstellungen untereinander sein"). Side by side, the three labels
-        // were each squeezed into a third of the panel and wrapped mid-phrase,
-        // which is half of why they read as riddles; a full-width row lets each
-        // one say what it actually does.
         <div className="flex flex-col gap-4">
-          {/* Every label now names its own unit of counting - downloads, hosts,
-              connections - instead of "Gleichzeitig max." and "Pro Host max.",
-              which said how many but never of what (jdp, same round: "die namen
-              der optionen sind nicht eindeutig und man weiß nicht genau was sie
-              machen"). The bubble carries the consequence, which is the part
-              that cannot fit in a label.
-
-              No `max` on the two concurrency spinners, and that is not an
-              omission: their bound lives in settings.sanitizeQueue and is not
-              served, so a number typed here would be a copy of it that drifts
-              the day it moves. The save answers with what was stored, and the
-              field adopts that instead. */}
+          {/* No `max`: the bound lives in settings.sanitizeQueue and is not
+              served, so the field adopts whatever the save stored. */}
           <Spin
             label={t('settings.maxConcurrent')}
             hint={t('settings.maxConcurrentHint')}
@@ -173,9 +121,7 @@ export function QuickSettings({ onClose }: { onClose: () => void }) {
             min={1}
             onCommit={(n) => patch({ maxPerHost: n })}
           />
-          {/* This one does have a bound, because the server sends it: it is the
-              engine's own, and a spinner offering more than connsFor will
-              honour is a control lying about what saving it did. */}
+          {/* The server sends this bound, the most connsFor will honour. */}
           <Spin
             label={t('settings.chunks')}
             hint={t('quick.chunksHint')}
@@ -191,21 +137,10 @@ export function QuickSettings({ onClose }: { onClose: () => void }) {
 }
 
 /**
- * ShellStrip is what mounts in the shell bar's widget slot: the speed and
- * the way into the quick-settings panel.
- *
- * It used to also carry the Gesamt/Sichtbar/Ausgewählt figures
- * (`OverviewStrip`) - dropped (jdp: "auf der Statuszeile können Gesamt,
- * Sichtbar und Ausgewählt weg"), since the list page directly below already
- * shows its own counts and this bar reading the same numbers a second time,
- * one card up, was the redundant copy.
- *
- * It reads the stream for the instance the SHELL is scoped to, so on a peer's
- * download list the speed describes that peer. The panel does not follow: none
- * of its knobs is forwarded to a peer (only the task, link and queue routes
- * are), so opening it over somebody else's list would quietly tune this
- * machine instead. The bar's scope tag has already said whose list is on
- * screen, which is why nothing here repeats it.
+ * ShellStrip fills the shell bar's widget slot with the speed curve and the
+ * way into quick settings. The speed follows the shell's instance scope; the
+ * controls show for the local instance only, because peers forward no settings
+ * routes.
  */
 export function ShellStrip() {
   const { t } = useT();
@@ -222,44 +157,17 @@ export function ShellStrip() {
 
   return (
     <>
-      {/* items-stretch, not items-center: the curve is meant to be as tall as
-          the card (jdp, 2026-09-06), and a centred row hands it only its own
-          content height - measured live at 16px inside a 104px card. */}
-      {/* flex-1 on the span AND on the meter inside it: this slot sits after
-          the head card's own flexible spacer, so without a grow of its own the
-          curve is only as wide as its content (jdp, 2026-09-07: "der
-          downloadgraph in der kopfzeile soll viel breiter sein"). */}
-      {/* NO h-full, and that is the opposite of what it looks like. A flex item
-          only stretches to its row while its cross size is `auto`; writing
-          height:100% takes it OUT of the stretch and then resolves it against a
-          flex container whose height is not definite, which lands on auto
-          anyway - measured at 52px inside a 160px card. The card's own
-          items-stretch is what carries the height down here, and it only does
-          it while nothing on the way claims a height of its own. */}
+      {/* items-stretch so the curve fills the card's height, and flex-1 so it
+          takes the width. No h-full: a percentage height would take the item
+          out of the stretch against an indefinite parent. */}
       <span className="flex flex-1 items-stretch gap-2">
-        {/* The curve comes FIRST and takes the width; the two controls sit past
-            it (jdp, 2026-09-07: "das hamburgermenü und die
-            geschwindigkeitsbegrenzung soll rechts davon sein"). Nothing to
-            press on the curve - the menu button beside it is the way in. */}
-        {/* The scope goes with the figure. The seeded window comes from
-            /api/stats/speed, which is on neither forwarding allowlist, so the
-            store seeds scope '' and only scope '': a peer keeps a live-only
-            window that starts empty, rather than being handed this machine's
-            last hour under a number describing the peer's. */}
+        {/* The speed history is seeded only for the local instance, since
+            /api/stats/speed is not forwarded; a peer starts live-only. */}
         <SpeedMeter value={speed} instance={instance} />
         {local && (
-          // One column, fixed width, so the button and the limit under it share
-          // an edge (jdp, 2026-09-07: "die geschwindigkeitsbegrenzung darunter"
-          // and, asked how wide, "so breit wie der Menü-Button"). Fixed rather
-          // than content-sized: two stacked controls that each hug their own
-          // text are two ragged edges, and the number in the field changes
-          // width as it is typed.
+          // A fixed-width column, so the stacked controls share an edge.
           <span className="flex w-44 shrink-0 flex-col justify-center gap-2">
             <Button
-              // A labelled button, not a bare glyph (jdp, 2026-09-07:
-              // "hamburgermenü soll ein button mit text und glyph sein"). The
-              // three-bar mark alone was read as "adjust a value" as often as
-              // "open a menu", and this is the only way into the quick panel.
               kind="secondary"
               className="w-full justify-center"
               icon={<IconMenu width={16} height={16} />}
@@ -270,24 +178,6 @@ export function ShellStrip() {
             </Button>
             <SpeedLimitField />
             <VolumeMeter />
-            {/* NO DISK ROW HERE ANY MORE (jdp, 14.09.2026: "kannst du diesen
-                text rausschmeissen: downloads / Frei / 864 GiB / Noch zu
-                schreiben / 8.9 GiB"). It was the same second copy the account
-                chip was before it: free space and what the queue still owes are
-                on the Overview tile, which is where somebody goes to act on
-                them, and in the head card they answered a question nobody had
-                asked.
-
-                It was also the one thing left that could still grow this card.
-                Measured: with an empty queue the strip is one line, and the
-                moment anything is waiting "Noch zu schreiben" adds a second and
-                the card goes from 176px to 183px; a missing or very long path
-                added a third. The card is content-driven now, and this was the
-                content that moved.
-
-                DiskSpaceStrip went with it rather than being left unmounted -
-                see components/DiskSpaceTile.tsx, which is the reader that
-                stays, and lib/useDiskSpace.ts, which both of them shared. */}
           </span>
         )}
       </span>
@@ -297,7 +187,7 @@ export function ShellStrip() {
   );
 }
 
-/** The server's own sentence when there is one; these routes refuse with a reason. */
+// These routes refuse with a reason, so the server's sentence is shown.
 function message(e: unknown): string {
   return e instanceof Error ? e.message : String(e);
 }

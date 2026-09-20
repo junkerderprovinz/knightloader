@@ -13,30 +13,13 @@ import { useToast } from '../lib/toast';
 import { Button, Field, Modal, TextArea, TextInput, ToggleRow } from './ui';
 
 /**
- * The one window that stores a sign-in session for a site, opened from the
- * failure it fixes and from the Resolvers settings card alike.
+ * CookieJarDialog stores a sign-in cookie jar for a site, opened from a failed
+ * row or from the Resolvers settings card.
  *
- * IT IS ONE PRESS OR IT IS NOTHING. A jar on its own does not download
- * anything: yt-dlp is only handed one while Settings.ytdlp.cookies is on, and
- * that switch is off on a fresh install. So a dialog that stored the paste and
- * stopped would fail the row again with the identical message - the worst
- * possible ending for a button whose whole promise is "this is the thing that
- * helps". Save therefore stores, arms and restarts, in that order.
- *
- * AND IT DOES NOT ARM ANYTHING BEHIND SOMEBODY'S BACK. The switch is
- * instance-wide - it decides whether every yt-dlp download in the app goes out
- * signed in, and a signed-in download has consequences a rate limit lands on
- * the account rather than on the address. So it is on screen, pre-armed, as
- * part of what Save is about to do, and never flipped silently from a window
- * that was opened about one link.
- *
- * THE JAR IS THIS MACHINE'S, THE RESTART IS THE TASK'S. /api/instances/{name}/
- * forwards the task, link and queue routes and nothing else (see
- * lib/controls.ts's own note), so the cookie store is always the local one
- * while the restart follows the task to whichever instance owns it. That is
- * also why FailureAdvice does not offer this window at all for a row on a peer:
- * storing a session here for a download that runs over there would look like it
- * worked and change nothing.
+ * A jar alone changes nothing while the instance-wide yt-dlp cookie switch is
+ * off, so Save stores, arms and restarts, with the switch shown pre-armed
+ * rather than flipped silently. The jar is always stored locally; only the
+ * restart follows `base`, because the peer proxy forwards task routes only.
  */
 export function CookieJarDialog({
   task,
@@ -45,37 +28,24 @@ export function CookieJarDialog({
   onClose,
   onSaved,
 }: {
-  /** The row this was opened from. Absent when the settings card opens it to
-   *  add a site by hand: there is then no host to prefill and nothing to
-   *  restart, and the window is a plain "store a jar". */
+  /** The row this was opened from; absent when adding a site by hand. */
   task?: Task;
-  /** Where the restart goes, never where the jar goes - see the doc comment. */
+  /** Where the restart goes, never the jar. */
   base?: string;
-  /**
-   * False from the Resolvers settings card, whose own switch for the very same
-   * setting sits two inches above this window. Two controls for one setting on
-   * one screen is how a page ends up disagreeing with itself, and the card's
-   * switch rides the shared Save bar while this one would write immediately.
-   */
+  /** False from the settings card, which has its own switch for the setting. */
   armSwitch?: boolean;
   onClose: () => void;
-  /** The list of sites with a stored jar, exactly as the server answers it
-   *  after the write, so a caller that draws that list draws the answer and
-   *  never the request. */
+  /** Receives the server's list of hosts with a stored jar after the write. */
   onSaved?: (hosts: string[]) => void;
 }) {
   const { t } = useT();
   const { toast } = useToast();
 
-  // Prefilled and still editable. hostOf reads the task's own host, which is
-  // the host of the LINK - for a site that serves its media from a separate
-  // domain that is not the site somebody signed in to, and a jar stored under
-  // it would be a jar nothing ever looks up.
+  // Editable, because a site serving media from another domain needs the
+  // sign-in domain rather than the link's host.
   const [host, setHost] = useState(() => (task ? hostOf(task) : ''));
   const [text, setText] = useState('');
-  // The form's intent, not a mirror of what is stored: after Save, cookies are
-  // used. Left at true when the setting is already on, which is simply the
-  // truth, and Save then patches nothing.
+  // The form's intent; Save patches nothing if the setting is already on.
   const [arm, setArm] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -84,18 +54,11 @@ export function CookieJarDialog({
     setBusy(true);
     setError('');
     try {
-      // Stored first. If the host is refused, nothing else has happened: arming
-      // an instance-wide feature and restarting a download on behalf of a paste
-      // the server never accepted would be two consequences bought with a
-      // failure.
+      // Stored first, so a refused host arms and restarts nothing.
       const hosts = await saveYtdlpCookieJar(host, text);
       if (armSwitch && arm) {
-        // Read, spread, then patch. The settings document merges at its TOP
-        // level only, so `{ ytdlp: { cookies: true } }` replaces the whole
-        // yt-dlp block and empties the quality, the subtitle languages, the
-        // output template and everything else the Resolvers page holds. Read
-        // here rather than at mount, so an edit made in another tab while this
-        // window stood open is not written back over.
+        // Settings merge at the top level only, so the whole ytdlp block is
+        // sent back. Read now rather than at mount to keep edits from another tab.
         const s = await fetchSettings();
         if (!s.ytdlp.cookies) await patchSettings({ ytdlp: { ...s.ytdlp, cookies: true } });
       }
@@ -107,8 +70,7 @@ export function CookieJarDialog({
       toast(t('cookies.saved'), 'ok');
       onClose();
     } catch (e) {
-      // The server's own sentence, which names the field and says what to send.
-      // A string of ours here would be a vaguer second copy of it.
+      // The server's sentence names the field and what to send.
       setError(message(e).replace(/^(Error|ApiError):\s*/, ''));
     } finally {
       setBusy(false);
@@ -121,20 +83,14 @@ export function CookieJarDialog({
       onClose={onClose}
       footer={
         <>
-          {/* This row had no spacer at all, so both buttons sat at its START
-              with the server's refusal to their right. GlimStone 1.14.0 puts
-              the control that goes ahead at the END of its row; the message is
-              a reading and goes in front of the pair. */}
+          {/* The forward button ends the row, so the message goes first. */}
           {error && <p className="min-w-0 text-xs text-statusWarn">{error}</p>}
           <span className="flex-1" />
           <Button kind="secondary" disabled={busy} onClick={onClose}>
             {t('common.cancel')}
           </Button>
           <Button
-            // Both fields are required and neither has a useful empty meaning:
-            // an empty jar is the CLEAR gesture on the server, and offering it
-            // from a form whose host box is also empty would be a button that
-            // deletes something nobody named.
+            // An empty jar means "clear" to the server, so both fields are required.
             disabled={busy || host.trim() === '' || text.trim() === ''}
             onClick={() => void save()}
           >

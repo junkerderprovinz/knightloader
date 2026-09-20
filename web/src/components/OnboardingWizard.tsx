@@ -7,40 +7,24 @@ import { Button, Field, LoadingCard, Modal } from './ui';
 import { PathInput } from './FolderPicker';
 import { LanguagePicker } from './LanguagePicker';
 
-// OnboardingWizard is the first-run tour: welcome, download folder, a pointer
-// at Accounts, done. Mounted once in app/Layout.tsx, beside CaptchaModal and
-// IdleActionBanner, for the same reason those two live there rather than
-// inside a page - see Layout.tsx's own comments on each. This one has
-// nothing to do with which route is open either: it is gated on a single
-// flag, not on navigation, so mounting it inside the keyed page div would
-// remount (and restart) it on the first click anywhere.
-//
-// 'onboarding.done' lives in the shared uistate bucket - lib/uistate.ts's
-// own doc comment is the reason: server-persisted, so a person who dismissed
-// the tour on one browser does not see it again on another, and it survives
-// a reload without a new storage mechanism being invented for it.
-//
-// The gate waits for readUIState() to resolve before deciding anything, the
-// same rule pages/Settings.tsx's RememberedPage already follows for its own
-// remembered field: useUIState hands out its `false` fallback until the
-// document loads, and rendering the tour on that fallback would flash it in
-// front of every returning user for one frame before the real value (already
-// true, weeks ago) arrived and took it away again.
 const STEPS = ['welcome', 'folder', 'accounts', 'finished'] as const;
 type Step = (typeof STEPS)[number];
 
+/**
+ * OnboardingWizard is the first-run tour, mounted once in app/Layout.tsx. The
+ * done flag lives in the server-persisted uistate, so dismissing it on one
+ * browser covers all of them.
+ */
 export function OnboardingWizard() {
   const { t } = useT();
   const navigate = useNavigate();
   const [done, setDone] = useUIState<boolean>('onboarding.done', false);
+  // useUIState answers its fallback until the document loads, which would
+  // flash the tour at returning users.
   const [ready, setReady] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
 
-  // The live settings, fetched once - only the folder step reads from it, but
-  // fetching lazily on arrival at that step would mean the field sits on
-  // "loading" for a moment on every visit, and this component only ever
-  // shows for one session per install: one GET up front is cheaper than the
-  // bookkeeping needed to fetch it later.
+  // Fetched up front so the folder step does not open on a loading state.
   const [settings, setSettings] = useState<Settings | null>(null);
   const [downloadDir, setDownloadDir] = useState('');
 
@@ -62,7 +46,7 @@ export function OnboardingWizard() {
         setDownloadDir(s.downloadDir);
       },
       () => {
-        /* the folder step falls back to an empty, still-usable field */
+        // The folder step falls back to an empty field.
       },
     );
     return () => {
@@ -73,14 +57,9 @@ export function OnboardingWizard() {
   if (!ready || done) return null;
 
   function close() {
-    // Whatever folder was typed or picked is worth keeping even if the tour
-    // is left early - a person who set the folder on step 2 and then hit
-    // Skip should not have to set it again on the real Settings page.
+    // A folder set before skipping is kept. Best effort: Settings still has it.
     if (settings && downloadDir.trim() !== '' && downloadDir.trim() !== settings.downloadDir) {
-      void patchSettings({ downloadDir: downloadDir.trim() }).catch(() => {
-        // Best effort: the field is still there, editable, on Settings >
-        // General - this is a courtesy save, not the only way to set it.
-      });
+      void patchSettings({ downloadDir: downloadDir.trim() }).catch(() => {});
     }
     setDone(true);
   }
@@ -105,11 +84,7 @@ export function OnboardingWizard() {
       onClose={close}
       footer={
         <>
-          {/* Skip leaves the tour altogether, so it sits furthest from the hand
-              and not at the end of the row, where somebody reaching for Next
-              without reading would land on it. Back and Next keep the pair
-              order: the one that steps back first, the one that goes ahead
-              last. */}
+          {/* Skip sits at the start, away from Next. */}
           <Button kind="ghost" onClick={close}>
             {t('onboarding.skip')}
           </Button>

@@ -10,47 +10,11 @@ import { CRYPTO_COINS, type CryptoCoin, type CryptoNetwork } from '../lib/donate
 import { useT } from '../lib/i18n';
 import { useNavLabels } from '../lib/navLabels';
 
-// ---------------------------------------------------------------------------
-// The crypto window: the second way to give (GlimStone 1.8.3).
-//
-// The coffee button takes a card. This takes what somebody already holds in a
-// wallet: no account, no name at either end, and nothing leaving the machine.
-//
-// THE RULE THIS WINDOW EXISTS FOR: every network a donor can pick carries its
-// OWN address. There is no line anywhere naming a chain without a wallet
-// behind it, so a chain we cannot receive on is unofferable rather than merely
-// discouraged. See lib/donate.ts for the near miss that produced the rule: one
-// 0x address offered under "Tether" beside the networks BNB, Tron, Solana and
-// Ethereum would have destroyed a donation sent over Tron, and nobody would
-// ever have reported it.
-//
-// Coin first, chain second, and both are real choices. A donor thinks "I have
-// USDT", not "I have Ethereum". The chain switches directly under the address
-// it changes, because a picker one box away from its own effect makes somebody
-// look twice to see whether the address moved.
-//
-// The code sits at the top and the picker underneath: a dialog usually asks
-// before it answers, and this one is the other way round because the code is
-// what the window was opened for.
-//
-// Built on this app's own Modal rather than on the design language's window,
-// because it has to look like the other dialogs standing beside it here. The
-// Modal already owns Escape, the backdrop click and the corner close, so this
-// file adds no second way to shut it.
-//
-// THE WAY OUT IS A BUTTON IN THE FOOTER, with its word and its glyph, and it
-// follows the labelling engine like every other button in the app: text, text
-// with glyph, or glyph alone, whichever the one setting says.
-//
-// It went the other way for an afternoon - the corner X, permanently
-// glyph-only - and that was taken back the same day (jdp: "der schließenbutton
-// soll unten in der card sein mit text und glyph und der beschriftungsengine
-// folgen"). The defect the corner was fixing is real and stands: this window
-// had NO visible way out at all, because it has no footer of its own and Modal
-// only draws its corner X for a caller that asks. The fix is the footer, not
-// the corner.
-// ---------------------------------------------------------------------------
-
+/**
+ * CryptoDonateDialog shows a QR code and address for the chosen coin and
+ * network. Every network offered carries its own address (see lib/donate.ts),
+ * so a donor can never send over a chain nobody receives on.
+ */
 export function CryptoDonateDialog({ onClose }: { onClose: () => void }) {
   const { t } = useT();
   const [coin, setCoin] = useState<CryptoCoin>(CRYPTO_COINS[0]!);
@@ -58,38 +22,20 @@ export function CryptoDonateDialog({ onClose }: { onClose: () => void }) {
   const [copied, setCopied] = useState(false);
   const matrix = useMemo(() => qrMatrix(network.address), [network.address]);
 
-  // The label engine, under this repo's own name for it, and `hover` is drawn
-  // AS hover here like everywhere else.
-  //
-  // It used to resolve to the same thing as `both` on this one surface, with
-  // the argument written out: a grid of eight coins is something somebody
-  // SEARCHES, and hiding the tickers until asked would turn "find USDT" into
-  // hovering every tile in turn. GlimStone heard that argument, said it was a
-  // good one, and rejected it anyway - a control that quietly resolves a mode
-  // to something else IS the complaint, however well it argues, because from
-  // outside a documented exemption and a control that simply ignores the
-  // setting look identical. So: at rest a reactive tile looks exactly like
-  // glyph mode, the ticker comes back under the pointer, and the SELECTED coin
-  // keeps its word, so the one answer on screen is never the one nobody can
-  // read. Nothing resizes while that happens - the tile is a square sized by
-  // the grid, and the ticker collapses inside it.
+  // In `hover` mode the ticker shows under the pointer, and the selected coin
+  // always keeps its word.
   const labels = useNavLabels();
   const showMark = labels !== 'text';
   const showTicker = labels !== 'glyph';
   const tickerOnHover = labels === 'hover';
 
-  // The label flips for a moment and goes back, the same answer every other
-  // copy control in this app gives.
   useEffect(() => {
     if (!copied) return;
     const id = setTimeout(() => setCopied(false), 1500);
     return () => clearTimeout(id);
   }, [copied]);
 
-  // Picking a coin always lands on a network of THAT coin. Keeping the previous
-  // chain when it happens to also carry the new coin would be a convenience
-  // with one bad case: a chain somebody last looked at staying selected under a
-  // coin they never checked it against.
+  // Always the new coin's first network, never a chain carried over unchecked.
   function pickCoin(next: CryptoCoin) {
     setCoin(next);
     setNetwork(next.networks[0]!);
@@ -112,29 +58,19 @@ export function CryptoDonateDialog({ onClose }: { onClose: () => void }) {
     >
       <p className="text-sm text-carbon-textSub">{t('settings.about.cryptoIntro')}</p>
 
-      {/* The answer, first. */}
       <div className="flex flex-col items-center gap-3 rounded-[var(--radius-card)] bg-carbon-surface2 p-4">
         <QRCode matrix={matrix} label={network.address} size={168} />
-        {/* Whole, in one piece, in a mono face, and never shortened: an address
-            is read back by eye before somebody sends to it, so an ellipsis in
-            the middle turns the one string that has to be exact into a string
-            nobody can check. */}
+        {/* Never shortened: an address is checked by eye before sending. */}
         <p dir="ltr" className="glim-num w-full break-all text-center font-mono text-xs text-carbon-text">
           {network.address}
         </p>
-        {/* The chain, switched here, under the address it changes. Shown even
-            when a coin has only one, because this is also the line that SAYS
-            which network the address belongs to, and that fact may not come and
-            go with the tile. */}
+        {/* Shown even for a single network, since it names the address's chain.
+            Chain names have no symbol, so they stay words in every label mode. */}
         <div
           className="flex flex-wrap justify-center gap-2"
           role="listbox"
           aria-label={t('settings.about.cryptoNetworks')}
         >
-          {/* A chain name is DATA and has no symbol, so the label engine has
-              nothing to hide here and these stay words in every mode. The
-              colour engine still applies: each chain owns a position, so the
-              chosen one fills in its own hue. */}
           {coin.networks.map((n, i) => (
             <button
               key={n.id}
@@ -146,11 +82,7 @@ export function CryptoDonateDialog({ onClose }: { onClose: () => void }) {
                 setCopied(false);
               }}
               style={hueVars(rainbowAt(i)) as CSSProperties}
-              // The pill TOKEN and never rounded-full: the two are identical at
-              // the default round setting, which is exactly why the difference
-              // survives a build-and-glance - it only shows once somebody
-              // switches the shape to square, where a hard-wired 9999px stays a
-              // stadium in a window of right angles.
+              // The pill token, not rounded-full, so the square shape setting applies.
               className={`glim-hue rounded-[var(--radius-pill)] px-3 py-1 text-xs font-medium transition-colors ${
                 n.id === network.id
                   ? 'bg-accent text-accentContrast'
@@ -161,10 +93,7 @@ export function CryptoDonateDialog({ onClose }: { onClose: () => void }) {
             </button>
           ))}
         </div>
-        {/* Warn-coloured, and it is not a warning: it is the line a donor would
-            otherwise go hunting for. Exchanges train people to look for a
-            destination tag or a memo, so the chain that wants neither has to
-            say so where the address is. */}
+        {/* Such as "no memo needed", which exchanges train people to look for. */}
         {network.noteKey && (
           <p className="text-center text-xs text-statusWarn">{t(network.noteKey)}</p>
         )}
@@ -178,16 +107,7 @@ export function CryptoDonateDialog({ onClose }: { onClose: () => void }) {
         </Button>
       </div>
 
-      {/* The picker, under the answer it changes. Tiles rather than a list,
-          because a coin is recognised by its mark faster than its name is
-          read.
-
-          Each tile owns a palette position, so rainbow mode makes eight coins
-          scannable by colour the way it makes any other list scannable.
-          `.glim-hue-icon` tints the mark itself while the ticker sits beside
-          it, and is dropped in glyph mode: there the mark IS the tile's whole
-          content, and the house rule for an icon-only badge is that only the
-          fill carries colour. */}
+      {/* Tiles, since a coin's mark is recognised faster than its name. */}
       <div
         className="grid grid-cols-4 gap-2"
         role="listbox"
@@ -210,35 +130,15 @@ export function CryptoDonateDialog({ onClose }: { onClose: () => void }) {
   );
 }
 
-/**
- * The ticker, present in the markup but collapsed to nothing until the pointer
- * or the keyboard arrives. Collapsed rather than left out, and that IS the
- * mechanism: a label that is there but has no height can grow back in place, so
- * the tile keeps exactly the geometry it has in every other label mode and
- * nothing around it is ever re-measured. The same classes Tabs.tsx hides a rail
- * label with, so the two surfaces answer the reactive setting identically.
- */
+// Collapsed rather than omitted, so the ticker grows back in place without
+// re-measuring the tile. Tabs.tsx hides rail labels with the same classes.
 const HIDDEN_TICKER =
   'max-h-0 leading-4 opacity-0 transition-all duration-200 group-hover:max-h-4 group-hover:opacity-100 ' +
   'group-focus-visible:max-h-4 group-focus-visible:opacity-100';
 
 /**
- * One coin, as a square tile.
- *
- * SQUARE, AND THE MARK IS HALF THE TILE. Both numbers come from the sibling
- * surface in this app that already settled them - BrowserTools' download tiles,
- * a 112px box around a 56px mark - rather than from whatever the mark happened
- * to measure before the tile became a square. `aspect-square` and not a fixed
- * height, so the tile stays square in all three label modes: a picker that
- * changes height when somebody switches how controls are labelled reads as a
- * different grid. The mark is sized against the tile's own height rather than
- * in pixels, so half stays half at whatever width the four columns work out to.
- *
- * Its own component because the tooltip is a hook and a hook cannot be called
- * inside the map above. That tooltip is the house bubble and never a native
- * `title=`: one control, one tooltip mechanism, and the operating system's own
- * balloon draws in the OS font, at the pointer instead of at the trigger, and
- * is untouched by every rule the house bubble follows.
+ * CoinTile is one coin as a square tile with the mark at half its height, like
+ * BrowserTools' tiles. It is a component of its own because useTooltip is a hook.
  */
 function CoinTile({
   coin,
@@ -258,9 +158,7 @@ function CoinTile({
   onPick: () => void;
 }) {
   const tip = useTooltip<HTMLButtonElement>(coin.name);
-  // role and tabIndex stripped back out: this is a real <button> carrying
-  // role="option" in a listbox, and triggerProps' own "note" role would tell a
-  // screen reader the tile is a description rather than the control it is.
+  // The button is an option in a listbox, so triggerProps' "note" role must go.
   const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
   return (
     <>
@@ -280,9 +178,7 @@ function CoinTile({
           }`}
       >
         {showMark && (
-          // Half the tile's own side, read off the square rather than typed as
-          // a number: the svg's width/height attributes are what CSS overrides
-          // here, and `w-auto` keeps the viewBox's square proportion.
+          // CSS overrides the svg's size attributes to half the tile.
           <span className="flex h-1/2 shrink-0 items-center justify-center [&>svg]:h-full [&>svg]:w-auto">
             <CoinMark coin={coin.id} size={22} />
           </span>

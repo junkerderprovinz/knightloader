@@ -1,17 +1,7 @@
-// The right-click menu, as a shell. It knows how to be a menu — where to sit,
-// when to close, how to be walked with the keyboard — and nothing about
-// downloads. Every wave that adds actions hands it another group.
-//
-// It renders into <body> for the same reason InfoBubble does (see
-// docs/design-language.md): anchored where it was opened, it is at the mercy of
-// every card, table and scroll container above it, and one `overflow: hidden`
-// turns the menu into a sliver. At body level nothing clips it, and the position
-// is measured against the viewport each time it opens.
-//
-// A menu is one or more PANELS: the one at the pointer, and one more for every
-// submenu that is open under it. Panels are siblings at body level rather than
-// nested markup, so a submenu is clipped by nothing either — and the panel that
-// opened it stays exactly where it was.
+// The context menu shell: placement, closing and keyboard navigation, with
+// callers supplying groups of items. Every panel, the menu and each open
+// submenu, renders into <body> as a sibling so no overflow above can clip it,
+// and is placed against the viewport.
 import {
   createContext,
   useCallback,
@@ -37,73 +27,33 @@ export interface MenuItem {
   icon?: ReactNode;
   /** Quiet text at the end of the row: a count, a keyboard shortcut. */
   detail?: string;
-  // THERE IS NO `danger`, AND ITS ABSENCE IS THE GUARD - the same sentence
-  // ui.tsx's ButtonKind carries, for the same reason. It used to stand here as
-  // an accepted-but-inert flag "so the call sites still passing it keep
-  // compiling", and no call site was passing it: GlimStone 1.13.0 deleted
-  // ConfirmDialog's `tone` rather than emptying it, because an optional
-  // property that looks like a switch and decides nothing is worse than no
-  // property at all, and tsc cannot report one nobody passes. An entry that
-  // destroys something is drawn like the entries around it; what warns is the
-  // window it opens, which names what is about to go.
+  // No `danger` flag: a destructive entry looks like its neighbours, and the
+  // dialog it opens does the warning.
   disabled?: boolean;
   /**
-   * Marks the one row of a submenu that is a set of CHOICES rather than a list
-   * of verbs: the value the selection is already at.
-   *
-   * It is its own mark rather than a tick the caller passes as `icon`, because
-   * the two answer different questions and a row needs both at once - the
-   * gutter glyph says what the row is, this says which row is in force. Setting
-   * it at all, true or false, turns the group into a radio set for a screen
-   * reader, so a choice with nothing selected still announces as a choice
-   * rather than as seven unrelated commands.
+   * Marks the current value in a submenu of choices. Setting it at all turns
+   * the group into a radio set for screen readers; it is separate from `icon`
+   * because a row can need both.
    */
   checked?: boolean;
-  /** What choosing it does. Absent on an item whose whole job is its submenu. */
+  /** Absent on an item whose only job is its submenu. */
   onSelect?: () => void;
-  /**
-   * A nested menu, in the same groups shape.
-   *
-   * JDownloader's menus are full of these and the muscle memory expects them:
-   * four ways to move something in the queue behind one word reads as one idea,
-   * while four more entries in a menu that already has a dozen reads as noise.
-   * An item that has one never acts on its own — it opens, it does not fire.
-   */
+  /** A nested menu. An item with one opens it rather than firing. */
   submenu?: MenuGroup[];
 }
 
-/**
- * A run of items separated from its neighbours by a hairline.
- *
- * Groups carry no heading: a menu of six entries under three titles is a form,
- * not a menu, and the grouping is already visible from the spacing.
- */
+/** A run of items separated from its neighbours by a hairline, without a heading. */
 export interface MenuGroup {
   id: string;
   items: MenuItem[];
 }
 
-/** The gap kept between the menu and the edge of the window. */
 const MARGIN = 8;
 
-/**
- * How long an open submenu, and the highlight on the row that opened it,
- * survive the pointer moving off that row. In milliseconds.
- *
- * jdp: "Der hoverbalken bleibt immer an aufräumen, priorität und verschieben
- * hängen." Those three are the submenu parents, and nothing ever let go of
- * them: the panel and the lit row were only ever replaced by hovering another
- * parent, so once one had been touched the menu carried a second highlight
- * around for the rest of its life.
- *
- * Letting go the instant the pointer leaves is the other broken menu. The
- * nested panel is a sibling at body level, not a child of the row, so reaching
- * it means leaving the row first, and a submenu that closes mid-crossing can
- * never be entered at all. So the release is delayed by about the length of
- * that crossing, and entering the panel cancels it. Anything much shorter
- * clips a slow diagonal; anything much longer and the highlight reads as stuck
- * again, which is the complaint.
- */
+// How long, in ms, an open submenu and its lit parent row survive the pointer
+// leaving that row. The pointer has to cross the row to reach the sibling
+// panel, and entering the panel cancels the timer; much longer would make the
+// highlight look stuck.
 const SUBMENU_GRACE = 200;
 
 /** useContextMenu holds the open/closed state of one menu. */
@@ -115,12 +65,9 @@ export function useContextMenu() {
 }
 
 /**
- * anchorFromEvent turns a contextmenu event into a point.
- *
- * The Menu key and Shift+F10 raise the same event with no useful coordinates —
- * some browsers send 0/0, others the element's centre — so a keyboard-opened
- * menu falls back to the corner of whatever was focused. Without this the menu
- * lands in the top-left of the window and the feature is mouse-only.
+ * anchorFromEvent turns a contextmenu event into a point. The Menu key and
+ * Shift+F10 send no useful coordinates, so a keyboard-opened menu falls back
+ * to the focused element's corner.
  */
 export function anchorFromEvent(e: {
   clientX: number;
@@ -136,8 +83,7 @@ export function anchorFromEvent(e: {
 
 /**
  * anchorBelow puts a dropdown under the control that opened it, aligned on the
- * edge the text starts from — the button's right edge in a right-to-left
- * language, where the menu grows the other way.
+ * edge the text starts from, which is the right edge in RTL languages.
  */
 export function anchorBelow(el: Element | null): MenuAnchor {
   const r = el?.getBoundingClientRect();
@@ -147,12 +93,9 @@ export function anchorBelow(el: Element | null): MenuAnchor {
 }
 
 /**
- * Where a panel wants to sit, and where it should grow instead when it does not
- * fit there.
- *
- * `flipAt` is the coordinate the panel flips around: the pointer for the menu
- * itself, the opening row's other edge for a submenu. Sliding along the window
- * edge instead would put a submenu on top of the item that opened it.
+ * Spot is where a panel wants to sit. `flipAt` is the coordinate it flips
+ * around when it does not fit: the pointer for the menu, the opening row's
+ * other edge for a submenu, so a submenu never covers its parent row.
  */
 interface Spot {
   x: number;
@@ -160,35 +103,22 @@ interface Spot {
   flipAt?: number;
 }
 
-/**
- * Every panel of the currently open menu, so a click inside a submenu is not
- * mistaken for a click outside the menu. One ref per menu tree, not a module
- * global: two menus can be mounted at once (a dropdown and a right-click), and
- * they must be able to close each other.
- */
+// Every panel of one open menu, so a click in a submenu is not taken as a click
+// outside. Per tree rather than global, since two menus can be open at once.
 const PanelsCtx = createContext<{ current: Set<HTMLElement> } | null>(null);
 
 /** submenuSpot places a nested panel beside the row that opens it. */
 function submenuSpot(el: HTMLElement): Spot {
   const r = el.getBoundingClientRect();
   const rtl = document.documentElement.dir === 'rtl';
-  // The 2px overlap is deliberate: a submenu flush against its row leaves a
-  // hairline gap that the pointer can fall through on the way over.
+  // A 2px overlap, so the pointer cannot fall through a gap on the way over.
   return rtl
     ? { x: r.left + 2, y: r.top - 4, flipAt: r.right - 2 }
     : { x: r.right - 2, y: r.top - 4, flipAt: r.left + 2 };
 }
 
-/**
- * The "there is more behind this one" mark, as a solid triangle.
- *
- * It was a stroked chevron, which is the one thing GlimStone's icon rule
- * forbids (see lib/icons.tsx's own header): a hairline outline beside the
- * filled glyphs in the same row reads as a lighter class of mark, and this is
- * the most-rendered glyph in the whole menu. A triangle rather than a filled
- * chevron so it stays distinct from the fold entries' own chevrons, which point
- * up and down two rows away.
- */
+// The submenu mark: a solid triangle, since GlimStone glyphs are filled, and
+// distinct from the fold entries' chevrons.
 function Caret({ rtl }: { rtl: boolean }) {
   return (
     <svg
@@ -224,17 +154,13 @@ function Panel({
   spot: Spot;
   groups: MenuGroup[];
   label: string;
-  /** Close the whole menu. What choosing an item does. */
+  /** Closes the whole menu. */
   onClose: () => void;
-  /** Close only this panel and hand focus back. Absent on the outermost one. */
+  /** Closes only this submenu and hands focus back. */
   onDismiss?: () => void;
   /**
-   * Told when the pointer arrives in or leaves this panel, so the panel that
-   * opened it can hold off its own SUBMENU_GRACE timer. Both are chained up the
-   * whole stack rather than handled one level deep: moving from a submenu into
-   * a submenu of its own leaves every panel above it, and without the chain the
-   * outermost one would time out and take the branch the pointer is standing in
-   * with it.
+   * Pointer arrival and departure, chained up the whole stack so every parent
+   * holds its SUBMENU_GRACE timer while the pointer is in a deeper submenu.
    */
   onPointerIn?: () => void;
   onPointerOut?: () => void;
@@ -245,8 +171,7 @@ function Panel({
   const [sub, setSub] = useState<OpenSub | null>(null);
   const panels = useContext(PanelsCtx);
 
-  // An empty group is a group whose wave has nothing to offer for this
-  // selection; dropping it here keeps every caller from having to check.
+  // Empty groups are dropped here so callers need not check.
   const shown = groups.filter((g) => g.items.length > 0);
   const flat = shown.flatMap((g) => g.items);
   const firstEnabled = Math.max(
@@ -255,10 +180,8 @@ function Panel({
   );
   const [active, setActive] = useState(firstEnabled);
 
-  // The grace timer behind SUBMENU_GRACE. It lives on the panel that OPENED the
-  // submenu, because that is the panel holding both things the pointer leaving
-  // has to release: the nested panel and the highlight on the row it belongs
-  // to. `openHere` paints that highlight, so dropping `sub` drops both at once.
+  // Held by the parent panel, since dropping `sub` releases both the submenu
+  // and its lit row.
   const closeTimer = useRef<number | null>(null);
   const cancelClose = useCallback(() => {
     if (closeTimer.current === null) return;
@@ -272,9 +195,7 @@ function Panel({
       setSub(null);
     }, SUBMENU_GRACE);
   }, [cancelClose]);
-  // Choosing an entry closes the whole tree at once, so a panel can go away
-  // with its timer still armed and fire into a component that is no longer
-  // there.
+  // A panel can unmount with its timer still armed.
   useEffect(() => cancelClose, [cancelClose]);
 
   const pointerIn = useCallback(() => {
@@ -286,8 +207,6 @@ function Panel({
     onPointerOut?.();
   }, [scheduleClose, onPointerOut]);
 
-  // Every panel joins the tree's registry, which is what tells the outermost
-  // panel that a mousedown landed inside the menu and not outside it.
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el || !panels) return;
@@ -298,19 +217,14 @@ function Panel({
     };
   }, [panels]);
 
-  // Measured, then placed — never the other way round. The panel is laid out at
-  // its spot, its real size read back, and only then moved so it fits; until
-  // that has happened it stays invisible, because a menu that appears half off
-  // the screen and jumps is worse than one that appears a frame later.
+  // Laid out at its spot, measured, then moved to fit; transparent until then.
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
     const { width, height } = el.getBoundingClientRect();
     const rtl = document.documentElement.dir === 'rtl';
     const flip = spot.flipAt ?? spot.x;
-    // Flip to the other side rather than sliding along the edge: sliding puts
-    // the panel under the cursor, and the first item is then one stray click
-    // away from firing.
+    // Flipping rather than sliding keeps the first item out from under the cursor.
     let left = rtl ? spot.x - width : spot.x;
     if (rtl ? left < MARGIN : left + width > window.innerWidth - MARGIN) {
       left = rtl ? flip : flip - width;
@@ -322,13 +236,10 @@ function Panel({
     setPos({ top, left });
   }, [spot.x, spot.y, spot.flipAt, flat.length]);
 
-  // Focus lands in the panel as it opens, so the arrow keys work without a
-  // click first — for a submenu that means the first of its own entries.
+  // Once per open, so the arrow keys work at once; re-running on a changed
+  // firstEnabled would pull focus back to the top mid-navigation.
   useEffect(() => {
     itemRefs.current[firstEnabled]?.focus();
-    // Deliberately once per open: firstEnabled changes as groups are rebuilt
-    // for a changing selection, and re-running this would drag focus back to
-    // the top while somebody is arrowing down.
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   function step(from: number, delta: number): void {
@@ -377,8 +288,6 @@ function Panel({
       e.preventDefault();
       openSub(item, itemRefs.current[active]);
     } else if (e.key === back && onDismiss) {
-      // Out of a submenu and back onto the row that opened it — the one thing
-      // that makes a nested menu usable without a mouse.
       e.preventDefault();
       onDismiss();
     } else if (e.key === 'Home') {
@@ -388,8 +297,7 @@ function Panel({
       e.preventDefault();
       step(0, -1);
     } else if (e.key === 'Tab') {
-      // Tab out of a menu means "I am done with it". Letting focus land on the
-      // page behind while the menu is still open leaves two things focused.
+      // Tab leaves the menu, so the menu closes.
       onClose();
     }
   }
@@ -413,9 +321,7 @@ function Panel({
             position: 'fixed',
             top: pos?.top ?? spot.y,
             left: pos?.left ?? spot.x,
-            // Transparent rather than `visibility: hidden` for the one frame
-            // before the size is known: a hidden element cannot take focus, and
-            // the first item is focused as soon as the panel mounts.
+            // Not visibility: hidden, which would block the first item's focus.
             opacity: pos ? undefined : 0,
           }}
           className="glim-card glim-fade z-[60] min-w-[13rem] max-w-[22rem] divide-y divide-carbon-border/60 py-0.5"
@@ -442,12 +348,7 @@ function Panel({
                     aria-expanded={nested ? openHere : undefined}
                     onMouseEnter={(e) => {
                       setActive(i);
-                      // Hovering a submenu parent swaps the open panel. Hovering
-                      // a plain entry no longer leaves the open one alone - it
-                      // starts the grace timer, which is what finally lets go of
-                      // a parent the pointer has walked away from. Travelling
-                      // diagonally across a row or two to reach the panel takes
-                      // a fraction of SUBMENU_GRACE, so the crossing survives.
+                      // A plain entry starts the grace timer on an open submenu.
                       if (nested) openSub(item, e.currentTarget);
                       else if (sub) scheduleClose();
                     }}
@@ -456,8 +357,7 @@ function Panel({
                         openSub(item, e.currentTarget);
                         return;
                       }
-                      // Closed before the action runs: an entry that opens a
-                      // dialog must not have a menu sitting on top of it.
+                      // Closed first, so a dialog the entry opens is not covered.
                       onClose();
                       item.onSelect?.();
                     }}
@@ -468,18 +368,9 @@ function Panel({
                       focus-visible:bg-carbon-hover focus-visible:text-carbon-text
                       ${openHere ? 'bg-carbon-hover text-carbon-text' : ''}`}
                   >
-                    {/* The gutter sizes the glyph rather than the call site: a
-                        CSS height/width beats the width/height attributes an
-                        icon component sets, so every entry lands at exactly
-                        14px whatever its author passed. Before this the same
-                        panel could hold a 14px folder next to a 16px key, and
-                        the alternative was ~30 call sites each repeating the
-                        same two numbers. It stays rendered when there is no
-                        icon, so a group where only some entries carry one still
-                        lines its labels up. The column is glyphs only: what is
-                        SELECTED is marked at the other end of the row (see
-                        MenuItem.checked), because a row can need to say what it
-                        is and that it is the one in force at the same time. */}
+                    {/* The gutter sets every glyph to 14px whatever size the
+                        caller passed, and stays without an icon so labels line
+                        up. */}
                     <span className="grid h-4 w-4 shrink-0 place-items-center [&_svg]:h-3.5 [&_svg]:w-3.5">
                       {item.icon}
                     </span>
@@ -487,11 +378,7 @@ function Panel({
                     {item.detail && (
                       <span className="glim-num shrink-0 text-[11px] text-carbon-textMuted">{item.detail}</span>
                     )}
-                    {/* The "this is the one in force" mark, at the trailing end
-                        where the caret would be on a parent row - the two never
-                        occur together, a choice has no submenu. Accent ink and a
-                        smaller box than the gutter, so it reads as a mark on the
-                        row rather than a second glyph competing with the first. */}
+                    {/* In the caret's place, since a choice has no submenu. */}
                     {item.checked && (
                       <span className="shrink-0 text-accentInk [&_svg]:h-3 [&_svg]:w-3">
                         <IconCheck />
@@ -535,52 +422,24 @@ export function ContextMenu({
 }: {
   anchor: MenuAnchor;
   groups: MenuGroup[];
-  /** The menu's accessible name — a screen reader announces this, not the items. */
+  /** The menu's accessible name. */
   label: string;
   onClose: () => void;
 }) {
   const panels = useRef(new Set<HTMLElement>());
 
-  // Focus goes into the menu on open and comes back on close — unless an item
-  // has already moved it somewhere better, which is what opening a dialog does.
-  //
-  // useLayoutEffect, AND THAT IS THE WHOLE FIX. As a passive effect this was
-  // broken at both ends, and the symptom was that Escape left focus on <body>
-  // in every menu in the app — pre-existing, and it started hurting the day the
-  // selection row grew two menus of its own.
-  //
-  // Passive effects fire bottom-up, so the Panel's own "focus my first entry"
-  // effect had already run by the time this one captured `opener`: what it
-  // captured was the first menu item, not the control that opened the menu.
-  // Layout effects fire in the same order, but the Panel's focus is a PASSIVE
-  // effect and the whole layout phase is over before it runs — so here the
-  // opener is still the opener.
-  //
-  // And the cleanup: passive destroys run AFTER the DOM is detached, so by then
-  // the browser had already moved focus to <body> and `panels` had been emptied
-  // by the Panel's own layout cleanup. Both tests were therefore false and
-  // nothing was ever restored. On a deletion React runs a parent's layout
-  // destroy BEFORE its children's, so from here the panels are still registered
-  // and still on screen, and `document.activeElement` is still the entry that
-  // was focused when Escape was pressed.
-  //
-  // Running in the mutation phase does not trample a dialog an entry opened:
-  // deletions are committed before the new tree's layout effects and before
-  // React honours an `autoFocus`, so the dialog takes focus after this hands it
-  // back, which is the order that was wanted anyway.
+  // Restores focus to the opener on close. It has to be a layout effect at both
+  // ends: it captures the opener before the Panel's passive effect focuses the
+  // first entry, and its cleanup runs before the Panel's, while the panels are
+  // still registered and focus is still inside them. A dialog opened by an
+  // entry still takes focus afterwards.
   useLayoutEffect(() => {
     const opener = document.activeElement as HTMLElement | null;
     const open = panels.current;
     return () => {
       const at = document.activeElement;
-      // Only when focus is still INSIDE the menu. A menu closed by clicking
-      // something else must not pull focus off whatever was clicked, and one
-      // closed by an entry that opened a dialog must not pull it out of the
-      // dialog.
+      // Only while focus is inside the menu, so a click elsewhere keeps its focus.
       if (!at || ![...open].some((el) => el.contains(at))) return;
-      // A re-render can have replaced the opener's node while the menu was up;
-      // focusing a detached element silently does nothing, so say so rather
-      // than pretending the focus went home.
       if (opener?.isConnected) opener.focus?.();
     };
   }, []);
@@ -591,8 +450,7 @@ export function ContextMenu({
     const onDown = (e: MouseEvent) => {
       if (!inside(e.target as Node)) onClose();
     };
-    // A measured position goes stale the moment the page moves, and a menu that
-    // drifts away from the row it belongs to is pointing at the wrong download.
+    // A scroll or resize leaves the menu pointing at the wrong row.
     const onMove = () => onClose();
     document.addEventListener('mousedown', onDown, true);
     document.addEventListener('contextmenu', onDown, true);

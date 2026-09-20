@@ -9,23 +9,12 @@ import { Tip } from './columns';
 import { IconRetry, IconTrash } from '../lib/icons';
 
 /**
- * The holding area: the links the link filter refused.
+ * FilteredLinks is the holding area for links a filter rule refused, kept out
+ * of the collector list so a working filter does not look like junk. Restore
+ * puts a link back with its rule waived. There is no accent, since a held link
+ * is not activity.
  *
- * It exists because the first version of the filter did the right thing badly.
- * A refused link was kept and explained — which is the whole point, JDownloader
- * eats them in silence and gets reported as a broken paste box — but it was kept
- * *in the collector*, next to the links that were about to download. So a filter
- * that was working perfectly looked like a collector full of junk, and the only
- * way to get a clean list was to switch the filter off.
- *
- * Same record, different list. Nothing is lost and nothing is hidden: the count
- * is on the strip, the rule that caught each link is next to it, and Restore puts
- * one back with that rule waived — because the commonest reason to open this list
- * at all is that the rule turned out to be too broad.
- *
- * No accent anywhere on it. The accent means activity, and a held link is the
- * opposite of activity: it is the one thing on this page that is not going to
- * happen.
+ * `held` comes from the page's task stream; the component opens no socket.
  */
 export function FilteredLinks({ held }: { held: Task[] }) {
   const { t } = useT();
@@ -34,11 +23,7 @@ export function FilteredLinks({ held }: { held: Task[] }) {
   const [showAll, setShowAll] = useState(false);
   const [busy, setBusy] = useState(false);
 
-  // No state of its own beyond that, and no socket. The links are tasks, so the
-  // page above already has them from the one stream this app opens; a second
-  // subscription here would be a second copy to keep in step and a second thing
-  // to reconnect.
-
+  // Not optimistic: the server broadcasts the changed tasks.
   const act = useCallback(
     async (run: () => Promise<Response>, failKey: FilteredKey) => {
       setBusy(true);
@@ -48,9 +33,6 @@ export function FilteredLinks({ held }: { held: Task[] }) {
       } finally {
         setBusy(false);
       }
-      // Nothing is written to local state on success. The server broadcasts the
-      // tasks it changed, and taking them off this list optimistically would put
-      // them back on the next message if the write had in fact failed.
     },
     [fx, toast],
   );
@@ -60,8 +42,6 @@ export function FilteredLinks({ held }: { held: Task[] }) {
 
   if (!held.length) return null;
 
-  // Newest first: the links the paste the user is still looking at produced are
-  // the ones this strip has to explain.
   const newest = [...held].reverse();
   const shown = showAll ? newest : newest.slice(0, 1);
 
@@ -101,22 +81,13 @@ export function FilteredLinks({ held }: { held: Task[] }) {
       <div className="max-h-56 overflow-y-auto pb-1.5">
         {shown.map((h) => (
           <div key={h.id} className="flex items-baseline gap-3 px-4 py-1 text-xs">
-            {/* The rule first, because it is the thing the user goes and edits.
-                It is data on the task, not a name parsed back out of the
-                sentence next to it — that sentence is going to be translated.
-
-                All three are cut to a share of the row, so all three need the
-                whole string one hover away - in the house bubble, never as a
-                native `title=` and the operating system's own balloon beside
-                the app's own (see columns.tsx's `Tip`). */}
+            {/* The rule first, since it is what gets edited. */}
             <Tip tip={ruleOf(h)} className="max-w-[22%] shrink-0 truncate text-carbon-text">
               {ruleOf(h) || fx('collector.filtered.noRule')}
             </Tip>
             <Tip tip={h.skipReason} className="max-w-[30%] shrink-0 truncate text-carbon-textSub">
               {h.skipReason}
             </Tip>
-            {/* dir=ltr: a URL is not prose and must not be reordered when the
-                interface language is right-to-left. */}
             <Tip dir="ltr" tip={h.url} className="min-w-0 flex-1 truncate text-carbon-textMuted">
               {h.url}
             </Tip>
@@ -140,19 +111,11 @@ export function FilteredLinks({ held }: { held: Task[] }) {
   );
 }
 
-/**
- * ruleOf is which rule caught the link. The engine writes exactly one, because a
- * filter set stops at the rule that refuses; a later wave that lets several act
- * on one link would show them all, so this reads the list rather than [0].
- */
+// ruleOf names the rule that caught the link. The engine records one today,
+// but the field is a list.
 function ruleOf(h: Task): string {
   return (h.matchedRules ?? []).join(', ');
 }
-
-// ---------------------------------------------------------------------------
-// The two writes. They live here rather than in lib/api.ts for the same reason
-// the rule editor's do: this is the only caller, and lib/api.ts is a shared file
-// with one writer per wave.
 
 const restoreFiltered = (ids: string[]) =>
   fetch('/api/collector/filtered/restore', {
@@ -161,22 +124,12 @@ const restoreFiltered = (ids: string[]) =>
     body: JSON.stringify({ ids }),
   });
 
-// The ids go in the query, not in a body: a DELETE with a body is not something
-// every proxy between a browser and this server forwards, and an empty id list
-// on this route means "all of them".
+// The ids go in the query because not every proxy forwards a DELETE body. An
+// empty list means all of them.
 const clearFiltered = (ids: string[]) =>
   fetch(`/api/collector/filtered?ids=${encodeURIComponent(ids.join(','))}`, { method: 'DELETE' });
 
-// ---------------------------------------------------------------------------
-// Strings. A local table with the real catalogue asked first, so that a wave
-// which writes strings and a wave which translates them never queue behind each
-// other on one file.
-//
-// All sixteen keys are now in en.ts and in all 41 other locales, so `t` answers
-// first for every one of them and nothing below is ever read. It is kept only
-// because deleting it means retyping FilteredKey and useFx, which is a separate
-// edit from this one; the table is dead weight, not a second source of truth.
-
+// English fallbacks behind the catalogue, which already has every key.
 export const FILTERED_STRINGS = {
   'collector.filtered.summary': '{n} link(s) held by the link filter',
   'collector.filtered.info':
@@ -213,16 +166,8 @@ export function useFx() {
   );
 }
 
-/**
- * An origin with no label of its own falls back to the raw value rather than to
- * a blank cell. The set is the server's, and an entrance added in a later wave
- * has to show up as its own name instead of as a gap that reads as a bug.
- *
- * The membership test is against the catalogue, not against the local table
- * below: the table is a fallback the catalogue now answers ahead of, so an
- * entrance the translators have named but nobody has copied back down here would
- * otherwise render as a raw id with its translation one lookup away.
- */
+// originLabel falls back to the raw origin for one the catalogue does not
+// know, since the server's set grows.
 function originLabel(fx: ReturnType<typeof useFx>, origin?: string): string {
   if (!origin) return '';
   const key = `collector.filtered.origin.${origin}` as FilteredKey;

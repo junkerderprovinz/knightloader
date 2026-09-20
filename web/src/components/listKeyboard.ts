@@ -1,74 +1,38 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type FocusEvent, type KeyboardEvent, type RefObject } from 'react';
 import type { ListRow, RowWindow } from './listRows';
 
-/**
- * The download list, from the keyboard.
- *
- * WHY THIS IS ITS OWN FILE AND NOT TWENTY LINES IN TaskList.tsx: the list is
- * WINDOWED. Only the slice around the viewport is in the DOM (see
- * listRows.ts's useRowWindow), so "move the focus to row 3000" is not a call to
- * `.focus()` - that element does not exist yet, and the row the focus is
- * standing on right now stops existing the moment somebody spins a wheel. Every
- * awkward-looking thing below is one half of that single problem:
- *
- *   - the cursor is a row KEY, never an index,
- *   - a jump to an undrawn row scrolls a one-pixel probe first and focuses on
- *     the commit after,
- *   - and the strip itself takes the tab stop back whenever the current row is
- *     not on screen, so the list never falls out of the tab order.
- *
- * WHAT THIS FILE DELIBERATELY DOES NOT OWN:
- *
- *   Delete and Shift+Delete. ListToolbar.tsx's own useRemoval already binds
- *   them on window, guarded against typing, and a focused row is a div rather
- *   than an input so that guard passes it straight through. A second listener
- *   on the same key would only race the first - lib/commands/downloads.ts says
- *   the same thing at its own Del.
- *
- *   The Menu key and Shift+F10. ContextMenu.tsx's anchorFromEvent already
- *   handles both, and ListToolbar.tsx resolves what was hit off
- *   `data-task-id` / `data-package-row`, which every row already carries. The
- *   moment a row is focusable the row menu opens from the keyboard with no
- *   code at all. Nothing to write; worth knowing before somebody writes it.
- *
- *   Alt with anything. lib/commands/downloads.ts binds alt+up / alt+down /
- *   alt+home / alt+end to "move this in the queue", and those have to keep
- *   working while a row has the focus - so an Alt chord is handed straight
- *   back to the dispatcher rather than eaten here.
- */
+// Keyboard navigation for the windowed download list. Only the rows near the
+// viewport are in the DOM (listRows.ts), so the cursor is a row key rather
+// than an index, a jump to an undrawn row scrolls a probe into view before
+// focusing, and the strip holds the tab stop while the current row is off
+// screen.
+//
+// Delete belongs to ListToolbar's useRemoval, the Menu key and Shift+F10 to
+// ContextMenu, and Alt chords to the queue-move commands, so none of them are
+// handled here.
 
-/** The three fields TaskListCard's own selectUnit reads off a click. */
+/** The modifier fields TaskListCard's selectUnit reads off a click. */
 type SelectMods = { ctrlKey: boolean; metaKey: boolean; shiftKey: boolean };
 
-// The three gestures the keys borrow from the mouse, spelled out once. A plain
-// arrow is a plain click, Shift with an arrow is a Shift-click, and Space is a
-// Ctrl-click - so the anchor moves, or does not move, in exactly the cases it
-// already does for a pointer. There is no second anchor and no second range
-// rule anywhere in this file, deliberately: two implementations of "what is
-// selected" disagree the first time somebody mixes the gestures.
+// A plain arrow acts as a click, Shift+arrow as a Shift-click and Space as a
+// Ctrl-click, so keys and pointer share one anchor and one range rule.
 const REPLACE: SelectMods = { ctrlKey: false, metaKey: false, shiftKey: false };
 const EXTEND: SelectMods = { ctrlKey: false, metaKey: false, shiftKey: true };
 const PICK: SelectMods = { ctrlKey: true, metaKey: false, shiftKey: false };
 
 export interface ListKeyboard {
   /**
-   * Which row owns the tab stop, as a row key, and already RESOLVED: the row
-   * the cursor is on, or the one it falls back to when that row is gone. Never
-   * null while the list has rows in it - exactly one row is the tab stop from
-   * the first render, or a Tab into the list would find nothing to land on.
+   * The row holding the tab stop, resolved to a fallback when the cursor's row
+   * is gone. Never null while the list has rows, so Tab always has a target.
    */
   currentKey: string | null;
-  /** A click puts the cursor where the pointer went, so a later Tab resumes
-   *  from the last row touched rather than from the top. */
+  /** Moves the cursor to a clicked row, so Tab resumes there. */
   setCurrent: (key: string) => void;
-  /** The row's own onKeyDown. It only ever acts on its own element - see the
-   *  target guard for why. */
   onRowKeyDown: (e: KeyboardEvent<HTMLElement>, key: string) => void;
-  /** 0 exactly while the current row is NOT drawn, so the list keeps a tab
-   *  stop across a scroll that unmounted it. */
+  /** 0 exactly while the current row is not drawn. */
   stripTabIndex: number;
   onStripFocus: (e: FocusEvent<HTMLElement>) => void;
-  /** Where to put the one-pixel scroll probe, or null when none is wanted. */
+  /** Where to put the one-pixel scroll probe, or null. */
   probeTop: number | null;
   probeRef: RefObject<HTMLDivElement | null>;
 }
@@ -86,51 +50,34 @@ export function useListKeyboard({
 }: {
   rows: ListRow[];
   win: RowWindow;
-  /** The row strip, which is both what gets queried for a row element and what
-   *  parks the focus when the current row is scrolled out of the DOM. */
+  /** The row strip, queried for rows and holding focus while the current row
+   *  is off screen. */
   stripRef: RefObject<HTMLDivElement | null>;
   /**
-   * TaskListCard's own selectUnit, passed in rather than reimplemented: the
-   * anchor a Shift-range measures from lives in there, and a Shift+arrow that
-   * grew its own anchor would disagree with a Shift-click about what is
-   * selected the first time somebody used both.
-   *
-   * It takes the RAW identity - a package NAME or a task id - and never the
-   * prefixed row key: it looks the unit up in selectableOrder, whose entries
-   * are keyed the raw way, so a `pkg:` or `task:` prefix makes its findIndex
-   * miss and the call return in silence. That failure looks exactly like
-   * "the arrow keys move but select nothing", with no error anywhere.
+   * TaskListCard's selectUnit, which owns the Shift-range anchor. It takes a
+   * raw package name or task id, never a prefixed row key, or it silently
+   * selects nothing.
    */
   selectUnit: (kind: 'task' | 'package', key: string, ids: string[], e: SelectMods) => void;
-  /** The folded set and its two writers, shared with the twisty and the
-   *  right-click menu, so the three can never disagree about what is open. */
+  /** The folded set and its writers, shared with the twisty and the menu. */
   collapsed: Set<string>;
   collapse: (names: string[]) => void;
   expand: (names: string[]) => void;
-  /** Opens the properties panel, and NOTHING else - see Enter below. */
+  /** Opens the properties panel without selecting; see Enter below. */
   openProperties: () => void;
-  /** False for a list with no rows in it: an empty table that takes the tab
-   *  stop is a stop that leads nowhere. */
+  /** False for an empty list, which should not take the tab stop. */
   enabled?: boolean;
 }): ListKeyboard {
-  // The cursor, held as a row KEY and never as an index. `rows` is rebuilt
-  // whenever a task changes, which on a downloading list is about once a
-  // second, and a finished link sorted out of the running half moves every
-  // index below it. A number would quietly slide onto a different row while
-  // nobody touched anything.
+  // A key, because `rows` is rebuilt on every task update and indexes shift.
   const [currentKey, setCurrentKey] = useState<string | null>(null);
-  // Where the cursor was the last time it resolved. A row can vanish outright
-  // (a clean-up, a package folded over it), and this is where it falls back to
-  // rather than to the top of the list.
+  // The fallback position when the cursor's row disappears.
   const lastIndex = useRef(0);
-  // A row we intend to focus as soon as it is in the DOM. Cleared by the
-  // post-commit effect the moment it finds it.
+  // A row to focus once it is in the DOM.
   const pendingFocus = useRef<string | null>(null);
-  // Set only for a jump to a row the window has not drawn - see the probe.
+  // Set only for a jump to a row the window has not drawn.
   const [probeTop, setProbeTop] = useState<number | null>(null);
   const probeRef = useRef<HTMLDivElement>(null);
-  // True while the focus sitting on the strip is focus WE put there, not a Tab
-  // that just arrived from outside.
+  // True while the strip holds focus we parked there, as opposed to a Tab.
   const parked = useRef(false);
 
   const currentIndex = currentKey === null ? -1 : rows.findIndex((r) => r.key === currentKey);
@@ -157,65 +104,38 @@ export function useListKeyboard({
       }
     }
     pendingFocus.current = row.key;
-    // Inside the window the element is already there and the effect below will
-    // find it on the very next commit. Outside it there is nothing to focus
-    // yet, so a probe is placed at the row's own offset first and the scroll it
-    // causes brings the row into the window; the commit after that focuses it.
+    // An undrawn row gets a probe at its offset first; the scroll brings it into
+    // the window and a later commit focuses it.
     if (i < win.start || i >= win.end) setProbeTop(win.topOf(i));
   }
 
-  // Runs after EVERY commit, with no dependency list, for the same reason
-  // useRowWindow's own layout effect does: what it reacts to is the state of
-  // the DOM, not the value of anything React can compare. Both branches are
-  // guarded, so this settles rather than looping.
+  // No dependency list: this reacts to the DOM after every commit. Both
+  // branches are guarded, so it settles.
   useEffect(() => {
     if (currentIndex >= 0) lastIndex.current = currentIndex;
     const probe = probeRef.current;
     if (probeTop !== null && probe) {
-      // scrollIntoView and never a hand-rolled walk up the ancestors: this
-      // component genuinely cannot know which box scrolls (the page's own
-      // <main> for downloads, the collector's own wrapper, and Layout.tsx
-      // switches <main> between the two by route), and the NEAREST overflow
-      // ancestor of the strip is the table's `overflow-x-auto`, which is
-      // scrollable and scrolls only sideways - a "nearest scrollable ancestor"
-      // walk finds it, writes scrollTop, and nothing moves.
+      // scrollIntoView, because the scrolling ancestor differs by page and the
+      // nearest overflow ancestor only scrolls sideways.
       probe.scrollIntoView({ block: 'nearest' });
       setProbeTop(null);
       return;
     }
     const key = pendingFocus.current;
     if (key === null) return;
-    // CSS.escape, because a package name is free user text and lands in the key
-    // as `pkg:<name>`: one apostrophe or bracket in a folder name would throw a
-    // SyntaxError out of here and take the render down with it.
+    // Package names are free text and would break the selector unescaped.
     const el = stripRef.current?.querySelector<HTMLElement>(`[data-row-key="${CSS.escape(key)}"]`);
-    // Not there yet: the scroll the probe asked for has not landed. Left
-    // pending, and the commit that follows the scroll picks it up.
+    // Still pending until the probe's scroll lands.
     if (!el) return;
     pendingFocus.current = null;
     el.focus({ preventScroll: true });
-    // Not redundant after the probe: a probe placed from `topOf` on rows nobody
-    // has measured is an estimate (see RowWindow.topOf), so it lands near the
-    // row rather than on it. This is the line that converges it.
+    // The probe's offset may be an estimate, so this settles on the real row.
     el.scrollIntoView({ block: 'nearest' });
   });
 
-  // THE ONE THAT KILLS THE FEATURE, and its fix.
-  //
-  // A wheel scroll of two screens unmounts whatever row the keyboard was
-  // standing on. The browser then drops focus onto <body>, and the next Tab
-  // restarts at the top of the DOCUMENT - the person's place in the page is
-  // simply gone, and nothing on screen says so. So the moment the current row
-  // stops being drawn, the strip takes the focus itself (it is already the tab
-  // stop by then; see stripTabIndex) and holds the place until the cursor comes
-  // back.
-  //
-  // A layout effect, not a passive one: it has to run in the same commit that
-  // removed the row, before the browser paints and long before the next key.
-  //
-  // Only ever from <body>. If the focus is anywhere real - a search box, a
-  // toolbar button, a badge inside a row still on screen - somebody put it
-  // there on purpose and this must not take it away from them.
+  // When a scroll unmounts the current row, the browser drops focus to <body>
+  // and the next Tab would restart at the top of the document. The strip takes
+  // focus instead, in the same commit, but only when focus is on <body>.
   const wasDrawn = useRef(currentDrawn);
   useLayoutEffect(() => {
     const before = wasDrawn.current;
@@ -232,68 +152,48 @@ export function useListKeyboard({
   const setCurrent = useCallback((key: string) => setCurrentKey(key), []);
 
   function onStripFocus(e: FocusEvent<HTMLElement>): void {
-    // A focus event bubbles, so every row and every badge inside one arrives
-    // here too. Only the strip's own focus is this handler's business.
+    // Focus from rows inside bubbles here too.
     if (e.target !== e.currentTarget) return;
     if (parked.current) {
-      // We put it here ourselves, one scroll ago. Jumping back to the row now
-      // would undo the very scroll the person just made.
+      // Parked by us after a scroll; jumping back would undo that scroll.
       parked.current = false;
       return;
     }
     if (!enabled) return;
-    // A real Tab, arriving from outside the list: bring the remembered row back
-    // into view and hand it the focus. No selection call - Tab is not a click.
+    // A Tab from outside: focus the remembered row without selecting.
     goTo(resolved < 0 ? 0 : resolved, null);
   }
 
   function onRowKeyDown(e: KeyboardEvent<HTMLElement>, key: string): void {
     if (!enabled) return;
-    // Key events bubble. A press while the focus is on a row's Pause badge or
-    // its twisty - both real buttons - would otherwise move the row cursor
-    // while the browser also activates the button, and Space would do both at
-    // once. This handler acts on its own element and nothing else.
+    // Keys pressed on a button inside the row belong to that button.
     if (e.target !== e.currentTarget) return;
-    // Alt belongs to the queue-move commands - see this file's own header.
     if (e.altKey) return;
-    // No `if (e.repeat) return` here, unlike CommandDispatcher: a held arrow
-    // key has to keep walking. It is affordable because a selection write on
-    // 5000 rows costs about 2.4ms and nothing downstream of the selection
-    // fetches - which stops being true the day one of the row menus grows a
-    // per-selection request.
+    // Repeats are allowed so a held arrow keeps walking; a selection write on
+    // 5000 rows costs about 2.4ms.
     const rtl = typeof document !== 'undefined' && document.documentElement.dir === 'rtl';
     const forward = rtl ? 'ArrowLeft' : 'ArrowRight';
     const back = rtl ? 'ArrowRight' : 'ArrowLeft';
 
-    // The row that was actually pressed, which after a re-sort mid-keypress is
-    // a safer answer than the cursor's own resolved index.
+    // The pressed row, safer than the cursor after a re-sort mid-keypress.
     const at = rows.findIndex((r) => r.key === key);
     const index = at >= 0 ? at : resolved;
     const row = rows[index];
     if (!row) return;
 
-    // Every handled key stops here twice over: preventDefault because a row is
-    // a div and nothing suppresses the page-scrolling defaults of Space, the
-    // arrows and Home/End for us, and stopPropagation because CommandDispatcher
-    // listens on window and its only guard is "is this an input" - which a row
-    // is not. Nothing collides today (every list command is bound with Alt),
-    // but Settings, Shortcuts lets anyone rebind a command onto a bare
-    // ArrowDown, and then one press would both walk the list and fire it.
+    // preventDefault stops the page scrolling; stopPropagation keeps
+    // CommandDispatcher from also firing a command rebound onto a bare key.
     const take = () => {
       e.preventDefault();
       e.stopPropagation();
     };
-    // A plain arrow replaces the selection and moves the anchor, Shift extends
-    // from the anchor without moving it, Ctrl/Cmd moves nothing but the focus.
+    // Ctrl or Cmd moves only the focus.
     const mods = e.shiftKey ? EXTEND : e.ctrlKey || e.metaKey ? null : REPLACE;
 
     switch (e.key) {
       case 'ArrowDown':
         take();
-        // Clamped at both ends and never wrapped. ContextMenu's own step()
-        // wraps because a menu is short and cyclic; a list of five thousand
-        // rows that jumps from the last row to the first on one keypress is a
-        // lost place, not a convenience. Please do not "fix" this into a wrap.
+        // Clamped, never wrapped: on a long list a wrap loses the place.
         goTo(index + 1, mods);
         return;
       case 'ArrowUp':
@@ -309,12 +209,10 @@ export function useListKeyboard({
         goTo(rows.length - 1, mods);
         return;
       case ' ':
-      // 'Spacebar' is what older engines report; both mean the same press.
+      // Older engines report 'Spacebar'.
       // falls through
       case 'Spacebar':
         take();
-        // Picks this row out or puts it back, exactly as a Ctrl-click does,
-        // and does not move: the cursor is already here.
         if (row.kind === 'package') {
           selectUnit(
             'package',
@@ -328,21 +226,15 @@ export function useListKeyboard({
         return;
       case 'Enter':
         take();
-        // Opens the panel and does NOT select first. TaskListCard closes the
-        // properties panel on every new selection identity, and selectUnit
-        // always hands `set()` a fresh Set - so an Enter that selected before
-        // opening would open the panel and close it in the same commit, and
-        // the bug would read as Enter doing nothing at all. The arrow that got
-        // you to this row already did the selecting.
+        // No selection first: a new selection closes the properties panel in
+        // the same commit. The arrow that reached this row already selected it.
         openProperties();
         return;
     }
 
     if (e.key === forward) {
       take();
-      // Into the folder: open it if it is shut, and otherwise step onto the
-      // first link inside it. On a link there is nothing further in, so
-      // nothing happens - the tree is two levels deep and this is the bottom.
+      // Opens a shut folder, or steps onto its first link.
       if (row.kind !== 'package') return;
       if (collapsed.has(row.name)) expand([row.name]);
       else if (row.items.length > 0) goTo(index + 1, null);
@@ -351,9 +243,7 @@ export function useListKeyboard({
 
     if (e.key === back) {
       take();
-      // Out of the folder: shut it if it is open, and from a link step out to
-      // the header of the folder it sits in. A shut folder is already as far
-      // out as this list goes.
+      // Shuts an open folder, or steps from a link to its folder's header.
       if (row.kind === 'package') {
         if (!collapsed.has(row.name)) collapse([row.name]);
         return;
@@ -368,9 +258,7 @@ export function useListKeyboard({
   }
 
   return {
-    // The RESOLVED key and not the stored one: before anything has been
-    // clicked or walked to there is no stored key at all, and a list where no
-    // row carries tabIndex 0 is a list Tab cannot get into.
+    // Resolved, since before any click there is no stored key.
     currentKey: rows[resolved]?.key ?? null,
     setCurrent,
     onRowKeyDown,

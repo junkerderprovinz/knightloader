@@ -6,18 +6,8 @@ import { Button, Field, IconBadge, Modal, TextInput } from './ui';
 import { ContextMenu, anchorBelow, useContextMenu } from './ContextMenu';
 import { IconArrowDown, IconArrowUp, IconBottom, IconFolder, IconPriority, IconTop } from '../lib/icons';
 
-// One glyph lib/icons.tsx has no equivalent for yet. It follows that file's
-// own house style (solid fill, never a stroked outline), so a badge built
-// from it sits at the same visual weight as the four page-level badges beside
-// it (jdp, 2026-08-24: "die sollen in der gleichen zeile wie die
-// quadratischen badges erscheinen").
-//
-// The queue-order glyph that used to sit beside it here was the filled twin of
-// ListToolbar.tsx's own stroke-based one. Both are gone: the filled drawing is
-// now lib/icons.tsx's IconPriority, imported above, so the badge and the menu
-// entry that mean the same thing are one drawing again.
-
-/** Split by hoster: one package's box forking into three per-host boxes. */
+// Split by hoster: one package's box forking into three per-host boxes, drawn
+// solid like the glyphs in lib/icons.tsx.
 const IconSplitHost = (p: SVGProps<SVGSVGElement>) => (
   <svg width={22} height={22} viewBox="0 0 20 20" fill="currentColor" className="shrink-0" aria-hidden {...p}>
     <rect x="8" y="2.5" width="4" height="3" rx="1" />
@@ -44,22 +34,9 @@ function hostOf(raw: string): string {
 }
 
 /**
- * PackageActions is everything a selection's PACKAGE can be told, behind one
- * badge in Collector.tsx's and Downloads.tsx's shared selection row (jdp,
- * 2026-08-24: "die sollen in der gleichen zeile wie die quadratischen badges
- * erscheinen, nicht in einer neuen Zeile").
- *
- * It was three badges until 2026-09-14. They were not three ideas: every one of
- * them answers "which package do these links belong to", which is what makes
- * them a menu rather than a row. Three separately-labelled buttons for one idea
- * is also what made the row unreadable - "In ein Paket verschieben", "Nach
- * Hoster aufteilen" and "Ganzes Paket verschieben" side by side are three long
- * German sentences that have to be read to the end before they can be told
- * apart, and they come before the verbs somebody actually came for.
- *
- * Moving and merging are the same operation seen from two sides — several
- * tasks ending up under one name — so they share a dialog instead of being two
- * half-features.
+ * PackageActions puts every package operation for a selection behind one badge
+ * and menu in the selection row, since each answers which package the links
+ * belong to. Moving and merging share one dialog.
  */
 export function PackageActions({
   tasks,
@@ -78,15 +55,13 @@ export function PackageActions({
   const order = useContextMenu();
 
   const chosen = useMemo(() => tasks.filter((x) => selected.has(x.id)), [tasks, selected]);
-  // Existing names feed the datalist, so moving into a package that already
-  // exists is a pick rather than a re-typing exercise.
+  // Existing names for the dialog's datalist.
   const known = useMemo(
     () => [...new Set(tasks.map((x) => x.package).filter((p) => p !== ''))].sort(),
     [tasks],
   );
-  // Which packages the selection sits in. The queue-order entries are offered
-  // for one and only one: "send this package to the top" over three packages at
-  // once has no defensible answer about which of them arrives there first.
+  // Queue order is offered for a single package only, since moving several to
+  // the top has no clear order among them.
   const packages = useMemo(
     () => [...new Set(chosen.map((x) => x.package ?? ''))],
     [chosen],
@@ -95,8 +70,7 @@ export function PackageActions({
   if (chosen.length === 0) return null;
 
   async function splitByHost() {
-    // One request per host rather than per task: the endpoint already takes a
-    // list, and a package with forty parts should not become forty calls.
+    // One request per host, not per task.
     const byHost = new Map<string, string[]>();
     for (const task of chosen) {
       const h = hostOf(task.url);
@@ -109,9 +83,8 @@ export function PackageActions({
     onDone?.();
   }
 
-  // Named rather than sent as the ids on screen: the ids a filtered list can
-  // produce are the rows that survived the filter, and a package that arrives
-  // at the top of the queue in pieces is worse than one that did not move.
+  // By package name rather than the visible ids, so a filtered list cannot
+  // move the package in pieces.
   async function move(where: QueueMove) {
     try {
       await queueMove({ package: packages[0] }, where, base);
@@ -122,22 +95,8 @@ export function PackageActions({
 
   return (
     <>
-      {/* ONE badge, not three (jdp, 2026-09-14, screenshot of the selection
-          row: "wenn man auf alle auswählen klickt kommen viele buttons ...
-          schaffen wir es alle buttons in eine Zeile zu packen?").
-          Measured, at 1366 points in German with Beschriftung on "text and
-          glyph": the three badges cost 175 + 162 + 183 points plus their gaps,
-          536 of the 1030 the row's whole column has. Behind one word they cost
-          75. Nothing moved into a right-click-only place - this badge is a
-          button, its menu is ContextMenu's own role="menu" with arrow keys, and
-          every entry keeps the name it had on its badge.
-          `labelled`, because this strip is rendered INSIDE Collector.tsx's and
-          Downloads.tsx's selection rows between badges that all opt in.
-          Without it, a person who has set Beschriftung to "text" reads "Clear
-          all", a wordless glyph, then "Start selected" in one line - which is
-          the defect the label engine exists to prevent, not a compact strip
-          somebody chose. GlimStone 1.8.0 rule 13: the variant decides the
-          SHAPE, never whether the words appear. */}
+      {/* `labelled` like the other badges in the selection row, so the label
+          setting applies to all of them. */}
       <IconBadge
         labelled
         icon={<IconFolder width={16} height={16} />}
@@ -170,12 +129,8 @@ export function PackageActions({
                 },
               ],
             },
-            // Offered for one package and only one, unchanged: "send this
-            // package to the top" over three at once has no defensible answer
-            // about which of them arrives there first. A distinct glyph (three
-            // descending bars, not an arrow) rather than the four arrows its
-            // own submenu opens with, so the entry and its contents are not
-            // four identical arrows in a column.
+            // IconPriority rather than an arrow, so the entry differs from the
+            // four arrows in its submenu.
             ...(packages.length === 1
               ? [
                   {
@@ -222,16 +177,9 @@ export function PackageActions({
 }
 
 /**
- * The move/merge dialogue: one free-typed name, with the packages already on
- * screen offered as a datalist.
- *
- * Exported since 2026-09-06, because the badge above it turned out not to be
- * how anybody looks for this (jdp: "in der linkliste kann ich links nicht
- * markieren und in ein Paket verschieben, welches ich frei bennnenn kann. wie
- * in JD" - the capability was there, behind a folder glyph in the selection
- * row, and JDownloader puts it in the right-click menu). ListMenu now opens
- * this same dialogue from there, rather than growing a second one that could
- * drift from this one's behaviour.
+ * PackageMoveDialog moves or merges tasks into a freely typed package, with
+ * known packages offered as a datalist. ListMenu opens it from the context menu
+ * too.
  */
 export function PackageMoveDialog({
   count,
@@ -256,12 +204,7 @@ export function PackageMoveDialog({
       onClose={onClose}
       footer={
         <>
-          {/* The count first, then the spacer, then the pair. GlimStone 1.14.0
-              asks for the control that goes ahead at the END of its row, which
-              is not the same as merely right of its partner: this row used to
-              read Cancel, Merge, spacer, count, so the button somebody came for
-              sat mid-row with a number to its right. A reading is not a control
-              and has no business in the hand's position. */}
+          {/* The forward button ends the row, so the count goes first. */}
           <span className="glim-num text-xs text-carbon-textMuted">
             {count} {t('select.count')}
           </span>
@@ -284,8 +227,7 @@ export function PackageMoveDialog({
           }}
         />
       </Field>
-      {/* An empty name ungroups, which is a legitimate thing to want, so it is
-          not blocked — the datalist just makes the common case one click. */}
+      {/* An empty name ungroups, so it is allowed. */}
       <datalist id={listId}>
         {known.map((p) => (
           <option key={p} value={p} />

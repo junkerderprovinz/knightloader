@@ -1,33 +1,8 @@
-// The command palette: every command visible right now, in one searchable
-// overlay - build-plan.md's Wave-1D note ("Fix the command-record type … and
-// the useCommands(surface, ctx) hook") and its Wave 12A row ("command
-// registry + palette + rebindable shortcuts") name this file as the UI half
-// of that plan. lib/commands/types.ts (Command, CommandSurface,
-// CommandContext, useCommands, useCommandContext) is the registry core this
-// file only reads from - it holds no command list of its own.
-//
-// Overlay mechanics follow ui.tsx's own Modal (see CaptchaModal.tsx, its
-// only real-world caller): Escape and an outside click both close it,
-// mounted once in Layout.tsx beside CaptchaModal, IdleActionBanner and
-// OnboardingWizard rather than per page - a command has nothing to do with
-// which route happens to be open when it is invoked.
-// The ground behind it is .glim-modal-backdrop and nothing else: GlimStone
-// 1.11.0 made the scrim a token, so its strength reads from --glim-scrim in
-// each theme block (index.css) and no component floating a window carries a
-// number of its own. This one did - a hand-typed bg-black/50, lighter than
-// the token in both themes, with nothing in the codebase able to notice.
-//
-// It is not built on top of <Modal> directly: that component's title-plus-
-// footer shape is for a decision with a primary action, and this is a
-// search field over a list, closer to LanguagePicker.tsx's own dropdown or
-// ContextMenu.tsx's own keyboard walking than to a dialog - so the parts
-// reused are the mechanics (Escape, glim-card), not the component.
-//
-// Open state lives in lib/commandPaletteOpen.ts, not a local useState: a
-// command's own `run` (lib/commands/global.ts's "open command palette"
-// entry) has no reference to this component to call a prop on, so the two
-// meet through the same module-scope store LanguagePicker.tsx and
-// lib/langPickerOpen.ts already use for the identical reason.
+// The command palette: every command available on the current surface in one
+// searchable overlay, reading from the registry in lib/commands/types.ts. It
+// is a search over a list rather than a decision, so it borrows Modal's
+// mechanics but not the component. The open state lives in
+// lib/commandPaletteOpen.ts so a command's `run` can open it.
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useCommandContext, useCommands, type Command, type CommandSurface } from '../lib/commands/types';
@@ -35,17 +10,10 @@ import { formatShortcut } from '../lib/commands/shortcuts';
 import { setCommandPaletteOpen, useCommandPaletteOpen } from '../lib/commandPaletteOpen';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { IconSearch } from '../lib/icons';
-// score() used to live in this file, private to it. It moved to lib/rank.ts when
-// the settings search needed the identical ranking over a much larger corpus:
-// two scorers would be two ideas of "close enough" in one app, and the palette
-// ranking a word one way while the settings box ranks it another is the kind of
-// difference nobody reports and everybody notices. The call below did not
-// change; what changed is that ranking now folds accents and ß on both sides, so
-// "grosse" finds "Größe" here too - a fix this file was silently missing rather
-// than a new behaviour it opted into.
+// Shared with the settings search, so both rank a word the same way.
 import { score } from '../lib/rank';
 
-/** The route's first segment, the same split Layout.tsx already keys its enter animation on, mapped to the surface it corresponds to. */
+/** The route's first segment mapped to its surface, as in Layout.tsx. */
 const SECTION_SURFACE: Record<string, CommandSurface> = {
   downloads: 'downloads',
   collector: 'collector',
@@ -54,23 +22,16 @@ const SECTION_SURFACE: Record<string, CommandSurface> = {
   settings: 'settings',
 };
 
-/**
- * groupLabel resolves a command's `group` to display text.
- *
- * `group` is documented (lib/commands/types.ts, lib/locales/en.ts's own
- * "commands.group.*" block) as a real TranslationKey string, e.g.
- * "commands.group.navigation" - never literal English - so this looks it up
- * exactly the way any other label on screen is. A command whose author has
- * not yet followed that convention (a bare word, or a key not landed in
- * en.ts yet) falls back to showing that raw string rather than a blank
- * header - the same "never a blank label, worst case the raw token" rule
- * columns.tsx's reasonKey already follows for an open, multi-author
- * vocabulary.
- */
+// groupLabel translates a command's `group` key, falling back to the raw string
+// rather than a blank header when the key is missing.
 function groupLabel(t: (k: TranslationKey) => string, group: string): string {
   return t(group as TranslationKey) || group;
 }
 
+/**
+ * CommandPalette is mounted once in Layout.tsx. It has no key listener of its
+ * own: CommandDispatcher matches the effective shortcut that opens it.
+ */
 export function CommandPalette() {
   const { t } = useT();
   const location = useLocation();
@@ -85,25 +46,7 @@ export function CommandPalette() {
   const ctx = useCommandContext(surface);
   const commands = useCommands(surface, ctx);
 
-  // No bootstrap listener of its own: CommandDispatcher.tsx (mounted
-  // alongside this component in app/Layout.tsx, never one without the
-  // other) already matches every command's EFFECTIVE shortcut - including
-  // "open command palette" itself, a 'global'-surfaced Command like any
-  // other - against every keystroke, live overrides included, and calls
-  // run(), which sets the same flag this component reads. A second listener
-  // here duplicated that match against the command's raw, never-updated
-  // defaultShortcut: rebinding "open command palette" in Settings >
-  // Shortcuts would retire the old mod+k for the dispatcher but not for
-  // this component, which kept answering to it forever, and if the freed
-  // mod+k was then rebound onto a DIFFERENT command, one keystroke fired
-  // both. Removed rather than fixed in place - CommandDispatcher is already
-  // the one general mechanism this needs, and a second implementation of
-  // the same match is exactly the kind of duplication that drifts again.
-
-  // Fresh search state every time it opens - a stale query or selection
-  // from the last time it was open must never be what somebody sees first.
-  // Focus goes back to whatever had it before, the same restore
-  // ContextMenu.tsx's own outermost panel already does.
+  // Fresh search state on every open, and focus returns to the opener on close.
   useEffect(() => {
     if (!open) return;
     setQuery('');
@@ -118,8 +61,7 @@ export function CommandPalette() {
 
   const filtered = useMemo(() => {
     const scored = commands.map((c) => ({ c, s: score(t(c.labelKey), query) })).filter((x) => x.s >= 0);
-    // Stable sort: ties (score 0 with no query at all) keep useCommands' own
-    // group-then-id order, so the palette's default view is not scrambled.
+    // A stable sort keeps useCommands' order for ties, such as an empty query.
     scored.sort((a, b) => a.s - b.s);
     return scored.map((x) => x.c);
   }, [commands, query, t]);
@@ -164,8 +106,7 @@ export function CommandPalette() {
       const cmd = filtered[active];
       if (cmd) runIfEnabled(cmd);
     } else if (e.key === 'Tab') {
-      // Tab out of the palette means "I am done with it" - the same rule
-      // ContextMenu.tsx's own Panel already follows for the identical key.
+      // Tab closes, as in ContextMenu.
       e.preventDefault();
       setCommandPaletteOpen(false);
     }
@@ -187,12 +128,8 @@ export function CommandPalette() {
         aria-modal="true"
         aria-label={t('commands.paletteLabel')}
         onKeyDown={onKeyDown}
-        // glim-modal-card REPLACES glim-fade rather than joining it. Both are
-        // this window's arrival, and running two of them means two durations
-        // for one gesture: the card would finish fading before it finished
-        // rising, or the other way round, depending on which motion intensity
-        // is set. The new one is the house arrival and carries the rise with
-        // the fade, so it is the one that stays.
+        // glim-modal-card alone: it already fades, and glim-fade would run a
+        // second arrival with its own duration.
         className="glim-card glim-modal-card flex h-fit max-h-[70vh] w-full max-w-lg flex-col overflow-hidden"
       >
         <div className="flex items-center gap-2.5 border-b border-carbon-border/60 px-4 py-3">

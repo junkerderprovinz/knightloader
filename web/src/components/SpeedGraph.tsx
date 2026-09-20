@@ -7,36 +7,13 @@ import { useSpeedWindow, type SpeedScale } from '../lib/speedHistory';
 import { InfoBubble } from './ui';
 import { Tabs } from './Tabs';
 
-/**
- * The window both readings draw is no longer kept here.
- *
- * There used to be a `useSpeedSamples` in this file: a component-state buffer
- * created as `Array(points).fill(0)` and advanced by a one-second interval.
- * Everything it did wrong followed from where it lived. Two components could
- * not share it (the comment on SpeedMeter below has said so since it was
- * written), so the hero curve and the shell meter kept two private buffers of
- * the same number; the hero's emptied itself whenever somebody navigated off
- * Overview, because that unmounts it; and every reload started both at a flat
- * line that took a minute to fill in, although the server had been watching the
- * entire time.
- *
- * lib/speedHistory.ts is that buffer hoisted above both components and seeded
- * from GET /api/stats/speed. What is left in this file is drawing.
- */
+// The speed curves. The sample window comes from lib/speedHistory.ts, shared by
+// both components and seeded from GET /api/stats/speed; this file only draws.
 
-// How many samples the hour view draws: the server's whole coarse ring, one
-// point per ten seconds. Not a prop, because it is not a choice a caller has -
-// the hour view exists to show the hour, and a shorter one would be the minute
-// view with a wrong label on it.
+// The server's whole coarse ring: one point per ten seconds for an hour.
 const HOUR_POINTS = 360;
 
-/**
- * The strings this component needs are not in en.ts yet - the locale files are
- * one writer's lane per wave, and there are 43 of them that must land together
- * or `tsc --noEmit` fails for everybody else in the tree. The lookup asks the
- * real catalogue first, exactly as settings/Diagnostics.tsx does, so the day
- * these keys land this map stops being consulted.
- */
+// English fallbacks for keys not yet in en.ts; the catalogue is asked first.
 const PENDING = {
   'overview.speedWindow': 'Speed window',
   'overview.speedWindow.minute': 'Last minute',
@@ -58,13 +35,9 @@ function useCx() {
   );
 }
 
-/**
- * ceilingStep is the vertical scale's rule, one sample at a time: up at once,
- * down 8%, never below a floor. Rising instantly keeps a spike inside the box;
- * relaxing slowly stops a brief blip near idle from re-normalising the whole
- * curve into a mountain, and the floor keeps a small transfer looking small
- * instead of filling the frame.
- */
+// The vertical scale rises at once and relaxes 8% per sample, never below a
+// floor, so a spike stays in the box, a blip near idle does not rescale the
+// curve, and a small transfer looks small.
 const FLOOR = 64 * 1024;
 
 function ceilingStep(previous: number, value: number): number {
@@ -73,23 +46,8 @@ function ceilingStep(previous: number, value: number): number {
 }
 
 /**
- * ceilingFor replays that rule across the whole window, from the floor.
- *
- * IT IS A PURE FOLD OVER THE SAMPLES, and that is a fix rather than a
- * refactoring. Both components used to keep the ceiling in a ref and mutate it
- * DURING RENDER (`ceilingRef.current = ceilingFor(ceilingRef.current, peak)`),
- * which made "down 8% a tick" mean "down 8% a render" - and renders happen on
- * every websocket task frame, which under load is many a second, doubled again
- * by StrictMode in development. With a sixty second window of live samples the
- * error was small enough not to be noticed. Seeded with an hour that contains
- * one 300 MB/s burst, the first render would pin the axis at 300 MB/s and then
- * collapse it at whatever rate the task stream happened to be re-rendering at.
- *
- * Folded over the samples instead, the ceiling is a function of what is drawn
- * and nothing else: the same window always produces the same axis, a spike that
- * has scrolled most of the way out of the window has already decayed by the
- * time the newest sample is reached, and there is no render-order dependency
- * left to get wrong.
+ * ceilingFor folds ceilingStep over the window, so the axis depends only on
+ * the samples drawn and not on how often the component re-renders.
  */
 function ceilingFor(samples: readonly number[]): number {
   let c = FLOOR;
@@ -112,17 +70,9 @@ function smoothPath(samples: number[], w: number, h: number, pad: number, max: n
 }
 
 /**
- * spanLabel is the left end of the abscissa, derived from how much the window
- * actually holds rather than from how much it can hold.
- *
- * A ring that has been recording for forty seconds says `-40s`. The old code
- * printed `points * SAMPLE_MS` and was right only because the buffer was always
- * exactly `points` long, zero-filled; against a real record it would claim an
- * hour of history on an instance that booted a minute ago.
- *
- * The units are fmtEta's own (`s`, then `m`, then `h`), untranslated, for the
- * same reason every other duration in this app is: they are read as symbols
- * beside a number, not as words.
+ * spanLabel labels the left end of the time axis by how much the window holds,
+ * so a ring that has recorded forty seconds says "-40s". The units are
+ * fmtEta's, untranslated symbols.
  */
 function spanLabel(seconds: number): string {
   if (seconds < 120) return `-${seconds}s`;
@@ -130,17 +80,11 @@ function spanLabel(seconds: number): string {
   return `-${Math.round(seconds / 360) / 10}h`;
 }
 
-// SpeedGraph draws the aggregate download speed of this instance over the last
-// minute or the last hour. It is the hero of the Overview page.
-//
-// Two things keep it honest: while nothing is downloading it shows a flat
-// hairline rather than a gold smear pinned to the floor, and the vertical scale
-// rises instantly but relaxes slowly, so a brief blip near idle doesn't
-// re-normalise the whole curve into a mountain.
-//
-// It is always scope '' - the Overview page reads useTasks('') and nothing
-// else. Only SpeedMeter, which sits in the shell and follows whatever instance
-// the shell is scoped to, has a scope worth passing.
+/**
+ * SpeedGraph draws this instance's download speed over the last minute or hour
+ * as the Overview page's hero. Idle shows a flat hairline. It always uses scope
+ * '', since the Overview page reads only the local instance.
+ */
 export function SpeedGraph({
   value,
   height = 96,
@@ -150,30 +94,13 @@ export function SpeedGraph({
   value: number;
   height?: number;
   points?: number;
-  /**
-   * The instance's speed limit in BYTES per second, or 0 for unlimited.
-   *
-   * Passed in rather than fetched here, and that is the cheap half of the egg
-   * it exists for: the Overview page this hero sits on already reads the whole
-   * settings document for other reasons (pages/Dashboard.tsx), so the limit is
-   * a prop off a fetch that was happening anyway rather than a second request
-   * made by a chart. Defaulted, so every other caller is unaffected.
-   */
+  /** The speed limit in bytes per second, or 0; the page already has settings. */
   limit?: number;
 }) {
   const cx = useCx();
 
-  // Remembered, and defaulted to the minute. Somebody who has been running this
-  // for two years opens Overview after the upgrade and sees exactly the view
-  // they have always had, only already drawn instead of flat; the hour is one
-  // press away.
-  //
-  // useUIState hands out its fallback until the stored value has loaded (see
-  // OnboardingWizard.tsx:25), so the first paint after a reload is always the
-  // minute view and flips a moment later for somebody who chose the hour. That
-  // flip costs nothing here: the store is keyed by instance scope alone, so
-  // both scales are already in hand and switching between them never asks the
-  // server for anything.
+  // The stored window loads after first paint; both scales are already in the
+  // store, so the switch costs no request.
   const [stored, setStored] = useUIState<SpeedScale>('overview.speedWindow', 'minute');
   const scale: SpeedScale = stored === 'hour' ? 'hour' : 'minute';
 
@@ -184,49 +111,20 @@ export function SpeedGraph({
   const pad = 6;
   const ceiling = useMemo(() => ceilingFor(samples), [samples]);
 
-  // Fewer than two samples is a genuine state now, and it used to be a crash
-  // waiting for a reason. smoothPath divides by `samples.length - 1`, which is
-  // Infinity for one sample, and reads pts[0] on an empty array, which is a
-  // TypeError. Neither ever fired because the old buffer was always exactly
-  // `points` long - the moment the samples come from a record that may hold
-  // fewer, both fire on the first second of a cold boot.
+  // smoothPath needs at least two samples, which a cold boot may not have yet.
   const drawable = samples.length >= 2;
-  // `idle` now means "nothing anywhere in this window", not "nothing is
-  // downloading right now": after a busy hour the curve is drawn in full while
-  // the current speed is 0 B/s, which is the whole point of seeding it.
+  // Idle means nothing in the whole window, not a current speed of zero.
   const peak = drawable ? Math.max(...samples) : 0;
   const idle = peak === 0;
 
   return (
-    /* kl-storm-curve is the 1337 egg (docs/easter-eggs.md): with the limit
-       standing at exactly 1337 KiB/s this plot runs on the hidden fourth motion
-       level for as long as the limit stands. The class carries nothing but two
-       custom properties (see index.css), so the cost of NOT triggering it is one
-       string comparison per render and no rule matching anything.
-
-       IT SCOPES THE LEVEL, IT DOES NOT CHOOSE IT. data-motion on <html> stays
-       whatever the reader set, because that attribute is their setting and has
-       to keep saying so - the picker, the boot reader and the phone all take it
-       at its word. And the class cannot outrun "off" or an operating system
-       asking for less motion: both switch this plot's animations off by name,
-       and a token handed to a rule that says `animation: none` changes nothing.
-
-       Off is typing a different limit. Nothing here is stored. */
+    /* kl-storm-curve is the 1337 easter egg (docs/easter-eggs.md): at a limit of
+       exactly 1337 KiB/s this plot runs on the hidden motion level. It only
+       sets two custom properties, so motion "off" and reduced motion still
+       win, and the reader's data-motion setting is left alone. */
     <div className={`relative ${isLeet(limit) ? 'kl-storm-curve' : ''}`}>
-      {/* The ordinate, printed ABOVE the plot rather than in a column beside it
-          (GlimStone 1.6.0). A vertical scale that follows its own window means
-          "tall for you" and nothing else, so the height carries no meaning
-          without a number on it - and the number this graph used to show was a
-          peak caption that disappeared at idle, which is exactly the case the
-          rule was written from: a number a state can remove is not part of the
-          chart. It is the ceiling, not the peak, because the ceiling is what
-          the top edge of the box actually means.
-
-          Above the plot it costs one line of height, which the card has,
-          instead of a fifth of the width, which it does not. The window chooser
-          shares that line: it belongs to this plot and to nothing else on the
-          page, and a row that already exists is cheaper than a row that does
-          not. */}
+      {/* The ceiling above the plot, in every state, with the window chooser
+          on the same line (GlimStone 1.6.0). */}
       <div className="flex items-center justify-between gap-3">
         <Tabs
           label={cx('overview.speedWindow')}
@@ -240,22 +138,12 @@ export function SpeedGraph({
           ]}
         />
         <span className="flex items-center gap-1.5">
-          {/* The one place the two questions this feature creates are answered
-              in front of the person asking them: where the already-drawn curve
-              came from, and why it is flat again after a restart. */}
           <InfoBubble tip={cx('overview.speedGraphHint')} />
           <span className="glim-num text-[11px] leading-none text-carbon-textMuted">{fmtSpeed(ceiling)}</span>
         </span>
       </div>
-      {/* overflow-visible, and it is a fix rather than tidiness - the same one
-          the sidebar's blade needed and for the same reason (see .kl-egg in
-          index.css): an <svg> clips to its own viewBox, the newest sample sits
-          exactly ON the right edge by construction, and the ring the tip throws
-          therefore had its outer half sliced off at the moment it was widest.
-          Measured on screen, not deduced. Nothing about the layout changes: the
-          element still occupies the same box, the ring is simply allowed to be
-          drawn outside it, and it has faded to nothing well before it is wide
-          enough to reach the axis labels below. */}
+      {/* overflow-visible: the newest sample sits on the right edge, and the
+          svg would clip the halo it throws. */}
       <svg
         viewBox={`0 0 ${W} ${H}`}
         preserveAspectRatio="none"
@@ -277,17 +165,7 @@ export function SpeedGraph({
           <Curve samples={samples} w={W} h={H} pad={pad} ceiling={ceiling} />
         )}
       </svg>
-      {/* The abscissa: oldest on the left, now on the right, flush with the plot
-          at both ends because there is nothing beside the plot to indent past.
-          Both ends are printed here, unlike the ordinate: the bottom of the
-          vertical axis is zero by definition, while neither end of a time
-          window is.
-
-          What used to sit here was a peak in the top-right corner, shown only
-          while something was downloading. The idle caption before it was
-          removed for restating what a flat line already says (jdp, 2026-09-01:
-          "der ruhig text soll weg"), and that stays right - the axis is a
-          number, not a sentence. */}
+      {/* Both ends of the time axis, oldest on the left. */}
       <div className="flex justify-between">
         <span className="glim-num text-[11px] leading-none text-carbon-textMuted">{spanLabel(seconds)}</span>
         <span className="glim-num text-[11px] leading-none text-carbon-textMuted">0s</span>
@@ -296,12 +174,8 @@ export function SpeedGraph({
   );
 }
 
-/**
- * Curve is the filled area, the line and the live dot, split out only so that
- * smoothPath is called from one place that has already established there are at
- * least two samples to draw. Inlined it would have been guarded twice, and one
- * of the two would have drifted.
- */
+// Curve draws the fill, the line and the live tip; the caller guarantees at
+// least two samples.
 function Curve({
   samples,
   w,
@@ -325,12 +199,8 @@ function Curve({
         </linearGradient>
       </defs>
       <path d={`${d} L${w},${h} L0,${h} Z`} fill="url(#glim-speed-fill)" />
-      {/* --accent-ink, not --accent: the curve and its live dot are the accent
-          drawn AS INK against the card's own ground, which is the side of the
-          split the token exists for - on the light theme the plain accent is
-          sunflower on white, and a hairline suffers from that more than text
-          does, not less. The gradient above keeps --accent on purpose: a 26%
-          wash is a surface, not a mark. */}
+      {/* --accent-ink for strokes, since the plain accent is too pale on the
+          light theme; the gradient wash keeps --accent. */}
       <path
         d={d}
         fill="none"
@@ -339,21 +209,9 @@ function Curve({
         strokeLinecap="round"
         vectorEffect="non-scaling-stroke"
       />
-      {/* THE TIP, AND WHAT WAS ACTUALLY MISSING FROM IT. The dot below is not
-          new - it has carried .glim-live, the app's ambient opacity pulse, since
-          the curve was written. What a dot changing opacity in place reads as is
-          a highlight, not a reading arriving, which is why the tip looked static
-          to anyone watching it.
-
-          The ring is that same beat made into a movement: one halo per pulse,
-          leaving the dot, on the SAME --motion-pulse-dur, so the two are one
-          gesture rather than two clocks running side by side. Drawn BEFORE the
-          dot so it expands out from under it instead of over it.
-
-          It is pure decoration and is removed outright at motion "off" and under
-          OS-level reduced motion, unlike the dot, which stays: the dot marks
-          where "now" is on the curve and the ring marks nothing the dot does
-          not. Both rules live in index.css beside their tokens. */}
+      {/* A halo leaving the live dot on the same --motion-pulse-dur, drawn
+          first so it expands from under the dot. Decoration only: index.css
+          removes it at motion "off" and under reduced motion, but keeps the dot. */}
       <circle
         cx={last[0]}
         cy={last[1]}
@@ -370,32 +228,10 @@ function Curve({
 }
 
 /**
- * SpeedMeter is the same reading at shell-bar size: the figure, with the last
- * half-minute of it drawn behind.
- *
- * `onOpen` makes the whole thing a button, and that is the point rather than a
- * convenience. Somebody watching the speed is already looking at the thing they
- * want to change, and making them find a gear two controls away is asking them
- * to leave what they are reading. The gear stays as well, for anyone who never
- * discovers that a number can be pressed.
- *
- * It no longer keeps a window of its own. That was never a choice: two
- * components cannot share one rolling buffer without hoisting it above both,
- * and until lib/speedHistory.ts existed there was nowhere to hoist it to. Now
- * the meter and the Overview hero read the same store, tick on the same clock,
- * and are seeded from the same fetch.
- *
- * `instance` is the scope the SHELL is on, which can be a peer - ShellStrip
- * reads useTasks(instance) and the figure beside this curve describes that peer.
- * It has to be passed through, because the store seeds scope '' and only scope
- * '': /api/stats/speed is on neither forwarding allowlist, so a peer scope that
- * defaulted to '' would draw THIS box's last hour underneath a number
- * describing somebody else's. A peer therefore starts empty and fills as it
- * goes, which is what it did before and is the only honest answer available.
- *
- * There is no window chooser here. The shell bar is a reading, not a control
- * surface, and the minute is the only window that fits behind a figure this
- * size.
+ * SpeedMeter is the shell-bar reading: the current figure with the last
+ * half-minute drawn behind it. `instance` is the shell's scope, which can be a
+ * peer; only scope '' is seeded, since /api/stats/speed is not forwarded, so a
+ * peer's curve starts empty.
  */
 export function SpeedMeter({
   value,
@@ -408,74 +244,28 @@ export function SpeedMeter({
 }) {
   const { samples, seconds } = useSpeedWindow(instance, value, points, 'minute');
 
-  // The plot fills whatever height AND width the card gives it (jdp,
-  // 2026-09-06: "der downloadgraph soll in der kopfcard ganz rechts sein und
-  // auch in der höhe die ganze kopfcard ausfüllen", and 2026-09-07: "der
-  // downloadgraph in der kopfzeile soll viel breiter sein"), so the viewBox is
-  // a coordinate system and not a size: preserveAspectRatio="none" plus a
-  // stretching svg lets one path describe a box of any shape.
-  //
-  // W is now only the resolution the path is drawn AT, not the width it is
-  // drawn at. The svg itself grows, so a wider card means a longer curve rather
-  // than a stretched one - and 148 stays as the number of horizontal units
-  // because the sample count has not changed.
+  // The viewBox is a coordinate system: with preserveAspectRatio="none" the svg
+  // stretches to whatever box the card gives it.
   const W = 148;
   const H = 40;
   const ceiling = useMemo(() => ceilingFor(samples), [samples]);
-  // Same two guards as the hero above, and for the same reasons - see there.
   const drawable = samples.length >= 2;
   const peak = drawable ? Math.max(...samples) : 0;
   const idle = peak === 0;
-  // Drawn once instead of inside the JSX, because the live dot below needs the
-  // curve's last point and smoothPath is the only thing that knows it. Guarded
-  // by the same two conditions the plot itself is: smoothPath divides by
-  // `samples.length - 1` and reads pts[0].
+  // Computed here because the live dot needs the curve's last point.
   const curve = drawable && !idle ? smoothPath(samples, W, H, 2, ceiling) : null;
 
-  // Nothing to press (jdp, 2026-09-06: "klick auf den downloadgraph soll keine
-  // funktione haben"). It used to open the quick-settings panel, which the
-  // hamburger beside it still does - a reading that also acts is a reading
-  // somebody triggers while trying to look at it.
   return (
-    // No h-full here either, for the reason ShellStrip's own span carries in
-    // full: a height:100% flex item stops stretching and then resolves its
-    // percentage against a container with no definite height, so it ends up
-    // shorter than the row it is in rather than taller.
+    // No h-full, for the reason ShellStrip gives.
     <span className="flex flex-1 items-stretch gap-2 px-1.5">
-      {/* Both axes, always, idle included - the case the rule was written from
-          is exactly a number that a state can take away. The ordinate is the
-          ceiling, because that is what the top edge of this box means. */}
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="glim-num self-end text-[11px] leading-none text-carbon-textMuted">
           {fmtSpeed(ceiling)}
         </span>
-        {/* h-0 beside flex-auto, and that pair is the whole difference between
-            a curve that FILLS the card and a curve that DECIDES the card.
-            preserveAspectRatio="none" lets one path describe any shape of box;
-            it does not take the svg's intrinsic ratio away. A viewBox and no
-            height is a replaced element whose height follows its width, so in
-            this column the 148:40 ratio quietly turned every pixel of width
-            into a quarter-pixel of height and the card grew to fit: measured
-            live, 481x130 at a 1280px window, 601x163 at 1400, 1121x303 at 1920,
-            while the rest of the card never moved. Making the curve wider (jdp,
-            2026-09-07) therefore made the card taller, which is what "die
-            kopfcard im downloadtab ist immer noch viel zu hoch" was.
-
-            With a zero basis the svg asks for nothing and grows into what the
-            card has left, so it is still exactly as tall as the card (jdp,
-            2026-09-06) and still as wide as the slot can give it - the height
-            is now the card's to set, not the width's. min-h keeps a hairline of
-            plot in the cases where there is nothing left to grow into.
-
-            flex-auto and NOT flex-1, which is the half of this that cost the
-            most to learn. flex-1 is `flex: 1 1 0%`, and a percentage basis in a
-            column whose height is not definite does not mean zero: it falls
-            back to content sizing, and for a box with a ratio "content" is the
-            width all over again. `h-0 flex-1` was measured changing nothing at
-            all - card 229px, curve 601x163, exactly the numbers from before the
-            h-0. flex-auto takes its basis from the height property, so the h-0
-            beside it is the one that is read.
-            web/check-stretched-svg-height.mjs is this paragraph as a gate. */}
+        {/* h-0 with flex-auto: without a height the svg's aspect ratio would
+            set the card's height from its width. flex-1 does not work here,
+            because a 0% basis in an indefinite column falls back to content
+            size. check-stretched-svg-height.mjs guards this. */}
         <svg
           viewBox={`0 0 ${W} ${H}`}
           preserveAspectRatio="none"
@@ -495,8 +285,6 @@ export function SpeedMeter({
             />
           ) : (
             <>
-              {/* --accent-ink for the same reason the hero's curve takes it: a
-                  stroke against the page is the ink half of the accent split. */}
               <path
                 d={curve.d}
                 fill="none"
@@ -505,12 +293,6 @@ export function SpeedMeter({
                 strokeLinecap="round"
                 vectorEffect="non-scaling-stroke"
               />
-              {/* The live edge, the same .glim-live pulse the hero's own curve
-                  carries. A chart is not a special case: this reading is the
-                  one people watch while something is actually transferring, and
-                  it was the only live curve in the app with nothing on its tip
-                  saying so. Smaller than the hero's r=3 because the box is 40
-                  units tall rather than 96. */}
               <circle cx={curve.last[0]} cy={curve.last[1]} r="2" fill="var(--accent-ink)" className="glim-live" />
             </>
           )}
@@ -520,8 +302,7 @@ export function SpeedMeter({
           <span className="glim-num">0s</span>
         </span>
       </span>
-      {/* dir="ltr": the number and its unit are one token and must not be
-          reordered into "s/BiM 4.2" in an Arabic or Hebrew locale. */}
+      {/* Figure and unit are one token; an RTL locale must not reorder them. */}
       <span
         dir="ltr"
         className="glim-num flex items-center text-[12px] font-semibold leading-none text-carbon-text"

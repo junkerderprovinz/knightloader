@@ -1,13 +1,6 @@
-// Reaching a task's own file: view it, and on the desktop build only, reveal
-// it in the OS file manager or hand it to whatever application the OS opens
-// that kind of file with (package 20). A browser has no such capability at
-// all - see lib/desktop.ts for how the two builds are told apart - and the
-// two desktop-only entries stay in the menu either way, disabled with the
-// reason written on the row, rather than vanishing as if the feature had
-// never been built.
-//
-// The menu entries are a GROUP handed to the existing context menu, the same
-// pattern Archives.tsx already uses for its own verbs.
+// Context menu entries for a task's file. Opening natively and revealing in the
+// file manager work only in the desktop build; in a browser they stay in the
+// menu, disabled with the reason on the row.
 import { type Task, taskFileURL } from '../lib/api';
 import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
@@ -16,17 +9,11 @@ import { type MenuGroup } from './ContextMenu';
 import { IconApp, IconExternalLink, IconFolder } from '../lib/icons';
 
 /**
- * reachable is whether a task has bytes worth reaching at all: a link still
- * sitting in the collector has never resolved a real name (Name still equals
- * URL), and a task fetched through the JD sidecar lives on that process's own
- * filesystem, not this one - the frontend mirrors internal/app's
- * filesAreLocal here only to keep the menu from offering what the route
- * would refuse right back; the server's own check is the one that matters.
+ * reachable reports whether a task has a file on this machine: an unresolved
+ * link still has its URL as its name, and a JD sidecar task's file lives on the
+ * sidecar's disk. It mirrors internal/app's filesAreLocal; the server still
+ * checks.
  */
-// Exported since the detail panel gates its player on the identical rule this
-// menu already uses. The rule is subtle (files must be local AND the name must
-// have stopped being the URL), and two copies of a subtle rule is one copy too
-// many.
 export function reachable(t: Task): boolean {
   return t.resolver !== 'jd' && t.name !== '' && t.name !== t.url;
 }
@@ -39,9 +26,6 @@ export function useFileMenu({ chosen, base, local }: { chosen: Task[]; base: str
   const task = chosen[0];
   const desktopActionsAvailable = local && isDesktop();
   const reason = desktopActionsAvailable ? undefined : t('file.desktopOnly');
-  // No explicit kind: an untyped 'fail' call already lands on 'action-failed'
-  // (see toast.tsx's KIND_BY_TONE), which is exactly the generic "an action
-  // the user asked for did not work" bucket this belongs in.
   const fail = (e: unknown) => toast(String(e instanceof Error ? e.message : e), 'fail');
 
   return [

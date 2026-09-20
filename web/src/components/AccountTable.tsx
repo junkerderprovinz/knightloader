@@ -1,16 +1,5 @@
-// One table for both account cards.
-//
-// It exists because the two cards drifted apart until they no longer looked
-// like the same kind of thing (jdp, 2026-09-07: "bei beiden Cards (Debrid,
-// hoster) sollen die spalten gleich sein"). The debrid table had a label column
-// nobody used and a traffic column; the hoster table had neither, and its rows
-// carried no plan, no expiry and no allowance at all - not because a hoster
-// account has none, but because nobody had asked JDownloader for them.
-//
-// So the columns are decided HERE, once, and each card hands over rows in this
-// shape. A column that only one of them can fill is still drawn for both, with
-// a dash: two tables of different widths side by side read as two unrelated
-// features, and the dash is the honest answer to "what does it say here".
+// The table shared by the debrid and hoster account cards. Both get the same
+// columns, and a column one card cannot fill shows a dash.
 import { useState, type ReactNode } from 'react';
 import { useT } from '../lib/i18n';
 import { fmtDate, fmtGB } from '../lib/format';
@@ -21,11 +10,9 @@ import { ContextMenu, anchorBelow, useContextMenu, type MenuGroup } from './Cont
 import { IconSettings } from '../lib/icons';
 
 /**
- * What one account's allowance looks like, in the three shapes the services
- * actually report it in. Nothing is derived from a missing field: every reader
- * below checks which of the three is present rather than treating 0 as an
- * answer - a fresh account really has used 0%, and that is not the same as a
- * service that said nothing (see app.TrafficState.PercentKnown).
+ * AccountTraffic is an allowance in one of the three shapes services report:
+ * unlimited, bytes, or a percentage. A 0 is never read as "unknown" (see
+ * app.TrafficState.PercentKnown).
  */
 export interface AccountTraffic {
   unlimited?: boolean;
@@ -43,7 +30,7 @@ export interface AccountRow {
   iconHost: string;
   label: string;
   enabled: boolean;
-  /** The status badge, drawn by the card - the two have genuinely different states. */
+  /** The status badge, drawn by the card, since the two have different states. */
   status: ReactNode;
   /** "premium", "free", or anything the service calls its own plan. */
   tier?: string;
@@ -57,58 +44,30 @@ export interface AccountRow {
   onRemove?: () => void;
 }
 
-/** TierCell keeps "premium" and "free" translated and anything else verbatim:
- *  a service's own plan name (TorBox's "essential") is a product name, not a
- *  word to translate, and inventing a category for it would be worse than
- *  printing what it calls itself.
- *
- *  Plain text, no pill (jdp, 2026-09-07: "die texte in der spalte sollen normale
- *  texte sein und kein hintergrund haben"). It used to be a .glim-eyebrow badge,
- *  which put a filled, uppercased chip in a column of ordinary words and made the
- *  plan read as a status rather than as a fact about the account. The one
- *  distinction the colour was carrying is kept without a fill: a free plan is
- *  drawn in the muted ink every other "nothing to report" cell uses. */
+/**
+ * TierCell translates "premium" and "free" and prints any other plan name, such
+ * as TorBox's "essential", as the service's own product name, capitalised.
+ */
 function TierCell({ tier }: { tier?: string }) {
   const { t } = useT();
   if (!tier || tier === 'unknown') return <span className="text-carbon-textMuted">—</span>;
   if (tier === 'premium') return <span className="text-carbon-text">{t('accounts.tier.premium')}</span>;
   if (tier === 'free') return <span className="text-carbon-textMuted">{t('accounts.tier.free')}</span>;
-  // A vendor's own plan name, capitalised. The badge this used to be
-  // uppercased everything, so "essential" only started looking like a stray
-  // lower-case word once the fill came off (jdp, 2026-09-07, [2171]).
   return <span className="text-carbon-text">{tier.charAt(0).toUpperCase() + tier.slice(1)}</span>;
 }
 
 /**
- * The allowance as a bar (jdp, 2026-09-07: "Das verbliebene Volume soll als
- * progressbar angezeigt werden. in JD funktioniert das auch").
- *
- * The bar shows what is USED and the caption what is LEFT, which is the pairing
- * JDownloader's own account manager uses: a bar that fills as you spend, and a
- * number that answers "how much have I got".
- *
- * Bar and number sit on ONE line, side by side, not stacked (jdp, same day:
- * "der text für das volumen und der balken sollen in einer zeile stehen. jetzt
- * macht es die zeile unnötig hoch"). Stacking cost every row in both tables the
- * height of two lines for a figure that is one line of information, and the
- * tables are read by scanning down a column.
- *
- * Every byte figure goes through fmtGB, so an allowance is quoted in the same
- * unit the vendor advertises it in and two accounts can be compared by eye.
+ * TrafficCell draws the allowance as a bar of what is used beside a caption of
+ * what is left, on one line, as JDownloader's account manager does. Byte
+ * figures use fmtGB, the unit vendors advertise in.
  */
 function TrafficCell({ traffic }: { traffic?: AccountTraffic }) {
   const { t } = useT();
   if (!traffic) return <span className="text-carbon-textMuted">—</span>;
 
   if (traffic.unlimited) {
-    // No bar: a bar needs a full, and there is none. The symbol is the whole
-    // statement, and it is the same one the speed-limit field uses for "off".
-    //
-    // But the symbol alone was the whole cell, and for TorBox that meant the
-    // column stood empty for a paid account (jdp, 2026-09-07: "TorBox hat keine
-    // angabe derzeit"). TorBox reports total_downloaded and no cap at all, so
-    // there is a real figure to show next to it - what has gone through the
-    // account - and "unlimited" plus that figure says more than either alone.
+    // No bar without a limit. Some services, such as TorBox, still report the
+    // total downloaded, which is shown beside the symbol.
     return (
       <span className="flex items-center gap-2">
         <span className="glim-num text-carbon-textSub">∞</span>
@@ -126,9 +85,7 @@ function TrafficCell({ traffic }: { traffic?: AccountTraffic }) {
     const used = Math.min(traffic.used ?? 0, limit);
     return (
       <span className="flex items-center gap-2">
-        {/* The bar takes the room that is left over, the figure takes what it
-            needs: a fixed-width bar beside a variable-width number would leave
-            the numbers ragged down the column. */}
+        {/* The bar takes the leftover room so the figures align. */}
         <span className="min-w-0 flex-1">
           <ProgressBar active percent={(used / limit) * 100} />
         </span>
@@ -152,13 +109,7 @@ function TrafficCell({ traffic }: { traffic?: AccountTraffic }) {
       </span>
     );
   }
-  // Nothing to draw, and the dash says why on hover rather than leaving the
-  // reader to wonder whether the column is broken. A bar is deliberately NOT
-  // invented here: a free hoster account whose quota JDownloader does not
-  // report has no full for a bar to fill, and drawing an empty track would
-  // claim a limit of zero (jdp asked for a bar on free accounts too; where the
-  // service reports a quota it already gets one, and this is the honest
-  // remainder).
+  // No quota reported, so no bar; an empty track would claim a limit of zero.
   return (
     <span className="text-carbon-textMuted" title={t('accounts.trafficUnknown')}>
       —
@@ -169,11 +120,8 @@ function TrafficCell({ traffic }: { traffic?: AccountTraffic }) {
 export function AccountTable({ rows, label }: { rows: AccountRow[]; label: string }) {
   const { t } = useT();
   const menu = useContextMenu();
-  // The row the open menu belongs to, kept by KEY rather than by object: the
-  // list is re-fetched on a poll, so the object identity a click captured is
-  // gone a few seconds later while the row itself is still there. Held here
-  // rather than inside each row so only one menu can be open at a time, which
-  // is what a menu anchored to a table has to mean.
+  // By key, because polling replaces the row objects; held here so only one
+  // menu is open at a time.
   const [menuKey, setMenuKey] = useState<string | null>(null);
   const open = rows.find((r) => r.key === menuKey);
 
@@ -214,9 +162,6 @@ export function AccountTable({ rows, label }: { rows: AccountRow[]; label: strin
               <td className="px-2 py-3">
                 <TierCell tier={row.tier} />
               </td>
-              {/* fmtDate, not the raw field: the server sends RFC 3339, and a
-                  cell reading 2026-10-06T00:28:59Z is a timestamp somebody has
-                  to decode rather than a date they can read. */}
               <td className="glim-num px-2 py-3 text-carbon-textSub">{fmtDate(row.expiry) || '—'}</td>
               <td className="px-2 py-3 text-carbon-textSub">
                 <TrafficCell traffic={row.traffic} />

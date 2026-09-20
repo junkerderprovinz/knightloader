@@ -1,9 +1,5 @@
-// The header's right-click menu: which columns the list shows.
-//
-// It opens on contextmenu rather than from a gear in the corner, because that is
-// where people already right-click, and the keyboard menu key raises the same
-// event — so the menu is reachable without a mouse without inventing a second
-// affordance for it.
+// The header's right-click menu for choosing columns. The keyboard's menu key
+// raises the same contextmenu event.
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -14,9 +10,7 @@ import type { ColumnDef, ColumnId } from './columns';
 
 const MARGIN = 8;
 
-// The same filled mark the list uses for selection, but as plain furniture: the
-// menu row is itself the button, and a button inside a button is not markup a
-// browser can make sense of.
+// Decorative only: the menu row is the button.
 function Mark({ on }: { on: boolean }) {
   return (
     <span
@@ -53,8 +47,7 @@ export function ColumnMenu({
   const [pos, setPos] = useState<{ top: number; left: number }>({ top: at.y, left: at.x });
   const visibleCount = columns.length - hidden.size;
 
-  // Measured after mount, because a menu opened near the bottom edge of a long
-  // list would otherwise open below the fold with its entries unreachable.
+  // Clamped after mount so a menu opened near an edge stays on screen.
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
@@ -70,8 +63,7 @@ export function ColumnMenu({
     const onDown = (e: MouseEvent) => {
       if (!ref.current?.contains(e.target as Node)) onClose();
     };
-    // A measured position goes stale the moment the page moves under it, and a
-    // column menu floating over the wrong header is worse than no menu.
+    // The measured position goes stale on scroll or resize.
     window.addEventListener('keydown', onKey);
     window.addEventListener('mousedown', onDown, true);
     window.addEventListener('scroll', onClose, true);
@@ -98,19 +90,13 @@ export function ColumnMenu({
       </div>
 
       {columns.map((c) => {
-        // Two different refusals, and they are worth telling apart: the name
-        // column is never hideable, and the last one standing cannot go either
-        // — a list with no columns has nothing left to right-click on.
+        // The last visible column stays, or nothing is left to right-click.
         const shown = !hidden.has(c.id);
         const locked = !c.hideable;
         const last = shown && visibleCount <= 1;
         const disabled = locked || last;
         return (
-          // The InfoBubble sits beside the button rather than inside it -
-          // the same reason Mark's own comment above gives for keeping this
-          // row a single button: an interactive (i) nested inside another
-          // interactive control is not markup a browser, or a screen
-          // reader's menu navigation, can make sense of.
+          // The InfoBubble sits beside the button, not nested inside it.
           <div key={c.id} className="flex items-center">
             <button
               role="menuitemcheckbox"
