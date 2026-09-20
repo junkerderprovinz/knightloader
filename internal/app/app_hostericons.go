@@ -1,54 +1,19 @@
 package app
 
-// app_hostericons.go: the little site icon beside a hoster in the accounts
-// list (jdp, 2026-09-05: "Bei allen Hostern bzw. Accounts soll das logo mit in
-// der liste sein. wie bei JD").
+// The site icon beside a hoster in the accounts list. Logos are not bundled:
+// they are other people's trademarks and go stale when a site redesigns. Each
+// instance fetches the icon from the site itself, once, and keeps it on disk,
+// so the list of someone's hoster accounts is never handed to a third-party
+// icon service.
 //
-// JDownloader ships those logos as files in its own package. This does not,
-// for two reasons that both matter here: a hoster's logo is its trademark, and
-// this repository is public, so a folder of forty of them is a folder of forty
-// other people's marks committed to somebody else's account. And a bundled set
-// is wrong the moment a site redesigns, with nobody to notice.
+// Candidates are the front page's own <link rel="icon"> hrefs, which may be on
+// another host (alldebrid.com keeps its icon on a CDN), then the two well-known
+// paths. Up to iconMaxCandidates are fetched and the largest real image wins,
+// stopping early at iconGoodEnough, because /favicon.ico is usually 16x16.
 //
-// So the icon is fetched from the site itself, by this instance, once, and
-// kept on disk. That is the same thing the browser showing this page would do
-// with a favicon, done by the server so a page listing somebody's hoster
-// accounts does not hand that list to a third-party icon service - which is
-// what every "just use s2/favicons" shortcut actually does.
-//
-// HOW IT FINDS ONE (rewritten 2026-09-06, jdp: "sehr viele logos der hoster
-// werden nicht angezeigt. das von rapidgator ist zu klein"). The first version
-// tried exactly two paths, /favicon.ico then /apple-touch-icon.png, and took
-// whichever answered first. Measured against the real list, that loses on both
-// counts:
-//
-//   - It misses every site that keeps its icon somewhere else and says so in
-//     its HTML. alldebrid.com is the case that proved it: both well-known paths
-//     answer 404, and the front page carries
-//     <link rel="shortcut icon" href="https://cdn.alldebrid.com/lib/images/default/favicon.png">
-//     - a different path AND a different host. A debrid account with no logo
-//     was not a site without one, it was a site this never asked properly.
-//   - Taking the FIRST answer means /favicon.ico always wins, and a favicon.ico
-//     is usually 16x16 while the apple-touch-icon beside it is 180x180. The row
-//     then draws a 16-pixel image in an 18-pixel box, which is exactly the
-//     "zu klein" complaint.
-//
-// So it now collects candidates - the HTML's own <link rel="icon"> hrefs first,
-// then the two well-known paths - fetches up to iconMaxCandidates of them,
-// decodes each one's real pixel size, and keeps the largest. It stops early at
-// iconGoodEnough, so the common case is still one or two requests.
-//
-// Reading a hoster's front page is a bigger request than fetching a fixed path,
-// and the first version's comment said that was not worth it for a decoration.
-// That judgement was made before anyone counted how many hosts it loses; it is
-// capped (iconHTMLMaxBytes), it happens once per host per month, and it is the
-// only way to find an icon a site chose to put somewhere else.
-//
-// SSRF: an href out of somebody else's HTML is an address this app would
-// otherwise fetch on command. iconClient below refuses to dial any private,
-// loopback or link-local address, at the DIAL, so a redirect chain cannot walk
-// around it either - the homelab this runs in is full of things that answer on
-// 192.168.x.x, and none of them is a favicon.
+// An href from someone else's HTML could name any address, so iconClient
+// refuses to dial anything that is not public. The check happens at dial time,
+// which also covers redirects and DNS answers.
 
 import (
 	"bytes"
@@ -75,41 +40,32 @@ import (
 	"time"
 )
 
-// iconMaxBytes is a hard cap on what is read from a host. A favicon is a few
-// kilobytes; anything past this is either not a favicon or not something worth
-// keeping, and reading it into memory unbounded is how a hostile host turns a
-// cosmetic feature into a memory problem.
+// iconMaxBytes caps what is read for one image, so a hostile host cannot make
+// a decoration a memory problem.
 const iconMaxBytes = 512 << 10
 
-// iconHTMLMaxBytes is how much of a front page is read while looking for its
-// <link rel="icon">. The head is the only part that can carry one, and a head
-// past this size is a page doing something other than declaring an icon.
+// iconHTMLMaxBytes is how much of a front page is read for its icon links,
+// which can only be in the head.
 const iconHTMLMaxBytes = 256 << 10
 
-// iconMaxCandidates bounds how many images one host is asked for, and
-// iconGoodEnough is the pixel size at which the search stops being worth
-// another round trip - a 64-pixel image already draws sharply in the 18-pixel
-// box the page uses, on any display density a browser will ask for.
+// iconMaxCandidates bounds how many images one host is asked for.
+// iconGoodEnough is the pixel size that ends the search; 64 pixels is already
+// sharp in the page's 18-pixel box at any density.
 const (
 	iconMaxCandidates = 4
 	iconGoodEnough    = 64
 )
 
-// iconTTL is how long a fetched icon is trusted before the next request
-// refreshes it, and iconMissTTL how long a failure is remembered. The miss is
-// deliberately short-lived but not absent: a site that was down when the page
-// first loaded should not be asked again on every render, and should not be
-// written off for a month either.
+// iconTTL is how long a fetched icon is trusted and iconMissTTL how long a
+// failure is remembered: long enough not to ask on every render, short enough
+// that a site that was briefly down is tried again.
 const (
 	iconTTL     = 30 * 24 * time.Hour
 	iconMissTTL = 6 * time.Hour
 )
 
-// iconTypes is the allowlist. Everything else a host might answer with is
-// refused rather than passed through, including SVG: an SVG is a document that
-// can carry script, and this one would be served from the instance's own
-// origin (see the inline-content-type rule this project already follows for
-// captcha images and embedded assets).
+// iconTypes is the allowlist of served types. SVG is left out because it can
+// carry script and would be served from the instance's own origin.
 var iconTypes = map[string]string{
 	"image/x-icon":             "ico",
 	"image/vnd.microsoft.icon": "ico",
@@ -119,12 +75,9 @@ var iconTypes = map[string]string{
 	"image/webp":               "webp",
 }
 
-// HosterIcon is one host's site icon, from disk when it was fetched before and
-// from the host itself when it was not.
-//
-// Returns the bytes, the content type to serve them as, and an error when
-// there is nothing to show - a caller (routes_hostericons.go) answers 404 to
-// that, and the page falls back to a monogram rather than a broken image.
+// HosterIcon returns a host's site icon and its content type, from disk when
+// it was fetched before and from the site otherwise. An error means there is
+// nothing to show, and the page falls back to a monogram.
 func (a *App) HosterIcon(ctx context.Context, host string) ([]byte, string, error) {
 	host = normaliseIconHost(host)
 	if host == "" {
@@ -144,8 +97,7 @@ func (a *App) HosterIcon(ctx context.Context, host string) ([]byte, string, erro
 		if b, err := os.ReadFile(e.path); err == nil {
 			return b, e.contentType, nil
 		}
-		// The file was there when it was cached and is not now. Fall through
-		// and fetch again rather than reporting a miss for a month.
+		// The cached file is gone; fetch again.
 	}
 
 	body, ct, err := fetchFavicon(ctx, host)
@@ -158,12 +110,11 @@ func (a *App) HosterIcon(ctx context.Context, host string) ([]byte, string, erro
 
 	dir := filepath.Join(a.DataDir, "icons")
 	if err := os.MkdirAll(dir, 0o755); err != nil {
-		// Serve it anyway: the cache is an optimisation, not the feature.
+		// The cache is an optimisation; serve the icon anyway.
 		return body, ct, nil
 	}
-	// Named by a hash of the host, not by the host itself: a host string
-	// reaches this from a settings file somebody can edit by hand, and a name
-	// that becomes a path is a name that can escape the directory.
+	// Named by a hash, because the host comes from an editable settings file
+	// and must not become a path.
 	sum := sha256.Sum256([]byte(host))
 	path := filepath.Join(dir, hex.EncodeToString(sum[:8])+"."+iconTypes[ct])
 	if err := os.WriteFile(path, body, 0o644); err == nil {
@@ -188,9 +139,8 @@ func (e iconEntry) ttl() time.Duration {
 	return iconTTL
 }
 
-// normaliseIconHost reduces whatever the page had on screen to a bare
-// hostname. A catalogue row carries a full URL, a hoster login carries a plain
-// host, and a person can type either.
+// normaliseIconHost reduces a URL or host to a bare hostname, or "" when the
+// result is not a plain dotted hostname.
 func normaliseIconHost(s string) string {
 	s = strings.TrimSpace(strings.ToLower(s))
 	s = strings.TrimPrefix(strings.TrimPrefix(s, "https://"), "http://")
@@ -203,10 +153,7 @@ func normaliseIconHost(s string) string {
 	if i := strings.IndexByte(s, ':'); i >= 0 {
 		s = s[:i]
 	}
-	// A hostname and nothing else: letters, digits, dots and hyphens, with at
-	// least one dot. Everything else is refused rather than passed to a
-	// request, because this string comes from stored settings and ends up in a
-	// URL.
+	// Letters, digits, dots and hyphens only, since this ends up in a URL.
 	if !strings.Contains(s, ".") || strings.HasPrefix(s, ".") || strings.HasSuffix(s, ".") {
 		return ""
 	}
@@ -220,24 +167,16 @@ func normaliseIconHost(s string) string {
 	return s
 }
 
-// iconPaths are the two well-known places a site keeps its icon. The
-// apple-touch-icon comes first now: where a site has both, it is the larger of
-// the two by a wide margin (180x180 against 16x16), and the whole point of
-// ordering candidates is that the first good one ends the search.
+// iconPaths are the well-known icon locations, the usually larger
+// apple-touch-icon first.
 var iconPaths = [...]string{"/apple-touch-icon.png", "/favicon.ico"}
 
-// iconUserAgent is a browser's, because a good number of hosters answer 403 to
-// anything else and this request is doing exactly what a browser would do with
-// the same URL. Measured 2026-09-05: alldebrid.com among others refused the
-// default Go agent and served the icon happily to this one.
+// iconUserAgent is a browser's, because many hosters answer 403 to Go's
+// default agent.
 const iconUserAgent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36"
 
-// iconClient is the one client every request in this file goes through. Its
-// dialer is the SSRF guard: an <link rel="icon"> href comes out of a remote
-// page and can name any address at all, including one inside the network this
-// process is running in. Checking the address at DIAL time rather than the URL
-// beforehand is what makes it hold through a redirect chain and through DNS
-// answers that resolve to a private address.
+// iconClient is the client for every request in this file. Its dialer refuses
+// non-public addresses.
 var iconClient = &http.Client{
 	Timeout: 20 * time.Second,
 	Transport: &http.Transport{
@@ -263,50 +202,41 @@ var iconClient = &http.Client{
 	},
 }
 
-// iconDialAllowed is the address policy iconClient's dialer applies, as a
-// variable purely so a test can point this file at an httptest server - which
-// listens on 127.0.0.1, an address the real policy exists to refuse. Swapped
-// only by app_hostericons_test.go, and restored before it returns, the same
-// seam accountInfoFetcher (app_accounts.go) already uses for the same reason.
+// iconDialAllowed is the dialer's address policy, a variable so tests can
+// reach an httptest server on 127.0.0.1.
 var iconDialAllowed = publicIP
 
-// publicIP is the whole of the address policy: everything that is not routable
-// on the public internet is refused. Written as an allowlist of "is this
-// ordinary" rather than a blocklist of ranges, so a range nobody thought of
-// fails closed.
+// publicIP reports whether ip is routable on the public internet. Anything
+// unusual fails closed.
 func publicIP(ip net.IP) bool {
 	if ip == nil || ip.IsLoopback() || ip.IsPrivate() || ip.IsUnspecified() ||
 		ip.IsLinkLocalUnicast() || ip.IsLinkLocalMulticast() || ip.IsInterfaceLocalMulticast() ||
 		ip.IsMulticast() {
 		return false
 	}
-	// 100.64.0.0/10, carrier-grade NAT - not covered by IsPrivate, and the
-	// range Tailscale hands out, which makes it very much a local address on a
-	// machine like the one this runs on.
+	// 100.64.0.0/10 (carrier-grade NAT, also Tailscale) is not covered by
+	// IsPrivate.
 	if v4 := ip.To4(); v4 != nil && v4[0] == 100 && v4[1] >= 64 && v4[1] <= 127 {
 		return false
 	}
 	return true
 }
 
-// iconCandidate is one image worth trying, and how promising it looked before
-// anything was fetched. declared is the size the HTML claimed (sizes="32x32"),
-// 0 when nothing claimed one - it only orders the queue; the real size comes
-// from the bytes.
+// iconCandidate is one image to try. declared is the size the HTML claimed, 0
+// when none; it only orders the queue, and the real size comes from the bytes.
 type iconCandidate struct {
 	url      string
 	declared int
 }
 
-// fetchFavicon asks one host for its icon and returns the largest usable image
-// it found. https, always: a hoster asked over plain http would have its icon
-// - and the fact that somebody has an account there - travel in the clear.
+// fetchFavicon returns the largest usable icon of host, always over https so
+// the fact that someone has an account there does not travel in the clear.
 func fetchFavicon(ctx context.Context, host string) ([]byte, string, error) {
 	return fetchIconsFrom(ctx, "https://"+host)
 }
 
-// fetchIconsFrom is fetchFavicon with the origin spelled out rather than built
-// from a hostname, which is the only thing a test can point at a local server.
+// fetchIconsFrom is fetchFavicon for a full origin, which tests can point at a
+// local server.
 func fetchIconsFrom(ctx context.Context, origin string) ([]byte, string, error) {
 	ctx, cancel := context.WithTimeout(ctx, 25*time.Second)
 	defer cancel()
@@ -344,18 +274,14 @@ func fetchIconsFrom(ctx context.Context, origin string) ([]byte, string, error) 
 	return bestBody, bestCT, nil
 }
 
-// iconCandidates is the ordered list of images to try for one host: whatever
-// the front page declares, largest first, then the two well-known paths. A
-// front page that cannot be read costs nothing - the well-known paths are
-// always appended, so this degrades exactly to the behaviour it replaces.
+// iconCandidates lists the images to try for one host: the front page's
+// declared icons, largest first, then the well-known paths.
 func iconCandidates(ctx context.Context, origin string) []iconCandidate {
 	out := declaredIcons(ctx, origin+"/")
 	for _, p := range iconPaths {
 		out = append(out, iconCandidate{url: origin + p})
 	}
-	// Stable and duplicate-free: a site that declares /favicon.ico explicitly
-	// must not have it fetched twice, and the fetch budget is small enough
-	// that one wasted slot is a real loss.
+	// Without duplicates, since the fetch budget is small.
 	seen := map[string]bool{}
 	uniq := out[:0]
 	for _, c := range out {
@@ -368,12 +294,9 @@ func iconCandidates(ctx context.Context, origin string) []iconCandidate {
 	return uniq
 }
 
-// linkTag matches one <link ...> element. Deliberately a regex over the first
-// few hundred kilobytes rather than a real HTML parse: this is looking for one
-// attribute on one kind of tag in a document nobody here renders, and pulling
-// in a parser to read a decoration would be the larger risk, not the smaller
-// one. A malformed match costs a wasted candidate slot, nothing else, because
-// every href still goes through resolveIconURL and the dialer's own guard.
+// linkTag and the attribute patterns find icon links with regular expressions
+// rather than an HTML parser. A bad match only wastes a candidate slot, since
+// every href still goes through resolveIconURL and the dialer's guard.
 var (
 	linkTag   = regexp.MustCompile(`(?is)<link\b[^>]*>`)
 	attrRelIn = regexp.MustCompile(`(?is)\brel\s*=\s*["']?([^"'>]*)`)
@@ -381,9 +304,8 @@ var (
 	attrSizes = regexp.MustCompile(`(?is)\bsizes\s*=\s*["']?\s*(\d+)\s*[xX]`)
 )
 
-// declaredIcons reads a site's own <link rel="icon"> declarations, largest
-// declared size first. Errors are not errors here: a page that will not load,
-// or carries no such tag, simply contributes nothing.
+// declaredIcons returns a page's <link rel="icon"> declarations, largest
+// declared size first. A page that fails to load contributes nothing.
 func declaredIcons(ctx context.Context, pageURL string) []iconCandidate {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, pageURL, nil)
 	if err != nil {
@@ -406,8 +328,7 @@ func declaredIcons(ctx context.Context, pageURL string) []iconCandidate {
 	if err != nil {
 		return nil
 	}
-	// resp.Request.URL, not pageURL: a site that redirected to another host
-	// declares its icon relative to where the page actually came from.
+	// Relative hrefs resolve against where the page came from after redirects.
 	base := resp.Request.URL
 
 	var out []iconCandidate
@@ -428,17 +349,13 @@ func declaredIcons(ctx context.Context, pageURL string) []iconCandidate {
 		if m := attrSizes.FindSubmatch(tag); m != nil {
 			size, _ = strconv.Atoi(string(m[1]))
 		}
-		// An apple-touch-icon carries no sizes attribute nearly as often as it
-		// carries one, and is 180x180 either way. Ranking it above an
-		// undeclared favicon costs nothing when the guess is wrong: the real
-		// size still decides which image is kept.
+		// An apple-touch-icon is 180x180 whether or not it says so.
 		if size == 0 && strings.Contains(strings.ToLower(string(rel[1])), "apple-touch") {
 			size = 180
 		}
 		out = append(out, iconCandidate{url: abs, declared: size})
 	}
-	// Largest declared first, stable within equal sizes so the document's own
-	// order breaks ties.
+	// Stable insertion sort, largest declared first.
 	for i := 1; i < len(out); i++ {
 		for j := i; j > 0 && out[j].declared > out[j-1].declared; j-- {
 			out[j], out[j-1] = out[j-1], out[j]
@@ -447,9 +364,8 @@ func declaredIcons(ctx context.Context, pageURL string) []iconCandidate {
 	return out
 }
 
-// resolveIconURL turns an href into an absolute https URL, or "" for one this
-// build will not fetch. Only http(s) survives: a data: URI is not something to
-// re-serve from this origin, and every other scheme is not a fetch at all.
+// resolveIconURL makes href absolute against base, or returns "" for anything
+// but http(s). A data: URI is not re-served from this origin.
 func resolveIconURL(base *url.URL, href string) string {
 	href = strings.TrimSpace(href)
 	if href == "" {
@@ -491,10 +407,8 @@ func fetchIconAt(ctx context.Context, rawURL string) ([]byte, string, error) {
 	if len(body) == 0 || len(body) > iconMaxBytes {
 		return nil, "", errors.New("favicon: unusable size")
 	}
-	// The header first, the bytes second. A host that answers
-	// application/octet-stream for its own icon is common enough that
-	// refusing it would lose real icons, and a host that CLAIMS image/png for
-	// something else is exactly what sniffing is for.
+	// The header first, then sniffing: many hosts send their icon as
+	// application/octet-stream.
 	ct := strings.ToLower(strings.TrimSpace(strings.Split(res.Header.Get("Content-Type"), ";")[0]))
 	if _, ok := iconTypes[ct]; !ok {
 		ct = strings.ToLower(strings.TrimSpace(strings.Split(http.DetectContentType(body), ";")[0]))
@@ -505,26 +419,23 @@ func fetchIconAt(ctx context.Context, rawURL string) ([]byte, string, error) {
 	return body, ct, nil
 }
 
-// iconPixelSize is the image's own width in pixels, or 0 when this build
-// cannot tell. Zero is a real answer and not a failure: an image nobody could
-// measure is still served if it is the only one, it just loses to any image
-// that could be.
+// iconPixelSize returns the image's smaller dimension in pixels, or 0 when it
+// cannot be measured. An unmeasurable image is still used if nothing better
+// turns up.
 func iconPixelSize(body []byte, contentType string) int {
 	if iconTypes[contentType] == "ico" {
 		return icoLargestFrame(body)
 	}
 	cfg, _, err := image.DecodeConfig(bytes.NewReader(body))
 	if err != nil {
-		return 0 // webp, or a file only the browser can read
+		return 0 // webp, or a file only a browser can read
 	}
 	return min(cfg.Width, cfg.Height)
 }
 
-// icoLargestFrame reads an ICO's directory - the only part of the format this
-// needs - and answers the largest frame in it. An .ico is a container: 6 bytes
-// of header, then one 16-byte entry per image, whose first two bytes are the
-// width and height with 0 meaning 256. Browsers pick a frame themselves, so
-// what matters here is the best size the FILE can offer, not the first one.
+// icoLargestFrame returns the largest frame in an .ico directory: a 6-byte
+// header, then 16-byte entries whose first two bytes are width and height, 0
+// meaning 256.
 func icoLargestFrame(body []byte) int {
 	if len(body) < 6 || binary.LittleEndian.Uint16(body[2:4]) != 1 {
 		return 0
@@ -550,9 +461,7 @@ func icoLargestFrame(body []byte) int {
 	return best
 }
 
-// iconCache is embedded into App (see its own struct), so the cache's two
-// fields live in the file that owns them. The map is created on first use, so
-// there is nothing to wire in New.
+// iconCache is embedded in App. The map is created on first use.
 type iconCache struct {
 	iconMu sync.Mutex
 	icons  map[string]iconEntry

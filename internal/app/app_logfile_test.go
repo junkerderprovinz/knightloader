@@ -11,19 +11,13 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
-// disarm puts the process-wide sink back where every other test in this package
-// expects to find it. The sink is a singleton by design - there is one standard
-// logger and one ring behind it - so a test that arms it and walks away leaves
-// every later test writing into a directory the framework has already removed.
+// disarm closes the process-wide file sink when the test ends, so later tests
+// do not write into a directory the framework has already removed.
 func disarm(t *testing.T) {
 	t.Helper()
 	t.Cleanup(func() { _ = logring.CloseFile() })
 }
 
-// TestApplyLogFileArmsAndDisarmsWithoutARestart is the reason this is wired
-// into afterSettingsChange as well as into the boot. Somebody switching the log
-// file on is already trying to catch something; a setting that needed a restart
-// to take effect would lose exactly the run they were chasing.
 func TestApplyLogFileArmsAndDisarmsWithoutARestart(t *testing.T) {
 	disarm(t)
 	a, err := New(t.TempDir())
@@ -58,9 +52,8 @@ func TestApplyLogFileArmsAndDisarmsWithoutARestart(t *testing.T) {
 
 	a.applyLogFile(settings.LogFile{Enabled: false, MaxMB: 1, Keep: 1})
 	if logring.FileStatus().Enabled {
-		t.Error("switching the setting off left the sink writing; somebody doing that usually needs the volume back")
+		t.Error("switching the setting off left the sink writing")
 	}
-	// Off means off, not "off from the next restart".
 	before := len(body)
 	log.Print("app-logfile-after-the-switch-went-off")
 	after, err := os.ReadFile(want)
@@ -72,36 +65,24 @@ func TestApplyLogFileArmsAndDisarmsWithoutARestart(t *testing.T) {
 	}
 }
 
-// TestTaskTagIsFindableByTheLogReader pins the one thing that makes the
-// per-download log card work at all: the shape this package WRITES and the
-// shape internal/logring READS have to be the same shape, and they are written
-// two packages apart.
-//
-// It also pins the second half of the decision - the id goes at the END of the
-// line, so the source picker still files a checksum failure under "checksum"
-// rather than under "task", which is the bucket somebody chasing a bad hash
-// would actually reach for.
+// TestTaskTagIsFindableByTheLogReader keeps the tag this package writes in step
+// with what internal/logring reads.
 func TestTaskTagIsFindableByTheLogReader(t *testing.T) {
 	const id = "00112233445566aa"
 
 	line := "2026/09/08 14:18:22 checksum big.mkv: bad hash" + taskTag(id)
 	if got := logring.TaskIDOf(line); got != id {
-		t.Errorf("the log reader found %q in %q, want %q - the two sides have drifted apart", got, line, id)
+		t.Errorf("the log reader found %q in %q, want %q", got, line, id)
 	}
 	if got := logring.SourceOf(line); got != "checksum" {
-		t.Errorf("SourceOf(%q) = %q, want \"checksum\" - the id belongs at the end so the bucket stays honest", line, got)
+		t.Errorf("SourceOf(%q) = %q, want \"checksum\"", line, got)
 	}
 
-	// A job whose task is already gone gets no parenthesis at all: "(task )"
-	// would sit in the log for ever, findable by nobody and explaining nothing.
 	if got := taskTag(""); got != "" {
 		t.Errorf("taskTag(\"\") = %q, want nothing at all", got)
 	}
 }
 
-// TestApplyLogFileOffIsTheDefaultAndDoesNothing. Every install that upgrades
-// into this key arrives here, and the one thing it must not do is start writing
-// files somebody did not ask for.
 func TestApplyLogFileOffIsTheDefaultAndDoesNothing(t *testing.T) {
 	disarm(t)
 	dir := t.TempDir()
@@ -120,10 +101,6 @@ func TestApplyLogFileOffIsTheDefaultAndDoesNothing(t *testing.T) {
 	}
 }
 
-// TestLogDirIsFixedUnlessTheEnvironmentSaysOtherwise. There is deliberately no
-// path field in the settings: routes_features.go reflects the whole struct into
-// a free text box, and a path typed there that the container user cannot write
-// stops the log with nothing on screen connecting the two.
 func TestLogDirIsFixedUnlessTheEnvironmentSaysOtherwise(t *testing.T) {
 	disarm(t)
 	dir := t.TempDir()
@@ -143,18 +120,14 @@ func TestLogDirIsFixedUnlessTheEnvironmentSaysOtherwise(t *testing.T) {
 		t.Errorf("with %s set, LogDir() = %q, want %q", LogDirEnv, got, elsewhere)
 	}
 
-	// A variable set to nothing at all is a container template with an empty
-	// field in it, not an instruction to write into the working directory.
 	t.Setenv(LogDirEnv, "   ")
 	if got, want := a.LogDir(), filepath.Join(dir, "logs"); got != want {
 		t.Errorf("with %s set to whitespace, LogDir() = %q, want %q", LogDirEnv, got, want)
 	}
 }
 
-// TestABrokenLogDirIsReportedRatherThanCrashing, and - the part that matters -
-// the failure travels through log.Printf from applyLogFile without the sink
-// answering it with another one. A failure path INSIDE the sink that logged
-// would re-enter the ring's own mutex and hang this test instead of failing it.
+// TestABrokenLogDirIsReportedRatherThanCrashing also guards against the sink
+// logging its own failure: that would re-enter the ring's mutex and hang here.
 func TestABrokenLogDirIsReportedRatherThanCrashing(t *testing.T) {
 	disarm(t)
 	dir := t.TempDir()
@@ -164,8 +137,8 @@ func TestABrokenLogDirIsReportedRatherThanCrashing(t *testing.T) {
 	}
 	defer a.Close()
 
-	// A regular file where the log directory should go, so MkdirAll cannot
-	// succeed on any platform.
+	// A regular file where the directory should go, so MkdirAll fails on every
+	// platform.
 	blocker := filepath.Join(t.TempDir(), "in-the-way")
 	if werr := os.WriteFile(blocker, []byte("not a directory"), 0o600); werr != nil {
 		t.Fatal(werr)
@@ -182,8 +155,6 @@ func TestABrokenLogDirIsReportedRatherThanCrashing(t *testing.T) {
 		t.Error("no problem was recorded, so the card would show the same thing as \"switched off\"")
 	}
 
-	// The instance goes on logging exactly as it did, which is the sentence the
-	// card puts in front of the operator: nothing else stopped.
 	marker := "app-logfile-broken-dir-marker-1v4t"
 	log.Print(marker)
 	found := false

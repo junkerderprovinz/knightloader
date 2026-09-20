@@ -1,10 +1,8 @@
 package app
 
 // Operations on a whole selection, and the cleanup classes that work out the
-// selection themselves. Everything here is a list of ids in and a list of ids
-// out: the interface says which tasks it means, or which kind of tasks, and gets
-// back what was actually touched — never a bare 204 that leaves it re-fetching
-// the world to find out.
+// selection themselves. Each takes ids in and returns the ids it touched, so
+// the client does not have to refetch everything to find out.
 
 import (
 	"errors"
@@ -19,31 +17,25 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 )
 
-// SetEnabled switches links on or off. A disabled link keeps its place, its
-// progress and its package; it is simply passed over by everything that starts
-// downloads, which is what makes it different from removing it.
+// SetEnabled switches links on or off. A disabled link keeps its place,
+// progress and package; everything that starts downloads passes it over.
 func (a *App) SetEnabled(ids []string, enabled bool) []string {
 	return a.editAndDispatch(ids, func(t *core.Task) { t.Enabled = enabled })
 }
 
-// SetHold parks links, or lets them go again. Hold is deliberately not
-// StatusPaused: "resume everything" must not start the links somebody chose to
-// leave alone, and with one shared state there is no way to tell the two apart.
+// SetHold parks links or releases them. Hold is separate from StatusPaused so
+// that "resume everything" leaves held links alone.
 func (a *App) SetHold(ids []string, hold bool) []string {
 	return a.editAndDispatch(ids, func(t *core.Task) { t.Hold = hold })
 }
 
-// SetForced marks links to be started ahead of the limits — the answer to
-// "everything else can wait, fetch this one".
+// SetForced marks links to be started ahead of the limits.
 func (a *App) SetForced(ids []string, forced bool) []string {
 	return a.editAndDispatch(ids, func(t *core.Task) { t.Forced = forced })
 }
 
-// editAndDispatch is editAll for the flags the dispatcher consults. Switching a
-// link back on has to be able to start it: the dispatcher only skips what is off
-// when it next runs, so without this the link sits queued until something
-// unrelated — a finished download, a pasted link — happens to drive the queue
-// again, and switching it on looks like it did nothing.
+// editAndDispatch is editAll for flags the dispatcher reads, followed by a
+// dispatch pass so that switching a link back on starts it right away.
 func (a *App) editAndDispatch(ids []string, edit func(*core.Task)) []string {
 	touched := a.editAll(ids, edit)
 	if len(touched) > 0 {
@@ -54,9 +46,8 @@ func (a *App) editAndDispatch(ids []string, edit func(*core.Task)) []string {
 	return touched
 }
 
-// editAll applies one small change to every named task under a single lock and
-// publishes the result. The edit runs with a.mu held, so it must not do anything
-// that blocks: this is for setting flags, not for talking to a backend.
+// editAll applies edit to every named task under one lock and publishes the
+// result. edit runs with a.mu held and must not block.
 func (a *App) editAll(ids []string, edit func(*core.Task)) []string {
 	a.mu.Lock()
 	touched := make([]string, 0, len(ids))
@@ -75,13 +66,8 @@ func (a *App) editAll(ids []string, edit func(*core.Task)) []string {
 	return touched
 }
 
-// RemoveTasks takes a selection off the list in one call, optionally deleting
-// what was downloaded. It exists because the interface's "clear the list" is one
-// gesture: a request per row turns a thousand-link list into a thousand round
-// trips, a thousand store writes and a thousand broadcasts.
-//
-// deleteFiles is never the default and is never implied by anything else.
-// Tidying the list must not destroy finished downloads.
+// RemoveTasks removes a selection in one call, deleting downloaded files only
+// when deleteFiles is set.
 func (a *App) RemoveTasks(ids []string, deleteFiles bool) []string {
 	removed := make([]string, 0, len(ids))
 	for _, id := range ids {
@@ -91,41 +77,34 @@ func (a *App) RemoveTasks(ids []string, deleteFiles bool) []string {
 		if !known {
 			continue
 		}
-		// Through Remove rather than around it: it is the one place that unfiles
-		// the link from the mirror set, clears the backend's own state and frees a
-		// dispatch slot, and a bulk path that skipped any of those would leave the
-		// list clean and the app wrong.
+		// Remove also unfiles the mirror set, clears backend state and frees a
+		// dispatch slot.
 		a.Remove(id, deleteFiles)
 		removed = append(removed, id)
 	}
 	return removed
 }
 
-// CleanupClass is one of the "clean up…" entries: a rule for working out which
-// tasks the user means without making them select anything.
+// CleanupClass is one "clean up" entry: a rule that selects tasks for the user.
 type CleanupClass string
 
 const (
-	// CleanupFinished is every completed download. It is the entry people use
-	// daily, and the one that must never touch the files on disk.
+	// CleanupFinished is every completed download. It never touches files on
+	// disk.
 	CleanupFinished CleanupClass = "finished"
 	// CleanupOffline is links the host says are gone.
 	CleanupOffline CleanupClass = "offline"
-	// CleanupDisabled is links switched off and left switched off.
+	// CleanupDisabled is links that are switched off.
 	CleanupDisabled CleanupClass = "disabled"
-	// CleanupDuplicates is the same file staged more than once. One copy of each
-	// stays — the one furthest along, so a half-finished download is never the
-	// one thrown away in favour of an untouched second copy.
+	// CleanupDuplicates is the same file staged more than once. The copy
+	// furthest along is kept.
 	CleanupDuplicates CleanupClass = "duplicates"
-	// CleanupIncompleteArchives is multi-volume sets that can never be unpacked
-	// because one of the parts is dead. Removing the survivors is the point: a
-	// set missing one volume is not a partial download, it is a folder of bytes
-	// that will never open.
+	// CleanupIncompleteArchives is every part of a multi-volume set that has a
+	// dead part and so can never be unpacked.
 	CleanupIncompleteArchives CleanupClass = "incompleteArchives"
 )
 
-// CleanupClasses is the list the menu is built from, so a button that exists is
-// always a class the app implements.
+// CleanupClasses lists the classes the menu is built from.
 func CleanupClasses() []CleanupClass {
 	return []CleanupClass{
 		CleanupFinished, CleanupOffline, CleanupDisabled,
@@ -133,9 +112,8 @@ func CleanupClasses() []CleanupClass {
 	}
 }
 
-// CleanupPreview reports which tasks a cleanup class would take, without taking
-// them. Every one of these classes can select more than the user pictured, and a
-// confirmation that can only say "12 downloads" is a confirmation nobody reads.
+// CleanupPreview reports which tasks a cleanup class would remove, so the
+// confirmation can name them.
 func (a *App) CleanupPreview(class CleanupClass) ([]string, error) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
@@ -157,9 +135,8 @@ func (a *App) cleanupTargetsLocked(class CleanupClass) ([]string, error) {
 	case CleanupFinished:
 		return a.selectLocked(func(t *core.Task) bool { return t.Status == core.StatusDone }), nil
 	case CleanupOffline:
-		// Only a host that answered and said the file is gone. Unknown and
-		// uncheckable are deliberately left alone: one hoster refusing a probe must
-		// never be the reason a package disappears.
+		// Only a definite "gone"; a hoster refusing a probe must not make a
+		// package disappear.
 		return a.selectLocked(func(t *core.Task) bool { return t.Online == core.AvailOffline }), nil
 	case CleanupDisabled:
 		return a.selectLocked(func(t *core.Task) bool { return !t.Enabled }), nil
@@ -171,8 +148,8 @@ func (a *App) cleanupTargetsLocked(class CleanupClass) ([]string, error) {
 	return nil, fmt.Errorf("%q is not a cleanup class; the app knows %s", class, joinClasses(CleanupClasses()))
 }
 
-// selectLocked is every task the test accepts, in list order so that two calls
-// with the same list produce the same answer. Caller holds a.mu.
+// selectLocked returns every task keep accepts, in list order. Caller holds
+// a.mu.
 func (a *App) selectLocked(keep func(*core.Task) bool) []string {
 	var out []*core.Task
 	for _, t := range a.tasks {
@@ -188,13 +165,9 @@ func (a *App) selectLocked(keep func(*core.Task) bool) []string {
 	return ids
 }
 
-// duplicatesLocked finds tasks that are second copies of another task in the
-// list and returns all but the best copy of each.
-//
-// The mirror set refuses a duplicate at the moment it is pasted, so these are
-// the ones it cannot catch: a download that finished or failed stops blocking
-// its own re-add, deliberately, and a link pasted again after that becomes a
-// second row. Caller holds a.mu.
+// duplicatesLocked returns every copy but the best of each duplicated
+// download. The mirror set refuses duplicates at paste time, but a finished or
+// failed download does not block a re-add. Caller holds a.mu.
 func (a *App) duplicatesLocked() []string {
 	groups := map[string][]*core.Task{}
 	for _, t := range a.tasks {
@@ -207,10 +180,8 @@ func (a *App) duplicatesLocked() []string {
 			continue
 		}
 		sortByAge(g)
-		// The keeper is the copy with the most bytes on disk, and the oldest of
-		// those when nothing has been downloaded yet. Keeping the newest would
-		// throw away a download that is halfway there in favour of one that has
-		// not started.
+		// Keep the copy with the most bytes, or the oldest when none has
+		// started.
 		keep := 0
 		for i, t := range g {
 			if t.Loaded > g[keep].Loaded {
@@ -227,10 +198,8 @@ func (a *App) duplicatesLocked() []string {
 	return out
 }
 
-// duplicateKey is what makes two rows the same download. The file name and byte
-// count come first because that is what recognises the same file fetched from
-// two hosters; the URL is the fallback while nothing has been resolved yet, and
-// a task with neither gets its own id so it can never be grouped with anything.
+// duplicateKey identifies a download: by file name and size, which matches the
+// same file on two hosters, else by URL, else by id so it groups with nothing.
 func duplicateKey(t *core.Task) string {
 	if t.Name != "" && t.Name != t.URL && t.Size > 0 {
 		return fmt.Sprintf("file\x00%s\x00%d", strings.ToLower(t.Name), t.Size)
@@ -241,14 +210,9 @@ func duplicateKey(t *core.Task) string {
 	return "id\x00" + t.ID
 }
 
-// incompleteArchivesLocked finds multi-volume sets that can never be unpacked
-// and returns every task in them.
-//
-// A set counts as broken when one of its parts is dead — failed, or reported
-// gone by the host. The rest of the set is then not "downloads in progress", it
-// is bytes that will never open, and leaving them is how a download folder fills
-// up with archives nobody can extract. A set whose parts are merely still
-// running is left alone. Caller holds a.mu.
+// incompleteArchivesLocked returns every task of a multi-volume set with a dead
+// part (failed or offline). Sets whose parts are merely still running are left
+// alone. Caller holds a.mu.
 func (a *App) incompleteArchivesLocked() []string {
 	sets := map[string][]*core.Task{}
 	for _, t := range a.tasks {
@@ -256,8 +220,8 @@ func (a *App) incompleteArchivesLocked() []string {
 		if !isVolume {
 			continue
 		}
-		// Keyed on the destination as well, because two unrelated releases with the
-		// same part naming going to two folders are two sets, not one.
+		// Two releases with the same part names in different folders are two
+		// sets.
 		k := a.dirFor(t) + "\x00" + key
 		sets[k] = append(sets[k], t)
 	}
@@ -281,8 +245,8 @@ func (a *App) incompleteArchivesLocked() []string {
 	return out
 }
 
-// sortByAge puts a selection in the order the list shows it, so that a preview
-// and the removal that follows name the tasks in the same order.
+// sortByAge sorts a selection in list order, so a preview and the removal that
+// follows agree.
 func sortByAge(in []*core.Task) {
 	sort.Slice(in, func(i, j int) bool {
 		if !in[i].CreatedAt.Equal(in[j].CreatedAt) {
@@ -292,8 +256,7 @@ func sortByAge(in []*core.Task) {
 	})
 }
 
-// joinClasses names the classes in an error, so a client sending a class this
-// build does not have is told which ones it does have.
+// joinClasses lists the known classes for an error message.
 func joinClasses(in []CleanupClass) string {
 	out := make([]string, 0, len(in))
 	for _, c := range in {
@@ -302,31 +265,27 @@ func joinClasses(in []CleanupClass) string {
 	return strings.Join(out, ", ")
 }
 
-// containerAdder is a backend that can be handed an encrypted link container to
-// open. Only the shipped headless JD can: the encrypted formats need a key that
-// is issued to registered clients, and JD holds one legitimately.
+// containerAdder is a backend that can open an encrypted link container. Only
+// the shipped headless JD can, because the encrypted formats need a key issued
+// to registered clients.
 type containerAdder interface {
 	AddContainer(url, packageName string, timeout time.Duration) ([]resolver.Result, error)
 }
 
-// containerCrawlLimit is how long the backend gets to open a container. Minutes
-// rather than seconds: a container can carry a captcha, and JD sits on that
-// until it is answered. It is not unbounded, because the relay URL the backend
-// fetches from expires and a wait past that point can only fail.
+// containerCrawlLimit is how long the backend gets to open a container. A
+// container can carry a captcha that JD waits on, but the relay URL it fetches
+// from expires.
 const containerCrawlLimit = 3 * time.Minute
 
-// ErrNoContainerBackend is an encrypted container with nowhere to send it. The
-// wording matters: this is not a broken file and not an unsupported format, it
-// is a file this instance deliberately does not decrypt itself and has no
-// backend configured to decrypt for it.
+// ErrNoContainerBackend is returned for an encrypted container when no JD
+// backend is configured to open it.
 var ErrNoContainerBackend = fmt.Errorf(
 	"this container is encrypted, and only the headless JDownloader backend can open it; " +
 		"none is configured (set KL_JD to a reachable JD)")
 
-// ContainerBackendConfigured reports whether anything here can open an
-// encrypted container. It is asked before an upload is stored anywhere, so an
-// instance with no JD can refuse with the reason instead of preparing a
-// handover nobody will ever collect.
+// ContainerBackendConfigured reports whether anything can open an encrypted
+// container. It is asked before an upload is stored, so the upload can be
+// refused with the reason.
 func (a *App) ContainerBackendConfigured() bool {
 	a.bmu.RLock()
 	be := a.jd
@@ -336,18 +295,10 @@ func (a *App) ContainerBackendConfigured() bool {
 }
 
 // HandContainerToJD gives the JD backend a URL to fetch an encrypted container
-// from. The URL rather than the file: JD's API takes links, and a filesystem
-// path would have to exist on JD's own machine, which in the normal deployment
-// is a different container.
-// HandContainerToJD gives an encrypted container to the backend that can open
-// it and stages whatever comes back.
-//
-// It returns as soon as the backend has accepted the handover, and finishes the
-// job on a goroutine: a container can hold a captcha, and JD waits for that to
-// be answered, which is not something an HTTP request should sit through. The
-// links appear in the list when they appear — the interface is already live on
-// the task stream, so that is the feedback, and a failure is recorded where the
-// user already looks for links that did not make it.
+// from, since JD usually runs in another container and takes links, not local
+// paths. It returns once JD has the handover and stages the links on a
+// goroutine, because JD may wait for a captcha. A failure is recorded where the
+// user looks for links that did not make it.
 func (a *App) HandContainerToJD(rawurl, name, pkg string) error {
 	a.bmu.RLock()
 	be := a.jd
@@ -356,48 +307,31 @@ func (a *App) HandContainerToJD(rawurl, name, pkg string) error {
 	if !ok {
 		return ErrNoContainerBackend
 	}
-	// a.spawn, not a bare goroutine: this writes to the store (AddLinksFrom,
-	// recordSkippedReason) well after the call that started it has returned, and
-	// Close must wait for it or a container handed over right before shutdown
-	// writes into a store that has already closed. See app.go's spawn doc and
-	// Wave 6's commit 813cf29 for the shape of bug an untracked goroutine here
-	// produces.
+	// a.spawn, so Close waits for the store writes below.
 	a.spawn(func() {
 		links, err := adder.AddContainer(rawurl, pkg, containerCrawlLimit)
 		if err != nil {
 			log.Printf("container %s: %v", name, err)
-			// Recorded rather than logged only: a container that opened into
-			// nothing is exactly the case where the user is left staring at an
-			// unchanged list wondering whether the upload arrived.
 			a.recordSkippedReason(name, "container", err.Error())
 			return
 		}
-		// Back through the ordinary path, so the link filter, the packagizer and
-		// the duplicate check apply to a container's contents exactly as they do
-		// to a paste. A container is a delivery mechanism, not an exemption. Unlike
-		// a plain paste, though, each link already carries the name and size the
-		// container's own crawl found - AddResolvedLinksFrom is what keeps those
-		// instead of discarding them back down to a bare URL.
+		// The ordinary path, so the filter, Packagizer and duplicate check
+		// apply, keeping the names and sizes JD's crawl found.
 		created := a.AddResolvedLinksFrom(links, pkg, OriginContainer)
 		log.Printf("container %s: %d links, %d staged", name, len(links), len(created))
 	})
 	return nil
 }
 
-// cryptedV1Adder is a backend that can accept a Click'n'Load v1 ("addcrypted")
-// submission directly, without anywhere to fetch it back from. Unlike
-// containerAdder's URL-fetchable formats, this payload was never a file
-// anywhere — it exists only as one CnL form field — so a URL cannot stand in
-// for it; only the shipped JD's Deprecated API answers this shape (inline
-// content, see internal/resolver/jd's AddContainerData/AddCryptedV1).
+// cryptedV1Adder is a backend that accepts a Click'n'Load v1 ("addcrypted")
+// payload inline. The payload only ever exists as a form field, so there is no
+// URL to hand over; the shipped JD's Deprecated API takes the bytes directly.
 type cryptedV1Adder interface {
 	AddCryptedV1(data []byte, packageName string, timeout time.Duration) ([]resolver.Result, error)
 }
 
-// CryptedV1BackendConfigured mirrors ContainerBackendConfigured for
-// Click'n'Load's addcrypted (v1): asked before the CnL listener claims to
-// support it, so a probe or a site can be told plainly rather than have the
-// submission silently go nowhere.
+// CryptedV1BackendConfigured reports whether Click'n'Load's addcrypted can be
+// served, so the listener only claims support it has.
 func (a *App) CryptedV1BackendConfigured() bool {
 	a.bmu.RLock()
 	be := a.jd
@@ -406,20 +340,10 @@ func (a *App) CryptedV1BackendConfigured() bool {
 	return ok
 }
 
-// AddContainerCnL satisfies the Click'n'Load listener's optional
-// ContainerAdder: an addcrypted (v1) submission's "crypted" field is
-// RSA-encrypted against JDownloader's own key, exactly like a .dlc's trailing
-// key block, and only the shipped JD backend can open it — see
-// HandContainerToJD's doc for why that is the deliberate line KnightLoader
-// draws rather than borrowing a third party's application key.
-//
-// Real JDownloader answers this exact route by writing the field to a temp
-// .dlc file and feeding it to its own crawler
-// (org.jdownloader.api.cnl2.ExternInterfaceImpl#addcrypted, verified against
-// JDownloader's own open source). This is that, minus the temp file: the
-// Deprecated API's dataURLs takes the bytes inline, because a CnL submission
-// was never a file anywhere for KnightLoader to serve back to JD by URL the
-// way an uploaded .dlc is.
+// AddContainerCnL implements the Click'n'Load listener's ContainerAdder. The
+// "crypted" field is encrypted against JDownloader's own key, so only the JD
+// backend can open it. JDownloader itself writes the field to a temporary .dlc
+// (ExternInterfaceImpl#addcrypted); this passes the bytes inline instead.
 func (a *App) AddContainerCnL(data []byte, pkg string) error {
 	if len(data) == 0 {
 		return errors.New("no crypted content")
@@ -444,10 +368,8 @@ func (a *App) AddContainerCnL(data []byte, pkg string) error {
 	return nil
 }
 
-// UIState and SetUIState carry whatever the interface needs to remember between
-// reloads: column widths, which packages are folded shut, the last page. The
-// blob is opaque here on purpose — a settings field per column would mean a
-// schema change, a migration and a translated label every time a list gains one.
+// UIState and SetUIState store opaque interface state between reloads, such as
+// column widths and folded packages, so a new column needs no schema change.
 func (a *App) UIState(key string) (string, error) { return a.Store.UIState(key) }
 
 func (a *App) SetUIState(key, value string) error { return a.Store.SetUIState(key, value) }

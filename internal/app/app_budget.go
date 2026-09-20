@@ -7,49 +7,22 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/core"
 )
 
-// One speed limit, shared out, instead of three copies of the same number.
-//
-// The limit used to be handed WHOLE to each of the three things that can move
-// bytes: the engine's own throttle, the JDownloader sidecar, and yt-dlp. Each of
-// them then honoured it faithfully on its own, so somebody who set 10 MB/s and
-// happened to have all three working got 30. A limit that does not limit is
-// worse than none: it is the one setting a nightly window exists to enforce, and
-// it quietly did not.
-//
-// What this does instead: measure what each of the three is actually pulling,
-// split the configured budget between the ones that are working, and re-adjust.
-// Nothing here throttles anything itself; it only decides the three numbers and
-// hands them to the three throttles that already existed.
-//
-// Deliberately NOT a fourth throttle in the middle. The engine meters through
-// its own loopback proxy, JD meters in its own process, and yt-dlp is told per
-// spawn on the command line. None of those bytes passes through this app, so a
-// central limiter would have nothing to limit; the only lever is the number each
-// of them is given.
+// The speed limit is shared out between the three things that move bytes: the
+// engine's throttle, the JDownloader sidecar and yt-dlp. Handing each the whole
+// limit would let all three together exceed it. None of their bytes pass
+// through this app, so the only lever is the number each one is given.
 
-// budgetInterval is how often the split is recomputed.
-//
-// Three seconds, not the upkeep minute: a backend that finishes its last
-// transfer should hand its share back while somebody is still looking at the
-// screen, and a share handed back a minute late is a minute of the limit being
-// wrong in the other direction. Not shorter either - JD is told over the network
-// and yt-dlp only reads its limit when it next spawns, so a faster tick would
-// mostly be traffic.
+// budgetInterval is how often the split is recomputed: fast enough that an
+// idle backend's share returns while someone is looking, slow enough not to
+// flood JD with updates.
 const budgetInterval = 3 * time.Second
 
-// budgetFloor is the smallest share a working backend is given, in bytes per
-// second.
-//
-// A backend that has just started has measured no speed yet, so a purely
-// proportional split would give it nothing and it would never get going - the
-// classic way a fair-share scheme starves exactly the transfer it is about to
-// need to measure. 16 KiB/s is small enough not to matter against any real
-// limit and large enough that a transfer can begin and be measured.
+// budgetFloor is the smallest share a working backend gets, in bytes per
+// second. A backend that just started has no measured speed yet, and a purely
+// proportional split would starve it.
 const budgetFloor = 16 * 1024
 
-// budget holds the three shares last decided, so the yt-dlp backend can read
-// its own without going through the engine's throttle (which is a different
-// number now).
+// budget holds the last shares, so the yt-dlp backend can read its own.
 type budget struct {
 	mu     sync.RWMutex
 	engine int64
@@ -69,9 +42,8 @@ func (b *budget) set(engine, jd, ytdlp int64) {
 	b.mu.Unlock()
 }
 
-// budgetFamily names which of the three meters a task's bytes go through. It is
-// not the resolver id: several resolvers share one meter, and the meter is what
-// the limit is set on.
+// budgetFamily names the meter a task's bytes go through. Several resolvers
+// share one meter.
 type budgetFamily int
 
 const (
@@ -81,13 +53,8 @@ const (
 	familyCount
 )
 
-// meterFor says which meter a task's bytes pass through.
-//
-// Everything that is not JD or yt-dlp ends at the engine, including the debrid
-// services and TorBox: those resolve a link to a direct URL and then hand it to
-// the engine, so their bytes go through the loopback proxy like any other direct
-// download. That is why this is a function of the RESOLVER and not of the
-// service the account belongs to.
+// meterFor returns the meter for a resolver. Debrid services and TorBox hand a
+// direct URL to the engine, so everything but JD and yt-dlp is metered there.
 func meterFor(resolverID string) budgetFamily {
 	switch resolverID {
 	case "jd":
@@ -99,32 +66,19 @@ func meterFor(resolverID string) budgetFamily {
 	}
 }
 
-// shareOut splits `limit` between the three meters according to what each is
-// currently pulling.
+// shareOut splits limit between the three meters by what each is pulling:
 //
-// The rule, in order:
+//  1. A limit of 0 means unlimited and stays unlimited on every meter.
+//  2. A meter with nothing running gets 0 until the next tick.
+//  3. A meter using less than an equal share keeps what it uses plus headroom,
+//     and the rest goes to the saturated meters.
+//  4. Every working meter gets at least budgetFloor.
 //
-//  1. A limit of 0 is "unlimited" and stays unlimited everywhere. Splitting
-//     infinity three ways is not a thing, and turning "off" into three finite
-//     numbers would be a limit nobody asked for.
-//  2. A meter with nothing running gets 0. It is not that it may not download;
-//     it is that it will get a share on the next tick, three seconds after it
-//     starts, and until then the floor below keeps it moving.
-//  3. Everything else is split by demand: a meter using less than its equal
-//     share keeps what it uses, and what it leaves over is handed to the ones
-//     that are saturated. Two passes are enough for three meters and the result
-//     never exceeds the limit, which is the property that matters.
-//  4. Every working meter gets at least budgetFloor, so nothing is starved to a
-//     standstill by a measurement it has not had a chance to produce yet.
-//
-// Returns the three shares in family order. The sum is at most `limit` except
-// where the floor forces otherwise, which can only happen with a limit smaller
-// than three floors, i.e. under 48 KiB/s - a setting at which honouring the
-// floor is more useful than honouring the arithmetic.
+// The sum exceeds limit only when the floor forces it, below 48 KiB/s.
 func shareOut(limit int64, speed [familyCount]int64, working [familyCount]bool) [familyCount]int64 {
 	var out [familyCount]int64
 	if limit <= 0 {
-		return out // unlimited stays unlimited on every meter
+		return out
 	}
 
 	n := int64(0)
@@ -134,10 +88,8 @@ func shareOut(limit int64, speed [familyCount]int64, working [familyCount]bool) 
 		}
 	}
 	if n == 0 {
-		// Nothing is downloading. Hand each meter the whole limit rather than
-		// zero: the next transfer to start must not be pinned at the floor for
-		// three seconds waiting to be measured, and while nothing is running
-		// there is nothing to overshoot with.
+		// With nothing running there is nothing to overshoot, and the next
+		// transfer should not wait at the floor to be measured.
 		for i := range out {
 			out[i] = limit
 		}
@@ -152,10 +104,8 @@ func shareOut(limit int64, speed [familyCount]int64, working [familyCount]bool) 
 			continue
 		}
 		if speed[i] < equal {
-			// Using less than its share: give it what it uses plus a little
-			// headroom, and put the rest in the pot. The headroom matters -
-			// a share pinned exactly to the last measurement is a ceiling that
-			// prevents the very growth it is measuring.
+			// A share pinned to the last measurement would prevent the growth
+			// it is measuring, hence the headroom.
 			take := speed[i] + speed[i]/4
 			if take < budgetFloor {
 				take = budgetFloor
@@ -186,8 +136,8 @@ func shareOut(limit int64, speed [familyCount]int64, working [familyCount]bool) 
 	return out
 }
 
-// measureLocked reports what each meter is pulling right now and whether it has
-// anything running at all. Caller holds a.mu.
+// measureLocked reports what each meter is pulling and whether it has anything
+// running. Caller holds a.mu.
 func (a *App) measureLocked() (speed [familyCount]int64, working [familyCount]bool) {
 	for id := range a.active {
 		t := a.tasks[id]
@@ -201,13 +151,11 @@ func (a *App) measureLocked() (speed [familyCount]int64, working [familyCount]bo
 	return speed, working
 }
 
-// applyBudget measures, splits and pushes the three numbers.
+// applyBudget measures, splits and pushes the three shares.
 func (a *App) applyBudget() {
 	a.mu.Lock()
-	// The limit IN FORCE, which is not always the one in settings: a schedule
-	// window can carry its own, and a nightly 2 MB/s window that this read
-	// straight from settings would be shared out at the daytime figure. Zero
-	// means no window has spoken since boot, so settings is the answer.
+	// The limit in force, which a schedule window may override. Negative means
+	// no window has set one since boot.
 	limit := a.limitInForce
 	if limit < 0 {
 		limit = a.Settings.Get().SpeedLimit
@@ -215,30 +163,22 @@ func (a *App) applyBudget() {
 	speed, working := a.measureLocked()
 	a.mu.Unlock()
 
-	// And the volume cap's own ceiling, folded into the same number rather than
-	// written anywhere: this read is the only safe place for it, because
-	// a.limitInForce already has two writers and a third would be undone at the
-	// next window boundary. See volumeCapLimit, which takes the smaller of the
-	// two and treats 0 on either side as no limit at all.
+	// The volume cap is folded in here because a.limitInForce already has two
+	// writers and a third would be undone at the next window boundary.
 	limit = a.volumeCapLimit(limit)
 
 	share := shareOut(limit, speed, working)
 	a.budget.set(share[familyEngine], share[familyJD], share[familyYtdlp])
 
-	// The engine's own throttle is set here and nowhere else now. Anything that
-	// used to call Throttle.Set with the raw configured limit would undo this on
-	// its next pass, which is why applySchedule hands its limit to the settings
-	// store and lets the next tick do the sharing.
+	// This is the only place the engine throttle is set; anything else setting
+	// the raw limit would be undone on the next tick.
 	a.Throttle.Set(share[familyEngine])
 	a.pushJDSpeedLimit(share[familyJD])
-	// yt-dlp is not pushed: it reads budget.ytdlpLimit when it next spawns, so
-	// a running transfer keeps the limit it was started with. That is a real
-	// limitation and it is yt-dlp's, not ours - --limit-rate is a launch
-	// argument, and there is no way to retune a process that is already running.
+	// yt-dlp reads budget.ytdlpLimit when it spawns, since --limit-rate cannot
+	// be changed on a running process.
 }
 
-// budgetLoop keeps the split current. Mirrors upkeep's shape: ctx-aware, no work
-// until the first tick.
+// budgetLoop keeps the split current until the app shuts down.
 func (a *App) budgetLoop() {
 	defer a.wg.Done()
 	tick := time.NewTicker(budgetInterval)

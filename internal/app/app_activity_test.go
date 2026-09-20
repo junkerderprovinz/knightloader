@@ -1,15 +1,5 @@
 package app
 
-// Tests for this package's ambient-activity tracker (app_activity.go) and
-// for the four places it is wired in: a.crawl (app_links.go), RecheckTasks
-// (app_tasks.go), ConfirmTasks (app_confirm.go) and pollCaptchasOnce
-// (app_captcha.go).
-//
-// activityFakeConn plays the same role hub_test.go's own fakeConn does for
-// internal/hub's tests, redeclared here rather than imported: hub.Conn is
-// the only exported seam, hub_test.go's implementation is unexported, and a
-// same-package test in a DIFFERENT package cannot reach it.
-
 import (
 	"context"
 	"encoding/json"
@@ -23,10 +13,8 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/crawler"
 )
 
-// activityFakeConn records every frame Hub.Write hands it, in arrival order.
-// It never blocks and never errors, so it is never dropped by the hub's own
-// back-pressure handling (internal/hub/hub.go's enqueue) - the one thing
-// these tests need is to see everything, not to model a slow client.
+// activityFakeConn records every frame the hub writes, in order. It never
+// blocks or fails, so the hub never drops it.
 type activityFakeConn struct {
 	mu   sync.Mutex
 	msgs [][]byte
@@ -54,13 +42,9 @@ type envelope struct {
 	Data Activity `json:"data"`
 }
 
-// activityMessages waits for at least `want` broadcasts of kind to have
-// arrived and returns them in the order they were sent.
-//
-// Polled rather than read synchronously: Hub.Broadcast only enqueues onto a
-// channel, and the fake connection's own Write runs on the hub's writer
-// goroutine, on its own schedule - reading snapshot() immediately after the
-// call under test would be racing that goroutine, not observing it.
+// activityMessages waits until at least want broadcasts of kind have arrived
+// and returns them in order. Hub.Broadcast only enqueues, so the fake's Write
+// runs later on the hub's writer goroutine.
 func activityMessages(t *testing.T, f *activityFakeConn, kind ActivityKind, want int) []Activity {
 	t.Helper()
 	deadline := time.Now().Add(5 * time.Second)
@@ -82,11 +66,8 @@ func activityMessages(t *testing.T, f *activityFakeConn, kind ActivityKind, want
 	return nil
 }
 
-// waitForType blocks until a message of typ has been observed, so a caller
-// proving an ABSENCE afterward (see TestConfirmTasksSkipsActivityForManualTrigger
-// and TestPollCaptchasOnceWithoutJDBroadcastsNoActivityGauge) is reading a
-// queue known to be fully drained up to that point, rather than guessing at
-// a sleep long enough to outrun the writer goroutine.
+// waitForType blocks until a message of typ has arrived, so a test checking
+// for the absence of a message knows everything sent before it was delivered.
 func waitForType(t *testing.T, f *activityFakeConn, typ string) {
 	t.Helper()
 	deadline := time.Now().Add(5 * time.Second)
@@ -111,10 +92,6 @@ func newActivityTestApp(t *testing.T) (*App, *activityFakeConn) {
 	return a, fc
 }
 
-// TestBeginActivityAccumulatesAndBroadcasts pins the basic shape: a burst
-// starts at (n, n), and two callers of the same kind add into the same
-// counters rather than each owning their own - the case beginActivity's own
-// doc comment names (two browsers both pressing "recheck all").
 func TestBeginActivityAccumulatesAndBroadcasts(t *testing.T) {
 	a, fc := newActivityTestApp(t)
 
@@ -130,9 +107,6 @@ func TestBeginActivityAccumulatesAndBroadcasts(t *testing.T) {
 	}
 }
 
-// TestEndActivityResetsTotalOnceIdle is the whole reason Total is not a
-// running lifetime counter: once a burst finishes, the next one starts from
-// zero rather than inheriting a number that has nothing to do with it.
 func TestEndActivityResetsTotalOnceIdle(t *testing.T) {
 	a, fc := newActivityTestApp(t)
 
@@ -146,8 +120,6 @@ func TestEndActivityResetsTotalOnceIdle(t *testing.T) {
 		{Kind: ActivityLinkCheck, Active: 3, Total: 3},
 		{Kind: ActivityLinkCheck, Active: 2, Total: 3},
 		{Kind: ActivityLinkCheck, Active: 0, Total: 3},
-		// The new burst starts clean - {1,4} would mean the previous burst's
-		// total leaked into this one.
 		{Kind: ActivityLinkCheck, Active: 1, Total: 1},
 	}
 	for i, w := range want {
@@ -157,9 +129,6 @@ func TestEndActivityResetsTotalOnceIdle(t *testing.T) {
 	}
 }
 
-// TestEndActivityDoesNotUnderflow guards the defensive floor: a caller that
-// retires more than it started must read as "0", never as a count that goes
-// negative and reads backwards on the strip.
 func TestEndActivityDoesNotUnderflow(t *testing.T) {
 	a, fc := newActivityTestApp(t)
 
@@ -174,9 +143,6 @@ func TestEndActivityDoesNotUnderflow(t *testing.T) {
 	}
 }
 
-// TestActivityKindsAreIndependent makes sure the four kinds do not share a
-// counter - a crawl finishing must not zero out a linkcheck burst still in
-// progress.
 func TestActivityKindsAreIndependent(t *testing.T) {
 	a, fc := newActivityTestApp(t)
 
@@ -194,9 +160,6 @@ func TestActivityKindsAreIndependent(t *testing.T) {
 	}
 }
 
-// TestSetActivityGaugeOverwritesPreviousBurst pins the gauge shape captcha
-// uses: Active and Total always equal, and a later call simply replaces the
-// live count rather than accumulating against it the way begin/end do.
 func TestSetActivityGaugeOverwritesPreviousBurst(t *testing.T) {
 	a, fc := newActivityTestApp(t)
 
@@ -217,11 +180,6 @@ func TestSetActivityGaugeOverwritesPreviousBurst(t *testing.T) {
 	}
 }
 
-// TestCrawlBroadcastsCrawlActivity is the real a.crawl (app_links.go), not
-// the tracker in isolation: a page pasted into the collector shows up as
-// "crawl" activity that starts and ends around the fake crawler's own call,
-// the way pollCaptchasOnce (app_captcha.go) already shaped a periodic
-// poll-then-broadcast loop for 7A.
 func TestCrawlBroadcastsCrawlActivity(t *testing.T) {
 	a := newCrawlApp(t, true)
 	fc := &activityFakeConn{}
@@ -237,9 +195,8 @@ func TestCrawlBroadcastsCrawlActivity(t *testing.T) {
 	}
 
 	got := activityMessages(t, fc, ActivityCrawl, 2)
-	// Cancellable 1 while the crawl runs and 0 once it is over, which is what
-	// puts the stop button on the strip's crawl row for exactly as long as
-	// there is something to stop - see startActivityRun (app_activity.go).
+	// Cancellable while the crawl runs, so the strip shows a stop button for
+	// exactly that long.
 	if got[0] != (Activity{Kind: ActivityCrawl, Active: 1, Total: 1, Cancellable: 1}) {
 		t.Errorf("first crawl activity = %+v, want {crawl 1 1 cancellable 1}", got[0])
 	}
@@ -248,10 +205,6 @@ func TestCrawlBroadcastsCrawlActivity(t *testing.T) {
 	}
 }
 
-// TestRecheckTasksBroadcastsLinkCheckActivity is the real availability pass
-// (app_tasks.go), not the tracker in isolation: two collected links behind
-// one batching backend settle in one Check() round trip, and the activity
-// broadcasts have to end at zero once RecheckTasks returns.
 func TestRecheckTasksBroadcastsLinkCheckActivity(t *testing.T) {
 	a, fc := newActivityTestApp(t)
 	svc := &batchResolver{verdicts: map[string]core.Availability{
@@ -279,9 +232,6 @@ func TestRecheckTasksBroadcastsLinkCheckActivity(t *testing.T) {
 	}
 }
 
-// TestRecheckTasksOfNothingBroadcastsNothing guards the early return: a
-// recheck that finds no collected tasks at all must not flash a {0,0} onto
-// the strip for a kind that was never doing anything.
 func TestRecheckTasksOfNothingBroadcastsNothing(t *testing.T) {
 	a, fc := newActivityTestApp(t)
 
@@ -297,11 +247,6 @@ func TestRecheckTasksOfNothingBroadcastsNothing(t *testing.T) {
 	}
 }
 
-// TestConfirmTasksBroadcastsAutoConfirmForNonInteractiveTrigger is Wave 8's
-// confirm-policy path (app_confirm.go), wired into the same channel: an
-// auto-confirm evaluating a batch is ambient activity because nobody is
-// watching the collector for it - see confirm.Trigger.Interactive's own
-// doc comment.
 func TestConfirmTasksBroadcastsAutoConfirmForNonInteractiveTrigger(t *testing.T) {
 	a, fc := newActivityTestApp(t)
 	putTask(t, a, core.Task{URL: "https://host.example/a.bin", Name: "a.bin", Size: 10, Status: core.StatusCollected, Enabled: true})
@@ -322,9 +267,8 @@ func TestConfirmTasksBroadcastsAutoConfirmForNonInteractiveTrigger(t *testing.T)
 	}
 }
 
-// TestConfirmTasksSkipsActivityForManualTrigger is the other half: a person
-// at the collector confirming by hand already has the page as its own
-// feedback, so this must NOT show up on the ambient status strip too.
+// TestConfirmTasksSkipsActivityForManualTrigger: someone confirming by hand
+// already has the collector page as feedback.
 func TestConfirmTasksSkipsActivityForManualTrigger(t *testing.T) {
 	a, fc := newActivityTestApp(t)
 	putTask(t, a, core.Task{URL: "https://host.example/c.bin", Name: "c.bin", Size: 10, Status: core.StatusCollected, Enabled: true})
@@ -341,14 +285,9 @@ func TestConfirmTasksSkipsActivityForManualTrigger(t *testing.T) {
 	}
 }
 
-// TestPollCaptchasOnceWithoutJDBroadcastsNoActivityGauge is pollCaptchasOnce's
-// error path (app_captcha.go), exercised the same way captcha_test.go's own
-// package comment describes: KL_JD is unset in this process, so
-// captcha.JDSource.List answers captcha.ErrJDNotConfigured without a network
-// call, and that path must stay silent on the "activity" channel exactly as
-// it already stays silent on "captcha" - see pollCaptchasOnce's own doc
-// comment on why a transient failure must not re-publish an unchanged count
-// on every tick.
+// TestPollCaptchasOnceWithoutJDBroadcastsNoActivityGauge: with KL_JD unset the
+// poll fails without a network call, and a failed poll must not republish the
+// count.
 func TestPollCaptchasOnceWithoutJDBroadcastsNoActivityGauge(t *testing.T) {
 	a, fc := newActivityTestApp(t)
 

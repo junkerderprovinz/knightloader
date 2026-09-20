@@ -1,12 +1,9 @@
 package app
 
 // Unpacking: which finished download completes an archive, which passwords are
-// tried on it, and what a failed extraction does to the task.
-//
-// An extraction is a job here, not the tail end of a download. It is queued, it
-// says how far it has got, it can be started on a download that finished an hour
-// ago, and it can be called off - which is the only reason a wrong password or a
-// full disk is recoverable without fetching the whole set again.
+// tried, and what a failed extraction does to the task. An extraction is a job
+// of its own: queued, with progress, startable later and cancellable, so a
+// wrong password or a full disk does not mean fetching the set again.
 
 import (
 	"context"
@@ -23,18 +20,12 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
-// keptExtractJobs is how many finished jobs stay in the list. A job outlives its
-// extraction on purpose - "what happened to that archive" is asked after the
-// fact, and a job that vanished the moment it ended answers nothing - but the
-// list is not a log, so the oldest finished ones fall off the end.
+// keptExtractJobs is how many finished jobs stay in the list, so "what
+// happened to that archive" can still be answered afterwards.
 const keptExtractJobs = 50
 
-// ExtractStatus is where an unpacking has got to.
-//
-// It is not core.Status, and the two must not be folded together: the seven
-// download states are matched exhaustively in the interface, and an eighth value
-// arriving there through an archive breaks every one of those mappings. An
-// extraction is a different kind of work that happens to belong to a task.
+// ExtractStatus is where an unpacking has got to. It is kept apart from
+// core.Status, whose values the interface matches exhaustively.
 type ExtractStatus string
 
 const (
@@ -45,99 +36,69 @@ const (
 	ExtractCancelled ExtractStatus = "cancelled"
 )
 
-// ExtractJob is one unpacking as the list sees it: an object in its own right,
-// rather than a status the download wears for a while. The archive is the thing
-// the user is waiting on at that point, and it has its own progress, its own
-// failure and its own cancel.
+// ExtractJob is one unpacking as the list shows it, with its own progress,
+// failure and cancel.
 type ExtractJob struct {
 	ID string `json:"id"`
-	// TaskID is the volume the job was started on, which for a multi-volume set
-	// is the first part and not whichever one finished last.
+	// TaskID is the volume the job was started on: the first part of a set,
+	// not the one that finished last.
 	TaskID  string        `json:"taskId"`
 	Name    string        `json:"name"`
 	Dir     string        `json:"dir"`
 	Package string        `json:"package,omitempty"`
 	Status  ExtractStatus `json:"status"`
-	// Archive is the file open right now, which for a deep extraction is one
-	// found inside the output rather than the one named above.
+	// Archive is the file open right now, which in a deep extraction may be
+	// one found inside the output.
 	Archive string `json:"archive,omitempty"`
 	Depth   int    `json:"depth,omitempty"`
 	Files   int    `json:"files"`
 	Bytes   int64  `json:"bytes"`
-	// Volumes is how many files the set is made of, so the row can say "part 3
-	// of 5" instead of naming one part of an archive nobody downloaded singly.
+	// Volumes is how many files the set is made of.
 	Volumes int `json:"volumes"`
 	// Nested counts archives found inside the output and unpacked in turn.
 	Nested int `json:"nested,omitempty"`
-	// MovedTo is where the unpacked content was put once the extraction was
-	// over, when anything moved it: the folder a Packagizer rule or the
-	// instance-wide setting named, or the destination a working folder was
-	// standing in for. Empty means the content is where Dir says it unpacked,
-	// which is what every install had before either of those existed.
-	//
-	// It is a field on the job and not only a line in the log, because "where
-	// did my film end up" is the question the row exists to answer and the row
-	// outlives the log line by fifty jobs.
+	// MovedTo is where the unpacked content was moved afterwards, or empty
+	// when it stayed in Dir. It is kept on the job because the row outlives
+	// the log.
 	MovedTo string `json:"movedTo,omitempty"`
-	// Moved counts what was carried there: one for a whole folder, or one per
-	// file when the content was moved rather than the folder around it.
+	// Moved counts what was moved: one for a whole folder, or one per entry
+	// when the contents were moved.
 	Moved int    `json:"moved,omitempty"`
 	Error string `json:"error,omitempty"`
-	// Password is the failure being a missing password rather than a broken
-	// archive. It is a flag as well as a sentence, because it is the one
-	// extraction failure with an obvious next step and the interface can offer
-	// it: type one in and press start again.
+	// Password marks a failure caused by a missing password, so the interface
+	// can offer to enter one and retry.
 	Password  bool      `json:"password,omitempty"`
 	QueuedAt  time.Time `json:"queuedAt"`
 	StartedAt time.Time `json:"startedAt,omitempty"`
 	EndedAt   time.Time `json:"endedAt,omitempty"`
 }
 
-// extractJob is an ExtractJob plus what only this package may hold: where the
-// archive is, and the handle that stops it.
+// extractJob adds what only this package holds: the archive path and the
+// cancel handle.
 type extractJob struct {
 	ExtractJob
 	path   string
 	cancel context.CancelFunc
 }
 
-// unpackState is the extraction worker. Everything in it is read and written
-// under a.mu, including busy: the check "is a worker already running" and the
-// decision to start one have to be one critical section, or two finishing
-// downloads start two workers and the second one sits blocked inside
-// internal/extract, holding a job the list shows as running.
-//
-// cancel on a job is set and cleared in the same critical section as Status, so
-// a job read as ExtractRunning always has one.
+// unpackState is the extraction worker. All of it, busy included, is guarded
+// by a.mu, so checking for a running worker and starting one is a single
+// critical section. A job's cancel is set and cleared together with its
+// Status, so a running job always has one.
 type unpackState struct {
 	jobs  map[string]*extractJob
 	order []string
 	busy  bool
 }
 
-// filesAreLocal reports whether this task's bytes landed on this box. A JD
-// download lives on the JD machine, so everything that opens or renames the
-// finished file has to leave it alone. It is one predicate rather than a
-// `Resolver != "jd"` at each of those places, because the day a second remote
-// backend arrives, the one that was forgotten is the one that deletes or
-// renames a file it cannot see.
+// filesAreLocal reports whether t's bytes landed on this machine; JD downloads
+// live on the JD machine. Every place that opens or renames a finished file
+// asks this rather than checking the resolver itself.
 func filesAreLocal(t *core.Task) bool { return t.Resolver != "jd" }
 
-// extractWanted is the task's own unpacking switch when a Packagizer rule or
-// the user set one, the drawer it is filed in next, and the global setting
-// otherwise. A rule that says "do not unpack this" has to survive a global that
-// says otherwise, or the rule is a setting that does nothing.
-//
-// The category sits UNDER the task's own switch for the reason dirFor puts it
-// under Task.Dir: a rule looked at this one link, a category is a word somebody
-// put on a whole batch. It sits over the global because that is what filing a
-// download in a drawer is for.
-//
-// A drawer that says nothing about unpacking is not a drawer that says no. Its
-// Extract is nil, and settings.ExtractFor hands the global straight back - which
-// is why the field is a pointer at all: a music drawer where the archive IS the
-// delivery has to be able to say false against a global that says true, and a
-// plain bool cannot tell that apart from a drawer nobody filled in.
+// extractWanted resolves the unpacking switch: the task's own setting (from a
+// rule or the user), then its category, then the global setting. A category's
+// Extract is a pointer so it can say no against a global yes.
 func extractWanted(t *core.Task, cfg settings.Settings) bool {
 	if t.AutoExtract != nil {
 		return *t.AutoExtract
@@ -145,14 +106,9 @@ func extractWanted(t *core.Task, cfg settings.Settings) bool {
 	return cfg.ExtractFor(t.Category)
 }
 
-// setKey identifies the set a file belongs to, and it is the archive families
-// plus the plain split files the format layer has no reader for.
-//
-// A film cut into "film.mkv.001" upwards is a multi-part download in every way
-// that matters here - it must not be renamed a part at a time, an unpacking
-// override belongs to the whole set, and nothing can be joined until the last
-// part lands - and extract.SetKey answers "no set" for it, because from the
-// reader layer's point of view there is no archive in sight.
+// setKey identifies the set a file belongs to: archive volumes, and plain
+// split files ("film.mkv.001") that extract.SetKey does not count as an
+// archive but that must be handled as one set all the same.
 func setKey(name string) (string, bool) {
 	if k, ok := extract.SetKey(name); ok {
 		return k, true
@@ -163,11 +119,10 @@ func setKey(name string) (string, bool) {
 	return "", false
 }
 
-// extractCandidateLocked decides whether a just-finished download completes an
-// archive that can now be unpacked, and returns the task to unpack. For a
-// multi-volume set that is the moment the LAST part arrives — and what gets
-// unpacked is the first volume, not necessarily the part that finished last.
-// Caller holds a.mu.
+// extractCandidateLocked decides whether a finished download completes an
+// archive and returns the task and path to open. For a multi-volume set that
+// happens when the last part arrives, and the first volume is opened. Caller
+// holds a.mu.
 func (a *App) extractCandidateLocked(done *core.Task) (*core.Task, string) {
 	key, isVolume := setKey(done.Name)
 	if !isVolume {
@@ -176,35 +131,28 @@ func (a *App) extractCandidateLocked(done *core.Task) (*core.Task, string) {
 		}
 		return nil, ""
 	}
-	// The SET is identified by where its parts belong and the PATH is built
-	// from where they actually are, and the two are only the same folder while
-	// no working folder is configured. Identity has to stay the destination:
-	// workDirFor is a function of it, so both readings group the same parts,
-	// and the destination is the one a person can see in the interface.
+	// The set is identified by its destination; the path uses where the parts
+	// actually are, which differs when a working folder is set.
 	dir := a.dirFor(done)
 	work := a.workDirFor(done)
 	set := a.membersLocked(key, dir)
 	var first *core.Task
 	for _, t := range set {
 		if t.Status != core.StatusDone {
-			// A part is still missing (or already extracting, which means
-			// another part got here first). Whoever finishes last triggers it.
+			// Missing or already extracting; the last part to finish starts it.
 			return nil, ""
 		}
-		// By the order the readers consume the set in, never by the order the
-		// names sort in: a spanned rar begins at "film.rar" and a spanned zip
-		// ends at "film.zip", so a plain sort picks the wrong end of one of them.
+		// In reading order, not name order: a spanned rar starts at "film.rar"
+		// but a spanned zip ends at "film.zip".
 		if extract.Startable(t.Name) && (first == nil || volumeBefore(t, first)) {
 			first = t
 		}
 	}
 	if first == nil {
-		return nil, "" // parts without a first volume: nothing to open
+		return nil, ""
 	}
 	if _, _, split := extract.SplitPart(first.Name); split && len(set) < 2 {
-		// One numbered part and no siblings is not a split file, it is a file
-		// whose name happens to end in a number. Joining it would rewrite it
-		// under a shorter name for no reason.
+		// A single numbered file without siblings is not a split file.
 		return nil, ""
 	}
 	return first, filepath.Join(work, first.Name)
@@ -219,8 +167,8 @@ func volumeBefore(x, y *core.Task) bool {
 	return x.Name < y.Name
 }
 
-// membersLocked is every task in one set, in the folder the set lives in.
-// Caller holds a.mu.
+// membersLocked returns every task in one set within one folder. Caller holds
+// a.mu.
 func (a *App) membersLocked(key, dir string) []*core.Task {
 	var out []*core.Task
 	for _, t := range a.tasks {
@@ -231,13 +179,10 @@ func (a *App) membersLocked(key, dir string) []*core.Task {
 	return out
 }
 
-// volumeSetLocked is every task that is a part of the same archive as t,
-// including t itself. A file that is not one of several parts is alone in its
-// own set, so a caller never has to special-case the ordinary download.
-//
-// The folder is part of the identity: two unrelated releases both called
-// "film.part01.rar", downloaded into two packages, are two archives and not one
-// five-part set with three parts missing. Caller holds a.mu.
+// volumeSetLocked returns every part of t's archive, t included; a file that
+// is not a part is a set of one. The folder is part of the identity, so two
+// releases with the same part names in different packages stay apart. Caller
+// holds a.mu.
 func (a *App) volumeSetLocked(t *core.Task) []*core.Task {
 	key, ok := setKey(t.Name)
 	if !ok {
@@ -245,24 +190,18 @@ func (a *App) volumeSetLocked(t *core.Task) []*core.Task {
 	}
 	out := a.membersLocked(key, a.dirFor(t))
 	if len(out) == 0 {
-		// t is a copy rather than the live task — every caller inside the app
-		// passes the live one, but answering "no set at all" here would silently
-		// take a whole archive out of a decision that is about it.
+		// t may be a copy rather than the live task.
 		return []*core.Task{t}
 	}
 	return out
 }
 
-// stampPartsLocked numbers the parts of t's set, so the list can show an archive
-// as the several files it really is rather than as five unrelated downloads that
-// happen to share a name. It reports the rows it changed.
-//
-// The numbering is the readers' order and not the names' - see volumeBefore.
-// Caller holds a.mu.
+// stampPartsLocked numbers the parts of t's set in reading order, so the list
+// shows them as one archive, and returns the rows it changed. Caller holds
+// a.mu.
 func (a *App) stampPartsLocked(t *core.Task) []core.Task {
 	if t == nil {
-		// The task was removed between the job being queued and it running, which
-		// is an ordinary thing for somebody to do to a queue.
+		// Removed between queueing and running.
 		return nil
 	}
 	set := a.volumeSetLocked(t)
@@ -281,16 +220,10 @@ func (a *App) stampPartsLocked(t *core.Task) []core.Task {
 	return changed
 }
 
-// extractionDueLocked decides whether a finished download now completes an
-// archive that should be unpacked, and hands back the volume to open.
-//
-// The order is the whole point. The candidate is found FIRST and the unpacking
-// switch is then read off THAT task, because extractCandidateLocked returns the
-// first volume of a multi-part set and not the part that happened to finish
-// last. Asked of the finishing part instead, one archive would extract or not
-// depending on which of its five parts the hoster served quickest — the same
-// rule, the same set, a different answer every time.
-// Caller holds a.mu.
+// extractionDueLocked returns the volume to open when a finished download
+// completes an archive that should be unpacked. The switch is read from the
+// first volume, not the finishing part, so the answer does not depend on which
+// part arrived last. Caller holds a.mu.
 func (a *App) extractionDueLocked(done *core.Task, cfg settings.Settings) (*core.Task, string) {
 	target, path := a.extractCandidateLocked(done)
 	if target == nil || !extractWanted(target, cfg) {
@@ -299,16 +232,11 @@ func (a *App) extractionDueLocked(done *core.Task, cfg settings.Settings) (*core
 	return target, path
 }
 
-// extractNowLocked starts the extraction a finished download is due and reports
-// the task it moved into StatusExtracting, which for a multi-volume set is the
-// first volume rather than the one handed in — the caller has to publish that
-// row too, or the list shows the wrong part working.
-//
-// It is called both when a download finishes and when the switch is turned on
-// afterwards, and that is the point: the answer is read at extraction time, so
-// a task told to unpack an hour after it landed still unpacks. Re-entry is
-// free, because the target has left StatusDone by the time a second call could
-// look at it. Caller holds a.mu.
+// extractNowLocked starts a due extraction and returns the task it moved into
+// StatusExtracting, which the caller must publish too since it may be the
+// first volume rather than done. It runs when a download finishes and when the
+// switch is turned on later; a second call finds the target already
+// extracting. Caller holds a.mu.
 func (a *App) extractNowLocked(done *core.Task, cfg settings.Settings) *core.Task {
 	if done.Status != core.StatusDone || !filesAreLocal(done) {
 		return nil
@@ -323,10 +251,9 @@ func (a *App) extractNowLocked(done *core.Task, cfg settings.Settings) *core.Tas
 	return target
 }
 
-// passwordsFor is the order archive passwords are tried in: the task's own
-// first, because it was set for exactly this file, then the global list. It is
-// read when the job starts rather than when it was queued, so a password typed
-// while three archives were waiting is used on all three.
+// passwordsFor returns the passwords to try: the task's own first, then the
+// global list. It is read when the job starts, so a password typed while jobs
+// wait applies to all of them.
 func (a *App) passwordsFor(t *core.Task) []string {
 	var out []string
 	if t != nil && t.Password != "" {
@@ -335,18 +262,9 @@ func (a *App) passwordsFor(t *core.Task) []string {
 	return append(out, a.Settings.Get().ArchivePasswords...)
 }
 
-// extractOptionsFor is the archive settings as this one task's extraction sees
-// them: where it writes, what it does about a folder already there, and what
-// becomes of the volumes afterwards.
-//
-// Built when the job starts and not when the download finished, which is the
-// whole of the "read at extraction time" rule: a person who turns unpacking on,
-// picks a destination or switches the disposal to trash while three archives sit
-// in the queue means it for those three.
-//
-// The destination may be a template, and it is expanded here for the same reason
-// dirFor expands the download folder here: this is the only place that knows
-// which task the variables are about. internal/extract never sees a task.
+// extractOptionsFor builds one task's extraction options when the job starts,
+// so settings changed while jobs wait apply to them. Templates are expanded
+// here because internal/extract never sees a task.
 func (a *App) extractOptionsFor(t *core.Task, cfg settings.Settings) extract.Options {
 	o := extract.Options{
 		Passwords:   a.passwordsFor(t),
@@ -359,26 +277,17 @@ func (a *App) extractOptionsFor(t *core.Task, cfg settings.Settings) extract.Opt
 	if t != nil {
 		o.Package = t.Package
 	}
-	// Where the unpacking WRITES, which is not always where its result ends up.
-	// A template that expanded to something relative is dropped rather than
-	// resolved against whatever the process's working directory happens to be:
-	// beside the archive is always somewhere real, and it is where every install
-	// unpacked before the setting existed. See unpackPlanFor for the second half
-	// and for what a working folder does to both.
+	// Where the extraction writes, which is not always where the result ends
+	// up (see unpackPlanFor).
 	plan := a.unpackPlanFor(t, cfg)
 	o.Dest, o.Subfolder = plan.Dest, plan.Subfolder
 	return o
 }
 
-// trashRootFor is the folder a trashed archive is moved into.
-//
-// It follows the archive rather than the download folder, which matters only
-// once a working folder is configured: the archive is then on the working
-// folder's filesystem, and internal/extract cannot rename it into a trash on
-// the destination's. It would fall back to a trash beside the archive, which is
-// the same folder this answers - the difference is that this way there is ONE
-// trash to look in and one for SweepTrash to age, instead of one per working
-// folder that nothing ever sweeps because the sweep is pointed elsewhere.
+// trashRootFor returns the folder trashed archives go to. With a working folder
+// the archive lives on that filesystem and cannot be renamed into a trash on
+// the destination's, so the trash follows it; that keeps a single trash for
+// SweepTrash to age.
 func (a *App) trashRootFor(t *core.Task) string {
 	if root := a.workRoot(); root != "" && deliverable(t) {
 		return root
@@ -386,29 +295,20 @@ func (a *App) trashRootFor(t *core.Task) string {
 	return a.defaultDir()
 }
 
-// packageFilesLocked is every finished file of one task's package that sits in
-// the same folder, which is the narrowing the info-file sweep depends on.
-//
-// The whole safety of that sweep is in this list. Listing the folder and
-// deleting every .nfo in it is the obvious implementation and a data-loss bug on
-// the default layout: subfolder-by-package is off out of the box, so one folder
-// holds several releases, and a neighbour's notes are not ours to remove.
-// Caller holds a.mu.
+// packageFilesLocked returns every file of t's package in the same folder,
+// which scopes the info-file sweep. Deleting every .nfo in the folder would
+// take the neighbours' too, since packages share a folder by default. Caller
+// holds a.mu.
 func (a *App) packageFilesLocked(t *core.Task) []string {
 	if t == nil {
 		return nil
 	}
 	if strings.TrimSpace(t.Package) == "" {
-		// No package is no scope. Matching the empty package name would gather
-		// every unpackaged download in the folder, which is the directory-wide
-		// sweep this list exists to avoid and is a whole shared download folder
-		// on a fresh install. A sweep that does nothing is a setting somebody
-		// notices; a sweep that takes the neighbours is not.
+		// Without a package there is no scope; the empty name would match
+		// every loose download in the folder.
 		return nil
 	}
-	// Grouped by destination and listed by where the files actually are - the
-	// same split extractCandidateLocked makes, and for the same reason: the
-	// sweep has to open the files it is about to remove.
+	// Grouped by destination, listed where the files actually are.
 	dir := a.dirFor(t)
 	work := a.workDirFor(t)
 	var out []string
@@ -422,20 +322,10 @@ func (a *App) packageFilesLocked(t *core.Task) []string {
 	return out
 }
 
-// disposable narrows a list of files to the ones that removing cannot take a
-// second download with it.
-//
-// A path more than one task points at is left alone, and that is the whole
-// point of this function. The disposal used to run straight down the volume
-// list, which is right for the ordinary archive and wrong for the two shapes
-// that share a file: a mirror, which the collector stages as its own task
-// pointing at the same bytes, and the same link added twice by hand. Deleting
-// the archive then settles the row that extracted it and quietly empties the
-// other one, which afterwards claims a finished download whose file is gone -
-// and nobody connects the missing file with having unpacked something else.
-//
-// A path no task claims at all is disposable: it is a volume the reader pulled
-// in that never had a row of its own, and it is still part of what was consumed.
+// disposable filters paths down to those no other task also points at. A
+// mirror or a link added twice shares the file, and deleting it would leave
+// the other row claiming a download that is gone. A path no task claims is a
+// volume the reader pulled in and is disposable.
 func (a *App) disposable(paths []string) []string {
 	if len(paths) == 0 {
 		return nil
@@ -447,11 +337,8 @@ func (a *App) disposable(paths []string) []string {
 		if t.Name == "" {
 			continue
 		}
-		// workDirFor and not dirFor: the paths being narrowed here came out of
-		// internal/extract, which was given the file where it was WRITTEN. A
-		// claim recorded at the destination would match none of them, and a
-		// mirror's shared file would then be deleted along with the archive that
-		// unpacked - the exact failure this function exists to prevent.
+		// workDirFor, because the paths come from internal/extract, which saw
+		// the files where they were written.
 		claims[filepath.Clean(filepath.Join(a.workDirFor(t), t.Name))]++
 	}
 	out := make([]string, 0, len(paths))
@@ -463,8 +350,8 @@ func (a *App) disposable(paths []string) []string {
 	return out
 }
 
-// unpackLocked is the extraction worker's state, built the first time anything
-// unpacks. Caller holds a.mu.
+// unpackLocked returns the extraction worker's state, creating it on first
+// use. Caller holds a.mu.
 func (a *App) unpackLocked() *unpackState {
 	if a.unpack == nil {
 		a.unpack = &unpackState{jobs: map[string]*extractJob{}}
@@ -472,10 +359,9 @@ func (a *App) unpackLocked() *unpackState {
 	return a.unpack
 }
 
-// enqueueExtractLocked puts one archive on the worklist and moves its task into
-// StatusExtracting. It answers nil when that archive is already being unpacked,
-// so a finishing download and a person pressing "unpack" at the same moment are
-// one job and not two. Caller holds a.mu.
+// enqueueExtractLocked queues one archive and moves its task into
+// StatusExtracting. It returns nil when that archive is already queued or
+// running, so simultaneous triggers make one job. Caller holds a.mu.
 func (a *App) enqueueExtractLocked(target *core.Task, path string) *extractJob {
 	st := a.unpackLocked()
 	for _, j := range st.jobs {
@@ -507,8 +393,8 @@ func (a *App) enqueueExtractLocked(target *core.Task, path string) *extractJob {
 	return job
 }
 
-// pruneJobsLocked drops the oldest finished jobs once the list is longer than it
-// is useful. A live job is never dropped, however old the queue is.
+// pruneJobsLocked drops the oldest finished jobs beyond keptExtractJobs. Live
+// jobs are never dropped.
 func (a *App) pruneJobsLocked(st *unpackState) {
 	over := len(st.order) - keptExtractJobs
 	if over <= 0 {
@@ -527,21 +413,17 @@ func (a *App) pruneJobsLocked(st *unpackState) {
 	st.order = kept
 }
 
-// runExtractions is the one goroutine that unpacks. Jobs run one at a time on
-// purpose: two archives against the same disk only make each other slower.
-//
-// internal/extract enforces the same thing for its own reasons, and this queue
-// is not a duplicate of it. That one is a slot a second caller waits on, which
-// is invisible; this one is the list, where a waiting extraction has a name, a
-// place in the order and a button that calls it off before it ever starts.
+// runExtractions is the single unpacking goroutine; two archives on one disk
+// only slow each other down. internal/extract also serialises, but this queue
+// is what the list shows, with an order and a cancel for waiting jobs.
 func (a *App) runExtractions() {
 	for {
 		a.mu.Lock()
 		st := a.unpackLocked()
 		job := nextQueuedLocked(st)
 		if job == nil {
-			// Cleared under the same lock the next enqueue takes, so a job queued
-			// at this instant either sees a live worker or starts one.
+			// Cleared under the lock the next enqueue takes, so a new job either
+			// sees this worker or starts one.
 			st.busy = false
 			a.mu.Unlock()
 			return
@@ -574,7 +456,7 @@ func (a *App) runExtractions() {
 	}
 }
 
-// nextQueuedLocked is the oldest job still waiting. Caller holds a.mu.
+// nextQueuedLocked returns the oldest waiting job. Caller holds a.mu.
 func nextQueuedLocked(st *unpackState) *extractJob {
 	for _, id := range st.order {
 		if j := st.jobs[id]; j != nil && j.Status == ExtractQueued {
@@ -584,9 +466,8 @@ func nextQueuedLocked(st *unpackState) *extractJob {
 	return nil
 }
 
-// publishExtractProgress copies what the worker reported onto the job and sends
-// it on. internal/extract throttles the callback, so this is not on the hot path
-// of the copy itself.
+// publishExtractProgress copies the worker's progress onto the job and
+// broadcasts it. internal/extract throttles the callback.
 func (a *App) publishExtractProgress(jobID string, p extract.Progress) {
 	a.mu.Lock()
 	j := a.unpackLocked().jobs[jobID]
@@ -600,25 +481,8 @@ func (a *App) publishExtractProgress(jobID string, p extract.Progress) {
 	a.Hub.Broadcast("extract", snap)
 }
 
-// settleExtraction records how a job ended, hands the task back to done,
-// disposes of the volumes the way the options say, and moves the unpacked
-// content to wherever it was meant to end up.
-//
-// Disposal happens only on success, and only on success: the volumes are the one
-// copy of bytes the user paid for in bandwidth, and an extraction that failed is
-// exactly the case where they will be needed again. The info files beside them
-// go the same way as the archive, never a different one - see InfoFilesIn.
-//
-// THE MOVE HAPPENS AFTER THE DISPOSAL and before the job is settled. After,
-// because a "delete the archive" that ran against the destination would be
-// reaching into a folder the archive was never in; before, because the row the
-// user ends up looking at has to say where the files are rather than where they
-// were unpacked.
-// extractionTaskID is the download an extraction job belongs to, or "" for a
-// job that is already gone. Its own tiny accessor rather than a second read of
-// unpackLocked inline, because settleExtraction needs the answer BEFORE it
-// takes a.mu for the rest of the job and a lock taken twice in one function
-// reads as an accident.
+// extractionTaskID returns the task an extraction job belongs to, or "" when
+// the job is gone.
 func (a *App) extractionTaskID(jobID string) string {
 	a.mu.Lock()
 	defer a.mu.Unlock()
@@ -628,14 +492,15 @@ func (a *App) extractionTaskID(jobID string) string {
 	return ""
 }
 
+// settleExtraction records how a job ended, returns the task to done, disposes
+// of the volumes and moves the unpacked content where it belongs. Disposal
+// happens only on success, since a failed extraction is when the volumes are
+// needed again. The move comes after disposal and before the job settles, so
+// the row shows where the files ended up.
 func (a *App) settleExtraction(jobID string, opts extract.Options, siblings []string, out *extract.Outcome, err error) {
 	cancelled := errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded)
-	// The download this job belongs to, read HERE and not with the rest of the
-	// job further down. The two disposal failures below are logged before that
-	// point, and a line naming no download is a line the per-download log card
-	// can never show - which for "your archive is still sitting there" is
-	// exactly the line somebody goes looking for. It costs one extra turn of
-	// a.mu on a path that runs once per finished extraction.
+	// Read first so the disposal failures below can be tagged with the task for
+	// the per-download log card.
 	taskID := a.extractionTaskID(jobID)
 	var moved delivery
 	if err == nil && out != nil {
@@ -647,11 +512,9 @@ func (a *App) settleExtraction(jobID string, opts extract.Options, siblings []st
 		}
 		moved = a.deliverExtraction(jobID, out)
 	}
-	// Swept on every settle, not only after a disposal. A user who switches the
-	// disposal back to "delete" would otherwise leave whatever is already in the
-	// trash sitting there for good, because nothing would ever put another file
-	// in to trigger the sweep. It costs one ReadDir and does nothing at all when
-	// the retention is zero or no trash folder was ever made.
+	// Swept on every settle, so the trash still ages after the disposal is
+	// switched away from it. Without retention or a trash folder it does
+	// nothing.
 	if n, derr := extract.SweepTrash(opts.TrashRoot, opts.TrashMaxAge); derr != nil {
 		log.Printf("the archive trash could not be swept: %v", derr)
 	} else if n > 0 {
@@ -682,12 +545,8 @@ func (a *App) settleExtraction(jobID string, opts extract.Options, siblings []st
 				j.Dir = out.Dir
 			}
 		}
-		// Done AND carrying a reason, which reads like a contradiction and is
-		// not: the archive opened and gave up its files, and the move that was
-		// meant to take them somewhere else did not. Calling the job failed
-		// instead would send somebody hunting a broken archive that is not
-		// broken; saying nothing would leave a folder nobody can find. Both
-		// halves are true, so both are recorded.
+		// Done with an error means the archive unpacked but the move failed;
+		// both are true, so both are recorded.
 		if moved.Err != nil {
 			j.Error = moved.Err.Error()
 		}
@@ -698,24 +557,19 @@ func (a *App) settleExtraction(jobID string, opts extract.Options, siblings []st
 
 	var settled *core.Task
 	if t := a.tasks[j.TaskID]; t != nil {
-		// Back to done either way: the download itself finished, and an archive
-		// that would not open does not undo the bytes on disk.
+		// The download itself finished, whatever the archive did.
 		if t.Status == core.StatusExtracting {
 			t.Status = core.StatusDone
 		}
-		// Only this package's own sentence is cleared. A rename that was refused
-		// left its reason on the same field, and a successful extraction is no
-		// reason to tell the user that problem went away.
+		// Only this package's own error is cleared.
 		if strings.HasPrefix(t.Error, extractErrorPrefix) {
 			t.Error = ""
 		}
 		if err != nil && !cancelled {
 			t.Error = extractErrorPrefix + err.Error()
 		} else if moved.Err != nil {
-			// Under this package's own prefix, not the mover's, because this
-			// sentence belongs to the extraction: what it says is that the
-			// unpacking finished and its output did not get where it was going,
-			// and the next extraction of the same archive is what clears it.
+			// Under the extraction's prefix, so the next extraction of the same
+			// archive clears it.
 			t.Error = extractErrorPrefix + moved.Err.Error()
 		}
 		c := *t
@@ -727,30 +581,21 @@ func (a *App) settleExtraction(jobID string, opts extract.Options, siblings []st
 		a.saveAndBroadcast([]core.Task{*settled})
 	}
 	a.Hub.Broadcast("extract", snap)
-	// Now, and not with the download that finished: the four sibling volumes had
-	// to still be beside the first one while it was being opened, and the
-	// unpacking is the moment that stops being true. Whatever the disposal left
-	// standing leaves the working folder here.
+	// The remaining volumes may leave the working folder only after extraction.
 	a.deliverVolumes(snap.TaskID)
-	// Swept on every settle for the reason the archive trash above is: nothing
-	// else in this build ever looks at the working folder, so an install where
-	// somebody removed a running download would keep that folder for good.
+	// Nothing else ever sweeps the working folder.
 	a.sweepWorkRoot()
-	// An extraction somebody called off does not fire: they are standing at
-	// the button, they already know, and a "your archive is finished"
-	// message for the thing they just stopped is noise. Both other endings
-	// do fire, on the one trigger, with ok saying which - see
-	// script.TriggerExtractDone. Off the lock, from the copy taken under it.
+	// A cancelled extraction does not fire: the user just pressed the button.
 	if !cancelled {
 		a.fireExtractDone(snap, snap.Status == ExtractFailed)
 	}
 }
 
-// extractErrorPrefix marks the sentences this package puts on a task, so a retry
-// that works can clear its own failure and nothing else's.
+// extractErrorPrefix marks the errors this package puts on a task, so a
+// successful retry clears only its own.
 const extractErrorPrefix = "extract: "
 
-// ExtractJobs is every unpacking the app knows about, oldest first.
+// ExtractJobs returns every unpacking the app knows about, oldest first.
 func (a *App) ExtractJobs() []ExtractJob {
 	a.mu.Lock()
 	defer a.mu.Unlock()
@@ -764,17 +609,9 @@ func (a *App) ExtractJobs() []ExtractJob {
 	return out
 }
 
-// StartExtraction unpacks finished downloads on demand.
-//
-// It is the entry point the automatic path never had. Extraction used to happen
-// only as the tail of a finishing download, so an archive that failed on a wrong
-// password, or on a disk that filled halfway through, could not be tried again
-// without fetching every volume a second time. The password is typed, the disk
-// is emptied, and this is the button that then does something.
-//
-// The unpacking switch is deliberately not consulted. Pressing "unpack this" IS
-// the answer to that question, and a menu entry that silently does nothing
-// because a rule turned unpacking off two weeks ago is worse than no entry.
+// StartExtraction unpacks finished downloads on demand, for example after a
+// wrong password or a full disk. The unpacking switch is not consulted, since
+// pressing the button is the answer to it.
 func (a *App) StartExtraction(ids []string) error {
 	var refused []string
 
@@ -790,7 +627,7 @@ func (a *App) StartExtraction(ids []string) error {
 			continue
 		}
 		if t.Status == core.StatusExtracting {
-			continue // already on the worklist; asking twice is not an error
+			continue // already queued
 		}
 		if t.Status != core.StatusDone {
 			refused = append(refused, fmt.Sprintf("%s has not finished downloading", t.Name))
@@ -814,9 +651,8 @@ func (a *App) StartExtraction(ids []string) error {
 	return nil
 }
 
-// reasonNotAnArchive says which of the two things went wrong, because they need
-// opposite responses: a set with a part still downloading will unpack itself the
-// moment that part lands, while a file that is no archive at all never will.
+// reasonNotAnArchive tells an unfinished set, which unpacks by itself once its
+// last part lands, from a file that is no archive at all.
 func reasonNotAnArchive(t *core.Task, set []*core.Task) string {
 	for _, part := range set {
 		if part.Status != core.StatusDone {
@@ -826,15 +662,9 @@ func reasonNotAnArchive(t *core.Task, set []*core.Task) string {
 	return fmt.Sprintf("%s is not an archive this build can open", t.Name)
 }
 
-// AbortExtraction calls off an unpacking and takes the half-written output back
-// off the disk.
-//
-// Both halves matter. A cancelled extraction that leaves its folder behind is
-// indistinguishable from one that finished: nothing on disk says which, the
-// person looking at the folder calls the download good, and the next deep pass
-// walks into it and unpacks whatever it finds. The removal happens inside the
-// worker, which is the only thing that knows which files it wrote and which
-// folders were already there - see internal/extract.
+// AbortExtraction cancels an unpacking. The worker removes its half-written
+// output, since only it knows which files it created, and a leftover folder
+// would look like a finished extraction.
 func (a *App) AbortExtraction(jobID string) error {
 	a.mu.Lock()
 	st := a.unpackLocked()
@@ -845,9 +675,8 @@ func (a *App) AbortExtraction(jobID string) error {
 	}
 	switch j.Status {
 	case ExtractRunning:
-		// The worker settles the job when Run comes back cancelled, so nothing is
-		// written here: two writers for one ending is how a job ends up cancelled
-		// and done at the same time.
+		// The worker settles the job when Run returns cancelled; settling it
+		// here too would give one job two endings.
 		j.cancel()
 		a.mu.Unlock()
 		return nil
@@ -857,8 +686,7 @@ func (a *App) AbortExtraction(jobID string) error {
 		snap := j.ExtractJob
 		var settled *core.Task
 		if t := a.tasks[j.TaskID]; t != nil && t.Status == core.StatusExtracting {
-			// Nothing ran, so there is nothing to take back - only the row, which
-			// has been sitting there saying "extracting" since it was queued.
+			// Nothing ran, so only the row needs to go back to done.
 			t.Status = core.StatusDone
 			c := *t
 			settled = &c

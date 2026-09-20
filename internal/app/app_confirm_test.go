@@ -9,8 +9,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
-// confirmApp is a queue app with a chosen global onDupes/onOffline pair, so
-// each test states only the one thing it is about.
+// confirmApp returns a queue app with the given global onDupes/onOffline pair.
 func confirmApp(t *testing.T, onDupes, onOffline confirm.Policy) *App {
 	t.Helper()
 	a, err := New(t.TempDir())
@@ -38,9 +37,6 @@ func collectedTask(id string, mutate func(*core.Task)) core.Task {
 	return t
 }
 
-// TestConfirmTasksExcludesOfflineByDefault is the plain default: nothing has
-// asked for anything unusual, and a link a check has already found gone
-// stays exactly where it was rather than joining the queue.
 func TestConfirmTasksExcludesOfflineByDefault(t *testing.T) {
 	a := confirmApp(t, confirm.DefaultPolicy, confirm.DefaultPolicy)
 	dead := putTask(t, a, collectedTask("dead", func(c *core.Task) { c.Online = core.AvailOffline }))
@@ -57,21 +53,15 @@ func TestConfirmTasksExcludesOfflineByDefault(t *testing.T) {
 	if deadStatus != core.StatusCollected {
 		t.Errorf("the offline link's status = %q, want it left exactly as it was", deadStatus)
 	}
-	// Not asserted as specifically StatusQueued: there is no network in a
-	// test, so a real dispatch attempt against host.example settles as an
-	// error just as fast as it would queue - see
-	// TestDisabledAndHeldLinksAreNotDispatched's own comment for the same
-	// reasoning. What ConfirmTasks promises is that the live link left the
-	// collector at all, which res.Start already pinned above.
+	// Without a network the dispatch may settle as an error as fast as it
+	// queues, so only leaving the collector is asserted.
 	if liveStatus == core.StatusCollected {
 		t.Errorf("the live link's status = %q, want it no longer sitting in the collector", liveStatus)
 	}
 }
 
-// TestConfirmTasksNeverExcludesUnknownOrUncheckable pins the one rule
-// section 8 of the build plan calls out by name: only a definite "gone" may
-// ever be excluded, or one hoster declining a probe quietly drops a whole
-// package.
+// TestConfirmTasksNeverExcludesUnknownOrUncheckable: only a definite offline
+// result may exclude a link, or one hoster declining a probe drops a package.
 func TestConfirmTasksNeverExcludesUnknownOrUncheckable(t *testing.T) {
 	a := confirmApp(t, confirm.DefaultPolicy, confirm.DefaultPolicy)
 	unknown := putTask(t, a, collectedTask("unknown", func(c *core.Task) { c.Online = core.AvailUnknown }))
@@ -84,9 +74,6 @@ func TestConfirmTasksNeverExcludesUnknownOrUncheckable(t *testing.T) {
 	}
 }
 
-// TestConfirmTasksNeverDeletesByDefault is the default this whole feature
-// may never quietly change: an offline link is excluded, never removed,
-// until a person deliberately configures otherwise.
 func TestConfirmTasksNeverDeletesByDefault(t *testing.T) {
 	a := confirmApp(t, confirm.DefaultPolicy, confirm.DefaultPolicy)
 	dead := putTask(t, a, collectedTask("dead", func(c *core.Task) { c.Online = core.AvailOffline }))
@@ -104,9 +91,6 @@ func TestConfirmTasksNeverDeletesByDefault(t *testing.T) {
 	}
 }
 
-// TestConfirmTasksExcludeAndRemoveDeletesTheTask is exclude-and-remove
-// chosen on purpose, which is the only way it is ever reached - see
-// TestConfirmTasksNeverDeletesByDefault for the default it is not.
 func TestConfirmTasksExcludeAndRemoveDeletesTheTask(t *testing.T) {
 	a := confirmApp(t, confirm.DefaultPolicy, confirm.ExcludeAndRemove)
 	dead := putTask(t, a, collectedTask("dead", func(c *core.Task) { c.Online = core.AvailOffline }))
@@ -124,12 +108,8 @@ func TestConfirmTasksExcludeAndRemoveDeletesTheTask(t *testing.T) {
 	}
 }
 
-// TestConfirmTasksCatchesADuplicateViaTheExistingCleanupEngine is the reuse
-// this file's own report leans on: duplicatesLocked (app_bulk.go) already
-// finds a collected task that is a second copy of one already settled in
-// the list, without needing the dedupe-wiring fix (docs/build-plan.md
-// section 8's "Dedupe gains a mode", still unlanded) that a fresh paste of
-// the same URL twice would need.
+// TestConfirmTasksCatchesADuplicateViaTheExistingCleanupEngine checks that a
+// collected copy of a finished task is caught by duplicatesLocked.
 func TestConfirmTasksCatchesADuplicateViaTheExistingCleanupEngine(t *testing.T) {
 	a := confirmApp(t, confirm.DefaultPolicy, confirm.DefaultPolicy)
 	putTask(t, a, core.Task{
@@ -160,8 +140,6 @@ func TestConfirmTasksCatchesADuplicateViaTheExistingCleanupEngine(t *testing.T) 
 	}
 }
 
-// TestConfirmTasksCombinesBothReasonsInOneSummary pins the worked example
-// from this wave's own report: two independent reasons, reported once.
 func TestConfirmTasksCombinesBothReasonsInOneSummary(t *testing.T) {
 	a := confirmApp(t, confirm.DefaultPolicy, confirm.DefaultPolicy)
 	for i := 0; i < 3; i++ {
@@ -187,9 +165,6 @@ func TestConfirmTasksCombinesBothReasonsInOneSummary(t *testing.T) {
 	}
 }
 
-// TestConfirmTasksAsksWhenInteractive is the "ask" policy doing its one job
-// when somebody really is there to answer: the link is settled neither way
-// until they do.
 func TestConfirmTasksAsksWhenInteractive(t *testing.T) {
 	a := confirmApp(t, confirm.DefaultPolicy, confirm.Ask)
 	dead := putTask(t, a, collectedTask("dead", func(c *core.Task) { c.Online = core.AvailOffline }))
@@ -210,10 +185,9 @@ func TestConfirmTasksAsksWhenInteractive(t *testing.T) {
 	}
 }
 
-// TestConfirmTasksAskFallsBackToGlobalWhenNotInteractive is the fallback
-// this wave's report names explicitly: auto-confirm, the watch folder and
-// Click'n'Load all fire with nobody watching, so "ask" has to resolve to
-// something concrete instead of stalling the batch forever.
+// TestConfirmTasksAskFallsBackToGlobalWhenNotInteractive: auto-confirm, the
+// watch folder and Click'n'Load run with nobody watching, so "ask" must
+// resolve to something concrete.
 func TestConfirmTasksAskFallsBackToGlobalWhenNotInteractive(t *testing.T) {
 	a := confirmApp(t, confirm.DefaultPolicy, confirm.Ask)
 	dead := putTask(t, a, collectedTask("dead", func(c *core.Task) { c.Online = core.AvailOffline }))
@@ -227,16 +201,13 @@ func TestConfirmTasksAskFallsBackToGlobalWhenNotInteractive(t *testing.T) {
 		if len(res.Ask) != 0 {
 			t.Errorf("trigger %s: Ask = %v, want nobody left waiting on an answer", trig, res.Ask)
 		}
-		// Global onOffline is Ask, and Ask falling back to itself settles on
-		// confirm.DefaultPolicy (exclude) - see confirm.Resolve.
+		// A global Ask falls back to confirm.DefaultPolicy, which excludes.
 		if len(res.Start) != 0 {
 			t.Errorf("trigger %s: Start = %v, want the offline link still held back", trig, res.Start)
 		}
 	}
 }
 
-// TestConfirmTasksBatchOverridesGlobal is the per-batch half of the policy:
-// a batch that names its own value is not merely a suggestion.
 func TestConfirmTasksBatchOverridesGlobal(t *testing.T) {
 	a := confirmApp(t, confirm.DefaultPolicy, confirm.Include)
 	putTask(t, a, collectedTask("dead", func(c *core.Task) { c.Online = core.AvailOffline }))
@@ -248,11 +219,8 @@ func TestConfirmTasksBatchOverridesGlobal(t *testing.T) {
 	}
 }
 
-// TestConfirmTasksOnlyTouchesRequestedIDs guards the trap StartTasks itself
-// has to be careful about too: an empty Result.Start must never fall
-// through to StartTasks's OWN "empty means everything collected" reading,
-// or a batch that held every one of its own candidates back would also
-// start an unrelated task nobody named.
+// TestConfirmTasksOnlyTouchesRequestedIDs guards against an empty Result.Start
+// reaching StartTasks, which reads an empty list as "everything collected".
 func TestConfirmTasksOnlyTouchesRequestedIDs(t *testing.T) {
 	a := confirmApp(t, confirm.DefaultPolicy, confirm.DefaultPolicy)
 	dead := putTask(t, a, collectedTask("dead", func(c *core.Task) { c.Online = core.AvailOffline }))
@@ -261,7 +229,7 @@ func TestConfirmTasksOnlyTouchesRequestedIDs(t *testing.T) {
 	res := a.ConfirmTasks([]string{dead.ID}, confirm.Config{}, confirm.TriggerManual)
 
 	if len(res.Start) != 0 {
-		t.Fatalf("Start = %v, want none - the only requested id was held back", res.Start)
+		t.Fatalf("Start = %v, want none since the only requested id was held back", res.Start)
 	}
 	a.mu.Lock()
 	status := a.tasks[untouched.ID].Status
@@ -271,14 +239,8 @@ func TestConfirmTasksOnlyTouchesRequestedIDs(t *testing.T) {
 	}
 }
 
-// TestStartTasksAddAtTopPlaysNext is placement, the third of 8C's "confirm
-// scope/start-mode/placement": a batch leaving the collector with AddAtTop
-// on has to sort ahead of whatever was already queued, the same place a
-// manual "move to top" would put it. Exercised directly on StartTasks
-// (rather than through ConfirmTasks) because every route to StartTasks -
-// the manual route, auto-confirm, the watch folder - inherits this from the
-// one place it is applied; see this file's own top comment on why none of
-// those callers had to change for that to be true.
+// TestStartTasksAddAtTopPlaysNext tests StartTasks directly, since every route
+// that starts tasks goes through it.
 func TestStartTasksAddAtTopPlaysNext(t *testing.T) {
 	a, err := New(t.TempDir())
 	if err != nil {
@@ -307,9 +269,6 @@ func TestStartTasksAddAtTopPlaysNext(t *testing.T) {
 	}
 }
 
-// TestStartTasksAddAtTopOffLeavesTheOrderAlone is the default this feature
-// must not disturb: AddAtTop is false everywhere until somebody turns it on,
-// and StartTasks must go on appending exactly as it always did.
 func TestStartTasksAddAtTopOffLeavesTheOrderAlone(t *testing.T) {
 	a := newQueueApp(t)
 	already := putTask(t, a, core.Task{
