@@ -61,10 +61,10 @@ func getJSON(t *testing.T, url string, into any) int {
 	return resp.StatusCode
 }
 
-// TestTheHoldingAreaIsServedWithItsReason is what a client that is not a browser
-// has to be able to ask. The browser reads the same links off the task stream,
-// but a route that does not exist cannot appear in the self-describing index,
-// and then the holding area is a feature only the interface knows about.
+// TestTheHoldingAreaIsServedWithItsReason: a client that is not a browser has
+// to be able to ask. The browser reads the same links off the task stream, but
+// a route that does not exist cannot appear in the self-describing index, and
+// then the holding area is a feature only the interface knows about.
 func TestTheHoldingAreaIsServedWithItsReason(t *testing.T) {
 	srv, _, held := heldServer(t)
 
@@ -107,10 +107,10 @@ func TestRestoreEmptiesTheHoldingArea(t *testing.T) {
 	}
 }
 
-// TestClearingTakesIdsFromTheQuery pins the shape of the DELETE. A body on a
-// DELETE is not something every client and proxy between a browser and this
-// server passes on, and a clear that silently reached everything because the ids
-// never arrived would delete links the user did not pick.
+// TestClearingTakesIdsFromTheQuery pins the shape of the DELETE. Not every
+// client and proxy between a browser and this server passes on a body with a
+// DELETE, and a clear that reached everything because the ids never arrived
+// would delete links the user did not pick.
 func TestClearingTakesIdsFromTheQuery(t *testing.T) {
 	srv, a, held := heldServer(t)
 
@@ -134,10 +134,10 @@ func TestClearingTakesIdsFromTheQuery(t *testing.T) {
 }
 
 // TestIdsFromQuery is the difference between "these two" and "all of them". A
-// trailing comma is the ordinary way a client builds that string, and reading it
-// as one more id that matches nothing would turn a two-link clear into a no-op —
-// while reading a genuinely empty parameter as an id would turn "clear all" into
-// the same no-op from the other direction.
+// trailing comma is the ordinary way a client builds that string, and reading
+// it as one more id that matches nothing turns a two-link clear into a no-op,
+// while reading an empty parameter as an id turns "clear all" into the same
+// no-op from the other direction.
 func TestIdsFromQuery(t *testing.T) {
 	cases := map[string][]string{
 		"":         nil,
@@ -190,17 +190,14 @@ func linkServer(t *testing.T) (*httptest.Server, *app.App) {
 	return srv, a
 }
 
-// TestARelayedSubmissionKeepsItsEntranceAndItsPasswords is the bridge's half of
-// Click'n'Load.
-//
-// CnL is hard-wired to the browser's own loopback, so the primary deployment —
-// a container on a NAS — can only receive it through a bridge running on the
-// user's desktop, which decodes the submission and forwards it over this route.
-// Both of the things that submission knows used to be thrown away here: the
-// entrance, so a browser button was filed as a paste in the one column somebody
-// opens the holding area to read, and the archive passwords, which the bridge
-// has always sent and nothing read — so the extraction then asked for a password
-// the user had already handed over.
+// TestARelayedSubmissionKeepsItsEntranceAndItsPasswords is the bridge's half
+// of Click'n'Load. CnL is hard-wired to the browser's own loopback, so a
+// container on a NAS can only receive it through a bridge on the user's
+// desktop, which decodes the submission and forwards it over this route. The
+// two things that submission knows have to survive: the entrance, or a browser
+// button is filed as a paste in the column somebody opens the holding area to
+// read, and the archive passwords, or the extraction asks for a password the
+// user already handed over.
 func TestARelayedSubmissionKeepsItsEntranceAndItsPasswords(t *testing.T) {
 	srv, _ := linkServer(t)
 
@@ -229,9 +226,9 @@ func TestARelayedSubmissionKeepsItsEntranceAndItsPasswords(t *testing.T) {
 	}
 }
 
-// TestAPasteIsStillAPaste guards the default. The interface sends neither field,
-// and a route that started answering something else for it would relabel every
-// link anybody has ever pasted.
+// TestAPasteIsStillAPaste guards the default: the interface sends neither
+// field, and a route answering something else for it would relabel every link
+// anybody ever pasted.
 func TestAPasteIsStillAPaste(t *testing.T) {
 	srv, _ := linkServer(t)
 
@@ -251,9 +248,9 @@ func TestAPasteIsStillAPaste(t *testing.T) {
 }
 
 // TestAnUnknownEntranceIsRefused keeps the column answerable. Filing a link
-// under an entrance nobody recognises is worse than refusing it: "why is this
-// here" then has an answer that looks real and is not, and a rule keyed on the
-// entrance reads a value no part of this app ever writes.
+// under an unrecognised entrance gives "why is this here" an answer that looks
+// real and is not, and a rule keyed on the entrance then reads a value no part
+// of this app writes.
 func TestAnUnknownEntranceIsRefused(t *testing.T) {
 	srv, a := linkServer(t)
 

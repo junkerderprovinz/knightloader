@@ -1,10 +1,9 @@
 package api
 
-// Named, individually revocable API tokens. See internal/apitoken's own
-// package comment for why this is a second, hashed store rather than a
-// second password. Managing them (this file) always needs an existing
-// session or an existing token; issuing the FIRST one is therefore done from
-// the logged-in web UI, the same as setting the password in the first place.
+// Named, individually revocable API tokens. See internal/apitoken for why this
+// is a second, hashed store rather than a second password. Every route here
+// needs an existing session or token, so the first token is issued from the
+// logged-in web UI, the same as setting the password.
 
 import (
 	"errors"
@@ -56,9 +55,9 @@ func registerTokens(reg *Registry, a *app.App) {
 		})
 }
 
-// newTokenResponse is Create's one-time answer: the same metadata shape
-// GET /api/tokens lists forever after, plus the secret this instance will
-// never be able to show again once this response is sent.
+// newTokenResponse is Create's one-time answer: the metadata shape
+// GET /api/tokens lists, plus the secret this instance cannot show again once
+// this response is sent.
 type newTokenResponse struct {
 	apitoken.Token
 	Secret string `json:"secret"`

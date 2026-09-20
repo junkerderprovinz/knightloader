@@ -1,10 +1,7 @@
 package api
 
 // Route-level tests for .torrent upload and file-tree staging. Fixtures are
-// hand-rolled with the reference bencode library, same reasoning as
-// internal/resolver/torrent's own tests: a fixture built by the library that
-// will actually read it back proves this route agrees with the real parser,
-// not with an assumption about what one looks like.
+// built with the same bencode library that reads them back.
 
 import (
 	"bytes"
@@ -28,9 +25,8 @@ func testPieces(total int64) []byte {
 	return make([]byte, n*20)
 }
 
-// testTorrentBytes bencodes a valid .torrent from an info dict, the same way
-// build_test.go in internal/resolver/torrent does - duplicated rather than
-// imported because that helper is unexported in a different package.
+// testTorrentBytes bencodes a valid .torrent from an info dict, like the
+// unexported helper in internal/resolver/torrent's tests.
 func testTorrentBytes(t *testing.T, info metainfo.Info) []byte {
 	t.Helper()
 	ib, err := bencode.Marshal(info)
@@ -66,10 +62,8 @@ func torrentsServer(t *testing.T) (*app.App, *httptest.Server) {
 	return a, srv
 }
 
-// TestParseTorrentUploadReturnsTheFileTree is the route end to end for a valid
-// multi-file .torrent: the response has to carry both the tree a person picks
-// from and the uri the follow-up stage call needs, and nothing must be staged
-// by this call alone.
+// TestParseTorrentUploadReturnsTheFileTree checks that parsing returns the tree
+// and the uri for staging, and stages nothing itself.
 func TestParseTorrentUploadReturnsTheFileTree(t *testing.T) {
 	a, srv := torrentsServer(t)
 	data := testMultiFileTorrent(t, "Pack", []metainfo.FileInfo{
@@ -103,7 +97,6 @@ func TestParseTorrentUploadReturnsTheFileTree(t *testing.T) {
 		t.Errorf("totalSize = %d, want 912", tree.TotalSize)
 	}
 
-	// Nothing was staged: this call is a preview, not an intake.
 	live, err := a.Store.All()
 	if err != nil {
 		t.Fatal(err)
@@ -113,17 +106,12 @@ func TestParseTorrentUploadReturnsTheFileTree(t *testing.T) {
 	}
 }
 
-// TestParseTorrentUploadRejectsAnOversizedFile is the door check the wave's
-// own brief calls out by name: the cap has to be enforced before the parser
-// ever sees the bytes, not only inside it.
+// TestParseTorrentUploadRejectsAnOversizedFile checks the cap enforced before
+// the parser sees the bytes.
 func TestParseTorrentUploadRejectsAnOversizedFile(t *testing.T) {
 	_, srv := torrentsServer(t)
-	// Comfortably over torrent.MaxTorrentBytes (2 MiB) so the handler's own
-	// explicit check trips, and comfortably under the request's OUTER cap
-	// (MaxTorrentBytes+1<<20, the multipart-overhead margin every upload route
-	// in this codebase gives itself) so multipart parsing itself still
-	// succeeds and this is testing the intended 413, not MaxBytesReader
-	// cutting the body off first with a less specific error.
+	// Over MaxTorrentBytes but under the request's outer cap, so the handler's
+	// own 413 fires rather than MaxBytesReader.
 	huge := bytes.Repeat([]byte("a"), torrent.MaxTorrentBytes+500_000)
 	code, body := postMultipartFile(t, srv.URL+"/api/torrents/parse", "file", "huge.torrent", huge)
 	if code != http.StatusRequestEntityTooLarge {
@@ -131,8 +119,6 @@ func TestParseTorrentUploadRejectsAnOversizedFile(t *testing.T) {
 	}
 }
 
-// TestParseTorrentUploadRejectsGarbage is the "not a torrent at all" case -
-// the paste box equivalent of pasting a sentence instead of a link.
 func TestParseTorrentUploadRejectsGarbage(t *testing.T) {
 	_, srv := torrentsServer(t)
 	code, body := postMultipartFile(t, srv.URL+"/api/torrents/parse", "file", "not-a.torrent", []byte("hello, this is not bencode"))
@@ -144,14 +130,9 @@ func TestParseTorrentUploadRejectsGarbage(t *testing.T) {
 	}
 }
 
-// TestParseTorrentUploadRejectsATraversalPath is THE test the wave's shared
-// context asks for by name: a torrent whose own file list tries to escape the
-// download folder has to be refused here, at parse time, with the same
-// containment discipline app_files.go's withinDir already has - not accepted
-// and left to fail confusingly later. anacrolix/torrent's own bencode.Marshal
-// happily encodes a ".." path component; nothing on the writing side refuses
-// it, which is exactly why the reading side (torrent.Parse's safeComponent,
-// exercised here through this route) has to.
+// TestParseTorrentUploadRejectsATraversalPath checks that a file path escaping
+// the download folder is refused at parse time. bencode happily writes a ".."
+// component, so the reading side has to refuse it.
 func TestParseTorrentUploadRejectsATraversalPath(t *testing.T) {
 	_, srv := torrentsServer(t)
 	data := testMultiFileTorrent(t, "Evil", []metainfo.FileInfo{
@@ -166,9 +147,8 @@ func TestParseTorrentUploadRejectsATraversalPath(t *testing.T) {
 	}
 }
 
-// TestParseTorrentUploadRequiresTheFileField mirrors
-// TestUploadRestoreRequiresTheFileField in routes_backup_test.go: a request
-// with no "file" field is a client bug, not a 500.
+// TestParseTorrentUploadRequiresTheFileField checks that a missing "file"
+// field is a 400, not a 500.
 func TestParseTorrentUploadRequiresTheFileField(t *testing.T) {
 	_, srv := torrentsServer(t)
 	var buf bytes.Buffer
@@ -187,9 +167,8 @@ func TestParseTorrentUploadRequiresTheFileField(t *testing.T) {
 	}
 }
 
-// TestStageTorrentAppliesTheSelection is parse-then-stage end to end: the uri
-// parse returned, sent back with a selection, has to land on a real task with
-// exactly that selection - the whole point of the two-step flow.
+// TestStageTorrentAppliesTheSelection runs parse then stage and checks the task
+// carries exactly the selection.
 func TestStageTorrentAppliesTheSelection(t *testing.T) {
 	a, srv := torrentsServer(t)
 	data := testMultiFileTorrent(t, "Pack", []metainfo.FileInfo{
@@ -248,13 +227,9 @@ func TestStageTorrentAppliesTheSelection(t *testing.T) {
 	}
 }
 
-// TestStageTorrentIgnoresAPathThatIsNotReallyInTheTorrent is the containment
-// check the wave's shared context asks for on the OTHER side of the door: a
-// hand-edited request body naming a file that does not exist in the real
-// torrent must not be able to add one, prove one exists, or otherwise be
-// trusted - the server re-derives the file list from its own parse of uri and
-// only ever narrows it, so a bogus entry in selectedPaths can only ever match
-// nothing.
+// TestStageTorrentIgnoresAPathThatIsNotReallyInTheTorrent checks that a
+// selected path missing from the real torrent matches nothing, since the file
+// list comes from the server's own re-parse.
 func TestStageTorrentIgnoresAPathThatIsNotReallyInTheTorrent(t *testing.T) {
 	_, srv := torrentsServer(t)
 	data := testMultiFileTorrent(t, "Pack2", []metainfo.FileInfo{{Length: 10, Path: []string{"real.bin"}}})
@@ -286,17 +261,15 @@ func TestStageTorrentIgnoresAPathThatIsNotReallyInTheTorrent(t *testing.T) {
 		t.Fatal(err)
 	}
 	if len(task.TorrentFiles) != 1 {
-		t.Fatalf("torrent files = %+v, want exactly the one real file - fabricated paths must not appear", task.TorrentFiles)
+		t.Fatalf("torrent files = %+v, want exactly the one real file; fabricated paths must not appear", task.TorrentFiles)
 	}
 	if task.TorrentFiles[0].Path != "real.bin" || !task.TorrentFiles[0].Selected {
 		t.Errorf("torrent file = %+v, want real.bin selected", task.TorrentFiles[0])
 	}
 }
 
-// TestStageTorrentRefusesAMagnet pins the split: a magnet has no file tree to
-// select from at this point (see torrent.Resolver.Describe's own comment),
-// and this route says so rather than silently accepting one and ignoring the
-// selection the caller thought it was applying.
+// TestStageTorrentRefusesAMagnet checks that a magnet, which has no file tree
+// yet, is refused rather than staged with its selection ignored.
 func TestStageTorrentRefusesAMagnet(t *testing.T) {
 	_, srv := torrentsServer(t)
 	stageBody, _ := json.Marshal(map[string]any{
@@ -312,12 +285,8 @@ func TestStageTorrentRefusesAMagnet(t *testing.T) {
 	}
 }
 
-// TestStageTorrentRefusesAHandCraftedURI is the same defence as
-// TestParseTorrentUploadRejectsATraversalPath, aimed at the stage route
-// instead of the parse route: a data: URI that was never produced by parse at
-// all - forged rather than merely edited - must be refused by the same
-// re-parse that catches an edited one, not trusted because it merely has the
-// right prefix.
+// TestStageTorrentRefusesAHandCraftedURI checks that a forged data: URI with
+// the right prefix is refused by the re-parse.
 func TestStageTorrentRefusesAHandCraftedURI(t *testing.T) {
 	_, srv := torrentsServer(t)
 	stageBody, _ := json.Marshal(map[string]any{
@@ -333,13 +302,8 @@ func TestStageTorrentRefusesAHandCraftedURI(t *testing.T) {
 	}
 }
 
-// TestStageTorrentBoundsAnOversizedBody is the sibling of
-// TestParseTorrentUploadRejectsAnOversizedFile for the OTHER route into a
-// torrent: unlike that one, stageTorrent's body was decoded with a bare
-// decodeJSON and no MaxBytesReader at all - a multi-megabyte body was fully
-// read into memory before the too-large-to-be-real refusal even had a
-// chance to run. This proves the bound now sits in front of the decode,
-// the same way it always has for the upload route.
+// TestStageTorrentBoundsAnOversizedBody checks that the stage route caps its
+// body before decoding, as the upload route does.
 func TestStageTorrentBoundsAnOversizedBody(t *testing.T) {
 	_, srv := torrentsServer(t)
 	huge := strings.Repeat("a", torrent.MaxTorrentBytes+2<<20)

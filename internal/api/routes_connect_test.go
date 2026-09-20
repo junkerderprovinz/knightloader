@@ -37,8 +37,8 @@ func TestConnectStartsInactive(t *testing.T) {
 	}
 }
 
-// Activate is the whole first-run flow: it must hand back a usable phrase
-// and leave the instance holding the matching secret.
+// TestActivateReturnsAUsablePhrase checks that activation hands back a phrase
+// that decodes and stores the matching secret.
 func TestActivateReturnsAUsablePhrase(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
@@ -68,8 +68,8 @@ func TestActivateReturnsAUsablePhrase(t *testing.T) {
 	}
 }
 
-// Minting a second phrase over the first would orphan every instance that
-// joined with the old one, silently.
+// TestActivateRefusesToReplaceAnExistingPhrase guards the instances already
+// joined with the old phrase.
 func TestActivateRefusesToReplaceAnExistingPhrase(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
@@ -83,9 +83,8 @@ func TestActivateRefusesToReplaceAnExistingPhrase(t *testing.T) {
 	}
 }
 
-// The join half: a phrase minted on one instance has to be accepted by
-// another and leave both holding the same secret - that is the entire
-// feature.
+// TestJoinAcceptsAPhraseFromElsewhere checks that a phrase minted on one
+// instance leaves another holding the same secret.
 func TestJoinAcceptsAPhraseFromElsewhere(t *testing.T) {
 	first, firstApp := testServer(t)
 	defer first.Close()
@@ -111,10 +110,8 @@ func TestJoinAcceptsAPhraseFromElsewhere(t *testing.T) {
 	}
 }
 
-// A mistyped phrase must come back as a REASON plus its specifics, not as a
-// sentence. Whoever mistyped the word is reading a UI in their own language
-// and a sentence written in Go can only be in one, so the browser writes the
-// message and this only has to say precisely what was wrong.
+// TestJoinRejectsABadPhraseAndSaysWhy checks that a mistyped phrase comes back
+// as a reason plus details the browser can put into the user's language.
 func TestJoinRejectsABadPhraseAndSaysWhy(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
@@ -136,7 +133,7 @@ func TestJoinRejectsABadPhraseAndSaysWhy(t *testing.T) {
 			position: 7,
 		},
 		{
-			// Every word real, the phrase not: what the checksum is for.
+			// Every word is real but the checksum fails.
 			name:   "two words swapped",
 			phrase: "about abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon",
 			reason: "checksum",
@@ -175,8 +172,7 @@ func TestJoinRejectsABadPhraseAndSaysWhy(t *testing.T) {
 			if out.Count != tc.count {
 				t.Errorf("count = %d, want %d", out.Count, tc.count)
 			}
-			// The English sentence rides along for logs and for anything
-			// reading the body as text; it must not be the only thing there.
+			// The English sentence comes along for logs and plain-text readers.
 			if out.Error == "" {
 				t.Error("no error text alongside the reason")
 			}
@@ -184,8 +180,8 @@ func TestJoinRejectsABadPhraseAndSaysWhy(t *testing.T) {
 	}
 }
 
-// With no password there is nothing to re-enter, so reveal simply answers -
-// the consequence of jdp's call that activation warns rather than blocks.
+// TestRevealWithoutAPasswordJustAnswers covers an instance without a password,
+// where there is nothing to re-enter.
 func TestRevealWithoutAPasswordJustAnswers(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
@@ -213,9 +209,9 @@ func TestRevealWithoutAPasswordJustAnswers(t *testing.T) {
 	}
 }
 
-// The security property that matters: once a password exists, holding a
-// session is not enough to see the phrase again, because the phrase reaches
-// every instance in the group and not just this one.
+// TestRevealNeedsThePasswordEvenWithASession checks that a session alone does
+// not show the phrase once a password is set, since the phrase reaches every
+// instance in the group.
 func TestRevealNeedsThePasswordEvenWithASession(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
@@ -231,9 +227,7 @@ func TestRevealNeedsThePasswordEvenWithASession(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Authenticated as far as the session guard is concerned - a token is
-	// exactly as good as a cookie there - and still refused without the
-	// password itself.
+	// The token passes the session guard, yet the password is still required.
 	for _, c := range []struct {
 		name string
 		body map[string]string
@@ -272,8 +266,8 @@ func TestRevealWithNoPhraseIs404(t *testing.T) {
 	}
 }
 
-// Leaving has to actually forget the secret, and has to stay quiet when
-// there was nothing to forget - a stale page's second click is not an error.
+// TestDeleteForgetsTheSecretAndIsIdempotent also covers a stale page's second
+// click, which is not an error.
 func TestDeleteForgetsTheSecretAndIsIdempotent(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
@@ -298,9 +292,8 @@ func TestDeleteForgetsTheSecretAndIsIdempotent(t *testing.T) {
 	}
 }
 
-// relayTarget is what turns a stored secret into a relay to dial. The key
-// it produces must be the derived one, never the secret itself - that is
-// the property keeping the relay operator from reconstructing a phrase.
+// TestRelayTargetDerivesRatherThanSendingTheSecret checks that the relay gets
+// a derived key and never the secret, so its operator cannot rebuild a phrase.
 func TestRelayTargetDerivesRatherThanSendingTheSecret(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
@@ -315,31 +308,30 @@ func TestRelayTargetDerivesRatherThanSendingTheSecret(t *testing.T) {
 		t.Errorf("url = %q, want %q", url, relay.DefaultRelayURL)
 	}
 	if key == storedHex {
-		t.Fatal("the key sent to the relay IS the stored secret")
+		t.Fatal("the key sent to the relay is the stored secret")
 	}
 	if len(key) < 32 {
 		t.Errorf("derived key is %d characters, below the relay's own minimum", len(key))
 	}
 
-	// The frame key is the second half of the same property. The relay is
-	// handed `key` in every hello frame, so a frame key equal to it, or
-	// derivable from it, would mean the operator could read what they route.
+	// The relay gets key in every hello frame, so the frame key must be
+	// neither equal to it nor derivable from it.
 	if len(frameKey) != 32 {
 		t.Fatalf("frame key is %d bytes, want 32", len(frameKey))
 	}
 	if hex.EncodeToString(frameKey) == key {
-		t.Error("the frame key IS the key handed to the relay")
+		t.Error("the frame key is the key handed to the relay")
 	}
 	if hex.EncodeToString(frameKey) == storedHex {
-		t.Error("the frame key IS the stored secret")
+		t.Error("the frame key is the stored secret")
 	}
 	if bytes.Equal(frameKey, relay.FrameKeyFromRelayKey(key)) {
 		t.Error("the frame key is derivable from the key the relay is already given")
 	}
 }
 
-// An override points the same phrase at somebody's own relay - the exit
-// path that keeps this from being a service nobody can leave.
+// TestRelayTargetHonoursASelfHostedOverride checks that the same phrase can be
+// pointed at somebody's own relay.
 func TestRelayTargetHonoursASelfHostedOverride(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
@@ -360,23 +352,15 @@ func TestRelayTargetHonoursASelfHostedOverride(t *testing.T) {
 	if key == "" {
 		t.Error("no key with an override set")
 	}
-	// Pointing at your own relay must not quietly cost you the sealing: the
-	// secret is the same secret, so the frame key is the same frame key.
+	// Frames are still sealed with an override.
 	if len(frameKey) != 32 {
 		t.Errorf("frame key is %d bytes with an override set, want 32", len(frameKey))
 	}
 }
 
-// TestOwnRelayWithNoAddressDialsNothing is the fix for a report that arrived as
-// a badge complaint and turned out to be a routing one (jdp, 2026-09-07: "der
-// verbunden badge schaltet auf verbunden sobald das eigene relay ativiert wird
-// ohne, dass es eingerichtet ist").
-//
-// Choosing "my own relay" and leaving the address empty used to fall through to
-// relay.DefaultRelayURL - the PROJECT relay. The badge saying "connected" was
-// the visible half; the half that matters is that somebody who deliberately
-// moved off the project relay was connected to it anyway, and told they were
-// connected. An unconfigured choice is not a fallback.
+// TestOwnRelayWithNoAddressDialsNothing checks that choosing an own relay
+// without an address dials nothing rather than falling back to the project
+// relay.
 func TestOwnRelayWithNoAddressDialsNothing(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
@@ -393,14 +377,13 @@ func TestOwnRelayWithNoAddressDialsNothing(t *testing.T) {
 
 	url, key, _ := relayTarget(a)
 	if url != "" {
-		t.Errorf("url = %q, want nothing dialled - own relay is selected with no address", url)
+		t.Errorf("url = %q, want nothing dialled; own relay is selected with no address", url)
 	}
 	if key != "" {
 		t.Errorf("key = %q, want none: there is nowhere to send it", key)
 	}
 
-	// And the address, once given, is honoured as it always was: this must not
-	// have turned "own relay" into "no relay ever".
+	// Once an address is given it is dialled.
 	cfg.RelayURL = "wss://relay.example.com"
 	if _, err := a.Settings.Set(cfg); err != nil {
 		t.Fatal(err)

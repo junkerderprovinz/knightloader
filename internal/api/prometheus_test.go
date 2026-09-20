@@ -1,9 +1,5 @@
 package api
 
-// The exposition encoder. Every test here is about a failure that costs the
-// WHOLE scrape rather than one line, or about a number that would be wrong in
-// the direction that wakes somebody up.
-
 import (
 	"sort"
 	"strings"
@@ -13,14 +9,9 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/app"
 )
 
-// promFixture is a report with every awkward case in it at once: a Windows
-// path, a quote inside a folder name, a volume nothing could measure, a part in
-// each of the five states, and both breakdown maps populated.
-//
-// Every value in it is one the app can genuinely produce. The Windows path is
-// what the desktop build reports; the quoted folder is a name a filesystem
-// accepts on unix; the unmeasurable volume is what internal/diskspace answers on
-// a kernel it has no call for.
+// promFixture is a report with every awkward case the app can produce: a
+// Windows path, a quote inside a folder name, a volume nothing could measure,
+// a part in each of the five states, and both breakdown maps populated.
 func promFixture() app.HealthReport {
 	return app.HealthReport{
 		Status:        app.StateDegraded,
@@ -47,15 +38,12 @@ func promFixture() app.HealthReport {
 				Queued: 4096, Tasks: 7, Role: "downloads",
 			},
 			{
-				// A folder name with a double quote in it, which unix
-				// filesystems accept and which closes the label early if it is
-				// not escaped.
+				// A double quote closes the label early unless escaped.
 				Dir: `/mnt/the "good" stuff`, Measured: `/mnt/the "good" stuff`, Exists: true,
 				Known: true, Free: 1, Used: 2, Total: 3, Queued: 0, Tasks: 0, Role: "category",
 			},
 			{
-				// Nothing could be asked. Its three byte counts are zero and
-				// mean NOTHING.
+				// Unmeasurable; its byte counts are meaningless zeros.
 				Dir: "/downloads", Measured: "/downloads", Exists: true,
 				Known: false, Queued: 99, Tasks: 1, Role: "work",
 			},
@@ -83,14 +71,8 @@ func metricNameOf(line string) string {
 	return line
 }
 
-// TestAWindowsPathSurvivesTheLabelEscaping is the one that drops an entire
-// scrape when it is wrong.
-//
-// The disk rows carry the folder paths straight out of the settings document
-// and the desktop build runs on Windows, so `C:\Users\x\Downloads` lands in a
-// label value. One unescaped backslash makes the line unparseable and Prometheus
-// discards the WHOLE scrape, not just that series - so a monitoring system would
-// report the instance as down because of a folder name.
+// TestAWindowsPathSurvivesTheLabelEscaping covers the desktop build's folder
+// paths in label values; one unescaped backslash drops the whole scrape.
 func TestAWindowsPathSurvivesTheLabelEscaping(t *testing.T) {
 	body := prometheusText(promFixture())
 
@@ -104,9 +86,8 @@ func TestAWindowsPathSurvivesTheLabelEscaping(t *testing.T) {
 		t.Errorf("a quote in a folder name is not escaped, so the label closes early:\n%s", body)
 	}
 
-	// The order of the two replacements is the classic way this is written
-	// wrong: escaping the quote first turns `"` into `\"` and the backslash pass
-	// then doubles the backslash it had just written.
+	// Escaping the quote before the backslash would double the backslash it
+	// had just written.
 	if got := escapeLabelValue(`a"b\c` + "\nd"); got != `a\"b\\c\nd` {
 		t.Errorf("escapeLabelValue = %q, want %q", got, `a\"b\\c\nd`)
 	}
@@ -115,14 +96,8 @@ func TestAWindowsPathSurvivesTheLabelEscaping(t *testing.T) {
 	}
 }
 
-// TestAnUnmeasurableVolumeEmitsNoByteSeries is the difference between a report
-// and a false alarm at three in the morning.
-//
-// Known false means Free, Used and Total are 0 and mean NOTHING, which
-// VolumeReport says at length and useDiskSpace.ts repeats for the frontend.
-// Writing knightloader_disk_free_bytes ... 0 for such a volume hands an alert
-// rule a full disk that does not exist, on the exact platform where every disk
-// guard in the app is already holding nothing back.
+// TestAnUnmeasurableVolumeEmitsNoByteSeries checks that a volume with Known
+// false writes no byte series, which an alert rule would read as a full disk.
 func TestAnUnmeasurableVolumeEmitsNoByteSeries(t *testing.T) {
 	body := prometheusText(promFixture())
 
@@ -136,26 +111,20 @@ func TestAnUnmeasurableVolumeEmitsNoByteSeries(t *testing.T) {
 			}
 		}
 	}
-	// What it DOES keep are the two figures that come from the queue rather
-	// than from the filesystem: nothing about those is unknown.
+	// The two figures that come from the queue stay.
 	if !strings.Contains(body, `knightloader_disk_queued_bytes{role="work",dir="/downloads"} 99`) {
 		t.Errorf("the queued bytes went missing with the byte series; they come from the queue, not the disk:\n%s", body)
 	}
 	if !strings.Contains(body, `knightloader_disk_tasks{role="work",dir="/downloads"} 1`) {
 		t.Errorf("the task count went missing with the byte series:\n%s", body)
 	}
-	// And a measurable volume keeps all three, including the one that is
-	// genuinely zero.
 	if !strings.Contains(body, `knightloader_disk_free_bytes{role="downloads",dir="C:\\Users\\x\\Downloads"} 128849018880`) {
 		t.Errorf("a measured volume lost its free bytes:\n%s", body)
 	}
 }
 
-// TestEveryPartIsEmittedInAllFiveStates. Writing only the state a part is in
-// looks tidier and is a trap: when JD recovers, the state="failed" series stops
-// being written and Prometheus goes on serving its last value for the whole
-// staleness window, so an alert keeps firing for five minutes after the fault
-// was fixed.
+// TestEveryPartIsEmittedInAllFiveStates checks that each part writes all five
+// states, so a recovered fault clears at once instead of going stale.
 func TestEveryPartIsEmittedInAllFiveStates(t *testing.T) {
 	rep := promFixture()
 	body := prometheusText(rep)
@@ -189,15 +158,13 @@ func TestEveryPartIsEmittedInAllFiveStates(t *testing.T) {
 	}
 }
 
-// TestEachFamilyIsDeclaredOnceAndItsSamplesAreContiguous is the format's own
-// hard rule. An interleaved family or a second # HELP for one that already has
-// it is a parse error, and a parse error is the whole scrape.
+// TestEachFamilyIsDeclaredOnceAndItsSamplesAreContiguous checks the format's
+// rule that a family is declared once and never interleaved.
 func TestEachFamilyIsDeclaredOnceAndItsSamplesAreContiguous(t *testing.T) {
 	lines := promLines(t, prometheusText(promFixture()))
 
 	helps, types := map[string]int{}, map[string]int{}
-	// closed is a family whose run of samples has already ended: seeing another
-	// of its samples afterwards is the interleaving this test exists for.
+	// closed holds families whose run of samples has ended.
 	closed := map[string]bool{}
 	current := ""
 	declared := map[string]bool{}
@@ -217,7 +184,7 @@ func TestEachFamilyIsDeclaredOnceAndItsSamplesAreContiguous(t *testing.T) {
 			name := metricNameOf(rest)
 			types[name]++
 			if !strings.HasSuffix(rest, " gauge") {
-				t.Errorf("line %d declares %s as something other than a gauge: %q - nothing in this report is monotonic", i+1, name, line)
+				t.Errorf("line %d declares %s as something other than a gauge: %q; nothing in this report is monotonic", i+1, name, line)
 			}
 		case strings.TrimSpace(line) == "":
 			t.Errorf("line %d is blank; a blank line inside an exposition is not part of the format", i+1)
@@ -227,7 +194,7 @@ func TestEachFamilyIsDeclaredOnceAndItsSamplesAreContiguous(t *testing.T) {
 				t.Errorf("line %d is a sample of %s, which has no # HELP above it: %q", i+1, name, line)
 			}
 			if closed[name] {
-				t.Errorf("line %d puts %s back after its run ended: %q - an interleaved family is a parse error", i+1, name, line)
+				t.Errorf("line %d puts %s back after its run ended: %q; an interleaved family is a parse error", i+1, name, line)
 			}
 			if name != current {
 				closed[current] = true
@@ -248,18 +215,15 @@ func TestEachFamilyIsDeclaredOnceAndItsSamplesAreContiguous(t *testing.T) {
 	}
 }
 
-// TestNoSeriesIsEmittedTwice. A duplicate series - the same name with the same
-// labels - is rejected wholesale, so it costs everything else in the scrape as
-// well. The one realistic way to write it is a family being emitted from two
-// places, which is why this looks at the whole body rather than at one family.
+// TestNoSeriesIsEmittedTwice looks at the whole body, since a duplicate
+// usually comes from a family written in two places.
 func TestNoSeriesIsEmittedTwice(t *testing.T) {
 	seen := map[string]int{}
 	for _, line := range promLines(t, prometheusText(promFixture())) {
 		if strings.HasPrefix(line, "#") {
 			continue
 		}
-		// Everything up to the last space is the series; what follows is the
-		// value, which is allowed to repeat.
+		// Everything up to the last space is the series.
 		series := line
 		if i := strings.LastIndex(line, " "); i >= 0 {
 			series = line[:i]
@@ -278,10 +242,8 @@ func TestNoSeriesIsEmittedTwice(t *testing.T) {
 	}
 }
 
-// TestTwoRendersOfOneReportAreIdentical. Go randomises map iteration, so an
-// unsorted walk over the two breakdown maps reorders the samples of a family on
-// every scrape. That parses correctly and makes two scrapes impossible to diff
-// by eye, which is the first thing anybody does when a number looks wrong.
+// TestTwoRendersOfOneReportAreIdentical guards against map iteration order
+// reaching the output.
 func TestTwoRendersOfOneReportAreIdentical(t *testing.T) {
 	rep := promFixture()
 	first := prometheusText(rep)
@@ -290,8 +252,6 @@ func TestTwoRendersOfOneReportAreIdentical(t *testing.T) {
 			t.Fatalf("render %d differs from the first:\n%s\n---\n%s", i+2, first, got)
 		}
 	}
-	// And the breakdown really is in key order rather than in whatever order it
-	// happened to land in.
 	waiting := strings.Index(first, `knightloader_tasks_waiting{reason="disk"} 12`)
 	slot := strings.Index(first, `knightloader_tasks_waiting{reason="slot"} 4`)
 	if waiting < 0 || slot < 0 || waiting > slot {
@@ -299,9 +259,8 @@ func TestTwoRendersOfOneReportAreIdentical(t *testing.T) {
 	}
 }
 
-// TestTheTaskBucketsAndTheFlagsAreWrittenAsPlainNumbers is the small stuff that
-// is only ever wrong once: a flag written as true/false, a count written with a
-// separator, a family that quietly stopped being written at all.
+// TestTheTaskBucketsAndTheFlagsAreWrittenAsPlainNumbers checks flags as 0 or
+// 1, counts without separators, and that every family is still written.
 func TestTheTaskBucketsAndTheFlagsAreWrittenAsPlainNumbers(t *testing.T) {
 	body := prometheusText(promFixture())
 	for _, want := range []string{
@@ -321,8 +280,7 @@ func TestTheTaskBucketsAndTheFlagsAreWrittenAsPlainNumbers(t *testing.T) {
 			t.Errorf("missing or misspelt: %q\n%s", want, body)
 		}
 	}
-	// An empty report still renders: every family is declared, no sample lies,
-	// and nothing panics on nil maps and nil slices.
+	// An empty report still declares every family and invents no sample.
 	empty := prometheusText(app.HealthReport{})
 	if !strings.Contains(empty, "# TYPE knightloader_disk_free_bytes gauge") {
 		t.Errorf("an instance with no volumes drops the family declaration:\n%s", empty)

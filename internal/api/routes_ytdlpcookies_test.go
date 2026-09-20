@@ -1,10 +1,7 @@
 package api
 
-// Route-level tests for the cookie jars, against a real app on a throwaway
-// data directory - the shape routes_downloadclient_test.go uses, and for the
-// same reason: what is being asserted here is what actually crosses the wire
-// and what actually lands in the encrypted store, neither of which a stubbed
-// app could answer for.
+// Route-level tests for the cookie jars against a real app, since what matters
+// is what crosses the wire and what lands in the encrypted store.
 
 import (
 	"bytes"
@@ -18,18 +15,13 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
 )
 
-// theJar carries a string that appears nowhere else, so a test can look for it
-// in a response body and know that finding it means the response carried the
-// session and not a coincidence.
+// theJar carries a distinctive session value the leak checks look for.
 const (
 	cookieSecret = "SESSION-b7f1c2d4-never-leaves-the-store"
 	theJar       = "# Netscape HTTP Cookie File\n.youtube.com\tTRUE\t/\tTRUE\t0\tSID\t" + cookieSecret + "\n"
 )
 
-// cookieServer attaches this file's routes and nothing else. Not testServer,
-// which builds the whole table through registerAll: the registration line in
-// routes.go is added separately, and TestEverySubsystemIsRegistered is already
-// the guard for that line being there. This helper is about the handlers.
+// cookieServer attaches this file's routes and nothing else.
 func cookieServer(t *testing.T) (*httptest.Server, *app.App) {
 	t.Helper()
 	a := testApp(t)
@@ -42,9 +34,8 @@ func cookieServer(t *testing.T) (*httptest.Server, *app.App) {
 	return srv, a
 }
 
-// postCookieJSON sends any body to one of the two write routes and hands back
-// the status with the RAW response bytes, because what several of these tests
-// are about is the bytes rather than the decoded shape.
+// postCookieJSON sends a body to one of the write routes and returns the
+// status and the raw response bytes.
 func postCookieJSON(t *testing.T, srv *httptest.Server, path string, body any) (int, []byte) {
 	t.Helper()
 	raw, err := json.Marshal(body)
@@ -63,9 +54,7 @@ func postCookieJSON(t *testing.T, srv *httptest.Server, path string, body any) (
 	return resp.StatusCode, out
 }
 
-// getCookieHosts is the listing, raw and decoded: raw because the guard below
-// is about what the bytes contain, decoded because every other test wants the
-// names.
+// getCookieHosts returns the listing both raw and decoded.
 func getCookieHosts(t *testing.T, srv *httptest.Server) (int, []byte, []string) {
 	t.Helper()
 	resp, err := http.Get(srv.URL + "/api/ytdlp/cookies")
@@ -86,20 +75,9 @@ func getCookieHosts(t *testing.T, srv *httptest.Server) (int, []byte, []string) 
 	return resp.StatusCode, raw, hosts
 }
 
-// TestCookieListNeverCarriesTheJar is the guard this file exists for.
-//
-// A cookies.txt is a live session, and the listing is what a settings page
-// renders on every visit - so the moment any of these three routes answers
-// with the text, the session is in a browser tab's memory, in whatever proxy
-// log sits between, and one screenshot away from a public bug report. The
-// store itself refuses to make this easy (CookieStore.Text is deliberately not
-// wired to any route), and this asserts that the HTTP layer did not undo that
-// on the way out.
-//
-// It reads the RAW bytes of all three answers rather than a decoded field: a
-// leak added later would arrive in a field nothing here knows the name of, and
-// a test that only checked the fields it already knows about would report
-// nothing at all.
+// TestCookieListNeverCarriesTheJar searches the raw bytes of all three answers
+// for the session, since a leak added later would arrive in a field this test
+// does not know.
 func TestCookieListNeverCarriesTheJar(t *testing.T) {
 	srv, _ := cookieServer(t)
 
@@ -121,9 +99,7 @@ func TestCookieListNeverCarriesTheJar(t *testing.T) {
 	if bytes.Contains(raw, []byte(cookieSecret)) {
 		t.Errorf("the listing shipped the stored session to the client:\n%s", raw)
 	}
-	// The other half of the same assertion: a route that answered nothing at
-	// all would pass the check above while telling the page nothing, so the
-	// name has to be there for the absence of the text to mean anything.
+	// An empty answer would pass the check above too.
 	if len(hosts) != 1 || hosts[0] != "youtube.com" {
 		t.Fatalf("the listing = %v, want the one host that has a jar", hosts)
 	}
@@ -137,11 +113,9 @@ func TestCookieListNeverCarriesTheJar(t *testing.T) {
 	}
 }
 
-// TestCookieJarIsStoredUnderTheHostALookupUses is the normalisation the whole
-// feature turns on. yt-dlp is handed a jar by CookieStore.Text, which walks
-// cookieHostChain - lower-cased and "www."-stripped - so a jar filed under
-// what a person actually pasted ("https://www.YouTube.com/watch?v=x") is
-// stored, listed on the page, and never once read.
+// TestCookieJarIsStoredUnderTheHostALookupUses checks that whatever form of
+// the host is pasted, the jar lands under the lower-cased, "www."-stripped key
+// CookieStore.Text looks up.
 func TestCookieJarIsStoredUnderTheHostALookupUses(t *testing.T) {
 	srv, a := cookieServer(t)
 
@@ -158,29 +132,23 @@ func TestCookieJarIsStoredUnderTheHostALookupUses(t *testing.T) {
 		}
 		_, _, hosts := getCookieHosts(t, srv)
 		if len(hosts) != 1 || hosts[0] != "youtube.com" {
-			t.Fatalf("%q was filed as %v, want [youtube.com] - the key every lookup builds", typed, hosts)
+			t.Fatalf("%q was filed as %v, want [youtube.com], the key every lookup builds", typed, hosts)
 		}
-		// The lookup itself, not just the name: this is the call the yt-dlp
-		// backend makes on every spawn.
+		// The call the yt-dlp backend makes on every spawn.
 		if got := ytdlp.NewCookieStore(a.Accounts).Text("https://www.youtube.com/watch?v=1"); got != theJar {
 			t.Fatalf("after storing for %q the backend's own lookup found %q, want the jar", typed, got)
 		}
-		// Removed under the SAME string it was stored under, so that the
-		// remove route's own normalisation is exercised too: it looks the host
-		// up in the listing before it deletes anything (that is what makes a
-		// typo a 404), and a key normalised on the way in but not on the way
-		// out would answer "nothing is stored for it" about a jar that is
-		// sitting right there.
+		// Removed under the same typed string, so the remove route's
+		// normalisation is exercised too.
 		if code, body := postCookieJSON(t, srv, "/api/ytdlp/cookies/remove", map[string]any{"host": typed}); code != http.StatusOK {
 			t.Fatalf("removing the jar stored for %q answered %d (%s)", typed, code, body)
 		}
 	}
 }
 
-// TestCookieHostThatIsNotAHostIsRefused: accounts.Store seals whatever it is
-// given and validates nothing, so a pasted address that lost its scheme would
-// be filed as "youtube.com/watch?v=x", listed as though it were a site, and
-// matched by nothing. The 400 is the only moment anybody can be told.
+// TestCookieHostThatIsNotAHostIsRefused covers an address pasted without its
+// scheme, which accounts.Store would otherwise seal under a key nothing
+// matches.
 func TestCookieHostThatIsNotAHostIsRefused(t *testing.T) {
 	srv, _ := cookieServer(t)
 
@@ -198,13 +166,9 @@ func TestCookieHostThatIsNotAHostIsRefused(t *testing.T) {
 	}
 }
 
-// TestSavingWithNoTextKeepsTheStoredJar is the silent-wipe guard. A stored jar
-// is never sent back to the page, so a form cannot round-trip one: a save that
-// left the field out - a UI saving the row after an edit to some other column,
-// a client written from an older shape - must not be read as "clear it". The
-// download that would break afterwards fails as "sign in to confirm you are
-// not a bot", which reads as the site changing its mind rather than as this
-// endpoint having deleted the answer to it.
+// TestSavingWithNoTextKeepsTheStoredJar checks that a save without the text
+// field is refused rather than read as a clear, since the page can never send
+// a stored jar back.
 func TestSavingWithNoTextKeepsTheStoredJar(t *testing.T) {
 	srv, a := cookieServer(t)
 
@@ -227,9 +191,8 @@ func TestSavingWithNoTextKeepsTheStoredJar(t *testing.T) {
 	}
 }
 
-// TestEmptyTextClearsTheJar is the other half of that decision: an empty text
-// is the deliberate clear, which is the contract CookieStore.Set already has,
-// and the listing has to agree immediately.
+// TestEmptyTextClearsTheJar checks that an empty text clears the jar, as in
+// CookieStore.Set, and that the listing agrees at once.
 func TestEmptyTextClearsTheJar(t *testing.T) {
 	srv, a := cookieServer(t)
 
@@ -255,10 +218,8 @@ func TestEmptyTextClearsTheJar(t *testing.T) {
 	}
 }
 
-// TestRemovingAHostWithNoJarIs404 stops somebody believing a typo took their
-// logged-in session off this machine while it is still sealed under the name
-// they meant to type - the same answer DELETE /api/tokens/{id} gives an
-// unknown id, for a sharper version of the same reason.
+// TestRemovingAHostWithNoJarIs404 checks that a typo cannot look like a
+// removed session.
 func TestRemovingAHostWithNoJarIs404(t *testing.T) {
 	srv, _ := cookieServer(t)
 
@@ -280,10 +241,8 @@ func TestRemovingAHostWithNoJarIs404(t *testing.T) {
 	}
 }
 
-// TestAnEmptyCookieListIsAnEmptyArray: encoding/json writes a nil slice as
-// null, CookieStore.Hosts answers nil until something is stored, and a page
-// mapping over the answer would throw on every fresh instance - the state in
-// which the settings page is most likely to be opened.
+// TestAnEmptyCookieListIsAnEmptyArray checks that a fresh instance answers []
+// rather than null.
 func TestAnEmptyCookieListIsAnEmptyArray(t *testing.T) {
 	srv, _ := cookieServer(t)
 

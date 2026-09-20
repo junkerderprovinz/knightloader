@@ -34,8 +34,8 @@ func postStartup(t *testing.T, url string) (int, startupcheck.Report, []byte) {
 }
 
 // waitForStartupState polls the bundle until the boot pass has finished. The
-// pass runs on its own goroutine after the listener is up, which is the whole
-// point of it, so there is nothing to wait on synchronously.
+// pass runs on its own goroutine after the listener is up, so there is nothing
+// to wait on synchronously.
 func waitForStartupState(t *testing.T, url string, want string) Diagnostics {
 	t.Helper()
 	deadline := time.Now().Add(60 * time.Second)
@@ -51,12 +51,10 @@ func waitForStartupState(t *testing.T, url string, want string) Diagnostics {
 	return d
 }
 
-// TestDiagnosticsSaysNullWhenNothingEverChecked.
-//
-// `startup: null` and `startup: {checks: []}` are different claims and the
-// second one is a lie: an empty check list drawn as a clean bill of health is
-// the worst version of "no opinion labelled as fine". app.New must never start a
-// pass, so a bundle from a plain instance carries the null.
+// TestDiagnosticsSaysNullWhenNothingEverChecked: startup null and startup
+// {checks: []} are different claims, and the second is drawn as a clean bill
+// of health. app.New starts no pass, so a bundle from a plain instance carries
+// the null.
 func TestDiagnosticsSaysNullWhenNothingEverChecked(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
@@ -65,8 +63,8 @@ func TestDiagnosticsSaysNullWhenNothingEverChecked(t *testing.T) {
 	if d.Startup != nil {
 		t.Errorf("startup = %+v on an instance where nothing ever started a check", d.Startup)
 	}
-	// The FIELD has to be there, carrying null - not omitted. A missing key and
-	// a null one look the same to a JavaScript truth test and completely
+	// The field has to be there carrying null rather than omitted. A missing
+	// key and a null one look the same to a JavaScript truth test and quite
 	// different to anybody reading the saved file.
 	var doc map[string]json.RawMessage
 	if err := json.Unmarshal(raw, &doc); err != nil {
@@ -81,24 +79,21 @@ func TestDiagnosticsSaysNullWhenNothingEverChecked(t *testing.T) {
 	}
 }
 
-// probeGlob finds a probe file the check should not have left behind. It has to
-// stay in step with startupcheck's own probePrefix, which is unexported there
-// because nothing outside that package has any business building the name.
+// probeGlob finds a probe file the check should not have left behind. It has
+// to stay in step with startupcheck's probePrefix, which is unexported because
+// nothing outside that package builds the name.
 const probeGlob = ".knightloader-startup-*"
 
-// TestStartupRecheckIsPostOnly.
+// TestStartupRecheckIsPostOnly. The re-run writes a probe file into every
+// configured folder that exists. As a GET it would be fired by any browser
+// prefetch, link scanner or speculative navigation, so hovering a bookmark
+// would drop files into somebody's download folder.
 //
-// The re-run writes a probe file into every configured folder that exists.
-// Registered as a GET it would be a route any browser prefetch, any link scanner
-// and any speculative navigation fires by itself, so hovering a bookmark would
-// drop files into somebody's download folder.
-//
-// The assertion is about the FILES and not only about the status code, because
-// the status code is the weaker half of the promise: what must be true is that
-// nothing was written, and only looking in the folder says so. (The code itself
-// is 404 rather than the 405 the routing table's own comment predicts - the
-// "/api/" catch-all in Registry.attach matches the path first, and answers "no
-// such endpoint". Either is a refusal; neither is a write.)
+// The assertion is about the files and not only the status code: what has to
+// be true is that nothing was written, and only looking in the folder says so.
+// The code is 404 rather than the 405 the routing table predicts, because the
+// "/api/" catch-all in Registry.attach matches the path first; either is a
+// refusal and neither is a write.
 func TestStartupRecheckIsPostOnly(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
@@ -116,8 +111,8 @@ func TestStartupRecheckIsPostOnly(t *testing.T) {
 		t.Errorf("a GET wrote %v into the download folder", got)
 	}
 
-	// And the POST really does write, or the test above would be passing
-	// because the feature does nothing at all.
+	// And the POST does write, or the check above would pass because the
+	// feature does nothing.
 	code, rep, raw := postStartup(t, srv.URL)
 	if code != http.StatusOK {
 		t.Fatalf("POST /api/diagnostics/startup answered %d: %s", code, raw)
@@ -137,9 +132,9 @@ func TestStartupRecheckIsPostOnly(t *testing.T) {
 }
 
 // configureDownloadDir gives an instance a real, empty download folder of its
-// own, so "was anything written in there" has a clean answer - on a default
-// install that folder is inside the data directory, where the database and the
-// settings would make every leftover ambiguous.
+// own, so "was anything written in there" has a clean answer. On a default
+// install that folder sits inside the data directory, where the database and
+// the settings make every leftover ambiguous.
 func configureDownloadDir(t *testing.T, a *app.App) string {
 	t.Helper()
 	dir := filepath.Join(t.TempDir(), "downloads")
@@ -166,12 +161,10 @@ func probeFiles(t *testing.T, dir string) []string {
 	return found
 }
 
-// TestStartupRecheckIsNeitherRelayedNorForwarded.
-//
-// "Java is missing" about a PEER's box, shown while a peer's list is on screen,
-// names the wrong machine with total confidence - which is the argument
-// routes_diskspace.go already makes for disk figures. Both allowlists name their
-// routes one by one, so this pins that nobody widened either of them.
+// TestStartupRecheckIsNeitherRelayedNorForwarded: "Java is missing" about a
+// peer's box, shown while a peer's list is on screen, names the wrong machine,
+// the argument routes_diskspace.go makes for disk figures. Both allowlists
+// name their routes one by one, so this pins that neither was widened.
 func TestStartupRecheckIsNeitherRelayedNorForwarded(t *testing.T) {
 	if relayForwardable(http.MethodPost, "/api/diagnostics/startup") {
 		t.Error("the relay would carry the start check to another instance")
@@ -181,11 +174,9 @@ func TestStartupRecheckIsNeitherRelayedNorForwarded(t *testing.T) {
 	}
 }
 
-// TestPressingRecheckDoesNotBecomeTheBundlesReading is trap fourteen.
-//
-// If the press replaced the stored report, the evidence of what was true at boot
-// would be destroyed the first time anybody pressed it - which is precisely the
-// moment a support thread needs it.
+// TestPressingRecheckDoesNotBecomeTheBundlesReading: if the press replaced the
+// stored report, the evidence of what was true at boot would be destroyed the
+// first time anybody pressed it, which is when a support thread needs it.
 func TestPressingRecheckDoesNotBecomeTheBundlesReading(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
@@ -210,14 +201,12 @@ func TestPressingRecheckDoesNotBecomeTheBundlesReading(t *testing.T) {
 	}
 }
 
-// TestABundleWithAStartReportStillShipsNoPaths.
-//
-// This is TestDiagnosticsShipsNoPaths' argument applied to the new field, and it
-// is not theoretical: with no download folder configured the default one is
-// INSIDE the data directory (app.go's dlDir), so an unmasked folder row would
-// put a desktop user's own name - C:\Users\<their real name>\AppData\... - into
-// a file people attach to public bug reports. It has to run with a report
-// actually present, or it proves nothing at all.
+// TestABundleWithAStartReportStillShipsNoPaths applies
+// TestDiagnosticsShipsNoPaths' argument to the startup field. With no download
+// folder configured the default one sits inside the data directory (app.go's
+// dlDir), so an unmasked folder row would put a desktop user's own name into a
+// file people attach to public bug reports. It has to run with a report
+// present, or it proves nothing.
 func TestABundleWithAStartReportStillShipsNoPaths(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
@@ -236,8 +225,8 @@ func TestABundleWithAStartReportStillShipsNoPaths(t *testing.T) {
 			}
 		}
 	}
-	// And the row is still worth reading: masked, not blanked. A folder row with
-	// no subject is the one row nobody can act on.
+	// Masked rather than blanked, so the row is still worth reading: a folder
+	// row with no subject is one nobody can act on.
 	var seen bool
 	for _, c := range d.Startup.Checks {
 		if c.ID == startupcheck.IDData || c.ID == startupcheck.IDFolder {
@@ -252,9 +241,8 @@ func TestABundleWithAStartReportStillShipsNoPaths(t *testing.T) {
 	}
 }
 
-// TestTheBootPassWritesNothing, from the outside. The owner's decision is that a
-// start writes no probe file anywhere; this is the assertion an api-level reader
-// can make about it without reaching into the app package.
+// TestTheBootPassWritesNothing from the outside: a start writes no probe file
+// anywhere, asserted without reaching into the app package.
 func TestTheBootPassWritesNothing(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()

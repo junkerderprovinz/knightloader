@@ -97,8 +97,8 @@ func recordingProxy(t *testing.T, accept string) (host string, port int, seen <-
 	return h, n, ch
 }
 
-// store puts one connection in the settings the way a save would, and hands back
-// the row as the server holds it — with the ID Sanitize assigned.
+// storeConnection puts one connection in the settings the way a save would and
+// hands back the row as the server holds it, with the ID Sanitize assigned.
 func storeConnection(t *testing.T, a *app.App, e proxycfg.Entry) proxycfg.Entry {
 	t.Helper()
 	s := a.Settings.Get()
@@ -113,15 +113,11 @@ func storeConnection(t *testing.T, a *app.App, e proxycfg.Entry) proxycfg.Entry 
 	return applied.Connections[0]
 }
 
-// TestTestingARowDoesNotAskForThePasswordAgain is the behaviour the whole
-// redact-and-merge arrangement exists for, seen from the one place it is easiest
-// to get wrong.
-//
-// The client was never sent the password, so it cannot send one back. If the
-// test route probed with what the client posted, every test of a saved proxy
-// would fail on credentials that are perfectly correct — and the obvious "fix"
-// for that is a form that makes the user retype the password to change a host
-// filter.
+// TestTestingARowDoesNotAskForThePasswordAgain covers the redact-and-merge
+// arrangement from the place it is easiest to get wrong. The client was never
+// sent the password, so probing with what it posted would fail every test of a
+// saved proxy on credentials that are correct, and the obvious fix for that is
+// a form that makes the user retype the password to change a host filter.
 func TestTestingARowDoesNotAskForThePasswordAgain(t *testing.T) {
 	a, srv := connectionsServer(t)
 	host, port, seen := recordingProxy(t, "alice:secret")
@@ -149,13 +145,11 @@ func TestTestingARowDoesNotAskForThePasswordAgain(t *testing.T) {
 	}
 }
 
-// TestAnEditedEndpointDoesNotTakeTheStoredPasswordWithIt is the other half, and
-// it is a security property rather than a convenience: the client posting this
-// row is the one the password was withheld from, so a row it has re-pointed at a
-// machine it controls must not arrive there carrying the secret.
-//
-// The page has to say so, because from the user's side this looks like the
-// password being forgotten for no reason.
+// TestAnEditedEndpointDoesNotTakeTheStoredPasswordWithIt is the other half,
+// and a security property rather than a convenience: the client posting this
+// row is the one the password was withheld from, so a row it re-points at a
+// machine it controls must not arrive there carrying the secret. The page has
+// to say so, since from the user's side the password looks forgotten.
 func TestAnEditedEndpointDoesNotTakeTheStoredPasswordWithIt(t *testing.T) {
 	a, srv := connectionsServer(t)
 	host, port, seen := recordingProxy(t, "alice:secret")
@@ -181,10 +175,9 @@ func TestAnEditedEndpointDoesNotTakeTheStoredPasswordWithIt(t *testing.T) {
 	}
 }
 
-// TestARedactedRowIsTellableFromARowWithNoPassword. Without this the form shows
-// an empty password box for a working proxy, the user concludes the password was
-// lost, and types it in again — which is the retyping this whole arrangement was
-// built to avoid.
+// TestARedactedRowIsTellableFromARowWithNoPassword: otherwise the form shows
+// an empty password box for a working proxy, and the user retypes a password
+// that was never lost.
 func TestARedactedRowIsTellableFromARowWithNoPassword(t *testing.T) {
 	a, srv := connectionsServer(t)
 	s := a.Settings.Get()
@@ -223,9 +216,9 @@ func TestARedactedRowIsTellableFromARowWithNoPassword(t *testing.T) {
 	}
 }
 
-// TestImportStoresNothing. The refusals are only worth naming if somebody gets
-// to read them before the list is committed, and the page holds an unsaved draft
-// that a write here would silently disagree with.
+// TestImportStoresNothing: the refusals are only worth naming if somebody
+// reads them before the list is committed, and the page holds an unsaved draft
+// that a write here would disagree with.
 func TestImportStoresNothing(t *testing.T) {
 	a, srv := connectionsServer(t)
 	got := postConn[proxycfg.Import](t, srv, "/api/connections/import", map[string]any{
@@ -239,9 +232,9 @@ func TestImportStoresNothing(t *testing.T) {
 	}
 }
 
-// TestImportRefusesAgainstWhatIsAlreadyConfigured. The stored list is the half
-// the client cannot check for itself: the browser holds a draft, and a duplicate
-// of a row already saved is exactly the one a user cannot see coming.
+// TestImportRefusesAgainstWhatIsAlreadyConfigured: the browser holds a draft
+// and cannot check the stored list, so a duplicate of a saved row is the one
+// nobody sees coming.
 func TestImportRefusesAgainstWhatIsAlreadyConfigured(t *testing.T) {
 	a, srv := connectionsServer(t)
 	storeConnection(t, a, proxycfg.Entry{Kind: proxycfg.KindHTTP, Host: "proxy.lan", Port: 8080, Enabled: true})
@@ -263,10 +256,9 @@ func TestImportRefusesAgainstWhatIsAlreadyConfigured(t *testing.T) {
 	}
 }
 
-// TestConnectionRoutesNeedASession: neither of these may answer without one.
-// Import reads the stored connection list, and test dials whatever it is given
-// with the stored credentials — an open test route is a port scanner with the
-// user's passwords attached.
+// TestConnectionRoutesNeedASession: import reads the stored connection list,
+// and test dials whatever it is given with the stored credentials, so an open
+// test route is a port scanner with the user's passwords attached.
 func TestConnectionRoutesNeedASession(t *testing.T) {
 	reg := newRegistry()
 	registerConnections(reg, testApp(t))

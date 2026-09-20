@@ -1,9 +1,9 @@
 package api
 
-// The two volume routes over a real app with a real history behind it, because
-// the shape of the answer is the whole contract: a chart that has to work out
-// for itself which days are missing is a chart that will get it wrong on the
-// month a curve is most interesting.
+// The two volume routes over a real app with a real history behind it, where
+// the shape of the answer is the contract: a chart that has to work out for
+// itself which days are missing gets it wrong on the month a curve is most
+// interesting.
 
 import (
 	"net/http"
@@ -43,13 +43,14 @@ func statsFetched(t *testing.T, a *app.App, id, host, resolver string, size int6
 	}
 }
 
-// TestTheCurveIsBoundedAndGapFree is the promise that lets the route do without
-// a ?limit: both curves are always exactly as long as they say they are, on an
-// instance that has downloaded nothing and on one that has downloaded for years.
+// TestTheCurveIsBoundedAndGapFree is the promise that lets the route do
+// without a ?limit: both curves are as long as they say they are, on an
+// instance that has downloaded nothing and on one that has downloaded for
+// years.
 //
 // Gap-free is the other half. A quiet Sunday and a Sunday the record has lost
-// look identical in a list that simply leaves both out, and telling those two
-// apart is what the `oldest` field beside the curves is for.
+// look identical in a list that leaves both out, and the oldest field beside
+// the curves is what tells them apart.
 func TestTheCurveIsBoundedAndGapFree(t *testing.T) {
 	_, srv := statsServer(t)
 
@@ -67,8 +68,8 @@ func TestTheCurveIsBoundedAndGapFree(t *testing.T) {
 	if got.TimeZone == "" {
 		t.Error("no zone on the answer, so nothing can say whose calendar the buckets were cut in")
 	}
-	// Oldest first, one key each, and today at the end - which is what makes an
-	// abscissa drawable straight from the order.
+	// Oldest first, one key each, and today at the end, so an abscissa is
+	// drawable straight from the order.
 	seen := map[string]bool{}
 	for i, b := range got.Days {
 		if seen[b.Key] {
@@ -90,8 +91,8 @@ func TestTheCurveIsBoundedAndGapFree(t *testing.T) {
 	}
 }
 
-// TestAFinishedDownloadLandsInTodaysBucketAndInThisMonths is the route reading
-// the history it claims to read, at both units, with the splits the legend is
+// TestAFinishedDownloadLandsInTodaysBucketAndInThisMonths: the route reads the
+// history it claims to read, at both units, with the splits the legend is
 // drawn from.
 func TestAFinishedDownloadLandsInTodaysBucketAndInThisMonths(t *testing.T) {
 	a, srv := statsServer(t)
@@ -116,10 +117,10 @@ func TestAFinishedDownloadLandsInTodaysBucketAndInThisMonths(t *testing.T) {
 	}
 }
 
-// TestTheUsageRouteAnswersTheCounterAlone is why there are two routes. The
+// TestTheUsageRouteAnswersTheCounterAlone is why there are two routes: the
 // status bar asks for this on every page load and must not pull 42 buckets to
-// draw one number, and it needs the cap and the action with it or it cannot say
-// why a queue is waiting.
+// draw one number, and it needs the cap and the action with it to say why a
+// queue is waiting.
 func TestTheUsageRouteAnswersTheCounterAlone(t *testing.T) {
 	a, srv := statsServer(t)
 	s := settings.Defaults()
@@ -144,8 +145,8 @@ func TestTheUsageRouteAnswersTheCounterAlone(t *testing.T) {
 	if got.Reached {
 		t.Error("4096 of 10000 reads as reached")
 	}
-	// The window has to contain the moment it was asked for, or the number is a
-	// sum over a period that has not started.
+	// The window has to contain the moment it was asked for, or the number
+	// sums a period that has not started.
 	now := time.Now()
 	if now.Before(got.PeriodStart) || !now.Before(got.PeriodEnd) {
 		t.Errorf("now is not inside [%v, %v)", got.PeriodStart, got.PeriodEnd)

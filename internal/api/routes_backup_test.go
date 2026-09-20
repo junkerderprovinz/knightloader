@@ -30,10 +30,9 @@ func backupServer(t *testing.T) (*app.App, *httptest.Server) {
 	return a, srv
 }
 
-// TestDownloadBackupIsARestorableArchive is the route end to end: what a
-// GET produces has to be exactly what internal/backup.Stage will accept,
-// carrying the three entries a restore needs and naming a real task that
-// was in the store at the time.
+// TestDownloadBackupIsARestorableArchive is the route end to end: what a GET
+// produces has to be what internal/backup.Stage accepts, carrying the three
+// entries a restore needs and naming a task that was in the store at the time.
 func TestDownloadBackupIsARestorableArchive(t *testing.T) {
 	a, srv := backupServer(t)
 	if err := a.Store.Save(&core.Task{ID: "t1", Name: "file.bin", CreatedAt: time.Now()}); err != nil {
@@ -76,9 +75,8 @@ func TestDownloadBackupIsARestorableArchive(t *testing.T) {
 		}
 	}
 
-	// The whole point of an unredacted backup: a restored settings.json has
-	// to carry the real secret, not the placeholder GET /api/settings would
-	// have shown a browser.
+	// An unredacted backup: a restored settings.json carries the real secret,
+	// not the placeholder GET /api/settings would show a browser.
 	s := a.Settings.Get()
 	s.Reconnect.Password = "correct-router-password"
 	if _, err := a.ApplySettings(s); err != nil {
@@ -111,11 +109,11 @@ func TestDownloadBackupIsARestorableArchive(t *testing.T) {
 	}
 }
 
-// TestUploadRestoreStagesAValidBackup drives the route the way a settings
-// page would: download a backup, then immediately upload it back. It has
-// to validate and stage without touching the live store or settings, and
-// with RequestExit unset (the default on testApp) it must say a manual
-// restart is needed rather than claim one is already under way.
+// TestUploadRestoreStagesAValidBackup drives the route the way a settings page
+// would: download a backup, then upload it back. It validates and stages
+// without touching the live store or settings, and with RequestExit unset (the
+// default on testApp) it says a manual restart is needed rather than claiming
+// one is under way.
 func TestUploadRestoreStagesAValidBackup(t *testing.T) {
 	a, srv := backupServer(t)
 	if err := a.Store.Save(&core.Task{ID: "t1", Name: "file.bin", CreatedAt: time.Now()}); err != nil {
@@ -151,9 +149,8 @@ func TestUploadRestoreStagesAValidBackup(t *testing.T) {
 		t.Error("no status sentence in the restore response")
 	}
 
-	// Staged, not applied: the live store this same App still has open must
-	// be completely unaffected by an upload that only stages a restore for
-	// next boot.
+	// Staged rather than applied: the live store this App still has open is
+	// unaffected by an upload that only stages a restore for the next boot.
 	if _, err := os.Stat(filepath.Join(a.DataDir, "restore-pending")); err != nil {
 		t.Errorf("nothing was staged under DataDir: %v", err)
 	}
@@ -166,10 +163,9 @@ func TestUploadRestoreStagesAValidBackup(t *testing.T) {
 	}
 }
 
-// TestUploadRestoreTriggersRequestExit is restore composing with the same
-// mechanism quit and restart use, once RequestExit is wired: a successful
-// upload does not just sit there waiting for somebody to separately press
-// restart.
+// TestUploadRestoreTriggersRequestExit: with RequestExit wired, restore uses
+// the same mechanism quit and restart do, so a successful upload does not sit
+// waiting for somebody to press restart.
 func TestUploadRestoreTriggersRequestExit(t *testing.T) {
 	a, srv := backupServer(t)
 	resp, err := http.Get(srv.URL + "/api/system/backup")
@@ -217,9 +213,8 @@ func TestUploadRestoreRejectsGarbage(t *testing.T) {
 	}
 }
 
-// TestUploadRestoreRequiresTheFileField pins the multipart contract the
-// error message promises: a request with no "file" field is a client bug,
-// not a 500.
+// TestUploadRestoreRequiresTheFileField pins the multipart contract the error
+// message promises: a request with no "file" field is a client bug, not a 500.
 func TestUploadRestoreRequiresTheFileField(t *testing.T) {
 	_, srv := backupServer(t)
 	var buf bytes.Buffer
@@ -243,8 +238,7 @@ func TestUploadRestoreRequiresTheFileField(t *testing.T) {
 }
 
 // postMultipartFile uploads data as a single-file multipart form, the shape
-// routes_containers.go's own upload route already expects and this one
-// mirrors.
+// routes_containers.go's upload route expects and this one mirrors.
 func postMultipartFile(t *testing.T, url, field, filename string, data []byte) (int, []byte) {
 	t.Helper()
 	var buf bytes.Buffer

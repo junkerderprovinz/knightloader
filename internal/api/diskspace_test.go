@@ -1,8 +1,7 @@
 package api
 
-// The disk readout as it reaches a browser, and the one thing about it that is
-// easier to get wrong later than now: it describes THIS machine, so it must not
-// travel to a peer.
+// The disk readout as it reaches a browser. It describes this machine, so it
+// must not travel to a peer.
 
 import (
 	"encoding/json"
@@ -23,11 +22,10 @@ func diskSpaceServer(t *testing.T) *httptest.Server {
 	return srv
 }
 
-// TestTheDiskReportAlwaysCarriesAListOfVolumes is the shape assertion, and the
-// list is what it is about: a nil slice encodes as JSON null, and a page that
-// walks over the answer throws on it rather than drawing nothing. The download
-// folder is always one of the rows, because there is always one - configured or
-// the built-in default.
+// TestTheDiskReportAlwaysCarriesAListOfVolumes: a nil slice encodes as JSON
+// null, and a page that walks the answer throws on it rather than drawing
+// nothing. The download folder is always one of the rows, configured or the
+// built-in default.
 func TestTheDiskReportAlwaysCarriesAListOfVolumes(t *testing.T) {
 	srv := diskSpaceServer(t)
 	code, raw := getRaw(t, srv.URL+"/api/diskspace")
@@ -61,12 +59,11 @@ func TestTheDiskReportAlwaysCarriesAListOfVolumes(t *testing.T) {
 	}
 }
 
-// TestTheDiskReportIsNotForwardedToAPeer is the trap this route sets for
-// whoever widens the relay allowlist next. The list is what a sibling holding
-// the group phrase may reach, and it is deliberately narrow: tasks, links, the
-// queue. A disk row is not a task - it describes the volumes of the machine
-// that answers - so a peer's reply drawn under that peer's name would be this
-// box's disks, or the other way round, with nothing on screen to say which.
+// TestTheDiskReportIsNotForwardedToAPeer guards the relay allowlist, which is
+// what a sibling holding the group phrase may reach and is kept narrow: tasks,
+// links, the queue. A disk row describes the volumes of the machine that
+// answers, so a peer's reply drawn under that peer's name would be this box's
+// disks with nothing on screen to say so.
 func TestTheDiskReportIsNotForwardedToAPeer(t *testing.T) {
 	if relayForwardable(http.MethodGet, "/api/diskspace") {
 		t.Error("GET /api/diskspace is forwardable to a peer; a reading of one machine's disks answered under another machine's name is a wrong number nobody can spot")
@@ -74,8 +71,8 @@ func TestTheDiskReportIsNotForwardedToAPeer(t *testing.T) {
 }
 
 // TestTheDiskReportNeedsASession keeps the route behind the guard everything
-// else under /api/ is behind. It has no credential of its own in the request,
-// and what it answers with is folder paths off this host's filesystem.
+// else under /api/ is behind: it carries no credential of its own and answers
+// with folder paths off this host's filesystem.
 func TestTheDiskReportNeedsASession(t *testing.T) {
 	reg := newRegistry()
 	registerDiskSpace(reg, testApp(t))

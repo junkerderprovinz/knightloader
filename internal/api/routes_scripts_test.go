@@ -40,10 +40,9 @@ func getScripts(t *testing.T, url string) []script.Script {
 	return out
 }
 
-// TestScriptsLifecycleOverHTTP is the whole CRUD-plus-run story the editor
-// (Scripts.tsx) and lib/scripts.ts drive: create, see it listed, edit it,
-// test-run it, delete it, see it gone. Exercises every route
-// registerScripts adds.
+// TestScriptsLifecycleOverHTTP walks what the editor (Scripts.tsx) and
+// lib/scripts.ts drive: create, see it listed, edit it, test-run it, delete
+// it, see it gone. That is every route registerScripts adds.
 func TestScriptsLifecycleOverHTTP(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
@@ -118,16 +117,14 @@ func TestScriptsLifecycleOverHTTP(t *testing.T) {
 	}
 }
 
-// TestScriptTriggersListsKnownTriggers is fetchScriptTriggers' whole reason
-// to ask the server rather than hard-code the list (lib/scripts.ts's own
-// doc comment): the registry answers with exactly what script.AllTriggers
-// reports, not a hand-copied guess.
+// TestScriptTriggersListsKnownTriggers is why fetchScriptTriggers asks the
+// server rather than hard-coding the list (lib/scripts.ts): the route answers
+// with what script.AllTriggers reports, not a hand-copied guess.
 //
-// The expectation is READ FROM script.AllTriggers rather than spelled out
-// here, and that is this test's own lesson learnt: it used to name the four
-// triggers of the day, so the first build to add one failed this test for
-// having done exactly what the route promises. A copy of the list here is
-// the same drift the route exists to prevent, one layer up.
+// The expectation is read from script.AllTriggers rather than spelled out
+// here. A copy of the list in this file would be the same drift the route
+// exists to prevent, one layer up: adding a trigger would fail the test for
+// doing what the route promises.
 func TestScriptTriggersListsKnownTriggers(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
@@ -153,9 +150,8 @@ func TestScriptTriggersListsKnownTriggers(t *testing.T) {
 			t.Errorf("unexpected trigger %q", g)
 		}
 	}
-	// The four the first build shipped have to still be there. AllTriggers
-	// is the source of truth for the LIST, but a rename or a deletion of one
-	// of these would silently take a saved script out of the index with the
+	// These four have to stay. AllTriggers decides the list, but renaming or
+	// removing one of them takes a saved script out of the index with the
 	// check above still passing.
 	for _, tr := range []string{"task.done", "task.failed", "queue.idle", "manual"} {
 		if !want[tr] {
@@ -214,10 +210,9 @@ func TestDeleteUnknownScriptIs404(t *testing.T) {
 	}
 }
 
-// TestRunScriptWithUnknownTaskIs404 is the run route's other lookup: a
-// taskId the app has no task for must not silently run with task absent
-// from the sandbox, which would look identical to a toolbar-placed Test Run
-// that never claimed to have a task at all.
+// TestRunScriptWithUnknownTaskIs404 is the run route's other lookup: a taskId
+// the app has no task for must not run with task absent from the sandbox,
+// which would look like a toolbar Test Run that never claimed to have one.
 func TestRunScriptWithUnknownTaskIs404(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
@@ -237,9 +232,8 @@ func TestRunScriptWithUnknownTaskIs404(t *testing.T) {
 	}
 }
 
-// TestManagingScriptsNeedsASession mirrors
-// TestManagingTokensNeedsASession: script routes are not accidentally left
-// open the way the login routes deliberately are.
+// TestManagingScriptsNeedsASession mirrors TestManagingTokensNeedsASession:
+// none of the script routes is on the open list the login routes are on.
 func TestManagingScriptsNeedsASession(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()

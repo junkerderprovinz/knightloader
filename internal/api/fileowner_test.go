@@ -1,12 +1,5 @@
 package api
 
-// The ownership readout as it reaches a browser, and the four things about it
-// that are easier to get wrong later than now: it writes, so it must be a POST
-// that only ever touches this instance's own folders; it describes THIS machine,
-// so it must not travel to a peer; it goes into a public bug report, so it must
-// not carry anybody's home directory; and it must never suggest that a variable
-// nothing reads would change anything.
-
 import (
 	"encoding/json"
 	"net/http"
@@ -21,8 +14,7 @@ import (
 )
 
 // fileOwnerServer is the two routes on a throwaway app whose download folder is
-// a real, writable directory - which is the state the check has anything to say
-// about at all.
+// a real, writable directory.
 func fileOwnerServer(t *testing.T) (*app.App, *httptest.Server, string) {
 	t.Helper()
 	a := testApp(t)
@@ -41,12 +33,9 @@ func fileOwnerServer(t *testing.T) (*app.App, *httptest.Server, string) {
 	return a, srv, dl
 }
 
-// TestTheIdentityReadoutSaysWhatIsInForceAndWhatWasAskedForSideBySide is the
-// three-in-the-morning assertion. PUID=99 beside an effective uid of 1000 is the
-// one line that tells an operator their variable did nothing, and it only exists
-// because the two halves travel together. A readout that sent the effective uid
-// alone would leave them staring at a setting that is plainly there in
-// `docker inspect` and has no visible effect, with no way to find out why.
+// TestTheIdentityReadoutSaysWhatIsInForceAndWhatWasAskedForSideBySide checks
+// that the variables the operator set travel beside the effective identity,
+// so a PUID that did nothing is visible.
 func TestTheIdentityReadoutSaysWhatIsInForceAndWhatWasAskedForSideBySide(t *testing.T) {
 	t.Setenv("PUID", "99")
 	t.Setenv("PGID", "100")
@@ -71,9 +60,8 @@ func TestTheIdentityReadoutSaysWhatIsInForceAndWhatWasAskedForSideBySide(t *test
 	}
 }
 
-// TestAnUnsetVariableIsEmptyAndNeverZero. "" means unset, which means the
-// default applies - uid 1000 for PUID, the runtime's mask for UMASK. Sending 0
-// for an unset PUID would report that somebody asked to run as root.
+// TestAnUnsetVariableIsEmptyAndNeverZero checks that an unset PUID is not
+// reported as 0, which would read as a request to run as root.
 func TestAnUnsetVariableIsEmptyAndNeverZero(t *testing.T) {
 	t.Setenv("PUID", "")
 	t.Setenv("UMASK", "")
@@ -89,11 +77,8 @@ func TestAnUnsetVariableIsEmptyAndNeverZero(t *testing.T) {
 	}
 }
 
-// TestTheCheckAnswersAListAndLeavesTheFolderExactlyAsItFoundIt is the promise
-// the route makes to somebody's download share. It writes into folders that are
-// shared over SMB and watched by media scanners, so a leaked probe file is a
-// stray entry in a library or a file an operator finds later and dares not
-// delete.
+// TestTheCheckAnswersAListAndLeavesTheFolderExactlyAsItFoundIt checks that no
+// probe file is left in a folder that media scanners watch.
 func TestTheCheckAnswersAListAndLeavesTheFolderExactlyAsItFoundIt(t *testing.T) {
 	_, srv, dl := fileOwnerServer(t)
 
@@ -141,14 +126,8 @@ func TestTheCheckAnswersAListAndLeavesTheFolderExactlyAsItFoundIt(t *testing.T) 
 	}
 }
 
-// TestTheCheckRefusesAFolderThisInstanceDoesNotWriteInto. The route writes, so
-// an unfiltered dirs parameter would be "create and delete a dot-file anywhere
-// on this host, as this process" behind one session. Nothing needs that: the
-// page only ever names folders it read out of this same list a moment earlier.
-//
-// Refused rather than skipped, because a report that quietly measured three of
-// the four folders it was asked about would look complete and not be, which is
-// the exact failure this whole feature exists to remove.
+// TestTheCheckRefusesAFolderThisInstanceDoesNotWriteInto checks that a foreign
+// folder is refused with a 400 and left untouched, since the check writes.
 func TestTheCheckRefusesAFolderThisInstanceDoesNotWriteInto(t *testing.T) {
 	_, srv, _ := fileOwnerServer(t)
 	stranger := t.TempDir()
@@ -165,10 +144,6 @@ func TestTheCheckRefusesAFolderThisInstanceDoesNotWriteInto(t *testing.T) {
 	}
 }
 
-// TestNamingOneFolderChecksOnlyThatFolder. The parameter exists so that saving a
-// changed download folder re-checks that folder rather than writing a probe file
-// into all fourteen configured directories, several of which may sit on mounts
-// that are slow or asleep.
 func TestNamingOneFolderChecksOnlyThatFolder(t *testing.T) {
 	a, srv, dl := fileOwnerServer(t)
 	s := a.Settings.Get()
@@ -190,13 +165,9 @@ func TestNamingOneFolderChecksOnlyThatFolder(t *testing.T) {
 	}
 }
 
-// TestTheBundleCarriesTheOwnersAndNotAnybodysHomeDirectory. The diagnostics
-// bundle is a file people attach to public bug reports, and with no download
-// folder configured the desktop build's default one is
-// C:\Users\<their real name>\AppData\... - app.New puts it inside the data
-// directory. routes_diagnostics.go states that rule for the store paths; this is
-// the same rule, and the reason the ownership rows carry a role instead of a
-// path.
+// TestTheBundleCarriesTheOwnersAndNotAnybodysHomeDirectory checks that the
+// ownership rows in the diagnostics bundle carry a role and no path, since a
+// desktop download folder lies inside the user's home directory.
 func TestTheBundleCarriesTheOwnersAndNotAnybodysHomeDirectory(t *testing.T) {
 	a := testApp(t)
 	id, folders := ownershipDiagnostics(a)
@@ -207,11 +178,9 @@ func TestTheBundleCarriesTheOwnersAndNotAnybodysHomeDirectory(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	// Decoded rather than string-searched for the data directory, because that
-	// search passes for the wrong reason on Windows: json.Marshal escapes every
-	// backslash, so `C:\Users\...` in the document never matches `C:\Users\...`
-	// in a.DataDir and the check silently stops testing anything. Asking the
-	// document what fields it has is the same question with no platform in it.
+	// Decoded rather than searched for the data directory: on Windows the
+	// escaped backslashes would never match and the check would pass
+	// vacuously.
 	var rows []map[string]any
 	if err := json.Unmarshal(raw, &rows); err != nil {
 		t.Fatal(err)
@@ -234,23 +203,17 @@ func TestTheBundleCarriesTheOwnersAndNotAnybodysHomeDirectory(t *testing.T) {
 	}
 }
 
-// TestTheOwnershipRoutesAreNotForwardedToAPeer is the trap these routes set for
-// whoever widens the relay allowlist next. routes_diskspace.go makes the
-// argument for disks and it is stronger here: a peer's answer names THAT box's
-// uids and THAT box's folders, and drawn under this box's name it would send an
-// operator to run a chown against a path on the wrong machine.
+// TestTheOwnershipRoutesAreNotForwardedToAPeer guards against a peer's uids
+// and folders being shown under this machine's name.
 func TestTheOwnershipRoutesAreNotForwardedToAPeer(t *testing.T) {
 	if relayForwardable(http.MethodGet, "/api/fileowner") {
 		t.Error("GET /api/fileowner is forwardable to a peer; one machine's uid answered under another machine's name is a wrong number nobody can spot")
 	}
 	if relayForwardable(http.MethodPost, "/api/fileowner/check") {
-		t.Error("POST /api/fileowner/check is forwardable to a peer; it WRITES, and it would be writing into the peer's folders")
+		t.Error("POST /api/fileowner/check is forwardable to a peer; it writes, and it would be writing into the peer's folders")
 	}
 }
 
-// TestTheOwnershipRoutesNeedASession keeps both behind the guard everything else
-// under /api/ is behind. Neither carries a credential of its own, one of them
-// answers with this host's folder paths, and the other one writes.
 func TestTheOwnershipRoutesNeedASession(t *testing.T) {
 	reg := newRegistry()
 	registerFileOwner(reg, testApp(t))
@@ -261,15 +224,9 @@ func TestTheOwnershipRoutesNeedASession(t *testing.T) {
 	}
 }
 
-// TestTheReadoutDoesNotClaimPUIDWorksWhileTheImagePinsItsUser is the guard on
-// the one sentence this feature must never say.
-//
-// Dockerfile declares USER knight, so the process starts as uid 1000 and cannot
-// become another uid; PUID and PGID are read by nothing at any layer. The day
-// somebody drops that line and adds an entrypoint, envReadByThisBuild and every
-// piece of copy hanging off it have to change in the same commit - and this is
-// what says so, in both directions, rather than leaving a stale "it did not
-// take" explanation in front of a variable that now works perfectly.
+// TestTheReadoutDoesNotClaimPUIDWorksWhileTheImagePinsItsUser keeps
+// envReadByThisBuild in step with the Dockerfile's USER line, in both
+// directions.
 func TestTheReadoutDoesNotClaimPUIDWorksWhileTheImagePinsItsUser(t *testing.T) {
 	b, err := os.ReadFile(filepath.Join("..", "..", "Dockerfile"))
 	if err != nil {
@@ -279,7 +236,7 @@ func TestTheReadoutDoesNotClaimPUIDWorksWhileTheImagePinsItsUser(t *testing.T) {
 	switch {
 	case pinned && envReadByThisBuild:
 		t.Error("the image still declares USER knight, so it starts as uid 1000 and cannot change uid, " +
-			"but envReadByThisBuild is true - the readout would be telling people PUID works when it cannot")
+			"but envReadByThisBuild is true; the readout would be telling people PUID works when it cannot")
 	case !pinned && !envReadByThisBuild:
 		t.Error("the image no longer pins its user. If an entrypoint now applies PUID/PGID/UMASK, set envReadByThisBuild " +
 			"and rewrite the copy that currently explains that those variables are ignored; if it does not, say why here")

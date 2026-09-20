@@ -1,30 +1,14 @@
 package api
 
 // The folder chooser's one question: which directories are under this path.
+// Every folder field in the interface uses the same picker, so the template
+// rule in splitTemplate lives in one place.
 //
-// WHY IT IS A ROUTE AND NOT A DIALOG PER PAGE. The download folder, the
-// extraction destination, the watch folder, the add-links destination and the
-// per-task override are five fields holding one kind of value, and every one of
-// them wants the same picker. Built per page it would be built five times and
-// get the template rule below wrong in at least one of them.
-//
-// SECURITY, because this lists the host filesystem to whoever holds a session.
-//
-// The boundary is the filesystem this process can already see: in the shipped
-// container that is the image plus whatever the operator mounted into it, which
-// is exactly the set of folders a download can land in. It is deliberately not
-// narrower by default - the download folder is wherever the user mounted their
-// disk, and a chooser that cannot reach it is one they type around, which is the
-// failure this feature exists to prevent. KL_BROWSE_ROOTS narrows it to a list
-// of folders for an instance where the whole tree is too much, and resolving
-// symlinks is what makes that narrowing real: a prefix check that never resolves
-// is one `ln -s / /downloads/out` away from listing the entire disk.
-//
-// What the route never does is open a file. It answers with directory NAMES and
-// nothing else - no file entries, no sizes, no contents - so the worst a session
-// can learn from it is what somebody called their folders. It lives under /api/,
-// which is the only place the session guard reaches: everything outside that
-// prefix is open by construction (see reg.open in routes.go).
+// The boundary is the filesystem this process can see, which in the container
+// is the image plus the operator's mounts, exactly where downloads can land.
+// KL_BROWSE_ROOTS narrows it, and symlinks are resolved so a link to / cannot
+// widen it again. The route answers with directory names only, never files,
+// sizes or contents.
 
 import (
 	"errors"
@@ -38,40 +22,31 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/app"
 )
 
-// envBrowseRoots narrows the chooser to a list of folders, separated the way
-// this platform separates a path list (":" on Unix). Unset means the whole
-// filesystem this process can see, which is the boundary explained above.
+// envBrowseRoots narrows the chooser to a list of folders, separated like a
+// path list on this platform. Unset means the whole visible filesystem.
 const envBrowseRoots = "KL_BROWSE_ROOTS"
 
-// maxFolderEntries caps one listing. A media library with ten thousand
-// directories in it would otherwise be sent in full to a dialog that can show
-// twelve of them at a time, on a route the user hits again with every click.
-// The response says when it cut, so the interface can point at the path box
-// instead of pretending it showed everything.
+// maxFolderEntries caps one listing; the response says when it cut, so the
+// interface can point at the path box instead.
 const maxFolderEntries = 2000
 
-// folderEntry is one directory offered for the next click. Name is what is
-// shown, Path is what to ask for next - assembled here rather than in the
-// interface, which would have to know which separator this host uses.
+// folderEntry is one directory offered for the next click. Path is built here
+// because the interface does not know this host's separator.
 type folderEntry struct {
 	Name string `json:"name"`
 	Path string `json:"path"`
 }
 
-// folderListing is one place in the filesystem as the chooser needs to see it.
-//
-// Path and Listed are two different answers on purpose. A user typing a folder
-// they are about to create must be told it is new, not shown an empty dialog
-// with nothing in it and no explanation - so Path is what they asked for, Listed
-// is the deepest existing folder above it, and Entries describes Listed. When
-// the path exists the two are the same string.
+// folderListing is one place in the filesystem as the chooser needs it. Path
+// is what was asked for and Listed the deepest existing folder above it, so a
+// folder that is about to be created shows as new rather than as an empty
+// dialog.
 type folderListing struct {
-	// Path is the folder the chooser is pointed at, cleaned, with any template
-	// tail removed. It is the value "use this folder" is built from.
+	// Path is the folder the chooser points at, cleaned, without any template
+	// tail.
 	Path string `json:"path"`
-	// Tail is the <jd:...> part that was cut off Path, leading separator
-	// included, or "" when the caller sent a plain path. See splitTemplate: the
-	// interface puts it back on, and the whole feature hangs on it doing so.
+	// Tail is the <jd:...> part cut off Path, leading separator included; the
+	// interface puts it back on (see splitTemplate).
 	Tail string `json:"tail"`
 	// Exists reports whether Path is a directory today.
 	Exists bool `json:"exists"`
@@ -79,8 +54,7 @@ type folderListing struct {
 	Listed string `json:"listed"`
 	// Parent is one level above Listed, or "" at the top of the boundary.
 	Parent string `json:"parent"`
-	// Roots is the boundary itself, so the interface can offer a way back to it
-	// rather than leaving somebody stuck below a mount they typed into.
+	// Roots is the boundary, so the interface can offer a way back to it.
 	Roots []string `json:"roots"`
 	// Entries are the sub-directories of Listed, sorted, folders only.
 	Entries []folderEntry `json:"entries"`
@@ -88,8 +62,7 @@ type folderListing struct {
 	Truncated bool `json:"truncated"`
 }
 
-// folderRefusal is a refusal that knows which status it deserves, so the reason
-// the interface shows and the code the browser logs agree about what happened.
+// folderRefusal is a refusal that carries its HTTP status.
 type folderRefusal struct {
 	status int
 	reason string
@@ -102,9 +75,7 @@ func registerFolders(reg *Registry, a *app.App) {
 		"the sub-folders of one directory, for the folder chooser; directory names only, never file contents",
 		func(w http.ResponseWriter, r *http.Request) {
 			path := r.URL.Query().Get("path")
-			// Opened with no path at all, the chooser starts where downloads
-			// already go. Anywhere else is a dialog that opens on a folder the
-			// user has to navigate away from before it is of any use.
+			// Without a path the chooser starts where downloads go.
 			if strings.TrimSpace(path) == "" {
 				path = a.Settings.Get().DownloadDir
 			}
@@ -115,10 +86,8 @@ func registerFolders(reg *Registry, a *app.App) {
 				case errors.As(err, &ref):
 					http.Error(w, ref.reason, ref.status)
 				case errors.Is(err, fs.ErrPermission):
-					// The message names the folder, which is the one thing that
-					// makes this actionable: a bare "forbidden" beside a path the
-					// user can plainly see in another window teaches nobody which
-					// side the problem is on.
+					// The error names the folder, which a bare "forbidden"
+					// would not.
 					http.Error(w, err.Error(), http.StatusForbidden)
 				default:
 					http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -129,17 +98,16 @@ func registerFolders(reg *Registry, a *app.App) {
 		})
 }
 
-// listFolders is the whole route, kept apart from the handler so the rules can
-// be tested without a socket.
+// listFolders is the whole route, apart from the handler so the rules can be
+// tested without a socket.
 func listFolders(raw string) (folderListing, error) {
 	fixed, tail := splitTemplate(raw)
 	if strings.TrimSpace(fixed) == "" {
 		fixed = defaultStart()
 	}
 	if !filepath.IsAbs(fixed) {
-		// The same rule as settings.Validate, and for the same reason: a relative
-		// path is resolved against whatever the process's working directory
-		// happens to be, which is not something a user can reason about.
+		// As in settings.Validate: a relative path would depend on the
+		// process's working directory.
 		return folderListing{}, folderRefusal{http.StatusBadRequest, "the folder must be an absolute path"}
 	}
 	fixed = filepath.Clean(fixed)
@@ -174,9 +142,7 @@ func listFolders(raw string) (folderListing, error) {
 		Entries:   entries,
 		Truncated: truncated,
 	}
-	// A parent that leaves the boundary is not offered rather than offered and
-	// then refused: a disabled-looking button that answers 403 when pressed is
-	// the interface lying about what it can do.
+	// A parent outside the boundary is not offered at all.
 	if parent := filepath.Dir(listed); parent != listed {
 		if _, ok := resolveWithin(parent, roots); ok {
 			out.Parent = parent
@@ -185,22 +151,14 @@ func listFolders(raw string) (folderListing, error) {
 	return out, nil
 }
 
-// splitTemplate cuts a download folder into the part that is a real path and the
-// part that is a pathvars template, e.g. "/downloads/<jd:date>/<jd:hoster>" into
-// "/downloads" and "/<jd:date>/<jd:hoster>".
+// splitTemplate cuts a download folder into the real path and the pathvars
+// template, so "/downloads/<jd:date>/<jd:hoster>" becomes "/downloads" and
+// "/<jd:date>/<jd:hoster>". Browsing only ever replaces the fixed part, so the
+// user's naming scheme survives.
 //
-// This is the whole point of the route existing rather than the interface
-// stat-ing a path. Browsing may only ever replace the fixed part: a chooser that
-// wrote back the folder it landed on would silently delete the user's naming
-// scheme, and they would not find out until every file in six months of
-// downloads had landed in one flat directory.
-//
-// The rule - cut at the first segment containing "<" - is a deliberate twin of
-// the unexported fixedPrefix in internal/settings/settings_paths.go, which is
-// what decides the directory the app actually creates and writes to. The two
-// must agree: splitting one segment later offers a folder the app will never
-// make, splitting earlier drops a fixed segment out of the user's path.
-// TestTheSplitMatchesTheFolderThatGetsCreated is what says so out loud.
+// Cutting at the first segment containing "<" must match settings.fixedPrefix,
+// which decides the folder the app creates;
+// TestTheSplitMatchesTheFolderThatGetsCreated keeps the two in step.
 func splitTemplate(dir string) (fixed, tail string) {
 	if !strings.Contains(dir, "<") {
 		return dir, ""
@@ -213,10 +171,8 @@ func splitTemplate(dir string) (fixed, tail string) {
 		}
 		fixed = strings.Join(parts[:i], sep)
 		if fixed == "" {
-			// Everything below the root is a placeholder; the root is the fixed
-			// part. The tail keeps its leading separator either way, so the
-			// caller re-assembles by concatenation and never has to guess which
-			// separator this host uses.
+			// Everything below the root is a placeholder. The tail keeps its
+			// leading separator, so the caller re-assembles by concatenation.
 			fixed = sep
 		}
 		return fixed, sep + strings.Join(parts[i:], sep)
@@ -224,26 +180,21 @@ func splitTemplate(dir string) (fixed, tail string) {
 	return dir, ""
 }
 
-// browseRoots is the boundary for one request. See the file header for what it
-// is and why it is that wide by default.
+// browseRoots is the boundary for one request.
 func browseRoots(p string) ([]string, error) {
 	set := strings.TrimSpace(os.Getenv(envBrowseRoots))
 	if set == "" {
 		return []string{volumeRoot(p)}, nil
 	}
-	// Read per request rather than once at startup: this costs one map lookup on
-	// a route a human drives at human speed, and it keeps the setting knowable
-	// from the environment the process is actually running in.
 	var out []string
 	for _, part := range filepath.SplitList(set) {
 		part = strings.TrimSpace(part)
 		if part == "" || !filepath.IsAbs(part) {
 			continue
 		}
-		// Resolved, so a root that is itself a symlink still contains the paths
-		// below it once those are resolved too. A root that does not exist yet is
-		// kept as written: an operator naming a mount that is not up must get an
-		// empty chooser, not a silently wider one.
+		// Resolved, so a symlinked root still contains its resolved children.
+		// A root that does not exist yet is kept as written, which gives an
+		// empty chooser rather than a wider one.
 		if real, err := filepath.EvalSymlinks(part); err == nil {
 			out = append(out, filepath.Clean(real))
 			continue
@@ -251,18 +202,16 @@ func browseRoots(p string) ([]string, error) {
 		out = append(out, filepath.Clean(part))
 	}
 	if len(out) == 0 {
-		// Loudly, not by falling back to the whole filesystem. Somebody set this
-		// variable to narrow what the chooser may see; a typo in it must never be
-		// the thing that widens it back to everything.
+		// A typo in the variable must not widen the chooser back to
+		// everything.
 		return nil, folderRefusal{http.StatusInternalServerError,
 			envBrowseRoots + " is set but names no absolute folder, so nothing may be listed"}
 	}
 	return out, nil
 }
 
-// volumeRoot is the top of the filesystem the given path lives on: "/" on the
-// platforms this ships to, and the drive on Windows, where the app is only ever
-// run by somebody developing it.
+// volumeRoot is the top of the filesystem p lives on: "/", or the drive on
+// Windows.
 func volumeRoot(p string) string {
 	if v := filepath.VolumeName(p); v != "" {
 		return v + string(filepath.Separator)
@@ -281,9 +230,7 @@ func defaultStart() string {
 	return string(filepath.Separator)
 }
 
-// deepestExisting walks up until it finds a directory that is really there, so a
-// folder the user is about to create can be reported as new while still showing
-// them where it would go.
+// deepestExisting walks up until it finds a directory that exists.
 func deepestExisting(p string) string {
 	for {
 		if fi, err := os.Stat(p); err == nil && fi.IsDir() {
@@ -312,24 +259,20 @@ func resolveWithin(p string, roots []string) (string, bool) {
 	return "", false
 }
 
-// within reports whether p is root or sits below it. filepath.Rel does the
-// comparison because it is the one that knows this platform's rules - on Windows
-// it compares case-insensitively, which a strings.HasPrefix here would not.
+// within reports whether p is root or sits below it. filepath.Rel knows the
+// platform's rules, such as case-insensitive comparison on Windows.
 func within(root, p string) bool {
 	rel, err := filepath.Rel(root, p)
 	if err != nil {
 		return false
 	}
-	// Not HasPrefix(rel, ".."): a folder named "..old" is a perfectly ordinary
-	// folder and starts with the same two characters as the way out.
+	// Not HasPrefix(rel, ".."), which would also match a folder named "..old".
 	return rel == "." || (rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)))
 }
 
-// readFolders lists the sub-directories of an already-resolved directory. real
-// is what is read, display is the path the caller asked in - the two differ
-// through a symlink, and the entries are named after display so the user keeps
-// the spelling they typed instead of having their setting silently rewritten to
-// wherever the link pointed.
+// readFolders lists the sub-directories of an already-resolved directory.
+// real is what is read and display the path the caller asked for; entries are
+// named after display, so a symlink does not rewrite the user's setting.
 func readFolders(real, display string, roots []string) ([]folderEntry, bool, error) {
 	items, err := os.ReadDir(real)
 	if err != nil {
@@ -341,11 +284,9 @@ func readFolders(real, display string, roots []string) ([]folderEntry, bool, err
 		switch {
 		case it.IsDir():
 		case it.Type()&fs.ModeSymlink != 0:
-			// A symlinked folder is still a folder somebody may want to download
-			// into, so it is offered - but only after resolving it, and only when
-			// what it points at is inside the boundary. ReadDir reports a link as
-			// a link, never as a directory, so skipping this case would hide half
-			// the folders on a machine where /downloads is a link.
+			// ReadDir reports a link as a link, so a symlinked folder is
+			// offered only once it resolves to a directory inside the
+			// boundary.
 			target := filepath.Join(real, name)
 			if fi, err := os.Stat(target); err != nil || !fi.IsDir() {
 				continue
@@ -358,8 +299,7 @@ func readFolders(real, display string, roots []string) ([]folderEntry, bool, err
 		}
 		out = append(out, folderEntry{Name: name, Path: filepath.Join(display, name)})
 	}
-	// Case-insensitive, because a list where "Movies" sorts before "archive"
-	// reads as unsorted to everybody who is not a byte comparator.
+	// Case-insensitive, as people expect folder lists to be sorted.
 	sort.Slice(out, func(i, j int) bool {
 		a, b := strings.ToLower(out[i].Name), strings.ToLower(out[j].Name)
 		if a != b {

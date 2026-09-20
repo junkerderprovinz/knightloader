@@ -11,9 +11,8 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
-// idleActionStateWire mirrors idleaction.State field-for-field - a local copy
-// rather than importing the type directly, the same reason schedule_test.go's
-// scheduleStateWire exists: this reads the wire shape a client actually sees.
+// idleActionStateWire mirrors idleaction.State field for field. A local copy
+// rather than the type itself, so this reads the wire shape a client sees.
 type idleActionStateWire struct {
 	Config idleaction.Config `json:"config"`
 	Idle   bool              `json:"idle"`
@@ -54,8 +53,8 @@ func postIdleActionCancel(t *testing.T, url string) (int, idleActionStateWire) {
 	return resp.StatusCode, out
 }
 
-// TestIdleActionDefaultState is a fresh install: nothing configured, nothing
-// in the list, so the queue reads idle but nothing is armed to act on it.
+// TestIdleActionDefaultState: on a fresh install the queue reads idle and
+// nothing is armed to act on it.
 func TestIdleActionDefaultState(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
@@ -78,14 +77,13 @@ func TestIdleActionDefaultState(t *testing.T) {
 	}
 }
 
-// TestIdleActionActionsRoute is the menu's source of truth: exactly what this
-// build can carry out, in order, never guessed at by the client.
+// TestIdleActionActionsRoute: the menu comes from what this build can carry
+// out, in order, never guessed at by the client.
 //
-// A test server wires no RequestExit and no RequestSuspend, the same as any
-// embedding that never set them, so quit and sleep are both absent here. That
-// is the route reporting the WIRING and not the deployment, which is the whole
-// distinction idleaction.Capabilities exists to draw - and the reason this
-// route serves Offered while the settings sanitiser goes on reading the
+// A test server wires no RequestExit and no RequestSuspend, like any embedding
+// that never set them, so quit and sleep are absent. The route reports the
+// wiring rather than the deployment, the distinction idleaction.Capabilities
+// draws, which is why it serves Offered while the settings sanitiser reads the
 // unfiltered Actions.
 func TestIdleActionActionsRoute(t *testing.T) {
 	srv, _ := testServer(t)
@@ -114,16 +112,15 @@ func TestIdleActionActionsRoute(t *testing.T) {
 	}
 }
 
-// TestIdleActionCheckAnswers200EvenWhenTheAnswerIsBad is the preflight's whole
-// contract: it reports, it does not judge, and it never runs anything. A check
-// that answered 500 for "that program is not in this image" could not be read
-// by the page that asked, and that sentence is the entire point of the button.
+// TestIdleActionCheckAnswers200EvenWhenTheAnswerIsBad: the preflight reports
+// and runs nothing. A 500 for "that program is not in this image" could not be
+// read by the page that asked, and that sentence is what the button is for.
 func TestIdleActionCheckAnswers200EvenWhenTheAnswerIsBad(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
 
-	// Nothing configured yet: the honest answer is "there is nothing to run",
-	// not an error.
+	// Nothing configured yet, so the answer is "there is nothing to run"
+	// rather than an error.
 	code, check := postIdleActionCheck(t, srv.URL)
 	if code != http.StatusOK {
 		t.Fatalf("POST /api/idle-action/check answered %d with nothing configured", code)
@@ -155,11 +152,10 @@ func TestIdleActionCheckAnswers200EvenWhenTheAnswerIsBad(t *testing.T) {
 	}
 }
 
-// TestIdleActionRunIsRefusedUnlessTheActionIsTheCommandOne: a "test" button
-// that suspends the machine or quits the process because that is what happened
-// to be configured is not a test. 409 rather than 400 - nothing about the
-// request is malformed, the instance is simply not in a state where it means
-// anything.
+// TestIdleActionRunIsRefusedUnlessTheActionIsTheCommandOne: a test button that
+// suspends the machine or quits the process is not a test. 409 rather than
+// 400, since nothing about the request is malformed and the instance is not in
+// a state where it means anything.
 func TestIdleActionRunIsRefusedUnlessTheActionIsTheCommandOne(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
@@ -182,15 +178,13 @@ func TestIdleActionRunIsRefusedUnlessTheActionIsTheCommandOne(t *testing.T) {
 	}
 }
 
-// TestTheStoredCommandIsNeverServedBackAndASaveDoesNotWipeIt is both halves of
-// the redaction in one pass, because they only make sense together.
-//
-// The command line does not travel in GET /api/settings - which is what keeps
-// it out of the diagnostics bundle, since that bundle is built from the very
-// same Settings.Redacted() - and a form that was shown the placeholder and
-// posts it straight back must not thereby delete the stored command. Without
-// the merge in Store.setLocked, saving anything at all on the Downloads page
-// would silently empty this.
+// TestTheStoredCommandIsNeverServedBackAndASaveDoesNotWipeIt covers both
+// halves of the redaction, which only make sense together. The command line
+// does not travel in GET /api/settings, which is what keeps it out of the
+// diagnostics bundle built from the same Settings.Redacted(), and a form shown
+// the placeholder must not delete the stored command by posting it back.
+// Without the merge in Store.setLocked, any save on the Downloads page empties
+// it.
 func TestTheStoredCommandIsNeverServedBackAndASaveDoesNotWipeIt(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
@@ -231,17 +225,14 @@ func TestTheStoredCommandIsNeverServedBackAndASaveDoesNotWipeIt(t *testing.T) {
 		t.Fatalf("PUT /api/settings answered %d on the round trip: %s", code, msg)
 	}
 
-	// What is actually stored, asked of the one route that reports it: the
-	// run record names the program it tried to start. A check would NOT do
-	// here and that is worth writing down - a wiped command is stored as the
-	// placeholder rather than as an empty string, so the preflight answers
-	// "not found" either way and would pass this test while the operator's
-	// command was gone.
+	// Asked of the one route that reports what is stored: the run record names
+	// the program it tried to start. A check will not do, because a wiped
+	// command is stored as the placeholder rather than as an empty string, so
+	// the preflight answers "not found" either way and would pass while the
+	// operator's command was gone.
 	//
-	// Running is safe precisely because the program is made up: exec fails to
-	// start it, nothing is executed, and the record still carries the name it
-	// tried. That is a state this instance can genuinely reach, not one built
-	// for the test.
+	// Running is safe because the program is made up: exec fails to start it,
+	// nothing is executed, and the record still carries the name it tried.
 	code, run := postIdleActionRun(t, srv.URL)
 	if code != http.StatusOK {
 		t.Fatalf("POST /api/idle-action/run answered %d", code)
@@ -258,9 +249,8 @@ func TestTheStoredCommandIsNeverServedBackAndASaveDoesNotWipeIt(t *testing.T) {
 	}
 }
 
-// idleRunWire mirrors app.IdleRun on the wire, a local copy for the same
-// reason idleActionStateWire is one: this reads the shape a client actually
-// sees.
+// idleRunWire mirrors app.IdleRun on the wire, a local copy like
+// idleActionStateWire so this reads the shape a client sees.
 type idleRunWire struct {
 	Action   string `json:"action"`
 	OK       bool   `json:"ok"`
@@ -286,10 +276,9 @@ func postIdleActionRun(t *testing.T, url string) (int, idleRunWire) {
 	return resp.StatusCode, out
 }
 
-// notARealProgram is a name no machine has, so the preflight's answer is the
-// same on every developer's box and on CI. Naming a real one (sh, systemctl)
-// would make this suite pass or fail on what the runner happens to have
-// installed.
+// notARealProgram is a name no machine has, so the preflight answers the same
+// everywhere. Naming a real one, sh or systemctl, would make this suite pass
+// or fail on what the runner happens to have installed.
 const notARealProgram = "knightloader-not-a-real-program-8749"
 
 func postIdleActionCheck(t *testing.T, url string) (int, idleaction.Check) {
@@ -308,10 +297,9 @@ func postIdleActionCheck(t *testing.T, url string) (int, idleaction.Check) {
 	return resp.StatusCode, out
 }
 
-// TestIdleActionConfigReachesGETThroughSettingsPUT is the point of NOT having
-// a dedicated write route for this one (routes_idleaction.go's own doc
-// comment): the ordinary settings document is the single writer, and GET
-// /api/idle-action has to read back exactly what was saved through it.
+// TestIdleActionConfigReachesGETThroughSettingsPUT: the settings document is
+// the single writer (routes_idleaction.go), so GET /api/idle-action has to
+// read back what was saved through it.
 func TestIdleActionConfigReachesGETThroughSettingsPUT(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
@@ -335,10 +323,9 @@ func TestIdleActionConfigReachesGETThroughSettingsPUT(t *testing.T) {
 	}
 }
 
-// TestIdleActionConfigIsSanitizedThroughSettingsPUT: an out-of-range delay
-// sent through the generic settings PUT is clamped the same way every other
-// plain number on that document is (MaxRetries, AutoConfirmDelay), never
-// rejected outright - see idleaction.Config.Sanitize's own doc comment.
+// TestIdleActionConfigIsSanitizedThroughSettingsPUT: an out-of-range delay is
+// clamped the way every other plain number on that document is (MaxRetries,
+// AutoConfirmDelay) rather than rejected. See idleaction.Config.Sanitize.
 func TestIdleActionConfigIsSanitizedThroughSettingsPUT(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
@@ -361,9 +348,9 @@ func TestIdleActionConfigIsSanitizedThroughSettingsPUT(t *testing.T) {
 	}
 }
 
-// TestIdleActionCancelIsANoOpWhenNothingArmed exercises the route with
-// nothing to call off - it must answer 200 rather than error, the same as
-// internal/idleaction.Controller.Cancel's own no-op case.
+// TestIdleActionCancelIsANoOpWhenNothingArmed: with nothing to call off the
+// route answers 200 rather than an error, like
+// internal/idleaction.Controller.Cancel.
 func TestIdleActionCancelIsANoOpWhenNothingArmed(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
@@ -377,12 +364,10 @@ func TestIdleActionCancelIsANoOpWhenNothingArmed(t *testing.T) {
 	}
 }
 
-// TestIdleActionArmsFiresAndCanBeCancelledOverHTTP is the one end-to-end
-// check at this layer: the state machine's own correctness is
-// internal/idleaction's job (a fake clock, no waiting), and the App-level
-// wiring against a real task list is internal/app's job
-// (app_idle_test.go) - this is only proof the two routes and the JSON they
-// speak actually connect a real save to a real countdown a real client can
+// TestIdleActionArmsFiresAndCanBeCancelledOverHTTP is the end-to-end check at
+// this layer. The state machine is internal/idleaction's own test, with a fake
+// clock, and the App-level wiring is app_idle_test.go's; this only shows that
+// the two routes and their JSON connect a save to a countdown a client can
 // read and cancel.
 func TestIdleActionArmsFiresAndCanBeCancelledOverHTTP(t *testing.T) {
 	srv, a := testServer(t)
@@ -426,7 +411,6 @@ func TestIdleActionArmsFiresAndCanBeCancelledOverHTTP(t *testing.T) {
 }
 
 // idleActionTestDelaySeconds is idleaction.minDelaySeconds' value, copied
-// rather than imported: that constant is unexported on purpose (a floor
-// nothing outside the package needs to name), and 5 is small enough this
-// test costs single-digit seconds rather than a minute.
+// because that constant is unexported, and small enough that this test costs
+// single-digit seconds.
 const idleActionTestDelaySeconds = 5

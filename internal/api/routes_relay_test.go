@@ -13,12 +13,8 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/relay"
 )
 
-// getRelayConfig and putRelayConfig are this file's two request builders. The
-// PUT body is handed over as a raw string rather than marshalled from a
-// struct, because half of what these tests pin is the difference between a
-// key field that is ABSENT and one that is present and empty - a distinction
-// a Go struct with a *string in it can express but which is far easier to
-// read as the JSON that actually goes over the wire.
+// getRelayConfig and putRelayConfig are this file's request builders. The PUT
+// body is a raw string so an absent key field and an empty one read plainly.
 func getRelayConfig(t *testing.T, base string) (int, relayConfig) {
 	t.Helper()
 	resp, err := http.Get(base + "/api/relay/config")
@@ -59,9 +55,6 @@ func putRelayConfig(t *testing.T, base, body string) (int, relayConfig) {
 	return resp.StatusCode, out
 }
 
-// TestRelayConfigStartsUnconfigured: a fresh install dials nothing and has no
-// key, and the route has to say so plainly rather than 404 or error - the
-// settings card asks this before anything has ever been saved.
 func TestRelayConfigStartsUnconfigured(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
@@ -75,12 +68,9 @@ func TestRelayConfigStartsUnconfigured(t *testing.T) {
 	}
 }
 
-// TestRelayConfigRoundTripsWithoutLeakingTheKey is the whole contract in one
-// test: what was PUT comes back from a later GET, the address verbatim (bar
-// the normalising sanitizeRelay does), the key only as a boolean - and the
-// key's plaintext appears nowhere in either response body, which is checked
-// against the raw bytes rather than the decoded struct, because a struct can
-// only fail to see a field the server should never have sent.
+// TestRelayConfigRoundTripsWithoutLeakingTheKey checks that a later GET
+// returns the saved address and the key only as a boolean. The raw body is
+// searched for the key, since a decoded struct would not see an extra field.
 func TestRelayConfigRoundTripsWithoutLeakingTheKey(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
@@ -112,8 +102,7 @@ func TestRelayConfigRoundTripsWithoutLeakingTheKey(t *testing.T) {
 		t.Errorf("GET /api/relay/config answered %s, which carries the stored key itself", raw)
 	}
 
-	// It really was stored, rather than quietly dropped in the name of not
-	// leaking it: the relay client has to be able to dial with this.
+	// The key was stored, not dropped: the relay client dials with it.
 	stored, err := a.Accounts.Get(relay.AccountService)
 	if err != nil {
 		t.Fatal(err)
@@ -123,10 +112,8 @@ func TestRelayConfigRoundTripsWithoutLeakingTheKey(t *testing.T) {
 	}
 }
 
-// TestRelayConfigWithoutAKeyLeavesTheStoredOne covers the ordinary save of an
-// edited address, from a form that was never shown the key and therefore has
-// nothing to send back. An absent key field must not silently disconnect the
-// instance by clearing the credential it dials with.
+// TestRelayConfigWithoutAKeyLeavesTheStoredOne covers saving an edited address
+// from a form that was never shown the key.
 func TestRelayConfigWithoutAKeyLeavesTheStoredOne(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
@@ -149,9 +136,8 @@ func TestRelayConfigWithoutAKeyLeavesTheStoredOne(t *testing.T) {
 	}
 }
 
-// TestRelayConfigEmptyKeyClearsIt is the other half of the pointer: an
-// explicit empty string is the only way a stored secret can be removed on
-// purpose, the same convention accounts.Store.Set has always had.
+// TestRelayConfigEmptyKeyClearsIt checks that an explicit empty key removes
+// the stored one, as accounts.Store.Set does.
 func TestRelayConfigEmptyKeyClearsIt(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
@@ -171,12 +157,8 @@ func TestRelayConfigEmptyKeyClearsIt(t *testing.T) {
 	}
 }
 
-// TestRelayConfigAddressReachesSettings pins where the public half actually
-// lands: settings.json, beside KnownDomains, and not in the sealed credential
-// store the key goes to. The two are stored apart on purpose (see
-// settings_relay.go), and a change that quietly moved the address into the
-// keyring - or the key into the settings - would otherwise pass every other
-// test in this file.
+// TestRelayConfigAddressReachesSettings checks that the address lands in
+// settings.json while the key goes to the sealed credential store.
 func TestRelayConfigAddressReachesSettings(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
@@ -189,15 +171,10 @@ func TestRelayConfigAddressReachesSettings(t *testing.T) {
 	}
 }
 
-// TestRelayConnectsAndProxiesBothDirections is the end-to-end proof that
-// PUT /api/relay/config actually results in a connected relay.Client wired
-// into a.Federation - not just a stored address and key nobody ever dials
-// with. Runs against a real relay (internal/relay.Server) and a second,
-// independent relay client standing in for a sibling instance, over real
-// network sockets and a real HTTP round trip in each direction - the only
-// way a mistake in the wiring between this file, internal/app and
-// internal/api would actually show up, the way it did the first time this
-// route was built and every individual piece's own unit tests still passed.
+// TestRelayConnectsAndProxiesBothDirections checks end to end, against a real
+// relay and a second client standing in for a sibling, that PUT
+// /api/relay/config leaves a connected client in a.Federation and that calls
+// cross in both directions.
 func TestRelayConnectsAndProxiesBothDirections(t *testing.T) {
 	relaySrv := httptest.NewServer(relay.New())
 	defer relaySrv.Close()
@@ -210,9 +187,7 @@ func TestRelayConnectsAndProxiesBothDirections(t *testing.T) {
 		t.Fatalf("PUT /api/relay/config = %d %+v", code, put)
 	}
 
-	// A second, independent relay client standing in for a sibling instance -
-	// answers every call with a fixed body, so the app's own outbound Proxy
-	// can be checked against something known rather than another real API.
+	// The sibling answers every call with a fixed body.
 	sibling, err := relay.NewClient(relay.ClientOptions{
 		URL:      relaySrv.URL,
 		Key:      key,
@@ -228,8 +203,7 @@ func TestRelayConnectsAndProxiesBothDirections(t *testing.T) {
 	sibling.Start()
 	defer sibling.Close()
 
-	// Both sides connect and announce asynchronously, so this is the one
-	// thing here worth polling rather than asserting on the first try.
+	// Both sides connect and announce asynchronously.
 	var list []struct {
 		Name        string `json:"name"`
 		DisplayName string `json:"displayName"`
@@ -246,15 +220,13 @@ func TestRelayConnectsAndProxiesBothDirections(t *testing.T) {
 		}
 		time.Sleep(20 * time.Millisecond)
 	}
-	// Name is the address - always the InstanceID for a relay peer, never
-	// the name it announced (federation.Manager.reachable's own doc comment
-	// on why) - DisplayName carries "Sibling" instead.
+	// A relay peer's Name is its InstanceID; the announced name is
+	// DisplayName.
 	if len(list) != 1 || list[0].Name != "sibling-1" || list[0].DisplayName != "Sibling" || list[0].RelayID != "sibling-1" {
 		t.Fatalf("GET /api/instances = %+v, want the sibling visible through the relay", list)
 	}
 
-	// Outbound: the app calls the sibling through the relay, addressed by
-	// its InstanceID - the same address the list above just returned.
+	// Outbound, addressed by the sibling's InstanceID.
 	body, status, err := a.Federation.Proxy(context.Background(), "sibling-1", http.MethodGet, "/api/tasks", nil)
 	if err != nil {
 		t.Fatalf("proxy to sibling: %v", err)
@@ -263,9 +235,8 @@ func TestRelayConnectsAndProxiesBothDirections(t *testing.T) {
 		t.Errorf("proxy to sibling = %d %s, want the sibling's own fixed answer", status, body)
 	}
 
-	// Inbound: the sibling calls the app's own real API through the relay,
-	// proving SetSelfServeHandler + relayProxyHandler actually reach it
-	// rather than the relay having nothing to answer with on that side.
+	// Inbound: the sibling reaches the app's real API through
+	// relayProxyHandler.
 	selfID := a.Settings.Get().InstanceID
 	inBody, inStatus, err := sibling.Proxy(context.Background(), selfID, http.MethodGet, "/api/tasks", nil, "")
 	if err != nil {
@@ -280,13 +251,9 @@ func TestRelayConnectsAndProxiesBothDirections(t *testing.T) {
 	}
 }
 
-// TestChangingInstanceNameReconnectsTheRelayClient: the relay only learns a
-// display name once, in the hello frame a connection opens with - a name
-// changed afterwards on Settings has to reconnect the client, or every
-// sibling keeps showing the old one until something else happens to drop the
-// connection. Caught live on the actual Bottich deployment before this test
-// existed: two real instances configured with the same relay showed each
-// other's container hostname long after both had a proper InstanceName set.
+// TestChangingInstanceNameReconnectsTheRelayClient checks that a renamed
+// instance reconnects, since the relay only learns the name from the hello
+// frame.
 func TestChangingInstanceNameReconnectsTheRelayClient(t *testing.T) {
 	relaySrv := httptest.NewServer(relay.New())
 	defer relaySrv.Close()
@@ -338,8 +305,7 @@ func TestChangingInstanceNameReconnectsTheRelayClient(t *testing.T) {
 		t.Fatal("observer never saw the app connect at all")
 	}
 
-	// Before any InstanceName is set, the app announces under its hostname -
-	// whatever that is, it is not yet "Renamed Instance".
+	// Without an InstanceName the app announces under its hostname.
 	waitForAnySibling()
 	if got := observer.Siblings()[0].Name; got == "Renamed Instance" {
 		t.Fatal("the app announced the not-yet-set name before it was ever saved")
@@ -362,52 +328,32 @@ func TestChangingInstanceNameReconnectsTheRelayClient(t *testing.T) {
 	waitForSiblingName("Renamed Instance")
 }
 
-// TestRelayProxyHonoursTheAuthorizationField pins the one thing that lets the
-// mobile companion app reach an instance it can only see through a relay.
-//
-// A relay-proxied call is replayed against the target's own real handler, and
-// that handler's guard accepts exactly two credentials: a session cookie (a
-// browser thing, which nothing on this transport has) and a bearer token. The
-// frame carried neither until ProxyRequest.Authorization existed, so every
-// relay call arrived unauthenticated - fine between instances, which is how
-// federation has always worked, but it left a phone able to talk only to
-// instances with no password at all. Those are precisely the instances nobody
-// should be exposing to a relay, so the feature was inverted: it worked only
-// where it should not be used.
-//
-// Tested against the real Handler(a) rather than a stub, because what is
-// being asserted is the interaction with the actual auth guard - a stub would
-// prove the header is copied and nothing about whether it is believed.
+// TestRelayProxyHonoursTheAuthorizationField runs relay calls against the real
+// Handler, since what matters is whether the auth guard believes the
+// forwarded credential, not only whether the header is copied.
 func TestRelayProxyHonoursTheAuthorizationField(t *testing.T) {
 	_, a := testServer(t)
 	serve := relayProxyHandler(Handler(a))
 
-	// Unprotected first: the pre-existing contract, and the baseline that
-	// makes the 401s below mean "the password did it", not "this route was
-	// broken all along".
 	if status, body := serve(context.Background(), relay.ProxyCall{
 		Method: http.MethodGet, Path: "/api/tasks",
 	}); status != http.StatusOK {
-		t.Fatalf("unprotected instance answered %d (%s), want 200 - relay calls have always worked without a credential here", status, body)
+		t.Fatalf("unprotected instance answered %d (%s), want 200", status, body)
 	}
 
 	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
 		t.Fatal(err)
 	}
 
-	// A sibling with no bearer token still gets through, because getting HERE
-	// already required presenting the group key. This is the case that used to
-	// answer 401 and broke a phrase group the moment one instance was given a
-	// password - proved live on two preview containers before it was fixed.
+	// A sibling without a token gets through, because reaching this handler
+	// already took the group key.
 	if status, body := serve(context.Background(), relay.ProxyCall{
 		Method: http.MethodGet, Path: "/api/tasks",
 	}); status != http.StatusOK {
-		t.Errorf("a group sibling with no token = %d (%s), want 200 - the relay socket IS the credential", status, body)
+		t.Errorf("a group sibling with no token = %d (%s), want 200; the relay socket is the credential", status, body)
 	}
 
-	// A garbage token must not be worse than no token. It is not evidence of
-	// anything either way, and rejecting the request for carrying one would
-	// make a stale credential on a peer fail harder than an absent one.
+	// A stale token must not fail harder than no token.
 	if status, _ := serve(context.Background(), relay.ProxyCall{
 		Method: http.MethodGet, Path: "/api/tasks",
 		Authorization: "Bearer not-a-real-token",
@@ -432,10 +378,8 @@ func TestRelayProxyHonoursTheAuthorizationField(t *testing.T) {
 	}
 }
 
-// Being in the group buys a named list of routes and nothing else. Without
-// this the mark relayProxyHandler attaches would be a password bypass for the
-// whole API, reachable by anyone holding the phrase - which is everyone in
-// the group, but not for THESE routes.
+// TestRelayProxyRefusesEverythingButTasksAndLinks checks that group membership
+// reaches only the allowlisted routes rather than the whole API.
 func TestRelayProxyRefusesEverythingButTasksAndLinks(t *testing.T) {
 	_, a := testServer(t)
 	serve := relayProxyHandler(Handler(a))
@@ -447,7 +391,6 @@ func TestRelayProxyRefusesEverythingButTasksAndLinks(t *testing.T) {
 		return status
 	}
 
-	// The working surface: what a sibling or the phone app actually does.
 	for _, allowed := range []string{
 		"/api/tasks", "/api/links", "/api/queue", "/api/tasks/7", "/api/queue/move",
 		"/api/tasks?state=active", "/api/auth", "/api/instances", "/api/appearance",
@@ -458,49 +401,32 @@ func TestRelayProxyRefusesEverythingButTasksAndLinks(t *testing.T) {
 		}
 	}
 
-	// Each of these would hand a sibling something the phrase is not supposed
-	// to buy: the stored hoster logins and download paths, the ability to lock
-	// this instance out from under its owner, a standing credential, and the
+	// Hoster logins and paths, the password, standing credentials and the
 	// phrase itself.
 	for _, refused := range []string{
 		"/api/settings", "/api/accounts", "/api/auth/password", "/api/tokens",
 		"/api/connect", "/api/connect/reveal", "/api/scripts", "/api/relay/config",
 	} {
 		if status := get(refused); status != http.StatusForbidden {
-			t.Errorf("%s = %d, want 403 - a group sibling must not reach this", refused, status)
+			t.Errorf("%s = %d, want 403; a group sibling must not reach this", refused, status)
 		}
 	}
 
-	// Read-only means read-only. POST /api/instances registers a peer and POST
-	// /api/auth/logout is somebody else's session; being in the group is
-	// permission to look at these, never to write them.
-	//
-	// /api/appearance is NOT in this list any more, and it is the one exception
-	// in the allowlist: the phone has to be able to edit the rainbow palette,
-	// which lives on the instance because colours are handed out by position
-	// and two clients cannot be allowed to disagree about position three. What
-	// it grants is seven cosmetic fields and nothing else - strictly less than
-	// the queue control the same caller has always had.
 	for _, path := range []string{"/api/auth", "/api/instances", "/api/remote-access"} {
 		status, _ := serve(context.Background(), relay.ProxyCall{Method: http.MethodPost, Path: path})
 		if status != http.StatusForbidden {
-			t.Errorf("POST %s = %d, want 403 - these are readable, not writable", path, status)
+			t.Errorf("POST %s = %d, want 403; these are readable, not writable", path, status)
 		}
 	}
 
-	// The exception, proved as one: forwarded rather than refused, and reaching
-	// a handler rather than a 403. A bodyless call on purpose - that is what the
-	// relay builds when a frame carries no payload, and it panicked the whole
-	// instance the first time this route existed (see api.go's own `body`).
+	// The one writable exception. The call is bodyless, as the relay builds it
+	// for a frame without payload, which must not panic.
 	if status, _ := serve(context.Background(), relay.ProxyCall{Method: http.MethodPost, Path: "/api/appearance"}); status == http.StatusForbidden {
 		t.Error("POST /api/appearance = 403, but the app has to be able to set the palette")
 	} else if status == http.StatusInternalServerError {
-		t.Errorf("POST /api/appearance = 500 - a bodyless relay call must not reach a panic")
+		t.Errorf("POST /api/appearance = 500; a bodyless relay call must not reach a panic")
 	}
 
-	// And it stays an exception: nothing else under a write verb gets in with
-	// it. /api/settings is the one that matters - the whole point of the narrow
-	// route is that the broad one stays out.
 	for _, path := range []string{"/api/settings", "/api/accounts", "/api/relay/config"} {
 		for _, method := range []string{http.MethodPost, http.MethodPatch, http.MethodPut, http.MethodDelete} {
 			status, _ := serve(context.Background(), relay.ProxyCall{Method: method, Path: path})
@@ -511,11 +437,9 @@ func TestRelayProxyRefusesEverythingButTasksAndLinks(t *testing.T) {
 	}
 }
 
-// ---- the relay served from inside an instance -------------------------------
-
 // fixedSibling is a second relay client standing in for another instance, so a
-// test can prove a relay actually carried something rather than only that a
-// socket opened.
+// test can prove a relay carried something rather than only that a socket
+// opened.
 func fixedSibling(t *testing.T, url, key, id string) *relay.Client {
 	t.Helper()
 	c, err := relay.NewClient(relay.ClientOptions{
@@ -535,16 +459,9 @@ func fixedSibling(t *testing.T, url, key, id string) *relay.Client {
 	return c
 }
 
-// TestServingARelayFromInsideAnInstance is jdp's own framing of the feature:
-// "Können wir nicht das relay in KL integrieren? Also wenn jemand zb zwei
-// desktop instanzen hat und die koppeln will, dass er dann in einer instanz
-// das relay aktiveren kann?"
-//
-// The whole loop in one test, because every part of it is new and any one of
-// them failing quietly would look like the others working: the switch turns
-// the socket on, this instance's own relay client dials its own relay, a
-// second instance dials the same address with the same key, they see each
-// other on the Instances page, and a call actually crosses.
+// TestServingARelayFromInsideAnInstance runs the whole loop: the switch opens
+// the socket, the instance dials its own relay, a second instance joins with
+// the same key, they see each other, and a call crosses.
 func TestServingARelayFromInsideAnInstance(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
@@ -585,21 +502,16 @@ func TestServingARelayFromInsideAnInstance(t *testing.T) {
 		t.Errorf("proxy = %d %s, want the sibling's own fixed answer", status, body)
 	}
 
-	// Two connections: this instance's own client and the sibling's. The count
-	// is what the settings card shows, so it has to be the real registry rather
-	// than something derived from the switch being on.
+	// This instance's own client and the sibling's.
 	_, cfg := getRelayConfig(t, srv.URL)
 	if !cfg.Serve || cfg.ServeClients != 2 {
 		t.Errorf("config = %+v, want serve=true and 2 connected clients", cfg)
 	}
 }
 
-// TestAServedRelayAdmitsOnlyTheKeyTheInstanceStores is the reason Admit exists
-// at all. The standalone relay accepts every key and merely groups by it,
-// which is right for a rendezvous point nobody's downloads pass through. This
-// one rides on the address somebody published so their own instances could
-// reach them, so admitting every key would quietly turn their server into a
-// meeting place for whoever finds it.
+// TestAServedRelayAdmitsOnlyTheKeyTheInstanceStores checks Admit: unlike the
+// standalone relay, which groups any key, a relay served from an instance must
+// not become a meeting place for whoever finds its address.
 func TestAServedRelayAdmitsOnlyTheKeyTheInstanceStores(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
@@ -610,10 +522,8 @@ func TestAServedRelayAdmitsOnlyTheKeyTheInstanceStores(t *testing.T) {
 
 	stranger := fixedSibling(t, srv.URL, "some-other-relay-key-entirely-0123456789", "stranger-1")
 
-	// Long enough that a connection which was going to succeed has, and that
-	// the client has had time for a reconnect attempt or two after being
-	// refused. Connected() is the client's own view; ServeClients is the
-	// relay's. Both have to say no, because either one alone could be a
+	// Long enough for a connection or a retry to succeed. Both the client's
+	// view and the relay's count are checked, since either alone could be a
 	// timing artefact.
 	deadline := time.Now().Add(2 * time.Second)
 	for time.Now().Before(deadline) {
@@ -627,11 +537,8 @@ func TestAServedRelayAdmitsOnlyTheKeyTheInstanceStores(t *testing.T) {
 	}
 }
 
-// TestWithTheSwitchOffTheRelaySocketIsNotThere: an instance that is not
-// serving a relay answers the way one that never had the feature does. That
-// is deliberate rather than incidental - a client told "no such endpoint" can
-// treat every version of KnightLoader alike, while a 403 would have it
-// reporting a refusal to somebody who never asked for anything.
+// TestWithTheSwitchOffTheRelaySocketIsNotThere checks that an instance not
+// serving a relay answers 404, like a version without the feature.
 func TestWithTheSwitchOffTheRelaySocketIsNotThere(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
@@ -645,9 +552,8 @@ func TestWithTheSwitchOffTheRelaySocketIsNotThere(t *testing.T) {
 		t.Errorf("GET /relay/connect answered %d with the switch off, want 404", resp.StatusCode)
 	}
 
-	// And it is the switch doing it, not a route that was never registered:
-	// with the switch on the same plain GET gets as far as the WebSocket
-	// handshake, which refuses it for not being one.
+	// With the switch on, the same GET reaches the WebSocket handshake, so
+	// the 404 came from the switch.
 	if code, put := putRelayConfig(t, srv.URL, `{"relayUrl":"","key":"a-key-long-enough-to-pass","serve":true}`); code != http.StatusOK || !put.Serve {
 		t.Fatalf("PUT /api/relay/config = %d %+v", code, put)
 	}
@@ -661,11 +567,8 @@ func TestWithTheSwitchOffTheRelaySocketIsNotThere(t *testing.T) {
 	}
 }
 
-// TestTheServeSwitchIsLeftAloneWhenTheRequestOmitsIt: the address form and the
-// switch are two controls on one card, and PUT carries both. Serve is a
-// pointer for the same reason Key is - a save from a form that only edited the
-// address must not carry the switch back to whatever it was when that form was
-// drawn - and a pointer that is only DECLARED optional is not optional.
+// TestTheServeSwitchIsLeftAloneWhenTheRequestOmitsIt checks that saving only
+// the address does not change the serve switch.
 func TestTheServeSwitchIsLeftAloneWhenTheRequestOmitsIt(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()

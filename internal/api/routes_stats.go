@@ -3,19 +3,17 @@ package api
 // What this instance has downloaded, added up: the curve, and the counter the
 // volume cap is measured against.
 //
-// A route of its own rather than a flag on /api/history, and not something a
-// client works out for itself from that route either. The history is thousands
-// of rows and a client that aggregated them would be pulling the whole table to
-// draw 42 numbers, on every page load, over a link that may be somebody's phone.
-// Worse, it would be bucketing by ITS calendar: the cap is enforced in this
-// process, so the server's local day is the only day the chart and the number
-// holding a queue back can both mean.
+// A route of its own rather than something a client aggregates from
+// /api/history: the history is thousands of rows, and a client would pull the
+// whole table on every page load to draw 42 numbers, bucketing them by its own
+// calendar. The cap is enforced in this process, so the server's local day is
+// the only day the chart and the number holding a queue back can both mean.
 //
-// TWO ROUTES AND NOT ONE. The status bar asks for the counter on every page
-// load and must not pull 42 buckets to draw one figure, and the chart asks for
+// Two routes, because the status bar asks for the counter on every page load
+// and must not pull 42 buckets to draw one figure, while the chart asks for
 // the buckets once and does not care what the cap is. Neither takes a ?limit:
 // both are bounded by construction, which is a promise a limit parameter would
-// quietly take away.
+// take away.
 
 import (
 	"net/http"
@@ -25,12 +23,9 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/store"
 )
 
-// How far back the two curves look.
-//
-// Thirty days and twelve months, because those are the two questions people
-// actually have: "what have I been doing lately" and "how does this month
-// compare". Both are also small enough to draw legibly on a phone, which a
-// ninety day curve is not.
+// How far back the two curves look. Thirty days answers "what have I been
+// doing lately" and twelve months "how does this month compare", and both are
+// small enough to draw legibly on a phone.
 const (
 	volumeDays   = 30
 	volumeMonths = 12
@@ -44,11 +39,11 @@ type volumeStats struct {
 	Days   []store.VolumeBucket `json:"days"`
 	Months []store.VolumeBucket `json:"months"`
 	// TimeZone is the zone the buckets were cut in, so a chart can say whose
-	// calendar it is drawing rather than leaving somebody to assume it is theirs.
+	// calendar it draws rather than leaving somebody to assume it is theirs.
 	TimeZone string `json:"timeZone"`
-	// Oldest is the earliest finish the history still holds, and it is absent
-	// for a history with nothing in it. Anything before it is not "nothing was
-	// downloaded", it is "no longer recorded", and those are different sentences.
+	// Oldest is the earliest finish the history still holds, absent for an
+	// empty history. Anything before it is not "nothing was downloaded", it is
+	// "not recorded any more".
 	Oldest *time.Time `json:"oldest,omitempty"`
 	// Trimmed says the history is at its own ceiling, so the front of the twelve
 	// month curve is cut rather than empty.
@@ -105,15 +100,14 @@ func volumeCurves(a *app.App, now time.Time) (volumeStats, error) {
 	return out, nil
 }
 
-// dayWindow is the last n calendar days in the server's own zone, oldest first,
-// and the instant the earliest of them begins.
+// dayWindow is the last n calendar days in the server's own zone, oldest
+// first, and the instant the earliest of them begins.
 //
-// ANCHORED AT NOON and stepped by whole days. Midnight is the tempting anchor
-// and it is the wrong one: there are zones and dates where local midnight does
-// not exist at all (daylight saving starting at 00:00, which Brazil used to do),
-// and Go normalises the missing hour forward, so stepping back day by day from
-// midnight can produce the same date twice and skip its neighbour. Noon is never
-// the hour a zone jumps over.
+// Anchored at noon and stepped by whole days. In zones where daylight saving
+// starts at 00:00 local midnight does not exist on that date, and Go
+// normalises the missing hour forward, so stepping back from midnight can
+// produce the same date twice and skip its neighbour. Noon is never the hour a
+// zone jumps over.
 func dayWindow(now time.Time, n int) ([]string, time.Time) {
 	loc := now.Location()
 	first := time.Date(now.Year(), now.Month(), now.Day(), 12, 0, 0, 0, loc).AddDate(0, 0, -(n - 1))
@@ -136,17 +130,15 @@ func monthWindow(now time.Time, n int) ([]string, time.Time) {
 	return keys, time.Date(first.Year(), first.Month(), 1, 0, 0, 0, 0, loc)
 }
 
-// fillCurve puts the buckets the store found onto the calendar the window asked
-// for, and fills what is left with zeroes.
+// fillCurve puts the buckets the store found onto the calendar the window
+// asked for, and fills what is left with zeroes. A quiet Sunday and a Sunday
+// the record has lost look identical in a list that omits both, and the
+// oldest field beside these curves only tells them apart if the empty days are
+// drawn.
 //
-// The zeroes are the point. A quiet Sunday and a Sunday the record has lost look
-// identical in a list that simply omits both, and a chart drawn from gaps has no
-// abscissa: the reason there is an `oldest` beside these curves is so the two can
-// be told apart, and that only works if the empty days are actually drawn.
-//
-// A bucket the window does not name is dropped, which can only be a row stamped
-// in the future by a clock that was wrong. Drawing it would stretch the axis
-// past today for one bad row.
+// A bucket the window does not name is dropped. It can only be a row stamped
+// in the future by a wrong clock, and drawing it would stretch the axis past
+// today.
 func fillCurve(keys []string, got []store.VolumeBucket) []store.VolumeBucket {
 	by := make(map[string]store.VolumeBucket, len(got))
 	for _, b := range got {

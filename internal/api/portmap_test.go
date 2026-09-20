@@ -11,15 +11,11 @@ import (
 
 // portmapServer is the portmap route on a throwaway app.
 //
-// Only validation is exercised at this layer, deliberately: what a
-// well-formed request actually does - discovery, the SOAP calls, the
-// three-way honest outcome - is internal/portmap's own job and has its own,
-// thoroughly injected test suite, the same split reconnect's MethodUPnP
-// already has (no test in this package exercises real SSDP either). A test
-// here that let a request reach portmap.AttemptPort for real would send a
-// multicast search from whatever machine runs `go test`, which upnp.go's
-// own Discoverer doc comment already explains a sandboxed runner may not
-// even be allowed to do.
+// Only validation is exercised here. Discovery, the SOAP calls and the
+// three-way outcome are internal/portmap's own tests, the same split
+// reconnect's MethodUPnP has. Letting a request reach portmap.AttemptPort
+// would send a multicast search from whatever machine runs the suite, which a
+// sandboxed runner may not be allowed to do.
 func portmapServer(t *testing.T) (*app.App, *httptest.Server) {
 	t.Helper()
 	a := testApp(t)
@@ -53,12 +49,10 @@ func TestPortmapRefusesBadJSON(t *testing.T) {
 	}
 }
 
-// TestPortmapRefusesAnOutOfRangePort names the field rather than letting
-// portmap.Attempt's own generic validation message reach the caller - see
-// routes_portmap.go's own comment on why the check is duplicated here. The
-// field is "port", matching web/src/pages/settings/Torrents.tsx's own
-// request body ({ port }) rather than portmap.Request's internal/external
-// split - this route asks for one number and maps it on both protocols.
+// TestPortmapRefusesAnOutOfRangePort: the refusal names the field rather than
+// passing on portmap.Attempt's generic message. The field is "port", matching
+// web/src/pages/settings/Torrents.tsx's request body, not portmap.Request's
+// internal and external split; this route takes one number for both protocols.
 func TestPortmapRefusesAnOutOfRangePort(t *testing.T) {
 	_, srv := portmapServer(t)
 	for _, port := range []int{0, -1, 65536} {

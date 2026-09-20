@@ -11,10 +11,8 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
-// scheduleStateWire mirrors app.ScheduleState field-for-field. A local copy
-// rather than importing internal/app's type directly keeps this file reading
-// the wire shape a client actually sees, the same reason settings_test.go
-// decodes PUT /api/settings into a bare map rather than into settings.Settings.
+// scheduleStateWire mirrors app.ScheduleState, so the test reads the wire shape
+// a client sees.
 type scheduleStateWire struct {
 	Entries []schedule.Entry `json:"entries"`
 	State   schedule.State   `json:"state"`
@@ -22,9 +20,7 @@ type scheduleStateWire struct {
 }
 
 // putSchedule sends a timetable and returns the status plus the decoded
-// ScheduleState body. The body is the zero value for anything but 200 - a
-// refusal has a different shape, and putScheduleExpectingRefusal decodes that
-// one instead.
+// ScheduleState, zero for anything but 200.
 func putSchedule(t *testing.T, url string, entries []schedule.Entry) (int, scheduleStateWire) {
 	t.Helper()
 	code, raw := doPutSchedule(t, url, entries)
@@ -37,9 +33,7 @@ func putSchedule(t *testing.T, url string, entries []schedule.Entry) (int, sched
 	return code, out
 }
 
-// putScheduleExpectingRefusal is putSchedule's other half: the per-row errors
-// a 400 carries, which putSchedule has nowhere to put because a refusal is
-// not a ScheduleState.
+// putScheduleExpectingRefusal decodes the per-row errors of a refused save.
 func putScheduleExpectingRefusal(t *testing.T, url string, entries []schedule.Entry) (int, scheduleValidationError) {
 	t.Helper()
 	code, raw := doPutSchedule(t, url, entries)
@@ -90,10 +84,8 @@ func getSchedule(t *testing.T, url string) scheduleStateWire {
 	return out
 }
 
-// days is the readable way to write a weekday list: 0 = Sunday, matching both
-// time.Weekday and, not coincidentally, JavaScript's Date.getDay - the
-// timetable editor built on this route leans on that agreement to avoid a
-// day-numbering conversion of its own.
+// days builds a weekday list with 0 as Sunday, as in time.Weekday and
+// JavaScript's Date.getDay.
 func days(nums ...int) []time.Weekday {
 	out := make([]time.Weekday, len(nums))
 	for i, n := range nums {
@@ -113,8 +105,6 @@ func weeknight() schedule.Entry {
 	}
 }
 
-// TestScheduleRoundTrip pins the basic shape: what is PUT is what GET answers
-// with next, in the same order.
 func TestScheduleRoundTrip(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
@@ -137,9 +127,8 @@ func TestScheduleRoundTrip(t *testing.T) {
 	}
 }
 
-// TestScheduleRefusesEachBadRowByPosition is the point of the dedicated
-// route: a table with two mistakes in it is told about both, by row, rather
-// than stopping at the first the way PUT /api/settings's validateRows does.
+// TestScheduleRefusesEachBadRowByPosition checks that every bad row is
+// reported, not only the first.
 func TestScheduleRefusesEachBadRowByPosition(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
@@ -168,11 +157,8 @@ func TestScheduleRefusesEachBadRowByPosition(t *testing.T) {
 	}
 }
 
-// TestScheduleRefusalDoesNotPartiallyApply is the atomicity half: a table
-// with one bad row among good ones must leave the STORED timetable exactly as
-// it was, not the good rows written and the bad one dropped. A save that
-// silently keeps two of three rows is worse than a save that is refused
-// outright, because nothing on screen says a row went missing.
+// TestScheduleRefusalDoesNotPartiallyApply checks that one bad row leaves the
+// stored timetable untouched rather than saving the good rows.
 func TestScheduleRefusalDoesNotPartiallyApply(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
@@ -197,12 +183,8 @@ func TestScheduleRefusalDoesNotPartiallyApply(t *testing.T) {
 	}
 }
 
-// TestScheduleWriteLeavesOtherSettingsAlone is the property the whole route
-// is built around (see routes_schedule.go's doc comment): saving the
-// timetable through this door must never carry along a stale copy of some
-// other setting, the way a second browser tab's PUT /api/settings could. It
-// reads the live document and rewrites only Schedule, so a value changed by
-// another request beforehand is untouched.
+// TestScheduleWriteLeavesOtherSettingsAlone checks that saving the timetable
+// rewrites only Schedule.
 func TestScheduleWriteLeavesOtherSettingsAlone(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
@@ -230,15 +212,9 @@ func TestScheduleWriteLeavesOtherSettingsAlone(t *testing.T) {
 	}
 }
 
-// TestScheduleWriteReachesTheLiveRunner proves ApplySettings, not a direct
-// store write, is what this route calls - the distinction that matters
-// because only ApplySettings re-arms a.sched (see app.go's ApplySettings and
-// routes_schedule.go's doc comment). It is checked without depending on the
-// wall clock, since whether a window happens to cover the instant the test
-// runs is not the thing under test: an empty timetable's Next is always nil
-// (schedule.Schedule.Next on zero rules), and any non-empty one has a
-// boundary somewhere in its two-week horizon, so Next turning non-nil is
-// proof the runner recompiled against the new rows.
+// TestScheduleWriteReachesTheLiveRunner checks that the route re-arms the
+// runner. An empty timetable has no next change and any real window has one
+// within the horizon, so the test does not depend on the wall clock.
 func TestScheduleWriteReachesTheLiveRunner(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()

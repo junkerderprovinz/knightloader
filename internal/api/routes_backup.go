@@ -1,13 +1,9 @@
 package api
 
-// Backup and restore.
-//
-// The backup bundles the SQLite store and settings.json — which is also
-// where the rule sets and the timetable live, see settings.Settings's own
-// doc comment — into one archive; see internal/backup's own doc comment for
-// why there is no separate rules.json or schedule.json to also carry, and
-// for why a restore validates to exhaustion but does not apply anything
-// until the next process start-up.
+// Backup and restore. The archive bundles the SQLite store and settings.json,
+// which is also where the rule sets and the timetable live. See
+// internal/backup for why a restore validates everything up front but applies
+// nothing until the next process start.
 
 import (
 	"encoding/json"
@@ -53,21 +49,17 @@ func downloadBackup(w http.ResponseWriter, a *app.App) {
 	}
 	defer os.Remove(tmpPath)
 
-	// A consistent snapshot taken through the same connection every other
-	// write to this database goes through (VACUUM INTO — see BackupTo's own
-	// doc comment), never a raw copy of the live file, which could hand
-	// back a torn database if a task settled mid-copy.
+	// VACUUM INTO through the connection every other write goes through, never
+	// a raw copy of the live file, which hands back a torn database if a task
+	// settles mid-copy.
 	if err := a.Store.BackupTo(tmpPath); err != nil {
 		http.Error(w, "could not snapshot the database: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// Marshalled from live state, deliberately unredacted — a backup that
-	// cannot put a router or proxy password back on restore is not a
-	// backup. That is safe here in a way it would not be on GET
-	// /api/settings: this route requires the same session every other route
-	// does and is never served to a page on load, only to a deliberate
-	// "download my backup" click.
+	// Unredacted, since a backup that cannot put a router or proxy password
+	// back is not a backup. Unlike GET /api/settings this is never served to a
+	// page on load, only to a session that asked for the download.
 	settingsJSON, err := json.MarshalIndent(a.Settings.Get(), "", "  ")
 	if err != nil {
 		http.Error(w, "could not encode settings: "+err.Error(), http.StatusInternalServerError)
@@ -85,11 +77,9 @@ func downloadBackup(w http.ResponseWriter, a *app.App) {
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	w.Header().Set("Content-Disposition", `attachment; filename="`+filename+`"`)
 	if err := backup.Build(w, manifest, settingsJSON, tmpPath); err != nil {
-		// Too late for http.Error: the headers, and quite possibly some
-		// bytes of the zip, are already on the wire. Logged loudly instead,
-		// because the client just received a download that is not a
-		// complete, restorable backup and nothing about its HTTP status
-		// said so.
+		// Too late for http.Error: the headers and part of the zip are
+		// already on the wire, so the client has a truncated archive under
+		// a 200 and only the log says otherwise.
 		log.Printf("backup: the archive did not finish writing to the response: %v", err)
 	}
 }
@@ -114,20 +104,17 @@ func uploadRestore(w http.ResponseWriter, r *http.Request, a *app.App) {
 
 	manifest, err := backup.Stage(a.DataDir, data, buildinfo.Version)
 	if err != nil {
-		// Verbatim: every error Stage returns already names exactly which
-		// check failed and why, which is the one thing a rejected restore
-		// has to say to be worth anything — "invalid file" would send
-		// somebody re-uploading the same broken archive.
+		// Verbatim: every error Stage returns names which check failed.
+		// "invalid file" would send somebody re-uploading the same
+		// broken archive.
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	// The validated bundle is staged either way; only whether THIS process
-	// can also trigger the restart that applies it depends on RequestExit.
-	// A container whose supervisor restarts it on its own schedule, or a
-	// build with nothing wired here yet, still has a restore waiting for
-	// its next boot — see backup.ApplyPending, called before this process's
-	// own store or settings are ever opened.
+	// The bundle is staged either way; RequestExit only decides whether this
+	// process can also trigger the restart that applies it. A container
+	// restarted on its supervisor's schedule still finds the staged restore
+	// on its next boot, through backup.ApplyPending.
 	restarting := a.RequestExit != nil && a.RequestExit(true)
 	status := "validated and staged; restart the server to apply it"
 	if restarting {

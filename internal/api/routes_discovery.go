@@ -1,13 +1,10 @@
 package api
 
-// The instances on this network, found with nothing configured.
-//
-// This is the "out of the box" half of connecting two KnightLoaders: the
-// relay solves reaching an instance that cannot be reached, and a pairing
-// code solves proving who you are, but the ordinary case - a server and a
-// desktop on one home network - was only ever missing the ADDRESS. See
-// internal/discovery for the protocol and for why this deliberately does not
-// pair anything by itself.
+// The instances on this network, found with nothing configured. The relay
+// solves reaching an instance that cannot be reached; for a server and a
+// desktop on one home network the missing piece is only the address. See
+// internal/discovery for the protocol and for why this pairs nothing by
+// itself.
 
 import (
 	"net/http"
@@ -27,16 +24,14 @@ type discovered struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
 	URL  string `json:"url"`
-	// Deployment is "container" or "desktop". A desktop build never announces
-	// (it has no address anything could dial), so in practice this is always
-	// "container" today - carried anyway because the announce does, and
-	// because a peer that starts announcing later should not need a new field.
+	// Deployment is "container" or "desktop". A desktop build has no address
+	// anything could dial and never announces, so this is "container" in
+	// practice; it is carried because the announce carries it.
 	Deployment string `json:"deployment"`
 	// Known is true when this instance is already a stored or relay peer, by
-	// name or by address. The page still SHOWS it, greyed, rather than hiding
-	// it: "the one I expected is missing" and "it is here and already added"
-	// are different answers, and silently omitting the second one makes the
-	// list look broken.
+	// name or by address. The page shows it greyed rather than hiding it: "the
+	// one I expected is missing" and "it is here and already added" are
+	// different answers.
 	Known bool `json:"known"`
 }
 
@@ -45,10 +40,9 @@ func registerDiscovery(reg *Registry, a *app.App) {
 	if svc != nil {
 		a.SetDiscovery(svc)
 	}
-	// Rebuilt on a settings save, so renaming an instance is visible to the
-	// network on the next announce rather than after a restart. Same call
-	// shape as applyRelay, which exists for the identical reason on the relay's
-	// own announce - see routes_settings.go.
+	// Rebuilt on a settings save, so renaming an instance reaches the network
+	// on the next announce rather than after a restart. Same shape as
+	// applyRelay in routes_settings.go.
 	discoveryRefresh = func() {
 		if svc != nil {
 			svc.SetSelf(discoverySelf(a))
@@ -76,11 +70,9 @@ func registerDiscovery(reg *Registry, a *app.App) {
 			}
 			out := []discovered{}
 			for _, p := range svc.Peers() {
-				// Sanitised again on arrival, not only on the way out: the
-				// sender is whatever is on the network - an instance that
-				// predates the sanitising announce, or something that is not
-				// a KnightLoader at all. A name this side cannot add is a row
-				// with a button that can only fail.
+				// Sanitised on arrival as well as on the way out: the sender
+				// is whatever is on the network, and a name this side cannot
+				// add is a row with a button that can only fail.
 				name := federation.SanitiseName(p.Name)
 				if name == "" {
 					name = federation.SanitiseName(p.ID)
@@ -106,11 +98,10 @@ var discoveryRefresh = func() {}
 
 // discoverySelf is what this instance announces right now.
 func discoverySelf(a *app.App) discovery.Peer {
-	// Sanitised for the same reason pairingSelf does it: this name is what a
-	// receiving instance will try to add a peer BY, and federation's naming
-	// rule is narrower than what a person may reasonably have called their
-	// box. An unsanitised name here produced a card with an Add button that
-	// could only ever answer "invalid instance name".
+	// A receiving instance adds the peer by this name, and federation's naming
+	// rule is narrower than what a person may have called their box. Without
+	// sanitising, the card offers an Add button that can only answer "invalid
+	// instance name".
 	name := federation.SanitiseName(instanceDisplayName(a))
 	if name == "" {
 		name = a.Settings.Get().InstanceID
@@ -120,37 +111,31 @@ func discoverySelf(a *app.App) discovery.Peer {
 		Name:       name,
 		Deployment: buildinfo.Deployment,
 	}
-	// ListensWidely, not just a port: an instance started with
-	// KL_ADDR=127.0.0.1:8749 - the documented way to run behind a local
-	// reverse proxy - has a port, but nothing outside the box can reach it.
-	// The multicast socket is separate from that listener, so without this
-	// check such an instance still announced a LAN address it does not serve,
-	// and every other instance on the network offered a live Add button for a
-	// peer that can only ever be offline.
+	// ListensWidely and not just a port: an instance started with
+	// KL_ADDR=127.0.0.1:8749, the documented way to run behind a local reverse
+	// proxy, has a port that nothing outside the box can reach. The multicast
+	// socket is separate from that listener, so without this check it
+	// announces a LAN address it does not serve and every other instance
+	// offers an Add button for a peer that is always offline.
 	if buildinfo.Deployment != "desktop" && buildinfo.ListensWidely && buildinfo.ListenPort > 0 {
 		if ip := discovery.LocalIPv4(); ip != "" {
-			// http:// because that is what this process serves; an instance
-			// behind a reverse proxy terminating TLS is reachable on its
-			// domain too, and that path is what KnownDomains and the pairing
-			// code already carry. What is announced here is the direct,
-			// on-this-network address, which is the only one discovery is
-			// about.
+			// http:// because that is what this process serves. An instance
+			// behind a proxy terminating TLS is reachable on its domain too,
+			// which is what KnownDomains carries; this announces the direct
+			// on-network address.
 			self.URL = "http://" + ip + ":" + strconv.Itoa(buildinfo.ListenPort)
 		}
 	}
 	return self
 }
 
-// startDiscovery builds the announce this instance sends, and starts
-// listening either way.
-//
-// A build with no address to announce still listens: the desktop can then
-// FIND the server on its network and add it, even though nothing can dial the
-// desktop back. That asymmetry is the honest one - it is the same reason the
-// desktop cannot issue a pairing code (routes_pairing.go's own gate).
+// startDiscovery builds the announce this instance sends, and starts listening
+// either way. A build with no address to announce still listens, so a desktop
+// can find the server on its network and add it even though nothing can dial
+// the desktop back.
 func startDiscovery(a *app.App) *discovery.Service {
-	// Only when a main package that actually serves has asked for it: see
-	// buildinfo.DiscoveryEnabled for why this must stay off in tests.
+	// Only when a main package that serves has asked for it: see
+	// buildinfo.DiscoveryEnabled for why this stays off in tests.
 	if !buildinfo.DiscoveryEnabled {
 		return nil
 	}
@@ -160,14 +145,9 @@ func startDiscovery(a *app.App) *discovery.Service {
 }
 
 // instanceDisplayName is InstanceName if the user set one, else os.Hostname,
-// else the fixed fallback "KnightLoader" for the rare host where even that
-// fails.
-//
-// One function rather than the same precedence written out wherever a name is
-// needed: this instance announces itself on the LAN (routes_discovery.go) and
-// on the relay (routes_relay.go's Announce), and a name resolved two
-// different ways in two places is a name that eventually disagrees with
-// itself. It lived in routes_pairing.go until the pairing code was removed.
+// else "KnightLoader". One function rather than the same precedence written
+// out twice: this instance announces itself both on the LAN and on the relay
+// (routes_relay.go's Announce), and two resolutions eventually disagree.
 func instanceDisplayName(a *app.App) string {
 	if name := a.Settings.Get().InstanceName; name != "" {
 		return name

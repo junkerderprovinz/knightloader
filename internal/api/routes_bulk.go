@@ -1,10 +1,8 @@
 package api
 
-// Operations on a whole selection. Every one of these exists because the
-// interface does it to a selection, and a route that takes one id turns a
-// hundred-row selection into a hundred requests, a hundred store writes and a
-// hundred broadcasts — which is slow enough to look broken and, worse, can fail
-// halfway and leave the list in a state nobody asked for.
+// Operations on a whole selection. A route that takes one id turns a
+// hundred-row selection into a hundred requests, store writes and broadcasts,
+// which is slow enough to look broken and can fail halfway.
 
 import (
 	"net/http"
@@ -12,13 +10,10 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/app"
 )
 
-// bulkResult is the same answer for every route here: what was actually
-// touched, so the interface can report "12 removed" without re-fetching the
-// world to work out which twelve.
-//
-// Undo and UndoMs are set by the delete route alone, and only when the removal
-// left the files where they were. Both are omitempty, so every other route here
-// answers exactly the two fields it always did.
+// bulkResult is the answer for every route here: what was actually touched, so
+// the interface can report "12 removed" without re-fetching the list to work
+// out which twelve. Only the delete route sets Undo and UndoMs, and only when
+// the removal left the files where they were.
 type bulkResult struct {
 	Ids   []string `json:"ids"`
 	Count int      `json:"count"`
@@ -26,14 +21,9 @@ type bulkResult struct {
 	// to put back (see app.RemoveTasksUndoable for why erasing the files earns no
 	// token).
 	Undo string `json:"undo,omitempty"`
-	// UndoMs is how long that token stays good, in milliseconds.
-	//
-	// Sent rather than hardcoded in the browser because the interface has to hold
-	// the button up for exactly as long as the server still holds the rows. Two
-	// copies of one duration drift, and both directions of the drift are bad: a
-	// button that disappears early throws away an undo that would have worked, and
-	// one that lingers answers "there is nothing to undo" to a press that looked
-	// perfectly in time.
+	// UndoMs is how long that token stays good, in milliseconds. Sent rather
+	// than hardcoded in the browser so the button is up for exactly as long as
+	// the server still holds the rows.
 	UndoMs int64 `json:"undoMs,omitempty"`
 }
 
@@ -78,10 +68,9 @@ func registerBulk(reg *Registry, a *app.App) {
 			}
 			bulkDone(w, a.SetForced(body.Ids, body.Forced))
 		})
-	// Deleting the rows and deleting the files are two different acts and they
-	// are two different fields. The destructive one is never a default, is never
-	// implied by the other, and the interface confirms it with the file count and
-	// the byte total before it is sent.
+	// Deleting the rows and deleting the files are two fields, so the
+	// destructive one is never implied by the other. The interface confirms it
+	// with the file count and the byte total before it is sent.
 	reg.Add(http.MethodPost, "/api/tasks/delete", "remove a selection from the list; files:true also erases what was downloaded. The answer carries an undo token while the rows can still be put back",
 		func(w http.ResponseWriter, r *http.Request) {
 			var body struct {
@@ -91,11 +80,9 @@ func registerBulk(reg *Registry, a *app.App) {
 			if !decodeJSON(w, r, &body) || !requireIDs(w, body.Ids) {
 				return
 			}
-			// The one route here that does not go through bulkDone, because it is
-			// the one with something more to say. Removing rows is the only verb
-			// on this page that asks nothing first when no files are involved,
-			// and the selection it acts on can include rows a filter is hiding -
-			// so what comes back has to be enough to offer the press back.
+			// Not bulkDone: removing rows asks nothing first when no files are
+			// involved, and the selection can include rows a filter is hiding,
+			// so the answer has to carry enough to offer the undo.
 			removed, undo := a.RemoveTasksUndoable(body.Ids, body.Files)
 			if removed == nil {
 				removed = []string{}
@@ -114,11 +101,9 @@ func registerBulk(reg *Registry, a *app.App) {
 			if !decodeJSON(w, r, &body) {
 				return
 			}
-			// An expired or unknown token answers with an empty list and 200, not
-			// 404: the window closing is the ordinary end of a token's life, and
-			// "nothing came back" is a sentence the interface can say to somebody
-			// who pressed a second too late. A 404 would be reported as a broken
-			// button instead.
+			// An expired or unknown token answers with an empty list and 200.
+			// The window closing is the ordinary end of a token's life, and a
+			// 404 would be reported as a broken button.
 			bulkDone(w, a.UndoRemove(body.Token))
 		})
 	reg.Add(http.MethodGet, "/api/cleanup/{class}", "which tasks a cleanup class would take, without taking them",

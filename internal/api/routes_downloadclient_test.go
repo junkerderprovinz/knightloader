@@ -1,16 +1,8 @@
 package api
 
-// Route-level tests for the SABnzbd-shaped download client, against a real app
-// on a throwaway data directory - the same shape routes_torrents_test.go and
-// links_test.go use, and for the same reason: this file's whole job is to be
-// believed by a program on the other end of a socket, so a test that stubbed
-// the app out would only prove the stub agrees with itself.
-//
-// Every fixture here uses a magnet link rather than an http one, deliberately.
-// A magnet is resolved by internal/resolver/torrent's own local parse of the
-// URI text, so staging one makes no network call at all; an http link goes to
-// the direct resolver, which spawns a HEAD probe, and a test that depends on
-// DNS is a test that fails on a train.
+// Route-level tests for the SABnzbd-shaped download client against a real app.
+// The fixtures use magnet links, which the torrent resolver parses locally,
+// while an http link would make the direct resolver send a HEAD probe.
 
 import (
 	"encoding/json"
@@ -30,22 +22,14 @@ import (
 const testMagnet = "magnet:?xt=urn:btih:0123456789abcdef0123456789abcdef01234567"
 
 // downloadClientServer is an instance with the bridge switched on and one API
-// token issued, plus the server the routes are attached to and that token's
-// secret.
-//
-// The queue is halted on purpose. Staging a link through this bridge starts it
-// (App.StartTasks), and a started magnet would be handed to the real engine and
-// go looking for a swarm - so the halt is what keeps these tests off the
-// network without changing anything the bridge itself does: StartTasks still
-// moves the tasks to "queued", which is exactly the state the queue route is
-// being asked about.
+// token issued, plus the server and the token's secret. The queue is halted so
+// a started magnet never goes looking for a swarm; StartTasks still moves the
+// tasks to "queued".
 func downloadClientServer(t *testing.T, tune func(*settings.Settings)) (*app.App, *httptest.Server, string) {
 	t.Helper()
 	a := testApp(t)
 	s := settings.Defaults()
 	s.DownloadDir = t.TempDir()
-	// On, because the bridge reports a finished download's folder to Sonarr and
-	// that folder is only the release's own when per-package folders are on.
 	s.SubfolderByPackage = true
 	// Off, so a staged link is never fetched as a page.
 	s.Crawl = false
@@ -118,8 +102,8 @@ func sabAddFile(t *testing.T, srv *httptest.Server, key, filename, category stri
 	return code, doc
 }
 
-// slots digs the queue's or history's own slot list out of the answer, which is
-// nested exactly the way Sonarr's JObject.SelectToken("queue") expects it.
+// slots digs the queue's or history's slot list out of the answer, nested the
+// way Sonarr's JObject.SelectToken("queue") expects it.
 func slots(t *testing.T, doc map[string]any, section string) []map[string]any {
 	t.Helper()
 	outer, ok := doc[section].(map[string]any)
@@ -150,38 +134,30 @@ func liveTasks(t *testing.T, a *app.App) int {
 	return len(all)
 }
 
-// TestDownloadClientIsOffOnAFreshInstall is the default this whole feature
-// hangs on. An interface that can create downloads and delete files must not be
-// standing open because nobody chose otherwise, so a fresh install has to
-// answer as if the endpoint did not exist at all.
+// TestDownloadClientIsOffOnAFreshInstall checks that a route able to create
+// downloads and delete files is not open unless somebody chose it.
 func TestDownloadClientIsOffOnAFreshInstall(t *testing.T) {
 	if settings.Defaults().DownloadClientAPI {
 		t.Fatal("a fresh install ships with the download-client bridge switched on")
 	}
 }
 
-// TestDownloadClientOffAcceptsNothing is the off-state test the wave asks for by
-// name: with the module switched off the bridge must not merely hide, it must
-// refuse to take anything, including from a caller holding a perfectly good API
-// token.
+// TestDownloadClientOffAcceptsNothing checks that the switched-off bridge takes
+// nothing, even from a caller holding a valid API token.
 func TestDownloadClientOffAcceptsNothing(t *testing.T) {
 	a, srv, key := downloadClientServer(t, func(s *settings.Settings) {
 		s.DownloadClientAPI = false
 	})
 
-	// Reading is refused, and refused as a 404 rather than as an error
-	// document: a closed door does not tell anybody whether their key fits.
+	// A 404 rather than an error document, so a closed door does not say
+	// whether the key fits.
 	code, _ := sabGet(t, srv, key, map[string]string{"mode": "version"})
 	if code != http.StatusNotFound {
 		t.Errorf("mode=version with the module off answered %d, want 404", code)
 	}
 
-	// And writing is refused, which is the half that matters.
 	code, _ = sabAddFile(t, srv, key, "Show.S01E01.nzb", "tv-sonarr", []byte(testMagnet))
-	// Errorf and not Fatalf on purpose: the status is the smaller half of this
-	// claim, and stopping here would leave the half that actually matters -
-	// that nothing was staged and nothing was recorded - unchecked in exactly
-	// the run where it is most worth knowing.
+	// Errorf, so the checks that nothing was staged still run.
 	if code != http.StatusNotFound {
 		t.Errorf("mode=addfile with the module off answered %d, want 404", code)
 	}
@@ -197,10 +173,8 @@ func TestDownloadClientOffAcceptsNothing(t *testing.T) {
 	}
 }
 
-// TestDownloadClientRefusesWithoutAValidKey pins both halves of the credential,
-// including the exact wording. Sonarr's TestAuthentication matches on these two
-// strings to tell the person which field to fix; anything else surfaces as an
-// unattributed connection failure and sends them looking at their network.
+// TestDownloadClientRefusesWithoutAValidKey pins the exact wording, which
+// Sonarr's TestAuthentication matches on.
 func TestDownloadClientRefusesWithoutAValidKey(t *testing.T) {
 	a, srv, key := downloadClientServer(t, nil)
 
@@ -218,11 +192,10 @@ func TestDownloadClientRefusesWithoutAValidKey(t *testing.T) {
 			t.Errorf("%s was accepted: %+v", c.name, doc)
 		}
 		if got, _ := doc["error"].(string); got != c.want {
-			t.Errorf("%s answered error %q, want %q - Sonarr matches on this text", c.name, got, c.want)
+			t.Errorf("%s answered error %q, want %q; Sonarr matches on this text", c.name, got, c.want)
 		}
 	}
 
-	// The bad keys must not have been able to stage anything either.
 	code, doc := sabAddFile(t, srv, "not-a-real-token", "Show.S01E01.nzb", "tv-sonarr", []byte(testMagnet))
 	if code != http.StatusOK {
 		t.Fatalf("addfile with a bad key answered %d", code)
@@ -234,17 +207,15 @@ func TestDownloadClientRefusesWithoutAValidKey(t *testing.T) {
 		t.Errorf("the store holds %d tasks after an add with a bad key, want 0", n)
 	}
 
-	// And the real key still works, or the test above would pass on a bridge
-	// that refuses everybody.
+	// The real key still works, or the test above would pass on a bridge that
+	// refuses everybody.
 	if code, doc := sabGet(t, srv, key, map[string]string{"mode": "queue"}); code != http.StatusOK || doc["queue"] == nil {
 		t.Errorf("the issued token was refused: %d %+v", code, doc)
 	}
 }
 
-// TestDownloadClientVersionParsesTheWaySonarrParsesIt. Sonarr reads the answer
-// with a major.minor.patch regex and refuses anything below 0.7.0, so a version
-// string that does not parse fails the connection test with no useful reason
-// attached.
+// TestDownloadClientVersionParsesTheWaySonarrParsesIt checks the version
+// against Sonarr's own major.minor.patch expression.
 func TestDownloadClientVersionParsesTheWaySonarrParsesIt(t *testing.T) {
 	_, srv, key := downloadClientServer(t, nil)
 	code, doc := sabGet(t, srv, key, map[string]string{"mode": "version"})
@@ -252,7 +223,6 @@ func TestDownloadClientVersionParsesTheWaySonarrParsesIt(t *testing.T) {
 		t.Fatalf("mode=version answered %d", code)
 	}
 	got, _ := doc["version"].(string)
-	// Sonarr's own expression, copied rather than approximated.
 	if !regexp.MustCompile(`^(\d+)\.(\d+)\.(\d+|x)$`).MatchString(got) {
 		t.Fatalf("version = %q, which Sonarr's version regex does not match", got)
 	}
@@ -261,12 +231,9 @@ func TestDownloadClientVersionParsesTheWaySonarrParsesIt(t *testing.T) {
 	}
 }
 
-// TestDownloadClientConfigSatisfiesSonarrsChecks covers the three things
-// mode=get_config has to carry or the client cannot be saved in Sonarr at all:
-// the category it was configured with, a category dir that does not end in "*",
-// and a rooted complete_dir. The sorters list is checked because Sonarr calls
-// .Any() on it without a nil check, so an absent key is an exception on its
-// side rather than a missing feature.
+// TestDownloadClientConfigSatisfiesSonarrsChecks covers what mode=get_config
+// needs for the client to be saved in Sonarr: the configured category, no dir
+// ending in "*", a rooted complete_dir, and a sorters list.
 func TestDownloadClientConfigSatisfiesSonarrsChecks(t *testing.T) {
 	_, srv, key := downloadClientServer(t, nil)
 	code, doc := sabGet(t, srv, key, map[string]string{"mode": "get_config"})
@@ -317,15 +284,12 @@ func TestDownloadClientConfigSatisfiesSonarrsChecks(t *testing.T) {
 	}
 }
 
-// TestDownloadClientAddFileStagesTheLinksItFinds is the intake end to end: the
-// payload is scanned for links the way a paste is, the release name becomes the
-// package (which is what gives the grab its own folder), and the answer carries
-// the nzo_id Sonarr needs to follow the download afterwards.
+// TestDownloadClientAddFileStagesTheLinksItFinds covers the intake end to end:
+// the payload is scanned for links, the release name becomes the package, and
+// the answer carries the nzo_id.
 func TestDownloadClientAddFileStagesTheLinksItFinds(t *testing.T) {
 	a, srv, key := downloadClientServer(t, nil)
-	// A payload with the link buried in markup, which is the realistic case
-	// this bridge exists for: a DDL indexer wrapping links in something that is
-	// not a link list.
+	// The link is buried in markup, as a DDL indexer would wrap it.
 	payload := []byte("<links>\n  <item>" + testMagnet + "</item>\n</links>\n")
 
 	code, doc := sabAddFile(t, srv, key, "Show.S01E01.1080p.WEB.nzb", "tv-sonarr", payload)
@@ -337,7 +301,7 @@ func TestDownloadClientAddFileStagesTheLinksItFinds(t *testing.T) {
 	}
 	ids, _ := doc["nzo_ids"].([]any)
 	if len(ids) != 1 {
-		t.Fatalf("nzo_ids = %+v, want exactly one id - Sonarr treats an empty list as a rejected release", ids)
+		t.Fatalf("nzo_ids = %+v, want exactly one id; Sonarr treats an empty list as a rejected release", ids)
 	}
 	if id, _ := ids[0].(string); strings.TrimSpace(id) == "" {
 		t.Errorf("the nzo_id is blank: %+v", ids)
@@ -347,9 +311,7 @@ func TestDownloadClientAddFileStagesTheLinksItFinds(t *testing.T) {
 	if len(tasks) != 1 {
 		t.Fatalf("staged %d tasks, want 1", len(tasks))
 	}
-	// The extension is stripped and the dots inside the release are not: the
-	// package name is what Sonarr sees back as the slot's filename and what
-	// becomes the folder on disk.
+	// Only the extension is stripped, not the dots inside the release.
 	if tasks[0].Package != "Show.S01E01.1080p.WEB" {
 		t.Errorf("package = %q, want the release name from the uploaded file", tasks[0].Package)
 	}
@@ -358,10 +320,9 @@ func TestDownloadClientAddFileStagesTheLinksItFinds(t *testing.T) {
 	}
 }
 
-// TestDownloadClientAddFileRefusesAPayloadWithNoLinks is the honesty test. A
-// real .nzb describes Usenet articles and holds nothing this app can fetch, so
-// the bridge has to say so rather than answer success and leave Sonarr waiting
-// out its timeout on a download that was never going to start.
+// TestDownloadClientAddFileRefusesAPayloadWithNoLinks checks that a real .nzb,
+// which holds nothing this app can fetch, is refused with the reason instead
+// of accepted.
 func TestDownloadClientAddFileRefusesAPayloadWithNoLinks(t *testing.T) {
 	a, srv, key := downloadClientServer(t, nil)
 	nzb := []byte(`<?xml version="1.0" encoding="iso-8859-1" ?>
@@ -380,7 +341,7 @@ func TestDownloadClientAddFileRefusesAPayloadWithNoLinks(t *testing.T) {
 		t.Fatalf("a real .nzb was accepted; this instance has no Usenet backend to fetch it with: %+v", doc)
 	}
 	if msg, _ := doc["error"].(string); !strings.Contains(msg, "Usenet") {
-		t.Errorf("the refusal is %q, which does not say why; the reason is the whole point of refusing", msg)
+		t.Errorf("the refusal is %q, which does not say why", msg)
 	}
 	if n := liveTasks(t, a); n != 0 {
 		t.Errorf("the store holds %d tasks after a refused payload, want 0", n)
@@ -388,8 +349,7 @@ func TestDownloadClientAddFileRefusesAPayloadWithNoLinks(t *testing.T) {
 }
 
 // TestDownloadClientQueueReportsWhatItStaged walks the queue through the two
-// states these tests can reach without a real transfer, and pins the fields
-// Sonarr actually reads off a slot.
+// states reachable without a real transfer and pins the fields Sonarr reads.
 func TestDownloadClientQueueReportsWhatItStaged(t *testing.T) {
 	a, srv, key := downloadClientServer(t, nil)
 	_, add := sabAddFile(t, srv, key, "Show.S01E02.nzb", "tv-sonarr", []byte(testMagnet))
@@ -409,7 +369,7 @@ func TestDownloadClientQueueReportsWhatItStaged(t *testing.T) {
 	}
 	row := rows[0]
 	if got, _ := row["nzo_id"].(string); got != nzoID {
-		t.Errorf("nzo_id = %q, want %q - Sonarr matches queue and history on this id", got, nzoID)
+		t.Errorf("nzo_id = %q, want %q; Sonarr matches queue and history on this id", got, nzoID)
 	}
 	if got, _ := row["cat"].(string); got != "tv-sonarr" {
 		t.Errorf("cat = %q, want tv-sonarr; Sonarr drops every item whose category is not its own", got)
@@ -420,25 +380,19 @@ func TestDownloadClientQueueReportsWhatItStaged(t *testing.T) {
 	if got, _ := row["status"].(string); got != "Queued" {
 		t.Errorf("status = %q, want Queued for a staged, not yet running task", got)
 	}
-	// Parsed by a converter that splits on ":" and int.Parses the pieces, so an
-	// absent or numeric value is an exception on Sonarr's side.
 	if got, _ := row["timeleft"].(string); strings.Count(got, ":") != 2 {
 		t.Errorf("timeleft = %q, want H:MM:SS", got)
 	}
-	// Read through Enum.TryParse against SabnzbdPriority, which silently yields
-	// the zero value for a name it does not know.
 	if got, _ := row["priority"].(string); got != "Normal" {
 		t.Errorf("priority = %q, want a real SabnzbdPriority name", got)
 	}
-	// The queue-level flag, which is what makes a halted instance legible to
-	// Sonarr rather than looking stuck.
 	if outer, _ := doc["queue"].(map[string]any); outer != nil {
 		if paused, _ := outer["paused"].(bool); !paused {
 			t.Error("the queue is halted and the answer does not say so")
 		}
 	}
 
-	// Pausing the task itself is the other state that reaches Sonarr as Paused.
+	// A paused task also reaches Sonarr as Paused.
 	tasks := a.Tasks()
 	if len(tasks) != 1 {
 		t.Fatalf("expected one task, got %d", len(tasks))
@@ -454,17 +408,16 @@ func TestDownloadClientQueueReportsWhatItStaged(t *testing.T) {
 	}
 }
 
-// TestDownloadClientQueueKeepsTheTwoAppsApart. Sonarr and Radarr pointed at one
-// instance must not see each other's grabs, and neither may see the downloads
-// the person who owns the instance added themselves - Sonarr would otherwise
-// try to import them and then delete them.
+// TestDownloadClientQueueKeepsTheTwoAppsApart checks that Sonarr and Radarr on
+// one instance see neither each other's grabs nor the owner's own downloads,
+// which Sonarr would otherwise import and delete.
 func TestDownloadClientQueueKeepsTheTwoAppsApart(t *testing.T) {
 	a, srv, key := downloadClientServer(t, nil)
 	if _, doc := sabAddFile(t, srv, key, "Show.S01E03.nzb", "tv-sonarr", []byte(testMagnet)); doc["nzo_ids"] == nil {
 		t.Fatalf("addfile did not stage anything: %+v", doc)
 	}
-	// The instance owner's own paste, through the ordinary path, with a
-	// different info hash so the mirror set does not fold it into the grab.
+	// The owner's own paste, with a different info hash so the mirror set
+	// does not fold it into the grab.
 	own := a.AddLinks([]string{"magnet:?xt=urn:btih:fedcba9876543210fedcba9876543210fedcba98"}, "My Own Download")
 	if len(own) != 1 {
 		t.Fatalf("the owner's own paste staged %d tasks", len(own))
@@ -485,11 +438,9 @@ func TestDownloadClientQueueKeepsTheTwoAppsApart(t *testing.T) {
 	}
 }
 
-// TestDownloadClientReportsAHeldLinkAsFailed is the state mapping's most
-// consequential choice. A link the link filter is holding will never start on
-// its own, and reporting it as queued would leave Sonarr waiting out its whole
-// timeout before it tried another release - so it is reported as a failed item
-// in the history, carrying the rule's own reason.
+// TestDownloadClientReportsAHeldLinkAsFailed checks that a link the filter
+// holds appears as a failed history item with the rule's reason, so Sonarr
+// tries another release instead of waiting.
 func TestDownloadClientReportsAHeldLinkAsFailed(t *testing.T) {
 	a, srv, key := downloadClientServer(t, func(s *settings.Settings) {
 		s.LinkFilter = rules.Set{Rules: []rules.Rule{{
@@ -508,7 +459,6 @@ func TestDownloadClientReportsAHeldLinkAsFailed(t *testing.T) {
 		t.Fatalf("addfile refused a link the filter merely holds: %+v", add)
 	}
 
-	// It must not be sitting in the queue, where Sonarr would wait for it.
 	_, doc := sabGet(t, srv, key, map[string]string{"mode": "queue", "category": "tv-sonarr"})
 	if rows := slots(t, doc, "queue"); len(rows) != 0 {
 		t.Errorf("a held link is in the queue, so Sonarr will wait for a download that cannot start: %+v", rows)
@@ -528,17 +478,14 @@ func TestDownloadClientReportsAHeldLinkAsFailed(t *testing.T) {
 	if got, _ := rows[0]["storage"].(string); strings.TrimSpace(got) == "" {
 		t.Error("the history slot names no folder; Sonarr imports from storage")
 	}
-	// The task itself is still in the holding area, untouched: telling Sonarr to
-	// move on is not the same as throwing the link away.
+	// The link itself stays in the holding area.
 	if len(a.FilteredLinks()) != 1 {
 		t.Errorf("the holding area holds %d links, want the one the filter caught", len(a.FilteredLinks()))
 	}
 }
 
 // TestDownloadClientDeleteRemovesTheTasks covers Sonarr's cleanup after an
-// import, including that del_files is honoured as sent rather than assumed:
-// taking a row off a list and deleting somebody's file have never been the same
-// action in this app.
+// import, with del_files honoured as sent.
 func TestDownloadClientDeleteRemovesTheTasks(t *testing.T) {
 	a, srv, key := downloadClientServer(t, nil)
 	_, add := sabAddFile(t, srv, key, "Show.S01E05.nzb", "tv-sonarr", []byte(testMagnet))
@@ -569,9 +516,7 @@ func TestDownloadClientDeleteRemovesTheTasks(t *testing.T) {
 		t.Errorf("the deleted grab is still in the queue: %+v", rows)
 	}
 
-	// Deleting an id that is already gone answers success, because Sonarr calls
-	// delete for an item it has decided to forget and an error here would be a
-	// permanent, repeating failure in its log.
+	// An id that is already gone still answers success.
 	if _, doc := sabGet(t, srv, key, map[string]string{
 		"mode": "queue", "name": "delete", "value": nzoID,
 	}); doc["status"] != true {
@@ -579,9 +524,8 @@ func TestDownloadClientDeleteRemovesTheTasks(t *testing.T) {
 	}
 }
 
-// TestDownloadClientNamesAnUnimplementedMode. mode=retry and mode=fullstatus
-// are both reachable from Sonarr, and answering an empty success to either
-// would leave it believing something happened.
+// TestDownloadClientNamesAnUnimplementedMode checks that an unimplemented mode
+// is an error naming the mode, not an empty success.
 func TestDownloadClientNamesAnUnimplementedMode(t *testing.T) {
 	_, srv, key := downloadClientServer(t, nil)
 	for _, mode := range []string{"retry", "fullstatus", "nonsense"} {
@@ -598,10 +542,8 @@ func TestDownloadClientNamesAnUnimplementedMode(t *testing.T) {
 	}
 }
 
-// TestDownloadClientAddUrlTakesALinkDirectly covers the half of SABnzbd's own
-// intake that actually fits this app. Neither Sonarr nor Radarr calls it, which
-// is exactly why it needs a test of its own: nothing else would notice it
-// breaking.
+// TestDownloadClientAddUrlTakesALinkDirectly covers addurl, which neither
+// Sonarr nor Radarr calls.
 func TestDownloadClientAddUrlTakesALinkDirectly(t *testing.T) {
 	a, srv, key := downloadClientServer(t, nil)
 	code, doc := sabGet(t, srv, key, map[string]string{
@@ -623,10 +565,8 @@ func TestDownloadClientAddUrlTakesALinkDirectly(t *testing.T) {
 	}
 }
 
-// TestDownloadClientModuleRowTracksTheSetting is the module registry's own
-// invariant applied to this row: Enabled is derived from the live setting, so a
-// change made anywhere else - the advanced key table, a script, another browser
-// - moves the row with it.
+// TestDownloadClientModuleRowTracksTheSetting checks that the module row's
+// Enabled follows the live setting.
 func TestDownloadClientModuleRowTracksTheSetting(t *testing.T) {
 	a := testApp(t)
 	find := func() Feature {

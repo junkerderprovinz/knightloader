@@ -23,8 +23,8 @@ func rulesServer(t *testing.T) *httptest.Server {
 }
 
 // TestGrammarIsServedWhole is the contract the editor is built against: a form
-// that offers an operator this build refuses produces a rule that saves cleanly
-// and never fires, which is unfindable from the interface.
+// offering an operator this build refuses produces a rule that saves cleanly
+// and never fires, which cannot be found from the interface.
 func TestGrammarIsServedWhole(t *testing.T) {
 	srv := rulesServer(t)
 	resp, err := http.Get(srv.URL + "/api/rules/grammar")
@@ -52,10 +52,10 @@ func TestGrammarIsServedWhole(t *testing.T) {
 	}
 }
 
-// TestPreviewReportsABadPatternAgainstItsRule is the whole reason the dry run is
-// a route. An invalid regular expression must reach the user as a message on
-// that rule; treated as a rule that simply matches nothing, it is the single
-// most confusing failure a rule engine has.
+// TestPreviewReportsABadPatternAgainstItsRule is why the dry run is a route at
+// all. An invalid regular expression has to reach the user as a message on
+// that rule; treated as a rule that matches nothing, it is the most confusing
+// failure a rule engine has.
 func TestPreviewReportsABadPatternAgainstItsRule(t *testing.T) {
 	srv := rulesServer(t)
 	rep := postRules(t, srv, map[string]any{
@@ -114,12 +114,11 @@ func TestPreviewSaysWhereALinkLands(t *testing.T) {
 	if got := rep.Links[0].Result.Package; got != "Films" {
 		t.Fatalf("first sample got package %q, want Films", got)
 	}
-	// "/data/Inbox", not "/data/Films". Variables resolve against the link as it
-	// ARRIVED, so the folder template does not see the package name the very same
-	// rule just set — rules do not chain onto each other's output. That is
-	// deliberate in the engine and genuinely surprising, and showing it is half of
-	// what the test box is for: found here it costs one glance, found afterwards
-	// it costs a folder full of files in the wrong place.
+	// "/data/Inbox", not "/data/Films". Variables resolve against the link as
+	// it arrived, so the folder template does not see the package name the
+	// same rule just set: rules do not chain onto each other's output. Showing
+	// that is half of what the test box is for, since found afterwards it
+	// costs a folder full of files in the wrong place.
 	if got := rep.Links[0].Effect.Dir; got != "/data/Inbox" {
 		t.Fatalf("the folder previewed as %q; the variable was not expanded the way staging would", got)
 	}
@@ -172,8 +171,8 @@ func TestPreviewRefusesTooManySamples(t *testing.T) {
 	}
 }
 
-// TestPreviewDoesNotAdvanceTheLiveAppendCounter pins the reason Preview builds
-// its own Matcher: a preview that counted would hand the next real download a
+// TestPreviewDoesNotAdvanceTheLiveAppendCounter pins why Preview builds its
+// own Matcher: a preview that counted would hand the next real download a
 // suffix earned by somebody pressing a button.
 func TestPreviewDoesNotAdvanceTheLiveAppendCounter(t *testing.T) {
 	srv := rulesServer(t)
@@ -206,14 +205,9 @@ func postRules(t *testing.T, srv *httptest.Server, body any) rules.Report {
 }
 
 // TestADryRunStagesNothing is the promise the route's summary makes. The test
-// box runs on every keystroke, so a preview that leaked even one task into the
-// collector would fill it while somebody was still typing the rule meant to keep
-// those links out.
-//
-// This assertion arrived with POST /api/rules/test, which has since been removed
-// for answering "no problems" about a rule set that does not compile whenever the
-// set's master switch was off. The endpoint is gone; the thing it was right about
-// belongs to whichever route answers the question.
+// box runs on every keystroke, so a preview that leaked one task into the
+// collector would fill it while somebody was still typing the rule meant to
+// keep those links out.
 func TestADryRunStagesNothing(t *testing.T) {
 	a := testApp(t)
 	reg := newRegistry()

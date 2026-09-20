@@ -1,20 +1,12 @@
 package api
 
 // Torrent intake: uploading a .torrent file and staging it once its file
-// selection is known.
+// selection is known. A magnet link is pasted like any other link and needs
+// nothing here.
 //
-// Magnet-link paste needs nothing here - it is already a string on the
-// collector's existing paste path, and internal/resolver/torrent.Resolver.Match
-// already recognises the scheme (see app.go's boot-time Register call). What a
-// magnet or an upload BOTH still need before staging continues, for a torrent
-// with more than one file, is the file tree: parse first shows it, stage then
-// creates the task with whatever the tree ended up checked.
-//
-// The two routes are deliberately separate rather than one upload-and-stage
-// call. Parsing is free of side effects - nothing is created, nothing is
-// staged - so a browser can let somebody look at a hundred-file tree, change
-// their mind, or navigate away, without a half-staged task left behind either
-// way.
+// Parsing and staging are separate routes so parsing has no side effects: a
+// browser can show a large file tree and the user can change their mind
+// without leaving a half-staged task behind.
 
 import (
 	"encoding/json"
@@ -27,13 +19,9 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 )
 
-// maxStageBody bounds POST /api/torrents' own body: the uri field wraps the
-// same bytes parseTorrentUpload already caps at MaxTorrentBytes, plus base64
-// and JSON-escaping overhead on top of them - the same +1MiB margin that
-// route's own MaxBytesReader gives itself, not a tighter one, so an
-// ordinary large-but-legitimate torrent that parsed correctly at the upload
-// step is never rejected only here for being (correctly) a little larger
-// encoded.
+// maxStageBody bounds POST /api/torrents' body: the uri field carries the
+// same bytes the upload capped at MaxTorrentBytes, plus base64 and JSON
+// overhead, so it gets the same margin as the upload.
 const maxStageBody = torrent.MaxTorrentBytes + 1<<20
 
 func registerTorrents(reg *Registry, a *app.App) {
@@ -50,13 +38,9 @@ func registerTorrents(reg *Registry, a *app.App) {
 		})
 }
 
-// torrentTree is what a parsed .torrent hands back: enough to draw the file
-// tree, and the URI staging carries it forward as. core.TorrentFile already
-// has the json tags the tree itself needs (path/size/selected); the rest of
-// torrent.Metadata does not - it carries no tags at all, being Go-side data
-// for a resolver's own use rather than a wire shape - so this is the
-// translation to the camelCase the rest of the API uses, done here rather
-// than by adding tags to a type internal/resolver/torrent owns.
+// torrentTree is what a parsed .torrent hands back: the file tree and the URI
+// staging carries it forward as, in the API's camelCase, since
+// torrent.Metadata has no JSON tags of its own.
 type torrentTree struct {
 	URI             string             `json:"uri"`
 	InfoHash        string             `json:"infoHash"`
@@ -70,25 +54,12 @@ type torrentTree struct {
 	DroppedTrackers int                `json:"droppedTrackers"`
 }
 
-// parseTorrentUpload is the untrusted half. An uploaded .torrent is exactly
-// the class of input package 20's file route and Wave 10's restore upload
-// already were: size-limited BEFORE the whole body is read into memory, and
-// validated before anything else happens - see routes_backup.go's
-// uploadRestore, the pattern this copies.
-//
-// Every check that matters - size, geometry, file count, and above all
-// whether any file's own path would escape the download folder - runs inside
-// torrent.Parse (called via ParseUpload), which is 11.5A's answer to the
-// wave's own "do not invent a fresh, unreviewed path-safety check" warning.
-// This handler adds exactly one check ParseUpload cannot: the request-level
-// size cap, enforced before the bytes are even fully read, which is the one
-// gate that has to live at the door rather than inside the parser - see
-// torrent.MaxTorrentBytes's own doc comment, which names this handler by
-// description.
+// parseTorrentUpload handles untrusted input. torrent.ParseUpload checks size,
+// geometry, file count and, above all, that no file path escapes the download
+// folder; this handler adds the size cap that has to apply before the body is
+// read (see torrent.MaxTorrentBytes), as uploadRestore does.
 func parseTorrentUpload(w http.ResponseWriter, r *http.Request) {
-	// The +1<<20 slack is for multipart's own boundary and header overhead
-	// around the file part, not for the file itself - the same margin
-	// uploadRestore and the container route both give their own MaxBytes.
+	// The extra megabyte is for multipart boundaries and headers.
 	r.Body = http.MaxBytesReader(w, r.Body, torrent.MaxTorrentBytes+1<<20)
 	file, _, err := r.FormFile("file")
 	if err != nil {
@@ -96,9 +67,7 @@ func parseTorrentUpload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer file.Close()
-	// Capped at the reader, before ParseUpload ever sees a byte: by the time a
-	// parser can refuse something for being too large, the too-large bytes are
-	// already in memory. This is the door the doc comment above is about.
+	// Capped at the reader, before the parser sees any bytes.
 	data, err := io.ReadAll(io.LimitReader(file, torrent.MaxTorrentBytes+1))
 	if err != nil {
 		http.Error(w, "could not read the uploaded file", http.StatusBadRequest)
@@ -111,10 +80,8 @@ func parseTorrentUpload(w http.ResponseWriter, r *http.Request) {
 
 	md, uri, err := torrent.ParseUpload(data)
 	if err != nil {
-		// Verbatim: torrent.Parse's errors are written to be read - "this
-		// .torrent's piece layout does not match the data it describes" is an
-		// explanation, and a generic "invalid file" is what sends somebody
-		// re-uploading the same broken one.
+		// torrent.Parse's errors are written to be read, so they go out as
+		// they are.
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -132,32 +99,15 @@ func parseTorrentUpload(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// stageTorrent is the confirm step: the file tree parseTorrentUpload returned
-// (checked and unchecked by a person, or left untouched for a single-file
-// torrent that never showed one) becomes a task.
+// stageTorrent turns the parsed tree, with the user's selection, into a task.
 //
-// selectedPaths NAMES THE FILES TO KEEP, not the ones to drop, and it is read
-// against THIS HANDLER'S OWN FRESH RE-PARSE of uri - never against whatever
-// the request body claims a file's path or size is. This is the wave's own
-// containment lesson applied to the other direction: parseTorrentUpload
-// already proved uri decodes to a torrent with only safe paths in it, but a
-// browser could still send back a hand-edited files list with a Path that was
-// never in that torrent at all, or a Selected the parse never set. Re-parsing
-// here (Describe, which is what a.AddTorrent's own Resolver.Info().ID branch
-// does too) means the request body can only ever narrow which of the REAL
-// files get fetched - it has no way to introduce one that is not real, and no
-// way to change what a real one's path is.
+// selectedPaths names the files to keep and is matched against a fresh
+// re-parse of uri, never against paths or sizes from the request body. The
+// body can only narrow which real files are fetched; it cannot add a file or
+// change a path.
 func stageTorrent(w http.ResponseWriter, r *http.Request, a *app.App) {
-	// Read-then-check, the identical shape parseTorrentUpload uses above and
-	// for the identical reason: by the time a JSON decoder can refuse a body
-	// for being too large, the too-large bytes are already in memory.
-	// decodeJSON's shared, generic error handling turns any decode failure
-	// into one plain 400 "bad json" - reached for here deliberately instead
-	// of a bare http.MaxBytesReader assignment, which would still route
-	// through that same generic 400 and lose the specific, honest 413 an
-	// oversized body deserves (reproduced before this shape: a body this
-	// size answered 400 "bad json", not 413, with no MaxBytesReader
-	// involved at all - the whole body had already been read by then).
+	// Read with a cap and checked before decoding, so an oversized body gets a
+	// 413 rather than decodeJSON's generic 400.
 	data, err := io.ReadAll(io.LimitReader(r.Body, maxStageBody+1))
 	if err != nil {
 		http.Error(w, "could not read the request body", http.StatusBadRequest)
@@ -170,12 +120,9 @@ func stageTorrent(w http.ResponseWriter, r *http.Request, a *app.App) {
 	var body struct {
 		URI     string `json:"uri"`
 		Package string `json:"package"`
-		// SelectedPaths is a pointer so the three JSON shapes stay distinguishable:
-		// the field absent (nil) keeps every file selected, the way Parse leaves a
-		// tree nobody has looked at; "[]" (a non-nil, empty slice) is a person
-		// unticking every box, which is a real answer and not the same as absent -
-		// see core.SelectedTorrentIndices' own doc comment for why that distinction
-		// matters all the way down to what the engine is told to fetch.
+		// SelectedPaths is a pointer: absent keeps every file selected, while
+		// an empty list means every box was unticked (see
+		// core.SelectedTorrentIndices).
 		SelectedPaths *[]string `json:"selectedPaths"`
 	}
 	if err := json.Unmarshal(data, &body); err != nil {
@@ -183,13 +130,8 @@ func stageTorrent(w http.ResponseWriter, r *http.Request, a *app.App) {
 		return
 	}
 	if !torrent.IsURI(body.URI) || torrent.IsMagnet(body.URI) {
-		// A magnet has no file tree to select from at this point in the flow
-		// (see torrent.Resolver.Describe's own comment: "nobody knows them yet") -
-		// it stages through the ordinary /api/links paste path, which is already
-		// wired and needs nothing from this route. Keeping that split explicit
-		// here, rather than silently accepting a magnet and ignoring the
-		// selection field, is what stops a caller from believing a selection was
-		// applied when it was not.
+		// A magnet has no file tree yet and is staged through POST
+		// /api/links; accepting one here would silently ignore the selection.
 		http.Error(w, "send the uri from POST /api/torrents/parse; a magnet link is staged through POST /api/links instead", http.StatusBadRequest)
 		return
 	}

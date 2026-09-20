@@ -1,11 +1,10 @@
 package api
 
-// Native hoster logins: KL's own host list, per-host username/password and
-// the three-way sync status against the headless-JD sidecar - see
-// internal/hosterauth. Never returns a credential, only whether one is set
-// and what JD currently says about it (hosterauth.LoginState carries no
-// password field at all, the same "state, never secrets" rule
-// registerAccounts already states for the debrid/apiKey accounts).
+// Native hoster logins: the host list, per-host username and password, and the
+// three-way sync status against the headless-JD sidecar (internal/hosterauth).
+// Never returns a credential, only whether one is set and what JD says about
+// it; hosterauth.LoginState has no password field, the same state-never-secrets
+// rule registerAccounts follows.
 
 import (
 	"context"
@@ -28,12 +27,10 @@ func registerHosterAuth(reg *Registry, a *app.App) {
 			writeJSON(w, a.HosterLogins())
 		})
 
-	// Stores or updates one host's native login. The dialogue calling this
-	// must have already told the user, before this fires, that the password
-	// is sent to and stored by the JD sidecar - that disclosure is the
-	// frontend's job (see web/src/components/HosterLoginSection.tsx), not
-	// something this endpoint can enforce, but it is the reason this route
-	// exists at all rather than being folded into /api/accounts.
+	// The password reaches the JD sidecar and is stored there, which the
+	// dialogue has to say before it calls this
+	// (web/src/components/HosterLoginSection.tsx). That disclosure is why
+	// these logins are not folded into /api/accounts.
 	reg.Add(http.MethodPost, "/api/hosterauth/logins", "store or update one host's native login and reconcile it into JD",
 		func(w http.ResponseWriter, r *http.Request) {
 			var body struct {
@@ -55,10 +52,8 @@ func registerHosterAuth(reg *Registry, a *app.App) {
 			w.WriteHeader(http.StatusNoContent)
 		})
 
-	// The on/off switch beside each stored login. Its own route rather than a
-	// field on the save above: saving is "here is a password", switching is
-	// "stop using the one you have", and folding the second into the first
-	// would mean the page had to re-send a credential to flip a toggle.
+	// Its own route rather than a field on the save above, so flipping the
+	// switch does not make the page re-send the credential.
 	reg.Add(http.MethodPost, "/api/hosterauth/logins/enabled", "switch one host's stored login on or off without deleting it",
 		func(w http.ResponseWriter, r *http.Request) {
 			var body struct {

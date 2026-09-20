@@ -4,15 +4,13 @@ package api
 // that matters: this handler never joins a path itself, it only asks
 // SafeTaskFile for one and serves exactly what comes back.
 //
-// THE ALLOWLIST IS THE OTHER HALF OF THE SECURITY CHECK. This route serves
-// bytes a hoster chose, not bytes this app wrote, so the Content-Type it
-// answers with can never come from the file, the resolver, or the request:
-// all three are somebody else's word. inlineTypes is the one list this route
-// trusts, keyed on the extension already stored on the task, and it excludes
-// every type a browser can execute rather than merely display - most pointedly
-// HTML, SVG and XML, any one of which served inline at this app's own origin
-// would run with this app's own session live in the tab. Anything not on the
-// list is offered as attachment, never as inline with a guessed type.
+// The allowlist is the other half of that check. This route serves bytes a
+// hoster chose, so the Content-Type can never come from the file, the resolver
+// or the request. inlineTypes is keyed on the extension stored on the task and
+// excludes every type a browser executes rather than displays: HTML, SVG and
+// XML served inline at this app's origin would run with this app's session
+// live in the tab. Anything off the list goes out as an attachment, never as
+// inline with a guessed type.
 
 import (
 	"errors"
@@ -25,11 +23,10 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/app"
 )
 
-// inlineTypes is what this route will show in the tab rather than hand the
-// browser a save dialog for: media a browser only ever displays or plays,
-// plus plain text, and nothing a browser can execute. Extending it needs the
-// same question asked again - "can this run as active content at this app's
-// origin" - not just a missing extension filled in.
+// inlineTypes is what this route shows in the tab rather than handing the
+// browser a save dialog: media a browser displays or plays, plus plain text.
+// Extending it means answering again whether the type can run as active
+// content at this app's origin.
 var inlineTypes = map[string]string{
 	".jpg":  "image/jpeg",
 	".jpeg": "image/jpeg",
@@ -55,11 +52,9 @@ var inlineTypes = map[string]string{
 
 	".pdf": "application/pdf",
 
-	// text/plain rather than each format's own registered type (text/csv,
-	// application/json): the point of inline here is "show it as text", and a
-	// browser's own handler for those more specific types is exactly what a
-	// download manager's users are trying to get past when they open an .nfo
-	// instead of downloading it.
+	// text/plain rather than each format's registered type (text/csv and so
+	// on): inline here means "show it as text", and the browser's handler for
+	// the more specific types is what somebody opening an .nfo wants to skip.
 	".txt": "text/plain; charset=utf-8",
 	".nfo": "text/plain; charset=utf-8",
 	".log": "text/plain; charset=utf-8",
@@ -93,9 +88,8 @@ func serveTaskFile(w http.ResponseWriter, r *http.Request, a *app.App, id string
 	defer f.Close()
 
 	ctype, inline := inlineType(tf.Name)
-	// Both set before ServeContent, which only sniffs when Content-Type is
-	// still empty - setting it ourselves first is what keeps this route from
-	// ever trusting the file's own bytes to say what they are.
+	// Both set before ServeContent, which sniffs only when Content-Type is
+	// still empty, so the file's own bytes never get to say what they are.
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	w.Header().Set("Content-Type", ctype)
 	disposition := "attachment"
@@ -103,13 +97,12 @@ func serveTaskFile(w http.ResponseWriter, r *http.Request, a *app.App, id string
 		disposition = "inline"
 	}
 	w.Header().Set("Content-Disposition", disposition+"; filename="+quoteFilename(tf.Name))
-	// A zero modtime skips Last-Modified/If-Modified-Since entirely, which
-	// matters for a running task: its file is still growing, and a 304 built
-	// from a modtime taken minutes ago would answer "unchanged" about a file
-	// that has gained another gigabyte since. Range requests still work -
-	// ServeContent measures Content-Length itself by seeking this same
-	// handle, so a partial download reports exactly the bytes it has right
-	// now rather than the task's own expected total.
+	// A zero modtime skips Last-Modified and If-Modified-Since. A running
+	// task's file is still growing, and a 304 built from a modtime taken
+	// minutes ago would answer "unchanged" about a file that has gained
+	// another gigabyte. Range requests still work: ServeContent measures
+	// Content-Length by seeking this handle, so a partial download reports the
+	// bytes it has rather than the task's expected total.
 	http.ServeContent(w, r, "", time.Time{}, f)
 }
 

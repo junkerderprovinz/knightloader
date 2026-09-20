@@ -1,186 +1,41 @@
 package api
 
-// The one route in this app that ever sets a Content-Security-Policy header -
-// nothing else does; grep -r "Content-Security-Policy" internal/ found nothing
-// before this file existed (checked 2026-08-10, this wave's own starting
-// fact). The policy set here is scoped to this one response only, through
-// reg.Add's own per-handler closure - nothing about it touches any other
-// route, and there is no shared "security headers" middleware in api.go for
-// it to have leaked into even by accident.
+// A page of its own for widget captchas (captcha.KindWidget): reCAPTCHA or
+// hCaptcha challenges that have to run the vendor's script in a browser. Image
+// and click challenges carry a data: URL and need nothing from here. The page
+// is the only response in the app with a Content-Security-Policy, so the SPA
+// does not need a permanent policy wide enough for a challenge that may never
+// occur.
 //
-// WHAT THIS IS FOR. internal/captcha's Kind (challenge.go) has four values;
-// three of them need nothing from this file. KindImage and KindClick both
-// carry a complete data: URL in *ImagePayload - 7A's prompt modal renders
-// that directly with an <img src>, no network fetch and no third party
-// involved. KindUnsupported carries only a vendor name to display, nothing to
-// render. KindWidget is the one exception: a live, hosted third-party JS
-// challenge (reCAPTCHA v2 or hCaptcha) that has to run a real vendor script in
-// a browser to produce an answer token, and cannot be reduced to a picture.
-// That script cannot run inside KnightLoader's own SPA document without
-// either giving the whole app a permanent CSP wide enough for a challenge
-// that may never occur, or giving the challenge a page of its own whose
-// policy exists only while that page is open. This file is that page.
+// WidgetPayload does not say which vendor a challenge is: JDSource maps both
+// JD challenge classes onto KindWidget and drops the class name. Enterprise, a
+// V3Action or an "invisible" size only ever come from reCAPTCHA, so those
+// render for real; everything else gets a page without scripts rather than a
+// guess from the shape of the site key.
 //
-// WHETHER 7F SHIPPED ENOUGH TO BUILD THIS FOR REAL - read in full before
-// writing a line here, per this wave's own instruction, and the honest answer
-// has two halves:
+// The reCAPTCHA sources follow https://developers.google.com/recaptcha/docs/display
+// and are path-scoped to /recaptcha/. A per-response nonce covers the page's own
+// inline script and style, so nothing needs 'unsafe-inline'; styles are in a
+// <style> element because a nonce does not cover a style attribute.
 //
-//   - Yes: WidgetPayload (internal/captcha/challenge.go) is real data, not a
-//     placeholder. SiteKey/SiteURL/ContextURL/Type/Enterprise/V3Action/
-//     SecureToken are read from a live JD sidecar's captcha/get?
-//     format=rawtoken call and cross-verified against JD's own source three
-//     independent ways (jdsource.go's package comment). Nothing had to be
-//     invented here to have real sitekey data to render with.
-//   - No: nothing in that payload says which of the two vendors a given
-//     challenge is. jdKindByClass (jdsource.go) maps both
-//     "RecaptchaV2Challenge" and "HCaptchaChallenge" onto the identical
-//     Kind("widget"), and the one field that would tell them apart - the JD
-//     challenge class name - is computed in JDSource.build, used only to
-//     choose the Kind, and then dropped; it survives on the wire only for
-//     KindUnsupported, as UnsupportedPayload.Vendor. Confirmed by reading the
-//     package's own tests, not assumed: TestJDSourceListWidgetPayload asserts
-//     on SiteKey/SiteURL/ContextURL/Type/Enterprise/V3Action/SecureToken and
-//     nothing else, and its own fake only ever exercises
-//     "RecaptchaV2Challenge" - nothing in that package proves an
-//     HCaptchaChallenge payload comes back distinguishable from a
-//     RecaptchaV2Challenge one, because nothing does.
+// The widget parameters come from the query string (siteKey, type, enterprise,
+// v3Action, secureToken, plus host and prompt for the caption). The page only
+// renders, and the caller already holds the payload from its own poll, so
+// nothing is looked up by {id}; the id is echoed for log correlation and in
+// the messages. A stale id renders like a fresh one; Source.Answer decides
+// whether an answer is still valid.
 //
-// Google's script lives at a different origin than hCaptcha's, so a CSP
-// naming "the challenge's own vendor script" - this assignment's own words -
-// needs to know which vendor before it can be written, and for the ordinary
-// case the payload alone does not say. Guessing from the sitekey's own shape
-// (hCaptcha's are UUIDs; reCAPTCHA's never are) was considered and rejected:
-// jdsource.go's own package comment already names this exact move - "the
-// obvious guess from general knowledge of those vendors" - as the mistake
-// that would have shipped a screenshot to a JS-widget renderer for the
-// default captcha/get call. Inferring a vendor from a key format neither
-// vendor documents as a stable contract is the same kind of guess aimed at
-// the same kind of consequence here: a CSP quietly allowing the wrong origin,
-// or a script tag quietly loading the wrong vendor's API and rendering
-// nothing.
+// The page posts {source:"knightloader-captcha-widget", id, kind, detail} to
+// window.parent at its own origin: kind is "ready" on load, then "solved"
+// (detail is the token), "expired" or "error". The receiver still has to check
+// the message origin; frame-ancestors 'self' only keeps other sites from
+// embedding the page.
 //
-// So this file renders for real exactly the slice of "widget" the payload can
-// identify without guessing (see isUnambiguouslyRecaptcha), and answers with
-// an honest, scriptless "cannot show this" page for the rest. That is not the
-// whole KindWidget population, and it is not written to read as though it
-// were.
-//
-// THE SIGNAL THAT DOES DISAMBIGUATE, taken from WidgetPayload's own doc
-// comment (challenge.go), not invented here: Enterprise and V3Action only
-// ever come from reCAPTCHA - hCaptcha's Storable never populates them - and
-// hCaptcha's own API always reports Type=="normal", never "invisible". So
-// Enterprise==true, or V3Action != "", or Size=="invisible" each
-// independently prove reCAPTCHA; none of the three is this file's own
-// finding, all three are read straight out of a claim 7F already verified and
-// wrote down. Nothing proves hCaptcha the same way, because nothing in the
-// payload is exclusive to it - which is also why there is no hcaptchaCSP
-// function here: one that could never be reached would not be a feature, it
-// would be a second place for the same bug to hide.
-//
-// WHAT WOULD ACTUALLY CLOSE THE GAP: WidgetPayload growing a Vendor field -
-// the exact shape UnsupportedPayload already has, filled from the same
-// className JDSource.build already computes and currently discards - would
-// turn this file's honest-degrade branch into a second real one, for free, no
-// guessing required. That field lives in internal/captcha, which is 7F's file
-// this wave and not this file's to touch (build-plan.md section 8's Wave 7
-// note, and this wave's own file-ownership split). Flagged here for whoever
-// picks it up next; not fixed here.
-//
-// THE CSP ITSELF, verified 2026-08-10 against each vendor's own current
-// published guidance, not remembered:
-//   - reCAPTCHA: https://developers.google.com/recaptcha/docs/display (the
-//     api.js URL, and grecaptcha.render's real option names - sitekey, theme,
-//     size, callback, tabindex, expired-callback, error-callback) and the
-//     directives Google's own developer community gives for embedding it
-//     (https://security.googlecloudcommunity.com/recaptcha-6/recaptcha-csp-5053):
-//     script/connect from www.google.com/recaptcha/ and
-//     www.gstatic.com/recaptcha/, the widget's own frame from
-//     www.google.com/recaptcha/ and recaptcha.google.com/recaptcha/. Every one
-//     of those is path-scoped to /recaptcha/, which CSP host-source matching
-//     honours - narrower than the bare origins would be.
-//   - hCaptcha: https://docs.hcaptcha.com/ documents its own CSP in these
-//     exact terms and asks integrators not to narrow it further: "Please do
-//     not hard-code specific subdomains, like newassets.hcaptcha.com, into
-//     your CSP: asset subdomains used may vary over time or by region." This
-//     file never reaches a branch that would use it (see above), but it is
-//     recorded here so the next person does not have to re-derive it:
-//     *.hcaptcha.com is the vendor's own answer to "never a wildcard", not
-//     this file relaxing that rule, on the day a Vendor field makes the
-//     hCaptcha branch real.
-//
-// A per-response CSP nonce (newCaptchaWidgetNonce), not 'unsafe-inline',
-// covers this page's own small inline script (the postMessage relay below)
-// and its inline style block, so nothing on this response runs merely for
-// being inline; every script that executes here is either this page's own
-// nonce-carrying code or the one named vendor origin. Both go in <style>/
-// <script> elements, never a style="" attribute - a CSP nonce covers an
-// inline element but not an inline attribute, so an attribute would have
-// needed 'unsafe-inline' to work at all, which defeats the point of having a
-// nonce.
-//
-// THE REQUEST CONTRACT. This route reads the widget's own rendering
-// parameters from its query string (siteKey, type, enterprise, v3Action,
-// secureToken; host and prompt for display only) instead of looking a
-// challenge up by id server-side, and that is a deliberate departure from
-// routes_captcha_skip.go's shape in this same wave, not an oversight of it.
-// 7D's route performs a real, stateful action - Source.Abort - that can only
-// go through the wired Source app_captcha.go holds, so it has no honest
-// alternative to assuming *app.App grows an AbortCaptcha method (see that
-// file's own "THE CONTRACT THIS FILE ASSUMES"). This route only ever renders;
-// it never calls JD, never checks whether a challenge is still live, and has
-// no comparable need to reach into app state at all - the one thing an
-// id-based server-side lookup would add is a second, redundant
-// captcha/get?format=rawtoken call for data the caller (7A's modal) already
-// holds from its own List() poll. Query parameters are that data, passed
-// straight through; {id} is carried in the path for server-log correlation
-// and echoed into the postMessage payload below, and is not otherwise used -
-// not a lookup key, because there is nothing here for it to look up. Should
-// app_captcha.go/store.go land a reason this route needs live state after
-// all, that is a reason to revisit this file, not a gap in it today: 7A's
-// files did not exist while this one was written (7A/7B/7C/7D all run in
-// parallel this wave, confirmed in the working tree - internal/app/
-// app_captcha.go and internal/api/routes_captcha.go are both still absent as
-// of this file, and the tree does not currently build because of it: see
-// routes_captcha_skip.go's own reference to the not-yet-landed
-// a.AbortCaptcha).
-//
-// THE ANSWER PATH BACK. This page's only side effect is a
-// window.parent.postMessage once the vendor's own callback fires, targeted at
-// window.location.origin - this page's own origin, always KnightLoader's,
-// since nothing else serves it - rather than "*", so a solved token is never
-// broadcast to whatever page happens to have this one open. It does not call
-// a KnightLoader API itself: the route that submits a token to Source.Answer
-// is 7A's, in routes_captcha.go, which does not exist yet either, and
-// guessing its path or payload shape here would be exactly the mistake this
-// file already declined to make about vendor identity. Whoever builds that
-// caller listens for {source:"knightloader-captcha-widget", id, kind, detail}
-// on the window "message" event - kind is "ready" once on load, then "solved"
-// (detail is the vendor's token), "expired" or "error" - and is the one place
-// that still has to check the message's own origin before trusting it: the
-// frame-ancestors 'self' below only keeps a different site from embedding
-// this page, not a same-origin page from mishandling what it receives.
-//
-// A stale or already-answered id renders here exactly the same as a fresh one
-// - this file has no way to tell the difference and does not try to. That is
-// resolved honestly, later, by Source.Answer's own stillValid (see
-// Source.Answer's doc comment, challenge.go) - not re-guessed from a
-// countdown on this page or any other.
-//
-// A LIMIT NO CSP FIXES. reCAPTCHA site keys are commonly locked to specific
-// domains at creation (verified
-// https://developers.google.com/recaptcha/docs/domain_validation, 2026-08-10),
-// and a mismatch fails visibly in the browser with Google's own "ERROR for
-// site owner: Invalid domain for site key" rather than quietly. The one
-// mechanism that used to let a key render correctly from a domain other than
-// its own - reCAPTCHA's "Secure Token" (stoken) - was deprecated by Google
-// around 2016. SecureToken/data-stoken is still relayed here regardless, on
-// the same reasoning 7F already gives for keeping the field at all
-// (WidgetPayload's own doc comment: "dropping a field JD's wire format
-// genuinely carries is a silent regression the day a JD build starts sending
-// it, not a simplification") - but for an ordinary key registered only to the
-// hoster's own site, rendering it from this instance's own origin may simply
-// fail on Google's side, visibly, regardless of anything in this file. Not a
-// bug here, and not something a Content-Security-Policy header can fix.
+// reCAPTCHA keys are usually locked to the hoster's domains
+// (https://developers.google.com/recaptcha/docs/domain_validation), and the
+// secure token that once worked around that is deprecated, so rendering a key
+// from this origin can fail visibly on Google's side. The secure token is
+// still relayed because JD's wire format carries it.
 
 import (
 	"bytes"
@@ -195,34 +50,26 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/app"
 )
 
-// captchaWidgetRequest is this route's entire input, read once from the query
-// string - see this file's own "THE REQUEST CONTRACT" for why nothing here is
-// looked up server-side.
+// captchaWidgetRequest is the route's entire input, read from the query
+// string.
 type captchaWidgetRequest struct {
-	// ID is carried through for log correlation and the postMessage payload
-	// only; never used as a lookup key.
+	// ID is only for log correlation and the postMessage payload.
 	ID string
-	// SiteKey is WidgetPayload.SiteKey (challenge.go) and the only required
-	// field - without it there is nothing to render.
+	// SiteKey is WidgetPayload.SiteKey and the only required field.
 	SiteKey string
-	// Size is WidgetPayload.Type ("normal"/"invisible"), renamed here to
-	// match the DOM attribute it becomes (data-size) rather than the wire
-	// field it came from.
+	// Size is WidgetPayload.Type ("normal" or "invisible"), named after the
+	// data-size attribute it becomes.
 	Size        string
 	Enterprise  bool
 	V3Action    string
 	SecureToken string
-	// Host and Prompt are Challenge's own fields (Challenge.Host,
-	// Challenge.Prompt in challenge.go), not WidgetPayload's - carried through
-	// only to caption the page for a human looking at it, never consumed by
-	// either vendor's own render() call.
+	// Host and Prompt only caption the page.
 	Host   string
 	Prompt string
 }
 
-// errCaptchaWidgetNoSiteKey is a real client error, unlike an unidentifiable
-// vendor: a request with no siteKey at all is malformed, not merely a
-// challenge this route cannot show.
+// errCaptchaWidgetNoSiteKey marks a malformed request, unlike a vendor that
+// cannot be identified.
 var errCaptchaWidgetNoSiteKey = errors.New("captcha widget: siteKey is required")
 
 func registerCaptchaWidget(reg *Registry, _ *app.App) {
@@ -238,16 +85,11 @@ func registerCaptchaWidget(reg *Registry, _ *app.App) {
 				http.Error(w, "captcha widget: "+err.Error(), http.StatusInternalServerError)
 				return
 			}
-			// nosniff plus a fixed type from our own side, matching
-			// routes_containers.go's relay route: nothing about this body's
-			// content may decide how a client treats it, even though every
-			// byte of it is written by this file's own templates.
 			w.Header().Set("Content-Security-Policy", page.csp)
 			w.Header().Set("Content-Type", "text/html; charset=utf-8")
 			w.Header().Set("X-Content-Type-Options", "nosniff")
-			// A dynamically rendered, challenge-specific page: caching it
-			// anywhere risks a browser or intermediary replaying one
-			// challenge's sitekey under a different one's id.
+			// Never cached, so one challenge's site key cannot be replayed
+			// under another's id.
 			w.Header().Set("Cache-Control", "no-store")
 			_, _ = w.Write(page.body)
 		})
@@ -271,18 +113,14 @@ func parseCaptchaWidgetBool(v string) bool {
 	return v == "1" || strings.EqualFold(v, "true")
 }
 
-// isUnambiguouslyRecaptcha reports whether req's own fields prove reCAPTCHA
-// without guessing - see this file's own "THE SIGNAL THAT DOES DISAMBIGUATE"
-// for where each branch comes from and why there is no equivalent function
-// for hCaptcha.
+// isUnambiguouslyRecaptcha reports whether req's fields prove reCAPTCHA. No
+// field proves hCaptcha, so there is no counterpart.
 func isUnambiguouslyRecaptcha(req captchaWidgetRequest) bool {
 	return req.Enterprise || req.V3Action != "" || strings.EqualFold(req.Size, "invisible")
 }
 
-// captchaWidgetPage is a fully rendered response - the CSP that belongs with
-// exactly this body, never handled separately from it, so the two can never
-// drift apart (a body from one branch served under the other branch's CSP,
-// wider or narrower than the content actually needs).
+// captchaWidgetPage is a rendered response, keeping the CSP together with the
+// body it belongs to.
 type captchaWidgetPage struct {
 	csp  string
 	body []byte
@@ -317,13 +155,8 @@ func buildCaptchaWidgetPage(req captchaWidgetRequest) (captchaWidgetPage, error)
 	return captchaWidgetPage{csp: recaptchaCSP(nonce), body: buf.Bytes()}, nil
 }
 
-// newCaptchaWidgetNonce is one response's CSP nonce - 16 bytes from
-// crypto/rand, RawURLEncoding to match the token convention
-// internal/auth/auth.go's own session signature already uses in this
-// codebase, sized down from routes_containers.go's 32-byte relay token
-// because a CSP nonce only has to be unpredictable for the life of one
-// response, never looked up or compared against a stored value the way that
-// token is.
+// newCaptchaWidgetNonce is one response's CSP nonce. It only has to be
+// unpredictable for the life of the response.
 func newCaptchaWidgetNonce() (string, error) {
 	raw := make([]byte, 16)
 	if _, err := rand.Read(raw); err != nil {
@@ -332,9 +165,7 @@ func newCaptchaWidgetNonce() (string, error) {
 	return base64.RawURLEncoding.EncodeToString(raw), nil
 }
 
-// recaptchaCSP is the policy for the one branch this file renders for real -
-// see this file's own "THE CSP ITSELF" for what each origin is and where it
-// was verified.
+// recaptchaCSP is the policy for the reCAPTCHA page.
 func recaptchaCSP(nonce string) string {
 	n := "'nonce-" + nonce + "'"
 	return strings.Join([]string{
@@ -350,9 +181,8 @@ func recaptchaCSP(nonce string) string {
 	}, "; ")
 }
 
-// unidentifiedVendorCSP is the policy for the honest-degrade page: no vendor
-// origin is trusted at all, because none was identified, so nothing outside
-// this response's own nonce-carrying style block may run or load.
+// unidentifiedVendorCSP trusts no vendor origin; only the page's own style
+// block may load.
 func unidentifiedVendorCSP(nonce string) string {
 	return strings.Join([]string{
 		"default-src 'none'",
@@ -363,19 +193,15 @@ func unidentifiedVendorCSP(nonce string) string {
 	}, "; ")
 }
 
-// recaptchaWidgetPageData feeds recaptchaWidgetPageTmpl. Every field is
-// contextually escaped by html/template for wherever the template places it -
-// HTML attribute, HTML text or JS expression - so nothing here is pre-escaped
-// by hand; SiteKey and the rest are whatever JD relayed from the hoster's own
-// page and are treated as untrusted input throughout.
+// recaptchaWidgetPageData feeds recaptchaWidgetPageTmpl. The values come from
+// the hoster's page via JD and are untrusted; html/template escapes each for
+// its context.
 type recaptchaWidgetPageData struct {
 	Nonce, ID, SiteKey, Size, SecureToken, Host, Prompt string
 }
 
-// recaptchaWidgetPageTmpl auto-renders a reCAPTCHA v2 widget from a
-// data-sitekey div - no explicit grecaptcha.render() call, so the only inline
-// script this page needs is the postMessage relay, not a second script also
-// invoking the vendor API by hand.
+// recaptchaWidgetPageTmpl lets reCAPTCHA render itself from the data-sitekey
+// div, so the only inline script is the postMessage relay.
 var recaptchaWidgetPageTmpl = template.Must(template.New("captcha-widget-recaptcha").Parse(`<!doctype html>
 <html>
 <head>
@@ -423,9 +249,8 @@ type unidentifiedWidgetPageData struct {
 	Nonce, Host string
 }
 
-// unidentifiedWidgetPageTmpl is the honest degrade - see this file's own
-// package comment for why it exists instead of a guess. No script, no vendor
-// origin, nothing but text.
+// unidentifiedWidgetPageTmpl is the page for a vendor that cannot be
+// identified: text only, no script and no vendor origin.
 var unidentifiedWidgetPageTmpl = template.Must(template.New("captcha-widget-unidentified").Parse(`<!doctype html>
 <html>
 <head>

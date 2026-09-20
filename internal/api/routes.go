@@ -1,20 +1,10 @@
 package api
 
-// The registration table. Every endpoint in the app is declared here rather
-// than attached to a mux by hand, for three reasons that all cost more later
-// than they do now:
-//
-//   - a package can add its routes from its own file, so a wave that builds a
-//     subsystem does not queue behind every other wave for the right to edit one
-//     router function;
-//   - the self-describing index the API serves is generated from this table, so
-//     it cannot drift from what is actually reachable — a hand-registered route
-//     is one the index will never mention, and there is no way to notice;
-//   - which routes answer without a session is data rather than a switch
-//     statement listing paths a second time, next to the first list, drifting.
-//
-// Nothing outside this file may call mux.HandleFunc; there is a test that fails
-// when something does.
+// Every endpoint is declared in the registration table rather than attached to
+// a mux by hand, so each subsystem can add its routes from its own file, the
+// self-describing index cannot drift from what is reachable, and the open
+// routes are data rather than a second list of paths. A test fails when
+// anything outside this file calls mux.HandleFunc.
 
 import (
 	"net/http"
@@ -25,21 +15,11 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/app"
 )
 
-// registerAll fills the table with every subsystem's routes. It is the single
-// list: Handler builds the server from it and the tests build their registry
-// from it, so there is no second copy to fall behind.
-//
-// There used to be two identical call lists, one here and one in the test. A
-// subsystem was added to only one of them, and the result was the worst shape a
-// bug can take: its own tests passed, because they registered it by hand, while
-// the running server never attached it at all and the page calling it got the
-// SPA's index.html back with a 200.
+// registerAll fills the table with every subsystem's routes. Handler and the
+// tests both build their registry from it, so a subsystem cannot be reachable
+// in tests and missing from the running server.
 func registerAll(reg *Registry, a *app.App) {
 	registerSystem(reg, a)
-	// The two ways a login can be given a second door, beside the password
-	// routes registerSystem owns. Two register functions rather than one,
-	// because they are two decisions somebody can want separately - which is
-	// also why they are two cards on the settings page.
 	registerTwoFactor(reg, a)
 	registerPasskeys(reg, a)
 	registerTasks(reg, a)
@@ -50,35 +30,18 @@ func registerAll(reg *Registry, a *app.App) {
 	registerLinks(reg, a)
 	registerContainers(reg, a)
 	registerSettings(reg, a)
-	// Beside the settings routes, because it is the same document by another
-	// door: settings.json alone, out to one file and back in key by key, with
-	// no restart at all - a partial save runs every live effect a full one
-	// does (app.afterSettingsChange). The full archive further down moves an
-	// INSTALL; this moves a CONFIGURATION.
 	registerSettingsTransfer(reg, a)
 	registerAccounts(reg, a)
 	registerHosterAuth(reg, a)
 	registerHosterIcons(reg, a)
 	registerResolvers(reg, a)
-	// Beside the resolver options, because it is the layer underneath them:
-	// those routes configure what yt-dlp is asked to do, these say which yt-dlp
-	// (and which ffmpeg) is doing it at all.
 	registerMediaTools(reg, a)
 	registerSchedule(reg, a)
 	registerReconnect(reg, a)
 	registerPortmap(reg, a)
 	registerUIState(reg, a)
 	registerHistory(reg, a)
-	// Day and month totals aggregated out of the history table above, which is
-	// where the raw material has been sitting since the first release: size,
-	// host, resolver and a finish time on every completed download, and nothing
-	// able to add them up.
 	registerStats(reg, a)
-	// The live speed record beside the finished-volume curves: the same subject
-	// at the other end of the time scale, and the only stats route that answers
-	// out of memory rather than out of the history table. Deliberately on
-	// neither forwarding allowlist - a peer's ring describes the peer's traffic,
-	// the argument routes.go already makes for disk space just below.
 	registerSpeedHistory(reg, a)
 	registerFederation(reg, a)
 	registerRelay(reg, a)
@@ -88,45 +51,15 @@ func registerAll(reg *Registry, a *app.App) {
 	registerConnections(reg, a)
 	registerRules(reg, a)
 	registerFolders(reg, a)
-	// Beside the folder chooser, because it answers the other half of the same
-	// question: the chooser says where a folder is, this says whether there is
-	// room in it. Deliberately NOT on the federation forwarder's list and not
-	// relay-forwardable - a peer's disks are not this machine's, and a row that
-	// looked local while describing somebody else's volume is the worst kind of
-	// wrong here.
 	registerDiskSpace(reg, a)
 	registerCaptcha(reg, a)
 	registerCaptchaSkip(reg, a)
 	registerCaptchaWidget(reg, a)
 	registerDiagnostics(reg, a)
-	// Beside the diagnostics bundle, because it answers the other half of the
-	// same question: that one reports how big the database has grown, this one
-	// does something about it. Deliberately NOT relay-forwardable and not on the
-	// federation forwarder - a peer must not be able to freeze this box's writes
-	// for ten minutes, and its own paths are not a sibling's business.
 	registerDBMaintenance(reg, a)
-	// The log on disk, its cursor, and the lines that name one download. All
-	// under /api/diagnostics, which neither the relay nor the federation
-	// forwarder carries: a log line can hold a feed URL with an indexer's key
-	// in it, which a task list never does, so the reasoning the relay
-	// allowlist rests on does not cover these.
 	registerDiagnosticsLog(reg, a)
-	// The boot report and the seven instance checks behind one button.
-	// Deliberately NOT relay-forwardable and not on the federation forwarder,
-	// the argument disk space already makes and with more force: a peer's
-	// answer describes the wrong machine's disks, the wrong machine's clock
-	// and somebody else's proxy.
 	registerSelfTest(reg, a)
-	// Who the files land as, and under which mask. Not forwardable for a
-	// stronger version of the disk report's reason: a peer's answer names THAT
-	// box's uids and THAT box's folders, and drawn under this box's name it
-	// would send somebody to chown a path on the wrong machine.
 	registerFileOwner(reg, a)
-	// The detailed health readout, behind the same authentication as
-	// everything else and behind a settings switch that ships off (jdp,
-	// 2026-09-08: the open-route list is pinned in a test with a written
-	// justification per entry, and this is not going on it). /api/health
-	// itself is untouched.
 	registerHealth(reg, a)
 	registerFiles(reg, a)
 	registerLifecycle(reg, a)
@@ -140,52 +73,30 @@ func registerAll(reg *Registry, a *app.App) {
 	registerTorrents(reg, a)
 	registerDownloadClient(reg, a)
 	registerActivity(reg, a)
-	// Three subsystems that were complete and unreachable. The two credential
-	// stores below were sealed on purpose, so that a header value or a cookie
-	// jar never lands in the diagnostics bundle, and the price was that nothing
-	// could list, create or delete one either: grepping this package for
-	// "hostheaders" returned nothing at all. Sealed is right; unreachable was
-	// not, and the answer is a route that reads the names and never the values.
 	registerHostHeaders(reg, a)
 	registerYtdlpCookies(reg, a)
-	// The feed poller knew when it last ran, whether it failed and what it
-	// remembered, and said all of it to the log. A subscription pointed at a
-	// dead address therefore looked exactly like one that works and has nothing
-	// new, which is the one distinction the settings card most needs to draw.
 	registerFeeds(reg, a)
-	// The outbound half of the same idea: the event bus had one subscriber and
-	// no way for an operator to add a second. These are the status table, the
-	// placeholder vocabulary and the test button; the rows themselves are
-	// settings, written by PATCH /api/settings.
 	registerEventTargets(reg, a)
-	// The second reader that bus was built for, and the one its own doc
-	// comment named in advance: a media library told to rescan. The address
-	// and the wait are settings rows; the one header value each may carry is
-	// sealed in the credential store, so these routes list names and never
-	// values, exactly as the host headers above them do.
 	registerMediaHooks(reg, a)
 }
 
-// AnyMethod is the method of a route that answers whatever it is sent, because
-// it forwards the request somewhere else and the method is part of what it
-// forwards. It is not a way to avoid deciding: a route that acts on this
-// instance names its method, so that a GET can never be made to do a POST's job.
+// AnyMethod is the method of a route that forwards the request elsewhere and
+// passes the method along. A route that acts on this instance names its
+// method, so a GET can never be made to do a POST's job.
 const AnyMethod = ""
 
 // Route is one endpoint as registered: enough to attach it, and enough to
 // describe it to somebody who has never seen the source.
 type Route struct {
-	// Method is the HTTP method, exactly as net/http's pattern syntax wants it,
-	// or AnyMethod.
+	// Method is the HTTP method as net/http's pattern syntax wants it, or
+	// AnyMethod.
 	Method string `json:"method"`
 	// Path is the pattern, wildcards included ("/api/tasks/{id}").
 	Path string `json:"path"`
-	// Summary is one line saying what the route does, in the language the rest of
-	// the app is written in. It is what the index shows.
+	// Summary is the one line the index shows.
 	Summary string `json:"summary"`
 	// Open is a route reachable without a session on a password-protected
-	// instance. It is false unless there is a reason, and the reason belongs in
-	// the summary: these are the only doors in the building that are not locked.
+	// instance. The reason for it belongs in the summary.
 	Open bool `json:"open"`
 
 	handler http.HandlerFunc
@@ -194,13 +105,10 @@ type Route struct {
 // Registry collects the routes as each subsystem registers them.
 type Registry struct {
 	routes []Route
-	// seen catches the same method and path being registered twice. ServeMux
-	// panics on a duplicate pattern, which is a clear enough failure, but it
-	// happens at startup in production and names nothing but the pattern; this
-	// fails in the test that builds a handler, which every route file has.
+	// seen catches a duplicate in any test that builds a handler, instead of
+	// ServeMux panicking at startup in production.
 	seen map[string]bool
 
-	// The session guard's view of the table, derived once.
 	openOnce   sync.Once
 	openExact  map[string]bool
 	openPrefix []string
@@ -210,15 +118,14 @@ func newRegistry() *Registry {
 	return &Registry{seen: map[string]bool{}}
 }
 
-// Add registers a route that needs a session once a password is set, which is
-// everything except the handful the login flow itself depends on.
+// Add registers a route that needs a session once a password is set.
 func (reg *Registry) Add(method, path, summary string, h http.HandlerFunc) {
 	reg.add(Route{Method: method, Path: path, Summary: summary, handler: h})
 }
 
-// AddOpen registers a route reachable without a session. Use it only for a route
-// that is either how somebody gets a session in the first place, or one whose
-// own credential is in the request — and say which in the summary.
+// AddOpen registers a route reachable without a session. It is for routes
+// that hand out a session in the first place or carry their own credential in
+// the request, and the summary says which.
 func (reg *Registry) AddOpen(method, path, summary string, h http.HandlerFunc) {
 	reg.add(Route{Method: method, Path: path, Summary: summary, Open: true, handler: h})
 }
@@ -232,8 +139,7 @@ func (reg *Registry) add(r Route) {
 	reg.routes = append(reg.routes, r)
 }
 
-// Routes is the table, sorted by path then method, without the handlers. It is
-// what the index is generated from and what a test can assert against.
+// Routes returns the table sorted by path then method, without the handlers.
 func (reg *Registry) Routes() []Route {
 	out := make([]Route, len(reg.routes))
 	copy(out, reg.routes)
@@ -249,9 +155,8 @@ func (reg *Registry) Routes() []Route {
 	return out
 }
 
-// attach wires the table onto a mux, with fallback serving everything the table
-// does not claim (the single-page app). This is the only place in the package
-// that touches a ServeMux.
+// attach wires the table onto a mux, with fallback serving everything the
+// table does not claim (the single-page app).
 func (reg *Registry) attach(mux *http.ServeMux, fallback http.Handler) {
 	for _, r := range reg.routes {
 		pattern := r.Path
@@ -260,19 +165,10 @@ func (reg *Registry) attach(mux *http.ServeMux, fallback http.Handler) {
 		}
 		mux.HandleFunc(pattern, r.handler)
 	}
-	// Anything under /api/ that the table does not claim is a 404, and says so in
-	// the language the caller asked in.
-	//
-	// Without this it falls through to the single-page app, which answers 200 with
-	// index.html: a client that calls a route which has been renamed, removed, or
-	// never registered gets HTML and a success code, fails while parsing it, and
-	// reports an error that names neither the route nor the status. That is the
-	// exact failure the registration table exists to make impossible, and it was
-	// still reachable through the one pattern the table does not cover.
-	//
-	// ServeMux prefers the more specific pattern, so this only ever sees paths no
-	// registered route matched. A path that is registered under another method
-	// still gets ServeMux's own 405 rather than this.
+	// An unknown /api/ path is a 404 rather than the SPA's index.html with a
+	// 200, which a client would fail to parse without learning the route or the
+	// status. ServeMux prefers the more specific pattern, and a path registered
+	// under another method still gets its 405.
 	mux.HandleFunc("/api/", func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "no such endpoint: "+r.Method+" "+r.URL.Path, http.StatusNotFound)
 	})
@@ -281,14 +177,10 @@ func (reg *Registry) attach(mux *http.ServeMux, fallback http.Handler) {
 
 // open reports whether a request path may be served without a session.
 //
-// Everything outside /api/ is open because it is the interface itself, which has
-// to render the login screen. Inside /api/ only what the table marked open is,
-// matched on the literal prefix before the first wildcard: a wildcard route can
-// only be open when the wildcard is itself the credential, which is the one case
-// this is used for.
-//
-// The two sets are worked out on first use and kept, because this runs on every
-// request the server answers — including every asset the interface loads.
+// Everything outside /api/ is the interface, which has to render the login
+// screen. Inside /api/ a wildcard route matches on the prefix before its first
+// wildcard, since a wildcard route is only open when the wildcard is itself
+// the credential. The sets are built once because this runs on every request.
 func (reg *Registry) open(path string) bool {
 	if !strings.HasPrefix(path, "/api/") {
 		return true

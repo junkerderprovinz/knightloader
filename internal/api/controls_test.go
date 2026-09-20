@@ -36,19 +36,13 @@ func postControls(t *testing.T, base string, patch map[string]any) (int, control
 	return resp.StatusCode, got, ""
 }
 
-// TestControlsPatchLeavesTheRestOfTheConfigurationAlone is the whole reason this
-// route exists rather than the shell reusing PUT /api/settings.
-//
-// The failure it prevents is not hypothetical: a widget that lives above every
-// page holds whatever the configuration was when it mounted, and a PUT replaces
-// the document — so one click on a spinner in the shell would put back the
-// download folder, the rule sets and the timetable as they were an hour ago.
+// TestControlsPatchLeavesTheRestOfTheConfigurationAlone checks that patching
+// one quick control does not write back any other field.
 func TestControlsPatchLeavesTheRestOfTheConfigurationAlone(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
 
-	// Something in the configuration that the quick panel neither shows nor knows
-	// about, and that a whole-document write would therefore lose.
+	// Fields the quick panel does not know about.
 	before := a.Settings.Get()
 	before.DownloadDir = t.TempDir()
 	before.MaxRetries = 11
@@ -74,10 +68,8 @@ func TestControlsPatchLeavesTheRestOfTheConfigurationAlone(t *testing.T) {
 	}
 }
 
-// TestControlsTellZeroApartFromAbsent keeps the two answers the pointer fields
-// exist for. Zero is a real value here — no speed limit, no opinion about chunks
-// — so a patch that sends it has to be obeyed, and one that omits the field has
-// to leave it standing.
+// TestControlsTellZeroApartFromAbsent checks that a field sent as zero is
+// written and an omitted field is left alone.
 func TestControlsTellZeroApartFromAbsent(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
@@ -97,10 +89,8 @@ func TestControlsTellZeroApartFromAbsent(t *testing.T) {
 	}
 }
 
-// TestControlsRefuseAChunkCountTheEngineWouldCut refuses instead of clamping.
-// connsFor cuts an over-large count at dispatch, so a value accepted here would
-// be stored, read back into the spinner, and then not honoured by the only thing
-// it was set for.
+// TestControlsRefuseAChunkCountTheEngineWouldCut checks that a chunk count
+// above the engine's ceiling is refused rather than stored and ignored.
 func TestControlsRefuseAChunkCountTheEngineWouldCut(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
@@ -114,10 +104,8 @@ func TestControlsRefuseAChunkCountTheEngineWouldCut(t *testing.T) {
 	}
 }
 
-// TestControlsAnswerWithWhatWasStored is what lets the interface carry no copy of
-// the concurrency bounds: the number the user typed is sanitized on the way to
-// disk and the answer is the sanitized one, so the field settles on the truth
-// rather than on a limit compiled into the client.
+// TestControlsAnswerWithWhatWasStored checks that the reply carries the
+// sanitized values, so the interface needs no copy of the bounds.
 func TestControlsAnswerWithWhatWasStored(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
@@ -129,8 +117,6 @@ func TestControlsAnswerWithWhatWasStored(t *testing.T) {
 	if got.MaxChunks != rules.MaxChunks {
 		t.Errorf("maxChunks = %d, want the engine's own %d", got.MaxChunks, rules.MaxChunks)
 	}
-	// The reply has to describe the store, not the request, or the spinner shows a
-	// number nothing downstream agrees with.
 	if got.MaxPerHost != settings.Defaults().MaxPerHost {
 		t.Errorf("maxPerHost = %d, want the untouched default %d", got.MaxPerHost, settings.Defaults().MaxPerHost)
 	}

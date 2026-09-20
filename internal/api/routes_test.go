@@ -22,15 +22,9 @@ func testApp(t *testing.T) *app.App {
 	return a
 }
 
-// TestNothingRegistersOutsideTheTable is the gate the whole registration table
-// exists for. The self-describing index is generated from that table, so a route
-// attached to the mux by hand is a route the index will never mention and that
-// nothing can notice — and after eleven waves of that, the index is a lie and
-// auditing it means reading every file in the package.
-//
-// It reads the package's own source rather than inspecting the mux, because a
-// ServeMux does not hand back what was registered on it, and because the failure
-// this prevents is somebody writing the line, not the line misbehaving.
+// TestNothingRegistersOutsideTheTable keeps every route in the table the index
+// is generated from. It reads the package source because a ServeMux does not
+// report what was registered on it.
 func TestNothingRegistersOutsideTheTable(t *testing.T) {
 	// Split so that this test file does not match itself.
 	forbidden := []string{"mux." + "HandleFunc", "mux." + "Handle("}
@@ -60,22 +54,11 @@ func TestNothingRegistersOutsideTheTable(t *testing.T) {
 	}
 }
 
-// TestEveryRouteDescribesItself keeps the table worth generating an index from.
-// A route with no summary renders as a blank line in the help page, which is
-// worse than an absent one: it looks like the page is broken rather than like
-// somebody forgot a string.
+// TestEveryRouteDescribesItself checks that every route has a summary for the
+// help page and lives under /api/ unless it has a listed reason not to.
 func TestEveryRouteDescribesItself(t *testing.T) {
-	// The one route outside /api/, and the reason it has to be. The relay
-	// client appends "/relay/connect" to whatever relay address it was given
-	// (relay.connectURL), so an instance serving a relay has to answer on
-	// exactly that path or a relay address would mean two different things
-	// depending on which kind of relay is behind it - and the card that offers
-	// the switch shows the reader this instance's plain address to hand out.
-	//
-	// Being outside /api/ means the session guard does not cover it, which is
-	// correct here rather than convenient: every instance dialling in is a
-	// different machine with no session, and the relay key in the first frame
-	// is the credential. TestOnlyTheseRoutesAreOpen pins that separately.
+	// The relay client dials the relay address plus "/relay/connect"
+	// (relay.connectURL), so an instance serving a relay has to answer there.
 	outsideAPI := map[string]string{
 		"GET /relay/connect": "the relay socket has to sit where relay clients dial, which is the " +
 			"address itself plus /relay/connect, not under /api/",
@@ -93,11 +76,8 @@ func TestEveryRouteDescribesItself(t *testing.T) {
 	}
 }
 
-// TestOnlyTheseRoutesAreOpen pins the list of doors that are not locked. Every
-// wave adds routes; one of them will eventually mark something open because it
-// was convenient during development, and nothing else in the app would ever
-// mention it again. Adding a route here has to be a deliberate edit to a test
-// that says so.
+// TestOnlyTheseRoutesAreOpen pins the routes that answer without a session, so
+// opening another one takes an edit here that states the reason.
 func TestOnlyTheseRoutesAreOpen(t *testing.T) {
 	want := map[string]string{
 		"GET /api/health":       "a container orchestrator has to be able to probe a locked instance",
@@ -170,9 +150,8 @@ func TestSessionGuardCoversWildcardRoutes(t *testing.T) {
 	}
 }
 
-// buildRegistry assembles the table the way Handler does, through the same
-// registerAll — not a copy of its call list. A copy is how a subsystem ends up
-// tested but unserved.
+// buildRegistry assembles the table through the same registerAll that Handler
+// uses, so a subsystem cannot be tested but unserved.
 func buildRegistry(t *testing.T) *Registry {
 	t.Helper()
 	reg := newRegistry()
@@ -180,12 +159,9 @@ func buildRegistry(t *testing.T) *Registry {
 	return reg
 }
 
-// TestEverySubsystemIsRegistered is the guard for the failure that got past the
-// two-copies arrangement: a routes_*.go file whose register function nothing
-// calls. The subsystem's own test file registers it by hand and passes, the
-// server never attaches it, and the page that calls it receives the SPA's HTML
-// with a 200 — so the client fails on parsing, not on the status, and the error
-// never names the route.
+// TestEverySubsystemIsRegistered catches a routes_*.go file whose register
+// function registerAll never calls: its own tests would pass while the server
+// never attached the routes.
 func TestEverySubsystemIsRegistered(t *testing.T) {
 	entries, err := os.ReadDir(".")
 	if err != nil {
@@ -218,16 +194,12 @@ func TestEverySubsystemIsRegistered(t *testing.T) {
 	}
 }
 
-// TestAnUnknownApiPathIs404 closes the one hole the registration table did not
-// cover. Everything the table does not claim used to fall through to the
-// single-page app, which answers 200 with index.html — so a call to a route that
-// had been renamed, removed or never registered came back successful, failed
-// while the client parsed HTML as JSON, and produced an error naming neither the
-// route nor the status.
+// TestAnUnknownApiPathIs404 checks that an unclaimed /api/ path answers 404
+// instead of falling through to the single-page app's 200.
 func TestAnUnknownApiPathIs404(t *testing.T) {
 	reg := buildRegistry(t)
 	mux := http.NewServeMux()
-	// A fallback that answers 200, exactly as the real one does for the app.
+	// A fallback that answers 200, as the real one does for the app.
 	reg.attach(mux, http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
 		_, _ = w.Write([]byte("<!doctype html>"))

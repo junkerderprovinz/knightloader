@@ -1,14 +1,14 @@
 package api
 
-// The container relay's own count, which is what the status strip renders as
-// "Containers - N pending". The count is the relay's map size rather than a
-// separate tally kept alongside it, so these tests pin the three moments it
-// can change: a handover arrives, a backend collects one, and the TTL runs out
-// on one nobody collected.
+// The container relay's count, which the status strip renders as
+// "Containers - N pending". It is the relay's map size rather than a separate
+// tally, so these tests pin the three moments it can change: a handover
+// arrives, a backend collects one, and the TTL runs out on one nobody
+// collected.
 //
-// Written against the relay directly, not through the HTTP surface: handToJD
-// needs a configured JD backend to get as far as put(), and what is under test
-// here is the bookkeeping, not the routing.
+// Written against the relay directly rather than through HTTP, since handToJD
+// needs a configured JD backend to reach put() and what is under test is the
+// bookkeeping.
 
 import (
 	"sync"
@@ -71,8 +71,9 @@ func TestRelayPublishesCountOnPutAndTake(t *testing.T) {
 	}
 }
 
-// A miss still reports, because the sweep inside take may have dropped an
-// expired entry - a change the strip has to hear about.
+// TestRelayPublishesOnUnknownToken: a miss still reports, because the sweep
+// inside take may have dropped an expired entry, which the strip has to hear
+// about.
 func TestRelayPublishesOnUnknownToken(t *testing.T) {
 	spy := &countSpy{}
 	cr := newContainerRelay()
@@ -86,10 +87,9 @@ func TestRelayPublishesOnUnknownToken(t *testing.T) {
 	}
 }
 
-// The regression this whole count exists to avoid: a handover nobody collects
-// must not leave the strip reading "1 pending" forever. Nothing else sweeps -
-// sweepLocked only runs on the next put or take - so the timer put() arms is
-// the only thing that can clear it on a quiet instance.
+// TestRelayClearsCountAfterTTL: a handover nobody collects must not leave the
+// strip reading "1 pending". sweepLocked only runs on the next put or take, so
+// on a quiet instance the timer put arms is the only thing that can clear it.
 func TestRelayClearsCountAfterTTL(t *testing.T) {
 	restore := relayTTLForTest(80 * time.Millisecond)
 	defer restore()
@@ -115,8 +115,9 @@ func TestRelayClearsCountAfterTTL(t *testing.T) {
 	t.Fatalf("the count never fell back to 0 after the TTL expired; saw %v", spy.all())
 }
 
-// A relay with no listener must not panic - registerContainers always wires
-// one, but put/take are exercised directly by tests and by any future caller.
+// TestRelayWithoutListener: a relay with no listener must not panic.
+// registerContainers always wires one, but put and take are also called
+// directly.
 func TestRelayWithoutListener(t *testing.T) {
 	cr := newContainerRelay()
 	tok, err := cr.put("quiet.dlc", []byte("x"))

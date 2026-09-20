@@ -36,10 +36,8 @@ import (
 // a busy JD to get to it, short enough that the window in which the address
 // exists at all is measured in minutes.
 //
-// A var rather than a const only so a test can shorten it: the expiry path is
-// worth covering (a container nobody collects has to stop being counted), and
-// covering it against two real minutes would mean a two-minute test. Never
-// reassigned outside relayTTLForTest.
+// A var rather than a const so a test can shorten it; nothing outside
+// relayTTLForTest reassigns it.
 var relayTTL = 2 * time.Minute
 
 // relayTTLForTest shortens the TTL and returns the function that puts it back.
@@ -61,11 +59,8 @@ type relayed struct {
 //
 // The address is the credential, which is why it is 32 bytes from crypto/rand
 // and why the route is exempt from the session check: the fetch comes from JD,
-// on another host, with no cookie and no way to be given one. Three things keep
-// that honest — the token is unguessable, it is spent on first use, and it
-// expires either way — so the worst an attacker can do with the route is fetch
-// bytes they would have to have guessed a 256-bit number to name, which the user
-// themselves uploaded moments earlier.
+// on another host, with no cookie and no way to be given one. The token is
+// unguessable, spent on first use, and expires either way.
 type containerRelay struct {
 	mu    sync.Mutex
 	items map[string]relayed
@@ -79,9 +74,9 @@ func newContainerRelay() *containerRelay {
 	return &containerRelay{items: map[string]relayed{}}
 }
 
-// publish reports the current count. Deliberately called after the lock is
-// released: the relay's own mutex guards a map that every handover touches,
-// and a broadcast has no business holding it.
+// publish reports the current count. Called after the lock is released, since
+// the mutex guards a map every handover touches and a broadcast must not hold
+// it.
 func (cr *containerRelay) publish(n int) {
 	if cr.onCount != nil {
 		cr.onCount(n)
@@ -107,12 +102,10 @@ func (cr *containerRelay) put(name string, data []byte) (string, error) {
 	cr.mu.Unlock()
 	cr.publish(n)
 
-	// Nothing else would ever clear the count for a container nobody collects:
 	// sweepLocked only runs on the next put or take, so an instance that goes
-	// quiet after one failed handover would leave the strip reading "1 waiting"
-	// until something unrelated happened. One timer per handover, fired just
-	// past the TTL, is cheaper than a ticker that runs for the life of the
-	// process to catch a case that is usually empty.
+	// quiet after a failed handover would leave the strip reading "1 waiting".
+	// One timer per handover is cheaper than a ticker running for the life of
+	// the process to catch a case that is usually empty.
 	time.AfterFunc(relayTTL+time.Second, func() {
 		cr.mu.Lock()
 		cr.sweepLocked()
@@ -210,18 +203,16 @@ func registerContainers(reg *Registry, a *app.App) {
 			case errors.Is(err, container.ErrNeedsBackend):
 				handToJD(w, r, a, relay, name, data, pkg)
 			default:
-				// Verbatim, because the container package's errors are written to be
-				// read: "too short to be a DLC", "not a link list or a container we
-				// recognise". A generic failure here is what leaves somebody
-				// re-downloading the same broken file.
+				// Verbatim: the container package's errors say which check
+				// failed, and a generic failure leaves somebody re-downloading
+				// the same broken file.
 				http.Error(w, err.Error(), http.StatusBadRequest)
 			}
 		})
 
 	// The collection address. Open, because the fetch comes from the JD backend
-	// on another host, with no session and no way to be given one — the token in
-	// the path is the credential, and it is unguessable, single-use and
-	// short-lived. See containerRelay.
+	// on another host with no session; the token in the path is the
+	// credential. See containerRelay.
 	reg.AddOpen(http.MethodGet, "/api/containers/relay/{token}",
 		"hand an uploaded container to the backend that can decrypt it; the unguessable single-use token is the credential",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -230,9 +221,8 @@ func registerContainers(reg *Registry, a *app.App) {
 				http.Error(w, "this handover has already been collected or has expired", http.StatusNotFound)
 				return
 			}
-			// A fixed type from our own side and nosniff: the bytes are whatever was
-			// uploaded, and nothing about them may be allowed to decide how a client
-			// treats them.
+			// A fixed type and nosniff: the bytes are whatever was uploaded,
+			// and must not decide how a client treats them.
 			w.Header().Set("Content-Type", "application/octet-stream")
 			w.Header().Set("X-Content-Type-Options", "nosniff")
 			w.Header().Set("Content-Disposition", "attachment; filename="+quoteFilename(it.name))
@@ -242,9 +232,8 @@ func registerContainers(reg *Registry, a *app.App) {
 
 // handToJD publishes the container at a fetchable address and points JD at it.
 func handToJD(w http.ResponseWriter, r *http.Request, a *app.App, relay *containerRelay, name string, data []byte, pkg string) {
-	// Asked before anything is stored, so that an instance with no JD says so
-	// instead of leaving a handover nobody will ever collect. The refusal names
-	// the reason: an encrypted container is not a file this app failed to read.
+	// Asked before anything is stored, so an instance with no JD says so
+	// instead of leaving a handover nobody will collect.
 	if !a.ContainerBackendConfigured() {
 		http.Error(w, app.ErrNoContainerBackend.Error(), http.StatusServiceUnavailable)
 		return

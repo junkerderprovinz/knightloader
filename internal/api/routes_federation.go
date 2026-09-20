@@ -28,18 +28,14 @@ func registerFederation(reg *Registry, a *app.App) {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
-			// Three outcomes, not two. "Reached it and it refused this
-			// instance's credentials" needs a completely different fix from
-			// "could not reach it at all", and adding a peer by address
-			// exchanges no credential at all. Collapsing them into one
-			// "offline" is exactly what made a password-locked peer look
-			// switched off.
-			//
-			// The fix used to be a pairing code. It is now the connection
-			// phrase: join both instances to the same group and they
-			// authenticate each other by holding the same key, with nothing
-			// to copy per peer. `refused` says which of the two happened;
-			// the caller turns it into that sentence.
+			// Three outcomes, not two: "reached it and it refused this
+			// instance's credentials" needs a different fix from "could not
+			// reach it at all", and adding a peer by address exchanges no
+			// credential. Collapsing both into "offline" makes a
+			// password-locked peer look switched off. The answer is the
+			// connection phrase, which authenticates both ends by the same
+			// key with nothing to copy per peer; refused says which of the
+			// two happened.
 			err := a.Federation.Ping(r.Context(), in.Name)
 			writeJSON(w, map[string]any{
 				"name": in.Name, "url": in.URL,
@@ -54,11 +50,10 @@ func registerFederation(reg *Registry, a *app.App) {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			// Removing a peer is the action somebody takes to END the
-			// relationship, so it has to end the credentials too. Without
-			// this, the peer keeps a live full-power token on this instance
-			// forever, and the token this instance held for it gets silently
-			// re-attached to whatever is registered under that name next.
+			// Removing a peer has to end the credentials too. Otherwise the
+			// peer keeps a live full-power token on this instance, and the
+			// token this instance held gets re-attached to whatever is
+			// registered under that name next.
 			forgetPeerCredentials(a, name)
 			w.WriteHeader(http.StatusNoContent)
 		})
@@ -67,11 +62,10 @@ func registerFederation(reg *Registry, a *app.App) {
 	reg.Add(AnyMethod, "/api/instances/{name}/{rest...}", "forward a task or link request to a peer; nothing else is forwarded",
 		func(w http.ResponseWriter, r *http.Request) {
 			rest := r.PathValue("rest")
-			// The queue travels with the task list, because it is that list's own
-			// master switch: showing a peer's downloads and then ordering, forcing
-			// or stopping them on this box would act on the wrong machine. It is a
-			// different question from the settings and the accounts, which stay
-			// where they are configured.
+			// The queue travels with the task list, being that list's master
+			// switch: showing a peer's downloads and then ordering, forcing or
+			// stopping them on this box would act on the wrong machine.
+			// Settings and accounts stay where they are configured.
 			if rest != "links" && rest != "tasks" && rest != "queue" &&
 				!strings.HasPrefix(rest, "tasks/") && !strings.HasPrefix(rest, "queue/") {
 				http.Error(w, "route not proxied", http.StatusForbidden)

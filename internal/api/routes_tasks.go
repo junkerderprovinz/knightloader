@@ -22,13 +22,12 @@ func registerTasks(reg *Registry, a *app.App) {
 				Ids []string `json:"ids"`
 			}
 			_ = decodeBody(r, &body) // empty/absent = start all collected
-			// Answers with what it did, where it used to answer 204 to
-			// everything. "Nothing started" had three causes here - a halted
-			// queue, a link filter holding the named tasks, or ids matching
-			// nothing - and an empty answer told them apart from success not at
-			// all.
-			// ByHand: this route IS the button. It is the only entry that
-			// releases a halt somebody set themselves - the automatic callers
+			// Answers with what it did, because "nothing started" has three
+			// causes: a halted queue, a link filter holding the named tasks,
+			// or ids matching nothing.
+			//
+			// ByHand, because this route is the button and the only entry that
+			// releases a halt somebody set themselves. The automatic callers
 			// go through StartTasks and leave the switch where it was.
 			writeJSON(w, a.StartTasksByHand(body.Ids))
 		})
@@ -44,12 +43,11 @@ func registerTasks(reg *Registry, a *app.App) {
 			a.SetPackage(body.Ids, body.Package)
 			w.WriteHeader(http.StatusNoContent)
 		})
-	// `reasons` is what makes "retry" aimable. A list of forty failures is
-	// several different problems at once, and a button that restarts all of them
-	// spends a hoster allowance that is already spent to re-prove that
-	// twenty-one links are still dead. The values are core.Reason's own, the
-	// empty string included - "nothing classified this" is a group somebody can
-	// point at, and leaving it out would make it the one group unreachable.
+	// reasons is what makes retry aimable. A list of forty failures is several
+	// problems at once, and restarting all of them spends a hoster allowance
+	// to re-prove that twenty-one links are still dead. The values are
+	// core.Reason's, the empty string included, so the unclassified failures
+	// stay reachable as a group.
 	reg.Add(http.MethodPost, "/api/tasks/restart", "re-run finished or failed tasks from scratch (no ids = all errored); reasons narrows it to those causes",
 		func(w http.ResponseWriter, r *http.Request) {
 			var body struct {
@@ -100,26 +98,23 @@ func registerTasks(reg *Registry, a *app.App) {
 				app.TaskOptions
 				// Resolver pins these tasks to one download backend, by
 				// resolver id ("torbox", "jd", "alldebrid#work"). An empty
-				// string takes the pin off again; a field left out of the body
-				// leaves it as it was, which is the same nil-means-untouched
-				// contract every field of TaskOptions above follows.
+				// string takes the pin off; a field left out of the body is
+				// untouched, the contract every TaskOptions field follows.
 				//
-				// It sits BESIDE the embedded struct rather than inside it
-				// because it is applied by a call of its own
-				// (app.PinResolver): the pin is not a property of the file
-				// being downloaded, it is an instruction to the dispatcher,
-				// and it dispatches on the spot so a bad pin fails where the
-				// person who typed it is looking.
+				// Beside the embedded struct rather than inside it because it
+				// goes through app.PinResolver: the pin is an instruction to
+				// the dispatcher, not a property of the file, and it
+				// dispatches on the spot so a bad pin fails where the person
+				// who typed it is looking.
 				Resolver *string `json:"resolver"`
 			}
 			if !decodeJSON(w, r, &body) || !requireIDs(w, body.Ids) {
 				return
 			}
-			// Both halves are validated before EITHER is applied, so a request
+			// Both halves are validated before either is applied, so a request
 			// carrying a good rename and a backend this instance does not have
-			// changes nothing at all. Written this way round rather than
-			// "apply, then apply" because the alternative leaves a selection
-			// half-edited behind a 400 that names only one of the two problems.
+			// changes nothing. Applying in turn would leave the selection
+			// half-edited behind a 400 naming one of the two problems.
 			if body.Resolver != nil {
 				if err := a.ResolverPinnable(*body.Resolver); err != nil {
 					http.Error(w, err.Error(), http.StatusBadRequest)
@@ -148,8 +143,6 @@ func registerTasks(reg *Registry, a *app.App) {
 			a.Resume(r.PathValue("id"))
 			w.WriteHeader(http.StatusNoContent)
 		})
-	// Removing a task takes it off the list. ?files=1 additionally deletes what
-	// was downloaded — an explicit, opt-in act.
 	reg.Add(http.MethodDelete, "/api/tasks/{id}", "remove one task; ?files=1 also deletes what was downloaded",
 		func(w http.ResponseWriter, r *http.Request) {
 			a.Remove(r.PathValue("id"), r.URL.Query().Get("files") == "1")

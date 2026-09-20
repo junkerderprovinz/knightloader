@@ -1,9 +1,9 @@
 package api
 
-// The add-links form's own batch fields on POST /api/links (build-plan.md
-// §8A): destination, priority, unpacking switch, comment, the two passwords,
-// and the Overrule checkbox. linkServer (links_test.go) is reused rather than
-// rebuilt, so these exercise the exact same route the plain-paste tests do.
+// The add-links form's batch fields on POST /api/links: destination, priority,
+// unpacking switch, comment, the two passwords and the Overrule checkbox.
+// linkServer (links_test.go) is reused, so these exercise the same route the
+// plain-paste tests do.
 
 import (
 	"encoding/json"
@@ -20,8 +20,7 @@ import (
 
 // TestAddLinksBatchFieldsReachTheTask is the wire-level half of
 // TestFormOptionsApplyWithNoRuleInvolved: every field the form can send lands
-// on the created task, through the route rather than the App method
-// directly.
+// on the created task, through the route rather than the App method.
 func TestAddLinksBatchFieldsReachTheTask(t *testing.T) {
 	srv, _ := linkServer(t)
 
@@ -66,9 +65,9 @@ func TestAddLinksBatchFieldsReachTheTask(t *testing.T) {
 	}
 }
 
-// TestAddLinksRefusesABadDestination is the 400 path: a destination that
-// cannot be used stops the whole submission, with the server's own reason,
-// rather than staging the batch to the default folder in silence.
+// TestAddLinksRefusesABadDestination: a destination that cannot be used stops
+// the whole submission with the server's own reason, rather than staging the
+// batch to the default folder in silence.
 func TestAddLinksRefusesABadDestination(t *testing.T) {
 	srv, a := linkServer(t)
 
@@ -87,10 +86,9 @@ func TestAddLinksRefusesABadDestination(t *testing.T) {
 	}
 }
 
-// TestAddLinksWithNoBatchFieldsIsStillAPlainPaste guards the route's
-// simplification of always calling AddLinksWithOptions once body.Passwords is
-// empty: a request naming none of the new fields must behave exactly as it
-// did before they existed.
+// TestAddLinksWithNoBatchFieldsIsStillAPlainPaste: the route always calls
+// AddLinksWithOptions, so a request naming none of the batch fields has to
+// behave like a plain paste.
 func TestAddLinksWithNoBatchFieldsIsStillAPlainPaste(t *testing.T) {
 	srv, _ := linkServer(t)
 
@@ -145,9 +143,9 @@ func packagizerServer(t *testing.T) *httptest.Server {
 }
 
 // TestAddLinksOverruleField pins the wire spelling of the checkbox: "overrule"
-// reaches app.LinkBatchOptions.Overrule, which the app-level tests already
-// prove inverts the precedence in full. This only has to show the field
-// survives the JSON round trip against a real Packagizer rule.
+// reaches app.LinkBatchOptions.Overrule. The app-level tests cover what it
+// does to the precedence; this only shows the field survives the JSON round
+// trip against a real Packagizer rule.
 func TestAddLinksOverruleField(t *testing.T) {
 	srv := packagizerServer(t)
 
@@ -176,9 +174,9 @@ func TestAddLinksOverruleField(t *testing.T) {
 	}
 }
 
-// TestAddLinksWithoutOverruleLetsTheRuleWin is the same rule and the same form
-// values with the field left out, which must default to false on the wire
-// exactly as it does in Go.
+// TestAddLinksWithoutOverruleLetsTheRuleWin is the same rule and form values
+// with the field left out, which defaults to false on the wire as it does in
+// Go.
 func TestAddLinksWithoutOverruleLetsTheRuleWin(t *testing.T) {
 	srv := packagizerServer(t)
 
