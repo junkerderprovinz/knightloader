@@ -43,7 +43,7 @@ export const ro: Dict = {
   'packages.deleteConfirmButton': 'Elimină',
 
   'addDownload.title': 'Adaugă linkuri',
-  'addDownload.titlePeer': 'Adaugă linkuri – {name}',
+  'addDownload.titlePeer': 'Adaugă linkuri - {name}',
   'addDownload.hint': 'Câte un link pe linie, la fel ca în caseta de lipire din interfața web.',
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Lipește cel puțin un link.',

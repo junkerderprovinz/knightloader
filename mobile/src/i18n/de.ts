@@ -59,7 +59,7 @@ export const de: Dict = {
   'packages.deleteConfirmButton': 'Entfernen',
 
   'addDownload.title': 'Links hinzufügen',
-  'addDownload.titlePeer': 'Links hinzufügen – {name}',
+  'addDownload.titlePeer': 'Links hinzufügen - {name}',
   'addDownload.hint': 'Ein Link pro Zeile, genau wie im Paste-Feld der Weboberfläche.',
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Mindestens einen Link einfügen.',

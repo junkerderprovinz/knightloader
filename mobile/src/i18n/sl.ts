@@ -43,7 +43,7 @@ export const sl: Dict = {
   'packages.deleteConfirmButton': 'Odstrani',
 
   'addDownload.title': 'Dodaj povezave',
-  'addDownload.titlePeer': 'Dodaj povezave – {name}',
+  'addDownload.titlePeer': 'Dodaj povezave - {name}',
   'addDownload.hint': 'Ena povezava na vrstico, enako kot v polju za lepljenje v spletnem vmesniku.',
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Prilepite vsaj eno povezavo.',

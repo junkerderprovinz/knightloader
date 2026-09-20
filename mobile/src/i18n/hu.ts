@@ -43,7 +43,7 @@ export const hu: Dict = {
   'packages.deleteConfirmButton': 'Eltávolítás',
 
   'addDownload.title': 'Linkek hozzáadása',
-  'addDownload.titlePeer': 'Linkek hozzáadása – {name}',
+  'addDownload.titlePeer': 'Linkek hozzáadása - {name}',
   'addDownload.hint': 'Soronként egy link, ugyanúgy, mint a webes felület beillesztőmezőjében.',
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Illessz be legalább egy linket.',

@@ -43,7 +43,7 @@ export const ja: Dict = {
   'packages.deleteConfirmButton': '削除',
 
   'addDownload.title': 'リンクを追加',
-  'addDownload.titlePeer': 'リンクを追加 – {name}',
+  'addDownload.titlePeer': 'リンクを追加 - {name}',
   'addDownload.hint': '1行に1つのリンクを、Web UIの貼り付け欄と同じ形式で入力してください。',
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': '少なくとも1つのリンクを貼り付けてください。',

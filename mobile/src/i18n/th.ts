@@ -43,7 +43,7 @@ export const th: Dict = {
   'packages.deleteConfirmButton': 'ลบ',
 
   'addDownload.title': 'เพิ่มลิงก์',
-  'addDownload.titlePeer': 'เพิ่มลิงก์ – {name}',
+  'addDownload.titlePeer': 'เพิ่มลิงก์ - {name}',
   'addDownload.hint': 'หนึ่งลิงก์ต่อบรรทัด เหมือนกับช่องวางข้อความในเว็บอินเทอร์เฟซ',
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'วางลิงก์อย่างน้อยหนึ่งลิงก์',

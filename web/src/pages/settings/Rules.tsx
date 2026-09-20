@@ -707,7 +707,7 @@ function Outcomes({
               <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-[11px]">
                 <dt className="text-carbon-textMuted">{rx('settings.rules.resultPackage')}</dt>
                 <dd dir="ltr" className="truncate text-carbon-text">
-                  {l.result.package || '—'}
+                  {l.result.package || '-'}
                 </dd>
                 <dt className="text-carbon-textMuted">{rx('settings.rules.resultFolder')}</dt>
                 <dd dir="ltr" className="flex min-w-0 items-center truncate text-carbon-text">
@@ -726,7 +726,7 @@ function Outcomes({
                 </dd>
                 <dt className="text-carbon-textMuted">{rx('settings.rules.resultFilename')}</dt>
                 <dd dir="ltr" className="truncate text-carbon-text">
-                  {l.result.filename || '—'}
+                  {l.result.filename || '-'}
                 </dd>
                 {extras.length > 0 && (
                   <>

@@ -73,7 +73,7 @@ export function InstanceRow({ name, base, onOpen }: { name: string; base: string
       />
       <span className="min-w-0 flex-1 truncate text-[14px] text-carbon-text">{name}</span>
       <span className="glim-num text-xs text-carbon-textSub">
-        {stats ? fmtSpeed(stats.speed) || '—' : '—'}
+        {stats ? fmtSpeed(stats.speed) || '-' : '-'}
       </span>
     </>
   );
@@ -171,9 +171,9 @@ export function InstanceCard({
         </div>
 
         <div className="flex items-baseline gap-7">
-          <Metric value={stats?.active ?? '—'} label={t('instances.metricActive')} />
-          <Metric value={stats?.total ?? '—'} label={t('instances.metricTasks')} />
-          <Metric value={stats ? fmtSpeed(stats.speed) || '0' : '—'} label={t('instances.metricSpeed')} />
+          <Metric value={stats?.active ?? '-'} label={t('instances.metricActive')} />
+          <Metric value={stats?.total ?? '-'} label={t('instances.metricTasks')} />
+          <Metric value={stats ? fmtSpeed(stats.speed) || '0' : '-'} label={t('instances.metricSpeed')} />
         </div>
 
       </div>

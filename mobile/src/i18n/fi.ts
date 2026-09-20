@@ -43,7 +43,7 @@ export const fi: Dict = {
   'packages.deleteConfirmButton': 'Poista',
 
   'addDownload.title': 'Lisää linkkejä',
-  'addDownload.titlePeer': 'Lisää linkkejä – {name}',
+  'addDownload.titlePeer': 'Lisää linkkejä - {name}',
   'addDownload.hint': 'Yksi linkki per rivi, aivan kuten verkkokäyttöliittymän liitäntäkentässä.',
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Liitä vähintään yksi linkki.',

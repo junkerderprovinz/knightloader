@@ -43,7 +43,7 @@ export const sv: Dict = {
   'packages.deleteConfirmButton': 'Ta bort',
 
   'addDownload.title': 'Lägg till länkar',
-  'addDownload.titlePeer': 'Lägg till länkar – {name}',
+  'addDownload.titlePeer': 'Lägg till länkar - {name}',
   'addDownload.hint': 'En länk per rad, precis som inklistringsfältet i webbgränssnittet.',
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Klistra in minst en länk.',

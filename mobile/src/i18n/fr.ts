@@ -43,7 +43,7 @@ export const fr: Dict = {
   'packages.deleteConfirmButton': 'Retirer',
 
   'addDownload.title': 'Ajouter des liens',
-  'addDownload.titlePeer': 'Ajouter des liens – {name}',
+  'addDownload.titlePeer': 'Ajouter des liens - {name}',
   'addDownload.hint': 'Un lien par ligne, comme dans le champ de collage de l’interface web.',
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Collez au moins un lien.',

@@ -43,7 +43,7 @@ export const ar: Dict = {
   'packages.deleteConfirmButton': 'إزالة',
 
   'addDownload.title': 'إضافة روابط',
-  'addDownload.titlePeer': 'إضافة روابط – {name}',
+  'addDownload.titlePeer': 'إضافة روابط - {name}',
   'addDownload.hint': 'رابط واحد في كل سطر، تمامًا كما في مربع اللصق بواجهة الويب.',
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'الصق رابطًا واحدًا على الأقل.',

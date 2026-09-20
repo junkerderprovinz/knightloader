@@ -43,7 +43,7 @@ export const hr: Dict = {
   'packages.deleteConfirmButton': 'Ukloni',
 
   'addDownload.title': 'Dodaj veze',
-  'addDownload.titlePeer': 'Dodaj veze – {name}',
+  'addDownload.titlePeer': 'Dodaj veze - {name}',
   'addDownload.hint': 'Jedna veza po retku, isto kao u polju za lijepljenje u web sučelju.',
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Zalijepite barem jednu vezu.',

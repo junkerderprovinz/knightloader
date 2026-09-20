@@ -43,7 +43,7 @@ export const es: Dict = {
   'packages.deleteConfirmButton': 'Quitar',
 
   'addDownload.title': 'Añadir enlaces',
-  'addDownload.titlePeer': 'Añadir enlaces – {name}',
+  'addDownload.titlePeer': 'Añadir enlaces - {name}',
   'addDownload.hint': 'Un enlace por línea, igual que en el cuadro de pegado de la interfaz web.',
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Pega al menos un enlace.',

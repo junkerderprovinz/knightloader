@@ -43,7 +43,7 @@ export const ca: Dict = {
   'packages.deleteConfirmButton': 'Suprimeix',
 
   'addDownload.title': 'Afegeix enllaços',
-  'addDownload.titlePeer': 'Afegeix enllaços – {name}',
+  'addDownload.titlePeer': 'Afegeix enllaços - {name}',
   'addDownload.hint': "Un enllaç per línia, igual que al quadre d'enganxar de la interfície web.",
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Enganxa almenys un enllaç.',

@@ -43,7 +43,7 @@ export const nl: Dict = {
   'packages.deleteConfirmButton': 'Verwijderen',
 
   'addDownload.title': 'Links toevoegen',
-  'addDownload.titlePeer': 'Links toevoegen – {name}',
+  'addDownload.titlePeer': 'Links toevoegen - {name}',
   'addDownload.hint': 'Eén link per regel, net als het plakvak op de webinterface.',
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Plak ten minste één link.',

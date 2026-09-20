@@ -43,7 +43,7 @@ export const gl: Dict = {
   'packages.deleteConfirmButton': 'Retirar',
 
   'addDownload.title': 'Engadir ligazóns',
-  'addDownload.titlePeer': 'Engadir ligazóns – {name}',
+  'addDownload.titlePeer': 'Engadir ligazóns - {name}',
   'addDownload.hint': 'Unha ligazón por liña, igual que na caixa de pegado da interface web.',
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Pega polo menos unha ligazón.',

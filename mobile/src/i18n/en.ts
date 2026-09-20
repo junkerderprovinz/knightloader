@@ -60,7 +60,7 @@ export const en = {
   'packages.deleteConfirmButton': 'Remove',
 
   'addDownload.title': 'Add links',
-  'addDownload.titlePeer': 'Add links – {name}',
+  'addDownload.titlePeer': 'Add links - {name}',
   'addDownload.hint': 'One link per line, same as the paste box on the web UI.',
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Paste at least one link.',

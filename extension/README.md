@@ -1,7 +1,7 @@
 # KnightLoader browser extension
 
 A Manifest V3 extension. Right-click a link, a selection, an image or a page
-and send it to one of your own KnightLoader instances — and catch the
+and send it to one of your own KnightLoader instances. It also catches the
 Click'n'Load buttons websites offer, so those reach an instance running
 anywhere rather than only a download manager on this machine.
 
@@ -20,7 +20,7 @@ Chrome Web Store User Data Policy, including the Limited Use requirements.
 ## Setup is one connection phrase
 
 The options page asks for the twelve words your instances already share, and
-for nothing else — no name, no address, no password. `src/phrase.js` is a
+for nothing else: no name, no address, no password. `src/phrase.js` is a
 WebCrypto port of `internal/seedphrase`, so this browser derives the same two
 keys the instances do: one to join the relay group, one to encrypt the frames.
 The phrase itself never leaves the browser.
@@ -46,7 +46,7 @@ for a browser store submission and for anyone who wants a fixed download.
 
 Both are **byte-identical to `src/`**. The download used to bake the serving
 instance's address into a `config.default.json`; that file is gone, because the
-extension holds no addresses any more — which is also what makes a store build
+extension holds no addresses any more, which is also what makes a store build
 reproducible from a checkout.
 
 ## Loading it
@@ -64,7 +64,7 @@ reproducible from a checkout.
    deliberately shows no icon, which reads exactly like a failed install and has
    been reported as one. Measured rather than assumed: on Chrome 151 the
    extension reports `state: ENABLED`, `installWarnings: []`, `manifestErrors:
-   []` and `chrome.action.getUserSettings() → {isOnToolbar: false}` — loaded and
+   []` and `chrome.action.getUserSettings() → {isOnToolbar: false}`: loaded and
    working, simply not on the toolbar. A fresh Brave profile does the same
    thing; a Brave that shows it has been pinned at some point.
 4. Paste your connection phrase into the Remote access card on the options
@@ -122,14 +122,14 @@ Every send used to open a small window at `<instance>/quickadd`, same-origin,
 so the session cookie carried it past `internal/api/api.go`'s `sameOrigin`
 guard. That needed an **address**, which is why the options page went on asking
 for a name and a URL long after the rest of the product had moved to the
-connection phrase — and it could never reach a peer that has no address at all,
+connection phrase, and it could never reach a peer that has no address at all,
 such as a desktop build or a relay-only instance.
 
 The relay path replaces it without weakening that guard: nothing here strips an
 `Origin` header. A relayed call arrives at the instance marked as coming from a
 group sibling and is admitted on that basis alone (`relayForwardable` in
 `internal/relay`). The bookmarklet and the PWA share target still open
-`/quickadd`, because they have no phrase and no relay client — see
+`/quickadd`, because they have no phrase and no relay client. See
 `docs/browser-tools.md`.
 
 ## Surfaces
@@ -137,11 +137,11 @@ group sibling and is admitted on that basis alone (`relayForwardable` in
 `popup.html` (the toolbar popup, which is also the send-to window when a send
 is parked for a choice or a Click'n'Load batch is caught) and `options.html`.
 Both draw the same instance card and the same GlimStone
-(`glimstone.css`, currently 1.17.0) — one implementation each in `shared.js`,
+(`glimstone.css`, currently 1.17.0), one implementation each in `shared.js`,
 because three pages of one product drawing their own version of the same card is
 how three pages become three slightly different products. Appearance, including
 the rainbow, follows the same engines as the web UI (`appearance.js`), and can be
-adopted from the default instance in one switch — where there is a group to adopt
+adopted from the default instance in one switch, where there is a group to adopt
 from. Where there is not, the switch is not offered at all and a paragraph says
 why, which is what the language asks for when the environment, rather than a
 setting, is what rules a control out.

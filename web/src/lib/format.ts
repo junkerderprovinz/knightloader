@@ -1,7 +1,7 @@
 // Human-readable formatting for sizes, speeds and ETAs.
 
 export function fmtBytes(n: number): string {
-  if (!n || n < 0) return '—';
+  if (!n || n < 0) return '-';
   const u = ['B', 'KiB', 'MiB', 'GiB', 'TiB'];
   let i = 0;
   let v = n;

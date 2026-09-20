@@ -43,7 +43,7 @@ export const no: Dict = {
   'packages.deleteConfirmButton': 'Fjern',
 
   'addDownload.title': 'Legg til lenker',
-  'addDownload.titlePeer': 'Legg til lenker – {name}',
+  'addDownload.titlePeer': 'Legg til lenker - {name}',
   'addDownload.hint': 'Én lenke per linje, akkurat som innlimingsfeltet i nettgrensesnittet.',
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Lim inn minst én lenke.',

@@ -43,7 +43,7 @@ export const he: Dict = {
   'packages.deleteConfirmButton': 'הסרה',
 
   'addDownload.title': 'הוספת קישורים',
-  'addDownload.titlePeer': 'הוספת קישורים – {name}',
+  'addDownload.titlePeer': 'הוספת קישורים - {name}',
   'addDownload.hint': 'קישור אחד בכל שורה, בדיוק כמו תיבת ההדבקה בממשק האינטרנט.',
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'הדביקו לפחות קישור אחד.',

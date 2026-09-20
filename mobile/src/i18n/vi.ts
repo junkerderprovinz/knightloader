@@ -43,7 +43,7 @@ export const vi: Dict = {
   'packages.deleteConfirmButton': 'Xoá',
 
   'addDownload.title': 'Thêm liên kết',
-  'addDownload.titlePeer': 'Thêm liên kết – {name}',
+  'addDownload.titlePeer': 'Thêm liên kết - {name}',
   'addDownload.hint': 'Mỗi dòng một liên kết, giống như ô dán trong giao diện web.',
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Dán ít nhất một liên kết.',
