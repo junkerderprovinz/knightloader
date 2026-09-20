@@ -14,9 +14,8 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
-// newMaintApp is an app on a fresh data directory with the store already
-// carrying a few rows, so the sizes it reports are real numbers rather than the
-// size of an empty schema.
+// newMaintApp returns an app on a fresh data directory whose store already
+// holds a few rows, so reported sizes are real.
 func newMaintApp(t *testing.T) *App {
 	t.Helper()
 	a, err := New(t.TempDir())
@@ -38,9 +37,7 @@ func newMaintApp(t *testing.T) *App {
 	return a
 }
 
-// waitForIdle blocks until no maintenance pass is in flight. Every test here
-// starts real work on a real database, and asserting on the record before the
-// goroutine has written it would be asserting on the previous answer.
+// waitForIdle blocks until no maintenance pass is in flight.
 func waitForIdle(t *testing.T, a *App) MaintenanceState {
 	t.Helper()
 	deadline := time.Now().Add(30 * time.Second)
@@ -56,11 +53,8 @@ func waitForIdle(t *testing.T, a *App) MaintenanceState {
 	}
 }
 
-// TestStorageInfoNamesBothFilesAndTheTempVolume covers the readout the page is
-// built on, including the field that is easiest to get wrong: settings.json is
-// NOT there on an install nobody has saved a settings page on, because
-// settings.Load reads that file and never writes it. Reporting 0 bytes for it
-// would be a claim about a file that does not exist.
+// TestStorageInfoNamesBothFilesAndTheTempVolume also covers settings.json being
+// absent on an install that never saved its settings.
 func TestStorageInfoNamesBothFilesAndTheTempVolume(t *testing.T) {
 	a := newMaintApp(t)
 
@@ -81,7 +75,6 @@ func TestStorageInfoNamesBothFilesAndTheTempVolume(t *testing.T) {
 		t.Errorf("settingsBytes = %d while the file does not exist", info.SettingsBytes)
 	}
 
-	// And once it has been saved, both halves change together.
 	if _, err := a.Settings.Set(settings.Defaults()); err != nil {
 		t.Fatal(err)
 	}
@@ -94,10 +87,6 @@ func TestStorageInfoNamesBothFilesAndTheTempVolume(t *testing.T) {
 	}
 }
 
-// TestAFreshInstallHasNoLastRun is the distinction the pointer in
-// MaintenanceState exists for. "Nothing has ever run here" and "something ran
-// and found nothing wrong" are different answers, and a zero-valued struct
-// would render the second - a clean bill of health nobody earned.
 func TestAFreshInstallHasNoLastRun(t *testing.T) {
 	a := newMaintApp(t)
 	st := a.MaintenanceState()
@@ -111,14 +100,10 @@ func TestAFreshInstallHasNoLastRun(t *testing.T) {
 		t.Errorf("a fresh install reports a next run at %v while the interval is 0", *st.NextRunAt)
 	}
 	if st.IntervalDays != 0 {
-		t.Errorf("intervalDays = %d on a fresh install, want 0 - an update must not start doing anything by itself", st.IntervalDays)
+		t.Errorf("intervalDays = %d on a fresh install, want 0 so an update does not start anything by itself", st.IntervalDays)
 	}
 }
 
-// TestCheckRecordsAVerdictThatSurvivesTheProcess is the whole point of the
-// record living in a file beside the database rather than in it: the one moment
-// anybody needs to read "the check failed on the 3rd" is the moment the
-// database will not open.
 func TestCheckRecordsAVerdictThatSurvivesTheProcess(t *testing.T) {
 	a := newMaintApp(t)
 	if err := a.StartMaintenance(MaintenanceCheck); err != nil {
@@ -144,7 +129,6 @@ func TestCheckRecordsAVerdictThatSurvivesTheProcess(t *testing.T) {
 		t.Error("the run has no timestamp")
 	}
 
-	// The file itself, read the way somebody would during an incident.
 	raw, err := os.ReadFile(filepath.Join(a.DataDir, maintenanceFile))
 	if err != nil {
 		t.Fatalf("the record was not written to %s: %v", maintenanceFile, err)
@@ -161,13 +145,9 @@ func TestCheckRecordsAVerdictThatSurvivesTheProcess(t *testing.T) {
 	}
 }
 
-// TestCompactRecordsBothSizes pins the honest half of the compaction report.
-// The free-page figure shown before a run is a floor, so the only truthful "you
-// got this much back" is the difference between two measurements of the file.
 func TestCompactRecordsBothSizes(t *testing.T) {
 	a := newMaintApp(t)
-	// Something worth reclaiming, produced the way an install produces it:
-	// rows written and rows deleted.
+	// Written and deleted rows leave free pages to reclaim.
 	padding := strings.Repeat("y", 2048)
 	for i := 0; i < 300; i++ {
 		if err := a.Store.Save(&core.Task{
@@ -210,15 +190,8 @@ func TestCompactRecordsBothSizes(t *testing.T) {
 	}
 }
 
-// TestASecondRunIsRefused is the guard that keeps two rewrites from queueing on
-// one connection - which is not two compactions, it is one compaction followed
-// by a second, pointless one, with every write in the process frozen for the sum
-// of both.
-//
-// The claim is taken directly rather than by racing two real passes, because
-// the state being tested is exactly the state StartMaintenance itself sets one
-// line before it returns; a test that had to win a race against a fast database
-// would be a test that reports nothing on the machines where it loses.
+// TestASecondRunIsRefused sets the claim directly instead of racing two real
+// passes, which a fast database would make meaningless.
 func TestASecondRunIsRefused(t *testing.T) {
 	a := newMaintApp(t)
 	st := a.maintenanceStateFor()
@@ -235,8 +208,6 @@ func TestASecondRunIsRefused(t *testing.T) {
 		t.Errorf("running = %q while a compaction is claimed, want %q", got, MaintenanceCompact)
 	}
 
-	// Released again, and then it starts: a refusal that outlived the run would
-	// be a button that never works again.
 	st.mu.Lock()
 	st.running = ""
 	st.mu.Unlock()
@@ -246,24 +217,12 @@ func TestASecondRunIsRefused(t *testing.T) {
 	waitForIdle(t, a)
 }
 
-// TestStateIsAnswerableWhileSomethingIsRunning is the reason the free-page
-// figure is remembered rather than re-read. A compaction holds the store's one
-// connection for the whole rewrite; a status route that issued a pragma would
-// not answer until the rewrite was over, which is precisely the window the page
-// is polling in. On a large database that is a settings page that hangs for ten
-// minutes while claiming to be watching a job.
-//
-// IT PROVES THE CODE PATH, NOT THE CLOCK, and deliberately so. The obvious test
-// - start a real compaction and time the next read - passes on any database
-// small enough to test with, because the rewrite is over before the read is
-// issued; it would report nothing at all on the machines that run it. So the
-// remembered figure is set to a number no database in this test could produce,
-// and the assertion is that the number comes back: if anything here asks the
-// store while a pass is claimed, the real value arrives instead and this fails.
+// TestStateIsAnswerableWhileSomethingIsRunning checks that no pragma is issued
+// while a pass holds the connection. Timing a real compaction would prove
+// nothing on a test-sized database, so a sentinel figure is planted and must
+// come back unchanged.
 func TestStateIsAnswerableWhileSomethingIsRunning(t *testing.T) {
 	a := newMaintApp(t)
-	// Primed the way any page load primes it, so the sentinel below is
-	// replacing a real reading rather than filling an empty slot.
 	primed := a.MaintenanceState()
 	if primed.Storage.StoreReclaimableBytes == sentinelReclaimable {
 		t.Fatalf("the sentinel %d is a value this database really has; pick another", sentinelReclaimable)
@@ -291,7 +250,7 @@ func TestStateIsAnswerableWhileSomethingIsRunning(t *testing.T) {
 			t.Error("the file size was not reported while a pass was running; it comes from os.Stat and never needs the database")
 		}
 		if got.Storage.StoreReclaimableBytes != sentinelReclaimable {
-			t.Errorf("the free-space figure came back as %d rather than the remembered %d - it was re-read from the "+
+			t.Errorf("the free-space figure came back as %d rather than the remembered %d, so it was re-read from the "+
 				"database, which during a real compaction means this read waits for the whole rewrite",
 				got.Storage.StoreReclaimableBytes, sentinelReclaimable)
 		}
@@ -300,19 +259,11 @@ func TestStateIsAnswerableWhileSomethingIsRunning(t *testing.T) {
 	}
 }
 
-// sentinelReclaimable is a byte count no test database here reaches: page sizes
-// are powers of two and free pages are counted in the low hundreds, so nothing
-// SQLite can answer lands on it.
+// sentinelReclaimable is a byte count no test database here can report.
 const sentinelReclaimable int64 = 123456789
 
-// TestARestoredDatabaseDropsTheLastRun is trap 9 in one test. The record lives
-// beside the database and internal/backup's ApplyPending replaces the database
-// under it on the next boot, so without this the page would report "checked
-// clean two days ago" about a file that arrived from a backup an hour ago.
-//
-// The database being replaced is simulated the only way it can be from in here:
-// by stamping it with a different identity, which is exactly what a file that
-// came from somewhere else carries.
+// TestARestoredDatabaseDropsTheLastRun simulates a restored database by giving
+// it a different stamp, which a file from elsewhere would carry.
 func TestARestoredDatabaseDropsTheLastRun(t *testing.T) {
 	a := newMaintApp(t)
 	if err := a.StartMaintenance(MaintenanceCheck); err != nil {
@@ -322,7 +273,6 @@ func TestARestoredDatabaseDropsTheLastRun(t *testing.T) {
 		t.Fatal("nothing was recorded after a check")
 	}
 
-	// A different database under the same record.
 	if err := a.Store.SetTag(999_999); err != nil {
 		t.Fatal(err)
 	}
@@ -330,8 +280,7 @@ func TestARestoredDatabaseDropsTheLastRun(t *testing.T) {
 		t.Errorf("the verdict is still being reported about a database it was not taken on: %+v", *got)
 	}
 
-	// The record itself is untouched on disk - it is withheld, not deleted, so
-	// somebody reading the file during an incident still finds what happened.
+	// Withheld, not deleted.
 	raw, err := os.ReadFile(filepath.Join(a.DataDir, maintenanceFile))
 	if err != nil {
 		t.Fatal(err)
@@ -341,14 +290,9 @@ func TestARestoredDatabaseDropsTheLastRun(t *testing.T) {
 	}
 }
 
-// TestTheScheduleArmsBeforeItFires is trap 10. Switching a schedule on at 15:00
-// and having the database freeze thirty seconds later is not what anybody
-// clicked, and an interval whose clock lives only in memory either never fires
-// on a box that restarts nightly or fires on every boot.
 func TestTheScheduleArmsBeforeItFires(t *testing.T) {
 	a := newMaintApp(t)
 
-	// Off: nothing is armed and nothing runs.
 	a.runDBMaintenanceIfDue()
 	if st := a.MaintenanceState(); st.NextRunAt != nil || st.Running != "" {
 		t.Fatalf("an interval of 0 armed or started something: next=%v running=%q", st.NextRunAt, st.Running)
@@ -360,7 +304,7 @@ func TestTheScheduleArmsBeforeItFires(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// The first tick after switching it on ARMS and does not run.
+	// The first tick after switching it on arms without running.
 	a.runDBMaintenanceIfDue()
 	st := a.MaintenanceState()
 	if st.Running != "" {
@@ -373,18 +317,15 @@ func TestTheScheduleArmsBeforeItFires(t *testing.T) {
 		t.Fatal("switching the schedule on armed nothing, so the next run would never be due")
 	}
 	if until := time.Until(*st.NextRunAt); until < 29*24*time.Hour {
-		t.Errorf("the first run is %v away, want a whole interval - the button is right there for \"now\"", until)
+		t.Errorf("the first run is %v away, want a whole interval; the button is there for \"now\"", until)
 	}
 
-	// A second tick changes nothing: the clock is not restarted every minute.
 	first := *st.NextRunAt
 	a.runDBMaintenanceIfDue()
 	if again := a.MaintenanceState().NextRunAt; again == nil || !again.Equal(first) {
 		t.Errorf("the next run moved from %v to %v on an ordinary tick", first, again)
 	}
 
-	// Switching it off disarms, so that switching it on again a year later
-	// starts the clock from then rather than firing within a minute.
 	cfg.MaintenanceIntervalDays = 0
 	if _, err := a.Settings.Set(cfg); err != nil {
 		t.Fatal(err)
@@ -395,9 +336,6 @@ func TestTheScheduleArmsBeforeItFires(t *testing.T) {
 	}
 }
 
-// TestTheArmedClockSurvivesARestart is the other half of trap 10, and the whole
-// reason the stamp is in a file rather than in a variable: a box that restarts
-// nightly must not lose the interval it is counting.
 func TestTheArmedClockSurvivesARestart(t *testing.T) {
 	dir := t.TempDir()
 	a, err := New(dir)
@@ -430,10 +368,6 @@ func TestTheArmedClockSurvivesARestart(t *testing.T) {
 	}
 }
 
-// TestTheScheduleStandsDownWhileDownloadsRun is the rule the manual button
-// deliberately does not share, and the recorded reason is the point: a schedule
-// that silently never runs is worse than one that is switched off, because
-// nothing on screen can tell the two apart.
 func TestTheScheduleStandsDownWhileDownloadsRun(t *testing.T) {
 	a := newMaintApp(t)
 	cfg := a.Settings.Get()
@@ -443,7 +377,6 @@ func TestTheScheduleStandsDownWhileDownloadsRun(t *testing.T) {
 	}
 	a.runDBMaintenanceIfDue() // arms
 
-	// Due, and a download in flight - both states the app reaches on its own.
 	st := a.maintenanceStateFor()
 	st.mu.Lock()
 	st.recordLocked(a.DataDir).ArmedAt = time.Now().AddDate(0, 0, -31)
@@ -460,13 +393,11 @@ func TestTheScheduleStandsDownWhileDownloadsRun(t *testing.T) {
 	if state.Last.Skipped != SkippedDownloadsRunning {
 		t.Fatalf("skipped = %q, want %q (%+v)", state.Last.Skipped, SkippedDownloadsRunning, *state.Last)
 	}
-	// And it did NOT re-arm: the pass is owed, so it runs on the first tick
-	// after the downloads stop rather than after another whole interval.
+	// Still due, so it runs on the first tick after the downloads stop.
 	if state.NextRunAt == nil || state.NextRunAt.After(time.Now()) {
 		t.Errorf("the skipped run was pushed out to %v; it should still be due", state.NextRunAt)
 	}
 
-	// Once nothing is downloading, the same tick runs it.
 	a.mu.Lock()
 	delete(a.tasks, "running-one")
 	a.mu.Unlock()
@@ -480,10 +411,8 @@ func TestTheScheduleStandsDownWhileDownloadsRun(t *testing.T) {
 	}
 }
 
-// TestTheScheduledPassOnlyChecksUnlessToldOtherwise pins the second setting.
-// Off means the scheduled run reads and reports; compacting needs room for a
-// full second copy of the database on a volume that is usually not the data
-// volume, so it is a thing somebody switches on knowing their own box.
+// TestTheScheduledPassOnlyChecksUnlessToldOtherwise: compaction needs room for
+// a second copy of the database, so the schedule only compacts when asked to.
 func TestTheScheduledPassOnlyChecksUnlessToldOtherwise(t *testing.T) {
 	a := newMaintApp(t)
 	cfg := a.Settings.Get()
@@ -503,9 +432,7 @@ func TestTheScheduledPassOnlyChecksUnlessToldOtherwise(t *testing.T) {
 	if done.Last == nil || done.Last.Kind != MaintenanceCheck {
 		t.Fatalf("the scheduled pass was %+v, want a check", done.Last)
 	}
-	// Nothing else follows it. Given a moment for a compaction to appear if one
-	// were ever going to: the follow-up waits on a two-second poll, so this
-	// window is deliberately longer than that.
+	// Longer than the follow-up's two-second poll.
 	time.Sleep(3 * time.Second)
 	after := waitForIdle(t, a)
 	if after.Last != nil && after.Last.Kind == MaintenanceCompact {
@@ -513,8 +440,6 @@ func TestTheScheduledPassOnlyChecksUnlessToldOtherwise(t *testing.T) {
 	}
 }
 
-// TestAnUnknownActionIsRefusedAtTheEdge keeps the route from answering 202 to a
-// typo and then doing nothing at all.
 func TestAnUnknownActionIsRefusedAtTheEdge(t *testing.T) {
 	for _, s := range []string{"", "vacuum", "Check", "check ", "delete"} {
 		if kind, ok := ParseMaintenanceKind(s); ok {
@@ -528,10 +453,8 @@ func TestAnUnknownActionIsRefusedAtTheEdge(t *testing.T) {
 	}
 }
 
-// TestTheRecordSurvivesRubbishInItsFile: the record is runtime state, and the
-// database's size is the useful half of the page. A file that will not parse
-// must cost the verdict and nothing else - certainly not the readout, and never
-// the boot.
+// TestTheRecordSurvivesRubbishInItsFile: an unparsable record costs the verdict
+// only, not the size readout and not the boot.
 func TestTheRecordSurvivesRubbishInItsFile(t *testing.T) {
 	dir := t.TempDir()
 	if err := os.WriteFile(filepath.Join(dir, maintenanceFile), []byte("{not json at all"), 0o600); err != nil {
@@ -550,7 +473,6 @@ func TestTheRecordSurvivesRubbishInItsFile(t *testing.T) {
 	if st.Storage.StoreBytes <= 0 {
 		t.Error("the size readout was lost with the record; they are two different questions")
 	}
-	// And the next run writes a good one over it.
 	if err := a.StartMaintenance(MaintenanceAnalyze); err != nil {
 		t.Fatal(err)
 	}

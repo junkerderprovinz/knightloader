@@ -1,15 +1,10 @@
 package app
 
-// Turning a failure into a typed reason. Every place a task settles in
-// StatusError comes through here, so the interface can act on the cause instead
-// of matching on a sentence that changes with the backend, the hoster, and the
-// language the operating system was installed in.
-//
-// One rule holds the whole file up: a failure nothing recognises is
-// core.ReasonUnknown. The reason is what the interface turns into advice, and
-// advice is acted on - "the file is gone" makes people delete a link that was
-// only ever throttled. A missing label costs the user nothing; a confident wrong
-// one costs them the download.
+// Every task that settles in StatusError is classified here, so the interface
+// can act on a typed reason instead of matching on backend- and locale-specific
+// wording. Anything not recognised is core.ReasonUnknown: a missing label costs
+// the user nothing, while a wrong one ("the file is gone") gets a working link
+// deleted.
 
 import (
 	"context"
@@ -24,25 +19,21 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/core"
 )
 
-// failure is everything known about one settled task at the moment it settles,
-// and every field is optional because the callers genuinely differ: the
-// dispatcher holds a real error, a download backend hands the update channel a
-// sentence and nothing else, and the availability probe has a status code and no
-// error at all.
+// failure is what is known about one task when it settles. Every field is
+// optional: the dispatcher has an error, a backend only a sentence, and the
+// availability probe only a status code.
 type failure struct {
 	err error
-	// text is the sentence, when that is all there is. Left empty it is taken
-	// from err.
+	// text is the sentence, when that is all there is. Empty means err.Error().
 	text string
 	// status is the HTTP status the caller saw, or 0 when there was no response.
 	status int
 }
 
-// classify names the cause of a failure, or answers core.ReasonUnknown.
+// classify names the cause of a failure, or returns core.ReasonUnknown.
 func classify(f failure) core.Reason {
-	// The error value first: it is the only part of this that no wording can
-	// spoil. Windows reports its errors in the language it was installed in, so
-	// every match further down is one a German box fails.
+	// The error value first, since Windows reports errors in its install
+	// language and the text matches below fail on a German system.
 	if r := classifyErr(f.err); r != core.ReasonUnknown {
 		return r
 	}
@@ -54,8 +45,6 @@ func classify(f failure) core.Reason {
 	if status == 0 {
 		status = statusIn(text)
 	}
-	// Then the status, because it is the one thing in a sentence that nobody
-	// paraphrases: 429 means the same whoever wrote the words around it.
 	if r := reasonForStatus(status); r != core.ReasonUnknown {
 		return r
 	}
@@ -75,9 +64,8 @@ func classifyErr(err error) core.Reason {
 	case errors.Is(err, context.DeadlineExceeded):
 		return core.ReasonNetwork
 	}
-	// net.Error covers the lot - *net.OpError, *net.DNSError and the *url.Error
-	// an HTTP client wraps them in all implement it - and every one of them means
-	// the transport gave up before the host had said anything.
+	// *net.OpError, *net.DNSError and the *url.Error wrapping them all
+	// implement net.Error, and all mean the transport gave up.
 	var ne net.Error
 	if errors.As(err, &ne) {
 		return core.ReasonNetwork
@@ -85,13 +73,10 @@ func classifyErr(err error) core.Reason {
 	return core.ReasonUnknown
 }
 
-// The Windows numbers for a full disk, written out for the same reason the
-// Winsock numbers in internal/proxycfg are: Go's Windows syscall package defines
-// the POSIX names as synthetic APPLICATION_ERROR values that no call ever
-// returns, so errors.Is(err, syscall.ENOSPC) is false for precisely the error it
-// names. They are only consulted on Windows, because 112 is EHOSTDOWN on Linux
-// and a host that is down is not a full disk - which is the sort of mix-up this
-// whole file exists to avoid.
+// Windows error numbers for a full disk. Go's Windows syscall.ENOSPC is a
+// synthetic value no call returns, so errors.Is(err, syscall.ENOSPC) never
+// matches there. They are checked only on Windows because 112 is EHOSTDOWN on
+// Linux.
 const (
 	winDiskFull       syscall.Errno = 112 // ERROR_DISK_FULL
 	winHandleDiskFull syscall.Errno = 39  // ERROR_HANDLE_DISK_FULL
@@ -105,16 +90,15 @@ func isDiskFull(err error) bool {
 		(errors.Is(err, winDiskFull) || errors.Is(err, winHandleDiskFull))
 }
 
-// reasonForStatus is the taxonomy for an HTTP status. Only the codes that carry
-// one specific meaning are named; the rest fall through, because "some 4xx" is
-// not something to give a user instructions about.
+// reasonForStatus maps the HTTP statuses that have one specific meaning; the
+// rest fall through to the text.
 func reasonForStatus(code int) core.Reason {
 	switch code {
 	case 404, 410:
 		return core.ReasonGone
-	case 401, 403, 407: // 407 is a proxy in the way, and it wants credentials too
+	case 401, 403, 407: // 407 is a proxy that wants credentials
 		return core.ReasonAuth
-	case 429, 509: // 509 is the bandwidth-limit code file hosters actually send
+	case 429, 509: // 509 is the bandwidth-limit code file hosters send
 		return core.ReasonLimit
 	case 408:
 		return core.ReasonNetwork
@@ -124,11 +108,9 @@ func reasonForStatus(code int) core.Reason {
 	return core.ReasonUnknown
 }
 
-// statusPattern finds the HTTP status inside a sentence, because for most
-// failures the sentence is all that survives: a backend reports over the update
-// channel as a string, not as the response it came from. The three shapes are
-// the ones this build actually produces - "jd /downloads: HTTP 403", Gopeed's
-// "http request fail, code:404" and its per-connection "retries=3, status=503".
+// statusPattern finds an HTTP status inside a failure sentence, since backends
+// report over the update channel as text. It covers "jd /downloads: HTTP 403",
+// Gopeed's "http request fail, code:404" and "retries=3, status=503".
 var statusPattern = regexp.MustCompile(`(?i)\b(?:http|code|status)[ :=/]+([1-5][0-9]{2})\b`)
 
 func statusIn(text string) int {
@@ -144,21 +126,15 @@ func statusIn(text string) int {
 }
 
 // textReasons are the phrases a failure sentence is matched against, in order.
-// Every entry is wording this build can actually receive - Go's own transport
-// errors, the words yt-dlp and JDownloader print, a hoster API's message - and
-// nothing is in here on the strength of "a host might phrase it like that".
-//
-// "not found" is the phrase deliberately left out. It is the wording of a dead
-// link and of the local disk's "no such file or directory" alike, and filing a
-// write failure as a dead link tells somebody to delete a link that is fine.
+// Each is wording this build actually receives. "not found" is left out
+// because it also matches the local "no such file or directory", and a write
+// failure filed as a dead link gets a good link deleted.
 var textReasons = []struct {
 	phrase string
 	reason core.Reason
 }{
-	// A full disk leads, because its sentence usually carries a second clause
-	// that matches something below it ("write ...: no space left on device" ends
-	// up as a write error, an i/o error, a broken pipe), and it is the one cause
-	// here whose remedy is not "wait and try again".
+	// Disk full comes first: its sentence often also contains a phrase further
+	// down ("write ...: no space left on device").
 	{"no space left on device", core.ReasonDiskFull},
 	{"not enough space on the disk", core.ReasonDiskFull},
 	{"disk full", core.ReasonDiskFull},
@@ -181,21 +157,11 @@ var textReasons = []struct {
 	{"service unavailable", core.ReasonUnavailable},
 }
 
-// addressMayHelp reports whether a new public address could plausibly change
-// the outcome. It only ever holds a reconnect back, and never causes one: an
-// unclassified failure answers yes, so nothing that reconnects today stops.
-//
-// Rebooting the router for a file that is gone, a password that is not
-// accepted, or a disk with no room on it takes the connection away from
-// everyone in the house and fixes none of them.
-// The five backend-named causes are vetoed too, and the bot check is the one
-// worth arguing about: its flag IS on the address, so a new one could in
-// principle be clean. It is still a no. A reconnect takes the whole house off
-// the internet on the chance that the next address out of the same pool is not
-// flagged, when the answer this app can actually offer - a stored cookie jar,
-// see internal/resolver/ytdlp/cookies.go - works from the address it already
-// has. Geo-blocking is the flatter case of the same thing: a reconnect stays
-// in the country, which is the only thing being asked about.
+// addressMayHelp reports whether a new public address could change the
+// outcome. It only ever holds a reconnect back, so an unclassified failure
+// answers yes. A bot check is vetoed too: the flag is on the address, but a
+// reconnect takes the whole household offline for a gamble, while a stored
+// cookie jar works from the current address.
 func addressMayHelp(r core.Reason) bool {
 	switch r {
 	case core.ReasonGone, core.ReasonAuth, core.ReasonDiskFull,
@@ -207,16 +173,9 @@ func addressMayHelp(r core.Reason) bool {
 	return true
 }
 
-// retryCannotHelp reports whether another attempt at this failure is spent
-// effort, for the five causes a backend named itself (core.Update.Reason).
-//
-// Its own function rather than five more arms on the switch in onUpdate,
-// because the same list has to be right in two places that are pages apart:
-// the retry policy reads it, and so does anything later that wants to know
-// whether a row is waiting or finished with. Written as a list of what IS
-// hopeless rather than what is not, so a reason added tomorrow keeps its
-// retries until somebody decides otherwise - the same direction of default
-// addressMayHelp above takes, and for the same reason.
+// retryCannotHelp reports whether another attempt is wasted, for the causes a
+// backend names itself (core.Update.Reason). It lists the hopeless reasons so
+// that a new reason keeps its retries by default.
 func retryCannotHelp(r core.Reason) bool {
 	switch r {
 	case core.ReasonBotCheck, core.ReasonMembersOnly, core.ReasonGeoBlocked,

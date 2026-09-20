@@ -1,18 +1,8 @@
 package app
 
-// End-to-end coverage for app_idle.go's seam into the real App: the state
-// machine itself (rising edge, suppression, cancel) is already pinned by
-// internal/idleaction's own tests against a fake clock; what only a real App
-// can prove is that queueIdleForAction reads the actual task list correctly
-// (a disabled link must not block it, a running one must) and that firing
-// ActionPause actually halts the real queue through SetHalted.
-//
-// idleAction polls on a real two-second timer inside App.New (idleaction.
-// defaultPoll) rather than an injectable one, the same as every other real
-// App integration test in this package accepts real timing for what a fake
-// clock cannot stand in for. DelaySeconds is kept at the package's own floor
-// (5) throughout, so each of these costs a single-digit number of seconds
-// rather than minutes.
+// These tests run against a real App and the real two-second poll; the state
+// machine's own timing is covered by internal/idleaction's fake-clock tests.
+// DelaySeconds stays at the floor of 5 to keep them short.
 
 import (
 	"testing"
@@ -23,22 +13,12 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
-// pollUntil polls cond every 100ms for up to timeout, so a test does not sleep
-// the full worst case when the answer arrives sooner - the idle poll interval
-// (2s) plus the countdown (5s) is already the slow part.
 // armWindow is how long a test waits for the controller to notice an idle
-// queue, and it is deliberately far longer than the mechanism needs.
-//
-// The controller re-checks every two seconds (idleaction.defaultPoll), so
-// arming is a sub-second event in any healthy run. The number here is not about
-// the mechanism, it is about the machine: this whole package runs under -race on
-// a shared CI runner, and TestIdleActionCanBeCancelled failed there at 15.37s
-// having never armed - while the very same log showed the controller pausing the
-// queue correctly three times right afterwards. A wall-clock assertion that a
-// starved scheduler can break is a gate that goes red for no reason, and a gate
-// nobody trusts is worse than no gate.
+// queue. Arming takes under a second on a healthy machine, but this package
+// runs under -race on shared CI runners.
 const armWindow = 60 * time.Second
 
+// pollUntil checks cond every 100ms until it holds or timeout passes.
 func pollUntil(t *testing.T, timeout time.Duration, cond func() bool) bool {
 	t.Helper()
 	deadline := time.Now().Add(timeout)
@@ -60,8 +40,6 @@ func TestIdleActionPausesTheQueueAfterItsCountdown(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Nothing was ever added: the app starts idle, so this should arm within
-	// one poll interval and fire once the countdown elapses.
 	if !pollUntil(t, armWindow, func() bool { return a.IdleActionState().Armed }) {
 		t.Fatal("did not arm within the expected window")
 	}
@@ -87,8 +65,7 @@ func TestIdleActionCanBeCancelled(t *testing.T) {
 		t.Fatal("still armed immediately after CancelIdleAction")
 	}
 
-	// Waited out past where the original countdown would have fired: a
-	// cancelled countdown must not pause the queue on its own schedule.
+	// Past the point where the cancelled countdown would have fired.
 	time.Sleep(6 * time.Second)
 	if a.Queue().Halted {
 		t.Error("the queue was halted despite the countdown having been cancelled")
@@ -98,10 +75,6 @@ func TestIdleActionCanBeCancelled(t *testing.T) {
 	}
 }
 
-// TestDisabledLinkDoesNotBlockTheIdleAction pins the exact reasoning in
-// queueIdleForAction's own doc comment: a link the user has switched off is
-// never going to run on its own, so it must not be the one thing standing
-// between the box and going quiet.
 func TestDisabledLinkDoesNotBlockTheIdleAction(t *testing.T) {
 	a := newQueueApp(t)
 
@@ -126,9 +99,6 @@ func TestDisabledLinkDoesNotBlockTheIdleAction(t *testing.T) {
 	}
 }
 
-// TestRunningTaskBlocksTheIdleAction is the other direction of the same
-// check: a transfer actually in flight is exactly the case the feature must
-// never fire underneath.
 func TestRunningTaskBlocksTheIdleAction(t *testing.T) {
 	a := newQueueApp(t)
 
@@ -145,8 +115,7 @@ func TestRunningTaskBlocksTheIdleAction(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Long enough to cover a poll and a countdown, both of which must not
-	// have happened.
+	// Long enough for a poll and a countdown.
 	time.Sleep(9 * time.Second)
 	if a.IdleActionState().Idle {
 		t.Error("queueIdleForAction reported idle while a task is actively running")
@@ -156,14 +125,9 @@ func TestRunningTaskBlocksTheIdleAction(t *testing.T) {
 	}
 }
 
-// TestSeedingTorrentDoesNotBlockTheIdleAction pins decision 4 of
-// docs/torrent-support.md: a torrent that is only seeding, not downloading
-// and not queued, must not be read as work still owed. queueIdleForAction's
-// own doc comment explains why no new exclusion was written for this
-// (Seeding rides along on Status == core.StatusDone, which Counters already
-// treats as not owed) - this test is what actually proves that reasoning
-// against a real App and a real idleaction.Controller, rather than leaving it
-// as an unverified claim in a comment.
+// TestSeedingTorrentDoesNotBlockTheIdleAction: a torrent that is only seeding
+// is not owed work, or one perpetually seeding torrent would disable the
+// feature.
 func TestSeedingTorrentDoesNotBlockTheIdleAction(t *testing.T) {
 	a := newQueueApp(t)
 
@@ -192,35 +156,19 @@ func TestSeedingTorrentDoesNotBlockTheIdleAction(t *testing.T) {
 }
 
 func TestApplySettingsRefreshesIdleActionWithoutWaitingForThePoll(t *testing.T) {
-	// The poll is pushed a minute out of the way BEFORE the app is built, so
-	// nothing in this test can be the poll doing the work. That is what the
-	// assertion below rests on now - see idleActionPoll (app_idle.go).
+	// With the poll a minute away, arming at all proves the refresh did it, so
+	// the test needs no tight deadline that a loaded runner could miss.
 	orig := idleActionPoll
 	idleActionPoll = time.Minute
 	t.Cleanup(func() { idleActionPoll = orig })
 
 	a := newQueueApp(t)
-	// Enabling the action while the queue is already idle (newQueueApp starts
-	// with nothing in it) should arm well inside one poll interval - Refresh
-	// is the whole point of this test, so the window is a fraction of
-	// idleaction.defaultPoll rather than a multiple of it.
 	if _, err := a.ApplySettings(settings.Settings{
 		MaxConcurrent: 4, MaxPerHost: 4, DownloadDir: t.TempDir(),
 		IdleAction: idleaction.Config{Action: idleaction.ActionPause, DelaySeconds: 5},
 	}); err != nil {
 		t.Fatal(err)
 	}
-	// NOT a stopwatch any more. The window used to be a fraction of the
-	// two-second poll, so that a pass could not be the poll - first one second,
-	// then 1500ms after CI failed on it, and then CI failed on 1500ms too. A
-	// deadline that has to stay under the poll to mean anything is a deadline
-	// that measures how loaded the runner is, and a shared runner under -race
-	// is as loaded as it gets.
-	//
-	// With the poll a minute away the claim is carried by the setup instead of
-	// by the clock: if this arms at all, the refresh armed it. Ten seconds is
-	// then simply "the test is not hanging", and it can be generous precisely
-	// because it no longer proves anything on its own.
 	if !pollUntil(t, 10*time.Second, func() bool { return a.IdleActionState().Armed }) {
 		t.Fatal("ApplySettings did not refresh idleAction: it never armed, and the poll was a minute away")
 	}

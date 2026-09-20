@@ -1,8 +1,8 @@
 package app
 
-// Everything between a pasted string and a staged task: the entrance it came
-// in by, the filter, the crawl, the Packagizer, the package it lands in, the
-// mirror set, and the links that never made it.
+// Everything between a pasted string and a staged task: the entrance, the
+// filter, the crawl, the Packagizer, the package, the mirror set, and the
+// links that never made it.
 
 import (
 	"context"
@@ -27,14 +27,8 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
-// The six entrances a link can arrive by.
-//
-// They are declared here rather than beside the type in core because core owns
-// the type and nothing else: every one of these names a funnel in this file, and
-// the only way the set stays honest is if adding an entrance means editing the
-// same file that has to set the value. A link with no origin at all is the state
-// this exists to end — "why is this here" is unanswerable weeks later, and a rule
-// keyed on where something came from has nothing to read.
+// The six entrances a link can arrive by. They live here, beside the funnels
+// that set them, rather than in core, which only owns the type.
 const (
 	// OriginPaste is the collector's paste box, which is also what a bare
 	// AddLinks means.
@@ -45,33 +39,17 @@ const (
 	OriginCnL core.Origin = "cnl"
 	// OriginWatch is a job file dropped into the watched folder.
 	OriginWatch core.Origin = "watch"
-	// OriginFeed is an entry an RSS or Atom subscription published. It is its
-	// own entrance rather than being filed under OriginWatch, although the two
-	// are the same kind of unattended intake and go down the same funnel: this
-	// is the column somebody opens the collector to read when they are asking
-	// "why is this here", and "a file was dropped in a folder" is not an answer
-	// anybody can act on for a link nobody dropped. The feed's address is what
-	// they actually need next, and it is in the log line beside it.
+	// OriginFeed is an entry an RSS or Atom subscription published. It is kept
+	// apart from OriginWatch so the collector can say where a link came from.
 	OriginFeed core.Origin = "feed"
 	// OriginContainer is a .dlc/.ccf/.rsdf/.txt container, whether it was read
 	// here or opened by the JD backend on our behalf.
 	OriginContainer core.Origin = "container"
 )
 
-// KnownOrigin turns an entrance a caller names into one of the six, and refuses
-// anything else.
-//
-// It exists for the relays. A Click'n'Load bridge decodes a submission on the
-// user's own desktop — because CnL is hard-wired to the browser's loopback and
-// cannot reach a NAS — and then forwards it over the ordinary link route. The
-// entrance is known to that bridge and to nobody downstream of it, so without a
-// way to say so those links are filed as pasted: wrong precisely for the
-// deployment the bridge exists to serve, and wrong in the one column somebody
-// opens the holding area to read.
-//
-// An unrecognised value is refused rather than stored, because a free-text
-// origin is a column that stops being answerable — which is the state the six
-// constants above exist to end.
+// KnownOrigin parses an entrance a caller names and refuses anything else. A
+// Click'n'Load bridge on the user's desktop relays submissions over the
+// ordinary link route and uses this to say where they came from.
 func KnownOrigin(s string) (core.Origin, bool) {
 	switch o := core.Origin(strings.ToLower(strings.TrimSpace(s))); o {
 	case OriginPaste, OriginCrawl, OriginCnL, OriginWatch, OriginFeed, OriginContainer:
@@ -80,89 +58,55 @@ func KnownOrigin(s string) (core.Origin, bool) {
 	return "", false
 }
 
-// intake is what an entrance knows about the links it is handing over. It is a
-// struct rather than four more parameters because stage is called from five
-// places and a bare string in the fourth position is how "source" ended up
-// carrying a package name once already.
+// intake is what an entrance knows about the links it hands over.
 type intake struct {
 	pkg    string
 	origin core.Origin
 	// source is the page a crawl found the link on; empty for everything else.
 	source string
-	// waived is the reason the filter gave when it held this link, handed back in
-	// by RestoreFiltered. Non-empty means the user has read that reason and
-	// decided anyway, so the filter is not asked at staging time — and, because
-	// the reason is kept on the task, not asked again at the queue either. See
-	// filterWaived.
+	// waived is the reason the filter held this link, passed back by
+	// RestoreFiltered. Non-empty means the user overruled it, so the filter is
+	// not asked again here or at the queue (see filterWaived).
 	waived string
 
-	// priority, autoExtract and comment are the add-links form's own per-batch
-	// options (§8A), carried from LinkBatchOptions through addLinksFrom into
-	// every task the batch creates - including the ones a crawled page yields,
-	// which is why they live here rather than being applied once after
-	// addLinksFrom returns. stage writes them onto the task BEFORE
-	// finishStaging runs the Packagizer, which is what makes a matching rule
-	// win over them by default: packagize() already overwrites a field a rule
-	// has an opinion about, exactly as it would for a plain paste with no form
-	// involved at all. AddLinksWithOptions applies them a second time,
-	// afterwards, when the form itself is meant to have the last word - see its
-	// own comment for why Dir and the two passwords never come through here.
+	// priority, autoExtract and comment are the add-links form's batch
+	// options, carried onto every task the batch creates, crawled ones
+	// included. stage sets them before the Packagizer runs, so a matching rule
+	// wins by default (see LinkBatchOptions.Overrule).
 	priority    *int
 	autoExtract *bool
 	comment     string
 
-	// playlistEntry marks a link a --flat-playlist listing produced
-	// (stagePlaylistEntries, app_ytdlp_playlist.go). It answers one question
-	// stage() would otherwise get wrong at exactly the wrong scale: whether to
-	// spawn this link's own title probe. A pasted media link should - it is
-	// one process for one link. A playlist's entries must not, because there
-	// can be a hundred of them from a single line of input; the listing
-	// already named them all, and their format probes are run one at a time
-	// afterwards instead (probePlaylistEntries).
+	// playlistEntry marks a link from a --flat-playlist listing. Such links do
+	// not start their own title probe, since one playlist can yield hundreds;
+	// probePlaylistEntries probes them one at a time instead.
 	playlistEntry bool
 }
 
 // AddLinks stages links pasted into the collector. Every other entrance calls
-// AddLinksFrom with an origin of its own; this is the paste box, and it keeps
-// the short name because it is also what an unadorned "add these links" means.
+// AddLinksFrom with its own origin.
 func (a *App) AddLinks(urls []string, pkg string) []*core.Task {
 	return a.AddLinksFrom(urls, pkg, OriginPaste)
 }
 
-// AddLinksFrom resolves each URL and stages it in the link collector (JD-style):
-// tasks are created "collected" (analysed but not started). StartTasks moves
-// them into the download queue.
-//
-// origin is written onto every task this creates. It is the difference between a
-// list of links and a list of links you can account for: it answers "why is this
-// here" without a memory of what happened last Tuesday, and it is what a rule
-// keyed on the entrance has to read.
+// AddLinksFrom resolves each URL and stages it in the link collector as a
+// collected task; StartTasks moves tasks into the download queue. origin is
+// recorded on every task, so "why is this here" can be answered later and
+// rules can match on it.
 func (a *App) AddLinksFrom(urls []string, pkg string, origin core.Origin) []*core.Task {
 	return a.detached(a.addLinksFrom(urls, pkg, origin, LinkBatchOptions{}))
 }
 
-// AddResolvedLinksFrom stages links whose name and, where known, size have
-// already been found — a container's crawl (internal/resolver/jd's
-// AddContainer/AddCryptedV1) learns both while opening the container, because
-// opening it IS crawling it. Routing those links back through AddLinksFrom
-// would throw that answer away and stage bare URLs instead, leaving the
-// collector to show the raw link and no size until the user starts the
-// download and JD crawls the very same links a second time.
-//
-// It skips crawl(), and the playlist listing beside it (ytdlpPlaylist,
-// app_ytdlp_playlist.go): a link a container already named is a resolved file,
-// not a page or a listing that might point at more of them, which crawling or
-// listing that link again would only risk mistaking it for. Everything else -
-// the link filter, the packagizer, the duplicate check, batch naming and
-// auto-confirm - runs exactly as it does for AddLinksFrom, because a container
-// is a delivery mechanism and none of those decisions is about how a link
-// arrived.
+// AddResolvedLinksFrom stages links whose name and possibly size are already
+// known, such as those from a container JD opened. They skip the crawl and the
+// playlist listing, which could only mistake a resolved file for a page; the
+// filter, Packagizer, duplicate check, naming and auto-confirm run as usual.
 func (a *App) AddResolvedLinksFrom(links []resolver.Result, pkg string, origin core.Origin) []*core.Task {
 	return a.detached(a.addResolvedLinksFrom(links, pkg, origin))
 }
 
-// verdict is one link's already-known availability, waiting to be written
-// through the locked path once the staging loop is done.
+// verdict is one link's known availability, written through the locked path
+// after the staging loop.
 type verdict struct {
 	id    string
 	avail core.Availability
@@ -187,11 +131,8 @@ func (a *App) addResolvedLinksFrom(links []resolver.Result, pkg string, origin c
 			continue
 		}
 		if t := a.stage(u, l.Name, l.Size, intake{pkg: pkg, origin: origin}); t != nil {
-			// A verdict the resolution already produced is worth recording -
-			// see resolver.Result.Available. Collected here and written after
-			// the loop through setAvailability, never onto the task in hand: it
-			// is a shared task, and the one write path that takes a.mu and
-			// broadcasts is the only one allowed to touch it.
+			// Collected and written later through setAvailability, since the
+			// task is shared and only that path takes a.mu and broadcasts.
 			if l.Available != "" {
 				verdicts = append(verdicts, verdict{id: t.ID, avail: l.Available})
 			}
@@ -202,8 +143,7 @@ func (a *App) addResolvedLinksFrom(links []resolver.Result, pkg string, origin c
 	if strings.TrimSpace(pkg) == "" {
 		a.nameBucket(b)
 	}
-	// Before catchAll and before any auto-confirm: whatever happens to these
-	// rows next, the verdict the crawl already produced belongs on them.
+	// Before catchAll and auto-confirm, so the verdict is on the rows first.
 	for _, v := range verdicts {
 		a.setAvailability(v.id, v.avail, "", core.ReasonUnknown)
 	}
@@ -218,32 +158,18 @@ func (a *App) addResolvedLinksFrom(links []resolver.Result, pkg string, origin c
 	return created
 }
 
-// addLinksFrom is AddLinksFrom without the copy at the end.
+// addLinksFrom is AddLinksFrom without the final copy. Callers that still
+// write to the tasks afterwards, like AddLinksWithPasswords, need the live
+// ones; the copy happens once, at the outermost exported call.
 //
-// The copy has to happen once, at the outermost exported call, and not here: a
-// caller that still has work to do - AddLinksWithPasswords writes the archive
-// password onto these tasks straight afterwards - must be holding the real ones.
-// Detaching here instead cost exactly that, and the test that caught it said so
-// plainly: the response carried an empty password because the write had landed
-// on the live task while the caller was returning a copy taken before it.
-//
-// batch is the add-links form's own per-batch options, zero-valued for every
-// caller but AddLinksWithOptions - see intake's own comment for where they are
-// applied and app_links_batch.go for why applying them here is what lets a
-// Packagizer rule win by default.
+// batch holds the add-links form's options and is zero for every other caller.
 func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch LinkBatchOptions) []*core.Task {
 	var created []*core.Task
-	// seen is about the pasted text and nothing else: it stops one page being
-	// fetched twice when it appears twice in the same box. Whether a *link* is
-	// already in the list is the mirror set's answer alone. Two ideas of "we
-	// already have this" that normalise URLs differently disagree sooner or later,
-	// and then a link a raw string comparison let through comes back reported as a
-	// duplicate of itself.
+	// seen only stops the same text in one paste from being fetched twice.
+	// Whether a link is already in the list is the mirror set's decision alone.
 	seen := map[string]bool{}
-	// One bucket per crawled page, plus one for everything that was already a
-	// link. Naming used to run once across the whole call, so two pages pasted
-	// together were both named after whichever came first — and the second page's
-	// links sat under a title that was never about them.
+	// One bucket per crawled page, plus one for plain links, so each page's
+	// links are named after that page.
 	var buckets []*bucket
 	loose := &bucket{}
 	for _, raw := range urls {
@@ -252,12 +178,8 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 			continue
 		}
 		seen[u] = true
-		// Asked here as well as inside stage, because the crawl below fetches the
-		// page. A rule naming a host is an instruction not to talk to it, and a
-		// filter that only refuses the links a page yielded has already sent a
-		// request to the address the user filtered out. stage keeps its own pass:
-		// it is the only way a link enters the list, and the links a crawl produces
-		// never come past this point.
+		// Filtered here as well as in stage, because the crawl below would
+		// otherwise contact a host a rule told us to avoid.
 		cand := rules.Candidate{URL: u, Package: pkg, Added: time.Now()}
 		if v := a.filter(cand); v.Rejected {
 			if t := a.hold(cand, v, origin, cand.Added); t != nil {
@@ -265,21 +187,8 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 			}
 			continue
 		}
-		// A playlist link becomes the videos it lists, not one task for the
-		// playlist - the same sentence as the crawl just below, for the same
-		// reason: a link that points at many files can only ever be a single
-		// unusable download otherwise, with one progress bar for fifty videos,
-		// nothing to untick, and a failure on the thirtieth taking the other
-		// forty-nine with it.
-		//
-		// Asked BEFORE the crawl, although both can claim a yt-dlp link: the
-		// crawler claims one only by exclusion (see crawl's own comment on why
-		// "ytdlp" is in its set at all), while this is yt-dlp answering about
-		// its own site with the listing that site actually publishes. When the
-		// answer is "not a playlist" - which is every link on an install that
-		// leaves the setting off, and every ordinary video link on one that
-		// does not - nothing has been staged and the crawl runs exactly as it
-		// always did.
+		// A playlist becomes its videos rather than one task. This is asked
+		// before the crawl, which only claims yt-dlp links by exclusion.
 		if pl, ok := a.ytdlpPlaylist(u); ok {
 			b := &bucket{title: pl.Title}
 			b.tasks = a.stagePlaylistEntries(u, pl, pkg, batch)
@@ -287,23 +196,16 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 			buckets = append(buckets, b)
 			continue
 		}
-		// A page that points at files becomes those files, not one task for the
-		// page. Without this a gallery or an index listing can only ever be a
-		// single unusable download.
+		// A page that points at files becomes those files.
 		if crawled := a.crawl(u); len(crawled) > 0 {
 			b := &bucket{title: crawlTitle(crawled)}
 			for _, c := range crawled {
 				if c.URL == "" {
 					continue
 				}
-				// OriginCrawl rather than the caller's origin, whatever brought the
-				// page in: a link nobody typed did not arrive by the path the page
-				// did. Which page it was is on Source right beside it, which is also
-				// the only place a rule keyed on "where did this link come from" can
-				// get it.
-				// c.Size is 0 for a page crawl, which stage reads as "no hint"
-				// exactly as it did before the field existed; a remote
-				// directory listing states a real one - see crawler.Result.Size.
+				// OriginCrawl whatever brought the page in, with the page on
+				// Source. c.Size is 0 for a page crawl, which stage reads as no
+				// hint; a remote directory listing supplies a real one.
 				if t := a.stage(c.URL, c.Name, c.Size, intake{
 					pkg: pkg, origin: OriginCrawl, source: u,
 					priority: batch.Priority, autoExtract: batch.AutoExtract, comment: batch.Comment,
@@ -326,9 +228,8 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 
 	buckets = append(buckets, loose)
 
-	// Naming, in two passes: each bucket gets the best name its own links agree
-	// on, and whatever is still nameless afterwards goes in the catch-all rather
-	// than into the blank that is not a package at all.
+	// Each bucket gets the best name its links agree on; whatever is still
+	// nameless goes into the catch-all package.
 	if strings.TrimSpace(pkg) == "" {
 		for _, b := range buckets {
 			a.nameBucket(b)
@@ -336,20 +237,9 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 	}
 	a.catchAll(created)
 
-	// Auto-confirm hands everything straight past the collector for users who
-	// don't want the staging step - AutoConfirm, not AutoStart: the latter now
-	// answers a different question (settings.go's own doc comment on the
-	// three-way split) and reading it here was Wave 8's own regression, caught
-	// by that wave's adversarial review before it shipped - a fresh install
-	// defaults AutoConfirm false and AutoStart true, so this branch was firing
-	// on every paste regardless of the collector setting anyone actually chose.
-	// Routed through ConfirmTasks, not a raw StartTasks, so onDupes/onOffline
-	// apply here exactly as build-plan.md section 8's Wave 8 note asks - this
-	// is the one caller app_confirm.go's own package comment named as still
-	// missing. What the link filter is holding is not in ConfirmTasks' own
-	// StatusCollected scan (a held link never reaches that status), which is
-	// the whole reason the flag is on the task rather than a note somewhere
-	// else.
+	// AutoConfirm (not AutoStart) skips the collector, through ConfirmTasks so
+	// onDupes and onOffline apply. Held links never reach StatusCollected, so
+	// ConfirmTasks leaves them alone.
 	if len(created) > 0 && a.Settings.Get().AutoConfirm {
 		ids := make([]string, 0, len(created))
 		for _, t := range created {
@@ -360,22 +250,10 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 	return created
 }
 
-// detached copies the tasks out of the live map before they leave this package.
-//
-// Staging returns pointers INTO a.tasks, and one of the last things stage does
-// is start the availability probe on a goroutine - so the caller was handed a
-// task that another goroutine is already writing to. The API encodes that slice
-// straight into the response, which the race detector caught exactly there:
-// json.Encoder reading Task.Name while setAvailability wrote Task.Error.
-//
-// The copy is at this boundary rather than in the handler because every caller
-// inherits the hazard, and the next one will not know to look. App.Tasks has
-// copied for the same reason since it was written.
-//
-// Under mu, which is the whole point: `c := *t` reads every field of the struct,
-// so copying without the lock is the same race one step further along. It must
-// therefore never be called by anything already holding mu; the three callers
-// are exported methods returning to their own caller, and none of them does.
+// detached copies tasks out of the live map before they leave this package.
+// stage returns pointers into a.tasks and has already started goroutines that
+// write to them, so encoding those pointers would race. The copy is taken
+// under a.mu, so callers must not hold it.
 func (a *App) detached(in []*core.Task) []*core.Task {
 	if in == nil {
 		return nil
@@ -390,11 +268,8 @@ func (a *App) detached(in []*core.Task) []*core.Task {
 	return out
 }
 
-// snapshotTasks is detached without the nil-passthrough: nameBucket always
-// has at least one task (its own caller checks len(b.tasks) == 0 first), and
-// every caller here is, unlike detached's, still inside the same method that
-// goes on to read the copies afterwards - so there is always a real slice to
-// copy, not an optional one to pass along.
+// snapshotTasks is detached without the nil check, for callers inside this
+// package that read the copies themselves.
 func (a *App) snapshotTasks(in []*core.Task) []*core.Task {
 	a.mu.Lock()
 	defer a.mu.Unlock()
@@ -406,17 +281,16 @@ func (a *App) snapshotTasks(in []*core.Task) []*core.Task {
 	return out
 }
 
-// bucket is one group of links that will be named together: the yield of a
-// single crawl, or everything in a paste that was already a link.
+// bucket is one group of links named together: the yield of one crawl, or the
+// plain links of a paste.
 type bucket struct {
 	// title is what the crawled page called itself, empty for the loose bucket.
 	title string
 	tasks []*core.Task
 }
 
-// crawlTitle is what the crawled page called itself. Every result from one page
-// carries the same title, but a site-specific crawler is free to fill it on some
-// results and not others, so the first non-empty one wins rather than the first.
+// crawlTitle returns the first non-empty page title among the results; a
+// site-specific crawler may fill it on some results only.
 func crawlTitle(found []crawler.Result) string {
 	for _, c := range found {
 		if s := strings.TrimSpace(c.Title); s != "" {
@@ -426,22 +300,9 @@ func crawlTitle(found []crawler.Result) string {
 	return ""
 }
 
-// nameBucket gives one batch a package derived from the links in it. It runs
-// only when the user named no package, because a name typed into the box is a
-// more specific answer than anything guessable from a file list.
-//
-// A task a Packagizer rule already named is left out. The rule is the more
-// specific answer and it ran first, so overwriting it here would make a rule that
-// works look like one that does nothing.
-//
-// b.tasks are live pointers into a.tasks: stage has already handed the newest
-// of them to a background probe (probeYtdlpTitle or analyze) before returning
-// them here, so derivePackage's read of a task's Name is racing that probe's
-// own locked write the same way a caller reading Tasks() would be without its
-// copy - see detached's own comment just above for the general shape of the
-// hazard. snapshotTasks takes the same locked copy detached and Tasks already
-// take, so derivePackage and unpackagedIDs read a name that can no longer
-// change under them instead of the live one a probe might be mid-write on.
+// nameBucket gives a batch without a user-given package a name derived from
+// its links. Tasks a Packagizer rule already named are left alone. It reads a
+// snapshot, because title probes may be writing the live tasks.
 func (a *App) nameBucket(b *bucket) {
 	if b == nil || len(b.tasks) == 0 {
 		return
@@ -457,39 +318,27 @@ func (a *App) nameBucket(b *bucket) {
 	ids := unpackagedIDs(snap)
 	if len(ids) > 0 {
 		a.SetPackage(ids, derived)
-		// And then look again, because the snapshot above settled what to READ,
-		// not what happens in between. A probe answering between snapshotTasks
-		// and this write lands in the gap: setTaskName runs while the package
-		// is still unset, so its own re-guess finds nothing to replace, and
-		// SetPackage then writes the URL-path guess over a task that by now has
-		// a real name. The result was a YouTube link correctly titled and still
-		// filed under "watch" - the exact complaint this feature exists for,
-		// reappearing whenever the probe was quick.
-		//
-		// Re-checking here closes that ordering; setTaskName closes the other
-		// one (a probe answering after this write). Between them every order
-		// ends in the same place.
+		// A probe that answered between the snapshot and SetPackage found no
+		// package to replace, and SetPackage then filed the task under the
+		// URL guess. Re-checking here covers that order; setTaskName covers a
+		// probe answering later.
 		a.regressGuessedPackages(ids)
 	}
 }
 
-// regressGuessedPackages re-runs the URL-path-guess replacement for tasks that
-// have a real name by now. See nameBucket's call site for the ordering this
-// exists to close.
+// regressGuessedPackages replaces a URL-guessed package for tasks that already
+// have a real name (see nameBucket).
 func (a *App) regressGuessedPackages(ids []string) {
 	changed := make([]core.Task, 0, len(ids))
 	a.mu.Lock()
 	for _, id := range ids {
 		t := a.tasks[id]
-		// Name == URL is the placeholder every stage path leaves behind, so a
-		// task still showing it has nothing better to offer yet - setTaskName
-		// will handle it when its probe answers.
+		// Name == URL means no probe has answered; setTaskName handles it.
 		if t == nil || t.Name == "" || t.Name == t.URL {
 			continue
 		}
-		// The whole family comes back, not just t: the variant siblings are in
-		// no id list of their own, so this is the only place their own rename
-		// is ever seen.
+		// The whole variant family comes back, since the siblings are in no id
+		// list of their own.
 		changed = append(changed, reguessPackageLocked(a.tasks, t, t.Name)...)
 	}
 	a.mu.Unlock()
@@ -500,64 +349,30 @@ func (a *App) regressGuessedPackages(ids []string) {
 	}
 }
 
-// catchAllPackage is where a link with no name of its own ends up.
-//
-// It is a real package rather than the blank one because "ungrouped" is not a
-// group: a collector holding forty unrelated links and no packages is exactly the
-// list this app set out to replace, and a bucket with a name can be collapsed,
-// moved, started and emptied like any other.
-//
-// It is deliberately not translated. A package name is data, not interface text:
-// it is written to the store, it becomes a folder name when SubfolderByPackage is
-// on, and rules match on it — so a name that changed with the interface language
-// would rename folders on disk when somebody switched to German.
+// catchAllPackage is where links without a name of their own are filed, so
+// they can be collapsed and handled like any package. It is not translated: a
+// package name is stored, becomes a folder name and is matched by rules.
 const catchAllPackage = "Various"
 
-// catchAll files whatever is still nameless.
-//
-// It reads through snapshotTasks for the same reason nameBucket above does, and
-// the reason is not tidiness: `created` holds the live rows, and a media link's
-// title probe runs on its own goroutine (stage -> probeYtdlpTitle ->
-// setTaskName, app_tasks.go) which writes Name under a.mu while this walks the
-// very same field. The race detector caught it on the fourth full run, in
-// TestAQuickProbeStillFixesTheGuessedPackage - the one test fast enough to put
-// a probe answer and a paste in the same instant, which is exactly what a
-// person pasting a second batch while the first is still resolving does.
+// catchAll files whatever is still nameless. It reads a snapshot for the same
+// reason as nameBucket.
 func (a *App) catchAll(created []*core.Task) {
 	if ids := unpackagedIDs(awaitingMediaProbe.exclude(a.snapshotTasks(created))); len(ids) > 0 {
 		a.SetPackage(ids, catchAllPackage)
 	}
 }
 
-// awaitingMediaProbe is the one rule both naming passes above skip a link by:
-// a media link whose title probe has not answered yet.
-//
-// It is a named type with one method rather than a bare predicate so the two
-// call sites read as the same decision, which is what it is - jdp, 2026-09-06:
-// "wenn ich ein youtube link im sammler hinzufüge heißt der ordner wieder
-// watch und es wird nur ein link angezeigt, nicht alle dateien". Measured live
-// on the preview instance before changing anything: the machinery that renames
-// such a package to the video's title works, and takes about fifteen seconds
-// (yt-dlp's -j probe fetches every format before it answers). For those fifteen
-// seconds the folder really was called "watch", because /watch is the last path
-// segment of every YouTube video URL and the path is all there is to guess from
-// before the probe lands.
-//
-// So the guess is not made at all for these links. They sit ungrouped while the
-// probe runs and land in the video's own title when it answers
-// (packageIsStillAGuess, app_tasks.go, is the half that files an ungrouped one),
-// or in the URL-path guess after all if the probe fails (probeYtdlpTitle). A
-// folder named after a page verb, standing for fifteen seconds and then
-// renamed, is worse than no folder for fifteen seconds: it is wrong, and it is
-// wrong in a way that looks like a bug rather than like waiting.
 type mediaProbePending struct{}
 
+// awaitingMediaProbe is the rule both naming passes use to skip a media link
+// whose title probe has not answered yet. Before the probe, the only guess is
+// the URL path, which for YouTube is "watch". Such links stay ungrouped until
+// the probe files them under the video title (see packageIsStillAGuess), or
+// under the URL guess if the probe fails.
 var awaitingMediaProbe mediaProbePending
 
-// Name == URL is every stage path's placeholder, so together with the resolver
-// this is exactly "a media link whose probe has not answered". It cannot
-// mistake a resolved link for a pending one: setTaskName's own first act is to
-// replace that placeholder.
+// has reports whether t is a media link still waiting for its probe. Name ==
+// URL is the placeholder every stage path leaves until a name is known.
 func (mediaProbePending) has(t *core.Task) bool {
 	return t != nil && t.Resolver == "ytdlp" && t.Name == t.URL
 }
@@ -572,10 +387,8 @@ func (p mediaProbePending) exclude(tasks []*core.Task) []*core.Task {
 	return out
 }
 
-// unpackagedIDs is the tasks nothing has filed yet. ManualPackage is checked as
-// well as the name because a package the user chose by hand is the one answer
-// nothing derived here may overwrite — including the empty one, which from a
-// person is a deliberate "leave this ungrouped" rather than a gap.
+// unpackagedIDs returns the tasks nothing has filed yet. A package the user
+// chose by hand, even the empty one, is never overwritten.
 func unpackagedIDs(tasks []*core.Task) []string {
 	ids := make([]string, 0, len(tasks))
 	for _, t := range tasks {
@@ -586,16 +399,10 @@ func unpackagedIDs(tasks []*core.Task) []string {
 	return ids
 }
 
-// derivePackage guesses a name for a batch that arrived without one: the shared
-// stem of the file names if the links look like parts of one thing, then what
-// the page they were crawled off called itself, else the host they came from. It
-// returns "" when none of the three is worth using, because a bad guess is worse
-// than no group at all — and what is left over lands in the catch-all instead.
-//
-// title is empty for a pasted batch. It sits between the two because it is the
-// more specific answer of the pair — a listing page's own address is "pub/",
-// "index" or a bare number for a good half of the web, and a package named after
-// the host groups everything anybody ever fetched from that host together.
+// derivePackage guesses a name for a batch: the shared stem of the file names,
+// else the crawled page's title, else the single host. It returns "" when none
+// is worth using, and those links go to the catch-all. The title comes before
+// the host because a host name would group everything ever fetched from it.
 func derivePackage(tasks []*core.Task, title string) string {
 	if len(tasks) == 0 {
 		return ""
@@ -611,13 +418,10 @@ func derivePackage(tasks []*core.Task, title string) string {
 	if stem := commonStem(names); len(stem) >= 3 {
 		return sanitizeSegment(stem)
 	}
-	// Emptiness is tested before sanitizing, not after: sanitizeSegment answers
-	// "package" for an empty string, so sanitizing first would name every batch
-	// with no shared stem "package" and the host fallback below would be dead.
+	// Tested before sanitizing, since sanitizeSegment turns "" into "package".
 	if title = strings.TrimSpace(title); title != "" {
 		return sanitizeSegment(title)
 	}
-	// One host and nothing else in common: the source is the only honest label.
 	if len(hosts) == 1 {
 		for h := range hosts {
 			if h != "" && !strings.HasPrefix(h, "http") {
@@ -628,12 +432,12 @@ func derivePackage(tasks []*core.Task, title string) string {
 	return ""
 }
 
-// fileStem is the part of a task's file name that identifies the thing rather
-// than the part: "film.part03.rar" and "film.r02" both reduce to "film".
+// fileStem returns the part of a task's file name that identifies the release:
+// "film.part03.rar" and "film.r02" both reduce to "film".
 func fileStem(t *core.Task) string {
 	name := t.Name
 	if name == "" || strings.Contains(name, "://") {
-		// Nothing resolved yet, so the URL's last segment is the best we have.
+		// Nothing resolved yet; the URL's last segment is all there is.
 		if u, err := url.Parse(t.URL); err == nil {
 			name = path.Base(u.Path)
 		}
@@ -642,9 +446,8 @@ func fileStem(t *core.Task) string {
 		return ""
 	}
 	if key, ok := extract.SetKey(name); ok {
-		// SetKey lower-cases its base because it is a grouping key. A package
-		// name is read by a person, so take only the LENGTH from it and slice
-		// the original, which keeps the capitalisation the release came with.
+		// SetKey lower-cases its base, so only its length is used, keeping the
+		// original capitalisation.
 		if base, _, cut := strings.Cut(key, "|"); cut && len(base) <= len(name) {
 			return name[:len(base)]
 		}
@@ -652,10 +455,9 @@ func fileStem(t *core.Task) string {
 	return strings.TrimSuffix(name, path.Ext(name))
 }
 
-// commonStem is the longest prefix every name shares. When that prefix cuts a
-// name short it is trimmed back to a separator, because half a word
-// ("Movie.S01E0") is a worse label than the shorter whole one. When every name
-// is identical nothing was cut, so nothing is trimmed either.
+// commonStem returns the longest prefix all names share. When that cuts a
+// name short it is trimmed back to a separator, since half a word is a worse
+// label.
 func commonStem(names []string) string {
 	if len(names) == 0 {
 		return ""
@@ -684,35 +486,20 @@ func commonStem(names []string) string {
 }
 
 // crawl asks the page crawler what a link points at. It returns nothing when
-// crawling is off, when the link is already a file, or when the page yielded
-// nothing — in every one of those cases the link is staged as itself.
+// crawling is off, the link is already a file, or the page yielded nothing;
+// the link is then staged as itself.
 func (a *App) crawl(u string) []crawler.Result {
-	// A folder on the user's own server is expanded BEFORE the Crawl setting
-	// is read, and that is not an oversight.
-	//
-	// "Seiten crawlen" answers one question: may this app fetch an arbitrary
-	// web page somebody pasted, and turn whatever it links to into downloads.
-	// Somebody who switched that off did so about the open internet. A link to
-	// a directory on a seedbox they configured an account for is the same kind
-	// of statement a .torrent's file list is - the link IS the folder, and a
-	// folder cannot be downloaded as one file - so gating it on that setting
-	// would make the feature silently do nothing on any install that has it
-	// off, and the row it left behind would fail later with "this is a folder".
+	// A folder on the user's own server is expanded regardless of the Crawl
+	// setting, which is about fetching arbitrary web pages. A folder link
+	// cannot be downloaded as one file.
 	if res := a.Registry.For(u); res != nil && res.Info().ID == remotefs.ResolverID {
 		return a.listRemoteDir(res, u)
 	}
 	if !a.Settings.Get().Crawl {
 		return nil
 	}
-	// Which backends mean "this might be a page". The HTTP fallback means
-	// nobody recognised the link at all. yt-dlp is in the set because it claims
-	// by exclusion rather than by knowledge — it takes every http link that is
-	// not a known hoster — so gating on the fallback alone meant the crawler
-	// never ran at all on any install that has yt-dlp, which is all of them.
-	//
-	// Everything else stays out: a direct file link is already a download, and
-	// a debrid or JD link belongs to a hoster whose page holds nothing we could
-	// fetch ourselves.
+	// Only the HTTP fallback and yt-dlp may be pages; yt-dlp claims every link
+	// no hoster knows. Direct files, debrid and JD links are not crawled.
 	if res := a.Registry.For(u); res != nil {
 		switch res.Info().ID {
 		case "http", "ytdlp":
@@ -721,16 +508,10 @@ func (a *App) crawl(u string) []crawler.Result {
 		}
 	}
 	opt := crawlOptions(a.Settings.Get())
-	// Begun here, after the settings/registry gates above rather than at the
-	// top of the function: those two return instantly with no network call
-	// made, and counting them as "ambient activity" would flash the status
-	// strip on for zero-cost, zero-duration work.
+	// Activity starts only here, after the cheap early returns.
 	ctx, cancel := context.WithTimeout(context.Background(), crawlBudget(opt))
 	defer cancel()
-	// The same activity counters a crawl has always published, plus the handle
-	// that stops it - see startActivityRun. A deep crawl is minutes of
-	// somebody else's server being slow, and until now the only way out was to
-	// wait for the deadline.
+	// Registered with a stop handle, since a deep crawl can take minutes.
 	done := a.startActivityRun(ActivityCrawl, cancel)
 	defer done()
 
@@ -739,22 +520,15 @@ func (a *App) crawl(u string) []crawler.Result {
 		log.Printf("crawl %s: %v", u, err)
 		return nil
 	}
-	// One result that is the page itself is not a crawl, it is the same link
-	// back; staging it through the normal path keeps the resolver choice honest.
+	// A single result that is the page itself is not a crawl.
 	if len(found) == 1 && found[0].URL == u {
 		return nil
 	}
 	return found
 }
 
-// crawlWith runs the crawl through the deepest interface the configured crawler
-// actually implements.
-//
-// A site-specific crawler and every test stand-in satisfy crawler.Crawler and
-// nothing more, on purpose - see that interface's own comment - so the options
-// are offered rather than required. The fallback is not a degraded mode: a
-// crawler that knows one site knows what its own pages point at, and depth is a
-// question only the generic HTML one has to be told the answer to.
+// crawlWith uses CrawlDeep when the configured crawler supports it.
+// Site-specific crawlers and test fakes implement only crawler.Crawler.
 func (a *App) crawlWith(ctx context.Context, u string, opt crawler.Options) ([]crawler.Result, error) {
 	if deep, ok := a.Crawler.(crawler.DeepCrawler); ok {
 		return deep.CrawlDeep(ctx, u, opt)
@@ -762,12 +536,8 @@ func (a *App) crawlWith(ctx context.Context, u string, opt crawler.Options) ([]c
 	return a.Crawler.Crawl(ctx, u)
 }
 
-// crawlOptions is the crawl settings block as the crawler wants it.
-//
-// Every value is passed through as stored: the ranges are settled once, in
-// settings.sanitizeIntake, so that the number the user sees in the box is the
-// number that runs. Clamping a second time here would be a second opinion, and
-// the day the two disagree is the day a setting reads 3 and behaves like 1.
+// crawlOptions converts the crawl settings for the crawler. The values are
+// already clamped by settings.sanitizeIntake, so they pass through unchanged.
 func crawlOptions(cfg settings.Settings) crawler.Options {
 	return crawler.Options{
 		Depth:    cfg.CrawlDepth,
@@ -779,27 +549,18 @@ func crawlOptions(cfg settings.Settings) crawler.Options {
 }
 
 const (
-	// pageCrawlTimeout is the budget for a one-page crawl, unchanged from the
-	// day the crawler was written: the user is standing at the paste box.
+	// pageCrawlTimeout is the budget for a one-page crawl; the user is
+	// waiting at the paste box.
 	pageCrawlTimeout = 30 * time.Second
 
-	// deepCrawlTimeout is the budget for a walk of several pages. It is not
-	// thirty seconds times the page cap, which for two hundred pages would be
-	// an hour of a paste request held open.
-	//
-	// Five minutes is what a walk that is going WELL never comes near - twenty
-	// pages answering in a second each is twenty seconds - and what a walk that
-	// is going badly is stopped at. It can be generous precisely because it is
-	// no longer the only way out: the run shows up in the status strip with a
-	// stop button on it from the moment it starts, so the deadline is the
-	// backstop for nobody watching, not the user's own escape hatch.
+	// deepCrawlTimeout is the budget for a multi-page walk. A healthy walk
+	// never comes near it, and the status strip offers a stop button for the
+	// rest.
 	deepCrawlTimeout = 5 * time.Minute
 )
 
-// crawlBudget is how long the whole run may take. A single page keeps the
-// budget it always had; only a walk that was explicitly asked for gets the
-// longer one, so an install that never touches the setting cannot start
-// waiting minutes for something that used to give up after thirty seconds.
+// crawlBudget returns how long the whole crawl may take. Only a walk that was
+// asked for gets the longer budget.
 func crawlBudget(opt crawler.Options) time.Duration {
 	if opt.Depth > 1 {
 		return deepCrawlTimeout
@@ -807,25 +568,14 @@ func crawlBudget(opt crawler.Options) time.Duration {
 	return pageCrawlTimeout
 }
 
-// remoteListTimeout bounds one directory expansion. Longer than the page
-// crawl's own 30 seconds because this walks a tree rather than parsing one
-// document, and an FTP server answering a LIST for each of several nested
-// folders pays a round trip per level - but still bounded, because the user is
-// standing at the paste box while it runs.
+// remoteListTimeout bounds one directory expansion. It is longer than a page
+// crawl because an FTP server pays a round trip per nested folder.
 const remoteListTimeout = 60 * time.Second
 
-// listRemoteDir turns a link to a folder on the user's own server into one
-// entry per file inside it, which the caller then stages exactly the way it
-// stages the links a page crawl found.
-//
-// It reports nothing for a link to a single file, which is List's own "(nil,
-// nil) means this is not a folder" answer and the ordinary case: the link is
-// then staged as itself, one task, through the same path it always was.
-//
-// A failure is logged and swallowed, the same as a failed page crawl one
-// function below. The link is staged as itself instead, which for a folder
-// ends in a resolve error naming it as a folder - a row that says what
-// happened, rather than a paste that silently produced nothing at all.
+// listRemoteDir expands a link to a folder on the user's own server into one
+// entry per file. A link to a single file yields nothing and is staged as
+// itself. A failure is logged and the link is staged as itself, where it fails
+// with a message naming it as a folder.
 func (a *App) listRemoteDir(res resolver.Resolver, u string) []crawler.Result {
 	r, ok := res.(remotefs.Resolver)
 	if !ok {
@@ -833,12 +583,8 @@ func (a *App) listRemoteDir(res resolver.Resolver, u string) []crawler.Result {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), remoteListTimeout)
 	defer cancel()
-	// Registered as a cancellable run for the same reason the page crawl above
-	// is, and it matters MORE here: this walks a tree over FTP or SMB, where a
-	// server that has stopped answering costs a round trip per level before the
-	// deadline notices. A stop button on the crawl row of the strip that could
-	// only ever call off half the work published under that kind would be a
-	// button that sometimes does nothing.
+	// Stoppable like a page crawl; an unresponsive server costs a round trip
+	// per level.
 	done := a.startActivityRun(ActivityCrawl, cancel)
 	defer done()
 	found, err := r.List(ctx, u)
@@ -849,9 +595,7 @@ func (a *App) listRemoteDir(res resolver.Resolver, u string) []crawler.Result {
 	if len(found) == 0 {
 		return nil
 	}
-	// The folder's own name, carried on every entry as the bucket title, so
-	// nameBucket files the batch under it - see remotefs.PackageName for why
-	// the app's own file-name guesser cannot arrive at it.
+	// The folder's name as the bucket title (see remotefs.PackageName).
 	title := remotefs.PackageName(u)
 	out := make([]crawler.Result, 0, len(found))
 	for _, f := range found {
@@ -860,44 +604,11 @@ func (a *App) listRemoteDir(res resolver.Resolver, u string) []crawler.Result {
 	return out
 }
 
-// stage creates one collected task for a URL and is the only way a link enters
-// the list — the pasted path and the crawled path both come through here, so a
-// filter one of them honours cannot be the one the other walks past.
-//
-// Everything that decides whether a link may exist at all happens before put.
-// A filter that ran afterwards would already have leaked the link into the task
-// map, into the store and onto every connected screen, and taking it away again
-// is a flicker and a store round trip, not a filter.
-//
-// It returns nil when the link never became a task, and the held task when the
-// filter refused it.
-//
-// sizeHint is what the caller already knows about the byte count - a
-// container's own crawl, for the same reason name can arrive pre-known (see
-// addResolvedLinksFrom) - and 0 for every caller that does not. It is applied
-// before the resolver runs and, like name, is not allowed to be overwritten by
-// a resolver's placeholder answer of 0 - see the guard below.
-// stagingResolverFor picks the backend a link is COLLECTED with, and it asks
-// the same question dispatch asks rather than a cheaper one.
-//
-// IT USED TO BE Registry.For, AND THAT WAS THE BUG. Registry.For walks the list
-// the registry sorted ONCE at Register time, by the static Info().Prio, where JD
-// sits at 10 and Direct at 40. rankedChain re-ranks per URL through
-// dynamicPrio, which is where jd.PriorityFor lifts a host JD can actually reach
-// to 41 and past Direct. jd/resolver.go's own comment says the per-host boost
-// never reaches the frozen order; the consequence for this door was never drawn.
-//
-// The reason a cheaper question here is not harmless: the collected answer
-// STICKS. resolverForTaskLocked hands back t.Resolver unchanged whenever the
-// recorded backend is routable, and "direct" always is, having no account to be
-// locked out of. So the ranked chain that exists to correct this never ran, and
-// a hoster link whose path happens to end in a filename went out as an
-// anonymous GET with no mode on its row at all - modeForLocked answers
-// ModeUnknown for "direct", which is why the "Free" badge could not appear on
-// the links it was written for.
-//
-// No lock is taken and none is needed: Settings.Get and Registry each hold
-// their own, and stage() does not hold a.mu here.
+// stagingResolverFor picks the backend a link is collected with, using the
+// same per-URL ranking dispatch uses. Registry.For only knows the static
+// priorities, and the collected choice sticks: resolverForTaskLocked keeps
+// t.Resolver while it is routable, so a hoster link JD can reach would
+// otherwise go out as a plain "direct" GET.
 func (a *App) stagingResolverFor(u string) resolver.Resolver {
 	chain := rankedChain(a.Registry.All(u), u, a.Settings.Get().ResolverOrder)
 	if len(chain) == 0 {
@@ -906,32 +617,31 @@ func (a *App) stagingResolverFor(u string) resolver.Resolver {
 	return chain[0]
 }
 
+// stage creates one collected task for a URL. It is the only way a link enters
+// the list, so crawled and pasted links pass the same filter, and everything
+// that can refuse a link runs before put. It returns nil when no task was
+// created and the held task when the filter refused the link.
+//
+// sizeHint is a byte count the caller already knows, or 0. Like a known name,
+// it is not overwritten by a resolver's placeholder answer.
 func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
-	// One clock reading for the whole link, in local time: it is what CreatedAt
-	// gets and what pathvars formats for <jd:date>, and a UTC reading here would
-	// flip a dated folder name a day early for everyone east of Greenwich.
+	// One local clock reading for CreatedAt and <jd:date>; UTC would shift
+	// dated folders by a day east of Greenwich.
 	now := time.Now()
 	cand := rules.Candidate{URL: u, Source: in.source, Package: in.pkg, Added: now}
 	if n := strings.TrimSpace(name); n != "" {
 		cand.Filename = n
 	}
-	// First pass, before anything is fetched. The byte count and the file type
-	// are still unknown, so a rule keyed on those cannot fire yet — but a reject
-	// on the URL, the hoster or the source page saves the whole network round
-	// trip, which on a paste of several thousand links is the entire cost.
+	// First pass, before anything is fetched: rules on URL, hoster or source
+	// save the network round trip.
 	if in.waived == "" {
 		if v := a.filter(cand); v.Rejected {
 			return a.hold(cand, v, in.origin, now)
 		}
 	}
-	// An advisory look before the expensive part, so an obvious duplicate costs
-	// nothing. The binding check is in put, under the lock that inserts the task.
-	//
-	// A mirror the user has asked to keep is deliberately NOT short-circuited
-	// here: a sibling staged at this point would be a bare URL with no name and
-	// no byte count, because nothing has resolved it yet. It goes the long way
-	// round and is caught by the binding check instead, which runs after the
-	// resolver has filled those in.
+	// An advisory duplicate check; the binding one is in put. A mirror the user
+	// keeps is not short-circuited here, because it needs a resolved name and
+	// size first.
 	if m := a.mirror(dedupe.Entry{URL: u, Name: cand.Filename}); m.Seen() && !a.keepsAsSibling(m) {
 		a.recordSkipped(u, m)
 		return nil
@@ -942,29 +652,18 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 		Name:    u,
 		Package: in.pkg,
 		Status:  core.StatusCollected,
-		// Set here and not left to the zero value: a link nobody has switched off
-		// is on, and a Task built without this would be staged already disabled.
 		Enabled: true,
 		Source:  in.source,
 		Origin:  in.origin,
-		// The reason the user overruled, kept on a link they let through. It is
-		// what tells the queue apart from a link the filter has never seen — see
-		// filterWaived — and it is empty for everything that was never held.
+		// The overruled filter reason, empty unless the link was restored (see
+		// filterWaived).
 		SkipReason: in.waived,
-		// torrentHost, not the bare hostOf every other link here gets: a magnet
-		// names no single host either, and falling back to hostOf's raw-string
-		// answer for one is exactly the bug torrentHost's own comment describes
-		// for an uploaded .torrent, just smaller - see that comment for why
-		// "smaller" does not mean "fine".
+		// torrentHost, since a magnet names no single host.
 		Host:      torrentHost(u),
 		CreatedAt: now,
 	}
-	// The add-links form's own batch options, seeded before ANY of the three
-	// finishStaging calls below - which is what runs the Packagizer - so that a
-	// matching rule overwrites them exactly as it would overwrite a value set
-	// no other way. See intake's own comment and app_links_batch.go for the
-	// other half: applying them again once staging is done, when the form is
-	// meant to win instead.
+	// Batch options go on before finishStaging runs the Packagizer, so a
+	// matching rule overwrites them.
 	if in.priority != nil {
 		p := *in.priority
 		if p < rules.PriorityMin {
@@ -989,9 +688,7 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 	}
 	res := a.stagingResolverFor(u)
 	if res == nil {
-		// A link is never dropped on the floor. If nothing can handle it, or
-		// resolving fails, it is still staged — with the reason on it — so the
-		// user can see what happened instead of watching links vanish.
+		// Staged anyway, with the reason, so links never silently vanish.
 		t.Error = "no backend handles this link"
 		t.Reason = core.ReasonUnsupported
 		t.Online = core.AvailOffline
@@ -1005,16 +702,8 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 		t.Reason = classify(failure{err: err})
 		return a.finishStaging(t, cand)
 	}
-	// result.Name != u is deliberate, not a stray strictness. A resolver that
-	// does not yet know the real name answers with the URL itself rather than
-	// leaving Name blank - jd, ytdlp, debrid and torbox's own Resolve methods
-	// all do this, by their own doc comments, so a task always has something to
-	// show. filename() (below) already reads that exact convention the other
-	// way, treating Name == URL as "nothing resolved yet". That placeholder
-	// must not be allowed to overwrite a real name this link arrived with (a
-	// container's own crawl - see addResolvedLinksFrom), or the one useful
-	// answer staging already had is thrown away for the one that means "I don't
-	// know" - which is the bug a DLC's name and size were disappearing to.
+	// Resolvers that do not know the name yet answer with the URL itself; that
+	// placeholder must not replace a name the link arrived with.
 	if result.Name != "" && result.Name != u {
 		t.Name = result.Name
 	}
@@ -1022,23 +711,15 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 		t.Size = result.Size
 	}
 	if t.Resolver == "torrent" {
-		// resolver.Result (above) has no room for these - it is the one shape
-		// every resolver answers with, and InfoHash/Trackers mean nothing to
-		// the other five. A second, torrent-specific Describe call gets them
-		// the same way app_torrents.go's AddTorrent already does for an
-		// uploaded .torrent - cheap for the magnet case this path actually
-		// handles: checkMagnet is metainfo.ParseMagnetV2Uri, a local parse of
-		// the URI's own text, never a network call, so this is not a second
-		// real resolve.
+		// resolver.Result has no room for the info hash and trackers. For a
+		// magnet, Describe only parses the URI locally.
 		if md, err := (torrent.Resolver{}).Describe(u); err == nil {
 			t.InfoHash = md.InfoHash
 			t.Trackers = md.Trackers
 		}
 	}
 
-	// Second pass, now that the name and the byte count exist. This is the one
-	// that can act on a size or a file-type condition, and it still runs before
-	// the task is staged.
+	// Second pass, with name and size known, still before staging.
 	cand.Filename, cand.Filesize = filename(t), t.Size
 	if in.waived == "" {
 		if v := a.filter(cand); v.Rejected {
@@ -1046,28 +727,16 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 		}
 	}
 	staged := a.finishStaging(t, cand)
-	// Lightweight analysis for plain file links: a HEAD gives size + an online
-	// check while the task waits in the collector.
+	// A HEAD probe for plain file links fills in size and availability while
+	// the task waits in the collector.
 	if staged != nil && res.Info().ID == "direct" {
 		a.spawn(func() { a.analyze(t.ID, result.DirectURL) })
 	} else if staged != nil && res.Info().ID == "ytdlp" {
-		// expandYtdlpVariants turns this one staged task into the full
-		// video/audio/thumbnail/subtitle/description family - see its own
-		// doc comment (app_ytdlp_variants.go). Synchronous, not spawned like
-		// the probe below: it is a handful of local map writes and a Store
-		// save, not a network call, so there is nothing to wait on and the
-		// row family should exist as soon as the link ever appears.
+		// Local map writes and a save, so it runs inline and the variant rows
+		// exist as soon as the link appears.
 		a.expandYtdlpVariants(staged)
-		// Same shape, yt-dlp's own version: a title probe while the task waits
-		// in the collector, so a YouTube (etc.) link shows the video's real
-		// name instead of its own URL before anybody presses Start - see
-		// probeYtdlpTitle's own doc comment (app_tasks.go) for why this is
-		// silent on failure, the same as analyze's HEAD probe above.
-		//
-		// Not for a playlist entry: the listing that produced it already
-		// carried its name, and a hundred entries spawning a hundred processes
-		// at one host from one pasted line is the stampede
-		// probePlaylistEntries (app_ytdlp_playlist.go) runs serially instead.
+		// A title probe, except for playlist entries, whose listing already
+		// named them (see probePlaylistEntries).
 		if !in.playlistEntry {
 			a.spawn(func() { a.probeYtdlpTitle(t.ID, result.DirectURL) })
 		}
@@ -1075,21 +744,15 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 	return staged
 }
 
-// finishStaging applies the Packagizer and stages the task, or reports the link
-// as one the list already covers.
-//
-// The Packagizer runs here, before put and therefore before anything has asked
-// dirFor where the file goes. Run it afterwards and its folder action names a
-// folder nothing writes to, and the user watches a link land in one package and
-// jump to another a moment later.
+// finishStaging applies the Packagizer and stages the task, or records the
+// link as already covered. The Packagizer runs before put, so a rule's folder
+// is in place before anything asks dirFor.
 func (a *App) finishStaging(t *core.Task, cand rules.Candidate) *core.Task {
 	cand.Filename, cand.Filesize, cand.Package = filename(t), t.Size, t.Package
 	a.packagize(t, cand)
 	if m, ok := a.put(t); !ok {
-		// The refusal is where a kept mirror is staged instead, and it has to be
-		// here rather than at the advisory check: this is the first point at which
-		// the sibling has a name and a size of its own, and a second copy nobody
-		// can tell apart from the first is not worth keeping.
+		// A kept mirror is staged here, where it finally has a name and size
+		// of its own.
 		if a.stageSibling(t, m) {
 			return t
 		}
@@ -1099,10 +762,8 @@ func (a *App) finishStaging(t *core.Task, cand rules.Candidate) *core.Task {
 	return t
 }
 
-// filename is a task's file name, or empty while nothing has resolved one. A
-// task that has not been looked at yet carries its own URL as a name, and
-// handing that to a rule as a file name makes "filename contains" answer about
-// the URL instead.
+// filename returns a task's file name, or "" while the name is still the URL
+// placeholder, so rules do not match the URL as a file name.
 func filename(t *core.Task) string {
 	if t.Name == t.URL {
 		return ""
@@ -1110,12 +771,8 @@ func filename(t *core.Task) string {
 	return t.Name
 }
 
-// candidateOf describes an existing task to the rule engine. The source page is
-// left out although the task now carries it: a rule keyed on the source decides
-// at staging time today, and feeding it to the second pass in the dispatcher
-// would change what an existing rule set does to links already in the list. That
-// is a decision for the wave that owns the link filter, not a side effect of
-// recording the field.
+// candidateOf describes an existing task to the rule engine. Source is left
+// out so that source rules keep deciding at staging time only.
 func candidateOf(t *core.Task) rules.Candidate {
 	return rules.Candidate{
 		URL:      t.URL,
@@ -1126,9 +783,8 @@ func candidateOf(t *core.Task) rules.Candidate {
 	}
 }
 
-// filter asks the link filter about a candidate. A set with no usable rule is
-// never consulted, so an install that has never opened the page does no work per
-// link at all.
+// filter asks the link filter about a candidate. An empty rule set is never
+// consulted.
 func (a *App) filter(cand rules.Candidate) rules.Verdict {
 	_, f := a.matchers()
 	if f == nil || f.Empty() {
@@ -1137,25 +793,14 @@ func (a *App) filter(cand rules.Candidate) rules.Verdict {
 	return f.Check(cand)
 }
 
-// filterWaived reports a link the user has already overruled the filter for.
-//
-// It is the pair (not held, but carrying the reason it was held for): Skipped
-// says the filter is holding it now, and a SkipReason that outlives the flag is
-// the record that somebody read that reason and restored the link anyway. The
-// queue asks the filter one last time before any bytes move, and without this
-// Restore would be a button that puts a link back so the same rule can refuse it
-// again with the same sentence.
+// filterWaived reports a link the user restored against the filter: not held,
+// but still carrying the reason it was held for. The queue skips its
+// final filter check for such links.
 func filterWaived(t *core.Task) bool { return t != nil && !t.Skipped && t.SkipReason != "" }
 
-// packagize applies the Packagizer's answer to a task that has not been staged
-// yet. Only what a rule actually set is applied: an empty field means "no rule
-// had an opinion", never "clear it".
-//
-// The rename action is deliberately not applied. Nothing here can tell a backend
-// which file name to write — the engine is handed a directory and names the file
-// itself — so putting a rule's name on the task would leave the list showing one
-// name while the disk holds another, and extraction and checksum verification
-// both build their path by joining the folder with that name.
+// packagize applies the Packagizer's answer to a task before it is staged.
+// Only fields a rule set are applied. The rename action is not, since backends
+// choose the file name themselves and the list would disagree with the disk.
 func (a *App) packagize(t *core.Task, cand rules.Candidate) {
 	pkg, _ := a.matchers()
 	if pkg == nil || pkg.Empty() {
@@ -1166,50 +811,29 @@ func (a *App) packagize(t *core.Task, cand rules.Candidate) {
 		t.Package = e.Package
 	}
 	if e.Dir != "" {
-		// Already expanded by the rules package, and dirFor takes a task's own
-		// folder verbatim. Expanding it a second time would resolve placeholders
-		// the first pass deliberately left standing so the user could see them.
+		// Already expanded by the rules package; dirFor uses it verbatim.
 		t.Dir = e.Dir
 	}
 	if e.ExtractDir != "" {
-		// Already expanded by the rules package, exactly like e.Dir above, and
-		// for the same reason left verbatim here.
+		// Already expanded, like e.Dir.
 		t.ExtractDir = e.ExtractDir
 	}
 	if e.Category != "" {
-		// The drawer, by id. Set even when the category no longer exists: a
-		// rule naming a deleted one is a fact worth keeping visible rather than
-		// a value to silently drop, and settings.CategoryFor answers with the
-		// empty category for an unknown id, so nothing downstream breaks.
+		// Kept even if the category was deleted; CategoryFor then answers with
+		// the empty category.
 		t.Category = e.Category
 	}
 	if e.Comment != "" {
 		t.Comment = e.Comment
 	}
 	if e.Priority != nil {
-		// Already clamped to the same range SetPriority uses, so a rule cannot
-		// hand a task a priority the interface has no way to undo.
+		// Already clamped to SetPriority's range.
 		t.Priority = *e.Priority
 	} else if p, ok := a.Settings.Get().PriorityFor(t.Category); ok {
-		// A category's priority is written HERE and nowhere else: at creation,
-		// once, and never again.
-		//
-		// It cannot go in the dispatcher, which is the tempting place, because
-		// dispatchLocked runs on nearly every event in the app - so the pass
-		// after somebody dragged a download up the list would silently put it
-		// back where the drawer says, with nothing on screen explaining why.
-		// And the exception cannot be written either: core.Task.Priority is a
-		// plain int on which 0 is the MIDDLE priority and a real answer, so once
-		// a task exists, "somebody set this by hand" and "nobody ever touched
-		// it" are the same value. That is exactly why settings.Category.Priority
-		// is a *int and PriorityFor answers with a second result.
-		//
-		// The `ok` is load-bearing and a `p != 0` would be wrong twice over: a
-		// drawer asking for the middle priority is asking for something, and a
-		// task a rule has already lifted must not be pushed back down by a
-		// drawer that said nothing. Hence the else, so a rule keeps beating the
-		// drawer, which is dirFor's order for the folder as well: more evidence
-		// wins, and a rule looked at THIS link.
+		// A category's priority is applied once, at creation. The dispatcher
+		// cannot do it, because it would undo manual reordering, and 0 is a
+		// real priority, so ok decides rather than p != 0. A rule's priority
+		// wins over the category's.
 		t.Priority = p
 	}
 	if e.Chunks != nil {
@@ -1222,26 +846,10 @@ func (a *App) packagize(t *core.Task, cand rules.Candidate) {
 	t.MatchedRules = e.Matched
 }
 
-// hold parks a link the filter refused, in the holding area rather than in the
-// collector.
-//
-// It is still a task, and it is still kept. Eating links in silence is
-// JDownloader's single most complained-about behaviour, and a link that
-// disappears without a trace is indistinguishable from a bug in the paste box.
-// But Skipped keeps it out of the list, out of the queue and out of the counters
-// — because a filter that is working would otherwise fill the collector with
-// exactly the junk it just caught, and a collector full of junk reads as a filter
-// that does nothing. That is the whole of the difference from staging it: same
-// record, different list.
-//
-// A task rather than a note in memory, because the holding area has to survive a
-// restart. A list of links that quietly empties itself overnight is the silent
-// loss this feature exists to prevent, moved one reboot along.
-//
-// Nothing is resolved. A refused link must not cost a network round trip — on a
-// paste of several thousand links that saving is the entire cost — and a rule
-// written to keep this box away from a host must not make it talk to that host
-// on the way to saying so.
+// hold parks a link the filter refused in the holding area. It is a real task,
+// so it survives a restart and can be restored, but Skipped keeps it out of the
+// collector, the queue and the counters. Nothing is resolved, so a refused host
+// is never contacted.
 func (a *App) hold(cand rules.Candidate, v rules.Verdict, origin core.Origin, now time.Time) *core.Task {
 	t := &core.Task{
 		URL:     cand.URL,
@@ -1249,30 +857,21 @@ func (a *App) hold(cand rules.Candidate, v rules.Verdict, origin core.Origin, no
 		Package: cand.Package,
 		Status:  core.StatusCollected,
 		Skipped: true,
-		// The sentence the person reads. rejection() has already folded the rule's
-		// name into it where the rule's own words did not carry it.
+		// rejection() has already added the rule's name where needed.
 		SkipReason: rejection(v),
-		// A refused link is still an enabled one: what stopped it was the filter,
-		// and a user who fixes the rule expects to be able to start it.
+		// Still enabled: once the rule is fixed, the link can be started.
 		Enabled:   true,
 		Source:    cand.Source,
 		Origin:    origin,
 		Host:      hostOf(cand.URL),
 		CreatedAt: now,
-		// Online is left unset on purpose. It used to be filed as offline so the
-		// collector would show the link was not going to be taken, which Skipped
-		// now says properly — and "offline" is a claim about the link that nobody
-		// checked. Filing a live link as dead is how a user learns to ignore the
-		// column.
+		// Online stays unset; nobody checked whether the link is alive.
 	}
 	if cand.Filename != "" {
 		t.Name = cand.Filename
 	}
 	if v.Rule != "" {
-		// Which rule caught it, as data and not only inside a sentence. The first
-		// question anyone asks of the holding area is which rule to go and edit,
-		// and a client that has to parse the name back out of prose that will
-		// eventually be translated will get it wrong.
+		// The rule as data, so clients need not parse it out of a sentence.
 		t.MatchedRules = []string{v.Rule}
 	}
 	if m, ok := a.put(t); !ok {
@@ -1282,11 +881,8 @@ func (a *App) hold(cand rules.Candidate, v rules.Verdict, origin core.Origin, no
 	return t
 }
 
-// rejection is what the user reads on a refused link. The rule package writes a
-// reason that already names the rule when the user gave none of their own, so
-// the name is added only where it would otherwise be missing. The test is on the
-// quoted name because a reason written in the user's own words routinely
-// contains the same word the rule is named after.
+// rejection returns the reason shown on a refused link, adding the rule's name
+// unless the reason already quotes it.
 func rejection(v rules.Verdict) string {
 	if v.Rule == "" || strings.Contains(v.Reason, strconv.Quote(v.Rule)) {
 		return v.Reason
@@ -1294,13 +890,8 @@ func rejection(v rules.Verdict) string {
 	return fmt.Sprintf("%s (link filter rule %q)", v.Reason, v.Rule)
 }
 
-// FilteredLinks is the holding area: the links the filter refused, oldest first.
-//
-// It is derived from the task list rather than kept beside it. The tasks are
-// already persisted, already broadcast and already sent to every client, so a
-// second list would be a second thing to keep in step with the first — and the
-// browser can answer this question from the stream it is holding anyway. This
-// exists for the clients that are not a browser.
+// FilteredLinks returns the holding area, oldest first. It is derived from the
+// task list, for clients that do not follow the task stream.
 func (a *App) FilteredLinks() []*core.Task {
 	a.mu.Lock()
 	held := make([]core.Task, 0, 8)
@@ -1318,16 +909,9 @@ func (a *App) FilteredLinks() []*core.Task {
 	return out
 }
 
-// RestoreFiltered puts links the filter is holding back into the collector, with
-// the filter waived for exactly those links. An empty id list restores the whole
-// holding area.
-//
-// Waived, and not merely un-held. The commonest reason to open this list at all
-// is that the rule turned out to be too broad, and the queue asks the filter one
-// final time before any bytes move — so a Restore that only cleared the flag
-// would be a button that hands the link straight back to the rule that caught it.
-// What was overruled stays recorded on the task (see filterWaived), so this is a
-// decision about these links and not a hole in the filter.
+// RestoreFiltered moves held links back into the collector with the filter
+// waived for them; an empty id list restores all. Without the waiver the
+// queue's final filter check would refuse the link again.
 func (a *App) RestoreFiltered(ids []string) []*core.Task {
 	want := map[string]bool{}
 	for _, id := range ids {
@@ -1342,8 +926,7 @@ func (a *App) RestoreFiltered(ids []string) []*core.Task {
 			continue
 		}
 		t.Skipped = false
-		// Status and Error are untouched: a held link was never started, so there
-		// is nothing to reset, and SkipReason is deliberately kept.
+		// SkipReason stays as the record of the waiver.
 		freed = append(freed, *t)
 	}
 	a.mu.Unlock()
@@ -1358,20 +941,15 @@ func (a *App) RestoreFiltered(ids []string) []*core.Task {
 		out = append(out, &c)
 		restored = append(restored, c.ID)
 	}
-	// Nothing was resolved while the link was held, so a restored link would
-	// otherwise sit in the collector as a bare URL with no name and no size. The
-	// recheck is the same one the interface offers by hand; off the caller's
-	// goroutine because it is one network round trip per link and the browser is
-	// waiting for this response.
+	// Held links were never resolved, so recheck them in the background.
 	if len(restored) > 0 {
 		a.spawn(func() { a.RecheckTasks(restored) })
 	}
 	return out
 }
 
-// ClearFiltered deletes the links the filter is holding, and only those. An
-// empty id list empties the whole holding area. The downloaded files are never
-// touched, because a held link has never downloaded anything.
+// ClearFiltered deletes held links; an empty id list empties the holding area.
+// Held links never downloaded anything, so no files are touched.
 func (a *App) ClearFiltered(ids []string) []string {
 	want := map[string]bool{}
 	for _, id := range ids {
@@ -1387,14 +965,12 @@ func (a *App) ClearFiltered(ids []string) []string {
 		}
 	}
 	a.mu.Unlock()
-	// Through RemoveTasks rather than by deleting from the map here: it is what
-	// takes the link back out of the mirror set and off every open screen, and a
-	// second removal path is a second place for those two to be forgotten.
+	// RemoveTasks also updates the mirror set and open screens.
 	return a.RemoveTasks(doomed, false)
 }
 
-// heldLink reports whether a task id belongs to a link the filter is holding.
-// Caller must not hold mu.
+// heldLink reports whether a task id belongs to a held link. Caller must not
+// hold mu.
 func (a *App) heldLink(id string) bool {
 	if id == "" {
 		return false
@@ -1405,14 +981,9 @@ func (a *App) heldLink(id string) bool {
 	return t != nil && t.Skipped
 }
 
-// SkippedLink is a link that never became a task. It is kept so the interface
-// can say what happened to it: a link folded away with nothing to show for it
-// looks exactly like a bug in the paste box, and gets reported as one.
-//
-// This is not the holding area. A link the filter refused is a task with Skipped
-// on it, because it can be restored and therefore has to survive a restart; this
-// is the trace of links that were folded into a copy already in the list, where
-// there is nothing to restore and nothing was lost.
+// SkippedLink is a link that never became a task because it was folded into
+// one already in the list, kept so the interface can say what happened to it.
+// Filtered links are tasks in the holding area instead.
 type SkippedLink struct {
 	URL string `json:"url"`
 	// Kind is what the mirror set decided: "duplicate" or "mirror".
@@ -1423,27 +994,21 @@ type SkippedLink struct {
 	At     time.Time `json:"at"`
 }
 
-// maxSkipped caps the trace. A watch folder re-reading one list is exactly the
-// shape that would otherwise grow it for the life of the process.
+// maxSkipped caps the trace; a watch folder rereading one list would otherwise
+// grow it for ever.
 const maxSkipped = 500
 
-// mirror asks the set whether a link is already covered. It is a separate
-// critical section from the one put uses because the caller has a network round
-// trip to make in between, and holding mu across a resolver call would serialise
-// every paste behind one HTTP request — which on a large paste looks like the
-// app hanging.
+// mirror asks the mirror set whether a link is already covered. It takes a.mu
+// on its own because the caller resolves the link before the binding check.
 func (a *App) mirror(e dedupe.Entry) dedupe.Match {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	return a.dupes.Check(e)
 }
 
-// recordSkipped keeps and broadcasts a link that was folded into one already in
-// the list.
+// recordSkipped keeps and broadcasts a link folded into one already in the
+// list, with the task and signal it matched so the user can check it.
 func (a *App) recordSkipped(u string, m dedupe.Match) {
-	// OfID and Signal are the whole point of a duplicate's trace: "already have
-	// it" is not something a user can check, and "the same file name and byte
-	// count as this task" is.
 	a.pushSkipped(SkippedLink{
 		URL:    u,
 		Kind:   m.Verdict.String(),
@@ -1454,10 +1019,9 @@ func (a *App) recordSkipped(u string, m dedupe.Match) {
 	})
 }
 
-// recordSkippedReason is the same trace for something that never reached the
-// mirror set: a container that opened into nothing, a handover the backend
-// refused. Those fail after the request that started them has been answered, so
-// without a record they fail into silence.
+// recordSkippedReason records something that failed before reaching the mirror
+// set, such as a container that opened into nothing, after its request was
+// already answered.
 func (a *App) recordSkippedReason(u, kind, reason string) {
 	a.pushSkipped(SkippedLink{URL: u, Kind: kind, Reason: reason, At: time.Now()})
 }
@@ -1472,15 +1036,11 @@ func (a *App) pushSkipped(s SkippedLink) {
 	a.Hub.Broadcast("skipped", s)
 }
 
-// skipReason is the sentence shown next to a folded link. It names what the
-// match rests on, because "already have it" is not something a user can check
-// and "the same file name and byte count" is.
+// skipReason is the sentence shown next to a folded link, naming what the
+// match rests on.
 func (a *App) skipReason(m dedupe.Match) string {
 	if m.Verdict == dedupe.Duplicate {
-		// "Already in the list" is a sentence the user will go and check, and when
-		// the copy is one the filter is holding they will not find it — the holding
-		// area is deliberately not the collector. Saying where it actually is turns
-		// a paste that looks ignored into one that points at the button to press.
+		// The holding area is not the collector, so say where the copy is.
 		if a.heldLink(m.Of.ID) {
 			return "the link filter is already holding this link"
 		}
@@ -1509,23 +1069,16 @@ func (a *App) ClearSkipped() {
 	a.mu.Unlock()
 }
 
-// AddLinksCnL satisfies the Click'n'Load listener's Adder interface. A CnL
-// submission can carry the archive passwords for what it is sending, which is
-// exactly the moment we can learn them without asking the user.
+// AddLinksCnL implements the Click'n'Load listener's Adder. A submission may
+// carry archive passwords for the links it sends.
 func (a *App) AddLinksCnL(urls []string, pkg string, passwords []string) {
 	a.AddLinksWithPasswords(urls, pkg, passwords, OriginCnL)
 }
 
-// AddLinksWithPasswords stages links that arrived together with the archive
-// passwords for them. The first password rides on the tasks themselves, because
-// it was supplied for exactly these files; the rest join the global list, where
-// a later archive from the same source can still reach them.
-//
-// The entrance is a parameter rather than OriginCnL fixed in place. Click'n'Load
-// is still the only thing that supplies passwords, but it does not always arrive
-// here directly: a bridge relays one over the REST API, and an older bridge
-// relays it without naming the entrance at all. Pinning the origin here would
-// file those links under an entrance the caller had already contradicted.
+// AddLinksWithPasswords stages links that arrived with archive passwords. The
+// first password goes on the tasks; the rest join the global list for later
+// archives from the same source. The origin is a parameter because a bridge
+// may relay a Click'n'Load submission over the REST API.
 func (a *App) AddLinksWithPasswords(urls []string, pkg string, passwords []string, origin core.Origin) []*core.Task {
 	created := a.addLinksFrom(urls, pkg, origin, LinkBatchOptions{})
 	var first string
@@ -1551,8 +1104,8 @@ func (a *App) AddLinksWithPasswords(urls []string, pkg string, passwords []strin
 	return a.detached(created)
 }
 
-// rememberPasswords folds passwords a submission brought along into the global
-// list, so a later archive from the same source can still be opened.
+// rememberPasswords adds a submission's passwords to the global list, so later
+// archives from the same source can be opened.
 func (a *App) rememberPasswords(passwords []string) {
 	cfg := a.Settings.Get()
 	known := map[string]bool{}

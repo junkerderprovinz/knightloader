@@ -1,26 +1,12 @@
 package app
 
-// The working folder and the last move: where a download's bytes are written
-// while they are still arriving, and how the finished result gets from there to
-// the folder it belongs in.
+// The working folder: downloads are written there while they arrive and moved
+// to their destination once nothing more is owed on them, after the checksum
+// and after extraction, so a multi-volume set stays together while it is
+// unpacked. An empty settings.WorkDir switches all of this off.
 //
-// The off state is an empty settings.WorkDir, it is what every install has
-// until somebody types a path, and off means every path in this file answers
-// exactly what it answered before the file existed. That is not caution for its
-// own sake: switching it on can mean copying every download across a filesystem
-// boundary, and nobody may be handed that by an update they did not read.
-//
-// THE ORDER IS THE POINT. A download is delivered when nothing is owed on it
-// any more - after the checksum has read it where it was written, and after the
-// extraction has opened it there together with its four sibling volumes.
-// Delivering earlier would move the first volume of a five-part set out from
-// under the four still arriving, and the set would stop being a set.
-//
-// Nothing about the task changes when a delivery succeeds, and that is the
-// point of keying the working folder off the DESTINATION rather than off the
-// task: dirFor already answers where the finished file is, so the list, the
-// store and every connected browser are right both before and after the move
-// without being told anything.
+// The working folder is derived from the destination, so dirFor is right both
+// before and after the move and nothing about the task changes.
 
 import (
 	"fmt"
@@ -38,34 +24,22 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/workdir"
 )
 
-// deliverErrorPrefix marks the sentences this file puts on a task, so a later
-// delivery that works can clear its own failure and nothing else's - the same
-// arrangement extractErrorPrefix already has, and for the same reason: a rename
-// that was refused and a move that ran out of space are two problems, and one
-// being solved says nothing about the other.
+// deliverErrorPrefix marks the errors this file puts on a task, so a later
+// successful move clears only its own failure.
 const deliverErrorPrefix = "not moved: "
 
-// orphanWorkAge is how long a working folder nothing points at survives.
-//
-// A day, and generously so, because the cost of the two mistakes is not the
-// same. Sweeping too eagerly deletes bytes somebody paid for in bandwidth;
-// sweeping too late leaves a folder on a disk that has room for it. The only
-// folders that reach the age check at all are ones no task in the list claims
-// any more - somebody removed the download while it was running - so a day is
-// spent on a folder that is already known to be nobody's.
+// orphanWorkAge is how long a working folder no task points at survives. A day
+// is generous because sweeping too early deletes downloaded bytes, while
+// sweeping late only costs disk space.
 const orphanWorkAge = 24 * time.Hour
 
-// workRoot is the folder downloads are written into while they are still
-// arriving, or "" when every download is written straight to its destination.
+// workRoot is the folder downloads are written into while they arrive, or ""
+// when they are written straight to their destination.
 func (a *App) workRoot() string { return strings.TrimSpace(a.Settings.Get().WorkDir) }
 
-// workDirFor is where this task's bytes actually sit, which is not always the
-// folder the finished file belongs in.
-//
-// Every path in this app that opens, hashes, unpacks or disposes of a file has
-// to be built from this and not from dirFor; dirFor stays the answer to "where
-// does this file belong", which is a different question and the one the
-// interface, the store and the collision policy all ask.
+// workDirFor is where t's bytes currently sit. Anything that opens, hashes,
+// unpacks or deletes the file must use this; dirFor answers where the file
+// belongs.
 func (a *App) workDirFor(t *core.Task) string {
 	dest := a.dirFor(t)
 	root := a.workRoot()
@@ -75,17 +49,9 @@ func (a *App) workDirFor(t *core.Task) string {
 	return workdir.For(root, dest)
 }
 
-// stagedDirFor is workDirFor as a BACKEND takes it: the working folder when one
-// is in play, and the empty string when the download is written straight to its
-// destination.
-//
-// The difference from workDirFor is not cosmetic, and it is the sort that
-// compiles. engine.Job reads a WorkDir that is set as "the folder I am writing
-// into is not the folder this file belongs in", and stops applying the
-// collision policy it was handed because that policy belongs at the
-// destination. A job whose WorkDir merely repeated its Dir would say the same
-// thing untruthfully, and every download on an install with no working folder
-// would quietly lose its rename, its skip and its overwrite.
+// stagedDirFor is the working folder for a backend, or "" when the download is
+// written to its destination. engine.Job skips the collision policy when
+// WorkDir is set, so it must stay empty rather than repeat Dir.
 func (a *App) stagedDirFor(t *core.Task) string {
 	if work := a.workDirFor(t); work != a.dirFor(t) {
 		return work
@@ -93,44 +59,19 @@ func (a *App) stagedDirFor(t *core.Task) string {
 	return ""
 }
 
-// deliverable reports whether this app can take a task's finished file the last
-// step on its own. Two kinds cannot, for opposite reasons.
-//
-// A download fetched on another machine (filesAreLocal) has no file here to
-// move, and reaching for one would be the same mistake as renaming or deleting
-// it.
-//
-// A TORRENT is the interesting one, and it is a carve-out rather than an
-// oversight. A multi-file torrent writes a folder named after the torrent and
-// puts its files inside it, while the task is named after the FIRST FILE - so
-// what is on disk is a folder whose name this side never holds, and a move
-// built from the task's own name would take one episode out of a season and
-// leave the rest behind. Until the torrent's own folder name is carried on the
-// task, a torrent keeps writing straight to its destination, which is what it
-// did before this feature existed.
+// deliverable reports whether this app can move t's finished file itself. A
+// download fetched on another machine has no local file. A multi-file torrent
+// writes into a folder named after the torrent, which the task does not know,
+// so torrents are written to their destination directly.
 func deliverable(t *core.Task) bool {
 	return t != nil && filesAreLocal(t) && t.InfoHash == ""
 }
 
-// moveOptions is the collision policy as a move reads it. It is the download's
-// own policy and not a second setting, because the question is the same one:
-// something is already at that name in the folder the file is going into. What
-// the move does about "ask" and about a folder under "overwrite" is
-// internal/workdir's business - see Options.Policy there.
-//
-// It takes the TASK and not the settings alone, because the answer stopped being
-// one number the moment drawers arrived: the category a download is filed in may
-// carry its own rule, and settings.CollisionFor is the one place that decides
-// between it and the instance's. The same read the dispatcher makes before any
-// bytes move, made again here - deliberately, rather than carried down from
-// there, because the last move happens minutes later and the drawer may have
-// been edited in between. A category is a reference and not a copy, so the
-// answer it gives is the one in force NOW.
-//
-// A nil task answers the instance's own policy, which is what every move
-// answered before drawers existed. That is not a defensive nil check for its own
-// sake: deliverExtraction runs after the archive is closed, and the row it
-// belongs to may have been removed by hand while it was open.
+// moveOptions returns the collision policy for a move: the download's own,
+// with the task's category rule applied. It is read again here rather than
+// passed down, because the category may have changed since the download
+// started. A nil task, whose row was removed during extraction, gets the
+// instance policy.
 func moveOptions(t *core.Task, cfg settings.Settings) workdir.Options {
 	category := ""
 	if t != nil {
@@ -139,32 +80,23 @@ func moveOptions(t *core.Task, cfg settings.Settings) workdir.Options {
 	return workdir.Options{
 		Policy:      collide.ParsePolicy(cfg.CollisionFor(category)),
 		MaxAttempts: cfg.CollisionMaxAttempts,
-		// The working folder is emptied as it is drained. It is ours, it holds
-		// nothing but downloads in flight, and a folder per destination left
-		// standing for every destination ever used is a directory listing
-		// nobody can read after a year.
+		// Emptied working folders are removed so they do not pile up.
 		PruneSourceDir: true,
 	}
 }
 
-// deliverDownload takes one finished download out of the working folder and
-// puts it in the folder it belongs in. It does nothing at all when no working
-// folder is configured, when the file is not there, or when the task still has
-// something owed on it.
-//
-// A file that is not where this expects it is not a failure and says nothing:
-// it has already been delivered, or it was removed by hand, or it is one of the
-// kinds deliverable refuses. Any of the three is an ordinary state and none of
-// them is worth a red mark on a download that finished.
+// deliverDownload moves one finished download from the working folder to its
+// destination. It does nothing when no working folder is set, the task still
+// owes work, or the file is not there, which is an ordinary state (already
+// moved, removed by hand, or not deliverable).
 func (a *App) deliverDownload(id string) {
 	if a.workRoot() == "" {
 		return
 	}
 	a.mu.Lock()
 	t := a.tasks[id]
-	// StatusDone and not merely "finished once": a task that has moved on to
-	// StatusExtracting still owes an unpacking, and the archive it is about to
-	// open must stay where its sibling volumes are.
+	// StatusDone only: a task in StatusExtracting still needs its volumes
+	// together.
 	if t == nil || t.Status != core.StatusDone || !deliverable(t) || t.Name == "" || t.Name == t.URL {
 		a.mu.Unlock()
 		return
@@ -183,13 +115,9 @@ func (a *App) deliverDownload(id string) {
 	a.recordDelivery(id, err)
 }
 
-// recordDelivery puts a failed move on the task and takes an old one back off
-// when the move worked.
-//
-// The failure belongs on the row rather than only in the log, because the file
-// is not where the list says it is: it is still in the working folder, whole
-// and openable, and the person who has to empty a disk is the person looking at
-// that row.
+// recordDelivery puts a failed move on the task, or clears an earlier one when
+// the move worked. It goes on the row because the file is not where the list
+// says it is.
 func (a *App) recordDelivery(id string, err error) {
 	if err != nil {
 		log.Printf("task %s could not be moved out of the working folder: %v", id, err)
@@ -204,9 +132,7 @@ func (a *App) recordDelivery(id string, err error) {
 	case err != nil:
 		t.Error = deliverErrorPrefix + err.Error()
 	case strings.HasPrefix(t.Error, deliverErrorPrefix):
-		// Only this file's own sentence. An extraction that failed left its
-		// reason on the same field, and a move that worked is no reason to tell
-		// the user that problem went away.
+		// Only this file's own error; an extraction failure stays.
 		t.Error = ""
 	default:
 		a.mu.Unlock()
@@ -218,42 +144,30 @@ func (a *App) recordDelivery(id string, err error) {
 }
 
 // unpackPlan is where an extraction writes and where its result goes
-// afterwards. The two are separate questions, and conflating them is what makes
-// a media folder hold a half-unpacked release for twenty minutes.
+// afterwards, so a media folder never holds a half-unpacked release.
 type unpackPlan struct {
-	// Dest and Subfolder are extract.Options' own two fields, verbatim.
+	// Dest and Subfolder are extract.Options' fields of the same names.
 	Dest      string
 	Subfolder bool
-	// Deliver is where the finished result is moved. Empty leaves it exactly
-	// where it unpacked, which is what every install did before either half of
-	// this existed.
+	// Deliver is where the finished result is moved; empty leaves it where it
+	// unpacked.
 	Deliver string
-	// Contents moves the entries INSIDE the unpacked folder rather than the
-	// folder itself - see rules.Action.ExtractDir for why that is the useful
-	// reading of "put the unpacked files here".
+	// Contents moves the entries inside the unpacked folder rather than the
+	// folder itself (see rules.Action.ExtractDir).
 	Contents bool
 }
 
-// unpackPlanFor works out both halves for one task.
-//
-// The three cases, in the order they are decided:
+// unpackPlanFor decides both halves for one task:
 //
 //	no working folder, no move folder   unpack where it always unpacked, move nothing
 //	working folder                      unpack in the working folder, move the finished
 //	                                    folder to where it would have unpacked
-//	move folder (rule or setting)       move the unpacked CONTENT there instead, whether
+//	move folder (rule or setting)       move the unpacked content there instead, whether
 //	                                    or not a working folder is in play
 //
-// The middle case has to fold ExtractSubfolder into the destination itself
-// rather than leaving it to extract.Options, and that is the one subtlety here.
-// The middle case has to ask for the per-package level itself rather than hand
-// ExtractSubfolder on unchanged, and THAT is the load-bearing part. The folder a
-// release is moved to has to be the one it would have unpacked into, package
-// level and all: aimed at the collect folder instead, "Serien/The Show/release"
-// would arrive as "Serien/release" and the level would be gone for exactly the
-// installs that use a working folder. Switching the flag off afterwards is only
-// tidiness - the level is already in the path, and applying it twice would leave
-// an empty folder in the working folder rather than change where anything lands.
+// With a working folder the per-package level is built into the path here, so
+// the result moves to the folder it would have unpacked into; Subfolder is then
+// switched off so the level is not applied twice.
 func (a *App) unpackPlanFor(t *core.Task, cfg settings.Settings) unpackPlan {
 	p := unpackPlan{Dest: a.expandFolder(t, cfg.ExtractTo), Subfolder: cfg.ExtractSubfolder}
 	root := a.workRoot()
@@ -261,10 +175,8 @@ func (a *App) unpackPlanFor(t *core.Task, cfg settings.Settings) unpackPlan {
 		if base := unpackRoot(p.Dest, t, cfg.ExtractSubfolder); base != "" {
 			p.Dest, p.Subfolder, p.Deliver = workdir.For(root, base), false, base
 		} else {
-			// Beside the archive, which IS the working folder: the archive was
-			// written there, so the extraction already lands there and there is
-			// nothing to redirect. What it has to be moved to afterwards is the
-			// folder the archive itself belongs in.
+			// Unpacking beside the archive already lands in the working folder;
+			// the result moves to the archive's own destination.
 			p.Deliver = a.dirFor(t)
 		}
 	}
@@ -274,17 +186,14 @@ func (a *App) unpackPlanFor(t *core.Task, cfg settings.Settings) unpackPlan {
 	return p
 }
 
-// unpackRoot is the folder an extraction's own output folder is created in,
-// with the per-package level already applied. Empty means "beside the archive",
-// which has no folder of its own to name.
+// unpackRoot is the folder an extraction's output folder is created in, with
+// the per-package level applied. Empty means beside the archive.
 func unpackRoot(dest string, t *core.Task, subfolder bool) string {
 	if dest == "" {
 		return ""
 	}
 	if subfolder && t != nil {
-		// collide.SafeName and not the app's own sanitizeSegment, because this
-		// has to agree with extract.Options.baseDest, which is what builds the
-		// same path when no working folder is in play.
+		// collide.SafeName, to match the path extract.Options builds itself.
 		if pkg := collide.SafeName(strings.TrimSpace(t.Package)); pkg != "" {
 			return filepath.Join(dest, pkg)
 		}
@@ -292,20 +201,12 @@ func unpackRoot(dest string, t *core.Task, subfolder bool) string {
 	return dest
 }
 
-// extractMoveTarget is where this task's unpacked content is moved to once the
-// extraction is over: the instance-wide setting, expanded for this task.
-//
-// THE PER-LINK ANSWER BELONGS IN FRONT OF IT and is not wired yet. A Packagizer
-// rule can already name the folder (rules.Action.ExtractDir, validated and
-// expanded there), and reading it here is one line - the same shape
-// extractWanted uses to read Task.AutoExtract in front of Settings.Extract. It
-// needs a field on core.Task to travel on, which this wave did not add.
+// extractMoveTarget is where t's unpacked content moves after extraction: a
+// folder a Packagizer rule set on the task, else the instance setting expanded
+// for this task.
 func (a *App) extractMoveTarget(t *core.Task, cfg settings.Settings) string {
-	// A folder a Packagizer rule named for THIS task beats the instance-wide
-	// one, the same order dirFor uses for the download folder: a rule looked at
-	// this link, the setting applies to everything. Taken verbatim and only if
-	// absolute, because the rules package already expanded it and a relative
-	// path here would name a folder nobody can find afterwards.
+	// The rules package already expanded it; a relative path would name a
+	// folder nobody could find.
 	if t != nil {
 		if own := strings.TrimSpace(t.ExtractDir); filepath.IsAbs(own) {
 			return own
@@ -314,15 +215,8 @@ func (a *App) extractMoveTarget(t *core.Task, cfg settings.Settings) string {
 	return a.expandFolder(t, cfg.ExtractMoveTo)
 }
 
-// expandFolder resolves a folder template for one task, and drops anything that
-// is not an absolute path afterwards.
-//
-// It is here rather than in internal/extract for the reason extractOptionsFor
-// already gives: this is the only place that knows which task the variables are
-// about, and internal/extract never sees a task. A template that expanded to
-// something relative is dropped rather than resolved against whatever the
-// process's working directory happens to be - the folder it would then name is
-// one nobody can find afterwards.
+// expandFolder resolves a folder template for one task and drops the result
+// unless it is absolute, rather than resolve it against the working directory.
 func (a *App) expandFolder(t *core.Task, template string) string {
 	out := strings.TrimSpace(template)
 	if out == "" {
@@ -342,31 +236,23 @@ func (a *App) expandFolder(t *core.Task, template string) string {
 	return out
 }
 
-// delivery is what the last move did, in the terms the extraction log shows it.
+// delivery is what the last move did, as the extraction log shows it.
 type delivery struct {
-	// Dir is where the content ended up, and it is what the job row reports. It
-	// is empty when nothing moved, which is not the same as a failure.
+	// Dir is where the content ended up, or empty when nothing moved.
 	Dir string
-	// Entries counts what was moved: one for a whole folder, or one per file
-	// when the content was moved rather than the folder around it.
+	// Entries counts what was moved: one for a whole folder, or one per entry
+	// when the contents were moved.
 	Entries int
 	Err     error
 }
 
-// deliverExtraction moves a finished extraction's output to where the settings
-// or a rule say it goes.
-//
-// It runs after the disposal and before the job is settled, so the row the user
-// ends up looking at already says where the files are rather than where they
-// were unpacked.
+// deliverExtraction moves a finished extraction's output where the settings or
+// a rule say. It runs before the job settles, so the row shows the final
+// location.
 func (a *App) deliverExtraction(jobID string, out *extract.Outcome) delivery {
 	if out == nil || strings.TrimSpace(out.Dir) == "" {
 		return delivery{}
 	}
-	// The job carries the archive it was started on and the task it belongs to,
-	// and both are read here rather than passed down through settleExtraction:
-	// the job is the record of what this extraction was, and a second copy
-	// threaded through three signatures is a second one to get wrong.
 	a.mu.Lock()
 	j := a.unpackLocked().jobs[jobID]
 	if j == nil {
@@ -386,13 +272,8 @@ func (a *App) deliverExtraction(jobID string, out *extract.Outcome) delivery {
 	if plan.Deliver == "" || sameDir(out.Dir, plan.Deliver) {
 		return delivery{}
 	}
-	// A SINGLE COMPRESSED STREAM HAS NO FOLDER OF ITS OWN. "dump.sql.gz"
-	// unpacks to "dump.sql" BESIDE the archive, so out.Dir is the folder the
-	// archive is in - which for a working folder holds other downloads in
-	// flight and for a download folder holds everything the user owns. Moving
-	// it, or its contents, would take all of that with it. The refusal is
-	// reported rather than silent, because the alternative is a setting that
-	// visibly does nothing for one format.
+	// A single compressed stream ("dump.sql.gz") unpacks beside its archive, so
+	// out.Dir is a shared folder and moving it would take everything else too.
 	if sameDir(out.Dir, filepath.Dir(archive)) {
 		return delivery{Err: fmt.Errorf("%s unpacked beside its own archive rather than into a folder of its own, so its content was left there instead of being moved to %s", filepath.Base(archive), plan.Deliver)}
 	}
@@ -403,17 +284,15 @@ func (a *App) deliverExtraction(jobID string, out *extract.Outcome) delivery {
 		if rep.Moved > 0 {
 			d.Dir = plan.Deliver
 		}
-		// A skip is a decision the user made and not a failure, but it is still
-		// the answer to "where are my files", so it is said out loud. Reporting
-		// only the folder they were moved to would leave the ones that stayed
-		// behind unaccounted for on the one row that is about them.
+		// Skipped files are reported so the row accounts for the ones left
+		// behind.
 		if err == nil && rep.Skipped > 0 {
 			d.Err = fmt.Errorf("%d of the unpacked files were already in %s and the collision policy is to skip, so they were left in %s", rep.Skipped, plan.Deliver, out.Dir)
 		}
 		return d
 	}
 	if sameDir(filepath.Dir(out.Dir), plan.Deliver) {
-		return delivery{} // already in the folder it was going to be moved into
+		return delivery{}
 	}
 	res, err := workdir.Move(a.ctx, out.Dir, plan.Deliver, o)
 	if err != nil {
@@ -425,13 +304,9 @@ func (a *App) deliverExtraction(jobID string, out *extract.Outcome) delivery {
 	return delivery{Dir: res.Path, Entries: 1}
 }
 
-// deliverVolumes takes what is left of an archive's own set out of the working
-// folder: the volumes a "keep" disposal left standing, and the info files
+// deliverVolumes moves what is left of an archive's set out of the working
+// folder after extraction: volumes a "keep" disposal left and the info files
 // beside them.
-//
-// It runs after the extraction and not with the download, which is the whole
-// ordering this file exists for - the four sibling volumes have to still be
-// where the reader can find them while the first one is being opened.
 func (a *App) deliverVolumes(taskID string) {
 	if a.workRoot() == "" {
 		return
@@ -449,15 +324,9 @@ func (a *App) deliverVolumes(taskID string) {
 	}
 }
 
-// sweepWorkRoot removes working folders that belong to nothing any more.
-//
-// What it is for is a crash, and what it is NOT for is tidying up after a
-// normal run: a working folder is emptied and removed as its downloads are
-// delivered, so anything this finds is a folder whose task went away while its
-// download was in flight. Everything a task still points at is protected by
-// name, and everything written to in the last day is protected by age - see
-// workdir.Sweep, which is deliberately the only thing in this build that
-// deletes a download nobody asked it to.
+// sweepWorkRoot removes working folders left behind when a task went away while
+// its download was in flight. Folders a task still points at, and anything
+// written to in the last day, are kept (see workdir.Sweep).
 func (a *App) sweepWorkRoot() {
 	root := a.workRoot()
 	if root == "" {
@@ -474,13 +343,9 @@ func (a *App) sweepWorkRoot() {
 	}
 }
 
-// liveWorkKeys is every working folder something in the list still needs.
-//
-// It is built from the destinations rather than from the folders on disk, which
-// is what makes it safe to be wrong about: a task whose destination has since
-// been changed protects the folder it would use NOW, and the one it used before
-// is swept by age. The other way round - listing the disk and asking which
-// folders look busy - would have to guess.
+// liveWorkKeys returns every working folder a task still needs, derived from
+// current destinations. A folder from an older destination is left to the age
+// check.
 func (a *App) liveWorkKeys() map[string]bool {
 	a.mu.Lock()
 	defer a.mu.Unlock()
@@ -491,8 +356,7 @@ func (a *App) liveWorkKeys() map[string]bool {
 	return out
 }
 
-// sameDir compares two folder paths the way the filesystem would rather than
-// the way the strings do.
+// sameDir reports whether two folder paths are the same once cleaned.
 func sameDir(a, b string) bool {
 	return filepath.Clean(a) == filepath.Clean(b)
 }

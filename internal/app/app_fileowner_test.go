@@ -1,16 +1,5 @@
 package app
 
-// The folder list, and the one thing that will actually go wrong with it: it
-// drifting away from the disk report's list without anybody noticing.
-//
-// Both lists are built from the same configuration in the same order, and they
-// are deliberately not the same function - the disk report measures bytes and
-// stops at the folders downloads land in, this one also has to cover the drop
-// folder because KL deletes the .crawljob it consumed there. So the two agree
-// about their shared part BY CONVENTION, which is exactly the kind of agreement
-// that quietly stops being true when somebody adds a fifth configurable folder
-// to one of them.
-
 import (
 	"path/filepath"
 	"testing"
@@ -18,14 +7,8 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
-// ownerApp is an app whose folders the test writes directly into the settings
-// store.
-//
-// Settings.Set rather than ApplySettings, and that is not a shortcut:
-// ApplySettings reconciles the live watcher, so setting WatchDir through it
-// would start a real polling goroutine over a temporary directory for the rest
-// of the test binary's life. Nothing in this file reads the watcher; both lists
-// under test read a.Settings.Get() and nothing else.
+// ownerApp returns an app with the given folders written straight into the
+// settings store. ApplySettings would start a real watch-folder poller.
 func ownerApp(t *testing.T, mutate func(*settings.Settings)) *App {
 	t.Helper()
 	a := newQueueApp(t)
@@ -38,17 +21,9 @@ func ownerApp(t *testing.T, mutate func(*settings.Settings)) *App {
 	return a
 }
 
-// TestTheOwnershipListCoversEveryFolderTheDiskReportNamesPlusTheDropFolder is
-// the drift guard. A fifth configured folder added to sampleDiskReport and not
-// here would be a folder whose free space is watched and whose ownership is
-// never checked - and the failure that produces is silent by construction,
-// because the ownership page would simply not have a row for it.
-//
-// Task rows are skipped: those come out of the queue rather than out of the
-// configuration (a per-task override, a rule pointing somewhere else), they
-// change as downloads are added and removed, and a check that wrote a probe
-// file into every destination the queue happens to mention would be writing
-// into folders nobody configured.
+// TestTheOwnershipListCoversEveryFolderTheDiskReportNamesPlusTheDropFolder keeps
+// the two folder lists from drifting apart. Task rows are skipped because they
+// come from the queue, not from the configuration.
 func TestTheOwnershipListCoversEveryFolderTheDiskReportNamesPlusTheDropFolder(t *testing.T) {
 	dl, work, cat, watch := t.TempDir(), t.TempDir(), t.TempDir(), t.TempDir()
 	a := ownerApp(t, func(s *settings.Settings) {
@@ -81,11 +56,6 @@ func TestTheOwnershipListCoversEveryFolderTheDiskReportNamesPlusTheDropFolder(t 
 	}
 }
 
-// TestAPlaceholderTemplateIsCutBackToTheFolderThatReallyExists. A download
-// folder is very often "/downloads/<jd:date>/<jd:packagename>", and a directory
-// literally called "<jd:date>" is never on disk. Probing the template as written
-// would report a missing folder on a completely healthy install, and probing it
-// after creating it would put that folder there.
 func TestAPlaceholderTemplateIsCutBackToTheFolderThatReallyExists(t *testing.T) {
 	base := t.TempDir()
 	a := ownerApp(t, func(s *settings.Settings) {
@@ -104,10 +74,6 @@ func TestAPlaceholderTemplateIsCutBackToTheFolderThatReallyExists(t *testing.T) 
 	t.Fatalf("no download folder at all in %v", a.TargetFolders())
 }
 
-// TestOneFolderGetsOneRowAndTheFirstRoleWinsIt. An install whose category
-// folder is the download folder is ordinary, and two rows about one directory
-// means two probe files written into it and two verdicts to reconcile on screen
-// when they are about the same thing.
 func TestOneFolderGetsOneRowAndTheFirstRoleWinsIt(t *testing.T) {
 	dl := t.TempDir()
 	a := ownerApp(t, func(s *settings.Settings) {
@@ -130,11 +96,8 @@ func TestOneFolderGetsOneRowAndTheFirstRoleWinsIt(t *testing.T) {
 	}
 }
 
-// TestARelativeFolderIsLeftOutRatherThanResolved. It would resolve against
-// whatever the process's working directory happens to be, which is why
-// sanitizePaths refuses to store one - but a category folder is not covered by
-// that refusal, and probing "downloads" from a service started in / would
-// measure the wrong folder with total confidence.
+// TestARelativeFolderIsLeftOutRatherThanResolved covers category folders, which
+// sanitizePaths does not refuse when they are relative.
 func TestARelativeFolderIsLeftOutRatherThanResolved(t *testing.T) {
 	a := ownerApp(t, func(s *settings.Settings) {
 		s.Categories = []settings.Category{{ID: "filme", Name: "Filme", Dir: "relative/folder"}}

@@ -10,9 +10,8 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
-// newFilesTestApp is an App with a real, writable download folder - SafeTaskFile
-// touches the real filesystem (Stat, EvalSymlinks), so a fixture that only sets
-// fields on a struct is not enough to exercise it.
+// newFilesTestApp returns an App with a real, writable download folder, since
+// SafeTaskFile stats and resolves real paths.
 func newFilesTestApp(t *testing.T) (*App, string) {
 	t.Helper()
 	a, err := New(t.TempDir())
@@ -46,9 +45,7 @@ func TestSafeTaskFileHappyPath(t *testing.T) {
 	if err != nil {
 		t.Fatalf("SafeTaskFile: %v", err)
 	}
-	// Resolved on both sides before comparing: t.TempDir() itself resolves
-	// through a symlink on some platforms (macOS's /tmp is the textbook
-	// case), and SafeTaskFile is documented to hand back the resolved path.
+	// The temp dir itself may sit behind a symlink (macOS /tmp).
 	wantReal, err := filepath.EvalSymlinks(filepath.Join(base, "movie.mkv"))
 	if err != nil {
 		t.Fatal(err)
@@ -64,10 +61,6 @@ func TestSafeTaskFileHappyPath(t *testing.T) {
 	}
 }
 
-// TestSafeTaskFilePerTaskDirWorksWithinTheDownloadRoot proves the legitimate
-// half of the per-task Dir override still works: a task redirected to a
-// subfolder of the configured download tree (the ordinary case - a
-// collector "target folder" field pointed at a subdirectory) is served.
 func TestSafeTaskFilePerTaskDirWorksWithinTheDownloadRoot(t *testing.T) {
 	a, base := newFilesTestApp(t)
 	sub := filepath.Join(base, "Movies", "2026")
@@ -89,16 +82,9 @@ func TestSafeTaskFilePerTaskDirWorksWithinTheDownloadRoot(t *testing.T) {
 	}
 }
 
-// TestSafeTaskFileRefusesADirOutsideTheDownloadRoot is the fix for a real,
-// live vulnerability: t.Dir is a client-supplied field with no validation
-// of its own (SetTaskOptions/AddLinks only trim it), and the join-then-
-// resolve check alone can never catch a Dir set outside the app's own
-// download tree, because join(dir, singleSegmentName) is inside dir by
-// construction - it was proving "X is inside X-ish", not "X is somewhere
-// this app is allowed to read from". Before this test's fix landed, this
-// exact case served the file: a task's Dir set to an arbitrary directory
-// handed back whatever file matched its stored name, this app's own
-// settings.json or database included if a name happened to match.
+// TestSafeTaskFileRefusesADirOutsideTheDownloadRoot: t.Dir is client-supplied,
+// and joining a single-segment name onto it is always inside it, so only the
+// root check stops a Dir pointed at the app's own settings.json.
 func TestSafeTaskFileRefusesADirOutsideTheDownloadRoot(t *testing.T) {
 	a, _ := newFilesTestApp(t)
 	elsewhere := t.TempDir()
@@ -108,16 +94,12 @@ func TestSafeTaskFileRefusesADirOutsideTheDownloadRoot(t *testing.T) {
 	})
 
 	if _, err := a.SafeTaskFile(task.ID); !errors.Is(err, ErrTaskFileEscape) {
-		t.Errorf("err = %v, want ErrTaskFileEscape - a Dir outside the download root must never be served", err)
+		t.Errorf("err = %v, want ErrTaskFileEscape because a Dir outside the download root must never be served", err)
 	}
 }
 
-// TestSafeTaskFileRespectsKLBrowseRoots proves an operator's explicit
-// KL_BROWSE_ROOTS narrowing is honoured exactly the way the folder chooser
-// (internal/api/routes_folders.go) already honours it: a Dir the operator
-// deliberately allowed (even outside the configured download tree) is
-// still served, matching the folder picker's own promise that anything it
-// could offer, this route can later read.
+// TestSafeTaskFileRespectsKLBrowseRoots: a folder the chooser could offer under
+// KL_BROWSE_ROOTS is served even outside the download tree.
 func TestSafeTaskFileRespectsKLBrowseRoots(t *testing.T) {
 	a, _ := newFilesTestApp(t)
 	elsewhere := t.TempDir()
@@ -129,7 +111,7 @@ func TestSafeTaskFileRespectsKLBrowseRoots(t *testing.T) {
 
 	got, err := a.SafeTaskFile(task.ID)
 	if err != nil {
-		t.Fatalf("SafeTaskFile: %v, want success - KL_BROWSE_ROOTS explicitly allows this folder", err)
+		t.Fatalf("SafeTaskFile: %v, want success since KL_BROWSE_ROOTS allows this folder", err)
 	}
 	wantReal, err := filepath.EvalSymlinks(filepath.Join(elsewhere, "movie.mkv"))
 	if err != nil {
@@ -140,9 +122,6 @@ func TestSafeTaskFileRespectsKLBrowseRoots(t *testing.T) {
 	}
 }
 
-// TestSafeTaskFileKLBrowseRootsStillRefusesOutsideIt proves the narrowing
-// really is a boundary and not merely a hint: a Dir outside even an
-// explicitly configured KL_BROWSE_ROOTS is refused, not silently widened.
 func TestSafeTaskFileKLBrowseRootsStillRefusesOutsideIt(t *testing.T) {
 	a, _ := newFilesTestApp(t)
 	allowed := t.TempDir()
@@ -154,20 +133,18 @@ func TestSafeTaskFileKLBrowseRootsStillRefusesOutsideIt(t *testing.T) {
 	})
 
 	if _, err := a.SafeTaskFile(task.ID); !errors.Is(err, ErrTaskFileEscape) {
-		t.Errorf("err = %v, want ErrTaskFileEscape - elsewhere is not under the configured KL_BROWSE_ROOTS", err)
+		t.Errorf("err = %v, want ErrTaskFileEscape since elsewhere is not under KL_BROWSE_ROOTS", err)
 	}
 }
 
-// TestSafeTaskFileSizeIsWhatIsOnDiskRightNow is the other half of the security
-// check: a running task's Content-Length has to be the bytes really there, not
-// the task's own expected total, or a client hangs waiting for bytes that are
-// never coming.
+// TestSafeTaskFileSizeIsWhatIsOnDiskRightNow: Content-Length must be the bytes
+// on disk, or a client waits for bytes that never come.
 func TestSafeTaskFileSizeIsWhatIsOnDiskRightNow(t *testing.T) {
 	a, base := newFilesTestApp(t)
 	writeTestFile(t, base, "movie.mkv", []byte("only nine"))
 	task := putTask(t, a, core.Task{
 		URL: "https://host.example/movie.mkv", Name: "movie.mkv",
-		Status: core.StatusRunning, Size: 9_000_000_000, // what the task believes the finished size will be
+		Status: core.StatusRunning, Size: 9_000_000_000,
 	})
 
 	got, err := a.SafeTaskFile(task.ID)
@@ -186,12 +163,8 @@ func TestSafeTaskFileUnknownTask(t *testing.T) {
 	}
 }
 
-// TestSafeTaskFileNotYetResolvedIsNoBytesNotAnEscape checks the two branches
-// filename() can take to the same empty answer: a Name that was never set, and
-// one that still equals the URL because nothing has resolved it yet. Neither is
-// a security refusal - a link sitting in the collector is not a break-in
-// attempt, and the distinction is what a caller uses to say "not yet" instead
-// of "refused".
+// TestSafeTaskFileNotYetResolvedIsNoBytesNotAnEscape covers both ways filename()
+// returns nothing: no name at all, and a name that is still the URL.
 func TestSafeTaskFileNotYetResolvedIsNoBytesNotAnEscape(t *testing.T) {
 	a, _ := newFilesTestApp(t)
 	cases := map[string]core.Task{
@@ -208,9 +181,6 @@ func TestSafeTaskFileNotYetResolvedIsNoBytesNotAnEscape(t *testing.T) {
 	}
 }
 
-// TestSafeTaskFileNothingWrittenYet is a name that did resolve (the collector's
-// own probe can do that before a download ever starts) but nothing under it
-// exists on disk yet.
 func TestSafeTaskFileNothingWrittenYet(t *testing.T) {
 	a, _ := newFilesTestApp(t)
 	task := putTask(t, a, core.Task{URL: "https://host.example/x.bin", Name: "movie.mkv", Status: core.StatusQueued})
@@ -221,9 +191,7 @@ func TestSafeTaskFileNothingWrittenYet(t *testing.T) {
 
 func TestSafeTaskFileNotLocalRefusesAJDTask(t *testing.T) {
 	a, base := newFilesTestApp(t)
-	// Written to disk on purpose: even a file that happens to exist at the
-	// join must still be refused, because a "jd" task's bytes are not
-	// this app's to vouch for regardless of what sits at the path.
+	// A file at the joined path must not change the answer for a JD task.
 	writeTestFile(t, base, "movie.mkv", []byte("x"))
 	task := putTask(t, a, core.Task{
 		URL: "https://host.example/movie.mkv", Name: "movie.mkv", Status: core.StatusDone, Resolver: "jd",
@@ -233,14 +201,9 @@ func TestSafeTaskFileNotLocalRefusesAJDTask(t *testing.T) {
 	}
 }
 
-// TestSafeTaskFileNameWithSeparatorIsRefused is the lexical half of the escape
-// check: a resolved name that is not one path segment must not reach
-// filepath.Join at all, the same rule SetTaskOptions already enforces on a
-// rename.
 func TestSafeTaskFileNameWithSeparatorIsRefused(t *testing.T) {
 	a, base := newFilesTestApp(t)
-	// The file a naive join would have served, so a bug here would not just
-	// error out, it would successfully hand back somebody else's bytes.
+	// The file a naive join would serve.
 	writeTestFile(t, filepath.Dir(base), "passwd", []byte("root:x:0:0"))
 	task := putTask(t, a, core.Task{
 		URL: "https://host.example/x", Name: "../passwd", Status: core.StatusDone,
@@ -250,16 +213,12 @@ func TestSafeTaskFileNameWithSeparatorIsRefused(t *testing.T) {
 	}
 }
 
-// TestSafeTaskFileSymlinkEscapeIsRefused is why the check resolves symlinks
-// instead of comparing prefixes: a link planted inside the task's own folder
-// passes any check that stops at the folder's name.
 func TestSafeTaskFileSymlinkEscapeIsRefused(t *testing.T) {
 	a, base := newFilesTestApp(t)
 	outside := t.TempDir()
 	writeTestFile(t, outside, "secret.bin", []byte("not for this task"))
 	if err := os.Symlink(filepath.Join(outside, "secret.bin"), filepath.Join(base, "movie.mkv")); err != nil {
-		// Windows needs a privilege for this; the rule is the same either way
-		// and the platform that ships is the one that can make the link.
+		// Windows needs a privilege to create symlinks.
 		t.Skipf("symlinks are not available here: %v", err)
 	}
 	task := putTask(t, a, core.Task{URL: "https://host.example/movie.mkv", Name: "movie.mkv", Status: core.StatusDone})

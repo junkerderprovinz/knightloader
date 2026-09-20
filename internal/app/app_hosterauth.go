@@ -1,18 +1,8 @@
 package app
 
-// Native hoster logins: KL's own host list, username/password form and
-// per-row sync status, backed by internal/hosterauth's reconciler - see that
-// package's doc comment for the full design. This file is the thin seam
-// between it and the rest of the app: which App instance owns which
-// Reconciler, and the handful of methods internal/api's routes call.
-//
-// Kept at package level rather than as a field on App (app.go), the same
-// reason acctMetaMu is (app_accounts.go): app.go's struct is another agent's
-// file this wave, and a package-level map gives the same per-instance
-// guarantee without touching it. Keyed by *App rather than reference-counted
-// or cleaned up on Close: production runs exactly one App for the life of
-// the process, and a test suite that constructs many discards each one
-// quickly enough that the accumulated entries cost nothing that matters.
+// Native hoster logins, backed by internal/hosterauth's reconciler. Each App's
+// Reconciler lives in a package-level map; entries are never removed, which is
+// harmless because production runs a single App.
 
 import (
 	"context"
@@ -39,50 +29,27 @@ func (a *App) hosterAuth() *hosterauth.Reconciler {
 	if r, ok := hostAuthReg[a]; ok {
 		return r
 	}
-	// os.Getenv("KL_JD") read live on every reconcile pass, not captured once
-	// here - the same reason rewireBackends (app_accounts.go) re-reads it on
-	// every call rather than trusting a value from App construction: a
-	// container that changes KL_JD, or a headless JD that comes up after this
-	// App already started, must be picked up without a restart.
+	// KL_JD is read on every pass, so a changed variable or a JD that comes up
+	// later is picked up without a restart.
 	r := hosterauth.NewReconciler(hosterauth.NewStore(a.Accounts), func() string { return os.Getenv("KL_JD") })
-	// The on/off switch, read live from the same account_meta.json every other
-	// account's Enabled lives in (jdp, 2026-09-06: "bei den Hoster logins fehlt
-	// der aktiviert toggle"). hosterauth files its credentials under the
-	// pseudo-service "hosterauth" with the host as the account component, which
-	// is exactly the (service, account) pair accountEnabled is keyed by - so
-	// this is the same switch, not a parallel one that could disagree.
+	// hosterauth files credentials under the "hosterauth" service with the host
+	// as account, the same key accountEnabled uses, so this is the same switch
+	// as every other account's.
 	r.Enabled = func(host string) bool { return a.accountEnabled(hosterauth.Service, host) }
 	hostAuthReg[a] = r
 	return r
 }
 
-// StartHosterAuth begins the reconcile loop that keeps the headless-JD
-// sidecar's own account list in step with what KnightLoader has stored -
-// see hosterauth.Reconciler.Run for why this has to be a loop, run again on
-// every JD reconnect, and not a one-shot push at boot.
-//
-// Wired from main.go rather than from App.New (app.go), the same way
-// Click'n'Load is: an optional subsystem with its own start, kept out of
-// app.go's own lifecycle rather than added to a constructor this wave does
-// not own.
-//
-// Run through a.spawn, like every other long-lived goroutine this package
-// starts (see app.go's own doc comment on spawn) - so Close waits for it
-// instead of leaving it running against a store that just closed.
+// StartHosterAuth starts the loop that keeps the JD sidecar's account list in
+// step with the stored logins (see hosterauth.Reconciler.Run). It runs through
+// a.spawn so Close waits for it.
 func (a *App) StartHosterAuth() {
 	a.spawn(func() { a.hosterAuth().Run(a.ctx) })
 }
 
-// HosterHosts lists the hosts the "add a login" picker offers, minus the
-// debrid services, which have a card of their own.
-//
-// JD's plugin list includes real-debrid.com, alldebrid.com and the rest,
-// because JD can indeed hold an account for them - but in KnightLoader they
-// are the OTHER card, with their own API keys, their own routing and their own
-// traffic figures (jdp, 2026-09-07: "Die Debrid konten sollen dann in der liste
-// der hoster nicht mehr angezeigt werden"). Offering the same service in both
-// places invites somebody to configure it twice, in two ways, one of which
-// then quietly loses to the other in the priority order.
+// HosterHosts lists the hosts the "add a login" picker offers. Debrid services
+// are left out because they have their own card, and offering them in both
+// places invites configuring one service twice.
 func (a *App) HosterHosts(ctx context.Context) []hosterauth.Host {
 	skip := debridServiceDomains()
 	all := a.hosterAuth().Hosts(ctx)
@@ -91,36 +58,23 @@ func (a *App) HosterHosts(ctx context.Context) []hosterauth.Host {
 		if skip[serviceKey(h.ID)] {
 			continue
 		}
-		// Marked, never removed - see app_multihoster.go for why these stay in
-		// the picker although they are not ordinary file hosts.
+		// Marked rather than removed; see app_multihoster.go.
 		h.Multihoster = IsMultihoster(h.ID)
 		out = append(out, h)
 	}
 	return out
 }
 
-// serviceKey is the form a hostname is COMPARED in: normalised, then with a
-// leading "www." taken off.
-//
-// That second step is the whole point, and it was missing (jdp, 2026-09-07:
-// "hast du wirklich alle debrid konten aus der hoster liste in die debrid liste
-// verschoben? in der hoster liste sind nämlich noch einige?"). Premiumize's
-// catalogue entry links to https://www.premiumize.me/account, JD calls the same
-// service premiumize.me, and the two therefore never matched - so a service
-// with its own card went on being offered as a hoster login as well, which is
-// exactly the "configure it twice" the filter exists to prevent.
-//
-// Deliberately NOT folded into normaliseIconHost: that one produces the host an
-// icon is FETCHED from, and www.example.com and example.com can genuinely serve
-// different documents. Stripping there would change what gets requested; here
-// it only changes what counts as the same service.
+// serviceKey normalises a hostname for comparison and drops a leading "www.",
+// so the catalogue's www.premiumize.me matches JD's premiumize.me. It is kept
+// apart from normaliseIconHost because www and the bare domain can serve
+// different icons.
 func serviceKey(s string) string {
 	return strings.TrimPrefix(normaliseIconHost(s), "www.")
 }
 
-// debridServiceDomains is each catalogue debrid service's own domain, taken
-// from the "where do I get a key" link it already carries rather than from a
-// second hand-kept list that could drift from the catalogue.
+// debridServiceDomains returns each catalogue debrid service's domain, taken
+// from its WhereURL so there is no second list to keep in sync.
 func debridServiceDomains() map[string]bool {
 	out := map[string]bool{}
 	for _, svc := range accounts.Catalogue {
@@ -134,19 +88,14 @@ func debridServiceDomains() map[string]bool {
 	return out
 }
 
-// HosterLogins lists every stored native hoster login and its current
-// three-way sync status against JD - never the password (see
-// hosterauth.LoginState).
+// HosterLogins lists every stored hoster login with its sync status against
+// JD, never the password.
 func (a *App) HosterLogins() []hosterauth.LoginState {
 	return a.hosterAuth().States()
 }
 
-// SetHosterLogin stores (or updates) one host's native login and reconciles
-// right away, off this goroutine, so the row's status reflects the save
-// instead of sitting at "queued" until the next periodic pass - the same
-// "changing a credential re-wires immediately" contract
-// SetAccountCredential (app_accounts.go) already holds for every other
-// credential in this app.
+// SetHosterLogin stores one host's login and reconciles in the background, so
+// the row's status reflects the save right away.
 func (a *App) SetHosterLogin(host, username, password string) error {
 	r := a.hosterAuth()
 	if err := r.SetLogin(host, username, password); err != nil {
@@ -160,30 +109,19 @@ func (a *App) SetHosterLogin(host, username, password string) error {
 	return nil
 }
 
-// SetHosterLoginEnabled switches one host's login on or off and reconciles
-// right away, so JD gains or loses the account within a second rather than at
-// the next periodic pass (jdp, 2026-09-06: "bei den Hoster logins fehlt der
-// aktiviert toggle").
-//
-// Off does NOT delete the credential: it is removed from JD's own account list
-// and stays sealed in this app's store, so switching it back on needs no
-// password retyped. That is the difference between this and the bin next to
-// it, and the reason both exist.
+// SetHosterLoginEnabled switches one host's login on or off and reconciles in
+// the background. Off removes the account from JD but keeps the credential
+// here, so switching it back on needs no password.
 func (a *App) SetHosterLoginEnabled(host string, enabled bool) error {
 	r := a.hosterAuth()
 	if host = strings.ToLower(strings.TrimSpace(host)); host == "" {
 		return errors.New("hosterauth: host is required")
 	}
 	host = strings.TrimPrefix(host, "www.")
-	// The same writer every other account's switch goes through, so one file
-	// holds one answer per (service, account) - see hosterAuth() above for why
-	// the key is the same one hosterauth.Store files the credential under.
 	a.SetAccountEnabled(hosterauth.Service, host, enabled)
 	if !enabled {
-		// Ahead of the reconcile, not instead of it: a switched-off host must
-		// stop outranking Direct in the routing table immediately, and
-		// Reconcile only pushes SetHostActive for hosts it still has a state
-		// for - which a disabled one, absent from `desired`, no longer is.
+		// Reconcile only updates hosts it still has state for, and a disabled
+		// host has none, so it is taken out of routing here.
 		jdresolver.SetHostActive(host, false)
 	}
 	a.spawn(func() {
@@ -194,9 +132,8 @@ func (a *App) SetHosterLoginEnabled(host string, enabled bool) error {
 	return nil
 }
 
-// RemoveHosterLogin clears one host's stored login, and reconciles right
-// away so JD's own copy of the account is asked to go too - a credential the
-// user deleted here must not keep sitting in JD's config indefinitely.
+// RemoveHosterLogin deletes one host's login and reconciles in the background
+// so JD drops its copy too.
 func (a *App) RemoveHosterLogin(host string) error {
 	r := a.hosterAuth()
 	if err := r.RemoveLogin(host); err != nil {

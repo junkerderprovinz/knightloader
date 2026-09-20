@@ -10,16 +10,8 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/script"
 )
 
-// TestScriptPackageTallies is the definition of "this package is finished",
-// written out case by case, because that definition is the whole reason
-// package.done did not exist before: task.done fires per file, and the
-// question nobody had answered was what a failed, held, switched-off or
-// not-yet-started member does to the answer.
-//
-// Pure over the task map on purpose - see scriptPackageTallies' own doc
-// comment. Every case below is a state a real queue reaches, and each one
-// used to be a judgement call somebody would otherwise make differently at
-// two call sites.
+// TestScriptPackageTallies spells out, case by case, when a package counts as
+// finished: what failed, held, disabled and unstarted members do to the answer.
 func TestScriptPackageTallies(t *testing.T) {
 	future := time.Now().Add(time.Minute)
 	cases := []struct {
@@ -53,7 +45,7 @@ func TestScriptPackageTallies(t *testing.T) {
 			complete: true,
 		},
 		{
-			name: "a file failed WITH a retry armed is still pending",
+			name: "a file failed with a retry armed is still pending",
 			tasks: []*core.Task{
 				{ID: "1", Package: "P", Status: core.StatusDone, Enabled: true},
 				{ID: "2", Package: "P", Status: core.StatusError, Enabled: true, NextTry: future},
@@ -97,10 +89,8 @@ func TestScriptPackageTallies(t *testing.T) {
 			complete: false,
 		},
 		{
-			// The clause that is easy to leave out of complete(): with only
-			// "nothing is pending" a package of nothing but filtered links
-			// reports finished, and a script fires for a package that never
-			// downloaded a byte and never will.
+			// With only "nothing is pending", a package of filtered links would
+			// report finished without ever downloading a byte.
 			name: "nothing but links the filter is holding is not a finished package",
 			tasks: []*core.Task{
 				{ID: "1", Package: "P", Status: core.StatusCollected, Enabled: true, Skipped: true},
@@ -110,8 +100,6 @@ func TestScriptPackageTallies(t *testing.T) {
 			complete: false,
 		},
 		{
-			// Same clause, the other way in: a package somebody staged and
-			// then switched off entirely has nothing pending either.
 			name: "nothing but switched-off links is not a finished package",
 			tasks: []*core.Task{
 				{ID: "1", Package: "P", Status: core.StatusCollected, Enabled: false},
@@ -120,10 +108,8 @@ func TestScriptPackageTallies(t *testing.T) {
 			complete: false,
 		},
 		{
-			// Disabled deliberately overlaps the outcome counts - see
-			// script.PackageView's doc comment on why the four do not
-			// partition Files. Switching a file off AFTER it finished does
-			// not un-finish it, so this package is done and reports both.
+			// Disabled overlaps the outcome counts (see script.PackageView), and
+			// switching a file off after it finished does not un-finish it.
 			name: "a finished file that was later switched off counts as both",
 			tasks: []*core.Task{
 				{ID: "1", Package: "P", Status: core.StatusDone, Enabled: false, Loaded: 7},
@@ -154,11 +140,8 @@ func TestScriptPackageTallies(t *testing.T) {
 	}
 }
 
-// TestScriptPackageTalliesIgnoresUnpackagedTasks keeps the empty package name
-// out of the map. Folding every unpackaged download into one bucket is the
-// same mistake packageFilesLocked refuses to make for the info-file sweep,
-// and here it would fire one package.done for the whole shared download
-// folder every time any loose link finished.
+// TestScriptPackageTalliesIgnoresUnpackagedTasks: one bucket for all loose
+// links would fire package.done whenever any of them finished.
 func TestScriptPackageTalliesIgnoresUnpackagedTasks(t *testing.T) {
 	got := scriptPackageTallies(map[string]*core.Task{
 		"1": {ID: "1", Status: core.StatusDone, Enabled: true},
@@ -173,14 +156,10 @@ func TestScriptPackageTalliesIgnoresUnpackagedTasks(t *testing.T) {
 	}
 }
 
-// TestPackageDoneFiresWhenTheLastFileSettles is the whole feature end to
-// end: the app publishes, the script host receives it off the bus, and a
-// real script bound to package.done runs with the counts filled in.
-//
-// It also pins the boot seeding, which is the part with no other way to
-// prove it: the "Boot" package below is already finished when the loop
-// starts, and must never fire. Without that seeding, every package a person
-// ever downloaded would announce itself two seconds after every restart.
+// TestPackageDoneFiresWhenTheLastFileSettles runs a real package.done script
+// end to end. It also checks the boot seeding: "Boot" is finished before the
+// loop starts and must never fire, or every past package would announce itself
+// after each restart.
 func TestPackageDoneFiresWhenTheLastFileSettles(t *testing.T) {
 	a, err := New(t.TempDir())
 	if err != nil {
@@ -200,18 +179,14 @@ func TestPackageDoneFiresWhenTheLastFileSettles(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// "Boot" is complete before the sweep ever looks; "Release" is not.
 	pending := &core.Task{ID: "2", Package: "Release", URL: "https://host.example/b.bin", Status: core.StatusRunning, Enabled: true}
 	a.mu.Lock()
 	a.tasks["1"] = &core.Task{ID: "1", Package: "Boot", URL: "https://host.example/a.bin", Status: core.StatusDone, Enabled: true}
 	a.tasks["2"] = pending
 	a.mu.Unlock()
 
-	// Long enough to outlast one whole seeding pass. The first pass records
-	// what is already complete and fires nothing, so flipping the task before
-	// it happened would have "Release" seeded as finished and the event would
-	// correctly never arrive - a green test that proved the opposite of what
-	// it claims.
+	// Let the seeding pass run first; finishing "Release" before it would seed
+	// it as done and the event would never arrive.
 	time.Sleep(scriptPackagePoll + 500*time.Millisecond)
 
 	a.mu.Lock()
@@ -238,11 +213,8 @@ func TestPackageDoneFiresWhenTheLastFileSettles(t *testing.T) {
 	})
 }
 
-// TestLinkAddedFiresOnlyForLinksThatEnteredTheList is script.TriggerLinkAdded's
-// own carve-out, against the real put(): a link the filter is holding is in
-// the holding area rather than the collector, nothing will download it unless
-// a person restores it, and greeting it as an arrival hands a script a task
-// with no future.
+// TestLinkAddedFiresOnlyForLinksThatEnteredTheList: a link the filter holds is
+// not in the collector and will not download unless restored.
 func TestLinkAddedFiresOnlyForLinksThatEnteredTheList(t *testing.T) {
 	a, err := New(t.TempDir())
 	if err != nil {
@@ -273,11 +245,8 @@ func TestLinkAddedFiresOnlyForLinksThatEnteredTheList(t *testing.T) {
 		defer a.mu.Unlock()
 		return collected.Comment == "greeted"
 	})
-	// The held link was published before the poll above even started, so a
-	// firing for it would already be in the worker queue. The extra window
-	// is what makes this a real negative rather than a race the script
-	// happened to lose - the same shape TestScriptDoesNotFireOnTaskFailed-
-	// WithRetryPending uses for its own absence check.
+	// Extra time so a firing for the held link would have landed before the
+	// check.
 	time.Sleep(300 * time.Millisecond)
 	a.mu.Lock()
 	heldComment := held.Comment
@@ -287,14 +256,9 @@ func TestLinkAddedFiresOnlyForLinksThatEnteredTheList(t *testing.T) {
 	}
 }
 
-// TestAccountExpiredFiresOnTheCrossingNotTheState is the edge detection
-// fireAccountExpiry exists for. The account-health sweep runs every fifteen
-// minutes for the life of the process and a lapsed account is lapsed on
-// every single pass, so firing on the state would be a notification script
-// sending the same message four times an hour, for ever.
-//
-// Observed by subscribing to a.Events directly, which is also the point of
-// the bus: a second consumer is a Subscribe call and nothing else.
+// TestAccountExpiredFiresOnTheCrossingNotTheState: the health sweep runs every
+// fifteen minutes, and a lapsed account stays lapsed, so firing on the state
+// would repeat the message for ever.
 func TestAccountExpiredFiresOnTheCrossingNotTheState(t *testing.T) {
 	a, err := New(t.TempDir())
 	if err != nil {
@@ -318,17 +282,14 @@ func TestAccountExpiredFiresOnTheCrossingNotTheState(t *testing.T) {
 	future := time.Now().Add(24 * time.Hour).UTC().Format(time.RFC3339)
 
 	lapsed := AccountHealth{Tier: "premium", Expiry: past}
-	// First reading of this account at all: the crossing.
+	// First reading of the account: the crossing.
 	a.fireAccountExpiry("alldebrid", "", AccountHealth{}, false, lapsed)
-	// The same lapse, read again fifteen minutes later. Must be silent.
+	// The same lapse read again: silent.
 	a.fireAccountExpiry("alldebrid", "", lapsed, true, lapsed)
-	// A renewal the provider did not actually apply: the expiry moved and is
-	// still in the past. That is a new fact, so it fires again.
+	// The expiry moved but is still past: a new fact, so it fires.
 	moved := AccountHealth{Tier: "premium", Expiry: laterButStillPast}
 	a.fireAccountExpiry("alldebrid", "", lapsed, true, moved)
-	// Healthy readings, and the two shapes of "nothing to say": a free tier
-	// with no expiry at all, and an account nothing has read yet. Neither is
-	// an expiry that passed.
+	// A healthy reading, a free tier without expiry and an unread account.
 	a.fireAccountExpiry("alldebrid", "", moved, true, AccountHealth{Tier: "premium", Expiry: future})
 	a.fireAccountExpiry("torbox", "", AccountHealth{}, false, AccountHealth{Tier: "free"})
 	a.fireAccountExpiry("torbox", "", AccountHealth{}, false, AccountHealth{Tier: tierUnknown})
