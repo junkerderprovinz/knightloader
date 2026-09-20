@@ -1,23 +1,18 @@
-// A FlatList whose rows read state the list does not know about must say so.
+// A FlatList whose rows read state the list does not know about has to say so.
 //
-// This gate exists because that exact defect cost four rounds of "das drag and
-// drop funktioniert nicht" (jdp, 2026-08-31 to 2026-09-02) and, once found,
-// turned out to be sitting in a second list nobody had reported yet.
-//
-// VirtualizedList re-renders a cell only when `data` changes BY REFERENCE or
-// when `extraData` does. A `renderItem` that closes over component state - a
-// drag in flight, a status map, a poll's figures - is invisible to that rule, so
-// the rows simply stop updating. It survives review easily because it usually
-// works: most `data` props are rebuilt on every render, so the reference keeps
-// changing and the cells are redrawn for the wrong reason. The bug only appears
-// when somebody makes that reference stable, which is normally called an
+// VirtualizedList re-renders a cell only when `data` changes by reference or
+// when `extraData` does. A `renderItem` that closes over component state, a
+// drag in flight, a status map or a poll's figures, is invisible to that rule,
+// so the rows stop updating. It survives review because it usually works: most
+// `data` props are rebuilt on every render, so the reference keeps changing and
+// the cells are redrawn for the wrong reason. The defect only appears once
+// somebody makes that reference stable, which is normally called an
 // optimisation.
 //
-// The check is deliberately blunt: find every <FlatList>, read its renderItem
-// body, and if that body mentions an identifier that is neither destructured
-// from the render argument nor imported nor a local helper, demand an
-// `extraData`. False positives are cheap (add extraData, which is never wrong)
-// and a miss is four rounds of somebody else's evening.
+// The check is blunt: find every <FlatList>, read its renderItem body, and if
+// that body mentions an identifier that is neither destructured from the render
+// argument nor imported nor a local helper, demand an `extraData`. A false
+// positive costs an extraData, which is never wrong.
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -83,9 +78,9 @@ for (const file of walk(ROOT)) {
         .filter(Boolean),
     );
 
-    // Identifiers the body reads by SUBSCRIPT - `status[item.id]` - are the
-    // shape that hurts: a map held in state, keyed by the row. Anything that is
-    // not an allowed argument and not a component (capitalised) is suspect.
+    // Identifiers the body reads by subscript, `status[item.id]`, are the shape
+    // that hurts: a map held in state, keyed by the row. Anything that is not an
+    // allowed argument and not a component (capitalised) is suspect.
     const reads = new Set();
     for (const m of body.matchAll(/\b([a-z][A-Za-z0-9_]*)\s*\[/g)) {
       const name = m[1];

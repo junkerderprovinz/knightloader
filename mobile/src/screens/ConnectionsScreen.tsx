@@ -23,7 +23,7 @@ import { aggregate, fetchInstanceStats, fmtBytes, type InstanceStats } from '../
  * rather than drawing zeroes for an instance that is not there.
  */
 function statusLine(
-  // The catalogue's own key union, not a loose `string`: a typo in a key here
+  // The catalogue's own key union rather than a loose `string`: a typo in a key
   // would otherwise compile and show an empty line in 42 languages.
   t: ReturnType<typeof useT>['t'],
   s: InstanceStats | null | undefined,
@@ -40,27 +40,24 @@ function statusLine(
   return parts.join(' · ');
 }
 
-// The app's own mark, beside the name it belongs to (jdp, 2026-08-30: "In der
-// Übersicht soll links von der Überschrift auch das Logo sein").
+// The app's own mark, beside the name it belongs to.
 //
-// The adaptive icon's FOREGROUND layer, not icon.png (jdp, same day: "Das logo
-// in der übersicht soll das ohne hintergrundkachel sein"): icon.png is the
-// finished launcher tile with mark and ground baked together, so on a card it
-// read as a little app icon pasted onto the page rather than as this product's
-// own mark. The foreground layer is the mark alone, on nothing.
+// The adaptive icon's foreground layer rather than icon.png, which is the
+// finished launcher tile with mark and ground baked together and reads on a
+// card as a little app icon pasted onto the page. The foreground layer is the
+// mark alone, on nothing.
 //
-// require() and not a URI: a shipped asset, resolved by the bundler, so it is
-// on screen at first paint with nothing to fetch.
+// require() rather than a URI: a shipped asset resolved by the bundler is on
+// screen at first paint with nothing to fetch.
 const MARK = require('../../assets/android-icon-foreground.png');
 
 /**
  * blend lays `over` on `base` at `alpha`, returning an opaque colour.
  *
- * A copy of the one in components/TaskRow.tsx, which is where it was written
- * and where the reasoning for computing the mix rather than layering a
- * translucent view sits. It is duplicated here and should not stay that way:
- * the pair belongs beside the palette in theme/tokens.ts, with both call sites
- * reading it from there.
+ * A copy of the one in components/TaskRow.tsx, which carries the reasoning for
+ * computing the mix rather than layering a translucent view. The pair belongs
+ * beside the palette in theme/tokens.ts, with both call sites reading it from
+ * there.
  */
 function blend(base: string, over: string, alpha: number): string {
   const b = rgb(base);
@@ -78,14 +75,11 @@ function rgb(hex: string): { r: number; g: number; b: number } | null {
 
 type ConnStatus = 'checking' | 'online' | 'offline';
 
-// The home screen, opened straight from a fresh install rather than the
-// connect form: it lands you IN the app first, empty state included, with
-// the connect screen and Settings only ever a badge tap away, not something
-// forced on you before you have looked at anything (jdp, 2026-08-24: "es
-// soll nicht sofort gleich der Verbindungsbildschirm kommen"). A tap on a
-// row makes that connection active and opens its Downloads screen; this
-// screen itself never shows tasks, so it stays fast to scan even with
-// several boxes on flaky Wi-Fi.
+// The home screen, opened straight from a fresh install rather than the connect
+// form, so somebody lands in the app first, empty state included, with the
+// connect screen and Settings a badge tap away. A tap on a row makes that
+// connection active and opens its Downloads screen; this screen shows no tasks,
+// so it stays fast to scan with several boxes on flaky Wi-Fi.
 export default function ConnectionsScreen({
   onActivate,
   onAddPress,
@@ -104,9 +98,10 @@ export default function ConnectionsScreen({
   const [stats, setStats] = useState<Record<string, InstanceStats | null>>({});
   const [why, setWhy] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
-  /** What the last start/stop actually did, when it did not work. Shown rather
-   *  than swallowed: a control that reports nothing is indistinguishable from
-   *  a control that does nothing. */
+  /** What the last start or stop did, when it did not work. Shown rather than
+   *  swallowed: a control that reports nothing cannot be told apart from a
+   *  control that does nothing. */
+
   const [queueError, setQueueError] = useState('');
 
   const reload = useCallback(async () => {
@@ -126,15 +121,15 @@ export default function ConnectionsScreen({
   }, [reload]);
 
   // The numbers behind every card and behind the summary above them. Polled
-  // rather than streamed: a socket per instance, for a list you only glance at,
-  // would be a lot of machinery for a five-second refresh. Two calls each - the
-  // queue for "is it halted", /api/queue/counters for the figures.
+  // rather than streamed, since a socket per instance is a lot of machinery for
+  // a five-second refresh of a list somebody glances at. Two calls each: the
+  // queue for whether it is halted, /api/queue/counters for the figures.
   const load = useCallback(async () => {
     const list = await listConnections();
     const results = await Promise.all(list.map((conn) => fetchInstanceStats(conn)));
     setStats(Object.fromEntries(list.map((conn, i) => [conn.id, results[i].ok ? results[i].stats : null])));
-    // The reason, kept rather than dropped. See stats.ts: swallowing these is
-    // what made "the buttons have no effect" impossible to explain.
+    // The reason, kept rather than dropped: see stats.ts. A swallowed failure
+    // leaves a button that refuses looking like a button that does nothing.
     setWhy(
       Object.fromEntries(
         list.map((conn, i) => [conn.id, results[i].ok ? '' : (results[i] as { reason: string }).reason]),
@@ -151,20 +146,18 @@ export default function ConnectionsScreen({
   const alle = connections.map((conn) => stats[conn.id] ?? null);
   const gesamt = aggregate(alle);
 
-  // One button for the whole group, and it follows the group's own state
-  // rather than carrying two controls that are wrong half the time (jdp:
-  // "evtl mit play und stop button auf der card sie sich automatisch an den
-  // zustand anpassen"). Halted everywhere means the offer is "start"; anything
-  // else means "stop".
+  // One button for the whole group, following the group's own state rather than
+  // two controls that are wrong half the time. Halted everywhere means the
+  // offer is start; anything else means stop.
   const toggleAll = async () => {
     setBusy(true);
     setQueueError('');
     try {
       const list = await listConnections();
-      // Settled, not all: one unreachable instance must not cancel the others,
-      // and every failure is COLLECTED rather than swallowed. The first cut
-      // wrote `.catch(() => {})` here, which is how a button that was failing
-      // every time looked exactly like a button that did nothing.
+      // Settled rather than all, so one unreachable instance does not cancel
+      // the others, and every failure is collected rather than swallowed: a
+      // button that fails every time otherwise looks like one that does
+      // nothing.
       const results = await Promise.allSettled(list.map((conn) => setQueueHalted(conn, !gesamt.halted)));
       const failed = results.filter((r) => r.status === 'rejected') as PromiseRejectedResult[];
       if (failed.length > 0) {
@@ -204,34 +197,28 @@ export default function ConnectionsScreen({
 
       <FlatList
         data={connections}
-        /* The rows read `status`, `stats` and `why` - three pieces of state the
-           list knows nothing about - while `connections` is set once and never
+        /* The rows read `status`, `stats` and `why`, three pieces of state the
+           list knows nothing about, while `connections` is set once and never
            again. Without this, VirtualizedList never redraws a cell, so every
-           status badge and every figure freezes at whatever it said on the first
-           paint while the five-second poll updates state nobody redraws.
-           Found while fixing the same defect in DragList; the rule is the same
-           one both times: a cell that reads state outside `data` must say so. */
+           status badge and every figure freezes at what it said on the first
+           paint while the five-second poll updates state nobody redraws. A cell
+           that reads state outside `data` has to say so. */
         extraData={[status, stats, why]}
         // The summary, the failure line and the graph travel as the list's own
-        // HEADER rather than as siblings above it (jdp, 2026-08-31: "in der
-        // Übesicht soll die alle instanzen card genauso groß sein wie die
-        // instanzen card"). As a sibling the card carried its own copy of the
-        // list's width cap plus a horizontal margin, and `width: '100%'` with a
-        // margin does not shrink the way padding inside a container does - so it
-        // came out wider than the cards it summarises. Inside the content
-        // container there is no second copy to disagree.
+        // header rather than as siblings above it. As a sibling the card carries
+        // its own copy of the list's width cap plus a horizontal margin, and
+        // `width: '100%'` with a margin does not shrink the way padding inside a
+        // container does, so it comes out wider than the cards it summarises.
         //
-        // On a tablet the header spans BOTH columns, which is right: it is the
-        // group's own line, not a third card competing for a slot.
+        // On a tablet the header spans both columns: it is the group's own line
+        // rather than a third card competing for a slot.
         ListHeaderComponent={
           connections.length > 0 ? (
             <View style={styles.header}>
-              {/* A COLUMN now, not a row: the figures and the badge share the
-                  top line, and the graph sits under them inside the same card
-                  (jdp, 2026-09-01: "der graph soll in die 'Alle instanzen' card
-                  integriert sein"). It used to be a sibling below the card,
-                  which made the group's own numbers and the group's own curve
-                  two objects saying one thing. */}
+              {/* A column rather than a row: the figures and the badge share
+                  the top line and the graph sits under them inside the same
+                  card, so the group's numbers and the group's curve are one
+                  object rather than two saying the same thing. */}
               <View style={[styles.summary, { backgroundColor: c.surface, borderRadius: radii.card }]}>
                 <View style={styles.summaryTop}>
                   <View style={styles.summaryText}>
@@ -251,17 +238,16 @@ export default function ConnectionsScreen({
                       button over a group that is entirely unreachable promises
                       something it cannot do.
 
-                      BOTH options, with only the one in force filled - the
-                      same pair the instance screen draws and the same one the
-                      browser extension has drawn since it shipped. It was one
-                      badge whose glyph flipped with the state, which asks the
-                      person to infer the alternative from a glyph that is not
-                      on the screen; halting the queues of every instance at
-                      once is about as far from "a preference" as this app
-                      goes. Filled says what the group IS doing, not what the
-                      press would do - a two-option pair is a selector with
-                      icon-only segments - so pressing the filled one does
-                      nothing. */}
+                      Both options, with only the one in force filled, the pair
+                      the instance screen draws and the one the browser
+                      extension has drawn since it shipped. A single badge whose
+                      glyph flips with the state asks the person to infer the
+                      alternative from a glyph that is not on screen, and
+                      halting the queues of every instance at once is no
+                      preference. Filled says what the group is doing rather
+                      than what the press would do, since a two-option pair is a
+                      selector with icon-only segments, so pressing the filled
+                      one does nothing. */}
                   {gesamt.online > 0 && (
                     <View style={styles.summaryActions}>
                       <IconBadge
@@ -284,9 +270,9 @@ export default function ConnectionsScreen({
                   )}
                 </View>
 
-                {/* Shown whenever the group has anything queued, not only while
-                    bytes move: a line flat at zero beside a queue that says
-                    "running" is the answer, not an empty row. */}
+                {/* Shown whenever the group has anything queued rather than
+                    only while bytes move: a line flat at zero beside a queue
+                    that says "running" is the answer, not an empty row. */}
                 {(gesamt.speed > 0 || gesamt.files > 0) && (
                   <View style={styles.summaryGraph}>
                     <SpeedGraph speed={gesamt.speed} />
@@ -351,17 +337,10 @@ export default function ConnectionsScreen({
               onPress={() => activate(item)}
             >
               {/* The same card the extension draws: logo, name, what it is
-                  doing (jdp, 2026-09-01: "Die Instanzencard sollen gleich
-                  aussehen wie in der erweiterung: mit Logo"). Two surfaces
-                  showing one group had two different objects for it, and the
-                  one thing that says "this is a KnightLoader" at a glance was
-                  the one the app left out. */}
-              {/* The mark, bare (jdp, 2026-09-01: "das logo auf den instanzen
-                  cards ohne hintergrund"). The tile behind it was borrowed from
-                  the extension's own card, where it sits on a page ground and
-                  needs a surface to sit on; here it is already inside a card, so
-                  the tile was a second surface on top of a first one, and what
-                  it drew was a grey square around a logo rather than a logo. */}
+                  doing. The mark is bare, because the tile the extension puts
+                  behind it is there for a page ground; inside a card it would be
+                  a second surface on a first one, drawing a grey square around
+                  a logo rather than a logo. */}
               <View style={styles.rowMark}>
                 <Image source={MARK} style={styles.rowMarkImg} resizeMode="contain" />
               </View>
@@ -370,48 +349,38 @@ export default function ConnectionsScreen({
                   <Text style={[styles.rowName, { color: c.text }]} numberOfLines={1}>
                     {item.name}
                   </Text>
-                  {/* A badge with the word on it, not a coloured dot (jdp, same
-                      message: "der statuspunkt soll ein kleiner badge mit
-                      online/offlin text sein und auch dem status entsprechend
-                      eingefärbt sein").
-                      A 10-point dot asks the reader to know the colour code,
-                      and it says nothing at all to somebody who cannot tell the
-                      green from the red. The word carries the meaning and the
-                      colour carries the urgency, which is the pairing every
-                      other status in this family already uses. */}
+                  {/* A badge with the word on it rather than a coloured dot: a
+                      dot asks the reader to know the colour code and says
+                      nothing to somebody who cannot tell the green from the
+                      red. The word carries the meaning and the colour carries
+                      the urgency. */}
                   <StatusBadge status={s} />
                 </View>
-                {/* What the instance is DOING, not where the connection goes
-                    (jdp, 2026-08-30: "über relay text soll nicht dort stehen.
-                    dort sollen die gleichen infos in der card stehen wie in
-                    den cards in der browsererweiterung"). The relay address
-                    answered a question nobody was asking - it is the same for
-                    every card in the list, so it distinguished nothing while
-                    taking the one line that could have. Same four figures and
-                    the same order as the extension's own card. */}
+                {/* What the instance is doing rather than where the connection
+                    goes. The relay address is the same for every card in the
+                    list, so it distinguishes nothing while taking the one line
+                    that could. Same four figures and the same order as the
+                    extension's card. */}
                 <Text style={[styles.rowUrl, { color: c.textMuted }]} numberOfLines={1}>
                   {stats[item.id] === null && why[item.id] ? why[item.id] : statusLine(t, stats[item.id], s)}
                 </Text>
               </View>
-              {/* No delete here any more (jdp, 2026-08-30: "der löschenbutton
-                  soll nur in der instanz drinnen zu sehen sein, nicht auf der
-                  card"). A bin sitting on every row of a list you tap to open
-                  is a mis-tap waiting to happen, and it competed with the only
-                  action the row actually has. It lives inside the instance
-                  now, where the thing being removed is what you are looking
-                  at - see DownloadsScreen. */}
+              {/* No delete here. A bin on every row of a list somebody taps to
+                  open is a mis-tap waiting to happen, and it competes with the
+                  only action the row has. It lives inside the instance, where
+                  the thing being removed is what is on screen; see
+                  DownloadsScreen. */}
             </TouchableOpacity>
           );
         }}
         /* The shared empty state: a card, a muted glyph at reduced opacity, a
-           muted line, the one action. It had the line and the action and
-           neither of the other two, so the screen somebody sees on a fresh
-           install was text floating on the page ground while every other
+           muted line, the one action. Without the card the screen a fresh
+           install shows is text floating on the page ground, while every other
            surface in the app is built out of cards.
 
-           The glyph's size is the role's own number (26 points of ink, what an
-           empty state takes in the web UI), converted through boxForInk
-           because a drawn glyph fills less than the box it is handed. */
+           The glyph's size is the role's own number, 26 points of ink as an
+           empty state takes in the web UI, converted through boxForInk because
+           a drawn glyph fills less than the box it is handed. */
         ListEmptyComponent={
           loaded ? (
             <View style={[styles.empty, { backgroundColor: c.surface, borderRadius: radii.card }]}>
@@ -428,11 +397,12 @@ export default function ConnectionsScreen({
   );
 }
 
-// Colours and radii are applied inline from the resolved tokens, never baked
-// in here: a stylesheet is built once and cannot follow a theme change.
-// One column stretched across a tablet is a card 900 points wide with its
-// text at one edge and its badge at the other. A cap plus centring costs a
-// phone nothing (640 is wider than every phone) and makes a tablet readable.
+// Colours and radii are applied inline from the resolved tokens rather than
+// baked in here: a stylesheet is built once and cannot follow a theme change.
+//
+// One column stretched across a tablet is a card 900 points wide with its text
+// at one edge and its badge at the other. A cap plus centring costs a phone
+// nothing, since 640 is wider than every phone, and makes a tablet readable.
 const capped = { width: '100%' as const, maxWidth: 640, alignSelf: 'center' as const };
 
 const styles = StyleSheet.create({
@@ -444,55 +414,51 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingTop: 56,
   },
-  // The list's header block. No width, no cap, no horizontal margin: it lives
-  // inside the list's own content container, which already carries all three.
-  // Every one of those it used to repeat was a chance to disagree, and it did.
+  // The list's header block. No width, cap or horizontal margin: it lives
+  // inside the list's own content container, which carries all three, and a
+  // second copy of any of them is a chance to disagree.
   header: { marginBottom: 8 },
   summary: {
-    // Same box as a row below it (jdp: "Übersichtscard soll genau so groß sein
-    // wie die instanzencards"): same padding, same radius, same width - the
-    // last one by construction rather than by matching numbers. A column, so
-    // the graph can live under the figures inside the same card.
+    // The same box as a row below it: same padding, same radius, same width,
+    // the last one by construction rather than by matching numbers. A column,
+    // so the graph can live under the figures inside the same card.
     padding: 14,
     gap: 10,
   },
   summaryTop: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   summaryActions: { flexDirection: 'row', gap: 8 },
   summaryText: { flex: 1, minWidth: 0, gap: 2 },
-  // Body, off the scale in theme/tokens.ts: 15 is a rung between Dense and Body
+  // Body, off the scale in theme/tokens.ts: 15 is a rung between dense and body
   // that the table does not have.
   summaryTitle: { fontSize: TYPE.body, fontWeight: '600' },
   // Counts, bytes and a speed, all rewritten every five seconds, so the figures
-  // take tabular numerals - otherwise the line shuffles sideways as digits
-  // change width while somebody is reading it.
+  // take tabular numerals. Otherwise the line shuffles sideways as digits change
+  // width while somebody is reading it.
   summaryLine: { fontSize: TYPE.dense, fontVariant: ['tabular-nums'] },
   queueError: { marginTop: 8, fontSize: TYPE.caption },
   summaryGraph: {},
   brand: { flexDirection: 'row', alignItems: 'center', gap: 0, flexShrink: 1, minWidth: 0 },
-  // 44, and both margins are negative, which looks like a hack and is not (jdp,
-  // 2026-08-31: "der abstand von name und logo ist zu groß in der übersicht").
+  // 44 with negative margins on both sides.
   //
-  // The asset is the adaptive icon's FOREGROUND layer, and an adaptive icon
+  // The asset is the adaptive icon's foreground layer, and an adaptive icon
   // carries a safe zone: roughly a quarter of the box on each side is
   // transparent by specification, because every launcher crops into it. So the
-  // mark is drawn at 44 to come out the right visual size, and then about
-  // eleven points of that 44 are nothing at all on each side. A `gap` measures
-  // the BOX, not the ink, so a gap of 10 read as 21 and the name looked adrift.
+  // mark is drawn at 44 to come out the right visual size, and about eleven
+  // points of that 44 are nothing on each side. A `gap` measures the box rather
+  // than the ink, so a gap of 10 reads as 21 and the name looks adrift.
   //
-  // The negative margins take back what the safe zone padded out. The gap is 0
-  // for the same reason: there are already eleven invisible points between the
-  // mark and the name.
+  // The negative margins take back what the safe zone padded out, and the gap
+  // is 0 because eleven invisible points are already there.
   //
-  // Logical edges, not left/right: under a right-to-left language the mark and
-  // the name swap sides with the rest of the layout, and a physical margin
-  // would take back the safe zone on whichever side it was written for rather
-  // than on the side the mark has moved to.
+  // Logical edges rather than left and right: under a right-to-left language
+  // the mark and the name swap sides with the rest of the layout, and a
+  // physical margin would take back the safe zone on the wrong side.
   mark: { width: 44, height: 44, marginStart: -10, marginEnd: -6 },
-  // The WORDMARK, and that is why it is not on the type scale: the scale's own
-  // table sets a heading at 20 and names a brand-name instance as one of the
-  // two sizes deliberately outside it. This is the product's name beside the
-  // product's mark, not this screen's title - the screen titles next door
-  // (Downloads, Settings) are the 20 the scale asks for.
+  // The wordmark, which is why it is not on the type scale: the scale sets a
+  // heading at 20 and names a brand-name instance as one of the two sizes
+  // outside it. This is the product's name beside the product's mark rather
+  // than this screen's title, and the screen titles next door are the 20 the
+  // scale asks for.
   title: { fontSize: 22, fontWeight: '700' },
   badgeRow: { flexDirection: 'row', gap: 10 },
   list: { ...capped, paddingHorizontal: 16, paddingBottom: 32, gap: 8 },
@@ -501,8 +467,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 14,
     gap: 12,
-    // flex only bites inside a column wrapper, where two siblings share a
-    // line; in a one-column list it is a no-op.
+    // flex only bites inside a column wrapper, where two siblings share a line;
+    // in a one-column list it does nothing.
     flex: 1,
   },
   columns: { gap: 8 },
@@ -513,7 +479,7 @@ const styles = StyleSheet.create({
   rowTop: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   rowName: { fontSize: TYPE.body, fontWeight: '600', flexShrink: 1 },
   // File counts, bytes left and a speed, refreshed every five seconds down a
-  // stacked list: both halves of the tabular-numerals rule at once.
+  // stacked list: both halves of the tabular-numerals rule.
   rowUrl: { fontSize: TYPE.dense, marginTop: 2, fontVariant: ['tabular-nums'] },
   // The empty state's own card. The padding is the card's; the ground and the
   // radius are applied at the call site from the resolved tokens.

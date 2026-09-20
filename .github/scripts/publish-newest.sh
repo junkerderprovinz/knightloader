@@ -11,22 +11,19 @@
 #   asset name  the fixed name it is published under
 #   product     as the release titles name it: App, Browser Extension
 #
-# WHY A STANDING RELEASE. GitHub serves a download link that survives the next
-# release only as /releases/latest/download/<name>, and "latest" is the
-# product's own release, which a surface release deliberately never is (see
-# make_latest in the two workflows that call this).
+# A standing release is needed because a stable download link exists only as
+# /releases/latest/download/<name>, and "latest" belongs to the main vX.Y.Z release;
+# surface releases are never marked latest (make_latest in the calling
+# workflows).
 #
-# ONLY THE NEWEST TAG PUBLISHES, decided here at the end of the run and from
-# tags fetched now. A build of an older tag that finishes after a newer one must
-# not put the older file behind the button, and a tag list read at checkout,
-# half an hour earlier, cannot know about the newer tag. Only plain X.Y.Z tags
-# count, so a pre-release can neither take the button nor, sorted above its own
-# final release, keep it.
+# Only the newest tag publishes, judged from tags fetched at the end of the run,
+# so an older build finishing late cannot put its file behind the button. Only
+# plain X.Y.Z tags count, so a pre-release can neither take the button nor keep
+# it.
 #
-# THE STANDING TAG IS CREATED ONCE AND NEVER MOVED. Moving it would be a ref
-# update made with GITHUB_TOKEN, which GitHub refuses when the workflow files
-# differ between the two commits. The file is what the button needs, and the
-# title and notes say which version it is.
+# The standing tag is created once and never moved: moving it with GITHUB_TOKEN
+# is refused when the workflow files differ between the commits. The title and
+# notes say which version the file is.
 set -euo pipefail
 
 surface=$1

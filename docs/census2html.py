@@ -23,9 +23,8 @@ for line in src.splitlines():
         continue
     if not line.startswith('|') or area is None:
         continue
-    # Split on a pipe that is NOT escaped: two rows describe proxy URL schemes
-    # and a dropdown using "\|" inside a cell, and a naive split silently loses
-    # exactly those rows from a list whose whole job is to be complete.
+    # Only unescaped pipes separate cells. Two rows carry a "\|" inside a cell,
+    # for proxy URL schemes and for a dropdown, and a plain split drops them.
     body = line.strip()
     body = body[1:] if body.startswith('|') else body
     body = body[:-1] if body.endswith('|') and not body.endswith('\\|') else body
@@ -95,11 +94,10 @@ DOC = u"""<meta charset="utf-8">
   main { max-width:1400px; margin:0 auto; padding:14px 20px 60px; }
   .wrap { overflow-x:auto; }
   table { border-collapse:collapse; width:100%%; min-width:1180px; }
-  /* The column header is deliberately NOT sticky. The table sits inside an
-     overflow-x wrapper, which is its own scroll container, so a sticky header
-     sticks to THAT box rather than to the viewport and lands 95px down on top
-     of the first row. The toolbar above is the thing worth keeping in view
-     anyway, and it is sticky against the page where that works. */
+  /* The column header is not sticky. The table sits in an overflow-x wrapper,
+     its own scroll container, so a sticky header follows that box instead of
+     the viewport and lands 95px down on top of the first row. The toolbar is
+     sticky against the page instead. */
   th { text-align:left; font-size:10px; letter-spacing:.12em; text-transform:uppercase;
        color:var(--muted); font-weight:600; padding:8px 10px; background:var(--bg); }
   td:last-child, th:last-child { white-space:nowrap; }

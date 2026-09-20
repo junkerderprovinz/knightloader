@@ -1,6 +1,6 @@
-// Spike: drive the TorBox Web-Downloads/Debrid API live with the real client.
-// Verifies the response shapes end-to-end: mylist (status/files) -> requestdl
-// (CDN URL) -> download -> sha256, then deletes the job. Needs KL_TORBOX.
+// Command spike-torbox drives the TorBox web download API with the real client
+// to check the response shapes: mylist, then requestdl, then the CDN download
+// and its sha256. It deletes the job afterwards and needs KL_TORBOX.
 //
 //	KL_TORBOX=<key> go run ./cmd/spike-torbox <webdownload_id>|<link>
 package main

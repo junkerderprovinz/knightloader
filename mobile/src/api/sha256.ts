@@ -1,19 +1,16 @@
 // SHA-256, by hand, because the phrase has to be decoded on the phone before
 // there is any server to ask.
 //
-// Not expo-crypto: that is a native module, and this app spent a release
-// removing native surface it did not use (the manifest audit that found the
-// microphone and overlay permissions). One hash per phrase somebody types is
-// not a reason to add a native dependency back, or to re-open a build that
-// has already fought the Android NDK once.
+// Not expo-crypto, which is a native module: one hash per phrase somebody
+// types does not earn native surface this app otherwise keeps out.
 //
 // Checked against the Go side rather than trusted: internal/seedphrase's own
 // vectors are run through this file and compared, so a phrase this app
 // derives a key from lands on the same key the server does. A quiet
 // disagreement here would look exactly like "the relay never connects".
 
-// The first 32 bits of the fractional parts of the cube roots of the first
-// 64 primes - FIPS 180-4's own table, not something to be regenerated.
+// The first 32 bits of the fractional parts of the cube roots of the first 64
+// primes, FIPS 180-4's own table.
 const K = new Uint32Array([
   0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
   0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
@@ -35,15 +32,15 @@ export function sha256(input: Uint8Array): Uint8Array {
     0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19,
   ]);
 
-  // Pad: a 0x80 byte, then zeroes, then the length in BITS as a 64-bit
-  // big-endian number, to a multiple of 64 bytes.
+  // Pad: a 0x80 byte, then zeroes, then the bit length as a 64-bit big-endian
+  // number, to a multiple of 64 bytes.
   const bitLen = input.length * 8;
   const padded = new Uint8Array(Math.ceil((input.length + 9) / 64) * 64);
   padded.set(input);
   padded[input.length] = 0x80;
-  // A phrase secret is 16 bytes, so the high half of the length is always
-  // zero here - written out anyway, because a helper that is only correct
-  // for short inputs is a trap for whoever reuses it.
+  // A phrase secret is 16 bytes, so the high half of the length is always zero
+  // here. Written out anyway, since a helper that is only correct for short
+  // inputs is a trap for whoever reuses it.
   const view = new DataView(padded.buffer);
   view.setUint32(padded.length - 8, Math.floor(bitLen / 0x100000000), false);
   view.setUint32(padded.length - 4, bitLen >>> 0, false);

@@ -1,31 +1,12 @@
-// The service worker: builds the four context-menu entries and does the one
-// thing every entrance in this extension needs — put what you picked into one
-// of the instances in your group.
+// The service worker: builds the context-menu entries and puts what the user
+// picked into one of the instances in the group, through the relay (group.js,
+// relay.js). Membership is the credential, so the API's same-origin guard is
+// never worked around.
 //
-// It used to do that by opening a small window at the instance's own /quickadd,
-// same-origin, so the session cookie carried it. That needed an ADDRESS, which
-// is what made the options page ask for a name and a URL long after the rest of
-// the product had moved to the connection phrase. It now goes through the relay
-// instead (group.js, relay.js): the phrase is the only thing stored, membership
-// is the credential, and an instance that is only reachable through the relay
-// is reachable from here too — which the window never could be.
-//
-// The old boundary still holds, in a different place: this extension never
-// works around the API's same-origin guard with a stripped Origin header. It
-// does not have to, because a relayed call arrives at the instance marked as
-// coming from a group sibling and is admitted on that basis alone.
-// Chrome runs this file as a service worker, where importScripts is how a
-// worker pulls in its dependencies. Firefox ignores background.service_worker
-// entirely (web-ext lint says so out loud: BACKGROUND_SERVICE_WORKER_IGNORED)
-// and runs background.scripts as an EVENT PAGE instead - a document-like
-// context, where importScripts does not exist at all.
-//
-// Unguarded, that is a ReferenceError on the first line that runs, which kills
-// the background script before a single context menu is built: the extension
-// installs, shows up in the list, and does nothing whatsoever in Firefox. The
-// manifest lists shared.js and i18n.js in background.scripts for exactly this
-// reason, so Firefox has already loaded them by the time this line is reached
-// and there is nothing left to import.
+// Chrome runs this as a service worker and needs importScripts. Firefox ignores
+// background.service_worker and runs background.scripts as an event page,
+// where importScripts does not exist; the manifest lists the dependencies there
+// instead.
 if (typeof importScripts === 'function') {
   importScripts('shared.js', 'i18n.js', 'wordlist.js', 'phrase.js', 'relay.js', 'group.js', 'cnl.js');
 }
@@ -35,7 +16,7 @@ const MENU_LINK = 'knightloader-send-link';
 const MENU_IMAGE = 'knightloader-send-image';
 const MENU_SELECTION = 'knightloader-send-selection';
 
-/** menuTitles() reads the fresh translation for every context-menu entry — called on install and whenever the language changes. */
+/** menuTitles returns the current translation of every context-menu entry. */
 function menuTitles() {
   return {
     [MENU_PAGE]: t('menu.page'),
@@ -45,12 +26,9 @@ function menuTitles() {
   };
 }
 
-// Every use of chrome.contextMenus in this file is guarded. A browser without
-// the API (Firefox for Android has none) otherwise throws on the first use, and
-// at top level that TypeError stops the whole file: the message listener
-// further down is never registered, and every popup send is lost without a
-// word. Guarded, such a browser simply has no right-click entries and keeps the
-// popup and Click'n'Load. check-background.mjs loads this file without the API.
+// Every use of chrome.contextMenus is guarded. Firefox for Android has no such
+// API, and an unguarded call at top level would stop the file before the
+// message listener is registered. check-background.mjs loads it without one.
 chrome.runtime.onInstalled.addListener(async (details) => {
   await loadLanguage();
   if (chrome.contextMenus) {
@@ -68,10 +46,8 @@ chrome.runtime.onInstalled.addListener(async (details) => {
     chrome.contextMenus.create({
       id: MENU_IMAGE,
       title: titles[MENU_IMAGE],
-      // A separate entry from MENU_LINK: Chrome shows both 'link' and 'image'
-      // together when an image is itself wrapped in an <a>, and the two
-      // usually point at different URLs (a thumbnail's link vs. its full-size
-      // src) — collapsing them into one entry would leave no way to choose.
+      // Separate from MENU_LINK: a linked image shows both entries, and the
+      // link and the image source usually differ.
       contexts: ['image'],
     });
     chrome.contextMenus.create({
@@ -81,56 +57,29 @@ chrome.runtime.onInstalled.addListener(async (details) => {
     });
   }
 
-  // Click'n'Load is ON from the first second (jdp, 2026-08-28: "Das ist ja das
-  // Hauptfeature warum man sich die Erweiterung installiert!"). The manifest
-  // already declares the site access it needs, so this can register the content
-  // scripts right here rather than waiting for somebody to find the switch.
-  //
-  // Only on a fresh install: an update must never switch back on something
-  // somebody deliberately switched off.
+  // Click'n'Load is on from a fresh install. An update never switches it back
+  // on for someone who turned it off.
   if (details.reason === 'install') {
     await chrome.storage.local.set({ cnlEnabled: true });
   }
   await syncCnlScripts((await chrome.storage.local.get('cnlEnabled')).cnlEnabled !== false);
 
-  // The options page is where the phrase goes in, and an extension that cannot
-  // reach anything is better off saying so immediately than on the first
-  // right-click. An update never opens it — somebody who already joined a group
-  // does not need the page again.
-  //
-  // The SECOND reason is the one that took four rounds to find, and it is not
-  // about the phrase at all (jdp, 2026-08-30 to 2026-09-01, three times: "Ich
-  // kann die erweiterung nach wie vor nicht in chrome installieren! es kommt
-  // die meldung erweiterung geladen aber es zeigt sie nicht an").
-  //
-  // It was installed every single time. Measured off his own browser profile:
-  // location 4 (unpacked), service worker started, registration version 1.17.0,
-  // every permission granted - and `pinned_extensions: null`. Chromium hides a
-  // newly loaded extension behind the puzzle piece and pins nothing by default,
-  // so "loaded" and "nowhere to be seen" are both true at once, and an
-  // extension that opens no window on install has told the person nothing.
-  //
-  // An extension cannot pin itself; that is deliberate and not worth trying to
-  // work around. What it CAN do is stop being invisible: if the toolbar does not
-  // have it, open the page that explains where it went. Gated on the actual
-  // answer from getUserSettings rather than shown to everybody, so somebody who
-  // pinned it last time is never told about it again.
-  const versteckt = await nichtInDerLeiste();
-  if (details.reason === 'install' && (!(await readPhrase()) || versteckt)) {
-    if (versteckt) await chrome.storage.local.set({ showPinHint: true });
+  // A fresh install opens the options page when there is no phrase yet, or
+  // when Chromium has hidden the new button behind the puzzle piece, which it
+  // does by default. An extension cannot pin itself, so the page explains where
+  // it went.
+  const hidden = await notOnToolbar();
+  if (details.reason === 'install' && (!(await readPhrase()) || hidden)) {
+    if (hidden) await chrome.storage.local.set({ showPinHint: true });
     chrome.runtime.openOptionsPage();
   }
 });
 
 /**
- * Whether the toolbar button is hidden behind the puzzle piece.
- *
- * `false` on anything that cannot answer - an older Chromium, a Firefox, an API
- * that throws - because the hint exists to explain a specific Chromium
- * behaviour, and showing it where it may not apply would be an extension
- * lecturing somebody about a menu their browser does not have.
+ * Whether the toolbar button is hidden behind the puzzle piece. False wherever
+ * the browser cannot answer, since the hint only applies to Chromium.
  */
-async function nichtInDerLeiste() {
+async function notOnToolbar() {
   try {
     if (!chrome.action?.getUserSettings) return false;
     const s = await chrome.action.getUserSettings();
@@ -140,11 +89,8 @@ async function nichtInDerLeiste() {
   }
 }
 
-// The context-menu titles are set once at creation time — Chrome has no
-// "re-read this on every open" hook — so a language change made in Options
-// (this service worker may be asleep at that moment) needs its own nudge:
-// wake up on the storage write and push updated titles onto the existing
-// menu items via chrome.contextMenus.update rather than recreating them.
+// Menu titles are fixed at creation, so a language change from the options
+// page updates the existing entries.
 chrome.storage.onChanged.addListener(async (changes, area) => {
   if (area !== 'local' || !changes.language || !chrome.contextMenus) return;
   await loadLanguage();
@@ -154,10 +100,8 @@ chrome.storage.onChanged.addListener(async (changes, area) => {
   }
 });
 
-// `kind` is for the popup, not the instance: when a choice between instances
-// parks the send, the button has to name what it is about to send, and with the
-// page title above it a right-clicked link looked like "send this page"
-// (sendLabelKey in shared.js). deliver() reads only url, text and title.
+// `kind` is for the popup's button label when the send is parked (sendLabelKey
+// in shared.js); deliver() reads only url, text and title.
 chrome.contextMenus?.onClicked.addListener(async (info, tab) => {
   const payload =
     info.menuItemId === MENU_LINK
@@ -171,42 +115,17 @@ chrome.contextMenus?.onClicked.addListener(async (info, tab) => {
 });
 
 /**
- * sendToInstance is also called from popup.js (imported there via <script>,
- * not importScripts — see popup.html), so the toolbar button's "send this
- * page" action and every context-menu entry go through the identical choice.
- *
- * One instance in the group sends straight through — jdp: "es soll einfach
- * immer zuverlässig funktionieren ohne das man manuell was machen muss", and a
- * picker nobody needs is exactly the manual step that breaks that. More than
- * one opens the picker (jdp, 2026-08-23: "wenn man auf einen click n load
- * button klickt soll die erweiterung aufploppen wie die von JD"), defaulted to
- * whichever instance was last chosen as the default.
- *
- * The group is read live from the relay rather than from storage, and that is
- * the point of the whole rework: an instance that is offline is not offered,
- * and one that joined five minutes ago is, without this browser being told
- * anything. It costs one short connection per send.
+ * sendToInstance sends a payload to the group. With one instance it goes
+ * straight through; with more, the popup opens preset to the default. The group
+ * is read live from the relay, so only instances that are online are offered.
  */
 async function sendToInstance(payload, origin) {
   let siblings;
   try {
     siblings = await groupInstances();
   } catch (e) {
-    // No phrase yet is the ordinary "not set up here" case - and it must NOT
-    // hijack the click that got us here (jdp, 2026-08-30: "jetzt wird beim
-    // klick auf den CnL button die einstellungen der erweiterung in einem
-    // neuen tab geöffnet"). This called openOptionsPage(), which with
-    // options_ui.open_in_tab opens a TAB, on a click somebody aimed at a
-    // download button. popup.js learned exactly this lesson already, in its
-    // own words: "it hijacked the click and took you somewhere you had not
-    // asked to go" - and the same mistake sat on in here, one function away,
-    // for as long as that comment has existed.
-    //
-    // The popup is the answer here too. Its own no-phrase branch already draws
-    // the right thing (an "add an instance" button that opens Options ON
-    // PURPOSE), so opening it shows the reason and offers the way there
-    // without deciding for anybody. Nothing is parked: with no phrase there is
-    // no group to send to, so there would be nothing to resume.
+    // Without a phrase the popup explains and offers the options page, rather
+    // than a download button opening a settings tab.
     if (e?.code === 'no-phrase') {
       await showPopupOrMark();
       return;
@@ -218,67 +137,27 @@ async function sendToInstance(payload, origin) {
     notifyCnl('send.noneOnline');
     return;
   }
-  // A Click'n'Load batch ALWAYS goes through the popup, even with one instance
-  // in the group (jdp, 2026-08-31: "der link auch in die erweiterung
-  // weitergegeben aber das popupfenster der erweiterung öffnet sich nicht" and,
-  // in the same message, "Dort fehlt auch ein Abbrechen button wenn ein links
-  // reingeladen wird und der countdown läuft").
-  //
-  // Both of those are one cause. Straight-through delivery for a single
-  // instance was written for the toolbar button and every context-menu entry -
-  // a deliberate act aimed at one thing, where a picker nobody needs is the
-  // manual step that breaks "es soll einfach immer zuverlässig funktionieren".
-  // A caught container is not that: it is the PAGE acting, and the countdown
-  // and its cancel exist precisely so somebody can catch it before it lands.
-  // With one instance the window never opened, so there was nothing to count
-  // down and nothing to cancel - and from outside, the extension looked dead
-  // even though the links had already arrived.
-  //
-  // Anything else keeps the old rule: one instance sends straight through.
+  // A Click'n'Load batch always goes through the popup, even with one
+  // instance, because the page acted rather than the user and the countdown
+  // and its cancel are there to catch it.
   if (siblings.length === 1 && origin !== 'cnl') {
     await deliver(siblings[0].instanceId, payload);
     return;
   }
   await chrome.storage.session.set({
-    // origin travels with the payload because the popup treats a caught
-    // Click'n'Load batch differently from a right-clicked link: only the
-    // batch counts down and sends itself (jdp, 2026-08-30: "countdown zeigt
-    // es nicht an und man muss manuell auf den senden button klicken"). A
-    // link somebody right-clicked was a deliberate act aimed at ONE thing,
-    // and finishing it for them after five seconds would be the surprise.
+    // The popup counts down only for a Click'n'Load batch.
     pendingSend: { payload, defaultName: await readDefaultTarget(), siblings, origin: origin ?? '' },
   });
 
-  // The extension's OWN popup, not a window of our own (jdp, 2026-08-29: "Wenn
-  // ich auf CnL klicke öffnet sich ein komplett neues fenster. das soll so
-  // nicht sein. es soll sich das popupfenster der erweiterung öffnen").
-  //
-  // He is right, and the old behaviour was worse than merely surprising: a
-  // separate popup window arrives with its own title bar, its own taskbar
-  // entry and its own scrollbars, so a decision that takes one click looked
-  // like an application had opened. The action popup hangs off the toolbar
-  // button the person already associates with this extension.
-  //
-  // NEVER a window of our own, not even as a fallback (jdp, 2026-08-29: "das
-  // fenster öffnet sich immer noch. das soll nie sein. es soll sich immer nur
-  // das popupfenster der erweiterung öffnen!"). The fallback was mine, it was
-  // meant kindly, and it produced the exact thing he had just asked me to
-  // remove - on whichever attempt openPopup() happened to refuse.
-  //
-  // When the popup cannot be opened, the send is NOT lost and NOT silently
-  // dropped: it stays parked, and the toolbar badge says there is something
-  // waiting. Opening the popup by hand then shows it, because the popup reads
-  // the same parked entry either way. A mark on the icon is the one piece of
-  // interface this extension owns unconditionally.
+  // Always the extension's own popup, never a window of its own. If the popup
+  // cannot be opened the send stays parked and the badge says so; opening the
+  // popup by hand shows it.
   await showPopupOrMark();
 }
 
 /**
- * The one way this extension asks for attention: its own popup, and a mark on
- * the toolbar icon when the browser will not open it.
- *
- * Extracted because it is now needed twice, and the second caller is the one
- * that got this wrong for weeks - see the no-phrase branch above.
+ * Opens the extension's popup, or marks the toolbar icon when the browser will
+ * not open it.
  */
 async function showPopupOrMark() {
   try {
@@ -289,12 +168,10 @@ async function showPopupOrMark() {
 }
 
 /**
- * deliver puts one payload into one instance, through the relay.
- *
- * `text` carries a whole batch newline-separated; the server's own linkscan
- * pulls every URL out of a blob, so a Click'n'Load batch and a single
- * right-clicked link take the identical path. `origin: 'cnl'` is what tells
- * the collector this arrived from a browser button rather than the paste box.
+ * deliver puts one payload into one instance through the relay. `text` carries
+ * a whole batch; the server pulls every URL out of it, so a Click'n'Load batch
+ * and a single link take the same path. `origin: 'cnl'` tells the collector it
+ * came from the browser rather than the paste box.
  */
 async function deliver(target, payload) {
   const links = [payload.url, payload.text].filter(Boolean).join('\n\n');
@@ -325,43 +202,29 @@ async function deliver(target, payload) {
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg?.type === 'knightloader-send-to' && msg.target && msg.payload) {
     void deliver(msg.target, msg.payload);
-    // Answered at once, before the delivery: the popup waits for this reply
-    // and then closes (popup.js's handOver). It proves the send is in this
-    // worker now, which is all the popup has to know; the badge reports the
-    // rest.
+    // Answered before the delivery: the popup only waits for the hand-over
+    // (handOver in popup.js), and the badge reports the rest.
     sendResponse({ accepted: true });
   }
   if (msg?.type === 'knightloader-cnl') {
     void handleCnl(msg);
   }
-  // The options page cannot register content scripts itself in a way that
-  // survives it being closed, so it asks here once the permission is granted.
+  // The options page cannot register content scripts that outlive it, so it
+  // asks here once the permission is granted.
   if (msg?.type === 'knightloader-cnl-scripts') {
     void syncCnlScripts(msg.on === true);
   }
 });
 
 /**
- * One Click'n'Load submission, caught in the page by cnl-main.js and relayed
- * here by cnl-relay.js.
- *
- * The decoded links go through sendToInstance() — the same function the
- * toolbar button and every context-menu entry use — so a CnL button behaves
- * exactly like every other send: straight through when one instance is
- * configured, and the picker when there are several. That is what jdp asked
- * for twice, on 2026-08-23 ("wenn man auf einen click n load button klickt
- * soll die erweiterung aufploppen wie die von JD") and again on 2026-08-28
- * ("das CnL immer an die erweiterung gehen und die verteilt es dann"), and it
- * costs nothing to honour because the machinery was already there.
- *
- * Off unless switched on: interception changes what a page's own button does,
- * and that is not a thing to start doing to somebody without asking. See
- * options.js.
+ * One Click'n'Load submission, caught by cnl-main.js and relayed by
+ * cnl-relay.js. The decoded links go through sendToInstance like every other
+ * send.
  */
 async function handleCnl(msg) {
   const { cnlEnabled } = await chrome.storage.local.get('cnlEnabled');
-  // Absent means on: the flag is written on install, and a storage read that
-  // lost it should not quietly turn off the feature the extension exists for.
+  // Absent means on; install writes the flag, and a lost value must not turn
+  // the main feature off.
   if (cnlEnabled === false) return;
 
   const f = msg.fields || {};
@@ -370,14 +233,11 @@ async function handleCnl(msg) {
     if (f.crypted && f.jk) {
       links = await cnlDecrypt(f.jk, f.crypted);
     } else if (f.urls) {
-      // The plain variant, /flash/add: older or simpler sites post an
-      // unencrypted list.
+      // /flash/add posts an unencrypted list.
       links = splitCnlLinks(f.urls);
     } else if (f.crypted) {
-      // addcrypted v1: encrypted against JDownloader's own RSA key, which
-      // nobody else holds and KnightLoader deliberately never will (see
-      // docs/clicknload.md). Nothing to decode, and pretending otherwise
-      // would drop the links silently.
+      // addcrypted v1 is encrypted to JDownloader's own RSA key, which only
+      // JDownloader holds (docs/clicknload.md).
       notifyCnl('cnl.containerUnsupported');
       return;
     }
@@ -387,41 +247,21 @@ async function handleCnl(msg) {
   }
   if (links.length === 0) return;
 
-  // The site's own `source`/`package` field names the batch when it sends one;
-  // the page title is the fallback, and it is a better package name than the
-  // first link's filename, which is what the collector would fall back to.
+  // The site's `package` or `source` field names the batch; the page title
+  // beats the first link's file name as a fallback.
   const title = f.package || f.source || msg.pageTitle || '';
   await sendToInstance({ text: links.join('\n'), title }, 'cnl');
 }
 
 /**
- * The two content scripts that catch a Click'n'Load submission, registered at
- * runtime instead of declared in the manifest.
+ * The two content scripts that catch a Click'n'Load submission: cnl-main.js in
+ * the page's main world and cnl-relay.js in the isolated world, which only work
+ * as a pair.
  *
- * This is the whole reason the extension can offer Click'n'Load without asking
- * every installer for access to every website. Static content_scripts matching
- * <all_urls> produce that permission warning at INSTALL time, for everybody,
- * whether or not they ever want the feature. Registered from here they exist
- * only once somebody switches it on and grants the permission themselves — and
- * unregistering takes it away again.
- *
- * MAIN world for the interceptor, isolated for the relay: see cnl-main.js. The
- * pair has to be registered together or neither half does anything.
+ * matchOriginAsFallback reaches about:blank, data: and blob: documents, which
+ * no URL pattern matches. Sites such as filecrypt open a blank window and write
+ * their Click'n'Load form into it.
  */
-// matchOriginAsFallback is the one that took a live look to find. A URL pattern
-// matches a URL, and `about:blank`, `data:` and `blob:` documents have none -
-// so <all_urls> does NOT reach them, and neither does allFrames, which is about
-// frames rather than about documents with no address. With it, such a document
-// is matched by the origin it INHERITED from whatever opened it.
-//
-// That is not a hypothetical (jdp, 2026-08-30, about a filecrypt container: "Da
-// ploppt das fenster nicht auf"). Watching the real page with the extension
-// loaded, a new page appeared with an EMPTY url the moment the container was
-// reached: window.open() onto a blank document, into which the site then writes
-// its own Click'n'Load form. Our interceptor was never in that document, so the
-// submission left the browser and nothing was caught - a button reporting
-// success while the links went nowhere, which is precisely the silent failure
-// cnl-main.js's own doc comment calls worse than no interception at all.
 const CNL_SCRIPTS = [
   {
     id: 'cnl-main',
@@ -445,17 +285,9 @@ const CNL_SCRIPTS = [
 ];
 
 /**
- * Is a registration the browser is holding still the one we would write today?
- *
- * `persistAcrossSessions: true` means a registration OUTLIVES the code that
- * made it, and Chrome hands the old one back on the next start regardless of
- * what this file now says. Comparing only ids is therefore not enough - it
- * answers "is something registered under that name", which is a different
- * question from "is the registered thing correct".
- *
- * Only the fields that decide behaviour are compared. `matches` is joined
- * rather than deep-compared because it is a short list of literals here, and
- * an order change in it is a change worth re-registering for anyway.
+ * Whether a registration the browser holds matches the current definition.
+ * Persisted registrations outlive the code that made them, so matching ids is
+ * not enough. Only the fields that decide behaviour are compared.
  */
 function cnlScriptMatches(have, want) {
   return (
@@ -469,34 +301,15 @@ function cnlScriptMatches(have, want) {
 }
 
 /**
- * Registers, updates or removes the interception scripts to match the stored
- * flag.
- *
- * It RECONCILES rather than fills gaps, and that distinction cost a whole
- * debugging session. The first cut registered any id that was missing and left
- * every id that was present alone - which is correct exactly once, on a fresh
- * install. Add `matchOriginAsFallback` to the definitions afterwards and every
- * existing installation keeps the old registration for ever: the ids are all
- * present, so nothing is missing, so nothing is written, and Chrome goes on
- * serving the persisted set from before the fix. Measured live against a real
- * profile on 2026-08-31, with 1.12.1 loaded and the property in the source:
- * `getRegisteredContentScripts()` still answered `matchOriginAsFallback:
- * false` on both scripts.
- *
- * The general shape is worth keeping: **a change to a persisted registration
- * is not delivered by shipping new code.** Whatever holds it - the browser
- * here, but equally a database row or a cron entry - keeps serving the old one
- * until something compares and rewrites it.
+ * Registers, updates or removes the interception scripts to match the flag.
+ * It reconciles rather than only filling gaps, because a persisted
+ * registration keeps its old definition after an update until something
+ * rewrites it.
  */
 async function syncCnlScripts(on) {
-  // The jdcheck.js redirect (cnl-rules.json) is part of Click'n'Load too, and
-  // follows the same switch. Left out, switching the feature off unregistered
-  // the page scripts while the static ruleset went on answering every site's
-  // probe with a file from this extension - which the privacy policy and the
-  // store texts said did not happen. Written on every sync and in its own try,
-  // for two reasons: a scripting failure below must not skip it, and a static
-  // ruleset's enabled state does not survive an extension update, so an update
-  // would otherwise switch the redirect back on for somebody who turned it off.
+  // The jdcheck.js redirect (cnl-rules.json) follows the same switch. It sits
+  // in its own try so a scripting failure cannot skip it, and it is written on
+  // every sync because an update resets a static ruleset's state.
   try {
     await chrome.declarativeNetRequest.updateEnabledRulesets(on ? { enableRulesetIds: ['cnl'] } : { disableRulesetIds: ['cnl'] });
   } catch (e) {
@@ -511,88 +324,51 @@ async function syncCnlScripts(on) {
     }
     const stale = mine.filter((s) => {
       const want = CNL_SCRIPTS.find((w) => w.id === s.id);
-      // An id of ours the current code no longer defines is stale by
-      // definition, and leaving it registered would keep a script running that
-      // this version does not ship.
+      // An id this version no longer defines is stale too.
       return !want || !cnlScriptMatches(s, want);
     });
     if (stale.length) await chrome.scripting.unregisterContentScripts({ ids: stale.map((s) => s.id) });
-    const drin = new Set(mine.filter((s) => !stale.includes(s)).map((s) => s.id));
-    const fehlt = CNL_SCRIPTS.filter((s) => !drin.has(s.id));
-    if (fehlt.length) await chrome.scripting.registerContentScripts(fehlt);
+    const kept = new Set(mine.filter((s) => !stale.includes(s)).map((s) => s.id));
+    const missing = CNL_SCRIPTS.filter((s) => !kept.has(s.id));
+    if (missing.length) await chrome.scripting.registerContentScripts(missing);
   } catch (e) {
-    // Without the host permission this throws, which is the correct outcome:
-    // the feature stays off rather than half-on. options.js asks for the
-    // permission before it ever gets here.
-    //
-    // Logged rather than dropped, though: a silent catch here is why a failed
-    // registration and a working one looked identical from the outside, and
-    // the only way to tell them apart was to call the API again by hand in a
-    // throwaway profile.
+    // Without the host permission this throws and the feature stays off
+    // rather than half on. Logged so a failed registration is visible.
     console.warn('[KnightLoader] Click’n’Load scripts not registered:', e);
   }
 }
 
-// On every startup, not only when a submission arrives. persistAcrossSessions
-// already survives a restart, but a permission revoked from the browser's own
-// settings page does not tell this extension about it - reasserting is what
-// keeps the switch and the reality in step.
-//
-// `!== false` and not `=== true`, the same test the install path and the
-// options page use: since Click'n'Load became on-by-default, "nothing stored"
-// means ON. Left as `=== true`, a browser start would silently unregister the
-// scripts for anybody whose storage never got the install-time write — profile
-// copied to another machine, storage cleared, extension side-loaded — while the
-// switch on the options page went on showing "on". A default expressed in three
-// places has to be expressed the same way in all three.
+// Reapplied on every start, since a permission revoked in the browser's
+// settings sends no event. `!== false` because nothing stored means on, as on
+// install and in the options page.
 chrome.runtime.onStartup?.addListener(() => {
   void chrome.storage.local.get('cnlEnabled').then(({ cnlEnabled }) => syncCnlScripts(cnlEnabled !== false));
 });
 
-/**
- * A mark on the toolbar icon for the two cases that end with nothing arriving,
- * so a click that looked like it worked does not just vanish.
- *
- * The badge and not a notification: `notifications` would be a fourth
- * permission at install time, asked for on every install so that two rare
- * failures can announce themselves. The badge costs nothing, the tooltip
- * carries the actual sentence, and both clear themselves.
- */
+/** Marks the toolbar icon when a send ends with nothing arriving. */
 function notifyCnl(key) {
   flashBadge('!', '#da1e28', key);
 }
 
 /**
- * flashBadge is the extension's only feedback channel, used for both halves:
- * a tick when something arrived and an exclamation mark when it did not.
- *
- * A badge and not a notification: `notifications` would be a permission asked
- * of every installer so that a handful of moments can announce themselves. The
- * badge costs nothing and the tooltip carries the actual sentence.
- *
- * It matters more since sending went through the relay: there is no longer a
- * confirmation window opening on the instance, so this mark is the only thing
- * that says a send worked.
+ * flashBadge is the extension's only feedback channel: a tick when a send
+ * arrived, an exclamation mark when it did not. A badge needs no
+ * `notifications` permission, and the tooltip carries the sentence.
  */
 function flashBadge(mark, colour, key, sticky) {
   try {
     chrome.action.setBadgeText({ text: mark });
     chrome.action.setBadgeBackgroundColor({ color: colour });
-    chrome.action.setTitle({ title: `KnightLoader — ${t(key)}` });
-    // `sticky` is for a mark that stands for something still WAITING - a send
-    // parked because the popup could not be opened. Clearing that after six
-    // seconds would hide the only sign that anything is pending; the popup
-    // clears it itself when it takes the parked entry.
+    chrome.action.setTitle({ title: `KnightLoader: ${t(key)}` });
+    // A sticky mark stands for a parked send and stays until the popup takes
+    // it.
     if (sticky) return;
-    // An empty title is not a blank tooltip: it puts the manifest's own
-    // default_title back, which is the one string that must not be duplicated
-    // into the locale catalogues to be restored.
+    // An empty title restores the manifest's default_title.
     setTimeout(() => {
       chrome.action.setBadgeText({ text: '' });
       chrome.action.setTitle({ title: '' });
     }, 6000);
   } catch {
-    // An action API that is not there yet during startup. The send has already
-    // happened or already failed; losing the badge changes neither.
+    // The action API can be missing during startup; the send itself is done.
   }
 }

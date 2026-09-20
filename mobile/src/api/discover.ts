@@ -15,13 +15,11 @@ import * as Network from 'expo-network';
 // JSON. Asking every address on the phone's own subnet for it finds every
 // KnightLoader on the network in a couple of seconds.
 //
-// WHAT THIS DELIBERATELY DOES NOT LEARN: the instance's name. /api/health does
-// not carry one, and it should not - it is reachable unauthenticated from
-// wherever the instance is reachable from, which for a published instance is
-// the internet, whereas a multicast announce never leaves the local network.
-// The name arrives the moment a token is entered and the normal authenticated
-// call happens, which is soon enough for a list that is really a list of
-// addresses.
+// It does not learn the instance's name. /api/health carries none, because it
+// is reachable unauthenticated from wherever the instance is, which for a
+// published instance is the internet, while a multicast announce never leaves
+// the local network. The name arrives with the first authenticated call once a
+// token is entered.
 
 /** Found is one address on this network that answered as a KnightLoader. */
 export type Found = {
@@ -41,28 +39,21 @@ const PORT = 8749;
 // slot for long. See CONCURRENCY for what these two numbers cost together.
 const TIMEOUT_MS = 1200;
 
-// How many probes are actually in flight at once.
+// How many probes are in flight at once, and not all 253.
 //
-// NOT 253. React Native routes fetch through OkHttp on Android, whose stock
-// Dispatcher allows 64 concurrent requests; everything beyond that queues. The
-// first version of this file started all 253 abort timers at t=0 and fired them
-// all off with Promise.all, so the queued ~189 were still waiting for a slot
-// when their own 1500 ms deadline expired and were aborted WITHOUT EVER BEING
-// SENT. A server on 192.168.1.100 - squarely inside most routers' DHCP pool -
-// was never contacted, and the screen said "found none".
+// React Native routes fetch through OkHttp on Android, whose stock Dispatcher
+// allows 64 concurrent requests and queues the rest. Firing the whole sweep
+// with Promise.all starts every abort timer at once, so the queued addresses
+// hit their own deadline while still waiting for a slot and are aborted before
+// they are sent: a server at 192.168.1.100, inside most routers' DHCP pool, is
+// never contacted at all.
 //
-// A pool below OkHttp's own limit means every slot is a request that is really
-// on the wire, and each address gets its full timeout starting when its turn
-// comes rather than when the sweep did. 48 rather than 64 leaves headroom for
-// the app's own traffic.
-//
-// Measured against a simulated dispatcher with the same limit, with the server
-// deliberately placed at .200 so it sits well past the first batch:
-//
-//   all 253 at once   server found: NEVER   (the queued ones time out unsent)
-//   pool of 48        server found: always  - 7.3s if every dead address is
-//                     silently dropped, 0.1s when they answer with a reset,
-//                     which is what a home LAN normally does.
+// A pool below OkHttp's limit means every slot is a request on the wire, and
+// each address gets its full timeout from the moment its turn comes. 48 rather
+// than 64 leaves headroom for the app's own traffic. Measured against a
+// simulated dispatcher with a server at .200, well past the first batch, that
+// finds it in 7.3s when dead addresses are silently dropped and in 0.1s when
+// they answer with a reset, which is what a home LAN does.
 const CONCURRENCY = 48;
 
 /**
@@ -92,16 +83,14 @@ async function probe(host: string): Promise<Found | null> {
 /**
  * usableIPv4 decides whether an address is one a /24 sweep makes sense from.
  *
- * "0.0.0.0" is the one that matters and the one that is easy to miss:
- * expo-network's Android implementation reads the WI-FI address specifically,
- * which is 0 when Wi-Fi is off. That string passes a naive length-and-prefix
- * check, so a phone on mobile data would sweep 0.0.0.1 through 0.0.0.254 -
- * 253 pointless requests over a metered connection, and the "no network, no
- * results" claim would hold only by accident.
+ * "0.0.0.0" is the case that matters: expo-network's Android implementation
+ * reads the Wi-Fi address, which is 0 while Wi-Fi is off. That string passes a
+ * length-and-prefix check, so a phone on mobile data would sweep 0.0.0.1
+ * through 0.0.0.254 over a metered connection.
  *
- * Loopback and link-local (169.254/16, what an interface gives itself when
- * DHCP fails) are excluded for the same reason internal/discovery.LocalIPv4
- * excludes them.
+ * Loopback and link-local (169.254/16, what an interface gives itself when DHCP
+ * fails) are excluded for the same reason internal/discovery.LocalIPv4 excludes
+ * them.
  */
 function usableIPv4(ip: string): boolean {
   const parts = ip.split('.');
@@ -114,16 +103,14 @@ function usableIPv4(ip: string): boolean {
 /**
  * scanLocalNetwork sweeps the phone's own /24 and returns whatever answered.
  *
- * A /24 because that is what a home network is - a phone on a larger subnet
- * finds the instances that share its first three octets and nothing else,
- * which is a smaller promise than a full sweep but an honest one, and the
- * address field is still right there for anything outside it.
+ * A /24 because that is what a home network is. A phone on a larger subnet
+ * finds the instances that share its first three octets, and the address field
+ * is there for anything outside them.
  *
  * Returns an empty list rather than throwing when the phone has no usable
  * address (mobile data, airplane mode, a captive portal, or an Android device
- * whose only connection is Ethernet): "found none" is the truth in every one of
- * those cases, and an error would send somebody looking for a fault that is not
- * there.
+ * connected only by Ethernet): "found none" is the truth in each of those
+ * cases, and an error would send somebody looking for a fault.
  */
 export async function scanLocalNetwork(): Promise<Found[]> {
   let ip: string | null = null;
@@ -141,9 +128,8 @@ export async function scanLocalNetwork(): Promise<Found[]> {
     if (host !== ip) hosts.push(host); // the phone is not the server
   }
 
-  // A fixed pool of workers pulling from one cursor, rather than firing every
-  // request at once - see CONCURRENCY for why that difference decides whether
-  // most of the subnet is probed at all.
+  // A fixed pool of workers pulling from one cursor rather than firing every
+  // request at once; see CONCURRENCY.
   const found: Found[] = [];
   let next = 0;
   const worker = async () => {

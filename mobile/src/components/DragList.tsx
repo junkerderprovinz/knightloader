@@ -1,8 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
 import { Animated, Easing, FlatList, PanResponder, StyleSheet, View, type ViewStyle } from 'react-native';
-// The cell wrapper's own prop shape, taken from the list rather than
-// re-declared: a hand-written copy is a copy that can drift from the version
-// installed, and this component is only correct if it matches exactly.
+// The cell wrapper's prop shape, taken from the list rather than re-declared,
+// since a hand-written copy can drift from the version installed.
 import type { CellRendererProps } from '@react-native/virtualized-lists';
 import { settle, useMotion } from '../theme/MotionContext';
 
@@ -10,50 +9,34 @@ import { settle, useMotion } from '../theme/MotionContext';
  * Long-press to pick a row up, drag to move it, let go to drop.
  *
  * Built on PanResponder and Animated, both of which ship with React Native,
- * rather than on the usual pairing of react-native-gesture-handler and
- * react-native-reanimated. That is a deliberate trade and worth naming: those
- * two would give smoother gestures driven on the UI thread, and they are two
- * NEW NATIVE dependencies plus a Babel plugin in an app whose Android build has
- * already cost a day to a linker problem once. A reorder gesture is not worth
- * putting the build at risk for. If this app ever needs gesture-handler for
- * something else, this is the first component to rewrite on top of it.
+ * rather than on react-native-gesture-handler and react-native-reanimated.
+ * Those two would give smoother gestures driven on the UI thread, at the price
+ * of two native dependencies and a Babel plugin in an app whose Android build
+ * has already cost a day to a linker problem. If this app needs
+ * gesture-handler for something else, this is the first component to rewrite on
+ * top of it.
  *
- * What the gesture does, in jdp's own words (2026-08-31): "bei langem drücken
- * sollen sie anfangen zu zittern und man soll den ordner optisch anheben und
- * die anderen sollen sich sofort verschieben wenn man drüberhovert."
+ * A long press arms the gesture, because a drag that starts on a plain touch
+ * fights the list's own scrolling. Every row then wiggles, since the wiggle
+ * says the list is editable rather than anything about the row under the
+ * finger, the dragged row lifts and is drawn above its neighbours, and they
+ * move as it passes rather than on release, so the gap is where the row would
+ * land. The quietest motion level drops the wiggle and the lift's scale and
+ * keeps the shadow and the gap.
  *
- *   - **Long press arms it.** A drag that starts on a plain touch fights the
- *     list's own scrolling, and every attempt to tell the two apart by distance
- *     or direction gets one of them wrong.
- *   - **Everything wiggles while it is armed.** The wiggle is a MODE
- *     indicator - it says "this list is editable now" about the list, not about
- *     the row under the finger - which is why every row does it.
- *   - **The dragged row lifts:** scaled, raised, drawn above its neighbours.
- *     `elevation` and `zIndex` both, because Android reads one and iOS the
- *     other.
- *   - **The others move as it passes**, not on release, so the gap is always
- *     where the row would land.
- *   - **The quietest motion level drops the wiggle and the lift's scale**, and
- *     keeps the shadow and the gap. The gesture still has to be legible; it
- *     just stops moving decoratively. A phone whose owner asked the system for
- *     less movement resolves to that level whatever is chosen in settings - see
- *     theme/MotionContext, which is the only place that asks.
+ * Three mechanics are worth knowing before editing this:
  *
- * Two mechanics are worth knowing before editing this:
- *
- *   - **The hold is timed off raw touch events, not a Pressable.** These rows
- *     are full of their own buttons, and a child that takes the responder on
- *     touch-down is a child a wrapping Pressable's onLongPress never hears
- *     about - so the gesture only worked where no button happened to be. See
- *     onTouchStart below.
- *   - **The pan is claimed in the CAPTURE phase.** Once armed, a child may
- *     still be holding the responder, and a plain `onMoveShouldSetPanResponder`
- *     asks politely for something somebody else has. The capture variant takes
- *     it - which also cancels the child's press, so a drag that starts on a
- *     badge never also presses it.
- *   - **Rows are different heights** (a package header against a link), so each
- *     one reports its own layout and the drop target is computed against those
- *     real boxes rather than one assumed row height.
+ *   - The hold is timed off raw touch events rather than a Pressable. These
+ *     rows are full of their own buttons, and a child that takes the responder
+ *     on touch-down is a child a wrapping Pressable's onLongPress never hears
+ *     about. See onTouchStart below.
+ *   - The pan is claimed in the capture phase. Once armed, a child may still be
+ *     holding the responder, and a plain `onMoveShouldSetPanResponder` asks
+ *     politely for something somebody else has. The capture variant takes it,
+ *     which also cancels the child's press.
+ *   - Rows are different heights (a package header against a link), so each one
+ *     reports its own layout and the drop target is computed against those
+ *     boxes rather than one assumed row height.
  */
 export interface DragRow {
   key: string;
@@ -83,108 +66,72 @@ export default function DragList({
   const [drag, setDrag] = useState<{ from: number; to: number } | null>(null);
 
   /**
-   * How much this list is allowed to move.
+   * How much this list is allowed to move. Read through MotionContext rather
+   * than from AccessibilityInfo, because the motion axis has a user-facing
+   * level as well as the system signal and the two are resolved together
+   * there, with the system signal winning.
    *
-   * It used to ask AccessibilityInfo itself, which was right as far as it went
-   * and is now one answer too many: the motion axis (GlimStone's, see
-   * theme/motion.ts) has a user-facing level as well as the system signal, and
-   * the two have to be resolved together or a screen ends up honouring one and
-   * not the other. MotionContext is the single place that reads the platform
-   * and the single place that decides, and the system signal still WINS there -
-   * it resolves to `off` whatever the user picked, so nothing below this line
-   * can animate its way past somebody who asked their phone for less movement.
-   *
-   * What each level takes away is unchanged: at `off` the WIGGLE never starts
-   * and the lift's SCALE is 1, while the shadow and the neighbours' gap stay at
-   * every level - they are what tells the eye which row is in the hand and
-   * where it would land, and neither is decorative movement. Of everything this
-   * component animates the wiggle is the clearest case there is: a loop that
-   * runs for as long as a finger is down, which is exactly the category the
-   * system setting exists for, so it gets a true stop rather than a slower
-   * version of itself.
+   * At `off` the wiggle never starts and the lift's scale is 1, while the
+   * shadow and the neighbours' gap stay at every level: they tell the eye which
+   * row is in the hand and where it would land.
    */
   const { motion, n } = useMotion();
-  // Both ride in refs as well: the wiggle and the drag's end run from inside
+  // Both ride in refs as well, because the wiggle and the drag's end run from
   // callbacks that must not be rebuilt by the state changes the gesture itself
-  // causes - beenden() in particular is the one that must stay identical across
-  // a drag, because two handlers race to call it.
+  // causes. beenden() in particular has to stay identical across a drag, since
+  // two handlers race to call it.
   const bewegung = useRef(n);
   bewegung.current = n;
   const motionRef = useRef(motion);
   motionRef.current = motion;
 
   /**
-   * The list is FROZEN for as long as a drag is armed.
+   * The list is frozen for as long as a drag is armed.
    *
-   * This is the fix for the one that survived every other one, and it is only
-   * visible on video: the task list keeps streaming while a finger is down, so
-   * the rows are rebuilt and re-sorted under the gesture. In jdp's recording
-   * (2026-09-01, 17:44) the top row changes identity between second 3 and second
-   * 5 - "The.Jungle.Book" becomes "Avanti ragazzi di Buda" - with the finger
-   * still on it. Everything downstream is indexed: `drag.from` points at a row
-   * that is now a different package, `boxes` holds the measurements of the old
-   * order, and the neighbours never move because the arithmetic is about rows
-   * that have moved on. What it looks like from outside is a row lying on top of
-   * the others doing nothing, which is exactly what he reported.
+   * The task list keeps streaming while a finger is down, so the rows would be
+   * rebuilt and re-sorted under the gesture. Everything downstream is indexed:
+   * `drag.from` would point at a different package, `boxes` would hold the
+   * measurements of the old order, and the neighbours would not move. From
+   * outside that looks like a row lying on top of the others doing nothing.
    *
-   * Freezing is the honest answer rather than making the indices cleverer: while
-   * somebody is moving a row, the order they are looking at IS the subject of
-   * the gesture, and letting a poll rewrite it mid-move is the bug however well
-   * the code follows it. The live list is picked up again the moment the drag
-   * ends, and a reorder writes the whole band anyway, so nothing is lost - a
-   * change that arrived during the drag lands one render later.
+   * The live list is picked up again the moment the drag ends, and a reorder
+   * writes the whole band, so a change that arrived during the drag lands one
+   * render later.
    */
   const gefroren = useRef<DragRow[] | null>(null);
   if (drag === null) gefroren.current = null;
   const rows = gefroren.current ?? liveRows;
-  // The gesture reads this, and a gesture must not wait for a render to know
-  // where it is.
-  //
-  // Assigned only while there IS a drag: beenden() clears the ref itself, and a
-  // render already in flight still carries the old state - so an unconditional
-  // assignment here would put an ended drag straight back and leave the row
-  // lifted with nothing able to move.
+  // The gesture reads this, and it must not wait for a render to know where it
+  // is. Assigned only while there is a drag: beenden() clears the ref itself
+  // and a render already in flight still carries the old state, so an
+  // unconditional assignment would put an ended drag straight back and leave
+  // the row lifted with nothing able to move.
   const dragRef = useRef<{ from: number; to: number } | null>(null);
   if (drag !== null) dragRef.current = drag;
 
   const boxes = useRef<Record<number, { y: number; h: number }>>({});
 
   /**
-   * Where each row actually IS, measured on the CELL and not on the row.
+   * Where each row is, measured on the cell rather than on the row.
    *
-   * This is the fifth cause of "drag and drop does not work", and the one all
-   * four earlier fixes were built on top of without ever reaching.
+   * A layout event's `y` is relative to the parent. VirtualizedList wraps
+   * whatever renderItem returns in a cell View of its own, and for a plain
+   * vertical list that wrapper carries no style, so a row measured against it
+   * reports y = 0 and `boxes` would hold heights and no positions.
    *
-   * A layout event's `y` is relative to the PARENT. VirtualizedList wraps
-   * whatever renderItem returns in a cell View of its own
-   * (VirtualizedListCellRenderer), and for a plain vertical list that wrapper
-   * carries no style at all - so our row was the sole child of a box it
-   * exactly filled, and every single row reported y = 0. `boxes` held heights
-   * and NO positions.
-   *
-   * What that did to the gesture is worth spelling out, because the symptom
-   * looks nothing like a measurement bug. indexAt scores a candidate by
-   * |probe - (b.y + b.h/2)|, and the probe is b.y + b.h/2 + dy. With every
-   * b.y = 0 the position cancels out of both sides and the score collapses to
-   * |dy + h_from/2 - h_i/2| - a comparison of ROW HEIGHTS. In the package list
-   * every row in a band is the same height, so every candidate scores exactly
-   * the same, they all tie, and `d < bestD` keeps the first. Drag any package
-   * and the target snaps to the top of its band on the first move event and
-   * never follows the finger again; drag the TOP package - the first thing
-   * anyone tries - and to === from on every event, so onPanResponderRelease
-   * returns early and literally nothing happens.
+   * indexAt scores a candidate by |probe - (b.y + b.h/2)| with the probe at
+   * b.y + b.h/2 + dy, so with every b.y = 0 the position cancels and the score
+   * collapses to a comparison of row heights. Rows in one band are the same
+   * height, so every candidate ties and `d < bestD` keeps the first: the target
+   * snaps to the top of the band on the first move and never follows the
+   * finger, and dragging the top row leaves to === from on every event.
    *
    * The cell is a direct child of the list's content view, which is the space
-   * the gesture's dy is a delta in. So measuring here puts the ruler and the
-   * finger in the same coordinate system, which they were never in before.
+   * the gesture's dy is a delta in, so measuring here puts the ruler and the
+   * finger in one coordinate system.
    *
-   * useRef(...).current, not an inline component: a fresh component type on
-   * every render remounts every cell, including the one under the finger.
-   *
-   * The warning that would have prevented this is in this repository already,
-   * one file over - ColorPicker.tsx says "measureInWindow, not the layout
-   * event's own x/y: those are relative to the parent". This did the thing
-   * that comment warns against.
+   * useRef(...).current rather than an inline component: a fresh component type
+   * on every render remounts every cell, including the one under the finger.
    */
   const Zelle = useRef(function DragCell({
     index,
@@ -198,9 +145,8 @@ export default function DragList({
         onLayout={(e) => {
           const { y, height } = e.nativeEvent.layout;
           boxes.current[index] = { y, h: height };
-          // Passed on rather than swallowed: the list keeps its own cell
-          // metrics through this handler whenever getItemLayout is absent,
-          // which it is here.
+          // Passed on rather than swallowed: with no getItemLayout, this
+          // handler is how the list keeps its own cell metrics.
           onLayout?.(e);
         }}
       >
@@ -219,10 +165,8 @@ export default function DragList({
 
   const startWiggle = useCallback(() => {
     // Not started at all rather than started and muted: an infinite animation
-    // at the quietest level gets a true stop, not a slower version of itself.
-    // What the wiggle was saying - "this list is editable now" - is still said
-    // by the row that lifts and by the neighbours stepping aside, both of which
-    // stay.
+    // at the quietest level gets a true stop. What the wiggle says is still
+    // said by the row that lifts and by the neighbours stepping aside.
     const b = bewegung.current;
     if (b.wiggleDeg === 0 || b.wiggleDur === 0) return;
     wiggleLoop.current?.stop();
@@ -261,42 +205,33 @@ export default function DragList({
   }, []);
 
   /**
-   * Arm by KEY, not by the index the touch started on.
+   * Arm by key rather than by the index the touch started on.
    *
    * Four hundred milliseconds pass between the touch and the hold, and the list
-   * streams the whole time - so the row at that index may be a different package
-   * by the time the timer fires, and the drag would pick up something the finger
-   * was never on. The freeze above starts only once a drag exists, which is
-   * exactly one moment too late to cover this gap; looking the key up here
-   * closes it. A key that has gone in the meantime arms nothing at all, which is
-   * the right answer: the row somebody pressed is no longer there.
+   * streams the whole time, so the row at that index may be a different package
+   * by the time the timer fires. The freeze above starts only once a drag
+   * exists, which is one moment too late to cover this gap. A key that has gone
+   * in the meantime arms nothing, since the row somebody pressed is no longer
+   * there.
    */
   const arm = useCallback((key: string) => {
     touch.current = null;
     const liste = daten.current.rows;
     const index = liste.findIndex((r) => r.key === key);
     if (index < 0) return;
-    // Frozen HERE, against the very list the index was just found in - not one
-    // render later.
-    //
-    // The freeze used to happen in the render that follows setDrag, which reads
-    // whatever the list has become by then. That is a whole poll interval of
-    // daylight: `from` was an index into one array and everything afterwards -
-    // the boxes, the neighbours' offsets, the drop - measured against another.
-    // Freezing on the same array that answered findIndex closes it, and the
-    // two lines are next to each other so nobody can put a render between them
-    // again.
+    // Frozen against the very list the index was just found in. Freezing in the
+    // render that follows setDrag leaves a whole poll interval in which `from`
+    // indexes one array while the boxes, the neighbours' offsets and the drop
+    // measure against another. The two lines stay next to each other so nobody
+    // can put a render between them.
     gefroren.current = liste;
     setDrag({ from: index, to: index });
     startWiggle();
-    // THE ROW RISES ON THE LEVEL'S OWN SPRING, and this is where GlimStone
-    // 1.17.0's springDamping is actually spent. The scale used to jump from 1
-    // to 1.03 in one frame; it now overshoots a little and settles at the top
-    // visible level, and keeps wobbling noticeably longer at the hidden one -
-    // which is the whole character of that level, reached with a number rather
-    // than with an animation of its own. At `off` settle() writes the value
-    // instead of animating it, and liftScale is 1 there anyway, so the row
-    // simply does not grow.
+    // The row rises on the level's own spring, which is where GlimStone
+    // 1.17.0's springDamping is spent: a little overshoot at the top visible
+    // level, a longer wobble at the hidden one. At `off` settle() writes the
+    // value instead of animating it, and liftScale is 1 there, so the row does
+    // not grow.
     hebung.setValue(0);
     settle(hebung, 1, motionRef.current);
   }, [hebung, startWiggle]);
@@ -304,35 +239,26 @@ export default function DragList({
   /**
    * End the drag, from wherever notices first.
    *
-   * `dragRef` is cleared HERE rather than left to the next render, and that is
-   * what makes this safe to call twice. Two handlers fire for one lift - the
-   * pan's own release and the row's onTouchEnd - and React Native does not
-   * promise which runs first. Waiting for the re-render to clear the ref meant
-   * whichever ran second still saw a live drag, so the two had to be ordered by
-   * a flag; getting that ordering wrong is how the row ended up "über anderen
-   * Einträgen liegen" with nothing able to move afterwards (jdp, 2026-09-01).
-   * Clearing it synchronously makes the second call a no-op instead of a race.
+   * `dragRef` is cleared here rather than left to the next render, which is
+   * what makes this safe to call twice. Two handlers fire for one lift, the
+   * pan's release and the row's onTouchEnd, and React Native does not promise
+   * which runs first. Waiting for the re-render would leave whichever ran
+   * second looking at a live drag, so the two would have to be ordered by a
+   * flag. Clearing it synchronously makes the second call a no-op.
    */
   const beenden = useCallback(() => {
     cancelArm();
     stopWiggle();
-    // BOTH ARE WRITTEN, NOT SPRUNG, and that is deliberate rather than an
-    // oversight about where the new spring belongs.
+    // Both are written rather than sprung. setDrag(null) two lines down takes
+    // `gezogen` away on the next render, and the row's translateY switches from
+    // this value to the neighbours' plain offset in the same frame, so a spring
+    // started here would animate a number nothing draws. The visible half of
+    // the gesture is the pick-up in arm() above.
     //
-    // setDrag(null) two lines down takes `gezogen` away on the very next
-    // render, and the row's translateY switches from this value to the
-    // neighbours' plain offset in the same frame - so a spring started here
-    // would animate a number nothing draws. A settle that cannot be seen is
-    // worse than a snap: it reads as working in the code and does nothing on
-    // the screen, which is exactly the shape of defect this file has collected
-    // before. The visible half of the gesture is the pick-up, in arm() above.
-    //
-    // Springing the DROP properly means holding the row at its lifted offset
-    // until it has travelled to its slot, which means not clearing the drag
-    // synchronously - and the synchronous clear is the fix for a race two
-    // handlers have over one lift (see the paragraph above). That is a real
-    // improvement and a separate one; it does not get smuggled in behind an
-    // intensity table.
+    // Springing the drop means holding the row at its lifted offset until it
+    // has travelled to its slot, which means not clearing the drag
+    // synchronously, and the synchronous clear is what keeps the two handlers
+    // from racing.
     lift.setValue(0);
     hebung.setValue(0);
     panning.current = false;
@@ -346,20 +272,16 @@ export default function DragList({
 
   /**
    * Which row a finger at this y belongs to, within one band: the one whose
-   * CENTRE is nearest.
+   * centre is nearest.
    *
-   * It used to ask "is the finger inside this row's box", and fall back to the
-   * last row that began above it. Two things that reads badly, and together
-   * they are most of "das verschieben funktioniert gar nicht gut" (jdp,
-   * 2026-09-01): these rows are cards with margins, so between any two of them
-   * there is a gap that is inside no box at all and the answer came from the
-   * fallback; and inside a TALL row - a package header - the target only
-   * changed once the finger had crossed the whole of it, so the gap lagged the
-   * hand by most of a card.
+   * Asking whether the finger is inside a row's box reads badly twice over.
+   * These rows are cards with margins, so between any two of them is a gap
+   * inside no box at all, and inside a tall row such as a package header the
+   * target only changes once the finger has crossed the whole of it, so the gap
+   * lags the hand by most of a card.
    *
-   * Nearest centre has neither problem. It always answers, it answers the same
-   * thing on both sides of a margin, and the gap moves when the finger passes
-   * the halfway point, which is where a hand expects it to move.
+   * Nearest centre always answers, answers the same on both sides of a margin,
+   * and moves the gap when the finger passes the halfway point.
    */
   const indexAt = useCallback(
     (y: number, band: string, from: number) => {
@@ -381,34 +303,30 @@ export default function DragList({
   );
 
   /**
-   * ONE PanResponder for the whole list, created once, reading everything it
+   * One PanResponder for the whole list, created once, reading everything it
    * needs out of refs.
    *
-   * The first cut built one responder PER ROW inside a useMemo keyed on `rows`.
-   * `rows` is derived from the task list on every render, so it is a new array
-   * every time - the memo recomputed, every `panHandlers` object was replaced,
-   * and the gesture in flight was left holding handlers that no longer belonged
-   * to any mounted view. The long press armed the drag, the drag re-rendered the
-   * list, and the moves went nowhere: exactly "wenn ich lange tippe kann ich es
-   * nicht verschieben" (jdp, 2026-08-31).
+   * A responder per row inside a useMemo keyed on `rows` is rebuilt on every
+   * render, because `rows` is derived from the task list and is a new array
+   * every time. The gesture in flight is then left holding handlers that belong
+   * to no mounted view: the long press arms the drag, the drag re-renders the
+   * list, and the moves go nowhere.
    *
-   * The general shape is worth keeping: **a gesture handler must not be rebuilt
-   * by the state changes the gesture itself causes.** Anything a handler needs
-   * that changes during the gesture goes in a ref, not in a dependency array.
+   * A gesture handler must not be rebuilt by the state changes the gesture
+   * itself causes, so anything a handler needs that changes during the gesture
+   * goes in a ref rather than in a dependency array.
    */
   const daten = useRef({ rows, indexAt, onReorder });
   daten.current = { rows, indexAt, onReorder };
 
   const responder = useRef(
     PanResponder.create({
-      // Never on a plain touch: that would take every scroll away from the
-      // list. Only once a row is armed, and in the CAPTURE phase, because the
+      // Never on a plain touch, which would take every scroll away from the
+      // list. Only once a row is armed, and in the capture phase, because the
       // row's own button may be holding the responder by then and a polite ask
-      // would be declined.
-      // Once armed, every touch is the drag's - including one that starts on a
-      // badge inside a row. Before it is armed this stays out of the way
-      // entirely, so a tap reaches whatever it landed on and a swipe scrolls
-      // the list.
+      // would be declined. Once armed, every touch is the drag's, including one
+      // that starts on a badge inside a row; before that this stays out of the
+      // way, so a tap reaches what it landed on and a swipe scrolls the list.
       onStartShouldSetPanResponderCapture: () => dragRef.current !== null,
       onMoveShouldSetPanResponderCapture: () => dragRef.current !== null,
       // The list must not be able to take the gesture back mid-drag.
@@ -461,31 +379,21 @@ export default function DragList({
       data={rows}
       keyExtractor={(r) => r.key}
       /**
-       * THE ONE LINE THE WHOLE GESTURE HANGS ON, and its absence is why drag
-       * and drop looked broken for four rounds (jdp, 2026-09-02: "das drag and
-       * drop funktioniert nicht richtig. Was ist das problem? Warum bekommst du
-       * es nicht hin?").
+       * The line the whole gesture hangs on.
        *
-       * VirtualizedList re-renders a cell only when `data` changes by REFERENCE
+       * VirtualizedList re-renders a cell only when `data` changes by reference
        * or when `extraData` does. `renderItem` below reads `drag` out of the
-       * closure - a value the list knows nothing about - so without this line a
-       * drag can change nothing on screen: the neighbours never step aside and
-       * the lifted row never lifts.
+       * closure, a value the list knows nothing about, so without this a drag
+       * changes nothing on screen: the neighbours do not step aside and the
+       * lifted row does not lift.
        *
-       * It survived this long by accident. `rows` used to be rebuilt on every
-       * render (PackageList maps the task list into fresh objects), so the
-       * reference changed constantly and the cells were redrawn for the wrong
-       * reason. Freezing the list during a drag - correct, and the fix for the
-       * list re-sorting under the finger - made that reference STABLE, which
-       * silently switched off the only thing that had been redrawing the rows.
-       *
-       * **The lesson worth keeping: making a reference stable also switches off
-       * everything that was depending on it changing.** The freeze did not break
-       * the drag; it removed the accident that had been hiding this.
+       * Rebuilding `rows` on every render hides that, because the reference
+       * keeps changing and the cells are redrawn for the wrong reason. Freezing
+       * the list during a drag makes the reference stable and switches that
+       * accident off.
        */
       extraData={drag}
-      // Measured on the cell, not on the row - see Zelle above for the
-      // whole reason, and for why every row used to report y = 0.
+      // Measured on the cell rather than on the row; see Zelle above.
       CellRendererComponent={Zelle}
       // A list that scrolls under a finger dragging a row is a list fighting the
       // gesture.
@@ -498,32 +406,26 @@ export default function DragList({
         const armed = drag !== null;
         let versatz = 0;
         // Guarded, because a row render that throws takes the whole list with
-        // it. drag.from is an index into the FROZEN list and cannot normally be
-        // out of range, but "cannot normally" is not a reason to crash the
-        // screen if it ever is.
+        // it. drag.from indexes the frozen list and should be in range, which
+        // is not a reason to crash the screen if it ever is not.
         if (drag && !gezogen && rows[drag.from] && rows[index].band === rows[drag.from].band) {
           if (drag.from < drag.to && index > drag.from && index <= drag.to) versatz = -gezogeneHoehe;
           if (drag.from > drag.to && index >= drag.to && index < drag.from) versatz = gezogeneHoehe;
         }
         return (
-          // No onLayout here any more. It measured against the cell wrapper
-          // this row exactly fills, so it reported y = 0 for every row - see
-          // Zelle above, which measures the cell instead. Putting it back
-          // would overwrite the good box on the next re-layout.
+          // No onLayout here: it would measure against the cell wrapper this
+          // row exactly fills and report y = 0 for every row, overwriting the
+          // box Zelle measured on the next re-layout.
           <Animated.View
             style={[
               gezogen ? styles.lifted : null,
               {
                 transform: [
                   { translateY: gezogen ? lift : versatz },
-                  // The lift's SCALE is the other half the quietest level
-                  // drops - liftScale is 1 there, so this reads the table
-                  // rather than branching, and it rides the pick-up spring
-                  // rather than appearing in one frame. styles.lifted's shadow
-                  // and the neighbours' versatz above are untouched at every
-                  // level: they are what tells the eye which row is in the hand
-                  // and where it would land, and neither of them is decorative
-                  // movement.
+                  // The lift's scale is the other half the quietest level
+                  // drops, where liftScale is 1, so this reads the table rather
+                  // than branching and rides the pick-up spring rather than
+                  // appearing in one frame.
                   {
                     scale: gezogen
                       ? hebung.interpolate({ inputRange: [0, 1], outputRange: [1, n.liftScale] })
@@ -542,31 +444,24 @@ export default function DragList({
               },
             ]}
             {...responder.panHandlers}
-            /* The long press is timed here, off the raw touch events, and NOT
-               with a Pressable wrapped around the row (jdp, 2026-09-01: "man
-               muss den ordner an einer leren stelle antippen und halten damit
-               es geht").
+            /* The long press is timed off the raw touch events rather than with
+               a Pressable wrapped around the row. These rows are full of their
+               own touchables, a fold chevron, a start badge, a bin, and a child
+               that takes the responder on touch-down is a child the parent's
+               onLongPress never hears about, so the gesture would work only on
+               the parts of the card with no button on them.
 
-               He is describing exactly what a wrapping Pressable does. These
-               rows are full of their own touchables - a fold chevron, a start
-               badge, a bin - and a child that takes the responder on touch-down
-               is a child the parent's onLongPress never hears about. So the
-               gesture worked on the parts of the card that happened to have no
-               button on them, which is not a rule anybody could guess.
-
-               onTouchStart/onTouchEnd are not the responder system: React
+               onTouchStart and onTouchEnd are not the responder system: React
                Native dispatches them by bubbling, so they reach this view for a
-               touch anywhere inside it, whoever ends up holding the responder.
-               That is the whole fix - the timer starts on any touch on the row,
-               and the row's own buttons keep working untouched. */
+               touch anywhere inside it, whoever holds the responder. The timer
+               starts on any touch on the row and the row's own buttons keep
+               working. */
             onTouchStart={(e) => {
-              // The rip-cord. A new touch while a drag is still live means the
-              // last one never ended - a row unmounted mid-gesture, a responder
-              // force-terminated, anything. Rather than work out every way that
-              // can happen, the next touch cleans up after it, so the list can
-              // never be left in a state where nothing moves any more (jdp,
-              // 2026-09-01: "es lassen sich dann plötzlich keine einträge mehr
-              // verschieben").
+              // A new touch while a drag is still live means the last one never
+              // ended: a row unmounted mid-gesture, a responder force-
+              // terminated, anything. Rather than enumerate the ways, the next
+              // touch cleans up, so the list cannot be left in a state where
+              // nothing moves any more.
               if (dragRef.current) {
                 beendenRef.current();
                 return;
@@ -581,19 +476,13 @@ export default function DragList({
               const s = touch.current;
               if (s && Math.abs(e.nativeEvent.pageY - s.y) > 10) cancelArm();
             }}
-            /* Lifting ends it, armed or not: the drag lives exactly as long as
-               the touch that started it. A mode that outlives the finger would
-               mean the next touch anywhere in the list moves the row that was
-               armed minutes ago, which is a worse surprise than having to hold
-               again. */
-            /* Lifting ends it, armed or not: the drag lives exactly as long as
-               the touch that started it. A mode that outlives the finger would
-               mean the next touch anywhere in the list moves the row that was
-               armed minutes ago, which is a worse surprise than having to hold
-               again.
+            /* Lifting ends it, armed or not: the drag lives as long as the
+               touch that started it. A mode that outlived the finger would let
+               the next touch anywhere in the list move the row armed minutes
+               ago.
 
                Only when the pan never took over, though. Once it has, the drop
-               is onPanResponderRelease's to perform - and both handlers fire for
+               is onPanResponderRelease's to perform, and both handlers fire for
                the same lift, so ending here as well would be a race over which
                one sees the drag first. */
             onTouchEnd={() => {
@@ -614,8 +503,8 @@ export default function DragList({
 }
 
 const styles = StyleSheet.create({
-  // Both, deliberately: Android paints by elevation, iOS by zIndex, and a row
-  // that lifts on one platform and slides under its neighbour on the other is
-  // the kind of thing that only shows up on the device somebody else has.
+  // Both: Android paints by elevation and iOS by zIndex, and a row that lifts
+  // on one platform and slides under its neighbour on the other only shows up
+  // on the device somebody else has.
   lifted: { zIndex: 10, elevation: 8, shadowColor: '#000', shadowOpacity: 0.3, shadowRadius: 8, shadowOffset: { width: 0, height: 4 } },
 });

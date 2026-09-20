@@ -1,17 +1,9 @@
 name: Release (Android app)
 
-# The app is versioned and released on its own, separately from the server.
-#
-# It is a separately installed artifact with its own upgrade story - an APK on a
-# phone does not change when a container is pulled - so tying it to the server's
-# version would mean either bumping it for changes it does not contain, or not
-# bumping it for changes it does. The tag namespace keeps the two apart:
-# "mobile/vX.Y.Z" here, "extension/vX.Y.Z" for the browser extension, and a
-# bare "vX.Y.Z" for KnightLoader itself.
-#
-# The bare pattern in release.yml does NOT match these: a "*" in a GitHub ref
-# filter does not cross a "/", so "mobile/v1.0.0" is invisible to it and this
-# workflow is invisible to a plain "v1.0.0".
+# The app installs and upgrades separately from the server, so it has its own
+# tags: "mobile/vX.Y.Z" here, "extension/vX.Y.Z" for the extension and a bare
+# "vX.Y.Z" for KnightLoader. A "*" in a ref filter does not cross a "/", so
+# release.yml never sees these tags.
 on:
   push:
     tags:
@@ -41,8 +33,7 @@ jobs:
           cache: npm
           cache-dependency-path: mobile/package-lock.json
 
-      # The APK's own Java, not the app's. Pinned to 17 because that is what
-      # the Gradle plugin this Expo SDK generates expects.
+      # 17 is what the Gradle plugin of this Expo SDK expects.
       - uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4
         with:
           distribution: temurin
@@ -51,11 +42,8 @@ jobs:
       - name: Install
         run: npm ci
 
-      # The version in the tag and the version in app.json have to agree, or
-      # the release says one thing and the file inside it says another. Checked
-      # before anything expensive runs, and only on a tag: dispatched from a
-      # branch there is no version in the ref to compare, and the check would
-      # otherwise fail with advice about a problem that does not exist.
+      # Checked before anything expensive runs. A branch ref carries no
+      # version to compare.
       - name: Tag matches app.json
         id: version
         if: github.ref_type == 'tag'
@@ -67,11 +55,8 @@ jobs:
             echo "::error::tag says $tagged, app.json says $declared - bump app.json before tagging."
             exit 1
           fi
-          # versionCode is not cosmetic: Android decides upgrade order by it, so
-          # two builds sharing one are indistinguishable to a phone. Compared
-          # against the previous mobile tag rather than merely required to
-          # exist, because "present but never incremented" is the failure that
-          # actually happens.
+          # Android orders upgrades by versionCode, and the usual mistake is
+          # forgetting to raise it, so it is compared with the previous tag.
           code=$(node -p "require('./app.json').expo.android.versionCode || 0")
           if [ "$code" = "0" ]; then
             echo "::error::app.json has no expo.android.versionCode."
@@ -87,16 +72,10 @@ jobs:
           fi
           echo "version $declared (versionCode $code)"
 
-      # action-gh-release swallows an unreadable body_path and publishes an
-      # EMPTY release, with only a warning in the log. After a build this long
-      # that is the worst of both worlds: quieter than a failure and just as
-      # wrong. release.yml probes for the file and falls back to generated
-      # notes; here a release without hand-written notes is a mistake, so it
-      # stops instead.
+      # action-gh-release publishes an empty release when body_path cannot be
+      # read, with only a warning in the log.
       - name: Notes exist for this tag
         if: github.ref_type == 'tag'
-        # From the workspace root, not from mobile/: this job's run steps
-        # default to mobile/, and the notes live at the top of the repository.
         working-directory: ${{ github.workspace }}
         run: |
           file=".github/release-notes/${GITHUB_REF_NAME}.md"
@@ -106,18 +85,11 @@ jobs:
           fi
           wc -l "$file"
 
-      # An Android app is identified by (package name, signing certificate), so
-      # the key can never be swapped later without turning the next version
-      # into a DIFFERENT app that every installed copy has to be uninstalled
-      # for. That makes an unsigned-for-real release the one mistake here with
-      # no cheap correction, which is why this stops the run rather than
-      # warning: expo prebuild's generated release buildType signs with the
-      # public `androiddebugkey` (password `android`) unless told otherwise,
-      # and a debug-signed APK is one anybody can publish an update to.
-      #
-      # Only on a tag. A dispatched build from a branch is for checking that
-      # the thing compiles, and demanding release credentials for that would
-      # make the cheap check the expensive one.
+      # Android identifies an app by package name and signing certificate, so
+      # the key can never change without an uninstall. expo prebuild signs
+      # release builds with the public debug key unless told otherwise, and
+      # anybody could publish an update to such an APK. A dispatched build only
+      # checks that the app compiles and needs no key.
       - name: Signing key is available
         if: github.ref_type == 'tag'
         env:
@@ -136,15 +108,13 @@ jobs:
             exit 1
           fi
 
-      # android/ is not committed - it is generated, and regenerating it is how
-      # a build stays reproducible from the sources alone. The release signing
-      # config comes from mobile/plugins/withReleaseSigning.js, applied here by
-      # the same prebuild a laptop runs.
+      # android/ is generated, not committed. The signing config comes from
+      # mobile/plugins/withReleaseSigning.js.
       - name: Generate the native project
         run: npx expo prebuild --platform android --clean
 
-      # Written outside android/, which prebuild --clean deletes, and outside
-      # the workspace copy that gets archived anywhere.
+      # Outside android/, which prebuild --clean deletes, and outside the
+      # workspace.
       - name: Unpack the keystore
         if: github.ref_type == 'tag'
         env:
@@ -172,19 +142,11 @@ jobs:
           echo "path=mobile/$out" >> "$GITHUB_OUTPUT"
           ls -l "$out"
 
-      # The env var having been set is not evidence that the APK came out signed
-      # with it - a typo in the gradle wiring, a plugin that silently stopped
-      # matching the template, a keystore holding a different alias, each ends
-      # in a debug-signed file and a green build. The certificate inside the
-      # finished APK is the only thing that actually answers the question, so
-      # that is what is read, and "CN=Android Debug" fails the run.
+      # A broken gradle wiring or a wrong alias still ends in a green,
+      # debug-signed build, so the certificate in the finished APK is checked.
       - name: The APK is signed with our own key
         if: github.ref_type == 'tag'
-        # From the workspace root: this job's run steps default to mobile/, and
-        # the path the previous step published is already workspace-relative -
-        # so without this the file is looked for at mobile/mobile/... and the
-        # step fails on a missing file rather than on what it went to check.
-        # Same shape as the notes gate above, which had the same bug.
+        # The published path is relative to the workspace, not to mobile/.
         working-directory: ${{ github.workspace }}
         run: |
           apksigner=$(ls -d "$ANDROID_HOME"/build-tools/*/apksigner 2>/dev/null | sort -V | tail -1)
@@ -199,14 +161,9 @@ jobs:
             exit 1
           fi
 
-      # The finished APK is kept as an artifact BEFORE it is uploaded to the
-      # release, because those are two different pieces of GitHub and only one
-      # of them fails. On 2026-09-17 the release upload of this 108 MB file ran
-      # into a gateway timeout twice, six minutes in each time, while artifact
-      # upload was unaffected. Without this, retrying an upload means repeating
-      # a twenty-minute signed build, and the file cannot be published by hand.
-      # Kept for the default retention rather than forever: it is a copy of what
-      # the release carries once the upload works.
+      # Kept as an artifact before the release upload, which has timed out on
+      # this file, so a failed upload can be retried by hand without another
+      # signed build.
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: github.ref_type == 'tag'
         with:
@@ -215,37 +172,20 @@ jobs:
           if-no-files-found: error
 
       - uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3
-        # A workflow_dispatch run is for checking that the app still builds. Without
-        # this it would reach here with github.ref_name holding a BRANCH, look for
-        # release notes under that name, find none, and publish an empty release
-        # from a branch - the exact silent-empty-release failure the notes gate
-        # above is written to prevent, arriving through the door that gate skips.
+        # A dispatched run only checks that the app builds; from a branch it
+        # would find no notes and publish an empty release.
         if: github.ref_type == 'tag'
         with:
-          # The house rule is that a release title is the bare version, because
-          # the repository name already sits above it. That still holds - the
-          # repository name is NOT repeated here. What is added is which of the
-          # three products in this repository the release is for, because
-          # "mobile/v1.0.0" next to "extension/v1.3.0" in a list tells a reader
-          # nothing. The version drops its namespace: GitHub already prints the
-          # full tag beside the title.
+          # Three products share the releases list, so the title names which
+          # one this is. GitHub shows the full tag beside it.
           name: App ${{ steps.version.outputs.bare }}
           body_path: .github/release-notes/${{ github.ref_name }}.md
-          # NOT the repository's "Latest" release. That badge belongs to the
-          # PRODUCT's own tag (v1.0.0 and up), and a surface release is a
-          # component of it: a visitor who lands on the releases page and sees
-          # "Latest: Browser Extension 1.19.0" reads it as the version of
-          # KnightLoader, which it is not. GitHub marks whatever was published
-          # most recently unless told otherwise, so this has to be said out loud
-          # in every workflow that is not the product's own.
+          # The Latest badge belongs to the main vX.Y.Z release, and GitHub
+          # would otherwise give it to whatever was published last.
           make_latest: false
           files: ${{ steps.apk.outputs.path }}
 
-      # The newest app also goes to the standing release mobile/latest, as
-      # knightloader-android.apk, which is where the README download button
-      # leads. .github/scripts/publish-newest.sh says why, and why only the
-      # newest tag does it. A pushed tag only: a dispatched run publishes
-      # nothing.
+      # For the README download button; see .github/scripts/publish-newest.sh.
       - name: The newest app under a fixed name
         if: github.event_name == 'push' && github.ref_type == 'tag'
         working-directory: ${{ github.workspace }}

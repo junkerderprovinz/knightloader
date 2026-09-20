@@ -9,18 +9,13 @@ on:
 permissions:
   contents: read
 
-# Nothing in this workflow deploys, so a newer push to the same ref makes the
-# older run pointless. Cancelling it keeps the queue short on a repo where
-# several branches move at once.
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  # Cheap up-front check so the expensive suites below can skip themselves on
-  # changes that can't affect them (a Renovate github-actions-only bump, a
-  # docs-only edit) instead of always running the full Go race-test pass and
-  # web build. Always re-runs both suites when ci.yml itself changes.
+  # Lets the expensive suites skip changes that cannot affect them, such as an
+  # actions-only Renovate bump.
   changes:
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -32,18 +27,12 @@ jobs:
       web: ${{ steps.filter.outputs.web }}
       extension: ${{ steps.filter.outputs.extension }}
       mobile: ${{ steps.filter.outputs.mobile }}
-      # `desktop` was missing here while the desktop job below already read
-      # needs.changes.outputs.desktop. An undeclared output is the empty
-      # string, never 'true', so that job's `if` was false on every run since
-      # it was added and the module it exists to compile went unbuilt again -
-      # the exact blind spot its own comment describes.
       desktop: ${{ steps.filter.outputs.desktop }}
       docs: ${{ steps.filter.outputs.docs }}
       queuereach: ${{ steps.filter.outputs.queuereach }}
     steps:
-      # Only needed for the push-to-main case: paths-filter diffs against the
-      # previous commit via git, which needs it to be present locally. On
-      # pull_request it skips this entirely and uses the GitHub API instead.
+      # On push, paths-filter diffs with git and needs the history; on
+      # pull_request it uses the API.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         if: github.event_name != 'pull_request'
         with:
@@ -68,24 +57,17 @@ jobs:
             mobile:
               - 'mobile/**'
               - '.github/workflows/ci.yml'
-            # The desktop module is its own Go module that `replace`s the main
-            # one, so a change to either can break it - hence both paths.
+            # The desktop module replaces the main one, so a change to either
+            # can break it.
             desktop:
               - 'desktop/**'
               - '**/*.go'
               - 'go.mod'
               - '.github/workflows/ci.yml'
-            # check-docs-claims.mjs reads the documents AND the sources it
-            # checks them against, so a Go or web change can falsify a claim
-            # without any Markdown being touched. Hence the wide net: the
-            # claims it settles are about the whole build, not about docs/.
-            #
-            # desktop/go.mod is in this list for one specific reason: the check
-            # compares the Wails version the README tells a reader to install
-            # against the version that module requires, and a bump to that
-            # require line is the ENTIRE failure mode. Leave it out and the one
-            # change the check exists to catch is the one change that does not
-            # run it. Note `**/*.go` does not cover a go.mod.
+            # check-docs-claims.mjs checks the documents against the sources,
+            # so Go and web changes can falsify a claim too. desktop/go.mod is
+            # listed because the check compares its Wails version with the
+            # README, and **/*.go does not match a go.mod.
             docs:
               - 'README.md'
               - 'docs/**'
@@ -96,20 +78,8 @@ jobs:
               - 'web/src/lib/locales/**'
               - 'web/src/pages/settings/Help.tsx'
               - '.github/workflows/ci.yml'
-            # The queue-reach guard compares the browser's two state sets with
-            # the server's own, so EITHER side can falsify it on its own. A
-            # narrowing in the browser hides a verb the server still carries
-            # out; a narrowing in Go leaves a control on screen that answers
-            # nothing. Both nets are therefore wide: every Go file, because
-            # movable() and SetPriorityIn could move, and every web file that
-            # decides whether one of those verbs is reachable.
-            #
-            # Downloads.tsx and lib/commands/downloads.ts are on this list
-            # because half the regression sat in them and the job did not run:
-            # the page draws the badge that opens the queue group, the palette
-            # offers the same four move verbs a second time, and a change to
-            # either of them alone used to match nothing here. A guard that does
-            # not run for the change it exists for is a guard nobody has.
+            # Either side can break the queue-reach check: every Go file, and
+            # every web file that decides whether a queue verb is reachable.
             queuereach:
               - '**/*.go'
               - 'check-queue-reach.mjs'
@@ -123,85 +93,49 @@ jobs:
     needs: changes
     if: needs.changes.outputs.go == 'true'
     runs-on: ubuntu-latest
-    # 40, not 20. The suite takes ~12 min on a healthy runner, and internal/app
-    # alone is ~7.5 of that (it drives the queue and engine end to end, so much
-    # of it is real waiting). At 20 a merely slow runner CANCELLED a good run -
-    # measured: the identical commit passed on rerun. A job timeout is a
-    # runaway backstop, not a performance budget; if the suite ever really does
-    # hang, -timeout below reports WHICH package, which a job cancellation
-    # never does.
+    # The suite takes about 12 minutes, and a slow runner cancelled good runs
+    # at 20. -timeout below names the hanging package, a job cancellation does
+    # not.
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      # The toolchain is read from go.mod's go directive, not pinned here, so
-      # CI, the Dockerfile's golang build stage and a developer's local build
-      # all satisfy the same go directive. A second hard-coded copy of the
-      # version is how CI stays green while the release image fails to build,
-      # which is also why this comment no longer names the image's own tag.
+      # Read from go.mod so CI and the Dockerfile's build stage cannot drift
+      # apart.
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
         with:
           go-version-file: go.mod
 
-      # Vet walks every package in the module, including new ones that have no
-      # test yet, so nothing can land without at least being type-checked.
       - name: Vet
         run: go vet ./...
 
-      # The shipped binary is pure Go (modernc SQLite, CGO_ENABLED=0), so the
-      # normal test pass runs in exactly that configuration. A dependency that
-      # only compiles with cgo would pass a default `go test` and then break
-      # the container build.
-      # -timeout is explicit rather than Go's default 10m PER PACKAGE, which
-      # internal/app runs close enough to trip on a loaded machine. When it
-      # does, the panic names whichever test happened to be running - which is
-      # not the slow one, and has already sent someone chasing the wrong test.
-      # KNIGHTLOADER_NET_TESTS turns on the handful of tests that open a socket
-      # on a real interface rather than on loopback: discovery's multicast group
-      # and the live torrent runs. They are off by default because Windows puts
-      # a firewall dialog in front of every new test binary that listens widely,
-      # which stops a local `go test ./...` dead until it is clicked away. A
-      # Linux runner has no such dialog, so this is where those tests belong.
-      # See internal/testenv.
+      # CGO_ENABLED=0 as in the shipped binary, so a cgo-only dependency fails
+      # here rather than in the image build. The explicit -timeout replaces Go's
+      # 10m per package, which internal/app runs close to. KNIGHTLOADER_NET_TESTS
+      # enables the tests that listen beyond loopback (discovery multicast, live
+      # torrents); they are off locally because Windows asks about the firewall
+      # for every new test binary. See internal/testenv.
       - name: Test
         env:
           CGO_ENABLED: "0"
           KNIGHTLOADER_NET_TESTS: "1"
         run: go test ./... -count=1 -timeout 25m
 
-      # The race detector needs cgo and therefore cannot share the pure-Go pass
-      # above. It gets its own run because the engine, the throttle and the
-      # federation hub are all goroutine-heavy: a data race there surfaces as a
-      # silently corrupted download rather than as a crash, which no functional
-      # test would catch.
-      # The number has to fit in what is LEFT of the job, not in the job. The
-      # steps run one after another: the pure-Go pass above may take up to its
-      # own 25m, so this one can start around minute 13 on a normal run and far
-      # later on a slow one. A 35m deadline could therefore never fire inside a
-      # 40-minute job - the run would be cancelled by Actions first, with no
-      # panic, no goroutine dump and no package name, which is precisely the
-      # outcome the -timeout above exists to prevent. 12m is what reliably
-      # remains, and it is still comfortably more than the ~12 min the whole
-      # suite takes when it is healthy.
+      # The race detector needs cgo, so it gets its own pass. Its timeout has to
+      # fit in what is left of the 40 minute job after the pass above, or
+      # Actions cancels the run with no goroutine dump.
       - name: Test (race)
         env:
           KNIGHTLOADER_NET_TESTS: "1"
         run: go test -race ./... -count=1 -timeout 12m
 
-      # Same flags as the Dockerfile, so a build that only fails when cgo is off
-      # is caught here instead of during the release image build.
       - name: Build
         env:
           CGO_ENABLED: "0"
         run: go build -o /tmp/knightloader ./cmd/knightloader
 
-      # -tags bridgeclipboard is deliberately not part of any of the runs
-      # above: it must not ship in the plain build the Dockerfile produces
-      # (internal/bridge/clipboard.go's package comment explains why), which
-      # also means nothing above ever compiles or tests it. Without this run
-      # that file could sit broken for a whole wave before anyone building
-      # with the tag noticed. Still CGO_ENABLED=0, because the tagged build
-      # ships from the same static binary as everything else.
+      # The bridgeclipboard tag stays out of the shipped build (see
+      # internal/bridge/clipboard.go), so nothing above compiles it.
       - name: Vet, test and build (bridge clipboard tag)
         env:
           CGO_ENABLED: "0"
@@ -227,144 +161,41 @@ jobs:
           cache: npm
           cache-dependency-path: web/package-lock.json
 
-      # `npm ci` installs exactly the committed lockfile. `npm install` would
-      # quietly resolve the caret ranges to newer versions on every run, so the
-      # thing CI builds would stop being the thing anyone else builds.
       - name: Install
         run: npm ci
 
-      # This is the key-parity gate for the 42 locale catalogues: every locale
-      # is declared `: Dict`, and Dict is Record<TranslationKey, string> derived
-      # from English, so a missing or misspelled key is a compile error. Vite
-      # builds with esbuild, which strips types without checking them, so the
-      # build below would happily ship a half-translated locale. Hence a
-      # separate, non-skippable step.
+      # Every locale is typed as Dict derived from English, so this is the key
+      # parity gate. Vite strips types without checking them.
       - name: Type check
         run: npx tsc --noEmit
 
-      # The settings rail and the command palette are two hand-kept lists of
-      # the same page set, and tsc cannot see that they disagree: both are
-      # well-typed while one of them is missing three pages. See the script's
-      # own header for the drift this caught.
       - name: Settings pages parity
         run: node check-settings-pages.mjs
 
-      # The settings search's index is a hand-written list of every card and
-      # every row on all 22 settings pages, and it cannot be derived (four
-      # catalogue helper names, one file drawing two rail entries, key prefixes
-      # that do not name their page - the script's own header has the full four).
-      # tsc cannot see it go stale: a row added to a page and not added there is
-      # well-typed on both sides, and the failure is a search result that simply
-      # never appears, which looks exactly like a word nobody typed.
       - name: Settings search index
         run: node check-settings-search.mjs
 
-      # The ranker behind both the command palette and the settings search. Its
-      # quiet half is folding: with it broken, "grosse" stops finding "Größe" and
-      # "baglanti" stops finding "Bağlantı" - six of the 42 shipped languages
-      # going quietly dead, reported as "search is broken" if at all. That fold
-      # already shipped wrong once (it handled ß and nothing else) and this
-      # script is what caught it.
       - name: Ranking and folding
         run: node check-rank.mjs
 
-      # A list column's width is the one number here nobody can check by
-      # reading it: it looks like taste, and every round of "too wide" / "too
-      # narrow" moves it by whatever the last person guessed while the comment
-      # above it keeps the round before. The Variante column went 132 -> 236 in
-      # the same commit that made its cell stop shrinking and start wrapping,
-      # and the reason written down for the 236 was the behaviour that commit
-      # had just fixed. This holds each width against what its cell was
-      # measured to need, in all 42 locales.
       - name: List column widths
         run: node check-column-widths.mjs
 
-      # GlimStone rule 21: something already filled with surface2 hovers to
-      # surface3, never to carbon-hover, which sits BELOW it on the dark ramp
-      # and therefore DIMS a filled element under the pointer. The rule was in
-      # the design language's token table from the beginning and thirteen
-      # places across three apps still had it backwards, one of them here. It
-      # is the sort of mistake nobody reports as a bug: hover simply looks like
-      # it does nothing.
       - name: Hover ramp
         run: node check-hover-ramp.mjs
 
-      # The search box's own rule - an unrecognised prefix, a stray colon or a
-      # quote halfway through being typed stays ordinary text - has no compiler
-      # and no test runner behind it, and its failure mode is a list that simply
-      # comes back empty rather than an error anybody sees.
       - name: Search query parser
         run: node check-search-query.mjs
 
-      # Go's zero time is a NON-EMPTY STRING on the wire, so `!!task.nextTry`
-      # answers yes for a download waiting for nothing. tsc cannot see it (the
-      # type is `string | undefined` either way), no test covers it, and it has
-      # shipped twice: a "Standing still" chip that stood over every row of a
-      # stopped queue, and a retry glyph telling five dead failures they were
-      # about to be retried. The script reads the Go structs for the field names,
-      # so it cannot go stale the way a list typed into it would.
-      #
-      # It lives in the web job rather than beside the Go suite on purpose. The
-      # rule it enforces is uniform - never test a timestamp for truthiness, whatever
-      # its struct tag says - so the Go side is only ever consulted for NAMES,
-      # and a name that is new is a name no .tsx can already be reading.
       - name: No Go timestamp read as a yes/no
         run: node check-go-timestamps.mjs
 
-      # A key that is in en.ts and in no other catalogue is a compile error in 41
-      # files, so a wave whose translation pass has not run yet seeds the English
-      # text and writes down what it owes. That seeding has one failure mode: a
-      # seeded string looks exactly like a translated one, so without this the
-      # next sweep counts keys, finds parity, and forty languages keep a
-      # paragraph of English for good. This holds the ledger and the catalogues
-      # together in both directions.
       - name: Untranslated ledger
         run: node check-untranslated.mjs
 
-      # The extension's 120 keys have been guarded this way since it was written
-      # and the web UI's 2500 had nothing at all. A dropped {n} is invisible to
-      # tsc, whose type is only `string`, and shows up one language deep as a
-      # sentence with no number in it. Nobody reports that as a missing
-      # placeholder. The em dash rule rides along, because it is enforced
-      # nowhere else in the catalogues either.
       - name: Locale placeholders
         run: node check-locale-placeholders.mjs
 
-      # SIX GUARDS FOR THE DESIGN LANGUAGE, added the day the web UI was lifted
-      # from GlimStone 1.6.0 to 1.14.0. Every rule below had already been broken
-      # at least once while it existed only as prose, which is the whole argument
-      # for them being here rather than in a document:
-      #
-      #   scrim        the ground behind a floating window was a number typed
-      #                into each component that floats one, and both copies sat
-      #                at a strength the language does not use.
-      #   theme        a token declared in one theme block and not the other two
-      #                is invisible to anybody working in one colour mode. The
-      #                second half of this one catches the failure that cost the
-      #                most: a Tailwind colour class with no matching @theme key
-      #                generates NO class at all, so hover:bg-carbon-hoverRaised
-      #                sat in the crypto window for weeks doing nothing.
-      #   motion       a --motion-* variable read by a keyframe but set at only
-      #                one intensity makes the property invalid and the animation
-      #                silently still. That is the intended mechanism for reduced
-      #                motion, which is exactly why an accidental one hides.
-      #   brand        .glim-brand-btn without its .glim-brand-<name> twin leaves
-      #                --brand undefined and paints a vendor's mark in the ink it
-      #                inherited.
-      #   status       nothing destructive is painted red (1.12.0), and 1.13.0
-      #                removed the one sanctioned exception rather than moving
-      #                it. What reports STATE keeps its colour; what you press
-      #                does not.
-      #   order        the control that goes ahead sits at the end of its row.
-      #                Eleven of twenty-six pairs were backwards, and two
-      #                confirmation windows of the same kind disagreed with each
-      #                other, which is worse than either order applied
-      #                everywhere.
-      #
-      # Each was validated by breaking what it guards and watching the promised
-      # message, then restoring; one of them found a real fault in ITSELF that
-      # way, printing green over a class list that a JSX attribute had wrapped
-      # across two lines.
       - name: Modal scrim
         run: node check-scrim.mjs
 
@@ -374,33 +205,12 @@ jobs:
       - name: Motion tokens
         run: node check-motion-tokens.mjs
 
-      # The fourth motion level nobody is offered, and the rule an easter egg
-      # that changes BEHAVIOUR has to keep: switchable back off, and never a
-      # permanent entry in a settings list. Four ways it can go wrong silently -
-      # a picker that starts offering it, a stored one thrown away at boot, a
-      # "found it" flag written to storage, and the token block drifting out of
-      # the reduced-motion gate, which is the only one of the four that could do
-      # real harm.
       - name: The hidden motion level stays hidden
         run: node check-hidden-motion-level.mjs
 
-      # The top motion level is `wild`, not `full`. That string is a wire
-      # format - the data-motion attribute, the selectors that match it, the
-      # value in storage - so the rename GlimStone 2.0.0 made a MAJOR release
-      # for has to hold in four places at once, and the fourth is the one with
-      # teeth: a value saved under the old name is sitting in real instances
-      # and has to keep resolving, which this measures by importing the module
-      # rather than by reading it. The same script holds the rule that a
-      # stylesheet names the QUIET levels and never the lively one.
       - name: The top motion level is wild
         run: node check-motion-top-level.mjs
 
-      # Nothing is greyed out AND switched off at once. GlimStone 1.16.0 settled
-      # a six-release contradiction with one question - does the control still
-      # do anything - and that pair is the one shape both of its answers rule
-      # out. It found five, one of them the delete beside a stored sign-in
-      # cookie, unreachable by mouse in exactly the state somebody reaches for
-      # it.
       - name: Dimmed and inert at once
         run: node check-dimmed-and-inert.mjs
 
@@ -413,105 +223,39 @@ jobs:
       - name: Button order
         run: node check-button-order.mjs
 
-      # A refused capability explains itself in the reader's own language, never
-      # in the server's. GlimStone 1.15.0 names this test in the rule itself;
-      # the live half of it drives a browser, this is the half that runs on
-      # every build so the property is held between live runs.
       - name: The passkey refusal is the app's own copy
         run: node check-passkey-reason.mjs
 
-      # One act, one word. The two cards on the access page that enrol a login
-      # control had grown two verbs for the same thing, which GlimStone 2.1.0
-      # turned into a rule after reporting it here. Nothing else compares the
-      # two labels: each is a perfectly good string in 42 catalogues, and a
-      # build, a type check and a screenshot all pass while they disagree.
       - name: The enrolment buttons say one word
         run: node check-enrolment-buttons.mjs
 
-      # A field's grey hint is not a button's name. The download list's search
-      # badge was labelled `search.placeholder` ("Search this list…"), so with
-      # Beschriftung on "text and glyph" it PRINTED that whole invitation - the
-      # longest label in a row that already could not hold its own buttons - and
-      # the command palette listed the same command under the same sentence.
-      # Nothing in the type system notices: a placeholder and a label are both
-      # `string`, both compile, both render.
       - name: A placeholder is not a label
         run: node check-placeholder-as-label.mjs
 
-      # The download list's press gesture, on plain numbers: which row a block
-      # of marked rows is aiming at, what a press on a marked row carries, and
-      # how far a press has to travel before it stops being a click. Written
-      # with the gesture and then left out of this file, which made it a script
-      # somebody has to remember to run - and that is not a guard.
       - name: Row drag arithmetic
         run: node check-row-drag.mjs
 
-      # A card is a surface, not a control. The instance cards were handed the
-      # shared Card's `hover` prop, which lifts the surface two pixels under the
-      # pointer - so the one hovered card in a row of three broke the top edge
-      # the other two shared, and did it while advertising a whole-card click
-      # that did not exist (the card body was not clickable at all). The design
-      # language says it twice, in the two sections anybody styling a hover
-      # would open, and it shipped anyway: from the call site, passing a prop
-      # named `hover` looks exactly like asking for the house's own hover.
       - name: A card does not react to the pointer
         run: node check-card-hover.mjs
 
-      # Written against the third repaint of the same complaint and then left
-      # out of this file, which made it a script somebody has to remember to
-      # run. Its own opening paragraph says why that is not a guard, so it is
-      # registered here; it has been green since it was written.
       - name: A row strip wears the row's own ground
         run: node check-row-strip-ground.mjs
 
-      # The app's shield appears in four places and only one of them is the
-      # brand: the mark in the sidebar. "Make the logo on the cards bigger" is
-      # reasonable, was asked twice, and the second grant put the card's copy at
-      # 144px against the rail's 112 - the loudest drawing of the app's identity
-      # was a repeat of it on a card. The ceiling is read off the rail rather
-      # than typed in, so it cannot drift from it. The comment beside that class
-      # did drift: it still said 7rem while the class said 9.
       - name: The app mark never outgrows the rail's own
         run: node check-mark-scale.mjs
 
-      # A curve drawn with preserveAspectRatio="none" is still a replaced
-      # element with a ratio, so a viewBox and no height turns width into
-      # height and the card around it grows to fit. The Downloads head card
-      # did exactly that: 200px tall at a 1280 window, 229 at 1400, 369 at
-      # 1920, while its own content stayed 136. Making the curve wider, which
-      # is what jdp had asked for, was what made the card taller.
       - name: A stretched plot does not decide its card's height
         run: node check-stretched-svg-height.mjs
 
-      # The one list in the app where a typo costs a stranger real money and
-      # nobody ever hears about it: somebody who tried to give something away
-      # gets no error, no retry and no support ticket, because they never write.
-      # Two of the five address formats carry a checksum and are verified; the
-      # rest are pinned by length and alphabet. The part that matters most is
-      # the shape of the list, that every network a donor can pick resolves to
-      # the wallet that actually exists on that chain: the list first shipped
-      # offering Tron for a 0x address, which lives on EVM chains only, so a
-      # donor picking Tron would have sent USDT into nothing.
-      #
-      # It was written with the addresses and then left out of this file, which
-      # made it a script somebody has to remember to run. That is not a guard.
       - name: Donation addresses
         run: node check-donate-addresses.mjs
 
       - name: Build UI
         run: npm run build
 
-      # web/dist is COMMITTED and embedded into the Go binary (web/embed.go's
-      # //go:embed all:dist, and the Dockerfile skips a Node stage entirely
-      # because of it). Nothing was checking that the committed bundle matched
-      # the sources, so a change touching only .tsx files got a fully green
-      # pipeline while the container went on serving the previous UI - a gap
-      # this repository's own history has had to reconcile with several
-      # after-the-fact "chore(web): rebuild web/dist" commits.
-      #
-      # The gate is only possible because the bundle names carry no content
-      # hash (see spaHandler's doc comment in internal/api/api.go for why),
-      # which makes the output stable enough to diff.
+      # web/dist is committed and embedded in the binary. Bundle names carry no
+      # content hash (see spaHandler in internal/api/api.go), so the output is
+      # stable enough to diff.
       - name: Committed bundle is current
         run: |
           if ! git diff --exit-code -- dist; then
@@ -519,10 +263,6 @@ jobs:
             exit 1
           fi
 
-  # The extension and the app had no gate at all, which is how a syntax error
-  # or a locale short one key would have reached a release: neither ships
-  # through the web build, and the extension deliberately has no build step of
-  # its own (see extension/embed.go). Both jobs are seconds long.
   extension:
     needs: changes
     if: needs.changes.outputs.extension == 'true'
@@ -535,81 +275,31 @@ jobs:
         with:
           node-version: "24"
 
-      # Plain files loaded by <script> and importScripts, so nothing else ever
-      # parses them before a browser does.
+      # The extension has no build step, so nothing else parses these files
+      # before a browser does.
       - name: Syntax check
         run: for f in extension/src/*.js; do node --check "$f"; done
 
-      # The parity gate the web UI and the app get from `: Dict` for free.
       - name: Locale parity
         run: node extension/check-locales.mjs
 
-      # Three implementations speak the relay frame format - Go, the phone's
-      # TypeScript and this extension's plain JavaScript - and this was the
-      # only one with no test at all. It checks the shipped src/relay.js
-      # against the same fixed vector internal/relay pins, and then drives a
-      # real session against a fake socket to read what the hello frame
-      # actually puts on the wire. Proven red against a version that sealed
-      # the identity AND went on announcing it in the clear beside the seal:
-      # the one broken shape every format-level check passes.
       - name: Relay frame parity
         run: node extension/check-relay-seal.mjs
 
-      # The three answers to a control that cannot act (GlimStone 1.15.0 states
-      # the test, 1.16.0 settles the pair that had been contradicting itself):
-      # dim what still acts, remove what does not, and write the reason only
-      # where the environment is what forbids it. Every one of the shapes this
-      # guards was measured on the rendered page before it was fixed, and none
-      # of them is visible to the syntax check or the locale check above - a
-      # wrapper that is dimmed and switched off at once looks correct in a
-      # screenshot of the state it is not in.
       - name: Refusals
         run: node extension/check-refusals.mjs
 
-      # The popup's send button said "Send this page" over a right-clicked link
-      # it was about to send. The label comes from what was clicked now, and
-      # this holds the three places that have to agree: the payload's kind, the
-      # key it maps to, and the popup asking for that key instead of naming one.
       - name: Send label
         run: node extension/check-popup-send.mjs
 
-      # The background scripts, loaded for real against a stubbed chrome and
-      # once WITHOUT the context-menu API: a top-level contextMenus call used to
-      # stop background.js before its message listener, so a browser without
-      # menus lost every popup send in silence. Also holds the jdcheck.js
-      # ruleset to the Click'n'Load switch and makes leaving forget the browser
-      # id. Each of these was a false sentence in the privacy policy first.
       - name: Background
         run: node extension/check-background.mjs
 
-      # Mozilla's own linter, run with --self-hosted so it checks the package
-      # rather than AMO listing metadata this repository does not have.
-      #
-      # It exists here because the failure class it catches is invisible to
-      # everything above and expensive everywhere else. The extension shipped
-      # for a day with background.js calling importScripts() while the manifest
-      # declared BOTH background.service_worker and background.scripts: Chrome
-      # takes the service worker and is fine, Firefox ignores service_worker
-      # (this linter says so, BACKGROUND_SERVICE_WORKER_IGNORED) and runs the
-      # scripts as an event page, where importScripts does not exist. That is a
-      # ReferenceError on the first line that runs, so the extension installed,
-      # appeared in the list, and did nothing at all in Firefox. Both a syntax
-      # check and a locale check pass on it happily.
-      #
-      # -W treats warnings as failures. The one warning that cannot be removed
-      # from a single cross-browser manifest is the service-worker notice
-      # itself, so it is filtered out by name rather than by turning the whole
-      # gate advisory - a linter nobody has to obey is a linter nobody reads.
-      #
-      # The second skipped code is a deliberate choice, not a silenced problem.
-      # The add-on is offered on desktop Firefox only: without a
-      # browser_specific_settings.gecko_android key AMO does not list it for
-      # Android at all, which is right, because Firefox for Android has no
-      # context-menu API and the extension has never been tested there. The
-      # linter still measures Android against gecko.strict_min_version (140)
-      # and notes that data_collection_permissions needs Android 142. Raising
-      # that minimum would drop desktop Firefox ESR 140; adding gecko_android to
-      # quiet it would put the add-on on Android. Neither is wanted.
+      # --self-hosted checks the package without AMO listing metadata. Two codes
+      # are skipped: a cross-browser manifest always declares both background
+      # forms, and the add-on is desktop Firefox only, so the Android minimum
+      # version notice does not apply. Raising strict_min_version would drop
+      # Firefox ESR 140, and adding gecko_android would list it on Android.
       - name: web-ext lint
         run: |
           cd extension/src
@@ -625,15 +315,8 @@ jobs:
             });
           '
 
-  # What the README, the Help page and docs/ claim about this build, checked
-  # against the build. Its own header lists what went wrong without it; the
-  # short version is that no compiler, test or type check has an opinion about
-  # a sentence, so the three documents describing the program to a new reader
-  # were the only part of the repository with no gate at all.
-  #
-  # Its own job rather than a step in `web`: half of what it reads is Go, and
-  # the web job is skipped on a Go-only change - which is precisely when a
-  # documented default stops being true.
+  # A separate job because it also reads Go, and the web job skips Go-only
+  # changes.
   docs:
     needs: changes
     if: needs.changes.outputs.docs == 'true'
@@ -646,24 +329,11 @@ jobs:
         with:
           node-version: "24"
 
-      # No dependencies and nothing to install: node:fs against the tree.
       - name: Documented claims
         run: node check-docs-claims.mjs
 
-  # Its own job, for the same reason the docs one is: half of what it reads is
-  # Go, and the web job is skipped on a Go-only change - which is precisely when
-  # the server's answer about a state can move out from under the browser.
-  #
-  # What it exists for: the download list's "Reihenfolge" badge and the
-  # right-click menu were both gated on one predicate naming queued, paused and
-  # collected, so a selection of RUNNING downloads got no move verbs and no
-  # priorities from anywhere in the app - while the server took both, all day.
-  # A selection of finally failed tasks lost the priorities the same way. The
-  # pattern is the one worth guarding: a surface narrows a condition and nothing
-  # notices, because no test builds the state in which the verb was still
-  # wanted. So the browser's state sets are read off the server's and compared
-  # per status, in both directions, and the behaviour they claim is measured in
-  # internal/app/queue_reach_test.go, which this check refuses to run without.
+  # Compares the browser's queue state sets with the server's in both
+  # directions. A separate job for the same reason as docs.
   queue-reach:
     needs: changes
     if: needs.changes.outputs.queuereach == 'true'
@@ -676,7 +346,6 @@ jobs:
         with:
           node-version: "24"
 
-      # No dependencies and nothing to install: node:fs against the tree.
       - name: The queue verbs reach as far as the server does
         run: node check-queue-reach.mjs
 
@@ -700,58 +369,23 @@ jobs:
       - name: Install
         run: npm ci
 
-      # Same reasoning as the web job's own type check: every locale is typed
-      # as Dict derived from English, so this is what catches a missing key.
-      # No native build here - that needs an Android SDK and takes minutes;
-      # this catches the class of mistake that actually happens.
+      # No native build here; that needs an Android SDK. The type check catches
+      # missing locale keys.
       - name: Type check
         run: npx tsc --noEmit
 
-      # The gate for the defect class that cost four rounds of "drag and drop
-      # does not work": a FlatList redraws a cell only when `data` changes by
-      # reference or `extraData` does, so a row that closes over component state
-      # silently stops updating. It usually works by accident, because most
-      # `data` props are rebuilt every render - and it breaks the moment
-      # somebody makes that reference stable, which is normally an optimisation.
       - name: FlatList extraData
         run: node check-extradata.mjs
 
-      # GlimStone 1.17.0's hidden fourth motion level, and the rule it exists to
-      # establish: an easter egg that changes BEHAVIOUR must switch back off and
-      # must not quietly become a permanent entry in a settings list. This guard
-      # RUNS the module rather than grepping it - Node strips the types, so it
-      # calls resolveMotion, asMotion and stormTap for real and measures what
-      # comes back, including that a phone whose owner asked the system for less
-      # motion never gets storm's numbers.
       - name: Hidden motion level
         run: node check-hidden-motion-level.mjs
 
-      # GlimStone 1.16.0: nothing is dimmed and switched off at the same time.
-      # On Android that pair is worse than on the web - pointerEvents="none"
-      # takes the subtree away from TalkBack as well, so a control that still
-      # decides something becomes unreachable rather than merely discouraged.
       - name: Dimmed and inert
         run: node check-dimmed-and-inert.mjs
 
-  # The desktop bundle's own module, compiled and vetted but not packaged.
-  #
-  # It exists because desktop/ was a blind spot: desktop.yml only runs on a
-  # `v*.*.*` tag or by hand, this repo has no such tag yet, and nothing else
-  # touched the module - so between 2026-08-09 and 2026-08-27 it went through
-  # three waves, the relay rewrite and the frame-encryption change without
-  # once being compiled. It `replace`s the main module, so any signature change
-  # there can break it, and the first sign would have been the very first
-  # release failing.
-  #
-  # Compile-only on purpose. A real Wails build needs GTK/WebKit system
-  # packages and produces an artifact nobody consumes on a normal push; what
-  # actually goes wrong here is a type error against the main module, and
-  # `go build` catches that in seconds. desktop.yml, called by release.yml,
-  # still owns real packaging.
-  #
-  # webkit2_41 matches desktop.yml's own build tag: Wails binds
-  # webkit2gtk-4.0 by default and Ubuntu 24.04 only ships 4.1, which is the
-  # difference between this job compiling and it failing on the linker.
+  # Compiles the desktop module on every relevant push, since desktop.yml only
+  # runs for releases. Packaging stays in desktop.yml. webkit2_41 is needed
+  # because Ubuntu 24.04 ships only webkit2gtk-4.1.
   desktop:
     needs: changes
     if: needs.changes.outputs.desktop == 'true'
@@ -768,9 +402,7 @@ jobs:
           go-version-file: desktop/go.mod
           cache-dependency-path: desktop/go.sum
 
-      # Wails links against WebKitGTK even for a plain `go build`, so the
-      # headers have to be present or the compile fails on a missing pkg-config
-      # entry rather than on anything in this repo.
+      # Wails links against WebKitGTK even for a plain go build.
       - name: System packages
         run: |
           sudo apt-get update

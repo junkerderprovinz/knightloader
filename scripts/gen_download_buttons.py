@@ -1,29 +1,27 @@
 """Generate the README's download buttons from one template.
 
 From a template, because six hand-drawn buttons are six chances to type one
-number differently, and the whole point of a row of them is that they look like
-one control repeated. Two rows: the desktop builds, then the container, the
-Android app and the browser extension.
+number differently, and a row of them has to look like one control repeated.
+Two rows: the desktop builds, then the container, the Android app and the
+browser extension.
 
-THE GEOMETRY. Height and corner radius are the Buy Me a Coffee button's own
+The geometry. Height and corner radius are the Buy Me a Coffee button's own
 (245.3 tall, rx 38.2), so a download button and the coffee button rendered at
-the same width stand the same height. The WIDTH is 720 rather than that button's
-841.9, measured on screen rather than guessed: at 841.9 a third of the face sat
-empty to the right of the longest word and the button read as lopsided.
+the same width stand the same height. The width is 720 rather than that
+button's 841.9, measured on screen: at 841.9 a third of the face sits empty to
+the right of the longest word and the button reads as lopsided.
 
-THE COLOUR is the platform's own, and the button has no outline (jdp: "die
-butotns sollen keine rahmenliniehaben und farbig sein"). A filled shape in a
-colour somebody already associates with the platform does the work an outline
-was doing, and does it faster: the eye finds "the blue one" before it reads the
-word. macOS has no brand colour of its own, so it takes Apple's own space grey,
-which is the one value that stays visible against GitHub's light theme and its
-dark one - a black button disappears into the dark theme, and this row has no
-outline to save it.
+The colour is the platform's own and the button has no outline. A filled shape
+in a colour somebody already associates with the platform does the work an
+outline was doing and does it faster, because the eye finds the blue one before
+it reads the word. macOS has no brand colour, so it takes Apple's space grey,
+the one value that stays visible against GitHub's light theme and its dark one;
+a black button disappears into the dark theme with no outline to save it.
 
-THE LOGOS are the platforms' own marks, from Font Awesome Free (CC BY 4.0 for
+The logos are the platforms' own marks, from Font Awesome Free (CC BY 4.0 for
 the icons; see scripts/brand-paths/). Each mark is a trademark of its owner and
 is used here the one way a trademark may be used without permission: to name the
-thing it refers to. Each button links to a download FOR that platform, the marks
+thing it refers to. Each button links to a download for that platform, the marks
 are unmodified, and nothing here claims endorsement by or affiliation with
 Microsoft, Apple, the Linux Foundation, Docker or Google. The extension's puzzle
 piece is Font Awesome's too, and no one's trademark.
@@ -117,22 +115,21 @@ TEMPLATE = """<?xml version="1.0" encoding="UTF-8"?>
 </svg>
 """
 
-# THE SHEEN, and it is DEFINED ON SCREEN rather than on this canvas.
+# The sheen, defined in screen pixels rather than on this canvas.
 #
 # A tilted white band, clipped to the button, crossing once per loop. It is the
-# donation row's own band, and the point is that it is the SAME band there and
-# here: a row of house buttons carries one band that appears to travel the whole
-# row, and three rows on one page have to look like one effect rather than three.
+# donation row's band, and it has to be the same band there and here: a row of
+# house buttons carries one band that appears to travel the whole row, and three
+# rows on one page have to look like one effect.
 #
-# That is why these numbers are in SCREEN pixels (see the GitHub style guide,
-# "Der Schein"). Described in canvas units they come out different in
-# every row, because the canvases differ (720 here, 841.9 for the donation row)
-# and so do the widths the READMEs render them at.
+# Described in canvas units the numbers come out different in every row, because
+# the canvases differ (720 here, 841.9 for the donation row) and so do the
+# widths the READMEs render them at. See the GitHub style guide, "Der Schein".
 #
-# THE GAP IS MEASURED, not assumed: the row is `<img width="195">` with a
-# newline, two spaces and a `&nbsp;` between the images, which HTML collapses to
-# space-nbsp-space, 13.16px at GitHub's 16px body text. A `&nbsp;` glued to the
-# closing `</a>` instead measures 8.77px, so the separator is part of the rule.
+# The gap is measured: the row is `<img width="195">` with a newline, two spaces
+# and a `&nbsp;` between the images, which HTML collapses to space-nbsp-space,
+# 13.16px at GitHub's 16px body text. A `&nbsp;` glued to the closing `</a>`
+# instead measures 8.77px, so the separator is part of the rule.
 BAND_PX = 33.0     # the band's width on screen
 SPEED = 250.0      # screen pixels per second
 GAP_PX = 13.16     # measured, see above
@@ -166,12 +163,12 @@ NEWEST = "https://github.com/junkerderprovinz/knightloader/releases/download/%s/
 DESKTOP = [
     ("windows", "windows", "#0078d4", "#ffffff", "Windows", "amd64", "Download for Windows",
      RELEASE + "knightloader-windows-amd64.zip"),
-    # Apple's own space grey. Black is the usual answer and the wrong one here:
-    # with no outline it vanishes against GitHub's dark theme.
+    # Apple's own space grey. Black is the usual answer and vanishes against
+    # GitHub's dark theme with no outline to save it.
     ("macos", "apple", "#6e6e73", "#ffffff", "macOS", "Universal", "Download for macOS",
      RELEASE + "knightloader-macos-universal.zip"),
-    # The yellow Tux is drawn in, dark ink on it for the same reason road signs
-    # do that.
+    # The yellow Tux is drawn in, with dark ink on it for the reason road signs
+    # use dark ink on yellow.
     ("linux", "linux", "#fcc624", "#1b1b1b", "Linux", "amd64", "Download for Linux",
      RELEASE + "knightloader-linux-amd64.zip"),
 ]
@@ -183,31 +180,31 @@ SERVER_PHONE_BROWSER = [
     ("android", "android", "#3ddc84", "#1b1b1b", "Android", "App", "Download the Android app",
      NEWEST % "mobile" + "knightloader-android.apk"),
     # No browser's own colour, because the extension is not one browser's: an
-    # orange that none of the other five buttons wears, dark ink on it.
+    # orange none of the other five buttons wears, with dark ink on it.
     ("extension", "puzzle-piece", "#ff7139", "#1b1b1b", "Browser", "Extension", "Download the browser extension",
      NEWEST % "extension" + "knightloader-extension.zip"),
 ]
 ROWS = [DESKTOP, SERVER_PHONE_BROWSER]
 BUTTONS = [button for buttons in ROWS for button in buttons]
 
-# THE README ROWS are written here as well, between markers, so a button added
+# The README rows are written here as well, between markers, so a button added
 # to ROWS reaches the page by running this file and nothing else: both download
-# rows (one marked block), and every donation row (the one above them and the
-# one in Support).
+# rows (one marked block), and every donation row, the one above them and the
+# one in Support.
 #
-# ALL OF THEM SHOW ONE FILE, buttons.svg, each button through its own
-# #svgView fragment inside its own link. The shine is a CSS animation, and a
-# browser runs it on a clock that starts when that <img> gets its file. Separate
-# files arrive at separate moments, so the band jumped between buttons; and
-# Firefox reuses an image it already has when GitHub swaps the page without a
-# reload, starting a new clock on it. One file arrives once for every button on
-# the page and all of its <img> are inserted together, so all clocks start
-# together: the donation row, then the download rows below it, in order. That is
-# also why the donation buttons are copied into this file rather than linked
-# from the profile repository's give.svg: two files would be two arrivals again.
-# Measured on github.com in Firefox, loaded fresh and after in-page navigation.
-# The layout of a sprite is explained in
-# junkerderprovinz/junkerderprovinz, donate/buttons/sprite.mjs.
+# They all show one file, buttons.svg, each button through its own #svgView
+# fragment inside its own link. The shine is a CSS animation, and a browser runs
+# it on a clock that starts when that <img> gets its file. Separate files arrive
+# at separate moments, so the band jumps between buttons, and Firefox reuses an
+# image it already has when GitHub swaps the page without a reload, starting a
+# new clock on it. One file arrives once for every button on the page and all of
+# its <img> are inserted together, so all clocks start together: the donation
+# row, then the download rows below it, in order. It is also why the donation
+# buttons are copied into this file rather than linked from the profile
+# repository's give.svg, which would be two arrivals again. Measured on
+# github.com in Firefox, loaded fresh and after in-page navigation. The layout
+# of a sprite is explained in junkerderprovinz/junkerderprovinz,
+# donate/buttons/sprite.mjs.
 #
 # The donation buttons are read from the profile repository when this runs, so
 # after they change there, run this again. The sprite is read from main, so a
@@ -234,9 +231,10 @@ def brand(name):
     path = io.open(os.path.join(BRANDS, name + ".txt"), encoding="utf-8").read().strip()
     box = io.open(os.path.join(BRANDS, name + ".box.txt"), encoding="utf-8").read().strip()
     _, _, width, height = (float(n) for n in box.split())
-    # Scaled by HEIGHT so the three marks share an optical size, then nudged
+    # Scaled by height so the three marks share an optical size, then nudged
     # right by half the width they do not use. Apple's mark is narrower than the
-    # other two, and without this it would sit left of them in the row.
+    # other two and would otherwise sit left of them in the row.
+
     scale = GLYPH / height
     return path, scale, (GLYPH - width * scale) / 2
 
@@ -415,25 +413,25 @@ def retime(svg, delay, cycle):
     return ANIMATION.sub("animation: pass %gs linear %.3fs infinite backwards;" % (cycle, delay), svg)
 
 
-# THE SCHEDULE. One band works its way down the page: the whole donation row,
+# The schedule. One band works its way down the page: the whole donation row,
 # then the desktop row, then the row below it. Each row starts where a button
 # after the last one of the row above would have started, and each button one
-# STEP after its neighbour, at that row's own rendered width plus the measured
-# gap. Computed rather than written into the tables above: a hand-kept column of
-# seconds is a column somebody reorders the row without touching, and then the
-# band hands off into nothing.
+# step after its neighbour, at that row's own rendered width plus the measured
+# gap. Computed rather than written into the tables above, because a hand-kept
+# column of seconds is one somebody reorders the row without touching, and then
+# the band hands off into nothing.
 #
-# THE DONATION ROW IS FIRST because in this README it stands ABOVE the download
-# rows, and so it is retimed here. Everywhere else those three files sit at 3.8 s
-# into a seven second loop, after at most one download row; three rows need
-# 7.07 s of travel before any rest, which a seven second loop cannot hold. So on
-# this page the loop is as long as the three rows plus the rest the house
-# schedule leaves on every page with a download row: 7 s minus the end of the
-# donation row there (3.8 s plus three of its steps), 1.12 s. The speed, the
-# band and the order stay the house's own; only the rest before the band returns
-# to the top is measured out afresh.
+# The donation row is first, because in this README it stands above the download
+# rows and is retimed here. Everywhere else those three files sit at 3.8 s into
+# a seven second loop, after at most one download row; three rows need 7.07 s of
+# travel before any rest, which a seven second loop cannot hold. So on this page
+# the loop is as long as the three rows plus the rest the house schedule leaves
+# on every page with a download row: 7 s minus the end of the donation row
+# there, 3.8 s plus three of its steps, leaving 1.12 s. The speed, the band and
+# the order stay the house's own; only the rest before the band returns to the
+# top is measured out afresh.
 #
-# EVERY DELAY STAYS INSIDE THE LOOP. All clocks in the sprite start together, so
+# Every delay stays inside the loop. All clocks in the sprite start together, so
 # a delay past the loop's length would not be the same phase as its remainder in
 # the first loop, and that button would shine before everything above it.
 GIVE_STEP = (GIVE_RENDER_PX + GAP_PX) / SPEED

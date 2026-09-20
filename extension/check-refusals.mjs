@@ -1,61 +1,18 @@
-// The three answers to a control that cannot act, and this extension gives each
-// of them the right one.
+// Checks how the options page and popup treat a control that cannot act
+// (GlimStone 1.15.0 and 1.16.0): dim what still acts, remove what does not, and
+// write a reason only when the environment forbids the feature.
 //
-// THE RULE (GlimStone 1.15.0, "The second way in", which states the test that
-// decides all three, and 1.16.0, "Switches", which settles the pair that had
-// been contradicting each other for six releases):
+//   inert     Nothing is dimmed and switched off by a wrapper at once.
+//             pointer-events: none still lets the keyboard press the control,
+//             so a real refusal uses the control's own disabled.
+//   subctl    The Click'n'Load countdown row goes with its switch; with the
+//             feature off nothing reads the number.
+//   notice    Following the instance without a group is replaced by a notice
+//             with a real fill (--status-warn-bg-soft in every theme).
+//   copy      The reason is translated through t(), never a literal.
 //
-//   Does the grey state say something about the THING the control touches
-//   (dim it, it is reporting), about a decision taken elsewhere on the page
-//   (leave it out), or about the environment not permitting the thing at all
-//   (leave it out AND write the reason)? Only the third owes prose.
-//
-// WHAT BREAKS WITHOUT IT, one failure per check, all of them measured on this
-// page before they were fixed and none of them visible in a syntax check, a
-// locale check or a screenshot of the default state:
-//
-//   inert     A wrapper that is dimmed AND switched off at once is the one
-//             shape both halves of 1.16.0 rule out. If the value still acts,
-//             deadening it lies about something still in force; if it does not,
-//             dimming it leaves furniture somebody can see, read and reach for
-//             that answers nothing. And `pointer-events: none` is invisible to
-//             the KEYBOARD, which is the fault that makes the pair worth
-//             banning outright rather than arguing case by case: with rainbow
-//             mode on, this page rendered the accent row at opacity .5 with
-//             pointer-events none, and focusing the second swatch and pressing
-//             it still set --accent to #1d99f3 and wrote it to storage. A row
-//             unreachable by mouse and perfectly reachable by Tab is worse than
-//             either honest answer. A control that genuinely refuses says so
-//             through its own `disabled`, which a screen reader reads and the
-//             keyboard cannot fire.
-//
-//   subctl    A control that hangs off a switch goes ABSENT while that switch
-//             is off, never dimmed and never simply left standing. The
-//             Click'n'Load countdown stood fully live while the feature was
-//             switched off - and the number is read in exactly one place,
-//             popup.js's startCountdown(), which only runs for a parked send
-//             whose origin is 'cnl', which handleCnl() refuses to park while
-//             the switch is off. Nothing at all was behind it.
-//
-//   notice    A capability the environment forbids owes a paragraph, and a
-//             paragraph owes a real fill. The follow-the-instance switch was
-//             offered with no group to take a look from: it turned on
-//             optimistically, failed against a relay session with nothing to
-//             talk to, and snapped back. The box that replaces it has to exist,
-//             has to be wired to both its sentences, and has to spend
-//             --status-warn-bg-soft - a frame is only a frame if its token
-//             exists, which is the trap 1.15.0 added that token to close.
-//
-//   copy      The reason is UI copy in the reader's own language, never a
-//             server's or a library's own sentence. Checked as the language
-//             asks: the key exists in every catalogue (check-locales.mjs) and
-//             the call site reads it through t() rather than pasting a literal.
-//
-// WHAT IT DOES NOT SEE. It reads four files and judges shape, never behaviour:
-// it cannot tell whether the countdown row is hidden at the right MOMENT, only
-// that something hides it, and it cannot tell whether the notice says anything
-// useful. Those were measured live in a browser against the rendered page; this
-// is what stops them coming back.
+// It checks the shape of four files, not behaviour; the timing was verified in
+// a browser.
 //
 // Run by CI and by hand: `node extension/check-refusals.mjs`
 import { readFileSync } from 'node:fs';
@@ -65,8 +22,8 @@ import { fileURLToPath } from 'node:url';
 const here = dirname(fileURLToPath(import.meta.url));
 const read = (...p) => readFileSync(join(here, ...p), 'utf8');
 
-/** Block comments blanked with their offsets kept, so a line number stays the
- *  real one AND a paragraph EXPLAINING a banned shape is not read as one. */
+/** Blanks comments but keeps offsets, so line numbers stay right and a comment
+ *  describing a banned shape is not read as one. */
 const decomment = (text) =>
   text
     .replace(/\/\*[\s\S]*?\*\//g, (c) => c.replace(/[^\n]/g, ' '))
@@ -83,11 +40,8 @@ const popup = decomment(popupRaw);
 const html = read('src', 'options.html');
 const css = read('src', 'glimstone.css');
 
-// --- inert: nothing is switched off by a wrapper ----------------------------
-//
-// Grep-shaped on purpose. This extension has no component framework and no
-// class-list utilities, so a wrapper refusal can only be written one way: an
-// inline `pointerEvents`. Any occurrence is the defect, wherever it is written.
+// inert: without a framework, a wrapper refusal can only be an inline
+// pointerEvents, so any occurrence is the defect.
 for (const src of [
   ['src/options.js', options],
   ['src/popup.js', popup],
@@ -101,8 +55,8 @@ for (const src of [
     );
   }
 }
-// The honest form has to actually be present, or the check above passes on a
-// page that simply stopped refusing anything.
+// The proper refusal has to exist, or the check above passes on a page that
+// stopped refusing anything.
 if (!/function setRefused\s*\(/.test(options)) {
   fail('src/options.js: no setRefused() - the refusal that replaced the wrapper is gone, so nothing switches a locked control off');
 }
@@ -113,15 +67,14 @@ if (!/:disabled/.test(css)) {
   fail('src/glimstone.css: no :disabled rules - a refused control would look exactly like a live one');
 }
 
-// --- subctl: the countdown goes with its switch -----------------------------
+// subctl
 if (!/cnlCountdownRow\.hidden\s*=/.test(options)) {
   fail(
     'src/options.js: the Click\'n\'Load countdown row is never hidden. With the feature off nothing can read the number ' +
       '(popup.js startCountdown runs only for an origin the disabled catcher cannot produce), so the row answers nothing and goes.',
   );
 }
-// Both places, or the row only catches up on the next page load - which is a
-// dimmed control wearing a delay.
+// On render and on click, or the row only catches up after a reload.
 {
   const hits = [...options.matchAll(/cnlCountdownRow\.hidden\s*=/g)];
   if (hits.length === 1) {
@@ -132,7 +85,7 @@ if (!/cnlCountdownRow\.hidden\s*=/.test(options)) {
   }
 }
 
-// --- notice: the refusal owes a paragraph, and the paragraph owes a fill -----
+// notice
 for (const id of ['followUnavailable', 'followUnavailableTitle', 'followUnavailableReason']) {
   if (!html.includes(`id="${id}"`)) {
     fail(`src/options.html: no #${id} - the environment refusal has no paragraph, so the control was simply taken away in silence`);
@@ -153,8 +106,7 @@ if (!/--status-warn-bg-soft/.test(css)) {
 if (!/\.glim-unavailable\s*\{[^}]*--status-warn-bg-soft/.test(css)) {
   fail('src/glimstone.css: .glim-unavailable does not spend --status-warn-bg-soft, so the box the rule asks for has no ground');
 }
-// One shape, one treatment: the token is defined in every theme block, or the
-// box has a fill on one theme and none on the other.
+// The token has to exist in every theme block, or one theme loses the fill.
 {
   const defs = [...css.matchAll(/--status-warn-bg-soft\s*:/g)].length;
   const warnDefs = [...css.matchAll(/--status-warn-bg\s*:/g)].length;
@@ -166,7 +118,7 @@ if (!/\.glim-unavailable\s*\{[^}]*--status-warn-bg-soft/.test(css)) {
   }
 }
 
-// --- copy: the reason is translated, never a literal ------------------------
+// copy
 for (const key of ['options.followNoGroup', 'options.accentRainbowOwns']) {
   if (!options.includes(`'${key}'`)) {
     fail(`src/options.js: ${key} is in the catalogues and read by nothing - the sentence the rule owes never reaches the page`);

@@ -1,36 +1,21 @@
 /**
- * The popup's send button: it says what it is about to send, and what it sends
+ * The popup's send button names what it is about to send, and the send
  * survives the popup closing.
  *
- * Both were wrong, and both were found in a store-review dry run on 2026-09-16
- * and 2026-09-17, walking the path a reviewer walks.
- *
- * The label. It said "Send this page" whatever was waiting. A right-clicked
- * link parked for a choice between two instances opened the popup with the page
- * title above that button, and pressing it sent the LINK. Three places have to
- * agree:
+ * The label depends on three places agreeing:
  *
  *   1. background.js tags every right-click payload with what was clicked.
  *   2. sendLabelKey() in shared.js turns a parked send into the right key.
- *   3. popup.js labels the button through sendLabelKey() and nowhere names
- *      'popup.send' itself, or the countdown's cancel path puts the old label
- *      back on a batch of links.
+ *   3. popup.js labels the button only through sendLabelKey(), or the
+ *      countdown's cancel path puts the page label back on a batch of links.
  *
- * The hand-over. popup.js sent its message and closed on the next line. When
- * the service worker was asleep, the normal state half a minute after anything
- * last happened, the worker had not started by the time the window was gone and
- * the send vanished: no badge, nothing at the instance. Measured with the
- * worker asleep before every trial and nothing attached to it: send and close
- * at once, 0 of 3 unique links arrived; wait for the reply and then close,
- * 3 of 3. So:
+ * A sleeping service worker has not started by the time a closing popup is
+ * gone, so a send followed at once by window.close() gets lost:
  *
- *   4. popup.js never calls window.close() in a send path except through
- *      handOver(), which awaits the message first.
- *   5. background.js answers the send message, so the await has something to
- *      wait for instead of depending on how a listener that says nothing is
- *      resolved.
- *
- * The keys themselves are in every language because check-locales.mjs says so.
+ *   4. popup.js closes the window in a send path only through handOver(),
+ *      which awaits the message first.
+ *   5. background.js answers the send message, so that await has a reply to
+ *      wait for.
  */
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -77,9 +62,8 @@ for (const kind of ['link', 'image', 'selection', 'page']) {
 
 // 3. The popup never names the page label itself.
 //
-// Comments are blanked, not removed, so every line keeps its number and a
-// failure points at the real line in popup.js. `[ \t]*` and not `\s*` before a
-// line comment: `\s` crosses newlines and would take blank lines with it.
+// Comments are blanked rather than removed so line numbers stay right. `[ \t]*`
+// rather than `\s*`, which would cross newlines.
 const blank = (s) => s.replace(/[^\n]/g, '');
 const popup = read('src', 'popup.js').replace(/\/\*[\s\S]*?\*\//g, blank).replace(/^[ \t]*\/\/.*$/gm, '');
 for (const m of popup.matchAll(/t\(\s*'popup\.send'\s*\)/g)) {
@@ -116,11 +100,8 @@ if (!/\(\s*msg\s*,\s*_?sender\s*,\s*sendResponse\s*\)/.test(listenerBody) || !/k
   fail("src/background.js: the onMessage listener does not answer 'knightloader-send-to' with sendResponse()");
 }
 
-// 6. The current tab is read when somebody presses send, not when the popup
-//    opens. Since activeTab went, the host permission is what fills in a tab's
-//    address and title, and the privacy policy and the store justification say
-//    the popup reads them on send. Read at start-up, every glance at the popup
-//    read the page's address.
+// 6. The current tab is read on send, not when the popup opens, as the privacy
+//    policy and the store justification promise.
 const sendAt = popup.search(/sendBtn\.addEventListener\(\s*'click'/);
 const lineAt = (i) => popup.slice(0, i).split('\n').length;
 if (sendAt < 0) {

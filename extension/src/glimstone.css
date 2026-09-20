@@ -1,58 +1,27 @@
-/* GlimStone tokens for the browser extension.
+/* GlimStone for the browser extension, shared by options.html and popup.html.
  *
- * Copied from the shared reference (github.com/junkerderprovinz/glimstone,
- * reference/tokens.css) rather than re-picked, because the point of a shared
- * design language is that this yellow is the same yellow everywhere.
- *
- * It once held only "the parts this extension actually uses", leaving out the
- * info bubble, the switch and the rainbow - the last of those on the reasoning
- * that it colours ACTIVITY in a list and none of these pages was a list of
- * anything. All three came back within a day of somebody actually looking at
- * the pages, and the pattern is worth recording rather than the individual
- * omissions: a design language taken in parts is a design language the next
- * person has to finish, and "this page is too small to need it" is the
- * reasoning that leaves them to do it.
- *
- * Shared by options.html and popup.html. One file rather than two
- * copies of the same block, which is how two pages of one product end
- * up two slightly different products.
+ * The tokens are copied from glimstone's reference/tokens.css rather than
+ * picked again, so the colours match every other app of the family.
  */
-
-
 
 :root {
   --radius-card: 1rem;
   --radius-control: 0.625rem;
   --radius-pill: 9999px;
 
-  /* The type scale: a fixed reference table, not an engine — nobody sets
-     their own type scale. --text-caption covers three treatments of the
-     same size (plain caption, .glim-eyebrow's uppercase label, the info
-     bubble's text) — the treatment carries the distinction, not the size.
-     A page's one hero figure and any brand-wordmark instance are
-     deliberately NOT part of this scale — see docs/design-language.md,
-     "The type scale". */
+  /* The fixed type scale. --text-caption serves the plain caption, the
+     eyebrow label and the bubble text; the treatment tells them apart. Hero
+     figures and wordmarks are outside the scale (docs/design-language.md,
+     "The type scale"). */
   --text-heading: 1.25rem;  /* 20px */
   --text-body: 0.875rem;    /* 14px */
   --text-dense: 0.75rem;    /* 12px */
   --text-caption: 0.6875rem; /* 11px */
 
-  /* The two button heights, and there is no third (rule 19). --btn-h is what
-     a text field measures, so an ordinary button standing in a row of fields
-     matches instead of standing proud of it; --btn-h-key is the one step up,
-     for the control a surface exists FOR. Two, because two reads as a
-     deliberate difference and three reads as a ladder somebody has to pick a
-     rung from.
-
-     These are the numbers the language names, not numbers re-picked here: the
-     extension ran 36 for its text buttons and its icon badges, 30 for the
-     square action on an instance card, 24 for the accent circle and 22 for the
-     reset - four answers to one question, on one screen, while the field beside
-     them measured 39. The same size register also decides the square icon
-     badge, which takes ONE size across the whole page rather than one per role
-     ("es gibt drei verschiedene Größen von quadratischen Badges. Bitte alle
-     gleich groß!"), and anything sized to MATCH a badge without being one - a
-     colour swatch - follows the badge rather than setting it. */
+  /* The two button heights (rule 19). --btn-h is a text field's height, so a
+     button in a row of fields matches it, and square icon badges and swatches
+     take it too; --btn-h-key is the one step up for a surface's main
+     control. */
   --btn-h: 2rem;      /* 32px */
   --btn-h-key: 2.5rem; /* 40px */
 }
@@ -69,17 +38,9 @@
   --radius-pill: 0;
 }
 
-/* Which way the inline axis runs, as a number, for the handful of places that
-   cannot use a logical property: a `translate`, a keyframe, a transform. Those
-   three take physical values only, so the choice is between writing every
-   distance out twice under a [dir="rtl"] twin - two numbers for one distance,
-   which is the shape of drift - and multiplying the one number by a sign. The
-   web UI's own sheet carries the same token under the same name.
-
-   Direction is a layout fact rather than a motion preference, so this sits
-   outside every gate, and a distance of 0 multiplies out to 0 either way.
-   i18n.js puts the `dir` attribute on <html> as soon as the language is
-   resolved, which is what makes the second block reachable at all. */
+/* The inline direction as a sign, for transforms and keyframes, which take no
+   logical properties. Multiplying one distance beats a [dir="rtl"] copy of
+   each; the web UI has the same token. i18n.js sets `dir` on <html>. */
 :root {
   --dir-sign: 1;
 }
@@ -91,81 +52,48 @@
 [data-theme="dark"] {
   color-scheme: dark;
 
-  /* Ground and surfaces — IBM Carbon's neutral greys. Not a warm near-black:
-     that reads as brown next to any sibling app that already agreed on this
-     palette. A design language shared across apps has to share its ground
-     first. */
+  /* Ground and surfaces: IBM Carbon's neutral greys, shared by every app of
+     the family. */
   --carbon-bg:         #161616;
   --carbon-sidebar:    #262626;
   --carbon-surface:    #262626;
   --carbon-surface2:   #393939;
   --carbon-surface3:   #525252;
   --carbon-hover:      #353535;
-  /* Hover for anything ALREADY filled with surface3 - the neutral button, a
-     raised segment (GlimStone 1.8.0, rule 21). The ramp used to stop at
-     surface3, so every control sitting on it reached back down to
-     --carbon-hover, which on this ramp is #353535 and therefore 29 units
-     BELOW surface3: the element dimmed at the one moment somebody was looking
-     straight at it. One step further from the surface in each theme, which is
-     lighter here and darker in the light ramp - a single brightness() value
-     cannot be both, which is why this is a token and not a filter. */
+  /* Hover for anything already filled with surface3 (GlimStone rule 21):
+     one step further from the surface, lighter here and darker in the light
+     ramp, which is why it is a token and not a filter. --carbon-hover would
+     dim it. */
   --carbon-hover-raised: #6f6f6f;
   --carbon-border:     #393939;
 
-  /* THE ABOUT CARD'S BRAND MARKS at rest, and these are NOT the published brand
-     colours (GlimStone 1.10.0, which ships the values as well as the rule).
-
-     A brand colour is drawn against white or against its own fill, so on a
-     neutral button ground each one dies on one side of the theme switch. This
-     page's About buttons are `.secondary`, so the ground they actually sit on
-     is --carbon-surface2: #393939 here and #e8e8e8 in the light theme, and the
-     bar for a graphic is 3:1. Measured on those two grounds, every published
-     colour fails on one of them: Buy Me a Coffee's #FFDD00 reads 1.10:1 on
-     #e8e8e8 and Bitcoin's #F7931A 1.87:1, while PayPal's #003087 reads 1.03:1
-     on #393939 and GitHub's #181717 1.55:1. So the warm brands are deepened for
-     the light theme and the dark ones lightened for the dark one - the job
-     --accent-ink already does for the accent. The TRUE colour is spent on HOVER
-     as the button's own fill; see .glim-brand-btn further down.
-
-     The values are GlimStone's own (reference/tokens.css), not re-derived here:
-     the whole reason the language grew these tokens is that the rule was
-     written down and the numbers were not, so one adopting app built its own
-     set of four and the next read the same paragraph and shipped every mark in
-     the button's ink. Re-measured against THIS surface rather than copied on
-     faith - the extension's ground sits further from mid-grey than the web
-     UI's #525252/#d1d1d1, so every one of them clears the bar by more here:
-     coffee 8.6:1, bitcoin 5.0:1, paypal 5.1:1, github 11.6:1 on #393939, and
-     4.0:1, 4.1:1, 9.7:1, 14.6:1 on the light theme's #e8e8e8.
-
-     All four ship, not only the two this page draws: the tokens are the
-     language's, and a fifth button added later must not have to re-derive the
-     pair that was left out. */
+  /* Brand marks at rest (GlimStone 1.10.0). The published colours fail 3:1 on
+     one of the two button grounds, so the warm ones are deepened for light and
+     the dark ones lightened for dark; the true colour is the hover fill (see
+     .glim-brand-btn). On #393939 they measure 8.6, 5.0, 5.1 and 11.6 to 1. All
+     four tokens ship, not only the ones this page draws. */
   --brand-coffee:  #ffdd00;
   --brand-bitcoin: #f7931a;
   --brand-paypal:  #4fb5f0;
   --brand-github:  #ffffff;
 
-  /* Text ramp — three steps, the last still legible at 11px. */
+  /* Text ramp in three steps, the last still legible at 11px. */
   --carbon-text:       #f4f4f4;
   --carbon-text-sub:   #c6c6c6;
   --carbon-text-muted: #8d8d8d;
   --sidebar-text:      #e0e0e0;
 
-  /* Activity, and nothing else. The default is every sibling app's own
-     default accent, so a fresh install of any of them looks like the same
-     product; it is a setting, and the picker is one page away. */
+  /* The accent marks activity; its default is the family's shared one. */
   --accent:            #FCC419;
   --accent-contrast:   #161616;
   --accent-soft:       rgba(252, 196, 25, 0.14);
-  /* The accent used AS INK - accent-coloured text, a glyph on the page's own
-     ground - rather than a fill with computed ink on top (GlimStone 1.5.0).
-     The theme sets only --ink-mix; 100% of a colour mixed with black is that
-     colour exactly, so on a dark ground the two jobs stay one colour. */
+  /* The accent used as ink, such as text on the page ground (GlimStone
+     1.5.0). The theme sets only --ink-mix; at 100% it is the accent itself. */
   --ink-mix:           100%;
   --accent-ink:        color-mix(in srgb, var(--accent) var(--ink-mix), black);
 
-  /* Four state hues, Carbon's dark support tones. Paused reuses neutral
-     on purpose — its label and its resume control carry the difference. */
+  /* Four state hues, Carbon's dark support tones. Paused uses neutral; its
+     label and resume control tell it apart. */
   --status-info-text:    #FCC419;
   --status-info-bg:      rgba(252, 196, 25, 0.13);
   --status-info-solid:   #FCC419;
@@ -181,27 +109,19 @@
   --status-warn-text:    #f1c21b;
   --status-warn-bg:      rgba(241, 194, 27, 0.12);
   --status-warn-solid:   #f1c21b;
-  /* The QUIET end of the warn family (GlimStone 1.15.0), for a paragraph that
-     EXPLAINS rather than warns. It exists because the refusal notice below
-     reached for exactly this name before it existed anywhere: the family had a
-     base tone and a strong tone, only the FAILURE family had a soft step, so a
-     box written against it ships with a radius, a border and no fill at all and
-     nothing in a build can notice. Value copied from the reference verbatim. */
+  /* The quiet end of the warn family (GlimStone 1.15.0), for a notice that
+     explains rather than warns. */
   --status-warn-bg-soft: rgba(241, 194, 27, 0.06);
 
   --status-neutral-text: #a8a8a8;
   --status-neutral-bg:   rgba(255, 255, 255, 0.05);
   --status-neutral-solid: #8d8d8d;
 
-  /* One elevation, one hairline. Neutral black, not a warm one: a brown
-     shadow under a grey card is visible and reads as a colour cast. */
+  /* One elevation and one hairline, in neutral black so the shadow casts no
+     colour. */
   --elevation: 0 1px 2px rgba(0, 0, 0, .40), 0 18px 40px -24px rgba(0, 0, 0, .85);
-  /* The ground behind a floating window (GlimStone 1.11.0). ONE token, so
-     making it darker is one edit rather than a hunt through every component
-     that floats one - the shape the brand colours were in before the language
-     grew tokens for those. .65 on a dark ground: at .60 the card in front and
-     the page behind sit close enough in value that the eye keeps reading the
-     page, which is the one thing a scrim exists to stop. */
+  /* The ground behind a floating window (GlimStone 1.11.0). At .60 the page
+     behind still draws the eye. */
   --glim-scrim: rgba(0, 0, 0, .65);
   --hairline: inset 0 1px 0 rgba(255, 255, 255, .045);
   --focus-ring: rgba(252, 196, 25, .55);
@@ -217,17 +137,11 @@
   --carbon-surface2:   #e8e8e8;
   --carbon-surface3:   #d1d1d1;
   --carbon-hover:      #e0e0e0;
-  /* The same rule as on the dark ramp, pointing the other way: one step
-     further from the surface here means DARKER. */
+  /* One step further from the surface, which is darker here. */
   --carbon-hover-raised: #c6c6c6;
   --carbon-border:     #d1d1d1;
 
-  /* The light theme's brand answers: the warm marks deepened so they carry on
-     #e8e8e8, the dark ones left dark because they already do. Measured on this
-     page's own button ground: coffee 4.0:1, bitcoin 4.1:1, paypal 9.7:1,
-     github 14.6:1. The reasoning and the dark-theme measurements are in the
-     block above, and so is the check that matters here - the published #FFDD00
-     this replaces reads 1.10:1 on the same ground. */
+  /* On #e8e8e8 these measure 4.0, 4.1, 9.7 and 14.6 to 1. */
   --brand-coffee:  #8a6d00;
   --brand-bitcoin: #a85d00;
   --brand-paypal:  #003087;
@@ -238,12 +152,8 @@
   --carbon-text-muted: #6f6f6f;
   --sidebar-text:      #393939;
 
-  /* The accent is the accent in BOTH themes (GlimStone 1.5.0). A filled badge
-     in Sunflower with near-black ink on it reads perfectly well on a white
-     page; what does not read is that same yellow as TEXT at 11px. Darkening
-     the ONE token to fix the text made every filled thing olive-brown (jdp,
-     2026-08-30: "Die gelbe akzentfarbe ist im hellen modus ganz dunkel").
-     The fill keeps the colour, the ink gets --ink-mix. */
+  /* The fill keeps the accent in both themes (GlimStone 1.5.0); only its use
+     as text is darkened, through --ink-mix. */
   --accent:            #FCC419;
   --accent-contrast:   #161616;
   --accent-soft:       rgba(252, 196, 25, 0.14);
@@ -271,8 +181,7 @@
   --status-neutral-solid: #8d8d8d;
 
   --elevation: 0 1px 2px rgba(0, 0, 0, .06), 0 16px 36px -26px rgba(0, 0, 0, .35);
-  /* .55, not .65: a light page reaches the same separation with less. Two
-     values rather than one is the whole point of the token. */
+  /* A light page separates with less. */
   --glim-scrim: rgba(0, 0, 0, .55);
   --hairline: inset 0 0 0 1px rgba(0, 0, 0, .05);
   --focus-ring: rgba(142, 106, 0, .5);
@@ -320,10 +229,7 @@
     --carbon-hover-raised: #c6c6c6;
     --carbon-border:     #d1d1d1;
 
-    /* The same brand answers as the [data-theme="light"] block above, and the
-       repetition is the point: a mark deepened for a light-preferring OS goes
-       straight back to being unreadable the moment somebody picks light by
-       hand, if only one of the two blocks carries it. */
+    /* Kept in step with the [data-theme="light"] block. */
     --brand-coffee:  #8a6d00;
     --brand-bitcoin: #a85d00;
     --brand-paypal:  #003087;
@@ -334,7 +240,7 @@
     --carbon-text-muted: #6f6f6f;
     --sidebar-text:      #393939;
 
-    /* Same values as the [data-theme="light"] block above, on purpose. */
+    /* Same values as the [data-theme="light"] block. */
     --accent:            #FCC419;
     --accent-contrast:   #161616;
     --accent-soft:       rgba(252, 196, 25, 0.14);
@@ -368,13 +274,8 @@
   }
 }
 
-/* ---- Card, section badge, well selector, swatches ------------------------
- *
- * Ported from KnightLoader's own web UI rather than re-invented, because the
- * point of a shared design language is that a card here and a card there are
- * the same object. The web UI builds these out of Tailwind utilities against
- * the same tokens; the extension has no build step, so the same rules live
- * here as plain classes.
+/* Card, section badge, well selector and swatches, ported from the web UI's
+ * Tailwind utilities as plain classes, since the extension has no build step.
  */
 
 .glim-card {
@@ -382,45 +283,24 @@
   padding: 26px 20px 20px;
 }
 
-/* The section badge sits ON the card's top edge, half outside it - that
- * overhang is what makes it read as a label attached to the card rather than
- * a heading inside it. It needs the card to be a positioning context, which
- * is why .glim-card carries position: relative above.
+/* The section badge sits half outside the card's top edge, so it reads as a
+ * label attached to the card; .glim-card is its positioning context.
  */
 .glim-section-badge {
   position: absolute;
-  /* The house recipe, not a fixed pixel offset: `top: 0` plus a SELF-relative
-     translate. A percentage transform resolves against the badge's OWN rendered
-     height, so the badge stays centred on the card's edge whatever that height
-     turns out to be, while the -11 it replaces was only ever correct for one
-     particular number and silently wrong for any other. */
+  /* A self-relative translate centres it on the edge whatever its height. */
   top: 0;
   transform: translateY(-50%);
-  /* No horizontal offset at all, which is the point. With neither `left` nor
-     `inset-inline-start` set, an absolutely positioned box falls back to its CSS
-     STATIC position - where it would have rendered in normal flow - so it
-     inherits the card's own content edge for free and flips under Arabic,
-     Hebrew or Persian for free too. The 16px that stood here was a guessed
-     number and had already drifted: .glim-card pads its content to 20px, so the
-     label sat four pixels inside the text underneath it. A measured edge beats
-     a written one precisely because nobody has to remember to update it. */
+  /* No horizontal offset: the box keeps its static position, the card's
+     content edge, which also mirrors in right-to-left languages. */
   z-index: 1;
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  /* Measured against BombVault's own notch on the same evening in the same
-     browser, because two apps naming the same intention with different tokens
-     is exactly how they drift: 22px tall, 12px text, weight 500, 1.2px
-     tracking, 2px/12px padding, 15px line box.
-     This one was 26px tall with 11px text - a SMALLER label in a BIGGER box.
-     min-height was the cause: the info icon inside pushed the box past 22 and
-     nothing stopped it, while BombVault's fixed height simply held. A minimum
-     is not a size; it is a floor with no ceiling, and anything that lands
-     inside raises it. */
-  /* border-box, or the 22 is a lie: an <h2> measures content-box by default,
-     so height 22 plus 2px padding top and bottom rendered 26 - which is
-     exactly the four extra pixels this badge had over BombVault's, whose
-     Tailwind build sets border-box on everything. */
+  /* The same notch as BombVault's: 22px tall, 12px text, weight 500, 1.2px
+     tracking, 2px/12px padding. A fixed height rather than a minimum, so the
+     info icon cannot grow it, and border-box, which an <h2> is not by
+     default. */
   box-sizing: border-box;
   height: 22px;
   padding: 2px 12px;
@@ -435,15 +315,12 @@
   white-space: nowrap;
   box-shadow: var(--elevation);
 }
-/* The icon rides inside the fixed box rather than setting it. Without this the
-   16px glyph is the tallest thing in the badge and takes the height with it. */
+/* The icon fits inside the fixed box instead of stretching it. */
 .glim-section-badge .glim-info-icon { flex: 0 0 auto; width: 14px; height: 14px; }
 .glim-section-badge .glim-info-icon svg { width: 14px; height: 14px; display: block; }
 
-/* One shared padded track with equal segments and no per-item glyph - the
- * "well" variant of the web UI's own Tabs, which is what its Corners picker
- * uses. A row of native <select>s in its place read as another application's
- * controls sitting inside this one.
+/* The "well" variant of the web UI's Tabs, as its Corners picker: one padded
+ * track with equal segments.
  */
 .glim-seg {
   display: inline-flex;
@@ -453,13 +330,9 @@
   border-radius: var(--radius-control);
 }
 
-/* No radius on the segment: in the well the TRACK is the one shape, and the
-   segments sit flush inside it. A radius of their own gives the control two
-   silhouettes arguing with each other, and the `calc(... - 3px)` that stood
-   here was a second corner value nobody could read off the track. The 3px of
-   padding is what keeps a square corner inside the track's own arc - a corner
-   at (p,p) stays inside a radius R while p >= 0.293R, which holds for all three
-   shape settings (10px round, 5px soft, 0 square). */
+/* The segments have no radius of their own; the track is the one shape. Its
+   3px padding keeps a square corner inside the track's arc for every shape
+   setting, since a corner at (p,p) stays inside radius R while p >= 0.293R. */
 .glim-seg button {
   padding: 6px 14px;
   border: 0;
@@ -479,19 +352,12 @@
   color: var(--accent-contrast);
 }
 
-/* A swatch marks the current colour with a RING rather than a tick: a glyph
- * would have to stay legible on all eight, which means computing an ink
- * colour for a decoration.
+/* A ring marks the current colour; a tick would need its own ink on every
+ * colour.
  */
 .glim-swatches { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 
-/* The badge sets the size and the swatch FOLLOWS, never the other way round:
-   a swatch is sized to match the reset badge standing at the end of its own
-   row, and that badge takes the one badge size the whole page uses. It read 22
-   here while the badge beside it read 22 and the square action on an instance
-   card read 30 - three answers arrived at by each control measuring its own
-   neighbour, which is exactly the per-role reasoning that produces a page of
-   different-sized circles. */
+/* Swatches follow the page's one badge size. */
 .glim-swatch {
   width: var(--btn-h);
   height: var(--btn-h);
@@ -506,20 +372,7 @@
   box-shadow: 0 0 0 2px var(--carbon-surface), 0 0 0 4px var(--carbon-text);
 }
 
-/* `.glim-accent-now` - a ninth circle at the end of the accent row carrying the
-   current colour and a picker glyph - stood here with a 24px box of its own and
-   no call site left anywhere on any page: the job moved onto the swatch itself
-   (a click on the one already in force opens the picker on it, options.js), so
-   the extra control went and only its rules stayed. Removed rather than left as
-   a third square measure nobody could see on screen but every future audit
-   would count - a dead block is exactly how a size register grows a stage that
-   nothing asked for.
-
-   A small round action beside a row of swatches: reset. An icon badge rather
-   than a text link, at the ONE badge size this page uses. The 22 it carried was
-   argued from the swatches it stands next to, and a justification of the form
-   "these may differ because they play different roles" is itself the evidence
-   the split is wrong: a reader sees one row of circles, not two roles. */
+/* The reset badge at the end of a swatch row, at the page's one badge size. */
 .glim-reset {
   display: inline-flex;
   align-items: center;
@@ -534,20 +387,12 @@
   cursor: pointer;
   transition: color 150ms ease, background-color 150ms ease;
 }
-/* surface3 at rest, so the hover is --carbon-hover-raised and not
-   --carbon-hover: the badge is already ON the raised step, and reaching back
-   down to #353535 made it go 29 units darker under the pointer. Rule 21. */
+/* Already on surface3, so it hovers to --carbon-hover-raised (rule 21). */
 .glim-reset:hover { color: var(--carbon-text); background: var(--carbon-hover-raised); }
 .glim-reset svg { display: block; }
 
 .glim-axis { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
-/* The same object as .glim-row-label, and that is the point (jdp, 2026-08-29:
- * "der Text Akzentfarbe und Farbpalette gleich wie die anderen Punkte
- * formatieren. die i infobubble ist bei den beiden punkten anders platziert
- * wie bei den übrigen punkten"). It used to be smaller and muted, with the
- * "(i)" jammed against the last letter because the label was not a flex box of
- * its own - so two rows in the same card read as two different kinds of
- * setting. They are the same kind of setting. */
+/* Styled like .glim-row-label, with the "(i)" spaced the same way. */
 .glim-axis > .glim-axis-label {
   flex: 0 0 auto;
   min-width: 96px;
@@ -555,37 +400,15 @@
   align-items: center;
   gap: 6px;
 }
-/* A colour row splits at the two ends: the label holds the leading edge and
- * everything that can be clicked collects at the trailing one, in line with
- * every switch on the page (jdp, 2026-08-28: "Die Farbfelder sollen ganz rechts
- * angeordnet sein" - which is the trailing edge for the language he wrote it
- * in, and the left of the glass in Arabic). The label's own auto margin does
- * it, on the inline axis, so the row mirrors with the page and the swatches
- * keep their own spacing rather than being spread by a justify rule. */
+/* The label holds the leading edge and the swatches the trailing one, like
+ * every switch; an inline auto margin keeps it mirrored in right-to-left
+ * languages. */
 .glim-axis--colours > .glim-axis-label { margin-inline-end: auto; }
 .glim-axis--colours { row-gap: 12px; }
 
-/* ---------------------------------------------------------------------------
-   A control that refuses says so ITSELF (GlimStone 1.16.0).
-
-   These four rules exist so options.js can stop dimming a row from the outside.
-   It used to reach for `opacity: .5` plus `pointer-events: none` on a whole
-   control group, which is the one shape 1.16.0 rules out from both ends: if the
-   value still acts, switching it off is a lie about something still in force,
-   and if it does not act, dimming it leaves furniture somebody can see, read and
-   reach for that answers nothing.
-
-   And the wrapper carries a second fault that is the reason to ban the pair
-   rather than argue it case by case: `pointer-events: none` is invisible to the
-   KEYBOARD. Measured on this very page - with rainbow mode on, the accent row
-   rendered at opacity .5 with pointer-events none, and a Tab to the second
-   swatch plus Enter still set --accent to #1d99f3 and wrote it to storage. The
-   row was unreachable by mouse and perfectly reachable by keyboard, which is
-   worse than either honest answer.
-
-   `disabled` on the button is the honest one: a screen reader reads it, the
-   keyboard cannot fire it, and the bubble beside it still explains why.
-   --------------------------------------------------------------------------- */
+/* A refused control uses its own `disabled` (GlimStone 1.16.0), which screen
+   readers read and the keyboard cannot fire, unlike pointer-events on a
+   wrapper. */
 .glim-swatch:disabled,
 .glim-reset:disabled,
 .glim-seg button:disabled,
@@ -593,37 +416,15 @@
   opacity: .5;
   cursor: default;
 }
-/* The hovers go with it, or a dead control still lights up under the pointer.
-   The segment rule names aria-pressed="false" rather than :not(:disabled) on the
-   hover above it, and that is not a style choice: `.glim-seg button:hover` and
-   `.glim-seg button[aria-pressed="true"]` tie on specificity today and the
-   pressed one wins by sitting later, so adding a :not() to the hover would break
-   that tie the wrong way and paint the chosen segment's text in the page ink on
-   its own accent fill. Every segment carries the attribute either way
-   (renderSeg writes String(o.value === current)), so naming the false one costs
-   nothing and touches only the segments this is about. */
+/* No hover on a disabled control. The segment rule names aria-pressed="false"
+   because a :not(:disabled) on the hover would outrank the pressed rule it
+   currently ties with; every segment carries the attribute. */
 .glim-reset:disabled:hover { color: var(--carbon-text-sub); background: var(--carbon-surface3); }
 .glim-seg button[aria-pressed="false"]:disabled:hover { color: var(--carbon-text-sub); }
 
-/* ---------------------------------------------------------------------------
-   The refusal notice: what stands where a control would be, when the
-   ENVIRONMENT does not permit the thing the control would do (GlimStone 1.15.0,
-   "The second way in", and reference/react/UnavailableNotice.tsx).
-
-   There are three answers to a control that cannot act, and only one of them is
-   this box. Does the grey state say something about the THING the control
-   touches (dim it, it is reporting), about a decision taken elsewhere on the
-   page (leave it out), or about the environment not permitting the thing at all
-   (leave it out AND write the reason)? Only the third owes prose.
-
-   Why a paragraph and not an info bubble, when rule 8 says every explanation is
-   a bubble: a bubble hangs off a control, and the whole point is that there is
-   no control here to hang it off.
-
-   One shape, one treatment: the soft warn fill, and it is a real token rather
-   than a name invented at the call site - see --status-warn-bg-soft above, which
-   is exactly the value the language added in 1.15.0 after an adopting app
-   shipped this box with a radius, a border and no fill. */
+/* The notice that stands in for a control the environment does not permit
+   (GlimStone 1.15.0, reference/react/UnavailableNotice.tsx). It is a paragraph
+   rather than a bubble because there is no control to hang a bubble on. */
 .glim-unavailable {
   border-radius: var(--radius-card);
   background: var(--status-warn-bg-soft);
@@ -643,14 +444,8 @@
   color: var(--carbon-text-sub);
 }
 
-/* ---------------------------------------------------------------------------
-   The colour picker: a saturation/value square, a hue bar, a hex field.
-
-   Ported from the shared reference (glimstone/reference/tokens.css) - see
-   colorpicker.js for the other half. One deliberate change: the SV square
-   carries no hairline. Surfaces here are separated by shade, never by a drawn
-   line.
-   --------------------------------------------------------------------------- */
+/* The colour picker (see colorpicker.js), ported from the reference except
+   that the SV square has no hairline. */
 .glim-picker { width: 100%; min-width: 0; }
 .glim-picker-sv {
   position: relative;
@@ -658,14 +453,9 @@
   border-radius: var(--radius-control);
   cursor: crosshair;
 }
-/* THE TWO PICKER HANDLES STAY PHYSICAL, and that is the correct answer rather
-   than the one this pass missed. colorpicker.js positions both of them by
-   writing `style.left` as a percentage of the box - a physical coordinate, the
-   same axis the hue gradient below runs on and the same axis a pointer's
-   clientX arrives on. A saturation/value square and a spectrum are drawings,
-   not text: they do not mirror, and mirroring only the centring margin would
-   leave each handle half its own width away from the colour it is pointing at.
-   The margin has to agree with the property that places it. */
+/* Both picker handles stay physical: colorpicker.js places them with
+   style.left, and the square and the spectrum are drawings that do not
+   mirror. */
 .glim-picker-dot {
   position: absolute;
   width: .75rem;
@@ -684,10 +474,7 @@
   background: linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00);
   cursor: pointer;
 }
-/* The hue handle, and the second of the two that stay physical - see the note
-   above .glim-picker-dot. Its own gradient runs `to right` for the same reason:
-   a spectrum is a drawing with an order of its own, and colorpicker.js reads
-   and writes positions along it in physical percent. */
+/* Physical like the dot, and so is the gradient's `to right`. */
 .glim-picker-hdot {
   position: absolute;
   top: -.125rem;
@@ -725,24 +512,14 @@
   letter-spacing: .02em;
   text-transform: uppercase;
 }
-/* Rule 14 lets a FORM FIELD trade its focus ring for a brightness step, and
-   this is one. The step has to go UP the ramp though: --carbon-hover is below
-   surface2 on the dark ramp, so focusing the field used to darken it. */
+/* Rule 14 lets a form field show focus with a brightness step, up the ramp. */
 .glim-picker-hex:focus { outline: none; background-color: var(--carbon-surface3); }
 
-/* ---------------------------------------------------------------------------
-   The reveal eye.
-
-   A connection phrase opens every instance in the group, so it is a secret and
-   is treated like one: masked until somebody asks for it, with the eye inside
-   the field rather than beside it, so the field stays one object.
-   --------------------------------------------------------------------------- */
+/* The reveal eye sits inside the masked field, so the field stays one
+   object. */
 .glim-secret { position: relative; display: block; }
 .glim-secret > input { width: 100%; padding-inline-end: 40px; }
-/* A second in-field control sits beside the first, and the field's own padding
-   grows with it: the rule that keeps digits out from under a number field's
-   steppers is the same rule here, and it is the field that has to yield, not
-   the text. */
+/* A second in-field control widens the padding so text stays clear of it. */
 .glim-secret--two > input { padding-inline-end: 72px; }
 .glim-eye--second { inset-inline-end: 38px; }
 .glim-eye {
@@ -766,29 +543,16 @@
 .glim-eye:hover { color: var(--carbon-text); background: var(--carbon-hover); }
 .glim-eye svg { display: block; }
 
-/* ---------------------------------------------------------------------------
-   The info bubble and the switch.
-   
-   Both were left out of this file on the reasoning at the top - that an options
-   page is small enough not to need the whole language. That reasoning produced
-   four grey sub-captions and a native checkbox on this very page, and jdp
-   reversed it flatly (2026-08-28): "Alle infotexte in i infobubbles! Nie
-   checkboxen sondern immer toggles!" Both rules are now in the GlimStone guide
-   itself, which also names the excuse: a surface with no component framework is
-   not an exemption, because both of these are markup plus CSS.
-   
-   Ported from glimstone/reference/tokens.css and reference/tooltip.ts rather
-   than approximated, so this page's bubble and the WebUI's are the same object.
-   --------------------------------------------------------------------------- */
+/* The info bubble and the switch, ported from glimstone's reference/tokens.css
+   and reference/tooltip.ts so they match the web UI's. */
 
 .glim-bubble {
   position: fixed;
   z-index: 2147483647;
   transform: translateX(-50%);
-  width: max-content;          /* load-bearing: see the reference file. A fixed
-                                  box with only `left` set otherwise sizes
-                                  itself from `left`, invalidating the very
-                                  measurement the position was computed from. */
+  width: max-content;          /* a fixed box with only `left` set would size
+                                  itself from `left` and invalidate the
+                                  measurement it was placed by */
   max-width: 280px;
   pointer-events: none;
   background-color: var(--carbon-surface);
@@ -808,32 +572,12 @@
 }
 @keyframes glim-fade-in { from { opacity: 0; } to { opacity: 1; } }
 
-/* The refusal signal, straight out of GlimStone's motion engine (jdp,
-   2026-08-31: "wenn man drauf klickt und man kenie Phrase eingegeben hat, also
-   es nicht klappt, soll er button kurz zittern. Ist das standardverhalten für
-   ein fehlschlagen von buttons. steht in GS.").
+/* GlimStone's failure shake: 360ms, swinging 4, 4, 2 and 2 pixels. Named for
+   the gesture so every failable control reuses it; shake() in shared.js
+   restarts it. Reduced motion gets a short opacity pulse instead.
 
-   It does: 360ms ease-in-out translateX, decaying ±4 → ±4 → ±2 → ±2 through
-   the middle four keyframes, and it is deliberately named for the GESTURE
-   rather than for the first control it shipped on, so the next failable thing
-   on this page reuses it instead of inventing a second one.
-
-   Replay needs a FRESH element, not a re-toggled class: an animation already at
-   rest does not restart because its class left and came back in the same frame.
-   options.js clones the node, which is this page's equivalent of the key-on-a-
-   counter remount the language describes for a component framework.
-
-   Reduced motion gets a brief opacity pulse rather than nothing - the refusal
-   still has to be visible to somebody who turned animation off.
-
-   THE NUMBERS ARE THE TOP LEVEL'S NUMBERS, and that is what a surface with one
-   fixed intensity owes the language (checked against GlimStone 1.17.0, which
-   added a hidden fourth). 360ms here is the web UI's own --motion-shake-dur at
-   its top level, and the bubble's 110ms above is its --motion-fade-dur there -
-   both read off index.css rather than guessed, so this extension runs at the
-   level an app defaults to instead of at a third set of numbers nobody chose.
-   There is no data-motion attribute on this page and no picker to put one on,
-   so there is no floor for `storm` to sit below. */
+   The extension has one fixed motion level, so 360ms and the bubble's 110ms
+   are the web UI's top-level --motion-shake-dur and --motion-fade-dur. */
 @keyframes glim-shake {
   0%, 100% { transform: translateX(0); }
   20% { transform: translateX(-4px); }
@@ -849,12 +593,8 @@
 @media (prefers-reduced-motion: reduce) {
   .glim-shake { animation: glim-shake-quiet 300ms ease-in-out; }
 }
-/* The arrow, and its `left` is physical for the same reason the picker handles
-   above are: tooltip.js measures the trigger and the bubble with
-   getBoundingClientRect and hands the offset over in --glim-tip-ax, which is a
-   distance from the left of the glass whichever way the page reads. The bubble
-   itself is placed the same way. A logical property here would point the arrow
-   at the opposite end of the bubble from the icon it belongs to. */
+/* The arrow's `left` is physical because tooltip.js passes --glim-tip-ax as a
+   distance from the left edge in any writing direction. */
 .glim-bubble::before {
   content: '';
   position: absolute;
@@ -873,10 +613,9 @@
   border-color: var(--carbon-surface) transparent transparent transparent;
 }
 
-/* The "(i)" trigger: a bare stroke-only glyph, never a filled badge - a fill
-   would read as a control, and the accent means activity. Opacity carries the
-   hover state; :focus-visible is this language's one deliberate exception to
-   "never a border line", because a keyboard user has no other signal here. */
+/* The "(i)" trigger is a bare stroked glyph, since a fill would read as a
+   control. Opacity shows hover; the focus outline is the one allowed line,
+   because the keyboard has no other signal. */
 .glim-info-icon {
   display: inline-flex;
   align-items: center;
@@ -899,17 +638,10 @@
   outline-offset: 2px;
 }
 
-/* The switch. Geometry taken from the WebUI's own Toggle (web/src/components/
-   ui.tsx): 36x20 track, 16x16 knob, 2px inset off / 16px on. The knob is the
-   page's own BACKGROUND colour rather than a fixed white - the "opposite
-   ground" trick, so it reads dark in dark mode instead of a permanent white
-   dot. Track and knob both take --radius-pill, so the shape engine moves them
-   with everything else.
-
-   Note the token: this file calls it --carbon-bg, the WebUI's Tailwind theme
-   calls the same colour --carbon-background. Copying the WebUI's class name
-   verbatim gives a knob with no fill at all, which is invisible against the
-   track it sits on. */
+/* The switch, with the geometry of the web UI's Toggle (ui.tsx): 36x20 track,
+   16x16 knob, 2px inset off and 16px on. The knob takes the page background,
+   here --carbon-bg (the web UI calls it --carbon-background), so it reads dark
+   in dark mode. */
 .glim-switch {
   display: flex;
   align-items: center;
@@ -927,12 +659,8 @@
 .glim-switch-track {
   position: relative;
   flex: 0 0 auto;
-  order: 2;                    /* switch at the END of the row, caption at the
-                                  start - the ToggleRow shape, systemwide (jdp).
-                                  `order` and the auto margin below both run on
-                                  the inline axis, so this is the right way
-                                  round under a right-to-left page too, where
-                                  "the end" is the left of the glass. */
+  order: 2;                    /* the switch ends the row, caption first; both
+                                  this and the margin follow the inline axis */
   margin-inline-start: auto;
   width: 36px; height: 20px;
   border-radius: var(--radius-pill);
@@ -940,18 +668,9 @@
   transition: background-color 150ms ease;
 }
 .glim-switch[aria-checked='true'] .glim-switch-track { background-color: var(--accent); }
-/* The knob travels from the track's START to its END, and under a right-to-left
-   page both of those are the other side of the track. Two halves have to agree
-   for that to work: the anchor is logical (inset-inline-start, so the knob
-   begins at the leading edge whichever edge that is), and the travel is
-   physical - `translate` takes no logical form - so it is multiplied by
-   --dir-sign. Anchoring logically and translating physically would have been
-   worse than leaving both physical: the knob would start at the right edge and
-   then move further right, out of its own track.
-
-   Off at the start and on at the end also keeps the switch saying the same
-   thing as everything else on the page, where "further along the line" means
-   "done" - the same axis the button order and the section badge read on. */
+/* The knob moves from the track's start to its end in either direction: the
+   anchor is logical, and the translate, which has no logical form, is
+   multiplied by --dir-sign. */
 .glim-switch-knob {
   position: absolute;
   inset-inline-start: 0; top: 2px;
@@ -966,13 +685,9 @@
 .glim-switch-label { order: 1; }
 .glim-switch:focus-visible { outline: 2px solid var(--focus-ring, var(--accent)); outline-offset: 3px; }
 
-/* A switch with its caption OUTSIDE it - the web UI's own ToggleRow. Needed
- * wherever the caption carries an info bubble: an "(i)" is focusable, and a
- * focusable thing inside a button is both invalid markup and a click that
- * flips the switch when somebody only wanted to read.
- *
- * The row is also what owns the rainbow position, so the track takes the
- * colour rather than the caption having to. */
+/* A switch with its caption outside it, the web UI's ToggleRow, for captions
+ * with an "(i)": a focusable icon inside a button is invalid, and clicking it
+ * would flip the switch. The row holds the rainbow position. */
 .glim-row { display: flex; align-items: center; gap: 12px; width: 100%; }
 .glim-row-label {
   flex: 1 1 auto;
@@ -981,54 +696,31 @@
   align-items: center;
   gap: 6px;
 }
-/* The words of a label, in a box of their own. It exists so the dimming has
-   something to land on that is NOT the label: `opacity` composites a subtree,
-   so dimming the label would take the "(i)" beside the words with it, and that
-   bubble is the conditional kind - it exists for exactly the state that would
-   hide it (GlimStone 1.9.0). Purely structural; it inherits everything. */
+/* The words of a label in a box of their own, so dimming them leaves the "(i)"
+   readable (GlimStone 1.9.0). */
 .glim-label-words { min-width: 0; }
 .glim-row > .glim-switch { flex: 0 0 auto; width: auto; }
 
-/* ---------------------------------------------------------------------------
-   The colour engine: the accent in the plural.
-
-   Left out of this file at first on the reasoning that none of these pages was
-   a list of anything. They are now - the group is drawn as instance cards in
-   three places - and jdp put it plainly (2026-08-28): "Der Regenbogenmodus
-   fehlt komplett in der Erweiterung!"
-
-   The mechanism is the web UI's, rule for rule: an element carrying a palette
-   position sets --item-hue* on itself and wears .glim-hue; these rules decide
-   whether that colour shows at rest or waits for a hover. The class and the
-   properties always travel together - setHue() in appearance.js hands out both,
-   so no caller can produce one without the other.
-   --------------------------------------------------------------------------- */
+/* The rainbow, the web UI's mechanism rule for rule: an element with a palette
+   position sets --item-hue* and wears .glim-hue (setHue() in appearance.js),
+   and these rules decide whether the colour shows at rest or on hover. */
 [data-rainbow] .glim-hue {
   --accent: var(--item-hue);
   --accent-contrast: var(--item-hue-ink);
   --accent-soft: var(--item-hue-soft);
-  /* One line and no light-theme twin: --ink-mix is inherited from <html> and
-     already says which theme this is. It has to be here at all because a
-     custom property containing var() is substituted where it is DECLARED - the
-     --accent-ink on :root already computed itself against :root's own accent,
-     so without this a hued subtree would colour every fill and keep the single
-     accent on every piece of accent-coloured text. */
+  /* Restated because var() in a custom property resolves where it is
+     declared; the :root value would keep the single accent. --ink-mix comes
+     from <html>. */
   --accent-ink: color-mix(in srgb, var(--item-hue) var(--ink-mix), black);
-  /* The ring is part of the position, not of the theme: a gold ring around a
-     teal card is the single accent leaking back in at the one moment it is
-     most visible, because it is only ever drawn on what the keyboard is
-     standing on. */
+  /* The focus ring takes the position's colour too. */
   --focus-ring: var(--item-hue-ring);
 }
-/* In rainbow mode a glyph carries its own element's hue too, so a row reads as
-   one coloured thing rather than a coloured box with a grey mark in it. The
-   INK form of the hue: a glyph sits on the card's ground, not in a fill. */
+/* A glyph takes its element's hue as ink, since it sits on the card's
+   ground. */
 [data-rainbow] .glim-hue-icon svg { color: var(--accent-ink); }
 
 /* Reactive: everything rests neutral and only what is hovered, focused or
-   active takes its colour. The restrained reading of the mode, and the one that
-   still obeys "colour marks activity" when a whole list would otherwise light
-   up at once. */
+   active takes its colour, so colour still marks activity. */
 [data-rainbow='reactive'] .glim-hue {
   --accent: var(--carbon-text-muted);
   --accent-contrast: var(--carbon-bg);
@@ -1041,9 +733,8 @@
   --accent: var(--item-hue);
   --accent-contrast: var(--item-hue-ink);
   --accent-soft: var(--item-hue-soft);
-  /* Restated, and it has to be: the resting rule above muted the ink too, and
-     it matches [data-rainbow] .glim-hue at the same specificity while sitting
-     later in the file. */
+  /* Restated because the resting rule above muted the ink and comes later at
+     the same specificity. */
   --accent-ink: color-mix(in srgb, var(--item-hue) var(--ink-mix), black);
 }
 [data-rainbow='reactive'] .glim-hue-icon:not(.glim-active) svg { color: inherit; }
@@ -1051,16 +742,9 @@
 [data-rainbow='reactive'] .glim-hue-icon:focus-within svg,
 [data-rainbow='reactive'] .glim-hue-icon.glim-active svg { color: var(--accent-ink); }
 
-/* ---------------------------------------------------------------------------
-   The instance card.
-
-   The same object in all three places the group is drawn - the popup, the
-   send-to window and the options page (jdp: "Im erweiterungsfenster sollen die
-   Instanzen auch als cards erscheinen. Gleich wie im instanzentab.") - and
-   shaped after the web UI's own InstanceCard: the mark flush against the left
-   edge running the card's full height, the name, what it is, and a badge in the
-   corner.
-   --------------------------------------------------------------------------- */
+/* The instance card, the same wherever the group is drawn, after the web UI's
+   InstanceCard: the mark along the leading edge, the name, what it is, and a
+   badge in the corner. */
 .glim-instance {
   display: flex;
   align-items: stretch;
@@ -1076,17 +760,12 @@
   position: relative;
   transition: background-color 150ms ease;
 }
-/* Only a card you can actually pick offers to be pressed. On the options page
-   the card is a display object with three controls in it, and a pointer over
-   its whole surface would promise something that does not happen. */
+/* Only a pickable card looks pressable. */
 .glim-instance[role='radio'] { cursor: pointer; }
-/* The card is filled with surface2, so its hover is surface3 - one step UP the
-   ramp. --carbon-hover sits four units BELOW surface2 on the dark ramp, so the
-   card used to dim under the pointer instead of lifting (rule 21). */
+/* Filled with surface2, so it hovers one step up to surface3 (rule 21). */
 .glim-instance[role='radio']:hover { background: var(--carbon-surface3); }
-/* Chosen for THIS send: a ring, the same way a selected swatch is marked - an
-   inset gap in the page colour, then the accent, so the mark reads as applied
-   to the card rather than as the card's own edge. */
+/* The chosen card gets a ring like a selected swatch: a gap in the page
+   colour, then the accent. */
 .glim-instance[aria-checked='true'] {
   box-shadow: 0 0 0 2px var(--carbon-bg), 0 0 0 4px var(--accent);
 }
@@ -1096,9 +775,6 @@
   align-items: center;
   padding-inline-start: 12px;
 }
-/* 48 rather than 40: the card grew (jdp, 2026-08-29: "die instanzen card
-   dürfen etwas größer sein") and a mark that stays put in a taller card stops
-   holding its own edge. */
 .glim-instance-mark img { height: 48px; width: auto; display: block; }
 .glim-instance-body {
   flex: 1;
@@ -1110,9 +786,8 @@
 }
 .glim-instance-name { font-weight: 500; }
 .glim-instance-what { color: var(--carbon-text-muted); font-size: var(--text-dense); }
-/* What the instance is doing. One line, ellipsised rather than wrapped: a card
-   that changes height as a download starts and stops makes the whole list
-   twitch. */
+/* One line, ellipsised, so the card keeps its height as downloads come and
+   go. */
 .glim-instance-stats {
   margin-top: 2px;
   color: var(--carbon-text-sub);
@@ -1123,25 +798,13 @@
 }
 .glim-instance-stats--off { color: var(--carbon-text-muted); font-style: italic; }
 
-/* The status badge: the WORD, on a ground in that status's own colour.
- *
- * It replaces a bare coloured dot on the app's own card and arrives here in the
- * same round so the two surfaces draw one object (jdp, 2026-09-01: "der
- * statuspunkt soll ein kleiner badge mit online/offlin text sein und auch dem
- * status entsprechend eingefaerbt sein ... den badge auch in der erweiterung
- * implementieren"). A dot asks the reader to know the colour code, and to
- * anybody who cannot tell this green from this red it says nothing at all.
- *
- * The ground is the status colour at low opacity and the ink is the solid: a
- * fully filled badge in the fail colour reads as an alarm, and "offline" on an
- * instance nobody has switched on is not an alarm. */
+/* The status badge shows the word, not just a colour, as on the app's card.
+ * The ground is the status colour at low opacity with the solid as ink, since
+ * a filled fail badge would read as an alarm. */
 .glim-status {
   flex-shrink: 0;
   padding: 1px 7px;
   border-radius: var(--radius-pill);
-  /* The token, not the literal it resolves to. The value was right and the
-     source was not, which costs nothing until the day the caption step moves
-     and one badge on one card stays where it was. */
   font-size: var(--text-caption);
   font-weight: 600;
   letter-spacing: .2px;
@@ -1152,32 +815,20 @@
 .glim-status--off  { color: var(--status-fail-solid); background: color-mix(in srgb, var(--status-fail-solid) 15%, transparent); }
 .glim-status--wait { color: var(--status-warn-solid); background: color-mix(in srgb, var(--status-warn-solid) 15%, transparent); }
 
-/* The name and its badge share a line, so the badge sits beside the instance
-   rather than under it where the figures live. */
+/* The name and its badge share a line. */
 .glim-instance-top { display: flex; align-items: center; gap: 8px; min-width: 0; }
 
-/* The actions sit at the BOTTOM of the trailing edge, not centred on it: the
-   "Standard" badge owns the corner above them, and a centred row of square
-   badges in a 72px card reaches up into it. Two things in one corner is the
-   kind of overlap that only shows up on the one card that has both. */
+/* The actions sit at the bottom of the trailing edge, clear of the default
+   badge in the corner above. */
 .glim-instance-actions {
   flex: 0 0 auto;
   display: flex;
   align-items: flex-end;
   gap: 6px;
-  /* Two logical halves rather than a physical shorthand with a logical
-     override behind it. The pair used to be `padding: 0 12px 12px 0` followed
-     by `padding-inline: 0 12px`, which happens to compute correctly - the
-     second line overwrites both inline sides - but reads as a physical rule
-     with a patch on it, and the next person to touch the block has to work out
-     which of the two is live. */
   padding-block: 0 12px;
   padding-inline: 0 12px;
 }
-/* The square icon badge, at the one size every pressable square on these pages
-   takes. It was 30 while the header badge in the popup was 26 and the one on
-   the options page was 36 - three sizes for one object, which a reader meets
-   all at once the moment a card and a page header sit on the same screen. */
+/* The square icon badge, at the one size every square on these pages takes. */
 .glim-square {
   display: inline-flex;
   align-items: center;
@@ -1195,14 +846,11 @@
 .glim-square:hover:not(:disabled) { background: var(--accent); color: var(--accent-contrast); }
 .glim-square:disabled { opacity: .4; cursor: default; }
 .glim-square svg { display: block; }
-/* "Standard" - a real badge in the corner, not a word appended to the name. */
+/* The default badge in the corner. */
 .glim-instance-badge {
   position: absolute;
   inset-inline-end: 8px;
   top: 8px;
-  /* The caption step, not a fifth size. 10px was the fourth near-identical
-     caption on the page and the type scale has exactly four rows - a fourth
-     size claiming to be a caption is the bug to fix, not a row to add. */
   font-size: var(--text-caption);
   text-transform: uppercase;
   letter-spacing: .04em;
@@ -1213,9 +861,7 @@
   padding: 2px 7px;
 }
 
-/* The right-click menu that reassigns the default. A menu rather than a button
-   on every card: the default is set once and then not thought about again, and
-   a permanent control for it would be louder than the thing it does. */
+/* The right-click menu that changes the default. */
 .glim-menu {
   position: fixed;
   z-index: 2147483646;
@@ -1240,15 +886,8 @@
 .glim-menu button:hover { background: var(--carbon-hover); }
 .glim-menu button:disabled { opacity: .5; cursor: default; background: transparent; }
 
-/* ---------------------------------------------------------------------------
-   The language listbox.
-
-   A native select can hold plain text and nothing else, so a flag beside a
-   language name is impossible in one - and a native dropdown standing next to
-   token-styled controls reads as another application's widget anyway (jdp:
-   "Das Sprachen-Dropdown ist nicht im GSS und hat keine Flaggen"). This is the
-   web UI's own pattern: a field-shaped button that opens a real list.
-   --------------------------------------------------------------------------- */
+/* The language listbox, the web UI's pattern of a field-shaped button that
+   opens a list, since a native select cannot show flags. */
 .glim-listbox { position: relative; max-width: 320px; }
 .glim-listbox-trigger {
   display: flex;
@@ -1300,32 +939,10 @@
    flag's own aspect ratio. */
 .glim-listbox .fi { width: 20px; height: 15px; flex: 0 0 auto; border-radius: 2px; }
 
-/* ---------------------------------------------------------------------------
-   The confirmation window.
-
-   GlimStone 1.12.0 is the reason this exists at all, and the reason it is a
-   real window rather than a colour: "what warns is the QUESTION - an
-   irreversible action opens a window that states the stakes in words and
-   counts, and somebody who has read it and reached for the button has already
-   been told." Until now the extension had the second half of that sentence
-   without the first: the bin beside Connect was neutral, correctly, and it
-   deleted the group on the press with nothing in between - while the markup
-   beside it claimed "the confirmation behind it". A comment is not a dialogue.
-
-   Built from the pieces this sheet already has rather than from a new set:
-   .glim-card is the window (same surface, same radius, same elevation),
-   .glim-section-badge is the title (rule 15: title as a badge), and the two
-   buttons are the page's own. What is new is the ground behind it and the
-   footer row.
-
-   No divider lines anywhere in it (1.8.0): this language separates with
-   surface steps, and a window three sections tall is exactly where somebody
-   reaches for a rule instead. No close X in the corner either - it is optional
-   since 1.7.3, and two controls doing the same thing, one of them where a
-   window's close button lives, read as a choice rather than as one answer
-   offered twice. Backdrop and Escape both cancel, which is where a second way
-   out belongs.
-   --------------------------------------------------------------------------- */
+/* The confirmation window (GlimStone 1.12.0): an irreversible action asks
+   first, stating what is at stake. It reuses .glim-card as the window and
+   .glim-section-badge as the title (rule 15). No divider lines (1.8.0) and no
+   corner X; the backdrop and Escape cancel. */
 .glim-modal-backdrop {
   position: fixed;
   inset: 0;
@@ -1334,8 +951,6 @@
   align-items: center;
   justify-content: center;
   padding: 24px;
-  /* The token, not a typed value: .65 dark and .55 light, set once at the top
-     of this file (GlimStone 1.11.0). */
   background: var(--glim-scrim);
 }
 .glim-modal-card {
@@ -1345,20 +960,12 @@
   max-height: 85vh;
   display: flex;
   flex-direction: column;
-  /* The section badge hangs 11px over the card's own top edge, so the window
-     cannot clip its own title. .glim-card already carries position: relative. */
+  /* The title badge hangs over the top edge and must not be clipped. */
   overflow: visible;
 }
-/* The question itself, and the dialog's accessible description. Body text,
-   because the sentence IS the content here - the same reasoning that makes the
-   About card the one card whose body is prose.
-
-   This is the region that scrolls, and only this one: rule 15 anchors a
-   window's title and its button row and lets the middle move, so a long
-   sentence in a language that needs more of them never pushes the answer off
-   the bottom of the screen. `min-height: 0` is what actually allows it - a flex
-   child's automatic minimum is its content, so without it the message refuses
-   to shrink and the card grows past its own max-height instead. */
+/* The question, and the dialog's accessible description. Only this region
+   scrolls, so title and buttons stay in place (rule 15); min-height: 0 lets a
+   flex child shrink below its content. */
 .glim-modal-message {
   margin: 0;
   flex: 1 1 auto;
@@ -1368,11 +975,8 @@
   color: var(--carbon-text-sub);
   overflow-wrap: anywhere;
 }
-/* The button row, at the end of the line rather than across it: two controls
-   that are not a form do not want the window's whole width. `flex-end` is what
-   puts the committing button at the END (GlimStone 1.14.0) under both writing
-   directions, since `justify-content` follows the inline axis rather than the
-   glass. */
+/* The buttons gather at the end of the line, with the committing one last
+   (GlimStone 1.14.0) in either writing direction. */
 .glim-modal-actions {
   display: flex;
   justify-content: flex-end;
@@ -1380,61 +984,20 @@
   margin-top: 20px;
 }
 
-/* ---------------------------------------------------------------------------
-   THE ABOUT CARD'S BRAND BUTTONS (GlimStone 1.10.0)
+/* Brand buttons (GlimStone 1.10.0) take three values: the adjusted colour at
+   rest (--brand, a theme token), the true colour as the hover fill
+   (--brand-fill), and that fill's measured ink (--brand-ink).
+   `.glim-brand-btn` uses them and `.glim-brand-<name>` supplies them, so no
+   page file holds a colour.
 
-   Three values per brand, and the split between them is the whole point. The
-   ADJUSTED colour rides at rest (--brand, a theme token, because a published
-   brand colour dies on one of the two grounds); the TRUE colour is spent on
-   HOVER as the button's own fill (--brand-fill), which is the ground that
-   colour was actually drawn for; and the label and the mark both flip to that
-   colour's measured ink (--brand-ink), because a fixed ink on a fill somebody
-   else chose is a contrast nobody can predict.
-
-   This replaces the previous state of affairs, which was no rule at all: the
-   glyph builder in options.js writes fill="currentColor" onto every path it
-   makes, which is right for a glyph of ours and wrong for a vendor's mark -
-   GitHub's Octicon came out in the button's own text colour, and so did the
-   coffee cup. That is the exact failure the language's brand rule exists to
-   prevent, which is why 1.10.0 stopped describing it in prose and shipped the
-   numbers. The presentation attribute needs no removing: any author rule beats
-   a presentation attribute, so these two selectors win over it outright.
-
-   The hexes live here and the call site names a brand by class, so no page file
-   holds a colour. The two classes travel together - `.glim-brand-btn` plus one
-   `.glim-brand-<name>`: the first spends the three values and the second is
-   what supplies them, so a button carrying only the first has no --brand to
-   read and paints its mark in the initial fill.
-
-   `svg path` as well as `svg` is not belt-and-braces, it is the half that works
-   for these marks: a fill set on the <svg> only reaches paths that declare none
-   of their own, and every path this page builds declares fill="currentColor"
-   itself, which beats an inherited value from its parent. All of them are
-   single-colour drawings, so painting both levels is safe.
-
-   The selector reaches the button's own <svg> rather than a glyph wrapper,
-   because these About buttons are plain anchors with the mark as a direct child
-   (options.html, the About card).
-
-   A mark that brings its OWN GROUND would take none of these classes: a coin
-   disc is a filled circle in the brand's colour with a white symbol on it, so
-   what decides whether it can be read sits inside the mark and is the same on
-   either theme. Flattening it to one ink would be redrawing the logo.
-   --------------------------------------------------------------------------- */
+   These rules override the fill="currentColor" that options.js writes, since
+   an author rule beats a presentation attribute. The path selector is needed
+   because each path sets its own fill. A mark with its own ground, such as a
+   coin disc, takes none of these classes. */
 .glim-brand-btn svg,
 .glim-brand-btn svg path {
   fill: var(--brand);
-  /* A literal, like every other transition in this file: the extension carries
-     no motion-intensity tokens (that engine lives in the web UI's index.css),
-     so 120ms is the number rather than a var() that would resolve to nothing
-     here. If the tokens ever arrive, this is one of the lines that reads them.
-
-     Re-checked against GlimStone 1.17.0, which added a fourth intensity: still
-     nothing to tokenise. The axis needs a picker and a stored level before a
-     token means anything, and this extension has neither - see the note on
-     GLIMSTONE_VERSION in options.js for the whole measurement. The motion this
-     file DOES run is pinned to the top level's own numbers, which is what a
-     single-level surface owes. */
+  /* A literal: the extension has no motion tokens. */
   transition: fill 120ms ease;
 }
 .glim-brand-btn:hover:not(:disabled) {
@@ -1446,16 +1009,9 @@
   fill: currentColor;
 }
 
-/* One block per brand: the adjusted resting mark (a token, because it changes
-   with the theme), then the true colour and its measured ink, which do not.
-   All four ship even though this page draws two of them, so the next button
-   added to the card finds its pair already here.
-
-   The ratios are re-measured here rather than carried over: the reference and
-   the web UI annotate PayPal's pair as 13.4:1, and white on #003087 is 11.85.
-   Still far past the bar, so no colour changes - but a number written down
-   twice is a number that disagrees with itself, and copying one unread is how
-   the wrong half gets quoted next time. */
+/* One block per brand: the resting mark follows the theme, the fill and its
+   ink do not. The ratios are measured here; the reference's 13.4:1 for PayPal
+   is 11.85 in fact. */
 .glim-brand-coffee {
   --brand: var(--brand-coffee);
   --brand-fill: #ffdd00;
@@ -1478,13 +1034,8 @@
   --brand-ink: #ffffff; /* 17.9:1 */
 }
 
-/* The house's own button: the route that reaches this app's AUTHORS rather than
-   a third party, which here is the mail link. It is the one button in that row
-   that follows the colour engine, so all three values are engine tokens -
-   --accent-ink is the token for accent-coloured GRAPHICS on an ordinary
-   surface, which is the same job --brand-* does for the four brands, and the
-   hover pair is the ordinary accent pairing. This one changes with the user's
-   accent and with rainbow mode; a vendor's mark may not. */
+/* Our own mail button follows the accent and the rainbow, which a vendor's
+   mark may not. */
 .glim-brand-house {
   --brand: var(--accent-ink);
   --brand-fill: var(--accent);

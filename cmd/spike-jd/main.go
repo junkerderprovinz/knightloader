@@ -1,10 +1,6 @@
-// Command spike-jd is the KnightLoader M0 JD-integration spike.
-//
-// It proves a Go client can drive a *headless* JDownloader through its local
-// "Deprecated API" — plain HTTP JSON on :3128, no cloud, no crypto — by adding
-// links to the LinkGrabber and reading them back with live name/size/status.
-// This is the arm's-length path KnightLoader uses to reach JD's full hoster
-// coverage while rendering everything in its own UI.
+// Command spike-jd checks that a Go client can drive a headless JDownloader
+// through its local Deprecated API (plain HTTP JSON on :3128, no cloud) by
+// adding links to the LinkGrabber and reading back their name, size and status.
 //
 // Run: KL_JD=http://<jd-host>:3128 go run ./cmd/spike-jd
 package main
@@ -24,8 +20,8 @@ type jd struct {
 	c    *http.Client
 }
 
-// call invokes a Deprecated-API method: GET /namespace/method?<url-encoded JSON param>.
-// The envelope is {"data": <result>}; we return the raw data.
+// call invokes a Deprecated API method as GET /namespace/method?<url-encoded
+// JSON param> and returns the data field of the {"data": ...} envelope.
 func (j *jd) call(path string, param any) (json.RawMessage, error) {
 	q := ""
 	if param != nil {
@@ -51,11 +47,10 @@ func (j *jd) call(path string, param any) (json.RawMessage, error) {
 }
 
 func main() {
-	base := env("KL_JD", "http://127.0.0.1:3128") // co-located headless JD; override with KL_JD
+	base := env("KL_JD", "http://127.0.0.1:3128")
 	j := &jd{base: base, c: &http.Client{Timeout: 15 * time.Second}}
-	fmt.Println("KnightLoader M0 — headless-JD Deprecated-API spike ->", base)
+	fmt.Println("KnightLoader headless JD Deprecated API spike ->", base)
 
-	// [0] reachability
 	resp, err := j.c.Get(base + "/help")
 	must(err)
 	resp.Body.Close()
@@ -64,7 +59,6 @@ func main() {
 	}
 	fmt.Println("[0] /help reachable: OK")
 
-	// [1] addLinks — push two direct links into the LinkGrabber
 	data, err := j.call("/linkgrabberv2/addLinks", map[string]any{
 		"links":       "http://speedtest.tele2.net/1MB.zip\nhttp://speedtest.tele2.net/5MB.zip",
 		"packageName": "KnightLoader-spike",
@@ -73,7 +67,7 @@ func main() {
 	must(err)
 	fmt.Println("[1] addLinks OK ->", string(data))
 
-	// [2] queryLinks — poll until JD has crawled/resolved name+size (proves live read-back)
+	// Poll until JD has resolved name and size for both links.
 	query := map[string]any{
 		"bytesTotal": true, "name": true, "status": true, "url": true,
 		"availability": true, "packageUUIDs": []int64{},
@@ -100,7 +94,7 @@ func main() {
 		fmt.Printf("    - %-28v size=%-10v avail=%v\n", l["name"], l["bytesTotal"], l["availability"])
 	}
 
-	fmt.Println("\nM0 JD spike: OK — Go client drives headless JD via the local Deprecated API (addLinks + queryLinks, live name/size).")
+	fmt.Println("\nJD spike: OK (addLinks and queryLinks against the local Deprecated API, live name and size)")
 }
 
 func env(k, def string) string {

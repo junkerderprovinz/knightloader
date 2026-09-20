@@ -1,21 +1,9 @@
-// The toolbar button's popup: send the tab that was active when it opened, to
-// whichever instance in your group is selected (only shown as a choice once
-// there is more than one), or point at Options when no phrase has been entered
-// yet.
+// The toolbar button's popup: sends the active tab to the chosen instance of
+// the group, or points at the options page when no phrase is set. The gear
+// badge at the end of the header opens the same options page.
 //
-// The square gear badge at the end of the header row (jdp: "im fenster oben
-// rechts ein quadratischer badge mit zahnrad um die einstellungen zu öffnen" -
-// the trailing end, which is the left of the glass once the window is read in
-// Arabic, Hebrew or Persian and i18n.js has set dir="rtl") opens that
-// same Options page rather than a second settings surface — it already holds
-// every setting (the phrase, the default instance, the language), so this is
-// just a more discoverable door to it than the old full-width "Instance
-// settings" button used to be.
-//
-// The instance list is now read LIVE from the relay rather than from storage,
-// which is why this page has a loading state it did not have before: an
-// instance that is switched off is not offered, and one that came online a
-// minute ago is, without anybody telling this browser anything.
+// The instance list comes live from the relay, hence the loading state: only
+// instances that are online are offered.
 
 const targetEl = document.getElementById('target');
 const instanceRow = document.getElementById('instanceRow');
@@ -27,17 +15,10 @@ const tabsEl = document.getElementById('tabs');
 const paneSendEl = document.getElementById('paneSend');
 
 /**
- * Every button in this window carries a glyph beside its label (jdp,
- * 2026-09-01: "Alle buttons sollen einen Glyph bekommen. Steht das nicht
- * bereits so in GS?").
- *
- * It does — "Icon glyphs" has said so all along, and this window simply was not
- * following it. Filled shapes, never outlines, built with createElementNS
- * rather than innerHTML: Mozilla's own linter fails a package on an innerHTML
- * assignment from a variable, and that linter is a release gate here.
- *
- * `label()` sets both halves at once, so a label can never be updated without
- * its glyph coming along - which is exactly how the two would drift apart.
+ * Every button carries a filled glyph beside its label (GlimStone "Icon
+ * glyphs"), built with createElementNS because Mozilla's linter, a release
+ * gate here, fails an innerHTML assignment from a variable. `label()` sets
+ * text and glyph together.
  */
 const NS = 'http://www.w3.org/2000/svg';
 function glyph(d, size = 15) {
@@ -52,9 +33,7 @@ function glyph(d, size = 15) {
   svg.appendChild(path);
   return svg;
 }
-// Send: a paper plane. Add: a plus. Files: a document. Cancel: a cross, which
-// is the plus rotated - same drawing, so the pair cannot look like two
-// different icon sets.
+// The cross is the plus rotated, so the two match.
 const G_SEND = 'M1.3 7.1 14.2 1.4c.6-.3 1.2.3.9.9L9.4 15.2c-.3.6-1.1.5-1.3-.1l-1.4-4.3-4.3-1.4c-.6-.2-.7-1-.1-1.3z';
 const G_PLUS = 'M7 2h2v5h5v2H9v5H7V9H2V7h5V2z';
 const G_CROSS =
@@ -62,7 +41,6 @@ const G_CROSS =
 const G_FILE = 'M4 1h5l4 4v9.2A.8.8 0 0 1 12.2 15H4a.8.8 0 0 1-.8-.8V1.8A.8.8 0 0 1 4 1zm5 1.4V5h2.6L9 2.4z';
 const G_ADD_INSTANCE = 'M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm1 6h3v2H9v3H7V9H4V7h3V4h2v3z';
 
-/** Label plus glyph, always together. */
 function label(btn, text, d) {
   btn.replaceChildren(glyph(d), document.createTextNode(text));
 }
@@ -78,22 +56,15 @@ let chosen = null;
 let pending = null;
 
 /**
- * This window's own equal-member set: the header block (mark, name and the
- * gear badge inside it) and the send button. The instance cards carry their
- * own run, which is why they are not in this list.
- *
- * Called on every render AND once at startup, because a popup that never
- * reaches a group still has a header and a button, and they should wear the
- * mode too (jdp, 2026-08-29: "der Regenbogenmodus funktioniert erweiterungs-weit
- * nicht überall").
+ * Gives the header and the send button their rainbow positions; the instance
+ * cards have their own. Also called at startup, for a popup that never reaches
+ * a group.
  */
 function paintHues() {
   setHues([document.querySelector('.header'), sendBtn]);
 }
 
 (async () => {
-  // Before anything is drawn: the look goes on <html> first, so no page is
-  // ever painted in one look and repainted in another.
   await applyAppearance();
   paintHues();
   await loadLanguage();
@@ -105,26 +76,19 @@ function paintHues() {
   targetEl.textContent = t('popup.loading');
   targetEl.hidden = false;
 
-  // A send that is already waiting takes precedence over the current tab. This
-  // is how a Click'n'Load button or a right-click reaches a choice now: the
-  // service worker parks the payload and opens THIS window, rather than
-  // creating a second window with its own title bar and taskbar entry (jdp,
-  // 2026-08-29: "es soll sich das popupfenster der erweiterung öffnen").
-  //
-  // Read-once: a stale entry from a popup somebody closed without choosing
-  // must never resurface and send the wrong links on the next toolbar click.
+  // A send parked by the service worker (a Click'n'Load batch or a right-click
+  // that needs a choice) takes precedence over the current tab. It is read
+  // once, so a popup closed without choosing cannot resend it later.
   const { pendingSend } = await chrome.storage.session.get('pendingSend');
   await chrome.storage.session.remove('pendingSend');
   pending = pendingSend ?? null;
 
   if (pending) {
-    // The badge said "something is waiting" if the popup could not be opened
-    // by itself. This window IS that popup, so the mark has done its job.
+    // Clear the "something is waiting" badge now that the popup is open.
     chrome.action?.setBadgeText?.({ text: '' });
     chrome.action?.setTitle?.({ title: '' });
-    // The roster came WITH the payload - the service worker had just listed
-    // the group to decide whether a choice was needed at all, and asking again
-    // here would be a second chance to get a different answer.
+    // The roster the service worker decided with comes along, so the choice is
+    // offered over the same list.
     group = pending.siblings ?? [];
     targetEl.textContent = pending.payload?.title || pending.payload?.url || pending.payload?.text || t('picker.untitled');
     label(sendBtn, t(sendLabelKey(pending)), G_SEND);
@@ -134,29 +98,19 @@ function paintHues() {
     }
     await renderTargets(pending.defaultName);
     void loadStatus();
-    // Only a caught Click'n'Load batch counts itself down. A right-clicked
-    // link was a deliberate act aimed at one thing, and finishing it for
-    // somebody after five seconds would be the surprise, not the service.
+    // Only a Click'n'Load batch counts down; a right-clicked link waits for
+    // the user.
     showCollector();
     if (pending.origin === 'cnl') await startCountdown();
     return;
   }
 
-  // No target line for an ordinary toolbar click (jdp, 2026-08-29: "im popup
-  // steht KnightLoader wieder zweimal. das zweite (untere) entfernen"). On the
-  // extension's own pages it repeated the heading word for word, and even
-  // elsewhere it only restated what the button underneath already says. Where
-  // it DOES carry something nothing else does - a parked Click'n'Load batch,
-  // a right-clicked link - it stays, above.
+  // For an ordinary click the target line would only repeat the button.
   targetEl.hidden = true;
 
   if (!(await readPhrase())) {
-    // The popup used to open Options here and close itself, so a click on the
-    // toolbar icon never showed the popup at all — it hijacked the click and
-    // took you somewhere you had not asked to go (jdp: "wenn ich auf das
-    // erweiterungsicon im browser klicke öffnet es sofort die einstellungen.
-    // es soll aber nur das popupfenster öffnen"). The popup stays open and
-    // offers the way there instead: the same destination, reached on purpose.
+    // The popup stays open and offers the way to the options page rather
+    // than jumping there.
     label(sendBtn, t('popup.addInstance'), G_ADD_INSTANCE);
     sendBtn.onclick = () => chrome.runtime.openOptionsPage();
     statusEl.textContent = t('popup.noInstance');
@@ -179,63 +133,36 @@ function paintHues() {
   sendBtn.disabled = false;
   await renderTargets();
 
-  // The queue readings come AFTER the cards are on screen, never before them
-  // (jdp asked for the controls here too, 2026-08-29: "auch ins popup"). Three
-  // reads per instance is six answers to wait on with two instances, and this
-  // window has one job that must not queue behind them. So the cards appear
-  // with their names, their badge and their controls immediately, and the
-  // status line fills itself in a moment later.
-  //
-  // Not awaited on purpose: a failure here leaves a popup that can still send,
-  // which is the whole point of splitting it out.
+  // The queue readings arrive after the cards are drawn and are not awaited,
+  // so sending never waits for them and still works if they fail.
   void loadStatus();
   watchStatus();
   showCollector();
 })();
 
 /**
- * Keep the status line live for as long as this window is open.
- *
- * It was fetched exactly once, when the popup opened, and never again - so a
- * card said "waiting, 19 files" and went on saying it while a download ran
- * behind it. jdp, 2026-09-01: "Ich seh nach wie vor auch keine
- * downloadaktivitaet im browser wenn ich den download starte. wir sehen wol
- * nicht das gleiche." He is right, and the reason is not that there is nothing
- * to show: the line the extension draws is correct, it is just a photograph.
- *
- * A timer in the POPUP, deliberately not an alarm in the service worker: a
- * timer here lives and dies with the window, costs no new permission (chrome
- * would demand "alarms" for the other one, which means a fresh permission
- * dialog on every install) and asks nothing at all while nobody is looking.
- *
- * Two seconds, and it does not stack: a fetch that has not answered yet is not
- * joined by the next tick, because a slow relay would otherwise pile up
- * requests for as long as the window stays open.
+ * Keeps the status line live while the popup is open. A timer here rather than
+ * an alarm in the service worker needs no "alarms" permission and stops with
+ * the window. A tick is skipped while the previous fetch is still out, so a
+ * slow relay cannot pile up requests.
  */
 function watchStatus() {
-  let laeuft = false;
+  let busy = false;
   const iv = setInterval(async () => {
-    if (laeuft || document.hidden) return;
-    laeuft = true;
+    if (busy || document.hidden) return;
+    busy = true;
     try {
       await loadStatus();
     } finally {
-      laeuft = false;
+      busy = false;
     }
   }, 2000);
-  // Cleared on the way out. A popup is torn down without ceremony, so this is
-  // belt and braces rather than the mechanism - but an interval left running
-  // against a closing document is the kind of thing that only shows up as a
-  // console full of errors somebody else has to read.
   addEventListener('pagehide', () => clearInterval(iv), { once: true });
 }
 
 /**
- * loadStatus fetches what each instance is doing and redraws once.
- *
- * `status` stays undefined until this lands, and the card reads that as "the
- * caller did not ask" rather than "asked and got nothing" - so the first paint
- * carries no empty line and no wrong "offline".
+ * loadStatus fetches what each instance is doing and redraws once. Until then
+ * `status` stays undefined, so the first paint shows no false "offline".
  */
 async function loadStatus() {
   let rows;
@@ -245,25 +172,15 @@ async function loadStatus() {
     return;
   }
   const byId = new Map(rows.map((r) => [r.instanceId, r.status]));
-  // Only for instances that are still in the list this popup drew. A roster
-  // that changed underneath is not worth a second surprise redraw in a window
-  // somebody is already reading.
+  // Only for instances already drawn, so a changed roster does not reshuffle
+  // the list under the reader.
   group = group.map((g) => (byId.has(g.instanceId) ? { ...g, status: byId.get(g.instanceId) } : g));
   await renderTargets();
 }
 
 /**
- * The group as cards, the same object the options page and the send-to window
- * draw (jdp, 2026-08-28: "Im erweiterungsfenster sollen die Instanzen auch als
- * cards erscheinen. Gleich wie im instanzentab.").
- *
- * A dropdown stood here before. It could not show the mark, could not carry a
- * badge, and could not be right-clicked — three things this window now does,
- * and none of them worth a bespoke control when the card already exists.
- *
- * Shown even for a single instance: the card is also what says WHERE this is
- * about to go, and a popup that hides that until there is a choice to make is a
- * popup that tells you least when you know least.
+ * Draws the group as the same cards the options page uses. A single instance
+ * is shown too, since the card says where the send goes.
  */
 async function renderTargets(preferredFromPending) {
   paintHues();
@@ -279,9 +196,8 @@ async function renderTargets(preferredFromPending) {
         isChosen: inst.instanceId === chosen,
         status: inst.status,
         onPick: (picked) => {
-          // Taking hold of the window stops the clock: somebody choosing a
-          // different instance is the one case the countdown exists to leave
-          // room for, and finishing on a timer behind them would undo it.
+          // Choosing another instance is what the countdown leaves room for,
+          // so it stops the clock.
           cancelCountdown();
           chosen = picked.instanceId;
           void renderTargets();
@@ -293,10 +209,7 @@ async function renderTargets(preferredFromPending) {
         onQueue: async (picked, halted, el) => {
           const ok = await setQueueHalted(picked.instanceId, halted).catch(() => false);
           statusEl.textContent = ok ? '' : t('options.followFailed');
-          // The control that was pressed says so too, the same way the options
-          // page answers the same refusal on the same card (shared.js's shake).
-          // Two surfaces drawing one object answer a failure alike or the object
-          // stops being one object.
+          // Shakes the pressed control, as the options page does.
           if (!ok) shake(el);
           if (ok) await loadStatus();
         },
@@ -309,18 +222,10 @@ async function renderTargets(preferredFromPending) {
 }
 
 /**
- * The countdown a caught Click'n'Load batch runs before it sends itself.
- *
- * This is what JDownloader's own extension does, and what this one did not
- * (jdp, 2026-08-30: "countdown zeigt es nicht an und man muss manuell auf den
- * senden button klicken"). A container button is a decision somebody already
- * made on the site; the popup exists to say WHERE it is going and to give a
- * moment to change that, not to ask for the same decision a second time.
- *
- * Cancelled by touching anything: picking a different instance, or pressing
- * the button, which sends immediately. Cancelled and not merely paused - once
- * somebody has taken hold of this window, finishing on a timer behind them is
- * exactly the surprise the timer is supposed to avoid.
+ * The countdown before a caught Click'n'Load batch sends itself, as in
+ * JDownloader's own extension. The user already decided on the site; the popup
+ * only shows where the links go and leaves a moment to change that. Any
+ * interaction cancels it for good.
  */
 let countdownTimer = null;
 
@@ -329,26 +234,19 @@ function cancelCountdown() {
   clearInterval(countdownTimer);
   countdownTimer = null;
   label(sendBtn, t(sendLabelKey(pending)), G_SEND);
-  // The cancel goes with the clock it stops. A button that stops something not
-  // happening is a button that has to be explained.
   cancelBtn.hidden = true;
 }
 
 async function startCountdown() {
   const seconds = await readCnlCountdown();
-  // Zero is "ask me", the setting's own off position. Also skipped when there
-  // is nothing chosen to send to, which would make the timer a countdown to a
-  // no-op.
+  // Zero means ask; without a chosen instance there is nothing to send.
   if (seconds <= 0 || !chosen) return;
   let left = seconds;
   const paint = () => {
     label(sendBtn, t('popup.sendIn', { n: String(left) }), G_SEND);
   };
   paint();
-  // Visible only while the clock runs (jdp, 2026-08-31: "Dort fehlt auch ein
-  // Abbrechen button wenn ein links reingeladen wird und der countdown läuft").
-  // Until now the only way to stop it was to pick a different instance, which
-  // is a side effect of another action rather than a way to say no.
+  // The cancel button shows only while the clock runs.
   label(cancelBtn, t('popup.cancel'), G_CROSS);
   cancelBtn.hidden = false;
   countdownTimer = setInterval(() => {
@@ -365,17 +263,9 @@ async function startCountdown() {
 cancelBtn.addEventListener('click', () => cancelCountdown());
 
 /**
- * The two halves of this window, one visible at a time (jdp, 2026-08-31:
- * "Können wir im popupfenster zwei tabs machen wie inder app? Instanzen und
- * Linksammler?").
- *
- * It was one column: instances, send, and then a collector far enough down that
- * a window opened for one of them buried the other. The same well selector the
- * options page and the app both use, so the three surfaces agree on what a
- * chooser looks like.
- *
- * The strip appears only once there IS a group. With nothing to send to, two
- * labels over an empty page are a choice between two kinds of nothing.
+ * The popup's two tabs, instances and the link collector, in the same well
+ * selector the options page and the app use. The strip shows only once there
+ * is a group.
  */
 let pane = 'send';
 
@@ -395,9 +285,6 @@ function renderTabs() {
     b.textContent = label;
     b.setAttribute('aria-pressed', String(value === pane));
     b.addEventListener('click', () => {
-      // Switching away from a running clock stops it, for the same reason
-      // picking a different instance does: taking hold of the window is the one
-      // case the countdown exists to leave room for.
       cancelCountdown();
       pane = value;
       showPane();
@@ -414,23 +301,16 @@ function showPane() {
 
 sendBtn.addEventListener('click', async () => {
   cancelCountdown();
-  // No target means nothing can be sent: without a phrase this same button is
-  // "Add an instance" and only opens the options page, so stop before the tab
-  // is read.
+  // Without a phrase this button only opens the options page, so stop before
+  // the tab is read.
   if (!chosen) return;
-  // Either a payload the service worker parked here, or the tab this window
-  // opened over. Never both, and never neither.
-  //
-  // The tab is read HERE, on the press, and not when the popup opens. Since
-  // activeTab went, the site access is what fills in a tab's address and title,
-  // and read at start-up every glance at the popup read the page's address -
-  // which the privacy policy says happens when you press send.
+  // The tab is read on the press, not when the popup opens, as the privacy
+  // policy says.
   const payload = pending ? pending.payload : await currentTabPayload();
   if (!payload) return;
   sendBtn.disabled = true;
-  // No "sending…" line (jdp: "der Text 'Wird gesendet' kann weg"). This window
-  // closes as soon as the worker has the send, so the sentence would flash for
-  // a frame and then be gone, and the toolbar badge is what reports the outcome.
+  // No "sending" line: the window closes at once and the toolbar badge
+  // reports the outcome.
   await handOver({ type: 'knightloader-send-to', target: chosen, payload });
 });
 
@@ -442,49 +322,26 @@ async function currentTabPayload() {
 }
 
 /**
- * Hands one send to the service worker, then closes this window.
+ * Hands one send to the service worker, then closes the window.
  *
- * The await is for the HAND-OVER, not for the delivery. The send itself happens
- * in the worker and outlives this window, and the toolbar badge reports it
- * (background.js's flashBadge); holding the popup open on a spinner for that
- * result would still be wrong.
- *
- * What it must not do is close before the worker has the message. It used to,
- * on the line after sendMessage, and whenever the worker was asleep - the normal
- * state half a minute after anything last happened - the worker had not started
- * by the time the window was gone, and the send vanished with no badge and
- * nothing at the instance. Measured 2026-09-17 with the worker asleep before
- * every trial and nothing attached to it, an extension page sending a unique
- * link to one instance: send and close at once, 0 of 3 arrived; wait for the
- * reply and then close, 3 of 3.
- * The worker answers straight away (see its onMessage listener), so this waits
- * for a start-up and a reply, never for the relay.
+ * The await covers the hand-over, not the delivery, which the toolbar badge
+ * reports. Closing right after sendMessage lost sends whenever the worker was
+ * asleep and had not started yet. The worker answers at once, so this never
+ * waits for the relay.
  */
 async function handOver(message) {
   try {
     await chrome.runtime.sendMessage(message);
   } catch {
-    // A worker that could not be reached at all. Closing still beats a popup
-    // frozen on a disabled button, and a send that never arrived shows no
-    // check mark on the toolbar icon either way.
+    // The worker could not be reached; closing still beats a frozen popup.
   }
   window.close();
 }
 
-// --- The collector -----------------------------------------------------
-//
-// Everything above sends ONE thing that something else chose: the current tab,
-// a right-clicked link, a caught container. This is the other direction (jdp,
-// 2026-08-30: "unter den instanzencards soll eine linksammler cards sein mit
-// dropzone für links und button um dateien hinzuzufügen") - paste, drop, or
-// pick files, and it goes to whichever instance the cards above have selected.
-//
-// Files are read for their TEXT, not uploaded. A browser extension cannot hand
-// a file to an instance it reaches through an encrypted relay frame, and it
-// does not need to: what people drop here are .txt/.dlc/.crawljob lists, and
-// what the instance wants is the links inside them. A binary dropped by
-// mistake yields no http(s)/ftp lines and is reported as such rather than
-// posted as noise.
+// The link collector: paste, drop or pick files, and the links go to the chosen
+// instance. Files are read for their text rather than uploaded, since the relay
+// carries links and the lists people drop (.txt, .dlc, .crawljob) are text. A
+// binary yields no links and is reported as such.
 const collectorEl = document.getElementById('collector');
 const collectorLabelEl = document.getElementById('collectorLabel');
 const dropEl = document.getElementById('drop');
@@ -493,9 +350,8 @@ const addLinksBtn = document.getElementById('addLinks');
 const pickFilesBtn = document.getElementById('pickFiles');
 const filesEl = document.getElementById('files');
 
-/** Every http(s)/ftp URL in a blob of text, in order, without duplicates. The
- *  same shape splitCnlLinks uses, so a list pasted here and a list caught from
- *  a container are read the same way. */
+/** Every http(s)/ftp URL in a text, in order and without duplicates, split the
+ *  way splitCnlLinks splits. */
 function linksIn(text) {
   const seen = new Set();
   for (const raw of String(text).split(/[\r\n\s]+/)) {
@@ -505,9 +361,7 @@ function linksIn(text) {
   return [...seen];
 }
 
-// Fills the collector's own labels. Whether it is ON SCREEN is showPane's
-// decision now, not this function's: two places setting `hidden` on the same
-// element is how one of them silently wins.
+// Fills the collector's labels; showPane alone decides whether it is visible.
 function showCollector() {
   collectorLabelEl.textContent = t('popup.collectorLabel');
   linksEl.placeholder = t('popup.collectorPlaceholder');
@@ -516,8 +370,8 @@ function showCollector() {
   showPane();
 }
 
-// dragover must be prevented or the drop never fires - the browser's default
-// for a dragged link is to navigate to it, which would take the popup with it.
+// Without preventing dragover the drop never fires, and the browser would
+// navigate to a dragged link.
 for (const ev of ['dragenter', 'dragover']) {
   dropEl.addEventListener(ev, (e) => {
     e.preventDefault();
@@ -532,8 +386,7 @@ dropEl.addEventListener('drop', async (e) => {
   e.preventDefault();
   cancelCountdown();
   const parts = [];
-  // A dragged link arrives as text; a dragged file arrives as a file. Both are
-  // read, because both are things people drag onto a box like this.
+  // A dragged link arrives as text, a dragged file as a file.
   const dropped = e.dataTransfer?.getData('text') ?? '';
   if (dropped) parts.push(dropped);
   for (const file of e.dataTransfer?.files ?? []) parts.push(await file.text().catch(() => ''));
@@ -548,14 +401,12 @@ pickFilesBtn.addEventListener('click', () => {
 filesEl.addEventListener('change', async () => {
   const parts = [];
   for (const file of filesEl.files ?? []) parts.push(await file.text().catch(() => ''));
-  // Cleared so picking the SAME file twice in a row fires 'change' again; a
-  // file input holds its value otherwise and the second pick does nothing.
+  // Cleared so picking the same file again fires 'change'.
   filesEl.value = '';
   appendToBox(parts.join('\n'));
 });
 
-/** Adds what was dropped or picked to whatever is already in the box, rather
- *  than replacing it: two drops in a row are two batches, not a correction. */
+/** Appends dropped or picked links to the box; two drops are two batches. */
 function appendToBox(text) {
   const found = linksIn(text);
   if (found.length === 0) {
@@ -575,9 +426,7 @@ addLinksBtn.addEventListener('click', async () => {
     return;
   }
   if (!chosen) return;
-  // The same message every other send in this window uses, so a batch pasted
-  // here takes the identical path through the service worker - including the
-  // badge that reports whether it arrived.
+  // Same message as every other send, so the badge reports this one too.
   addLinksBtn.disabled = true;
   await handOver({
     type: 'knightloader-send-to',

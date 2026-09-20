@@ -1,16 +1,14 @@
 // The framework-free half of GlimStone's appearance module, taken across.
 //
 // The shared reference (github.com/junkerderprovinz/glimstone,
-// reference/appearance.ts) is deliberately free of any UI framework so a
-// sister app can adopt it unchanged - but only half of it is: the constants
-// and the pure functions here travel as they are, while the other half applies
-// its answer by setting CSS custom properties on <html>, which React Native
-// has neither of. That half lives in AppearanceContext instead, and this file
-// stays a straight copy so the two never disagree about what "Sunflower" is.
+// reference/appearance.ts) is free of any UI framework, but only half of it
+// travels: the constants and the pure functions here are a straight copy, while
+// the half that applies its answer through CSS custom properties on <html> has
+// no equivalent in React Native and lives in AppearanceContext instead.
 //
-// Anything below that is copied is copied VERBATIM on purpose. Re-picking a
-// colour by eye, or rounding a luminance constant, is exactly how two apps
-// that both claim one design language stop looking like one product.
+// Everything copied is copied as it stands. Re-picking a colour by eye or
+// rounding a luminance constant is how two apps on one design language stop
+// looking like one product.
 
 export type Shape = 'round' | 'soft' | 'square';
 
@@ -23,11 +21,8 @@ export const SHAPES: Shape[] = ['round', 'soft', 'square'];
  */
 export const DEFAULT_ACCENT = '#FCC419';
 
-// All eight, where this list carried five. The web UI and the extension have
-// offered Orange, Teal and Pink the whole time, so an accent chosen in a
-// browser had no swatch to be marked on here - it simply appeared as "none of
-// these are selected". Found while giving the row its picker; jdp did not
-// report it, and it is the same drift as the palette row missing entirely.
+// All eight the web UI and the extension offer. A shorter list here leaves an
+// accent chosen in a browser with no swatch to be marked on.
 export const ACCENTS: { name: string; hex: string }[] = [
   { name: 'Sunflower', hex: '#FCC419' },
   { name: 'Blue', hex: '#1D99F3' },
@@ -48,10 +43,10 @@ export const ACCENTS: { name: string; hex: string }[] = [
  * picker on it. Without it, a colour off the presets is in force everywhere and
  * drawn nowhere.
  *
- * Plain squared RGB distance, deliberately not a perceptual metric: it only has
- * to be stable and unsurprising for eight widely separated hues. Kept identical
- * to the extension's accentSlot (src/appearance.js) and the web's (Look.tsx) so
- * one colour lands in one slot on all three.
+ * Plain squared RGB distance rather than a perceptual metric: it only has to be
+ * stable and unsurprising for eight widely separated hues. Identical to the
+ * extension's accentSlot (src/appearance.js) and the web's (Look.tsx), so one
+ * colour lands in one slot on all three.
  */
 export function accentSlot(hex: string): number {
   const rgb = (h: string) => {
@@ -77,13 +72,13 @@ export function accentSlot(hex: string): number {
  * RAINBOW is the default palette: a full turn of the wheel, but tuned to the
  * same warm, slightly dusty register as the accent presets, so switching the
  * mode on changes how much colour there is, not which family it belongs to.
- * The length is fixed - colours are handed out by position, so a palette that
+ * The length is fixed: colours are handed out by position, so a palette that
  * could grow would re-colour every existing row the moment one was added.
  */
 export const RAINBOW: string[] = [
   '#FF8389', // red 30
   '#FF832B', // orange 40
-  '#FCC419', // sunflower - the default accent, so one row always matches it
+  '#FCC419', // sunflower, the default accent, so one row always matches it
   '#6FDC8C', // green 30
   '#3DDBD9', // teal 30
   '#1D99F3', // blue
@@ -108,12 +103,12 @@ export const RAINBOW_OFF: RainbowState = {
 };
 
 /**
- * rainbowAt is the colour for one list POSITION.
+ * rainbowAt is the colour for one list position.
  *
- * By position and not by a hash of the item's id, which sounds better and is
- * not: a hash keeps a row's colour when the rows above it finish, but with
- * three rows and eight colours it routinely gives two neighbours the same one -
- * which is the single thing this mode exists to prevent.
+ * By position rather than by a hash of the item's id: a hash keeps a row's
+ * colour when the rows above it finish, but with three rows and eight colours
+ * it routinely gives two neighbours the same one, which is what this mode
+ * exists to prevent.
  */
 export function rainbowAt(state: RainbowState, i: number): string {
   const p = state.palette.length > 0 ? state.palette : RAINBOW;
@@ -134,14 +129,14 @@ export function rainbowColor(state: RainbowState, i: number): string | undefined
   return state.on ? rainbowAt(state, i) : undefined;
 }
 
-/** contrastOn is the ink to put ON a colour - black or white, decided rather
- *  than configured. Asking for a second colour to make the first one readable
- *  is not a setting, it is a trap. */
+/** contrastOn is the ink to put on a colour, black or white, decided rather
+ *  than configured: asking for a second colour to make the first one readable
+ *  is a trap, not a setting. */
 export function contrastOn(hex: string): string {
   if (!valid(hex)) return '#FFFFFF';
   const { r, g, b } = parse(hex);
-  // Carbon's own ink, not a warm near-black: on a yellow accent a
-  // brown-tinted black reads as a smudge.
+  // Carbon's own ink rather than a warm near-black, which reads as a smudge on
+  // a yellow accent.
   return luminance(r, g, b) > 0.55 ? '#161616' : '#FFFFFF';
 }
 
@@ -157,8 +152,8 @@ function parse(hex: string): { r: number; g: number; b: number } {
 /**
  * luminance is the perceptual brightness used to decide black or white on top.
  * The sRGB channels are linearised first, because the raw values overstate how
- * bright blue is and understate green - which is exactly the case that produces
- * an unreadable button.
+ * bright blue is and understate green, which is what produces an unreadable
+ * button.
  */
 function luminance(r: number, g: number, b: number): number {
   const lin = (c: number) => {
@@ -168,17 +163,16 @@ function luminance(r: number, g: number, b: number): number {
   return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
 }
 
-/** softOn is the wash a row carries when it owns a colour - the same 12-14%
- *  the web build lays down, expressed as rgba because React Native has no
- *  colour-mix. */
+/** softOn is the wash a row carries when it owns a colour, the same 12 to 14%
+ *  the web build lays down, as rgba because React Native has no colour-mix. */
 export function softOn(hex: string, alpha = 0.14): string {
   if (!valid(hex)) return 'transparent';
   const { r, g, b } = parse(hex);
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
-/** The appearance an instance reports, which is where these settings live -
- *  see AppearanceContext for why the instance leads and the app may override. */
+/** The appearance an instance reports, which is where these settings live. See
+ *  AppearanceContext for why the instance leads and the app may override. */
 export interface InstanceAppearance {
   shape?: string;
   accent?: string;
@@ -201,15 +195,10 @@ export interface InstanceAppearance {
 export function rainbowFromSettings(s: InstanceAppearance | undefined): RainbowState {
   const p = s?.rainbowPalette;
   const palette = Array.isArray(p) && p.length === RAINBOW.length && p.every(valid) ? p : RAINBOW;
-  // The palette travels even when the mode is OFF, and that is not tidiness.
-  //
-  // Returning RAINBOW_OFF wholesale threw the instance's own eight colours away
-  // and handed back the defaults, which was invisible for as long as nothing
-  // drew them - the mode being off makes rainbowColor answer undefined either
-  // way. The settings screen now shows the palette as a dimmed row, so an
-  // instance with a custom palette would display the DEFAULT eight while the
-  // mode was off and eight different ones the moment it went on. `on` is what
-  // switches the mode; the palette is only ever data.
+  // The palette travels even while the mode is off. The settings screen shows
+  // it as a dimmed row, so handing back RAINBOW_OFF wholesale would display the
+  // default eight while the mode was off and the instance's eight the moment it
+  // went on. `on` switches the mode; the palette is data.
   return {
     on: !!s?.rainbow,
     reactive: !!s?.rainbowReactive,

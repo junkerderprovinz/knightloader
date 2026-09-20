@@ -4,19 +4,18 @@ export interface LanguageDef {
   code: string;
   label: string;
   /**
-   * ISO 3166-1 alpha-2 region, or an ISO 3166-2 subdivision like "es-ct" -
-   * the exact same field the web UI's own lib/i18n.tsx carries, kept
-   * identical on purpose so the two language lists can be diffed against
-   * each other rather than drifting into two slightly different opinions
-   * about which flag belongs to which language.
+   * ISO 3166-1 alpha-2 region, or an ISO 3166-2 subdivision like "es-ct". The
+   * same field the web UI's lib/i18n.tsx carries, so the two language lists can
+   * be diffed rather than drifting apart over which flag belongs to which
+   * language.
    */
   flag: string;
 }
 
-// Mirrors the web UI's own lib/i18n.tsx CATALOGUE - same languages, same
-// native labels, same order, same flag regions. Filtered to AVAILABLE the
-// same way the web UI filters its own, so a language listed here always
-// means a real shipped translation, never a fallback to English in disguise.
+// Mirrors the web UI's lib/i18n.tsx CATALOGUE: same languages, native labels,
+// order and flag regions. Filtered to AVAILABLE the way the web UI filters its
+// own, so a language listed here has a shipped translation rather than a
+// fallback to English.
 const CATALOGUE: LanguageDef[] = [
   { code: 'en', label: 'English', flag: 'gb' },
   { code: 'de', label: 'Deutsch', flag: 'de' },
@@ -53,10 +52,10 @@ const CATALOGUE: LanguageDef[] = [
   { code: 'lv', label: 'Latviešu', flag: 'lv' },
   { code: 'et', label: 'Eesti', flag: 'ee' },
   { code: 'is', label: 'Íslenska', flag: 'is' },
-  // The three languages of Spain get their own regional flags on the web,
-  // where flag-icons ships real es-ct/es-ga/es-pv artwork. Emoji has no
-  // renderable equivalent (see flagEmoji below), so here they fall back to
-  // the Spanish flag and the native label alone tells them apart.
+  // On the web these three carry regional flags, where flag-icons ships
+  // es-ct/es-ga/es-pv artwork. Emoji has no renderable equivalent (see
+  // flagEmoji below), so here they fall back to the Spanish flag and the native
+  // label tells them apart.
   { code: 'ca', label: 'Català', flag: 'es-ct' },
   { code: 'gl', label: 'Galego', flag: 'es-ga' },
   { code: 'eu', label: 'Euskara', flag: 'es-pv' },
@@ -79,11 +78,10 @@ export const LANGUAGES: LanguageDef[] = CATALOGUE.filter((l) => AVAILABLE.includ
  * the catalogue above.
  *
  * Subdivisions (es-ct Catalonia, es-ga Galicia, es-pv Basque Country) fall
- * back to their parent country's flag: Unicode only has tag-sequence flags
- * for England, Scotland and Wales in its recommended set, so a Catalan tag
- * sequence would render as blank or tofu on essentially every device rather
- * than as the flag it names. The parent flag is the honest degradation - the
- * native label next to it is what actually distinguishes those three.
+ * back to their parent country's flag: Unicode's recommended set has
+ * tag-sequence flags for England, Scotland and Wales alone, so a Catalan tag
+ * sequence renders as blank or tofu on nearly every device. The native label
+ * beside the parent flag is what distinguishes those three.
  *
  * Rendering relies on the platform emoji font (Noto Color Emoji on Android
  * 7+, which is this app's minSdk, and Apple Color Emoji on iOS). A small

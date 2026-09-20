@@ -20,16 +20,13 @@ function formatBytes(n: number): string {
   return `${(n / 1024 ** i).toFixed(i === 0 ? 0 : 1)} ${units[i]}`;
 }
 
-// The palette is handed in rather than read from a module: this runs outside
-// any component, where a hook cannot go, and a fixed palette here would be the
-// one colour on the row that never follows a theme change.
 /**
  * blend lays `over` on `base` at `alpha`, returning an opaque colour.
  *
  * Computed rather than layered as a translucent view: React Native has no
  * colour-mix and no inset shadow, and a second absolutely-positioned view
  * inside every row would sit above the row's own children and swallow their
- * touches. Mixing the value is the version with no side effects.
+ * touches.
  */
 function blend(base: string, over: string, alpha: number): string {
   const b = rgb(base);
@@ -46,14 +43,13 @@ function rgb(hex: string): { r: number; g: number; b: number } | null {
 }
 
 /**
- * The word's colour. `accentInk` and not the accent, and that distinction is
- * the whole of this function's signature.
+ * The status word's colour: `accentInk` rather than the accent.
  *
- * A colour on a `background` is the accent; a colour a reader has to READ is
- * the accent darkened until it can be, because gold text on a white card is
- * unreadable at 12 points whichever gold it is. The row's own fill - the wash
- * and the progress bar - still takes the undarkened one, which is why the two
- * arrive here as two arguments rather than one.
+ * A colour on a background is the accent; a colour a reader has to read is the
+ * accent darkened until they can, because gold text on a white card is
+ * unreadable at 12 points whichever gold it is. The row's own fill, the wash
+ * and the progress bar, takes the undarkened one, which is why the palette and
+ * the ink arrive as two arguments.
  */
 function statusColor(status: string, c: Palette, accentInk: string): string {
   switch (status) {
@@ -73,23 +69,18 @@ function statusColor(status: string, c: Palette, accentInk: string): string {
 export default function TaskRow({ task, index }: { task: Task; index: number }) {
   const { t } = useT();
   const { c, accent, dark, radii, hueAt, rainbow } = useAppearance();
-  // The rainbow hands colours out by POSITION, so this row's colour comes from
-  // where it sits, not from its id. A hash keeps a row's colour when the rows
-  // above it finish, which sounds better until three rows and eight colours
-  // give two neighbours the same one - the single thing the mode exists to
-  // prevent.
+  // The rainbow hands colours out by position, so this row's colour comes from
+  // where it sits rather than from its id. A hash keeps a row's colour when the
+  // rows above it finish, and with three rows and eight colours it gives two
+  // neighbours the same one, which the mode exists to prevent.
   const hue = hueAt(index);
   // The colour this row paints activity in: its own when the mode is on, the
   // single accent otherwise.
   const rowAccent = hue ?? accent;
-  // The same colour where it has to be READ instead of filled.
-  //
-  // The context builds this pair for the flat accent already; the rainbow half
-  // never had a counterpart, so a row's own hue reached a `color:` undarkened
-  // and the word RUNNING stood in sunflower yellow on a white card at 12 points
-  // and bold. Derived here from the one rule the whole family uses - the accent
-  // 55% of the way to black on a light ground, itself on a dark one - rather
-  // than from a second number picked to look right on this screen.
+  // The same colour where it has to be read instead of filled, by the rule the
+  // whole family uses: the accent 55% of the way to black on a light ground and
+  // itself on a dark one. The context builds this pair for the flat accent; the
+  // rainbow half has no counterpart, so a hue would reach a `color:` undarkened.
   const rowInk = dark ? rowAccent : inkFor(rowAccent);
   const pct = task.size > 0 ? Math.min(100, Math.round((task.loaded / task.size) * 100)) : null;
   const statusKey = STATUS_KEYS[task.status];
@@ -99,23 +90,18 @@ export default function TaskRow({ task, index }: { task: Task; index: number }) 
       style={[
         styles.row,
         { backgroundColor: c.surface, borderRadius: radii.card },
-        // The row itself carries a wash of its colour, and it has to: without
-        // it the hue reaches the row only through the progress bar - and that
-        // turns green when a download finishes, because green means finished
-        // everywhere. On a list of finished downloads the mode that exists for
-        // lists would then show nothing at all.
+        // The row carries a wash of its colour. Without it the hue reaches the
+        // row only through the progress bar, which turns green when a download
+        // finishes, so a list of finished downloads would show nothing of the
+        // mode that exists for lists.
         //
         // "reactive" is the restrained reading: rest neutral, colour what is
-        // running. There is no hover on a phone, so what is running is the
-        // whole of it here.
-        // 16%, not the 7% this shipped with. GlimStone's own changelog names
-        // that exact number as the one that drew three independent "the mode
-        // does nothing when I turn it on" reports on the web: it applied
-        // correctly the whole time and sat under the threshold anyone
-        // registers as change. The running row gets the stronger 22% the web
-        // gives the selected row - a phone has no hover, so "running" is this
-        // list's active state (jdp, 2026-08-29: "Regenbogenmodus ...
-        // funktionieren nicht").
+        // running. A phone has no hover, so running is the whole of it here.
+        //
+        // 16%, because GlimStone's changelog names 7% as the value that sat
+        // under the threshold anyone registers as change. The running row gets
+        // the stronger 22% the web gives the selected row, running being this
+        // list's active state.
         hue && (!rainbow.reactive || task.status === 'running')
           ? { backgroundColor: blend(c.surface, hue, task.status === 'running' ? 0.22 : 0.16) }
           : null,
@@ -143,21 +129,17 @@ export default function TaskRow({ task, index }: { task: Task; index: number }) 
           {pct !== null ? ` · ${pct}%` : ''}
         </Text>
         {task.speed > 0 && <Text style={[styles.meta, { color: c.textMuted }]}>{formatBytes(task.speed)}/s</Text>}
-        {/* Whether this goes out on an account, in the same muted metadata ink
-            as the byte count beside it (jdp, 2026-09-02: "Wenn man links
-            runterladen möchte für die kein premium account hinterlegt ist muss
-            das angezeigt werden"). A word, not a badge and not a colour: "free"
-            is an answer, not a warning, and a link with no account behind it
-            looked exactly like one with an account behind it right up until it
-            was slow or asking for a captcha. Nothing at all for an ordinary
-            file, which is neither. */}
         {/* The backend's own word for what is happening, when "running" is not
-            the whole truth. Same reasoning as the web list's own note column. */}
+            the whole truth. The web list carries the same note column. */}
         {task.note ? (
           <Text style={[styles.meta, { color: c.textMuted }]} numberOfLines={1}>
             {task.note}
           </Text>
         ) : null}
+        {/* Whether this goes out on an account, in the same muted metadata ink
+            as the byte count beside it. A word rather than a badge or a colour,
+            because "free" is an answer and not a warning, and nothing at all
+            for an ordinary file, which is neither. */}
         {task.mode ? (
           <Text style={[styles.meta, { color: c.textMuted }]}>
             {t(task.mode === 'premium' ? 'task.mode.premium' : 'task.mode.free')}
@@ -174,16 +156,16 @@ export default function TaskRow({ task, index }: { task: Task; index: number }) 
   );
 }
 
-// Colours and radii are applied inline from the resolved tokens, never baked
-// in here: a stylesheet is built once and cannot follow a theme change.
+// Colours and radii are applied inline from the resolved tokens rather than
+// baked in here: a stylesheet is built once and cannot follow a theme change.
 const styles = StyleSheet.create({
   row: {
     padding: 12,
     marginBottom: 8,
   },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  // marginEnd, not marginRight: the app ships Arabic, Hebrew and Persian, and a
-  // physical edge is one that keeps its gap on the same side of the screen
+  // marginEnd rather than marginRight: the app ships Arabic, Hebrew and
+  // Persian, and a physical edge keeps its gap on the same side of the screen
   // while everything around it mirrors.
   name: { fontSize: TYPE.body, fontWeight: '500', flex: 1, marginEnd: 8 },
   status: { fontSize: TYPE.dense, fontWeight: '600', textTransform: 'uppercase' },
@@ -194,10 +176,9 @@ const styles = StyleSheet.create({
   },
   progressFill: { height: '100%' },
   footer: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 },
-  // Tabular figures: this line is a byte count, a total and a percentage that
-  // are rewritten every refresh, in a row that stacks down the whole screen -
-  // both halves of the rule at once. With proportional digits the footer
-  // shuffles sideways on every tick.
+  // Tabular figures: a byte count, a total and a percentage rewritten every
+  // refresh, in a row that stacks down the whole screen. With proportional
+  // digits the footer shuffles sideways on every tick.
   meta: { fontSize: TYPE.dense, ...NUM },
   errorText: { fontSize: TYPE.dense, marginTop: 6 },
 });

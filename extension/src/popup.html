@@ -1,6 +1,6 @@
 <!doctype html>
-<!-- The pre-resolution values only; i18n.js overwrites both from the language
-     it resolves, before a single label is written. See options.html. -->
+<!-- The values before the language is known; i18n.js replaces them before any
+     label is written. -->
 <html lang="en" dir="ltr">
   <head>
     <meta charset="UTF-8" />
@@ -8,38 +8,19 @@
     <link rel="stylesheet" href="glimstone.css" />
     <link rel="stylesheet" href="flags.css" />
     <style>
-      /* First, and !important, because an id rule that sets `display` outranks
-         the browser's own `[hidden] { display: none }` - and then the attribute
-         is a comment. `#collector { display: flex }` did exactly that, so the
-         link collector was on screen from the first paint whether or not there
-         was an instance to send to (jdp, 2026-08-31: "solange keine Instanz
-         hinzugefügt wurde soll der linksammler ausgeblendet sein"). The code
-         hiding it was correct the whole time; the stylesheet quietly refused.
-         The same defect sat on the options page's own leave button. One rule
-         per page in this family, so `hidden` means hidden everywhere. */
+      /* An id rule that sets `display` outranks the browser's own
+         `[hidden] { display: none }`, so the attribute gets the weight to win. */
       [hidden] { display: none !important; }
       body {
-        /* 420, up from 360, which was up from 280 (jdp, 2026-08-27: "Das
-           Popupfenster der erweitterung soll größer sein"; 2026-08-29: "die
-           instanzencards im popup auch größer"). A browser action popup may
-           be up to 800x600; this is not about reaching that. 280 made #target
-           - a page title, which can be long - wrap to three or four lines.
-           360 fixed that and was then too narrow for the card the instances
-           grew into: a 48px mark, a name, a status line and three square
-           badges do not share 360 without the line being ellipsised into
-           uselessness. */
+        /* Wide enough for an instance card with its mark, name, status line
+           and three square badges, and for a long page title. */
         margin: 0;
         width: 420px;
         padding: 16px;
         background: var(--carbon-bg);
         color: var(--carbon-text);
-        /* The same stack the web interface and the options page use, ending in
-           system-ui and sans-serif rather than on a fixed list of named fonts.
-           That tail is what lets a browser fall back PER CHARACTER to whatever
-           the system already has for a script the first choice is thin on - and
-           this extension ships Chinese, Japanese and Korean. Without system-ui,
-           Linux and Android have neither -apple-system nor Segoe UI and drop all
-           the way to the generic sans-serif. */
+        /* The web interface's stack. system-ui lets the browser fall back per
+           character for Chinese, Japanese and Korean. */
         font-family: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif;
         font-size: var(--text-body);
         line-height: 1.4;
@@ -50,13 +31,8 @@
         gap: 10px;
         margin-bottom: 14px;
       }
-      /* The app's own mark, at a size worth looking at (jdp, same message:
-         "auch das logo in schöner größe anzeigen") rather than the 16px
-         favicon the browser already shows in the toolbar - repeating that
-         here at that size would add nothing. The SVG, not one of the PNGs in
-         icons/: those exist at fixed sizes for the manifest, and this needs
-         to be crisp at a size none of them is. It is tall (559x897), so the
-         height is what is set and the width follows. */
+      /* The SVG, since no PNG in icons/ has this size. The mark is tall, so the
+         height is set. */
       .mark {
         display: block;
         height: 52px;
@@ -71,18 +47,8 @@
         font-weight: 600;
         color: var(--accent-ink);
       }
-      /* The settings badge (jdp: "im fenster oben rechts ein quadratischer
-         badge mit zahnrad um die einstellungen zu öffnen") — square, same
-         neutral/hover pair as the main app's own IconBadge (neutral kind:
-         web/src/components/ui.tsx), reused here in plain CSS since this
-         extension has no build step to pull the component from.
-
-         --btn-h, the one square-badge size the whole extension uses, not a
-         number fitted to this header. It was 26 here while the same class on
-         the options page was 36 and the square action on an instance card - a
-         card this very window draws - was 30. Roles are an authoring-side
-         abstraction; a reader sees one window with a header badge above a row
-         of card badges and reads three sizes of the same object. */
+      /* The settings badge, the web UI's neutral IconBadge (ui.tsx) in plain
+         CSS, at the one badge size of the extension (--btn-h). */
       .iconBadge {
         display: flex;
         flex-shrink: 0;
@@ -101,35 +67,14 @@
       }
       .iconBadge:hover { background: var(--carbon-surface3); color: var(--carbon-text); }
       .iconBadge:active { transform: scale(0.97); }
-      /* #target is the line naming what is about to be sent, and it is shown
-         only when it says something nothing else does: a parked Click'n'Load
-         batch, or a right-clicked link. For an ordinary toolbar click it is
-         hidden, because there it repeated the button underneath ("send this
-         page") and, on KnightLoader's own pages, the heading above it word
-         for word - reported twice, a year apart in feeling: 2026-08-24 "da
-         steht es doppelt", and 2026-08-29 "im popup steht KnightLoader wieder
-         zweimal. das zweite (untere) entfernen". An eyebrow label was the
-         first answer and it was the wrong one: it explained a line that did
-         not need to be there. */
+      /* #target names what is about to be sent; popup.js shows it only for a
+         parked send. */
       p {
         margin: 0 0 16px;
         color: var(--carbon-text-sub);
         overflow-wrap: anywhere;
       }
-      /* One height for every pressable thing in this window, --btn-h, the same
-         token the options page and the icon badges read (jdp, 2026-09-01 about
-         Send and Cancel: "beide buttons gleich groß machen").
-         They were `display: block` with padding and no height, so each ended up
-         as tall as its own text - fine until two of them stand in one row. 36
-         was the first correction and it was a number this window and the
-         options page agreed on between themselves rather than the one the
-         language names, which is how the field beside a button ended up three
-         pixels taller than it.
-
-         A flex row rather than a block, because every button here now carries a
-         glyph beside its label (jdp: "Alle buttons sollen einen Glyph bekommen.
-         Steht das nicht bereits so in GS?" - it does, under "Icon glyphs", and
-         this window was the surface not following it). */
+      /* Every button is --btn-h high and carries a glyph beside its label. */
       button {
         display: inline-flex;
         align-items: center;
@@ -144,14 +89,8 @@
         border-radius: var(--radius-control);
         font: inherit;
         font-weight: 500;
-        /* A label may never break over two lines. The height above is a fixed
-           one, so a second line does not make the button taller, it pushes the
-           text out through the top and bottom of its own surface and the
-           button beside it stops looking like the same object (jdp,
-           2026-09-02: "Buttons wieder nicht gleich groß"). `overflow: hidden`
-           is the companion half: with wrapping off, a translation longer than
-           its half of the row would otherwise paint across the neighbouring
-           button's surface instead of staying inside its own. */
+        /* A label never wraps, since the height is fixed; overflow keeps a long
+           translation inside its own button. */
         white-space: nowrap;
         overflow: hidden;
         cursor: pointer;
@@ -159,25 +98,13 @@
       button svg { flex-shrink: 0; }
       .primary { background: var(--accent); color: var(--accent-contrast); }
       .secondary { background: var(--carbon-surface2); color: var(--carbon-text); }
-      /* One rhythm, 16px, the same value the window pads itself with (jdp,
-         2026-08-29: "die instanzencards und der untere button haben zu sich
-         und zum unteren fensterende unterschiedliche abstände"). The gap
-         between the last card and the button was 12 while the gap below the
-         button was 16 plus an always-present, always-empty status line worth
-         another 17 - so the bottom looked heavier than the top for a reason
-         that was not visible on screen. An empty status line now takes no
-         space at all; a real message still pushes the window taller, which is
-         honest, because a message appearing IS a change. */
+      /* 16px, the window's own padding, between every block. An empty status
+         line takes no space. */
       #status { color: var(--carbon-text-muted); font-size: var(--text-caption); margin-top: 16px; }
       #status:empty { display: none; }
       #instanceRow { margin-bottom: 16px; }
       #instanceRow label { display: block; font-size: var(--text-caption); color: var(--carbon-text-muted); margin-bottom: 4px; }
-      /* Shaped like a text field rather than left native: it sits under a
-         label in the same column as the Send button. Same correction as
-         options.html's own selects - a filled surface2 and no border, which
-         is what the web UI's field actually is. The height comes from --btn-h
-         rather than from its own padding, because --btn-h IS what a field
-         measures and the button directly beneath it reads the same token. */
+      /* Shaped like the web UI's field: filled, no border, --btn-h high. */
       #instance {
         width: 100%;
         box-sizing: border-box;
@@ -192,62 +119,26 @@
         transition: box-shadow 150ms ease;
       }
       #instance:focus { box-shadow: 0 0 0 2px var(--focus-ring); }
-      /* 16, the same number as every other vertical gap in this window (jdp,
-         2026-08-30: "Die abstaände zwischen den instanzen-cards und des
-         buttons darunter sind unterschiedlich"). It was 8 while the gap under
-         the last card was 16 - measured, not assumed: three cards rendered
-         8/8/16, so the button sat visibly further from the stack than the
-         cards sat from each other. The 1.9.0 pass that claimed "one rhythm"
-         only made the button's own two sides match and never touched the
-         list. Now: card to card, card to button and button to window edge are
-         one number. The label above the list keeps its tight 6px - that gap
-         belongs to the group it names, not to the rhythm between blocks. */
+      /* 16 between cards, as everywhere in the window; the label keeps a tight
+         6px. */
       #instanceList { display: flex; flex-direction: column; gap: 16px; margin-top: 6px; }
       #instanceLabel { margin: 0; }
-      /* Send and its cancel share a row; cancel is only there while a clock is
-         running, so the send button is full width the rest of the time.
-
-         BOTH buttons need the flex rule, not just the sending one (jdp,
-         2026-09-02: "Buttons wieder nicht gleich groß", with a shot of a
-         narrow two-line "Jetzt senden (11)" next to a wide "Abbrechen"). It
-         used to be `.sendRow #send { flex: 1 }` alone, which left cancel on
-         the base rule's `width: 100%`: cancel therefore asked for the whole
-         420px row as its flex basis, send asked for 0, the two together
-         overflowed, and the algorithm froze send at its automatic min-content
-         width - the width of its longest WORD - and handed the rest of the
-         line to cancel. That is why the label broke over two lines and spilled
-         out of its fixed box, which is what made the heights look unequal
-         as well.
-
-         `flex-basis: 0` on both means the split is (420 - 8) / 2 regardless of
-         how long either label is, and `min-width: 0` switches off the
-         automatic min-content floor that did the squeezing. Same pattern as
-         .collectorRow below, which is the row this one had drifted away from.
-         The `> button` child selector rather than an id, so a third control
-         added to this row cannot silently opt out of the split. */
+      /* Send and its cancel share a row; cancel shows only while a countdown
+         runs. flex-basis 0 and min-width 0 on both split the row evenly
+         whatever the labels, since the base rule's width: 100% would otherwise
+         squeeze one of them. */
       .sendRow { display: flex; gap: 8px; }
       .sendRow > button { flex: 1 1 0; min-width: 0; }
       #tabs { margin-bottom: 12px; }
-      /* The two panes are the same height, so switching tabs does not resize
-         the window (jdp, 2026-09-01: "wenn man in den reiter linksaammler
-         wechselt soll das fenster gleich groß bleiben, die dropzone soll ihre
-         größe entprechend anpassen").
-
-         A browser action popup sizes itself to its content, so a shorter pane
-         made the whole window jump. The panes share a minimum height and the
-         collector's field takes whatever is left over - the dropzone adapts,
-         which is exactly what he asked for and also the only part of it that
-         CAN adapt: everything else in that pane is a fixed-height control. */
+      /* Both panes share a minimum height so switching tabs does not resize the
+         popup; the collector's field takes the rest. */
       #paneSend,
       #collector { min-height: 268px; }
       #collector { margin-top: 0; display: flex; flex-direction: column; gap: 8px; }
       #collector .drop { flex: 1; display: flex; }
       #collectorLabel { margin: 0; }
-      /* The drop target IS the field, not a dashed rectangle around one: a
-         drawn outline is the one thing this language does not do, so the
-         "you may drop here" state is a change of SURFACE instead - the well
-         one step deeper, and a ring in the focus colour while something is
-         over it. */
+      /* The field itself is the drop target; a ring in the focus colour shows
+         it while something is dragged over. */
       .drop { border-radius: var(--radius-control); transition: box-shadow 150ms ease; }
       .drop.over { box-shadow: 0 0 0 2px var(--focus-ring); }
       #links {
@@ -261,24 +152,14 @@
         color: var(--carbon-text);
         font: inherit;
         font-size: var(--text-dense);
-        /* No manual resize handle: the field grows with the pane now, and a
-           drag corner on a box that already sizes itself is a control fighting
-           the layout. */
+        /* The field grows with the pane. */
         resize: none;
         outline: none;
       }
       #links:focus { box-shadow: 0 0 0 2px var(--focus-ring); }
-      /* Two buttons sharing a line, each half of it. Both ACCENT-filled (jdp,
-         2026-09-01: "die buttons sind nicht farbig"): "add these links" and
-         "pick files" are the two things this pane exists for, so neither is a
-         secondary action here - `secondary` was inherited from when they sat
-         under a Send button that outranked them, and in their own tab there is
-         nothing left for them to be secondary TO. */
+      /* Two accent buttons sharing a line; min-width 0 keeps a long label in its
+         half, as in .sendRow. */
       .collectorRow { display: flex; gap: 8px; }
-      /* `min-width: 0` for the same reason it is on .sendRow above: with
-         wrapping switched off in the base rule, a button's automatic minimum
-         is the width of its WHOLE label, so a long translation would push this
-         row wider than the 420px window instead of staying in its half. */
       .collectorRow button { flex: 1; min-width: 0; }
     </style>
   </head>
@@ -286,37 +167,13 @@
     <div class="header">
       <img src="logo.svg" alt="" aria-hidden="true" class="mark" />
       <h1>KnightLoader</h1>
-      <!-- One control, one tooltip mechanism (GlimStone 1.8.0). This element
-           carried `title="Settings"` AND a data-tip written by popup.js, which
-           is two bubbles on one button: tooltip.js upgrades a stray native
-           title to a data-tip on first hover, but only where there is no
-           data-tip yet, so here the upgrade never ran and the browser's own
-           balloon fired beside ours. The title is the half that goes - it was
-           also hard-coded English on a window that ships in 42 languages, while
-           the data-tip and the accessible name are both written from the
-           catalogue. Both are set in popup.js for the same reason.
-
-           The aria-label stays, and it is not the same thing: an accessible
-           name is not a bubble, nothing renders it beside ours, and it is the
-           name this button has in the frame before popup.js has read the
-           catalogue. popup.js overwrites it in the reader's own language a
-           moment later, exactly like every other English word in this file. -->
+      <!-- No title attribute: popup.js sets the translated data-tip and
+           aria-label, and a title would show the browser's own balloon beside
+           the bubble (GlimStone 1.8.0). The aria-label is the name until
+           popup.js runs. -->
       <button id="openOptions" class="iconBadge" type="button" aria-label="Settings">
-        <!-- The web UI's own gear (web/src/lib/icons.tsx, IconSettings), copied
-             path for path. It was a STROKED outline here, which is the one
-             thing the design language's icon rule forbids outright: a
-             line-drawn glyph sits at a different weight than the filled badges
-             and filled switches around it, and at 16px with a 2px stroke it
-             stopped reading as a gear at all and became a blob. Caught in a
-             store screenshot, not in the code.
-
-             16 in the 32px badge: a glyph alone in a square is HALF its box
-             (1.8.0), and the half moves with the box rather than being restated
-             per size - it was 13 in 26 for the same reason. At 62% it read as
-             chunky, which is the exact ratio the rule was written against ("die
-             glyphen sind zu gross und wirken klobig") - there are no words
-             beside it to match, so the only proportion left is how much of the
-             frame the ink takes. -->
+        <!-- The web UI's filled gear (IconSettings in web/src/lib/icons.tsx),
+             half the badge's size. -->
         <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
           <path
             fill-rule="evenodd"
@@ -326,13 +183,8 @@
         </svg>
       </button>
     </div>
-    <!-- Two tabs, the same shape the app's instance view uses (jdp,
-         2026-08-31: "Können wir im popupfenster zwei tabs machen wie inder app?
-         Instanzen und Linksammler?"). The window was one long column: the
-         instances, the send button, and then a collector nobody scrolled to.
-         Two halves, one visible at a time, and the strip only appears once
-         there is a group - with nothing to send to, a tab strip is two labels
-         over an empty page. -->
+    <!-- Instances and the link collector as two tabs, like the app. The strip
+         appears once there is a group. -->
     <div id="tabs" class="glim-seg" role="group" hidden></div>
 
     <div id="paneSend">
@@ -341,42 +193,16 @@
         <p id="instanceLabel" class="glim-eyebrow">Send to</p>
         <div id="instanceList"></div>
       </div>
-      <!-- Send and cancel share a row while a countdown is running (jdp,
-           2026-08-31: "Dort fehlt auch ein Abbrechen button wenn ein links
-           reingeladen wird und der countdown läuft"). Cancel only exists while
-           the clock does: a button that stops something not happening is a
-           button that has to be explained. -->
-      <!-- Cancel first, send second, and that is the ROW ORDER rather than a
-           reading order (GlimStone 1.14.0): in a pair, the control that moves
-           the thing forward sits at the end of the line and the one that holds
-           or takes it back sits ahead of it. This is the pair the rule was
-           written for - neither of these is a save or a cancel in vocabulary,
-           they are a clock running and a clock stopped, and the rule still has
-           to decide it. Position is a second signal that survives what colour
-           does not: it still says which is which for a colour-blind reader and
-           after somebody has repainted the accent.
-
-           It reads backwards in the source and correctly on the screen, which
-           is the usual shape of this correction. `.sendRow` is a flex row, so
-           the pair mirrors with the page under a right-to-left language - and
-           now it actually does: i18n.js sets `dir` on <html> from the resolved
-           language, so for the ar, he and fa catalogues this window ships,
-           "end" is the left of the glass and the send button goes there with
-           everything else that ends a line. That gap is closed; the note is
-           kept because it is the reason this row is written in this order. -->
+      <!-- Cancel comes first so the button that goes ahead ends the row
+           (GlimStone 1.14.0); the flex row mirrors under a right-to-left
+           language. Cancel shows only while a countdown runs. -->
       <div class="sendRow">
         <button id="cancelCountdown" class="secondary" type="button" hidden></button>
         <button id="send" class="primary">Send this page</button>
       </div>
     </div>
 
-    <!-- The collector (jdp, 2026-08-30: "unter den instanzencards soll eine
-         linksammler cards sein mit dropzone für links und button um dateien
-         hinzuzufügen"). Everything above this point sends ONE thing that
-         something else chose - the current tab, a right-clicked link, a caught
-         container. This is the other direction: paste or drop whatever you
-         have. Below the send button on purpose, because that button is what
-         the window is usually opened for. -->
+    <!-- The link collector: paste or drop links, or pick files. -->
     <div id="collector" hidden>
       <p id="collectorLabel" class="glim-eyebrow"></p>
       <div id="drop" class="drop">
@@ -386,15 +212,14 @@
         <button id="pickFiles" class="primary" type="button"></button>
         <button id="addLinks" class="primary" type="button"></button>
       </div>
-      <!-- Hidden and clicked from the button beside it: a native file input
-           cannot be styled into this language, and a button that opens it can. -->
+      <!-- Opened from the button beside it, since a native file input cannot
+           be styled. -->
       <input id="files" type="file" multiple hidden />
     </div>
 
     <div id="status"></div>
-    <!-- Appearance first: the look is put on <html> before anything is
-         drawn, so no page is ever painted in one look and repainted in
-         another. -->
+    <!-- appearance.js first, so the look is on <html> before anything is
+         drawn. -->
     <script src="appearance.js"></script>
     <script src="i18n.js"></script>
     <script src="shared.js"></script>

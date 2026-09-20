@@ -1,15 +1,8 @@
-// Command spike-torrent is the Wave 11.5 verify-first spike.
-//
-// docs/torrent-support.md left one fact unconfirmed and named it as the first
-// job of the wave: the exact path from a live gopeed download.Task to a
-// populated bt.Stats (peers, seeds, ratio). This program answers it against a
-// real magnet link and the real embedded engine, and prints the concrete Go
-// type that comes back so nothing downstream is written against a guess.
-//
-// It also prints what a resolve returns before any bytes move (the file list a
-// selection tree would be built from, the info hash, whether gopeed exposes the
-// BEP 27 private flag at all), because those are the other three things the
-// wave's build agents need to agree on.
+// Command spike-torrent runs a real magnet link through the embedded gopeed
+// engine and prints how a download.Task leads to a populated bt.Stats, with the
+// concrete Go type that comes back. It also prints what a resolve returns
+// before any bytes move: the file list, the info hash and whether the BEP 27
+// private flag is exposed.
 //
 // Run: go run ./cmd/spike-torrent   (magnet overridable via KL_SPIKE_MAGNET)
 package main
@@ -25,9 +18,8 @@ import (
 	gbt "github.com/GopeedLab/gopeed/pkg/protocol/bt"
 )
 
-// Sintel, the Blender Foundation short. Public domain, permanently and heavily
-// seeded, and the same torrent the anacrolix client's own test suite leans on -
-// so a run that finds no peers is a network problem here, not a dead swarm.
+// Sintel, the Blender Foundation short, is heavily seeded and used by the
+// anacrolix test suite, so a run that finds no peers points at the network.
 const defaultMagnet = "magnet:?xt=urn:btih:08ada5a7a6183aae1e09d831df6748d566095a10&dn=Sintel&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A6969%2Fannounce&tr=udp%3A%2F%2Fexplodie.org%3A6969&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=wss%3A%2F%2Ftracker.btorrent.xyz&tr=wss%3A%2F%2Ftracker.openwebtorrent.com"
 
 func main() {
@@ -36,12 +28,12 @@ func main() {
 	defer os.RemoveAll(dir)
 
 	magnet := env("KL_SPIKE_MAGNET", defaultMagnet)
-	fmt.Println("KnightLoader Wave 11.5 - torrent spike")
+	fmt.Println("KnightLoader torrent spike")
 	fmt.Println("download dir:", dir)
 	fmt.Println("magnet:", magnet[:min(len(magnet), 90)], "...")
 
-	// Exactly what internal/engine.New builds: no FetchManagers override, so
-	// gopeed's own Init defaults them to http + bt + ed2k.
+	// The same config internal/engine.New builds: without a FetchManagers
+	// override gopeed's Init defaults to http, bt and ed2k.
 	cfg := (&download.DownloaderConfig{
 		RefreshInterval: 500,
 		DownloaderStoreConfig: &base.DownloaderStoreConfig{
@@ -66,7 +58,7 @@ func main() {
 		fmt.Printf("    event %-9s task=%s err=%v\n", e.Key, taskID(e), e.Err)
 	})
 
-	fmt.Println("\n[1] Resolve(magnet) - blocks until the swarm hands over metadata")
+	fmt.Println("\n[1] Resolve(magnet), blocks until the swarm hands over metadata")
 	start := time.Now()
 	rr, err := d.Resolve(&base.Request{URL: magnet}, &base.Options{Path: dir})
 	must(err)
@@ -89,7 +81,7 @@ func main() {
 	must(err)
 	fmt.Println("    gopeed task id:", gid)
 
-	fmt.Println("\n[3] Downloader.Stats(taskID) - the unconfirmed path")
+	fmt.Println("\n[3] Downloader.Stats(taskID)")
 	for i := 0; i < 20; i++ {
 		time.Sleep(2 * time.Second)
 		sr, err := d.Stats(gid)
@@ -149,7 +141,7 @@ func main() {
 		fmt.Println()
 		if t.Status == base.DownloadStatusDone {
 			fmt.Printf("    -> DONE with Uploading=%v  (this is the pair the Seeding flag is derived from)\n", t.Uploading)
-			// A few more ticks to watch SeedTime/SeedBytes move after done.
+			// A few more ticks to see SeedTime and SeedBytes move after done.
 			for j := 0; j < 3; j++ {
 				time.Sleep(3 * time.Second)
 				sr, _ := d.Stats(gid2)

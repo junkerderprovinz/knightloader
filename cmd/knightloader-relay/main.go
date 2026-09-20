@@ -1,28 +1,18 @@
-// Command knightloader-relay is the self-hosted message relay KnightLoader
-// instances use to find each other when neither of them can accept an inbound
-// connection - two desktop installs on different networks, say. Both dial out
-// to one relay; the relay forwards frames between whichever connections
-// present the same relay key.
+// Command knightloader-relay is the message relay KnightLoader instances use
+// when neither side can accept an inbound connection, such as two desktop
+// installs on different networks. Both dial out to the relay, which forwards
+// frames between connections that present the same relay key.
 //
-// It is deliberately its own binary and not a mode of the main server: it
-// downloads nothing, stores nothing and never sees a file byte, so the thing
-// exposed to the public internet has almost no surface. Run one yourself, the
-// same way you run KnightLoader itself - or use the one this project operates
-// (see docs/superpowers/specs/2026-08-27-public-relay-seed-phrase-design.md).
+// It is a separate binary so that what faces the public internet downloads
+// nothing, stores nothing and never sees a file byte.
 //
 // # TLS
 //
-// Set KL_RELAY_DOMAIN and this binary terminates TLS itself on :443, getting
-// and renewing its own Let's Encrypt certificate. No reverse proxy, no
-// certbot, no cron entry, and - the reason it is done this way rather than
-// with the usual HTTP-01 challenge - no port 80. The firewall in front of
-// this only opens 443, and TLS-ALPN-01 completes the challenge inside a TLS
-// handshake on that same port, so the narrower firewall costs nothing.
-//
-// Leave KL_RELAY_DOMAIN unset and it serves plain HTTP on KL_RELAY_ADDR, for
-// a local test or for somebody who does want their own proxy in front. The
-// relay key is a credential, so anything reachable from outside a trusted
-// network needs one of the two.
+// With KL_RELAY_DOMAIN set it terminates TLS on :443 and manages its own Let's
+// Encrypt certificate through tls-alpn-01, so port 80 can stay closed. Without
+// it, it serves plain HTTP on KL_RELAY_ADDR for a local test or a proxy in
+// front. The relay key is a credential, so anything reachable from outside a
+// trusted network needs one of the two.
 package main
 
 import (
@@ -46,55 +36,40 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/relay"
 )
 
-// shutdownGrace bounds how long a graceful stop waits for connections to end
-// before it stops waiting. Shorter than the main server's own grace period:
-// nothing here is mid-transfer, and a client whose socket is cut simply
-// reconnects and re-announces.
+// shutdownGrace bounds how long a graceful stop waits for connections. Nothing
+// here is mid-transfer, and a cut client reconnects and announces again.
 const shutdownGrace = 5 * time.Second
 
 func main() {
-	// No client address reaches the log. The relay logs nothing about who
-	// connects, but net/http's server log names the client on every failed or
-	// abandoned TLS handshake, some HTTP/2 errors and any panic, and on a
-	// systemd host that went into the journal with no retention while the
-	// privacy policy said the relay keeps no record. The standard logger is
-	// wrapped as well as the server's ErrorLog, so nothing that falls back to
-	// log.Printf can bring an address back.
+	// The privacy policy promises no record of who connects, but net/http logs
+	// the client address on failed TLS handshakes, some HTTP/2 errors and
+	// panics. Both the standard logger and the server's ErrorLog are redacted.
 	logOut := relay.RedactAddrs(os.Stderr)
 	log.SetOutput(logOut)
 
-	// 8760 is clear of both ports a machine running KnightLoader already has
-	// taken (:8749 for the app, :9666 for Click'n'Load), so the relay can be
-	// tried out on the same box before it moves to its own container.
+	// Clear of :8749 and :9666, so the relay can run beside KnightLoader.
 	addr := env("KL_RELAY_ADDR", ":8760")
 
 	r := relay.New()
-	// Rate-limit records are also dropped on the request path, at most once a
-	// minute; the timer covers a relay that goes quiet, so a failed address is
-	// forgotten within 61 minutes of its last attempt either way (see
-	// limiter.sweep, and the figure in extension/PRIVACY.md).
+	// The request path sweeps too, but only while traffic arrives. The timer
+	// keeps the 61 minute retention promised in extension/PRIVACY.md on a
+	// quiet relay.
 	go func() {
 		for range time.Tick(time.Minute) {
 			r.SweepLimiter()
 		}
 	}()
 	mux := http.NewServeMux()
-	// Same shape as the app's own GET /api/health, so one orchestrator health
-	// check works against either process without a second parser.
+	// Same shape as the app's GET /api/health, so one health check fits both.
 	mux.HandleFunc("GET /health", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(map[string]string{"status": "ok", "version": buildinfo.Version})
 	})
 	mux.Handle("GET /relay/connect", r)
 
-	// KL_RELAY_DOMAIN takes a COMMA-SEPARATED list, and the reason is a move
-	// rather than a preference. The relay's address is compiled into every
-	// released binary, so when that address changes, the old name has to keep
-	// working until nothing dials it any more. A single-name whitelist makes
-	// that impossible: the moment the new name is configured, the old one can
-	// no longer be issued a certificate, and an older build does not fall back,
-	// it fails in the TLS handshake. Two names for the length of the overlap,
-	// one name afterwards.
+	// KL_RELAY_DOMAIN is a comma-separated list because the relay address is
+	// compiled into released builds, so after a move the old name still needs
+	// a certificate until nothing dials it.
 	domains := splitNames(os.Getenv("KL_RELAY_DOMAIN"))
 	domain := ""
 	if len(domains) > 0 {
@@ -111,21 +86,15 @@ func main() {
 	if domain != "" {
 		m := &autocert.Manager{
 			Prompt: autocert.AcceptTOS,
-			// Pinned to the names this relay answers on. Without it,
-			// autocert would ask Let's Encrypt for a certificate for
-			// whatever name any caller put in its handshake, which is a
-			// rate limit waiting to be hit by the first scanner that finds
-			// the port. A list rather than one name so a change of address
-			// can overlap; see the comment where the list is read.
+			// Without a whitelist autocert requests a certificate for any
+			// name a scanner puts in its handshake, and burns the rate limit.
 			HostPolicy: autocert.HostWhitelist(domains...),
 			Cache:      autocert.DirCache(env("KL_RELAY_CERT_DIR", "/var/lib/knightloader-relay/certs")),
 		}
 		tlsCfg := m.TLSConfig()
-		// TLS-ALPN-01 only. m.TLSConfig() already lists it, but being
-		// explicit is the point: this is what lets the challenge complete
-		// without port 80, and a future edit that drops it would otherwise
-		// fail at renewal time - months later, on a certificate nobody was
-		// watching.
+		// m.TLSConfig already lists acme.ALPNProto. Spelling it out keeps an
+		// edit from dropping it, which would only surface months later when
+		// renewal fails without port 80.
 		tlsCfg.NextProtos = []string{"h2", "http/1.1", acme.ALPNProto}
 		tlsCfg.MinVersion = tls.VersionTLS12
 		srv.TLSConfig = tlsCfg
@@ -154,9 +123,8 @@ func main() {
 	case sig := <-stop:
 		log.Printf("shutting down (%s)", sig)
 	case err := <-serveErr:
-		// The listener stopped on its own, without Shutdown having been
-		// called - a startup failure (the address is already in use) is the
-		// ordinary way that happens.
+		// The listener stopped without Shutdown, usually because the address
+		// was already in use.
 		if err != nil {
 			log.Fatalf("serve: %v", err)
 		}
@@ -171,9 +139,8 @@ func main() {
 }
 
 // splitNames turns the comma-separated KL_RELAY_DOMAIN into the names the
-// certificate may cover. Empty entries are dropped rather than passed on: an
-// empty string in the whitelist would let a handshake with no server name
-// through, which is the one caller autocert must not answer.
+// certificate may cover. Empty entries are dropped, since an empty name in the
+// whitelist would admit handshakes without a server name.
 func splitNames(v string) []string {
 	var out []string
 	for _, part := range strings.Split(v, ",") {
@@ -191,10 +158,8 @@ func env(k, def string) string {
 	return def
 }
 
-// hostOr picks what the startup line should show as the reachable address:
-// the domain when TLS is on (the name clients actually dial, and the only
-// one the certificate is valid for), otherwise the bind address, which is
-// all a plain-HTTP run has.
+// hostOr returns the address the startup line shows: the domain when TLS is
+// on, otherwise the bind address.
 func hostOr(domain, addr string) string {
 	if domain != "" {
 		return domain

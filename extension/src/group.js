@@ -1,21 +1,12 @@
 /**
- * The group this browser belongs to, and the one thing it stores about it.
+ * The group this browser belongs to.
  *
- * This replaces the old registry of hand-typed {name, url} entries. That model
- * predates the connection phrase, and kept standing in a product that had moved
- * on — the WebUI and the phone had used the phrase for weeks while the options
- * page still asked for a name and an address (jdp, 2026-08-28: "Wieso muss man
- * eine Instanz per Name & Adresse hinzufügen? Das soll doch jetzt alles
- * ausschliesslich via Phrase laufen.").
+ * Only the phrase is stored. The keys are cheap to derive again, and a stored
+ * copy could go stale if the derivation changed; who is online comes from the
+ * relay on every connect.
  *
- * What is stored is the PHRASE and nothing else. Not the derived keys: they are
- * cheap to recompute (two SHA-256 hashes) and storing them would mean two
- * copies of the same secret in two shapes, one of which could go stale if the
- * derivation ever changed. Not the roster either — who is online is a fact about
- * right now, and the relay tells us on every connect.
- *
- * `defaultInstance` holds a relay instance id, so a group whose members were
- * renamed keeps pointing at the same machine.
+ * `defaultInstance` holds a relay instance id, so renaming a member keeps the
+ * choice on the same machine.
  */
 
 /** Reads the stored phrase, or '' when this browser has not joined a group. */
@@ -25,25 +16,18 @@ async function readPhrase() {
 }
 
 /**
- * Stores the phrase after checking it decodes.
- *
- * Checked here rather than trusted from the caller, because this is the one
- * door: a phrase that does not decode cannot reach anything, and storing it
- * would turn a typo into "the relay never connects" with nothing to look at.
- * Throws PhraseError, which the options page turns into a translated sentence.
+ * Stores the phrase after checking that it decodes, so a typo is reported
+ * instead of turning into a relay that never connects. Throws PhraseError.
  */
 async function writePhrase(phrase) {
   const normalised = String(phrase).trim().toLowerCase().split(/\s+/).filter(Boolean).join(' ');
-  await decodePhrase(normalised); // throws PhraseError on anything unusable
+  await decodePhrase(normalised);
   await chrome.storage.local.set({ phrase: normalised });
   return normalised;
 }
 
-/** Leaves the group: the phrase, the remembered target and this browser's
- *  random member id all go. The id went on living before, so a browser that
- *  left one group and joined another reconnected under the same id - which
- *  the relay could tie together, and which the privacy policy should not
- *  have to explain away. A new id is generated on the next join. */
+/** Leaves the group, dropping the phrase, the default target and the random
+ *  member id, so the relay cannot link this browser to its next group. */
 async function forgetGroup() {
   await chrome.storage.local.remove(['phrase', 'defaultInstance', 'selfId']);
 }
@@ -55,18 +39,9 @@ async function readDefaultTarget() {
 }
 
 /**
- * defaultOf resolves which instance in THIS group is the default, right now.
- *
- * There is always exactly one, and that is the point: nothing is stored until
- * somebody chooses, so a fresh join would otherwise show a group of cards with
- * no badge on any of them and no answer to "where does a send go". The first
- * instance stands in until a choice is made — and a stored choice that has
- * since left the group falls back the same way rather than pointing at
- * something that is not there.
- *
- * Deliberately NOT written back. Storing the fallback would turn "whichever is
- * first" into a decision somebody has to undo, and the order can change on its
- * own as instances come and go.
+ * defaultOf resolves the current default instance of the group. Until someone
+ * chooses, or when the stored choice has left, the first instance stands in.
+ * The fallback is not stored, since the order changes as instances come and go.
  */
 function defaultOf(siblings, stored) {
   if (stored && siblings.some((s) => s.instanceId === stored)) return stored;
@@ -78,11 +53,8 @@ async function writeDefaultTarget(instanceId) {
 }
 
 /**
- * A stable id for THIS browser inside the group.
- *
- * The relay tells instances apart by this, and joining twice under the same id
- * is what makes a reconnect a reconnect rather than a second member. Generated
- * once and kept, so a browser that reconnects is recognised as the same one.
+ * A stable id for this browser inside the group, generated once, so a
+ * reconnect is recognised as the same member.
  */
 async function selfInstanceId() {
   const stored = await chrome.storage.local.get('selfId');
@@ -94,12 +66,9 @@ async function selfInstanceId() {
 }
 
 /**
- * withGroup opens one relay session for the stored phrase and hands it to
- * `work`, exactly like relaySession — this only supplies the stored parts.
- *
- * Throws a plain Error with a translatable key when no phrase is stored, so
- * every caller reports the same thing in the reader's language rather than
- * three variations of "not configured".
+ * withGroup opens a relay session for the stored phrase and hands it to `work`,
+ * like relaySession. Without a phrase it throws an Error with code 'no-phrase'
+ * for callers to translate.
  */
 async function withGroup(work) {
   const phrase = await readPhrase();
@@ -115,35 +84,27 @@ async function withGroup(work) {
       key,
       frameKey,
       selfId: await selfInstanceId(),
-      // What the group's other members see this browser called. Deliberately
-      // not the browser's name or anything identifying: it is a label in a
-      // list, and the list belongs to somebody who already knows it is theirs.
+      // A plain label rather than anything identifying the browser.
       selfName: 'Browser',
     },
     work,
   );
 }
 
-/** The instances in the group, right now. Clients (other browsers, the phone)
- *  are already filtered out by relaySession — they are routable, but they are
- *  not somewhere to send a download to. */
+/** The instances in the group. relaySession already leaves out clients such as
+ *  other browsers and the phone, which cannot take a download. */
 async function groupInstances() {
   return withGroup(async ({ siblings }) => siblings);
 }
 
 /**
- * groupStatus is the group plus what each instance is currently doing.
+ * groupStatus is the group plus what each instance is doing, asked in parallel
+ * over one relay session through routes a member may reach (relayForwardable
+ * in internal/api/routes_relay.go). An instance that does not answer gets
+ * `status: null`, so its card can say offline.
  *
- * One relay session for the lot, and every instance asked in parallel: three
- * small reads each, all of them on the list a group member may reach
- * (relayForwardable in internal/api/routes_relay.go). An instance that does
- * not answer comes back as `status: null` rather than as a missing field, so
- * the card can say "offline" instead of quietly showing nothing.
- *
- * The web address is asked for rather than announced, and that is the whole
- * point: an address in the announce frame would be readable by the RELAY,
- * which is the one thing this design keeps out of everyone's business. A
- * proxied call travels inside the encrypted frame.
+ * The web address is asked for inside the encrypted frame rather than
+ * announced, where the relay could read it.
  */
 async function groupStatus() {
   return withGroup(async ({ siblings, call }) => {
@@ -163,9 +124,7 @@ async function groupStatus() {
           read(s.instanceId, '/api/queue/counters'),
           read(s.instanceId, '/api/remote-access'),
         ]);
-        // Nothing answered at all: the instance is in the roster (the relay
-        // has a live socket for it) but is not serving. Distinct from "it
-        // answered and has nothing to do".
+        // Connected to the relay but not serving, which differs from idle.
         if (!queue && !counters) return { ...s, status: null };
         return { ...s, status: { queue, counters, webUrl: bestWebUrl(remote) } };
       }),
@@ -174,13 +133,9 @@ async function groupStatus() {
 }
 
 /**
- * bestWebUrl picks the address most likely to work from THIS browser, out of
- * the list an instance reports.
- *
- * A loopback address is dropped outright: 127.0.0.1 on the instance is this
- * machine here, and offering it would open the wrong thing or nothing at all.
- * A remembered domain beats a bare IP, because a domain is what somebody
- * deliberately set up to reach the instance from outside.
+ * bestWebUrl picks the reported address most likely to work from this browser.
+ * Loopback addresses are dropped, since here they mean this machine, and a
+ * domain wins over a bare IP because someone set it up for outside access.
  */
 function bestWebUrl(remote) {
   const list = Array.isArray(remote?.addresses) ? remote.addresses : [];
@@ -197,9 +152,8 @@ async function setQueueHalted(instanceId, halted) {
   });
 }
 
-/** What one instance is called in a list. Falls back to the id's first octets
- *  so an instance that never set a name is still distinguishable from another
- *  that never set one either. */
+/** What an instance is called in a list, falling back to the start of its id so
+ *  two unnamed instances still differ. */
 function instanceLabel(inst) {
   return inst.name && inst.name.trim() ? inst.name.trim() : inst.instanceId.slice(0, 8);
 }

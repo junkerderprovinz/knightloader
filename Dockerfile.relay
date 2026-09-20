@@ -1,11 +1,6 @@
-# The self-hostable instance-pairing relay (cmd/knightloader-relay) - see
-# docs/superpowers/specs/2026-08-25-self-hosted-relay-design.md. Deliberately
-# its own image, not a mode of the main knightloader one: it carries none of
-# the main binary's dependencies (no yt-dlp, no ffmpeg, no JRE), holds no
-# state of its own beyond the current connection list (no VOLUME, nothing to
-# back up), and is meant to be run by anyone who wants relay-based pairing
-# for their own instances - not something KnightLoader operates on anyone's
-# behalf.
+# The self-hostable pairing relay (cmd/knightloader-relay). It has its own image
+# because it needs none of the main image's tools and keeps no state, so there
+# is no volume.
 
 FROM golang:1.27-alpine@sha256:4c9fe60190a2a3350ddc51de80d0224b8a6698d12bdfc999fee45ea9d6c46dbc AS build
 WORKDIR /src

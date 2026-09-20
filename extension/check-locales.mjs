@@ -1,11 +1,6 @@
-// Key parity for the extension's 42 locale catalogues.
-//
-// The web UI and the app both get this for free: their locales are declared
-// `: Dict`, so a missing key is a compile error. This extension deliberately
-// has no build step at all - src/ ships as plain files so "load unpacked"
-// works straight from a checkout (see ../embed.go) - which means nothing was
-// checking it. A locale short one key silently falls back to English for that
-// string, in one language, for whoever happens to speak it.
+// Key parity for the extension's locale catalogues. The web UI and the app get
+// it from the type checker; the extension has no build step, so a missing key
+// would quietly fall back to English.
 //
 // Run by CI and by hand: `node extension/check-locales.mjs`.
 
@@ -16,9 +11,8 @@ import { dirname, join } from 'node:path';
 const here = dirname(fileURLToPath(import.meta.url));
 const src = readFileSync(join(here, 'src', 'i18n.js'), 'utf8');
 
-// i18n.js is a plain script for <script> tags and importScripts, not a module,
-// so it cannot be imported. Evaluating just the MESSAGES literal is enough and
-// avoids pulling in the chrome.* calls further down the file.
+// i18n.js is a plain script, not a module, so only the MESSAGES literal is
+// evaluated, which also skips its chrome.* calls.
 const start = src.indexOf('const MESSAGES');
 if (start === -1) throw new Error('MESSAGES not found in src/i18n.js');
 const end = src.indexOf('\n};', start);
@@ -39,9 +33,6 @@ for (const loc of locales) {
   for (const k of keys) {
     if (!english.includes(k)) problems.push(`${loc}: stray ${k} (not in en)`);
   }
-  // A placeholder dropped in translation is a message that renders "{count}"
-  // to a person, or silently loses the number - neither is caught by a key
-  // check on its own.
   for (const k of english) {
     const src = MESSAGES.en[k];
     const dst = MESSAGES[loc][k];
@@ -50,10 +41,8 @@ for (const loc of locales) {
       if (!dst.includes(ph)) problems.push(`${loc}: ${k} lost the ${ph} placeholder`);
     }
   }
-  // English text left in a non-English catalogue is the usual shape of a
-  // half-done translation pass. Only exact equality is flagged: plenty of
-  // short strings legitimately match across languages ("QR", "Token"), so
-  // anything under 25 characters is left alone rather than made noisy.
+  // English left in another catalogue marks an unfinished translation. Short
+  // strings such as "QR" or "Token" are often the same in every language.
   if (loc !== 'en') {
     for (const k of english) {
       const en = MESSAGES.en[k];
@@ -64,18 +53,9 @@ for (const loc of locales) {
   }
 }
 
-// A key that exists in all 42 catalogues and is never read is exactly as broken
-// as a missing one, and this file could not see it: parity asks whether a key
-// EXISTS everywhere, not whether anything renders it. Found the hard way - the
-// appearance axes and the Problems heading were translated into every language
-// while options.html kept its English markup and nothing overwrote it, so the
-// page rendered half in the reader's language and half in English. It looked
-// fine in every check that existed.
-//
-// A crude substring search over the sources is enough here, because that is how
-// these keys are actually used: t('options.themeLabel'), spelled out. There is
-// no key assembled at runtime in this extension, and if one is ever added, this
-// will say so loudly rather than quietly stop covering it.
+// A key that nothing reads leaves its label in English on the page. A substring
+// search is enough because every key is spelled out at its t() call; a key
+// assembled at runtime would show up here as unread.
 const SRC = join(here, 'src');
 const sources = ['options.js', 'popup.js', 'picker.js', 'background.js', 'shared.js', 'appearance.js']
   .map((f) => join(SRC, f))

@@ -1,18 +1,15 @@
 import { en, type Dict } from './en';
 
-// Loaders, not dictionaries - same shape as the web UI's own
-// lib/locales/index.ts, and the same 42-language catalogue, so the family
-// offers one language list rather than three slightly different ones. On the
-// web that shape also splits each language into its own fetched-on-demand
-// chunk; Metro has no equivalent for a native bundle (every import(), lazy
-// or not, still lands in the one JS bundle the APK ships), so here it is
-// "only evaluated once selected" rather than "only downloaded once
-// selected" - a smaller win, but keeping the same loader interface still
-// means this app never needs its own load()/AVAILABLE story if it grows a
-// web build later.
+// Loaders rather than dictionaries, the shape the web UI's lib/locales/index.ts
+// uses, over the same 42-language catalogue, so the family offers one language
+// list. On the web each language is a chunk fetched on demand; Metro has no
+// equivalent for a native bundle, since every import() lands in the one JS
+// bundle the APK ships, so here a language is evaluated rather than downloaded
+// when it is selected. The shared interface is what lets this app grow a web
+// build without a second load()/AVAILABLE story.
 //
-// English is the exception - it is bundled, because it is both the most
-// likely fallback and needed before any other chunk has loaded.
+// English is bundled, being both the likeliest fallback and needed before any
+// other chunk has loaded.
 const LOADERS: Record<string, () => Promise<Dict>> = {
   en: async () => en,
   de: async () => (await import('./de')).de,

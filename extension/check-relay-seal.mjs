@@ -1,21 +1,10 @@
-// The extension's port of the relay frame format, checked against the same
-// fixed vector internal/relay's Go tests pin.
+// Checks the extension's port of the relay frame format against the fixed
+// vector internal/relay's Go tests pin. The Go server, the phone
+// (mobile/src/api/relayFrame.ts) and the extension have to agree byte for byte.
 //
-// Three implementations speak this protocol - internal/relay in Go, the phone
-// in TypeScript (mobile/src/api/relayFrame.ts), and this extension in plain
-// JavaScript - and only the first two had any test at all. A change to the
-// domain string, the \x00 separator, the JSON field names or the nonce
-// framing keeps every Go test green and ships as "the browser joins the group
-// and every instance shows it with no name", or worse, as an extension whose
-// announce no sibling can open.
-//
-// The vector below is byte-identical to the one in
-// internal/relay/announce_seal_test.go, produced with the phone's own cipher
-// library. Its nonce is a fixed run of 0x07 because a vector has to be
-// reproducible; nothing in production seals with a fixed nonce.
-//
-// It loads src/relay.js as a script rather than reimplementing anything, so
-// what is checked is the code that ships. Run by CI beside check-locales.mjs.
+// The vector matches internal/relay/announce_seal_test.go. Its nonce is a fixed
+// run of 0x07 so it is reproducible; nothing in production uses a fixed nonce.
+// src/relay.js is loaded as is, so the shipped code is what gets checked.
 
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -26,10 +15,8 @@ import { createHash, webcrypto } from 'node:crypto';
 const here = dirname(fileURLToPath(import.meta.url));
 const src = readFileSync(join(here, 'src', 'relay.js'), 'utf8');
 
-// The globals relay.js reaches for. The WebSocket is a fake that opens at
-// once and records what is written to it, so the last check below can read
-// the REAL hello frame the shipped code produces rather than a reconstruction
-// of it. Nothing here touches the network.
+// The globals relay.js uses. The fake WebSocket opens at once and records what
+// is written, so the last check reads the real hello frame.
 const sent = [];
 class FakeSocket {
   constructor() {
@@ -93,9 +80,8 @@ if (!r.opened) {
   failures.push(`the vector opened into ${JSON.stringify(r.opened)}, want the phone's own announce`);
 }
 
-// 2. What it seals opens again, with every field intact - the client flag
-//    included, because losing that one lists the browser as somewhere to send
-//    a download and it answers 501 to everything.
+// 2. What it seals opens again with every field intact. Without the client
+//    flag the browser would be listed as a download target.
 if (!r.roundTrip) {
   failures.push('an identity this port sealed could not be opened again');
 } else if (
@@ -111,15 +97,8 @@ if (r.movedOpens) {
   failures.push('an identity opened under an instance id it was not bound to - the seal is not bound to its routing');
 }
 
-// 4. The check that matters most, and the only one above that reads the code
-//    rather than the format: what does the shipped hello frame ACTUALLY put
-//    on the wire?
-//
-//    Everything above would stay green if relaySession went on announcing the
-//    browser's name in the clear beside a correctly sealed blob - which is
-//    exactly the shape a half-finished version of this change has, and
-//    exactly the shape that reads as fixed while fixing nothing. So this
-//    drives the real session against a fake socket and inspects the frame.
+// 4. What the real hello frame puts on the wire. The checks above would pass
+//    even if the session still sent the name in the clear beside the seal.
 const session = vm.runInContext(
   `((opts) => relaySession(opts, async () => 'done'))`,
   ctx,
@@ -146,7 +125,7 @@ if (!hello) {
   if (announce.instanceId !== 'brave') {
     failures.push(`the hello frame lost the id the relay routes on: ${JSON.stringify(announce)}`);
   }
-  // And the name really is inside the seal rather than merely missing.
+  // The name is inside the seal, not just missing.
   if (announce.sealed) {
     const opened = await vm.runInContext(
       `((key, id, blob) => relayOpen(key, relayAnnounceAAD(id), blob).then(p => p && relayFromUtf8(p)))`,

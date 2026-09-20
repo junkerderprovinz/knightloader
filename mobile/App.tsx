@@ -27,17 +27,15 @@ type RootStackParamList = {
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-// The providers sit ABOVE everything, because look is applied at the root of
+// The providers sit above everything, because look is applied at the root of
 // an app and never by the screen that edits it: a screen that paints itself
-// leaves every other screen behind on the old value, and the settings page is
-// the last place to notice.
+// leaves every other screen on the old value.
 //
 // Motion is its own provider rather than four more fields on the appearance
-// one, and the split is the point: appearance is what an INSTANCE may lead on -
-// colour, corners, the palette - while motion belongs to this phone and the
-// person holding it. Half of it is an operating-system setting no server has
-// any business overriding, and it never travels over the wire in either
-// direction.
+// one. Appearance is what an instance may lead on, colour, corners and the
+// palette, while motion belongs to this phone and the person holding it, never
+// travels over the wire, and is half an operating-system setting no server has
+// business overriding.
 export default function App() {
   return (
     <AppearanceProvider>
@@ -55,14 +53,9 @@ function Shell() {
   const [conn, setConn] = useState<ServerConnection | null>(null);
   const [loading, setLoading] = useState(true);
   // The screen the navigator opens on: Downloads if a connection was left
-  // active last time, Connections otherwise - EVERY other case, saved list
-  // or none at all, lands in the app itself first. It used to jump straight
-  // to the connect form on a bare-empty list, which is exactly the "thrown
-  // into a form before I've even seen the app" jdp asked to remove
-  // (2026-08-24: "es soll nicht sofort gleich der Verbindungsbildschirm
-  // kommen") - ConnectionsScreen's own empty state already offers the same
-  // "add a connection" action, just as something you land ON rather than
-  // something forced in front of you.
+  // active last time, Connections otherwise. Opening the connect form on an
+  // empty list would put a form in front of somebody who has not seen the app
+  // yet, and ConnectionsScreen's empty state offers the same action.
   const [initialRoute, setInitialRoute] = useState<keyof RootStackParamList>('Connections');
 
   useEffect(() => {
@@ -76,10 +69,9 @@ function Shell() {
     })();
   }, []);
 
-  // Adopt the look of whichever instance is active. Cleared when there is
-  // none, so switching to a connection that cannot be reached falls back to
-  // the family default rather than keeping the previous instance's colour and
-  // quietly claiming to be it.
+  // Adopt the look of whichever instance is active. Cleared when there is none,
+  // so switching to a connection that cannot be reached falls back to the
+  // family default rather than keeping the previous instance's colour.
   useEffect(() => {
     let alive = true;
     if (!conn) {
@@ -97,7 +89,7 @@ function Shell() {
   if (loading) {
     return (
       <View style={[styles.loading, { backgroundColor: c.bg }]}>
-        {/* accentInk, not accent: a spinner is ink on the page's own ground,
+        {/* accentInk rather than accent: a spinner is ink on the page's ground,
             and a bright Sunflower on the light theme's near-white is a shape
             you cannot see. */}
         <ActivityIndicator color={accentInk} size="large" />
@@ -109,9 +101,9 @@ function Shell() {
       <NavigationContainer
         theme={{
           dark,
-          // Built from the resolved tokens rather than a second, fixed set:
-          // the navigator paints the gaps between screens, and a hard-coded
-          // dark there is exactly how a light theme ends up with black bars.
+          // Built from the resolved tokens rather than a second fixed set: the
+          // navigator paints the gaps between screens, and a hard-coded dark
+          // there gives a light theme black bars.
           colors: {
             primary: accent,
             background: c.bg,
@@ -133,24 +125,19 @@ function Shell() {
                   navigation.navigate('Downloads', {});
                 }}
                 onAddPress={() => navigation.navigate('RelayConnect')}
-                // The one door to Settings in the whole app (jdp, 2026-08-31:
-                // "Der Eisntellungsbutton soll in der instanzansicht weg. den
-                // soll es nur in der übersicht geben"). Settings are not a
-                // property of one instance, and a gear inside one suggested
-                // they were.
+                // The one door to Settings in the whole app. Settings are not
+                // a property of one instance, and a gear inside one would
+                // suggest they were.
                 onOpenSettings={() => navigation.navigate('Settings')}
               />
             )}
           </Stack.Screen>
 
-          {/* The name-and-address form is gone (jdp, 2026-08-29: "In der App
-              kann man sich immer noch mit Name+URL verbinden. das soll raus.
-              nur noch per Phrase!") - the phrase screen is the one way in,
-              exactly as it is in the browser extension. What the old form
-              uniquely carried and what dies with it, named rather than lost
-              silently: the remote-access QR (a bare address) and hand-typed
-              token entry. A connection saved back when that path existed
-              keeps working; there is just no way to create another one. */}
+          {/* The phrase screen is the one way in, as it is in the browser
+              extension. The name-and-address form it replaced also carried the
+              remote-access QR, which is a bare address, and hand-typed token
+              entry; a connection saved through it keeps working, but there is
+              no way to create another one. */}
           <Stack.Screen name="RelayConnect" options={{ presentation: 'modal' }}>
             {({ navigation }) => (
               <RelayConnectScreen
@@ -158,9 +145,9 @@ function Shell() {
                   setConn(c);
                   navigation.navigate('Downloads', {});
                 }}
-                // goBack, not navigate('Connections'): this screen is reached
-                // from the overview and from its empty state, and "back" means
-                // whichever of those it was, not a fixed destination.
+                // goBack rather than navigate('Connections'): this screen is
+                // reached from the overview and from its empty state, and back
+                // means whichever of those it was.
                 onBack={() => navigation.goBack()}
               />
             )}
@@ -178,10 +165,9 @@ function Shell() {
                     navigation.navigate('Connections');
                   }}
                     onBackToOwn={route.params?.peer ? () => navigation.goBack() : undefined}
-                  // Removing the connection you are standing in has to leave
-                  // it as well - the screen's whole subject just stopped
-                  // existing. Back to the overview, which is where the list of
-                  // what is left lives.
+                  // Removing the connection this screen is about leaves it as
+                  // well, back to the overview, where the list of what is left
+                  // lives.
                   onRemoveConnection={
                     route.params?.peer
                       ? undefined
@@ -197,22 +183,11 @@ function Shell() {
             }
           </Stack.Screen>
 
-          {/* There was an Instances screen here, listing the federation peers
-              of whichever instance was connected, reached from a link in the
-              Downloads top bar. jdp took that link out (2026-08-30: "Wenn man
-              in einer instanz ist soll oben der button 'Instanzen' weg") and
-              renamed the one beside it to Übersicht - which IS the list of
-              instances, since every member of the group is a connection
-              there. The screen went with the link rather than staying behind
-              as an address nothing leads to; it was also the last place in
-              the app that still took a name and an address by hand, which the
-              phrase replaced everywhere else.
-
-              What is still here: DownloadsScreen and AddDownloadScreen keep
-              their `peer` branch. Nothing sets it today - it is the proxy
-              path (/api/instances/{name}) a peer view would need, and it is a
-              few lines rather than a feature, so it waits rather than being
-              rebuilt from scratch if that view comes back. */}
+          {/* There is no Instances screen: the overview is the list of
+              instances, since every member of the group is a connection there.
+              DownloadsScreen and AddDownloadScreen keep their `peer` branch,
+              the proxy path (/api/instances/{name}) a peer view would need,
+              although nothing sets it today. */}
 
           <Stack.Screen name="AddDownload" options={{ presentation: 'modal' }}>
             {({ navigation, route }) =>
@@ -232,15 +207,14 @@ function Shell() {
                   navigation.reset({ index: 0, routes: [{ name: 'Connections' }] });
                 }}
                 onRefreshAppearance={() => {
-                  // "Follow the instance" just cleared the local overrides;
-                  // what it must NOT show is the look fetched at startup (jdp:
-                  // "Einstellungen übernehmen funktionieren nicht") - so ask
-                  // the instance again, now.
+                  // "Follow the instance" has just cleared the local
+                  // overrides, so the instance is asked again rather than the
+                  // screen falling back to the look fetched at startup.
                   if (conn) void fetchAppearance(conn).then(setInstanceAppearance);
                 }}
                 // The rainbow palette belongs to the instance, so editing one
-                // is a write over the wire rather than a local preference - see
-                // setRainbowPalette. Passed only when there IS a connection,
+                // is a write over the wire rather than a local preference (see
+                // setRainbowPalette. Passed only when there is a connection,
                 // which is what makes the settings screen drop the row and say
                 // why instead of drawing eight swatches no press can reach.
                 onSetPalette={
@@ -268,7 +242,7 @@ const navFonts = {
 };
 
 const styles = StyleSheet.create({
-  // The ground colour is applied inline from the resolved tokens, not baked in
-  // here: a stylesheet is built once and cannot follow a theme change.
+  // The ground colour is applied inline from the resolved tokens rather than
+  // baked in here: a stylesheet is built once and cannot follow a theme change.
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 });

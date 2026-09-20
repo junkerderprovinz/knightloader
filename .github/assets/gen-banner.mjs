@@ -3,22 +3,17 @@
  *
  *   knightloader-banner.svg/.png       light, logo + "KnightLoader" + claim
  *   knightloader-banner-dark.svg/.png  dark,  logo + "KnightLoader" + claim
- *   knightloader-banner-logo.svg/.png  light, logo only, NO text (support thread)
+ *   knightloader-banner-logo.svg/.png  light, logo only, no text (support thread)
  *
- * The text-free "-banner-logo" variant is ALWAYS generated alongside the README
- * banner: the Unraid support thread wants a banner completely without text (house
- * rule), for whenever KnightLoader gets one.
+ * The text-free variant is for an Unraid support thread, which takes a banner
+ * without text.
  *
- * ONE logo file for both themes, not a dunkel/hell pair: unlike the ring-on-
- * transparent coin logos most other repos use (a dark or white RING has to match
- * the surface it sits on), this knight-helm logo is a self-contained multi-tone
- * illustration (11 fills, browns/golds/silvers, no ring) that already reads
- * cleanly against both a white and a near-black ground - confirmed by rendering
- * it on both before writing this script. Same call TrickWork's own logo.svg made.
+ * One logo serves both themes: the multi-tone helm reads on white and on
+ * near-black alike, unlike the ring logos of the other repos.
  *
- * Text is converted to SVG paths (opentype.js) so the SVG needs NO font and renders
- * identically with resvg or a browser. Bree Serif (name) + Lato (claim), the shared
- * brand fonts across the Bree-Serif repos (BombVault, featherdrop, ShipLog, TrickWork).
+ * Text becomes SVG paths through opentype.js, so the SVG needs no font and
+ * renders the same in resvg and a browser. Bree Serif for the name and Lato for
+ * the claim, as in the other Bree Serif repos.
  *
  * Deps (global): opentype.js, @resvg/resvg-js. Fonts are fetched to the OS temp dir.
  * Run: node .github/assets/gen-banner.mjs
@@ -37,29 +32,21 @@ const { Resvg } = require(`${groot}/@resvg/resvg-js`);
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 
-// ---- content + styling -----------------------------------------------------
 const NAME = "KnightLoader";
 const CLAIM = "Grabs everything. Kneels to nothing.";
 const W = 1600, H = 500;
 const LOGO_FILE = "logo.svg";
-// The logo's own viewBox is read from the file itself (viewBox-agnostic) - it's
-// a tall portrait helm (454 x 741.57), not a wide ribbon, so it's fit to a
-// height that gives it real presence next to the two-line text block rather
-// than the house 400x400 square used for ring-style coin logos.
 const { vbW: LOGO_VB_W, vbH: LOGO_VB_H } = readViewBox(LOGO_FILE);
-// 420 of the 500px canvas, leaving 40px of air above and below. The crest is
-// TALL and narrow (559x897), so at the earlier 340 it measured only 212px across
-// and read as small beside a 132px wordmark - height is the only dimension it has
-// to hold its own with.
+// The crest is tall and narrow, so height is what lets it stand beside the
+// wordmark; 420 leaves 40px above and below.
 const LH = 420, LW = LH * (LOGO_VB_W / LOGO_VB_H);
-// House banner standard: name 132 / claim 44, logo-to-text gap 70, name-to-claim gap 8.
+// The shared banner sizes: name 132, claim 44, logo gap 70, line gap 8.
 const nameSize = 132, claimSize = 44, gap = 70, lineGap = 8;
 
 const THEMES = [
   { suffix: "", bg: "#ffffff", name: "#1f2328", claim: "#5a5d5e" },
   { suffix: "-dark", bg: "#0d1117", name: "#e6edf3", claim: "#9aa4ad" },
 ];
-// ---------------------------------------------------------------------------
 
 function readViewBox(logoFile) {
   const raw = readFileSync(join(__dir, logoFile), "utf8");
@@ -104,8 +91,7 @@ const claimBaseline = nameBaseline + nameDesc + lineGap + claimAsc;
 const namePath = font.getPath(NAME, textX, nameBaseline, nameSize).toPathData(2);
 const claimPath = claimFont.getPath(CLAIM, textX, claimBaseline, claimSize).toPathData(2);
 
-// Embed the logo verbatim at (x,y,w,h): drop the XML decl, reposition its <svg>.
-// viewBox-agnostic - reads the file's own viewBox and preserves it.
+// Embeds the logo at (x, y, w, h), keeping its own viewBox.
 function embedLogo(logoFile, x, y, w, h) {
   const raw = readFileSync(join(__dir, logoFile), "utf8").replace(/<\?xml[^>]*\?>\s*/, "");
   const vb = (raw.match(/viewBox="([^"]+)"/) || [, `0 0 ${LOGO_VB_W} ${LOGO_VB_H}`])[1];
@@ -122,7 +108,6 @@ function emit(name, svg, bg) {
   console.log(`wrote ${name}.svg + .png`);
 }
 
-// README banner (both themes): logo (left) + name + claim.
 for (const t of THEMES) {
   const full = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
   <rect width="${W}" height="${H}" fill="${t.bg}"/>
@@ -134,7 +119,6 @@ for (const t of THEMES) {
   emit(`knightloader-banner${t.suffix}`, full, t.bg);
 }
 
-// Support-thread banner: logo only, NO text - ALWAYS generated (house rule).
 const logoLX = (W - LW) / 2, logoLY = (H - LH) / 2;
 const lt = THEMES[0];
 const logoOnly = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">

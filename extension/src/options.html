@@ -1,10 +1,6 @@
 <!doctype html>
-<!-- Both attributes are the value BEFORE the language is known, not the value
-     this page ships in: i18n.js replaces them from the resolved language as
-     soon as loadLanguage() returns, which is before any text is written. They
-     are spelled out anyway because a document with no `dir` at all is not
-     "undecided", it is ltr - so leaving it off would mean the one thing that
-     can never be corrected later is also the one thing nobody wrote down. -->
+<!-- The values before the language is known; i18n.js replaces them before any
+     text is written. -->
 <html lang="en" dir="ltr">
   <head>
     <meta charset="UTF-8" />
@@ -14,92 +10,36 @@
     <style>
       body {
         margin: 0;
-        /* 720, up from 560 (jdp, 2026-08-28: "Können wir die cards etwas
-           breiter machen?"). This is a full browser tab, not a popup, and at
-           560 the colour rows had the label at one edge and eight swatches
-           crowding the other with nothing between them. Wider is also what
-           lets a colour row keep its label, its swatches and its reset badge
-           on one line. */
+        /* Wide enough for a colour row's label, swatches and reset badge on
+           one line. */
         max-width: 720px;
         padding: 28px;
         background: var(--carbon-bg);
         color: var(--carbon-text);
-        /* The same stack the web interface uses, ending in system-ui and
-           sans-serif rather than on a fixed list of named fonts. That tail is
-           what lets a browser fall back PER CHARACTER to whatever the system
-           already has for a script the first choice is thin on - and this
-           extension ships Chinese, Japanese and Korean. Without system-ui,
-           Linux and Android have neither -apple-system nor Segoe UI and drop
-           all the way to the generic sans-serif. */
+        /* The web interface's stack. system-ui lets the browser fall back per
+           character for Chinese, Japanese and Korean. */
         font-family: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif;
         font-size: var(--text-body);
         line-height: 1.5;
       }
-      /* An id or class rule that sets `display` OUTRANKS the browser's own
-         `[hidden] { display: none }`, so an element with the attribute stays on
-         screen and nothing in the markup says why. It bit two controls on this
-         page and one in the popup at the same time - #leave is `hidden` in the
-         HTML and `.iconBadge` sets `display: inline-flex`, so the bin next to
-         Connect was visible with no group to leave; the popup's own collector
-         was `hidden` under `#collector { display: flex }` and therefore always
-         open (jdp, 2026-08-31: "solange keine Instanz hinzugefügt wurde soll der
-         linksammler ausgeblendet sein").
-         One rule, first, with !important, because that is the only weight that
-         beats an arbitrary future id selector - and the attribute has to mean
-         what it says on every page in this family, not on the ones somebody
-         remembered. */
+      /* An id or class rule that sets `display` outranks the browser's own
+         `[hidden] { display: none }`, so the attribute gets the weight to win. */
       [hidden] { display: none !important; }
-      /* 40px, the house number for stacked cards, and it is a house number
-         precisely because three surfaces of one product had answered it three
-         different ways: the phone at 24, this page at 38, the web interface at
-         24 on its start page and 40 everywhere else.
-         26 was the first answer here and looked generous in the stylesheet
-         rather than on the page (jdp, 2026-09-01: "In der erweiterung sind alle
-         abschnitte zu eng beieinander"), because the section badge hangs over
-         its own card's top edge and eats part of the gap. 38 was the correction,
-         and it was argued against the BADGE - how much daylight is left once the
-         overhang is subtracted - which answers a different question than the
-         rule asks. The rule measures card to card. So: 40.
-
-         The FIRST card gets none of it. There is no page heading any more (jdp,
-         2026-09-02: "in den einstellungen die überschrift weg") - the tab strip
-         already says KnightLoader and every card names itself with its own
-         badge - so the top margin has nothing left to separate the first card
-         FROM, and the body's own 28px of padding is the whole gap. Left at the
-         full step it would read as the heading's empty seat rather than as
-         spacing.
-
-         Two selectors, because :first-of-type is #pinHint, which is `hidden`
-         (and therefore display:none) whenever the toolbar button is pinned,
-         which is the normal case: in that state the first card the reader
-         actually SEES is the next one, and it would otherwise take the 40px
-         sibling rule above. The second selector is (0,3,2) against that rule's
-         (0,2,2), so it wins on specificity whatever the source order. It is
-         exact for exactly one conditionally hidden card at the top of the page:
-         a second one added above Group has to be added here too. */
+      /* 40px between stacked cards, the shared number. The first visible card
+         gets none: #pinHint comes first and is usually hidden, so the card
+         after a hidden one resets as well. */
       section.glim-card + section.glim-card { margin-top: 40px; }
       section.glim-card:first-of-type { margin-top: 0; }
       section.glim-card[hidden] + section.glim-card { margin-top: 0; }
       h2 { margin: 0; font-size: var(--text-caption); font-weight: 500; }
       label { display: block; font-size: var(--text-dense); color: var(--carbon-text-sub); margin-bottom: 6px; }
-      /* Selects are shaped like the inputs deliberately: a native dropdown
-         standing next to a token-styled field reads as another app's control.
-         Both now match the web UI's own field exactly (ui.tsx's inputClass),
-         which is a FILLED surface and no border at all (jdp, 2026-08-27: "Das
-         Sprachdropdown ist in der Erweiterung nicht im GSS") - GlimStone
-         separates with surface steps, never with lines, and this sheet had
-         kept a 1px border plus a focus outline from before it followed that
-         rule. surface2 is the field colour; the focus ring is a box-shadow,
-         because an outline sits outside the radius and squares off the
-         corner it is drawn around. */
+      /* Fields match the web UI's (ui.tsx inputClass): a filled surface and no
+         border, since GlimStone separates by surface. The focus ring is a
+         box-shadow because an outline ignores the radius. */
       input,
       select {
         box-sizing: border-box;
-        /* The field is what --btn-h MEASURES, so it is set from the same token
-           rather than left to add up out of its own padding. It came to 39
-           (9px twice plus a 21px line box) while every button beside it was 36,
-           which is the three-pixel disagreement between neighbours that the one
-           height exists to prevent. */
+        /* --btn-h, so fields and buttons share one height. */
         height: var(--btn-h);
         padding: 0 10px;
         border: 0;
@@ -112,20 +52,8 @@
       }
       input:focus,
       select:focus { box-shadow: 0 0 0 2px var(--focus-ring); }
-      /* The "Report it" link has to be the same object as the button beside it,
-         so the look lives here once and the anchor is only told to be a box. */
-      /* --btn-h, the same height the square icon badges and the fields are
-         (jdp, 2026-08-30: "der NEu verbinden button ist zu hoch, soll gleich
-         hoch sein wie der löschen button"). It was 9px of padding plus the body
-         line-height, which lands around 40 - close enough to look like a
-         mistake rather than a decision, and visibly wrong the moment a text
-         button and a badge stand in the same row. 36 was the first correction
-         and it only levelled the buttons against each other: it was picked to
-         match the icon badges, which had themselves been picked to match
-         nothing in particular, and it left the field beside them three pixels
-         taller. One height for every pressable thing on this page, and it is
-         the one the language names rather than one measured here: the size
-         system decides, not each control's own padding. */
+      /* Links styled as buttons share the button rules; every pressable thing
+         is --btn-h high. */
       button,
       a.btnlike {
         box-sizing: border-box;
@@ -140,14 +68,7 @@
         cursor: pointer;
       }
       a.btnlike { text-decoration: none; }
-      /* The glyph needs air between itself and the word (jdp, 2026-09-01: "die
-         glyphen der buttons sind zu nah am text"). An inline-flex row with no
-         gap sets an icon hard against the first letter, which reads as one
-         smudged shape rather than a mark and a label. 8 is the same step the
-         rest of this page uses between a control and its neighbour.
-         BOTH elements, not just the anchor: the report button is a real
-         <button> and now carries a glyph too, and a <button> is not a flex
-         container by default, so `gap` alone would have done nothing there. */
+      /* Space between a glyph and its label. */
       button,
       a.btnlike {
         display: inline-flex;
@@ -166,21 +87,12 @@
       #list:not(:empty) { margin-bottom: 2px; }
       #status { margin-top: 10px; font-size: var(--text-dense); min-height: 1.2em; }
       .ok { color: var(--status-ok-text); }
-      /* 16, and the refresh button below it sits 16 away too - the same
-         correction popup.html's own #instanceList just had. jdp reported the
-         popup ("Die abstaände zwischen den instanzen-cards und des buttons
-         darunter sind unterschiedlich"); this page draws the same cards with
-         the same defect, 8 between them and 12 under them, and fixing only
-         the page he happened to be looking at is how the two drift apart. */
+      /* 16 between cards and 16 to the button below, as in the popup. */
       #list { display: flex; flex-direction: column; gap: 16px; }
       .empty { color: var(--carbon-text-muted); font-size: var(--text-body); padding: 8px 0; }
-      /* The shared empty-state shape: a muted icon at reduced opacity over a
-         muted title. `.empty` above stays what it is - a one-line transient for
-         "loading" and "the relay did not answer", which are a pending state and
-         a failure, not the "there is nothing here yet" this is for. Conflating
-         the three is how somebody ends up looking for a filter to clear that was
-         never set. No card of its own: this sits inside the Group card already,
-         and never a card inside a card. */
+      /* The shared empty state, a muted icon over a muted title. `.empty` above
+         is for loading and relay failures. No card of its own inside the Group
+         card. */
       .emptyState {
         display: flex;
         flex-direction: column;
@@ -193,37 +105,18 @@
       }
       .emptyState svg { opacity: .45; }
       .fields { display: flex; gap: 8px; }
-      /* The join form: the phrase field on its own line above its buttons.
-         Twelve words do not fit beside a button at any window width worth
-         designing for. */
+      /* Twelve words need the phrase field on its own line. */
       #joinForm { display: flex; flex-direction: column; gap: 10px; margin: 0; }
       #phrase { width: 100%; }
       #refreshGroup { margin-top: 16px; }
       #refreshGroup:disabled { opacity: 0.55; cursor: default; }
-      /* The info glyph sits INSIDE the heading badge, so it takes the badge's
-         own ink rather than the muted page colour it defaults to. */
+      /* The info glyph inside a heading badge takes the badge's ink. */
       .glim-section-badge .glim-info-icon { color: currentColor; }
-      /* Three settings that differ only in what they set, stacked in one column
-         so the eye compares the answers instead of the layout. The label rule
-         above would otherwise shrink the selects along with their captions. */
       .axes { display: flex; flex-direction: column; gap: 12px; }
-      /* Two spacings were being applied to the same gap: the column's own 14px
-         gap AND .glim-row's 14px margin-top, which lands at 28 between Accent,
-         Rainbow, Reactive, Rotation and Palette (jdp, 2026-08-31: "Die zeilen
-         wie Akzentfarbe, Regenbogenmodus, etc sind zu weit auseinander"). A
-         flex gap and a child margin do not merge the way two vertical margins
-         collapse - they add. Inside a gapped column the row keeps no margin of
-         its own; outside one it still needs it, so the rule is scoped rather
-         than the margin deleted. */
+      /* The column gap already spaces the rows; a margin would add to it. */
       .axes > .glim-row { margin-top: 0; }
-      /* The square icon badge, the same object popup.html draws in its own
-         header and shared.js draws on an instance card: ONE size for every one
-         of them across the whole extension, no drawn border, and the ink is the
-         ordinary badge ink rather than a colour of its own. The size is
-         --btn-h, not a number measured against whatever happened to stand next
-         to this one: the three call sites had drifted to 36, 26 and 30, each
-         individually well fitted to its own neighbour and all three visible on
-         one screen. */
+      /* The square icon badge, one size across the extension (--btn-h), as in
+         popup.html and on the instance cards. */
       .iconBadge {
         display: inline-flex;
         flex-shrink: 0;
@@ -241,45 +134,16 @@
       }
       .iconBadge:hover { background: var(--carbon-surface3); color: var(--carbon-text); }
       .iconBadge:active { transform: scale(0.97); }
-      /* Label left, control right - the row shape every setting in this family
-         uses, and the one the app's own settings just adopted. */
+      /* Label left, control right. */
       .glim-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; }
       .glim-row-label { font-size: var(--text-body); color: var(--carbon-text); }
       .glim-row-control { display: flex; align-items: center; gap: 8px; }
       .glim-row-unit { font-size: var(--text-dense); color: var(--carbon-text-muted); }
-      /* The browser's own spinner is dropped, not styled (jdp, 2026-08-30: "die
-         beiden pfeiltasten im countdown eisntellungsfeld haben einen dunklen
-         hintergrund und der text ist zu nah an diesen pfeilen").
-
-         It cannot be made to follow the language: Chrome paints those two
-         arrows from the OS widget set, on their own background, and the only
-         property that reaches them is `accent-color` - which recolours part of
-         a control whose geometry, ground and spacing still ignore every token
-         here. That is the same reasoning the design language already applies
-         to the native checkbox, and it lands the same way: the native widget
-         goes.
-
-         appearance:none in the standard property AND the -moz/-webkit ones,
-         because Firefox draws its spinner through a different pseudo-element
-         than Chrome, and a rule that only names the WebKit one leaves Firefox
-         with the arrows still there. Typing and the arrow keys are untouched -
-         it is still <input type="number">, so min/max/step and the numeric
-         keypad on a phone all stay. */
-      /* The arrows sit INSIDE the field, where the browser's own put them, and
-         carry no ground of their own (jdp, 2026-08-31: "sie sollen im
-         eingabefeld sein wie ursprünglich aber keinen zusätzlichen dunklen
-         hintergrund").
-
-         The 1.13.0 version put them beside the field as two filled squares,
-         which turned one control into three objects standing in a row - and
-         the whole complaint about the native spinner was never "there are
-         arrows", it was "they arrive on their own dark background". Copying
-         that ground onto our own arrows reproduced the defect in our tokens
-         instead of the OS's. A stepper is part of the field, so it takes the
-         field's own surface and only its INK changes on hover.
-
-         The field carries the padding for them, so the digits never run
-         underneath. */
+      /* The native spinner is removed rather than styled, since Chrome paints it
+         from the OS on its own background. Firefox needs its own property. The
+         field stays type="number", so min, max, step and the numeric keypad
+         remain. Our steppers sit inside the field on its own surface, and the
+         padding keeps the digits clear of them. */
       .numberField { position: relative; display: inline-flex; align-items: center; }
       #cnlCountdown {
         width: 84px;
@@ -312,7 +176,6 @@
         padding: 0;
         border: 0;
         border-radius: 0;
-        /* No ground at all: it is part of the field it sits in. */
         background: none;
         color: var(--carbon-text-muted);
         cursor: pointer;
@@ -320,21 +183,10 @@
       }
       .stepper svg { display: block; }
       .stepper:hover { background: none; color: var(--carbon-text); }
-      /* At the end of the range there is nothing to step to, and a control that
-         looks pressable and does nothing is worse than one that says so. */
       .stepper:disabled { opacity: 0.35; cursor: default; }
       .stepper:disabled:hover { color: var(--carbon-text-muted); }
-      /* The About card's own two kinds of line. The sentences read as body text
-         because they ARE the card's content; the versions close the card,
-         quieter, because they are the thing you look up rather than the thing
-         you read. */
       .aboutText { margin: 0 0 8px; font-size: var(--text-body); color: var(--carbon-text-sub); }
-      /* Each offer in the About card is a sentence with its button under it, and
-         the two have to sit closer to each other than to the next offer or all
-         three read as one list (jdp, 2026-09-01: "alle abschnitte zu eng
-         beieinander"). 20 after a button row, 8 under its own sentence: the
-         grouping is done by the spacing, which is the only thing doing it here
-         since the card draws no lines between them. */
+      /* Each sentence sits closer to its own buttons than to the next one. */
       .glim-card .fields + .aboutText { margin-top: 20px; }
       .aboutVersions {
         margin: 0;
@@ -342,13 +194,8 @@
         color: var(--carbon-text-muted);
         font-variant-numeric: tabular-nums;
       }
-      /* It closes the card now, so it takes the same 20 after a button row that
-         a new sentence takes, and no bottom margin of its own: the card's own
-         padding is the space under the last line. */
       .glim-card .fields + .aboutVersions { margin-top: 20px; }
-      /* Underlined only on hover: a line under every version number turns a
-         quiet fact into two links shouting at each other. It still has to LOOK
-         reachable, so it takes the accent ink. */
+      /* Underlined only on hover, in the accent ink. */
       .versionLink { color: var(--accent-ink); text-decoration: none; }
       .versionLink:hover { text-decoration: underline; }
       pre.report {
@@ -364,12 +211,9 @@
     </style>
   </head>
   <body>
-    <!-- Shown only when the browser itself says the toolbar button is hidden -
-         see background.js's nichtInDerLeiste. It is the answer to the one
-         sentence jdp repeated three evenings running ("es kommt die meldung
-         erweiterung geladen aber es zeigt sie nicht an"): the extension was
-         installed every time and Chromium had put it behind the puzzle piece,
-         which looks exactly like a failed install and says nothing. -->
+    <!-- Shown when Chromium has hidden the new toolbar button behind the puzzle
+         piece, which looks like a failed install (notOnToolbar in
+         background.js). -->
     <section class="glim-card pinHint" id="pinHint" hidden>
       <h2 class="glim-section-badge" id="pinHeading">Almost there</h2>
       <p id="pinBody" class="aboutText"></p>
@@ -378,27 +222,14 @@
       </div>
     </section>
 
-    <!-- No prose under any of these headings. Every explanation is an info
-         bubble on the heading badge itself, set by options.js so it follows the
-         chosen language (jdp, 2026-08-28: "Alle infotexte in i infobubbles!").
-         The rule is in the GlimStone guide, which also names the excuse this
-         page used to run on: a surface with no component framework is not an
-         exemption, because a bubble is markup plus CSS. -->
+    <!-- Explanations are info bubbles on the heading badges, set by options.js
+         in the chosen language. -->
 
     <section class="glim-card">
       <h2 class="glim-section-badge" id="groupHeading">Group</h2>
       <form id="joinForm">
-        <!-- Masked, with the eye inside the field (jdp, 2026-08-28: "Die
-             Phrase wird offen angezeigt in der erweiterung"). Twelve words
-             open every instance in the group, which makes them a credential
-             and not a setting - and an options page is exactly the surface
-             somebody opens while a colleague is looking at the screen. -->
-        <!-- Two controls inside the field, in the order the hands move: paste
-             first, then check what landed. Twelve words arrive from somewhere
-             else by definition - the WebUI generated them and the phone
-             already has this button - so the extension was the one surface
-             that made people retype a credential or hunt for Ctrl+V in a
-             field they had not focused yet. -->
+        <!-- The phrase is a credential, so it is masked. Paste comes first,
+             then the eye to check what landed. -->
         <label class="glim-secret glim-secret--two">
           <input
             id="phrase"
@@ -412,31 +243,9 @@
         </label>
         <div class="fields">
           <button id="join" type="submit">Connect</button>
-          <!-- [281] A square badge with a filled bin, not a red word (jdp,
-               2026-08-30: "Gruppe verlassen soll ein quadratischer button mit
-               solidem mülleimer icon sien"). Same size and same treatment as
-               every other icon badge in the family - a delete control is not
-               styled apart from its neighbours, its meaning is carried by its
-               glyph and by the confirmation behind it. The name survives as the
-               accessible name and the tooltip.
-
-               That last clause used to be a claim rather than a fact: there was
-               no confirmation. The press deleted the phrase and emptied the
-               group on the spot, which is precisely the case GlimStone 1.12.0
-               builds its whole argument on - the neutral colour is only safe
-               BECAUSE a question stands between the press and the deletion, so
-               a neutral bin with nothing behind it is the worst of the two
-               shapes. #leaveConfirm below is that question, and this sentence
-               now describes what the page does.
-
-               Order in the row: this stays at the END and is deliberately not
-               read as half of a 1.14.0 pair with Connect. A pair is two
-               controls answering ONE question, where one moves the thing
-               forward and the other holds it. These answer two: "reach the
-               group again" and "throw the group away", asked at different
-               moments and only ever one of them wanted. It is a row action, the
-               same delete badge every instance card ends with, and those sit at
-               the end of their row. -->
+          <!-- A neutral icon badge with a bin; #leaveConfirm asks before
+               anything is deleted. It sits at the end of the row like the
+               delete badge on every card. -->
           <button id="leave" class="iconBadge" type="button" hidden></button>
         </div>
       </form>
@@ -447,51 +256,26 @@
 
     <section class="glim-card">
       <h2 class="glim-section-badge" id="languageHeading">Language</h2>
-      <!-- A listbox, not a native select: an <option> can hold plain text and
-           nothing else, so a flag beside a language name is impossible in one,
-           and a native dropdown among token-styled controls reads as another
-           application's widget. Built by options.js. -->
+      <!-- A listbox built by options.js, since an <option> cannot show a
+           flag. -->
       <div class="glim-listbox" id="languageBox"></div>
     </section>
 
-    <!-- One card per axis (jdp, 2026-08-28: "Können wir die aussehen card
-         aufsplitten?"), which is also how KnightLoader's own Look page is
-         built: Corners, Colours and Theme are three cards there, not three
-         rows of one. The card heading carries the explanation as its bubble,
-         so a split costs no prose. -->
+    <!-- One card per axis, as on the web UI's Look page. -->
     <section class="glim-card">
       <h2 class="glim-section-badge" id="appearanceHeading">Look</h2>
-      <!-- Take the look from the instance instead of choosing it here. It
-           reads GET /api/appearance, which is on the list a group member may
-           reach through the relay - so it costs no permission at all. First,
-           because it decides whether the three cards below it are yours to
-           set at all.
-
-           THE SWITCH IS REMOVED, NOT DIMMED, WHILE THIS BROWSER IS IN NO GROUP
-           (GlimStone 1.15.0). There is no instance to take a look from, so the
-           switch cannot act at all: pressing it used to turn on optimistically,
-           fail against a relay session that had nothing to talk to, snap back
-           and report through a toast - a button offered in a place it cannot
-           work, which is the exact shape 1.15.0 replaces with "no control at
-           all plus the paragraph saying what is wrong". The notice below takes
-           its place and names the card that fixes it; options.js swaps the two.
-
-           The rule is written about the ENVIRONMENT (a browser refusing
-           WebAuthn on a bare IP) and the same section applies it to an app
-           PRECONDITION in the next bullet but one: both passkey cards remove
-           their entry control when there is no password yet rather than dimming
-           it. No group is this page's version of that precondition. -->
+      <!-- Takes the look from the instance through GET /api/appearance over
+           the relay. It comes first because it decides whether the cards below
+           are set here. Without a group the switch is removed and the notice
+           below explains why (GlimStone 1.15.0); options.js swaps the two. -->
       <div class="glim-row" id="followInstanceRow">
         <span class="glim-row-label" id="followInstanceLabel"></span>
         <button type="button" role="switch" aria-checked="false" id="followInstance" class="glim-switch">
           <span class="glim-switch-track"><span class="glim-switch-knob"></span></span>
         </button>
       </div>
-      <!-- Static markup filled by options.js, like the confirmation window
-           further down and for the same reason: this page assembles everything
-           dynamic with createElement because Mozilla's linter fails the package
-           on an innerHTML assignment, and a box that is the same box every time
-           needs its two sentences filled in rather than assembling. -->
+      <!-- Static markup that options.js fills, since innerHTML from a variable
+           fails Mozilla's linter. -->
       <div class="glim-unavailable" id="followUnavailable" hidden>
         <span class="glim-unavailable-title" id="followUnavailableTitle"></span>
         <span class="glim-unavailable-reason" id="followUnavailableReason"></span>
@@ -511,40 +295,15 @@
     <section class="glim-card">
       <h2 class="glim-section-badge" id="coloursHeading">Colours</h2>
       <div class="axes">
-        <!-- Label left, everything clickable right, exactly as the web UI's
-             own Colours card lays it out. The current colour opens the page's
-             own picker; the eight presets are the shortcut; the reset badge
-             is always there at the end of the row. That last clause used to
-             say it appeared only once the accent had moved, which options.js
-             reversed and this comment did not: a control that is sometimes
-             there is a control nobody learns the position of, and people check
-             whether a way back exists BEFORE they experiment, not after. -->
-        <!-- The picker button lives INSIDE the swatch row now, at its end, next
-             to the reset badge: "pick any colour" and "back to the default" are
-             the two ways out of the eight presets, and they belong together.
-             options.js moves it there and puts a glyph on it, so it is no
-             longer a ninth circle nobody could tell was a button. -->
+        <!-- Label left, swatches right, with the reset badge always at the end,
+             as on the web UI's Colours card. -->
         <div class="glim-axis glim-axis--colours">
           <span class="glim-axis-label" id="accentLabel">Accent</span>
           <div class="glim-swatches" id="accentSwatches"></div>
         </div>
-        <!-- The rainbow: the accent in the plural. The same three switches and
-             the same palette the web UI's Look page offers, in the same order,
-             so somebody who set this up there recognises it here.
-
-             Four rows stand here and two of them are usually on screen: the
-             MODE's switch is always there, and everything that only means
-             something underneath it - reactive, rotation, the palette - is
-             ABSENT while the mode is off rather than dimmed (GlimStone 1.10.0).
-             renderAppearance() sets `hidden` on the three of them. A dimmed
-             sub-switch is something somebody can see, read and reach for that
-             answers nothing, and the reason it is dead sits one row up, which
-             is exactly where nobody looks.
-
-             The accent row above goes the other way: with the mode RUNNING it
-             is dimmed and inert, because every card then carries a palette
-             position and nothing on the page reads the single accent any more.
-             Whichever colour row is not in force is the one that recedes. -->
+        <!-- The rainbow, with the web UI's switches in the same order.
+             Reactive, rotation and the palette are hidden while the mode is off
+             (GlimStone 1.10.0). -->
         <div class="glim-row" id="rainbowRow">
           <span class="glim-row-label" id="rainbowLabel"></span>
           <button type="button" role="switch" aria-checked="false" id="rainbowOn" class="glim-switch">
@@ -570,31 +329,20 @@
       </div>
     </section>
 
-    <!-- On from the first second: it is the reason most people install this,
-         and the manifest declares the site access it needs, so there is no
-         later prompt for a switch to be waiting on. -->
     <section class="glim-card">
       <h2 class="glim-section-badge" id="cnlHeading">Click'n'Load</h2>
       <button type="button" role="switch" aria-checked="false" id="cnlEnabled" class="glim-switch">
         <span class="glim-switch-label" id="cnlToggle"></span>
         <span class="glim-switch-track"><span class="glim-switch-knob"></span></span>
       </button>
-      <!-- How long a caught batch waits before it sends itself. The row shape
-           is the label-left, control-right one every other setting here uses;
-           the explanation hangs off the heading badge's own bubble, like all
-           of them. -->
       <div class="glim-row" id="cnlCountdownRow">
         <span class="glim-row-label" id="cnlCountdownLabel"></span>
         <span class="glim-row-control">
           <span class="numberField">
             <input id="cnlCountdown" type="number" min="0" max="60" step="1" inputmode="numeric" />
             <span class="steppers">
-              <!-- Drawn, not typed. A font's own ▲ is a sharp glyph at whatever
-                   weight the family happens to give it; GlimStone 1.6.0 asks for
-                   a solid triangle with ROUNDED corners, done with a matched
-                   stroke and stroke-linejoin rather than arcs in the path, and
-                   the base path inset by the stroke's half-width so the painted
-                   shape lands where the sharp one did instead of growing. -->
+              <!-- Solid triangles with rounded corners (GlimStone 1.6.0) through
+                   a matched stroke, the path inset by half the stroke width. -->
               <button type="button" class="stepper" id="cnlCountdownUp">
                 <svg viewBox="0 0 10 6" width="10" height="6" aria-hidden="true">
                   <path d="M5 1.7 L8.6 4.6 L1.4 4.6 Z" fill="currentColor" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" />
@@ -615,95 +363,38 @@
     <section class="glim-card">
       <h2 class="glim-section-badge" id="problemsHeading">Problems?</h2>
       <pre id="report" class="report glim-well glim-num"></pre>
-      <!-- Copy only (jdp, 2026-08-31: "In der Probleme-card den Problem melden
-           button weg. auch in der App"). The About card below now carries both
-           routes to reporting, and a third door here - one that prefills a
-           GitHub form - made this card a second, differently-shaped answer to a
-           question the About card answers once. What this card is FOR is the
-           report itself: copy it, then use whichever route you prefer. -->
+      <!-- Only a copy button; the About card carries the ways to report. -->
       <div class="fields">
         <button id="copyReport" class="secondary" type="button">Copy report</button>
       </div>
     </section>
 
-    <!-- The About card (jdp, 2026-08-31: "in der App und der Erweiterung und im
-         KL soll eine neue Card rein ... darin sollen die versionsnummern stehen
-         und ein text ... Die vversionsnummer sollen dann nicht nochmal unter
-         den card im hintergrund angeziegt werden").
-
-         It replaces the quiet centred version line that used to sit under the
-         last card. That line was the design language's own answer for a while,
-         and it had a real weakness: it is page chrome, so it looks like a
-         footer nobody put there on purpose, and there is nowhere to hang the
-         one thing somebody reading a version number usually wants next, which
-         is how to report what they found. A card can carry both.
-
-         This is also the ONE card in the family whose body is prose rather than
-         an info bubble - it has no control to explain, the sentence IS the
-         content. Written down as such in GlimStone 1.7.0 rather than left as a
-         quiet exception somebody else has to guess at. -->
+    <!-- The About card, the one card whose body is prose (GlimStone 1.7.0).
+         Each sentence has its button directly beneath it. -->
     <section class="glim-card">
       <h2 class="glim-section-badge" id="aboutHeading">About</h2>
-      <!-- Three sentences, each with the thing it asks for directly beneath
-           it (jdp, 2026-09-01). The order is his: what this is, then the
-           coffee, then the way to report something. A sentence with its own
-           button under it reads as one offer; three sentences stacked over one
-           row of buttons reads as a form. -->
       <p id="aboutText" class="aboutText"></p>
       <p id="aboutCoffee" class="aboutText"></p>
-      <!-- Two classes per button, and they only work as a pair (GlimStone
-           1.10.0): `glim-brand-btn` spends the three values and
-           `glim-brand-<name>` is what supplies them, so a button carrying only
-           the first has no --brand to read and paints its mark in whatever ink
-           the button happens to have. Which is exactly what all three of these
-           did before this pass - options.js writes fill="currentColor" onto
-           every path it builds, which is right for a glyph of ours and wrong
-           for somebody else's logo.
-
-           Named here rather than added in options.js, so the call site says
-           WHICH brand and no colour ever appears in a page file. -->
+      <!-- glim-brand-btn and glim-brand-<name> work only as a pair (GlimStone
+           1.10.0): the second supplies the brand colours the first uses. -->
       <div class="fields">
         <a id="aboutCoffeeBtn" class="secondary btnlike glim-brand-btn glim-brand-coffee" target="_blank" rel="noreferrer noopener"></a>
       </div>
       <p id="aboutReport" class="aboutText"></p>
       <div class="fields">
         <a id="aboutGithub" class="secondary btnlike glim-brand-btn glim-brand-github" target="_blank" rel="noreferrer noopener"></a>
-        <!-- The house's own button, not a brand's: this one reaches the people
-             who wrote the app, so it takes the accent tokens and follows the
-             colour somebody picked and rainbow mode with it. A third party's
-             mark never may - its colour is the one thing about it that is not
-             ours to repaint. -->
+        <!-- Our own button takes the accent tokens; a third party's mark keeps
+             its colour. -->
         <a id="aboutMail" class="secondary btnlike glim-brand-btn glim-brand-house"></a>
       </div>
-      <!-- Last line in the card, under the buttons (jdp, 2026-09-05), same as
-           the web interface and the app. It reads as a footer, which is what it
-           is: each sentence above has its button directly under it, and a build
-           number between the body and the coffee line cut that pairing in
-           half. -->
+      <!-- The versions close the card, as in the web interface and the app. -->
       <p id="aboutVersions" class="aboutVersions glim-num"></p>
     </section>
 
-    <!-- The confirmation window (GlimStone 1.12.0).
-
-         Static markup rather than nodes built at the moment of the press: this
-         extension has no build step and Mozilla's linter fails the package on
-         an innerHTML assignment from a variable, so every other dynamic piece
-         on this page is assembled with createElement. A window that is the same
-         window every time does not need assembling - it needs its two sentences
-         filled in, which options.js does.
-
-         No divider lines, and no close X in the corner (1.8.0, and optional
-         since 1.7.3): two controls doing the same thing, one of them where a
-         window's close button lives, read as a choice rather than as one answer
-         offered twice. The backdrop and Escape are the second way out, which is
-         where a second way out belongs.
-
-         Button order is 1.14.0: the one that holds on the left, the one that
-         goes ahead at the END of the row. Neither carries a status colour -
-         1.12.0 removed the language's one sanctioned red, and 1.13.0 removed
-         the tone lever with it rather than relocating it. What warns is this
-         window's own sentence; a colour cannot say more than the sentence above
-         it, and spending red on every delete teaches people to read past it. -->
+    <!-- The confirmation window (GlimStone 1.12.0), static markup that
+         options.js fills. No corner X; the backdrop and Escape cancel. The
+         button that goes ahead sits at the end (1.14.0), and neither carries a
+         status colour: the sentence does the warning. -->
     <div id="leaveConfirm" class="glim-modal-backdrop" hidden>
       <div
         class="glim-card glim-modal-card"

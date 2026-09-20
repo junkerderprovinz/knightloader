@@ -1,34 +1,14 @@
-// Shared by background.js (importScripts), popup.js, options.js and
-// picker.js (<script> tag) — one small, dependency-free translation layer
-// for the couple dozen strings this extension shows, independent of the
-// main app's own react-i18next setup (web/src/lib/i18n.ts), which needs a
-// build step this extension deliberately has none of (see ../embed.go's
-// doc comment: src/ ships as plain files so "load unpacked" works straight
-// from a git checkout).
+// A small translation layer shared by background.js (importScripts) and the
+// pages (<script> tag). The extension has no build step, so the web UI's
+// react-i18next setup is not available.
 //
-// jdp: "Die sprache soll eingestellt werden können und soll die sprache die
-// im Bowser eingestellt ist standardmäßig übernehmen" — so the default is
-// never something anyone has to ask for: resolveAuto() reads the browser's
-// own UI language (chrome.i18n.getUILanguage(), falling back to
-// navigator.language) the first time, and an explicit choice made in
-// Options overrides that from then on. Both paths are read through
-// loadLanguage()/t(), so no caller needs to know which case it is in.
+// The browser's UI language is the default (resolveAuto), and a choice made
+// in the options page overrides it. chrome.i18n's _locales are not used,
+// because they follow the browser's locale and cannot be overridden at
+// runtime; the manifest's own fields stay in English.
 //
-// This intentionally does NOT use the WebExtension chrome.i18n _locales
-// mechanism for these strings: that mechanism resolves once, from the
-// BROWSER's own locale, and cannot be overridden per-extension at runtime —
-// exactly the "let someone pick a different language than their browser's"
-// requirement this doesn't satisfy. (manifest.json's own static fields —
-// name/description/default_title — are a separate, much smaller surface;
-// they stay in English today rather than splitting the override story in
-// two, since chrome.i18n really is the only mechanism available for those.)
-//
-// LANGUAGES lists the subset of the main app's 42 locales
-// (web/src/lib/locales/*.ts) that this extension actually carries real
-// strings for today, in the same rough "major languages first" order that
-// catalogue's own LOADERS table already uses. Anything else a browser might
-// report falls back to English here — see the report this shipped with for
-// the exact list.
+// LANGUAGES follows the web UI's locales (web/src/lib/locales), major
+// languages first. Anything else falls back to English.
 
 const LANGUAGES = [
   { code: 'en', label: 'English', flag: 'gb' },
@@ -47,12 +27,8 @@ const LANGUAGES = [
   { code: 'fi', label: 'Suomi', flag: 'fi' },
   { code: 'no', label: 'Norsk', flag: 'no' },
   { code: 'tr', label: 'Türkçe', flag: 'tr' },
-  // rtl marks the three catalogues that are set right to left. It is the same
-  // flag on the same three codes as the web UI's own catalogue
-  // (web/src/lib/locales, LanguageDef.rtl), so the two surfaces cannot disagree
-  // about which languages those are. Read by applyDocumentLanguage() below; a
-  // language without the flag is left to default to ltr rather than carrying
-  // `rtl: false` forty times.
+  // rtl marks the right-to-left catalogues, as LanguageDef.rtl does in the web
+  // UI; applyDocumentLanguage() reads it.
   { code: 'ar', label: 'العربية', flag: 'sa', rtl: true },
   { code: 'zh', label: '中文', flag: 'cn' },
   { code: 'ja', label: '日本語', flag: 'jp' },
@@ -5588,16 +5564,13 @@ const MESSAGES = {
 
 let _lang = 'en';
 
-/** baseLang strips a region subtag ("de-DE" → "de") so any browser locale still matches. */
+/** baseLang strips a region subtag ("de-DE" to "de") so any browser locale matches. */
 function baseLang(tag) {
   return (tag || '').toLowerCase().split(/[-_]/)[0];
 }
 
-/** resolveAuto reads the BROWSER's own UI language — never overridden by a
- * page's own <html lang>, which is what makes this "free" for a browser
- * whose UI is already in the user's language. navigator.language is a
- * fallback only chrome.i18n.getUILanguage() itself being unavailable would
- * ever need (it is not, in a real extension context; this is defensive). */
+/** resolveAuto returns the browser's UI language if the extension carries it,
+ *  with navigator.language as the fallback, else English. */
 function resolveAuto() {
   const candidates = [];
   try {
@@ -5616,27 +5589,9 @@ function resolveAuto() {
 }
 
 /**
- * applyDocumentLanguage puts the resolved language on <html> as `lang` and,
- * for the three catalogues marked rtl above, as `dir="rtl"`.
- *
- * This extension shipped Arabic, Hebrew and Persian for a release with
- * nothing anywhere setting `dir`, so all three were laid out left to right:
- * the text itself still runs the right way (the browser's own bidi algorithm
- * does that per paragraph), but the page around it does not - labels, button
- * rows, the section badge on a card and the switch in a row all stood on the
- * side a reader of those languages looks at last. A translated interface laid
- * out backwards is worse than an untranslated one, because the words promise
- * that somebody thought about it.
- *
- * `lang` goes on with it and is not a bonus: it is what tells the browser
- * which font and which hyphenation and which quote marks to use, and it was
- * missing too - both pages shipped a hard-coded `lang="en"`.
- *
- * Guarded on `document`, because i18n.js is also pulled into background.js
- * through importScripts and a service worker has no document at all. Calling
- * it from loadLanguage() rather than from each page is what makes it
- * impossible to forget on the next page somebody adds: every surface already
- * has to call loadLanguage() before it can render a word.
+ * applyDocumentLanguage sets `lang` on <html>, which picks fonts, hyphenation
+ * and quote marks, and `dir="rtl"` for the catalogues marked rtl, so the page
+ * layout mirrors as well as the text. The service worker has no document.
  */
 function applyDocumentLanguage(code) {
   if (typeof document === 'undefined' || !document.documentElement) return;
@@ -5646,18 +5601,10 @@ function applyDocumentLanguage(code) {
 }
 
 /**
- * loadLanguage resolves the active language for this page load — the
- * explicit choice from Options if one was made, otherwise the browser's own
- * UI language — and caches it in `_lang` so every subsequent, synchronous
- * t() call in this page reads it without another storage round-trip. Every
- * page (popup.js, options.js, picker.js) and background.js's own
- * onInstalled handler call this once before building any user-facing text.
- *
- * It also stamps <html lang> and <html dir>, so the direction is settled at
- * the same moment the language is and never in a second place that could
- * disagree with this one. Options calls this again when somebody picks a
- * different language, so a switch into or out of Arabic re-lays the page
- * rather than needing a reload.
+ * loadLanguage resolves the active language (the stored choice, otherwise the
+ * browser's) and caches it for the synchronous t(). Every page and the service
+ * worker call it before writing any text, and the options page calls it again
+ * after a language change. It also sets <html lang> and dir.
  */
 async function loadLanguage() {
   const stored = await chrome.storage.local.get('language');
@@ -5682,8 +5629,7 @@ function formatMsg(str, vars) {
   return s;
 }
 
-/** currentLanguage is the language loadLanguage() last resolved to, for the
- *  one caller that has to REPORT it rather than translate with it. */
+/** currentLanguage is the language loadLanguage() last resolved to. */
 function currentLanguage() {
   return _lang;
 }

@@ -18,19 +18,16 @@ import * as Clipboard from 'expo-clipboard';
 // Joining the group, which is the whole of connecting this app now: twelve
 // words, and every instance the person runs appears.
 //
-// It replaces a screen that asked for a relay address, a relay key and then a
-// per-instance API token, and saved exactly ONE instance per visit. All three
-// of those were things to go and look up somewhere else, which is precisely
-// what the phrase exists to abolish - and the one-at-a-time saving meant
-// three instances were three trips through the same form.
+// It replaces a screen that asked for a relay address, a relay key and a
+// per-instance API token and saved one instance per visit, so three instances
+// were three trips through the same form.
 //
-// The phone is a full group member, not a client of one instance. It derives
-// the same key its siblings derive (api/seedphrase.ts, a port of
-// internal/seedphrase held to the Go side's own vectors), dials the same
-// relay, and is authenticated by that: the server accepts a relay-delivered
-// request from anything presenting the group key, so there is no token to
-// enter any more. See relayProxyHandler's own comment for what that admits
-// and what it does not.
+// The phone is a full group member rather than a client of one instance. It
+// derives the same key its siblings derive (api/seedphrase.ts, a port of
+// internal/seedphrase held to the Go side's own vectors), dials the same relay,
+// and is authenticated by that: the server accepts a relay-delivered request
+// from anything presenting the group key, so there is no token to enter. See
+// relayProxyHandler for what that admits and what it does not.
 //
 // The phrase is a group credential, so a saved connection holds it in the
 // keychain exactly as a token was - see storage/connections.ts.
@@ -45,12 +42,10 @@ export default function RelayConnectScreen({
   onBack,
 }: {
   onConnected: (conn: ServerConnection) => void;
-  /** The way out (jdp, 2026-08-31: "die mit phrase verbinden seite hat keinen
-   *  zurückbutton"). This screen is reached from the overview's "+" and from
-   *  the empty state, and on Android the hardware back key worked while nothing
-   *  on screen did - which is a way out only if you already know it is there.
-   *  Every other screen in this app has the badge; this one was the exception
-   *  nobody meant to make. */
+  /** The way out. This screen is reached from the overview's "+" and from the
+   *  empty state, and the Android hardware back key is a way out only for
+   *  somebody who already knows it is there. Every other screen in this app has
+   *  the badge. */
   onBack: () => void;
 }) {
   const { t } = useT();
@@ -61,40 +56,27 @@ export default function RelayConnectScreen({
   const [error, setError] = useState<string | null>(null);
 
   /**
-   * The refusal signal: the button shakes, and no sentence appears under it
-   * (jdp, 2026-09-01: "wenn keine phrasse eingegeben wurde soll der button kurz
-   * zittern, keine fehlermeldung in textform").
+   * The refusal signal: the button shakes and no sentence appears under it.
    *
-   * It is the design language's standing rule for a failed action, and the
-   * browser extension has followed it since its own round of this. The written
-   * message has the property the rule objects to: it never clears itself, so a
-   * refusal from ten minutes ago looks exactly as current as one from a second
-   * ago. A shake is over when it is over.
+   * That is the design language's rule for a failed action. A written message
+   * never clears itself, so a refusal from ten minutes ago looks as current as
+   * one from a second ago, while a shake is over when it is over.
    *
-   * Kept for the failures a shake cannot express - a word that is not in the
-   * list, a checksum that does not add up - because "which of your twelve words
-   * is wrong" is information, and losing it to make the rule tidy would be the
-   * rule eating the product. An EMPTY field carries no such information, and
-   * that is the case he is describing.
+   * A sentence is kept for the failures a shake cannot express, a word that is
+   * not in the list or a checksum that does not add up, because which of the
+   * twelve words is wrong is information. An empty field carries none.
    *
-   * THE GEOMETRY IS THE HOUSE'S, not this screen's, and it is not even this
-   * file's any more. `glim-shake` is a translateX oscillation decaying +-4,
-   * -+4, +-2, -+2 over 360ms, and the web UI (index.css) and the extension
-   * (glimstone.css) both carry exactly that. This ran five 55ms steps at +-7
-   * instead, so one gesture had three different shapes across one product -
-   * which is the whole reason those numbers are written down at all.
-   *
-   * The routine now lives in theme/MotionContext's useShake, where it is one
-   * copy instead of the two this file and SettingsScreen were keeping, and how
-   * far and how long it swings comes off the motion level rather than being
-   * typed here: at the quietest level there is no travel at all and the button
-   * dips in opacity instead, because an invisible shake carries no refusal.
+   * The geometry is the house's: `glim-shake` is a translateX oscillation
+   * decaying +-4, -+4, +-2, -+2 over 360ms, and the web UI (index.css) and the
+   * extension (glimstone.css) both carry it. The routine lives in
+   * theme/MotionContext's useShake, so there is one copy and the travel comes
+   * off the motion level: at the quietest one the button dips in opacity
+   * instead, because an invisible shake carries no refusal.
    */
   const { style: zitterStil, shake: zittern } = useShake();
   const [sibs, setSibs] = useState<RelaySibling[]>([]);
-  // What the running client was opened with. State, not a ref: the instance
-  // list below only renders once this is set, so the screen has to re-render
-  // when it changes.
+  // What the running client was opened with. State rather than a ref, because
+  // the instance list below renders only once this is set.
   // frameKey rides along as hex because that is the form it is saved in - see
   // types.ts's relayFrameKey for why it is stored rather than re-derived.
   const [live, setLive] = useState<{ url: string; key: string; frameKey: string } | null>(null);
@@ -103,9 +85,9 @@ export default function RelayConnectScreen({
   const liveRef = useRef<{ url: string; key: string } | null>(null);
   const unsubscribe = useRef<(() => void) | null>(null);
 
-  // A client opened just to look around must not outlive the screen unless
-  // something was actually saved with it - otherwise backing out of a typo
-  // leaves a socket retrying against a relay nobody uses.
+  // A client opened to look around must not outlive the screen unless something
+  // was saved with it, or backing out of a typo leaves a socket retrying
+  // against a relay nobody uses.
   const releaseIfUnused = useCallback(async () => {
     unsubscribe.current?.();
     unsubscribe.current = null;
@@ -119,30 +101,29 @@ export default function RelayConnectScreen({
 
   useEffect(() => () => void releaseIfUnused(), [releaseIfUnused]);
 
-  // The checksum catches a mistyped or swapped word here, before anything is
-  // dialled, so the failure reads as "word 3 is not one of the words" instead
-  // of a socket that simply never finds anybody. That check earns its keep
-  // twice over for a scan: a QR code decodes to whatever it decodes to, and
-  // pointing the camera at some other code should say "that is not a phrase"
-  // rather than dial a group nobody is in.
+  // The checksum catches a mistyped or swapped word before anything is dialled,
+  // so the failure reads as "word 3 is not one of the words" rather than as a
+  // socket that never finds anybody. It earns its keep twice over for a scan,
+  // where a QR code decodes to whatever it decodes to and pointing the camera
+  // at some other code should say that it is not a phrase.
   //
-  // `entered` exists for the scan path. The caller has just set state that
-  // this render does not see yet, so it passes the scanned words in directly;
-  // the button path passes nothing and reads state as before.
+  // `entered` exists for the scan path. The caller has just set state this
+  // render does not see yet, so it passes the scanned words in directly; the
+  // button path passes nothing and reads state.
   const join = async (entered?: string) => {
     const words = (entered ?? phrase).trim();
     setError(null);
     // An empty field is the one refusal that carries no information beyond
-    // "not yet", so it gets the shake and nothing else. Anything below this
-    // line has something to SAY, and saying it is worth a line of text.
+    // "not yet", so it gets the shake and nothing else. Everything below has
+    // something to say, which is worth a line of text.
     if (words === '') {
       zittern();
       return;
     }
     let key: string;
     // Both keys come out of the phrase here, in the one place it exists, and
-    // the words are then gone - the frame key is carried alongside the relay
-    // key from this point on rather than re-derived, because there would be
+    // the words are then gone. The frame key travels alongside the relay key
+    // from this point rather than being re-derived, since there would be
     // nothing left to re-derive it from. See types.ts's relayFrameKey.
     let frameKey: Uint8Array;
     try {
@@ -172,8 +153,9 @@ export default function RelayConnectScreen({
       selfName: 'KnightLoader app',
     });
     // Subscribed rather than passed in as an option: this client may already
-    // exist for a saved connection, in which case constructor options are
-    // never applied - see relayClientFor.
+    // exist for a saved connection, where constructor options are never
+    // applied. See relayClientFor.
+
     unsubscribe.current = client.subscribe(() => setSibs(client.siblings()));
     liveRef.current = { url: DEFAULT_RELAY_URL, key };
     setLive({ url: DEFAULT_RELAY_URL, key, frameKey: toHex(frameKey) });
@@ -181,9 +163,9 @@ export default function RelayConnectScreen({
     setTimeout(() => setSearching(false), SETTLE_MS);
   };
 
-  // Every instance at once, which is what "join the group" means. Picking one
-  // and coming back for the next was the old shape, and it made a person do
-  // the same form once per machine they own.
+  // Every instance at once, which is what joining the group means. Picking one
+  // and coming back for the next makes a person fill the same form once per
+  // machine they own.
   const saveAll = async () => {
     if (!live || sibs.length === 0) return;
     const existing = await listConnections();
@@ -207,7 +189,7 @@ export default function RelayConnectScreen({
         relayKey: live.key,
         relayFrameKey: live.frameKey,
         instanceId: s.instanceId,
-        // No token: being on this relay under this key IS the credential now.
+        // No token: being on this relay under this key is the credential.
         token: '',
       };
       await addConnection(conn);
@@ -215,8 +197,8 @@ export default function RelayConnectScreen({
     }
     if (!first) return;
     await setActiveConnectionId(first.id);
-    // Deliberately NOT released on the way out now: the saved connections are
-    // about to use this very client.
+    // Not released on the way out: the saved connections are about to use this
+    // client.
     liveRef.current = null;
     onConnected(first);
   };
@@ -235,16 +217,9 @@ export default function RelayConnectScreen({
         <IconBadge icon={<Back color={c.textSub} />} onPress={onBack} accessibilityLabel={t('settings.back')} />
         <Text style={[styles.title, { color: c.text }]}>{t('relay.title')}</Text>
       </View>
-      {/* Heading, explanation, field, buttons - in that order (jdp, 2026-09-01:
-          "infotext unter die überschrift, dann das eingabefeld, dann die
-          buttons").
-
-          It sat below the controls for one round, on my reading of his "info
-          text weiter runter" as "out of the way of the field". He meant lower
-          than where it was in the heading, not last: a screen whose whole job
-          is one unfamiliar input explains it BEFORE asking for it, and an
-          explanation you reach after the buttons is one you read after
-          guessing. */}
+      {/* Heading, explanation, field, buttons, in that order: a screen whose
+          job is one unfamiliar input explains it before asking for it, and an
+          explanation below the buttons is one somebody reads after guessing. */}
       <Text style={[styles.hint, { color: c.textMuted }]}>{t('relay.hint')}</Text>
       <Text style={[styles.label, { color: c.textMuted }]}>{t('relay.phraseLabel')}</Text>
       <TextInput
@@ -259,19 +234,15 @@ export default function RelayConnectScreen({
         multiline
       />
 
-      {/* Paste, because twelve words is the one input a phone keyboard is worst
-          at and the phrase usually arrives in a message somebody already
-          copied (jdp, 2026-09-01: "ein einfügen button fehlt"). Between the
-          field and Connect, in the order the hands move: paste, then join.
+      {/* Paste, because twelve words is the input a phone keyboard is worst at
+          and the phrase usually arrives in a message somebody already copied.
+          Between the field and Connect, in the order the hands move.
 
-          Clipboard.getStringAsync rather than the TextInput's own long-press
-          menu: that menu exists, and finding it means knowing it is there. */}
-      {/* ONE stack, and the stack owns the spacing (jdp, 2026-09-02: "mit
-          phrase verbinden seite: die buttons kleben alle aneinander").
-          The gap used to live in this screen's own `styles.button` as a
-          marginTop, and moving the three buttons onto the shared GlimButton
-          took it away with the style - a component must not carry an outside
-          margin, so the gap belongs to whatever stacks them. */}
+          Clipboard.getStringAsync rather than the TextInput's long-press menu,
+          which exists and has to be known about to be found.
+
+          One stack, and the stack owns the spacing: a component must not carry
+          an outside margin, so the gap belongs to whatever stacks them. */}
       <View style={styles.buttonStack}>
       <GlimButton
         hue={0}
@@ -291,19 +262,14 @@ export default function RelayConnectScreen({
         label={t('relay.joinButton')}
         icon={(ink) => <Connect color={ink} />}
         busy={searching}
-        // Wrapped, not passed directly: onPress hands its handler the touch
-        // event, which join() would now read as the scanned phrase. tsc
-        // caught it the moment join grew that parameter - untyped, it would
-        // have shipped as "the Connect button says your phrase is not twelve
-        // words" with no clue why.
+        // Wrapped rather than passed directly: onPress hands its handler the
+        // touch event, which join() would read as the scanned phrase.
         onPress={() => void join()}
       />
       </Animated.View>
 
-      {/* Scanning is the point of the QR the web UI has been showing all
-          along: twelve words is exactly the input a phone keyboard is worst
-          at, and the code was scannable by nothing until now (the scanner
-          existed, wired only to the old direct-address screen). */}
+      {/* Scanning is what the QR the web UI shows is for: twelve words is the
+          input a phone keyboard is worst at. */}
       <GlimButton
         hue={2}
         label={t('relay.scanButton')}
@@ -334,17 +300,15 @@ export default function RelayConnectScreen({
                 </View>
               </View>
             )}
-            /* The same empty state every other list in the app draws: a card,
-               a muted glyph at reduced opacity, a muted line. It was a bare
-               sentence on the page ground, which made this the third shape one
-               app used for one situation - and a shape nobody chose, since a
-               list with nothing in it is exactly the moment the page should
-               still look like the page.
+            /* The same empty state every other list in the app draws: a card, a
+               muted glyph at reduced opacity, a muted line. A bare sentence on
+               the page ground would be a third shape for one situation, and a
+               list with nothing in it is the moment the page should still look
+               like the page.
 
-               The glyph's size is the role's own number (26 points of ink, the
-               same an empty state takes in the web UI), converted through
-               boxForInk because a drawn glyph here fills less than the box it
-               is handed - see IconBadge. */
+               The glyph's size is the role's own number, 26 points of ink as an
+               empty state takes in the web UI, converted through boxForInk
+               because a drawn glyph fills less than the box it is handed. */
             ListEmptyComponent={
               searching ? null : (
                 <View style={[styles.empty, { backgroundColor: c.surface, borderRadius: radii.card }]}>
@@ -363,13 +327,11 @@ export default function RelayConnectScreen({
       )}
 
       {/* A scanned phrase joins straight away rather than only filling the
-          field: the code carries exactly the twelve words the button below
-          would be pressed with, and stopping to ask for one more tap after
-          somebody has already aimed a camera at it is a step with nothing in
-          it. join() reads `phrase` from state, so the scanned value is put
-          there first and passed explicitly - React has not re-rendered yet
-          at this point, and joining off the stale state would use whatever
-          was typed before the scan. */}
+          field: the code carries the twelve words the button below would be
+          pressed with. join() reads `phrase` from state, so the scanned value
+          is put there first and passed explicitly, since React has not
+          re-rendered and joining off the stale state would use whatever was
+          typed before the scan. */}
       <QRScanner
         visible={scanning}
         hint={t('relay.qrHintPhrase')}
@@ -385,16 +347,14 @@ export default function RelayConnectScreen({
   );
 }
 
-// Colours and radii are applied inline from the resolved tokens, never baked
-// in here: a stylesheet is built once and cannot follow a theme change.
+// Colours and radii are applied inline from the resolved tokens rather than
+// baked in here: a stylesheet is built once and cannot follow a theme change.
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 24, paddingTop: 56 },
   topBar: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 4 },
-  // Every size on this screen comes off the scale in theme/tokens.ts. They were
-  // 22, 13 and 15 - a heading one step above the heading step, and two rungs
-  // invented between Dense and Body - which is the ladder the scale exists to
-  // stop: this screen's own title is the same object as Downloads' and Settings'
-  // and has to measure the same.
+  // Every size on this screen comes off the scale in theme/tokens.ts: this
+  // screen's title is the same object as Downloads' and Settings' and has to
+  // measure the same.
   title: { fontSize: TYPE.heading, fontWeight: '600', marginBottom: 8 },
   hint: { fontSize: TYPE.body, marginBottom: 16, lineHeight: 20 },
   label: { fontSize: TYPE.dense, marginBottom: 6, marginTop: 12 },
@@ -405,25 +365,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   // Twelve words do not fit on one phone line, and a field that scrolls
-  // sideways while somebody checks their typing is a field that hides the
-  // typo they are looking for.
+  // sideways while somebody checks their typing hides the typo they are looking
+  // for.
   phraseInput: { minHeight: 76, textAlignVertical: 'top' },
-  // A row, not a block: every button on this screen carries a glyph beside its
-  // label now (jdp, 2026-09-01: "alle buttons sollen einen glyph bekommen").
-  // ONE button style for all three, and one gap between them (jdp,
-  // 2026-09-01: "alle buttons gleicher abstand und alle farbig!").
+  // A row rather than a block: every button on this screen carries a glyph
+  // beside its label, with one button style for all three and one gap between
+  // them. Three heights, three grounds and three margins read as three kinds of
+  // control rather than as three things to do on one screen, and the screen has
+  // three equal ways forward: paste the phrase, scan it, or type it and join.
   //
-  // They were three: Paste at a fixed height of 44 on the plain surface, Join
-  // at 14 of vertical padding in the accent, and Scan the same padding again
-  // with a DRAWN BORDER around it. Three heights, three grounds, three
-  // different margins - which reads as three kinds of control rather than
-  // three things you can do on one screen.
-  //
-  // The border went for its own reason as well: this language separates
-  // surfaces by shade and never by a line, so an outlined button was the one
-  // element on the page breaking that rule. "Secondary" was the argument for
-  // it, and it does not survive the screen actually having three equal ways
-  // forward: paste the phrase, scan it, or type it and join.
+  // No outlined button either, since this language separates surfaces by shade
+  // and never by a line.
   buttonStack: { gap: 12, marginTop: 16 },
   error: { marginTop: 12, fontSize: TYPE.body },
   sectionTitle: { fontSize: TYPE.dense, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 20 },
@@ -438,7 +390,7 @@ const styles = StyleSheet.create({
   rowText: { flex: 1, minWidth: 0 },
   rowName: { fontSize: TYPE.body, fontWeight: '600' },
   rowSub: { fontSize: TYPE.dense, marginTop: 2 },
-  // The empty state's own card, not a loose line of text.
+  // The empty state's own card rather than a loose line of text.
   empty: { alignItems: 'center', gap: 10, paddingVertical: 24, paddingHorizontal: 24, marginTop: 8 },
   emptyIcon: { opacity: 0.5 },
   emptyText: { fontSize: TYPE.body, textAlign: 'center' },

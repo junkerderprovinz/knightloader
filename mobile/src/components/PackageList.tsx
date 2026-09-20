@@ -12,14 +12,12 @@ import { fmtBytes } from '../api/stats';
 /**
  * The task list, grouped into the packages the instance already put it in.
  *
- * The app listed every link on its own (jdp, 2026-08-30: "die Links sind jetzt
- * alle einzeln und nicht in der ordner ansicht wie in der containerversion").
  * A container is one thing somebody added, usually a dozen or a hundred files,
- * and a flat list of them is a wall that says nothing about what was added -
- * the same reason the web interface and JDownloader both group by package.
+ * and a flat list of them is a wall that says nothing about what was added,
+ * which is why the web interface and JDownloader both group by package.
  *
  * One flattened array rather than a SectionList: the header and its rows are
- * the same virtualised list either way, and flattening keeps ONE FlatList with
+ * the same virtualised list either way, and flattening keeps one FlatList with
  * one keyExtractor instead of a second component's worth of section plumbing.
  */
 export interface Pkg {
@@ -64,23 +62,18 @@ export default function PackageList({
   header,
 }: {
   tasks: Task[];
-  /** Everything that belongs ABOVE the list and has to line up with it: the
-   *  queue bar, the speed graph, the Downloads/Collector strip. They used to be
-   *  siblings of this list with their own copy of its width and margins, which
-   *  is how the strip ended up narrower than the cards and hard against the left
-   *  edge (jdp, 2026-08-31: "Der download/Sammler selektor soll bündig mit den
-   *  cards sien, jetzt ist er am rand links und er soll so breit sein wie die
-   *  cards"). Inside the list's own content container they cannot disagree with
-   *  it: same padding, same cap, same centring, by construction rather than by
-   *  two numbers somebody keeps in step. */
+  /** Everything that belongs above the list and has to line up with it: the
+   *  queue bar, the speed graph, the Downloads/Collector strip. As siblings of
+   *  this list they would carry their own copy of its width and margins; inside
+   *  its content container they get the same padding, cap and centring by
+   *  construction. */
   header?: React.ReactNode;
-  /** Only the collector passes this: a package there is a staged batch, and
-   *  the badge is what promotes it. Undefined in the download tab, where the
-   *  queue's own controls already decide what runs. */
+  /** Only the collector passes this: a package there is a staged batch and the
+   *  badge is what promotes it. Undefined in the download tab, where the
+   *  queue's own controls decide what runs. */
   onStartPackage?: (pkg: Pkg) => void;
-  /** Both tabs pass this (jdp, 2026-08-31: "man soll ordner auch löschen
-   *  können"). Confirmed here rather than at the call site, so every caller
-   *  gets the same dialog and none of them can forget it. */
+  /** Both tabs pass this. Confirmed here rather than at the call site, so every
+   *  caller gets the same dialog and none of them can forget it. */
   onDeletePackage?: (pkg: Pkg) => void;
   /** The flat task order after a drag, ready for POST /api/tasks/reorder.
    *  Undefined leaves the list un-draggable, which is what the collector tab
@@ -93,11 +86,9 @@ export default function PackageList({
   const { c, radii } = useAppearance();
   const packages = groupByPackage(tasks);
 
-  /** Which packages are OPEN. Closed is the default (jdp, 2026-08-31: "link
-   *  ordner sollen in der app standardmäßig zusammen geklappt sein und
-   *  ausklappbar sein"), so the state records the exception rather than the
-   *  rule: a package that arrives while the screen is open is closed like
-   *  every other one, with nothing to initialise for it.
+  /** Which packages are open. Closed is the default, so the state records the
+   *  exception rather than the rule and a package that arrives while the screen
+   *  is open needs nothing initialised for it.
    *
    *  Keyed by package name, which is what the instance groups by, so a folder
    *  stays open across the five-second refresh that replaces every Task object
@@ -114,24 +105,15 @@ export default function PackageList({
   /**
    * The question is what warns, and it is the only thing that does.
    *
-   * The message names the count, which is the whole of why the button no longer
-   * needs a colour: GlimStone 1.12.0 took status-red off destructive controls
-   * and 1.13.0 removed the last sanctioned exception instead of moving it, so
-   * `style: 'destructive'` is gone from the commit button here as it is from the
-   * settings screen's own. The badge that opens this window has been neutral
-   * since it was drawn (Trash in `c.textSub`), so trigger and commit finally
-   * give the same answer rather than two halves of an old one.
+   * The message names the count, so the commit button needs no colour: the
+   * language took status-red off destructive controls in 1.12.0 and removed the
+   * last exception in 1.13.0. React Native also honours `style: 'destructive'`
+   * on iOS and ignores it on Android, so it would paint a red button on one
+   * phone and nothing on the other.
    *
-   * There was a second defect underneath the rule, worth naming because it was
-   * invisible from either platform alone: React Native honours `style` on iOS
-   * and ignores it completely on Android, so the one property painted a red
-   * button on one phone and nothing at all on the other. A flag that only half
-   * the users ever see cannot be carrying the warning for any of them.
-   *
-   * `style: 'cancel'` stays. That is placement, not colour - it tells the
-   * platform which button is the way out, and where each platform puts that is
-   * the platform's business, which is also why 1.14.0's right-goes-ahead rule
-   * has nothing to decide in this window.
+   * `style: 'cancel'` stays, because that is placement rather than colour: it
+   * tells the platform which button is the way out, and where each platform
+   * puts that is the platform's business.
    */
   const confirmDelete = (pkg: Pkg) => {
     Alert.alert(
@@ -147,39 +129,29 @@ export default function PackageList({
     );
   };
 
-  // One flat list of draggable rows. The BAND is what keeps a drag honest: a
-  // package header may only move among other package headers, and a link only
-  // within its own package. Without it a link could be dropped between two
-  // packages, where the list has no way to render it and the server has no way
-  // to store it.
+  // One flat list of draggable rows. The band is what keeps a drag honest: a
+  // package header moves among package headers and a link within its own
+  // package. Without it a link could be dropped between two packages, where the
+  // list cannot render it and the server cannot store it.
   const dragRows: DragRow[] = rows.map((r) =>
     r.kind === 'header'
       ? { key: `p:${r.pkg.name}`, band: 'packages', render: (_ziehend, scharf) => renderHeader(r.pkg, scharf) }
       : { key: r.task.id, band: `pkg:${r.task.package || ''}`, render: () => <TaskRow task={r.task} index={r.index} /> },
   );
 
-  /** A drop, turned into the flat task order the instance stores.
+  /** What the server accepts in one reorder.
    *
-   *  POST /api/tasks/reorder takes "one whole band of the wait queue in the
-   *  exact order given, as a drag would" - the same call the web interface's own
-   *  drag-and-drop makes - so both surfaces write the same shape and neither has
-   *  a private idea of what an order is. Reordering PACKAGES is expressed the
-   *  same way: the packages move, and the ids of their tasks are emitted in the
-   *  new package order. */
-  /** What the server will actually accept in one reorder.
+   *  POST /api/tasks/reorder takes one whole band of the wait queue in the
+   *  order given, the same call the web interface's drag-and-drop makes, so
+   *  both surfaces write the same shape. Reordering packages is expressed the
+   *  same way: the packages move and the ids of their tasks are emitted in the
+   *  new package order.
    *
-   *  Two rules, and both were learned the hard way (jdp, five rounds of "das
-   *  drag and drop funktioniert nicht"):
-   *
-   *  - A finished or failed task is not in the wait queue, so naming one
-   *    refuses the WHOLE request, and this list happily shows both.
-   *  - Priority is what the server groups a band by. A list mixing two
-   *    priorities is refused for spanning bands, and nothing on this screen
-   *    shows a priority, so it would look like the drag simply did nothing.
-   *
-   *  Filtering here rather than letting the request fail is right because
-   *  neither is a mistake anybody made: they are rows this list is meant to
-   *  show and the queue is not meant to move. */
+   *  Two rows have to be filtered out first. A finished or failed task is not
+   *  in the wait queue, so naming one refuses the whole request, and this list
+   *  shows both. Priority is what the server groups a band by, so a list mixing
+   *  two priorities is refused for spanning bands; nothing on this screen shows
+   *  a priority, so the drag would look as if it had done nothing. */
   const sortierbar = (t: Task) => t.status !== 'done' && t.status !== 'error';
   const bandVon = (t: Task) => t.priority ?? 0;
 
@@ -197,9 +169,9 @@ export default function PackageList({
       if (ids.length > 0) onReorder(ids);
       return;
     }
-    // Within one package: that package's own tasks in the new order. Only that
-    // package's ids travel - every other task in the band is left where it is,
-    // which is exactly what a partial reorder now means to the server.
+    // Within one package: that package's own tasks in the new order. Only its
+    // ids travel, and every other task in the band is left where it is, which
+    // is what a partial reorder means to the server.
     const name = band.slice('pkg:'.length);
     const pkg = packages.find((p) => p.name === name);
     if (!pkg) return;
@@ -213,11 +185,11 @@ export default function PackageList({
   /**
    * `scharf` is the list's reorder mode, handed down by DragList.
    *
-   * While it is on, the controls inside a row stop responding. A hold that
-   * arms the drag lands ON one of them as often as not - these headers are
-   * caption, start and bin edge to edge - and without this, letting go without
-   * moving would arm the drag AND press whatever was under the finger. Which,
-   * for the bin, means a confirmation dialog nobody asked for.
+   * While it is on, the controls inside a row stop responding. A hold that arms
+   * the drag lands on one of them as often as not, since these headers are
+   * caption, start and bin edge to edge, and letting go without moving would
+   * otherwise arm the drag and press whatever was under the finger, which for
+   * the bin means a confirmation dialog nobody asked for.
    */
   const renderHeader = (pkg: Pkg, scharf: boolean) => {
         const auf = open[pkg.name] === true;
@@ -241,9 +213,9 @@ export default function PackageList({
                   {pkg.name || t('packages.loose')}
                 </Text>
               </View>
-              {/* The speed belongs on the HEADER, not only on the rows inside:
-                  closed by default would otherwise hide the one thing a running
-                  folder has to say. */}
+              {/* The speed goes on the header as well as on the rows inside,
+                  or closed by default hides the one thing a running folder has
+                  to say. */}
               <Text style={[styles.headerLine, { color: c.textMuted }]} numberOfLines={1}>
                 {[
                   `${pkg.tasks.length} ${t('instance.files')}`,
@@ -280,18 +252,13 @@ export default function PackageList({
       contentContainerStyle={styles.list}
       header={header}
       /**
-       * A list with nothing in it gets a DELIBERATE empty state, not blank
-       * space: a card, a muted glyph at reduced opacity, a muted title.
+       * A list with nothing in it gets a card, a muted glyph at reduced opacity
+       * and a muted title rather than blank space. One sentence floating in the
+       * middle of an empty screen reads as a screen that failed to load, and
+       * this is the first thing a new install shows anybody.
        *
-       * It was one muted sentence floating in the middle of an otherwise empty
-       * screen, which reads as a screen that failed to load rather than as a
-       * screen with nothing on it yet - and this is the main list of the app,
-       * so it is the first thing a new install shows anybody. The card is what
-       * makes it look answered; the folder is what says WHAT would be here.
-       *
-       * The sentence itself is the caller's, because what "empty" means
-       * differs between the two tabs - nothing queued against nothing
-       * collected - and the shape is identical either way.
+       * The sentence is the caller's, because empty means nothing queued in one
+       * tab and nothing collected in the other, while the shape is the same.
        */
       empty={
         <View style={[styles.empty, { backgroundColor: c.surface, borderRadius: radii.card }]}>
@@ -305,13 +272,14 @@ export default function PackageList({
   );
 }
 
-// Colours and radii are applied inline from the resolved tokens, never baked
-// in here: a stylesheet is built once and cannot follow a theme change.
+// Colours and radii are applied inline from the resolved tokens rather than
+// baked in here: a stylesheet is built once and cannot follow a theme change.
+//
 // One column stretched across a tablet is a card 900 points wide with its text
 // at one edge and its badge at the other. A cap plus centring costs a phone
-// nothing (640 is wider than every phone) and makes a tablet readable. The same
-// helper the screens use, here so the header this list carries and the rows
-// under it are measured by ONE rule.
+// nothing, since 640 is wider than every phone, and makes a tablet readable.
+// The same helper the screens use, so the header this list carries and the rows
+// under it are measured by one rule.
 const capped = { width: '100%' as const, maxWidth: 640, alignSelf: 'center' as const };
 
 const styles = StyleSheet.create({
@@ -335,7 +303,7 @@ const styles = StyleSheet.create({
   // once per folder down the screen.
   headerLine: { fontSize: TYPE.caption, marginStart: 20, ...NUM },
   empty: { marginTop: 40, paddingVertical: 32, paddingHorizontal: 24, alignItems: 'center', gap: 12 },
-  // The reduced opacity sits on the GLYPH and not on the card, so the words
+  // The reduced opacity sits on the glyph rather than on the card, so the words
   // under it stay at full strength: opacity applies to a whole subtree and a
   // child cannot be less transparent than its parent.
   emptyGlyph: { opacity: 0.45 },

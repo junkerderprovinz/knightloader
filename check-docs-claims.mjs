@@ -3,19 +3,14 @@
 //
 // Three documents describe this program to a reader who has not run it: the
 // README, the Help page in Settings, and docs/jd-feature-census.md. They are
-// written by hand, at different times, and nothing was comparing them to the
-// source or to each other - so they drifted, quietly, in the direction that
-// always flatters: README.md said KL_PROVISION_JD defaulted to 0 while main.go
-// defaulted it to 1, listed three debrid services against the catalogue's
-// seven, said "the repository is private" four screens under a notice saying it
-// is public, and the census summed 205 partial rows over a table holding 206.
-// None of that breaks a build, a test or a type check. It is only ever found by
-// a person reading two files at once.
+// written by hand at different times, and nothing else compares them to the
+// source or to each other. Such drift breaks no build, test or type check; it
+// is found by a person reading two files at once.
 //
-// So this checks the claims that can be settled mechanically, and only those.
-// A sentence about what the collector feels like is not in scope; a number, a
-// service list and a default value are. The rule for adding a check here: the
-// source of truth must be CODE (or the census's own tables), never a second
+// So this checks the claims that can be settled mechanically and only those. A
+// sentence about what the collector feels like is out of scope; a number, a
+// service list and a default value are in it. The source of truth for a check
+// added here has to be code, or the census's own tables, never a second
 // document, or this becomes one more thing to keep in step.
 //
 // Run by CI and by hand: `node check-docs-claims.mjs`.
@@ -39,13 +34,9 @@ const LOCALES_INDEX = read('web', 'src', 'lib', 'locales', 'index.ts');
 const problems = [];
 const fail = (msg) => problems.push(msg);
 
-// ---------------------------------------------------------------------------
-// 1. How many languages there are.
-//
-// Three places say a number and a fourth is the number: the files on disk. A
-// locale file with no entry in index.ts ships to nobody, so both have to agree
-// before either is worth quoting.
-// ---------------------------------------------------------------------------
+// How many languages there are. Three places say a number and a fourth is the
+// number: the files on disk. A locale file with no entry in index.ts ships to
+// nobody, so both have to agree before either is worth quoting.
 
 const localeFiles = readdirSync(join(here, 'web', 'src', 'lib', 'locales'))
   .filter((f) => f.endsWith('.ts') && f !== 'index.ts')
@@ -94,13 +85,10 @@ if (!censusLang) {
   );
 }
 
-// ---------------------------------------------------------------------------
-// 1b. The other two badges that state a fact about the build.
-//
-// A shields.io badge is a hand-typed string in an <img> URL that no toolchain
-// reads, which makes it the single most likely thing in the file to be a year
-// out of date while looking authoritative.
-// ---------------------------------------------------------------------------
+// The other two badges that state a fact about the build. A shields.io badge is
+// a hand-typed string in an <img> URL that no toolchain reads, which makes it
+// the likeliest thing in the file to be a year out of date while looking
+// authoritative.
 
 const goDirective = read('go.mod').match(/^go (\d+)\.(\d+)/m);
 const goBadge = README.match(/badge\/Go-([\d.]+)-/);
@@ -147,13 +135,11 @@ if (!built) {
 // that produces the release, which is a class of bug that only ever shows up as
 // "works here, not in CI".
 //
-// COMPARED AGAINST go.mod AND NOT AGAINST THE WORKFLOW, which is the point. The
-// workflow no longer names a version at all: it reads the require line itself,
-// precisely because a hand-pinned copy drifted twice (v2.10.2 against v2.13.0,
-// then v2.13.0 against v2.15.0). While this compared the README to that copy,
-// both could be wrong TOGETHER and it saw nothing, which is exactly what
-// happened the second time. go.mod is the one place the number lives now, so it
-// is the one thing worth comparing against.
+// Compared against go.mod rather than against the workflow, which reads the
+// require line itself because a hand-pinned copy drifted twice. Comparing the
+// README to that copy lets both be wrong together with nothing to notice, so
+// go.mod is the one place the number lives and the one thing worth comparing
+// against.
 const DESKTOP_GOMOD = read('desktop', 'go.mod');
 const readmeWails = README.match(/wails\/v2\/cmd\/wails@(v[\d.]+)/)?.[1];
 const modWails = DESKTOP_GOMOD.match(/wailsapp\/wails\/v2 (v[\d.]+)/)?.[1];
@@ -163,14 +149,10 @@ if (!readmeWails || !modWails) {
   fail(`README.md installs wails ${readmeWails}, desktop/go.mod requires ${modWails}`);
 }
 
-// ---------------------------------------------------------------------------
-// 2. Which services the README's environment table documents.
-//
+// Which services the README's environment table documents.
 // internal/accounts/catalogue.go is the single list both the settings API and
 // the Accounts page read. A service that carries an Env override and is not in
-// the README is a key somebody cannot find, and the README listed three of the
-// six for weeks after four more landed.
-// ---------------------------------------------------------------------------
+// the README is a key somebody cannot find.
 
 const catalogueEnvs = [...CATALOGUE.matchAll(/\{ID: "([a-z0-9]+)".*?Env: "(KL_[A-Z_]+)"/g)].map((m) => ({
   id: m[1],
@@ -219,13 +201,10 @@ function goFiles(dir) {
   return out;
 }
 
-// ---------------------------------------------------------------------------
-// 3. The two defaults a reader acts on.
-//
-// KL_CNL decides whether the Click'n'Load switch reads on or off on a fresh
-// install, and KL_PROVISION_JD decides whether a .dlc opens at all. Both were
-// documented as the opposite of what main.go does at some point.
-// ---------------------------------------------------------------------------
+// The two defaults a reader acts on. KL_CNL decides whether the Click'n'Load
+// switch reads on or off on a fresh install, and KL_PROVISION_JD decides
+// whether a .dlc opens at all. Both have been documented as the opposite of
+// what main.go does.
 
 for (const env of ['KL_CNL', 'KL_PROVISION_JD']) {
   const found = [...MAIN_GO.matchAll(new RegExp(`envInt\\("${env}", (\\d+)\\)`, 'g'))].map((m) => m[1]);
@@ -254,44 +233,30 @@ if (/^ *(ENV +)?KL_CNL=/m.test(DOCKERFILE)) {
   fail('Dockerfile sets KL_CNL, so the container does not get the default README.md and docs/clicknload.md quote');
 }
 
-// ---------------------------------------------------------------------------
-// 3b. Every documented `docker build` of this image passes the revision in.
+// Every documented `docker build` of this image passes the revision in.
 //
-// The image is built where it runs - there is none published - so the build
-// commands in README.md and docs/preview-deploy.md are not illustrations, they
-// ARE the build most people make. And the binary cannot work the revision out
-// for itself inside that build: .dockerignore excludes .git, so the Go
-// toolchain in the build stage has no repository and stamps no vcs.revision
-// (buildinfo.Revision's own doc comment spells out the whole arrangement), and
-// the preview deploy ships the tree with `git archive`, which carries no .git
-// to exclude in the first place.
+// No image is published, so the build commands in README.md and
+// docs/preview-deploy.md are the build most people make. The binary cannot work
+// the revision out for itself inside that build: .dockerignore excludes .git,
+// so the Go toolchain in the build stage has no repository and stamps no
+// vcs.revision (see buildinfo.Revision), and the preview deploy ships the tree
+// with `git archive`, which carries no .git to exclude.
 //
-// Measured, building exactly the way the Dockerfile builds - the tree with no
-// .git, ldflags with COMMIT empty - against the same tree built in the
-// worktree:
-//
-//     container-shaped  {"commit":"","status":"ok","version":"preview"}
-//     worktree          {"commit":"7b3546ba52f5…","status":"ok","version":"dev"}
-//
-// An empty commit is a correct answer and the app says so honestly: the About
-// card draws a plain crest and the revision is simply unknown. What is not
-// correct is a documented command that produces it by omission, on the build
-// shape nearly every user has. So: a `docker build` naming this Dockerfile
-// passes VERSION and COMMIT, or it is not documented here.
-// ---------------------------------------------------------------------------
+// An empty commit is a correct answer and the About card says so, drawing a
+// plain crest with the revision unknown. A documented command that produces it
+// by omission, on the build shape nearly every user has, is not. So a
+// `docker build` naming this Dockerfile passes VERSION and COMMIT, or it is not
+// documented here.
 
-// THIS IS A LIST BECAUSE "SAYS docker build" AND "TELLS A READER TO RUN docker
-// build" ARE DIFFERENT SENTENCES, and only the second one can be wrong. The two
-// documents here hand somebody a command to paste; every other mention in the
-// tree is prose ABOUT a command, and docs/easter-eggs.md:108 quotes
-// `docker build --build-arg VERSION=preview …` with no COMMIT DELIBERATELY,
-// because that broken line is the evidence in its own account of the bug.
-// Measured by widening this list to easter-eggs.md and decisions.md: five
-// failures, not one of them a command anybody would run.
+// A list, because saying `docker build` and telling a reader to run it are
+// different sentences and only the second can be wrong. The two documents here
+// hand somebody a command to paste; every other mention in the tree is prose
+// about a command, and docs/easter-eggs.md quotes a build line with no COMMIT
+// because that broken line is the evidence in its own account of the defect.
 //
-// A third document that really does give a reader a build command BELONGS HERE,
-// and the backstop under the loop is what makes that happen rather than hoping
-// the next author reads this paragraph.
+// A third document that does give a reader a build command belongs here, and
+// the backstop under the loop is what makes that happen rather than hoping the
+// next author reads this paragraph.
 const BUILD_DOCS = [
   ['README.md', README],
   ['docs/preview-deploy.md', read('docs', 'preview-deploy.md')],
@@ -344,12 +309,12 @@ if (commandsSeen === 0) {
 }
 
 // The document nobody added to the list. README.md and docs/ are the pages that
-// tell a reader what to run TODAY, so a build command appearing in one of them
-// has to fail until it is checked like the other two.
+// tell a reader what to run now, so a build command appearing in one of them
+// fails until it is checked like the other two.
 //
-// .github/release-notes/ is deliberately out of scope: those are an account of
-// what was true on a past day, and a check about today's Dockerfile would be
-// asking somebody to edit history to make CI green.
+// .github/release-notes/ is out of scope: those are an account of what was true
+// on a past day, and a check about today's Dockerfile would ask somebody to
+// edit history to make CI green.
 const listed = new Set(BUILD_DOCS.map(([name]) => name));
 const livingDocs = [
   'README.md',
@@ -367,14 +332,9 @@ for (const name of livingDocs) {
   }
 }
 
-// ---------------------------------------------------------------------------
-// 4. Every resolver is named in the README.
-//
-// The resolvers ARE the architecture (README.md's Overview says so), so a whole
-// backend the reader is never told about is the worst kind of omission: the
-// torrent resolver shipped registered unconditionally and appeared in neither
-// the feature table nor the diagram.
-// ---------------------------------------------------------------------------
+// Every resolver is named in the README. The resolvers are the architecture, as
+// README.md's Overview says, so a whole backend the reader is never told about
+// is the worst kind of omission.
 
 // Package directory -> what the README is expected to call it. A directory
 // with no entry here fails on purpose: a new resolver should force a decision
@@ -413,13 +373,9 @@ for (const dir of resolverDirs) {
   }
 }
 
-// ---------------------------------------------------------------------------
-// 5. Help page key parity.
-//
-// Not a count. The file's own doc comment used to assert "all 47 keys" over 46,
-// which is what a hand-kept number does; the relationship worth asserting is
-// that the two sets are equal, and that one is checkable.
-// ---------------------------------------------------------------------------
+// Help page key parity, and not a count: a hand-kept number goes stale, while
+// the two sets being equal is both the relationship worth asserting and the one
+// that is checkable.
 
 const helpKeysUsed = new Set([...HELP_TSX.matchAll(/'(settings\.help\.[A-Za-z0-9.]+)'/g)].map((m) => m[1]));
 const helpKeysDefined = new Set([...EN_TS.matchAll(/^ {2}'(settings\.help\.[A-Za-z0-9.]+)':/gm)].map((m) => m[1]));
@@ -434,13 +390,9 @@ if (helpKeysUsed.size === 0) {
   fail('Help.tsx reads no settings.help.* key at all - has the page changed shape?');
 }
 
-// ---------------------------------------------------------------------------
-// 6. The census counts its own tables.
-//
-// The summary table, the Contents list and each area's own heading all state
-// totals somebody typed. Flipping one row's Status silently falsifies three
-// numbers, which is how the summary came to sum 205 partial over 206 rows.
-// ---------------------------------------------------------------------------
+// The census counts its own tables. The summary table, the Contents list and
+// each area's heading all state totals somebody typed, so flipping one row's
+// Status falsifies three numbers at once.
 
 const STATUSES = ['have', 'partial', 'missing'];
 const areas = [];
@@ -492,8 +444,8 @@ for (const status of STATUSES) {
   }
 }
 
-// Contents:  1. [Extensions...](#...) — 69 features: 6 have, 22 partial, 41 missing
-// Heading:   69 features — 6 have, 22 partial, 41 missing.
+// Contents:  1. [Extensions...](#...) - 69 features: 6 have, 22 partial, 41 missing
+// Heading:   69 features - 6 have, 22 partial, 41 missing.
 for (const a of areas) {
   const contents = CENSUS.match(
     new RegExp(`^${a.n}\\. \\[[^\\]]+\\]\\([^)]+\\) [-—] (\\d+) features: (\\d+) have, (\\d+) partial, (\\d+) missing`, 'm'),
@@ -528,14 +480,10 @@ if (headlines.length !== areas.length) {
   });
 }
 
-// ---------------------------------------------------------------------------
-// 7. No line numbers into a file that moves.
-//
-// docs/ used to cite "README.md:73 states the no-relay stance" and three more
-// like it. Every one of them pointed somewhere else by the time anybody
-// followed it, and one pointed at the Buy-me-a-coffee button. A section name
-// survives an edit; a line number is a footnote with an expiry date.
-// ---------------------------------------------------------------------------
+// No line numbers into a file that moves. A citation like "README.md:73 states
+// the no-relay stance" points somewhere else by the time anybody follows it. A
+// section name survives an edit; a line number is a footnote with an expiry
+// date.
 
 for (const [i, line] of CENSUS.split(/\r?\n/).entries()) {
   const ref = line.match(/README\.md:\d+/);
@@ -546,9 +494,8 @@ for (const [i, line] of CENSUS.split(/\r?\n/).entries()) {
   }
 }
 
-// ---------------------------------------------------------------------------
-
 if (problems.length > 0) {
+
   console.error(`${problems.length} claim(s) the source does not support:`);
   for (const p of problems) console.error(`  ${p}`);
   process.exit(1);

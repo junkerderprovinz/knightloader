@@ -8,23 +8,20 @@
 # it, so a release is never public without its downloads. If an upload or the
 # publish fails, gh removes its own draft.
 #
-# BEFORE THAT, THREE CHECKS, each of which stops the run rather than guessing:
+# Three checks come first, and each stops the run:
 #
 # - The tag still points at the commit that was built. GitHub ignores the
-#   target of a release whose tag exists, so a tag moved to another commit
-#   while this ran would get a release carrying the old binaries.
-# - No published release exists for the tag. Re-cutting a published version is
-#   a deliberate act: delete that release first. A DRAFT for the tag is what a
-#   failed earlier attempt leaves; it is private and its files belong to that
-#   attempt, so it is removed.
+#   target of a release whose tag exists, so a moved tag would get a release
+#   carrying the old binaries.
+# - No published release exists for the tag; to re-cut one, delete it first. A
+#   draft for the tag is left over from a failed attempt and is removed.
 # - The list of published releases could be read, because "latest" depends on
 #   it.
 #
-# "LATEST" only when no published release has a newer plain vX.Y.Z tag, so
-# re-cutting an older version does not pull the badge and the download buttons
-# (and in KnightLoader the in-app update) back to it. Counted over published
-# releases rather than tags: a newer tag whose release never came out must not
-# keep this one from being the newest that exists.
+# The release is marked latest only when no published release has a newer plain
+# vX.Y.Z tag, so re-cutting an older version does not pull the badge, the
+# download buttons and the in-app update back to it. Published releases count,
+# not tags, so a newer tag that never got a release does not hold this one back.
 set -euo pipefail
 
 tag=$GITHUB_REF_NAME

@@ -7,10 +7,8 @@ import (
 	"os/exec"
 )
 
-// revealInFolder asks Explorer to select the file. /select, and the path are
-// one argument, not two - Explorer's own command-line parsing reads them as a
-// single token, and splitting them the way a normal flag would be passed
-// leaves Explorer opening the user's home folder instead.
+// revealInFolder asks Explorer to select the file. "/select," and the path
+// must be one argument; split, Explorer opens the home folder instead.
 func revealInFolder(path string) error {
 	cmd := exec.Command("explorer", "/select,"+path)
 	if err := cmd.Start(); err != nil {
@@ -20,12 +18,9 @@ func revealInFolder(path string) error {
 	return nil
 }
 
-// openNatively goes through cmd's own "start" rather than exec.Command(path)
-// directly, because start is what resolves the file's default handler the
-// same way double-clicking it would; Explorer given a bare file path does not
-// reliably do that for every file type. The empty quoted argument keeps start
-// from reading the path itself as a window title, which is what it does with
-// the first quoted argument when more follow.
+// openNatively uses cmd's start, which resolves the default handler as a
+// double-click does. The empty argument is the window title; without it start
+// would take a quoted path as the title.
 func openNatively(path string) error {
 	cmd := exec.Command("cmd", "/c", "start", "", path)
 	if err := cmd.Start(); err != nil {
@@ -35,12 +30,8 @@ func openNatively(path string) error {
 	return nil
 }
 
-// reap waits on a launched GUI process off to the side so it does not sit as
-// a zombie process-table entry for the rest of this app's run - Start without
-// a matching Wait leaves exactly that behind on every call. Nothing here
-// blocks on it or reads its result: explorer.exe in particular exits non-zero
-// on success, a well-known Windows quirk rather than a failure signal, so its
-// exit code is not a success/failure signal worth keeping.
+// reap waits for a launched process in the background so it does not linger.
+// The exit code is ignored because explorer.exe exits non-zero on success.
 func reap(cmd *exec.Cmd) {
 	go func() { _ = cmd.Wait() }()
 }

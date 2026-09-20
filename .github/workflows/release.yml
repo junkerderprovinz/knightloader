@@ -1,35 +1,27 @@
 name: Release
 
-# THE RELEASE COMES LAST. The README's desktop buttons point at
-# /releases/latest/download/<name>, and a release is "latest" from the moment it
-# is published. It used to be published straight away while desktop.yml
-# attached the zips twenty minutes and more later, so every release left the
-# buttons, and the in-app update check, facing a release with nothing on it
-# (measured on v1.1.5: 404). Now this workflow runs the desktop build and
-# creates the release only when it is done, with the zips and checksums.txt in
-# one command (.github/scripts/publish-release.sh). A build that fails leaves no
-# release at all; re-running the failed jobs finishes it.
+# The release is created last, with the desktop zips and checksums.txt in one
+# command (.github/scripts/publish-release.sh), because it counts as latest the
+# moment it is published and the README buttons and the in-app update read
+# /releases/latest/download/<name>. A failed build leaves no release;
+# re-running the failed jobs finishes it.
 #
-# The images build beside the desktop bundles, and `latest` on them moves only
-# once the release is out, by the same rule the release uses for "Latest".
+# The images build alongside, and their `latest` moves only once the release is
+# out, by the same rule the release uses.
 on:
   push:
     tags:
       - "v*.*.*"
-  # Builds everything, packages the zips, and pushes and publishes nothing, so
-  # a change to this chain or to an image can be tried before a tag depends on
-  # it. A run dispatched on a tag ref is such a test too.
+  # A dispatched run builds and packages everything but pushes and publishes
+  # nothing, so the chain can be tried before a tag depends on it.
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  # The notes are written by hand and live in the repo. Publishing them from a
-  # file rather than generating them keeps the release readable: a list of
-  # commit subjects says what was touched, not what changed for the user. So a
-  # tag without notes stops here, before half an hour of builds, rather than
-  # falling back to a generated list.
+  # Release notes are written by hand; a tag without them stops here, before
+  # the long builds.
   notes:
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -49,10 +41,7 @@ jobs:
     needs: notes
     uses: ./.github/workflows/desktop.yml
 
-  # The images are part of what a release offers, so it waits for them as it
-  # waits for the bundles. They take longer than the desktop builds, and a
-  # release that exists while its image does not is the same half-finished
-  # release the draft used to be.
+  # The release also waits for the images, so it never exists without them.
   publish:
     needs: [desktop, images]
     runs-on: ubuntu-latest
@@ -60,32 +49,22 @@ jobs:
     permissions:
       contents: write
     outputs:
-      # Decided by publish-release.sh, so image-latest below does not decide it
-      # a second time.
+      # Decided by publish-release.sh, so image-latest does not decide it again.
       latest: ${{ steps.publish.outputs.latest }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      # The desktop zips only, each in a folder named after its artifact. The
-      # images job leaves build records of its own in the same run.
+      # The pattern skips the build records the images job leaves in the run.
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           pattern: knightloader-*
           path: bundles
 
-      # One archive per platform, named for the tag, so a download sitting in
-      # somebody's folder still says which version it is. desktop.yml zipped it
-      # on the runner that built it, which is what keeps the execute bits.
-      #
-      # And a second copy of each under a name with no version in it, for the
-      # README's download buttons. GitHub serves the newest release's asset from
-      # /releases/latest/download/<exact name>, with no pattern and no wildcard,
-      # so a name carrying the version could only ever be linked for the one
-      # release it belongs to. internal/update keeps asking for the versioned
-      # name, which stays.
-      #
-      # A dispatched run from a branch such as fix/x has a slash in its ref
-      # name, which a file name cannot hold.
+      # Each zip goes out twice: named for the tag, which internal/update asks
+      # for, and without a version for the README buttons, since
+      # /releases/latest/download/ takes only an exact name. A dispatched run
+      # from a branch like fix/x has a slash in its ref name, hence the
+      # substitution.
       - name: Package
         run: |
           set -eu
@@ -99,30 +78,17 @@ jobs:
           done
           ls -lh dist
 
-      # sha256 alongside each zip so a download can be checked against what
-      # this pipeline actually produced, not just trusted because it arrived
-      # over TLS from a real GitHub asset host - internal/update's Download
-      # (see that package's own doc comment) fetches this file next to the
-      # platform zip and refuses to hand the download to Apply if the digest
-      # does not match. Run from inside dist/ so the entries in the file are
-      # bare filenames with no "dist/" prefix: that is what lets Download
-      # match an entry by the same asset name it already downloaded under,
-      # and what lets a human run `sha256sum -c checksums.txt` by hand from
-      # inside a folder holding just the downloaded zip and this file. The copies
-      # without a version are listed too, so a zip taken from a README button
-      # can be checked the same way.
+      # internal/update verifies the downloaded zip against this file. Run
+      # inside dist/ so the entries are bare file names, which is what both
+      # internal/update and a manual `sha256sum -c` expect.
       - name: Checksums
         run: |
           set -eu
           (cd dist && sha256sum *.zip > checksums.txt)
           cat dist/checksums.txt
 
-      # Only from a pushed tag; a dispatched run stops after packaging. The
-      # checks before publishing, and the rule for "Latest", are in the script.
-      #
-      # dist/checksums.txt is named alongside the zip glob explicitly rather than
-      # widened into dist/*, which would also sweep up anything else that ever
-      # lands in dist/.
+      # Only from a pushed tag. checksums.txt is named explicitly rather than
+      # widening the glob to dist/*.
       - name: Publish
         id: publish
         if: github.event_name == 'push' && github.ref_type == 'tag'
@@ -130,25 +96,10 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: bash .github/scripts/publish-release.sh dist/*.zip dist/checksums.txt
 
-  # The two images, one job per image.
-  #
-  # KnightLoader itself (Dockerfile): for the README's Docker button and for
-  # anybody who wants the container without building it.
-  #
-  # The self-hostable relay (Dockerfile.relay, cmd/knightloader-relay). It
-  # existed as a Dockerfile nothing ever built, which made the escape hatch the
-  # privacy document points at - "run your own relay" - something a person
-  # could only take by cloning the repository and building it themselves. The
-  # settings page now offers the address field and a copyable run command, and
-  # a run command naming an image nobody publishes is worse than no offer at
-  # all. Its own image rather than a mode of the main one, for the reasons
-  # Dockerfile.relay opens with: no yt-dlp, no ffmpeg, no JRE, and no state
-  # beyond the current connection list.
-  #
-  # Pushed from a pushed tag only, and only after the notes check, like the
-  # release. A dispatched run builds both architectures and stops there. Only
-  # the exact version goes up with the build; the moving tags wait for the
-  # release, see image-latest below.
+  # The KnightLoader image and the self-hostable relay image, which the
+  # settings page's run command for a private relay points at. Only a pushed
+  # tag pushes, and only the exact version; the moving tags wait for the
+  # release in image-latest.
   images:
     needs: notes
     name: ${{ matrix.name }} image (amd64 + arm64)
@@ -183,30 +134,19 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # No moving tag here at all: `latest`, `1.1` and `1` are set by
-      # image-latest, once the release exists and only for the newest one.
       - name: Docker metadata (tags + labels)
         id: meta
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6
         with:
           images: ${{ matrix.image }}
-          # WITHOUT THIS the action adds `latest` on its own: its default is
-          # latest=auto, which tags every semver build that is not a
-          # pre-release. That is what it did on v1.1.6, so the build moved
-          # `latest` half an hour before the release existed, and image-latest
-          # below only corrected it afterwards.
+          # The default latest=auto would tag latest before the release exists.
           flavor: latest=false
-          # The exact version only. `1.1` and `1` follow the release, like
-          # `latest`, and image-latest moves all three together: pushed here
-          # they would name an unreleased build for as long as a release takes,
-          # and keep naming it if that release never came.
+          # `1.1` and `1` move with latest in image-latest.
           tags: |
             type=semver,pattern={{version}}
 
-      # COMMIT is passed because .dockerignore keeps .git out of the build
-      # context, so the toolchain inside the image has no repository to read
-      # (see the Dockerfile); without it GET /api/health answers an empty
-      # commit. The relay declares no COMMIT and ignores it.
+      # .dockerignore keeps .git out of the context, so the commit is passed in.
+      # The relay ignores it.
       - name: Build and push
         uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
         with:
@@ -224,17 +164,10 @@ jobs:
           provenance: true
           sbom: true
 
-  # `latest` means "the newest released version", and nothing else.
-  #
-  # It carried no condition at all once, so every build moved it. Now it moves
-  # only once this tag's release is published and carries the "Latest" badge,
-  # and that answer is the one publish-release.sh already gave rather than a
-  # second rule that could drift from it: badge, download buttons and
-  # `docker pull ...:latest` then always name the same version. A version whose
-  # release never comes out cannot take it, and re-cutting an older one cannot
-  # drag it back. Pointing `latest` at the version just pushed copies the
-  # manifest in the registry; nothing is rebuilt, and imagetools needs no
-  # builder for it.
+  # `latest` is the newest released version. It moves only when
+  # publish-release.sh marked this release latest, so the badge, the download
+  # buttons and `docker pull ...:latest` name the same version. imagetools
+  # copies the manifest without rebuilding.
   image-latest:
     needs: publish
     if: github.event_name == 'push' && github.ref_type == 'tag'
@@ -263,20 +196,15 @@ jobs:
           LATEST: ${{ needs.publish.outputs.latest }}
         run: |
           set -eu
-          # An ANSWER, not a guess: publish-release.sh decided this and handed
-          # it on. Empty means it never said, and a silent skip would leave the
-          # badge on this version while the image tags stay on the last one,
-          # green all the way.
+          # An empty answer fails rather than skipping, or the image tags would
+          # silently lag behind the release badge.
           case "$LATEST" in
             true) ;;
             false) echo "the release is not the newest one, so the tags stay where they are"; exit 0 ;;
             *) echo "::error::publish did not say whether $GITHUB_REF_NAME is the latest release, so the image tags are not moved blindly."; exit 1 ;;
           esac
           version="${GITHUB_REF_NAME#v}"
-          # The tag the build pushed, checked rather than assumed: the build
-          # derives it from the ref through metadata-action, this job by
-          # stripping the v, and a tag those two spell differently would fail
-          # here after the release is already public.
+          # metadata-action derived the pushed tag its own way, so check it.
           docker buildx imagetools inspect "${IMAGE}:${version}" > /dev/null
           docker buildx imagetools create             --tag "${IMAGE}:latest"             --tag "${IMAGE}:${version%.*}"             --tag "${IMAGE}:${version%%.*}"             "${IMAGE}:${version}"
           echo "${IMAGE}: latest, ${version%.*} and ${version%%.*} are ${version}"

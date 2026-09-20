@@ -1,5 +1,5 @@
 // Command knightloader runs the KnightLoader server: the download engine, the
-// REST + WebSocket API, the embedded web UI, and the Click'n'Load listener, all
+// REST and WebSocket API, the embedded web UI and the Click'n'Load listener, all
 // in one process.
 package main
 
@@ -30,30 +30,18 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/provision"
 )
 
-// shutdownGrace bounds how long a graceful stop (Ctrl+C, SIGTERM, or the
-// quit/restart API routes) waits for in-flight HTTP requests to finish
-// before it stops waiting on them and moves on to a.Close's own drain -
-// which has no grace period at all and abandons a running transfer
-// outright; see a.Close's own doc comment for why that gap is deliberate.
-// Generous enough that a backup download in progress at the same moment
-// gets to finish rather than being cut off by the very shutdown it was
-// unrelated to.
+// shutdownGrace bounds how long a graceful stop waits for in-flight HTTP
+// requests, so a backup download running at that moment can still finish.
 const shutdownGrace = 10 * time.Second
 
 func main() {
-	// Bridge mode is a different program sharing one binary: it downloads
-	// nothing, keeps no data, and exists only so a browser on this machine can
-	// reach a KnightLoader that runs somewhere else. Click'n'Load is hard-wired
-	// to 127.0.0.1 by every site that implements it, so a NAS install cannot be
-	// reached any other way.
+	// Bridge mode downloads nothing and keeps no data. It exists because every
+	// Click'n'Load site posts to 127.0.0.1, so a NAS install cannot be reached
+	// from the browser any other way.
 	remote := flag.String("bridge", "", "run as a Click'n'Load bridge to a remote KnightLoader (e.g. http://nas:8749)")
 	remotePw := flag.String("bridge-password", "", "the remote instance's UI password, when it has one")
-	// Off by default, bridge-only, and a build-time opt-in on top of that: see
-	// internal/bridge/clipboard.go's package comment for why this flag alone
-	// does not put clipboard-reading code in the ordinary server binary.
+	// Also needs the bridgeclipboard build tag; see internal/bridge/clipboard.go.
 	watchClipboard := flag.Bool("bridge-clipboard", false, "watch the OS clipboard for hoster links while bridging (build with -tags bridgeclipboard)")
-	// The way back in. See runResetTwoFactor below for why it exists and why it
-	// is not the security hole it looks like.
 	resetTwoFactor := flag.Bool("reset-2fa", false, "turn the second login factor off and exit; the password is untouched. For an operator who has lost both the phone and the recovery codes")
 	flag.Parse()
 	if *remote != "" {
@@ -68,23 +56,10 @@ func main() {
 		return
 	}
 
-	// A data directory this process cannot write into is the commonest way a
-	// container install fails to start at all, and until now it failed
-	// anonymously: MkdirAll below succeeds on a directory that is already there,
-	// app.New then opens SQLite inside it, and main reports `start: permission
-	// denied` with no path, no owner and no uid. The fix is nearly always one
-	// chown on the host, and there is nothing in that sentence to guess it from.
-	//
-	// So the folder is asked about BEFORE anything opens a file in it, and the
-	// answer is one line naming the folder's owner, this process's own identity
-	// and the exact command to run. It does not repair anything and it is
-	// deliberately not fatal: the existing failure still happens, in the same
-	// place, with the same error. It simply stops being unattributable.
-	//
-	// Nothing is repaired here on purpose. A boot that quietly chowned a mounted
-	// share would be rewriting the ownership of somebody's library as a side
-	// effect of a restart, which is a far worse outcome than the failure it
-	// would be papering over.
+	// An unwritable data directory otherwise fails later as a bare "permission
+	// denied" from SQLite. This names the owner, our uid and the chown to run,
+	// and repairs nothing: chowning a mounted share on boot would rewrite the
+	// ownership of somebody's library.
 	if line, ok := fileowner.Advise(dataDir); ok {
 		log.Print(line)
 	}
@@ -93,40 +68,25 @@ func main() {
 		log.Fatalf("data dir: %v", err)
 	}
 
-	// A restore validated and staged by a previous run (POST
-	// /api/system/restore) is applied here, before app.New or anything else
-	// below opens a single byte of the store or settings.json — see
-	// internal/backup's own doc comment for why that ordering is what makes
-	// this safe on every platform this ships for, Windows included, rather
-	// than a hot-swap of a file this process is about to hold open.
+	// A staged restore has to land before anything opens the store or
+	// settings.json; see internal/backup.
 	if applied, manifest, err := backup.ApplyPending(dataDir); err != nil {
-		// Not fatal: ApplyPending's own doc comment is what makes that safe
-		// here — by the time it can fail, either nothing live has been
-		// touched yet, or the restore already fully landed and only its own
-		// cleanup did not, which harms nothing this run needs.
+		// By the time ApplyPending can fail, either nothing live was touched or
+		// only its cleanup is left, so starting up is safe.
 		log.Printf("a staged restore could not be fully applied (%v); starting with the data already on disk", err)
 	} else if applied {
 		log.Printf("restored from a backup made by %s (%s build) on %s",
 			manifest.Version, manifest.Deployment, manifest.CreatedAt.Format(time.RFC3339))
 	}
 
-	// Provision a private headless JDownloader so the user gets full hoster
-	// coverage out of the box, with no separate JD sidecar to set up first -
-	// on by default (KL_PROVISION_JD=0 opts out) for the same reason the
-	// desktop build already does this unconditionally: an encrypted DLC or a
-	// container-format link needs a JD backend to open at all, and requiring
-	// a manual KL_JD beforehand meant that failed with a raw error on first
-	// use rather than being something the app just handles (jdp: "es soll
-	// einfach immer zuverlässig funktionieren ohne das man manuell was
-	// machen muss"). Still skipped whenever KL_JD is already set - someone
-	// pointing at their own existing JD (a shared instance, a sidecar
-	// container) is never overridden by one this process starts itself.
-	// Blocking on purpose — the jd backend is wired at app start from KL_JD.
+	// A private headless JDownloader gives full hoster coverage without a
+	// sidecar, and DLC or container links cannot be opened without one.
+	// KL_PROVISION_JD=0 opts out, and an existing KL_JD is never overridden.
+	// This blocks because the JD backend is wired from KL_JD at app start.
 	if envInt("KL_PROVISION_JD", 1) == 1 && os.Getenv("KL_JD") == "" {
 		pv := provision.New(filepath.Join(dataDir, "jd"))
-		// Held for the life of the process: dropping it would leave the JVM we
-		// started running after we exit, and the next start would then find
-		// port 3128 taken by an orphan it did not configure.
+		// Stopping the JVM on exit keeps an orphan from holding port 3128 on the
+		// next start.
 		defer func() { _ = pv.Stop() }()
 		log.Printf("provisioning headless JDownloader (first run may take a few minutes)…")
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
@@ -144,51 +104,23 @@ func main() {
 		log.Fatalf("start: %v", err)
 	}
 	defer a.Close()
-	// The optional log file, if the settings asked for one, was armed inside
-	// app.New. Nothing here arms it and nothing here may: the tap on the
-	// standard logger is installed by internal/logring's own init so that a bad
-	// boot is captured, and a second log.SetOutput from main would take it off
-	// again.
-	//
-	// Closing is tidiness rather than durability - every record is written
-	// unbuffered, so a process that dies without reaching this loses nothing -
-	// but it releases the handle, which on Windows is what lets the next thing
-	// that wants the file have it.
+	// app.New armed the optional log file. Records are written unbuffered, so
+	// closing only releases the handle, which Windows needs before anything else
+	// can open the file.
 	defer func() { _ = logring.CloseFile() }()
 
-	// Native hoster logins (internal/hosterauth): reconciles what is stored
-	// in KL's own encrypted store into the headless-JD sidecar's account
-	// config, on a loop rather than once at boot, so a JD container recreated
-	// with an empty account list gets every login pushed back without a
-	// restart. An optional subsystem with its own start, the same as
-	// Click'n'Load below, not part of app.New's own lifecycle.
+	// Hoster logins are pushed into the JD sidecar on a loop, so a recreated JD
+	// container gets them back without a restart. This and the account health
+	// sweep below belong to the server binary rather than app.New, which every
+	// test calls.
 	a.StartHosterAuth()
-
-	// One account-health sweep now, rather than leaving the accounts page
-	// blank until the ticker's first tick a quarter of an hour later. Same
-	// reasoning as the line above: an optional bit of startup that belongs to
-	// the server binary, not to app.New, which every test calls.
 	a.StartAccountHealthNow()
 
-	// Click'n'Load listener on the standard port 9666 (KL_CNL=0 disables, any
-	// other value overrides the port). A taken port (e.g. a running JD) is not
-	// fatal — CnL is simply unavailable then.
-	//
-	// Wrapped in start/stop closures rather than a bare defer c.Close() (jdp,
-	// 2026-08-24: "wieso kann man es nicht dort direkt aktivieren/
-	// deaktivieren?") so the Modules/Zugang tab's own switch can start and
-	// stop the real listener at runtime without a restart - see app.App's
-	// own CnLEnabled/CnLToggle doc comment for why this lives here rather
-	// than as a field App manages itself, and for why it is deliberately
-	// NOT persisted to settings.json. cnlPort is fixed at boot (0 disables
-	// the feature outright - nothing to reach for a port to bind if
-	// re-enabled later - anything else is remembered as the port a later
-	// toggle-on should use, even while currently off).
+	// KL_CNL=0 disables the listener at boot, any other value overrides the
+	// port. A taken port (a running JD, say) leaves Click'n'Load unavailable
+	// but is not fatal. The settings switch can start and stop it at runtime,
+	// and turning it on after KL_CNL=0 falls back to 9666.
 	cnlPort := envInt("KL_CNL", 9666)
-	// KL_CNL=0 means "do not auto-start" (autoStart below), never "there is
-	// no port to bind if someone flips the switch on later" - the standard
-	// 9666 is still what a runtime toggle-on reaches for, same as a fresh
-	// install with no KL_CNL override at all would.
 	bindPort := cnlPort
 	if bindPort <= 0 {
 		bindPort = 9666
@@ -241,17 +173,8 @@ func main() {
 		return nil
 	}
 
-	// Wired before the server ever accepts a request, so a quit or restart
-	// asked for in the first second after boot works exactly like one asked
-	// for an hour in. See App.RequestExit's own doc comment for why this
-	// lives on the App rather than as a second argument threaded through
-	// api.Handler, which desktop/main.go also calls and does not set it.
-	//
-	// Buffered by one and sent to without blocking, the same shape
-	// schedule.Runner's own wake channel uses for the same reason: two
-	// requests arriving together (a double-click, or a stray retry) must
-	// not stall the second caller behind the first, and one pending
-	// shutdown is as good as two.
+	// Buffered by one and sent without blocking, so a double-clicked quit does
+	// not stall the second caller; one pending shutdown is as good as two.
 	exit := make(chan bool, 1) // false = quit, true = restart
 	a.RequestExit = func(restart bool) bool {
 		select {
@@ -267,26 +190,16 @@ func main() {
 	if err != nil {
 		log.Fatalf("listen: %v", err)
 	}
-	// The listener's own resolved address answers "is this actually bound
-	// wider than loopback", which the configured string alone cannot:
-	// KL_ADDR's default (":8749") resolves an empty host to every
-	// interface, the normal, correct default for a container regardless of
-	// whether the host then forwards that port anywhere reachable - see
-	// internal/api/routes_remote.go's own doc comment for why that string
-	// was rejected as a signal there. Set once, before a single request is
-	// served, the same way buildinfo.Deployment already is.
+	// Only the resolved address says whether we listen beyond loopback, since
+	// the default ":8749" means every interface. It also carries the port that
+	// internal/discovery announces.
 	if host, portStr, err := net.SplitHostPort(listener.Addr().String()); err == nil {
 		ip := net.ParseIP(host)
 		buildinfo.ListensWidely = host == "" || (ip != nil && !ip.IsLoopback())
-		// The same resolved address also carries the port internal/discovery
-		// has to announce, which nothing else can know before the first
-		// request arrives.
 		if n, err := strconv.Atoi(portStr); err == nil {
 			buildinfo.ListenPort = n
 		}
 	}
-	// Announce on the local network, so another instance finds this one
-	// with nothing configured (internal/discovery).
 	buildinfo.DiscoveryEnabled = true
 	srv := &http.Server{Handler: api.Handler(a)}
 
@@ -301,39 +214,17 @@ func main() {
 		serveErr <- nil
 	}()
 
-	// The start report (internal/startupcheck): Java, yt-dlp, ffmpeg and
-	// ffprobe with their versions, the data directory, every folder a download
-	// can land in, and which clock a schedule window is actually read against.
-	// It lands in the container log and in the diagnostics bundle, so the
-	// answer to "why did nothing download" is already in the file somebody
-	// attaches instead of being three rounds of questions away.
-	//
-	// AFTER THE LISTENER AND NOT BEFORE IT, and that is the whole reason this
-	// line is here rather than up beside the provisioning block. A folder on a
-	// mount that has gone away takes as long to stat as that mount takes to
-	// time out, so a synchronous pass in front of net.Listen turns one dead NFS
-	// server into a start hang - and the Dockerfile's HEALTHCHECK, with its ten
-	// second start period, then restarts the container into a loop. It runs on
-	// a.spawn, so Close still waits for it.
-	//
-	// Not in app.New for the reason StartHosterAuth and StartAccountHealthNow
-	// give just above: an optional bit of startup that belongs to the server
-	// binary, not to the constructor several hundred tests call.
-	//
-	// KL_STARTUP_CHECK=0 switches it off, and the off state is RECORDED rather
-	// than left blank: "nothing was looked at" and "nothing was wrong" are
-	// different sentences, and an empty report drawn as a clean bill of health
-	// is the worse of the two lies.
+	// The start report runs after net.Listen because statting a folder on a
+	// dead mount blocks until the mount times out, and the HEALTHCHECK's ten
+	// second start period would then restart the container in a loop.
+	// KL_STARTUP_CHECK=0 records that the check was off, so an empty report is
+	// not read as a clean one.
 	if envInt("KL_STARTUP_CHECK", 1) == 1 {
 		a.StartStartupCheck()
 	} else {
 		a.MarkStartupCheckOff()
 	}
 
-	// SIGINT and SIGTERM are the two a container orchestrator or a plain
-	// Ctrl+C ever sends — the CnL bridge path above (runBridge) already
-	// listens for exactly these two, and this is that same shape rather
-	// than a second one invented for the server path.
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 
@@ -347,27 +238,16 @@ func main() {
 			log.Printf("shutting down (requested over the API)")
 		}
 	case err := <-serveErr:
-		// The listener stopped on its own, without Shutdown ever having
-		// been called — a startup failure (the address is already in use)
-		// is the ordinary way this happens, and there is nothing running
-		// yet for the deferred CnL/App cleanup below to be worth waiting
-		// on differently than it already is.
+		// The listener stopped without Shutdown, usually because the address
+		// was already in use.
 		if err != nil {
 			log.Fatalf("serve: %v", err)
 		}
 		return
 	}
 
-	// Stop accepting new connections and let whatever is in flight -
-	// including the very request that asked for this — finish, up to
-	// shutdownGrace. Quit and restart are not told apart past this point,
-	// deliberately: what runs next is the deferred chain above (the CnL
-	// listener, then a.Close, which is where the actual drain happens — see
-	// its own doc comment), identically either way. Under a supervised
-	// deployment (Docker/Unraid) the process exiting is what a restart IS;
-	// there is no separate "come back" step for this process to perform,
-	// and the two routes exist as two names over one action for exactly
-	// that reason — see App.RequestExit's own doc comment.
+	// Quit and restart are the same from here on: under Docker or Unraid the
+	// supervisor brings the process back, so exiting is what a restart is.
 	ctx, cancel := context.WithTimeout(context.Background(), shutdownGrace)
 	if err := srv.Shutdown(ctx); err != nil {
 		log.Printf("shutdown: not every in-flight request finished within %s: %v", shutdownGrace, err)
@@ -375,28 +255,15 @@ func main() {
 	cancel()
 }
 
-// runResetTwoFactor turns the second login factor off and exits. The password
-// is untouched.
+// runResetTwoFactor turns the second login factor off and exits, leaving the
+// password untouched.
 //
-// WHY THIS IS HERE AT ALL. KnightLoader has one password and no user accounts,
-// so there is no second person to unlock anything: an operator who has lost the
-// authenticator app AND the recovery codes has locked themselves out of their
-// own downloader for good. Every other answer to that is worse. "Restore a
-// backup" throws away everything since the backup. "Delete auth.json" also
-// deletes the password and the key that signs sessions, which signs everybody
-// out and quietly turns the instance into an open one until somebody notices.
-//
-// WHY IT IS NOT A HOLE. It runs as this binary, against the data directory, on
-// the machine. Anybody who can do that can already delete auth.json and remove
-// the password outright, so this grants no access that was not already granted
-// - it only makes the narrow, non-destructive version of it available instead
-// of the broad, destructive one. It is documented in the card and in the README
-// rather than hidden, because a way back that nobody knows about is not a way
-// back.
-//
-// It deliberately opens nothing else: no store, no settings, no JD. Running it
-// while the server is up would have two processes holding auth.json, so it says
-// what it did and says to restart.
+// There is one password and no second account to unlock anything, so an
+// operator who lost both the authenticator and the recovery codes has no other
+// way back short of deleting auth.json, which also drops the password and the
+// session key. It grants nothing new: whoever can run this binary against the
+// data directory can already delete that file. It opens nothing else, and since
+// a running server also holds auth.json it asks for a restart.
 func runResetTwoFactor(dataDir string) {
 	g, err := auth.Open(dataDir)
 	if err != nil {
@@ -420,9 +287,8 @@ func runBridge(remote, password string, watchClipboard bool) {
 	if err != nil {
 		log.Fatalf("bridge: %v", err)
 	}
-	// Fail loudly at start rather than silently swallowing links later: a bridge
-	// that cannot reach its remote is worse than no bridge, because the site
-	// still reports success.
+	// A bridge that cannot reach its remote would swallow links while the site
+	// still reports success, so fail at start instead.
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	err = b.Check(ctx)
 	cancel()
@@ -444,10 +310,6 @@ func runBridge(remote, password string, watchClipboard bool) {
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 
-	// Cancelled alongside the stop signal below, so a cancelled watcher is the
-	// worst this leaves running past this function returning — there is no
-	// store here for it to write into after the fact, unlike the App-owned
-	// goroutines a.spawn tracks.
 	watchCtx, cancelWatch := context.WithCancel(context.Background())
 	defer cancelWatch()
 	if watchClipboard {
