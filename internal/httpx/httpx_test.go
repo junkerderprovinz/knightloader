@@ -12,8 +12,8 @@ import (
 
 const secret = "Bearer router-password"
 
-// echoAuth answers with whatever Authorization header reached it, so a test can
-// see what a redirect actually carried rather than what it hoped.
+// echoAuth answers with whatever Authorization header reached it, so a test
+// can see what a redirect carried.
 func echoAuth(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain")
 	_, _ = w.Write([]byte(r.Header.Get("Authorization")))
@@ -36,11 +36,9 @@ func get(t *testing.T, c *http.Client, raw string) (int, string) {
 	return resp.StatusCode, string(buf[:n])
 }
 
-// TestRedirectDropsCredentialsCrossHost is the reason this package owns a
-// redirect policy at all: a hoster that answers with a redirect to somewhere
-// else must not be handed the credential the request carried for the first
-// host. Both servers here are on 127.0.0.1, which is precisely the case Go's
-// own same-domain rule waves through.
+// A hoster that answers with a redirect elsewhere must not be handed the
+// credential the request carried for the first host. Both servers here are on
+// 127.0.0.1, the case Go's own same-domain rule waves through.
 func TestRedirectDropsCredentialsCrossHost(t *testing.T) {
 	other := httptest.NewServer(http.HandlerFunc(echoAuth))
 	defer other.Close()
@@ -59,9 +57,8 @@ func TestRedirectDropsCredentialsCrossHost(t *testing.T) {
 	}
 }
 
-// TestRedirectKeepsCredentialsSameHost pins the other direction. A policy that
-// strips everything is not a policy, it is a broken client: a login that
-// redirects to its own landing page has to keep working.
+// The other direction: a login that redirects to its own landing page has to
+// keep working.
 func TestRedirectKeepsCredentialsSameHost(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/landed", echoAuth)
@@ -80,9 +77,9 @@ func TestRedirectKeepsCredentialsSameHost(t *testing.T) {
 	}
 }
 
-// TestSameOriginRules covers the pairs no pair of test servers can produce: a
-// scheme downgrade and a port change are both a different origin, and the host
-// comparison is case-insensitive because DNS is.
+// The pairs no pair of test servers can produce: a scheme downgrade and a port
+// change are both a different origin, and the host comparison is
+// case-insensitive because DNS is.
 func TestSameOriginRules(t *testing.T) {
 	cases := []struct {
 		name string
@@ -113,9 +110,8 @@ func TestSameOriginRules(t *testing.T) {
 	}
 }
 
-// TestRedirectPolicyStripsOnCrossOrigin exercises the policy directly, because
-// the header deletion has to happen on the request that is about to be sent and
-// nowhere else.
+// The policy is exercised directly: the header deletion has to happen on the
+// request that is about to be sent.
 func TestRedirectPolicyStripsOnCrossOrigin(t *testing.T) {
 	policy := checkRedirect(DefaultMaxRedirects)
 	first, _ := http.NewRequest(http.MethodGet, "https://example.com/start", nil)
@@ -138,8 +134,8 @@ func TestRedirectPolicyStripsOnCrossOrigin(t *testing.T) {
 	}
 }
 
-// TestRedirectChainIsBounded proves a loop ends with an error rather than with
-// a goroutine going round forever.
+// A redirect loop ends with an error rather than with a goroutine going round
+// forever.
 func TestRedirectChainIsBounded(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/again", http.StatusFound)
@@ -155,8 +151,8 @@ func TestRedirectChainIsBounded(t *testing.T) {
 	}
 }
 
-// TestNoRedirectHandsBackThe3xx is the mode a resolver needs: the redirect
-// target is the answer, so following it would throw the answer away.
+// The mode a resolver needs: the redirect target is the answer, so following
+// it would throw the answer away.
 func TestNoRedirectHandsBackThe3xx(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "https://cdn.example/file.bin", http.StatusFound)
@@ -176,9 +172,8 @@ func TestNoRedirectHandsBackThe3xx(t *testing.T) {
 	}
 }
 
-// TestTransportCeilingsAreSet checks the numbers are on the transport and not
-// merely in the constants. A ceiling that is declared and never wired is worse
-// than none: it reads as covered in review.
+// The numbers have to be on the transport, not merely in the constants: a
+// ceiling that is declared and never wired reads as covered in review.
 func TestTransportCeilingsAreSet(t *testing.T) {
 	tr := NewTransport(Options{})
 	if tr.TLSHandshakeTimeout != DefaultTLSHandshakeTimeout {
@@ -225,8 +220,8 @@ func TestClientTimeoutIsSet(t *testing.T) {
 	}
 }
 
-// TestTimeoutsActuallyFire is the behavioural half: a server that accepts the
-// connection and then goes quiet must not hold the caller.
+// A server that accepts the connection and then goes quiet must not hold the
+// caller.
 func TestTimeoutsActuallyFire(t *testing.T) {
 	release := make(chan struct{})
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -250,8 +245,8 @@ func TestTimeoutsActuallyFire(t *testing.T) {
 	})
 
 	t.Run("response header", func(t *testing.T) {
-		// The whole-request ceiling is off, so only ResponseHeaderTimeout can end
-		// this: the case a plain Timeout would otherwise be covering up.
+		// The whole-request ceiling is off, so only ResponseHeaderTimeout can
+		// end this.
 		start := time.Now()
 		_, err := New(Options{Timeout: NoTimeout, ResponseHeaderTimeout: 150 * time.Millisecond}).Get(srv.URL)
 		if err == nil {
@@ -267,9 +262,8 @@ func TestTimeoutsActuallyFire(t *testing.T) {
 	})
 }
 
-// TestUserAgentIsStamped covers the three cases: nothing set gets ours, a
-// caller's own agent is left alone, and an explicitly empty one stays empty
-// because that is how net/http spells "send no agent".
+// Nothing set gets ours, a caller's own agent is left alone, and an explicitly
+// empty one stays empty because that is how net/http spells "send no agent".
 func TestUserAgentIsStamped(t *testing.T) {
 	seen := make(chan string, 1)
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

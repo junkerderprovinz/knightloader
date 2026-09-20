@@ -485,10 +485,10 @@ func TestNewRejectsUnusableOptions(t *testing.T) {
 	}
 }
 
-// TestUnwritableFolderIsRefusedAtStartup is the failure this cost a live test
-// to find: the share belonged to another user, so consuming a file — which
-// means renaming it — could never succeed. The watcher started, logged that it
-// was watching, and then ignored everything dropped into it forever.
+// A share that belongs to another user cannot be written to, so consuming a
+// file, which means renaming it, never succeeds. Without this the watcher
+// starts, logs that it is watching, and then ignores everything dropped into
+// it.
 func TestUnwritableFolderIsRefusedAtStartup(t *testing.T) {
 	if os.Geteuid() == 0 {
 		t.Skip("root can write anywhere, so the permission cannot be simulated")

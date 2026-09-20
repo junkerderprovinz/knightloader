@@ -9,9 +9,9 @@ import (
 	"time"
 )
 
-// counting is a far end that only counts. Every runner test is about WHEN and
-// HOW OFTEN a call is made rather than about what came back, which call_test.go
-// already covers.
+// counting is a far end that only counts. Every runner test is about when and
+// how often a call is made rather than about what came back, which
+// call_test.go covers.
 type counting struct {
 	srv  *httptest.Server
 	hits atomic.Int32
@@ -28,10 +28,9 @@ func countingServer(t *testing.T) *counting {
 	return c
 }
 
-// testTick is short enough that a test finishes and long enough that a loaded CI
-// box is not spinning. Every wait below is expressed in ticks, never in an
-// absolute sleep: a test that sleeps for a fixed time either wastes it or fails
-// under load, and this one has a real condition to wait for.
+// testTick is short enough that a test finishes and long enough that a loaded
+// box is not spinning. Every wait below is in ticks rather than an absolute
+// sleep, which either wastes time or fails under load.
 const testTick = 5 * time.Millisecond
 
 // eventually polls cond for up to a second and fails with why when it never
@@ -49,10 +48,10 @@ func eventually(t *testing.T, why string, cond func() bool) {
 	t.Fatalf("timed out waiting for %s", why)
 }
 
-// never asserts cond does NOT come true within a few ticks. Bounded and short:
-// it is the only shape available for "this call must not go out yet", and the
-// alternative - waiting a second on every such assertion - would put ten seconds
-// on the suite for nothing.
+// never asserts that cond does not come true within a few ticks, which is the
+// only shape available for "this call must not go out yet". Bounded and short,
+// because waiting a second on every such assertion would add ten seconds to
+// the suite.
 func never(t *testing.T, why string, cond func() bool) {
 	t.Helper()
 	deadline := time.Now().Add(20 * testTick)
@@ -98,10 +97,9 @@ func TestOnePackageMakesOneCall(t *testing.T) {
 	}
 }
 
-// TestABurstBecomesOneCall is what the wait window is FOR. Twenty packages
-// finishing in one 2-second sweep is twenty firings, and a library scan costs the
-// media server real work: twenty of them started together is a media server
-// unusable for ten minutes because a download finished.
+// What the wait window is for: twenty packages finishing in one two-second
+// sweep is twenty firings, and twenty library scans started together leave the
+// media server unusable for ten minutes because a download finished.
 func TestABurstBecomesOneCall(t *testing.T) {
 	srv := countingServer(t)
 	hook := Hook{ID: "jellyfin", URL: srv.srv.URL, Method: MethodGet, WaitSeconds: 0}
@@ -116,21 +114,17 @@ func TestABurstBecomesOneCall(t *testing.T) {
 	if last.Packages != 3 {
 		t.Errorf("the call folded %d packages, want 3", last.Packages)
 	}
-	// The FIRST by name and not by arrival: two packages finishing in one sweep
-	// arrive in an order the app went out of its way to make deterministic, and
-	// a result that named a different one on every run would be a report nobody
-	// could reproduce.
+	// The first by name and not by arrival, so a result does not name a
+	// different package on every run.
 	if last.Package != "Andere.Serie" {
 		t.Errorf("the call names %q, want the first package by name", last.Package)
 	}
-	// And nothing follows it: the whole point is one call, not one plus a
-	// straggler.
+	// And nothing follows it: one call, not one plus a straggler.
 	never(t, "a second call for the same burst", func() bool { return srv.hits.Load() > 1 })
 }
 
-// TestTheWindowIsMeasuredFromTheFirstPackage. Extending it on every later
-// package would mean a box that finishes a package a minute for an hour never
-// calls at all - the shape of bug that only shows up on the busiest install.
+// Extending the window on every later package would mean a box that finishes a
+// package a minute for an hour never calls at all.
 func TestTheWindowIsMeasuredFromTheFirstPackage(t *testing.T) {
 	srv := countingServer(t)
 	hook := Hook{ID: "jellyfin", URL: srv.srv.URL, Method: MethodGet, WaitSeconds: 0}
@@ -155,12 +149,10 @@ func TestTheWindowIsMeasuredFromTheFirstPackage(t *testing.T) {
 	_ = srv
 }
 
-// TestTheCallWaitsForTheFilesToLand is the decision this whole feature turns on.
-//
-// package.done fires the moment nothing is left to WAIT for, and on an install
-// with a working folder the finished file is at that moment still IN the working
-// folder - the status is set and then the move is spawned. A media server told to
-// scan then finds nothing and never looks again.
+// package.done fires the moment nothing is left to wait for, and on an install
+// with a working folder the finished file is still in that folder: the status
+// is set and then the move is spawned. A media server told to scan then finds
+// nothing and never looks again.
 func TestTheCallWaitsForTheFilesToLand(t *testing.T) {
 	srv := countingServer(t)
 	hook := Hook{ID: "jellyfin", URL: srv.srv.URL, Method: MethodGet}
@@ -177,11 +169,10 @@ func TestTheCallWaitsForTheFilesToLand(t *testing.T) {
 	eventually(t, "the call once the file has been moved", func() bool { return srv.hits.Load() == 1 })
 }
 
-// TestTheDeliveryWaitGivesUp. A move can fail permanently - no room on the target
-// volume, a collision policy of "skip", a read-only mount - and the app records
-// that on the row and leaves the file where it is. Without a ceiling the scan
-// would simply never be asked for, which is worse than asking too early: nothing
-// on any page would say so.
+// A move can fail permanently (no room on the target volume, a collision
+// policy of "skip", a read-only mount) and the app then leaves the file where
+// it is. Without a ceiling the scan would never be asked for and nothing on
+// any page would say so.
 func TestTheDeliveryWaitGivesUp(t *testing.T) {
 	srv := countingServer(t)
 	hook := Hook{ID: "jellyfin", URL: srv.srv.URL, Method: MethodGet}
@@ -196,9 +187,8 @@ func TestTheDeliveryWaitGivesUp(t *testing.T) {
 	eventually(t, "the call to go out anyway once the grace is up", func() bool { return srv.hits.Load() == 1 })
 }
 
-// TestAnAddressDeletedDuringTheWaitCallsNothing. Deleting one between a package
-// finishing and its window closing is an ordinary thing to do, and a call to
-// nowhere is not worth keeping.
+// Deleting an address between a package finishing and its window closing is an
+// ordinary thing to do, and a call to nowhere is not worth keeping.
 func TestAnAddressDeletedDuringTheWaitCallsNothing(t *testing.T) {
 	srv := countingServer(t)
 	var live atomic.Bool
@@ -220,8 +210,8 @@ func TestAnAddressDeletedDuringTheWaitCallsNothing(t *testing.T) {
 	never(t, "a call to an address that is no longer stored", func() bool { return srv.hits.Load() > 0 })
 }
 
-// TestTheAddressIsReReadWhenTheCallGoesOut. A window can be an hour long, and an
-// address edited during one has to be called as it is NOW.
+// A window can be an hour long, and an address edited during one has to be
+// called as it stands when the call goes out.
 func TestTheAddressIsReReadWhenTheCallGoesOut(t *testing.T) {
 	stale := countingServer(t)
 	fresh := countingServer(t)
@@ -246,8 +236,8 @@ func TestTheAddressIsReReadWhenTheCallGoesOut(t *testing.T) {
 	}
 }
 
-// TestTwoDrawersWithTwoAddressesBothGetCalled: a package whose links sit in two
-// drawers is normal, and each address is called once.
+// A package whose links sit in two drawers is normal, and each address is
+// called once.
 func TestTwoDrawersWithTwoAddressesBothGetCalled(t *testing.T) {
 	jelly := countingServer(t)
 	plex := countingServer(t)
@@ -264,12 +254,12 @@ func TestTwoDrawersWithTwoAddressesBothGetCalled(t *testing.T) {
 	eventually(t, "both addresses to be called", func() bool { return jelly.hits.Load() == 1 && plex.hits.Load() == 1 })
 }
 
-// TestEnqueueNeverBlocks is the contract script.Bus states in capitals: delivery
-// is synchronous on the publisher's own goroutine, and that publisher is the
-// app's package sweep. A full queue has to drop rather than wait.
+// script.Bus delivers synchronously on the publisher's own goroutine, and that
+// publisher is the app's package sweep, so a full queue has to drop rather
+// than wait.
 //
-// The runner is deliberately NOT started, so nothing drains the channel and the
-// queue is genuinely full by the end.
+// The runner is not started, so nothing drains the channel and the queue is
+// full by the end.
 func TestEnqueueNeverBlocks(t *testing.T) {
 	r := New(Options{Hooks: func() []Hook { return []Hook{{ID: "jellyfin", URL: "http://x.lan/", Method: MethodGet}} }})
 	done := make(chan struct{})
@@ -286,10 +276,9 @@ func TestEnqueueNeverBlocks(t *testing.T) {
 	}
 }
 
-// TestCloseFlushesNothing. A call held back because its files have not landed is
-// a call whose whole point was the files having landed; firing it on the way out
-// would tell the media server to scan a folder this shutdown just stopped moving
-// things into.
+// A call held back because its files have not landed was waiting for exactly
+// that, so firing it on the way out would tell the media server to scan a
+// folder this shutdown just stopped moving things into.
 func TestCloseFlushesNothing(t *testing.T) {
 	srv := countingServer(t)
 	r := New(Options{
@@ -309,9 +298,8 @@ func TestCloseFlushesNothing(t *testing.T) {
 	}
 }
 
-// TestCallNowIsRecordedAsATest: the Test button goes out through the same client
-// and the same Call a real firing does, and the card has to be able to say which
-// of the two it is looking at.
+// The Test button goes out through the same client and the same Call a real
+// firing does, and the card has to say which of the two it is showing.
 func TestCallNowIsRecordedAsATest(t *testing.T) {
 	srv := countingServer(t)
 	hook := Hook{ID: "jellyfin", URL: srv.srv.URL, Method: MethodGet}
@@ -330,9 +318,8 @@ func TestCallNowIsRecordedAsATest(t *testing.T) {
 	}
 }
 
-// TestLastIsEmptyBeforeAnythingHasBeenCalled, which is what the card draws "not
-// called since this server started" from. It has to be told apart from a call
-// that failed.
+// The card draws "not called since this server started" from an empty Last,
+// which has to be told apart from a call that failed.
 func TestLastIsEmptyBeforeAnythingHasBeenCalled(t *testing.T) {
 	r := New(Options{})
 	if _, ok := r.Last("jellyfin"); ok {

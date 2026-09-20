@@ -19,15 +19,13 @@ import (
 
 // Store keeps one header value per hook id.
 type Store struct {
-	// accounts is the app's own store rather than one opened here, for the
-	// reason hostheaders.Store and hosterauth.NewStore both document at length:
-	// two accounts.Store instances over one accounts.json each hold their own
-	// in-memory snapshot of the whole file, and the second to write silently
-	// erases what the first had just saved.
+	// accounts is the app's own store rather than one opened here: two
+	// accounts.Store instances over one accounts.json each hold their own
+	// snapshot of the whole file, and the second to write erases what the
+	// first saved.
 	//
-	// Unlike hostheaders.Store there is no index kept beside it, so wrapping the
-	// app's store a second time is free: this type holds nothing that can go
-	// stale, which is why App hands out a fresh wrapper rather than keeping one.
+	// There is no index kept beside it, so this type holds nothing that can go
+	// stale and App hands out a fresh wrapper rather than keeping one.
 	accounts *accounts.Store
 }
 
@@ -43,12 +41,11 @@ var ErrNoStore = errors.New("mediahook: no credential store configured")
 // SetValue seals (or, with an empty value, clears) the header value for one
 // address.
 //
-// An empty value is a DELETE and not an error, the same reading accounts.Store.Set
-// and hostheaders.Store.Save have always given it: a form somebody cleared on
-// purpose means it, and if empty did not clear, a stored token could never be
-// removed through a settings page at all. That is exactly why the placeholder
-// (accounts.Redacted) exists and why the route in front of this has to put the
-// stored value back wherever the form sent it - see keepMediaHookValue.
+// An empty value deletes rather than failing, the reading accounts.Store.Set
+// and hostheaders.Store.Save give it: a cleared form means it, and if empty
+// did not clear, a stored token could never be removed through a settings
+// page. That is why the placeholder (accounts.Redacted) exists and why the
+// route in front of this puts the stored value back, see keepMediaHookValue.
 func (s *Store) SetValue(id, value string) error {
 	if s == nil || s.accounts == nil {
 		return ErrNoStore
@@ -66,18 +63,16 @@ func (s *Store) SetValue(id, value string) error {
 // Value returns the stored header value for one address, or "" when there is
 // none.
 //
-// A decryption failure answers "" and NO error, the same way hostheaders.Get and
-// ytdlp.CookieStore.Text do and for the identical reason: this result is reached
-// on the path that calls the media server after a download, an error from here
-// would travel into a log line and from there into the diagnostics bundle, and
-// the only failures possible (a truncated accounts.json, a .keyring replaced
-// under a running install) are ones the debrid credentials in the same file
-// report far more loudly than one header value ever could.
+// A decryption failure answers "" and no error, the way hostheaders.Get and
+// ytdlp.CookieStore.Text do: this is reached on the path that calls the media
+// server after a download, an error would travel into a log line and from
+// there into the diagnostics bundle, and the failures that are possible (a
+// truncated accounts.json, a .keyring replaced under a running install) are
+// reported far more loudly by the debrid credentials in the same file.
 //
-// The call still goes out without the header rather than not going out at all.
-// A media server that does not need the header scans, and one that does answers
-// 401, which the caller turns into a sentence naming the header - which is a far
-// more useful thing for the person to see than silence.
+// The call still goes out without the header. A media server that does not
+// need it scans, and one that does answers 401, which the caller turns into a
+// sentence naming the header.
 func (s *Store) Value(id string) string {
 	if s == nil || s.accounts == nil {
 		return ""
@@ -109,13 +104,12 @@ func (s *Store) Remove(id string) error {
 
 // IDs lists the ids that have a value sealed, sorted. Names only, never content.
 //
-// It is what "is a value stored for this row" is answered from rather than
-// Value, and the difference matters exactly once: a row whose ciphertext no
-// longer opens - a .keyring replaced under a running install - is listed here
+// "Is a value stored for this row" is answered from here rather than from
+// Value, and the difference shows up once: a row whose ciphertext no longer
+// opens, after a .keyring was replaced under a running install, is listed here
 // and answers "" from Value. Deciding from Value would tell the person nothing
-// is stored, they would type the token again, and it would work; deciding from
-// here tells them one IS stored, which is true, and the 401 from the call says
-// the rest.
+// is stored; deciding from here tells them one is, which is true, and the 401
+// from the call says the rest.
 func (s *Store) IDs() []string {
 	if s == nil || s.accounts == nil {
 		return nil

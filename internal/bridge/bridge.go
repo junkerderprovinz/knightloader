@@ -1,15 +1,11 @@
 // Package bridge forwards Click'n'Load submissions to a KnightLoader that runs
 // somewhere other than the browser's own machine.
 //
-// Click'n'Load is hard-wired to 127.0.0.1:9666 by every website that implements
-// it, and nothing in the protocol lets a site aim anywhere else. KnightLoader's
-// primary deployment is a container on a NAS, where 127.0.0.1 inside the
-// container is a different machine from the browser's loopback — so CnL cannot
-// reach the app at all, which kills the feature for the main deployment target.
-//
-// The bridge is the missing hop. The user runs it on their own desktop, where
-// it owns 127.0.0.1:9666 and speaks CnL to the website, and it relays whatever
-// it decodes to the remote instance over the ordinary REST API.
+// Websites send Click'n'Load to 127.0.0.1:9666, and the protocol cannot aim
+// anywhere else. When KnightLoader runs in a container on a NAS, that address
+// is not the browser's machine. The bridge runs on the user's desktop, owns
+// 127.0.0.1:9666, and relays what it decodes to the remote instance over the
+// REST API.
 package bridge
 
 import (
@@ -31,16 +27,16 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
 )
 
-// DefaultTimeout bounds everything one Click'n'Load submission triggers. It is
-// generous because the remote stages the links synchronously, and the browser
-// is left waiting for exactly this long when the remote is unreachable.
+// DefaultTimeout bounds everything one Click'n'Load submission triggers. The
+// remote stages links synchronously, and the browser waits this long when the
+// remote is unreachable.
 const DefaultTimeout = 30 * time.Second
 
 // Options configure a Bridge.
 type Options struct {
 	Remote   string        // base URL of the remote instance, e.g. http://nas:8749
 	Password string        // optional; the remote's UI password if it is locked
-	Timeout  time.Duration // zero means a sane default
+	Timeout  time.Duration // zero means DefaultTimeout
 }
 
 // Bridge forwards Click'n'Load submissions to a remote KnightLoader.
@@ -50,22 +46,18 @@ type Bridge struct {
 	timeout  time.Duration
 	hc       *http.Client
 
-	// mu guards epoch, which counts successful logins. A request that comes
-	// back 401 reports the epoch it rode on, so concurrent submissions that all
-	// trip over the same expired session cost one login between them instead of
-	// one each.
+	// epoch counts successful logins. A request that gets a 401 reports the
+	// epoch it used, so concurrent submissions hitting the same expired
+	// session share one login.
 	mu sync.Mutex
-	// loginWait is non-nil while a login is in flight. A second caller waits on
-	// it instead of starting its own, and instead of returning early — a
-	// caller that gave up waiting would retry with the session that just
-	// expired and fail for the same reason all over again.
+	// loginWait is non-nil while a login is in flight; other callers wait on
+	// it rather than retrying with the expired session.
 	loginWait chan struct{}
 	epoch     uint64
 }
 
-// New builds a Bridge aimed at the instance named in o. The address is the one
-// thing the user has to get right, so an unusable one is rejected here rather
-// than logged as a mangled URL on every submission for the rest of the run.
+// New builds a Bridge aimed at the instance named in o. An unusable address
+// is rejected here rather than failing on every submission.
 func New(o Options) (*Bridge, error) {
 	remote := strings.TrimRight(strings.TrimSpace(o.Remote), "/")
 	if remote == "" {
@@ -79,8 +71,6 @@ func New(o Options) (*Bridge, error) {
 	if timeout <= 0 {
 		timeout = DefaultTimeout
 	}
-	// The session lives in a cookie jar, so one login carries over to every
-	// later request this client makes.
 	jar, err := cookiejar.New(nil)
 	if err != nil {
 		return nil, fmt.Errorf("bridge: cookie jar: %w", err)
@@ -89,10 +79,8 @@ func New(o Options) (*Bridge, error) {
 		remote:   remote,
 		password: o.Password,
 		timeout:  timeout,
-		// The shared policy, not a bare client. The jar is the reason it matters
-		// here more than anywhere else: this client carries a session cookie for
-		// the remote instance, and httpx is what stops that cookie following a
-		// redirect onto a host it was never issued for.
+		// httpx keeps the session cookie from following a redirect to another
+		// host.
 		hc: httpx.New(httpx.Options{Jar: jar, Timeout: timeout}),
 	}, nil
 }
@@ -100,10 +88,9 @@ func New(o Options) (*Bridge, error) {
 // Remote is the base URL the bridge forwards to.
 func (b *Bridge) Remote() string { return b.remote }
 
-// Check probes the remote and, when a password is configured, logs in. Running
-// it at startup turns a typo in the address or the password into one clear
-// error on the spot, instead of into links quietly lost hours later on the
-// first CnL click.
+// Check probes the remote and, when a password is configured, logs in, so a
+// wrong address or password shows up at startup rather than as lost links
+// later.
 func (b *Bridge) Check(ctx context.Context) error {
 	epoch := b.sessionEpoch()
 	resp, err := b.sendAs(ctx, http.MethodGet, "/api/health", nil, "application/json")
@@ -114,23 +101,17 @@ func (b *Bridge) Check(ctx context.Context) error {
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("bridge: %s/api/health answered HTTP %d: %s", b.remote, resp.StatusCode, snippet(body))
 	}
-	// /api/health stays open even on a locked instance, so reaching it proves
-	// the address is right but says nothing about the password. Only a login
-	// does that.
+	// /api/health is open even on a locked instance, so only a login proves
+	// the password.
 	if b.password == "" {
 		return nil
 	}
 	return b.login(ctx, epoch)
 }
 
-// AddLinksCnL relays one Click'n'Load submission to the remote. It matches the
-// signature the CnL listener expects, so a Bridge can stand in for the local
-// app wherever an adder is wanted.
-//
-// It works synchronously: the CnL handler reports "success" to the website only
-// once this returns, and claiming success for links that never left the desktop
-// would be worse than making the button spin for a moment. The timeout bounds
-// how long that can last.
+// AddLinksCnL relays one Click'n'Load submission to the remote and matches
+// the signature the CnL listener expects. It is synchronous, because the
+// listener reports success to the website only once this returns.
 func (b *Bridge) AddLinksCnL(urls []string, pkg string, passwords []string) {
 	if len(urls) == 0 {
 		return
@@ -138,16 +119,9 @@ func (b *Bridge) AddLinksCnL(urls []string, pkg string, passwords []string) {
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
 
-	// Passwords travel with the links in one request. Sending them separately
-	// meant the endpoint could only take one, and every password past the first
-	// was quietly lost on the way to the remote.
-	// The entrance is named explicitly. These links reached this process through
-	// Click'n'Load and leave it as an ordinary REST call, so the remote has no
-	// way to tell them from a paste — and it would file them as one, which is
-	// wrong for every deployment a bridge exists to serve. An older remote that
-	// does not read the field ignores it and behaves exactly as before, which is
-	// why this is a field and not a route of its own: a bridge that 404s drops
-	// the submission, and the website will not offer those links again.
+	// Origin tells the remote these links came through Click'n'Load rather
+	// than a paste. It is a field rather than a route so an older remote
+	// ignores it instead of answering 404 and losing the submission.
 	body, err := json.Marshal(struct {
 		Links     string   `json:"links"`
 		Package   string   `json:"package"`
@@ -160,9 +134,8 @@ func (b *Bridge) AddLinksCnL(urls []string, pkg string, passwords []string) {
 	}
 
 	if _, err := b.call(ctx, http.MethodPost, "/api/links", body); err != nil {
-		// These links are gone: the website will not offer them a second time.
-		// Say loudly what was lost, because a bridge that drops links in silence
-		// looks exactly like one that works.
+		// The website will not offer these links again, so the loss has to
+		// be visible.
 		log.Printf("%d links dropped, none reached the remote: %v", len(urls), err)
 		return
 	}
@@ -170,24 +143,9 @@ func (b *Bridge) AddLinksCnL(urls []string, pkg string, passwords []string) {
 }
 
 // AddContainerCnL relays a Click'n'Load v1 ("addcrypted") submission to the
-// remote's container upload route. It satisfies cnl.ContainerAdder, the same
-// way AddLinksCnL satisfies cnl.Adder.
-//
-// There is no /api/links equivalent for this content: a v1 payload is
-// encrypted bytes, not a list of URLs, and /api/containers is where the
-// remote already knows how to hand encrypted content to its own JD backend —
-// the identical route a browser reaches by uploading a .dlc file by hand.
-// Sent as a multipart upload rather than folded into AddLinksCnL's JSON body
-// for the same reason: the remote's container route already exists and
-// already does the right thing, and duplicating its handling behind a second
-// shape here is exactly the "second mechanism" this feature is not supposed
-// to be.
-//
-// Unlike AddLinksCnL this returns an error instead of only logging one: a
-// remote with no JD backend configured refuses synchronously (see
-// HandContainerToJD/ErrNoContainerBackend), and the CnL listener can then
-// tell the site so, rather than claim success for a submission that never
-// reached the list.
+// remote's container upload route, the same one a .dlc upload uses. It
+// satisfies cnl.ContainerAdder. It returns an error, so the listener can tell
+// the site when the remote has no backend for containers.
 func (b *Bridge) AddContainerCnL(data []byte, pkg string) error {
 	if len(data) == 0 {
 		return nil
@@ -221,17 +179,13 @@ func (b *Bridge) AddContainerCnL(data []byte, pkg string) error {
 	return nil
 }
 
-// call performs one JSON API request and, if the remote answers 401, logs in
-// and repeats it exactly once. A bridge is meant to sit running for weeks, so
-// an expired session has to heal itself rather than become a stream of lost
-// links.
+// call performs one JSON API request, logging in and repeating it once if the
+// remote answers 401, so a bridge left running for weeks survives an expired
+// session.
 func (b *Bridge) call(ctx context.Context, method, path string, body []byte) ([]byte, error) {
 	return b.callAs(ctx, method, path, body, "application/json")
 }
 
-// callAs is call with an explicit content type, for a body that is not JSON —
-// today only the multipart upload AddContainerCnL sends. The 401-retry-once
-// shape is identical either way, so this is the one place it is written.
 func (b *Bridge) callAs(ctx context.Context, method, path string, body []byte, contentType string) ([]byte, error) {
 	epoch := b.sessionEpoch()
 	resp, err := b.sendAs(ctx, method, path, body, contentType)
@@ -243,9 +197,8 @@ func (b *Bridge) callAs(ctx context.Context, method, path string, body []byte, c
 		if err := b.login(ctx, epoch); err != nil {
 			return nil, err
 		}
-		// One retry only. If the freshly minted session is refused as well,
-		// something is wrong that retrying will not fix, and a loop here would
-		// hammer the remote for as long as the timeout allows.
+		// One retry only; a fresh session that is refused too will not be
+		// fixed by hammering the remote.
 		resp, err = b.sendAs(ctx, method, path, body, contentType)
 		if err != nil {
 			return nil, fmt.Errorf("%s %s%s: %w", method, b.remote, path, err)
@@ -258,18 +211,15 @@ func (b *Bridge) callAs(ctx context.Context, method, path string, body []byte, c
 	return out, nil
 }
 
-// login exchanges the password for a session cookie, which the jar then replays
-// on every later request. seen is the epoch the caller's failed request rode
-// on: if another goroutine has logged in since, this call is already covered by
-// that session and does nothing.
+// login exchanges the password for a session cookie. seen is the epoch the
+// caller's failed request used; if another goroutine has logged in since,
+// login does nothing.
 func (b *Bridge) login(ctx context.Context, seen uint64) error {
 	if b.password == "" {
 		return fmt.Errorf("bridge: %s is password locked but no password is configured", b.remote)
 	}
-	// Only the decision to log in is serialised, never the request itself.
-	// Holding the mutex across the round trip would make one hung remote block
-	// every other submission before it even reached the network, and the CnL
-	// handler is synchronous, so every browser tab would hang with it.
+	// Only the decision is serialised, not the request, so one hung remote
+	// does not block every other submission.
 	b.mu.Lock()
 	if b.epoch != seen {
 		b.mu.Unlock()
@@ -317,14 +267,15 @@ func (b *Bridge) login(ctx context.Context, seen uint64) error {
 	return nil
 }
 
-// sessionEpoch reports which login the next request will be riding on.
 func (b *Bridge) sessionEpoch() uint64 {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 	return b.epoch
 }
 
-// sendAs issues a single request without any retry or auth handling.
+// sendAs issues a single request without retry or auth handling. It sets no
+// Origin header: the remote's same-origin guard only rejects a mismatched
+// one.
 func (b *Bridge) sendAs(ctx context.Context, method, path string, body []byte, contentType string) (*http.Response, error) {
 	var rd io.Reader
 	if body != nil {
@@ -337,45 +288,21 @@ func (b *Bridge) sendAs(ctx context.Context, method, path string, body []byte, c
 	if body != nil {
 		req.Header.Set("Content-Type", contentType)
 	}
-	// No Origin header is set on purpose: the remote's same-origin guard only
-	// rejects requests that carry one that does not match, and this is not a
-	// browser.
 	return b.hc.Do(req)
 }
 
-// taskIDs pulls the ids out of the task array /api/links answers with.
-func taskIDs(raw []byte) []string {
-	var tasks []struct {
-		ID string `json:"id"`
-	}
-	if err := json.Unmarshal(raw, &tasks); err != nil {
-		log.Printf("could not read the task list returned by /api/links: %v", err)
-		return nil
-	}
-	out := make([]string, 0, len(tasks))
-	for _, t := range tasks {
-		if t.ID != "" {
-			out = append(out, t.ID)
-		}
-	}
-	return out
-}
-
-// drain reads and closes a response body, so the connection can go back to the
-// pool and be reused for the retry.
+// drain reads and closes a response body so the connection can be reused.
 func drain(resp *http.Response) []byte {
 	b, _ := io.ReadAll(io.LimitReader(resp.Body, 8<<20))
 	resp.Body.Close()
 	return b
 }
 
-// snippet keeps an unexpected response body loggable: an error page can be a
-// whole megabyte of HTML, and none of it belongs in a log line.
+// snippet shortens a response body for a log line, cutting on a rune
+// boundary.
 func snippet(b []byte) string {
 	s := strings.TrimSpace(string(b))
 	if len(s) > 200 {
-		// Cut on a rune boundary: a remote error page is often UTF-8, and slicing
-		// bytes puts half a character into the log.
 		cut := 0
 		for i := range s {
 			if i > 200 {

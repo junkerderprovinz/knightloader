@@ -2,32 +2,23 @@ package logring
 
 // Which part of the app a line came from, and which download it names.
 //
-// WHY THIS IS A SOURCE FILTER AND NOT A LEVEL PICKER. There are no levels in
-// this tree to filter on: nothing anywhere imports log/slog, every one of the
-// call sites is a bare log.Printf against the standard logger, and log.SetFlags
-// is never called outside two test files. Every line therefore reads
-// "2026/09/08 14:18:22 <text>" and nothing more. A picker offering Info, Warn
-// and Error would have to guess a level out of the wording, and a guess dressed
-// as a level is worse than no filter at all: it looks authoritative and quietly
-// hides lines from whoever trusted it. Giving the lines real levels means
-// migrating every call site in the tree, which is its own piece of work and not
-// something to fake in the corner of a diagnostics page.
+// A source filter and not a level picker, because there are no levels in this
+// tree: nothing imports log/slog, every call site is a bare log.Printf against
+// the standard logger, and log.SetFlags is never called outside two test
+// files. A picker offering Info, Warn and Error would have to guess a level
+// out of the wording, and a guess dressed as a level hides lines from whoever
+// trusts it. What the lines do carry is a prefix naming the subsystem, so that
+// is what the page filters on, and the table below is read off the tree.
 //
-// What the lines DO already carry is a prefix naming the subsystem, because
-// that is how they were written to be read on a terminal. So that is what the
-// page filters on, and the table below is read off the tree rather than
-// invented.
+// Matched by literal prefix rather than parsed. Splitting on ": " lands in the
+// middle of a value more often than not: "checksum foo.mkv: bad" and "crawl
+// https://x: refused" both carry a colon-space where a parser would take the
+// head. A prefix table is auditable against the source and wrong in a visible
+// way.
 //
-// MATCHED BY LITERAL PREFIX, NEVER PARSED. Splitting on ": " looks tempting and
-// lands in the middle of a value more often than not - "checksum foo.mkv: bad"
-// and "crawl https://x: refused" both carry a colon-space where a parser would
-// take the head. A prefix table is dull, it is auditable against the source, and
-// it is wrong in a visible way rather than a subtle one.
-//
-// THE TABLE LIVES ON THE SERVER because the lines do. A copy in the frontend
-// would be a second list of prefixes that drifts the first time somebody
-// renames one, and the drift would show up as a filter that silently matches
-// nothing.
+// The table lives on the server because the lines do. A copy in the frontend
+// would drift the first time somebody renamed a prefix, and show up as a
+// filter that matches nothing.
 
 import "strings"
 
@@ -38,10 +29,9 @@ type source struct {
 	prefixes []string
 }
 
-// sources is the fixed, ordered table. The order is the order the dropdown
-// shows, which is roughly "what somebody is most likely to be chasing" rather
-// than alphabetical: a list sorted by name puts "account health" above "task",
-// and nobody has ever opened this page to read about account health first.
+// sources is the fixed, ordered table. The order is what the dropdown shows,
+// roughly what somebody is most likely to be chasing rather than alphabetical,
+// which would put "account health" above "task".
 var sources = []source{
 	{"task", []string{"task "}},
 	{"feed", []string{"feed ", "feed subscription", "following ", "no feed could be polled"}},
@@ -83,10 +73,9 @@ func Sources() []string {
 	return out
 }
 
-// SourceOf is the bucket a line belongs to, or "" for one that names no part of
-// the app. An empty answer is a real one - the page shows those lines under
-// "Everything else", which is honest, whereas filing them under whichever
-// bucket happened to be first would not be.
+// SourceOf is the bucket a line belongs to, or "" for one that names no part
+// of the app. An empty answer is a real one: the page shows those lines under
+// "Everything else" rather than filing them under the first bucket.
 func SourceOf(line string) string {
 	body := TrimStamp(line)
 	for _, s := range sources {
@@ -102,17 +91,15 @@ func SourceOf(line string) string {
 // TrimStamp removes the standard library's own date and time from the front of
 // a line.
 //
-// IT IS NOT COSMETIC, it is what makes every prefix in the table above match at
-// all. The ring is fed by log.SetOutput, which hands it the FORMATTED record -
-// log.LstdFlags is the default and nothing in production ever calls
-// log.SetFlags, so every single line in the buffer begins "2026/09/08 14:18:22 "
-// and a prefix table applied to the raw line would match nothing, forever,
-// while looking perfectly reasonable in review.
+// This is what makes the prefixes in the table above match at all. The ring is
+// fed by log.SetOutput, which hands it the formatted record, so every line in
+// the buffer begins "2026/09/08 14:18:22 " and a prefix table applied to the
+// raw line would match nothing.
 //
-// Written as an exact shape check rather than a regexp or a "cut at the second
-// space": a line whose own text happens to start with two words would otherwise
-// lose them. Microseconds are tolerated because log.Lmicroseconds is one flag
-// away and a test file in this tree already changes the flags.
+// Written as an exact shape check rather than a regexp or a cut at the second
+// space, which would take two words off a line that carries no stamp.
+// Microseconds are tolerated because log.Lmicroseconds is one flag away and a
+// test file in this tree changes the flags.
 func TrimStamp(line string) string {
 	const stamp = "2006/01/02 15:04:05"
 	if len(line) < len(stamp)+1 {
@@ -147,21 +134,18 @@ func TrimStamp(line string) string {
 
 // TaskIDOf is the download a line names, or "" for one that names none.
 //
-// ANCHORED TO THE WORD, never to the shape of the id. A task id is sixteen hex
+// Anchored to the word, never to the shape of the id. A task id is sixteen hex
 // characters (internal/app.newID), and so is half of what this app logs: a
 // truncated checksum, a torrent infohash, a JD package uuid's first block. A
 // bare hex match would file all of them under whichever download had the same
-// digits, which is worse than finding nothing. The literal "task " in front is
-// what makes the match a claim rather than a coincidence, and it is what every
-// one of the seven call sites that record an id already writes.
+// digits. The literal "task " in front is what every call site that records an
+// id writes.
 //
-// It matches mid-line as well as at the start, because one of those seven is
-// "reconnect after task <id> hit a limit" - a line whose SOURCE is not "task"
-// but which is about one all the same.
+// It matches mid-line as well as at the start, because "reconnect after task
+// <id> hit a limit" is about a task without being filed under one.
 //
-// MOST LINES NAME NO TASK, and that is not a bug in this function. Seven of the
-// tree's log call sites carry an id; the rest do not, and the per-download panel
-// says so out loud rather than letting an empty card read as a broken one.
+// Most lines name no task at all, and the per-download panel says so rather
+// than letting an empty card read as a broken one.
 func TaskIDOf(line string) string {
 	const word = "task "
 	rest := line

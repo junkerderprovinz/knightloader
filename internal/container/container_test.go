@@ -6,14 +6,13 @@ import (
 	"testing"
 )
 
-// A DLC-shaped body: base64 throughout, longer than the key block, and ending
-// in a key block that itself decodes. Built rather than embedded, because a
-// real DLC is somebody's link list and does not belong in a repository.
+// fakeDLC builds a DLC-shaped body: base64 throughout and ending in a key
+// block that decodes. A real DLC is somebody's link list and does not belong
+// in the repository.
 func fakeDLC(payload string) string {
 	if len(payload) < dlcKeyLen {
 		payload = strings.Repeat("A", dlcKeyLen*2)
 	}
-	// 88 base64 characters that decode cleanly.
 	key := "R052aURmUFhuR0JLUDJzOVRsbDRiYmYvREljWXJxME16R2ZzN2YxSnE4OXNTdEVQNUdwa09mZVZLUFFodms1Mw=="
 	return payload + key
 }
@@ -27,12 +26,8 @@ func TestDetect(t *testing.T) {
 	}{
 		{"plain link list", "links.txt", "https://example.com/a\nhttps://example.com/b", KindText},
 		{"magnet list", "links.txt", "magnet:?xt=urn:btih:deadbeef", KindText},
-		// The extension is a hint, not the answer: a text file saved with a
-		// container's name must still be read as the text it is.
 		{"text misnamed as a container", "links.dlc", "https://example.com/a", KindText},
 		{"real dlc shape", "film.dlc", fakeDLC(""), KindDLC},
-		// A .dlc that is not base64 is still reported as a DLC so the error
-		// the user sees names the format they believe they have.
 		{"broken dlc", "film.dlc", "<html>404 not found</html>", KindDLC},
 		{"rsdf", "film.rsdf", "0123456789abcdef0123456789ABCDEF", KindRSDF},
 		{"ccf trusts its name", "film.ccf", "\x00\x01\x02binary", KindCCF},
@@ -47,9 +42,6 @@ func TestDetect(t *testing.T) {
 	}
 }
 
-// The encrypted formats must come back as ErrNeedsBackend and not as a
-// failure. The difference is the whole design: one routes the file to the
-// backend that can open it, the other tells the user their file is broken.
 func TestEncryptedContainersAskForTheBackend(t *testing.T) {
 	for _, tt := range []struct {
 		file string
@@ -66,10 +58,6 @@ func TestEncryptedContainersAskForTheBackend(t *testing.T) {
 	}
 }
 
-// A DLC that is not a DLC must be rejected HERE, with a reason. Otherwise the
-// failure surfaces inside the backend as an unexplained decryption error, and
-// the actual cause — an HTML error page saved under a .dlc name, or a download
-// that stopped halfway — is invisible.
 func TestValidateDLCExplainsWhatIsWrong(t *testing.T) {
 	tests := []struct {
 		name string
@@ -108,14 +96,11 @@ func TestParseText(t *testing.T) {
 			[]string{"https://example.com/a", "https://example.com/b"},
 		},
 		{
-			// Pasted out of a chat client, where several links share a line.
 			"several on one line",
 			"https://example.com/a https://example.com/b",
 			[]string{"https://example.com/a", "https://example.com/b"},
 		},
 		{
-			// A byte-order mark leads every text file Windows writes. Left in,
-			// it fuses with the first link and exactly one link per file fails.
 			"byte-order mark does not eat the first link",
 			"\ufeffhttps://example.com/a\nhttps://example.com/b",
 			[]string{"https://example.com/a", "https://example.com/b"},
@@ -131,8 +116,6 @@ func TestParseText(t *testing.T) {
 			[]string{"https://example.com/a"},
 		},
 		{
-			// The whole point of requiring a scheme: a README must not become
-			// a download list of its own words.
 			"prose with no links",
 			"This archive contains the film in 2160p.",
 			nil,
@@ -153,8 +136,6 @@ func TestParseText(t *testing.T) {
 	}
 }
 
-// An empty file and an unreadable one are different mistakes with different
-// fixes, so they must not collapse into one error.
 func TestEmptyAndUnknownAreDistinct(t *testing.T) {
 	if _, err := Links("links.txt", nil); !errors.Is(err, ErrEmpty) {
 		t.Errorf("an empty file gave %v, want ErrEmpty", err)
@@ -168,9 +149,6 @@ func TestEmptyAndUnknownAreDistinct(t *testing.T) {
 	}
 }
 
-// The size cap exists so a hostile or mistaken upload cannot make the server
-// allocate a hundred megabytes; it has to be enforced before anything is
-// scanned, not after.
 func TestOversizeIsRefused(t *testing.T) {
 	_, err := Links("huge.txt", make([]byte, MaxBytes+1))
 	if err == nil || !strings.Contains(err.Error(), "limit") {

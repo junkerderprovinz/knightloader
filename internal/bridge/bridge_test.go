@@ -16,11 +16,9 @@ import (
 	"time"
 )
 
-// remotePassword is the password the fake remote is locked with.
 const remotePassword = "correct horse battery"
 
-// sessionCookie mirrors auth.CookieName. It is spelled out rather than imported
-// so this package stays independent of the app it talks to.
+// sessionCookie mirrors auth.CookieName without importing the app.
 const sessionCookie = "kl_session"
 
 type linksBody struct {
@@ -35,26 +33,21 @@ type optionsBody struct {
 	Password string   `json:"password"`
 }
 
-// containerUpload is what the fake /api/containers route saw: the uploaded
-// file's name and bytes, and the package field beside it.
 type containerUpload struct {
 	filename string
 	data     []byte
 	pkg      string
 }
 
-// fakeRemote stands in for a KnightLoader instance. It records what the bridge
-// sent and can be locked and expired, which is how the tests reach the auth
-// paths without running a real app.
+// fakeRemote stands in for a KnightLoader instance. It records what the
+// bridge sent and can be locked and expired.
 type fakeRemote struct {
 	srv *httptest.Server
 
-	mu sync.Mutex
-	// locked mirrors an instance with a password set: guarded routes want the
-	// session cookie the login handed out.
+	mu     sync.Mutex
 	locked bool
-	// session is the token the remote currently accepts; empty means nobody is
-	// logged in, which is also what an expired session looks like from outside.
+	// session is the token the remote accepts; empty means nobody is logged
+	// in, which is also how an expired session looks.
 	session      string
 	logins       int
 	linkAttempts int // every POST /api/links, including the ones answered 401
@@ -64,8 +57,8 @@ type fakeRemote struct {
 
 	containerAttempts int // every POST /api/containers, including the ones answered 401
 	containers        []containerUpload
-	// containerFails, when true, makes /api/containers answer as an instance
-	// with no JD backend configured would (ErrNoContainerBackend's own 503).
+	// containerFails makes /api/containers answer like an instance without a
+	// JD backend.
 	containerFails bool
 }
 
@@ -75,7 +68,6 @@ func newFakeRemote(t *testing.T, locked bool, ids ...string) *fakeRemote {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /api/health", func(w http.ResponseWriter, r *http.Request) {
-		// Open even while locked, exactly like the real instance.
 		writeJSON(w, map[string]string{"status": "ok", "version": "test"})
 	})
 	mux.HandleFunc("POST /api/auth/login", func(w http.ResponseWriter, r *http.Request) {
@@ -169,8 +161,6 @@ func newFakeRemote(t *testing.T, locked bool, ids ...string) *fakeRemote {
 	return f
 }
 
-// authorize mirrors the real guard: once a password is set, an API call needs
-// the session cookie that the login handed out.
 func (f *fakeRemote) authorize(w http.ResponseWriter, r *http.Request) bool {
 	f.mu.Lock()
 	locked, want := f.locked, f.session
@@ -186,8 +176,6 @@ func (f *fakeRemote) authorize(w http.ResponseWriter, r *http.Request) bool {
 	return true
 }
 
-// expire invalidates the session the bridge is holding, the way the real
-// instance does once the cookie's TTL runs out.
 func (f *fakeRemote) expire() {
 	f.mu.Lock()
 	f.session = ""
@@ -211,8 +199,6 @@ func writeJSON(w http.ResponseWriter, v any) {
 	_ = json.NewEncoder(w).Encode(v)
 }
 
-// newBridge aims a Bridge at a fake remote with a timeout short enough that a
-// hung test fails rather than stalls.
 func newBridge(t *testing.T, f *fakeRemote, password string) *Bridge {
 	t.Helper()
 	b, err := New(Options{Remote: f.srv.URL, Password: password, Timeout: 5 * time.Second})
@@ -234,9 +220,6 @@ func captureLog(t *testing.T) *bytes.Buffer {
 	return &buf
 }
 
-// TestAddLinksCnLPostsLinksAndPackage pins the core relay. If it failed, the
-// remote would never see the links, or would stage them under the wrong
-// package, which is the entire job of the bridge.
 func TestAddLinksCnLPostsLinksAndPackage(t *testing.T) {
 	f := newFakeRemote(t, false)
 	b := newBridge(t, f, "")
@@ -253,23 +236,14 @@ func TestAddLinksCnLPostsLinksAndPackage(t *testing.T) {
 	if links[0].Package != "MySite" {
 		t.Fatalf("package = %q, want MySite", links[0].Package)
 	}
-	// The entrance travels with them. Without it the remote can only file a
-	// relayed submission as a paste, which is wrong for every deployment a bridge
-	// exists to serve — and wrong in the one column somebody opens the holding
-	// area to read.
 	if links[0].Origin != "cnl" {
 		t.Fatalf("origin = %q, want cnl: these links reached this process by Click'n'Load", links[0].Origin)
 	}
-	// Without passwords the options endpoint must stay untouched, otherwise
-	// every plain submission would clear the task's password.
 	if len(options) != 0 {
 		t.Fatalf("POST /api/tasks/options happened %d times for a submission without passwords, want 0", len(options))
 	}
 }
 
-// TestAddLinksCnLIgnoresEmptySubmission guards against a pointless round trip:
-// the CnL listener rejects empty lists itself, but a stray call must not stage
-// an empty package on the remote either.
 func TestAddLinksCnLIgnoresEmptySubmission(t *testing.T) {
 	f := newFakeRemote(t, false)
 	b := newBridge(t, f, "")
@@ -281,9 +255,6 @@ func TestAddLinksCnLIgnoresEmptySubmission(t *testing.T) {
 	}
 }
 
-// TestLockedRemoteIsLoggedInThenLinksGoThrough pins the auth handshake. If it
-// failed, every CnL click against a password-protected instance would be lost
-// with a 401.
 func TestLockedRemoteIsLoggedInThenLinksGoThrough(t *testing.T) {
 	f := newFakeRemote(t, true, "task-1")
 	b := newBridge(t, f, remotePassword)
@@ -302,11 +273,9 @@ func TestLockedRemoteIsLoggedInThenLinksGoThrough(t *testing.T) {
 	}
 }
 
-// TestExpiredSessionTriggersExactlyOneReLogin pins the self-healing path. A
-// bridge runs for weeks, so a session that dies mid-life must cost one login
-// and one retry. If it re-logged in per request the remote would be hammered;
-// if it did not re-login at all, every submission after the expiry would be
-// dropped.
+// TestExpiredSessionTriggersExactlyOneReLogin checks that an expired session
+// costs one login and one retry, not one login per request and not a dropped
+// submission.
 func TestExpiredSessionTriggersExactlyOneReLogin(t *testing.T) {
 	f := newFakeRemote(t, true, "task-1")
 	b := newBridge(t, f, remotePassword)
@@ -318,7 +287,6 @@ func TestExpiredSessionTriggersExactlyOneReLogin(t *testing.T) {
 		t.Fatalf("logins after Check = %d, want 1", logins)
 	}
 
-	// This one rides the session Check established, so it must not log in again.
 	b.AddLinksCnL([]string{"https://a.example/1"}, "CnL", nil)
 	if logins, attempts, _, _ := f.snapshot(); logins != 1 || attempts != 1 {
 		t.Fatalf("logins=%d attempts=%d after a submission on a healthy session, want 1 and 1", logins, attempts)
@@ -339,11 +307,6 @@ func TestExpiredSessionTriggersExactlyOneReLogin(t *testing.T) {
 	}
 }
 
-// TestConcurrentSubmissionsShareOneReLogin pins the epoch guard. The CnL
-// listener calls the bridge from its handler goroutines, so several submissions
-// can trip over the same expired session at once. Without the guard each of
-// them would log in separately, and the remote would see a burst of logins for
-// what is really one expiry.
 func TestConcurrentSubmissionsShareOneReLogin(t *testing.T) {
 	f := newFakeRemote(t, true, "task-1")
 	b := newBridge(t, f, remotePassword)
@@ -360,7 +323,7 @@ func TestConcurrentSubmissionsShareOneReLogin(t *testing.T) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			<-start // fire them all at the dead session together
+			<-start
 			b.AddLinksCnL([]string{fmt.Sprintf("https://a.example/%d", i)}, "CnL", nil)
 		}()
 	}
@@ -376,8 +339,6 @@ func TestConcurrentSubmissionsShareOneReLogin(t *testing.T) {
 	}
 }
 
-// TestWrongPasswordIsReportedNotRetried pins that a bad password fails loudly
-// and once. Retrying it would lock nothing out but would bury the real cause.
 func TestWrongPasswordIsReportedNotRetried(t *testing.T) {
 	f := newFakeRemote(t, true, "task-1")
 	b := newBridge(t, f, "not the password")
@@ -400,10 +361,6 @@ func TestWrongPasswordIsReportedNotRetried(t *testing.T) {
 	}
 }
 
-// TestPasswordsRideWithTheLinks pins that every password a submission carried
-// reaches the remote. They used to be posted separately to an endpoint that
-// takes exactly one, so anything past the first was lost between the website
-// and the NAS with nothing to show for it.
 func TestPasswordsRideWithTheLinks(t *testing.T) {
 	cases := []struct {
 		name      string
@@ -424,7 +381,7 @@ func TestPasswordsRideWithTheLinks(t *testing.T) {
 
 			_, _, links, options := f.snapshot()
 			if len(options) != 0 {
-				t.Fatalf("posted to /api/tasks/options %d times; passwords travel with the links now", len(options))
+				t.Fatalf("posted to /api/tasks/options %d times; passwords travel with the links", len(options))
 			}
 			if len(links) != 1 {
 				t.Fatalf("POST /api/links happened %d times, want once", len(links))
@@ -436,11 +393,7 @@ func TestPasswordsRideWithTheLinks(t *testing.T) {
 	}
 }
 
-// TestDeadRemoteLogsAndDoesNotPanic pins the failure everyone will hit at some
-// point: the NAS is off. Losing the links is unavoidable then, but taking the
-// CnL listener down with a panic, or dropping them in silence, is not.
 func TestDeadRemoteLogsAndDoesNotPanic(t *testing.T) {
-	// Closing the server immediately leaves an address nothing answers on.
 	srv := httptest.NewServer(http.NewServeMux())
 	addr := srv.URL
 	srv.Close()
@@ -465,9 +418,6 @@ func TestDeadRemoteLogsAndDoesNotPanic(t *testing.T) {
 	}
 }
 
-// TestNewRejectsUnusableRemote pins the early validation. A remote that is not
-// an http(s) base URL can never work, and failing at startup beats logging a
-// mangled URL on every click forever.
 func TestNewRejectsUnusableRemote(t *testing.T) {
 	cases := []struct {
 		name    string
@@ -507,8 +457,6 @@ func TestNewRejectsUnusableRemote(t *testing.T) {
 	}
 }
 
-// TestUnlockedRemoteNeverLogsIn pins that an instance without a password costs
-// no auth traffic at all, which is the common case.
 func TestUnlockedRemoteNeverLogsIn(t *testing.T) {
 	f := newFakeRemote(t, false, "task-1")
 	b := newBridge(t, f, "")
@@ -527,11 +475,6 @@ func TestUnlockedRemoteNeverLogsIn(t *testing.T) {
 	}
 }
 
-// TestAddContainerCnLPostsMultipartUpload pins the core relay for
-// Click'n'Load v1 ("addcrypted"): the exact bytes the site posted arrive at
-// the remote's ordinary container route, as a file upload, with the package
-// name beside them — the same route a browser reaches by uploading a .dlc by
-// hand, not a second mechanism built for this one entrance.
 func TestAddContainerCnLPostsMultipartUpload(t *testing.T) {
 	f := newFakeRemote(t, false)
 	b := newBridge(t, f, "")
@@ -559,9 +502,6 @@ func TestAddContainerCnLPostsMultipartUpload(t *testing.T) {
 	}
 }
 
-// TestAddContainerCnLIgnoresEmptySubmission mirrors
-// TestAddLinksCnLIgnoresEmptySubmission: a stray call with nothing in it must
-// not cost a round trip to the remote at all.
 func TestAddContainerCnLIgnoresEmptySubmission(t *testing.T) {
 	f := newFakeRemote(t, false)
 	b := newBridge(t, f, "")
@@ -574,11 +514,6 @@ func TestAddContainerCnLIgnoresEmptySubmission(t *testing.T) {
 	}
 }
 
-// TestAddContainerCnLSurfacesARemoteFailure is the branch AddLinksCnL does not
-// have: unlike a plain link, an addcrypted (v1) submission can synchronously
-// fail (no JD backend configured on the remote), and the caller — the CnL
-// listener — needs that error to tell the site honestly rather than claim
-// success for a submission that never reached the list.
 func TestAddContainerCnLSurfacesARemoteFailure(t *testing.T) {
 	f := newFakeRemote(t, false)
 	f.containerFails = true
@@ -589,10 +524,6 @@ func TestAddContainerCnLSurfacesARemoteFailure(t *testing.T) {
 	}
 }
 
-// TestAddContainerCnLRetriesLoginOn401 pins that the multipart upload shares
-// the exact same self-healing session handling every JSON call already has —
-// callAs's whole reason to exist rather than a second, upload-specific retry
-// loop.
 func TestAddContainerCnLRetriesLoginOn401(t *testing.T) {
 	f := newFakeRemote(t, true)
 	b := newBridge(t, f, remotePassword)

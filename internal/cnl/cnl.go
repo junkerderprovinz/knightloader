@@ -1,7 +1,7 @@
 // Package cnl implements the Click'n'Load protocol: browser extensions and
-// "CNL" buttons on websites POST link lists to 127.0.0.1:9666, the de-facto
-// standard port JDownloader and pyLoad listen on. KnightLoader answers the
-// same protocol, so existing extensions work unchanged.
+// "CNL" buttons on websites POST link lists to 127.0.0.1:9666, the port
+// JDownloader and pyLoad listen on. KnightLoader answers the same protocol, so
+// existing extensions work unchanged.
 package cnl
 
 import (
@@ -18,21 +18,16 @@ import (
 	"time"
 )
 
-// Adder is what the app exposes to CnL (AddLinksCnL). passwords carries the
-// archive passwords a CnL button ships alongside its links; it is nil when the
-// site sent none, which is the common case.
+// Adder receives the links of a submission. passwords holds the archive
+// passwords the site sent with them, usually none.
 type Adder interface {
 	AddLinksCnL(urls []string, pkg string, passwords []string)
 }
 
-// ContainerAdder is an Adder that can also accept a Click'n'Load v1
-// ("addcrypted") submission: RSA-encrypted content only JDownloader's own key
-// can open, structurally the same problem an uploaded .dlc already solves by
-// routing to the shipped JD backend. It is a separate, optional interface
-// rather than a third parameter on Adder because not every Adder has a JD
-// backend to hand it to — a plain Adder (or one whose backend does not
-// implement it) makes /flash/addcrypted answer honestly with 501 instead of
-// silently doing nothing.
+// ContainerAdder is an Adder that can also take a Click'n'Load v1
+// ("addcrypted") submission, which is encrypted for JDownloader's own RSA key
+// and so has to go to the JD backend like an uploaded .dlc. Without it,
+// /flash/addcrypted answers 501.
 type ContainerAdder interface {
 	AddContainerCnL(data []byte, pkg string) error
 }
@@ -47,17 +42,12 @@ type Server struct {
 func New(adder Adder) *Server { return &Server{adder: adder} }
 
 // handler builds the routing table. It is separate from Start so tests can
-// drive the protocol without binding the well-known port, which may be held by
-// a real JDownloader.
+// drive the protocol without binding the well-known port.
 func (s *Server) handler() http.Handler {
 	mux := http.NewServeMux()
 
-	// Several sites probe for a running downloader before they render their
-	// CnL button, and they do not agree on where: some ask /flash, some
-	// /flash/, some the bare root, some /flash/addcnl or /alive. All of them
-	// answer the same greeting JD does — these are pure liveness checks, never
-	// a place a link or a password can arrive, so there is nothing here for a
-	// POST-only rule to guard.
+	// Sites probe for a running downloader at different paths before showing
+	// their button. These are liveness checks only and accept nothing.
 	greet := func(w http.ResponseWriter, r *http.Request) {
 		_, _ = fmt.Fprint(w, "JDownloader\r\n")
 	}
@@ -72,15 +62,9 @@ func (s *Server) handler() http.Handler {
 		_, _ = fmt.Fprint(w, "jdownloader=true;\nvar version='90000';\n")
 	})
 
-	// /flashgot is the FlashGot extension's own detection probe. Real
-	// JDownloader's implementation of this route also accepts urls/dir/
-	// package/autostart/dpass/apass parameters and queues a download from
-	// them — reachable by plain GET, because the RemoteAPI framework it runs
-	// on reads parameters the same way regardless of method. Copying that
-	// would reopen exactly the hole the POST-only fix below closes, just under
-	// a different path, so this answers the bare liveness probe only: 200,
-	// no body, nothing parsed. A site that wants FlashGot's actual submission
-	// has no route here to use, same as before this change.
+	// FlashGot's detection probe. JDownloader also queues downloads from GET
+	// parameters here; that would be a drive-by submission route, so this
+	// answers the probe only.
 	mux.HandleFunc("GET /flashgot", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
@@ -90,8 +74,8 @@ func (s *Server) handler() http.Handler {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	// The Flash cross-domain policy file, still probed for by CnL implementations
-	// old enough to predate fetch/XHR. Content verified against JDownloader's own
+	// The Flash cross-domain policy, still probed for by old CnL
+	// implementations. Content matches JDownloader's
 	// Cnl2APIBasics#crossdomainxml.
 	mux.HandleFunc("GET /crossdomain.xml", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/xml")
@@ -100,13 +84,10 @@ func (s *Server) handler() http.Handler {
 			"<cross-domain-policy>\n<allow-access-from domain=\"*\" />\n</cross-domain-policy>\n")
 	})
 
-	// Submission is POST only, deliberately. A GET route here would be a
-	// "simple request" in the browser's sense: no preflight, no user gesture,
-	// no navigation. Any page in the world — an ad iframe, an <img src>, an
-	// email preview — could then queue arbitrary downloads, and arbitrary
-	// archive passwords, into this instance. Sites that pass parameters in the
-	// query string still work, because ParseForm merges the query into
-	// FormValue for a POST as well.
+	// Submission is POST only. A GET would be a browser "simple request" that
+	// any page, ad iframe or <img src> could fire to queue downloads and
+	// passwords. Query parameters still work, since ParseForm merges them for
+	// a POST too.
 	add := func(w http.ResponseWriter, r *http.Request) {
 		_ = r.ParseForm()
 		urls := splitLinks(r.FormValue("urls"))
@@ -131,20 +112,14 @@ func (s *Server) handler() http.Handler {
 	}
 	mux.HandleFunc("POST /flash/addcrypted2", addCrypted2)
 
-	// addcrypted (v1) encrypts its payload against JDownloader's own RSA public
-	// key, so nobody but KnightLoader can open it on its own — only a real JD
-	// holds that key. It is a submission route exactly like /flash/add and
-	// /flash/addcrypted2 above (it carries a link list), so it is POST only for
-	// the identical reason: a GET here would be a no-preflight, no-user-gesture
-	// request any ad iframe or email preview could fire. Unlike the other two,
-	// real JDownloader's own v1 handler reads no passwords field at all, so
-	// this does not invent one either.
+	// addcrypted (v1) is encrypted for JDownloader's RSA key, so only a JD
+	// backend can open it. POST only for the same reason as above. JD's own
+	// handler reads no passwords here, so neither does this one.
 	mux.HandleFunc("POST /flash/addcrypted", func(w http.ResponseWriter, r *http.Request) {
 		ca, ok := s.adder.(ContainerAdder)
 		if !ok {
-			// 501, not a 404 or a silent drop: the site reports "not supported"
-			// rather than "no downloader running", which is the difference
-			// between a bug report we can act on and a week of guessing.
+			// 501 lets the site report "not supported" rather than "no
+			// downloader running".
 			http.Error(w, "addcrypted (v1) needs the JDownloader backend, which is not available here; the site must use addcrypted2", http.StatusNotImplemented)
 			return
 		}
@@ -154,12 +129,9 @@ func (s *Server) handler() http.Handler {
 			http.Error(w, "no crypted content", http.StatusBadRequest)
 			return
 		}
-		// Real JDownloader applies the identical fixup before treating this
-		// field as DLC content (org.jdownloader.api.cnl2.ExternInterfaceImpl
-		// #addcrypted): some clients turn a literal '+' in the base64 into a
-		// space when they form-encode it, and unlike addcrypted2's payload this
-		// one carries no separate integrity check to catch that silently
-		// corrupting it.
+		// Some clients turn '+' in the base64 into a space when form-encoding
+		// it. JDownloader applies the same fixup
+		// (org.jdownloader.api.cnl2.ExternInterfaceImpl#addcrypted).
 		fixed := strings.ReplaceAll(strings.TrimSpace(raw), " ", "+")
 		if err := ca.AddContainerCnL([]byte(fixed), packageOf(r)); err != nil {
 			http.Error(w, "addcrypted (v1): "+err.Error(), http.StatusBadGateway)
@@ -183,33 +155,15 @@ func (s *Server) Start(port int) error {
 	return nil
 }
 
-// withCORS stamps the Click'n'Load CORS policy onto every response and answers
-// preflights itself, for every path rather than per route, so that a site
-// probing an endpoint we do not serve still gets a clean CORS answer instead of
-// a 404 the browser reports to the page as a CORS failure.
+// withCORS applies the Click'n'Load CORS policy to every path and answers
+// preflights itself, so a probe of an unrouted path gets a clean answer
+// rather than a 404 the page sees as a CORS failure.
 //
-// The wildcard origin is deliberate and is correct HERE AND ONLY HERE. CnL
-// exists precisely so that an arbitrary third-party page may hand links to a
-// downloader running on the same machine, and this listener binds 127.0.0.1
-// only, so "any origin" still means "a page open in the browser of the person
-// sitting at this keyboard". Restricting it to an origin allowlist would break
-// every CnL button on every site, which is the entire point of the package. The
-// main API in internal/api deliberately does the opposite: it sends no CORS
-// headers at all and relies on same-origin plus session auth, because it can
-// start, delete and reconfigure downloads. Do not "harmonise" the two.
-//
-// THIS IS ALSO THE ANSWER to build-plan.md section 9 package 17's
-// "authorized-sites allowlist must default to empty-means-allow-all": there is
-// no such allowlist anywhere in this package, on purpose, not as a gap Wave 8
-// left open. An origin allowlist and the reasoning two paragraphs up are the
-// same tradeoff twice - restricting which sites may reach this listener is
-// exactly as self-defeating as restricting which origin the wildcard CORS
-// above answers, for the identical reason (it would break every CnL button on
-// every site that is not on the list, which is the whole point of the
-// package). Loopback-bind plus wildcard CORS already is this listener's
-// entire authorization model; a second, narrower one sitting beside it would
-// not add safety, only a second place for the real one to be bypassed by
-// omission.
+// The wildcard origin is right here and nowhere else: CnL exists so any
+// third-party page can hand links to a downloader on the same machine, and
+// the listener binds loopback only. An origin allowlist would break every
+// site not on it. The main API in internal/api sends no CORS headers and
+// relies on same-origin and session auth instead; the two differ on purpose.
 func withCORS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		h := w.Header()
@@ -217,13 +171,9 @@ func withCORS(next http.Handler) http.Handler {
 		h.Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
 		h.Set("Access-Control-Allow-Headers", "Content-Type")
 		if r.Method == http.MethodOptions {
-			// Chrome's Private Network Access check refuses to let a public
-			// page (https://filehoster.example) reach a private address
-			// (127.0.0.1) unless the preflight explicitly opts in with this
-			// header. Without it, fetch/XHR based CnL buttons fail with an
-			// opaque network error while old-style form POSTs, which are never
-			// preflighted, keep working: exactly the kind of half-broken that
-			// costs days to diagnose.
+			// Chrome's Private Network Access check lets a public page reach
+			// 127.0.0.1 only if the preflight opts in. Without it fetch-based
+			// buttons fail while plain form POSTs keep working.
 			h.Set("Access-Control-Allow-Private-Network", "true")
 			h.Set("Access-Control-Max-Age", "86400")
 			w.WriteHeader(http.StatusNoContent)
@@ -250,10 +200,9 @@ func packageOf(r *http.Request) string {
 	return "Click'n'Load"
 }
 
-// passwordsOf pulls the archive passwords a CnL button ships with its links.
-// They arrive newline-separated in a single field; "password" is the older
-// singular spelling that some sites still send. Unlike link lists these must
-// not be split on spaces, because a password may legitimately contain one.
+// passwordsOf returns the newline-separated archive passwords of a
+// submission; "password" is an older singular spelling. They are not split on
+// spaces, since a password may contain one.
 func passwordsOf(r *http.Request) []string {
 	raw := r.FormValue("passwords")
 	if strings.TrimSpace(raw) == "" {
@@ -281,9 +230,8 @@ func splitLinks(s string) []string {
 	return out
 }
 
-// jkHex pulls the hex key out of the "jk" JavaScript snippet, which by
-// convention is `function f(){ return '<hex>';}`. The key is extracted, never
-// executed.
+// jkHex pulls the hex key out of the "jk" JavaScript snippet, conventionally
+// `function f(){ return '<hex>';}`. The snippet is never executed.
 var jkHex = regexp.MustCompile(`(?i)return\s*['"]([0-9a-f]+)['"]`)
 
 // DecryptCnL decodes an addcrypted2 payload: AES-128-CBC, key == IV, key from
@@ -316,7 +264,7 @@ func DecryptCnL(jk, crypted string) ([]string, error) {
 	}
 	pt := make([]byte, len(ct))
 	cipher.NewCBCDecrypter(block, key).CryptBlocks(pt, ct)
-	// Strip zero + PKCS#7 padding, both occur in the wild.
+	// Both zero and PKCS#7 padding occur in the wild.
 	pt = stripPadding(pt)
 	return splitLinks(string(pt)), nil
 }

@@ -146,10 +146,6 @@ func TestTOTPURICarriesWhatTheAppsNeed(t *testing.T) {
 	}
 }
 
-// ---------------------------------------------------------------------------
-// Recovery codes
-// ---------------------------------------------------------------------------
-
 func TestRecoveryCodesAreDistinctAndVerifiable(t *testing.T) {
 	const key = "0123456789abcdef"
 	plain, hashed, err := NewRecoveryCodes(key)

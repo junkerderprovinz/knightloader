@@ -75,16 +75,16 @@ type Job struct {
 	// Filename is the name the finished file is put under. It describes one file,
 	// so it is only usable on an entry that carries one link - see the caller.
 	Filename string
-	// Extract overrides the global unpacking switch for these links, nil when the
-	// entry said nothing. It is a pointer for the same reason the task field is:
-	// a rule that deliberately switches unpacking off has to survive a global
-	// that is on, and with a plain bool the two are the same value.
+	// Extract overrides the global unpacking switch for these links, nil when
+	// the entry said nothing. A pointer for the same reason the task field is:
+	// a rule that switches unpacking off has to survive a global that is on,
+	// and with a plain bool the two are the same value.
 	Extract *bool
 }
 
-// schemeURL matches anything carrying a scheme. The intake stays deliberately
-// permissive: the resolvers know what they can take, this package does not, and
-// silently dropping a link the user explicitly handed us is the worse failure.
+// schemeURL matches anything carrying a scheme. The intake stays permissive:
+// the resolvers know what they can take, this package does not, and dropping a
+// link the user handed over is the worse failure.
 var schemeURL = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9+.\-]*://\S+$`)
 
 // Parse reads one intake file into the jobs it holds. Two formats are accepted:
@@ -140,9 +140,9 @@ func Parse(name string, r io.Reader) ([]Job, error) {
 // more than links: every link in the file would get the last block's package,
 // folder and password.
 //
-// WHAT IS READ AND WHAT IS NOT. Everything below the switch is a key JD writes
-// that this app has nothing to do with, listed rather than left to be
-// rediscovered by whoever next wonders why their file had no effect:
+// Everything below the switch is a key JD writes that this app has nothing to
+// do with, listed rather than left to be rediscovered by whoever next wonders
+// why their file had no effect:
 //
 //	downloadPassword            the hoster's own password for the link, not the
 //	                            archive's. No resolver here takes a per-link
@@ -252,11 +252,10 @@ func parseText(r io.Reader) ([]Job, error) {
 }
 
 // bom is what Windows editors put at the front of a UTF-8 file. Left in place
-// it becomes part of the first line, so the first link silently fails to parse
-// while the rest succeed — and the file is then retired as consumed, so nothing
-// ever reports the loss. Written as the escape, because the literal character
-// is invisible in an editor and a source file that carries one is a source file
-// somebody deletes by accident.
+// it becomes part of the first line, so the first link fails to parse while
+// the rest succeed, and the file is then retired as consumed with nothing to
+// report the loss. Written as the escape, because the literal character is
+// invisible in an editor.
 const bom = "\ufeff"
 
 // scanLines feeds every line to fn, trimmed, with the BOM taken off the first

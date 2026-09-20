@@ -218,13 +218,12 @@ func TestNextLandsOnTheChange(t *testing.T) {
 	}
 }
 
-// TestNextIsSafeToSleepThrough is the promise the package is built on: a caller
-// may sleep from now until Next and miss nothing. Every minute in between is
-// walked and must still answer what Next was asked about, and the instant itself
-// must answer differently — otherwise "sleep until Next" would be silently
-// skipping a window, which is exactly the failure that polling hides.
+// A caller may sleep from now until Next and miss nothing. Every minute in
+// between is walked and must still answer what Next was asked about, and the
+// instant itself must answer differently, or "sleep until Next" would be
+// skipping a window, which is the failure polling hides.
 //
-// The probes deliberately straddle both days on which the clocks move, because
+// The probes straddle both days on which the clocks move, because
 // that is where an implementation built on wall-clock arithmetic drifts away
 // from real elapsed time.
 func TestNextIsSafeToSleepThrough(t *testing.T) {
@@ -274,8 +273,8 @@ func TestNextIsSafeToSleepThrough(t *testing.T) {
 //   - a window that starts inside the missing hour and ends after it opens the
 //     moment the clock jumps, and is therefore an hour shorter that one night.
 //
-// The alternative — pinning windows to elapsed time so the missing hour is
-// served anyway — would drag every following night off the wall clock the user
+// The alternative, pinning windows to elapsed time so the missing hour is
+// served anyway, would drag every following night off the wall clock the user
 // typed, which is the worse surprise for a timetable.
 //
 // Both zones below skip an hour, but Santiago skips the hour that contains local
@@ -370,8 +369,8 @@ func TestSpringForward(t *testing.T) {
 // so a window inside it is in force twice and Next has to find all four edges.
 //
 // Both hemispheres are here on purpose. time.Date cannot answer an ambiguous
-// wall clock — there are two instants and it returns one — and which one it
-// picks depends on the sign of the zone's offset: east of Greenwich it lands on
+// wall clock, since there are two instants and it returns one, and which one
+// it picks depends on the sign of the zone's offset: east of Greenwich it lands on
 // the second pass, west of it on the first. An implementation that trusts that
 // guess and reconstructs the other pass from it passes in Berlin and loses the
 // second pass entirely in Santiago, where the window then looks like it opened
@@ -433,10 +432,10 @@ func TestFallBack(t *testing.T) {
 	}
 }
 
-// TestNextSurvivesAWeekdayTheClocksDelete is the bug a week of lookahead has.
-// Coverage depends on nothing but the weekday and the minute, so the pattern
-// repeats weekly and a week reads as enough — until the single occurrence of a
-// weekday inside that week is the day a clock jump deletes the window's times.
+// The bug a week of lookahead has. Coverage depends on nothing but the weekday
+// and the minute, so the pattern repeats weekly and a week reads as enough,
+// until the single occurrence of a weekday inside that week is the day a clock
+// jump deletes the window's times.
 // The rule then produces no edges at all, Next answers "the state never changes
 // again", and the caller stops asking: a nightly window that would run perfectly
 // well the following week is dropped for good, with nothing on screen to say so.
@@ -516,11 +515,11 @@ func TestNextSurvivesAWeekdayTheClocksDelete(t *testing.T) {
 	}
 }
 
-// TestEmptyScheduleIsWhateverTheUserSet: a timetable with no usable rows has
-// nothing to say, so the answer is the state the user set by hand. A fresh
-// install is running and unlimited, and a queue the user paused stays paused. An
-// evaluator that answered State{} here would release the brakes on every install
-// that has no schedule yet and restart a queue somebody had deliberately stopped.
+// A timetable with no usable rows has nothing to say, so the answer is the
+// state the user set by hand. A fresh install is running and unlimited, and a
+// queue the user paused stays paused. An evaluator that answered State{} here
+// would release the brakes on every install with no schedule and restart a
+// queue somebody had stopped on purpose.
 func TestEmptyScheduleIsWhateverTheUserSet(t *testing.T) {
 	cases := []struct {
 		name string
@@ -555,12 +554,11 @@ func TestEmptyScheduleIsWhateverTheUserSet(t *testing.T) {
 	}
 }
 
-// TestAtUnlimitedWindowLiftsTheUsersOwnLimit is the distinction At's base
-// parameter exists for. "No window applies" and "a window says unlimited" both
-// come out as Limit 0, and folding them together would leave the user's daytime
-// cap sitting on the queue all night — the one thing the window was written to
-// remove. It would also blind Next, because the state either side of the edge
-// would then look identical.
+// The distinction At's base parameter exists for. "No window applies" and "a
+// window says unlimited" both come out as Limit 0, and folding them together
+// would leave the user's daytime cap on the queue all night, the one thing the
+// window was written to remove. It would also blind Next, because the state
+// either side of the edge would look identical.
 func TestAtUnlimitedWindowLiftsTheUsersOwnLimit(t *testing.T) {
 	s := Compile([]Entry{{Days: everyDay(), Start: "22:00", End: "06:00", Action: ActionLimit}})
 	base := State{Limit: 5000}
@@ -595,10 +593,10 @@ func TestNightlyWindowHasNoSeamAtMidnight(t *testing.T) {
 	}
 }
 
-// TestNextIsStrictlyAfterTheInstantAsked: the caller sleeps for Next minus now,
-// so a Next that answered with now — or with the edge it is already standing on
-// — would ask for a wait of nothing and spin the loop against a core. The
-// seconds below are not round because a real clock reading almost never is.
+// The caller sleeps for Next minus now, so a Next that answered with now, or
+// with the edge it is already standing on, would ask for a wait of nothing and
+// spin the loop against a core. The seconds below are not round, because a
+// real clock reading almost never is.
 func TestNextIsStrictlyAfterTheInstantAsked(t *testing.T) {
 	s := Compile([]Entry{{Days: everyDay(), Start: "22:00", End: "06:00", Action: ActionPause}})
 	cases := []struct {
@@ -673,10 +671,9 @@ func TestValidate(t *testing.T) {
 	}
 }
 
-// TestCompileKeepsTheUsableRows is the defensive half: settings.json can be
-// hand-edited, and one broken line must not take the rest of the timetable with
-// it. A disabled row is skipped the same way, which is the whole point of the
-// flag.
+// settings.json can be hand-edited, and one broken line must not take the rest
+// of the timetable with it. A disabled row is skipped the same way, which is
+// what the flag is for.
 func TestCompileKeepsTheUsableRows(t *testing.T) {
 	s := Compile([]Entry{
 		{Days: everyDay(), Start: "01:00", End: "02:00", Action: ActionPause},
@@ -698,13 +695,13 @@ func TestCompileKeepsTheUsableRows(t *testing.T) {
 	}
 }
 
-// TestNextMatchesAMinuteWalk cross-checks Next against the only definition of it
-// that cannot itself be wrong: walk every minute and see where At first answers
-// differently. The named tests above each pin one shape of window in one zone,
-// which is how the fall-back handling came to be correct in Berlin and broken in
-// Santiago — nobody had written down the case. This walks generated timetables
-// through the awkward zones instead of the ones somebody thought of, so the next
-// such gap fails here rather than in production once a year.
+// Next is cross-checked against the only definition of it that cannot itself
+// be wrong: walk every minute and see where At first answers differently. The
+// named tests above each pin one shape of window in one zone, which is how the
+// fall-back handling came to be correct in Berlin and broken in Santiago. This
+// walks generated timetables through the awkward zones instead of the ones
+// somebody thought of, so the next such gap fails here rather than in
+// production once a year.
 //
 // The generator is seeded, so a failure is reproducible and prints the timetable
 // that produced it.

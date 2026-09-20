@@ -7,9 +7,6 @@ import (
 	"testing"
 )
 
-// TestCreateReturnsTheSecretExactlyOnce is the whole shape of this package: a
-// second read of the same token must never be able to recover the plaintext,
-// only confirm a presented one matches.
 func TestCreateReturnsTheSecretExactlyOnce(t *testing.T) {
 	s, err := Open(t.TempDir())
 	if err != nil {
@@ -36,17 +33,11 @@ func TestCreateReturnsTheSecretExactlyOnce(t *testing.T) {
 		if got.ID != tok.ID {
 			continue
 		}
-		// Token (and therefore List) carries no field the secret could ever
-		// be read back from: this loop is really asserting that fact by
-		// construction (record.HashHex is unexported and record itself never
-		// crosses this boundary), but it stands as the test that would fail
-		// the day someone widens Token to embed record by mistake.
 		return
 	}
 	t.Fatal("the new token is not in List")
 }
 
-// TestCheckAcceptsExactlyTheIssuedSecret is Check's whole job.
 func TestCheckAcceptsExactlyTheIssuedSecret(t *testing.T) {
 	s, err := Open(t.TempDir())
 	if err != nil {
@@ -72,10 +63,6 @@ func TestCheckAcceptsExactlyTheIssuedSecret(t *testing.T) {
 	}
 }
 
-// TestRevokeStopsAuthenticatingWithoutTouchingOtherTokens is the entire
-// feature this package exists to build: one device lost, one token revoked,
-// every other credential (including the shared password, which this package
-// never touches at all) untouched.
 func TestRevokeStopsAuthenticatingWithoutTouchingOtherTokens(t *testing.T) {
 	s, err := Open(t.TempDir())
 	if err != nil {
@@ -106,8 +93,6 @@ func TestRevokeStopsAuthenticatingWithoutTouchingOtherTokens(t *testing.T) {
 	}
 }
 
-// TestRevokeUnknownIDIsAnError stops a client from believing a typo'd id
-// removed something.
 func TestRevokeUnknownIDIsAnError(t *testing.T) {
 	s, err := Open(t.TempDir())
 	if err != nil {
@@ -118,9 +103,6 @@ func TestRevokeUnknownIDIsAnError(t *testing.T) {
 	}
 }
 
-// TestRevokeAllClearsEveryTokenAndSurvivesAReload is RevokeAll's whole job:
-// every credential gone at once, and gone for good, not just from the
-// in-memory map a restart would silently repopulate from a stale file.
 func TestRevokeAllClearsEveryTokenAndSurvivesAReload(t *testing.T) {
 	dir := t.TempDir()
 	s, err := Open(dir)
@@ -156,14 +138,11 @@ func TestRevokeAllClearsEveryTokenAndSurvivesAReload(t *testing.T) {
 		t.Errorf("after reopening, List() = %d entries, want 0", len(s2.List()))
 	}
 
-	// The store keeps working afterwards - a clean slate, not a wedged one.
 	if _, _, err := s.Create("new phone"); err != nil {
 		t.Errorf("Create after RevokeAll: %v", err)
 	}
 }
 
-// TestRevokeAllOnAnEmptyStoreIsANoOp mirrors Check's own empty-store case:
-// nothing to revoke must not be an error, and must not touch the file.
 func TestRevokeAllOnAnEmptyStoreIsANoOp(t *testing.T) {
 	s, err := Open(t.TempDir())
 	if err != nil {
@@ -174,8 +153,6 @@ func TestRevokeAllOnAnEmptyStoreIsANoOp(t *testing.T) {
 	}
 }
 
-// TestEmptyNameRefused: a token nothing can tell apart from the next one
-// issued is a token nobody can revoke with confidence.
 func TestEmptyNameRefused(t *testing.T) {
 	s, err := Open(t.TempDir())
 	if err != nil {
@@ -186,9 +163,6 @@ func TestEmptyNameRefused(t *testing.T) {
 	}
 }
 
-// TestTokensSurviveAReload is the point of writing tokens.json at all: a
-// restart must not silently log out every device that was never told to log
-// back in, unlike a browser session, which is expected to expire.
 func TestTokensSurviveAReload(t *testing.T) {
 	dir := t.TempDir()
 	s1, err := Open(dir)
@@ -210,8 +184,6 @@ func TestTokensSurviveAReload(t *testing.T) {
 	}
 }
 
-// TestMaxTokensRefusesRatherThanGrowingForever bounds a script that creates
-// tokens in a loop, without capping the handful of devices a real person has.
 func TestMaxTokensRefusesRatherThanGrowingForever(t *testing.T) {
 	s, err := Open(t.TempDir())
 	if err != nil {
@@ -227,10 +199,8 @@ func TestMaxTokensRefusesRatherThanGrowingForever(t *testing.T) {
 	}
 }
 
-// TestLastUsedFlushIsThrottledButAlwaysCorrectInMemory: the on-disk write is
-// allowed to lag by up to staleAfter (see Check's own comment on why), but
-// nothing served from this process may ever be stale. Only what a second
-// process reading the file straight off disk within that window would see.
+// TestLastUsedFlushIsThrottledButAlwaysCorrectInMemory checks that the disk
+// copy may lag by staleAfter while the in-memory value is always current.
 func TestLastUsedFlushIsThrottledButAlwaysCorrectInMemory(t *testing.T) {
 	dir := t.TempDir()
 	s, err := Open(dir)
@@ -248,9 +218,7 @@ func TestLastUsedFlushIsThrottledButAlwaysCorrectInMemory(t *testing.T) {
 		t.Errorf("in-memory LastUsed went backwards: %v then %v", first.LastUsed, second.LastUsed)
 	}
 
-	// The very first Check is never stale (LastUsed was nil going in), so it
-	// must have flushed already: a fresh reopen sees a real timestamp, not
-	// the zero one Create left on disk.
+	// The first Check always flushes, since LastUsed was nil before it.
 	s2, err := Open(dir)
 	if err != nil {
 		t.Fatal(err)
@@ -262,8 +230,6 @@ func TestLastUsedFlushIsThrottledButAlwaysCorrectInMemory(t *testing.T) {
 	}
 }
 
-// TestCheckOnAFreshStoreDoesNotPanic is the empty-instance case every method
-// here has to survive before a single token is ever issued.
 func TestCheckOnAFreshStoreDoesNotPanic(t *testing.T) {
 	s, err := Open(t.TempDir())
 	if err != nil {
@@ -277,10 +243,6 @@ func TestCheckOnAFreshStoreDoesNotPanic(t *testing.T) {
 	}
 }
 
-// TestOpenOnAnUnreadableFileStartsEmptyRatherThanFailing mirrors auth.Guard's
-// own Open: a tokens.json this build cannot parse must not stop the server
-// from starting. Every token in it simply stops authenticating, which is a
-// visible failure (nothing gets in) rather than a silent one.
 func TestOpenOnAnUnreadableFileStartsEmptyRatherThanFailing(t *testing.T) {
 	dir := t.TempDir()
 	if err := os.WriteFile(filepath.Join(dir, "tokens.json"), []byte("not json"), 0o600); err != nil {
@@ -293,8 +255,6 @@ func TestOpenOnAnUnreadableFileStartsEmptyRatherThanFailing(t *testing.T) {
 	if len(s.List()) != 0 {
 		t.Error("a garbled tokens.json produced tokens from nowhere")
 	}
-	// And the store is still writable afterwards - a parse failure must not
-	// wedge every later Create too.
 	if _, _, err := s.Create("recovered"); err != nil {
 		t.Errorf("Create after a garbled load: %v", err)
 	}

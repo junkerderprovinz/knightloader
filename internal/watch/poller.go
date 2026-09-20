@@ -100,10 +100,10 @@ func (p *poller) loop() {
 
 // poll lists the folder once and consumes every file that has settled.
 //
-// This is deliberately polling rather than fsnotify. The drop folder normally
-// lives on a network share on an Unraid box, and inotify only reports changes
-// made by the local kernel: a file written over SMB or NFS from another host
-// never fires an event. Polling is the only thing that sees those writes.
+// Polling rather than fsnotify. The drop folder normally lives on a network
+// share on an Unraid box, and inotify only reports changes made by the local
+// kernel: a file written over SMB or NFS from another host never fires an
+// event. Polling is the only thing that sees those writes.
 func (p *poller) poll() {
 	entries, err := os.ReadDir(p.dir)
 	if err != nil {

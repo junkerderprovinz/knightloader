@@ -2,12 +2,6 @@
 
 package bridge
 
-// This file only exists in the -tags bridgeclipboard build, same as
-// clipboard.go itself — see its package comment for why. It does not touch a
-// real clipboard: a CI runner is headless and has none of xclip, xsel or
-// wl-clipboard installed, which is precisely the clipboard.Unsupported case
-// this test drives, deterministically, on every platform ci.yml runs.
-
 import (
 	"context"
 	"testing"
@@ -16,11 +10,9 @@ import (
 	"github.com/atotto/clipboard"
 )
 
-// TestWatchClipboardReturnsPromptlyWhenUnsupported pins the graceful-exit
-// branch every platform without a clipboard takes (a headless CI runner, a
-// container someone runs this build in anyway, a Linux box with none of
-// xclip/xsel/wl-clipboard installed): WatchClipboard must return on its own
-// rather than block forever pretending to poll something that is not there.
+// TestWatchClipboardReturnsPromptlyWhenUnsupported covers a headless runner
+// without xclip, xsel or wl-clipboard, where WatchClipboard has to return
+// rather than block.
 func TestWatchClipboardReturnsPromptlyWhenUnsupported(t *testing.T) {
 	if !clipboard.Unsupported {
 		t.Skip("this runner has a working clipboard; the branch under test only runs without one")
@@ -40,10 +32,6 @@ func TestWatchClipboardReturnsPromptlyWhenUnsupported(t *testing.T) {
 	}
 }
 
-// TestWatchClipboardStopsOnContextCancel pins the shutdown path for the one
-// platform this suite can actually poll on: cancelling ctx must stop the loop
-// within roughly one poll interval, not leave it running past the caller's
-// own lifetime.
 func TestWatchClipboardStopsOnContextCancel(t *testing.T) {
 	if clipboard.Unsupported {
 		t.Skip("no clipboard on this runner; nothing to poll")

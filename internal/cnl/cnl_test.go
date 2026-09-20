@@ -15,11 +15,8 @@ import (
 	"testing"
 )
 
-// recorder implements both Adder and ContainerAdder, so the same helper
-// serves every test that does not specifically care whether a JD-shaped
-// backend is present. containerErr, when set, is what AddContainerCnL
-// returns instead of recording — the addcrypted (v1) equivalent of a backend
-// failure (e.g. no KL_JD configured on the app behind this listener).
+// recorder implements both Adder and ContainerAdder. containerErr, when set,
+// is returned by AddContainerCnL in place of recording.
 type recorder struct {
 	mu        sync.Mutex
 	urls      []string
@@ -66,17 +63,13 @@ func (r *recorder) snapshotContainer() ([]byte, string) {
 	return append([]byte(nil), r.containerData...), r.containerPkg
 }
 
-// linksOnlyAdder implements Adder but deliberately not ContainerAdder, for
-// testing what happens when the Adder behind this listener has no JD-shaped
-// backend to hand an addcrypted (v1) submission to — a bridge whose remote is
-// an older KnightLoader, or an App with no KL_JD configured.
+// linksOnlyAdder implements Adder but not ContainerAdder.
 type linksOnlyAdder struct{}
 
 func (linksOnlyAdder) AddLinksCnL(urls []string, pkg string, passwords []string) {}
 
-// newTestServer serves the CnL routes on an ephemeral port. The protocol port
-// is well-known and may be held by a real JDownloader, so only the one test
-// that pins the bind path uses it.
+// newTestServer serves the CnL routes on an ephemeral port, since the
+// protocol port may be held by a real JDownloader.
 func newTestServer(t *testing.T) (*httptest.Server, *recorder) {
 	t.Helper()
 	rec := &recorder{}
@@ -85,8 +78,6 @@ func newTestServer(t *testing.T) (*httptest.Server, *recorder) {
 	return ts, rec
 }
 
-// newTestServerWithoutContainerBackend is newTestServer for an Adder with no
-// JD-shaped backend at all — the 501 branch of /flash/addcrypted.
 func newTestServerWithoutContainerBackend(t *testing.T) *httptest.Server {
 	t.Helper()
 	ts := httptest.NewServer(New(linksOnlyAdder{}).handler())
@@ -102,7 +93,6 @@ func encryptCnL(t *testing.T, keyHex, plain string) string {
 	if err != nil {
 		t.Fatal(err)
 	}
-	// zero-pad to block size
 	b := []byte(plain)
 	for len(b)%aes.BlockSize != 0 {
 		b = append(b, 0)
@@ -127,7 +117,6 @@ func TestDecryptCnL(t *testing.T) {
 		t.Fatalf("decrypted = %v, want the two links", got)
 	}
 
-	// Bare-hex jk (no function wrapper) is also accepted.
 	if _, err := DecryptCnL(testKeyHex, crypted); err != nil {
 		t.Fatalf("bare-hex jk rejected: %v", err)
 	}
@@ -136,15 +125,13 @@ func TestDecryptCnL(t *testing.T) {
 func TestServerFlashEndpoints(t *testing.T) {
 	rec := &recorder{}
 	s := New(rec)
-	// The real bind path, on a port no real JDownloader uses, so that a broken
-	// Start() cannot pass by way of the httptest shortcut the other tests take.
+	// The real bind path, on a port no real JDownloader uses.
 	if err := s.Start(19666); err != nil {
 		t.Fatalf("start: %v", err)
 	}
 	defer s.Close()
 	baseURL := "http://127.0.0.1:19666"
 
-	// jdcheck.js must announce a JD so extensions light up their CnL button.
 	resp, err := http.Get(baseURL + "/jdcheck.js")
 	if err != nil {
 		t.Fatal(err)
@@ -156,7 +143,6 @@ func TestServerFlashEndpoints(t *testing.T) {
 		t.Fatalf("jdcheck.js = %q, want jdownloader=true", b[:n])
 	}
 
-	// /flash/add with a plain URL list.
 	_, err = http.PostForm(baseURL+"/flash/add", url.Values{
 		"urls":   {"https://x.example/f1\nhttps://x.example/f2"},
 		"source": {"MySite"},
@@ -169,7 +155,6 @@ func TestServerFlashEndpoints(t *testing.T) {
 		t.Fatalf("flash/add urls=%v pkg=%q, want 2 urls + MySite", urls, pkg)
 	}
 
-	// /flash/addcrypted2 with an encrypted payload.
 	crypted := encryptCnL(t, testKeyHex, "https://enc.example/secret\r\n")
 	_, err = http.PostForm(baseURL+"/flash/addcrypted2", url.Values{
 		"jk":      {"function f(){ return '" + testKeyHex + "';}"},
@@ -184,16 +169,11 @@ func TestServerFlashEndpoints(t *testing.T) {
 	}
 }
 
-// TestPreflightOptsIntoPrivateNetworkAccess pins the two headers that decide
-// whether a browser will talk to this listener at all. If it fails, Chrome's
-// Private Network Access check rejects the preflight and every fetch/XHR based
-// CnL button on the web fails silently against KnightLoader, while the old
-// form-POST buttons keep working and hide the breakage.
+// TestPreflightOptsIntoPrivateNetworkAccess checks the headers Chrome needs
+// before a public page may reach this loopback listener.
 func TestPreflightOptsIntoPrivateNetworkAccess(t *testing.T) {
 	ts, _ := newTestServer(t)
 
-	// Preflights are answered for every path, including ones we do not route,
-	// because a 404 on a preflight surfaces in the page as a CORS error.
 	paths := []string{
 		"/", "/flash", "/flash/", "/flash/add", "/flash/addcrypted2", "/flash/addcrypted",
 		"/jdcheck.js", "/flash/addcnl", "/flashgot", "/alive", "/favicon.ico", "/crossdomain.xml",
@@ -234,10 +214,9 @@ func TestPreflightOptsIntoPrivateNetworkAccess(t *testing.T) {
 	}
 }
 
-// TestCrossOriginResponsesCarryAllowOrigin covers the actual request rather
-// than the preflight. Without the header on the response the browser discards
-// the body, so a site never learns whether its links arrived, and error
-// responses need it just as much as successful ones.
+// TestCrossOriginResponsesCarryAllowOrigin checks the actual responses,
+// errors included; without the header the browser hides the body from the
+// page.
 func TestCrossOriginResponsesCarryAllowOrigin(t *testing.T) {
 	ts, _ := newTestServer(t)
 
@@ -275,9 +254,6 @@ func TestCrossOriginResponsesCarryAllowOrigin(t *testing.T) {
 	}
 }
 
-// TestPasswordsReachTheAdder pins that archive passwords survive the transport.
-// They used to be parsed off the wire and dropped, which turned every
-// password-protected archive into a stalled extraction with no visible cause.
 func TestPasswordsReachTheAdder(t *testing.T) {
 	crypted := encryptCnL(t, testKeyHex, "https://enc.example/secret\r\n")
 	jk := "function f(){ return '" + testKeyHex + "';}"
@@ -343,10 +319,6 @@ func TestPasswordsReachTheAdder(t *testing.T) {
 	}
 }
 
-// TestAddCryptedV1WithoutBackendAnswers501 guards the legibility of a failure
-// this instance genuinely cannot fix on its own: an Adder with no JD-shaped
-// backend behind it. A 404 here is indistinguishable from "no downloader
-// running", so users would report the wrong bug.
 func TestAddCryptedV1WithoutBackendAnswers501(t *testing.T) {
 	ts := newTestServerWithoutContainerBackend(t)
 
@@ -364,10 +336,6 @@ func TestAddCryptedV1WithoutBackendAnswers501(t *testing.T) {
 	}
 }
 
-// TestAddCryptedV1RefusesGET is the third submission route's own instance of
-// TestSubmissionRefusesGET's rule: it now does real work (hands content to a
-// JD-shaped backend), so it needs the identical POST-only guard the other two
-// submission routes have, not just the 501 stub's incidental safety.
 func TestAddCryptedV1RefusesGET(t *testing.T) {
 	ts, rec := newTestServer(t)
 	q := url.Values{"crypted": {"c3JzYQ=="}}
@@ -384,9 +352,6 @@ func TestAddCryptedV1RefusesGET(t *testing.T) {
 	}
 }
 
-// TestAddCryptedV1Success drives the whole route: the JD-shaped backend
-// receives exactly the bytes and package the site posted, and the site sees
-// the same "success\r\n" the other two submission routes answer with.
 func TestAddCryptedV1Success(t *testing.T) {
 	ts, rec := newTestServer(t)
 	resp, err := ts.Client().PostForm(ts.URL+"/flash/addcrypted", url.Values{
@@ -413,16 +378,8 @@ func TestAddCryptedV1Success(t *testing.T) {
 	}
 }
 
-// TestAddCryptedV1AppliesSpaceToPlusFixup pins the one transform this route is
-// allowed to make on the wire content before handing it on. Some clients
-// form-encode a literal '+' in the base64 as a space, and unlike
-// addcrypted2's AES payload this one carries no integrity check of its own to
-// catch that silently corrupting it — verified against JDownloader's own
-// ExternInterfaceImpl#addcrypted, which applies the identical fixup.
 func TestAddCryptedV1AppliesSpaceToPlusFixup(t *testing.T) {
 	ts, rec := newTestServer(t)
-	// A space here is standing in for what was a '+' before some client's form
-	// encoding mangled it.
 	resp, err := ts.Client().PostForm(ts.URL+"/flash/addcrypted", url.Values{"crypted": {"abc def+ghi"}})
 	if err != nil {
 		t.Fatal(err)
@@ -434,8 +391,6 @@ func TestAddCryptedV1AppliesSpaceToPlusFixup(t *testing.T) {
 	}
 }
 
-// TestAddCryptedV1EmptyContentIsBadRequest pins the same "reject early with a
-// clear reason" behaviour /flash/add already has for an empty urls field.
 func TestAddCryptedV1EmptyContentIsBadRequest(t *testing.T) {
 	ts, _ := newTestServer(t)
 	resp, err := ts.Client().PostForm(ts.URL+"/flash/addcrypted", url.Values{"crypted": {"   "}})
@@ -448,10 +403,6 @@ func TestAddCryptedV1EmptyContentIsBadRequest(t *testing.T) {
 	}
 }
 
-// TestAddCryptedV1BackendFailureAnswersBadGateway is the branch where a
-// JD-shaped backend exists but the submission itself failed (e.g. JD could
-// not make sense of the payload). The site must not be told "success" for a
-// submission that never reached the list.
 func TestAddCryptedV1BackendFailureAnswersBadGateway(t *testing.T) {
 	rec := &recorder{containerErr: errors.New("jd opened the container but produced no links")}
 	ts := httptest.NewServer(New(rec).handler())
@@ -467,11 +418,7 @@ func TestAddCryptedV1BackendFailureAnswersBadGateway(t *testing.T) {
 	}
 }
 
-// TestFiveMissingProbeRoutesAnswerGET pins the routes real CnL sites and
-// browser extensions probe for before ever trying to add a link. Every one of
-// them is pure liveness: none may accept a link or a password, which is
-// TestProbeRoutesRefusePOST's job to guard.
-func TestFiveMissingProbeRoutesAnswerGET(t *testing.T) {
+func TestProbeRoutesAnswerGET(t *testing.T) {
 	ts, _ := newTestServer(t)
 	for _, path := range []string{"/flash/addcnl", "/flashgot", "/alive", "/favicon.ico", "/crossdomain.xml"} {
 		t.Run(path, func(t *testing.T) {
@@ -487,10 +434,6 @@ func TestFiveMissingProbeRoutesAnswerGET(t *testing.T) {
 	}
 }
 
-// TestProbeRoutesRefusePOST is do-not-widen-GET's mirror image: these five
-// routes are read-only probes, and none of them may grow a POST-triggered
-// side effect either — the whole point of adding them was to answer a
-// liveness check, not to open five more submission surfaces.
 func TestProbeRoutesRefusePOST(t *testing.T) {
 	ts, rec := newTestServer(t)
 	for _, path := range []string{"/flash/addcnl", "/flashgot", "/alive", "/favicon.ico", "/crossdomain.xml"} {
@@ -510,11 +453,8 @@ func TestProbeRoutesRefusePOST(t *testing.T) {
 	}
 }
 
-// TestSubmissionRefusesGET is a security test, not a compatibility one. A GET
-// route on these endpoints would be a browser "simple request": no preflight,
-// no user gesture, no navigation. Any page — an ad iframe, an <img src>, an
-// email preview — could then queue downloads and archive passwords into this
-// instance without the user ever knowing.
+// TestSubmissionRefusesGET is a security test: a GET submission would let any
+// page queue downloads and passwords without a preflight.
 func TestSubmissionRefusesGET(t *testing.T) {
 	for _, path := range []string{"/flash/add", "/flash/addcrypted2"} {
 		t.Run(path, func(t *testing.T) {
@@ -535,8 +475,6 @@ func TestSubmissionRefusesGET(t *testing.T) {
 	}
 }
 
-// TestPostReadsQueryParameters keeps the compatibility half: a site may put the
-// payload in the query string as long as it still posts.
 func TestPostReadsQueryParameters(t *testing.T) {
 	ts, rec := newTestServer(t)
 	q := url.Values{"urls": {"https://x.example/q1"}, "package": {"QuerySite"}, "passwords": {"qpw"}}

@@ -3,46 +3,34 @@ package logring
 // The optional file sink: the same lines the ring keeps in memory, appended to
 // a capped file on disk that is renamed and started again when it fills up.
 //
-// WHY THIS EXISTS AT ALL, given that the ring already answers the diagnostics
-// bundle: the ring holds five hundred lines and dies with the process. The
-// question people actually arrive with is "it fell over the night before last,
-// what did it say", and a buffer that a restart empties cannot answer it. In a
-// container the same lines also reach docker logs, which is where most people
-// look first; the file is what is still there once that has rolled over, and it
-// is the only answer at all on the desktop build.
+// The ring holds five hundred lines and dies with the process, so it cannot
+// answer "it fell over the night before last, what did it say". In a container
+// the same lines also reach docker logs; the file is what is still there once
+// those have rolled over, and the only answer at all on the desktop build.
 //
-// THREE RULES THIS FILE IS BUILT AROUND, each of which has one way to get it
-// badly wrong:
+// Three rules this file is built around:
 //
-//  1. NOTHING IN HERE MAY LOG. This sink sits downstream of
-//     log.SetOutput(io.MultiWriter(os.Stderr, std)), and it is called from
-//     inside (*Ring).Write with the ring's mutex already held. A log.Printf
-//     from a failure path here would re-enter that same Write on the same
-//     goroutine and deadlock on a mutex it is already holding - and if it did
-//     not, it would fail again, log again, and die on a full stack. So a write
-//     that cannot be made switches the sink OFF and records a sentence in
-//     Problem, which FileStatus hands to the page. It is never reported
-//     through log, and nothing in the write path calls into a package that
-//     might: measuring free disk space, which is the one thing here that
-//     reaches for another package, happens in FileStatus on an HTTP goroutine
-//     with no lock of the ring held, and never on the write path.
+//  1. Nothing in here may log. The sink sits downstream of
+//     log.SetOutput(io.MultiWriter(os.Stderr, std)) and is called from inside
+//     (*Ring).Write with the ring's mutex held, so a log.Printf from a failure
+//     path would re-enter that Write on the same goroutine and deadlock on a
+//     mutex it already holds. A write that cannot be made switches the sink
+//     off and records a sentence in Problem, which FileStatus hands to the
+//     page. Measuring free disk space, the one call here that reaches into
+//     another package, happens in FileStatus on an HTTP goroutine with no ring
+//     lock held.
 //
-//  2. CLOSE BEFORE RENAME. Go opens files without FILE_SHARE_DELETE, so on
+//  2. Close before rename. Go opens files without FILE_SHARE_DELETE, so on
 //     Windows os.Rename against a handle this process still holds is refused
-//     with access denied - internal/backup/backup.go already writes this exact
-//     platform fact down for a different file. The desktop build is mostly
-//     Windows, so a rotation tested only on Linux passes and then breaks the
-//     desktop log on the very first roll.
+//     with access denied. The desktop build is mostly Windows, so a rotation
+//     tested only on Linux passes and then breaks on the first roll.
 //
-//  3. REPLAY ON ARM. The sink cannot be attached at init time, where the ring
-//     itself is: the data directory is not known until main has read its
-//     environment and whether a file is wanted is not known until
-//     settings.Load has run inside app.New. Everything that explains a bad boot
-//     - the staged restore, the data dir, the JD provisioning, a store that
-//     would not open - is therefore already logged by the time OpenFile is
-//     called. So OpenFile writes the ring's current contents into the file
-//     before the first live line, and the file starts where the process did
-//     rather than in the middle of it.
+//  3. Replay on arm. The sink cannot be attached at init time, where the ring
+//     is: the data directory is not known until main has read its environment,
+//     and whether a file is wanted is not known until settings.Load has run
+//     inside app.New. Everything that explains a bad boot is already logged by
+//     then, so OpenFile writes the ring's current contents into the file
+//     before the first live line.
 
 import (
 	"errors"
@@ -58,9 +46,8 @@ import (
 )
 
 // Name is the file the current log is written to, inside the configured
-// directory. Fixed, so that a typo in a path can never be the reason a log is
-// not being written - see internal/settings.LogFile for the whole of that
-// argument and for KL_LOG_DIR, which is the escape hatch it leaves open.
+// directory. Fixed, so a typo in a path cannot be the reason a log is not
+// being written. See internal/settings.LogFile and KL_LOG_DIR.
 const Name = "knightloader.log"
 
 // FileOptions is what OpenFile needs: where, how big, and how many.
@@ -70,7 +57,7 @@ type FileOptions struct {
 	// MaxBytes is the size at which the file is renamed and a new one started.
 	MaxBytes int64
 	// Keep is how many renamed files stay beside it. Zero keeps only the file
-	// being written, which is a real answer - see settings.LogFile.Keep.
+	// being written, see settings.LogFile.Keep.
 	Keep int
 }
 
@@ -85,28 +72,22 @@ type Generation struct {
 // FileState is the whole answer to "is the log being written, where, how much
 // of it is there, and what should I do if it is not".
 type FileState struct {
-	// Enabled is whether lines are reaching a file RIGHT NOW. It is not the
-	// settings switch: a sink that was armed and then failed reports false
-	// here with a sentence in Problem, which is the distinction the card is
-	// built on.
+	// Enabled is whether lines are reaching a file now, not what the settings
+	// switch says: a sink that was armed and then failed reports false here
+	// with a sentence in Problem.
 	Enabled bool `json:"enabled"`
 
-	// Path is the file being written. Empty when nothing is armed.
-	//
-	// It leaves this package freely and is deliberately NOT in the diagnostics
-	// bundle - see Redacted below.
+	// Path is the file being written. Empty when nothing is armed, and left
+	// out of the diagnostics bundle, see Redacted.
 	Path string `json:"path"`
 
 	Bytes    int64 `json:"bytes"`
 	MaxBytes int64 `json:"maxBytes"`
 	Keep     int   `json:"keep"`
 
-	// Generations is the files on disk, newest first, index 0 leading.
-	//
-	// NEVER NIL. A nil slice encodes as JSON null, and a fresh install that has
-	// never armed the sink would then answer "generations": null and throw on
-	// the page's own .map - the same class of bug routes_features.go already
-	// documents for archivePasswords.
+	// Generations is the files on disk, newest first, index 0 leading. Never
+	// nil: a nil slice encodes as JSON null, and a fresh install that never
+	// armed the sink would throw on the page's own .map.
 	Generations []Generation `json:"generations"`
 
 	// Problem is empty while the file is being written. When it is not, it says
@@ -115,29 +96,25 @@ type FileState struct {
 	Problem string `json:"problem,omitempty"`
 
 	// FreeBytes is how much room is left on that volume, and FreeKnown is
-	// whether this build could find out at all. Two answers and not one number
-	// with a sad value: internal/diskspace's own doc comment requires a caller
-	// to treat "cannot measure" as no opinion rather than as nought bytes free,
-	// and a readout that drew an empty disk on a kernel nobody compiled a
-	// branch for would send somebody hunting for a problem they do not have.
+	// whether this build could find out. Two answers rather than one number,
+	// because internal/diskspace requires a caller to treat "cannot measure"
+	// as no opinion rather than as nothing free, and a readout that drew an
+	// empty disk would send somebody hunting for a problem they do not have.
 	//
-	// Only measured while Problem is set, because that is the only moment it
-	// answers anything, and because measuring it costs a syscall that must
-	// never happen on the write path (see rule 1 at the top of this file).
+	// Only measured while Problem is set: it answers nothing otherwise, and
+	// the syscall must not reach the write path (see rule 1 above).
 	FreeBytes int64 `json:"freeBytes,omitempty"`
 	FreeKnown bool  `json:"freeKnown"`
 }
 
-// Redacted is this state as the DIAGNOSTICS BUNDLE may carry it: everything
+// Redacted is this state as the diagnostics bundle may carry it: everything
 // except the path.
 //
 // The bundle is a file people attach to public bug reports, and a desktop data
-// directory is C:\Users\<a person's real name>\AppData\... - exactly the
-// argument internal/api/routes_diagnostics.go already makes for the store and
-// settings paths, and exactly what TestDiagnosticsShipsNoPaths pins. Whether a
-// file exists, how big it has grown and whether it is failing are the facts
-// somebody reading a report wants; where it is is the reader's own business and
-// is on the session-guarded route this package's own card reads.
+// directory reads C:\Users\<a real name>\AppData\..., the same argument
+// internal/api/routes_diagnostics.go makes for the store and settings paths.
+// Whether a file exists, how big it is and whether it is failing are the facts
+// a report needs; where it lives stays on the session-guarded route.
 func (s FileState) Redacted() FileState {
 	s.Path = ""
 	if s.Generations == nil {
@@ -147,9 +124,8 @@ func (s FileState) Redacted() FileState {
 }
 
 // fileSink is the writer behind FileState. Its own mutex guards everything in
-// it, and it is always taken UNDER the ring's when both are held, because
-// (*Ring).Write is the only path that holds both and it takes them in that
-// order.
+// it and is always taken under the ring's when both are held, the order
+// (*Ring).Write takes them in.
 type fileSink struct {
 	dir      string
 	path     string
@@ -184,10 +160,10 @@ func FileStatus() FileState { return std.FileStatus() }
 // OpenFile arms this ring's file sink. See the package-level OpenFile.
 func (r *Ring) OpenFile(o FileOptions) error {
 	if o.MaxBytes < 1 {
-		// A cap of zero would rotate on every single line. The floor is a
-		// megabyte rather than an error because this is reached from a settings
-		// document, and settings.LogFile.Sanitized has already clamped anything
-		// a person could type - this only catches a caller inside the tree.
+		// A cap of zero would rotate on every line. A floor rather than an
+		// error because settings.LogFile.Sanitized has already clamped
+		// anything a person could type, so this only catches a caller inside
+		// the tree.
 		o.MaxBytes = 1 << 20
 	}
 	if o.Keep < 0 {
@@ -206,14 +182,14 @@ func (r *Ring) OpenFile(o FileOptions) error {
 	if r.sink != nil {
 		r.sink.close()
 	}
-	// Attached even when opening failed, and that is the point: a sink holding
-	// a Problem is how the card gets to say WHY nothing is being written. A nil
-	// sink would be indistinguishable from the switch being off.
+	// Attached even when opening failed: a sink holding a Problem is how the
+	// card says why nothing is being written, while a nil sink would look the
+	// same as the switch being off.
 	r.sink = s
 	if err == nil {
-		// Under the ring's lock, so that no live line can slip in between the
-		// snapshot and the sink being attached - the file would then have that
-		// line before the older ones it is about to be handed.
+		// Under the ring's lock, so no live line slips in between the
+		// snapshot and the sink being attached and lands in the file before
+		// the older ones.
 		r.replayed = s.replay(r.entries, r.replayed)
 	}
 	return err
@@ -249,16 +225,15 @@ func (r *Ring) FileStatus() FileState {
 // open creates the directory if it is not there and opens the file for
 // appending, taking the size it already has as the starting point.
 //
-// The size is tracked in memory from here on rather than stat-ed per line: a
-// syscall per log record on a spinning array volume is the difference between a
-// feature that is off by default and one nobody could leave on.
+// The size is tracked in memory from here on rather than stat-ed per line,
+// because a syscall per log record on a spinning array volume is the
+// difference between a feature that is off by default and one nobody could
+// leave on.
 //
 // 0o700 on the directory and 0o600 on the file, because a log line can carry a
-// feed URL with an indexer's API key in its query string - internal/feed's
-// poller logs subscription addresses verbatim, and so does internal/crawler for
-// the pages it walks. That is a leak worth narrowing here even though the
-// diagnostics bundle carries the same lines unredacted today; the bundle's
-// missing line redaction is its own bug and not one to inherit quietly.
+// feed URL with an indexer's API key in its query string: internal/feed's
+// poller logs subscription addresses verbatim, and so does internal/crawler
+// for the pages it walks.
 func (s *fileSink) open() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -298,12 +273,12 @@ func (s *fileSink) writeLocked(p []byte) {
 	if s.f == nil {
 		return
 	}
-	// s.size > 0 guards the one case where rotating would loop: a single record
-	// longer than the whole cap. Rotating an empty file for it would rename a
-	// nothing, write the record anyway, and do it again for the next line -
-	// throwing away every generation on the disk in the space of a second. An
-	// oversized record is written whole into the file it lands in, and the cap
-	// is honoured on the line after it.
+	// s.size > 0 guards the case where rotating would loop: a single record
+	// longer than the whole cap. Rotating an empty file for it would rename
+	// nothing, write the record anyway and do it again for the next line,
+	// throwing away every generation on disk within a second. An oversized
+	// record goes whole into the file it lands in, and the cap holds again
+	// from the next line.
 	if s.size > 0 && s.size+int64(len(p)) > s.maxBytes {
 		if err := s.rotateLocked(); err != nil {
 			s.failLocked("rotating the log file: " + err.Error())
@@ -317,15 +292,14 @@ func (s *fileSink) writeLocked(p []byte) {
 	}
 }
 
-// failLocked switches the sink off and records why. It does not log, it does
-// not retry, and it does not measure anything - see rule 1.
+// failLocked switches the sink off and records why. It does not log, retry or
+// measure anything, see rule 1.
 //
-// OFF RATHER THAN DEGRADED, because the alternative is a sink that fails on
-// every line for as long as the volume stays full, each failure costing a
-// syscall in front of every log call in the process. The lines themselves are
-// not lost: they are still in the ring, still on stderr, and still in the
-// diagnostics bundle, which is what the card says out loud so that "the log
-// file stopped" is never read as "logging stopped".
+// Off rather than degraded: a sink kept alive would fail on every line for as
+// long as the volume stays full, each failure costing a syscall in front of
+// every log call in the process. The lines are still in the ring, on stderr
+// and in the diagnostics bundle, which is what the card says so that "the log
+// file stopped" is not read as "logging stopped".
 func (s *fileSink) failLocked(problem string) {
 	if s.f != nil {
 		_ = s.f.Close()
@@ -334,8 +308,8 @@ func (s *fileSink) failLocked(problem string) {
 	s.problem = problem
 }
 
-// rotateLocked renames the current file down the generations and starts a fresh
-// one. The handle is closed FIRST - see rule 2 at the top of this file.
+// rotateLocked renames the current file down the generations and starts a
+// fresh one. The handle is closed first, see rule 2 at the top of this file.
 func (s *fileSink) rotateLocked() error {
 	if s.f != nil {
 		if err := s.f.Close(); err != nil {
@@ -345,10 +319,10 @@ func (s *fileSink) rotateLocked() error {
 		s.f = nil
 	}
 	if s.keep <= 0 {
-		// "Keep only the file being written" is a real setting, and this is
-		// what it means: the full file goes and a new one starts. Not
-		// truncating in place, because the file may be open in somebody's
-		// editor and a truncate would leave them reading a hole.
+		// "Keep only the file being written" means the full file goes and a
+		// new one starts. Not truncating in place, because the file may be
+		// open in somebody's editor and a truncate leaves them reading a
+		// hole.
 		if err := removeIfPresent(s.path); err != nil {
 			return err
 		}
@@ -370,13 +344,12 @@ func (s *fileSink) rotateLocked() error {
 	return s.openLocked()
 }
 
-// replay writes the ring's current lines into a freshly opened file, so that a
-// file armed halfway through the boot still starts at the boot - see rule 3.
+// replay writes the ring's current lines into a freshly opened file, so a file
+// armed halfway through the boot still starts at the boot, see rule 3.
 //
-// after is the highest sequence number a previous arm already wrote, and the
-// return value is the new watermark. Without it, switching the file off and on
-// again in one process would write the same lines a second time and the
-// operator would read the same morning twice.
+// after is the highest sequence number a previous arm wrote, and the return
+// value is the new watermark. Without it, switching the file off and on again
+// in one process would write the same lines twice.
 //
 // It writes through the ordinary write path, so an oversized ring rotates
 // exactly as live lines do, and a replay that cannot be written switches the
@@ -396,10 +369,9 @@ func (s *fileSink) replay(entries []Entry, after uint64) uint64 {
 	if len(pending) == 0 {
 		return after
 	}
-	// One marker, so that nobody reading the file mistakes the boot for
-	// something that happened at the moment the switch was flipped. English and
-	// unlocalised, like every other line in this file - a log is not the
-	// interface.
+	// One marker, so nobody reading the file takes the boot for something
+	// that happened when the switch was flipped. English and unlocalised,
+	// like every other line here.
 	s.writeLocked([]byte(fmt.Sprintf("--- %d line(s) logged before this file was opened ---\n", len(pending))))
 	for _, e := range pending {
 		s.writeLocked([]byte(e.Line + "\n"))
@@ -469,9 +441,8 @@ func (s *fileSink) generation(i int) string {
 
 // GenerationPath is the file behind an index the page asked to download: 0 is
 // the file being written, 1 the newest renamed one. It answers false for an
-// index this sink does not keep, so that a number arriving from a URL can never
-// become part of a path - the range check happens here, once, and the caller
-// never joins anything itself.
+// index this sink does not keep, so a number arriving from a URL cannot become
+// part of a path and no caller joins one itself.
 func (r *Ring) GenerationPath(index int) (string, bool) {
 	r.mu.Lock()
 	s := r.sink

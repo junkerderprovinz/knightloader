@@ -1,12 +1,9 @@
-// Package dedupe answers one question about a link that is about to be added:
-// is it already in the list? It keeps two answers apart on purpose. A duplicate
-// is the same URL a second time, which is cheap to prove and always worth
-// refusing. A mirror is a different URL that leads to the same file, which can
-// only ever be guessed at from the file name, the byte count and whatever hash
-// happens to be known. Guessing too eagerly merges two unrelated files and the
-// user never gets the second one; guessing too shyly downloads the same release
-// once per hoster it was pasted from. Which signals count is therefore a policy
-// the user picks, not something this package decides for them.
+// Package dedupe answers whether a link about to be added is already in the
+// list. A duplicate is the same URL again, which is certain and always
+// refused. A mirror is a different URL for the same file, which can only be
+// guessed from name, size and any known hash: too eager and an unrelated file
+// is lost, too shy and a release is downloaded once per hoster. Which signals
+// count is a policy the user picks.
 package dedupe
 
 import (
@@ -17,52 +14,38 @@ import (
 	"strings"
 )
 
-// Policy is the combination of signals that makes two different URLs count as
-// mirrors of one file. Every value gets something wrong, which is the reason
-// there is a choice at all: each one documents what it costs.
+// Policy is the combination of signals that makes two different URLs count
+// as mirrors of one file. Each value has its own failure mode.
 type Policy string
 
 const (
-	// PolicyOff never merges anything. Duplicate detection is unaffected by it:
-	// the same URL twice is a fact rather than a guess, and facts are not
-	// configurable.
+	// PolicyOff never merges mirrors. Duplicates are still detected.
 	PolicyOff Policy = "off"
 	// PolicyFilenameOnly merges on the normalised file name alone. It catches
-	// the case people actually paste (one release, five hosters) even when the
-	// hosters disagree about the size, and it happily merges two unrelated
-	// files that are both called setup.exe.
+	// one release on several hosters even when their sizes disagree, and
+	// merges two unrelated files both called setup.exe.
 	PolicyFilenameOnly Policy = "filename-only"
-	// PolicySizeOnly merges on the exact byte count and ignores names, which is
-	// the only thing left when a hoster renames what it stores. It is also the
-	// most reckless: files of identical size are common, and every volume of a
-	// split archive has the same size by construction. Numbered siblings are
-	// held apart by the two structural rules in couldBeSameFile no matter what
-	// the policy says, so this stays merely reckless instead of destructive.
+	// PolicySizeOnly merges on the exact byte count, for hosters that rename
+	// what they store. Equal sizes are common, and volumes of a split archive
+	// share a size by construction; couldBeSameFile keeps numbered siblings
+	// apart under every policy.
 	PolicySizeOnly Policy = "size-only"
-	// PolicyFilenameAndSize needs both to agree. Two files that share a generic
-	// name almost never share a byte count as well, so this is the safe middle
-	// and the default. The price is that a link whose size nobody knows yet can
-	// never be merged.
+	// PolicyFilenameAndSize needs both to agree, which unrelated files rarely
+	// do. A link whose size is unknown can never be merged.
 	PolicyFilenameAndSize Policy = "filename-and-size"
 	// PolicyFilenameOrHash merges when either the name or a known digest
-	// matches. It is the widest net: a hash match is proof, a name match is the
-	// usual heuristic, and a link that carries neither is left alone.
+	// matches.
 	PolicyFilenameOrHash Policy = "filename-or-hash"
-	// PolicyHashOnly merges only on a matching digest. It never merges anything
-	// it should not, and it misses nearly everything, because a hash is rarely
-	// known before the file has been downloaded.
+	// PolicyHashOnly merges only on a matching digest. It is never wrong and
+	// rarely fires, since a hash is seldom known before download.
 	PolicyHashOnly Policy = "hash-only"
 )
 
-// DefaultPolicy is what an install that has never chosen gets. Name and size
-// together catch the mirrors people really paste without either single-signal
-// policy's failure mode.
+// DefaultPolicy is what an install that has never chosen gets.
 const DefaultPolicy = PolicyFilenameAndSize
 
-// Policies lists every policy once, in the order an interface should offer them:
-// from "never merge" towards "merge only on proof". The slice is built fresh on
-// every call so a caller sorting or filtering it cannot reorder the menu for
-// everybody else.
+// Policies lists every policy once, from "never merge" towards "merge only on
+// proof". It returns a fresh slice on every call.
 func Policies() []Policy {
 	return []Policy{
 		PolicyOff,
@@ -84,11 +67,10 @@ func (p Policy) Valid() bool {
 	return false
 }
 
-// ParsePolicy maps a stored settings string onto a policy. Anything it does not
-// recognise, the empty string included, becomes DefaultPolicy rather than an
-// error: a settings file written by another build must never be able to stop
-// links from being added, and a typo that silently disabled mirror detection
-// would be discovered months later in the download folder.
+// ParsePolicy maps a stored settings string onto a policy. Anything
+// unrecognised, including "", becomes DefaultPolicy rather than an error, so
+// a settings file from another build can neither block adding links nor
+// silently disable mirror detection.
 func ParsePolicy(s string) Policy {
 	if p := Policy(strings.ToLower(strings.TrimSpace(s))); p.Valid() {
 		return p
@@ -100,14 +82,12 @@ func ParsePolicy(s string) Policy {
 type Verdict int
 
 const (
-	// NotSeen is the zero value on purpose. A Match that nobody filled in has to
-	// mean "add this link": losing a link the user pasted is the worse of the
-	// two failures, and it must not be reachable by forgetting to set a field.
+	// NotSeen is the zero value, so a Match nobody filled in means "add this
+	// link"; losing a pasted link is the worse failure.
 	NotSeen Verdict = iota
 	// Duplicate is the same URL, already present.
 	Duplicate
-	// Mirror is a different URL that the policy in force says leads to the same
-	// file.
+	// Mirror is a different URL that the policy says leads to the same file.
 	Mirror
 )
 
@@ -122,8 +102,7 @@ func (v Verdict) String() string {
 }
 
 // Signal names the evidence a match rests on, so the interface can say why a
-// link was folded away. A link that disappears without a stated reason is
-// indistinguishable from a bug, and gets reported as one.
+// link was folded away.
 type Signal string
 
 const (
@@ -134,22 +113,17 @@ const (
 	SignalHash     Signal = "hash"
 )
 
-// Hash is a digest already known for a file, from a checksum file that came with
-// it or from the CRC tag release names carry.
+// Hash is a digest already known for a file, from a checksum file or a CRC
+// tag in a release name.
 type Hash struct {
-	// Kind names the algorithm ("crc32", "md5", "sha1", "sha256"). Two digests
-	// are only ever compared when their kinds match: a digest carries no record
-	// of what produced it, so comparing an MD5 with a SHA-256 would be comparing
-	// two unrelated numbers and calling the mismatch meaningful.
+	// Kind names the algorithm ("crc32", "md5", "sha1", "sha256"). Digests
+	// are only compared when their kinds match.
 	Kind string
-	// Hex is the digest itself. Case does not matter; .sfv files are
-	// traditionally upper-case and coreutils writes lower-case.
+	// Hex is the digest; case does not matter.
 	Hex string
 }
 
-// key is the bucket key for a hash, empty when the hash is not usable. A half
-// filled Hash must produce nothing rather than a key that every other half
-// filled Hash also produces.
+// key is the bucket key for a hash, or "" when either half is missing.
 func (h Hash) key() string {
 	kind := strings.ToLower(strings.TrimSpace(h.Kind))
 	hex := strings.ToLower(strings.TrimSpace(h.Hex))
@@ -159,64 +133,51 @@ func (h Hash) key() string {
 	return kind + ":" + hex
 }
 
-// Entry is one download the set knows about, or one candidate being checked
-// against it.
+// Entry is one download the set knows about, or a candidate being checked.
 type Entry struct {
-	// ID is the caller's handle for the entry, carried through untouched so a
-	// Match can point back at the task the user already has.
+	// ID is the caller's handle, carried through into a Match.
 	ID string
-	// URL is what identifies the entry. An entry without one is ignored: a link
-	// with no URL is not a download.
+	// URL identifies the entry; an entry without one is ignored.
 	URL string
-	// Name is the file name as it will be shown. It may still be the URL when
-	// nothing has resolved yet, which this package detects and treats as "not
-	// known" rather than as a name to compare.
+	// Name is the file name as shown. A name that is still the URL counts as
+	// unknown.
 	Name string
-	// Size is the total byte count, 0 when it is not known. An unknown size
-	// never matches another unknown size.
+	// Size is the total byte count, 0 when unknown. Unknown sizes never
+	// match.
 	Size int64
-	// Hash is a digest already known for the file, if any is.
 	Hash Hash
 }
 
 // Match is the verdict for one candidate.
 type Match struct {
 	Verdict Verdict
-	// Of is the entry already in the set that the candidate matched; the zero
-	// Entry when Verdict is NotSeen.
+	// Of is the entry the candidate matched; zero when Verdict is NotSeen.
 	Of Entry
 	// Signal is what matched; empty when Verdict is NotSeen.
 	Signal Signal
 }
 
-// Seen reports whether the set already covers the candidate, which is the only
-// question most callers have.
+// Seen reports whether the set already covers the candidate.
 func (m Match) Seen() bool { return m.Verdict != NotSeen }
 
-// keySep joins the parts of a composite bucket key. It is a byte that cannot
-// occur in a file name or a URL, so "a" plus "b|c" can never collide with "a|b"
-// plus "c".
+// keySep joins the parts of a composite bucket key. It cannot occur in a file
+// name or URL, so parts cannot run into each other.
 const keySep = "\x00"
 
 // Name is a file name split into the parts that decide identity.
 type Name struct {
-	// Display is the name exactly as it arrived, untouched, because everything
-	// below is a comparison form nobody should ever be shown.
+	// Display is the name as it arrived.
 	Display string
-	// Base is that comparison form: the name without its directory and without
-	// its volume marker, lower-cased, with runs of whitespace collapsed to a
-	// single space. It is empty when the name says nothing worth comparing.
+	// Base is the comparison form: no directory, no volume marker, lower
+	// case, whitespace collapsed. Empty when there is nothing to compare.
 	Base string
-	// Volume is an opaque token saying which part of a multi-part set the name
-	// refers to, empty for a name that carries no marker. Only equality means
-	// anything; it is not an ordinal and must not be sorted.
+	// Volume is an opaque token for which part of a multi-part set the name
+	// refers to, or "". Only equality means anything.
 	Volume string
 }
 
-// key is the bucket key for a name, empty when there is nothing to compare. The
-// volume marker is part of the key: the parts of one archive share a base name,
-// and letting them share a bucket is the first half of the mistake that costs a
-// user their archive.
+// key is the bucket key for a name, or "". It includes the volume so the
+// parts of one archive never share a bucket.
 func (n Name) key() string {
 	if n.Base == "" {
 		return ""
@@ -224,26 +185,14 @@ func (n Name) key() string {
 	return n.Base + keySep + n.Volume
 }
 
-// volumeMarkers matches the trailing part marker of a multi-volume file and maps
-// it to a token standing for "which part of the set this is". The number is
-// stripped of leading zeros so .part01.rar and .part1.rar, which packers write
-// interchangeably for the same volume, come out the same.
+// volumeMarkers maps the trailing part marker of a multi-volume file to a
+// token. Leading zeros are stripped, so .part01.rar and .part1.rar agree.
 //
-// These are the marker shapes internal/extract groups a volume set by, and the
-// difference is deliberate: extract wants every part of one archive to collapse
-// onto a single key so it can tell when the set is complete, and this package
-// needs exactly the opposite, because two parts of one archive are precisely the
-// two files a mirror check must never merge.
-//
-// Order matters, most specific first: .part01.rar has to be recognised before
-// .rar, and .7z.001 before .7z. A generic .NNN run is accepted only at exactly
-// three digits, which is what the splitters write, and which keeps a release
-// year ("Film.2024") from being read as volume 2024.
-//
-// The table is deliberately kept narrow rather than widened until it catches
-// every possible numbering, because every widening buys another shape at the
-// price of misreading an ordinary name. The shapes it does not know are caught
-// instead by numberedSiblings, which needs no table.
+// internal/extract groups volumes by the same shapes for the opposite
+// purpose: it collapses a set onto one key, while this package keeps the
+// parts apart. Patterns go from most specific to least, and a bare .NNN run
+// needs exactly three digits so a year like "Film.2024" is not a volume.
+// Numbering schemes not listed here are caught by numberedSiblings.
 var volumeMarkers = []struct {
 	re    *regexp.Regexp
 	token string // %s is replaced with the captured number
@@ -258,13 +207,9 @@ var volumeMarkers = []struct {
 	{regexp.MustCompile(`(?i)\.(\d{3})$`), "split-part%s"},
 }
 
-// Normalize splits a file name into the parts that decide identity, keeping the
-// original for display.
-//
-// A name that is still a URL is treated as unknown rather than as a name. Links
-// are staged before anything has resolved them, and every unresolved link would
-// otherwise land in one bucket keyed on a URL-shaped string - which under a
-// filename policy makes the second link a "mirror" of the first and drops it.
+// Normalize splits a file name into the parts that decide identity. A name
+// that is still a URL counts as unknown, or every unresolved link would share
+// one bucket and each new one would be a "mirror" of the first.
 func Normalize(name string) Name {
 	n := Name{Display: name}
 	base := comparableName(name)
@@ -285,22 +230,14 @@ func Normalize(name string) Name {
 		base = base[:len(base)-len(g[0])]
 		break
 	}
-	// Trimmed again because cutting the marker off "film .rar" leaves a trailing
-	// space, and a base that differs from its twin by an invisible byte is a
-	// missed merge nobody can see in the interface.
+	// Cutting the marker off "film .rar" leaves a trailing space.
 	n.Base = strings.TrimSpace(base)
 	return n
 }
 
-// comparableName reduces a name to the form everything in this package compares
-// on: no directory, lower case, runs of whitespace collapsed. It is empty when
-// the name says nothing worth comparing.
-//
-// Separators are deliberately left alone. Folding '.', '-' and '_' into spaces
-// would merge "The.Movie.2024" with "The Movie 2024", which is usually right and
-// occasionally very wrong ("v1.2" against "v1 2"), and the user has no knob to
-// turn it off with. The policy chooses which signals to trust, not how hard to
-// guess at a name.
+// comparableName reduces a name to its comparison form: no directory, lower
+// case, whitespace collapsed; "" when there is nothing to compare. Separators
+// are left alone, since folding '.' into ' ' would merge "v1.2" with "v1 2".
 func comparableName(name string) string {
 	s := strings.TrimSpace(name)
 	if s == "" || strings.Contains(s, "://") {
@@ -309,10 +246,7 @@ func comparableName(name string) string {
 	return strings.Join(strings.Fields(strings.ToLower(baseName(s))), " ")
 }
 
-// baseName drops any directory part. Names reach us from resolvers, crawlers and
-// checksum files, and one source calling a file "sub/film.rar" while another
-// calls it "film.rar" is one file. Backslashes count as separators too, because
-// those lists are routinely written on Windows.
+// baseName drops any directory part, treating backslashes as separators too.
 func baseName(s string) string {
 	if i := strings.LastIndexAny(s, `/\`); i >= 0 {
 		s = s[i+1:]
@@ -320,8 +254,8 @@ func baseName(s string) string {
 	return s
 }
 
-// trimZeros normalises a captured volume number without parsing it, so a marker
-// with more digits than an int can hold still produces a usable token.
+// trimZeros strips leading zeros without parsing, so a number too long for an
+// int still works.
 func trimZeros(s string) string {
 	if out := strings.TrimLeft(s, "0"); out != "" {
 		return out
@@ -329,16 +263,10 @@ func trimZeros(s string) string {
 	return "0"
 }
 
-// normalizeURL folds the two parts of a URL that are case-insensitive by
-// definition - the scheme and the host, per RFC 3986 - and drops a port that is
-// the scheme's own default, so the same link copied from two places is
-// recognised as the same link.
-//
-// Nothing else is touched. The fragment in particular stays: several hosters
-// carry the file's decryption key there, so a tidy-up that dropped it would
-// declare two unrelated downloads identical and throw the key away with the
-// link it discarded. A URL that will not parse is compared verbatim rather than
-// skipped, because an unparseable link is still a link somebody can paste twice.
+// normalizeURL lower-cases the host and drops a default port, so the same
+// link copied from two places compares equal. Nothing else changes; the
+// fragment in particular stays, since some hosters keep the file's decryption
+// key there. An unparseable URL is compared verbatim.
 func normalizeURL(raw string) string {
 	raw = strings.TrimSpace(raw)
 	if raw == "" {
@@ -348,11 +276,9 @@ func normalizeURL(raw string) string {
 	if err != nil {
 		return raw
 	}
-	// A magnet link is identified by its xt parameter, and both spellings of one
-	// - hex and base32 - are case-insensitive, as is every other field that could
-	// tell two of them apart. Folding the whole URI therefore cannot merge two
-	// different torrents, and it stops the same magnet pasted from two sites,
-	// one of which upper-cased the infohash, from being fetched twice.
+	// Every field that tells magnets apart is case-insensitive, so folding
+	// the whole URI catches an upper-cased infohash without merging two
+	// torrents.
 	if u.Scheme == "magnet" {
 		return strings.ToLower(raw)
 	}
@@ -363,30 +289,26 @@ func normalizeURL(raw string) string {
 	return u.String()
 }
 
-// signature is one bucket a record can be found in, paired with the reason a hit
-// in it should be reported as.
+// signature is one bucket a record can be found in, with the signal a hit in
+// it reports.
 type signature struct {
 	signal Signal
 	key    string
 }
 
-// record is an entry plus everything derived from it, so a bucket hit never has
-// to re-parse the entry it landed on.
+// record is an entry plus everything derived from it.
 type record struct {
 	entry Entry
 	name  Name
-	// full is the comparison name with its volume marker still attached. Base
-	// has the marker cut off, which is what makes two mirrors of one part match
-	// - but it also erases the only thing that tells ".r99" from ".r100", so the
-	// numbered-sibling check needs the name before that cut.
+	// full is the comparison name with its volume marker still attached,
+	// which numberedSiblings needs to tell ".r99" from ".r100".
 	full string
 	hash string
 	sigs []signature
 }
 
-// newRecord derives everything the set compares on, once. Add and Check both go
-// through it so a candidate is never measured with a different ruler than the
-// entries it is being checked against.
+// newRecord derives everything the set compares on, so Add and Check measure
+// the same way.
 func newRecord(e Entry) record {
 	return record{
 		entry: e,
@@ -396,20 +318,17 @@ func newRecord(e Entry) record {
 	}
 }
 
-// Set is a list of known downloads that can be asked about a candidate without
-// walking it. Build one with New.
-//
-// A Set is not safe for concurrent use. It is meant to be built from the task
-// list under whatever lock already protects that list, and then either thrown
-// away with the batch or kept and maintained through Add and Remove.
+// Set is a list of known downloads that answers queries without scanning it.
+// It is not safe for concurrent use; build it under the lock that protects
+// the task list.
 type Set struct {
 	policy  Policy
 	byURL   map[string]record
 	buckets map[string][]string // signature key -> normalised URLs
 }
 
-// New returns an empty set that merges mirrors according to p. An unrecognised
-// policy is read as DefaultPolicy for the same reason ParsePolicy does not fail.
+// New returns an empty set that merges mirrors according to p. An
+// unrecognised policy is read as DefaultPolicy.
 func New(p Policy) *Set {
 	if !p.Valid() {
 		p = DefaultPolicy
@@ -427,11 +346,8 @@ func (s *Set) Policy() Policy { return s.policy }
 // Len is how many entries the set holds.
 func (s *Set) Len() int { return len(s.byURL) }
 
-// Add files an entry the set should recognise from now on.
-//
-// Adding a URL the set already holds replaces it instead of filing it twice, so
-// re-seeding a set from a task list that has changed cannot leave a stale record
-// behind pointing at a task the user has since renamed or removed.
+// Add files an entry. Adding a URL the set already holds replaces the old
+// record.
 func (s *Set) Add(e Entry) {
 	u := normalizeURL(e.URL)
 	if u == "" {
@@ -446,9 +362,7 @@ func (s *Set) Add(e Entry) {
 	s.byURL[u] = r
 }
 
-// Remove forgets a URL, so a set that outlives the batch it was built for can
-// follow a deletion instead of reporting a duplicate of something that is no
-// longer in the list.
+// Remove forgets a URL.
 func (s *Set) Remove(rawURL string) { s.remove(normalizeURL(rawURL)) }
 
 func (s *Set) remove(u string) {
@@ -458,9 +372,8 @@ func (s *Set) remove(u string) {
 	}
 	for _, sig := range r.sigs {
 		b := slices.DeleteFunc(s.buckets[sig.key], func(v string) bool { return v == u })
-		// An emptied bucket is deleted rather than left as an empty slice: a
-		// long-running set that only ever grew its key space would hold onto a
-		// key for every download the user has ever removed.
+		// Delete empty buckets so a long-lived set does not keep a key for
+		// every removed download.
 		if len(b) == 0 {
 			delete(s.buckets, sig.key)
 		} else {
@@ -470,29 +383,20 @@ func (s *Set) remove(u string) {
 	delete(s.byURL, u)
 }
 
-// Check reports what the set already knows about a candidate.
-//
-// It does not add it. Whether a mirror is dropped, kept as an alternative source
-// or shown to the user is the caller's decision, and a query that quietly
-// mutated the set could not be asked the same question twice.
+// Check reports what the set knows about a candidate without adding it.
 func (s *Set) Check(cand Entry) Match {
 	u := normalizeURL(cand.URL)
 	if u == "" {
 		return Match{}
 	}
-	// The exact URL is checked first and regardless of policy: it is the one
-	// answer that needs no guessing, and it is the common case by a wide margin
-	// (the same list pasted twice).
+	// The exact URL is checked first, whatever the policy.
 	if r, ok := s.byURL[u]; ok {
 		return Match{Verdict: Duplicate, Of: r.entry, Signal: SignalURL}
 	}
 	c := newRecord(cand)
 	for _, sig := range s.signatures(c) {
-		// Only the entries that already share this exact signature are looked
-		// at, so a query costs the size of one collision bucket - one or two for
-		// a name or a digest - and never the size of the list. Ten thousand
-		// staged links is an ordinary evening, and a scan over them per pasted
-		// URL is a hang, not a slowdown.
+		// Only entries sharing this signature are compared, so a query costs
+		// one small bucket rather than the whole list.
 		for _, other := range s.buckets[sig.key] {
 			r := s.byURL[other]
 			if couldBeSameFile(c, r) {
@@ -503,14 +407,9 @@ func (s *Set) Check(cand Entry) Match {
 	return Match{}
 }
 
-// signatures is the list of buckets a record belongs in under this set's policy,
-// in the order Check should try them: strongest evidence first, so a match is
-// reported with the best reason it has.
-//
-// A signal that is not known produces no bucket at all. This is the difference
-// between "these two links have the same name" and "neither of these two links
-// has a name yet": keying the second case would put every nameless link in one
-// bucket and make each new one a mirror of the first.
+// signatures lists the buckets a record belongs in under the policy,
+// strongest evidence first. An unknown signal produces no bucket, or every
+// nameless link would be a mirror of the first.
 func (s *Set) signatures(r record) []signature {
 	name, size, hash := r.name.key(), sizeKey(r.entry.Size), r.hash
 	switch s.policy {
@@ -523,9 +422,7 @@ func (s *Set) signatures(r record) []signature {
 			return []signature{{SignalSize, "size" + keySep + size}}
 		}
 	case PolicyFilenameAndSize:
-		// Both have to be known. An unknown size does not fall back to the name:
-		// the user asked for two signals, and handing them one is how the policy
-		// they picked for its caution quietly becomes the reckless one.
+		// Both must be known; an unknown size does not fall back to the name.
 		if name != "" && size != "" {
 			return []signature{{SignalNameSize, "namesize" + keySep + name + keySep + size}}
 		}
@@ -543,14 +440,11 @@ func (s *Set) signatures(r record) []signature {
 			return []signature{{SignalHash, "hash" + keySep + hash}}
 		}
 	case PolicyOff:
-		// No signature, so nothing can ever collide and nothing is merged.
 	}
 	return nil
 }
 
-// sizeKey is the bucket key for a byte count. Zero and negative sizes mean "not
-// known" and get no key, so two links whose size nobody has established yet are
-// never mirrors of each other.
+// sizeKey is the bucket key for a byte count, or "" for an unknown size.
 func sizeKey(size int64) string {
 	if size <= 0 {
 		return ""
@@ -558,60 +452,35 @@ func sizeKey(size int64) string {
 	return strconv.FormatInt(size, 10)
 }
 
-// couldBeSameFile applies the two facts that outrank any policy. Both are
-// structural rather than reported: they prove the files are different, whereas a
-// matching name or byte count only ever suggests they might be the same. That is
-// why they are checked after the bucket hit and are allowed to overturn it.
-//
-// Size is deliberately not among them. A size is a number a hoster told us and
-// is routinely wrong or missing, so vetoing on a size mismatch would silently
-// turn filename-only into filename-and-size and make the offered policies a lie.
+// couldBeSameFile applies the structural facts that prove two files differ.
+// They are checked after a bucket hit and can overturn it under any policy.
+// A size mismatch is not one of them, since hoster-reported sizes are often
+// wrong, and a veto on it would turn filename-only into filename-and-size.
 func couldBeSameFile(a, b record) bool {
-	// The parts of a multi-volume archive share a base name and, because that is
-	// how splitting works, almost always share an exact byte count as well.
-	// Merging two of them means the second is never downloaded, and an archive
-	// missing one volume cannot be unpacked at all - the user loses the whole
-	// set, not one file. So a differing volume marker on the same base name is a
-	// veto under every policy, including the ones that never look at a name.
+	// Parts of one archive share a base name and usually a size. Merging two
+	// loses a volume and with it the whole set.
 	if a.name.Base != "" && a.name.Base == b.name.Base && a.name.Volume != b.name.Volume {
 		return false
 	}
-	// The rule above can only fire for the marker shapes volumeMarkers knows, and
-	// a set that numbers its parts any other way - "split -a 4" writing .0001, a
-	// rar set past .r99, "archive.tar.gz.01" - leaves the two parts with
-	// different base names and no veto at all. Under size-only, where the parts
-	// collide by construction, that merged part 2 into part 1 and lost the
-	// archive. So two names that differ in nothing but one number are held apart
-	// as well, whatever produced the number.
+	// Parts numbered in a shape volumeMarkers does not know (.0001, .r100,
+	// .tar.gz.01) differ only in one number.
 	if numberedSiblings(a.full, b.full) {
 		return false
 	}
-	// Two digests of the same algorithm that disagree are proof of two different
-	// files, so this overturns a name match under filename-or-hash as well.
-	// Digests of different algorithms say nothing about each other and are left
-	// out of it.
+	// Differing digests of the same algorithm prove two different files.
 	if a.hash != "" && b.hash != "" && a.hash != b.hash && sameHashKind(a.hash, b.hash) {
 		return false
 	}
 	return true
 }
 
-// numberedSiblings reports whether two comparison names differ in nothing but a
-// single number: "film.mkv.0001" against "film.mkv.0002", "film.r99" against
-// "film.r100", "setup_v1.2.exe" against "setup_v1.3.exe". Those are consecutive
-// members of a set, never two copies of one file.
-//
-// The numbers are compared with their leading zeros stripped, because "part1"
-// and "part01" are two spellings packers use for the same volume, and reading
-// them as siblings would refuse the merge this package exists to make.
-//
-// It deliberately outranks a matching digest, like the volume rule above does.
-// The digests this package sees include the CRC32 that release names carry, and
-// thirty-two bits is few enough that agreement is a coincidence rather than a
-// proof - whereas a wrongly merged archive part is gone.
+// numberedSiblings reports whether two comparison names differ only in one
+// number, such as "film.r99" and "film.r100": members of a set, not copies.
+// Leading zeros are ignored so "part1" and "part01" stay mergeable. It
+// outranks a matching digest, because a CRC32 from a release name agrees by
+// chance often enough, while a wrongly merged part is lost.
 func numberedSiblings(a, b string) bool {
-	// Names nobody has resolved yet are unknown, not equal, and cannot show that
-	// two files are different.
+	// Unresolved names are unknown and prove nothing.
 	if a == "" || b == "" || a == b {
 		return false
 	}
@@ -623,10 +492,9 @@ func numberedSiblings(a, b string) bool {
 	return trimZeros(numA) != trimZeros(numB)
 }
 
-// splitLastNumber cuts a name around its rightmost run of decimal digits, which
-// is where a part number sits in every naming scheme in use: at the very end, or
-// just before the extension. Earlier runs are left in the head, so a resolution
-// or a year does not shadow the number that actually varies.
+// splitLastNumber cuts a name around its rightmost run of digits, where a
+// part number sits in every naming scheme, so a resolution or year earlier in
+// the name stays in the head.
 func splitLastNumber(s string) (head, num, tail string, ok bool) {
 	end := -1
 	for i := len(s) - 1; i >= 0; i-- {
@@ -646,8 +514,7 @@ func splitLastNumber(s string) (head, num, tail string, ok bool) {
 	return "", s[:end], s[end:], true
 }
 
-// sameHashKind reports whether two hash keys were produced by the same
-// algorithm, which is the only case in which comparing them means anything.
+// sameHashKind reports whether two hash keys come from the same algorithm.
 func sameHashKind(a, b string) bool {
 	ka, _, _ := strings.Cut(a, ":")
 	kb, _, _ := strings.Cut(b, ":")

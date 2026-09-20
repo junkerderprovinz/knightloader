@@ -93,9 +93,9 @@ func TestCallSendsTheMethodAndTheHeaderItWasGiven(t *testing.T) {
 	}
 }
 
-// TestNoHeaderIsSentWithoutAValue covers the ordinary home case: a media server
-// on a trusted LAN that asks for nothing. An empty header would be a header, and
-// some servers refuse one.
+// The ordinary home case: a media server on a trusted LAN that asks for
+// nothing. An empty header would still be a header, and some servers refuse
+// one.
 func TestNoHeaderIsSentWithoutAValue(t *testing.T) {
 	srv := serverAnswering(t, http.StatusOK)
 	Call(context.Background(), srv.srv.Client(), hookAt(srv.srv.URL, MethodGet), "")
@@ -104,16 +104,13 @@ func TestNoHeaderIsSentWithoutAValue(t *testing.T) {
 	}
 }
 
-// TestARedirectIsNeverFollowedAndTheTokenNeverTravels is the security test this
-// whole file exists for.
-//
-// httpx's own credential list is Authorization, Proxy-Authorization, Cookie and
+// httpx's credential list is Authorization, Proxy-Authorization, Cookie and
 // Cookie2, and it strips those across an origin change. X-Emby-Token,
 // X-Plex-Token and X-Api-Key are on nobody's list, so a client that followed
-// redirects would hand the token to whatever the 302 pointed at - a login page
-// on another host in front of a reverse proxy is enough, and httpx follows ten
-// hops by default. NewClient's MaxRedirects: -1 is what stops it, and the 3xx is
-// reported as the configuration answer it is.
+// redirects would hand the token to whatever the 302 pointed at, and a login
+// page on another host in front of a reverse proxy is enough. NewClient's
+// MaxRedirects: -1 stops it, and the 3xx is reported as a configuration
+// answer.
 func TestARedirectIsNeverFollowedAndTheTokenNeverTravels(t *testing.T) {
 	elsewhere := serverAnswering(t, http.StatusOK)
 	var redirects atomic.Int32
@@ -142,9 +139,8 @@ func TestARedirectIsNeverFollowedAndTheTokenNeverTravels(t *testing.T) {
 	}
 }
 
-// TestNothingListeningIsToldApartFromEverythingElse: the port typo. It is worth
-// its own code because the fix is a port and the fix for the code it would
-// otherwise be folded onto (dns) is a name.
+// The port typo. It is worth its own code because the fix is a port, while the
+// fix for the code it would otherwise fold onto (dns) is a name.
 func TestNothingListeningIsToldApartFromEverythingElse(t *testing.T) {
 	// A listener taken straight back down, so the address is one nothing can be
 	// listening on rather than a number picked and hoped for.
@@ -165,8 +161,8 @@ func TestNothingListeningIsToldApartFromEverythingElse(t *testing.T) {
 	}
 }
 
-// TestAHostThatDoesNotResolveSaysSo. The address is under .invalid, which RFC
-// 2606 reserves precisely so that a lookup for it cannot succeed anywhere.
+// The address is under .invalid, which RFC 2606 reserves so that a lookup for
+// it cannot succeed anywhere.
 func TestAHostThatDoesNotResolveSaysSo(t *testing.T) {
 	res := Call(context.Background(), NewClient(), hookAt("http://jellyfin.this-name-cannot-exist.invalid:8096/x", MethodGet), planted)
 	if res.OK {
@@ -177,10 +173,9 @@ func TestAHostThatDoesNotResolveSaysSo(t *testing.T) {
 	}
 }
 
-// TestAServerThatAcceptsAndSaysNothingIsATimeout covers the nastiest far end:
-// one that takes the connection and never answers. The client is built with a
-// short ceiling so the test does not sit for twenty seconds; what is asserted is
-// the classification, which is the same at either ceiling.
+// A far end that takes the connection and never answers. The client is built
+// with a short ceiling so the test does not sit for twenty seconds; what is
+// asserted is the classification, which is the same at either ceiling.
 func TestAServerThatAcceptsAndSaysNothingIsATimeout(t *testing.T) {
 	release := make(chan struct{})
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -203,7 +198,7 @@ func TestAServerThatAcceptsAndSaysNothingIsATimeout(t *testing.T) {
 	}
 }
 
-// TestAnAddressThatIsNotOneIsAnswered rather than crashing: a settings.json
+// An address that is not one is answered rather than crashing: a settings.json
 // edited by hand reaches the runner without going past Validate.
 func TestAnAddressThatIsNotOneIsAnswered(t *testing.T) {
 	res := Call(context.Background(), NewClient(), Hook{ID: "x", URL: "://nonsense", Method: MethodGet}, planted)
@@ -217,9 +212,9 @@ func TestAnAddressThatIsNotOneIsAnswered(t *testing.T) {
 	}
 }
 
-// TestTheDurationIsAlwaysReported. It is the one number on the card that says
-// "the far end is slow" rather than "the far end is broken", and a zero there
-// would read as an instant answer.
+// The duration is the number on the card that says "the far end is slow"
+// rather than "the far end is broken", and a zero there reads as an instant
+// answer.
 func TestTheDurationIsAlwaysReported(t *testing.T) {
 	srv := serverAnswering(t, http.StatusOK)
 	res := Call(context.Background(), srv.srv.Client(), hookAt(srv.srv.URL, MethodGet), "")

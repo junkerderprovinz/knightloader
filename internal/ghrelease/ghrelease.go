@@ -1,34 +1,16 @@
-// Package ghrelease fetches a GitHub release and its assets under a host
-// allowlist, for the one case this app has of downloading somebody else's
-// program and then running it.
+// Package ghrelease fetches a third-party GitHub release (yt-dlp) and its
+// assets under a host allowlist, since the downloaded program is then run.
 //
-// WHY THIS EXISTS NEXT TO internal/update, WHICH DOES THE SAME THING.
-// internal/update fetches KnightLoader's OWN release: it knows the repository,
-// the asset name its own workflow produces, and the checksums file that
-// workflow writes. This package fetches a THIRD PARTY's release (yt-dlp), where
-// none of those are known ahead of time and the asset list has to be searched
-// rather than constructed. Folding the two together is a real and named
-// follow-up, deliberately not attempted in the same change that introduces this
-// one: internal/update/update_install_test.go pins verifyChecksum and the
-// atomic swap exactly where they are, and moving them while other work is in
-// the same tree buys nothing that waiting a week does not.
+// internal/update does the same for KnightLoader's own release, where the
+// asset names and checksums file are known in advance; here the asset list
+// has to be searched. Unlike internal/update, which builds a bare
+// http.Client, this package uses httpx's transport so the operator's proxy
+// applies, and sends httpx.UserAgent.
 //
-// What is NOT copied from internal/update is its HTTP client. That package
-// builds a bare &http.Client{} (update.go's fetchLatestRelease and fetchAsset),
-// which ignores the operator's proxy entirely and sends no user agent, both
-// contrary to internal/httpx's own package doc ("Every request that leaves the
-// box is made by a client built here"). A self-hosted box behind a corporate
-// proxy is exactly the deployment where "fetch yt-dlp for me" has to work, so
-// the transport here comes from httpx.NewTransport and the request carries
-// httpx.UserAgent().
-//
-// The host allowlist and the redirect re-validation ARE copied, because they
-// are the integrity boundary. httpx's own CheckRedirect (httpx.go's
-// checkRedirect) bounds the hop COUNT and strips credentials across origins; it
-// does not and should not know about GitHub's asset hosts. Without a host check
-// on every hop the allowlist would be enforced on the first request and not on
-// the redirect that actually delivers the bytes, which is the hop that matters:
-// GitHub's browser_download_url is always a 302 to its own CDN.
+// The host check runs on every redirect, not just the first request:
+// GitHub's browser_download_url always redirects to its CDN, and that hop is
+// the one that delivers the bytes. httpx's own redirect policy knows nothing
+// about GitHub's hosts.
 package ghrelease
 
 import (
@@ -44,62 +26,49 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
 )
 
-// allowedHosts are the only hosts this package will fetch from, whatever a
-// release's own JSON says a download URL is. GitHub serves release assets from
-// its own CDN hosts and never from an arbitrary redirect target, so pinning
-// here is a real (if partial) boundary rather than theatre: it is what stops a
-// tampered or spoofed API response from pointing the downloader - whose output
-// is then made executable and run - at a host of somebody else's choosing.
-//
-// The same three internal/update pins, and that is not a coincidence: they are
-// GitHub's, not this repository's.
+// allowedHosts are the only hosts assets are fetched from, whatever a release
+// JSON says. GitHub serves assets only from these, so a tampered API response
+// cannot point the download, which is then executed, anywhere else. They are
+// the same hosts internal/update pins.
 var allowedHosts = map[string]bool{
 	"github.com":                           true,
 	"objects.githubusercontent.com":        true,
 	"release-assets.githubusercontent.com": true,
 }
 
-// apiHost is where the release metadata itself comes from. Separate from
-// allowedHosts on purpose: api.github.com serves JSON and never serves an
-// asset, and an asset URL that resolved to it would be a response shape nothing
-// here expects.
+// apiHost serves release metadata and never an asset, so it is kept out of
+// allowedHosts.
 const apiHost = "api.github.com"
 
-// The two ceilings. The metadata call is a few kilobytes and a host that has
-// not answered in half a minute has effectively refused; an asset is up to a
-// hundred megabytes over whatever link a self-hosted box has, and five minutes
-// is internal/update's own figure for the same kind of transfer.
+// MetaTimeout bounds the few-kilobyte metadata call; AssetTimeout bounds an
+// asset of up to a hundred megabytes, matching internal/update.
 const (
 	MetaTimeout  = 30 * time.Second
 	AssetTimeout = 5 * time.Minute
 )
 
-// maxRedirects bounds the hop chain independently of httpx's own bound, since
-// this package supplies its own CheckRedirect and therefore replaces it. Ten is
-// httpx.DefaultMaxRedirects; a legitimate GitHub download is one hop.
+// maxRedirects bounds the redirect chain, since this package's CheckRedirect
+// replaces httpx's. A real download takes one hop.
 const maxRedirects = 10
 
-// Asset is one file attached to a release. Size is what the API itself reports
-// and is checked against the bytes actually written - a truncated download is
-// otherwise indistinguishable from a complete one until something tries to run
-// it.
+// Asset is one file attached to a release. Size is what the API reports and
+// is checked against the bytes written.
 type Asset struct {
 	Name string `json:"name"`
 	URL  string `json:"browser_download_url"`
 	Size int64  `json:"size"`
 }
 
-// Release is the subset of GitHub's release object anything here reads.
+// Release is the subset of GitHub's release object this package reads.
 type Release struct {
 	Tag     string  `json:"tag_name"`
 	HTMLURL string  `json:"html_url"`
 	Assets  []Asset `json:"assets"`
 }
 
-// Find returns the asset with exactly this name. Exact match, never a prefix or
-// a suffix: yt-dlp's release carries "yt-dlp", "yt-dlp.exe", "yt-dlp_linux",
-// "yt-dlp_linux.zip" and "yt-dlp_linux_aarch64" side by side, and a loose match
-// there picks a different program than the one that was checksummed.
+// Find returns the asset with exactly this name. yt-dlp publishes "yt-dlp",
+// "yt-dlp_linux", "yt-dlp_linux.zip" and more side by side, and a loose match
+// would pick a different program than the one checksummed.
 func (r Release) Find(name string) (Asset, bool) {
 	for _, a := range r.Assets {
 		if a.Name == name {
@@ -109,15 +78,9 @@ func (r Release) Find(name string) (Asset, bool) {
 	return Asset{}, false
 }
 
-// client builds the one client shape this package uses: httpx's transport, so
-// the operator's proxy and every connection ceiling apply, plus a CheckRedirect
-// that re-validates the host on every hop.
-//
-// httpx.New is deliberately not used. It would install httpx's own
-// CheckRedirect, and a client has exactly one - so the host allowlist could
-// only be enforced on the first request. The user agent httpx.New would have
-// stamped on is set per request instead (see get); GitHub's API refuses a
-// request without one outright, so this is not optional politeness.
+// client uses httpx's transport, so the proxy and connection limits apply,
+// with a CheckRedirect that validates the host on every hop. httpx.New is not
+// used because its own CheckRedirect would replace this one.
 func client(timeout time.Duration) *http.Client {
 	return &http.Client{
 		Transport: httpx.NewTransport(httpx.Options{}),
@@ -134,12 +97,10 @@ func client(timeout time.Duration) *http.Client {
 	}
 }
 
-// get issues one validated GET. host is the allowlist the FIRST hop is checked
-// against - the API host for metadata, the asset hosts for a download - while
-// every later hop is checked against the asset hosts by the CheckRedirect
-// above, because a redirect off the API is a redirect to a download.
-//
-// The caller owns resp.Body and must close it.
+// get issues one validated GET. first is the allowlist for the first hop (the
+// API host or the asset hosts); later hops are checked against the asset
+// hosts, since a redirect off the API is a download. The caller closes
+// resp.Body.
 func get(ctx context.Context, rawurl string, first map[string]bool, timeout time.Duration, accept string) (*http.Response, error) {
 	u, err := url.Parse(rawurl)
 	if err != nil {
@@ -155,20 +116,15 @@ func get(ctx context.Context, rawurl string, first map[string]bool, timeout time
 	if accept != "" {
 		req.Header.Set("Accept", accept)
 	}
-	// Set here rather than by a transport wrapper, for the reason client()
-	// gives: this package cannot use httpx.New at all, and GitHub's API answers
-	// 403 to a request with no User-Agent.
+	// GitHub's API answers 403 without a User-Agent.
 	req.Header.Set("User-Agent", httpx.UserAgent())
 	resp, err := client(timeout).Do(req)
 	if err != nil {
 		return nil, err
 	}
 	if resp.StatusCode != http.StatusOK {
-		// The status line is kept verbatim and handed up rather than folded
-		// into "could not check". GitHub says "403 rate limit exceeded" and
-		// "404 Not Found" in exactly those words, and those two mean entirely
-		// different things to whoever is looking at the page: one is "wait an
-		// hour", the other is "this repository moved".
+		// GitHub's own wording tells "403 rate limit exceeded" (wait) from
+		// "404 Not Found" (the repository moved), so it is passed on.
 		body, _ := io.ReadAll(io.LimitReader(resp.Body, 512))
 		resp.Body.Close()
 		msg := trimOneLine(string(body))
@@ -180,9 +136,8 @@ func get(ctx context.Context, rawurl string, first map[string]bool, timeout time
 	return resp, nil
 }
 
-// trimOneLine reduces an error body to a single readable line. GitHub's own
-// error JSON is one short object; anything longer is not something to paste
-// into a settings page.
+// trimOneLine reduces an error body to one readable line: GitHub's JSON
+// message, or the first 200 bytes with line breaks flattened.
 func trimOneLine(s string) string {
 	var msg struct {
 		Message string `json:"message"`
@@ -203,11 +158,8 @@ func trimOneLine(s string) string {
 	return string(out)
 }
 
-// Latest fetches the "latest release" of owner/repo. GitHub's own endpoint,
-// not the releases list: the list needs pagination and a definition of "latest"
-// this package would then have to invent, and it would have to decide what a
-// prerelease means. The endpoint already answers "the newest non-prerelease,
-// non-draft release", which is the only answer anybody wants here.
+// Latest fetches the latest release of owner/repo from GitHub's own endpoint,
+// which already means the newest non-draft, non-prerelease release.
 func Latest(ctx context.Context, repo string) (Release, error) {
 	var rel Release
 	resp, err := get(ctx,
@@ -219,10 +171,6 @@ func Latest(ctx context.Context, repo string) (Release, error) {
 		return rel, err
 	}
 	defer resp.Body.Close()
-	// Capped rather than read whole: a release with a very long body plus a
-	// hundred assets is still well under this, and an unbounded decode from a
-	// host that decided to answer forever is the one shape that turns a version
-	// check into an out-of-memory kill.
 	if err := json.NewDecoder(io.LimitReader(resp.Body, 4<<20)).Decode(&rel); err != nil {
 		return rel, fmt.Errorf("ghrelease: unreadable release JSON: %w", err)
 	}
@@ -232,14 +180,10 @@ func Latest(ctx context.Context, repo string) (Release, error) {
 	return rel, nil
 }
 
-// Fetch downloads one asset into w, refusing anything larger than max and
-// anything whose length disagrees with what the release itself reported.
-//
-// The size check is not belt-and-braces next to the checksum that follows it:
-// it is what makes the FAILURE readable. A truncated download fails its
-// checksum too, but "the digest does not match" reads as tampering, while
-// "downloaded 4 MB, the release says 30 MB" reads as the dropped connection it
-// almost always is.
+// Fetch downloads one asset into w, refusing anything larger than max or of a
+// different length than the release reported. The length check makes a
+// dropped connection read as one, rather than as a checksum mismatch that
+// looks like tampering.
 func Fetch(ctx context.Context, a Asset, w io.Writer, max int64) (int64, error) {
 	resp, err := get(ctx, a.URL, allowedHosts, AssetTimeout, "")
 	if err != nil {
@@ -249,13 +193,10 @@ func Fetch(ctx context.Context, a Asset, w io.Writer, max int64) (int64, error) 
 	return copyBounded(w, resp.Body, a, max)
 }
 
-// copyBounded is Fetch's whole body once the response is open, split out so the
-// three refusals below can be exercised without a live TLS server: the host
-// allowlist makes an httptest server unreachable by construction, which is the
-// point of the allowlist and would otherwise leave the size rules untested.
+// copyBounded is Fetch after the response is open. It is separate so the size
+// rules can be tested; the host allowlist keeps a test server unreachable.
 func copyBounded(w io.Writer, body io.Reader, a Asset, max int64) (int64, error) {
-	// One byte past the cap, so "exactly at the limit" is told apart from "over
-	// it" without reading the rest of an endless body.
+	// One byte past the cap tells "at the limit" from "over it".
 	n, err := io.Copy(w, io.LimitReader(body, max+1))
 	if err != nil {
 		return n, fmt.Errorf("ghrelease: downloading %s: %w", a.Name, err)
@@ -264,15 +205,12 @@ func copyBounded(w io.Writer, body io.Reader, a Asset, max int64) (int64, error)
 		return n, fmt.Errorf("ghrelease: %s is larger than the %d byte cap", a.Name, max)
 	}
 	if a.Size > 0 && n != a.Size {
-		return n, fmt.Errorf("ghrelease: downloaded %d bytes of %s, the release says it is %d - refusing a partial download", n, a.Name, a.Size)
+		return n, fmt.Errorf("ghrelease: downloaded %d bytes of %s, the release says it is %d; refusing a partial download", n, a.Name, a.Size)
 	}
 	return n, nil
 }
 
-// Bytes downloads a small asset into memory. Used for the checksums file, which
-// is a few kilobytes of text and gains nothing from being staged on disk; max
-// exists only so a host that decided to answer forever cannot turn this into an
-// unbounded read.
+// Bytes downloads a small asset, such as the checksums file, into memory.
 func Bytes(ctx context.Context, a Asset, max int64) ([]byte, error) {
 	var buf bytes.Buffer
 	if _, err := Fetch(ctx, a, &buf, max); err != nil {

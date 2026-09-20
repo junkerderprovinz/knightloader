@@ -25,8 +25,8 @@ func TestRingKeepsLinesInOrder(t *testing.T) {
 	}
 }
 
-// TestRingDropsOldestOverCapacity is the ring's one job: bounded memory, and
-// what survives is the most recent tail, not an arbitrary subset.
+// Bounded memory, with the most recent tail surviving rather than an
+// arbitrary subset.
 func TestRingDropsOldestOverCapacity(t *testing.T) {
 	r := New(3)
 	for i := 0; i < 10; i++ {
@@ -44,10 +44,9 @@ func TestRingDropsOldestOverCapacity(t *testing.T) {
 	}
 }
 
-// TestRingSplitsOneWriteIntoManyLines covers log.Logger.Output NOT being the
-// only possible caller: a single Write carrying an embedded '\n' (a multi-line
-// Printf, or several records coalesced by a buffered writer upstream) must
-// still land as separate entries, or a multi-line stack trace collapses into
+// log.Logger.Output is not the only possible caller: a single Write carrying
+// an embedded '\n', from a multi-line Printf or several records coalesced
+// upstream, has to land as separate entries, or a stack trace collapses into
 // one unreadable ring slot.
 func TestRingSplitsOneWriteIntoManyLines(t *testing.T) {
 	r := New(10)
@@ -64,9 +63,8 @@ func TestRingSplitsOneWriteIntoManyLines(t *testing.T) {
 	}
 }
 
-// TestRingWriteOfNothingStoresNothing. A blank line is not a record worth a
-// ring slot, and log.Logger never sends one - but nothing stops another
-// caller from trying.
+// A blank line is not a record worth a ring slot. log.Logger never sends one,
+// but nothing stops another caller from trying.
 func TestRingWriteOfNothingStoresNothing(t *testing.T) {
 	r := New(10)
 	r.Write([]byte("\n"))
@@ -76,10 +74,9 @@ func TestRingWriteOfNothingStoresNothing(t *testing.T) {
 	}
 }
 
-// TestRingWriteReportsTheFullByteCount. io.Writer's contract is that n equals
-// len(p) on a nil error - a caller comparing the two (as several standard
-// library writers do) must not see a short write for a line this dropped
-// entirely.
+// io.Writer's contract is that n equals len(p) on a nil error, so a caller
+// comparing the two, as several standard library writers do, must not see a
+// short write for a line this dropped entirely.
 func TestRingWriteReportsTheFullByteCount(t *testing.T) {
 	r := New(10)
 	p := []byte("\n")
@@ -92,10 +89,9 @@ func TestRingWriteReportsTheFullByteCount(t *testing.T) {
 	}
 }
 
-// TestRingLinesReturnsACopy. The caller is about to JSON-encode this straight
-// into an HTTP response; a slice that aliased the ring's own backing array
-// would race the next Write and could also let the caller corrupt state it
-// does not own.
+// The caller JSON-encodes this straight into an HTTP response, so a slice
+// aliasing the ring's own backing array would race the next Write and let the
+// caller corrupt state it does not own.
 func TestRingLinesReturnsACopy(t *testing.T) {
 	r := New(10)
 	r.Write([]byte("original\n"))
@@ -106,12 +102,9 @@ func TestRingLinesReturnsACopy(t *testing.T) {
 	}
 }
 
-// TestRingConcurrentWrites is a smoke test for the lock, not a substitute for
-// -race: this dev tree builds CGO_ENABLED=0 and has no C toolchain, so -race
-// only ever runs in CI (see docs/build-plan.md's own convention on this). What
-// this test can still show is that concurrent writers do not lose the
-// invariant that matters most - the ring never exceeds its capacity and never
-// panics under concurrent access.
+// A smoke test for the lock rather than a substitute for -race, which needs a
+// C toolchain this tree does not build with. It still shows that concurrent
+// writers never push the ring past its capacity and never panic.
 func TestRingConcurrentWrites(t *testing.T) {
 	r := New(50)
 	var wg sync.WaitGroup
@@ -130,12 +123,9 @@ func TestRingConcurrentWrites(t *testing.T) {
 	}
 }
 
-// TestDefaultTapCapturesStandardLog is the point of the package: an ordinary
-// log.Printf call, exactly like the two dozen call sites elsewhere in the
-// tree already make, must reach Lines() with no plumbing at any call site.
-// The tap itself was installed by this package's own init before this test
-// (or anything else in the program) ran - see the package doc comment for why
-// that has to be true rather than merely convenient.
+// An ordinary log.Printf call, like the ones the rest of the tree makes, has
+// to reach Lines with no plumbing at the call site. The tap was installed by
+// this package's init before this test ran, see the package doc comment.
 func TestDefaultTapCapturesStandardLog(t *testing.T) {
 	marker := "logring-marker-la9x2q"
 	log.Print(marker)

@@ -20,9 +20,8 @@ import (
 const helperEnv = "KL_STARTUPCHECK_HELPER"
 
 // helperTool is a ToolTarget wired to the helper above. Resolve is used rather
-// than Bin because os.Args[0] is an absolute path that is deliberately not on
-// PATH, which is precisely what Resolve exists for (java, whose lookup prefers
-// JAVA_HOME).
+// than Bin because os.Args[0] is an absolute path that is not on PATH, which
+// is what Resolve exists for (java, whose lookup prefers JAVA_HOME).
 func helperTool(t *testing.T, id, mode string) ToolTarget {
 	t.Helper()
 	t.Setenv(helperEnv, mode)

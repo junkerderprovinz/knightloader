@@ -1,23 +1,10 @@
-// Package apitoken is named, individually revocable API credentials: the
-// answer to "a phone gets its own", so losing one device means revoking that
-// one token rather than rotating the shared password for every other client.
+// Package apitoken keeps named, individually revocable API tokens, so a lost
+// device costs one token instead of the shared password.
 //
-// Modelled on internal/auth (a flat JSON file in the data dir, a mutex, no
-// goroutine) rather than on internal/accounts (AES-GCM, reversible): a token
-// is shown to its owner exactly once, at creation, and only ever CHECKED
-// again after that, the same one-way relationship a password has, never a
-// secret this process needs to read back in plaintext. So it is hashed, not
-// sealed.
-//
-// It is hashed with SHA-256, deliberately not bcrypt. bcrypt's slowness is
-// what protects a short, human-chosen password against being guessed from
-// its hash; a token here is 256 bits from crypto/rand, so guessing it from
-// the hash is not the threat bcrypt defends against, and re-running a slow
-// hash on every single API call this token authenticates (potentially many
-// per second from a script or an open WebSocket reconnect loop) would be
-// real, avoidable CPU cost for no matching benefit. See Check's own comment
-// for why a plain map lookup on that hash is the right amount of caution and
-// not a shortcut.
+// A token is shown once at creation and only checked afterwards, so the store
+// keeps a hash, not the secret. The hash is SHA-256 rather than bcrypt: the
+// secret is 256 random bits, so a slow hash adds nothing against guessing and
+// would cost CPU on every authenticated request.
 package apitoken
 
 import (
@@ -35,47 +22,31 @@ import (
 	"time"
 )
 
-// MaxTokens caps how many named tokens one instance keeps. Generous on
-// purpose: this bounds a runaway script that creates tokens in a loop, not
-// the handful a real person issues for their own devices.
+// MaxTokens caps how many tokens one instance keeps, to bound a script that
+// creates them in a loop.
 const MaxTokens = 50
 
-// maxNameLen keeps a token's label a label rather than somewhere to paste a
-// paragraph; the id, not the name, is ever used to address one.
 const maxNameLen = 64
 
-// staleAfter is how old LastUsed has to be before Check bothers writing it
-// back to disk. Every authenticated request calls Check, so persisting on
-// every single one would turn "is this token valid" into a disk write on the
-// hot path; a minute of slack keeps the timestamp honest for the person
-// reading it without that cost.
+// staleAfter is how old LastUsed has to be before Check writes it back, so
+// the hot path of every authenticated request is not a disk write.
 const staleAfter = time.Minute
 
 var (
-	// ErrNotFound is a Revoke for an id this store does not hold.
-	ErrNotFound = errors.New("apitoken: no such token")
-	// ErrEmptyName refuses a token nobody can tell apart from another later.
+	ErrNotFound  = errors.New("apitoken: no such token")
 	ErrEmptyName = errors.New("apitoken: name must not be empty")
-	// ErrTooMany is MaxTokens reached.
-	ErrTooMany = errors.New("apitoken: too many tokens; revoke one before adding another")
+	ErrTooMany   = errors.New("apitoken: too many tokens; revoke one before adding another")
 )
 
-// Token is one credential's metadata, never the secret, which exists only in
-// the caller's hands after Create and in this store's hash of it.
+// Token is one token's metadata. The secret itself is never stored.
 type Token struct {
 	ID        string    `json:"id"`
 	Name      string    `json:"name"`
 	CreatedAt time.Time `json:"createdAt"`
-	// LastUsed is nil until the first successful Check, the same "absent
-	// means it has not happened yet" shape idleaction.State.FireAt already
-	// has, rather than Task's zero-time-plus-frontend-check convention: this
-	// is a small, its own file, JSON-file-backed type with no database
-	// column forcing a zero value, so there is no reason to hand the
-	// frontend a sentinel to test for.
+	// LastUsed is nil until the first successful Check.
 	LastUsed *time.Time `json:"lastUsed,omitempty"`
 }
 
-// record is Token plus what only this package ever needs to see.
 type record struct {
 	Token
 	HashHex string `json:"hash"`
@@ -88,7 +59,7 @@ type Store struct {
 
 	mu     sync.Mutex
 	byID   map[string]*record
-	byHash map[string]*record // same *record values, indexed the other way
+	byHash map[string]*record
 }
 
 // Open loads (or creates) tokens.json in dir.
@@ -107,9 +78,8 @@ func Open(dir string) (*Store, error) {
 	}
 	var recs []record
 	if err := json.Unmarshal(b, &recs); err != nil {
-		// A file this build cannot parse is not a reason to refuse to start,
-		// the same call auth.Guard's own Open makes. Every token in it stops
-		// working, which is visible (nothing authenticates) rather than silent.
+		// An unparseable file should not stop the server. Its tokens stop
+		// working, which is visible rather than silent.
 		return s, nil
 	}
 	for i := range recs {
@@ -120,8 +90,7 @@ func Open(dir string) (*Store, error) {
 	return s, nil
 }
 
-// List returns every token's metadata, oldest first, never a secret or a
-// hash, whatever the caller's own privilege.
+// List returns every token's metadata, oldest first.
 func (s *Store) List() []Token {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -133,9 +102,8 @@ func (s *Store) List() []Token {
 	return out
 }
 
-// Create issues a new token and returns its metadata plus the plaintext
-// secret: the only moment that secret exists anywhere but the caller's own
-// hands, because only its hash is written to disk.
+// Create issues a new token and returns its metadata and the plaintext
+// secret. This is the only time the secret is available.
 func (s *Store) Create(name string) (Token, string, error) {
 	name = strings.TrimSpace(name)
 	if name == "" {
@@ -173,9 +141,8 @@ func (s *Store) Create(name string) (Token, string, error) {
 	return rec.Token, secret, nil
 }
 
-// Revoke deletes a token by id. Revoking an unknown id is ErrNotFound rather
-// than a silent no-op, so a client cannot believe a token gone when the id it
-// sent was simply wrong.
+// Revoke deletes a token by id. An unknown id is ErrNotFound, so a client
+// does not believe a mistyped id removed something.
 func (s *Store) Revoke(id string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -186,9 +153,8 @@ func (s *Store) Revoke(id string) error {
 	delete(s.byID, id)
 	delete(s.byHash, rec.HashHex)
 	if err := s.flushLocked(); err != nil {
-		// Put back rather than leave the in-memory and on-disk copies
-		// disagreeing: a token a write failure could not actually remove
-		// must go on authenticating, not vanish from List while still working.
+		// The token is still on disk, so it has to keep working in memory
+		// too rather than vanish from List.
 		s.byID[id] = rec
 		s.byHash[rec.HashHex] = rec
 		return err
@@ -196,15 +162,9 @@ func (s *Store) Revoke(id string) error {
 	return nil
 }
 
-// RevokeAll clears every stored token. Called whenever the instance
-// password is set, changed or removed (see routes_system.go's
-// /api/auth/password handler): a token minted while the instance had no
-// password protecting it - or under a password that has just been changed
-// away from - is a standing bypass of whatever protection was just put in
-// place, not a credential the new state should honour. Reproduced live
-// before this fix: a token created with no password set kept authenticating
-// successfully after a password was added, defeating the very protection
-// the admin had just turned on.
+// RevokeAll clears every stored token. It runs whenever the instance password
+// is set, changed or removed, because a token minted under the old state
+// would otherwise bypass the new protection.
 func (s *Store) RevokeAll() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -215,9 +175,6 @@ func (s *Store) RevokeAll() error {
 	s.byID = map[string]*record{}
 	s.byHash = map[string]*record{}
 	if err := s.flushLocked(); err != nil {
-		// Same reasoning as Revoke's own failure path: put back rather than
-		// leave every token silently gone from List while a write failure
-		// means they are, in fact, still live on disk.
 		s.byID = prevByID
 		s.byHash = prevByHash
 		return err
@@ -225,17 +182,9 @@ func (s *Store) RevokeAll() error {
 	return nil
 }
 
-// Check reports whether secret is a live token, and its metadata when it is.
-//
-// The lookup is a plain map index on sha256(secret), not a loop of
-// subtle.ConstantTimeCompare against every stored hash. Constant-time
-// comparison earns its cost defending a comparison an attacker can retry
-// against a KNOWN target (a signature, an HMAC tag) byte by byte. There is no
-// equivalent gradient here: secret is 256 bits from crypto/rand, so the only
-// way to learn anything from this lookup's timing is to already be close to
-// a valid SHA-256 preimage, which is not a thing repeated guessing gets you
-// closer to. This is the same reasoning, and the same map-lookup shape,
-// every token-auth system with this size of keyspace uses.
+// Check reports whether secret is a live token, and returns its metadata when
+// it is. A plain map lookup on the hash is enough: the secret is 256 random
+// bits, so its timing leaks nothing a guesser could climb towards.
 func (s *Store) Check(secret string) (Token, bool) {
 	if secret == "" {
 		return Token{}, false
@@ -252,16 +201,12 @@ func (s *Store) Check(secret string) (Token, bool) {
 	stale := rec.LastUsed == nil || now.Sub(*rec.LastUsed) > staleAfter
 	rec.LastUsed = &now
 	if stale {
-		// Best-effort: a failed write here must not turn a valid token
-		// invalid, so the error is swallowed exactly as auth.Guard.Issue's
-		// own housekeeping would. The in-memory copy, and therefore every
-		// check until the next successful flush, is already correct.
+		// A failed write must not turn a valid token invalid.
 		_ = s.flushLocked()
 	}
 	return rec.Token, true
 }
 
-// flushLocked writes every record to disk. Callers hold mu.
 func (s *Store) flushLocked() error {
 	recs := make([]record, 0, len(s.byID))
 	for _, r := range s.byID {
@@ -275,10 +220,8 @@ func (s *Store) flushLocked() error {
 	return os.WriteFile(s.path, b, 0o600)
 }
 
-// newSecret is the plaintext credential handed to the caller once. The "kl_"
-// prefix names it as a KnightLoader token on sight, in a paste, in a leaked
-// log, in a secret scanner's rules, the same reason GitHub and Stripe prefix
-// theirs.
+// newSecret returns a new plaintext token. The "kl_" prefix makes a leaked
+// token recognisable in a paste, a log or a secret scanner.
 func newSecret() (string, error) {
 	b := make([]byte, 32)
 	if _, err := rand.Read(b); err != nil {
@@ -292,8 +235,6 @@ func hashHex(secret string) string {
 	return hex.EncodeToString(sum[:])
 }
 
-// newID mirrors internal/app's own newID: 8 random bytes, hex, the same
-// shape a task id already has, not a new convention for this one store.
 func newID() string {
 	b := make([]byte, 8)
 	_, _ = rand.Read(b)

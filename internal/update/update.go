@@ -1,31 +1,20 @@
-// Package update checks whether a newer KnightLoader release exists,
-// surfaced on both deployments' General tab now (jdp, 2026-08-24: a
-// container user hit the card's old desktop-only gate and asked where the
-// toggle had gone - checking GitHub and saying so is exactly as harmless
-// for a container as for desktop). What differs by deployment is never
-// whether the check runs, only what happens once "update available" is
-// true: desktop can fetch, verify and install the new release itself when
-// the user asks it to (Download/Apply/Relaunch, further down), while a
-// container - which cannot replace itself from the inside - is instead
-// pointed at the release page and told to update the way it was deployed
-// (docker pull, Unraid Community Applications, ...); see
-// routes_features.go's updaterReason for the fuller version of that split.
+// Package update checks whether a newer KnightLoader release exists, on both
+// deployments' General tab. What differs by deployment is not whether the
+// check runs but what happens once an update is available: desktop can fetch,
+// verify and install the new release when the user asks (Download, Apply and
+// Relaunch below), while a container cannot replace itself from the inside and
+// is pointed at the release page instead, to be updated the way it was
+// deployed. See routes_features.go's updaterReason.
 //
-// Check itself only checks and reports, and that half is identical on both
-// deployments. Download/Apply/Relaunch, further down, are desktop-only
-// (App.RequestUpdateInstall is nil on the container build - a container has
-// no running binary of its own to swap) and are never triggered
-// automatically: updaterReason is explicit that installing a fetched
-// release "is still a manual step there, same as any other desktop app
-// before it grows a silent auto-apply" - a background auto-updater that
-// replaces its own binary unattended is a real attack surface regardless of
-// how well it verifies what it downloads, and that line is deliberately not
-// crossed here. What does run, once the user asks: fetch the matching
-// platform zip, verify its SHA-256 against a checksums.txt published in the
-// same release (see INTEGRITY, below), atomically swap it into place, and
-// relaunch. Full code-signature verification is the one piece of that chain
-// still not attempted - see INTEGRITY for exactly what is, and is not,
-// covered.
+// Check only checks and reports, identically on both deployments. Download,
+// Apply and Relaunch are desktop-only (App.RequestUpdateInstall is nil on the
+// container build) and are never triggered automatically: a background
+// auto-updater that replaces its own binary unattended is an attack surface
+// however well it verifies what it downloads. What runs once the user asks:
+// fetch the matching platform zip, verify its SHA-256 against a checksums.txt
+// published in the same release, swap it into place and relaunch.
+// Code-signature verification is the one piece of that chain not attempted,
+// see the integrity notes further down.
 package update
 
 import (
@@ -183,70 +172,43 @@ func parts(v string) ([3]int, bool) {
 	return out, true
 }
 
-// ---------------------------------------------------------------------------
-// Install: download, verify and apply a newer release, then relaunch.
+// Install: download, verify and apply a newer release, then relaunch. Desktop
+// only, because a container cannot replace itself from the inside;
+// App.RequestUpdateInstall is nil there and the route refuses before any of
+// this runs.
 //
-// Desktop only - a container cannot replace itself from the inside (see this
-// package's own doc comment). App.RequestUpdateInstall is nil on the
-// container build, and the route above it refuses before any of this runs.
+// Everything below is deployment-agnostic and testable on its own. The one
+// thing this package does not decide is how to relaunch and exit the old
+// process, which stays a callback on app.App wired by desktop/main.go, the
+// same split RequestExit follows.
 //
-// Everything below is deployment-agnostic and independently testable
-// (update_install_test.go exercises asset selection and the atomic swap
-// against real temp files/dirs); the one thing this package cannot do
-// itself is decide HOW to relaunch and exit the OLD process afterward -
-// that stays a callback on app.App, wired only by desktop/main.go, the same
-// "App owns no process lifecycle of its own" split RequestExit already
-// established.
-//
-// INTEGRITY. downloadAsset pins the download to GitHub's own asset hosts
+// Integrity. downloadAsset pins the download to GitHub's own asset hosts
 // rather than following browser_download_url blindly, and confirms the
-// downloaded size matches the asset metadata GitHub itself reported (bytes
-// came from this repo's own release, since only this repo's own Actions
-// runner can attach an asset to its releases in the first place) - that much
-// has been true since the very first cut of this package.
+// downloaded size matches the asset metadata GitHub reported, so the bytes
+// came from this repo's own release. release.yml's publish job also generates
+// a checksums.txt over every platform zip in the same job run and publishes it
+// beside them, and Download fetches it alongside the zip and verifies the
+// SHA-256 before it returns a path for Apply to unpack. A download cannot be
+// truncated, corrupted or tampered with in transit or in a CDN cache without
+// Download refusing to hand it on.
 //
-// Beyond it, release.yml's "publish" job now also generates a checksums.txt
-// (sha256sum of every platform zip, produced in the same job run that
-// publishes them - see that job's own "Checksums" step) and publishes it as a
-// release asset next to the bundles. Download fetches it alongside the
-// platform zip and verifyChecksum checks the downloaded file's own SHA-256
-// against the matching line in it before Download ever returns a path for
-// Apply to unpack. That closes the gap this comment used to name here: a
-// download can no longer be truncated, corrupted, or tampered with in
-// transit or in a compromised CDN cache without Download refusing to hand it
-// to Apply.
+// That is not code-signature verification. A published sha256 proves the bytes
+// match what the release pipeline produced and says nothing about whether the
+// pipeline was trustworthy, since both the zip and its checksums.txt come out
+// of the same Actions job. Only a signature tied to an identity outside the
+// build pipeline would close that gap.
 //
-// It is deliberately still not code-signature verification. A published
-// sha256 proves the bytes match what the release pipeline itself produced;
-// it says nothing about whether that pipeline was trustworthy in the first
-// place, since both the zip and its checksums.txt are generated and
-// published by the exact same Actions job - a compromise of that job could
-// forge a matching pair as easily as a real release. Only a signature tied
-// to an identity outside the build pipeline (a hardware key, a separate
-// signing service) could close that remaining gap, and that stays the
-// honest gap this package's doc comment names, not attempted today.
-//
-// A release whose latest tag has a platform zip but no checksums.txt asset
-// is treated as a hard failure by Download, not a warn-and-proceed
-// fallback for "older releases predate this feature" - deliberately, not by
-// oversight. Download only ever looks at GitHub's "latest" release, and
-// every release cut from this point forward publishes checksums.txt in the
-// same workflow revision, at the same tag, in the same job run, that
-// publishes the platform zips themselves - so "latest has a zip but no
-// checksums.txt" cannot legitimately happen once this change has shipped;
-// it can only mean the publish job's Checksums step failed or the asset was
-// removed after publishing, i.e. exactly the kind of broken/incomplete
-// release this package already refuses to install from (see the identical
-// treatment of a missing platform-zip asset in Download below). Silently
-// falling back to unverified in that case would quietly defeat the point of
-// adding verification at all.
-// ---------------------------------------------------------------------------
+// A latest release with a platform zip and no checksums.txt is a hard failure
+// rather than a fallback to unverified. Download only looks at GitHub's
+// "latest" release, and every release publishes checksums.txt in the same job
+// run as the zips, so the combination means the Checksums step failed or the
+// asset was removed, which is the broken release this package already refuses
+// to install from.
 
 // allowedAssetHosts are the only hosts downloadAsset will fetch from,
-// regardless of what browser_download_url says - GitHub serves release
-// assets from its own CDN host(s), never from an arbitrary redirect target,
-// so pinning here is a real (if partial) integrity boundary rather than
-// theatre.
+// whatever browser_download_url says. GitHub serves release assets from its
+// own CDN hosts and never from an arbitrary redirect target, so pinning here
+// is a real, if partial, integrity boundary.
 var allowedAssetHosts = map[string]bool{
 	"github.com":                           true,
 	"objects.githubusercontent.com":        true,

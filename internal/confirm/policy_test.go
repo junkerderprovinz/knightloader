@@ -10,9 +10,8 @@ func TestParseFoldsUnknownAndUseGlobalToDefault(t *testing.T) {
 	}
 }
 
-// TestParseNeverDefaultsToExcludeAndRemove pins the one rule this whole
-// package exists to enforce: a settings file this build cannot read must
-// never be interpreted as permission to delete something.
+// TestParseNeverDefaultsToExcludeAndRemove checks that an unreadable setting
+// is never read as permission to delete.
 func TestParseNeverDefaultsToExcludeAndRemove(t *testing.T) {
 	for _, s := range []string{"", "nonsense", "exclude-and-remove-ish", "delete"} {
 		if got := Parse(s); got == ExcludeAndRemove {
@@ -62,9 +61,6 @@ func TestResolveMatrix(t *testing.T) {
 	}
 }
 
-// TestResolveNeverInventsExcludeAndRemove is Resolve's own half of the
-// package's one hard rule: nothing here may turn a batch or a global default
-// that never named ExcludeAndRemove into one that does.
 func TestResolveNeverInventsExcludeAndRemove(t *testing.T) {
 	for _, batch := range Policies() {
 		for _, global := range []Policy{Include, Exclude, Ask, "", "garbage"} {
@@ -93,10 +89,6 @@ func TestTriggerInteractive(t *testing.T) {
 	}
 }
 
-// TestResolveConfigResolvesBothAxesIndependently is the shape ConfirmTasks
-// actually calls: onDupes and onOffline may disagree about everything,
-// including whether a person is there to ask, and neither axis's answer may
-// leak into the other's.
 func TestResolveConfigResolvesBothAxesIndependently(t *testing.T) {
 	batch := Config{OnDupes: Include, OnOffline: UseGlobal}
 	global := Config{OnDupes: ExcludeAndRemove, OnOffline: Ask}

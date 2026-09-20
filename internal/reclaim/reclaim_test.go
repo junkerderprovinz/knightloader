@@ -30,19 +30,15 @@ func sha256Of(body string) string {
 // about what the tier is allowed to decide rather than about a history table.
 func alwaysFinished(string, int64) bool { return true }
 
-// TestARightSizedFileWithTheWrongBytesIsNeverSettled is the promise this whole
-// package rests on, and it is worth stating why it is not a corner case.
-//
 // The embedded engine's download library creates its destination file at the
 // full final length before it fetches a byte of it (gopeed v1.9.3,
-// internal/controller's Touch: os.Create then os.Truncate(name, size)). So a
-// download that died at two per cent leaves a file at the final name with
-// exactly the right number of bytes in it, and every cheap test in this
-// package would call that a finished download. The checksum is the only thing
-// that can tell them apart, and when it says no the answer has to be "fetch it
-// again" no matter how trusting the instance has been told to be. One download
-// too many costs line time; the other reading costs somebody a file that will
-// not open and a row that says it is fine.
+// internal/controller's Touch: os.Create then os.Truncate(name, size)), so a
+// download that died at two per cent leaves a file at the final name with the
+// right number of bytes in it, and every cheap test here would call that
+// finished. The checksum is the only thing that can tell them apart, and when
+// it says no the answer is "fetch it again" however trusting the instance has
+// been told to be: one download too many costs line time, the other reading
+// costs somebody a file that will not open.
 func TestARightSizedFileWithTheWrongBytesIsNeverSettled(t *testing.T) {
 	for _, trust := range Modes() {
 		t.Run(string(trust), func(t *testing.T) {
@@ -68,8 +64,7 @@ func TestARightSizedFileWithTheWrongBytesIsNeverSettled(t *testing.T) {
 	}
 }
 
-// TestAVerifiedChecksumSettlesTheDownload is the other half: the one thing
-// that is allowed to stop a transfer happening at all.
+// The other half: the one thing allowed to stop a transfer happening at all.
 func TestAVerifiedChecksumSettlesTheDownload(t *testing.T) {
 	dir := t.TempDir()
 	const body = "the real film!!!"
@@ -86,9 +81,8 @@ func TestAVerifiedChecksumSettlesTheDownload(t *testing.T) {
 	}
 }
 
-// TestNameAndSizeAloneDoNotSettleADownload pins the default. A full-length
-// file with nothing to check it against is a third answer and not a match:
-// see the preallocation trap in TestARightSizedFileWithTheWrongBytesIsNeverSettled.
+// The default tier: a full-length file with nothing to check it against is a
+// third answer and not a match, see the preallocation trap above.
 func TestNameAndSizeAloneDoNotSettleADownload(t *testing.T) {
 	dir := t.TempDir()
 	size := put(t, dir, "movie.mkv", "................")
@@ -99,9 +93,7 @@ func TestNameAndSizeAloneDoNotSettleADownload(t *testing.T) {
 	}
 }
 
-// TestTheMostTrustingTierTakesNameAndSize is the opt-in, for somebody who
-// knows what is in their own folder. It has to actually do something, or the
-// setting is decoration.
+// The opt-in tier, for somebody who knows what is in their own folder.
 func TestTheMostTrustingTierTakesNameAndSize(t *testing.T) {
 	dir := t.TempDir()
 	size := put(t, dir, "movie.mkv", "................")
@@ -112,10 +104,9 @@ func TestTheMostTrustingTierTakesNameAndSize(t *testing.T) {
 	}
 }
 
-// TestThisInstancesOwnRecordVouchesForAFile is the default tier doing its job:
-// the history is a note this app wrote itself when the last byte landed, and
-// it survives the list being cleared, which is one of the three situations
-// this package exists for.
+// The history is a note this app wrote when the last byte landed, and it
+// survives the list being cleared, one of the three situations this package
+// exists for.
 func TestThisInstancesOwnRecordVouchesForAFile(t *testing.T) {
 	dir := t.TempDir()
 	size := put(t, dir, "movie.mkv", "................")
@@ -128,8 +119,8 @@ func TestThisInstancesOwnRecordVouchesForAFile(t *testing.T) {
 	}
 }
 
-// TestTheStrictTierIgnoresTheRecord. The tiers are a ladder, so the strictest
-// one must not quietly consult the rung above it.
+// The tiers are a ladder, so the strictest one does not consult the rung above
+// it.
 func TestTheStrictTierIgnoresTheRecord(t *testing.T) {
 	dir := t.TempDir()
 	size := put(t, dir, "movie.mkv", "................")
@@ -141,8 +132,8 @@ func TestTheStrictTierIgnoresTheRecord(t *testing.T) {
 	}
 }
 
-// TestAShortFileIsABeginningAndItsLengthIsTheOffset. Length can never confirm
-// a download, but it can measure one, and that costs a single stat.
+// Length can never confirm a download, but it can measure one, and that costs
+// a single stat.
 func TestAShortFileIsABeginningAndItsLengthIsTheOffset(t *testing.T) {
 	dir := t.TempDir()
 	put(t, dir, "movie.mkv", "half")
@@ -157,11 +148,10 @@ func TestAShortFileIsABeginningAndItsLengthIsTheOffset(t *testing.T) {
 	}
 }
 
-// TestAPartFileOutranksWhateverSitsAtTheFinalName. A part file is written by a
-// transfer that did not finish and removed by one that did, so it is the only
-// evidence here that cannot be a coincidence of naming. Read the other way
-// round, a stale finished file beside a live part file would settle the task
-// and abandon the bytes that were still arriving.
+// A part file is written by a transfer that did not finish and removed by one
+// that did, so it is the only evidence here that cannot be a coincidence of
+// naming. The other way round, a stale finished file beside a live part file
+// would settle the task and abandon the bytes that were still arriving.
 func TestAPartFileOutranksWhateverSitsAtTheFinalName(t *testing.T) {
 	dir := t.TempDir()
 	const body = "the real film!!!"
@@ -179,10 +169,9 @@ func TestAPartFileOutranksWhateverSitsAtTheFinalName(t *testing.T) {
 	}
 }
 
-// TestATorrentIsNeverSettledFromFileLengths. A torrent client lays out the
-// whole file set at full length before it fetches a piece, so name and size
-// match for a torrent that has downloaded nothing at all. Anything but a
-// separate verdict here would mark empty torrents finished.
+// A torrent client lays out the whole file set at full length before it
+// fetches a piece, so name and size match for a torrent that has downloaded
+// nothing. Anything but a separate verdict would mark empty torrents finished.
 func TestATorrentIsNeverSettledFromFileLengths(t *testing.T) {
 	dir := t.TempDir()
 	const body = "the real film!!!"
@@ -196,8 +185,7 @@ func TestATorrentIsNeverSettledFromFileLengths(t *testing.T) {
 	}
 }
 
-// TestNothingIsFoundWhenNothingIsThere keeps the ordinary answer ordinary, and
-// keeps it apart from Unproven: "there is no file" and "there is a file I
+// Absent stays apart from Unproven: "there is no file" and "there is a file I
 // cannot vouch for" are different sentences to put in front of somebody.
 func TestNothingIsFoundWhenNothingIsThere(t *testing.T) {
 	dir := t.TempDir()
@@ -211,9 +199,8 @@ func TestNothingIsFoundWhenNothingIsThere(t *testing.T) {
 	}
 }
 
-// TestALongerFileIsNotJudged. Longer than the download is supposed to be means
-// either somebody else's file or a wrong expected size, and neither is
-// something to act on.
+// Longer than the download is supposed to be means somebody else's file or a
+// wrong expected size, and neither is something to act on.
 func TestALongerFileIsNotJudged(t *testing.T) {
 	dir := t.TempDir()
 	put(t, dir, "movie.mkv", "much more than expected")
@@ -225,9 +212,8 @@ func TestALongerFileIsNotJudged(t *testing.T) {
 	}
 }
 
-// TestANameThatClimbsOutOfTheFolderIsRefused. A task's name arrives from
-// whoever uploaded the file, and this package opens and hashes what it
-// resolves to.
+// A task's name arrives from whoever uploaded the file, and this package opens
+// and hashes what it resolves to.
 func TestANameThatClimbsOutOfTheFolderIsRefused(t *testing.T) {
 	dir := t.TempDir()
 	outside := filepath.Join(filepath.Dir(dir), "secret.txt")
@@ -248,9 +234,8 @@ func TestANameThatClimbsOutOfTheFolderIsRefused(t *testing.T) {
 	}
 }
 
-// TestASumsFileBesideTheDownloadIsConsulted proves the third checksum source
-// actually reaches the decision, since it is the only one that costs a
-// directory read and is therefore the one an optimisation would drop.
+// The third checksum source has to reach the decision: it is the only one that
+// costs a directory read, so it is the one an optimisation would drop.
 func TestASumsFileBesideTheDownloadIsConsulted(t *testing.T) {
 	dir := t.TempDir()
 	const body = "the real film!!!"
@@ -280,9 +265,8 @@ func TestASumsFileBesideTheDownloadIsConsulted(t *testing.T) {
 	}
 }
 
-// TestParseHashReadsBothFormsAndRefusesADisagreement. A label that contradicts
-// its own digest length means one of the two was mistyped, and there is no way
-// to know which.
+// A label that contradicts its own digest length means one of the two was
+// mistyped, with no way to know which.
 func TestParseHashReadsBothFormsAndRefusesADisagreement(t *testing.T) {
 	const md5hex = "0123456789abcdef0123456789abcdef"
 	cases := []struct {
@@ -323,10 +307,9 @@ func TestParseHashReadsBothFormsAndRefusesADisagreement(t *testing.T) {
 	}
 }
 
-// TestOrphansReportsWhatNoTaskClaimsAndTouchesNothing. The reporting is the
-// feature: an orphaned part file is thirty gigabytes somebody either wants
-// back or wants gone, and nothing here can tell which, so deleting it is a
-// button and not a sweep.
+// An orphaned part file is thirty gigabytes somebody either wants back or
+// wants gone, and nothing here can tell which, so deleting it is a button and
+// not a sweep.
 func TestOrphansReportsWhatNoTaskClaimsAndTouchesNothing(t *testing.T) {
 	dir := t.TempDir()
 	put(t, dir, "abandoned.mkv"+PartSuffix, "left behind")
@@ -354,8 +337,8 @@ func TestOrphansReportsWhatNoTaskClaimsAndTouchesNothing(t *testing.T) {
 	}
 }
 
-// TestAnUnknownTrustValueFallsBackToTheDefault. A settings file written by
-// another build must not silently become the most trusting tier.
+// A settings file written by another build must not become the most trusting
+// tier.
 func TestAnUnknownTrustValueFallsBackToTheDefault(t *testing.T) {
 	for _, in := range []string{"", "  ", "everything", "yes"} {
 		if got := ParseTrust(in); got != DefaultTrust {

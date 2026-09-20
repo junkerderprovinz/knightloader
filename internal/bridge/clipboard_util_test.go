@@ -5,9 +5,6 @@ import (
 	"testing"
 )
 
-// TestExtractClipboardLinksFindsLinkLines pins the narrow, line-shaped match:
-// a link on its own line is caught, a link embedded in a sentence is not,
-// blank lines and CRLF are tolerated, and magnet links count too.
 func TestExtractClipboardLinksFindsLinkLines(t *testing.T) {
 	text := "https://host.example/one.bin\r\n" +
 		"\r\n" +
@@ -31,30 +28,20 @@ func TestExtractClipboardLinksFindsLinkLines(t *testing.T) {
 	}
 }
 
-// TestExtractClipboardLinksIgnoresProse guards the whole reason this scanner
-// is narrower than internal/linkscan's: a page or a paragraph copied by
-// accident must not queue every link buried in it with nobody watching.
 func TestExtractClipboardLinksIgnoresProse(t *testing.T) {
 	text := "I was reading an article at https://news.example/story and thought\n" +
 		"you might like it. See also https://news.example/related for more."
 	if got := extractClipboardLinks(text); len(got) != 0 {
-		t.Errorf("got %v, want none — every link here is inside a sentence", got)
+		t.Errorf("got %v, want none; every link here is inside a sentence", got)
 	}
 }
 
-// TestExtractClipboardLinksIgnoresPlainText pins that ordinary copied text
-// (a password, a note, a sentence) produces nothing to forward.
 func TestExtractClipboardLinksIgnoresPlainText(t *testing.T) {
 	if got := extractClipboardLinks("correct horse battery staple"); len(got) != 0 {
 		t.Errorf("got %v, want none", got)
 	}
 }
 
-// TestClipboardRingDeduplicatesAndEvicts pins the ring's two jobs: an
-// already-seen hash is reported seen, and once it holds clipboardRingSize
-// entries the oldest one is forgotten to make room for a new one — the ring
-// is a recency window, not an ever-growing memory of every clipboard the
-// bridge has ever watched.
 func TestClipboardRingDeduplicatesAndEvicts(t *testing.T) {
 	r := newClipboardRing()
 	first := clipboardHash("https://host.example/first")
@@ -66,11 +53,7 @@ func TestClipboardRingDeduplicatesAndEvicts(t *testing.T) {
 		t.Fatal("remember did not make seenBefore report true")
 	}
 
-	// Filling the ring past its capacity with distinct entries must evict the
-	// oldest one, not the one this test cares about keeping fresh. strconv.Itoa
-	// rather than a 26-letter cycle: remember() no-ops on a repeat without
-	// moving it to the front, so cycling through fewer than clipboardRingSize
-	// distinct values would never actually fill the ring at all.
+	// The values have to be distinct, since remember ignores a repeat.
 	for i := 0; i < clipboardRingSize+5; i++ {
 		r.remember(clipboardHash(strconv.Itoa(i)))
 	}
@@ -82,11 +65,6 @@ func TestClipboardRingDeduplicatesAndEvicts(t *testing.T) {
 	}
 }
 
-// TestClipboardHashIsStableAndDistinguishes is a sanity pin, not a test of
-// sha256 itself: the same text must hash the same way twice (or the
-// unchanged-since-last-poll check in WatchClipboard would resubmit every
-// tick), and different text must hash differently (or two different links
-// pasted back to back would collapse into "already seen").
 func TestClipboardHashIsStableAndDistinguishes(t *testing.T) {
 	a1 := clipboardHash("https://host.example/a")
 	a2 := clipboardHash("https://host.example/a")

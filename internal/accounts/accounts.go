@@ -1,18 +1,11 @@
-// Package accounts is an encrypted-at-rest store for premium/debrid
+// Package accounts is an encrypted-at-rest store for premium and debrid
 // credentials. Secrets are sealed with AES-256-GCM under a per-install key
-// kept in the data dir (0600); the store never returns anything but
-// plaintext the caller asked for, and the on-disk file holds only
-// ciphertext.
+// kept in the data dir, and the file on disk holds only ciphertext.
 //
-// What decrypts out of the ciphertext is a JSON Credential - an API key, or a
-// username and password, whichever the service's catalogue entry (see
-// catalogue.go) says it needs. Every secret sealed before Credential existed
-// decrypts to a bare string instead of a JSON object, and is read back as
-// Credential{APIKey: <that string>} forever - see decodeCredential. That is a
-// read-time interpretation applied on every Get/GetCredential, never a
-// one-shot rewrite of accounts.json: a process killed mid-rewrite would leave
-// a file neither format can read, indistinguishable from "never configured",
-// which is worse than the single-string shape it would have replaced.
+// A secret stored before Credential existed decrypts to a bare string and is
+// read back as an API key on every read (see decodeCredential). The file is
+// never migrated in place, because a process killed mid-rewrite would leave
+// it unreadable in either format.
 package accounts
 
 import (
@@ -29,35 +22,26 @@ import (
 	"sync"
 )
 
-// Credential is one stored account's secret. Which fields are populated is
-// decided by the owning service's catalogue Kind (KindAPIKey vs
-// KindUsernamePassword, see catalogue.go) - Store seals and returns whatever
-// it is given and enforces nothing, the same trust it always placed in a bare
-// secret string.
+// Credential is one stored account's secret. The service's catalogue Kind
+// decides which fields are used; Store seals whatever it is given.
 type Credential struct {
 	APIKey   string `json:"apiKey,omitempty"`
 	Username string `json:"username,omitempty"`
 	Password string `json:"password,omitempty"`
 }
 
-// IsZero reports whether c carries no secret at all - the value
-// SetCredential reads as "delete this entry", the same way Set has always
-// treated an empty string.
+// IsZero reports whether c carries no secret at all, which SetCredential
+// treats as a delete.
 func (c Credential) IsZero() bool { return c == Credential{} }
 
-// Redacted is the placeholder Credential.Redacted puts in place of a secret
-// field, and the value WithSecretsFrom reads as "the caller did not retype
-// this". Mirrors reconnect.RedactedPassword: a visible placeholder rather
-// than an empty string, because empty has to keep meaning "clear this field"
-// - otherwise a stored secret could never be removed through a settings
-// form.
+// Redacted is the placeholder shown in place of a stored secret. It is
+// visible text rather than an empty string because empty has to keep meaning
+// "clear this field" in a settings form.
 const Redacted = "********"
 
 // Redacted returns a copy with every populated secret field replaced by the
-// Redacted placeholder, for handing to a browser or writing to a log.
-// Username travels unredacted - the same call reconnect.Config makes for the
-// router username - because it identifies an account without unlocking
-// anything.
+// placeholder. Username stays, since it identifies an account without
+// unlocking it.
 func (c Credential) Redacted() Credential {
 	if c.APIKey != "" {
 		c.APIKey = Redacted
@@ -68,13 +52,10 @@ func (c Credential) Redacted() Credential {
 	return c
 }
 
-// WithSecretsFrom puts back whatever secret field Redacted blanked out,
-// exactly as reconnect.Config.WithSecretsFrom does for the router password. A
-// settings form shown a redacted credential sends the placeholder back
-// unchanged, and without this the save would seal the literal placeholder
-// string in place of the real secret. A field the caller actually changed -
-// including clearing it to "" - passes through untouched, which is how a
-// stored secret gets removed on purpose.
+// WithSecretsFrom restores every field that still holds the placeholder from
+// prev, so saving a form that showed a redacted credential does not seal the
+// placeholder itself. A field cleared to "" passes through and removes the
+// secret.
 func (c Credential) WithSecretsFrom(prev Credential) Credential {
 	if c.APIKey == Redacted {
 		c.APIKey = prev.APIKey
@@ -85,18 +66,10 @@ func (c Credential) WithSecretsFrom(prev Credential) Credential {
 	return c
 }
 
-// decodeCredential interprets a decrypted plaintext blob as a Credential. A
-// value SetCredential wrote is a JSON object and is parsed as one; anything
-// else - including every secret Set wrote before Credential existed - is
-// treated as the whole plaintext being one API key, whatever it looks like.
-//
-// The test is "does it look like a JSON object", not "does json.Unmarshal
-// accept it": a legacy secret that happened to be the literal text "null",
-// "12345" or "true" is also valid JSON, and encoding/json's rule for a bare
-// null is to leave the target untouched rather than error - which would
-// silently turn a real stored secret into an empty Credential on first read.
-// Requiring the leading '{' rules that whole class out before json ever sees
-// it.
+// decodeCredential parses a decrypted blob written by SetCredential, and
+// reads anything else as a single API key written by Set. It checks for a
+// leading '{' rather than trying json.Unmarshal, because an old secret such
+// as "null" is valid JSON and would silently decode to an empty Credential.
 func decodeCredential(plaintext string) Credential {
 	if strings.HasPrefix(strings.TrimSpace(plaintext), "{") {
 		var c Credential
@@ -113,7 +86,7 @@ type Store struct {
 
 	mu   sync.Mutex
 	key  []byte
-	data map[string]string // key -> base64(nonce || ciphertext); see accountKey
+	data map[string]string // accountKey -> base64(nonce || ciphertext)
 }
 
 // Open loads (or initialises) the store rooted at dir.
@@ -156,21 +129,11 @@ func (s *Store) gcm() (cipher.AEAD, error) {
 	return cipher.NewGCM(block)
 }
 
-// accountKey builds the map key under which one account's credential is
-// stored. The default, unnamed account - what every service had before
-// multi-account support, and what Set/Get still address - keeps using the
-// bare service id, so an accounts.json written before this change resolves
-// under the new code exactly as it always did. A named account (a hoster
-// with two premium logins configured) is suffixed behind a NUL.
-//
-// NUL is safe as a separator only because service ids come from one place:
-// the fixed, short identifiers in Catalogue (catalogue.go), never from user
-// input. Account ids may be typed by a person, so any NUL in one is stripped
-// first - otherwise account "x" on service "rapidgator" could in principle be
-// made to collide with the default account of a service literally named
-// "rapidgator\x00x". Nobody can type \x00 through a browser form or a JSON
-// string in practice, but this function's safety does not need to rely on
-// that being true.
+// accountKey builds the map key for one account. The default account keeps
+// the bare service id, so files written before named accounts still resolve;
+// a named account is appended after a NUL. Service ids come only from
+// Catalogue, but account ids may be typed by a person, so a NUL in one is
+// stripped to keep it from colliding with another service's key.
 func accountKey(service, account string) string {
 	account = strings.ReplaceAll(account, "\x00", "")
 	if account == "" {
@@ -179,8 +142,7 @@ func accountKey(service, account string) string {
 	return service + "\x00" + account
 }
 
-// serviceOf recovers the service id from a key accountKey built: everything
-// before the first NUL, or the whole string when there is none.
+// serviceOf returns the service id part of a key built by accountKey.
 func serviceOf(key string) string {
 	if i := strings.IndexByte(key, 0); i >= 0 {
 		return key[:i]
@@ -188,10 +150,8 @@ func serviceOf(key string) string {
 	return key
 }
 
-// Set seals a secret for a service's default account and persists it. An
-// empty secret deletes it. The secret becomes a Credential holding only
-// APIKey; use SetCredential for a service that needs a username and
-// password, or for a second account on the same service.
+// Set seals an API key for a service's default account and persists it. An
+// empty secret deletes it.
 func (s *Store) Set(service, secret string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -202,10 +162,8 @@ func (s *Store) Set(service, secret string) error {
 	return s.sealCredentialLocked(key, Credential{APIKey: secret})
 }
 
-// Get returns the plaintext API key for a service's default account, or ""
-// if none is stored. It is Credential.APIKey off GetCredential(service, "") -
-// kept as its own method because every caller so far has only ever wanted
-// that one field.
+// Get returns the API key for a service's default account, or "" if none is
+// stored.
 func (s *Store) Get(service string) (string, error) {
 	cred, err := s.GetCredential(service, "")
 	if err != nil {
@@ -215,10 +173,8 @@ func (s *Store) Get(service string) (string, error) {
 }
 
 // SetCredential seals a credential for one account of a service and persists
-// it. account distinguishes multiple stored credentials for the same service
-// - pass "" for the single, unnamed account most services have (what Set
-// addresses too), or a caller-chosen id to keep a second account beside the
-// first. A zero Credential (see Credential.IsZero) deletes the entry.
+// it. An empty account is the default account; a zero Credential deletes the
+// entry.
 func (s *Store) SetCredential(service, account string, cred Credential) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -230,9 +186,7 @@ func (s *Store) SetCredential(service, account string, cred Credential) error {
 }
 
 // GetCredential returns the credential stored for one account of a service,
-// or the zero Credential if none is stored. It reads both the JSON object
-// SetCredential writes and the bare secret Set wrote before Credential
-// existed - see decodeCredential.
+// or the zero Credential if none is stored.
 func (s *Store) GetCredential(service, account string) (Credential, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -243,10 +197,8 @@ func (s *Store) GetCredential(service, account string) (Credential, error) {
 	return decodeCredential(plaintext), nil
 }
 
-// AccountIDs lists the non-default account ids stored for a service, sorted.
-// The default account is not included in it - a caller that also supports
-// the default checks GetCredential(service, "") itself, the same as it
-// always has through Get.
+// AccountIDs lists the named (non-default) account ids stored for a service,
+// sorted.
 func (s *Store) AccountIDs(service string) []string {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -261,10 +213,8 @@ func (s *Store) AccountIDs(service string) []string {
 	return out
 }
 
-// Services lists the service ids that have at least one stored credential (no
-// secrets) - the default account, a named one, or both collapse to a single
-// entry, because this answers "is anything configured for X" rather than
-// "how many accounts does X have" (AccountIDs answers that one).
+// Services lists, sorted, the service ids that have at least one stored
+// credential.
 func (s *Store) Services() []string {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -280,8 +230,6 @@ func (s *Store) Services() []string {
 	return out
 }
 
-// sealCredentialLocked JSON-encodes cred, seals it and stores it under key.
-// Caller holds mu.
 func (s *Store) sealCredentialLocked(key string, cred Credential) error {
 	plaintext, err := json.Marshal(cred)
 	if err != nil {
@@ -300,8 +248,8 @@ func (s *Store) sealCredentialLocked(key string, cred Credential) error {
 	return s.flush()
 }
 
-// openLocked decrypts the value stored under key, or "" if nothing is there.
-// Caller holds mu.
+// openLocked decrypts the value stored under key, or returns "" if nothing is
+// there.
 func (s *Store) openLocked(key string) (string, error) {
 	enc, ok := s.data[key]
 	if !ok {
@@ -326,7 +274,6 @@ func (s *Store) openLocked(key string) (string, error) {
 	return string(pt), nil
 }
 
-// deleteLocked removes key and persists the removal. Caller holds mu.
 func (s *Store) deleteLocked(key string) error {
 	delete(s.data, key)
 	return s.flush()

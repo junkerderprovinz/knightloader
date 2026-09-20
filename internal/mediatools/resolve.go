@@ -8,11 +8,10 @@ import (
 	"time"
 )
 
-// Source names where the yt-dlp that is about to run came from. It is a string
-// and not a bool pair because the settings page says the word out loud: "the
-// copy KnightLoader fetched", "KL_YTDLP", "found on PATH", "nowhere". A person
-// looking at a card that says "2026.08.11" needs to know WHICH 2026.08.11 that
-// is before they can act on it.
+// Source names where the yt-dlp that is about to run came from. A string and
+// not a bool pair, because the settings page says the word out loud: "the copy
+// KnightLoader fetched", "KL_YTDLP", "found on PATH", "nowhere". Somebody
+// looking at a card that says "2026.08.11" needs to know which one that is.
 type Source string
 
 const (
@@ -23,64 +22,58 @@ const (
 	SourceEnv Source = "env"
 	// SourcePath is a plain "yt-dlp" found on PATH.
 	SourcePath Source = "path"
-	// SourceNone is none of the three. The path returned alongside it is still
-	// "yt-dlp", because that is what this app has always handed the backend
-	// when it found nothing - the backend's own Available() is what turns that
-	// into "the media resolver is not registered", and this package does not
-	// take that decision away from it.
+	// SourceNone is none of the three. The path returned alongside it is
+	// still "yt-dlp", which is what the backend is handed when nothing was
+	// found: its own Available turns that into "the media resolver is not
+	// registered", and this package leaves that decision to it.
 	SourceNone Source = "none"
 )
 
 // Tool is one external program as it stands on this machine right now.
 //
-// Detail is a fact about THIS machine in English, not a translated sentence:
-// the same convention every Feature.Reason in routes_features.go follows, and
-// for the same reason - it names a path, an errno or a program's own output,
-// none of which survive being turned into a phrase in 42 languages.
+// Detail is a fact about this machine in English, not a translated sentence,
+// the convention every Feature.Reason in routes_features.go follows: it names
+// a path, an errno or a program's own output, none of which survive being
+// turned into a phrase in 42 languages.
 type Tool struct {
 	Found   bool   `json:"found"`
 	Path    string `json:"path,omitempty"`
 	Version string `json:"version,omitempty"`
 	// Source is filled in for yt-dlp only. ffmpeg and ffprobe are whatever is
-	// on PATH and there is nothing to choose between, so a source word on their
-	// rows would be one more thing to read that never varies.
+	// on PATH, with nothing to choose between, so a source word on their rows
+	// would never vary.
 	Source Source `json:"source,omitempty"`
 	Detail string `json:"detail,omitempty"`
 }
 
 // probeTimeout bounds every `--version` spawn in this package.
 //
-// It exists because of a specific failure mode, not as a round number: a binary
-// that is half-written, quarantined mid-scan, or sitting on a network mount
-// that has gone away does not fail to start - it hangs. internal/resolver/ytdlp
-// Backend.Available() had no timeout at all until this change, and it is called
-// from rewireBackends, which runs on every account save and on every sweep
-// tick; one hanging yt-dlp wedged both.
+// A binary that is half-written, quarantined mid-scan or sitting on a network
+// mount that has gone away does not fail to start, it hangs.
+// internal/resolver/ytdlp Backend.Available is called from rewireBackends,
+// which runs on every account save and every sweep tick, so one hanging yt-dlp
+// wedges both.
 const probeTimeout = 10 * time.Second
 
 // ResolveYtdlp answers which yt-dlp will actually be started, in the order the
 // answer is decided.
 //
-// THE MANAGED COPY OUTRANKS KL_YTDLP, and that is a deliberate decision rather
-// than an oversight (jdp, 2026-09-08). The container image pins
-// KL_YTDLP=/usr/bin/yt-dlp on every single install, so the other precedence
-// would make "fetch a newer yt-dlp" a silent no-op on exactly the deployment
-// where the distribution package lagging behind is the problem people hit. It
-// would look like it worked - a 200, a new file on disk, a version in the
-// record - and change nothing about what runs, which is the same shape as the
-// KL_CNL drift the Dockerfile's own comment documents. It is safe for existing
-// installs because no managed copy exists until somebody presses the button, so
-// nothing changes on upgrade; and it is visible and reversible, because the
-// settings card says plainly that KL_YTDLP is not being started and offers
-// "back to the system copy".
+// The managed copy outranks KL_YTDLP. The container image pins
+// KL_YTDLP=/usr/bin/yt-dlp on every install, so the other precedence would
+// make "fetch a newer yt-dlp" a no-op on exactly the deployment where the
+// distribution package lagging behind is the problem: a 200, a new file on
+// disk, a version in the record, and nothing changed about what runs. Nothing
+// changes on upgrade either, because no managed copy exists until somebody
+// presses the button, and the settings card says that KL_YTDLP is not being
+// started and offers "back to the system copy".
 //
-// A RECORDED COPY THAT DOES NOT RUN LOSES. The managed copy only wins when the
-// record exists AND the file exists AND it answers --version with exit 0.
-// Anything else falls through to KL_YTDLP or PATH and says so in detail. That
-// branch is not hypothetical: Windows Defender has a long history of
-// quarantining PyInstaller-built yt-dlp.exe after it has been installed, and an
-// operator who deletes /data/tools by hand must end up with a working yt-dlp
-// again rather than with a dead path in the resolver table.
+// A recorded copy that does not run loses. The managed copy only wins when the
+// record exists, the file exists and it answers --version with exit 0.
+// Anything else falls through to KL_YTDLP or PATH and says so in detail.
+// Windows Defender has a long history of quarantining PyInstaller-built
+// yt-dlp.exe after it is installed, and an operator who deletes /data/tools by
+// hand has to end up with a working yt-dlp rather than a dead path in the
+// resolver table.
 //
 // detail is empty when the first choice won and carries the reason it did not
 // otherwise. It is never a reason to refuse: this function always returns
@@ -112,17 +105,14 @@ func ResolveYtdlp(dataDir string) (path string, source Source, detail string) {
 	if found, err := exec.LookPath("yt-dlp"); err == nil {
 		return found, SourcePath, detail
 	}
-	// The historical fallback, unchanged: hand the backend the bare name and
-	// let its own Available() decide. Returning an error here instead would
-	// change what a machine with no yt-dlp does, which is not what this change
-	// is for.
+	// Hand the backend the bare name and let its own Available decide.
 	return "yt-dlp", SourceNone, detail
 }
 
 // runsAtAll is the cheapest question worth asking about a binary: does the
-// operating system start it and does it exit 0. Output is thrown away - the
-// caller that wants the version string reads it separately, and this one is on
-// the path taken by every rewireBackends.
+// operating system start it and does it exit 0. The output is thrown away,
+// because a caller that wants the version string reads it separately and this
+// runs on the path every rewireBackends takes.
 func runsAtAll(bin string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), probeTimeout)
 	defer cancel()

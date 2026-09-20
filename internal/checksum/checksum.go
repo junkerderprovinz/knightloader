@@ -41,9 +41,9 @@ type Sum struct {
 	Hex  string // lower-case expected digest
 }
 
-// digestKinds maps the length of a hex digest to the hash that produced it. The
-// lengths do not collide, which is what lets one parser read md5sum, sha1sum
-// and sha256sum output without being told which of the three it is looking at.
+// digestKinds maps the length of a hex digest to the hash that produced it.
+// The lengths do not collide, so one parser reads md5sum, sha1sum and
+// sha256sum output alike.
 var digestKinds = map[int]Kind{
 	8:  CRC32,
 	32: MD5,
@@ -51,9 +51,7 @@ var digestKinds = map[int]Kind{
 	64: SHA256,
 }
 
-// bufSize is the streaming read size used while hashing. Verified files are
-// routinely multi-GB, so they are hashed chunk by chunk; reading one into
-// memory is not an option.
+// bufSize is the streaming read size used while hashing multi-GB files.
 const bufSize = 1 << 20
 
 // errIllegalPath marks a sums entry whose name would resolve outside the
@@ -64,12 +62,9 @@ var errIllegalPath = errors.New("checksum: illegal path")
 // line of a sums file.
 const bom = "\ufeff"
 
-// ParseSFV reads a .sfv listing (name + CRC32, ';' comments).
-//
-// A line that is neither a comment nor a well-formed entry is an error rather
-// than a skipped line: dropping it silently would leave that file unverified
-// while the run still reports success, which is the one outcome a checksum
-// pass must never produce.
+// ParseSFV reads a .sfv listing (name and CRC32, ';' comments). A malformed
+// line is an error rather than skipped, since skipping it would leave a file
+// unverified while the run reports success.
 func ParseSFV(r io.Reader) ([]Sum, error) {
 	var out []Sum
 	sc := bufio.NewScanner(r)
@@ -97,8 +92,7 @@ func ParseSFV(r io.Reader) ([]Sum, error) {
 }
 
 // ParseHashFile reads the md5sum/sha1sum/sha256sum format ("<hex>  <name>",
-// one per line). The kind is inferred from the digest length, which is what
-// makes one parser enough for all three.
+// one per line), inferring the kind from the digest length.
 func ParseHashFile(r io.Reader) ([]Sum, error) {
 	var out []Sum
 	sc := bufio.NewScanner(r)
@@ -132,21 +126,14 @@ func ParseHashFile(r io.Reader) ([]Sum, error) {
 	return out, nil
 }
 
-// crcTag matches the CRC32 a release carries in its own file name. Packers
-// disagree on the delimiter and on whether they spell out "CRC", so all the
-// common spellings are accepted; the eight hex digits are what actually
-// identify the tag. Only bracketed forms count, because a bare eight-character
-// hex run inside a release name is far too easy to hit by accident.
+// crcTag matches the CRC32 a release carries in its own file name, in the
+// common delimiter and "CRC" spellings. Only bracketed forms count, since a
+// bare eight-character hex run is too easy to hit by accident.
 var crcTag = regexp.MustCompile(`(?i)[\[({]\s*(?:crc[-_ ]?(?:32)?[-_ ]?)?([0-9a-f]{8})\s*[\])}]`)
 
-// FromName pulls a hash out of a file name, the way release names carry it
-// (e.g. "movie.part1.rar" next to "[ABCD1234]" or "{CRC-ABCD1234}").
-// Returns ok=false when there is nothing to find.
-// looksLikeCRC keeps a bracketed run of eight digits from being read as a
-// checksum. "[20260803]" and "(19991231)" are dates, and treating one as a
-// CRC32 stamps a perfectly intact download as corrupt. A real CRC32 tag
-// essentially always contains at least one of a-f; requiring that costs almost
-// no true positives and removes the entire class of false ones.
+// looksLikeCRC keeps a bracketed run of eight digits such as "[20260803]",
+// which is usually a date, from being read as a checksum and failing an
+// intact download. A real CRC32 tag almost always contains one of a-f.
 func looksLikeCRC(hex string) bool {
 	for i := 0; i < len(hex); i++ {
 		c := hex[i] | 0x20
@@ -157,6 +144,8 @@ func looksLikeCRC(hex string) bool {
 	return false
 }
 
+// FromName pulls a CRC32 tag such as "[ABCD1234]" or "{CRC-ABCD1234}" out of a
+// file name, and returns ok=false when there is none.
 func FromName(name string) (Sum, bool) {
 	m := crcTag.FindAllStringSubmatch(name, -1)
 	if len(m) == 0 {
@@ -191,9 +180,8 @@ type Result struct {
 }
 
 // VerifyDir checks every Sum against files in dir, returning one Result per
-// sum. A missing file is a result with Err set, not a hard failure of the whole
-// run: a half-finished download should report which parts are missing and which
-// of the present ones are already good, instead of stopping at the first gap.
+// sum. A missing file sets Err on its Result rather than stopping the run, so
+// a partial download still reports which parts are good.
 func VerifyDir(dir string, sums []Sum) []Result {
 	out := make([]Result, 0, len(sums))
 	for _, s := range sums {
@@ -250,23 +238,18 @@ func newHash(k Kind) (hash.Hash, error) {
 	return nil, fmt.Errorf("checksum: unknown hash %q", string(k))
 }
 
-// equalHex compares digests case-insensitively: .sfv files are traditionally
-// upper-case, coreutils writes lower-case, and name tags are whatever the
-// packer felt like that day. An empty expectation never matches, so a Sum that
-// was never filled in cannot pass by accident.
+// equalHex compares digests case-insensitively, since .sfv files are usually
+// upper-case and coreutils writes lower-case. An empty expectation never
+// matches.
 func equalHex(got, want string) bool {
 	return want != "" && strings.EqualFold(got, want)
 }
 
-// safePath joins name under dir and refuses anything that climbs out of it. A
-// sums file is attacker-controlled content just like an archive index, so the
-// same class of bug as zip-slip applies: "../../etc/shadow" in a .sfv must not
-// make us open and report on a file outside the download folder.
+// safePath joins name under dir and refuses anything that climbs out of it.
+// A sums file is untrusted content, so this is the zip-slip check for it.
 func safePath(dir, name string) (string, error) {
-	// These files are usually written on Windows, so a nested entry can arrive
-	// with backslashes. Treating them as separators on every platform keeps the
-	// traversal check honest on Linux, where "..\..\x" would otherwise sail
-	// through as an ordinary file name.
+	// Backslashes count as separators everywhere, or "..\..\x" from a
+	// Windows-written file would pass on Linux as a plain name.
 	p := filepath.Join(dir, filepath.FromSlash(strings.ReplaceAll(name, `\`, "/")))
 	rel, err := filepath.Rel(dir, p)
 	if err != nil || rel == "." || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {

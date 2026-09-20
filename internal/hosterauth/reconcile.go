@@ -1,13 +1,10 @@
 package hosterauth
 
-// The reconciler: desired state (what Store holds - what the user typed into
-// KL's own form) versus actual state (what JD's own account list currently
-// says), reconciled by adding what JD is missing and removing what the user
-// deleted here. This is a loop, not a one-shot push at boot, and that is load-
-// bearing rather than a style choice: a recreated or updated JD sidecar comes
-// back with an EMPTY account list, every premium login silently gone, and
-// downloads then quietly fall back to free-user speeds with no visible error
-// anywhere. Run below is what catches that - see its own doc comment.
+// Desired state (what Store holds) against actual state (JD's own account
+// list), reconciled by adding what JD is missing and removing what was deleted
+// here. It runs as a loop because a recreated or updated JD sidecar comes back
+// with an empty account list, and downloads then fall back to free-user speeds
+// without an error anywhere.
 
 import (
 	"context"
@@ -22,56 +19,43 @@ import (
 	jdresolver "github.com/junkerderprovinz/knightloader/internal/resolver/jd"
 )
 
-// LoginStatus is the three-way state one stored login can be in against JD.
-// Kept as three states and not collapsed to a plain ok/fail boolean because
-// two of the failing-looking cases mean opposite things to a user staring at
-// them: "queued" is a login that is about to start working on its own,
-// "rejected" is one that needs a different password. Collapsing them is how a
-// user gives up on a login that was seconds from succeeding.
+// LoginStatus is the state one stored login is in against JD. Queued and
+// rejected stay apart because a queued login is about to start working on its
+// own while a rejected one needs a different password.
 type LoginStatus string
 
 const (
-	// StatusQueued is desired here and either not yet confirmed present on JD,
-	// or present but not yet validated by JD's own account checker.
+	// StatusQueued is desired here and either not yet present on JD, or present
+	// but not yet validated by JD's own account checker.
 	StatusQueued LoginStatus = "queued"
 	// StatusActive is confirmed present and valid on JD.
 	StatusActive LoginStatus = "active"
-	// StatusRejected is present on JD and has stayed invalid past rejectGrace -
-	// see plan's comment for why that grace window exists at all.
+	// StatusRejected is present on JD and has stayed invalid past rejectGrace.
 	StatusRejected LoginStatus = "rejected"
-	// StatusOff is a login the user switched off (jdp, 2026-09-06: "bei den
-	// Hoster logins fehlt der aktiviert toggle"). It is its own status rather
-	// than a flag on top of the other three because a switched-off login is
-	// not in any of them: it is not active, it is not waiting for JD, and it
-	// certainly was not rejected - JD does not have it at all, which is the
-	// whole point of the switch.
+	// StatusOff is a login the user switched off. JD does not have it at all,
+	// so it is none of the other three.
 	StatusOff LoginStatus = "off"
 )
 
-// LoginState is one row the accounts page shows - never the password. It has
-// no field that could carry one, which is what makes "never appears in a
-// snapshot" true by construction rather than by a redaction step somebody
-// could forget to call.
+// LoginState is one row the accounts page shows. It has no field that could
+// carry a password, so a snapshot cannot leak one even where a redaction step
+// is forgotten.
 type LoginState struct {
 	Host     string      `json:"host"`
 	Username string      `json:"username"`
 	Status   LoginStatus `json:"status"`
 	Detail   string      `json:"detail,omitempty"`
-	// Enabled is the user's own switch, kept beside Status rather than folded
-	// into it: Status says what JD currently thinks, Enabled says whether JD
-	// was ever asked. The row needs both to draw a toggle in the right
-	// position AND a truthful status beside it.
+	// Enabled is the user's own switch: Status says what JD thinks, Enabled
+	// says whether JD was ever asked. The row needs both.
 	Enabled bool `json:"enabled"`
 
-	// What JD knows about the account itself, so the hoster card can show the
-	// columns the debrid card already has (jdp, 2026-09-07: "bei beiden Cards
-	// (Debrid, hoster) sollen die spalten gleich sein"). Every one of them is
-	// optional: JD answers -1 or 0 for an account it has nothing to say about,
-	// and that has to reach the page as "nothing said" rather than as a zero.
+	// What JD knows about the account itself. Every field is optional: JD
+	// answers -1 or 0 for an account it has nothing to say about, and that has
+	// to reach the page as "nothing said" rather than as a zero.
 	//
-	// Tier is "premium" or "free", derived from validUntil and trafficMax
-	// because those are the only two things JD reports about a plan - see
-	// jdAccountInfo for the measurement. "" means JD has not answered yet.
+	// Tier is "premium" or "free", derived from validUntil and trafficMax,
+	// the only two things JD reports about a plan. "" means JD has not
+	// answered yet.
 	Tier string `json:"tier,omitempty"`
 	// Expiry is RFC3339, or "" for an account with nothing to expire.
 	Expiry string `json:"expiry,omitempty"`
@@ -80,9 +64,8 @@ type LoginState struct {
 	TrafficMax  int64 `json:"trafficMax,omitempty"`
 }
 
-// DesiredLogin is one row Store wants JD to have - the plain half of a
-// credential this package carries only as far as the one addAccount call it
-// is used for, never returned, logged or stored a second time.
+// DesiredLogin is one row Store wants JD to have. The password travels only as
+// far as the one addAccount call it is used for.
 type DesiredLogin struct {
 	Host     string
 	Username string
@@ -92,29 +75,21 @@ type DesiredLogin struct {
 // rejectGrace is how long a JD account may sit at valid=false before Reconcile
 // reads that as a rejection rather than "still checking". JD validates a
 // freshly added account asynchronously through its own account checker and
-// reports it invalid in the meantime, exactly the same shape as the crawl
-// settle-window internal/resolver/jd/backend.go's AddContainer already waits
-// out before trusting a link-grabber snapshot - applied here to account
-// validation instead of link collection. Long enough that a hoster's own
-// checker queue does not read as a wrong password; short enough that a
-// genuinely wrong password does not sit at "still checking" for long.
+// reports it invalid in the meantime. Long enough that a hoster's checker
+// queue does not read as a wrong password, short enough that a wrong password
+// does not sit at "still checking".
 const rejectGrace = 2 * time.Minute
 
-// reconcileInterval is how often Run re-checks JD without being asked. It is
-// what makes "runs on every JD reconnect, not only at boot" true: nothing
-// here is told when JD comes back after being recreated or updated, so the
-// only honest way to catch that is to keep asking, cheaply, rather than
-// trying to detect the edge and missing an edge case wired around it.
+// reconcileInterval is how often Run re-checks JD without being asked. Nothing
+// here is told when JD comes back after being recreated or updated, so it
+// keeps asking instead of trying to detect that moment.
 const reconcileInterval = 30 * time.Second
 
 var errJDNotConfigured = errors.New("hosterauth: no JD sidecar is configured (KL_JD is unset)")
 
-// curatedHosts is the "add a login" picker's fallback list, offered only
-// while JD is unreachable or none is configured yet - so the picker is not
-// empty on a fresh boot before JD answers. JD's own listPremiumHoster
-// (jdclient.go) is the live, complete, always-current list and wins whenever
-// it answers; this is not meant to be exhaustive, only enough that the page
-// is usable before JD is up.
+// curatedHosts keeps the "add a login" picker usable while JD is unreachable
+// or none is configured yet. JD's own listPremiumHoster is the live list and
+// wins whenever it answers.
 var curatedHosts = []string{
 	"rapidgator.net", "uploaded.net", "nitroflare.com", "turbobit.net",
 	"keep2share.cc", "katfile.com", "ddownload.com", "1fichier.com",
@@ -125,38 +100,35 @@ var curatedHosts = []string{
 type Host struct {
 	ID    string `json:"id"`
 	Label string `json:"label"`
-	// Multihoster marks a service that unlocks OTHER hosts rather than hosting
-	// files itself. Filled in by internal/app from a list kept by hand - see
-	// app_multihoster.go, which explains why the list is not derived from JD.
+	// Multihoster marks a service that unlocks other hosts rather than hosting
+	// files itself. Filled in by internal/app from a list kept by hand, see
+	// app_multihoster.go.
 	//
-	// omitempty: the field is only ever true for a handful of the ~714 hosts,
-	// and an explicit `"multihoster":false` on every other row is noise on a
-	// response that is already long.
+	// omitempty: only a handful of the hosts carry it, and an explicit
+	// `"multihoster":false` on every other row is noise on a long response.
 	Multihoster bool `json:"multihoster,omitempty"`
 }
 
 // Reconciler owns one App's hoster-login state: the desired side (Store) and
-// the last-known actual side (what JD said last reconcile pass).
+// what JD said on the last reconcile pass.
 type Reconciler struct {
 	store  *Store
-	jdBase func() string // read live, not captured once, so a JD address that changes (a recreated container, a KL_JD edit) is picked up without a restart
-	// newJD builds the jdAccounts a reconcile pass talks to. A field rather
-	// than a bare call to newJDClient so a test can inject a fake without
-	// hitting a real JD - see reconcile_test.go.
+	jdBase func() string // read live, so a changed JD address is picked up without a restart
+	// newJD builds the jdAccounts a reconcile pass talks to, as a field so a
+	// test can inject a fake.
 	newJD func(base string) jdAccounts
 	// Enabled answers the user's own on/off switch for one host. nil means
-	// every stored login is on, which is what this package did before the
-	// switch existed and what a caller that does not care still gets.
+	// every stored login is on.
 	//
 	// A function rather than a flag stored here: the switch lives in the app's
 	// own account_meta.json beside every other account's Enabled (see
-	// App.accountEnabled), and a second copy in this package would be a second
-	// thing to keep in step with the first.
+	// App.accountEnabled), and a copy here would be a second thing to keep in
+	// step with it.
 	Enabled func(host string) bool
 
 	mu        sync.Mutex
 	states    map[string]LoginState
-	firstFail map[string]time.Time // host -> when Reconcile first saw it present-but-invalid, for the grace window
+	firstFail map[string]time.Time // host -> when Reconcile first saw it present but invalid
 }
 
 // NewReconciler builds a Reconciler against the app's shared credential store
@@ -172,11 +144,9 @@ func NewReconciler(store *Store, jdBase func() string) *Reconciler {
 }
 
 // Run reconciles once immediately, then on reconcileInterval until ctx is
-// done. The immediate pass is what makes a fresh boot show real state right
-// away instead of the interval's worth of "queued"; the loop after it is what
-// makes a JD container that comes back from being recreated - with its
-// account list wiped - get everything pushed back on its own, without anyone
-// noticing it needed to.
+// done. The first pass gives a fresh boot real state instead of an interval's
+// worth of "queued"; the loop pushes every login back onto a JD container that
+// came back with its account list wiped.
 func (r *Reconciler) Run(ctx context.Context) {
 	r.reconcileAndLog(ctx)
 	t := time.NewTicker(reconcileInterval)
@@ -197,10 +167,7 @@ func (r *Reconciler) reconcileAndLog(ctx context.Context) {
 	}
 }
 
-// Plan is what one reconcile pass decided, returned so a test can assert on
-// it directly without threading a fake JD client through Reconciler's own
-// locking - see plan below, which computes this without touching the network
-// or the store.
+// Plan is what one reconcile pass decided.
 type Plan struct {
 	Add    []DesiredLogin
 	Remove []int64
@@ -208,20 +175,14 @@ type Plan struct {
 }
 
 // plan compares desired against actual and decides what to add, what to
-// remove, and each desired host's three-way status right now. It is the pure
-// half of a reconcile pass - no store read, no HTTP call, no mutation of
-// firstFail - so the add/remove/status decision can be tested against fixed
-// inputs without a fake JD client or a real Store.
+// remove and each desired host's status. It reads no store, makes no HTTP call
+// and mutates nothing, so the decision can be tested against fixed inputs.
 //
-// Matching a desired host to an actual JD account is done on hostname alone,
-// case- and www.-insensitively. This is a documented judgment call, not a
-// verified guarantee: addAccount's premiumHoster argument is resolved through
-// JD's own PluginFinder.assignHost before being stored (see jdclient.go's doc
-// comment), so the exact string this reconciler gets back as an account's
-// Hostname could in principle differ from what curatedHosts or
-// listPremiumHoster handed it for an alias JD's plugin finder folds together.
-// Untested against a real JD, this is the seam most likely to need
-// adjustment first.
+// A desired host is matched to a JD account on hostname alone, case- and
+// www.-insensitively. addAccount's premiumHoster argument is resolved through
+// JD's own PluginFinder.assignHost before being stored (see jdclient.go), so
+// for an alias JD folds together the Hostname coming back can differ from what
+// was sent.
 func plan(desired []DesiredLogin, actual []jdAccount, firstFail map[string]time.Time, now time.Time) Plan {
 	byHost := map[string]jdAccount{}
 	for _, a := range actual {
@@ -243,11 +204,9 @@ func plan(desired []DesiredLogin, actual []jdAccount, firstFail map[string]time.
 			describeAccount(&st, acc.InfoMap)
 			p.States[d.Host] = st
 		default:
-			// JD reports a freshly added account as invalid too, until its own
-			// account checker has had a turn - see rejectGrace's doc comment.
-			// Only a rejection that has held for the full grace window is
-			// reported as one; everything before that reads as still queued,
-			// because it might still turn out to be exactly that.
+			// JD reports a freshly added account as invalid until its own
+			// account checker has had a turn, so only a rejection that held
+			// for the full grace window is reported as one.
 			if first, seen := firstFail[h]; seen && now.Sub(first) > rejectGrace {
 				p.States[d.Host] = LoginState{Host: d.Host, Username: d.Username, Status: StatusRejected,
 					Detail: "JDownloader could not validate this login"}
@@ -267,16 +226,11 @@ func plan(desired []DesiredLogin, actual []jdAccount, firstFail map[string]time.
 }
 
 // desired reads Store into the plain-credential rows plan needs, skipping
-// anything that no longer carries a secret (Store.Remove leaves a zero
-// Credential behind exactly as accounts.Store always has for a cleared one)
-// and anything the user has switched off.
+// anything that no longer carries a secret and anything the user switched off.
 //
-// A switched-off login being absent from `desired` is the whole mechanism, not
-// a shortcut: plan() then sees a JD account nobody wants and puts it in
-// Remove, so JD stops using that hoster within one pass while the credential
-// stays sealed in the store for whenever the switch goes back on. That is
-// exactly what an off switch has to mean for a login that does its work inside
-// somebody else's process.
+// Leaving a switched-off login out is the mechanism: plan then sees a JD
+// account nobody wants and puts it in Remove, so JD stops using that hoster
+// within one pass while the credential stays sealed in the store.
 func (r *Reconciler) desired() []DesiredLogin {
 	var out []DesiredLogin
 	for _, h := range r.store.Hosts() {
@@ -292,8 +246,7 @@ func (r *Reconciler) desired() []DesiredLogin {
 	return out
 }
 
-// enabled is Enabled with its nil case folded in, so no call site has to
-// remember that an unset predicate means "everything is on".
+// enabled is Enabled with its nil case folded in.
 func (r *Reconciler) enabled(host string) bool {
 	if r.Enabled == nil {
 		return true
@@ -304,9 +257,8 @@ func (r *Reconciler) enabled(host string) bool {
 // Reconcile runs one pass: read Store, ask JD, add what is missing, remove
 // what is no longer desired, and update each host's routing priority
 // (internal/resolver/jd.SetHostActive) to match what JD just confirmed. It
-// returns the plan it acted on so a caller (and a test) can see exactly what
-// happened, and errJDNotConfigured when no JD sidecar is set up at all -
-// which Run treats as quiet, not a failure to log on every tick.
+// returns the plan it acted on, and errJDNotConfigured when no JD sidecar is
+// set up, which Run keeps out of the log.
 func (r *Reconciler) Reconcile(ctx context.Context) (Plan, error) {
 	base := strings.TrimSpace(r.jdBase())
 	if base == "" {
@@ -341,15 +293,13 @@ func (r *Reconciler) Reconcile(ctx context.Context) (Plan, error) {
 		jdresolver.SetHostActive(host, st.Status == StatusActive)
 	}
 
-	// The hosts JD has a PLUGIN for, pushed on the same pass and for a related
-	// but different purpose: a host in this list is one JD can fetch from in
-	// free mode - the wait, the countdown, the captcha - and so beats an
-	// anonymous GET even when nobody has a login for it. See
-	// jd.PriorityFor for what that ranking prevents.
+	// The hosts JD has a plugin for, pushed on the same pass for a related
+	// purpose: JD can fetch those in free mode (the wait, the countdown, the
+	// captcha), so they beat an anonymous GET even when nobody has a login for
+	// them. See jd.PriorityFor.
 	//
-	// Failure here is quiet and non-fatal: the accounts half of this pass has
-	// already been applied by the time we get here, and a routing hint that did
-	// not refresh is a worse reason to discard it than to keep the last one.
+	// A failure here is not fatal: the accounts half of the pass is already
+	// applied, and keeping the last routing hints beats discarding them.
 	if hosts, err := jd.listPremiumHosters(ctx); err != nil {
 		log.Printf("hosterauth: could not read JD's hoster list (%v); keeping the last routing hints", err)
 	} else {
@@ -361,17 +311,13 @@ func (r *Reconciler) Reconcile(ctx context.Context) (Plan, error) {
 // describeAccount folds what JD says about an account into the row: the plan,
 // when it runs out, and how much traffic is left.
 //
-// The plan is DERIVED, and this is the whole of the evidence for it. JD reports
-// six fields and none of them is called "premium" - asking for such a key
-// changes nothing in the answer, which was checked. What it does report is
-// validUntil, a real timestamp on a paid account and -1 on a free one, and
-// trafficMax, a quota that only a plan with one carries. Either of those means
-// premium; neither means free. Measured against jdp's own ddownload account,
-// which is free and answers exactly {validUntil:-1, trafficMax:0}.
+// The plan is derived, because JD reports no field called "premium". It does
+// report validUntil, a real timestamp on a paid account and -1 on a free one,
+// and trafficMax, a quota only a plan with one carries. Either means premium,
+// neither means free.
 //
-// Milliseconds, not seconds: JD's API states every timestamp in milliseconds,
-// and reading validUntil as seconds would put a 2027 expiry somewhere in 1970 -
-// which the page would then draw as "expired" on a working account.
+// JD states every timestamp in milliseconds. Reading validUntil as seconds
+// would put a 2027 expiry in 1970 and draw a working account as expired.
 func describeAccount(st *LoginState, info *jdAccountInfo) {
 	if info == nil {
 		return
@@ -387,12 +333,10 @@ func describeAccount(st *LoginState, info *jdAccountInfo) {
 	}
 }
 
-// updateFirstFail keeps firstFail in step with what this pass just saw: a
-// host newly at StatusRejected or still-checking-with-JD-reporting-invalid
-// gets a first-seen timestamp if it does not have one yet; a host that came
-// back active, or is no longer desired at all, has its timestamp cleared, so
-// a login that starts working - or is removed and reconfigured later - does
-// not inherit a stale grace-window clock from a previous failure.
+// updateFirstFail keeps firstFail in step with what this pass saw. A host that
+// JD reports invalid gets a first-seen timestamp; one that came back active or
+// is no longer desired has its timestamp cleared, so a login does not inherit
+// a stale grace-window clock from an earlier failure.
 func updateFirstFail(firstFail map[string]time.Time, p Plan, now time.Time) {
 	seen := map[string]bool{}
 	for host, st := range p.States {
@@ -413,15 +357,10 @@ func updateFirstFail(firstFail map[string]time.Time, p Plan, now time.Time) {
 	}
 }
 
-// States lists every stored login's current status, filling in a login
-// Reconcile has never reported on yet (a fresh save, before the first pass
-// has run) as queued rather than leaving it out - the row exists, so it has
-// to show something, and "queued, waiting for the next check" is what it
-// actually is.
-// A switched-off login is answered from here alone: it is not in `desired`, so
-// no reconcile pass ever writes a state for it, and reading the last state it
-// had before being switched off would show "active" for a login JD has since
-// been told to drop.
+// States lists every stored login's current status, reporting a login no pass
+// has covered yet as queued. A switched-off login is answered from here alone:
+// no pass writes a state for it, and its last state would still read "active"
+// for a login JD has been told to drop.
 func (r *Reconciler) States() []LoginState {
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -445,11 +384,8 @@ func (r *Reconciler) States() []LoginState {
 	return out
 }
 
-// Hosts returns the "add a login" picker's list - JD's own premium-hoster
-// list when JD is reachable, curatedHosts otherwise. Whether the live list or
-// the fallback answered is not exposed here: both are just a list of ids to
-// pick from, and the picker does not need to explain which source they came
-// from to be useful.
+// Hosts returns the "add a login" picker's list: JD's own premium-hoster list
+// when JD is reachable, curatedHosts otherwise.
 func (r *Reconciler) Hosts(ctx context.Context) []Host {
 	if base := strings.TrimSpace(r.jdBase()); base != "" {
 		if list, err := r.newJD(base).listPremiumHosters(ctx); err == nil && len(list) > 0 {
@@ -467,11 +403,9 @@ func (r *Reconciler) Hosts(ctx context.Context) []Host {
 	return out
 }
 
-// SetLogin stores (or updates) one host's login. A password equal to
-// accounts.Redacted is read the same way every other credential form in this
-// app reads it: "the caller did not retype this", so re-saving a row whose
-// password field a browser only ever showed as asterisks does not seal the
-// literal placeholder in place of the real secret.
+// SetLogin stores or updates one host's login. A password equal to
+// accounts.Redacted means the caller did not retype it, so re-saving a row
+// whose password field only ever showed asterisks keeps the stored secret.
 func (r *Reconciler) SetLogin(host, username, password string) error {
 	host = normalizeHost(host)
 	if host == "" {
@@ -486,11 +420,10 @@ func (r *Reconciler) SetLogin(host, username, password string) error {
 }
 
 // RemoveLogin clears host's stored login, its cached status and its routing
-// priority - a login the user deleted here must stop outranking Direct for
-// that host immediately, not wait for the next reconcile pass to notice.
-// JD's own account is dropped by the next Reconcile's plan (host will no
-// longer be in desired), not here directly, so a Reconcile that is mid-flight
-// when this is called cannot race a removal against an add of the same host.
+// priority, so a deleted login stops outranking Direct at once instead of
+// waiting for the next pass. JD's own account is dropped by that next pass,
+// which keeps a Reconcile in flight from racing a removal against an add of
+// the same host.
 func (r *Reconciler) RemoveLogin(host string) error {
 	host = normalizeHost(host)
 	if err := r.store.Remove(host); err != nil {

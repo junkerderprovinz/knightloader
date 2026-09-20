@@ -7,17 +7,15 @@
 // arrive, and the box spends a week of line time fetching what is on the disk
 // beside it.
 //
-// IT DECIDES AND IT NEVER ACTS. Nothing here writes, moves or removes a file,
-// and nothing here settles a task: the caller does both. The split is not
-// tidiness, it is the risk profile. The cheapest wrong answer this package can
-// give is one download too many; the most expensive one anybody could build on
-// top of it is a deleted file, so the deleting is kept somewhere a person has
-// to press it.
+// It decides and never acts. Nothing here writes, moves or removes a file, and
+// nothing here settles a task: the caller does both. The cheapest wrong answer
+// this package can give is one download too many, while the most expensive one
+// anybody could build on top of it is a deleted file, so the deleting stays
+// somewhere a person has to press it.
 //
-// The verdicts are deliberately more than "yes" and "no". "The right length,
-// and nothing to check it against" is a real answer and rounding it to either
-// of the other two is how a feature like this either does nothing at all or
-// quietly keeps rubbish.
+// The verdicts are more than "yes" and "no". "The right length, and nothing to
+// check it against" is a real answer, and rounding it to either of the others
+// is how a feature like this ends up doing nothing at all or keeping rubbish.
 package reclaim
 
 import (
@@ -32,53 +30,49 @@ import (
 // PartSuffix marks a transfer that is still arriving.
 //
 // It is internal/resolver/remotefs's own partSuffix, spelled again here
-// because that constant is unexported and that package is the one WRITING
-// these files while this one only reads them. The two must stay equal: if
-// remotefs ever renames its scratch suffix, a part file stops being
-// recognised here and starts being reported as an orphan of a task that is
-// running right now.
+// because that constant is unexported and that package writes these files
+// while this one only reads them. The two have to stay equal: if remotefs
+// renames its scratch suffix, a part file stops being recognised here and is
+// reported as an orphan of a task that is running right now.
 const PartSuffix = ".klpart"
 
 // Trust is how much this app is allowed to believe about a file it did not
 // watch arrive, and it is the whole of the answer to "what counts as
 // matching".
 //
-// THE CHEAP TEST AND THE HONEST TEST DO DIFFERENT JOBS, so they are not two
+// The cheap test and the thorough one do different jobs, so they are not two
 // settings of one dial:
 //
-//   - Size is free and it is used on every candidate no matter what is
-//     selected here, but only ever to DISQUALIFY or to measure. A file shorter
-//     than the expected length is not the download, it is the start of one, and
-//     its length is an honest offset. That costs one stat.
-//   - A checksum is the only thing that can CONFIRM, and it is paid for exactly
-//     once per candidate, only on a file the cheap test has already narrowed to
-//     the right length. Hashing forty gigabytes to save a forty gigabyte
-//     download always pays; hashing them to discover the file is four gigabytes
-//     short never does, which is why the order is fixed and not configurable.
+//   - Size is free and is used on every candidate whatever is selected here,
+//     but only to disqualify or to measure. A file shorter than the expected
+//     length is the start of the download and its length is a true offset.
+//     That costs one stat.
+//   - A checksum is the only thing that can confirm, and it is paid for once
+//     per candidate, on a file the cheap test has already narrowed to the
+//     right length. Hashing forty gigabytes to save a forty gigabyte download
+//     pays; hashing them to discover the file is four gigabytes short does
+//     not, which is why the order is fixed.
 //
-// The reason size is not allowed to confirm on its own by default is not
-// theoretical, it is this build. The embedded engine's download library
-// creates its destination file at the FULL final size before the first byte
-// arrives (gopeed v1.9.3, internal/controller's Touch: os.Create followed by
-// os.Truncate(name, size)). So an engine download that died at two per cent
-// leaves a file at the final name with exactly the expected byte count, and
-// "name plus size" cannot tell it apart from the finished article. On this
-// build, right length and wrong content is not the exotic case, it is what
-// every interrupted download looks like.
+// Size does not confirm on its own by default because the embedded engine's
+// download library creates its destination file at the full final size before
+// the first byte arrives (gopeed v1.9.3, internal/controller's Touch:
+// os.Create followed by os.Truncate(name, size)). An engine download that died
+// at two per cent leaves a file at the final name with exactly the expected
+// byte count, so on this build right length with wrong content is what every
+// interrupted download looks like.
 type Trust string
 
 const (
-	// TrustChecksum settles a task only on a checksum that was actually
-	// verified. Everything else is reported and left alone. It is the honest
-	// answer and it is also the one that does nothing for the majority of
-	// downloads, because most files arrive with no published hash at all.
+	// TrustChecksum settles a task only on a checksum that was verified.
+	// Everything else is reported and left alone, which does nothing for the
+	// majority of downloads, because most files arrive with no published
+	// hash.
 	TrustChecksum Trust = "checksum"
-	// TrustRecord adds this instance's OWN record of what it finished: the
-	// download history, which survives the list being cleared, trimmed or
-	// emptied precisely so a question like this one can still be answered. A
-	// history row is not proof about the bytes, it is a note this app wrote
-	// itself at the moment the last byte landed, which is a great deal more
-	// than a coincidence of length.
+	// TrustRecord adds this instance's own record of what it finished: the
+	// download history, which survives the list being cleared or trimmed so a
+	// question like this one can still be answered. A history row is not
+	// proof about the bytes, it is a note this app wrote at the moment the
+	// last byte landed, which is more than a coincidence of length.
 	TrustRecord Trust = "record"
 	// TrustSize adds bare name plus length, for somebody who knows what is in
 	// their folder and is prepared to say so. See the type comment for the
@@ -88,13 +82,11 @@ const (
 
 // DefaultTrust is the record tier.
 //
-// TrustChecksum would be the timid answer and it would make the feature a
-// no-op for anyone whose hosters do not publish hashes, which is most of them.
-// TrustSize would be the eager one and on this build it is wrong often enough
-// to matter. The history is the tier that actually fits the three situations
-// this package was built for: a moved box, a restored backup and an emptied
-// list all carry the database, and the database is where the record of what
-// was finished lives.
+// TrustChecksum would make the feature a no-op for anyone whose hosters do not
+// publish hashes, which is most of them, and TrustSize is wrong often enough
+// on this build to matter. The history fits the three situations this package
+// was built for: a moved box, a restored backup and an emptied list all carry
+// the database, and the database holds the record of what was finished.
 const DefaultTrust = TrustRecord
 
 // Modes lists the tiers in the order an interface should offer them, strictest
@@ -105,13 +97,11 @@ func Modes() []Trust { return []Trust{TrustChecksum, TrustRecord, TrustSize} }
 // ParseTrust reads a stored value as one of the tiers.
 //
 // An unrecognised value folds onto DefaultTrust rather than onto the strictest
-// tier, which is the opposite of what settings.ParseResumeOnStart does with a
-// value it does not know, and the difference is deliberate. That one decides
-// whether downloads start by themselves after a reboot, so an unknown value
-// must never be read as "start". Nothing here starts, deletes or overwrites
-// anything on its own: the pass only runs when somebody asks for it, and the
-// cost of guessing wrong is one download too many or one row that has to be
-// restarted by hand.
+// tier, unlike settings.ParseResumeOnStart, which decides whether downloads
+// start by themselves after a reboot and must not read an unknown value as
+// "start". Nothing here starts, deletes or overwrites anything: the pass runs
+// when somebody asks for it, and guessing wrong costs one download too many or
+// one row restarted by hand.
 func ParseTrust(s string) Trust {
 	switch t := Trust(strings.ToLower(strings.TrimSpace(s))); t {
 	case TrustChecksum, TrustRecord, TrustSize:
@@ -127,10 +117,10 @@ const (
 	// Absent is nothing at that name and no part file either. The ordinary
 	// answer, and the one that means "download it, the way you were going to".
 	Absent Verdict = "absent"
-	// Partial is a beginning: a part file, or a file shorter than the expected
-	// length. Whether it can actually be continued is the backend's business
-	// and not this package's, but the number is real either way and a task
-	// carrying a true byte count is a task whose progress bar is not lying.
+	// Partial is a beginning: a part file, or a file shorter than the
+	// expected length. Whether it can be continued is the backend's business,
+	// but the number is real either way and a task carrying a true byte count
+	// has a progress bar that is not lying.
 	Partial Verdict = "partial"
 	// Complete is the file, and the reason to believe so is in Basis.
 	Complete Verdict = "complete"
@@ -140,8 +130,8 @@ const (
 	// needed than a row that says "done" over a file that will not open.
 	Mismatch Verdict = "mismatch"
 	// Unproven is a full-length file with nothing to check it against, or
-	// anything else this pass cannot honestly call. It is not a failure and it
-	// is not a match; it is the answer being reported instead of guessed.
+	// anything else this pass cannot call. Neither a failure nor a match: the
+	// answer is reported instead of guessed.
 	Unproven Verdict = "unproven"
 	// Recheck is a torrent. See scanTorrent for why a torrent gets a verdict of
 	// its own instead of being measured like a file.
@@ -159,10 +149,10 @@ const (
 	BasisSize     Basis = "size"
 )
 
-// Request is one task as the scan takes it. It is deliberately not a
-// core.Task: this package decides about a file, and everything about a task
-// that is not the file's name, its expected length and where it goes would
-// only be another thing to keep in step.
+// Request is one task as the scan takes it, and not a core.Task: this package
+// decides about a file, and everything on a task that is not the file's name,
+// its expected length and where it goes would be another thing to keep in
+// step.
 type Request struct {
 	TaskID string
 	// Dir is the folder this task downloads into, already expanded.
@@ -191,8 +181,8 @@ type Finding struct {
 	// a Partial. Zero for Absent.
 	Bytes int64 `json:"bytes"`
 	// Detail is the sentence to put in front of a person. Every verdict
-	// carries one, including the boring ones, because a report that explains
-	// only its exceptions is a report nobody believes about the rest.
+	// carries one, the ordinary ones included, because a report that explains
+	// only its exceptions is not believed about the rest.
 	Detail string `json:"detail"`
 }
 
@@ -212,23 +202,20 @@ type Options struct {
 	Finished func(name string, size int64) bool
 }
 
-// Scan answers one request. It is the whole of this package's decision.
-//
-// The order below is the design and not an accident of writing:
+// Scan answers one request, and the order matters:
 //
 //  1. A torrent leaves immediately, because none of what follows applies to
 //     one.
 //  2. The part file, before anything else, because it is the only evidence
 //     here that cannot be a coincidence: this app writes one while a transfer
-//     is running and removes it when the transfer finishes, so its presence is
-//     a statement by this app about this exact destination. Whatever sits at
-//     the final name beside it is an older file, and the honest answer is the
-//     beginning that was left, even in the awkward case where the older file
-//     would have verified. That costs at most one download; the other reading
-//     costs somebody the bytes they had.
+//     runs and removes it when the transfer finishes, so its presence is a
+//     statement about this exact destination. Whatever sits at the final name
+//     beside it is an older file, and the answer is the beginning that was
+//     left, even where the older file would have verified. That costs at most
+//     one download, while the other reading costs somebody the bytes they had.
 //  3. Length, which disqualifies and measures but never confirms.
-//  4. A checksum, which is the only thing that confirms, and the only thing
-//     that can refuse.
+//  4. A checksum, the only thing that confirms and the only thing that can
+//     refuse.
 //  5. The trust tiers, for the full-length file no checksum can speak for.
 func (o Options) Scan(r Request) Finding {
 	if r.Torrent {
@@ -337,16 +324,15 @@ func (o Options) Scan(r Request) Finding {
 // re-checks the constituent files' lengths before it believes it (anacrolix,
 // storage/file-piece.go's checkCompleteFileSizes).
 //
-// What that cannot survive is losing the record, and that is worth writing
-// down because it is the case this whole package was built for. gopeed v1.9.3
-// never sets torrent.ClientConfig.DataDir, so the completion record is a bolt
-// file called ".torrent.bolt.db" in the PROCESS WORKING DIRECTORY rather than
-// anywhere near the data or the app's own data directory. Carry the downloads
-// folder to a new box without it and every piece reads as missing. The cure is
-// anacrolix's Torrent.VerifyData, and it is not reachable: gopeed keeps the
-// torrent handle on an unexported field of an internal package. So this
-// reports the torrent and says what it cannot answer, instead of guessing from
-// file lengths that would say yes to an empty download.
+// What that cannot survive is losing the record. gopeed v1.9.3 never sets
+// torrent.ClientConfig.DataDir, so the completion record is a bolt file called
+// ".torrent.bolt.db" in the process working directory rather than near the
+// data or the app's own data directory. Carry the downloads folder to a new
+// box without it and every piece reads as missing. The cure is anacrolix's
+// Torrent.VerifyData, which is out of reach, because gopeed keeps the torrent
+// handle on an unexported field of an internal package. So this reports the
+// torrent and says what it cannot answer, rather than guessing from file
+// lengths that would say yes to an empty download.
 func (o Options) scanTorrent(r Request) Finding {
 	return Finding{
 		TaskID:  r.TaskID,
@@ -374,10 +360,9 @@ func (o Options) sumFor(r Request) (checksum.Sum, bool) {
 }
 
 // hashKinds maps the length of a bare hex digest to the hash that produced it.
-// internal/checksum keeps the identical four lengths in its own unexported
-// table. This is a second copy on purpose rather than a widening of that
-// package: the lengths are a fact about MD5, SHA-1, SHA-256 and CRC32, not
-// about either package, and none of the four is going to grow a fifth one.
+// internal/checksum keeps the same four lengths in its own unexported table,
+// and this is a second copy rather than a widening of that package: the
+// lengths are a fact about MD5, SHA-1, SHA-256 and CRC32.
 var hashKinds = map[int]checksum.Kind{
 	8:  checksum.CRC32,
 	32: checksum.MD5,
@@ -389,10 +374,10 @@ var hashKinds = map[int]checksum.Kind{
 // or bare "<hex>" form.
 //
 // A label that disagrees with its own digest length is refused rather than
-// resolved in favour of one half. Both halves were typed by the same person or
-// produced by the same script, so one of them being wrong says the value
-// cannot be trusted at all, and checking a download against a hash nobody
-// actually wrote is worse than checking it against nothing.
+// resolved in favour of one half. Both halves came from the same person or the
+// same script, so one being wrong means the value cannot be trusted, and
+// checking a download against a hash nobody wrote is worse than checking it
+// against nothing.
 func ParseHash(name, raw string) (checksum.Sum, bool) {
 	s := strings.TrimSpace(raw)
 	if s == "" {
@@ -426,15 +411,11 @@ type Orphan struct {
 // Orphans lists the part files in dir that belong to no task, given the set of
 // part-file paths the live list accounts for.
 //
-// IT REPORTS AND IT DELETES NOTHING, and that is the whole answer to "what
-// about half a part file with no task behind it". An orphan is evidence: it is
-// what is left of a download whose row was cleared, and it is thirty
-// gigabytes somebody either wants back or wants gone, with nothing here able
-// to tell which. Removing a row and deleting what was downloaded have been two
-// different actions in this app since the day conflating them cost somebody
-// their finished downloads, and an unattended sweep of somebody's download
-// folder is that same mistake with a wider blast radius. So the pass counts
-// them, names them and hands the list over.
+// It reports and deletes nothing. An orphan is what is left of a download
+// whose row was cleared, thirty gigabytes somebody either wants back or wants
+// gone, and nothing here can tell which. Removing a row and deleting what was
+// downloaded are two different actions in this app, so the pass counts the
+// orphans, names them and hands the list over.
 //
 // One folder, not a walk. The caller knows every folder its tasks download
 // into and passes them one at a time; walking from the download root would

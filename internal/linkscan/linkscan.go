@@ -6,11 +6,9 @@
 // a link in a sentence, a chat client lets several links share one line, and
 // a mail client hard-wraps a long one across two. Extract handles all three,
 // plus the case a scheme-anchored scan cannot see at all: a bare "host/path"
-// with no http(s):// in front of it. That fallback mirrors JDownloader's own
-// last resort - its AddLinksDialog retries the whole pasted text with
-// "http://" glued on the front when a first pass finds nothing - verified
-// against JDownloader's own source (AddLinksDialog.asyncAnalyse) rather than
-// assumed.
+// with no http(s):// in front of it. That fallback follows JDownloader's own
+// last resort, which retries the pasted text with "http://" glued on the
+// front when a first pass finds nothing (AddLinksDialog.asyncAnalyse).
 package linkscan
 
 import (
@@ -20,47 +18,39 @@ import (
 )
 
 // byteOrderMark leads every text file Windows writes. Left in place it fuses
-// with the first link and makes exactly one link per paste fail - the kind
-// of bug that gets blamed on the site rather than on the leading three bytes
-// nobody can see. Built from its code point rather than typed as a literal:
-// a literal zero-width character sitting in a .go file is invisible in a
-// diff and indistinguishable from an editor mistake.
+// with the first link and makes one link per paste fail. Built from its code
+// point rather than typed as a literal, which would be invisible in a diff.
 var byteOrderMark = string(rune(0xFEFF))
 
-// schemes are the entrances this app can act on, earliest-match-wins order
-// does not depend on this slice's order since nextScheme checks all three.
-// ftp is deliberately absent: every resolver under internal/resolver refuses
-// it already, so finding one here would only stage a task certain to fail at
-// resolve time with a worse, later error than simply never finding it.
+// schemes are the entrances this app can act on. The slice's order does not
+// matter, since nextScheme checks all three and the earliest match wins. ftp
+// is absent because every resolver under internal/resolver refuses it, so
+// finding one here would only stage a task that fails later with a worse
+// error.
 var schemes = []string{"https://", "http://", "magnet:?"}
 
-// bareHost matches a line that IS a domain and an optional path and nothing
-// else: the fallback for a paste that named a host with no scheme at all.
+// bareHost matches a line that is a domain and an optional path and nothing
+// else, the fallback for a paste that named a host with no scheme.
 //
-// The final label must be alphabetic. A numeric one is far more often a
-// version string ("2.0.1") than a host, and requiring letters there rejects
-// it for free. The trade is a known, accepted one: "update.zip" reads as a
-// host named "update" under the real ".zip" gTLD, indistinguishable from a
-// bare filename by spelling alone - JD's own last-resort retry has exactly
-// the same blind spot, and nothing short of asking the user closes it.
+// The final label must be alphabetic, because a numeric one is more often a
+// version string ("2.0.1") than a host. The accepted cost is that
+// "update.zip" reads as a host under the real ".zip" gTLD, which spelling
+// alone cannot tell from a filename.
 var bareHost = regexp.MustCompile(`(?i)^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,24}(?::[0-9]{1,5})?(?:/\S*)?$`)
 
-// maxJoin bounds how long a rejoined line may grow. No legitimate URL runs
-// anywhere near this; the cap exists so that a paste built entirely of many
-// short "continuing" lines cannot turn the rejoin step itself into the slow
-// part of handling it.
+// maxJoin bounds how long a rejoined line may grow, so a paste built of many
+// short continuing lines cannot make the rejoin the slow part. No legitimate
+// URL runs anywhere near it.
 const maxJoin = 4096
 
 // Extract scans blob for links, in first-seen order, none repeated.
 //
 // It runs two passes per logical line: a scheme-anchored scan first, because
 // a token found that way is unambiguous, and only when that finds nothing is
-// the whole line tried against bareHost. Mixing the two scopes this way -
-// scanning for a scheme mid-prose, but only trying a bare host against a
-// WHOLE line - is deliberate: a bare domain floating inside a sentence
-// ("visit example.org for details") is exactly the false-positive case a
-// download manager cannot afford, while a line that is nothing BUT a domain
-// is what "fall back to line-splitting" means.
+// the whole line tried against bareHost. The scopes differ on purpose. A
+// scheme is looked for mid-prose, a bare host only against a whole line,
+// because a domain floating inside a sentence ("visit example.org for
+// details") is the false positive a download manager cannot afford.
 func Extract(blob string) []string {
 	blob = strings.TrimPrefix(blob, byteOrderMark)
 
@@ -91,21 +81,18 @@ func Extract(blob string) []string {
 // logicalLines splits blob on real line breaks, then rejoins a break a mail
 // client inserted mid-URL back into the line it broke.
 //
-// Quoted-printable's own soft break (a trailing "=" right before the
-// newline, RFC 2045) is undone unconditionally first, on the reasoning that
-// a genuine soft break is far more common than a URL whose own query string
-// happens to end a display line on a base64 padding "=" - the one case this
-// costs a trailing character from, and only when a paste breaks a line at
-// exactly that byte. What is left after that is heuristic on purpose - a
-// wrapped URL carries no marker saying so. The rule kept is the narrowest
-// one that still catches
-// the common case: the previous line already contains a recognised scheme
-// AND ends, with no trailing whitespace, in a character a URL can contain,
-// AND the next line starts, with no leading whitespace, in one too. Prose
-// that happens to end a line with a URL and then starts a new sentence flush
-// left with another URL-shaped word is the one case this still joins
-// wrongly; it is rare enough to accept against the alternative of a wrapped
-// link that silently only half-extracts.
+// Quoted-printable's soft break (a trailing "=" before the newline, RFC 2045)
+// is undone first and unconditionally: a genuine soft break is far more
+// common than a URL whose query string ends a display line on a base64
+// padding "=", which is the only case this costs a character.
+//
+// The rest is heuristic, because a wrapped URL carries no marker saying so.
+// The rule kept is the narrowest that still catches the common case: the
+// previous line contains a recognised scheme and ends, with no trailing
+// whitespace, in a character a URL can contain, and the next line starts,
+// with no leading whitespace, in one too. Prose that ends a line with a URL
+// and starts the next flush left with a URL-shaped word is still joined
+// wrongly, which is rarer than a wrapped link that half-extracts.
 func logicalLines(blob string) []string {
 	blob = strings.ReplaceAll(blob, "=\r\n", "")
 	blob = strings.ReplaceAll(blob, "=\n", "")
@@ -129,10 +116,9 @@ func continuesURL(prev, next string) bool {
 	if prev == "" || next == "" || !containsScheme(prev) {
 		return false
 	}
-	// A line that starts a scheme of its own is a new link, never a
-	// continuation of the one above - without this, two ordinary URLs
-	// pasted one per line would fuse into one the moment the first happened
-	// to end in a lower-case character, which is nearly always.
+	// A line that starts a scheme of its own is a new link. Without this,
+	// two URLs pasted one per line fuse as soon as the first ends in a
+	// lower-case character, which is nearly always.
 	if _, ok := startsScheme(next); ok {
 		return false
 	}
@@ -153,16 +139,13 @@ func startsScheme(s string) (string, bool) {
 	return "", false
 }
 
-// continuationStart is stricter than isURLChar: it is the set a wrapped
-// URL's path or query plausibly resumes with, deliberately minus capital
-// ASCII letters. A URL's own path is conventionally lower-case, digits and
-// symbols, while prose in virtually every Latin-script language capitalises
-// the first letter of a new sentence - so requiring lower-case here is what
-// stops an email's own closing line ("Thanks!", "Best regards,") sitting
-// flush against a wrapped link above it from being read as more of that
-// link. The cost is the rare wrap that genuinely breaks right before an
-// upper-case path segment, which is accepted rather than chased: nothing
-// short of understanding the sentence can tell the two apart for certain.
+// continuationStart is stricter than isURLChar: the set a wrapped URL's path
+// or query plausibly resumes with, minus capital ASCII letters. A path is
+// conventionally lower-case, digits and symbols, while Latin-script prose
+// capitalises the first letter of a sentence, so requiring lower-case stops
+// an email's closing line ("Thanks!", "Best regards,") from being read as
+// more of the link above it. The cost is a wrap that breaks right before an
+// upper-case path segment.
 func continuationStart(r rune) bool {
 	if r >= 'A' && r <= 'Z' {
 		return false
@@ -243,8 +226,8 @@ func isURLChar(r rune) bool {
 	case r >= 'a' && r <= 'z', r >= 'A' && r <= 'Z', r >= '0' && r <= '9':
 		return true
 	case r > 127:
-		// Generous on purpose: an IRI pasted in its own script must not be
-		// truncated mid-character just because this app's schemes are ASCII.
+		// An IRI pasted in its own script must not be truncated
+		// mid-character because this app's schemes are ASCII.
 		return true
 	}
 	switch r {
@@ -265,14 +248,13 @@ var brackets = []bracketPair{{'(', ')'}, {'[', ']'}, {'{', '}'}}
 
 // trimToken strips what prose wrapped around a link and leaves what is
 // balanced alone: a Wikipedia URL ending "_(disambiguation)" keeps its
-// closing paren, because the token also holds the opening one, while
-// "(see https://example.org/page)" loses its, because the token does not -
-// the scan started at "https", after the site's own opening paren.
+// closing paren because the token holds the opening one too, while
+// "(see https://example.org/page)" loses its, since the scan started at
+// "https", after the site's opening paren.
 //
-// Bracket counts are taken once, up front, and only ever decremented while
-// stripping: recomputing strings.Count on every character considered would
-// make a token with a long run of trailing brackets cost time quadratic in
-// that run's length for no reason.
+// Bracket counts are taken once and only decremented while stripping.
+// Recomputing strings.Count per character would cost time quadratic in the
+// length of a long run of trailing brackets.
 func trimToken(tok string) string {
 	counts := make([]int, len(brackets)*2)
 	for i, b := range brackets {

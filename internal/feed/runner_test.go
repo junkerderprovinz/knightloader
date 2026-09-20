@@ -11,9 +11,8 @@ import (
 	"time"
 )
 
-// Nothing in this file reaches the network. Every feed is served by an
-// httptest server the test owns, so a failure here is a failure of this code
-// and never of somebody's connection.
+// Every feed in these tests is served by an httptest server; nothing reaches
+// the network.
 
 // server is a feed whose document the test can swap between polls.
 type server struct {
@@ -23,8 +22,7 @@ type server struct {
 	items  []string
 	status int
 	hits   int
-	// enter and release let a test hold a poll open, which is how "Close waits
-	// for a poll in flight" is checked rather than assumed.
+	// enter and release let a test hold a poll open.
 	enter   chan struct{}
 	release chan struct{}
 }
@@ -45,8 +43,7 @@ func newServer(t *testing.T, items ...string) *server {
 			select {
 			case <-release:
 			case <-r.Context().Done():
-				// The client gave up, which is exactly what a cancelled app context
-				// does to a fetch. Answering nothing is the honest thing here.
+				// The client gave up, as a cancelled app context makes it.
 				return
 			}
 		}
@@ -61,8 +58,7 @@ func newServer(t *testing.T, items ...string) *server {
 	return s
 }
 
-// item builds one RSS entry with a stable guid, so the identity under test is
-// the feed's own identifier and not an accident of the address.
+// item builds one RSS entry with a stable guid.
 func item(n int, title string) string {
 	return fmt.Sprintf(`<item><title>%s</title><link>https://example.invalid/e/%d</link><guid>kf-%04d</guid></item>`, title, n, n)
 }
@@ -75,7 +71,7 @@ func (s *server) document() string {
 func (s *server) publish(entries ...string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	// Newest first, the order every real feed serves.
+	// Newest first, as real feeds serve them.
 	s.items = append(entries, s.items...)
 }
 
@@ -91,9 +87,8 @@ func (s *server) requests() int {
 	return s.hits
 }
 
-// memState is a State with no disk behind it. It is what makes a restart
-// testable: the same value is handed to a second Runner, which is exactly what
-// the store does across a process boundary.
+// memState is an in-memory State. Handing it to a second Runner stands in
+// for a restart.
 type memState struct {
 	mu  sync.Mutex
 	doc map[string][]string
@@ -121,8 +116,7 @@ func (m *memState) count(url string) int {
 	return len(m.doc[url])
 }
 
-// sink collects the jobs a runner hands over. OnJob runs on a polling
-// goroutine, so the slice needs a lock.
+// sink collects handed-over jobs; OnJob runs on a polling goroutine.
 type sink struct {
 	mu   sync.Mutex
 	jobs []Job
@@ -134,8 +128,7 @@ func (s *sink) add(j Job) {
 	s.jobs = append(s.jobs, j)
 }
 
-// take returns what has arrived and empties the sink, so each step of a test
-// asserts on that step alone.
+// take returns what has arrived and empties the sink.
 func (s *sink) take() []Job {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -144,10 +137,8 @@ func (s *sink) take() []Job {
 	return out
 }
 
-// pollAll drives every live subscription once, with no goroutine running. Apply
-// does not start a poller unless the runner has been started, so a test that
-// never calls Start owns the polling and can assert on exact counts without
-// waiting on a clock.
+// pollAll polls every subscription once on the test goroutine. Pollers only
+// run on their own after Start, so tests that skip Start control every poll.
 func pollAll(r *Runner) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -156,8 +147,6 @@ func pollAll(r *Runner) {
 	}
 }
 
-// build wires a runner over one subscription against one server. The interval
-// is left at the default because nothing here waits for it.
 func build(t *testing.T, srv *server, st State, sub Subscription) (*Runner, *sink) {
 	t.Helper()
 	rec := &sink{}
@@ -185,10 +174,6 @@ func titles(jobs []Job) []string {
 	return out
 }
 
-// TestTheFirstPollStagesNothing is the first-run rule. A subscription pointed at
-// an active feed is handed that publisher's whole current window in its very
-// first response, and staging it would fill the collector with a back catalogue
-// the moment somebody pastes an address.
 func TestTheFirstPollStagesNothing(t *testing.T) {
 	srv := newServer(t, item(3, "Folge 3"), item(2, "Folge 2"), item(1, "Folge 1"))
 	st := newState()
@@ -198,17 +183,12 @@ func TestTheFirstPollStagesNothing(t *testing.T) {
 	if got := rec.take(); len(got) != 0 {
 		t.Fatalf("a brand new subscription staged %v", titles(got))
 	}
-	// Nothing was staged, but everything was written down, or the next poll would
-	// stage the same window after all.
+	// Nothing staged, but everything remembered.
 	if n := st.count(srv.URL); n != 3 {
 		t.Fatalf("the first poll remembered %d entries, want 3", n)
 	}
 }
 
-// TestTheSameEntryIsStagedOnceAndOnlyOnce is the one this whole package is
-// built around. An entry stays in a feed's document for weeks, so every poll
-// sees it again, and a second staging is a second download of a file the user
-// already has.
 func TestTheSameEntryIsStagedOnceAndOnlyOnce(t *testing.T) {
 	srv := newServer(t, item(1, "Folge 1"))
 	st := newState()
@@ -224,23 +204,16 @@ func TestTheSameEntryIsStagedOnceAndOnlyOnce(t *testing.T) {
 		t.Fatalf("the new entry was not staged: %v", titles(got))
 	}
 
-	// The publisher has not changed anything: the same document, with Folge 2
-	// still in it, is served again.
 	pollAll(r)
 	if got := rec.take(); len(got) != 0 {
 		t.Fatalf("the same entry was staged a second time: %v", titles(got))
 	}
-	// And a third time, because a bug here is the kind that only shows up after
-	// the loop has been round more than twice.
 	pollAll(r)
 	if got := rec.take(); len(got) != 0 {
 		t.Fatalf("the same entry was staged again on the third poll: %v", titles(got))
 	}
 }
 
-// TestARestartDoesNotStageTheSameEntryAgain is the same rule across a process
-// boundary. The memory is the only thing that survives, so this is what proves
-// it is actually being written and read rather than living in the poller.
 func TestARestartDoesNotStageTheSameEntryAgain(t *testing.T) {
 	srv := newServer(t, item(1, "Folge 1"))
 	st := newState()
@@ -257,14 +230,12 @@ func TestARestartDoesNotStageTheSameEntryAgain(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// A new process, the same stored memory, the same unchanged feed.
 	second, rec2 := build(t, srv, st, Subscription{})
 	pollAll(second)
 	if got := rec2.take(); len(got) != 0 {
 		t.Fatalf("after a restart the feed staged %v again", titles(got))
 	}
-	// And it is not simply seeding a second time: an entry published after the
-	// restart still has to arrive.
+	// Not just seeding again: a new entry still arrives.
 	srv.publish(item(3, "Folge 3"))
 	pollAll(second)
 	got := rec2.take()
@@ -273,10 +244,8 @@ func TestARestartDoesNotStageTheSameEntryAgain(t *testing.T) {
 	}
 }
 
-// TestTheFilterDecidesWhatIsStagedNotWhatIsRemembered is the reason remember
-// writes down every entry rather than only the matches. Remembering only the
-// matches would mean that relaxing a filter next month dumps the publisher's
-// whole current window into the collector at once.
+// TestTheFilterDecidesWhatIsStagedNotWhatIsRemembered checks that relaxing a
+// filter does not stage the entries it held back.
 func TestTheFilterDecidesWhatIsStagedNotWhatIsRemembered(t *testing.T) {
 	srv := newServer(t, item(1, "Folge 1"))
 	st := newState()
@@ -292,7 +261,6 @@ func TestTheFilterDecidesWhatIsStagedNotWhatIsRemembered(t *testing.T) {
 		t.Fatalf("the filter staged %v, want only Folge 2", titles(got))
 	}
 
-	// The filter is taken off. The entry it held back is old news, not new news.
 	if errs := r.Apply([]Subscription{{URL: srv.URL}}); len(errs) != 0 {
 		t.Fatal(errs)
 	}
@@ -302,9 +270,6 @@ func TestTheFilterDecidesWhatIsStagedNotWhatIsRemembered(t *testing.T) {
 	}
 }
 
-// TestEditingARowKeepsWhatItKnows is the reconcile promise. Rebuilding a poller
-// on every settings save would throw away its memory, so saving the speed limit
-// would make a feed hand over its whole current window.
 func TestEditingARowKeepsWhatItKnows(t *testing.T) {
 	srv := newServer(t, item(1, "Folge 1"), item(2, "Folge 2"))
 	st := newState()
@@ -335,8 +300,6 @@ func TestEditingARowKeepsWhatItKnows(t *testing.T) {
 	}
 }
 
-// TestWhatTheSubscriptionAskedForRidesAlong: the destination folder and the
-// priority reach the job, because nobody is there to type them in afterwards.
 func TestWhatTheSubscriptionAskedForRidesAlong(t *testing.T) {
 	srv := newServer(t, item(1, "Folge 1"))
 	two := 2
@@ -368,11 +331,9 @@ func TestWhatTheSubscriptionAskedForRidesAlong(t *testing.T) {
 	}
 }
 
-// TestAServerErrorIsNotAnEmptyFeed is the failure that would otherwise be
-// silent in the worst possible way: a 404 page or a login form parses to zero
-// entries, and treating that as a successful poll would mark the subscription
-// as seeded with nothing in it, so the feed's whole window arrives the moment
-// the server comes back.
+// TestAServerErrorIsNotAnEmptyFeed: treating an error page as an empty feed
+// would seed the subscription with nothing, and the whole window would arrive
+// once the server recovered.
 func TestAServerErrorIsNotAnEmptyFeed(t *testing.T) {
 	srv := newServer(t, item(1, "Folge 1"), item(2, "Folge 2"))
 	st := newState()
@@ -387,8 +348,7 @@ func TestAServerErrorIsNotAnEmptyFeed(t *testing.T) {
 		t.Fatal("a failed fetch was written down as a completed poll")
 	}
 
-	// The server comes back. This is still the subscription's first real poll, so
-	// it seeds and stages nothing.
+	// The first successful poll still seeds.
 	srv.answer(http.StatusOK)
 	pollAll(r)
 	if got := rec.take(); len(got) != 0 {
@@ -401,9 +361,6 @@ func TestAServerErrorIsNotAnEmptyFeed(t *testing.T) {
 	}
 }
 
-// TestAnUnreadableMemoryStopsThePollRatherThanEmptyingIt: polling with a memory
-// that could not be read is polling with an empty memory, and an empty memory
-// means everything in the feed is new.
 func TestAnUnreadableMemoryStopsThePollRatherThanEmptyingIt(t *testing.T) {
 	srv := newServer(t, item(1, "Folge 1"))
 	r, rec := build(t, srv, brokenState{}, Subscription{})
@@ -423,15 +380,12 @@ func (brokenState) Seen(string) ([]string, bool, error) {
 }
 func (brokenState) SetSeen(string, []string) error { return nil }
 
-// TestAMemoryLargerThanTheCapKeepsWhatIsStillInTheFeed. The memory is bounded,
-// so something has to be forgotten; what must never be forgotten is an entry
-// the publisher is still serving, or it is staged again while it is still
-// sitting there.
+// TestAMemoryLargerThanTheCapKeepsWhatIsStillInTheFeed checks that trimming
+// the memory never forgets an entry the feed still serves.
 func TestAMemoryLargerThanTheCapKeepsWhatIsStillInTheFeed(t *testing.T) {
 	srv := newServer(t, item(1, "Folge 1"))
 	st := newState()
-	// A memory already at its limit, none of it belonging to entries the feed
-	// still carries.
+	// A full memory of entries the feed no longer carries.
 	old := make([]string, maxSeen)
 	for i := range old {
 		old[i] = fmt.Sprintf("%016x", i)
@@ -454,13 +408,11 @@ func TestAMemoryLargerThanTheCapKeepsWhatIsStillInTheFeed(t *testing.T) {
 	}
 }
 
-// TestCloseWaitsForTheHandover is the promise everything downstream relies on:
-// once Close returns, nothing is still on its way into the link list, so the
-// store the sink writes to can be torn down under it.
+// TestCloseWaitsForTheHandover: once Close returns, nothing is still on its
+// way into the link list.
 func TestCloseWaitsForTheHandover(t *testing.T) {
 	srv := newServer(t, item(1, "Folge 1"))
-	// A subscription that has already run, so the first poll of this runner hands
-	// something over rather than seeding.
+	// Already run once, so the first poll hands something over.
 	st := newState()
 	if err := st.SetSeen(srv.URL, nil); err != nil {
 		t.Fatal(err)
@@ -504,16 +456,12 @@ func TestCloseWaitsForTheHandover(t *testing.T) {
 	}
 }
 
-// TestCloseEndsAFetchInFlight is the other half of that promise, and the reason
-// close cancels before it waits. Apply closes the pollers that are going and
-// waits for them, so without the cancellation a settings save would sit on a
-// publisher's server for the client's whole timeout with somebody watching a
-// spinner.
+// TestCloseEndsAFetchInFlight: close cancels before waiting, so a settings
+// save does not wait out a slow publisher.
 func TestCloseEndsAFetchInFlight(t *testing.T) {
 	srv := newServer(t, item(1, "Folge 1"))
 	srv.mu.Lock()
-	// release is never closed: the only thing that lets this handler go is the
-	// client giving up on the request.
+	// release is never closed; only the client giving up ends the request.
 	srv.enter, srv.release = make(chan struct{}, 1), make(chan struct{})
 	enter := srv.enter
 	srv.mu.Unlock()
@@ -541,10 +489,6 @@ func TestCloseEndsAFetchInFlight(t *testing.T) {
 	}
 }
 
-// TestCancellingTheContextEndsAFetchInFlight: a shutdown must not wait out a
-// publisher's server. Without the context on the request, Close would block for
-// the client's whole timeout on a host that accepts the connection and then
-// says nothing.
 func TestCancellingTheContextEndsAFetchInFlight(t *testing.T) {
 	srv := newServer(t, item(1, "Folge 1"))
 	srv.mu.Lock()
@@ -586,8 +530,6 @@ func TestCancellingTheContextEndsAFetchInFlight(t *testing.T) {
 	}
 }
 
-// TestARowThatCannotBePolledIsReportedAndTheRestStillRun. One address with a
-// typo in it must not turn the whole intake off.
 func TestARowThatCannotBePolledIsReportedAndTheRestStillRun(t *testing.T) {
 	srv := newServer(t, item(1, "Folge 1"))
 	rec := &sink{}
@@ -595,7 +537,7 @@ func TestARowThatCannotBePolledIsReportedAndTheRestStillRun(t *testing.T) {
 		Subscriptions: []Subscription{
 			{URL: "file:///etc/passwd"},
 			{URL: srv.URL},
-			// The same feed twice, collapsed rather than reported.
+			// The same feed twice collapses into one.
 			{URL: srv.URL, IntervalMinutes: 60},
 		},
 		OnJob: rec.add,
@@ -609,8 +551,6 @@ func TestARowThatCannotBePolledIsReportedAndTheRestStillRun(t *testing.T) {
 		t.Fatalf("polling %v, want only the usable address once", urls)
 	}
 
-	// And a list where nothing at all can be polled is an error, not a runner
-	// that reports feeds it is not looking at.
 	if _, err := New(Options{
 		Subscriptions: []Subscription{{URL: "file:///etc/passwd"}},
 		OnJob:         rec.add,

@@ -6,38 +6,34 @@
 // process reading the clock a schedule window is written against or silently
 // reading UTC.
 //
-// IT IS A READING AND NOT A GATE. Nothing here holds a download back, refuses a
-// boot, or changes a setting. Every one of these facts is already discoverable
-// by somebody who knows where to look; the point is that nobody does, so the
-// answer arrives as "the container is encrypted and none is configured" three
-// weeks later, or as a nightly window that quietly ran an hour off all summer.
+// It is a reading and not a gate. Nothing here holds a download back, refuses
+// a boot or changes a setting. Every one of these facts is discoverable by
+// somebody who knows where to look, and nobody does, so the answer otherwise
+// arrives as "the container is encrypted and none is configured" three weeks
+// later, or as a nightly window that ran an hour off all summer.
 //
-// IT KNOWS NOTHING ABOUT THE APP. It imports neither internal/app nor
-// internal/settings, so the caller stays the one authority on where downloads
-// go: a folder arrives here already cut back to its fixed prefix
-// (settings.FixedPrefix) and already absolute, and this package refuses
-// anything else rather than guessing what it meant.
+// It knows nothing about the app. It imports neither internal/app nor
+// internal/settings, so the caller stays the authority on where downloads go:
+// a folder arrives here already cut back to its fixed prefix
+// (settings.FixedPrefix) and absolute, and this package refuses anything else
+// rather than guessing what it meant.
 //
-// AND IT CREATES NOTHING. Not a folder, not a settings file. settings.Validate
-// is the obvious-looking way to find out whether a folder is usable and it
-// MkdirAll's the path first; called at boot on a box whose /mnt/user/media did
-// not mount, it creates that path inside the container's own writable layer,
-// the write test then passes, the report says "fine", and every download lands
-// inside the container and is destroyed by the next image pull. That is the
-// exact failure this package exists to make visible, so it would have laundered
-// its own reason for existing. app_diskreport.go's header refuses Validate for
-// the weaker version of the same trap; this is the strong one.
+// It creates nothing, neither a folder nor a settings file. settings.Validate
+// looks like the way to find out whether a folder is usable, but it MkdirAlls
+// the path first: called at boot on a box whose /mnt/user/media did not mount,
+// it creates that path inside the container's own writable layer, the write
+// test passes, the report says "fine", and every download lands inside the
+// container and is destroyed by the next image pull. That is the failure this
+// package exists to make visible.
 //
-// WHEN IT WRITES ITS PROBE FILE, which is the one thing the owner ruled on
-// (2026-09-08). A pass started by the boot only LOOKS: it stats, and it writes
-// nothing anywhere. On Unraid a write into /mnt/user/... spins up whichever
-// array disk holds that share, and probing every configured folder at every
-// start would wake a sleeping array on every container restart, for ever, as a
-// behaviour change on upgrade. So the write test happens only when somebody
-// presses the button for it (Input.Probe), and even then only into a folder
-// that is already there. Whatever draws this has to say which of the two it is
-// looking at, because "the folder exists" and "this instance can write in it"
-// are different claims and only one of them was checked.
+// A pass started by the boot only looks: it stats and writes nothing. On
+// Unraid a write into /mnt/user/... spins up whichever array disk holds that
+// share, so probing every configured folder at every start would wake a
+// sleeping array on every container restart. The write test happens when
+// somebody presses the button for it (Input.Probe), and then only into a
+// folder that is already there. Whatever draws this says which of the two it
+// is showing, because "the folder exists" and "this instance can write in it"
+// are different claims.
 package startupcheck
 
 import (
@@ -55,13 +51,12 @@ type Verdict string
 const (
 	// VerdictOK is "this was looked at and there is nothing to do".
 	VerdictOK Verdict = "ok"
-	// VerdictWarn is "worth a look", and it is deliberately where the two
+	// VerdictWarn is "worth a look", and it is where the two
 	// normal-but-interesting states live: a download folder that does not
-	// exist yet (which is every fresh install, because the folder is created
-	// by whoever writes the first file into it) and a folder that did not
-	// answer in time (which is every sleeping array disk). Painting either of
-	// those red would teach an operator to ignore the report inside a week,
-	// and one ignored report is worth less than none.
+	// exist yet, which is every fresh install, because the folder is created
+	// by whoever writes the first file into it, and a folder that did not
+	// answer in time, which is every sleeping array disk. Painting either red
+	// would teach an operator to ignore the report inside a week.
 	VerdictWarn Verdict = "warn"
 	// VerdictFail is "this will not work as configured".
 	VerdictFail Verdict = "fail"
@@ -95,7 +90,7 @@ const (
 	RoleWatch       = "watch"
 )
 
-// Codes say WHICH failure, so the interface can offer the one remedy that
+// Codes say which failure it was, so the interface can offer the remedy that
 // helps. "cannot write here" is four different problems with four different
 // answers, and a single code for all of them sends somebody to check
 // permissions on a filesystem that is mounted read-only.
@@ -111,9 +106,9 @@ const (
 	CodeTimeout    = "timeout"    // did not answer inside the deadline and was left alone
 	CodeError      = "error"      // something else; Err carries the system's own words
 
-	// Tool codes. notFound and notRunnable are deliberately two answers and
-	// not one: a yt-dlp whose Python environment broke prints a traceback and
-	// exits non-zero, and telling that person to install a thing they already
+	// Tool codes. notFound and notRunnable are two answers rather than one: a
+	// yt-dlp whose Python environment broke prints a traceback and exits
+	// non-zero, and telling that person to install something they already
 	// have is how a report loses its reader.
 	CodeNotFound     = "notFound"
 	CodeNotRunnable  = "notRunnable"
@@ -139,8 +134,8 @@ const (
 
 // Check is one thing the pass looked at.
 type Check struct {
-	// ID is what kind of thing this is - see the ID constants. Open on
-	// purpose: a row this build has never heard of still draws.
+	// ID is what kind of thing this is, see the ID constants. The set is
+	// open: a row this build has never heard of still draws.
 	ID string `json:"id"`
 	// Role is why a folder row is in the list at all. Empty on every other row.
 	Role    string  `json:"role,omitempty"`
@@ -148,24 +143,24 @@ type Check struct {
 	// Subject is the concrete thing that was checked: the absolute folder, the
 	// resolved binary path, the raw TZ value.
 	Subject string `json:"subject,omitempty"`
-	// Detail is the fact worth reading - a version line, the zone abbreviation
-	// and the offset. Already clamped, because `ffmpeg -version` prints several
-	// hundred bytes of configure line and this document goes into the container
-	// log, into all 500 ring lines and into every bundle somebody downloads.
+	// Detail is the fact worth reading: a version line, the zone abbreviation
+	// and the offset. Already clamped, because `ffmpeg -version` prints
+	// several hundred bytes of configure line and this document goes into the
+	// container log, the ring and every bundle somebody downloads.
 	Detail string `json:"detail,omitempty"`
-	// Measured is, for a folder row, the deepest folder above Subject that does
-	// exist. When it differs from Subject the folder is not there, and on a box
-	// that mounts a share that usually means the share is not mounted - the
-	// same distinction DiskReport.Measured draws, and for the same reason: the
-	// substitution has to be visible instead of trusted.
+	// Measured is, for a folder row, the deepest folder above Subject that
+	// does exist. When it differs from Subject the folder is not there, and
+	// on a box that mounts a share that usually means the share is not
+	// mounted, the distinction DiskReport.Measured draws: the substitution
+	// has to be visible rather than trusted.
 	Measured string `json:"measured,omitempty"`
-	// Probed says a probe file was actually written into this folder and
-	// removed again. FALSE IS THE NORMAL CASE at boot and does not mean the
-	// write failed - it means nothing was written, so "this instance can write
-	// here" was never established. Reporting a bare "ok" without this would be
-	// the report claiming a test it did not run.
+	// Probed says a probe file was written into this folder and removed
+	// again. False is the normal case at boot and does not mean the write
+	// failed: nothing was written, so "this instance can write here" was
+	// never established. A bare "ok" without it would claim a test that never
+	// ran.
 	Probed bool `json:"probed,omitempty"`
-	// Code is WHICH failure. Empty on an ok row.
+	// Code is which failure it was. Empty on an ok row.
 	Code string `json:"code,omitempty"`
 	// Err is the system's own message, verbatim and clamped. Shown raw and
 	// never translated: it is evidence, and a translated errno is neither
@@ -177,23 +172,19 @@ type Check struct {
 type Report struct {
 	State     string    `json:"state"`
 	StartedAt time.Time `json:"startedAt"`
-	// FinishedAt is when the pass ended, and is ABSENT while it is still
+	// FinishedAt is when the pass ended, and is absent while it is still
 	// running.
 	//
-	// omitzero and not omitempty. omitempty has never done anything to a struct
-	// and time.Time is one, so the tag this field carried was decoration: a pass
-	// in flight shipped `"finishedAt":"0001-01-01T00:00:00Z"`, which is a
-	// non-empty string and therefore true to every reader that tests it. Nothing
-	// reads this field today - the card prints startedAt and nothing else - so
-	// the lie was never told out loud, which is exactly the kind of trap that is
-	// cheap now and expensive the day somebody writes `if (report.finishedAt)`.
-	// internal/selftest's Run has the same field and already gets this right.
+	// omitzero and not omitempty: omitempty does nothing to a struct, and
+	// time.Time is one, so a pass in flight would ship
+	// `"finishedAt":"0001-01-01T00:00:00Z"`, a non-empty string and therefore
+	// true to every reader that tests it.
 	FinishedAt time.Time `json:"finishedAt,omitzero"`
 	// Probed says this pass was allowed to write its probe file at all. False
-	// for every boot pass (see the package comment), true only for one somebody
-	// pressed the button for. It is a property of the PASS and not of a row,
-	// because "nothing was written anywhere" is one sentence at the top of a
-	// card rather than a qualifier repeated on every line.
+	// for every boot pass (see the package comment), true only for one
+	// somebody pressed the button for. A property of the pass and not of a
+	// row, because "nothing was written anywhere" is one sentence at the top
+	// of a card rather than a qualifier on every line.
 	Probed bool `json:"probed"`
 	// Checks is never nil, even while the pass is still running: a nil slice
 	// encodes as JSON null and the page that walks it throws instead of drawing
@@ -203,19 +194,19 @@ type Report struct {
 
 // Default deadlines.
 //
-// PER CHECK AND IN TOTAL, and both halves are load-bearing. A folder on a mount
-// that has gone away takes as long to stat as that mount takes to time out, and
-// there can be a dozen of those configured; without a total the pass would sit
-// there for minutes holding a goroutine per folder. Without a per-check one the
+// Per check and in total, and both halves are needed. A folder on a mount that
+// has gone away takes as long to stat as that mount takes to time out, and
+// there can be a dozen of those configured, so without a total the pass would
+// sit for minutes holding a goroutine per folder. Without a per-check one the
 // first dead mount would eat the whole budget and every folder after it would
 // come back as a timeout row that says nothing about itself.
 const (
 	// DefaultToolTimeout is per binary. A version probe that has not answered
 	// in five seconds is not going to.
 	DefaultToolTimeout = 5 * time.Second
-	// DefaultFolderTimeout is per folder, and it is deliberately generous: on
-	// Unraid a stat against a share whose array disk is spun down waits for
-	// that disk to spin up, which is routinely seven or eight seconds.
+	// DefaultFolderTimeout is per folder and generous, because on Unraid a
+	// stat against a share whose array disk is spun down waits for that disk
+	// to spin up, which is routinely seven or eight seconds.
 	DefaultFolderTimeout = 15 * time.Second
 	// DefaultTotal is the whole pass.
 	DefaultTotal = 90 * time.Second
@@ -223,12 +214,11 @@ const (
 
 // maxDetail is how many runes of anything a tool or the system said may travel.
 //
-// A twin of clampRunes in internal/resolver/ytdlp/backend.go, deliberately not
-// imported from there: that one is unexported, and exporting it would put a
-// media backend's helper in a diagnostics package's import list for four lines
-// of code. Both exist because the same failure keeps happening - a subprocess
-// that answers with a banner instead of a version, landing whole in a log ring
-// with 500 slots and in every downloaded bundle.
+// A twin of clampRunes in internal/resolver/ytdlp/backend.go rather than an
+// import: that one is unexported, and exporting it would put a media backend's
+// helper in a diagnostics package's import list for four lines of code. Both
+// exist because a subprocess that answers with a banner instead of a version
+// otherwise lands whole in the log ring and in every downloaded bundle.
 const maxDetail = 200
 
 // FolderTarget is one folder to look at.
@@ -237,13 +227,12 @@ type FolderTarget struct {
 	// directory passes IDData, because it is the one folder whose failure has
 	// a completely different consequence and therefore a different remedy.
 	ID string
-	// Role is why it is in the list - see the Role constants.
+	// Role is why it is in the list, see the Role constants.
 	Role string
-	// Dir is the folder, ABSOLUTE and already cut back to the fixed prefix of
+	// Dir is the folder, absolute and already cut back to the fixed prefix of
 	// whatever template it came from. Doing that here would mean this package
-	// knowing settings' template rules, which is exactly the dependency the
-	// package comment refuses; doing it in the caller means there are still
-	// only the three copies of that rule the tree already documents.
+	// knowing settings' template rules, the dependency the package comment
+	// refuses.
 	Dir string
 }
 
@@ -272,28 +261,28 @@ type ToolTarget struct {
 	// for the length check on a finished video and nothing else.
 	Optional bool
 	// Registered is whether this tool's resolver is in the live routing table
-	// right now. nil for a tool that has no such concept. A binary that runs
-	// while its resolver is NOT registered is the "installed after this
-	// instance started" case, which looks perfect from the command line and
-	// routes nothing until a restart.
+	// right now, nil for a tool that has no such concept. A binary that runs
+	// while its resolver is not registered was installed after this instance
+	// started: it looks perfect from the command line and routes nothing
+	// until a restart.
 	Registered *bool
 }
 
 // Input is one pass.
 type Input struct {
-	// Data is the instance's own data directory - the database, the settings
-	// and the encrypted account store. It is checked FIRST and kept out of the
-	// folder list on purpose: it is local, it answers instantly, and it is the
-	// one folder whose failure means the next thing anybody saves is lost. An
-	// empty Dir leaves the row out entirely.
+	// Data is the instance's own data directory: the database, the settings
+	// and the encrypted account store. It is checked first and kept out of
+	// the folder list, because it is local, answers instantly, and is the one
+	// folder whose failure means the next thing anybody saves is lost. An
+	// empty Dir leaves the row out.
 	Data FolderTarget
 	// Tools are checked second: each is bounded by its own deadline, so a
 	// hanging wrapper script cannot eat the folder budget.
 	Tools []ToolTarget
-	// Folders are checked LAST, because they are the only rows that can wait on
-	// a machine that is not answering. Anything the total deadline cuts off
-	// still gets a row, marked CodeTimeout: an absent row is invisible, and a
-	// timeout row is a finding.
+	// Folders are checked last, because they are the only rows that can wait
+	// on a machine that is not answering. Anything the total deadline cuts
+	// off still gets a row, marked CodeTimeout: an absent row is invisible,
+	// a timeout row is a finding.
 	Folders []FolderTarget
 	// Probe allows the write test. See the package comment: false for every
 	// boot pass, true only for one a person asked for.
@@ -364,11 +353,10 @@ func folderRow(ctx context.Context, t FolderTarget, probe bool, timeout time.Dur
 	return c
 }
 
-// clamp cuts s to maxDetail runes, by RUNES and not by bytes: a byte cut lands
-// in the middle of a multi-byte character often enough to matter, and the
-// result is a replacement glyph in a bug report where a version number should
-// be. The ellipsis says the cut happened rather than leaving a sentence that
-// merely looks like it ended.
+// clamp cuts s to maxDetail runes rather than bytes: a byte cut lands in the
+// middle of a multi-byte character often enough to matter, and leaves a
+// replacement glyph in a bug report where a version number should be. The
+// ellipsis says the cut happened.
 func clamp(s string) string {
 	s = strings.TrimSpace(s)
 	r := []rune(s)
@@ -380,10 +368,9 @@ func clamp(s string) string {
 
 // firstLine is the first line of output with anything in it.
 //
-// Blank-skipping rather than "line zero", because several of these binaries put
-// a warning, or nothing at all, on their first line and the version on the
-// second. Taking line zero blind reports an empty version for a tool that
-// answered perfectly well.
+// Blank-skipping rather than line zero, because several of these binaries put
+// a warning, or nothing, on their first line and the version on the second.
+// Taking line zero blind reports an empty version for a tool that answered.
 func firstLine(s string) string {
 	for _, line := range strings.Split(strings.ReplaceAll(s, "\r\n", "\n"), "\n") {
 		if t := strings.TrimSpace(line); t != "" {

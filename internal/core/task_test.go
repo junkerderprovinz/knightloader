@@ -2,10 +2,6 @@ package core
 
 import "testing"
 
-// Nil for "no list" and nil for "everything ticked" are the same answer because
-// they are the same instruction: the download library reads an empty selection
-// as "fetch all of it". Handing it an explicit all-files list instead would
-// differ only in being longer and easy to get one entry short.
 func TestSelectedTorrentIndicesSaysNothingWhenThereIsNothingToSay(t *testing.T) {
 	all := []TorrentFile{
 		{Path: "a.mkv", Selected: true},
@@ -38,9 +34,8 @@ func TestSelectedTorrentIndicesNamesThePositionsTheLibraryUses(t *testing.T) {
 	}
 }
 
-// Nothing ticked is a real answer and it is NOT "fetch everything". An empty
-// non-nil slice would be read by the library as "no opinion" and start the
-// whole torrent, which is the opposite of what the user just did.
+// TestNothingTickedIsNotTheSameAsEverythingTicked checks for an empty non-nil
+// slice, since nil would make the library fetch the whole torrent.
 func TestNothingTickedIsNotTheSameAsEverythingTicked(t *testing.T) {
 	files := []TorrentFile{{Path: "a.mkv"}, {Path: "b.mkv"}}
 	got := SelectedTorrentIndices(files)
@@ -61,19 +56,15 @@ func TestApplyToWritesEveryTorrentFieldAndTouchesNothingElse(t *testing.T) {
 	if task.Name != "Show.S01" || task.Status != StatusDone || task.Loaded != 42 {
 		t.Fatal("ApplyTo wrote outside the torrent fields")
 	}
-	// And it clears as well as sets, or a torrent that stops seeding keeps
-	// claiming a peer count from the last reading it ever got.
 	TorrentStats{}.ApplyTo(&task)
 	if task.Peers != 0 || task.Seeds != 0 || task.Ratio != 0 || task.Uploaded != 0 || task.Seeding {
 		t.Fatalf("a zero reading left stale numbers behind: %+v", task)
 	}
 }
 
-// Seeding is a FLAG beside StatusDone and never a Status of its own - build
-// plan section 4, conflict 2, unbroken since Wave 1. A new status value would
-// break every exhaustive mapping of the seven, the store round trip and a
-// rollback to the previous build. This test is what makes that a rule rather
-// than a comment.
+// TestSeedingDidNotBecomeAnEighthStatus guards the rule that seeding is a flag
+// beside StatusDone; a new Status would break every exhaustive mapping, the
+// store round trip and a rollback.
 func TestSeedingDidNotBecomeAnEighthStatus(t *testing.T) {
 	seven := []Status{
 		StatusCollected, StatusQueued, StatusRunning, StatusPaused,

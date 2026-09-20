@@ -13,18 +13,15 @@ func TestDefaultsAreOff(t *testing.T) {
 	if d.DelaySeconds != DefaultDelaySeconds {
 		t.Errorf("DelaySeconds = %d, want %d", d.DelaySeconds, DefaultDelaySeconds)
 	}
-	// reflect.DeepEqual and not ==: Config stopped being comparable the
-	// moment it grew a CommandSpec, whose Args is a slice. That is the
-	// compiler catching this rather than a silent behaviour change, and the
-	// assertion it makes is unchanged.
+	// reflect.DeepEqual and not ==: Config is not comparable, because
+	// CommandSpec.Args is a slice.
 	if got := d.Sanitize(); !reflect.DeepEqual(got, d) {
 		t.Errorf("Defaults() must already be sane: Sanitize() changed it to %+v", got)
 	}
 }
 
-// TestDefaultsGiveTheCommandAWorkingTimeout: the command spec inside the
-// defaults has to be sane on its own, or the settings form opens on a zero
-// that sanitize would silently rewrite the first time anything is saved.
+// The command spec inside the defaults has to be sane on its own, or the
+// settings form opens on a zero that sanitize rewrites on the first save.
 func TestDefaultsGiveTheCommandAWorkingTimeout(t *testing.T) {
 	d := Defaults()
 	if d.Command.TimeoutSeconds != DefaultCommandTimeout {
@@ -64,11 +61,9 @@ func TestSanitizeClampsDelay(t *testing.T) {
 }
 
 func TestSanitizeOfTheZeroValueIsOffNotJustClamped(t *testing.T) {
-	// The Go zero value (a settings file with no "idleAction" key at all, or
-	// one this build has never written) must sanitize to something inert -
-	// the migration-safety rule build-plan.md section 4's conflict 7 states
-	// for Task.Enabled applies here for the same reason: a field this build
-	// adds must never retroactively arm itself on an existing install.
+	// The zero value, a settings file with no "idleAction" key at all, has to
+	// sanitize to something inert: a field a build adds must not arm itself
+	// on an existing install.
 	got := Config{}.Sanitize()
 	if got.Action != ActionNone {
 		t.Errorf("the zero value must sanitize to ActionNone, got %q", got.Action)
@@ -92,16 +87,11 @@ func TestActionsIsNoneFirst(t *testing.T) {
 	}
 }
 
-// TestSanitizeKeepsAnActionThisBuildCannotOffer is trap 1 of this feature,
-// written down as a test because it is silent when it goes wrong.
-//
-// Actions() is the validation vocabulary and Offered() is the menu, and the
-// tempting simplification - one list, filtered by capability - costs an
-// operator their configuration with no message anywhere: settings.sanitize
-// runs Config.Sanitize on EVERY settings save, so a container holding
-// "suspend" (hand-edited, or restored from a backup taken on a desktop) would
-// have it rewritten to "none" the next time somebody changed the download
-// folder.
+// Actions is the validation vocabulary and Offered is the menu. Folding them
+// into one list filtered by capability costs an operator their configuration
+// with no message anywhere: settings.sanitize runs Config.Sanitize on every
+// save, so a container holding "suspend", hand-edited or restored from a
+// desktop backup, would have it rewritten to "none" by an unrelated save.
 func TestSanitizeKeepsAnActionThisBuildCannotOffer(t *testing.T) {
 	nothingWired := Capabilities{}
 	for _, a := range []Action{ActionQuit, ActionSuspend, ActionCommand} {
@@ -110,16 +100,16 @@ func TestSanitizeKeepsAnActionThisBuildCannotOffer(t *testing.T) {
 		}
 		got := Config{Action: a, DelaySeconds: DefaultDelaySeconds}.Sanitize()
 		if got.Action != a {
-			t.Errorf("Sanitize rewrote a stored %q to %q; a save that touched something else entirely "+
-				"would silently take the operator's end-of-queue action away", a, got.Action)
+			t.Errorf("Sanitize rewrote a stored %q to %q; an unrelated save would take the "+
+				"operator's end-of-queue action away", a, got.Action)
 		}
 	}
 }
 
 func TestOfferedFollowsTheWiringAndNothingElse(t *testing.T) {
 	// Nothing wired: the two that need nothing but the running process, plus
-	// the command, which every deployment can exec. What it can USEFULLY exec
-	// is the preflight's question, not this one's.
+	// the command, which every deployment can exec. What it can usefully exec
+	// is the preflight's question.
 	bare := Offered(Capabilities{CanCommand: true})
 	want := []Action{ActionNone, ActionPause, ActionCommand}
 	if len(bare) != len(want) {
@@ -131,9 +121,7 @@ func TestOfferedFollowsTheWiringAndNothingElse(t *testing.T) {
 		}
 	}
 
-	// The container: RequestExit is wired there and RequestSuspend is not,
-	// which is why quit is offered on the deployment where it reads least
-	// obvious and sleep is offered on the one where it reads most.
+	// The container has RequestExit wired and RequestSuspend not.
 	container := Offered(Capabilities{CanQuit: true, CanCommand: true})
 	if !offered(Capabilities{CanQuit: true, CanCommand: true}, ActionQuit) {
 		t.Errorf("Offered() = %v, want quit on a build whose RequestExit is wired", container)
@@ -164,9 +152,8 @@ func offered(c Capabilities, a Action) bool {
 	return false
 }
 
-// TestEveryOfferedActionIsAlsoValid keeps the two lists from disagreeing in
-// the other direction: a menu entry Sanitize would fold to "none" is a control
-// that saves and then quietly does nothing.
+// The other direction: a menu entry Sanitize would fold to "none" is a control
+// that saves and then does nothing.
 func TestEveryOfferedActionIsAlsoValid(t *testing.T) {
 	for _, a := range Offered(Capabilities{CanQuit: true, CanCommand: true, CanSuspend: true}) {
 		if !validAction(a) {
@@ -176,9 +163,8 @@ func TestEveryOfferedActionIsAlsoValid(t *testing.T) {
 }
 
 func TestActionsReturnsAFreshSliceEachCall(t *testing.T) {
-	// A caller must not be able to reorder or truncate the menu for
-	// everybody else by mutating what it got back - the same property
-	// internal/app.Priorities() guarantees for its own menu.
+	// A caller must not be able to reorder or truncate the menu for everybody
+	// else by mutating what it got back.
 	a := Actions()
 	a[0] = "tampered"
 	b := Actions()

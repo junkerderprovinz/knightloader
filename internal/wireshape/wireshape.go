@@ -48,9 +48,9 @@ type Field struct {
 	Name string
 	// JSON is the name it goes out under.
 	JSON string
-	// Line is for a person going to look, and deliberately not part of the
-	// identity: line numbers move, and a guard keyed on one is a guard that
-	// fails the next time somebody adds a comment. See Key.
+	// Line is for a person going to look, and not part of the identity: line
+	// numbers move, and a guard keyed on one fails the next time somebody
+	// adds a comment. See Key.
 	Line int
 }
 
@@ -61,10 +61,9 @@ func (f Field) Key() string { return f.File + " " + f.Type + "." + f.Name }
 // json tag carries `omitempty` - that is, every field whose tag promises it can
 // be absent and which is in fact always sent.
 //
-// POINTERS ARE NOT IN THE ANSWER and that is the whole distinction: `*time.Time`
-// with `omitempty` works perfectly, because a nil pointer IS empty to
-// encoding/json. Five fields in this tree do it that way and none of them is a
-// problem.
+// Pointers are not in the answer, which is the distinction: `*time.Time` with
+// `omitempty` works, because a nil pointer is empty to encoding/json. Five
+// fields in this tree do it that way and none of them is a problem.
 //
 // _test.go is skipped. A struct declared inside a test is a fixture written to
 // exercise a decoder, not a shape this program promises anybody.

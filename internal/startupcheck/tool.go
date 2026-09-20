@@ -9,27 +9,26 @@ import (
 
 // Tool finds one binary and runs it once for its version.
 //
-// FOUR ANSWERS AND NOT TWO. "Not on PATH" and "on PATH and will not run" are
-// different problems with different remedies: a yt-dlp whose Python environment
-// broke prints a traceback and exits non-zero, and answering CodeNotFound for
-// that sends somebody to install a thing that is already installed. The third
-// is "needed by nobody here" (SkipCode), and the fourth is the quiet one -
-// CodeAppearedLate, a binary that runs perfectly now and was not there when
-// this instance started, so nothing is routed to it and nothing says so.
+// Four answers and not two. "Not on PATH" and "on PATH and will not run" are
+// different problems with different remedies: a yt-dlp whose Python
+// environment broke prints a traceback and exits non-zero, and CodeNotFound
+// for that sends somebody to install what is already installed. The third is
+// "needed by nobody here" (SkipCode), and the fourth is CodeAppearedLate, a
+// binary that runs now and was not there when this instance started, so
+// nothing is routed to it and nothing says so.
 //
-// ALWAYS UNDER A DEADLINE. The one version probe this tree already had
-// (ytdlp.Backend.Available) runs exec.Command(...).Run() with no context at
-// all, which is a latent hang: a `yt-dlp` that is a wrapper script waiting on
-// something takes app.New down with it. Copying that shape for three more
-// binaries would have multiplied it by four.
+// Always under a deadline. ytdlp.Backend.Available runs
+// exec.Command(...).Run() with no context at all, which is a latent hang: a
+// `yt-dlp` that is a wrapper script waiting on something takes app.New down
+// with it.
 func Tool(ctx context.Context, t ToolTarget, timeout time.Duration) Check {
 	c := Check{ID: t.ID}
 
 	if t.SkipCode != "" {
-		// Skipped, never failed. A red "Java missing" row on a box that points
-		// KL_JD at a JDownloader running somewhere else is a false alarm about
-		// a deliberate configuration, and one false alarm is enough for an
-		// operator to stop reading the report at all.
+		// Skipped and never failed. A red "Java missing" row on a box that
+		// points KL_JD at a JDownloader running somewhere else is a false
+		// alarm about a chosen configuration, and one false alarm is enough
+		// for an operator to stop reading the report.
 		c.Verdict = VerdictSkipped
 		c.Code = t.SkipCode
 		return c
@@ -61,22 +60,19 @@ func Tool(ctx context.Context, t ToolTarget, timeout time.Duration) Check {
 	runCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
-	// CombinedOutput and not Output, because `java -version` prints to stderr -
-	// it is the two-dash `--version` (JDK 9+) that goes to stdout, and reading
-	// stdout alone would report "found, version unknown" for every healthy JVM
-	// in the shipped image. Reading both costs nothing and is right for all
-	// four binaries.
+	// CombinedOutput and not Output, because `java -version` prints to
+	// stderr: it is the two-dash `--version` (JDK 9+) that goes to stdout,
+	// and reading stdout alone would report "found, version unknown" for
+	// every healthy JVM in the shipped image.
 	out, runErr := exec.CommandContext(runCtx, path, t.Args...).CombinedOutput()
 	line := firstLine(string(out))
 
 	if runCtx.Err() != nil {
-		// Checked BEFORE runErr and without asking which of the two deadlines
-		// did it. A killed process comes back as "signal: killed" or "exit
-		// status 1" depending on the platform, and reporting that as
-		// CodeNotRunnable would tell somebody their perfectly good ffmpeg is
-		// broken when the truth is that it was not given time to answer.
-		// Whether it was this tool's own five seconds or the whole pass's
-		// budget that ran out, the finding is the same: it did not answer.
+		// Checked before runErr and without asking which of the two
+		// deadlines did it. A killed process comes back as "signal: killed"
+		// or "exit status 1" depending on the platform, and CodeNotRunnable
+		// would tell somebody their working ffmpeg is broken when it was
+		// only not given time to answer.
 		c.Verdict = bad
 		c.Code = CodeTimeout
 		c.Err = clamp(line)
@@ -96,9 +92,9 @@ func Tool(ctx context.Context, t ToolTarget, timeout time.Duration) Check {
 		return c
 	}
 
-	// FIRST LINE ONLY, CLAMPED. `ffmpeg -version` answers with several hundred
-	// bytes including the whole configure line; unclamped it goes into the
-	// container log, fills a fifth of the 500-line ring, and rides in every
+	// The first line only, clamped. `ffmpeg -version` answers with several
+	// hundred bytes including the whole configure line, and unclamped it goes
+	// into the container log, fills a fifth of the ring and rides in every
 	// downloaded bundle.
 	c.Detail = clamp(line)
 	c.Verdict = VerdictOK
