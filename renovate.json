@@ -37,6 +37,30 @@
       "matchUpdateTypes": ["minor", "patch"],
       "groupName": "web dependencies (non-major)",
       "commitMessagePrefix": "chore(deps):"
+    },
+    {
+      "description": "The Expo SDK decides these in mobile/; npx expo install --fix moves them with an SDK upgrade",
+      "matchFileNames": ["mobile/package.json"],
+      "matchPackageNames": ["react-native", "react", "react-dom", "@types/react"],
+      "enabled": false
+    },
+    {
+      "description": "Override for xcode, which loads uuid with require(); 12 and later are ESM only",
+      "matchFileNames": ["mobile/package.json"],
+      "matchPackageNames": ["uuid"],
+      "allowedVersions": "<12"
+    },
+    {
+      "description": "The desktop module points at the main module through a replace directive, so its version is never read",
+      "matchFileNames": ["desktop/go.mod"],
+      "matchPackageNames": ["github.com/junkerderprovinz/knightloader"],
+      "enabled": false
+    },
+    {
+      "description": "React Native's Android build expects JDK 17",
+      "matchFileNames": [".github/workflows/release-mobile.yml"],
+      "matchDepNames": ["java-jdk"],
+      "allowedVersions": "17"
     }
   ]
 }
