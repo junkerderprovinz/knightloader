@@ -23,7 +23,7 @@ RUN [ -n "${COMMIT}" ] || echo 'WARNING: no --build-arg COMMIT, so this image wi
       -ldflags="-s -w -X github.com/junkerderprovinz/knightloader/internal/buildinfo.Version=${VERSION} -X github.com/junkerderprovinz/knightloader/internal/buildinfo.Commit=${COMMIT}" \
       -o /out/knightloader ./cmd/knightloader
 
-FROM alpine:3.24@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b
+FROM alpine:3.24@sha256:294b683cb724975bec92580e1e685676bd4b50bda910ddb8c51d4cabeaec77e6
 # The JRE runs the private headless JDownloader that KL_PROVISION_JD starts by
 # default, which DLC and other container links need.
 RUN apk add --no-cache ca-certificates yt-dlp ffmpeg tzdata openjdk21-jre-headless \
