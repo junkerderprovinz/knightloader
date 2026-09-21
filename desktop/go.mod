@@ -13,7 +13,7 @@ require (
 	github.com/cardinalby/go-systray v1.0.2
 	github.com/coder/websocket v1.8.15
 	github.com/junkerderprovinz/knightloader v0.0.0
-	github.com/wailsapp/wails/v2 v2.15.0
+	github.com/wailsapp/wails/v2 v2.16.0
 )
 
 require (

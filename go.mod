@@ -10,19 +10,19 @@ require (
 	github.com/coder/websocket v1.8.15
 	github.com/dop251/goja v0.0.0-20260822123354-58e940e0d230
 	github.com/dsnet/compress v0.0.2-0.20230904184137-39efe44ab707
-	github.com/klauspost/compress v1.19.2
+	github.com/klauspost/compress v1.20.0
 	github.com/nwaples/rardecode/v2 v2.4.1
-	github.com/ulikunitz/xz v0.5.16
+	github.com/ulikunitz/xz v0.5.17
 	golang.org/x/crypto v0.57.0
 	golang.org/x/mod v0.41.0
-	golang.org/x/net v0.58.0
-	golang.org/x/time v0.15.0
-	modernc.org/sqlite v1.57.0
+	golang.org/x/net v0.59.0
+	golang.org/x/time v0.16.0
+	modernc.org/sqlite v1.59.0
 	rsc.io/qr v0.2.0
 )
 
 require (
-	github.com/go-webauthn/webauthn v0.18.1
+	github.com/go-webauthn/webauthn v0.18.2
 	github.com/jlaffaye/ftp v0.2.4
 	github.com/pkg/sftp v1.13.11
 	golang.org/x/sys v0.48.0
@@ -71,7 +71,7 @@ require (
 	github.com/edsrzf/mmap-go v1.2.0 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/felixge/fgprof v0.9.5 // indirect
-	github.com/fxamacker/cbor/v2 v2.9.3 // indirect
+	github.com/fxamacker/cbor/v2 v2.9.4 // indirect
 	github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376 // indirect
 	github.com/go-git/go-billy/v5 v5.9.0 // indirect
 	github.com/go-git/go-git/v5 v5.19.2 // indirect
@@ -164,8 +164,8 @@ require (
 	golang.org/x/sync v0.23.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	lukechampine.com/blake3 v1.4.1 // indirect
-	modernc.org/libc v1.74.4 // indirect
+	modernc.org/libc v1.75.7 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
-	modernc.org/memory v1.11.0 // indirect
+	modernc.org/memory v1.12.1 // indirect
 	zombiezen.com/go/sqlite v1.4.2 // indirect
 )
