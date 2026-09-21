@@ -227,7 +227,7 @@ and attaches the three archives to that release, which is where the download
 buttons at the top lead. To build it from source instead:
 
 ```sh
-go install github.com/wailsapp/wails/v2/cmd/wails@v2.15.0
+go install github.com/wailsapp/wails/v2/cmd/wails@v2.16.0
 cd desktop && wails build
 ```
 
