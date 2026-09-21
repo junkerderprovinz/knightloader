@@ -39,9 +39,10 @@
       "commitMessagePrefix": "chore(deps):"
     },
     {
-      "description": "The Expo SDK decides these in mobile/; npx expo install --fix moves them with an SDK upgrade",
+      "description": "The Expo SDK decides React, React Native and the native modules in mobile/; npx expo install --fix moves them with an SDK upgrade",
       "matchFileNames": ["mobile/package.json"],
-      "matchPackageNames": ["react-native", "react", "react-dom", "@types/react"],
+      "matchPackageNames": ["expo", "expo-*", "@expo/**", "react", "react-dom", "@types/react", "react-native", "react-native-*", "@react-native/**", "@react-native-community/**"],
+      "matchUpdateTypes": ["minor", "major"],
       "enabled": false
     },
     {
