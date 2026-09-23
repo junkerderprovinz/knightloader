@@ -989,7 +989,7 @@ export const hr: Dict = {
   'accounts.whereToFind': 'Odakle to nabaviti?',
   'accounts.hostsRefreshed': 'Popis hostera osvježen {when}',
   'accounts.routing.priorityTitle': 'Redoslijed prioriteta',
-  'accounts.routing.priorityHint': 'Koja se usluga pita prva kada istu poveznicu može dohvatiti više njih. Povuci za preslagivanje.\n\nOvdje je sve što može dohvatiti poveznicu, ne samo debrid računi: TorBox, AllDebrid i slični, JDownloader za stotine hostera, yt-dlp za videostranice i izravno preuzimanje za običnu poveznicu. Zato su TorBox i yt-dlp na istom popisu - oboje su putovi kojima poveznica može krenuti.\n\nRedoslijed odlučuje samo među uslugama koje doista mogu preuzeti danu poveznicu. Povlačenje yt-dlp-a na vrh ne šalje mu poveznicu filehostera.',
+  'accounts.routing.priorityHint': 'Koja se usluga pita prva kada istu poveznicu može dohvatiti više njih. Povuci za preslagivanje.\n\nPopis sadrži usluge između kojih biraš: debrid račune poput TorBoxa i AllDebrida, torrente i udaljenu pohranu. Redoslijed odlučuje samo među onima koje doista mogu preuzeti poveznicu.\n\nJDownloader, yt-dlp i obično izravno preuzimanje nisu na popisu, jer prava usluga ovisi o poveznici. KnightLoader sam šalje poveznicu filehostera na JDownloader, poveznicu videostranice na yt-dlp i običnu datoteku na izravno preuzimanje, i to tek nakon svih usluga s ovog popisa.',
   'accounts.routing.priorityEmpty': 'Još nema registriranih resolvera.',
   'accounts.routing.moveUp': 'Pomakni gore',
   'accounts.routing.moveDown': 'Pomakni dolje',

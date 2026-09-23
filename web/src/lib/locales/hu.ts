@@ -989,7 +989,7 @@ export const hu: Dict = {
   'accounts.whereToFind': 'Honnan szerezhetem be?',
   'accounts.hostsRefreshed': 'Hosterlista frissítve: {when}',
   'accounts.routing.priorityTitle': 'Prioritási sorrend',
-  'accounts.routing.priorityHint': 'Melyik szolgáltatást kérdezzük először, ha ugyanazt a linket több is le tudja hozni. Húzd az átrendezéshez.\n\nItt van minden, ami le tud hozni egy linket, nem csak a debrid fiókok: TorBox, AllDebrid és társaik, a JDownloader több száz tárhelyhez, a yt-dlp a videóoldalakhoz, és a sima közvetlen letöltés egy hétköznapi linkhez. Ezért van a TorBox és a yt-dlp ugyanabban a listában - mindkettő egy-egy út, amit egy link bejárhat.\n\nA sorrend csak azok között dönt, amelyek az adott linket tényleg el tudják vinni. A yt-dlp legfelülre húzása nem küld oda fájltárhely-linket.',
+  'accounts.routing.priorityHint': 'Melyik szolgáltatást kérdezzük először, ha ugyanazt a linket több is le tudja hozni. Húzd az átrendezéshez.\n\nA lista azokat a szolgáltatásokat tartalmazza, amelyek közül választasz: debrid fiókok, mint a TorBox és az AllDebrid, torrentek és távoli tárhely. A sorrend csak azok között dönt, amelyek egy linket ténylegesen el tudnak vinni.\n\nA JDownloader, a yt-dlp és az egyszerű közvetlen letöltés nincs benne, mert a megfelelő a linktől függ. A KnightLoader magától küldi a fájltárhely-linket a JDownloadernek, a videóoldalt a yt-dlp-nek, a hétköznapi fájlt pedig a közvetlen letöltésnek, a lista összes szolgáltatása után.',
   'accounts.routing.priorityEmpty': 'Még nincs regisztrált resolver.',
   'accounts.routing.moveUp': 'Mozgatás felfelé',
   'accounts.routing.moveDown': 'Mozgatás lefelé',

@@ -989,7 +989,7 @@ export const sv: Dict = {
   'accounts.whereToFind': 'Var hittar jag det här?',
   'accounts.hostsRefreshed': 'Hosterlistan uppdaterad {when}',
   'accounts.routing.priorityTitle': 'Prioritetsordning',
-  'accounts.routing.priorityHint': 'Vilken tjänst som frågas först när fler än en kan hämta samma länk. Dra för att ordna om.\n\nAllt som kan hämta en länk står här, inte bara debrid-kontona: TorBox, AllDebrid och liknande, JDownloader för hundratals hostare, yt-dlp för videosajter och den vanliga direktnedladdningen för en helt vanlig länk. Därför står TorBox och yt-dlp i samma lista - båda är vägar en länk kan ta.\n\nOrdningen avgör bara mellan de tjänster som faktiskt kan ta den aktuella länken. Att dra yt-dlp överst skickar inte en filhostare-länk dit.',
+  'accounts.routing.priorityHint': 'Vilken tjänst som frågas först när fler än en kan hämta samma länk. Dra för att ordna om.\n\nListan innehåller de tjänster du väljer mellan: debrid-konton som TorBox och AllDebrid, torrents och fjärrlagring. Ordningen avgör bara mellan dem som faktiskt kan ta emot en länk.\n\nJDownloader, yt-dlp och den vanliga direktnedladdningen finns inte med, eftersom rätt val beror på länken. KnightLoader skickar själv en filhostare-länk till JDownloader, en videosajt till yt-dlp och en vanlig fil till direktnedladdningen, efter alla tjänster i den här listan.',
   'accounts.routing.priorityEmpty': 'Inga resolvers är registrerade än.',
   'accounts.routing.moveUp': 'Flytta upp',
   'accounts.routing.moveDown': 'Flytta ned',

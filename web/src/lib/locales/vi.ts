@@ -989,7 +989,7 @@ export const vi: Dict = {
   'accounts.whereToFind': 'Lấy cái này ở đâu?',
   'accounts.hostsRefreshed': 'Danh sách dịch vụ lưu trữ đã làm mới {when}',
   'accounts.routing.priorityTitle': 'Thứ tự ưu tiên',
-  'accounts.routing.priorityHint': 'Dịch vụ nào được hỏi trước khi có nhiều hơn một dịch vụ lấy được cùng một liên kết. Kéo để sắp xếp lại.\n\nMọi thứ có thể lấy một liên kết đều nằm ở đây, không chỉ các tài khoản debrid: TorBox, AllDebrid và tương tự, JDownloader cho hàng trăm nhà lưu trữ, yt-dlp cho các trang video, và tải trực tiếp cho một liên kết bình thường. Đó là lý do TorBox và yt-dlp nằm chung một danh sách - cả hai đều là con đường mà một liên kết có thể đi.\n\nThứ tự chỉ quyết định giữa những dịch vụ thực sự nhận được liên kết đang xét. Kéo yt-dlp lên đầu không khiến một liên kết nhà lưu trữ tệp đi tới đó.',
+  'accounts.routing.priorityHint': 'Dịch vụ nào được hỏi trước khi có nhiều hơn một dịch vụ lấy được cùng một liên kết. Kéo để sắp xếp lại.\n\nDanh sách này chứa các dịch vụ mà bạn chọn giữa chúng: tài khoản debrid như TorBox và AllDebrid, torrent và lưu trữ từ xa. Thứ tự chỉ quyết định giữa những dịch vụ thực sự nhận được một liên kết.\n\nJDownloader, yt-dlp và tải trực tiếp thông thường không nằm trong danh sách này, vì lựa chọn đúng phụ thuộc vào liên kết. KnightLoader tự gửi liên kết nhà lưu trữ tệp đến JDownloader, trang video đến yt-dlp và tệp bình thường đến tải trực tiếp, sau khi đã qua mọi dịch vụ trong danh sách này.',
   'accounts.routing.priorityEmpty': 'Chưa có resolver nào được đăng ký.',
   'accounts.routing.moveUp': 'Chuyển lên',
   'accounts.routing.moveDown': 'Chuyển xuống',

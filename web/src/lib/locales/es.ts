@@ -981,7 +981,7 @@ export const es: Dict = {
   'accounts.whereToFind': '¿Dónde consigo esto?',
   'accounts.hostsRefreshed': 'Lista de hosters actualizada {when}',
   'accounts.routing.priorityTitle': 'Orden de prioridad',
-  'accounts.routing.priorityHint': 'Qué servicio se pregunta primero cuando más de uno puede obtener el mismo enlace. Arrastra para reordenar.\n\nAquí está todo lo que puede traer un enlace, no solo las cuentas debrid: TorBox, AllDebrid y compañía, JDownloader para cientos de hosters, yt-dlp para sitios de vídeo y la descarga directa para un enlace normal. Por eso TorBox y yt-dlp están en la misma lista: ambos son caminos que un enlace puede tomar.\n\nEl orden solo decide entre los servicios que de verdad pueden encargarse del enlace en cuestión. Poner yt-dlp arriba no envía allí un enlace de un hoster de archivos.',
+  'accounts.routing.priorityHint': 'Qué servicio se pregunta primero cuando más de uno puede obtener el mismo enlace. Arrastra para reordenar.\n\nLa lista contiene los servicios entre los que eliges: cuentas debrid como TorBox y AllDebrid, torrents y almacenamiento remoto. El orden solo decide entre los que realmente pueden encargarse de un enlace.\n\nJDownloader, yt-dlp y la descarga directa normal no están en ella, porque el adecuado depende del enlace. KnightLoader envía un enlace de un hoster de archivos a JDownloader, un sitio de vídeo a yt-dlp y un archivo normal a la descarga directa por su cuenta, después de todos los servicios de esta lista.',
   'accounts.routing.priorityEmpty': 'Aún no hay resolutores registrados.',
   'accounts.routing.moveUp': 'Subir',
   'accounts.routing.moveDown': 'Bajar',

@@ -989,7 +989,7 @@ export const ms: Dict = {
   'accounts.whereToFind': 'Dari mana saya boleh dapatkan ini?',
   'accounts.hostsRefreshed': 'Senarai hoster disegarkan semula {when}',
   'accounts.routing.priorityTitle': 'Susunan keutamaan',
-  'accounts.routing.priorityHint': 'Perkhidmatan mana yang ditanya dahulu apabila lebih daripada satu boleh mengambil pautan yang sama. Seret untuk menyusun semula.\n\nSemua yang boleh mengambil pautan ada di sini, bukan hanya akaun debrid: TorBox, AllDebrid dan seumpamanya, JDownloader untuk ratusan hoster, yt-dlp untuk laman video, dan muat turun terus untuk pautan biasa. Sebab itulah TorBox dan yt-dlp berada dalam senarai yang sama - kedua-duanya jalan yang boleh diambil oleh sesuatu pautan.\n\nSusunan ini hanya memutuskan antara perkhidmatan yang benar-benar boleh mengambil pautan berkenaan. Menyeret yt-dlp ke atas tidak menghantar pautan filehoster kepadanya.',
+  'accounts.routing.priorityHint': 'Perkhidmatan mana yang ditanya dahulu apabila lebih daripada satu boleh mengambil pautan yang sama. Seret untuk menyusun semula.\n\nSenarai ini mengandungi perkhidmatan yang anda pilih antaranya: akaun debrid seperti TorBox dan AllDebrid, torrent dan storan jauh. Susunan ini hanya membuat keputusan antara perkhidmatan yang benar-benar boleh mengambil pautan.\n\nJDownloader, yt-dlp dan muat turun terus biasa tiada dalam senarai ini, kerana yang sesuai bergantung pada pautan itu. KnightLoader sendiri menghantar pautan filehoster kepada JDownloader, laman video kepada yt-dlp dan fail biasa kepada muat turun terus, selepas semua perkhidmatan dalam senarai ini.',
   'accounts.routing.priorityEmpty': 'Belum ada resolver yang didaftarkan.',
   'accounts.routing.moveUp': 'Naikkan',
   'accounts.routing.moveDown': 'Turunkan',

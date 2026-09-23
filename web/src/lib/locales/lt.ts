@@ -989,7 +989,7 @@ export const lt: Dict = {
   'accounts.whereToFind': 'Iš kur tai gauti?',
   'accounts.hostsRefreshed': 'Hosterių sąrašas atnaujintas {when}',
   'accounts.routing.priorityTitle': 'Prioriteto tvarka',
-  'accounts.routing.priorityHint': 'Kurios paslaugos klausiama pirmiausia, kai tą pačią nuorodą gali paimti daugiau nei viena. Vilk, kad pertvarkytum.\n\nČia yra viskas, kas gali paimti nuorodą, ne tik debrid paskyros: TorBox, AllDebrid ir panašūs, JDownloader šimtams hosterių, yt-dlp vaizdo įrašų svetainėms ir paprastas tiesioginis atsisiuntimas įprastai nuorodai. Todėl TorBox ir yt-dlp yra tame pačiame sąraše - abu yra keliai, kuriais nuoroda gali eiti.\n\nTvarka sprendžia tik tarp tų paslaugų, kurios tikrai gali paimti konkrečią nuorodą. Nutempus yt-dlp į viršų, failų hosterio nuoroda ten nenukeliaus.',
+  'accounts.routing.priorityHint': 'Kurios paslaugos klausiama pirmiausia, kai tą pačią nuorodą gali paimti daugiau nei viena. Vilk, kad pertvarkytum.\n\nSąraše yra paslaugos, iš kurių renkiesi: debrid paskyros, tokios kaip TorBox ir AllDebrid, torrentai ir nuotolinė saugykla. Tvarka sprendžia tik tarp tų, kurios tikrai gali paimti nuorodą.\n\nJDownloader, yt-dlp ir paprastas tiesioginis atsisiuntimas jame nėra, nes tinkamas variantas priklauso nuo nuorodos. KnightLoader pats nusiunčia failų hosterio nuorodą į JDownloader, vaizdo įrašų svetainę į yt-dlp, o paprastą failą į tiesioginį atsisiuntimą, ir tai daro po visų šio sąrašo paslaugų.',
   'accounts.routing.priorityEmpty': 'Kol kas neregistruotas nė vienas resolveris.',
   'accounts.routing.moveUp': 'Kelti aukštyn',
   'accounts.routing.moveDown': 'Leisti žemyn',

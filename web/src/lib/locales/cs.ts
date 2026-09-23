@@ -989,7 +989,7 @@ export const cs: Dict = {
   'accounts.whereToFind': 'Kde to seženu?',
   'accounts.hostsRefreshed': 'Seznam hosterů obnoven {when}',
   'accounts.routing.priorityTitle': 'Pořadí priority',
-  'accounts.routing.priorityHint': 'Která služba se ptá první, když stejný odkaz zvládne víc než jedna. Přetažením změníš pořadí.\n\nJsou tu všechny služby, které umí odkaz stáhnout, ne jen debrid účty: TorBox, AllDebrid a spol., JDownloader pro stovky hosterů, yt-dlp pro videoweby a přímé stažení pro obyčejný odkaz. Proto stojí TorBox a yt-dlp v jednom seznamu - obojí je cesta, kterou odkaz může jít.\n\nPořadí rozhoduje jen mezi službami, které daný odkaz opravdu zvládnou. Dát yt-dlp nahoru neposílá odkaz z filehosteru k němu.',
+  'accounts.routing.priorityHint': 'Která služba se ptá první, když stejný odkaz zvládne víc než jedna. Přetažením změníš pořadí.\n\nSeznam obsahuje služby, mezi kterými vybíráš: debrid účty jako TorBox a AllDebrid, torrenty a vzdálená úložiště. Pořadí rozhoduje jen mezi těmi, které odkaz opravdu dokážou převzít.\n\nJDownloader, yt-dlp a obyčejné přímé stažení v něm nejsou, protože ten správný závisí na odkazu. KnightLoader sám pošle odkaz z filehosteru na JDownloader, odkaz na videoweb na yt-dlp a obyčejný soubor na přímé stažení, a to až po všech službách z tohoto seznamu.',
   'accounts.routing.priorityEmpty': 'Zatím nejsou registrovány žádné resolvery.',
   'accounts.routing.moveUp': 'Posunout nahoru',
   'accounts.routing.moveDown': 'Posunout dolů',

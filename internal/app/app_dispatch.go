@@ -6,6 +6,7 @@ package app
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"path/filepath"
@@ -109,10 +110,11 @@ func rankedChain(chain []resolver.Resolver, url string, order []string) []resolv
 // hand-arranged order and JD's per-host boost, so it would show a ladder the
 // downloader does not use.
 //
-// An empty host lists every registered service; otherwise the chain for that
-// host. There is one row per service, not per account slot: the card saves
-// the ids it shows back into ResolverOrder, and which account of a service
-// goes first is decided by routedAccounts.
+// An empty host lists the services the card orders, every registered one
+// except perLinkResolvers; otherwise the whole chain for that host. There is
+// one row per service, not per account slot: the card saves the ids it shows
+// back into ResolverOrder, and which account of a service goes first is
+// decided by routedAccounts.
 func (a *App) ResolverPriority(host string) []resolver.Info {
 	host = strings.TrimSpace(host)
 	url := ""
@@ -127,7 +129,7 @@ func (a *App) ResolverPriority(host string) []resolver.Info {
 	for _, res := range ranked {
 		info := res.Info()
 		service, _ := resolver.SplitSlot(info.ID)
-		if seen[service] {
+		if seen[service] || (host == "" && perLinkResolvers[service]) {
 			continue
 		}
 		seen[service] = true
@@ -136,6 +138,31 @@ func (a *App) ResolverPriority(host string) []resolver.Info {
 		out = append(out, info)
 	}
 	return out
+}
+
+// perLinkResolvers claim nearly any link, and which of them fits depends on
+// the host: JD's rank moves with it (jd.PriorityFor), yt-dlp takes whatever is
+// not a file hoster, and direct and the HTTP fallback take anything that looks
+// like a file. One stored order cannot be right for every host, so they stay
+// off the priority card and keep their automatic place below the services it
+// orders.
+var perLinkResolvers = map[string]bool{"direct": true, "jd": true, "ytdlp": true, "http": true}
+
+// SaveResolverOrder stores the order the priority card sends and answers with
+// the card's rows as re-read. The per-link resolvers are dropped on the way
+// in, so a list that still carries them cannot pin direct ahead of JD.
+func (a *App) SaveResolverOrder(order []string) ([]resolver.Info, error) {
+	kept := make([]string, 0, len(order))
+	for _, id := range order {
+		if !perLinkResolvers[strings.TrimSpace(id)] {
+			kept = append(kept, id)
+		}
+	}
+	raw, _ := json.Marshal(kept)
+	if _, err := a.PatchSettings(map[string]json.RawMessage{"resolverOrder": raw}); err != nil {
+		return nil, err
+	}
+	return a.ResolverPriority(""), nil
 }
 
 // setWaitingLocked sets each listed task's waiting reason: per[id] when given,

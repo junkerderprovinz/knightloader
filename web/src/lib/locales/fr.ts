@@ -981,7 +981,7 @@ export const fr: Dict = {
   'accounts.whereToFind': 'Où puis-je trouver ça ?',
   'accounts.hostsRefreshed': 'Liste des hébergeurs actualisée {when}',
   'accounts.routing.priorityTitle': 'Ordre de priorité',
-  'accounts.routing.priorityHint': 'Quel service est interrogé en premier quand plusieurs peuvent récupérer le même lien. Fais glisser pour réordonner.\n\nTout ce qui peut récupérer un lien est ici, pas seulement les comptes debrid : TorBox, AllDebrid et consorts, JDownloader pour des centaines d\'hébergeurs, yt-dlp pour les sites vidéo, et le téléchargement direct pour un lien ordinaire. C\'est pourquoi TorBox et yt-dlp figurent dans la même liste : ce sont deux chemins qu\'un lien peut prendre.\n\nL\'ordre ne tranche qu\'entre les services capables de prendre réellement le lien en main. Mettre yt-dlp en haut n\'y envoie pas un lien d\'hébergeur de fichiers.',
+  'accounts.routing.priorityHint': 'Quel service est interrogé en premier quand plusieurs peuvent récupérer le même lien. Fais glisser pour réordonner.\n\nLa liste contient les services entre lesquels tu choisis : comptes debrid comme TorBox et AllDebrid, torrents et stockage distant. L\'ordre ne décide qu\'entre ceux qui peuvent vraiment prendre en charge un lien.\n\nJDownloader, yt-dlp et le simple téléchargement direct n\'en font pas partie, car le bon dépend du lien. KnightLoader envoie de lui-même un lien d\'hébergeur de fichiers à JDownloader, un site vidéo à yt-dlp et un fichier ordinaire au téléchargement direct, après tous les services de cette liste.',
   'accounts.routing.priorityEmpty': 'Aucun résolveur n’est encore enregistré.',
   'accounts.routing.moveUp': 'Monter',
   'accounts.routing.moveDown': 'Descendre',

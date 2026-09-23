@@ -990,7 +990,7 @@ export const ro: Dict = {
   'accounts.whereToFind': 'De unde obțin asta?',
   'accounts.hostsRefreshed': 'Lista de hostere reîmprospătată {when}',
   'accounts.routing.priorityTitle': 'Ordinea de prioritate',
-  'accounts.routing.priorityHint': 'Ce serviciu e întrebat primul când mai multe pot aduce același link. Trage pentru a rearanja.\n\nAici e tot ce poate aduce un link, nu doar conturile debrid: TorBox, AllDebrid și altele, JDownloader pentru sute de hosteri, yt-dlp pentru site-uri video și descărcarea directă pentru un link obișnuit. De aceea TorBox și yt-dlp stau în aceeași listă - amândouă sunt drumuri pe care un link le poate lua.\n\nOrdinea decide doar între serviciile care chiar pot lua linkul respectiv. Dacă tragi yt-dlp în vârf, un link de filehoster tot nu ajunge la el.',
+  'accounts.routing.priorityHint': 'Ce serviciu e întrebat primul când mai multe pot aduce același link. Trage pentru a rearanja.\n\nLista conține serviciile dintre care alegi: conturi debrid precum TorBox și AllDebrid, torrente și stocare la distanță. Ordinea decide doar între cele care pot chiar prelua un link.\n\nJDownloader, yt-dlp și descărcarea directă simplă nu sunt în ea, pentru că cel potrivit depinde de link. KnightLoader trimite singur un link de filehoster către JDownloader, un site video către yt-dlp și un fișier obișnuit către descărcarea directă, după toate serviciile din această listă.',
   'accounts.routing.priorityEmpty': 'Niciun resolver înregistrat încă.',
   'accounts.routing.moveUp': 'Mută în sus',
   'accounts.routing.moveDown': 'Mută în jos',
