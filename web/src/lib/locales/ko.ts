@@ -989,7 +989,7 @@ export const ko: Dict = {
   'accounts.whereToFind': '이건 어디서 구하나요?',
   'accounts.hostsRefreshed': '호스터 목록을 {when} 새로고침했습니다',
   'accounts.routing.priorityTitle': '우선순위',
-  'accounts.routing.priorityHint': '같은 링크를 둘 이상이 가져올 수 있을 때 어느 서비스에 먼저 묻는지입니다. 끌어서 순서를 바꾸세요.\n\n링크를 가져올 수 있는 것이 모두 여기 있습니다. debrid 계정만이 아닙니다. TorBox와 AllDebrid 같은 서비스, 수백 개 호스터를 다루는 JDownloader, 동영상 사이트를 위한 yt-dlp, 그리고 평범한 링크를 위한 직접 다운로드입니다. TorBox와 yt-dlp가 같은 목록에 있는 이유가 그것입니다. 둘 다 링크가 지나갈 수 있는 길이니까요.\n\n이 순서는 지금 그 링크를 실제로 처리할 수 있는 서비스들 사이에서만 결정합니다. yt-dlp를 맨 위로 끌어도 파일 호스터 링크가 그리로 가지는 않습니다.',
+  'accounts.routing.priorityHint': '같은 링크를 둘 이상이 가져올 수 있을 때 어느 서비스에 먼저 묻는지입니다. 끌어서 순서를 바꾸세요.\n\n이 목록에는 선택할 수 있는 서비스가 담겨 있습니다. TorBox와 AllDebrid 같은 debrid 계정, 토렌트, 원격 스토리지입니다. 순서는 실제로 링크를 처리할 수 있는 서비스들 사이에서만 작동합니다.\n\nJDownloader, yt-dlp, 그리고 일반 직접 다운로드는 이 목록에 없습니다. 어느 쪽이 맞는지는 링크에 따라 다르기 때문입니다. KnightLoader는 이 목록의 모든 서비스를 거친 뒤에, 파일 호스터 링크는 JDownloader로, 동영상 사이트는 yt-dlp로, 일반 파일은 직접 다운로드로 알아서 보냅니다.',
   'accounts.routing.priorityEmpty': '등록된 리졸버가 아직 없습니다.',
   'accounts.routing.moveUp': '위로 이동',
   'accounts.routing.moveDown': '아래로 이동',

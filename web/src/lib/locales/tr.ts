@@ -989,7 +989,7 @@ export const tr: Dict = {
   'accounts.whereToFind': 'Bunu nereden alırım?',
   'accounts.hostsRefreshed': 'Hoster listesi yenilendi: {when}',
   'accounts.routing.priorityTitle': 'Öncelik sırası',
-  'accounts.routing.priorityHint': 'Aynı bağlantıyı birden fazlası getirebiliyorsa önce hangi hizmete sorulacağı. Sıralamayı değiştirmek için sürükle.\n\nBir bağlantıyı getirebilen her şey burada, yalnızca debrid hesapları değil: TorBox, AllDebrid ve benzerleri, yüzlerce hoster için JDownloader, video siteleri için yt-dlp ve sıradan bir bağlantı için doğrudan indirme. TorBox ile yt-dlp\'nin aynı listede olmasının nedeni bu: ikisi de bir bağlantının gidebileceği yollar.\n\nSıralama yalnızca eldeki bağlantıyı gerçekten alabilen hizmetler arasında karar verir. yt-dlp\'yi en üste sürüklemek ona bir dosya hosteri bağlantısı göndermez.',
+  'accounts.routing.priorityHint': 'Aynı bağlantıyı birden fazlası getirebiliyorsa önce hangi hizmete sorulacağı. Sıralamayı değiştirmek için sürükle.\n\nListe, aralarından seçtiğin hizmetleri barındırır: TorBox ve AllDebrid gibi debrid hesapları, torrentler ve uzak depolama. Sıralama yalnızca bir bağlantıyı gerçekten alabilen hizmetler arasında karar verir.\n\nJDownloader, yt-dlp ve sıradan doğrudan indirme bu listede yer almaz, çünkü doğru seçenek bağlantıya bağlıdır. KnightLoader bir dosya hosteri bağlantısını kendiliğinden JDownloader\'a, bir video sitesini yt-dlp\'ye ve sıradan bir dosyayı doğrudan indirmeye, bu listedeki tüm hizmetlerden sonra gönderir.',
   'accounts.routing.priorityEmpty': 'Henüz kayıtlı bir çözümleyici yok.',
   'accounts.routing.moveUp': 'Yukarı taşı',
   'accounts.routing.moveDown': 'Aşağı taşı',

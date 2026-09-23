@@ -1130,7 +1130,7 @@ export const en = {
   'accounts.whereToFind': 'Where do I get this?',
   'accounts.hostsRefreshed': 'Host list refreshed {when}',
   'accounts.routing.priorityTitle': 'Priority order',
-  'accounts.routing.priorityHint': 'Which service is asked first when more than one can fetch the same link. Drag to rearrange.\n\nEverything that can fetch a link is here, not only the debrid accounts: TorBox, AllDebrid and the like, JDownloader for hundreds of hosters, yt-dlp for video sites, and the plain direct download for an ordinary link. That is why TorBox and yt-dlp sit in the same list - both are roads a link can take.\n\nThe order only decides between the services that can actually take the link in hand. Dragging yt-dlp to the top does not send a filehoster link to it.',
+  'accounts.routing.priorityHint': 'Which service is asked first when more than one can fetch the same link. Drag to rearrange.\n\nThe list holds the services you choose between: debrid accounts such as TorBox and AllDebrid, torrents and remote storage. The order only decides between the ones that can actually take a link.\n\nJDownloader, yt-dlp and the plain direct download are not in it, because the right one depends on the link. KnightLoader sends a filehoster link to JDownloader, a video site to yt-dlp and an ordinary file to the direct download on its own, after every service in this list.',
   'accounts.routing.priorityEmpty': 'No resolvers are registered yet.',
   'accounts.routing.moveUp': 'Move up',
   'accounts.routing.moveDown': 'Move down',

@@ -989,7 +989,7 @@ export const zh: Dict = {
   'accounts.whereToFind': '在哪里可以获取？',
   'accounts.hostsRefreshed': '网盘列表已刷新（{when}）',
   'accounts.routing.priorityTitle': '优先级顺序',
-  'accounts.routing.priorityHint': '当不止一个服务能取到同一条链接时，先问哪一个。拖动即可重新排序。\n\n这里列出的是所有能取链接的东西，不只是 debrid 账号：TorBox、AllDebrid 之类，覆盖数百家网盘的 JDownloader，面向视频站点的 yt-dlp，以及处理普通链接的直接下载。TorBox 和 yt-dlp 出现在同一份列表里正是因为这个：两者都是链接可以走的路。\n\n这个顺序只在真正能接手当前链接的服务之间起作用。把 yt-dlp 拖到最上面，并不会把网盘链接送给它。',
+  'accounts.routing.priorityHint': '当不止一个服务能取到同一条链接时，先问哪一个。拖动即可重新排序。\n\n这份列表收录你可以选择的服务：像 TorBox 和 AllDebrid 这样的 debrid 账号、种子和远程存储。顺序只在真正能接手一条链接的服务之间起作用。\n\nJDownloader、yt-dlp 和普通的直接下载不在这份列表里，因为该用哪一个取决于链接本身。KnightLoader 会在这份列表里的所有服务之后，自己把网盘链接交给 JDownloader、把视频网站交给 yt-dlp、把普通文件交给直接下载。',
   'accounts.routing.priorityEmpty': '尚未注册任何解析器。',
   'accounts.routing.moveUp': '上移',
   'accounts.routing.moveDown': '下移',

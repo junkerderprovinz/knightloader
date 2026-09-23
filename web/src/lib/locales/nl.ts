@@ -981,7 +981,7 @@ export const nl: Dict = {
   'accounts.whereToFind': 'Waar vind ik dit?',
   'accounts.hostsRefreshed': 'Hosterlijst vernieuwd {when}',
   'accounts.routing.priorityTitle': 'Prioriteitsvolgorde',
-  'accounts.routing.priorityHint': 'Welke dienst als eerste wordt gevraagd wanneer er meer dan één dezelfde link kan halen. Sleep om te herschikken.\n\nAlles wat een link kan halen staat hier, niet alleen de debrid-accounts: TorBox, AllDebrid en dergelijke, JDownloader voor honderden hosters, yt-dlp voor videosites, en de gewone directe download voor een doodgewone link. Daarom staan TorBox en yt-dlp in dezelfde lijst - het zijn allebei wegen die een link kan nemen.\n\nDe volgorde beslist alleen tussen de diensten die de link in kwestie echt aankunnen. yt-dlp bovenaan slepen stuurt er geen filehoster-link heen.',
+  'accounts.routing.priorityHint': 'Welke dienst als eerste wordt gevraagd wanneer er meer dan één dezelfde link kan halen. Sleep om te herschikken.\n\nDe lijst bevat de diensten waaruit je kiest: debrid-accounts zoals TorBox en AllDebrid, torrents en opslag op afstand. De volgorde beslist alleen tussen de diensten die een link ook echt kunnen aannemen.\n\nJDownloader, yt-dlp en de gewone directe download staan er niet tussen, omdat de juiste van de link afhangt. KnightLoader stuurt zelf een filehoster-link naar JDownloader, een videosite naar yt-dlp en een gewoon bestand naar de directe download, en wel na alle diensten in deze lijst.',
   'accounts.routing.priorityEmpty': 'Nog geen resolvers geregistreerd.',
   'accounts.routing.moveUp': 'Omhoog',
   'accounts.routing.moveDown': 'Omlaag',

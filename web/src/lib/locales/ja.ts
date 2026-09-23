@@ -989,7 +989,7 @@ export const ja: Dict = {
   'accounts.whereToFind': 'これはどこで手に入りますか？',
   'accounts.hostsRefreshed': 'ホスター一覧を更新しました（{when}）',
   'accounts.routing.priorityTitle': '優先順位',
-  'accounts.routing.priorityHint': '同じリンクを複数のサービスが取得できるとき、どれに最初に尋ねるか。ドラッグで並べ替えられます。\n\nここにはリンクを取得できるものがすべて並びます。debrid のアカウントだけではありません。TorBox や AllDebrid など、数百のホスターに対応する JDownloader、動画サイト向けの yt-dlp、そして普通のリンク向けの直接ダウンロードです。TorBox と yt-dlp が同じ一覧にあるのはそのためで、どちらもリンクが通り得る道だからです。\n\nこの並び順は、その場のリンクを実際に扱えるサービスの間でしか効きません。yt-dlp を一番上にしても、ファイルホスターのリンクがそこへ回されることはありません。',
+  'accounts.routing.priorityHint': '同じリンクを複数のサービスが取得できるとき、どれに最初に尋ねるか。ドラッグで並べ替えられます。\n\nこの一覧には選べるサービスが並びます。TorBox や AllDebrid のような debrid のアカウント、トレント、リモートストレージです。並び順が効くのは、実際にリンクを扱えるサービスの間だけです。\n\nJDownloader、yt-dlp、普通の直接ダウンロードはここには含まれません。どれを使うかはリンク次第だからです。KnightLoader は、ファイルホスターのリンクを JDownloader に、動画サイトを yt-dlp に、普通のファイルを直接ダウンロードに、この一覧のすべてのサービスのあとで自動的に振り分けます。',
   'accounts.routing.priorityEmpty': '登録済みのリゾルバーはまだありません。',
   'accounts.routing.moveUp': '上へ移動',
   'accounts.routing.moveDown': '下へ移動',

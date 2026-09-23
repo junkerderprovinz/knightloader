@@ -989,7 +989,7 @@ export const sl: Dict = {
   'accounts.whereToFind': 'Kje to dobim?',
   'accounts.hostsRefreshed': 'Seznam gostiteljev osvežen {when}',
   'accounts.routing.priorityTitle': 'Vrstni red prednosti',
-  'accounts.routing.priorityHint': 'Katera storitev se vpraša prva, ko isto povezavo zmore več kot ena. Povleci za prerazporeditev.\n\nTu je vse, kar zna prinesti povezavo, ne le računi debrid: TorBox, AllDebrid in podobni, JDownloader za stotine hosterjev, yt-dlp za videostrani in navaden neposreden prenos za običajno povezavo. Zato sta TorBox in yt-dlp na istem seznamu - oboje sta poti, po katerih lahko gre povezava.\n\nVrstni red odloča le med storitvami, ki dano povezavo res zmorejo prevzeti. Če yt-dlp povlečeš na vrh, povezava datotečnega hosterja ne bo šla tja.',
+  'accounts.routing.priorityHint': 'Katera storitev se vpraša prva, ko isto povezavo zmore več kot ena. Povleci za prerazporeditev.\n\nSeznam vsebuje storitve, med katerimi izbiraš: račune debrid, kot sta TorBox in AllDebrid, torrente in oddaljeno shrambo. Vrstni red odloča le med tistimi, ki dejansko zmorejo prevzeti povezavo.\n\nJDownloaderja, yt-dlp in navadnega neposrednega prenosa v njem ni, ker pravi izbor je odvisen od povezave. KnightLoader sam pošlje povezavo datotečnega hosterja na JDownloader, povezavo videostrani na yt-dlp in navadno datoteko na neposredni prenos, in to šele po vseh storitvah s tega seznama.',
   'accounts.routing.priorityEmpty': 'Še ni registriranih razreševalnikov.',
   'accounts.routing.moveUp': 'Premakni gor',
   'accounts.routing.moveDown': 'Premakni dol',

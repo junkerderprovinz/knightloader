@@ -989,7 +989,7 @@ export const gl: Dict = {
   'accounts.whereToFind': 'De onde o saco?',
   'accounts.hostsRefreshed': 'Lista de aloxadores actualizada {when}',
   'accounts.routing.priorityTitle': 'Orde de prioridade',
-  'accounts.routing.priorityHint': 'Que servizo se pregunta primeiro cando máis dun pode obter a mesma ligazón. Arrastra para reordenar.\n\nAquí está todo o que pode traer unha ligazón, non só as contas debrid: TorBox, AllDebrid e compañía, JDownloader para centos de hosters, yt-dlp para sitios de vídeo e a descarga directa para unha ligazón normal. Por iso TorBox e yt-dlp están na mesma lista: ambos son camiños que unha ligazón pode tomar.\n\nA orde só decide entre os servizos que realmente poden encargarse da ligazón en cuestión. Poñer yt-dlp arriba non lle envía unha ligazón dun hoster de ficheiros.',
+  'accounts.routing.priorityHint': 'Que servizo se pregunta primeiro cando máis dun pode obter a mesma ligazón. Arrastra para reordenar.\n\nA lista contén os servizos entre os que escolles: contas debrid como TorBox e AllDebrid, torrents e almacenamento remoto. A orde só decide entre os que realmente poden encargarse dunha ligazón.\n\nJDownloader, yt-dlp e a descarga directa normal non están nela, porque o axeitado depende da ligazón. KnightLoader envía por conta propia unha ligazón dun hoster de ficheiros a JDownloader, un sitio de vídeo a yt-dlp e un ficheiro normal á descarga directa, despois de todos os servizos desta lista.',
   'accounts.routing.priorityEmpty': 'Aínda non hai resolvedores rexistrados.',
   'accounts.routing.moveUp': 'Subir',
   'accounts.routing.moveDown': 'Baixar',

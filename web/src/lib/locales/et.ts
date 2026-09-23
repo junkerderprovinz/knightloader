@@ -989,7 +989,7 @@ export const et: Dict = {
   'accounts.whereToFind': 'Kust ma selle saan?',
   'accounts.hostsRefreshed': 'Hosterite loend värskendatud {when}',
   'accounts.routing.priorityTitle': 'Prioriteetide järjekord',
-  'accounts.routing.priorityHint': 'Milliselt teenuselt küsitakse esimesena, kui sama linki suudab tuua rohkem kui üks. Lohista järjekorra muutmiseks.\n\nSiin on kõik, mis suudab linki tuua, mitte ainult debrid-kontod: TorBox, AllDebrid ja sarnased, JDownloader sadade hosterite jaoks, yt-dlp videosaitide jaoks ja tavaline otsealla-laadimine harilikule lingile. Just seepärast on TorBox ja yt-dlp samas nimekirjas - mõlemad on teed, mida link võib minna.\n\nJärjekord otsustab ainult nende teenuste vahel, kes antud lingi tõesti võtta suudavad. yt-dlp ülemiseks lohistamine ei saada sinna failihosteri linki.',
+  'accounts.routing.priorityHint': 'Milliselt teenuselt küsitakse esimesena, kui sama linki suudab tuua rohkem kui üks. Lohista järjekorra muutmiseks.\n\nNimekiri hoiab teenuseid, mille vahel sa valid: debrid-kontod nagu TorBox ja AllDebrid, torrentid ja kaugsalvestus. Järjekord otsustab ainult nende vahel, kes suudavad linki tegelikult vastu võtta.\n\nJDownloader, yt-dlp ja tavaline otseallalaadimine ei ole selles, sest õige valik sõltub lingist. KnightLoader saadab ise failihosteri lingi JDownloaderile, videosaidi lingi yt-dlp-le ja tavalise faili otseallalaadimisele, alles pärast kõiki selle nimekirja teenuseid.',
   'accounts.routing.priorityEmpty': 'Ühtegi lahendajat pole veel registreeritud.',
   'accounts.routing.moveUp': 'Liiguta üles',
   'accounts.routing.moveDown': 'Liiguta alla',

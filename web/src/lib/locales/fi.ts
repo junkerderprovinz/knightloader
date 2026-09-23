@@ -989,7 +989,7 @@ export const fi: Dict = {
   'accounts.whereToFind': 'Mistä saan tämän?',
   'accounts.hostsRefreshed': 'Hosterilista päivitetty {when}',
   'accounts.routing.priorityTitle': 'Prioriteettijärjestys',
-  'accounts.routing.priorityHint': 'Miltä palvelulta kysytään ensin, kun useampi kuin yksi voi hakea saman linkin. Vedä järjestääksesi uudelleen.\n\nTäällä on kaikki, mikä osaa hakea linkin, ei vain debrid-tilit: TorBox, AllDebrid ja kumppanit, JDownloader satojen isännöijien varalta, yt-dlp videosivustoille ja tavallinen suora lataus tavalliselle linkille. Siksi TorBox ja yt-dlp ovat samassa listassa - molemmat ovat teitä, joita linkki voi kulkea.\n\nJärjestys ratkaisee vain niiden palveluiden kesken, jotka oikeasti voivat ottaa käsillä olevan linkin. yt-dlp:n vetäminen ylimmäksi ei lähetä sinne tiedostoisännöijän linkkiä.',
+  'accounts.routing.priorityHint': 'Miltä palvelulta kysytään ensin, kun useampi kuin yksi voi hakea saman linkin. Vedä järjestääksesi uudelleen.\n\nLista sisältää palvelut, joiden väliltä valitset: debrid-tilit kuten TorBox ja AllDebrid, torrentit ja etätallennus. Järjestys ratkaisee vain niiden palveluiden kesken, jotka oikeasti voivat ottaa linkin vastaan.\n\nJDownloader, yt-dlp ja tavallinen suora lataus eivät ole listalla, koska oikea valinta riippuu linkistä. KnightLoader lähettää itse tiedostoisännöijän linkin JDownloaderille, videosivuston linkin yt-dlp:lle ja tavallisen tiedoston suoralle lataukselle, vasta kaikkien listan palveluiden jälkeen.',
   'accounts.routing.priorityEmpty': 'Yhtään resolveria ei ole vielä rekisteröity.',
   'accounts.routing.moveUp': 'Siirrä ylös',
   'accounts.routing.moveDown': 'Siirrä alas',

@@ -989,7 +989,7 @@ export const ca: Dict = {
   'accounts.whereToFind': 'D’on ho trec?',
   'accounts.hostsRefreshed': 'Llista d’allotjadors actualitzada {when}',
   'accounts.routing.priorityTitle': 'Ordre de prioritat',
-  'accounts.routing.priorityHint': 'Quin servei es pregunta primer quan més d\'un pot obtenir el mateix enllaç. Arrossega per reordenar.\n\nAquí hi ha tots els serveis que poden portar un enllaç, no només els comptes debrid: TorBox, AllDebrid i companyia, JDownloader per a centenars d\'allotjadors, yt-dlp per a llocs de vídeo i la baixada directa per a un enllaç normal. Per això TorBox i yt-dlp són a la mateixa llista: tots dos són un camí que un enllaç pot prendre.\n\nL\'ordre només decideix entre els serveis que realment poden agafar l\'enllaç en qüestió. Posar yt-dlp a dalt no farà que hi vagi un enllaç d\'un allotjador de fitxers.',
+  'accounts.routing.priorityHint': 'Quin servei es pregunta primer quan més d\'un pot obtenir el mateix enllaç. Arrossega per reordenar.\n\nLa llista conté els serveis entre els quals tries: comptes debrid com TorBox i AllDebrid, torrents i emmagatzematge remot. L\'ordre només decideix entre els que realment poden agafar un enllaç.\n\nJDownloader, yt-dlp i la baixada directa no hi són, perquè el correcte depèn de l\'enllaç. KnightLoader envia tot sol un enllaç d\'un allotjador de fitxers a JDownloader, un lloc de vídeo a yt-dlp i un fitxer normal a la baixada directa, després de cada servei d\'aquesta llista.',
   'accounts.routing.priorityEmpty': 'Encara no hi ha cap resolutor registrat.',
   'accounts.routing.moveUp': 'Mou amunt',
   'accounts.routing.moveDown': 'Mou avall',

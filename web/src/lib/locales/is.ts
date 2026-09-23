@@ -989,7 +989,7 @@ export const is: Dict = {
   'accounts.whereToFind': 'Hvar fæ ég þetta?',
   'accounts.hostsRefreshed': 'Listi yfir hýsingaraðila endurnýjaður {when}',
   'accounts.routing.priorityTitle': 'Forgangsröð',
-  'accounts.routing.priorityHint': 'Hvaða þjónusta er spurð fyrst þegar fleiri en ein geta sótt sama tengil. Dragðu til að endurraða.\n\nHér er allt sem getur sótt tengil, ekki bara debrid-reikningarnir: TorBox, AllDebrid og þess háttar, JDownloader fyrir hundruð hýsinga, yt-dlp fyrir myndbandavefi og bein niðurhal fyrir venjulegan tengil. Þess vegna standa TorBox og yt-dlp á sama lista - hvort tveggja eru leiðir sem tengill getur farið.\n\nRöðin sker aðeins úr milli þeirra þjónusta sem raunverulega geta tekið viðkomandi tengil. Að draga yt-dlp efst sendir ekki skráahýsingartengil þangað.',
+  'accounts.routing.priorityHint': 'Hvaða þjónusta er spurð fyrst þegar fleiri en ein geta sótt sama tengil. Dragðu til að endurraða.\n\nListinn geymir þjónusturnar sem þú velur á milli: debrid-reikninga eins og TorBox og AllDebrid, torrent og fjargeymslu. Röðin sker aðeins úr milli þeirra sem geta raunverulega tekið við tengli.\n\nJDownloader, yt-dlp og venjulegt beint niðurhal eru ekki á listanum, því rétta leiðin fer eftir tenglinum. KnightLoader sendir sjálft skráahýsingartengil til JDownloader, myndbandasíðu til yt-dlp og venjulega skrá í beint niðurhal, eftir allar þjónusturnar á þessum lista.',
   'accounts.routing.priorityEmpty': 'Engar úrlausnir (resolvers) skráðar ennþá.',
   'accounts.routing.moveUp': 'Færa upp',
   'accounts.routing.moveDown': 'Færa niður',

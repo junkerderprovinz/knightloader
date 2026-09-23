@@ -4,7 +4,6 @@ package api
 // in, and the headless-JD sidecar's status. Neither carries a credential.
 
 import (
-	"encoding/json"
 	"net/http"
 	"strings"
 
@@ -41,19 +40,15 @@ func registerResolvers(reg *Registry, a *app.App) {
 			if !decodeJSON(w, r, &body) {
 				return
 			}
-			raw, err := json.Marshal(body.Order)
+			// Re-read after the save rather than echoed from the request:
+			// sanitize drops blanks and repeats, so a card redrawn from the
+			// request would show an order the server is not using.
+			rows, err := a.SaveResolverOrder(body.Order)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			if _, err := a.PatchSettings(map[string]json.RawMessage{"resolverOrder": raw}); err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-			// Re-read after the save rather than echoed from the request:
-			// sanitize drops blanks and repeats, so a card redrawn from the
-			// request would show an order the server is not using.
-			writeJSON(w, a.ResolverPriority(""))
+			writeJSON(w, rows)
 		})
 
 	reg.Add(http.MethodGet, "/api/resolvers/jd",

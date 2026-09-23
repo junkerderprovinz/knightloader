@@ -989,7 +989,7 @@ export const eu: Dict = {
   'accounts.whereToFind': 'Non lortzen dut hau?',
   'accounts.hostsRefreshed': 'Ostalari-zerrenda freskatu da ({when})',
   'accounts.routing.priorityTitle': 'Lehentasun-ordena',
-  'accounts.routing.priorityHint': 'Zein zerbitzuri galdetzen zaion lehenik esteka bera batek baino gehiagok ekar dezakeenean. Arrastatu berrantolatzeko.\n\nEsteka bat ekar dezakeen guztia dago hemen, debrid kontuak bakarrik ez: TorBox, AllDebrid eta antzekoak, JDownloader ehunka ostalarirentzat, yt-dlp bideo guneentzat, eta zuzeneko deskarga esteka arruntarentzat. Horregatik daude TorBox eta yt-dlp zerrenda berean: biak dira esteka batek har ditzakeen bideak.\n\nOrdenak esku artean dagoen esteka benetan har dezaketen zerbitzuen artean bakarrik erabakitzen du. yt-dlp gora eramateak ez du fitxategi-ostalari baten esteka hara bidaltzen.',
+  'accounts.routing.priorityHint': 'Zein zerbitzuri galdetzen zaion lehenik esteka bera batek baino gehiagok ekar dezakeenean. Arrastatu berrantolatzeko.\n\nZerrendak hautatzen dituzun zerbitzuak ditu: TorBox eta AllDebrid bezalako debrid kontuak, torrentak eta urruneko biltegiratzea. Ordenak esteka bat benetan har dezaketenen artean bakarrik erabakitzen du.\n\nJDownloader, yt-dlp eta zuzeneko deskarga arrunta ez daude zerrendan, egokia estekaren araberakoa delako. KnightLoaderrek berak bidaltzen dio fitxategi-ostalari baten esteka JDownloader-i, bideo gune bat yt-dlp-ri eta fitxategi arrunt bat zuzeneko deskargari, zerrenda honetako zerbitzu guztien ondoren.',
   'accounts.routing.priorityEmpty': 'Oraindik ez dago erregistratutako ebazlerik.',
   'accounts.routing.moveUp': 'Eraman gora',
   'accounts.routing.moveDown': 'Eraman behera',

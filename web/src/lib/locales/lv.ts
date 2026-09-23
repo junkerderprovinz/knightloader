@@ -989,7 +989,7 @@ export const lv: Dict = {
   'accounts.whereToFind': 'No kurienes to dabūt?',
   'accounts.hostsRefreshed': 'Hosteru saraksts atsvaidzināts {when}',
   'accounts.routing.priorityTitle': 'Prioritātes secība',
-  'accounts.routing.priorityHint': 'Kuram pakalpojumam jautā vispirms, kad vienu un to pašu saiti var paņemt vairāki. Velc, lai pārkārtotu.\n\nŠeit ir viss, kas var paņemt saiti, ne tikai debrid konti: TorBox, AllDebrid un tamlīdzīgi, JDownloader simtiem hosteru, yt-dlp video vietnēm un vienkārša tieša lejupielāde parastai saitei. Tāpēc TorBox un yt-dlp ir vienā sarakstā - abi ir ceļi, pa kuriem saite var iet.\n\nSecība izšķir tikai starp tiem pakalpojumiem, kas tiešām var paņemt konkrēto saiti. Ievelkot yt-dlp augšā, failu hostera saite tur nenonāks.',
+  'accounts.routing.priorityHint': 'Kuram pakalpojumam jautā vispirms, kad vienu un to pašu saiti var paņemt vairāki. Velc, lai pārkārtotu.\n\nSarakstā ir pakalpojumi, starp kuriem izvēlies: debrid konti, piemēram, TorBox un AllDebrid, torrenti un attālā krātuve. Secība izšķir tikai starp tiem, kas tiešām var paņemt saiti.\n\nJDownloader, yt-dlp un vienkāršā tiešā lejupielāde tajā nav iekļauti, jo pareizais atkarīgs no saites. KnightLoader pats nosūta failu hostera saiti uz JDownloader, video vietnes saiti uz yt-dlp un parastu failu uz tiešo lejupielādi, un dara to pēc visiem šī saraksta pakalpojumiem.',
   'accounts.routing.priorityEmpty': 'Vēl nav reģistrētu risinātāju.',
   'accounts.routing.moveUp': 'Pārvietot uz augšu',
   'accounts.routing.moveDown': 'Pārvietot uz leju',

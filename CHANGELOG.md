@@ -39,6 +39,16 @@ submission and for a fixed download.
 
 ### Fixed
 
+- **Links to a filehoster go to JDownloader's free mode again after the
+  priority order has been rearranged.** The card on the Accounts page listed
+  JDownloader, yt-dlp, the direct download and the HTTP fallback too, and any
+  drag saved all of them, with direct above JDownloader. From then on a
+  filehoster link without an account went out as a plain download, which
+  usually saves the hoster's landing page. Those four decide per link and are
+  no longer on the card; it orders the debrid accounts, torrents and remote
+  storage. An order saved before keeps its old effect until the card is
+  touched once or reset to "Automatic".
+
 - **Browser extension 1.0.1: a tooltip no longer stays up after a click.**
   Focus opens a tooltip only after keyboard input now, so Cancel in the
   "leave the group" window, which hands focus back to the bin, no longer leaves

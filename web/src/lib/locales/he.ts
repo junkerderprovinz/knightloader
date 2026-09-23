@@ -991,7 +991,7 @@ export const he: Dict = {
   'accounts.whereToFind': 'מאיפה משיגים את זה?',
   'accounts.hostsRefreshed': 'רשימת המארחים עודכנה {when}',
   'accounts.routing.priorityTitle': 'סדר עדיפויות',
-  'accounts.routing.priorityHint': 'לאיזה שירות פונים ראשון כשיותר מאחד יכול להביא את אותו קישור. גרור כדי לסדר מחדש.\n\nכאן נמצא כל מה שיכול להביא קישור, לא רק חשבונות debrid: TorBox, AllDebrid וכדומה, JDownloader עבור מאות מארחים, yt-dlp עבור אתרי וידאו, וההורדה הישירה עבור קישור רגיל. לכן TorBox ו-yt-dlp נמצאים באותה רשימה - שניהם דרכים שקישור יכול ללכת בהן.\n\nהסדר מכריע רק בין השירותים שבאמת יכולים לקחת את הקישור שלפניהם. גרירת yt-dlp לראש הרשימה לא תשלח אליו קישור של מארח קבצים.',
+  'accounts.routing.priorityHint': 'לאיזה שירות פונים ראשון כשיותר מאחד יכול להביא את אותו קישור. גרור כדי לסדר מחדש.\n\nהרשימה כוללת את השירותים שאתה בוחר ביניהם: חשבונות debrid כמו TorBox ו-AllDebrid, טורנטים ואחסון מרוחק. הסדר מכריע רק בין אלה שבאמת יכולים לקחת קישור.\n\nJDownloader, yt-dlp וההורדה הישירה הרגילה אינם ברשימה הזאת, כי המתאים תלוי בקישור. KnightLoader שולח בעצמו קישור של מארח קבצים אל JDownloader, אתר וידאו אל yt-dlp וקובץ רגיל אל ההורדה הישירה, אחרי כל שירות ברשימה הזו.',
   'accounts.routing.priorityEmpty': 'עדיין לא נרשמו פותרים (resolvers).',
   'accounts.routing.moveUp': 'העבר למעלה',
   'accounts.routing.moveDown': 'העבר למטה',
