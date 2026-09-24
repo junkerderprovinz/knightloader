@@ -1225,11 +1225,11 @@ body {
       glim-fade-in var(--motion-content-dur) ease-out both;
   }
 
-  /* The progress bar's front edge breathes while bytes are moving, on the same
-     glim-pulse as the live dot on the speed curve. .kl-bar-edge is the mark;
-     .kl-bar-edge-live is the caller saying the download is moving, so finished
-     and paused rows stay still and only the running rows animate. At "off" the
-     edge stays painted, since it still shows where the fill ends. */
+  /* The progress bar's front edge breathes on glim-pulse while bytes are
+     moving. .kl-bar-edge is the mark; .kl-bar-edge-live is the caller saying
+     the download is moving, so finished and paused rows stay still and only the
+     running rows animate. At "off" the edge stays painted, since it still shows
+     where the fill ends. */
   .kl-bar-edge-live {
     animation: glim-pulse var(--motion-pulse-dur) ease-in-out infinite;
   }
@@ -1238,23 +1238,18 @@ body {
     opacity: 1;
   }
 
-  /* The tip of the speed curve throws one ring per pulse, on the dot's period.
-     Pure decoration, so "off" removes it; the dot stays because it marks now. */
-  .kl-tip-halo {
-    animation: kl-tip-halo var(--motion-pulse-dur) linear infinite;
-  }
-  :root[data-motion="off"] .kl-tip-halo {
-    animation: none;
-    opacity: 0;
-  }
-
-  /* Easter egg: with the speed limit at exactly 1337 KiB/s, the speed curve
-     runs on the storm level's pulse. It leaves data-motion alone, and the
-     "off" and reduced-motion rules still stop .glim-live and .kl-tip-halo by
-     name. */
+  /* Easter egg: with the speed limit at exactly 1337 KiB/s, the speed curve's
+     line breathes on the storm level's pulse. It leaves data-motion alone, and
+     the "off" and reduced-motion rules still stop .kl-curve-line by name. */
   .kl-storm-curve {
     --motion-pulse-dur: var(--egg-storm-pulse-dur);
     --motion-pulse-min-opacity: var(--egg-storm-pulse-min);
+  }
+  .kl-storm-curve .kl-curve-line {
+    animation: glim-pulse var(--motion-pulse-dur) ease-in-out infinite;
+  }
+  :root[data-motion="off"] .kl-storm-curve .kl-curve-line {
+    animation: none;
   }
 
   /* Easter egg: an empty state left alone long enough blinks twice and dozes
@@ -1349,10 +1344,9 @@ body {
   /* An infinite animation gets a true stop under reduced motion, not a slower
      version. */
   .glim-live { animation: none; opacity: 1; }
-  /* The bar's edge keeps its paint, since it marks where the fill ends; the
-     halo adds nothing the dot does not say. */
+  /* The bar's edge keeps its paint, since it marks where the fill ends. */
   .kl-bar-edge { animation: none; opacity: 1; }
-  .kl-tip-halo { animation: none; opacity: 0; }
+  .kl-curve-line { animation: none; }
   /* Without the animation the shields would sit over the toast's text, so the
      row is hidden and the checkmark is drawn at once. */
   :root:not([data-motion="storm"]) .kl-parade { animation: none; opacity: 0; }
@@ -1711,19 +1705,6 @@ body {
 @keyframes kl-count-roll {
   from { transform: translateY(-45%); }
   to   { transform: none; }
-}
-
-/* The ring leaving the speed curve's tip. A transform rather than the SVG `r`
-   attribute, which older browsers cannot animate. It starts at the dot's own
-   size, so it is born at the dot's edge, and runs linear so the ring stays
-   visible for half its life instead of fading at once. */
-@keyframes kl-tip-halo {
-  from { transform: scale(1); opacity: .6; }
-  to   { transform: scale(3.2); opacity: 0; }
-}
-.kl-tip-halo {
-  transform-box: fill-box;
-  transform-origin: 50% 50%;
 }
 
 /* The doze: two blinks, the second slower, then a settle. It ends dimmed and

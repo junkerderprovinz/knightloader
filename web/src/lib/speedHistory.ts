@@ -12,7 +12,7 @@
 
 import { useCallback, useEffect, useMemo, useSyncExternalStore } from 'react';
 
-/** What GET /api/stats/speed answers - internal/app/app_speedhistory.go's SpeedHistory. */
+/** What GET /api/stats/speed answers: internal/app/app_speedhistory.go's SpeedHistory. */
 export interface SpeedHistory {
   recent: number[];
   recentStep: number;
