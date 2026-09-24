@@ -7,12 +7,10 @@ import {
   IconCaptcha,
   IconClipboard,
   IconClock,
-  IconCode,
+  IconCollector,
   IconDiagnostics,
   IconDownloads,
-  IconExternalLink,
   IconFilter,
-  IconFolder,
   IconGlobe,
   IconHelp,
   IconInstances,
@@ -20,7 +18,6 @@ import {
   IconLock,
   IconLook,
   IconModules,
-  IconRetry,
   IconSliders,
   IconUpload,
 } from '../../lib/icons';
@@ -29,24 +26,21 @@ import { AccountsTab } from './Accounts';
 import { Advanced } from './Advanced';
 import { Appearance } from './Appearance';
 import { Archives } from './Archives';
+import { Automation } from './Automation';
 import { BrowserTools } from './BrowserTools';
 import { Captcha } from './Captcha';
-import { Categories } from './Categories';
-import { Connections } from './Connections';
+import { CollectorSettings } from './CollectorSettings';
 import { Diagnostics } from './Diagnostics';
 import { DownloadsSettings } from './DownloadsSettings';
 import { EmptyPage } from './Empty';
-import { EventTargets } from './EventTargets';
 import { Health } from './Health';
 import { Help } from './Help';
 import { InstancesTab } from './Instances';
 import { Look } from './Look';
 import { Modules } from './Modules';
-import { Reconnect } from './Reconnect';
+import { Network } from './Network';
 import { Resolvers } from './Resolvers';
 import { Rules } from './Rules';
-import { Schedule } from './Schedule';
-import { Scripts } from './Scripts';
 import { Shortcuts } from './Shortcuts';
 import { Torrents } from './Torrents';
 
@@ -57,6 +51,7 @@ import { Torrents } from './Torrents';
  */
 const PAGES: Record<string, () => ReactNode> = {
   modules: () => <Modules />,
+  collector: () => <CollectorSettings />,
   downloads: () => <DownloadsSettings />,
   archives: () => <Archives />,
   look: () => <Look />,
@@ -65,13 +60,11 @@ const PAGES: Record<string, () => ReactNode> = {
   access: () => <Access />,
   advanced: () => <Advanced />,
   rules: () => <Rules />,
-  categories: () => <Categories />,
-  connections: () => <Connections />,
-  reconnect: () => <Reconnect />,
+  network: () => <Network />,
   resolvers: () => <Resolvers />,
   torrents: () => <Torrents />,
   captcha: () => <Captcha />,
-  schedule: () => <Schedule />,
+  automation: () => <Automation />,
   // The settings tab renders the sidebar's own Konten page with one extra
   // toggle; the same holds for instances below.
   accounts: () => <AccountsTab />,
@@ -80,8 +73,6 @@ const PAGES: Record<string, () => ReactNode> = {
   diagnostics: () => <Diagnostics />,
   help: () => <Help />,
   browsertools: () => <BrowserTools />,
-  scripts: () => <Scripts />,
-  eventtargets: () => <EventTargets />,
   shortcuts: () => <Shortcuts />,
 };
 
@@ -92,14 +83,11 @@ const PAGES: Record<string, () => ReactNode> = {
  */
 const ICONS: Record<string, ComponentType<SVGProps<SVGSVGElement>>> = {
   modules: IconModules,
+  collector: IconCollector,
   downloads: IconDownloads,
   archives: IconArchive,
   rules: IconFilter,
-  // A category is a label on a whole batch, so it gets the folder rather than
-  // the filter a rule wears.
-  categories: IconFolder,
-  connections: IconGlobe,
-  reconnect: IconRetry,
+  network: IconGlobe,
   accounts: IconAccounts,
   instances: IconInstances,
   // A template with fields, like IconClipboard elsewhere.
@@ -107,7 +95,7 @@ const ICONS: Record<string, ComponentType<SVGProps<SVGSVGElement>>> = {
   // Uploading is what torrents do that no other backend here does.
   torrents: IconUpload,
   captcha: IconCaptcha,
-  schedule: IconClock,
+  automation: IconClock,
   look: IconSliders,
   appearance: IconLook,
   access: IconLock,
@@ -116,13 +104,11 @@ const ICONS: Record<string, ComponentType<SVGProps<SVGSVGElement>>> = {
   health: IconBolt,
   diagnostics: IconDiagnostics,
   help: IconHelp,
-  scripts: IconCode,
-  // A message leaving this machine; the bell belongs to the in-browser
-  // notifications.
-  eventtargets: IconExternalLink,
   shortcuts: IconKeyboard,
   browsertools: IconBrowser,
 };
+
+export { pageId } from './folded';
 
 export function renderSettingsPage(id: string): ReactNode {
   const page = PAGES[id];

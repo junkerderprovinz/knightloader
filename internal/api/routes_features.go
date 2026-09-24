@@ -234,7 +234,7 @@ func featureList(a *app.App) []Feature {
 			Detail: extractionDetail(s),
 		},
 		{
-			ID: "watch", Verdict: VerdictShipped, Page: "downloads",
+			ID: "watch", Verdict: VerdictShipped, Page: "collector",
 			Switch: SwitchParked, Enabled: strings.TrimSpace(s.WatchDir) != "",
 			Parked: parked["watch"], Detail: watchDetail(s),
 		},
@@ -246,13 +246,13 @@ func featureList(a *app.App) []Feature {
 		{
 			// Enabled counts the targets that would send, not the rows that
 			// exist.
-			ID: "eventtargets", Verdict: VerdictShipped, Page: "eventtargets",
+			ID: "eventtargets", Verdict: VerdictShipped, Page: "automation",
 			Switch: SwitchParked, Enabled: enabledEventTargets(s) > 0,
 			Parked: parked["eventtargets"],
 			Detail: countDetail(enabledEventTargets(s), "target sending", "targets sending"),
 		},
 		{
-			ID: "crawler", Verdict: VerdictShipped, Page: "downloads",
+			ID: "crawler", Verdict: VerdictShipped, Page: "collector",
 			Switch: SwitchSetting, Enabled: s.Crawl,
 		},
 		{
@@ -260,12 +260,12 @@ func featureList(a *app.App) []Feature {
 			Switch: SwitchSetting, Enabled: s.VerifyChecksums,
 		},
 		{
-			ID: "scheduler", Verdict: VerdictShipped, Page: "schedule",
+			ID: "scheduler", Verdict: VerdictShipped, Page: "automation",
 			Switch: SwitchParked, Enabled: len(s.Schedule) > 0,
 			Parked: parked["scheduler"], Detail: countDetail(len(s.Schedule), "window", "windows"),
 		},
 		{
-			ID: "reconnect", Verdict: VerdictShipped, Page: "reconnect",
+			ID: "reconnect", Verdict: VerdictShipped, Page: "network",
 			Switch: SwitchParked, Enabled: a.ReconnectState().Configured,
 			Parked: parked["reconnect"], Detail: reconnectDetail(s),
 		},
@@ -283,15 +283,15 @@ func featureList(a *app.App) []Feature {
 				countDetail(len(s.LinkFilter.Rules), "rule", "rules")),
 		},
 		{
-			ID: "connections", Verdict: VerdictShipped, Page: "connections",
+			ID: "connections", Verdict: VerdictShipped, Page: "network",
 			Switch: SwitchSetting, Enabled: !s.ModuleOff("connections"),
 			Detail: offDetail(s.ModuleOff("connections"), "off; new downloads go out over this machine's own address",
 				countDetail(enabledConnections(s), "connection in use", "connections in use")),
 		},
 		{
-			// On the General tab: Click'n'Load is how links get in, while the
-			// access tab is about who gets in.
-			ID: "cnl", Verdict: VerdictShipped, Page: "look",
+			// On the link collector tab: Click'n'Load is how links get in, while
+			// the access tab is about who gets in.
+			ID: "cnl", Verdict: VerdictShipped, Page: "collector",
 			Switch: cnlSwitch(a), Enabled: cnlEnabled(a),
 			Reason: cnlReason(a),
 			Detail: cnlDetail(a),
@@ -326,7 +326,7 @@ func featureList(a *app.App) []Feature {
 		{
 			// Over the scripts' own switches: off here, no event starts any of
 			// them, and each keeps its own setting for when this is back on.
-			ID: "scripting", Verdict: VerdictShipped, Page: "scripts",
+			ID: "scripting", Verdict: VerdictShipped, Page: "automation",
 			Switch: SwitchSetting, Enabled: !s.ModuleOff("scripting"),
 			Detail: offDetail(s.ModuleOff("scripting"), "off; no event starts a script, and a script already running finishes",
 				countDetail(enabledScripts(a), "script enabled", "scripts enabled")),
@@ -372,35 +372,37 @@ func updaterReason() string {
 }
 
 // featurePages is the sub-page list, in rail order. Pages without a module row
-// (appearance, categories, shortcuts, diagnostics, help, browsertools) hold
+// (appearance, accounts, shortcuts, diagnostics, help, browsertools) hold
 // preferences or tools rather than a subsystem with an on/off state.
+// JDownloader is switched only on the modules page, since the accounts page
+// holds the logins it uses and not the backend itself.
 func featurePages() []FeaturePage {
 	return []FeaturePage{
 		// The General tab keeps the id "look" so bookmarked addresses and the
 		// stored tab order still resolve.
-		{ID: "look", Modules: []string{"updater", "cnl"}},
+		{ID: "look", Modules: []string{"updater"}},
 		{ID: "appearance"},
 		{ID: "modules"},
-		{ID: "downloads", Modules: []string{"watch", "feeds", "crawler", "checksums"}},
+		// Everything that decides how a link gets in and what happens to it
+		// before it becomes a download.
+		{ID: "collector", Modules: []string{"cnl", "watch", "crawler"}},
+		{ID: "downloads", Modules: []string{"feeds", "checksums"}},
 		{ID: "archives", Modules: []string{"extraction"}},
+		// The categories table sits on this page, because a Packagizer rule
+		// naming a missing category is refused and the table should be in reach.
 		{ID: "rules", Modules: []string{"packagizer", "linkfilter"}},
-		// Right after rules, because a Packagizer rule naming a missing
-		// category is refused and the table should be one step away.
-		{ID: "categories"},
-		{ID: "connections", Modules: []string{"connections"}},
-		{ID: "reconnect", Modules: []string{"reconnect"}},
-		{ID: "accounts", Modules: []string{"jd"}},
+		{ID: "network", Modules: []string{"connections", "reconnect"}},
+		{ID: "accounts"},
 		{ID: "instances", Modules: []string{"federation"}},
 		{ID: "resolvers", Modules: []string{"ytdlp"}},
 		{ID: "torrents", Modules: []string{"torrents"}},
 		{ID: "captcha", Modules: []string{"captcha"}},
-		{ID: "schedule", Modules: []string{"scheduler"}},
-		// Not under downloads: most of the events a target reports on are
-		// not about a download.
-		{ID: "eventtargets", Modules: []string{"eventtargets"}},
+		// What runs with nobody at the screen. Event targets are not under
+		// downloads, since most of the events they report on are not about a
+		// download.
+		{ID: "automation", Modules: []string{"scheduler", "eventtargets", "scripting"}},
 		{ID: "shortcuts"},
 		{ID: "access", Modules: []string{"downloadclient"}},
-		{ID: "scripts", Modules: []string{"scripting"}},
 		{ID: "advanced"},
 		// Health comes before diagnostics: one says whether the instance works
 		// now, the other hands over a bundle for a report about why it did not.
@@ -470,7 +472,7 @@ func setFeature(a *app.App, id string, on bool) error {
 		}
 		var dir string
 		if !unparkValue(a, id, &dir) || strings.TrimSpace(dir) == "" {
-			return errors.New("there is no watch folder to switch back on; set one on the Downloads page")
+			return errors.New("there is no watch folder to switch back on; set one on the Link collector page")
 		}
 		next.WatchDir = dir
 
@@ -498,7 +500,7 @@ func setFeature(a *app.App, id string, on bool) error {
 		}
 		var targets []notify.Target
 		if !unparkValue(a, id, &targets) || len(targets) == 0 {
-			return errors.New("there is no event target to switch back on; add one on the Event targets page")
+			return errors.New("there is no event target to switch back on; add one on the Automation page")
 		}
 		next.EventTargets = targets
 
@@ -512,7 +514,7 @@ func setFeature(a *app.App, id string, on bool) error {
 		}
 		var entries []schedule.Entry
 		if !unparkValue(a, id, &entries) || len(entries) == 0 {
-			return errors.New("there is no timetable to switch back on; add a window on the Schedule page")
+			return errors.New("there is no timetable to switch back on; add a window on the Automation page")
 		}
 		next.Schedule = entries
 
@@ -526,7 +528,7 @@ func setFeature(a *app.App, id string, on bool) error {
 		}
 		var method string
 		if !unparkValue(a, id, &method) || method == "" || method == reconnect.MethodNone {
-			return errors.New("there is no reconnect method to switch back on; pick one on the Reconnect page")
+			return errors.New("there is no reconnect method to switch back on; pick one on the Network page")
 		}
 		next.Reconnect.Method = method
 
@@ -681,7 +683,7 @@ func offDetail(off bool, whenOff, whenOn string) string {
 // jdFeature has a switch only when a JD backend is wired, since without one
 // there is nothing for it to switch on.
 func jdFeature(a *app.App, s settings.Settings) Feature {
-	f := Feature{ID: "jd", Verdict: VerdictShipped, Page: "accounts"}
+	f := Feature{ID: "jd", Verdict: VerdictShipped}
 	if !a.ContainerBackendConfigured() {
 		f.Switch = SwitchNone
 		f.Reason = "no JDownloader backend is configured; set KL_JD to a reachable JDownloader and restart"

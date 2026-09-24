@@ -26,7 +26,7 @@ import { useT, type TranslationKey } from '../../lib/i18n';
 import { useDraft } from './context';
 
 /**
- * Categories edits the named drawers, each a folder plus defaults, that a
+ * CategoriesCard edits the named drawers, each a folder plus defaults, that a
  * Packagizer rule files a download into. The folder, unpacking, collision rule
  * and queue position are live; the speed limit has no caller yet, since
  * internal/throttle is one limiter for the whole app, and its hint says so.
@@ -177,7 +177,7 @@ function useCategoryOptions(): ApiOptions | null {
   return options;
 }
 
-export function Categories() {
+export function CategoriesCard({ hue }: { hue: number }) {
   const { t } = useT();
   const { cfg, patch } = useDraft();
   const options = useCategoryOptions();
@@ -272,74 +272,72 @@ export function Categories() {
   const full = max > 0 && cats.length >= max;
 
   return (
-    <div className="flex flex-col gap-10">
-      <Card hue={0} className="flex flex-col gap-4">
-        <SectionTitle
-          hint={t('settings.categories.listHint')}
-          right={
-            <Button icon={<IconPlus width={16} height={16} />} disabled={full} onClick={add}>
-              {t('settings.categories.add')}
-            </Button>
-          }
-        >
-          {t('settings.categories.listTitle')}
-        </SectionTitle>
+    <Card hue={hue} className="flex flex-col gap-4">
+      <SectionTitle
+        hint={t('settings.categories.listHint')}
+        right={
+          <Button icon={<IconPlus width={16} height={16} />} disabled={full} onClick={add}>
+            {t('settings.categories.add')}
+          </Button>
+        }
+      >
+        {t('settings.categories.listTitle')}
+      </SectionTitle>
 
-        {/* Shown at the ceiling, where the disabled Add would read as a fault. */}
-        {full && <p className="text-xs text-carbon-textMuted">{t('settings.categories.full', { max })}</p>}
+      {/* Shown at the ceiling, where the disabled Add would read as a fault. */}
+      {full && <p className="text-xs text-carbon-textMuted">{t('settings.categories.full', { max })}</p>}
 
-        {cats.length === 0 && !pending ? (
-          // Inside the card rather than an EmptyState, which would hide Add.
-          <p className="py-6 text-center text-sm text-carbon-textSub">
-            {t('settings.categories.empty')}
-            <span className="mt-1 block text-[11px] text-carbon-textMuted">
-              {t('settings.categories.emptyHint')}
-            </span>
-          </p>
-        ) : (
-          <ul className="flex flex-col">
-            {cats.map((cat, i) => (
-              <CategoryRow
-                key={uids[i] ?? `row-${i}`}
-                cat={cat}
-                index={i}
-                last={i === cats.length - 1 && !pending}
-                open={openRow === i}
-                duplicate={duplicates.has(i)}
-                priorities={priorities}
-                collisions={options?.collisionPolicies ?? []}
-                hooks={hooks}
-                onToggle={() => setOpenRow(openRow === i ? -1 : i)}
-                onChange={(next) => writeRow(i, next)}
-                onMove={(by) => move(i, by)}
-                onRemove={() => removeAt(i)}
-              />
-            ))}
-            {/* Last and not movable until it has a name. */}
-            {pending && (
-              <CategoryRow
-                key="pending"
-                cat={pending}
-                index={cats.length}
-                last
-                open={openRow === cats.length}
-                duplicate={false}
-                priorities={priorities}
-                collisions={options?.collisionPolicies ?? []}
-                hooks={hooks}
-                onToggle={() => setOpenRow(openRow === cats.length ? -1 : cats.length)}
-                onChange={writePending}
-                onMove={() => {}}
-                onRemove={() => {
-                  setPending(null);
-                  setOpenRow(-1);
-                }}
-              />
-            )}
-          </ul>
-        )}
-      </Card>
-    </div>
+      {cats.length === 0 && !pending ? (
+        // Inside the card rather than an EmptyState, which would hide Add.
+        <p className="py-6 text-center text-sm text-carbon-textSub">
+          {t('settings.categories.empty')}
+          <span className="mt-1 block text-[11px] text-carbon-textMuted">
+            {t('settings.categories.emptyHint')}
+          </span>
+        </p>
+      ) : (
+        <ul className="flex flex-col">
+          {cats.map((cat, i) => (
+            <CategoryRow
+              key={uids[i] ?? `row-${i}`}
+              cat={cat}
+              index={i}
+              last={i === cats.length - 1 && !pending}
+              open={openRow === i}
+              duplicate={duplicates.has(i)}
+              priorities={priorities}
+              collisions={options?.collisionPolicies ?? []}
+              hooks={hooks}
+              onToggle={() => setOpenRow(openRow === i ? -1 : i)}
+              onChange={(next) => writeRow(i, next)}
+              onMove={(by) => move(i, by)}
+              onRemove={() => removeAt(i)}
+            />
+          ))}
+          {/* Last and not movable until it has a name. */}
+          {pending && (
+            <CategoryRow
+              key="pending"
+              cat={pending}
+              index={cats.length}
+              last
+              open={openRow === cats.length}
+              duplicate={false}
+              priorities={priorities}
+              collisions={options?.collisionPolicies ?? []}
+              hooks={hooks}
+              onToggle={() => setOpenRow(openRow === cats.length ? -1 : cats.length)}
+              onChange={writePending}
+              onMove={() => {}}
+              onRemove={() => {
+                setPending(null);
+                setOpenRow(-1);
+              }}
+            />
+          )}
+        </ul>
+      )}
+    </Card>
   );
 }
 

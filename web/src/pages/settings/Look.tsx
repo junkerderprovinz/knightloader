@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
-import { Button, Card, ErrorCard, Field, FieldGroup, InfoBubble, Modal, SectionTitle, TextInput, Toggle, ToggleRow, useTooltip } from '../../components/ui';
+import { Button, Card, ErrorCard, InfoBubble, Modal, SectionTitle, Toggle, ToggleRow, useTooltip } from '../../components/ui';
 import { About } from './Help';
 import { Tabs } from '../../components/Tabs';
 import { openColorPickerPopover } from '../../lib/colorPicker';
@@ -14,7 +14,7 @@ import {
   type UpdateCheck as UpdateCheckT,
 } from '../../lib/api';
 import { IconClose, IconMoon, IconRetry, IconSignOut, IconSun } from '../../lib/icons';
-import { QuietModeToggle, useToast } from '../../lib/toast';
+import { useToast } from '../../lib/toast';
 import { MUTABLE_DIALOGS, useDialogMute } from '../../lib/dialogmute';
 import { getTheme, onThemeChange, setTheme } from '../../lib/theme';
 import { asNavLabelMode, setNavLabels, useNavLabels } from '../../lib/navLabels';
@@ -45,10 +45,8 @@ import {
   stormTap,
 } from '../../lib/appearance';
 import { useRainbow } from '../../lib/useRainbow';
-import { useDraft, useFeatures } from './context';
+import { useDraft } from './context';
 import { same } from './paths';
-import { WATCH_SUPPORTED } from '../../lib/clipboardWatch';
-import { useClipboardWatch } from '../../lib/useClipboardWatch';
 import { NotificationsCard } from './look/Notifications';
 import { SettingsTransfer } from './look/SettingsTransfer';
 
@@ -642,30 +640,7 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
       </Card>
       )}
 
-      {general && <LinkIntakeCard />}
-
-      {/* Hue 12 wraps to palette position 4, apart from the card below. */}
-      {general && <NotificationsCard hue={12} />}
-
-      {general && (
-      <Card hue={2} className="flex flex-col gap-3">
-        <SectionTitle>{t('notifications.quiet')}</SectionTitle>
-        <QuietModeToggle />
-      </Card>
-      )}
-
-      {general && (
-      <Card hue={3} className="flex flex-col gap-3">
-        <SectionTitle>{t('lang.label')}</SectionTitle>
-        {/* standalone: OnboardingWizard mounts a second instance at the same
-            time (see LanguagePicker.tsx). */}
-        <LanguagePicker
-          direction="down"
-          standalone
-          className="glim-well flex w-fit min-w-[12rem] items-center gap-2.5 px-3 py-2 text-sm text-carbon-text"
-        />
-      </Card>
-      )}
+      {general && <NotificationsCard hue={0} />}
 
       {appearance && (
       <Card hue={4} className="flex flex-col gap-3">
@@ -684,126 +659,25 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
       </Card>
       )}
 
-      {general && <MutedDialogsCard />}
-      {general && <UpdateCard />}
-      {general && <SystemCards />}
-      {/* Last on the General tab, where a version and a contact are looked for. */}
-      {general && <About hue={10} />}
-    </div>
-  );
-}
-
-/**
- * LinkIntakeCard holds the two ways a link reaches the collector without being
- * typed. Click'n'Load is a server listener switched over the API, the same
- * state the Modules page shows. The clipboard watch runs in this tab only and
- * is not offered where the browser cannot read the clipboard, such as a
- * plain-HTTP LAN address; the row points at Ctrl+V instead.
- */
-function LinkIntakeCard() {
-  const { t } = useT();
-  const { cfg, patch } = useDraft();
-  const { features, toggle } = useFeatures();
-  const { toast } = useToast();
-  const [watch, setWatch] = useClipboardWatch();
-  const [busy, setBusy] = useState(false);
-
-  const cnl = features.modules.find((m) => m.id === 'cnl');
-  const cnlSwitchable = !!cnl && cnl.verdict === 'shipped' && cnl.switch !== 'none';
-
-  // The module registry decides whether the folder field is live, so it cannot
-  // disagree with the Modules page. `parked` rather than `!enabled`, because an
-  // empty folder on a fresh install also reads as off.
-  const folderWatch = features.modules.find((m) => m.id === 'watch');
-  const folderWatchOff = folderWatch !== undefined && !folderWatch.enabled && folderWatch.parked;
-
-  // Keyed onto the row, so a switch the server refuses shakes again on every
-  // refusal.
-  const [cnlShake, setCnlShake] = useState(0);
-
-  async function onCnl(next: boolean) {
-    setBusy(true);
-    try {
-      await toggle('cnl', next);
-    } catch (e) {
-      toast(t('settings.modules.switchFailed', { reason: String(e).replace(/^Error:\s*/, '') }), 'fail');
-      setCnlShake((n) => n + 1);
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  return (
-    <Card hue={11} className="flex flex-col gap-4">
-      <SectionTitle hint={t('settings.linkIntakeHint')}>{t('settings.sectionLinkIntake')}</SectionTitle>
-
-      {cnl && (
-        <div className="flex flex-col gap-1">
-          <div key={cnlShake} className={cnlShake > 0 ? 'glim-shake' : undefined}>
-            <ToggleRow
-              hue={0}
-              label={t('settings.module.cnl')}
-              hint={cnl.reason || undefined}
-              checked={cnl.enabled}
-              disabled={!cnlSwitchable || busy}
-              onChange={(next) => void onCnl(next)}
-            />
-          </div>
-          {/* The live reading, such as the address it listens on, which matters
-              where JDownloader may already hold the port. */}
-          {cnl.detail && (
-            <span className="text-[11px] text-carbon-textMuted" dir="ltr">
-              {cnl.detail}
-            </span>
-          )}
-        </div>
-      )}
-
-      {WATCH_SUPPORTED ? (
-        <ToggleRow
-          hue={1}
-          label={t('intake.clipboardWatch')}
-          hint={t('intake.clipboardWatchHint')}
-          checked={watch}
-          onChange={setWatch}
+      {appearance && (
+      <Card hue={3} className="flex flex-col gap-3">
+        <SectionTitle>{t('lang.label')}</SectionTitle>
+        {/* standalone: OnboardingWizard mounts a second instance at the same
+            time (see LanguagePicker.tsx). */}
+        <LanguagePicker
+          direction="down"
+          standalone
+          className="glim-well flex w-fit min-w-[12rem] items-center gap-2.5 px-3 py-2 text-sm text-carbon-text"
         />
-      ) : (
-        <div className="flex flex-col gap-1">
-          <span className="flex items-center text-sm text-carbon-text">
-            {t('intake.clipboardWatch')}
-            <InfoBubble tip={t('intake.clipboardWatchHint')} />
-          </span>
-          <span className="text-[11px] text-carbon-textMuted">
-            {t('intake.clipboardWatchUnavailable')}
-          </span>
-        </div>
+      </Card>
       )}
 
-      <ToggleRow
-        hue={2}
-        checked={cfg.autoConfirm}
-        onChange={(v) => patch({ autoConfirm: v })}
-        label={t('settings.autoStart')}
-      />
-
-      {/* While the module is parked the folder is cleared, so the field becomes
-          a reading that names the switch on the Modules page. */}
-      {folderWatchOff ? (
-        <FieldGroup label={t('settings.watchDir')} hint={t('settings.watchDirHint')}>
-          <span className="text-sm text-carbon-textSub">{t('settings.downloads.watchOff')}</span>
-        </FieldGroup>
-      ) : (
-        <Field label={t('settings.watchDir')} hint={t('settings.watchDirHint')}>
-          <TextInput
-            dir="ltr"
-            value={cfg.watchDir}
-            placeholder="/watch"
-            spellCheck={false}
-            onChange={(e) => patch({ watchDir: e.target.value })}
-          />
-        </Field>
-      )}
-    </Card>
+      {general && <MutedDialogsCard hue={1} />}
+      {general && <UpdateCard hue={2} />}
+      {general && <SystemCards hue={3} />}
+      {/* Last on the General tab, where a version and a contact are looked for. */}
+      {general && <About hue={5} />}
+    </div>
   );
 }
 
@@ -811,13 +685,13 @@ function LinkIntakeCard() {
  * MutedDialogsCard brings back dialogs silenced with "do not show this again",
  * one switch each. It is absent while nothing is silenced.
  */
-function MutedDialogsCard() {
+function MutedDialogsCard({ hue }: { hue: number }) {
   const { t } = useT();
   const dialogs = useDialogMute();
   if (dialogs.muted.length === 0) return null;
 
   return (
-    <Card hue={5} className="flex flex-col gap-3">
+    <Card hue={hue} className="flex flex-col gap-3">
       <SectionTitle hint={t('settings.dialogs.hint')}>{t('settings.dialogs.title')}</SectionTitle>
       {MUTABLE_DIALOGS.filter((d) => dialogs.isMuted(d.id)).map((d) => (
         <ToggleRow
@@ -833,23 +707,23 @@ function MutedDialogsCard() {
 }
 
 /**
- * SystemCards holds quit and restart and the transfer card. LifecycleCard does
- * the deployment fetch alone, so a slow /api/deployment never hides the
- * transfer card; both share `shuttingDown`, since a restore can restart the
- * server.
+ * SystemCards holds quit and restart and the transfer card, on `hue` and the
+ * one after it. LifecycleCard does the deployment fetch alone, so a slow
+ * /api/deployment never hides the transfer card; both share `shuttingDown`,
+ * since a restore can restart the server.
  */
-function SystemCards() {
+function SystemCards({ hue }: { hue: number }) {
   const [shuttingDown, setShuttingDown] = useState(false);
   return (
     <>
-      <LifecycleCard shuttingDown={shuttingDown} onShutdown={() => setShuttingDown(true)} />
-      <SettingsTransfer hue={7} onShutdown={() => setShuttingDown(true)} />
+      <LifecycleCard hue={hue} shuttingDown={shuttingDown} onShutdown={() => setShuttingDown(true)} />
+      <SettingsTransfer hue={hue + 1} onShutdown={() => setShuttingDown(true)} />
     </>
   );
 }
 
 /** LifecycleCard loads on its own, so a failed deployment fetch drops only this card. */
-function LifecycleCard({ shuttingDown, onShutdown }: { shuttingDown: boolean; onShutdown: () => void }) {
+function LifecycleCard({ hue, shuttingDown, onShutdown }: { hue: number; shuttingDown: boolean; onShutdown: () => void }) {
   const { t } = useT();
   const { toast } = useToast();
   const { data, failed, loading, reload } = useResource<DeploymentInfo>(fetchDeploymentInfo);
@@ -885,7 +759,7 @@ function LifecycleCard({ shuttingDown, onShutdown }: { shuttingDown: boolean; on
 
   if (shuttingDown) {
     return (
-      <Card hue={6} className="flex flex-col gap-3">
+      <Card hue={hue} className="flex flex-col gap-3">
         <SectionTitle>{t('settings.system.shuttingDownTitle')}</SectionTitle>
         <p className="text-sm text-carbon-text">{t('settings.system.shuttingDown')}</p>
       </Card>
@@ -894,7 +768,7 @@ function LifecycleCard({ shuttingDown, onShutdown }: { shuttingDown: boolean; on
 
   return (
     <>
-      <Card hue={6} className="flex flex-col gap-3">
+      <Card hue={hue} className="flex flex-col gap-3">
         {/* The note comes from translated keys by deployment, since the server
             sends it in English; an unavailable reason wins. */}
         <SectionTitle
@@ -909,7 +783,7 @@ function LifecycleCard({ shuttingDown, onShutdown }: { shuttingDown: boolean; on
         <div className="flex flex-wrap items-center gap-3">
           {/* hue overrides kind's colour, so both buttons look alike. */}
           <Button
-            hue={6}
+            hue={hue}
             kind="primary"
             icon={<IconSignOut width={16} height={16} />}
             disabled={!data.canQuit || acting}
@@ -918,7 +792,7 @@ function LifecycleCard({ shuttingDown, onShutdown }: { shuttingDown: boolean; on
             {t('settings.system.quit')}
           </Button>
           <Button
-            hue={6}
+            hue={hue}
             kind="primary"
             icon={<IconRetry width={16} height={16} />}
             disabled={!data.canRestart || acting}
@@ -969,7 +843,7 @@ function LifecycleCard({ shuttingDown, onShutdown }: { shuttingDown: boolean; on
  * container is pointed at the release; the desktop build can also install
  * through internal/update, which does the download, swap and relaunch.
  */
-function UpdateCard() {
+function UpdateCard({ hue }: { hue: number }) {
   const { t } = useT();
   const { cfg, patch } = useDraft();
   const { toast } = useToast();
@@ -1037,7 +911,7 @@ function UpdateCard() {
   const canInstallNow = isDesktop && !installed && check?.checked && check.available;
 
   return (
-    <Card hue={5} className="flex flex-col gap-3">
+    <Card hue={hue} className="flex flex-col gap-3">
       <SectionTitle hint={t('settings.look.updatesHint')}>
         {t('settings.look.updatesTitle')}
       </SectionTitle>

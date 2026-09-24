@@ -3,7 +3,9 @@
 package engine
 
 import (
+	"cmp"
 	"fmt"
+	"maps"
 	"net"
 	"path/filepath"
 	"sync"
@@ -43,6 +45,29 @@ type Engine struct {
 	// metadataTimeout overrides how long a magnet may wait for its file list.
 	// Zero means defaultMetadataTimeout.
 	metadataTimeout time.Duration
+
+	// cfgMu serialises updateConfig, so two setters cannot lose each other's
+	// change.
+	cfgMu sync.Mutex
+}
+
+// updateConfig hands gopeed a changed copy of its config, so a resolve reading
+// the one in use never has its maps written under it. change reports whether
+// it changed anything; when it did not, nothing is stored, since gopeed swaps
+// the config pointer without a lock.
+func (e *Engine) updateConfig(change func(cfg *base.DownloaderStoreConfig) bool) error {
+	e.cfgMu.Lock()
+	defer e.cfgMu.Unlock()
+	cur, err := e.d.GetConfig()
+	if err != nil {
+		return err
+	}
+	next := *cur
+	next.ProtocolConfig = maps.Clone(cur.ProtocolConfig)
+	if !change(&next) {
+		return nil
+	}
+	return e.d.PutConfig(&next)
 }
 
 // SetMetadataTimeout caps how long a magnet may wait for the swarm to send
@@ -91,24 +116,21 @@ func New(dir string, onUpdate func(taskID string, u core.Update)) (*Engine, erro
 // it at its own loopback proxy, which applies the speed limit, since the
 // library has no rate-limit hook.
 func (e *Engine) UseProxy(hostPort string) error {
-	cfg, err := e.d.GetConfig()
-	if err != nil {
-		return err
-	}
-	if hostPort == "" {
-		cfg.Proxy = &base.DownloaderProxyConfig{}
-	} else {
+	proxy := &base.DownloaderProxyConfig{}
+	if hostPort != "" {
 		host, _, splitErr := net.SplitHostPort(hostPort)
 		if splitErr != nil || host == "" {
 			return fmt.Errorf("engine: bad proxy address %q", hostPort)
 		}
-		cfg.Proxy = &base.DownloaderProxyConfig{
-			Enable: true,
-			Scheme: "http",
-			Host:   hostPort,
-		}
+		proxy = &base.DownloaderProxyConfig{Enable: true, Scheme: "http", Host: hostPort}
 	}
-	return e.d.PutConfig(cfg)
+	return e.updateConfig(func(cfg *base.DownloaderStoreConfig) bool {
+		if cfg.Proxy != nil && *cfg.Proxy == *proxy {
+			return false
+		}
+		cfg.Proxy = proxy
+		return true
+	})
 }
 
 // btProtocolConfig mirrors gopeed's unexported bt config with identical json
@@ -131,19 +153,25 @@ type btProtocolConfig struct {
 // torrent client once, on the first torrent of the process, so a new port
 // only applies if no torrent has started yet.
 func (e *Engine) SetTorrentConfig(port int, seedRatio float64, seedDurationSeconds int) error {
-	cfg, err := e.d.GetConfig()
-	if err != nil {
-		return err
-	}
-	var bt btProtocolConfig
-	if err := util.MapToStruct(cfg.ProtocolConfig["bt"], &bt); err != nil {
-		return err
-	}
-	bt.ListenPort = port
-	bt.SeedRatio = seedRatio
-	bt.SeedTime = int64(seedDurationSeconds)
-	cfg.ProtocolConfig["bt"] = bt
-	return e.d.PutConfig(cfg)
+	var decodeErr error
+	err := e.updateConfig(func(cfg *base.DownloaderStoreConfig) bool {
+		var bt btProtocolConfig
+		if decodeErr = util.MapToStruct(cfg.ProtocolConfig["bt"], &bt); decodeErr != nil {
+			return false
+		}
+		if bt.ListenPort == port && bt.SeedRatio == seedRatio && bt.SeedTime == int64(seedDurationSeconds) {
+			return false
+		}
+		bt.ListenPort = port
+		bt.SeedRatio = seedRatio
+		bt.SeedTime = int64(seedDurationSeconds)
+		if cfg.ProtocolConfig == nil {
+			cfg.ProtocolConfig = map[string]any{}
+		}
+		cfg.ProtocolConfig["bt"] = bt
+		return true
+	})
+	return cmp.Or(decodeErr, err)
 }
 
 // Close stops every goroutine this engine started and then shuts the download

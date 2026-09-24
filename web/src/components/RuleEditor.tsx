@@ -269,9 +269,9 @@ export const RULE_STRINGS = {
     'No rule here is called "{name}". It was renamed or deleted since the link that names it was added.',
   'settings.rules.action.category': 'Category',
   'settings.rules.action.categoryHint':
-    'Files matching links in one of the drawers from the Categories page, which brings its own folder, queue position, unpacking switch and collision rule with it.',
+    'Files matching links in one of the drawers from the Categories list further down this page, which brings its own folder, queue position, unpacking switch and collision rule with it.',
   'settings.rules.action.categoryNone':
-    'No categories yet. Create one on the Categories page first, otherwise this rule would file links in a drawer that does not exist.',
+    'No categories yet. Create one under Categories further down this page first, otherwise this rule would file links in a drawer that does not exist.',
   'settings.rules.action.categoryMissing': '{id} (deleted)',
   'settings.rules.action.reject': 'Verdict',
   'settings.rules.action.reason': 'Reason',

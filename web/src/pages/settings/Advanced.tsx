@@ -1,7 +1,6 @@
 import { Fragment, useEffect, useMemo, useState } from 'react';
-import { fetchOptions, type Settings } from '../../lib/api';
+import type { Settings } from '../../lib/api';
 import { reasonKey } from '../../components/columns';
-import { Tabs } from '../../components/Tabs';
 import {
   Card,
   FieldGroup,
@@ -11,12 +10,8 @@ import {
   SectionTitle,
   TextArea,
   TextInput,
-  ToggleRow,
 } from '../../components/ui';
 import { IconRetry, IconSearch } from '../../lib/icons';
-import type { TranslationKey } from '../../lib/i18n';
-import { en } from '../../lib/locales/en';
-import { useResource } from '../../lib/useResource';
 import { useDraft } from './context';
 import { NeutralSwitch } from './controls';
 import { fetchSettingsSchema, type SettingsSchema } from './features';
@@ -26,9 +21,10 @@ import { useTx } from './tx';
 /**
  * Advanced lists every setting by key, generated from the settings document so
  * new fields appear without an edit here. It edits the shared draft, so the
- * server's sanitize and validate still apply. Above the table sit cards for
- * settings that have no page but need a menu and an explanation; their keys
- * keep their raw rows in the table as well.
+ * server's sanitize and validate still apply. Above the table sits a card for
+ * settings that have no other page but need an explanation; their keys keep
+ * their raw rows in the table as well, and since both edit the same draft the
+ * two cannot disagree.
  */
 
 // Output that rides along in the same response, not settings.
@@ -46,31 +42,10 @@ const RETRY_REASONS = Object.entries(reasonKey);
 // settings.maxRetryTries; sanitizeRetryRule cuts anything above it on save.
 const MAX_TRIES = 20;
 
-type ChoicePrefix = 'settings.advanced.mirror.' | 'settings.advanced.offline.' | 'settings.advanced.reclaim.';
-
-/**
- * choices labels the values of a server-sent menu, looked up in `en` like
- * tx.ts's label(), and falls back to the raw id so an unknown value never
- * shows as a blank tab.
- */
-function choices(tx: (k: TranslationKey) => string, prefix: ChoicePrefix, ids: string[]) {
-  return ids.map((id) => {
-    const key = (prefix + id) as TranslationKey;
-    return { id, label: key in en ? tx(key) : id };
-  });
-}
-
 export function Advanced() {
   const { tx } = useTx();
   const { cfg, patch, replace } = useDraft();
   const doc = cfg as unknown as Record<string, unknown>;
-
-  // Every menu comes from GET /api/options; an older server may leave a list
-  // undefined.
-  const { data: options } = useResource(fetchOptions);
-  const mirrorPolicies = options?.mirrorPolicies ?? [];
-  const confirmPolicies = options?.confirmPolicies ?? [];
-  const reclaimModes = options?.reclaimTrustModes ?? [];
 
   const [schema, setSchema] = useState<SettingsSchema | null>(null);
   const [schemaFailed, setSchemaFailed] = useState(false);
@@ -132,96 +107,7 @@ export function Advanced() {
 
   return (
     <div className="flex flex-col gap-10">
-      {/* The explained cards first, then the generated table. Both edit the
-          same draft, so a card and its raw row cannot disagree. */}
-
       <Card hue={0} className="flex flex-col gap-5">
-        <SectionTitle>{tx('settings.advanced.mirrorsTitle')}</SectionTitle>
-
-        {/* FieldGroup, because a Field's label would pass a click on the
-            caption to the first tab. Drawn only once the server answered, since
-            dedupe.ParsePolicy silently folds an unknown value onto the default. */}
-        {mirrorPolicies.length > 0 && (
-          <FieldGroup
-            layout="row"
-            label={tx('settings.advanced.mirrorPolicy')}
-            hint={tx('settings.advanced.mirrorPolicyHint')}
-          >
-            <Tabs
-              variant="well"
-              label={tx('settings.advanced.mirrorPolicy')}
-              active={cfg.mirrorPolicy ?? ''}
-              onSelect={(mirrorPolicy) => patch({ mirrorPolicy })}
-              items={choices(tx, 'settings.advanced.mirror.', mirrorPolicies)}
-            />
-          </FieldGroup>
-        )}
-
-        {/* Not dimmed when the policy is off: it decides what becomes of a
-            detection, and the bubble explains that. */}
-        <ToggleRow
-          hue={0}
-          checked={cfg.keepMirrors ?? false}
-          onChange={(keepMirrors) => patch({ keepMirrors })}
-          label={tx('settings.advanced.keepMirrors')}
-          hint={tx('settings.advanced.keepMirrorsHint')}
-        />
-
-        {/* Absent while nothing is kept, since there is nothing to release. */}
-        {cfg.keepMirrors && (
-        <ToggleRow
-          hue={1}
-          checked={cfg.mirrorFailover ?? false}
-          onChange={(mirrorFailover) => patch({ mirrorFailover })}
-          label={tx('settings.advanced.mirrorFailover')}
-          hint={tx('settings.advanced.mirrorFailoverHint')}
-        />
-        )}
-      </Card>
-
-      {/* Only with a menu, since the card holds this one control. The server
-          withholds "use-global". */}
-      {confirmPolicies.length > 0 && (
-        <Card hue={1} className="flex flex-col gap-5">
-          <SectionTitle>{tx('settings.advanced.offlineTitle')}</SectionTitle>
-          <FieldGroup
-            layout="row"
-            label={tx('settings.advanced.onOffline')}
-            hint={tx('settings.advanced.onOfflineHint')}
-          >
-            <Tabs
-              variant="well"
-              label={tx('settings.advanced.onOffline')}
-              active={cfg.onOffline ?? ''}
-              onSelect={(onOffline) => patch({ onOffline })}
-              items={choices(tx, 'settings.advanced.offline.', confirmPolicies)}
-            />
-          </FieldGroup>
-        </Card>
-      )}
-
-      {/* The tiers come strictest first. Nothing is drawn without the list,
-          because reclaim.ParseTrust folds an unknown value onto a looser tier. */}
-      {reclaimModes.length > 0 && (
-        <Card hue={2} className="flex flex-col gap-5">
-          <SectionTitle>{tx('settings.advanced.reclaimTitle')}</SectionTitle>
-          <FieldGroup
-            layout="row"
-            label={tx('settings.advanced.reclaimTrust')}
-            hint={tx('settings.advanced.reclaimTrustHint')}
-          >
-            <Tabs
-              variant="well"
-              label={tx('settings.advanced.reclaimTrust')}
-              active={cfg.reclaimTrust ?? ''}
-              onSelect={(reclaimTrust) => patch({ reclaimTrust })}
-              items={choices(tx, 'settings.advanced.reclaim.', reclaimModes)}
-            />
-          </FieldGroup>
-        </Card>
-      )}
-
-      <Card hue={3} className="flex flex-col gap-5">
         <SectionTitle>{tx('settings.advanced.retryTitle')}</SectionTitle>
         {/* One bubble for the grid: 0 defers to the count on the Downloads
             page, and a host rule beats this, which beats that count. */}
@@ -291,7 +177,7 @@ export function Advanced() {
           )}
         </div>
 
-        <Card hue={4} padding="none">
+        <Card hue={1} padding="none">
           <div className="p-5 pb-0">
             <SectionTitle>{tx('settings.advanced.allSettings')}</SectionTitle>
           </div>

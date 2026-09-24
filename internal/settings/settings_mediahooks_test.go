@@ -203,7 +203,7 @@ func TestTheLookupsAnswerWhatTheRoutesAsk(t *testing.T) {
 }
 
 // The reference is one more field on a struct several pages write, and a save
-// from the Categories page must not lose it any more than it loses the folder.
+// from the categories card must not lose it any more than it loses the folder.
 func TestADrawersOtherFieldsSurviveTheNewOne(t *testing.T) {
 	s := Defaults()
 	s.MediaHooks = []mediahook.Hook{jellyfin()}

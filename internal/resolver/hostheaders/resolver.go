@@ -16,11 +16,12 @@ import (
 // ResolverID is the routing id the app's backend table and logs share.
 const ResolverID = "hostheaders"
 
-// prio places this resolver above resolver.Direct (40) and jd's known hosts
-// (41), since a host the user stored a login for is the more specific fact.
-// It stays below the debrid services, torrent and remotefs, which fetch the
-// file themselves; the fallback chain still reaches this one when they fail.
-const prio = 42
+// prio puts this resolver first for every link it claims, above the debrid
+// services and above a hand-arranged order (orderBase in internal/app, 1000).
+// It claims only links on an origin the user stored headers for, usually their
+// own premium cookie, which is as specific as a login of their own. The
+// fallback chain still reaches the others when it fails.
+const prio = 1001
 
 // Profiles is what the resolver asks about a link. Match runs under the app's
 // lock, so it must answer from memory; *Store satisfies it.

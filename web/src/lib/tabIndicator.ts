@@ -1,10 +1,10 @@
-// The browser tab as a tray tooltip: while the queue owes work, the favicon
-// carries a percent ring and the title the numbers behind it; when nothing is
-// owed, both return to exactly what they were. Plain DOM and canvas;
-// components/TabIndicator.tsx drives it from live task data.
+// The browser tab as a tray icon: while the queue owes work, the favicon
+// carries a percent ring, and when nothing is owed it returns to exactly what
+// it was. Plain DOM and canvas; components/TabIndicator.tsx drives it from
+// live task data.
 
 import type { Task } from './api';
-import { fmtSpeed, pct } from './format';
+import { pct } from './format';
 import { DEFAULT_ACCENT } from './appearance';
 
 // owed mirrors owed() in components/Counters.tsx, the server's rule: finished,
@@ -20,43 +20,29 @@ export interface Activity {
   total: number;
   /** Loaded over size for owed, enabled rows of known size, as Counters.tsx weighs them. */
   percent: number;
-  /** Sum of the speed field on rows actually running. */
-  speed: number;
 }
 
-/** measureActivity reduces the live task record to the four numbers a tab can show. */
+/** measureActivity reduces the live task record to the numbers the ring shows. */
 export function measureActivity(tasks: Record<string, Task>): Activity {
   let running = 0;
   let total = 0;
   let loaded = 0;
   let size = 0;
-  let speed = 0;
   for (const t of Object.values(tasks)) {
     if (!owed(t)) continue;
     total++;
-    if (t.status === 'running') {
-      running++;
-      speed += t.speed;
-    }
+    if (t.status === 'running') running++;
     // Disabled links never fetch and would keep the ring from ever closing.
     if (t.enabled && t.size > 0) {
       size += t.size;
       loaded += t.loaded;
     }
   }
-  return { running, total, percent: pct(loaded, size, false), speed };
-}
-
-/** formatTabTitle prefixes the counts to `base`, the title the caller
- *  captured before changing it. */
-export function formatTabTitle(a: Activity, base: string): string {
-  const parts = [`${a.running}/${a.total}`, `${a.percent}%`, fmtSpeed(a.speed) || '0 B/s'];
-  return `(${parts.join(' · ')}) ${base}`;
+  return { running, total, percent: pct(loaded, size, false) };
 }
 
 // A favicon has room for one shape and one short number: the arc shows the
-// percent and the centre the running count, capped at one digit. The exact
-// counts are in the title.
+// percent and the centre the running count, capped at one digit.
 //
 // Fixed colours, since a canvas snapshot cannot follow a rotating rainbow
 // accent: DEFAULT_ACCENT (the --status-info-solid hex) for active and

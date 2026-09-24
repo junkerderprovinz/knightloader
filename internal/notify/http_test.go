@@ -3,8 +3,10 @@ package notify
 import (
 	"context"
 	"io"
+	"net"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 	"time"
@@ -160,11 +162,18 @@ func TestClassifyStatusSplitsTheFourHundreds(t *testing.T) {
 	}
 }
 
+// The errors are built the way net/http hands them back. A real lookup of an
+// .invalid name tests the resolver instead: a slow one lets the target's time
+// limit run out first, and that is rightly a timeout.
 func TestClassifyErrorNamesWhatItCan(t *testing.T) {
-	// .invalid is reserved by RFC 2606, so this cannot reach a real server.
-	att := Send(context.Background(), Target{URL: "https://this-host-does-not-exist.invalid/x", TimeoutSeconds: 5}, firingWithTask("x"), "")
-	if att.Code != ProblemDNS {
-		t.Errorf("an unresolvable host was classified as %q (%s), want %q", att.Code, att.Err, ProblemDNS)
+	lookup := &url.Error{Op: "Post", URL: "https://x.invalid/x", Err: &net.OpError{Op: "dial", Net: "tcp",
+		Err: &net.DNSError{Err: "no such host", Name: "x.invalid", IsNotFound: true}}}
+	if got := classifyError(lookup); got != ProblemDNS {
+		t.Errorf("a failed lookup was classified as %q, want %q", got, ProblemDNS)
+	}
+	late := &url.Error{Op: "Post", URL: "https://x.invalid/x", Err: context.DeadlineExceeded}
+	if got := classifyError(late); got != ProblemTimeout {
+		t.Errorf("a lookup cut short by the time limit was classified as %q, want %q", got, ProblemTimeout)
 	}
 }
 

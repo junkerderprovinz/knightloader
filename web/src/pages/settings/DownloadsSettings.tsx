@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Card, Field, FieldGroup, NumberInput, SectionTitle, TextArea, TextInput, ToggleRow } from '../../components/ui';
+import { Card, Field, FieldGroup, NumberInput, SectionTitle, TextInput, ToggleRow } from '../../components/ui';
 import { PathInput } from '../../components/FolderPicker';
 import { Tabs } from '../../components/Tabs';
 import { fetchOptions } from '../../lib/api';
@@ -8,16 +8,11 @@ import { isLeet } from '../../lib/leet';
 import { useDraft } from './context';
 // Each card owns one subject in ./downloads and shares the draft through
 // useDraft; the page passes the hues because it decides the order.
-// HeaderProfiles saves through its own routes instead.
 import { CollisionCard } from './downloads/Collision';
-import { CollectorCard } from './downloads/Collector';
 import { DiskSpaceCard } from './downloads/DiskSpace';
 import { FeedsCard } from './downloads/Feeds';
-import { HeaderProfilesCard } from './downloads/HeaderProfiles';
 import { FolderCheckCard } from './downloads/FolderCheck';
-import { IdleActionCard } from './downloads/IdleAction';
-import { HostRulesCard } from './downloads/HostRules';
-import { MediaHooksCard } from './downloads/MediaHooks';
+import { ReclaimCard } from './downloads/Reclaim';
 import { StallCard } from './downloads/Stall';
 import { VolumeCapCard } from './downloads/VolumeCap';
 
@@ -76,9 +71,11 @@ export function DownloadsSettings() {
         </Field>
       </Card>
 
-      <CollisionCard hue={1} />
+      <ReclaimCard hue={1} />
 
-      <Card hue={2} className="flex flex-col gap-5">
+      <CollisionCard hue={2} />
+
+      <Card hue={3} className="flex flex-col gap-5">
         <SectionTitle>{t('settings.downloads.limitsTitle')}</SectionTitle>
         {/* Read together: two downloads on one host with eight connections
             each open sixteen. */}
@@ -168,79 +165,15 @@ export function DownloadsSettings() {
         </div>
       </Card>
 
-      <HostRulesCard hue={3} />
+      <StallCard hue={4} />
+      <DiskSpaceCard hue={5} />
 
-      {/* Its values live in the credential store, so the card saves itself. */}
-      <HeaderProfilesCard hue={4} />
-
-      <StallCard hue={5} />
-      <DiskSpaceCard hue={6} />
-
-      <VolumeCapCard hue={7} />
-
-      <CollectorCard hue={8} />
-
-      {/* The crawl settings are absent while crawling is off. */}
-      <Card hue={9} className="flex flex-col gap-5">
-        <SectionTitle>{t('settings.crawl.title')}</SectionTitle>
-        <ToggleRow hue={0} checked={cfg.crawl} onChange={(v) => patch({ crawl: v })} label={t('settings.crawl')} />
-
-        {cfg.crawl && (
-        <div className="flex flex-col gap-5">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {/* max is internal/crawler.MaxDepth. */}
-            <Field label={t('settings.crawl.depth')} hint={t('settings.crawl.depthHint')}>
-              <NumberInput value={cfg.crawlDepth} min={1} max={3} onValue={(v) => patch({ crawlDepth: v })} />
-            </Field>
-            {/* A depth of 1 is one page, so the page cap and the same-host rule
-                only apply from 2. */}
-            {cfg.crawlDepth >= 2 && (
-            <Field label={t('settings.crawl.maxPages')} hint={t('settings.crawl.maxPagesHint')}>
-              <NumberInput value={cfg.crawlMaxPages} min={1} max={200} onValue={(v) => patch({ crawlMaxPages: v })} />
-            </Field>
-            )}
-          </div>
-
-          {cfg.crawlDepth >= 2 && (
-          <ToggleRow
-            hue={1}
-            checked={cfg.crawlSameHost}
-            onChange={(v) => patch({ crawlSameHost: v })}
-            label={t('settings.crawl.sameHost')}
-            hint={t('settings.crawl.sameHostHint')}
-          />
-          )}
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field label={t('settings.crawl.include')} hint={t('settings.crawl.includeHint')}>
-              <TextArea
-                rows={3}
-                spellCheck={false}
-                value={(cfg.crawlInclude ?? []).join('\n')}
-                onChange={(e) => patch({ crawlInclude: e.target.value.split('\n').filter((p) => p.trim() !== '') })}
-              />
-            </Field>
-            <Field label={t('settings.crawl.exclude')} hint={t('settings.crawl.excludeHint')}>
-              <TextArea
-                rows={3}
-                spellCheck={false}
-                value={(cfg.crawlExclude ?? []).join('\n')}
-                onChange={(e) => patch({ crawlExclude: e.target.value.split('\n').filter((p) => p.trim() !== '') })}
-              />
-            </Field>
-          </div>
-        </div>
-        )}
-      </Card>
+      <VolumeCapCard hue={6} />
 
       {/* setFeature's refusal points people here to add a feed. */}
-      <FeedsCard hue={10} />
+      <FeedsCard hue={7} />
 
-      <IdleActionCard hue={11} />
-
-      <FolderCheckCard hue={12} />
-
-      <MediaHooksCard hue={13} />
+      <FolderCheckCard hue={8} />
     </div>
   );
 }

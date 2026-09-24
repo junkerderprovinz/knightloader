@@ -91,7 +91,7 @@ export function IdleActionCard({ hue }: { hue: number }) {
         if (live) setDeployment(d.deployment);
       },
       () => {
-        /* the deployment sentence is simply not shown */
+        /* the deployment sentence stays out */
       },
     );
     // The last run, once; IdleActionBanner holds the live subscription.

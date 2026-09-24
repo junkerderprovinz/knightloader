@@ -12,7 +12,7 @@
 // failure is never expected. Completions and plain saves are already visible
 // where they happened.
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
-import { Button, InfoBubble, Toggle } from '../components/ui';
+import { Button } from '../components/ui';
 import { recordEvent, type EventSubject } from './eventLog';
 import { IconClose, IconShield } from './icons';
 import { useT } from './i18n';
@@ -250,25 +250,11 @@ function ToastBubble({ item, onDismiss }: { item: ToastMessage; onDismiss: (id: 
 }
 
 /**
- * QuietModeToggle is the quiet-mode switch as a settings row. It sits alone in
- * a card titled with its name, so the row carries no caption of its own; the
- * label stays as the switch's accessible name. It shares QUIET_KEY's uistate
- * bucket with ToastProvider.
+ * useQuietMode is the quiet-mode switch's state, in the same uistate bucket
+ * ToastProvider reads.
  */
-export function QuietModeToggle() {
-  const { t } = useT();
-  const [quiet, setQuiet] = useUIState(QUIET_KEY, false);
-  return (
-    <div className="flex items-center justify-between gap-4">
-      {/* The explanation sits in a bubble (GlimStone 1.4.0). It says that
-          swallowed bubbles still reach the event log. */}
-      <span className="flex items-center gap-1.5 text-sm text-carbon-text">
-        {t('notifications.quiet')}
-        <InfoBubble tip={t('notifications.quietHint')} />
-      </span>
-      <Toggle hideLabel checked={quiet} onChange={setQuiet} label={t('notifications.quiet')} />
-    </div>
-  );
+export function useQuietMode(): [boolean, (next: boolean) => void] {
+  return useUIState(QUIET_KEY, false);
 }
 
 export function ToastProvider({ children }: { children: ReactNode }) {

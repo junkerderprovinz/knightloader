@@ -2,8 +2,11 @@ package debrid
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"net/http/httptest"
+	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -160,6 +163,219 @@ func TestBackendHandsOffToEngine(t *testing.T) {
 	}
 	if !sawName {
 		t.Error("resolved filename was never mirrored to the task")
+	}
+}
+
+// hangingServer answers no request until the test ends and signals each one
+// that arrives, the way an overloaded login endpoint behaves.
+func hangingServer(t *testing.T) (*httptest.Server, <-chan struct{}) {
+	t.Helper()
+	arrived := make(chan struct{}, 16)
+	release := make(chan struct{})
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		select {
+		case arrived <- struct{}{}:
+		default:
+		}
+		select {
+		case <-release:
+		case <-r.Context().Done():
+		}
+	}))
+	t.Cleanup(srv.Close)
+	t.Cleanup(func() { close(release) })
+	return srv, arrived
+}
+
+func TestBackendReportsAnUnlockThatRanOutOfTime(t *testing.T) {
+	srv, _ := hangingServer(t)
+	updates := make(chan core.Update, 8)
+	b := NewBackend(multiupAt(srv.URL), &fakeEngine{got: make(chan handoff, 1)}, func(_ string, u core.Update) { updates <- u })
+	b.timeout = 100 * time.Millisecond
+
+	b.Download("t1", "https://rapidgator.net/file/x", nil, 1)
+	giveUp := time.After(10 * time.Second)
+	for {
+		select {
+		case u := <-updates:
+			if u.Status != core.StatusError {
+				continue
+			}
+			if !strings.Contains(u.Err, "deadline exceeded") {
+				t.Errorf("Err = %q, want it to say the unlock ran out of time", u.Err)
+			}
+			return
+		case <-giveUp:
+			t.Fatal("the task was never told that its unlock ran out of time and stays unlocking")
+		}
+	}
+}
+
+// Pause marks the task paused itself, so the cancelled unlock must not turn
+// it into a failure.
+func TestBackendReportsNoErrorForAPausedUnlock(t *testing.T) {
+	srv, arrived := hangingServer(t)
+	updates := make(chan core.Update, 8)
+	b := NewBackend(multiupAt(srv.URL), &fakeEngine{got: make(chan handoff, 1)}, func(_ string, u core.Update) { updates <- u })
+
+	b.Download("t1", "https://rapidgator.net/file/x", nil, 1)
+	select {
+	case <-arrived:
+	case <-time.After(10 * time.Second):
+		t.Fatal("the unlock never sent its login")
+	}
+	b.Pause("t1")
+	for giveUp := time.Now().Add(10 * time.Second); ; time.Sleep(5 * time.Millisecond) {
+		b.mu.Lock()
+		_, unlocking := b.runs["t1"]
+		b.mu.Unlock()
+		if !unlocking {
+			break
+		}
+		if time.Now().After(giveUp) {
+			t.Fatal("the unlock kept running after the pause")
+		}
+	}
+	for len(updates) > 0 {
+		if u := <-updates; u.Status == core.StatusError {
+			t.Errorf("a paused unlock reported the error %q", u.Err)
+		}
+	}
+}
+
+// heldService's Unlock returns only once the test releases it, the way a
+// request already on the wire outlives its cancel for a moment.
+type heldService struct {
+	held chan chan struct{}
+	// answered makes Unlock succeed even when cancelled, as when the answer
+	// was already in when the cancel came.
+	answered bool
+
+	mu   sync.Mutex
+	ctxs []context.Context
+}
+
+func (*heldService) ID() string                                     { return "held" }
+func (*heldService) Label() string                                  { return "Held" }
+func (*heldService) Hosts(context.Context) (map[string]bool, error) { return nil, nil }
+
+func (s *heldService) Unlock(ctx context.Context, _ string) (Direct, error) {
+	s.mu.Lock()
+	s.ctxs = append(s.ctxs, ctx)
+	s.mu.Unlock()
+	release := make(chan struct{})
+	s.held <- release
+	<-release
+	if err := ctx.Err(); err != nil && !s.answered {
+		return Direct{}, err
+	}
+	return Direct{URL: "https://cdn.example/x"}, nil
+}
+
+// A paused unlock that ends only after the task was resumed must leave the
+// resumed unlock where the next pause can reach it.
+func TestAResumedUnlockCanBePausedAgain(t *testing.T) {
+	svc := &heldService{held: make(chan chan struct{}, 2)}
+	fe := &fakeEngine{got: make(chan handoff, 2)}
+	b := NewBackend(svc, fe, func(string, core.Update) {})
+
+	b.Download("t1", "https://rapidgator.net/file/x", nil, 1)
+	first := <-svc.held
+	b.Pause("t1")
+	b.Resume("t1")
+	second := <-svc.held
+	close(first)
+	// Give the first run the moment it needs to wind down.
+	for giveUp := time.Now().Add(200 * time.Millisecond); time.Now().Before(giveUp); time.Sleep(5 * time.Millisecond) {
+		b.mu.Lock()
+		_, tracked := b.runs["t1"]
+		b.mu.Unlock()
+		if !tracked {
+			break
+		}
+	}
+
+	b.Pause("t1")
+	close(second)
+	svc.mu.Lock()
+	resumed := svc.ctxs[1]
+	svc.mu.Unlock()
+	if resumed.Err() == nil {
+		t.Fatal("the second pause did not reach the resumed unlock")
+	}
+	select {
+	case h := <-fe.got:
+		t.Fatalf("a paused task was handed to the engine: %+v", h)
+	case <-time.After(100 * time.Millisecond):
+	}
+}
+
+func TestAPauseAfterTheAnswerArrivedKeepsTheTaskOutOfTheEngine(t *testing.T) {
+	svc := &heldService{held: make(chan chan struct{}, 1), answered: true}
+	fe := &fakeEngine{got: make(chan handoff, 1)}
+	b := NewBackend(svc, fe, func(string, core.Update) {})
+
+	b.Download("t1", "https://rapidgator.net/file/x", nil, 1)
+	release := <-svc.held
+	b.Pause("t1")
+	close(release)
+	select {
+	case h := <-fe.got:
+		t.Fatalf("a paused task was handed to the engine: %+v", h)
+	case <-time.After(100 * time.Millisecond):
+	}
+}
+
+// The first unlock's login hangs and holds the lock until the client's own
+// timeout. An unlock queued behind it has to give up at its own deadline, not
+// start its login with whatever time is left once the lock comes free.
+func TestUnlockWaitingForAnotherLoginEndsAtItsOwnDeadline(t *testing.T) {
+	clients := map[string]func(base string) Service{
+		"MultiUp":   func(base string) Service { return multiupAt(base) },
+		"NeoDebrid": func(base string) Service { return neodebridAt(base) },
+		"Mega-Debrid": func(base string) Service {
+			m := NewMegaDebrid("amy", "secret-pass")
+			m.base = base + "/api.php"
+			return m
+		},
+	}
+	for name, newService := range clients {
+		t.Run(name, func(t *testing.T) {
+			srv, arrived := hangingServer(t)
+			svc := newService(srv.URL)
+
+			firstCtx, stopFirst := context.WithCancel(context.Background())
+			first := make(chan error, 1)
+			go func() {
+				_, err := svc.Unlock(firstCtx, "https://rapidgator.net/file/a")
+				first <- err
+			}()
+			defer func() {
+				stopFirst()
+				<-first
+			}()
+			select {
+			case <-arrived:
+			case <-time.After(10 * time.Second):
+				t.Fatal("the first unlock never sent its login")
+			}
+
+			ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+			defer cancel()
+			second := make(chan error, 1)
+			go func() {
+				_, err := svc.Unlock(ctx, "https://rapidgator.net/file/b")
+				second <- err
+			}()
+			select {
+			case err := <-second:
+				if !errors.Is(err, context.DeadlineExceeded) {
+					t.Errorf("second Unlock = %v, want it to end with its own deadline", err)
+				}
+			case <-time.After(5 * time.Second):
+				t.Error("the second unlock was still waiting for the first one's login after its own deadline")
+			}
+		})
 	}
 }
 

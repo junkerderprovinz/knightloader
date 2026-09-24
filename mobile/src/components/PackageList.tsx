@@ -79,8 +79,8 @@ export default function PackageList({
   /** The flat task order after a drag, ready for POST /api/tasks/reorder.
    *  Undefined leaves the list un-draggable, which is what the collector tab
    *  wants: nothing there is in the wait queue yet, so there is no order to
-   *  write. */
-  onReorder?: (ids: string[]) => void;
+   *  write. DragList holds the dropped order until the promise settles. */
+  onReorder?: (ids: string[]) => Promise<void>;
   empty: string;
 }) {
   const { t } = useT();
@@ -114,11 +114,17 @@ export default function PackageList({
   // One flat list of draggable rows. The band is what keeps a drag honest: a
   // package header moves among package headers and a link within its own
   // package. Without it a link could be dropped between two packages, where the
-  // list cannot render it and the server cannot store it.
+  // list cannot render it and the server cannot store it. The parent carries an
+  // open package's links along with its header.
   const dragRows: DragRow[] = rows.map((r) =>
     r.kind === 'header'
       ? { key: `p:${r.pkg.name}`, band: 'packages', render: (_ziehend, scharf) => renderHeader(r.pkg, scharf) }
-      : { key: r.task.id, band: `pkg:${r.task.package || ''}`, render: () => <TaskRow task={r.task} index={r.index} /> },
+      : {
+          key: r.task.id,
+          band: `pkg:${r.task.package || ''}`,
+          parent: `p:${r.task.package || ''}`,
+          render: () => <TaskRow task={r.task} index={r.index} />,
+        },
   );
 
   /** What the server accepts in one reorder.
@@ -137,31 +143,44 @@ export default function PackageList({
   const sortierbar = (t: Task) => t.status !== 'done' && t.status !== 'error';
   const bandVon = (t: Task) => t.priority ?? 0;
 
-  const applyOrder = (keys: string[], band: string) => {
-    if (!onReorder) return;
+  /** Sends a drop's ids unless they already stand in that order, which happens
+   *  when every row the drop passed is left out of the write (finished, or in
+   *  another band). The server would move nothing and the list would hold an
+   *  order the live one never takes up, so the drop is turned down instead. */
+  const schreibe = (ids: string[], jetzt: Task[]) => {
+    const dabei = new Set(ids);
+    const vorher = jetzt.map((x) => x.id).filter((id) => dabei.has(id));
+    if (!onReorder || ids.every((id, i) => id === vorher[i])) return;
+    return onReorder(ids);
+  };
+
+  const applyOrder = (keys: string[], band: string, gezogen: string) => {
     if (band === 'packages') {
       const nachName = new Map(packages.map((p) => [`p:${p.name}`, p]));
+      // One priority only: the dragged package's own, read off a task that can
+      // still move. Everything else in the list belongs to another band and is
+      // left to a drag made inside it.
+      const erste = nachName.get(gezogen)?.tasks.find(sortierbar);
+      if (!erste) return;
       const neu = keys.map((k) => nachName.get(k)).filter((p): p is Pkg => !!p);
-      const alle = neu.flatMap((p) => p.tasks).filter(sortierbar);
-      // One priority only: the dragged rows' own. Everything else in the list
-      // belongs to another band and is left to a drag made inside it.
-      const gezogen = nachName.get(keys[0]);
-      const prio = gezogen ? bandVon(gezogen.tasks[0]) : 0;
-      const ids = alle.filter((x) => bandVon(x) === prio).map((x) => x.id);
-      if (ids.length > 0) onReorder(ids);
-      return;
+      const ids = neu
+        .flatMap((p) => p.tasks)
+        .filter((x) => sortierbar(x) && bandVon(x) === bandVon(erste))
+        .map((x) => x.id);
+      return schreibe(ids, packages.flatMap((p) => p.tasks));
     }
     // Within one package: that package's own tasks in the new order. Only its
     // ids travel, and every other task in the band is left where it is, which
     // is what a partial reorder means to the server.
-    const name = band.slice('pkg:'.length);
-    const pkg = packages.find((p) => p.name === name);
-    if (!pkg) return;
+    const pkg = packages.find((p) => p.name === band.slice('pkg:'.length));
+    const datei = pkg?.tasks.find((x) => x.id === gezogen);
+    if (!pkg || !datei || !sortierbar(datei)) return;
     const nachId = new Map(pkg.tasks.map((x) => [x.id, x]));
-    const geordnet = keys.map((k) => nachId.get(k)).filter((x): x is Task => !!x && sortierbar(x));
-    const prio = geordnet.length > 0 ? bandVon(geordnet[0]) : 0;
-    const ids = geordnet.filter((x) => bandVon(x) === prio).map((x) => x.id);
-    if (ids.length > 0) onReorder(ids);
+    const ids = keys
+      .map((k) => nachId.get(k))
+      .filter((x): x is Task => !!x && sortierbar(x) && bandVon(x) === bandVon(datei))
+      .map((x) => x.id);
+    return schreibe(ids, pkg.tasks);
   };
 
   /**

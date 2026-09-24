@@ -8,11 +8,14 @@ package app
 
 import (
 	"slices"
+	"strings"
 	"testing"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/hostheaders"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/remotefs"
 )
 
 // With no native login active for a host, the re-rank changes nothing:
@@ -156,21 +159,22 @@ func TestEmptyHandOrderRestoresTheAutomaticOne(t *testing.T) {
 func TestResolverPriorityReportsWhatDispatchWalks(t *testing.T) {
 	a := newQueueApp(t)
 	a.Registry.Register(jd.Resolver{})
+	a.Registry.Register(fakeResolver{id: "fakedebrid", prio: 45, host: "priority-app-test-report.example"})
 
-	// Automatically torrent (50) comes before hostheaders (42); the hand order
+	// Automatically torrent (50) comes before the debrid (45); the hand order
 	// turns that round.
 	cfg := a.Settings.Get()
-	cfg.ResolverOrder = []string{"hostheaders", "torrent"}
+	cfg.ResolverOrder = []string{"fakedebrid", "torrent"}
 	if _, err := a.ApplySettings(cfg); err != nil {
 		t.Fatal(err)
 	}
 
 	got := a.ResolverPriority("")
 	if len(got) < 2 {
-		t.Fatalf("ResolverPriority returned %d entries, want at least hostheaders and torrent", len(got))
+		t.Fatalf("ResolverPriority returned %d entries, want at least fakedebrid and torrent", len(got))
 	}
-	if got[0].ID != "hostheaders" || got[1].ID != "torrent" {
-		t.Fatalf("ResolverPriority = %q, %q, want hostheaders then torrent; the card shows the hand-arranged order, not the registry's",
+	if got[0].ID != "fakedebrid" || got[1].ID != "torrent" {
+		t.Fatalf("ResolverPriority = %q, %q, want fakedebrid then torrent; the card shows the hand-arranged order, not the registry's",
 			got[0].ID, got[1].ID)
 	}
 
@@ -198,6 +202,27 @@ func TestPriorityCardLeavesOutTheResolversThatDependOnTheLink(t *testing.T) {
 		case "direct", "jd", "ytdlp", "http":
 			t.Errorf("the priority card lists %q, whose place depends on the link", r.ID)
 		}
+	}
+}
+
+// A header profile and the user's own servers take only the links they were
+// set up for, so a place on the card would rank nothing, and a stale list that
+// still names them is not stored.
+func TestPriorityCardLeavesOutHeaderProfilesAndOwnServers(t *testing.T) {
+	a := newQueueApp(t)
+	a.Registry.Register(hostheaders.Resolver{})
+	a.Registry.Register(remotefs.Resolver{})
+
+	for _, r := range a.ResolverPriority("") {
+		if r.ID == hostheaders.ResolverID || r.ID == remotefs.ResolverID {
+			t.Errorf("the priority card lists %q", r.ID)
+		}
+	}
+	if _, err := a.SaveResolverOrder([]string{hostheaders.ResolverID, "torrent", remotefs.ResolverID}); err != nil {
+		t.Fatal(err)
+	}
+	if order := a.Settings.Get().ResolverOrder; !slices.Equal(order, []string{"torrent"}) {
+		t.Errorf("stored order = %q, want only torrent", order)
 	}
 }
 
@@ -267,5 +292,36 @@ func TestALoginRowDecidesBetweenTheOwnAccountAndADebrid(t *testing.T) {
 	}
 	if got := route("fakedebrid", "login:ddownload.com"); got != "fakedebrid" {
 		t.Errorf("debrid above the login: link goes to %q, want fakedebrid", got)
+	}
+}
+
+// profileFor is a header profile store covering one origin.
+type profileFor string
+
+func (p profileFor) Covers(raw string) bool { return strings.HasPrefix(raw, string(p)) }
+func (p profileFor) ForURL(string) (string, hostheaders.Set) {
+	return "own", hostheaders.Set{Origin: string(p)}
+}
+func (profileFor) Get(string) hostheaders.Set { return hostheaders.Set{} }
+
+// A header profile is the user's own setup for one origin, usually a premium
+// cookie, so it goes ahead of a debrid service that carries the same host,
+// even one placed first by hand.
+func TestAHeaderProfileGoesFirstForItsOrigin(t *testing.T) {
+	a := newQueueApp(t)
+	a.Registry.Register(fakeResolver{id: "fakedebrid", prio: 45, host: "katfile.com"})
+	a.Registry.Register(hostheaders.Resolver{Profiles: profileFor("https://katfile.com")})
+	link := &core.Task{URL: "https://katfile.com/abc/movie.mkv"}
+
+	if got := a.resolverForTaskLocked(link); got == nil || got.Info().ID != hostheaders.ResolverID {
+		t.Fatalf("resolver = %+v, want the header profile", got)
+	}
+	cfg := a.Settings.Get()
+	cfg.ResolverOrder = []string{"fakedebrid", hostheaders.ResolverID}
+	if _, err := a.ApplySettings(cfg); err != nil {
+		t.Fatal(err)
+	}
+	if got := a.resolverForTaskLocked(link); got == nil || got.Info().ID != hostheaders.ResolverID {
+		t.Errorf("with the debrid ordered first: resolver = %+v, want the header profile", got)
 	}
 }

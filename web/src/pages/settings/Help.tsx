@@ -68,10 +68,7 @@ export function Help() {
       <Topic
         title={t('settings.help.intake.title')}
         hue={0}
-        links={[
-          { to: '/settings/downloads', label: t('settings.help.intake.link1') },
-          { to: '/settings/access', label: t('settings.help.intake.link2') },
-        ]}
+        links={[{ to: '/settings/collector', label: t('settings.help.intake.link1') }]}
       >
         <p>{t('settings.help.intake.body')}</p>
         <Bullets
@@ -87,8 +84,7 @@ export function Help() {
       <Topic
         title={t('settings.help.collector.title')}
         hue={1}
-        // The General tab's page id is 'look'.
-        links={[{ to: '/settings/look', label: t('settings.help.collector.link') }]}
+        links={[{ to: '/settings/collector', label: t('settings.help.collector.link') }]}
       >
         <p>{t('settings.help.collector.body')}</p>
       </Topic>
@@ -110,8 +106,7 @@ export function Help() {
         title={t('settings.help.limits.title')}
         hue={4}
         links={[
-          { to: '/settings/connections', label: t('settings.help.limits.link1') },
-          { to: '/settings/reconnect', label: t('settings.help.limits.link2') },
+          { to: '/settings/network', label: t('settings.help.limits.link1') },
           { to: '/accounts', label: t('settings.help.limits.link3') },
         ]}
       >
@@ -141,7 +136,7 @@ export function Help() {
       <Topic
         title={t('settings.help.schedule.title')}
         hue={7}
-        links={[{ to: '/settings/schedule', label: t('settings.help.schedule.link') }]}
+        links={[{ to: '/settings/automation', label: t('settings.help.schedule.link') }]}
       >
         <p>{t('settings.help.schedule.body')}</p>
       </Topic>

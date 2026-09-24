@@ -16,7 +16,7 @@ import {
 import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
 import { Button, EmptyState, Field, InfoBubble, Modal, TextInput } from './ui';
-import { AccountTable } from './AccountTable';
+import { AccountTable, type AccountRow } from './AccountTable';
 import { IconAccounts, IconClose, IconPlus, IconSearch, IconTrash } from '../lib/icons';
 import { HosterIcon } from './HosterIcon';
 
@@ -26,18 +26,25 @@ const POLL_MS = 8000;
 
 type Dialog = { mode: 'new' } | { mode: 'edit'; login: HosterLogin };
 
+/** HosterLogins is the logins and the host list, loaded once for both cards. */
+export interface HosterLogins {
+  logins: HosterLogin[] | null;
+  hosts: HosterHost[];
+  load: () => Promise<void>;
+  toggle: (row: HosterLogin, enabled: boolean) => Promise<void>;
+  remove: (host: string) => Promise<void>;
+}
+
 /**
- * HosterLoginSection lists the hoster logins. onEnabledHosts hears the
- * switched-on hosts after every load, since each is a row on the priority card.
+ * useHosterLogins polls the logins for the accounts page. onEnabledHosts hears
+ * the switched-on hosts after every load, since each is a row on the priority
+ * card.
  */
-export function HosterLoginSection({ onEnabledHosts }: { onEnabledHosts?: (hosts: string) => void }) {
+export function useHosterLogins(onEnabledHosts?: (hosts: string) => void): HosterLogins {
   const { t } = useT();
   const { toast } = useToast();
   const [logins, setLogins] = useState<HosterLogin[] | null>(null);
   const [hosts, setHosts] = useState<HosterHost[]>([]);
-  const [dialog, setDialog] = useState<Dialog | null>(null);
-  // The login awaiting removal confirmation.
-  const [confirming, setConfirming] = useState<HosterLogin | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -67,7 +74,7 @@ export function HosterLoginSection({ onEnabledHosts }: { onEnabledHosts?: (hosts
       .catch(() => {});
   }, []);
 
-  async function onToggle(row: HosterLogin, enabled: boolean) {
+  async function toggle(row: HosterLogin, enabled: boolean) {
     // Optimistic; the reload corrects the row once JD has reconciled.
     setLogins((cur) => cur?.map((x) => (x.host === row.host ? { ...x, enabled } : x)) ?? cur);
     try {
@@ -78,9 +85,7 @@ export function HosterLoginSection({ onEnabledHosts }: { onEnabledHosts?: (hosts
     await load();
   }
 
-  // Confirmed first, since the stored password cannot be read back.
-  async function doRemove(host: string) {
-    setConfirming(null);
+  async function remove(host: string) {
     try {
       await removeHosterLogin(host);
       toast(t('accounts.hoster.removed'), 'info');
@@ -90,27 +95,56 @@ export function HosterLoginSection({ onEnabledHosts }: { onEnabledHosts?: (hosts
     }
   }
 
-  const hasRows = !!logins && logins.length > 0;
+  return { logins, hosts, load, toggle, remove };
+}
+
+/**
+ * hosterLoginRow is one login as an AccountTable row, for this card and for
+ * the multihosters on the debrid card.
+ */
+export function hosterLoginRow(
+  row: HosterLogin,
+  actions: { onToggle: (v: boolean) => void; onEdit: () => void; onRemove: () => void },
+  via?: string,
+): AccountRow {
+  return {
+    key: row.host,
+    iconHost: row.host,
+    label: row.host,
+    via,
+    enabled: row.enabled,
+    status: <HosterLoginStatusBadge login={row} />,
+    tier: row.tier,
+    expiry: row.expiry,
+    // JD reports bytes left and max; without a max the row shows a dash.
+    traffic: { used: Math.max(0, (row.trafficMax ?? 0) - (row.trafficLeft ?? 0)), limit: row.trafficMax ?? 0 },
+    ...actions,
+  };
+}
+
+/** HosterLoginSection is the hoster card: every login except the multihosters. */
+export function HosterLoginSection({ data }: { data: HosterLogins }) {
+  const { t } = useT();
+  const [dialog, setDialog] = useState<Dialog | null>(null);
+  // The login awaiting removal confirmation.
+  const [confirming, setConfirming] = useState<HosterLogin | null>(null);
+
+  const rows = (data.logins ?? []).filter((l) => !l.multihoster);
+  const hosts = data.hosts.filter((h) => !h.multihoster);
+  const hasRows = rows.length > 0;
 
   return (
     <div className="flex flex-col gap-3">
       {hasRows && (
         <AccountTable
           label={t('accounts.hoster.title')}
-          rows={(logins ?? []).map((row) => ({
-            key: row.host,
-            iconHost: row.host,
-            label: row.host,
-            enabled: row.enabled,
-            status: <HosterLoginStatusBadge login={row} />,
-            tier: row.tier,
-            expiry: row.expiry,
-            // JD reports bytes left and max; without a max the row shows a dash.
-            traffic: { used: Math.max(0, (row.trafficMax ?? 0) - (row.trafficLeft ?? 0)), limit: row.trafficMax ?? 0 },
-            onToggle: (v) => void onToggle(row, v),
-            onEdit: () => setDialog({ mode: 'edit', login: row }),
-            onRemove: () => setConfirming(row),
-          }))}
+          rows={rows.map((row) =>
+            hosterLoginRow(row, {
+              onToggle: (v) => void data.toggle(row, v),
+              onEdit: () => setDialog({ mode: 'edit', login: row }),
+              onRemove: () => setConfirming(row),
+            }),
+          )}
         />
       )}
 
@@ -140,42 +174,55 @@ export function HosterLoginSection({ onEnabledHosts }: { onEnabledHosts?: (hosts
       {dialog && (
         <HosterLoginDialog
           hosts={hosts}
-          existing={logins ?? []}
+          existing={data.logins ?? []}
           editing={dialog.mode === 'edit' ? dialog.login : undefined}
           onClose={() => setDialog(null)}
-          onSaved={load}
+          onSaved={data.load}
         />
       )}
 
       {confirming && (
-        <Modal
-          title={t('accounts.remove')}
-          onClose={() => setConfirming(null)}
-          footer={
-            <>
-              {/* Matches the debrid card's confirmation footer. */}
-              <span className="flex-1" />
-              <Button
-                kind="ghost"
-                labelled
-                icon={<IconClose />}
-                title={t('common.cancel')}
-                onClick={() => setConfirming(null)}
-              />
-              <Button
-                kind="ghost"
-                icon={<IconTrash width={16} height={16} />}
-                onClick={() => void doRemove(confirming.host)}
-              >
-                {t('accounts.remove')}
-              </Button>
-            </>
-          }
-        >
-          <p className="text-sm text-carbon-text">{t('accounts.removeConfirm', { name: confirming.host })}</p>
-        </Modal>
+        <ConfirmRemoveLogin
+          login={confirming}
+          onCancel={() => setConfirming(null)}
+          onConfirm={() => {
+            setConfirming(null);
+            void data.remove(confirming.host);
+          }}
+        />
       )}
     </div>
+  );
+}
+
+/** ConfirmRemoveLogin asks first, since the stored password cannot be read back. */
+export function ConfirmRemoveLogin({
+  login,
+  onCancel,
+  onConfirm,
+}: {
+  login: HosterLogin;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  const { t } = useT();
+  return (
+    <Modal
+      title={t('accounts.remove')}
+      onClose={onCancel}
+      footer={
+        <>
+          {/* Matches the debrid card's confirmation footer. */}
+          <span className="flex-1" />
+          <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onCancel} />
+          <Button kind="ghost" icon={<IconTrash width={16} height={16} />} onClick={onConfirm}>
+            {t('accounts.remove')}
+          </Button>
+        </>
+      }
+    >
+      <p className="text-sm text-carbon-text">{t('accounts.removeConfirm', { name: login.host })}</p>
+    </Modal>
   );
 }
 
@@ -221,16 +268,22 @@ function HosterLoginStatusBadge({ login }: { login: HosterLogin }) {
 // accounts.Redacted: sent back unchanged, it keeps the stored password.
 const REDACTED = '********';
 
-function HosterLoginDialog({
+/**
+ * HosterLoginDialog stores one login. `initial` opens it on a host already
+ * picked elsewhere, as the debrid card does for a multihoster.
+ */
+export function HosterLoginDialog({
   hosts,
   existing,
   editing,
+  initial,
   onClose,
   onSaved,
 }: {
   hosts: HosterHost[];
   existing: HosterLogin[];
   editing?: HosterLogin;
+  initial?: HosterHost;
   onClose: () => void;
   onSaved: () => Promise<void>;
 }) {
@@ -238,7 +291,7 @@ function HosterLoginDialog({
   const { toast } = useToast();
   const [query, setQuery] = useState('');
   const [picked, setPicked] = useState<HosterHost | null>(
-    editing ? { id: editing.host, label: editing.host } : null,
+    editing ? { id: editing.host, label: editing.host } : (initial ?? null),
   );
   const [username, setUsername] = useState(editing?.username ?? '');
   const [password, setPassword] = useState(editing ? REDACTED : '');
@@ -313,19 +366,14 @@ function HosterLoginDialog({
                 {/* Lazy, so only rows scrolled into view fetch their icon. */}
                 <HosterIcon host={h.id} />
                 <span className="text-sm text-carbon-text">{h.label}</span>
-                {/* Multihosters are only usable through JD, so they stay here,
-                    labelled as such. */}
-                {h.multihoster && (
-                  <span className="glim-eyebrow ms-auto shrink-0">{t('accounts.hoster.multihoster')}</span>
-                )}
               </button>
             ))}
           </div>
         </div>
       ) : (
         <div className="flex flex-col gap-4">
-          {/* Only while adding; an edit stays on its host. */}
-          {!editing && (
+          {/* Only while adding from this list; an edit stays on its host. */}
+          {!editing && !initial && (
             <button
               type="button"
               onClick={() => setPicked(null)}

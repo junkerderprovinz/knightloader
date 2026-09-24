@@ -59,3 +59,79 @@ func TestMultihosterListStillMatchesJD(t *testing.T) {
 		}
 	}
 }
+
+// A multihoster login is listed with the debrid accounts, so the row says which
+// it is; an ordinary hoster login stays unmarked.
+func TestAMultihosterLoginIsMarkedAsOne(t *testing.T) {
+	a := newQueueApp(t)
+	for _, host := range []string{"leechall.io", "ddownload.com"} {
+		if err := a.SetHosterLogin(host, "user", "secret"); err != nil {
+			t.Fatal(err)
+		}
+	}
+	marked := map[string]bool{}
+	for _, l := range a.HosterLogins() {
+		marked[l.Host] = l.Multihoster
+	}
+	if !marked["leechall.io"] || marked["ddownload.com"] {
+		t.Errorf("multihoster marks = %v, want leechall.io only", marked)
+	}
+}
+
+func TestClosedMultihostersAreNotOffered(t *testing.T) {
+	for _, host := range []string{"debridplanet.com", "www.simply-debrid.com"} {
+		if !closedMultihosters[serviceKey(host)] {
+			t.Errorf("%s is offered although the service is closed", host)
+		}
+	}
+}
+
+// A debrid service in the catalogue without a client would take a key and then
+// route nothing, and a client without a catalogue entry could never get one.
+func TestEveryDebridServiceInTheCatalogueHasAClient(t *testing.T) {
+	built := map[string]bool{}
+	for _, s := range debridServices {
+		built[s.id] = true
+	}
+	for _, svc := range accounts.Catalogue {
+		if svc.Group != accounts.GroupDebrid || svc.ID == "torbox" {
+			continue
+		}
+		if !built[svc.ID] {
+			t.Errorf("catalogue service %q has no entry in debridServices", svc.ID)
+		}
+		delete(built, svc.ID)
+	}
+	for id := range built {
+		t.Errorf("debridServices builds %q, which the catalogue does not offer", id)
+	}
+}
+
+// The smaller multihosters KnightLoader speaks to itself leave the hoster
+// picker, including CocoLeech, whose key page is on a subdomain.
+func TestNativeMultihostersLeaveTheHosterPicker(t *testing.T) {
+	skip := debridServiceDomains()
+	for _, host := range []string{"cocoleech.com", "deepbrid.com", "mega-debrid.eu", "premium.rpnet.biz", "zevera.com"} {
+		if !skip[serviceKey(host)] {
+			t.Errorf("%s is still offered as a hoster login", host)
+		}
+	}
+}
+
+// A multihoster that lists YouTube must not take it from yt-dlp, which gives
+// the link its variant rows and title; TorBox's own streaming entries count
+// as media sites too.
+func TestDebridHostListsLeaveMediaSitesToYtdlp(t *testing.T) {
+	torboxAll := map[string]bool{"rapidgator.net": true, "vk.com": true}
+	torboxFiles := map[string]bool{"rapidgator.net": true}
+	media := knownMediaSites(torboxAll, torboxFiles)
+
+	listed := map[string]bool{"youtube.com": true, "youtu.be": true, "soundcloud.com": true, "vk.com": true, "katfile.com": true}
+	got := withoutHosts(listed, media)
+	if len(got) != 1 || !got["katfile.com"] {
+		t.Errorf("routed hosts = %v, want only katfile.com", got)
+	}
+	if !listed["youtube.com"] {
+		t.Error("withoutHosts changed the list it was given")
+	}
+}

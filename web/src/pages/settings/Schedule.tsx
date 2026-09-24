@@ -6,17 +6,15 @@ import {
   Field,
   FieldGroup,
   IconBadge,
-  PageHeader,
   SectionTitle,
   TextInput,
-  segBase,
-  segOn,
 } from '../../components/ui';
 import { Tabs } from '../../components/Tabs';
 import {
   IconArrowDown,
   IconArrowUp,
   IconClock,
+  IconEdit,
   IconPause,
   IconPlay,
   IconPlus,
@@ -31,9 +29,9 @@ import { useToast } from '../../lib/toast';
 import { NeutralSwitch } from './controls';
 
 /**
- * Schedule edits the timetable: windows that pause, resume or cap the queue
- * while they are open. It reads and writes PUT /api/schedule rather than the
- * settings draft, so a timetable save never carries a stale unrelated field
+ * ScheduleCards edits the timetable: windows that pause, resume or cap the
+ * queue while they are open. It reads and writes PUT /api/schedule rather than
+ * the settings draft, so a timetable save never carries a stale unrelated field
  * (routes_schedule.go), and it saves itself.
  *
  * Order matters: every window covering the moment applies in order and the
@@ -90,90 +88,28 @@ type SaveResult =
 
 /**
  * saveSchedule posts the ordered table to its own route and reads back the
- * applied state or, for a 400, the refused rows. It skips lib/api.ts's json()
- * helper, whose error parsing expects one sentence rather than a list.
+ * applied state, the refused rows for a 400, or the error for anything else, a
+ * dropped connection included. It skips lib/api.ts's json() helper, whose error
+ * parsing expects one sentence rather than a list.
  */
 async function saveSchedule(entries: ScheduleEntry[]): Promise<SaveResult> {
-  const r = await fetch('/api/schedule', {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ entries }),
-  });
-  if (r.status === 400) {
-    const body = (await r.json().catch(() => null)) as { errors?: ScheduleRowError[] } | null;
-    return { ok: false, rowErrors: body?.errors ?? [] };
+  try {
+    const r = await fetch('/api/schedule', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ entries }),
+    });
+    if (r.status === 400) {
+      const body = (await r.json().catch(() => null)) as { errors?: ScheduleRowError[] } | null;
+      return { ok: false, rowErrors: body?.errors ?? [] };
+    }
+    if (!r.ok) {
+      return { ok: false, error: (await r.text()).trim() || String(r.status) };
+    }
+    return { ok: true, state: (await r.json()) as ScheduleState };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : String(e) };
   }
-  if (!r.ok) {
-    return { ok: false, error: (await r.text()).trim() || String(r.status) };
-  }
-  return { ok: true, state: (await r.json()) as ScheduleState };
-}
-
-/**
- * PENDING holds the English strings until the catalogue has them; the lookup
- * asks the catalogue first.
- */
-const PENDING = {
-  'settings.schedule.title': 'Schedule',
-  'settings.schedule.subtitle': 'Pause, resume or cap the download speed on a timetable.',
-  'settings.schedule.statusTitle': 'Current status',
-  'settings.schedule.listTitle': 'Timetable',
-  'settings.schedule.orderHint':
-    'Rows are applied in order, top to bottom, and a later row wins where two windows overlap - so a broad "pause every night" above a narrow exception leaves the exception in force, and the same two rows the other way round do not.',
-  'settings.schedule.add': 'Add window',
-  'settings.schedule.empty': 'The queue runs on its own schedule',
-  'settings.schedule.emptyHint':
-    'No windows are configured, so nothing here ever pauses or limits the queue by the clock. Add one to hold downloads overnight or cap the speed while you are on the connection yourself.',
-  'settings.schedule.use': 'Use this window',
-  'settings.schedule.moveUp': 'Move up',
-  'settings.schedule.moveDown': 'Move down',
-  'settings.schedule.remove': 'Remove this window',
-  'settings.schedule.edit': 'Edit this window',
-  'settings.schedule.name': 'Name',
-  'settings.schedule.namePlaceholder': 'e.g. Night pause',
-  'settings.schedule.days': 'Days',
-  'settings.schedule.daysHint':
-    'Which weekdays this window opens on. For a window that runs past midnight, tick the day it STARTS on - "Fri 22:00-06:00" ends Saturday morning without Saturday itself being ticked.',
-  'settings.schedule.preset.every': 'Every day',
-  'settings.schedule.preset.weekdays': 'Weekdays',
-  'settings.schedule.preset.weekends': 'Weekends',
-  'settings.schedule.preset.custom': 'Custom',
-  'settings.schedule.start': 'Start',
-  'settings.schedule.end': 'End',
-  'settings.schedule.endHint':
-    'Before the start time, this window runs past midnight and ends the following morning. Equal to the start time is refused - that could mean a whole day or no time at all, and guessing which one you meant is worse than asking.',
-  'settings.schedule.action': 'Action',
-  'settings.schedule.action.pause': 'Pause',
-  'settings.schedule.action.resume': 'Resume',
-  'settings.schedule.action.limit': 'Limit speed',
-  'settings.schedule.limit': 'Speed limit',
-  'settings.schedule.disabledOff': 'This window is parked and never fires. The queue behaves as if the row were not here at all.',
-  'settings.schedule.activeNow': 'Active now, until {time}',
-  'settings.schedule.next': 'Next: {when}',
-  'settings.schedule.never': 'Never fires as configured',
-  'settings.schedule.stateNow.paused': 'The queue is paused by the timetable right now.',
-  'settings.schedule.stateNow.limited': 'The queue is capped at {rate} by the timetable right now.',
-  'settings.schedule.stateNow.running': 'No window is in force right now.',
-  'settings.schedule.nextChange': 'Next change: {when}',
-  'settings.schedule.noNextChange': 'Nothing in the table will ever change the queue as configured.',
-  'settings.schedule.saveFailed': 'The timetable could not be saved: {error}',
-  'settings.schedule.rowError': 'Row {row}: {error}',
-} as const;
-
-type PendingKey = keyof typeof PENDING;
-type Cx = (key: PendingKey, vars?: Record<string, string | number>) => string;
-
-function useCx(): Cx {
-  const { t } = useT();
-  return useCallback(
-    (key: PendingKey, vars?: Record<string, string | number>) => {
-      const translated = t(key as unknown as TranslationKey) as string | undefined;
-      let s: string = translated ?? PENDING[key];
-      if (vars) for (const [k, v] of Object.entries(vars)) s = s.replaceAll(`{${k}}`, String(v));
-      return s;
-    },
-    [t],
-  );
 }
 
 const PRESET_EVERYDAY = [0, 1, 2, 3, 4, 5, 6];
@@ -298,10 +234,14 @@ interface Row {
 /**
  * toRows gives each entry a client-side React key, since the server has none,
  * and turns a null Days (possible in a hand-edited settings.json) into an
- * array.
+ * array. Keys of the rows on screen are kept by position: the answer to an
+ * autosave is the same table, and fresh keys would close the row being edited.
  */
-function toRows(entries: ScheduleEntry[]): Row[] {
-  return entries.map((entry) => ({ key: freshKey(), entry: { ...entry, days: entry.days ?? [] } }));
+function toRows(entries: ScheduleEntry[], shown: Row[] | null): Row[] {
+  return entries.map((entry, i) => ({
+    key: shown?.[i]?.key ?? freshKey(),
+    entry: { ...entry, days: entry.days ?? [] },
+  }));
 }
 
 const NEW_ROW = (): ScheduleEntry => ({
@@ -312,17 +252,30 @@ const NEW_ROW = (): ScheduleEntry => ({
   disabled: false,
 });
 
-export function Schedule() {
+/** The status banner takes `hue` and the timetable the one after it. */
+export function ScheduleCards({ hue }: { hue: number }) {
   const { t } = useT();
-  const cx = useCx();
   const locale = uiLocale();
   const { toast } = useToast();
 
   const { data: loaded, failed, loading, setData: setLoaded, reload } = useResource<ScheduleState>(fetchSchedule);
 
   const [rows, setRows] = useState<Row[] | null>(null);
+  // The table an autosave sent, while its answer is outstanding, and the last
+  // one the server refused, which is not sent again until it changes.
+  const sent = useRef<string | null>(null);
+  const refused = useRef<string | null>(null);
   useEffect(() => {
-    if (loaded) setRows(toRows(loaded.entries));
+    if (!loaded) return;
+    const table = sent.current;
+    sent.current = null;
+    // An answer is taken over only while nothing changed since the request went
+    // out. A later edit stays on screen, and the next autosave sends it.
+    setRows((shown) =>
+      shown && table !== null && JSON.stringify(shown.map((r) => r.entry)) !== table
+        ? shown
+        : toRows(loaded.entries, shown),
+    );
   }, [loaded]);
 
   // Polled on its own and never written into `rows`, so a poll cannot discard
@@ -409,9 +362,14 @@ export function Schedule() {
     if (!rows || saving) return;
     setSaving(true);
     setRowErrors({});
+    const table = rows.map((r) => r.entry);
+    sent.current = JSON.stringify(table);
+    let taken = false;
     try {
-      const result = await saveSchedule(rows.map((r) => r.entry));
+      const result = await saveSchedule(table);
       if (result.ok) {
+        taken = true;
+        refused.current = null;
         setLoaded(result.state);
         setLive({ state: result.state.state, next: result.state.next });
         toast(t('settings.saved'), 'ok');
@@ -428,9 +386,13 @@ export function Schedule() {
         const bad = first && rows[first.row - 1];
         if (bad) setOpenKey(bad.key);
       } else {
-        toast(cx('settings.schedule.saveFailed', { error: result.error }), 'fail');
+        toast(t('settings.schedule.saveFailed', { error: result.error }), 'fail');
       }
     } finally {
+      if (!taken) {
+        sent.current = null;
+        refused.current = JSON.stringify(table);
+      }
       setSaving(false);
     }
   }
@@ -440,7 +402,8 @@ export function Schedule() {
   // validation error half done.
   const saveTimer = useRef<number | null>(null);
   useEffect(() => {
-    if (!dirty) return;
+    // Waits out a save in flight; an edit made meanwhile is sent once it is back.
+    if (!dirty || saving || refused.current === JSON.stringify(rows.map((r) => r.entry))) return;
     if (saveTimer.current !== null) window.clearTimeout(saveTimer.current);
     saveTimer.current = window.setTimeout(() => {
       saveTimer.current = null;
@@ -453,7 +416,7 @@ export function Schedule() {
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rows]);
+  }, [rows, saving]);
 
   if (loading) return <LoadingState label={t('common.loading')} />;
   if (failed || rows === null) {
@@ -461,27 +424,25 @@ export function Schedule() {
   }
 
   return (
-    <div className="flex flex-col gap-10">
-      <PageHeader title={cx('settings.schedule.title')} />
+    <>
+      <StateBanner hue={hue} live={live} locale={locale} />
 
-      <StateBanner live={live} cx={cx} locale={locale} />
-
-      <Card hue={1} className="flex flex-col gap-4">
+      <Card hue={hue + 1} className="flex flex-col gap-4">
         <SectionTitle
-          hint={cx('settings.schedule.orderHint')}
+          hint={t('settings.schedule.orderHint')}
           right={
             <Button icon={<IconPlus width={16} height={16} />} onClick={add}>
-              {cx('settings.schedule.add')}
+              {t('settings.schedule.add')}
             </Button>
           }
         >
-          {cx('settings.schedule.listTitle')}
+          {t('settings.schedule.listTitle')}
         </SectionTitle>
 
         {rows.length === 0 ? (
           <p className="py-6 text-center text-sm text-carbon-textSub">
-            {cx('settings.schedule.empty')}
-            <span className="mt-1 block text-[11px] text-carbon-textMuted">{cx('settings.schedule.emptyHint')}</span>
+            {t('settings.schedule.empty')}
+            <span className="mt-1 block text-[11px] text-carbon-textMuted">{t('settings.schedule.emptyHint')}</span>
           </p>
         ) : (
           <ul className="flex flex-col">
@@ -500,13 +461,12 @@ export function Schedule() {
                 actions={actions}
                 now={now}
                 locale={locale}
-                cx={cx}
               />
             ))}
           </ul>
         )}
       </Card>
-    </div>
+    </>
   );
 }
 
@@ -527,28 +487,29 @@ function ErrorState({ message, retry, retryLabel }: { message: string; retry: ()
 
 /** StateBanner shows the server's current state and next change, never recomputed here. */
 function StateBanner({
+  hue,
   live,
-  cx,
   locale,
 }: {
+  hue: number;
   live: Pick<ScheduleState, 'state' | 'next'> | null;
-  cx: Cx;
   locale: string;
 }) {
+  const { t } = useT();
   if (!live) return null;
   const { state, next } = live;
   const nowText = state.paused
-    ? cx('settings.schedule.stateNow.paused')
+    ? t('settings.schedule.stateNow.paused')
     : state.limit > 0
-      ? cx('settings.schedule.stateNow.limited', { rate: fmtRate(state.limit) })
-      : cx('settings.schedule.stateNow.running');
+      ? t('settings.schedule.stateNow.limited', { rate: fmtRate(state.limit) })
+      : t('settings.schedule.stateNow.running');
   const changeText = next
-    ? cx('settings.schedule.nextChange', { when: fmtWhen(new Date(next), locale) })
-    : cx('settings.schedule.noNextChange');
+    ? t('settings.schedule.nextChange', { when: fmtWhen(new Date(next), locale) })
+    : t('settings.schedule.noNextChange');
   const active = state.paused || state.limit > 0;
   return (
-      <Card hue={0} className="flex items-center gap-3">
-        <SectionTitle>{cx('settings.schedule.statusTitle')}</SectionTitle>
+      <Card hue={hue} className="flex items-center gap-3">
+        <SectionTitle>{t('settings.schedule.statusTitle')}</SectionTitle>
         <span className={`h-2 w-2 shrink-0 rounded-[var(--radius-pill)] ${active ? 'bg-accent' : 'bg-carbon-textMuted'}`} aria-hidden />
         <div className="flex min-w-0 flex-col gap-0.5">
           <span className="text-sm text-carbon-text">{nowText}</span>
@@ -588,7 +549,6 @@ function EntryRow({
   actions,
   now,
   locale,
-  cx,
 }: {
   row: Row;
   index: number;
@@ -602,24 +562,23 @@ function EntryRow({
   actions: ScheduleAction[];
   now: Date;
   locale: string;
-  cx: Cx;
 }) {
   const { t } = useT();
   const { entry } = row;
   const labels = useMemo(() => shortWeekdayLabels(locale), [locale]);
 
   const actionLabel = (a: ScheduleAction): string =>
-    KNOWN_ACTIONS.includes(a) ? cx(`settings.schedule.action.${a}` as PendingKey) : a;
+    KNOWN_ACTIONS.includes(a) ? t(`settings.schedule.action.${a}` as TranslationKey) : a;
 
   const until = activeUntil(entry, now);
   const next = nextOccurrence(entry, now);
   const nextText = entry.disabled
     ? ''
     : until
-      ? cx('settings.schedule.activeNow', { time: fmtClock(until, locale) })
+      ? t('settings.schedule.activeNow', { time: fmtClock(until, locale) })
       : next
-        ? cx('settings.schedule.next', { when: fmtWhen(next, locale) })
-        : cx('settings.schedule.never');
+        ? t('settings.schedule.next', { when: fmtWhen(next, locale) })
+        : t('settings.schedule.never');
 
   const description = entry.name?.trim() || `${actionLabel(entry.action)} · ${entry.start}-${entry.end}`;
   const preset = presetOf(entry.days);
@@ -630,21 +589,21 @@ function EntryRow({
         <NeutralSwitch
           on={!entry.disabled}
           onChange={(v) => onChange({ disabled: !v })}
-          name={cx('settings.schedule.use')}
+          name={t('settings.schedule.use')}
           hue={index}
         />
         <button
           type="button"
           onClick={onToggle}
           aria-expanded={open}
-          aria-label={cx('settings.schedule.edit')}
+          aria-label={t('settings.schedule.edit')}
           className={`flex min-w-0 items-center gap-3 text-left ${entry.disabled ? 'opacity-55' : ''}`}
         >
           <span className="glim-num w-5 shrink-0 text-xs text-carbon-textMuted">{index + 1}</span>
           <span className="shrink-0 text-carbon-textMuted">{actionIcon(entry.action)}</span>
           <span className="min-w-0 flex-1 truncate text-sm text-carbon-text">{description}</span>
           <span className="hidden min-w-0 max-w-[10rem] truncate text-xs text-carbon-textMuted lg:block">
-            {preset !== 'custom' ? cx(`settings.schedule.preset.${preset}`) : daysSummary(entry.days, labels)}
+            {preset !== 'custom' ? t(`settings.schedule.preset.${preset}`) : daysSummary(entry.days, labels)}
           </span>
           <span dir="ltr" className="hidden shrink-0 text-xs text-carbon-textMuted sm:block">
             {nextText}
@@ -655,10 +614,19 @@ function EntryRow({
         <div className="flex items-center gap-1.5">
           <IconBadge
             labelled
+            icon={<IconEdit width={16} height={16} />}
+            hue={index}
+            active={open}
+            title={t('settings.schedule.edit')}
+            aria-expanded={open}
+            onClick={onToggle}
+          />
+          <IconBadge
+            labelled
             icon={<IconArrowUp width={16} height={16} />}
             hue={index}
-            title={cx('settings.schedule.moveUp')}
-            aria-label={cx('settings.schedule.moveUp')}
+            title={t('settings.schedule.moveUp')}
+            aria-label={t('settings.schedule.moveUp')}
             disabled={index === 0}
             onClick={() => onMove(-1)}
           />
@@ -666,8 +634,8 @@ function EntryRow({
             labelled
             icon={<IconArrowDown width={16} height={16} />}
             hue={index}
-            title={cx('settings.schedule.moveDown')}
-            aria-label={cx('settings.schedule.moveDown')}
+            title={t('settings.schedule.moveDown')}
+            aria-label={t('settings.schedule.moveDown')}
             disabled={last}
             onClick={() => onMove(1)}
           />
@@ -675,8 +643,8 @@ function EntryRow({
             labelled
             icon={<IconTrash width={16} height={16} />}
             hue={index}
-            title={cx('settings.schedule.remove')}
-            aria-label={cx('settings.schedule.remove')}
+            title={t('settings.schedule.remove')}
+            aria-label={t('settings.schedule.remove')}
             onClick={onRemove}
           />
         </div>
@@ -684,22 +652,22 @@ function EntryRow({
 
       {/* Repeated on a collapsed row, so the reason is not hidden behind a click. */}
       {!open && error && (
-        <p className="pb-2 text-xs text-statusFail">{cx('settings.schedule.rowError', { row: index + 1, error })}</p>
+        <p className="pb-2 text-xs text-statusFail">{t('settings.schedule.rowError', { row: index + 1, error })}</p>
       )}
 
       {open && (
         <div className="glim-well mb-3 flex flex-col gap-4 p-4">
-          {error && <p className="text-xs text-statusFail">{cx('settings.schedule.rowError', { row: index + 1, error })}</p>}
+          {error && <p className="text-xs text-statusFail">{t('settings.schedule.rowError', { row: index + 1, error })}</p>}
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field label={cx('settings.schedule.name')}>
+            <Field label={t('settings.schedule.name')}>
               <TextInput
                 value={entry.name ?? ''}
-                placeholder={cx('settings.schedule.namePlaceholder')}
+                placeholder={t('settings.schedule.namePlaceholder')}
                 onChange={(e) => onChange({ name: e.target.value })}
               />
             </Field>
-            <Field label={cx('settings.schedule.action')}>
+            <Field label={t('settings.schedule.action')}>
               <ActionSelect
                 value={entry.action}
                 actions={actions}
@@ -709,19 +677,19 @@ function EntryRow({
             </Field>
           </div>
 
-          <DayPicker days={entry.days} labels={labels} onChange={(days) => onChange({ days })} cx={cx} />
+          <DayPicker days={entry.days} labels={labels} onChange={(days) => onChange({ days })} />
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field label={cx('settings.schedule.start')}>
+            <Field label={t('settings.schedule.start')}>
               <TimePicker
-                label={cx('settings.schedule.start')}
+                label={t('settings.schedule.start')}
                 value={entry.start}
                 onChange={(start) => onChange({ start })}
               />
             </Field>
-            <Field label={cx('settings.schedule.end')} hint={cx('settings.schedule.endHint')}>
+            <Field label={t('settings.schedule.end')} hint={t('settings.schedule.endHint')}>
               <TimePicker
-                label={cx('settings.schedule.end')}
+                label={t('settings.schedule.end')}
                 value={entry.end}
                 onChange={(end) => onChange({ end })}
               />
@@ -729,12 +697,12 @@ function EntryRow({
           </div>
 
           {entry.action === 'limit' && (
-            <Field label={cx('settings.schedule.limit')}>
+            <Field label={t('settings.schedule.limit')}>
               <RateField value={entry.limit ?? 0} onChange={(v) => onChange({ limit: v })} unitLabel={t('queue.limitUnit')} />
             </Field>
           )}
 
-          {entry.disabled && <p className="text-xs text-carbon-textMuted">{cx('settings.schedule.disabledOff')}</p>}
+          {entry.disabled && <p className="text-xs text-carbon-textMuted">{t('settings.schedule.disabledOff')}</p>}
         </div>
       )}
     </li>
@@ -1054,66 +1022,65 @@ function TimeColumn({
   );
 }
 
+const DAY_PRESETS: { id: 'every' | 'weekdays' | 'weekends'; days: number[] }[] = [
+  { id: 'every', days: PRESET_EVERYDAY },
+  { id: 'weekdays', days: PRESET_WEEKDAYS },
+  { id: 'weekends', days: PRESET_WEEKENDS },
+];
+
 /**
- * DayPicker offers the presets (select="one") and the weekday strip
- * (select="many") through Tabs, so both get keyboard handling, RTL and the
- * rainbow position.
+ * DayPicker offers the presets and Custom (select="one") and, for Custom, the
+ * weekday strip (select="many"), all through Tabs, so both get keyboard
+ * handling, RTL and the rainbow position. Custom is held locally: unticking
+ * days until they match a preset must not throw the strip away mid-edit.
  */
 function DayPicker({
   days,
   labels,
   onChange,
-  cx,
 }: {
   days: number[];
   labels: string[];
   onChange: (next: number[]) => void;
-  cx: Cx;
 }) {
-  const preset = presetOf(days);
-  const presets: { id: 'every' | 'weekdays' | 'weekends'; days: number[] }[] = [
-    { id: 'every', days: PRESET_EVERYDAY },
-    { id: 'weekdays', days: PRESET_WEEKDAYS },
-    { id: 'weekends', days: PRESET_WEEKENDS },
-  ];
+  const { t } = useT();
+  const [custom, setCustom] = useState(() => presetOf(days) === 'custom');
+  const mode = custom ? 'custom' : presetOf(days);
   const chosen = useMemo(() => new Set(days.map(String)), [days]);
   return (
-    <FieldGroup label={cx('settings.schedule.days')} hint={cx('settings.schedule.daysHint')}>
-      <div className="flex flex-wrap items-center gap-1.5">
-        <Tabs
-          select="one"
-          variant="well"
-          size="sm"
-          className="w-fit"
-          label={cx('settings.schedule.days')}
-          // null while the days match no preset, so only the readout is lit.
-          active={preset === 'custom' ? null : preset}
-          onSelect={(id) => onChange(presets.find((p) => p.id === id)?.days ?? PRESET_EVERYDAY)}
-          items={presets.map((p) => ({ id: p.id, label: cx(`settings.schedule.preset.${p.id}`) }))}
-        />
-        {/* Custom is a readout beside the track rather than a segment, since
-            there is no single array it could set. */}
-        <span
-          className={`${segBase} inline-flex h-8 items-center px-2.5 text-xs ${
-            preset === 'custom' ? segOn : 'bg-carbon-surface2 text-carbon-textMuted'
-          }`}
-        >
-          {cx('settings.schedule.preset.custom')}
-        </span>
-      </div>
+    <FieldGroup label={t('settings.schedule.days')} hint={t('settings.schedule.daysHint')}>
       <Tabs
-        select="many"
+        select="one"
         variant="well"
         size="sm"
         className="w-fit"
-        label={cx('settings.schedule.days')}
-        active={chosen}
+        label={t('settings.schedule.days')}
+        active={mode}
         onSelect={(id) => {
-          const d = Number(id);
-          onChange(days.includes(d) ? days.filter((x) => x !== d) : [...days, d].sort((a, b) => a - b));
+          const preset = DAY_PRESETS.find((p) => p.id === id);
+          setCustom(!preset);
+          if (preset) onChange(preset.days);
         }}
-        items={labels.map((label, d) => ({ id: String(d), label }))}
+        items={[...DAY_PRESETS.map((p) => p.id), 'custom' as const].map((id) => ({
+          id,
+          label: t(`settings.schedule.preset.${id}`),
+        }))}
       />
+      {mode === 'custom' && (
+        <Tabs
+          select="many"
+          variant="well"
+          size="sm"
+          className="w-fit"
+          label={t('settings.schedule.days')}
+          active={chosen}
+          onSelect={(id) => {
+            const d = Number(id);
+            onChange(days.includes(d) ? days.filter((x) => x !== d) : [...days, d].sort((a, b) => a - b));
+          }}
+          items={labels.map((label, d) => ({ id: String(d), label }))}
+        />
+      )}
     </FieldGroup>
   );
 }

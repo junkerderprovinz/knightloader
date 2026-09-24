@@ -11,6 +11,7 @@ import type { Command } from './types';
  */
 const SETTINGS_PAGES: { id: string; labelKey: Command['labelKey'] }[] = [
   { id: 'modules', labelKey: 'settings.nav.modules' },
+  { id: 'collector', labelKey: 'settings.nav.collector' },
   { id: 'downloads', labelKey: 'settings.nav.downloads' },
   { id: 'archives', labelKey: 'settings.nav.archives' },
   { id: 'look', labelKey: 'settings.nav.look' },
@@ -20,19 +21,15 @@ const SETTINGS_PAGES: { id: string; labelKey: Command['labelKey'] }[] = [
   { id: 'access', labelKey: 'settings.nav.access' },
   { id: 'advanced', labelKey: 'settings.nav.advanced' },
   { id: 'rules', labelKey: 'settings.nav.rules' },
-  { id: 'categories', labelKey: 'settings.nav.categories' },
-  { id: 'connections', labelKey: 'settings.nav.connections' },
-  { id: 'reconnect', labelKey: 'settings.nav.reconnect' },
+  { id: 'network', labelKey: 'settings.nav.network' },
   { id: 'resolvers', labelKey: 'settings.nav.resolvers' },
   { id: 'torrents', labelKey: 'settings.nav.torrents' },
   { id: 'captcha', labelKey: 'settings.nav.captcha' },
-  { id: 'schedule', labelKey: 'settings.nav.schedule' },
+  { id: 'automation', labelKey: 'settings.nav.automation' },
   { id: 'health', labelKey: 'settings.nav.health' },
   { id: 'diagnostics', labelKey: 'settings.nav.diagnostics' },
   { id: 'help', labelKey: 'settings.nav.help' },
   { id: 'browsertools', labelKey: 'settings.nav.browsertools' },
-  { id: 'scripts', labelKey: 'settings.nav.scripts' },
-  { id: 'eventtargets', labelKey: 'settings.nav.eventtargets' },
   { id: 'shortcuts', labelKey: 'settings.nav.shortcuts' },
 ];
 

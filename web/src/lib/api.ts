@@ -590,7 +590,13 @@ export interface CatalogueService {
   /** The container env var that can supply this credential, if there is one. */
   env?: string;
   whereUrl: string;
+  /** What the two fields of a username-and-password service hold when they are
+   *  not a website login; absent means username and password. */
+  userLabel?: CredentialField;
+  passLabel?: CredentialField;
 }
+
+export type CredentialField = 'apiUser' | 'apiKey' | 'customerId' | 'email';
 
 /** The body of a credential POST or verify call. */
 export interface AccountCredential {
@@ -2129,6 +2135,8 @@ export interface HosterLogin {
   expiry?: string;
   trafficLeft?: number;
   trafficMax?: number;
+  /** A multihoster's login, listed on the debrid card rather than the hoster card. */
+  multihoster?: boolean;
 }
 
 /** fetchHosterHosts is the "add a login" picker's host list. */

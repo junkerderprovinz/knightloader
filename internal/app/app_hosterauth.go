@@ -56,7 +56,7 @@ func (a *App) HosterHosts(ctx context.Context) []hosterauth.Host {
 	all := a.hosterAuth().Hosts(ctx)
 	out := make([]hosterauth.Host, 0, len(all))
 	for _, h := range all {
-		if skip[serviceKey(h.ID)] {
+		if skip[serviceKey(h.ID)] || closedMultihosters[serviceKey(h.ID)] {
 			continue
 		}
 		// Marked rather than removed; see app_multihoster.go.
@@ -75,15 +75,17 @@ func serviceKey(s string) string {
 }
 
 // debridServiceDomains returns each catalogue debrid service's domain, taken
-// from its WhereURL so there is no second list to keep in sync.
+// from its WhereURL and Domain so there is no second list to keep in sync.
 func debridServiceDomains() map[string]bool {
 	out := map[string]bool{}
 	for _, svc := range accounts.Catalogue {
 		if svc.Group != accounts.GroupDebrid {
 			continue
 		}
-		if h := serviceKey(svc.WhereURL); h != "" {
-			out[h] = true
+		for _, u := range []string{svc.WhereURL, svc.Domain} {
+			if h := serviceKey(u); h != "" {
+				out[h] = true
+			}
 		}
 	}
 	return out
@@ -92,7 +94,11 @@ func debridServiceDomains() map[string]bool {
 // HosterLogins lists every stored hoster login with its sync status against
 // JD, never the password.
 func (a *App) HosterLogins() []hosterauth.LoginState {
-	return a.hosterAuth().States()
+	states := a.hosterAuth().States()
+	for i := range states {
+		states[i].Multihoster = IsMultihoster(states[i].Host)
+	}
+	return states
 }
 
 // SetHosterLogin stores one host's login and reconciles in the background, so

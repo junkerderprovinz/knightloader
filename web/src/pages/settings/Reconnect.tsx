@@ -29,12 +29,13 @@ import { useT } from '../../lib/i18n';
 import { useDraft } from './context';
 
 /**
- * Reconnect sets how this box asks the router for a new public address. Only
- * the chosen method's fields are shown; hidden values stay in the draft. The
- * stored router password comes back masked, the box stays empty and the draft
- * keeps the mask, which the save merges back. The check URL has no default, so
- * no address is reported to a service nobody chose. Automatic reconnects run
- * in internal/app/app_dispatch.go; this page only runs one on request.
+ * ReconnectCards set how this box asks the router for a new public address.
+ * Only the chosen method's fields are shown; hidden values stay in the draft.
+ * The stored router password comes back masked, the box stays empty and the
+ * draft keeps the mask, which the save merges back. The check URL has no
+ * default, so no address is reported to a service nobody chose. Automatic
+ * reconnects run in internal/app/app_dispatch.go; these cards only run one on
+ * request.
  */
 
 /** Mirrors reconnect.Config. */
@@ -163,7 +164,8 @@ function readReconnect(cfg: unknown): ReconnectConfig {
   return { ...DEFAULTS, ...((cfg as { reconnect?: ReconnectConfig }).reconnect ?? {}) };
 }
 
-export function Reconnect() {
+/** The setup card takes `hue`, the check and run cards the two after it. */
+export function ReconnectCards({ hue }: { hue: number }) {
   const { t } = useT();
   const { cfg, patch } = useDraft();
   const rc = readReconnect(cfg);
@@ -202,8 +204,8 @@ export function Reconnect() {
   const off = rc.method === 'none';
 
   return (
-    <div className="flex flex-col gap-10">
-      <Card hue={0} className="flex flex-col gap-5">
+    <>
+      <Card hue={hue} className="flex flex-col gap-5">
         <SectionTitle>{t('settings.reconnect.setupTitle')}</SectionTitle>
         {/* FieldGroup, because a Field's label would pass a click on the
             caption to the first tab. */}
@@ -233,17 +235,17 @@ export function Reconnect() {
       </Card>
 
       {!off && (
-        <Card hue={1} className="flex flex-col gap-5">
+        <Card hue={hue + 1} className="flex flex-col gap-5">
           <SectionTitle>{t('settings.reconnect.checkTitle')}</SectionTitle>
           <CheckFields rc={rc} write={write} />
         </Card>
       )}
 
-      <Card hue={2} className="flex flex-col gap-4">
+      <Card hue={hue + 2} className="flex flex-col gap-4">
         <SectionTitle>{t('settings.reconnect.runTitle')}</SectionTitle>
         <RunPanel state={state} disabled={off} />
       </Card>
-    </div>
+    </>
   );
 }
 

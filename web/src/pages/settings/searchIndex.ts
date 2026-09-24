@@ -47,6 +47,54 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     { title: 'settings.modules.sectionNotBuilt', rows: [] },
   ],
 
+  collector: [
+    {
+      title: 'settings.sectionLinkIntake',
+      hint: 'settings.linkIntakeHint',
+      rows: [
+        { key: 'settings.module.cnl' },
+        { key: 'intake.clipboardWatch', hint: 'intake.clipboardWatchHint' },
+        { key: 'settings.autoStart' },
+        { key: 'settings.watchDir', hint: 'settings.watchDirHint' },
+      ],
+      // What the watch-folder row reads while the module is parked.
+      body: ['settings.downloads.watchOff'],
+    },
+    {
+      title: 'settings.downloads.collectorTitle',
+      rows: [
+        { key: 'settings.downloads.autoConfirmDelay', hint: 'settings.downloads.autoConfirmDelayHint' },
+        { key: 'settings.downloads.onDupes', hint: 'settings.downloads.onDupesHint' },
+        { key: 'settings.downloads.addAtTop', hint: 'settings.downloads.addAtTopHint' },
+      ],
+      // What the countdown row reads while its switch is off.
+      body: ['settings.downloads.autoConfirmOff'],
+    },
+    {
+      title: 'settings.crawl.title',
+      rows: [
+        { key: 'settings.crawl' },
+        { key: 'settings.crawl.depth', hint: 'settings.crawl.depthHint' },
+        { key: 'settings.crawl.maxPages', hint: 'settings.crawl.maxPagesHint' },
+        { key: 'settings.crawl.sameHost', hint: 'settings.crawl.sameHostHint' },
+        { key: 'settings.crawl.include', hint: 'settings.crawl.includeHint' },
+        { key: 'settings.crawl.exclude', hint: 'settings.crawl.excludeHint' },
+      ],
+    },
+    {
+      title: 'settings.advanced.mirrorsTitle',
+      rows: [
+        { key: 'settings.advanced.mirrorPolicy', hint: 'settings.advanced.mirrorPolicyHint' },
+        { key: 'settings.advanced.keepMirrors', hint: 'settings.advanced.keepMirrorsHint' },
+        { key: 'settings.advanced.mirrorFailover', hint: 'settings.advanced.mirrorFailoverHint' },
+      ],
+    },
+    {
+      title: 'settings.advanced.offlineTitle',
+      rows: [{ key: 'settings.advanced.onOffline', hint: 'settings.advanced.onOfflineHint' }],
+    },
+  ],
+
   downloads: [
     {
       title: 'settings.downloads.locationTitle',
@@ -57,6 +105,10 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       ],
       // The download folder's hint is two keys glued together at the call site.
       body: ['settings.pathVars'],
+    },
+    {
+      title: 'settings.advanced.reclaimTitle',
+      rows: [{ key: 'settings.advanced.reclaimTrust', hint: 'settings.advanced.reclaimTrustHint' }],
     },
     {
       title: 'settings.downloads.collisionTitle',
@@ -78,30 +130,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.historyMax', hint: 'settings.historyMaxHint' },
         { key: 'settings.verifyChecksums' },
         { key: 'settings.preParser', hint: 'settings.preParserHint' },
-      ],
-    },
-    {
-      title: 'settings.hostRules.title',
-      hint: 'settings.hostRules.titleHint',
-      rows: [
-        { key: 'settings.hostRules.pattern', hint: 'settings.hostRules.patternHint' },
-        { key: 'settings.hostRules.maxPerHost', hint: 'settings.hostRules.maxPerHostHint' },
-        { key: 'settings.hostRules.chunks', hint: 'settings.hostRules.chunksHint' },
-        { key: 'settings.hostRules.never', hint: 'settings.hostRules.neverHint' },
-        { key: 'settings.hostRules.retryDelay', hint: 'settings.hostRules.retryDelayHint' },
-        { key: 'settings.hostRules.retryMax', hint: 'settings.hostRules.retryMaxHint' },
-        { key: 'settings.hostRules.retryTries', hint: 'settings.hostRules.retryTriesHint' },
-      ],
-    },
-    {
-      title: 'settings.headerProfiles.title',
-      hint: 'settings.headerProfiles.hint',
-      rows: [
-        { key: 'settings.headerProfiles.name', hint: 'settings.headerProfiles.nameHint' },
-        { key: 'settings.headerProfiles.origin', hint: 'settings.headerProfiles.originHint' },
-        { key: 'settings.headerProfiles.headerName' },
-        { key: 'settings.headerProfiles.headerValue' },
-        { key: 'settings.headerProfiles.valueStored', hint: 'settings.headerProfiles.valueStoredHint' },
       ],
     },
     {
@@ -133,27 +161,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       ],
     },
     {
-      title: 'settings.downloads.collectorTitle',
-      rows: [
-        { key: 'settings.downloads.autoConfirmDelay', hint: 'settings.downloads.autoConfirmDelayHint' },
-        { key: 'settings.downloads.onDupes', hint: 'settings.downloads.onDupesHint' },
-        { key: 'settings.downloads.addAtTop', hint: 'settings.downloads.addAtTopHint' },
-      ],
-      // What the countdown row reads while its switch is off.
-      body: ['settings.downloads.autoConfirmOff'],
-    },
-    {
-      title: 'settings.crawl.title',
-      rows: [
-        { key: 'settings.crawl' },
-        { key: 'settings.crawl.depth', hint: 'settings.crawl.depthHint' },
-        { key: 'settings.crawl.maxPages', hint: 'settings.crawl.maxPagesHint' },
-        { key: 'settings.crawl.sameHost', hint: 'settings.crawl.sameHostHint' },
-        { key: 'settings.crawl.include', hint: 'settings.crawl.includeHint' },
-        { key: 'settings.crawl.exclude', hint: 'settings.crawl.excludeHint' },
-      ],
-    },
-    {
       title: 'settings.feeds.title',
       hint: 'settings.feeds.titleHint',
       rows: [
@@ -164,37 +171,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.feeds.priority', hint: 'settings.feeds.priorityHint' },
         { key: 'settings.feeds.status', hint: 'settings.feeds.lastPolledHint' },
         { key: 'settings.feeds.testResult', hint: 'settings.feeds.testHint' },
-      ],
-    },
-    {
-      title: 'settings.downloads.idleTitle',
-      rows: [
-        { key: 'settings.downloads.idleAction', hint: 'settings.downloads.idleActionHint' },
-        { key: 'settings.downloads.idleCountdown', hint: 'settings.downloads.idleCountdownHint' },
-        { key: 'settings.downloads.idleCommandProgram', hint: 'settings.downloads.idleCommandProgramHint' },
-        { key: 'settings.downloads.idleCommandArgs', hint: 'settings.downloads.idleCommandArgsHint' },
-        { key: 'settings.downloads.idleCommandTimeout', hint: 'settings.downloads.idleCommandTimeoutHint' },
-        { key: 'settings.downloads.idleCommandVerify', hint: 'settings.downloads.idleCommandVerifyHint' },
-        { key: 'idleAction.lastRun', hint: 'idleAction.lastRunHint' },
-      ],
-      // The menu entries and buttons have no caption, so they land on the card.
-      also: [
-        'settings.downloads.idleActionPause',
-        'settings.downloads.idleActionQuit',
-        'settings.downloads.idleActionCommand',
-        'settings.downloads.idleActionSuspend',
-        'settings.downloads.idleCommandCheck',
-        'settings.downloads.idleCommandRun',
-      ],
-      // Prose the card carries without a caption of its own.
-      body: [
-        'settings.downloads.idleDeploymentContainer',
-        'settings.downloads.idleDeploymentDesktop',
-        'settings.downloads.idleQuitHint',
-        'settings.downloads.idleSuspendHint',
-        'settings.downloads.idleArmHint',
-        'settings.downloads.idleCommandSecretHint',
-        'settings.downloads.idleCommandStored',
       ],
     },
     // The folder check draws no captioned rows, so the role names go in `also`
@@ -228,35 +204,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         'settings.owner.fix.past',
       ],
     },
-    {
-      title: 'settings.mediahook.title',
-      hint: 'settings.mediahook.hint',
-      rows: [
-        { key: 'settings.mediahook.name', hint: 'settings.mediahook.nameHint' },
-        { key: 'settings.mediahook.wait', hint: 'settings.mediahook.waitHint' },
-        { key: 'settings.mediahook.url', hint: 'settings.mediahook.urlHint' },
-        { key: 'settings.mediahook.method', hint: 'settings.mediahook.methodHint' },
-        { key: 'settings.mediahook.headerName', hint: 'settings.mediahook.headerNameHint' },
-        { key: 'settings.mediahook.headerValue', hint: 'settings.mediahook.headerValueHint' },
-        { key: 'settings.mediahook.valueStored', hint: 'settings.mediahook.valueStoredHint' },
-        { key: 'settings.mediahook.lastCall', hint: 'settings.mediahook.lastCallHint' },
-      ],
-      also: [
-        'settings.mediahook.add',
-        'settings.mediahook.test',
-        'settings.mediahook.usedBy',
-        'settings.mediahook.usedByNone',
-      ],
-      body: [
-        'settings.mediahook.empty',
-        'settings.mediahook.emptyHint',
-        'settings.mediahook.goesTo',
-        'settings.mediahook.goesToForeign',
-        'settings.mediahook.waitImmediate',
-        'settings.mediahook.lastCallNever',
-        'settings.mediahook.deleteInUse',
-      ],
-    },
   ],
 
   archives: [
@@ -287,24 +234,13 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
 
   // The General tab, Look.tsx's `{general && …}` half.
   look: [
-    {
-      title: 'settings.sectionLinkIntake',
-      hint: 'settings.linkIntakeHint',
-      rows: [
-        { key: 'settings.module.cnl' },
-        { key: 'intake.clipboardWatch', hint: 'intake.clipboardWatchHint' },
-        { key: 'settings.autoStart' },
-        { key: 'settings.watchDir', hint: 'settings.watchDirHint' },
-      ],
-      // What the watch-folder row reads while the module is parked.
-      body: ['settings.downloads.watchOff'],
-    },
-    // A single named control each, so the card title is the only caption.
-    { title: 'notifications.quiet', rows: [] },
     // The event rows come from NOTIFY_EVENTS and never appear in the page's
-    // source, so only the card is indexed.
-    { title: 'notifications.title', hint: 'notifications.titleHint', rows: [] },
-    { title: 'lang.label', rows: [] },
+    // source, so quiet mode is the only row indexed.
+    {
+      title: 'notifications.title',
+      hint: 'notifications.titleHint',
+      rows: [{ key: 'notifications.quiet', hint: 'notifications.quietHint' }],
+    },
     { title: 'settings.dialogs.title', hint: 'settings.dialogs.hint', rows: [] },
     {
       title: 'settings.look.updatesTitle',
@@ -368,6 +304,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       ],
     },
     { title: 'settings.theme', rows: [] },
+    { title: 'lang.label', rows: [] },
   ],
 
   accounts: [
@@ -449,22 +386,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
 
   advanced: [
     {
-      title: 'settings.advanced.mirrorsTitle',
-      rows: [
-        { key: 'settings.advanced.mirrorPolicy', hint: 'settings.advanced.mirrorPolicyHint' },
-        { key: 'settings.advanced.keepMirrors', hint: 'settings.advanced.keepMirrorsHint' },
-        { key: 'settings.advanced.mirrorFailover', hint: 'settings.advanced.mirrorFailoverHint' },
-      ],
-    },
-    {
-      title: 'settings.advanced.offlineTitle',
-      rows: [{ key: 'settings.advanced.onOffline', hint: 'settings.advanced.onOfflineHint' }],
-    },
-    {
-      title: 'settings.advanced.reclaimTitle',
-      rows: [{ key: 'settings.advanced.reclaimTrust', hint: 'settings.advanced.reclaimTrustHint' }],
-    },
-    {
       title: 'settings.advanced.retryTitle',
       rows: [{ key: 'settings.advanced.retryTries', hint: 'settings.advanced.retryTriesHint' }],
     },
@@ -503,9 +424,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       ],
     },
     { title: 'settings.rules.testTitle', rows: [], body: ['settings.rules.testHint'] },
-  ],
-
-  categories: [
     {
       title: 'settings.categories.listTitle',
       hint: 'settings.categories.listHint',
@@ -524,7 +442,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     },
   ],
 
-  connections: [
+  network: [
     {
       title: 'settings.connections.listTitle',
       rows: [
@@ -539,9 +457,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.connections.importLabel', hint: 'settings.connections.importHint' },
       ],
     },
-  ],
-
-  reconnect: [
     {
       title: 'settings.reconnect.setupTitle',
       rows: [
@@ -582,6 +497,30 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         'settings.reconnect.stateNotConfigured',
         'settings.reconnect.stateBusy',
         'settings.reconnect.stateIdle',
+      ],
+    },
+    {
+      title: 'settings.headerProfiles.title',
+      hint: 'settings.headerProfiles.hint',
+      rows: [
+        { key: 'settings.headerProfiles.name', hint: 'settings.headerProfiles.nameHint' },
+        { key: 'settings.headerProfiles.origin', hint: 'settings.headerProfiles.originHint' },
+        { key: 'settings.headerProfiles.headerName' },
+        { key: 'settings.headerProfiles.headerValue' },
+        { key: 'settings.headerProfiles.valueStored', hint: 'settings.headerProfiles.valueStoredHint' },
+      ],
+    },
+    {
+      title: 'settings.hostRules.title',
+      hint: 'settings.hostRules.titleHint',
+      rows: [
+        { key: 'settings.hostRules.pattern', hint: 'settings.hostRules.patternHint' },
+        { key: 'settings.hostRules.maxPerHost', hint: 'settings.hostRules.maxPerHostHint' },
+        { key: 'settings.hostRules.chunks', hint: 'settings.hostRules.chunksHint' },
+        { key: 'settings.hostRules.never', hint: 'settings.hostRules.neverHint' },
+        { key: 'settings.hostRules.retryDelay', hint: 'settings.hostRules.retryDelayHint' },
+        { key: 'settings.hostRules.retryMax', hint: 'settings.hostRules.retryMaxHint' },
+        { key: 'settings.hostRules.retryTries', hint: 'settings.hostRules.retryTriesHint' },
       ],
     },
   ],
@@ -711,7 +650,8 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     { title: 'settings.captcha.orderTitle', hint: 'settings.captcha.orderHint', rows: [], body: ['settings.captcha.orderEmpty'] },
   ],
 
-  schedule: [
+  automation: [
+    { title: 'settings.schedule.statusTitle', rows: [] },
     {
       title: 'settings.schedule.listTitle',
       hint: 'settings.schedule.orderHint',
@@ -725,8 +665,123 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       ],
       body: ['settings.schedule.empty', 'settings.schedule.emptyHint'],
     },
-    // The status banner stays out: settings.schedule.statusTitle is missing
-    // from en.ts (see EXCLUDED in the check script).
+    {
+      title: 'settings.downloads.idleTitle',
+      rows: [
+        { key: 'settings.downloads.idleAction', hint: 'settings.downloads.idleActionHint' },
+        { key: 'settings.downloads.idleCountdown', hint: 'settings.downloads.idleCountdownHint' },
+        { key: 'settings.downloads.idleCommandProgram', hint: 'settings.downloads.idleCommandProgramHint' },
+        { key: 'settings.downloads.idleCommandArgs', hint: 'settings.downloads.idleCommandArgsHint' },
+        { key: 'settings.downloads.idleCommandTimeout', hint: 'settings.downloads.idleCommandTimeoutHint' },
+        { key: 'settings.downloads.idleCommandVerify', hint: 'settings.downloads.idleCommandVerifyHint' },
+        { key: 'idleAction.lastRun', hint: 'idleAction.lastRunHint' },
+      ],
+      // The menu entries and buttons have no caption, so they land on the card.
+      also: [
+        'settings.downloads.idleActionPause',
+        'settings.downloads.idleActionQuit',
+        'settings.downloads.idleActionCommand',
+        'settings.downloads.idleActionSuspend',
+        'settings.downloads.idleCommandCheck',
+        'settings.downloads.idleCommandRun',
+      ],
+      // Prose the card carries without a caption of its own.
+      body: [
+        'settings.downloads.idleDeploymentContainer',
+        'settings.downloads.idleDeploymentDesktop',
+        'settings.downloads.idleQuitHint',
+        'settings.downloads.idleSuspendHint',
+        'settings.downloads.idleArmHint',
+        'settings.downloads.idleCommandSecretHint',
+        'settings.downloads.idleCommandStored',
+      ],
+    },
+    {
+      title: 'settings.mediahook.title',
+      hint: 'settings.mediahook.hint',
+      rows: [
+        { key: 'settings.mediahook.name', hint: 'settings.mediahook.nameHint' },
+        { key: 'settings.mediahook.wait', hint: 'settings.mediahook.waitHint' },
+        { key: 'settings.mediahook.url', hint: 'settings.mediahook.urlHint' },
+        { key: 'settings.mediahook.method', hint: 'settings.mediahook.methodHint' },
+        { key: 'settings.mediahook.headerName', hint: 'settings.mediahook.headerNameHint' },
+        { key: 'settings.mediahook.headerValue', hint: 'settings.mediahook.headerValueHint' },
+        { key: 'settings.mediahook.valueStored', hint: 'settings.mediahook.valueStoredHint' },
+        { key: 'settings.mediahook.lastCall', hint: 'settings.mediahook.lastCallHint' },
+      ],
+      also: [
+        'settings.mediahook.add',
+        'settings.mediahook.test',
+        'settings.mediahook.usedBy',
+        'settings.mediahook.usedByNone',
+      ],
+      body: [
+        'settings.mediahook.empty',
+        'settings.mediahook.emptyHint',
+        'settings.mediahook.goesTo',
+        'settings.mediahook.goesToForeign',
+        'settings.mediahook.waitImmediate',
+        'settings.mediahook.lastCallNever',
+        'settings.mediahook.deleteInUse',
+      ],
+    },
+    {
+      title: 'settings.eventTargets.title',
+      hint: 'settings.eventTargets.titleHint',
+      rows: [
+        { key: 'settings.eventTargets.enabled', hint: 'settings.eventTargets.enabledHint' },
+        { key: 'settings.eventTargets.name', hint: 'settings.eventTargets.nameHint' },
+        { key: 'settings.eventTargets.url', hint: 'settings.eventTargets.urlHint' },
+        { key: 'settings.eventTargets.method', hint: 'settings.eventTargets.methodHint' },
+        { key: 'settings.eventTargets.headers', hint: 'settings.eventTargets.headersHint' },
+        { key: 'settings.eventTargets.body', hint: 'settings.eventTargets.bodyHint' },
+        { key: 'settings.eventTargets.events', hint: 'settings.eventTargets.eventsHint' },
+        { key: 'settings.eventTargets.placeholders', hint: 'settings.eventTargets.placeholdersHint' },
+        { key: 'settings.eventTargets.attempts', hint: 'settings.eventTargets.attemptsHint' },
+        { key: 'settings.eventTargets.timeout', hint: 'settings.eventTargets.timeoutHint' },
+        { key: 'settings.eventTargets.status', hint: 'settings.eventTargets.droppedHint' },
+        { key: 'settings.eventTargets.testResult', hint: 'settings.eventTargets.testHint' },
+      ],
+      also: [
+        'settings.eventTargets.add',
+        'settings.eventTargets.remove',
+        'settings.eventTargets.test',
+        'settings.eventTargets.testBusy',
+        'settings.eventTargets.testSent',
+        'settings.eventTargets.lastAttempt',
+        'settings.eventTargets.lastOk',
+        'settings.eventTargets.attemptsDefault',
+      ],
+      // The problem.* sentences are built from a server code, so no source
+      // names them.
+      body: [
+        'settings.eventTargets.empty',
+        'settings.eventTargets.emptyHint',
+        'settings.eventTargets.eventsNone',
+        'settings.eventTargets.eventsBurst',
+        'settings.eventTargets.eventsReplay',
+        'settings.eventTargets.placeholderUnused',
+        'settings.eventTargets.leavesTheBox',
+        'settings.eventTargets.statusUnknown',
+        'settings.eventTargets.lastOkNever',
+        'settings.eventTargets.sentCount',
+        'settings.eventTargets.dropped',
+        'settings.eventTargets.testDuration',
+        'settings.eventTargets.testTruncated',
+        'settings.eventTargets.testEmptyBody',
+        'settings.eventTargets.testNoAnswer',
+      ],
+    },
+    {
+      title: 'settings.scripts.listTitle',
+      rows: [
+        { key: 'settings.scripts.name' },
+        { key: 'settings.scripts.trigger', hint: 'settings.scripts.triggerHint' },
+        { key: 'settings.scripts.timeout', hint: 'settings.scripts.timeoutHint' },
+        { key: 'settings.scripts.code' },
+      ],
+      body: ['settings.scripts.empty', 'settings.scripts.emptyHint'],
+    },
   ],
 
   health: [
@@ -951,69 +1006,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     { title: 'settings.browsertools.bookmarkletTitle', rows: [], body: ['settings.browsertools.bookmarkletStep1'] },
     { title: 'settings.browsertools.extensionTitle', rows: [], also: ['settings.browsertools.installLabel'] },
     { title: 'settings.browsertools.appTitle', hint: 'settings.browsertools.appBody', rows: [] },
-  ],
-
-  scripts: [
-    {
-      title: 'settings.scripts.listTitle',
-      rows: [
-        { key: 'settings.scripts.name' },
-        { key: 'settings.scripts.trigger', hint: 'settings.scripts.triggerHint' },
-        { key: 'settings.scripts.timeout', hint: 'settings.scripts.timeoutHint' },
-        { key: 'settings.scripts.code' },
-      ],
-      body: ['settings.scripts.empty', 'settings.scripts.emptyHint'],
-    },
-  ],
-
-  eventtargets: [
-    {
-      title: 'settings.eventTargets.title',
-      hint: 'settings.eventTargets.titleHint',
-      rows: [
-        { key: 'settings.eventTargets.enabled', hint: 'settings.eventTargets.enabledHint' },
-        { key: 'settings.eventTargets.name', hint: 'settings.eventTargets.nameHint' },
-        { key: 'settings.eventTargets.url', hint: 'settings.eventTargets.urlHint' },
-        { key: 'settings.eventTargets.method', hint: 'settings.eventTargets.methodHint' },
-        { key: 'settings.eventTargets.headers', hint: 'settings.eventTargets.headersHint' },
-        { key: 'settings.eventTargets.body', hint: 'settings.eventTargets.bodyHint' },
-        { key: 'settings.eventTargets.events', hint: 'settings.eventTargets.eventsHint' },
-        { key: 'settings.eventTargets.placeholders', hint: 'settings.eventTargets.placeholdersHint' },
-        { key: 'settings.eventTargets.attempts', hint: 'settings.eventTargets.attemptsHint' },
-        { key: 'settings.eventTargets.timeout', hint: 'settings.eventTargets.timeoutHint' },
-        { key: 'settings.eventTargets.status', hint: 'settings.eventTargets.droppedHint' },
-        { key: 'settings.eventTargets.testResult', hint: 'settings.eventTargets.testHint' },
-      ],
-      also: [
-        'settings.eventTargets.add',
-        'settings.eventTargets.remove',
-        'settings.eventTargets.test',
-        'settings.eventTargets.testBusy',
-        'settings.eventTargets.testSent',
-        'settings.eventTargets.lastAttempt',
-        'settings.eventTargets.lastOk',
-        'settings.eventTargets.attemptsDefault',
-      ],
-      // The problem.* sentences are built from a server code, so no source
-      // names them.
-      body: [
-        'settings.eventTargets.empty',
-        'settings.eventTargets.emptyHint',
-        'settings.eventTargets.eventsNone',
-        'settings.eventTargets.eventsBurst',
-        'settings.eventTargets.eventsReplay',
-        'settings.eventTargets.placeholderUnused',
-        'settings.eventTargets.leavesTheBox',
-        'settings.eventTargets.statusUnknown',
-        'settings.eventTargets.lastOkNever',
-        'settings.eventTargets.sentCount',
-        'settings.eventTargets.dropped',
-        'settings.eventTargets.testDuration',
-        'settings.eventTargets.testTruncated',
-        'settings.eventTargets.testEmptyBody',
-        'settings.eventTargets.testNoAnswer',
-      ],
-    },
   ],
 
   shortcuts: [

@@ -6,7 +6,9 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -125,12 +127,19 @@ func TestDecryptCnL(t *testing.T) {
 func TestServerFlashEndpoints(t *testing.T) {
 	rec := &recorder{}
 	s := New(rec)
-	// The real bind path, on a port no real JDownloader uses.
-	if err := s.Start(19666); err != nil {
+	// The real bind path, on a port the system hands out, so test runs in
+	// parallel checkouts do not collide.
+	free, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	port := free.Addr().(*net.TCPAddr).Port
+	free.Close()
+	if err := s.Start(port); err != nil {
 		t.Fatalf("start: %v", err)
 	}
 	defer s.Close()
-	baseURL := "http://127.0.0.1:19666"
+	baseURL := fmt.Sprintf("http://127.0.0.1:%d", port)
 
 	resp, err := http.Get(baseURL + "/jdcheck.js")
 	if err != nil {

@@ -46,7 +46,25 @@ type Service struct {
 	// WhereURL is the page on the service's own site where a user finds or
 	// generates the credential.
 	WhereURL string `json:"whereUrl"`
+	// Domain is the service's own domain where WhereURL is on a subdomain, so
+	// JD's entry for it is recognised as this service.
+	Domain string `json:"domain,omitempty"`
+	// UserLabel and PassLabel name the two fields of a KindUsernamePassword
+	// service whose fields are not a website login, such as an API user and an
+	// API key. Empty means username and password.
+	UserLabel CredentialField `json:"userLabel,omitempty"`
+	PassLabel CredentialField `json:"passLabel,omitempty"`
 }
+
+// CredentialField names one field of a two-part credential for the form.
+type CredentialField string
+
+const (
+	FieldAPIUser    CredentialField = "apiUser"
+	FieldAPIKey     CredentialField = "apiKey"
+	FieldCustomerID CredentialField = "customerId"
+	FieldEmail      CredentialField = "email"
+)
 
 // Catalogue is every service KnightLoader can store a credential for, in
 // display order. Each WhereURL is taken from the vendor's own API
@@ -60,6 +78,20 @@ var Catalogue = []Service{
 	// Linksnappy has no API key; it logs in with the website credentials.
 	{ID: "linksnappy", Label: "Linksnappy", Kind: KindUsernamePassword, Group: GroupDebrid, Env: "", WhereURL: "https://linksnappy.com/myaccount"},
 	{ID: "offcloud", Label: "Offcloud", Kind: KindAPIKey, Group: GroupDebrid, Env: "KL_OFFCLOUD", WhereURL: "https://offcloud.com/#/account"},
+	// The smaller multihosters. They take the store only, since a variable each
+	// would crowd the environment for services few people use.
+	{ID: "bestdebrid", Label: "BestDebrid", Kind: KindAPIKey, Group: GroupDebrid, WhereURL: "https://bestdebrid.com/profile"},
+	{ID: "cocoleech", Label: "CocoLeech", Kind: KindAPIKey, Group: GroupDebrid, WhereURL: "https://members.cocoleech.com/settings", Domain: "cocoleech.com"},
+	{ID: "cooldebrid", Label: "CoolDebrid", Kind: KindAPIKey, Group: GroupDebrid, WhereURL: "https://cooldebrid.com/api.html"},
+	{ID: "debriditalia", Label: "DebridItalia", Kind: KindUsernamePassword, Group: GroupDebrid, WhereURL: "https://www.debriditalia.com/"},
+	{ID: "deepbrid", Label: "Deepbrid", Kind: KindAPIKey, Group: GroupDebrid, WhereURL: "https://www.deepbrid.com/devices"},
+	{ID: "fakirdebrid", Label: "FakirDebrid", Kind: KindAPIKey, Group: GroupDebrid, WhereURL: "https://fakirdebrid.net/api/login.php"},
+	{ID: "megadebrid", Label: "Mega-Debrid", Kind: KindUsernamePassword, Group: GroupDebrid, WhereURL: "https://www.mega-debrid.eu/"},
+	{ID: "multiup", Label: "MultiUp", Kind: KindUsernamePassword, Group: GroupDebrid, WhereURL: "https://multiup.io/en/login"},
+	{ID: "neodebrid", Label: "NeoDebrid", Kind: KindUsernamePassword, Group: GroupDebrid, WhereURL: "https://neodebrid.com/login", UserLabel: FieldEmail},
+	{ID: "proleech", Label: "ProLeech", Kind: KindUsernamePassword, Group: GroupDebrid, WhereURL: "https://proleech.link/v2/jdownloader", UserLabel: FieldAPIUser, PassLabel: FieldAPIKey},
+	{ID: "rpnet", Label: "RPNet", Kind: KindUsernamePassword, Group: GroupDebrid, WhereURL: "https://premium.rpnet.biz/account", UserLabel: FieldCustomerID, PassLabel: FieldAPIKey},
+	{ID: "zevera", Label: "Zevera", Kind: KindAPIKey, Group: GroupDebrid, WhereURL: "https://www.zevera.com/account"},
 	{ID: "2captcha", Label: "2Captcha", Kind: KindAPIKey, Group: GroupCaptchaSolver, WhereURL: "https://2captcha.com/enterpage"},
 	{ID: "anticaptcha", Label: "Anti-Captcha", Kind: KindAPIKey, Group: GroupCaptchaSolver, WhereURL: "https://anti-captcha.com/clients/settings/apisetup"},
 	// There is no vendor page for a server the user owns, so WhereURL points

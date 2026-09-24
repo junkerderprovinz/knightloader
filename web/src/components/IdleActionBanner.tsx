@@ -153,7 +153,7 @@ export function IdleActionBanner() {
                 output: failed.output,
               })}
             </span>
-            <Link to="/settings/downloads" className="text-accent hover:underline">
+            <Link to="/settings/automation" className="text-accent hover:underline">
               {t('idleAction.openSettings')}
             </Link>
           </span>

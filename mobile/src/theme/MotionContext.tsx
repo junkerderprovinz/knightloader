@@ -173,12 +173,29 @@ export function useShake(): { style: { transform: { translateX: Animated.Animate
  * visible level swings a little past and comes back, 0.34 keeps doing it for
  * longer, and the web reaches the same two shapes with two cubic-beziers. At
  * `off` there is no spring and the value arrives.
+ *
+ * `done` runs when the spring ends, straight away at `off`. A spring that is
+ * stopped or replaced by another ends too, before its target, so a caller that
+ * starts several checks the call is still its own.
+ *
+ * `rest` is how close counts as there, in the value's own units: Animated's
+ * default of a thousandth suits a value between 0 and 1 but keeps an offset in
+ * points going for most of a second after it has visibly arrived. The speed
+ * threshold scales with it (a third of that distance per frame), or a spring
+ * swinging through its target would count as arrived mid-swing.
  */
-export function settle(value: Animated.Value, to: number, m: Motion): void {
+export function settle(
+  value: Animated.Value,
+  to: number,
+  m: Motion,
+  { rest, done }: { rest?: number; done?: () => void } = {},
+): void {
   const spring = springConfig(m);
   if (!spring) {
     value.setValue(to);
+    done?.();
     return;
   }
-  Animated.spring(value, { toValue: to, ...spring, useNativeDriver: true }).start();
+  const thresholds = rest === undefined ? {} : { restDisplacementThreshold: rest, restSpeedThreshold: rest * 20 };
+  Animated.spring(value, { toValue: to, ...spring, ...thresholds, useNativeDriver: true }).start(done);
 }

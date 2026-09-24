@@ -460,3 +460,34 @@ func TestSetTorrentConfigOverwritesRatherThanAccumulates(t *testing.T) {
 			bt.ListenPort, bt.SeedRatio, bt.SeedTime)
 	}
 }
+
+// A settings save changes a copy of the library's config. A resolve running
+// at that moment reads the config it started with, so nothing writes under
+// its read.
+func TestChangingTheTorrentConfigLeavesTheConfigInUseAlone(t *testing.T) {
+	e, err := New(t.TempDir(), func(string, core.Update) {})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer e.Close()
+	if err := e.SetTorrentConfig(6881, 1, 0); err != nil {
+		t.Fatal(err)
+	}
+	inUse, _ := e.d.GetConfig()
+	before := fmt.Sprint(inUse.ProtocolConfig["bt"])
+
+	if err := e.SetTorrentConfig(51413, 2, 3600); err != nil {
+		t.Fatal(err)
+	}
+	if after := fmt.Sprint(inUse.ProtocolConfig["bt"]); after != before {
+		t.Errorf("the config in use changed from %s to %s", before, after)
+	}
+	current, _ := e.d.GetConfig()
+	var bt btProtocolConfig
+	if err := gopeed.MapToStruct(current.ProtocolConfig["bt"], &bt); err != nil {
+		t.Fatal(err)
+	}
+	if bt.ListenPort != 51413 || bt.SeedRatio != 2 || bt.SeedTime != 3600 {
+		t.Errorf("new bt config = %+v", bt)
+	}
+}
