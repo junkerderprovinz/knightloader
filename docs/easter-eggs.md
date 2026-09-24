@@ -119,8 +119,9 @@ still while the rest walks.
 
 ### 1337
 
-**Gesture:** set the speed limit to exactly 1337 KiB/s. The speed curve on the
-Overview page runs on the storm curve for as long as the limit stands.
+**Gesture:** set the speed limit to exactly 1337 KiB/s. The line of the speed
+curve on the Overview page breathes on the storm level's pulse for as long as
+the limit stands.
 
 **Where:** `isLeet()` in `web/src/lib/leet.ts` is the whole condition, read by
 `SpeedGraph` and by the limit field in

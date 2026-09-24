@@ -10,7 +10,7 @@ import {
   useSyncExternalStore,
 } from 'react';
 import { fmtSpeed } from '../lib/format';
-import { useT, type TranslationKey } from '../lib/i18n';
+import { useT } from '../lib/i18n';
 import { isLeet } from '../lib/leet';
 import { useUIState } from '../lib/uistate';
 import { useSpeedWindow, type SpeedScale, type SpeedWindow } from '../lib/speedHistory';
@@ -22,28 +22,6 @@ import { Tabs } from './Tabs';
 
 // The server's whole coarse ring: one point per ten seconds for an hour.
 const HOUR_POINTS = 360;
-
-// English fallbacks for keys not yet in en.ts; the catalogue is asked first.
-const PENDING = {
-  'overview.speedWindow': 'Speed window',
-  'overview.speedWindow.minute': 'Last minute',
-  'overview.speedWindow.hour': 'Last hour',
-  'overview.speedGraphHint':
-    'The instance records this curve itself: one sample a second for the last two minutes, one every ten seconds for the last hour. That is why a reload draws it already filled instead of starting flat. The record is held in memory only, so restarting KnightLoader empties it and the curve starts as a flat line again and fills up as it runs.',
-} as const;
-
-type PendingKey = keyof typeof PENDING;
-
-function useCx() {
-  const { t } = useT();
-  return useCallback(
-    (key: PendingKey) => {
-      const translated = t(key as unknown as TranslationKey) as string | undefined;
-      return translated ?? PENDING[key];
-    },
-    [t],
-  );
-}
 
 // The top of the plot never drops below this, so a blip near idle does not fill
 // the box and a small transfer looks small.
@@ -88,8 +66,6 @@ function subscribeGlide(onChange: () => void): () => void {
 interface Geometry {
   line: string;
   area: string;
-  /** The segment ending at the anchor, as its four Bezier y values. The tip rides it. */
-  tail: readonly [number, number, number, number];
 }
 
 /**
@@ -135,8 +111,7 @@ function geometry(
       `${f(xs[i] - t)},${f(ys[i] - m[i] * t)} ${f(xs[i])},${f(ys[i])}`;
   }
   const area = `${line}L${f(xs[n - 1])},${f(base)}L${f(xs[0])},${f(base)}Z`;
-  const a = anchor;
-  return { line, area, tail: [ys[a - 1], ys[a - 1] + m[a - 1] * t, ys[a] - m[a] * t, ys[a]] };
+  return { line, area };
 }
 
 /** What a frame needs to place the curve, refreshed on every sample. */
@@ -163,14 +138,9 @@ interface Glide {
 
 /**
  * place moves the curve to where it is at `now`. The paths are drawn once per
- * sample; between samples only three attributes change.
+ * sample; between samples only two attributes change.
  */
-function place(
-  f: Frame,
-  g: Glide,
-  els: { mover: SVGGElement; tip: SVGGElement; wash: SVGLinearGradientElement },
-  now: number,
-): void {
+function place(f: Frame, g: Glide, els: { mover: SVGGElement; wash: SVGLinearGradientElement }, now: number): void {
   // How far the step has run: 0 as the newest sample arrives, 1 a step later.
   const p = f.glide ? Math.min(Math.max((now - f.newestAt) / f.stepMs, 0), 1) : 1;
   if (f.glide && g.at > 0) {
@@ -184,21 +154,16 @@ function place(
   // The paths are drawn against the target ceiling; k stretches them to the
   // eased one about the zero line.
   const k = f.ceiling / g.eased;
-  const q = 1 - p;
-  const [a, b, c, d] = f.geo.tail;
-  const tipY = q * q * q * a + 3 * q * q * p * b + 3 * q * p * p * c + p * p * p * d;
 
-  const moved = `translate(${(f.dx * q).toFixed(2)} ${f.base}) scale(1 ${k.toFixed(4)}) translate(0 ${-f.base})`;
+  const moved = `translate(${(f.dx * (1 - p)).toFixed(2)} ${f.base}) scale(1 ${k.toFixed(4)}) translate(0 ${-f.base})`;
   // The wash is pinned to the box, not to the stretched curve, so its shade
   // holds still while the ceiling moves.
   const washTop = (f.base - (f.base - f.top) / k).toFixed(4);
-  const tipAt = `translate(0 ${(f.base + (tipY - f.base) * k).toFixed(2)})`;
-  const drawn = `${moved}|${washTop}|${tipAt}`;
+  const drawn = `${moved}|${washTop}`;
   if (drawn === g.drawn) return;
   g.drawn = drawn;
   els.mover.setAttribute('transform', moved);
   els.wash.setAttribute('y1', washTop);
-  els.tip.setAttribute('transform', tipAt);
 }
 
 interface PlotProps {
@@ -209,11 +174,7 @@ interface PlotProps {
   h: number;
   pad: number;
   ceiling: number;
-  /** The live tip's radius. */
-  dot: number;
   stroke: number;
-  /** Whether the tip throws a ring on every pulse. */
-  halo?: boolean;
 }
 
 /**
@@ -245,9 +206,9 @@ function Plot(props: PlotProps) {
 }
 
 /**
- * Curve draws the filled area, the line and the live tip. While motion is
- * allowed it glides left between samples and eases its ceiling; otherwise it
- * moves once per sample.
+ * Curve draws the filled area and the line. While motion is allowed it glides
+ * left between samples and eases its ceiling; otherwise it moves once per
+ * sample.
  */
 function Curve({
   win,
@@ -256,9 +217,7 @@ function Curve({
   h,
   pad,
   ceiling,
-  dot,
   stroke,
-  halo = false,
   anchor,
   glide,
 }: PlotProps & { anchor: number; glide: boolean }) {
@@ -270,15 +229,14 @@ function Curve({
   );
 
   const mover = useRef<SVGGElement>(null);
-  const tip = useRef<SVGGElement>(null);
   const wash = useRef<SVGLinearGradientElement>(null);
   const frame = useRef<Frame | null>(null);
   const state = useRef<Glide>({ eased: ceiling, at: 0, drawn: '' });
 
   const draw = useCallback((now: number) => {
     const f = frame.current;
-    if (f && mover.current && tip.current && wash.current) {
-      place(f, state.current, { mover: mover.current, tip: tip.current, wash: wash.current }, now);
+    if (f && mover.current && wash.current) {
+      place(f, state.current, { mover: mover.current, wash: wash.current }, now);
     }
   }, []);
 
@@ -345,26 +303,9 @@ function Curve({
             strokeLinecap="round"
             strokeLinejoin="round"
             vectorEffect="non-scaling-stroke"
+            className="kl-curve-line"
           />
         </g>
-      </g>
-      <g ref={tip}>
-        {/* A halo leaving the live dot on the same --motion-pulse-dur, drawn
-            first so it expands from under the dot. Decoration only: index.css
-            removes it at motion "off" and under reduced motion, but keeps the
-            dot. */}
-        {halo && (
-          <circle
-            cx={w}
-            r={dot}
-            fill="none"
-            stroke="var(--accent-ink)"
-            strokeWidth="1.25"
-            vectorEffect="non-scaling-stroke"
-            className="kl-tip-halo"
-          />
-        )}
-        <circle cx={w} r={dot} fill="var(--accent-ink)" className="glim-live" />
       </g>
     </>
   );
@@ -398,7 +339,7 @@ export function SpeedGraph({
   /** The speed limit in bytes per second, or 0; the page already has settings. */
   limit?: number;
 }) {
-  const cx = useCx();
+  const { t } = useT();
 
   // The stored window loads after first paint; both scales are already in the
   // store, so the switch costs no request.
@@ -421,34 +362,32 @@ export function SpeedGraph({
           on the same line (GlimStone 1.6.0). */}
       <div className="flex items-center justify-between gap-3">
         <Tabs
-          label={cx('overview.speedWindow')}
+          label={t('overview.speedWindow')}
           size="sm"
           select="one"
           active={scale}
           onSelect={(id) => setStored(id === 'hour' ? 'hour' : 'minute')}
           items={[
-            { id: 'minute', label: cx('overview.speedWindow.minute') },
-            { id: 'hour', label: cx('overview.speedWindow.hour') },
+            { id: 'minute', label: t('overview.speedWindow.minute') },
+            { id: 'hour', label: t('overview.speedWindow.hour') },
           ]}
         />
         <span className="flex items-center gap-1.5">
-          <InfoBubble tip={cx('overview.speedGraphHint')} />
+          <InfoBubble tip={t('overview.speedGraphHint')} />
           {/* Figure and unit are one token; an RTL locale must not reorder them. */}
           <span dir="ltr" className="glim-num text-[11px] leading-none text-carbon-textMuted">
             {fmtSpeed(ceiling)}
           </span>
         </span>
       </div>
-      {/* overflow-visible: the live tip sits on the right edge, and the svg
-          would clip the halo it throws. The curve clips itself. */}
       <svg
         viewBox={`0 0 ${W} ${height}`}
         preserveAspectRatio="none"
-        className="block w-full overflow-visible"
+        className="block w-full"
         style={{ height }}
         aria-hidden
       >
-        <Plot win={win} span={span} w={W} h={height} pad={6} ceiling={ceiling} dot={3} stroke={1.75} halo />
+        <Plot win={win} span={span} w={W} h={height} pad={6} ceiling={ceiling} stroke={1.75} />
       </svg>
       {/* Both ends of the time axis, oldest on the left. The plot does not
           mirror in a right-to-left language, so neither do its labels. */}
@@ -462,9 +401,8 @@ export function SpeedGraph({
 
 /**
  * usePixelBox follows an svg's rendered size, so its viewBox can be drawn in
- * pixels. Stretched with preserveAspectRatio="none", a wide and flat meter
- * would squash the live tip into a dash. A hidden bar measures nothing, so the
- * last real size is kept.
+ * pixels and the padding stays a few pixels at any height. A hidden bar
+ * measures nothing, so the last real size is kept.
  */
 function usePixelBox(ref: RefObject<SVGSVGElement | null>): { w: number; h: number } {
   const [box, setBox] = useState({ w: 148, h: 40 });
@@ -523,13 +461,11 @@ export function SpeedMeter({
         ref={svg}
         viewBox={`0 0 ${w} ${h}`}
         preserveAspectRatio="none"
-        // overflow-visible: the live tip sits on the right edge, and the svg
-        // would cut it in half. The curve clips itself.
-        className="h-0 min-h-[26px] w-full flex-auto overflow-visible"
+        className="h-0 min-h-[26px] w-full flex-auto"
         aria-hidden
         focusable="false"
       >
-        <Plot win={win} span={points} w={w} h={h} pad={3} ceiling={ceiling} dot={3} stroke={1.5} />
+        <Plot win={win} span={points} w={w} h={h} pad={3} ceiling={ceiling} stroke={1.5} />
       </svg>
       <span className="flex justify-between text-[11px] leading-none text-carbon-textMuted">
         <span className="glim-num">{spanLabel(points * win.step)}</span>

@@ -371,6 +371,9 @@ submission and for a fixed download.
   to the bar's right edge. The newest second sits on that edge with the current
   speed above it, and the top of the scale is shown above the other end. In a
   narrow window the curve moves under the buttons.
+- **The speed curves end without a dot.** The dot on the newest sample, and the
+  ring it threw on the Overview page, were stretched into an oval along with the
+  plot. With the limit at 1337 KiB/s the line itself breathes instead.
 - **Quick settings open as a small panel under their button** instead of a
   window. The speed limit field is no longer in the head bar; it sits in the
   panel, next to simultaneous downloads, downloads per hoster and connections
