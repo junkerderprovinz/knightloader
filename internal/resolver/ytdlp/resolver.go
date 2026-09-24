@@ -13,6 +13,9 @@ import (
 // hosters fall through to those instead of being mis-sent to yt-dlp.
 type Resolver struct {
 	ExcludeHosts map[string]bool
+	// Leave names further file hosters, ones that are only known while the
+	// app runs, such as JDownloader's host list. Nil leaves nothing more out.
+	Leave func(host string) bool
 }
 
 func (Resolver) Info() resolver.Info { return resolver.Info{ID: "ytdlp", Prio: 30} }
@@ -20,6 +23,9 @@ func (Resolver) Info() resolver.Info { return resolver.Info{ID: "ytdlp", Prio: 3
 func (r Resolver) Match(raw string) bool {
 	u, err := url.Parse(raw)
 	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Hostname() == "" {
+		return false
+	}
+	if r.Leave != nil && r.Leave(u.Hostname()) {
 		return false
 	}
 	return !hostInSet(u.Hostname(), r.ExcludeHosts)

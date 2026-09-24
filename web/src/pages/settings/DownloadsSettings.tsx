@@ -4,7 +4,6 @@ import { PathInput } from '../../components/FolderPicker';
 import { Tabs } from '../../components/Tabs';
 import { fetchOptions } from '../../lib/api';
 import { useT, type TranslationKey } from '../../lib/i18n';
-import { isLeet } from '../../lib/leet';
 import { useDraft } from './context';
 // Each card owns one subject in ./downloads and shares the draft through
 // useDraft; the page passes the hues because it decides the order.
@@ -13,6 +12,7 @@ import { DiskSpaceCard } from './downloads/DiskSpace';
 import { FeedsCard } from './downloads/Feeds';
 import { FolderCheckCard } from './downloads/FolderCheck';
 import { ReclaimCard } from './downloads/Reclaim';
+import { SpeedLimitField } from './downloads/SpeedLimit';
 import { StallCard } from './downloads/Stall';
 import { VolumeCapCard } from './downloads/VolumeCap';
 
@@ -92,27 +92,7 @@ export function DownloadsSettings() {
           </Field>
         </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field label={t('settings.speedLimit')} hint={t('settings.speedHint')}>
-            <span className="flex items-center gap-2">
-              <span className="min-w-0 flex-1">
-                <NumberInput
-                  value={Math.round(cfg.speedLimit / 1024)}
-                  min={0}
-                  step={256}
-                  onValue={(v) => patch({ speedLimit: Math.max(0, v) * 1024 })}
-                />
-              </span>
-              {/* The 1337 easter egg (docs/easter-eggs.md). speedLimit is bytes
-                  per second and the field shows KiB, so isLeet compares against
-                  1337 KiB. The word stands beside the number rather than under
-                  it, where it would read as a validation message. */}
-              {isLeet(cfg.speedLimit) && (
-                <span className="shrink-0 text-[11px] leading-none text-carbon-textMuted">
-                  {t('settings.motion.storm')}
-                </span>
-              )}
-            </span>
-          </Field>
+          <SpeedLimitField value={cfg.speedLimit} onValue={(speedLimit) => patch({ speedLimit })} />
           <Field label={t('settings.maxRetries')} hint={t('settings.maxRetriesHint')}>
             <NumberInput value={cfg.maxRetries} min={0} max={20} onValue={(v) => patch({ maxRetries: v })} />
           </Field>

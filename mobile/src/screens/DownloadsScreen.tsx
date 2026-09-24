@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { fetchQueue, liveTasks, setQueueHalted, stopAll, type LiveTasks } from '../api/client';
 import type { Instance, QueueState, ServerConnection, Task } from '../api/types';
 import PackageList from '../components/PackageList';
@@ -11,6 +11,7 @@ import IconBadge, { Back, Trash } from '../components/IconBadge';
 import SpeedGraph from '../components/SpeedGraph';
 import { fmtBytes } from '../api/stats';
 import { deleteTasks, reorderTasks, startTasks } from '../api/client';
+import { Text } from '../components/Text';
 
 // peer, when set, means this screen is showing a federation peer of conn rather
 // than conn's own queue, so base becomes the proxy prefix (/api/instances/{name},

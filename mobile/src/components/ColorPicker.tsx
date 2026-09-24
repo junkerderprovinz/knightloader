@@ -1,10 +1,11 @@
 import { useMemo, useRef, useState } from 'react';
-import { Modal, PanResponder, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Modal, PanResponder, Pressable, StyleSheet, View } from 'react-native';
 import { useAppearance } from '../theme/AppearanceContext';
 import { useT } from '../i18n/I18nContext';
 import { GlimButton } from './glim';
 import { Check } from './IconBadge';
 import { TYPE } from '../theme/tokens';
+import { Text, TextInput } from './Text';
 
 /**
  * A colour picker: a saturation/value pad, a hue rail and a hex field.

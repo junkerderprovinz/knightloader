@@ -124,7 +124,8 @@ Overview page runs on the storm curve for as long as the limit stands.
 
 **Where:** `isLeet()` in `web/src/lib/leet.ts` is the whole condition, read by
 `SpeedGraph` and by the limit field in
-`web/src/pages/settings/DownloadsSettings.tsx`; `.kl-storm-curve` in
+`web/src/pages/settings/downloads/SpeedLimit.tsx`, which the Downloads settings
+page and the shell bar's quick settings both draw; `.kl-storm-curve` in
 `web/src/index.css` is what switches the element onto the level.
 
 **Off:** type a different number.

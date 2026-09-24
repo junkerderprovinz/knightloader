@@ -146,6 +146,7 @@ function Panel({
   spot,
   groups,
   label,
+  minWidth,
   onClose,
   onDismiss,
   onPointerIn,
@@ -154,6 +155,7 @@ function Panel({
   spot: Spot;
   groups: MenuGroup[];
   label: string;
+  minWidth?: number;
   /** Closes the whole menu. */
   onClose: () => void;
   /** Closes only this submenu and hands focus back. */
@@ -174,10 +176,10 @@ function Panel({
   // Empty groups are dropped here so callers need not check.
   const shown = groups.filter((g) => g.items.length > 0);
   const flat = shown.flatMap((g) => g.items);
-  const firstEnabled = Math.max(
-    0,
-    flat.findIndex((i) => !i.disabled),
-  );
+  // A list of choices opens on the one in force, as a native select does, so
+  // the arrow keys start from where the value is.
+  const checked = flat.findIndex((i) => i.checked && !i.disabled);
+  const firstEnabled = checked >= 0 ? checked : Math.max(0, flat.findIndex((i) => !i.disabled));
   const [active, setActive] = useState(firstEnabled);
 
   // Held by the parent panel, since dropping `sub` releases both the submenu
@@ -323,8 +325,13 @@ function Panel({
             left: pos?.left ?? spot.x,
             // Not visibility: hidden, which would block the first item's focus.
             opacity: pos ? undefined : 0,
+            // Inline, so it has to carry the class's own floor as well.
+            minWidth: minWidth ? `max(13rem, ${minWidth}px)` : undefined,
           }}
-          className="glim-card glim-fade z-[60] min-w-[13rem] max-w-[22rem] divide-y divide-carbon-border/60 py-0.5"
+          // A long list of choices scrolls inside the panel rather than running
+          // off the screen.
+          className="glim-card glim-fade z-[60] max-h-[min(24rem,calc(100vh-1rem))] min-w-[13rem] max-w-[22rem]
+            divide-y divide-carbon-border/60 overflow-y-auto py-0.5"
         >
           {shown.map((g) => (
             <div key={g.id} className="py-1">
@@ -418,12 +425,15 @@ export function ContextMenu({
   anchor,
   groups,
   label,
+  minWidth,
   onClose,
 }: {
   anchor: MenuAnchor;
   groups: MenuGroup[];
   /** The menu's accessible name. */
   label: string;
+  /** A dropdown's menu is at least as wide as the field it opens from. */
+  minWidth?: number;
   onClose: () => void;
 }) {
   const panels = useRef(new Set<HTMLElement>());
@@ -450,17 +460,22 @@ export function ContextMenu({
     const onDown = (e: MouseEvent) => {
       if (!inside(e.target as Node)) onClose();
     };
-    // A scroll or resize leaves the menu pointing at the wrong row.
-    const onMove = () => onClose();
+    // A scroll or resize leaves the menu pointing at the wrong row. A panel
+    // scrolling its own list moves nothing it is anchored to, and focusing an
+    // entry below the fold scrolls it.
+    const onScroll = (e: Event) => {
+      if (!inside(e.target as Node)) onClose();
+    };
+    const onResize = () => onClose();
     document.addEventListener('mousedown', onDown, true);
     document.addEventListener('contextmenu', onDown, true);
-    window.addEventListener('scroll', onMove, true);
-    window.addEventListener('resize', onMove);
+    window.addEventListener('scroll', onScroll, true);
+    window.addEventListener('resize', onResize);
     return () => {
       document.removeEventListener('mousedown', onDown, true);
       document.removeEventListener('contextmenu', onDown, true);
-      window.removeEventListener('scroll', onMove, true);
-      window.removeEventListener('resize', onMove);
+      window.removeEventListener('scroll', onScroll, true);
+      window.removeEventListener('resize', onResize);
     };
   }, [onClose]);
 
@@ -468,7 +483,7 @@ export function ContextMenu({
 
   return (
     <PanelsCtx.Provider value={panels}>
-      <Panel spot={{ x: anchor.x, y: anchor.y }} groups={groups} label={label} onClose={onClose} />
+      <Panel spot={{ x: anchor.x, y: anchor.y }} groups={groups} label={label} minWidth={minWidth} onClose={onClose} />
     </PanelsCtx.Provider>
   );
 }

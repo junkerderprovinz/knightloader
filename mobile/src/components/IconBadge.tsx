@@ -1,7 +1,8 @@
 import { cloneElement, isValidElement, type ReactElement, type ReactNode } from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useAppearance } from '../theme/AppearanceContext';
 import { BTN_H } from '../theme/tokens';
+import { Text } from './Text';
 
 // A small square glyph button: the "+" that opens Connect, the gear that opens
 // Settings, the bin that drops a connection, wherever a screen needs an

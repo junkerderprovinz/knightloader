@@ -1395,7 +1395,6 @@ export function TaskProperties({
             <Tabs
               variant="well"
               size="sm"
-              className="w-fit"
               label={t('props.priority')}
               active={priority}
               onSelect={edit('priority', setPriority)}
@@ -1410,7 +1409,6 @@ export function TaskProperties({
             <Tabs
               variant="well"
               size="sm"
-              className="w-fit"
               label={t('props.autoExtract')}
               active={extract}
               onSelect={edit('autoExtract', setExtract)}

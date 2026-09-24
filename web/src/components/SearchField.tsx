@@ -4,6 +4,7 @@
 import { useRef } from 'react';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { InfoBubble, useTooltip } from './ui';
+import { Dropdown } from './Dropdown';
 import { IconSearch, IconClose } from '../lib/icons';
 import { type SearchCategory, type SearchQuery } from '../lib/searchQuery';
 
@@ -18,34 +19,7 @@ const CATEGORIES: { id: SearchCategory; label: TranslationKey }[] = [
   { id: 'url', label: 'search.url' },
 ];
 
-/**
- * wheelSteps lets the wheel step a closed <select> one option per notch,
- * clamped at both ends (design rule 14). It is a native listener with
- * `passive: false`, because React registers onWheel passive and preventDefault
- * would not stop the page scrolling. QueueBar.tsx and RuleEditor.tsx carry the
- * same listener.
- */
-function wheelSteps(el: HTMLSelectElement | null) {
-  if (!el) return;
-  const onWheel = (e: WheelEvent) => {
-    // Only the sign of deltaY counts; trackpads report fractions.
-    if (el.disabled || el.options.length < 2 || e.deltaY === 0) return;
-    e.preventDefault();
-    const next = Math.min(el.options.length - 1, Math.max(0, el.selectedIndex + (e.deltaY > 0 ? 1 : -1)));
-    if (next === el.selectedIndex) return;
-    el.selectedIndex = next;
-    // A real change event, so the element's onChange handles it like a click.
-    el.dispatchEvent(new Event('change', { bubbles: true }));
-  };
-  el.addEventListener('wheel', onWheel, { passive: false });
-  return () => el.removeEventListener('wheel', onWheel);
-}
-
-/**
- * SearchField is the input and its category picker as one control. The picker
- * stays a native <select> against design rule 18 until the app has one shared
- * listbox to replace every picker with.
- */
+/** SearchField is the input and its category picker as one control, at a field's height. */
 export function SearchField({
   value,
   onChange,
@@ -64,7 +38,7 @@ export function SearchField({
 
   return (
     <div
-      className={`flex min-w-[16rem] items-center gap-1 rounded-[var(--radius-control)] bg-carbon-surface2
+      className={`flex h-[var(--btn-h)] min-w-[16rem] items-center gap-1 rounded-[var(--radius-control)] bg-carbon-surface2
         pe-1 ps-2.5 transition-shadow focus-within:shadow-[0_0_0_2px_var(--focus-ring)] ${className}`}
     >
       <IconSearch className="shrink-0 text-carbon-textMuted" width={15} height={15} />
@@ -82,7 +56,7 @@ export function SearchField({
         }}
         placeholder={t('search.placeholder')}
         aria-label={t('search.placeholder')}
-        className="min-w-0 flex-1 bg-transparent py-2 text-sm text-carbon-text
+        className="h-full min-w-0 flex-1 bg-transparent text-sm text-carbon-text
           placeholder:text-carbon-textMuted outline-none [&::-webkit-search-cancel-button]:hidden"
       />
       {value.text && (
@@ -104,20 +78,13 @@ export function SearchField({
         </button>
       )}
       {clearTip.node}
-      <select
-        ref={wheelSteps}
+      <Dropdown
+        look="inset"
+        label={t('search.in')}
         value={value.category}
-        onChange={(e) => onChange({ ...value, category: e.target.value as SearchCategory })}
-        aria-label={t('search.in')}
-        className="glim-select appearance-none pe-6 shrink-0 rounded-[var(--radius-control)] bg-carbon-surface3/70 px-2 py-1 text-xs
-          text-carbon-textSub outline-none"
-      >
-        {CATEGORIES.map((c) => (
-          <option key={c.id} value={c.id}>
-            {t(c.label)}
-          </option>
-        ))}
-      </select>
+        onChange={(category) => onChange({ ...value, category })}
+        options={CATEGORIES.map((c) => ({ value: c.id, label: t(c.label) }))}
+      />
       {/* One bubble for the picker and the syntax, not two identical (i)s. */}
       <InfoBubble tip={`${t('search.hint')} ${t('search.syntax')}`} className="me-1" />
     </div>

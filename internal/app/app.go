@@ -242,6 +242,10 @@ type App struct {
 	// re-wiring makes network calls, and task state must not wait for those.
 	bmu sync.RWMutex
 
+	// claims keeps the direct download, the HTTP fallback and yt-dlp off the
+	// hosts they would fetch a page from (see app_claims.go).
+	claims hostClaims
+
 	// rmu guards the compiled rule sets, which are replaced wholesale whenever
 	// the settings are saved and never edited in place. It is separate from mu
 	// because the filter is consulted while a link is being staged, and that must
@@ -346,8 +350,8 @@ func New(dataDir string) (*App, error) {
 	a.Crawler = crawler.HTML{Client: httpx.New(httpx.Options{})}
 	a.Probe = httpx.New(httpx.Options{Timeout: probeTimeout})
 	a.ctx, a.cancel = context.WithCancel(context.Background())
-	a.Registry.Register(resolver.Direct{})
-	a.Registry.Register(resolver.HTTPFallback{})
+	a.Registry.Register(resolver.Direct{Leave: a.claims.pageOnly})
+	a.Registry.Register(resolver.HTTPFallback{Leave: a.claims.pageOnly})
 	// Torrents need no account, so unlike the resolvers in app_accounts.go this
 	// one is registered unconditionally.
 	a.Registry.Register(torrent.Resolver{})

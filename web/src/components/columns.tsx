@@ -10,23 +10,33 @@
 // renderers into the list component would leave the registry describing columns
 // it cannot draw, which is the drift the registry exists to prevent.
 
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { fetchOptions, priorityChoices, setEnabled, setTaskOptions, type Availability, type Task } from '../lib/api';
 import { DIRECT_ID, endpointOf, useConnections } from '../lib/connections';
 import { fmtBytes, fmtDate, fmtEta, fmtSpeed, pct } from '../lib/format';
 import type { TranslationKey } from '../lib/i18n';
 import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
-import { IconCheck, IconChevronDown, IconRetry, PriorityGlyph } from '../lib/icons';
+import { IconCheck, IconRetry, PriorityGlyph } from '../lib/icons';
 import { hostOf } from '../lib/searchQuery';
 import { adviceFor } from '../lib/failureAdvice';
 import { FailureAdvice } from './FailureAdvice';
-import { ContextMenu, anchorBelow, useContextMenu, type MenuItem } from './ContextMenu';
 import { HosterIcon } from './HosterIcon';
 import { ProgressBar } from './ProgressBar';
 import { ResolverBadge, StatusPill } from './StatusPill';
 import { RetryNote, retryPending } from './RetryCountdown';
 import { useTooltip } from './ui';
+import {
+  NO_PRESET_MENUS,
+  VariantPicker,
+  audioPickers,
+  audioSummary,
+  presetMenusOf,
+  videoPickers,
+  videoSummary,
+  type PickerProps,
+  type PresetMenus,
+} from './VariantPicker';
 
 export type ColumnId =
   | 'enabled'
@@ -1022,9 +1032,9 @@ function fmtRatio(r: number | undefined): string {
 // core.Task.Variant, decoded the way variantEncode and variantDecode
 // (app_ytdlp_variants.go) encode it: "<kind>" or "<kind>:<sub>". kind is one of
 // the five rows expandYtdlpVariants creates for a yt-dlp-routed link, fixed
-// when the row was created and never edited here. sub is a quality preset on a
-// video row or an audio format on an audio row, the only two kinds this
-// column's picker edits.
+// when the row was created and never edited here. sub is the pick on a video
+// or an audio row, the only two kinds this column's pickers edit (see
+// VariantPicker.tsx for what it holds).
 //
 // setTaskName (app_tasks.go) propagates one resolved title to every
 // URL-sharing sibling, so all five of a link's rows show the same Name. This is
@@ -1049,268 +1059,25 @@ export const VARIANT_KIND_LABEL_KEY: Record<string, TranslationKey> = {
   description: 'columns.variant.description',
 };
 
-// The two kinds of value a probe adds to the pickers, ytdlp.VideoFormats'
-// "1080p60 webm vp9" and ytdlp.AudioTracks' "opus 160k". The fixed caps and
-// formats beside them read as they are.
-const VIDEO_TRACK = /^(\d+)p(\d*) ([a-z0-9]+) ([a-z0-9]+)$/;
-const AUDIO_TRACK = /^([a-z0-9]+) (\d+)k$/;
-
-/** How one picker value reads: "1080p60 webm (vp9)", "opus 160 kbit/s", or the value itself. */
-function pickLabel(value: string): string {
-  const video = VIDEO_TRACK.exec(value);
-  if (video) return `${video[1]}p${video[2]} ${video[3]} (${video[4]})`;
-  const audio = AUDIO_TRACK.exec(value);
-  if (audio) return `${audio[1]} ${audio[2]} kbit/s`;
-  return value;
-}
-
-/** The height a video pick is about, 0 for best and custom. */
-function heightOf(value: string): number {
-  const m = /^(\d+)p/.exec(value);
-  return m ? Number(m[1]) : 0;
-}
-
 /**
- * One row of a picker's menu: a value, or a row that opens a submenu of
- * values. The submenu is how a video row's tracks sit under their height.
- */
-type PickerEntry = string | { label: string; options: { value: string; label: string }[] };
-
-/**
- * videoMenu lays out the video row's choices by height: best first, then one
- * row per height the source has, then custom. A height with probed tracks
- * opens a submenu of its cap and every track at it; a 4K source's tracks as
- * one flat list run past the bottom of the screen. `options` is the same
- * choices in menu order, which is what the wheel steps through.
- */
-function videoMenu(caps: string[], tracks: string[], t: Translate): { options: string[]; entries: PickerEntry[][] } {
-  const heights = [...new Set([...caps, ...tracks].map(heightOf).filter((h) => h > 0))].sort((a, b) => b - a);
-  const byHeight: PickerEntry[] = [];
-  for (const h of heights) {
-    const cap = caps.find((c) => heightOf(c) === h);
-    const here = tracks.filter((x) => heightOf(x) === h);
-    if (here.length === 0) {
-      if (cap) byHeight.push(cap);
-      continue;
-    }
-    byHeight.push({
-      label: `${h}p`,
-      options: [
-        ...(cap ? [{ value: cap, label: t('columns.variant.anyFormat', { quality: cap }) }] : []),
-        ...here.map((x) => ({ value: x, label: pickLabel(x) })),
-      ],
-    });
-  }
-  const entries: PickerEntry[][] = [
-    caps.filter((c) => c === 'best'),
-    byHeight,
-    caps.filter((c) => heightOf(c) === 0 && c !== 'best'),
-  ].filter((g) => g.length > 0);
-  const options = entries.flat().flatMap((e) => (typeof e === 'string' ? [e] : e.options.map((o) => o.value)));
-  return { options, entries };
-}
-
-/** The audio row's choices in three runs: best, the source's own tracks, and what they convert to. */
-function audioMenu(formats: string[]): PickerEntry[][] {
-  return [
-    formats.filter((f) => f === 'best'),
-    formats.filter((f) => AUDIO_TRACK.test(f)),
-    formats.filter((f) => f !== 'best' && !AUDIO_TRACK.test(f)),
-  ].filter((g) => g.length > 0);
-}
-
-/**
- * One shared fetch backs every row's picker rather than one per row: the menu
- * is the same handful of ids for the whole table, and forty rows calling
+ * One shared fetch backs every row's pickers rather than one per row: the
+ * menus are the same handful of ids for the whole table, and forty rows calling
  * fetchOptions() on mount would be forty identical requests. Module-scoped
  * rather than threaded through CellContext, so this column stays
  * self-contained instead of widening what every other cell's context carries
- * for a menu only this column reads.
+ * for menus only this column reads. They are the full menus, for a row no
+ * probe has answered for yet.
  */
-// The settings tree's select treatment (RuleEditor.tsx's `Select`), re-declared
-// here rather than imported, since a row-level cell has no business importing
-// from a settings page component. It has to read as a control and not as a word
-// that happens to be clickable: a surface2 ground on rows that are themselves
-// surface2 gives the box no edge, and without a chevron nothing says "this
-// opens". The chevron is an element of its own (IconChevronDown, in
-// VariantPicker) rather than a background image, because this is no longer a
-// <select>.
-//
-// hover:bg-carbon-hoverRaised, never hover:bg-carbon-hover: this box is filled
-// with surface3, and --carbon-hover is the hover for an element with no fill of
-// its own, which sits below surface3 on every ramp and would dim the control at
-// the moment somebody is looking straight at it (GlimStone rule 21). One
-// template literal rather than concatenated strings, because
-// check-hover-ramp.mjs reads one class list per literal.
-const VARIANTE_SELECT_CLASS = `shrink-0 inline-flex items-center gap-1 cursor-pointer rounded-[var(--radius-control)]
-  bg-carbon-surface3 py-1 ps-2 pe-1.5 text-xs text-carbon-text outline-none transition-shadow
-  hover:bg-carbon-hoverRaised focus-visible:shadow-[0_0_0_2px_var(--focus-ring)] disabled:opacity-40`;
-
-/**
- * VariantPicker is the variant cell's dropdown: a button and a ContextMenu,
- * never a native <select>.
- *
- * A <select> paints its open list with the operating system's widget, which on
- * Windows is a white panel with an orange focus frame belonging to no theme
- * this app has. `appearance: none` reaches the closed box only; the popup is
- * the browser's and cannot be styled. ContextMenu is the app's own menu
- * surface, keyboard-navigable, dismissed the way every other menu here is, and
- * it draws a checked mark for the value in force.
- */
-function VariantPicker({
-  value,
-  options,
-  entries,
-  label,
-  disabled,
-  render,
-  onPick,
-  shake = 0,
-}: {
-  value: string;
-  /** Every choice in menu order, which is what the wheel steps through. */
-  options: string[];
-  /** The menu's rows in groups, where they are more than `options` in one run. */
-  entries?: PickerEntry[][];
-  /** The menu's accessible name - what this picker is choosing. */
-  label: string;
-  disabled?: boolean;
-  /** How one option reads on screen; the raw value is what is sent. */
-  render: (option: string) => string;
-  onPick: (value: string) => void;
-  /**
-   * The caller's failure counter. Every bump shakes this trigger once: the
-   * value was shown optimistically, the server refused it, and a control that
-   * only snaps back says nothing. Keyed on the number rather than toggled as a
-   * class, so a second identical refusal gets a fresh DOM node and shakes again.
-   */
-  shake?: number;
-}) {
-  const menu = useContextMenu();
-  const trigger = useRef<HTMLButtonElement>(null);
-  // The house bubble rather than the OS balloon; see Tip. The trigger shows the
-  // chosen value, the tooltip says what the picker chooses.
-  const tip = useTooltip<HTMLButtonElement>(label);
-  // The wheel listener below needs this element too, and one element takes one
-  // ref, so both are filled from the same callback.
-  const { role: _tipRole, tabIndex: _tipTabIndex, ref: tipRef, ...tipHover } = tip.triggerProps;
-
-  /**
-   * The wheel steps the value here as it does on the app's remaining native
-   * <select>s: rule 14 gives the wheel to the picker, not to the element the
-   * platform happens to draw. Clamped at both ends rather than wrapping, and a
-   * value that is not in the list at all, such as the audio row's "auto"
-   * bitrate, steps to the first option.
-   *
-   * A real listener with `{ passive: false }` and not onWheel, which React
-   * registers passive at its root: without preventDefault the list scrolls away
-   * under the pointer while the value changes.
-   *
-   * This picker sits on a list row, so while the pointer rests on it the wheel
-   * edits a download instead of scrolling the list, and each notch is a request
-   * (setTaskOptions). If that ever reads as the list refusing to scroll, the
-   * answer is a condition on the gesture, not an exemption for this picker.
-   */
-  useEffect(() => {
-    const el = trigger.current;
-    if (!el) return;
-    const onWheel = (e: WheelEvent) => {
-      // A horizontal wheel says nothing about this control, and a trackpad
-      // reports fractional deltas, so only the sign of deltaY is read.
-      if (disabled || options.length < 2 || e.deltaY === 0) return;
-      // This handler is the scroll while the pointer sits on the control.
-      e.preventDefault();
-      const at = options.indexOf(value);
-      if (at < 0) {
-        onPick(options[0]);
-        return;
-      }
-      const next = Math.min(options.length - 1, Math.max(0, at + (e.deltaY > 0 ? 1 : -1)));
-      if (next === at) return;
-      onPick(options[next]);
-    };
-    el.addEventListener('wheel', onWheel, { passive: false });
-    return () => el.removeEventListener('wheel', onWheel);
-    // `shake` is a dependency because the shake mechanism replaces this
-    // element: it keys the button on the counter, so a refusal unmounts the
-    // node this listener is attached to. Without it the control would stop
-    // answering the wheel after the first refused change.
-  }, [disabled, options, value, onPick, shake]);
-
-  const choice = (o: string, text: string): MenuItem => ({
-    id: o || 'auto',
-    label: text,
-    checked: o === value,
-    onSelect: () => onPick(o),
-  });
-
-  return (
-    <>
-      <button
-        key={shake}
-        ref={(el) => {
-          trigger.current = el;
-          tipRef.current = el;
-        }}
-        type="button"
-        disabled={disabled}
-        aria-label={label}
-        {...tipHover}
-        aria-haspopup="menu"
-        onClick={(e) => {
-          e.stopPropagation();
-          menu.openAt(anchorBelow(e.currentTarget));
-        }}
-        className={`${VARIANTE_SELECT_CLASS} ${shake > 0 ? 'glim-shake' : ''}`}
-      >
-        <span className="truncate">{render(value)}</span>
-        <IconChevronDown width={12} height={12} className="shrink-0 opacity-70" />
-      </button>
-      {tip.node}
-      {menu.anchor && (
-        <ContextMenu
-          anchor={menu.anchor}
-          label={label}
-          onClose={menu.close}
-          groups={(entries ?? [options]).map((group, g) => ({
-            id: `variant-${g}`,
-            items: group.map((e) =>
-              typeof e === 'string'
-                ? choice(e, render(e))
-                : {
-                    id: `rows-${e.label}`,
-                    label: e.label,
-                    submenu: [{ id: e.label, items: e.options.map((o) => choice(o.value, o.label)) }],
-                  },
-            ),
-          }))}
-        />
-      )}
-    </>
-  );
-}
-
-let ytdlpMenus: Promise<{ qualities: string[]; audioFormats: string[]; audioBitrates: string[] }> | null = null;
+let ytdlpMenus: Promise<PresetMenus> | null = null;
 function loadYtdlpMenus() {
   if (!ytdlpMenus) {
-    ytdlpMenus = fetchOptions().then(
-      (o) => ({
-        qualities: o.ytdlpQualities ?? [],
-        audioFormats: o.ytdlpAudioFormats ?? [],
-        audioBitrates: o.ytdlpAudioBitrates ?? [],
-      }),
-      () => ({ qualities: [], audioFormats: [], audioBitrates: [] }),
-    );
+    ytdlpMenus = fetchOptions().then(presetMenusOf, () => NO_PRESET_MENUS);
   }
   return ytdlpMenus;
 }
 
 function useYtdlpMenus() {
-  const [menus, setMenus] = useState<{ qualities: string[]; audioFormats: string[]; audioBitrates: string[] }>({
-    qualities: [],
-    audioFormats: [],
-    audioBitrates: [],
-  });
+  const [menus, setMenus] = useState<PresetMenus>(NO_PRESET_MENUS);
   useEffect(() => {
     let live = true;
     void loadYtdlpMenus().then((m) => {
@@ -1326,11 +1093,10 @@ function useYtdlpMenus() {
 function VarianteCell({ task, ctx }: { task: Task; ctx: CellContext }) {
   const { toast } = useToast();
   const [busy, setBusy] = useState(false);
-  // One counter each, never one shared between the two pickers: they have their
-  // own handlers and their own endpoints, and a shared nonce would shake the
-  // picker nobody touched.
-  const [shakeQuality, setShakeQuality] = useState(0);
-  const [shakeBitrate, setShakeBitrate] = useState(0);
+  // One counter each, never one shared between the two pickers: a shared nonce
+  // would shake the picker nobody touched.
+  const [shakeFirst, setShakeFirst] = useState(0);
+  const [shakeSecond, setShakeSecond] = useState(0);
   const menus = useYtdlpMenus();
 
   const kind = variantKindOf(task);
@@ -1340,50 +1106,50 @@ function VarianteCell({ task, ctx }: { task: Task; ctx: CellContext }) {
   // Past the collector the pick is settled, so the download list says what is
   // being fetched instead of offering to change it.
   if (ctx.profile === 'downloads') return <VariantSummary task={task} kind={kind} sub={sub} label={label} />;
-  // A video row's own probe (task.availableQualities) narrows the menu to what
-  // this source offers, falling back to the full static menu while nothing has
-  // probed yet, the way every other "empty means no opinion" field here does.
-  // The probe's tracks (task.availableVideoFormats) join the caps, so a
-  // container or a codec can be picked as well as a height. Audio format
-  // narrows the same way: a source is not lossless just because ffmpeg can
-  // wrap its lossy audio in a lossless container, and offering that choice
-  // invites the misunderstanding.
-  const video =
-    kind === 'video'
-      ? videoMenu(task.availableQualities?.length ? task.availableQualities : menus.qualities, task.availableVideoFormats ?? [], ctx.t)
-      : null;
-  const audioFormats =
-    kind === 'audio' ? (task.availableAudioFormats?.length ? task.availableAudioFormats : menus.audioFormats) : null;
-  const options = video ? video.options : audioFormats;
-  const entries = video ? video.entries : audioFormats ? audioMenu(audioFormats) : undefined;
-  // The same narrowing as the format select above, applied to the bitrates.
-  const bitrateOptions = task.availableAudioBitrates?.length ? task.availableAudioBitrates : menus.audioBitrates;
 
-  async function change(value: string) {
+  async function change(opts: { variantQuality: string; audioBitrate?: string }, first: boolean) {
     setBusy(true);
     try {
-      await setTaskOptions([task.id], { variantQuality: value }, ctx.base);
+      await setTaskOptions([task.id], opts, ctx.base);
     } catch (err) {
       // Both halves of GlimStone's failure feedback: the sentence goes to the
       // toast, and the control that was pressed shakes so the refusal is
       // visible where the eye already is.
       toast(err instanceof Error && err.message ? err.message : ctx.t('task.switchFailed'), 'fail');
-      setShakeQuality((n) => n + 1);
+      (first ? setShakeFirst : setShakeSecond)((n) => n + 1);
     } finally {
       setBusy(false);
     }
   }
 
-  async function changeBitrate(value: string) {
-    setBusy(true);
-    try {
-      await setTaskOptions([task.id], { audioBitrate: value }, ctx.base);
-    } catch (err) {
-      toast(err instanceof Error && err.message ? err.message : ctx.t('task.switchFailed'), 'fail');
-      setShakeBitrate((n) => n + 1);
-    } finally {
-      setBusy(false);
-    }
+  // A probe fills the menus with what this source offers. Until one answers,
+  // the full menus stand in, the way every other "empty means no opinion"
+  // field here does, and a format picked from them is a wish the probe
+  // resolves later.
+  let pair: [PickerProps, PickerProps | null] | null = null;
+  if (kind === 'video') {
+    const probed = (task.availableVideoFormats?.length ?? 0) > 0;
+    const p = videoPickers({
+      pick: sub,
+      formats: probed ? task.availableVideoFormats! : menus.videoFormats,
+      tracks: probed ? (task.availableVideoTracks ?? []) : null,
+      caps: task.availableQualities?.length ? task.availableQualities : menus.qualities,
+      t: ctx.t,
+      onPick: (pick, from) => void change({ variantQuality: pick }, from === 'format'),
+    });
+    pair = [p.format, p.quality];
+  } else if (kind === 'audio') {
+    const probed = (task.availableAudioFormats?.length ?? 0) > 0;
+    const p = audioPickers({
+      pick: sub,
+      bitrate: task.audioBitrate ?? '',
+      formats: probed ? task.availableAudioFormats! : menus.audioFormats,
+      tracks: probed ? (task.availableAudioTracks ?? []) : null,
+      conversions: task.availableAudioBitrates?.length ? task.availableAudioBitrates : menus.audioBitrates,
+      t: ctx.t,
+      onPick: (pick, bitrate, from) => void change({ variantQuality: pick, audioBitrate: bitrate }, from === 'format'),
+    });
+    pair = [p.format, p.bitrate];
   }
 
   return (
@@ -1392,50 +1158,23 @@ function VarianteCell({ task, ctx }: { task: Task; ctx: CellContext }) {
     // of two boxes with one letter in each, which is not.
     <span className="flex min-w-0 flex-wrap items-center gap-1.5 text-[11px] text-carbon-textMuted">
       <span className="shrink-0">{label}</span>
-      {options && options.length > 0 && (
-        <VariantPicker
-          value={sub || options[0]}
-          options={options}
-          entries={entries}
-          label={ctx.t('columns.variant.pick')}
-          disabled={busy}
-          render={pickLabel}
-          onPick={(v) => void change(v)}
-          shake={shakeQuality}
-        />
-      )}
-      {/* The audio row's second, independent picker: a bitrate on top of the
-          format above, not a mode of it, and shown alongside the format select
-          rather than replacing it. */}
-      {kind === 'audio' && bitrateOptions.length > 0 && (
-        <VariantPicker
-          value={task.audioBitrate || ''}
-          options={bitrateOptions}
-          label={ctx.t('columns.variant.pickBitrate')}
-          disabled={busy}
-          render={(b) => (b ? `${b} kbit/s` : ctx.t('columns.variant.bitrateAuto'))}
-          onPick={(v) => void changeBitrate(v)}
-          shake={shakeBitrate}
-        />
-      )}
+      {pair && <VariantPicker {...pair[0]} disabled={busy} shake={shakeFirst} />}
+      {pair?.[1] && <VariantPicker {...pair[1]} disabled={busy} shake={shakeSecond} />}
     </span>
   );
 }
 
 /**
  * VariantSummary is the download list's reading of a variant row: which of
- * the link's rows it is and the quality it is fetched at, "Video 1080p mp4
- * (avc1)" or "Audio opus 160 kbit/s". The rows of a link start out under one
- * name, so without it the audio row is one more line with the video's title.
+ * the link's rows it is and what it is fetched as, "Video 1080p60 webm (vp9)"
+ * or "Audio opus 160 kbit/s". The rows of a link start out under one name, so
+ * without it the audio row is one more line with the video's title.
  */
 function VariantSummary({ task, kind, sub, label }: { task: Task; kind: string; sub: string; label: string }) {
+  const { t } = useT();
   let picked = '';
-  if (kind === 'video' || kind === 'audio') picked = pickLabel(sub || 'best');
-  // The bitrate only reaches a conversion; "best" and a picked track are
-  // copied as the source has them, whatever the bitrate picker says.
-  if (kind === 'audio' && sub && sub !== 'best' && !AUDIO_TRACK.test(sub) && task.audioBitrate) {
-    picked = `${picked} ${task.audioBitrate} kbit/s`;
-  }
+  if (kind === 'video') picked = videoSummary(sub, t);
+  if (kind === 'audio') picked = audioSummary(sub, task.audioBitrate ?? '', t);
   return (
     <Tip tip={picked ? `${label} ${picked}` : label} className="block min-w-0 truncate text-[11px] text-carbon-textMuted">
       {label}

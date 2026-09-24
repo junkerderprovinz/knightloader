@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Modal, StyleSheet, Text, View } from 'react-native';
+import { Modal, StyleSheet, View } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useAppearance } from '../theme/AppearanceContext';
 import { TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
 import { GlimButton } from './glim';
 import { Cross } from './IconBadge';
+import { Text } from './Text';
 
 // A full-screen modal scanner rather than a screen of its own: a caller that
 // wants a QR code needs one decoded string back rather than a spot in the

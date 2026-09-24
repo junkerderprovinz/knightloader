@@ -556,13 +556,15 @@ type TaskOptions struct {
 	// AutoExtract is the per-task unpacking switch, read at extraction time, so
 	// turning it on for a finished download unpacks it now.
 	AutoExtract TriBool `json:"autoExtract"`
-	// VariantQuality is the sub-value of a variant row (see variantEncode): the
-	// resolution preset for video, the format for audio. The row's kind is never
-	// edited. An empty string means "no opinion"; nil means leave alone.
+	// VariantQuality is the sub-value of a variant row (see variantEncode): a
+	// height cap or a track for video, a format or a track for audio. The
+	// row's kind is never edited. An empty string means "no opinion"; nil
+	// means leave alone.
 	VariantQuality *string `json:"variantQuality,omitempty"`
-	// AudioBitrate is the audio row's bitrate, a second axis beside the format
-	// in VariantQuality. An empty string means ffmpeg's default; nil means
-	// leave alone.
+	// AudioBitrate is the audio row's bitrate beside a format in
+	// VariantQuality: what a conversion encodes to, or, for a format the source
+	// has, the bitrate whose nearest track the row takes. An empty string
+	// means the best track or ffmpeg's default; nil means leave alone.
 	AudioBitrate *string `json:"audioBitrate,omitempty"`
 }
 
@@ -626,17 +628,20 @@ func (a *App) SetTaskOptions(ids []string, o TaskOptions) error {
 		if o.Chunks != nil {
 			t.Chunks = *o.Chunks
 		}
+		// The bitrate first, since resolving the new pick reads it.
+		if o.AudioBitrate != nil {
+			t.AudioBitrate = strings.TrimSpace(*o.AudioBitrate)
+		}
 		if o.VariantQuality != nil {
 			kind, _ := variantDecode(t.Variant)
 			if kind == "" {
 				kind = ytdlp.VariantVideo
 			}
 			t.Variant = variantEncode(kind, strings.TrimSpace(*o.VariantQuality))
+		}
+		if o.VariantQuality != nil || o.AudioBitrate != nil {
 			// A new pick is a different file: its extension and size follow.
 			a.reapplyProbeLocked(t)
-		}
-		if o.AudioBitrate != nil {
-			t.AudioBitrate = strings.TrimSpace(*o.AudioBitrate)
 		}
 		if o.Filename != nil {
 			t.Filename = newName

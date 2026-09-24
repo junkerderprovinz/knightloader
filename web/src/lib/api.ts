@@ -115,17 +115,26 @@ export interface Task {
   /** File extension shown before the download starts, set only where it is
    *  certain ahead of time (see core.Task.Ext). */
   ext?: string;
-  /** Quality presets the probed video offers; absent falls back to the full menu. */
+  /** Height caps the probed video offers for when no format is chosen; absent
+   *  falls back to the full menu. */
   availableQualities?: string[];
-  /** Every distinct video track the probed source offers, as
-   *  "<height>p[<fps>] <container> <codec>" (ytdlp.VideoFormats). */
+  /** The formats the probed video comes in, "best" first, as
+   *  "<container> <codec>" (ytdlp.VideoContainers); absent until a probe answers. */
   availableVideoFormats?: string[];
-  /** The probed source's own audio tracks ("opus 160k") and the formats they
-   *  convert to natively; absent falls back to the full menu. */
+  /** Every distinct video track, as "<height>p[<fps>] <container> <codec>"
+   *  (ytdlp.VideoTracks). The quality picker offers a chosen format's own. */
+  availableVideoTracks?: string[];
+  /** The formats the probed audio comes in, "best" first (ytdlp.AudioFormatsOf);
+   *  absent until a probe answers. */
   availableAudioFormats?: string[];
-  /** Bitrates the probed source's best audio track can support. */
+  /** Every distinct audio track, as "<format> <kbps>k" (ytdlp.AudioTracks). The
+   *  bitrate picker offers a chosen format's own. */
+  availableAudioTracks?: string[];
+  /** Bitrates a conversion may encode to, up to the source's best track. */
   availableAudioBitrates?: string[];
-  /** yt-dlp's --audio-quality, such as "192"; only used when the format transcodes. */
+  /** The bitrate of a format the source has no track in, which is converted
+   *  to (yt-dlp's --audio-quality, such as "192"), or a preset's bitrate no
+   *  probe has matched to a track yet. */
   audioBitrate?: string;
   /** A package the user chose by hand; automatic re-packaging leaves it alone. */
   manualPackage?: boolean;
@@ -777,6 +786,9 @@ export interface ApiOptions {
   scheduleActions: string[];
   cleanupClasses: CleanupClass[];
   ytdlpQualities: string[];
+  /** The video formats a host preset offers, "best" first. Absent on an older
+   *  server. */
+  ytdlpVideoFormats?: string[];
   ytdlpAudioFormats: string[];
   /** The --audio-quality menu; "" means no opinion. */
   ytdlpAudioBitrates: string[];
@@ -1111,10 +1123,12 @@ export interface TaskOptionsPatch {
    *  global setting, so send it only when the user typed it. */
   chunks?: number;
   autoExtract?: boolean | null;
-  /** A video row's resolution preset or an audio row's format. '' means no
-   *  opinion, so send it only when the picker changed. */
+  /** A video row's pick, a height cap or a track, or an audio row's, a format
+   *  or a track (see VariantPicker.tsx). '' means no opinion, so send it only
+   *  when a picker changed. */
   variantQuality?: string;
-  /** The audio row's bitrate on top of the format. '' leaves ffmpeg's default. */
+  /** The audio row's bitrate beside a format it is converted to. '' leaves
+   *  it to the track or to ffmpeg's default. */
   audioBitrate?: string;
 }
 
@@ -1780,8 +1794,9 @@ export interface YtdlpOptions {
   quality: string;
   /** yt-dlp's -f selector, used when quality is 'custom'. */
   customFormat: string;
-  /** yt-dlp's --audio-format ("mp3", "m4a", "opus"), or "best". Read only on
-   *  an audio row. */
+  /** The audio format ("mp3", "m4a", "opus"), or "best". A source's own track
+   *  in it is copied, and only a source without one is converted. Read only
+   *  on an audio row. */
   audioFormat: string;
   /** yt-dlp's --sub-langs ("en,de"); empty defaults to "en". Read only on a
    *  subtitle row. */
@@ -1848,14 +1863,21 @@ export const YTDLP_VARIANT_KINDS = ['video', 'audio', 'thumbnail', 'subtitle', '
 export type YtdlpVariantKind = (typeof YTDLP_VARIANT_KINDS)[number];
 
 /**
- * Which "Variante" rows a host's links start with enabled, and the quality
- * and audio format they start on (ytdlp.HosterPreset). Read and written one
- * host at a time through /api/ytdlp/preset, outside the settings draft.
+ * Which "Variante" rows a host's links start with enabled, and the format and
+ * quality the video and audio rows start on (ytdlp.HosterPreset). Read and
+ * written one host at a time through /api/ytdlp/preset, outside the settings
+ * draft.
  */
 export interface YtdlpHosterPreset {
   variants: YtdlpVariantKind[];
+  /** "best", or a container with its codec ("mp4 avc1"). Absent on a preset
+   *  saved by an older server, which reads as "best". */
+  videoFormat?: string;
+  /** A height cap, the most a video row starts at. */
   quality: string;
   audioFormat: string;
+  /** kbit/s the audio row starts nearest to, '' for its best track. */
+  audioBitrate?: string;
 }
 
 export async function fetchHosterPreset(host: string, base = '/api'): Promise<YtdlpHosterPreset> {
@@ -3355,6 +3377,8 @@ export interface ConnectInfo {
   selfHosted: boolean;
   /** The same three-way answer RelayConfig carries; `selfHosted` cannot say 'off'. */
   relayMode: RelayMode;
+  /** Where the project relay is, whichever relay this instance uses. */
+  projectRelayUrl: string;
 }
 
 export async function fetchConnect(): Promise<ConnectInfo> {

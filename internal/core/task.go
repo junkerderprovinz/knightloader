@@ -370,25 +370,33 @@ type Task struct {
 	// app_ytdlp_variants.go's applyProbeFormats); the backend's real name
 	// supersedes it once the download runs.
 	Ext string `json:"ext,omitempty"`
-	// AvailableQualities narrows the quality picker to what a probed yt-dlp
-	// video source offers. Empty means not probed yet, and the full menu is
-	// shown.
+	// AvailableQualities narrows the quality picker to the height caps a
+	// probed yt-dlp video source offers, for when no format is chosen. Empty
+	// means not probed yet, and the full menu is shown.
 	AvailableQualities []string `json:"availableQualities,omitempty"`
-	// AvailableVideoFormats lists the distinct video tracks a probed source
-	// offers, by height, frame rate, container and codec (see
-	// ytdlp.VideoFormats), for the quality picker beside the height caps.
+	// AvailableVideoFormats lists the containers and codecs a probed source's
+	// video comes in, "best" first (see ytdlp.VideoContainers), for the format
+	// picker. AvailableVideoTracks is every track in them by height, frame rate
+	// and format (see ytdlp.VideoTracks), which the quality picker offers once
+	// a format is chosen.
 	AvailableVideoFormats []string `json:"availableVideoFormats,omitempty"`
-	// AvailableAudioFormats narrows the audio format picker to the source's
-	// own audio tracks (see ytdlp.AudioTracks) and codecs, so a lossy source
-	// is not offered as flac. "best" is always kept; empty falls back to the
-	// full menu.
+	AvailableVideoTracks  []string `json:"availableVideoTracks,omitempty"`
+	// AvailableAudioFormats lists the codecs a probed source's audio comes in,
+	// "best" first (see ytdlp.AudioFormatsOf), so a lossy source is not
+	// offered as flac. Empty falls back to the full menu. AvailableAudioTracks
+	// is every audio track by format and bitrate (see ytdlp.AudioTracks), which
+	// the bitrate picker offers once a format is chosen.
 	AvailableAudioFormats []string `json:"availableAudioFormats,omitempty"`
-	// AvailableAudioBitrates narrows the audio bitrate picker to what the
-	// source's best audio track supports. Empty falls back to the full menu.
+	AvailableAudioTracks  []string `json:"availableAudioTracks,omitempty"`
+	// AvailableAudioBitrates narrows the bitrates a conversion is offered at
+	// to what the source's best audio track supports. Empty falls back to the
+	// full menu.
 	AvailableAudioBitrates []string `json:"availableAudioBitrates,omitempty"`
-	// AudioBitrate is the audio bitrate pick (yt-dlp's --audio-quality, e.g.
-	// "192"). It only matters when AudioFormat asks for a transcode; empty
-	// leaves it to ffmpeg.
+	// AudioBitrate is the bitrate of an audio row whose format the source has
+	// no track in and which is converted to it (yt-dlp's --audio-quality, e.g.
+	// "192"), or a host preset's bitrate the probe has not matched to a track
+	// yet (see ytdlp.ResolveAudioPick). Empty leaves it to the track or to
+	// ffmpeg.
 	AudioBitrate string `json:"audioBitrate,omitempty"`
 	// Category is the id of the settings.Category this link is filed under,
 	// or empty for the instance defaults.

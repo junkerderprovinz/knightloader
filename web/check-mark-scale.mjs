@@ -1,11 +1,11 @@
 // The app's own mark is never drawn larger than the rail draws it.
 //
-// KnightLoader's shield appears in four places, and one of them is the brand:
-// the mark at the top of the sidebar, beside the app's name. The other three,
-// on a card, in a row and in a store tile, repeat an identity already
-// established one column to the left. A repeat that out-sizes the original is a
-// second, louder brand mark on the same screen, and the eye goes to it instead
-// of to the reading the card exists to show.
+// KnightLoader's shield appears in three places, and one of them is the brand:
+// the mark at the top of the sidebar, beside the app's name. The other two, on
+// a card and in a row, repeat an identity already established one column to
+// the left. A repeat that out-sizes the original is a second, louder brand
+// mark on the same screen, and the eye goes to it instead of to the reading
+// the card exists to show.
 //
 // It goes wrong in one direction only, and by request: a card's mark grows a
 // step at a time, each step small and each granted, and nobody reopens
@@ -31,7 +31,7 @@
 // these is `w-auto` or square; `max-h-*`, a clamp rather than a size; whether
 // the rail's own size is right, it being the reference; and a mark drawn by a
 // component in another file or from a class list assembled by a helper, which
-// none of the four call sites does.
+// none of the three call sites does.
 //
 // Run: `node web/check-mark-scale.mjs`.
 import { readdirSync, readFileSync, statSync } from 'node:fs';

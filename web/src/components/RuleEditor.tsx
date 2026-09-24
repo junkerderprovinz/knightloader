@@ -6,7 +6,8 @@ import { useT, type TranslationKey } from '../lib/i18n';
 import type { Category as Drawer } from '../lib/api';
 import { en } from '../lib/locales/en';
 import { IconPlus, IconTrash } from '../lib/icons';
-import { Button, IconBadge, InfoBubble, TextInput } from './ui';
+import { Button, FIELD_BOX, IconBadge, InfoBubble, TextInput } from './ui';
+import { Dropdown } from './Dropdown';
 import { Tabs } from './Tabs';
 
 // The rule editor, shared by the Packagizer and the link filter, which are one
@@ -551,22 +552,18 @@ function TemplateInput({
         value={value}
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2 text-sm text-carbon-text
-          placeholder:text-carbon-textMuted outline-none transition-shadow
-          focus:shadow-[0_0_0_2px_var(--focus-ring)]"
+        className={`${FIELD_BOX} w-full px-3 text-sm placeholder:text-carbon-textMuted`}
       />
-      {/* Not the shared Button, which is taller than a form control. */}
-      <button
-        type="button"
+      <Button
+        kind="secondary"
+        className="shrink-0"
         onClick={(e) => {
           const r = e.currentTarget.getBoundingClientRect();
           setMenuAt({ x: r.left, y: r.bottom + 4 });
         }}
-        className="shrink-0 rounded-[var(--radius-control)] bg-carbon-surface2 px-2.5 py-2 text-xs font-medium
-          text-carbon-textSub transition-colors select-none hover:bg-carbon-surface3 hover:text-carbon-text"
       >
         {rx('settings.rules.variables')}
-      </button>
+      </Button>
       {menuAt && (
         <VariablesMenu
           rx={rx}
@@ -577,64 +574,6 @@ function TemplateInput({
         />
       )}
     </div>
-  );
-}
-
-/**
- * wheelSteps lets the wheel step a closed <select> one option per notch,
- * clamped at both ends so a condition never jumps to a far field (design rule
- * 14). It is a native listener with `passive: false`, because React registers
- * onWheel passive and preventDefault would not stop the page scrolling.
- * QueueBar.tsx and SearchField.tsx carry the same listener.
- */
-function wheelSteps(el: HTMLSelectElement | null) {
-  if (!el) return;
-  const onWheel = (e: WheelEvent) => {
-    // Only the sign of deltaY counts; trackpads report fractions.
-    if (el.disabled || el.options.length < 2 || e.deltaY === 0) return;
-    e.preventDefault();
-    const next = Math.min(el.options.length - 1, Math.max(0, el.selectedIndex + (e.deltaY > 0 ? 1 : -1)));
-    if (next === el.selectedIndex) return;
-    el.selectedIndex = next;
-    // A real change event, so the element's onChange handles it like a click.
-    el.dispatchEvent(new Event('change', { bubbles: true }));
-  };
-  el.addEventListener('wheel', onWheel, { passive: false });
-  return () => el.removeEventListener('wheel', onWheel);
-}
-
-/**
- * Select is a native dropdown in the settings style. It stays native against
- * design rule 18 until the app has one shared listbox for every picker.
- */
-function Select<T extends string>({
-  value,
-  onChange,
-  options,
-  label,
-  className = '',
-}: {
-  value: T;
-  onChange: (next: T) => void;
-  options: { value: T; label: string }[];
-  label: string;
-  className?: string;
-}) {
-  return (
-    <select
-      ref={wheelSteps}
-      aria-label={label}
-      value={value}
-      onChange={(e) => onChange(e.target.value as T)}
-      className={`glim-select appearance-none pe-6 rounded-[var(--radius-control)] bg-carbon-surface2 px-2.5 py-2 text-sm text-carbon-text
-        outline-none transition-shadow focus:shadow-[0_0_0_2px_var(--focus-ring)] ${className}`}
-    >
-      {options.map((o) => (
-        <option key={o.value} value={o.value}>
-          {o.label}
-        </option>
-      ))}
-    </select>
   );
 }
 
@@ -851,13 +790,15 @@ function ConditionRow({
       }`}
     >
       <div className="flex flex-wrap items-start gap-2">
-        <Select
+        <Dropdown
+          width="widest"
           label={rx('settings.rules.fieldPicker')}
           value={condition.field}
           onChange={pickField}
           options={grammar.fields.map((f) => ({ value: f.id, label: fieldLabel(rx, f.id) }))}
         />
-        <Select
+        <Dropdown
+          width="widest"
           label={rx('settings.rules.opPicker')}
           value={condition.op}
           onChange={(id) => onChange({ ...condition, op: id })}
@@ -902,9 +843,9 @@ function ConditionRow({
 
           {showCategories && (
             <div className="flex flex-wrap items-center gap-2">
-              <Select
+              <Dropdown
+                look="dense"
                 label={rx('settings.rules.category')}
-                className="text-xs"
                 value={category?.id ?? ''}
                 onChange={(id) => {
                   const picked = grammar.categories.find((c) => c.id === id);
@@ -1053,9 +994,8 @@ function ActionField({
   if (action.kind === 'category') {
     const current = value.category ?? '';
     const known = categories.map((c) => ({ value: c.id, label: c.name || c.id }));
-    // A deleted or imported drawer id stays as an option, because a <select>
-    // with an unknown value shows its first option and would silently rewrite
-    // the rule to it.
+    // A deleted or imported drawer id stays as an option, named as missing, so
+    // the rule shows what it points at and the wheel steps from there.
     const options =
       current && !categories.some((c) => c.id === current)
         ? [{ value: current, label: rx('settings.rules.action.categoryMissing', { id: current }) }, ...known]
@@ -1066,7 +1006,7 @@ function ActionField({
         {categories.length === 0 && !current ? (
           <span className="text-xs text-carbon-textSub">{rx('settings.rules.action.categoryNone')}</span>
         ) : (
-          <Select
+          <Dropdown
             value={current}
             // Undefined rather than "", which ValidateCategories would refuse.
             onChange={(next) => onChange({ category: next === '' ? undefined : next })}
@@ -1098,8 +1038,7 @@ function ActionField({
 
 /**
  * Segments is a small segmented choice on a form row, drawn by Tabs' well
- * variant so every horizontal selector is one component. `w-fit` keeps the
- * track hugging its segments.
+ * variant so every horizontal selector is one component.
  */
 export function Segments<T extends string>({
   value,
@@ -1116,7 +1055,6 @@ export function Segments<T extends string>({
     <Tabs
       variant="well"
       size="sm"
-      className="w-fit"
       label={label}
       active={value}
       onSelect={(id) => onChange(id as T)}

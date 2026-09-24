@@ -268,6 +268,38 @@ func featureRow(t *testing.T, a *app.App, id string) Feature {
 	return Feature{}
 }
 
+// TestClickNLoadDetailCarriesACodeAndTheAddress checks that the listener's
+// live line reaches the interface as a value it can word itself, next to the
+// English sentence.
+func TestClickNLoadDetailCarriesACodeAndTheAddress(t *testing.T) {
+	a := testApp(t)
+	port := 9666
+	a.CnLPort = func() int { return port }
+
+	f := featureRow(t, a, "cnl")
+	if f.DetailCode != "cnlListening" || f.DetailArgs["address"] != "127.0.0.1:9666" {
+		t.Errorf("bound listener: code %q, args %v; want cnlListening with 127.0.0.1:9666", f.DetailCode, f.DetailArgs)
+	}
+	if !strings.Contains(f.Detail, "127.0.0.1:9666") {
+		t.Errorf("bound listener: sentence %q does not name the address", f.Detail)
+	}
+
+	port = 0
+	if f := featureRow(t, a, "cnl"); f.DetailCode != "cnlOff" || f.DetailArgs != nil {
+		t.Errorf("closed listener: code %q, args %v; want cnlOff and no values", f.DetailCode, f.DetailArgs)
+	}
+
+	a.CnLPort = nil
+	t.Setenv("KL_CNL", "0")
+	if f := featureRow(t, a, "cnl"); f.DetailCode != "cnlOffByEnv" {
+		t.Errorf("KL_CNL=0 without a live listener: code %q, want cnlOffByEnv", f.DetailCode)
+	}
+	t.Setenv("KL_CNL", "9777")
+	if f := featureRow(t, a, "cnl"); f.DetailCode != "cnlConfigured" || f.DetailArgs["address"] != "127.0.0.1:9777" {
+		t.Errorf("KL_CNL=9777 without a live listener: code %q, args %v; want cnlConfigured with 127.0.0.1:9777", f.DetailCode, f.DetailArgs)
+	}
+}
+
 // TestEnabledIsDerivedNotStored checks that a settings write from outside the
 // switch moves the module row with it.
 func TestEnabledIsDerivedNotStored(t *testing.T) {

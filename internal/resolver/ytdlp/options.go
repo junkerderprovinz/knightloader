@@ -1,6 +1,7 @@
 package ytdlp
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 )
@@ -18,12 +19,15 @@ type Options struct {
 	Variant      Variant `json:"variant"`
 	Quality      Quality `json:"quality"`
 	CustomFormat string  `json:"customFormat"`
-	// VideoFormat is one track a video row picked from its probe (see
-	// VideoFormats), which takes precedence over Quality. It is a task's own
-	// choice and never an instance default, so it has no settings key.
-	VideoFormat string `json:"-"`
-	// AudioFormat is the --audio-format value ("mp3", "m4a", "opus", or
-	// "best" for no transcode), read only for VariantAudio.
+	// VideoPick is one track a video row picked from its probe (see
+	// VideoTracks), or a host preset's container and cap the probe has not
+	// resolved yet (see ResolveVideoPick). It takes precedence over Quality.
+	// It is a task's own choice and never an instance default, so it has no
+	// settings key.
+	VideoPick string `json:"-"`
+	// AudioFormat is the audio row's format ("mp3", "m4a", "opus", or "best"
+	// for whatever the best track is), read only for VariantAudio. A track in
+	// that format is copied, and a source without one is converted to it.
 	AudioFormat string `json:"audioFormat"`
 	// AudioTrack is one track an audio row picked from its probe (see
 	// AudioTracks), copied as it is instead of converted to AudioFormat. Like
@@ -169,12 +173,12 @@ func validVariant(v Variant) bool {
 	return false
 }
 
-// AudioFormats lists the --audio-format values offered on the audio row, in
-// menu order. "best" keeps the source's codec without transcoding and is the
-// default. AvailableAudioFormats narrows the list to what a probed source
-// carries.
+// AudioFormats lists the audio formats the settings and the host presets
+// offer, in menu order. "best" keeps the source's codec without transcoding
+// and is the default. An audio row offers only what its source carries (see
+// AudioFormatsOf). "aac" is not listed, see foldAudioFormat.
 func AudioFormats() []string {
-	return []string{"best", "aac", "alac", "flac", "m4a", "mp3", "opus", "vorbis", "wav"}
+	return []string{"best", "alac", "flac", "m4a", "mp3", "opus", "vorbis", "wav"}
 }
 
 func validAudioFormat(f string) bool {
@@ -223,63 +227,36 @@ func AvailableAudioBitrates(maxAbr float64) []string {
 	return out
 }
 
-// audioFormatsForCodec maps a yt-dlp audio codec id (FormatEntry.Acodec, e.g.
-// "opus", "mp4a.40.2") onto the AudioFormats entries that keep it without
-// re-encoding. AAC is both "m4a" (its container) and "aac" (the raw stream).
-// An unknown codec yields nil.
-func audioFormatsForCodec(acodec string) []string {
-	switch {
-	case strings.HasPrefix(acodec, "mp4a"), strings.HasPrefix(acodec, "aac"):
-		return []string{"m4a", "aac"}
-	case strings.HasPrefix(acodec, "opus"):
-		return []string{"opus"}
-	case strings.HasPrefix(acodec, "mp3"):
-		return []string{"mp3"}
-	case strings.HasPrefix(acodec, "flac"):
-		return []string{"flac"}
-	case strings.HasPrefix(acodec, "vorbis"):
-		return []string{"vorbis"}
-	case strings.HasPrefix(acodec, "alac"):
-		return []string{"alac"}
-	default:
-		return nil
-	}
-}
-
-// AvailableAudioFormats is the subset of AudioFormats matching the codecs a
-// source's audio tracks report, in menu order, with "best" always kept.
-// codecs may repeat and come in any order.
-func AvailableAudioFormats(codecs []string) []string {
-	present := make(map[string]bool, len(codecs))
-	for _, c := range codecs {
-		for _, f := range audioFormatsForCodec(c) {
-			present[f] = true
-		}
-	}
-	out := make([]string, 0, len(present)+1)
-	for _, f := range AudioFormats() {
-		if f == "best" || present[f] {
-			out = append(out, f)
-		}
-	}
-	return out
-}
-
 // HosterPreset is what a person configures once per site (a host string such
-// as "youtube.com"): which variants are staged by default, and the default
-// quality and audio format.
+// as "youtube.com"): which variants are staged by default, and the format and
+// quality the video and audio rows of a new link start with. The probe
+// resolves them against what the link carries (ResolveVideoPick,
+// ResolveAudioPick).
 type HosterPreset struct {
 	// Variants lists which of Variants() are staged enabled by default.
-	Variants    []Variant `json:"variants"`
-	Quality     Quality   `json:"quality"`
-	AudioFormat string    `json:"audioFormat"`
+	Variants []Variant `json:"variants"`
+	// VideoFormat is a container with its codec ("mp4 avc1"), or "best" for
+	// whichever yt-dlp prefers.
+	VideoFormat string  `json:"videoFormat"`
+	Quality     Quality `json:"quality"`
+	AudioFormat string  `json:"audioFormat"`
+	// AudioBitrate is the bitrate in kbit/s the audio row starts nearest to,
+	// empty for the best one. It means nothing with AudioFormat "best".
+	AudioBitrate string `json:"audioBitrate"`
 }
 
 // DefaultHosterPreset enables all variants for an unconfigured host, as JD
 // shows every row it finds; staging only the video would hide that the other
 // rows exist.
 func DefaultHosterPreset() HosterPreset {
-	return HosterPreset{Variants: Variants(), Quality: QualityBest, AudioFormat: "best"}
+	return HosterPreset{Variants: Variants(), VideoFormat: "best", Quality: QualityBest, AudioFormat: "best"}
+}
+
+// PresetVideoFormats lists the video formats a host preset offers, "best"
+// first. A preset is set before any link of the host is probed, so these are
+// the pairs the common sites serve rather than one source's list.
+func PresetVideoFormats() []string {
+	return []string{"best", "mp4 avc1", "mp4 hevc", "mp4 av1", "webm vp9", "webm av1"}
 }
 
 // Sanitize repairs a HosterPreset like Options.Sanitize does, without ever
@@ -294,13 +271,33 @@ func (p HosterPreset) Sanitize() HosterPreset {
 		}
 	}
 	p.Variants = kept
-	if !validQuality(p.Quality) {
+	if !IsVideoContainer(p.VideoFormat) {
+		p.VideoFormat = "best"
+	}
+	if !validQuality(p.Quality) || (p.Quality == QualityCustom && p.VideoFormat != "best") {
+		// A custom format string already says everything a container would.
 		p.Quality = QualityBest
 	}
+	p.AudioFormat = foldAudioFormat(p.AudioFormat)
 	if !validAudioFormat(p.AudioFormat) {
 		p.AudioFormat = "best"
 	}
+	if !validAudioBitrate(p.AudioBitrate) || p.AudioFormat == "best" {
+		p.AudioBitrate = ""
+	}
 	return p
+}
+
+// VideoPick is what a new link's video row stores for this preset: the
+// quality alone, or the container with the quality as its cap.
+func (p HosterPreset) VideoPick() string {
+	if !IsVideoContainer(p.VideoFormat) {
+		return string(p.Quality)
+	}
+	if h, ok := HeightCap(p.Quality); ok {
+		return fmt.Sprintf("%s %dp", p.VideoFormat, h)
+	}
+	return p.VideoFormat
 }
 
 // HasVariant reports whether v is one of this preset's enabled variants.
@@ -356,9 +353,7 @@ func validQuality(q Quality) bool {
 	return false
 }
 
-// heightCaps maps a resolution preset onto yt-dlp's filter syntax. "<=?"
-// keeps formats with an unknown height in the running, where "<=" would drop
-// them.
+// heightCaps maps a resolution preset onto the height capSelector filters by.
 var heightCaps = map[Quality]string{
 	Quality4320p: "4320", Quality2160p: "2160", Quality1440p: "1440", Quality1080p: "1080",
 	Quality720p: "720", Quality480p: "480", Quality360p: "360", Quality240p: "240", Quality144p: "144",
@@ -425,14 +420,15 @@ func (o Options) Sanitize() Options {
 	if !validQuality(o.Quality) {
 		o.Quality = QualityBest
 	}
+	o.AudioFormat = foldAudioFormat(o.AudioFormat)
 	if !validAudioFormat(o.AudioFormat) {
 		o.AudioFormat = "best"
 	}
 	if !validAudioBitrate(o.AudioBitrate) {
 		o.AudioBitrate = ""
 	}
-	if !IsVideoFormat(o.VideoFormat) {
-		o.VideoFormat = ""
+	if !IsVideoPick(o.VideoPick) {
+		o.VideoPick = ""
 	}
 	if !IsAudioTrack(o.AudioTrack) {
 		o.AudioTrack = ""

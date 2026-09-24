@@ -133,6 +133,32 @@ func TestPriorityForLeavesMediaSitesToYtdlp(t *testing.T) {
 	}
 }
 
+// FileHoster answers for exactly the hosts PriorityFor lifts above a plain GET,
+// so the app can keep that GET off them whatever the order says.
+func TestFileHosterMatchesTheHostsJDIsLiftedFor(t *testing.T) {
+	t.Cleanup(func() { SetKnownHosts(nil); SetFileHosts(nil); SetHostActive("login-only.example", false) })
+	SetKnownHosts([]string{"rapidgator.net", "youtube.com"})
+	SetFileHosts(map[string]bool{"rapidgator.net": true})
+	SetHostActive("login-only.example", true)
+
+	for host, want := range map[string]bool{
+		"rapidgator.net":     true,
+		"WWW.Rapidgator.net": true,
+		"login-only.example": true,
+		"youtube.com":        false,
+		"cdn.rapidgator.net": false,
+		"files.example":      false,
+	} {
+		if got := FileHoster(host); got != want {
+			t.Errorf("FileHoster(%q) = %v, want %v", host, got, want)
+		}
+		lifted := PriorityFor("https://"+host+"/f/1") > basePrio
+		if lifted != want {
+			t.Errorf("PriorityFor lifts %q: %v, FileHoster says %v; the two must agree", host, lifted, want)
+		}
+	}
+}
+
 // Without a debrid account or TorBox key nothing classifies hosts, and JD is
 // the only way to fetch from a hoster.
 func TestNoClassificationKeepsTheKnownHostBoost(t *testing.T) {

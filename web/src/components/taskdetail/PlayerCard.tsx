@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { isLocalBase, taskFileURL, type Task, type TaskFileHead } from '../../lib/api';
 import { useT } from '../../lib/i18n';
 import { reachable as taskFileReachable } from '../FileActions';
-import { Button, Card, ErrorCard, InfoBubble, SectionTitle } from '../ui';
+import { Button, Card, ErrorCard, SectionTitle } from '../ui';
 import { playableAs } from './playable';
 
 /**
@@ -94,19 +94,17 @@ export function PlayerCard({
             />
           )}
           <div className="flex items-center gap-2">
-            <Button kind="ghost" onClick={() => setPlaying(false)}>
+            <Button kind="ghost" hint={note || undefined} onClick={() => setPlaying(false)}>
               {t('detail.playClose')}
             </Button>
-            {note && <InfoBubble tip={note} label={t('detail.play')} />}
           </div>
         </div>
       ) : (
         // Disabled rather than hidden, so people learn that playing is possible.
         <div className="flex items-center gap-2">
-          <Button disabled={!ready} onClick={() => setPlaying(true)}>
+          <Button disabled={!ready} hint={note || undefined} onClick={() => setPlaying(true)}>
             {t('detail.play')}
           </Button>
-          {note && <InfoBubble tip={note} label={t('detail.play')} />}
         </div>
       )}
     </Card>

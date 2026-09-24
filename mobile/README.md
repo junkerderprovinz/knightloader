@@ -219,6 +219,15 @@ header on the socket too, not a query parameter. See `src/api/client.ts`'s
   signal is on. `check-hidden-motion-level.mjs` fails if a second reader
   appears.
 
+  The type is Noto Sans, GlimStone's house font, from
+  `@expo-google-fonts/noto-sans` as one static cut per weight (400, 500, 600,
+  700) in `font.ts`, loaded by `expo-font` before the first screen draws.
+  Android cannot pick a weight out of a font loaded at runtime, so
+  `src/components/Text.tsx` wraps `Text` and `TextInput` and trades each
+  style's `fontWeight` for the family of that cut. Screens import those two
+  from there, never from `react-native`; `check-house-font.mjs` fails if one
+  does not.
+
 ## Why the app allows cleartext HTTP
 
 `app.json` sets `expo-build-properties`' `android.usesCleartextTraffic: true`,

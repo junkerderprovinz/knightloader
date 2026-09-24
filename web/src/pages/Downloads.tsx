@@ -4,7 +4,7 @@ import { useTasks } from '../lib/useTasks';
 import { useReportListView } from '../lib/listview';
 import { useT } from '../lib/i18n';
 import { useInstanceScope } from '../lib/instance';
-import { PageHeader, EmptyState, IconBadge, InfoBubble } from '../components/ui';
+import { PageHeader, EmptyState, IconBadge } from '../components/ui';
 import { Tabs } from '../components/Tabs';
 import {
   TaskListCard,
@@ -419,9 +419,9 @@ export function Downloads() {
                 icon={<IconClose width={16} height={16} />}
                 title={t('views.clearAll')}
                 aria-label={t('views.clearAll')}
+                hint={t('views.clearAllHint')}
                 onClick={narrowing.clearAll}
               />
-              <InfoBubble tip={t('views.clearAllHint')} />
             </>
           )}
 
@@ -521,9 +521,9 @@ export function Downloads() {
                 title={t('cleanup.menu')}
                 aria-label={t('cleanup.menu')}
                 disabled={instance !== ''}
+                hint={instance !== '' ? t('cleanup.localOnly') : undefined}
                 onClick={(e) => void openCleanup(e.currentTarget)}
               />
-              {instance !== '' && <InfoBubble tip={t('cleanup.localOnly')} />}
             </>
           )}
         </div>

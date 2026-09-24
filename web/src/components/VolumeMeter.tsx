@@ -104,8 +104,8 @@ export function VolumeUsageRow() {
 
 /**
  * VolumeMeter is the same reading at shell-bar size, shown only once a cap is
- * set. ShellStrip mounts it for the local instance only, because the
- * federation proxy does not forward /api/stats.
+ * set. The shell bar mounts it under its buttons for the local instance only,
+ * because the federation proxy does not forward /api/stats.
  */
 export function VolumeMeter() {
   const { t } = useT();
@@ -115,7 +115,7 @@ export function VolumeMeter() {
   const filled = Math.min(100, Math.round((usage.used / usage.cap) * 100));
 
   return (
-    // w-full to share an edge with SpeedLimitField above it.
+    // w-full to share both edges with the row of buttons above it.
     <span className="flex w-full flex-col gap-1">
       <span className="flex items-center gap-1.5 text-[11px] text-carbon-textMuted">
         <span

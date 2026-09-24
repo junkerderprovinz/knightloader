@@ -3,12 +3,14 @@ import { createPortal } from 'react-dom';
 import {
   Button,
   Card,
+  FIELD_TRIGGER,
   Field,
   FieldGroup,
   IconBadge,
   SectionTitle,
   TextInput,
 } from '../../components/ui';
+import { Dropdown } from '../../components/Dropdown';
 import { Tabs } from '../../components/Tabs';
 import {
   IconArrowDown,
@@ -673,6 +675,7 @@ function EntryRow({
                 actions={actions}
                 onChange={(a) => onChange({ action: a })}
                 label={actionLabel}
+                caption={t('settings.schedule.action')}
               />
             </Field>
           </div>
@@ -714,28 +717,24 @@ function ActionSelect({
   actions,
   onChange,
   label,
+  caption,
 }: {
   value: ScheduleAction;
   actions: ScheduleAction[];
   onChange: (a: ScheduleAction) => void;
   label: (a: ScheduleAction) => string;
+  caption: string;
 }) {
   // A value the menu does not list stays an option of its own rather than
   // being swapped for the first known one.
   const options = actions.includes(value) ? actions : [value, ...actions];
   return (
-    <select
+    <Dropdown
+      label={caption}
       value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className="glim-select appearance-none pe-6 w-full rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2 text-sm text-carbon-text
-        outline-none transition-shadow focus:shadow-[0_0_0_2px_var(--focus-ring)]"
-    >
-      {options.map((a) => (
-        <option key={a} value={a}>
-          {label(a)}
-        </option>
-      ))}
-    </select>
+      onChange={onChange}
+      options={options.map((a) => ({ value: a, label: label(a) }))}
+    />
   );
 }
 
@@ -863,11 +862,12 @@ function TimePicker({ value, onChange, label }: { value: string; onChange: (v: s
         aria-expanded={open}
         aria-label={label}
         onClick={toggle}
-        // The size of the field it replaces.
-        className="glim-num w-full rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-1.5 text-start text-sm
-          text-carbon-text outline-none transition-shadow focus:shadow-[0_0_0_2px_var(--focus-ring)]"
+        // A field like the name and the dropdown beside it, and the clock says
+        // what opens.
+        className={`${FIELD_TRIGGER} glim-num flex w-full items-center gap-2 ps-3 pe-2.5 text-start text-sm`}
       >
-        {shown}
+        <span className="min-w-0 flex-1">{shown}</span>
+        <IconClock width={16} height={16} className="shrink-0 text-carbon-textSub" />
       </button>
       {open &&
         createPortal(
@@ -1053,7 +1053,6 @@ function DayPicker({
         select="one"
         variant="well"
         size="sm"
-        className="w-fit"
         label={t('settings.schedule.days')}
         active={mode}
         onSelect={(id) => {
@@ -1071,7 +1070,6 @@ function DayPicker({
           select="many"
           variant="well"
           size="sm"
-          className="w-fit"
           label={t('settings.schedule.days')}
           active={chosen}
           onSelect={(id) => {
@@ -1086,8 +1084,8 @@ function DayPicker({
 }
 
 /**
- * RateField keeps the typed amount in local state, like QueueBar's speed
- * field, so switching the unit does not rewrite the number being typed.
+ * RateField keeps the typed amount in local state, so switching the unit does
+ * not rewrite the number being typed.
  */
 function RateField({
   value,
@@ -1119,19 +1117,13 @@ function RateField({
         onChange={(e) => setText(e.target.value)}
         onBlur={() => commit(text, unit)}
       />
-      <select
+      <Dropdown
+        look="dense"
+        label={unitLabel}
         value={unit}
-        aria-label={unitLabel}
-        onChange={(e) => commit(text, e.target.value as RateUnit)}
-        className="glim-select appearance-none pe-6 rounded-[var(--radius-control)] bg-carbon-surface2 px-2 py-2 text-sm text-carbon-text
-          outline-none transition-shadow focus:shadow-[0_0_0_2px_var(--focus-ring)]"
-      >
-        {RATE_UNITS.map((u) => (
-          <option key={u.label} value={u.label}>
-            {u.label}
-          </option>
-        ))}
-      </select>
+        onChange={(u) => commit(text, u)}
+        options={RATE_UNITS.map((u) => ({ value: u.label, label: u.label }))}
+      />
     </div>
   );
 }

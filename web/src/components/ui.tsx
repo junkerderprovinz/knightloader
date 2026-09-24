@@ -75,6 +75,7 @@ export function Button({
   labelled,
   keyControl = false,
   title,
+  hint,
   ...rest
 }: {
   kind?: ButtonKind;
@@ -82,8 +83,8 @@ export function Button({
   hue?: number;
   /**
    * Opts a glyph-only button into the Beschriftung setting; see IconBadge's own
-   * `labelled`. Used by the head card's transport buttons, which have a title
-   * and no children.
+   * `labelled`. Used by the windows' way out, which has a title and no
+   * children.
    */
   labelled?: boolean;
   /**
@@ -93,6 +94,12 @@ export function Button({
    * cannot set for its parent.
    */
   keyControl?: boolean;
+  /**
+   * What the button does beyond its label, as an (i) inside the button; see
+   * HintSlot. A button showing its glyph alone has no room for one, so there
+   * the explanation follows the name in the button's own bubble.
+   */
+  hint?: string;
 } & ButtonHTMLAttributes<HTMLButtonElement>) {
   useRainbow();
   const labelMode = useNavLabels();
@@ -104,34 +111,106 @@ export function Button({
   const hideIcon = labelled && labelMode === 'text' && !!fallback;
   const iconOnly = !!icon && !body;
   const hued = hue !== undefined;
+  const hueCss = hued ? (hueVars(rainbowAt(hue)) as CSSProperties) : undefined;
+  const slotted = !!hint && !iconOnly;
   // One control, one tooltip mechanism: `title` is pulled out of the props so
   // it never reaches the element, and the house bubble is the only one left.
   // Passed through, it showed the operating system's own box at the pointer
   // while the badge beside it showed the bubble at the trigger.
-  const tip = useTooltip<HTMLButtonElement>(title, !!rest.disabled);
+  const tip = useTooltip<HTMLButtonElement>(
+    hint && !slotted ? <NamedHint name={title} hint={hint} /> : title,
+    !!rest.disabled,
+  );
   // A <button> already has a role and a tab stop, and the "note" role would
   // tell a screen reader this is a description rather than a control.
   const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
+  const button = (
+    <button
+      className={`inline-flex items-center justify-center gap-2 rounded-[var(--radius-control)] text-sm font-medium
+        transition duration-150 select-none disabled:opacity-35 disabled:pointer-events-none
+        motion-safe:active:scale-[.98] ${keyControl ? 'glim-btn-key' : BTN_H}
+        ${iconOnly ? (keyControl ? 'w-[var(--btn-h-key)] px-0' : 'w-[var(--btn-h)] px-0') : 'px-3.5'}
+        ${glyphSize(iconOnly ? 'square' : 'besideWords', keyControl ? 'key' : 'btn')}
+        ${hued ? 'glim-hue bg-accent text-accentContrast hover:opacity-90' : kindClass[kind]} ${className}`}
+      style={hueCss}
+      // `title` never reaches the DOM, so a glyph-only button states its name
+      // here. Before the spread, so a call site's own aria-label still wins.
+      aria-label={iconOnly && title ? title : undefined}
+      {...(title ? tipHoverProps : undefined)}
+      {...rest}
+    >
+      {!hideIcon && icon}
+      {body}
+      {slotted && HINT_SLOT}
+    </button>
+  );
   return (
     <>
-      <button
-        className={`inline-flex items-center justify-center gap-2 rounded-[var(--radius-control)] text-sm font-medium
-          transition duration-150 select-none disabled:opacity-35 disabled:pointer-events-none
-          motion-safe:active:scale-[.98] ${keyControl ? 'glim-btn-key' : BTN_H}
-          ${iconOnly ? (keyControl ? 'w-[var(--btn-h-key)] px-0' : 'w-[var(--btn-h)] px-0') : 'px-3.5'}
-          ${glyphSize(iconOnly ? 'square' : 'besideWords', keyControl ? 'key' : 'btn')}
-          ${hued ? 'glim-hue bg-accent text-accentContrast hover:opacity-90' : kindClass[kind]} ${className}`}
-        style={hued ? (hueVars(rainbowAt(hue)) as CSSProperties) : undefined}
-        // `title` never reaches the DOM, so a glyph-only button states its name
-        // here. Before the spread, so a call site's own aria-label still wins.
-        aria-label={iconOnly && title ? title : undefined}
-        {...(title ? tipHoverProps : undefined)}
-        {...rest}
-      >
-        {!hideIcon && icon}
-        {body}
-      </button>
+      {slotted ? (
+        <HintSlot tip={hint} label={title} ink={hued ? 'text-accentContrast' : kindInk[kind]} end="end-3.5" hueCss={hueCss}>
+          {button}
+        </HintSlot>
+      ) : (
+        button
+      )}
       {title && tip.node}
+    </>
+  );
+}
+
+/** The ink of each kind, for the (i) HintSlot lays over the button. */
+const kindInk: Record<ButtonKind, string> = {
+  primary: 'text-accentContrast',
+  secondary: 'text-carbon-text',
+  ghost: 'text-carbon-textSub',
+};
+
+/** The empty end of a button that HintSlot lays its (i) over, as wide as the glyph. */
+const HINT_SLOT = <span aria-hidden className="w-[15px] shrink-0" />;
+
+/**
+ * HintSlot puts a button's (i) inside the button's box but not inside the
+ * <button>. Nested, it would be an interactive element inside another, a press
+ * on it would press the button, and a disabled button takes no hover, which
+ * would silence the explanation in the state that most needs it. Laid over the
+ * slot the button keeps free at its end instead, it keeps its own tab stop and
+ * its full strength while the button is dimmed.
+ *
+ * `ink` is the button's text colour and `hueCss` its palette position: the (i)
+ * takes its colour from the button, which as a sibling it cannot inherit.
+ */
+function HintSlot({
+  tip,
+  label,
+  ink,
+  end,
+  hueCss,
+  children,
+}: {
+  tip: string;
+  label?: string;
+  ink: string;
+  /** The button's end padding, which the (i) sits inside. */
+  end: string;
+  hueCss?: CSSProperties;
+  children: ReactNode;
+}) {
+  return (
+    <span className={`relative inline-flex ${hueCss ? 'glim-hue' : ''}`} style={hueCss}>
+      {children}
+      <span className={`pointer-events-none absolute inset-y-0 flex items-center ${end} ${ink}`}>
+        <InfoBubble tip={tip} label={label} onColor className="pointer-events-auto" />
+      </span>
+    </span>
+  );
+}
+
+/** The bubble of a glyph-only button with a hint: its name, then the explanation. */
+function NamedHint({ name, hint }: { name?: string; hint: string }) {
+  return (
+    <>
+      {name && <span className="block font-medium">{name}</span>}
+      <span className="block">{hint}</span>
     </>
   );
 }
@@ -241,6 +320,7 @@ export function IconBadge({
   className = '',
   style,
   title,
+  hint,
   ...rest
 }: {
   icon: ReactNode;
@@ -268,6 +348,12 @@ export function IconBadge({
    * wall of boxes rather than as the row's own actions. See .glim-badge-quiet.
    */
   quiet?: boolean;
+  /**
+   * What the badge does beyond its name. Beside words it is an (i) inside the
+   * badge, as on Button; a square has no room for one, so there it follows the
+   * name in the badge's bubble.
+   */
+  hint?: string;
 } & ButtonHTMLAttributes<HTMLButtonElement>) {
   useRainbow();
   const hued = hue !== undefined;
@@ -280,39 +366,69 @@ export function IconBadge({
   // opted in and carries no title would otherwise render as an empty box with
   // its accessible name intact.
   const showIcon = !(labelMode === 'text' && showText);
+  const slotted = !!hint && showText;
+  // A disabled button fires no pointer events, so the bubble of a square that
+  // explains why it is disabled is held by a box around it instead, which
+  // also gives the keyboard a stop to read it from.
+  const boxed = !!hint && !showText && !!rest.disabled;
   // The house bubble rather than the native `title`, fixed at the root so the
   // call sites pick it up without changing.
-  const tip = useTooltip<HTMLButtonElement>(title, !!rest.disabled);
+  const tip = useTooltip<HTMLButtonElement>(
+    hint && !slotted ? <NamedHint name={title} hint={hint} /> : title,
+    !!rest.disabled,
+  );
   // triggerProps was built for InfoBubble's otherwise-inert <div>, which needs
   // a role and a tab stop to be reachable at all. A button has both already,
   // and the "note" role would take these badges' click semantics away from a
   // screen reader.
   const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
+  const button = (
+    <button
+      type="button"
+      aria-pressed={active}
+      // A badge showing text is no longer square: it keeps its height and
+      // takes the width its words need, so the width, the padding and the
+      // glyph size all fork on that.
+      className={`flex ${BTN_H} shrink-0 items-center justify-center gap-1.5 rounded-[var(--radius-control)]
+        transition duration-150 select-none disabled:opacity-35 disabled:pointer-events-none
+        motion-safe:active:scale-[.98]
+        ${showText ? `px-2.5 text-xs font-medium ${GLYPH_20}` : `w-[var(--btn-h)] ${GLYPH_16}`}
+        ${hued ? (toggle ? 'glim-hue' : 'glim-tint-badge') : ''} ${quiet ? 'glim-badge-quiet' : ''}
+        ${toggle && active ? 'glim-active bg-accent text-accentContrast hover:opacity-90' : iconBadgeClass} ${className}`}
+      style={hued ? { ...(hueVars(rainbowAt(hue)) as CSSProperties), ...style } : style}
+      // `title` is pulled out for the bubble and never reaches the DOM, so it
+      // cannot act as the accessible name the way a native tooltip does.
+      // Before the spread, so a call site's own aria-label still wins.
+      aria-label={!showText && title ? title : undefined}
+      {...(title && !boxed ? tipHoverProps : undefined)}
+      {...rest}
+    >
+      {showIcon && icon}
+      {showText && <span className="whitespace-nowrap">{title}</span>}
+      {slotted && HINT_SLOT}
+    </button>
+  );
+  let shown: ReactNode = button;
+  if (slotted) {
+    shown = (
+      <HintSlot tip={hint} label={title} ink="text-carbon-textSub" end="end-2.5">
+        {button}
+      </HintSlot>
+    );
+  } else if (boxed) {
+    shown = (
+      <span
+        {...tip.triggerProps}
+        ref={tip.triggerProps.ref as unknown as RefObject<HTMLSpanElement | null>}
+        className="inline-flex shrink-0 rounded-[var(--radius-control)]"
+      >
+        {button}
+      </span>
+    );
+  }
   return (
     <>
-      <button
-        type="button"
-        aria-pressed={active}
-        // A badge showing text is no longer square: it keeps its height and
-        // takes the width its words need, so the width, the padding and the
-        // glyph size all fork on that.
-        className={`flex ${BTN_H} shrink-0 items-center justify-center gap-1.5 rounded-[var(--radius-control)]
-          transition duration-150 select-none disabled:opacity-35 disabled:pointer-events-none
-          motion-safe:active:scale-[.98]
-          ${showText ? `px-2.5 text-xs font-medium ${GLYPH_20}` : `w-[var(--btn-h)] ${GLYPH_16}`}
-          ${hued ? (toggle ? 'glim-hue' : 'glim-tint-badge') : ''} ${quiet ? 'glim-badge-quiet' : ''}
-          ${toggle && active ? 'glim-active bg-accent text-accentContrast hover:opacity-90' : iconBadgeClass} ${className}`}
-        style={hued ? { ...(hueVars(rainbowAt(hue)) as CSSProperties), ...style } : style}
-        // `title` is pulled out for the bubble and never reaches the DOM, so it
-        // cannot act as the accessible name the way a native tooltip does.
-        // Before the spread, so a call site's own aria-label still wins.
-        aria-label={!showText && title ? title : undefined}
-        {...(title ? tipHoverProps : undefined)}
-        {...rest}
-      >
-        {showIcon && icon}
-        {showText && <span className="whitespace-nowrap">{title}</span>}
-      </button>
+      {shown}
       {title && tip.node}
     </>
   );
@@ -740,22 +856,41 @@ export function hueStyle(index: number | undefined): CSSProperties {
   return hueVars(rainbowAt(index)) as CSSProperties;
 }
 
-// `py-1.5`: a 14px line box is 20px tall, plus 12px of padding, which is the
-// 2rem `--btn-h` names, so a field and the buttons beside it measure the same.
-// Written as padding rather than as a height because TextArea shares this
-// string and a textarea has to be able to grow.
-const inputClass =
-  'w-full rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-1.5 text-sm text-carbon-text ' +
-  'placeholder:text-carbon-textMuted outline-none transition-shadow ' +
+/**
+ * The look every field shares: the text field, the number field, the dropdown
+ * and the time picker's trigger. One fill, no border, the focus ring as the
+ * only edge (GlimStone rule 14), so two of them side by side cannot differ in
+ * anything but their content. `glim-field` is how index.css finds them inside a
+ * well, where the fill moves one step up the ramp to stay visible.
+ */
+const FIELD_LOOK =
+  'glim-field rounded-[var(--radius-control)] bg-carbon-surface2 text-carbon-text outline-none transition-shadow ' +
   'focus:shadow-[0_0_0_2px_var(--focus-ring)]';
+
+/**
+ * A one-line field, or a control standing in for one, at `--btn-h`: the height
+ * of every button beside it (rule 19), whatever it holds.
+ */
+export const FIELD_BOX = `${FIELD_LOOK} h-[var(--btn-h)]`;
+
+/**
+ * A field trigger opens something rather than taking text, so unlike a text
+ * field it answers the pointer, one step up the ramp from its fill (rule 21).
+ * index.css repeats the step for a trigger inside a well.
+ */
+export const FIELD_TRIGGER = `${FIELD_BOX} cursor-pointer hover:bg-carbon-surface3 disabled:pointer-events-none disabled:opacity-40`;
+
+const inputClass = `${FIELD_LOOK} w-full px-3 py-1.5 text-sm placeholder:text-carbon-textMuted`;
 
 // className is pulled out and merged rather than left in `props`: a JSX spread
 // applies later props last, so a caller's own className would replace the base
 // look (padding, background, focus ring) instead of extending it.
 export function TextInput({ className = '', ...props }: InputHTMLAttributes<HTMLInputElement>) {
-  return <input className={`${inputClass} ${className}`} {...props} />;
+  return <input className={`${inputClass} h-[var(--btn-h)] ${className}`} {...props} />;
 }
 
+// The padding gives a textarea its first line at a field's height and lets it
+// grow from there, which a fixed height would not.
 export function TextArea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
   return <textarea className={`${inputClass} resize-y`} {...props} />;
 }
@@ -868,7 +1003,7 @@ export function NumberInput({
       <input
         ref={field}
         type="number"
-        className={`${inputClass} glim-num glim-num-hide-spin pr-7 ${className}`}
+        className={`${inputClass} h-[var(--btn-h)] glim-num glim-num-hide-spin pr-7 ${className}`}
         value={value}
         min={min}
         max={max}
@@ -1032,7 +1167,8 @@ export function ToggleRow({
   hue,
 }: {
   label: string;
-  hint?: string;
+  /** The (i) text. Several strings are paragraphs of one bubble, such as an explanation and a live reading. */
+  hint?: string | string[];
   checked: boolean;
   onChange: (v: boolean) => void;
   /**
@@ -1048,6 +1184,7 @@ export function ToggleRow({
    *  with nothing beside it to distinguish. */
   hue?: number;
 }) {
+  const paragraphs = (typeof hint === 'string' ? [hint] : (hint ?? [])).filter(Boolean);
   return (
     <div className={`flex items-center justify-between gap-4 ${disabled ? 'pointer-events-none' : ''}`}>
       {/* The dimming is on the parts, never on the row: `opacity` composites a
@@ -1060,7 +1197,22 @@ export function ToggleRow({
           every switch but never scroll to it. */}
       <span data-glim-label={label} className="pointer-events-auto flex items-center gap-1.5 text-sm text-carbon-text">
         <span className={disabled ? 'opacity-40' : ''}>{label}</span>
-        {hint && <InfoBubble tip={hint} />}
+        {paragraphs.length > 0 && (
+          <InfoBubble
+            tip={
+              paragraphs.length === 1 ? (
+                paragraphs[0]
+              ) : (
+                <span className="flex flex-col gap-1.5">
+                  {paragraphs.map((p) => (
+                    <span key={p}>{p}</span>
+                  ))}
+                </span>
+              )
+            }
+            label={paragraphs.join(' ')}
+          />
+        )}
       </span>
       <span className={`flex ${disabled ? 'opacity-40' : ''}`}>
         <Toggle hideLabel label={label} checked={checked} onChange={onChange} hue={hue} />
@@ -1354,10 +1506,18 @@ export function Modal({
   children,
   footer,
   mute,
+  hue,
 }: {
   title: string;
   onClose: () => void;
   children: ReactNode;
+  /**
+   * The palette position of the card that opened this window, as Card takes
+   * it, so its badge and buttons wear that card's colour. A window rendered
+   * inside a hued card inherits it without this; one rendered beside the
+   * cards needs it said.
+   */
+  hue?: number;
   /**
    * The answers, built by the caller: this window has no confirm/cancel pair of
    * its own. One of them is always the way out (GlimStone rule 15): a
@@ -1378,6 +1538,7 @@ export function Modal({
   const { t } = useT();
   const dialogs = useDialogMute();
   const titleId = useId();
+  useRainbow();
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -1401,7 +1562,8 @@ export function Modal({
           every other animation in the app and stops with them under reduced
           motion. Two windows in one app must not arrive in two ways. */}
       <div
-        className="glim-card glim-modal-card w-full max-w-md p-5 flex flex-col gap-5"
+        className={`glim-card ${hue !== undefined ? 'glim-hue ' : ''}glim-modal-card w-full max-w-md p-5 flex flex-col gap-5`}
+        style={hue !== undefined ? (hueVars(rainbowAt(hue)) as CSSProperties) : undefined}
         role="dialog"
         aria-modal="true"
         // The heading IS the window's name, so it is pointed at rather than

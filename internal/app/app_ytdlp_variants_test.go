@@ -545,11 +545,10 @@ func TestApplyProbeFormatsSetsBestAudioExtAndSize(t *testing.T) {
 	}
 }
 
-// The audio menu offers only what the source carries: its own track by codec
-// and bitrate, then the formats that track converts to without re-encoding. An
-// AAC track (mp4a.40.2) maps to both native readings, "m4a" and "aac"; "best"
-// is always kept, and transcode targets such as flac do not appear.
-func TestApplyProbeFormatsSetsAvailableAudioFormats(t *testing.T) {
+// The audio row offers the formats the source carries, "best" first, and the
+// tracks in them for the bitrate beside the format. Transcode targets such as
+// flac do not appear.
+func TestApplyProbeFormatsSetsTheAudioFormatsAndTracks(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
 	const url = "https://youtube.com/watch?v=formats0001"
 	family := putYtdlpFamily(t, a, url, nil)
@@ -557,16 +556,11 @@ func TestApplyProbeFormatsSetsAvailableAudioFormats(t *testing.T) {
 	a.applyProbeFormats(url, testProbeFormats)
 
 	live := snapshot(t, a, family[ytdlp.VariantAudio].ID)
-	want := []string{"best", "m4a 129k", "aac", "m4a"}
-	got := live.AvailableAudioFormats
-	if len(got) != len(want) {
-		t.Fatalf("AvailableAudioFormats = %v, want %v", got, want)
+	if want := []string{"best", "m4a"}; !stringSlicesEqual(live.AvailableAudioFormats, want) {
+		t.Errorf("AvailableAudioFormats = %v, want %v", live.AvailableAudioFormats, want)
 	}
-	for i := range want {
-		if got[i] != want[i] {
-			t.Errorf("AvailableAudioFormats = %v, want %v", got, want)
-			break
-		}
+	if want := []string{"m4a 129k"}; !stringSlicesEqual(live.AvailableAudioTracks, want) {
+		t.Errorf("AvailableAudioTracks = %v, want %v", live.AvailableAudioTracks, want)
 	}
 }
 
@@ -669,6 +663,8 @@ func TestApplyProbeFormatsConstrainsVideoAvailableQualities(t *testing.T) {
 }
 
 // The size estimate follows the row's picked quality, not the tallest track.
+// yt-dlp's bestvideo takes video-only tracks alone, so under a 360p cap it
+// merges the 144p one with the audio rather than taking the pre-muxed 360p.
 func TestApplyProbeFormatsSetsVideoSizeAtItsOwnQualityCap(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
 	const url = "https://youtube.com/watch?v=size0002"
@@ -677,8 +673,8 @@ func TestApplyProbeFormatsSetsVideoSizeAtItsOwnQualityCap(t *testing.T) {
 	a.applyProbeFormats(url, testProbeFormats)
 
 	live := snapshot(t, a, family[ytdlp.VariantVideo].ID)
-	if live.Size != 8388608 {
-		t.Errorf("360p-capped video row Size = %d, want the 360p track's own size %d, not the 1080p track's", live.Size, 8388608)
+	if want := int64(195278 + 3145728); live.Size != want {
+		t.Errorf("360p-capped video row Size = %d, want %d for the 144p track and the audio, not the 1080p track's", live.Size, want)
 	}
 }
 
@@ -829,19 +825,22 @@ func TestAResolvedExtensionSurvivesTheFixedTable(t *testing.T) {
 	}
 }
 
-// The video row offers every distinct track beside the height caps, so a
-// container or codec can be picked, not only a height.
-func TestApplyProbeFormatsListsEveryVideoTrack(t *testing.T) {
+// The video row offers the formats its tracks come in and every distinct
+// track beside the height caps, so a container or codec can be picked, not
+// only a height.
+func TestApplyProbeFormatsListsTheVideoFormatsAndTracks(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
 	const url = "https://youtube.com/watch?v=tracks0001"
 	family := putYtdlpFamily(t, a, url, nil)
 
 	a.applyProbeFormats(url, testProbeFormats)
 
-	got := snapshot(t, a, family[ytdlp.VariantVideo].ID).AvailableVideoFormats
-	want := []string{"1080p mp4 avc1", "360p mp4 avc1", "144p mp4 avc1"}
-	if !stringSlicesEqual(got, want) {
-		t.Errorf("AvailableVideoFormats = %v, want %v", got, want)
+	live := snapshot(t, a, family[ytdlp.VariantVideo].ID)
+	if want := []string{"best", "mp4 avc1"}; !stringSlicesEqual(live.AvailableVideoFormats, want) {
+		t.Errorf("AvailableVideoFormats = %v, want %v", live.AvailableVideoFormats, want)
+	}
+	if want := []string{"1080p mp4 avc1", "360p mp4 avc1", "144p mp4 avc1"}; !stringSlicesEqual(live.AvailableVideoTracks, want) {
+		t.Errorf("AvailableVideoTracks = %v, want %v", live.AvailableVideoTracks, want)
 	}
 }
 
@@ -868,8 +867,8 @@ func TestPickingAVideoTrackGivesTheRowThatTracksFile(t *testing.T) {
 		t.Errorf("360p mp4 avc1: Ext %q Size %d, want mp4 and the pre-muxed track's 8388608", got.Ext, got.Size)
 	}
 	// Video-only at 1080p, merged with the m4a track into its own mp4.
-	if got := pick("1080p mp4 avc1"); got.Ext != "mp4" || got.Size != 52428800 {
-		t.Errorf("1080p mp4 avc1: Ext %q Size %d, want mp4 and the 1080p track's 52428800", got.Ext, got.Size)
+	if got := pick("1080p mp4 avc1"); got.Ext != "mp4" || got.Size != 52428800+3145728 {
+		t.Errorf("1080p mp4 avc1: Ext %q Size %d, want mp4 and the 1080p track and the audio together", got.Ext, got.Size)
 	}
 	if got := pick("best"); got.Ext != "mkv" {
 		t.Errorf("best: Ext %q, want mkv for the merge", got.Ext)
@@ -910,13 +909,193 @@ func TestAPickReachesYtdlpAsTheKindOfPickItIs(t *testing.T) {
 	})
 	capped := putTask(t, a, core.Task{URL: url + "x", Status: core.StatusCollected, Enabled: true, Variant: "video:720p"})
 
-	if o := a.ytdlpOptionsForTask(family[ytdlp.VariantVideo].ID); o.VideoFormat != "1080p60 webm vp9" {
-		t.Errorf("video row VideoFormat = %q, want the picked track", o.VideoFormat)
+	if o := a.ytdlpOptionsForTask(family[ytdlp.VariantVideo].ID); o.VideoPick != "1080p60 webm vp9" {
+		t.Errorf("video row VideoPick = %q, want the picked track", o.VideoPick)
 	}
 	if o := a.ytdlpOptionsForTask(family[ytdlp.VariantAudio].ID); o.AudioTrack != "opus 160k" || o.AudioFormat == "opus 160k" {
 		t.Errorf("audio row AudioTrack = %q AudioFormat = %q, want the track as a track", o.AudioTrack, o.AudioFormat)
 	}
-	if o := a.ytdlpOptionsForTask(capped.ID); o.Quality != ytdlp.Quality720p || o.VideoFormat != "" {
-		t.Errorf("capped row Quality = %q VideoFormat = %q, want the 720p cap and no track", o.Quality, o.VideoFormat)
+	if o := a.ytdlpOptionsForTask(capped.ID); o.Quality != ytdlp.Quality720p || o.VideoPick != "" {
+		t.Errorf("capped row Quality = %q VideoPick = %q, want the 720p cap and no track", o.Quality, o.VideoPick)
+	}
+}
+
+// rowByKind is the family row of one kind, copied under a.mu.
+func rowByKind(t *testing.T, a *App, url string, kind ytdlp.Variant) core.Task {
+	t.Helper()
+	for _, x := range tasksSharingURL(a, url) {
+		if k, _ := variantDecode(x.Variant); k == kind {
+			return x
+		}
+	}
+	t.Fatalf("no %q row for %s", kind, url)
+	return core.Task{}
+}
+
+// A host preset's formats reach a new link's rows before anything is known
+// about the link, and yt-dlp is asked for them as they are.
+func TestAPresetsFormatsReachANewLinkBeforeItsProbeAnswers(t *testing.T) {
+	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+	release := make(chan struct{})
+	t.Cleanup(func() { close(release) })
+	wireYtdlp(a, blockingYtdlpBackend{title: "Some Video", release: release})
+	if err := a.SetHosterPreset("youtube.com", ytdlp.HosterPreset{
+		Variants:    ytdlp.Variants(),
+		VideoFormat: "mp4 avc1", Quality: ytdlp.Quality720p,
+		AudioFormat: "m4a", AudioBitrate: "128",
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	const url = "https://youtube.com/watch?v=presetfmt01"
+	a.AddLinks([]string{url}, "")
+	waitFor(t, "expandYtdlpVariants to add the four sibling rows", func() bool {
+		return len(tasksSharingURL(a, url)) == 5
+	})
+
+	video, audio := rowByKind(t, a, url, ytdlp.VariantVideo), rowByKind(t, a, url, ytdlp.VariantAudio)
+	if video.Variant != "video:mp4 avc1 720p" {
+		t.Errorf("video row Variant = %q, want the preset's container capped at its quality", video.Variant)
+	}
+	if audio.Variant != "audio:m4a" || audio.AudioBitrate != "128" || audio.Ext != "m4a" {
+		t.Errorf("audio row = %q at %q kbit/s, Ext %q; want the preset's m4a at 128 and its extension",
+			audio.Variant, audio.AudioBitrate, audio.Ext)
+	}
+	if o := a.ytdlpOptionsForTask(video.ID); o.VideoPick != "mp4 avc1 720p" {
+		t.Errorf("VideoPick = %q, want the preset's wish passed on as it is", o.VideoPick)
+	}
+}
+
+// Once the probe answers, the preset's format and quality become the link's
+// own nearest track, and its size is known.
+func TestAProbeTurnsAPresetsFormatsIntoTheLinksTracks(t *testing.T) {
+	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+	fake, _ := newFakeYtdlp()
+	fake.title = "Some Video"
+	fake.formats = testProbeFormats
+	wireYtdlp(a, fake)
+	if err := a.SetHosterPreset("youtube.com", ytdlp.HosterPreset{
+		Variants:    ytdlp.Variants(),
+		VideoFormat: "mp4 avc1", Quality: ytdlp.Quality720p,
+		AudioFormat: "m4a", AudioBitrate: "128",
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	const url = "https://youtube.com/watch?v=presetfmt02"
+	a.AddLinks([]string{url}, "")
+	waitFor(t, "the probe to resolve the video row's pick", func() bool {
+		rows := tasksSharingURL(a, url)
+		return len(rows) == 5 && rowByKind(t, a, url, ytdlp.VariantVideo).Variant != "video:mp4 avc1 720p"
+	})
+
+	// Under 720p the mp4 avc1 tracks are 360p (pre-muxed) and 144p.
+	if video := rowByKind(t, a, url, ytdlp.VariantVideo); video.Variant != "video:360p mp4 avc1" || video.Size != 8388608 {
+		t.Errorf("video row = %q, Size %d; want the 360p track and its 8388608 bytes", video.Variant, video.Size)
+	}
+	if audio := rowByKind(t, a, url, ytdlp.VariantAudio); audio.Variant != "audio:m4a 129k" || audio.AudioBitrate != "" || audio.Size != 3145728 {
+		t.Errorf("audio row = %q at %q, Size %d; want the 129k track, no bitrate of its own, 3145728 bytes",
+			audio.Variant, audio.AudioBitrate, audio.Size)
+	}
+}
+
+// A link without the preset's format keeps the preset's quality on the video
+// row, and its audio is converted to the preset's format.
+func TestAPresetFormatTheLinkLacksFallsBackToTheQuality(t *testing.T) {
+	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+	const url = "https://youtube.com/watch?v=presetfmt03"
+	family := putYtdlpFamily(t, a, url, map[ytdlp.Variant]string{
+		ytdlp.VariantVideo: "webm vp9 1080p",
+		ytdlp.VariantAudio: "opus",
+	})
+	editTask(a, family[ytdlp.VariantAudio].ID, func(x *core.Task) { x.AudioBitrate = "160" })
+
+	a.applyProbeFormats(url, testProbeFormats)
+
+	if video := snapshot(t, a, family[ytdlp.VariantVideo].ID); video.Variant != "video:1080p" {
+		t.Errorf("video row Variant = %q, want the 1080p cap the preset asked for", video.Variant)
+	}
+	audio := snapshot(t, a, family[ytdlp.VariantAudio].ID)
+	if audio.Variant != "audio:opus" || audio.AudioBitrate != "160" || audio.Ext != "opus" || audio.Size != 0 {
+		t.Errorf("audio row = %q at %q, Ext %q, Size %d; want a conversion to opus at 160 of unknown size",
+			audio.Variant, audio.AudioBitrate, audio.Ext, audio.Size)
+	}
+}
+
+// A row saved as "aac" at 128 kbit/s, from the picker that mixed formats and
+// tracks, reads as the m4a track nearest 128 once probed. Choosing the format
+// again with no bitrate then keeps the format's best track rather than being
+// pulled back to the old bitrate.
+func TestAnOldAacRowBecomesTheNearestM4aTrack(t *testing.T) {
+	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+	const url = "https://youtube.com/watch?v=oldaac00001"
+	family := putYtdlpFamily(t, a, url, map[ytdlp.Variant]string{ytdlp.VariantAudio: "aac"})
+	audio := family[ytdlp.VariantAudio].ID
+	editTask(a, audio, func(x *core.Task) { x.AudioBitrate = "128" })
+
+	a.applyProbeFormats(url, testProbeFormats)
+	if got := snapshot(t, a, audio); got.Variant != "audio:m4a 129k" || got.AudioBitrate != "" {
+		t.Errorf("audio row = %q at %q, want m4a 129k with no bitrate of its own", got.Variant, got.AudioBitrate)
+	}
+
+	format, none := "m4a", ""
+	if err := a.SetTaskOptions([]string{audio}, TaskOptions{VariantQuality: &format, AudioBitrate: &none}); err != nil {
+		t.Fatal(err)
+	}
+	if got := snapshot(t, a, audio); got.Variant != "audio:m4a" || got.Size != 3145728 {
+		t.Errorf("audio row = %q, Size %d; want the m4a format's best track, 3145728 bytes", got.Variant, got.Size)
+	}
+}
+
+// youtubeProbe is how a YouTube probe answers since most of its streams moved
+// to HLS: each height is listed first as an HLS copy whose size is only the
+// estimate ProbeTitle made from its bitrate, then as direct downloads with an
+// exact size. format_id marked the av1 and opus pair yt-dlp picks by default.
+var youtubeProbe = []ytdlp.FormatEntry{
+	{FormatID: "140", Ext: "m4a", Vcodec: "none", Acodec: "mp4a.40.2", Abr: 129.502, Filesize: 3449447, Protocol: "https"},
+	{FormatID: "251", Ext: "webm", Vcodec: "none", Acodec: "opus", Abr: 128.93, Filesize: 3433755, Protocol: "https", Default: true},
+	{FormatID: "270", Ext: "mp4", Vcodec: "avc1.640028", Acodec: "none", Height: 1080, FPS: 25, FilesizeApprox: 124814970, Protocol: "m3u8_native"},
+	{FormatID: "137", Ext: "mp4", Vcodec: "avc1.640028", Acodec: "none", Height: 1080, FPS: 25, Filesize: 80911999, Protocol: "https"},
+	{FormatID: "625", Ext: "mp4", Vcodec: "vp09.00.50.08", Acodec: "none", Height: 2160, FPS: 25, FilesizeApprox: 509008150, Protocol: "m3u8_native"},
+	{FormatID: "313", Ext: "webm", Vcodec: "vp9", Acodec: "none", Height: 2160, FPS: 25, Filesize: 358608461, Protocol: "https"},
+	{FormatID: "401", Ext: "mp4", Vcodec: "av01.0.12M.08", Acodec: "none", Height: 2160, FPS: 25, Filesize: 240334643, Protocol: "https", Default: true},
+}
+
+// The collector showed no size for YouTube links: the tallest track it
+// measured was the HLS copy listed first, which reports none, and the audio of
+// the merge was never counted. The size is the pair yt-dlp downloads, and it
+// follows every change of format and quality.
+func TestAYoutubeLinkShowsTheSizeOfWhatItDownloads(t *testing.T) {
+	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+	const url = "https://youtube.com/watch?v=dQw4w9WgXcQ"
+	family := putYtdlpFamily(t, a, url, nil)
+	video, audio := family[ytdlp.VariantVideo].ID, family[ytdlp.VariantAudio].ID
+
+	a.applyProbeFormats(url, youtubeProbe)
+
+	if got := snapshot(t, a, video); got.Ext != "mkv" || got.Size != 240334643+3433755 {
+		t.Errorf("best video: Ext %q Size %d, want mkv and the av1 and opus pair together", got.Ext, got.Size)
+	}
+	if got := snapshot(t, a, audio); got.Ext != "opus" || got.Size != 3433755 {
+		t.Errorf("best audio: Ext %q Size %d, want the opus track yt-dlp picks", got.Ext, got.Size)
+	}
+
+	pick := func(id, v string) core.Task {
+		t.Helper()
+		if err := a.SetTaskOptions([]string{id}, TaskOptions{VariantQuality: &v}); err != nil {
+			t.Fatalf("SetTaskOptions(%q): %v", v, err)
+		}
+		return snapshot(t, a, id)
+	}
+	// The direct download of 1080p mp4 avc1, not its larger HLS estimate,
+	// with the m4a track that keeps the merge in mp4.
+	if got := pick(video, "1080p mp4 avc1"); got.Ext != "mp4" || got.Size != 80911999+3449447 {
+		t.Errorf("1080p mp4 avc1: Ext %q Size %d, want mp4 and %d", got.Ext, got.Size, 80911999+3449447)
+	}
+	if got := pick(video, "2160p mp4 vp9"); got.Size != 509008150+3449447 {
+		t.Errorf("2160p mp4 vp9, only on HLS: Size %d, want its estimate and the audio, %d", got.Size, 509008150+3449447)
+	}
+	if got := pick(audio, "m4a"); got.Ext != "m4a" || got.Size != 3449447 {
+		t.Errorf("m4a: Ext %q Size %d, want the m4a track's 3449447", got.Ext, got.Size)
 	}
 }

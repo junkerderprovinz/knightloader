@@ -41,6 +41,15 @@
 :lang(ko) { --font-cjk: "Noto Sans CJK KR", "Noto Sans KR"; }
 :lang(zh-TW), :lang(zh-Hant) { --font-cjk: "Noto Sans CJK TC", "Noto Sans TC"; }
 
+/* The reference body's rendering and tracking, so the font sets as it does in
+   the web UI. The tighter spacing suits Latin and crowds CJK, which is set in
+   full-width cells. */
+body {
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: -0.008em;
+}
+:lang(ja), :lang(zh), :lang(ko) { letter-spacing: normal; }
+
 :root[data-shape="soft"] {
   --radius-card: 0.5rem;
   --radius-control: 0.3125rem;

@@ -116,11 +116,15 @@ export function StartupReportCard({ hue, report }: { hue: number; report: Startu
       {nothingWrong && <span className="text-sm text-statusOk">{t('settings.diagnostics.startupNothingWrong')}</span>}
 
       <div className="flex flex-wrap items-center gap-1.5">
-        <Button kind="secondary" hue={hue} disabled={busy} onClick={() => void onRecheck()}>
+        <Button
+          kind="secondary"
+          hue={hue}
+          disabled={busy}
+          hint={t('settings.diagnostics.startupRecheckHint')}
+          onClick={() => void onRecheck()}
+        >
           {busy ? t('settings.diagnostics.startupRechecking') : t('settings.diagnostics.startupRecheck')}
         </Button>
-        {/* A sibling rather than a title, which the keyboard cannot open. */}
-        <InfoBubble tip={t('settings.diagnostics.startupRecheckHint')} />
       </div>
 
       {error && <span className="text-sm text-statusFail">{error}</span>}

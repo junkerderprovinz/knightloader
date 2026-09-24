@@ -41,6 +41,16 @@ func TestMain(m *testing.M) {
 			`{"format_id":"18","ext":"mp4","vcodec":"avc1.42001E","acodec":"mp4a.40.2","height":360,"filesize":8388608}` +
 			`]}`)
 		os.Exit(0)
+	case "youtube":
+		// Trimmed from a real YouTube answer: the HLS copies carry neither
+		// filesize nor filesize_approx, only a bitrate, and format_id names the
+		// pair yt-dlp picks by default.
+		fmt.Println(`{"title":"Rick Astley","duration":213,"format_id":"401+251","formats":[` +
+			`{"format_id":"251","ext":"webm","vcodec":"none","acodec":"opus","abr":128.93,"tbr":128.93,"filesize":3433755,"protocol":"https"},` +
+			`{"format_id":"625","ext":"mp4","vcodec":"vp09.00.50.08","acodec":"none","height":2160,"fps":25.0,"tbr":19117.677,"protocol":"m3u8_native"},` +
+			`{"format_id":"401","ext":"mp4","vcodec":"av01.0.12M.08","acodec":"none","height":2160,"fps":25,"tbr":9024.958,"filesize":240334643,"protocol":"https"}` +
+			`]}`)
+		os.Exit(0)
 	case "languages":
 		// Manual subtitles without English, automatic captions with it, and
 		// auto-dubbed audio whose language_preference marks the original.
@@ -149,6 +159,34 @@ func TestProbeTitleReturnsTheParsedFormats(t *testing.T) {
 	progressive := got.Formats[3] // format_id "18", has BOTH a real vcodec and a real acodec
 	if progressive.FormatID != "18" || progressive.Vcodec == "none" || progressive.Acodec == "none" || progressive.Height != 360 {
 		t.Errorf("progressive entry = %+v, want format_id 18, a real vcodec AND a real acodec, height 360", progressive)
+	}
+}
+
+// YouTube's HLS formats come without any size, which left the collector blank
+// for them; the bitrate over the runtime stands in, as yt-dlp's own estimate
+// does elsewhere.
+func TestProbeTitleEstimatesASizeFromTheBitrateWhereNoneIsReported(t *testing.T) {
+	got, err := fakeYtdlpBackend(t, "youtube").ProbeTitle(context.Background(), "https://youtube.com/watch?v=dQw4w9WgXcQ")
+	if err != nil {
+		t.Fatalf("ProbeTitle: %v", err)
+	}
+	byID := map[string]FormatEntry{}
+	for _, f := range got.Formats {
+		byID[f.FormatID] = f
+	}
+	if hls := byID["625"]; hls.Size() != 213*19117677/8 || hls.Protocol != "m3u8_native" {
+		t.Errorf("HLS entry = size %d, protocol %q; want %d from 19117.677 kbit/s over 213 s", hls.Size(), hls.Protocol, 213*19117677/8)
+	}
+	if direct := byID["401"]; direct.Size() != 240334643 {
+		t.Errorf("direct entry size = %d, want its own filesize 240334643 untouched", direct.Size())
+	}
+	for id, want := range map[string]bool{"401": true, "251": true, "625": false} {
+		if byID[id].Default != want {
+			t.Errorf("format %s Default = %v, want %v from format_id 401+251", id, byID[id].Default, want)
+		}
+	}
+	if ext, size := VideoFile("best", got.Formats, false); ext != "mkv" || size != 240334643+3433755 {
+		t.Errorf("VideoFile(best) = %q, %d; want mkv and the two picked formats together", ext, size)
 	}
 }
 

@@ -248,6 +248,7 @@ export function Accounts() {
         signature={`${(accounts ?? []).map((a) => a.service).sort().join(',')}|${loginHosts}`}
       />
 
+      {/* The windows below belong to the debrid card, so they wear its colour. */}
       {dialog && (
         <CredentialDialog
           mode={dialog.mode}
@@ -270,6 +271,7 @@ export function Accounts() {
           existing={hoster.logins ?? []}
           editing={jdDialog.editing}
           initial={jdDialog.host}
+          hue={0}
           onClose={() => setJdDialog(null)}
           onSaved={hoster.load}
         />
@@ -278,6 +280,7 @@ export function Accounts() {
       {jdConfirming && (
         <ConfirmRemoveLogin
           login={jdConfirming}
+          hue={0}
           onCancel={() => setJdConfirming(null)}
           onConfirm={() => {
             setJdConfirming(null);
@@ -289,6 +292,7 @@ export function Accounts() {
       {confirming && (
         <Modal
           title={t('accounts.remove')}
+          hue={0}
           onClose={() => setConfirming(null)}
           footer={
             <>
@@ -514,15 +518,18 @@ function CredentialDialog({
 
   const accountIdRequired = mode === 'new' && picked !== null && hasDefault(picked.id) && accountId.trim() === '';
 
+  // Named after the card, its add button and the row's edit action, so every
+  // step of the way reads as the same thing.
   const title = !picked
-    ? t('accounts.pickService')
+    ? t('accounts.pickDebridAccount')
     : mode === 'edit'
-      ? t('accounts.editTitle', { service: picked.label })
-      : t('accounts.newAccountTitle');
+      ? t('accounts.editCredentialTitle', { service: picked.label })
+      : t('accounts.addAccountTitle', { service: picked.label });
 
   return (
     <Modal
       title={title}
+      hue={0}
       onClose={onClose}
       footer={
         picked && !fromEnv ? (
@@ -568,7 +575,7 @@ function CredentialDialog({
               onClick={() => setPicked(null)}
               className="self-start text-xs text-carbon-textMuted hover:text-carbon-text"
             >
-              {t('accounts.changeService')}
+              {t('accounts.changeAccount')}
             </button>
           )}
 
@@ -721,15 +728,14 @@ const RESOLVER_PROPER_NAMES: Record<string, string> = {
 const LOGIN_ROW = 'login:';
 
 /**
- * The resolvers whose fit depends on the link (app.perLinkResolvers). They
- * close the list as fixed rows, since the server ranks them below every row
- * above and a stored place would be wrong for some host.
+ * What a row takes, for the rows whose name does not say it. A debrid
+ * service's or torrent's row needs no bubble.
  */
-const FIXED_ROWS: { id: string; what: TranslationKey }[] = [
-  { id: 'jd', what: 'accounts.routing.automatic.jd' },
-  { id: 'ytdlp', what: 'accounts.routing.automatic.ytdlp' },
-  { id: 'direct', what: 'accounts.routing.automatic.direct' },
-];
+const ROW_TIPS: Partial<Record<string, TranslationKey>> = {
+  jd: 'accounts.routing.tip.jd',
+  ytdlp: 'accounts.routing.tip.ytdlp',
+  direct: 'accounts.routing.tip.direct',
+};
 
 function RoutingSection({ catalogue, signature }: { catalogue: CatalogueService[]; signature: string }) {
   const { t } = useT();
@@ -760,13 +766,13 @@ function RoutingSection({ catalogue, signature }: { catalogue: CatalogueService[
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
       <Card hue={2} className="flex flex-col gap-3">
-        <SectionTitle hint={t('accounts.routing.priorityHint')}>{t('accounts.routing.priorityTitle')}</SectionTitle>
+        <SectionTitle hint={t('accounts.routing.orderHint')}>{t('accounts.routing.priorityTitle')}</SectionTitle>
         {priority === null ? (
           <p className="text-sm text-carbon-textMuted">{t('common.loading')}</p>
         ) : priority.length === 0 ? (
           <p className="text-sm text-carbon-textMuted">{t('accounts.routing.priorityEmpty')}</p>
         ) : (
-          <PriorityLadder rows={priority} labelFor={labelFor} jdConfigured={jd?.configured ?? false} onSaved={setPriority} />
+          <PriorityLadder rows={priority} labelFor={labelFor} onSaved={setPriority} />
         )}
       </Card>
 
@@ -822,6 +828,18 @@ function LadderGrip({
   );
 }
 
+/** LadderName is a row's name, with an (i) saying what the row takes where the name does not. */
+function LadderName({ id, label }: { id: string; label: string }) {
+  const { t } = useT();
+  const tip = id.startsWith(LOGIN_ROW) ? 'accounts.routing.tip.login' : ROW_TIPS[id];
+  return (
+    <span className="flex min-w-0 items-center">
+      <span className="truncate text-carbon-text">{label}</span>
+      {tip && <InfoBubble tip={t(tip)} />}
+    </span>
+  );
+}
+
 /**
  * PriorityLadder orders the resolvers by drag or, with the grip focused, by
  * arrow keys. Every drop saves at once and redraws from the server's answer.
@@ -831,12 +849,10 @@ function LadderGrip({
 function PriorityLadder({
   rows,
   labelFor,
-  jdConfigured,
   onSaved,
 }: {
   rows: ResolverInfo[];
   labelFor: (id: string) => string;
-  jdConfigured: boolean;
   onSaved: (rows: ResolverInfo[]) => void;
 }) {
   const { t } = useT();
@@ -951,32 +967,19 @@ function PriorityLadder({
               }}
             />
             <span className="glim-num w-4 shrink-0 text-carbon-textMuted">{i + 1}</span>
-            <span className="flex min-w-0 flex-col">
-              <span className="truncate text-carbon-text">{labelFor(r.id)}</span>
-              {r.id.startsWith(LOGIN_ROW) && (
-                <span className="truncate text-[11px] text-carbon-textMuted">{t('accounts.routing.loginRow')}</span>
-              )}
-            </span>
-          </li>
-        ))}
-        {/* No grip and no number: these stay last, and which of them comes
-            first depends on the link. The spacers keep the names in line. */}
-        {FIXED_ROWS.filter((f) => f.id !== 'jd' || jdConfigured).map((f) => (
-          <li key={f.id} className="flex items-center gap-2 px-1 py-1 text-sm text-carbon-textSub">
-            <span aria-hidden className="w-[22px] shrink-0" />
-            <span aria-hidden className="w-4 shrink-0" />
-            <span className="flex min-w-0 flex-col">
-              <span className="truncate text-carbon-text">{labelFor(f.id)}</span>
-              <span className="truncate text-[11px] text-carbon-textMuted">{t(f.what)}</span>
-            </span>
+            <LadderName id={r.id} label={labelFor(r.id)} />
           </li>
         ))}
       </ol>
       <div className="flex items-center gap-2">
-        <Button kind="secondary" disabled={busy} onClick={() => void store([])}>
+        <Button
+          kind="secondary"
+          disabled={busy}
+          hint={t('accounts.routing.priorityAutoHint')}
+          onClick={() => void store([])}
+        >
           {t('accounts.routing.priorityAuto')}
         </Button>
-        <InfoBubble tip={t('accounts.routing.priorityAutoHint')} />
       </div>
     </div>
   );

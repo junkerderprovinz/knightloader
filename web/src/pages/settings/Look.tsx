@@ -405,7 +405,6 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
         <Tabs
           label={t('settings.shape')}
           variant="well"
-          className="w-fit"
           active={cfg.shape}
           onSelect={(id) => patch({ shape: id as Shape })}
           items={SHAPES.map((s) => ({ id: s, label: t(`settings.shape.${s}` as never) }))}
@@ -418,13 +417,12 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
           sidebar renders outside this page's provider (lib/navLabels.ts). */}
       {appearance && (
       <Card hue={9} className="flex flex-col gap-3">
-        <SectionTitle hint={t('settings.navLabels.hint')}>
+        <SectionTitle hint={t('settings.navLabels.titleHint')}>
           {t('settings.navLabels.title')}
         </SectionTitle>
         <Tabs
           label={t('settings.navLabels.title')}
           variant="well"
-          className="w-fit"
           active={navLabels}
           onSelect={(id) => {
             const next = asNavLabelMode(id);
@@ -452,7 +450,6 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
         <Tabs
           label={t('settings.motion.title')}
           variant="well"
-          className="w-fit"
           active={motion}
           onSelect={(id) => {
             // A tap on the active segment, which a picker would otherwise
@@ -648,7 +645,6 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
         <Tabs
           label={t('settings.theme')}
           variant="well"
-          className="w-fit"
           active={theme}
           onSelect={(id) => setTheme(id as 'dark' | 'light')}
           items={[

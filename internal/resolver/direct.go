@@ -22,13 +22,24 @@ var pageExt = map[string]bool{
 
 // Direct handles plain http(s) links whose path names a file; the URL is already
 // the download target and is fetched by the embedded engine.
-type Direct struct{}
+type Direct struct {
+	// Leave names hosts Direct does not claim, however much the path looks like
+	// a file: a file hoster answers a plain GET with its landing page and a
+	// video site with its player, and either would be saved as the file. It is
+	// part of the claim rather than the priority, so no hand-arranged order can
+	// put Direct in front of the backend such a link needs. Nil leaves nothing
+	// out.
+	Leave func(host string) bool
+}
 
 func (Direct) Info() Info { return Info{ID: "direct", Prio: 40} }
 
-func (Direct) Match(raw string) bool {
+func (d Direct) Match(raw string) bool {
 	u, err := url.Parse(raw)
 	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
+		return false
+	}
+	if d.Leave != nil && d.Leave(u.Hostname()) {
 		return false
 	}
 	base := strings.ToLower(path.Base(u.Path))
@@ -55,13 +66,20 @@ func (Direct) Resolve(_ context.Context, req Request) (Result, error) {
 // HTTPFallback takes any http(s) link that no other backend managed to fetch
 // and hands it to the engine as is. It catches plain files whose URL has no
 // extension, which Direct cannot recognise, and runs last by priority.
-type HTTPFallback struct{}
+type HTTPFallback struct {
+	// Leave is Direct.Leave. It matters more here, since the fallback is what
+	// a link reaches after every backend above it has declined.
+	Leave func(host string) bool
+}
 
 func (HTTPFallback) Info() Info { return Info{ID: "http", Prio: -100} }
 
-func (HTTPFallback) Match(raw string) bool {
+func (h HTTPFallback) Match(raw string) bool {
 	u, err := url.Parse(raw)
-	return err == nil && (u.Scheme == "http" || u.Scheme == "https") && u.Hostname() != ""
+	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Hostname() == "" {
+		return false
+	}
+	return h.Leave == nil || !h.Leave(u.Hostname())
 }
 
 func (HTTPFallback) Resolve(_ context.Context, req Request) (Result, error) {

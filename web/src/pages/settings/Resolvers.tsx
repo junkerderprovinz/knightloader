@@ -12,6 +12,7 @@ import {
   Toggle,
   ToggleRow,
 } from '../../components/ui';
+import { Dropdown } from '../../components/Dropdown';
 import { Tabs } from '../../components/Tabs';
 import { CookieJarsCard } from './resolvers/CookieJars';
 import { MediaToolsCard } from './resolvers/MediaToolsCard';
@@ -88,29 +89,8 @@ function normaliseHost(raw: string): string {
 }
 
 /**
- * enableSelectWheel lets a closed <select> step one option per wheel notch,
- * clamped at both ends, and fires a bubbling `change` for its onChange. It uses
- * a native non-passive listener because React's onWheel is passive and cannot
- * prevent the page scroll. LogViewerCard.tsx has a copy.
- */
-function enableSelectWheel(select: HTMLSelectElement | null): () => void {
-  if (!select) return () => {};
-  const onWheel = (event: WheelEvent) => {
-    if (select.disabled || select.options.length < 2 || event.deltaY === 0) return;
-    event.preventDefault();
-    const delta = event.deltaY > 0 ? 1 : -1;
-    const next = Math.min(select.options.length - 1, Math.max(0, select.selectedIndex + delta));
-    if (next === select.selectedIndex) return;
-    select.selectedIndex = next;
-    select.dispatchEvent(new Event('change', { bubbles: true }));
-  };
-  select.addEventListener('wheel', onWheel, { passive: false });
-  return () => select.removeEventListener('wheel', onWheel);
-}
-
-/**
- * Select is styled to match TextInput, as in Connections.tsx. Rows use it
- * rather than tab strips, which would not fit a table row.
+ * Select is a table row's dropdown. A stored value missing from the menu is
+ * kept as an option, so the row shows what is set rather than a neighbour of it.
  */
 function Select({
   value,
@@ -125,27 +105,14 @@ function Select({
   options: string[];
   labelOf: (id: string) => string;
 }) {
-  // A stored value missing from the menu is kept as an option, or the select
-  // would show the first entry and overwrite the real value on the next edit.
   const items = options.includes(value) ? options : [value, ...options];
-  // A callback ref, so the wheel listener follows rows that mount and move.
-  const [el, setEl] = useState<HTMLSelectElement | null>(null);
-  useEffect(() => enableSelectWheel(el), [el]);
   return (
-    <select
-      ref={setEl}
-      aria-label={label}
+    <Dropdown
+      label={label}
       value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className="glim-select appearance-none pe-6 w-full rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2 text-sm text-carbon-text
-        outline-none transition-shadow focus:shadow-[0_0_0_2px_var(--focus-ring)]"
-    >
-      {items.map((id) => (
-        <option key={id} value={id}>
-          {labelOf(id)}
-        </option>
-      ))}
-    </select>
+      onChange={onChange}
+      options={items.map((id) => ({ value: id, label: labelOf(id) }))}
+    />
   );
 }
 

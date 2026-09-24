@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { useFonts } from 'expo-font';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { loadActiveConnection, removeConnection, setActiveConnectionId } from './src/storage/connections';
@@ -15,6 +16,8 @@ import { fetchAppearance, setRainbowPalette } from './src/api/client';
 import { AppearanceProvider, useAppearance } from './src/theme/AppearanceContext';
 import { MotionProvider } from './src/theme/MotionContext';
 import { I18nProvider } from './src/i18n/I18nContext';
+import { HouseFontReady } from './src/components/Text';
+import { HOUSE_FONTS, familyFor } from './src/theme/font';
 
 type RootStackParamList = {
   Connections: undefined;
@@ -52,6 +55,9 @@ function Shell() {
   const { c, accent, accentInk, dark, setInstanceAppearance } = useAppearance();
   const [conn, setConn] = useState<ServerConnection | null>(null);
   const [loading, setLoading] = useState(true);
+  // The first screen waits for the house font as it waits for the saved
+  // connection, so no label is drawn in the system font and then redrawn.
+  const [fontLoaded, fontError] = useFonts(HOUSE_FONTS);
   // The screen the navigator opens on: Downloads if a connection was left
   // active last time, Connections otherwise. Opening the connect form on an
   // empty list would put a form in front of somebody who has not seen the app
@@ -86,7 +92,7 @@ function Shell() {
     };
   }, [conn, setInstanceAppearance]);
 
-  if (loading) {
+  if (loading || (!fontLoaded && !fontError)) {
     return (
       <View style={[styles.loading, { backgroundColor: c.bg }]}>
         {/* accentInk rather than accent: a spinner is ink on the page's ground,
@@ -98,6 +104,7 @@ function Shell() {
   }
 
   return (
+    <HouseFontReady value={fontLoaded}>
       <NavigationContainer
         theme={{
           dark,
@@ -231,14 +238,19 @@ function Shell() {
           </Stack.Screen>
         </Stack.Navigator>
       </NavigationContainer>
+    </HouseFontReady>
   );
 }
 
+// The navigator draws its own text, outside components/Text.tsx, so each entry
+// names its Noto cut itself. The weight is left at normal because the cut
+// already carries it, and on Android a bold weight on top of a runtime-loaded
+// family falls back to the system font.
 const navFonts = {
-  regular: { fontFamily: 'System', fontWeight: '400' as const },
-  medium: { fontFamily: 'System', fontWeight: '500' as const },
-  bold: { fontFamily: 'System', fontWeight: '700' as const },
-  heavy: { fontFamily: 'System', fontWeight: '900' as const },
+  regular: { fontFamily: familyFor(400), fontWeight: 'normal' as const },
+  medium: { fontFamily: familyFor(500), fontWeight: 'normal' as const },
+  bold: { fontFamily: familyFor(700), fontWeight: 'normal' as const },
+  heavy: { fontFamily: familyFor(900), fontWeight: 'normal' as const },
 };
 
 const styles = StyleSheet.create({

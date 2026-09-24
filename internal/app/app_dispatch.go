@@ -72,10 +72,25 @@ func (a *App) modeForLocked(t *core.Task, resolverID string) core.DownloadMode {
 // full slot id is honoured as written.
 func dynamicPrio(res resolver.Resolver, url string, order []string) int {
 	id := res.Info().ID
-	// A header profile keeps its place above every row of the card; an order
-	// entry naming it, which the card cannot write, is ignored.
-	if id == hostheaders.ResolverID {
+	switch {
+	case id == hostheaders.ResolverID || id == remotefs.ResolverID:
+		// A header profile and the user's own servers take only the links they
+		// were set up for, so they stay above every row of the card, and an
+		// order entry naming one, which the card cannot write, is ignored.
+		return orderBase + res.Info().Prio
+	case id == "http":
+		// The fallback is last whatever an order entry says.
 		return res.Info().Prio
+	case id == "jd":
+		// A connected hoster login is a row of its own on the priority card, so
+		// the order decides whether a link to that host goes out on the login
+		// or through a debrid service that carries the host too. The login's
+		// row wins over JD's own, which ranks JD for every other host.
+		if host := jd.LoginHost(url); host != "" {
+			if i := slices.Index(order, loginRowID(host)); i >= 0 {
+				return orderBase - i
+			}
+		}
 	}
 	for i, want := range order {
 		if want == id {
@@ -90,14 +105,6 @@ func dynamicPrio(res resolver.Resolver, url string, order []string) int {
 		}
 	}
 	if id == "jd" {
-		// A connected hoster login is a row of its own on the priority card, so
-		// the order decides whether a link to that host goes out on the login
-		// or through a debrid service that carries the host too.
-		if host := jd.LoginHost(url); host != "" {
-			if i := slices.Index(order, loginRowID(host)); i >= 0 {
-				return orderBase - i
-			}
-		}
 		return jd.PriorityFor(url)
 	}
 	return res.Info().Prio
@@ -180,25 +187,26 @@ func (a *App) ResolverPriority(host string) []resolver.Info {
 	return out
 }
 
-// perLinkResolvers claim nearly any link, and which of them fits depends on
-// the host: JD's rank moves with it (jd.PriorityFor), yt-dlp takes whatever is
-// not a file hoster, and direct and the HTTP fallback take anything that looks
-// like a file. One stored order cannot be right for every host, so they stay
-// off the priority card and keep their automatic place below the services it
-// orders.
+// perLinkResolvers claim nearly any link: JD and the HTTP fallback any http
+// link, yt-dlp any host that is not a file hoster, and direct anything that
+// looks like a file. Which hosts they leave alone is part of their claim (see
+// hostClaims), so the priority card can order them like any other service.
+// Past a switched-off backend they may not take its link over (see
+// resolverForTaskLocked).
 var perLinkResolvers = map[string]bool{"direct": true, "jd": true, "ytdlp": true, "http": true}
 
-// offCard reports whether the priority card leaves a resolver out: the
-// per-link ones, a stored header profile, which goes first for its origin, and
-// the user's own servers. The last two take only links the user pointed them
-// at, so there is nothing to rank.
+// offCard reports whether the priority card leaves a resolver out: a stored
+// header profile, which goes first for its origin, the user's own servers and
+// the HTTP fallback. The first two take only links the user pointed them at,
+// so there is nothing to rank, and the fallback is by definition last.
+// dynamicPrio ignores an order entry naming any of them.
 func offCard(id string) bool {
-	return perLinkResolvers[id] || id == hostheaders.ResolverID || id == remotefs.ResolverID
+	return id == "http" || id == hostheaders.ResolverID || id == remotefs.ResolverID
 }
 
 // SaveResolverOrder stores the order the priority card sends and answers with
 // the card's rows as re-read. What the card leaves out is dropped on the way
-// in, so a list that still carries it cannot pin direct ahead of JD.
+// in.
 func (a *App) SaveResolverOrder(order []string) ([]resolver.Info, error) {
 	kept := make([]string, 0, len(order))
 	for _, id := range order {

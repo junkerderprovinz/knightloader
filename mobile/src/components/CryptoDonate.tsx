@@ -7,7 +7,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   View,
   useWindowDimensions,
 } from 'react-native';
@@ -21,6 +20,7 @@ import { useT } from '../i18n/I18nContext';
 import { CRYPTO_COINS, type CryptoCoin, type CryptoNetwork } from '../donate';
 import { GlimButton, NotchCard } from './glim';
 import { Cross, Paste } from './IconBadge';
+import { Text } from './Text';
 
 /**
  * Each coin's mark for its tile, the paths the web UI draws

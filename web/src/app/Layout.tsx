@@ -2,7 +2,9 @@ import { useEffect, useRef } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { Sidebar } from '../components/Sidebar';
 import { QueueBar } from '../components/QueueBar';
-import { ShellStrip } from '../components/QuickSettings';
+import { QuickSettings } from '../components/QuickSettings';
+import { SpeedMeter } from '../components/SpeedGraph';
+import { VolumeMeter } from '../components/VolumeMeter';
 import { CaptchaModal } from '../components/CaptchaModal';
 import { CommandDispatcher } from '../components/CommandDispatcher';
 import { CommandPalette } from '../components/CommandPalette';
@@ -24,6 +26,7 @@ import {
 import { InstanceProvider, useInstanceScope } from '../lib/instance';
 import { useToast } from '../lib/toast';
 import { useExtractionToasts } from '../lib/useExtractionToasts';
+import { useTasks } from '../lib/useTasks';
 import { useT } from '../lib/i18n';
 
 // Global completion toasts: watch the local task stream and notify when a
@@ -89,6 +92,22 @@ function useAppearance() {
 }
 
 /**
+ * ShellSpeed is the shell bar's speed curve, summed over the running tasks of
+ * the shell's scope. Its own component, so a websocket frame redraws the curve
+ * and not the whole bar.
+ */
+function ShellSpeed({ instance }: { instance: string }) {
+  const tasks = useTasks(instance);
+  let speed = 0;
+  for (const id in tasks) {
+    if (tasks[id].status === 'running') speed += tasks[id].speed;
+  }
+  // The history is seeded only for the local instance, since /api/stats/speed
+  // is not forwarded; a peer's curve starts live.
+  return <SpeedMeter value={speed} instance={instance} />;
+}
+
+/**
  * The download page's head card with the transport controls and the speed
  * curve. It sits above the keyed page div, which remounts on navigation, so
  * the controls keep their state; outside Downloads it is hidden rather than
@@ -96,21 +115,21 @@ function useAppearance() {
  *
  * A bottom margin and no top one, so it starts on the sidebar's line.
  *
- * Its height is set by the transport column: three 2.5rem buttons with gaps,
- * 136px, plus p-5. Anything mounted here has to stay within those 136px or
- * the card grows. The speed curve's height is capped for that reason
- * (SpeedGraph.tsx, check-stretched-svg-height.mjs); the widget column, which
- * can wrap, is the part to watch.
+ * It is as tall as its content: the row of squares, or the curve with its two
+ * lines of figures, whichever is taller. The curve takes no height of its own
+ * (SpeedGraph.tsx, check-stretched-svg-height.mjs), so it cannot grow the card.
+ * In a narrow window the curve wraps under the squares.
  */
 function ShellBar({ visible }: { visible: boolean }) {
   const { t } = useT();
   const { instance } = useInstanceScope();
+  // The settings and volume routes are not forwarded to peers.
+  const local = instance === '';
   return (
     <div
       role="region"
       aria-label={t('shell.bar')}
-      /* items-stretch, so the speed curve can be as tall as the card. */
-      className={`glim-card mx-6 mb-6 items-stretch gap-x-4 gap-y-2 p-5 md:mx-8 md:mb-8
+      className={`glim-card mx-6 mb-6 flex-wrap items-center gap-x-6 gap-y-4 p-5 md:mx-8 md:mb-8
         ${visible ? 'flex' : 'hidden'}`}
     >
       {/* Named only when it is not this machine, so it stands out when it
@@ -126,12 +145,17 @@ function ShellBar({ visible }: { visible: boolean }) {
         </span>
       )}
 
-      <QueueBar />
+      <div className="flex flex-col gap-2">
+        {/* The squares wrap rather than run out of a very narrow card. */}
+        <div className="flex flex-wrap items-center gap-2">
+          <QueueBar />
+          {local && <QuickSettings />}
+        </div>
+        {local && <VolumeMeter />}
+      </div>
 
-      {/* The widgets: speed curve, limit and settings menu. The slot grows to
-          take the rest of the row. Read the scope with useInstanceScope();
-          nothing here may assume '/api'. */}
-      <ShellStrip />
+      {/* The curve takes the rest of the row, up to the card's end edge. */}
+      <ShellSpeed instance={instance} />
     </div>
   );
 }

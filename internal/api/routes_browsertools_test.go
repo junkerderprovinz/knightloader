@@ -2,10 +2,13 @@ package api
 
 import (
 	"archive/zip"
+	"bytes"
 	"encoding/json"
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -104,6 +107,62 @@ func testDownloadExtension(t *testing.T, path, wantContentType, wantFilename str
 		t.Error("manifest.json has no name")
 	}
 
+}
+
+// TestExtensionVersionIsTheOneInTheDownload holds the settings card's number to
+// the archive the browser tiles hand out and to the manifest in the checkout,
+// so a number written into the route fails here the day the manifest moves on.
+func TestExtensionVersionIsTheOneInTheDownload(t *testing.T) {
+	srv, _ := browserToolsServer(t)
+
+	resp, err := http.Get(srv.URL + "/api/browser-extension/version")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var answered struct {
+		Version string `json:"version"`
+	}
+	err = json.NewDecoder(resp.Body).Decode(&answered)
+	resp.Body.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resp, err = http.Get(srv.URL + "/api/browser-extension.zip")
+	if err != nil {
+		t.Fatal(err)
+	}
+	body, err := io.ReadAll(resp.Body)
+	resp.Body.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+	zr, err := zip.NewReader(bytes.NewReader(body), int64(len(body)))
+	if err != nil {
+		t.Fatalf("the download is not a zip: %v", err)
+	}
+	var zipped []byte
+	for _, f := range zr.File {
+		if f.Name == "manifest.json" {
+			zipped = readZipFile(t, f)
+		}
+	}
+	checkout, err := os.ReadFile(filepath.Join("..", "..", "extension", "src", "manifest.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for name, raw := range map[string][]byte{"the zip": zipped, "extension/src": checkout} {
+		var manifest struct {
+			Version string `json:"version"`
+		}
+		if err := json.Unmarshal(raw, &manifest); err != nil {
+			t.Fatalf("manifest.json in %s: %v", name, err)
+		}
+		if manifest.Version == "" || manifest.Version != answered.Version {
+			t.Errorf("the route answers %q, the manifest in %s says %q", answered.Version, name, manifest.Version)
+		}
+	}
 }
 
 // TestDownloadExtensionRequiresASession checks the route through the real

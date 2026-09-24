@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Animated, FlatList, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Animated, FlatList, StyleSheet, View } from 'react-native';
 import QRScanner from '../components/QRScanner';
 import { closeRelayClient, relayClientFor, type RelaySibling } from '../api/relayClient';
 import { DEFAULT_RELAY_URL, PhraseError, frameKeyFromPhrase, keyFromPhrase } from '../api/seedphrase';
@@ -15,6 +15,7 @@ import { GlimButton } from '../components/glim';
 import IconBadge, { Back, Connect, Paste, Scan, boxForInk } from '../components/IconBadge';
 import { InfoTip } from '../components/InfoTip';
 import * as Clipboard from 'expo-clipboard';
+import { Text, TextInput } from '../components/Text';
 
 // Joining the group, which is the whole of connecting this app now: twelve
 // words, and every instance the person runs appears.

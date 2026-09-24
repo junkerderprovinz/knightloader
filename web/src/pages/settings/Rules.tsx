@@ -295,14 +295,12 @@ function RuleCards() {
           right={
             <div className="flex items-center gap-2">
               {/* One bubble per button, since Import and Export do different things. */}
-              <Button kind="secondary" onClick={() => fileInput.current?.click()}>
+              <Button kind="secondary" hint={rx('settings.rules.importTitle')} onClick={() => fileInput.current?.click()}>
                 {rx('settings.rules.import')}
               </Button>
-              <InfoBubble tip={rx('settings.rules.importTitle')} />
-              <Button kind="secondary" onClick={exportJSON}>
+              <Button kind="secondary" hint={rx('settings.rules.exportTitle')} onClick={exportJSON}>
                 {rx('settings.rules.export')}
               </Button>
-              <InfoBubble tip={rx('settings.rules.exportTitle')} />
               <Button icon={<IconPlus width={16} height={16} />} onClick={add}>
                 {rx('settings.rules.add')}
               </Button>

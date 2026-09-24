@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import type { Task } from '../api/types';
 import TaskRow from './TaskRow';
 import DragList, { type DragRow } from './DragList';
@@ -9,6 +9,7 @@ import { useAppearance } from '../theme/AppearanceContext';
 import { NUM, TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
 import { fmtBytes } from '../api/stats';
+import { Text } from './Text';
 
 /**
  * The task list, grouped into the packages the instance already put it in.
