@@ -1982,19 +1982,34 @@ export function moveColumn(order: ColumnId[], id: ColumnId, target: ColumnId, af
  * did nothing (its stored width became the numerator of a one-track `fr`) and
  * every other drag came out of it. The last column's own width is the floor of
  * its stretch, so dragging it still means something.
+ *
+ * When the window is too narrow for every width, the name column gives way,
+ * down to its minimum, before the table scrolls. A name truncates gracefully,
+ * and a scrolled table puts the row's actions out of sight at its far end.
  */
 export function gridTemplate(visible: ColumnDef[], widthOf: (id: ColumnId) => number): string {
-  // Exactly one track per rendered cell, and no spare. The rows are a grid with
-  // no explicit row count, so one track too few wraps the last cell onto a
-  // second grid line, which reads as the rows simply being tall rather than as
-  // a layout fault. The row's action badges are not a track of their own: they
-  // float over the row's trailing edge on hover.
-  return visible
-    .map((c, i) =>
-      i === visible.length - 1 ? `minmax(${widthOf(c.id)}px, 1fr)` : `${widthOf(c.id)}px`,
-    )
-    .join(' ');
+  // One track per column and one for the row's action badges after them. The
+  // rows are a grid with no explicit row count, so one track too few wraps the
+  // last cell onto a second grid line, which reads as the rows simply being
+  // tall rather than as a layout fault. The header and a folder row without
+  // actions leave the last track empty, which costs nothing.
+  const columns = visible.map((c, i) => {
+    if (i === visible.length - 1) return `minmax(${widthOf(c.id)}px, 1fr)`;
+    if (c.id === 'name') return `minmax(${c.minWidth}px, ${widthOf(c.id)}px)`;
+    return `${widthOf(c.id)}px`;
+  });
+  return [...columns, ACTIONS_TRACK].join(' ');
 }
+
+/**
+ * The width of the actions track: as many square badges as the busiest row
+ * carries and the 4px gaps between them. That is three, a collected link's
+ * start, recheck and remove, or a failed one's skip, restart and remove. A
+ * fixed width rather than `auto`, since every row is a grid of its own and an
+ * `auto` track would size to each row's badges and shift the columns before
+ * it from row to row.
+ */
+const ACTIONS_TRACK = 'calc(3 * var(--btn-h) + 2 * 0.25rem)';
 
 export interface SortState {
   id: ColumnId;

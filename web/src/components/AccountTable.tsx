@@ -155,7 +155,7 @@ export function AccountTable({ rows, label }: { rows: AccountRow[]; label: strin
         </thead>
         <tbody className="divide-y divide-carbon-border/40">
           {rows.map((row, i) => (
-            <tr key={row.key} className="group transition-colors hover:bg-carbon-hover">
+            <tr key={row.key} className="transition-colors hover:bg-carbon-hover">
               <td className="px-4 py-3">
                 <Toggle
                   checked={row.enabled}
@@ -181,7 +181,6 @@ export function AccountTable({ rows, label }: { rows: AccountRow[]; label: strin
               <td className="px-2 py-3 text-end">
                 <IconBadge
                   hue={i}
-                  className="opacity-0 transition-opacity focus-visible:opacity-100 group-hover:opacity-100"
                   icon={<IconSettings width={16} height={16} />}
                   title={t('accounts.rowActions')}
                   aria-label={t('accounts.rowActions')}

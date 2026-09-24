@@ -129,15 +129,15 @@ export function InstanceCard({
     // padding="none" so the logo runs flush to the left edge at full height,
     // clipped by overflow-hidden. No `hover` lift: the card itself is not
     // clickable (check-card-hover.mjs guards this).
-    <Card padding="none" hue={hue} className="group relative flex h-full flex-col overflow-hidden">
+    <Card padding="none" hue={hue} className="relative flex h-full flex-col overflow-hidden">
       {/* The two columns form one row and the Open button a second, so the
           button can never overlap the text. */}
       <div className="flex min-h-0 flex-1 items-stretch">
-      {/* h-28 matches the sidebar's brand mark (check-mark-scale.mjs); a larger
+      {/* h-26 matches the sidebar's brand mark (check-mark-scale.mjs); a larger
           mark squeezes the metric labels together. max-h-full keeps the text
           column in charge of the card's height. */}
       <div className="flex shrink-0 items-center self-stretch pl-4">
-        <img src={logoUrl} alt="" aria-hidden className="h-28 max-h-full w-auto" />
+        <img src={logoUrl} alt="" aria-hidden className="h-26 max-h-full w-auto" />
       </div>
 
       {/* Absolutely placed, with room reserved in the name row. */}
@@ -152,18 +152,16 @@ export function InstanceCard({
           <span className="truncate font-semibold text-carbon-text">{name}</span>
           {isSelf && <span className="glim-eyebrow shrink-0">{t('instances.thisInstance')}</span>}
           <span className="flex-1" />
+          {/* A lone glyph fills half its square badge (GlimStone rule 13). */}
           {onRemove && (
-            <span className="opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
-              {/* A lone glyph fills half its square badge (GlimStone rule 13). */}
-              <IconBadge
-                labelled
-                hue={hue}
-                icon={<IconTrash width={16} height={16} />}
-                title={t('instances.removeTitle', { name })}
-                aria-label={t('instances.removeTitle', { name })}
-                onClick={onRemove}
-              />
-            </span>
+            <IconBadge
+              labelled
+              hue={hue}
+              icon={<IconTrash width={16} height={16} />}
+              title={t('instances.removeTitle', { name })}
+              aria-label={t('instances.removeTitle', { name })}
+              onClick={onRemove}
+            />
           )}
         </div>
 

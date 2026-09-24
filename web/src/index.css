@@ -37,6 +37,8 @@
   /* Hover for anything already filled with surface3. Tailwind only emits a
      utility for a key named in @theme; a missing key fails silently. */
   --color-carbon-hoverRaised: var(--carbon-hover-raised);
+  --color-carbon-tileHover: var(--carbon-tile-hover);
+  --color-carbon-tileHoverInk: var(--carbon-tile-hover-ink);
 
   --color-accent: var(--accent);
   --color-accentContrast: var(--accent-contrast);
@@ -143,6 +145,11 @@
   /* Hover for an element already carrying surface3. --carbon-hover sits below
      surface2, so it would darken a filled control on hover. */
   --carbon-hover-raised: #6f6f6f;
+  /* The hover of a picker tile carrying brand marks. One step up the ramp is
+     lost behind a large mark, and white is louder than anything else on a dark
+     page. */
+  --carbon-tile-hover: #a8a8a8;
+  --carbon-tile-hover-ink: #161616;
   --carbon-border:     #393939;
 
   /* Brand marks at rest on the about card, adjusted per theme to reach the 3:1
@@ -223,6 +230,8 @@
     --carbon-hover:      #e0e0e0;
     /* One step further from the surface, which on a light ramp means darker. */
     --carbon-hover-raised: #c6c6c6;
+    --carbon-tile-hover: #d1d1d1;
+    --carbon-tile-hover-ink: #161616;
     --carbon-border:     #d1d1d1;
 
     /* The warm marks deepened to clear 3:1 on #d1d1d1; the dark ones already do. */
@@ -288,6 +297,8 @@
   --carbon-surface3:   #d1d1d1;
   --carbon-hover:      #e0e0e0;
   --carbon-hover-raised: #c6c6c6;
+  --carbon-tile-hover: #d1d1d1;
+  --carbon-tile-hover-ink: #161616;
   --carbon-border:     #d1d1d1;
 
   --brand-coffee:  #8a6d00;
@@ -1442,18 +1453,13 @@ body {
   --brand-ink: var(--accent-contrast);
 }
 
-/* A coin tile in the crypto window. On the dark theme one step up the ramp
-   barely registers behind a mark half the tile's height, so a hovered tile
-   goes white and its ticker and mark take the ground's ink, the contrast rule
-   the brand buttons follow. The light theme keeps the ramp's step, which
-   reads there. After the .glim-hue-icon rules, which would keep the mark in
-   the position's colour. */
-[data-theme="dark"] .kl-coin-tile:not(.glim-active):hover {
-  background-color: #ffffff;
-  color: var(--carbon-bg);
-}
+/* A hovered coin tile stands on --carbon-tile-hover. On the dark theme that is
+   a light grey, where a mark in its position's hue, picked for a dark ground,
+   fades, so the mark takes the tile's ink as the ticker does. The light
+   theme's hues are already darkened for a light ground. After the
+   .glim-hue-icon rules, which would keep the mark in the position's colour. */
 [data-theme="dark"] .kl-coin-tile:not(.glim-active):hover svg {
-  color: var(--carbon-bg);
+  color: var(--carbon-tile-hover-ink);
 }
 
 /* Easter egg: draw and strike. Holding the sidebar wordmark draws the blade up

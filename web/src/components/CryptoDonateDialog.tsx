@@ -176,7 +176,7 @@ function CoinTile({
           px-2 transition-colors ${showTicker ? 'glim-hue glim-hue-icon' : 'glim-hue'} ${
             selected
               ? 'glim-active bg-accent text-accentContrast'
-              : 'bg-carbon-surface2 text-carbon-textSub hover:bg-carbon-surface3 hover:text-carbon-text'
+              : 'bg-carbon-surface2 text-carbon-textSub hover:bg-carbon-tileHover hover:text-carbon-tileHoverInk'
           }`}
       >
         {showMark && (

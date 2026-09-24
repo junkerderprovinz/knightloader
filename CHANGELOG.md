@@ -134,6 +134,19 @@ submission and for a fixed download.
   the job that moves the image tag takes that answer instead of working it out
   a second time.
 - **Tidied the code comments and log messages.**
+- **Row actions are visible without hovering.** The edit, delete and move
+  badges on settings rows, accounts, peer instances and list rows are there at
+  rest instead of appearing under the pointer, which a touch screen does not
+  have. In the download and collector lists they sit in a column of their own
+  at the row's end rather than floating over the size, speed and status cells,
+  and in a narrow window the name column gives way before the list scrolls.
+- **Coin and browser tiles hover to a light grey on the dark theme**, with dark
+  text, as in the sibling apps. The coin tiles turned white, the browser tiles
+  one step lighter, which was hard to see. A coin's mark turns dark while
+  hovered so it does not fade on the grey.
+- **The logo at the top of the sidebar is 104 pixels tall**, 44 in the narrow
+  rail, the size the sibling apps use, and the mark on an instance card
+  matches it. The web UI follows GlimStone 2.8.0.
 
 ## [1.1.6] - 2026-09-18
 

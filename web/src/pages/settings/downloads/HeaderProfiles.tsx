@@ -130,7 +130,7 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
           {profiles.map((p, i) => (
             <li
               key={p.id}
-              className={`group flex items-center gap-3 py-2.5 ${
+              className={`flex items-center gap-3 py-2.5 ${
                 i === profiles.length - 1 && !draft ? '' : 'border-b border-carbon-border/60'
               }`}
             >
@@ -155,7 +155,6 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
                 title={t('settings.headerProfiles.delete')}
                 aria-label={`${t('settings.headerProfiles.delete')} · ${p.id}`}
                 disabled={busy}
-                className="opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
                 onClick={() => {
                   // Confirmed, since the value cannot be put back.
                   setConfirming(p);

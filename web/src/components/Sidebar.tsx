@@ -266,12 +266,12 @@ export function Sidebar() {
         {/* Inline SVG rather than <img> so the egg's CSS can move the sword
             alone; see lib/logoInline for the catch. */}
         <span
-          className={`kl-egg shrink-0 ${narrow ? 'h-10' : 'h-28'}`}
+          className={`kl-egg shrink-0 ${narrow ? 'h-11' : 'h-26'}`}
           id={LOGO_SCOPE_ID}
           data-egg={egg.state}
           dangerouslySetInnerHTML={{ __html: logoInline }}
         />
-        {!narrow && <span className="text-carbon-text font-bold text-xl tracking-tight">KnightLoader</span>}
+        {!narrow && <span className="text-xl font-bold tracking-tight text-carbon-text">KnightLoader</span>}
       </NavLink>
 
       <nav data-nav-rail className={`flex flex-col gap-1 flex-1 ${narrow ? 'p-2' : 'p-3'}`}>

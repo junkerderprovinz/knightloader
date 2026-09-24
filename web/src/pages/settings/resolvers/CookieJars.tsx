@@ -76,7 +76,7 @@ export function CookieJarsCard({ hue }: { hue: number }) {
                 {hosts.map((h, i) => (
                   <li
                     key={h}
-                    className={`group flex items-center gap-3 px-4 py-2.5 ${
+                    className={`flex items-center gap-3 px-4 py-2.5 ${
                       i === hosts.length - 1 ? '' : 'border-b border-carbon-border/60'
                     }`}
                   >
@@ -85,7 +85,7 @@ export function CookieJarsCard({ hue }: { hue: number }) {
                     </span>
                     <span className="glim-eyebrow">{t('settings.resolvers.cookieStored')}</span>
                     <IconBadge
-                      className="ms-auto opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
+                      className="ms-auto"
                       icon={<IconTrash width={16} height={16} />}
                       title={`${t('settings.resolvers.cookieRemove')} · ${h}`}
                       aria-label={`${t('settings.resolvers.cookieRemove')} · ${h}`}
