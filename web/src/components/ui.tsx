@@ -386,7 +386,7 @@ export function IconBadge({
     <button
       type="button"
       aria-pressed={active}
-      // A badge showing text is no longer square: it keeps its height and
+      // A badge showing text is not square: it keeps its height and
       // takes the width its words need, so the width, the padding and the
       // glyph size all fork on that.
       className={`flex ${BTN_H} shrink-0 items-center justify-center gap-1.5 rounded-[var(--radius-control)]
