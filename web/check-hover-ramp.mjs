@@ -106,9 +106,9 @@ const TIERS = [
 /** The ramp tier a ground expression sits on. 0 is "the card, or nothing". */
 function tierOf(value, lists) {
   // One level of indirection: a row may hover to `var(--row-hover)` and define
-  // `--row-hover` in the same class list. Following it keeps the link row
-  // (transparent at rest, --carbon-hover at half alpha under the pointer) read
-  // as the tier it paints rather than as tier 0.
+  // `--row-hover` in the same class list, as the folder header does with
+  // `--row-raised`. Following it reads such a row as the tier it paints rather
+  // than as tier 0.
   const seen = new Set();
   let v = value;
   for (let i = 0; i < 4; i++) {

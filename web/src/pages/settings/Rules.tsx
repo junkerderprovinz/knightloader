@@ -421,7 +421,7 @@ function RuleRow({
 
   return (
     <li className={last ? '' : 'border-b border-carbon-border/60'}>
-      <div className="group grid grid-cols-[auto_1fr_auto] items-center gap-3 py-2.5">
+      <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3 py-2.5">
         <NeutralSwitch
           on={!rule.disabled}
           onChange={(v) => onChange({ ...rule, disabled: !v })}
@@ -461,7 +461,7 @@ function RuleRow({
         </button>
         {/* `labelled`, so the actions follow the Beschriftung setting; the name
             and summary truncate instead. */}
-        <div className="flex items-center gap-1.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+        <div className="flex items-center gap-1.5">
           <IconBadge
             labelled
             icon={<IconArrowUp width={16} height={16} />}

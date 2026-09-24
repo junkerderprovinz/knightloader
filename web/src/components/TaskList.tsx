@@ -142,40 +142,13 @@ const NO_SLIDE: CSSProperties = {};
 const NO_OFFSETS = new Map<string, number>();
 
 /**
- * A selected row's painted ground, as one opaque colour: what
- * `.glim-row-selected` paints (index.css), written as a mix rather than as an
- * alpha layer so the row's action strip can repeat it instead of stacking a
- * second 22% on top. Inline on the row, because a selected row keeps this fill
- * under the pointer too and only an inline value beats the hover variant.
+ * The cell holding a row's action badges, in the last grid track (see
+ * gridTemplate). It paints no ground, so the row's own fill, selection tint
+ * and rainbow wash run through it, and it pushes its badges to the trailing
+ * edge, so the trash of every row lines up however many badges stand before
+ * it.
  */
-const SELECTED_GROUND = 'color-mix(in srgb, var(--accent-fixed) 22%, var(--carbon-surface))';
-
-/**
- * The rainbow wash a link row is painting, as the class that repeats it on that
- * row's action strip. The wash is an inset box-shadow on the row (index.css's
- * .glim-tint rules), and an inset shadow paints under its element's children,
- * so a strip with a ground of its own covers it and reads as a grey tile
- * punched into a coloured row.
- *
- * Chosen here rather than written as four stacked CSS variants, because a row
- * that is both running and selected would then come down to the order Tailwind
- * generated the two rules in. The literals are spelled out in full, since
- * Tailwind reads the source text and never generates a class assembled at
- * runtime.
- */
-function rowWash(selected: boolean, active: boolean): string {
-  // A selected row's tint replaces its hue wash in every rainbow mode, at rest
-  // and under the pointer alike (index.css, .glim-tint.glim-row-selected).
-  if (selected) {
-    return '[[data-rainbow]_&]:shadow-[inset_0_0_0_999px_color-mix(in_oklab,var(--accent-fixed)_22%,transparent)]';
-  }
-  // A running row carries the stronger soft tint, in both modes, without hover.
-  if (active) return '[[data-rainbow]_&]:shadow-[inset_0_0_0_999px_var(--item-hue-soft)]';
-  // The plain case: on hover, in both modes, mirroring index.css. Splitting
-  // them by mode would paint this strip at rest in Rainbow while the row
-  // beneath it stayed plain.
-  return '[[data-rainbow]_&]:group-hover:shadow-[inset_0_0_0_999px_var(--item-hue-wash)]';
-}
+const ACTIONS_CELL = 'flex items-center justify-end gap-1';
 
 /**
  * useCollapsedPackages is the folded set, and the only thing that knows where
@@ -326,17 +299,10 @@ function TaskRow({
       // rendering it somewhere else in the list; see TaskListCard's
       // previewOffsets. With no drag in flight the two properties are absent
       // and the row sits where the document flow puts it.
-      //
-      // --row-ground is the row's painted ground, which the action strip at the
-      // trailing edge wears; see SELECTED_GROUND and the strip itself. Inline
-      // for a selected row, because such a row keeps its accent fill under the
-      // pointer too and only an inline value beats the hover variant that would
-      // otherwise swap the ground out from under the strip.
       style={
         {
           ...hueVars(rainbowAt(index)),
           ...ROW_GRID,
-          ...(selection?.ids.has(task.id) ? { '--row-ground': SELECTED_GROUND } : null),
           ...dnd.slide(unit),
         } as CSSProperties
       }
@@ -359,20 +325,12 @@ function TaskRow({
       // row's own text draws a blue text selection across half the table while
       // the row sweep runs underneath it. The package header carries it too.
       //
-      // The row paints --row-ground and so does its action strip, in one
-      // expression, because a surface token in the strip is a guess about what
-      // the row is painting: this row hovers to --carbon-hover at half alpha
-      // over the card, which is neither --carbon-surface2 nor --carbon-surface.
-      // The hover mix is what `bg-carbon-hover/50` composites to, written
-      // opaque so the strip repeats it rather than stacking a second layer.
-      // has-[:focus-visible] is the keyboard's hover, and the ground has to
+      // has-[:focus-visible] is the keyboard's hover, and the fill has to
       // arrive with it.
       className={`glim-hue glim-tint select-none ${task.status === 'running' ? 'glim-active' : ''} ${dragging ? 'opacity-50' : ''} ${
         selection?.ids.has(task.id) ? 'glim-row-selected' : ''
-      } group relative grid items-center px-3 py-2 transition-colors
-        bg-[var(--row-ground)] [--row-ground:transparent]
-        [--row-hover:color-mix(in_srgb,var(--carbon-hover)_50%,var(--carbon-surface))]
-        hover:[--row-ground:var(--row-hover)] has-[:focus-visible]:[--row-ground:var(--row-hover)]`}
+      } relative grid items-center px-3 py-2 transition-colors
+        hover:bg-carbon-hover/50 has-[:focus-visible]:bg-carbon-hover/50`}
     >
       {columns.map((col) => {
         const node = col.render(task, ctx);
@@ -412,41 +370,20 @@ function TaskRow({
         );
       })}
 
-      {/* The strip floats over the row's trailing edge on hover and owns no
-          grid track, where a fixed gutter was an empty column on nearly every
-          row. It carries the row's own ground so the cells it covers do not
-          read through it, and the context menu on the same row offers every one
-          of these verbs for anybody not using a pointer.
-          The ground is the row's own --row-ground: a surface token here is a
-          second opinion about what the row is painting, and the row hovers to
-          --carbon-hover at half alpha over the card, which no surface token
-          matches in both themes. No ground of its own means no shadow either, a
-          shadow being what makes a surface float, and this one is the row.
-          An inset shadow does not reach a child, so the strip repeats the
-          rainbow wash its row has (index.css's .glim-tint rules). Which one
-          that is depends on the row and not on the mode alone, so it is chosen
-          in rowWash rather than layered in CSS, where an active-and-selected
-          row would come down to stylesheet order.
+      {/* The actions stand in a track of their own at the row's end and are
+          there on every row at rest (GlimStone rule 6): a touch screen has no
+          hover to reveal them, and an action nobody can see is one nobody knows
+          is there. Floating over the row instead, they would cover its size,
+          speed and status cells whenever they showed. The badges are quiet, so
+          forty rows do not read as a wall of tiles, and the context menu on the
+          row offers every one of these verbs too.
           The badges are hued per slot rather than per row position, so a row's
-          play badge is always the same hue and Folder is always the next one,
+          play badge is always the same hue and Recheck is always the next one,
           the same "position is the identity" rule every other badge set in this
           app follows. A hash of the task id would repaint a badge a different
           colour every time its row moved. Trash takes a hue as well: a badge in
           solid red beside neutral siblings reads as the inconsistency. */}
-      <div
-        // :has() and not :focus-within, which also matches the element itself:
-        // with focus-within the strip opens on the focused row and covers its
-        // size, speed and status cells, so a keyboard user walking the list has
-        // them hidden on whichever row they stand on. :has() never matches the
-        // element itself, so the strip appears when a badge inside it takes
-        // focus and stays out of the way when the row does.
-        className={`absolute inset-y-px end-2 z-10 flex items-center gap-1 rounded-[var(--radius-control)]
-          bg-[var(--row-ground)] px-1 opacity-0 transition-opacity
-          group-hover:opacity-100 [&:has(:focus-visible)]:opacity-100 ${rowWash(
-            selection?.ids.has(task.id) ?? false,
-            task.status === 'running',
-          )}`}
-      >
+      <div className={ACTIONS_CELL}>
         {collected && (
           <IconBadge
             quiet
@@ -873,13 +810,8 @@ function PackageRow({
       // TaskRow's identical style above and previewOffsets for the arithmetic.
       // A folder header is a row like any other here, so the folders a drag
       // passes step aside while the pointer is still down.
-      //
-      // --row-ground: see TaskRow's identical pair. A folder header rests on
-      // the quiet surface rather than on nothing, so its resting ground is a
-      // real colour here and not `transparent`.
       style={{
         ...ROW_GRID,
-        ...(allSelected ? { '--row-ground': SELECTED_GROUND } : null),
         ...dnd.slide(unit),
       }}
       // See TaskRow's identical pair. A press on a folder header selects the
@@ -892,16 +824,9 @@ function PackageRow({
       }}
       // A colour step, not a rule: the header sits on the quiet surface and the
       // links inside it sit on the card, which is the whole of the weight
-      // difference between a container and its contents. The selected state
-      // replaces the quiet ground through the one --row-ground property, so a
-      // selected header cannot lose a race between two background utilities in
-      // Tailwind's stylesheet order. `group` is the switch for the strip at the
-      // row's end, which stands at opacity-0 and comes in on group-hover.
-      //
-      // The resting mix is what `bg-carbon-surface2/80` composites to over the
-      // card, written opaque so the strip at the trailing edge can repeat it
-      // rather than stack a second 80%. That strip is drawn at rest here, for
-      // the collector's gear, which a hover-only ground would get wrong.
+      // difference between a container and its contents. The resting ground is
+      // surface2 at 80% over the card, and the selected state paints over it
+      // with .glim-row-selected.
       //
       // The hover goes up the ramp (rule 21), and both the flat tones fail it.
       // --carbon-surface2 is the tone the resting mix is made of and moves
@@ -909,9 +834,10 @@ function PackageRow({
       // Flat --carbon-surface3 is what the Aktiv switch's on track and the
       // hoster badge are filled with, so a row painted with it swallows them
       // whole. Moving the same 80% plane one step keeps a step under everything
-      // standing on the row. web/check-hover-ramp.mjs reads this
-      // custom-property form as well as the `bg-carbon-*` spelling.
-      className={`group relative grid cursor-pointer select-none items-center ${
+      // standing on the row. Both are named as custom properties so that
+      // web/check-hover-ramp.mjs can compare them, which it cannot do with two
+      // arbitrary `bg-[...]` values.
+      className={`relative grid cursor-pointer select-none items-center ${
         allSelected ? 'glim-row-selected' : ''
       } ${divider ? 'border-t border-carbon-border/60' : ''} px-3 py-2.5 transition-colors
         bg-[var(--row-ground)]
@@ -941,22 +867,15 @@ function PackageRow({
         </div>
       ))}
 
-      {/* The strip at the end of a folder row, floating over the trailing edge
-          like a link row's own rather than owning a track. It appears on hover,
-          so both kinds of row behave alike; the gear is the exception and
-          stands there without one, because it shows a setting rather than
-          offering an action.
+      {/* The folder row's actions, in the same trailing track as a link row's
+          and visible at rest for the same reason.
 
           The gear is for a package whose variant rows share a host
           (variantKindOf is '' for anything not yt-dlp-routed) and collector
           only: what it opens is which variants to keep and at what quality,
           which is a decision about a link before it is fetched. */}
       {(ytdlpHost && ctx.profile === 'collector') || ctx.onRemovePackage ? (
-        <div
-          className={`absolute inset-y-px end-2 z-10 flex items-center gap-1 rounded-[var(--radius-control)]
-            bg-[var(--row-ground)] px-1 transition-opacity
-            ${ytdlpHost && ctx.profile === 'collector' ? '' : 'opacity-0 group-hover:opacity-100 [&:has(:focus-visible)]:opacity-100'}`}
-        >
+        <div className={ACTIONS_CELL}>
           {ytdlpHost && ctx.profile === 'collector' && (
             <HosterPresetButton host={ytdlpHost} base={base} focusable={current} />
           )}
@@ -2684,7 +2603,7 @@ export function TaskListCard({
                   cell, left and right close and open, so cell roles would
                   describe an interaction this list does not have, and a
                   treegrid would force roles onto the header row, onto the tail
-                  spacer and onto the action strip that owns no grid track.
+                  spacer and onto the cell holding the row's actions.
 
                   `relative` is for the two probes, the keyboard's and the event
                   list's. A jump to a row the window has not drawn has nothing

@@ -223,7 +223,7 @@ export function MediaHooksCard({ hue }: { hue: number }) {
           {hooks.map((h, i) => (
             <li
               key={h.id}
-              className={`group flex flex-col gap-1 py-2.5 ${
+              className={`flex flex-col gap-1 py-2.5 ${
                 i === hooks.length - 1 && !draft ? '' : 'border-b border-carbon-border/60'
               }`}
             >
@@ -258,7 +258,6 @@ export function MediaHooksCard({ hue }: { hue: number }) {
                   title={t('settings.mediahook.delete')}
                   aria-label={`${t('settings.mediahook.delete')} · ${h.name || h.id}`}
                   disabled={busy}
-                  className="opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
                   onClick={() => {
                     // Refused here too, so the reason is translated.
                     if (h.usedBy.length > 0) {

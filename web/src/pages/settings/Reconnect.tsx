@@ -506,15 +506,14 @@ function RequestRow({
 }) {
   const { t } = useT();
   return (
-    <li className="glim-well group flex flex-col gap-3 p-4">
+    <li className="glim-well flex flex-col gap-3 p-4">
       <div className="flex items-center gap-3">
         <span className="glim-num text-xs font-medium text-carbon-textSub">
           {t('settings.reconnect.requestStep', { n: index + 1 })}
         </span>
         <span className="flex-1" />
-        {/* Row actions show on hover and focus. `labelled` makes them follow the
-            Beschriftung setting. */}
-        <div className="flex items-center gap-1.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+        {/* `labelled`, so the actions follow the Beschriftung setting. */}
+        <div className="flex items-center gap-1.5">
           <IconBadge
             labelled
             icon={<IconArrowUp width={16} height={16} />}

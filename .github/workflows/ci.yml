@@ -247,6 +247,9 @@ jobs:
       - name: The app mark never outgrows the rail's own
         run: node check-mark-scale.mjs
 
+      - name: A picker tile hovers to the tile grey
+        run: node check-tile-hover.mjs
+
       - name: A stretched plot does not decide its card's height
         run: node check-stretched-svg-height.mjs
 

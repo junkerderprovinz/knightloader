@@ -188,12 +188,14 @@ function openIfSet(url: string): () => void {
 
 /**
  * The class of DownloadTile, the one download shape on the page for browsers,
- * stores and the APK alike. Hover moves one step up the surface ramp, as the
- * coin tiles of the crypto window do, and vendor marks keep their colours.
+ * stores and the APK alike. It hovers to the coin tiles' grey and ink. The
+ * vendor marks keep their colours, since each has a part that stands out on
+ * the grey (check-tile-hover.mjs). The hover belongs to the wrapper, so the (i)
+ * in the corner lights the tile too and takes the same ink.
  */
 const tileClass =
   'flex flex-col items-center justify-center gap-2 rounded-[var(--radius-control)] bg-carbon-surface2 ' +
-  'text-carbon-text transition-colors duration-150 hover:bg-carbon-surface3';
+  'text-carbon-text transition-colors duration-150 group-hover:bg-carbon-tileHover group-hover:text-carbon-tileHoverInk';
 
 /**
  * ExtensionVersion links the extension's version to its release page. The tag
@@ -230,15 +232,17 @@ function DownloadTile({
   hintLabel?: string;
 }) {
   return (
-    <div className="relative">
+    <div className="group relative">
       {/* No tooltip: the tile already shows its name. */}
       <button type="button" onClick={onClick} aria-label={name} className={`${tileClass} h-28 w-28`}>
         <span className="flex h-14 w-14 shrink-0 items-center justify-center">{logo}</span>
         <span className="text-xs font-medium">{name}</span>
       </button>
+      {/* onColor, so the (i) takes the tile's ink; the muted grey it wears
+          elsewhere fades on the lit tile. */}
       {hint && (
-        <span className="absolute right-1.5 top-1.5">
-          <InfoBubble tip={hint} label={hintLabel} />
+        <span className="absolute right-1.5 top-1.5 text-carbon-textSub group-hover:text-carbon-tileHoverInk">
+          <InfoBubble tip={hint} label={hintLabel} onColor />
         </span>
       )}
     </div>

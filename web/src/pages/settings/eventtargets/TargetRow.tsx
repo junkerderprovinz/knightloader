@@ -141,7 +141,7 @@ export function TargetRow({
 
   return (
     <li className={last ? '' : 'border-b border-carbon-border/60'}>
-      <div className="group grid grid-cols-[1fr_auto] items-center gap-3 py-2.5">
+      <div className="grid grid-cols-[1fr_auto] items-center gap-3 py-2.5">
         <button type="button" onClick={onToggle} aria-expanded={open} className="flex min-w-0 items-center gap-3 text-left">
           <span className="glim-num w-5 shrink-0 text-xs text-carbon-textMuted">{index + 1}</span>
           <span className="min-w-0 flex-1">
@@ -162,7 +162,7 @@ export function TargetRow({
             </span>
           )}
         </button>
-        <div className="flex items-center gap-1.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+        <div className="flex items-center gap-1.5">
           <IconBadge
             // A lone glyph takes half its 32px badge.
             icon={<IconTrash width={16} height={16} />}

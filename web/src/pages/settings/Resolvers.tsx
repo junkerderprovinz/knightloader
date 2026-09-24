@@ -555,7 +555,7 @@ export function Resolvers() {
               </thead>
               <tbody className="divide-y divide-carbon-border/40">
                 {presetRows.map(([host, preset], i) => (
-                  <tr key={host} className="group transition-colors hover:bg-carbon-hover">
+                  <tr key={host} className="transition-colors hover:bg-carbon-hover">
                     {/* Read-only, since the host is the lookup key; remove the
                         row and add another instead. */}
                     <td className="px-4 py-3 font-medium text-carbon-text">{host}</td>
@@ -589,11 +589,9 @@ export function Resolvers() {
                         labelOf={audioFormatLabel}
                       />
                     </td>
-                    {/* The row's action, shown on hover and focus. */}
                     <td className="px-2 py-3 text-end">
                       <IconBadge
                         hue={i}
-                        className="opacity-0 transition-opacity focus-visible:opacity-100 group-hover:opacity-100"
                         icon={<IconTrash width={16} height={16} />}
                         title={`${t('settings.resolvers.presetRemove')} · ${host}`}
                         aria-label={`${t('settings.resolvers.presetRemove')} · ${host}`}
