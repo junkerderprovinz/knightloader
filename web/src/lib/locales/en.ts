@@ -55,7 +55,7 @@ export const en = {
   'task.reason.cancelled': 'Cancelled',
   // Not one of the server's values. It names the failure chip that collects the
   // rows nothing classified, plus any cause a newer instance sent that this
-  // build has no word for - see ErrorCauses.tsx. The row itself still shows no
+  // build has no word for (see ErrorCauses.tsx). The row itself still shows no
   // label for those (reasonKey in columns.tsx); a chip has to say something,
   // and "unclassified" is the one honest thing to say.
   'task.reason.unknown': 'Unclassified',
@@ -462,9 +462,9 @@ export const en = {
   'container.handed': '{file} is encrypted. It was handed to the JDownloader backend; its links appear here once it has fetched it (within {n}s).',
   'container.failed': '{file} was not taken: {reason}',
 
-  // Wave 11.5D: uploading a .torrent file, and the file-tree step a
-  // multi-file torrent shows before it is added. A magnet link needs none of
-  // this - it already stages through the paste box above, the moment
+  // Uploading a .torrent file, and the file-tree step a multi-file torrent
+  // shows before it is added. A magnet link needs none of this: it already
+  // stages through the paste box above, the moment
   // internal/resolver/torrent.Resolver.Match recognises the scheme.
   'torrent.staging': 'Adding…',
   'torrent.staged': 'Added {file} to the collector.',
@@ -1039,7 +1039,7 @@ export const en = {
 
   // The archive settings page. The three policy strips are labelled by what the
   // extractor does and not by the id the server sends, but an id with no string
-  // here still renders under its own name - see pages/settings/Archives.tsx.
+  // here still renders under its own name (see pages/settings/Archives.tsx).
   'settings.archives.handles': 'Opens',
   'settings.archives.destination': 'Unpack to',
   'settings.archives.destinationHint':
@@ -1070,8 +1070,8 @@ export const en = {
   'settings.archives.optionsFailed':
     'The extractor’s own lists could not be fetched, so the choices that come from it are not shown.',
 
-  // Wave 6: the accounts page grew a service catalogue and a real accounts
-  // table with two sections (debrid, hoster logins), account health, priority
+  // The accounts page: a service catalogue and an accounts table with two
+  // sections (debrid, hoster logins), account health, priority
   // routing and a hoster-login reconciler that hands credentials to the
   // headless-JD sidecar rather than reimplementing a hoster's own login.
   'accounts.accountLabel': 'Account name',
@@ -1167,7 +1167,7 @@ export const en = {
   'accounts.hoster.custodyNotice':
     'The password is sent to the headless JDownloader sidecar, which stores it and performs the actual login. KnightLoader itself does not keep it.',
 
-  // The prompt modal (components/CaptchaModal.tsx) - a hoster asking a human
+  // The prompt modal (components/CaptchaModal.tsx): a hoster asking a human
   // something before a download can continue.
   'captcha.title': 'Captcha needed',
   'captcha.titleMore': 'Captcha needed ({n} more waiting)',
@@ -1192,11 +1192,9 @@ export const en = {
   'captcha.timedOut': 'A captcha for {host} timed out.',
   'captcha.resolvedElsewhere': 'A captcha for {host} was resolved elsewhere.',
 
-  // The captcha settings page (pages/settings/Captcha.tsx) - solver order and
-  // each solver's own API key. Landed here verbatim from that file's own
-  // PENDING table (see its doc comment) now that this wave's locale pass has
-  // reached it; PENDING itself is left in place, unread once every key here
-  // resolves through the real catalogue.
+  // The captcha settings page (pages/settings/Captcha.tsx): solver order and
+  // each solver's own API key, verbatim from that file's PENDING table (see
+  // its doc comment), which goes unread once every key here resolves.
   'settings.captcha.title': 'Captcha',
   'settings.captcha.subtitle': 'Automatic solvers are tried in this order before a captcha is ever shown to you.',
   'settings.captcha.orderTitle': 'Solver order',
@@ -1221,9 +1219,8 @@ export const en = {
   'settings.captcha.removed': 'API key removed.',
   'settings.captcha.saveFailed': 'Could not save the key: {error}',
 
-  // AddLinksForm.tsx's own per-batch options (build-plan.md section 8A) - the
-  // destination, its recent-use history, and the archive/link password pair,
-  // landed here now that this wave's locale pass has reached the form.
+  // AddLinksForm.tsx's own per-batch options: the destination, its recent-use
+  // history, and the archive/link password pair.
   'collector.options': 'Options',
   'collector.destination': 'Destination',
   'collector.destinationRecent': 'Recently used',
@@ -1236,10 +1233,9 @@ export const en = {
   'collector.overruleHint':
     'When off, a matching Packagizer rule wins over priority, unpacking and the comment above. When on, these values win instead. The destination is never part of this: it always applies as typed.',
 
-  // The collector's facet sidebar (components/CollectorFacets.tsx) - landed
-  // here verbatim from that file's own PENDING table (see its doc comment)
-  // now that this wave's locale pass has reached it; PENDING itself is left
-  // in place, unread once every key here resolves through the real catalogue.
+  // The collector's facet sidebar (components/CollectorFacets.tsx), verbatim
+  // from that file's PENDING table (see its doc comment), which goes unread
+  // once every key here resolves.
   'collector.facets.title': 'Filters',
   'collector.facets.hint':
     'Narrow the staged list by where a link points, what kind of file it is, or which package it landed in.',
@@ -1253,9 +1249,8 @@ export const en = {
   'collector.facets.type.document': 'Documents',
   'collector.facets.type.other': 'Other',
 
-  // The collector's own totals strip (components/CollectorStats.tsx) - same
-  // PENDING-table arrangement as CollectorFacets.tsx above, landed the same
-  // way.
+  // The collector's own totals strip (components/CollectorStats.tsx), with the
+  // same PENDING-table arrangement as CollectorFacets.tsx above.
   'collector.stats.label': 'Collector totals',
   'collector.stats.packages': 'Packages',
   'collector.stats.links': 'Links',
@@ -1265,13 +1260,8 @@ export const en = {
   'collector.hosterPresetIntro': 'Which variants of the links from {host} the collector shows, and at what quality new links start.',
   'collector.hosterPresetAudioFormat': 'Audio format',
 
-  // The ambient-activity status strip (components/StatusStrip.tsx, Wave 9's
-  // 9A) - its LABEL record and formatCount()/tooltip strings were left
-  // hardcoded in English on purpose (see that file's own doc comment):
-  // landed here now that this wave's locale pass has reached them.
-  // StatusStrip.tsx itself still needs a follow-up pass to read these
-  // through useT() instead of its literals - components/* is 9A's own file,
-  // named here rather than taken (this wave's report).
+  // The ambient-activity status strip (components/StatusStrip.tsx): its LABEL
+  // record and the formatCount()/tooltip strings.
   'activity.crawl': 'Crawling pages',
   'activity.linkcheck': 'Checking links',
   'activity.captcha': 'Captcha',
@@ -1284,28 +1274,19 @@ export const en = {
   'activity.autoconfirmCountdown': 'These links move to the download list when the countdown runs out. Stop it and they stay in the collector.',
   'activity.autoconfirmStop': 'Stop the countdown',
 
-  // The notification centre's quiet-mode row (lib/toast.tsx, Wave 9's 9B) -
-  // landed here verbatim from that file's own PENDING table (see its doc
-  // comment), same arrangement as CollectorFacets/CollectorStats above;
-  // PENDING itself is left in place, unread once these resolve through the
-  // real catalogue.
+  // The notification centre's quiet-mode row (lib/toast.tsx).
   'notifications.quiet': 'Quiet mode',
   'notifications.quietHint':
     'Hides success and info notifications. A failure, a captcha waiting on you, or a benched account still shows.',
 
-  // The task list's row tooltip (components/columns.tsx, Wave 9's 9D) -
-  // landed here verbatim from that file's own PENDING table, same
-  // arrangement.
+  // The task list's row tooltip (components/columns.tsx).
   'task.tooltip.url': 'URL',
   'task.tooltip.changed': 'Last changed',
 
   // The row tooltip's swarm detail and the three hidden-by-default swarm
-  // columns (components/columns.tsx, Wave 11.5E) - the six tooltip strings
-  // land here verbatim from that file's own PENDING table (see its doc
-  // comment); columns.peers/seeds/ratio do not go through PENDING at all -
-  // TaskList.tsx/ColumnMenu.tsx call t(col.labelKey) directly with no
-  // fallback of their own, so these three are what resolves the labelKey
-  // casts the moment this lands.
+  // columns (components/columns.tsx). TaskList.tsx and ColumnMenu.tsx call
+  // t(col.labelKey) directly with no fallback of their own, so
+  // columns.peers/seeds/ratio are the only thing that resolves those labels.
   'task.tooltip.infoHash': 'Info hash',
   'task.tooltip.trackers': 'Trackers',
   'task.tooltip.swarm': 'Peers / seeds / ratio',
@@ -1326,17 +1307,15 @@ export const en = {
   'columns.variant.bitrateAuto': 'Auto',
   'columns.variant.anyFormat': '{quality}, any format',
 
-  // Reaching a task's own file (components/FileActions.tsx, Wave 10's 10G) -
-  // "Open" streams it through the browser; the other two are desktop-only and
-  // carry their reason in file.desktopOnly when they are shown disabled.
+  // Reaching a task's own file (components/FileActions.tsx): "Open" streams
+  // it through the browser; the other two are desktop-only and carry their
+  // reason in file.desktopOnly when they are shown disabled.
   'file.open': 'Open',
   'file.openNatively': 'Open with default app',
   'file.revealInFolder': 'Show in folder',
   'file.desktopOnly': 'Desktop app only',
 
-  // The timetable editor (pages/settings/Schedule.tsx, Wave 10's 10A) -
-  // landed here verbatim from that file's own PENDING table, same
-  // arrangement as Connections.tsx and Captcha.tsx before it.
+  // The timetable editor (pages/settings/Schedule.tsx).
   'settings.schedule.subtitle': 'Pause, resume or cap the download speed on a timetable.',
   'settings.schedule.statusTitle': 'Schedule status',
   'settings.schedule.listTitle': 'Schedules',
@@ -1381,15 +1360,8 @@ export const en = {
   'settings.schedule.saveFailed': 'The schedules could not be saved: {error}',
   'settings.schedule.rowError': 'Row {row}: {error}',
 
-  // The end-of-queue countdown banner (components/IdleActionBanner.tsx,
-  // Wave 10's 10B) - its STRINGS object and the one hardcoded toast string
-  // were left in plain English on purpose (see that file's own doc comment):
-  // landed here now that this wave's locale pass has reached them.
-  // IdleActionBanner.tsx itself still needs a follow-up pass to read these
-  // through useT() instead of its literals - components/* is 10B's own file,
-  // named here rather than taken (this wave's report). idleAction.cancelFailed
-  // is re-cased to match this catalogue's sentence style; the source literal
-  // itself was lowercase with no closing period.
+  // The end-of-queue countdown banner (components/IdleActionBanner.tsx): its
+  // STRINGS object and its one toast.
   'idleAction.title': 'The queue is idle',
   'idleAction.action.pause': 'Pausing',
   'idleAction.actionFallback': '"{action}" running',
@@ -1398,18 +1370,14 @@ export const en = {
   'idleAction.cancelling': 'Cancelling…',
   'idleAction.cancelFailed': 'Could not cancel: the server did not answer.',
 
-  // The end-of-queue action's own settings row (pages/settings/
-  // DownloadsSettings.tsx, Wave 10's 10B) - IDLE_ACTION_LABELS and the
-  // group's label/hint/InfoBubble were left hardcoded for the same reason as
-  // IdleActionBanner.tsx above (see that file's own doc comment); landed
-  // here verbatim. DownloadsSettings.tsx still needs the same follow-up pass
-  // to read these through useT().
+  // The end-of-queue action's own settings row
+  // (pages/settings/DownloadsSettings.tsx): IDLE_ACTION_LABELS and the
+  // group's label, hint and InfoBubble.
 
-  // The diagnostics page (pages/settings/Diagnostics.tsx, Wave 10's 10C) -
-  // landed here verbatim from that file's own PENDING table, same
-  // arrangement as Schedule.tsx above. settings.nav.diagnostics is this
-  // page's rail label (registry.tsx registers the id, tx.ts's label() looks
-  // up settings.nav.<id>).
+  // The diagnostics page (pages/settings/Diagnostics.tsx), verbatim from that
+  // file's PENDING table. settings.nav.diagnostics is this page's rail label
+  // (registry.tsx registers the id, tx.ts's label() looks up
+  // settings.nav.<id>).
   'settings.nav.diagnostics': 'Diagnostics',
   'settings.diagnostics.subtitle':
     'What this build is, what it is running on, and its recent log output, for attaching to a bug report.',
@@ -1431,10 +1399,9 @@ export const en = {
   'settings.diagnostics.refresh': 'Refresh',
   'settings.diagnostics.loadFailed': 'Could not load diagnostics. Is the server reachable?',
 
-  // The help page (pages/settings/Help.tsx, Wave 10's 10C) - landed here
-  // verbatim from that file's own PENDING table, same arrangement as
-  // Diagnostics.tsx above. settings.nav.help is this page's rail label, the
-  // same relationship settings.nav.diagnostics has to Diagnostics.tsx.
+  // The help page (pages/settings/Help.tsx). settings.nav.help is this page's
+  // rail label, the same relationship settings.nav.diagnostics has to
+  // Diagnostics.tsx.
   'settings.nav.help': 'Help',
 
   'settings.help.intake.title': 'Adding downloads',
@@ -1526,8 +1493,8 @@ export const en = {
   'settings.about.mailSubject': 'Feedback',
 
   // The script editor (pages/settings/Scripts.tsx) and its manual-invocation
-  // menu entry (components/ScriptActions.tsx) - Wave 11B, JD's "Event
-  // Scripter" (census family E).
+  // menu entry (components/ScriptActions.tsx), JD's "Event Scripter" (census
+  // family E).
   'settings.scripts.subtitle': 'Automate KnightLoader with your own JavaScript, run on an event or on demand.',
   'settings.scripts.listTitle': 'Your scripts',
   'settings.scripts.add': 'Add script',
@@ -1569,19 +1536,18 @@ export const en = {
   'settings.scripts.runFailed': 'Failed: {error}',
   'settings.scripts.output': 'Output',
 
-  // The manual-invocation half of Wave 11B (components/ScriptActions.tsx) -
+  // The manual-invocation half of scripting (components/ScriptActions.tsx):
   // the "Run script" entry on the download list's own right-click menu.
   'task.runScript': 'Run script',
   'task.runScriptUnnamed': 'Untitled script',
   'task.runScriptDone': 'Ran “{name}”',
   'task.runScriptFailed': '“{name}” failed: {error}',
 
-  // The Remote access section and API tokens (pages/settings/Access.tsx,
-  // Wave 11C) - build-plan.md section 8's Wave 11 amendment on 11C: named,
-  // individually revocable tokens; the addresses this instance answers on,
-  // with a QR code; the PWA install BrowserTools.tsx also offers; and the
-  // loud warning when the server is reachable from off this machine with no
-  // password set.
+  // The Remote access section and API tokens (pages/settings/Access.tsx):
+  // named, individually revocable tokens; the addresses this instance
+  // answers on, with a QR code; the PWA install BrowserTools.tsx also
+  // offers; and the loud warning when the server is reachable from off this
+  // machine with no password set.
   'settings.access.relay.title': 'Project relay',
   'settings.access.relay.body': 'A relay is a go-between that makes all your instances reachable from outside your home network, and so from anywhere. This one is provided by the project, free of charge.',
   'settings.access.relay.use': 'Use the project relay',
@@ -1669,7 +1635,7 @@ export const en = {
   'settings.access.phrase.leave': 'Leave the group',
   'settings.access.intakePortsHint': 'Other ways to reach this instance directly, outside the normal login. Each one shows its own reachability here.',
 
-  // Sending KnightLoader a link from outside the app - the bookmarklet, the
+  // Sending KnightLoader a link from outside the app: the bookmarklet, the
   // MV3 browser extension and the PWA install step
   // (pages/settings/BrowserTools.tsx). settings.nav.browsertools is this
   // page's rail label.
@@ -1703,7 +1669,7 @@ export const en = {
   'settings.browsertools.copied': 'Copied.',
   'settings.browsertools.extensionTitle': 'Browser extension',
 
-  // /quickadd (pages/QuickAdd.tsx) - the one page the bookmarklet, the browser
+  // /quickadd (pages/QuickAdd.tsx): the one page the bookmarklet, the browser
   // extension and the PWA share target all land on.
   'quickadd.title': 'Add to KnightLoader',
   'quickadd.manualLabel': 'Link (or paste several, one per line)',
@@ -1754,16 +1720,13 @@ export const en = {
   'settings.system.restoreStaged': '{status}',
   'settings.system.loadFailed': 'Could not load. Is the server reachable?',
 
-  // Two more rail labels this wave's pages need: Resolvers.tsx (11E, yt-dlp
-  // format/subtitle/output-template options) and the "ytdlp" module row
-  // (routes_features.go) both already call label()/tx() against these keys.
+  // Rail labels for Resolvers.tsx (yt-dlp format, subtitle and
+  // output-template options) and the "ytdlp" module row (routes_features.go),
+  // which both call label()/tx() against these keys.
   'settings.nav.resolvers': 'Resolvers',
   'settings.module.ytdlp': 'yt-dlp',
 
-  // Resolvers.tsx's own page body - it shipped with no PENDING table at all
-  // (see that file's earlier doc comment), so unlike every sibling page above
-  // there were no ready-made keys to land verbatim; this is that pass,
-  // written directly against the real catalogue instead.
+  // Resolvers.tsx's own page body.
   'settings.resolvers.moduleUnavailable': 'Module unavailable',
   'settings.resolvers.moduleUnavailableHint':
     'Everything below is still saved and takes effect the moment yt-dlp becomes available. Nothing you edit now is lost.',
@@ -1792,15 +1755,14 @@ export const en = {
   'settings.resolvers.outputHint':
     "yt-dlp's own -o template. Empty uses the built-in %(title)s.%(ext)s. May include subfolders, e.g. %(uploader)s/%(title)s.%(ext)s.",
 
-  // The Torrents settings page (pages/settings/Torrents.tsx, Wave 11.5E) -
-  // seed target, transfer limit, port + UPnP mapping, DHT/PEX. Landed here
-  // verbatim from that file's own PENDING table (see its doc comment); two
-  // more, settings.nav.torrents and settings.module.torrents, are not in
-  // that table at all - registry.tsx and routes_features.go already call
-  // label() against them (Settings.tsx's rail, Modules.tsx's row), falling
-  // back to the raw "torrents" id until now, the same gap this wave's own
-  // report closes the way 11G's report closed it for settings.nav.resolvers/
-  // settings.module.ytdlp just above.
+  // The Torrents settings page (pages/settings/Torrents.tsx): seed target,
+  // transfer limit, port and UPnP mapping, DHT/PEX, verbatim from that file's
+  // PENDING table (see its doc comment). settings.nav.torrents and
+  // settings.module.torrents are not in that table: registry.tsx and
+  // routes_features.go call label() against them (Settings.tsx's rail,
+  // Modules.tsx's row), which would otherwise fall back to the raw
+  // "torrents" id, as with settings.nav.resolvers and settings.module.ytdlp
+  // above.
   'settings.nav.torrents': 'Torrents',
   'settings.module.torrents': 'Torrents',
   'settings.torrents.title': 'Torrents',
@@ -1846,7 +1808,7 @@ export const en = {
 
   // The first-run tour (components/OnboardingWizard.tsx): a short walkthrough
   // shown once, gated on onboarding.done in the shared uistate bucket (see
-  // that file's own doc comment) rather than a page of its own - it is an
+  // that file's own doc comment) rather than a page of its own. It is an
   // overlay, mounted once beside CaptchaModal and IdleActionBanner, not a
   // route.
   'onboarding.step': 'Step {n} of {total}',
@@ -1869,14 +1831,13 @@ export const en = {
   'onboarding.finished.body':
     'That covers the tour. The Help page under Settings has a full walkthrough of everything else this build does, and most controls carry their own explanation behind an (i) icon.',
 
-  // The command registry core (lib/commands/, Wave 12A) - the first, small
-  // set of commands visible on every surface: open the palette itself, the
-  // theme switch (its own label already existed as theme.toggle, reused
-  // rather than duplicated) and one "go to X" per main page. `group` on a
-  // Command is a real TranslationKey string, not literal English - see
-  // lib/commands/types.ts's own doc comment on why - so every later surface
-  // file reuses commands.group.navigation below or adds its own key here,
-  // never a bare word inline.
+  // The command registry core (lib/commands/): the commands visible on every
+  // surface, which are opening the palette itself, the theme switch (its
+  // label is theme.toggle, reused rather than duplicated) and one "go to X"
+  // per main page. `group` on a Command is a real TranslationKey string, not
+  // literal English (lib/commands/types.ts's doc comment says why), so every
+  // surface file reuses commands.group.navigation below or adds its own key
+  // here, never a bare word inline.
   'commands.openPalette': 'Open command palette',
   'commands.group.general': 'General',
   'commands.group.navigation': 'Go to',
@@ -1887,33 +1848,33 @@ export const en = {
   'commands.goAccounts': 'Go to Accounts',
   'commands.goSettings': 'Go to Settings',
 
-  // lib/commands/settings.ts (Wave 12): one command per settings sub-page,
-  // e.g. "Settings: Torrents" - see that file's own doc comment. Every
+  // lib/commands/settings.ts: one command per settings sub-page, e.g.
+  // "Settings: Torrents" (see that file's own doc comment). Every
   // labelKey below reuses the page's existing settings.nav.<id> string
   // rather than minting a second name per page.
   'commands.group.settings': 'Settings',
-  // lib/commands/queue.ts (Wave 12): the shell's own master switch
-  // (QueueBar.tsx), reachable from every page rather than only Downloads'
-  // own copy (commands/downloads.ts) - see that file's own doc comment.
+  // lib/commands/queue.ts: the shell's own master switch (QueueBar.tsx),
+  // reachable from every page rather than only Downloads' own copy
+  // (commands/downloads.ts). See that file's own doc comment.
   'commands.group.queue': 'Queue',
-  // lib/commands/language.ts (Wave 12): open/close the sidebar's language
+  // lib/commands/language.ts: open/close the sidebar's language
   // dropdown (components/LanguagePicker.tsx) from the palette.
   'commands.group.language': 'Language',
-  // lib/commands/downloads.ts and lib/commands/collector.ts (Wave 12): the
-  // bulk/page-level actions those two pages' toolbars already had a plain
-  // onClick for - pause/resume/retry, select all, remove selected, clear
+  // lib/commands/downloads.ts and lib/commands/collector.ts: the
+  // bulk/page-level actions those two pages' toolbars have a plain onClick
+  // for, such as pause/resume/retry, select all, remove selected, clear
   // finished, start selected/all, check all. See either file's own doc
   // comment for which existing function each command calls.
   'commands.group.downloads': 'Downloads',
   'commands.group.collector': 'Link collector',
 
-  // components/CommandPalette.tsx (Wave 12): the overlay itself, not any one
+  // components/CommandPalette.tsx: the overlay itself, not any one
   // command in it.
   'commands.paletteLabel': 'Command palette',
   'commands.searchPlaceholder': 'Type a command…',
   'commands.noResults': 'No matching commands',
 
-  // The Shortcuts settings tab (pages/settings/Shortcuts.tsx, Wave 12): every
+  // The Shortcuts settings tab (pages/settings/Shortcuts.tsx): every
   // command with a default keyboard shortcut, grouped and rebindable. See
   // that file's own doc comment for why it reads lib/commands/allCommands.ts
   // rather than useCommands(), and why `group` is shown through a

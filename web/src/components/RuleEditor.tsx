@@ -216,7 +216,7 @@ export const RULE_STRINGS = {
   'settings.rules.badSize': 'This is not a size.',
   'settings.rules.pattern': 'Pattern',
   'settings.rules.patternHint':
-    'A Go regular expression, unanchored, and the one operator that does NOT ignore case - put (?i) at the front if you want it to. An unparsable pattern is refused with the reason rather than quietly matching nothing.',
+    'A Go regular expression, unanchored. This is the only operator that does not ignore case; put (?i) at the front if you want it to. An unparsable pattern is refused with the reason rather than quietly matching nothing.',
   'settings.rules.category': 'File type',
   'settings.rules.categoryCustom': 'Custom pattern',
   'settings.rules.categoryHint':
@@ -304,7 +304,7 @@ export const RULE_STRINGS = {
   'settings.rules.var.day': 'The day, as DD',
   'settings.rules.var.simpledate': 'The date in a pattern you write, in Java’s date syntax',
   'settings.rules.var.source':
-    'The Nth path segment of the source page’s URL, counting from 1: on https://site.org/tv/s01/list.html, 1 is tv and 2 is s01. NOT what JDownloader means by this tag - see the note below.',
+    'The Nth path segment of the source page’s URL, counting from 1: on https://site.org/tv/s01/list.html, 1 is tv and 2 is s01. This is not what JDownloader means by this tag; see the note below.',
   'settings.rules.var.match':
     'Capture group N of this rule’s "matches" pattern on FIELD. This is JDownloader’s <jd:source:N>, under a name that says which pattern it reads. A rule with no matching pattern on that field is refused when you save it, rather than quietly producing a folder called <jd:match:url:1>.',
   'settings.rules.var.append': 'Nothing the first time this value comes up, then _2, _3 and so on',

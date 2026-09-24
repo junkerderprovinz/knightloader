@@ -82,7 +82,7 @@ const PENDING = {
   'settings.connections.edit': 'Edit this connection',
   'settings.connections.type': 'Type',
   'settings.connections.typeHint':
-    'None and direct are not the same row. None is inert: it names no connection and is never used, so it survives only until you finish filling it in. Direct is a real choice - go out over this machine’s own connection and deliberately bypass every proxy for the hosts named below, which is how a NAS is excluded from a whole-app proxy. A row whose filter matches the host beats a row with no filter, so a direct row with a filter always wins over a catch-all proxy.',
+    'None and direct mean different things. None is inert: it names no connection and is never used, so it survives only until you finish filling it in. Direct is a real choice: it goes out over this machine’s own connection and bypasses every proxy for the hosts named below. That is how you exclude a NAS from a whole-app proxy. A row whose filter matches the host beats a row with no filter, so a direct row with a filter always wins over a catch-all proxy.',
   'settings.connections.kind.none': 'None',
   'settings.connections.kind.direct': 'Direct',
   'settings.connections.stateNone': 'Inert. Nothing is ever sent through this row.',
