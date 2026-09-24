@@ -2,12 +2,15 @@ package app
 
 import (
 	"context"
+	"path/filepath"
 	"sync"
 	"testing"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
+	"github.com/junkerderprovinz/knightloader/internal/rules"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
+	"github.com/junkerderprovinz/knightloader/internal/watch"
 )
 
 // tasksSharingURL returns copies of every row of a family, which all share the
@@ -65,7 +68,8 @@ func TestExpandYtdlpVariantsCreatesAllFiveRowsWithDefaultPreset(t *testing.T) {
 	}
 }
 
-// Variants a saved preset leaves out are still staged as rows, but disabled.
+// Variants a saved preset leaves out are still staged as rows, but set aside
+// and switched off.
 func TestExpandYtdlpVariantsRespectsASavedHosterPreset(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
 	fake, _ := newFakeYtdlp()
@@ -115,6 +119,13 @@ func TestExpandYtdlpVariantsRespectsASavedHosterPreset(t *testing.T) {
 			if x.Enabled {
 				t.Errorf("%q row enabled, want it disabled; the saved preset leaves it out of Variants()", kind)
 			}
+			if !x.VariantOff {
+				t.Errorf("%q row is in view, want it set aside; the saved preset leaves it out of Variants()", kind)
+			}
+			continue
+		}
+		if x.VariantOff {
+			t.Errorf("%q row is set aside, want it in view; the saved preset lists it", kind)
 		}
 	}
 }
@@ -235,6 +246,118 @@ func rowOf(t *testing.T, family []core.Task, want ytdlp.Variant) string {
 	}
 	t.Fatalf("no %q row in the family", want)
 	return ""
+}
+
+// wiredYtdlpApp is an app whose yt-dlp links go to a fake that answers the
+// title probe at once, with mutate applied to its settings.
+func wiredYtdlpApp(t *testing.T, mutate func(s *settings.Settings, base string)) (*App, string) {
+	t.Helper()
+	a, base := newRuleApp(t, mutate)
+	fake, _ := newFakeYtdlp()
+	fake.title = "Some Video"
+	wireYtdlp(a, fake)
+	return a, base
+}
+
+// fiveRows returns the rows url became, failing unless there are five.
+func fiveRows(t *testing.T, a *App, url string) []core.Task {
+	t.Helper()
+	rows := tasksSharingURL(a, url)
+	if len(rows) != 5 {
+		t.Fatalf("the link became %d rows, want 5", len(rows))
+	}
+	return rows
+}
+
+// The add-links form's folder, passwords, priority and comment are for the
+// link, and a yt-dlp link is all five of its rows.
+func TestTheAddLinksFormReachesEveryRowOfAYtdlpLink(t *testing.T) {
+	a, base := wiredYtdlpApp(t, func(*settings.Settings, string) {})
+	dir := filepath.Join(base, "Chosen")
+	prio := 2
+	const url = "https://youtube.com/watch?v=formopts001"
+	if _, err := a.AddLinksWithOptions([]string{url}, "", OriginPaste, LinkBatchOptions{
+		Dir: dir, Password: "archivepw", DownloadPassword: "linkpw",
+		Comment: "from the form", Priority: &prio, Overrule: true,
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	for _, x := range fiveRows(t, a, url) {
+		if x.Dir != dir || x.Password != "archivepw" || x.DownloadPassword != "linkpw" {
+			t.Errorf("%q row has dir %q, passwords %q and %q; want the form's %q, archivepw and linkpw",
+				x.Variant, x.Dir, x.Password, x.DownloadPassword, dir)
+		}
+		if x.Comment != "from the form" || x.Priority != 2 {
+			t.Errorf("%q row has comment %q and priority %d, want the form's", x.Variant, x.Comment, x.Priority)
+		}
+	}
+}
+
+// A Packagizer rule shapes the row staging creates, and the rest of a yt-dlp
+// link's rows are made from that one, so they land where the rule said.
+func TestEveryRowOfAYtdlpLinkTakesWhatThePackagizerDecided(t *testing.T) {
+	var dir string
+	a, _ := wiredYtdlpApp(t, func(s *settings.Settings, base string) {
+		dir = filepath.Join(base, "Clips")
+		prio, yes := 3, true
+		s.Categories = []settings.Category{{ID: "clips", Name: "Clips"}}
+		s.Packagizer = rules.Set{Rules: []rules.Rule{{
+			Name:       "clips",
+			Conditions: []rules.Condition{{Field: rules.FieldHoster, Op: rules.OpEquals, Value: "youtube.com"}},
+			Action: rules.Action{
+				DownloadDir: dir, Category: "clips", Comment: "a clip", Priority: &prio, AutoExtract: &yes,
+			},
+		}}}
+	})
+	const url = "https://youtube.com/watch?v=packagize01"
+	a.AddLinks([]string{url}, "")
+
+	for _, x := range fiveRows(t, a, url) {
+		if x.Dir != dir || x.Category != "clips" || x.Comment != "a clip" || x.Priority != 3 {
+			t.Errorf("%q row has dir %q, category %q, comment %q, priority %d; want the rule's %q, clips, a clip, 3",
+				x.Variant, x.Dir, x.Category, x.Comment, x.Priority, dir)
+		}
+		if x.AutoExtract == nil || !*x.AutoExtract {
+			t.Errorf("%q row has auto-extract %v, want the rule's on", x.Variant, x.AutoExtract)
+		}
+	}
+}
+
+// A Click'n'Load submission's archive password goes on every row of the link.
+func TestASubmittedPasswordReachesEveryRowOfAYtdlpLink(t *testing.T) {
+	a, _ := wiredYtdlpApp(t, func(*settings.Settings, string) {})
+	const url = "https://youtube.com/watch?v=cnlpass0001"
+	a.AddLinksCnL([]string{url}, "CnL", []string{"secret"})
+
+	for _, x := range fiveRows(t, a, url) {
+		if x.Password != "secret" {
+			t.Errorf("%q row has password %q, want the submitted secret", x.Variant, x.Password)
+		}
+	}
+}
+
+// A dropped job with one link names one file. For a yt-dlp link the name goes
+// on the row staging handed back, not on all five, which would point them all
+// at one file.
+func TestADroppedJobsFileNameNamesTheStagedRowOfAYtdlpLink(t *testing.T) {
+	a, _ := wiredYtdlpApp(t, func(*settings.Settings, string) {})
+	const url = "https://youtube.com/watch?v=dropname001"
+	a.stageWatchJob(watch.Job{URLs: []string{url}, Filename: "clip.mkv"})
+
+	named := 0
+	for _, x := range fiveRows(t, a, url) {
+		if x.Filename == "" {
+			continue
+		}
+		named++
+		if kind, _ := variantDecode(x.Variant); kind != ytdlp.VariantVideo || x.Filename != "clip.mkv" {
+			t.Errorf("%q row took the file name %q, want only the video row named clip.mkv", x.Variant, x.Filename)
+		}
+	}
+	if named != 1 {
+		t.Errorf("%d rows took the job's file name, want the one staged row", named)
+	}
 }
 
 // The five rows of one video share one package, so moving any one of them
@@ -422,9 +545,10 @@ func TestApplyProbeFormatsSetsBestAudioExtAndSize(t *testing.T) {
 	}
 }
 
-// The audio menu offers only what the source carries. An AAC track (mp4a.40.2)
-// maps to both native readings, "m4a" and "aac", neither of which re-encodes;
-// "best" is always kept, and transcode targets such as flac do not appear.
+// The audio menu offers only what the source carries: its own track by codec
+// and bitrate, then the formats that track converts to without re-encoding. An
+// AAC track (mp4a.40.2) maps to both native readings, "m4a" and "aac"; "best"
+// is always kept, and transcode targets such as flac do not appear.
 func TestApplyProbeFormatsSetsAvailableAudioFormats(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
 	const url = "https://youtube.com/watch?v=formats0001"
@@ -433,7 +557,7 @@ func TestApplyProbeFormatsSetsAvailableAudioFormats(t *testing.T) {
 	a.applyProbeFormats(url, testProbeFormats)
 
 	live := snapshot(t, a, family[ytdlp.VariantAudio].ID)
-	want := []string{"best", "aac", "m4a"}
+	want := []string{"best", "m4a 129k", "aac", "m4a"}
 	got := live.AvailableAudioFormats
 	if len(got) != len(want) {
 		t.Fatalf("AvailableAudioFormats = %v, want %v", got, want)
@@ -558,6 +682,33 @@ func TestApplyProbeFormatsSetsVideoSizeAtItsOwnQualityCap(t *testing.T) {
 	}
 }
 
+// A finished row's size and extension are what its download wrote. A later
+// probe of the same link, from a sibling still in the collector, must leave
+// them alone while it still marks the source online.
+func TestAProbeLeavesAFinishedRowAsItsDownloadLeftIt(t *testing.T) {
+	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+	const url = "https://youtube.com/watch?v=finished001"
+	family := putYtdlpFamily(t, a, url, map[ytdlp.Variant]string{ytdlp.VariantAudio: "mp3"})
+	finished := []string{family[ytdlp.VariantAudio].ID, family[ytdlp.VariantVideo].ID}
+	for _, id := range finished {
+		editTask(a, id, func(x *core.Task) {
+			x.Status, x.Size, x.Loaded, x.Ext = core.StatusDone, 4096, 4096, "webm"
+		})
+	}
+
+	a.applyProbeFormats(url, testProbeFormats)
+
+	for _, id := range finished {
+		got := snapshot(t, a, id)
+		if got.Size != 4096 || got.Ext != "webm" {
+			t.Errorf("finished %q row has Size %d and Ext %q, want the 4096 bytes of webm it downloaded", got.Variant, got.Size, got.Ext)
+		}
+		if got.Online != core.AvailOnline {
+			t.Errorf("finished %q row Online = %q, want %q", got.Variant, got.Online, core.AvailOnline)
+		}
+	}
+}
+
 // countingYtdlpBackend answers ProbeTitle with a fixed format list and records
 // every URL it was asked about. fakeYtdlpBackend panics on a second call. The
 // slice sits behind a pointer so the value receivers share one record.
@@ -675,5 +826,97 @@ func TestAResolvedExtensionSurvivesTheFixedTable(t *testing.T) {
 	a.applyFixedVariantExts()
 	if after := snapshot(t, a, family[ytdlp.VariantAudio].ID).Ext; after != before {
 		t.Errorf("Ext went from %q to %q, want the probed answer kept", before, after)
+	}
+}
+
+// The video row offers every distinct track beside the height caps, so a
+// container or codec can be picked, not only a height.
+func TestApplyProbeFormatsListsEveryVideoTrack(t *testing.T) {
+	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+	const url = "https://youtube.com/watch?v=tracks0001"
+	family := putYtdlpFamily(t, a, url, nil)
+
+	a.applyProbeFormats(url, testProbeFormats)
+
+	got := snapshot(t, a, family[ytdlp.VariantVideo].ID).AvailableVideoFormats
+	want := []string{"1080p mp4 avc1", "360p mp4 avc1", "144p mp4 avc1"}
+	if !stringSlicesEqual(got, want) {
+		t.Errorf("AvailableVideoFormats = %v, want %v", got, want)
+	}
+}
+
+// A pick made after the probe is a different file, so the row's extension and
+// size follow it without asking the host again, and going back to the cap
+// puts back the merge's mkv.
+func TestPickingAVideoTrackGivesTheRowThatTracksFile(t *testing.T) {
+	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+	const url = "https://youtube.com/watch?v=tracks0002"
+	family := putYtdlpFamily(t, a, url, nil)
+	a.applyProbeFormats(url, testProbeFormats)
+	video := family[ytdlp.VariantVideo].ID
+
+	pick := func(q string) core.Task {
+		t.Helper()
+		if err := a.SetTaskOptions([]string{video}, TaskOptions{VariantQuality: &q}); err != nil {
+			t.Fatalf("SetTaskOptions(%q): %v", q, err)
+		}
+		return snapshot(t, a, video)
+	}
+
+	// Only pre-muxed at 360p: nothing to merge, the track's own container.
+	if got := pick("360p mp4 avc1"); got.Ext != "mp4" || got.Size != 8388608 {
+		t.Errorf("360p mp4 avc1: Ext %q Size %d, want mp4 and the pre-muxed track's 8388608", got.Ext, got.Size)
+	}
+	// Video-only at 1080p, merged with the m4a track into its own mp4.
+	if got := pick("1080p mp4 avc1"); got.Ext != "mp4" || got.Size != 52428800 {
+		t.Errorf("1080p mp4 avc1: Ext %q Size %d, want mp4 and the 1080p track's 52428800", got.Ext, got.Size)
+	}
+	if got := pick("best"); got.Ext != "mkv" {
+		t.Errorf("best: Ext %q, want mkv for the merge", got.Ext)
+	}
+}
+
+func TestPickingAnAudioTrackGivesTheRowThatTracksFile(t *testing.T) {
+	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+	const url = "https://youtube.com/watch?v=tracks0003"
+	family := putYtdlpFamily(t, a, url, nil)
+	a.applyProbeFormats(url, testProbeFormats)
+	audio := family[ytdlp.VariantAudio].ID
+
+	q := "m4a 129k"
+	if err := a.SetTaskOptions([]string{audio}, TaskOptions{VariantQuality: &q}); err != nil {
+		t.Fatal(err)
+	}
+	if got := snapshot(t, a, audio); got.Ext != "m4a" || got.Size != 3145728 {
+		t.Errorf("m4a 129k: Ext %q Size %d, want m4a and the track's 3145728", got.Ext, got.Size)
+	}
+	q = "mp3"
+	if err := a.SetTaskOptions([]string{audio}, TaskOptions{VariantQuality: &q}); err != nil {
+		t.Fatal(err)
+	}
+	if got := snapshot(t, a, audio); got.Ext != "mp3" || got.Size != 0 {
+		t.Errorf("mp3: Ext %q Size %d, want mp3 and an unknown size for a conversion", got.Ext, got.Size)
+	}
+}
+
+// What the row stores is what yt-dlp is asked for: a track as a track, a
+// height as a cap.
+func TestAPickReachesYtdlpAsTheKindOfPickItIs(t *testing.T) {
+	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+	const url = "https://youtube.com/watch?v=tracks0004"
+	family := putYtdlpFamily(t, a, url, map[ytdlp.Variant]string{
+		ytdlp.VariantVideo: "1080p60 webm vp9",
+		ytdlp.VariantAudio: "opus 160k",
+	})
+	capped := putTask(t, a, core.Task{URL: url + "x", Status: core.StatusCollected, Enabled: true, Variant: "video:720p"})
+
+	if o := a.ytdlpOptionsForTask(family[ytdlp.VariantVideo].ID); o.VideoFormat != "1080p60 webm vp9" {
+		t.Errorf("video row VideoFormat = %q, want the picked track", o.VideoFormat)
+	}
+	if o := a.ytdlpOptionsForTask(family[ytdlp.VariantAudio].ID); o.AudioTrack != "opus 160k" || o.AudioFormat == "opus 160k" {
+		t.Errorf("audio row AudioTrack = %q AudioFormat = %q, want the track as a track", o.AudioTrack, o.AudioFormat)
+	}
+	if o := a.ytdlpOptionsForTask(capped.ID); o.Quality != ytdlp.Quality720p || o.VideoFormat != "" {
+		t.Errorf("capped row Quality = %q VideoFormat = %q, want the 720p cap and no track", o.Quality, o.VideoFormat)
 	}
 }

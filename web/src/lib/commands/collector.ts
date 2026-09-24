@@ -8,7 +8,7 @@ import type { Command, CommandContext } from './types';
 // ctx.tasks holds every task, so this applies the same filter the Collector
 // page renders with.
 function staged(ctx: CommandContext): Task[] {
-  return ctx.tasks.filter((x) => x.status === 'collected' && !x.skipped);
+  return ctx.tasks.filter((x) => x.status === 'collected' && !x.skipped && !x.variantOff);
 }
 
 export const collectorCommands: Command[] = [

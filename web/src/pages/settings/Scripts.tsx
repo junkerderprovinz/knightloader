@@ -1,6 +1,7 @@
 import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react';
 import { Button, Card, EmptyState, ErrorCard, Field, IconBadge, LoadingCard, NumberInput, PageHeader, SectionTitle, TextInput } from '../../components/ui';
 import { NeutralSwitch } from './controls';
+import { ModuleToggle } from './ModuleToggle';
 import { useToast } from '../../lib/toast';
 import {
   FALLBACK_TRIGGERS,
@@ -195,6 +196,7 @@ export function Scripts() {
         >
           {cx('settings.scripts.listTitle')}
         </SectionTitle>
+        <ModuleToggle id="scripting" />
 
         {rows.length === 0 ? (
           <EmptyState nested icon={<IconCode width={26} height={26} />} title={cx('settings.scripts.empty')} hint={cx('settings.scripts.emptyHint')} />

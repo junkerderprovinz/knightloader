@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Modal, StyleSheet, Text, View } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useAppearance } from '../theme/AppearanceContext';
 import { TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
 import { GlimButton } from './glim';
+import { Cross } from './IconBadge';
 
 // A full-screen modal scanner rather than a screen of its own: a caller that
 // wants a QR code needs one decoded string back rather than a spot in the
@@ -54,12 +55,13 @@ export default function QRScanner({ visible, onScanned, onClose, hint }: { visib
             </View>
           </>
         )}
-        <TouchableOpacity
-          style={[styles.close, { backgroundColor: c.surface, borderRadius: radii.pill }]}
-          onPress={onClose}
-        >
-          <Text style={[styles.closeText, { color: c.text }]}>{t('qr.cancel')}</Text>
-        </TouchableOpacity>
+        {/* The way out is a button in the window's bottom row, with its words
+            and its glyph like every other button (GlimStone 2.6.0), rather
+            than a pill in the corner. Quiet, because leaving is not what this
+            window is for. */}
+        <View style={styles.footer}>
+          <GlimButton tone="quiet" label={t('qr.cancel')} icon={(ink) => <Cross color={ink} />} onPress={onClose} />
+        </View>
       </View>
     </Modal>
   );
@@ -77,12 +79,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
   },
   hint: { fontSize: TYPE.body, textAlign: 'center', paddingHorizontal: 32 },
-  close: {
-    position: 'absolute',
-    top: 56,
-    right: 20,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-  },
-  closeText: { fontSize: TYPE.body },
+  // Over the camera, clear of the gesture bar, ending the row like every
+  // window's footer.
+  footer: { position: 'absolute', start: 24, end: 24, bottom: 40, flexDirection: 'row', justifyContent: 'flex-end' },
 });

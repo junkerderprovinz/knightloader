@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchSettings, patchSettings, type Settings } from '../lib/api';
 import { useT } from '../lib/i18n';
+import { IconClose } from '../lib/icons';
 import { readUIState, useUIState } from '../lib/uistate';
 import { Button, Field, LoadingCard, Modal } from './ui';
 import { PathInput } from './FolderPicker';
@@ -84,10 +85,9 @@ export function OnboardingWizard() {
       onClose={close}
       footer={
         <>
-          {/* Skip sits at the start, away from Next. */}
-          <Button kind="ghost" onClick={close}>
-            {t('onboarding.skip')}
-          </Button>
+          {/* Skip sits at the start, away from Next. It is the way out, so it
+              carries the close glyph. */}
+          <Button kind="ghost" labelled icon={<IconClose />} title={t('onboarding.skip')} onClick={close} />
           <span className="flex-1" />
           {stepIndex > 0 && (
             <Button kind="secondary" onClick={() => setStepIndex((i) => i - 1)}>

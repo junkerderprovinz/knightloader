@@ -322,6 +322,15 @@
             <span class="glim-switch-track"><span class="glim-switch-knob"></span></span>
           </button>
         </div>
+        <!-- Disco, hidden until found: five turn-ons of the rainbow in a row.
+             options.js shows it while it is on and for as long as this page
+             stays open after finding it, never from storage. -->
+        <div class="glim-row" id="rainbowDiscoRow" hidden>
+          <span class="glim-row-label" id="rainbowDiscoLabel"></span>
+          <button type="button" role="switch" aria-checked="false" id="rainbowDisco" class="glim-switch">
+            <span class="glim-switch-track"><span class="glim-switch-knob"></span></span>
+          </button>
+        </div>
         <div class="glim-axis glim-axis--colours" id="paletteRow">
           <span class="glim-axis-label" id="paletteLabel">Palette</span>
           <div class="glim-swatches" id="paletteSwatches"></div>
@@ -376,9 +385,14 @@
       <p id="aboutText" class="aboutText"></p>
       <p id="aboutCoffee" class="aboutText"></p>
       <!-- glim-brand-btn and glim-brand-<name> work only as a pair (GlimStone
-           1.10.0): the second supplies the brand colours the first uses. -->
+           1.10.0): the second supplies the brand colours the first uses. The
+           hosted pages come first, in the order the family's cards share. -->
       <div class="fields">
         <a id="aboutCoffeeBtn" class="secondary btnlike glim-brand-btn glim-brand-coffee" target="_blank" rel="noreferrer noopener"></a>
+        <a id="aboutPaypalBtn" class="secondary btnlike glim-brand-btn glim-brand-paypal" target="_blank" rel="noreferrer noopener"></a>
+        <!-- The wallet route last. It opens a window of our own rather than
+             somebody else's page, so it is a button. -->
+        <button id="aboutCryptoBtn" class="secondary glim-brand-btn glim-brand-bitcoin" type="button"></button>
       </div>
       <p id="aboutReport" class="aboutText"></p>
       <div class="fields">
@@ -412,6 +426,35 @@
       </div>
     </div>
 
+    <!-- The crypto window, filled by options.js. The code comes first, since it
+         is what the window is opened for; the chain sits directly under the
+         address it changes, and the coins follow as tiles. The way out is the
+         button in the bottom row, with no corner X. -->
+    <div id="cryptoDonate" class="glim-modal-backdrop" hidden>
+      <div
+        class="glim-card glim-modal-card glim-crypto"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="cryptoTitle"
+      >
+        <h2 class="glim-section-badge" id="cryptoTitle"></h2>
+        <div class="glim-crypto-body">
+          <p class="glim-crypto-intro" id="cryptoIntro"></p>
+          <div class="glim-crypto-code">
+            <div class="glim-crypto-qr" id="cryptoQr"></div>
+            <p class="glim-crypto-address" id="cryptoAddress" dir="ltr"></p>
+            <div class="glim-crypto-chains" id="cryptoChains" role="listbox"></div>
+            <p class="glim-crypto-note" id="cryptoNote" hidden></p>
+            <button id="cryptoCopy" type="button"></button>
+          </div>
+          <div class="glim-crypto-coins" id="cryptoCoins" role="listbox"></div>
+        </div>
+        <div class="glim-modal-actions">
+          <button id="cryptoClose" class="secondary" type="button"></button>
+        </div>
+      </div>
+    </div>
+
     <script src="appearance.js"></script>
     <script src="colorpicker.js"></script>
     <script src="i18n.js"></script>
@@ -421,6 +464,8 @@
     <script src="relay.js"></script>
     <script src="group.js"></script>
     <script src="tooltip.js"></script>
+    <script src="donate.js"></script>
+    <script src="vendor/qrcode.js"></script>
     <script src="options.js"></script>
   </body>
 </html>

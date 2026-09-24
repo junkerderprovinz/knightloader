@@ -12,7 +12,7 @@ import {
   useTooltip,
 } from '../../../components/ui';
 import { Tabs } from '../../../components/Tabs';
-import { IconPlus, IconTrash } from '../../../lib/icons';
+import { IconClose, IconPlus, IconTrash } from '../../../lib/icons';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import {
   deleteMediaHook,
@@ -403,9 +403,14 @@ export function MediaHooksCard({ hue }: { hue: number }) {
           footer={
             <>
               <span className="flex-1" />
-              <Button kind="ghost" disabled={busy} onClick={() => setConfirming(null)}>
-                {t('common.cancel')}
-              </Button>
+              <Button
+                kind="ghost"
+                labelled
+                icon={<IconClose />}
+                title={t('common.cancel')}
+                disabled={busy}
+                onClick={() => setConfirming(null)}
+              />
               <Button
                 kind="secondary"
                 disabled={busy}

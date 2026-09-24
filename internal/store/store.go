@@ -154,6 +154,15 @@ var migrations = []string{
 	// One row per authenticator, or the sign-counter check that detects a
 	// cloned key would compare against whichever duplicate it found first.
 	`CREATE UNIQUE INDEX IF NOT EXISTS passkeys_credential_id ON passkeys(credential_id)`,
+	// A variant row a hoster preset set aside, and the audio row's bitrate
+	// pick. Both are decisions about the row: without the first a restart
+	// would show every set-aside row again, without the second the download
+	// would run at a bitrate nobody chose.
+	`ALTER TABLE tasks ADD COLUMN variant_off INTEGER NOT NULL DEFAULT 0`,
+	`ALTER TABLE tasks ADD COLUMN audio_bitrate TEXT NOT NULL DEFAULT ''`,
+	// When a pending auto-confirm countdown runs out, in Unix milliseconds, 0
+	// for none. Without it a restart would leave the batch in the collector.
+	`ALTER TABLE tasks ADD COLUMN confirm_due INTEGER NOT NULL DEFAULT 0`,
 }
 
 func Open(path string) (*Store, error) {
@@ -231,7 +240,7 @@ const columns = `id,url,name,package,resolver,size,loaded,speed,status,error,cre
 	finished_at,enabled,skipped,skip_reason,hold,forced,download_password,expected_hash,
 	connection,host,source,mirror_of,resumable,filename,variant,manual_package,
 	reason,origin,changed_at,archive_part,torrent_files,info_hash,trackers,mode,
-	category,extract_dir`
+	category,extract_dir,variant_off,audio_bitrate,confirm_due`
 
 // placeholders is one ? per column, derived from the list so adding a column
 // cannot miscount.
@@ -247,12 +256,15 @@ func (s *Store) Save(t *core.Task) error {
 	// stampFinish).
 	s.stampFinish(t)
 	// Zero rather than the epoch, so "never finished" stays distinct.
-	var finishedAt, changedAt int64
+	var finishedAt, changedAt, confirmDue int64
 	if !t.FinishedAt.IsZero() {
 		finishedAt = t.FinishedAt.UnixMilli()
 	}
 	if !t.ChangedAt.IsZero() {
 		changedAt = t.ChangedAt.UnixMilli()
+	}
+	if !t.ConfirmDue.IsZero() {
+		confirmDue = t.ConfirmDue.UnixMilli()
 	}
 	// nil when nobody has asked whether this transfer resumes.
 	var resumable any
@@ -302,7 +314,7 @@ func (s *Store) Save(t *core.Task) error {
 		resumable, t.Filename, t.Variant, t.ManualPackage,
 		string(t.Reason), string(t.Origin), changedAt, t.ArchivePart, torrentFiles,
 		t.InfoHash, trackers, string(t.Mode),
-		t.Category, t.ExtractDir)
+		t.Category, t.ExtractDir, t.VariantOff, t.AudioBitrate, confirmDue)
 	if err != nil {
 		return err
 	}
@@ -329,7 +341,7 @@ func (s *Store) All() ([]*core.Task, error) {
 	for rows.Next() {
 		t := &core.Task{}
 		var status, online, matched, reason, origin, torrentFiles, trackers, mode string
-		var created, nextTry, finishedAt, changedAt int64
+		var created, nextTry, finishedAt, changedAt, confirmDue int64
 		var autoExtract, resumable sql.NullBool
 		if err := rows.Scan(&t.ID, &t.URL, &t.Name, &t.Package, &t.Resolver,
 			&t.Size, &t.Loaded, &t.Speed, &status, &t.Error, &created,
@@ -340,7 +352,7 @@ func (s *Store) All() ([]*core.Task, error) {
 			&resumable, &t.Filename, &t.Variant, &t.ManualPackage,
 			&reason, &origin, &changedAt, &t.ArchivePart, &torrentFiles,
 			&t.InfoHash, &trackers, &mode,
-			&t.Category, &t.ExtractDir); err != nil {
+			&t.Category, &t.ExtractDir, &t.VariantOff, &t.AudioBitrate, &confirmDue); err != nil {
 			return nil, err
 		}
 		t.Status = core.Status(status)
@@ -357,6 +369,9 @@ func (s *Store) All() ([]*core.Task, error) {
 		}
 		if changedAt > 0 {
 			t.ChangedAt = time.UnixMilli(changedAt)
+		}
+		if confirmDue > 0 {
+			t.ConfirmDue = time.UnixMilli(confirmDue)
 		}
 		if autoExtract.Valid {
 			v := autoExtract.Bool

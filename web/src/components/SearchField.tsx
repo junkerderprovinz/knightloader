@@ -3,7 +3,7 @@
 // The query's meaning lives in lib/searchQuery.ts.
 import { useRef } from 'react';
 import { useT, type TranslationKey } from '../lib/i18n';
-import { InfoBubble } from './ui';
+import { InfoBubble, useTooltip } from './ui';
 import { IconSearch, IconClose } from '../lib/icons';
 import { type SearchCategory, type SearchQuery } from '../lib/searchQuery';
 
@@ -57,6 +57,10 @@ export function SearchField({
 }) {
   const { t } = useT();
   const input = useRef<HTMLInputElement>(null);
+  // Passed as disabled while the button is absent, so the bubble closes when the
+  // button leaves: an unmounted trigger fires no mouseleave.
+  const clearTip = useTooltip<HTMLButtonElement>(t('search.clear'), !value.text);
+  const { role: _tipRole, tabIndex: _tipTabIndex, ...clearTipProps } = clearTip.triggerProps;
 
   return (
     <div
@@ -85,7 +89,7 @@ export function SearchField({
         <button
           type="button"
           aria-label={t('search.clear')}
-          title={t('search.clear')}
+          {...clearTipProps}
           onClick={() => {
             onChange({ ...value, text: '' });
             input.current?.focus();
@@ -99,6 +103,7 @@ export function SearchField({
           <IconClose width={12} height={12} />
         </button>
       )}
+      {clearTip.node}
       <select
         ref={wheelSteps}
         value={value.category}

@@ -386,6 +386,8 @@ type FormatEntry struct {
 	Vcodec   string
 	Acodec   string
 	Height   int
+	// FPS is the frame rate, 0 when not reported or for an audio format.
+	FPS float64
 	// Filesize is the exact size when the host reports one; FilesizeApprox is
 	// yt-dlp's estimate otherwise (typically for m3u8 or DASH). Read Filesize
 	// first.
@@ -448,6 +450,7 @@ func (b *Backend) ProbeTitle(ctx context.Context, url string) (ProbeResult, erro
 			Vcodec             string  `json:"vcodec"`
 			Acodec             string  `json:"acodec"`
 			Height             int     `json:"height"`
+			FPS                float64 `json:"fps"`
 			Filesize           int64   `json:"filesize"`
 			FilesizeApprox     float64 `json:"filesize_approx"`
 			Abr                float64 `json:"abr"`
@@ -483,7 +486,7 @@ func (b *Backend) ProbeTitle(ctx context.Context, url string) (ProbeResult, erro
 	for _, f := range raw.Formats {
 		res.Formats = append(res.Formats, FormatEntry{
 			FormatID: f.FormatID, Ext: f.Ext, Vcodec: f.Vcodec, Acodec: f.Acodec,
-			Height: f.Height, Filesize: f.Filesize, FilesizeApprox: int64(f.FilesizeApprox),
+			Height: f.Height, FPS: f.FPS, Filesize: f.Filesize, FilesizeApprox: int64(f.FilesizeApprox),
 			Abr: f.Abr, Language: f.Language, LanguagePreference: f.LanguagePreference,
 		})
 	}
@@ -546,9 +549,14 @@ func buildArgs(dir string, o Options) []string {
 	tmpl := outputTemplate(o)
 	switch o.Variant {
 	case VariantAudio:
-		args = append(args, "-f", audioSelector(o.AudioLang), "-x")
-		if o.AudioFormat != "" && o.AudioFormat != "best" {
-			args = append(args, "--audio-format", o.AudioFormat)
+		if tr, ok := parseAudioTrack(o.AudioTrack); ok {
+			// -x without --audio-format copies the picked track as it is.
+			args = append(args, "-f", tr.selector(o.AudioLang), "-x")
+		} else {
+			args = append(args, "-f", audioSelector(o.AudioLang), "-x")
+			if o.AudioFormat != "" && o.AudioFormat != "best" {
+				args = append(args, "--audio-format", o.AudioFormat)
+			}
 		}
 		// yt-dlp itself ignores the quality when nothing is transcoded.
 		if o.AudioBitrate != "" {
@@ -579,8 +587,12 @@ func buildArgs(dir string, o Options) []string {
 			args = append(args, "-f", f)
 		}
 		// mkv takes any codec pairing, unlike mp4, and makes the container
-		// known in advance.
-		args = append(args, "--merge-output-format", "mkv")
+		// known in advance. A picked track asks for its own container first.
+		merge := "mkv"
+		if v, ok := parseVideoFormat(o.VideoFormat); ok {
+			merge = v.mergeFormat(o.Embed.Thumbnail)
+		}
+		args = append(args, "--merge-output-format", merge)
 		args = append(args, embedArgs(o, true)...)
 	}
 	// Only the rows that download media need these.
@@ -694,10 +706,14 @@ func progressTemplateFor(o Options) string {
 	return progressTemplate
 }
 
-// formatSelector turns a resolution preset into yt-dlp's -f value, or "" for
-// no selector (QualityBest and anything else without a height cap, including
-// a stored QualityAudioOnly). QualityCustom passes through verbatim.
+// formatSelector turns a picked track or a resolution preset into yt-dlp's -f
+// value, or "" for no selector (QualityBest and anything else without a height
+// cap, including a stored QualityAudioOnly). QualityCustom passes through
+// verbatim.
 func formatSelector(o Options) string {
+	if v, ok := parseVideoFormat(o.VideoFormat); ok {
+		return v.selector()
+	}
 	if o.Quality == QualityCustom {
 		return o.CustomFormat
 	}

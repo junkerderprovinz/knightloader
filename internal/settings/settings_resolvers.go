@@ -24,20 +24,20 @@ func sanitizeResolvers(n Settings) Settings {
 		presets[host] = p.Sanitize()
 	}
 	n.YtdlpPresets = presets
-	n.ResolverOrder = cleanResolverOrder(n.ResolverOrder)
+	n.ResolverOrder = cleanIDList(n.ResolverOrder)
 	return n
 }
 
-// cleanResolverOrder keeps ResolverOrder a well-formed sequence: trimmed,
-// lower-cased, no blank, no repeat, and nil rather than an empty slice so an
-// empty order reads the same on disk however it got there.
+// cleanIDList keeps a list of ids such as ResolverOrder or ModulesOff
+// well-formed: trimmed, lower-cased, no blank, no repeat, and nil rather than
+// an empty slice so an empty list reads the same on disk however it got there.
 //
 // A repeat is what breaks the order rather than merely looking untidy:
 // dispatch walks it as "try these in turn", and a duplicate id hands the same
 // resolver two ranks, so which one a stable sort used would depend on where the
 // duplicate sat. Unknown ids are left alone, see ResolverOrder in settings.go
 // for why this package does not decide which resolver ids exist.
-func cleanResolverOrder(in []string) []string {
+func cleanIDList(in []string) []string {
 	if len(in) == 0 {
 		return nil
 	}

@@ -129,6 +129,40 @@ export function rainbowColor(state: RainbowState, i: number): string | undefined
   return state.on ? rainbowAt(state, i) : undefined;
 }
 
+// Disco, the colour engine's easter egg from reference/appearance.ts: while it
+// is on, the palette steps one position a second, so every hued element moves
+// to the next colour together. It animates nothing; each step is a render.
+
+/** One step a second, well under the 3Hz flicker threshold photosensitivity
+ *  guidance names, which is what decides the number. */
+export const DISCO_TICK_MS = 1000;
+
+/** Turn-ons of rainbow mode that unlock it. */
+export const DISCO_UNLOCK_TURN_ONS = 5;
+
+/** The longest pause between two turn-ons of one run. Without it, somebody
+ *  comparing the app with and without the rainbow over a minute unlocks a
+ *  mode they never went looking for. */
+export const DISCO_UNLOCK_WINDOW_MS = 3000;
+
+/**
+ * discoTap counts the unlock gesture: five turn-ons of rainbow mode, each
+ * within DISCO_UNLOCK_WINDOW_MS of the last, and true on the fifth. Turn-ons
+ * rather than presses, so the gesture ends with the rainbow on, the one state
+ * in which the reward can be seen. The count lives with the caller and never
+ * in storage, or finding the mode once would leave its switch in the settings
+ * for good.
+ */
+export function discoTap(state: { taps: number; last: number }, turnedOn: boolean, now: number): boolean {
+  if (!turnedOn) return false;
+  const gap = now - state.last;
+  state.last = now;
+  state.taps = state.taps > 0 && gap <= DISCO_UNLOCK_WINDOW_MS ? state.taps + 1 : 1;
+  if (state.taps < DISCO_UNLOCK_TURN_ONS) return false;
+  state.taps = 0;
+  return true;
+}
+
 /** contrastOn is the ink to put on a colour, black or white, decided rather
  *  than configured: asking for a second colour to make the first one readable
  *  is a trap, not a setting. */

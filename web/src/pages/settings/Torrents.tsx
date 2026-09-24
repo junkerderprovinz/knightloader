@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import { Button, Card, Field, NumberInput, PageHeader, SectionTitle, ToggleRow } from '../../components/ui';
 import { useT, type TranslationKey } from '../../lib/i18n';
 import { useDraft } from './context';
+import { ModuleToggle } from './ModuleToggle';
 
 /**
  * Torrents sets the seed target, transfer limit, port with its UPnP mapping,
@@ -125,6 +126,7 @@ export function Torrents() {
 
       <Card hue={0} className="flex flex-col gap-5">
         <SectionTitle>{cx('settings.torrents.seedingTitle')}</SectionTitle>
+        <ModuleToggle id="torrents" />
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={cx('settings.torrents.seedRatio')} hint={cx('settings.torrents.seedRatioHint')}>
             <NumberInput

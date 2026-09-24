@@ -299,6 +299,10 @@ type App struct {
 	// unpack is the extraction worker: the jobs, their order and the goroutine
 	// that runs them. It is built on first use (see unpackLocked).
 	unpack *unpackState
+	// probed is the last yt-dlp format list per link URL, so a quality picked
+	// after the probe gets its own extension and size without asking the host
+	// again. Read and written under mu, built on first use.
+	probed map[string][]ytdlp.FormatEntry
 	// iconCache is the hoster-icon cache (app_hostericons.go), embedded so its
 	// fields stay in that file. It is built on first use.
 	iconCache
@@ -363,7 +367,7 @@ func New(dataDir string) (*App, error) {
 	a.applyRuleSets(s)
 	// At boot as well as on every save, or a restart would send downloads out
 	// by the machine's own address until the next save.
-	a.applyConnections(s.Connections)
+	a.applyConnections(s)
 	a.applyTorrentConfig(s.Torrent)
 	a.dupes = dedupe.New(dedupe.ParsePolicy(s.MirrorPolicy))
 	// Read through a closure so a reconnect uses the router password as last
@@ -449,6 +453,7 @@ func New(dataDir string) (*App, error) {
 		return nil, err
 	}
 	a.Scripts = scripts
+	a.applyModuleSwitches(cfg.Get())
 
 	// After the bus and the credential store, both of which it needs.
 	a.startMediaHooks()
@@ -545,6 +550,13 @@ func New(dataDir string) (*App, error) {
 	// The speed record starts at boot so the first visitor already sees a
 	// curve (see app_speedhistory.go).
 	a.spawn(a.sampleSpeedLoop)
+	// Rows staged under a preset that differs from the saved one are sorted
+	// before anybody opens the collector.
+	a.applyVariantPresets()
+	// Last, with the list whole and the presets applied, so a batch that fell
+	// due while the app was down confirms what the collector shows after the
+	// restart.
+	a.rearmAutoConfirm()
 	// Spawned so the boot does not wait on yt-dlp calls.
 	a.spawn(a.backfillYtdlpProbes)
 	return a, nil
@@ -897,8 +909,9 @@ func (a *App) afterSettingsChange(applied settings.Settings) {
 	a.applyFeeds(applied)
 	a.applyEventTargets(applied)
 	a.applyLogFile(applied.LogFile)
-	a.applyConnections(applied.Connections)
+	a.applyConnections(applied)
 	a.applyTorrentConfig(applied.Torrent)
+	a.applyModuleSwitches(applied)
 	a.mu.Lock()
 	if p := dedupe.ParsePolicy(applied.MirrorPolicy); p != a.dupes.Policy() {
 		// The policy is fixed at construction, so a change needs a new set,
@@ -912,6 +925,15 @@ func (a *App) afterSettingsChange(applied settings.Settings) {
 	}
 	a.dispatchLocked()
 	a.mu.Unlock()
+	// Both preset editors save through here, so the collector follows either
+	// of them at once.
+	a.applyVariantPresets()
+	// An auto-confirm countdown under way follows a new delay at once, and
+	// ends when auto-confirm was switched off. After the presets, so a
+	// countdown the save makes due leaves out the rows it set aside.
+	a.wakeAutoConfirm()
+	// Other open tabs reload their settings pages and the modules list.
+	a.Hub.Broadcast("settings", nil)
 }
 
 // pushJDSpeedLimit hands the limit in force to the JD backend, which meters its
@@ -928,8 +950,12 @@ func (a *App) pushJDSpeedLimit(limit int64) {
 }
 
 // ytdlpTitleProber returns the yt-dlp backend as a titleProber, and false when
-// no yt-dlp backend is wired or it does not implement one.
+// yt-dlp is switched off, no yt-dlp backend is wired or it does not implement
+// one.
 func (a *App) ytdlpTitleProber() (titleProber, bool) {
+	if a.resolverOff("ytdlp") {
+		return nil, false
+	}
 	a.bmu.RLock()
 	b := a.ytdlp
 	a.bmu.RUnlock()
@@ -939,12 +965,13 @@ func (a *App) ytdlpTitleProber() (titleProber, bool) {
 
 // applyConnections rebuilds the connection picker from the saved rows. Building
 // it also settles the bans against the new rows; the Bans instance itself is
-// kept so refusals survive unrelated saves. An empty list leaves the picker
-// nil: use this machine's own address.
-func (a *App) applyConnections(rows []proxycfg.Entry) {
+// kept so refusals survive unrelated saves. An empty list, or the module
+// switched off, leaves the picker nil: use this machine's own address.
+func (a *App) applyConnections(s settings.Settings) {
+	rows := s.Connections
 	a.mu.Lock()
 	defer a.mu.Unlock()
-	if len(rows) == 0 {
+	if len(rows) == 0 || s.ModuleOff("connections") {
 		a.picker = nil
 		return
 	}

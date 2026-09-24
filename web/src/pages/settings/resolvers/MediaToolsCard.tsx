@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Button, Card, FieldGroup, InfoBubble, SectionTitle, ToggleRow } from '../../../components/ui';
+import { Button, Card, FieldGroup, InfoBubble, SectionTitle, ToggleRow, useTooltip } from '../../../components/ui';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import {
   fetchMediaTools,
@@ -11,6 +11,7 @@ import {
   type YtdlpLatest,
 } from '../../../lib/api';
 import { useDraft } from '../context';
+import { ModuleToggle } from '../ModuleToggle';
 
 // The media tools card shows the yt-dlp and ffmpeg a media download runs, and
 // fetches a newer yt-dlp than the image carries when a site breaks between
@@ -151,6 +152,7 @@ export function MediaToolsCard({ hue }: { hue: number }) {
   return (
     <Card hue={hue} className="flex flex-col gap-5">
       <SectionTitle hint={t('settings.resolvers.toolsHint')}>{t('settings.resolvers.toolsTitle')}</SectionTitle>
+      <ModuleToggle id="ytdlp" />
 
       <div className="glim-well p-0">
         <ul className="flex flex-col">
@@ -251,6 +253,8 @@ function ToolRow({
 }) {
   const { t } = useT();
   const found = Boolean(tool?.found);
+  // The whole path, where the row truncates it.
+  const pathTip = useTooltip<HTMLSpanElement>(tool?.path);
   return (
     <li
       className={`flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-2.5 ${
@@ -268,10 +272,11 @@ function ToolRow({
         <span className="text-xs text-carbon-textMuted">{t(SOURCE_KEYS[tool.source])}</span>
       )}
       {tool?.path && (
-        <span className="ms-auto truncate font-mono text-xs text-carbon-textMuted" dir="ltr" title={tool.path}>
+        <span className="ms-auto truncate font-mono text-xs text-carbon-textMuted" dir="ltr" {...pathTip.triggerProps}>
           {tool.path}
         </span>
       )}
+      {pathTip.node}
       {!found && <InfoBubble className={tool?.path ? '' : 'ms-auto'} tip={missingHint} />}
     </li>
   );

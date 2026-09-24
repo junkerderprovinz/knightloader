@@ -717,8 +717,9 @@ body {
    "storm"; see applyMotion() in lib/appearance.ts) only changes the duration,
    distance and amplitude tokens; the keyframes are the same at every level.
    --motion-control-dur reaches every transition as well, through the
-   shape-morph rule below. The tokens resolve only inside the no-preference
-   gate, so an OS request for reduced motion never meets a data-motion selector.
+   shape-morph rule below. The three levels a picker offers resolve only inside
+   the no-preference gate, so an OS request for reduced motion never meets their
+   selectors; the hidden storm is the one exception, explained at its own block.
    "off" uses the same substitutes as the reduced-motion block. */
 
 /* Direction is layout, not motion, so it sits outside the gate. Used by the
@@ -744,11 +745,17 @@ body {
   0%   { left: -35%; }
   100% { left: 100%; }
 }
-/* Travel, scale and curve are tokens, so the intensities differ visibly while
-   sharing one keyframe. */
+/* Translation only. The route wrapper plays this while the cards inside it
+   animate their own transforms, and a scale on an ancestor makes the engine
+   resample the whole subtree, so the page trembles before it settles. The
+   levels differ in travel, duration and curve.
+
+   The fade is glim-fade-in beside it, on a curve without spring: a spring
+   overshoots and returns, and opacity clamps at 1, so the fade would finish
+   early and sit flat. The same holds for glim-toast-in. */
 @keyframes glim-page-in {
-  from { opacity: 0; transform: translateY(var(--motion-page-travel)) scale(var(--motion-page-scale)); }
-  to   { opacity: 1; transform: none; }
+  from { transform: translateY(var(--motion-page-travel)); }
+  to   { transform: none; }
 }
 @keyframes glim-fade-in {
   from { opacity: 0; }
@@ -757,8 +764,8 @@ body {
 /* Multiplied by --dir-sign so it mirrors under RTL. GlimStone writes an RTL
    twin of each distance instead; one value times the sign cannot drift. */
 @keyframes glim-toast-in {
-  from { opacity: 0; transform: translateX(calc(var(--dir-sign) * var(--glim-toast-slide))); }
-  to   { opacity: 1; transform: none; }
+  from { transform: translateX(calc(var(--dir-sign) * var(--glim-toast-slide))); }
+  to   { transform: none; }
 }
 @keyframes glim-pulse {
   0%, 100% { opacity: 1; }
@@ -781,9 +788,15 @@ body {
   50%      { opacity: .5; }
 }
 
-/* The staggered list and the skeleton crossfade reuse glim-page-in and
-   glim-fade-in; shape-morph and colour-wipe are transitions and live with the
-   utility classes further down. */
+/* A staggered row keeps its fade inside one keyframe on a curve without
+   spring, instead of pairing glim-page-in with glim-fade-in: rows arrive by
+   the dozen, and a second animation on each costs parse time a long list
+   notices. The skeleton crossfade reuses glim-fade-in; shape-morph and
+   colour-wipe are transitions and live with the utility classes further down. */
+@keyframes glim-stagger-in {
+  from { opacity: 0; transform: translateY(var(--motion-page-travel)); }
+  to   { opacity: 1; transform: none; }
+}
 @keyframes glim-confirm-pulse {
   0%   { box-shadow: 0 0 0 0 var(--accent-soft); transform: scale(1); }
   50%  { box-shadow: 0 0 0 calc(var(--motion-confirm-glow-mult) * 6px) var(--accent-soft);
@@ -836,20 +849,20 @@ body {
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  /* The top visible level, data-motion="wild", which is also the default.
-     A bare :root, so it covers "storm" and a missing attribute too, with the
-     quieter levels below overriding it (GlimStone 2.0.0). */
+  /* The top visible level, data-motion="wild". A bare :root, so it covers
+     "storm" and a missing attribute too, with the quieter levels below
+     overriding it (GlimStone 2.0.0). */
   :root {
     --motion-page-dur: 280ms;
-    /* Three times the travel of "subtle", with a scale, so the levels differ
-       in more than speed. */
+    /* Three times the travel of "subtle", so the levels differ in more than
+       speed. No scale; see glim-page-in. */
     --motion-page-travel: 18px;
-    --motion-page-scale: .96;
-    /* Overshoots and settles like the spring the phone app uses. */
-    --motion-curve: cubic-bezier(.34, 1.56, .64, 1);
-    --motion-page-slide-scale: 1;
+    /* The page overshoots and settles like the spring the phone app uses. The
+       toast has a curve of its own: it slides in from the screen edge, and a
+       spring would carry it back past that edge, which reads as a glitch. */
+    --motion-page-ease: cubic-bezier(.34, 1.56, .64, 1);
+    --motion-toast-ease: cubic-bezier(.2, .6, .2, 1);
     --motion-toast-dur: 220ms;
-    --motion-toast-slide-scale: 1;
     --glim-toast-slide: 24px;
     --motion-fade-dur: 110ms;
     --motion-shake-dur: 360ms;
@@ -889,13 +902,12 @@ body {
      selector wins on specificity, as :root[data-shape="soft"] does. */
   :root[data-motion="subtle"] {
     --motion-page-dur: 160ms;
-    /* Less travel, no scale, and a curve that only eases. */
+    /* Less travel and a curve that only eases. The toast keeps the top
+       level's curve; the shorter duration carries the change. */
     --motion-page-travel: 6px;
-    --motion-page-scale: 1;
-    --motion-curve: cubic-bezier(.2, .6, .2, 1);
-    --motion-page-slide-scale: .5;
+    --motion-page-ease: cubic-bezier(.2, .6, .2, 1);
+    --motion-toast-ease: cubic-bezier(.2, .6, .2, 1);
     --motion-toast-dur: 130ms;
-    --motion-toast-slide-scale: .5;
     --glim-toast-slide: 12px;
     --motion-fade-dur: 70ms;
     --motion-shake-dur: 220ms;
@@ -923,52 +935,8 @@ body {
     --motion-control-dur: 80ms;
   }
 
-  /* The hidden fourth level, data-motion="storm" (GlimStone 1.17.0): the same
-     keyframes with a spring that swings further and settles later. Not in the
-     picker; stormTap() in lib/appearance.ts reveals it and it can be switched
-     back off.
-
-     Travel, scale and curve are GlimStone's storm values. The durations are
-     this app's ladder times GlimStone's storm/wild ratio, because the wild
-     durations here are shorter than the reference's.
-
-     It stays inside this gate, so an OS request for reduced motion always
-     wins; check-hidden-motion-level.mjs fails if it moves out. */
-  :root[data-motion="storm"] {
-    --motion-page-dur: 510ms;
-    --motion-page-travel: 34px;
-    --motion-page-scale: .9;
-    /* Further past 1 and slower to settle than the wild curve. */
-    --motion-curve: cubic-bezier(.22, 1.94, .45, 1);
-    --motion-page-slide-scale: 1.9;
-    --motion-toast-dur: 310ms;
-    --motion-toast-slide-scale: 1.9;
-    --glim-toast-slide: 44px;
-    --motion-fade-dur: 160ms;
-    --motion-shake-dur: 520ms;
-    --motion-shake-scale: 1.8;
-    /* The one period that shortens: a livelier ambient loop runs faster. */
-    --motion-pulse-dur: var(--egg-storm-pulse-dur);
-    --motion-pulse-min-opacity: var(--egg-storm-pulse-min);
-    --motion-wiggle-deg: 1.3deg;
-    --motion-shape-dur: 470ms;
-    --motion-confirm-dur: 760ms;
-    --motion-confirm-glow-mult: 1.8;
-    --motion-confirm-scale-mult: 1.8;
-    --motion-stagger-step: 54ms;
-    --motion-stagger-cap: 870ms;
-    --motion-wipe-dur: 580ms;
-    --motion-checkmark-dur: 650ms;
-    --motion-content-dur: 400ms;
-    --motion-panel-dur: 400ms;
-    --motion-panel-dist: 34px;
-    --motion-modal-dur: 470ms;
-    --motion-modal-travel: 19px;
-    --motion-modal-scale: .95;
-    --motion-scrim-dur: 360ms;
-    /* --motion-control-dur is left at the wild value: a slow hover tint makes
-       the interface slower, not livelier. */
-  }
+  /* data-motion="storm" has its numbers outside this gate; see the block after
+     it. */
 
   /* data-motion="off" without an OS request: the same result as reduced
      motion. Page and toast still fade over the reduced-motion durations, with
@@ -979,11 +947,9 @@ body {
     /* The durations stay non-zero, unlike GlimStone's "off": the element still
        fades in, it just does not move. */
     --motion-page-travel: 0px;
-    --motion-page-scale: 1;
-    --motion-curve: linear;
-    --motion-page-slide-scale: 0;
+    --motion-page-ease: linear;
+    --motion-toast-ease: ease;
     --motion-toast-dur: 160ms;
-    --motion-toast-slide-scale: 0;
     --glim-toast-slide: 0px;
     --motion-fade-dur: 0ms;
     --motion-shape-dur: 0ms;
@@ -1006,14 +972,24 @@ body {
     --motion-control-dur: 0s;
   }
 
-  .glim-page-enter { animation: glim-page-in var(--motion-page-dur) var(--motion-curve) both; }
-  .glim-toast { animation: glim-toast-in var(--motion-toast-dur) var(--motion-curve) both; }
+  /* Two animations, one duration: the movement on the level's curve, the fade
+     on one that cannot overshoot. */
+  .glim-page-enter {
+    animation:
+      glim-page-in var(--motion-page-dur) var(--motion-page-ease) both,
+      glim-fade-in var(--motion-page-dur) ease-out both;
+  }
+  .glim-toast {
+    animation:
+      glim-toast-in var(--motion-toast-dur) var(--motion-toast-ease) both,
+      glim-fade-in var(--motion-toast-dur) ease-out both;
+  }
   .glim-live { animation: glim-pulse var(--motion-pulse-dur) ease-in-out infinite; }
   /* Short, since the pointer is already waiting for the bubble. */
   .glim-fade { animation: glim-fade-in var(--motion-fade-dur) ease both; }
   .glim-shake { animation: glim-shake var(--motion-shake-dur) ease-in-out; }
-  /* The floating window. A flat ease-out rather than --motion-curve, whose
-     overshoot reads as a bounce on a window. */
+  /* The floating window. A flat ease-out rather than --motion-page-ease,
+     whose overshoot reads as a bounce on a window. */
   .glim-modal-backdrop { animation: glim-fade-in var(--motion-scrim-dur) ease both; }
   .glim-modal-card { animation: glim-modal-in var(--motion-modal-dur) cubic-bezier(.2, .6, .2, 1) both; }
   /* The reorder wiggle lives in the gate so the Motion setting reaches the
@@ -1115,7 +1091,7 @@ body {
   /* Staggered list fade-in, delayed by --stagger-index (the same index the
      rainbow uses) and capped so a long list finishes in time. Not used yet. */
   .glim-stagger {
-    animation: glim-page-in var(--motion-page-dur) cubic-bezier(.2, .6, .2, 1) both;
+    animation: glim-stagger-in var(--motion-page-dur) cubic-bezier(.2, .6, .2, 1) both;
     animation-delay: min(calc(var(--stagger-index, 0) * var(--motion-stagger-step)), var(--motion-stagger-cap));
   }
 
@@ -1141,14 +1117,17 @@ body {
   }
 
   /* Four moments that did not move, and the easter eggs whose motion lives on
-     this axis, all inside the gate like the storm level. Their keyframes sit
-     with the eggs' section at the end of this file. */
+     this axis, all inside the gate. Their keyframes sit with the eggs' section
+     at the end of this file. */
 
   /* The sidebar count rolls in from above instead of swapping in one frame, so
-     9 to 10 and 9 to 1 look different. At "off" the duration is 0 and the
-     number simply lands. */
+     9 to 10 and 9 to 1 look different. The roll takes the page's curve and
+     the fade one that cannot overshoot, as on .glim-page-enter. At "off" the
+     duration is 0 and the number simply lands. */
   .kl-count {
-    animation: kl-count-roll var(--motion-content-dur) var(--motion-curve) both;
+    animation:
+      kl-count-roll var(--motion-content-dur) var(--motion-page-ease) both,
+      glim-fade-in var(--motion-content-dur) ease-out both;
   }
 
   /* The progress bar's front edge breathes while bytes are moving, on the same
@@ -1208,15 +1187,70 @@ body {
     animation-delay: calc(var(--motion-content-dur) * 4);
   }
 }
+
+/* The hidden fourth level, data-motion="storm" (GlimStone 2.0.0): the same
+   keyframes with a spring that swings further and settles later. Not in the
+   picker; stormTap() in lib/appearance.ts reveals it and it can be switched
+   back off.
+
+   It is the one level that outranks an OS request for reduced motion. The
+   three offered levels obey it because somebody who set it never chose them;
+   five taps on a chosen option are a deliberate request. So these numbers sit
+   outside the no-preference gate, where the reduce block below can reach
+   them.
+
+   Travel and curve are GlimStone's storm values. The durations are this app's
+   ladder times GlimStone's storm/wild ratio, because the wild durations here
+   are shorter than the reference's. */
+:root[data-motion="storm"] {
+  --motion-page-dur: 510ms;
+  --motion-page-travel: 34px;
+  /* Further past 1 and slower to settle than the wild curve, and the one level
+     where the toast springs past the screen edge too. */
+  --motion-page-ease: cubic-bezier(.22, 1.94, .45, 1);
+  --motion-toast-ease: cubic-bezier(.22, 1.94, .45, 1);
+  --motion-toast-dur: 310ms;
+  --glim-toast-slide: 44px;
+  --motion-fade-dur: 160ms;
+  --motion-shake-dur: 520ms;
+  --motion-shake-scale: 1.8;
+  /* The one period that shortens: a livelier ambient loop runs faster. */
+  --motion-pulse-dur: var(--egg-storm-pulse-dur);
+  --motion-pulse-min-opacity: var(--egg-storm-pulse-min);
+  --motion-wiggle-deg: 1.3deg;
+  --motion-shape-dur: 470ms;
+  --motion-confirm-dur: 760ms;
+  --motion-confirm-glow-mult: 1.8;
+  --motion-confirm-scale-mult: 1.8;
+  --motion-stagger-step: 54ms;
+  --motion-stagger-cap: 870ms;
+  --motion-wipe-dur: 580ms;
+  --motion-checkmark-dur: 650ms;
+  --motion-content-dur: 400ms;
+  --motion-panel-dur: 400ms;
+  --motion-panel-dist: 34px;
+  --motion-modal-dur: 470ms;
+  --motion-modal-travel: 19px;
+  --motion-modal-scale: .95;
+  --motion-scrim-dur: 360ms;
+  /* --motion-control-dur is left at the wild value: a slow hover tint makes
+     the interface slower, not livelier. */
+}
+
+/* Each substitute here excludes the storm, and the storm's full animation is
+   restored at the end of the block: exempting without restoring would leave it
+   with no animation at all, or hidden where the resting state is. Infinite
+   animations keep their stop at every level, since wanting more movement is not
+   wanting something that never stops. */
 @media (prefers-reduced-motion: reduce) {
-  .glim-page-enter { animation: glim-fade-in 180ms ease both; }
-  .glim-toast { animation: glim-fade-in 160ms ease both; }
-  .glim-shake { animation: glim-shake-reduced 300ms ease-in-out; }
+  :root:not([data-motion="storm"]) .glim-page-enter { animation: glim-fade-in 180ms ease both; }
+  :root:not([data-motion="storm"]) .glim-toast { animation: glim-fade-in 160ms ease both; }
+  :root:not([data-motion="storm"]) .glim-shake { animation: glim-shake-reduced 300ms ease-in-out; }
   /* Both halves of the floating window become the same short fade, so the
-     window still visibly arrives. No motion token reaches this block. */
-  .glim-modal-backdrop { animation: glim-fade-in 160ms ease both; }
-  .glim-modal-card { animation: glim-fade-in 160ms ease both; }
-  .glim-locate { animation: glim-locate-reduced 900ms ease-out; }
+     window still visibly arrives. */
+  :root:not([data-motion="storm"]) .glim-modal-backdrop { animation: glim-fade-in 160ms ease both; }
+  :root:not([data-motion="storm"]) .glim-modal-card { animation: glim-fade-in 160ms ease both; }
+  :root:not([data-motion="storm"]) .glim-locate { animation: glim-locate-reduced 900ms ease-out; }
   /* An infinite animation gets a true stop under reduced motion, not a slower
      version. */
   .glim-live { animation: none; opacity: 1; }
@@ -1226,7 +1260,35 @@ body {
   .kl-tip-halo { animation: none; opacity: 0; }
   /* Without the animation the shields would sit over the toast's text, so the
      row is hidden and the checkmark is drawn at once. */
-  .kl-parade { animation: none; opacity: 0; }
+  :root:not([data-motion="storm"]) .kl-parade { animation: none; opacity: 0; }
+
+  /* The storm restored, with the values from its token block. */
+  :root[data-motion="storm"] .glim-page-enter {
+    animation:
+      glim-page-in var(--motion-page-dur) var(--motion-page-ease) both,
+      glim-fade-in var(--motion-page-dur) ease-out both;
+  }
+  :root[data-motion="storm"] .glim-toast {
+    animation:
+      glim-toast-in var(--motion-toast-dur) var(--motion-toast-ease) both,
+      glim-fade-in var(--motion-toast-dur) ease-out both;
+  }
+  :root[data-motion="storm"] .glim-shake { animation: glim-shake var(--motion-shake-dur) ease-in-out; }
+  :root[data-motion="storm"] .glim-modal-backdrop { animation: glim-fade-in var(--motion-scrim-dur) ease both; }
+  :root[data-motion="storm"] .glim-modal-card {
+    animation: glim-modal-in var(--motion-modal-dur) cubic-bezier(.2, .6, .2, 1) both;
+  }
+  :root[data-motion="storm"] .glim-locate {
+    animation: glim-locate-ring calc(var(--motion-confirm-dur) * 2) ease-out;
+  }
+  :root[data-motion="storm"] .kl-parade {
+    animation: kl-parade calc(var(--motion-content-dur) * 4) ease-in-out both;
+    animation-delay: min(calc(var(--stagger-index, 0) * var(--motion-stagger-step)), var(--motion-stagger-cap));
+  }
+  /* The checkmark waits for the shields, as it does in the gate. */
+  :root[data-motion="storm"] .kl-parade-check {
+    animation: glim-checkmark-draw var(--motion-checkmark-dur) ease-out calc(var(--motion-content-dur) * 4) both;
+  }
 }
 
 /* The colour picker (lib/colorPicker.ts), copied from GlimStone's
@@ -1380,6 +1442,20 @@ body {
   --brand-ink: var(--accent-contrast);
 }
 
+/* A coin tile in the crypto window. On the dark theme one step up the ramp
+   barely registers behind a mark half the tile's height, so a hovered tile
+   goes white and its ticker and mark take the ground's ink, the contrast rule
+   the brand buttons follow. The light theme keeps the ramp's step, which
+   reads there. After the .glim-hue-icon rules, which would keep the mark in
+   the position's colour. */
+[data-theme="dark"] .kl-coin-tile:not(.glim-active):hover {
+  background-color: #ffffff;
+  color: var(--carbon-bg);
+}
+[data-theme="dark"] .kl-coin-tile:not(.glim-active):hover svg {
+  color: var(--carbon-bg);
+}
+
 /* Easter egg: draw and strike. Holding the sidebar wordmark draws the blade up
    out of the rail with a glint along its edge; letting go swings it down while
    a shockwave runs through the entries below. The sword's counterpart to
@@ -1499,11 +1575,26 @@ body {
   [data-motion='off'] .kl-egg-struck { animation: none; }
 }
 
-/* Reduced motion gets what "off" gets: the glint and nothing else. */
+/* Reduced motion gets what "off" gets: the glint and nothing else. The storm
+   is exempt and gets the whole blade back, as in the motion engine's reduce
+   block. */
 @media (prefers-reduced-motion: reduce) {
-  .kl-egg[data-egg='draw'] #kl-sword {
+  :root:not([data-motion='storm']) .kl-egg[data-egg='draw'] #kl-sword {
     animation: kl-egg-sheen var(--egg-sheen-dur, 900ms) ease-out forwards;
   }
+
+  :root[data-motion='storm'] .kl-egg[data-egg='draw'] #kl-sword {
+    animation:
+      kl-egg-draw var(--egg-draw-dur, 520ms) cubic-bezier(.2, .7, .3, 1) forwards,
+      kl-egg-sheen var(--egg-sheen-dur, 900ms) ease-out forwards;
+  }
+  :root[data-motion='storm'] .kl-egg[data-egg='strike'] #kl-sword {
+    animation: kl-egg-strike var(--egg-strike-dur, 540ms) linear forwards;
+  }
+  :root[data-motion='storm'] .kl-egg[data-egg='strike'] {
+    animation: kl-egg-quake var(--egg-quake-dur, 420ms) ease-out calc(var(--egg-strike-dur, 540ms) * .16) both;
+  }
+  :root[data-motion='storm'] .kl-egg-struck { animation: kl-egg-wave var(--egg-wave-dur, 380ms) ease-out; }
 }
 
 /* Keyframes and layout for the eggs and moments played inside the motion gate
@@ -1513,8 +1604,8 @@ body {
 /* The sidebar count arriving from above. Small travel, since anything further
    reads as the badge falling off its glyph. */
 @keyframes kl-count-roll {
-  from { opacity: 0; transform: translateY(-45%); }
-  to   { opacity: 1; transform: none; }
+  from { transform: translateY(-45%); }
+  to   { transform: none; }
 }
 
 /* The ring leaving the speed curve's tip. A transform rather than the SVG `r`

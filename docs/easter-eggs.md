@@ -1,6 +1,6 @@
 # Easter eggs
 
-GlimStone has exactly one egg of its own (`storm`, below) and says plainly that
+GlimStone has two eggs of its own (`storm` and disco, below) and says plainly that
 an adopting app's eggs belong in **that app's** notes rather than in the shared
 language. This file is KnightLoader's.
 
@@ -9,8 +9,8 @@ What the language does hand down is the rule that comes with every one of them:
 > **An easter egg that changes behaviour must be switchable back off, and must
 > not quietly become a permanent entry in a settings list.**
 
-The failure it was written against is worth restating, because it does not look
-like a failure while you are building it: the first `storm` implementation
+The failure it was written against does not look like a failure while you are
+building it: the first `storm` implementation
 stored a "found it" flag, so one gesture put a fourth option in the motion
 picker for ever after. That turns a secret into a setting somebody has to
 explain to themselves months later with no memory of how it got there, and it
@@ -22,11 +22,11 @@ Two consequences that every entry below has to satisfy:
   ordinary interaction turns off: a second gesture, a different value in the
   same field, closing the screen. Nothing needs a reset button, because nothing
   is stored that would need resetting.
-- **A chosen value persists; the fact that it was FOUND does not.** Those two
+- **A chosen value persists; the fact that it was *found* does not.** Those two
   look similar and are not. `storm` is remembered because it is the current
   setting; that the picker once offered it is remembered by nobody.
 
-Nothing below writes to storage. Three of the five have no state at all: they are a
+Nothing below stores the fact that it was found. Three of the six have no state at all: they are a
 question asked of the current value (the limit), of a pointer that is currently
 down (the blade), or of how long an element has already been on screen
 (the knight). The parade keeps two numbers in a ref that dies with the tab.
@@ -52,13 +52,14 @@ and it keeps the same rhythm: tension while held, discharge on release.
 ended a hold. An egg that ate the navigation would be a broken logo rather than
 a surprise.
 
-Because it is CSS, it follows the motion setting and disappears under
-`prefers-reduced-motion` without knowing that it does.
+Because it is CSS, it follows the motion setting and shrinks to the glint under
+`prefers-reduced-motion` without knowing that it does. At `storm` it keeps the
+whole swing, like every other animation the storm is exempt for (below).
 
 ### `storm`, the fourth motion level
 
 **Gesture:** set the motion intensity to the top level, then tap that same
-option five more times. It is unreachable from any other level on purpose:
+option five more times. It is unreachable from any other level, because
 tapping "off" five times means somebody is annoyed, not curious, and a secret
 that opens under annoyance is a bug report waiting to be filed.
 
@@ -66,10 +67,9 @@ that opens under annoyance is a bug report waiting to be filed.
 the numbers are one token block, `:root[data-motion="storm"]`, in
 `web/src/index.css`.
 
-This one is GlimStone's, adopted here rather than invented here, and the
-language carries it as the case that establishes the rule at the top of this
-file. Three
-details are easy to get wrong and are all load-bearing:
+This one is GlimStone's and was adopted here, and the language carries it as
+the case that establishes the rule at the top of this file. Three details are
+easy to get wrong, and each of them matters:
 
 - The option is offered while it is **chosen**, because a picker that hid the
   value it is currently showing would be lying about the interface. Otherwise it
@@ -78,9 +78,44 @@ details are easy to get wrong and are all load-bearing:
   offers it, because otherwise the gesture would produce a setting that
   silently forgets itself on the next reload. Validating a stored value and populating a
   picker are two different questions.
-- It sits **inside** the `prefers-reduced-motion: no-preference` gate, not
-  beside it, so a hidden "more animation" switch can never talk a browser out of
-  an accessibility signal.
+- It is the one level that outranks `prefers-reduced-motion` (GlimStone 2.1.0).
+  The three levels a picker offers obey it, because somebody who set it never
+  chose any of them; five taps on an option already chosen are a request. So its
+  numbers sit outside the `no-preference` gate, every substitute in the reduce
+  block excludes it, and the reduce block restores its full animation. Infinite
+  animations keep their stop at every level, since wanting more movement is not
+  wanting something that never stops.
+
+### Disco
+
+**Gesture:** turn rainbow mode on five times, each within three seconds of the
+last. The palette then steps one position a second, so every coloured element
+moves to the next colour together.
+
+**Where:** `discoTap()` and `applyDisco()` in `web/src/lib/appearance.ts`; the
+switch sits under the rainbow's own switches in
+`web/src/pages/settings/Look.tsx`.
+
+**Off:** its own switch.
+
+GlimStone's second egg, adopted like the storm. It animates nothing: each step
+re-renders the colour engine's readers, which is why the rainbow state is handed
+down from above the routes (`web/src/lib/useRainbow.ts`) and every component
+that paints a palette position reads it. Without that, parts of the screen stand
+still while the rest walks.
+
+- Only turn-ons count, so the gesture ends with the rainbow on, the one state in
+  which the reward can be seen. The time window keeps somebody who compares the
+  page with and without the rainbow from unlocking it by accident.
+- The switch is stored per browser, like the motion level. The walk never is:
+  each step applies and writes nothing, and stopping puts the stored palette
+  back.
+- The switch is offered while disco is on, and otherwise only while the settings
+  screen that found it stays open.
+- With the rainbow off nothing coloured is on screen, so the walk waits and
+  starts by itself when the rainbow comes back. One step a second stays well
+  under the 3 Hz flicker threshold, and there is no reduced-motion gate: it
+  changes colour and moves nothing.
 
 ### 1337
 
@@ -95,8 +130,8 @@ Overview page runs on the storm curve for as long as the limit stands.
 **Off:** type a different number.
 
 **The number stays in the field.** A field that does not show what was typed into
-it is a bug for one second before it is a joke. The word stands to the RIGHT of
-the number, not under it: dropped into the field's own column it landed exactly
+it is a bug for one second before it is a joke. The word stands to the *right*
+of the number, not under it: dropped into the field's own column it landed exactly
 where this page's hints and error lines live, and the joke read as a complaint
 about the value above it.
 
@@ -125,21 +160,21 @@ is gone with it.
 **Off:** add a link, or set the motion intensity to `off`.
 
 **What was ordered was a figure closing its eyes, and there is no figure.** Every
-caller hands this slot a 20-unit house glyph - a download arrow on the queue, a
+caller hands this slot a 20-unit house glyph: a download arrow on the queue, a
 magnifier on a search with no hits, a keyboard on the shortcuts page. Eyelids
 drawn over an arrow would be the joke explained rather than told, and swapping in
 a knight's helm is the caller's decision, not this component's. So the mark itself
 blinks, which reads as "this has been standing here a while" against any glyph.
 
-**It costs nothing until it fires.** No timer, no interval, no state: one CSS
-`animation-delay`, whose opening frame is exactly what the mark looks like with no
+**It costs nothing until it fires.** There is no timer, no interval and no
+state, only one CSS `animation-delay`, whose opening frame is exactly what the mark looks like with no
 rule on it at all. An empty state that lived for two seconds was charged for
 nothing.
 
 ### The parade
 
-**Gesture:** finish eight files inside twelve seconds - a package of many closing
-in one go. A row of five small shields sweeps that bubble once, and the checkmark
+**Gesture:** finish eight files inside twelve seconds (a package of many closing
+in one go). A row of five small shields sweeps that bubble once, and the checkmark
 is drawn after they have passed.
 
 **Where:** `PARADE_AT` and the burst counter in `web/src/lib/toast.tsx`, which is
@@ -149,7 +184,7 @@ the one funnel every notification in this app passes through; `.kl-parade` and
 
 **Off:** it ends by itself, with the toast.
 
-**Eight, and the number is a measurement.** This app finishes one task per LINK,
+**Eight, and the number is a measurement.** This app finishes one task per *link*,
 so a package closing produces one bubble per file. The common shapes in its own
 lists are a single file and a multi-volume archive set of three to six parts, so a
 threshold of three would fire on an ordinary evening and stop being a surprise.
@@ -161,6 +196,6 @@ connect to anything they did is not a parade.
 content fades long, the shields are spaced by `--motion-stagger-step` and capped by
 `--motion-stagger-cap` exactly as `.glim-stagger`'s rows are, and the checkmark is
 held back by the length of the sweep. At motion `off` all three numbers are 0, so
-the bubble simply draws its checkmark at once - measured, `kl-parade 0s delay=0s`.
+the bubble draws its checkmark at once (measured: `kl-parade 0s delay=0s`).
 Exactly one bubble in a burst carries it, and `.glim-checkmark` finally has the
 consumer it has been waiting for since the motion engine's second round.

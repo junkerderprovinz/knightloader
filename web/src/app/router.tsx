@@ -11,9 +11,13 @@ import { QuickAdd } from '../pages/QuickAdd';
 import { ToastProvider } from '../lib/toast';
 import { I18nProvider } from '../lib/i18n';
 import { TabIndicator } from '../components/TabIndicator';
+import { RainbowProvider } from '../lib/useRainbow';
 
 export function AppRouter() {
   return (
+    // Outermost, so the sign-in screen, the toasts and every route follow a
+    // palette that moves (lib/useRainbow.ts).
+    <RainbowProvider>
     <I18nProvider>
     <ToastProvider>
       <AuthGate>
@@ -40,5 +44,6 @@ export function AppRouter() {
       </AuthGate>
     </ToastProvider>
     </I18nProvider>
+    </RainbowProvider>
   );
 }

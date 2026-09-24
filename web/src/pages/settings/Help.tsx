@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useT } from '../../lib/i18n';
 import { Card, SectionTitle } from '../../components/ui';
 import { fetchHealth } from '../../lib/api';
+import { GLIMSTONE_VERSION } from '../../lib/glimstoneVersion';
 import { IconGithub, IconMail } from '../../lib/icons';
 import { IconBitcoin, IconBuyMeACoffee, IconPayPal } from '../../components/donateMarks';
 import { CryptoDonateDialog } from '../../components/CryptoDonateDialog';
@@ -239,15 +240,6 @@ function VersionNumber({
     </a>
   );
 }
-
-/**
- * GLIMSTONE_VERSION is the design language release this surface is built
- * against, kept by hand because GlimStone is a document and a stylesheet, not
- * a package. It must name a published release, since the About card links to
- * it, and it rises only once an edition is fully applied. The extension and
- * the phone app keep their own copies.
- */
-const GLIMSTONE_VERSION = '2.1.0';
 
 /**
  * About shows what this is, the ways to give and to report something, and the

@@ -109,12 +109,19 @@ export interface Task {
   filename?: string;
   /** Which form of the same resource was picked: a yt-dlp format, a quality. */
   variant?: string;
+  /** A variant row its host's preset leaves out: kept, but not shown in the
+   *  collector and never started, until the preset lists its kind again. */
+  variantOff?: boolean;
   /** File extension shown before the download starts, set only where it is
    *  certain ahead of time (see core.Task.Ext). */
   ext?: string;
   /** Quality presets the probed video offers; absent falls back to the full menu. */
   availableQualities?: string[];
-  /** Audio formats the probed source offers natively; absent falls back to the full menu. */
+  /** Every distinct video track the probed source offers, as
+   *  "<height>p[<fps>] <container> <codec>" (ytdlp.VideoFormats). */
+  availableVideoFormats?: string[];
+  /** The probed source's own audio tracks ("opus 160k") and the formats they
+   *  convert to natively; absent falls back to the full menu. */
   availableAudioFormats?: string[];
   /** Bitrates the probed source's best audio track can support. */
   availableAudioBitrates?: string[];
@@ -128,7 +135,7 @@ export interface Task {
    * back. The server recomputes it on every dispatch pass. Callers fall back
    * for values a newer server may add.
    */
-  waiting?: 'slot' | 'host' | 'forced' | 'disabled' | 'hold' | 'captcha' | 'account' | 'halted' | 'disk' | 'volumeCap';
+  waiting?: 'slot' | 'host' | 'forced' | 'disabled' | 'hold' | 'captcha' | 'account' | 'halted' | 'disk' | 'volumeCap' | 'module';
   /**
    * When the bytes stopped, so the age of a stall is computed on every render.
    * Not persisted: it describes a connection this process holds open.
@@ -275,6 +282,8 @@ export interface Settings {
   autoConfirm: boolean;
   /** Seconds before an unconfirmed batch confirms itself; 0 disables the countdown. */
   autoConfirmDelay: number;
+  /** The modules switched off on the modules page, by their ids there. */
+  modulesOff: string[] | null;
   /** Whether a confirmed batch starts right away (the default) or waits on Hold. */
   autoStart: boolean;
   /** confirm.Policy ("include"|"exclude"|"exclude-and-remove"|"ask") for a
@@ -2205,7 +2214,7 @@ export interface CaptchaResolution {
   id: string;
   taskId?: string;
   host: string;
-  reason: 'solved' | 'expired' | 'aborted' | 'timedOut' | 'resolved';
+  reason: 'solved' | 'expired' | 'aborted' | 'timedOut' | 'switchedOff' | 'resolved';
 }
 
 /**
@@ -3428,6 +3437,8 @@ export function connectWS(onMessage: (type: string, data: any) => void, kinds?: 
   let ws: WebSocket | null = null;
   let closed = false;
   const open = () => {
+    // A reconnect timer can fire after the caller has closed the stream.
+    if (closed) return;
     const proto = location.protocol === 'https:' ? 'wss' : 'ws';
     ws = new WebSocket(`${proto}://${location.host}/api/ws`);
     if (kinds && kinds.length > 0) {

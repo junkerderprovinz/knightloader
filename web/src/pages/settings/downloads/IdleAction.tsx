@@ -21,7 +21,7 @@ import {
   type IdleCommandCheck,
   type IdleRun,
 } from '../../../lib/api';
-import { IconClock, IconCode, IconMoon, IconPause, IconPower } from '../../../lib/icons';
+import { IconClock, IconClose, IconCode, IconMoon, IconPause, IconPower } from '../../../lib/icons';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import { useDraft } from '../context';
 
@@ -312,9 +312,13 @@ export function IdleActionCard({ hue }: { hue: number }) {
             <>
               {/* The spacer puts Run at the end of Modal's plain flex footer. */}
               <span className="flex-1" />
-              <Button kind="ghost" onClick={() => setConfirming(false)}>
-                {t('common.cancel')}
-              </Button>
+              <Button
+                kind="ghost"
+                labelled
+                icon={<IconClose />}
+                title={t('common.cancel')}
+                onClick={() => setConfirming(false)}
+              />
               <Button onClick={() => void handleRun()}>{t('settings.downloads.idleCommandRun')}</Button>
             </>
           }

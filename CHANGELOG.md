@@ -37,6 +37,25 @@ submission and for a fixed download.
 
 ## [Unreleased]
 
+### Added
+
+- **Every module this build runs has a switch on the Modules page.** JDownloader,
+  yt-dlp, torrents, captchas, event scripts, outbound connections, peer
+  instances, the Packagizer and the link filter can be switched off like the
+  modules that already could. The module's own settings page carries the same
+  switch, and flipping either one moves the other straight away, in other open
+  tabs too. A link whose backend is switched off waits in the queue as "Module
+  switched off" instead of going out as a plain download, which would save the
+  hoster's web page. If a debrid service carries the host, it takes the link
+  over. Each row also links to the page its module is set up on.
+- **Each connected hoster login is a row of its own on the priority card.**
+  Where it sits against a debrid service that carries the same host decides
+  which of the two gets those links.
+- **The variant menu offers every format a site has**: each video track by
+  resolution, frame rate, container and codec, and each audio track, where it
+  used to offer a height and merge into mkv. A track picked this way keeps its
+  own container and is not converted.
+
 ### Fixed
 
 - **Links to a filehoster go to JDownloader's free mode again after the
@@ -45,9 +64,30 @@ submission and for a fixed download.
   drag saved all of them, with direct above JDownloader. From then on a
   filehoster link without an account went out as a plain download, which
   usually saves the hoster's landing page. Those four decide per link and are
-  no longer on the card; it orders the debrid accounts, torrents and remote
-  storage. An order saved before keeps its old effect until the card is
-  touched once or reset to "Automatic".
+  no longer on the card; it orders the debrid accounts, your own hoster logins,
+  torrents and remote storage. An order saved before keeps its old effect until
+  the card is touched once or reset to "Automatic".
+
+- **"Wait before confirming automatically" waits.** The delay was saved and
+  never read, so every batch confirmed the moment it arrived. A batch now counts
+  down in the status strip, where the stop button leaves its links in the
+  collector. Each batch has its own countdown, links you confirm or remove in
+  the meantime are left alone, and a new delay also applies to countdowns that
+  are already running. A countdown cut short by a restart carries on after it.
+
+- **A watch-folder job with `enabled=false` stays parked.** It used to be
+  confirmed before it was parked, and the folder's options could arrive after
+  the download had started.
+
+- **The audio row of a video link reaches the download list.** Only the video
+  row moved when a batch was confirmed, and the duplicate check took the other
+  rows of the same link for copies of it. Now the whole family moves together,
+  and the download list shows which variant, quality and format each row
+  fetches.
+
+- **Unticking a variant in a host's preset hides its rows at once**, for links
+  already in the collector as well, and ticking it again brings them back with
+  their own picks. The phone app hides them too.
 
 - **Browser extension 1.0.1: a tooltip no longer stays up after a click.**
   Focus opens a tooltip only after keyboard input now, so Cancel in the
@@ -63,6 +103,27 @@ submission and for a fixed download.
 
 ### Changed
 
+- **The speed graph is a filled area that glides** from one sample to the next,
+  where it used to step once a second and rescale on every value. With motion
+  switched off it moves without the glide.
+- **A downloading row says "Downloading"**, and a waiting row no longer repeats
+  "queue stopped" or "all slots busy", which the toolbar already says for every
+  row at once.
+- **A sorted list says so in a second badge beside the card title**, with the
+  way back in its info bubble, instead of an extra row above the list with its
+  own button.
+- **The collector's variant column is narrower and its name column wider**, and
+  an expanded package shows an open folder.
+- **The debrid account picker lost its search field** and is titled "Choose a
+  debrid service".
+- **The tour's last button reads "Done".**
+- **The web UI, the browser extension and the phone app follow GlimStone
+  2.6.0.** Every window has its way out as a button in its bottom row, tooltips
+  open on focus only after keyboard input and close when their control changes,
+  the default motion level is "subtle", and the About card of the extension and
+  the app offers PayPal and crypto beside the coffee.
+- **The interface texts were reworked** in the web UI, the extension, the app,
+  the README and the user docs: plainer hints, and no dashes as punctuation.
 - **A release waits for its images too**, not only for the desktop bundles, so
   a published release always has both.
 - **The moving image tags follow the release.** `latest`, `1.1` and `1` are set

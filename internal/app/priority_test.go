@@ -91,7 +91,7 @@ func TestNextResolverFallsBackThroughTheSameRankedOrder(t *testing.T) {
 // settings.ResolverOrder is the answer, not a hint the automatic ranking may
 // overrule. The fixture takes the hardest case, a host with a confirmed-active
 // native JD login, and puts JD last by hand: folded in beside the automatic
-// numbers, JD's activeLoginPrio would still win.
+// numbers, JD's ActiveLoginPrio would still win.
 func TestHandArrangedOrderOutranksTheAutomaticOne(t *testing.T) {
 	a := newQueueApp(t)
 	a.Registry.Register(jd.Resolver{})
@@ -225,5 +225,47 @@ func TestASavedCardOrderLeavesHosterLinksToJD(t *testing.T) {
 	}
 	if order := a.Settings.Get().ResolverOrder; slices.Contains(order, "direct") || slices.Contains(order, "jd") {
 		t.Errorf("stored order = %q, want the per-link resolvers left out", order)
+	}
+}
+
+// Each switched-on hoster login is a row of its own on the priority card.
+func TestPriorityCardListsEachConnectedHosterLogin(t *testing.T) {
+	a := newQueueApp(t)
+	if err := a.SetHosterLogin("ddownload.com", "user", "secret"); err != nil {
+		t.Fatal(err)
+	}
+
+	rows := a.ResolverPriority("")
+	if !slices.ContainsFunc(rows, func(r resolver.Info) bool { return r.ID == "login:ddownload.com" }) {
+		t.Fatalf("ResolverPriority = %+v, want a row for the ddownload.com login", rows)
+	}
+}
+
+// Where the login row sits against a debrid service that carries the same host
+// decides which of the two a link to that host goes to.
+func TestALoginRowDecidesBetweenTheOwnAccountAndADebrid(t *testing.T) {
+	a := newQueueApp(t)
+	a.Registry.Register(jd.Resolver{})
+	a.Registry.Register(fakeResolver{id: "fakedebrid", prio: 50, host: "ddownload.com"})
+	t.Cleanup(func() { jd.SetHostActive("ddownload.com", false) })
+	jd.SetHostActive("ddownload.com", true)
+	link := &core.Task{URL: "https://ddownload.com/abc123/movie.mkv"}
+
+	route := func(order ...string) string {
+		t.Helper()
+		if _, err := a.SaveResolverOrder(order); err != nil {
+			t.Fatal(err)
+		}
+		got := a.resolverForTaskLocked(link)
+		if got == nil {
+			return "<nil>"
+		}
+		return got.Info().ID
+	}
+	if got := route("login:ddownload.com", "fakedebrid"); got != "jd" {
+		t.Errorf("login above the debrid: link goes to %q, want jd", got)
+	}
+	if got := route("fakedebrid", "login:ddownload.com"); got != "fakedebrid" {
+		t.Errorf("debrid above the login: link goes to %q, want fakedebrid", got)
 	}
 }

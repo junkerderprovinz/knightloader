@@ -2,6 +2,7 @@ import { useMemo, type CSSProperties } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { type Instance, type Settings, fetchInstances, fetchSettings } from '../lib/api';
 import { hueVars, rainbowAt } from '../lib/appearance';
+import { useRainbow } from '../lib/useRainbow';
 import { useTasks } from '../lib/useTasks';
 import { useResource } from '../lib/useResource';
 import { fmtBytes, fmtSpeed, pct } from '../lib/format';
@@ -18,6 +19,7 @@ import { IconDownloads } from '../lib/icons';
 
 export function Dashboard() {
   const { t } = useT();
+  useRainbow();
   const tasks = useTasks('');
   const { data: instances } = useResource<Instance[]>(fetchInstances);
   // Carries the configured instance name and the speed limit.
@@ -37,8 +39,9 @@ export function Dashboard() {
       else if (x.status === 'queued') queued++;
       else if (x.status === 'done') done++;
       else if (x.status === 'error') error++;
-      // Links the filter holds back are in no list and not counted.
-      else if (x.status === 'collected' && !x.skipped) collected++;
+      // Links the filter holds back and rows a hoster preset set aside are in
+      // no list and not counted.
+      else if (x.status === 'collected' && !x.skipped && !x.variantOff) collected++;
       if (x.status === 'running') speed += x.speed;
     }
     return { running, queued, done, error, collected, speed };

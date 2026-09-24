@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Button, Card, EmptyState, Modal, SectionTitle } from '../../components/ui';
-import { IconKeyboard } from '../../lib/icons';
+import { IconClose, IconKeyboard } from '../../lib/icons';
 import { useT, type TranslationKey } from '../../lib/i18n';
 import { en } from '../../lib/locales/en';
 import { allCommands } from '../../lib/commands/allCommands';
@@ -125,9 +125,13 @@ export function Shortcuts() {
           footer={
             <>
               <span className="flex-1" />
-              <Button kind="ghost" onClick={() => setConfirmResetAll(false)}>
-                {t('common.cancel')}
-              </Button>
+              <Button
+                kind="ghost"
+                labelled
+                icon={<IconClose />}
+                title={t('common.cancel')}
+                onClick={() => setConfirmResetAll(false)}
+              />
               <Button kind="ghost" onClick={resetAll}>
                 {t('settings.shortcuts.resetAllConfirm')}
               </Button>
@@ -247,9 +251,7 @@ function CaptureModal({
       footer={
         <>
           <span className="flex-1" />
-          <Button kind="ghost" onClick={onCancel}>
-            {t('common.cancel')}
-          </Button>
+          <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onCancel} />
         </>
       }
     >

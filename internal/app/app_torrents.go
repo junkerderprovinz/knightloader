@@ -4,7 +4,7 @@
 // This does not go through stage() (app_links.go), for two reasons:
 //
 //  1. TorrentFiles must be on the task before finishStaging's put runs.
-//     addLinksFrom can trigger AutoConfirm and start the engine synchronously,
+//     AddLinksFrom can trigger AutoConfirm and start the engine synchronously,
 //     so a selection attached after staging could arrive after every file had
 //     started downloading.
 //  2. The size at stage time should reflect the selection, not the whole
@@ -15,7 +15,6 @@ package app
 import (
 	"time"
 
-	"github.com/junkerderprovinz/knightloader/internal/confirm"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/dedupe"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
@@ -88,9 +87,7 @@ func (a *App) AddTorrent(uri string, files []core.TorrentFile, pkg string, origi
 	}
 	a.catchAll([]*core.Task{staged})
 
-	if a.Settings.Get().AutoConfirm {
-		a.ConfirmTasks([]string{staged.ID}, confirm.Config{}, confirm.TriggerAutoConfirm)
-	}
+	a.autoConfirm([]string{staged.ID})
 	return a.detached([]*core.Task{staged})[0], nil
 }
 

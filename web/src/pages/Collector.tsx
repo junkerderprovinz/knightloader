@@ -104,11 +104,12 @@ export function Collector() {
   // page never shows.
   const all = useMemo(() => Object.values(tasks), [tasks]);
   // Sorted by position, which drag-to-reorder writes; applySort does nothing in
-  // the default queue order.
+  // the default queue order. A row its hoster's preset set aside waits out of
+  // view and comes back the moment the preset lists its kind again.
   const collected = useMemo(
     () =>
       all
-        .filter((x) => x.status === 'collected' && !x.skipped)
+        .filter((x) => x.status === 'collected' && !x.skipped && !x.variantOff)
         .sort((a, b) => a.position - b.position),
     [all],
   );

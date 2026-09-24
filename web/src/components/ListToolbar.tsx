@@ -280,12 +280,11 @@ function ConfirmRemove({
       mute={mute}
       footer={
         <>
-          {/* Grouped at the end in order of how far each goes. No glyphs, since
-              a footer marks all its buttons or none. */}
+          {/* Grouped at the end in order of how far each goes. Cancel is the
+              way out and carries the close glyph through the label engine;
+              the two answers are words. */}
           <span className="flex-1" />
-          <Button kind="ghost" onClick={onCancel}>
-            {t('common.cancel')}
-          </Button>
+          <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onCancel} />
           <Button kind="secondary" onClick={() => onConfirm(false)}>
             {t('remove.fromList')}
           </Button>
@@ -389,6 +388,7 @@ export function TaskOptionsDialog({
           {/* The forward button ends the row, so the error goes first. */}
           {error && <span className="min-w-0 text-statusFail text-sm">{error}</span>}
           <span className="flex-1" />
+          <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
           <Button onClick={apply}>{t('settings.save')}</Button>
         </>
       }

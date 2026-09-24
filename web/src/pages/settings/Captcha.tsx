@@ -13,6 +13,7 @@ import { Button, Card, ErrorCard, IconBadge, LoadingCard, PageHeader, SectionTit
 import { IconArrowDown, IconArrowUp, IconExternalLink } from '../../lib/icons';
 import { useDraft } from './context';
 import { NeutralSwitch } from './controls';
+import { ModuleToggle } from './ModuleToggle';
 
 // The captcha page orders the solvers and stores each solver's API key. The
 // order lives in the settings draft: an id in captchaSolverOrder is tried in
@@ -134,6 +135,7 @@ export function Captcha() {
 
       <Card hue={0} className="flex flex-col gap-1">
         <SectionTitle hint={cx('settings.captcha.orderHint')}>{cx('settings.captcha.orderTitle')}</SectionTitle>
+        <ModuleToggle id="captcha" />
         {order.length === 0 && <p className="py-2 text-sm text-carbon-textSub">{cx('settings.captcha.orderEmpty')}</p>}
 
         <ul className="flex flex-col">

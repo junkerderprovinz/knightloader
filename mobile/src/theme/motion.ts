@@ -7,9 +7,9 @@
 // `@media (prefers-reduced-motion: no-preference)`, so the accessibility signal
 // wins by where the block sits. React Native has neither, so the same property
 // is rebuilt from two parts: the signal is read in one place
-// (MotionContext.tsx), and every level passes through resolveMotion below,
-// which answers `off` while the signal is on. check-hidden-motion-level.mjs
-// proves both.
+// (MotionContext.tsx), and every level passes through motionNumbers below,
+// which answers `off` for the offered levels while the signal is on.
+// check-hidden-motion-level.mjs proves both.
 //
 // Free of React and of react-native, the same split theme/appearance.ts uses,
 // which also lets the check script import and run this.
@@ -31,11 +31,12 @@ export const MOTION_LEVELS: Motion[] = ['off', 'subtle', 'wild'];
 export const MOTION_STORED: Motion[] = [...MOTION_LEVELS, 'storm'];
 
 /**
- * The default is the top visible level, not the quietest: this axis is polish
- * somebody dials down, not a compatibility fallback they opt into. The system's
- * own reduced-motion setting wins over it either way, through resolveMotion.
+ * The default is the middle level (GlimStone 2.1.0). The top one is a
+ * statement rather than polish, and somebody who wants it picks it. A default
+ * reaches only people who never chose, so a stored `wild` stays `wild`. The
+ * system's own reduced-motion setting wins over it either way.
  */
-export const DEFAULT_MOTION: Motion = 'wild';
+export const DEFAULT_MOTION: Motion = 'subtle';
 
 /** How many taps on the level already chosen open the one below the floor. */
 export const STORM_TAPS = 5;
@@ -155,16 +156,34 @@ export function asMotion(v: string | null | undefined): Motion {
 }
 
 /**
- * resolveMotion is the gate, and it is the whole of it.
+ * resolveMotion is the gate for the level's name.
  *
  * The phone has no `@media (prefers-reduced-motion: no-preference)` block for a
  * level to sit inside, so this is the only function that hands a level to
  * anything that draws, and while the system asks for less motion it hands out
- * `off` for every level there is, the hidden one included. A secret "more
- * animation" switch is the one way this axis could do harm.
+ * `off` for every level a picker offers. Somebody who set that did not go
+ * looking for any of them; they got whichever one the app opened on.
+ *
+ * The storm passes through (GlimStone 2.1.0). Five taps on an option already
+ * chosen are a request, not a default anybody inherited, and treating that
+ * request as one would override what the person holding the phone asked for.
+ * motionNumbers takes the part it may not have.
  */
 export function resolveMotion(chosen: Motion, reduced: boolean): Motion {
-  return reduced ? 'off' : chosen;
+  return reduced && chosen !== 'storm' ? 'off' : chosen;
+}
+
+/**
+ * motionNumbers is what a component draws with, and the one place the table is
+ * read through the gate.
+ *
+ * Under reduced motion the storm keeps its one-shot figures and loses its
+ * loop: wanting more movement is not wanting something that never stops, so
+ * the wiggle stays still at every level while the system asks for less.
+ */
+export function motionNumbers(chosen: Motion, reduced: boolean): MotionNumbers {
+  const n = MOTION[resolveMotion(chosen, reduced)];
+  return reduced ? { ...n, wiggleDeg: 0, wiggleDur: 0 } : n;
 }
 
 /**

@@ -14,7 +14,7 @@ export const en = {
 
   'relay.title': 'Connect with a phrase',
   'relay.hint':
-    'Read the twelve words off any KnightLoader you already run, and type them here. Every instance in that group appears below - no address, no key, no account.',
+    'Read the twelve words off any KnightLoader you already run and type them here. Every instance in that group appears below. You do not need an address, a key or an account.',
   'relay.phraseLabel': 'Connection phrase',
   'relay.phrasePlaceholder': 'the twelve words from your instance',
   'relay.joinButton': 'Connect',
@@ -22,9 +22,9 @@ export const en = {
   'relay.scanButton': 'Scan the QR code',
   'relay.pasteButton': 'Paste',
   'relay.saveAllButton': 'Add all {count}',
-  'phrase.errChecksum': 'That phrase is not valid - check for a mistyped or swapped word.',
+  'phrase.errChecksum': 'That phrase is not valid. Check for a mistyped or swapped word.',
   'phrase.errUnknownWord': 'Word {position} ("{word}") is not one of the accepted words.',
-  'phrase.errWordCount': 'That is {count} words - a phrase needs {need}.',
+  'phrase.errWordCount': 'That is {count} words, but a phrase needs {need}.',
   'relay.instancesTitle': 'On this relay',
   'relay.noInstances': 'Nothing in this group is online right now. Check the phrase, and that at least one instance is running.',
 
@@ -60,7 +60,7 @@ export const en = {
   'packages.deleteConfirmButton': 'Remove',
 
   'addDownload.title': 'Add links',
-  'addDownload.titlePeer': 'Add links - {name}',
+  'addDownload.titlePeer': 'Add links to {name}',
   'addDownload.hint': 'One link per line, same as the paste box on the web UI.',
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Paste at least one link.',
@@ -92,8 +92,10 @@ export const en = {
   'settings.corners.square': 'Square',
   'settings.accent': 'Accent',
   'settings.rainbow': 'Rainbow',
+  'settings.disco': 'Disco',
+  'settings.discoHint': 'While rainbow mode is on, every coloured element moves on to the next colour of the palette once a second.',
   'settings.problems': 'Problems?',
-  'settings.problemsHint': 'Send this along when you report something - it saves a round of questions. No address and no token is in it.',
+  'settings.problemsHint': 'Send this along when you report something. It saves a round of questions, and it contains no address or token.',
   'settings.problemsCopy': 'Copy report',
   'settings.problemsCopied': 'Report copied',
   'settings.about': 'About',
@@ -105,6 +107,15 @@ export const en = {
   'settings.aboutBody': 'A one-knight crusade: good-looking open-source tools that did not exist in the shape I wanted, built until nothing is missing. It is free, with no accounts, no telemetry, no ads and no paid tier. No asterisk anywhere. Nothing readable ever leaves your own walls. Forged on evenings and weekends, with heart and stubbornness.',
   'settings.accentReset': 'Default',
   'settings.aboutCoffeeButton': 'Buy me a coffee',
+  'settings.aboutPaypal': 'PayPal',
+  'settings.aboutCrypto': 'Crypto',
+  'settings.cryptoTitle': 'Donate with crypto',
+  'settings.cryptoIntro': 'Pick a coin and a network, then scan the code or copy the address.',
+  'settings.cryptoNetworks': 'Networks',
+  'settings.cryptoNoTag': 'No destination tag and no memo needed.',
+  'settings.cryptoCopy': 'Copy',
+  'settings.cryptoCopied': 'Copied',
+  'settings.cryptoClose': 'Close',
   'settings.aboutCoffee': "If KnightLoader has earned a place on your server or computer, toss a coin to your knight: it helps cover the costs and keeps the project alive. It also makes this knight's heart beat a little faster. Three ways below, whichever suits you.",
   'settings.aboutReport': 'Problems, wishes or suggestions? Open an issue on GitHub, or send an email.',
   'settings.aboutVersion': 'Version',
@@ -127,11 +138,11 @@ export const en = {
   'settings.motion.subtle': 'Subtle',
   'settings.motion.wild': 'Wild',
   'settings.motion.storm': 'Storm',
-  'settings.accentRainbowOwns': 'Rainbow mode is handing out colours by position right now. This one still paints everything that owns no position.',
+  'settings.accentRainbowOwns': 'Rainbow mode is handing out colours by position right now. The accent still paints everything that has no position.',
   'settings.motionReduced': 'Your phone is set to reduce motion. While it is, nothing here moves, whichever level is chosen.',
   'settings.rainbowPaletteNoInstance': 'The palette belongs to the instance. With no connection there is nowhere to write a colour, so the positions keep the eight built-in ones.',
 
-  'settings.motionHint': 'Off turns off every non-essential animation; Subtle keeps entrances brief; Wild is the richest experience.',
+  'settings.motionHint': 'Off turns off every non-essential animation; Subtle keeps entrances brief; Wild has the most movement.',
 } as const;
 
 export type Dict = { [K in keyof typeof en]: string };

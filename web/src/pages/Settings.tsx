@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Navigate, Route, Routes, useMatch, useNavigate, useParams } from 'react-router-dom';
-import { ApiError, type Settings, fetchSettings, patchSettings } from '../lib/api';
+import { ApiError, type Settings, connectWS, fetchSettings, patchSettings } from '../lib/api';
 import { useResource } from '../lib/useResource';
 import { readUIState, useUIState } from '../lib/uistate';
 import { useNavLabels } from '../lib/navLabels';
@@ -37,10 +37,11 @@ export function SettingsPage() {
     reload: reloadFeatures,
   } = useResource<FeatureState>(fetchFeatures);
 
-  // The edited copy, reseeded whenever a save or a module switch produces a new one.
+  // The edited copy. Seeded once here; every later change to `saved` sets the
+  // draft itself, so a fold of a few keys leaves unsaved edits elsewhere alone.
   const [draft, setDraft] = useState<Settings | null>(null);
   useEffect(() => {
-    if (saved) setDraft(saved);
+    if (saved) setDraft((d) => d ?? saved);
   }, [saved]);
 
   const [saving, setSaving] = useState(false);
@@ -99,6 +100,38 @@ export function SettingsPage() {
     setSaved(fold);
     setDraft(fold);
   }, [setSaved]);
+
+  // What another tab, the Modules page or a module's own switch saved reaches
+  // this one live. A field this tab is still editing keeps the edit, which the
+  // autosave then sends.
+  const latest = useRef({ saved, draft });
+  latest.current = { saved, draft };
+  useEffect(
+    () =>
+      connectWS(
+        (type) => {
+          // Every socket also gets the task snapshot when it opens.
+          if (type !== 'settings') return;
+          reloadFeatures();
+          void fetchSettings()
+            .then((fresh) => {
+              const { saved: s, draft: d } = latest.current;
+              if (!s || !d) return;
+              const savedDoc = s as unknown as Record<string, unknown>;
+              const draftDoc = d as unknown as Record<string, unknown>;
+              const next = { ...(fresh as unknown as Record<string, unknown>) };
+              for (const k of Object.keys(draftDoc)) {
+                if (!same(draftDoc[k], savedDoc[k])) next[k] = draftDoc[k];
+              }
+              setSaved(fresh);
+              setDraft(next as unknown as Settings);
+            })
+            .catch(() => {});
+        },
+        ['settings'],
+      ),
+    [reloadFeatures, setSaved],
+  );
 
   async function onSave() {
     if (!draft || !saved || saving) return;
@@ -187,6 +220,9 @@ export function SettingsPage() {
       <ErrorCard
         message={t('common.loadFailed')}
         retry={() => {
+          // Cleared, so the seeding effect takes the reloaded document rather
+          // than keeping a draft that would save the old values back.
+          setDraft(null);
           reload();
           reloadFeatures();
         }}
@@ -196,7 +232,7 @@ export function SettingsPage() {
   }
 
   const featureAccess: FeatureAccess = { features, toggle };
-  const settingsDraft: SettingsDraft = { cfg: draft, patch, replace, dirty, patchNow, reseed };
+  const settingsDraft: SettingsDraft = { cfg: draft, saved: saved ?? draft, patch, replace, dirty, patchNow, reseed };
 
   return (
     <SettingsProvider draft={settingsDraft} features={featureAccess}>

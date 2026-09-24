@@ -11,7 +11,7 @@ import { IconClose, IconSearch } from '../../lib/icons';
 import { fold, scoreFolded, scoreProse } from '../../lib/rank';
 import { useToast } from '../../lib/toast';
 import { useUIState } from '../../lib/uistate';
-import { InfoBubble } from '../../components/ui';
+import { InfoBubble, useTooltip } from '../../components/ui';
 // A safe import cycle: orderPages is a hoisted function declaration called
 // only at render time, and a second copy would drift.
 import { orderPages } from '../Settings';
@@ -165,6 +165,10 @@ export function SettingsSearch({ pages }: { pages: FeaturePage[] }) {
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
+  // Passed as disabled while the clear button is absent, so the bubble closes
+  // when the button leaves: an unmounted trigger fires no mouseleave.
+  const clearTip = useTooltip<HTMLButtonElement>(t('settings.search.clear'), !query);
+  const { role: _tipRole, tabIndex: _tipTabIndex, ...clearTipProps } = clearTip.triggerProps;
 
   // Pinned while in use (open, text in the box, or focus inside), so a single
   // wheel tick cannot take it away from somebody typing.
@@ -382,7 +386,7 @@ export function SettingsSearch({ pages }: { pages: FeaturePage[] }) {
           <button
             type="button"
             aria-label={t('settings.search.clear')}
-            title={t('settings.search.clear')}
+            {...clearTipProps}
             onClick={() => {
               setQuery('');
               setOpen(false);
@@ -394,6 +398,7 @@ export function SettingsSearch({ pages }: { pages: FeaturePage[] }) {
             <IconClose width={13} height={13} />
           </button>
         )}
+        {clearTip.node}
         <InfoBubble tip={t('settings.search.hint')} className="me-1" />
       </div>
 

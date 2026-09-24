@@ -23,9 +23,8 @@ Being on the same network is *not* consent, so nothing is connected until that
 button is pressed. A guest laptop and an IoT device sit on that network too.
 
 Adding stores an address. It exchanges nothing: no credential travels in
-either direction, which is deliberate - a credential exchange triggered by an
-announce that anything on the LAN can send would mean any device there could
-help itself to a token.
+either direction. A credential exchange triggered by an announce that anything
+on the LAN can send would let any device there help itself to a token.
 
 So if the instance you add has a password set, it will refuse the calls that
 follow, and the page says so. An address is not a credential; the connection
@@ -33,10 +32,10 @@ phrase is, and it covers every instance in the group at once instead of one
 peer at a time. An instance with no password works immediately.
 
 Nothing in an announce is trusted. Anything on the network can send one, so the
-fields are length-capped on arrival and the list is bounded - a device
+fields are length-capped on arrival and the list is bounded, so a device
 announcing endless invented instances cannot grow it without limit. What a row
-shows is a claim, which is exactly why the address is displayed next to the name
-and why adding is a decision rather than a consequence.
+shows is a claim. That is why the address is displayed next to the name, and
+why nothing is added until you decide to add it.
 
 Multicast blocked, or no network at all, means an empty list. Everything below
 still works.
@@ -45,19 +44,19 @@ still works.
 
 **Settings → Access → Connect instances and remote access → Create a phrase.** Twelve words
 come back. Type them into every other KnightLoader you run, and they find each
-other - across networks, behind NAT, with no port forward, no domain, no
+other across networks and behind NAT, with no port forward, no domain, no
 account and nothing to log into.
 
-There is no account because there is nothing to log in to. The words *are* the
-credential. Whoever has them reaches every instance in the group, which is the
-one thing to understand before reading them out over the phone.
+The words *are* the credential. Whoever has them reaches every instance in the
+group, so keep that in mind before you read them out over the phone.
 
-What the words carry is a 128-bit secret and nothing else - no address, no
-name. The relay's address is compiled into the binary, which is exactly what
-keeps this to twelve words instead of a URL plus a key.
+The words carry a 128-bit secret and nothing else: no address, no name. The
+relay's address is compiled into the binary, which is what keeps this to
+twelve words instead of a URL plus a key.
 
-The list they are drawn from is BIP39's, the one hardware wallets use. Not for
-any cryptocurrency reason, and the UI never calls this a wallet seed: those
+The list they are drawn from is BIP39's, the one hardware wallets use. That
+has nothing to do with cryptocurrency, and the UI never calls this a wallet
+seed: those
 2048 words were chosen so no two share their first four letters, none are
 near-homophones and none carry accents, which is what makes a phrase safe to
 read down a phone line and to type on a mobile keyboard. Four checksum bits
@@ -69,15 +68,15 @@ finds its sibling.
 `SHA-256("knightloader/relay/group-key/v1" || secret)`. The relay matches
 connections that present the same derived key and forwards frames between
 them; it has no account list, no registration step and no database. So whoever
-runs it - us, at `relay.halleluja.design`, or you - cannot reconstruct
-anybody's words.
+runs it (us at `relay.halleluja.design`, or you) cannot reconstruct anybody's
+words.
 
 **And it cannot read what it forwards.** A *second* key comes out of the same
 secret under its own domain, `SHA-256("knightloader/relay/frame-key/v1" ||
 secret)`, and every proxy frame is sealed with AES-256-GCM under it. The relay
 sees which instance a frame is addressed to and which request it answers,
 because it routes on those, and nothing else: not the path, not the body, not
-the API token a phone attaches. The two domains are what makes this work - the
+the API token a phone attaches. The two domains are what makes this work: the
 relay is handed the group key in every hello frame, so a frame key derived
 from *that* would be one it already holds.
 
@@ -85,35 +84,34 @@ The routing fields are bound into the seal as additional data, so a relay
 cannot take a frame addressed to one instance and deliver it as another's. The
 one field it does author is the error it returns when nobody is connected
 under a target id, which it has to, holding no key. That lets a hostile relay
-claim an instance is absent - a denial of service it could equally perform by
-dropping the frame - but not fabricate an answer: a response with no sealed
+claim an instance is absent (a denial of service it could equally perform by
+dropping the frame), but not fabricate an answer: a response with no sealed
 payload is never mistaken for one.
 
 If you configure a relay by hand-entered key instead of by phrase, there is no
 secret to derive from and the frame key comes from the relay key itself. That
-still seals the traffic against anything sitting *between* you and the relay -
-a reverse proxy, a TLS terminator, a captured log - but not against the relay
-operator, who is handed that key. It is the right trade for the case it exists
-for, which is somebody hosting the relay themselves.
+still seals the traffic against anything sitting *between* you and the relay
+(a reverse proxy, a TLS terminator, a captured log), but not against the relay
+operator, who is handed that key. That trade fits the case it exists for:
+somebody hosting the relay themselves.
 
 To run your own, put its address in `relayUrl` under **Settings → Advanced**
 on every instance in the group; the same phrase then works against it, because
 the phrase carries the secret and not the address. That page lists every
-setting this instance has, so the self-hosting knobs live there rather than on
-the card - the card is for the twelve words, which is what almost everybody
-needs. `relayServe` is on the same page, for the case where one instance IS
-the relay.
+setting this instance has, so the self-hosting knobs live there and not on the
+card. The card is for the twelve words, which is what almost everybody needs.
+`relayServe` is on the same page, for the case where one instance *is* the
+relay.
 
 **Showing the phrase again** needs the instance password re-entered, when one
 is set. A live session is not enough: it may have been opened hours ago on a
 screen nobody is sitting at, and what is behind that button is not this
 instance's password but the key to every instance in the group.
 
-An instance with **no** password says so, loudly, before it mints anything -
-and then mints it anyway if you say so. The phrase reaches every instance you
-connect with it, so an unprotected one is a door into all of them, but that is
-a judgement about your own network rather than something to be refused on your
-behalf.
+An instance with **no** password says so, loudly, before it mints anything, and
+then mints it anyway if you tell it to. The phrase reaches every instance you
+connect with it, so an unprotected one is a door into all of them. That is your
+call to make about your own network, so it is not refused on your behalf.
 
 **Leaving** forgets the secret and stops dialling. The other instances keep
 going without it; a phrase is a group, not a pairing.
@@ -130,14 +128,14 @@ that carry the key and already know the address. The phrase is the shorter
 road to the same place; this one exists for anyone who wants to name the relay
 and the key themselves.
 
-There is an official relay - `wss://relay.halleluja.design/relay/connect`,
-what a phrase points at unless you override it - and running your own is a
-first-class option, not a fallback. `docker compose` it anywhere both ends can
-reach, put the same key in both, done. Set `KL_RELAY_DOMAIN` and it terminates
-TLS itself, getting and renewing its own certificate over TLS-ALPN-01: no
-reverse proxy, no certbot, no renewal cron, and no port 80 - the challenge
-completes inside a handshake on 443, so the firewall in front of it opens one
-port.
+There is an official relay, `wss://relay.halleluja.design/relay/connect`,
+which is what a phrase points at unless you override it, and running your own
+is a first-class option, not a fallback. `docker compose` it anywhere both ends
+can reach, put the same key in both, done. Set `KL_RELAY_DOMAIN` and it
+terminates TLS itself, getting and renewing its own certificate over
+TLS-ALPN-01: no reverse proxy, no certbot, no renewal cron, and no port 80. The
+challenge completes inside a handshake on 443, so the firewall in front of it
+opens one port.
 
 `KL_RELAY_DOMAIN` takes a comma-separated list, and the certificate covers
 every name in it. That is for one situation and it is worth knowing before you
@@ -151,8 +149,8 @@ Run both names for as long as anything still dials the old one, then drop it.
 **Settings → Advanced → `relayServe`.** The relay then answers under
 `/relay/connect` on the address that instance already uses, behind the same
 reverse proxy and the same certificate, and the other instances put that
-address in their own `relayUrl`. No second container, no second port, no
-second certificate.
+address in their own `relayUrl`. It needs no second container, no second port
+and no second certificate.
 
 It admits only the relay key that instance stores, so switching it on does not
 turn a published address into a meeting place for whoever finds it. With the
@@ -163,13 +161,13 @@ What this does *not* change is the one requirement a relay has: it is the third
 point both sides dial out to, so it has to be reachable by both. Turning it on
 inside a desktop install that nothing can reach from outside gives the other
 instances nothing to dial. The instance that hosts it is the one with the
-address - a server, a NAS, anything already behind a domain - and the ones
+address (a server, a NAS, anything already behind a domain), and the ones
 behind NAT are what it exists to connect.
 
-What the relay operator can see is stated plainly rather than implied: they
-carry your frames, so they see who is talking and when, and a relay you do not
-run is a relay you are trusting with that. Run your own if it matters. What
-they cannot do is read your phrase - they only ever receive a hash of it.
+The relay operator carries your frames, so they see who is talking and when,
+and a relay you do not run is a relay you are trusting with that. Run your own
+if it matters. They cannot read your phrase: they only ever receive a hash of
+it.
 
 **Being on the relay is what authenticates a sibling.** A request arriving
 this way came off a socket the relay only joins to other connections
@@ -200,7 +198,7 @@ and cannot be explained.
 
   That route is frozen because of this. It answers `{"status":"ok","version":…}`
   on a 200 for as long as the process is up, whatever is actually wrong with the
-  instance, and the app compares that string literally - so an instance that
+  instance, and the app compares that string literally, so an instance that
   answered `degraded` would stop being findable by every phone already in
   somebody's hand, and phones update on their own schedule rather than with the
   container. The container's own `HEALTHCHECK` and the Click'n'Load bridge read
@@ -213,37 +211,37 @@ and cannot be explained.
   process has been up. `GET /api/metrics` is the same reading as Prometheus
   exposition text and answers 404 until the switch on the Health settings page
   is turned on. Neither is open, and neither is forwarded to a peer over the
-  federation or the relay: both describe THIS machine's disks and sidecar, and
+  federation or the relay: both describe *this* machine's disks and sidecar, and
   a row of them drawn under a peer's name would name the wrong box.
 
   The addresses are probed by a pool of workers, not all at once. Android routes
   every `fetch` through OkHttp, which allows 64 concurrent requests and queues
-  the rest - so firing all 253 off together meant the queued ones hit their own
+  the rest. Firing all 253 off together meant the queued ones hit their own
   timeout while still waiting for a slot, and were abandoned without ever being
   sent. A server anywhere past the first batch, which is to say anywhere in a
   typical DHCP pool, was never contacted and the screen said it found nothing.
 
   It also does nothing at all when the phone has no usable address of its own.
-  That is worth stating because it is easy to get wrong: on Android the IP comes
-  from the Wi-Fi interface specifically, and reads `0.0.0.0` when Wi-Fi is off -
-  which passes a naive check and would sweep `0.0.0.1` through `0.0.0.254` over
-  a metered mobile connection.
+  This is easy to get wrong: on Android the IP comes from the Wi-Fi interface
+  specifically and reads `0.0.0.0` when Wi-Fi is off, which passes a naive check
+  and would sweep `0.0.0.1` through `0.0.0.254` over a metered mobile
+  connection.
 - **Scan the QR** from the Access tab fills in the address. There is one kind
   of QR here now; it used to have to tell an address QR apart from a pairing
   one before it knew what it had scanned.
 - **A token** is the one thing still typed by hand on this path, and only when
   that instance has a password.
 - **The phrase** is the other way in, and the better one: twelve words, and
-  every instance in the group appears at once - no address, no token, nothing
-  to look up. The phone derives the same key its siblings do and dials the
+  every instance in the group appears at once, with no address, no token and
+  nothing to look up. The phone derives the same key its siblings do and dials the
   same relay, which is what authenticates it, so a password on an instance
   costs nothing extra here.
 
 ## The browser extension
 
-The same twelve words, and nothing else. There is no address field, no name
-field, no token field and no sync button on the options page any more - the
-extension carries its own relay client (`extension/src/relay.js`) and derives
+The extension takes the same twelve words and nothing else. There is no address
+field, no name field, no token field and no sync button on the options page any
+more. The extension carries its own relay client (`extension/src/relay.js`) and derives
 the group key from the phrase with a WebCrypto port of `internal/seedphrase`
 (`extension/src/phrase.js`), so it is a group member in its own right rather
 than a guest of one configured instance.
@@ -252,13 +250,13 @@ That replaces the whole previous shape and everything that hung off it:
 
 - **The roster is read live**, when a window opens, instead of being stored and
   synced. An instance that is switched off is not offered; one that came online
-  a minute ago is. Nothing tells this browser anything - it asks.
-- **A peer with no address of its own** - a desktop build, or one reachable
-  only through a relay - is now reached *directly* through the relay, not
+  a minute ago is. Nothing tells this browser anything. It asks.
+- **A peer with no address of its own** (a desktop build, or one reachable
+  only through a relay) is now reached *directly* through the relay, not
   forwarded on its behalf by a sibling that happens to have an address.
 - **Sends are `POST /api/links` over the relay**, admitted because membership
   is the credential. No window opens, no session cookie is involved, and the
-  `sameOrigin` guard is not worked around - it is not on that path.
+  `sameOrigin` guard is not worked around, because it is not on that path.
 
 The site access the extension asks for at install time is for Click'n'Load and
 for nothing else; see `docs/browser-tools.md`.

@@ -34,6 +34,9 @@ export interface Task {
   priority: number;
   position: number;
   checksum?: string;
+  /** A collected variant row its host's preset leaves out; the collector does
+   *  not show it. */
+  variantOff?: boolean;
 }
 
 export interface AuthState {

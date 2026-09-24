@@ -20,16 +20,16 @@ func TestPriorityForRisesOnceHostIsActive(t *testing.T) {
 	t.Cleanup(func() { SetHostActive(host, false) })
 
 	SetHostActive(host, true)
-	if got := PriorityFor("https://" + host + "/file/123"); got != activeLoginPrio {
-		t.Errorf("PriorityFor = %d, want %d (above resolver.Direct's 40) once the host is active", got, activeLoginPrio)
+	if got := PriorityFor("https://" + host + "/file/123"); got != ActiveLoginPrio {
+		t.Errorf("PriorityFor = %d, want %d (above resolver.Direct's 40) once the host is active", got, ActiveLoginPrio)
 	}
-	if activeLoginPrio <= 40 {
-		t.Errorf("activeLoginPrio = %d must exceed resolver.Direct's Prio (40) or the nudge does nothing", activeLoginPrio)
+	if ActiveLoginPrio <= 40 {
+		t.Errorf("ActiveLoginPrio = %d must exceed resolver.Direct's Prio (40) or the nudge does nothing", ActiveLoginPrio)
 	}
 
 	// A browser paste and JD's account list spell the same host differently.
-	if got := PriorityFor("HTTPS://WWW." + host + "/x.zip"); got != activeLoginPrio {
-		t.Errorf("PriorityFor = %d, want %d for a www./case variant of the same host", got, activeLoginPrio)
+	if got := PriorityFor("HTTPS://WWW." + host + "/x.zip"); got != ActiveLoginPrio {
+		t.Errorf("PriorityFor = %d, want %d for a www./case variant of the same host", got, ActiveLoginPrio)
 	}
 
 	SetHostActive(host, false)
@@ -128,8 +128,8 @@ func TestPriorityForLeavesMediaSitesToYtdlp(t *testing.T) {
 	// A confirmed login still wins on a media site.
 	SetHostActive("youtube.com", true)
 	t.Cleanup(func() { SetHostActive("youtube.com", false) })
-	if got := PriorityFor("https://youtube.com/watch?v=x"); got != activeLoginPrio {
-		t.Errorf("PriorityFor(media site with a login) = %d, want %d", got, activeLoginPrio)
+	if got := PriorityFor("https://youtube.com/watch?v=x"); got != ActiveLoginPrio {
+		t.Errorf("PriorityFor(media site with a login) = %d, want %d", got, ActiveLoginPrio)
 	}
 }
 
@@ -150,8 +150,8 @@ func TestNoClassificationKeepsTheKnownHostBoost(t *testing.T) {
 func TestTheLadderIsOrderedAsIntended(t *testing.T) {
 	const directPrio = 40 // resolver.Direct's own Info().Prio
 	const lowestDebrid = 44
-	if !(activeLoginPrio > lowestDebrid) {
-		t.Errorf("a confirmed login (%d) must outrank every debrid service (lowest %d)", activeLoginPrio, lowestDebrid)
+	if !(ActiveLoginPrio > lowestDebrid) {
+		t.Errorf("a confirmed login (%d) must outrank every debrid service (lowest %d)", ActiveLoginPrio, lowestDebrid)
 	}
 	if !(lowestDebrid > knownHostPrio) {
 		t.Errorf("every debrid service (lowest %d) must outrank JD's free mode (%d)", lowestDebrid, knownHostPrio)

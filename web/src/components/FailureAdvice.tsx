@@ -3,6 +3,7 @@ import { deleteTasks, undoDelete, type Task } from '../lib/api';
 import { adviceFor } from '../lib/failureAdvice';
 import { message } from '../lib/intake';
 import { useT, type TranslationKey } from '../lib/i18n';
+import { IconClose } from '../lib/icons';
 import { useToast } from '../lib/toast';
 import { Button, FieldGroup, Modal } from './ui';
 import { CookieJarDialog } from './CookieJarDialog';
@@ -85,9 +86,14 @@ export function FailureAdvice({
       footer={
         <>
           {/* Without a remedy, Close is the primary action. */}
-          <Button kind={action ? 'secondary' : 'primary'} disabled={busy} onClick={onClose}>
-            {t('failure.close')}
-          </Button>
+          <Button
+            kind={action ? 'secondary' : 'primary'}
+            labelled
+            icon={<IconClose />}
+            title={t('failure.close')}
+            disabled={busy}
+            onClick={onClose}
+          />
           {action && (
             <Button
               disabled={busy}

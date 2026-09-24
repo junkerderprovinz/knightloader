@@ -500,65 +500,101 @@ const styles = StyleSheet.create({
   symbol: { fontWeight: '700' },
 });
 
-/** Coffee: a cup with a handle, for the About card's thank-you. */
-export function Coffee({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
-  // Cup (9) plus saucer (1.5) plus the gap between them (0.5) = 11 units tall.
-  const u = unit(size, 11);
-  return (
-    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
-      <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
-        <View
-          style={{
-            width: 8 * u,
-            height: 9 * u,
-            backgroundColor: color,
-            borderBottomLeftRadius: 3 * u,
-            borderBottomRightRadius: 3 * u,
-            borderTopLeftRadius: 0.8 * u,
-            borderTopRightRadius: 0.8 * u,
-          }}
-        />
-        {/* The handle. A ring with its inner disc painted in the badge's ground
-            would be wrong on a different surface, so it is three filled bars
-            forming an open bracket. */}
-        <View style={{ width: 3.2 * u, height: 5 * u, marginTop: 1.2 * u, marginStart: -0.4 * u }}>
-          <View style={{ height: 1.4 * u, backgroundColor: color, borderTopRightRadius: 0.7 * u }} />
-          <View style={{ flex: 1, alignItems: 'flex-end' }}>
-            <View style={{ width: 1.4 * u, flex: 1, backgroundColor: color }} />
-          </View>
-          <View style={{ height: 1.4 * u, backgroundColor: color, borderBottomRightRadius: 0.7 * u }} />
-        </View>
-      </View>
-      <View style={{ width: 11 * u, height: 1.5 * u, marginTop: 0.5 * u, backgroundColor: color, borderRadius: 0.75 * u }} />
-    </View>
-  );
-}
-
 /**
- * GitHub's own mark, for the button that goes there.
+ * A brand's own mark, for the About card's buttons that go to that brand.
  *
- * The one glyph here that is a bitmap rather than a shape built out of Views. A
+ * The glyphs here that are bitmaps rather than shapes built out of Views. A
  * logo is recognised or it is not, and an approximation drawn out of rounded
- * rectangles would be worse than no logo, so this is a 96px mark tinted with
- * the colour every other glyph takes, which is what keeps an Image in the
- * theme.
+ * rectangles would be worse than no logo, so each is a 96px white mark tinted
+ * with the colour it is handed, which is what keeps an Image in the theme.
+ * Every asset is trimmed to its ink, so its longer side fills the canvas.
  */
-export function Github({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
+function BrandMark({ source, color, size }: { source: number; color: string; size: number }) {
   // A bitmap is sized by shrinking its frame, like the viewfinder's corner
-  // marks, because there are no units inside it to scale. The asset is 96x96
-  // with its alpha reaching 96 by 94, so the mark fills its canvas edge to
-  // edge and `contain` would draw it to the full box while every hand-drawn
-  // glyph beside it draws to GLYPH_EXTENT of one.
+  // marks, because there are no units inside it to scale. With the ink reaching
+  // the canvas edge, `contain` would draw it to the full box while every
+  // hand-drawn glyph beside it draws to GLYPH_EXTENT of one.
   const frame = (size * GLYPH_EXTENT) / GLYPH_BOX;
   return (
     <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
       <Image
-        source={require('../../assets/github-mark.png')}
+        source={source}
         style={{ width: frame, height: frame }}
         tintColor={color}
         resizeMode="contain"
         accessibilityIgnoresInvertColors
       />
+    </View>
+  );
+}
+
+/** GitHub's own mark. */
+export function Github({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
+  return <BrandMark source={require('../../assets/github-mark.png')} color={color} size={size} />;
+}
+
+/** Buy Me a Coffee's cup, from Simple Icons (CC0), the mark the web UI's and the
+ *  extension's About cards draw. */
+export function BuyMeACoffee({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
+  return <BrandMark source={require('../../assets/buymeacoffee-mark.png')} color={color} size={size} />;
+}
+
+/** PayPal's double P, from Simple Icons (CC0), as on the other two surfaces. */
+export function PayPal({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
+  return <BrandMark source={require('../../assets/paypal-mark.png')} color={color} size={size} />;
+}
+
+/**
+ * Bitcoin's letterform with the disc cut away, for the button that opens the
+ * crypto window: it reads as "crypto" to somebody who has never held any, and
+ * at this size the disc would read as a dot rather than a letter.
+ */
+export function BitcoinLetter({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
+  return <BrandMark source={require('../../assets/coin-btcletter.png')} color={color} size={size} />;
+}
+
+/**
+ * Cross: close, cancel, the way out of a window. The Plus turned a quarter,
+ * built the same way from two filled bars, so the two marks match.
+ */
+export function Cross({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
+  // Turned 45 degrees, the 10-unit arms reach about 9 units each way.
+  const u = unit(size, 9);
+  const bar = { position: 'absolute' as const, backgroundColor: color, borderRadius: 1.4 * u };
+  return (
+    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
+      <View style={{ width: 10 * u, height: 10 * u, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '45deg' }] }}>
+        <View style={[bar, { width: 10 * u, height: 2.8 * u }]} />
+        <View style={[bar, { width: 2.8 * u, height: 10 * u }]} />
+      </View>
+    </View>
+  );
+}
+
+/**
+ * Check: done, confirmed. Two filled bars forming an L, turned an eighth
+ * backwards, which is a check with real geometry rather than a thick stroke.
+ */
+export function Check({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
+  // The L is 11 across and 6 up; turned, it spans about 11.8 by 8.2 units, and
+  // the width is what fills the box.
+  const u = unit(size, 11.8);
+  const t = 2.8 * u;
+  return (
+    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
+      <View
+        style={{
+          width: 11 * u,
+          height: 6 * u,
+          // The turned L sits low in its own box, so it is lifted back to the
+          // middle of the glyph's.
+          marginTop: -2.2 * u,
+          transform: [{ rotate: '-45deg' }],
+        }}
+      >
+        <View style={{ position: 'absolute', start: 0, top: 0, bottom: 0, width: t, backgroundColor: color, borderRadius: 1.2 * u }} />
+        <View style={{ position: 'absolute', start: 0, end: 0, bottom: 0, height: t, backgroundColor: color, borderRadius: 1.2 * u }} />
+      </View>
     </View>
   );
 }

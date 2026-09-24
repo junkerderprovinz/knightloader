@@ -180,6 +180,13 @@ export const IconFolder = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+export const IconFolderOpen = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="M2.5 13.6V6.5A1.5 1.5 0 0 1 4 5h3.2l1.4 1.8H15a1.5 1.5 0 0 1 1.5 1.5v.9H6.4a2 2 0 0 0-1.8 1.1z" />
+    <path d="M5.5 10.6a1.2 1.2 0 0 1 1.1-.7h11.1a.8.8 0 0 1 .7 1.1l-2 4.2a1.5 1.5 0 0 1-1.4.8H3.6a.6.6 0 0 1-.5-.9z" />
+  </svg>
+);
+
 export const IconArrowUp = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
     <path d="M8.5 17.5v-7.5H4l6-6 6 6h-4.5v7.5z" />
@@ -532,6 +539,13 @@ export const IconChevronDown = (p: SVGProps<SVGSVGElement>) => (
 export const IconChevronUp = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
     <path d="M10 6.6 16.4 13l-1.7 1.7L10 10l-4.7 4.7L3.6 13 10 6.6Z" />
+  </svg>
+);
+
+/** Onward to another page. Points right; mirror it with rtl:-scale-x-100. */
+export const IconChevronEnd = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="M13.4 10 7 16.4l-1.7-1.7L10 10 5.3 5.3 7 3.6 13.4 10Z" />
   </svg>
 );
 

@@ -15,7 +15,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/junkerderprovinz/knightloader/internal/confirm"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/crawler"
 	"github.com/junkerderprovinz/knightloader/internal/dedupe"
@@ -94,7 +93,9 @@ func (a *App) AddLinks(urls []string, pkg string) []*core.Task {
 // recorded on every task, so "why is this here" can be answered later and
 // rules can match on it.
 func (a *App) AddLinksFrom(urls []string, pkg string, origin core.Origin) []*core.Task {
-	return a.detached(a.addLinksFrom(urls, pkg, origin, LinkBatchOptions{}))
+	created := a.addLinksFrom(urls, pkg, origin, LinkBatchOptions{})
+	a.autoConfirm(idsOf(created))
+	return a.detached(created)
 }
 
 // AddResolvedLinksFrom stages links whose name and possibly size are already
@@ -148,19 +149,15 @@ func (a *App) addResolvedLinksFrom(links []resolver.Result, pkg string, origin c
 		a.setAvailability(v.id, v.avail, "", core.ReasonUnknown)
 	}
 	a.catchAll(created)
-	if len(created) > 0 && a.Settings.Get().AutoConfirm {
-		ids := make([]string, 0, len(created))
-		for _, t := range created {
-			ids = append(ids, t.ID)
-		}
-		a.ConfirmTasks(ids, confirm.Config{}, confirm.TriggerAutoConfirm)
-	}
+	a.autoConfirm(idsOf(created))
 	return created
 }
 
-// addLinksFrom is AddLinksFrom without the final copy. Callers that still
-// write to the tasks afterwards, like AddLinksWithPasswords, need the live
-// ones; the copy happens once, at the outermost exported call.
+// addLinksFrom is AddLinksFrom without the auto-confirm and the final copy.
+// Callers that still write to the tasks afterwards, like AddLinksWithPasswords,
+// need the live ones, and they call autoConfirm once they are done so that a
+// confirm cannot overtake what they write. The copy happens once, at the
+// outermost exported call.
 //
 // batch holds the add-links form's options and is zero for every other caller.
 func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch LinkBatchOptions) []*core.Task {
@@ -236,17 +233,6 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 		}
 	}
 	a.catchAll(created)
-
-	// AutoConfirm (not AutoStart) skips the collector, through ConfirmTasks so
-	// onDupes and onOffline apply. Held links never reach StatusCollected, so
-	// ConfirmTasks leaves them alone.
-	if len(created) > 0 && a.Settings.Get().AutoConfirm {
-		ids := make([]string, 0, len(created))
-		for _, t := range created {
-			ids = append(ids, t.ID)
-		}
-		a.ConfirmTasks(ids, confirm.Config{}, confirm.TriggerAutoConfirm)
-	}
 	return created
 }
 
@@ -1080,6 +1066,14 @@ func (a *App) AddLinksCnL(urls []string, pkg string, passwords []string) {
 // archives from the same source. The origin is a parameter because a bridge
 // may relay a Click'n'Load submission over the REST API.
 func (a *App) AddLinksWithPasswords(urls []string, pkg string, passwords []string, origin core.Origin) []*core.Task {
+	created := a.addLinksWithPasswords(urls, pkg, passwords, origin)
+	a.autoConfirm(idsOf(created))
+	return a.detached(created)
+}
+
+// addLinksWithPasswords is AddLinksWithPasswords without the auto-confirm and
+// the final copy, for a caller with more to write first (see addLinksFrom).
+func (a *App) addLinksWithPasswords(urls []string, pkg string, passwords []string, origin core.Origin) []*core.Task {
 	created := a.addLinksFrom(urls, pkg, origin, LinkBatchOptions{})
 	var first string
 	for _, pw := range passwords {
@@ -1089,19 +1083,16 @@ func (a *App) AddLinksWithPasswords(urls []string, pkg string, passwords []strin
 		}
 	}
 	if first == "" || len(created) == 0 {
-		return a.detached(created)
+		return created
 	}
-	ids := make([]string, 0, len(created))
-	for _, t := range created {
-		ids = append(ids, t.ID)
-	}
+	ids := a.withVariantFamilies(idsOf(created))
 	if err := a.SetTaskOptions(ids, TaskOptions{Password: &first}); err != nil {
 		log.Printf("could not apply the supplied archive password: %v", err)
 	}
 	if len(passwords) > 1 {
 		a.rememberPasswords(passwords)
 	}
-	return a.detached(created)
+	return created
 }
 
 // rememberPasswords adds a submission's passwords to the global list, so later

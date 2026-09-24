@@ -3,8 +3,8 @@ import { AccessibilityInfo, Animated, Easing } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   DEFAULT_MOTION,
-  MOTION,
   asMotion,
+  motionNumbers,
   resolveMotion,
   springConfig,
   type Motion,
@@ -18,7 +18,7 @@ import {
 // never evaluates a `data-motion` selector, and the signal wins by where the
 // block sits rather than by a check in front of each animation. A phone has no
 // such block, so the guarantee is built from two parts: one subscriber to
-// AccessibilityInfo, and one function (motion.resolveMotion) that every level
+// AccessibilityInfo, and one function (motion.motionNumbers) that every level
 // passes through.
 //
 // A screen that asked AccessibilityInfo for itself would be a second answer to
@@ -41,13 +41,14 @@ export interface MotionState {
    * chosen that for them.
    */
   chosen: Motion;
-  /** What actually draws. `off` for as long as the system asks for less. */
+  /** What actually draws. `off` for as long as the system asks for less,
+   *  unless the storm is chosen. */
   motion: Motion;
-  /** The numbers for `motion`. Nothing that animates reads anything else. */
+  /** The numbers to draw with. Nothing that animates reads anything else. */
   n: MotionNumbers;
-  /** Whether the system is the one in charge right now. The settings screen
-   *  says so in a line rather than leaving somebody to wonder why picking the
-   *  liveliest level changed nothing. */
+  /** Whether the system asks for less motion. It is in charge of every level
+   *  except the storm, and the settings screen says so rather than leaving
+   *  somebody to wonder why picking the liveliest level changed nothing. */
   reduced: boolean;
   setMotion: (m: Motion) => void;
 }
@@ -62,9 +63,8 @@ export function MotionProvider({ children }: { children: ReactNode }) {
 
   // Read once at start through asMotion, which validates against the stored
   // list rather than the picker's, so a storm found yesterday comes back today.
-  // Not awaited before the first paint: the default is the top visible level,
-  // so the worst case is one screen at full liveliness before a quieter choice
-  // arrives.
+  // Not awaited before the first paint: the worst case is one screen at the
+  // default level before the chosen one arrives.
   useEffect(() => {
     AsyncStorage.getItem(STORE_KEY)
       .then((raw) => raw && setChosen(asMotion(raw)))
@@ -94,10 +94,10 @@ export function MotionProvider({ children }: { children: ReactNode }) {
     void AsyncStorage.setItem(STORE_KEY, m).catch(() => {});
   }, []);
 
-  const value = useMemo<MotionState>(() => {
-    const motion = resolveMotion(chosen, reduced);
-    return { chosen, motion, n: MOTION[motion], reduced, setMotion };
-  }, [chosen, reduced, setMotion]);
+  const value = useMemo<MotionState>(
+    () => ({ chosen, motion: resolveMotion(chosen, reduced), n: motionNumbers(chosen, reduced), reduced, setMotion }),
+    [chosen, reduced, setMotion],
+  );
 
   return <MotionCtx.Provider value={value}>{children}</MotionCtx.Provider>;
 }

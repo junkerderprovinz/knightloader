@@ -6,11 +6,16 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
+	"net/http/httptest"
+	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
+	"github.com/junkerderprovinz/knightloader/internal/store"
 )
 
 // postJSON sends a JSON body and returns the status and the raw response.
@@ -331,5 +336,49 @@ func TestBrokenContainerSaysWhatIsWrongWithIt(t *testing.T) {
 	}
 	if strings.TrimSpace(string(body)) == "" {
 		t.Error("the refusal says nothing at all")
+	}
+}
+
+// TestRemovingALinksShownRowsOneByOneLeavesNothingBehind: the row's own trash
+// button removes one row at a time. Once a yt-dlp link's last shown row is
+// gone, the rows its preset set aside must go too, or ticking their kind later
+// would bring them back for a link that was removed.
+func TestRemovingALinksShownRowsOneByOneLeavesNothingBehind(t *testing.T) {
+	dir := t.TempDir()
+	st, err := store.Open(filepath.Join(dir, "knightloader.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, v := range ytdlp.Variants() {
+		if err := st.Save(&core.Task{
+			ID: string(v), URL: "https://youtube.com/watch?v=trash000001", Name: "Some Video",
+			Host: "youtube.com", Resolver: "ytdlp", Variant: string(v),
+			Status: core.StatusCollected, Enabled: true, CreatedAt: time.Now(),
+		}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	st.Close()
+	a, err := app.New(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { a.Close() })
+	srv := httptest.NewServer(Handler(a))
+	defer srv.Close()
+	preset := ytdlp.DefaultHosterPreset()
+	preset.Variants = []ytdlp.Variant{ytdlp.VariantVideo, ytdlp.VariantAudio}
+	if err := a.SetHosterPreset("youtube.com", preset); err != nil {
+		t.Fatal(err)
+	}
+
+	for _, v := range preset.Variants {
+		if code, body := postJSON(t, http.MethodDelete, srv.URL+"/api/tasks/"+string(v), nil); code != http.StatusNoContent {
+			t.Fatalf("DELETE the %s row = %d: %s", v, code, body)
+		}
+	}
+
+	for _, left := range a.Tasks() {
+		t.Errorf("the %s row is still listed for a link whose shown rows were both removed", left.Variant)
 	}
 }

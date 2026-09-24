@@ -5,10 +5,13 @@ import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from
 import { createPortal } from 'react-dom';
 import type { ButtonHTMLAttributes, CSSProperties, InputHTMLAttributes, ReactNode, RefObject } from 'react';
 import { hueVars, rainbowAt } from '../lib/appearance';
+// Every component in this file that paints a palette position calls
+// useRainbow(), so it renders again when the palette moves under it.
+import { useRainbow } from '../lib/useRainbow';
 import { useNavLabels } from '../lib/navLabels';
 import { useDialogMute, type DialogId } from '../lib/dialogmute';
 import { useT } from '../lib/i18n';
-import { IconClose, IconEye, IconEyeOff } from '../lib/icons';
+import { IconEye, IconEyeOff } from '../lib/icons';
 import { openColorPickerPopover } from '../lib/colorPicker';
 
 /**
@@ -91,6 +94,7 @@ export function Button({
    */
   keyControl?: boolean;
 } & ButtonHTMLAttributes<HTMLButtonElement>) {
+  useRainbow();
   const labelMode = useNavLabels();
   // Only fills in for a button that has no children of its own: a labelled
   // button already says what it does.
@@ -104,7 +108,7 @@ export function Button({
   // it never reaches the element, and the house bubble is the only one left.
   // Passed through, it showed the operating system's own box at the pointer
   // while the badge beside it showed the bubble at the trigger.
-  const tip = useTooltip<HTMLButtonElement>(title);
+  const tip = useTooltip<HTMLButtonElement>(title, !!rest.disabled);
   // A <button> already has a role and a tab stop, and the "note" role would
   // tell a screen reader this is a description rather than a control.
   const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
@@ -157,6 +161,7 @@ export function IconTile({
   hue?: number;
   className?: string;
 }) {
+  useRainbow();
   const hued = hue !== undefined;
   return (
     <span
@@ -190,6 +195,7 @@ export function LabelBadge({
   tone?: 'ok' | 'fail';
   onClick?: () => void;
 }) {
+  useRainbow();
   const hued = hue !== undefined && !tone;
   const toneClass =
     tone === 'ok'
@@ -263,6 +269,7 @@ export function IconBadge({
    */
   quiet?: boolean;
 } & ButtonHTMLAttributes<HTMLButtonElement>) {
+  useRainbow();
   const hued = hue !== undefined;
   // Keyed on `active !== undefined` and not on the value, so an idle filter
   // does not wear the one-shot action's wash until it is first pressed.
@@ -275,7 +282,7 @@ export function IconBadge({
   const showIcon = !(labelMode === 'text' && showText);
   // The house bubble rather than the native `title`, fixed at the root so the
   // call sites pick it up without changing.
-  const tip = useTooltip<HTMLButtonElement>(title);
+  const tip = useTooltip<HTMLButtonElement>(title, !!rest.disabled);
   // triggerProps was built for InfoBubble's otherwise-inert <div>, which needs
   // a role and a tab stop to be reachable at all. A button has both already,
   // and the "note" role would take these badges' click semantics away from a
@@ -431,6 +438,7 @@ export function InfoBubble({
   const [at, setAt] = useState<{ left: number; top: number } | null>(null);
   const ref = useRef<HTMLSpanElement>(null);
   const bubble = useRef<HTMLSpanElement>(null);
+  useEffect(trackInputModality, []);
 
   // A layout effect rather than the mouse handler, because the bubble has no
   // rendered size until it is in the document and reading it after the paint
@@ -473,7 +481,7 @@ export function InfoBubble({
         aria-label={label ?? (typeof tip === 'string' ? tip : undefined)}
         onMouseEnter={() => setShown(true)}
         onMouseLeave={() => setShown(false)}
-        onFocus={() => setShown(true)}
+        onFocus={() => !pointerWasLast && setShown(true)}
         onBlur={() => setShown(false)}
         className={`glim-info ms-1.5 inline-flex h-[15px] w-[15px] shrink-0 cursor-help items-center
           justify-center rounded-[var(--radius-pill)] align-middle transition-opacity ${
@@ -510,6 +518,22 @@ export function InfoBubble({
         )}
     </>
   );
+}
+
+// Whether the last input was a pointer rather than a key. Focus opens a bubble
+// only after a key, because opening on focus is for keyboard users: a click
+// focuses what it lands on, and a window hands focus back to its opener when
+// it closes, so a bubble opened then stands where the pointer has left.
+// Tracked for the whole page, since the focus often lands on one element after
+// the press on another.
+let pointerWasLast = false;
+let tracking = false;
+
+function trackInputModality() {
+  if (tracking) return;
+  tracking = true;
+  document.addEventListener('pointerdown', () => (pointerWasLast = true), true);
+  document.addEventListener('keydown', () => (pointerWasLast = false), true);
 }
 
 /**
@@ -570,14 +594,33 @@ export interface TooltipHandle<T extends HTMLElement> {
  * rather than on arrival, takes a panel of content rather than one string, and
  * picks which side of the trigger to open on. It keeps InfoBubble's portal into
  * <body>, so a table's `overflow-x-auto` cannot clip it.
+ *
+ * `disabled` is whether the trigger is disabled; the bubble closes every time
+ * it flips.
  */
-export function useTooltip<T extends HTMLElement = HTMLElement>(content: ReactNode): TooltipHandle<T> {
+export function useTooltip<T extends HTMLElement = HTMLElement>(
+  content: ReactNode,
+  disabled = false,
+): TooltipHandle<T> {
   const id = useId();
   const ref = useRef<T>(null);
   const bubble = useRef<HTMLSpanElement>(null);
   const [shown, setShown] = useState(false);
   const [at, setAt] = useState<{ left: number; top: number } | null>(null);
   const openTimer = useRef<number | undefined>(undefined);
+  useEffect(trackInputModality, []);
+
+  // A disabled button takes no pointer events, so one that disables itself
+  // under the pointer, as a pressed button often does, never sees the
+  // mouseleave that would close its bubble. Closing during render keeps the
+  // bubble from being painted even once, and the effect drops a hover still
+  // waiting to open.
+  const [seenDisabled, setSeenDisabled] = useState(disabled);
+  if (seenDisabled !== disabled) {
+    setSeenDisabled(disabled);
+    setShown(false);
+  }
+  useEffect(() => window.clearTimeout(openTimer.current), [disabled]);
 
   // Measured, then placed; see placeBubble and InfoBubble's own copy.
   useLayoutEffect(() => {
@@ -605,6 +648,12 @@ export function useTooltip<T extends HTMLElement = HTMLElement>(content: ReactNo
     window.clearTimeout(openTimer.current);
     setShown(false);
   }, []);
+
+  // Focus opens at once rather than after the hold, which exists to filter a
+  // pointer passing through on its way somewhere else.
+  const showOnFocus = useCallback(() => {
+    if (!pointerWasLast) show();
+  }, [show]);
 
   // Unmounting mid-hold must not fire the timer into a row that is gone: the
   // table repaints on every websocket tick.
@@ -636,9 +685,7 @@ export function useTooltip<T extends HTMLElement = HTMLElement>(content: ReactNo
       role: 'note',
       onMouseEnter: open,
       onMouseLeave: close,
-      // Focus opens at once rather than after the hold: the delay exists to
-      // filter a pointer passing through on its way somewhere else.
-      onFocus: show,
+      onFocus: showOnFocus,
       onBlur: close,
       'aria-describedby': shown ? id : undefined,
     },
@@ -936,6 +983,7 @@ export function Toggle({
    */
   hue?: number;
 }) {
+  useRainbow();
   return (
     <button
       type="button"
@@ -1049,6 +1097,7 @@ export function Card({
    */
   padding?: 'normal' | 'none';
 }) {
+  useRainbow();
   return (
     <div
       // The trailing space lives inside the string, never after the
@@ -1223,18 +1272,23 @@ export function ErrorCard({
 //
 // `hint` renders inside the filled badge rather than beside it. `hue` opts the
 // badge into a rainbow position; omit it for a card that is the only one of its
-// kind on the page. `right` is for a far-right header action.
+// kind on the page. `right` is for a far-right header action. `second` is a
+// badge beside the title, filled the same way; with it the h2 takes the notch's
+// placement and lays both out in a row, so the pair centres on the card edge
+// as one group (GlimStone's rule for a pair of heading badges).
 export function SectionTitle({
   children,
   hint,
   hue,
   right,
+  second,
   id,
 }: {
   children: ReactNode;
   hint?: string;
   hue?: number;
   right?: ReactNode;
+  second?: { label: ReactNode; hint?: string };
   /**
    * Names the heading element so a window can point `aria-labelledby` at it.
    * Modal is the one caller that has to say which element is its accessible
@@ -1243,32 +1297,45 @@ export function SectionTitle({
    */
   id?: string;
 }) {
+  useRainbow();
+  // The half-overlap is self-relative: `top-0` plus `-translate-y-1/2` resolves
+  // against the positioned element's own rendered height, so it re-centres
+  // whether the badge takes one line or two, which in 42 locales a long card
+  // title has to be able to do. With a second badge the group is positioned
+  // and the badges are not, or both would land on the same spot.
+  const notch = 'absolute top-0 z-10 -translate-y-1/2';
+  const hued = hue !== undefined ? 'glim-hue ' : '';
+  const hueStyle = hue !== undefined ? (hueVars(rainbowAt(hue)) as CSSProperties) : undefined;
+  const look = `glim-section-badge inline-flex items-center gap-1 rounded-[var(--radius-pill)] bg-accent px-3 py-[3.5px]
+    text-[12px] font-medium uppercase leading-[15px] tracking-[1.2px] text-accentContrast shadow-[var(--elevation)]`;
+  // The position lives on the Card (GlimStone 1.4.0), so a badge carries only
+  // its marker class and inherits --item-hue from there. `.glim-hue` is not
+  // added unconditionally: a badge wearing the class over a card with no
+  // position resolves --accent to nothing and disappears. index.css addresses
+  // the badge through `.glim-card.glim-hue .glim-section-badge` instead, which
+  // is true exactly when there is something to inherit. `hue` is for a title
+  // with no hued card above it and sets the properties here.
+  const title = (
+    <h2 id={id} className="flex items-center">
+      <span className={`${hued}${second ? '' : `${notch} `}${look}`} style={hueStyle}>
+        {children}
+        {hint && <InfoBubble tip={hint} onColor />}
+      </span>
+    </h2>
+  );
   return (
     <div className="flex items-center gap-3">
-      <h2 id={id} className="flex items-center">
-        <span
-          // The position lives on the Card (GlimStone 1.4.0), so this badge
-          // carries only its marker class and inherits --item-hue from there.
-          // `.glim-hue` is not added unconditionally: a badge wearing the class
-          // over a card with no position resolves --accent to nothing and
-          // disappears. index.css addresses the badge through
-          // `.glim-card.glim-hue .glim-section-badge` instead, which is true
-          // exactly when there is something to inherit. `hue` is for a title
-          // with no hued card above it and sets the properties here.
-          //
-          // The half-overlap is self-relative: `top-0` plus `-translate-y-1/2`
-          // resolves against the badge's own rendered height, so it re-centres
-          // whether the badge takes one line or two, which in 42 locales a long
-          // card title has to be able to do.
-          className={`${hue !== undefined ? 'glim-hue ' : ''}glim-section-badge absolute top-0 z-10 inline-flex -translate-y-1/2
-            items-center gap-1 rounded-[var(--radius-pill)] bg-accent px-3 py-[3.5px] text-[12px]
-            font-medium uppercase leading-[15px] tracking-[1.2px] text-accentContrast shadow-[var(--elevation)]`}
-          style={hue !== undefined ? (hueVars(rainbowAt(hue)) as CSSProperties) : undefined}
-        >
-          {children}
-          {hint && <InfoBubble tip={hint} onColor />}
-        </span>
-      </h2>
+      {second ? (
+        <div className={`${notch} flex items-center gap-2`}>
+          {title}
+          <span className={`${hued}${look}`} style={hueStyle}>
+            {second.label}
+            {second.hint && <InfoBubble tip={second.hint} onColor />}
+          </span>
+        </div>
+      ) : (
+        title
+      )}
       {right && (
         <>
           <span className="flex-1" />
@@ -1284,26 +1351,20 @@ export function SectionTitle({
 export function Modal({
   title,
   onClose,
-  closeLabel,
   children,
   footer,
   mute,
 }: {
   title: string;
   onClose: () => void;
-  /**
-   * The corner X, and the window only has one when this is given. Most of this
-   * app's windows carry a Cancel button in their footer, and drawing the X as
-   * well offers one answer twice, in the place a window's close button lives.
-   * The string is the caller's, because this file does not own anyone's
-   * wording. Escape and a click on the scrim close the window either way.
-   */
-  closeLabel?: string;
   children: ReactNode;
   /**
    * The answers, built by the caller: this window has no confirm/cancel pair of
-   * its own. A footer is all glyphs or none, and two of three buttons carrying
-   * one is the shape to look for.
+   * its own. One of them is always the way out (GlimStone rule 15): a
+   * `labelled` Button with the close glyph and Cancel, Close or whatever the
+   * window means, so the label engine draws it like every other button. A
+   * window whose only answer is to close keeps the row for that one button.
+   * There is no corner X, which would offer the same answer twice.
    */
   footer?: ReactNode;
   /**
@@ -1350,14 +1411,8 @@ export function Modal({
         {/* A window is a window: same surface, same radius, same elevation,
             title as a badge, so one app does not carry two heading treatments.
             SectionTitle itself rather than a copy of its markup, which is the
-            drift this file exists to prevent. No size on the close glyph:
-            Button decides that for every glyph-only button at once. */}
-        <SectionTitle
-          id={titleId}
-          right={closeLabel ? <Button kind="ghost" icon={<IconClose />} onClick={onClose} title={closeLabel} /> : undefined}
-        >
-          {title}
-        </SectionTitle>
+            drift this file exists to prevent. */}
+        <SectionTitle id={titleId}>{title}</SectionTitle>
         {children}
         {/* Above the buttons, not among them: it decides whether this window
             appears again, which is a different kind of thing from the two

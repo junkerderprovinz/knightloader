@@ -146,6 +146,10 @@ const (
 	// the cap set to hold the queue. It differs from WaitingHalted because it
 	// ends when the period restarts or the cap is raised, not on play.
 	WaitingVolume Waiting = "volumeCap"
+	// WaitingModule is the backend the link needs (JDownloader, yt-dlp, the
+	// torrent engine) being switched off on the modules page. Falling through
+	// to the direct download instead would save the hoster's web page.
+	WaitingModule Waiting = "module"
 )
 
 // Origin is the intake path a link arrived by: the paste box, the watch
@@ -324,6 +328,10 @@ type Task struct {
 	Hold bool `json:"hold,omitempty"`
 	// Forced starts a task now, past the concurrency and per-host limits.
 	Forced bool `json:"forced,omitempty"`
+	// ConfirmDue is when the auto-confirm countdown holding this collected
+	// link runs out, zero when none is. It is persisted so a restart counts
+	// down again rather than leaving an unattended batch in the collector.
+	ConfirmDue time.Time `json:"confirmDue,omitzero"`
 	// DownloadPassword is the password a hoster asks for before handing over
 	// the file. It is not Password, which is the archive password.
 	DownloadPassword string `json:"downloadPassword,omitempty"`
@@ -352,6 +360,10 @@ type Task struct {
 	// Variant is which form of the resource was picked, such as a yt-dlp
 	// format, so a re-run fetches the same one.
 	Variant string `json:"variant,omitempty"`
+	// VariantOff sets aside a collected variant row whose kind its host's
+	// preset leaves out: kept, switched off and out of the collector's view,
+	// so ticking the kind again brings the row back with its own pick.
+	VariantOff bool `json:"variantOff,omitempty"`
 	// Ext is a display-only file extension shown next to Name before a
 	// download starts, since Name never carries one for a yt-dlp task. It is
 	// set only where the extension is certain in advance (see
@@ -362,9 +374,14 @@ type Task struct {
 	// video source offers. Empty means not probed yet, and the full menu is
 	// shown.
 	AvailableQualities []string `json:"availableQualities,omitempty"`
+	// AvailableVideoFormats lists the distinct video tracks a probed source
+	// offers, by height, frame rate, container and codec (see
+	// ytdlp.VideoFormats), for the quality picker beside the height caps.
+	AvailableVideoFormats []string `json:"availableVideoFormats,omitempty"`
 	// AvailableAudioFormats narrows the audio format picker to the source's
-	// own audio codecs, so a lossy source is not offered as flac. "best" is
-	// always kept; empty falls back to the full menu.
+	// own audio tracks (see ytdlp.AudioTracks) and codecs, so a lossy source
+	// is not offered as flac. "best" is always kept; empty falls back to the
+	// full menu.
 	AvailableAudioFormats []string `json:"availableAudioFormats,omitempty"`
 	// AvailableAudioBitrates narrows the audio bitrate picker to what the
 	// source's best audio track supports. Empty falls back to the full menu.

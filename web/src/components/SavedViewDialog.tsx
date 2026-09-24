@@ -1,6 +1,7 @@
 // The windows for naming, renaming and deleting a saved view.
 import { useState } from 'react';
 import { useT } from '../lib/i18n';
+import { IconClose } from '../lib/icons';
 import { Button, Field, Modal, TextInput } from './ui';
 import { MAX_VIEW_NAME } from '../lib/savedViews';
 import type { SavedView } from '../lib/listNarrowing';
@@ -47,9 +48,7 @@ export function ViewNameDialog({
           {/* The forward button ends the row, so the refusal goes first. */}
           {refusal && <span className="min-w-0 text-sm text-statusFail">{refusal}</span>}
           <span className="flex-1" />
-          <Button kind="ghost" onClick={onClose}>
-            {t('common.cancel')}
-          </Button>
+          <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
           <Button disabled={blocked} onClick={() => onConfirm(clean)}>
             {overwrites ? t('views.overwriteConfirm') : t('views.saveConfirm')}
           </Button>
@@ -93,9 +92,7 @@ export function ViewDeleteDialog({
       footer={
         <>
           <span className="flex-1" />
-          <Button kind="ghost" onClick={onClose}>
-            {t('common.cancel')}
-          </Button>
+          <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
           {/* Neutral rather than red; the body text carries the warning. */}
           <Button kind="secondary" onClick={onConfirm}>
             {t('views.deleteConfirm')}

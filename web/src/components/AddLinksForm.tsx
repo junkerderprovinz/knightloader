@@ -7,6 +7,7 @@
 // app.LinkBatchOptions).
 import { useEffect, useState, type CSSProperties } from 'react';
 import { hueVars, rainbowAt } from '../lib/appearance';
+import { useRainbow } from '../lib/useRainbow';
 import {
   addLinksWithOptions,
   priorityChoices,
@@ -81,6 +82,7 @@ export function AddLinksForm({
   const { t } = useT();
   const { toast } = useToast();
   const priorities = usePriorityTabs();
+  useRainbow();
 
   const [links, setLinks] = useState('');
   const [dragOver, setDragOver] = useState(false);

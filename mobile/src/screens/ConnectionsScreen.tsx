@@ -202,8 +202,11 @@ export default function ConnectionsScreen({
            again. Without this, VirtualizedList never redraws a cell, so every
            status badge and every figure freezes at what it said on the first
            paint while the five-second poll updates state nobody redraws. A cell
-           that reads state outside `data` has to say so. */
-        extraData={[status, stats, why]}
+           that reads state outside `data` has to say so, and the colour it
+           takes from hueAt and the rainbow is such state: without them a
+           palette change, or disco's step every second, leaves the rows in
+           their old colours. */
+        extraData={[status, stats, why, hueAt, rainbow.reactive]}
         // The summary, the failure line and the graph travel as the list's own
         // header rather than as siblings above it. As a sibling the card carries
         // its own copy of the list's width cap plus a horizontal margin, and

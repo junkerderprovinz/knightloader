@@ -104,10 +104,12 @@ import {
   IconTrash,
   IconRetry,
   IconFolder,
+  IconFolderOpen,
   IconSearch,
   IconSettings,
   IconArrowUp,
   IconArrowDown,
+  IconClose,
 } from '../lib/icons';
 
 export interface Selection {
@@ -588,11 +590,11 @@ function PackageName({
       {/* Furniture, never the accent: every package has one, and a column of
           gold folders would spend the one colour that means "something is
           happening here" on the most ordinary fact on the page. */}
-      <IconFolder
-        width={FOLDER_GLYPH}
-        height={FOLDER_GLYPH}
-        className="shrink-0 text-carbon-textMuted"
-      />
+      {collapsed ? (
+        <IconFolder width={FOLDER_GLYPH} height={FOLDER_GLYPH} className="shrink-0 text-carbon-textMuted" />
+      ) : (
+        <IconFolderOpen width={FOLDER_GLYPH} height={FOLDER_GLYPH} className="shrink-0 text-carbon-textMuted" />
+      )}
       {/* The package wears the mark when every link in it agrees, the same rule
           the Enabled column's aggregate follows. Without it the mark exists
           only on expanded rows, so a collapsed package would hide the thing it
@@ -623,11 +625,11 @@ function PackageName({
 
 /**
  * The gear badge a yt-dlp-routed package's header carries. It opens that host's
- * variant preset: which of the five rows a new link from this host starts with
- * enabled, and the default quality and audio format those rows start on. Per
- * host rather than per package (GET and POST /api/ytdlp/preset), so a package
- * with more than one host shows the badge for whichever host its variant rows
- * share.
+ * variant preset: which of the five rows the collector shows for this host's
+ * links, the ones already in it included, and the default quality and audio
+ * format a new link's rows start on. Per host rather than per package (GET and
+ * POST /api/ytdlp/preset), so a package with more than one host shows the
+ * badge for whichever host its variant rows share.
  */
 function HosterPresetButton({ host, base, focusable }: { host: string; base: string; focusable: boolean }) {
   const { t } = useT();
@@ -719,9 +721,12 @@ function HosterPresetDialog({ host, base, onClose }: { host: string; base: strin
       title={`${t('collector.hosterPreset')} · ${host}`}
       onClose={onClose}
       footer={
-        <Button key={shake} className={shake > 0 ? 'glim-shake' : ''} onClick={() => void save()} disabled={!preset || saving}>
-          {t('settings.save')}
-        </Button>
+        <>
+          <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
+          <Button key={shake} className={shake > 0 ? 'glim-shake' : ''} onClick={() => void save()} disabled={!preset || saving}>
+            {t('settings.save')}
+          </Button>
+        </>
       }
     >
       {loadError ? (
@@ -2627,22 +2632,17 @@ export function TaskListCard({
               the keys are listed under Settings, Shortcuts, and two bubbles
               side by side make the reader decide which one holds their answer
               before they can read either. */}
-          <SectionTitle hint={t('columns.headerHint')}>{title}</SectionTitle>
-        </div>
-        <div className="overflow-hidden rounded-b-[var(--radius-card)]">
           {/* Sorting is a view of the queue and not the queue, and saying so
               where the order is visibly different is the whole of it: a list
               that shows one order while running another reads as a bug. */}
-          {sort && (
-            <div className="flex items-center gap-1 px-4 py-2 text-[11px] text-carbon-textMuted">
-              <span>{t('list.sortedView')}</span>
-              <InfoBubble tip={t('list.sortedViewTip')} />
-              <span className="flex-1" />
-              <Button kind="ghost" className="px-2 py-1 text-[11px]" onClick={() => setSort(null)}>
-                {t('list.queueOrder')}
-              </Button>
-            </div>
-          )}
+          <SectionTitle
+            hint={t('columns.headerHint')}
+            second={sort ? { label: t('list.sortedView'), hint: t('list.sortedViewTip') } : undefined}
+          >
+            {title}
+          </SectionTitle>
+        </div>
+        <div className="overflow-hidden rounded-b-[var(--radius-card)]">
 
           {/* min-w-min, not min-w-max: max-content pins the table at the sum of
               its columns, overriding the flexible name track and opening the

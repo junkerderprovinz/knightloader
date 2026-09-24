@@ -3,7 +3,7 @@
 import { useState, type ReactNode } from 'react';
 import { useT } from '../lib/i18n';
 import { fmtDate, fmtGB } from '../lib/format';
-import { IconBadge, Toggle } from './ui';
+import { IconBadge, Toggle, useTooltip } from './ui';
 import { ProgressBar } from './ProgressBar';
 import { HosterIcon } from './HosterIcon';
 import { ContextMenu, anchorBelow, useContextMenu, type MenuGroup } from './ContextMenu';
@@ -110,10 +110,22 @@ function TrafficCell({ traffic }: { traffic?: AccountTraffic }) {
     );
   }
   // No quota reported, so no bar; an empty track would claim a limit of zero.
+  return <UnknownTraffic />;
+}
+
+/** UnknownTraffic is the dash for an account that reports no quota, with the
+ *  reason in a tooltip. A component of its own because the tooltip is a hook. */
+function UnknownTraffic() {
+  const { t } = useT();
+  const tip = useTooltip<HTMLSpanElement>(t('accounts.trafficUnknown'));
   return (
-    <span className="text-carbon-textMuted" title={t('accounts.trafficUnknown')}>
-      -
-    </span>
+    <>
+      {/* A dash names nothing, so the reason is the accessible name too. */}
+      <span className="text-carbon-textMuted" {...tip.triggerProps} aria-label={t('accounts.trafficUnknown')}>
+        -
+      </span>
+      {tip.node}
+    </>
   );
 }
 

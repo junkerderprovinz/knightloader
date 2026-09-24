@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 
@@ -634,6 +635,18 @@ type Settings struct {
 	// before the field existed, and RelayModeOf below reads it the way that
 	// install behaved.
 	RelayMode string `json:"relayMode"`
+
+	// ModulesOff names the modules switched off on the modules page, by the ids
+	// internal/api/routes_features.go gives them. It lists what is off rather
+	// than what is on, so an upgrade that adds a module leaves it running.
+	//
+	// No omitempty, see CrawlInclude.
+	ModulesOff []string `json:"modulesOff"`
+}
+
+// ModuleOff reports whether the module with this id is switched off.
+func (s Settings) ModuleOff(id string) bool {
+	return slices.Contains(s.ModulesOff, id)
 }
 
 // The three answers to "which relay does this instance use".
@@ -974,5 +987,6 @@ func sanitize(n Settings) Settings {
 	n = sanitizeTorrent(n)
 	n = sanitizeIdentity(n)
 	n = sanitizeRelay(n)
+	n.ModulesOff = cleanIDList(n.ModulesOff)
 	return n
 }

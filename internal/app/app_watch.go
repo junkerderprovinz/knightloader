@@ -98,15 +98,13 @@ func (a *App) onWatchIntake(j watch.Job) {
 // file asked for, and only then start anything, so a folder override cannot
 // arrive after a download has chosen where to write.
 func (a *App) stageWatchJob(j watch.Job) {
-	created := a.AddLinksWithPasswords(j.URLs, j.Package, j.Passwords, OriginWatch)
-	if len(created) == 0 {
+	staged := idsOf(a.addLinksWithPasswords(j.URLs, j.Package, j.Passwords, OriginWatch))
+	if len(staged) == 0 {
 		return
 	}
-	ids := make([]string, 0, len(created))
-	for _, t := range created {
-		ids = append(ids, t.ID)
-	}
-	a.applyWatchJobOptions(ids, j)
+	// What the file asks for applies to every row a yt-dlp link became.
+	ids := a.withVariantFamilies(staged)
+	a.applyWatchJobOptions(staged, ids, j)
 
 	if j.Disabled {
 		// Parked: added and kept, and never passed to ConfirmTasks or
@@ -117,21 +115,24 @@ func (a *App) stageWatchJob(j watch.Job) {
 	if j.Forced {
 		a.SetForced(ids, true)
 	}
-	// addLinksFrom applies no AutoConfirm of its own, so it is checked here.
 	// A forced link bypasses the confirm policy, since the file asked for it
-	// explicitly.
+	// explicitly. With AutoConfirm on, the batch waits out the countdown like
+	// any other; the file's own AutoStart confirms at once only when it is off.
 	switch {
 	case j.Forced:
 		a.StartTasks(ids)
-	case a.Settings.Get().AutoConfirm || j.AutoStart:
+	case a.Settings.Get().AutoConfirm:
+		a.autoConfirm(ids)
+	case j.AutoStart:
 		a.ConfirmTasks(ids, confirm.Config{}, confirm.TriggerWatch)
 	}
 }
 
-// applyWatchJobOptions writes what the job said onto the tasks it created. It
-// runs after staging so the file's values override the Packagizer: the file is
-// a request for these links, a rule a standing default.
-func (a *App) applyWatchJobOptions(ids []string, j watch.Job) {
+// applyWatchJobOptions writes what the job said onto the tasks it created: ids
+// is every row, staged the one row per link that staging handed back. It runs
+// after staging so the file's values override the Packagizer: the file is a
+// request for these links, a rule a standing default.
+func (a *App) applyWatchJobOptions(staged, ids []string, j watch.Job) {
 	var (
 		opts TaskOptions
 		set  bool
@@ -165,11 +166,12 @@ func (a *App) applyWatchJobOptions(ids []string, j watch.Job) {
 
 	// SetTaskOptions rejects the whole request over one bad field, so a bad file
 	// name gets its own call and cannot cost the folder and priority. It only
-	// applies to a single-link job; one name on twenty tasks would point them all
-	// at one file.
-	if j.Filename != "" && len(ids) == 1 {
+	// applies to a single-link job, and there to the staged row alone; one name
+	// on twenty tasks would point them all at one file, and so would one name
+	// on every row of a yt-dlp link.
+	if j.Filename != "" && len(staged) == 1 {
 		filename := j.Filename
-		if err := a.SetTaskOptions(ids, TaskOptions{Filename: &filename}); err != nil {
+		if err := a.SetTaskOptions(staged, TaskOptions{Filename: &filename}); err != nil {
 			log.Printf("dropped job: %v", err)
 		}
 	}

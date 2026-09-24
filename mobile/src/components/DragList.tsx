@@ -69,7 +69,7 @@ export default function DragList({
    * How much this list is allowed to move. Read through MotionContext rather
    * than from AccessibilityInfo, because the motion axis has a user-facing
    * level as well as the system signal and the two are resolved together
-   * there, with the system signal winning.
+   * there, with the system signal winning over every level a picker offers.
    *
    * At `off` the wiggle never starts and the lift's scale is 1, while the
    * shadow and the neighbours' gap stay at every level: they tell the eye which

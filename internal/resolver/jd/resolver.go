@@ -56,7 +56,7 @@ func (r Resolver) Check(ctx context.Context, urls []string) ([]core.Availability
 // JD merely has a plugin for sits one above resolver.Direct (40) but below
 // every debrid service, which the user pays for to unlock that host.
 const (
-	activeLoginPrio = 60
+	ActiveLoginPrio = 60
 	knownHostPrio   = 41
 )
 
@@ -152,7 +152,7 @@ func mediaSiteForYtdlp(host string) bool {
 	return len(fileHosts.set) > 0 && !fileHosts.set[normalizeHost(host)]
 }
 
-// PriorityFor is JD's priority for one link: activeLoginPrio for a host with a
+// PriorityFor is JD's priority for one link: ActiveLoginPrio for a host with a
 // confirmed native login, knownHostPrio for a file hoster JD has a plugin for,
 // and basePrio otherwise. The dispatcher's dynamicPrio consults it per URL,
 // since Info takes no URL and the registry sorts only once.
@@ -162,7 +162,7 @@ func PriorityFor(rawURL string) int {
 		return basePrio
 	}
 	if HostActive(u.Hostname()) {
-		return activeLoginPrio
+		return ActiveLoginPrio
 	}
 
 	// A known hoster without a login is fetched in JD's free mode. Direct
@@ -173,6 +173,16 @@ func PriorityFor(rawURL string) int {
 		return knownHostPrio
 	}
 	return basePrio
+}
+
+// LoginHost returns rawURL's host, normalised as SetHostActive stores it, when
+// that host has a confirmed-active native login, and "" otherwise.
+func LoginHost(rawURL string) string {
+	u, err := url.Parse(rawURL)
+	if err != nil || u.Hostname() == "" || !HostActive(u.Hostname()) {
+		return ""
+	}
+	return normalizeHost(u.Hostname())
 }
 
 // normalizeHost lower-cases a domain before stripping a leading "www.", so an

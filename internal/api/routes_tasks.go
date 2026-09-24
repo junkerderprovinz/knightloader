@@ -145,7 +145,9 @@ func registerTasks(reg *Registry, a *app.App) {
 		})
 	reg.Add(http.MethodDelete, "/api/tasks/{id}", "remove one task; ?files=1 also deletes what was downloaded",
 		func(w http.ResponseWriter, r *http.Request) {
-			a.Remove(r.PathValue("id"), r.URL.Query().Get("files") == "1")
+			// Through the bulk path, which takes along the set-aside rows of a
+			// yt-dlp link whose last shown row this was.
+			a.RemoveTasks([]string{r.PathValue("id")}, r.URL.Query().Get("files") == "1")
 			w.WriteHeader(http.StatusNoContent)
 		})
 }

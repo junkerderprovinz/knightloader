@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react';
 import { hueVars, rainbowAt } from '../../lib/appearance';
+import { useRainbow } from '../../lib/useRainbow';
 
 /**
  * NeutralSwitch is the switch for columns of switches, such as the module list
@@ -26,6 +27,7 @@ export function NeutralSwitch({
   /** Position among the switches of one card, 0-based like Toggle's; omit for a lone switch. */
   hue?: number;
 }) {
+  useRainbow();
   const worded = Boolean(onLabel || offLabel);
   return (
     <button

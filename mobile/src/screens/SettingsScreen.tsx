@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, Animated, Linking, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Animated, Linking, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import Constants from 'expo-constants';
 import * as Clipboard from 'expo-clipboard';
@@ -10,10 +10,24 @@ import { removeAllConnections } from '../storage/connections';
 import { useAppearance } from '../theme/AppearanceContext';
 import { useMotion, useShake } from '../theme/MotionContext';
 import { MOTION_LEVELS, stormTap, type Motion } from '../theme/motion';
-import { ACCENTS, SHAPES, accentSlot, type Shape } from '../theme/appearance';
+import { ACCENTS, SHAPES, accentSlot, discoTap, type Shape } from '../theme/appearance';
 import { TYPE } from '../theme/tokens';
-import { GlimButton, GlimRow, GlimToggle, NotchCard, Swatch, SwatchReset, WellSelector } from '../components/glim';
-import IconBadge, { Back, Coffee, Github, Mail, Paste } from '../components/IconBadge';
+import { GLIMSTONE_VERSION } from '../theme/version';
+import {
+  BrandButton,
+  GlimButton,
+  GlimRow,
+  GlimToggle,
+  NotchCard,
+  Swatch,
+  SwatchReset,
+  UnavailableNotice,
+  WellSelector,
+} from '../components/glim';
+import IconBadge, { Back, BitcoinLetter, BuyMeACoffee, Github, Mail, Paste, PayPal, Trash } from '../components/IconBadge';
+import { InfoTip } from '../components/InfoTip';
+import { ConfirmDialog } from '../components/ConfirmDialog';
+import { CryptoDonate } from '../components/CryptoDonate';
 import ColorPicker from '../components/ColorPicker';
 
 const GITHUB_URL = 'https://github.com/junkerderprovinz/knightloader';
@@ -22,17 +36,9 @@ const GLIMSTONE_URL = 'https://github.com/junkerderprovinz/glimstone';
 const CONTACT_MAIL = 'hello@halleluja.design';
 // From .github/FUNDING.yml, so there is one place that knows the handle.
 const COFFEE_URL = 'https://buymeacoffee.com/junkerderprovinz';
-
-/**
- * Which GlimStone this screen implements.
- *
- * A constant here, which it should not be: the design language ships
- * reference/react/version.ts for this, and a number kept beside the About card
- * has to be moved by hand with every lift. The number is also a link to that
- * release, so a stale one sends somebody to the wrong page. Copying that file
- * in beside the rest of the reference and importing from it is the fix.
- */
-const GLIMSTONE_VERSION = '1.17.0';
+// PayPal's hosted donation button, the address the web UI's About card and the
+// README's donate row use.
+const PAYPAL_URL = 'https://www.paypal.com/donate/?hosted_button_id=76FVV52TKXTUS';
 
 /** shapeOf reads the shape back out of the radii the context resolved.
  *
@@ -87,10 +93,15 @@ export default function SettingsScreen({
     setShape,
     setTheme,
     setRainbow,
+    disco,
+    setDisco,
     followInstance,
     snapshotAsLocal,
   } = useAppearance();
   const { chosen: motion, reduced: motionReduced, setMotion } = useMotion();
+  // The system is in charge of every level but the storm, which a request
+  // outranks (GlimStone 2.1.0), so the note saying so goes with it.
+  const systemInCharge = motionReduced && motion !== 'storm';
   const [override, setOverride] = useState<string | null>(null);
   const anyOverride = overridden.accent || overridden.shape || overridden.theme || overridden.rainbow;
 
@@ -121,6 +132,19 @@ export default function SettingsScreen({
   // A ref rather than state: five taps are counting, not rendering, and any tap
   // that is not on the top level resets the count.
   const stormTaps = useRef({ taps: 0 });
+
+  /**
+   * Disco, the colour engine's hidden switch (theme/appearance.ts's discoTap
+   * carries the gesture): five turn-ons of the rainbow, each within three
+   * seconds of the last. Found is this screen's state for the storm's reason,
+   * and in force counts as found, so the switch never hides the value it is
+   * showing.
+   */
+  const [discoFound, setDiscoFound] = useState(false);
+  useEffect(() => {
+    if (disco) setDiscoFound(true);
+  }, [disco]);
+  const discoTaps = useRef({ taps: 0, last: 0 });
 
   /**
    * What the picker offers: MOTION_LEVELS, the list without the hidden level.
@@ -206,30 +230,11 @@ export default function SettingsScreen({
   const currentLabel = LANGUAGES.find((l) => l.code === (override ?? lang))?.label ?? (override ?? lang);
   const currentFlag = flagEmoji(LANGUAGES.find((l) => l.code === lang)?.flag ?? '');
 
-  /**
-   * The question does the warning, so the commit button carries no tone
-   * (GlimStone 1.12.0, and 1.13.0 for the window itself). On iOS
-   * `style: 'destructive'` paints it the red the language took off destructive
-   * controls, and Android ignores `style` outright, so one line would draw two
-   * different windows.
-   *
-   * `style: 'cancel'` stays on the other button. That is placement and keyboard
-   * behaviour rather than colour: it tells the platform which button is the way
-   * out, and the platform puts it where its own users look for it, which is why
-   * 1.14.0's right-goes-ahead rule has nothing to decide here.
-   */
-  const confirmRemoveAll = () => {
-    Alert.alert(t('settings.removeAllConfirmTitle'), t('settings.removeAllConfirmMessage'), [
-      { text: t('settings.cancel'), style: 'cancel' },
-      {
-        text: t('settings.removeAllConfirmButton'),
-        onPress: async () => {
-          await removeAllConnections();
-          onRemovedAllConnections();
-        },
-      },
-    ]);
-  };
+  /** Whether the window asking before every connection goes is open. Removing
+   *  them cannot be undone, so it asks, and the question states the stakes. */
+  const [confirmingRemoveAll, setConfirmingRemoveAll] = useState(false);
+  /** Whether the crypto window is open. */
+  const [donating, setDonating] = useState(false);
 
   return (
     <ScrollView style={{ backgroundColor: c.bg }} contentContainerStyle={styles.container}>
@@ -310,8 +315,19 @@ export default function SettingsScreen({
         <View style={styles.axisRow}>
           {/* Normal row text rather than the small axis caption: a label beside
               its control is a row label, and every other row label on this page
-              is body text in the ordinary ink. */}
-          <Text style={[styles.rowLabel, { color: rainbow.on ? c.textMuted : c.text }]}>{t('settings.accent')}</Text>
+              is body text in the ordinary ink.
+
+              The other half of 1.16.0's answer below: dim it and say who is in
+              charge, or a row that goes pale reads as broken. The saying is an
+              (i) that exists exactly while the rainbow owns the colours
+              (GlimStone 1.9.0), with the web UI's own accentRainbowOwns, so the
+              same state reads the same way in a browser. It sits beside the
+              label and outside the dimmed circles: the one element that still
+              has something to say must not fade with the ones gone quiet. */}
+          <View style={styles.axisLabelGroup}>
+            <Text style={[styles.rowLabel, { color: rainbow.on ? c.textMuted : c.text }]}>{t('settings.accent')}</Text>
+            {rainbow.on && <InfoTip text={t('settings.accentRainbowOwns')} />}
+          </View>
           {/* The row rainbow mode takes over, and the case GlimStone 1.16.0
               answers: does the control still do anything?
 
@@ -327,7 +343,7 @@ export default function SettingsScreen({
               So it dims and stays pressable. Making it inert as well would take
               away the ability to change the colour of the controls it still
               paints without switching the whole mode off first. The dimming
-              carries the signal and the sentence under the row carries the
+              carries the signal and the (i) beside the label carries the
               reason. pointerEvents is also worse here than on the web: on
               Android it takes the subtree out of TalkBack's reach along with
               the finger's.
@@ -381,21 +397,6 @@ export default function SettingsScreen({
           </View>
         </View>
 
-        {/* The other half of 1.16.0's answer: dim it and say who is in charge.
-            A row that goes pale with no explanation reads as broken.
-
-            A line rather than a bubble, because the app has no info-bubble
-            component and the Probleme card explains itself the same way. The
-            sentence is the web UI's own accentRainbowOwns in all forty-two
-            languages, so the same state reads the same way in a browser.
-
-            It sits outside the dimmed container, which is why the dim is on the
-            circles: the one element that still has something to say must not
-            fade with the ones that have gone quiet. */}
-        {rainbow.on && (
-          <Text style={[styles.hint, styles.afterControls, { color: c.textMuted }]}>{t('settings.accentRainbowOwns')}</Text>
-        )}
-
         {/* A switch rather than a read-only line. Only on and off are local:
             the palette and the seed come from the instance either way, so two
             clients never disagree about which colour a position is. hue={1}
@@ -404,11 +405,38 @@ export default function SettingsScreen({
 
             No caption of its own, because the switch at the top of this card
             already says whether the look is following the instance or set here,
-            and flipping this one flips that one. */}
+            and flipping this one flips that one.
+
+            The fifth quick turn-on unlocks disco and switches it on, so the
+            gesture ends on a palette that is already walking. */}
         <GlimRow
           label={t('settings.rainbow')}
-          control={<GlimToggle hue={1} value={rainbow.on} onChange={(on) => setRainbow(on)} />}
+          control={
+            <GlimToggle
+              hue={1}
+              value={rainbow.on}
+              onChange={(on) => {
+                setRainbow(on);
+                if (discoTap(discoTaps.current, on, Date.now())) {
+                  setDisco(true);
+                  setDiscoFound(true);
+                }
+              }}
+            />
+          }
         />
+
+        {/* Disco hangs off the rainbow, so it is absent while the rainbow is
+            off (GlimStone 1.10.0), and hidden until found. Its value is this
+            phone's own, like the motion level: following the instance leaves
+            it alone. */}
+        {rainbow.on && discoFound && (
+          <GlimRow
+            label={t('settings.disco')}
+            info={t('settings.discoHint')}
+            control={<GlimToggle hue={2} value={disco} onChange={setDisco} />}
+          />
+        )}
 
         {/* The mode is on and there is no instance to write a palette to.
             GlimStone 1.16.0's test: a grey state says something about the thing
@@ -418,13 +446,14 @@ export default function SettingsScreen({
 
             This is the third. The palette lives on the instance and there is
             none, so nothing a finger does here reaches anything. The eight
-            colours in force are still worth knowing, which is what the sentence
-            says instead of a row that lies about being editable.
+            colours in force are still worth knowing, which is what the notice
+            says instead of a row that lies about being editable, under the
+            row's own name so it is plain which setting it stands for.
 
             The mode's own switch stays: a mode whose switch disappears when it
             cannot be configured is a mode nobody can turn back on. */}
         {rainbow.on && !onSetPalette && (
-          <Text style={[styles.hint, styles.afterControls, { color: c.textMuted }]}>{t('settings.rainbowPaletteNoInstance')}</Text>
+          <UnavailableNotice title={t('settings.rainbowPalette')} reason={t('settings.rainbowPaletteNoInstance')} />
         )}
 
         {/* The eight colours the mode hands out by position, shown only where a
@@ -497,16 +526,28 @@ export default function SettingsScreen({
           hue={5} rather than 2, although the card sits second in reading order:
           the four cards below carry fixed positions in this page's 0-based
           sequence, and renumbering them to place one card would re-colour four. */}
-      <NotchCard title={t('settings.motion')} hue={5}>
-        {/* What the three levels do, above the control rather than below it,
-            where the Probleme card puts its own sentence, so the extra step
-            above a sentence that follows controls does not apply. A paragraph
-            rather than a bubble, since this app has no bubble component.
+      {/* What the three levels do lives in the notch's (i). The sentence names
+          three levels while the picker sometimes shows four: a hidden level
+          gets no entry in the text that explains the visible ones.
 
-            The sentence names three levels while the picker sometimes shows
-            four: a hidden level gets no entry in the text that explains the
-            visible ones. */}
-        <Text style={[styles.hint, { color: c.textMuted }]}>{t('settings.motionHint')}</Text>
+          While the system asks for less motion the same bubble says so, the
+          one thing the phone can say here that a browser cannot. Without it,
+          somebody whose system is set to reduce motion picks the liveliest
+          level, sees nothing change and reports a bug, which is the failure
+          "say who is in charge" exists to prevent, arriving from the operating
+          system instead of from another row. Not while the storm is chosen,
+          which the system does not stop.
+
+          The picker is neither dimmed nor removed while this is true. It is not
+          the environment-refusal case: the value is stored, it is real, and it
+          takes effect again the moment the system setting changes, so a
+          control that vanished here would hide a preference that is still
+          somebody's. */}
+      <NotchCard
+        title={t('settings.motion')}
+        hue={5}
+        info={systemInCharge ? `${t('settings.motionHint')} ${t('settings.motionReduced')}` : t('settings.motionHint')}
+      >
         <WellSelector
           options={motionOptions}
           value={motion}
@@ -519,25 +560,9 @@ export default function SettingsScreen({
             setMotion(gefunden ?? v);
           }}
         />
-
-        {/* The one thing the phone can say here that a browser cannot. Without
-            it, somebody whose system is set to reduce motion picks the
-            liveliest level, sees nothing change and reports a bug, which is the
-            failure "say who is in charge" exists to prevent, arriving from the
-            operating system instead of from another row.
-
-            The picker is neither dimmed nor removed while this is true. It is
-            not the environment-refusal case: the value is stored, it is real,
-            and it takes effect again the moment the system setting changes, so
-            a control that vanished here would hide a preference that is still
-            somebody's. */}
-        {motionReduced && (
-          <Text style={[styles.hint, styles.afterControls, { color: c.textMuted }]}>{t('settings.motionReduced')}</Text>
-        )}
       </NotchCard>
 
-      <NotchCard title={t('settings.problems')} hue={2}>
-        <Text style={[styles.hint, { color: c.textMuted }]}>{t('settings.problemsHint')}</Text>
+      <NotchCard title={t('settings.problems')} hue={2} info={t('settings.problemsHint')}>
         <View style={[styles.report, { backgroundColor: c.surface2, borderRadius: radii.control }]}>
           <Text style={[styles.reportText, { color: c.textSub }]} selectable>
             {report}
@@ -593,12 +618,36 @@ export default function SettingsScreen({
             with its own button beneath it reads as one offer, while three
             sentences over one row of buttons read as a form. */}
         <Text style={[styles.aboutText, { color: c.textSub }]}>{t('settings.aboutCoffee')}</Text>
-        <View style={styles.buttonRow}>
-          <GlimButton
-            hue={1}
+        {/* The give buttons, hosted pages first as on every card in the
+            family, all in the one row under the one sentence that asks: a
+            second row would read as a second, unrelated offer. The row wraps,
+            because two labels side by side do not fit every language on a
+            narrow phone.
+
+            Each wears its brand's own mark in the brand's colour on a neutral
+            ground rather than a rainbow fill, since a vendor's mark may not
+            follow somebody's accent or palette. */}
+        <View style={[styles.buttonRow, styles.buttonRowWrap]}>
+          <BrandButton
+            brand="coffee"
             label={t('settings.aboutCoffeeButton')}
-            icon={(ink) => <Coffee color={ink} />}
+            icon={(ink) => <BuyMeACoffee color={ink} />}
             onPress={() => Linking.openURL(COFFEE_URL)}
+          />
+          <BrandButton
+            brand="paypal"
+            label={t('settings.aboutPaypal')}
+            icon={(ink) => <PayPal color={ink} />}
+            onPress={() => Linking.openURL(PAYPAL_URL)}
+          />
+          {/* The wallet route last. Bitcoin's letterform reads as "crypto" to
+              somebody who has never held any, and the window it opens shows
+              every coin on offer, so nobody takes it for the only one. */}
+          <BrandButton
+            brand="bitcoin"
+            label={t('settings.aboutCrypto')}
+            icon={(ink) => <BitcoinLetter color={ink} />}
+            onPress={() => setDonating(true)}
           />
         </View>
         {/* A blank line above this sentence, because it follows controls.
@@ -610,19 +659,22 @@ export default function SettingsScreen({
         <Text style={[styles.aboutText, styles.afterControls, { color: c.textSub }]}>
           {t('settings.aboutReport')}
         </Text>
-        <View style={styles.buttonRow}>
-          <GlimButton
-            hue={2}
-            grow
+        <View style={[styles.buttonRow, styles.buttonRowWrap]}>
+          <BrandButton
+            brand="github"
             label={t('settings.aboutGithub')}
             icon={(ink) => <Github color={ink} />}
             onPress={() => Linking.openURL(GITHUB_URL)}
           />
-          <GlimButton
+          {/* The one button here that reaches the app's own authors, so it
+              takes the accent and this card's rainbow position instead of a
+              vendor's colour. The envelope's flap is painted in the ground the
+              button is standing on, which changes while it is pressed. */}
+          <BrandButton
+            brand="house"
             hue={3}
-            grow
             label={t('settings.aboutMail')}
-            icon={(ink) => <Mail color={ink} />}
+            icon={(ink, ground) => <Mail color={ink} hole={ground} />}
             // A plain mailto with the subject prefilled, so a mail arrives
             // saying which product it is about. No body, which would read as a
             // form to fill in rather than a message somebody writes.
@@ -670,9 +722,31 @@ export default function SettingsScreen({
             gone, and a button that is red before the question is asked says it
             twice and weaker each time. The card's notch still carries its
             rainbow position, so the heading above is coloured like every
-            other. */}
-        <GlimButton tone="quiet" label={t('settings.removeAllConnections')} onPress={confirmRemoveAll} />
+            other. The bin says what it does in every language. */}
+        <GlimButton
+          tone="quiet"
+          label={t('settings.removeAllConnections')}
+          icon={(ink) => <Trash color={ink} />}
+          onPress={() => setConfirmingRemoveAll(true)}
+        />
       </NotchCard>
+
+      <CryptoDonate visible={donating} onClose={() => setDonating(false)} />
+
+      <ConfirmDialog
+        visible={confirmingRemoveAll}
+        title={t('settings.removeAllConfirmTitle')}
+        message={t('settings.removeAllConfirmMessage')}
+        cancelLabel={t('settings.cancel')}
+        confirmLabel={t('settings.removeAllConfirmButton')}
+        confirmIcon={(ink) => <Trash color={ink} />}
+        onCancel={() => setConfirmingRemoveAll(false)}
+        onConfirm={async () => {
+          setConfirmingRemoveAll(false);
+          await removeAllConnections();
+          onRemovedAllConnections();
+        }}
+      />
 
       {/* No version footer: it would say what the About card above says, in
           smaller type outside every card, and page chrome reads as something
@@ -786,6 +860,9 @@ const styles = StyleSheet.create({
   report: { padding: 12, marginBottom: 10 },
   reportText: { fontSize: TYPE.caption, lineHeight: 17, fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' },
   buttonRow: { flexDirection: 'row', gap: 8, marginBottom: 10 },
+  buttonRowWrap: { flexWrap: 'wrap' },
+  // The accent row's label and its conditional (i), side by side.
+  axisLabelGroup: { flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 0 },
   // A row, so the glyph and the label sit together rather than stacking.
   button: { flexDirection: 'row', gap: 8, paddingVertical: 11, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center', flexShrink: 1 },
 });

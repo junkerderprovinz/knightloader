@@ -51,11 +51,14 @@ jobs:
             web:
               - 'web/**'
               - '.github/workflows/ci.yml'
+            # The crypto window's list is held to the web UI's.
             extension:
               - 'extension/**'
+              - 'web/src/lib/donate.ts'
               - '.github/workflows/ci.yml'
             mobile:
               - 'mobile/**'
+              - 'web/src/lib/donate.ts'
               - '.github/workflows/ci.yml'
             # The desktop module replaces the main one, so a change to either
             # can break it.
@@ -289,6 +292,9 @@ jobs:
       - name: Refusals
         run: node extension/check-refusals.mjs
 
+      - name: Donation addresses
+        run: node extension/check-donate.mjs
+
       - name: Send label
         run: node extension/check-popup-send.mjs
 
@@ -382,6 +388,9 @@ jobs:
 
       - name: Dimmed and inert
         run: node check-dimmed-and-inert.mjs
+
+      - name: Donation addresses
+        run: node check-donate.mjs
 
   # Compiles the desktop module on every relevant push, since desktop.yml only
   # runs for releases. Packaging stays in desktop.yml. webkit2_41 is needed

@@ -14,8 +14,10 @@ import (
 	"net/http"
 	"os"
 	"reflect"
+	"slices"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
@@ -135,9 +137,14 @@ func registerFeatures(reg *Registry, a *app.App) {
 			if !decodeJSON(w, r, &body) {
 				return
 			}
-			if err := setFeature(a, r.PathValue("id"), body.Enabled); err != nil {
+			id := r.PathValue("id")
+			if err := setFeature(a, id, body.Enabled); err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
+			}
+			if id == "cnl" {
+				// The listener is not a setting, so no settings save announced it.
+				a.Hub.Broadcast("settings", nil)
 			}
 			// The whole table, since one switch can change what other rows and
 			// pages may offer.
@@ -263,24 +270,23 @@ func featureList(a *app.App) []Feature {
 			Parked: parked["reconnect"], Detail: reconnectDetail(s),
 		},
 		{
+			// The same flag as the list's own switch on the Rules page.
 			ID: "packagizer", Verdict: VerdictShipped, Page: "rules",
-			Switch: SwitchNone, Enabled: len(s.Packagizer.Rules) > 0,
-			Reason: "a rule set is switched off by having no rules; there is no separate flag, " +
-				"because a flag that defaults to off would silently disable every existing rule on upgrade",
-			Detail: countDetail(len(s.Packagizer.Rules), "rule", "rules"),
+			Switch: SwitchSetting, Enabled: !s.Packagizer.Disabled,
+			Detail: offDetail(s.Packagizer.Disabled, "off; new links are not sorted by the rules",
+				countDetail(len(s.Packagizer.Rules), "rule", "rules")),
 		},
 		{
 			ID: "linkfilter", Verdict: VerdictShipped, Page: "rules",
-			Switch: SwitchNone, Enabled: len(s.LinkFilter.Rules) > 0,
-			Reason: "same as the Packagizer: an empty list is the off state",
-			Detail: countDetail(len(s.LinkFilter.Rules), "rule", "rules"),
+			Switch: SwitchSetting, Enabled: !s.LinkFilter.Disabled,
+			Detail: offDetail(s.LinkFilter.Disabled, "off; every link is taken in",
+				countDetail(len(s.LinkFilter.Rules), "rule", "rules")),
 		},
 		{
 			ID: "connections", Verdict: VerdictShipped, Page: "connections",
-			Switch: SwitchNone, Enabled: enabledConnections(s) > 0,
-			Reason: "each outbound connection carries its own switch, so there is nothing " +
-				"for one switch here to mean that the rows do not already say",
-			Detail: countDetail(enabledConnections(s), "connection in use", "connections in use"),
+			Switch: SwitchSetting, Enabled: !s.ModuleOff("connections"),
+			Detail: offDetail(s.ModuleOff("connections"), "off; new downloads go out over this machine's own address",
+				countDetail(enabledConnections(s), "connection in use", "connections in use")),
 		},
 		{
 			// On the General tab: Click'n'Load is how links get in, while the
@@ -292,39 +298,19 @@ func featureList(a *app.App) []Feature {
 		},
 		{
 			ID: "federation", Verdict: VerdictShipped, Page: "instances",
-			Switch: SwitchNone, Enabled: len(a.Federation.List()) > 0,
-			Reason: "federation is a list of peers and holds nothing open; the list being empty is its off state",
-			Detail: countDetail(len(a.Federation.List()), "peer", "peers"),
+			Switch: SwitchSetting, Enabled: !s.ModuleOff("federation"),
+			Detail: offDetail(s.ModuleOff("federation"), "off; peers stay saved, but this instance neither lists nor contacts them",
+				countDetail(len(a.Federation.List()), "peer", "peers")),
 		},
-		{
-			ID: "jd", Verdict: VerdictShipped, Page: "accounts",
-			Switch: SwitchNone, Enabled: a.ContainerBackendConfigured(),
-			Reason: "the headless JDownloader backend is wired at start-up from KL_JD; " +
-				"unsetting it here would leave the process talking to a backend the page says is gone",
-			Detail: jdDetail(a),
-		},
-		{
-			ID: "ytdlp", Verdict: VerdictShipped, Page: "resolvers",
-			Switch: SwitchNone, Enabled: resolverRegistered(a, "ytdlp"),
-			Reason: "the yt-dlp binary is detected at start-up (KL_YTDLP, or \"yt-dlp\" on PATH); " +
-				"missing it here needs a restart, the same as the jd backend above",
-			Detail: ytdlpDetail(a, s),
-		},
+		jdFeature(a, s),
+		ytdlpFeature(a, s),
 		{
 			ID: "torrents", Verdict: VerdictShipped, Page: "torrents",
-			Switch: SwitchNone, Enabled: resolverRegistered(a, "torrent"),
-			Reason: "a magnet link or .torrent upload is routed by matching the live resolver table above; " +
-				"there is no separate flag here to disagree with it",
-			Detail: torrentsDetail(a),
+			Switch: SwitchSetting, Enabled: !s.ModuleOff("torrents"),
+			Detail: offDetail(s.ModuleOff("torrents"), "off; running torrents carry on and keep seeding, new ones wait until it is switched back on",
+				torrentsDetail(a)),
 		},
-		{
-			ID: "captcha", Verdict: VerdictShipped, Page: "captcha",
-			Switch: SwitchNone, Enabled: a.ContainerBackendConfigured(),
-			Reason: "the only source this build relays is the headless JDownloader sidecar (internal/captcha.JDSource); " +
-				"unswitchable for the same reason the jd row above is - a challenge already sitting on JD's side " +
-				"does not stop existing because the switch here says otherwise",
-			Detail: captchaDetail(a),
-		},
+		captchaFeature(a, s),
 		{
 			// On the access tab: it decides who may reach in and create
 			// downloads, not how downloads behave.
@@ -338,10 +324,12 @@ func featureList(a *app.App) []Feature {
 			Detail: metricsDetail(a, s),
 		},
 		{
+			// Over the scripts' own switches: off here, no event starts any of
+			// them, and each keeps its own setting for when this is back on.
 			ID: "scripting", Verdict: VerdictShipped, Page: "scripts",
-			Switch: SwitchNone, Enabled: enabledScripts(a) > 0,
-			Reason: "a script is switched off by its own enabled field, edited on the Scripts page; there is no second flag here to disagree with it",
-			Detail: countDetail(enabledScripts(a), "script enabled", "scripts enabled"),
+			Switch: SwitchSetting, Enabled: !s.ModuleOff("scripting"),
+			Detail: offDetail(s.ModuleOff("scripting"), "off; no event starts a script, and a script already running finishes",
+				countDetail(enabledScripts(a), "script enabled", "scripts enabled")),
 		},
 		{
 			ID: "tray", Verdict: VerdictDesktop, Page: "",
@@ -376,11 +364,11 @@ func updaterVerdict() FeatureVerdict {
 func updaterReason() string {
 	if buildinfo.Deployment == "desktop" {
 		return "checks GitHub for a newer release on demand from the General tab, or automatically on load there if its toggle is on; " +
-			"downloading and installing it is still a manual step there, same as any other desktop app before it grows a silent auto-apply"
+			"downloading and installing it is a manual step there, and nothing is applied silently"
 	}
-	return "a container cannot replace itself from the inside, so the General tab's check-and-notify only tells you a newer release exists " +
-		"and points at it, same as on desktop - updating still means pulling the new image the way you deployed this one " +
-		"(docker pull, Unraid Community Applications, Watchtower, ...), which is what the deployment that runs it already does or lets you do"
+	return "a container cannot replace itself from the inside, so the General tab's update check only tells you a newer release exists " +
+		"and points at it, same as on desktop; to update, pull the new image the way you deployed this one " +
+		"(docker pull, Unraid Community Applications, Watchtower, ...), which your deployment already does for you or lets you do"
 }
 
 // featurePages is the sub-page list, in rail order. Pages without a module row
@@ -423,12 +411,26 @@ func featurePages() []FeaturePage {
 	}
 }
 
+// featureMu makes each switch one read, edit and write of the settings, so two
+// switches flipped together cannot each write the list the other one read.
+var featureMu sync.Mutex
+
 // setFeature switches one module. Every branch changes state the subsystem
 // itself reads; no branch stores a flag of its own.
 func setFeature(a *app.App, id string, on bool) error {
+	featureMu.Lock()
+	defer featureMu.Unlock()
 	// The stored settings, not the redacted ones a client was shown, so the
 	// router and proxy passwords survive this save.
 	next := a.Settings.Get()
+
+	// A row can lose its switch at run time (no JD wired, no yt-dlp found);
+	// the table is the one place that knows.
+	for _, f := range featureList(a) {
+		if f.ID == id && f.Switch == SwitchNone {
+			return fmt.Errorf("%s: %w", id, errNoSwitch)
+		}
+	}
 
 	switch id {
 	case "cnl":
@@ -451,6 +453,12 @@ func setFeature(a *app.App, id string, on bool) error {
 		next.DownloadClientAPI = on
 	case "metrics":
 		next.Metrics = on
+	case "packagizer":
+		next.Packagizer.Disabled = !on
+	case "linkfilter":
+		next.LinkFilter.Disabled = !on
+	case "connections", "federation", "jd", "ytdlp", "torrents", "captcha", "scripting":
+		next.ModulesOff = switchModule(next.ModulesOff, id, on)
 
 	case "watch":
 		if !on {
@@ -661,11 +669,77 @@ func reconnectDetail(s settings.Settings) string {
 	return "method: " + s.Reconnect.Method
 }
 
-func jdDetail(a *app.App) string {
-	if a.ContainerBackendConfigured() {
-		return "reachable; encrypted containers can be opened"
+// offDetail is the detail line of a switchable row: what switching it off
+// means while it is off, the live state otherwise.
+func offDetail(off bool, whenOff, whenOn string) string {
+	if off {
+		return whenOff
 	}
-	return "no backend configured (KL_JD); encrypted containers are refused with that reason"
+	return whenOn
+}
+
+// jdFeature has a switch only when a JD backend is wired, since without one
+// there is nothing for it to switch on.
+func jdFeature(a *app.App, s settings.Settings) Feature {
+	f := Feature{ID: "jd", Verdict: VerdictShipped, Page: "accounts"}
+	if !a.ContainerBackendConfigured() {
+		f.Switch = SwitchNone
+		f.Reason = "no JDownloader backend is configured; set KL_JD to a reachable JDownloader and restart"
+		f.Detail = "encrypted containers are refused, and hoster links go to a debrid service or fail"
+		return f
+	}
+	off := s.ModuleOff("jd")
+	f.Switch, f.Enabled = SwitchSetting, !off
+	f.Detail = offDetail(off,
+		"off; downloads already in JDownloader finish, and new hoster links wait until it is switched back on",
+		"reachable; encrypted containers can be opened")
+	return f
+}
+
+// ytdlpFeature has a switch only when a yt-dlp binary was found.
+func ytdlpFeature(a *app.App, s settings.Settings) Feature {
+	f := Feature{ID: "ytdlp", Verdict: VerdictShipped, Page: "resolvers", Detail: ytdlpDetail(a, s)}
+	if !resolverRegistered(a, "ytdlp") {
+		f.Switch = SwitchNone
+		f.Reason = "no yt-dlp binary was found; fetch one on the Resolvers page, or set KL_YTDLP"
+		return f
+	}
+	off := s.ModuleOff("ytdlp")
+	f.Switch, f.Enabled = SwitchSetting, !off
+	if off {
+		f.Detail = "off; a running download finishes, and video links wait until it is switched back on"
+	}
+	return f
+}
+
+// captchaFeature follows the JD row: JD is the only source of challenges
+// (internal/captcha.JDSource), so switching JD off silences this too.
+func captchaFeature(a *app.App, s settings.Settings) Feature {
+	f := Feature{ID: "captcha", Verdict: VerdictShipped, Page: "captcha"}
+	if !a.ContainerBackendConfigured() {
+		f.Switch = SwitchNone
+		f.Reason = "challenges come only from the JDownloader backend, and none is configured (KL_JD)"
+		return f
+	}
+	if s.ModuleOff("jd") {
+		f.Switch = SwitchNone
+		f.Reason = "challenges come only from JDownloader, which is switched off; switch it back on first"
+		return f
+	}
+	off := s.ModuleOff("captcha")
+	f.Switch, f.Enabled = SwitchSetting, !off
+	f.Detail = offDetail(off, "off; no prompt opens, and JDownloader gives up on a link once its captcha expires", captchaDetail(a))
+	return f
+}
+
+// switchModule returns a copy of the ModulesOff list with id added or taken
+// out. A copy, because the slice is shared with the stored settings.
+func switchModule(off []string, id string, on bool) []string {
+	out := slices.DeleteFunc(slices.Clone(off), func(m string) bool { return m == id })
+	if !on {
+		out = append(out, id)
+	}
+	return out
 }
 
 // resolverRegistered reports whether a resolver with this id is in the live
@@ -711,12 +785,9 @@ func torrentsDetail(a *app.App) string {
 	return "magnet links and uploaded .torrent files are routed to the embedded torrent engine"
 }
 
-// captchaDetail checks the same condition as jdDetail, since captcha.JDSource
-// fails for the same reason. CaptchaChallenges is a cache read, not a JD call.
+// captchaDetail counts the open challenges. CaptchaChallenges is a cache
+// read, not a JD call.
 func captchaDetail(a *app.App) string {
-	if !a.ContainerBackendConfigured() {
-		return "no backend configured (KL_JD); a link needing one fails with the hoster's own error instead"
-	}
 	return countDetail(len(a.CaptchaChallenges()), "challenge waiting right now", "challenges waiting right now")
 }
 
@@ -754,8 +825,8 @@ func cnlEnabled(a *app.App) bool {
 
 func cnlReason(a *app.App) string {
 	if a.CnLToggle != nil {
-		return "the standard Click'n'Load port, 127.0.0.1:9666 unless KL_CNL names another - " +
-			"switching this off here does not change KL_CNL itself, so a restart still comes back up the way the environment says"
+		return "the standard Click'n'Load port, 127.0.0.1:9666 unless KL_CNL names another; " +
+			"switching this off here does not change KL_CNL itself, so after a restart the listener comes back up the way the environment says"
 	}
 	return "the listener is started by the process, not by the app: KL_CNL picks the port " +
 		"(KL_CNL=0 switches it off) and closing it needs a restart"

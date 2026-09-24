@@ -238,6 +238,10 @@ func handToJD(w http.ResponseWriter, r *http.Request, a *app.App, relay *contain
 		http.Error(w, app.ErrNoContainerBackend.Error(), http.StatusServiceUnavailable)
 		return
 	}
+	if a.ModuleOff("jd") {
+		http.Error(w, app.ErrJDOff.Error(), http.StatusServiceUnavailable)
+		return
+	}
 	token, err := relay.put(name, data)
 	if err != nil {
 		http.Error(w, "could not prepare the handover", http.StatusInternalServerError)

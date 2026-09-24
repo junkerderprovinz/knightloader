@@ -13,6 +13,7 @@ import (
 	"context"
 	"strings"
 	"sync"
+	"time"
 )
 
 // ActivityKind is one source the status strip renders. It is a fixed set with
@@ -41,6 +42,10 @@ type Activity struct {
 	// puts a stop button on the strip. It is derived from the same map
 	// AbortActivity walks, so the two cannot disagree.
 	Cancellable int `json:"cancellable"`
+	// Deadline is when the soonest countdown of this kind runs out, and zero
+	// while none is counting down. A countdown is work that waits before it
+	// acts, such as a batch sitting in the collector until it confirms itself.
+	Deadline time.Time `json:"deadline,omitzero"`
 }
 
 // activityState is one App's counters per kind, plus the stop handles of the
@@ -52,7 +57,9 @@ type activityState struct {
 	// cancels holds each cancellable run's stop handle per kind, keyed by an id
 	// unique for the App's lifetime. Runs finish in any order, hence a map.
 	cancels map[ActivityKind]map[uint64]context.CancelFunc
-	next    uint64
+	// deadlines holds, keyed like cancels, when each counting-down run is due.
+	deadlines map[ActivityKind]map[uint64]time.Time
+	next      uint64
 }
 
 var (
@@ -68,9 +75,10 @@ func (a *App) activityStateFor() *activityState {
 	st, ok := activityReg[a]
 	if !ok {
 		st = &activityState{
-			active:  map[ActivityKind]int{},
-			total:   map[ActivityKind]int{},
-			cancels: map[ActivityKind]map[uint64]context.CancelFunc{},
+			active:    map[ActivityKind]int{},
+			total:     map[ActivityKind]int{},
+			cancels:   map[ActivityKind]map[uint64]context.CancelFunc{},
+			deadlines: map[ActivityKind]map[uint64]time.Time{},
 		}
 		activityReg[a] = st
 	}
@@ -79,12 +87,18 @@ func (a *App) activityStateFor() *activityState {
 
 // signalLocked returns one kind's current counters. Caller holds st.mu.
 func (st *activityState) signalLocked(kind ActivityKind) Activity {
-	return Activity{
+	sig := Activity{
 		Kind:        kind,
 		Active:      st.active[kind],
 		Total:       st.total[kind],
 		Cancellable: len(st.cancels[kind]),
 	}
+	for _, d := range st.deadlines[kind] {
+		if sig.Deadline.IsZero() || d.Before(sig.Deadline) {
+			sig.Deadline = d
+		}
+	}
+	return sig
 }
 
 // beginActivity adds n units of kind. Overlapping callers add into the same
@@ -106,30 +120,68 @@ func (a *App) beginActivity(kind ActivityKind, n int) {
 // that retires it. The returned func is meant to be deferred and only its first
 // call counts, so a double call cannot retire an unrelated unit.
 func (a *App) startActivityRun(kind ActivityKind, cancel context.CancelFunc) func() {
+	return a.startCountdown(kind, cancel, time.Time{}).done
+}
+
+// activityRun is one cancellable unit of work, counted from startCountdown
+// until done.
+type activityRun struct {
+	a    *App
+	st   *activityState
+	kind ActivityKind
+	id   uint64
+	once sync.Once
+}
+
+// startCountdown is startActivityRun for work that waits until deadline before
+// it acts, so the strip can count down to it. A zero deadline is a plain run.
+// The deadline goes out with the first broadcast, or the strip would draw the
+// run as a count for a moment.
+func (a *App) startCountdown(kind ActivityKind, cancel context.CancelFunc, deadline time.Time) *activityRun {
 	st := a.activityStateFor()
 	st.mu.Lock()
+	defer st.mu.Unlock()
 	st.next++
-	id := st.next
+	r := &activityRun{a: a, st: st, kind: kind, id: st.next}
 	if st.cancels[kind] == nil {
+		// Made together, so retime always has a map to write to.
 		st.cancels[kind] = map[uint64]context.CancelFunc{}
+		st.deadlines[kind] = map[uint64]time.Time{}
 	}
-	st.cancels[kind][id] = cancel
+	st.cancels[kind][r.id] = cancel
+	if !deadline.IsZero() {
+		st.deadlines[kind][r.id] = deadline
+	}
 	st.active[kind]++
 	st.total[kind]++
 	a.Hub.Broadcast("activity", st.signalLocked(kind))
-	st.mu.Unlock()
+	return r
+}
 
-	var once sync.Once
-	return func() {
-		once.Do(func() {
-			st.mu.Lock()
-			defer st.mu.Unlock()
-			// Handle and unit go together, or a broadcast in between would show
-			// an active run with nothing to stop it.
-			delete(st.cancels[kind], id)
-			a.retireLocked(st, kind, 1)
-		})
+// retime moves the run's deadline and tells the strip, unless it is unchanged.
+func (r *activityRun) retime(deadline time.Time) {
+	st := r.st
+	st.mu.Lock()
+	defer st.mu.Unlock()
+	if st.deadlines[r.kind][r.id].Equal(deadline) {
+		return
 	}
+	st.deadlines[r.kind][r.id] = deadline
+	r.a.Hub.Broadcast("activity", st.signalLocked(r.kind))
+}
+
+// done retires the run. Only its first call counts.
+func (r *activityRun) done() {
+	r.once.Do(func() {
+		st := r.st
+		st.mu.Lock()
+		defer st.mu.Unlock()
+		// Handle, deadline and unit go together, or a broadcast in between
+		// would show an active run with nothing to stop it.
+		delete(st.cancels[r.kind], r.id)
+		delete(st.deadlines[r.kind], r.id)
+		r.a.retireLocked(st, r.kind, 1)
+	})
 }
 
 // AbortActivity cancels every run of kind that registered a stop handle and

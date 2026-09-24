@@ -202,3 +202,85 @@ func TestResumableKeepsItsThirdAnswer(t *testing.T) {
 		t.Errorf("resumable came back as %v, want no answer at all", *all[0].Resumable)
 	}
 }
+
+// beforeTheConfirmDueColumn is how many migrations there were before the
+// column that keeps a pending auto-confirm countdown.
+const beforeTheConfirmDueColumn = 49
+
+// A row stored before the column existed has no countdown pending, so an
+// upgrade confirms nothing by itself.
+func TestAnUpgradeLeavesNoCountdownPending(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "tasks.db")
+	db, err := sql.Open("sqlite", path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for i := 0; i < beforeTheConfirmDueColumn; i++ {
+		if _, err := db.Exec(migrations[i]); err != nil {
+			t.Fatalf("old migration %d: %v", i+1, err)
+		}
+	}
+	if _, err := db.Exec(fmt.Sprintf(`PRAGMA user_version = %d`, beforeTheConfirmDueColumn)); err != nil {
+		t.Fatal(err)
+	}
+	// Every column after the first eleven has a default.
+	if _, err := db.Exec(
+		`INSERT INTO tasks (id,url,name,package,resolver,size,loaded,speed,status,error,created_at)
+		 VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
+		"old", "https://host.example/waiting.bin", "waiting.bin", "Batch", "direct",
+		0, 0, 0, string(core.StatusCollected), "", time.Now().UnixMilli()); err != nil {
+		t.Fatal(err)
+	}
+	db.Close()
+
+	s, err := Open(path)
+	if err != nil {
+		t.Fatalf("upgrading an existing database failed: %v", err)
+	}
+	defer s.Close()
+	all, err := s.All()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(all) != 1 {
+		t.Fatalf("reloaded %d tasks, want the one that was already there", len(all))
+	}
+	if !all[0].ConfirmDue.IsZero() {
+		t.Errorf("a row from before the upgrade has a countdown due at %v, want none", all[0].ConfirmDue)
+	}
+}
+
+// The due time is what a restart counts down to, so it has to come back as it
+// was written.
+func TestAPendingCountdownsDueTimeSurvivesARestart(t *testing.T) {
+	dir := t.TempDir()
+	s, err := Open(filepath.Join(dir, "tasks.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	due := time.UnixMilli(time.Now().Add(time.Hour).UnixMilli())
+	task := core.Task{
+		ID: "w", URL: "https://host.example/waiting.bin", Name: "waiting.bin", CreatedAt: time.Now(),
+		Status: core.StatusCollected, ConfirmDue: due,
+	}
+	if err := s.Save(&task); err != nil {
+		t.Fatal(err)
+	}
+	s.Close()
+
+	again, err := Open(filepath.Join(dir, "tasks.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer again.Close()
+	all, err := again.All()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(all) != 1 {
+		t.Fatalf("reloaded %d tasks, want 1", len(all))
+	}
+	if !all[0].ConfirmDue.Equal(due) {
+		t.Errorf("countdown due at %v, want %v", all[0].ConfirmDue, due)
+	}
+}

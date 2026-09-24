@@ -572,12 +572,13 @@
 }
 @keyframes glim-fade-in { from { opacity: 0; } to { opacity: 1; } }
 
-/* GlimStone's failure shake: 360ms, swinging 4, 4, 2 and 2 pixels. Named for
-   the gesture so every failable control reuses it; shake() in shared.js
-   restarts it. Reduced motion gets a short opacity pulse instead.
+/* GlimStone's failure shake, swinging 4, 4, 2 and 2 pixels. Named for the
+   gesture so every failable control reuses it; shake() in shared.js restarts
+   it. Reduced motion gets a short opacity pulse instead.
 
-   The extension has one fixed motion level, so 360ms and the bubble's 110ms
-   are the web UI's top-level --motion-shake-dur and --motion-fade-dur. */
+   The extension has no motion setting, so it runs at the language's default
+   level, subtle, whose --motion-shake-dur is 220ms. The bubble keeps the 110ms
+   the tooltip rule names for it. */
 @keyframes glim-shake {
   0%, 100% { transform: translateX(0); }
   20% { transform: translateX(-4px); }
@@ -589,7 +590,7 @@
   0%, 100% { opacity: 1; }
   50% { opacity: 0.45; }
 }
-.glim-shake { animation: glim-shake 360ms ease-in-out; }
+.glim-shake { animation: glim-shake 220ms ease-in-out; }
 @media (prefers-reduced-motion: reduce) {
   .glim-shake { animation: glim-shake-quiet 300ms ease-in-out; }
 }
@@ -983,6 +984,98 @@
   gap: 8px;
   margin-top: 20px;
 }
+
+/* The crypto window (GlimStone "The crypto window"), on the confirmation
+   window's frame. Only the body between the title and the bottom row scrolls,
+   so both stay in place (rule 15). The tiles and chips are buttons, and each
+   rule below names its container, so the page's own button rules do not reach
+   them. */
+.glim-crypto { max-width: 480px; }
+.glim-crypto-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.glim-crypto-intro { margin: 0; font-size: var(--text-body); color: var(--carbon-text-sub); }
+.glim-crypto-code {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border-radius: var(--radius-card);
+  background: var(--carbon-surface2);
+}
+/* Black on white in both themes: an inverted code is outside the standard, and
+   the scanners that refuse it are the wallet apps a donor holds. The plate
+   takes the card radius, which is safe because the outer four modules are the
+   quiet zone. */
+.glim-crypto-qr {
+  padding: 12px;
+  border-radius: var(--radius-card);
+  background: #ffffff;
+  line-height: 0;
+}
+/* The whole address, wrapping rather than shortened, since it is checked by eye
+   before anybody sends to it. */
+.glim-crypto-address {
+  margin: 0;
+  width: 100%;
+  font-family: ui-monospace, "Cascadia Code", Menlo, Consolas, monospace;
+  font-size: var(--text-dense);
+  color: var(--carbon-text);
+  text-align: center;
+  word-break: break-all;
+}
+.glim-crypto-chains { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.glim-crypto-chains .glim-crypto-chip {
+  height: auto;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--carbon-surface3);
+  color: var(--carbon-text-sub);
+  font-size: var(--text-dense);
+  font-weight: 500;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+/* On surface3 already, so it hovers to --carbon-hover-raised (rule 21). */
+.glim-crypto-chains .glim-crypto-chip:hover { background: var(--carbon-hover-raised); color: var(--carbon-text); }
+.glim-crypto-chains .glim-crypto-chip[aria-selected='true'] { background: var(--accent); color: var(--accent-contrast); }
+/* What a donor on this chain has to know, where they would look for it. */
+.glim-crypto-note { margin: 0; font-size: var(--text-dense); color: var(--status-warn-text); text-align: center; }
+
+.glim-crypto-coins { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+/* Square, whatever the label shows, with the mark at half the tile. */
+.glim-crypto-coins .glim-crypto-tile {
+  height: auto;
+  aspect-ratio: 1;
+  padding: 0 8px;
+  flex-direction: column;
+  gap: 4px;
+  border-radius: var(--radius-control);
+  background: var(--carbon-surface2);
+  color: var(--carbon-text-sub);
+  font-size: var(--text-dense);
+  font-weight: 500;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+.glim-crypto-coins .glim-crypto-tile svg { width: auto; height: 40%; }
+/* Filled with surface2, so it hovers up to surface3 (rule 21). On the dark
+   theme that step is too small to notice, so it goes light and flips its ink,
+   the mark included. */
+.glim-crypto-coins .glim-crypto-tile:hover { background: var(--carbon-surface3); color: var(--carbon-text); }
+:root[data-theme='dark'] .glim-crypto-coins .glim-crypto-tile:hover:not([aria-selected='true']) {
+  background: var(--carbon-text);
+  color: var(--carbon-bg);
+}
+:root[data-theme='dark'] .glim-crypto-coins .glim-crypto-tile:hover:not([aria-selected='true']) svg { color: currentColor; }
+/* A tile filled with a colour the engine chose paints its mark in that fill's
+   ink, never in a colour of its own that nobody can predict the contrast of. */
+.glim-crypto-coins .glim-crypto-tile[aria-selected='true'] { background: var(--accent); color: var(--accent-contrast); }
+.glim-crypto-coins .glim-crypto-tile[aria-selected='true'] svg { color: var(--accent-contrast); }
 
 /* Brand buttons (GlimStone 1.10.0) take three values: the adjusted colour at
    rest (--brand, a theme token), the true colour as the hover fill

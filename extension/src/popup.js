@@ -65,8 +65,11 @@ function paintHues() {
 }
 
 (async () => {
-  await applyAppearance();
+  const look = await applyAppearance();
   paintHues();
+  // Disco walks here too, or the popup would sit still beside a settings page
+  // that moves. rehue() reaches the cards drawn later as well.
+  applyDisco(look.disco, look.rainbow);
   await loadLanguage();
   wireTooltips();
   openOptionsBtn.setAttribute('aria-label', t('common.settings'));

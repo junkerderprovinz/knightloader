@@ -6,6 +6,7 @@ import { Card, SectionTitle, ToggleRow } from '../../components/ui';
 import { useT } from '../../lib/i18n';
 import { setHidden } from '../../lib/sidebarPrefs';
 import { useDraft } from './context';
+import { ModuleToggle } from './ModuleToggle';
 
 export function AccountsTab() {
   const { t } = useT();
@@ -15,7 +16,9 @@ export function AccountsTab() {
     <div className="flex flex-col gap-10">
       <Card hue={0} className="flex flex-col gap-3">
         <SectionTitle>{t('settings.accounts.setupTitle')}</SectionTitle>
+        <ModuleToggle id="jd" />
         <ToggleRow
+          hue={1}
           label={t('settings.accounts.showInSidebar')}
           hint={t('settings.accounts.showInSidebarHint')}
           checked={!cfg.hideAccountsFromSidebar}

@@ -1,5 +1,5 @@
 import { useT } from '../lib/i18n';
-import { InfoBubble } from './ui';
+import { InfoBubble, useTooltip } from './ui';
 
 /**
  * SelectionReach reads "18 selected, 12 of them not visible". A selection
@@ -23,6 +23,9 @@ export function SelectionReach({
   onReduce: () => void;
 }) {
   const { t } = useT();
+  const label = mode === 'removal' ? t('select.reduceRemove') : t('select.reduceKeep');
+  const tip = useTooltip<HTMLButtonElement>(label);
+  const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
   // The removal dialog prints its own count, so there this adds only the clause.
   const owns = mode === 'select';
   if (hidden <= 0) {
@@ -33,7 +36,6 @@ export function SelectionReach({
       </span>
     );
   }
-  const label = mode === 'removal' ? t('select.reduceRemove') : t('select.reduceKeep');
   const aria = (mode === 'removal' ? t('select.reduceRemoveAria') : t('select.reduceKeepAria')).replace(
     '{n}',
     String(hidden),
@@ -44,7 +46,7 @@ export function SelectionReach({
         {owns && `${total} ${t('select.count')}, `}
         <button
           type="button"
-          title={label}
+          {...tipHoverProps}
           aria-label={aria}
           className="rounded-[var(--radius-control)] underline decoration-dotted underline-offset-2
             transition-colors hover:text-carbon-text focus-visible:text-carbon-text"
@@ -52,6 +54,7 @@ export function SelectionReach({
         >
           {t('select.hidden').replace('{n}', String(hidden))}
         </button>
+        {tip.node}
       </span>
       <InfoBubble tip={t('select.hiddenTip')} />
     </span>

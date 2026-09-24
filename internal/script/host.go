@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/dop251/goja"
@@ -77,9 +78,17 @@ type Host struct {
 
 	queue chan fireJob
 
+	// off is the modules page's switch for scripting as a whole. While it is
+	// set no event starts a script; RunNow ignores it, as it ignores Enabled.
+	off atomic.Bool
+
 	mu        sync.RWMutex
 	byTrigger map[Trigger][]*compiled
 }
+
+// SetOff switches every trigger off or back on. Runs already queued are
+// dropped and a script already running finishes.
+func (h *Host) SetOff(off bool) { h.off.Store(off) }
 
 // NewHost opens dataDir's script store, builds the trigger index and starts
 // the worker pool. The workers run from the moment it returns, so Close must
@@ -223,6 +232,9 @@ func (h *Host) DeleteScript(id string) error {
 // and a full queue drops that run with a log line. f.Queue was read at publish
 // time, so scripts in one burst may see slightly different counters.
 func (h *Host) fire(f Firing) {
+	if h.off.Load() {
+		return
+	}
 	h.mu.RLock()
 	candidates := h.byTrigger[f.Trigger]
 	h.mu.RUnlock()
@@ -283,6 +295,9 @@ func (h *Host) worker() {
 		case <-h.ctx.Done():
 			return
 		case job := <-h.queue:
+			if h.off.Load() {
+				continue
+			}
 			h.runOne(h.ctx, &job.c.Script, job.c.prog, job.f)
 		}
 	}

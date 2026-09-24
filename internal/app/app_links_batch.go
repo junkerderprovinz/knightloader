@@ -52,10 +52,9 @@ func (a *App) AddLinksWithOptions(urls []string, pkg string, origin core.Origin,
 	if len(created) == 0 {
 		return a.detached(created), nil
 	}
-	ids := make([]string, 0, len(created))
-	for _, t := range created {
-		ids = append(ids, t.ID)
-	}
+	// The form's values are for every row a yt-dlp link became, and so is the
+	// confirm below.
+	ids := a.withVariantFamilies(idsOf(created))
 
 	// Applied after staging, through the same route as the properties panel, so
 	// these win over whatever the Packagizer pass in finishStaging decided.
@@ -99,5 +98,8 @@ func (a *App) AddLinksWithOptions(urls []string, pkg string, origin core.Origin,
 	if password != "" {
 		a.rememberPasswords([]string{password})
 	}
+	// Last, so the batch's own folder is on the tasks before a confirm can
+	// start one.
+	a.autoConfirm(ids)
 	return a.detached(created), nil
 }
