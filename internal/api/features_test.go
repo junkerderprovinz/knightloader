@@ -2,10 +2,15 @@ package api
 
 import (
 	"encoding/json"
+	"net/http"
+	"net/http/httptest"
+	"slices"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
+	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
 	"github.com/junkerderprovinz/knightloader/internal/schedule"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
@@ -148,11 +153,119 @@ func TestSwitchingOnWithNothingParkedSaysSo(t *testing.T) {
 // without a switch is an error rather than a silent success.
 func TestUnswitchableModulesAreRefused(t *testing.T) {
 	a := testApp(t)
-	for _, id := range []string{"cnl", "captcha", "tray", "federation", "nonsense"} {
+	// KL_JD is unset here, so JD and the captcha relay it feeds have no switch.
+	for _, id := range []string{"cnl", "jd", "captcha", "tray", "nonsense"} {
 		if err := setFeature(a, id, false); err == nil {
 			t.Errorf("%s has no switch but setFeature accepted it", id)
 		}
 	}
+}
+
+// TestModuleSwitchesListTheModuleOffAndBackOn checks the modules without a
+// setting of their own: off puts the id on ModulesOff once, on takes it away.
+func TestModuleSwitchesListTheModuleOffAndBackOn(t *testing.T) {
+	a := testApp(t)
+	for _, id := range []string{"connections", "federation", "torrents", "scripting"} {
+		for i := 0; i < 2; i++ {
+			if err := setFeature(a, id, false); err != nil {
+				t.Fatal(err)
+			}
+		}
+		if got := a.Settings.Get().ModulesOff; !slices.Equal(got, []string{id}) {
+			t.Fatalf("%s switched off twice: ModulesOff = %q, want it listed once", id, got)
+		}
+		if row := featureRow(t, a, id); row.Enabled {
+			t.Errorf("%s is switched off but its row says on", id)
+		}
+		if err := setFeature(a, id, true); err != nil {
+			t.Fatal(err)
+		}
+		if got := a.Settings.Get().ModulesOff; len(got) != 0 {
+			t.Fatalf("%s switched back on: ModulesOff = %q, want empty", id, got)
+		}
+	}
+}
+
+// TestTwoSwitchesAtOnceKeepBoth checks that switches flipped together do not
+// write over each other's ModulesOff.
+func TestTwoSwitchesAtOnceKeepBoth(t *testing.T) {
+	a := testApp(t)
+	ids := []string{"connections", "federation", "torrents", "scripting"}
+	var wg sync.WaitGroup
+	for _, id := range ids {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			if err := setFeature(a, id, false); err != nil {
+				t.Error(err)
+			}
+		}()
+	}
+	wg.Wait()
+	got := slices.Clone(a.Settings.Get().ModulesOff)
+	slices.Sort(got)
+	want := slices.Clone(ids)
+	slices.Sort(want)
+	if !slices.Equal(got, want) {
+		t.Fatalf("ModulesOff = %q after switching four modules off at once, want %q", got, want)
+	}
+}
+
+// TestRuleSwitchesAreTheListsOwnFlag checks that the Packagizer and link
+// filter rows switch the same flag as the Rules page, and keep the rules.
+func TestRuleSwitchesAreTheListsOwnFlag(t *testing.T) {
+	a := testApp(t)
+	if err := setFeature(a, "packagizer", false); err != nil {
+		t.Fatal(err)
+	}
+	if err := setFeature(a, "linkfilter", false); err != nil {
+		t.Fatal(err)
+	}
+	s := a.Settings.Get()
+	if !s.Packagizer.Disabled || !s.LinkFilter.Disabled {
+		t.Fatalf("packagizer disabled %v, link filter disabled %v; want both off", s.Packagizer.Disabled, s.LinkFilter.Disabled)
+	}
+	if err := setFeature(a, "packagizer", true); err != nil {
+		t.Fatal(err)
+	}
+	if a.Settings.Get().Packagizer.Disabled {
+		t.Error("the packagizer switched back on but the list is still disabled")
+	}
+}
+
+// TestSwitchedOffFederationShowsAndReachesNoPeer checks the routes a peer is
+// reached through while the module is off.
+func TestSwitchedOffFederationShowsAndReachesNoPeer(t *testing.T) {
+	a := testApp(t)
+	reg := newRegistry()
+	registerFederation(reg, a)
+	h := http.NewServeMux()
+	reg.attach(h, http.NotFoundHandler())
+	if err := setFeature(a, "federation", false); err != nil {
+		t.Fatal(err)
+	}
+
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/api/instances", nil))
+	if strings.TrimSpace(rec.Body.String()) != "[]" {
+		t.Errorf("GET /api/instances = %s while federation is off, want []", rec.Body.String())
+	}
+	rec = httptest.NewRecorder()
+	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/api/instances/peer/tasks", nil))
+	if rec.Code != http.StatusServiceUnavailable {
+		t.Errorf("proxying to a peer answered %d while federation is off, want 503", rec.Code)
+	}
+}
+
+func featureRow(t *testing.T, a *app.App, id string) Feature {
+	t.Helper()
+	for _, f := range featureList(a) {
+		if f.ID == id {
+			return f
+		}
+	}
+	t.Fatalf("no module %q", id)
+	return Feature{}
 }
 
 // TestEnabledIsDerivedNotStored checks that a settings write from outside the

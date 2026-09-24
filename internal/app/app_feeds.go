@@ -2,7 +2,7 @@ package app
 
 // RSS and Atom subscriptions. Like the drop folders in app_watch.go, nobody is
 // watching when a feed entry arrives, and every entry goes through
-// AddLinksFrom so the filter, crawler, Packagizer and mirror check apply.
+// addLinksFrom so the filter, crawler, Packagizer and mirror check apply.
 
 import (
 	"context"
@@ -11,7 +11,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/junkerderprovinz/knightloader/internal/confirm"
 	"github.com/junkerderprovinz/knightloader/internal/feed"
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
@@ -173,16 +172,15 @@ func (a *App) onFeedEntry(j feed.Job) {
 // then starts anything, so the destination is set before a download picks
 // where to write.
 func (a *App) stageFeedJob(j feed.Job) {
-	created := a.AddLinksFrom([]string{j.URL}, j.Package, OriginFeed)
-	if len(created) == 0 {
+	ids := idsOf(a.addLinksFrom([]string{j.URL}, j.Package, OriginFeed, LinkBatchOptions{}))
+	if len(ids) == 0 {
 		// Filtered or duplicate; not logged, or a filtered feed would log on
 		// every poll.
 		return
 	}
-	ids := make([]string, 0, len(created))
-	for _, t := range created {
-		ids = append(ids, t.ID)
-	}
+	// A video feed's entry is a yt-dlp link, and the options below are for
+	// every row it became.
+	ids = a.withVariantFamilies(ids)
 	log.Printf("feed %s added %s", j.Source, j.Package)
 
 	var (
@@ -206,7 +204,5 @@ func (a *App) stageFeedJob(j feed.Job) {
 
 	// Only the instance's own AutoConfirm decides: a feed entry is written by a
 	// stranger, who should not get to start downloads on this machine.
-	if a.Settings.Get().AutoConfirm {
-		a.ConfirmTasks(ids, confirm.Config{}, confirm.TriggerAutoConfirm)
-	}
+	a.autoConfirm(ids)
 }

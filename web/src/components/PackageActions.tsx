@@ -4,7 +4,7 @@ import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
 import { Button, Field, IconBadge, Modal, TextInput } from './ui';
 import { ContextMenu, anchorBelow, useContextMenu } from './ContextMenu';
-import { IconArrowDown, IconArrowUp, IconBottom, IconFolder, IconPriority, IconTop } from '../lib/icons';
+import { IconArrowDown, IconArrowUp, IconBottom, IconClose, IconFolder, IconPriority, IconTop } from '../lib/icons';
 
 // Split by hoster: one package's box forking into three per-host boxes, drawn
 // solid like the glyphs in lib/icons.tsx.
@@ -209,9 +209,7 @@ export function PackageMoveDialog({
             {count} {t('select.count')}
           </span>
           <span className="flex-1" />
-          <Button kind="ghost" onClick={onClose}>
-            {t('common.cancel')}
-          </Button>
+          <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
           <Button onClick={() => onApply(name.trim())}>{t('pkg.merge')}</Button>
         </>
       }

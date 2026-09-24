@@ -54,7 +54,7 @@ export default function DownloadsScreen({
   // Summed from the task list this screen already streams, so there is no
   // second request and no second truth about the same number.
   const speed = tasks.reduce((n, t) => n + (t.speed || 0), 0);
-  const collected = tasks.filter((x) => x.status === 'collected');
+  const collected = tasks.filter((x) => x.status === 'collected' && !x.variantOff);
   const queued = tasks.filter((x) => x.status !== 'collected');
 
   /** The live handle, kept so an action that just changed something on the

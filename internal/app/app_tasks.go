@@ -347,7 +347,7 @@ type checkBatch struct {
 // runCheck asks one backend about its whole group and writes the verdicts back.
 func (a *App) runCheck(b *checkBatch) {
 	ck, ok := b.res.(resolver.Checker)
-	if !ok {
+	if !ok || a.resolverOff(b.res.Info().ID) {
 		// Uncheckable rather than unknown: unknown means nobody has looked yet.
 		a.settleCheck(b, nil)
 		return
@@ -429,6 +429,9 @@ func (a *App) analyze(id, rawurl string) {
 func (a *App) probeYtdlpTitle(id, rawurl string) {
 	tp, ok := a.ytdlpTitleProber()
 	if !ok {
+		// Filed like a probe that found nothing, or a link staged while
+		// yt-dlp is switched off would never get a package.
+		a.fileUnprobedMedia(id)
 		return
 	}
 	ctx, cancel := context.WithTimeout(a.ctx, ytdlpProbeTimeout)
@@ -629,6 +632,8 @@ func (a *App) SetTaskOptions(ids []string, o TaskOptions) error {
 				kind = ytdlp.VariantVideo
 			}
 			t.Variant = variantEncode(kind, strings.TrimSpace(*o.VariantQuality))
+			// A new pick is a different file: its extension and size follow.
+			a.reapplyProbeLocked(t)
 		}
 		if o.AudioBitrate != nil {
 			t.AudioBitrate = strings.TrimSpace(*o.AudioBitrate)
@@ -789,8 +794,19 @@ func (a *App) saveAndBroadcast(copies []core.Task) {
 // Remove drops a task from the list. deleteFiles also erases what was
 // downloaded; it is never the default, as in JDownloader.
 func (a *App) Remove(id string, deleteFiles bool) {
+	if a.removeTask(id, deleteFiles) {
+		// The link may have been the last one a countdown was waiting for.
+		a.wakeAutoConfirm()
+	}
+}
+
+// removeTask is Remove without waking the auto-confirm countdowns, so a caller
+// removing many rows wakes them once. It reports whether the row was in the
+// collector, the only place a countdown looks.
+func (a *App) removeTask(id string, deleteFiles bool) (collected bool) {
 	a.mu.Lock()
 	t := a.tasks[id]
+	collected = t != nil && t.Status == core.StatusCollected
 	// Unfiled first, or the removed link would keep blocking its own re-add.
 	a.forgetLinkLocked(t)
 	delete(a.tasks, id)
@@ -804,6 +820,7 @@ func (a *App) Remove(id string, deleteFiles bool) {
 	}
 	_ = a.Store.Delete(id)
 	a.Hub.Broadcast("removed", map[string]string{"id": id})
+	return collected
 }
 
 // put stages a task: it enters the task map, the store and every connected

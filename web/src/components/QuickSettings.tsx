@@ -12,7 +12,7 @@ import { useToast } from '../lib/toast';
 import { Button, Field, Modal, NumberInput } from './ui';
 import { SpeedMeter } from './SpeedGraph';
 import { VolumeMeter } from './VolumeMeter';
-import { IconMenu } from '../lib/icons';
+import { IconClose, IconMenu } from '../lib/icons';
 
 /**
  * Spin is a number field that saves on blur or Enter, not per keystroke,
@@ -102,7 +102,12 @@ export function QuickSettings({ onClose }: { onClose: () => void }) {
   );
 
   return (
-    <Modal title={t('quick.title')} onClose={onClose}>
+    <Modal
+      title={t('quick.title')}
+      onClose={onClose}
+      // Every field saves itself, so closing is the only answer.
+      footer={<Button kind="primary" labelled icon={<IconClose />} title={t('common.close')} onClick={onClose} />}
+    >
       {cfg && (
         <div className="flex flex-col gap-4">
           {/* No `max`: the bound lives in settings.sanitizeQueue and is not

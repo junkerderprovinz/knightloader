@@ -21,7 +21,7 @@ import { IconCheck, IconChevronDown, IconRetry, PriorityGlyph } from '../lib/ico
 import { hostOf } from '../lib/searchQuery';
 import { adviceFor } from '../lib/failureAdvice';
 import { FailureAdvice } from './FailureAdvice';
-import { ContextMenu, anchorBelow, useContextMenu } from './ContextMenu';
+import { ContextMenu, anchorBelow, useContextMenu, type MenuItem } from './ContextMenu';
 import { HosterIcon } from './HosterIcon';
 import { ProgressBar } from './ProgressBar';
 import { ResolverBadge, StatusPill } from './StatusPill';
@@ -846,7 +846,13 @@ const waitingKey: Partial<Record<NonNullable<Task['waiting']>, TranslationKey>> 
   // to raise the concurrency limit against a queue that is not short of slots.
   disk: 'task.waiting.disk',
   volumeCap: 'task.waiting.volumeCap',
+  module: 'task.waiting.module',
 };
+
+// A full slot count and a stopped queue hold every waiting row alike, and the
+// toolbar already says so; written on each row they tell one row from another
+// nothing.
+const queueWideWaiting = new Set<NonNullable<Task['waiting']>>(['slot', 'halted']);
 
 function StatusCell({ task, t }: { task: Task; t: Translate }) {
   // The typed cause carries the detail, as a tooltip rather than a second word
@@ -888,7 +894,7 @@ function StatusCell({ task, t }: { task: Task; t: Translate }) {
           Only when there is no note: a backend's sentence about what it is
           doing right now is more specific than our reason for not having
           started it, and two greys on one line stop the cell being readable. */}
-      {!task.note && task.waiting && (
+      {!task.note && task.waiting && !queueWideWaiting.has(task.waiting) && (
         // A bubble for the same reason task.note has one: this column is narrow
         // by default and several of these reasons are longer in German than the
         // space they get, so the ellipsis needs somewhere to lead.
@@ -1043,6 +1049,76 @@ export const VARIANT_KIND_LABEL_KEY: Record<string, TranslationKey> = {
   description: 'columns.variant.description',
 };
 
+// The two kinds of value a probe adds to the pickers, ytdlp.VideoFormats'
+// "1080p60 webm vp9" and ytdlp.AudioTracks' "opus 160k". The fixed caps and
+// formats beside them read as they are.
+const VIDEO_TRACK = /^(\d+)p(\d*) ([a-z0-9]+) ([a-z0-9]+)$/;
+const AUDIO_TRACK = /^([a-z0-9]+) (\d+)k$/;
+
+/** How one picker value reads: "1080p60 webm (vp9)", "opus 160 kbit/s", or the value itself. */
+function pickLabel(value: string): string {
+  const video = VIDEO_TRACK.exec(value);
+  if (video) return `${video[1]}p${video[2]} ${video[3]} (${video[4]})`;
+  const audio = AUDIO_TRACK.exec(value);
+  if (audio) return `${audio[1]} ${audio[2]} kbit/s`;
+  return value;
+}
+
+/** The height a video pick is about, 0 for best and custom. */
+function heightOf(value: string): number {
+  const m = /^(\d+)p/.exec(value);
+  return m ? Number(m[1]) : 0;
+}
+
+/**
+ * One row of a picker's menu: a value, or a row that opens a submenu of
+ * values. The submenu is how a video row's tracks sit under their height.
+ */
+type PickerEntry = string | { label: string; options: { value: string; label: string }[] };
+
+/**
+ * videoMenu lays out the video row's choices by height: best first, then one
+ * row per height the source has, then custom. A height with probed tracks
+ * opens a submenu of its cap and every track at it; a 4K source's tracks as
+ * one flat list run past the bottom of the screen. `options` is the same
+ * choices in menu order, which is what the wheel steps through.
+ */
+function videoMenu(caps: string[], tracks: string[], t: Translate): { options: string[]; entries: PickerEntry[][] } {
+  const heights = [...new Set([...caps, ...tracks].map(heightOf).filter((h) => h > 0))].sort((a, b) => b - a);
+  const byHeight: PickerEntry[] = [];
+  for (const h of heights) {
+    const cap = caps.find((c) => heightOf(c) === h);
+    const here = tracks.filter((x) => heightOf(x) === h);
+    if (here.length === 0) {
+      if (cap) byHeight.push(cap);
+      continue;
+    }
+    byHeight.push({
+      label: `${h}p`,
+      options: [
+        ...(cap ? [{ value: cap, label: t('columns.variant.anyFormat', { quality: cap }) }] : []),
+        ...here.map((x) => ({ value: x, label: pickLabel(x) })),
+      ],
+    });
+  }
+  const entries: PickerEntry[][] = [
+    caps.filter((c) => c === 'best'),
+    byHeight,
+    caps.filter((c) => heightOf(c) === 0 && c !== 'best'),
+  ].filter((g) => g.length > 0);
+  const options = entries.flat().flatMap((e) => (typeof e === 'string' ? [e] : e.options.map((o) => o.value)));
+  return { options, entries };
+}
+
+/** The audio row's choices in three runs: best, the source's own tracks, and what they convert to. */
+function audioMenu(formats: string[]): PickerEntry[][] {
+  return [
+    formats.filter((f) => f === 'best'),
+    formats.filter((f) => AUDIO_TRACK.test(f)),
+    formats.filter((f) => f !== 'best' && !AUDIO_TRACK.test(f)),
+  ].filter((g) => g.length > 0);
+}
+
 /**
  * One shared fetch backs every row's picker rather than one per row: the menu
  * is the same handful of ids for the whole table, and forty rows calling
@@ -1084,6 +1160,7 @@ const VARIANTE_SELECT_CLASS = `shrink-0 inline-flex items-center gap-1 cursor-po
 function VariantPicker({
   value,
   options,
+  entries,
   label,
   disabled,
   render,
@@ -1091,7 +1168,10 @@ function VariantPicker({
   shake = 0,
 }: {
   value: string;
+  /** Every choice in menu order, which is what the wheel steps through. */
   options: string[];
+  /** The menu's rows in groups, where they are more than `options` in one run. */
+  entries?: PickerEntry[][];
   /** The menu's accessible name - what this picker is choosing. */
   label: string;
   disabled?: boolean;
@@ -1157,6 +1237,13 @@ function VariantPicker({
     // answering the wheel after the first refused change.
   }, [disabled, options, value, onPick, shake]);
 
+  const choice = (o: string, text: string): MenuItem => ({
+    id: o || 'auto',
+    label: text,
+    checked: o === value,
+    onSelect: () => onPick(o),
+  });
+
   return (
     <>
       <button
@@ -1185,17 +1272,18 @@ function VariantPicker({
           anchor={menu.anchor}
           label={label}
           onClose={menu.close}
-          groups={[
-            {
-              id: 'variant',
-              items: options.map((o) => ({
-                id: o || 'auto',
-                label: render(o),
-                checked: o === value,
-                onSelect: () => onPick(o),
-              })),
-            },
-          ]}
+          groups={(entries ?? [options]).map((group, g) => ({
+            id: `variant-${g}`,
+            items: group.map((e) =>
+              typeof e === 'string'
+                ? choice(e, render(e))
+                : {
+                    id: `rows-${e.label}`,
+                    label: e.label,
+                    submenu: [{ id: e.label, items: e.options.map((o) => choice(o.value, o.label)) }],
+                  },
+            ),
+          }))}
         />
       )}
     </>
@@ -1249,22 +1337,25 @@ function VarianteCell({ task, ctx }: { task: Task; ctx: CellContext }) {
   if (!kind) return null;
   const sub = variantSubOf(task);
   const label = ctx.t(VARIANT_KIND_LABEL_KEY[kind] ?? VARIANT_KIND_LABEL_KEY.video);
+  // Past the collector the pick is settled, so the download list says what is
+  // being fetched instead of offering to change it.
+  if (ctx.profile === 'downloads') return <VariantSummary task={task} kind={kind} sub={sub} label={label} />;
   // A video row's own probe (task.availableQualities) narrows the menu to what
   // this source offers, falling back to the full static menu while nothing has
   // probed yet, the way every other "empty means no opinion" field here does.
-  // Audio format narrows the same way: a source is not lossless just because
-  // ffmpeg can wrap its lossy audio in a lossless container, and offering that
-  // choice invites the misunderstanding.
-  const options =
+  // The probe's tracks (task.availableVideoFormats) join the caps, so a
+  // container or a codec can be picked as well as a height. Audio format
+  // narrows the same way: a source is not lossless just because ffmpeg can
+  // wrap its lossy audio in a lossless container, and offering that choice
+  // invites the misunderstanding.
+  const video =
     kind === 'video'
-      ? task.availableQualities?.length
-        ? task.availableQualities
-        : menus.qualities
-      : kind === 'audio'
-        ? task.availableAudioFormats?.length
-          ? task.availableAudioFormats
-          : menus.audioFormats
-        : null;
+      ? videoMenu(task.availableQualities?.length ? task.availableQualities : menus.qualities, task.availableVideoFormats ?? [], ctx.t)
+      : null;
+  const audioFormats =
+    kind === 'audio' ? (task.availableAudioFormats?.length ? task.availableAudioFormats : menus.audioFormats) : null;
+  const options = video ? video.options : audioFormats;
+  const entries = video ? video.entries : audioFormats ? audioMenu(audioFormats) : undefined;
   // The same narrowing as the format select above, applied to the bitrates.
   const bitrateOptions = task.availableAudioBitrates?.length ? task.availableAudioBitrates : menus.audioBitrates;
 
@@ -1305,9 +1396,10 @@ function VarianteCell({ task, ctx }: { task: Task; ctx: CellContext }) {
         <VariantPicker
           value={sub || options[0]}
           options={options}
+          entries={entries}
           label={ctx.t('columns.variant.pick')}
           disabled={busy}
-          render={(o) => o}
+          render={pickLabel}
           onPick={(v) => void change(v)}
           shake={shakeQuality}
         />
@@ -1327,6 +1419,28 @@ function VarianteCell({ task, ctx }: { task: Task; ctx: CellContext }) {
         />
       )}
     </span>
+  );
+}
+
+/**
+ * VariantSummary is the download list's reading of a variant row: which of
+ * the link's rows it is and the quality it is fetched at, "Video 1080p mp4
+ * (avc1)" or "Audio opus 160 kbit/s". The rows of a link start out under one
+ * name, so without it the audio row is one more line with the video's title.
+ */
+function VariantSummary({ task, kind, sub, label }: { task: Task; kind: string; sub: string; label: string }) {
+  let picked = '';
+  if (kind === 'video' || kind === 'audio') picked = pickLabel(sub || 'best');
+  // The bitrate only reaches a conversion; "best" and a picked track are
+  // copied as the source has them, whatever the bitrate picker says.
+  if (kind === 'audio' && sub && sub !== 'best' && !AUDIO_TRACK.test(sub) && task.audioBitrate) {
+    picked = `${picked} ${task.audioBitrate} kbit/s`;
+  }
+  return (
+    <Tip tip={picked ? `${label} ${picked}` : label} className="block min-w-0 truncate text-[11px] text-carbon-textMuted">
+      {label}
+      {picked && <span className="text-carbon-textSub"> {picked}</span>}
+    </Tip>
   );
 }
 
@@ -1355,13 +1469,13 @@ export const COLUMNS: ColumnDef[] = [
     // trailing padding are paid, which a long scene release or any of the five
     // rows of a yt-dlp package outruns.
     //
-    // The collector gets 460 because it has the room: that list's last column
-    // carries all the surplus (see gridTemplate), so the extra 120px comes out
+    // The collector gets 560 because it has the room: that list's last column
+    // carries all the surplus (see gridTemplate), so the extra 220px comes out
     // of a blank stretch and the table fits exactly as before. Downloads keeps
     // 340 because it has nothing to take it from, already overrunning its card
     // below about 1500px.
     width: 340,
-    widthByProfile: { collector: 460 },
+    widthByProfile: { collector: 560 },
     minWidth: TREE_INDENT + NAME_TEXT_FLOOR,
     align: 'start',
     hideable: false,
@@ -1566,17 +1680,20 @@ export const COLUMNS: ColumnDef[] = [
     // Sized for the row every yt-dlp package has, not for the one row in five
     // that carries the most. Measured in all 42 locales, four of the five kinds
     // fit in 90px and only the audio row, with its second picker, wants 216.
-    // 160 carries the video row in every language and lets the audio row wrap,
-    // which it can since the pickers are shrink-0 and the cell flex-wrap.
+    // 144 carries the video row in every language (143 at most, Lithuanian)
+    // and lets the audio row wrap, which it can since the pickers are shrink-0
+    // and the cell flex-wrap.
     //
     // minWidth is about the widest single control, because a picker cannot
     // shrink and the cell clips rather than squeezes it: the widest measured is
     // Finnish "Automaattinen" at 107px, 123px with the padding.
-    width: 160,
+    width: 144,
     minWidth: 132,
     align: 'start',
     hideable: true,
     compare: (a, b) => cmpText(variantKindOf(a), variantKindOf(b)),
+    // Pickers in the collector, plain text in the download list, which is
+    // narrower than the pickers it replaces; the widths above hold for both.
     render: (task, ctx) => <VarianteCell task={task} ctx={ctx} />,
     // No aggregate: a package almost always mixes kinds, its video, audio and
     // thumbnail rows all sharing one package, so there is no single variant a
@@ -1672,11 +1789,27 @@ export function belongsTo(id: ColumnId, profile: ListProfile): boolean {
  * The shape of a stored layout, bumped when a shipped default changes in a way
  * an existing layout would otherwise swallow. mergeOrder keeps whatever order
  * somebody arranged, which also means a new default order reaches nobody who
- * has ever touched this table. The stamp says that one change is not a
- * preference to keep: the order is re-seated once, while the widths and the
- * hidden set survive untouched.
+ * has ever touched this table. Each stamp names the one change that is not a
+ * preference to keep: at ORDER_RESEATED_AT the order is re-seated once, and a
+ * column in SHOWN_SINCE is taken out of a hidden set stored before its
+ * version. Everything else survives untouched.
  */
-export const LAYOUT_VERSION = 2;
+export const LAYOUT_VERSION = 3;
+
+/** The version whose order every older layout takes once; see resolveLayout. */
+const ORDER_RESEATED_AT = 2;
+
+/**
+ * Columns a list shows by default where an earlier build hid them, with the
+ * version that changed it. A hidden set stored before that version was written
+ * while the column was hidden for everybody, so it says nothing about anybody
+ * wanting it gone and the new default wins once. From that version on, hiding
+ * it is somebody's own choice and stays.
+ */
+const SHOWN_SINCE: Record<ListProfile, Partial<Record<ColumnId, number>>> = {
+  downloads: { variant: 3 },
+  collector: {},
+};
 
 /**
  * What each list starts with switched off. The collector holds links nobody has
@@ -1687,29 +1820,20 @@ export const LAYOUT_VERSION = 2;
  * table opens several hundred pixels scrolled off its own right edge, and a
  * default that does not fit reads as a broken layout rather than a rich one.
  * The rest are one click away in the header menu. Downloads is cut as far as it
- * can and still overruns its card, but every column left on it carries a value
- * on every row, so the shortfall is a widths decision.
+ * can and still overruns its card, and every column left on it carries a value
+ * on every row except 'variant' (below), so the shortfall is a widths decision.
  *
  * `connection` ships hidden in both because it is empty until somebody
  * configures a connection, and peers, seeds and ratio because they are blank on
  * every row that is not a torrent.
  */
 export const DEFAULT_HIDDEN: Record<ListProfile, ColumnId[]> = {
-  // 'variant' stays visible here, unlike in the downloads list: it is blank
-  // only once a link is routed and past choosing a quality, and the collector
-  // is where a yt-dlp-routed link's five rows appear and want one picked.
-  downloads: [
-    'comment',
-    'source',
-    'added',
-    'finished',
-    'resolver',
-    'connection',
-    'variant',
-    'peers',
-    'seeds',
-    'ratio',
-  ],
+  // 'variant' is on in both lists, although it is blank on every row that is
+  // not a yt-dlp link. In the collector a link's five rows want a pick; in the
+  // download list they all carry the link's title, and this column is the only
+  // thing that tells the audio row from the video row and says what quality
+  // each is being fetched at.
+  downloads: ['comment', 'source', 'added', 'finished', 'resolver', 'connection', 'peers', 'seeds', 'ratio'],
   collector: [
     'progress',
     'speed',
@@ -1803,6 +1927,9 @@ function mergeHidden(profile: ListProfile, stored: ColumnLayout | null | undefin
   // it is new, and one that ships visible must not stay invisible forever
   // because an old layout happens not to mention it.
   for (const id of DEFAULT_HIDDEN[profile]) if (!knew.has(id)) hidden.add(id);
+  for (const [id, since] of Object.entries(SHOWN_SINCE[profile])) {
+    if ((stored?.v ?? 0) < (since ?? 0)) hidden.delete(id as ColumnId);
+  }
   for (const c of COLUMNS) if (!c.hideable) hidden.delete(c.id);
   return hidden;
 }
@@ -1811,7 +1938,7 @@ export function resolveLayout(profile: ListProfile, stored: ColumnLayout | null 
   // A layout from before the stamp takes this build's order once; everything
   // that is genuinely a preference (which columns are off, how wide they are)
   // comes along unchanged. See LAYOUT_VERSION.
-  const current = (stored?.v ?? 0) >= LAYOUT_VERSION;
+  const current = (stored?.v ?? 0) >= ORDER_RESEATED_AT;
   const order = mergeOrder(profile, current ? stored?.order : undefined).map((id) => COLUMN_BY_ID.get(id)!);
   const hidden = mergeHidden(profile, stored);
   const widths: Partial<Record<ColumnId, number>> = {};

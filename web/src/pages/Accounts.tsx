@@ -14,13 +14,11 @@ import {
   type Account,
   type AccountCredential,
   type CatalogueService,
-  type HosterLogin,
   type JDStatus,
   type ResolverInfo,
   type VerifyResult,
   fetchAccounts,
   fetchAccountCatalogue,
-  fetchHosterLogins,
   fetchJDStatus,
   fetchResolverPriority,
   removeAccountCredential,
@@ -57,7 +55,6 @@ import {
   IconExternalLink,
   IconPlus,
   IconRetry,
-  IconSearch,
   IconTrash,
 } from '../lib/icons';
 import { HosterIcon } from '../components/HosterIcon';
@@ -78,6 +75,7 @@ export function Accounts() {
   // The row awaiting confirmation; the only path to removeAccountCredential.
   const [confirming, setConfirming] = useState<Account | null>(null);
   const [refreshing, setRefreshing] = useState<ReadonlySet<string>>(new Set());
+  const [loginHosts, setLoginHosts] = useState('');
 
   const load = useCallback(async () => {
     try {
@@ -204,14 +202,14 @@ export function Accounts() {
         <SectionTitle hint={t('accounts.hoster.hint')}>
           {t('accounts.hoster.title')}
         </SectionTitle>
-        <HosterLoginSection />
+        <HosterLoginSection onEnabledHosts={setLoginHosts} />
       </Card>
 
       {/* The signature, so RoutingSection looks again only when the set of
-          services changes, not on every poll. */}
+          services or switched-on logins changes, not on every poll. */}
       <RoutingSection
         catalogue={catalogue}
-        signature={(accounts ?? []).map((a) => a.service).sort().join(',')}
+        signature={`${(accounts ?? []).map((a) => a.service).sort().join(',')}|${loginHosts}`}
       />
 
       {dialog && (
@@ -234,9 +232,13 @@ export function Accounts() {
               {/* The spacer puts the pair at the end, the commit last; JSX order,
                   so it mirrors in right-to-left languages. */}
               <span className="flex-1" />
-              <Button kind="ghost" icon={<IconClose width={16} height={16} />} onClick={() => setConfirming(null)}>
-                {t('common.cancel')}
-              </Button>
+              <Button
+                kind="ghost"
+                labelled
+                icon={<IconClose />}
+                title={t('common.cancel')}
+                onClick={() => setConfirming(null)}
+              />
               <Button kind="ghost" icon={<IconTrash width={16} height={16} />} onClick={() => void doRemove(confirming)}>
                 {t('accounts.remove')}
               </Button>
@@ -375,7 +377,6 @@ function CredentialDialog({
 
   const editingRow = initial ? accounts.find((a) => a.service === initial.service && a.account === initial.account) : undefined;
 
-  const [query, setQuery] = useState('');
   const [picked, setPicked] = useState<CatalogueService | null>(() =>
     initial ? (catalogue.find((s) => s.id === initial.service) ?? null) : null,
   );
@@ -391,9 +392,7 @@ function CredentialDialog({
   const hasDefault = (id: string) => accounts.some((a) => a.service === id && a.account === '');
   // Debrid only; the captcha solvers in the catalogue are set on the Captcha
   // page.
-  const filtered = catalogue.filter(
-    (s) => s.group === 'debrid' && s.label.toLowerCase().includes(query.trim().toLowerCase()),
-  );
+  const debridServices = catalogue.filter((s) => s.group === 'debrid');
 
   function credential(): AccountCredential {
     if (!picked) return {};
@@ -449,9 +448,7 @@ function CredentialDialog({
         picked && !fromEnv ? (
           <>
             <span className="flex-1" />
-            <Button kind="ghost" onClick={onClose}>
-              {t('common.cancel')}
-            </Button>
+            <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
             {verifyResult && !verifyResult.ok && (
               <Button kind="secondary" onClick={() => void doSave(true)} disabled={saving}>
                 {t('accounts.saveAnyway')}
@@ -461,21 +458,19 @@ function CredentialDialog({
               {verifying ? t('accounts.verifying') : saving ? t('accounts.saving') : t('accounts.save')}
             </Button>
           </>
-        ) : picked ? (
+        ) : (
+          // The service picker and an account set by the environment have
+          // nothing to save, so the way out stands alone.
           <>
             <span className="flex-1" />
-            <Button kind="secondary" onClick={onClose}>
-              {t('common.cancel')}
-            </Button>
+            <Button kind="secondary" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
           </>
-        ) : undefined
+        )
       }
     >
       {!picked ? (
         <ServicePicker
-          query={query}
-          onQuery={setQuery}
-          services={filtered}
+          services={debridServices}
           hasDefault={hasDefault}
           onPick={(s) => {
             setPicked(s);
@@ -564,14 +559,10 @@ function CredentialDialog({
 }
 
 function ServicePicker({
-  query,
-  onQuery,
   services,
   hasDefault,
   onPick,
 }: {
-  query: string;
-  onQuery: (q: string) => void;
   services: CatalogueService[];
   hasDefault: (id: string) => boolean;
   onPick: (s: CatalogueService) => void;
@@ -579,19 +570,7 @@ function ServicePicker({
   const { t } = useT();
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-center gap-2 rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2">
-        <IconSearch width={15} height={15} className="shrink-0 text-carbon-textMuted" />
-        <input
-          autoFocus
-          value={query}
-          onChange={(e) => onQuery(e.target.value)}
-          placeholder={t('accounts.searchServices')}
-          aria-label={t('accounts.searchServices')}
-          className="min-w-0 flex-1 bg-transparent text-sm text-carbon-text placeholder:text-carbon-textMuted outline-none"
-        />
-      </div>
       <div className="flex max-h-72 flex-col gap-1 overflow-y-auto">
-        {services.length === 0 && <p className="px-2 py-3 text-center text-sm text-carbon-textMuted">{t('accounts.noServicesFound')}</p>}
         {services.map((s) => (
           <button
             key={s.id}
@@ -623,6 +602,8 @@ const RESOLVER_LABEL_KEYS: Partial<Record<string, TranslationKey>> = {
   direct: 'accounts.routing.resolver.direct',
   http: 'accounts.routing.resolver.http',
   torrent: 'accounts.routing.resolver.torrent',
+  hostheaders: 'accounts.routing.resolver.hostheaders',
+  remotefs: 'accounts.routing.resolver.remotefs',
 };
 
 /** Resolvers named after a product, which stay untranslated. */
@@ -631,21 +612,32 @@ const RESOLVER_PROPER_NAMES: Record<string, string> = {
   jd: 'JDownloader',
 };
 
+/** The id prefix of a hoster login's row (app.loginRowID). */
+const LOGIN_ROW = 'login:';
+
+/**
+ * The resolvers that decide per link and stay off the ordered list
+ * (app.perLinkResolvers), shown below it so the card still says where a link
+ * goes once no listed service takes it.
+ */
+const AUTOMATIC_ROWS: { id: string; what: TranslationKey }[] = [
+  { id: 'jd', what: 'accounts.routing.automatic.jd' },
+  { id: 'ytdlp', what: 'accounts.routing.automatic.ytdlp' },
+  { id: 'direct', what: 'accounts.routing.automatic.direct' },
+];
+
 function RoutingSection({ catalogue, signature }: { catalogue: CatalogueService[]; signature: string }) {
   const { t } = useT();
   const [priority, setPriority] = useState<ResolverInfo[] | null>(null);
   const [jd, setJd] = useState<JDStatus | null>(null);
-  const [logins, setLogins] = useState<HosterLogin[]>([]);
 
-  // Re-read whenever the configured services change, since saving a debrid key
-  // registers a resolver at once.
+  // Re-read whenever the configured services or the switched-on hoster logins
+  // change: saving a debrid key registers a resolver at once, and each login
+  // is a row of its own.
   useEffect(() => {
     let live = true;
     void fetchResolverPriority().then((p) => live && setPriority(p));
     void fetchJDStatus().then((s) => live && setJd(s));
-    void fetchHosterLogins()
-      .then((l) => live && setLogins(l))
-      .catch(() => undefined);
     return () => {
       live = false;
     };
@@ -653,6 +645,7 @@ function RoutingSection({ catalogue, signature }: { catalogue: CatalogueService[
 
   const byId = new Map(catalogue.map((s) => [s.id, s]));
   const labelFor = (id: string) => {
+    if (id.startsWith(LOGIN_ROW)) return id.slice(LOGIN_ROW.length);
     const known = byId.get(id)?.label ?? RESOLVER_PROPER_NAMES[id];
     if (known) return known;
     const key = RESOLVER_LABEL_KEYS[id];
@@ -668,7 +661,7 @@ function RoutingSection({ catalogue, signature }: { catalogue: CatalogueService[
         ) : priority.length === 0 ? (
           <p className="text-sm text-carbon-textMuted">{t('accounts.routing.priorityEmpty')}</p>
         ) : (
-          <PriorityLadder rows={priority} labelFor={labelFor} logins={logins} onSaved={setPriority} />
+          <PriorityLadder rows={priority} labelFor={labelFor} jdConfigured={jd?.configured ?? false} onSaved={setPriority} />
         )}
       </Card>
 
@@ -733,12 +726,12 @@ function LadderGrip({
 function PriorityLadder({
   rows,
   labelFor,
-  logins,
+  jdConfigured,
   onSaved,
 }: {
   rows: ResolverInfo[];
   labelFor: (id: string) => string;
-  logins: HosterLogin[];
+  jdConfigured: boolean;
   onSaved: (rows: ResolverInfo[]) => void;
 }) {
   const { t } = useT();
@@ -855,17 +848,24 @@ function PriorityLadder({
             <span className="glim-num w-4 shrink-0 text-carbon-textMuted">{i + 1}</span>
             <span className="flex min-w-0 flex-col">
               <span className="truncate text-carbon-text">{labelFor(r.id)}</span>
-              {/* Hoster logins are not rungs of their own; the JDownloader row
-                  names them. */}
-              {r.id === 'jd' && logins.length > 0 && (
-                <span className="truncate text-[11px] text-carbon-textMuted">
-                  {logins.map((l) => l.host).join(', ')}
-                </span>
+              {r.id.startsWith(LOGIN_ROW) && (
+                <span className="truncate text-[11px] text-carbon-textMuted">{t('accounts.routing.loginRow')}</span>
               )}
             </span>
           </li>
         ))}
       </ol>
+      <div className="flex flex-col gap-1.5">
+        <span className="glim-eyebrow">{t('accounts.routing.automaticTitle')}</span>
+        <ul className="flex flex-col gap-1.5">
+          {AUTOMATIC_ROWS.filter((a) => a.id !== 'jd' || jdConfigured).map((a) => (
+            <li key={a.id} className="flex items-baseline gap-2 px-1 text-sm">
+              <span className="text-carbon-textSub">{labelFor(a.id)}</span>
+              <span className="truncate text-[11px] text-carbon-textMuted">{t(a.what)}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
       <div className="flex items-center gap-2">
         <Button kind="secondary" disabled={busy} onClick={() => void store([])}>
           {t('accounts.routing.priorityAuto')}

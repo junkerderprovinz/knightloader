@@ -290,31 +290,36 @@ export function cacheAppearance(shape: string, accent: string, rainbow?: Rainbow
   }
 }
 
-/** Applied at boot, before React renders anything. */
+/**
+ * Applied at boot, before React renders anything. The motion level comes first,
+ * so the first page entrance already runs at the chosen intensity.
+ */
 export function applyCachedAppearance(): void {
+  applyMotion(readCachedMotionIntensity());
   try {
     const raw = localStorage.getItem(CACHE);
-    if (!raw) {
+    if (raw) {
+      const { shape, accent, rainbow } = JSON.parse(raw) as Cached;
+      applyShape(shape);
+      applyAccent(accent);
+      applyRainbow(rainbow);
+    } else {
       applyShape('round');
       applyRainbow(undefined);
-      return;
     }
-    const { shape, accent, rainbow } = JSON.parse(raw) as Cached;
-    applyShape(shape);
-    applyAccent(accent);
-    applyRainbow(rainbow);
   } catch {
     applyShape('round');
     applyRainbow(undefined);
   }
+  applyDisco(readCachedDisco(), rainbowState());
 }
 
 // Motion intensity is the third user-owned axis (GlimStone, "Motion
 // intensity"). data-motion on <html> selects the duration and distance tokens
 // index.css reads. Unlike shape and accent it is not a server setting and has
-// its own localStorage key. Look.tsx and app/Layout.tsx apply it, so it is
-// live from first paint. The cache functions have no counterpart in the
-// GlimStone reference, which persists nothing.
+// its own localStorage key. applyCachedAppearance applies it before first
+// paint and Look.tsx on every pick. The cache functions have no counterpart in
+// the GlimStone reference, which persists nothing.
 
 /**
  * The levels, quietest first. The strings are a wire format: they go into the
@@ -333,11 +338,12 @@ export const MOTION_LEVELS: Motion[] = ['off', 'subtle', 'wild'];
 export const MOTION_STORED: Motion[] = [...MOTION_LEVELS, 'storm'];
 
 /**
- * The richest level on offer: users dial motion down. There is no "system"
- * option, because prefers-reduced-motion already gates every animation in
- * index.css.
+ * The middle level, because the top one is a statement rather than polish
+ * (GlimStone 2.1.0). A changed default never reaches a stored choice, so
+ * somebody who picked the top level keeps it. There is no "system" option,
+ * because prefers-reduced-motion already gates every animation in index.css.
  */
-export const DEFAULT_MOTION: Motion = 'wild';
+export const DEFAULT_MOTION: Motion = 'subtle';
 
 /**
  * applyMotion sets the attribute the motion tokens key off. Anything not in
@@ -390,15 +396,16 @@ export function cacheMotionIntensity(m: Motion): void {
 
 /**
  * Retired spellings and what they are now. `full` was renamed `wild` in
- * GlimStone 2.0.0 and is still in users' localStorage. It happens to match
- * DEFAULT_MOTION, but the table keeps the choice if the default changes. Not
- * in MOTION_STORED: it is translated once and written back.
+ * GlimStone 2.0.0 and is still in users' localStorage, where only somebody who
+ * picked it put it, so it maps to the level they chose and not to
+ * DEFAULT_MOTION. Not in MOTION_STORED: it is translated once and written
+ * back.
  */
 const MIGRATED_MOTION: Record<string, Motion> = { full: 'wild' };
 
 /**
  * readCachedMotionIntensity returns the stored level, applied at boot by
- * app/Layout.tsx. Anything unexpected, including a storage error, gives
+ * applyCachedAppearance. Anything unexpected, including a storage error, gives
  * DEFAULT_MOTION. A retired spelling is rewritten in place, once per browser,
  * so the alias does not have to be kept forever.
  */
@@ -413,5 +420,109 @@ export function readCachedMotionIntensity(): Motion {
     return MOTION_STORED.includes(raw as Motion) ? (raw as Motion) : DEFAULT_MOTION;
   } catch {
     return DEFAULT_MOTION;
+  }
+}
+
+// Disco, the colour engine's easter egg (GlimStone 2.1.0), steps the rainbow's
+// seed once a second, so every hued element moves to the next colour together.
+// It animates nothing: a seed change re-renders the colour engine's readers,
+// which is a repaint and no transform.
+
+/** One colour step a second, well under the 3Hz flicker threshold named in
+ *  photosensitivity guidance. */
+export const DISCO_TICK_MS = 1000;
+
+/** Turn-ons needed to unlock, matching STORM_TAPS. */
+export const DISCO_UNLOCK_TURN_ONS = 5;
+
+/** How long a run of turn-ons may pause before it counts as a new run, so
+ *  somebody comparing rainbow on and off over a minute does not unlock disco. */
+export const DISCO_UNLOCK_WINDOW_MS = 3000;
+
+let discoTimer: ReturnType<typeof setInterval> | null = null;
+
+/** stopDisco stops the walk, and does nothing when none is running. The caller
+ *  decides whether the palette the last tick left behind stays. */
+export function stopDisco(): void {
+  if (discoTimer !== null) {
+    clearInterval(discoTimer);
+    discoTimer = null;
+  }
+}
+
+/**
+ * applyDisco starts or stops the walk and stamps `data-disco` on the root. Call
+ * it at boot and after every applyRainbow of a stored state; each call stops
+ * the previous interval first. `stored` is the rainbow state as saved.
+ *
+ * The tick sets `rotate: true`, because rainbowAt ignores the seed without it.
+ * The tick applies and never persists, so the stored seed and rotation switch
+ * stay as chosen and stopping re-applies `stored`. With rainbow off the walk
+ * does not run, and it starts again when rainbow comes back.
+ *
+ * A hue reaches an element as an inline style computed during render, so an
+ * element only changes colour when its component renders again. useRainbow.ts
+ * feeds the state from above the routes for that reason.
+ */
+export function applyDisco(on: boolean, stored: RainbowState): void {
+  const wasWalking = discoTimer !== null;
+  stopDisco();
+
+  const root = document.documentElement;
+  if (on) root.setAttribute('data-disco', 'on');
+  else root.removeAttribute('data-disco');
+
+  if (!on || !rainbowState().on) {
+    if (wasWalking) applyRainbow(stored);
+    return;
+  }
+
+  const palette = rainbowState().palette.length || 1;
+  discoTimer = setInterval(() => {
+    const live = rainbowState();
+    applyRainbow({ ...live, rotate: true, seed: (live.seed + 1) % palette });
+  }, DISCO_TICK_MS);
+}
+
+/**
+ * discoTap counts the unlock gesture: five turn-ons of rainbow mode, each
+ * within DISCO_UNLOCK_WINDOW_MS of the last. Returns true on the fifth.
+ *
+ * Counting turn-ons rather than clicks leaves rainbow on, the only state where
+ * disco has colours to walk. As with stormTap, the count lives in the caller
+ * and is never persisted.
+ */
+export function discoTap(
+  state: { taps: number; last: number },
+  turnedOn: boolean,
+  clock: { now: number },
+): boolean {
+  if (!turnedOn) return false;
+  const gap = clock.now - state.last;
+  state.last = clock.now;
+  state.taps = state.taps > 0 && gap <= DISCO_UNLOCK_WINDOW_MS ? state.taps + 1 : 1;
+  if (state.taps < DISCO_UNLOCK_TURN_ONS) return false;
+  state.taps = 0;
+  return true;
+}
+
+// The switch is stored per browser like the motion level, since the server's
+// settings know nothing of it. Having found it is never stored: see Look.tsx.
+const DISCO_CACHE = 'kl-disco';
+
+export function cacheDisco(on: boolean): void {
+  try {
+    if (on) localStorage.setItem(DISCO_CACHE, 'on');
+    else localStorage.removeItem(DISCO_CACHE);
+  } catch {
+    // Without storage the walk simply stops at the next reload.
+  }
+}
+
+export function readCachedDisco(): boolean {
+  try {
+    return localStorage.getItem(DISCO_CACHE) === 'on';
+  } catch {
+    return false;
   }
 }

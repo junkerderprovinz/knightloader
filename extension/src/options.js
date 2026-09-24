@@ -30,9 +30,11 @@ const coloursHeadingEl = document.getElementById('coloursHeading');
 const rainbowOnEl = document.getElementById('rainbowOn');
 const rainbowReactiveEl = document.getElementById('rainbowReactive');
 const rainbowRotateEl = document.getElementById('rainbowRotate');
+const rainbowDiscoEl = document.getElementById('rainbowDisco');
 const rainbowRow = document.getElementById('rainbowRow');
 const rainbowReactiveRow = document.getElementById('rainbowReactiveRow');
 const rainbowRotateRow = document.getElementById('rainbowRotateRow');
+const rainbowDiscoRow = document.getElementById('rainbowDiscoRow');
 const paletteRow = document.getElementById('paletteRow');
 const paletteSwatches = document.getElementById('paletteSwatches');
 const followInstanceEl = document.getElementById('followInstance');
@@ -66,9 +68,9 @@ const phrasePaste = document.getElementById('phrasePaste');
  * presentation attribute.
  */
 const NS = 'http://www.w3.org/2000/svg';
-function glyph(d, size) {
+function glyph(d, size, box = '0 0 16 16') {
   const svg = document.createElementNS(NS, 'svg');
-  svg.setAttribute('viewBox', '0 0 16 16');
+  svg.setAttribute('viewBox', box);
   svg.setAttribute('width', String(size));
   svg.setAttribute('height', String(size));
   svg.setAttribute('aria-hidden', 'true');
@@ -113,11 +115,37 @@ const D_RETRY = 'M8 3V1L5 3.5 8 6V4a3.5 3.5 0 1 1-3.5 3.5H3A5 5 0 1 0 8 3z';
 // The same cross popup.js uses for its cancel.
 const D_CROSS =
   'M4.2 2.8 8 6.6l3.8-3.8 1.4 1.4L9.4 8l3.8 3.8-1.4 1.4L8 9.4l-3.8 3.8-1.4-1.4L6.6 8 2.8 4.2z';
-// A cup with a handle and a saucer, for the thank-you in the About card.
+// The give buttons wear their brands' own marks, the ones the web UI's About
+// card draws (web/src/components/donateMarks.tsx): Buy Me a Coffee and PayPal
+// from Simple Icons, CC0 1.0. Both are drawn on a 24-unit grid.
+const BRAND_BOX = '0 0 24 24';
 const D_COFFEE =
-  'M2.5 3h8.2v5.2a3.6 3.6 0 0 1-3.6 3.6H6.1A3.6 3.6 0 0 1 2.5 8.2V3z' +
-  'M11.6 4.1h1.2a2.1 2.1 0 0 1 0 4.2h-1.2V6.9h1.2a.8.8 0 0 0 0-1.6h-1.2V4.1z' +
-  'M1.6 13h10.8v1.5H1.6z';
+  'M20.216 6.415l-.132-.666c-.119-.598-.388-1.163-1.001-1.379-.197-.069-.42-.098-.57-.241-.152-.143-.196-.366-.231-.572' +
+  '-.065-.378-.125-.756-.192-1.133-.057-.325-.102-.69-.25-.987-.195-.4-.597-.634-.996-.788a5.723 5.723 0 00-.626-.194' +
+  'c-1-.263-2.05-.36-3.077-.416a25.834 25.834 0 00-3.7.062c-.915.083-1.88.184-2.75.5-.318.116-.646.256-.888.501' +
+  '-.297.302-.393.77-.177 1.146.154.267.415.456.692.58.36.162.737.284 1.123.366 1.075.238 2.189.331 3.287.37' +
+  ' 1.218.05 2.437.01 3.65-.118.299-.033.598-.073.896-.119.352-.054.578-.513.474-.834-.124-.383-.457-.531-.834-.473' +
+  '-.466.074-.96.108-1.382.146-1.177.08-2.358.082-3.536.006a22.228 22.228 0 01-1.157-.107c-.086-.01-.18-.025-.258-.036' +
+  '-.243-.036-.484-.08-.724-.13-.111-.027-.111-.185 0-.212h.005c.277-.06.557-.108.838-.147h.002c.131-.009.263-.032.394-.048' +
+  'a25.076 25.076 0 013.426-.12c.674.019 1.347.067 2.017.144l.228.031c.267.04.533.088.798.145.392.085.895.113 1.07.542' +
+  '.055.137.08.288.111.431l.319 1.484a.237.237 0 01-.199.284h-.003c-.037.006-.075.01-.112.015a36.704 36.704 0 01-4.743.295' +
+  ' 37.059 37.059 0 01-4.699-.304c-.14-.017-.293-.042-.417-.06-.326-.048-.649-.108-.973-.161-.393-.065-.768-.032-1.123.161' +
+  '-.29.16-.527.404-.675.701-.154.316-.199.66-.267 1-.069.34-.176.707-.135 1.056.087.753.613 1.365 1.37 1.502' +
+  'a39.69 39.69 0 0011.343.376.483.483 0 01.535.53l-.071.697-1.018 9.907c-.041.41-.047.832-.125 1.237-.122.637-.553 1.028' +
+  '-1.182 1.171-.577.131-1.165.2-1.756.205-.656.004-1.31-.025-1.966-.022-.699.004-1.556-.06-2.095-.58-.475-.458-.54-1.174' +
+  '-.605-1.793l-.731-7.013-.322-3.094c-.037-.351-.286-.695-.678-.678-.336.015-.718.3-.678.679l.228 2.185.949 9.112' +
+  'c.147 1.344 1.174 2.068 2.446 2.272.742.12 1.503.144 2.257.156.966.016 1.942.053 2.892-.122 1.408-.258 2.465-1.198' +
+  ' 2.616-2.657.34-3.332.683-6.663 1.024-9.995l.215-2.087a.484.484 0 01.39-.426c.402-.078.787-.212 1.074-.518' +
+  '.455-.488.546-1.124.385-1.766zm-1.478.772c-.145.137-.363.201-.578.233-2.416.359-4.866.54-7.308.46-1.748-.06-3.477-.254' +
+  '-5.207-.498-.17-.024-.353-.055-.47-.18-.22-.236-.111-.71-.054-.995.052-.26.152-.609.463-.646.484-.057 1.046.148 1.526.22' +
+  '.577.088 1.156.159 1.737.212 2.48.226 5.002.19 7.472-.14.45-.06.899-.13 1.345-.21.399-.072.84-.206 1.08.206.166.281.188.657' +
+  '.162.974a.544.544 0 01-.169.364zm-6.159 3.9c-.862.37-1.84.788-3.109.788a5.884 5.884 0 01-1.569-.217l.877 9.004' +
+  'c.065.78.717 1.38 1.5 1.38 0 0 1.243.065 1.658.065.447 0 1.786-.065 1.786-.065.783 0 1.434-.6 1.499-1.38l.94-9.95' +
+  'a3.996 3.996 0 00-1.322-.238c-.826 0-1.491.284-2.26.613z';
+const D_PAYPAL =
+  'M15.607 4.653H8.941L6.645 19.251H1.82L4.862 0h7.995c3.754 0 6.375 2.294 6.473 5.513-.648-.478-2.105-.86-3.722-.86' +
+  'm6.57 5.546c0 3.41-3.01 6.853-6.958 6.853h-2.493L11.595 24H6.74l1.845-11.538h3.592c4.208 0 7.346-3.634 7.153-6.949' +
+  'a5.24 5.24 0 0 1 2.848 4.686M9.653 5.546h6.408c.907 0 1.942.222 2.363.541-.195 2.741-2.655 5.483-6.441 5.483H8.714Z';
 // GitHub's Octicon "mark-github", which GitHub publishes for this use.
 const D_GITHUB =
   'M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49' +
@@ -278,6 +306,7 @@ function applyStaticText() {
   label('rainbowLabel', t('options.rainbow'), t('options.rainbowHint'));
   label('rainbowReactiveLabel', t('options.rainbowReactive'), t('options.rainbowReactiveHint'));
   label('rainbowRotateLabel', t('options.rainbowRotate'), t('options.rainbowRotateHint'));
+  label('rainbowDiscoLabel', t('options.disco'), t('options.discoHint'));
   label('paletteLabel', t('options.paletteLabel'), t('options.paletteHint'));
   label('followInstanceLabel', t('options.followInstance'), t('options.followInstanceHint'));
 
@@ -449,7 +478,10 @@ async function renderGroup() {
     return;
   }
 
-  // The same card the popup draws (shared.js). The default is changed by
+  // The same card the popup draws (shared.js), without its queue and open
+  // actions: this page sets the group up and the popup operates it (GlimStone
+  // rule 22), so a settings card never carries buttons that act on a running
+  // instance. The popup keeps all three. The default is changed by
   // right-clicking another card.
   const preferred = defaultOf(siblings, await readDefaultTarget());
   siblings.forEach((inst, i) => {
@@ -463,21 +495,6 @@ async function renderGroup() {
           await renderGroup();
           // The report names the default instance.
           void renderReport();
-        },
-        onQueue: async (picked, halted, el) => {
-          const ok = await setQueueHalted(picked.instanceId, halted).catch(() => false);
-          if (!ok) {
-            // The same sentence as for the follow switch: the instance did not
-            // answer.
-            say(t('options.followFailed'), false);
-            shake(el);
-            return;
-          }
-          // Read back what the instance actually did.
-          await renderGroup();
-        },
-        onOpen: (picked, url) => {
-          if (url) void chrome.tabs.create({ url });
         },
       }),
     );
@@ -722,6 +739,14 @@ cnlEnabledEl.addEventListener('click', async () => {
 // them at the top of every page, and the look can also be taken from the
 // default instance (adoptFromInstance in appearance.js).
 
+/**
+ * Whether disco has been found while this page is open. Page state and never
+ * storage: once somebody leaves with disco off, the switch is gone until the
+ * gesture is made again. The turn-ons are counted here too.
+ */
+let discoFound = false;
+const discoTaps = { taps: 0, last: 0 };
+
 /** Wires a rainbow switch: write, apply, redraw. */
 function wireRainbowSwitch(el, key) {
   el.addEventListener('click', async () => {
@@ -732,6 +757,12 @@ function wireRainbowSwitch(el, key) {
     if (key === 'rainbowRotate' && on) {
       patch.rainbowSeed = 1 + Math.floor(Math.random() * (RAINBOW.length - 1));
     }
+    // The fifth quick turn-on of the rainbow unlocks disco and starts it, so
+    // the gesture ends on a palette that is already walking.
+    if (key === 'rainbow' && discoTap(discoTaps, on, Date.now())) {
+      patch.rainbowDisco = true;
+      discoFound = true;
+    }
     await writeAppearance(patch);
     const next = await readAppearance();
     applyRainbow(next.rainbow);
@@ -741,6 +772,7 @@ function wireRainbowSwitch(el, key) {
 wireRainbowSwitch(rainbowOnEl, 'rainbow');
 wireRainbowSwitch(rainbowReactiveEl, 'rainbowReactive');
 wireRainbowSwitch(rainbowRotateEl, 'rainbowRotate');
+wireRainbowSwitch(rainbowDiscoEl, 'rainbowDisco');
 
 /**
  * Takes the look from the default instance, or goes back to the local one.
@@ -818,7 +850,7 @@ function paintHues() {
   // Positions go on the card, so everything inside that uses --accent follows.
   setHues([...document.querySelectorAll('.glim-card')]);
   // The rainbow rows are a set of their own, as on the web UI's Look page.
-  setHues([rainbowRow, rainbowReactiveRow, rainbowRotateRow]);
+  setHues([rainbowRow, rainbowReactiveRow, rainbowRotateRow, rainbowDiscoRow]);
 }
 
 /**
@@ -982,6 +1014,10 @@ async function renderAppearance() {
   rainbowOnEl.setAttribute('aria-checked', String(a.rainbow.on));
   rainbowReactiveEl.setAttribute('aria-checked', String(a.rainbow.reactive));
   rainbowRotateEl.setAttribute('aria-checked', String(a.rainbow.rotate));
+  rainbowDiscoEl.setAttribute('aria-checked', String(a.disco));
+  // A switch that hid the value it is showing would be lying, so disco in
+  // force counts as found, and the switch stays until the page is left.
+  if (a.disco) discoFound = true;
   // The dimming for these rows and for the follow switch happens together at
   // the end, so two passes cannot overwrite each other.
 
@@ -1028,6 +1064,7 @@ async function renderAppearance() {
   const rainbowIsOff = !a.rainbow.on;
   rainbowReactiveRow.hidden = rainbowIsOff;
   rainbowRotateRow.hidden = rainbowIsOff;
+  rainbowDiscoRow.hidden = rainbowIsOff || !discoFound;
   paletteRow.hidden = rainbowIsOff;
 
   // While the instance decides the look, its settings are shown but refused
@@ -1055,8 +1092,10 @@ async function renderAppearance() {
   );
 
   // The hues last, since the palette decides what each position resolves to;
-  // the report names the look too.
+  // the report names the look too. Disco after them: it walks from the stored
+  // palette, which the calls above have just put back.
   paintHues();
+  applyDisco(a.disco, a.rainbow);
   void renderReport();
 }
 
@@ -1064,18 +1103,15 @@ async function renderAppearance() {
 // and the shape of the setup. It leaves out anything private: no instance
 // address, no token, no relay key.
 
-/**
- * The GlimStone release this extension implements, kept by hand since there is
- * no package to import it from. Each surface is lifted separately, so the
- * number is per surface. The extension has no motion setting; its fixed
- * motion uses the top level's numbers.
- */
-const GLIMSTONE_VERSION = '1.17.0';
-
+// The GlimStone version comes from appearance.js, beside the ports it
+// describes, rather than from a number kept next to this card.
 const REPO_URL = 'https://github.com/junkerderprovinz/knightloader';
 const GLIMSTONE_URL = 'https://github.com/junkerderprovinz/glimstone';
 const CONTACT_MAIL = 'hello@halleluja.design';
 const COFFEE_URL = 'https://buymeacoffee.com/junkerderprovinz';
+// PayPal's hosted donation button, the same address the web UI's About card
+// and the README's donate row use.
+const PAYPAL_URL = 'https://www.paypal.com/donate/?hosted_button_id=76FVV52TKXTUS';
 
 /** A version number linking to its release, opened in a new tab. */
 function versionLink(href, label) {
@@ -1112,8 +1148,17 @@ function renderAbout() {
   if (coffeeText) coffeeText.textContent = t('options.aboutCoffee');
   if (coffeeBtn) {
     coffeeBtn.href = COFFEE_URL;
-    coffeeBtn.replaceChildren(glyph(D_COFFEE, 14), document.createTextNode(t('options.aboutCoffeeButton')));
+    coffeeBtn.replaceChildren(glyph(D_COFFEE, 15, BRAND_BOX), document.createTextNode(t('options.aboutCoffeeButton')));
   }
+  const paypalBtn = document.getElementById('aboutPaypalBtn');
+  if (paypalBtn) {
+    paypalBtn.href = PAYPAL_URL;
+    paypalBtn.replaceChildren(glyph(D_PAYPAL, 15, BRAND_BOX), document.createTextNode(t('options.aboutPaypal')));
+  }
+  // Bitcoin's letterform reads as "crypto" to somebody who has never held any;
+  // the window then shows every coin on offer, so nobody takes it for the only
+  // one.
+  cryptoBtn.replaceChildren(glyph(BTC_LETTER.d, 15, BTC_LETTER.box), document.createTextNode(t('options.aboutCrypto')));
   const reportText = document.getElementById('aboutReport');
   if (reportText) reportText.textContent = t('options.aboutReport');
   gh.href = REPO_URL;
@@ -1122,6 +1167,182 @@ function renderAbout() {
   mail.href = `mailto:${CONTACT_MAIL}?subject=${encodeURIComponent('KnightLoader ' + t('options.aboutMailSubject'))}`;
   mail.replaceChildren(glyph(D_MAIL, 14), document.createTextNode(t('options.aboutMail')));
 }
+
+// The crypto window: pick a coin, then its chain, and get the address as a code,
+// as text and through a copy button. Nothing leaves the browser, no account is
+// needed at either end, and every chain on offer carries its own address
+// (donate.js), so a coin cannot be sent where nobody receives it.
+
+const cryptoBtn = document.getElementById('aboutCryptoBtn');
+const cryptoEl = document.getElementById('cryptoDonate');
+const cryptoTitleEl = document.getElementById('cryptoTitle');
+const cryptoIntroEl = document.getElementById('cryptoIntro');
+const cryptoQrEl = document.getElementById('cryptoQr');
+const cryptoAddressEl = document.getElementById('cryptoAddress');
+const cryptoChainsEl = document.getElementById('cryptoChains');
+const cryptoNoteEl = document.getElementById('cryptoNote');
+const cryptoCopyEl = document.getElementById('cryptoCopy');
+const cryptoCoinsEl = document.getElementById('cryptoCoins');
+const cryptoCloseEl = document.getElementById('cryptoClose');
+
+let cryptoCoin = CRYPTO_COINS[0];
+let cryptoNetwork = cryptoCoin.networks[0];
+let cryptoCopiedTimer = 0;
+
+/**
+ * qrSvg draws an address as a QR code, the module grid qrcode-generator makes
+ * with the web UI's settings: the smallest version that fits, at level M, which
+ * suits a screen. One path for all modules keeps the node count down, and
+ * crispEdges keeps the modules square at any size.
+ */
+function qrSvg(value, size) {
+  const qr = qrcode(0, 'M');
+  qr.addData(value);
+  qr.make();
+  const n = qr.getModuleCount();
+  let d = '';
+  for (let y = 0; y < n; y++) {
+    for (let x = 0; x < n; x++) if (qr.isDark(y, x)) d += `M${x} ${y}h1v1h-1z`;
+  }
+  const svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('viewBox', `0 0 ${n} ${n}`);
+  svg.setAttribute('width', String(size));
+  svg.setAttribute('height', String(size));
+  svg.setAttribute('shape-rendering', 'crispEdges');
+  svg.setAttribute('role', 'img');
+  svg.setAttribute('aria-label', value);
+  const path = document.createElementNS(NS, 'path');
+  path.setAttribute('fill', '#000000');
+  path.setAttribute('d', d);
+  svg.appendChild(path);
+  return svg;
+}
+
+/** Everything that depends on the chosen coin and chain, drawn again on each
+ *  pick. The positions follow each set's own order, so rainbow mode tells the
+ *  tiles and the chips apart. */
+function renderCrypto() {
+  cryptoTitleEl.textContent = t('options.cryptoTitle');
+  cryptoIntroEl.textContent = t('options.cryptoIntro');
+  cryptoQrEl.replaceChildren(qrSvg(cryptoNetwork.address, 168));
+  cryptoAddressEl.textContent = cryptoNetwork.address;
+
+  // Shown for a coin with one chain as well: it also says which network the
+  // address belongs to, which must not come and go with the tile that is lit.
+  cryptoChainsEl.setAttribute('aria-label', t('options.cryptoNetworks'));
+  cryptoChainsEl.replaceChildren(
+    ...cryptoCoin.networks.map((n, i) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'glim-crypto-chip';
+      b.setAttribute('role', 'option');
+      const on = n.id === cryptoNetwork.id;
+      b.setAttribute('aria-selected', String(on));
+      b.classList.toggle('glim-active', on);
+      b.textContent = n.name;
+      setHue(b, i);
+      // The row is drawn again, so focus goes to the chip that replaced this one.
+      b.addEventListener('click', () => {
+        cryptoNetwork = n;
+        renderCrypto();
+        cryptoChainsEl.querySelectorAll('button')[i]?.focus();
+      });
+      return b;
+    }),
+  );
+
+  cryptoNoteEl.hidden = !cryptoNetwork.noteKey;
+  cryptoNoteEl.textContent = cryptoNetwork.noteKey ? t(cryptoNetwork.noteKey) : '';
+
+  // The copy button takes the coin's position, so in rainbow mode it matches
+  // the tile the address came from.
+  setHue(cryptoCopyEl, CRYPTO_COINS.indexOf(cryptoCoin));
+  paintCryptoCopy(false);
+
+  cryptoCoinsEl.setAttribute('aria-label', t('options.cryptoTitle'));
+  cryptoCoinsEl.replaceChildren(
+    ...CRYPTO_COINS.map((c, i) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'glim-crypto-tile glim-hue-icon';
+      b.setAttribute('role', 'option');
+      const on = c.id === cryptoCoin.id;
+      b.setAttribute('aria-selected', String(on));
+      b.classList.toggle('glim-active', on);
+      b.setAttribute('aria-label', `${c.name} (${c.symbol})`);
+      b.setAttribute('data-tip', c.name);
+      const mark = COIN_MARKS[c.id];
+      const ticker = document.createElement('span');
+      ticker.textContent = c.symbol;
+      b.append(glyph(mark.d, 24, mark.box), ticker);
+      setHue(b, i);
+      b.addEventListener('click', () => {
+        // Always the new coin's first chain, never one carried over from the
+        // last coin without being checked against this one.
+        cryptoCoin = c;
+        cryptoNetwork = c.networks[0];
+        renderCrypto();
+        cryptoCoinsEl.querySelectorAll('button')[i]?.focus();
+      });
+      return b;
+    }),
+  );
+}
+
+function paintCryptoCopy(copied) {
+  cryptoCopyEl.replaceChildren(glyph(D_COPY, 14), document.createTextNode(t(copied ? 'common.copied' : 'common.copy')));
+}
+
+function openCrypto() {
+  renderCrypto();
+  cryptoCloseEl.replaceChildren(glyph(D_CROSS, 14), document.createTextNode(t('common.close')));
+  cryptoEl.hidden = false;
+  cryptoCopyEl.focus();
+  document.addEventListener('keydown', onCryptoKey);
+}
+
+function closeCrypto() {
+  cryptoEl.hidden = true;
+  clearTimeout(cryptoCopiedTimer);
+  document.removeEventListener('keydown', onCryptoKey);
+  cryptoBtn.focus();
+}
+
+/** Escape closes the window, and Tab stays inside it, as aria-modal promises. */
+function onCryptoKey(event) {
+  if (event.key === 'Escape') {
+    event.preventDefault();
+    closeCrypto();
+    return;
+  }
+  if (event.key !== 'Tab') return;
+  const stops = [...cryptoEl.querySelectorAll('button')];
+  const at = stops.indexOf(document.activeElement);
+  event.preventDefault();
+  const next = event.shiftKey ? (at <= 0 ? stops.length - 1 : at - 1) : at === stops.length - 1 ? 0 : at + 1;
+  stops[next].focus();
+}
+
+cryptoBtn.addEventListener('click', openCrypto);
+cryptoCloseEl.addEventListener('click', closeCrypto);
+// Only a press on the backdrop itself closes it.
+cryptoEl.addEventListener('click', (event) => {
+  if (event.target === cryptoEl) closeCrypto();
+});
+cryptoCopyEl.addEventListener('click', async () => {
+  try {
+    await navigator.clipboard.writeText(cryptoNetwork.address);
+  } catch {
+    // The address stays on screen whole, to be selected by hand.
+    shake(cryptoCopyEl);
+    return;
+  }
+  // The label says it landed: a clipboard write is otherwise invisible, and the
+  // page's status line is behind the window.
+  paintCryptoCopy(true);
+  clearTimeout(cryptoCopiedTimer);
+  cryptoCopiedTimer = setTimeout(() => paintCryptoCopy(false), 1500);
+});
 
 const reportEl = document.getElementById('report');
 const copyReportBtn = document.getElementById('copyReport');

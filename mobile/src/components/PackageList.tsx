@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import type { Task } from '../api/types';
 import TaskRow from './TaskRow';
 import DragList, { type DragRow } from './DragList';
 import IconBadge, { Folder, Trash } from './IconBadge';
+import { ConfirmDialog } from './ConfirmDialog';
 import { useAppearance } from '../theme/AppearanceContext';
 import { NUM, TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
@@ -103,31 +104,12 @@ export default function PackageList({
   }
 
   /**
-   * The question is what warns, and it is the only thing that does.
-   *
-   * The message names the count, so the commit button needs no colour: the
-   * language took status-red off destructive controls in 1.12.0 and removed the
-   * last exception in 1.13.0. React Native also honours `style: 'destructive'`
-   * on iOS and ignores it on Android, so it would paint a red button on one
-   * phone and nothing on the other.
-   *
-   * `style: 'cancel'` stays, because that is placement rather than colour: it
-   * tells the platform which button is the way out, and where each platform
-   * puts that is the platform's business.
+   * The package the removal window is asking about, or null. The question is
+   * what warns, and it is the only thing that does: the message names the
+   * count, so the commit button needs no colour (GlimStone 1.12.0).
    */
-  const confirmDelete = (pkg: Pkg) => {
-    Alert.alert(
-      t('packages.deleteConfirmTitle'),
-      t('packages.deleteConfirmMessage', { n: pkg.tasks.length }),
-      [
-        { text: t('settings.cancel'), style: 'cancel' },
-        {
-          text: t('packages.deleteConfirmButton'),
-          onPress: () => onDeletePackage?.(pkg),
-        },
-      ],
-    );
-  };
+  const [confirming, setConfirming] = useState<Pkg | null>(null);
+  const confirmDelete = (pkg: Pkg) => setConfirming(pkg);
 
   // One flat list of draggable rows. The band is what keeps a drag honest: a
   // package header moves among package headers and a link within its own
@@ -246,29 +228,47 @@ export default function PackageList({
   };
 
   return (
-    <DragList
-      rows={dragRows}
-      onReorder={applyOrder}
-      contentContainerStyle={styles.list}
-      header={header}
-      /**
-       * A list with nothing in it gets a card, a muted glyph at reduced opacity
-       * and a muted title rather than blank space. One sentence floating in the
-       * middle of an empty screen reads as a screen that failed to load, and
-       * this is the first thing a new install shows anybody.
-       *
-       * The sentence is the caller's, because empty means nothing queued in one
-       * tab and nothing collected in the other, while the shape is the same.
-       */
-      empty={
-        <View style={[styles.empty, { backgroundColor: c.surface, borderRadius: radii.card }]}>
-          <View style={styles.emptyGlyph}>
-            <Folder color={c.textMuted} size={44} />
+    <>
+      <DragList
+        rows={dragRows}
+        onReorder={applyOrder}
+        contentContainerStyle={styles.list}
+        header={header}
+        /**
+         * A list with nothing in it gets a card, a muted glyph at reduced
+         * opacity and a muted title rather than blank space. One sentence
+         * floating in the middle of an empty screen reads as a screen that
+         * failed to load, and this is the first thing a new install shows
+         * anybody.
+         *
+         * The sentence is the caller's, because empty means nothing queued in
+         * one tab and nothing collected in the other, while the shape is the
+         * same.
+         */
+        empty={
+          <View style={[styles.empty, { backgroundColor: c.surface, borderRadius: radii.card }]}>
+            <View style={styles.emptyGlyph}>
+              <Folder color={c.textMuted} size={44} />
+            </View>
+            <Text style={[styles.emptyText, { color: c.textMuted }]}>{empty}</Text>
           </View>
-          <Text style={[styles.emptyText, { color: c.textMuted }]}>{empty}</Text>
-        </View>
-      }
-    />
+        }
+      />
+      <ConfirmDialog
+        visible={confirming !== null}
+        title={t('packages.deleteConfirmTitle')}
+        message={t('packages.deleteConfirmMessage', { n: confirming?.tasks.length ?? 0 })}
+        cancelLabel={t('settings.cancel')}
+        confirmLabel={t('packages.deleteConfirmButton')}
+        confirmIcon={(ink) => <Trash color={ink} />}
+        onCancel={() => setConfirming(null)}
+        onConfirm={() => {
+          const pkg = confirming;
+          setConfirming(null);
+          if (pkg) onDeletePackage?.(pkg);
+        }}
+      />
+    </>
   );
 }
 

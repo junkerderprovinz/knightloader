@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useT } from '../lib/i18n';
 import { setLangPickerOpen, toggleLangPickerOpen, useLangPickerOpen } from '../lib/langPickerOpen';
+import { useTooltip } from './ui';
 
 // The language picker. Its open state lives in lib/langPickerOpen.ts so the
 // command palette can open the sidebar's instance.
@@ -27,6 +28,10 @@ export function LanguagePicker({
   const toggleOpen = standalone ? () => setLocalOpen((v) => !v) : toggleLangPickerOpen;
   const ref = useRef<HTMLDivElement>(null);
   const current = languages.find((l) => l.code === lang) ?? languages[0];
+  // The button already shows the language, so the bubble names only what the
+  // button is for.
+  const tip = useTooltip<HTMLButtonElement>(t('lang.label'));
+  const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
 
   // Loaded lazily so half a megabyte of flags stays out of the first paint.
   useEffect(() => {
@@ -54,15 +59,16 @@ export function LanguagePicker({
     <div className="relative" ref={ref}>
       <button
         aria-label={`${t('lang.label')}: ${current.label}`}
-        title={`${t('lang.label')}: ${current.label}`}
         aria-haspopup="listbox"
         aria-expanded={open}
         onClick={toggleOpen}
         className={className}
+        {...tipHoverProps}
       >
         <Flag code={current.flag} />
         <span className="flex-1 text-left">{current.label}</span>
       </button>
+      {tip.node}
 
       {open && (
         <div

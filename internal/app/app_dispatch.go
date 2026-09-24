@@ -84,10 +84,21 @@ func dynamicPrio(res resolver.Resolver, url string, order []string) int {
 		}
 	}
 	if id == "jd" {
+		// A connected hoster login is a row of its own on the priority card, so
+		// the order decides whether a link to that host goes out on the login
+		// or through a debrid service that carries the host too.
+		if host := jd.LoginHost(url); host != "" {
+			if i := slices.Index(order, loginRowID(host)); i >= 0 {
+				return orderBase - i
+			}
+		}
 		return jd.PriorityFor(url)
 	}
 	return res.Info().Prio
 }
+
+// loginRowID is the order entry for one host's hoster login.
+func loginRowID(host string) string { return "login:" + host }
 
 // orderBase is the priority of the first entry in a hand-arranged order; each
 // following entry gets one less. It is far above the automatic band (JD's
@@ -110,11 +121,11 @@ func rankedChain(chain []resolver.Resolver, url string, order []string) []resolv
 // hand-arranged order and JD's per-host boost, so it would show a ladder the
 // downloader does not use.
 //
-// An empty host lists the services the card orders, every registered one
-// except perLinkResolvers; otherwise the whole chain for that host. There is
-// one row per service, not per account slot: the card saves the ids it shows
-// back into ResolverOrder, and which account of a service goes first is
-// decided by routedAccounts.
+// An empty host lists what the card orders: every registered service except
+// perLinkResolvers, and one row per switched-on hoster login; otherwise the
+// whole chain for that host. There is one row per service, not per account
+// slot: the card saves the ids it shows back into ResolverOrder, and which
+// account of a service goes first is decided by routedAccounts.
 func (a *App) ResolverPriority(host string) []resolver.Info {
 	host = strings.TrimSpace(host)
 	url := ""
@@ -123,19 +134,42 @@ func (a *App) ResolverPriority(host string) []resolver.Info {
 		url = "https://" + host + "/"
 		chain = a.Registry.All(url)
 	}
-	ranked := rankedChain(chain, url, a.Settings.Get().ResolverOrder)
-	out := make([]resolver.Info, 0, len(ranked))
+	order := a.Settings.Get().ResolverOrder
+	type row struct {
+		info resolver.Info
+		prio int
+	}
+	var rows []row
 	seen := map[string]bool{}
-	for _, res := range ranked {
+	for _, res := range rankedChain(chain, url, order) {
 		info := res.Info()
 		service, _ := resolver.SplitSlot(info.ID)
 		if seen[service] || (host == "" && perLinkResolvers[service]) {
 			continue
 		}
 		seen[service] = true
+		prio := dynamicPrio(res, url, order)
 		// The service id, so a drag saves an order dynamicPrio matches.
 		info.ID = service
-		out = append(out, info)
+		rows = append(rows, row{info, prio})
+	}
+	if host == "" {
+		for _, l := range a.HosterLogins() {
+			if !l.Enabled {
+				continue
+			}
+			id := loginRowID(l.Host)
+			prio := jd.ActiveLoginPrio
+			if i := slices.Index(order, id); i >= 0 {
+				prio = orderBase - i
+			}
+			rows = append(rows, row{resolver.Info{ID: id, Prio: jd.ActiveLoginPrio}, prio})
+		}
+		sort.SliceStable(rows, func(i, j int) bool { return rows[i].prio > rows[j].prio })
+	}
+	out := make([]resolver.Info, len(rows))
+	for i, r := range rows {
+		out[i] = r.info
 	}
 	return out
 }
@@ -224,15 +258,39 @@ func (a *App) resolverForTaskLocked(t *core.Task) resolver.Resolver {
 	if t.ResolverPin != "" {
 		return a.pinnedResolverLocked(t)
 	}
-	if t.Resolver != "" && a.accountRoutableLocked(t.Resolver) {
+	chain := rankedChain(a.Registry.All(t.URL), t.URL, a.Settings.Get().ResolverOrder)
+	// A fallback may have recorded the direct download or yt-dlp while a
+	// backend above it was switched off; that backend decides, not the fallback.
+	if t.Resolver != "" && a.accountRoutableLocked(t.Resolver) && !a.resolverOff(t.Resolver) &&
+		!(perLinkResolvers[t.Resolver] && a.switchedOffAboveLocked(chain, t.Resolver)) {
 		for _, res := range a.Registry.All(t.URL) {
 			if res.Info().ID == t.Resolver {
 				return res
 			}
 		}
 	}
-	for _, res := range rankedChain(a.Registry.All(t.URL), t.URL, a.Settings.Get().ResolverOrder) {
-		if a.accountRoutableLocked(res.Info().ID) {
+	// A task whose recorded backend is switched off stands at that backend's
+	// place in the chain. The backends above it have had the link already, and
+	// asking them again would loop between a decline and the switch.
+	if a.resolverOff(t.Resolver) {
+		if i := slices.IndexFunc(chain, func(r resolver.Resolver) bool { return r.Info().ID == t.Resolver }); i >= 0 {
+			chain = chain[i:]
+		}
+	}
+	passedOff := false
+	for _, res := range chain {
+		id := res.Info().ID
+		if a.resolverOff(id) {
+			passedOff = true
+			continue
+		}
+		// Past a switched-off backend only a service that lists the host, such
+		// as a debrid account, may take the link over. The backends that take
+		// any link would fetch the hoster's page or hand a video to JD.
+		if passedOff && perLinkResolvers[id] {
+			return nil
+		}
+		if a.accountRoutableLocked(id) {
 			return res
 		}
 	}
@@ -246,7 +304,7 @@ func (a *App) resolverForTaskLocked(t *core.Task) resolver.Resolver {
 func (a *App) pinnedResolverLocked(t *core.Task) resolver.Resolver {
 	for _, res := range rankedChain(a.Registry.All(t.URL), t.URL, a.Settings.Get().ResolverOrder) {
 		id := res.Info().ID
-		if !pinMatches(t.ResolverPin, id) {
+		if !pinMatches(t.ResolverPin, id) || a.resolverOff(id) {
 			continue
 		}
 		if a.accountRoutableLocked(id) {
@@ -525,6 +583,11 @@ func (a *App) dispatchLocked() {
 				continue
 			}
 		}
+		if a.started[id] && a.resolverOff(t.Resolver) {
+			waiting[id] = core.WaitingModule
+			rest = append(rest, id)
+			continue
+		}
 		if a.started[id] {
 			a.active[id] = true
 			a.countStartLocked(t, h, perHost, &forcedActive, &normalActive)
@@ -549,6 +612,14 @@ func (a *App) dispatchLocked() {
 		// the best match.
 		res := a.resolverForTaskLocked(t)
 		if res == nil {
+			if off := a.switchedOffMatchLocked(t); off != "" {
+				// Recorded, so the task goes back to that backend once it is
+				// switched on rather than to a fallback it reached meanwhile.
+				t.Resolver = off
+				waiting[id] = core.WaitingModule
+				rest = append(rest, id)
+				continue
+			}
 			if t.ResolverPin != "" {
 				// A pinned task fails visibly instead of waiting; see
 				// pinFailureLocked.

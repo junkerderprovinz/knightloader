@@ -24,11 +24,13 @@ export interface SpeedHistory {
   sampledAt: string;
 }
 
-/** The window a graph draws: at most `points` samples, and the span they cover. */
+/** The window a graph draws: at most `points` samples, oldest first. */
 export interface SpeedWindow {
   samples: number[];
-  /** samples.length * step, in whole seconds. What the abscissa prints. */
-  seconds: number;
+  /** Seconds between two samples. */
+  step: number;
+  /** performance.now() when the newest sample arrived, which a curve scrolls against. */
+  newestAt: number;
 }
 
 export type SpeedScale = 'minute' | 'hour';
@@ -62,6 +64,9 @@ interface Scope {
   live10s: number[];
   /** The fine samples since the last coarse entry closed. */
   bucket: number[];
+  /** performance.now() when the newest entry of each resolution arrived. */
+  arrived1s: number;
+  arrived10s: number;
   /** What the caller last reported, read by the tick. */
   value: number;
   /** Ticks left in which a reported 0 means "not known yet"; see LIVE_GRACE_TICKS. */
@@ -87,6 +92,8 @@ function scopeFor(instance: string): Scope {
       live1s: [],
       live10s: [],
       bucket: [],
+      arrived1s: 0,
+      arrived10s: 0,
       value: 0,
       grace: LIVE_GRACE_TICKS,
       carry: 0,
@@ -126,6 +133,7 @@ function tick(sc: Scope): void {
 
   sc.live1s.push(v);
   trim(sc.live1s);
+  sc.arrived1s = performance.now();
 
   sc.bucket.push(v);
   if (sc.bucket.length >= COARSE_EVERY) {
@@ -136,6 +144,7 @@ function tick(sc: Scope): void {
     for (const s of sc.bucket) sum += s;
     sc.live10s.push(Math.round(sum / sc.bucket.length));
     trim(sc.live10s);
+    sc.arrived10s = sc.arrived1s;
     sc.bucket = [];
   }
 
@@ -168,6 +177,10 @@ function seed(sc: Scope): void {
       sc.carry = sc.seedRecent.length > 0 ? sc.seedRecent[sc.seedRecent.length - 1] : 0;
       sc.grace = LIVE_GRACE_TICKS;
       sc.seededAt = Date.now();
+      // With no live entry after it, the seed's last reading is the newest one.
+      const now = performance.now();
+      if (sc.live1s.length === 0) sc.arrived1s = now;
+      if (sc.live10s.length === 0) sc.arrived10s = now;
       emit(sc);
     },
     () => {
@@ -203,7 +216,7 @@ function windowFor(instance: string, points: number, scale: SpeedScale): SpeedWi
   // Not padded: zeros would claim the instance was idle before it booted.
   const all = seeded.concat(live);
   const samples = all.length > points ? all.slice(all.length - points) : all;
-  return { samples, seconds: samples.length * step };
+  return { samples, step, newestAt: scale === 'hour' ? sc.arrived10s : sc.arrived1s };
 }
 
 /**

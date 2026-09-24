@@ -47,20 +47,8 @@ func (a *App) confirmItemsLocked(toStart []*core.Task) []confirm.Item {
 func (a *App) ConfirmTasks(ids []string, batch confirm.Config, trigger confirm.Trigger) confirm.Result {
 	cfg := confirm.ResolveConfig(batch, globalConfirmConfig(a.Settings.Get()), trigger)
 
-	want := map[string]bool{}
-	for _, id := range ids {
-		want[id] = true
-	}
-	all := len(ids) == 0
-
 	a.mu.Lock()
-	var candidates []*core.Task
-	for id, t := range a.tasks {
-		if t.Status == core.StatusCollected && !t.Skipped && (all || want[id]) {
-			candidates = append(candidates, t)
-		}
-	}
-	items := a.confirmItemsLocked(candidates)
+	items := a.confirmItemsLocked(a.confirmableLocked(ids))
 	a.mu.Unlock()
 
 	// Background activity is shown only for triggers nobody is watching.
@@ -79,4 +67,27 @@ func (a *App) ConfirmTasks(ids []string, batch confirm.Config, trigger confirm.T
 		a.RemoveTasks(result.Remove, false)
 	}
 	return result
+}
+
+// confirmableLocked lists the tasks a confirm of ids acts on: those still in
+// the collector, with neither the link filter holding them nor a preset
+// setting them aside. An empty ids means every such task. Caller holds a.mu.
+func (a *App) confirmableLocked(ids []string) []*core.Task {
+	want := map[string]bool{}
+	for _, id := range ids {
+		want[id] = true
+	}
+	all := len(ids) == 0
+	// Callers name the links they staged, and staging hands back one row of a
+	// yt-dlp link's family; the link is all of them.
+	for _, id := range a.variantSiblingsLocked(ids) {
+		want[id] = true
+	}
+	var out []*core.Task
+	for id, t := range a.tasks {
+		if t.Status == core.StatusCollected && !t.Skipped && !t.VariantOff && (all || want[id]) {
+			out = append(out, t)
+		}
+	}
+	return out
 }

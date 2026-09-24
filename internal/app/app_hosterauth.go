@@ -32,6 +32,7 @@ func (a *App) hosterAuth() *hosterauth.Reconciler {
 	// KL_JD is read on every pass, so a changed variable or a JD that comes up
 	// later is picked up without a restart.
 	r := hosterauth.NewReconciler(hosterauth.NewStore(a.Accounts), func() string { return os.Getenv("KL_JD") })
+	r.Off = func() bool { return a.ModuleOff("jd") }
 	// hosterauth files credentials under the "hosterauth" service with the host
 	// as account, the same key accountEnabled uses, so this is the same switch
 	// as every other account's.

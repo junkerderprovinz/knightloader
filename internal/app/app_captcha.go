@@ -100,6 +100,16 @@ func (a *App) pollCaptchasOnce(st *captchaState) []captcha.Challenge {
 	st.pollMu.Lock()
 	defer st.pollMu.Unlock()
 
+	if a.ModuleOff("captcha") || a.ModuleOff("jd") {
+		// Open prompts close and JD is not asked. JD keeps its challenges and
+		// gives up on those links itself once they expire.
+		for _, c := range st.store.List() {
+			a.settleCaptcha(c, "switchedOff")
+		}
+		a.setActivityGauge(ActivityCaptcha, 0)
+		return nil
+	}
+
 	list, err := st.source.List(a.ctx)
 	if err != nil {
 		if !errors.Is(err, captcha.ErrJDNotConfigured) {
@@ -193,8 +203,9 @@ type CaptchaResolution struct {
 	TaskID string `json:"taskId,omitempty"`
 	Host   string `json:"host"`
 	// Reason is "solved" (answered in time), "expired" (answered too late),
-	// "aborted", "timedOut" (gone after its ExpiresAt) or "resolved" (gone for
-	// a reason this session cannot tell).
+	// "aborted", "timedOut" (gone after its ExpiresAt), "switchedOff" (the
+	// captcha or JD module was switched off) or "resolved" (gone for a reason
+	// this session cannot tell).
 	Reason string `json:"reason"`
 }
 
@@ -356,13 +367,22 @@ func (a *App) solveCaptchaWith(solvers []captcha.Solver, c captcha.Challenge) {
 		defer cancel()
 	}
 
+	// Asked before every paid solve and before the answer goes to JD, since a
+	// solve takes long enough for somebody to switch captchas off meanwhile.
+	switchedOff := func() bool { return a.ModuleOff("captcha") || a.ModuleOff("jd") }
 	for _, s := range solvers {
+		if switchedOff() {
+			return
+		}
 		text, err := s.Solve(ctx, c.Kind, payload.DataURL, c.Prompt)
 		if err != nil {
 			if ctx.Err() != nil {
 				return // the challenge expired or the app is closing
 			}
 			continue
+		}
+		if switchedOff() {
+			return
 		}
 		if _, err := a.AnswerCaptcha(ctx, c.ID, text); err != nil {
 			log.Printf("captcha: an automatic solver answered %s but submitting it failed: %v", c.ID, err)

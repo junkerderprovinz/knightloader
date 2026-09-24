@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { fetchFeatures, setFeature, type Feature } from '../pages/settings/features';
+import { connectWS } from './api';
 
 /**
  * useCnl is the Click'n'Load listener's state for the collector's switch.
@@ -17,14 +18,19 @@ export function useCnl(): {
 
   useEffect(() => {
     let alive = true;
-    void fetchFeatures()
-      .then((f) => {
-        if (alive) setRow(f.modules.find((m) => m.id === 'cnl') ?? null);
-      })
-      // Silent: an instance that cannot answer /api/features reports it elsewhere.
-      .catch(() => {});
+    const load = () =>
+      void fetchFeatures()
+        .then((f) => {
+          if (alive) setRow(f.modules.find((m) => m.id === 'cnl') ?? null);
+        })
+        // Silent: an instance that cannot answer /api/features reports it elsewhere.
+        .catch(() => {});
+    load();
+    // Again whenever the switch moves elsewhere, such as on the Modules page.
+    const close = connectWS((type) => type === 'settings' && load(), ['settings']);
     return () => {
       alive = false;
+      close();
     };
   }, []);
 

@@ -13,6 +13,7 @@ import { TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
 import { GlimButton } from '../components/glim';
 import IconBadge, { Back, Connect, Paste, Scan, boxForInk } from '../components/IconBadge';
+import { InfoTip } from '../components/InfoTip';
 import * as Clipboard from 'expo-clipboard';
 
 // Joining the group, which is the whole of connecting this app now: twelve
@@ -203,24 +204,25 @@ export default function RelayConnectScreen({
     onConnected(first);
   };
 
+  // Filled and borderless, as every field in the family is: a surface is told
+  // apart by its shade, never by a drawn line.
   const inputStyle = {
     backgroundColor: c.surface,
     color: c.text,
-    borderColor: c.border,
     borderRadius: radii.control,
   };
 
   return (
     <View style={[styles.container, { backgroundColor: c.bg }]}>
-      {/* Same badge, same place as every other screen: left of the heading. */}
+      {/* Same badge, same place as every other screen: left of the heading.
+          What the phrase is and where to find it hangs off an (i) on the
+          heading, ahead of the field it explains, rather than standing as a
+          paragraph over it (GlimStone rule 8). */}
       <View style={styles.topBar}>
         <IconBadge icon={<Back color={c.textSub} />} onPress={onBack} accessibilityLabel={t('settings.back')} />
         <Text style={[styles.title, { color: c.text }]}>{t('relay.title')}</Text>
+        <InfoTip text={t('relay.hint')} />
       </View>
-      {/* Heading, explanation, field, buttons, in that order: a screen whose
-          job is one unfamiliar input explains it before asking for it, and an
-          explanation below the buttons is one somebody reads after guessing. */}
-      <Text style={[styles.hint, { color: c.textMuted }]}>{t('relay.hint')}</Text>
       <Text style={[styles.label, { color: c.textMuted }]}>{t('relay.phraseLabel')}</Text>
       <TextInput
         style={[styles.input, styles.phraseInput, inputStyle]}
@@ -355,14 +357,12 @@ const styles = StyleSheet.create({
   // Every size on this screen comes off the scale in theme/tokens.ts: this
   // screen's title is the same object as Downloads' and Settings' and has to
   // measure the same.
-  title: { fontSize: TYPE.heading, fontWeight: '600', marginBottom: 8 },
-  hint: { fontSize: TYPE.body, marginBottom: 16, lineHeight: 20 },
+  title: { fontSize: TYPE.heading, fontWeight: '600', flexShrink: 1 },
   label: { fontSize: TYPE.dense, marginBottom: 6, marginTop: 12 },
   input: {
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: TYPE.body,
-    borderWidth: 1,
   },
   // Twelve words do not fit on one phone line, and a field that scrolls
   // sideways while somebody checks their typing hides the typo they are looking

@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { Button, Card, Modal, SectionTitle, ToggleRow } from '../../../components/ui';
-import { IconDownloads, IconUpload } from '../../../lib/icons';
+import { IconClose, IconDownloads, IconUpload } from '../../../lib/icons';
 import { useT } from '../../../lib/i18n';
 import {
   ApiError,
@@ -244,9 +244,14 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
           footer={
             <>
               <span className="flex-1" />
-              <Button kind="ghost" onClick={() => setPendingFile(null)} disabled={restoring}>
-                {t('settings.system.confirmCancel')}
-              </Button>
+              <Button
+                kind="ghost"
+                labelled
+                icon={<IconClose />}
+                title={t('settings.system.confirmCancel')}
+                onClick={() => setPendingFile(null)}
+                disabled={restoring}
+              />
               <Button
                 key={restoreShake}
                 className={restoreShake > 0 ? 'glim-shake' : ''}

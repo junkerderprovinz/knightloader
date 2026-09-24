@@ -1,6 +1,6 @@
 # Torrent and magnet-link support: design spec
 
-Slots into the v1 campaign as a new wave between the
+This slots into the v1 campaign as a new wave between the
 already-running Wave 11 and the already-prepared Wave 12, so Wave 12's own
 final locale-parity sweep covers this feature's strings too instead of
 needing a second translation pass afterward.
@@ -10,13 +10,13 @@ needing a second translation pass afterward.
 Add BitTorrent (magnet links and uploaded `.torrent` files) as a fourth
 resolver alongside JD, yt-dlp and Debrid, at full depth: selective file
 download, peer/seed visibility, a seed-to-ratio default, port mapping
-guidance, and private-tracker safety. The six decisions below are settled;
-this document is the design they imply, not a re-litigation of them.
+guidance, and private-tracker safety. The six decisions below are settled,
+and this document works out the design they imply.
 
 ## What is already true, verified in the tree (read this first)
 
-The single most important fact this spec rests on, confirmed by reading the
-actual vendored source rather than assumed from gopeed's marketing:
+The most important fact this spec rests on, confirmed by reading the vendored
+source rather than assumed from gopeed's marketing:
 
 - **gopeed's embedded downloader already silently supports BitTorrent
   today**, unused. `internal/engine/engine.go:33-39` builds a
@@ -253,7 +253,7 @@ specifically (check before choosing).
 Inserted as a new wave after Wave 11 lands and before Wave 12 runs, so
 Wave 12's final locale-parity sweep (already scoped as a full audit across
 everything Waves 1 to 11 added) naturally covers this wave's new strings too.
-Given the surface area (resolver + engine call shape, port-mapping
+Given the surface area (resolver and engine call shape, port-mapping
 package, a new settings page, collector file-tree UI, new columns, an
 idle-detection cross-reference, private-tracker safety), this is larger than
 an ordinary wave. How it is split up is settled when it is scheduled, not

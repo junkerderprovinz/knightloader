@@ -13,15 +13,27 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/federation"
 )
 
+// errFederationOff answers every call that would reach a peer while the
+// module is switched off. The peers stay stored and come back with it.
+var errFederationOff = errors.New("peer instances are switched off on the Modules page")
+
 func registerFederation(reg *Registry, a *app.App) {
-	reg.Add(http.MethodGet, "/api/instances", "the peer instances this one knows about",
+	reg.Add(http.MethodGet, "/api/instances", "the peer instances this one knows about; none while the module is switched off",
 		func(w http.ResponseWriter, r *http.Request) {
+			if a.ModuleOff("federation") {
+				writeJSON(w, []federation.Instance{})
+				return
+			}
 			writeJSON(w, a.Federation.List())
 		})
 	reg.Add(http.MethodPost, "/api/instances", "register a peer instance and report whether it answered",
 		func(w http.ResponseWriter, r *http.Request) {
 			var in federation.Instance
 			if !decodeJSON(w, r, &in) {
+				return
+			}
+			if a.ModuleOff("federation") {
+				http.Error(w, errFederationOff.Error(), http.StatusServiceUnavailable)
 				return
 			}
 			if err := addPeer(a, in); err != nil {
@@ -62,6 +74,10 @@ func registerFederation(reg *Registry, a *app.App) {
 	reg.Add(AnyMethod, "/api/instances/{name}/{rest...}", "forward a task or link request to a peer; nothing else is forwarded",
 		func(w http.ResponseWriter, r *http.Request) {
 			rest := r.PathValue("rest")
+			if a.ModuleOff("federation") {
+				http.Error(w, errFederationOff.Error(), http.StatusServiceUnavailable)
+				return
+			}
 			// The queue travels with the task list, being that list's master
 			// switch: showing a peer's downloads and then ordering, forcing or
 			// stopping them on this box would act on the wrong machine.

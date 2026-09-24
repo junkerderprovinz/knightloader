@@ -10,11 +10,12 @@ import {
   TextArea,
   TextInput,
 } from '../../components/ui';
-import { IconArrowDown, IconArrowUp, IconGlobe, IconPlus, IconTrash } from '../../lib/icons';
+import { IconArrowDown, IconArrowUp, IconClose, IconGlobe, IconPlus, IconTrash } from '../../lib/icons';
 import { useToast } from '../../lib/toast';
 import { useT, type TranslationKey } from '../../lib/i18n';
 import { useDraft } from './context';
 import { NeutralSwitch } from './controls';
+import { ModuleToggle } from './ModuleToggle';
 
 /**
  * Connections manages the ordered list of outbound connections downloads are
@@ -207,6 +208,7 @@ export function Connections() {
         >
           {cx('settings.connections.listTitle')}
         </SectionTitle>
+        <ModuleToggle id="connections" />
 
         {rows.length === 0 ? (
           // Inside the card rather than an EmptyState, which would hide Add.
@@ -548,9 +550,7 @@ function ImportDialog({ onClose, onAdd }: { onClose: () => void; onAdd: (entries
       footer={
         <>
           <span className="flex-1" />
-          <Button kind="ghost" onClick={onClose}>
-            {cx('settings.connections.cancel')}
-          </Button>
+          <Button kind="ghost" labelled icon={<IconClose />} title={cx('settings.connections.cancel')} onClick={onClose} />
           {/* The spacer puts the advancing button at the end of the row. */}
           {result ? (
             <Button disabled={ready === 0} onClick={() => onAdd(result.entries)}>

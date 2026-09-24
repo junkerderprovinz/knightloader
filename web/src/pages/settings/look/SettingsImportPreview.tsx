@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Button, InfoBubble, Modal } from '../../../components/ui';
 import { NeutralSwitch } from '../controls';
 import { useT } from '../../../lib/i18n';
+import { IconClose } from '../../../lib/icons';
 import type { SettingsExportDoc } from '../../../lib/api';
 import { TRANSFER_GROUPS, describe, type TransferGroup, type TransferRow } from '../../../lib/settingsTransfer';
 
@@ -69,9 +70,14 @@ export function SettingsImportPreview({
       footer={
         <>
           <span className="flex-1" />
-          <Button kind="ghost" onClick={onClose} disabled={busy}>
-            {t('settings.transfer.cancel')}
-          </Button>
+          <Button
+            kind="ghost"
+            labelled
+            icon={<IconClose />}
+            title={t('settings.transfer.cancel')}
+            onClick={onClose}
+            disabled={busy}
+          />
           <Button kind="primary" onClick={() => onApply([...picked])} disabled={busy || picked.size === 0}>
             {busy ? t('settings.transfer.applying') : t('settings.transfer.apply', { n: picked.size })}
           </Button>

@@ -14,9 +14,9 @@ import { useDialogMute } from '../lib/dialogmute';
 import { useT } from '../lib/i18n';
 import { useInstanceScope } from '../lib/instance';
 import { useNavLabels } from '../lib/navLabels';
-import { Button, Modal } from './ui';
+import { Button, Modal, useTooltip } from './ui';
 import { fmtBytes, RATE_UNITS, type RateUnit, fmtRateValue, joinRate, splitRate } from '../lib/format';
-import { IconPause, IconPlay, IconStop } from '../lib/icons';
+import { IconClose, IconPause, IconPlay, IconStop } from '../lib/icons';
 
 const RETRY_MS = 5000;
 
@@ -161,9 +161,14 @@ export function QueueBar() {
             // visible while disabled.
             <>
               <span className="flex-1" />
-              <Button kind="secondary" onClick={() => setStopCost(null)} disabled={stopping}>
-                {t('queue.hardStopConfirmCancel')}
-              </Button>
+              <Button
+                kind="secondary"
+                labelled
+                icon={<IconClose />}
+                title={t('queue.hardStopConfirmCancel')}
+                onClick={() => setStopCost(null)}
+                disabled={stopping}
+              />
               <Button kind="secondary" disabled={stopping} onClick={() => void confirmStop()}>
                 {stopping ? t('settings.system.acting') : t('queue.hardStopConfirmProceed')}
               </Button>
@@ -222,6 +227,9 @@ export function SpeedLimitField() {
   const [limit, setLimit] = useState('');
   const [unit, setUnit] = useState<RateUnit>('KiB/s');
   const field = useRef<HTMLInputElement>(null);
+  const wheelTip = useTooltip<HTMLInputElement>(t('queue.limitWheelHint'));
+  // The field has a role and a tab stop of its own, and a ref the wheel needs.
+  const { role: _tipRole, tabIndex: _tipTabIndex, ref: tipRef, ...wheelTipProps } = wheelTip.triggerProps;
 
   useEffect(() => {
     fetchSettings()
@@ -283,16 +291,23 @@ export function SpeedLimitField() {
           value={limit}
           placeholder="∞"
           aria-label={t('queue.limit')}
+          {...wheelTipProps}
           onChange={(e) => setLimit(e.target.value)}
-          onBlur={() => void commit()}
+          onBlur={() => {
+            wheelTipProps.onBlur();
+            void commit();
+          }}
           onKeyDown={(e) => {
             if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
           }}
-          ref={field}
-          title={t('queue.limitWheelHint')}
+          ref={(el) => {
+            field.current = el;
+            tipRef.current = el;
+          }}
           className="glim-num min-w-0 flex-1 rounded-[var(--radius-control)] bg-carbon-surface2 px-2 py-1 text-right text-xs
             text-carbon-text outline-none transition-shadow focus:shadow-[0_0_0_2px_var(--focus-ring)]"
         />
+        {wheelTip.node}
         {/* Changing the unit keeps the typed number: 5 then MiB/s is 5 MiB/s.
             Unlike the number field, the picker answers the wheel on hover. */}
         <select

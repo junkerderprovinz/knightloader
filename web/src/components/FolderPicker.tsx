@@ -6,7 +6,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useT } from '../lib/i18n';
-import { IconArrowUp, IconFolder } from '../lib/icons';
+import { IconArrowUp, IconClose, IconFolder } from '../lib/icons';
 import { Button, InfoBubble, Modal, TextInput } from './ui';
 import { Tabs } from './Tabs';
 
@@ -201,9 +201,7 @@ export function FolderPicker({
       onClose={onClose}
       footer={
         <>
-          <Button kind="ghost" onClick={onClose}>
-            {t('common.cancel')}
-          </Button>
+          <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
           <span className="flex-1" />
           <Button onClick={() => onPick(joinTail(text, tail))} disabled={text.trim() === ''}>
             {t('folders.use')}

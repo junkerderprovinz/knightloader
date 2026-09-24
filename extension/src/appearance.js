@@ -5,6 +5,14 @@
 // Ported from glimstone's reference/appearance.ts with the types stripped. The
 // values are copied verbatim so every app of the family looks the same.
 
+/**
+ * The GlimStone release these ports follow, reference/react/version.ts's
+ * number. It lives beside the copies it describes so the About card cannot
+ * claim a release the files are not from, and it is a link, so it has to name
+ * a published release. Bump it in the change that lifts the ports.
+ */
+const GLIMSTONE_VERSION = '2.6.0';
+
 const SHAPES = ['round', 'soft', 'square'];
 
 /** The accent every app of the family starts with. */
@@ -138,6 +146,7 @@ async function readAppearance() {
     'theme', 'accent', 'shape',
     'accentSlotChosen', 'accentCustoms',
     'rainbow', 'rainbowReactive', 'rainbowRotate', 'rainbowSeed', 'rainbowPalette',
+    'rainbowDisco',
     'followInstance',
   ]);
 
@@ -174,6 +183,9 @@ async function readAppearance() {
       seed: Number.isFinite(s.rainbowSeed) ? s.rainbowSeed : 0,
       palette: usablePalette(s.rainbowPalette),
     },
+    // Local like the theme: the instance knows nothing of it, so following the
+    // instance's look leaves it alone.
+    disco: s.rainbowDisco === true,
     // Whether the look comes from the default instance; the theme never does.
     followInstance: s.followInstance === true,
   };
@@ -284,11 +296,22 @@ function hueVars(hex) {
 }
 
 /** setHue puts a palette position on one element, class and properties
- *  together. */
+ *  together. The position is kept on the element for rehue(). */
 function setHue(el, i) {
   el.classList.add('glim-hue');
+  el.dataset.hue = String(i);
   const vars = hueVars(rainbowAt(i));
   for (const [k, v] of Object.entries(vars)) el.style.setProperty(k, v);
+}
+
+/**
+ * rehue recomputes every position already placed on the page. hueVars bakes
+ * the hex into each element's inline style, so a palette that moves while the
+ * page stays up reaches only the elements drawn again, unless something walks
+ * all of them.
+ */
+function rehue() {
+  for (const el of document.querySelectorAll('.glim-hue[data-hue]')) setHue(el, Number(el.dataset.hue));
 }
 
 /**
@@ -312,4 +335,73 @@ function applyRainbow(next) {
   const mode = !merged.on ? 'off' : merged.reactive ? 'reactive' : 'on';
   if (mode === 'off') root.removeAttribute('data-rainbow');
   else root.setAttribute('data-rainbow', mode);
+}
+
+// Disco, the colour engine's easter egg from reference/appearance.ts: while it
+// is on, the palette steps one position a second, so every hued element moves
+// to the next colour together. It animates nothing; each step is a repaint.
+
+/** One step a second, well under the 3Hz flicker threshold photosensitivity
+ *  guidance names, which is what decides the number. */
+const DISCO_TICK_MS = 1000;
+
+/** Turn-ons of rainbow mode that unlock it. */
+const DISCO_UNLOCK_TURN_ONS = 5;
+
+/** The longest pause between two turn-ons of one run. Without it, somebody
+ *  comparing the page with and without the rainbow over a minute unlocks a
+ *  mode they never went looking for. */
+const DISCO_UNLOCK_WINDOW_MS = 3000;
+
+let discoTimer = null;
+
+/**
+ * applyDisco starts or stops the walk. `stored` is the rainbow as saved, which
+ * stopping puts back, so a stopped disco does not look like rotation having
+ * switched itself on.
+ *
+ * Each step rotates, since rainbowAt ignores the seed while rotation is off,
+ * and each step only applies: storing it would write the user's own seed
+ * forward once a second. With the rainbow off nothing hued is on screen, so
+ * the walk waits and starts by itself when the rainbow comes back.
+ */
+function applyDisco(on, stored) {
+  const wasWalking = discoTimer !== null;
+  if (wasWalking) {
+    clearInterval(discoTimer);
+    discoTimer = null;
+  }
+  const root = document.documentElement;
+  if (on) root.setAttribute('data-disco', 'on');
+  else root.removeAttribute('data-disco');
+
+  if (!on || !rainbowNow.on) {
+    if (wasWalking) {
+      applyRainbow(stored);
+      rehue();
+    }
+    return;
+  }
+  discoTimer = setInterval(() => {
+    applyRainbow({ ...rainbowNow, rotate: true, seed: rainbowNow.seed + 1 });
+    rehue();
+  }, DISCO_TICK_MS);
+}
+
+/**
+ * discoTap counts the unlock gesture: five turn-ons of rainbow mode, each
+ * within DISCO_UNLOCK_WINDOW_MS of the last, and true on the fifth. Turn-ons
+ * rather than clicks, so the gesture ends with the rainbow on, the one state
+ * in which the reward can be seen. The count lives with the caller and never
+ * in storage, or finding the mode once would leave its switch on the page for
+ * good.
+ */
+function discoTap(state, turnedOn, now) {
+  if (!turnedOn) return false;
+  const gap = now - state.last;
+  state.last = now;
+  state.taps = state.taps > 0 && gap <= DISCO_UNLOCK_WINDOW_MS ? state.taps + 1 : 1;
+  if (state.taps < DISCO_UNLOCK_TURN_ONS) return false;
+  state.taps = 0;
+  return true;
 }

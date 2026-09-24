@@ -7,6 +7,7 @@ import {
   startMaintenance,
 } from '../../../lib/api';
 import { useT } from '../../../lib/i18n';
+import { IconClose } from '../../../lib/icons';
 import { fmtBytes, fmtDate } from '../../../lib/format';
 import { useResource } from '../../../lib/useResource';
 import { Button, Card, ErrorCard, FieldGroup, InfoBubble, LoadingCard, Modal, SectionTitle, ToggleRow } from '../../../components/ui';
@@ -186,9 +187,13 @@ export function MaintenanceCard({ hue }: { hue: number }) {
           footer={
             <>
               <span className="flex-1" />
-              <Button kind="ghost" onClick={() => setConfirming(false)}>
-                {t('common.cancel')}
-              </Button>
+              <Button
+                kind="ghost"
+                labelled
+                icon={<IconClose />}
+                title={t('common.cancel')}
+                onClick={() => setConfirming(false)}
+              />
               <Button
                 kind="ghost"
                 onClick={() => {

@@ -13,7 +13,7 @@ import {
   requestRestart,
   type UpdateCheck as UpdateCheckT,
 } from '../../lib/api';
-import { IconMoon, IconRetry, IconSignOut, IconSun } from '../../lib/icons';
+import { IconClose, IconMoon, IconRetry, IconSignOut, IconSun } from '../../lib/icons';
 import { QuietModeToggle, useToast } from '../../lib/toast';
 import { MUTABLE_DIALOGS, useDialogMute } from '../../lib/dialogmute';
 import { getTheme, onThemeChange, setTheme } from '../../lib/theme';
@@ -29,18 +29,24 @@ import {
   type Motion,
   type Shape,
   applyAccent,
+  applyDisco,
   applyMotion,
   applyRainbow,
   applyShape,
   cacheAppearance,
+  cacheDisco,
   cacheMotionIntensity,
+  discoTap,
   hueVars,
   rainbowAt,
   rainbowFromSettings,
+  readCachedDisco,
   readCachedMotionIntensity,
   stormTap,
 } from '../../lib/appearance';
+import { useRainbow } from '../../lib/useRainbow';
 import { useDraft, useFeatures } from './context';
+import { same } from './paths';
 import { WATCH_SUPPORTED } from '../../lib/clipboardWatch';
 import { useClipboardWatch } from '../../lib/useClipboardWatch';
 import { NotificationsCard } from './look/Notifications';
@@ -79,6 +85,9 @@ function accentSlot(hex: string): number {
  * browser adopts the accent into its nearest circle.
  */
 const SLOTS_KEY = 'kl-accent-slots';
+
+/** The appearance fields this page saves on every change. */
+const LOOK_KEYS = ['shape', 'accent', 'rainbow', 'rainbowReactive', 'rainbowRotate', 'rainbowSeed', 'rainbowPalette'] as const;
 
 interface SlotMemory {
   /**
@@ -228,7 +237,7 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
   const appearance = section === 'appearance';
   const general = section === 'general';
   const { t } = useT();
-  const { cfg, patch, patchNow } = useDraft();
+  const { cfg, saved, patch, patchNow } = useDraft();
   const { toast } = useToast();
 
   // Language and light/dark are per-browser (lib/theme.ts, LanguagePicker.tsx)
@@ -250,18 +259,31 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
   // Counting, not rendering; any tap off the top level resets it.
   const stormTaps = useRef({ taps: 0 });
 
+  // Disco, the colour engine's egg (lib/appearance.ts's discoTap), found by
+  // turning rainbow mode on five times in quick succession. The switch is
+  // stored per browser; having found it is state of this screen, like the
+  // storm, and it starts found while disco is on.
+  const [disco, setDisco] = useState(readCachedDisco);
+  const [discoFound, setDiscoFound] = useState(disco);
+  const discoTaps = useRef({ taps: 0, last: 0 });
+
+  // The rainbow rows below paint their positions here, and disco moves them.
+  useRainbow();
+
   // The saved palette when complete, else the built-in hues, so "reset" and
   // "never customised" look alike.
   const palette =
     cfg.rainbowPalette && cfg.rainbowPalette.length === RAINBOW.length ? cfg.rainbowPalette : RAINBOW;
 
   // Every pick is applied to the document root at once as a live preview;
-  // Layout.tsx applies the saved look at boot.
+  // Layout.tsx applies the saved look at boot. Disco comes after the rainbow,
+  // because applying a stored state resets whatever step the walk had reached.
   useEffect(() => {
     const rainbow = rainbowFromSettings(cfg);
     applyShape(cfg.shape);
     applyAccent(cfg.accent);
     applyRainbow(rainbow);
+    applyDisco(disco, rainbow);
     applyMotion(motion);
     cacheAppearance(cfg.shape, cfg.accent, rainbow);
   }, [
@@ -274,6 +296,7 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
     // The palette is an array, so the effect depends on its contents.
     cfg.rainbowPalette?.join(),
     motion,
+    disco,
   ]);
 
   // This page saves every change at once, debounced like Advanced's search, so
@@ -285,6 +308,9 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
       first.current = false;
       return;
     }
+    // A value another tab saved arrives in both the draft and `saved`; sending
+    // it back would only echo it, and could land after a newer one.
+    if (LOOK_KEYS.every((k) => same(cfg[k], saved[k]))) return;
     const id = setTimeout(() => {
       patchNow({
         shape: cfg.shape,
@@ -517,7 +543,16 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
               hideLabel
               label={t('settings.rainbowOn')}
               checked={cfg.rainbow}
-              onChange={(v) => patch({ rainbow: v })}
+              onChange={(v) => {
+                patch({ rainbow: v });
+                // The fifth quick turn-on unlocks disco and starts it, since
+                // the gesture ends with the rainbow on and the walk visible.
+                if (discoTap(discoTaps.current, v, { now: Date.now() })) {
+                  setDiscoFound(true);
+                  setDisco(true);
+                  cacheDisco(true);
+                }
+              }}
             />
           </div>
 
@@ -555,6 +590,25 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
                 }
               />
             </div>
+            {/* Offered while it is on or has just been found, and gone once
+                this screen closes with it off. */}
+            {(discoFound || disco) && (
+              <div className="glim-hue flex items-start justify-between gap-4" style={hueVars(rainbowAt(3)) as CSSProperties}>
+                <span className="flex items-center gap-1.5 text-sm text-carbon-text">
+                  {t('settings.rainbowDisco')}
+                  <InfoBubble tip={t('settings.rainbowDiscoHint')} />
+                </span>
+                <Toggle
+                  hideLabel
+                  label={t('settings.rainbowDisco')}
+                  checked={disco}
+                  onChange={(v) => {
+                    setDisco(v);
+                    cacheDisco(v);
+                  }}
+                />
+              </div>
+            )}
 
             {/* Label on the left, eight squares and a reset on the right, like
                 the accent row. */}
@@ -882,9 +936,14 @@ function LifecycleCard({ shuttingDown, onShutdown }: { shuttingDown: boolean; on
           footer={
             <>
               <span className="flex-1" />
-              <Button kind="ghost" onClick={() => setConfirmAction(null)} disabled={acting}>
-                {t('settings.system.confirmCancel')}
-              </Button>
+              <Button
+                kind="ghost"
+                labelled
+                icon={<IconClose />}
+                title={t('settings.system.confirmCancel')}
+                onClick={() => setConfirmAction(null)}
+                disabled={acting}
+              />
               <Button
                 key={actShake}
                 className={actShake > 0 ? 'glim-shake' : ''}

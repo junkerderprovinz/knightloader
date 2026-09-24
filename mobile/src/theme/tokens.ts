@@ -58,6 +58,9 @@ export interface Palette {
   statusWarnText: string;
   statusWarnBg: string;
   statusWarnSolid: string;
+  /** The quiet end of the warn family, for a notice that explains rather than
+   *  warns: the ground of UnavailableNotice. */
+  statusWarnBgSoft: string;
   statusInfoText: string;
   statusInfoBg: string;
   statusInfoSolid: string;
@@ -76,6 +79,18 @@ export interface Palette {
    * eye reading through on #161616 is heavier than #f4f4f4 needs.
    */
   scrim: string;
+
+  /**
+   * Brand marks at rest, on a neutral button (GlimStone's `--brand-*`). A
+   * published brand colour is drawn for white or for its own fill, so on this
+   * palette's surface2 each fails 3:1 in one of the two themes: the warm ones
+   * are deepened for light and the dark ones lightened for dark. The true
+   * colour is the pressed fill, in BRAND below.
+   */
+  brandCoffee: string;
+  brandBitcoin: string;
+  brandPaypal: string;
+  brandGithub: string;
 }
 
 // Ground and surfaces are IBM Carbon's neutral greys rather than a warm
@@ -103,6 +118,7 @@ export const DARK: Palette = {
   statusWarnText: '#f1c21b',
   statusWarnBg: 'rgba(241, 194, 27, 0.12)',
   statusWarnSolid: '#f1c21b',
+  statusWarnBgSoft: 'rgba(241, 194, 27, 0.06)',
   statusInfoText: '#FCC419',
   statusInfoBg: 'rgba(252, 196, 25, 0.13)',
   statusInfoSolid: '#FCC419',
@@ -114,6 +130,13 @@ export const DARK: Palette = {
   // front and the page behind sit close enough in value that the eye keeps
   // reading the page.
   scrim: 'rgba(0, 0, 0, 0.65)',
+
+  // On #393939 these measure 8.6, 5.0, 5.1 and 11.6 to 1, the extension's
+  // values.
+  brandCoffee: '#ffdd00',
+  brandBitcoin: '#f7931a',
+  brandPaypal: '#4fb5f0',
+  brandGithub: '#ffffff',
 };
 
 // Carbon's light greys, mirroring the dark ramp step for step.
@@ -140,6 +163,7 @@ export const LIGHT: Palette = {
   statusWarnText: '#8E6A00',
   statusWarnBg: 'rgba(142, 106, 0, 0.10)',
   statusWarnSolid: '#b28600',
+  statusWarnBgSoft: 'rgba(142, 106, 0, 0.05)',
   statusInfoText: '#8E6A00',
   statusInfoBg: 'rgba(142, 106, 0, 0.12)',
   statusInfoSolid: '#A87D00',
@@ -151,6 +175,26 @@ export const LIGHT: Palette = {
   // lower alpha than black over a near-black one, and the darker value in light
   // mode looks like a power cut.
   scrim: 'rgba(0, 0, 0, 0.55)',
+
+  // On #e8e8e8 these measure 4.0, 4.1, 9.7 and 14.6 to 1.
+  brandCoffee: '#8a6d00',
+  brandBitcoin: '#a85d00',
+  brandPaypal: '#003087',
+  brandGithub: '#181717',
+};
+
+export type Brand = 'coffee' | 'bitcoin' | 'paypal' | 'github';
+
+/**
+ * Each brand's true colour and the ink measured on it. The same in both themes,
+ * because it is spent as a fill, the one ground the colour was drawn for.
+ */
+export const BRAND: Record<Brand, { fill: string; ink: string }> = {
+  // Buy Me a Coffee's own near-black, the ink their button uses. 14.3:1.
+  coffee: { fill: '#ffdd00', ink: '#0d0c22' },
+  bitcoin: { fill: '#f7931a', ink: '#161616' },
+  paypal: { fill: '#003087', ink: '#ffffff' },
+  github: { fill: '#181717', ink: '#ffffff' },
 };
 
 /**
@@ -171,7 +215,7 @@ export const LIGHT: Palette = {
  * setting.
  *
  * Measured against white, the palest ground in the palette: Sunflower lands at
- * 4.95:1 and all five accent presets clear 4.5:1.
+ * 4.95:1 and all eight accent presets clear 4.5:1.
  */
 export function inkFor(hex: string): string {
   const m = /^#([0-9a-fA-F]{6})$/.exec(hex);

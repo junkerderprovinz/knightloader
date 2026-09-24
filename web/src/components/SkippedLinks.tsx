@@ -4,6 +4,7 @@ import { fmtDate } from '../lib/format';
 import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
 import { Button, InfoBubble } from './ui';
+import { Tip } from './columns';
 import { IconClose, IconTrash } from '../lib/icons';
 
 // `at` has nanosecond precision, so the pair is unique in practice.
@@ -103,7 +104,7 @@ export function SkippedLinks() {
           <Button
             kind="secondary"
             icon={<IconClose width={14} height={14} />}
-            aria-label={t('common.dismiss')}
+            title={t('common.dismiss')}
             onClick={() => setDismissed(true)}
           />
         </div>
@@ -111,12 +112,12 @@ export function SkippedLinks() {
         <div className="max-h-56 overflow-y-auto pb-1.5">
           {shown.map((s, i) => (
             <div key={`${keyOf(s)}|${i}`} className="flex items-baseline gap-3 px-4 py-1 text-xs">
-              <span className="max-w-[45%] shrink-0 truncate text-carbon-textSub" title={s.reason}>
+              <Tip tip={s.reason} className="max-w-[45%] shrink-0 truncate text-carbon-textSub">
                 {s.reason}
-              </span>
-              <span dir="ltr" className="min-w-0 flex-1 truncate text-carbon-textMuted" title={s.url}>
+              </Tip>
+              <Tip tip={s.url} dir="ltr" className="min-w-0 flex-1 truncate text-carbon-textMuted">
                 {s.url}
-              </span>
+              </Tip>
               <span className="glim-num shrink-0 text-carbon-textMuted">{fmtDate(s.at)}</span>
             </div>
           ))}

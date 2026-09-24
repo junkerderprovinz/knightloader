@@ -13,6 +13,8 @@ export interface SettingsDraft {
    * object instead of rebuilding it.
    */
   cfg: Settings;
+  /** What the server holds, so a page can tell its own edit from a value that arrived from elsewhere. */
+  saved: Settings;
   /** Merge one or more fields into the draft. */
   patch: (fields: Partial<Settings>) => void;
   /** Replace the whole draft, for the advanced table which edits by key path. */

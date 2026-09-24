@@ -3,10 +3,20 @@
 // select="many" toggles several, as the quick filters do. It is built from
 // ui.tsx's segBase/segOn/segOff, and the arrow keys move along the strip and
 // select, as in Swing.
-import { useEffect, useRef, useState, type KeyboardEvent, type MouseEvent, type PointerEvent, type ReactNode } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  type HTMLAttributes,
+  type KeyboardEvent,
+  type MouseEvent,
+  type PointerEvent,
+  type ReactNode,
+  type RefObject,
+} from 'react';
 import { useRainbow } from '../lib/useRainbow';
 import type { NavLabelMode } from '../lib/navLabels';
-import { hueStyle, segBase, segOff, segOn } from './ui';
+import { hueStyle, segBase, segOff, segOn, useTooltip } from './ui';
 
 export interface TabDef {
   /** Stable id, handed back by onSelect and used as the route segment. */
@@ -27,7 +37,7 @@ export interface TabDef {
    * click still goes to onSelect.
    */
   href?: string;
-  /** Native tooltip, for a label that may be truncated. */
+  /** The tooltip, for a label that may be truncated. */
   title?: string;
 }
 
@@ -405,12 +415,17 @@ export function Tabs(props: TabsProps) {
         // A tab without a glyph keeps its label in glyph mode rather than
         // rendering as an empty box.
         const glyphless = nameOnly && !item.icon;
+        // In hover mode a stacked tile has the shape of the phone's bottom bar
+        // tab (GlimStone 2.3.0): 48px for a 20px glyph, a 2px gap and a caption
+        // line, with about 5px above and below. At 40px with the row's 15px
+        // label, the label gets a 6px sliver.
+        const captioned = stacked && labelOnHover;
         const cls = vertical
           ? // Sized like Sidebar.tsx's navBase rows beside it.
             `${segBase} glim-nav-row glim-hue glim-hue-icon group ${on ? `glim-active ${segOn}` : segOff}
               flex w-full min-w-0 overflow-hidden text-[15px]
-              ${stacked ? 'flex-col items-center justify-center gap-0.5 px-2 py-1.5' : 'flex-row items-center gap-3 px-3 py-2.5'}
-              ${fill ? 'min-h-10 flex-1 shrink-0 basis-0' : ''}
+              ${stacked ? `flex-col items-center justify-center gap-0.5 px-2 ${captioned ? 'py-1' : 'py-1.5'}` : 'flex-row items-center gap-3 px-3 py-2.5'}
+              ${fill ? `${captioned ? 'min-h-12' : 'min-h-10'} flex-1 shrink-0 basis-0` : ''}
               ${!on && item.dim ? 'opacity-60' : ''}
               ${wiggling ? 'glim-tab-wiggle' : ''} ${dragged ? 'glim-tab-dragging' : ''}`
           : isWell
@@ -426,11 +441,11 @@ export function Tabs(props: TabsProps) {
 
         // In hover mode the label grows from zero height inside a centred
         // tile, pushing the glyph up without the tile changing size. Focus
-        // reveals it too. leading-4 matches the 1rem ceiling so descenders are
-        // not clipped, and the tile stays within 42px.
+        // reveals it too. The ceiling is the label's own line box: a line
+        // height of 1 cuts off every descender in a box that hides its overflow.
         const hiddenLabel =
-          'leading-4 max-h-0 opacity-0 transition-all duration-200 group-hover:max-h-4 group-hover:opacity-100 ' +
-          'group-focus-visible:max-h-4 group-focus-visible:opacity-100';
+          'leading-[1.4] max-h-0 opacity-0 transition-all duration-200 group-hover:max-h-[1.4em] ' +
+          'group-hover:opacity-100 group-focus-visible:max-h-[1.4em] group-focus-visible:opacity-100';
         const inner = (
           <>
             {showIcon && item.icon}
@@ -438,7 +453,9 @@ export function Tabs(props: TabsProps) {
               // A well segment can grow taller, so it wraps; elsewhere the row
               // height is fixed, so the label truncates.
               <span
-                className={`${isWell ? 'text-pretty break-words' : 'truncate'} ${labelOnHover ? hiddenLabel : ''}`}
+                className={`${isWell ? 'text-pretty break-words' : 'truncate'} ${labelOnHover ? hiddenLabel : ''} ${
+                  captioned ? 'text-xs' : ''
+                }`}
               >
                 {item.label}
               </span>
@@ -455,9 +472,8 @@ export function Tabs(props: TabsProps) {
           </>
         );
 
-        const shared = {
+        const shared: TabShared = {
           'data-tab-id': item.id,
-          title: item.title ?? (nameOnly ? item.label : undefined),
           'aria-label': nameOnly && !glyphless ? item.label : undefined,
           tabIndex: i === roved ? 0 : -1,
           style: isWell
@@ -480,31 +496,78 @@ export function Tabs(props: TabsProps) {
           onClick: (e: MouseEvent<HTMLElement>) => onClick(e, item),
         };
 
-        return item.href ? (
-          <a
+        return (
+          <TabTrigger
             key={item.id}
             href={item.href}
-            role={many ? undefined : 'tab'}
-            aria-selected={many ? undefined : on}
-            aria-current={on ? 'page' : undefined}
-            {...shared}
+            many={many}
+            on={on}
+            tip={item.title ?? (nameOnly ? item.label : undefined)}
+            shared={shared}
           >
             {inner}
-          </a>
-        ) : (
-          <button
-            key={item.id}
-            type="button"
-            role={many ? undefined : 'tab'}
-            aria-selected={many ? undefined : on}
-            aria-pressed={many ? on : undefined}
-            {...shared}
-          >
-            {inner}
-          </button>
+          </TabTrigger>
         );
       })}
       {after}
     </div>
+  );
+}
+
+type TabShared = HTMLAttributes<HTMLElement> & { 'data-tab-id': string };
+
+/**
+ * TabTrigger is one tab, a component of its own because the tooltip is a hook.
+ * `tip` is what the tab cannot show itself: its name in glyph mode, or the
+ * whole of a label that may be truncated.
+ */
+function TabTrigger({
+  href,
+  many,
+  on,
+  tip,
+  shared,
+  children,
+}: {
+  href?: string;
+  many: boolean;
+  on: boolean;
+  tip?: string;
+  shared: TabShared;
+  children: ReactNode;
+}) {
+  const bubble = useTooltip<HTMLElement>(tip);
+  // A tab has a role of its own and a roving tab stop, so the trigger's go.
+  const { role: _tipRole, tabIndex: _tipTabIndex, ref, ...tipHoverProps } = bubble.triggerProps;
+  const tipProps = tip ? tipHoverProps : undefined;
+  return (
+    <>
+      {href ? (
+        <a
+          ref={ref as RefObject<HTMLAnchorElement | null>}
+          href={href}
+          role={many ? undefined : 'tab'}
+          aria-selected={many ? undefined : on}
+          aria-current={on ? 'page' : undefined}
+          {...shared}
+          {...tipProps}
+        >
+          {children}
+        </a>
+      ) : (
+        <button
+          ref={ref as RefObject<HTMLButtonElement | null>}
+          type="button"
+          role={many ? undefined : 'tab'}
+          aria-selected={many ? undefined : on}
+          aria-pressed={many ? on : undefined}
+          {...shared}
+          {...tipProps}
+        >
+          {children}
+        </button>
+      )}
+      {bubble.node}
+    </>
   );
 }

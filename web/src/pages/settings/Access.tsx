@@ -44,6 +44,7 @@ import { useT, type TranslationKey } from '../../lib/i18n';
 import {
   IconCheck,
   IconClipboard,
+  IconClose,
   IconKey,
   IconPlus,
   IconTrash,
@@ -51,6 +52,7 @@ import {
 import { useToast } from '../../lib/toast';
 import { useDraft, useFeatures } from './context';
 import { NeutralSwitch } from './controls';
+import { ModuleToggle } from './ModuleToggle';
 import { PasskeyCard } from './access/PasskeyCard';
 import { TwoFactorCard } from './access/TwoFactorCard';
 import { label, useTx } from './tx';
@@ -985,6 +987,7 @@ function TokensSection({ cx }: { cx: (k: PendingKey) => string }) {
         <SectionTitle hint={cx('settings.access.tokens.intro')}>
           {cx('settings.access.tokens.title')}
         </SectionTitle>
+        <ModuleToggle id="downloadclient" hue={5} />
         {tokens.length === 0 ? (
           <p className="text-sm text-carbon-textMuted">{cx('settings.access.tokens.empty')}</p>
         ) : (
@@ -1037,9 +1040,14 @@ function TokensSection({ cx }: { cx: (k: PendingKey) => string }) {
           footer={
             <>
               <span className="flex-1" />
-              <Button kind="ghost" onClick={closeCreate} disabled={creating}>
-                {cx('settings.access.tokens.cancel')}
-              </Button>
+              <Button
+                kind="ghost"
+                labelled
+                icon={<IconClose />}
+                title={cx('settings.access.tokens.cancel')}
+                onClick={closeCreate}
+                disabled={creating}
+              />
               <Button
                 key={createShake}
                 className={createShake > 0 ? 'glim-shake' : ''}
@@ -1073,9 +1081,15 @@ function TokensSection({ cx }: { cx: (k: PendingKey) => string }) {
           footer={
             <>
               <span className="flex-1" />
-              <Button kind="primary" onClick={closeCreate}>
-                {cx('settings.access.tokens.done')}
-              </Button>
+              {/* The one way out, and it acknowledges the secret rather than
+                  dismissing it, so the glyph is a check. */}
+              <Button
+                kind="primary"
+                labelled
+                icon={<IconCheck />}
+                title={cx('settings.access.tokens.done')}
+                onClick={closeCreate}
+              />
             </>
           }
         >

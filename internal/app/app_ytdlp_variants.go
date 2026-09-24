@@ -3,16 +3,19 @@ package app
 import (
 	"context"
 	"encoding/json"
+	"slices"
+	"sort"
 	"strings"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
 )
 
-// Variant rows: one pasted yt-dlp link becomes up to five sibling tasks
-// (video, audio, thumbnail, subtitle, description) sharing the URL and
-// package, each with its own Enabled switch and, for video and audio, its own
-// quality.
+// Variant rows: one pasted yt-dlp link becomes five sibling tasks (video,
+// audio, thumbnail, subtitle, description) sharing the URL and package, each
+// with its own Enabled switch and, for video and audio, its own quality. The
+// host's preset decides which of the five the collector shows; the rest wait
+// out of view (core.Task.VariantOff) until the preset lists their kind again.
 
 // variantEncode and variantDecode are core.Task.Variant's encoding: "<kind>"
 // or "<kind>:<quality-or-format>", one string so no store migration is needed.
@@ -29,8 +32,9 @@ func variantDecode(v string) (kind ytdlp.Variant, sub string) {
 }
 
 // ytdlpOptionsForTask is the per-task options closure wired in rewireBackends:
-// the instance-wide defaults with Variant, Quality and AudioFormat taken from
-// the task's own Variant.
+// the instance-wide defaults with the variant and its pick taken from the
+// task's own Variant. A pick is a height cap or a probed track on a video row,
+// and a target format or a probed track on an audio row.
 func (a *App) ytdlpOptionsForTask(taskID string) ytdlp.Options {
 	base := a.Settings.Get().Ytdlp
 	a.mu.Lock()
@@ -52,11 +56,17 @@ func (a *App) ytdlpOptionsForTask(taskID string) ytdlp.Options {
 	base.Variant = kind
 	switch kind {
 	case ytdlp.VariantVideo:
-		if sub != "" {
+		switch {
+		case ytdlp.IsVideoFormat(sub):
+			base.VideoFormat = sub
+		case sub != "":
 			base.Quality = ytdlp.Quality(sub)
 		}
 	case ytdlp.VariantAudio:
-		if sub != "" {
+		switch {
+		case ytdlp.IsAudioTrack(sub):
+			base.AudioTrack = sub
+		case sub != "":
 			base.AudioFormat = sub
 		}
 		if t.AudioBitrate != "" {
@@ -106,8 +116,11 @@ func (a *App) SetHosterPreset(host string, p ytdlp.HosterPreset) error {
 
 // expandYtdlpVariants turns the task stage created into a full family: it
 // becomes the video row, and the other four variants are added as rows
-// regardless of the preset, enabled as the host's preset says. It runs once,
-// right after staging.
+// regardless of the preset. A row whose kind the host's preset leaves out is
+// set aside and switched off rather than left out, so ticking the kind later
+// brings it back without pasting the link again. It runs once, right after
+// staging, so each sibling takes the folder, category, priority, comment and
+// unpacking switch the batch and the Packagizer gave the staged row.
 func (a *App) expandYtdlpVariants(primary *core.Task) {
 	preset := a.HosterPresetFor(primary.Host)
 
@@ -118,6 +131,10 @@ func (a *App) expandYtdlpVariants(primary *core.Task) {
 		return
 	}
 	live.Variant = variantEncode(ytdlp.VariantVideo, string(preset.Quality))
+	if !preset.HasVariant(ytdlp.VariantVideo) {
+		live.VariantOff = true
+		live.Enabled = false
+	}
 	pc := *live
 	a.mu.Unlock()
 	_ = a.Store.Save(&pc)
@@ -136,26 +153,33 @@ func (a *App) expandYtdlpVariants(primary *core.Task) {
 			// pc.Name rather than the URL: a playlist entry is already named by
 			// the listing, and setTaskName does not rename siblings of a primary
 			// that already has a name.
-			Name:      pc.Name,
-			Package:   pc.Package,
-			Status:    core.StatusCollected,
-			Enabled:   preset.HasVariant(v),
-			Source:    pc.Source,
-			Origin:    pc.Origin,
-			Host:      pc.Host,
-			Resolver:  pc.Resolver,
-			Variant:   variantEncode(v, sub),
-			Ext:       fixedVariantExt(v, sub),
-			CreatedAt: pc.CreatedAt,
+			Name:        pc.Name,
+			Package:     pc.Package,
+			Status:      core.StatusCollected,
+			Enabled:     preset.HasVariant(v),
+			VariantOff:  !preset.HasVariant(v),
+			Source:      pc.Source,
+			Origin:      pc.Origin,
+			Host:        pc.Host,
+			Resolver:    pc.Resolver,
+			Variant:     variantEncode(v, sub),
+			Ext:         fixedVariantExt(v, sub),
+			CreatedAt:   pc.CreatedAt,
+			Dir:         pc.Dir,
+			Category:    pc.Category,
+			Priority:    pc.Priority,
+			Comment:     pc.Comment,
+			AutoExtract: copyBool(pc.AutoExtract),
 		})
 	}
 }
 
 // fixedVariantExt is the extension a variant row knows without asking the
 // source. buildArgs pins thumbnails to jpg and subtitles to srt, a description
-// is a text file, and audio with an explicit format has that extension. Best
-// audio and video depend on the source and wait for the probe. Setting these at
-// creation means a probe that never answers still leaves an extension.
+// is a text file, audio with an explicit format has that extension, and a
+// picked audio track has its codec's. Best audio and video depend on the
+// source and wait for the probe. Setting these at creation means a probe that
+// never answers still leaves an extension.
 func fixedVariantExt(v ytdlp.Variant, sub string) string {
 	switch v {
 	case ytdlp.VariantThumbnail:
@@ -165,6 +189,9 @@ func fixedVariantExt(v ytdlp.Variant, sub string) string {
 	case ytdlp.VariantDescription:
 		return "description"
 	case ytdlp.VariantAudio:
+		if ytdlp.IsAudioTrack(sub) {
+			return ytdlp.AudioTrackExt(sub)
+		}
 		if sub != "" && sub != "best" {
 			return sub
 		}
@@ -185,58 +212,23 @@ func (a *App) insertVariantSibling(t *core.Task) {
 	a.Hub.Broadcast("task", &c)
 }
 
-// applyProbeFormats applies a completed probe's format list to every row of
-// the family, and marks them online, since a probe that answered at all proves
-// the source is there. A failed probe never gets here and is not read as
-// offline: a timeout or an age gate is not the host saying the file is gone.
+// applyProbeFormats applies a completed probe's format list to the family's
+// rows still in the collector, and marks every row online, since a probe that
+// answered at all proves the source is there. A failed probe never gets here
+// and is not read as offline: a timeout or an age gate is not the host saying
+// the file is gone.
 //
-// Per kind, matching buildArgs (backend.go):
-//   - description: Ext is always "description".
-//   - audio with a fixed format: Ext is that format; Size is left alone since
-//     transcoding changes it. AvailableAudioFormats narrows to what the
-//     source's audio-only tracks carry.
-//   - audio "best": a straight extract, so Ext and Size come from the best
-//     audio-only track.
-//   - video: AvailableQualities from the track heights, Size from the best
-//     track under the picked cap, and Ext "mkv" only when a video-only and
-//     audio-only pair will be merged.
-//   - thumbnail and subtitle: jpg and srt, from the forced conversions.
+// A row that has started or finished is measured by its own download, so the
+// probe leaves its size and extension alone.
+//
+// The list is kept (App.probed), so a quality picked later is measured
+// against it by applyProbeLocked without another probe.
 func (a *App) applyProbeFormats(rawurl string, formats []ytdlp.FormatEntry) {
-	var maxVideoHeight int
-	var maxAudioAbr float64
-	var bestAudio ytdlp.FormatEntry
-	hasBestAudio := false
-	hasVideoOnly := false
-	audioCodecs := make([]string, 0, len(formats))
-	for _, f := range formats {
-		isVideo := f.Vcodec != "" && f.Vcodec != "none"
-		isAudio := f.Acodec != "" && f.Acodec != "none"
-		if isVideo && f.Height > maxVideoHeight {
-			maxVideoHeight = f.Height
-		}
-		if isVideo && !isAudio {
-			hasVideoOnly = true
-		}
-		if isAudio && !isVideo {
-			audioCodecs = append(audioCodecs, f.Acodec)
-			if f.Abr > maxAudioAbr {
-				maxAudioAbr = f.Abr
-			}
-			if !hasBestAudio || formatSize(f) > formatSize(bestAudio) {
-				bestAudio = f
-				hasBestAudio = true
-			}
-		}
-	}
-	qualities := ytdlp.AvailableQualities(maxVideoHeight)
-	availableQualities := make([]string, len(qualities))
-	for i, q := range qualities {
-		availableQualities[i] = string(q)
-	}
-	availableAudioFormats := ytdlp.AvailableAudioFormats(audioCodecs)
-	availableAudioBitrates := ytdlp.AvailableAudioBitrates(maxAudioAbr)
+	p := readProbe(formats)
+	embedThumbnail := a.Settings.Get().Ytdlp.Embed.Thumbnail
 
 	a.mu.Lock()
+	a.keepProbeLocked(rawurl, formats)
 	var touched []core.Task
 	for _, t := range a.tasks {
 		if t.URL != rawurl {
@@ -251,85 +243,203 @@ func (a *App) applyProbeFormats(rawurl string, formats []ytdlp.FormatEntry) {
 			}
 			changed = true
 		}
-		kind, sub := variantDecode(t.Variant)
-		switch kind {
-		case ytdlp.VariantDescription:
-			if t.Ext != "description" {
-				t.Ext = "description"
-				changed = true
-			}
-		case ytdlp.VariantAudio:
-			if !stringSlicesEqual(t.AvailableAudioFormats, availableAudioFormats) {
-				t.AvailableAudioFormats = availableAudioFormats
-				changed = true
-			}
-			if !stringSlicesEqual(t.AvailableAudioBitrates, availableAudioBitrates) {
-				t.AvailableAudioBitrates = availableAudioBitrates
-				changed = true
-			}
-			if sub != "" && sub != "best" {
-				if t.Ext != sub {
-					t.Ext = sub
-					changed = true
-				}
-			} else if hasBestAudio {
-				// -x without --audio-format copies the track as is, so the
-				// format's own extension is what yt-dlp writes.
-				if bestAudio.Ext != "" && t.Ext != bestAudio.Ext {
-					t.Ext = bestAudio.Ext
-					changed = true
-				}
-				if sz := formatSize(bestAudio); sz > 0 && t.Size != sz {
-					t.Size = sz
-					changed = true
-				}
-			}
-		case ytdlp.VariantVideo:
-			if !stringSlicesEqual(t.AvailableQualities, availableQualities) {
-				t.AvailableQualities = availableQualities
-				changed = true
-			}
-			// --merge-output-format mkv only applies to a real merge; a source
-			// without a video-only and audio-only pair falls back to one
-			// pre-muxed stream.
-			if hasVideoOnly && hasBestAudio && t.Ext != "mkv" {
-				t.Ext = "mkv"
-				changed = true
-			}
-			capHeight := maxVideoHeight
-			if sub != "" && sub != string(ytdlp.QualityBest) && sub != string(ytdlp.QualityCustom) {
-				if h, ok := ytdlp.HeightCap(ytdlp.Quality(sub)); ok {
-					capHeight = h
-				}
-			}
-			if best := bestVideoAtOrUnder(formats, capHeight); best != nil {
-				if sz := formatSize(*best); sz > 0 && t.Size != sz {
-					t.Size = sz
-					changed = true
-				}
-			}
-		case ytdlp.VariantThumbnail:
-			// --convert-thumbnails jpg (backend.go).
-			if t.Ext != "jpg" {
-				t.Ext = "jpg"
-				changed = true
-			}
-		case ytdlp.VariantSubtitle:
-			// --sub-format srt (backend.go).
-			if t.Ext != "srt" {
-				t.Ext = "srt"
-				changed = true
-			}
+		if t.Status == core.StatusCollected && applyProbeLocked(t, p, embedThumbnail) {
+			changed = true
 		}
 		if changed {
 			touched = append(touched, *t)
 		}
 	}
 	a.mu.Unlock()
-	for i := range touched {
-		_ = a.Store.Save(&touched[i])
-		a.Hub.Broadcast("task", &touched[i])
+	a.saveAndBroadcast(touched)
+}
+
+// keepProbeLocked records a link's format list. The map is pruned to the links
+// still in the collector once it outgrows maxKeptProbes, which is the only
+// place a pick can still change. Caller holds a.mu.
+func (a *App) keepProbeLocked(rawurl string, formats []ytdlp.FormatEntry) {
+	if a.probed == nil {
+		a.probed = map[string][]ytdlp.FormatEntry{}
 	}
+	a.probed[rawurl] = formats
+	if len(a.probed) <= maxKeptProbes {
+		return
+	}
+	live := map[string]bool{}
+	for _, t := range a.tasks {
+		if t.Status == core.StatusCollected {
+			live[t.URL] = true
+		}
+	}
+	for u := range a.probed {
+		if !live[u] {
+			delete(a.probed, u)
+		}
+	}
+}
+
+// maxKeptProbes is how many links' format lists are kept before the ones that
+// have left the collector are dropped.
+const maxKeptProbes = 512
+
+// probeFacts is what one probe says about a source, worked out once for every
+// row that shares it.
+type probeFacts struct {
+	formats        []ytdlp.FormatEntry
+	maxVideoHeight int
+	bestAudio      ytdlp.FormatEntry
+	hasBestAudio   bool
+	hasVideoOnly   bool
+	qualities      []string
+	videoFormats   []string
+	audioFormats   []string
+	audioBitrates  []string
+}
+
+func readProbe(formats []ytdlp.FormatEntry) probeFacts {
+	p := probeFacts{formats: formats}
+	var maxAudioAbr float64
+	audioCodecs := make([]string, 0, len(formats))
+	for _, f := range formats {
+		isVideo := f.Vcodec != "" && f.Vcodec != "none"
+		isAudio := f.Acodec != "" && f.Acodec != "none"
+		if isVideo && f.Height > p.maxVideoHeight {
+			p.maxVideoHeight = f.Height
+		}
+		if isVideo && !isAudio {
+			p.hasVideoOnly = true
+		}
+		if isAudio && !isVideo {
+			audioCodecs = append(audioCodecs, f.Acodec)
+			if f.Abr > maxAudioAbr {
+				maxAudioAbr = f.Abr
+			}
+			if !p.hasBestAudio || f.Size() > p.bestAudio.Size() {
+				p.bestAudio = f
+				p.hasBestAudio = true
+			}
+		}
+	}
+	for _, q := range ytdlp.AvailableQualities(p.maxVideoHeight) {
+		p.qualities = append(p.qualities, string(q))
+	}
+	p.videoFormats = ytdlp.VideoFormats(formats)
+	// "best", then the source's own tracks, then what they convert to without
+	// promising more than the source has.
+	p.audioFormats = append([]string{"best"}, ytdlp.AudioTracks(formats)...)
+	for _, f := range ytdlp.AvailableAudioFormats(audioCodecs) {
+		if f != "best" {
+			p.audioFormats = append(p.audioFormats, f)
+		}
+	}
+	p.audioBitrates = ytdlp.AvailableAudioBitrates(maxAudioAbr)
+	return p
+}
+
+// applyProbeLocked brings one row in line with a probe: its menus, and the
+// extension and size of what its kind and pick will download. It reports
+// whether anything changed. Caller holds a.mu.
+//
+// Per kind, matching buildArgs (backend.go):
+//   - description: Ext is always "description".
+//   - audio: the menu is the source's own tracks plus the formats they convert
+//     to. A picked track or "best" is a straight extract, so Ext and Size are
+//     that track's; a conversion target gives Ext and an unknown Size, since
+//     transcoding changes it.
+//   - video: the menus are the height caps up to the tallest track and every
+//     distinct track. A picked track gives its own Ext and Size, the Ext
+//     following embedThumbnail for a webm track; a cap gives the best track's
+//     Size under it, and Ext "mkv" only when a video-only and audio-only pair
+//     will be merged.
+//   - thumbnail and subtitle: jpg and srt, from the forced conversions.
+func applyProbeLocked(t *core.Task, p probeFacts, embedThumbnail bool) bool {
+	changed := false
+	setExt := func(ext string) {
+		if t.Ext != ext {
+			t.Ext = ext
+			changed = true
+		}
+	}
+	setSize := func(n int64) {
+		if t.Size != n {
+			t.Size = n
+			changed = true
+		}
+	}
+	setMenu := func(menu *[]string, items []string) {
+		if !stringSlicesEqual(*menu, items) {
+			*menu = items
+			changed = true
+		}
+	}
+	kind, sub := variantDecode(t.Variant)
+	switch kind {
+	case ytdlp.VariantDescription:
+		setExt("description")
+	case ytdlp.VariantAudio:
+		setMenu(&t.AvailableAudioFormats, p.audioFormats)
+		setMenu(&t.AvailableAudioBitrates, p.audioBitrates)
+		switch {
+		case ytdlp.IsAudioTrack(sub):
+			if ext := ytdlp.AudioTrackExt(sub); ext != "" {
+				setExt(ext)
+			}
+			if sz := ytdlp.AudioTrackSize(sub, p.formats); sz > 0 {
+				setSize(sz)
+			}
+		case sub != "" && sub != "best":
+			setExt(sub)
+			setSize(0)
+		case p.hasBestAudio:
+			setExt(ytdlp.ExtractedExt(p.bestAudio))
+			if sz := p.bestAudio.Size(); sz > 0 {
+				setSize(sz)
+			}
+		}
+	case ytdlp.VariantVideo:
+		setMenu(&t.AvailableQualities, p.qualities)
+		setMenu(&t.AvailableVideoFormats, p.videoFormats)
+		if ext, size, ok := ytdlp.VideoFormatFile(sub, p.formats, embedThumbnail); ok {
+			setExt(ext)
+			if size > 0 {
+				setSize(size)
+			}
+			break
+		}
+		// --merge-output-format mkv only applies to a real merge; a source
+		// without a video-only and audio-only pair falls back to one
+		// pre-muxed stream.
+		if p.hasVideoOnly && p.hasBestAudio {
+			setExt("mkv")
+		} else {
+			setExt("")
+		}
+		capHeight := p.maxVideoHeight
+		if h, ok := ytdlp.HeightCap(ytdlp.Quality(sub)); ok {
+			capHeight = h
+		}
+		if best := bestVideoAtOrUnder(p.formats, capHeight); best != nil && best.Size() > 0 {
+			setSize(best.Size())
+		}
+	case ytdlp.VariantThumbnail:
+		// --convert-thumbnails jpg (backend.go).
+		setExt("jpg")
+	case ytdlp.VariantSubtitle:
+		// --sub-format srt (backend.go).
+		setExt("srt")
+	}
+	return changed
+}
+
+// reapplyProbeLocked measures a row against its link's kept format list after
+// its pick changed, and reports whether that changed anything. A link nobody
+// has probed yet keeps what it shows. Caller holds a.mu.
+func (a *App) reapplyProbeLocked(t *core.Task) bool {
+	formats, ok := a.probed[t.URL]
+	if !ok {
+		return false
+	}
+	return applyProbeLocked(t, readProbe(formats), a.Settings.Get().Ytdlp.Embed.Thumbnail)
 }
 
 // backfillYtdlpProbes probes collector rows whose quality or format menus have
@@ -412,19 +522,123 @@ func (a *App) applyFixedVariantExts() {
 		touched = append(touched, *t)
 	}
 	a.mu.Unlock()
-	for i := range touched {
-		_ = a.Store.Save(&touched[i])
-		a.Hub.Broadcast("task", &touched[i])
-	}
+	a.saveAndBroadcast(touched)
 }
 
-// formatSize is a format's best known byte count: exact when the host reports
-// one, yt-dlp's estimate otherwise, 0 when neither is known.
-func formatSize(f ytdlp.FormatEntry) int64 {
-	if f.Filesize > 0 {
-		return f.Filesize
+// applyVariantPresets brings the collector in line with the hoster presets: a
+// variant row whose kind its host's preset leaves out is set aside and
+// switched off, and a set-aside row whose kind the preset lists again comes
+// back switched on, as a fresh paste would stage it. Only rows whose standing
+// changes are touched, so a save that changed no preset rewrites nothing and a
+// row's own switch holds while its kind stays listed.
+//
+// Rows that have left the collector are not touched: a preset decides what a
+// link collects, not what is already downloading.
+func (a *App) applyVariantPresets() {
+	presets := map[string]ytdlp.HosterPreset{}
+	a.mu.Lock()
+	var touched []core.Task
+	for _, t := range a.tasks {
+		if t.Status != core.StatusCollected || t.Variant == "" {
+			continue
+		}
+		p, ok := presets[t.Host]
+		if !ok {
+			p = a.HosterPresetFor(t.Host)
+			presets[t.Host] = p
+		}
+		kind, _ := variantDecode(t.Variant)
+		off := !p.HasVariant(kind)
+		if off == t.VariantOff {
+			continue
+		}
+		t.VariantOff = off
+		t.Enabled = !off
+		touched = append(touched, *t)
 	}
-	return f.FilesizeApprox
+	a.mu.Unlock()
+	a.saveAndBroadcast(touched)
+}
+
+// variantSiblingsLocked lists the collected rows that share a yt-dlp link with
+// a row in ids and are not in ids themselves. Caller holds a.mu.
+func (a *App) variantSiblingsLocked(ids []string) []string {
+	named := make(map[string]bool, len(ids))
+	urls := map[string]bool{}
+	for _, id := range ids {
+		named[id] = true
+		if t := a.tasks[id]; t != nil && t.Variant != "" {
+			urls[t.URL] = true
+		}
+	}
+	if len(urls) == 0 {
+		return nil
+	}
+	var out []string
+	for id, t := range a.tasks {
+		if !named[id] && urls[t.URL] && t.Variant != "" && t.Status == core.StatusCollected {
+			out = append(out, id)
+		}
+	}
+	sort.Strings(out)
+	return out
+}
+
+// withVariantFamilies widens ids to every collected row of the yt-dlp links
+// among them. Staging hands back one row per link, the first of its family,
+// so a caller acting on what it staged would otherwise leave the audio,
+// thumbnail, subtitle and description rows behind in the collector.
+func (a *App) withVariantFamilies(ids []string) []string {
+	a.mu.Lock()
+	more := a.variantSiblingsLocked(ids)
+	a.mu.Unlock()
+	return slices.Concat(ids, more)
+}
+
+// strandedVariantRowsLocked lists the set-aside rows of those links in urls
+// that have no row in the collector's view, not counting the rows in leaving.
+// Shown again when their kind is ticked, such a row would stand alone for a
+// link that was confirmed or removed. Caller holds a.mu.
+func (a *App) strandedVariantRowsLocked(urls, leaving map[string]bool) []string {
+	shown := map[string]bool{}
+	var aside []*core.Task
+	for id, t := range a.tasks {
+		if !urls[t.URL] || t.Variant == "" || t.Status != core.StatusCollected || leaving[id] {
+			continue
+		}
+		if t.VariantOff {
+			aside = append(aside, t)
+		} else {
+			shown[t.URL] = true
+		}
+	}
+	var out []string
+	for _, t := range aside {
+		if !shown[t.URL] {
+			out = append(out, t.ID)
+		}
+	}
+	sort.Strings(out)
+	return out
+}
+
+// strandedBy lists the set-aside rows that removing ids would strand; see
+// strandedVariantRowsLocked.
+func (a *App) strandedBy(ids []string) []string {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	leaving := make(map[string]bool, len(ids))
+	urls := map[string]bool{}
+	for _, id := range ids {
+		leaving[id] = true
+		if t := a.tasks[id]; t != nil && t.Variant != "" {
+			urls[t.URL] = true
+		}
+	}
+	if len(urls) == 0 {
+		return nil
+	}
+	return a.strandedVariantRowsLocked(urls, leaving)
 }
 
 // bestVideoAtOrUnder is the tallest video track at or under capHeight, the

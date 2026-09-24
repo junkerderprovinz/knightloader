@@ -6,6 +6,7 @@ import {
   saveYtdlpCookieJar,
   type Task,
 } from '../lib/api';
+import { IconClose } from '../lib/icons';
 import { message } from '../lib/intake';
 import { hostOf } from '../lib/searchQuery';
 import { useT } from '../lib/i18n';
@@ -86,9 +87,14 @@ export function CookieJarDialog({
           {/* The forward button ends the row, so the message goes first. */}
           {error && <p className="min-w-0 text-xs text-statusWarn">{error}</p>}
           <span className="flex-1" />
-          <Button kind="secondary" disabled={busy} onClick={onClose}>
-            {t('common.cancel')}
-          </Button>
+          <Button
+            kind="secondary"
+            labelled
+            icon={<IconClose />}
+            title={t('common.cancel')}
+            disabled={busy}
+            onClick={onClose}
+          />
           <Button
             // An empty jar means "clear" to the server, so both fields are required.
             disabled={busy || host.trim() === '' || text.trim() === ''}

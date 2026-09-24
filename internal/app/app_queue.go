@@ -6,6 +6,7 @@ package app
 import (
 	"errors"
 	"fmt"
+	"slices"
 	"sort"
 	"sync"
 	"time"
@@ -82,6 +83,11 @@ func (a *App) startTasks(ids []string, byHand bool) StartResult {
 			out.Skipped++
 			continue
 		}
+		if t.VariantOff {
+			// Out of view by the host's preset, not by anybody's switch, so
+			// it is not counted as disabled either.
+			continue
+		}
 		// The user's own switch holds for a start by id as well as for "start
 		// everything".
 		if !t.Enabled {
@@ -93,6 +99,8 @@ func (a *App) startTasks(ids []string, byHand bool) StartResult {
 	sort.Slice(toStart, func(i, j int) bool { return toStart[i].CreatedAt.Before(toStart[j].CreatedAt) })
 	for _, t := range toStart {
 		t.Status = core.StatusQueued
+		// A confirmed link has no countdown pending.
+		t.ConfirmDue = time.Time{}
 		t.Error = ""
 		// The reason goes with the error sentence, or the interface would
 		// advise about a dead link while the task runs again.
@@ -145,11 +153,31 @@ func (a *App) startTasks(ids []string, byHand bool) StartResult {
 			copies = append(copies, c)
 		}
 	}
+	// A link whose last shown row just left the collector takes its set-aside
+	// rows along out of the list.
+	started := map[string]bool{}
+	for _, t := range toStart {
+		if t.Variant != "" {
+			started[t.URL] = true
+		}
+	}
+	var stranded []string
+	if len(started) > 0 {
+		stranded = a.strandedVariantRowsLocked(started, nil)
+	}
 	a.mu.Unlock()
 	for i := range copies {
 		c := copies[i]
 		_ = a.Store.Save(&c)
 		a.Hub.Broadcast("task", &c)
+	}
+	for _, id := range stranded {
+		a.removeTask(id, false)
+	}
+	if len(toStart) > 0 {
+		// Links left the collector, which may be all a countdown was waiting
+		// for.
+		a.wakeAutoConfirm()
 	}
 	// The master switch moved, so every surface watching it (other browsers,
 	// the extension, the phone) is told. Only on a change, to avoid redrawing
@@ -276,14 +304,17 @@ var bins sync.Map // token -> *bin
 // The bin lives in memory only. A restart is not an undo, and a deletion coming
 // back after an update would be a nasty surprise.
 func (a *App) RemoveTasksUndoable(ids []string, deleteFiles bool) (removed []string, token string) {
+	// The set-aside rows RemoveTasks takes along go into the bin too, so an
+	// undo brings back the whole link.
+	aside := a.strandedBy(ids)
 	// Copied before the removal takes the tasks out of a.tasks.
 	a.mu.Lock()
 	inQueue := make(map[string]bool, len(a.queue))
 	for _, id := range a.queue {
 		inQueue[id] = true
 	}
-	kept := make(map[string]binned, len(ids))
-	for _, id := range ids {
+	kept := make(map[string]binned, len(ids)+len(aside))
+	for _, id := range slices.Concat(ids, aside) {
 		if t := a.tasks[id]; t != nil {
 			kept[id] = binned{task: *t, queued: inQueue[id]}
 		}
@@ -296,12 +327,14 @@ func (a *App) RemoveTasksUndoable(ids []string, deleteFiles bool) (removed []str
 	}
 	// Only what the removal really took, in case another caller removed a row
 	// in between.
-	b := &bin{app: a, tasks: make([]binned, 0, len(removed))}
-	for _, id := range removed {
-		if e, ok := kept[id]; ok {
+	b := &bin{app: a, tasks: make([]binned, 0, len(removed)+len(aside))}
+	a.mu.Lock()
+	for _, id := range slices.Concat(removed, aside) {
+		if e, ok := kept[id]; ok && a.tasks[id] == nil {
 			b.tasks = append(b.tasks, e)
 		}
 	}
+	a.mu.Unlock()
 	if len(b.tasks) == 0 {
 		return removed, ""
 	}
@@ -380,7 +413,11 @@ func (a *App) UndoRemove(token string) []string {
 	back := make([]string, 0, len(copies))
 	for i := range copies {
 		c := copies[i]
-		back = append(back, c.ID)
+		// A set-aside row came back with its link but is not a row anybody
+		// sees, so it is not counted as one.
+		if !c.VariantOff {
+			back = append(back, c.ID)
+		}
 		_ = a.Store.Save(&c)
 		a.Hub.Broadcast("task", &c)
 	}

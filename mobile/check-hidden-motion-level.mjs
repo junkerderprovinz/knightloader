@@ -1,5 +1,5 @@
-// The hidden fourth motion level stays hidden, stays switchable off, and stays
-// behind the accessibility gate.
+// The hidden fourth motion level stays hidden, stays switchable off, and passes
+// the accessibility gate only for what comes to an end.
 //
 // GlimStone 1.17.0 adds `storm`: a fourth intensity nobody is offered, reached
 // by setting motion to the top level and tapping that same option five more
@@ -10,19 +10,22 @@
 // The web's version of this script checks where a selector sits inside
 // `@media (prefers-reduced-motion: no-preference)`. A phone has no such block,
 // only a function call, so the phone's equivalent is that one file reads the
-// signal, every level resolves through it, and it answers `off` for every level
-// including the hidden one. That is checked by running the module: node strips
-// the types and calls the real functions, so these are measurements rather than
-// pattern matches.
+// signal and every level resolves through it. That is checked by running the
+// module: node strips the types and calls the real functions, so these are
+// measurements rather than pattern matches.
 //
 // What each check catches, all of it invisible in a build, a type check and a
 // screenshot alike:
 //
-//   gate      A level that does not pass through the reduced-motion signal
-//             would give a phone whose owner asked the system for less motion
-//             more movement than the three visible levels can produce. The
-//             other three are safe because of where the gate sits, so the
-//             fourth has to reach it by the same road. A second screen reading
+//   gate      The three offered levels answer `off` while the system asks for
+//             less motion, because somebody who set that never chose any of
+//             them. The storm is the one exception (GlimStone 2.1.0): five taps
+//             on an option already chosen are a request, not an inherited
+//             default. Exempting it is half the rule and restoring it is the
+//             other half, so under reduced motion it has to keep its own
+//             one-shot figures rather than falling to a quieter level's, and
+//             its loop has to stop, since wanting more movement is not wanting
+//             something that never stops. A second screen reading
 //             AccessibilityInfo for itself gives the signal two readers that
 //             can disagree, and the one that forgets is the one that animates.
 //
@@ -104,11 +107,14 @@ if (m) {
     }
   }
 
-  // Reduced motion wins over every level, the hidden one included.
-  if (typeof m.resolveMotion !== 'function') {
-    fail(`${MOTION_MODULE}: no resolveMotion() - there is no single place where the OS signal beats the chosen level`);
+  // Reduced motion wins over every offered level; the storm keeps what ends and
+  // loses what loops.
+  if (typeof m.resolveMotion !== 'function' || typeof m.motionNumbers !== 'function') {
+    fail(`${MOTION_MODULE}: no resolveMotion() or motionNumbers() - there is no single place where the OS signal meets the chosen level`);
   } else {
-    for (const level of new Set([...(stored ?? []), 'storm'])) {
+    const table = m.MOTION ?? {};
+    const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+    for (const level of levels ?? []) {
       const got = m.resolveMotion(level, true);
       if (got !== 'off') {
         fail(
@@ -116,9 +122,36 @@ if (m) {
             `a phone whose owner asked the system for less motion would still get this level's numbers`,
         );
       }
+      if (!same(m.motionNumbers(level, true), table.off)) {
+        fail(`${MOTION_MODULE}: motionNumbers(${JSON.stringify(level)}, reduced) is not the 'off' row - an offered level still moves under reduced motion`);
+      }
+    }
+    for (const level of stored ?? []) {
+      if (!same(m.motionNumbers(level, false), table[level])) {
+        fail(`${MOTION_MODULE}: motionNumbers(${JSON.stringify(level)}) without reduced motion is not that level's own row`);
+      }
     }
     if (m.resolveMotion('storm', false) !== 'storm') {
       fail(`${MOTION_MODULE}: resolveMotion does not pass 'storm' through when nothing is reduced - the level is unreachable`);
+    }
+    if (m.resolveMotion('storm', true) !== 'storm') {
+      fail(
+        `${MOTION_MODULE}: the storm resolves to ${JSON.stringify(m.resolveMotion('storm', true))} under reduced motion - ` +
+          `five taps on an option already chosen are a request, and GlimStone 2.1.0 exempts it from the signal`,
+      );
+    }
+    const sn = m.motionNumbers('storm', true);
+    const st = table.storm ?? {};
+    if (sn.wiggleDeg !== 0 || sn.wiggleDur !== 0) {
+      fail(`${MOTION_MODULE}: the storm's wiggle still loops under reduced motion - the exemption stops at anything continuous`);
+    }
+    for (const k of Object.keys(st).filter((k) => !k.startsWith('wiggle'))) {
+      if (sn[k] !== st[k]) {
+        fail(
+          `${MOTION_MODULE}: under reduced motion the storm's ${k} is ${JSON.stringify(sn[k])}, not its own ${JSON.stringify(st[k])} - ` +
+            `exempted without being restored, it ends up quieter than the level it asked for`,
+        );
+      }
     }
   }
 

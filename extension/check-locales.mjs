@@ -57,7 +57,7 @@ for (const loc of locales) {
 // search is enough because every key is spelled out at its t() call; a key
 // assembled at runtime would show up here as unread.
 const SRC = join(here, 'src');
-const sources = ['options.js', 'popup.js', 'picker.js', 'background.js', 'shared.js', 'appearance.js']
+const sources = ['options.js', 'popup.js', 'picker.js', 'background.js', 'shared.js', 'appearance.js', 'donate.js']
   .map((f) => join(SRC, f))
   .filter((f) => existsSync(f))
   .map((f) => readFileSync(f, 'utf8'))

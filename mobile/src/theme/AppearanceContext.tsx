@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   ACCENTS,
   DEFAULT_ACCENT,
+  DISCO_TICK_MS,
   asShape,
   contrastOn,
   rainbowColor,
@@ -55,9 +56,14 @@ export interface Appearance {
   radii: Radii;
   type: typeof TYPE;
   /** The colour for one list position, or undefined when the mode is off and
-   *  the single accent applies. */
+   *  the single accent applies. While disco walks, a new function every step,
+   *  so a list that keeps it in its extraData redraws with the palette. */
   hueAt: (i: number) => string | undefined;
+  /** The rainbow as set, never the step disco has walked it to. */
   rainbow: RainbowState;
+  /** Whether disco is switched on. It walks only while the rainbow is on. */
+  disco: boolean;
+  setDisco: (on: boolean) => void;
 
   /** True when a local override is in force for that axis. */
   overridden: { accent: boolean; shape: boolean; theme: boolean; rainbow: boolean };
@@ -116,6 +122,11 @@ interface Override {
 }
 
 const STORE_KEY = 'glim-appearance-override';
+
+/** Disco's switch. Its own key rather than a field of the override: it is
+ *  this phone's alone, like the motion level, and following the instance must
+ *  not clear it. */
+const DISCO_KEY = 'glim-disco';
 
 /**
  * Where a local look waits while the instance's own is being worn.
@@ -191,6 +202,11 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
   const [override, setOverride] = useState<Override>({});
   const [shelf, setShelf] = useState<Override | null>(null);
   const [instance, setInstance] = useState<InstanceAppearance | undefined>(undefined);
+  const [disco, setDiscoState] = useState(false);
+  /** How many steps disco has walked since it started. Never stored: a step a
+   *  second written to storage would grind the seed forward behind the user's
+   *  back, and stopping has to hand back the palette as it was set. */
+  const [walk, setWalk] = useState(0);
 
   // Read once at start. Not awaited before the first paint: the defaults are
   // GlimStone's own, so the worst case is one frame in Sunflower before a
@@ -211,6 +227,16 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
       .catch(() => {
         /* an unreadable shelf is an empty shelf */
       });
+    AsyncStorage.getItem(DISCO_KEY)
+      .then((raw) => setDiscoState(raw === 'on'))
+      .catch(() => {
+        /* an unreadable switch is off */
+      });
+  }, []);
+
+  const setDisco = useCallback((on: boolean) => {
+    setDiscoState(on);
+    void AsyncStorage.setItem(DISCO_KEY, on ? 'on' : 'off').catch(() => {});
   }, []);
 
   /**
@@ -243,6 +269,31 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
     else void AsyncStorage.setItem(SHELF_KEY, JSON.stringify(next)).catch(() => {});
   }, []);
 
+  // On or off is a local choice like every other axis on this screen, while
+  // the palette and the seed belong to the instance, so two clients of one
+  // server cannot disagree about the colour of a download. Switching the mode
+  // on locally therefore asks the instance's settings for its colours, as if
+  // it had the mode on itself.
+  const rainbow = useMemo<RainbowState>(() => {
+    const instRainbow = rainbowFromSettings(instance);
+    if (override.rainbow === undefined) return instRainbow;
+    return override.rainbow ? rainbowFromSettings({ ...instance, rainbow: true }) : { ...instRainbow, on: false };
+  }, [override.rainbow, instance]);
+
+  // The walk runs here, above every screen, because a hue reaches a view as a
+  // value computed at render: only a provider every screen reads can make them
+  // all step together. With the rainbow off nothing hued is on screen, so it
+  // waits, and it starts by itself when the rainbow comes back.
+  const walking = disco && rainbow.on;
+  useEffect(() => {
+    if (!walking) {
+      setWalk(0);
+      return;
+    }
+    const timer = setInterval(() => setWalk((w) => w + 1), DISCO_TICK_MS);
+    return () => clearInterval(timer);
+  }, [walking]);
+
   const value = useMemo<Appearance>(() => {
     // No instance carries a theme, on the web either: light and dark follow the
     // device through prefers-color-scheme, and an app that opens dark on a
@@ -258,18 +309,10 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
 
     const shape = override.shape ?? asShape(instance?.shape) ?? 'round';
 
-    // On or off is a local choice like every other axis on this screen, while
-    // the palette and the seed belong to the instance, so two clients of one
-    // server cannot disagree about the colour of a download. Switching the mode
-    // on locally therefore asks the instance's settings for its colours, as if
-    // it had the mode on itself.
-    const instRainbow = rainbowFromSettings(instance);
-    const rainbow =
-      override.rainbow === undefined
-        ? instRainbow
-        : override.rainbow
-          ? rainbowFromSettings({ ...instance, rainbow: true })
-          : { ...instRainbow, on: false };
+    // What disco draws: the palette turned by the steps walked so far. The seed
+    // is an offset that rainbowAt reads only while rotation is on, so the walk
+    // holds rotation on for as long as it runs and leaves the setting alone.
+    const drawn = walking ? { ...rainbow, rotate: true, seed: rainbow.seed + walk } : rainbow;
 
     return {
       dark,
@@ -280,8 +323,10 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
       accentSoft: softOn(accent),
       radii: RADII[shape] ?? RADII.round,
       type: TYPE,
-      hueAt: (i: number) => rainbowColor(rainbow, i),
+      hueAt: (i: number) => rainbowColor(drawn, i),
       rainbow,
+      disco,
+      setDisco,
       overridden: {
         accent: override.accent !== undefined,
         shape: override.shape !== undefined,
@@ -335,7 +380,7 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
       },
       setInstanceAppearance: setInstance,
     };
-  }, [override, shelf, instance, system, persist, shelve]);
+  }, [override, shelf, instance, system, persist, shelve, rainbow, walking, walk, disco, setDisco]);
 
   return <AppearanceCtx.Provider value={value}>{children}</AppearanceCtx.Provider>;
 }

@@ -6,7 +6,9 @@
 // A button is read by its visible child text, the `{t('...')}` between its
 // tags, never by title= or aria-label=: glyph buttons such as QueueBar's
 // transport column carry words only in title=, and a button without visible
-// words is ignored.
+// words is ignored. The one exception is a `labelled` Button, a window's way
+// out among them: the label engine prints its title as its words, so the title
+// is read like child text.
 //
 // A retreat is a key whose last segment contains one of the camel words
 // cancel, back, skip, close, dismiss, revert, undo, abort or pause. Whole
@@ -143,7 +145,11 @@ function openTag(text, i) {
       continue;
     }
     j = ATTR.lastIndex;
-    if (text[j] !== '=') continue;
+    if (text[j] !== '=') {
+      // A bare attribute such as `labelled`, which holds no value to read.
+      attrs.push({ name: attr[0], from: j, to: j });
+      continue;
+    }
     j++;
     if (text[j] === '{') {
       const end = closeBrace(text, j);
@@ -215,6 +221,13 @@ function labels(children) {
   return [...children.matchAll(/\bt\(\s*'([^'\n]+)'/g)].map((m) => m[1]);
 }
 
+/** The keys in a `labelled` Button's title, which the label engine prints. */
+function engineLabels(text, open) {
+  if (!open.attrs.some((a) => a.name === 'labelled')) return [];
+  const title = open.attrs.find((a) => a.name === 'title');
+  return title ? labels(text.slice(title.from, title.to)) : [];
+}
+
 /** Does this key name a button that walks the action back? */
 function retreats(key) {
   return key
@@ -270,11 +283,14 @@ function slots(text, from, to, out = []) {
     const open = openTag(text, i);
     if (!open) break;
     if (open.selfClosing) {
+      if (open.tag === 'Button') out.push({ at: i, keys: engineLabels(text, open) });
       i = open.openEnd;
       continue;
     }
     const close = closeTag(text, open.tag, open.openEnd);
-    if (open.tag === 'Button') out.push({ at: i, keys: labels(text.slice(open.openEnd, close)) });
+    if (open.tag === 'Button') {
+      out.push({ at: i, keys: [...labels(text.slice(open.openEnd, close)), ...engineLabels(text, open)] });
+    }
     else if (open.tag === '') slots(text, open.openEnd, Math.min(close, to), out);
     i = Math.min(element(text, i, open)[1], to);
   }

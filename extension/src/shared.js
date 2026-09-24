@@ -104,8 +104,8 @@ function instanceCard(inst, { index, isDefault, isChosen, onPick, onSetDefault, 
     card.appendChild(badge);
   }
 
-  // The square actions, only when the caller supplies handlers, so the popup
-  // and the send-to window keep a compact card.
+  // The square actions, only when the caller supplies handlers: the popup
+  // operates the group, while the options page sets it up and only lists it.
   if (onQueue || onOpen) {
     const actions = document.createElement('span');
     actions.className = 'glim-instance-actions';

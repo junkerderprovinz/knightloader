@@ -7,8 +7,8 @@ App**. The bookmarklet and the share target land on `/quickadd`
 (`web/src/pages/QuickAdd.tsx`); the extension no longer does, and the section
 on it below says what it does instead and why.
 
-This overlaps with Click'n'Load (`docs/clicknload.md`) rather than avoiding
-it, which was not true when this page was first written. CnL answers a button
+This page overlaps with Click'n'Load (`docs/clicknload.md`), which was not
+true when it was first written. CnL answers a button
 a *website* put on its own page, aimed at a download manager on the same
 machine at a fixed loopback port; the tools here answer a link with no button
 anywhere. Since the extension learned to intercept CnL submissions itself
@@ -42,8 +42,8 @@ bookmarks bar. Clicking it on any page opens `/quickadd` with that page's URL
 and title, plus whatever text you had selected (useful for a page listing
 several links in prose, none of them individually a "download button").
 
-Generated client-side (`web/src/lib/browserTools.ts`'s `buildBookmarklet`),
-never server-rendered with a fixed address baked in at build time. A
+The link is generated client-side (`web/src/lib/browserTools.ts`'s
+`buildBookmarklet`), never server-rendered with a fixed address baked in at build time. A
 self-hosted app has no fixed address to bake in, and whichever address you
 used to reach the settings page is, by construction, one that already works
 for you.
@@ -53,8 +53,8 @@ for you.
 Source lives in `extension/src`, embedded into the Go binary
 (`extension/embed.go`) and packaged on demand by
 `GET /api/browser-extension.zip` (`internal/api/routes_browsertools.go`).
-Built against MV3 because MV2 is being retired across browsers; there is no
-MV2 fallback.
+It is built against MV3 because MV2 is being retired across browsers; there
+is no MV2 fallback.
 
 The zip a running instance serves is **byte-identical** to `extension/src` in
 the repository. It used to bake that instance's address into a
@@ -76,12 +76,12 @@ popup has a loading state: an instance that is switched off is not offered,
 and one that came online a minute ago is, with nobody telling this browser
 anything. Sends go out as `POST /api/links` **through the relay**, admitted
 because membership in the group is the credential. The `sameOrigin` guard is
-not worked around, it simply is not on that path.
+not worked around; it is not on that path.
 
-Four context-menu entries (page, link, image, selection), a toolbar popup, and
-the group drawn as instance cards in both, the same card the web UI's own
-Instances tab draws, with a **Standard** badge on the default and a right-click
-to move it.
+There are four context-menu entries (page, link, image, selection) and a
+toolbar popup, and both draw the group as instance cards, the same card the web
+UI's own Instances tab draws, with a **Standard** badge on the default and a
+right-click to move it.
 
 Permissions: `contextMenus`, `storage` (the phrase, a random browser ID, the
 default instance, the language, the appearance and whether to follow an
@@ -133,10 +133,10 @@ nothing about this shape blocks it later.
 `/quickadd` with a plain `GET` (`url`/`text`/`title` become query
 parameters), the same shape the bookmarklet already uses,
 so there is exactly one page that knows how to turn a shared blob into a
-staged link. `web/public/sw.js` is a deliberately empty pass-through service
-worker; it exists only because most browsers gate the install prompt behind
-"has a fetch-handling service worker", not to cache anything (see that
-file's own comment for why caching this app's assets a second time, next to
+staged link. `web/public/sw.js` is an empty pass-through service worker. It
+exists only because most browsers gate the install prompt behind "has a
+fetch-handling service worker", and it caches nothing (see that file's own
+comment for why caching this app's assets a second time, next to
 `internal/api/api.go`'s existing ETag scheme, would be a bug and not an
 optimisation).
 
@@ -151,7 +151,7 @@ left that wants it.
 
 ## What this deliberately does not do
 
-No account, and no attempt to speak MyJDownloader's own vocabulary or
+There is no account, and no attempt to speak MyJDownloader's own vocabulary or
 protocol. The same ruling `/api/help` states for the API generally applies
 here. Sends reach the instances in your group through the project's relay
 (`relay.halleluja.design`), which forwards sealed messages it cannot read, and

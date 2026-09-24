@@ -14,12 +14,12 @@ import { InfoBubble } from '../components/ui';
 import { connectWS, fetchDeploymentInfo, fetchSettings, fetchUpdateCheck, installUpdate, type Task } from '../lib/api';
 import {
   applyAccent,
-  applyMotion,
+  applyDisco,
   applyRainbow,
   applyShape,
   cacheAppearance,
   rainbowFromSettings,
-  readCachedMotionIntensity,
+  readCachedDisco,
 } from '../lib/appearance';
 import { InstanceProvider, useInstanceScope } from '../lib/instance';
 import { useToast } from '../lib/toast';
@@ -61,11 +61,10 @@ function useCompletionToasts() {
 
 // Shape and accent are server settings, so they follow the instance. They are
 // applied here at the top so every page gets them, not just the settings page.
+// Motion and disco are stored in the browser and applyCachedAppearance has
+// already applied them.
 function useAppearance() {
   useEffect(() => {
-    // Motion intensity is stored in the browser, so it applies at once.
-    applyMotion(readCachedMotionIntensity());
-
     let live = true;
     fetchSettings()
       .then((s) => {
@@ -74,6 +73,8 @@ function useAppearance() {
         applyShape(s.shape);
         applyAccent(s.accent);
         applyRainbow(rainbow);
+        // The walk starts from the server's palette, and stopping puts it back.
+        applyDisco(readCachedDisco(), rainbow);
         // Cached so the next load paints the chosen look immediately instead of
         // flashing the default while this request is in flight.
         cacheAppearance(s.shape, s.accent, rainbow);

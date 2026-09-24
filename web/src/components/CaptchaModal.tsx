@@ -13,7 +13,7 @@ import {
   type CaptchaUnsupportedPayload,
 } from '../lib/api';
 import { Button, Modal, TextInput } from './ui';
-import { IconClock } from '../lib/icons';
+import { IconClock, IconClose } from '../lib/icons';
 import { useT } from '../lib/i18n';
 import { captchaIsNew, forgetCaptcha, seedCaptchasSeen } from '../lib/notify';
 import { useToast } from '../lib/toast';
@@ -254,9 +254,14 @@ export function CaptchaModal() {
             </span>
           )}
           <span className="flex-1" />
-          <Button kind="secondary" onClick={() => handleSkip('skip-once')} disabled={busy}>
-            {t('captcha.cancel')}
-          </Button>
+          <Button
+            kind="secondary"
+            labelled
+            icon={<IconClose />}
+            title={t('captcha.cancel')}
+            onClick={() => handleSkip('skip-once')}
+            disabled={busy}
+          />
           {/* Refresh neither answers nor cancels, so it sits between them. */}
           <Button kind="ghost" onClick={handleRefresh} disabled={busy}>
             {t('captcha.refresh')}

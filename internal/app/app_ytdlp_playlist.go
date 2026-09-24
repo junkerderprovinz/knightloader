@@ -6,7 +6,7 @@ package app
 // This is built like the page crawl, which expands one pasted link before any
 // task is staged, rather than like the async title probe. Staging the playlist
 // link first and replacing it later would not work: with AutoConfirm on,
-// addLinksFrom starts what it staged before returning, so the whole playlist
+// AddLinksFrom can start what it staged before returning, so the whole playlist
 // would begin downloading into one row. When the listing yields no entries the
 // link is staged as itself. The title probe still runs per entry afterwards for
 // formats and availability (probePlaylistEntries).
@@ -44,8 +44,11 @@ type playlistProber interface {
 }
 
 // ytdlpPlaylistProber returns the yt-dlp backend as a playlistProber, and
-// whether it is one.
+// whether it is one. A switched-off yt-dlp is none.
 func (a *App) ytdlpPlaylistProber() (playlistProber, bool) {
+	if a.resolverOff("ytdlp") {
+		return nil, false
+	}
 	a.bmu.RLock()
 	b := a.ytdlp
 	a.bmu.RUnlock()

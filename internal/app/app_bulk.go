@@ -67,9 +67,13 @@ func (a *App) editAll(ids []string, edit func(*core.Task)) []string {
 }
 
 // RemoveTasks removes a selection in one call, deleting downloaded files only
-// when deleteFiles is set.
+// when deleteFiles is set. A yt-dlp link that loses its last shown row loses
+// its set-aside rows too (see strandedBy); they are not in the answer, which
+// counts the rows somebody could see.
 func (a *App) RemoveTasks(ids []string, deleteFiles bool) []string {
+	aside := a.strandedBy(ids)
 	removed := make([]string, 0, len(ids))
+	wake := false
 	for _, id := range ids {
 		a.mu.Lock()
 		_, known := a.tasks[id]
@@ -77,10 +81,19 @@ func (a *App) RemoveTasks(ids []string, deleteFiles bool) []string {
 		if !known {
 			continue
 		}
-		// Remove also unfiles the mirror set, clears backend state and frees a
-		// dispatch slot.
-		a.Remove(id, deleteFiles)
+		// removeTask also unfiles the mirror set, clears backend state and frees
+		// a dispatch slot.
+		if a.removeTask(id, deleteFiles) {
+			wake = true
+		}
 		removed = append(removed, id)
+	}
+	// No countdown counts a set-aside row, so these need no wake.
+	for _, id := range aside {
+		a.removeTask(id, false)
+	}
+	if wake {
+		a.wakeAutoConfirm()
 	}
 	return removed
 }
@@ -139,7 +152,9 @@ func (a *App) cleanupTargetsLocked(class CleanupClass) ([]string, error) {
 		// package disappear.
 		return a.selectLocked(func(t *core.Task) bool { return t.Online == core.AvailOffline }), nil
 	case CleanupDisabled:
-		return a.selectLocked(func(t *core.Task) bool { return !t.Enabled }), nil
+		// A row a preset set aside is switched off too, but nobody sees it, and
+		// removing it would leave nothing to bring back when the kind is ticked.
+		return a.selectLocked(func(t *core.Task) bool { return !t.Enabled && !t.VariantOff }), nil
 	case CleanupDuplicates:
 		return a.duplicatesLocked(), nil
 	case CleanupIncompleteArchives:
@@ -200,12 +215,18 @@ func (a *App) duplicatesLocked() []string {
 
 // duplicateKey identifies a download: by file name and size, which matches the
 // same file on two hosters, else by URL, else by id so it groups with nothing.
+//
+// The variant kind is part of both keys. The rows of one yt-dlp link share
+// its URL and its name, and the rows whose size is not known yet would
+// otherwise all read as copies of one file, so confirming the link would hold
+// back all but one of them.
 func duplicateKey(t *core.Task) string {
+	kind, _ := variantDecode(t.Variant)
 	if t.Name != "" && t.Name != t.URL && t.Size > 0 {
-		return fmt.Sprintf("file\x00%s\x00%d", strings.ToLower(t.Name), t.Size)
+		return fmt.Sprintf("file\x00%s\x00%s\x00%d", kind, strings.ToLower(t.Name), t.Size)
 	}
 	if t.URL != "" {
-		return "url\x00" + strings.ToLower(t.URL)
+		return "url\x00" + string(kind) + "\x00" + strings.ToLower(t.URL)
 	}
 	return "id\x00" + t.ID
 }
@@ -283,9 +304,15 @@ var ErrNoContainerBackend = fmt.Errorf(
 	"this container is encrypted, and only the headless JDownloader backend can open it; " +
 		"none is configured (set KL_JD to a reachable JD)")
 
-// ContainerBackendConfigured reports whether anything can open an encrypted
-// container. It is asked before an upload is stored, so the upload can be
-// refused with the reason.
+// ErrJDOff is returned for an encrypted container while JDownloader is
+// switched off on the modules page.
+var ErrJDOff = errors.New(
+	"this container is encrypted, and only the headless JDownloader backend can open it; " +
+		"JDownloader is switched off on the Modules page")
+
+// ContainerBackendConfigured reports whether a JD backend that can open an
+// encrypted container is wired, switched on or not. It is asked before an
+// upload is stored, so the upload can be refused with the reason.
 func (a *App) ContainerBackendConfigured() bool {
 	a.bmu.RLock()
 	be := a.jd
@@ -300,6 +327,9 @@ func (a *App) ContainerBackendConfigured() bool {
 // goroutine, because JD may wait for a captcha. A failure is recorded where the
 // user looks for links that did not make it.
 func (a *App) HandContainerToJD(rawurl, name, pkg string) error {
+	if a.ModuleOff("jd") {
+		return ErrJDOff
+	}
 	a.bmu.RLock()
 	be := a.jd
 	a.bmu.RUnlock()
@@ -333,6 +363,9 @@ type cryptedV1Adder interface {
 // CryptedV1BackendConfigured reports whether Click'n'Load's addcrypted can be
 // served, so the listener only claims support it has.
 func (a *App) CryptedV1BackendConfigured() bool {
+	if a.ModuleOff("jd") {
+		return false
+	}
 	a.bmu.RLock()
 	be := a.jd
 	a.bmu.RUnlock()
@@ -347,6 +380,9 @@ func (a *App) CryptedV1BackendConfigured() bool {
 func (a *App) AddContainerCnL(data []byte, pkg string) error {
 	if len(data) == 0 {
 		return errors.New("no crypted content")
+	}
+	if a.ModuleOff("jd") {
+		return ErrJDOff
 	}
 	a.bmu.RLock()
 	be := a.jd

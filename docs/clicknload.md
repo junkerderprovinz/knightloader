@@ -44,11 +44,11 @@ arbitrary website; running it would be an obvious way to lose the machine.
 the site posts a `crypted` field encrypted against JDownloader's own RSA
 public key rather than a key that travels with it, so nobody but a real
 JDownloader can open it. KnightLoader does not hold that key and never will.
-See "Container files" below for why that is a line drawn on purpose rather than
-a gap, and how it is answered anyway when a JD backend is configured.
+See "Container files" below for the reason behind that choice, and for how it
+is answered anyway when a JD backend is configured.
 
-Every one of these four is POST only, deliberately: a GET here would be a
-browser "simple request" (no preflight, no user gesture, no navigation), so
+Every one of these four accepts POST only. A GET here would be a browser
+"simple request" (no preflight, no user gesture, no navigation), so
 any page in the world, an ad iframe or an email preview image tag included,
 could queue arbitrary downloads and archive passwords into this instance. A
 handful of read-only routes some sites and extensions probe before ever
@@ -73,10 +73,9 @@ with nothing in the UI to explain it. KnightLoader answers the preflight.
 A page at `https://example.com` posting to `http://127.0.0.1:9666` is a
 cross-origin request, so the CnL routes send `Access-Control-Allow-Origin: *`.
 
-That wildcard is deliberate and is confined to the CnL listener. It is the
-protocol's own requirement, since any site must be able to reach it, and the
-listener binds `127.0.0.1` only, so nothing off the
-machine can talk to it. The main API on port 8749 does the exact opposite and
+That wildcard is confined to the CnL listener. The protocol requires it, since
+any site must be able to reach the listener, and the listener binds
+`127.0.0.1` only, so nothing off the machine can talk to it. The main API on port 8749 does the exact opposite and
 refuses foreign origins outright. Do not "fix" one to match the other.
 
 ### Mixed content
@@ -84,8 +83,9 @@ refuses foreign origins outright. Do not "fix" one to match the other.
 An HTTPS page loading `http://127.0.0.1:9666/jdcheck.js` looks like mixed
 content, which browsers normally block. Loopback is the exception: both Chrome
 and Firefox treat `127.0.0.1` and `localhost` as potentially trustworthy, so the
-script tag is allowed. Nothing to do here, but it explains why the address must
-stay literally `127.0.0.1` rather than a hostname that happens to resolve there.
+script tag is allowed. You do not need to do anything here, but it explains
+why the address must stay literally `127.0.0.1` rather than a hostname that
+happens to resolve there.
 
 ## When KnightLoader is not on your desktop
 
@@ -105,8 +105,8 @@ chooser every other send from the extension uses. Nothing runs on your desktop,
 no port is owned, and it works wherever the instance is. It is on from the
 first second, because it is what most people install the extension for.
 
-How, because it looks impossible at first: an extension cannot listen on a TCP
-port, so it never receives the POST. It patches the page's own `fetch`, `XHR`
+This looks impossible at first, since an extension cannot listen on a TCP port
+and so never receives the POST. Instead it patches the page's own `fetch`, `XHR`
 and form submission at `document_start` and takes the payload before it leaves
 (`extension/src/cnl-main.js`), decodes it in the browser
 (`extension/src/cnl.js`, the same AES-128-CBC this file describes), and answers
@@ -129,8 +129,8 @@ extension runs in any page until it is switched back on. (JDownloader's own
 extension requires the same access and registers eight content scripts fixed in
 its manifest, which cannot be switched off at all.)
 
-**The bridge.** For someone who wants no extension at all, or a browser without
-one. Run the same binary on your own machine in bridge mode. It
+**The bridge.** This is for someone who wants no extension at all, or a browser
+without one. Run the same binary on your own machine in bridge mode. It
 listens on `127.0.0.1:9666`, speaks CnL to the website, and forwards what it
 decodes to the remote instance over the normal REST API:
 
@@ -156,7 +156,7 @@ machine, so its own CnL listener is already the one the browser means.
 
 In the container it defaults to `9666` as well, since 2026-09-07. It used to be
 `0`, on the grounds that a loopback listener inside a container cannot be
-reached - true for a browser on another machine, and not true for one on the
+reached. That is true for a browser on another machine, but not for one on the
 host itself or for the bridge. An image that switched the feature off produced a
 switch that read "off" on every container install with no way to tell whether
 that was a choice or a default.
@@ -197,14 +197,15 @@ path; so does a site's addcrypted (v1) submission, by the identical route. The
 payload is handed to JD as inline content instead of a fetchable URL,
 because unlike an uploaded file it was never a file anywhere to fetch.
 
-Without `KL_JD` configured, both are refused with that reason stated plainly
-rather than a vague failure. See the main README's configuration table.
+Without `KL_JD` configured, both are refused with an error that states that
+reason. See the main README's configuration table.
 
 ## Ambient clipboard watching (bridge only)
 
 The bridge can also watch the OS clipboard and forward anything that looks
 like a hoster link, without waiting for a CnL button or an explicit paste,
-which is useful for a site with no Click'n'Load button at all. Off by default:
+which is useful for a site with no Click'n'Load button at all. It is off by
+default:
 
 ```sh
 knightloader -bridge http://nas:8749 -bridge-clipboard
@@ -214,12 +215,12 @@ This is scoped to the bridge specifically because it is the one build with an
 unambiguous claim on a user's own OS clipboard: the user started it, by hand,
 on their own machine. It also needs a build with `-tags bridgeclipboard`: the
 ordinary release binary (and the container image) does not carry the
-clipboard-reading dependency at all, not merely leave it switched off, because
-a headless server has no legitimate reason to touch a clipboard in the first
-place. Passing `-bridge-clipboard` against a plain build logs that plainly
-rather than doing nothing silently.
+clipboard-reading dependency at all, because a headless server has no
+legitimate reason to touch a clipboard. Passing `-bridge-clipboard` against a
+plain build logs that the build has no clipboard support instead of silently
+doing nothing.
 
-Watching is narrow on purpose: only a line that is essentially just a link
+Watching is narrow: only a line that is essentially just a link
 qualifies, not prose that happens to contain one, because nobody is watching
 the result to catch an accidental selection before it queues. A small ring of
 recently-forwarded content is kept so the same clipboard is not resubmitted on

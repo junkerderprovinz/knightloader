@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { LogLine } from '../../../lib/api';
 import { useT } from '../../../lib/i18n';
-import { Card, ErrorCard, InfoBubble, LoadingCard, SectionTitle, TextInput, ToggleRow } from '../../../components/ui';
+import { Card, ErrorCard, InfoBubble, LoadingCard, SectionTitle, TextInput, ToggleRow, useTooltip } from '../../../components/ui';
 import { useLogTail } from './useLogTail';
 
 /**
@@ -165,10 +165,23 @@ function Row({ line, onTask, chipLabel }: { line: LogLine; onTask: (id: string) 
   return (
     <span className="block">
       {line.line.slice(0, at)}
+      <TaskChip id={id} label={chipLabel} onTask={onTask} />
+      {line.line.slice(at + id.length)}
+    </span>
+  );
+}
+
+/** TaskChip is the download id in a line, a component of its own so only the
+ *  lines that carry one pay for the tooltip. */
+function TaskChip({ id, label, onTask }: { id: string; label: string; onTask: (id: string) => void }) {
+  const tip = useTooltip<HTMLButtonElement>(label);
+  const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
+  return (
+    <>
       <button
         type="button"
-        title={chipLabel}
-        aria-label={chipLabel}
+        aria-label={label}
+        {...tipHoverProps}
         onClick={() => onTask(id)}
         // hoverRaised, because hover moves up the ramp from surface3 and
         // plain hover sits below it.
@@ -177,8 +190,8 @@ function Row({ line, onTask, chipLabel }: { line: LogLine; onTask: (id: string) 
       >
         {id}
       </button>
-      {line.line.slice(at + id.length)}
-    </span>
+      {tip.node}
+    </>
   );
 }
 

@@ -26,7 +26,11 @@ const POLL_MS = 8000;
 
 type Dialog = { mode: 'new' } | { mode: 'edit'; login: HosterLogin };
 
-export function HosterLoginSection() {
+/**
+ * HosterLoginSection lists the hoster logins. onEnabledHosts hears the
+ * switched-on hosts after every load, since each is a row on the priority card.
+ */
+export function HosterLoginSection({ onEnabledHosts }: { onEnabledHosts?: (hosts: string) => void }) {
   const { t } = useT();
   const { toast } = useToast();
   const [logins, setLogins] = useState<HosterLogin[] | null>(null);
@@ -37,11 +41,19 @@ export function HosterLoginSection() {
 
   const load = useCallback(async () => {
     try {
-      setLogins(await fetchHosterLogins());
+      const rows = await fetchHosterLogins();
+      setLogins(rows);
+      onEnabledHosts?.(
+        rows
+          .filter((r) => r.enabled)
+          .map((r) => r.host)
+          .sort()
+          .join(','),
+      );
     } catch {
       // A missed poll keeps the previous rows.
     }
-  }, []);
+  }, [onEnabledHosts]);
 
   useEffect(() => {
     void load();
@@ -143,9 +155,13 @@ export function HosterLoginSection() {
             <>
               {/* Matches the debrid card's confirmation footer. */}
               <span className="flex-1" />
-              <Button kind="ghost" icon={<IconClose width={16} height={16} />} onClick={() => setConfirming(null)}>
-                {t('common.cancel')}
-              </Button>
+              <Button
+                kind="ghost"
+                labelled
+                icon={<IconClose />}
+                title={t('common.cancel')}
+                onClick={() => setConfirming(null)}
+              />
               <Button
                 kind="ghost"
                 icon={<IconTrash width={16} height={16} />}
@@ -257,9 +273,7 @@ function HosterLoginDialog({
         picked ? (
           <>
             <span className="flex-1" />
-            <Button kind="ghost" onClick={onClose}>
-              {t('common.cancel')}
-            </Button>
+            <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
             <Button onClick={() => void doSave()} disabled={saving || !canSave}>
               {saving ? t('accounts.saving') : t('accounts.save')}
             </Button>
@@ -267,9 +281,7 @@ function HosterLoginDialog({
         ) : (
           <>
             <span className="flex-1" />
-            <Button kind="secondary" onClick={onClose}>
-              {t('common.cancel')}
-            </Button>
+            <Button kind="secondary" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
           </>
         )
       }

@@ -9,6 +9,7 @@ import { IconClose } from '../lib/icons';
 import { CRYPTO_COINS, type CryptoCoin, type CryptoNetwork } from '../lib/donate';
 import { useT } from '../lib/i18n';
 import { useNavLabels } from '../lib/navLabels';
+import { useRainbow } from '../lib/useRainbow';
 
 /**
  * CryptoDonateDialog shows a QR code and address for the chosen coin and
@@ -21,6 +22,7 @@ export function CryptoDonateDialog({ onClose }: { onClose: () => void }) {
   const [network, setNetwork] = useState<CryptoNetwork>(CRYPTO_COINS[0]!.networks[0]!);
   const [copied, setCopied] = useState(false);
   const matrix = useMemo(() => qrMatrix(network.address), [network.address]);
+  useRainbow();
 
   // In `hover` mode the ticker shows under the pointer, and the selected coin
   // always keeps its word.
@@ -133,8 +135,8 @@ export function CryptoDonateDialog({ onClose }: { onClose: () => void }) {
 // Collapsed rather than omitted, so the ticker grows back in place without
 // re-measuring the tile. Tabs.tsx hides rail labels with the same classes.
 const HIDDEN_TICKER =
-  'max-h-0 leading-4 opacity-0 transition-all duration-200 group-hover:max-h-4 group-hover:opacity-100 ' +
-  'group-focus-visible:max-h-4 group-focus-visible:opacity-100';
+  'leading-[1.4] max-h-0 opacity-0 transition-all duration-200 group-hover:max-h-[1.4em] ' +
+  'group-hover:opacity-100 group-focus-visible:max-h-[1.4em] group-focus-visible:opacity-100';
 
 /**
  * CoinTile is one coin as a square tile with the mark at half its height, like
@@ -170,7 +172,7 @@ function CoinTile({
         onClick={onPick}
         style={hueVars(rainbowAt(hue)) as CSSProperties}
         {...tipHoverProps}
-        className={`group flex aspect-square flex-col items-center justify-center gap-1 rounded-[var(--radius-control)]
+        className={`kl-coin-tile group flex aspect-square flex-col items-center justify-center gap-1 rounded-[var(--radius-control)]
           px-2 transition-colors ${showTicker ? 'glim-hue glim-hue-icon' : 'glim-hue'} ${
             selected
               ? 'glim-active bg-accent text-accentContrast'

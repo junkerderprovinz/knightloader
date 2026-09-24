@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Button, Card, Field, IconBadge, Modal, SectionTitle, TextInput, useTooltip } from '../../../components/ui';
-import { IconPlus, IconTrash } from '../../../lib/icons';
+import { IconClose, IconPlus, IconTrash } from '../../../lib/icons';
 import { useT } from '../../../lib/i18n';
 import {
   deleteHeaderProfile,
@@ -258,9 +258,14 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
           footer={
             <>
               <span className="flex-1" />
-              <Button kind="ghost" disabled={busy} onClick={() => setConfirming(null)}>
-                {t('common.cancel')}
-              </Button>
+              <Button
+                kind="ghost"
+                labelled
+                icon={<IconClose />}
+                title={t('common.cancel')}
+                disabled={busy}
+                onClick={() => setConfirming(null)}
+              />
               <Button
                 kind="secondary"
                 disabled={busy}

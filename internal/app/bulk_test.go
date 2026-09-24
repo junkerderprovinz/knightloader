@@ -112,6 +112,10 @@ func TestCleanupClassesSelectWhatTheySay(t *testing.T) {
 	off := putTask(t, a, core.Task{URL: "https://host.example/off.bin", Name: "off.bin", Status: core.StatusCollected})
 	// Uncheckable is not offline, so a hoster refusing a probe removes nothing.
 	shy := putTask(t, a, core.Task{URL: "https://host.example/shy.bin", Name: "shy.bin", Status: core.StatusCollected, Online: core.AvailUncheckable, Enabled: true})
+	// Switched off by a hoster preset rather than by anybody's hand, and out of
+	// view, so it is not a disabled link.
+	putTask(t, a, core.Task{URL: "https://youtube.com/watch?v=aside", Name: "aside", Status: core.StatusCollected,
+		Variant: "thumbnail", VariantOff: true})
 
 	cases := []struct {
 		class CleanupClass
@@ -135,7 +139,7 @@ func TestCleanupClassesSelectWhatTheySay(t *testing.T) {
 	if _, err := a.CleanupPreview("nonsense"); err == nil {
 		t.Error("an unknown cleanup class was accepted")
 	}
-	if len(a.Tasks()) != 4 {
+	if len(a.Tasks()) != 5 {
 		t.Errorf("a preview removed something; %s should still be there", shy.ID)
 	}
 }

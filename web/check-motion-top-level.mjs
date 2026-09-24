@@ -1,5 +1,5 @@
-// The top motion level is `wild`, no rule names it, and a value saved under the
-// retired name still resolves.
+// The top motion level is `wild`, it is not the default, no rule names it, and a
+// value saved under the retired name still resolves.
 //
 // The top level of GlimStone 2.0.0's motion axis is called `wild`, where the
 // language once said `full`. That string is not wording: it goes into the
@@ -24,10 +24,16 @@
 //             elements somebody wrote a special rule for.
 //             `:root:not([data-motion="subtle"]):not([data-motion="off"])` says
 //             the same thing and keeps saying it when a fifth level is added
-//             above. The storm's own token block is the one exception and is
+//             above. The storm has two exceptions. Its token block is
 //             recognised by shape: a `:root[data-motion="storm"]` whose body is
 //             nothing but custom properties holds the level's numbers rather
-//             than a component rule.
+//             than a component rule. And a (prefers-reduced-motion: reduce)
+//             block has to name it to exempt it from the substitutes, which
+//             check-hidden-motion-level.mjs holds to their own shape.
+//
+//   default   DEFAULT_MOTION is `subtle` (GlimStone 2.1.0), not the top level:
+//             the top level is a statement rather than polish, and somebody who
+//             never opened the setting never asked for one.
 //
 //   label     Every catalogue carries `settings.motion.wild` and none carries
 //             `settings.motion.full`. The picker builds its label from the key
@@ -89,10 +95,11 @@ if (picker && !picker.includes(TOP)) {
   fail(`${appRel}: MOTION_LEVELS is [${picker.join(', ')}] - the top level a picker offers is '${TOP}'`);
 }
 
+const DEFAULT = 'subtle';
 const def = app.match(/DEFAULT_MOTION\s*:\s*Motion\s*=\s*'([^']+)'/);
 if (!def) fail(`${appRel}: no DEFAULT_MOTION`);
-else if (def[1] !== TOP) {
-  fail(`${appRel}: DEFAULT_MOTION is '${def[1]}' - the default is the top visible level, '${TOP}'`);
+else if (def[1] !== DEFAULT) {
+  fail(`${appRel}: DEFAULT_MOTION is '${def[1]}' - the default is the middle level, '${DEFAULT}' (GlimStone 2.1.0)`);
 }
 
 // The retired spelling is gone from the source tree, in code and in comments.
@@ -159,6 +166,8 @@ function selectorAt(i) {
   return { text: css.slice(start, open).trim(), open };
 }
 
+const reduceBlocks = [...css.matchAll(/@media \(prefers-reduced-motion: reduce\)/g)].map((m) => block(css.indexOf('{', m.index)));
+
 for (const lively of [TOP, 'storm']) {
   const re = new RegExp(`\\[data-motion\\s*=\\s*["']${lively}["']\\]`, 'g');
   for (const m of css.matchAll(re)) {
@@ -170,6 +179,9 @@ for (const lively of [TOP, 'storm']) {
     const body = css.slice(...block(open));
     const onlyTokens = body.replace(/--[\w-]+\s*:[^;]*;/g, '').trim() === '';
     if (lively === 'storm' && bare && onlyTokens) continue;
+    // Its exemption from the reduced-motion substitutes, which is checked by
+    // check-hidden-motion-level.mjs.
+    if (lively === 'storm' && reduceBlocks.some(([s, e]) => m.index >= s && m.index < e)) continue;
     fail(
       `${cssRel}:${lineAt(m.index)} the selector "${text}" names the lively level '${lively}'. ` +
         `A rule that names the top level forgets the next one - write ` +
@@ -247,6 +259,6 @@ if (problems.length) {
 }
 
 console.log(
-  "ok: the top motion level is 'wild' everywhere, no rule names a lively level, " +
+  "ok: the top motion level is 'wild' everywhere, the default is 'subtle', no rule names a lively level, " +
     "every catalogue has the key, and a stored 'full' still resolves",
 );

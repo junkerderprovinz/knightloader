@@ -1,6 +1,7 @@
 /**
- * The tooltip and info bubble engine, ported line for line from
- * glimstone/reference/tooltip.ts.
+ * The tooltip and info bubble engine, ported from glimstone/reference/tooltip.ts.
+ * The one addition is closing when the trigger leaves the page, the rule
+ * reference/react/useTipBubble.tsx keeps for a component framework.
  *
  * One floating bubble, a direct child of <body>, serves every tooltip and "(i)"
  * icon, so no `overflow: hidden` on a card can clip it. It is clamped into the
@@ -115,6 +116,12 @@
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape' && currentTrigger) hide();
     });
+    // The pages redraw rows and swatches by replacing them, and a trigger taken
+    // out of the page fires neither mouseout nor focusout, so its bubble would
+    // stay up for good.
+    new MutationObserver(() => {
+      if (currentTrigger && !currentTrigger.isConnected) hide();
+    }).observe(document.body, { childList: true, subtree: true });
   }
 
   /**

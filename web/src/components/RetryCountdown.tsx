@@ -7,7 +7,7 @@ import { fmtCountdown, goTimeMs, useCountdown } from '../lib/countdown';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { IconBolt } from '../lib/icons';
 import { useToast } from '../lib/toast';
-import { IconBadge } from './ui';
+import { IconBadge, useTooltip } from './ui';
 
 // How long a passed deadline still reads as "due", covering the moment before
 // the requeue arrives over the socket. It also retires a stale deadline from a
@@ -117,10 +117,25 @@ export function RetryNote({ task, form }: { task: Task; form: 'compact' | 'full'
     state.kind === 'waiting'
       ? t(state.max ? 'task.retry.compact' : 'task.retry.compactNoMax', vars)
       : full;
+  return <CompactNote text={compact} full={full} />;
+}
+
+/**
+ * CompactNote is the short form with the whole sentence in the house bubble,
+ * for where the cell truncates it, like columns.tsx's Tip beside it. No role
+ * and no tab stop: the row owns the focus model, and the whole sentence is in
+ * the row tooltip for a screen reader.
+ */
+function CompactNote({ text, full }: { text: string; full: string }) {
+  const tip = useTooltip<HTMLSpanElement>(full);
+  const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
   return (
-    <span className="glim-num min-w-0 truncate text-[11px] text-carbon-textMuted" title={full}>
-      {compact}
-    </span>
+    <>
+      <span className="glim-num min-w-0 truncate text-[11px] text-carbon-textMuted" {...tipHoverProps}>
+        {text}
+      </span>
+      {tip.node}
+    </>
   );
 }
 

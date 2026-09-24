@@ -157,8 +157,8 @@
         outline: none;
       }
       #links:focus { box-shadow: 0 0 0 2px var(--focus-ring); }
-      /* Two accent buttons sharing a line; min-width 0 keeps a long label in its
-         half, as in .sendRow. */
+      /* Two buttons sharing a line; min-width 0 keeps a long label in its half,
+         as in .sendRow. */
       .collectorRow { display: flex; gap: 8px; }
       .collectorRow button { flex: 1; min-width: 0; }
     </style>
@@ -208,8 +208,10 @@
       <div id="drop" class="drop">
         <textarea id="links" rows="3" spellcheck="false"></textarea>
       </div>
+      <!-- One accent button per pane (GlimStone rule 3), and it is the one
+           that sends; choosing files only fills the field. -->
       <div class="collectorRow">
-        <button id="pickFiles" class="primary" type="button"></button>
+        <button id="pickFiles" class="secondary" type="button"></button>
         <button id="addLinks" class="primary" type="button"></button>
       </div>
       <!-- Opened from the button beside it, since a native file input cannot

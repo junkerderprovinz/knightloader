@@ -255,6 +255,7 @@ const GROUPS: Record<string, TransferGroup> = {
   // The backends that fetch things, and the services that answer captchas for
   // them.
   resolverOrder: 'resolvers',
+  modulesOff: 'resolvers',
   ytdlp: 'resolvers',
   ytdlpPresets: 'resolvers',
   torrent: 'resolvers',

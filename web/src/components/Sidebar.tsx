@@ -219,9 +219,10 @@ export function Sidebar() {
     let collected = 0,
       active = 0;
     for (const t of Object.values(tasks)) {
-      // Held links are not in the collector's list, so not in its badge either.
+      // Held links and rows a hoster preset set aside are not in the
+      // collector's list, so not in its badge either.
       if (t.status === 'collected') {
-        if (!t.skipped) collected++;
+        if (!t.skipped && !t.variantOff) collected++;
       }
       else if (t.status === 'running' || t.status === 'queued' || t.status === 'extracting') active++;
     }

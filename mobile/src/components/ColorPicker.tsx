@@ -3,6 +3,7 @@ import { Modal, PanResponder, Pressable, StyleSheet, Text, TextInput, View } fro
 import { useAppearance } from '../theme/AppearanceContext';
 import { useT } from '../i18n/I18nContext';
 import { GlimButton } from './glim';
+import { Check } from './IconBadge';
 import { TYPE } from '../theme/tokens';
 
 /**
@@ -273,13 +274,16 @@ export default function ColorPicker({
                 onPick(n);
               }}
             />
-            {/* No hue here, which is the one exception in the app. Without
+            {/* The way out, a button in the bottom row with its words and its
+                glyph like every other (GlimStone 2.6.0); no corner X beside it.
+
+                No hue here, which is the one exception in the app. Without
                 one GlimButton resolves to the accent, and this button closes a
                 dialog whose subject is a colour, so a palette position would
                 paint it in a colour unrelated to the one being mixed. It is
                 still the same component at the same height and gap, only out of
                 the rotation. */}
-            <GlimButton label={t('settings.pickerDone')} onPress={onClose} />
+            <GlimButton label={t('settings.pickerDone')} icon={(ink) => <Check color={ink} />} onPress={onClose} />
           </View>
         </Pressable>
       </Pressable>

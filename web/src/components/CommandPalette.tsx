@@ -1,15 +1,17 @@
 // The command palette: every command available on the current surface in one
 // searchable overlay, reading from the registry in lib/commands/types.ts. It
 // is a search over a list rather than a decision, so it borrows Modal's
-// mechanics but not the component. The open state lives in
+// mechanics but not the component; it is still a window, with the title badge
+// and the bottom row that go with one. The open state lives in
 // lib/commandPaletteOpen.ts so a command's `run` can open it.
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useCommandContext, useCommands, type Command, type CommandSurface } from '../lib/commands/types';
 import { formatShortcut } from '../lib/commands/shortcuts';
 import { setCommandPaletteOpen, useCommandPaletteOpen } from '../lib/commandPaletteOpen';
 import { useT, type TranslationKey } from '../lib/i18n';
-import { IconSearch } from '../lib/icons';
+import { IconClose, IconSearch } from '../lib/icons';
+import { Button, SectionTitle } from './ui';
 // Shared with the settings search, so both rank a word the same way.
 import { score } from '../lib/rank';
 
@@ -40,6 +42,7 @@ export function CommandPalette() {
   const [active, setActive] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const itemRefs = useRef(new Map<string, HTMLButtonElement>());
+  const titleId = useId();
 
   const section = location.pathname.split('/')[1] ?? '';
   const surface: CommandSurface = SECTION_SURFACE[section] ?? 'overview';
@@ -126,12 +129,18 @@ export function CommandPalette() {
       <div
         role="dialog"
         aria-modal="true"
-        aria-label={t('commands.paletteLabel')}
+        aria-labelledby={titleId}
         onKeyDown={onKeyDown}
         // glim-modal-card alone: it already fades, and glim-fade would run a
-        // second arrival with its own duration.
-        className="glim-card glim-modal-card flex h-fit max-h-[70vh] w-full max-w-lg flex-col overflow-hidden"
+        // second arrival with its own duration. No overflow-hidden, which
+        // would clip the title badge where it overhangs the top edge; the
+        // list scrolls on its own.
+        className="glim-card glim-modal-card flex h-fit max-h-[70vh] w-full max-w-lg flex-col pt-3"
       >
+        {/* On the rows' own inset, so the badge lines up with the search glyph. */}
+        <div className="px-4">
+          <SectionTitle id={titleId}>{t('commands.paletteLabel')}</SectionTitle>
+        </div>
         <div className="flex items-center gap-2.5 border-b border-carbon-border/60 px-4 py-3">
           <IconSearch width={16} height={16} className="shrink-0 text-carbon-textMuted" />
           <input
@@ -193,6 +202,17 @@ export function CommandPalette() {
               })}
             </div>
           ))}
+        </div>
+
+        {/* The way out, for the pointer; the keyboard has Escape and Tab. */}
+        <div className="flex items-center justify-end gap-3 px-4 pb-4 pt-2">
+          <Button
+            kind="ghost"
+            labelled
+            icon={<IconClose />}
+            title={t('common.close')}
+            onClick={() => setCommandPaletteOpen(false)}
+          />
         </div>
       </div>
     </div>

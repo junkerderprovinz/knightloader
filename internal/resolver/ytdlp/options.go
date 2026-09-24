@@ -18,9 +18,17 @@ type Options struct {
 	Variant      Variant `json:"variant"`
 	Quality      Quality `json:"quality"`
 	CustomFormat string  `json:"customFormat"`
+	// VideoFormat is one track a video row picked from its probe (see
+	// VideoFormats), which takes precedence over Quality. It is a task's own
+	// choice and never an instance default, so it has no settings key.
+	VideoFormat string `json:"-"`
 	// AudioFormat is the --audio-format value ("mp3", "m4a", "opus", or
 	// "best" for no transcode), read only for VariantAudio.
 	AudioFormat string `json:"audioFormat"`
+	// AudioTrack is one track an audio row picked from its probe (see
+	// AudioTracks), copied as it is instead of converted to AudioFormat. Like
+	// VideoFormat it has no settings key.
+	AudioTrack string `json:"-"`
 	// AudioBitrate is the --audio-quality target in kbit/s ("192"), read only
 	// for VariantAudio. Empty passes no flag; it has no effect on a "best"
 	// extract, which copies the source stream.
@@ -422,6 +430,12 @@ func (o Options) Sanitize() Options {
 	}
 	if !validAudioBitrate(o.AudioBitrate) {
 		o.AudioBitrate = ""
+	}
+	if !IsVideoFormat(o.VideoFormat) {
+		o.VideoFormat = ""
+	}
+	if !IsAudioTrack(o.AudioTrack) {
+		o.AudioTrack = ""
 	}
 	o.CustomFormat = clip(strings.TrimSpace(o.CustomFormat))
 	o.SubtitleLangs = clip(strings.TrimSpace(o.SubtitleLangs))

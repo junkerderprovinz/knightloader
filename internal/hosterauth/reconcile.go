@@ -126,6 +126,12 @@ type Reconciler struct {
 	// step with it.
 	Enabled func(host string) bool
 
+	// Off answers whether JD is switched off on the modules page. A pass then
+	// only reads JD's hoster list: without it a hoster link would rank below
+	// the direct download after a restart and fetch the hoster's page. nil
+	// means on.
+	Off func() bool
+
 	mu        sync.Mutex
 	states    map[string]LoginState
 	firstFail map[string]time.Time // host -> when Reconcile first saw it present but invalid
@@ -265,6 +271,12 @@ func (r *Reconciler) Reconcile(ctx context.Context) (Plan, error) {
 		return Plan{}, errJDNotConfigured
 	}
 	jd := r.newJD(base)
+	if r.Off != nil && r.Off() {
+		if hosts, err := jd.listPremiumHosters(ctx); err == nil {
+			jdresolver.SetKnownHosts(hosts)
+		}
+		return Plan{}, nil
+	}
 
 	desired := r.desired()
 	actual, err := jd.queryAccounts(ctx)

@@ -266,3 +266,41 @@ func TestTaskWithNoInfoHashRoundTripsAsNilTrackers(t *testing.T) {
 		t.Fatalf("trackers = %+v, want nil", all[0].Trackers)
 	}
 }
+
+// A row a hoster preset set aside must stay aside after a restart, and the
+// audio row's bitrate is what the download runs at, so losing it would change
+// the file.
+func TestASetAsideVariantRowAndItsBitrateSurviveARestart(t *testing.T) {
+	dir := t.TempDir()
+	s, err := Open(filepath.Join(dir, "tasks.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	task := core.Task{
+		ID: "v1", URL: "https://youtube.com/watch?v=x", Name: "x", CreatedAt: time.Now(),
+		Status: core.StatusCollected, Variant: "audio:opus 160k", VariantOff: true, AudioBitrate: "160",
+	}
+	if err := s.Save(&task); err != nil {
+		t.Fatal(err)
+	}
+	s.Close()
+
+	again, err := Open(filepath.Join(dir, "tasks.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer again.Close()
+	all, err := again.All()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(all) != 1 {
+		t.Fatalf("reloaded %d tasks, want 1", len(all))
+	}
+	if !all[0].VariantOff {
+		t.Error("the set-aside row came back in view")
+	}
+	if all[0].AudioBitrate != "160" {
+		t.Errorf("audio bitrate = %q, want %q", all[0].AudioBitrate, "160")
+	}
+}

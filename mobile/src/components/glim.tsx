@@ -1,8 +1,9 @@
 import type { ReactNode } from 'react';
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View, type ViewStyle } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, TouchableOpacity, View, type ViewStyle } from 'react-native';
 import { useAppearance } from '../theme/AppearanceContext';
-import { BTN_H_KEY, TYPE } from '../theme/tokens';
+import { BRAND, BTN_H_KEY, TYPE, inkFor, type Brand } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
+import { InfoTip } from './InfoTip';
 
 /**
  * The GlimStone controls, as React Native.
@@ -19,8 +20,23 @@ import { useT } from '../i18n/I18nContext';
 
 /** One card with its notch title badge half over the top edge. `hue` is the
  *  card's rainbow position; without the mode it resolves to the accent, as the
- *  web's SectionTitle does. */
-export function NotchCard({ title, hue, children }: { title: string; hue?: number; children: ReactNode }) {
+ *  web's SectionTitle does. `info` explains the card through an (i) in the
+ *  notch, in the notch's own ink, as the extension's section badges carry it. */
+export function NotchCard({
+  title,
+  hue,
+  info,
+  style,
+  children,
+}: {
+  title: string;
+  hue?: number;
+  info?: string;
+  /** For a card that is not one of a stack, such as a floating window, which
+   *  owes nothing to the page's rhythm above it. */
+  style?: ViewStyle;
+  children: ReactNode;
+}) {
   const { c, accent, accentContrast, radii, hueAt, rainbow } = useAppearance();
   const { fill, ink } = restingFill(hue, {
     accent,
@@ -31,12 +47,13 @@ export function NotchCard({ title, hue, children }: { title: string; hue?: numbe
     ground: c.bg,
   });
   return (
-    <View style={[styles.cardWrap]}>
+    <View style={[styles.cardWrap, style]}>
       <View style={[styles.card, { backgroundColor: c.surface, borderRadius: radii.card }]}>{children}</View>
       <View style={[styles.notch, { backgroundColor: fill, borderRadius: radii.pill }]}>
         <Text style={[styles.notchText, { color: ink }]} numberOfLines={1}>
           {title}
         </Text>
+        {info ? <InfoTip text={info} color={ink} size={14} /> : null}
       </View>
     </View>
   );
@@ -149,16 +166,47 @@ export function GlimToggle({
 }
 
 /** A row inside a card: label left, control flush right, the ToggleRow shape
- *  the whole family uses. */
-export function GlimRow({ label, sub, control }: { label: string; sub?: string; control?: ReactNode }) {
+ *  the whole family uses. `sub` states what is in force; `info` explains the
+ *  setting through an (i) beside the label. */
+export function GlimRow({
+  label,
+  sub,
+  info,
+  control,
+}: {
+  label: string;
+  sub?: string;
+  info?: string;
+  control?: ReactNode;
+}) {
   const { c } = useAppearance();
   return (
     <View style={styles.rowOuter}>
       <View style={styles.rowText}>
-        <Text style={[styles.rowLabel, { color: c.text }]}>{label}</Text>
+        <View style={styles.rowLabelLine}>
+          <Text style={[styles.rowLabel, { color: c.text }]}>{label}</Text>
+          {info ? <InfoTip text={info} /> : null}
+        </View>
         {sub ? <Text style={[styles.rowSub, { color: c.textMuted }]}>{sub}</Text> : null}
       </View>
       {control}
+    </View>
+  );
+}
+
+/**
+ * What stands in for a control the environment does not permit: a title and
+ * the reason, on the quiet end of the warn family (GlimStone's
+ * UnavailableNotice). No control at all rather than one that cannot answer,
+ * and a paragraph rather than a bubble, because there is no control left to
+ * hang a bubble on.
+ */
+export function UnavailableNotice({ title, reason }: { title: string; reason: string }) {
+  const { c, radii } = useAppearance();
+  return (
+    <View style={[styles.notice, { backgroundColor: c.statusWarnBgSoft, borderRadius: radii.card }]}>
+      <Text style={[styles.noticeTitle, { color: c.text }]}>{title}</Text>
+      <Text style={[styles.noticeReason, { color: c.textSub }]}>{reason}</Text>
     </View>
   );
 }
@@ -294,7 +342,9 @@ const styles = StyleSheet.create({
     transform: [{ translateY: '-50%' }],
     paddingVertical: 3,
     paddingHorizontal: 12,
-    justifyContent: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
     elevation: 3,
     shadowColor: '#000',
     shadowOpacity: 0.25,
@@ -320,9 +370,15 @@ const styles = StyleSheet.create({
   knob: { width: 16, height: 16 },
   rowOuter: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 8 },
   rowText: { flex: 1, minWidth: 0, gap: 2 },
+  // The (i) sits beside the words, spaced like the extension's row label.
+  rowLabelLine: { flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 1 },
+  notice: { paddingVertical: 12, paddingHorizontal: 16, marginTop: 8, gap: 4 },
+  noticeTitle: { fontSize: TYPE.body, fontWeight: '500' },
+  noticeReason: { fontSize: TYPE.dense, lineHeight: 18 },
   // Body, off the table. 15 is not a step of the scale, and a 15 sitting next
-  // to a 14 is how a four-row table grows a fifth row nobody decided on.
-  rowLabel: { fontSize: TYPE.body },
+  // to a 14 is how a four-row table grows a fifth row nobody decided on. It
+  // shrinks and wraps rather than pushing the (i) off the row.
+  rowLabel: { fontSize: TYPE.body, flexShrink: 1 },
   rowSub: { fontSize: TYPE.caption, lineHeight: 16 },
   // Sized by the row rather than by a number here. Eight swatches at a fixed 32
   // plus a reset plus a label do not fit across a phone, and a smaller fixed
@@ -487,5 +543,74 @@ export function GlimButton({
         {label}
       </Text>
     </TouchableOpacity>
+  );
+}
+
+/**
+ * A button that goes to a brand, for the About card: a neutral ground, the
+ * words in the page's ink and the brand's mark in its colour (GlimStone's
+ * `.glim-brand-btn`).
+ *
+ * At rest the mark takes the brand's adjusted colour from the palette, since
+ * the published one fails 3:1 on this ground in one of the two themes. The
+ * true colour is spent as the fill while the button is pressed, the one ground
+ * it was drawn for, with words and mark flipping to that fill's measured ink.
+ * The web does this on hover, which a phone does not have.
+ *
+ * `house` is the exception that proves the rule: the button that reaches the
+ * app's own authors takes the accent, and with it the card's rainbow position,
+ * which a vendor's mark may never do. `hue` is that position.
+ */
+export function BrandButton({
+  brand,
+  label,
+  icon,
+  onPress,
+  hue,
+}: {
+  brand: Brand | 'house';
+  label: string;
+  /** Given the mark's colour and the ground it stands on, as GlimButton's is,
+   *  so a painted detail such as the envelope's flap matches the ground. */
+  icon: (ink: string, ground: string) => ReactNode;
+  onPress: () => void;
+  hue?: number;
+}) {
+  const { c, dark, accent, accentContrast, radii, hueAt, rainbow } = useAppearance();
+  let rest: string;
+  let fill: string;
+  let ink: string;
+  if (brand === 'house') {
+    ({ fill, ink } = restingFill(hue, {
+      accent,
+      accentContrast,
+      hueAt,
+      reactive: rainbow.on && rainbow.reactive,
+      muted: c.textMuted,
+      ground: c.bg,
+    }));
+    // The accent used as ink on this ground, as accentInk is for the plain
+    // accent: darkened on the light theme, as given on the dark one.
+    rest = dark ? fill : inkFor(fill);
+  } else {
+    ({ fill, ink } = BRAND[brand]);
+    rest = { coffee: c.brandCoffee, bitcoin: c.brandBitcoin, paypal: c.brandPaypal, github: c.brandGithub }[brand];
+  }
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      style={({ pressed }) => [styles.button, { backgroundColor: pressed ? fill : c.surface2, borderRadius: radii.control }]}
+    >
+      {({ pressed }) => (
+        <>
+          {icon(pressed ? ink : rest, pressed ? fill : c.surface2)}
+          <Text style={[styles.buttonLabel, { color: pressed ? ink : c.text }]} numberOfLines={1}>
+            {label}
+          </Text>
+        </>
+      )}
+    </Pressable>
   );
 }

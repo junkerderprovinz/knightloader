@@ -174,6 +174,28 @@ func TestHost_FireIgnoresDisabledScript(t *testing.T) {
 	}
 }
 
+func TestHost_SwitchedOffHostStartsNoScriptUntilSwitchedBackOn(t *testing.T) {
+	actions, hub := newFakeActions(), newFakeHub()
+	h := newTestHost(t, actions, hub)
+	if _, err := h.SaveScript(Script{Name: "on-done", Trigger: TriggerTaskDone, Code: "notify('ran');", Enabled: true}); err != nil {
+		t.Fatalf("SaveScript: %v", err)
+	}
+
+	h.SetOff(true)
+	h.Bus().Publish(Firing{Trigger: TriggerTaskDone, Task: &TaskView{ID: "t1"}})
+	select {
+	case ev := <-hub.ch:
+		t.Fatalf("a script ran while scripting was switched off: %+v", ev)
+	case <-time.After(200 * time.Millisecond):
+	}
+
+	h.SetOff(false)
+	h.Bus().Publish(Firing{Trigger: TriggerTaskDone, Task: &TaskView{ID: "t2"}})
+	if ev := waitEvent(t, hub, func(e Event) bool { return e.Kind == "notify" }); ev.Message != "ran" {
+		t.Fatalf("notify message = %q after switching back on, want %q", ev.Message, "ran")
+	}
+}
+
 func TestHost_FireIgnoresNonMatchingTrigger(t *testing.T) {
 	actions, hub := newFakeActions(), newFakeHub()
 	h := newTestHost(t, actions, hub)

@@ -1,16 +1,19 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   type DiscoveredInstance,
   type Instance,
   type Settings,
   addInstance,
+  connectWS,
   fetchDiscovered,
   fetchInstances,
   fetchSettings,
   removeInstance,
 } from '../lib/api';
 import { useT } from '../lib/i18n';
+import { IconChevronEnd } from '../lib/icons';
+import { fetchFeatures } from './settings/features';
 import { useToast } from '../lib/toast';
 import { PageHeader, Card, Button, InfoBubble, SectionTitle } from '../components/ui';
 import { InstanceCard } from '../components/InstanceCard';
@@ -29,16 +32,36 @@ export function Instances() {
   const [found, setFound] = useState<DiscoveredInstance[]>([]);
   const navigate = useNavigate();
 
+  // Switched off on the Modules page, the server lists no peers; the page says
+  // why instead of looking as if they were gone.
+  const [off, setOff] = useState(false);
+
   const load = () => fetchInstances().then(setPeers);
   const loadFound = () => fetchDiscovered().then(setFound).catch(() => {});
+  const loadOff = () =>
+    fetchFeatures()
+      .then((f) => setOff(f.modules.some((m) => m.id === 'federation' && m.verdict === 'shipped' && !m.enabled)))
+      .catch(() => {});
   useEffect(() => {
     load();
     loadFound();
+    loadOff();
     fetchSettings()
       .then((s: Settings) => setOwnName(s.instanceName))
       .catch(() => {});
     const iv = setInterval(loadFound, 5000);
-    return () => clearInterval(iv);
+    const close = connectWS(
+      (type) => {
+        if (type !== 'settings') return;
+        load();
+        loadOff();
+      },
+      ['settings'],
+    );
+    return () => {
+      clearInterval(iv);
+      close();
+    };
   }, []);
 
   function shake(id: string) {
@@ -75,6 +98,19 @@ export function Instances() {
   return (
     <div className="flex flex-col gap-10">
       <PageHeader title={t('instances.title')} />
+
+      {off && (
+        <p className="flex flex-wrap items-center gap-x-2 text-sm text-carbon-textSub">
+          {t('instances.moduleOff')}
+          <Link
+            to="/settings/modules"
+            className="flex items-center gap-1 underline-offset-2 hover:text-carbon-text hover:underline focus-visible:underline"
+          >
+            {t('settings.nav.modules')}
+            <IconChevronEnd className="h-3.5 w-3.5 rtl:-scale-x-100" aria-hidden />
+          </Link>
+        </p>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {/* Open goes to the local download list, with no ?instance=. */}

@@ -113,6 +113,12 @@ const EXCLUDED = new Map([
   ],
   ['settings.advanced.filterAll', "part of the raw-key table's own machinery, above"],
   ['settings.advanced.filterChanged', "part of the raw-key table's own machinery, above"],
+
+  // An easter egg.
+  [
+    'settings.rainbowDisco',
+    'the disco switch, which appears only once somebody has found it (docs/easter-eggs.md). A search result would give it away, and would point at a row that is usually not there',
+  ],
 ]);
 
 // Attribute values can nest braces (hint={`${t('a')} ${t('b')}`}) or span
@@ -234,6 +240,7 @@ const NOT_PAGE_SOURCES = new Map([
   ['registry.tsx', 'the id-to-component map. check-settings-pages.mjs is what reads it'],
   ['context.tsx', 'the draft/feature provider - no catalogue text of its own'],
   ['controls.tsx', 'NeutralSwitch, a control. Its labels come from its callers'],
+  ['ModuleToggle.tsx', "a module's switch on the page the module lives on. Its label is the module's name, which the Modules page already indexes"],
   ['Empty.tsx', 'the registered-but-not-built placeholder, which is not a card on any page'],
   ['Appearance.tsx', 'three lines: it renders <Look section="appearance" />, and Look.tsx is mapped'],
   ['SettingsSearch.tsx', 'the search box itself. It sits above the pages rather than on one, and indexing it would make it a result in its own list'],

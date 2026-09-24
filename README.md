@@ -51,9 +51,8 @@ If it has earned a place on your server or computer, toss a coin to your knight:
 > review.
 >
 > The releases, the container image and the downloads below exist so the builds
-> can be tested. There is **no Community Applications entry**, and that is
-> deliberate. What is here changes daily,
-> including things that will break an existing setup without a migration path:
+> can be tested. There is **no Community Applications entry** on purpose. What
+> is here changes daily, including things that will break an existing setup without a migration path:
 > the storage format, the settings document, and the wire protocol instances
 > use to reach each other.
 >
@@ -127,21 +126,21 @@ encrypted on your own box.
 | **Collector** | Links are analysed and staged before anything downloads: name, size, availability, which backend will take them. Nothing is ever dropped in silence, and a link that no backend handles is still shown, with the reason on it. |
 | **Rules** | A Packagizer and a link filter, one engine used twice: match on filename, URL, hoster, source, type or size, then set the package, folder, filename, priority or comment, or refuse the link, with the rule's name attached. A test box shows what a rule would do before it does it. |
 | **Download list** | A real table: choose your columns, resize and reorder them, sort by any of them, fold packages away. The layout is remembered per instance, and sorting is a view: the queue keeps its own order. |
-| **Crawling** | Paste a page and it becomes the files it links to, not one unusable task. |
+| **Crawling** | Paste a page and each file it links to is staged as its own task. |
 | **Containers** | `.txt` link lists are read here. `.dlc`, `.ccf` and `.rsdf` are handed to the JDownloader backend, which holds the key that opens them. Their contents then come back through the ordinary path, so the filter and the Packagizer apply to them like anything else. |
 | **Queue** | Global and per-host concurrency, priorities, manual order, a stop mark, automatic retries with a growing delay, and a timetable that pauses or throttles by the clock. |
 | **Speed limit** | A total for everything, applied while downloads run rather than only to the next one. |
-| **Duplicates** | The same URL twice is refused; the same file under two URLs is recognised as a mirror, under a policy you pick rather than a guess. Refused links are held with their reason, not deleted. |
+| **Duplicates** | The same URL twice is refused; the same file under two URLs is recognised as a mirror and handled by a policy you pick. Refused links are held with their reason, not deleted. |
 | **Extraction** | zip, rar (incl. multi-volume), 7z, tar, gz, bz2, xz, zst. A multi-part set waits for every part. Encrypted zip (WinZip AES and the legacy ZipCrypto), rar and 7z take passwords, tried from a list in order. Pure Go, with no external unrar or 7z binary in the image. |
 | **Integrity** | A finished file is checked against an `.sfv`/`.md5`/`.sha*` that came with it, or a CRC in its own name. Nothing is marked as passing that was not checked. |
 | **Collisions** | What happens when the file already exists is your choice (overwrite, skip or number it), and the name is reserved atomically, so two downloads finishing together cannot pick the same one. |
 | **Connections** | Several outbound routes with order, credentials and a per-host filter, handed out round-robin up to a cap each. Passwords are stored, never served back. |
-| **Reconnect** | Get a new address when a hoster's limit is keyed to the one you have: run a command, replay a recorded HTTP exchange, ask the gateway over UPnP (which needs no router details at all), or run a script through a named interpreter. A recorded LiveHeader script imports as it is. An unchanged address counts as a failure, not a success. |
-| **Torrents** | Magnet links and uploaded `.torrent` files are a resolver like any other, so they land in the same collector, the same queue and the same folder rules. No account and nothing to configure. |
+| **Reconnect** | Get a new address when a hoster's limit is keyed to the one you have: run a command, replay a recorded HTTP exchange, ask the gateway over UPnP (which needs no router details at all), or run a script through a named interpreter. A recorded LiveHeader script imports as it is. An unchanged address counts as a failure. |
+| **Torrents** | Magnet links and uploaded `.torrent` files are a resolver like any other, so they land in the same collector, the same queue and the same folder rules. They need no account and no setup. |
 | **Intake** | Paste, drop, [Click'n'Load](docs/clicknload.md) from a site's own button, a container file, or a watched folder for `.txt` and `.crawljob` files. |
-| **Multi-instance** | Register other KnightLoaders and drive them all from one dashboard. Instances on the same network announce themselves and are one click to add - nothing to configure. |
-| **Twelve words** | Read a phrase off one instance, type it into the next, and they find each other across networks - no account, no login, no port forward, no domain. The words carry a secret; the relay only ever sees a hash of it, so nobody running one can reconstruct them. Use ours or run your own. See [connecting](docs/connecting.md). |
-| **Your own relay** | Don't want to use ours? Point both ends at a relay you run and the same twelve words work against it. It terminates its own TLS over TLS-ALPN-01 - no proxy, no certbot, no cron, and only port 443 open. |
+| **Multi-instance** | Register other KnightLoaders and drive them all from one dashboard. Instances on the same network announce themselves and take one click to add, with nothing to configure. |
+| **Twelve words** | Read a phrase off one instance, type it into the next, and they find each other across networks without an account, a login, a port forward or a domain. The words carry a secret; the relay only ever sees a hash of it, so nobody running one can reconstruct them. Use ours or run your own. See [connecting](docs/connecting.md). |
+| **Your own relay** | Don't want to use ours? Point both ends at a relay you run and the same twelve words work against it. It terminates its own TLS over TLS-ALPN-01, so it needs no proxy, certbot or cron, and only port 443 open. |
 | **Everywhere** | The web UI, a desktop build, an Android app and a browser extension all talk to the same instance, and to each other's. |
 | **Access** | An optional password lock, off by default. Same-origin API, origin-checked WebSocket. |
 | **Languages** | 42, each fetched only when chosen, right-to-left included. |
@@ -260,8 +259,8 @@ Everything is optional and has a working default.
 | `KL_CNL` | `9666` | Click'n'Load listener port on `127.0.0.1`; `0` disables it |
 | `KL_PROVISION_JD` | `1` | provisions a private headless JDownloader on first run and uses it as the hoster catch-all; `0` opts out, and it is skipped whenever `KL_JD` is already set |
 
-Linksnappy is the one debrid service with no variable here: it has no API key,
-it authenticates with the same login the website takes, so it is entered on the
+Linksnappy is the one debrid service with no variable here: it has no API key
+and authenticates with the same login the website takes, so it is entered on the
 Accounts page and nowhere else. The full list of services, and where each one
 issues its key, is `internal/accounts/catalogue.go`.
 
@@ -287,8 +286,8 @@ Pasting works, and so does dropping text onto the collector. Beyond that:
   because their key is issued to registered clients. They are handed to the
   JDownloader backend, which has one. That backend is provisioned on first run
   by default (`KL_PROVISION_JD`), so this normally works with nothing set. With
-  no backend at all, a container is recognised and refused with that as the
-  reason rather than a vague failure.
+  no backend at all, a container is recognised and refused, with the missing
+  backend named as the reason.
 - **Your own server**: see below.
 
 <br>
@@ -330,7 +329,7 @@ cookie your browser already has. A **header profile** stores that per host, in
 the same encrypted store as the account credentials, and you can paste a cookie
 block or a whole `curl` line in and have the headers pulled out of it.
 
-Two rules make this safe to use, and both are enforced rather than promised. A
+Two rules make this safe to use, and the code enforces both. A
 stored header **never appears anywhere it could be read back**: not in a log,
 not in an error message, not in a diagnostic bundle, and not in
 `settings.json`, where a Packagizer rule only ever names the profile it wants.
