@@ -190,11 +190,11 @@ submission and for a fixed download.
 - **The browser tab shows only the name**, without counts, percent and speed.
   The ring on the tab's icon still shows the progress.
 - **The settings tiles sit closer to the sidebar.**
-- **The web UI and the browser extension are set in Noto Sans**, shipped with
-  them, so they look the same on every system instead of taking whatever font
-  the system has. A page loads only the alphabets it shows, the Latin one
-  35 KB. Chinese, Japanese and Korean use the system's own font, since those
-  fonts are several megabytes each.
+- **The web UI and the browser extension (1.0.2) are set in Noto Sans**,
+  shipped with them, so they look the same on every system instead of taking
+  whatever font the system has. A page loads only the alphabets it shows, the
+  Latin one 35 KB. Chinese, Japanese and Korean use the system's own font,
+  since those fonts are several megabytes each.
 - **The web UI, the browser extension and the phone app follow GlimStone
   2.8.0.** Every window has its way out as a button in its bottom row, tooltips
   open on focus only after keyboard input and close when their control changes,
