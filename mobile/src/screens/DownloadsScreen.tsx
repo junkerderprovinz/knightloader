@@ -317,7 +317,15 @@ export default function DownloadsScreen({
             await reorderTasks(conn, ids, base);
           } catch (e) {
             setStartError(e instanceof Error ? e.message : String(e));
+            // Passed on as well as shown: the list holds the dropped order
+            // until this settles, and a refusal is what tells it to let go.
+            throw e;
           }
+          // The list holds that order until the live one agrees, and over a
+          // relay or to a peer the live one would agree only at the next poll.
+          await live.current?.refresh?.().catch(() => {
+            /* the next tick brings it */
+          });
         }}
       />
 

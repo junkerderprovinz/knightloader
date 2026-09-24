@@ -1,5 +1,5 @@
 // The names of internal/script's triggers, shared by the script editor and the
-// event targets page. Which triggers exist comes from GET /api/scripts/triggers
+// event targets card. Which triggers exist comes from GET /api/scripts/triggers
 // (see fetchScriptTriggers in lib/scripts.ts); an id without a name here is
 // shown as itself, since a newer server may fire one this build does not know.
 

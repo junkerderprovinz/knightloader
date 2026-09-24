@@ -5,6 +5,7 @@
   <head>
     <meta charset="UTF-8" />
     <title>KnightLoader</title>
+    <link rel="stylesheet" href="fonts/fonts.css" />
     <link rel="stylesheet" href="glimstone.css" />
     <link rel="stylesheet" href="flags.css" />
     <style>
@@ -19,9 +20,7 @@
         padding: 16px;
         background: var(--carbon-bg);
         color: var(--carbon-text);
-        /* The web interface's stack. system-ui lets the browser fall back per
-           character for Chinese, Japanese and Korean. */
-        font-family: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif;
+        font-family: var(--font-sans);
         font-size: var(--text-body);
         line-height: 1.4;
       }
@@ -39,13 +38,16 @@
         width: auto;
         flex-shrink: 0;
       }
+      /* The brand block's name (GlimStone 2.8.0), set beside the mark rather
+         than under it because this header row also holds the settings badge. */
       h1 {
         margin: 0;
         flex: 1;
         min-width: 0;
         font-size: var(--text-heading);
-        font-weight: 600;
-        color: var(--accent-ink);
+        font-weight: 700;
+        letter-spacing: -0.025em;
+        color: var(--carbon-text);
       }
       /* The settings badge, the web UI's neutral IconBadge (ui.tsx) in plain
          CSS, at the one badge size of the extension (--btn-h). */

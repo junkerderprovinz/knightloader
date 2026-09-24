@@ -14,10 +14,10 @@ import { useDraft, useFeatures } from './context';
 import { TargetRow } from './eventtargets/TargetRow';
 
 /**
- * EventTargets lists the addresses this instance reports to when something
+ * EventTargetsCard lists the addresses this instance reports to when something
  * happens, each with its own method, headers, body template and events. It is
- * the outbound side of the event bus internal/script publishes on, and is
- * named apart from the in-browser notifications on purpose.
+ * the outbound side of the event bus internal/script publishes on, and has a
+ * name of its own so it is not taken for the in-browser notifications.
  *
  * A new row starts off with no event ticked. The address, headers and body are
  * committed on blur, because the server refuses the whole settings document
@@ -96,7 +96,7 @@ function useVocabulary(): { triggers: string[]; placeholders: Placeholder[] } {
   return { triggers, placeholders };
 }
 
-export function EventTargets() {
+export function EventTargetsCard({ hue }: { hue: number }) {
   const { t } = useT();
   const { cfg, patch } = useDraft();
   const { features } = useFeatures();
@@ -140,7 +140,7 @@ export function EventTargets() {
   const total = rows.length + pending.length;
 
   return (
-    <Card hue={0} className="flex flex-col gap-4">
+    <Card hue={hue} className="flex flex-col gap-4">
       <SectionTitle
         hint={t('settings.eventTargets.titleHint')}
         right={

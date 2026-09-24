@@ -1,5 +1,9 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
+import '@fontsource-variable/noto-sans';
+import '@fontsource-variable/noto-sans-arabic';
+import '@fontsource-variable/noto-sans-hebrew';
+import '@fontsource-variable/noto-sans-thai';
 import './index.css';
 // flags.css is left to LanguagePicker, which loads it after paint: the
 // heraldic flags alone weigh hundreds of kB and appear in one menu.

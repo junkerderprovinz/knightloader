@@ -148,7 +148,7 @@ func TestResolveDegradesToAPlainLinkWhenTheProbeFails(t *testing.T) {
 	}
 }
 
-func TestResolveOutranksDirectAndFallsBelowTheDebridBand(t *testing.T) {
+func TestResolveGoesFirstForAConfiguredHost(t *testing.T) {
 	reg := resolver.NewRegistry()
 	reg.Register(resolver.Direct{})
 	reg.Register(Resolver{Profiles: fixed{"https://box.lan:443": "box"}})
@@ -161,8 +161,11 @@ func TestResolveOutranksDirectAndFallsBelowTheDebridBand(t *testing.T) {
 	if len(ids) != 2 || ids[0] != ResolverID || ids[1] != "direct" {
 		t.Fatalf("chain for a configured host = %v, want [%s direct]", ids, ResolverID)
 	}
-	if got := (Resolver{}).Info().Prio; got >= 44 {
-		t.Errorf("Prio = %d, want it below the debrid band's 44 so a paid unlock goes first", got)
+	// A profile is the user's own setup for its origin, often a premium
+	// cookie, and the priority card does not list it, so nothing else could
+	// move it above a debrid service that carries the same host.
+	if got := (Resolver{}).Info().Prio; got <= 49 {
+		t.Errorf("Prio = %d, want it above the debrid band (43 to 49)", got)
 	}
 }
 

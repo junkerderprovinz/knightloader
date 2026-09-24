@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import type { SVGProps } from 'react';
-import { Button, Card, ErrorCard, IconBadge, InfoBubble, LoadingCard, SectionTitle, TextInput, Toggle } from '../../components/ui';
+import { Button, Card, ErrorCard, IconBadge, InfoBubble, LoadingCard, PageHeader, SectionTitle, TextInput, Toggle } from '../../components/ui';
 import {
   RuleEditor,
   Segments,
@@ -19,6 +19,8 @@ import {
 } from '../../components/RuleEditor';
 import { IconArrowDown, IconArrowUp, IconPlus, IconTrash } from '../../lib/icons';
 import type { Category as Drawer } from '../../lib/api';
+import { useT } from '../../lib/i18n';
+import { CategoriesCard } from './Categories';
 import { useDraft } from './context';
 import { NeutralSwitch } from './controls';
 
@@ -27,7 +29,8 @@ import { NeutralSwitch } from './controls';
  * lists are part of the settings draft; the grammar and dry-run routes store
  * nothing. Compile runs on every edit and its problems are drawn on the rule
  * and condition that caused them, and a test box shows what a pasted link
- * would do before anything is saved.
+ * would do before anything is saved. The categories follow on the same page,
+ * since a Packagizer rule naming a category that does not exist is refused.
  */
 
 const FIELD: Record<Flavour, 'packagizer' | 'linkFilter'> = {
@@ -58,6 +61,18 @@ const IconDuplicate = (p: SVGProps<SVGSVGElement>) => (
 );
 
 export function Rules() {
+  const { t } = useT();
+  return (
+    <div className="flex flex-col gap-10">
+      <PageHeader title={t('settings.nav.rules')} />
+      <RuleCards />
+      <CategoriesCard hue={3} />
+    </div>
+  );
+}
+
+/** RuleCards draws the setup, the list and the test box, on hues 0 to 2. */
+function RuleCards() {
   const rx = useRx();
   const { cfg, patch } = useDraft();
 
@@ -228,7 +243,7 @@ export function Rules() {
   const on = !set.disabled;
 
   return (
-    <div className="flex flex-col gap-10">
+    <>
       <Card hue={0} className="flex flex-col gap-4">
         <SectionTitle>{rx('settings.rules.setupTitle')}</SectionTitle>
         <div className="flex flex-wrap items-center gap-4">
@@ -358,7 +373,7 @@ export function Rules() {
         report={report}
         downloadDir={(cfg as { downloadDir?: string }).downloadDir ?? ''}
       />
-    </div>
+    </>
   );
 }
 

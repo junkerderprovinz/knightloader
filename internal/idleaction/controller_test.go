@@ -523,3 +523,33 @@ func TestStartAndCloseLifecycle(t *testing.T) {
 	default:
 	}
 }
+
+// A second save can land while a tick is reading the configuration of the
+// first. Its Refresh must still arm on the next tick, or the action it
+// configured waits for a poll a minute away.
+func TestARefreshDuringATickArmsOnTheNextOne(t *testing.T) {
+	h := newHarness(t)
+	h.idle = true
+	h.cfg = Config{Action: ActionNone}
+	saved := false
+	h.c.cfg = func() Config {
+		h.mu.Lock()
+		cfg := h.cfg
+		if !saved {
+			saved = true
+			h.cfg = Config{Action: ActionPause, DelaySeconds: 5}
+			h.mu.Unlock()
+			h.c.Refresh()
+			return cfg
+		}
+		h.mu.Unlock()
+		return cfg
+	}
+
+	h.c.Refresh()
+	h.c.tick()
+	h.c.tick()
+	if !h.c.State().Armed {
+		t.Fatal("the action saved during a tick never armed")
+	}
+}

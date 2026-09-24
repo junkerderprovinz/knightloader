@@ -48,8 +48,7 @@ export function CollectorCard({ hue }: { hue: number }) {
     return key ? t(key) : id;
   };
 
-  // The countdown's switch is `autoConfirm` in the Linkeingang card on the
-  // General page.
+  // The countdown's switch is `autoConfirm` in the link intake card above.
   const autoConfirming = cfg.autoConfirm;
 
   // An older server may not send the field.
@@ -62,8 +61,8 @@ export function CollectorCard({ hue }: { hue: number }) {
     <Card hue={hue} className="flex flex-col gap-5">
       <SectionTitle>{t('settings.downloads.collectorTitle')}</SectionTitle>
 
-      {/* While no countdown runs the box gives way to a reading, which keeps
-          the pointer to the switch on the other page. */}
+      {/* While no countdown runs the box gives way to a reading that points at
+          the switch. */}
       {autoConfirming ? (
         <Field
           label={t('settings.downloads.autoConfirmDelay')}

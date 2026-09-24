@@ -33,10 +33,15 @@ func dispatchQueued(a *App, task *core.Task) core.Task {
 }
 
 // jdHostApp has a JD that ranks above the direct download for host, the way
-// a hoster with an active login does.
+// a hoster with an active login does. Its backend holds every transfer, so a
+// started task stays started instead of failing on the made-up host while a
+// test looks.
 func jdHostApp(t *testing.T, host string, extra ...fakeResolver) *App {
 	t.Helper()
 	a := newQueueApp(t)
+	a.bmu.Lock()
+	a.jd = &stubBackend{got: make(chan string, 8)}
+	a.bmu.Unlock()
 	isolateResolvers(a, fakeResolver{id: "jd", prio: 10, host: host}, fakeResolver{id: "direct", prio: 40, host: host})
 	for _, r := range extra {
 		a.Registry.Register(r)

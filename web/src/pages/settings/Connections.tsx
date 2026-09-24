@@ -18,8 +18,8 @@ import { NeutralSwitch } from './controls';
 import { ModuleToggle } from './ModuleToggle';
 
 /**
- * Connections manages the ordered list of outbound connections downloads are
- * spread across. The list lives in the settings draft, because PUT
+ * ConnectionsCard manages the ordered list of outbound connections downloads
+ * are spread across. The list lives in the settings draft, because PUT
  * /api/settings validates the rows and merges back the passwords the client
  * never sees; an empty password with `hasPassword` means "keep the stored one".
  * No row wears the accent, since nearly every row is switched on.
@@ -157,7 +157,7 @@ function readConnections(cfg: unknown): Connection[] {
 let newRowCounter = 0;
 const freshID = () => `n${Date.now().toString(36)}${newRowCounter++}`;
 
-export function Connections() {
+export function ConnectionsCard({ hue }: { hue: number }) {
   const cx = useCx();
   const { cfg, patch } = useDraft();
   const rows = readConnections(cfg);
@@ -192,8 +192,8 @@ export function Connections() {
   };
 
   return (
-    <div className="flex flex-col gap-10">
-      <Card hue={0} className="flex flex-col gap-4">
+    <>
+      <Card hue={hue} className="flex flex-col gap-4">
         <SectionTitle
           right={
             <div className="flex items-center gap-2">
@@ -247,7 +247,7 @@ export function Connections() {
           }}
         />
       )}
-    </div>
+    </>
   );
 }
 

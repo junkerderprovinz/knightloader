@@ -266,6 +266,14 @@ func (c *Controller) loop() {
 // one idle stretch once it has been dealt with. It is cleared only when idle
 // goes false, the one event that makes the next stretch a fresh chance.
 func (c *Controller) tick() {
+	// forceArm is taken before the configuration is read, so a Refresh from a
+	// save landing in between either brings another tick or is read here with
+	// the configuration it stored. Taken after, it could be spent on the
+	// configuration from before the save.
+	c.mu.Lock()
+	forceArm := c.forceArm
+	c.forceArm = false
+	c.mu.Unlock()
 	cfg := c.cfg()
 	idleNow := c.idle()
 	now := c.clock.Now()
@@ -273,8 +281,6 @@ func (c *Controller) tick() {
 	var toFire Action
 	c.mu.Lock()
 	wasArmed := c.armed
-	forceArm := c.forceArm
-	c.forceArm = false
 	switch {
 	case !idleNow:
 		// Something to do again. A countdown in flight is called off, since

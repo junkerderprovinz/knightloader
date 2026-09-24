@@ -1,5 +1,5 @@
 import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react';
-import { Button, Card, EmptyState, ErrorCard, Field, IconBadge, LoadingCard, NumberInput, PageHeader, SectionTitle, TextInput } from '../../components/ui';
+import { Button, Card, EmptyState, ErrorCard, Field, IconBadge, LoadingCard, NumberInput, SectionTitle, TextInput } from '../../components/ui';
 import { NeutralSwitch } from './controls';
 import { ModuleToggle } from './ModuleToggle';
 import { useToast } from '../../lib/toast';
@@ -24,7 +24,7 @@ import { useTriggerLabel } from '../../lib/triggers';
 import { IconCode, IconPlay, IconPlus, IconTrash } from '../../lib/icons';
 
 /**
- * Scripts edits the event scripts run by internal/script, with syntax
+ * ScriptsCard edits the event scripts run by internal/script, with syntax
  * highlighting and a test run. Each script saves through its own POST or PUT
  * rather than a whole-list PUT, so two tabs editing different scripts cannot
  * erase each other's code.
@@ -65,7 +65,6 @@ function toRows(list: Script[]): Row[] {
  * asks the catalogue first.
  */
 const PENDING = {
-  'settings.scripts.title': 'Scripts',
   'settings.scripts.subtitle': 'Automate KnightLoader with your own JavaScript, run on an event or on demand.',
   'settings.scripts.listTitle': 'Your scripts',
   'settings.scripts.add': 'Add script',
@@ -125,7 +124,7 @@ function useCx(): Cx {
   );
 }
 
-export function Scripts() {
+export function ScriptsCard({ hue }: { hue: number }) {
   const { t } = useT();
   const cx = useCx();
   const { data: loaded, failed, loading, setData: setLoaded, reload } = useResource<Script[]>(fetchScripts);
@@ -183,43 +182,39 @@ export function Scripts() {
   }
 
   return (
-    <div className="flex flex-col gap-10">
-      <PageHeader title={cx('settings.scripts.title')} />
+    <Card hue={hue} className="flex flex-col gap-4">
+      <SectionTitle
+        right={
+          <Button icon={<IconPlus width={16} height={16} />} onClick={add}>
+            {cx('settings.scripts.add')}
+          </Button>
+        }
+      >
+        {cx('settings.scripts.listTitle')}
+      </SectionTitle>
+      <ModuleToggle id="scripting" />
 
-      <Card hue={0} className="flex flex-col gap-4">
-        <SectionTitle
-          right={
-            <Button icon={<IconPlus width={16} height={16} />} onClick={add}>
-              {cx('settings.scripts.add')}
-            </Button>
-          }
-        >
-          {cx('settings.scripts.listTitle')}
-        </SectionTitle>
-        <ModuleToggle id="scripting" />
-
-        {rows.length === 0 ? (
-          <EmptyState nested icon={<IconCode width={26} height={26} />} title={cx('settings.scripts.empty')} hint={cx('settings.scripts.emptyHint')} />
-        ) : (
-          <ul className="flex flex-col">
-            {rows.map((row, i) => (
-              <ScriptRow
-                key={row.key}
-                row={row}
-                index={i}
-                last={i === rows.length - 1}
-                open={openKey === row.key}
-                onToggle={() => setOpenKey(openKey === row.key ? '' : row.key)}
-                triggers={triggers}
-                cx={cx}
-                onSaved={handleSaved}
-                onRemoved={handleRemoved}
-              />
-            ))}
-          </ul>
-        )}
-      </Card>
-    </div>
+      {rows.length === 0 ? (
+        <EmptyState nested icon={<IconCode width={26} height={26} />} title={cx('settings.scripts.empty')} hint={cx('settings.scripts.emptyHint')} />
+      ) : (
+        <ul className="flex flex-col">
+          {rows.map((row, i) => (
+            <ScriptRow
+              key={row.key}
+              row={row}
+              index={i}
+              last={i === rows.length - 1}
+              open={openKey === row.key}
+              onToggle={() => setOpenKey(openKey === row.key ? '' : row.key)}
+              triggers={triggers}
+              cx={cx}
+              onSaved={handleSaved}
+              onRemoved={handleRemoved}
+            />
+          ))}
+        </ul>
+      )}
+    </Card>
   );
 }
 
@@ -466,7 +461,7 @@ function TriggerSelect({
   options: ScriptTrigger[];
   onChange: (t: ScriptTrigger) => void;
 }) {
-  // Labels from lib/triggers.ts, shared with the event targets page.
+  // Labels from lib/triggers.ts, shared with the event targets card.
   const triggerLabel = useTriggerLabel();
   // A value the registry does not list stays an option of its own rather than
   // being swapped for the first known one, as in Schedule.tsx's ActionSelect.

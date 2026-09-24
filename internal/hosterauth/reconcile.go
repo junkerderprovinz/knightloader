@@ -62,6 +62,10 @@ type LoginState struct {
 	// TrafficLeft and TrafficMax are bytes, 0 when JD states neither.
 	TrafficLeft int64 `json:"trafficLeft,omitempty"`
 	TrafficMax  int64 `json:"trafficMax,omitempty"`
+
+	// Multihoster is set by internal/app like Host.Multihoster, so the page can
+	// list the login among the debrid accounts.
+	Multihoster bool `json:"multihoster,omitempty"`
 }
 
 // DesiredLogin is one row Store wants JD to have. The password travels only as

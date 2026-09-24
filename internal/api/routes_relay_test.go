@@ -522,18 +522,18 @@ func TestAServedRelayAdmitsOnlyTheKeyTheInstanceStores(t *testing.T) {
 
 	stranger := fixedSibling(t, srv.URL, "some-other-relay-key-entirely-0123456789", "stranger-1")
 
-	// Long enough for a connection or a retry to succeed. Both the client's
-	// view and the relay's count are checked, since either alone could be a
-	// timing artefact.
+	// Long enough for a connection or a retry to succeed. The relay's count is
+	// what shows admission: the client counts itself connected as soon as its
+	// hello is out, before the relay has read the key and closed the socket.
 	deadline := time.Now().Add(2 * time.Second)
 	for time.Now().Before(deadline) {
-		if stranger.Connected() {
-			t.Fatal("a client carrying a key this instance does not serve was admitted to its relay")
+		if _, cfg := getRelayConfig(t, srv.URL); cfg.ServeClients != 0 {
+			t.Fatalf("serveClients = %d, want the stranger never registered", cfg.ServeClients)
 		}
-		time.Sleep(20 * time.Millisecond)
+		time.Sleep(50 * time.Millisecond)
 	}
-	if _, cfg := getRelayConfig(t, srv.URL); cfg.ServeClients != 0 {
-		t.Errorf("serveClients = %d, want the stranger never registered", cfg.ServeClients)
+	if len(stranger.Siblings()) != 0 {
+		t.Error("the stranger was shown siblings through a relay that refused its key")
 	}
 }
 

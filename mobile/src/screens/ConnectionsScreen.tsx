@@ -457,12 +457,9 @@ const styles = StyleSheet.create({
   // the mark and the name swap sides with the rest of the layout, and a
   // physical margin would take back the safe zone on the wrong side.
   mark: { width: 44, height: 44, marginStart: -10, marginEnd: -6 },
-  // The wordmark, which is why it is not on the type scale: the scale sets a
-  // heading at 20 and names a brand-name instance as one of the two sizes
-  // outside it. This is the product's name beside the product's mark rather
-  // than this screen's title, and the screen titles next door are the 20 the
-  // scale asks for.
-  title: { fontSize: 22, fontWeight: '700' },
+  // The brand block's name (GlimStone 2.8.0), set beside the mark rather than
+  // under it because this top bar also holds the badges.
+  title: { fontSize: TYPE.heading, fontWeight: '700', letterSpacing: -0.5 },
   badgeRow: { flexDirection: 'row', gap: 10 },
   list: { ...capped, paddingHorizontal: 16, paddingBottom: 32, gap: 8 },
   row: {

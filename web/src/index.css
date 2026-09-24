@@ -349,11 +349,28 @@
 
 }
 
+/* The house font is Noto Sans, shipped with the app (the imports in main.tsx)
+   for Latin, Cyrillic, Greek, Vietnamese and Devanagari, with Noto's own cuts
+   for Arabic, Hebrew and Thai. The "Variable" names are the shipped files, the
+   plain ones an install on the machine. Chinese, Japanese and Korean are too
+   heavy to ship, so their Noto cut is used where the system has it, and the
+   system font where it does not; Han characters are drawn differently per
+   language, so the lang of the page picks the cut. */
+:root {
+  --font-cjk: "Noto Sans CJK SC", "Noto Sans SC";
+  --font-sans: "Noto Sans Variable", "Noto Sans", "Noto Sans Arabic Variable", "Noto Sans Arabic",
+    "Noto Sans Hebrew Variable", "Noto Sans Hebrew", "Noto Sans Thai Variable", "Noto Sans Thai",
+    var(--font-cjk), system-ui, -apple-system, sans-serif;
+}
+:lang(ja) { --font-cjk: "Noto Sans CJK JP", "Noto Sans JP"; }
+:lang(ko) { --font-cjk: "Noto Sans CJK KR", "Noto Sans KR"; }
+:lang(zh-TW), :lang(zh-Hant) { --font-cjk: "Noto Sans CJK TC", "Noto Sans TC"; }
+
 body {
   margin: 0;
   background-color: var(--carbon-bg);
   color: var(--carbon-text);
-  font-family: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   letter-spacing: -0.008em;
 }
@@ -680,15 +697,6 @@ body {
   75%  { transform: rotate(var(--motion-wiggle-deg)) translateY(0.5px); }
   100% { transform: rotate(calc(-1 * var(--motion-wiggle-deg))) translateY(0); }
 }
-/* The held tab: faded, lifted and drawn above its neighbours, as the phone's
-   DragList does. Unconditional, because a lift is a state, not motion. */
-.glim-tab-dragging {
-  opacity: .45;
-  transform: scale(1.03);
-  box-shadow: var(--elevation);
-  position: relative;
-  z-index: 1;
-}
 @media (prefers-reduced-motion: reduce) {
   /* Without the wiggle the strip still has to say it is rearrangeable. The
      data-motion="off" rule in the gate below repeats this, since a rule
@@ -698,6 +706,55 @@ body {
     outline: 2px dashed var(--accent);
     outline-offset: 2px;
   }
+}
+
+/* The drag lift (GlimStone, "Reordering by dragging"): the held item floats
+   under the pointer, the others shift aside while it passes, and on release it
+   settles into the gap they left. A script sets only each item's `translate`;
+   the separate `translate` and `scale` properties compose with the wiggle's
+   `transform` instead of replacing it.
+
+   The lift is a state rather than motion, so its shadow and the gap stay at
+   every level; reduced motion and "off" drop only the scale, and the slide
+   durations fall to zero with the motion tokens they read. */
+:root {
+  --drag-lift-scale: 1.03;
+  /* The card elevation alone barely shows under something one row tall. */
+  --drag-lift-shadow: 0 10px 22px -8px rgba(0, 0, 0, .45), var(--elevation);
+  --drag-lift-z: 1;
+  --drag-settle-dur: var(--motion-panel-dur, 0ms);
+  --drag-settle-ease: var(--motion-page-ease, ease);
+}
+@media (prefers-reduced-motion: reduce) {
+  :root { --drag-lift-scale: 1; }
+}
+:root[data-motion="off"] { --drag-lift-scale: 1; }
+
+/* Each class is doubled to outrank the shape-morph rule, whose `transition`
+   matches every element. */
+.glim-drag-lift.glim-drag-lift {
+  position: relative;
+  z-index: var(--drag-lift-z);
+  scale: var(--drag-lift-scale);
+  box-shadow: var(--drag-lift-shadow);
+  cursor: grabbing;
+  /* No `translate` here: the item tracks the pointer without lag. */
+  transition:
+    scale var(--drag-settle-dur) var(--drag-settle-ease),
+    box-shadow var(--drag-settle-dur) var(--drag-settle-ease);
+}
+/* Still above its neighbours while it lands, or it would slide under the next
+   one on the way. */
+.glim-drag-settle.glim-drag-settle {
+  position: relative;
+  z-index: var(--drag-lift-z);
+  transition:
+    translate var(--drag-settle-dur) var(--drag-settle-ease),
+    scale var(--drag-settle-dur) var(--drag-settle-ease),
+    box-shadow var(--drag-settle-dur) var(--drag-settle-ease);
+}
+.glim-drag-shift.glim-drag-shift {
+  transition: translate var(--drag-settle-dur) var(--drag-settle-ease);
 }
 
 :focus-visible {
@@ -1009,12 +1066,6 @@ body {
     animation: glim-tab-wiggle var(--motion-wiggle-dur) ease-in-out infinite;
     transform-origin: 50% 50%;
   }
-  /* The held tab stops wiggling. It has to come after the wiggle rule, since
-     both are one class. */
-  .glim-tab-dragging {
-    animation: none;
-  }
-
 
   /* The pulse at "off": a static dot, as under reduced motion. */
   :root[data-motion="off"] .glim-live {

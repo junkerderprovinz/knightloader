@@ -4,7 +4,7 @@
 //
 // The index is written by hand because it cannot be derived: pages reach the
 // catalogue through t, tx, cx and rx; a page's keys may live in other files
-// (RuleEditor.tsx, the eight Downloads files); Look.tsx draws two rail
+// (RuleEditor.tsx, a page's folder of cards); Look.tsx draws two rail
 // entries; and a key prefix does not name its page.
 //
 // Checks, at page scope:
@@ -38,6 +38,8 @@ const src = (rel) => readFileSync(join(here, rel), 'utf8');
  */
 const FILE_PAGES = [
   { file: 'src/pages/settings/Modules.tsx', pages: ['modules'], titleTags: ['Group'] },
+  { file: 'src/pages/settings/CollectorSettings.tsx', pages: ['collector'] },
+  { file: 'src/pages/settings/collector/', pages: ['collector'] },
   { file: 'src/pages/settings/DownloadsSettings.tsx', pages: ['downloads'] },
   { file: 'src/pages/settings/downloads/', pages: ['downloads'] },
   { file: 'src/pages/settings/Archives.tsx', pages: ['archives'] },
@@ -54,22 +56,27 @@ const FILE_PAGES = [
   { file: 'src/pages/settings/Rules.tsx', pages: ['rules'] },
   // Most settings.rules.* keys live here rather than in Rules.tsx.
   { file: 'src/components/RuleEditor.tsx', pages: ['rules'] },
-  { file: 'src/pages/settings/Categories.tsx', pages: ['categories'] },
-  { file: 'src/pages/settings/Connections.tsx', pages: ['connections'] },
-  { file: 'src/pages/settings/Reconnect.tsx', pages: ['reconnect'] },
+  // The categories card, drawn at the foot of the rules page.
+  { file: 'src/pages/settings/Categories.tsx', pages: ['rules'] },
+  { file: 'src/pages/settings/Network.tsx', pages: ['network'] },
+  { file: 'src/pages/settings/network/', pages: ['network'] },
+  { file: 'src/pages/settings/Connections.tsx', pages: ['network'] },
+  { file: 'src/pages/settings/Reconnect.tsx', pages: ['network'] },
   { file: 'src/pages/settings/Resolvers.tsx', pages: ['resolvers'] },
   { file: 'src/pages/settings/resolvers/', pages: ['resolvers'] },
   { file: 'src/pages/settings/Torrents.tsx', pages: ['torrents'] },
   { file: 'src/pages/settings/Captcha.tsx', pages: ['captcha'] },
-  { file: 'src/pages/settings/Schedule.tsx', pages: ['schedule'] },
+  { file: 'src/pages/settings/Automation.tsx', pages: ['automation'] },
+  { file: 'src/pages/settings/automation/', pages: ['automation'] },
+  { file: 'src/pages/settings/Schedule.tsx', pages: ['automation'] },
+  { file: 'src/pages/settings/EventTargets.tsx', pages: ['automation'] },
+  { file: 'src/pages/settings/eventtargets/', pages: ['automation'] },
+  { file: 'src/pages/settings/Scripts.tsx', pages: ['automation'] },
   { file: 'src/pages/settings/Health.tsx', pages: ['health'] },
   { file: 'src/pages/settings/health/', pages: ['health'] },
   { file: 'src/pages/settings/Diagnostics.tsx', pages: ['diagnostics'] },
   { file: 'src/pages/settings/diagnostics/', pages: ['diagnostics'] },
   { file: 'src/pages/settings/BrowserTools.tsx', pages: ['browsertools'] },
-  { file: 'src/pages/settings/Scripts.tsx', pages: ['scripts'] },
-  { file: 'src/pages/settings/EventTargets.tsx', pages: ['eventtargets'] },
-  { file: 'src/pages/settings/eventtargets/', pages: ['eventtargets'] },
   { file: 'src/pages/settings/Shortcuts.tsx', pages: ['shortcuts'] },
   { file: 'src/pages/settings/shortcuts/', pages: ['shortcuts'] },
 ];
@@ -79,14 +86,6 @@ const FILE_PAGES = [
  * reason.
  */
 const EXCLUDED = new Map([
-  // Missing from en.ts, so it resolves to undefined (lib/i18n.tsx has no final
-  // fallback). An entry with `waitingOn` fails once that key reaches en.ts,
-  // so the exclusion cannot outlive its reason.
-  [
-    'settings.schedule.statusTitle',
-    { waitingOn: 'settings.schedule.statusTitle', reason: 'NOT IN en.ts, so it resolves to undefined. Drawn as the Schedule status banner title' },
-  ],
-
   // Not a row, and not a card either.
   [
     'common.loading',
@@ -95,15 +94,15 @@ const EXCLUDED = new Map([
   ['settings.rules.testRunning', "the same, for the Rules page's dry run"],
   [
     'settings.modules.off',
-    'the badge on the feeds card that reads, in full, "Off". As a search result it would be the word Off pointing at a card - findable is not the same as useful',
+    'the badge on the feeds card that reads, in full, "Off". As a search result it would be the word Off pointing at a card; findable is not the same as useful',
   ],
   [
     'settings.system.shuttingDownTitle',
-    'the card that REPLACES the lifecycle card while the server is restarting. A result for it would lead somewhere that only exists during a shutdown',
+    'the card that replaces the lifecycle card while the server is restarting. A result for it would lead somewhere that only exists during a shutdown',
   ],
   [
     'auth.twoFactor.qrLabel',
-    'the accessible name of the QR code image inside the second factor enrolment. It reaches the catalogue through QRCode\'s `label` prop, which is an alt text rather than a caption - the card it belongs to is indexed by its own title, and it only exists while somebody is halfway through an enrolment',
+    'the accessible name of the QR code image inside the second factor enrolment. It reaches the catalogue through QRCode\'s `label` prop, which is an alt text rather than a caption; the card it belongs to is indexed by its own title, and it only exists while somebody is halfway through an enrolment',
   ],
 
   // A second search box, over a different question.

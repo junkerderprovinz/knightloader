@@ -183,8 +183,8 @@ func TestIdleActionRunIsRefusedUnlessTheActionIsTheCommandOne(t *testing.T) {
 // does not travel in GET /api/settings, which is what keeps it out of the
 // diagnostics bundle built from the same Settings.Redacted(), and a form shown
 // the placeholder must not delete the stored command by posting it back.
-// Without the merge in Store.setLocked, any save on the Downloads page empties
-// it.
+// Without the merge in Store.setLocked, any save on the Automation page
+// empties it.
 func TestTheStoredCommandIsNeverServedBackAndASaveDoesNotWipeIt(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()

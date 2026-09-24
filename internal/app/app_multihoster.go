@@ -7,9 +7,9 @@ import "strings"
 // expose the distinction: accounts/getAccountInfo returns a null infoMap and
 // listPremiumHoster is one flat list.
 //
-// These services are marked, not hidden. KnightLoader has no backend of its own
-// for them, so JD is the only way to use them. The ones KnightLoader drives
-// itself are removed by debridServiceDomains (app_hosterauth.go) instead.
+// These services are marked, not hidden, since for most of them JD is the only
+// way in. The ones KnightLoader drives itself are taken out by
+// debridServiceDomains (app_hosterauth.go) before the marking is read.
 //
 // Entries are bare lower-case hostnames as JD names them, without www. A name
 // that disappears from JD costs nothing; a new one is unmarked until added.
@@ -33,6 +33,15 @@ var multihosterDomains = map[string]bool{
 	"put.io":            true,
 	"simply-debrid.com": true,
 	"zevera.com":        true,
+}
+
+// closedMultihosters are multihosters JD still lists that are out of service:
+// the debridplanet.com domain is parked and simply-debrid.com has its API
+// switched off. The picker leaves them out, since an account there cannot
+// fetch anything.
+var closedMultihosters = map[string]bool{
+	"debridplanet.com":  true,
+	"simply-debrid.com": true,
 }
 
 // IsMultihoster reports whether a host is a service that unlocks other hosts.

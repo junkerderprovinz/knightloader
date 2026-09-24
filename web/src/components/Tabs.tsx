@@ -5,6 +5,7 @@
 // select, as in Swing.
 import {
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   type HTMLAttributes,
@@ -14,6 +15,7 @@ import {
   type ReactNode,
   type RefObject,
 } from 'react';
+import { flushSync } from 'react-dom';
 import { useRainbow } from '../lib/useRainbow';
 import type { NavLabelMode } from '../lib/navLabels';
 import { hueStyle, segBase, segOff, segOn, useTooltip } from './ui';
@@ -58,9 +60,9 @@ interface Common {
   className?: string;
   /**
    * Long-press reordering: a hold of about 300ms with under 8px of movement
-   * makes the tabs wiggle, and the held tab can then be dragged, as in
-   * CannonadeCommand's nav rail. Needs `onReorder` too, and never changes
-   * `active`.
+   * makes the tabs wiggle and lifts the held tab, which then follows the
+   * pointer, as in CannonadeCommand's nav rail. Needs `onReorder` too, and
+   * never changes `active`.
    */
   reorderable?: boolean;
   /** Called with the full, reordered list of ids after a drop. */
@@ -136,6 +138,46 @@ function emWidth(units: number): string {
   return `${(units * 0.62).toFixed(2)}em`;
 }
 
+interface Point {
+  x: number;
+  y: number;
+}
+
+/** A tab's box in the strip's layout, which no transform moves. */
+interface Box extends Point {
+  w: number;
+  h: number;
+}
+
+/** The tab a long press lifted, measured when the hold armed. */
+interface Held {
+  id: string;
+  /** Where the pointer went down, in client pixels. */
+  down: Point;
+  from: Box;
+  /**
+   * The range its corner may take: the area all tabs cover, inset by what the
+   * lift's scale adds, so it cannot overflow a strip that scrolls and clips.
+   */
+  min: Point;
+  max: Point;
+  /** Whether it follows the pointer on both axes, which only a wrapped strip needs. */
+  free: boolean;
+  rtl: boolean;
+}
+
+function boxOf(node: HTMLElement): Box {
+  return { x: node.offsetLeft, y: node.offsetTop, w: node.offsetWidth, h: node.offsetHeight };
+}
+
+function clamp(v: number, lo: number, hi: number): number {
+  return Math.min(Math.max(v, lo), hi);
+}
+
+function sameOrder(a: readonly string[], b: readonly string[]): boolean {
+  return a.length === b.length && a.every((id, at) => id === b[at]);
+}
+
 /** Tabs renders a tab strip or chip row; see the props above for its modes. */
 export function Tabs(props: TabsProps) {
   const {
@@ -179,17 +221,25 @@ export function Tabs(props: TabsProps) {
     return Array.from(strip.current?.querySelectorAll<HTMLElement>('[data-tab-id]') ?? []);
   }
 
-  // Long-press reordering with pointer events, a hold timer and manual swaps,
-  // ported from CannonadeCommand's nav rail. liveOrder is the order shown during
-  // a drag and null otherwise; the rest are refs so they do not re-render.
-  const [reordering, setReordering] = useState(false);
+  function tabNode(id: string): HTMLElement | undefined {
+    return tabNodes().find((node) => node.getAttribute('data-tab-id') === id);
+  }
+
+  // Long-press reordering with pointer events and a hold timer, ported from
+  // CannonadeCommand's nav rail. liveOrder is the order laid out while a tab is
+  // held or settling, and null otherwise. Positions go straight to each tab's
+  // `translate` rather than through state, so the held tab keeps up with the
+  // pointer; how a lifted or sliding tab looks is in index.css.
   const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [settlingId, setSettlingId] = useState<string | null>(null);
   const [liveOrder, setLiveOrder] = useState<string[] | null>(null);
   const holdTimer = useRef<number | null>(null);
-  const pressStart = useRef<{ x: number; y: number } | null>(null);
-  const pressId = useRef<string | null>(null);
+  const pressStart = useRef<Point | null>(null);
   const pressPointerId = useRef<number | null>(null);
-  const moved = useRef(false);
+  const pointer = useRef<Point>({ x: 0, y: 0 });
+  const held = useRef<Held | null>(null);
+  // Where each tab was painted before liveOrder moved it, for the slide.
+  const slideFrom = useRef<Map<string, Point> | null>(null);
   const suppressClick = useRef(false);
 
   const orderedItems = liveOrder ? liveOrder.map((id) => items.find((i) => i.id === id)).filter((i): i is TabDef => !!i) : items;
@@ -207,10 +257,6 @@ export function Tabs(props: TabsProps) {
 
   // Ref mirrors for the document listeners below, which bind once and must
   // read current values.
-  const draggingIdRef = useRef<string | null>(null);
-  draggingIdRef.current = draggingId;
-  const reorderingRef = useRef(false);
-  reorderingRef.current = reordering;
   const liveOrderRef = useRef<string[] | null>(null);
   liveOrderRef.current = liveOrder;
   const idsRef = useRef<string[]>([]);
@@ -222,110 +268,258 @@ export function Tabs(props: TabsProps) {
       holdTimer.current = null;
     }
     pressStart.current = null;
-    pressId.current = null;
-  }
-
-  function exitReorder() {
-    setReordering(false);
-    setDraggingId(null);
     pressPointerId.current = null;
-    moved.current = false;
   }
 
   function onTabPointerDown(e: PointerEvent<HTMLElement>, id: string) {
-    if (!reorderable || e.button !== 0) return;
+    // A second finger during a drag does not start another.
+    if (!reorderable || e.button !== 0 || held.current) return;
     cancelHold();
-    pressStart.current = { x: e.clientX, y: e.clientY };
-    pressId.current = id;
+    const down = { x: e.clientX, y: e.clientY };
+    pressStart.current = down;
+    pointer.current = down;
     pressPointerId.current = e.pointerId;
-    moved.current = false;
+    suppressClick.current = false;
     // No setPointerCapture: in Chromium, moving past a captured button's bounds
     // fired a spurious pointercancel, and the document listeners track the
     // gesture anyway.
     holdTimer.current = window.setTimeout(() => {
       holdTimer.current = null;
-      setReordering(true);
-      setDraggingId(id);
-      setLiveOrder(items.map((i) => i.id));
+      lift(id, down);
     }, 300);
   }
+
+  function lift(id: string, down: Point) {
+    const node = tabNode(id);
+    const el = strip.current;
+    if (!node || !el) return;
+    const boxes = tabNodes().map(boxOf);
+    const from = boxOf(node);
+    const grow = ((parseFloat(getComputedStyle(el).getPropertyValue('--drag-lift-scale')) || 1) - 1) / 2;
+    const left = Math.min(...boxes.map((b) => b.x));
+    const top = Math.min(...boxes.map((b) => b.y));
+    const right = Math.max(...boxes.map((b) => b.x + b.w));
+    const bottom = Math.max(...boxes.map((b) => b.y + b.h));
+    held.current = {
+      id,
+      down,
+      from,
+      min: { x: left + from.w * grow, y: top + from.h * grow },
+      max: { x: right - from.w * (1 + grow), y: bottom - from.h * (1 + grow) },
+      free: !vertical && boxes.some((b) => b.y >= from.y + from.h || b.y + b.h <= from.y),
+      rtl: getComputedStyle(el).direction === 'rtl',
+    };
+    setSettlingId(null);
+    setDraggingId(id);
+    setLiveOrder(idsRef.current);
+  }
+
+  /**
+   * Where the held tab's corner goes for the current pointer, in the strip's
+   * layout. Only the drawn tab is kept inside the strip: aimed from there, the
+   * lift's inset would leave the first and last slots out of reach.
+   */
+  function heldAt(h: Held, drawn: boolean): Point {
+    const x = h.from.x + pointer.current.x - h.down.x;
+    const y = h.from.y + pointer.current.y - h.down.y;
+    const keep = (v: number, lo: number, hi: number) => (drawn ? clamp(v, lo, hi) : v);
+    return {
+      x: vertical ? h.from.x : keep(x, h.min.x, h.max.x),
+      y: vertical || h.free ? keep(y, h.min.y, h.max.y) : h.from.y,
+    };
+  }
+
+  function placeHeld(h: Held) {
+    const node = tabNode(h.id);
+    if (!node) return;
+    const at = heldAt(h, true);
+    node.style.translate = `${at.x - node.offsetLeft}px ${at.y - node.offsetTop}px`;
+  }
+
+  /**
+   * aim returns the order the held tab's position asks for. A tab counts as
+   * before it once the held tab's centre passes the tab's centre; the passed
+   * tab then moves away by the held tab's own size, so two tabs of different
+   * sizes cannot trade places back and forth.
+   */
+  function aim(h: Held): string[] {
+    const at = heldAt(h, false);
+    const cx = at.x + h.from.w / 2;
+    const cy = at.y + h.from.h / 2;
+    const rest: string[] = [];
+    let ahead = 0;
+    for (const node of tabNodes()) {
+      const id = node.getAttribute('data-tab-id');
+      if (!id || id === h.id) continue;
+      const b = boxOf(node);
+      const mid = b.x + b.w / 2;
+      // A wrapped strip reads by line first, then along the line.
+      const before = vertical
+        ? b.y + b.h / 2 < cy
+        : cy > b.y + b.h || (cy >= b.y && (h.rtl ? mid > cx : mid < cx));
+      if (before) ahead++;
+      rest.push(id);
+    }
+    rest.splice(ahead, 0, h.id);
+    return rest;
+  }
+
+  /** Where each tab is painted, a slide in flight included. */
+  function painted(): Map<string, Point> {
+    const out = new Map<string, Point>();
+    for (const node of tabNodes()) {
+      const id = node.getAttribute('data-tab-id');
+      const t = getComputedStyle(node).translate;
+      const [tx = 0, ty = 0] = t === 'none' ? [] : t.split(' ').map(parseFloat);
+      if (id) out.set(id, { x: node.offsetLeft + tx, y: node.offsetTop + ty });
+    }
+    return out;
+  }
+
+  function release(h: Held) {
+    held.current = null;
+    // A click that follows the release would select the held tab.
+    suppressClick.current = true;
+    setDraggingId(null);
+    setSettlingId(h.id);
+  }
+
+  // After every render, since a new liveOrder moves the tabs in the DOM: the
+  // held tab is placed under the pointer again, and every tab the order moved
+  // starts from where it was painted and slides to its new slot.
+  useLayoutEffect(() => {
+    const h = held.current;
+    // First, so the forced layout below commits this offset with the others.
+    if (h) placeHeld(h);
+    const from = slideFrom.current;
+    if (!from) return;
+    slideFrom.current = null;
+    const moved: HTMLElement[] = [];
+    for (const node of tabNodes()) {
+      const id = node.getAttribute('data-tab-id');
+      const was = id ? from.get(id) : undefined;
+      if (!was || id === h?.id) continue;
+      const dx = was.x - node.offsetLeft;
+      const dy = was.y - node.offsetTop;
+      if (dx === 0 && dy === 0) continue;
+      node.style.transition = 'none';
+      node.style.translate = `${dx}px ${dy}px`;
+      moved.push(node);
+    }
+    if (moved.length === 0) return;
+    // Reading layout commits the jump back, so the transition starts from there.
+    void strip.current?.offsetWidth;
+    for (const node of moved) {
+      node.style.transition = '';
+      node.style.translate = '0px 0px';
+    }
+  });
+
+  // The dropped tab slides into its slot, and once the settle has played the
+  // offsets and liveOrder go, leaving the order to `items`.
+  useLayoutEffect(() => {
+    if (!settlingId) return;
+    const node = tabNode(settlingId);
+    let ms = 0;
+    if (node) {
+      node.style.translate = '0px 0px';
+      ms = Math.max(...getComputedStyle(node).transitionDuration.split(',').map(parseFloat)) * 1000;
+    }
+    const timer = window.setTimeout(() => {
+      for (const n of tabNodes()) n.style.translate = '';
+      setSettlingId(null);
+      setLiveOrder(null);
+    }, ms);
+    return () => window.clearTimeout(timer);
+    // tabNode and tabNodes read the strip's DOM, not render state.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settlingId]);
 
   // On the document, so a pointer that leaves the pressed tab is still tracked.
   useEffect(() => {
     if (!reorderable) return;
+    const el = strip.current;
 
     function onMove(e: globalThis.PointerEvent) {
-      if (pressStart.current && !draggingIdRef.current) {
+      if (e.pointerId !== pressPointerId.current) return;
+      pointer.current = { x: e.clientX, y: e.clientY };
+      const h = held.current;
+      if (!h) {
         // Moving more than 8px before the hold arms makes it a click or scroll.
-        if (Math.abs(e.clientX - pressStart.current.x) > 8 || Math.abs(e.clientY - pressStart.current.y) > 8) {
-          cancelHold();
-        }
+        const start = pressStart.current;
+        if (start && (Math.abs(e.clientX - start.x) > 8 || Math.abs(e.clientY - start.y) > 8)) cancelHold();
         return;
       }
-      const dragging = draggingIdRef.current;
-      if (!dragging) return;
-      moved.current = true;
-      const nodes = tabNodes();
-      for (const node of nodes) {
-        const id = node.getAttribute('data-tab-id');
-        if (!id || id === dragging) continue;
-        const r = node.getBoundingClientRect();
-        // Exact along the strip, 20px of slack across it.
-        const along = vertical
-          ? e.clientY >= r.top && e.clientY <= r.bottom
-          : e.clientX >= r.left && e.clientX <= r.right;
-        const across = vertical
-          ? e.clientX >= r.left - 20 && e.clientX <= r.right + 20
-          : e.clientY >= r.top - 20 && e.clientY <= r.bottom + 20;
-        if (!along || !across) continue;
-        setLiveOrder((prev) => {
-          if (!prev) return prev;
-          const from = prev.indexOf(dragging);
-          const to = prev.indexOf(id);
-          if (from < 0 || to < 0 || from === to) return prev;
-          const next = [...prev];
-          next.splice(from, 1);
-          next.splice(to, 0, dragging);
-          return next;
-        });
-        break;
+      placeHeld(h);
+      const next = aim(h);
+      const shown = liveOrderRef.current;
+      if (shown && !sameOrder(next, shown)) {
+        slideFrom.current = painted();
+        setLiveOrder(next);
       }
     }
 
-    function onUp() {
-      const wasReordering = reorderingRef.current;
-      const finalOrder = liveOrderRef.current;
-      const didMove = moved.current;
+    function onUp(e: globalThis.PointerEvent) {
+      if (e.pointerId !== pressPointerId.current) return;
       cancelHold();
-      // Only a moved drag that changed the order writes; liveOrder starts as
-      // the existing order, and each write costs a settings PUT.
-      const changed =
-        !!finalOrder &&
-        (finalOrder.length !== idsRef.current.length || finalOrder.some((id, at) => id !== idsRef.current[at]));
-      if (wasReordering && didMove && changed && finalOrder && onReorder) onReorder(finalOrder);
-      if (wasReordering && !didMove) {
-        // A hold released in place must not also select the tab.
-        suppressClick.current = true;
+      const h = held.current;
+      if (!h) return;
+      // A drop where it started writes nothing; each write costs a settings PUT.
+      const order = liveOrderRef.current;
+      if (order && onReorder && !sameOrder(order, idsRef.current)) onReorder(order);
+      release(h);
+    }
+
+    // Escape, or the system taking the touch: everything slides back and
+    // nothing is written, as the phone's DragList does on a terminated pan.
+    function putBack(h: Held) {
+      cancelHold();
+      const order = liveOrderRef.current;
+      if (order && !sameOrder(order, idsRef.current)) {
+        // The others go home while the tab is still lifted, so it settles from
+        // under the pointer rather than jumping to its old slot first.
+        slideFrom.current = painted();
+        flushSync(() => setLiveOrder(idsRef.current));
       }
-      if (wasReordering) exitReorder();
+      release(h);
+    }
+
+    function onCancel(e: globalThis.PointerEvent) {
+      if (e.pointerId !== pressPointerId.current) return;
+      const h = held.current;
+      if (h) putBack(h);
+      else cancelHold();
     }
 
     function onEscape(e: globalThis.KeyboardEvent) {
-      if (e.key === 'Escape' && reorderingRef.current) {
-        cancelHold();
-        exitReorder();
-      }
+      const h = held.current;
+      if (e.key === 'Escape' && h) putBack(h);
+    }
+
+    // Once the hold has armed the gesture is the drag's: the long press does not
+    // open the link menu, and a moving finger drags instead of scrolling the
+    // strip. Bound natively, since React's touchmove listener is passive and
+    // cannot cancel.
+    function onMenu(e: Event) {
+      if (held.current) e.preventDefault();
+    }
+    function onTouchMove(e: TouchEvent) {
+      if (held.current) e.preventDefault();
     }
 
     document.addEventListener('pointermove', onMove);
     document.addEventListener('pointerup', onUp);
-    document.addEventListener('pointercancel', onUp);
+    document.addEventListener('pointercancel', onCancel);
     document.addEventListener('keydown', onEscape);
+    el?.addEventListener('contextmenu', onMenu);
+    el?.addEventListener('touchmove', onTouchMove, { passive: false });
     return () => {
       document.removeEventListener('pointermove', onMove);
       document.removeEventListener('pointerup', onUp);
-      document.removeEventListener('pointercancel', onUp);
+      document.removeEventListener('pointercancel', onCancel);
       document.removeEventListener('keydown', onEscape);
+      el?.removeEventListener('contextmenu', onMenu);
+      el?.removeEventListener('touchmove', onTouchMove);
     };
     // The listeners read refs, so only these values need a re-bind.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -375,8 +569,14 @@ export function Tabs(props: TabsProps) {
   }
 
   function onClick(e: MouseEvent<HTMLElement>, item: TabDef) {
-    if (suppressClick.current) {
-      suppressClick.current = false;
+    // No click follows a release that ends off the tab or after the reorder
+    // moved the tab's node, so the flag can outlive its gesture. That is why
+    // only a pointer's click is swallowed (a key or a screen reader activates
+    // with a detail of 0), and why no timer clears it: one would race a touch
+    // tap's later click.
+    const endsDrag = suppressClick.current && e.detail > 0;
+    suppressClick.current = false;
+    if (endsDrag) {
       e.preventDefault();
       e.stopPropagation();
       return;
@@ -397,18 +597,35 @@ export function Tabs(props: TabsProps) {
       // Horizontal strips, the well included, wrap rather than scroll, so they
       // never push the page sideways. The vertical rail scrolls; min-h-0 lets
       // it shrink below its content inside a flex parent.
+      //
+      // A reorderable strip is the tabs' offsetParent, the layout a drag
+      // measures in. A reorderable rail also gets 4px of room inside its
+      // clipping edge for the lift's scale and the reduced-motion outline,
+      // which the negative margin takes back so the tiles stay put.
       className={
         vertical
-          ? `flex min-h-0 flex-col gap-1 overflow-y-auto ${fill ? 'h-full' : ''} ${className}`
+          ? `flex min-h-0 flex-col gap-1 overflow-y-auto ${fill ? 'h-full' : ''} ${
+              reorderable ? 'relative -mx-1 px-1' : ''
+            } ${className}`
           : isWell
             ? `flex flex-wrap items-center gap-[0.2rem] rounded-[var(--radius-control)] bg-carbon-surface2 p-[0.2rem] ${className}`
-            : `flex flex-wrap items-center gap-1 ${className}`
+            : `flex flex-wrap items-center gap-1 ${reorderable ? 'relative' : ''} ${className}`
       }
     >
       {orderedItems.map((item, i) => {
         const on = isOn(item.id);
-        const wiggling = reordering && item.id !== draggingId;
-        const dragged = item.id === draggingId;
+        const wiggling = draggingId !== null && item.id !== draggingId;
+        const drag =
+          item.id === draggingId
+            ? 'glim-drag-lift'
+            : item.id === settlingId
+              ? 'glim-drag-settle'
+              : draggingId !== null || settlingId !== null
+                ? 'glim-drag-shift'
+                : '';
+        // A long press would otherwise select the label, and on iOS open the
+        // link callout, which only CSS can turn off.
+        const grip = reorderable ? 'select-none [-webkit-touch-callout:none]' : '';
         // A vertical tile is a row in both and text modes, and a centred glyph
         // (over a collapsed label in hover mode) in glyph and hover modes.
         const stacked = vertical && (display === 'glyph' || labelOnHover);
@@ -427,7 +644,7 @@ export function Tabs(props: TabsProps) {
               ${stacked ? `flex-col items-center justify-center gap-0.5 px-2 ${captioned ? 'py-1' : 'py-1.5'}` : 'flex-row items-center gap-3 px-3 py-2.5'}
               ${fill ? `${captioned ? 'min-h-12' : 'min-h-10'} flex-1 shrink-0 basis-0` : ''}
               ${!on && item.dim ? 'opacity-60' : ''}
-              ${wiggling ? 'glim-tab-wiggle' : ''} ${dragged ? 'glim-tab-dragging' : ''}`
+              ${wiggling ? 'glim-tab-wiggle' : ''} ${drag} ${grip}`
           : isWell
           ? // wellWidth sets the width; min-w-0 and shrink-0 stop the flex
             // minimum content size from overriding it.
@@ -437,7 +654,7 @@ export function Tabs(props: TabsProps) {
           : `${segBase} glim-nav-row glim-hue glim-hue-icon ${on ? `glim-active ${segOn}` : segOff} ${
               SIZE[size]
             } flex min-w-0 max-w-full items-center ${!on && item.dim ? 'opacity-60' : ''}
-              ${wiggling ? 'glim-tab-wiggle' : ''} ${dragged ? 'glim-tab-dragging' : ''}`;
+              ${wiggling ? 'glim-tab-wiggle' : ''} ${drag} ${grip}`;
 
         // In hover mode the label grows from zero height inside a centred
         // tile, pushing the glyph up without the tile changing size. Focus

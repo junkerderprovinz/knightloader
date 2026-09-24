@@ -3,9 +3,8 @@ package api
 // A page of its own for widget captchas (captcha.KindWidget): reCAPTCHA or
 // hCaptcha challenges that have to run the vendor's script in a browser. Image
 // and click challenges carry a data: URL and need nothing from here. The page
-// is the only response in the app with a Content-Security-Policy, so the SPA
-// does not need a permanent policy wide enough for a challenge that may never
-// occur.
+// carries its own Content-Security-Policy, so the SPA does not need a
+// permanent policy wide enough for a challenge that may never occur.
 //
 // WidgetPayload does not say which vendor a challenge is: JDSource maps both
 // JD challenge classes onto KindWidget and drops the class name. Enterprise, a

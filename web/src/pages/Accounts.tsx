@@ -1,7 +1,8 @@
 // The accounts page: one row per configured service and account, as read from
 // internal/accounts/catalogue.go and internal/app/app_accounts.go. Debrid
-// accounts come first and hoster logins below; the section follows the
-// catalogue's Group field, and both use the same AccountsTable.
+// accounts and the multihosters reached through JD come first, hoster logins
+// below; the section follows the catalogue's Group field, and both cards draw
+// an AccountTable.
 import {
   useCallback,
   useEffect,
@@ -14,6 +15,9 @@ import {
   type Account,
   type AccountCredential,
   type CatalogueService,
+  type CredentialField,
+  type HosterHost,
+  type HosterLogin,
   type JDStatus,
   type ResolverInfo,
   type VerifyResult,
@@ -46,8 +50,14 @@ import {
   TextInput,
   Toggle,
 } from '../components/ui';
-import { AccountTable } from '../components/AccountTable';
-import { HosterLoginSection } from '../components/HosterLoginSection';
+import { AccountTable, type AccountRow } from '../components/AccountTable';
+import {
+  ConfirmRemoveLogin,
+  HosterLoginDialog,
+  HosterLoginSection,
+  hosterLoginRow,
+  useHosterLogins,
+} from '../components/HosterLoginSection';
 import {
   IconAccounts,
   IconClose,
@@ -63,6 +73,14 @@ import { HosterIcon } from '../components/HosterIcon';
 // traffic change in hours.
 const HEALTH_POLL_MS = 30000;
 
+/** The form's caption for each named credential field. */
+const FIELD_LABELS: Record<CredentialField, TranslationKey> = {
+  apiUser: 'accounts.field.apiUser',
+  apiKey: 'accounts.field.apiKey',
+  customerId: 'accounts.field.customerId',
+  email: 'accounts.field.email',
+};
+
 type DialogState = { mode: 'new' } | { mode: 'edit'; service: string; account: string };
 
 export function Accounts() {
@@ -76,6 +94,11 @@ export function Accounts() {
   const [confirming, setConfirming] = useState<Account | null>(null);
   const [refreshing, setRefreshing] = useState<ReadonlySet<string>>(new Set());
   const [loginHosts, setLoginHosts] = useState('');
+  const hoster = useHosterLogins(setLoginHosts);
+  // A multihoster KnightLoader reaches only through JD: its login dialog, and
+  // the login awaiting removal.
+  const [jdDialog, setJdDialog] = useState<{ host?: HosterHost; editing?: HosterLogin } | null>(null);
+  const [jdConfirming, setJdConfirming] = useState<HosterLogin | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -150,6 +173,19 @@ export function Accounts() {
   // catalogue, since any host JDownloader knows can have one.
   const debridIds = new Set(catalogue.filter((s) => s.group === 'debrid').map((s) => s.id));
   const debridRows = accounts.filter((a) => debridIds.has(a.service));
+  const jdLogins = (hoster.logins ?? []).filter((l) => l.multihoster);
+  const jdServices = hoster.hosts.filter((h) => h.multihoster && !jdLogins.some((l) => l.host === h.id));
+  const jdRows = jdLogins.map((row) =>
+    hosterLoginRow(
+      row,
+      {
+        onToggle: (v) => void hoster.toggle(row, v),
+        onEdit: () => setJdDialog({ editing: row }),
+        onRemove: () => setJdConfirming(row),
+      },
+      t('accounts.debrid.viaJD'),
+    ),
+  );
 
   const labelOf = (a: Account) => byId.get(a.service)?.label ?? a.service;
 
@@ -170,9 +206,9 @@ export function Accounts() {
         <SectionTitle hint={t('accounts.debrid.hint')}>
           {t('accounts.debrid.title')}
         </SectionTitle>
-        {debridRows.length > 0 ? (
+        {debridRows.length + jdRows.length > 0 ? (
           <>
-            <AccountsTable rows={debridRows} {...tableProps} />
+            <AccountsTable rows={debridRows} extra={jdRows} {...tableProps} />
             <Button
               kind="secondary"
               hue={0}
@@ -202,7 +238,7 @@ export function Accounts() {
         <SectionTitle hint={t('accounts.hoster.hint')}>
           {t('accounts.hoster.title')}
         </SectionTitle>
-        <HosterLoginSection onEnabledHosts={setLoginHosts} />
+        <HosterLoginSection data={hoster} />
       </Card>
 
       {/* The signature, so RoutingSection looks again only when the set of
@@ -218,8 +254,35 @@ export function Accounts() {
           initial={dialog.mode === 'edit' ? { service: dialog.service, account: dialog.account } : undefined}
           catalogue={catalogue}
           accounts={accounts}
+          jdServices={jdServices}
+          onPickJD={(host) => {
+            setDialog(null);
+            setJdDialog({ host });
+          }}
           onClose={() => setDialog(null)}
           onSaved={load}
+        />
+      )}
+
+      {jdDialog && (
+        <HosterLoginDialog
+          hosts={jdServices}
+          existing={hoster.logins ?? []}
+          editing={jdDialog.editing}
+          initial={jdDialog.host}
+          onClose={() => setJdDialog(null)}
+          onSaved={hoster.load}
+        />
+      )}
+
+      {jdConfirming && (
+        <ConfirmRemoveLogin
+          login={jdConfirming}
+          onCancel={() => setJdConfirming(null)}
+          onConfirm={() => {
+            setJdConfirming(null);
+            void hoster.remove(jdConfirming.host);
+          }}
         />
       )}
 
@@ -266,52 +329,64 @@ interface TableActions {
   onEdit: (a: Account) => void;
 }
 
-function AccountsTable({ rows, catalogue, refreshing, onRefresh, onToggle, onRemove, onEdit }: TableActions & { rows: Account[] }) {
+function AccountsTable({
+  rows,
+  extra,
+  catalogue,
+  refreshing,
+  onRefresh,
+  onToggle,
+  onRemove,
+  onEdit,
+}: TableActions & { rows: Account[]; extra: AccountRow[] }) {
   const { t } = useT();
   return (
     <AccountTable
       label={t('accounts.debrid.title')}
-      rows={rows.map((a) => {
-        const svc = catalogue.get(a.service);
-        return {
-          key: a.id,
-          // The service's icon, from the host of its "where do I get a key" link.
-          iconHost: svc?.whereUrl ?? '',
-          label: svc?.label ?? a.service,
-          enabled: a.enabled,
-          status: <AccountStatus account={a} busy={refreshing.has(a.id)} />,
-          tier: a.tier,
-          expiry: a.expiry,
-          traffic: a.traffic,
-          onToggle: (v) => onToggle(a, v),
-          onEdit: () => onEdit(a),
-          // A credential from the container's environment cannot be removed here.
-          onRemove: a.fromEnv ? undefined : () => onRemove(a),
-          menu: [
-            {
-              id: 'actions',
-              items: [
-                {
-                  id: 'refresh',
-                  label: t('accounts.refresh'),
-                  icon: <IconRetry width={16} height={16} />,
-                  onSelect: () => onRefresh(a),
-                },
-                {
-                  id: 'renew',
-                  label: a.expiry ? t('accounts.renew') : t('accounts.buyPremium'),
-                  icon: <IconExternalLink width={16} height={16} />,
-                  // Only with an expiry and somewhere to renew.
-                  disabled: !a.expiry || !svc?.whereUrl,
-                  onSelect: () => {
-                    if (svc?.whereUrl) window.open(svc.whereUrl, '_blank', 'noopener,noreferrer');
+      rows={[
+        ...rows.map((a): AccountRow => {
+          const svc = catalogue.get(a.service);
+          return {
+            key: a.id,
+            // The service's icon, from the host of its "where do I get a key" link.
+            iconHost: svc?.whereUrl ?? '',
+            label: svc?.label ?? a.service,
+            enabled: a.enabled,
+            status: <AccountStatus account={a} busy={refreshing.has(a.id)} />,
+            tier: a.tier,
+            expiry: a.expiry,
+            traffic: a.traffic,
+            onToggle: (v) => onToggle(a, v),
+            onEdit: () => onEdit(a),
+            // A credential from the container's environment cannot be removed here.
+            onRemove: a.fromEnv ? undefined : () => onRemove(a),
+            menu: [
+              {
+                id: 'actions',
+                items: [
+                  {
+                    id: 'refresh',
+                    label: t('accounts.refresh'),
+                    icon: <IconRetry width={16} height={16} />,
+                    onSelect: () => onRefresh(a),
                   },
-                },
-              ],
-            },
-          ],
-        };
-      })}
+                  {
+                    id: 'renew',
+                    label: a.expiry ? t('accounts.renew') : t('accounts.buyPremium'),
+                    icon: <IconExternalLink width={16} height={16} />,
+                    // Only with an expiry and somewhere to renew.
+                    disabled: !a.expiry || !svc?.whereUrl,
+                    onSelect: () => {
+                      if (svc?.whereUrl) window.open(svc.whereUrl, '_blank', 'noopener,noreferrer');
+                    },
+                  },
+                ],
+              },
+            ],
+          };
+        }),
+        ...extra,
+      ]}
     />
   );
 }
@@ -362,6 +437,8 @@ function CredentialDialog({
   initial,
   catalogue,
   accounts,
+  jdServices,
+  onPickJD,
   onClose,
   onSaved,
 }: {
@@ -369,6 +446,9 @@ function CredentialDialog({
   initial?: { service: string; account: string };
   catalogue: CatalogueService[];
   accounts: Account[];
+  /** Multihosters reached through JD, offered beside the services KnightLoader speaks to itself. */
+  jdServices: HosterHost[];
+  onPickJD: (host: HosterHost) => void;
   onClose: () => void;
   onSaved: () => Promise<void>;
 }) {
@@ -471,6 +551,8 @@ function CredentialDialog({
       {!picked ? (
         <ServicePicker
           services={debridServices}
+          jdServices={jdServices}
+          onPickJD={onPickJD}
           hasDefault={hasDefault}
           onPick={(s) => {
             setPicked(s);
@@ -517,10 +599,10 @@ function CredentialDialog({
                 </Field>
               ) : (
                 <>
-                  <Field label={t('accounts.usernameField')}>
+                  <Field label={t(picked.userLabel ? FIELD_LABELS[picked.userLabel] : 'accounts.usernameField')}>
                     <TextInput autoComplete="off" value={username} onChange={(e) => setUsername(e.target.value)} />
                   </Field>
-                  <Field label={t('accounts.passwordField')}>
+                  <Field label={t(picked.passLabel ? FIELD_LABELS[picked.passLabel] : 'accounts.passwordField')}>
                     <PasswordInput
                       autoComplete="new-password"
                       value={password}
@@ -560,32 +642,57 @@ function CredentialDialog({
 
 function ServicePicker({
   services,
+  jdServices,
   hasDefault,
   onPick,
+  onPickJD,
 }: {
   services: CatalogueService[];
+  jdServices: HosterHost[];
   hasDefault: (id: string) => boolean;
   onPick: (s: CatalogueService) => void;
+  onPickJD: (host: HosterHost) => void;
 }) {
   const { t } = useT();
+  // One alphabetical list: which way a service is reached is a detail of the
+  // row, not a reason to look for it in a second place.
+  const entries = [
+    ...services.map((s) => ({
+      key: s.id,
+      label: s.label,
+      iconHost: s.whereUrl,
+      pick: () => onPick(s),
+      jd: false,
+      connected: hasDefault(s.id),
+    })),
+    ...jdServices.map((h) => ({
+      key: h.id,
+      label: h.label,
+      iconHost: h.id,
+      pick: () => onPickJD(h),
+      jd: true,
+      connected: false,
+    })),
+  ].sort((x, y) => x.label.localeCompare(y.label));
   return (
     <div className="flex flex-col gap-3">
       <div className="flex max-h-72 flex-col gap-1 overflow-y-auto">
-        {services.map((s) => (
+        {entries.map((e) => (
           <button
-            key={s.id}
+            key={e.key}
             type="button"
-            onClick={() => onPick(s)}
+            onClick={e.pick}
             className="flex items-center gap-3 rounded-[var(--radius-control)] px-3 py-2 text-start hover:bg-carbon-hover"
           >
             <span className="min-w-0 flex-1">
               {/* The service's icon, as in the table. */}
               <span className="flex items-center gap-2 text-sm text-carbon-text">
-                <HosterIcon host={s.whereUrl} />
-                {s.label}
+                <HosterIcon host={e.iconHost} />
+                {e.label}
               </span>
             </span>
-            {hasDefault(s.id) && <span className="glim-eyebrow shrink-0">{t('accounts.connected')}</span>}
+            {e.jd && <span className="glim-eyebrow shrink-0">{t('accounts.debrid.viaJD')}</span>}
+            {e.connected && <span className="glim-eyebrow shrink-0">{t('accounts.connected')}</span>}
           </button>
         ))}
       </div>
@@ -602,8 +709,6 @@ const RESOLVER_LABEL_KEYS: Partial<Record<string, TranslationKey>> = {
   direct: 'accounts.routing.resolver.direct',
   http: 'accounts.routing.resolver.http',
   torrent: 'accounts.routing.resolver.torrent',
-  hostheaders: 'accounts.routing.resolver.hostheaders',
-  remotefs: 'accounts.routing.resolver.remotefs',
 };
 
 /** Resolvers named after a product, which stay untranslated. */
@@ -616,11 +721,11 @@ const RESOLVER_PROPER_NAMES: Record<string, string> = {
 const LOGIN_ROW = 'login:';
 
 /**
- * The resolvers that decide per link and stay off the ordered list
- * (app.perLinkResolvers), shown below it so the card still says where a link
- * goes once no listed service takes it.
+ * The resolvers whose fit depends on the link (app.perLinkResolvers). They
+ * close the list as fixed rows, since the server ranks them below every row
+ * above and a stored place would be wrong for some host.
  */
-const AUTOMATIC_ROWS: { id: string; what: TranslationKey }[] = [
+const FIXED_ROWS: { id: string; what: TranslationKey }[] = [
   { id: 'jd', what: 'accounts.routing.automatic.jd' },
   { id: 'ytdlp', what: 'accounts.routing.automatic.ytdlp' },
   { id: 'direct', what: 'accounts.routing.automatic.direct' },
@@ -854,18 +959,19 @@ function PriorityLadder({
             </span>
           </li>
         ))}
+        {/* No grip and no number: these stay last, and which of them comes
+            first depends on the link. The spacers keep the names in line. */}
+        {FIXED_ROWS.filter((f) => f.id !== 'jd' || jdConfigured).map((f) => (
+          <li key={f.id} className="flex items-center gap-2 px-1 py-1 text-sm text-carbon-textSub">
+            <span aria-hidden className="w-[22px] shrink-0" />
+            <span aria-hidden className="w-4 shrink-0" />
+            <span className="flex min-w-0 flex-col">
+              <span className="truncate text-carbon-text">{labelFor(f.id)}</span>
+              <span className="truncate text-[11px] text-carbon-textMuted">{t(f.what)}</span>
+            </span>
+          </li>
+        ))}
       </ol>
-      <div className="flex flex-col gap-1.5">
-        <span className="glim-eyebrow">{t('accounts.routing.automaticTitle')}</span>
-        <ul className="flex flex-col gap-1.5">
-          {AUTOMATIC_ROWS.filter((a) => a.id !== 'jd' || jdConfigured).map((a) => (
-            <li key={a.id} className="flex items-baseline gap-2 px-1 text-sm">
-              <span className="text-carbon-textSub">{labelFor(a.id)}</span>
-              <span className="truncate text-[11px] text-carbon-textMuted">{t(a.what)}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
       <div className="flex items-center gap-2">
         <Button kind="secondary" disabled={busy} onClick={() => void store([])}>
           {t('accounts.routing.priorityAuto')}

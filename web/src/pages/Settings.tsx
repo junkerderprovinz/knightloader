@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Navigate, Route, Routes, useMatch, useNavigate, useParams } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation, useMatch, useNavigate, useParams } from 'react-router-dom';
 import { ApiError, type Settings, connectWS, fetchSettings, patchSettings } from '../lib/api';
 import { useResource } from '../lib/useResource';
 import { readUIState, useUIState } from '../lib/uistate';
@@ -11,7 +11,7 @@ import { Tabs } from '../components/Tabs';
 import { SettingsProvider, type FeatureAccess, type SettingsDraft } from './settings/context';
 import { fetchFeatures, setFeature, type FeaturePage, type FeatureState } from './settings/features';
 import { same } from './settings/paths';
-import { FALLBACK_PAGE, hasContent, pageIcon, renderSettingsPage } from './settings/registry';
+import { FALLBACK_PAGE, hasContent, pageIcon, pageId, renderSettingsPage } from './settings/registry';
 import { SettingsSearch } from './settings/SettingsSearch';
 import { label, useTx } from './settings/tx';
 
@@ -267,15 +267,29 @@ export function SettingsPage() {
 }
 
 /**
- * orderPages applies a saved custom order and appends the pages it does not
- * name in registry order, so a new page shows up and a removed one drops out.
- * The settings search uses it too.
+ * orderPages applies a saved custom order, so a removed page drops out. A page
+ * the order does not name goes in after its registry predecessor, so a new
+ * page shows up where it belongs rather than at the end. A folded page's id
+ * stands for the page holding its cards, which takes the first place any of
+ * them has. The settings search uses it too.
  */
 export function orderPages(pages: FeaturePage[], order: string[]): FeaturePage[] {
   const byId = new Map(pages.map((p) => [p.id, p]));
-  const known = order.map((id) => byId.get(id)).filter((p): p is FeaturePage => p !== undefined);
-  const seen = new Set(known.map((p) => p.id));
-  return [...known, ...pages.filter((p) => !seen.has(p.id))];
+  const seen = new Set<string>();
+  const out: FeaturePage[] = [];
+  for (const id of order) {
+    const p = byId.get(pageId(id));
+    if (!p || seen.has(p.id)) continue;
+    seen.add(p.id);
+    out.push(p);
+  }
+  pages.forEach((p, i) => {
+    if (seen.has(p.id)) return;
+    const before = i === 0 ? -1 : out.findIndex((q) => q.id === pages[i - 1].id);
+    out.splice(before + 1, 0, p);
+    seen.add(p.id);
+  });
+  return out;
 }
 
 /**
@@ -298,8 +312,10 @@ function SettingsRail({ pages }: { pages: FeaturePage[] }) {
     // under the pointer. shrink-0 keeps wide tables from squeezing it.
     <div
       // No vertical padding, so the rail starts and ends flush with the
-      // sidebar; the content column beside it keeps only the badge notch.
-      className={`flex h-full shrink-0 flex-col gap-2 px-2 ${display === 'glyph' ? 'w-14' : 'w-52'}`}
+      // sidebar; the content column beside it keeps only the badge notch. The
+      // start keeps just the 4px that the focus ring and a lifted tile's shadow
+      // reach into, since main clips there.
+      className={`flex h-full shrink-0 flex-col gap-2 ps-1 pe-2 ${display === 'glyph' ? 'w-13' : 'w-51'}`}
     >
       <Tabs
         className="min-h-0 flex-1"
@@ -345,12 +361,14 @@ function RememberedPage({ pages }: { pages: FeaturePage[] }) {
   }, []);
 
   if (!ready) return null;
-  const known = pages.some((p) => p.id === remembered);
-  return <Navigate to={pagePath(known ? remembered : FALLBACK_PAGE)} replace />;
+  const id = pageId(remembered);
+  const known = pages.some((p) => p.id === id);
+  return <Navigate to={pagePath(known ? id : FALLBACK_PAGE)} replace />;
 }
 
 function SubPage({ pages }: { pages: FeaturePage[] }) {
   const { page = '' } = useParams();
+  const { search, hash } = useLocation();
   const [, remember] = useUIState<string>('settingsPage', FALLBACK_PAGE);
   const known = pages.some((p) => p.id === page);
 
@@ -358,6 +376,14 @@ function SubPage({ pages }: { pages: FeaturePage[] }) {
     if (known) remember(page);
   }, [page, known, remember]);
 
-  if (!known) return <Navigate to={pagePath(FALLBACK_PAGE)} replace />;
+  if (!known) {
+    // A folded page's address goes to the page holding its cards, query and
+    // all, so a bookmark or a link naming it still lands on them.
+    const folded = pageId(page);
+    if (folded !== page && pages.some((p) => p.id === folded)) {
+      return <Navigate to={pagePath(folded) + search + hash} replace />;
+    }
+    return <Navigate to={pagePath(FALLBACK_PAGE)} replace />;
+  }
   return <>{renderSettingsPage(page)}</>;
 }

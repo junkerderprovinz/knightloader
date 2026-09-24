@@ -42,12 +42,19 @@ submission and for a fixed download.
 - **Every module this build runs has a switch on the Modules page.** JDownloader,
   yt-dlp, torrents, captchas, event scripts, outbound connections, peer
   instances, the Packagizer and the link filter can be switched off like the
-  modules that already could. The module's own settings page carries the same
+  modules that already could. Most modules' own settings pages carry the same
   switch, and flipping either one moves the other straight away, in other open
-  tabs too. A link whose backend is switched off waits in the queue as "Module
-  switched off" instead of going out as a plain download, which would save the
-  hoster's web page. If a debrid service carries the host, it takes the link
+  tabs too; JDownloader is switched on the Modules page only. A link whose
+  backend is switched off waits in the queue as "Module switched off" instead
+  of going out as a plain download, which would save the hoster's web page. If a debrid service carries the host, it takes the link
   over. Each row also links to the page its module is set up on.
+- **Twelve more debrid services, spoken to directly**: BestDebrid, CocoLeech,
+  CoolDebrid, DebridItalia, Deepbrid, FakirDebrid, Mega-Debrid, MultiUp,
+  NeoDebrid, ProLeech, RPNet and Zevera. They used to work only as a login
+  handed to JDownloader. Each has its host list, its account details on the
+  accounts page and a key check before saving, and the form names the fields
+  the service asks for, such as ProLeech's API user and key. Video sites such
+  as YouTube stay with yt-dlp even where a service lists them.
 - **Each connected hoster login is a row of its own on the priority card.**
   Where it sits against a debrid service that carries the same host decides
   which of the two gets those links.
@@ -63,10 +70,13 @@ submission and for a fixed download.
   JDownloader, yt-dlp, the direct download and the HTTP fallback too, and any
   drag saved all of them, with direct above JDownloader. From then on a
   filehoster link without an account went out as a plain download, which
-  usually saves the hoster's landing page. Those four decide per link and are
-  no longer on the card; it orders the debrid accounts, your own hoster logins,
-  torrents and remote storage. An order saved before keeps its old effect until
-  the card is touched once or reset to "Automatic".
+  usually saves the hoster's landing page. Those four decide per link and can
+  no longer be dragged: JDownloader, yt-dlp and the direct download close the
+  list as fixed rows, and the card orders the debrid accounts, your own hoster
+  logins and torrents. Header profiles and your own FTP, SFTP and WebDAV servers
+  left the card too, since each takes only the links it was set up for. An order
+  saved before keeps its old effect until the card is touched once or reset to
+  "Automatic".
 
 - **"Wait before confirming automatically" waits.** The delay was saved and
   never read, so every batch confirmed the moment it arrived. A batch now counts
@@ -88,6 +98,39 @@ submission and for a fixed download.
 - **Unticking a variant in a host's preset hides its rows at once**, for links
   already in the collector as well, and ticking it again brings them back with
   their own picks. The phone app hides them too.
+
+- **Far more hosters show their icon.** The fetch gave up after four tries,
+  so a site that declares several large icons it does not have never got to
+  its working favicon. It also read encoded paths literally, skipped the
+  `www.` address and plain http, refused SVG icons and trusted a wrong content
+  type. An icon fetched once is also read back from disk after a restart. The
+  check that keeps icon requests out of the local network runs on the address
+  being connected, so a DNS answer that changes in between cannot get past it.
+
+- **A header profile takes the links of its own site before a debrid service
+  does.** Since header profiles left the priority card, a debrid service that
+  carries the same host came first, and nothing on the card could change that.
+
+- **A debrid unlock that runs out of time shows as an error.** After two
+  minutes without an answer the link stayed at "unlocking via …" for good.
+
+- **A debrid link paused while it is being unlocked stays paused.** Pausing,
+  resuming and pausing again in quick succession could leave the second unlock
+  out of reach, and a pause that came just as the service answered still
+  started the download.
+
+- **Saving the proxy or torrent settings while downloads run is safe.** Both
+  wrote to the configuration the download engine was reading at that moment.
+
+- **The action for an idle queue arms when it is switched on while nothing is
+  downloading**, also when the save arrives during one of the controller's
+  checks. Such a save could be spent on the settings from before it.
+
+- **A new schedule stays open for editing.** The page saved it a moment after
+  it was added and closed the row while reloading.
+
+- **Dragging a settings tile no longer opens its page on release**, and Escape
+  puts the old order back on screen as well as in storage.
 
 - **Browser extension 1.0.1: a tooltip no longer stays up after a click.**
   Focus opens a tooltip only after keyboard input now, so Cancel in the
@@ -117,11 +160,52 @@ submission and for a fixed download.
 - **The debrid account picker lost its search field** and is titled "Choose a
   debrid service".
 - **The tour's last button reads "Done".**
+- **The priority card is one list.** The services you can drag come first,
+  and JDownloader, yt-dlp and the direct download close it as fixed rows with
+  what each of them takes, where they used to sit in a section of their own.
+- **JDownloader's switch lives on the Modules page only**, not on the Accounts
+  tab as well.
+- **The schedule page speaks of schedules.** The card is "Schedules", its
+  button "Create schedule", each row has an edit button, and the status card's
+  title is translated. "Custom" under days is a real choice that opens the
+  weekday strip.
+- **The language picker sits under Appearance.**
+- **The settings have 21 tiles instead of 24, grouped by task.** "Link
+  collector" holds link intake, the collector, page crawling, copies of the
+  same file and links that are already dead. "Automation" holds schedules,
+  the idle action, the media library call, event targets and scripts.
+  "Network" holds outgoing connections, reconnect, header profiles and the
+  per-hoster exceptions. Categories sit on "Rules & categories", quiet mode is
+  the first switch of the notifications card, and "Files already on disk"
+  moved to Downloads. Old addresses, a remembered page, a saved tile order
+  and a shortcut bound to an old page all lead to the new tile.
+- **Every debrid service is on the debrid card.** Multihosters KnightLoader
+  reaches through JDownloader (LeechAll, DailyLeech, MyDebrid, MultiVIP,
+  put.io) are picked and listed there, marked "through JDownloader", and no
+  longer mixed into the hoster accounts. DebridPlanet and Simply-Debrid are
+  gone from the list, since both services have closed.
+- **A settings tile being dragged floats under the pointer** with a shadow,
+  the other tiles slide aside while it passes, and on release it slides into
+  its place. Escape puts everything back.
+- **The browser tab shows only the name**, without counts, percent and speed.
+  The ring on the tab's icon still shows the progress.
+- **The settings tiles sit closer to the sidebar.**
+- **The web UI and the browser extension are set in Noto Sans**, shipped with
+  them, so they look the same on every system instead of taking whatever font
+  the system has. A page loads only the alphabets it shows, the Latin one
+  35 KB. Chinese, Japanese and Korean use the system's own font, since those
+  fonts are several megabytes each.
 - **The web UI, the browser extension and the phone app follow GlimStone
-  2.6.0.** Every window has its way out as a button in its bottom row, tooltips
+  2.8.0.** Every window has its way out as a button in its bottom row, tooltips
   open on focus only after keyboard input and close when their control changes,
   the default motion level is "subtle", and the About card of the extension and
-  the app offers PayPal and crypto beside the coffee.
+  the app offers PayPal and crypto beside the coffee. There a coin tile under
+  the pointer or a finger turns light grey with dark text, as in the web UI,
+  and the name beside the logo is bold at 20 pixels. In the app's download
+  list a dragged row lands in its place instead of jumping, the rows it passes
+  slide aside, and it keeps its new place until the server confirms the order.
+  An open package takes its files along, and a drop the server would not
+  apply slides straight back.
 - **The interface texts were reworked** in the web UI, the extension, the app,
   the README and the user docs: plainer hints, and no dashes as punctuation.
 - **A release waits for its images too**, not only for the desktop bundles, so
@@ -146,7 +230,7 @@ submission and for a fixed download.
   hovered so it does not fade on the grey.
 - **The logo at the top of the sidebar is 104 pixels tall**, 44 in the narrow
   rail, the size the sibling apps use, and the mark on an instance card
-  matches it. The web UI follows GlimStone 2.8.0.
+  matches it.
 
 ## [1.1.6] - 2026-09-18
 

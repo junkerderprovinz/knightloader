@@ -3,7 +3,7 @@ package api
 // The end-of-queue action: whether the wait queue is idle, whether a
 // cancellable countdown is running, and calling one off. The action itself is
 // configured through PUT /api/settings like every other switch on the
-// Downloads page (Settings.IdleAction). What is left here is live state,
+// Automation page (Settings.IdleAction). What is left here is live state,
 // cancelling a countdown, and the two questions about the operator's own
 // command that only this instance can answer: would it resolve here, and what
 // happens when it runs.

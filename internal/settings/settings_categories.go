@@ -119,7 +119,7 @@ type Category struct {
 	//
 	// It is the id of a mediahook.Hook (settings_mediahooks.go), so a reference
 	// rather than a copy, like every other field here: an address edited on the
-	// Downloads page reaches every drawer pointing at it. Unlike the other
+	// Automation page reaches every drawer pointing at it. Unlike the other
 	// fields, a dangling one is refused rather than read as "no opinion", see
 	// ValidateMediaHooks.
 	//

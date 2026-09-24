@@ -75,6 +75,16 @@ func (a *App) rewireBackends() {
 		torboxFileHosts = a.fetchTorboxHosterOnlyHosts(torboxKey)
 	}
 
+	// Whether yt-dlp runs is known before the debrid services are wired, since
+	// it decides which of their hosts they claim.
+	ytbin, ytsource, ytdetail := mediatools.ResolveYtdlp(a.DataDir)
+	yb := ytdlp.NewBackend(ytbin, a.dlDir, a.onUpdate)
+	ytdlpRunning := yb.Available()
+	// Streaming sites a debrid service also lists stay with yt-dlp while it
+	// runs, as for TorBox: a debrid unlock gives a YouTube link no variant rows
+	// and no title.
+	mediaSites := knownMediaSites(hosterSet, torboxFileHosts)
+
 	// One-shot debrid services: one unlock call yields a direct URL the engine
 	// downloads. There is one setup per account, and accounts of one service
 	// share its priority, so they sort together ahead of the next service.
@@ -83,57 +93,8 @@ func (a *App) rewireBackends() {
 		account string
 		prio    int
 	}
-	// Every debrid service ranks above resolver.Direct (40): a service that
-	// lists a host by name knows more than Direct's guess from the URL's shape.
-	// The order among them is a preference, hence gaps of one.
-	//
-	// build returns nil for a credential the service cannot use, such as an
-	// empty key, so that account gets no slot.
-	services := []struct {
-		id    string
-		prio  int
-		build func(accounts.Credential) debrid.Service
-	}{
-		{"alldebrid", 49, func(c accounts.Credential) debrid.Service {
-			if c.APIKey == "" {
-				return nil
-			}
-			return debrid.NewAllDebrid(c.APIKey)
-		}},
-		{"realdebrid", 48, func(c accounts.Credential) debrid.Service {
-			if c.APIKey == "" {
-				return nil
-			}
-			return debrid.NewRealDebrid(c.APIKey)
-		}},
-		{"debridlink", 47, func(c accounts.Credential) debrid.Service {
-			if c.APIKey == "" {
-				return nil
-			}
-			return debrid.NewDebridLink(c.APIKey)
-		}},
-		{"premiumize", 46, func(c accounts.Credential) debrid.Service {
-			if c.APIKey == "" {
-				return nil
-			}
-			return debrid.NewPremiumize(c.APIKey)
-		}},
-		// Linksnappy logs in with the website's username and password.
-		{"linksnappy", 45, func(c accounts.Credential) debrid.Service {
-			if c.Username == "" || c.Password == "" {
-				return nil
-			}
-			return debrid.NewLinksnappy(c.Username, c.Password)
-		}},
-		{"offcloud", 44, func(c accounts.Credential) debrid.Service {
-			if c.APIKey == "" {
-				return nil
-			}
-			return debrid.NewOffcloud(c.APIKey)
-		}},
-	}
 	var configured []debridSetup
-	for _, s := range services {
+	for _, s := range debridServices {
 		for _, acct := range a.routedAccounts(s.id) {
 			if svc := s.build(acct.cred); svc != nil {
 				configured = append(configured, debridSetup{svc: svc, account: acct.account, prio: s.prio})
@@ -151,6 +112,9 @@ func (a *App) rewireBackends() {
 		hosts, fetched := hostsByService[serviceID]
 		if !fetched {
 			hosts = debridRoutingHosts(a, d.svc)
+			if ytdlpRunning {
+				hosts = withoutHosts(hosts, mediaSites)
+			}
 			hostsByService[serviceID] = hosts
 		}
 		slot := resolver.SlotID(serviceID, d.account)
@@ -194,8 +158,7 @@ func (a *App) rewireBackends() {
 	// Optional yt-dlp media backend for media pages. mediatools decides which
 	// binary to use (see ResolveYtdlp).
 	var newYtdlp backend
-	ytbin, ytsource, ytdetail := mediatools.ResolveYtdlp(a.DataDir)
-	if yb := ytdlp.NewBackend(ytbin, a.dlDir, a.onUpdate); yb.Available() {
+	if ytdlpRunning {
 		// yt-dlp meters itself, so it gets its share of the budget
 		// (app_budget.go), read live so schedule windows apply.
 		yb.RateLimit = a.budget.ytdlpLimit
@@ -301,6 +264,117 @@ func (a *App) rewireBackends() {
 	hostRefreshMu.Lock()
 	hostRefreshAttempted[a] = time.Now()
 	hostRefreshMu.Unlock()
+}
+
+// debridServices are the one-shot debrid services, in routing order. Every one
+// ranks above resolver.Direct (40), since a service that lists a host by name
+// knows more than Direct's guess from the URL's shape. The order among the
+// first six is a preference, hence gaps of one; the smaller multihosters share
+// 43 and keep this order among themselves.
+//
+// build returns nil for a credential the service cannot use, such as an empty
+// key, so that account gets no slot.
+var debridServices = []struct {
+	id    string
+	prio  int
+	build func(accounts.Credential) debrid.Service
+}{
+	{"alldebrid", 49, byKey(func(k string) debrid.Service { return debrid.NewAllDebrid(k) })},
+	{"realdebrid", 48, byKey(func(k string) debrid.Service { return debrid.NewRealDebrid(k) })},
+	{"debridlink", 47, byKey(func(k string) debrid.Service { return debrid.NewDebridLink(k) })},
+	{"premiumize", 46, byKey(func(k string) debrid.Service { return debrid.NewPremiumize(k) })},
+	// Linksnappy logs in with the website's username and password.
+	{"linksnappy", 45, byLogin(func(u, p string) debrid.Service { return debrid.NewLinksnappy(u, p) })},
+	{"offcloud", 44, byKey(func(k string) debrid.Service { return debrid.NewOffcloud(k) })},
+	{"bestdebrid", 43, byKey(func(k string) debrid.Service { return debrid.NewBestDebrid(k) })},
+	{"cocoleech", 43, byKey(func(k string) debrid.Service { return debrid.NewCocoLeech(k) })},
+	{"cooldebrid", 43, byKey(func(k string) debrid.Service { return debrid.NewCoolDebrid(k) })},
+	{"debriditalia", 43, byLogin(func(u, p string) debrid.Service { return debrid.NewDebridItalia(u, p) })},
+	{"deepbrid", 43, byKey(func(k string) debrid.Service { return debrid.NewDeepbrid(k) })},
+	{"fakirdebrid", 43, byKey(func(k string) debrid.Service { return debrid.NewFakirDebrid(k) })},
+	{"megadebrid", 43, byLogin(func(u, p string) debrid.Service { return debrid.NewMegaDebrid(u, p) })},
+	{"multiup", 43, byLogin(func(u, p string) debrid.Service { return debrid.NewMultiUp(u, p) })},
+	{"neodebrid", 43, byLogin(func(u, p string) debrid.Service { return debrid.NewNeoDebrid(u, p) })},
+	// The API user and key, and the customer ID and key, are stored as username
+	// and password (accounts.Service.UserLabel).
+	{"proleech", 43, byLogin(func(u, p string) debrid.Service { return debrid.NewProLeech(u, p) })},
+	{"rpnet", 43, byLogin(func(u, p string) debrid.Service { return debrid.NewRPNet(u, p) })},
+	{"zevera", 43, byKey(func(k string) debrid.Service { return debrid.NewZevera(k) })},
+}
+
+// byKey builds a service from an API key, or nil when there is none.
+func byKey(build func(key string) debrid.Service) func(accounts.Credential) debrid.Service {
+	return func(c accounts.Credential) debrid.Service {
+		if c.APIKey == "" {
+			return nil
+		}
+		return build(c.APIKey)
+	}
+}
+
+// byLogin builds a service from both credential fields, or nil when one is
+// missing.
+func byLogin(build func(user, pass string) debrid.Service) func(accounts.Credential) debrid.Service {
+	return func(c accounts.Credential) debrid.Service {
+		if c.Username == "" || c.Password == "" {
+			return nil
+		}
+		return build(c.Username, c.Password)
+	}
+}
+
+// accountReader is a debrid client that can read an account's plan, expiry and
+// traffic.
+type accountReader interface {
+	Account(context.Context) (debrid.AccountInfo, error)
+}
+
+// newDebridClient builds the client for a debrid service id, or nil for an
+// unknown service or an unusable credential.
+func newDebridClient(service string, c accounts.Credential) debrid.Service {
+	for _, s := range debridServices {
+		if s.id == service {
+			return s.build(c)
+		}
+	}
+	return nil
+}
+
+// mediaSiteDomains are streaming sites yt-dlp handles and some multihosters
+// list as well. TorBox marks its own streaming entries, which knownMediaSites
+// adds.
+var mediaSiteDomains = []string{
+	"youtube.com", "youtu.be", "m.youtube.com", "music.youtube.com",
+	"soundcloud.com", "vimeo.com", "dailymotion.com", "twitch.tv",
+	"bandcamp.com", "mixcloud.com",
+}
+
+// knownMediaSites is mediaSiteDomains plus the streaming sites TorBox lists:
+// every host in its full list that is not one of its file hosters.
+func knownMediaSites(torboxAll, torboxFileHosts map[string]bool) map[string]bool {
+	out := map[string]bool{}
+	for _, h := range mediaSiteDomains {
+		out[h] = true
+	}
+	if len(torboxFileHosts) > 0 {
+		for h := range torboxAll {
+			if !torboxFileHosts[h] {
+				out[h] = true
+			}
+		}
+	}
+	return out
+}
+
+// withoutHosts returns hosts minus drop, as a new set.
+func withoutHosts(hosts, drop map[string]bool) map[string]bool {
+	out := make(map[string]bool, len(hosts))
+	for h := range hosts {
+		if !drop[h] {
+			out[h] = true
+		}
+	}
+	return out
 }
 
 // torboxRoutingHosts returns the hosts the TorBox resolver claims: all of them
@@ -943,40 +1017,18 @@ func fetchAccountInfoLive(ctx context.Context, service string, cred accounts.Cre
 			Expiry:    formatExpiry(info.ExpiresAt),
 			FetchedAt: time.Now(),
 		}, true, nil
-	case "alldebrid":
-		info, err := debrid.NewAllDebrid(cred.APIKey).Account(ctx)
-		if err != nil {
-			return AccountHealth{}, true, err
-		}
-		return healthFromDebrid(info), true, nil
-	case "realdebrid":
-		info, err := debrid.NewRealDebrid(cred.APIKey).Account(ctx)
-		if err != nil {
-			return AccountHealth{}, true, err
-		}
-		return healthFromDebrid(info), true, nil
-	case "debridlink":
-		info, err := debrid.NewDebridLink(cred.APIKey).Account(ctx)
-		if err != nil {
-			return AccountHealth{}, true, err
-		}
-		return healthFromDebrid(info), true, nil
-	case "premiumize":
-		info, err := debrid.NewPremiumize(cred.APIKey).Account(ctx)
-		if err != nil {
-			return AccountHealth{}, true, err
-		}
-		return healthFromDebrid(info), true, nil
-	case "linksnappy":
-		info, err := debrid.NewLinksnappy(cred.Username, cred.Password).Account(ctx)
-		if err != nil {
-			return AccountHealth{}, true, err
-		}
-		return healthFromDebrid(info), true, nil
 	default:
-		// Offcloud documents no account endpoint. Refresh still confirms the
-		// key through checkCredential.
-		return AccountHealth{}, false, nil
+		// A service without an account endpoint, such as Offcloud, has nothing
+		// to read here; Refresh still confirms its key through checkCredential.
+		r, reads := newDebridClient(service, cred).(accountReader)
+		if !reads {
+			return AccountHealth{}, false, nil
+		}
+		info, err := r.Account(ctx)
+		if err != nil {
+			return AccountHealth{}, true, err
+		}
+		return healthFromDebrid(info), true, nil
 	}
 }
 
@@ -1132,52 +1184,31 @@ func checkCredential(ctx context.Context, service string, cred accounts.Credenti
 			}
 		}
 		return true, len(set), nil
-	case "alldebrid":
-		hosts, err := debrid.NewAllDebrid(cred.APIKey).Hosts(ctx)
-		if err != nil {
-			return false, 0, err
-		}
-		return true, len(hosts), nil
-	case "realdebrid":
-		hosts, err := debrid.NewRealDebrid(cred.APIKey).Hosts(ctx)
-		if err != nil {
-			return false, 0, err
-		}
-		return true, len(hosts), nil
-	case "debridlink":
-		// The authenticated host list rejects a bad token and also counts the
-		// hosts in one round trip.
-		hosts, err := debrid.NewDebridLink(cred.APIKey).Hosts(ctx)
-		if err != nil {
-			return false, 0, err
-		}
-		return true, len(hosts), nil
-	case "premiumize":
-		hosts, err := debrid.NewPremiumize(cred.APIKey).Hosts(ctx)
-		if err != nil {
-			return false, 0, err
-		}
-		return true, len(hosts), nil
-	case "linksnappy":
-		// Log in first: Linksnappy's host list needs no account and would
-		// accept a wrong password.
-		ls := debrid.NewLinksnappy(cred.Username, cred.Password)
-		if err := ls.Authenticate(ctx); err != nil {
-			return false, 0, err
-		}
-		hosts, err := ls.Hosts(ctx)
-		if err != nil {
-			return false, 0, err
-		}
-		return true, len(hosts), nil
-	case "offcloud":
-		hosts, err := debrid.NewOffcloud(cred.APIKey).Hosts(ctx)
-		if err != nil {
-			return false, 0, err
-		}
-		return true, len(hosts), nil
 	default:
-		return false, 0, errors.New("accounts: unknown service " + service)
+		svc := newDebridClient(service, cred)
+		if svc == nil {
+			if _, known := accounts.Lookup(service); known {
+				return false, 0, errors.New("accounts: the credential for " + service + " is incomplete")
+			}
+			return false, 0, errors.New("accounts: unknown service " + service)
+		}
+		// Some host lists answer without an account, so the credential is proved
+		// first: by the service's login, or else by its account details.
+		switch proof := svc.(type) {
+		case interface{ Authenticate(context.Context) error }:
+			if err := proof.Authenticate(ctx); err != nil {
+				return false, 0, err
+			}
+		case accountReader:
+			if _, err := proof.Account(ctx); err != nil {
+				return false, 0, err
+			}
+		}
+		hosts, err := svc.Hosts(ctx)
+		if err != nil {
+			return false, 0, err
+		}
+		return true, len(hosts), nil
 	}
 }
 

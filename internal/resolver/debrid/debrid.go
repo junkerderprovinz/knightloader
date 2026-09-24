@@ -6,6 +6,8 @@ package debrid
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"net/url"
 	"strings"
 	"sync"
@@ -73,9 +75,10 @@ type LinkChecker interface {
 // download from a given host may open. 0 means no opinion, never unlimited
 // and never zero connections.
 //
-// Only Real-Debrid implements it: its host lists carry no per-host figure, but
-// the "chunks" field on a check or unlock answer does, so RealDebrid learns
-// the limit host by host. AllDebrid's host endpoints carry nothing comparable.
+// Real-Debrid learns the figure host by host from the "chunks" field of its
+// check and unlock answers. Other services take it from their host list or
+// ask for one connection per file. AllDebrid's host endpoints carry nothing
+// comparable.
 type HostLimiter interface {
 	HostLimit(host string) int
 }
@@ -95,21 +98,28 @@ type Backend struct {
 	eng Downloader
 
 	onUpdate func(taskID string, u core.Update)
+	// timeout bounds one unlock, waits for a login or a pacer slot included.
+	timeout time.Duration
 
 	mu     sync.Mutex
-	cancel map[string]context.CancelFunc
+	runs   map[string]*unlockRun
 	link   map[string]string
 	handed map[string]bool
 	conns  map[string]int
 }
 
+// unlockRun is one unlock of a task. A pointer, so a run that ends after a
+// Resume started the next one can tell the entry is no longer its own.
+type unlockRun struct{ cancel context.CancelFunc }
+
 func NewBackend(svc Service, eng Downloader, onUpdate func(taskID string, u core.Update)) *Backend {
 	return &Backend{
 		svc: svc, eng: eng, onUpdate: onUpdate,
-		cancel: map[string]context.CancelFunc{},
-		link:   map[string]string{},
-		handed: map[string]bool{},
-		conns:  map[string]int{},
+		timeout: 2 * time.Minute,
+		runs:    map[string]*unlockRun{},
+		link:    map[string]string{},
+		handed:  map[string]bool{},
+		conns:   map[string]int{},
 	}
 }
 
@@ -124,45 +134,57 @@ func (b *Backend) Download(taskID, link string, _ map[string]string, conns int) 
 }
 
 func (b *Backend) start(taskID, link string) {
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
+	run := &unlockRun{cancel: cancel}
 	b.mu.Lock()
-	b.cancel[taskID] = cancel
+	b.runs[taskID] = run
 	conns := b.conns[taskID]
 	b.mu.Unlock()
 	go func() {
 		defer cancel()
 		defer func() {
 			b.mu.Lock()
-			delete(b.cancel, taskID)
+			if b.runs[taskID] == run {
+				delete(b.runs, taskID)
+			}
 			b.mu.Unlock()
 		}()
 		b.onUpdate(taskID, core.Update{Status: core.StatusRunning, Name: "unlocking via " + b.svc.Label() + "…"})
 		d, err := b.svc.Unlock(ctx, link)
 		if err != nil {
-			if ctx.Err() != nil {
-				return // cancelled by Pause/Remove
+			// Pause and Remove cancel the unlock and set the task's state
+			// themselves. A timeout is reported like any other failure, or the
+			// task would stay unlocking.
+			if errors.Is(ctx.Err(), context.Canceled) {
+				return
 			}
 			b.onUpdate(taskID, core.Update{Status: core.StatusError, Speed: 0, Err: b.svc.ID() + ": " + err.Error()})
 			return
 		}
-		b.onUpdate(taskID, core.Update{Status: core.StatusRunning, Name: d.Name, Size: d.Size})
+		// Pause and Remove cancel under b.mu, so one that came after the unlock
+		// finished is seen here and the link is not handed on.
 		b.mu.Lock()
+		if errors.Is(ctx.Err(), context.Canceled) {
+			b.mu.Unlock()
+			return
+		}
 		b.handed[taskID] = true
 		b.mu.Unlock()
+		b.onUpdate(taskID, core.Update{Status: core.StatusRunning, Name: d.Name, Size: d.Size})
 		b.eng.Download(taskID, d.URL, nil, conns)
 	}()
 }
 
 func (b *Backend) Pause(taskID string) {
 	b.mu.Lock()
-	handed, cancel := b.handed[taskID], b.cancel[taskID]
+	handed := b.handed[taskID]
+	if run := b.runs[taskID]; run != nil && !handed {
+		run.cancel()
+	}
 	b.mu.Unlock()
 	if handed {
 		b.eng.Pause(taskID)
 		return
-	}
-	if cancel != nil {
-		cancel()
 	}
 	b.onUpdate(taskID, core.Update{Status: core.StatusPaused, Speed: 0})
 }
@@ -182,8 +204,8 @@ func (b *Backend) Resume(taskID string) {
 
 func (b *Backend) Remove(taskID string, deleteFiles bool) {
 	b.mu.Lock()
-	if c, ok := b.cancel[taskID]; ok {
-		c()
+	if run := b.runs[taskID]; run != nil {
+		run.cancel()
 	}
 	handed := b.handed[taskID]
 	delete(b.link, taskID)
@@ -194,6 +216,24 @@ func (b *Backend) Remove(taskID string, deleteFiles bool) {
 		b.eng.Remove(taskID, deleteFiles)
 	}
 }
+
+// loginLock lets one caller at a time log in. A caller waiting for it gives up
+// when its context ends, which sync.Mutex cannot do, so a login that hangs
+// does not carry every queued unlock past its deadline.
+type loginLock chan struct{}
+
+func newLoginLock() loginLock { return make(loginLock, 1) }
+
+func (l loginLock) lock(ctx context.Context) error {
+	select {
+	case l <- struct{}{}:
+		return nil
+	case <-ctx.Done():
+		return fmt.Errorf("waiting for the login: %w", ctx.Err())
+	}
+}
+
+func (l loginLock) unlock() { <-l }
 
 // Resolver claims links whose host the service supports.
 type Resolver struct {

@@ -26,6 +26,21 @@
   --btn-h-key: 2.5rem; /* 40px */
 }
 
+/* The house font, Noto Sans, shipped in fonts/ for Latin, Cyrillic, Greek,
+   Vietnamese and Devanagari, with Noto's own cuts for Arabic, Hebrew and Thai.
+   Chinese, Japanese and Korean are too heavy to ship, so their Noto cut is used
+   where the system has it, picked by the page's lang, and the system font
+   where it does not. */
+:root {
+  --font-cjk: "Noto Sans CJK SC", "Noto Sans SC";
+  --font-sans: "Noto Sans Variable", "Noto Sans", "Noto Sans Arabic Variable", "Noto Sans Arabic",
+    "Noto Sans Hebrew Variable", "Noto Sans Hebrew", "Noto Sans Thai Variable", "Noto Sans Thai",
+    var(--font-cjk), system-ui, -apple-system, sans-serif;
+}
+:lang(ja) { --font-cjk: "Noto Sans CJK JP", "Noto Sans JP"; }
+:lang(ko) { --font-cjk: "Noto Sans CJK KR", "Noto Sans KR"; }
+:lang(zh-TW), :lang(zh-Hant) { --font-cjk: "Noto Sans CJK TC", "Noto Sans TC"; }
+
 :root[data-shape="soft"] {
   --radius-card: 0.5rem;
   --radius-control: 0.3125rem;
@@ -65,6 +80,11 @@
      ramp, which is why it is a token and not a filter. --carbon-hover would
      dim it. */
   --carbon-hover-raised: #6f6f6f;
+  /* Hover for a picker tile that carries brand marks (GlimStone 2.8.0). One
+     step up the ramp is too small a change to notice behind a mark half the
+     tile's height, and white is too loud on a dark page. */
+  --carbon-tile-hover: #a8a8a8;
+  --carbon-tile-hover-ink: #161616;
   --carbon-border:     #393939;
 
   /* Brand marks at rest (GlimStone 1.10.0). The published colours fail 3:1 on
@@ -139,6 +159,9 @@
   --carbon-hover:      #e0e0e0;
   /* One step further from the surface, which is darker here. */
   --carbon-hover-raised: #c6c6c6;
+  /* The ramp's own step reads on a light page, so the tile keeps surface3. */
+  --carbon-tile-hover: #d1d1d1;
+  --carbon-tile-hover-ink: #161616;
   --carbon-border:     #d1d1d1;
 
   /* On #e8e8e8 these measure 4.0, 4.1, 9.7 and 14.6 to 1. */
@@ -227,6 +250,8 @@
     --carbon-surface3:   #d1d1d1;
     --carbon-hover:      #e0e0e0;
     --carbon-hover-raised: #c6c6c6;
+    --carbon-tile-hover: #d1d1d1;
+    --carbon-tile-hover-ink: #161616;
     --carbon-border:     #d1d1d1;
 
     /* Kept in step with the [data-theme="light"] block. */
@@ -1063,14 +1088,14 @@
   transition: background-color 150ms ease, color 150ms ease;
 }
 .glim-crypto-coins .glim-crypto-tile svg { width: auto; height: 40%; }
-/* Filled with surface2, so it hovers up to surface3 (rule 21). On the dark
-   theme that step is too small to notice, so it goes light and flips its ink,
-   the mark included. */
-.glim-crypto-coins .glim-crypto-tile:hover { background: var(--carbon-surface3); color: var(--carbon-text); }
-:root[data-theme='dark'] .glim-crypto-coins .glim-crypto-tile:hover:not([aria-selected='true']) {
-  background: var(--carbon-text);
-  color: var(--carbon-bg);
+/* A tile carrying a brand mark is the exception to rule 21's surface3. */
+.glim-crypto-coins .glim-crypto-tile:hover:not([aria-selected='true']) {
+  background: var(--carbon-tile-hover);
+  color: var(--carbon-tile-hover-ink);
 }
+/* On the dark theme the mark is drawn for a dark ground, so on the grey it
+   takes the tile's ink: a rainbow hue's light-theme ink measures under 3:1
+   there for seven of the eight positions. */
 :root[data-theme='dark'] .glim-crypto-coins .glim-crypto-tile:hover:not([aria-selected='true']) svg { color: currentColor; }
 /* A tile filled with a colour the engine chose paints its mark in that fill's
    ink, never in a colour of its own that nobody can predict the contrast of. */

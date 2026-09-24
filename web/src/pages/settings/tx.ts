@@ -18,9 +18,16 @@ export function useTx(): {
  */
 export function label(
   tx: (key: TranslationKey) => string,
-  prefix: 'settings.module.' | 'settings.nav.',
+  prefix: 'settings.module.' | 'settings.nav.' | ChoicePrefix,
   id: string,
 ): string {
   const key = (prefix + id) as TranslationKey;
   return key in en ? tx(key) : id;
+}
+
+type ChoicePrefix = 'settings.advanced.mirror.' | 'settings.advanced.offline.' | 'settings.advanced.reclaim.';
+
+/** choices turns the ids of a server-sent menu into tabs, labelled as label() does. */
+export function choices(tx: (key: TranslationKey) => string, prefix: ChoicePrefix, ids: string[]) {
+  return ids.map((id) => ({ id, label: label(tx, prefix, id) }));
 }

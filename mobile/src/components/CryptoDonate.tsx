@@ -176,16 +176,17 @@ export function CryptoDonate({ visible, onClose }: { visible: boolean; onClose: 
                         styles.tile,
                         {
                           borderRadius: radii.control,
-                          // A press on the dark theme goes light, since one step
-                          // up the ramp is not a change anybody sees there.
-                          backgroundColor: on ? fill : pressed ? (dark ? c.text : c.surface3) : c.surface2,
+                          // A press stands in for the web's hover.
+                          backgroundColor: on ? fill : pressed ? c.tileHover : c.surface2,
                         },
                       ]}
                     >
                       {({ pressed }) => {
                         // A filled tile paints its mark in its fill's ink, never
-                        // in a colour nobody can predict the contrast of.
-                        const markInk = on ? ink : pressed ? (dark ? c.bg : c.text) : restingMark(i);
+                        // in a colour nobody can predict the contrast of. A
+                        // pressed one takes the tile ink, since a rainbow hue
+                        // measures under 3:1 on the dark theme's grey.
+                        const markInk = on ? ink : pressed ? c.tileHoverInk : restingMark(i);
                         const wordInk = on ? ink : pressed ? markInk : c.textSub;
                         return (
                           <>

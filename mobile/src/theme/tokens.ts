@@ -31,6 +31,14 @@ export interface Palette {
    * sitting on surface3 back down to `hover`, where it dims instead.
    */
   hoverRaised: string;
+  /**
+   * The pressed fill of a picker tile that carries brand marks, and the ink on
+   * it (GlimStone 2.8.0). On the dark theme one step up the ramp is too small a
+   * change to see behind a mark half the tile's height, and white is too loud
+   * there; the light theme keeps surface3.
+   */
+  tileHover: string;
+  tileHoverInk: string;
   border: string;
 
   text: string;
@@ -103,6 +111,8 @@ export const DARK: Palette = {
   surface3: '#525252',
   hover: '#353535',
   hoverRaised: '#6f6f6f',
+  tileHover: '#a8a8a8',
+  tileHoverInk: '#161616',
   border: '#393939',
 
   text: '#f4f4f4',
@@ -148,6 +158,8 @@ export const LIGHT: Palette = {
   surface3: '#d1d1d1',
   hover: '#e0e0e0',
   hoverRaised: '#c6c6c6',
+  tileHover: '#d1d1d1',
+  tileHoverInk: '#161616',
   border: '#d1d1d1',
 
   text: '#161616',

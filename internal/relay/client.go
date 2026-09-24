@@ -335,8 +335,10 @@ func (c *Client) session() {
 	defer func() { _ = conn.CloseNow() }()
 
 	// The hello goes out before the connection is published, so nothing
-	// proxies over a socket the relay has not accepted. This is the only place
-	// an announce leaves the process, and it is always sealed: NewClient has
+	// proxies over a socket that has not introduced itself. The relay does not
+	// answer it: a refused key shows only as the relay closing the socket right
+	// after. This is the only place an announce leaves the process, and it is
+	// always sealed: NewClient has
 	// already checked the frame key, so a failure here is the cipher itself and
 	// never a reason to fall back to plaintext.
 	self, err := sealAnnounce(c.frameKey, c.self)

@@ -259,10 +259,13 @@ Everything is optional and has a working default.
 | `KL_CNL` | `9666` | Click'n'Load listener port on `127.0.0.1`; `0` disables it |
 | `KL_PROVISION_JD` | `1` | provisions a private headless JDownloader on first run and uses it as the hoster catch-all; `0` opts out, and it is skipped whenever `KL_JD` is already set |
 
-Linksnappy is the one debrid service with no variable here: it has no API key
-and authenticates with the same login the website takes, so it is entered on the
-Accounts page and nowhere else. The full list of services, and where each one
-issues its key, is `internal/accounts/catalogue.go`.
+Linksnappy and the smaller multihosters (BestDebrid, CocoLeech, CoolDebrid,
+DebridItalia, Deepbrid, FakirDebrid, Mega-Debrid, MultiUp, NeoDebrid, ProLeech,
+RPNet and Zevera) have no variable here and are entered on the Accounts page
+only. Linksnappy, DebridItalia, Mega-Debrid, MultiUp and NeoDebrid take the
+login the website takes; ProLeech and RPNet take the two values their API page
+shows. The full list of services, and where each one issues its key, is
+`internal/accounts/catalogue.go`.
 
 <br>
 
@@ -362,7 +365,7 @@ quietly producing the wrong folder.
 
 Once the last file of a package has arrived **and been moved into its folder**,
 one stored address can be called: a media library told to rescan. It is set up
-on the Downloads page (an address, GET or POST, and one header whose value is
+on the Automation page (an address, GET or POST, and one header whose value is
 sealed in the same encrypted store as your account logins) and switched on per
 category, so only the drawers you pick call anything. Nothing is called until
 you do both.

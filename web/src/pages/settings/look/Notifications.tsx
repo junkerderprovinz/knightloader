@@ -1,7 +1,7 @@
-import { Button, Card, InfoBubble, SectionTitle } from '../../../components/ui';
+import { Button, Card, InfoBubble, SectionTitle, ToggleRow } from '../../../components/ui';
 import { Tabs } from '../../../components/Tabs';
 import { useT, type TranslationKey } from '../../../lib/i18n';
-import { useToast } from '../../../lib/toast';
+import { useQuietMode, useToast } from '../../../lib/toast';
 import {
   NOTIFY_EVENTS,
   SYSTEM_SUPPORTED,
@@ -11,8 +11,8 @@ import {
 } from '../../../lib/notify';
 
 /**
- * The Benachrichtigungen card: one row per event and three places it can land.
- * Quiet mode keeps its own card below, since its title is its decision.
+ * The Benachrichtigungen card: quiet mode first, since it filters on top of
+ * every choice below it, then one row per event and three places it can land.
  */
 
 /** "Show nothing" rather than "off", so the choice reads back as a decision. */
@@ -26,6 +26,7 @@ export function NotificationsCard({ hue }: { hue: number }) {
   const { t } = useT();
   const { toast } = useToast();
   const { channels, permission, choose, ask } = useNotifyChannels();
+  const [quiet, setQuiet] = useQuietMode();
 
   // Empty while the permission is granted or was never asked for.
   const status = !SYSTEM_SUPPORTED
@@ -62,6 +63,13 @@ export function NotificationsCard({ hue }: { hue: number }) {
       >
         {t('notifications.title')}
       </SectionTitle>
+
+      <ToggleRow
+        label={t('notifications.quiet')}
+        hint={t('notifications.quietHint')}
+        checked={quiet}
+        onChange={setQuiet}
+      />
 
       {status && <span className="text-[11px] text-carbon-textMuted">{status}</span>}
 

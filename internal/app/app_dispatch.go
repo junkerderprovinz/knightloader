@@ -21,6 +21,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/hostheaders"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/remotefs"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
@@ -71,6 +72,11 @@ func (a *App) modeForLocked(t *core.Task, resolverID string) core.DownloadMode {
 // full slot id is honoured as written.
 func dynamicPrio(res resolver.Resolver, url string, order []string) int {
 	id := res.Info().ID
+	// A header profile keeps its place above every row of the card; an order
+	// entry naming it, which the card cannot write, is ignored.
+	if id == hostheaders.ResolverID {
+		return res.Info().Prio
+	}
 	for i, want := range order {
 		if want == id {
 			return orderBase - i
@@ -121,8 +127,8 @@ func rankedChain(chain []resolver.Resolver, url string, order []string) []resolv
 // hand-arranged order and JD's per-host boost, so it would show a ladder the
 // downloader does not use.
 //
-// An empty host lists what the card orders: every registered service except
-// perLinkResolvers, and one row per switched-on hoster login; otherwise the
+// An empty host lists what the card orders: every registered service offCard
+// does not leave out, and one row per switched-on hoster login; otherwise the
 // whole chain for that host. There is one row per service, not per account
 // slot: the card saves the ids it shows back into ResolverOrder, and which
 // account of a service goes first is decided by routedAccounts.
@@ -144,7 +150,7 @@ func (a *App) ResolverPriority(host string) []resolver.Info {
 	for _, res := range rankedChain(chain, url, order) {
 		info := res.Info()
 		service, _ := resolver.SplitSlot(info.ID)
-		if seen[service] || (host == "" && perLinkResolvers[service]) {
+		if seen[service] || (host == "" && offCard(service)) {
 			continue
 		}
 		seen[service] = true
@@ -182,13 +188,21 @@ func (a *App) ResolverPriority(host string) []resolver.Info {
 // orders.
 var perLinkResolvers = map[string]bool{"direct": true, "jd": true, "ytdlp": true, "http": true}
 
+// offCard reports whether the priority card leaves a resolver out: the
+// per-link ones, a stored header profile, which goes first for its origin, and
+// the user's own servers. The last two take only links the user pointed them
+// at, so there is nothing to rank.
+func offCard(id string) bool {
+	return perLinkResolvers[id] || id == hostheaders.ResolverID || id == remotefs.ResolverID
+}
+
 // SaveResolverOrder stores the order the priority card sends and answers with
-// the card's rows as re-read. The per-link resolvers are dropped on the way
-// in, so a list that still carries them cannot pin direct ahead of JD.
+// the card's rows as re-read. What the card leaves out is dropped on the way
+// in, so a list that still carries it cannot pin direct ahead of JD.
 func (a *App) SaveResolverOrder(order []string) ([]resolver.Info, error) {
 	kept := make([]string, 0, len(order))
 	for _, id := range order {
-		if !perLinkResolvers[strings.TrimSpace(id)] {
+		if !offCard(strings.TrimSpace(id)) {
 			kept = append(kept, id)
 		}
 	}
