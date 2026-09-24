@@ -76,7 +76,7 @@ export function SkippedLinks() {
 
   return (
     // Bottom right with the other notices, above the toast stack at bottom-5.
-    <div className="fixed bottom-20 right-5 z-40 w-[min(92vw,26rem)]">
+    <div className="fixed bottom-[calc(5rem+var(--phone-bar-space))] end-5 z-40 w-[min(92vw,26rem)]">
       <div
         className="glim-toast overflow-hidden rounded-[var(--radius-control)] bg-carbon-surface2
           shadow-[var(--elevation)] ring-1 ring-carbon-border"

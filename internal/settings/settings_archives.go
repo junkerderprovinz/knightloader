@@ -6,7 +6,6 @@ package settings
 // approved and that package refuses cannot exist.
 
 import (
-	"path/filepath"
 	"strings"
 
 	"github.com/junkerderprovinz/knightloader/internal/extract"
@@ -28,7 +27,7 @@ func sanitizeArchives(n Settings) Settings {
 	// template: "/unpacked/<jd:packagename>" is absolute and "<jd:date>" alone
 	// is not, and testing the raw string would refuse the first one for the
 	// angle brackets in its tail.
-	if n.ExtractTo != "" && !filepath.IsAbs(fixedPrefix(n.ExtractTo)) {
+	if relative(n.ExtractTo, true) {
 		n.ExtractTo = ""
 	}
 	// Both go through the parser the extractor uses, so an unknown word becomes

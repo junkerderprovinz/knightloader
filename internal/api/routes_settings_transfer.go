@@ -162,12 +162,8 @@ func importSettings(w http.ResponseWriter, r *http.Request, a *app.App) {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		if err := settings.Validate("the download folder", preview.DownloadDir); err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-		if err := settings.Validate("the working folder", preview.WorkDir); err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+		if err := settings.CheckFolders(preview, patched(patch)); err != nil {
+			writeValidationError(w, err)
 			return
 		}
 		if err := validateRows(preview); err != nil {

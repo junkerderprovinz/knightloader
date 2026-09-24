@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Card, Field, FieldGroup, NumberInput, SectionTitle, TextInput, ToggleRow } from '../../components/ui';
+import { Card, Field, FieldGroup, NumberInput, SectionTitle, ToggleRow } from '../../components/ui';
 import { PathInput } from '../../components/FolderPicker';
 import { Tabs } from '../../components/Tabs';
 import { fetchOptions } from '../../lib/api';
@@ -8,6 +8,7 @@ import { useDraft } from './context';
 // Each card owns one subject in ./downloads and shares the draft through
 // useDraft; the page passes the hues because it decides the order.
 import { CollisionCard } from './downloads/Collision';
+import { ChunksField, MaxConcurrentField, MaxPerHostField } from './downloads/Concurrency';
 import { DiskSpaceCard } from './downloads/DiskSpace';
 import { FeedsCard } from './downloads/Feeds';
 import { FolderCheckCard } from './downloads/FolderCheck';
@@ -19,7 +20,7 @@ import { VolumeCapCard } from './downloads/VolumeCap';
 // Not Downloads, which is already the name of pages/Downloads.
 export function DownloadsSettings() {
   const { t } = useT();
-  const { cfg, patch } = useDraft();
+  const { cfg, patch, fieldError } = useDraft();
 
   // The resume modes come from the server.
   const [modes, setModes] = useState<string[]>([]);
@@ -51,6 +52,7 @@ export function DownloadsSettings() {
             value={cfg.downloadDir}
             placeholder="/downloads"
             onValue={(downloadDir) => patch({ downloadDir })}
+            error={fieldError('downloadDir')}
           />
         </Field>
         <ToggleRow
@@ -58,15 +60,15 @@ export function DownloadsSettings() {
           onChange={(v) => patch({ subfolderByPackage: v })}
           label={t('settings.subfolderByPackage')}
         />
-        {/* A plain TextInput, because a template here would scatter the parts
-            of a multi-volume archive across folders; sanitizeStaging drops one. */}
+        {/* The hint names no variables, because a template here would scatter
+            the parts of a multi-volume archive across folders. */}
         <Field label={t('settings.downloads.workDir')} hint={t('settings.downloads.workDirHint')}>
-          <TextInput
+          <PathInput
             value={cfg.workDir}
             placeholder="/downloads/.incoming"
-            spellCheck={false}
-            dir="ltr"
-            onChange={(e) => patch({ workDir: e.target.value })}
+            title={t('settings.downloads.workDir')}
+            onValue={(workDir) => patch({ workDir })}
+            error={fieldError('workDir')}
           />
         </Field>
       </Card>
@@ -80,16 +82,9 @@ export function DownloadsSettings() {
         {/* Read together: two downloads on one host with eight connections
             each open sixteen. */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <Field label={t('settings.maxConcurrent')}>
-            <NumberInput value={cfg.maxConcurrent} min={1} max={64} onValue={(v) => patch({ maxConcurrent: v })} />
-          </Field>
-          <Field label={t('settings.maxPerHost')}>
-            <NumberInput value={cfg.maxPerHost} min={1} max={64} onValue={(v) => patch({ maxPerHost: v })} />
-          </Field>
-          {/* max is the engine's own bound. */}
-          <Field label={t('settings.chunks')} hint={t('settings.chunksHint')}>
-            <NumberInput value={cfg.chunks} min={0} max={16} onValue={(v) => patch({ chunks: v })} />
-          </Field>
+          <MaxConcurrentField value={cfg.maxConcurrent} onValue={(maxConcurrent) => patch({ maxConcurrent })} />
+          <MaxPerHostField value={cfg.maxPerHost} onValue={(maxPerHost) => patch({ maxPerHost })} />
+          <ChunksField value={cfg.chunks} onValue={(chunks) => patch({ chunks })} />
         </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <SpeedLimitField value={cfg.speedLimit} onValue={(speedLimit) => patch({ speedLimit })} />

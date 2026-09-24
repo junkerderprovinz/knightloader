@@ -114,7 +114,7 @@ export function SettingsImportPreview({
         {error && <span className="text-xs text-statusFail">{error}</span>}
 
         {/* Its own scroller keeps the footer's Cancel on screen. */}
-        <div className="flex max-h-[52vh] min-w-0 flex-col gap-4 overflow-y-auto pr-1">
+        <div className="flex max-h-[52vh] min-w-0 flex-col gap-4 overflow-y-auto pe-1">
           {[...grouped].map(([group, groupRows]) => (
             <div key={group} className="flex min-w-0 flex-col gap-2">
               <span className="text-[11px] font-medium uppercase tracking-[1px] text-carbon-textMuted">

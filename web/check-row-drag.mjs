@@ -1,6 +1,6 @@
 // The download list's drag arithmetic, on plain numbers.
 //
-// Four faults are guarded here:
+// Five faults are guarded here:
 //
 //   1. A folder aims at whole folders, not at their headers. A header is 44px
 //      of a folder three hundred pixels tall once it is open, so aiming at
@@ -15,12 +15,16 @@
 //      several units and the rows it holds are not landing places for
 //      themselves. selectedBlock decides what travels and aimAt takes the block
 //      rather than one row.
+//   5. The carried block floats under the pointer as one run, the way it will
+//      land, and stops at either end of the list instead of growing a
+//      scrollbar (carriedOffsets).
 //
 // Run: `node web/check-row-drag.mjs`. Node reads the TypeScript module
 // directly; nothing here touches React or a DOM, which is why the arithmetic
 // sits outside the component.
 import {
   aimAt,
+  carriedOffsets,
   pastThreshold,
   previewOrder,
   selectedBlock,
@@ -212,8 +216,41 @@ check('the folder it passed slides down by the moved block', offsets?.get('pkg:A
 check('every drawn row gets an offset', offsets?.size, slots.length);
 check('a snapshot that no longer describes the list gives up whole', stackOffsets(slots, wanted.slice(1), key), null);
 
+// 9. The carried block is drawn under the pointer, stacked as it would land,
+// and never past either end of the list.
+const bravo = new Set(['pkg:Bravo', 'task:b1', 'task:b2']);
+const bounds = { top: 0, bottom: 268 };
+const up100 = carriedOffsets(slots, offsets, bravo, 'pkg:Bravo', -100, bounds, key);
+check('the carried folder moves with the pointer', [...up100.values()], [-100, -100, -100]);
+check(
+  'the carried folder stops at the top of the list',
+  carriedOffsets(slots, offsets, bravo, 'pkg:Bravo', -200, bounds, key).get('pkg:Bravo'),
+  -152,
+);
+const alpha = new Set(['pkg:Alpha', 'task:a1', 'task:a2', 'task:a3']);
+check(
+  'and at the bottom of the list',
+  carriedOffsets(slots, new Map(), alpha, 'pkg:Alpha', 200, bounds, key).get('pkg:Alpha'),
+  116,
+);
+// a1 lands at 116..152 and b1 right under it, so b1 is drawn right under a1.
+const gathered = carriedOffsets(
+  slots,
+  new Map([
+    ['task:a1', 72],
+    ['task:b1', -44],
+  ]),
+  new Set(['task:a1', 'task:b1', 'task:zz']),
+  'task:a1',
+  10,
+  bounds,
+  key,
+);
+check('a scattered selection gathers under the pressed row', [gathered.get('task:a1'), gathered.get('task:b1')], [10, -106]);
+check('a carried row the snapshot never measured is left alone', gathered.has('task:zz'), false);
+
 if (failed > 0) {
   console.error(`\n${failed} drag check(s) failed.`);
   process.exit(1);
 }
-console.log('row drag: aim, block, threshold, preview and offsets agree.');
+console.log('row drag: aim, block, threshold, preview, offsets and the carried block agree.');

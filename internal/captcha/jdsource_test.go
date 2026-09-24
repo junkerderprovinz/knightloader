@@ -258,6 +258,38 @@ func TestJDSourceListWidgetPayload(t *testing.T) {
 	}
 }
 
+// The vendor comes from JD's challenge class, which is the only place the two
+// differ. JD rewrites Type to RecaptchaV2Challenge for an hCaptcha when it
+// takes the caller for MyJDownloader's web interface, so ChallengeType decides.
+func TestJDSourceListNamesTheWidgetVendor(t *testing.T) {
+	cases := []struct {
+		name, challengeType, typ, want string
+	}{
+		{"reCAPTCHA", "RecaptchaV2Challenge", "RecaptchaV2Challenge", VendorRecaptcha},
+		{"hCaptcha", "HCaptchaChallenge", "HCaptchaChallenge", VendorHCaptcha},
+		{"hCaptcha relabelled for the web interface", "HCaptchaChallenge", "RecaptchaV2Challenge", VendorHCaptcha},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			fake := &fakeJDCaptcha{
+				jobs:    []jdCaptchaJob{{ID: 4, ChallengeType: c.challengeType, Type: c.typ}},
+				widgets: map[int64]jdWidgetToken{4: {SiteKey: "10000000-ffff-ffff-ffff-000000000001", Type: "NORMAL"}},
+			}
+			got, err := newTestSource(t, fake).List(context.Background())
+			if err != nil {
+				t.Fatalf("List: %v", err)
+			}
+			p, ok := got[0].Payload.(*WidgetPayload)
+			if !ok {
+				t.Fatalf("Payload = %T, want *WidgetPayload", got[0].Payload)
+			}
+			if p.Vendor != c.want {
+				t.Errorf("Vendor = %q, want %q", p.Vendor, c.want)
+			}
+		})
+	}
+}
+
 // A non-positive Remaining, JD's "no timeout configured", leaves ExpiresAt at
 // the zero time rather than an invented deadline.
 func TestJDSourceListNoTimeoutLeavesExpiresAtZero(t *testing.T) {

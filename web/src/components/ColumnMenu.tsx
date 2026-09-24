@@ -113,7 +113,7 @@ export function ColumnMenu({
               <Mark on={shown} />
               <span className="truncate">{t(c.labelKey)}</span>
             </button>
-            {disabled && <InfoBubble tip={locked ? t('columns.alwaysShown') : t('columns.lastVisible')} className="mr-1.5" />}
+            {disabled && <InfoBubble tip={locked ? t('columns.alwaysShown') : t('columns.lastVisible')} className="me-1.5" />}
           </div>
         );
       })}

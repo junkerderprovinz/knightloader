@@ -16,6 +16,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -607,6 +608,7 @@ func (a *App) SetTaskOptions(ids []string, o TaskOptions) error {
 
 	a.mu.Lock()
 	var renameErr error
+	var reprobe []string
 	touched := map[string]*core.Task{}
 	for _, id := range ids {
 		t := a.tasks[id]
@@ -639,9 +641,11 @@ func (a *App) SetTaskOptions(ids []string, o TaskOptions) error {
 			}
 			t.Variant = variantEncode(kind, strings.TrimSpace(*o.VariantQuality))
 		}
-		if o.VariantQuality != nil || o.AudioBitrate != nil {
+		if (o.VariantQuality != nil || o.AudioBitrate != nil) && t.Status == core.StatusCollected {
 			// A new pick is a different file: its extension and size follow.
-			a.reapplyProbeLocked(t)
+			if !a.reapplyProbeLocked(t) && !slices.Contains(reprobe, t.URL) {
+				reprobe = append(reprobe, t.URL)
+			}
 		}
 		if o.Filename != nil {
 			t.Filename = newName
@@ -683,6 +687,9 @@ func (a *App) SetTaskOptions(ids []string, o TaskOptions) error {
 	}
 	a.mu.Unlock()
 	a.saveAndBroadcast(copies)
+	for _, u := range reprobe {
+		a.spawn(func() { a.reprobeYtdlp(u) })
+	}
 	// Through SetPriority, which clamps, re-sorts and dispatches; last because it
 	// takes the lock itself.
 	if o.Priority != nil {

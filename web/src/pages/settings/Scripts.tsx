@@ -340,7 +340,7 @@ function ScriptRow({
           name={cx('settings.scripts.use')}
           hue={index}
         />
-        <button type="button" onClick={onToggle} aria-expanded={open} className="flex min-w-0 items-center gap-3 text-left">
+        <button type="button" onClick={onToggle} aria-expanded={open} className="flex min-w-0 items-center gap-3 text-start">
           <span className="min-w-0 flex-1">
             <span className="flex items-center gap-2">
               <span className="truncate text-sm text-carbon-text">{title}</span>

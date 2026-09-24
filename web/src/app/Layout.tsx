@@ -129,7 +129,7 @@ function ShellBar({ visible }: { visible: boolean }) {
     <div
       role="region"
       aria-label={t('shell.bar')}
-      className={`glim-card mx-6 mb-6 flex-wrap items-center gap-x-6 gap-y-4 p-5 md:mx-8 md:mb-8
+      className={`glim-card mb-6 flex-wrap items-center gap-x-6 gap-y-4 p-5 sm:mx-6 md:mx-8 md:mb-8
         ${visible ? 'flex' : 'hidden'}`}
     >
       {/* Named only when it is not this machine, so it stands out when it
@@ -212,8 +212,9 @@ export function Layout() {
       {/* The frame holds the spacing (GlimStone 1.8.0: the rail is a card, 1rem
           all round), so the gap between rail and content and the gap around
           both are one number. The content column therefore only has
-          horizontal padding. */}
-      <div className="flex h-screen gap-4 overflow-hidden bg-carbon-background p-4">
+          horizontal padding. On a phone the rail is a bar under the page, and
+          the dynamic height keeps it above the browser's own toolbar. */}
+      <div className="flex h-dvh flex-col gap-4 overflow-hidden bg-carbon-background p-4 md:flex-row">
         <Sidebar />
         <main className={`flex-1 min-w-0 ${ownsFrame ? 'overflow-hidden' : 'overflow-y-auto'}`}>
           <ShellBar visible={section === 'downloads'} />
@@ -230,7 +231,7 @@ export function Layout() {
             className={
               ownsFrame
                 ? 'glim-page-enter flex h-full w-full min-h-0 flex-col'
-                : 'glim-page-enter glim-column-top flex w-full min-h-full flex-col px-6 md:px-8'
+                : 'glim-page-enter glim-column-top flex w-full min-h-full flex-col sm:px-6 md:px-8'
             }
           >
             <Outlet />

@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"path/filepath"
+	"slices"
 	"sync"
 	"testing"
 
@@ -781,6 +782,75 @@ func TestBackfillLeavesRowsThatAlreadyHaveAMenuAlone(t *testing.T) {
 	}
 }
 
+// A stored row can hold one menu of tracks and formats mixed, which the format
+// picker would list as formats. The backfill probes it again and splits it.
+func TestBackfillSplitsAMenuOfTracksAndFormatsMixed(t *testing.T) {
+	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+	const url = "https://youtube.com/watch?v=backfill03"
+	family := putYtdlpFamily(t, a, url, nil)
+	a.mu.Lock()
+	a.tasks[family[ytdlp.VariantVideo].ID].AvailableQualities = []string{"best", "1080p", "144p"}
+	a.tasks[family[ytdlp.VariantVideo].ID].AvailableVideoFormats = []string{"1080p mp4 avc1", "144p mp4 avc1"}
+	a.tasks[family[ytdlp.VariantAudio].ID].AvailableAudioFormats = []string{"best", "m4a 129k", "aac", "m4a"}
+	a.mu.Unlock()
+
+	var asked []string
+	wireYtdlp(a, countingYtdlpBackend{formats: testProbeFormats, mu: &sync.Mutex{}, asked: &asked})
+	a.backfillYtdlpProbes()
+
+	if len(asked) != 1 {
+		t.Fatalf("the backfill asked about %v, want one probe for %q", asked, url)
+	}
+	video := snapshot(t, a, family[ytdlp.VariantVideo].ID)
+	if want := []string{"best", "mp4 avc1"}; !slices.Equal(video.AvailableVideoFormats, want) {
+		t.Errorf("AvailableVideoFormats = %v, want %v", video.AvailableVideoFormats, want)
+	}
+	if len(video.AvailableVideoTracks) == 0 {
+		t.Error("the video row has no tracks after the backfill")
+	}
+	audio := snapshot(t, a, family[ytdlp.VariantAudio].ID)
+	if want := []string{"best", "m4a"}; !slices.Equal(audio.AvailableAudioFormats, want) {
+		t.Errorf("AvailableAudioFormats = %v, want %v", audio.AvailableAudioFormats, want)
+	}
+	if want := []string{"m4a 129k"}; !slices.Equal(audio.AvailableAudioTracks, want) {
+		t.Errorf("AvailableAudioTracks = %v, want %v", audio.AvailableAudioTracks, want)
+	}
+}
+
+// Without a kept format list, as after a restart, a new pick would go on
+// showing the old pick's size. It shows none until a fresh probe measures it.
+func TestAPickWithoutAKeptProbeIsMeasuredByAFreshOne(t *testing.T) {
+	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+	const url = "https://youtube.com/watch?v=reprobe001"
+	family := putYtdlpFamily(t, a, url, nil)
+	video := family[ytdlp.VariantVideo].ID
+	a.mu.Lock()
+	a.tasks[video].Size = 999
+	a.tasks[video].Ext = "webm"
+	a.mu.Unlock()
+
+	var asked []string
+	var mu sync.Mutex
+	wireYtdlp(a, countingYtdlpBackend{formats: testProbeFormats, mu: &mu, asked: &asked})
+	pick := "144p mp4 avc1"
+	if err := a.SetTaskOptions([]string{video}, TaskOptions{VariantQuality: &pick}); err != nil {
+		t.Fatal(err)
+	}
+
+	waitFor(t, "the fresh probe's size on the row", func() bool {
+		got := snapshot(t, a, video)
+		return got.Size == 195278+3145728
+	})
+	if got := snapshot(t, a, video); got.Ext != "mp4" {
+		t.Errorf("Ext = %q, want mp4, the 144p track's own container", got.Ext)
+	}
+	mu.Lock()
+	defer mu.Unlock()
+	if len(asked) != 1 {
+		t.Errorf("probed %v, want one probe for %q", asked, url)
+	}
+}
+
 // Thumbnail, subtitle, description and a fixed-format audio row know their
 // extension without a probe, so an unreachable source still shows them.
 func TestTheFourFixedExtensionsNeedNoProbe(t *testing.T) {
@@ -1047,10 +1117,10 @@ func TestAnOldAacRowBecomesTheNearestM4aTrack(t *testing.T) {
 	}
 }
 
-// youtubeProbe is how a YouTube probe answers since most of its streams moved
-// to HLS: each height is listed first as an HLS copy whose size is only the
-// estimate ProbeTitle made from its bitrate, then as direct downloads with an
-// exact size. format_id marked the av1 and opus pair yt-dlp picks by default.
+// youtubeProbe is how a YouTube probe answers: each height is listed first as
+// an HLS copy whose size is only the estimate ProbeTitle made from its bitrate,
+// then as direct downloads with an exact size. format_id marked the av1 and
+// opus pair yt-dlp picks by default.
 var youtubeProbe = []ytdlp.FormatEntry{
 	{FormatID: "140", Ext: "m4a", Vcodec: "none", Acodec: "mp4a.40.2", Abr: 129.502, Filesize: 3449447, Protocol: "https"},
 	{FormatID: "251", Ext: "webm", Vcodec: "none", Acodec: "opus", Abr: 128.93, Filesize: 3433755, Protocol: "https", Default: true},
@@ -1061,10 +1131,8 @@ var youtubeProbe = []ytdlp.FormatEntry{
 	{FormatID: "401", Ext: "mp4", Vcodec: "av01.0.12M.08", Acodec: "none", Height: 2160, FPS: 25, Filesize: 240334643, Protocol: "https", Default: true},
 }
 
-// The collector showed no size for YouTube links: the tallest track it
-// measured was the HLS copy listed first, which reports none, and the audio of
-// the merge was never counted. The size is the pair yt-dlp downloads, and it
-// follows every change of format and quality.
+// The size is the pair yt-dlp downloads, the direct copy of a track over the
+// HLS one listed first, and it follows every change of format and quality.
 func TestAYoutubeLinkShowsTheSizeOfWhatItDownloads(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
 	const url = "https://youtube.com/watch?v=dQw4w9WgXcQ"
@@ -1092,8 +1160,9 @@ func TestAYoutubeLinkShowsTheSizeOfWhatItDownloads(t *testing.T) {
 	if got := pick(video, "1080p mp4 avc1"); got.Ext != "mp4" || got.Size != 80911999+3449447 {
 		t.Errorf("1080p mp4 avc1: Ext %q Size %d, want mp4 and %d", got.Ext, got.Size, 80911999+3449447)
 	}
-	if got := pick(video, "2160p mp4 vp9"); got.Size != 509008150+3449447 {
-		t.Errorf("2160p mp4 vp9, only on HLS: Size %d, want its estimate and the audio, %d", got.Size, 509008150+3449447)
+	// yt-dlp merges vp9 into mkv, whatever container the host served it in.
+	if got := pick(video, "2160p mp4 vp9"); got.Ext != "mkv" || got.Size != 509008150+3449447 {
+		t.Errorf("2160p mp4 vp9, only on HLS: Ext %q Size %d, want mkv, its estimate and the audio, %d", got.Ext, got.Size, 509008150+3449447)
 	}
 	if got := pick(audio, "m4a"); got.Ext != "m4a" || got.Size != 3449447 {
 		t.Errorf("m4a: Ext %q Size %d, want the m4a track's 3449447", got.Ext, got.Size)

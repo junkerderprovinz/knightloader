@@ -16,6 +16,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/api"
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
+	"github.com/junkerderprovinz/knightloader/internal/cnl"
 	"github.com/junkerderprovinz/knightloader/internal/logring"
 	"github.com/junkerderprovinz/knightloader/internal/provision"
 	"github.com/junkerderprovinz/knightloader/internal/update"
@@ -53,6 +54,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("start: %v", err)
 	}
+
+	// The browser whose Click'n'Load buttons post to 127.0.0.1 runs on this
+	// machine, so the desktop build listens the way the server does, KL_CNL
+	// included.
+	a.CnL = cnl.Listen(a)
 
 	// Outside app.New because every test calls the constructor and this spawns
 	// four processes. KL_STARTUP_CHECK=0 turns it off, as on the server.
@@ -130,6 +136,7 @@ func main() {
 		OnBeforeClose:     tc.onBeforeClose,
 		OnShutdown: func(context.Context) {
 			tc.onShutdown()
+			a.CnL.Stop()
 			_ = a.Close()
 			// After a.Close so the shutdown's own records reach the file.
 			// Writes are unbuffered; closing releases the Windows handle.

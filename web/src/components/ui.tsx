@@ -3,7 +3,7 @@
 // that file.
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import type { ButtonHTMLAttributes, CSSProperties, InputHTMLAttributes, ReactNode, RefObject } from 'react';
+import type { ButtonHTMLAttributes, CSSProperties, InputHTMLAttributes, ReactNode, Ref, RefObject } from 'react';
 import { hueVars, rainbowAt } from '../lib/appearance';
 // Every component in this file that paints a palette position calls
 // useRainbow(), so it renders again when the palette moves under it.
@@ -11,7 +11,7 @@ import { useRainbow } from '../lib/useRainbow';
 import { useNavLabels } from '../lib/navLabels';
 import { useDialogMute, type DialogId } from '../lib/dialogmute';
 import { useT } from '../lib/i18n';
-import { IconEye, IconEyeOff } from '../lib/icons';
+import { IconExternalLink, IconEye, IconEyeOff } from '../lib/icons';
 import { openColorPickerPopover } from '../lib/colorPicker';
 
 /**
@@ -113,6 +113,9 @@ export function Button({
   const hued = hue !== undefined;
   const hueCss = hued ? (hueVars(rainbowAt(hue)) as CSSProperties) : undefined;
   const slotted = !!hint && !iconOnly;
+  // A disabled button takes no pointer events, so a square's name, which is all
+  // it shows, is held by a box around it; see IconBadge.
+  const boxed = iconOnly && !!title && !!rest.disabled;
   // One control, one tooltip mechanism: `title` is pulled out of the props so
   // it never reaches the element, and the house bubble is the only one left.
   // Passed through, it showed the operating system's own box at the pointer
@@ -136,7 +139,7 @@ export function Button({
       // `title` never reaches the DOM, so a glyph-only button states its name
       // here. Before the spread, so a call site's own aria-label still wins.
       aria-label={iconOnly && title ? title : undefined}
-      {...(title ? tipHoverProps : undefined)}
+      {...(title && !boxed ? tipHoverProps : undefined)}
       {...rest}
     >
       {!hideIcon && icon}
@@ -150,6 +153,8 @@ export function Button({
         <HintSlot tip={hint} label={title} ink={hued ? 'text-accentContrast' : kindInk[kind]} end="end-3.5" hueCss={hueCss}>
           {button}
         </HintSlot>
+      ) : boxed ? (
+        <TipBox tip={tip}>{button}</TipBox>
       ) : (
         button
       )}
@@ -201,6 +206,22 @@ function HintSlot({
       <span className={`pointer-events-none absolute inset-y-0 flex items-center ${end} ${ink}`}>
         <InfoBubble tip={tip} label={label} onColor className="pointer-events-auto" />
       </span>
+    </span>
+  );
+}
+
+/**
+ * TipBox holds the bubble of a disabled button, which fires no pointer events of
+ * its own, and gives the keyboard a stop to read it from.
+ */
+function TipBox({ tip, children }: { tip: TooltipHandle<HTMLButtonElement>; children: ReactNode }) {
+  return (
+    <span
+      {...tip.triggerProps}
+      ref={tip.triggerProps.ref as unknown as RefObject<HTMLSpanElement | null>}
+      className="inline-flex shrink-0 rounded-[var(--radius-control)]"
+    >
+      {children}
     </span>
   );
 }
@@ -367,9 +388,8 @@ export function IconBadge({
   // its accessible name intact.
   const showIcon = !(labelMode === 'text' && showText);
   const slotted = !!hint && showText;
-  // A disabled button fires no pointer events, so the bubble of a square that
-  // explains why it is disabled is held by a box around it instead, which
-  // also gives the keyboard a stop to read it from.
+  // The bubble of a disabled square that explains why it is disabled goes on
+  // TipBox, since the button itself takes no pointer events.
   const boxed = !!hint && !showText && !!rest.disabled;
   // The house bubble rather than the native `title`, fixed at the root so the
   // call sites pick it up without changing.
@@ -416,20 +436,41 @@ export function IconBadge({
       </HintSlot>
     );
   } else if (boxed) {
-    shown = (
-      <span
-        {...tip.triggerProps}
-        ref={tip.triggerProps.ref as unknown as RefObject<HTMLSpanElement | null>}
-        className="inline-flex shrink-0 rounded-[var(--radius-control)]"
-      >
-        {button}
-      </span>
-    );
+    shown = <TipBox tip={tip}>{button}</TipBox>;
   }
   return (
     <>
       {shown}
       {title && tip.node}
+    </>
+  );
+}
+
+/**
+ * LinkBadge is a labelled IconBadge that opens a website in a new tab, since a
+ * link is clickable and everything clickable is a badge (GlimStone rule 13).
+ */
+export function LinkBadge({ href, title, className = '' }: { href: string; title: string; className?: string }) {
+  const labelMode = useNavLabels();
+  const showText = labelMode === 'text' || labelMode === 'both';
+  const tip = useTooltip<HTMLAnchorElement>(title);
+  const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
+  return (
+    <>
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={showText ? undefined : title}
+        {...tipHoverProps}
+        className={`flex ${BTN_H} shrink-0 items-center justify-center gap-1.5 rounded-[var(--radius-control)]
+          transition duration-150 select-none motion-safe:active:scale-[.98]
+          ${showText ? `px-2.5 text-xs font-medium ${GLYPH_20}` : `w-[var(--btn-h)] ${GLYPH_16}`} ${iconBadgeClass} ${className}`}
+      >
+        {labelMode !== 'text' && <IconExternalLink />}
+        {showText && <span className="whitespace-nowrap">{title}</span>}
+      </a>
+      {tip.node}
     </>
   );
 }
@@ -885,7 +926,10 @@ const inputClass = `${FIELD_LOOK} w-full px-3 py-1.5 text-sm placeholder:text-ca
 // className is pulled out and merged rather than left in `props`: a JSX spread
 // applies later props last, so a caller's own className would replace the base
 // look (padding, background, focus ring) instead of extending it.
-export function TextInput({ className = '', ...props }: InputHTMLAttributes<HTMLInputElement>) {
+export function TextInput({
+  className = '',
+  ...props
+}: InputHTMLAttributes<HTMLInputElement> & { ref?: Ref<HTMLInputElement> }) {
   return <input className={`${inputClass} h-[var(--btn-h)] ${className}`} {...props} />;
 }
 
@@ -1003,7 +1047,7 @@ export function NumberInput({
       <input
         ref={field}
         type="number"
-        className={`${inputClass} h-[var(--btn-h)] glim-num glim-num-hide-spin pr-7 ${className}`}
+        className={`${inputClass} h-[var(--btn-h)] glim-num glim-num-hide-spin pe-7 ${className}`}
         value={value}
         min={min}
         max={max}
@@ -1011,7 +1055,7 @@ export function NumberInput({
         onChange={(e) => onValue(Number(e.target.value))}
         {...rest}
       />
-      <span className="absolute inset-y-0 right-1.5 flex flex-col justify-center gap-0.5">
+      <span className="absolute inset-y-0 end-1.5 flex flex-col justify-center gap-0.5">
         <button
           type="button"
           tabIndex={-1}
@@ -1075,7 +1119,7 @@ export function PasswordInput({
         onChange={(e) => onChange(e.target.value)}
         // Room for the reveal button, which is the field's own height wide, so
         // the box is square and its glyph is half of it (rule 13).
-        className="pr-8"
+        className="pe-8"
       />
       {tip.node}
       <button
@@ -1086,7 +1130,7 @@ export function PasswordInput({
         onClick={() => setReveal((r) => !r)}
         aria-label={label}
         {...tipHoverProps}
-        className="absolute inset-y-0 right-0 flex w-[var(--btn-h)] items-center justify-center text-carbon-textMuted transition-colors hover:text-carbon-text"
+        className="absolute inset-y-0 end-0 flex w-[var(--btn-h)] items-center justify-center text-carbon-textMuted transition-colors hover:text-carbon-text"
       >
         {reveal ? <IconEyeOff width={16} height={16} /> : <IconEye width={16} height={16} />}
       </button>
@@ -1126,7 +1170,7 @@ export function Toggle({
       aria-checked={checked}
       aria-label={hideLabel ? label : undefined}
       onClick={() => onChange(!checked)}
-      className={`${hue !== undefined ? 'glim-hue' : ''} flex items-center gap-3 text-left text-sm text-carbon-text select-none`}
+      className={`${hue !== undefined ? 'glim-hue' : ''} flex items-center gap-3 text-start text-sm text-carbon-text select-none`}
       style={hue !== undefined ? (hueVars(rainbowAt(hue)) as CSSProperties) : undefined}
     >
       <span
@@ -1134,15 +1178,15 @@ export function Toggle({
           checked ? 'bg-accent' : 'bg-carbon-surface3'
         }`}
       >
-        {/* left-0 is load-bearing: without it the knob starts from its static
+        {/* start-0 is load-bearing: without it the knob starts from its static
             position, which a button's inherited text-align centres, and slides
             out past the pill. Tailwind v4 animates `translate` here, not
             `transform`. `bg-carbon-background` rather than a fixed white makes
             the knob the page's own ground on the accent track, so it reads dark
             in dark mode and light in light mode. */}
         <span
-          className={`absolute left-0 top-0.5 h-4 w-4 rounded-[var(--radius-pill)] bg-carbon-background shadow-sm transition-[translate] duration-150 ${
-            checked ? 'translate-x-4' : 'translate-x-0.5'
+          className={`absolute start-0 top-0.5 h-4 w-4 rounded-[var(--radius-pill)] bg-carbon-background shadow-sm transition-[translate] duration-150 ${
+            checked ? 'translate-x-4 rtl:-translate-x-4' : 'translate-x-0.5 rtl:-translate-x-0.5'
           }`}
         />
       </span>
@@ -1498,6 +1542,11 @@ export function SectionTitle({
   );
 }
 
+// The windows that are open, the one on top last. A window opened from a
+// window, such as the folder chooser from a download's options, leaves both
+// listening for Escape, and one press closes only the top one.
+const openModals: symbol[] = [];
+
 // Modal is the one overlay treatment: a dimmed page and a single raised panel.
 // Escape and a click on the backdrop both close it, so it never traps anyone.
 export function Modal({
@@ -1539,13 +1588,22 @@ export function Modal({
   const dialogs = useDialogMute();
   const titleId = useId();
   useRainbow();
+  // A ref, so a new callback identity does not move this window's listener
+  // behind one opened later and change which window Escape closes.
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
   useEffect(() => {
+    const me = Symbol('modal');
+    openModals.push(me);
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape' && openModals[openModals.length - 1] === me) closeRef.current();
     };
     document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [onClose]);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      openModals.splice(openModals.indexOf(me), 1);
+    };
+  }, []);
 
   return (
     <div

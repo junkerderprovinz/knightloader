@@ -397,19 +397,58 @@ func applyProbeLocked(t *core.Task, p probeFacts, embedThumbnail bool) bool {
 }
 
 // reapplyProbeLocked measures a row against its link's kept format list after
-// its pick changed, and reports whether that changed anything. A link nobody
-// has probed yet keeps what it shows. Caller holds a.mu.
+// its pick changed. It reports false when no list is kept, as after a restart:
+// the extension and size the row shows then belong to its old pick, so they
+// are cleared for the caller's fresh probe (reprobeYtdlp) to fill in. Caller
+// holds a.mu.
 func (a *App) reapplyProbeLocked(t *core.Task) bool {
 	formats, ok := a.probed[t.URL]
 	if !ok {
+		kind, sub := variantDecode(t.Variant)
+		t.Ext = fixedVariantExt(kind, sub)
+		t.Size = 0
 		return false
 	}
-	return applyProbeLocked(t, readProbe(formats), a.Settings.Get().Ytdlp.Embed.Thumbnail)
+	applyProbeLocked(t, readProbe(formats), a.Settings.Get().Ytdlp.Embed.Thumbnail)
+	return true
 }
 
-// backfillYtdlpProbes probes collector rows whose quality or format menus have
-// nothing to narrow them, because they were staged before probing existed or
-// their probe never answered. Empty means no opinion, so the picker would offer
+// reprobeYtdlp asks yt-dlp for a link's formats again and applies them to its
+// rows. One probe per link runs at a time, since the wheel on a picker sends a
+// change per notch and the probe that answers measures whatever pick the rows
+// hold by then.
+func (a *App) reprobeYtdlp(rawurl string) {
+	tp, ok := a.ytdlpTitleProber()
+	if !ok {
+		return
+	}
+	a.mu.Lock()
+	if a.reprobing[rawurl] {
+		a.mu.Unlock()
+		return
+	}
+	if a.reprobing == nil {
+		a.reprobing = map[string]bool{}
+	}
+	a.reprobing[rawurl] = true
+	a.mu.Unlock()
+	defer func() {
+		a.mu.Lock()
+		delete(a.reprobing, rawurl)
+		a.mu.Unlock()
+	}()
+	ctx, cancel := context.WithTimeout(a.ctx, ytdlpProbeTimeout)
+	defer cancel()
+	res, err := tp.ProbeTitle(ctx, rawurl)
+	if err != nil {
+		return
+	}
+	a.applyProbeFormats(rawurl, res.Formats)
+}
+
+// backfillYtdlpProbes probes collector rows whose format menus the pickers
+// cannot read, because their probe never answered or filled them in another
+// shape (pickerMenusRead). Empty means no opinion, so the picker would offer
 // the full static menu (flac for a source that has no lossless track).
 //
 // It does not check the row's current resolver: routing is decided per attempt,
@@ -433,12 +472,8 @@ func (a *App) backfillYtdlpProbes() {
 		}
 		kind, _ := variantDecode(t.Variant)
 		switch kind {
-		case ytdlp.VariantVideo:
-			if len(t.AvailableQualities) > 0 {
-				continue
-			}
-		case ytdlp.VariantAudio:
-			if len(t.AvailableAudioFormats) > 0 {
+		case ytdlp.VariantVideo, ytdlp.VariantAudio:
+			if pickerMenusRead(t, kind) {
 				continue
 			}
 		default:
@@ -466,6 +501,23 @@ func (a *App) backfillYtdlpProbes() {
 		}
 		a.applyProbeFormats(u, res.Formats)
 	}
+}
+
+// pickerMenusRead reports whether a video or audio row holds format lists a
+// probe filled in the shape its pickers read: "best" first, then formats. A
+// stored row can carry the one-menu shape instead, tracks and formats mixed
+// ("m4a 129k" beside "aac"), which the format picker would offer as formats.
+func pickerMenusRead(t *core.Task, kind ytdlp.Variant) bool {
+	formats := t.AvailableVideoFormats
+	if kind == ytdlp.VariantAudio {
+		formats = t.AvailableAudioFormats
+	}
+	if len(formats) == 0 || formats[0] != string(ytdlp.QualityBest) {
+		return false
+	}
+	return !slices.ContainsFunc(formats, func(f string) bool {
+		return f == "aac" || ytdlp.IsVideoTrack(f) || ytdlp.IsAudioTrack(f)
+	})
 }
 
 // applyFixedVariantExts gives existing variant rows the extension

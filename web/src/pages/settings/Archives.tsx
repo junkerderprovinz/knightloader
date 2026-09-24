@@ -50,7 +50,7 @@ const DISPOSAL_LABEL: Partial<Record<string, TranslationKey>> = {
 
 export function Archives() {
   const { t } = useT();
-  const { cfg, patch } = useDraft();
+  const { cfg, patch, fieldError } = useDraft();
   const { options, failed } = useArchiveOptions();
 
   const choices = (ids: string[] | undefined, labels: Partial<Record<string, TranslationKey>>) =>
@@ -88,6 +88,7 @@ export function Archives() {
               placeholder={t('settings.archives.besideArchive')}
               title={t('settings.archives.destination')}
               onValue={(extractTo) => patch({ extractTo })}
+              error={fieldError('extractTo')}
             />
           </Field>
 
@@ -103,7 +104,7 @@ export function Archives() {
 
           {/* Where the finished files go once unpacked. A template counts as
               absolute by its fixed head (fixedPrefix), so a value with no fixed
-              part is cleared on save, and the path is not probed until a move
+              part is refused on save, and the path is not probed until a move
               tries it. It applies with an empty destination too. */}
           <Field
             layout="row"
@@ -115,6 +116,7 @@ export function Archives() {
               placeholder={t('settings.archives.besideArchive')}
               title={t('settings.archives.moveTo')}
               onValue={(extractMoveTo) => patch({ extractMoveTo })}
+              error={fieldError('extractMoveTo')}
             />
           </Field>
 

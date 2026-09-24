@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"regexp"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -166,11 +167,23 @@ func (c videoContainer) companionAudio() string {
 	return ""
 }
 
+// containerCodecs are the video codecs yt-dlp merges into mp4 and webm (its
+// get_compatible_ext). Anything else goes into mkv, such as the vp9 YouTube
+// serves in mp4 over HLS.
+var containerCodecs = map[string][]string{
+	"mp4":  {"avc1", "hevc", "av1"},
+	"webm": {"vp9", "vp8", "av1"},
+}
+
 // keepsContainer reports whether a merge may stay in the track's own
 // container. yt-dlp cannot embed a thumbnail into webm and fails the download
 // when asked to, so with embedThumbnail a webm pick merges into mkv.
 func (c videoContainer) keepsContainer(embedThumbnail bool) bool {
-	return c.companionAudio() != "" && !(embedThumbnail && c.ext == "webm")
+	if c.companionAudio() == "" || (embedThumbnail && c.ext == "webm") {
+		return false
+	}
+	// yt-dlp goes by the extensions where the host names no codec.
+	return c.codec.name == "" || slices.Contains(containerCodecs[c.ext], c.codec.name)
 }
 
 // mergeFormat is the --merge-output-format value: the track's own container

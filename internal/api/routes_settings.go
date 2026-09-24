@@ -35,15 +35,10 @@ func registerSettings(reg *Registry, a *app.App) {
 			if !decodeJSON(w, r, &s) {
 				return
 			}
-			// Refuse a folder we cannot write to instead of accepting it and
+			// Refuse a folder we cannot use instead of accepting it and
 			// downloading somewhere else.
-			if err := settings.Validate("the download folder", s.DownloadDir); err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
-				return
-			}
-			// Every download writes to the working folder first.
-			if err := settings.Validate("the working folder", s.WorkDir); err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
+			if err := settings.CheckFolders(s, nil); err != nil {
+				writeValidationError(w, err)
 				return
 			}
 			// Refused with the reason rather than silently dropped by sanitize.
@@ -89,12 +84,10 @@ func registerSettings(reg *Registry, a *app.App) {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
-			if err := settings.Validate("the download folder", preview.DownloadDir); err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
-				return
-			}
-			if err := settings.Validate("the working folder", preview.WorkDir); err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
+			// Only the folders the patch names, so a stored folder that went
+			// missing does not refuse an edit somewhere else.
+			if err := settings.CheckFolders(preview, patched(patch)); err != nil {
+				writeValidationError(w, err)
 				return
 			}
 			if err := validateRows(preview); err != nil {
@@ -178,9 +171,26 @@ func writeValidationError(w http.ResponseWriter, err error) {
 			out["params"] = params
 		}
 	}
+	// A top-level folder's refusal names its field, so the page shows it beside
+	// that field and saves the rest of an edit without it. A category's folder
+	// keeps the sentence, which says which category it is.
+	var pp *settings.PathProblem
+	if errors.As(err, &pp) && pp.Field != "" {
+		out["code"] = "pathProblem." + pp.Code
+		out["params"] = map[string]any{"dir": pp.Dir}
+		out["field"] = pp.Field
+	}
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusBadRequest)
 	_ = json.NewEncoder(w).Encode(out)
+}
+
+// patched reports whether a patch names a top-level field.
+func patched(patch map[string]json.RawMessage) func(key string) bool {
+	return func(key string) bool {
+		_, ok := patch[key]
+		return ok
+	}
 }
 
 // validateRows refuses the rows that carry their own validator, naming the one

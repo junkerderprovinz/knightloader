@@ -26,7 +26,6 @@ func registerAll(reg *Registry, a *app.App) {
 	registerExtract(reg, a)
 	registerBulk(reg, a)
 	registerQueue(reg, a)
-	registerControls(reg, a)
 	registerLinks(reg, a)
 	registerContainers(reg, a)
 	registerSettings(reg, a)

@@ -1,3 +1,4 @@
+import { ApiError } from '../../lib/api';
 import { useT, type TranslationKey } from '../../lib/i18n';
 import { en } from '../../lib/locales/en';
 import type { Feature } from './features';
@@ -26,17 +27,47 @@ export function label(
   return key in en ? tx(key) : id;
 }
 
+type Tx = (key: TranslationKey, vars?: Record<string, string | number>) => string;
+
 /**
  * moduleDetail is a module's live line in the reader's language where the
  * server sent a code this build has words for, and the server's English
  * sentence otherwise, such as from a newer server.
  */
-export function moduleDetail(
-  tx: (key: TranslationKey, vars?: Record<string, string | number>) => string,
-  m: Feature,
+export function moduleDetail(tx: Tx, m: Feature): string | undefined {
+  return moduleLine(tx, 'settings.modules.detail.', m.detailCode, m.detailArgs, m.detail);
+}
+
+/** moduleReason is moduleDetail for why a module has no switch or is not in this build. */
+export function moduleReason(tx: Tx, m: Feature): string | undefined {
+  return moduleLine(tx, 'settings.modules.reason.', m.reasonCode, m.reasonArgs, m.reason);
+}
+
+function moduleLine(
+  tx: Tx,
+  prefix: string,
+  code: string | undefined,
+  args: Record<string, string> | undefined,
+  english: string | undefined,
 ): string | undefined {
-  const key = `settings.modules.detail.${m.detailCode}` as TranslationKey;
-  return m.detailCode && key in en ? tx(key, m.detailArgs) : m.detail;
+  if (!code) return english;
+  // A reconnect problem comes with the code the Reconnect page words already.
+  const key = (
+    code.startsWith('reconnect.') ? `settings.reconnect.reason.${code.slice('reconnect.'.length)}` : prefix + code
+  ) as TranslationKey;
+  return key in en ? tx(key, args) : english;
+}
+
+/**
+ * refusalText words a save the server refused: by its code where this build has
+ * words for it, and in the server's own sentence otherwise.
+ */
+export function refusalText(tx: Tx, e: unknown): string {
+  if (e instanceof ApiError && e.code) {
+    const key = `settings.${e.code}`.replace('settings.reconnect.', 'settings.reconnect.reason.') as TranslationKey;
+    if (key in en) return tx(key, e.params);
+  }
+  return String(e).replace(/^(Error|ApiError):\s*/, '');
 }
 
 type ChoicePrefix = 'settings.advanced.mirror.' | 'settings.advanced.offline.' | 'settings.advanced.reclaim.';

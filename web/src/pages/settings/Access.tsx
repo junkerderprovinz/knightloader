@@ -420,53 +420,6 @@ function RemoteAccessCard({
 
   return (
     <Card hue={1} className="flex flex-col gap-4">
-      {/* The how-it-works bubble and the connection state sit in the title row,
-          positioned absolutely inside the padding so the row adds no height;
-          the lead paragraph's pr-72 keeps text from running under them. */}
-      <div className="absolute right-5 top-4 z-10 flex items-center gap-2">
-        <LabelBadge
-          label={t('settings.access.phrase.howButton')}
-          tip={paragraphs(t('settings.access.phrase.howWhat'))}
-          hue={2}
-        />
-        {/* Four sentences, since "disconnected" can mean no relay configured
-            or a configured relay out of reach. */}
-        <LabelBadge
-          label={
-            conn.connected
-              ? t('settings.access.phrase.statusConnected')
-              : t('settings.access.phrase.statusDisconnected')
-          }
-          tip={
-            conn.connected
-              ? conn.relayMode === 'own'
-                ? t('settings.access.phrase.statusHintOwn')
-                : t('settings.access.phrase.statusHintProject')
-              : conn.relayMode === 'off'
-                ? t('settings.access.phrase.statusHintOff')
-                : t('settings.access.phrase.statusHintLost')
-          }
-          tone={conn.connected ? 'ok' : 'fail'}
-        />
-        {/* Which relay carries the words, as a reading; the switches live in the
-            relay cards below. The address is in the tip. */}
-        <LabelBadge
-          label={
-            conn.relayMode === 'off'
-              ? t('settings.access.relay.none')
-              : conn.relayMode === 'own'
-                ? t('settings.access.relay.own')
-                : t('settings.access.relay.project')
-          }
-          tip={
-            conn.relayMode === 'off'
-              ? t('settings.access.relay.noneHint')
-              : t('settings.access.relay.whichHint', { address: conn.relayUrl })
-          }
-          tone={conn.relayMode === 'own' ? 'ok' : undefined}
-        />
-      </div>
-
       <SectionTitle hint={t('settings.access.phrase.body')}>
         {t('settings.access.cardTitle')}
       </SectionTitle>
@@ -474,8 +427,56 @@ function RemoteAccessCard({
       {/* A numbered how-to before any button, still shown after setup for the
           next instance. */}
       <div className="flex flex-col gap-2">
-        <p className="pr-72 text-sm text-carbon-textSub">{t('settings.access.phrase.howLead')}</p>
-        <ol className="list-decimal space-y-1.5 pl-4 text-sm text-carbon-textSub">
+        {/* The how-it-works bubble and the connection state share the lead's
+            line and wrap under it when the words run long, which a length
+            given in advance cannot promise in every language. */}
+        <div className="flex flex-wrap items-start gap-x-4 gap-y-2">
+          <p className="min-w-0 flex-1 basis-64 text-sm text-carbon-textSub">{t('settings.access.phrase.howLead')}</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <LabelBadge
+              label={t('settings.access.phrase.howButton')}
+              tip={paragraphs(t('settings.access.phrase.howWhat'))}
+              hue={2}
+            />
+            {/* Four sentences, since "disconnected" can mean no relay configured
+                or a configured relay out of reach. */}
+            <LabelBadge
+              label={
+                conn.connected
+                  ? t('settings.access.phrase.statusConnected')
+                  : t('settings.access.phrase.statusDisconnected')
+              }
+              tip={
+                conn.connected
+                  ? conn.relayMode === 'own'
+                    ? t('settings.access.phrase.statusHintOwn')
+                    : t('settings.access.phrase.statusHintProject')
+                  : conn.relayMode === 'off'
+                    ? t('settings.access.phrase.statusHintOff')
+                    : t('settings.access.phrase.statusHintLost')
+              }
+              tone={conn.connected ? 'ok' : 'fail'}
+            />
+            {/* Which relay carries the words, as a reading; the switches live in the
+                relay cards below. The address is in the tip. */}
+            <LabelBadge
+              label={
+                conn.relayMode === 'off'
+                  ? t('settings.access.relay.none')
+                  : conn.relayMode === 'own'
+                    ? t('settings.access.relay.own')
+                    : t('settings.access.relay.project')
+              }
+              tip={
+                conn.relayMode === 'off'
+                  ? t('settings.access.relay.noneHint')
+                  : t('settings.access.relay.whichHint', { address: conn.relayUrl })
+              }
+              tone={conn.relayMode === 'own' ? 'ok' : undefined}
+            />
+          </div>
+        </div>
+        <ol className="list-decimal space-y-1.5 ps-4 text-sm text-carbon-textSub">
           {/* Button names are interpolated from the buttons' own keys, so the
               steps cannot drift from the labels. */}
           <li>{t('settings.access.phrase.howStep1', { button: t('settings.access.phrase.activate') })}</li>

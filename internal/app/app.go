@@ -28,6 +28,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
 	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 	"github.com/junkerderprovinz/knightloader/internal/auth"
+	"github.com/junkerderprovinz/knightloader/internal/cnl"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/crawler"
 	"github.com/junkerderprovinz/knightloader/internal/dedupe"
@@ -156,15 +157,11 @@ type App struct {
 	// what to fix.
 	RequestSuspend func() error
 
-	// CnLPort and CnLToggle are set by cmd/knightloader/main.go, the only
-	// embedding that starts a Click'n'Load listener. Nil means not supported
-	// here.
-	//
-	// CnLPort reports the port actually bound, or 0 when the listener is down.
-	// The toggle is not persisted: KL_CNL is the deployment's decision, and
-	// this is an in-process pause on top of it.
-	CnLPort   func() int
-	CnLToggle func(on bool) error
+	// CnL is the Click'n'Load listener the embedding started, nil where it
+	// started none. The server and the desktop build both set it. Its switch is
+	// not persisted: KL_CNL is the deployment's decision, and switching the
+	// listener off is an in-process pause on top of it.
+	CnL *cnl.Listener
 
 	// ctx is cancelled by Close. It bounds work that outlives its caller: a
 	// reconnect can hold the line for its whole timeout, and a shutdown must
@@ -307,6 +304,8 @@ type App struct {
 	// after the probe gets its own extension and size without asking the host
 	// again. Read and written under mu, built on first use.
 	probed map[string][]ytdlp.FormatEntry
+	// reprobing holds the links reprobeYtdlp is asking about, under mu.
+	reprobing map[string]bool
 	// iconCache is the hoster-icon cache (app_hostericons.go), embedded so its
 	// fields stay in that file. It is built on first use.
 	iconCache
@@ -388,9 +387,10 @@ func New(dataDir string) (*App, error) {
 	}
 	a.Reconnector = rc
 	a.sched, err = schedule.NewRunner(schedule.Options{
-		Entries: s.Schedule,
-		Base:    a.scheduleBase,
-		Apply:   a.applySchedule,
+		Entries:    s.Schedule,
+		Base:       a.scheduleBase,
+		Apply:      a.applySchedule,
+		Suspension: a.storedSuspension(time.Now()),
 	})
 	if err != nil {
 		st.Close()

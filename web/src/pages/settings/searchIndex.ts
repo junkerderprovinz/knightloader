@@ -121,8 +121,8 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     {
       title: 'settings.downloads.limitsTitle',
       rows: [
-        { key: 'settings.maxConcurrent' },
-        { key: 'settings.maxPerHost' },
+        { key: 'settings.maxConcurrent', hint: 'settings.maxConcurrentHint' },
+        { key: 'settings.maxPerHost', hint: 'settings.maxPerHostHint' },
         { key: 'settings.chunks', hint: 'settings.chunksHint' },
         { key: 'settings.speedLimit', hint: 'settings.speedHint' },
         { key: 'settings.maxRetries', hint: 'settings.maxRetriesHint' },
@@ -496,6 +496,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       title: 'settings.reconnect.runTitle',
       rows: [],
       also: [
+        'settings.reconnect.runNow',
         'settings.reconnect.stateConfigured',
         'settings.reconnect.stateNotConfigured',
         'settings.reconnect.stateBusy',
@@ -654,7 +655,17 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
   ],
 
   automation: [
-    { title: 'settings.schedule.statusTitle', rows: [] },
+    {
+      title: 'settings.schedule.statusTitle',
+      rows: [{ key: 'settings.schedule.suspend', hint: 'settings.schedule.suspendHint' }],
+      also: [
+        'settings.schedule.suspend.hour',
+        'settings.schedule.suspend.threeHours',
+        'settings.schedule.suspend.midnight',
+        'settings.schedule.suspend.open',
+      ],
+      body: ['settings.schedule.stateNow.suspendedOpen'],
+    },
     {
       title: 'settings.schedule.listTitle',
       hint: 'settings.schedule.orderHint',

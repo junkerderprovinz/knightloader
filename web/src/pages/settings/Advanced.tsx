@@ -11,7 +11,9 @@ import {
   TextArea,
   TextInput,
 } from '../../components/ui';
+import { PathInput } from '../../components/FolderPicker';
 import { IconRetry, IconSearch } from '../../lib/icons';
+import { PATH_KEYS } from '../../lib/settingsTransfer';
 import { useDraft } from './context';
 import { NeutralSwitch } from './controls';
 import { fetchSettingsSchema, type SettingsSchema } from './features';
@@ -313,15 +315,15 @@ function ValueEditor({
           {badJSON && <span className="text-[11px] text-statusFail">{tx('settings.advanced.badJson')}</span>}
         </div>
       );
-    default:
+    default: {
+      const value = row.value === null || row.value === undefined ? '' : String(row.value);
+      if (PATH_KEYS.includes(row.path)) {
+        return <PathInput label={row.path} value={value} onValue={(v) => onWrite(row.path, v)} />;
+      }
       return (
-        <TextInput
-          dir="ltr"
-          spellCheck={false}
-          value={row.value === null || row.value === undefined ? '' : String(row.value)}
-          onChange={(e) => onWrite(row.path, e.target.value)}
-        />
+        <TextInput dir="ltr" spellCheck={false} value={value} onChange={(e) => onWrite(row.path, e.target.value)} />
       );
+    }
   }
 }
 

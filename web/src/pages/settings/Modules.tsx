@@ -9,7 +9,7 @@ import { useFeatures } from './context';
 import type { Feature } from './features';
 import { clearJump, requestJump } from './jump';
 import { SETTINGS_INDEX } from './searchIndex';
-import { label, moduleDetail, useTx } from './tx';
+import { label, moduleDetail, moduleReason, useTx } from './tx';
 
 /**
  * Modules lists what this build contains, with a switch on every module the
@@ -65,7 +65,7 @@ function Row({ m, hue }: { m: Feature; hue: number }) {
   const blocked = m.switch === 'none' || nothingToRestore;
   const reason = nothingToRestore
     ? tx('settings.modules.configureFirst', { page: label(tx, 'settings.nav.', m.page) })
-    : m.reason;
+    : moduleReason(tx, m);
   const dimmed = !m.enabled && shipped;
   const page = m.page !== 'modules' ? m.page : '';
 

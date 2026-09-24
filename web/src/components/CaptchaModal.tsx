@@ -12,7 +12,7 @@ import {
   type CaptchaResolution,
   type CaptchaUnsupportedPayload,
 } from '../lib/api';
-import { Button, Modal, TextInput } from './ui';
+import { Button, InfoBubble, Modal, TextInput } from './ui';
 import { IconClock, IconClose } from '../lib/icons';
 import { useT } from '../lib/i18n';
 import { captchaIsNew, forgetCaptcha, seedCaptchasSeen } from '../lib/notify';
@@ -59,6 +59,10 @@ function pickCurrent(challenges: Record<string, CaptchaChallenge>): CaptchaChall
   return list[0];
 }
 
+// The widget page's error details that mean the vendor was never reached, as
+// opposed to a code the vendor sent back.
+const UNREACHABLE = ['script', 'timeout', 'network'];
+
 interface ClickPoint {
   // Fractions of the rendered image, converted to natural pixels on submit.
   xFrac: number;
@@ -66,7 +70,7 @@ interface ClickPoint {
 }
 
 export function CaptchaModal() {
-  const { t } = useT();
+  const { t, lang } = useT();
   const { toast } = useToast();
 
   const [challenges, setChallenges] = useState<Record<string, CaptchaChallenge>>({});
@@ -78,6 +82,7 @@ export function CaptchaModal() {
   const [busy, setBusy] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const [widgetStatus, setWidgetStatus] = useState<'loading' | 'ready' | 'expired' | 'error'>('loading');
+  const [widgetError, setWidgetError] = useState<string | null>(null);
   const [widgetKey, setWidgetKey] = useState(0);
   const imgRef = useRef<HTMLImageElement>(null);
 
@@ -139,6 +144,7 @@ export function CaptchaModal() {
     setAnswer('');
     setPoints([]);
     setWidgetStatus('loading');
+    setWidgetError(null);
     setFocused(false);
     setFrozenRemaining(null);
     setMoreOpen(false);
@@ -163,8 +169,10 @@ export function CaptchaModal() {
       if (!d || d.source !== 'knightloader-captcha-widget' || d.id !== id) return;
       if (d.kind === 'ready') setWidgetStatus('ready');
       else if (d.kind === 'expired') setWidgetStatus('expired');
-      else if (d.kind === 'error') setWidgetStatus('error');
-      else if (d.kind === 'solved' && d.detail) {
+      else if (d.kind === 'error') {
+        setWidgetStatus('error');
+        setWidgetError(d.detail ?? null);
+      } else if (d.kind === 'solved' && d.detail) {
         answerCaptcha(id, d.detail).then(
           ({ stillValid }) => {
             if (!stillValid) toast(t('captcha.tooLate'), 'fail', 'captcha-failed');
@@ -230,6 +238,8 @@ export function CaptchaModal() {
     try {
       const list = await refreshCaptchas();
       setChallenges(Object.fromEntries(list.map((c) => [c.id, c])));
+      setWidgetStatus('loading');
+      setWidgetError(null);
       setWidgetKey((k) => k + 1);
     } catch {
       toast(t('captcha.networkError'), 'fail', 'captcha-failed');
@@ -355,21 +365,33 @@ export function CaptchaModal() {
         </div>
       )}
 
-      {current.kind === 'widget' && (
+      {current.kind === 'widget' && widgetStatus !== 'error' && (
         <div className="flex flex-col gap-2">
           <p className="text-[11px] text-carbon-textMuted">{t('captcha.widgetHint')}</p>
           <div className="overflow-hidden rounded-[var(--radius-control)] bg-white">
             <iframe
               key={widgetKey}
-              src={captchaWidgetUrl(current)}
+              src={captchaWidgetUrl(current, lang)}
               title={t('captcha.title')}
               className="h-72 w-full border-0"
               onLoad={() => setWidgetStatus((s) => (s === 'loading' ? 'ready' : s))}
             />
           </div>
           {widgetStatus === 'expired' && <p className="text-[11px] text-statusFail">{t('captcha.tooLate')}</p>}
-          {widgetStatus === 'error' && <p className="text-[11px] text-statusFail">{t('captcha.widgetUnavailable')}</p>}
         </div>
+      )}
+
+      {current.kind === 'widget' && widgetStatus === 'error' && (
+        <p className="flex items-center gap-1.5 text-sm text-statusFail">
+          {t('captcha.widgetUnavailable')}
+          <InfoBubble
+            tip={
+              !widgetError || UNREACHABLE.includes(widgetError)
+                ? t('captcha.widgetUnreachable')
+                : t('captcha.widgetRefused', { code: widgetError })
+            }
+          />
+        </p>
       )}
 
       {current.kind === 'unsupported' && (

@@ -343,6 +343,45 @@ func TestDirectOnTopLeavesCuratedAndDebridListedHosters(t *testing.T) {
 	}
 }
 
+// A hoster's alias domain is left alone like its main domain, whether the
+// hoster is on the curated list or in JD's host list.
+func TestDirectOnTopLeavesAHosterAliasDomain(t *testing.T) {
+	a := newQueueApp(t)
+	a.Registry.Register(jd.Resolver{})
+	t.Cleanup(func() { jd.SetKnownHosts(nil) })
+	if _, err := a.SaveResolverOrder([]string{"direct", "jd"}); err != nil {
+		t.Fatal(err)
+	}
+	link := &core.Task{URL: "https://rg.to/file/0a1b2c/movie.mkv"}
+
+	jd.SetKnownHosts(nil)
+	if got := resolverIDOf(a.resolverForTaskLocked(link)); got != "jd" {
+		t.Errorf("with no JD list an rg.to link goes to %q, want jd", got)
+	}
+	jd.SetKnownHosts([]string{"rapidgator.net"})
+	if got := resolverIDOf(a.resolverForTaskLocked(link)); got != "jd" {
+		t.Errorf("with rapidgator.net on JD's list an rg.to link goes to %q, want jd", got)
+	}
+}
+
+// A login saved under an alias domain keeps its row's place for links to the
+// hoster's main domain.
+func TestALoginRowSavedUnderAnAliasRoutesTheMainDomain(t *testing.T) {
+	a := newQueueApp(t)
+	a.Registry.Register(jd.Resolver{})
+	a.Registry.Register(fakeResolver{id: "fakedebrid", prio: 50, host: "rapidgator.net"})
+	t.Cleanup(func() { jd.SetHostActive("rg.to", false) })
+	jd.SetHostActive("rg.to", true)
+
+	if _, err := a.SaveResolverOrder([]string{"login:rg.to", "fakedebrid"}); err != nil {
+		t.Fatal(err)
+	}
+	link := &core.Task{URL: "https://rapidgator.net/file/0a1b2c/movie.mkv"}
+	if got := resolverIDOf(a.resolverForTaskLocked(link)); got != "jd" {
+		t.Errorf("login row above the debrid: link goes to %q, want jd", got)
+	}
+}
+
 // While yt-dlp runs, a video site is its business wherever the direct download
 // stands, and a file hoster is never yt-dlp's even when yt-dlp is placed above
 // JD.

@@ -1,14 +1,15 @@
 package api
 
-// The folder chooser's one question: which directories are under this path.
-// Every folder field in the interface uses the same picker, so the template
-// rule in splitTemplate lives in one place.
+// The folder chooser's two requests: which directories are under this path,
+// and make a new one here. Every folder field in the interface uses the same
+// picker, so the template rule in splitTemplate lives in one place.
 //
 // The boundary is the filesystem this process can see, which in the container
 // is the image plus the operator's mounts, exactly where downloads can land.
 // KL_BROWSE_ROOTS narrows it, and symlinks are resolved so a link to / cannot
-// widen it again. The route answers with directory names only, never files,
-// sizes or contents.
+// widen it again. Listing answers with directory names only, never files,
+// sizes or contents, and creating makes one empty folder inside a folder that
+// listing would have shown.
 
 import (
 	"errors"
@@ -70,6 +71,16 @@ type folderRefusal struct {
 
 func (e folderRefusal) Error() string { return e.reason }
 
+// createRefusal is a folder that was not created. Code names the reason for
+// the interface to translate, and text says the same for everybody else.
+type createRefusal struct {
+	status int
+	code   string
+	text   string
+}
+
+func (e createRefusal) Error() string { return e.text }
+
 func registerFolders(reg *Registry, a *app.App) {
 	reg.Add(http.MethodGet, "/api/folders",
 		"the sub-folders of one directory, for the folder chooser; directory names only, never file contents",
@@ -95,6 +106,29 @@ func registerFolders(reg *Registry, a *app.App) {
 				return
 			}
 			writeJSON(w, out)
+		})
+
+	reg.Add(http.MethodPost, "/api/folders",
+		"create one empty folder, named by a single plain name, inside a folder the chooser may list",
+		func(w http.ResponseWriter, r *http.Request) {
+			var body struct {
+				Parent string `json:"parent"`
+				Name   string `json:"name"`
+			}
+			if !decodeJSON(w, r, &body) {
+				return
+			}
+			path, err := createFolder(body.Parent, body.Name)
+			if err != nil {
+				ref := createRefusal{status: http.StatusInternalServerError, text: err.Error()}
+				var bounds folderRefusal
+				if !errors.As(err, &ref) && errors.As(err, &bounds) {
+					ref = createRefusal{status: bounds.status, text: bounds.reason}
+				}
+				writeJSONStatus(w, ref.status, map[string]string{"error": ref.text, "code": ref.code})
+				return
+			}
+			writeJSONStatus(w, http.StatusCreated, map[string]string{"path": path})
 		})
 }
 
@@ -311,4 +345,89 @@ func readFolders(real, display string, roots []string) ([]folderEntry, bool, err
 		return out[:maxFolderEntries], true, nil
 	}
 	return out, false, nil
+}
+
+// createFolder makes name inside parent, which must be a folder listFolders
+// would list, and returns the new path spelled through parent like the
+// entries of a listing. The folder is made inside what parent resolves to,
+// and a single checked name cannot lead anywhere else.
+func createFolder(parent, name string) (string, error) {
+	if !filepath.IsAbs(parent) {
+		return "", createRefusal{http.StatusBadRequest, "parent", "the folder to create it in must be an absolute path"}
+	}
+	parent = filepath.Clean(parent)
+	if err := checkFolderName(name); err != nil {
+		return "", err
+	}
+	roots, err := browseRoots(parent)
+	if err != nil {
+		return "", err
+	}
+	if fi, err := os.Stat(parent); err != nil || !fi.IsDir() {
+		return "", createRefusal{http.StatusNotFound, "missing", "there is no folder at " + parent + " that this instance can see"}
+	}
+	real, ok := resolveWithin(parent, roots)
+	if !ok {
+		return "", createRefusal{http.StatusForbidden, "outside",
+			"this instance may not create folders in " + parent + "; it is outside " + strings.Join(roots, ", ")}
+	}
+	err = os.Mkdir(filepath.Join(real, name), 0o755)
+	switch {
+	case err == nil:
+		return filepath.Join(parent, name), nil
+	case errors.Is(err, fs.ErrExist):
+		return "", createRefusal{http.StatusConflict, "exists", "there is already something named " + name + " in " + parent}
+	case errors.Is(err, fs.ErrPermission):
+		return "", createRefusal{http.StatusForbidden, "denied",
+			"this instance has no permission to create a folder in " + parent}
+	}
+	return "", err
+}
+
+// maxFolderNameBytes is the longest name ext4, XFS and Btrfs accept.
+const maxFolderNameBytes = 255
+
+// windowsDeviceNames are names Windows reads as a device whatever follows the
+// first dot, so "con" and "con.old" both address the console.
+var windowsDeviceNames = map[string]bool{
+	"con": true, "prn": true, "aux": true, "nul": true,
+	"com1": true, "com2": true, "com3": true, "com4": true, "com5": true,
+	"com6": true, "com7": true, "com8": true, "com9": true,
+	"lpt1": true, "lpt2": true, "lpt3": true, "lpt4": true, "lpt5": true,
+	"lpt6": true, "lpt7": true, "lpt8": true, "lpt9": true,
+}
+
+// checkFolderName accepts a single plain folder name. The Windows rules apply
+// on every platform, since a download folder on a Linux server is often
+// opened over SMB from Windows, which cannot open such a name. The angle
+// brackets are refused anywhere, because the download folder reads them as
+// the start of a variable.
+func checkFolderName(name string) error {
+	refuse := func(code, text string) error {
+		return createRefusal{http.StatusBadRequest, code, text}
+	}
+	switch {
+	case strings.TrimSpace(name) == "":
+		return refuse("empty", "the new folder needs a name")
+	case name == "." || name == "..":
+		return refuse("dots", `"." and ".." are not folder names`)
+	case strings.ContainsAny(name, `/\`):
+		return refuse("separator", `a folder name cannot contain / or \; create one level at a time`)
+	case len(name) > maxFolderNameBytes:
+		return refuse("tooLong", "a folder name can be at most 255 bytes long")
+	case strings.ContainsAny(name, `<>:"|?*`):
+		return refuse("character", `a folder name cannot contain < > : " | ? or *`)
+	case strings.HasSuffix(name, ".") || strings.HasSuffix(name, " "):
+		return refuse("trailing", "a folder name cannot end in a dot or a space")
+	}
+	for _, r := range name {
+		if r < 0x20 || r == 0x7f {
+			return refuse("character", "a folder name cannot contain control characters")
+		}
+	}
+	base, _, _ := strings.Cut(name, ".")
+	if windowsDeviceNames[strings.ToLower(strings.TrimRight(base, " "))] {
+		return refuse("reserved", name+" is a device name on Windows, not a folder name")
+	}
+	return nil
 }

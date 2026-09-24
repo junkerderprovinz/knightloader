@@ -45,6 +45,10 @@ type Options struct {
 	// the zero state.
 	Base func() State
 
+	// Suspension is the one to start under, such as one carried over a restart.
+	// Suspend replaces it later.
+	Suspension Suspension
+
 	// Clock defaults to the wall clock.
 	Clock Clock
 }
@@ -72,6 +76,7 @@ type Runner struct {
 
 	mu      sync.Mutex
 	sched   Schedule
+	susp    Suspension
 	started bool
 }
 
@@ -96,6 +101,7 @@ func NewRunner(o Options) (*Runner, error) {
 		base:  base,
 		clock: clock,
 		sched: Compile(o.Entries),
+		susp:  o.Suspension,
 		wake:  make(chan struct{}, 1),
 		stop:  make(chan struct{}),
 		done:  make(chan struct{}),
@@ -132,6 +138,27 @@ func (r *Runner) Set(entries []Entry) {
 	r.mu.Lock()
 	r.sched = Compile(entries)
 	r.mu.Unlock()
+	r.poke()
+}
+
+// Suspend sets the timetable aside as sp says, or brings it back with the zero
+// Suspension, and applies that right away. The rows themselves stay as they are.
+func (r *Runner) Suspend(sp Suspension) {
+	r.mu.Lock()
+	r.susp = sp
+	r.mu.Unlock()
+	r.poke()
+}
+
+// Suspension is the last one Suspend installed. It may have run out already,
+// which Covers tells.
+func (r *Runner) Suspension() Suspension {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	return r.susp
+}
+
+func (r *Runner) poke() {
 	select {
 	case r.wake <- struct{}{}:
 	default:
@@ -159,11 +186,11 @@ func (r *Runner) loop() {
 		// would compute a wait of nearly zero and spin.
 		now := r.clock.Now()
 		r.mu.Lock()
-		sched := r.sched
+		sched, susp := r.sched, r.susp
 		r.mu.Unlock()
 		base := r.base()
 
-		state := sched.At(now, base)
+		state := susp.At(sched, now, base)
 		// Applying only on a change matters because Apply reaches the download
 		// engine and the UI: repeating an unchanged state at every wake-up would
 		// put a stream of no-op events in front of the user.
@@ -174,7 +201,7 @@ func (r *Runner) loop() {
 
 		var wait <-chan time.Time
 		var release func()
-		if next, ok := sched.Next(now, base); ok {
+		if next, ok := susp.Next(sched, now, base); ok {
 			wait, release = r.clock.After(next.Sub(now))
 		}
 		select {

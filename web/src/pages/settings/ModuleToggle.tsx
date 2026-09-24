@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ToggleRow } from '../../components/ui';
 import { useToast } from '../../lib/toast';
 import { useFeatures } from './context';
-import { label, useTx } from './tx';
+import { label, moduleReason, useTx } from './tx';
 
 /**
  * ModuleToggle is a module's switch on its own page. It goes through the
@@ -34,7 +34,7 @@ export function ModuleToggle({ id, hue = 0 }: { id: string; hue?: number }) {
     <ToggleRow
       hue={hue}
       label={label(tx, 'settings.module.', id)}
-      hint={m.switch === 'none' ? m.reason : tx('settings.modules.pageSwitchHint')}
+      hint={m.switch === 'none' ? moduleReason(tx, m) : tx('settings.modules.pageSwitchHint')}
       checked={m.enabled}
       disabled={busy || m.switch === 'none'}
       onChange={(next) => void onSwitch(next)}

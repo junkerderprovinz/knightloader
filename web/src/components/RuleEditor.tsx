@@ -5,9 +5,10 @@ import { useT, type TranslationKey } from '../lib/i18n';
 // file-type shorthand a condition offers.
 import type { Category as Drawer } from '../lib/api';
 import { en } from '../lib/locales/en';
-import { IconPlus, IconTrash } from '../lib/icons';
+import { IconFolder, IconPlus, IconTrash } from '../lib/icons';
 import { Button, FIELD_BOX, IconBadge, InfoBubble, TextInput } from './ui';
 import { Dropdown } from './Dropdown';
+import { FolderPicker } from './FolderPicker';
 import { Tabs } from './Tabs';
 
 // The rule editor, shared by the Packagizer and the link filter, which are one
@@ -515,6 +516,7 @@ function TemplateInput({
   onChange,
   placeholder,
   label,
+  folder = false,
 }: {
   rx: Rx;
   variables: Variable[];
@@ -524,9 +526,13 @@ function TemplateInput({
   /** The accessible name. There is no <label>, which would send a click on the
    *  variables button to the input. */
   label: string;
+  /** The template names a folder, so the box gets the folder chooser too. */
+  folder?: boolean;
 }) {
+  const { t } = useT();
   const input = useRef<HTMLInputElement>(null);
   const [menuAt, setMenuAt] = useState<{ x: number; y: number } | null>(null);
+  const [browsing, setBrowsing] = useState(false);
 
   // Inserted at the caret, not appended.
   function insert(tag: string) {
@@ -554,6 +560,32 @@ function TemplateInput({
         onChange={(e) => onChange(e.target.value)}
         className={`${FIELD_BOX} w-full px-3 text-sm placeholder:text-carbon-textMuted`}
       />
+      {folder && (
+        <Button
+          type="button"
+          kind="secondary"
+          className="shrink-0"
+          icon={<IconFolder width={16} height={16} />}
+          title={t('folders.browse')}
+          aria-label={t('folders.browse')}
+          onClick={() => setBrowsing(true)}
+        />
+      )}
+      {/* The chooser keeps the <jd:…> tail and replaces only the real folder
+          in front of it. */}
+      {browsing &&
+        createPortal(
+          <FolderPicker
+            value={value}
+            title={label}
+            onClose={() => setBrowsing(false)}
+            onPick={(next) => {
+              onChange(next);
+              setBrowsing(false);
+            }}
+          />,
+          document.body,
+        )}
       <Button
         kind="secondary"
         className="shrink-0"
@@ -939,6 +971,7 @@ function ActionField({
         <TemplateInput
           rx={rx}
           label={label}
+          folder={action.id === 'downloadDir'}
           variables={grammar.variables}
           value={(value[action.id] as string) ?? ''}
           onChange={(next) => onChange({ [action.id]: next } as Partial<RuleAction>)}

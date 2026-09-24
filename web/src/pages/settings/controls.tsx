@@ -37,7 +37,7 @@ export function NeutralSwitch({
       aria-label={name}
       disabled={disabled}
       onClick={() => onChange(!on)}
-      className={`${hue !== undefined ? 'glim-hue' : ''} flex shrink-0 items-center gap-2.5 text-left text-xs text-carbon-textSub select-none disabled:opacity-40`}
+      className={`${hue !== undefined ? 'glim-hue' : ''} flex shrink-0 items-center gap-2.5 text-start text-xs text-carbon-textSub select-none disabled:opacity-40`}
       style={hue !== undefined ? (hueVars(rainbowAt(hue)) as CSSProperties) : undefined}
     >
       {worded && <span className="glim-num w-6 text-end">{on ? onLabel : offLabel}</span>}
@@ -46,12 +46,12 @@ export function NeutralSwitch({
           on ? (hue !== undefined ? 'bg-accent' : 'bg-carbon-textMuted') : 'bg-carbon-surface3'
         }`}
       >
-        {/* Without left-0 the knob starts from the button's centred text
+        {/* Without start-0 the knob starts from the button's centred text
             position and slides past the pill. Tailwind v4 animates the
             `translate` property, not `transform`. */}
         <span
-          className={`absolute left-0 top-0.5 h-4 w-4 rounded-[var(--radius-pill)] bg-carbon-background shadow-sm transition-[translate] duration-150 ${
-            on ? 'translate-x-4' : 'translate-x-0.5'
+          className={`absolute start-0 top-0.5 h-4 w-4 rounded-[var(--radius-pill)] bg-carbon-background shadow-sm transition-[translate] duration-150 ${
+            on ? 'translate-x-4 rtl:-translate-x-4' : 'translate-x-0.5 rtl:-translate-x-0.5'
           }`}
         />
       </span>

@@ -12,8 +12,18 @@ import {
   Toggle,
   ToggleRow,
 } from '../../components/ui';
-import { Dropdown } from '../../components/Dropdown';
 import { Tabs } from '../../components/Tabs';
+import {
+  NO_PRESET_MENUS,
+  VariantDropdown,
+  bitrateLabel,
+  capLabel,
+  formatLabel,
+  presetMenusOf,
+  presetPickers,
+  type PickerProps,
+  type PresetMenus,
+} from '../../components/VariantPicker';
 import { CookieJarsCard } from './resolvers/CookieJars';
 import { MediaToolsCard } from './resolvers/MediaToolsCard';
 import { IconTrash } from '../../lib/icons';
@@ -29,28 +39,7 @@ import {
 } from '../../lib/api';
 import { useT, type TranslationKey } from '../../lib/i18n';
 import { useDraft, useFeatures } from './context';
-
-// Labels by the quality id the server sends; an id without one shows raw.
-// Read only on a video row.
-const QUALITY_KEYS: Record<string, TranslationKey> = {
-  best: 'settings.resolvers.quality.best',
-  '4320p': 'settings.resolvers.quality.4320p',
-  '2160p': 'settings.resolvers.quality.2160p',
-  '1440p': 'settings.resolvers.quality.1440p',
-  '1080p': 'settings.resolvers.quality.1080p',
-  '720p': 'settings.resolvers.quality.720p',
-  '480p': 'settings.resolvers.quality.480p',
-  '360p': 'settings.resolvers.quality.360p',
-  '240p': 'settings.resolvers.quality.240p',
-  '144p': 'settings.resolvers.quality.144p',
-  custom: 'settings.resolvers.quality.custom',
-};
-
-// The other formats are codec names, shown raw; "best" borrows the quality
-// strip's label.
-const AUDIO_FORMAT_KEYS: Record<string, TranslationKey> = {
-  best: 'settings.resolvers.quality.best',
-};
+import { moduleReason } from './tx';
 
 // Named like the download list's own variant labels.
 const VARIANT_KEYS: Record<YtdlpVariantKind, TranslationKey> = {
@@ -64,8 +53,10 @@ const VARIANT_KEYS: Record<YtdlpVariantKind, TranslationKey> = {
 // ytdlp.DefaultHosterPreset(), so a new row starts as what it replaces.
 const DEFAULT_PRESET: YtdlpHosterPreset = {
   variants: [...YTDLP_VARIANT_KINDS],
+  videoFormat: 'best',
   quality: 'best',
   audioFormat: 'best',
+  audioBitrate: '',
 };
 
 /**
@@ -89,38 +80,10 @@ function normaliseHost(raw: string): string {
 }
 
 /**
- * Select is a table row's dropdown. A stored value missing from the menu is
- * kept as an option, so the row shows what is set rather than a neighbour of it.
- */
-function Select({
-  value,
-  onChange,
-  label,
-  options,
-  labelOf,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-  label: string;
-  options: string[];
-  labelOf: (id: string) => string;
-}) {
-  const items = options.includes(value) ? options : [value, ...options];
-  return (
-    <Dropdown
-      label={label}
-      value={value}
-      onChange={onChange}
-      options={items.map((id) => ({ value: id, label: labelOf(id) }))}
-    />
-  );
-}
-
-/**
  * Resolvers configures yt-dlp, the one resolver with options of its own; the
- * routing order lives on the Accounts page. The per-row picker in the download
- * list beats the per-host preset, which beats these defaults, and every staged
- * yt-dlp link carries its preset's quality and audio format, so the defaults
+ * routing order lives on the Accounts page. The per-row pickers in the
+ * collector beat the per-host preset, which beats these defaults, and every
+ * staged yt-dlp link carries its preset's format and quality, so the defaults
  * here only reach what variant expansion does not set. The hints say so.
  */
 export function Resolvers() {
@@ -128,27 +91,23 @@ export function Resolvers() {
   const { cfg, patch } = useDraft();
   const { features } = useFeatures();
 
-  const [qualities, setQualities] = useState<string[]>([]);
-  const [audioFormats, setAudioFormats] = useState<string[]>([]);
-  const [audioBitrates, setAudioBitrates] = useState<string[]>([]);
+  const [menus, setMenus] = useState<PresetMenus>(NO_PRESET_MENUS);
   useEffect(() => {
     // Not `live`, which names the livestream options on this page.
     let alive = true;
     void fetchOptions().then(
       (o) => {
-        if (!alive) return;
-        setQualities(o.ytdlpQualities ?? []);
-        setAudioFormats(o.ytdlpAudioFormats ?? []);
-        setAudioBitrates(o.ytdlpAudioBitrates ?? []);
+        if (alive) setMenus(presetMenusOf(o));
       },
       () => {
-        /* The page renders with what is stored; the picker stays out. */
+        /* The page renders with what is stored; the pickers stay out. */
       },
     );
     return () => {
       alive = false;
     };
   }, []);
+  const { qualities, audioFormats, audioBitrates } = menus;
 
   const ytdlp = cfg.ytdlp;
   const patchYtdlp = (fields: Partial<YtdlpOptions>) => patch({ ytdlp: { ...ytdlp, ...fields } });
@@ -205,9 +164,6 @@ export function Resolvers() {
     setDuplicate(false);
   };
 
-  const qualityLabel = (q: string) => (QUALITY_KEYS[q] ? t(QUALITY_KEYS[q]) : q);
-  const audioFormatLabel = (f: string) => (AUDIO_FORMAT_KEYS[f] ? t(AUDIO_FORMAT_KEYS[f]) : f);
-
   // Whether the binary was found is live state from the module registry.
   const module = features.modules.find((m) => m.id === 'ytdlp');
 
@@ -216,7 +172,7 @@ export function Resolvers() {
       {module && !module.enabled && (
           <Card hue={0} className="flex items-center gap-2 text-sm text-carbon-textSub">
             <SectionTitle>{t('settings.resolvers.moduleUnavailable')}</SectionTitle>
-            <span>{module.reason}</span>
+            <span>{moduleReason(t, module)}</span>
             <InfoBubble tip={t('settings.resolvers.moduleUnavailableHint')} />
           </Card>
       )}
@@ -236,7 +192,7 @@ export function Resolvers() {
               label={t('settings.resolvers.quality')}
               active={ytdlp.quality}
               onSelect={(id) => patchYtdlp({ quality: id })}
-              items={qualities.map((q) => ({ id: q, label: qualityLabel(q) }))}
+              items={qualities.map((q) => ({ id: q, label: capLabel(q, t) }))}
             />
           </FieldGroup>
         )}
@@ -319,13 +275,13 @@ export function Resolvers() {
               label={t('settings.resolvers.audioFormat')}
               active={ytdlp.audioFormat}
               onSelect={(id) => patchYtdlp({ audioFormat: id })}
-              items={audioFormats.map((f) => ({ id: f, label: audioFormatLabel(f) }))}
+              items={audioFormats.map((f) => ({ id: f, label: formatLabel(f, t) }))}
             />
           </FieldGroup>
         )}
 
-        {/* "" means no --audio-quality at all. Not disabled while the format is
-            "best", since a row can still pick a format that uses it. */}
+        {/* "" means no --audio-quality at all. Kept while the format is "best",
+            since a row can still pick a format that is converted. */}
         {audioBitrates.length > 0 && (
           <FieldGroup label={t('settings.resolvers.audioBitrate')} hint={t('settings.resolvers.audioBitrateHint')}>
             <Tabs
@@ -334,7 +290,7 @@ export function Resolvers() {
               label={t('settings.resolvers.audioBitrate')}
               active={ytdlp.audioBitrate}
               onSelect={(id) => patchYtdlp({ audioBitrate: id })}
-              items={audioBitrates.map((b) => ({ id: b, label: b === '' ? t('columns.variant.bitrateAuto') : b }))}
+              items={audioBitrates.map((b) => ({ id: b, label: bitrateLabel(b, t) }))}
             />
           </FieldGroup>
         )}
@@ -504,69 +460,72 @@ export function Resolvers() {
           {presetRows.length === 0 ? (
             <p className="px-4 py-3 text-sm text-carbon-textMuted">{t('settings.resolvers.presetsEmpty')}</p>
           ) : (
-            <table className="w-full min-w-[54rem] border-collapse text-sm" aria-label={t('settings.resolvers.presetsTitle')}>
+            <table className="w-full border-collapse text-sm" aria-label={t('settings.resolvers.presetsTitle')}>
               <thead>
                 <tr className="text-start text-xs text-carbon-textMuted">
                   <th className="px-4 py-3 text-start font-medium">{t('settings.resolvers.presetHost')}</th>
                   {YTDLP_VARIANT_KINDS.map((kind) => (
-                    <th key={kind} className="w-16 px-2 py-3 text-start font-medium">
+                    <th key={kind} className="px-2 py-3 text-start font-medium">
                       {t(VARIANT_KEYS[kind])}
                     </th>
                   ))}
-                  <th className="px-2 py-3 text-start font-medium">{t('settings.resolvers.quality')}</th>
-                  <th className="px-2 py-3 text-start font-medium">{t('settings.resolvers.audioFormat')}</th>
                   <th className="w-10 px-2 py-3">
                     <span className="sr-only">{t('settings.resolvers.presetRemove')}</span>
                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-carbon-border/40">
-                {presetRows.map(([host, preset], i) => (
-                  <tr key={host} className="transition-colors hover:bg-carbon-hover">
-                    {/* Read-only, since the host is the lookup key; remove the
-                        row and add another instead. */}
-                    <td className="px-4 py-3 font-medium text-carbon-text">{host}</td>
-                    {/* Hued by column, since each switch is its own question. */}
-                    {YTDLP_VARIANT_KINDS.map((kind, k) => (
-                      <td key={kind} className="px-2 py-3">
-                        <Toggle
-                          checked={preset.variants.includes(kind)}
-                          onChange={() => toggleVariant(host, kind)}
-                          label={`${t(VARIANT_KEYS[kind])} · ${host}`}
-                          hideLabel
-                          hue={k}
+                {presetRows.map(([host, preset], i) => {
+                  const pickers = presetPickers({ preset, menus, t, onChange: (fields) => writePreset(host, fields) });
+                  // The video and audio columns carry their format pickers beside
+                  // the switch, so a row reads as what each variant starts with.
+                  const pairs: Partial<Record<YtdlpVariantKind, (PickerProps | null)[]>> = {
+                    video: [pickers.video.format, pickers.video.quality],
+                    audio: [pickers.audio.format, pickers.audio.bitrate],
+                  };
+                  return (
+                    <tr key={host} className="transition-colors hover:bg-carbon-hover">
+                      {/* Read-only, since the host is the lookup key; remove the
+                          row and add another instead. */}
+                      <td className="px-4 py-3 font-medium text-carbon-text">{host}</td>
+                      {/* Hued by column, since each switch is its own question. */}
+                      {YTDLP_VARIANT_KINDS.map((kind, k) => (
+                        <td key={kind} className="px-2 py-3">
+                          <div className="flex items-center gap-2">
+                            <Toggle
+                              checked={preset.variants.includes(kind)}
+                              onChange={() => toggleVariant(host, kind)}
+                              label={`${t(VARIANT_KEYS[kind])} · ${host}`}
+                              hideLabel
+                              hue={k}
+                            />
+                            {/* Named with the host, as the switch is, for a screen reader. */}
+                            {qualities.length > 0 &&
+                              pairs[kind]?.map(
+                                (p) =>
+                                  p && (
+                                    <VariantDropdown
+                                      key={p.label}
+                                      picker={{ ...p, label: `${p.label} · ${host}` }}
+                                      width="widest"
+                                    />
+                                  ),
+                              )}
+                          </div>
+                        </td>
+                      ))}
+                      <td className="px-2 py-3 text-end">
+                        <IconBadge
+                          hue={i}
+                          icon={<IconTrash width={16} height={16} />}
+                          title={`${t('settings.resolvers.presetRemove')} · ${host}`}
+                          aria-label={`${t('settings.resolvers.presetRemove')} · ${host}`}
+                          onClick={() => removePreset(host)}
                         />
                       </td>
-                    ))}
-                    <td className="px-2 py-3">
-                      <Select
-                        value={preset.quality}
-                        onChange={(v) => writePreset(host, { quality: v })}
-                        label={`${t('settings.resolvers.quality')} · ${host}`}
-                        options={qualities}
-                        labelOf={qualityLabel}
-                      />
-                    </td>
-                    <td className="px-2 py-3">
-                      <Select
-                        value={preset.audioFormat}
-                        onChange={(v) => writePreset(host, { audioFormat: v })}
-                        label={`${t('settings.resolvers.audioFormat')} · ${host}`}
-                        options={audioFormats}
-                        labelOf={audioFormatLabel}
-                      />
-                    </td>
-                    <td className="px-2 py-3 text-end">
-                      <IconBadge
-                        hue={i}
-                        icon={<IconTrash width={16} height={16} />}
-                        title={`${t('settings.resolvers.presetRemove')} · ${host}`}
-                        aria-label={`${t('settings.resolvers.presetRemove')} · ${host}`}
-                        onClick={() => removePreset(host)}
-                      />
-                    </td>
-                  </tr>
-                ))}
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           )}

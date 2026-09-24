@@ -58,12 +58,65 @@ submission and for a fixed download.
 - **Each connected hoster login is a row of its own on the priority card.**
   Where it sits against a debrid service that carries the same host decides
   which of the two gets those links.
-- **The variant menu offers every format a site has**: each video track by
-  resolution, frame rate, container and codec, and each audio track, where it
-  used to offer a height and merge into mkv. A track picked this way keeps its
-  own container and is not converted.
+- **The video and audio rows of a yt-dlp link pick with two dropdowns each.**
+  The video row picks a format, a container and codec the site offers, and
+  beside it a quality, the resolution and the frame rate where tracks differ
+  in it. Together they name one track, which keeps its own container and is
+  not converted, where it used to be a height merged into mkv. The audio row
+  lists only the formats the source has, plus Auto for its best track, and
+  beside it the bitrates of the chosen format. The per-host defaults on the
+  yt-dlp page and the gear on a package in the collector offer the same two
+  pairs, and a new link from that host starts with them.
+- **hCaptcha challenges can be solved in KnightLoader.** JDownloader's
+  hCaptcha challenges showed "This captcha cannot be shown here." and waited
+  until they timed out. They now open hCaptcha's own widget, and the answer
+  goes back to JDownloader the same way a reCAPTCHA answer does. A plain
+  reCAPTCHA v2 got the same message unless it was an Enterprise or invisible
+  one; it opens now too, and an invisible one starts by itself. Both widgets
+  use the interface language. When a widget cannot load, because a blocker
+  stops it or because the hoster tied its key to its own website, the captcha
+  window says so instead of showing an empty box.
+- **The folder picker can create folders.** "New folder" under the list makes
+  an empty folder inside the one shown and opens it, so "Use this folder" takes
+  it. A name no folder can have, such as one with a slash in it or a Windows
+  device name like CON, is refused with the reason. Every folder field has the
+  picker now: the working folder, the folder in a download's options and
+  properties, a Packagizer rule's "Download folder" and the folder settings on
+  the Advanced page joined the fields that already had it. For a download on a peer
+  instance the field stays a plain box, since the picker would show this
+  machine's disk.
+- **Schedules can be suspended for a while** without changing them: for an
+  hour, for three hours, until midnight or until you switch them back on.
+  Meanwhile the queue follows your own settings, and when the time is up the
+  schedules apply again by themselves. A restart does not end the suspension.
+  The schedule status card shows it and can end it.
+- **More in the quick settings**: the end-of-queue action, quiet mode, "Start
+  added links immediately", suspending the schedules and "Reconnect now". Each
+  row is the control from its own settings page and changes the same value, so
+  both places show the same thing. "Reconnect now" is greyed out while no
+  reconnect is set up or the module is switched off; its (i) says which, and a
+  link below leads to the page that changes it. The button on the Network page
+  is called "Reconnect now" as well.
 
 ### Fixed
+
+- **Click'n'Load works in the desktop app.** It never started a listener
+  there, while the Modules page said it listened on 127.0.0.1:9666. It listens
+  the way the server does now, and `KL_CNL` means the same in both. Where
+  nothing listens, the Modules page says so instead of naming an address.
+
+- **A folder field keeps what you typed.** A watch folder, "Unpack to" folder
+  or "Move the unpacked files to" folder that was not a full path was emptied
+  on save, so typing "C:" and pausing cleared the field. Such a folder is
+  refused instead: the reason shows under the field, the stored folder stays,
+  and your other changes still save. A save that comes back while you are
+  still typing no longer replaces the text in the field.
+
+- **Alias domains count as the filehoster they belong to.** A link to rg.to,
+  ul.to, k2s.cc, ddl.to or one of 1fichier's other domains was not recognised
+  as a filehoster, so the direct download could take it and save the landing
+  page. These links go where rapidgator.net and the others go, and a hoster
+  login covers its alias domains too.
 
 - **Links to a filehoster go to JDownloader's free mode, however the priority
   order is arranged.** Any drag on the card saved the direct download above
@@ -92,6 +145,11 @@ submission and for a fixed download.
   rows of the same link for copies of it. Now the whole family moves together,
   and the download list shows which variant, quality and format each row
   fetches.
+
+- **YouTube links show their size in the collector.** A merged download counts
+  the video and the audio together, a track only on HLS counts its estimate,
+  and the size follows every change of format or quality, also after a
+  restart.
 
 - **Unticking a variant in a host's preset hides its rows at once**, for links
   already in the collector as well, and ticking it again brings them back with
@@ -130,6 +188,10 @@ submission and for a fixed download.
 - **Dragging a settings tile no longer opens its page on release**, and Escape
   puts the old order back on screen as well as in storage.
 
+- **Dragging a package that holds a finished file shows where it will land.**
+  The preview kept the package where it was and moved the finished file to the
+  top of it, while the drop put the package where the pointer was.
+
 - **Browser extension 1.0.1: a tooltip no longer stays up after a click.**
   Focus opens a tooltip only after keyboard input now, so Cancel in the
   "leave the group" window, which hands focus back to the bin, no longer leaves
@@ -157,6 +219,21 @@ submission and for a fixed download.
 - **The speed graph's time axis reads the right way round in Arabic, Hebrew and
   Persian.** "-60s" and "0s" had swapped ends while the curve had not, and the
   top of the scale showed its unit before the number.
+- **More of the interface mirrors in Arabic, Hebrew and Persian.** The badges on
+  "Connect instances and remote access" no longer cover the sentence above the
+  steps. The total download speed, a download's size, an instance's speed and
+  the top of the downloaded volume scale keep the number before its unit.
+  Switches, number and password fields, menus, toasts and the other notices
+  sit on the correct side.
+- **Disabled buttons in the queue and status bar show their name** under the
+  pointer, such as Stop while nothing runs.
+- **The Schedules card keeps each row's name and times readable.** With
+  labelled buttons, a row's buttons move to a line of their own instead of
+  squeezing the name to nothing, and they wrap in a narrow window.
+- **The figures on an instance card no longer overlap.** "Tasks" and "Speed"
+  ran into each other on a narrow card. A figure that does not fit moves to the
+  next line, the state badge sits in the name's row, and the Instances page
+  puts fewer cards side by side in a narrow window.
 
 ### Changed
 
@@ -209,17 +286,33 @@ submission and for a fixed download.
   the first switch of the notifications card, and "Files already on disk"
   moved to Downloads. Old addresses, a remembered page, a saved tile order
   and a shortcut bound to an old page all lead to the new tile.
-- **Every debrid service is on the debrid card.** Multihosters KnightLoader
-  reaches through JDownloader (LeechAll, DailyLeech, MyDebrid, MultiVIP,
-  put.io) are picked and listed there, marked "through JDownloader", and no
-  longer mixed into the hoster accounts. DebridPlanet and Simply-Debrid are
-  gone from the list, since both services have closed.
+- **Every debrid service is on the debrid card.** The multihosters
+  KnightLoader reaches through JDownloader, LeechAll and MyDebrid, are picked
+  and listed there, marked "through JDownloader", and no longer mixed into the
+  hoster accounts. DebridPlanet, Simply-Debrid, MultiVIP and DailyLeech are
+  gone from the list: the first two have closed, MultiVIP's site no longer
+  answers, and the DailyLeech pages JDownloader logs in through are gone.
+  put.io stays with the hoster accounts, since it stores your own files
+  rather than unlocking other hosters.
 - **A settings tile being dragged floats under the pointer** with a shadow,
   the other tiles slide aside while it passes, and on release it slides into
   its place. Escape puts everything back.
+- **Rows in the download list and the collector float under the pointer while
+  you move them**, like the settings tiles. A marking, or a package with its
+  files, travels as one block, the other rows slide aside at the pace of the
+  motion setting, and on release the block slides into its gap and stays there
+  until the server confirms the order. Escape puts everything back. On a touch
+  screen, holding a finger on a row picks it up, and lifting the finger
+  without moving opens the row's menu.
+- **The priority card's rows follow the pointer too.** The row you drag lifts,
+  the others make room as it passes, and on release it slides into place.
+  Escape puts it back. On a touch screen you pick a row up by holding its grip
+  for a moment. A row taller than the others no longer throws off where a drop
+  lands.
 - **The browser tab shows only the name**, without counts, percent and speed.
   The ring on the tab's icon still shows the progress.
 - **The settings tiles sit closer to the sidebar.**
+- **The logo in the sidebar no longer fades under the pointer.**
 - **The web UI and the browser extension (1.0.2) are set in Noto Sans**,
   shipped with them, so they look the same on every system instead of taking
   whatever font the system has. A page loads only the alphabets it shows, the
@@ -279,10 +372,9 @@ submission and for a fixed download.
   speed above it, and the top of the scale is shown above the other end. In a
   narrow window the curve moves under the buttons.
 - **Quick settings open as a small panel under their button** instead of a
-  window. The panel holds the speed limit, the same field the Downloads
-  settings page shows, and the limit field is no longer in the head bar.
-  Simultaneous downloads, downloads per hoster and connections per download are
-  set on the Downloads settings page.
+  window. The speed limit field is no longer in the head bar; it sits in the
+  panel, next to simultaneous downloads, downloads per hoster and connections
+  per download.
 - **Every dropdown is the app's own.** A schedule's action, a rule's field and
   comparison, a connection's type, a reconnect request's method, a script's
   trigger, a category's media server address, a host preset's quality and audio
@@ -303,6 +395,30 @@ submission and for a fixed download.
   a button shows only its icon, the explanation joins its name in the bubble.
 - **Settings tile names wrap onto a second line** instead of being cut off, so
   "Rules & categories" reads in full. Only the tile that needs it grows.
+- **Every line on the Modules page is in your language**, not only
+  Click'n'Load's. `GET /api/features` sends each module's status and reason as
+  a code with its values, next to the English sentence.
+- **The web interface fits a phone.** In a window narrower than 768 pixels the
+  sidebar becomes a bar along the bottom with the same entries in the same
+  colours, so every page keeps the full width. The bar follows "Navigation
+  labels", and toasts and notices stand above it. The settings tabs show their
+  icons only there.
+- **The direct download has one name**: "Direct download" on the priority
+  card, on a download's backend badge and in the "By backend" view of the
+  downloaded volume, where it read "Direct link" in one place and "Direct" in
+  the others. The plain HTTP fallback and "Torrent and magnet" are named the
+  same way in all three.
+- **"Move to a package" offers the existing package names in the app's own
+  menu**, which narrows as you type, instead of the browser's list.
+- **The account windows' links are buttons.** "Choose a different account"
+  goes back to the list, and "Where do I get this?" opens the service's page in
+  a new tab.
+
+### Removed
+
+- **`/api/controls`.** Nothing calls it any more: the quick settings save
+  through `PATCH /api/settings`, and the Android app and the browser extension
+  never used it.
 
 ## [1.1.6] - 2026-09-18
 

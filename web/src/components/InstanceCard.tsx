@@ -72,7 +72,7 @@ export function InstanceRow({ name, base, onOpen }: { name: string; base: string
         className={`h-2 w-2 shrink-0 rounded-[var(--radius-pill)] ${online ? 'bg-statusOkSolid' : 'bg-statusFailSolid'}`}
       />
       <span className="min-w-0 flex-1 truncate text-[14px] text-carbon-text">{name}</span>
-      <span className="glim-num text-xs text-carbon-textSub">
+      <span className="glim-num text-xs text-carbon-textSub" dir="ltr">
         {stats ? fmtSpeed(stats.speed) || '-' : '-'}
       </span>
     </>
@@ -82,7 +82,7 @@ export function InstanceRow({ name, base, onOpen }: { name: string; base: string
       {onOpen ? (
         <button
           onClick={onOpen}
-          className="flex w-full items-center gap-3 px-6 py-4 text-left transition-colors hover:bg-carbon-hover/50"
+          className="flex w-full items-center gap-3 px-6 py-4 text-start transition-colors hover:bg-carbon-hover/50"
         >
           {body}
         </button>
@@ -126,56 +126,54 @@ export function InstanceCard({
   const state = online ? t('instances.online') : refused ? t('instances.refused') : t('instances.offline');
 
   return (
-    // padding="none" so the logo runs flush to the left edge at full height,
+    // padding="none" so the logo runs flush to the start edge at full height,
     // clipped by overflow-hidden. No `hover` lift: the card itself is not
     // clickable (check-card-hover.mjs guards this).
-    <Card padding="none" hue={hue} className="relative flex h-full flex-col overflow-hidden">
+    <Card padding="none" hue={hue} className="flex h-full flex-col overflow-hidden">
       {/* The two columns form one row and the Open button a second, so the
           button can never overlap the text. */}
       <div className="flex min-h-0 flex-1 items-stretch">
-      {/* h-26 matches the sidebar's brand mark (check-mark-scale.mjs); a larger
-          mark squeezes the metric labels together. max-h-full keeps the text
-          column in charge of the card's height. */}
-      <div className="flex shrink-0 items-center self-stretch pl-4">
-        <img src={logoUrl} alt="" aria-hidden className="h-26 max-h-full w-auto" />
-      </div>
-
-      {/* Absolutely placed, with room reserved in the name row. */}
-      <span className="absolute right-5 top-5 z-10">
-        <LabelBadge label={state} tone={online ? 'ok' : refused ? undefined : 'fail'} hue={refused ? 3 : undefined} />
-      </span>
-
-      <div className="flex min-w-0 flex-1 flex-col gap-4 p-7 pr-36">
-        {/* Name and address as one block. */}
-        <div className="flex flex-col gap-0.5">
-        <div className="flex items-center gap-2.5">
-          <span className="truncate font-semibold text-carbon-text">{name}</span>
-          {isSelf && <span className="glim-eyebrow shrink-0">{t('instances.thisInstance')}</span>}
-          <span className="flex-1" />
-          {/* A lone glyph fills half its square badge (GlimStone rule 13). */}
-          {onRemove && (
-            <IconBadge
-              labelled
-              hue={hue}
-              icon={<IconTrash width={16} height={16} />}
-              title={t('instances.removeTitle', { name })}
-              aria-label={t('instances.removeTitle', { name })}
-              onClick={onRemove}
-            />
-          )}
+        {/* h-26 matches the sidebar's brand mark (check-mark-scale.mjs); a larger
+            mark squeezes the metric labels together. max-h-full keeps the text
+            column in charge of the card's height. */}
+        <div className="flex shrink-0 items-center self-stretch ps-4">
+          <img src={logoUrl} alt="" aria-hidden className="h-26 max-h-full w-auto" />
         </div>
 
-        <div className="truncate text-xs text-carbon-textMuted">{relayId ? t('instances.viaRelay') : url}</div>
+        <div className="flex min-w-0 flex-1 flex-col gap-4 p-7">
+          {/* Name and address as one block. */}
+          <div className="flex flex-col gap-0.5">
+            {/* The badges move under the name when both do not fit on one line. */}
+            <div className="flex flex-wrap items-center gap-2.5">
+              <span className="min-w-0 truncate font-semibold text-carbon-text">{name}</span>
+              {isSelf && <span className="glim-eyebrow shrink-0">{t('instances.thisInstance')}</span>}
+              <span className="ms-auto flex items-center gap-2">
+                <LabelBadge label={state} tone={online ? 'ok' : refused ? undefined : 'fail'} hue={refused ? 3 : undefined} />
+                {/* A lone glyph fills half its square badge (GlimStone rule 13). */}
+                {onRemove && (
+                  <IconBadge
+                    labelled
+                    hue={hue}
+                    icon={<IconTrash width={16} height={16} />}
+                    title={t('instances.removeTitle', { name })}
+                    aria-label={t('instances.removeTitle', { name })}
+                    onClick={onRemove}
+                  />
+                )}
+              </span>
+            </div>
+
+            <div className="truncate text-xs text-carbon-textMuted">{relayId ? t('instances.viaRelay') : url}</div>
+          </div>
+
+          {/* A figure that does not fit moves to the next line rather than
+              running into its neighbour's label. */}
+          <div className="flex flex-wrap items-baseline gap-x-7 gap-y-3">
+            <Metric value={stats?.active ?? '-'} label={t('instances.metricActive')} />
+            <Metric value={stats?.total ?? '-'} label={t('instances.metricTasks')} />
+            <Metric value={stats ? fmtSpeed(stats.speed) || '0' : '-'} label={t('instances.metricSpeed')} />
+          </div>
         </div>
-
-        <div className="flex items-baseline gap-7">
-          <Metric value={stats?.active ?? '-'} label={t('instances.metricActive')} />
-          <Metric value={stats?.total ?? '-'} label={t('instances.metricTasks')} />
-          <Metric value={stats ? fmtSpeed(stats.speed) || '0' : '-'} label={t('instances.metricSpeed')} />
-        </div>
-
-      </div>
-
       </div>
 
       {/* Full width; the margin sits on the button because the card has none. */}
@@ -190,8 +188,12 @@ export function InstanceCard({
 
 function Metric({ value, label }: { value: React.ReactNode; label: string }) {
   return (
-    <div className="min-w-0">
-      <div className="glim-num text-sm font-semibold text-carbon-text">{value}</div>
+    <div className="shrink-0">
+      {/* A speed is a number and a Latin unit, which keep their order in a
+          right-to-left page only inside a span of their own. */}
+      <div className="glim-num text-sm font-semibold text-carbon-text">
+        <span dir="ltr">{value}</span>
+      </div>
       <div className="glim-eyebrow">{label}</div>
     </div>
   );

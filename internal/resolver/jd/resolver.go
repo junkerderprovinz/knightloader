@@ -3,10 +3,10 @@ package jd
 import (
 	"context"
 	"net/url"
-	"strings"
 	"sync"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/hostalias"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 )
 
@@ -72,7 +72,7 @@ var activeHosts = struct {
 // The reconciler clears it once JD's account list stops saying so, so a login
 // that stopped working stops raising the host's priority.
 func SetHostActive(host string, active bool) {
-	host = normalizeHost(host)
+	host = hostalias.Canonical(host)
 	if host == "" {
 		return
 	}
@@ -90,7 +90,7 @@ func SetHostActive(host string, active bool) {
 func HostActive(host string) bool {
 	activeHosts.mu.RLock()
 	defer activeHosts.mu.RUnlock()
-	return activeHosts.set[normalizeHost(host)]
+	return activeHosts.set[hostalias.Canonical(host)]
 }
 
 // knownHosts is every host JD has a hoster plugin for (listPremiumHoster),
@@ -105,7 +105,7 @@ var knownHosts = struct {
 func SetKnownHosts(hosts []string) {
 	set := make(map[string]bool, len(hosts))
 	for _, h := range hosts {
-		if n := normalizeHost(h); n != "" {
+		if n := hostalias.Canonical(h); n != "" {
 			set[n] = true
 		}
 	}
@@ -118,7 +118,7 @@ func SetKnownHosts(hosts []string) {
 func HostKnown(host string) bool {
 	knownHosts.mu.RLock()
 	defer knownHosts.mu.RUnlock()
-	return knownHosts.set[normalizeHost(host)]
+	return knownHosts.set[hostalias.Canonical(host)]
 }
 
 // fileHosts is the set of hosts classified as file hosters rather than media
@@ -135,7 +135,7 @@ var fileHosts = struct {
 func SetFileHosts(hosts map[string]bool) {
 	set := make(map[string]bool, len(hosts))
 	for h := range hosts {
-		if n := normalizeHost(h); n != "" {
+		if n := hostalias.Canonical(h); n != "" {
 			set[n] = true
 		}
 	}
@@ -149,7 +149,7 @@ func SetFileHosts(hosts map[string]bool) {
 func mediaSiteForYtdlp(host string) bool {
 	fileHosts.mu.RLock()
 	defer fileHosts.mu.RUnlock()
-	return len(fileHosts.set) > 0 && !fileHosts.set[normalizeHost(host)]
+	return len(fileHosts.set) > 0 && !fileHosts.set[hostalias.Canonical(host)]
 }
 
 // PriorityFor is JD's priority for one link: ActiveLoginPrio for a host with a
@@ -177,24 +177,19 @@ func PriorityFor(rawURL string) int {
 
 // FileHoster reports whether PriorityFor lifts host above resolver.Direct: a
 // host with a confirmed login, or a file hoster JD has a plugin for. A plain
-// GET there fetches the hoster's page rather than the file.
+// GET there fetches the hoster's page rather than the file. Every host set in
+// this file is kept by the hoster's main domain (internal/hostalias), so rg.to
+// counts wherever rapidgator.net does.
 func FileHoster(host string) bool {
 	return HostActive(host) || (HostKnown(host) && !mediaSiteForYtdlp(host))
 }
 
-// LoginHost returns rawURL's host, normalised as SetHostActive stores it, when
-// that host has a confirmed-active native login, and "" otherwise.
+// LoginHost returns the main domain of rawURL's host, as SetHostActive stores
+// it, when that host has a confirmed-active native login, and "" otherwise.
 func LoginHost(rawURL string) string {
 	u, err := url.Parse(rawURL)
 	if err != nil || u.Hostname() == "" || !HostActive(u.Hostname()) {
 		return ""
 	}
-	return normalizeHost(u.Hostname())
-}
-
-// normalizeHost lower-cases a domain before stripping a leading "www.", so an
-// upper-case "WWW." prefix goes too.
-func normalizeHost(h string) string {
-	h = strings.ToLower(strings.TrimSpace(h))
-	return strings.TrimPrefix(h, "www.")
+	return hostalias.Canonical(u.Hostname())
 }

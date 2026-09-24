@@ -30,17 +30,19 @@ var multihosterDomains = map[string]bool{
 	"neodebrid.com":     true,
 	"premium.rpnet.biz": true,
 	"proleech.link":     true,
-	"put.io":            true,
 	"simply-debrid.com": true,
 	"zevera.com":        true,
 }
 
 // closedMultihosters are multihosters JD still lists that are out of service:
-// the debridplanet.com domain is parked and simply-debrid.com has its API
-// switched off. The picker leaves them out, since an account there cannot
-// fetch anything.
+// the debridplanet.com domain is parked, simply-debrid.com has its API
+// switched off, multivip.net does not answer, and the dailyleech.com pages JD
+// logs in through are gone. The picker leaves them out, since an account there
+// cannot fetch anything.
 var closedMultihosters = map[string]bool{
+	"dailyleech.com":    true,
 	"debridplanet.com":  true,
+	"multivip.net":      true,
 	"simply-debrid.com": true,
 }
 

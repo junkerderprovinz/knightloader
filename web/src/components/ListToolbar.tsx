@@ -41,6 +41,7 @@ import { useDialogMute, type DialogId } from '../lib/dialogmute';
 import { useToast } from '../lib/toast';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { Button, Field, Modal, NumberInput, TextInput } from './ui';
+import { PathInput } from './FolderPicker';
 import { PackageMoveDialog } from './PackageActions';
 import { retryPending } from './RetryCountdown';
 import { SelectionReach } from './SelectionReach';
@@ -394,12 +395,12 @@ export function TaskOptionsDialog({
       }
     >
       <Field label={t('task.folder')} hint={t('settings.downloadDirHint')}>
-        <TextInput
-          dir="ltr"
+        <PathInput
           autoFocus={focus === 'dir'}
           value={dir}
-          spellCheck={false}
-          onChange={(e) => setDir(e.target.value)}
+          title={t('task.folder')}
+          local={base === '/api'}
+          onValue={setDir}
         />
       </Field>
       <Field label={t('task.password')}>

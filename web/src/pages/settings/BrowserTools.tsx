@@ -26,7 +26,7 @@ export function BrowserTools() {
   }, []);
 
   const chromiumHint = (
-    <ol className="list-decimal space-y-1 pl-4">
+    <ol className="list-decimal space-y-1 ps-4">
       <li>{t('settings.browsertools.installChromiumStep1')}</li>
       <li>{t('settings.browsertools.installChromiumStep2')}</li>
       <li>{t('settings.browsertools.installChromiumStep3')}</li>
@@ -37,7 +37,7 @@ export function BrowserTools() {
     </ol>
   );
   const firefoxHint = (
-    <ol className="list-decimal space-y-1 pl-4">
+    <ol className="list-decimal space-y-1 ps-4">
       <li>{t('settings.browsertools.installFirefoxStep1')}</li>
       <li>{t('settings.browsertools.installFirefoxStep2')}</li>
       <li>{t('settings.browsertools.installFirefoxStep3')}</li>
@@ -49,7 +49,7 @@ export function BrowserTools() {
     <div className="flex flex-col gap-10">
       <Card hue={0} className="flex flex-col gap-3">
         <SectionTitle>{t('settings.browsertools.bookmarkletTitle')}</SectionTitle>
-        <ol className="list-decimal space-y-1.5 pl-4 text-sm text-carbon-textSub">
+        <ol className="list-decimal space-y-1.5 ps-4 text-sm text-carbon-textSub">
           <li>{t('settings.browsertools.bookmarkletStep1')}</li>
           <li>{t('settings.browsertools.bookmarkletStep2')}</li>
         </ol>
@@ -247,7 +247,7 @@ function DownloadTile({
       {/* onColor, so the (i) takes the tile's ink; the muted grey it wears
           elsewhere fades on the lit tile. */}
       {hint && (
-        <span className="absolute right-1.5 top-1.5 text-carbon-textSub group-hover:text-carbon-tileHoverInk">
+        <span className="absolute end-1.5 top-1.5 text-carbon-textSub group-hover:text-carbon-tileHoverInk">
           <InfoBubble tip={hint} label={hintLabel} onColor />
         </span>
       )}

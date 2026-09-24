@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
+	"github.com/junkerderprovinz/knightloader/internal/hostalias"
 	jdresolver "github.com/junkerderprovinz/knightloader/internal/resolver/jd"
 )
 
@@ -101,10 +102,11 @@ var curatedHosts = []string{
 	"mega.nz", "filefactory.com", "hitfile.net", "fikper.com",
 }
 
-// Curated reports whether host is one of curatedHosts. Every one of them is a
-// file hoster, which routing needs to know before JD has sent its own list.
+// Curated reports whether host is one of curatedHosts or an alias domain of
+// one, such as rg.to. Every one of them is a file hoster, which routing needs
+// to know before JD has sent its own list.
 func Curated(host string) bool {
-	return slices.Contains(curatedHosts, normalizeHost(host))
+	return slices.Contains(curatedHosts, hostalias.Canonical(host))
 }
 
 // Host is one entry the "add a login" picker offers.

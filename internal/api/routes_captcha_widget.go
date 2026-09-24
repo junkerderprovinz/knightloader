@@ -3,38 +3,42 @@ package api
 // A page of its own for widget captchas (captcha.KindWidget): reCAPTCHA or
 // hCaptcha challenges that have to run the vendor's script in a browser. Image
 // and click challenges carry a data: URL and need nothing from here. The page
-// carries its own Content-Security-Policy, so the SPA does not need a
-// permanent policy wide enough for a challenge that may never occur.
+// carries its own Content-Security-Policy, scoped to the one vendor it loads,
+// so the SPA does not need a permanent policy wide enough for a challenge that
+// may never occur.
 //
-// WidgetPayload does not say which vendor a challenge is: JDSource maps both
-// JD challenge classes onto KindWidget and drops the class name. Enterprise, a
-// V3Action or an "invisible" size only ever come from reCAPTCHA, so those
-// render for real; everything else gets a page without scripts rather than a
-// guess from the shape of the site key.
+// The vendor comes from the payload's vendor field, which JDSource fills from
+// JD's challenge class. Without it, Enterprise or a V3Action still prove
+// reCAPTCHA; anything else gets a page without scripts rather than a guess.
 //
 // The reCAPTCHA sources follow https://developers.google.com/recaptcha/docs/display
-// and are path-scoped to /recaptcha/. A per-response nonce covers the page's own
-// inline script and style, so nothing needs 'unsafe-inline'; styles are in a
-// <style> element because a nonce does not cover a style attribute.
+// and are path-scoped to /recaptcha/. The hCaptcha sources are the two hosts
+// https://docs.hcaptcha.com/#content-security-policy-settings lists, since its
+// asset subdomains change. A per-response nonce covers the page's own inline
+// script and style, so nothing needs 'unsafe-inline'; styles are in a <style>
+// element because a nonce does not cover a style attribute.
 //
-// The widget parameters come from the query string (siteKey, type, enterprise,
-// v3Action, secureToken, plus host and prompt for the caption). The page only
-// renders, and the caller already holds the payload from its own poll, so
-// nothing is looked up by {id}; the id is echoed for log correlation and in
-// the messages. A stale id renders like a fresh one; Source.Answer decides
-// whether an answer is still valid.
+// The widget parameters come from the query string (vendor, siteKey, type,
+// enterprise, v3Action, secureToken, lang, plus host and prompt for the
+// caption). The page only renders, and the caller already holds the payload
+// from its own poll, so nothing is looked up by {id}; the id is echoed for log
+// correlation and in the messages. A stale id renders like a fresh one;
+// Source.Answer decides whether an answer is still valid.
 //
 // The page posts {source:"knightloader-captcha-widget", id, kind, detail} to
 // window.parent at its own origin: kind is "ready" on load, then "solved"
-// (detail is the token), "expired" or "error". The receiver still has to check
-// the message origin; frame-ancestors 'self' only keeps other sites from
-// embedding the page.
+// (detail is the token), "expired" or "error" (detail is the vendor's error
+// code, "network", "script" when its script did not load, "timeout", or the
+// message the render call threw). The receiver still has to check the message
+// origin; frame-ancestors 'self' only keeps other sites from embedding the
+// page.
 //
-// reCAPTCHA keys are usually locked to the hoster's domains
+// Both vendors let a site owner lock a key to the hoster's domains
 // (https://developers.google.com/recaptcha/docs/domain_validation), and the
-// secure token that once worked around that is deprecated, so rendering a key
-// from this origin can fail visibly on Google's side. The secure token is
-// still relayed because JD's wire format carries it.
+// reCAPTCHA secure token that once worked around that is deprecated, so a key
+// can refuse to work from this origin. The vendor then shows its own error in
+// the widget; hCaptcha also calls the error callback once the checkbox is
+// clicked, which the page reports as "error".
 
 import (
 	"bytes"
@@ -44,24 +48,37 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"net/url"
+	"regexp"
 	"strings"
+	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
+	"github.com/junkerderprovinz/knightloader/internal/captcha"
 )
+
+// captchaWidgetLoadTimeout is how long the vendor's script gets to arrive
+// before the page gives up. A blocked or hanging script reports nothing by
+// itself.
+const captchaWidgetLoadTimeout = 20 * time.Second
 
 // captchaWidgetRequest is the route's entire input, read from the query
 // string.
 type captchaWidgetRequest struct {
 	// ID is only for log correlation and the postMessage payload.
 	ID string
+	// Vendor is WidgetPayload.Vendor.
+	Vendor string
 	// SiteKey is WidgetPayload.SiteKey and the only required field.
 	SiteKey string
-	// Size is WidgetPayload.Type ("normal" or "invisible"), named after the
-	// data-size attribute it becomes.
+	// Size is WidgetPayload.Type, named after the size parameter it becomes.
 	Size        string
 	Enterprise  bool
 	V3Action    string
 	SecureToken string
+	// Lang is the interface language, handed to the vendor so its own texts
+	// match. Anything that is not a language tag is dropped.
+	Lang string
 	// Host and Prompt only caption the page.
 	Host   string
 	Prompt string
@@ -73,7 +90,7 @@ var errCaptchaWidgetNoSiteKey = errors.New("captcha widget: siteKey is required"
 
 func registerCaptchaWidget(reg *Registry, _ *app.App) {
 	reg.Add(http.MethodGet, "/api/captcha/{id}/widget",
-		"render a live captcha widget behind a Content-Security-Policy scoped to the one vendor the query parameters identify; an honest no-script page when they do not",
+		"render a live captcha widget behind a Content-Security-Policy scoped to the one vendor the challenge names; a page without scripts when it names none",
 		func(w http.ResponseWriter, r *http.Request) {
 			page, err := buildCaptchaWidgetPage(parseCaptchaWidgetRequest(r))
 			if err != nil {
@@ -94,15 +111,23 @@ func registerCaptchaWidget(reg *Registry, _ *app.App) {
 		})
 }
 
+var captchaWidgetLang = regexp.MustCompile(`^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})?$`)
+
 func parseCaptchaWidgetRequest(r *http.Request) captchaWidgetRequest {
 	q := r.URL.Query()
+	lang := strings.TrimSpace(q.Get("lang"))
+	if !captchaWidgetLang.MatchString(lang) {
+		lang = ""
+	}
 	return captchaWidgetRequest{
 		ID:          r.PathValue("id"),
+		Vendor:      strings.ToLower(strings.TrimSpace(q.Get("vendor"))),
 		SiteKey:     strings.TrimSpace(q.Get("siteKey")),
 		Size:        strings.TrimSpace(q.Get("type")),
 		Enterprise:  parseCaptchaWidgetBool(q.Get("enterprise")),
 		V3Action:    strings.TrimSpace(q.Get("v3Action")),
 		SecureToken: q.Get("secureToken"),
+		Lang:        lang,
 		Host:        q.Get("host"),
 		Prompt:      q.Get("prompt"),
 	}
@@ -112,10 +137,19 @@ func parseCaptchaWidgetBool(v string) bool {
 	return v == "1" || strings.EqualFold(v, "true")
 }
 
-// isUnambiguouslyRecaptcha reports whether req's fields prove reCAPTCHA. No
-// field proves hCaptcha, so there is no counterpart.
-func isUnambiguouslyRecaptcha(req captchaWidgetRequest) bool {
-	return req.Enterprise || req.V3Action != "" || strings.EqualFold(req.Size, "invisible")
+// captchaWidgetVendor is the vendor req renders for, or "" when it names none
+// this page knows and none of its fields prove reCAPTCHA. Both vendors have an
+// invisible size, so the size proves nothing.
+func captchaWidgetVendor(req captchaWidgetRequest) string {
+	switch req.Vendor {
+	case captcha.VendorRecaptcha, captcha.VendorHCaptcha:
+		return req.Vendor
+	case "":
+		if req.Enterprise || req.V3Action != "" {
+			return captcha.VendorRecaptcha
+		}
+	}
+	return ""
 }
 
 // captchaWidgetPage is a rendered response, keeping the CSP together with the
@@ -134,7 +168,31 @@ func buildCaptchaWidgetPage(req captchaWidgetRequest) (captchaWidgetPage, error)
 		return captchaWidgetPage{}, fmt.Errorf("preparing a page nonce: %w", err)
 	}
 
-	if !isUnambiguouslyRecaptcha(req) {
+	data := widgetPageData{
+		Nonce: nonce, ID: req.ID, Host: req.Host, Prompt: req.Prompt,
+		LoadTimeoutMS: captchaWidgetLoadTimeout.Milliseconds(),
+		Params:        map[string]string{"sitekey": req.SiteKey},
+	}
+	var csp string
+	switch captchaWidgetVendor(req) {
+	case captcha.VendorHCaptcha:
+		// Always the checkbox, even for a key JD found invisible: hCaptcha
+		// does not tie a key to a size, and a challenge the user closes can
+		// then be opened again.
+		data.Global = "hcaptcha"
+		data.ScriptURL = captchaWidgetScriptURL("https://js.hcaptcha.com/1/api.js", req.Lang)
+		csp = hcaptchaCSP(nonce)
+	case captcha.VendorRecaptcha:
+		data.Global = "grecaptcha"
+		data.ScriptURL = captchaWidgetScriptURL("https://www.google.com/recaptcha/api.js", req.Lang)
+		if strings.EqualFold(req.Size, "invisible") {
+			data.Params["size"] = "invisible"
+		}
+		if req.SecureToken != "" {
+			data.Params["stoken"] = req.SecureToken
+		}
+		csp = recaptchaCSP(nonce)
+	default:
 		var buf bytes.Buffer
 		if err := unidentifiedWidgetPageTmpl.Execute(&buf, unidentifiedWidgetPageData{
 			Nonce: nonce, Host: req.Host,
@@ -145,13 +203,21 @@ func buildCaptchaWidgetPage(req captchaWidgetRequest) (captchaWidgetPage, error)
 	}
 
 	var buf bytes.Buffer
-	if err := recaptchaWidgetPageTmpl.Execute(&buf, recaptchaWidgetPageData{
-		Nonce: nonce, ID: req.ID, SiteKey: req.SiteKey, Size: req.Size,
-		SecureToken: req.SecureToken, Host: req.Host, Prompt: req.Prompt,
-	}); err != nil {
-		return captchaWidgetPage{}, fmt.Errorf("rendering the reCAPTCHA page: %w", err)
+	if err := widgetPageTmpl.Execute(&buf, data); err != nil {
+		return captchaWidgetPage{}, fmt.Errorf("rendering the %s page: %w", data.Global, err)
 	}
-	return captchaWidgetPage{csp: recaptchaCSP(nonce), body: buf.Bytes()}, nil
+	return captchaWidgetPage{csp: csp, body: buf.Bytes()}, nil
+}
+
+// captchaWidgetScriptURL is a vendor's script address, set up for explicit
+// rendering from the page's klWidgetLoaded and in lang where one is known.
+// Both vendors take the same three parameters.
+func captchaWidgetScriptURL(base, lang string) string {
+	q := url.Values{"onload": {"klWidgetLoaded"}, "render": {"explicit"}}
+	if lang != "" {
+		q.Set("hl", lang)
+	}
+	return base + "?" + q.Encode()
 }
 
 // newCaptchaWidgetNonce is one response's CSP nonce. It only has to be
@@ -180,6 +246,23 @@ func recaptchaCSP(nonce string) string {
 	}, "; ")
 }
 
+// hcaptchaCSP is the policy for the hCaptcha page. hCaptcha names the same two
+// hosts for scripts, styles, frames and connections.
+func hcaptchaCSP(nonce string) string {
+	n := "'nonce-" + nonce + "'"
+	const hosts = "https://hcaptcha.com https://*.hcaptcha.com"
+	return strings.Join([]string{
+		"default-src 'none'",
+		"script-src 'self' " + n + " " + hosts,
+		"style-src 'self' " + n + " " + hosts,
+		"frame-src " + hosts,
+		"connect-src 'self' " + hosts,
+		"base-uri 'none'",
+		"form-action 'none'",
+		"frame-ancestors 'self'",
+	}, "; ")
+}
+
 // unidentifiedVendorCSP trusts no vendor origin; only the page's own style
 // block may load.
 func unidentifiedVendorCSP(nonce string) string {
@@ -192,16 +275,28 @@ func unidentifiedVendorCSP(nonce string) string {
 	}, "; ")
 }
 
-// recaptchaWidgetPageData feeds recaptchaWidgetPageTmpl. The values come from
-// the hoster's page via JD and are untrusted; html/template escapes each for
-// its context.
-type recaptchaWidgetPageData struct {
-	Nonce, ID, SiteKey, Size, SecureToken, Host, Prompt string
+// widgetPageData feeds widgetPageTmpl. SiteKey, Host, Prompt and the secure
+// token come from the hoster's page via JD and are untrusted; html/template
+// escapes each for its context.
+type widgetPageData struct {
+	Nonce, ID, Host, Prompt string
+	// Global is the vendor's script object, grecaptcha or hcaptcha.
+	Global    string
+	ScriptURL string
+	// Params is the render call's parameters without the callbacks.
+	Params        map[string]string
+	LoadTimeoutMS int64
 }
 
-// recaptchaWidgetPageTmpl lets reCAPTCHA render itself from the data-sitekey
-// div, so the only inline script is the postMessage relay.
-var recaptchaWidgetPageTmpl = template.Must(template.New("captcha-widget-recaptcha").Parse(`<!doctype html>
+// widgetPageTmpl renders either vendor explicitly, so the page learns when the
+// script has arrived and can tell a widget that never loads from one that is
+// waiting for the user. On failure the widget is hidden and the parent says
+// why in the interface language. reCAPTCHA calls its error callback without a
+// code, for lost connectivity, which is reported as "network".
+// challenge-closed and challenge-expired are hCaptcha's codes for a challenge
+// the user closed or left too long; the widget is reset for another try rather
+// than given up.
+var widgetPageTmpl = template.Must(template.New("captcha-widget").Parse(`<!doctype html>
 <html>
 <head>
 <meta charset="utf-8">
@@ -212,33 +307,59 @@ body{display:flex;align-items:center;justify-content:center;font:14px/1.4 -apple
 #kl-wrap{text-align:center;max-width:420px;padding:16px}
 #kl-host{font-weight:600;margin-bottom:4px}
 #kl-prompt{font-size:12px;color:#666;margin-bottom:12px}
+#kl-widget{display:inline-block}
 </style>
 </head>
 <body>
 <div id="kl-wrap">
 {{if .Host}}<div id="kl-host">{{.Host}}</div>{{end}}
 {{if .Prompt}}<div id="kl-prompt">{{.Prompt}}</div>{{end}}
-<div class="g-recaptcha"
-     data-sitekey="{{.SiteKey}}"
-     {{if .Size}}data-size="{{.Size}}"{{end}}
-     {{if .SecureToken}}data-stoken="{{.SecureToken}}"{{end}}
-     data-callback="klCaptchaSolved"
-     data-expired-callback="klCaptchaExpired"
-     data-error-callback="klCaptchaError"></div>
+<div id="kl-widget"></div>
 </div>
 <script nonce="{{.Nonce}}">
 (function(){
   var target = window.location.origin;
+  var failed = false;
+  var widget;
   function post(kind, detail){
     window.parent.postMessage({source:"knightloader-captcha-widget",id:{{.ID}},kind:kind,detail:detail||null}, target);
   }
-  window.klCaptchaSolved = function(token){ post("solved", token); };
-  window.klCaptchaExpired = function(){ post("expired", null); };
-  window.klCaptchaError = function(){ post("error", null); };
+  function fail(code){
+    if (failed) return;
+    failed = true;
+    clearTimeout(watchdog);
+    document.getElementById("kl-widget").hidden = true;
+    post("error", code);
+  }
+  var watchdog = setTimeout(function(){ fail("timeout"); }, {{.LoadTimeoutMS}});
+  window.klWidgetLoaded = function(){
+    clearTimeout(watchdog);
+    var api = window[{{.Global}}];
+    var params = {{.Params}};
+    params.callback = function(token){ post("solved", token); };
+    params["expired-callback"] = function(){ post("expired", null); };
+    params["error-callback"] = function(code){
+      if (code === "challenge-closed" || code === "challenge-expired") {
+        api.reset(widget);
+        return;
+      }
+      fail(code || "network");
+    };
+    try {
+      widget = api.render("kl-widget", params);
+      if (params.size === "invisible") api.execute(widget);
+    } catch (e) {
+      fail(String((e && e.message) || e));
+    }
+  };
+  var script = document.createElement("script");
+  script.src = {{.ScriptURL}};
+  script.async = true;
+  script.onerror = function(){ fail("script"); };
+  document.head.appendChild(script);
   post("ready", null);
 })();
 </script>
-<script src="https://www.google.com/recaptcha/api.js" nonce="{{.Nonce}}" async defer></script>
 </body>
 </html>
 `))

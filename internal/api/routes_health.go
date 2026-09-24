@@ -17,7 +17,6 @@ package api
 
 import (
 	"net/http"
-	"strings"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
@@ -53,16 +52,22 @@ func registerHealth(reg *Registry, a *app.App) {
 
 // metricsDetail is the live line of the metrics module row: where to point
 // the collector, and a warning when a password is set but no token exists.
-func metricsDetail(a *app.App, s settings.Settings) string {
+func metricsDetail(a *app.App, s settings.Settings) line {
+	path := map[string]string{"path": metricsPath}
 	if !s.Metrics {
-		return "off; " + metricsPath + " answers 404, the same as an endpoint that does not exist"
+		return line{
+			text: "off; " + metricsPath + " answers 404, the same as an endpoint that does not exist",
+			code: "metricsOff", args: path,
+		}
 	}
-	var notes []string
 	if a.Auth != nil && a.Auth.Enabled() && len(a.APITokens.List()) == 0 {
-		notes = append(notes, "this instance has a password and no API token yet, so a collector has nothing to authenticate with; create one on the Access page")
+		return line{
+			text: "this instance has a password and no API token yet, so a collector has nothing to authenticate with; create one on the Access page",
+			code: "metricsNoToken",
+		}
 	}
-	if len(notes) == 0 {
-		return "reachable at " + metricsPath + "; a collector on a password-protected instance sends one of this instance's API tokens as a Bearer header"
+	return line{
+		text: "reachable at " + metricsPath + "; a collector on a password-protected instance sends one of this instance's API tokens as a Bearer header",
+		code: "metricsReady", args: path,
 	}
-	return strings.Join(notes, "; ")
 }

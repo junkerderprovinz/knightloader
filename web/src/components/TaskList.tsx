@@ -1,6 +1,8 @@
 import {
+  Fragment,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -16,6 +18,7 @@ import {
   type Task,
   type TaskOptionsPatch,
   type YtdlpHosterPreset,
+  type YtdlpVariantKind,
   YTDLP_VARIANT_KINDS,
   fetchHosterPreset,
   fetchOptions,
@@ -55,13 +58,22 @@ import {
   SectionTitle,
   TextArea,
   TextInput,
+  Toggle,
   useTooltip,
 } from './ui';
 import { Tabs } from './Tabs';
+import { PathInput } from './FolderPicker';
+import {
+  NO_PRESET_MENUS,
+  VariantDropdown,
+  presetMenusOf,
+  presetPickers,
+  type PickerProps,
+  type PresetMenus,
+} from './VariantPicker';
 import { ColumnMenu } from './ColumnMenu';
 import {
   COLUMN_BY_ID,
-  Checkbox,
   FOLDER_GLYPH,
   Tip,
   TREE_INDENT,
@@ -90,6 +102,7 @@ import { useListKeyboard } from './listKeyboard';
 import { rowKey, useRowWindow, type ListRow, type RowDragKey } from './listRows';
 import {
   aimAt,
+  carriedOffsets,
   pastThreshold,
   previewOrder,
   sameUnit,
@@ -98,6 +111,17 @@ import {
   type BlockRow,
   type RowSlot,
 } from './rowDrag';
+import {
+  HOLD_MS,
+  HOLD_SLOP_PX,
+  LIFT,
+  SETTLE,
+  SHIFT,
+  liftScale,
+  sameOrder,
+  settleMs,
+  translateOf,
+} from './dragLift';
 import {
   IconPause,
   IconPlay,
@@ -133,13 +157,34 @@ const ROW_GRID: CSSProperties = { gridTemplateColumns: 'var(--kl-cols)' };
 
 // A row's drag style when no drag is in flight: nothing at all.
 //
-// Empty rather than `{ transform: 'none', transition: 'none' }`, because React
-// clears an inline style property by seeing it disappear from the style object,
-// and spelling out 'none' would leave both properties on the element for the
-// rest of the session, overriding whatever the stylesheet says about them.
-// Shared constants, so neither the style nor the map is rebuilt per row.
+// Empty rather than `{ translate: 'none' }`, because React clears an inline
+// style property by seeing it disappear from the style object, and spelling out
+// 'none' would leave it on the element for the rest of the session, overriding
+// whatever the stylesheet and the landing slide say about it. Shared
+// constants, so neither the style nor the map is rebuilt per row.
 const NO_SLIDE: CSSProperties = {};
 const NO_OFFSETS = new Map<string, number>();
+
+// How long a dropped order is drawn after the server took it, as the phone's
+// DragList does: long enough for the tick that carries it, short enough that an
+// order the server settled differently is not contradicted for long.
+const HOLD_ORDER_MS = 3000;
+
+/**
+ * inOrder is the list redrawn in `order`, the order a drop promised, or null
+ * when the two hold different tasks.
+ */
+function inOrder(groups: [string, Task[]][], order: readonly string[]): [string, Task[]][] | null {
+  const rank = new Map(order.map((id, at) => [id, at] as const));
+  const flat = groups.flatMap(([, items]) => items);
+  if (flat.length !== rank.size || flat.some((x) => !rank.has(x.id))) return null;
+  return groupByPackage([...flat].sort((a, b) => (rank.get(a.id) ?? 0) - (rank.get(b.id) ?? 0)));
+}
+
+/** The drawn rows of a strip: the two window spacers and the probes carry no key. */
+function drawnRows(strip: HTMLElement): HTMLElement[] {
+  return Array.from(strip.querySelectorAll<HTMLElement>('[data-row-key]'));
+}
 
 /**
  * The cell holding a row's action badges, in the last grid track (see
@@ -265,7 +310,6 @@ function TaskRow({
   const collected = task.status === 'collected';
   const settled = task.status === 'done' || task.status === 'error';
   const unit: RowDragKey = { kind: 'task', id: task.id };
-  const dragging = dnd.moving(unit);
 
   // In rainbow mode the row owns a colour, and everything inside it that paints
   // activity, the progress fill above all, reads it through --accent without
@@ -295,10 +339,10 @@ function TaskRow({
       aria-posinset={posinset}
       aria-setsize={setsize}
       onKeyDown={onKeyDown}
-      // The live drag preview slides this row with a transform rather than
+      // The live drag preview slides this row with a translate rather than
       // rendering it somewhere else in the list; see TaskListCard's
-      // previewOffsets. With no drag in flight the two properties are absent
-      // and the row sits where the document flow puts it.
+      // previewOffsets. With no drag in flight the property is absent and the
+      // row sits where the document flow puts it.
       style={
         {
           ...hueVars(rainbowAt(index)),
@@ -327,7 +371,7 @@ function TaskRow({
       //
       // has-[:focus-visible] is the keyboard's hover, and the fill has to
       // arrive with it.
-      className={`glim-hue glim-tint select-none ${task.status === 'running' ? 'glim-active' : ''} ${dragging ? 'opacity-50' : ''} ${
+      className={`glim-hue glim-tint select-none ${task.status === 'running' ? 'glim-active' : ''} ${dnd.look(unit)} ${
         selection?.ids.has(task.id) ? 'glim-row-selected' : ''
       } relative grid items-center px-3 py-2 transition-colors
         hover:bg-carbon-hover/50 has-[:focus-visible]:bg-carbon-hover/50`}
@@ -604,8 +648,7 @@ function HosterPresetDialog({ host, base, onClose }: { host: string; base: strin
   const { t } = useT();
   const { toast } = useToast();
   const [preset, setPreset] = useState<YtdlpHosterPreset | null>(null);
-  const [qualities, setQualities] = useState<string[]>([]);
-  const [audioFormats, setAudioFormats] = useState<string[]>([]);
+  const [menus, setMenus] = useState<PresetMenus>(NO_PRESET_MENUS);
   const [saving, setSaving] = useState(false);
   const [loadError, setLoadError] = useState('');
   // Counted and read as the Save button's `key`: an animation already at rest
@@ -619,8 +662,7 @@ function HosterPresetDialog({ host, base, onClose }: { host: string; base: strin
       ([p, o]) => {
         if (!live) return;
         setPreset(p);
-        setQualities(o.ytdlpQualities ?? []);
-        setAudioFormats(o.ytdlpAudioFormats ?? []);
+        setMenus(presetMenusOf(o));
       },
       (err) => {
         if (live) setLoadError(err instanceof Error && err.message ? err.message : String(err));
@@ -631,7 +673,7 @@ function HosterPresetDialog({ host, base, onClose }: { host: string; base: strin
     };
   }, [host, base]);
 
-  function toggleVariant(kind: (typeof YTDLP_VARIANT_KINDS)[number]) {
+  function toggleVariant(kind: YtdlpVariantKind) {
     setPreset((p) => {
       if (!p) return p;
       const on = p.variants.includes(kind);
@@ -653,6 +695,12 @@ function HosterPresetDialog({ host, base, onClose }: { host: string; base: strin
     }
   }
 
+  const pickers =
+    preset && presetPickers({ preset, menus, t, onChange: (fields) => setPreset((p) => (p ? { ...p, ...fields } : p)) });
+  const pairs: Partial<Record<YtdlpVariantKind, (PickerProps | null)[]>> = pickers
+    ? { video: [pickers.video.format, pickers.video.quality], audio: [pickers.audio.format, pickers.audio.bitrate] }
+    : {};
+
   return (
     <Modal
       title={`${t('collector.hosterPreset')} · ${host}`}
@@ -671,55 +719,34 @@ function HosterPresetDialog({ host, base, onClose }: { host: string; base: strin
       ) : !preset ? (
         <LoadingCard nested label={t('common.loading')} />
       ) : (
-        <>
-          <p className="text-sm text-carbon-textMuted">{t('collector.hosterPresetIntro', { host })}</p>
-
-          <FieldGroup label={t('columns.variant')}>
-            <div className="flex flex-col gap-1.5">
-              {YTDLP_VARIANT_KINDS.map((kind) => {
-                const kindLabel = t(VARIANT_KIND_LABEL_KEY[kind] ?? VARIANT_KIND_LABEL_KEY.video);
-                return (
-                  <div key={kind} className="flex items-center gap-2 text-sm text-carbon-text">
-                    <Checkbox
-                      checked={preset.variants.includes(kind)}
-                      label={kindLabel}
-                      onChange={() => toggleVariant(kind)}
-                    />
-                    <span className="cursor-pointer" onClick={() => toggleVariant(kind)}>
-                      {kindLabel}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </FieldGroup>
-
-          {qualities.length > 0 && (
-            <FieldGroup label={t('settings.resolvers.quality')}>
-              <Tabs
-                size="sm"
-                className="w-fit"
-                label={t('settings.resolvers.quality')}
-                active={preset.quality}
-                onSelect={(id) => setPreset((p) => (p ? { ...p, quality: id } : p))}
-                items={qualities.map((q) => ({ id: q, label: q }))}
-              />
-            </FieldGroup>
-          )}
-
-          {audioFormats.length > 0 && (
-            <FieldGroup label={t('collector.hosterPresetAudioFormat')}>
-              <Tabs
-                size="sm"
-                className="w-fit"
-                label={t('collector.hosterPresetAudioFormat')}
-                active={preset.audioFormat}
-                onSelect={(id) => setPreset((p) => (p ? { ...p, audioFormat: id } : p))}
-                items={audioFormats.map((f) => ({ id: f, label: f }))}
-              />
-            </FieldGroup>
-          )}
-        </>
+        <FieldGroup label={t('columns.variant')} hint={t('collector.hosterPresetHint', { host })}>
+          {/* The row the table on the Resolvers page shows for this host,
+              turned on its side: each variant with the format and quality it
+              starts with, and its switch at the end of the line. One grid, so
+              the pickers of the video and audio lines stand in columns. */}
+          <div className="grid auto-rows-[minmax(var(--btn-h),auto)] grid-cols-[auto_minmax(0,1fr)_minmax(0,1fr)_auto] items-center gap-2">
+            {YTDLP_VARIANT_KINDS.map((kind, k) => {
+              const kindLabel = t(VARIANT_KIND_LABEL_KEY[kind]);
+              const pair = menus.qualities.length > 0 ? pairs[kind] : undefined;
+              return (
+                <Fragment key={kind}>
+                  <span className="text-sm text-carbon-text">{kindLabel}</span>
+                  {[0, 1].map((i) => {
+                    const p = pair?.[i];
+                    return p ? <VariantDropdown key={i} picker={p} width="fill" /> : <span key={i} />;
+                  })}
+                  <Toggle
+                    hideLabel
+                    label={kindLabel}
+                    checked={preset.variants.includes(kind)}
+                    onChange={() => toggleVariant(kind)}
+                    hue={k}
+                  />
+                </Fragment>
+              );
+            })}
+          </div>
+        </FieldGroup>
       )}
     </Modal>
   );
@@ -786,7 +813,6 @@ function PackageRow({
 }) {
   const allSelected = selection && items.every((x) => selection.ids.has(x.id));
   const unit: RowDragKey = { kind: 'package', name };
-  const dragging = dnd.moving(unit);
   const ytdlpHost = items.find((x) => variantKindOf(x) && x.host)?.host;
 
   return (
@@ -844,7 +870,7 @@ function PackageRow({
         [--row-ground:color-mix(in_srgb,var(--carbon-surface2)_80%,var(--carbon-surface))]
         [--row-raised:color-mix(in_srgb,var(--carbon-surface3)_80%,var(--carbon-surface))]
         hover:[--row-ground:var(--row-raised)]
-        has-[:focus-visible]:[--row-ground:var(--row-raised)] ${dragging ? 'opacity-50' : ''}`}
+        has-[:focus-visible]:[--row-ground:var(--row-raised)] ${dnd.look(unit)}`}
     >
       {columns.map((col) => (
         <div
@@ -902,9 +928,10 @@ function PackageRow({
 
 /** The bundle TaskRow and PackageRow share, built once per render in TaskListCard. */
 interface RowDnD {
-  /** Whether this row is one of the rows a move in flight is carrying. A move
-   *  carries the whole selection, so this is a set and not one key. */
-  moving: (unit: RowDragKey) => boolean;
+  /** The row's drag class: LIFT for a row a move in flight is carrying (the
+   *  whole selection, so it can be several), SETTLE while it lands, SHIFT for
+   *  the others while they make room, and none at rest. */
+  look: (unit: RowDragKey) => string;
   /** The press. Everything it can turn into, a click, a selection sweep or a
    *  move, is decided by TaskListCard; see its gesture section. */
   press: (e: PointerEvent<HTMLElement>, unit: RowDragKey) => void;
@@ -962,6 +989,18 @@ interface Gesture {
   /** The aim a move would commit right now. Kept here as well as in state
    *  because the drop reads it in the same tick the last move wrote it. */
   over: { target: RowDragKey; after: boolean } | null;
+  /** A finger, which arms a move by holding still; see holdRow. */
+  touch: boolean;
+  /** The hold's timer while it runs, else 0. */
+  hold: number;
+  /** Whether a held finger has moved since it armed. One that has not opens
+   *  the row's menu on release instead of dropping anything. */
+  travelled: boolean;
+  /** The press in the strip's own coordinates, taken when a move begins: the
+   *  carried rows move by the pointer's travel from here. */
+  originY: number;
+  /** The carried rows' lift scale, read off the first one placed; 0 until then. */
+  scale: number;
 }
 
 /** Which drag unit a drawn row element stands for, or null for anything that is
@@ -1356,12 +1395,12 @@ export function TaskProperties({
             label={t('task.folder')}
             hint={hint(t('settings.downloadDirHint'), start.dir === null)}
           >
-            <TextInput
-              dir="ltr"
+            <PathInput
               value={dir}
-              spellCheck={false}
               placeholder={placeholder(start.dir === null)}
-              onChange={(e) => edit('dir', setDir)(e.target.value)}
+              title={t('task.folder')}
+              local={base === '/api'}
+              onValue={edit('dir', setDir)}
             />
           </Field>
 
@@ -1520,7 +1559,16 @@ export function TaskListCard({
   // its column is invisible would be a list in an order with nothing on screen
   // to explain it.
   const sort = storedSort && !layout.hidden.has(storedSort.id) ? storedSort : null;
-  const view = useMemo(() => applySort(groups, sort), [groups, sort]);
+  const sorted = useMemo(() => applySort(groups, sort), [groups, sort]);
+  // The order the last drop promised, drawn until the server's own order
+  // agrees (see holdOrder). Without it the rows that just landed would jump
+  // back to where they were and forward again a tick later. Everything below
+  // reads `view`, so a drag that starts in the meantime aims at what is drawn.
+  const [pending, setPending] = useState<{ order: string[]; token: number } | null>(null);
+  const view = useMemo(
+    () => (pending && !sort ? (inOrder(sorted, pending.order) ?? sorted) : sorted),
+    [sorted, sort, pending],
+  );
 
   // The table, flattened: every folder header and, while that folder is open,
   // its own links, in the order they are drawn. Everything downstream reads
@@ -1652,9 +1700,14 @@ export function TaskListCard({
   // EDGE_BAND_PX), and a press that must not be swallowed by a text selection
   // or by the native drag of an <img> inside a row.
   //
-  // Touch is left to the browser, where a finger dragged down a list means
-  // scroll; the phone has its own long-press drag (mobile's DragList). A stylus
-  // counts as a mouse here.
+  // A finger dragged down a list means scroll, so touch has one meaning of its
+  // own: holding still on a row arms a move, as on the phone (mobile's
+  // DragList). A stylus counts as a mouse here.
+  //
+  // What a move looks like is GlimStone's drag lift (dragLift.ts): the carried
+  // rows float under the pointer as one block, the others slide aside as it
+  // passes, and on release the block slides into its gap, or back where it
+  // came from after Escape or a drop that changes nothing.
   //
   // Moving is only offered in queue-order view, since a client-side sort is a
   // view and never the queue itself (see applySort). A move attempted under a
@@ -1669,8 +1722,21 @@ export function TaskListCard({
   // step aside live instead of snapping into their new order once the mouse is
   // released.
   const [dragOver, setDragOver] = useState<{ target: RowDragKey; after: boolean } | null>(null);
+  // The landing: the keys of the rows that were carried, while they slide into
+  // their gap or back home and the others slide with them. Empty when only the
+  // others move, as when the server's order replaces a promised one.
+  const [settle, setSettle] = useState<ReadonlySet<string> | null>(null);
   const gesture = useRef<Gesture | null>(null);
+  // Whether the finger on the list armed a hold, until it lifts; see the
+  // touchend listener further down.
+  const heldTouch = useRef(false);
   const edgeScroll = useRef<{ frame: number; box: HTMLElement | null }>({ frame: 0, box: null });
+  // Where each drawn row was painted before a change of order, so the next
+  // commit can slide it from there into its new place.
+  const flipFrom = useRef<Map<string, number> | null>(null);
+  const pendingRef = useRef(pending);
+  pendingRef.current = pending;
+  const pendingToken = useRef(0);
 
   // A frozen snapshot of every row's position, taken once when a move starts.
   // Without it, "which row, which half" comes from whichever DOM element the
@@ -1679,7 +1745,7 @@ export function TaskListCard({
   //
   // It is the one geometry the whole move runs on: the list keeps rendering its
   // resting order while the pointer is down and every row is slid to its
-  // previewed place by a transform (previewOffsets below), so the flow the
+  // previewed place by a translate (previewOffsets below), so the flow the
   // snapshot measured stays the true one throughout.
   //
   // In the strip's own coordinates rather than the viewport's, so it survives
@@ -1699,13 +1765,13 @@ export function TaskListCard({
       rowSlotsRef.current = [];
       return;
     }
-    const origin = root.getBoundingClientRect().top;
+    // Layout offsets and not client boxes, which would count a landing slide
+    // still in flight. The strip is every row's offsetParent.
     const slots: RowSlot[] = [];
     root.querySelectorAll<HTMLElement>('[data-task-id],[data-package-row]').forEach((el) => {
       const unit = unitOfRow(el);
       if (!unit) return;
-      const r = el.getBoundingClientRect();
-      slots.push({ unit, top: r.top - origin, bottom: r.bottom - origin });
+      slots.push({ unit, top: el.offsetTop, bottom: el.offsetTop + el.offsetHeight });
     });
     rowSlotsRef.current = slots;
   }
@@ -1846,15 +1912,15 @@ export function TaskListCard({
    * link travelling as part of its own folder does not, that folder moving
    * whole with its links.
    */
-  function dropBlock(block: readonly RowDragKey[], target: RowDragKey, after: boolean): void {
+  function dropBlock(block: readonly RowDragKey[], target: RowDragKey, after: boolean): Promise<boolean> | null {
     const band = unitBand(target);
-    if (!band) return;
+    if (!band) return null;
     const movedIds = block.flatMap(unitIds);
     const targetIds = unitIds(target);
-    if (movedIds.length === 0 || targetIds.length === 0) return;
+    if (movedIds.length === 0 || targetIds.length === 0) return null;
     // Dropped on itself, or on a part of itself. Not a failure, just not a move.
     const moving = new Set(movedIds);
-    if (targetIds.some((id) => moving.has(id))) return;
+    if (targetIds.some((id) => moving.has(id))) return null;
 
     const before = bandOrder.get(band) ?? [];
     // A Set and not `movedIds.includes`: a marking can be thousands of rows on a
@@ -1865,11 +1931,11 @@ export function TaskListCard({
     // internal order and lands as one contiguous run where a single link would.
     const anchor = after ? targetIds[targetIds.length - 1] : targetIds[0];
     const at = order.indexOf(anchor);
-    if (at < 0) return;
+    if (at < 0) return null;
     order.splice(after ? at + 1 : at, 0, ...movedIds);
 
     const dst = taskById.get(targetIds[0]);
-    if (!dst) return;
+    if (!dst) return null;
     // The rows that have to change hands before the order above means anything.
     const reband = movedIds.filter((id) => {
       const x = taskById.get(id);
@@ -1898,19 +1964,17 @@ export function TaskListCard({
       order.length === before.length &&
       order.every((id, i) => id === before[i])
     ) {
-      return;
+      return null;
     }
 
-    // The move goes first and the reorder follows it: a row has to be IN the
-    // band and IN the folder before its position among their rows means
-    // anything. There is no local override of the task order to unwind if this
-    // fails - the next poll or websocket tick is what settles rows back where
-    // the server actually put them - but a refusal has to SAY something.
-    // reorderTasks throws with the server's own sentence (api.ts, ok()), and
-    // swallowing that made a rejected move indistinguishable from a move the app
-    // never noticed, which is precisely how it was reported ("funktioniert
-    // überhaupt nicht").
-    void (async () => {
+    // The move goes first and the reorder follows it: a row has to be in the
+    // band and in the folder before its position among their rows means
+    // anything. A refusal has to say something as well as slide the rows back
+    // (see holdOrder): reorderTasks throws with the server's own sentence
+    // (api.ts, ok()), and swallowing that made a rejected move
+    // indistinguishable from a move the app never noticed, which is precisely
+    // how it was reported ("funktioniert überhaupt nicht").
+    return (async () => {
       try {
         if (rehome.length > 0) await setPackage(rehome, home, base);
         if (reband.length > 0) {
@@ -1921,8 +1985,10 @@ export function TaskListCard({
         }
         await reorderTasks(order, base);
         if (reband.length > 0) toast(t('list.dropChangedPriority', { n: reband.length }), 'info');
+        return true;
       } catch (err) {
         toast(t('list.failed', { error: err instanceof Error ? err.message : String(err) }), 'fail');
+        return false;
       }
     })();
   }
@@ -1962,10 +2028,11 @@ export function TaskListCard({
     // Everything that is its own control keeps its own gesture: an action badge,
     // the Enabled switch, the folder twisty.
     if (e.target instanceof Element && e.target.closest(CONTROL)) return;
-    // Touch scrolls. See the section head for why that is a decision and not an
-    // omission.
-    if (e.pointerType === 'touch') return;
     abortGesture();
+    if (e.pointerType === 'touch') {
+      holdRow(e, unit);
+      return;
+    }
 
     const mods: SelectMods = { ctrlKey: e.ctrlKey, metaKey: e.metaKey, shiftKey: e.shiftKey };
     const before: ReadonlySet<string> = new Set(selection?.ids ?? []);
@@ -1999,12 +2066,69 @@ export function TaskListCard({
       block: [],
       sweptTo: null,
       over: null,
+      touch: false,
+      hold: 0,
+      travelled: false,
+      originY: 0,
+      scale: 0,
     };
   }
 
-  /** The press has travelled far enough to mean something. Returns false when
+  /**
+   * A finger on a row scrolls the list, unless it holds still for HOLD_MS,
+   * which arms a move of the row, or of the marking the row is in. A hold let
+   * go where it armed opens the row's menu instead (see land), since a long
+   * press is how a touch screen asks for one.
+   */
+  function holdRow(e: PointerEvent<HTMLElement>, unit: RowDragKey): void {
+    const g: Gesture = {
+      mode: 'move',
+      unit,
+      fromIndex: -1,
+      pointerId: e.pointerId,
+      fromX: e.clientX,
+      fromY: e.clientY,
+      atX: e.clientX,
+      atY: e.clientY,
+      mods: PLAIN,
+      before: new Set(selection?.ids ?? []),
+      live: false,
+      block: [],
+      sweptTo: null,
+      over: null,
+      touch: true,
+      hold: 0,
+      travelled: false,
+      originY: 0,
+      scale: 0,
+    };
+    // Through a ref, since the selection may change before the timer fires.
+    g.hold = window.setTimeout(() => armRef.current(g), HOLD_MS);
+    gesture.current = g;
+    heldTouch.current = false;
+  }
+
+  function armHold(g: Gesture): void {
+    g.hold = 0;
+    const strip = stripRef.current;
+    if (gesture.current !== g || !strip) return;
+    const ids = unitAllIds(g.unit);
+    const marked = !!selection && ids.length > 0 && ids.every((id) => selection.ids.has(id));
+    // An unmarked row becomes the marking and travels alone: the selection it
+    // is given here has not rendered yet, so blockFor cannot see it.
+    if (!marked) selectFromUnit(g.unit, PLAIN);
+    keys.setCurrent(rowKey(g.unit));
+    if (!beginGesture(g, strip, marked ? undefined : [g.unit])) return;
+    heldTouch.current = true;
+    applyGesture(g);
+  }
+  const armRef = useRef(armHold);
+  armRef.current = armHold;
+
+  /** The press has travelled far enough, or held long enough, to mean
+   *  something. `carried` overrides what a move carries. Returns false when
    *  the gesture is refused outright, in which case it is already over. */
-  function beginGesture(g: Gesture, strip: HTMLElement): boolean {
+  function beginGesture(g: Gesture, strip: HTMLElement, carried?: RowDragKey[]): boolean {
     if (g.mode === 'move') {
       // A sorted view says so instead of doing nothing. Rows that are simply
       // not draggable there look like a broken list: a folder is picked up,
@@ -2015,7 +2139,7 @@ export function TaskListCard({
         gesture.current = null;
         return false;
       }
-      const block = blockFor(g.unit);
+      const block = carried ?? blockFor(g.unit);
       // A row in no band cannot be reordered, so without this the drag starts,
       // nothing previews, the drop does nothing and the list looks broken. A
       // finished or failed download has left the wait queue. Asked of the whole
@@ -2026,10 +2150,13 @@ export function TaskListCard({
         gesture.current = null;
         return false;
       }
+      // A landing still in flight ends here, so the rows stand in their slots.
+      if (settle) endSettle();
       // Taken before any preview has run for this move, which is the one point
-      // at which the rendered order still matches the server's own bandOrder.
+      // at which the rendered order still matches bandOrder.
       snapshotSlots();
       g.block = block;
+      g.originY = stripY(g.fromY);
       setRowDrag(block);
     }
     g.live = true;
@@ -2048,8 +2175,58 @@ export function TaskListCard({
   }
 
   function applyGesture(g: Gesture): void {
-    if (g.mode === 'select') sweepTo(g.atX, g.atY);
-    else aimBlock(g.atY);
+    if (g.mode === 'select') {
+      sweepTo(g.atX, g.atY);
+      return;
+    }
+    aimBlock(g.atY);
+    placeCarried(g);
+  }
+
+  /**
+   * Draws the carried rows under the pointer as one block (carriedOffsets),
+   * straight onto their `translate` so the block keeps up with the pointer
+   * without a render. Only rows that already wear the lift class, so their
+   * scale grows on the lift's transition instead of jumping.
+   */
+  function placeCarried(g: Gesture): void {
+    const strip = stripRef.current;
+    if (!strip || !g.live || g.block.length === 0) return;
+    const at = carriedOffsets(
+      rowSlotsRef.current,
+      rowOffsets,
+      movingRows,
+      rowKey(g.unit),
+      stripY(g.atY) - g.originY,
+      { top: 0, bottom: strip.offsetHeight },
+      rowKey,
+    );
+    for (const node of drawnRows(strip)) {
+      const dy = at.get(node.dataset.rowKey ?? '');
+      if (dy === undefined || !node.classList.contains(LIFT)) continue;
+      if (!g.scale) g.scale = liftScale(node);
+      node.style.scale = String(g.scale);
+      node.style.translate = `0px ${dy}px`;
+    }
+  }
+
+  /** Where each drawn row is painted, a slide in flight included. */
+  function paintedRows(strip: HTMLElement): Map<string, number> {
+    const out = new Map<string, number>();
+    for (const node of drawnRows(strip)) out.set(node.dataset.rowKey ?? '', node.offsetTop + translateOf(node).y);
+    return out;
+  }
+
+  /** Cuts a landing short: every row stands in its slot at once. */
+  function endSettle(): void {
+    const strip = stripRef.current;
+    if (strip) {
+      for (const node of drawnRows(strip)) {
+        node.style.translate = '';
+        node.style.scale = '';
+      }
+    }
+    setSettle(null);
   }
 
   /**
@@ -2197,7 +2374,16 @@ export function TaskListCard({
     if (!g || e.pointerId !== g.pointerId) return;
     g.atX = e.clientX;
     g.atY = e.clientY;
-    if (!g.live) {
+    if (g.touch) {
+      const far = Math.abs(e.clientX - g.fromX) > HOLD_SLOP_PX || Math.abs(e.clientY - g.fromY) > HOLD_SLOP_PX;
+      // A finger that moves before its hold arms is scrolling, and the browser
+      // has it.
+      if (!g.live) {
+        if (far) abortGesture();
+        return;
+      }
+      if (far) g.travelled = true;
+    } else if (!g.live) {
       if (!pastThreshold(e.clientX - g.fromX, e.clientY - g.fromY)) return;
       if (!beginGesture(g, e.currentTarget)) return;
     }
@@ -2212,24 +2398,142 @@ export function TaskListCard({
     stopEdgeScroll();
     const strip = stripRef.current;
     if (g && strip?.hasPointerCapture(g.pointerId)) strip.releasePointerCapture(g.pointerId);
+    if (g?.hold) window.clearTimeout(g.hold);
+    if (g?.live && g.mode === 'move') {
+      land(g, commit);
+      return;
+    }
     setRowDrag(null);
     setDragOver(null);
     if (!g) return;
     if (!g.live) {
       // A press that never travelled. On a marked row that is the deferred
       // collapse, see (4) above; on an unmarked one the press already did the
-      // marking and there is nothing left to do.
-      if (g.mode === 'move') selectFromUnit(g.unit, PLAIN);
+      // marking and there is nothing left to do. A finger let go or scrolling
+      // before its hold armed was a tap or a scroll, neither of which marks.
+      if (g.mode === 'move' && !g.touch) selectFromUnit(g.unit, PLAIN);
       return;
     }
-    if (!commit) {
-      // Escape and a cancelled pointer put a sweep back where it started. A move
-      // has changed nothing yet, so there is nothing to put back.
-      if (g.mode === 'select') selection?.set(new Set(g.before));
-      return;
-    }
-    if (g.mode === 'move' && g.over && g.block.length > 0) dropBlock(g.block, g.over.target, g.over.after);
+    // Escape and a cancelled pointer put a sweep back where it started.
+    if (!commit) selection?.set(new Set(g.before));
   }
+
+  /**
+   * The end of a move. A drop that changes the order draws the promised order
+   * at once (holdOrder), and every row slides from where it was painted into
+   * its new slot, the carried ones from under the pointer. Anything else slides
+   * every row back home and writes nothing: Escape, a cancelled pointer, a drop
+   * that changes nothing, and a finger let go where its hold armed, which opens
+   * the row's menu.
+   */
+  function land(g: Gesture, commit: boolean): void {
+    const strip = stripRef.current;
+    const carried = new Set(movingRows);
+    const still = g.touch && !g.travelled;
+    const drop = commit && !still;
+    const promised = drop && liveView !== view ? liveView.flatMap(([, items]) => items.map((x) => x.id)) : null;
+    const write = drop && g.over ? dropBlock(g.block, g.over.target, g.over.after) : null;
+    if (write && promised && strip) {
+      flipFrom.current = paintedRows(strip);
+      holdOrder(promised, write);
+    }
+    setRowDrag(null);
+    setDragOver(null);
+    setSettle(carried);
+    if (still && commit) openMenu(g);
+  }
+
+  /**
+   * Draws `order` until the server's own order agrees (see the effect below),
+   * the write fails, or HOLD_ORDER_MS after it succeeds.
+   */
+  function holdOrder(order: string[], write: Promise<boolean>): void {
+    const token = ++pendingToken.current;
+    setPending({ order, token });
+    void write.then((applied) => {
+      if (applied) window.setTimeout(() => releaseRef.current(token), HOLD_ORDER_MS);
+      else releaseRef.current(token);
+    });
+  }
+
+  /** Lets go of a promised order the server's has not matched, and every row
+   *  slides from the promise to where the server put it. */
+  function releaseOrder(token: number): void {
+    if (pendingRef.current?.token !== token) return;
+    const strip = stripRef.current;
+    if (strip && !gesture.current?.live) {
+      flipFrom.current = paintedRows(strip);
+      // A landing still in flight keeps its carried rows above the others.
+      setSettle((prev) => new Set(prev ?? []));
+    }
+    setPending(null);
+  }
+  const releaseRef = useRef(releaseOrder);
+  releaseRef.current = releaseOrder;
+
+  // The promise is kept only until the server's order says the same, or until
+  // the list holds other tasks than the ones it was made of.
+  useEffect(() => {
+    if (!pending) return;
+    const ids = sorted.flatMap(([, items]) => items.map((x) => x.id));
+    if (view === sorted || sameOrder(ids, pending.order)) setPending(null);
+  }, [pending, sorted, view]);
+
+  /** A long press let go where it armed asks for the row's menu, which the
+   *  hold kept the browser from opening. */
+  function openMenu(g: Gesture): void {
+    const strip = stripRef.current;
+    const key = rowKey(g.unit);
+    const node = strip ? drawnRows(strip).find((n) => n.dataset.rowKey === key) : undefined;
+    node?.dispatchEvent(
+      new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: g.atX, clientY: g.atY }),
+    );
+  }
+
+  // The carried rows follow the pointer through every render the move causes.
+  useLayoutEffect(() => {
+    const g = gesture.current;
+    if (g?.live && g.mode === 'move') placeCarried(g);
+  });
+
+  // The landing. A new order was drawn in this commit when flipFrom is set, so
+  // every row starts from where it was painted before; then each slides into
+  // its slot, the carried rows from under the pointer, and once the slide has
+  // played the offsets and the classes go. On a put-back the others are
+  // already sliding, since this commit took their preview offsets away.
+  useLayoutEffect(() => {
+    const strip = stripRef.current;
+    if (!settle || !strip) return;
+    const from = flipFrom.current;
+    flipFrom.current = null;
+    const nodes = drawnRows(strip);
+    if (from) {
+      const moved: HTMLElement[] = [];
+      for (const node of nodes) {
+        const was = from.get(node.dataset.rowKey ?? '');
+        if (was === undefined) continue;
+        node.style.transition = 'none';
+        node.style.translate = `0px ${was - node.offsetTop}px`;
+        moved.push(node);
+      }
+      // Reading layout commits the jump back, so the slide starts from there.
+      void strip.offsetWidth;
+      for (const node of moved) node.style.transition = '';
+    }
+    for (const node of nodes) {
+      const carried = settle.has(node.dataset.rowKey ?? '');
+      if (carried) node.style.scale = '';
+      if (carried || from) node.style.translate = '0px 0px';
+    }
+    const timer = window.setTimeout(
+      () => {
+        for (const node of drawnRows(strip)) node.style.translate = '';
+        setSettle(null);
+      },
+      nodes.length > 0 ? settleMs(nodes[0]) : 0,
+    );
+    return () => window.clearTimeout(timer);
+  }, [settle]);
 
   function abortGesture(): void {
     if (gesture.current) finishGesture(false);
@@ -2254,10 +2558,44 @@ export function TaskListCard({
     };
   }, []);
 
+  // Once a hold has armed, the finger drags instead of scrolling, and the
+  // browser's long-press menu stays shut while the hold runs or drags; see
+  // openMenu for where it goes instead. Lifting the finger sends no mouse
+  // events after it either: they would land on whatever row is under the
+  // finger by then, and their mousedown closes the menu a still hold opened.
+  // Bound natively, since React's touch listeners are passive and cannot
+  // cancel.
+  useEffect(() => {
+    const strip = stripRef.current;
+    if (!strip) return;
+    function onTouchMove(e: TouchEvent) {
+      if (gesture.current?.touch && gesture.current.live) e.preventDefault();
+    }
+    function onTouchEnd(e: TouchEvent) {
+      if (!heldTouch.current) return;
+      heldTouch.current = false;
+      e.preventDefault();
+    }
+    function onMenu(e: Event) {
+      const g = gesture.current;
+      if (!g?.touch || !(g.live || g.hold)) return;
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    strip.addEventListener('touchmove', onTouchMove, { passive: false });
+    strip.addEventListener('touchend', onTouchEnd, { passive: false });
+    strip.addEventListener('contextmenu', onMenu);
+    return () => {
+      strip.removeEventListener('touchmove', onTouchMove);
+      strip.removeEventListener('touchend', onTouchEnd);
+      strip.removeEventListener('contextmenu', onMenu);
+    };
+  }, []);
+
   // The arrangement the drag in flight is promising: the same groups the table
   // is showing, in the order they would be in if the pointer were released now.
   // It is a description and not what gets rendered, and previewOffsets below
-  // turns it into one translateY per row. Rendering it would reorder the real
+  // turns it into one translate per row. Rendering it would reorder the real
   // rows, leaving a FLIP measurement as the only way to animate them, which
   // reads a mid-animation box as a row's resting place and makes the folders
   // snap instead of step aside.
@@ -2271,9 +2609,16 @@ export function TaskListCard({
   // is lifted out where it is and put back against the target's edge. A
   // band-shaped arrangement gives up when the target is in another band, so a
   // drag across two priorities shows nothing while the pointer is down.
+  //
+  // The rows the queue cannot move go to the end of that run, where both hosts
+  // draw them (Downloads sorts finished and failed rows last, the collector
+  // holds none). Left in place, a finished file would keep its folder where it
+  // was, and the preview would show another order than the one the server
+  // then sends.
   const liveView = useMemo(() => {
     if (!rowDrag || !dragOver) return view;
-    const flat = view.flatMap(([, items]) => items);
+    const drawn = view.flatMap(([, items]) => items);
+    const flat = [...drawn.filter(movable), ...drawn.filter((x) => !movable(x))];
     // The movable ids of each unit, which is what the drop moves too: a
     // finished link inside a folder is not in the wait queue, so it is not part
     // of the block that travels and the preview must not pretend it is.
@@ -2343,7 +2688,7 @@ export function TaskListCard({
 
   // The rows a move is carrying, as the keys the two row components ask about.
   // A folder's own links are in it as well as its header: they travel with it,
-  // so they dim with it, even though nobody named them one by one.
+  // so they lift with it, even though nobody named them one by one.
   const movingRows = new Set<string>();
   if (rowDrag) {
     for (const u of rowDrag) {
@@ -2353,20 +2698,25 @@ export function TaskListCard({
   }
 
   const dnd: RowDnD = {
-    moving: (unit) => movingRows.has(rowKey(unit)),
+    // Every drawn row takes SHIFT for the whole move, including the ones that
+    // are not in the way yet: the transition has to be on a row before its
+    // offset changes, or its first step aside is a jump. It reads the motion
+    // level's duration and curve, none at "off".
+    look: (unit) => {
+      const key = rowKey(unit);
+      if (rowDrag) return movingRows.has(key) ? LIFT : SHIFT;
+      if (settle) return settle.has(key) ? SETTLE : SHIFT;
+      return '';
+    },
     press: pressRow,
-    // Every row gets one of these, including the ones that are not moving: the
-    // transition has to be on a row before its offset changes, or its first
-    // step aside is a jump. The whole style disappears when the move ends,
-    // which puts the list back in one frame with no animation, since what lands
-    // after a drop is the server's own order.
+    // The carried rows are left out: placeCarried draws them under the pointer.
     //
     // No will-change: it would buy layers for several hundred rows that never
-    // move, and a transform transition is composited without being told.
+    // move, and a translate transition is composited without being told.
     slide: (unit) => {
-      const dy = rowOffsets.get(rowKey(unit));
-      if (dy === undefined) return NO_SLIDE;
-      return { transform: `translateY(${dy}px)`, transition: 'transform 180ms ease' };
+      const key = rowKey(unit);
+      const dy = movingRows.has(key) ? undefined : rowOffsets.get(key);
+      return dy === undefined ? NO_SLIDE : { translate: `0px ${dy}px` };
     },
   };
 
@@ -2611,10 +2961,15 @@ export function TaskListCard({
                   Neither probe carries data attributes, for the reason the
                   spacers do not: measureRows averages every [data-row-key] it
                   finds into the height estimate, and a 1px row in that average
-                  drags the whole list's scrollbar toward zero. */}
+                  drags the whole list's scrollbar toward zero.
+
+                  overflow-x-clip keeps the lift's scale from growing a
+                  horizontal scrollbar on a table exactly as wide as its card,
+                  and the callout rule keeps iOS from answering a long press
+                  on a row's link or icon. */}
               <div
                 ref={stripRef}
-                className="relative"
+                className="relative overflow-x-clip [-webkit-touch-callout:none]"
                 role="tree"
                 aria-multiselectable="true"
                 aria-label={title}
@@ -2638,8 +2993,11 @@ export function TaskListCard({
                 onPointerCancel={(e) => {
                   if (gesture.current?.pointerId === e.pointerId) abortGesture();
                 }}
+                // Only the strip's own capture: a finger's row loses its
+                // implicit capture to the strip when a hold arms, and that
+                // event bubbles here too.
                 onLostPointerCapture={(e) => {
-                  if (gesture.current?.pointerId === e.pointerId) abortGesture();
+                  if (e.target === e.currentTarget && gesture.current?.pointerId === e.pointerId) abortGesture();
                 }}
                 // No native drag may start inside this list any more. Nothing
                 // here sets `draggable`, but an <img> is draggable by default and

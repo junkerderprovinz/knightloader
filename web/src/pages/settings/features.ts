@@ -23,6 +23,9 @@ export interface Feature {
   parked: boolean;
   /** Why the verdict is what it is, or why there is no switch. English, from the server. */
   reason?: string;
+  /** `reason` as a value the interface words itself (moduleReason in tx.ts), with the values it needs. */
+  reasonCode?: string;
+  reasonArgs?: Record<string, string>;
   /** One line of live state: a folder, a port, a count. English, from the server. */
   detail?: string;
   /** `detail` as a value the interface words itself (moduleDetail in tx.ts), with the values it needs. */

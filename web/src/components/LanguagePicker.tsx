@@ -66,7 +66,7 @@ export function LanguagePicker({
         {...tipHoverProps}
       >
         <Flag code={current.flag} />
-        <span className="flex-1 text-left">{current.label}</span>
+        <span className="flex-1 text-start">{current.label}</span>
       </button>
       {tip.node}
 
@@ -74,7 +74,7 @@ export function LanguagePicker({
         <div
           role="listbox"
           aria-label={t('lang.label')}
-          className={`glim-card absolute left-0 z-50 max-h-72 w-52 overflow-y-auto p-1 ${
+          className={`glim-card absolute start-0 z-50 max-h-72 w-52 overflow-y-auto p-1 ${
             direction === 'up' ? 'bottom-full mb-2' : 'top-full mt-2'
           }`}
         >
@@ -87,7 +87,7 @@ export function LanguagePicker({
                 setLang(l.code);
                 setOpen(false);
               }}
-              className={`flex w-full items-center gap-2.5 rounded-[var(--radius-control)] px-2.5 py-1.5 text-left text-sm transition-colors ${
+              className={`flex w-full items-center gap-2.5 rounded-[var(--radius-control)] px-2.5 py-1.5 text-start text-sm transition-colors ${
                 l.code === lang
                   ? 'bg-carbon-surface2 text-carbon-text'
                   : 'text-carbon-textSub hover:bg-carbon-hover hover:text-carbon-text'

@@ -85,7 +85,7 @@ func (a *App) SetQuiet(on bool) {
 	// At is pure and nothing changes between boundaries, so asking again gives
 	// the runner's last answer without keeping a copy that could go stale.
 	// st.Quiet is not read: a window wins at boundaries, not at a press.
-	st := schedule.Compile(cfg.Schedule).At(now, schedule.State{
+	st := a.sched.Suspension().At(schedule.Compile(cfg.Schedule), now, schedule.State{
 		Paused: a.manualHalt,
 		Limit:  cfg.SpeedLimit,
 		Quiet:  on,

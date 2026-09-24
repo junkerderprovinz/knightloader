@@ -50,11 +50,15 @@ jobs:
               - '.github/workflows/ci.yml'
             # The build bakes app.json's version into web/dist, and
             # check-version-sources.mjs reads the other three.
+            # check-module-lines.mjs reads the module codes from the two
+            # routes files.
             web:
               - 'web/**'
               - 'mobile/app.json'
               - '.github/workflows/release-mobile.yml'
               - 'internal/api/routes_browsertools.go'
+              - 'internal/api/routes_features.go'
+              - 'internal/api/routes_health.go'
               - '.github/workflows/ci.yml'
             # The crypto window's list is held to the web UI's.
             extension:
@@ -263,6 +267,12 @@ jobs:
 
       - name: Donation addresses
         run: node check-donate-addresses.mjs
+
+      - name: Every module line has words in the interface
+        run: node check-module-lines.mjs
+
+      - name: The settings autosave keeps what is being typed
+        run: node check-settings-autosave.mjs
 
       - name: Build UI
         run: npm run build

@@ -18,6 +18,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/collide"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/engine"
+	"github.com/junkerderprovinz/knightloader/internal/hostalias"
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
@@ -87,7 +88,7 @@ func dynamicPrio(res resolver.Resolver, url string, order []string) int {
 		// or through a debrid service that carries the host too. The login's
 		// row wins over JD's own, which ranks JD for every other host.
 		if host := jd.LoginHost(url); host != "" {
-			if i := slices.Index(order, loginRowID(host)); i >= 0 {
+			if i := slices.IndexFunc(order, func(entry string) bool { return loginRowFor(entry, host) }); i >= 0 {
 				return orderBase - i
 			}
 		}
@@ -112,6 +113,14 @@ func dynamicPrio(res resolver.Resolver, url string, order []string) int {
 
 // loginRowID is the order entry for one host's hoster login.
 func loginRowID(host string) string { return "login:" + host }
+
+// loginRowFor reports whether an order entry is the login row for host, given
+// by its main domain. A login saved under an alias such as rg.to has its row
+// under that alias.
+func loginRowFor(entry, host string) bool {
+	saved, ok := strings.CutPrefix(entry, "login:")
+	return ok && hostalias.Canonical(saved) == host
+}
 
 // orderBase is the priority of the first entry in a hand-arranged order; each
 // following entry gets one less. It is far above the automatic band (JD's

@@ -159,6 +159,31 @@ func TestFileHosterMatchesTheHostsJDIsLiftedFor(t *testing.T) {
 	}
 }
 
+// JD lists a hoster by its main domain, and a link to one of its alias domains
+// is the same hoster.
+func TestAnAliasDomainCountsAsItsHoster(t *testing.T) {
+	t.Cleanup(func() { SetKnownHosts(nil); SetFileHosts(nil); SetHostActive("ddownload.com", false) })
+	SetKnownHosts([]string{"rapidgator.net", "ddownload.com"})
+	SetFileHosts(map[string]bool{"rapidgator.net": true, "ddownload.com": true})
+
+	for _, host := range []string{"rg.to", "www.rg.to", "RG.TO"} {
+		if !FileHoster(host) {
+			t.Errorf("FileHoster(%q) = false, want true for an alias of rapidgator.net", host)
+		}
+	}
+	if got := PriorityFor("https://rg.to/file/abc"); got != knownHostPrio {
+		t.Errorf("PriorityFor(rg.to) = %d, want %d as for rapidgator.net", got, knownHostPrio)
+	}
+
+	SetHostActive("ddownload.com", true)
+	if got := PriorityFor("https://ddl.to/abc123/movie.mkv"); got != ActiveLoginPrio {
+		t.Errorf("PriorityFor(ddl.to) = %d, want %d with a login for ddownload.com", got, ActiveLoginPrio)
+	}
+	if got := LoginHost("https://ddl.to/abc123/movie.mkv"); got != "ddownload.com" {
+		t.Errorf("LoginHost(ddl.to) = %q, want ddownload.com", got)
+	}
+}
+
 // Without a debrid account or TorBox key nothing classifies hosts, and JD is
 // the only way to fetch from a hoster.
 func TestNoClassificationKeepsTheKnownHostBoost(t *testing.T) {

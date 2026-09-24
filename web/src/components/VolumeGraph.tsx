@@ -70,8 +70,11 @@ export function VolumeGraph({
 
   return (
     <div className="flex flex-col gap-3">
-      {/* The top of the scale; the foot is zero. Printed in every state. */}
-      <span className="glim-num self-end text-[11px] leading-none text-carbon-textMuted">{fmtGB(peak)}</span>
+      {/* The top of the scale; the foot is zero. Printed in every state, and
+          left to right so a right-to-left page does not put the unit first. */}
+      <span dir="ltr" className="glim-num self-end text-[11px] leading-none text-carbon-textMuted">
+        {fmtGB(peak)}
+      </span>
       <svg
         viewBox={`0 0 ${W} ${H}`}
         className="block h-auto w-full"

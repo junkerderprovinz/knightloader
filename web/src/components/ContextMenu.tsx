@@ -147,6 +147,7 @@ function Panel({
   groups,
   label,
   minWidth,
+  holdFocus = false,
   onClose,
   onDismiss,
   onPointerIn,
@@ -156,6 +157,7 @@ function Panel({
   groups: MenuGroup[];
   label: string;
   minWidth?: number;
+  holdFocus?: boolean;
   /** Closes the whole menu. */
   onClose: () => void;
   /** Closes only this submenu and hands focus back. */
@@ -241,7 +243,7 @@ function Panel({
   // Once per open, so the arrow keys work at once; re-running on a changed
   // firstEnabled would pull focus back to the top mid-navigation.
   useEffect(() => {
-    itemRefs.current[firstEnabled]?.focus();
+    if (!holdFocus) itemRefs.current[firstEnabled]?.focus();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   function step(from: number, delta: number): void {
@@ -426,6 +428,7 @@ export function ContextMenu({
   groups,
   label,
   minWidth,
+  holdFocus,
   onClose,
 }: {
   anchor: MenuAnchor;
@@ -434,6 +437,12 @@ export function ContextMenu({
   label: string;
   /** A dropdown's menu is at least as wide as the field it opens from. */
   minWidth?: number;
+  /**
+   * Leaves the focus in the field that opened the menu, for a list that
+   * narrows as somebody types there. The arrow keys reach it by opening it
+   * again without this.
+   */
+  holdFocus?: boolean;
   onClose: () => void;
 }) {
   const panels = useRef(new Set<HTMLElement>());
@@ -483,7 +492,14 @@ export function ContextMenu({
 
   return (
     <PanelsCtx.Provider value={panels}>
-      <Panel spot={{ x: anchor.x, y: anchor.y }} groups={groups} label={label} minWidth={minWidth} onClose={onClose} />
+      <Panel
+        spot={{ x: anchor.x, y: anchor.y }}
+        groups={groups}
+        label={label}
+        minWidth={minWidth}
+        holdFocus={holdFocus}
+        onClose={onClose}
+      />
     </PanelsCtx.Provider>
   );
 }

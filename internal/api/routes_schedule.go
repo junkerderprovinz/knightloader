@@ -3,7 +3,10 @@ package api
 // The timetable, as the interface reads it and as it saves it.
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/schedule"
@@ -49,6 +52,65 @@ func registerSchedule(reg *Registry, a *app.App) {
 			}
 			writeJSON(w, a.ScheduleState())
 		})
+
+	// A route of its own rather than a field of the PUT above, so a table saved
+	// from a second browser can neither end a suspension nor start one.
+	reg.Add(http.MethodPut, "/api/schedule/suspend",
+		"set the whole timetable aside for some minutes, until a given moment or until it is lifted, leaving the rows as they are",
+		func(w http.ResponseWriter, r *http.Request) {
+			var body struct {
+				Minutes int        `json:"minutes"`
+				Until   *time.Time `json:"until"`
+			}
+			if !decodeJSON(w, r, &body) {
+				return
+			}
+			until, err := suspendEnd(time.Now(), body.Minutes, body.Until)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+			if err := a.SuspendSchedule(until); err != nil {
+				status := http.StatusInternalServerError
+				if errors.Is(err, app.ErrSuspendEnded) {
+					status = http.StatusBadRequest
+				}
+				http.Error(w, err.Error(), status)
+				return
+			}
+			writeJSON(w, a.ScheduleState())
+		})
+
+	reg.Add(http.MethodDelete, "/api/schedule/suspend", "let the timetable apply again at once",
+		func(w http.ResponseWriter, r *http.Request) {
+			if err := a.ResumeSchedule(); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			writeJSON(w, a.ScheduleState())
+		})
+}
+
+// maxSuspendMinutes bounds a suspension given as a length. A month is far past
+// any "for a while", and an open end says "until I lift it" plainly.
+const maxSuspendMinutes = 31 * 24 * 60
+
+// suspendEnd turns a request into the moment the timetable applies again: a
+// length from the server's own clock, so a browser whose clock is off cannot
+// shorten it, or an instant the browser chose, such as its own midnight.
+// Neither is an open end, the zero time.
+func suspendEnd(now time.Time, minutes int, until *time.Time) (time.Time, error) {
+	switch {
+	case minutes != 0 && until != nil:
+		return time.Time{}, errors.New("give minutes or until, not both")
+	case minutes < 0 || minutes > maxSuspendMinutes:
+		return time.Time{}, fmt.Errorf("minutes has to be between 1 and %d", maxSuspendMinutes)
+	case minutes > 0:
+		return now.Add(time.Duration(minutes) * time.Minute), nil
+	case until != nil:
+		return *until, nil
+	}
+	return time.Time{}, nil
 }
 
 // scheduleRowError is one row a save refused, by 1-based position, with

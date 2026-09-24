@@ -6,6 +6,7 @@ import { IconClose } from '../lib/icons';
 import { readUIState, useUIState } from '../lib/uistate';
 import { Button, Field, LoadingCard, Modal } from './ui';
 import { PathInput } from './FolderPicker';
+import { refusalText } from '../pages/settings/tx';
 import { LanguagePicker } from './LanguagePicker';
 
 const STEPS = ['welcome', 'folder', 'accounts', 'finished'] as const;
@@ -28,6 +29,7 @@ export function OnboardingWizard() {
   // Fetched up front so the folder step does not open on a loading state.
   const [settings, setSettings] = useState<Settings | null>(null);
   const [downloadDir, setDownloadDir] = useState('');
+  const [folderError, setFolderError] = useState<string | undefined>();
 
   useEffect(() => {
     let live = true;
@@ -65,6 +67,27 @@ export function OnboardingWizard() {
     setDone(true);
   }
 
+  /**
+   * saveFolder stores the folder on the way past its step, so a refusal shows
+   * beside the field instead of being lost when the tour closes.
+   */
+  async function saveFolder(): Promise<boolean> {
+    const dir = downloadDir.trim();
+    if (!settings || dir === '' || dir === settings.downloadDir) return true;
+    try {
+      setSettings(await patchSettings({ downloadDir: dir }));
+      return true;
+    } catch (e) {
+      setFolderError(refusalText(t, e));
+      return false;
+    }
+  }
+
+  async function next() {
+    if (step === 'folder' && !(await saveFolder())) return;
+    setStepIndex((i) => i + 1);
+  }
+
   function openAccounts() {
     close();
     navigate('/accounts');
@@ -94,7 +117,7 @@ export function OnboardingWizard() {
               {t('onboarding.back')}
             </Button>
           )}
-          <Button kind="primary" onClick={last ? close : () => setStepIndex((i) => i + 1)}>
+          <Button kind="primary" onClick={last ? close : () => void next()}>
             {last ? t('onboarding.finish') : t('onboarding.next')}
           </Button>
         </>
@@ -132,7 +155,15 @@ export function OnboardingWizard() {
             <p className="text-sm text-carbon-textSub">{t('onboarding.folder.body')}</p>
             {settings ? (
               <Field label={t('settings.downloadDir')} hint={t('settings.downloadDirHint')}>
-                <PathInput value={downloadDir} placeholder="/downloads" onValue={setDownloadDir} />
+                <PathInput
+                  value={downloadDir}
+                  placeholder="/downloads"
+                  onValue={(dir) => {
+                    setDownloadDir(dir);
+                    setFolderError(undefined);
+                  }}
+                  error={folderError}
+                />
               </Field>
             ) : (
               <LoadingCard nested label={t('common.loading')} />
